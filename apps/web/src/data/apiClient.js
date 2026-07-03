@@ -40,8 +40,12 @@ const DEFAULT_REPORT_PERMISSION_REF = "ui_sf_b_w08_report_builder";
 const DEFAULT_REPORT_AUDIT_HINT_REF = "ui_sf_b_w08_report_builder_probe";
 const DEFAULT_PROFILE_PERMISSION_REF = "ui_profile_me";
 const DEFAULT_PROFILE_AUDIT_HINT_REF = "ui_profile_me_probe";
+const ENGAGEMENT_SIGNED_PDF_BYTES_BASE64 = "JVBERi0xLjQKTGF3IEZpcm0gT1Mgc2lnbmVkIGVuZ2FnZW1lbnQgYnJvd3NlciBwcm9vZgolJUVPRgo=";
+const ENGAGEMENT_SIGNED_PDF_SHA256 = "fcd3cf8ecefd324d0ef0772f3a86057241458e797a5d5373712041d3933b96ba";
+const ENGAGEMENT_SIGNED_PDF_BYTE_SIZE = 59;
 export const LAWOS_SESSION_ENVELOPE_STORAGE_KEY = "lawos.session.envelope";
 export const LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION = "law-firm-os.desktop-web-session-envelope.v0.1";
+export const LAWOS_API_SESSION_STORAGE_KEY = "lawos.api.session";
 export {
   advanceExecutionRun,
   createApprovalRequest,
@@ -133,8 +137,134 @@ function apiRequestUrl(input) {
   return baseUrl ? `${baseUrl}${input}` : input;
 }
 
-function apiFetch(input, init) {
-  return fetch(apiRequestUrl(input), init);
+function sessionStorageFor(source = globalThis) {
+  try {
+    return source?.sessionStorage ?? globalThis.sessionStorage ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function plainHeaders(headers = {}) {
+  if (typeof Headers !== "undefined" && headers instanceof Headers) {
+    const result = {};
+    headers.forEach((value, key) => {
+      result[key] = value;
+    });
+    return result;
+  }
+  if (Array.isArray(headers)) return Object.fromEntries(headers);
+  return { ...(headers ?? {}) };
+}
+
+function setHeader(headers, name, value) {
+  const existing = Object.keys(headers).find((key) => key.toLowerCase() === name.toLowerCase());
+  headers[existing ?? name] = value;
+}
+
+function deleteHeader(headers, name) {
+  for (const key of Object.keys(headers)) {
+    if (key.toLowerCase() === name.toLowerCase()) delete headers[key];
+  }
+}
+
+export function readLawosApiSession(source = globalThis) {
+  const storage = sessionStorageFor(source);
+  if (!storage) return null;
+  try {
+    const parsed = JSON.parse(storage.getItem(LAWOS_API_SESSION_STORAGE_KEY) ?? "null");
+    const token = typeof parsed?.session_token === "string" ? parsed.session_token : "";
+    const expiresAt = typeof parsed?.expires_at === "string" ? parsed.expires_at : null;
+    const expiresAtMs = expiresAt ? Date.parse(expiresAt) : Number.NaN;
+    if (!token.startsWith("lawos_session_v1.")) return null;
+    if (Number.isFinite(expiresAtMs) && expiresAtMs <= Date.now()) {
+      storage.removeItem(LAWOS_API_SESSION_STORAGE_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeSessionEnvelopeFromApiSession(body, source = globalThis) {
+  const storage = sessionStorageFor(source);
+  const session = body?.session;
+  if (!storage || !session?.user_id || !session?.tenant_id) return;
+  const envelope = {
+    schema_version: LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION,
+    state: "signed_in",
+    session_ref: session.session_id ?? `api:${session.user_id}`,
+    source: "api_signed_session",
+    actor_ref: session.user_id,
+    tenant_refs: {
+      default: session.tenant_id,
+      client: session.tenant_id,
+      matter: session.tenant_id,
+      vault: session.tenant_id,
+      crm: session.tenant_id,
+      hrx: session.tenant_id
+    },
+    role_ids: Array.isArray(session.role_ids) ? session.role_ids : [],
+    scopes: [...(Array.isArray(session.scopes) ? session.scopes : []), ...(Array.isArray(session.hrx_scopes) ? session.hrx_scopes : [])],
+    review_state: "allow",
+    expires_at: body.expires_at ?? session.expires_at ?? null
+  };
+  storage.setItem(LAWOS_SESSION_ENVELOPE_STORAGE_KEY, JSON.stringify(envelope));
+}
+
+function writeLawosApiSession(body, source = globalThis) {
+  const storage = sessionStorageFor(source);
+  const token = typeof body?.session_token === "string" ? body.session_token : "";
+  if (!storage || !token.startsWith("lawos_session_v1.")) return false;
+  storage.setItem(LAWOS_API_SESSION_STORAGE_KEY, JSON.stringify({
+    token_type: body.token_type ?? "Bearer",
+    session_token: token,
+    expires_at: body.expires_at ?? null,
+    session: body.session ?? null
+  }));
+  writeSessionEnvelopeFromApiSession(body, source);
+  return true;
+}
+
+export async function loginLawosApiSession({ email, password } = {}, { source = globalThis } = {}) {
+  let response;
+  let body;
+  try {
+    response = await fetch(apiRequestUrl("/api/auth/login"), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+    body = await response.json();
+  } catch {
+    return { ok: false, status: 0, body: { reason: "network_or_parse_error" } };
+  }
+  const stored = response.ok ? writeLawosApiSession(body, source) : false;
+  return { ok: response.ok && stored, status: response.status, body };
+}
+
+function sessionAuthorizedHeaders(headers = {}) {
+  const requestHeaders = plainHeaders(headers);
+  for (const name of [
+    PERMISSION_CONTEXT_HEADER,
+    "x-lawos-tenant-id",
+    "x-lawos-actor-id",
+    "x-lawos-actor-role",
+    "x-lawos-hrx-scopes"
+  ]) {
+    deleteHeader(requestHeaders, name);
+  }
+  const session = readLawosApiSession();
+  if (session?.session_token) setHeader(requestHeaders, "authorization", `Bearer ${session.session_token}`);
+  return requestHeaders;
+}
+
+function apiFetch(input, init = {}) {
+  return fetch(apiRequestUrl(input), {
+    ...init,
+    headers: sessionAuthorizedHeaders(init.headers)
+  });
 }
 
 const PRINCIPAL = {
@@ -2849,6 +2979,97 @@ export async function fetchVaultUploadPreflight({
   };
 }
 
+function vaultUploadIdSegment(value) {
+  return String(value ?? "document")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 48) || "document";
+}
+
+export async function uploadVaultDocumentFile({
+  file,
+  selectedMatter = null,
+  title = "",
+  ctx = "allow",
+  permissionRef = DEFAULT_VAULT_PERMISSION_REF,
+  auditHintRef = DEFAULT_VAULT_AUDIT_HINT_REF
+} = {}) {
+  if (!file) return { kind: "error" };
+  const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
+  const fileName = file.name || "uploaded-document";
+  const baseId = `${Date.now()}_${vaultUploadIdSegment(fileName)}`;
+  const documentId = `doc_ui_upload_${baseId}`;
+  const form = new FormData();
+  const document = {
+    document_id: documentId,
+    tenant_id: VAULT_TENANT_ID,
+    matter_id: selectedMatter?.matter_id ?? "matter_rp05_synthetic_opening",
+    workspace_id: selectedMatter?.workspace_id ?? "workspace_rp07_synthetic",
+    title: title.trim() || fileName,
+    status: "active",
+    current_version_id: `version_${documentId}_1`,
+    permission_envelope_id: "perm_rp07_vault",
+    audit_trace_id: "audit_rp07_vault",
+    mime_type: file.type || "application/octet-stream"
+  };
+  form.set("tenant_id", VAULT_TENANT_ID);
+  form.set("permission_ref", permissionRef);
+  form.set("audit_hint_ref", auditHintRef);
+  form.set("idempotency_key", `ui-vault-upload:${documentId}`);
+  form.set("matter_id", document.matter_id);
+  form.set("workspace_id", document.workspace_id);
+  form.set("title", document.title);
+  form.set("mime_type", document.mime_type);
+  form.set("document", JSON.stringify(document));
+  form.set("file", file, fileName);
+
+  let response;
+  let body;
+  try {
+    response = await apiFetch("/api/vault/documents/upload", {
+      method: "POST",
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) },
+      body: form
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+
+  if (!body || typeof body !== "object" || Array.isArray(body)) return { kind: "error" };
+  if (!response.ok) {
+    return {
+      kind: "guarded",
+      status: response.status,
+      requestId: body.request_id ?? null,
+      outcome: body.outcome ?? "blocked",
+      uiState: body.ui_state ?? "blocked",
+      safeErrorCodes: body.safe_error_codes ?? [],
+      auditHintRef: body.audit_hint_ref ?? null,
+      productionReadyClaim: body.production_ready_claim === true
+    };
+  }
+  if (!body.item || !body.file_object) return { kind: "error" };
+  return {
+    kind: "data",
+    requestId: body.request_id,
+    outcome: body.outcome,
+    item: body.item,
+    version: body.version ?? null,
+    fileObject: body.file_object,
+    uploadFile: body.upload_file ?? null,
+    sha256: body.file_object.sha256 ?? null,
+    byteSize: body.file_object.byte_size ?? null,
+    mimeType: body.file_object.mime_type ?? document.mime_type,
+    storagePointerRefIncluded: body.file_object.storage_pointer_ref_included === true,
+    documentBytesIncluded: body.item.document_bytes_included === true,
+    auditHintRef: body.audit_hint_ref ?? null,
+    safeErrorCodes: body.safe_error_codes ?? [],
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
 async function fetchMatterVaultCollection({
   path,
   matterId,
@@ -3612,8 +3833,9 @@ export function approveIntakeEngagement({ intakeRequest, ctx = "allow" } = {}) {
           signed_document_id: signedDocumentId,
           template_document_id: templateDocumentId,
           signature_ref: signatureRef,
-          content_sha256: `sha256:${signedDocumentId}`,
-          byte_size: 2048,
+          content_sha256: ENGAGEMENT_SIGNED_PDF_SHA256,
+          bytes_base64: ENGAGEMENT_SIGNED_PDF_BYTES_BASE64,
+          byte_size: ENGAGEMENT_SIGNED_PDF_BYTE_SIZE,
           mime_type: "application/pdf",
           upload_state: "uploaded",
           lx_registry_ref: "LX-06",

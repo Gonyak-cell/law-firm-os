@@ -369,7 +369,9 @@
     "lcx:full:pr08:validate": "npm run lcx:full:release-preflight-proof && npm run lcx:full:owner-decision-packet && npm run lcx:full:final-release-packet:validate && npm run lcx:full:no-premature-claim:validate",
     "rp23:external-integrations-ii:validate": "node scripts/validate-rp23-external-integrations-ii-contract.mjs",
     "rp24:korean-legal-depth:validate": "node scripts/validate-rp24-korean-legal-depth-contract.mjs",
-    "rp25:migration-platform:validate": "node scripts/validate-rp25-migration-platform-contract.mjs"
+    "rp25:migration-platform:validate": "node scripts/validate-rp25-migration-platform-contract.mjs",
+    "upl:b13:popbill:sandbox": "node scripts/run-upl-b13-tax-invoice-sandbox-proof.mjs",
+    "upl:b13:popbill:validate": "node scripts/validate-upl-b13-tax-invoice-sandbox.mjs"
   },
   "workspaces": [
     "apps/*",
@@ -377,5 +379,8 @@
   ],
   "devDependencies": {
     "playwright": "^1.60.0"
+  },
+  "dependencies": {
+    "popbill": "^1.64.2"
   }
 }

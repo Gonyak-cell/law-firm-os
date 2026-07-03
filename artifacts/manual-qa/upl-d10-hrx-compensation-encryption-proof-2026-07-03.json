@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-03T08:16:31.135Z",
+  "verdict": "PASS",
+  "objective": "UPL-D-10 compensation amount real encryption boundary, signed-session step-up decrypt, masked visible refs, and no secret/raw amount leakage in receipts.",
+  "api_base_url": "http://127.0.0.1:52468",
+  "tenant_id": "tenant_amic_matter_vault",
+  "actor_id": "user_amic_jwsuh",
+  "employee_id": "emp_amic_ytkim",
+  "compensation_id": "comp-001",
+  "visible": {
+    "status": 200,
+    "masked_ref_prefix": "compensation_ref_hash",
+    "masked_ref_hash": "7e6af73a5a372714640c1743d21cb822520af8b8163b3abec03c2c086b5013d1",
+    "encrypted_amount_ref_included": false,
+    "raw_amount_included": false,
+    "contract_document_ref": "DMS:employment-contract-003"
+  },
+  "decrypt": {
+    "missing_step_up_status": 403,
+    "missing_step_up_safe_error_code": "HRX_STEP_UP_REQUIRED",
+    "status": 200,
+    "decrypted_amount_hash": "237320d509717dc3f0d6bdcd5e8dc8f88f8fd94b06c728c1aaf94118ed34af38",
+    "currency_ref": "Currency:KRW",
+    "raw_amount_included_in_authorized_response": true,
+    "encrypted_amount_ref_included": false
+  },
+  "audit": {
+    "event_id": "hrx_api_evt_71af02e2-1899-4e15-9a09-9e1f99554e0e",
+    "event_hash": "5e5a614b431659e13f137920564d41c1fc3de4f6d6c42404c267e4a01f3515d1",
+    "action": "hrx.compensation.decrypt",
+    "object_id": "comp-001",
+    "amount_minor_included": false,
+    "encrypted_amount_ref_included": false,
+    "key_ref_hash": "ccf55556f500457a6a03102ffc0b83dc105bbf11a1f4b11cf16c5dab283673a3"
+  },
+  "leak_checks": {
+    "authorization_header_written": false,
+    "session_token_written": false,
+    "step_up_token_written": false,
+    "raw_compensation_amount_written": false,
+    "encryption_envelope_written": false,
+    "legacy_local_kms_ref_written": false
+  },
+  "commands": [
+    "node --test packages/hrx/test/compensation.test.js",
+    "node --test apps/api/test/hrx/compensation-encryption.test.js",
+    "node scripts/run-upl-d10-hrx-compensation-encryption-proof.mjs"
+  ]
+}

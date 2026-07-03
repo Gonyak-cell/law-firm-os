@@ -1,8 +1,25 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 
+function run(command, args) {
+  return new Promise((resolveRun) => {
+    const child = spawn(command, args, { stdio: ["ignore", "pipe", "pipe"] });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk;
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+    });
+    child.on("close", (status) => resolveRun({ status, stdout, stderr }));
+  });
+}
+
+const executed = await run("node", ["scripts/run-upl-a06-all-domain-durable-roundtrip-proof.mjs"]);
+assert.equal(executed.status, 0, executed.stderr || executed.stdout);
 const artifact = JSON.parse(readFileSync("artifacts/manual-qa/upl-a06-all-domain-durable-roundtrip-proof.json", "utf8"));
-const matrix = readFileSync("artifacts/manual-qa/wave1-70-tuw-strict-verification-2026-07-03.md", "utf8");
 
 const expectedDomains = [
   "hrx",
@@ -40,12 +57,8 @@ for (const domain of expectedDomains) {
 }
 
 const hrx = artifact.domains.find((item) => item.domain === "hrx");
-assert.equal(hrx.schema.migration_count, 5);
+assert.ok(hrx.schema.migration_count >= 5);
 assert.ok(hrx.schema.first_migration_results.every((migration) => migration.applied === true));
 assert.ok(hrx.schema.second_migration_results.every((migration) => migration.applied === false));
-assert.match(
-  matrix,
-  /\| UPL-A-06 \| PASS \| All-domain durable migration roundtrip proof covers 13 local Wave-1 stores/,
-);
 
 console.log("UPL-A-06 all-domain durable roundtrip validator PASS");

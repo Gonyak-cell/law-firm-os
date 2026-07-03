@@ -1,0 +1,68 @@
+{
+  "schema_version": "lawos.wave1.upl-c09.outlook-external-receipt.v1",
+  "row_id": "UPL-C-09",
+  "receipt_kind": "operator_sanitized_external_receipt",
+  "generated_at": "REPLACE_WITH_ISO_TIMESTAMP",
+  "environment": {
+    "mailbox_tier": "qa",
+    "qa_mailbox_used": false,
+    "production_write_claim": false
+  },
+  "entra": {
+    "tenant_ref": "",
+    "app_registration_ref": "",
+    "admin_consent_receipt_ref": "",
+    "admin_consent_granted": false
+  },
+  "outlook_web": {
+    "taskpane_loaded": false,
+    "login_completed": false,
+    "smoke_receipt_ref": ""
+  },
+  "outlook_new_desktop": {
+    "taskpane_loaded": false,
+    "login_completed": false,
+    "smoke_receipt_ref": ""
+  },
+  "graph_provider": {
+    "provider": "microsoft-graph",
+    "runtime_executed": false,
+    "provider_request_id": "",
+    "provider_request_id_hash": "",
+    "response_hash": "",
+    "token_material_returned": false,
+    "response_body_material_written": false
+  },
+  "feature_results": {
+    "email_file": {
+      "executed": false,
+      "provider_request_id": "",
+      "response_hash": ""
+    },
+    "attachment_save": {
+      "executed": false,
+      "provider_request_id": "",
+      "response_hash": ""
+    },
+    "sent_mail_task": {
+      "executed": false,
+      "provider_request_id": "",
+      "response_hash": ""
+    },
+    "smart_alert_warning_only": {
+      "executed": false,
+      "provider_request_id": "",
+      "response_hash": "",
+      "warning_only": false,
+      "allow_event": false,
+      "send_blocked": true
+    }
+  },
+  "safety": {
+    "email_body_material_written": false,
+    "attachment_byte_material_written": false,
+    "client_credential_material_written": false,
+    "token_material_written": false,
+    "production_write_claim": false
+  }
+}

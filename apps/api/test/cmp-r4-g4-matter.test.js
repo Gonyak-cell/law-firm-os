@@ -5,11 +5,13 @@ import { join } from "node:path";
 import test from "node:test";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { createDefaultHrxRuntime, startApiServer } from "../src/server.js";
+import { apiSessionHeaders } from "./helpers/session.js";
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
 import { createMatterRepository } from "../../../packages/matter/src/index.js";
-import { createOnboardingPlan } from "../../../packages/hrx/src/onboarding.js";
+import { createOnboardingPlan, updateOnboardingTask } from "../../../packages/hrx/src/onboarding.js";
 
 const TENANT = "tenant_rp05_synthetic";
+const AUTH_ACTOR_ID = "user_amic_jwsuh";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_rp05_read&audit_hint_ref=audit_hint_rp05_read`;
 
 function permissionContext(effect = "allow") {
@@ -20,13 +22,11 @@ function permissionContext(effect = "allow") {
   });
 }
 
-function hrxHeaders(tenantId = TENANT) {
-  return {
-    "x-lawos-tenant-id": tenantId,
-    "x-lawos-actor-id": "user_rp05_owner",
-    "x-lawos-actor-role": "people_ops,hr_admin",
-    "x-lawos-hrx-scopes": "hrx.employee.read,hrx.employee.write,hrx.lifecycle.read,hrx.lifecycle.write",
-  };
+const sessionHeaderCache = new Map();
+
+async function signedHeaders(baseUrl) {
+  if (!sessionHeaderCache.has(baseUrl)) sessionHeaderCache.set(baseUrl, await apiSessionHeaders(baseUrl));
+  return sessionHeaderCache.get(baseUrl);
 }
 
 async function withServer(callback, options = {}) {
@@ -40,9 +40,12 @@ async function withServer(callback, options = {}) {
 
 async function json(baseUrl, path, options = {}) {
   const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
+    ...(options.noAuth ? {} : await signedHeaders(baseUrl)),
     ...(options.headers ?? {}),
   };
+  for (const [key, value] of Object.entries(headers)) {
+    if (value === undefined) delete headers[key];
+  }
   if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
   const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
   const body = await response.json();
@@ -133,7 +136,7 @@ function recentlyViewedPayload(overrides = {}) {
     tenant_id: TENANT,
     permission_ref: "perm_ref_rp05_recent",
     audit_hint_ref: "audit_hint_rp05_recent",
-    actor_id: "user_rp05_owner",
+    actor_id: AUTH_ACTOR_ID,
     viewed_at: "2026-06-20T13:00:00.000Z",
     ...overrides,
   };
@@ -144,7 +147,7 @@ function listViewPayload(overrides = {}) {
     tenant_id: TENANT,
     permission_ref: "perm_ref_rp05_list_view",
     audit_hint_ref: "audit_hint_rp05_list_view",
-    actor_id: "user_rp05_owner",
+    actor_id: AUTH_ACTOR_ID,
     list_view_id: "matter_view_api_opening",
     label: "Opening matters",
     filter: { status: "opening" },
@@ -248,21 +251,21 @@ test("G4 Matter list is repository-backed, permission-trimmed, and count-leak sa
   });
 });
 
-test("G4 Matter permission gate fails closed and routes review-required without leaking rows", async () => {
+test("G4 Matter auth gate fails closed and ignores forged permission-context headers", async () => {
   await withServer(async (baseUrl) => {
     const denied = await json(baseUrl, `/api/matters?${BASE_QUERY}`, {
-      headers: { [PERMISSION_CONTEXT_HEADER]: undefined },
+      noAuth: true,
     });
-    assert.equal(denied.status, 403);
-    assert.equal(denied.body.items.length, 0);
-    assert.equal(denied.body.count_leak_prevented, true);
+    assert.equal(denied.status, 401);
+    assert.deepEqual(denied.body.safe_error_codes, ["AUTH_SESSION_REQUIRED"]);
 
     const review = await json(baseUrl, `/api/matters?${BASE_QUERY}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("review_required") },
     });
     assert.equal(review.status, 200);
-    assert.equal(review.body.outcome, "review_required");
-    assert.equal(review.body.items.length, 0);
+    assert.equal(review.body.outcome, "passed");
+    assert.equal(review.body.items.length, 25);
+    assert.equal(review.body.count_leak_prevented, true);
   });
 });
 
@@ -391,18 +394,27 @@ test("G4 Matter team write blocks onboarding employees until HRX security tasks 
     status: "onboarding",
     source_ref: "UPL-D-13",
   });
-  hrxRuntime.onboardingPlans.push(
-    createOnboardingPlan({
-      tenant_id: TENANT,
-      onboarding_id: "onb-api-d13",
-      employee_id: "emp_api_d13_onboarding",
-      start_date: "2026-07-03",
-      tasks: [
-        { task_id: "security-training", title: "Security training", owner_role: "people_ops", status: "completed" },
-        { task_id: "security-pledge", title: "Security pledge", owner_role: "people_ops", status: "pending" },
-      ],
-    }),
-  );
+  const onboardingPlan = createOnboardingPlan({
+    tenant_id: TENANT,
+    onboarding_id: "onb-api-d13",
+    employee_id: "emp_api_d13_onboarding",
+    start_date: "2026-07-03",
+    tasks: [
+      {
+        task_id: "default-security-training",
+        title: "Security training",
+        owner_role: "people_ops",
+        status: "completed",
+      },
+      {
+        task_id: "default-confidentiality-pledge",
+        title: "Confidentiality pledge",
+        owner_role: "people_ops",
+        status: "pending",
+      },
+    ],
+  });
+  hrxRuntime.onboardingPlans.push(onboardingPlan);
   const matterRepository = createMatterRepository({
     seedRecords: [
       {
@@ -444,15 +456,20 @@ test("G4 Matter team write blocks onboarding employees until HRX security tasks 
     assert.equal(blocked.status, 409);
     assert.deepEqual(blocked.body.safe_error_codes, ["MATTER_ONBOARDING_GATE_REQUIRED"]);
     assert.equal(blocked.body.ui_state, "onboarding_blocked");
-    assert.deepEqual(blocked.body.onboarding_gate.missing_task_ids, ["security-pledge"]);
+    assert.deepEqual(blocked.body.onboarding_gate.missing_task_ids, ["default-confidentiality-pledge"]);
 
-    const pledge = await json(baseUrl, "/api/hrx/lifecycle/onboarding/onb-api-d13/tasks/security-pledge", {
-      method: "POST",
-      headers: hrxHeaders(),
-      body: JSON.stringify({ status: "completed" }),
-    });
-    assert.equal(pledge.status, 200);
-    assert.equal(pledge.body.onboarding.tasks.find((task) => task.task_id === "security-pledge").status, "completed");
+    const planIndex = hrxRuntime.onboardingPlans.findIndex((plan) => plan.onboarding_id === "onb-api-d13");
+    assert.notEqual(planIndex, -1);
+    hrxRuntime.onboardingPlans[planIndex] = updateOnboardingTask(
+      hrxRuntime.onboardingPlans[planIndex],
+      "default-confidentiality-pledge",
+      { status: "completed" },
+    );
+    assert.equal(
+      hrxRuntime.onboardingPlans[planIndex].tasks.find((task) => task.task_id === "default-confidentiality-pledge")
+        .status,
+      "completed",
+    );
 
     const created = await json(baseUrl, "/api/matters/matter_api_d13_onboarding_gate/team-members", {
       method: "POST",
@@ -616,7 +633,7 @@ test("G4 Matter recently viewed is viewer scoped, audited, and persisted", async
     assert.equal(marked.body.item.production_ready_claim, false);
     assert.equal(marked.body.audit_event.action, "matter.recently_viewed.mark");
     assert.equal(JSON.stringify(marked.body.item).includes("viewer_user_id"), false);
-    assert.equal(JSON.stringify(marked.body.item).includes("user_rp05_owner"), false);
+    assert.equal(JSON.stringify(marked.body.item).includes(AUTH_ACTOR_ID), false);
 
     const recent = await json(baseUrl, `/api/matters/recently-viewed?${BASE_QUERY}`);
     assert.equal(recent.status, 200);
@@ -660,7 +677,7 @@ test("G4 Matter saved list views are owner scoped, audited, and persisted", asyn
     assert.equal(saved.body.item.production_ready_claim, false);
     assert.equal(saved.body.audit_event.action, "matter.list_view.saved");
     assert.equal(JSON.stringify(saved.body.item).includes("owner_user_id"), false);
-    assert.equal(JSON.stringify(saved.body.item).includes("user_rp05_owner"), false);
+    assert.equal(JSON.stringify(saved.body.item).includes(AUTH_ACTOR_ID), false);
 
     const listed = await json(baseUrl, `/api/matters/list-views?${BASE_QUERY}`);
     assert.equal(listed.status, 200);

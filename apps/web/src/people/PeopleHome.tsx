@@ -19,6 +19,7 @@ import { PayrollBoundaryPanel } from "./payroll/PayrollBoundaryPanel.tsx";
 import { PermissionAdminPanel } from "./admin/PermissionAdminPanel.jsx";
 import { LegalPeopleWorkspace } from "./legal/LegalPeopleWorkspace.tsx";
 import { HrxRiskDashboard } from "./security/HrxRiskDashboard.tsx";
+import { AttendanceWorkspace } from "./attendance/AttendanceWorkspace.tsx";
 import { PEOPLE_SECTION_IDS, getPeopleFeatureBySection } from "./peopleFeatureCatalog.js";
 
 const LEGACY_LEGAL_PEOPLE_SECTIONS = [
@@ -45,6 +46,9 @@ const HANDLED_PEOPLE_SECTIONS = new Set([
   "people-audit",
   "people-analytics",
   "people-risk",
+  "people-work-schedule",
+  "people-current-work-status",
+  "people-attendance-records",
   "people-ai",
   "people-payroll",
   "people-admin"
@@ -288,6 +292,18 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }: { activeSe
         {!guardedState && currentSection === "people-risk" && (
           <div className="people-runtime-grid">
             <HrxRiskDashboard />
+          </div>
+        )}
+
+        {!guardedState && ["people-work-schedule", "people-current-work-status", "people-attendance-records"].includes(currentSection) && (
+          <div className="people-runtime-grid people-attendance-runtime-grid">
+            <EmployeeList selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} refreshKey={refreshKey} />
+            <AttendanceWorkspace
+              employeeId={selectedEmployeeId}
+              refreshKey={refreshKey}
+              onChanged={() => setRefreshKey((key) => key + 1)}
+              mode={currentSection === "people-work-schedule" ? "schedule" : currentSection === "people-current-work-status" ? "status" : "attendance"}
+            />
           </div>
         )}
 

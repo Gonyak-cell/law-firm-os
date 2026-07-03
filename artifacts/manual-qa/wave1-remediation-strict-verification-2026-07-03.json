@@ -1,0 +1,193 @@
+{
+  "schema_version": "lawos.wave1.remediation-strict-verification.v1",
+  "generated_at": "2026-07-03T10:27:30.797Z",
+  "verdict": "PARTIAL_EXTERNAL_BLOCKED",
+  "strict_completion_claim": false,
+  "production_ready_claim": false,
+  "public_release_claim": false,
+  "source_documents": {
+    "workbook": "workbook/wave1-remediation-plan-2026-07-03.md",
+    "remediation": "artifacts/manual-qa/wave1-remediation-strict-verification-2026-07-03.md",
+    "matrix": "artifacts/manual-qa/wave1-70-tuw-strict-verification-2026-07-03.md",
+    "externalReadiness": "artifacts/manual-qa/wave1-external-receipt-readiness-2026-07-03.json",
+    "c09External": "artifacts/manual-qa/upl-c09-outlook-external-receipt-readiness.json",
+    "b13Popbill": "artifacts/manual-qa/upl-b13-popbill-sandbox-proof.json",
+    "e10Hygiene": "artifacts/manual-qa/upl-e10-wave1-hygiene-proof.json"
+  },
+  "matrix_snapshot": {
+    "total": 70,
+    "counts": {
+      "PASS": 64,
+      "PARTIAL": 5,
+      "BLOCKED": 1
+    },
+    "open_rows": {
+      "UPL-B-13": "PARTIAL",
+      "UPL-C-09": "BLOCKED",
+      "UPL-C-10": "PARTIAL",
+      "UPL-C-11": "PARTIAL",
+      "UPL-C-12": "PARTIAL",
+      "UPL-E-04": "PARTIAL"
+    }
+  },
+  "closed_local_items": [
+    {
+      "item": "FIX-A02",
+      "documented": true
+    },
+    {
+      "item": "FIX-A11/A10",
+      "documented": true
+    },
+    {
+      "item": "FIX-E04",
+      "documented": true
+    },
+    {
+      "item": "FIX-D12/D14",
+      "documented": true
+    },
+    {
+      "item": "FIX-D03",
+      "documented": true
+    },
+    {
+      "item": "FIX-D04/D06",
+      "documented": true
+    },
+    {
+      "item": "FIX-D10",
+      "documented": true
+    },
+    {
+      "item": "FIX-D11",
+      "documented": true
+    },
+    {
+      "item": "FIX-D13",
+      "documented": true
+    },
+    {
+      "item": "FIX-C05",
+      "documented": true
+    },
+    {
+      "item": "FIX-E01/FIX-E02",
+      "documented": true
+    },
+    {
+      "item": "FIX-E03",
+      "documented": true
+    },
+    {
+      "item": "FIX-E05",
+      "documented": true
+    },
+    {
+      "item": "FIX-E06",
+      "documented": true
+    },
+    {
+      "item": "FIX-E07",
+      "documented": true
+    },
+    {
+      "item": "FIX-C09",
+      "documented": true
+    },
+    {
+      "item": "FIX-A06",
+      "documented": true
+    },
+    {
+      "item": "FIX-V",
+      "documented": true
+    },
+    {
+      "item": "UPL-A08",
+      "documented": false
+    },
+    {
+      "item": "UPL-B16",
+      "documented": false
+    }
+  ],
+  "external_blockers": [
+    {
+      "row_id": "UPL-C-09",
+      "status": "BLOCKED",
+      "readiness_artifact": "artifacts/manual-qa/upl-c09-outlook-external-receipt-readiness.json",
+      "readiness_status": "READY_NEEDS_OUTLOOK_EXTERNAL_RECEIPT",
+      "external_receipt_present": false,
+      "strict_pass_claim": false,
+      "required_receipt_path": "artifacts/manual-qa/upl-c09-outlook-external-receipt.json",
+      "inherited_rows": [
+        "UPL-C-10",
+        "UPL-C-11",
+        "UPL-C-12",
+        "UPL-E-04"
+      ]
+    },
+    {
+      "row_id": "UPL-B-13",
+      "status": "PARTIAL",
+      "readiness_artifact": "artifacts/manual-qa/upl-b13-popbill-sandbox-proof.json",
+      "readiness_status": "READY_NEEDS_SANDBOX_ISSUE_APPROVAL",
+      "external_receipt_present": false,
+      "strict_pass_claim": false,
+      "production_tax_invoice_issued": false,
+      "operator_approval_required": "POPBILL_ALLOW_SANDBOX_ISSUE=1"
+    }
+  ],
+  "hygiene": {
+    "npm_test": "PASS 4152/4152",
+    "npm_run_build": "PASS with Vite chunk-size warning only",
+    "git_diff_check": "PASS",
+    "sloplint_strong_findings": 0,
+    "sloplint_no_verify_findings": 0
+  },
+  "checks": [
+    {
+      "id": "remediation-verdict-is-partial",
+      "passed": true
+    },
+    {
+      "id": "matrix-preserves-70-rows",
+      "passed": true
+    },
+    {
+      "id": "matrix-open-rows-match-external-blockers",
+      "passed": true,
+      "evidence": {
+        "open_rows": {
+          "UPL-B-13": "PARTIAL",
+          "UPL-C-09": "BLOCKED",
+          "UPL-C-10": "PARTIAL",
+          "UPL-C-11": "PARTIAL",
+          "UPL-C-12": "PARTIAL",
+          "UPL-E-04": "PARTIAL"
+        }
+      }
+    },
+    {
+      "id": "c09-external-receipt-not-present",
+      "passed": true
+    },
+    {
+      "id": "b13-popbill-sandbox-issue-not-run",
+      "passed": true
+    },
+    {
+      "id": "external-readiness-non-promoting",
+      "passed": true
+    },
+    {
+      "id": "sloplint-has-no-strong-or-no-verify-findings",
+      "passed": true
+    },
+    {
+      "id": "non-claims-present",
+      "passed": true
+    }
+  ]
+}

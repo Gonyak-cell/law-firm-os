@@ -7,6 +7,7 @@ import { createAnalyticsRepository } from "../../../packages/analytics/src/runti
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
+import { apiSessionHeaders } from "./helpers/session.js";
 
 const TENANT = "tenant_cmp_g8_synthetic";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_cmp_g8_read&audit_hint_ref=audit_hint_cmp_g8_read`;
@@ -28,11 +29,21 @@ async function withServer(callback, options = {}) {
   }
 }
 
+const sessionHeaderCache = new Map();
+
+async function signedHeaders(baseUrl) {
+  if (!sessionHeaderCache.has(baseUrl)) sessionHeaderCache.set(baseUrl, await apiSessionHeaders(baseUrl));
+  return sessionHeaderCache.get(baseUrl);
+}
+
 async function json(baseUrl, path, options = {}) {
   const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
+    ...(options.noAuth ? {} : await signedHeaders(baseUrl)),
     ...(options.headers ?? {}),
   };
+  for (const [key, value] of Object.entries(headers)) {
+    if (value === undefined) delete headers[key];
+  }
   if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
   const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
   const body = await response.json();
@@ -73,10 +84,11 @@ test("G8 dashboard API is permission gated and omits raw matter detail", async (
     assert.equal(dashboards.body.production_ready_claim, false);
 
     const denied = await json(baseUrl, `/api/analytics/dashboards?${BASE_QUERY}`, {
-      headers: { [PERMISSION_CONTEXT_HEADER]: undefined },
+      noAuth: true,
+      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext() },
     });
-    assert.equal(denied.status, 403);
-    assert.equal(denied.body.count_leak_prevented, true);
+    assert.equal(denied.status, 401);
+    assert.ok(denied.body.safe_error_codes.includes("AUTH_SESSION_REQUIRED"));
   });
 });
 

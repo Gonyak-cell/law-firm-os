@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { startApiServer } from "../apps/api/src/server.js";
-import { signedStepUpHeader } from "../apps/api/test/hrx-step-up-test-helper.js";
+import { highestPrivilegeRegisteredAccount } from "../apps/api/src/matter-vault-account-registry.js";
+import { apiSessionHeaders } from "../apps/api/test/helpers/session.js";
 import { createHrxMatterWorkloadProjection } from "../packages/matter/src/hrx-workload-projection.js";
 
 const ROOT = process.cwd();
@@ -11,14 +12,7 @@ const JSON_PATH = "artifacts/manual-qa/upl-e05-workload-time-entry-proof.json";
 const MD_PATH = "artifacts/manual-qa/upl-e05-workload-time-entry-proof.md";
 const TENANT = "tenant_amic_matter_vault";
 const EMPLOYEE = "emp_amic_ytkim";
-
-const HEADERS = Object.freeze({
-  "x-lawos-tenant-id": TENANT,
-  "x-lawos-actor-id": "user_amic_jwsuh",
-  "x-lawos-actor-role": "security_admin,hr_admin,people_ops",
-  "x-lawos-hrx-step-up": signedStepUpHeader({ tenant_id: TENANT, actor_id: "user_amic_jwsuh" }),
-  "x-lawos-hrx-scopes": "hrx.analytics.read,hrx.employee.read,hrx.leave.read,hrx.audit.read",
-});
+const ACCOUNT = highestPrivilegeRegisteredAccount();
 
 function check(id, passed, evidence) {
   return Object.freeze({ id, passed: Boolean(passed), evidence });
@@ -82,7 +76,16 @@ try {
   const started = await startApiServer({ port: 0 });
   server = started.server;
   const baseUrl = `http://${started.host}:${started.port}`;
-  const response = await fetch(`${baseUrl}/api/hrx/analytics`, { headers: HEADERS });
+  const forgedResponse = await fetch(`${baseUrl}/api/hrx/analytics`, {
+    headers: {
+      "x-lawos-tenant-id": TENANT,
+      "x-lawos-actor-id": "user_amic_jwsuh",
+      "x-lawos-actor-role": "security_admin,hr_admin,people_ops",
+      "x-lawos-hrx-scopes": "hrx.analytics.read,hrx.employee.read,hrx.leave.read,hrx.audit.read",
+    },
+  });
+  const forgedBody = await forgedResponse.json();
+  const response = await fetch(`${baseUrl}/api/hrx/analytics`, { headers: await apiSessionHeaders(baseUrl, ACCOUNT) });
   const body = await response.json();
   assert.equal(response.status, 200);
 
@@ -91,6 +94,10 @@ try {
   const serializedWorkload = JSON.stringify(body.workload_projection);
 
   const checks = [
+    check("e05-unsigned-forged-hrx-headers-blocked", forgedResponse.status === 401 && forgedBody.safe_error_codes?.includes("AUTH_SESSION_REQUIRED"), {
+      status: forgedResponse.status,
+      safe_error_codes: forgedBody.safe_error_codes,
+    }),
     check("e05-api-analytics-200", response.status === 200, "/api/hrx/analytics"),
     check("e05-workload-source-time-entry", sourceRows.length === body.workload_projection.length && sourceRows.length > 0, {
       source_count: sourceRows.length,
@@ -117,6 +124,7 @@ try {
     production_ready_claim: false,
     go_live_claim: false,
     api_readback: {
+      forged_status: forgedResponse.status,
       status: response.status,
       workload_row_count: body.workload_projection.length,
       workload_conflict_count: body.workload_conflicts.length,

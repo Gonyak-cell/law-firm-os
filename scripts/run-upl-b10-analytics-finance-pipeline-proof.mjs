@@ -2,29 +2,23 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createFinanceRepository } from "../packages/billing/src/finance-repository.js";
-import { PERMISSION_CONTEXT_HEADER } from "../apps/api/src/permission-gate.js";
+import { highestPrivilegeRegisteredAccount, MATTER_VAULT_REGISTERED_TENANT_ID } from "../apps/api/src/matter-vault-account-registry.js";
 import { startApiServer } from "../apps/api/src/server.js";
+import { apiSessionHeaders } from "../apps/api/test/helpers/session.js";
 
 const ROOT = process.cwd();
 const ARTIFACT_DIR = join(ROOT, "artifacts", "manual-qa");
 const PROOF_PATH = join(ARTIFACT_DIR, "upl-b10-analytics-finance-pipeline-proof.json");
-const TENANT = "tenant_upl_b10_finance_pipeline";
-const ACTOR = "user_upl_b10_analytics";
+const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
+const ACCOUNT = highestPrivilegeRegisteredAccount();
+const ACTOR = ACCOUNT.user_id;
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=upl_b10_analytics_read&audit_hint_ref=upl_b10_api_proof`;
 
 mkdirSync(ARTIFACT_DIR, { recursive: true });
 
-function permissionContext(effect = "allow") {
-  return JSON.stringify({
-    principal: { user_id: ACTOR, tenant_id: TENANT, role_ids: ["finance_user", "analytics_user"] },
-    rules: [{ id: `rule_upl_b10_${effect}`, effect, action: "*" }],
-    object_acl: [],
-  });
-}
-
 async function apiJson(baseUrl, path, options = {}) {
   const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
+    ...(options.noAuth ? {} : await apiSessionHeaders(baseUrl, ACCOUNT)),
     ...(options.headers ?? {}),
   };
   if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";

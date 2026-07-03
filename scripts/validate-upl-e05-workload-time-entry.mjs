@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createHrxMatterWorkloadProjection } from "../packages/matter/src/hrx-workload-projection.js";
@@ -22,6 +23,21 @@ function read(path) {
   return readFileSync(resolve(ROOT, path), "utf8");
 }
 
+function run(command, args) {
+  return new Promise((resolveRun) => {
+    const child = spawn(command, args, { stdio: ["ignore", "pipe", "pipe"] });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk;
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+    });
+    child.on("close", (status) => resolveRun({ status, stdout, stderr }));
+  });
+}
+
 for (const file of requiredFiles) {
   assert.equal(existsSync(resolve(ROOT, file)), true, `missing required file: ${file}`);
 }
@@ -30,6 +46,8 @@ const projectionSource = read("packages/matter/src/hrx-workload-projection.js");
 const runtimeSource = read("apps/api/src/hrx-runtime-context.js");
 const apiClientSource = read("apps/web/src/people/hrxApiClient.ts");
 const analyticsUiSource = read("apps/web/src/people/analytics/HRAnalytics.tsx");
+const executed = await run("node", ["scripts/run-upl-e05-workload-time-entry-proof.mjs"]);
+assert.equal(executed.status, 0, executed.stderr || executed.stdout);
 const artifact = JSON.parse(read("artifacts/manual-qa/upl-e05-workload-time-entry-proof.json"));
 
 for (const marker of [
@@ -117,6 +135,7 @@ assert.deepEqual(artifact.tuw_ids, ["UPL-E-05"]);
 assert.equal(artifact.production_ready_claim, false);
 assert.equal(artifact.go_live_claim, false);
 for (const id of [
+  "e05-unsigned-forged-hrx-headers-blocked",
   "e05-api-analytics-200",
   "e05-workload-source-time-entry",
   "e05-time-entry-change-reflected",

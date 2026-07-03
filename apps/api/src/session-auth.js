@@ -40,6 +40,23 @@ const DEFAULT_TTL_MS = 8 * 60 * 60 * 1000;
 const DEFAULT_MAX_FAILED_LOGINS = 5;
 const DEFAULT_LOGIN_LOCK_MS = 15 * 60 * 1000;
 const DEFAULT_SESSION_SECRET = "lawos-local-wave1-session-secret";
+const LAWOS_RUNTIME_TENANT_IDS = Object.freeze([
+  MATTER_VAULT_REGISTERED_TENANT_ID,
+  "tenant_rp04_synthetic",
+  "tenant_rp05_synthetic",
+  "tenant_cmp_g6_synthetic",
+  "tenant_cmp_g7_synthetic",
+  "tenant_cmp_g8_synthetic",
+  "tenant_cmp_g9_synthetic",
+  "tenant_cmp_g10_synthetic",
+  "tenant_cmp_g11_synthetic",
+  "tenant_cmp_g12_synthetic",
+  "tenant_sf_b_w06_synthetic",
+  "tenant_sf_b_w07_synthetic",
+  "tenant_outlook_addin_test",
+  "tenant_upl_c09_c12_outlook",
+  "matter-runtime-tenant",
+]);
 
 function base64UrlEncode(value) {
   return Buffer.from(value).toString("base64url");
@@ -101,6 +118,7 @@ function permissionContextFromPrincipal(principal) {
   return Object.freeze({
     principal: Object.freeze({
       ...principal,
+      tenant_ids: LAWOS_RUNTIME_TENANT_IDS,
       session_principal_source: "api_signed_session",
       session_source_ref: MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
     }),

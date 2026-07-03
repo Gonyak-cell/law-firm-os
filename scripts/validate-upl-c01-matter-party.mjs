@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
+import { assertNodeProofPass } from "./lib/upl-proof-runner.mjs";
 
 function read(path) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -19,6 +20,7 @@ const apiTest = read("apps/api/test/cmp-r4-g4-matter.test.js");
 const runtimeTest = read("packages/matter/test/runtime-services.test.js");
 const uiProofScript = read("scripts/run-lcx-vltui-matter-sections-proof.mjs");
 const proofScript = read("scripts/run-upl-c01-matter-party-proof.mjs");
+await assertNodeProofPass("scripts/run-upl-c01-matter-party-proof.mjs");
 const proof = JSON.parse(read("artifacts/manual-qa/upl-c01-matter-party-proof.json"));
 const uiProof = JSON.parse(read("docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"));
 

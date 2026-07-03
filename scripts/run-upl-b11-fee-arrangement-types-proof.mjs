@@ -2,30 +2,24 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createFinanceRepository } from "../packages/billing/src/finance-repository.js";
-import { PERMISSION_CONTEXT_HEADER } from "../apps/api/src/permission-gate.js";
+import { highestPrivilegeRegisteredAccount, MATTER_VAULT_REGISTERED_TENANT_ID } from "../apps/api/src/matter-vault-account-registry.js";
 import { startApiServer } from "../apps/api/src/server.js";
+import { apiSessionHeaders } from "../apps/api/test/helpers/session.js";
 
 const ROOT = process.cwd();
 const ARTIFACT_DIR = join(ROOT, "artifacts", "manual-qa");
 const PROOF_PATH = join(ARTIFACT_DIR, "upl-b11-fee-arrangement-types-proof.json");
-const TENANT = "tenant_upl_b11_fee_arrangements";
-const ACTOR = "user_upl_b11_finance";
-const PARTNER = "user_upl_b11_partner";
+const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
+const ACCOUNT = highestPrivilegeRegisteredAccount();
+const ACTOR = ACCOUNT.user_id;
+const PARTNER = ACCOUNT.user_id;
 const RATE_CARD_ID = "rate-upl-b11";
 
 mkdirSync(ARTIFACT_DIR, { recursive: true });
 
-function permissionContext(roleIds = ["finance_user"]) {
-  return JSON.stringify({
-    principal: { user_id: roleIds.includes("partner") ? PARTNER : ACTOR, tenant_id: TENANT, role_ids: roleIds },
-    rules: [{ id: `rule_upl_b11_${roleIds.join("_")}`, effect: "allow", action: "*" }],
-    object_acl: [],
-  });
-}
-
 async function apiJson(baseUrl, path, options = {}) {
   const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
+    ...(await apiSessionHeaders(baseUrl, ACCOUNT)),
     ...(options.headers ?? {}),
   };
   if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
@@ -37,7 +31,6 @@ async function apiJson(baseUrl, path, options = {}) {
 async function postJson(baseUrl, path, body, roleIds = ["finance_user"]) {
   return apiJson(baseUrl, path, {
     method: "POST",
-    headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext(roleIds) },
     body: JSON.stringify(body),
   });
 }

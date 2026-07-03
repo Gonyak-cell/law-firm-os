@@ -284,6 +284,7 @@ export function createCrmIntakeRuntimeContext({
   intakeRepository = createIntakeRuntimeRepository({ seedRecords: INTAKE_RUNTIME_SEED }),
   masterDataRepository = createMasterDataRepository({ seedRecords: CRM_MASTER_DATA_SEED }),
   matterRepository = null,
+  dmsRuntime = null,
 } = {}) {
   seedMasterDataRepository(masterDataRepository, CRM_MASTER_DATA_SEED);
   return Object.freeze({
@@ -291,6 +292,7 @@ export function createCrmIntakeRuntimeContext({
     intakeRepository,
     masterDataRepository,
     matterRepository,
+    dmsRuntime,
     seed_ref: "cmp-g6-crm-intake-synthetic",
     masterDataServices: Object.freeze({
       organizationService: createOrganizationService({ repository: masterDataRepository }),
@@ -2707,6 +2709,8 @@ export function handleEngagementApprove({ body, context, requestId, runtime = DE
       engagement,
       actor_id: body.actor_id ?? context.principal.user_id,
       idempotency_key: body.idempotency_key,
+      dms_repository: runtime.dmsRuntime?.repository,
+      dms_storage: runtime.dmsRuntime?.storage,
     });
     return itemResponse({
       requestId,

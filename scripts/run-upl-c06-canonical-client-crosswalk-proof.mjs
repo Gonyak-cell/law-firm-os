@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { PERMISSION_CONTEXT_HEADER } from "../apps/api/src/permission-gate.js";
+import { highestPrivilegeRegisteredAccount, MATTER_VAULT_REGISTERED_TENANT_ID } from "../apps/api/src/matter-vault-account-registry.js";
 import { startApiServer } from "../apps/api/src/server.js";
+import { apiSessionHeaders } from "../apps/api/test/helpers/session.js";
 import { createIntakeRuntimeRepository } from "../packages/intake/src/runtime-repository.js";
 import {
   AMIC_CURRENT_CLIENT_CANDIDATES,
@@ -15,25 +16,18 @@ const ROOT = process.cwd();
 const ARTIFACT_DIR = join(ROOT, "artifacts", "manual-qa");
 const JSON_PATH = join(ARTIFACT_DIR, "upl-c06-canonical-client-crosswalk-proof.json");
 const MD_PATH = join(ARTIFACT_DIR, "upl-c06-canonical-client-crosswalk-proof.md");
-const TENANT = "tenant_upl_c06_single_real";
-const ACTOR = "user_upl_c06_reviewer";
+const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
+const ACCOUNT = highestPrivilegeRegisteredAccount();
+const ACTOR = ACCOUNT.user_id;
 const SOURCE_REF = "amic_current_onedrive_folder_inventory_2026_07_01";
 const TARGET_DISPLAY_NAME = "롯데에너지머티리얼즈";
 const TARGET_QUERY_NAME = "롯데에너지머티리얼즈 주식회사";
 
 mkdirSync(ARTIFACT_DIR, { recursive: true });
 
-function permissionContext(effect = "allow") {
-  return JSON.stringify({
-    principal: { user_id: ACTOR, tenant_id: TENANT, role_ids: ["crm_intake_user", "conflict_reviewer"] },
-    rules: [{ id: `rule_upl_c06_${effect}`, effect, action: "*" }],
-    object_acl: [],
-  });
-}
-
 async function apiJson(baseUrl, path, options = {}) {
   const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
+    ...(await apiSessionHeaders(baseUrl, ACCOUNT)),
     ...(options.headers ?? {}),
   };
   if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
@@ -130,7 +124,7 @@ try {
       },
     }),
   });
-  const audit = await apiJson(baseUrl, "/api/intake/audit?tenant_id=tenant_upl_c06_single_real&permission_ref=upl_c06_crosswalk_read&audit_hint_ref=upl_c06_api_proof");
+  const audit = await apiJson(baseUrl, `/api/intake/audit?tenant_id=${TENANT}&permission_ref=upl_c06_crosswalk_read&audit_hint_ref=upl_c06_api_proof`);
   const rows = crosswalkRows(records);
   const linkedRows = rows.filter((row) => row.linked);
   const targetHits = check.body.conflict_hits?.filter((hit) => hit.matched_display_name === TARGET_DISPLAY_NAME) ?? [];

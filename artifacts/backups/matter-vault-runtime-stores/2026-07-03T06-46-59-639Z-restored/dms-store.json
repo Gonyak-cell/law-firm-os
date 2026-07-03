@@ -1,0 +1,15 @@
+{
+  "schema_version": "law-firm-os.synthetic-runtime-store.v0.1",
+  "bounded_context": "dms",
+  "seeded_for": "UPL-A-09 backup restore drill",
+  "synthetic_only": true,
+  "production_ready_claim": false,
+  "real_client_data_used": false,
+  "seeded_at": "2026-07-03T06:46:59.638Z",
+  "records": [
+    {
+      "record_id": "document_upl_a09_synthetic",
+      "matter_id": "matter_upl_a09_synthetic"
+    }
+  ]
+}

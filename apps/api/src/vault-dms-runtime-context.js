@@ -302,6 +302,70 @@ function currentFileObjectForDocument({ repository, tenant_id, document_id } = {
   return Object.freeze({ document, version, fileObject });
 }
 
+function parseObjectField(value) {
+  if (!value) return {};
+  if (typeof value === "object" && !Array.isArray(value)) return value;
+  if (typeof value !== "string") return {};
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function uploadFileFromBody(body = {}) {
+  return body.file ?? body.files?.file ?? body.files?.document ?? body.files?.upload ?? null;
+}
+
+function safeIdentifierSegment(value, fallback = "document") {
+  const normalized = String(value ?? fallback)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 48);
+  return normalized || fallback;
+}
+
+function normalizeUploadDocumentBody(body = {}) {
+  const file = uploadFileFromBody(body);
+  const document = parseObjectField(body.document);
+  const fileName = file?.filename || body.filename || body.title || document.title || "uploaded-document";
+  const documentId = document.document_id ?? body.document_id ?? `doc_${safeIdentifierSegment(fileName)}_${randomUUID().slice(0, 8)}`;
+  const versionId = document.current_version_id ?? body.current_version_id ?? `version_${safeIdentifierSegment(documentId)}_1`;
+  const mimeType = document.mime_type ?? body.mime_type ?? file?.mime_type ?? "application/octet-stream";
+  const contentBase64 = body.content_base64 ?? file?.content_base64 ?? null;
+  return {
+    ...body,
+    content_base64: contentBase64,
+    content_text: contentBase64 ? undefined : body.content_text,
+    mime_type: mimeType,
+    idempotency_key: body.idempotency_key ?? `vault-upload:${documentId}:${randomUUID()}`,
+    document: {
+      ...document,
+      document_id: documentId,
+      tenant_id: document.tenant_id ?? body.tenant_id ?? MATTER_VAULT_REGISTERED_TENANT_ID,
+      matter_id: document.matter_id ?? body.matter_id ?? "matter_rp05_synthetic_opening",
+      workspace_id: document.workspace_id ?? body.workspace_id ?? "workspace_rp07_synthetic",
+      title: document.title ?? body.title ?? fileName,
+      status: document.status ?? body.status ?? "active",
+      current_version_id: versionId,
+      permission_envelope_id: document.permission_envelope_id ?? body.permission_envelope_id ?? "perm_rp07_vault",
+      audit_trace_id: document.audit_trace_id ?? body.audit_trace_id ?? "audit_rp07_vault",
+      mime_type: mimeType,
+      filename: fileName,
+    },
+    upload_file: file
+      ? {
+          filename: fileName,
+          mime_type: file.mime_type ?? mimeType,
+          byte_size: file.byte_size ?? null,
+          content_base64_included: Boolean(file.content_base64),
+        }
+      : null,
+  };
+}
+
 export function handleVaultDocumentList({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const gated = routeGate({
     context,
@@ -350,23 +414,24 @@ export function handleVaultDocumentList({ query, context, requestId, runtime = D
 }
 
 export function handleVaultDocumentUpload({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const normalizedBody = normalizeUploadDocumentBody(body);
   const query = {
-    tenant_id: body?.document?.tenant_id ?? body?.tenant_id,
-    permission_ref: body?.permission_ref,
-    audit_hint_ref: body?.audit_hint_ref,
+    tenant_id: normalizedBody.document?.tenant_id ?? normalizedBody.tenant_id,
+    permission_ref: normalizedBody.permission_ref,
+    audit_hint_ref: normalizedBody.audit_hint_ref,
   };
   const gated = routeGate({
     context,
     query,
     requestId,
     action: "dms:document:write",
-    resource: { resource_type: "vault_document", matter_id: body?.document?.matter_id },
+    resource: { resource_type: "vault_document", matter_id: normalizedBody.document?.matter_id },
     repository: runtime.repository,
   });
   if (gated) return gated;
   const actorAccount = resolveRegisteredAccount({
-    user_id: body?.actor_id ?? body?.document?.owner_user_id ?? context?.principal?.user_id,
-    email: body?.actor_email ?? body?.document?.registered_account_email ?? context?.principal?.email,
+    user_id: normalizedBody.actor_id ?? normalizedBody.document?.owner_user_id ?? context?.principal?.user_id,
+    email: normalizedBody.actor_email ?? normalizedBody.document?.registered_account_email ?? context?.principal?.email,
   });
   if (!actorAccount) {
     return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
@@ -376,15 +441,15 @@ export function handleVaultDocumentUpload({ body, context, requestId, runtime = 
   }
   const linkedAccount = registeredAccountPublicRef(actorAccount);
   try {
-    const uploadBytes = body.content_base64
-      ? Buffer.from(String(body.content_base64), "base64")
-      : body.content_text ?? "";
+    const uploadBytes = normalizedBody.content_base64
+      ? Buffer.from(String(normalizedBody.content_base64), "base64")
+      : normalizedBody.content_text ?? "";
     const result = uploadDocument({
       repository: runtime.repository,
       storage: runtime.storage,
       document: {
-        ...body.document,
-        mime_type: body.document?.mime_type ?? body.mime_type,
+        ...normalizedBody.document,
+        mime_type: normalizedBody.document?.mime_type ?? normalizedBody.mime_type,
         tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
         owner_user_id: linkedAccount.user_id,
         registered_account_email: linkedAccount.email,
@@ -392,7 +457,7 @@ export function handleVaultDocumentUpload({ body, context, requestId, runtime = 
       },
       bytes: uploadBytes,
       actor_id: linkedAccount.user_id,
-      idempotency_key: body.idempotency_key,
+      idempotency_key: normalizedBody.idempotency_key,
     });
     const searchIndex = upsertVaultSearchIndex({
       repository: runtime.repository,
@@ -401,7 +466,7 @@ export function handleVaultDocumentUpload({ body, context, requestId, runtime = 
         version: result.version,
         file_object: result.file_object,
         bytes: uploadBytes,
-        ocr_text: body.ocr_text ?? body.ocr?.text ?? body.ocr?.pages ?? null,
+        ocr_text: normalizedBody.ocr_text ?? normalizedBody.ocr?.text ?? normalizedBody.ocr?.pages ?? null,
       }),
     });
     return {
@@ -424,6 +489,7 @@ export function handleVaultDocumentUpload({ body, context, requestId, runtime = 
         },
         audit_event: result.audit_event,
         idempotent_replay: result.idempotent_replay,
+        upload_file: normalizedBody.upload_file,
         safe_error_codes: [],
         audit_hint_ref: query.audit_hint_ref,
         production_ready_claim: false,
@@ -549,7 +615,7 @@ export function handleVaultSearch({ query, context, requestId, runtime = DEFAULT
         query: searchQuery,
         returned_count: filtered.results.length,
         omitted_result_count: filtered.omitted_result_count,
-        search_backend: "sqlite_fts5_ready",
+        search_backend: "json_substring_search",
         body_text_indexed: filtered.results.some((item) => item.body_text_indexed === true),
       },
       safe_error_codes: [],
@@ -607,6 +673,9 @@ export async function handleVaultDmsApiRequest({
     return handleVaultDocumentList({ query, context, requestId, runtime });
   }
   if (pathname === "/api/vault/documents" && method === "POST") {
+    return handleVaultDocumentUpload({ body, context, requestId, runtime });
+  }
+  if (pathname === "/api/vault/documents/upload" && method === "POST") {
     return handleVaultDocumentUpload({ body, context, requestId, runtime });
   }
   if (pathname === "/api/vault/search" && method === "GET") {

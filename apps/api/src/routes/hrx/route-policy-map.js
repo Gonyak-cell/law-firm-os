@@ -156,6 +156,17 @@ const HRX_ROUTE_POLICIES = Object.freeze([
     resource_type: "CompensationRecord",
   },
   {
+    id: "hrx.compensation.decrypt",
+    method: "GET",
+    pattern: /^\/api\/hrx\/compensation\/(?<compensation_id>[^/]+)\/decrypt$/,
+    action: "hrx.compensation.decrypt",
+    sensitivity: "compensation",
+    required_scope: "hrx.compensation.read",
+    purpose: "compensation_access",
+    resource_type: "CompensationRecord",
+    resource_param: "compensation_id",
+  },
+  {
     id: "hrx.attendance.list",
     method: "GET",
     pattern: /^\/api\/hrx\/attendance$/,

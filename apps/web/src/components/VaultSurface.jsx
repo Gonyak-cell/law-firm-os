@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, FileCheck2, FileWarning, Link2, LockKeyhole, RefreshCw, Search, ShieldCheck, UploadCloud } from "lucide-react";
-import { fetchVaultBridgeStatus, fetchVaultDocuments, fetchVaultMatterLookup, fetchVaultSearch, fetchVaultUploadPreflight } from "../data/apiClient.js";
+import { fetchVaultBridgeStatus, fetchVaultDocuments, fetchVaultMatterLookup, fetchVaultSearch, fetchVaultUploadPreflight, uploadVaultDocumentFile } from "../data/apiClient.js";
 import { DataTable, PageHeader, Panel } from "./primitives.jsx";
 import { DesktopDeniedState } from "./DesktopDeniedState.jsx";
 import { EmailFilingView } from "./EmailFilingView.jsx";
@@ -466,6 +466,100 @@ function VaultUploadPreflightPanel({ bridgeResult, selectedMatter, result, pendi
   );
 }
 
+function VaultDocumentUploadPanel({ selectedMatter, result, pending, onUpload }) {
+  const [title, setTitle] = useState("");
+  const [file, setFile] = useState(null);
+  const selectedLabel = selectedMatter
+    ? `${selectedMatter.matter_code ?? selectedMatter.matter_name} / ${selectedMatter.client_display_name ?? "고객"}`
+    : "기본 Matter";
+  const canSubmit = Boolean(file && !pending);
+  const state = pending ? "uploading" : result?.kind ?? "idle";
+  return (
+    <Panel id="vault-document-upload" className="vault-panel vault-document-upload-panel" title="문서 등록" meta="파일 업로드">
+      <form
+        className="vault-document-upload"
+        data-upl-a11-vault-upload-ui="true"
+        data-vault-document-upload-state={state}
+        data-vault-document-upload-document-id={result?.kind === "data" ? result.item.document_id : ""}
+        data-vault-document-upload-sha256={result?.kind === "data" ? result.sha256 ?? "" : ""}
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (canSubmit) onUpload({ file, title });
+        }}
+      >
+        <label className="vault-lookup-field">
+          <span>
+            <UploadCloud size={14} />
+            파일
+          </span>
+          <input
+            type="file"
+            data-upl-a11-file-input="true"
+            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+          />
+        </label>
+        <label className="vault-lookup-field">
+          <span>
+            <FileCheck2 size={14} />
+            제목
+          </span>
+          <input
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            aria-label="문서 제목"
+            placeholder={file?.name ?? "문서 제목"}
+          />
+        </label>
+        <dl className="vault-bridge-facts">
+          <div>
+            <dt>Matter</dt>
+            <dd>{selectedLabel}</dd>
+          </div>
+          <div>
+            <dt>파일</dt>
+            <dd>{file?.name ?? "선택 전"}</dd>
+          </div>
+        </dl>
+        <button
+          type="submit"
+          className="secondary-button vault-document-upload-action"
+          disabled={!canSubmit}
+          onClick={(event) => {
+            event.preventDefault();
+            if (canSubmit) onUpload({ file, title });
+          }}
+        >
+          <UploadCloud size={15} />
+          등록
+        </button>
+        {pending && (
+          <div className="live-data-state live-data-loading">
+            <strong>등록 중입니다</strong>
+          </div>
+        )}
+        {result?.kind === "data" && (
+          <div className="vault-upload-receipt" data-upl-a11-upload-receipt="true">
+            <FileCheck2 size={15} />
+            <span>{result.item.title}</span>
+            <code>{result.sha256}</code>
+          </div>
+        )}
+        {result?.kind === "guarded" && (
+          <div className="live-data-state live-data-denied">
+            <strong>등록이 차단됐습니다</strong>
+            {result.safeErrorCodes?.join(" / ") || "권한 상태를 확인하세요."}
+          </div>
+        )}
+        {result?.kind === "error" && (
+          <div className="live-data-state live-data-error">
+            <strong>등록하지 못했습니다</strong>
+          </div>
+        )}
+      </form>
+    </Panel>
+  );
+}
+
 function actionBoundaryBase({ bridgeResult, selectedMatter, uploadPreflightResult }) {
   if (!selectedMatter) {
     return {
@@ -529,12 +623,12 @@ function actionBoundaryRows(base) {
   return [
     {
       id: "version-upload",
-      label: "새 버전 등록",
+      label: "새 문서 등록",
       owner: "Vault",
-      state: guardedState,
-      status: guardedStatus,
-      note: guardedNote,
-      action: "버전 등록 차단"
+      state: checked ? "ready" : guardedState,
+      status: checked ? "등록 가능" : guardedStatus,
+      note: checked ? "문서 등록 패널에서 파일을 등록합니다." : guardedNote,
+      action: checked ? "등록 패널 확인" : "선택 필요"
     },
     {
       id: "metadata-mutation",
@@ -728,6 +822,8 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
   const [selectedMatter, setSelectedMatter] = useState(null);
   const [uploadPreflightResult, setUploadPreflightResult] = useState(null);
   const [uploadPreflightPending, setUploadPreflightPending] = useState(false);
+  const [documentUploadResult, setDocumentUploadResult] = useState(null);
+  const [documentUploadPending, setDocumentUploadPending] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
   const currentSection = VAULT_SECTIONS.has(activeSection) ? activeSection : "vault-documents";
 
@@ -801,6 +897,11 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
     setUploadPreflightPending(false);
   }, [selectedMatter?.selected_ref, bridgeResult?.requestId, liveCtx]);
 
+  useEffect(() => {
+    setDocumentUploadResult(null);
+    setDocumentUploadPending(false);
+  }, [selectedMatter?.selected_ref, liveCtx]);
+
   const handleUploadPreflight = async () => {
     if (!canRunVaultUploadPreflight({ bridgeResult, selectedMatter }) || uploadPreflightPending) return;
     setUploadPreflightPending(true);
@@ -812,6 +913,21 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
     });
     setUploadPreflightResult(next);
     setUploadPreflightPending(false);
+  };
+
+  const handleVaultDocumentUpload = async ({ file, title }) => {
+    if (!file || documentUploadPending) return;
+    setDocumentUploadPending(true);
+    setDocumentUploadResult(null);
+    const next = await uploadVaultDocumentFile({
+      ctx: liveCtx,
+      file,
+      title,
+      selectedMatter
+    });
+    setDocumentUploadResult(next);
+    setDocumentUploadPending(false);
+    if (next.kind === "data") setRefreshToken((value) => value + 1);
   };
 
   const handleVaultSearch = (event) => {
@@ -909,6 +1025,12 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
                 result={uploadPreflightResult}
                 pending={uploadPreflightPending}
                 onRun={handleUploadPreflight}
+              />
+              <VaultDocumentUploadPanel
+                selectedMatter={selectedMatter}
+                result={documentUploadResult}
+                pending={documentUploadPending}
+                onUpload={handleVaultDocumentUpload}
               />
               <VaultActionBoundaryPanel
                 bridgeResult={bridgeResult}

@@ -1,6 +1,6 @@
 {
   "schema_version": "lawos.upl_e03.filed_email_ai_review_proof.v1",
-  "generated_at": "2026-07-03T02:15:10.235Z",
+  "generated_at": "2026-07-03T09:21:06.750Z",
   "tuw_ids": [
     "UPL-E-03"
   ],
@@ -8,9 +8,10 @@
   "production_ready_claim": false,
   "go_live_claim": false,
   "external_model_claim": false,
+  "analysis_mode": "rule_based_triage",
   "source_trace": {
     "email_filing": "packages/email-dms/src/email-filing-service.js#fileEmailThreadToMatter",
-    "ai_review_service": "packages/matter/src/email-ai-matter-review-service.js#createFiledEmailAiMatterReviewService",
+    "rule_based_review_service": "packages/matter/src/email-ai-matter-review-service.js#createFiledEmailAiMatterReviewService",
     "matter_model": "packages/matter/src/model.js#createMatter/createMatterTask/createMatterCalendarEvent"
   },
   "filed_email": {

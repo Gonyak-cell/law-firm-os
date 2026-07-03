@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { assertNodeProofPass } from "./lib/upl-proof-runner.mjs";
 
 const artifactPath = "artifacts/manual-qa/upl-a08-packaged-desktop-restart-proof.json";
 const matrixPath = "artifacts/manual-qa/wave1-70-tuw-strict-verification-2026-07-03.md";
+
+await assertNodeProofPass("scripts/run-upl-a08-packaged-desktop-restart-proof.mjs");
 
 const artifact = JSON.parse(readFileSync(artifactPath, "utf8"));
 const matrix = readFileSync(matrixPath, "utf8");

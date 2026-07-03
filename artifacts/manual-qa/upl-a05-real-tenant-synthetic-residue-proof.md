@@ -1,6 +1,6 @@
 # UPL-A-05 Real-Tenant Synthetic Residue Proof
 
-Generated: 2026-07-03T02:17:41.780Z
+Generated: 2026-07-03T09:20:22.504Z
 
 Overall result: PASS
 
@@ -10,6 +10,7 @@ Tenant: `tenant_amic_matter_vault`
 
 | Check | Result | Evidence |
 |---|---|---|
+| a05-forged-permission-context-blocked | PASS | `{"status":401}` |
 | a05-api-readback-uses-registered-tenant | PASS | `{"tenant_id":"tenant_amic_matter_vault","current_client_group_count":99,"wrong_tenant_count":0}` |
 | a05-current-client-count-99 | PASS | `{"candidate_count":99,"readback_count":99}` |
 | a05-synthetic-only-zero | PASS | `{"synthetic_only_true_count":0}` |

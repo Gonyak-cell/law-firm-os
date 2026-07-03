@@ -16,7 +16,17 @@ const ENV_KEYS = Object.freeze({
     "MICROSOFT_CLIENT_ID",
     "GRAPH_CLIENT_ID",
   ]),
-  "UPL-B-13": Object.freeze(["B13_TAX_INVOICE_VENDOR", "TAX_INVOICE_VENDOR", "TAX_INVOICE_SANDBOX_URL", "TAX_INVOICE_SANDBOX_API_KEY"]),
+  "UPL-B-13": Object.freeze([
+    "B13_TAX_INVOICE_VENDOR",
+    "TAX_INVOICE_VENDOR",
+    "TAX_INVOICE_SANDBOX_URL",
+    "TAX_INVOICE_SANDBOX_API_KEY",
+    "POPBILL_LINK_ID",
+    "POPBILL_SECRET_KEY",
+    "POPBILL_CORP_NUM",
+    "POPBILL_TEST_MODE",
+    "POPBILL_ALLOW_SANDBOX_ISSUE",
+  ]),
 });
 
 const EXPECTED_OPEN_ROWS = Object.freeze({
@@ -34,6 +44,21 @@ function read(path) {
 
 function readJson(path) {
   return JSON.parse(read(path));
+}
+
+function loadEnvFile(path) {
+  if (!existsSync(resolve(ROOT, path))) return {};
+  return Object.fromEntries(
+    read(path)
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith("#"))
+      .map((line) => {
+        const index = line.indexOf("=");
+        return index === -1 ? null : [line.slice(0, index), line.slice(index + 1)];
+      })
+      .filter(Boolean),
+  );
 }
 
 function fileState(path) {
@@ -62,8 +87,10 @@ function matrixSnapshot() {
 }
 
 function envPresence(rowId) {
+  const fileEnv = rowId === "UPL-B-13" ? loadEnvFile(".env.popbill.local") : {};
+  const merged = { ...fileEnv, ...process.env };
   return Object.freeze(
-    Object.fromEntries(ENV_KEYS[rowId].map((key) => [key, Boolean(process.env[key])])),
+    Object.fromEntries(ENV_KEYS[rowId].map((key) => [key, Boolean(merged[key])])),
   );
 }
 
@@ -71,11 +98,15 @@ function localProofs() {
   const a12Path = "artifacts/manual-qa/upl-a12-local-model-gateway-proof.json";
   const d16Path = "artifacts/manual-qa/d16-hrx-ai-rag-browser-2026-07-03.json";
   const c09Path = "docs/lazycodex/evidence/matter-web/artifacts/upl-c09-c12-outlook-addin-browser-proof.json";
+  const c09ExternalPath = "artifacts/manual-qa/upl-c09-outlook-external-receipt-readiness.json";
   const b13Path = "artifacts/manual-qa/upl-b13-withholding-proof.json";
+  const b13PopbillPath = "artifacts/manual-qa/upl-b13-popbill-sandbox-proof.json";
   const a12 = fileState(a12Path).exists ? readJson(a12Path) : null;
   const d16 = fileState(d16Path).exists ? readJson(d16Path) : null;
   const c09 = fileState(c09Path).exists ? readJson(c09Path) : null;
+  const c09External = fileState(c09ExternalPath).exists ? readJson(c09ExternalPath) : null;
   const b13 = fileState(b13Path).exists ? readJson(b13Path) : null;
+  const b13Popbill = fileState(b13PopbillPath).exists ? readJson(b13PopbillPath) : null;
   return Object.freeze({
     "UPL-A-12": Object.freeze({
       source_files: Object.freeze([
@@ -114,6 +145,26 @@ function localProofs() {
         entra_admin_consent_receipt_present: c09?.external_receipt_boundary?.entra_admin_consent_receipt_present === true,
         outlook_web_smoke_receipt_present: c09?.external_receipt_boundary?.outlook_web_smoke_receipt_present === true,
         outlook_new_desktop_smoke_receipt_present: c09?.external_receipt_boundary?.outlook_new_desktop_smoke_receipt_present === true,
+        msal_bridge_initialized: c09?.msal_bridge_probe?.initialized === true,
+        msal_bridge_provider_runtime_executed: c09?.msal_bridge_probe?.provider_runtime_executed === true,
+        msal_bridge_token_material_returned: c09?.msal_bridge_probe?.token_material_returned === true,
+        on_message_send_handler_associated: c09?.handler_probe?.associated_actions?.includes("onMessageSendHandler") === true,
+        on_message_send_handler_completed_allow_event: c09?.handler_probe?.completed_payload?.allowEvent === true,
+      }),
+      external_receipt_intake: Object.freeze({
+        path: c09ExternalPath,
+        exists: Boolean(c09External),
+        status: c09External?.status ?? null,
+        external_receipt_present: c09External?.external_receipt_present === true,
+        strict_pass_claim: c09External?.strict_pass_claim === true,
+        entra_admin_consent_receipt_present: c09External?.external_runtime?.entra_admin_consent_receipt_present === true,
+        outlook_web_smoke_receipt_present: c09External?.external_runtime?.outlook_web_smoke_receipt_present === true,
+        outlook_new_desktop_smoke_receipt_present: c09External?.external_runtime?.outlook_new_desktop_smoke_receipt_present === true,
+        provider_runtime_executed: c09External?.external_runtime?.provider_runtime_executed === true,
+        qa_mailbox_used: c09External?.external_runtime?.qa_mailbox_used === true,
+        production_write_claim: c09External?.external_runtime?.production_write_claim === true,
+        token_or_secret_material_written: c09External?.safety?.token_or_secret_material_written === true,
+        body_or_attachment_material_written: c09External?.safety?.body_or_attachment_material_written === true,
       }),
     }),
     "UPL-B-13": Object.freeze({
@@ -126,42 +177,61 @@ function localProofs() {
         external_tax_invoice_vendor_selected: b13?.strict_boundary?.external_tax_invoice_vendor_selected === true,
         external_vendor_sandbox_roundtrip: b13?.strict_boundary?.external_vendor_sandbox_roundtrip === true,
       }),
+      popbill_sandbox_receipt: Object.freeze({
+        path: b13PopbillPath,
+        exists: Boolean(b13Popbill),
+        status: b13Popbill?.status ?? null,
+        sandbox_mode: b13Popbill?.sandbox_mode === true,
+        credential_fingerprint_present: Boolean(
+          b13Popbill?.credential_fingerprint?.link_id_hash &&
+            b13Popbill?.credential_fingerprint?.secret_key_hash,
+        ),
+        external_vendor_sandbox_roundtrip: b13Popbill?.strict_boundary?.external_vendor_sandbox_roundtrip === true,
+        strict_pass_claim: b13Popbill?.strict_boundary?.strict_pass_claim === true,
+        production_tax_invoice_issued: b13Popbill?.strict_boundary?.production_tax_invoice_issued === true,
+        prepared_request_hash_present: typeof b13Popbill?.vendor_payload_summary?.request_hash === "string",
+        withholding_payload_mapping_present: b13Popbill?.withholding_mapping?.mapped_to_field === "remark3",
+        blocker_reason: b13Popbill?.blocker?.reason ?? null,
+      }),
     }),
   });
 }
 
 function readinessRows(matrix, proofs) {
   const statusFor = (rowId) => matrix.open_rows.find((row) => row.row_id === rowId)?.strict_status ?? "PASS";
+  const b13PopbillRoundtrip = proofs["UPL-B-13"].popbill_sandbox_receipt.external_vendor_sandbox_roundtrip === true;
+  const c09ExternalPass = proofs["UPL-C-09"].external_receipt_intake.status === "PASS_C09_OUTLOOK_EXTERNAL_RECEIPT";
   return Object.freeze([
     Object.freeze({
       row_id: "UPL-C-09",
       current_status: statusFor("UPL-C-09"),
-      local_state: "Add-in manifest, taskpane shell, local browser proof, filing, attachment save, sent-mail task, and warning-only Smart Alerts proof exist.",
+      local_state: "Add-in manifest, taskpane shell, local browser proof, filing, attachment save, sent-mail task, code-side MSAL bridge, code-side OnMessageSend handler, and warning-only Smart Alerts proof exist.",
       credential_presence: envPresence("UPL-C-09"),
       external_receipts_required: Object.freeze([
         "Outlook web taskpane load and login smoke receipt",
         "new Outlook desktop taskpane load and login smoke receipt",
         "Entra app registration or admin-consent receipt",
         "provider runtime receipt proving M365/Graph execution",
+        "sanitized external receipt JSON validated by scripts/validate-upl-c09-outlook-external-receipt.mjs",
       ]),
-      external_receipt_present: false,
-      strict_pass_claim: false,
+      external_receipt_present: c09ExternalPass,
+      strict_pass_claim: c09ExternalPass,
       inherited_rows: Object.freeze(["UPL-C-10", "UPL-C-11", "UPL-C-12", "UPL-E-04"]),
       local_proof: proofs["UPL-C-09"],
     }),
     Object.freeze({
       row_id: "UPL-B-13",
       current_status: statusFor("UPL-B-13"),
-      local_state: "Local Korean business-income 3.3 percent withholding model and TaxInvoice proof pass.",
+      local_state: "Local Korean business-income 3.3 percent withholding model passes, Popbill is selected, and local Popbill sandbox credentials/business number are staged without production issuance.",
       credential_presence: envPresence("UPL-B-13"),
       external_receipts_required: Object.freeze([
-        "owner-selected electronic tax invoice vendor decision",
-        "sandbox endpoint and credential available from the selected vendor",
+        "Popbill test certificate setup confirmation",
+        "POPBILL_ALLOW_SANDBOX_ISSUE=1 operator approval in .env.popbill.local",
         "external tax-invoice issue roundtrip receipt id",
         "sanitized request/response hash proving no production tax issuance claim",
       ]),
-      external_receipt_present: false,
-      strict_pass_claim: false,
+      external_receipt_present: b13PopbillRoundtrip,
+      strict_pass_claim: b13PopbillRoundtrip,
       inherited_rows: Object.freeze([]),
       local_proof: proofs["UPL-B-13"],
     }),
@@ -175,6 +245,7 @@ function commandPlan() {
       before_external_run: "Provide Outlook add-in manifest URL, Entra tenant/client/admin-consent evidence, and access to Outlook web plus new Outlook desktop runtime.",
       local_readiness_command: "node scripts/run-upl-c09-c12-outlook-addin-browser-proof.mjs && node scripts/validate-upl-c09-c12-outlook-addin.mjs",
       external_receipt_command_to_add_or_run: "operator Outlook web/new desktop taskpane smoke with Entra consent receipt attached to artifacts/manual-qa",
+      external_receipt_validator: "node scripts/validate-upl-c09-outlook-external-receipt.mjs",
     }),
     Object.freeze({
       row_id: "UPL-B-13",
@@ -208,7 +279,12 @@ function checks({ matrix, proofs, rows }) {
       id: "c09-local-addin-proof-present-but-provider-runtime-missing",
       passed: proofs["UPL-C-09"].source_files.every((file) => file.exists) &&
         proofs["UPL-C-09"].local_addin_browser_receipt.passed === true &&
-        proofs["UPL-C-09"].local_addin_browser_receipt.provider_runtime_executed === false,
+        proofs["UPL-C-09"].local_addin_browser_receipt.provider_runtime_executed === false &&
+        proofs["UPL-C-09"].external_receipt_intake.exists === true &&
+        proofs["UPL-C-09"].external_receipt_intake.status === "READY_NEEDS_OUTLOOK_EXTERNAL_RECEIPT" &&
+        proofs["UPL-C-09"].external_receipt_intake.production_write_claim === false &&
+        proofs["UPL-C-09"].external_receipt_intake.token_or_secret_material_written === false &&
+        proofs["UPL-C-09"].external_receipt_intake.body_or_attachment_material_written === false,
     }),
     Object.freeze({
       id: "b13-local-withholding-proof-present-but-sandbox-missing",
@@ -250,6 +326,28 @@ const artifact = Object.freeze({
   checks: receiptChecks,
 });
 
+function rowMarkdownDetails(row) {
+  if (row.row_id === "UPL-C-09") {
+    const addinReceipt = row.local_proof.local_addin_browser_receipt;
+    return [
+      `MSAL bridge initialized: ${addinReceipt.msal_bridge_initialized}`,
+      `MSAL bridge provider runtime executed: ${addinReceipt.msal_bridge_provider_runtime_executed}`,
+      `OnMessageSend handler associated: ${addinReceipt.on_message_send_handler_associated}`,
+      `OnMessageSend handler completed allowEvent: ${addinReceipt.on_message_send_handler_completed_allow_event}`,
+      `Provider runtime executed: ${addinReceipt.provider_runtime_executed}`,
+      `External receipt intake: ${row.local_proof.external_receipt_intake.status}`,
+      `External receipt present: ${row.local_proof.external_receipt_intake.external_receipt_present}`,
+    ];
+  }
+  if (row.row_id !== "UPL-B-13") return [];
+  const popbillReceipt = row.local_proof.popbill_sandbox_receipt;
+  return [
+    `Prepared Popbill request hash present: ${popbillReceipt.prepared_request_hash_present}`,
+    `3.3% withholding payload mapping present: ${popbillReceipt.withholding_payload_mapping_present}`,
+    `Production tax invoice issued: ${popbillReceipt.production_tax_invoice_issued}`,
+  ];
+}
+
 mkdirSync(dirname(ARTIFACT_JSON), { recursive: true });
 writeFileSync(ARTIFACT_JSON, `${JSON.stringify(artifact, null, 2)}\n`);
 writeFileSync(
@@ -275,6 +373,8 @@ writeFileSync(
       "",
       row.local_state,
       "",
+      ...rowMarkdownDetails(row),
+      ...(rowMarkdownDetails(row).length > 0 ? [""] : []),
       "Required external receipts:",
       ...row.external_receipts_required.map((item) => `- ${item}`),
       "",
@@ -288,6 +388,9 @@ writeFileSync(
     "## Commands",
     "",
     ...artifact.command_plan.map((item) => `- ${item.row_id}: ${item.local_readiness_command}`),
+    ...artifact.command_plan
+      .filter((item) => item.external_receipt_validator)
+      .map((item) => `- ${item.row_id} external receipt validator: ${item.external_receipt_validator}`),
     "",
   ].join("\n"),
 );

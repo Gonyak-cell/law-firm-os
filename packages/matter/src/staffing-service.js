@@ -43,6 +43,30 @@ export class MatterOnboardingGateError extends Error {
 export function evaluateMatterAssignmentOnboardingReadiness({ plan } = {}) {
   if (!plan) return Object.freeze({ outcome: "allow", reason: "no_onboarding_plan" });
   const tasks = Array.isArray(plan.tasks) ? plan.tasks : [];
+  const gate = plan.matter_assignment_gate;
+  if (gate && Array.isArray(gate.required_task_ids)) {
+    const taskById = new Map(tasks.map((task) => [task.task_id, task]));
+    const missing_task_ids = gate.required_task_ids.filter((taskId) => taskById.get(taskId)?.status !== "completed");
+    if (gate.waiver_ref) {
+      return Object.freeze({
+        outcome: "allow",
+        reason: "onboarding_gate_waived",
+        onboarding_id: plan.onboarding_id ?? null,
+        employee_id: plan.employee_id ?? null,
+        waiver_ref: gate.waiver_ref,
+      });
+    }
+    if (missing_task_ids.length === 0) {
+      return Object.freeze({ outcome: "allow", reason: "onboarding_gate_completed" });
+    }
+    return Object.freeze({
+      outcome: "blocked",
+      reason: "onboarding_gate_incomplete",
+      onboarding_id: plan.onboarding_id ?? null,
+      employee_id: plan.employee_id ?? null,
+      missing_task_ids: Object.freeze(missing_task_ids),
+    });
+  }
   const trainingTasks = tasks.filter(isSecurityTrainingTask);
   const pledgeTasks = tasks.filter(isSecurityPledgeTask);
   const gateConfigured = plan.matter_assignment_gate === true || trainingTasks.length > 0 || pledgeTasks.length > 0;

@@ -66,8 +66,8 @@ export function extractOcrSearchableText({ mime_type, filename, ocr_text } = {})
     text,
     extractor: "pdf_ocr_sidecar_text",
     character_count: text.length,
-    ocr_runtime_executed: true,
-    ocr_provider: "lawos_sidecar_ocr_v1",
+    ocr_runtime_executed: false,
+    ocr_provider: "caller_supplied_ocr_sidecar",
   });
 }
 
@@ -116,7 +116,7 @@ export function createSearchIndexEnvelope({ document, version, file_object, byte
     ocr_provider: ocr.ocr_provider,
     extractor: extracted.extractor,
     ocr_extractor: ocr.extractor,
-    search_backend: "sqlite_fts5_ready",
+    search_backend: "json_substring_search",
     body_searchable_text: extracted.text.toLowerCase(),
     ocr_searchable_text: ocr.text.toLowerCase(),
     searchable_text: searchableText,

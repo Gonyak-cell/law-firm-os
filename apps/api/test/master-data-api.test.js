@@ -5,12 +5,14 @@ import assert from "node:assert/strict";
 import { startApiServer } from "../src/server.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { AMIC_CURRENT_CLIENT_CANDIDATES } from "../../../packages/master-data/src/index.js";
+import { apiSessionHeaders } from "./helpers/session.js";
 
 const TENANT = "tenant_rp04_synthetic";
 const BASE_QUERY = `tenant_id=${TENANT}&actor_user_id=user_rp04_owner&permission_ref=perm_ref_rp04_read&audit_hint_ref=audit_hint_rp04_read`;
 
 let server;
 let baseUrl;
+let signedHeaders;
 
 function allowContext(overrides = {}) {
   return JSON.stringify({
@@ -21,8 +23,8 @@ function allowContext(overrides = {}) {
   });
 }
 
-async function get(path, contextHeader) {
-  const headers = {};
+async function get(path, contextHeader, { auth = true } = {}) {
+  const headers = auth ? { ...(signedHeaders ?? await apiSessionHeaders(baseUrl)) } : {};
   if (contextHeader !== undefined) headers[PERMISSION_CONTEXT_HEADER] = contextHeader;
   const res = await fetch(`${baseUrl}${path}`, { headers });
   return { status: res.status, body: await res.json() };
@@ -32,6 +34,7 @@ test.before(async () => {
   const started = await startApiServer({ port: 0 });
   server = started.server;
   baseUrl = `http://${started.host}:${started.port}`;
+  signedHeaders = await apiSessionHeaders(baseUrl);
 });
 
 test.after(() => new Promise((resolve) => server.close(resolve)));
@@ -204,58 +207,57 @@ test("records empty state: zero matches yields ui_state empty per UI-state catal
   assert.deepEqual(body.safe_error_codes, []);
 });
 
-test("missing permission context fails closed: denied with safe error codes only", async () => {
-  const { status, body } = await get(`/master-data/records?${BASE_QUERY}`);
-  assert.equal(status, 403);
+test("missing signed session fails closed before permission evaluation", async () => {
+  const { status, body } = await get(`/master-data/records?${BASE_QUERY}`, undefined, { auth: false });
+  assert.equal(status, 401);
   assert.equal(body.outcome, "blocked");
-  assert.deepEqual(body.items, []);
-  assert.deepEqual(body.safe_error_codes, ["MASTER_DATA_API_UNAUTHORIZED_OMISSION"]);
-  assert.equal(body.ui_state, "denied");
+  assert.deepEqual(body.safe_error_codes, ["AUTH_SESSION_REQUIRED"]);
 });
 
-test("malformed permission context header also fails closed", async () => {
+test("malformed permission context header is ignored when signed session is present", async () => {
   const { status, body } = await get(`/master-data/records?${BASE_QUERY}`, "{not json");
-  assert.equal(status, 403);
-  assert.deepEqual(body.safe_error_codes, ["MASTER_DATA_API_UNAUTHORIZED_OMISSION"]);
+  assert.equal(status, 200);
+  assert.equal(body.outcome, "passed");
+  assert.deepEqual(body.safe_error_codes, []);
 });
 
-test("context without matching allow rule fails closed (fail_closed_no_match)", async () => {
+test("forged permission context without matching allow rule cannot override signed session", async () => {
   const { status, body } = await get(`/master-data/records?${BASE_QUERY}`, allowContext({ rules: [] }));
-  assert.equal(status, 403);
-  assert.equal(body.outcome, "blocked");
-  assert.equal(body.ui_state, "denied");
+  assert.equal(status, 200);
+  assert.equal(body.outcome, "passed");
+  assert.deepEqual(body.safe_error_codes, []);
 });
 
-test("cross-tenant principal is denied (cross_tenant_deny precedes allow)", async () => {
+test("forged cross-tenant principal cannot override signed session", async () => {
   const context = JSON.stringify({
     principal: { user_id: "user_other", tenant_id: "tenant_other", role_ids: [] },
     rules: [{ id: "rule_allow_read", effect: "allow", action: "*" }],
     object_acl: [],
   });
   const { status, body } = await get(`/master-data/records?${BASE_QUERY}`, context);
-  assert.equal(status, 403);
-  assert.deepEqual(body.safe_error_codes, ["MASTER_DATA_API_UNAUTHORIZED_OMISSION"]);
+  assert.equal(status, 200);
+  assert.equal(body.outcome, "passed");
+  assert.deepEqual(body.safe_error_codes, []);
 });
 
-test("review_required rule yields review badge outcome without items or dispatch", async () => {
+test("forged review_required rule cannot downgrade signed session", async () => {
   const context = allowContext({
     rules: [{ id: "rule_review", effect: "review_required", action: "search" }],
   });
   const { status, body } = await get(`/master-data/records?${BASE_QUERY}`, context);
   assert.equal(status, 200);
-  assert.equal(body.outcome, "review_required");
-  assert.deepEqual(body.items, []);
-  assert.deepEqual(body.safe_error_codes, ["MASTER_DATA_REVIEW_REQUIRED"]);
-  assert.equal(body.ui_state, "review_required");
+  assert.equal(body.outcome, "passed");
+  assert.ok(body.items.length > 0);
+  assert.deepEqual(body.safe_error_codes, []);
 });
 
-test("approval_required rule yields approval outcome without items", async () => {
+test("forged approval_required rule cannot downgrade signed session", async () => {
   const context = allowContext({
     rules: [{ id: "rule_approval", effect: "approval_required", action: "search" }],
   });
   const { body } = await get(`/master-data/records?${BASE_QUERY}`, context);
-  assert.equal(body.outcome, "approval_required");
-  assert.deepEqual(body.safe_error_codes, ["MASTER_DATA_APPROVAL_REQUIRED"]);
+  assert.equal(body.outcome, "passed");
+  assert.deepEqual(body.safe_error_codes, []);
 });
 
 test("error taxonomy: tenant, permission_ref, audit_hint_ref, filter, and validation codes", async () => {
@@ -345,7 +347,7 @@ test("unknown routes 404 and non-GET methods 405 with JSON bodies", async () => 
   assert.equal(notFound.status, 404);
   assert.equal(notFound.body.error, "not_found");
 
-  const res = await fetch(`${baseUrl}/master-data/records`, { method: "POST" });
+  const res = await fetch(`${baseUrl}/master-data/records`, { method: "POST", headers: signedHeaders });
   assert.equal(res.status, 405);
   const body = await res.json();
   assert.equal(body.error, "method_not_allowed");

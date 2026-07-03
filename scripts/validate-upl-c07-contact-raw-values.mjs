@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { assertNodeProofPass } from "./lib/upl-proof-runner.mjs";
 
 const ROOT = process.cwd();
 
@@ -53,6 +54,7 @@ assertPatterns("apps/web/src/data/apiClient.js", [
 ]);
 
 assertExists("scripts/run-upl-c07-contact-raw-values-proof.mjs");
+await assertNodeProofPass("scripts/run-upl-c07-contact-raw-values-proof.mjs");
 const proof = readJson("artifacts/manual-qa/upl-c07-contact-raw-values-proof.json");
 assert.equal(proof.verdict, "PASS");
 assert.equal(proof.contract_ref, "UPL-C-07");

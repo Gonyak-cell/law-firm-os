@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { AMIC_CURRENT_CLIENT_CANDIDATES } from "../packages/master-data/src/index.js";
@@ -20,6 +21,21 @@ function read(path) {
   return readFileSync(resolve(ROOT, path), "utf8");
 }
 
+function run(command, args) {
+  return new Promise((resolveRun) => {
+    const child = spawn(command, args, { stdio: ["ignore", "pipe", "pipe"] });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk;
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+    });
+    child.on("close", (status) => resolveRun({ status, stdout, stderr }));
+  });
+}
+
 for (const file of requiredFiles) {
   assert.equal(existsSync(resolve(ROOT, file)), true, `missing required file: ${file}`);
 }
@@ -31,7 +47,7 @@ const artifact = JSON.parse(read("artifacts/manual-qa/upl-a05-real-tenant-synthe
 const c06 = JSON.parse(read("artifacts/manual-qa/upl-c06-canonical-client-crosswalk-proof.json"));
 
 for (const marker of [
-  "tenant_amic_matter_vault",
+  "MATTER_VAULT_REGISTERED_TENANT_ID",
   "RESIDUE_PATTERN",
   "synthetic_only !== false",
   "readAllClientGroups",
@@ -39,6 +55,14 @@ for (const marker of [
 ]) {
   assert.ok(proofScript.includes(marker), `proof script missing marker: ${marker}`);
 }
+assert.ok(proofScript.includes("apiSessionHeaders"), "proof script must use signed session headers");
+assert.ok(proofScript.includes("a05-forged-permission-context-blocked"), "proof script must include forged-header negative check");
+
+const executed = await run("node", ["scripts/run-upl-a05-real-tenant-synthetic-residue-proof.mjs"]);
+assert.equal(executed.status, 0, executed.stderr || executed.stdout);
+
+const refreshedArtifact = JSON.parse(read("artifacts/manual-qa/upl-a05-real-tenant-synthetic-residue-proof.json"));
+Object.assign(artifact, refreshedArtifact);
 
 for (const marker of [
   "createAmicCurrentClientCandidateRecords",
@@ -69,6 +93,7 @@ assert.ok(artifact.readback.sample_current_client_groups.every((row) => row.tena
 assert.ok(artifact.readback.sample_current_client_groups.every((row) => row.synthetic_only === false));
 
 for (const id of [
+  "a05-forged-permission-context-blocked",
   "a05-api-readback-uses-registered-tenant",
   "a05-current-client-count-99",
   "a05-synthetic-only-zero",

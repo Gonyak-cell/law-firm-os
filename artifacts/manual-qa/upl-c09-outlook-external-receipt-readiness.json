@@ -1,0 +1,53 @@
+{
+  "schema_version": "lawos.wave1.upl-c09.outlook-external-receipt-readiness.v1",
+  "generated_at": "2026-07-03T10:27:30.700Z",
+  "row_id": "UPL-C-09",
+  "status": "READY_NEEDS_OUTLOOK_EXTERNAL_RECEIPT",
+  "receipt_path": "artifacts/manual-qa/upl-c09-outlook-external-receipt.json",
+  "template_path": "artifacts/manual-qa/upl-c09-outlook-external-receipt.template.json",
+  "external_receipt_present": false,
+  "strict_pass_claim": false,
+  "closes_rows_when_matrix_is_updated": [
+    "UPL-C-09",
+    "UPL-C-10",
+    "UPL-C-11",
+    "UPL-C-12",
+    "UPL-E-04"
+  ],
+  "required_external_receipt_fields": [
+    "Entra tenant/app/admin consent receipt ref",
+    "Outlook web taskpane load plus login smoke receipt",
+    "new Outlook desktop taskpane load plus login smoke receipt",
+    "Graph/M365 provider request id or response hash",
+    "email file, attachment save, sent-mail task, Smart Alert warning-only results",
+    "QA mailbox/sandbox proof and no production write claim",
+    "No token, client secret, email body, or attachment bytes"
+  ],
+  "external_runtime": {
+    "entra_admin_consent_receipt_present": false,
+    "outlook_web_smoke_receipt_present": false,
+    "outlook_new_desktop_smoke_receipt_present": false,
+    "provider_runtime_executed": false,
+    "graph_provider_ref_present": false,
+    "qa_mailbox_used": false,
+    "production_write_claim": false
+  },
+  "safety": {
+    "token_or_secret_material_written": false,
+    "body_or_attachment_material_written": false,
+    "forbidden_text_detected": false
+  },
+  "checks": [
+    {
+      "id": "external-receipt-not-present",
+      "passed": true,
+      "evidence": {
+        "expected_path": "artifacts/manual-qa/upl-c09-outlook-external-receipt.json"
+      }
+    },
+    {
+      "id": "strict-pass-not-claimed-without-external-receipt",
+      "passed": true
+    }
+  ]
+}

@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { assertNodeProofPass } from "./lib/upl-proof-runner.mjs";
 
 const ROOT = process.cwd();
 
@@ -47,10 +48,11 @@ assertPatterns("apps/web/src/components/ClientsSurface.jsx", [
 ]);
 
 assertPatterns("apps/web/src/components/Shell.jsx", [
-  /\{ label: "인테이크", view: "clients", section: "client-intake"/,
+  /\{ label: "상담·문의", view: "clients", section: "client-intake"/,
 ]);
 
 assertExists("scripts/run-upl-c08-intake-completion-browser-proof.mjs");
+await assertNodeProofPass("scripts/run-upl-c08-intake-completion-browser-proof.mjs");
 const proof = readJson("docs/lazycodex/evidence/matter-web/artifacts/upl-c08-intake-completion-browser-proof.json");
 assert.equal(proof.verdict, "PASS");
 assert.equal(proof.contract_ref, "UPL-C-08");
@@ -58,14 +60,24 @@ assert.deepEqual(proof.observed.write_order, ["opportunity", "handoff", "conflic
 assert.equal(proof.observed.manual_input_count, 0);
 assert.ok(proof.checks.every((check) => check.passed === true));
 const opportunityWrite = proof.observed.writes.find((write) => write.kind === "opportunity");
+const handoffWrite = proof.observed.writes.find((write) => write.kind === "handoff");
 const conflictWrite = proof.observed.writes.find((write) => write.kind === "conflict_check");
+const clearanceWrite = proof.observed.writes.find((write) => write.kind === "clearance");
 const matterWrite = proof.observed.writes.find((write) => write.kind === "matter_opening");
+const { linkage } = proof.observed;
 assert.equal(opportunityWrite.payload.opportunity.display_name, "신규 의뢰");
 assert.equal("matter_id" in opportunityWrite.payload.opportunity, false);
 assert.equal("matter_open_command" in opportunityWrite.payload.opportunity, false);
-assert.equal(conflictWrite.payload.conflict_check.intake_request_id, "intake_upl_c08_ui");
+assert.equal(handoffWrite.payload.intake_request_id, linkage.intake_request_id);
+assert.equal(conflictWrite.payload.conflict_check.intake_request_id, linkage.intake_request_id);
+assert.equal(conflictWrite.payload.conflict_check.conflict_check_id, linkage.conflict_check_id);
 assert.equal(matterWrite.payload.permission_ref, "ui_cmp_g6_intake_matter_open");
-assert.equal(matterWrite.payload.clearance_token.clearance_token_id, "clearance_upl_c08_ui");
+assert.equal(clearanceWrite.payload.token.clearance_token_id, linkage.clearance_token_id);
+assert.equal(matterWrite.payload.clearance_token.clearance_token_id, linkage.clearance_token_id);
+assert.equal(matterWrite.payload.matter.matter_id, linkage.matter_id);
+assert.equal(proof.observed.stored_readback.intake_status, "open");
+assert.equal(proof.observed.stored_readback.conflict_hit_count, 0);
+assert.equal(proof.observed.stored_readback.bytes_written_to_artifact, false);
 assertExists("docs/lazycodex/evidence/matter-web/artifacts/upl-c08-intake-completion-browser-proof.md");
 assertExists("docs/lazycodex/evidence/matter-web/artifacts/upl-c08-screenshots/upl-c08-intake-completion.png");
 

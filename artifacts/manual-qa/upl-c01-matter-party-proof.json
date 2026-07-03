@@ -1,8 +1,8 @@
 {
   "schema_version": "law-firm-os.upl-c01.matter-party-proof.v0.1",
-  "generated_at": "2026-07-02T23:13:04.838Z",
+  "generated_at": "2026-07-03T09:20:27.083Z",
   "verdict": "PASS",
-  "api_url": "http://127.0.0.1:58940",
+  "api_url": "http://127.0.0.1:59561",
   "contract_ref": "UPL-C-01",
   "route_surface": [
     "POST /api/matters/:matterId/parties",
@@ -33,7 +33,7 @@
     "created": {
       "status": 201,
       "item": {
-        "tenant_id": "tenant_upl_c01_matter_party",
+        "tenant_id": "tenant_amic_matter_vault",
         "resource_id": "matter_party_upl_c01_adverse",
         "matter_party_id": "matter_party_upl_c01_adverse",
         "matter_id": "matter_upl_c01",
@@ -45,13 +45,13 @@
         "retroactive_entry": true,
         "retroactive_source": "manual_retroactive_entry",
         "status": "active",
-        "registered_at": "2026-07-02T23:13:04.830Z",
+        "registered_at": "2026-07-03T09:20:27.074Z",
         "raw_contact_values_included": false,
         "production_ready_claim": false
       },
       "adverse_parties": [
         {
-          "tenant_id": "tenant_upl_c01_matter_party",
+          "tenant_id": "tenant_amic_matter_vault",
           "resource_id": "matter_party_upl_c01_adverse",
           "matter_party_id": "matter_party_upl_c01_adverse",
           "matter_id": "matter_upl_c01",
@@ -63,7 +63,7 @@
           "retroactive_entry": true,
           "retroactive_source": "manual_retroactive_entry",
           "status": "active",
-          "registered_at": "2026-07-02T23:13:04.830Z",
+          "registered_at": "2026-07-03T09:20:27.074Z",
           "raw_contact_values_included": false,
           "production_ready_claim": false
         }
@@ -78,7 +78,7 @@
       "count": 1,
       "items": [
         {
-          "tenant_id": "tenant_upl_c01_matter_party",
+          "tenant_id": "tenant_amic_matter_vault",
           "resource_id": "matter_party_upl_c01_adverse",
           "matter_party_id": "matter_party_upl_c01_adverse",
           "matter_id": "matter_upl_c01",
@@ -90,7 +90,7 @@
           "retroactive_entry": true,
           "retroactive_source": "manual_retroactive_entry",
           "status": "active",
-          "registered_at": "2026-07-02T23:13:04.830Z",
+          "registered_at": "2026-07-03T09:20:27.074Z",
           "raw_contact_values_included": false,
           "production_ready_claim": false
         }
@@ -104,7 +104,7 @@
       "status": 200,
       "adverse_parties": [
         {
-          "tenant_id": "tenant_upl_c01_matter_party",
+          "tenant_id": "tenant_amic_matter_vault",
           "resource_id": "matter_party_upl_c01_adverse",
           "matter_party_id": "matter_party_upl_c01_adverse",
           "matter_id": "matter_upl_c01",
@@ -116,7 +116,7 @@
           "retroactive_entry": true,
           "retroactive_source": "manual_retroactive_entry",
           "status": "active",
-          "registered_at": "2026-07-02T23:13:04.830Z",
+          "registered_at": "2026-07-03T09:20:27.074Z",
           "raw_contact_values_included": false,
           "production_ready_claim": false
         }

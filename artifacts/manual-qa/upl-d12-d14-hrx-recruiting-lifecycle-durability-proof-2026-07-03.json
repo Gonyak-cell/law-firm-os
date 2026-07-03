@@ -1,0 +1,127 @@
+{
+  "schema_version": "law-firm-os.wave1.upl_d12_d14.hrx_recruiting_lifecycle_durability.v0.1",
+  "generated_at": "2026-07-03T07:52:04.007Z",
+  "tuw_ids": [
+    "UPL-D-12",
+    "UPL-D-14"
+  ],
+  "pass": true,
+  "scope": "Signed-session API write and restart readback for HRX recruiting, onboarding, and offboarding durable tables.",
+  "tenant_id": "tenant_amic_matter_vault",
+  "store_path_hash": "273044103ef293ba42c18a22043468efd95dfe5389d8129995b275f42e912b5e",
+  "ids": {
+    "job_opening_id": "job-upl-d12-d14",
+    "candidate_id": "cand-upl-d12-d14",
+    "consent_id": "consent-upl-d12-d14",
+    "application_id": "app-upl-d12-d14",
+    "interview_id": "int-upl-d12-d14",
+    "offer_id": "offer-upl-d12-d14",
+    "onboarding_id": "onb-001",
+    "onboarding_task_id": "policy-ack",
+    "offboarding_id": "off-001"
+  },
+  "response_hashes": {
+    "writes": [
+      "c284f4602a2dcd8967c6ae37d380e3fc813eba34db4b64e46f1555d2ddab57ed",
+      "3ae66bd727bb0fc0ca6ceee044d8aeedb994e200201403a6ec6246695d51c756",
+      "7eb8fa3aeb048c339fe8fe3ea206575867d84bf075b9cfa646ba7736f6c7d5d7",
+      "c4cfd81edac8461a027de464b1830caf716ea2c593586fc1787a76fa149f76f4",
+      "79c6fa328b7e0eb99473f49cb5da55fd953ebb474ff81ced719a12222b54c125",
+      "e3c3792b192f0f00c8fdc8a616bc5455b5dd5630ee36e4a08e679050cfa8dad0",
+      "3ee501582d8d6a7532e7537c6905e74815a2ec4f3790c952529afe59e3b6c282",
+      "33088fcbff652deae87eff24ddb093ba1dc72337898f240492dca832462e0703",
+      "410498fb9ac6a7de966a877decda29a3655cc43a26cec5378cd9dc8278e52c05"
+    ],
+    "pipeline": "f70f28cb224d49235dd7c5a510feb1aa42e0bba84b866c446546476e70d77ee9",
+    "onboarding": "4fff906bfad2b9b84ef08c253061ea1f34c018cf8d439559e8d5b4cfc1a0d551",
+    "offboarding": "8e5bb6a83880b86b0702393f75ec3e7ffbd43dc57f239fe9fc1af32ddc5edee9"
+  },
+  "table_counts": {
+    "hrx_job_openings": 3,
+    "hrx_candidates": 3,
+    "hrx_candidate_consents": 1,
+    "hrx_applications": 3,
+    "hrx_interviews": 3,
+    "hrx_offers": 3,
+    "hrx_onboarding_plans": 2,
+    "hrx_offboarding_cases": 4
+  },
+  "checks": [
+    {
+      "id": "all-write-routes-returned-success",
+      "passed": true,
+      "evidence": {
+        "statuses": [
+          201,
+          201,
+          201,
+          201,
+          201,
+          200,
+          200,
+          200,
+          200
+        ]
+      }
+    },
+    {
+      "id": "job-opening-survived-restart",
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "id": "candidate-survived-restart",
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "id": "application-stage-survived-restart",
+      "passed": true,
+      "evidence": {
+        "stage": "offer"
+      }
+    },
+    {
+      "id": "interview-survived-restart",
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "id": "offer-state-survived-restart",
+      "passed": true,
+      "evidence": {
+        "state": "accepted"
+      }
+    },
+    {
+      "id": "onboarding-task-state-survived-restart",
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "id": "offboarding-close-survived-restart",
+      "passed": true,
+      "evidence": {
+        "state": "closed"
+      }
+    },
+    {
+      "id": "durable-tables-present",
+      "passed": true,
+      "evidence": {
+        "hrx_job_openings": 3,
+        "hrx_candidates": 3,
+        "hrx_candidate_consents": 1,
+        "hrx_applications": 3,
+        "hrx_interviews": 3,
+        "hrx_offers": 3,
+        "hrx_onboarding_plans": 2,
+        "hrx_offboarding_cases": 4
+      }
+    }
+  ],
+  "raw_resume_body_included": false,
+  "raw_interview_feedback_included": false,
+  "raw_compensation_included": false,
+  "production_ready_claim": false
+}

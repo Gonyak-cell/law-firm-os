@@ -1,6 +1,6 @@
 # UPL-E-05 Workload Time Entry Proof
 
-Generated: 2026-07-03T01:55:24.034Z
+Generated: 2026-07-03T09:21:07.195Z
 
 Overall result: PASS
 
@@ -8,6 +8,7 @@ Overall result: PASS
 
 | Check | Result | Evidence |
 |---|---|---|
+| e05-unsigned-forged-hrx-headers-blocked | PASS | `{"status":401,"safe_error_codes":["AUTH_SESSION_REQUIRED"]}` |
 | e05-api-analytics-200 | PASS | `"/api/hrx/analytics"` |
 | e05-workload-source-time-entry | PASS | `{"source_count":2,"row_count":2}` |
 | e05-time-entry-change-reflected | PASS | `{"before":{"time_entry_count":1,"total_hours":1},"after":{"time_entry_count":2,"total_hours":1.75}}` |

@@ -2,6 +2,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import assert from "node:assert/strict";
+import { assertNodeProofPass } from "./lib/upl-proof-runner.mjs";
 
 const ROOT = process.cwd();
 
@@ -48,9 +49,13 @@ assertPatterns("apps/api/src/crm-intake-runtime-context.js", [
   /signed_upload_verified/,
 ]);
 assertPatterns("apps/web/src/data/apiClient.js", [
+  /ENGAGEMENT_SIGNED_PDF_SHA256/,
+  /ENGAGEMENT_SIGNED_PDF_BYTES_BASE64/,
+  /ENGAGEMENT_SIGNED_PDF_BYTE_SIZE/,
   /template_document:/,
   /signed_document_upload:/,
-  /content_sha256: `sha256:\$\{signedDocumentId\}`/,
+  /content_sha256: ENGAGEMENT_SIGNED_PDF_SHA256/,
+  /bytes_base64: ENGAGEMENT_SIGNED_PDF_BYTES_BASE64/,
   /lx_registry_ref: "LX-06"/,
   /bytes_included: false/,
 ]);
@@ -59,6 +64,8 @@ assertPatterns("packages/intake/test/runtime-services.test.js", [/signed-upload-
 
 assertExists("scripts/run-upl-c05-engagement-documents-proof.mjs");
 assertExists("scripts/run-upl-c05-engagement-documents-browser-proof.mjs");
+
+await assertNodeProofPass("scripts/run-upl-c05-engagement-documents-proof.mjs");
 
 const apiProof = readJson("artifacts/manual-qa/upl-c05-engagement-documents-proof.json");
 assert.equal(apiProof.verdict, "PASS");
@@ -72,7 +79,8 @@ assert.equal(apiProof.observed.no_engagement_clearance.ui_state, "blocked");
 assert.equal(apiProof.observed.engagement.engagement_ready, true);
 assert.equal(apiProof.observed.engagement.template_document_id, "template_doc_upl_c05_engagement");
 assert.equal(apiProof.observed.engagement.signed_document_upload_id, "signed_upload_upl_c05_engagement");
-assert.equal(apiProof.observed.stored_upload.lx_registry_ref, "LX-06");
+assert.equal(apiProof.observed.stored_upload.server_hash_recomputed, true);
+assert.equal(apiProof.observed.clearance.engagement_review.lx06_upload_verified, true);
 assert.equal(apiProof.observed.clearance.item.engagement_signed_document_upload_id, "signed_upload_upl_c05_engagement");
 assert.equal(apiProof.observed.clearance.item.engagement_signed_upload_verified, true);
 assert.ok(apiProof.observed.audit_actions.includes("engagement.template.generated"));
@@ -88,6 +96,11 @@ assert.equal(engagementWrite.payload.engagement.template_document.template_id, "
 assert.equal(engagementWrite.payload.engagement.signed_document_upload.document_id, engagementWrite.payload.engagement.signed_document_id);
 assert.equal(engagementWrite.payload.engagement.signed_document_upload.lx_registry_ref, "LX-06");
 assert.equal(engagementWrite.payload.engagement.signed_document_upload.bytes_included, false);
+assert.equal(engagementWrite.payload.engagement.signed_document_upload.bytes_base64, "[redacted]");
+assert.equal(browserProof.observed.stored_upload.server_hash_recomputed, true);
+assert.equal(browserProof.observed.dms_readback.latest_sha256, engagementWrite.payload.engagement.signed_document_upload.content_sha256);
+assert.equal(browserProof.observed.dms_readback.downloaded_sha256, engagementWrite.payload.engagement.signed_document_upload.content_sha256);
+assert.equal(browserProof.observed.dms_readback.bytes_written_to_artifact, false);
 assert.match(browserProof.observed.panel_text, /수임 승인 완료/);
 assert.match(browserProof.observed.panel_text, /통과 처리되었습니다/);
 assertExists("docs/lazycodex/evidence/matter-web/artifacts/upl-c05-engagement-documents-browser-proof.md");

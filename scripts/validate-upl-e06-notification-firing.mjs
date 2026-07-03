@@ -1,6 +1,24 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 
+function run(command, args) {
+  return new Promise((resolveRun) => {
+    const child = spawn(command, args, { stdio: ["ignore", "pipe", "pipe"] });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk;
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+    });
+    child.on("close", (status) => resolveRun({ status, stdout, stderr }));
+  });
+}
+
+const executed = await run("node", ["scripts/run-upl-e06-notification-firing-proof.mjs"]);
+assert.equal(executed.status, 0, executed.stderr || executed.stdout);
 const artifact = JSON.parse(readFileSync("artifacts/manual-qa/upl-e06-notification-firing-proof.json", "utf8"));
 const matrix = readFileSync("artifacts/manual-qa/wave1-70-tuw-strict-verification-2026-07-03.md", "utf8");
 
@@ -15,6 +33,8 @@ assert.deepEqual(artifact.required_event_classes, [
   "risk_detected",
 ]);
 assert.equal(artifact.boundary.aws_ses_provider_shape, true);
+assert.equal(artifact.boundary.delivery_mode, "notification_simulated_local_recorder");
+assert.equal(artifact.boundary.ses_transport, "local-ses-send-recorder");
 assert.equal(artifact.boundary.external_aws_ses_network_call_made, false);
 assert.equal(artifact.boundary.credential_material_included, false);
 assert.equal(artifact.receipts.length, 4);

@@ -1,6 +1,6 @@
 {
   "schema_version": "lawos.wave1.external-receipt-readiness.v1",
-  "generated_at": "2026-07-03T04:14:55.277Z",
+  "generated_at": "2026-07-03T10:27:30.797Z",
   "status": "PASS_EXTERNAL_RECEIPT_READINESS_LEDGER",
   "strict_completion_claim": false,
   "production_ready_claim": false,
@@ -16,12 +16,12 @@
       {
         "row_id": "UPL-B-13",
         "strict_status": "PARTIAL",
-        "evidence": "Local 3.3% Korean business-income withholding model and TaxInvoice proof now pass: `calculateKoreanBusinessIncomeWithholding` computes 3% income tax plus 0.3% local income tax, carries withholding/net payable on `TaxInvoice`, and proof `artifacts/manual-qa/upl-b13-withholding-proof.json` verifies KRW 1,000,000 -> KRW 33,000 withholding -> KRW 967,000 net. `artifacts/manual-qa/wave1-external-receipt-readiness-2026-07-03.json` keeps the strict boundary explicit: PASS still requires owner vendor choice and external tax-invoice sandbox roundtrip; neither is claimed."
+        "evidence": "Local 3.3% Korean business-income withholding model and TaxInvoice proof now pass: `calculateKoreanBusinessIncomeWithholding` computes 3% income tax plus 0.3% local income tax, carries withholding/net payable on `TaxInvoice`, and proof `artifacts/manual-qa/upl-b13-withholding-proof.json` verifies KRW 1,000,000 -> KRW 33,000 withholding -> KRW 967,000 net. Popbill sandbox readiness stores prepared request/mgt-key hashes and validates hash-only provider probe/body/error handling. `artifacts/manual-qa/wave1-external-receipt-readiness-2026-07-03.json` keeps the strict boundary explicit: PASS still requires external tax-invoice sandbox roundtrip; it is not claimed."
       },
       {
         "row_id": "UPL-C-09",
         "strict_status": "BLOCKED",
-        "evidence": "Local taskpane proof exists, and `artifacts/manual-qa/wave1-external-receipt-readiness-2026-07-03.json` links it to the inherited Outlook rows, but artifact state remains Outlook web/new desktop smoke false, Entra consent false, and provider runtime false."
+        "evidence": "Local taskpane proof exists, `scripts/validate-upl-c09-outlook-external-receipt.mjs` now validates the sanitized operator receipt contract, and `artifacts/manual-qa/wave1-external-receipt-readiness-2026-07-03.json` links it to the inherited Outlook rows. Current state remains Outlook web/new desktop smoke false, Entra consent false, provider runtime false, and external receipt present false."
       },
       {
         "row_id": "UPL-C-10",
@@ -61,7 +61,7 @@
     {
       "row_id": "UPL-C-09",
       "current_status": "BLOCKED",
-      "local_state": "Add-in manifest, taskpane shell, local browser proof, filing, attachment save, sent-mail task, and warning-only Smart Alerts proof exist.",
+      "local_state": "Add-in manifest, taskpane shell, local browser proof, filing, attachment save, sent-mail task, code-side MSAL bridge, code-side OnMessageSend handler, and warning-only Smart Alerts proof exist.",
       "credential_presence": {
         "OUTLOOK_ADDIN_MANIFEST_URL": false,
         "MICROSOFT_TENANT_ID": false,
@@ -74,7 +74,8 @@
         "Outlook web taskpane load and login smoke receipt",
         "new Outlook desktop taskpane load and login smoke receipt",
         "Entra app registration or admin-consent receipt",
-        "provider runtime receipt proving M365/Graph execution"
+        "provider runtime receipt proving M365/Graph execution",
+        "sanitized external receipt JSON validated by scripts/validate-upl-c09-outlook-external-receipt.mjs"
       ],
       "external_receipt_present": false,
       "strict_pass_claim": false,
@@ -106,23 +107,48 @@
           "provider_runtime_executed": false,
           "entra_admin_consent_receipt_present": false,
           "outlook_web_smoke_receipt_present": false,
-          "outlook_new_desktop_smoke_receipt_present": false
+          "outlook_new_desktop_smoke_receipt_present": false,
+          "msal_bridge_initialized": true,
+          "msal_bridge_provider_runtime_executed": false,
+          "msal_bridge_token_material_returned": false,
+          "on_message_send_handler_associated": true,
+          "on_message_send_handler_completed_allow_event": true
+        },
+        "external_receipt_intake": {
+          "path": "artifacts/manual-qa/upl-c09-outlook-external-receipt-readiness.json",
+          "exists": true,
+          "status": "READY_NEEDS_OUTLOOK_EXTERNAL_RECEIPT",
+          "external_receipt_present": false,
+          "strict_pass_claim": false,
+          "entra_admin_consent_receipt_present": false,
+          "outlook_web_smoke_receipt_present": false,
+          "outlook_new_desktop_smoke_receipt_present": false,
+          "provider_runtime_executed": false,
+          "qa_mailbox_used": false,
+          "production_write_claim": false,
+          "token_or_secret_material_written": false,
+          "body_or_attachment_material_written": false
         }
       }
     },
     {
       "row_id": "UPL-B-13",
       "current_status": "PARTIAL",
-      "local_state": "Local Korean business-income 3.3 percent withholding model and TaxInvoice proof pass.",
+      "local_state": "Local Korean business-income 3.3 percent withholding model passes, Popbill is selected, and local Popbill sandbox credentials/business number are staged without production issuance.",
       "credential_presence": {
         "B13_TAX_INVOICE_VENDOR": false,
         "TAX_INVOICE_VENDOR": false,
         "TAX_INVOICE_SANDBOX_URL": false,
-        "TAX_INVOICE_SANDBOX_API_KEY": false
+        "TAX_INVOICE_SANDBOX_API_KEY": false,
+        "POPBILL_LINK_ID": true,
+        "POPBILL_SECRET_KEY": true,
+        "POPBILL_CORP_NUM": true,
+        "POPBILL_TEST_MODE": true,
+        "POPBILL_ALLOW_SANDBOX_ISSUE": true
       },
       "external_receipts_required": [
-        "owner-selected electronic tax invoice vendor decision",
-        "sandbox endpoint and credential available from the selected vendor",
+        "Popbill test certificate setup confirmation",
+        "POPBILL_ALLOW_SANDBOX_ISSUE=1 operator approval in .env.popbill.local",
         "external tax-invoice issue roundtrip receipt id",
         "sanitized request/response hash proving no production tax issuance claim"
       ],
@@ -143,6 +169,19 @@
           "local_3_3_withholding_model_passed": true,
           "external_tax_invoice_vendor_selected": false,
           "external_vendor_sandbox_roundtrip": false
+        },
+        "popbill_sandbox_receipt": {
+          "path": "artifacts/manual-qa/upl-b13-popbill-sandbox-proof.json",
+          "exists": true,
+          "status": "READY_NEEDS_SANDBOX_ISSUE_APPROVAL",
+          "sandbox_mode": true,
+          "credential_fingerprint_present": true,
+          "external_vendor_sandbox_roundtrip": false,
+          "strict_pass_claim": false,
+          "production_tax_invoice_issued": false,
+          "prepared_request_hash_present": true,
+          "withholding_payload_mapping_present": true,
+          "blocker_reason": "Set POPBILL_ALLOW_SANDBOX_ISSUE=1 after confirming Popbill test certificate setup"
         }
       }
     }
@@ -158,7 +197,8 @@
       "row_id": "UPL-C-09",
       "before_external_run": "Provide Outlook add-in manifest URL, Entra tenant/client/admin-consent evidence, and access to Outlook web plus new Outlook desktop runtime.",
       "local_readiness_command": "node scripts/run-upl-c09-c12-outlook-addin-browser-proof.mjs && node scripts/validate-upl-c09-c12-outlook-addin.mjs",
-      "external_receipt_command_to_add_or_run": "operator Outlook web/new desktop taskpane smoke with Entra consent receipt attached to artifacts/manual-qa"
+      "external_receipt_command_to_add_or_run": "operator Outlook web/new desktop taskpane smoke with Entra consent receipt attached to artifacts/manual-qa",
+      "external_receipt_validator": "node scripts/validate-upl-c09-outlook-external-receipt.mjs"
     },
     {
       "row_id": "UPL-B-13",

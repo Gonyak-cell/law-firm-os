@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   createMatterPeopleDocumentGraphSeed,
+  createMatterPeopleDocumentGraphSeedFromRuntime,
   createMatterPeopleDocumentGraphTable,
   createMatterPeopleDocumentRelationship,
   MATTER_PEOPLE_DOCUMENT_GRAPH_BOUNDARY,
@@ -33,6 +34,38 @@ test("UPL-E-07 graph table stores matter, people, and document relationships", (
   assert.ok(rows.some((row) => row.relationship_type === "person_document"));
   assert.ok(rows.some((row) => row.to_id === "document_lcx_expert_report_001"));
   assert.equal(JSON.stringify(rows).includes("must not be stored"), false);
+});
+
+test("UPL-E-07 runtime seed derives graph rows from assignments and HR documents", () => {
+  const seed = createMatterPeopleDocumentGraphSeedFromRuntime({
+    tenant_id,
+    employees: [{ tenant_id, employee_id: "emp-001", display_name: "검증 구성원", status: "active" }],
+    matter_assignments: [{ tenant_id, employee_id: "emp-001", matter_id: "matter-001", capacity_pct: 25 }],
+    documents: [{
+      tenant_id,
+      employee_id: "emp-001",
+      document_id: "doc-001",
+      document_type: "employment_contract",
+      title: "근로계약서",
+      source_ref: "DMS:doc-001",
+      document_body_included: false,
+    }],
+  });
+  const table = createMatterPeopleDocumentGraphTable(seed);
+  const traversal = table.traverse(
+    { tenant_id, start_type: "matter", start_id: "matter-001", depth: 2 },
+    privilegedPermission(),
+  );
+
+  assert.equal(seed.source_kind, "runtime_repository_derived");
+  assert.equal(traversal.table_source, "runtime_repository_derived");
+  assert.ok(traversal.nodes.some((node) => node.node_type === "person" && node.node_id === "emp-001"));
+  assert.ok(traversal.nodes.some((node) => node.node_type === "document" && node.node_id === "doc-001"));
+  assert.ok(traversal.relationships.some((row) => row.relationship_type === "matter_person"));
+  assert.ok(traversal.relationships.some((row) => row.relationship_type === "person_document"));
+  assert.ok(traversal.relationships.some((row) => row.relationship_type === "matter_document"));
+  assert.equal(traversal.audit_summary.relationship_table_source, "runtime_repository_derived");
+  assert.equal(JSON.stringify(traversal).includes("document_body"), false);
 });
 
 test("UPL-E-07 traversal reaches people and documents from a matter pivot", () => {

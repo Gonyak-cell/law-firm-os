@@ -1,3 +1,5 @@
+import { readLawosApiSession } from "../data/apiClient.js";
+
 const HRX_ORG_REF = "tenant_amic_matter_vault";
 const LAWOS_SESSION_ENVELOPE_STORAGE_KEY = "lawos.session.envelope";
 const LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION = "law-firm-os.desktop-web-session-envelope.v0.1";
@@ -70,8 +72,39 @@ function apiRequestUrl(input: string): string {
   return baseUrl ? `${baseUrl}${input}` : input;
 }
 
-function apiFetch(input: string, init?: RequestInit): Promise<Response> {
-  return fetch(apiRequestUrl(input), init);
+function plainHeaders(headers: HeadersInit | undefined): Record<string, string> {
+  if (!headers) return {};
+  const headerLike = headers as { forEach?: (callback: (value: string, key: string) => void) => void };
+  if (typeof headerLike.forEach === "function") {
+    const result: Record<string, string> = {};
+    headerLike.forEach((value, key) => {
+      result[key] = value;
+    });
+    return result;
+  }
+  if (Array.isArray(headers)) return Object.fromEntries(headers);
+  return Object.fromEntries(Object.entries(headers).map(([key, value]) => [key, String(value)]));
+}
+
+function deleteHeader(headers: Record<string, string>, name: string): void {
+  for (const key of Object.keys(headers)) {
+    if (key.toLowerCase() === name.toLowerCase()) delete headers[key];
+  }
+}
+
+function setHeader(headers: Record<string, string>, name: string, value: string): void {
+  const existing = Object.keys(headers).find((key) => key.toLowerCase() === name.toLowerCase());
+  headers[existing ?? name] = value;
+}
+
+function apiFetch(input: string, init: RequestInit = {}): Promise<Response> {
+  const headers = plainHeaders(init.headers);
+  for (const name of ["x-lawos-tenant-id", "x-lawos-actor-id", "x-lawos-actor-role", "x-lawos-hrx-scopes"]) {
+    deleteHeader(headers, name);
+  }
+  const session = readLawosApiSession() as { session_token?: string } | null;
+  if (session?.session_token) setHeader(headers, "authorization", `Bearer ${session.session_token}`);
+  return fetch(apiRequestUrl(input), { ...init, headers });
 }
 
 function signedHrxStepUpToken(): string {
@@ -316,6 +349,56 @@ export async function fetchHrxCompensationRecords(employeeId: string | null | un
     masked_compensation_ref: result.body.masked_compensation_ref ?? null,
     payroll_runtime_opened: result.body.payroll_runtime_opened === true
   };
+}
+
+export async function fetchHrxAttendance(options: HrxQueryParams & { ctx?: string } = {}) {
+  const { ctx = "allow", ...filters } = options;
+  const result = await requestJson(withQuery("/api/hrx/attendance", filters), { ctx });
+  if (result.kind === "guarded") {
+    return {
+      kind: "guarded" as const,
+      uiState: result.body?.ui_state ?? null,
+      outcome: result.body?.outcome ?? null,
+      attendance: Array.isArray(result.body?.attendance) ? result.body.attendance : [],
+      monthly_summary: result.body?.monthly_summary ?? null,
+      permission_summary: result.body?.permission_summary ?? null,
+      safeErrorCodes: result.body?.safe_error_codes ?? []
+    };
+  }
+  if (result.kind !== "data" || !Array.isArray(result.body.attendance)) return { kind: "error" as const };
+  return {
+    kind: "data" as const,
+    attendance: result.body.attendance,
+    monthly_summary: result.body.monthly_summary ?? null
+  };
+}
+
+export async function createHrxAttendanceRecord(form: HrxClientRecord) {
+  const result = await requestJson("/api/hrx/attendance", {
+    method: "POST",
+    body: JSON.stringify(form)
+  });
+  if (result.kind !== "data" || !result.body.attendance) {
+    return { kind: "error" as const, reason: result.reason ?? null, body: result.body ?? {}, status: result.status };
+  }
+  return { kind: "data" as const, attendance: result.body.attendance };
+}
+
+export async function correctHrxAttendanceRecord(attendanceId: string, form: HrxClientRecord) {
+  const result = await requestJson(`/api/hrx/attendance/${encodeURIComponent(attendanceId)}/correct`, {
+    method: "POST",
+    body: JSON.stringify(form)
+  });
+  if (result.kind !== "data" || !result.body.attendance) {
+    return { kind: "error" as const, reason: result.reason ?? null, body: result.body ?? {}, status: result.status };
+  }
+  return { kind: "data" as const, attendance: result.body.attendance };
+}
+
+export async function fetchHrxOvertimeRisk(options: HrxQueryParams = {}) {
+  const result = await requestJson(withQuery("/api/hrx/overtime/risks", options));
+  if (result.kind !== "data" || !result.body.risk_report) return { kind: "error" as const };
+  return { kind: "data" as const, risk_report: result.body.risk_report };
 }
 
 function guardedLegalPeopleResult(result: HrxApiResult, collectionKey: string) {

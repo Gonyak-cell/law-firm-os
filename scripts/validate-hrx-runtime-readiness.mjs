@@ -104,7 +104,7 @@ const runtimeEvidence = [
   ["hrx_e2e_receipt", "apps/web/e2e/hrx/people-home.spec.ts"],
   ["hrx_attendance_api_receipt", "apps/api/test/hrx-runtime-api.test.js"],
   ["hrx_compensation_api_receipt", "packages/hrx/test/compensation.test.js"],
-  ["hrx_compensation_manual_qa", "artifacts/manual-qa/d10-compensation-record-2026-07-03.json"],
+  ["hrx_compensation_manual_qa", "artifacts/manual-qa/upl-d10-hrx-compensation-encryption-proof-2026-07-03.json"],
 ];
 
 const missingRuntimeEvidence = [];

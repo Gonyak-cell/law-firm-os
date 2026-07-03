@@ -1,6 +1,6 @@
 {
   "schema_version": "lawos.upl_e05.workload_time_entry_proof.v1",
-  "generated_at": "2026-07-03T01:55:24.034Z",
+  "generated_at": "2026-07-03T09:21:07.195Z",
   "tuw_ids": [
     "UPL-E-05"
   ],
@@ -8,6 +8,7 @@
   "production_ready_claim": false,
   "go_live_claim": false,
   "api_readback": {
+    "forged_status": 401,
     "status": 200,
     "workload_row_count": 2,
     "workload_conflict_count": 1,
@@ -64,6 +65,16 @@
     }
   },
   "checks": [
+    {
+      "id": "e05-unsigned-forged-hrx-headers-blocked",
+      "passed": true,
+      "evidence": {
+        "status": 401,
+        "safe_error_codes": [
+          "AUTH_SESSION_REQUIRED"
+        ]
+      }
+    },
     {
       "id": "e05-api-analytics-200",
       "passed": true,

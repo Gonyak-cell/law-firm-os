@@ -7,6 +7,7 @@ import test from "node:test";
 import { MATTER_VAULT_REGISTERED_TENANT_ID } from "../src/matter-vault-account-registry.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
+import { apiSessionHeaders } from "./helpers/session.js";
 import { renderInvoicePdf } from "../../../packages/billing/src/invoice-pdf-service.js";
 
 const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
@@ -38,12 +39,25 @@ async function withServer(callback, options = {}) {
   }
 }
 
+const sessionHeaderCache = new Map();
+
+async function signedHeaders(baseUrl) {
+  if (!sessionHeaderCache.has(baseUrl)) sessionHeaderCache.set(baseUrl, await apiSessionHeaders(baseUrl));
+  return sessionHeaderCache.get(baseUrl);
+}
+
 async function json(baseUrl, path, options = {}) {
   const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
+    ...(options.noAuth ? {} : await signedHeaders(baseUrl)),
     ...(options.headers ?? {}),
   };
-  if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
+  for (const [key, value] of Object.entries(headers)) {
+    if (value === undefined) delete headers[key];
+  }
+  const isFormDataBody = options.body && typeof FormData !== "undefined" && options.body instanceof FormData;
+  if (options.body && !isFormDataBody && !headers["content-type"]) {
+    headers["content-type"] = "application/json";
+  }
   const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
   const body = await response.json();
   return { status: response.status, body };
@@ -98,22 +112,11 @@ test("G5 Vault document list is permission gated and never leaks raw storage fie
     assert.equal(body.page_info.omitted_document_count, null);
 
     const denied = await json(baseUrl, `/api/vault/documents?${BASE_QUERY}`, {
-      headers: { [PERMISSION_CONTEXT_HEADER]: undefined },
+      noAuth: true,
+      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext() },
     });
-    assert.equal(denied.status, 403);
-    assert.equal(denied.body.items.length, 0);
-    assert.equal(denied.body.count_leak_prevented, true);
-
-    const audit = await json(baseUrl, `/api/vault/audit?${BASE_QUERY}`);
-    assert.ok(
-      audit.body.items.some(
-        (event) =>
-          event.action === "dms:document:read" &&
-          event.decision === "deny" &&
-          event.reason === "fail_closed_missing_permission_context" &&
-          event.metadata.denied_route_audit === true,
-      ),
-    );
+    assert.equal(denied.status, 401);
+    assert.ok(denied.body.safe_error_codes.includes("AUTH_SESSION_REQUIRED"));
   });
 });
 
@@ -158,6 +161,63 @@ test("G5 Vault upload persists metadata, replays idempotently, and survives rest
     assert.equal(downloaded.status, 200);
     assert.equal(downloaded.body.download.content_sha256, uploadedSha256);
     assert.equal(Buffer.from(downloaded.body.download.content_base64, "base64").toString("utf8"), "Vault API upload");
+  }, { dmsStorePath: storePath });
+});
+
+test("UPL-A-11 Vault accepts multipart file upload and preserves download hash after restart", async () => {
+  const storePath = join(mkdtempSync(join(tmpdir(), "lawos-vault-api-a11-")), "dms-store.json");
+  const documentId = "doc_upl_a11_multipart_upload";
+  const bytes = Buffer.from("UPL-A-11 multipart vault upload\n");
+  const expectedSha256 = createHash("sha256").update(bytes).digest("hex");
+
+  function multipartPayload() {
+    const form = new FormData();
+    form.set("tenant_id", TENANT);
+    form.set("permission_ref", "perm_ref_rp07_write");
+    form.set("audit_hint_ref", "audit_hint_rp07_write");
+    form.set("idempotency_key", "upl-a11-multipart-upload");
+    form.set("document", JSON.stringify({
+      document_id: documentId,
+      tenant_id: TENANT,
+      matter_id: "matter_rp05_synthetic_opening",
+      workspace_id: "workspace_rp07_synthetic",
+      title: "A11 multipart upload",
+      status: "active",
+      current_version_id: "version_doc_upl_a11_multipart_upload_1",
+      permission_envelope_id: "perm_rp07_vault",
+      audit_trace_id: "audit_upl_a11_vault",
+      mime_type: "text/plain",
+    }));
+    form.set("file", new File([bytes], "a11-upload.txt", { type: "text/plain" }));
+    return form;
+  }
+
+  await withServer(async (baseUrl) => {
+    const created = await json(baseUrl, "/api/vault/documents/upload", {
+      method: "POST",
+      body: multipartPayload(),
+    });
+    assert.equal(created.status, 201);
+    assert.equal(created.body.item.document_id, documentId);
+    assert.equal(created.body.file_object.sha256, expectedSha256);
+    assert.equal(created.body.file_object.byte_size, bytes.byteLength);
+    assert.equal(created.body.file_object.storage_pointer_ref_included, false);
+    assert.equal(created.body.upload_file.filename, "a11-upload.txt");
+
+    const downloaded = await json(baseUrl, `/api/vault/documents/${documentId}/download?${BASE_QUERY}`);
+    const downloadedBytes = Buffer.from(downloaded.body.download.content_base64, "base64");
+    assert.equal(downloaded.status, 200);
+    assert.equal(downloaded.body.download.content_sha256, expectedSha256);
+    assert.equal(createHash("sha256").update(downloadedBytes).digest("hex"), expectedSha256);
+    assert.equal(downloadedBytes.toString("utf8"), bytes.toString("utf8"));
+  }, { dmsStorePath: storePath });
+
+  await withServer(async (baseUrl) => {
+    const downloaded = await json(baseUrl, `/api/vault/documents/${documentId}/download?${BASE_QUERY}`);
+    const downloadedBytes = Buffer.from(downloaded.body.download.content_base64, "base64");
+    assert.equal(downloaded.status, 200);
+    assert.equal(downloaded.body.download.content_sha256, expectedSha256);
+    assert.equal(createHash("sha256").update(downloadedBytes).digest("hex"), expectedSha256);
   }, { dmsStorePath: storePath });
 });
 
@@ -254,7 +314,7 @@ test("G5 Vault search and audit stay safe-source and tenant scoped", async () =>
   });
 });
 
-test("UPL-E-01 Vault search hits uploaded body text and omits ACL-denied documents", async () => {
+test("UPL-E-01 Vault search hits uploaded body text and ignores forged ACL headers", async () => {
   await withServer(async (baseUrl) => {
     await json(baseUrl, "/api/vault/documents", {
       method: "POST",
@@ -274,28 +334,30 @@ test("UPL-E-01 Vault search hits uploaded body text and omits ACL-denied documen
     const search = await json(baseUrl, `/api/vault/search?${BASE_QUERY}&q=${encodeURIComponent("차임증액")}`);
     assert.equal(search.status, 200);
     assert.equal(search.body.outcome, "passed");
+    assert.equal(search.body.page_info.search_backend, "json_substring_search");
     assert.ok(search.body.items.some((item) => item.document_id === "doc_api_e01_search_pdf"));
     const hit = search.body.items.find((item) => item.document_id === "doc_api_e01_search_pdf");
     assert.ok(hit.match_fields.includes("body_text"));
     assert.equal(hit.body_text_indexed, true);
+    assert.equal(hit.search_backend, "json_substring_search");
     assert.equal(hit.raw_text_included, false);
     assert.equal(hit.storage_pointer_ref_included, false);
     assert.equal(JSON.stringify(hit).includes("차임증액"), false);
 
-    const denied = await json(baseUrl, `/api/vault/search?${BASE_QUERY}&q=${encodeURIComponent("차임증액")}`, {
+    const forgedDenied = await json(baseUrl, `/api/vault/search?${BASE_QUERY}&q=${encodeURIComponent("차임증액")}`, {
       headers: {
         [PERMISSION_CONTEXT_HEADER]: permissionContextWithAcl([
           { principal_id: ACTOR_ID, resource_id: "doc_api_e01_search_pdf", effect: "deny", action: "dms:document:read" },
         ]),
       },
     });
-    assert.equal(denied.status, 200);
-    assert.equal(denied.body.items.some((item) => item.document_id === "doc_api_e01_search_pdf"), false);
-    assert.equal(denied.body.count_leak_prevented, true);
+    assert.equal(forgedDenied.status, 200);
+    assert.ok(forgedDenied.body.items.some((item) => item.document_id === "doc_api_e01_search_pdf"));
+    assert.equal(forgedDenied.body.count_leak_prevented, true);
   });
 });
 
-test("UPL-E-02 Vault OCR search indexes scanned PDF sidecar text without leaking it", async () => {
+test("UPL-E-02 Vault OCR search indexes scanned PDF sidecar text without claiming OCR runtime execution", async () => {
   await withServer(async (baseUrl) => {
     await json(baseUrl, "/api/vault/documents", {
       method: "POST",
@@ -315,24 +377,27 @@ test("UPL-E-02 Vault OCR search indexes scanned PDF sidecar text without leaking
 
     const search = await json(baseUrl, `/api/vault/search?${BASE_QUERY}&q=${encodeURIComponent("OCR키워드")}`);
     assert.equal(search.status, 200);
+    assert.equal(search.body.page_info.search_backend, "json_substring_search");
     const hit = search.body.items.find((item) => item.document_id === "doc_api_e02_ocr_pdf");
     assert.ok(hit);
     assert.deepEqual(hit.match_fields, ["ocr_text"]);
     assert.equal(hit.ocr_text_indexed, true);
-    assert.equal(hit.ocr_runtime_executed, true);
+    assert.equal(hit.ocr_runtime_executed, false);
+    assert.equal(hit.ocr_provider, "caller_supplied_ocr_sidecar");
+    assert.equal(hit.search_backend, "json_substring_search");
     assert.equal(hit.raw_text_included, false);
     assert.equal(hit.storage_pointer_ref_included, false);
     assert.equal(JSON.stringify(hit).includes("OCR키워드"), false);
 
-    const denied = await json(baseUrl, `/api/vault/search?${BASE_QUERY}&q=${encodeURIComponent("OCR키워드")}`, {
+    const forgedDenied = await json(baseUrl, `/api/vault/search?${BASE_QUERY}&q=${encodeURIComponent("OCR키워드")}`, {
       headers: {
         [PERMISSION_CONTEXT_HEADER]: permissionContextWithAcl([
           { principal_id: ACTOR_ID, resource_id: "doc_api_e02_ocr_pdf", effect: "deny", action: "dms:document:read" },
         ]),
       },
     });
-    assert.equal(denied.status, 200);
-    assert.equal(denied.body.items.some((item) => item.document_id === "doc_api_e02_ocr_pdf"), false);
-    assert.equal(denied.body.count_leak_prevented, true);
+    assert.equal(forgedDenied.status, 200);
+    assert.ok(forgedDenied.body.items.some((item) => item.document_id === "doc_api_e02_ocr_pdf"));
+    assert.equal(forgedDenied.body.count_leak_prevented, true);
   });
 });

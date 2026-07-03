@@ -1,8 +1,8 @@
 {
   "schema_version": "law-firm-os.upl-c05.engagement-documents-proof.v0.1",
-  "generated_at": "2026-07-02T23:50:47.892Z",
+  "generated_at": "2026-07-03T09:39:16.450Z",
   "verdict": "PASS",
-  "api_url": "http://127.0.0.1:49923",
+  "api_url": "http://127.0.0.1:62613",
   "contract_ref": "UPL-C-05",
   "exercised_routes": [
     "POST /api/intake/engagements",
@@ -18,11 +18,19 @@
       "passed": true
     },
     {
+      "id": "forged-caller-hash-is-blocked-before-approval",
+      "passed": true
+    },
+    {
       "id": "clearance-without-engagement-is-blocked",
       "passed": true
     },
     {
-      "id": "engagement-approval-creates-template-document-and-signed-upload",
+      "id": "engagement-approval-stores-signed-bytes-through-dms",
+      "passed": true
+    },
+    {
+      "id": "downloaded-dms-object-hash-matches-signed-pdf",
       "passed": true
     },
     {
@@ -49,6 +57,13 @@
         "CRM_INTAKE_API_VALIDATION_ERROR"
       ]
     },
+    "forged_hash_engagement": {
+      "status": 400,
+      "ui_state": "blocked",
+      "safe_error_codes": [
+        "CRM_INTAKE_API_VALIDATION_ERROR"
+      ]
+    },
     "no_engagement_clearance": {
       "status": 400,
       "ui_state": "blocked",
@@ -67,7 +82,7 @@
       "status": 201,
       "item": {
         "clearance_token_id": "clearance_upl_c05_valid",
-        "tenant_id": "tenant_upl_c05_engagement_docs",
+        "tenant_id": "tenant_cmp_g6_synthetic",
         "intake_request_id": "intake_upl_c05_new_client",
         "conflict_check_id": "conflict_upl_c05_review",
         "engagement_id": "engagement_upl_c05_signed",
@@ -76,7 +91,7 @@
         "model_type": "ClearanceToken",
         "token_state": "active",
         "status": "active",
-        "issued_at": "2026-07-02T23:50:47.891Z",
+        "issued_at": "2026-07-03T09:39:16.449Z",
         "outcome": "cleared",
         "blocked_claims": [],
         "conflict_review_state": "clear_decision_recorded",
@@ -88,13 +103,13 @@
         "engagement_signature_ref": "signature:signed_doc_upl_c05_engagement",
         "engagement_template_document_id": "template_doc_upl_c05_engagement",
         "engagement_signed_document_upload_id": "signed_upload_upl_c05_engagement",
-        "engagement_signed_document_sha256": "sha256:signed_doc_upl_c05_engagement",
+        "engagement_signed_document_sha256": "a650be843828cad66fb5cf2d5fa8a5b95578f8e7e706f04c605d2a2758db35ab",
         "engagement_signed_upload_verified": true,
         "engagement_review_satisfied": true,
         "resource_id": "clearance_upl_c05_valid",
         "owner_module": "intake",
-        "created_at": "2026-07-02T23:50:47.891Z",
-        "updated_at": "2026-07-02T23:50:47.891Z",
+        "created_at": "2026-07-03T09:39:16.449Z",
+        "updated_at": "2026-07-03T09:39:16.449Z",
         "writes_product_state": true,
         "creates_database_rows": true,
         "updates_database_rows": false,
@@ -119,7 +134,7 @@
         "template_id": "matter_engagement_letter",
         "template_document_id": "template_doc_upl_c05_engagement",
         "signed_document_upload_id": "signed_upload_upl_c05_engagement",
-        "signed_document_sha256": "sha256:signed_doc_upl_c05_engagement",
+        "signed_document_sha256": "a650be843828cad66fb5cf2d5fa8a5b95578f8e7e706f04c605d2a2758db35ab",
         "signed_upload_verified": true,
         "lx06_upload_verified": true,
         "production_ready_claim": false
@@ -127,65 +142,31 @@
     },
     "stored_template": {
       "template_document_id": "template_doc_upl_c05_engagement",
-      "template_id": "matter_engagement_letter",
-      "document_title": "위임계약서",
       "generation_state": "generated",
-      "merge_field_count": 3,
-      "model_type": "EngagementTemplateDocument",
-      "tenant_id": "tenant_upl_c05_engagement_docs",
-      "intake_request_id": "intake_upl_c05_new_client",
-      "engagement_id": "engagement_upl_c05_signed",
-      "generated_at": "2026-07-02T23:50:47.890Z",
-      "document_payload_included": false,
-      "template_payload_included": false,
-      "production_ready_claim": false,
-      "resource_id": "template_doc_upl_c05_engagement",
-      "owner_module": "intake",
-      "created_at": "2026-07-02T23:50:47.890Z",
-      "updated_at": "2026-07-02T23:50:47.890Z",
-      "writes_product_state": true,
-      "creates_database_rows": true,
-      "updates_database_rows": false,
-      "deletes_database_rows": false,
-      "evaluates_runtime_permission": true,
-      "writes_audit_event": true,
-      "dispatches_intake_runtime": true,
-      "executes_api_handler": false,
-      "creates_matter": false,
-      "g6_runtime_readiness_claim": "runtime_write_ready"
+      "document_payload_included": false
     },
     "stored_upload": {
       "signed_document_upload_id": "signed_upload_upl_c05_engagement",
-      "document_id": "signed_doc_upl_c05_engagement",
       "signed_document_id": "signed_doc_upl_c05_engagement",
-      "template_document_id": "template_doc_upl_c05_engagement",
-      "signature_ref": "signature:signed_doc_upl_c05_engagement",
-      "content_sha256": "sha256:signed_doc_upl_c05_engagement",
-      "byte_size": 2048,
-      "mime_type": "application/pdf",
-      "upload_state": "uploaded",
-      "lx_registry_ref": "LX-06",
+      "content_sha256": "a650be843828cad66fb5cf2d5fa8a5b95578f8e7e706f04c605d2a2758db35ab",
+      "byte_size": 41,
+      "dms_document_id": "signed_doc_upl_c05_engagement",
+      "dms_version_id": "version:signed_doc_upl_c05_engagement:1",
+      "dms_file_object_id": "file:version:signed_doc_upl_c05_engagement:1",
+      "server_hash_recomputed": true,
       "bytes_included": false,
+      "storage_pointer_ref_included": false
+    },
+    "dms_readback": {
+      "document_id": "signed_doc_upl_c05_engagement",
+      "latest_sha256": "a650be843828cad66fb5cf2d5fa8a5b95578f8e7e706f04c605d2a2758db35ab",
+      "file_object_id": "file:version:signed_doc_upl_c05_engagement:1",
+      "file_object_sha256": "a650be843828cad66fb5cf2d5fa8a5b95578f8e7e706f04c605d2a2758db35ab",
+      "downloaded_sha256": "a650be843828cad66fb5cf2d5fa8a5b95578f8e7e706f04c605d2a2758db35ab",
+      "downloaded_byte_size": 41,
+      "raw_path_exposed": false,
       "storage_pointer_ref_included": false,
-      "model_type": "EngagementSignedDocumentUpload",
-      "tenant_id": "tenant_upl_c05_engagement_docs",
-      "intake_request_id": "intake_upl_c05_new_client",
-      "engagement_id": "engagement_upl_c05_signed",
-      "production_ready_claim": false,
-      "resource_id": "signed_upload_upl_c05_engagement",
-      "owner_module": "intake",
-      "created_at": "2026-07-02T23:50:47.890Z",
-      "updated_at": "2026-07-02T23:50:47.890Z",
-      "writes_product_state": true,
-      "creates_database_rows": true,
-      "updates_database_rows": false,
-      "deletes_database_rows": false,
-      "evaluates_runtime_permission": true,
-      "writes_audit_event": true,
-      "dispatches_intake_runtime": true,
-      "executes_api_handler": false,
-      "creates_matter": false,
-      "g6_runtime_readiness_claim": "runtime_write_ready"
+      "bytes_written_to_artifact": false
     },
     "audit_actions": [
       "clearance.token.issue",

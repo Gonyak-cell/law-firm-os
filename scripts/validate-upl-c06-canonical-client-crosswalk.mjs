@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import assert from "node:assert/strict";
 import { AMIC_CURRENT_CLIENT_CANDIDATES } from "../packages/master-data/src/index.js";
+import { assertNodeProofPass } from "./lib/upl-proof-runner.mjs";
 
 const ROOT = process.cwd();
 
@@ -49,6 +50,7 @@ assertPatterns("packages/master-data/test/model.test.js", [
 ]);
 
 assertExists("scripts/run-upl-c06-canonical-client-crosswalk-proof.mjs");
+await assertNodeProofPass("scripts/run-upl-c06-canonical-client-crosswalk-proof.mjs");
 const proof = readJson("artifacts/manual-qa/upl-c06-canonical-client-crosswalk-proof.json");
 assert.equal(proof.verdict, "PASS");
 assert.equal(proof.contract_ref, "UPL-C-06");

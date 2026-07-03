@@ -6,24 +6,15 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { startApiServer } from "../apps/api/src/server.js";
 import { MATTER_VAULT_REGISTERED_TENANT_ID } from "../apps/api/src/matter-vault-account-registry.js";
-import { PERMISSION_CONTEXT_HEADER } from "../apps/api/src/permission-gate.js";
+import { apiSessionHeaders } from "../apps/api/test/helpers/session.js";
 import { renderInvoicePdf } from "../packages/billing/src/invoice-pdf-service.js";
 
 const ROOT = process.cwd();
 const JSON_PATH = "artifacts/manual-qa/upl-b16-invoice-pdf-dms-hash-proof.json";
 const MD_PATH = "artifacts/manual-qa/upl-b16-invoice-pdf-dms-hash-proof.md";
 const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
-const ACTOR_ID = "user_amic_jwsuh";
 const DOCUMENT_ID = "doc_upl_b16_invoice_pdf_hash_proof";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=upl_b16_vault_read&audit_hint_ref=upl_b16_invoice_pdf_download`;
-
-function permissionContext() {
-  return JSON.stringify({
-    principal: { user_id: ACTOR_ID, tenant_id: TENANT, role_ids: ["matter_vault_admin", "matter_vault_user", "dms_reader"] },
-    rules: [{ id: "rule_upl_b16_vault_allow", effect: "allow", action: "*" }],
-    object_acl: [],
-  });
-}
 
 async function withServer(options, callback) {
   const started = await startApiServer({ port: 0, ...options });
@@ -36,7 +27,7 @@ async function withServer(options, callback) {
 
 async function json(baseUrl, path, options = {}) {
   const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
+    ...(await apiSessionHeaders(baseUrl)),
     ...(options.headers ?? {}),
   };
   if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
@@ -76,7 +67,6 @@ const uploadPayload = {
   tenant_id: TENANT,
   permission_ref: "upl_b16_vault_write",
   audit_hint_ref: "upl_b16_invoice_pdf_upload",
-  actor_id: ACTOR_ID,
   idempotency_key: "upl-b16-invoice-pdf-dms-hash-proof",
   content_base64: invoicePdf.bytes.toString("base64"),
   document: {

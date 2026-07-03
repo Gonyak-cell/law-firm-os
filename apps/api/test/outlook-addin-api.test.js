@@ -10,30 +10,16 @@ import {
 } from "../src/server.js";
 import { createDmsRepository, createFileStorageAdapter } from "../../../packages/dms/src/index.js";
 import { createMatterRepository } from "../../../packages/matter/src/index.js";
+import { apiSessionHeaders } from "./helpers/session.js";
 
 const TENANT = "tenant_outlook_addin_test";
 const MATTER = "matter_outlook_addin_test";
 const ACTOR = "outlook_addin_test_user";
 
-function permissionHeaders() {
-  return {
-    "content-type": "application/json",
-    "x-lawos-permission-context": JSON.stringify({
-      principal: {
-        user_id: ACTOR,
-        tenant_id: TENANT,
-        role_ids: ["matter_runtime_user", "dms_reader", "outlook_addin_user"],
-      },
-      rules: [{ id: "outlook-addin-test-allow", effect: "allow", action: "*" }],
-      object_acl: [],
-    }),
-  };
-}
-
-async function jsonFetch(baseUrl, path, init = {}) {
+async function jsonFetch(baseUrl, path, init = {}, sessionHeaders = {}) {
   const response = await fetch(`${baseUrl}${path}`, {
     ...init,
-    headers: { ...permissionHeaders(), ...(init.headers ?? {}) },
+    headers: { "content-type": "application/json", ...sessionHeaders, ...(init.headers ?? {}) },
   });
   const body = await response.json();
   assert.equal(response.ok, true, `${path} failed: ${JSON.stringify(body)}`);
@@ -111,15 +97,34 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
   const started = await startApiServer({ port: 0, matterRuntime, dmsRuntime });
   const baseUrl = `http://${started.host}:${started.port}`;
   try {
-    const bootstrap = await jsonFetch(baseUrl, `/api/outlook/bootstrap?tenant_id=${TENANT}`);
+    const forged = await fetch(`${baseUrl}/api/outlook/smart-alerts/evaluate`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-lawos-permission-context": JSON.stringify({
+          principal: { user_id: ACTOR, tenant_id: TENANT, role_ids: ["outlook_addin_user"] },
+          rules: [{ id: "outlook-addin-test-forged-allow", effect: "allow", action: "*" }],
+          object_acl: [],
+        }),
+      },
+      body: JSON.stringify({ message: { to: [{ email: "external@example.com" }], attachments: [] } }),
+    });
+    const forgedBody = await forged.json();
+    assert.equal(forged.status, 401);
+    assert.equal(forgedBody.safe_error_codes[0], "AUTH_SESSION_REQUIRED");
+
+    const sessionHeaders = await apiSessionHeaders(baseUrl);
+    const json = (path, init = {}) => jsonFetch(baseUrl, path, init, sessionHeaders);
+
+    const bootstrap = await json(`/api/outlook/bootstrap?tenant_id=${TENANT}`);
     assert.equal(bootstrap.item.taskpane_loaded, true);
     assert.equal(bootstrap.item.external_receipt_boundary.entra_admin_consent_receipt_present, false);
 
-    const matters = await jsonFetch(baseUrl, `/api/outlook/matters?tenant_id=${TENANT}&q=OUTLOOK`);
+    const matters = await json(`/api/outlook/matters?tenant_id=${TENANT}&q=OUTLOOK`);
     assert.equal(matters.items.length, 1);
     assert.equal(matters.items[0].matter_id, MATTER);
 
-    const fileBody = await jsonFetch(baseUrl, "/api/outlook/email/file", {
+    const fileBody = await json("/api/outlook/email/file", {
       method: "POST",
       body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email: emailFixture() }),
     });
@@ -128,14 +133,14 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
     assert.equal(fileBody.email_thread.raw_body_included, false);
     assert.equal(fileBody.matter_timeline.visible_entries.some((entry) => entry.type === "outlook.email.filed"), true);
 
-    const replayBody = await jsonFetch(baseUrl, "/api/outlook/email/file", {
+    const replayBody = await json("/api/outlook/email/file", {
       method: "POST",
       body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email: emailFixture() }),
     });
     assert.equal(replayBody.outcome, "idempotent_replay");
     assert.equal(replayBody.idempotent_replay, true);
 
-    const attachmentBody = await jsonFetch(baseUrl, "/api/outlook/attachments/save", {
+    const attachmentBody = await json("/api/outlook/attachments/save", {
       method: "POST",
       body: JSON.stringify({
         tenant_id: TENANT,
@@ -151,7 +156,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
     assert.equal(attachmentBody.folder_structure[0], "00_Email");
     assert.equal(attachmentBody.folder_structure.at(-1), "99_Archive");
 
-    const duplicateBody = await jsonFetch(baseUrl, "/api/outlook/attachments/save", {
+    const duplicateBody = await json("/api/outlook/attachments/save", {
       method: "POST",
       body: JSON.stringify({
         tenant_id: TENANT,
@@ -163,7 +168,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
     });
     assert.equal(duplicateBody.duplicate_count, 1);
 
-    const followup = await jsonFetch(baseUrl, "/api/outlook/followups", {
+    const followup = await json("/api/outlook/followups", {
       method: "POST",
       body: JSON.stringify({
         tenant_id: TENANT,
@@ -177,7 +182,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
     assert.equal(followup.outcome, "created");
     assert.equal(followup.auto_created_without_lawyer_approval, false);
 
-    const sent = await jsonFetch(baseUrl, "/api/outlook/sent/file", {
+    const sent = await json("/api/outlook/sent/file", {
       method: "POST",
       body: JSON.stringify({
         tenant_id: TENANT,
@@ -187,7 +192,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
     });
     assert.equal(sent.external_send_state, "provider_gated_no_external_send_claim");
 
-    const alerts = await jsonFetch(baseUrl, "/api/outlook/smart-alerts/evaluate", {
+    const alerts = await json("/api/outlook/smart-alerts/evaluate", {
       method: "POST",
       body: JSON.stringify({
         message: {
@@ -199,8 +204,26 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
     });
     assert.equal(alerts.item.warning_count, 1);
     assert.equal(alerts.item.send_blocked, false);
+    assert.equal(alerts.item.raw_body_included, false);
+    assert.equal(alerts.item.attachment_bytes_included, false);
+    assert.match(alerts.item.message_hashes.body_preview_sha256, /^[a-f0-9]{64}$/);
 
-    const docs = await jsonFetch(baseUrl, `/api/outlook/matters/${MATTER}/documents?tenant_id=${TENANT}`);
+    const missingAttachment = await json("/api/outlook/smart-alerts/evaluate", {
+      method: "POST",
+      body: JSON.stringify({ message: { to: [{ name: "AMIC", email: "lawyer@amic.law" }], body_preview: "첨부 확인", attachments: [] } }),
+    });
+    assert.equal(missingAttachment.item.warning_count, 1);
+    assert.equal(missingAttachment.item.warnings[0].warning_id, "missing-mentioned-attachment");
+    assert.equal(missingAttachment.item.send_blocked, false);
+
+    const clean = await json("/api/outlook/smart-alerts/evaluate", {
+      method: "POST",
+      body: JSON.stringify({ message: { to: [{ name: "AMIC", email: "lawyer@amic.law" }], body_preview: "확인했습니다.", attachments: [] } }),
+    });
+    assert.equal(clean.item.warning_count, 0);
+    assert.equal(clean.item.send_blocked, false);
+
+    const docs = await json(`/api/outlook/matters/${MATTER}/documents?tenant_id=${TENANT}`);
     assert.equal(docs.items.length, 1);
     assert.equal(docs.document_bytes_included, false);
   } finally {

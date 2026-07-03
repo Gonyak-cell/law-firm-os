@@ -66,6 +66,8 @@ test("UPL-E-03 rejection and missing approval do not create matter", () => {
 
 test("UPL-E-03 boundary forbids auto-create and production claim", () => {
   assert.equal(FILED_EMAIL_AI_REVIEW_BOUNDARY.auto_create_matter_before_lawyer_approval, false);
+  assert.equal(FILED_EMAIL_AI_REVIEW_BOUNDARY.analysis_mode, "rule_based_triage");
+  assert.equal(FILED_EMAIL_AI_REVIEW_BOUNDARY.external_model_claim, false);
   assert.equal(FILED_EMAIL_AI_REVIEW_BOUNDARY.lawyer_approval_required, true);
   assert.equal(FILED_EMAIL_AI_REVIEW_BOUNDARY.raw_email_body_stored, false);
   assert.equal(FILED_EMAIL_AI_REVIEW_BOUNDARY.production_ready_claim, false);

@@ -2,6 +2,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import assert from "node:assert/strict";
+import { assertNodeProofPass } from "./lib/upl-proof-runner.mjs";
 
 const ROOT = process.cwd();
 
@@ -70,6 +71,7 @@ assert.match(apiTests, /engagement:forged-by-client/);
 
 assertExists("scripts/run-upl-c04-clearance-ledger-proof.mjs");
 assertExists("scripts/run-upl-c04-clearance-ledger-browser-proof.mjs");
+await assertNodeProofPass("scripts/run-upl-c04-clearance-ledger-proof.mjs");
 
 const apiProof = readJson("artifacts/manual-qa/upl-c04-clearance-ledger-proof.json");
 assert.equal(apiProof.verdict, "PASS");
@@ -93,9 +95,11 @@ const browserProof = readJson("docs/lazycodex/evidence/matter-web/artifacts/upl-
 assert.equal(browserProof.verdict, "PASS");
 assert.equal(browserProof.contract_ref, "UPL-C-04");
 assert.ok(browserProof.observed.writes.some((write) => write.kind === "matter_opening"));
+const clearanceWrite = browserProof.observed.writes.find((write) => write.kind === "clearance");
 const openingWrite = browserProof.observed.writes.find((write) => write.kind === "matter_opening");
-assert.equal(openingWrite.payload.clearance_token.clearance_token_id, "clearance_upl_c04_ui_issued");
-assert.equal(openingWrite.payload.clearance_token.engagement_id, "engagement_upl_c04_ui");
+assert.equal(openingWrite.payload.clearance_token.clearance_token_id, clearanceWrite.payload.token.clearance_token_id);
+assert.equal(openingWrite.payload.clearance_token.engagement_id, clearanceWrite.payload.token.engagement_id);
+assert.equal(openingWrite.payload.clearance_token.snapshot_hash, clearanceWrite.payload.token.snapshot_hash);
 assert.equal(openingWrite.payload.clearance_token.token_state, "active");
 assert.doesNotMatch(JSON.stringify(openingWrite.payload), /engagement:forged-by-client|"token_state":"valid"/);
 assert.match(browserProof.observed.panel_text, /Matter가 개설되었습니다/);

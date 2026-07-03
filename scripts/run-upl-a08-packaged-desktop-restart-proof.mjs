@@ -3,28 +3,18 @@ import { existsSync, mkdirSync, statSync, writeFileSync } from "node:fs";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { PERMISSION_CONTEXT_HEADER } from "../apps/api/src/permission-gate.js";
 import { startApiServer } from "../apps/api/src/server.js";
-import { signedStepUpHeader } from "../apps/api/test/hrx-step-up-test-helper.js";
+import { apiSessionHeaders } from "../apps/api/test/helpers/session.js";
 import { startDesktopLocalApiServer } from "../apps/desktop/src/main/local-api.js";
 import { createIntakeRuntimeRepository } from "../packages/intake/src/runtime-repository.js";
 
 const TENANT = "tenant_rp05_synthetic";
-const HRX_TENANT = "tenant-a";
 const ROOT = process.cwd();
 const ARTIFACT_JSON = join(ROOT, "artifacts/manual-qa/upl-a08-packaged-desktop-restart-proof.json");
 const ARTIFACT_MD = join(ROOT, "artifacts/manual-qa/upl-a08-packaged-desktop-restart-proof.md");
 const PACKAGED_START = "/App/Contents/Resources/app/src/main";
 const PACKAGED_ENTRY = "/App/Contents/Resources/app/runtime/apps/api/src/server.js";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_rp05_read&audit_hint_ref=upl_a08_desktop_restart_read`;
-
-function permissionContext(effect = "allow") {
-  return JSON.stringify({
-    principal: { user_id: "user_rp05_owner", tenant_id: TENANT, role_ids: ["matter_runtime_user"] },
-    rules: [{ id: `rule_upl_a08_matter_${effect}`, effect, action: "*" }],
-    object_acl: [],
-  });
-}
 
 function openingPayload() {
   return {
@@ -92,25 +82,8 @@ function intakeRepositoryWithClearance() {
   });
 }
 
-function hrxHeaders() {
-  return {
-    "x-lawos-tenant-id": HRX_TENANT,
-    "x-lawos-actor-id": "hrx-test-user",
-    "x-lawos-actor-role": "people_ops",
-    "x-lawos-hrx-step-up": signedStepUpHeader({ tenant_id: HRX_TENANT, actor_id: "hrx-test-user" }),
-    "x-lawos-hrx-scopes": [
-      "hrx.employee.read",
-      "hrx.leave.read",
-      "hrx.leave.write",
-      "hrx.audit.read",
-    ].join(","),
-  };
-}
-
 async function json(baseUrl, path, options = {}) {
   const headers = {
-    ...(path.startsWith("/api/matters") ? { [PERMISSION_CONTEXT_HEADER]: permissionContext() } : {}),
-    ...(path.startsWith("/api/hrx") ? hrxHeaders() : {}),
     ...(options.headers ?? {}),
   };
   if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
@@ -161,7 +134,7 @@ async function main() {
   let secondApi = null;
   const leaveRequest = {
     request_id: "leave-upl-a08-desktop-restart-001",
-    employee_id: "emp-001",
+    employee_id: "emp_amic_yjlee",
     policy_id: "pto-us",
     leave_type: "pto",
     amount: 4,
@@ -171,22 +144,28 @@ async function main() {
 
   try {
     firstApi = await startPackagedDesktopLocalApi(userDataPath);
+    const firstSessionHeaders = await apiSessionHeaders(firstApi.baseUrl);
     const matterCreate = await json(firstApi.baseUrl, "/api/matters/openings", {
       method: "POST",
+      headers: firstSessionHeaders,
       body: JSON.stringify(openingPayload()),
     });
-    if (matterCreate.status !== 201) throw new Error(`matter create failed: ${matterCreate.status}`);
+    if (matterCreate.status !== 201) throw new Error(`matter create failed: ${matterCreate.status} ${JSON.stringify(matterCreate.body)}`);
 
     const leaveCreate = await json(firstApi.baseUrl, "/api/hrx/leave", {
       method: "POST",
+      headers: firstSessionHeaders,
       body: JSON.stringify(leaveRequest),
     });
-    if (leaveCreate.status !== 201) throw new Error(`leave create failed: ${leaveCreate.status}`);
+    if (leaveCreate.status !== 201) throw new Error(`leave create failed: ${leaveCreate.status} ${JSON.stringify(leaveCreate.body)}`);
 
-    const firstMatter = await json(firstApi.baseUrl, `/api/matters/${openingPayload().matter.matter_id}?${BASE_QUERY}`);
+    const firstMatter = await json(firstApi.baseUrl, `/api/matters/${openingPayload().matter.matter_id}?${BASE_QUERY}`, {
+      headers: firstSessionHeaders,
+    });
     const firstLeave = await json(
       firstApi.baseUrl,
       `/api/hrx/leave?employee_id=${leaveRequest.employee_id}&policy_id=${leaveRequest.policy_id}`,
+      { headers: firstSessionHeaders },
     );
     const firstStorePaths = firstApi.storePaths;
     const firstStoreFiles = storeFileState(firstStorePaths);
@@ -194,10 +173,14 @@ async function main() {
     firstApi = null;
 
     secondApi = await startPackagedDesktopLocalApi(userDataPath);
-    const secondMatter = await json(secondApi.baseUrl, `/api/matters/${openingPayload().matter.matter_id}?${BASE_QUERY}`);
+    const secondSessionHeaders = await apiSessionHeaders(secondApi.baseUrl);
+    const secondMatter = await json(secondApi.baseUrl, `/api/matters/${openingPayload().matter.matter_id}?${BASE_QUERY}`, {
+      headers: secondSessionHeaders,
+    });
     const secondLeave = await json(
       secondApi.baseUrl,
       `/api/hrx/leave?employee_id=${leaveRequest.employee_id}&policy_id=${leaveRequest.policy_id}`,
+      { headers: secondSessionHeaders },
     );
     const secondStorePaths = secondApi.storePaths;
     const secondStoreFiles = storeFileState(secondStorePaths);

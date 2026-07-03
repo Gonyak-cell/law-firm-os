@@ -1,0 +1,109 @@
+{
+  "schema_version": "law-firm-os.wave1.upl_d03.hrx_leave_accrual_approval.v0.1",
+  "generated_at": "2026-07-03T07:56:50.657Z",
+  "tuw_ids": [
+    "UPL-D-03"
+  ],
+  "pass": true,
+  "scope": "Korean statutory annual leave entitlement, accrual/carryover ledger entry generation, and approval-path policy usage.",
+  "tenant_id": "tenant-a",
+  "request_hashes": {
+    "flexible_approval": "37c7369af777367a440165a1f73d1de1060bc86c104abaefe06419a5469aed08",
+    "strict_block": "a954381ae48261f9bfde67249470af873999800c2f8fce7b23e539ace3074975"
+  },
+  "audit_event_refs": {
+    "flexible_approval": [
+      "hrx_leave_evt_a373d4a5-7e56-45f6-870f-76be7fc55f7c",
+      "hrx_leave_evt_03b6fc4c-186d-4d87-b0fa-d329f154307e"
+    ],
+    "strict_block": [
+      "hrx_leave_evt_f29b28e9-4352-4ab2-9d3b-6d9864bd584d"
+    ]
+  },
+  "checks": [
+    {
+      "id": "korean-statutory-entitlement-cases",
+      "passed": true,
+      "evidence": [
+        {
+          "id": "under-one-year-monthly",
+          "input": {
+            "service_months": 7
+          },
+          "expected": 7,
+          "actual": 7
+        },
+        {
+          "id": "one-year-eighty-percent",
+          "input": {
+            "service_months": 12,
+            "yearly_attendance_rate": 0.8
+          },
+          "expected": 15,
+          "actual": 15
+        },
+        {
+          "id": "three-year-seniority-addition",
+          "input": {
+            "service_months": 36,
+            "years_of_service": 3
+          },
+          "expected": 16,
+          "actual": 16
+        },
+        {
+          "id": "twenty-five-day-cap",
+          "input": {
+            "service_months": 300,
+            "years_of_service": 25
+          },
+          "expected": 25,
+          "actual": 25
+        }
+      ]
+    },
+    {
+      "id": "accrual-ledger-entry-earned",
+      "passed": true,
+      "evidence": {
+        "entry_id": "leave_accrual_emp-001_2026-01-01",
+        "entry_type": "earned",
+        "amount": 15,
+        "statutory_basis": "KR_LSA_ARTICLE_60"
+      }
+    },
+    {
+      "id": "carryover-ledger-entry-capped",
+      "passed": true,
+      "evidence": {
+        "entry_id": "leave_carryover_emp-001_2026-01-01",
+        "entry_type": "carryover",
+        "amount": 5
+      }
+    },
+    {
+      "id": "approval-path-uses-policy-to-allow-bounded-negative-balance",
+      "passed": true,
+      "evidence": {
+        "status": "approved",
+        "available_balance": -4,
+        "used_balance": 8,
+        "audit_event_count": 2
+      }
+    },
+    {
+      "id": "approval-path-blocks-strict-policy-before-ledger-debit",
+      "passed": true,
+      "evidence": {
+        "status": "rejected_before_ledger_debit",
+        "safe_error_code": "HRX_LEAVE_BALANCE_INSUFFICIENT",
+        "used_balance": 0,
+        "audit_event_count": 1
+      }
+    }
+  ],
+  "raw_salary_body_included": false,
+  "raw_document_body_included": false,
+  "raw_client_secret_included": false,
+  "production_ready_claim": false
+}

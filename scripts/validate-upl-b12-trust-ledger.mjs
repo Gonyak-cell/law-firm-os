@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { assertNodeProofPass } from "./lib/upl-proof-runner.mjs";
 
 function read(path) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -10,6 +11,7 @@ const trustLedgerService = read("packages/payments/src/trust-ledger-service.js")
 const financeRuntime = read("apps/api/src/finance-runtime-context.js");
 const apiTest = read("apps/api/test/cmp-r4-g7-finance.test.js");
 const proofScript = read("scripts/run-upl-b12-trust-ledger-proof.mjs");
+await assertNodeProofPass("scripts/run-upl-b12-trust-ledger-proof.mjs");
 const proof = JSON.parse(read("artifacts/manual-qa/upl-b12-trust-ledger-proof.json"));
 
 assert.match(trustLedgerService, /segregated_client_funds: true/);

@@ -37,7 +37,7 @@ import {
 import { HRX_SESSION_BOUND_HEADER, authorizeHrxApiRequest } from "./middleware/hrx-authz.js";
 import { appendHrxRouteAudit } from "./middleware/hrx-audit-write.js";
 import { authorizeHrxStepUpRequest } from "./middleware/hrx-step-up-context.js";
-import { PERMISSION_CONTEXT_HEADER, PERMISSION_DECISION_ORDER, evaluateRouteDecision, parsePermissionContext } from "./permission-gate.js";
+import { PERMISSION_CONTEXT_HEADER, PERMISSION_DECISION_ORDER, evaluateRouteDecision } from "./permission-gate.js";
 import { createHrxRuntimeContext, handleHrxApiRequest, seedHrxDurableRuntimeStore } from "./hrx-runtime-context.js";
 import {
   MATTER_BOUNDED_CONTEXT,
@@ -248,6 +248,7 @@ export function createDefaultCrmIntakeRuntime({
   intakeRepository,
   crmMasterDataRepository,
   matterRepository,
+  dmsRuntime,
   crmStorePath = process.env.LAWOS_CRM_STORE_PATH,
   intakeStorePath = process.env.LAWOS_INTAKE_STORE_PATH,
   crmMasterDataStorePath = process.env.LAWOS_CRM_MASTER_DATA_STORE_PATH,
@@ -275,6 +276,7 @@ export function createDefaultCrmIntakeRuntime({
     intakeRepository: intakeRepo,
     masterDataRepository: masterDataRepo,
     matterRepository,
+    dmsRuntime,
   });
 }
 
@@ -465,13 +467,98 @@ function queryToObject(searchParams) {
   return query;
 }
 
+function contentTypeOf(req) {
+  return String(req.headers?.["content-type"] ?? "");
+}
+
+function multipartBoundary(contentType) {
+  const match = contentType.match(/(?:^|;)\s*boundary=(?:"([^"]+)"|([^;]+))/i);
+  return (match?.[1] ?? match?.[2] ?? "").trim();
+}
+
+function bufferEndsWith(buffer, suffix) {
+  return buffer.length >= suffix.length && buffer.subarray(buffer.length - suffix.length).equals(suffix);
+}
+
+function stripTrailingCrlf(buffer) {
+  const crlf = Buffer.from("\r\n");
+  return bufferEndsWith(buffer, crlf) ? buffer.subarray(0, buffer.length - crlf.length) : buffer;
+}
+
+function parseMultipartHeaders(text) {
+  const headers = {};
+  for (const line of text.split(/\r\n/)) {
+    const index = line.indexOf(":");
+    if (index === -1) continue;
+    headers[line.slice(0, index).trim().toLowerCase()] = line.slice(index + 1).trim();
+  }
+  return headers;
+}
+
+function dispositionValue(header, key) {
+  const match = header.match(new RegExp(`${key}="([^"]*)"`, "i"));
+  return match?.[1] ?? null;
+}
+
+function parseMultipartFormData(raw, contentType) {
+  const boundary = multipartBoundary(contentType);
+  if (!boundary) throw new Error("multipart boundary is required");
+  const delimiter = Buffer.from(`--${boundary}`);
+  const headerEndMarker = Buffer.from("\r\n\r\n");
+  const payload = { files: {} };
+  let offset = 0;
+  while (offset < raw.length) {
+    const start = raw.indexOf(delimiter, offset);
+    if (start === -1) break;
+    const partStart = start + delimiter.length;
+    if (raw.subarray(partStart, partStart + 2).toString("utf8") === "--") break;
+    const next = raw.indexOf(delimiter, partStart);
+    if (next === -1) break;
+    let part = raw.subarray(partStart, next);
+    if (part.subarray(0, 2).toString("utf8") === "\r\n") part = part.subarray(2);
+    part = stripTrailingCrlf(part);
+    const headerEnd = part.indexOf(headerEndMarker);
+    if (headerEnd === -1) {
+      offset = next;
+      continue;
+    }
+    const headers = parseMultipartHeaders(part.subarray(0, headerEnd).toString("utf8"));
+    const disposition = headers["content-disposition"] ?? "";
+    const name = dispositionValue(disposition, "name");
+    if (!name) {
+      offset = next;
+      continue;
+    }
+    const value = part.subarray(headerEnd + headerEndMarker.length);
+    const filename = dispositionValue(disposition, "filename");
+    if (filename !== null) {
+      payload.files[name] = {
+        filename,
+        mime_type: headers["content-type"] ?? "application/octet-stream",
+        byte_size: value.byteLength,
+        content_base64: value.toString("base64"),
+      };
+    } else {
+      payload[name] = value.toString("utf8");
+    }
+    offset = next;
+  }
+  return payload;
+}
+
 async function readRequestBody(req) {
   const chunks = [];
   for await (const chunk of req) chunks.push(chunk);
   if (chunks.length === 0) return {};
-  const raw = Buffer.concat(chunks).toString("utf8").trim();
-  if (!raw) return {};
-  return JSON.parse(raw);
+  const raw = Buffer.concat(chunks);
+  if (raw.length === 0) return {};
+  const contentType = contentTypeOf(req);
+  if (contentType.toLowerCase().startsWith("multipart/form-data")) {
+    return parseMultipartFormData(raw, contentType);
+  }
+  const text = raw.toString("utf8").trim();
+  if (!text) return {};
+  return JSON.parse(text);
 }
 
 function hasJsonRequestBody(method) {
@@ -689,19 +776,21 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
     return;
   }
 
-  const sessionContext = sessionAuth.resolvePermissionContextFromHeaders(req.headers, { requestId });
-  if (sessionContext.authorization_present && !sessionContext.ok) {
-    sendJson(req, res, sessionContext.status ?? 401, sessionContext.body);
+  const sessionContext = sessionAuth.resolvePermissionContextFromHeaders(req.headers, { requestId, requireSessionToken: true });
+  if (!sessionContext.ok) {
+    sendJson(req, res, sessionContext.status ?? 401, sessionContext.body ?? {
+      request_id: requestId,
+      outcome: "blocked",
+      ok: false,
+      reason: "auth_session_required",
+      safe_error_codes: ["AUTH_SESSION_REQUIRED"],
+      token_material_returned: false,
+      production_ready_claim: false,
+    });
     return;
   }
-  const requestPermissionContext = () =>
-    sessionContext.ok ? sessionContext.context : parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+  const requestPermissionContext = () => sessionContext.context;
   const requestHeaders = () => {
-    if (!sessionContext.ok) {
-      const headers = { ...req.headers };
-      delete headers[HRX_SESSION_BOUND_HEADER];
-      return headers;
-    }
     const principal = sessionContext.principal;
     return {
       ...req.headers,
@@ -999,7 +1088,7 @@ export function createApiServer({
   masterDataRuntime = createDefaultMasterDataRuntime(),
   matterRuntime = createDefaultMatterRuntime({ hrxRuntime }),
   dmsRuntime = createDefaultDmsRuntime(),
-  crmIntakeRuntime = createDefaultCrmIntakeRuntime(),
+  crmIntakeRuntime = createDefaultCrmIntakeRuntime({ dmsRuntime }),
   financeRuntime = createDefaultFinanceRuntime(),
   analyticsRuntime = createDefaultAnalyticsRuntime({ financeRepository: financeRuntime?.repository }),
   aiRuntime = createDefaultAiRuntime(),
@@ -1089,6 +1178,7 @@ export function startApiServer({
       intakeStorePath,
       crmMasterDataStorePath,
       matterRepository: resolvedMatterRepository,
+      dmsRuntime: dmsRuntimeContext,
     });
   const matterRuntimeContext =
     matterRuntime ??

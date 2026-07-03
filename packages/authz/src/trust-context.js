@@ -38,6 +38,16 @@ export function validateTenantBoundary({ principal = {}, resource = {}, expected
   }
 
   if (principalTenantId !== resourceTenantId) {
+    const tenantIds = Array.isArray(principal.tenant_ids) ? principal.tenant_ids : [];
+    if (tenantIds.includes(resourceTenantId)) {
+      return {
+        ok: true,
+        tenant_id: principalTenantId,
+        resource_tenant_id: resourceTenantId,
+        tenant_alias_authorized: true,
+        tuw_ids: ["LFOS-G1-W01-T001"]
+      };
+    }
     return failTenant("cross_tenant_deny", "principal tenant does not match resource tenant", {
       tenant_id: principalTenantId,
       resource_tenant_id: resourceTenantId

@@ -2,7 +2,8 @@
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
@@ -12,6 +13,7 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, "..");
 const desktopRoot = join(repoRoot, "apps/desktop");
 const packageJson = JSON.parse(await readFile(join(desktopRoot, "package.json"), "utf8"));
+const builderConfigPath = join(desktopRoot, "electron-builder.yml");
 const releaseChannel = process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal";
 if (!["internal", "formal"].includes(releaseChannel)) {
   throw new Error("MATTER_DESKTOP_RELEASE_CHANNEL must be internal or formal.");
@@ -42,26 +44,59 @@ async function fileRecord(filePath) {
 await rm(installerPath, { force: true });
 await rm(blockmapPath, { force: true });
 
-await execFileAsync(
-  "npx",
-  [
-    "-y",
-    "electron-builder@26.15.3",
-    "--win",
-    "nsis",
-    "--x64",
-    "--publish",
-    "never",
-    `-c.appId=${appId}`,
-    `-c.artifactName=${artifactName}-\${os}-\${arch}.\${ext}`,
-    "-c.electronVersion=42.4.1",
-  ],
-  {
-    cwd: desktopRoot,
-    env: process.env,
-    maxBuffer: 1024 * 1024 * 20,
-  },
-);
+const stagingRoot = await mkdtemp(join(tmpdir(), "matter-desktop-win-builder-"));
+const stagingProjectRoot = join(stagingRoot, "desktop");
+const stagingInstallerPath = join(stagingProjectRoot, "dist", `${artifactName}-win-x64.exe`);
+const stagingBlockmapPath = `${stagingInstallerPath}.blockmap`;
+
+try {
+  await mkdir(stagingProjectRoot, { recursive: true });
+  await cp(join(desktopRoot, "src"), join(stagingProjectRoot, "src"), { recursive: true });
+  await cp(join(desktopRoot, "build"), join(stagingProjectRoot, "build"), { recursive: true });
+  await writeFile(
+    join(stagingProjectRoot, "package.json"),
+    `${JSON.stringify(
+      {
+        name: packageJson.name,
+        version: packageJson.version,
+        private: true,
+        type: packageJson.type,
+        main: packageJson.main,
+        description: packageJson.description
+      },
+      null,
+      2
+    )}\n`,
+  );
+  await writeFile(join(stagingProjectRoot, "electron-builder.yml"), await readFile(builderConfigPath, "utf8"));
+
+  await execFileAsync(
+    "npx",
+    [
+      "-y",
+      "electron-builder@26.15.3",
+      "--win",
+      "nsis",
+      "--x64",
+      "--publish",
+      "never",
+      `-c.appId=${appId}`,
+      `-c.artifactName=${artifactName}-\${os}-\${arch}.\${ext}`,
+      "-c.electronVersion=42.4.1",
+    ],
+    {
+      cwd: stagingProjectRoot,
+      env: process.env,
+      maxBuffer: 1024 * 1024 * 20,
+    },
+  );
+
+  await mkdir(dirname(installerPath), { recursive: true });
+  await cp(stagingInstallerPath, installerPath);
+  await cp(stagingBlockmapPath, blockmapPath);
+} finally {
+  await rm(stagingRoot, { recursive: true, force: true });
+}
 
 const installer = await fileRecord(installerPath);
 const blockmap = await fileRecord(blockmapPath);

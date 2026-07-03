@@ -1,31 +1,25 @@
 #!/usr/bin/env node
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { PERMISSION_CONTEXT_HEADER } from "../apps/api/src/permission-gate.js";
+import { highestPrivilegeRegisteredAccount, MATTER_VAULT_REGISTERED_TENANT_ID } from "../apps/api/src/matter-vault-account-registry.js";
 import { startApiServer } from "../apps/api/src/server.js";
+import { apiSessionHeaders } from "../apps/api/test/helpers/session.js";
 import { createMatterRepository } from "../packages/matter/src/index.js";
 
 const ROOT = process.cwd();
 const ARTIFACT_DIR = join(ROOT, "artifacts", "manual-qa");
 const PROOF_PATH = join(ARTIFACT_DIR, "upl-c01-matter-party-proof.json");
-const TENANT = "tenant_upl_c01_matter_party";
+const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
 const MATTER_ID = "matter_upl_c01";
-const ACTOR = "user_upl_c01_matter";
+const ACCOUNT = highestPrivilegeRegisteredAccount();
+const ACTOR = ACCOUNT.user_id;
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=upl_c01_matter_party_read&audit_hint_ref=upl_c01_api_proof`;
 
 mkdirSync(ARTIFACT_DIR, { recursive: true });
 
-function permissionContext(effect = "allow") {
-  return JSON.stringify({
-    principal: { user_id: ACTOR, tenant_id: TENANT, role_ids: ["matter_runtime_user"] },
-    rules: [{ id: `rule_upl_c01_${effect}`, effect, action: "*" }],
-    object_acl: [],
-  });
-}
-
 async function apiJson(baseUrl, path, options = {}) {
   const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
+    ...(await apiSessionHeaders(baseUrl, ACCOUNT)),
     ...(options.headers ?? {}),
   };
   if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";

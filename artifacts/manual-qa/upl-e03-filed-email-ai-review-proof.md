@@ -1,6 +1,6 @@
 # UPL-E-03 Filed Email AI Review Proof
 
-Generated: 2026-07-03T02:15:10.235Z
+Generated: 2026-07-03T09:21:06.750Z
 
 Overall result: PASS
 
@@ -20,6 +20,7 @@ Overall result: PASS
 ## Boundary
 
 - External model claim: false
+- Analysis mode: rule_based_triage
 - Production ready claim: false
 - Go-live claim: false
 - No-approval auto-create count: 0

@@ -1,8 +1,8 @@
 {
   "schema_version": "law-firm-os.upl-b17.accounting-export-proof.v0.1",
-  "generated_at": "2026-07-02T23:06:24.366Z",
+  "generated_at": "2026-07-03T09:20:26.708Z",
   "verdict": "PASS",
-  "api_url": "http://127.0.0.1:57799",
+  "api_url": "http://127.0.0.1:59558",
   "contract_ref": "UPL-B-17",
   "route_surface": [
     "GET /api/finance/accounting-export.csv",
@@ -30,8 +30,8 @@
     "export": {
       "status": 201,
       "item": {
-        "accounting_export_id": "accounting-export:tenant_upl_b17_accounting_export:2026-07-01:2026-07-31",
-        "tenant_id": "tenant_upl_b17_accounting_export",
+        "accounting_export_id": "accounting-export:tenant_amic_matter_vault:2026-07-01:2026-07-31",
+        "tenant_id": "tenant_amic_matter_vault",
         "export_format": "csv",
         "status": "ready_for_review",
         "from_date": "2026-07-01",

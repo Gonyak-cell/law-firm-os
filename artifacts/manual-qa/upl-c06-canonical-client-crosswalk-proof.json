@@ -1,8 +1,8 @@
 {
   "schema_version": "law-firm-os.upl-c06.canonical-client-crosswalk-proof.v0.1",
-  "generated_at": "2026-07-03T00:05:33.639Z",
+  "generated_at": "2026-07-03T09:20:29.023Z",
   "verdict": "PASS",
-  "api_url": "http://127.0.0.1:51909",
+  "api_url": "http://127.0.0.1:59582",
   "contract_ref": "UPL-C-06",
   "route_surface": [
     "POST /api/intake/conflict-checks",
@@ -53,7 +53,7 @@
         "client_group_id": "client_group_rp04_amic_client_001",
         "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:001",
         "rp05_client_ref": "client_group_rp04_amic_client_001",
-        "tenant_id": "tenant_upl_c06_single_real",
+        "tenant_id": "tenant_amic_matter_vault",
         "synthetic_only": false,
         "source_lanes": [
           "1. 민사"
@@ -67,7 +67,7 @@
         "client_group_id": "client_group_rp04_amic_client_002",
         "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:002",
         "rp05_client_ref": "client_group_rp04_amic_client_002",
-        "tenant_id": "tenant_upl_c06_single_real",
+        "tenant_id": "tenant_amic_matter_vault",
         "synthetic_only": false,
         "source_lanes": [
           "1. 민사",
@@ -82,7 +82,7 @@
         "client_group_id": "client_group_rp04_amic_client_003",
         "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:003",
         "rp05_client_ref": "client_group_rp04_amic_client_003",
-        "tenant_id": "tenant_upl_c06_single_real",
+        "tenant_id": "tenant_amic_matter_vault",
         "synthetic_only": false,
         "source_lanes": [
           "1. 민사"
@@ -96,7 +96,7 @@
         "client_group_id": "client_group_rp04_amic_client_004",
         "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:004",
         "rp05_client_ref": "client_group_rp04_amic_client_004",
-        "tenant_id": "tenant_upl_c06_single_real",
+        "tenant_id": "tenant_amic_matter_vault",
         "synthetic_only": false,
         "source_lanes": [
           "1. 민사"
@@ -110,7 +110,7 @@
         "client_group_id": "client_group_rp04_amic_client_005",
         "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:005",
         "rp05_client_ref": "client_group_rp04_amic_client_005",
-        "tenant_id": "tenant_upl_c06_single_real",
+        "tenant_id": "tenant_amic_matter_vault",
         "synthetic_only": false,
         "source_lanes": [
           "1. 민사"
@@ -124,7 +124,7 @@
         "client_group_id": "client_group_rp04_amic_client_006",
         "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:006",
         "rp05_client_ref": "client_group_rp04_amic_client_006",
-        "tenant_id": "tenant_upl_c06_single_real",
+        "tenant_id": "tenant_amic_matter_vault",
         "synthetic_only": false,
         "source_lanes": [
           "1. 민사"
@@ -138,7 +138,7 @@
         "client_group_id": "client_group_rp04_amic_client_007",
         "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:007",
         "rp05_client_ref": "client_group_rp04_amic_client_007",
-        "tenant_id": "tenant_upl_c06_single_real",
+        "tenant_id": "tenant_amic_matter_vault",
         "synthetic_only": false,
         "source_lanes": [
           "1. 민사"
@@ -152,7 +152,7 @@
         "client_group_id": "client_group_rp04_amic_client_008",
         "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:008",
         "rp05_client_ref": "client_group_rp04_amic_client_008",
-        "tenant_id": "tenant_upl_c06_single_real",
+        "tenant_id": "tenant_amic_matter_vault",
         "synthetic_only": false,
         "source_lanes": [
           "1. 민사"
@@ -166,7 +166,7 @@
         "client_group_id": "client_group_rp04_amic_client_009",
         "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:009",
         "rp05_client_ref": "client_group_rp04_amic_client_009",
-        "tenant_id": "tenant_upl_c06_single_real",
+        "tenant_id": "tenant_amic_matter_vault",
         "synthetic_only": false,
         "source_lanes": [
           "1. 민사"
@@ -180,7 +180,7 @@
         "client_group_id": "client_group_rp04_amic_client_010",
         "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:010",
         "rp05_client_ref": "client_group_rp04_amic_client_010",
-        "tenant_id": "tenant_upl_c06_single_real",
+        "tenant_id": "tenant_amic_matter_vault",
         "synthetic_only": false,
         "source_lanes": [
           "1. 민사"
@@ -192,7 +192,7 @@
       {
         "model_type": "ConflictHit",
         "conflict_hit_id": "hit_search_upl_c06_real_client_ClientGroup_client_group_rp04_amic_client_096_0",
-        "tenant_id": "tenant_upl_c06_single_real",
+        "tenant_id": "tenant_amic_matter_vault",
         "conflict_check_id": "conflict_upl_c06_real_client",
         "matched_party_id": "client_group_rp04_amic_client_096",
         "hit_source": "party_master",
@@ -200,7 +200,7 @@
         "severity": "low",
         "audit_hint_ref": "upl_c06_api_proof",
         "status": "review_required",
-        "owner_user_id": "user_upl_c06_reviewer",
+        "owner_user_id": "user_amic_jwsuh",
         "matched_display_name": "롯데에너지머티리얼즈",
         "matched_model_type": "ClientGroup",
         "matched_party_role": null,
@@ -209,7 +209,7 @@
         "match_score": 1,
         "normalized_query": "롯데에너지머티리얼즈",
         "raw_hit_payload_visible": false,
-        "created_by": "user_upl_c06_reviewer",
+        "created_by": "user_amic_jwsuh",
         "owner_module": "intake",
         "permission_ref": null,
         "synthetic_only": true,
@@ -230,8 +230,8 @@
         "hit_summary": null,
         "hit_source_audit_required": true,
         "resource_id": "hit_search_upl_c06_real_client_ClientGroup_client_group_rp04_amic_client_096_0",
-        "created_at": "2026-07-03T00:05:33.634Z",
-        "updated_at": "2026-07-03T00:05:33.634Z",
+        "created_at": "2026-07-03T09:20:29.020Z",
+        "updated_at": "2026-07-03T09:20:29.020Z",
         "g6_runtime_readiness_claim": "runtime_write_ready",
         "production_ready_claim": false,
         "direct_matter_reference_included": false,
@@ -240,7 +240,7 @@
       {
         "model_type": "ConflictHit",
         "conflict_hit_id": "hit_search_upl_c06_real_client_Entity_entity_rp04_amic_client_096_1",
-        "tenant_id": "tenant_upl_c06_single_real",
+        "tenant_id": "tenant_amic_matter_vault",
         "conflict_check_id": "conflict_upl_c06_real_client",
         "matched_party_id": "entity_rp04_amic_client_096",
         "hit_source": "party_master",
@@ -248,7 +248,7 @@
         "severity": "low",
         "audit_hint_ref": "upl_c06_api_proof",
         "status": "review_required",
-        "owner_user_id": "user_upl_c06_reviewer",
+        "owner_user_id": "user_amic_jwsuh",
         "matched_display_name": "롯데에너지머티리얼즈",
         "matched_model_type": "Entity",
         "matched_party_role": null,
@@ -257,7 +257,7 @@
         "match_score": 1,
         "normalized_query": "롯데에너지머티리얼즈",
         "raw_hit_payload_visible": false,
-        "created_by": "user_upl_c06_reviewer",
+        "created_by": "user_amic_jwsuh",
         "owner_module": "intake",
         "permission_ref": null,
         "synthetic_only": true,
@@ -278,8 +278,8 @@
         "hit_summary": null,
         "hit_source_audit_required": true,
         "resource_id": "hit_search_upl_c06_real_client_Entity_entity_rp04_amic_client_096_1",
-        "created_at": "2026-07-03T00:05:33.634Z",
-        "updated_at": "2026-07-03T00:05:33.634Z",
+        "created_at": "2026-07-03T09:20:29.020Z",
+        "updated_at": "2026-07-03T09:20:29.020Z",
         "g6_runtime_readiness_claim": "runtime_write_ready",
         "production_ready_claim": false,
         "direct_matter_reference_included": false,
@@ -288,7 +288,7 @@
       {
         "model_type": "ConflictHit",
         "conflict_hit_id": "hit_search_upl_c06_real_client_Organization_org_rp04_amic_client_096_2",
-        "tenant_id": "tenant_upl_c06_single_real",
+        "tenant_id": "tenant_amic_matter_vault",
         "conflict_check_id": "conflict_upl_c06_real_client",
         "matched_party_id": "org_rp04_amic_client_096",
         "hit_source": "party_master",
@@ -296,7 +296,7 @@
         "severity": "low",
         "audit_hint_ref": "upl_c06_api_proof",
         "status": "review_required",
-        "owner_user_id": "user_upl_c06_reviewer",
+        "owner_user_id": "user_amic_jwsuh",
         "matched_display_name": "롯데에너지머티리얼즈",
         "matched_model_type": "Organization",
         "matched_party_role": null,
@@ -305,7 +305,7 @@
         "match_score": 1,
         "normalized_query": "롯데에너지머티리얼즈",
         "raw_hit_payload_visible": false,
-        "created_by": "user_upl_c06_reviewer",
+        "created_by": "user_amic_jwsuh",
         "owner_module": "intake",
         "permission_ref": null,
         "synthetic_only": true,
@@ -326,8 +326,8 @@
         "hit_summary": null,
         "hit_source_audit_required": true,
         "resource_id": "hit_search_upl_c06_real_client_Organization_org_rp04_amic_client_096_2",
-        "created_at": "2026-07-03T00:05:33.634Z",
-        "updated_at": "2026-07-03T00:05:33.634Z",
+        "created_at": "2026-07-03T09:20:29.020Z",
+        "updated_at": "2026-07-03T09:20:29.020Z",
         "g6_runtime_readiness_claim": "runtime_write_ready",
         "production_ready_claim": false,
         "direct_matter_reference_included": false,
@@ -336,7 +336,7 @@
     ],
     "conflict_search": {
       "conflict_search_id": "search_upl_c06_real_client",
-      "tenant_id": "tenant_upl_c06_single_real",
+      "tenant_id": "tenant_amic_matter_vault",
       "conflict_check_id": "conflict_upl_c06_real_client",
       "aliases": [
         "롯데에너지머티리얼즈 주식회사"
@@ -347,7 +347,7 @@
       "party_names": [],
       "relationship_refs": [],
       "audit_hint_ref": "upl_c06_api_proof",
-      "owner_user_id": "user_upl_c06_reviewer",
+      "owner_user_id": "user_amic_jwsuh",
       "hit_count": 3,
       "model_type": "ConflictSearch",
       "normalized_terms": [
@@ -364,8 +364,8 @@
       "status": "executed",
       "resource_id": "search_upl_c06_real_client",
       "owner_module": "intake",
-      "created_at": "2026-07-03T00:05:33.634Z",
-      "updated_at": "2026-07-03T00:05:33.634Z",
+      "created_at": "2026-07-03T09:20:29.020Z",
+      "updated_at": "2026-07-03T09:20:29.020Z",
       "writes_product_state": true,
       "creates_database_rows": true,
       "updates_database_rows": false,

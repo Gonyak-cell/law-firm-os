@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { assertNodeProofPass } from "./lib/upl-proof-runner.mjs";
 
+await assertNodeProofPass("scripts/run-upl-b13-withholding-proof.mjs");
 const artifact = JSON.parse(readFileSync("artifacts/manual-qa/upl-b13-withholding-proof.json", "utf8"));
 const matrix = readFileSync("artifacts/manual-qa/wave1-70-tuw-strict-verification-2026-07-03.md", "utf8");
 

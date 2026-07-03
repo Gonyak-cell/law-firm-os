@@ -1,16 +1,10 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import test from "node:test";
 import { createFileHrxStore } from "../src/store/file-store.js";
 import { loadHrxCoreMigrations, runHrxMigrations } from "../src/migrations/index.js";
 
-const sql = [
-  readFileSync("packages/hrx/src/migrations/001_hrx_core.sql", "utf8"),
-  readFileSync("packages/hrx/src/migrations/002_hrx_documents_leave_audit.sql", "utf8"),
-  readFileSync("packages/hrx/src/migrations/003_hrx_ai_analytics.sql", "utf8"),
-  readFileSync("packages/hrx/src/migrations/004_hrx_attendance.sql", "utf8"),
-  readFileSync("packages/hrx/src/migrations/005_hrx_overtime.sql", "utf8"),
-].join("\n");
+const migrations = loadHrxCoreMigrations();
+const sql = migrations.map((migration) => migration.sql).join("\n");
 
 test("HRX migrations create required tables idempotently", () => {
   for (const table of [
@@ -23,6 +17,14 @@ test("HRX migrations create required tables idempotently", () => {
     "hrx_leave_requests",
     "hrx_attendance_records",
     "hrx_overtime_requests",
+    "hrx_job_openings",
+    "hrx_candidates",
+    "hrx_candidate_consents",
+    "hrx_applications",
+    "hrx_interviews",
+    "hrx_offers",
+    "hrx_onboarding_plans",
+    "hrx_offboarding_cases",
     "hrx_audit_events",
     "hrx_ai_review_items",
     "hrx_ai_source_chunks",
@@ -51,11 +53,11 @@ test("HRX migration runner applies core migration idempotently", () => {
   const store = createFileHrxStore();
   const first = runHrxMigrations(store);
   const second = runHrxMigrations(store);
-  assert.deepEqual(first.map((result) => result.applied), [true, true, true, true, true]);
-  assert.deepEqual(second.map((result) => result.applied), [false, false, false, false, false]);
+  assert.deepEqual(first.map((result) => result.applied), migrations.map(() => true));
+  assert.deepEqual(second.map((result) => result.applied), migrations.map(() => false));
   assert.deepEqual(
     store.snapshot().applied_migrations.map((migration) => migration.id),
-    ["001_hrx_core", "002_hrx_documents_leave_audit", "003_hrx_ai_analytics", "004_hrx_attendance", "005_hrx_overtime"],
+    migrations.map((migration) => migration.id),
   );
   store.close();
 });

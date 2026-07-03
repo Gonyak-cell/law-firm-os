@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { assertNodeProofPass } from "./lib/upl-proof-runner.mjs";
 
 function read(path) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -13,6 +14,7 @@ const mattersSurface = read("apps/web/src/components/MattersSurface.jsx");
 const apiTest = read("apps/api/test/cmp-r4-g8-analytics.test.js");
 const uiProofScript = read("scripts/run-lcx-vltui-matter-sections-proof.mjs");
 const proofScript = read("scripts/run-upl-b15-finance-kpi-dashboard-proof.mjs");
+await assertNodeProofPass("scripts/run-upl-b15-finance-kpi-dashboard-proof.mjs");
 const proof = JSON.parse(read("artifacts/manual-qa/upl-b15-finance-kpi-dashboard-proof.json"));
 const uiProof = JSON.parse(read("docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"));
 

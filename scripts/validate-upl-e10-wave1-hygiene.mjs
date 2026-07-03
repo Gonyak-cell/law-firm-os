@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { assertNodeProofPass } from "./lib/upl-proof-runner.mjs";
 
 const ROOT = process.cwd();
 const artifactPath = "artifacts/manual-qa/upl-e10-wave1-hygiene-proof.json";
@@ -9,6 +10,8 @@ const matrixPath = "artifacts/manual-qa/wave1-70-tuw-strict-verification-2026-07
 
 assert.equal(existsSync(resolve(ROOT, artifactPath)), true, `missing ${artifactPath}`);
 assert.equal(existsSync(resolve(ROOT, matrixPath)), true, `missing ${matrixPath}`);
+
+await assertNodeProofPass("scripts/run-upl-e10-wave1-hygiene-proof.mjs");
 
 const artifact = JSON.parse(readFileSync(resolve(ROOT, artifactPath), "utf8"));
 const matrix = readFileSync(resolve(ROOT, matrixPath), "utf8");

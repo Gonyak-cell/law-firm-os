@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-03T08:31:59.734Z",
+  "verdict": "PASS",
+  "objective": "UPL-D-13 default onboarding gate blocks matter assignment until security training and confidentiality pledge are complete, with explicit waiver preserved.",
+  "tenant_id": "tenant_amic_matter_vault",
+  "employee_id": "emp_upl_d13_onboarding",
+  "matter_id": "matter_upl_d13_gate",
+  "default_gate": {
+    "required_task_ids": [
+      "default-security-training",
+      "default-confidentiality-pledge"
+    ],
+    "injected_task_count": 2,
+    "gate_enabled": true
+  },
+  "matter_staffing_gate_contract": {
+    "outcome": "blocked",
+    "reason": "onboarding_gate_incomplete",
+    "missing_task_ids": [
+      "default-confidentiality-pledge"
+    ]
+  },
+  "blocked_attempts": {
+    "missing_plan": {
+      "effect": "deny",
+      "safe_error_code": "HRX_ONBOARDING_GATE_PLAN_REQUIRED",
+      "assignment_created": false
+    },
+    "empty_plan": {
+      "assignment_created": false,
+      "safe_error_code": "HRX_ONBOARDING_GATE_INCOMPLETE",
+      "reason": "onboarding_gate_incomplete",
+      "missing_task_ids": [
+        "default-security-training",
+        "default-confidentiality-pledge"
+      ]
+    },
+    "partial_plan": {
+      "assignment_created": false,
+      "safe_error_code": "HRX_ONBOARDING_GATE_INCOMPLETE",
+      "reason": "onboarding_gate_incomplete",
+      "missing_task_ids": [
+        "default-confidentiality-pledge"
+      ]
+    }
+  },
+  "allowed_attempts": {
+    "completed_plan": {
+      "effect": "allow",
+      "reason": "onboarding_gate_complete",
+      "missing_task_ids": [],
+      "assignment_hash": "8daac803e8eefd0a776e5accabed77542bdca3ec5eb293243d25521c0d810359"
+    },
+    "waiver": {
+      "effect": "allow",
+      "reason": "onboarding_gate_waived",
+      "waiver_ref_hash": "14b1dfee66e8eeeaa2708bffc578ce9091b8c767627a42c8ffa5f927393447f7",
+      "assignment_hash": "9358ff66785adecc3af5de608aa001b1e6c98d73d462b3941d5f2be79bf7bd5d"
+    }
+  },
+  "leak_checks": {
+    "raw_document_body_written": false,
+    "authorization_header_written": false,
+    "session_token_written": false,
+    "client_secret_written": false
+  },
+  "commands": [
+    "node --test packages/hrx/test/onboarding.test.js packages/hrx/test/assignment.test.js",
+    "node scripts/run-upl-d13-hrx-onboarding-gate-proof.mjs"
+  ]
+}

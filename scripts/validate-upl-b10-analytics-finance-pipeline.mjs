@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { assertNodeProofPass } from "./lib/upl-proof-runner.mjs";
 
 function read(path) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -9,6 +10,7 @@ function read(path) {
 const runtime = read("apps/api/src/analytics-runtime-context.js");
 const apiTest = read("apps/api/test/cmp-r4-g8-analytics.test.js");
 const proofScript = read("scripts/run-upl-b10-analytics-finance-pipeline-proof.mjs");
+await assertNodeProofPass("scripts/run-upl-b10-analytics-finance-pipeline-proof.mjs");
 const proof = JSON.parse(read("artifacts/manual-qa/upl-b10-analytics-finance-pipeline-proof.json"));
 
 assert.match(runtime, /ANALYTICS_CALLER_SOURCE_PAYLOAD_REJECTED/);

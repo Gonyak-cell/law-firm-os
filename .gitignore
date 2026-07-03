@@ -6,6 +6,7 @@ apps/desktop/src/renderer/web/
 .env.*
 !.env.example
 !.env.*.example
+popbill/
 *.png
 !apps/desktop/build/icon.png
 !apps/desktop/build/icon-source-mark.png

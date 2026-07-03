@@ -19,7 +19,7 @@ import { MatterLogo } from "./MatterLogo.jsx";
 import { Field } from "./primitives.jsx";
 import { HomeSurface } from "./HomeSurface.jsx";
 
-export function AuthSurface({ labels, locale, authStep, setAuthStep, onLogin = () => {} }) {
+export function AuthSurface({ labels, locale, authStep, setAuthStep, authError = "", onLogin = () => {} }) {
   if (authStep === "signupModal") {
     return (
       <section className="auth-app-preview">
@@ -89,7 +89,7 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep, onLogin = (
                 </button>
               </p>
             </div>
-            <AuthForm labels={labels} locale={locale} step={authStep} onLogin={onLogin} />
+            <AuthForm labels={labels} locale={locale} step={authStep} authError={authError} onLogin={onLogin} />
           </div>
         </div>
         <aside className="matter-login-photo-panel" aria-label="Samseong-dong Parnas Tower">
@@ -148,7 +148,7 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep, onLogin = (
           ) : authStep === "verify" || authStep === "sent" ? (
             <VerificationCard labels={labels} sent={authStep === "sent"} />
           ) : (
-            <AuthForm labels={labels} locale={locale} step={authStep} onLogin={onLogin} />
+            <AuthForm labels={labels} locale={locale} step={authStep} authError={authError} onLogin={onLogin} />
           )}
         </div>
       </aside>
@@ -181,21 +181,27 @@ export function OnboardingCard({ labels, locale }) {
   );
 }
 
-export function AuthForm({ labels, locale, step, onLogin = () => {} }) {
+export function AuthForm({ labels, locale, step, authError = "", onLogin = () => {} }) {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [rememberLogin, setRememberLogin] = useState(false);
   const [recoveryRequested, setRecoveryRequested] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   if (step === "login") {
     return (
       <form
         className="form-stack matter-login-form"
         data-login-form="email-password"
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault();
-          if (!loginEmail.trim() || !loginPassword) return;
-          onLogin({ email: loginEmail.trim(), password: loginPassword, remember: rememberLogin });
+          if (submitting || !loginEmail.trim() || !loginPassword) return;
+          setSubmitting(true);
+          try {
+            await onLogin({ email: loginEmail.trim(), password: loginPassword, remember: rememberLogin });
+          } finally {
+            setSubmitting(false);
+          }
         }}
       >
         <label className="matter-login-field">
@@ -245,14 +251,15 @@ export function AuthForm({ labels, locale, step, onLogin = () => {} }) {
             password?
           </button>
         </div>
-        {(rememberLogin || recoveryRequested) && (
+        {(rememberLogin || recoveryRequested || authError) && (
           <div className="login-local-state" data-login-local-state="true">
             {rememberLogin && <span data-login-remember-state="true">이 기기에서 로그인 이메일을 기억합니다.</span>}
             {recoveryRequested && <span data-login-recovery-state="true">비밀번호 재설정 안내를 보낼 계정을 확인합니다.</span>}
+            {authError && <span data-login-error="true">{authError}</span>}
           </div>
         )}
-        <button className="matter-login-submit" type="submit">
-          Log in
+        <button className="matter-login-submit" type="submit" disabled={submitting}>
+          {submitting ? "Signing in" : "Log in"}
         </button>
       </form>
     );

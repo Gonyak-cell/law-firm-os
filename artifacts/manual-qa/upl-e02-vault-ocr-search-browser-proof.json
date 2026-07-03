@@ -1,32 +1,35 @@
 {
-  "schema_version": "law-firm-os.upl-e02.vault-ocr-search.browser-proof.v0.1",
-  "generated_at": "2026-07-02T19:31:56.812Z",
+  "schema_version": "law-firm-os.upl-e02.vault-ocr-search.browser-proof.v0.2",
+  "generated_at": "2026-07-03T09:21:03.655Z",
   "verdict": "PASS",
-  "web_url": "http://127.0.0.1:5175",
-  "api_url": "http://127.0.0.1:4193",
-  "document_id": "doc_upl_e02_ocr_1783020715290",
+  "web_url": "http://127.0.0.1:5202",
+  "api_url": "http://127.0.0.1:59666",
+  "document_id": "doc_upl_e02_ocr_1783070460972",
   "query": "OCR키워드",
   "upload": {
     "status": 201,
     "outcome": "created",
     "search_index": {
-      "index_id": "idx:doc_upl_e02_ocr_1783020715290",
+      "index_id": "idx:doc_upl_e02_ocr_1783070460972",
       "body_text_indexed": true,
       "ocr_text_indexed": true,
-      "ocr_runtime_executed": true,
-      "ocr_provider": "lawos_sidecar_ocr_v1",
-      "search_backend": "sqlite_fts5_ready",
+      "ocr_runtime_executed": false,
+      "ocr_provider": "caller_supplied_ocr_sidecar",
+      "search_backend": "json_substring_search",
       "raw_text_included": false,
       "storage_pointer_ref_included": false
     }
   },
   "direct_search": {
     "status": 200,
+    "search_backend": "json_substring_search",
     "returned_count": 1,
     "matching_document_returned": true,
     "matching_fields": [
       "ocr_text"
-    ]
+    ],
+    "matching_document_ocr_runtime_executed": false,
+    "matching_document_ocr_provider": "caller_supplied_ocr_sidecar"
   },
   "snapshot": {
     "marker_present": true,
@@ -38,35 +41,123 @@
     "hidden_ocr_term_visible": false,
     "document_title_visible": true
   },
+  "observed_requests": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5202/api/vault/search?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe&q=OCR%ED%82%A4%EC%9B%8C%EB%93%9C",
+      "has_authorization": true,
+      "has_permission_context": false
+    }
+  ],
+  "page_errors": [],
+  "console_message_count": 2,
   "checks": [
     {
-      "id": "api-upload-created-ocr-index",
-      "passed": true
+      "id": "unsigned-forged-permission-context-blocked",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
+    {
+      "id": "api-upload-created-sidecar-index",
+      "passed": true,
+      "evidence": {
+        "status": 201,
+        "outcome": "created"
+      }
+    },
+    {
+      "id": "api-upload-does-not-claim-ocr-runtime",
+      "passed": true,
+      "evidence": {
+        "ocr_runtime_executed": false,
+        "ocr_provider": "caller_supplied_ocr_sidecar"
+      }
+    },
+    {
+      "id": "api-search-label-is-substring",
+      "passed": true,
+      "evidence": {
+        "search_backend": "json_substring_search"
+      }
     },
     {
       "id": "api-ocr-keyword-hit",
-      "passed": true
+      "passed": true,
+      "evidence": {}
     },
     {
       "id": "api-does-not-return-ocr-term",
-      "passed": true
+      "passed": true,
+      "evidence": {}
     },
     {
       "id": "ui-search-rendered-hit",
-      "passed": true
+      "passed": true,
+      "evidence": {
+        "marker_present": true,
+        "state": "data",
+        "query": "OCR키워드",
+        "result_count": 1,
+        "raw_text_included": "false",
+        "ocr_match_label_visible": true,
+        "hidden_ocr_term_visible": false,
+        "document_title_visible": true
+      }
     },
     {
       "id": "ui-match-field-ocr-visible",
-      "passed": true
+      "passed": true,
+      "evidence": {}
     },
     {
       "id": "ui-does-not-render-ocr-term",
-      "passed": true
+      "passed": true,
+      "evidence": {}
     },
     {
       "id": "ui-raw-text-flag-false",
-      "passed": true
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "id": "browser-search-uses-signed-session",
+      "passed": true,
+      "evidence": {
+        "searchRequests": [
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5202/api/vault/search?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe&q=OCR%ED%82%A4%EC%9B%8C%EB%93%9C",
+            "has_authorization": true,
+            "has_permission_context": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "browser-search-sends-no-permission-context",
+      "passed": true,
+      "evidence": {
+        "searchRequests": [
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5202/api/vault/search?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe&q=OCR%ED%82%A4%EC%9B%8C%EB%93%9C",
+            "has_authorization": true,
+            "has_permission_context": false
+          }
+        ]
+      }
     }
   ],
-  "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/artifacts/manual-qa/upl-e02-vault-ocr-search-browser-proof.png"
+  "screenshot": "artifacts/manual-qa/screenshots/upl-e02-vault-ocr-search-browser-proof.png",
+  "boundary": {
+    "ocr_runtime_executed": false,
+    "ocr_runtime_claim": false,
+    "sidecar_text_source": "caller_supplied_ocr_sidecar",
+    "search_backend_claim": "json_substring_search",
+    "raw_ocr_text_written_to_artifact": false,
+    "session_token_written_to_artifact": false,
+    "permission_context_header_used": false
+  }
 }

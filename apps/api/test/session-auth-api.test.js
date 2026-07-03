@@ -62,6 +62,18 @@ function forgedPermissionContext() {
   });
 }
 
+function forgedAllowPermissionContext() {
+  return JSON.stringify({
+    principal: {
+      user_id: "legacy_allowed",
+      tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+      role_ids: ["lawos_admin"],
+    },
+    rules: [{ id: "legacy-allow", effect: "allow", action: "*" }],
+    object_acl: [],
+  });
+}
+
 test("Auth descriptor exposes the Wave-1 API session surface", async () => {
   await withServer({}, async (baseUrl) => {
     const health = await json(baseUrl, "/api/health");
@@ -335,5 +347,30 @@ test("Signed sessions override forged permission contexts and invalid bearer tok
     });
     assert.equal(invalidBearerWins.status, 401);
     assert.deepEqual(invalidBearerWins.body.safe_error_codes, ["AUTH_SESSION_INVALID"]);
+  });
+});
+
+test("Unauthenticated business routes reject forged permission and HRX actor headers", async () => {
+  await withServer({}, async (baseUrl) => {
+    const forgedProfile = await json(baseUrl, "/api/profile/me?permission_ref=ui_profile_me&audit_hint_ref=ui_profile_me_probe", {
+      headers: {
+        "x-lawos-permission-context": forgedAllowPermissionContext(),
+      },
+    });
+    assert.equal(forgedProfile.status, 401);
+    assert.deepEqual(forgedProfile.body.safe_error_codes, ["AUTH_SESSION_REQUIRED"]);
+    assert.equal(forgedProfile.body.token_material_returned, false);
+
+    const forgedHrx = await json(baseUrl, "/api/hrx/employees", {
+      headers: {
+        "x-lawos-tenant-id": MATTER_VAULT_REGISTERED_TENANT_ID,
+        "x-lawos-actor-id": "user_amic_jwsuh",
+        "x-lawos-actor-role": "system_super_admin,people_admin",
+        "x-lawos-hrx-scopes": "hrx.employee.read,hrx.audit.read,hrx.payroll.export",
+      },
+    });
+    assert.equal(forgedHrx.status, 401);
+    assert.deepEqual(forgedHrx.body.safe_error_codes, ["AUTH_SESSION_REQUIRED"]);
+    assert.equal(forgedHrx.body.token_material_returned, false);
   });
 });

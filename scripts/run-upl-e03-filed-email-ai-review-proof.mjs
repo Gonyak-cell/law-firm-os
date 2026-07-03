@@ -127,9 +127,10 @@ const artifact = {
   production_ready_claim: false,
   go_live_claim: false,
   external_model_claim: false,
+  analysis_mode: "rule_based_triage",
   source_trace: {
     email_filing: "packages/email-dms/src/email-filing-service.js#fileEmailThreadToMatter",
-    ai_review_service: "packages/matter/src/email-ai-matter-review-service.js#createFiledEmailAiMatterReviewService",
+    rule_based_review_service: "packages/matter/src/email-ai-matter-review-service.js#createFiledEmailAiMatterReviewService",
     matter_model: "packages/matter/src/model.js#createMatter/createMatterTask/createMatterCalendarEvent",
   },
   filed_email: {
@@ -170,6 +171,7 @@ ${checks.map((item) => `| ${item.id} | ${item.passed ? "PASS" : "FAIL"} | \`${JS
 ## Boundary
 
 - External model claim: false
+- Analysis mode: rule_based_triage
 - Production ready claim: false
 - Go-live claim: false
 - No-approval auto-create count: ${beforeApproval.auto_create_matter_count}

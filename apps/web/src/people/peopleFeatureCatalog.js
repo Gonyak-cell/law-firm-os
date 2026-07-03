@@ -85,9 +85,9 @@ export const PEOPLE_FEATURE_GROUPS = [
         label: "근무표",
         section: "people-work-schedule",
         icon: "clipboard",
-        state: "setup_required",
+        state: "active",
         summary: "구성원별 근무일정을 생성하고 변경합니다.",
-        capabilities: ["근무일정 생성", "근무일정 수정", "근무일정 삭제", "스케줄"]
+        capabilities: ["월별 근무표", "구성원별 근태 기록", "초과근로 점검", "스케줄"]
       },
       {
         label: "외부일정",
@@ -109,9 +109,9 @@ export const PEOPLE_FEATURE_GROUPS = [
         label: "현재 근무 상황 조회",
         section: "people-current-work-status",
         icon: "clipboard",
-        state: "setup_required",
+        state: "active",
         summary: "현재 근무 중인 구성원과 외부일정 수행 상태를 확인합니다.",
-        capabilities: ["현재 근무 상황 조회", "조직 필터", "근무지 상태"]
+        capabilities: ["현재 근무 상황 조회", "월별 근태 집계", "근무지 상태"]
       },
       {
         label: "근무일정 확정",
@@ -131,9 +131,9 @@ export const PEOPLE_FEATURE_GROUPS = [
         label: "출근/퇴근 기록",
         section: "people-attendance-records",
         icon: "clipboard",
-        state: "setup_required",
+        state: "active",
         summary: "출근과 퇴근 기록을 조회합니다.",
-        capabilities: ["출근 기록", "퇴근 기록", "출퇴근기록 관리", "출퇴근기록 엑셀 다운로드"]
+        capabilities: ["출근 기록", "퇴근 기록", "출퇴근기록 관리", "월별 집계"]
       },
       {
         label: "무일정 근무 출퇴근",

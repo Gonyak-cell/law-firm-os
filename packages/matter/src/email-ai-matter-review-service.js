@@ -1,7 +1,9 @@
 import { createMatter, createMatterCalendarEvent, createMatterTask } from "./model.js";
 
 export const FILED_EMAIL_AI_REVIEW_BOUNDARY = Object.freeze({
-  source: "filed_email_ai_summary_review_queue",
+  source: "filed_email_rule_based_review_queue",
+  analysis_mode: "rule_based_triage",
+  external_model_claim: false,
   auto_create_matter_before_lawyer_approval: false,
   lawyer_approval_required: true,
   raw_email_body_stored: false,

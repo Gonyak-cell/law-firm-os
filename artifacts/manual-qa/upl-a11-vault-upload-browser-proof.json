@@ -1,0 +1,137 @@
+{
+  "schema_version": "lawos.upl_a11.vault_upload_browser_proof.v1",
+  "generated_at": "2026-07-03T07:35:03.350Z",
+  "tuw_ids": [
+    "UPL-A-11",
+    "UPL-A-10"
+  ],
+  "pass": true,
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "routes": {
+    "browser_upload": "POST /api/vault/documents/upload",
+    "download": "GET /api/vault/documents/doc_ui_upload_1783064103004_a11_browser_upload_txt/download"
+  },
+  "source_trace": {
+    "ui": "apps/web/src/components/VaultSurface.jsx#VaultDocumentUploadPanel",
+    "api_client": "apps/web/src/data/apiClient.js#uploadVaultDocumentFile",
+    "api_runtime": "apps/api/src/vault-dms-runtime-context.js#handleVaultDocumentUpload",
+    "storage": "packages/dms/src/storage/file-storage-adapter.js#createFileStorageAdapter"
+  },
+  "upload_receipt": {
+    "status": 201,
+    "outcome": "created",
+    "document_id": "doc_ui_upload_1783064103004_a11_browser_upload_txt",
+    "title": "A11 browser upload proof",
+    "mime_type": "text/plain",
+    "byte_size": 35,
+    "sha256": "e1c3ba9f307af214242909b665e18ae4e327589c28c25f6bebb69f00f89bdcc6",
+    "storage_pointer_ref_included": false,
+    "request_has_authorization": true,
+    "request_has_permission_context": false
+  },
+  "download_receipt": {
+    "status": 200,
+    "content_sha256": "e1c3ba9f307af214242909b665e18ae4e327589c28c25f6bebb69f00f89bdcc6",
+    "recomputed_sha256": "e1c3ba9f307af214242909b665e18ae4e327589c28c25f6bebb69f00f89bdcc6",
+    "byte_size": 35,
+    "document_bytes_included": true,
+    "raw_path_exposed": false,
+    "storage_pointer_ref_included": false
+  },
+  "restart_readback": {
+    "status": 200,
+    "content_sha256": "e1c3ba9f307af214242909b665e18ae4e327589c28c25f6bebb69f00f89bdcc6",
+    "recomputed_sha256": "e1c3ba9f307af214242909b665e18ae4e327589c28c25f6bebb69f00f89bdcc6",
+    "byte_size": 35,
+    "document_bytes_included": true,
+    "raw_path_exposed": false,
+    "storage_pointer_ref_included": false
+  },
+  "browser": {
+    "screenshot_path": "artifacts/manual-qa/screenshots/upl-a11-vault-upload-browser-proof.png",
+    "token_material_rendered": false,
+    "page_errors": [],
+    "console_messages": [
+      "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    ]
+  },
+  "checks": [
+    {
+      "id": "a11-browser-file-input-present",
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "id": "a11-ui-upload-response-created",
+      "passed": true,
+      "evidence": {
+        "status": 201,
+        "outcome": "created"
+      }
+    },
+    {
+      "id": "a11-ui-receipt-has-document-and-sha256",
+      "passed": true,
+      "evidence": {
+        "upload_state": "data",
+        "document_id": "doc_ui_upload_1783064103004_a11_browser_upload_txt",
+        "sha256": "e1c3ba9f307af214242909b665e18ae4e327589c28c25f6bebb69f00f89bdcc6",
+        "form_document_id": "doc_ui_upload_1783064103004_a11_browser_upload_txt",
+        "form_sha256": "e1c3ba9f307af214242909b665e18ae4e327589c28c25f6bebb69f00f89bdcc6"
+      }
+    },
+    {
+      "id": "a11-request-uses-signed-session",
+      "passed": true,
+      "evidence": {
+        "method": "POST",
+        "url": "http://127.0.0.1:5198/api/vault/documents/upload",
+        "has_authorization": true,
+        "has_permission_context": false
+      }
+    },
+    {
+      "id": "a11-download-hash-matches-uploaded-file",
+      "passed": true,
+      "evidence": {
+        "status": 200,
+        "content_sha256": "e1c3ba9f307af214242909b665e18ae4e327589c28c25f6bebb69f00f89bdcc6",
+        "recomputed_sha256": "e1c3ba9f307af214242909b665e18ae4e327589c28c25f6bebb69f00f89bdcc6",
+        "byte_size": 35,
+        "document_bytes_included": true,
+        "raw_path_exposed": false,
+        "storage_pointer_ref_included": false
+      }
+    },
+    {
+      "id": "a11-restart-download-preserves-hash",
+      "passed": true,
+      "evidence": {
+        "status": 200,
+        "content_sha256": "e1c3ba9f307af214242909b665e18ae4e327589c28c25f6bebb69f00f89bdcc6",
+        "recomputed_sha256": "e1c3ba9f307af214242909b665e18ae4e327589c28c25f6bebb69f00f89bdcc6",
+        "byte_size": 35,
+        "document_bytes_included": true,
+        "raw_path_exposed": false,
+        "storage_pointer_ref_included": false
+      }
+    },
+    {
+      "id": "a11-safe-boundary",
+      "passed": true,
+      "evidence": {
+        "status": 200,
+        "content_sha256": "e1c3ba9f307af214242909b665e18ae4e327589c28c25f6bebb69f00f89bdcc6",
+        "recomputed_sha256": "e1c3ba9f307af214242909b665e18ae4e327589c28c25f6bebb69f00f89bdcc6",
+        "byte_size": 35,
+        "document_bytes_included": true,
+        "raw_path_exposed": false,
+        "storage_pointer_ref_included": false
+      }
+    }
+  ]
+}

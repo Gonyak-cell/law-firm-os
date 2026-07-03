@@ -8,5 +8,5 @@ Status: PASS
 - Matter survived restart: true
 - Leave survived restart: true
 - Direct store write from script: false
-- Matter store: /var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/matter-store.json
-- HRX store: /var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/hrx-store.json
+- Matter store: /var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zqK3Cf/runtime-stores/matter-store.json
+- HRX store: /var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zqK3Cf/runtime-stores/hrx-store.json

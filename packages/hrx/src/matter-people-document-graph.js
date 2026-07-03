@@ -193,6 +193,7 @@ export function createMatterPeopleDocumentRelationship(input = {}) {
 
 export function createMatterPeopleDocumentGraphSeed(tenantId = "tenant_lcx_ppl") {
   return Object.freeze({
+    source_kind: "fixture_seed",
     nodes: Object.freeze([
       createMatterPeopleDocumentNode({
         tenant_id: tenantId,
@@ -348,9 +349,141 @@ export function createMatterPeopleDocumentGraphSeed(tenantId = "tenant_lcx_ppl")
   });
 }
 
+export function createMatterPeopleDocumentGraphSeedFromRuntime({
+  tenant_id,
+  employees = [],
+  documents = [],
+  matter_assignments = [],
+} = {}) {
+  const tenantId = requiredString({ tenant_id }, "tenant_id");
+  const employeeById = new Map(
+    employees
+      .filter((employee) => employee?.tenant_id === tenantId && employee.employee_id)
+      .map((employee) => [employee.employee_id, employee]),
+  );
+  const assignments = matter_assignments.filter((assignment) =>
+    assignment?.tenant_id === tenantId && assignment.employee_id && assignment.matter_id
+  );
+  const documentsForTenant = documents.filter((document) =>
+    document?.tenant_id === tenantId && document.employee_id && document.document_id
+  );
+  const nodes = new Map();
+  const relationships = new Map();
+
+  function putNode(input) {
+    const node = createMatterPeopleDocumentNode({ tenant_id: tenantId, ...input });
+    nodes.set(nodeKey(node), node);
+  }
+
+  function putRelationship(input) {
+    const relationship = createMatterPeopleDocumentRelationship({ tenant_id: tenantId, ...input });
+    relationships.set(relationshipKey(relationship), relationship);
+  }
+
+  for (const assignment of assignments) {
+    putNode({
+      node_type: "matter",
+      node_id: assignment.matter_id,
+      display_label: `Matter ${assignment.matter_id}`,
+      permission_scope: "matter_assignment_reference",
+      metadata: {
+        source_kind: "hrx_matter_assignment",
+        capacity_pct: assignment.capacity_pct ?? null,
+      },
+    });
+    const employee = employeeById.get(assignment.employee_id);
+    putNode({
+      node_type: "person",
+      node_id: assignment.employee_id,
+      display_label: employee?.display_name ?? employee?.name ?? assignment.employee_id,
+      permission_scope: "firm_internal_reference",
+      metadata: {
+        source_kind: "hrx_employee_repository",
+        employee_status: employee?.status ?? null,
+      },
+    });
+    putRelationship({
+      relationship_id: `mpd_rt_matter_person_${assignment.matter_id}_${assignment.employee_id}`,
+      from_type: "matter",
+      from_id: assignment.matter_id,
+      to_type: "person",
+      to_id: assignment.employee_id,
+      relationship_type: "matter_person",
+      status: "active",
+      source_refs: [`HrxMatterAssignment:${assignment.matter_id}:${assignment.employee_id}`],
+      permission_scope: "matter_assignment_reference",
+      audit_ref: `audit_mpd_runtime_assignment_${assignment.matter_id}_${assignment.employee_id}`,
+      metadata: { source_kind: "hrx_matter_assignment" },
+    });
+  }
+
+  for (const document of documentsForTenant) {
+    const employee = employeeById.get(document.employee_id);
+    if (!nodes.has(endpointKey(tenantId, "person", document.employee_id))) {
+      putNode({
+        node_type: "person",
+        node_id: document.employee_id,
+        display_label: employee?.display_name ?? employee?.name ?? document.employee_id,
+        permission_scope: "firm_internal_reference",
+        metadata: {
+          source_kind: "hrx_employee_repository",
+          employee_status: employee?.status ?? null,
+        },
+      });
+    }
+    putNode({
+      node_type: "document",
+      node_id: document.document_id,
+      display_label: document.title ?? document.document_id,
+      permission_scope: "hrx_document_metadata",
+      metadata: {
+        source_kind: "hrx_document_repository",
+        document_type: document.document_type,
+        source_ref: document.source_ref ?? null,
+        document_body_included: false,
+      },
+    });
+    putRelationship({
+      relationship_id: `mpd_rt_person_document_${document.employee_id}_${document.document_id}`,
+      from_type: "person",
+      from_id: document.employee_id,
+      to_type: "document",
+      to_id: document.document_id,
+      relationship_type: "person_document",
+      status: "active",
+      source_refs: [`HrxDocument:${document.document_id}`],
+      permission_scope: "hrx_document_metadata",
+      audit_ref: `audit_mpd_runtime_document_${document.document_id}`,
+      metadata: { source_kind: "hrx_document_repository" },
+    });
+    for (const assignment of assignments.filter((item) => item.employee_id === document.employee_id)) {
+      putRelationship({
+        relationship_id: `mpd_rt_matter_document_${assignment.matter_id}_${document.document_id}`,
+        from_type: "matter",
+        from_id: assignment.matter_id,
+        to_type: "document",
+        to_id: document.document_id,
+        relationship_type: "matter_document",
+        status: "active",
+        source_refs: [`HrxMatterAssignment:${assignment.matter_id}:${assignment.employee_id}`, `HrxDocument:${document.document_id}`],
+        permission_scope: "hrx_document_metadata",
+        audit_ref: `audit_mpd_runtime_matter_document_${assignment.matter_id}_${document.document_id}`,
+        metadata: { source_kind: "hrx_document_repository" },
+      });
+    }
+  }
+
+  return Object.freeze({
+    source_kind: "runtime_repository_derived",
+    nodes: Object.freeze([...nodes.values()]),
+    relationships: Object.freeze([...relationships.values()]),
+  });
+}
+
 export function createMatterPeopleDocumentGraphTable(seed = createMatterPeopleDocumentGraphSeed()) {
   const nodes = new Map();
   const relationships = new Map();
+  const tableSource = seed.source_kind ?? "fixture_seed";
 
   const table = Object.freeze({
     upsertNode(input) {
@@ -441,6 +574,7 @@ export function createMatterPeopleDocumentGraphTable(seed = createMatterPeopleDo
         schema_version: "lawos.upl_e07.matter_people_document_graph_traversal.v1",
         outcome: start ? "ok" : "not_found",
         table_kind: "matter_people_document_relationship_table",
+        table_source: tableSource,
         pivot: Object.freeze({ tenant_id, start_type, start_id, depth: maxDepth }),
         nodes: Object.freeze(rawNodes.map((node) => visibleNode(node, permissionContext))),
         relationships: Object.freeze(rawRelationships.map((relationship) => visibleRelationship(relationship, permissionContext))),
@@ -451,6 +585,7 @@ export function createMatterPeopleDocumentGraphTable(seed = createMatterPeopleDo
           path_count: traversalPaths.length,
           raw_document_text_included: false,
           provider_payload_included: false,
+          relationship_table_source: tableSource,
           production_ready_claim: false,
         }),
         claim_boundary: MATTER_PEOPLE_DOCUMENT_GRAPH_BOUNDARY,

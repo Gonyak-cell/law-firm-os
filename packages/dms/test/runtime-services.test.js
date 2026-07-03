@@ -285,6 +285,7 @@ test("UPL-E-01 DMS search indexes PDF/DOCX body text without exposing raw text",
     bytes: "%PDF-1.4\n(차임증액 본문키워드 검증)\n%%EOF",
   });
   assert.equal(pdfIndex.body_text_indexed, true);
+  assert.equal(pdfIndex.search_backend, "json_substring_search");
   assert.equal(pdfIndex.raw_text_included, false);
   assert.equal(pdfIndex.storage_pointer_ref_included, false);
   assert.ok(pdfIndex.indexed_fields.includes("body_text"));
@@ -325,7 +326,7 @@ test("UPL-E-01 DMS search indexes PDF/DOCX body text without exposing raw text",
   assert.equal(JSON.stringify(docxSearch.results[0]).includes("퇴직금"), false);
 });
 
-test("UPL-E-02 DMS OCR sidecar indexes scanned PDF text without exposing OCR text", () => {
+test("UPL-E-02 DMS OCR sidecar indexes scanned PDF text without claiming OCR runtime execution", () => {
   const document = documentFixture({
     document_id: "doc-e02-scanned-pdf",
     current_version_id: "version-doc-e02-scanned-pdf-1",
@@ -340,8 +341,9 @@ test("UPL-E-02 DMS OCR sidecar indexes scanned PDF text without exposing OCR tex
     ocr_text: "토지대장 OCR키워드 검증",
   });
   assert.equal(index.ocr_text_indexed, true);
-  assert.equal(index.ocr_runtime_executed, true);
-  assert.equal(index.ocr_provider, "lawos_sidecar_ocr_v1");
+  assert.equal(index.ocr_runtime_executed, false);
+  assert.equal(index.ocr_provider, "caller_supplied_ocr_sidecar");
+  assert.equal(index.search_backend, "json_substring_search");
   assert.ok(index.indexed_fields.includes("ocr_text"));
 
   const search = searchMatterVault({
@@ -353,6 +355,7 @@ test("UPL-E-02 DMS OCR sidecar indexes scanned PDF text without exposing OCR tex
   assert.equal(search.results.length, 1);
   assert.deepEqual(search.results[0].match_fields, ["ocr_text"]);
   assert.equal(search.results[0].ocr_text_indexed, true);
+  assert.equal(search.results[0].ocr_runtime_executed, false);
   assert.equal(search.results[0].raw_text_included, false);
   assert.equal(search.results[0].storage_pointer_ref_included, false);
   assert.equal(JSON.stringify(search.results[0]).includes("OCR키워드"), false);

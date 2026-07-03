@@ -1,12 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { AlertTriangle, Check, FileText, FolderDown, MailCheck, Search, ShieldCheck, TimerReset } from "lucide-react";
+import { PublicClientApplication } from "@azure/msal-browser";
 import "./styles.css";
 
-const PERMISSION_CONTEXT_HEADER = "x-lawos-permission-context";
+const ADDIN_SESSION_STORAGE_KEY = "lawos_addin_session_token";
 const params = new URLSearchParams(window.location.search);
 const TENANT_ID = params.get("tenantId") ?? "tenant_rp05_synthetic";
 const PROOF_MATTER_ID = params.get("matterId") ?? "matter_rp05_synthetic";
+const ENTRA_CLIENT_ID = params.get("entraClientId") ?? "";
+const ENTRA_TENANT_ID = params.get("entraTenantId") ?? "organizations";
+const MSAL_SCOPES = params.getAll("msalScope").length > 0 ? params.getAll("msalScope") : ["openid", "profile", "User.Read", "Mail.Read"];
+let msalBridgePromise = null;
 
 function apiBaseUrl() {
   const fromQuery = params.get("apiBase");
@@ -15,30 +20,96 @@ function apiBaseUrl() {
   return fromOffice;
 }
 
-function permissionContext() {
-  return {
-    principal: {
-      user_id: "outlook_addin_operator",
-      tenant_id: TENANT_ID,
-      role_ids: ["matter_runtime_user", "dms_reader", "outlook_addin_user"],
-    },
-    rules: [{ id: "outlook-addin-proof-allow", effect: "allow", action: "*" }],
-    object_acl: [],
-  };
+async function addinSessionToken() {
+  try {
+    const token = window.sessionStorage?.getItem(ADDIN_SESSION_STORAGE_KEY);
+    if (token) return token;
+  } catch {
+  }
+  try {
+    return (await window.OfficeRuntime?.storage?.getItem?.(ADDIN_SESSION_STORAGE_KEY)) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+async function initializeMsalBridge() {
+  if (!ENTRA_CLIENT_ID) {
+    const unconfigured = {
+      configured: false,
+      initialized: false,
+      account_count: 0,
+      scopes: MSAL_SCOPES,
+      provider_runtime_executed: false,
+      graph_request_executed: false,
+      token_material_returned: false,
+      production_write_claim: false,
+      reason: "entra_client_id_missing",
+    };
+    recordOutlookEventProbe("msal_bridge", unconfigured);
+    return unconfigured;
+  }
+
+  if (!msalBridgePromise) {
+    msalBridgePromise = (async () => {
+      const instance = new PublicClientApplication({
+        auth: {
+          clientId: ENTRA_CLIENT_ID,
+          authority: `https://login.microsoftonline.com/${ENTRA_TENANT_ID}`,
+        },
+        cache: {
+          cacheLocation: "sessionStorage",
+          storeAuthStateInCookie: false,
+        },
+      });
+      await instance.initialize();
+      const accounts = instance.getAllAccounts();
+      const receipt = {
+        configured: true,
+        initialized: true,
+        account_count: accounts.length,
+        scopes: MSAL_SCOPES,
+        provider_runtime_executed: false,
+        graph_request_executed: false,
+        token_material_returned: false,
+        production_write_claim: false,
+      };
+      recordOutlookEventProbe("msal_bridge", receipt);
+      return receipt;
+    })();
+  }
+  return msalBridgePromise;
 }
 
 async function requestJson(path, { method = "GET", body } = {}) {
+  const token = await addinSessionToken();
+  const headers = { "content-type": "application/json" };
+  if (token) headers.authorization = `Bearer ${token}`;
   const response = await fetch(`${apiBaseUrl()}${path}`, {
     method,
-    headers: {
-      "content-type": "application/json",
-      [PERMISSION_CONTEXT_HEADER]: JSON.stringify(permissionContext()),
-    },
+    headers,
     body: body ? JSON.stringify(body) : undefined,
   });
   const payload = await response.json();
   if (!response.ok) throw new Error(payload.safe_error_codes?.[0] ?? payload.message ?? "request_failed");
   return payload;
+}
+
+function recordOutlookEventProbe(key, value) {
+  window.__LAWOS_OUTLOOK_EVENT_PROBE = {
+    ...(window.__LAWOS_OUTLOOK_EVENT_PROBE ?? {}),
+    [key]: value,
+  };
+}
+
+function completeSendEvent(event, payload = {}) {
+  const completion = { allowEvent: true, ...payload };
+  recordOutlookEventProbe("last_completion", {
+    allowEvent: completion.allowEvent,
+    completed_at: new Date().toISOString(),
+  });
+  if (typeof event?.completed === "function") event.completed(completion);
+  return completion;
 }
 
 function officeItemSnapshot() {
@@ -103,6 +174,70 @@ function officeItemSnapshot() {
   };
 }
 
+async function addWarningNotification(alertBody) {
+  const warnings = alertBody?.item?.warnings ?? [];
+  const notificationMessages = window.Office?.context?.mailbox?.item?.notificationMessages;
+  if (warnings.length === 0 || typeof notificationMessages?.addAsync !== "function") return;
+  const messageType = window.Office?.MailboxEnums?.ItemNotificationMessageType?.InformationalMessage ?? "informationalMessage";
+  await new Promise((resolve) => {
+    notificationMessages.addAsync(
+      "lawos-smart-alert-warning",
+      {
+        type: messageType,
+        message: `${warnings.length} warning`,
+        icon: "icon16",
+        persistent: false,
+      },
+      () => resolve(),
+    );
+  });
+}
+
+export async function onMessageSendHandler(event = {}) {
+  try {
+    const body = await requestJson("/api/outlook/smart-alerts/evaluate", {
+      method: "POST",
+      body: { message: officeItemSnapshot() },
+    });
+    await addWarningNotification(body);
+    const completion = completeSendEvent(event, { allowEvent: true });
+    recordOutlookEventProbe("last_send_handler_result", {
+      outcome: body.outcome ?? null,
+      warning_count: body.item?.warning_count ?? 0,
+      send_blocked: body.item?.send_blocked === true,
+      provider_runtime_executed: body.item?.provider_runtime_executed === true,
+      allowEvent: completion.allowEvent,
+      raw_body_written: false,
+      attachment_bytes_written: false,
+    });
+    return completion;
+  } catch (error) {
+    const completion = completeSendEvent(event, { allowEvent: true });
+    recordOutlookEventProbe("last_send_handler_result", {
+      outcome: "allowed_after_local_alert_error",
+      safe_error_code: error?.message ?? "smart_alert_evaluation_failed",
+      allowEvent: completion.allowEvent,
+      raw_body_written: false,
+      attachment_bytes_written: false,
+    });
+    return completion;
+  }
+}
+
+function registerOutlookEventHandlers() {
+  window.__LAWOS_INIT_MSAL_BRIDGE = initializeMsalBridge;
+  window.__LAWOS_OUTLOOK_ASSOCIATED_HANDLERS = {
+    ...(window.__LAWOS_OUTLOOK_ASSOCIATED_HANDLERS ?? {}),
+    onMessageSendHandler,
+  };
+  const associated = new Set(window.__LAWOS_OUTLOOK_ASSOCIATED_ACTIONS ?? []);
+  if (typeof window.Office?.actions?.associate === "function") {
+    window.Office.actions.associate("onMessageSendHandler", onMessageSendHandler);
+    associated.add("onMessageSendHandler");
+  }
+  window.__LAWOS_OUTLOOK_ASSOCIATED_ACTIONS = [...associated];
+}
+
 function StatusLine({ icon: Icon, label, value, tone = "neutral" }) {
   return (
     <div className={`status-line ${tone}`}>
@@ -111,6 +246,14 @@ function StatusLine({ icon: Icon, label, value, tone = "neutral" }) {
       <strong>{value}</strong>
     </div>
   );
+}
+
+function outcomeLabel(value, fallback) {
+  return {
+    created: "완료",
+    attachments_saved: "저장됨",
+    idempotent_replay: "확인됨",
+  }[value] ?? fallback;
 }
 
 function App() {
@@ -288,9 +431,9 @@ function App() {
       </section>
 
       <section className="result-strip" data-testid="proof-status">
-        <span data-testid="email-status">{emailResult?.outcome ?? "email 대기"}</span>
-        <span data-testid="attachment-status">{attachmentResult?.outcome ?? "첨부 대기"}</span>
-        <span data-testid="followup-status">{followupResult?.outcome ?? "업무 대기"}</span>
+        <span data-testid="email-status" data-outcome={emailResult?.outcome ?? ""}>{outcomeLabel(emailResult?.outcome, "메일 대기")}</span>
+        <span data-testid="attachment-status" data-outcome={attachmentResult?.outcome ?? ""}>{outcomeLabel(attachmentResult?.outcome, "첨부 대기")}</span>
+        <span data-testid="followup-status" data-outcome={followupResult?.outcome ?? ""}>{outcomeLabel(followupResult?.outcome, "업무 대기")}</span>
         <span data-testid="alert-status">{alertResult?.item?.warning_count ?? 0} warning</span>
       </section>
 
@@ -325,4 +468,5 @@ function App() {
   );
 }
 
+registerOutlookEventHandlers();
 createRoot(document.getElementById("root")).render(<App />);

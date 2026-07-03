@@ -2,14 +2,16 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createFinanceRepository } from "../packages/billing/src/finance-repository.js";
-import { PERMISSION_CONTEXT_HEADER } from "../apps/api/src/permission-gate.js";
+import { highestPrivilegeRegisteredAccount, MATTER_VAULT_REGISTERED_TENANT_ID } from "../apps/api/src/matter-vault-account-registry.js";
 import { startApiServer } from "../apps/api/src/server.js";
+import { apiSessionHeaders } from "../apps/api/test/helpers/session.js";
 
 const ROOT = process.cwd();
 const ARTIFACT_DIR = join(ROOT, "artifacts", "manual-qa");
 const PROOF_PATH = join(ARTIFACT_DIR, "upl-b15-finance-kpi-dashboard-proof.json");
-const TENANT = "tenant_upl_b15_finance_kpi";
-const ACTOR = "user_upl_b15_analytics";
+const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
+const ACCOUNT = highestPrivilegeRegisteredAccount();
+const ACTOR = ACCOUNT.user_id;
 const MATTER = "matter_upl_b15_kpi";
 const EMPLOYEE = "employee_upl_b15_kpi";
 const PERIOD = "2026-07";
@@ -17,17 +19,9 @@ const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=upl_b15_analytics_read&au
 
 mkdirSync(ARTIFACT_DIR, { recursive: true });
 
-function permissionContext(effect = "allow") {
-  return JSON.stringify({
-    principal: { user_id: ACTOR, tenant_id: TENANT, role_ids: ["analytics_user", "finance_user"] },
-    rules: [{ id: `rule_upl_b15_${effect}`, effect, action: "*" }],
-    object_acl: [],
-  });
-}
-
 async function apiJson(baseUrl, path, options = {}) {
   const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
+    ...(await apiSessionHeaders(baseUrl, ACCOUNT)),
     ...(options.headers ?? {}),
   };
   if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";

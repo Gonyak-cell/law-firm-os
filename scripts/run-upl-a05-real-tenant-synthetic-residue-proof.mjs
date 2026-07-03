@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { PERMISSION_CONTEXT_HEADER } from "../apps/api/src/permission-gate.js";
+import { highestPrivilegeRegisteredAccount, MATTER_VAULT_REGISTERED_TENANT_ID } from "../apps/api/src/matter-vault-account-registry.js";
 import { startApiServer } from "../apps/api/src/server.js";
+import { apiSessionHeaders } from "../apps/api/test/helpers/session.js";
 import {
   AMIC_CURRENT_CLIENT_CANDIDATES,
   createAmicCurrentClientCandidateRecords,
@@ -12,8 +13,9 @@ import {
 const ROOT = process.cwd();
 const JSON_PATH = "artifacts/manual-qa/upl-a05-real-tenant-synthetic-residue-proof.json";
 const MD_PATH = "artifacts/manual-qa/upl-a05-real-tenant-synthetic-residue-proof.md";
-const TENANT = "tenant_amic_matter_vault";
-const ACTOR = "user_amic_jwsuh";
+const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
+const ACCOUNT = highestPrivilegeRegisteredAccount();
+const ACTOR = ACCOUNT.user_id;
 const SOURCE_REF = "amic_current_onedrive_folder_inventory_2026_07_01";
 const RESIDUE_PATTERN = /synthetic|mock|placeholder|dummy|fixture|^Pjt\.|^Project\b|선생님|원장님|회장님|교수님|작가|강제집행면탈|조세범/i;
 const REMOVED_PROJECT_SELLER_NAMES = Object.freeze([
@@ -36,17 +38,14 @@ const REMOVED_PROJECT_SELLER_NAMES = Object.freeze([
   "강상도 외 16명",
 ]);
 
-function permissionContext() {
-  return JSON.stringify({
-    principal: { user_id: ACTOR, tenant_id: TENANT, role_ids: ["master_data_reader"] },
-    rules: [{ id: "rule_upl_a05_real_tenant_allow", effect: "allow", action: "*" }],
-    object_acl: [],
-  });
-}
-
-async function apiJson(baseUrl, path) {
+async function apiJson(baseUrl, path, options = {}) {
+  const headers = {
+    ...(options.noAuth ? {} : await apiSessionHeaders(baseUrl, ACCOUNT)),
+    ...(options.headers ?? {}),
+  };
   const response = await fetch(`${baseUrl}${path}`, {
-    headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext() },
+    ...options,
+    headers,
   });
   return { status: response.status, body: await response.json() };
 }
@@ -92,6 +91,18 @@ const started = await startApiServer({
 let artifact;
 try {
   const baseUrl = `http://${started.host}:${started.port}`;
+  const forgedQuery = new URLSearchParams({
+    tenant_id: TENANT,
+    actor_user_id: ACTOR,
+    permission_ref: "upl_a05_real_tenant_read",
+    audit_hint_ref: "upl_a05_synthetic_residue_zero",
+    model_type: "ClientGroup",
+    limit: "1",
+  });
+  const forgedRead = await apiJson(baseUrl, `/master-data/records?${forgedQuery.toString()}`, {
+    noAuth: true,
+    headers: { "x-lawos-permission-context": JSON.stringify({ rules: [{ effect: "allow", action: "*" }] }) },
+  });
   const allClientGroups = await readAllClientGroups(baseUrl);
   const currentClientGroups = allClientGroups.filter((item) => item.client_source_ref === SOURCE_REF);
   const names = currentClientGroups.map((item) => item.display_name);
@@ -102,6 +113,7 @@ try {
   const syntheticRows = currentClientGroups.filter((item) => item.synthetic_only !== false);
   const removedNameHits = REMOVED_PROJECT_SELLER_NAMES.filter((name) => names.includes(name));
   const checks = [
+    check("a05-forged-permission-context-blocked", forgedRead.status === 401, { status: forgedRead.status }),
     check("a05-api-readback-uses-registered-tenant", currentClientGroups.length > 0 && wrongTenantRows.length === 0, {
       tenant_id: TENANT,
       current_client_group_count: currentClientGroups.length,
@@ -160,6 +172,12 @@ try {
       pattern: RESIDUE_PATTERN.source,
       residue_rows: residueRows,
       removed_name_hits: removedNameHits,
+    },
+    boundary: {
+      signed_session_used: true,
+      permission_context_header_used: false,
+      forged_permission_context_status: forgedRead.status,
+      session_token_written_to_artifact: false,
     },
     checks,
   };

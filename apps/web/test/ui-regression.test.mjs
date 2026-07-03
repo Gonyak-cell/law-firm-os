@@ -286,7 +286,9 @@ test("login surfaces keep credentials bounded and desktop supports password setu
   const assetFiles = await readdir(resolve(webRoot, "src/assets"));
   const desktopSource = await readFile(resolve(webRoot, "../desktop/src/renderer/offline.html"), "utf8");
 
-  assert.match(appSource, /onLogin=\{\(\) => \{/);
+  assert.match(appSource, /async function handleLogin\(credentials\)/);
+  assert.match(appSource, /loginLawosApiSession\(credentials\)/);
+  assert.match(appSource, /onLogin=\{handleLogin\}/);
   assert.match(appSource, /auth-only-app/);
   assert.match(appSource, /view === "auth" && authStep === "login"/);
   assert.match(authSource, /parnas-tower-login\.jpg/);
@@ -841,7 +843,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(vaultSource, /data-vault-document-action-state/);
   assert.match(vaultSource, /data-vault-boundary-write-enabled="false"/);
   assert.match(vaultSource, /문서 작업 경계/);
-  assert.match(vaultSource, /새 버전 등록/);
+  assert.match(vaultSource, /새 문서 등록/);
   assert.match(vaultSource, /메타데이터 변경/);
   assert.match(vaultSource, /법적 보존/);
   assert.match(vaultSource, /보존 정책/);

@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { PERMISSION_CONTEXT_HEADER } from "../apps/api/src/permission-gate.js";
 import { startApiServer } from "../apps/api/src/server.js";
+import { apiSessionHeaders } from "../apps/api/test/helpers/session.js";
+import { createVaultDmsRuntimeContext } from "../apps/api/src/vault-dms-runtime-context.js";
+import { createDmsRepository } from "../packages/dms/src/repository.js";
+import { createLocalStorageAdapter } from "../packages/dms/src/storage/local-storage-adapter.js";
+import { sha256Hex } from "../packages/dms/src/storage/storage-adapter.js";
 import { createIntakeRuntimeRepository } from "../packages/intake/src/runtime-repository.js";
 import { createMasterDataRepository } from "../packages/master-data/src/index.js";
 import { createMatterRepository } from "../packages/matter/src/index.js";
@@ -11,7 +15,7 @@ const ROOT = process.cwd();
 const ARTIFACT_DIR = join(ROOT, "artifacts", "manual-qa");
 const JSON_PATH = join(ARTIFACT_DIR, "upl-c05-engagement-documents-proof.json");
 const MD_PATH = join(ARTIFACT_DIR, "upl-c05-engagement-documents-proof.md");
-const TENANT = "tenant_upl_c05_engagement_docs";
+const TENANT = "tenant_cmp_g6_synthetic";
 const ACTOR = "user_upl_c05_reviewer";
 const INTAKE_ID = "intake_upl_c05_new_client";
 const CONFLICT_ID = "conflict_upl_c05_review";
@@ -19,20 +23,15 @@ const ENGAGEMENT_ID = "engagement_upl_c05_signed";
 const SIGNED_DOCUMENT_ID = "signed_doc_upl_c05_engagement";
 const TEMPLATE_DOCUMENT_ID = "template_doc_upl_c05_engagement";
 const SIGNED_UPLOAD_ID = "signed_upload_upl_c05_engagement";
+const SIGNED_PDF_BYTES = Buffer.from("%PDF-1.4\nUPL-C05 signed engagement\n%%EOF\n");
+const SIGNED_PDF_SHA256 = sha256Hex(SIGNED_PDF_BYTES);
 
 mkdirSync(ARTIFACT_DIR, { recursive: true });
 
-function permissionContext(effect = "allow") {
-  return JSON.stringify({
-    principal: { user_id: ACTOR, tenant_id: TENANT, role_ids: ["crm_intake_user", "conflict_reviewer", "matter_runtime_user"] },
-    rules: [{ id: `rule_upl_c05_${effect}`, effect, action: "*" }],
-    object_acl: [],
-  });
-}
-
 async function apiJson(baseUrl, path, options = {}) {
+  const sessionHeaders = await apiSessionHeaders(baseUrl);
   const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
+    ...sessionHeaders,
     ...(options.headers ?? {}),
   };
   if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
@@ -77,9 +76,12 @@ function engagementPayload(overrides = {}) {
       signed_document_id: SIGNED_DOCUMENT_ID,
       template_document_id: TEMPLATE_DOCUMENT_ID,
       signature_ref: `signature:${SIGNED_DOCUMENT_ID}`,
-      content_sha256: `sha256:${SIGNED_DOCUMENT_ID}`,
-      byte_size: 2048,
+      content_sha256: SIGNED_PDF_SHA256,
+      bytes_base64: SIGNED_PDF_BYTES.toString("base64"),
+      byte_size: SIGNED_PDF_BYTES.byteLength,
       mime_type: "application/pdf",
+      matter_id: "matter_upl_c05_engagement",
+      workspace_id: "workspace_upl_c05_engagement",
       upload_state: "uploaded",
       lx_registry_ref: "LX-06",
       bytes_included: false,
@@ -141,7 +143,11 @@ const matterRepository = createMatterRepository({
   ],
 });
 
-const started = await startApiServer({ port: 0, intakeRepository, crmMasterDataRepository, matterRepository });
+const dmsRepository = createDmsRepository();
+const dmsStorage = createLocalStorageAdapter({ adapter_id: "upl-c05-engagement-vault" });
+const dmsRuntime = createVaultDmsRuntimeContext({ repository: dmsRepository, storage: dmsStorage });
+
+const started = await startApiServer({ port: 0, intakeRepository, crmMasterDataRepository, matterRepository, dmsRuntime });
 let report;
 try {
   const baseUrl = `http://${started.host}:${started.port}`;
@@ -212,6 +218,28 @@ try {
       }),
     }, "upl-c05-engagement-no-upload")),
   });
+  const forgedHashEngagement = await apiJson(baseUrl, "/api/intake/engagements", {
+    method: "POST",
+    body: JSON.stringify(intakeWrite({
+      engagement: engagementPayload({
+        engagement_id: "engagement_upl_c05_forged_hash",
+        signed_document_id: "signed_doc_upl_c05_forged_hash",
+        signature_ref: "signature:signed_doc_upl_c05_forged_hash",
+        signed_document_upload: {
+          signed_document_upload_id: "signed_upload_upl_c05_forged_hash",
+          document_id: "signed_doc_upl_c05_forged_hash",
+          signed_document_id: "signed_doc_upl_c05_forged_hash",
+          signature_ref: "signature:signed_doc_upl_c05_forged_hash",
+          content_sha256: "sha256:caller-forged-hash",
+          bytes_base64: SIGNED_PDF_BYTES.toString("base64"),
+          byte_size: 1,
+          mime_type: "application/pdf",
+          matter_id: "matter_upl_c05_engagement",
+          workspace_id: "workspace_upl_c05_engagement",
+        },
+      }),
+    }, "upl-c05-engagement-forged-hash")),
+  });
   const noEngagementToken = await apiJson(baseUrl, "/api/intake/clearance-tokens", {
     method: "POST",
     body: JSON.stringify(intakeWrite({
@@ -250,13 +278,21 @@ try {
 
   const storedTemplate = intakeRepository.get({ tenant_id: TENANT, model_type: "EngagementTemplateDocument", template_document_id: TEMPLATE_DOCUMENT_ID });
   const storedUpload = intakeRepository.get({ tenant_id: TENANT, model_type: "EngagementSignedDocumentUpload", signed_document_upload_id: SIGNED_UPLOAD_ID });
+  const storedDmsDocument = dmsRepository.get({ tenant_id: TENANT, model_type: "DmsDocument", document_id: SIGNED_DOCUMENT_ID });
+  const storedDmsFileObject = storedUpload?.dms_file_object_id
+    ? dmsRepository.get({ tenant_id: TENANT, model_type: "DmsFileObject", file_object_id: storedUpload.dms_file_object_id })
+    : null;
+  const storedObject = storedDmsFileObject?.vault_object_id
+    ? dmsStorage.getObject({ object_id: storedDmsFileObject.vault_object_id })
+    : null;
   const auditActions = new Set(intakeRepository.listAudit({ tenant_id: TENANT }).map((event) => event.action));
   const checks = [
     { id: "unsigned-engagement-is-blocked", passed: blocked(unsignedEngagement) },
     { id: "signed-document-without-upload-is-blocked", passed: blocked(noUploadEngagement) },
+    { id: "forged-caller-hash-is-blocked-before-approval", passed: blocked(forgedHashEngagement) },
     { id: "clearance-without-engagement-is-blocked", passed: blocked(noEngagementToken) },
     {
-      id: "engagement-approval-creates-template-document-and-signed-upload",
+      id: "engagement-approval-stores-signed-bytes-through-dms",
       passed:
         engagement.status === 201 &&
         engagement.body.engagement_ready === true &&
@@ -264,7 +300,21 @@ try {
         engagement.body.signed_document_upload_id === SIGNED_UPLOAD_ID &&
         storedTemplate?.generation_state === "generated" &&
         storedUpload?.lx_registry_ref === "LX-06" &&
-        storedUpload?.content_sha256 === `sha256:${SIGNED_DOCUMENT_ID}`,
+        storedUpload?.content_sha256 === SIGNED_PDF_SHA256 &&
+        storedUpload?.byte_size === SIGNED_PDF_BYTES.byteLength &&
+        storedUpload?.server_hash_recomputed === true &&
+        storedUpload?.bytes_included === false &&
+        storedUpload?.storage_pointer_ref_included === false &&
+        storedDmsDocument?.latest_sha256 === SIGNED_PDF_SHA256 &&
+        storedDmsFileObject?.sha256 === SIGNED_PDF_SHA256 &&
+        storedObject?.sha256 === SIGNED_PDF_SHA256,
+    },
+    {
+      id: "downloaded-dms-object-hash-matches-signed-pdf",
+      passed:
+        Buffer.isBuffer(storedObject?.bytes) &&
+        storedObject.bytes.equals(SIGNED_PDF_BYTES) &&
+        sha256Hex(storedObject.bytes) === SIGNED_PDF_SHA256,
     },
     {
       id: "clearance-reconciles-engagement-document-ledger",
@@ -297,6 +347,7 @@ try {
     observed: {
       unsigned_engagement: { status: unsignedEngagement.status, ui_state: unsignedEngagement.body.ui_state, safe_error_codes: unsignedEngagement.body.safe_error_codes },
       no_upload_engagement: { status: noUploadEngagement.status, ui_state: noUploadEngagement.body.ui_state, safe_error_codes: noUploadEngagement.body.safe_error_codes },
+      forged_hash_engagement: { status: forgedHashEngagement.status, ui_state: forgedHashEngagement.body.ui_state, safe_error_codes: forgedHashEngagement.body.safe_error_codes },
       no_engagement_clearance: { status: noEngagementToken.status, ui_state: noEngagementToken.body.ui_state, safe_error_codes: noEngagementToken.body.safe_error_codes },
       engagement: {
         status: engagement.status,
@@ -306,8 +357,34 @@ try {
         signed_upload_verified: engagement.body.signed_upload_verified,
       },
       clearance: { status: token.status, item: token.body.item, engagement_review: token.body.engagement_review },
-      stored_template: storedTemplate,
-      stored_upload: storedUpload,
+      stored_template: {
+        template_document_id: storedTemplate?.template_document_id,
+        generation_state: storedTemplate?.generation_state,
+        document_payload_included: storedTemplate?.document_payload_included,
+      },
+      stored_upload: {
+        signed_document_upload_id: storedUpload?.signed_document_upload_id,
+        signed_document_id: storedUpload?.signed_document_id,
+        content_sha256: storedUpload?.content_sha256,
+        byte_size: storedUpload?.byte_size,
+        dms_document_id: storedUpload?.dms_document_id,
+        dms_version_id: storedUpload?.dms_version_id,
+        dms_file_object_id: storedUpload?.dms_file_object_id,
+        server_hash_recomputed: storedUpload?.server_hash_recomputed,
+        bytes_included: storedUpload?.bytes_included,
+        storage_pointer_ref_included: storedUpload?.storage_pointer_ref_included,
+      },
+      dms_readback: {
+        document_id: storedDmsDocument?.document_id,
+        latest_sha256: storedDmsDocument?.latest_sha256,
+        file_object_id: storedDmsFileObject?.file_object_id,
+        file_object_sha256: storedDmsFileObject?.sha256,
+        downloaded_sha256: storedObject?.sha256,
+        downloaded_byte_size: storedObject?.bytes?.byteLength ?? null,
+        raw_path_exposed: false,
+        storage_pointer_ref_included: false,
+        bytes_written_to_artifact: false,
+      },
       audit_actions: [...auditActions].sort(),
     },
   };
@@ -331,7 +408,14 @@ writeFileSync(
     "## Blocked paths",
     `- unsigned_engagement: ${report.observed.unsigned_engagement.status} ${report.observed.unsigned_engagement.ui_state}`,
     `- no_upload_engagement: ${report.observed.no_upload_engagement.status} ${report.observed.no_upload_engagement.ui_state}`,
+    `- forged_hash_engagement: ${report.observed.forged_hash_engagement.status} ${report.observed.forged_hash_engagement.ui_state}`,
     `- no_engagement_clearance: ${report.observed.no_engagement_clearance.status} ${report.observed.no_engagement_clearance.ui_state}`,
+    "",
+    "## DMS readback",
+    `- server sha256: ${report.observed.stored_upload.content_sha256}`,
+    `- downloaded sha256: ${report.observed.dms_readback.downloaded_sha256}`,
+    `- downloaded byte size: ${report.observed.dms_readback.downloaded_byte_size}`,
+    `- bytes written to artifact: ${report.observed.dms_readback.bytes_written_to_artifact}`,
     "",
   ].join("\n"),
 );

@@ -1,213 +1,79 @@
 #!/usr/bin/env node
+import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { chromium } from "playwright";
+import { highestPrivilegeRegisteredAccount } from "../apps/api/src/matter-vault-account-registry.js";
+import { startApiServer } from "../apps/api/src/server.js";
+import { createIntakeRuntimeRepository } from "../packages/intake/src/runtime-repository.js";
+import { createMasterDataRepository } from "../packages/master-data/src/index.js";
+import { createMatterRepository } from "../packages/matter/src/index.js";
 
 const ROOT = process.cwd();
-const WEB = process.env.MATTER_UI_URL ?? "http://127.0.0.1:5173";
 const ARTIFACT_DIR = "docs/lazycodex/evidence/matter-web/artifacts";
 const SCREENSHOT_DIR = `${ARTIFACT_DIR}/upl-c02-screenshots`;
 const JSON_PATH = `${ARTIFACT_DIR}/upl-c02-conflict-search-browser-proof.json`;
 const MD_PATH = `${ARTIFACT_DIR}/upl-c02-conflict-search-browser-proof.md`;
-const SESSION_KEY = "lawos.session.envelope";
+const PROOF_PORT = 5202;
+const TENANT = "tenant_cmp_g6_synthetic";
+const ACCOUNT = highestPrivilegeRegisteredAccount();
+const ACTOR = ACCOUNT.user_id;
+const INTAKE_ID = "intake_upl_c02_new_client";
 
-const sessionEnvelope = {
-  schema_version: "law-firm-os.desktop-web-session-envelope.v0.1",
-  state: "signed_in",
-  session_ref: "desktop:user_upl_c02_conflict:browser-proof",
-  source: "desktop_offline_login",
-  actor_ref: "user_upl_c02_conflict",
-  tenant_refs: {
-    default: "tenant_upl_c02_conflict_search",
-    client: "tenant_upl_c02_conflict_search",
-    matter: "tenant_upl_c02_conflict_search",
-    vault: "tenant_upl_c02_conflict_search",
-    crm: "tenant_upl_c02_conflict_search",
-  },
-  role_ids: ["crm_intake_user", "conflict_reviewer", "matter_runtime_user"],
-  scopes: ["client_read", "matter_read"],
-  review_state: "allow",
-  expires_at: "2999-12-31T23:59:59.000Z",
-};
+function sleep(ms) {
+  return new Promise((resolveSleep) => setTimeout(resolveSleep, ms));
+}
 
-const intakeRequest = {
-  intake_request_id: "intake_upl_c02_ui",
-  tenant_id: "tenant_upl_c02_conflict_search",
-  requesting_party_id: "party_upl_c02_new_client",
-  party_ids: ["party_upl_c02_new_client"],
-  requested_scope_summary: "과거 사건 상대방의 신규 수임 검토",
-  status: "open",
-  owner_user_id: "user_upl_c02_conflict",
-  production_ready_claim: false,
-};
+async function waitForHttp(url, timeoutMs = 30000) {
+  const startedAt = Date.now();
+  let lastError = null;
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      const response = await fetch(url);
+      if (response.status < 500) return response;
+    } catch (error) {
+      lastError = error;
+    }
+    await sleep(250);
+  }
+  throw lastError ?? new Error(`Timed out waiting for ${url}`);
+}
 
-const conflictHit = {
-  conflict_hit_id: "hit_upl_c02_ui_adverse",
-  tenant_id: "tenant_upl_c02_conflict_search",
-  conflict_check_id: "conflict_upl_c02_ui",
-  matched_party_id: "party_upl_c02_adverse",
-  hit_source: "former_matter",
-  source_record_ref: "MatterParty:matter_party_upl_c02_adverse",
-  severity: "high",
-  status: "review_required",
-  owner_user_id: "user_upl_c02_conflict",
-  matched_display_name: "상대방 테크 주식회사",
-  matched_model_type: "MatterParty",
-  matched_party_role: "adverse_party",
-  source_matter_ref_included: false,
-  match_kind: "exact_normalized",
-  match_score: 1,
-  normalized_query: "상대방테크",
-  raw_hit_payload_visible: false,
-  production_ready_claim: false,
-};
+async function startVite(apiBaseUrl) {
+  const child = spawn("npm", ["--workspace", "apps/web", "run", "dev", "--", "--port", String(PROOF_PORT)], {
+    cwd: ROOT,
+    env: { ...process.env, LAWOS_WEB_API_PROXY_TARGET: apiBaseUrl },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  let stderr = "";
+  child.stderr.on("data", (chunk) => {
+    stderr += chunk;
+  });
+  await waitForHttp(`http://127.0.0.1:${PROOF_PORT}/?view=auth&authStep=login`);
+  return { child, stderr: () => stderr };
+}
+
+async function stopProcess(child) {
+  if (!child || child.killed) return;
+  child.kill("SIGTERM");
+  await Promise.race([
+    new Promise((resolveStop) => child.once("exit", resolveStop)),
+    sleep(3000).then(() => {
+      if (!child.killed) child.kill("SIGKILL");
+    }),
+  ]);
+}
 
 function proofUrl(hash) {
-  return `${WEB}/?locale=ko&view=clients&data=live&ctx=allow#${hash}`;
+  return `http://127.0.0.1:${PROOF_PORT}/?locale=ko&view=clients&data=live&ctx=allow#${hash}`;
 }
 
-function collectionBody(requestId, items = []) {
-  return {
-    request_id: requestId,
-    outcome: "passed",
-    items,
-    page_info: { limit: 25, has_more: false },
-    safe_error_codes: [],
-    audit_hint_ref: "upl_c02_browser_proof",
-    ui_state: items.length === 0 ? "empty" : null,
-    count_leak_prevented: true,
-    production_ready_claim: false,
-  };
+function check(id, passed, evidence = {}) {
+  return { id, passed: Boolean(passed), evidence };
 }
 
-function conflictCheckBody(requestId) {
-  return {
-    request_id: requestId,
-    outcome: "created",
-    item: {
-      conflict_check_id: "conflict_upl_c02_ui",
-      tenant_id: "tenant_upl_c02_conflict_search",
-      intake_request_id: intakeRequest.intake_request_id,
-      party_snapshot: { party_ids: intakeRequest.party_ids },
-      snapshot_hash: "snapshot_upl_c02_ui",
-      status: "review_required",
-      updates_database_rows: true,
-      production_ready_claim: false,
-    },
-    audit_event: {
-      event_id: `conflict.check.create:${requestId}`,
-      action: "conflict.check.create",
-      decision: "allow",
-      production_ready_claim: false,
-    },
-    conflict_search: {
-      conflict_search_id: "search_upl_c02_ui",
-      tenant_id: "tenant_upl_c02_conflict_search",
-      conflict_check_id: "conflict_upl_c02_ui",
-      normalized_terms: ["상대방테크"],
-      generated_hit_ids: [conflictHit.conflict_hit_id],
-      caller_supplied_hit_count_ignored: true,
-      hit_count: 1,
-      raw_query_included: false,
-      status: "executed",
-      production_ready_claim: false,
-    },
-    conflict_hits: [conflictHit],
-    hit_count: 1,
-    safe_error_codes: [],
-    audit_hint_ref: "upl_c02_browser_proof",
-    production_ready_claim: false,
-  };
-}
-
-async function fulfillJson(route, body, status = 200) {
-  await route.fulfill({
-    status,
-    contentType: "application/json",
-    body: JSON.stringify(body),
-  });
-}
-
-async function run() {
-  mkdirSync(join(ROOT, SCREENSHOT_DIR), { recursive: true });
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 1100 } });
-  const writes = [];
-  const consoleEvents = [];
-  const failedRequests = [];
-
-  page.on("console", (message) => {
-    if (["error", "warning"].includes(message.type())) consoleEvents.push({ type: message.type(), text: message.text() });
-  });
-  page.on("requestfailed", (request) => {
-    failedRequests.push({ url: request.url(), failure: request.failure()?.errorText ?? "request_failed" });
-  });
-  await page.addInitScript(
-    ({ key, value }) => window.localStorage.setItem(key, JSON.stringify(value)),
-    { key: SESSION_KEY, value: sessionEnvelope },
-  );
-
-  await page.route("**/api/**", (route) => fulfillJson(route, collectionBody("upl-c02-empty", [])));
-  await page.route("**/master-data/**", (route) => fulfillJson(route, collectionBody("upl-c02-master-empty", [])));
-  await page.route("**/api/intake/conflict-checks", async (route, request) => {
-    const payload = request.postDataJSON();
-    writes.push({ url: request.url(), payload });
-    await fulfillJson(route, conflictCheckBody("upl-c02-conflict-check"), 201);
-  });
-  await page.route("**/api/intake/audit**", (route) =>
-    fulfillJson(route, collectionBody("upl-c02-audit-list", [
-      { event_id: "audit_upl_c02_search", action: "conflict.search.executed", metadata: { hit_count: 1 } },
-    ])),
-  );
-  await page.route("**/api/intake/requests**", (route) =>
-    fulfillJson(route, collectionBody("upl-c02-intake-list", [intakeRequest])),
-  );
-
-  await page.goto(proofUrl("client-conflict"), { waitUntil: "domcontentloaded" });
-  await page.locator("[data-client-conflict-connected='true']").waitFor({ state: "visible", timeout: 15000 });
-  await page.locator("[data-intake-conflict-review-flow='true']").getByRole("button", { name: "이해상충 검토" }).click();
-  await page.locator("[data-intake-conflict-hit-list='true']").getByText("상대방 테크 주식회사", { exact: true }).waitFor({
-    state: "visible",
-    timeout: 15000,
-  });
-  const hitListText = await page.locator("[data-intake-conflict-hit-list='true']").innerText();
-  const screenshot = join(ROOT, SCREENSHOT_DIR, "upl-c02-conflict-search-hit-list.png");
-  await page.screenshot({ path: screenshot, fullPage: true });
-  await browser.close();
-
-  const checks = [
-    {
-      id: "client-conflict-surface-visible",
-      passed: hitListText.includes("상대방 테크 주식회사") && hitListText.includes("과거 Matter") && hitListText.includes("높음"),
-    },
-    {
-      id: "conflict-check-write-sent-from-ui",
-      passed:
-        writes.length === 1 &&
-        writes[0].payload?.conflict_check?.party_snapshot?.party_ids?.includes("party_upl_c02_new_client") &&
-        writes[0].payload?.conflict_search === undefined,
-    },
-    {
-      id: "browser-proof-clean",
-      passed: consoleEvents.length === 0 && failedRequests.length === 0,
-    },
-  ];
-  const report = {
-    schema_version: "law-firm-os.upl-c02.browser-proof.v0.1",
-    generated_at: new Date().toISOString(),
-    verdict: checks.every((item) => item.passed) ? "PASS" : "FAIL",
-    contract_ref: "UPL-C-02",
-    url: proofUrl("client-conflict"),
-    screenshot,
-    checks,
-    observed: {
-      writes,
-      hit_list_text: hitListText,
-      console_events: consoleEvents,
-      failed_requests: failedRequests,
-    },
-  };
-  writeFileSync(join(ROOT, JSON_PATH), `${JSON.stringify(report, null, 2)}\n`);
+function writeMarkdown(report) {
   writeFileSync(
     join(ROOT, MD_PATH),
     [
@@ -215,21 +81,243 @@ async function run() {
       "",
       `- verdict: ${report.verdict}`,
       `- url: ${report.url}`,
-      `- screenshot: ${screenshot}`,
+      `- screenshot: ${report.screenshot}`,
+      `- api_runtime: ${report.api_runtime}`,
       "",
       "## Checks",
-      ...checks.map((check) => `- ${check.passed ? "PASS" : "FAIL"} ${check.id}`),
+      ...report.checks.map((item) => `- ${item.passed ? "PASS" : "FAIL"} ${item.id}`),
       "",
       "## Observed",
-      `- hit_list_text: ${JSON.stringify(hitListText)}`,
-      `- writes: ${writes.length}`,
-      `- console_events: ${consoleEvents.length}`,
-      `- failed_requests: ${failedRequests.length}`,
+      `- hit_list_text: ${JSON.stringify(report.observed.hit_list_text)}`,
+      `- writes: ${report.observed.writes.length}`,
+      `- api_request_count: ${report.observed.api_requests.length}`,
+      `- console_events: ${report.observed.console_events.length}`,
+      `- failed_requests: ${report.observed.failed_requests.length}`,
       "",
     ].join("\n"),
   );
-  console.log(JSON.stringify({ verdict: report.verdict, proof: JSON_PATH, screenshot }, null, 2));
-  if (report.verdict !== "PASS") process.exit(1);
 }
 
-await run();
+const intakeRepository = createIntakeRuntimeRepository({
+  seedRecords: [
+    {
+      model_type: "IntakeRequest",
+      intake_request_id: INTAKE_ID,
+      tenant_id: TENANT,
+      opportunity_id: "opp_upl_c02_new_client",
+      requesting_party_id: "party_upl_c02_new_client",
+      party_ids: ["party_upl_c02_new_client"],
+      requested_scope_summary: "과거 사건 상대방의 신규 수임 검토",
+      status: "open",
+      owner_user_id: ACTOR,
+    },
+  ],
+});
+
+const crmMasterDataRepository = createMasterDataRepository({
+  seedRecords: [
+    {
+      model_type: "Party",
+      party_id: "party_upl_c02_new_client",
+      tenant_id: TENANT,
+      party_type: "organization",
+      display_name: "(주) 상대방테크",
+      status: "active",
+      owner_user_id: ACTOR,
+    },
+  ],
+});
+
+const matterRepository = createMatterRepository({
+  seedRecords: [
+    {
+      model_type: "Matter",
+      matter_id: "matter_upl_c02_former",
+      tenant_id: TENANT,
+      client_id: "client_upl_c02_existing",
+      legal_client_party_id: "party_upl_c02_existing_client",
+      title: "기존 의뢰인의 과거 분쟁",
+      status: "closed",
+      created_by: ACTOR,
+      created_at: "2026-07-03T00:00:00.000Z",
+      permission_envelope_id: "perm_upl_c02_former",
+      audit_trace_id: "audit_upl_c02_former",
+    },
+    {
+      model_type: "MatterParty",
+      resource_id: "matter_party_upl_c02_adverse",
+      matter_party_id: "matter_party_upl_c02_adverse",
+      tenant_id: TENANT,
+      matter_id: "matter_upl_c02_former",
+      party_id: "party_upl_c02_adverse",
+      display_name: "상대방 테크 주식회사",
+      party_role: "adverse_party",
+      role_scope: "matter_conflict_subject",
+      conflict_subject: true,
+      retroactive_entry: true,
+      status: "active",
+      raw_contact_values_included: false,
+      production_ready_claim: false,
+    },
+  ],
+});
+
+mkdirSync(resolve(ROOT, SCREENSHOT_DIR), { recursive: true });
+
+let api = null;
+let vite = null;
+let browser = null;
+
+try {
+  const started = await startApiServer({
+    port: 0,
+    intakeRepository,
+    crmMasterDataRepository,
+    matterRepository,
+    dmsStorePath: join(tmpdir(), `lawos-upl-c02-dms-${Date.now()}.json`),
+  });
+  api = {
+    ...started,
+    baseUrl: `http://${started.host}:${started.port}`,
+    close: () => new Promise((resolveClose) => started.server.close(resolveClose)),
+  };
+  vite = await startVite(api.baseUrl);
+  browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 1100 } });
+  const apiRequests = [];
+  const writes = [];
+  const consoleEvents = [];
+  const failedRequests = [];
+  const pageErrors = [];
+
+  page.on("pageerror", (error) => pageErrors.push(String(error)));
+  page.on("console", (message) => {
+    if (["error", "warning"].includes(message.type())) consoleEvents.push({ type: message.type(), text: message.text() });
+  });
+  page.on("requestfailed", (request) => {
+    const failure = request.failure()?.errorText ?? "request_failed";
+    if (failure === "net::ERR_ABORTED") return;
+    failedRequests.push({ url: request.url(), failure });
+  });
+  page.on("request", (request) => {
+    if (!request.url().includes("/api/")) return;
+    const observed = {
+      method: request.method(),
+      url: request.url(),
+      has_authorization: Boolean(request.headers().authorization),
+      has_permission_context: "x-lawos-permission-context" in request.headers(),
+    };
+    apiRequests.push(observed);
+    if (request.url().includes("/api/intake/conflict-checks") && request.method() === "POST") {
+      writes.push({ ...observed, payload: request.postDataJSON() });
+    }
+  });
+
+  await page.goto(`http://127.0.0.1:${PROOF_PORT}/?locale=ko&view=auth&authStep=login&ctx=allow`, { waitUntil: "networkidle" });
+  await page.locator("[data-login-email]").fill(ACCOUNT.email);
+  await page.locator("[data-login-password]").fill(ACCOUNT.local_dev.synthetic_token);
+  await page.locator("[data-login-form='email-password'] button[type='submit']").click();
+  await page.waitForURL(/view=home/, { timeout: 15000 });
+
+  await page.goto(proofUrl("client-conflict"), { waitUntil: "networkidle" });
+  await page.locator("[data-client-conflict-connected='true']").waitFor({ state: "visible", timeout: 15000 }).catch(async (error) => {
+    throw new Error(JSON.stringify({
+      reason: "client_conflict_surface_not_visible",
+      cause: String(error),
+      url: page.url(),
+      body_text: (await page.locator("body").innerText().catch(() => "")).slice(0, 2000),
+      api_requests: apiRequests,
+      console_events: consoleEvents,
+      failed_requests: failedRequests,
+      page_errors: pageErrors,
+    }, null, 2));
+  });
+  const conflictResponse = page.waitForResponse(
+    (response) => response.url().includes("/api/intake/conflict-checks") && response.request().method() === "POST",
+    { timeout: 15000 },
+  );
+  await page.locator("[data-intake-conflict-review-flow='true']").getByRole("button", { name: "이해상충 검토" }).click();
+  const response = await conflictResponse;
+  const responseBody = await response.json();
+  await page.locator("[data-intake-conflict-hit-list='true']").getByText("상대방 테크 주식회사", { exact: true }).waitFor({
+    state: "visible",
+    timeout: 15000,
+  });
+
+  const hitListText = await page.locator("[data-intake-conflict-hit-list='true']").innerText();
+  const screenshot = join(ROOT, SCREENSHOT_DIR, "upl-c02-conflict-search-hit-list.png");
+  await page.screenshot({ path: screenshot, fullPage: true });
+  const pageText = await page.locator("body").innerText();
+
+  const checks = [
+    check(
+      "real-api-conflict-check-route-called-from-browser",
+      response.status() === 201 &&
+        responseBody.hit_count === 1 &&
+        responseBody.conflict_search?.generated_hit_ids?.length === 1 &&
+        responseBody.conflict_hits?.[0]?.hit_source === "former_matter",
+      { status: response.status(), hit_count: responseBody.hit_count },
+    ),
+    check(
+      "client-conflict-surface-visible",
+      hitListText.includes("상대방 테크 주식회사") && hitListText.includes("과거 Matter") && hitListText.includes("높음"),
+      { hit_list_length: hitListText.length },
+    ),
+    check(
+      "browser-uses-signed-session-without-legacy-permission-context",
+      apiRequests.some((request) => request.url.includes("/api/intake/conflict-checks") && request.has_authorization) &&
+        apiRequests.every((request) => request.has_permission_context === false),
+      { api_request_count: apiRequests.length },
+    ),
+    check(
+      "conflict-check-write-sent-from-ui",
+      writes.length === 1 &&
+        writes[0].payload?.conflict_check?.intake_request_id === INTAKE_ID &&
+        writes[0].payload?.conflict_check?.party_snapshot?.party_ids?.includes("party_upl_c02_new_client") &&
+        writes[0].payload?.conflict_search === undefined,
+      { writes: writes.length },
+    ),
+    check(
+      "browser-proof-clean",
+      consoleEvents.length === 0 && failedRequests.length === 0 && pageErrors.length === 0,
+      { console_events: consoleEvents.length, failed_requests: failedRequests.length, page_errors: pageErrors.length },
+    ),
+    check(
+      "no-session-token-rendered",
+      !pageText.includes("lawos_session_v1."),
+    ),
+  ];
+
+  const report = {
+    schema_version: "law-firm-os.upl-c02.browser-proof.v0.2",
+    generated_at: new Date().toISOString(),
+    verdict: checks.every((item) => item.passed) ? "PASS" : "FAIL",
+    contract_ref: "UPL-C-02",
+    api_runtime: "startApiServer+seeded-intake-master-matter-repositories",
+    url: proofUrl("client-conflict"),
+    screenshot,
+    checks,
+    observed: {
+      writes,
+      hit_list_text: hitListText,
+      api_response: {
+        status: response.status(),
+        hit_count: responseBody.hit_count,
+        conflict_search: responseBody.conflict_search,
+        first_hit: responseBody.conflict_hits?.[0] ?? null,
+      },
+      api_requests: apiRequests,
+      console_events: consoleEvents,
+      failed_requests: failedRequests,
+      page_errors: pageErrors,
+    },
+  };
+  writeFileSync(join(ROOT, JSON_PATH), `${JSON.stringify(report, null, 2)}\n`);
+  writeMarkdown(report);
+  console.log(JSON.stringify({ verdict: report.verdict, proof: JSON_PATH, screenshot }, null, 2));
+  if (report.verdict !== "PASS") process.exit(1);
+} finally {
+  if (browser) await browser.close().catch(() => {});
+  if (vite) await stopProcess(vite.child);
+  if (api) await api.close().catch(() => {});
+}

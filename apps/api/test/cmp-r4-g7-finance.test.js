@@ -4,11 +4,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
+import { findRegisteredAccountByUserId } from "../src/matter-vault-account-registry.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
+import { apiSessionHeaders } from "./helpers/session.js";
 
 const TENANT = "tenant_cmp_g7_synthetic";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_cmp_g7_read&audit_hint_ref=audit_hint_cmp_g7_read`;
+const NON_PARTNER_ACCOUNT = findRegisteredAccountByUserId("user_amic_sypark");
+assert.ok(NON_PARTNER_ACCOUNT, "non-partner registered account fixture must exist");
 
 function permissionContext(effect = "allow", roleIds = ["finance_user"]) {
   return JSON.stringify({
@@ -27,11 +31,22 @@ async function withServer(callback, options = {}) {
   }
 }
 
+const sessionHeaderCache = new Map();
+
+async function signedHeaders(baseUrl, account = null) {
+  const cacheKey = `${baseUrl}:${account?.user_id ?? "default"}`;
+  if (!sessionHeaderCache.has(cacheKey)) sessionHeaderCache.set(cacheKey, await apiSessionHeaders(baseUrl, account ?? undefined));
+  return sessionHeaderCache.get(cacheKey);
+}
+
 async function json(baseUrl, path, options = {}) {
   const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
+    ...(options.noAuth ? {} : await signedHeaders(baseUrl, options.account)),
     ...(options.headers ?? {}),
   };
+  for (const [key, value] of Object.entries(headers)) {
+    if (value === undefined) delete headers[key];
+  }
   if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
   const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
   const body = await response.json();
@@ -61,21 +76,11 @@ test("G7 Finance list routes are permission gated and hide finance secrets", asy
     assert.equal(invoices.body.items[0].credential_material_included, false);
 
     const denied = await json(baseUrl, `/api/finance/invoices?${BASE_QUERY}`, {
-      headers: { [PERMISSION_CONTEXT_HEADER]: undefined },
+      noAuth: true,
+      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext() },
     });
-    assert.equal(denied.status, 403);
-    assert.equal(denied.body.count_leak_prevented, true);
-
-    const audit = await json(baseUrl, `/api/finance/audit?${BASE_QUERY}`);
-    assert.ok(
-      audit.body.items.some(
-        (event) =>
-          event.action === "finance:invoice:read" &&
-          event.decision === "deny" &&
-          event.reason === "fail_closed_missing_permission_context" &&
-          event.metadata.denied_route_audit === true,
-      ),
-    );
+    assert.equal(denied.status, 401);
+    assert.ok(denied.body.safe_error_codes.includes("AUTH_SESSION_REQUIRED"));
   });
 });
 
@@ -821,6 +826,7 @@ test("G7 approval expense disbursement and WIP lock routes feed WIP sources", as
 
     const nonPartnerApproval = await json(baseUrl, "/api/finance/time-entries/approve", {
       method: "POST",
+      account: NON_PARTNER_ACCOUNT,
       body: JSON.stringify({
         tenant_id: TENANT,
         permission_ref: "perm_ref_cmp_g7_write",
@@ -952,6 +958,7 @@ test("G7 approval expense disbursement and WIP lock routes feed WIP sources", as
 
     const nonPartnerPrebillApproval = await json(baseUrl, "/api/finance/prebills/approve", {
       method: "POST",
+      account: NON_PARTNER_ACCOUNT,
       body: JSON.stringify({
         tenant_id: TENANT,
         permission_ref: "perm_ref_cmp_g7_write",

@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.manual-qa.upl-c09-c12-outlook-addin.v1",
-  "generated_at": "2026-07-03T00:56:30.458Z",
+  "generated_at": "2026-07-03T09:59:39.010Z",
   "tuw_ids": [
     "UPL-C-09",
     "UPL-C-10",
@@ -8,9 +8,10 @@
     "UPL-C-12",
     "UPL-E-04"
   ],
-  "scope": "Outlook add-in task pane local browser proof with real API routes, DMS file storage, matter timeline readback, and warning-only Smart Alerts.",
-  "api_base": "http://127.0.0.1:55950",
-  "taskpane_url": "http://127.0.0.1:55951/",
+  "scope": "Outlook add-in task pane local browser proof with noninteractive MSAL bridge initialization, real API routes, DMS file storage, matter timeline readback, OnMessageSend handler completion, and warning-only Smart Alerts.",
+  "api_base": "http://127.0.0.1:64378",
+  "taskpane_url": "http://127.0.0.1:64379/?apiBase=http%3A%2F%2F127.0.0.1%3A64378&tenantId=tenant_upl_c09_c12_outlook&matterId=matter_upl_c09_c12_outlook&entraClientId=00000000-0000-0000-0000-000000000000&entraTenantId=organizations&msalScope=User.Read&msalScope=Mail.Read",
+  "e04_local_receipt": "artifacts/manual-qa/upl-e04-smart-alerts-local-proof-2026-07-03.json",
   "screenshot_path": "docs/lazycodex/evidence/matter-web/artifacts/upl-c09-c12-screenshots/taskpane-proof.png",
   "external_receipt_boundary": {
     "entra_admin_consent_receipt_present": false,
@@ -19,6 +20,19 @@
     "provider_runtime_executed": false,
     "production_write_claim": false,
     "owner_external_receipt_required": true
+  },
+  "msal_bridge_probe": {
+    "configured": true,
+    "initialized": true,
+    "account_count": 0,
+    "scopes": [
+      "User.Read",
+      "Mail.Read"
+    ],
+    "provider_runtime_executed": false,
+    "graph_request_executed": false,
+    "token_material_returned": false,
+    "production_write_claim": false
   },
   "snapshot": {
     "email_threads": [
@@ -53,9 +67,8 @@
         ],
         "bcc": [],
         "body_ref": "sha256:d4ead8b03a5f7ada0e08dd1625dc269b10606f4af91fb36c7f6f6188c3cc6bff",
-        "body_preview": "계약 검토 의견입니다. 첨부 확인 부탁드립니다.",
-        "sent_at": "2026-07-03T00:56:29.751Z",
-        "received_at": "2026-07-03T00:56:29.751Z",
+        "sent_at": "2026-07-03T09:59:38.278Z",
+        "received_at": "2026-07-03T09:59:38.278Z",
         "mailbox_ref": "mailbox:proof",
         "account_ref": "account:outlook-proof",
         "attachment_metadata": [
@@ -78,8 +91,8 @@
             "bytes_included": false
           }
         ],
-        "filing_user": "outlook_addin_operator",
-        "filing_time": "2026-07-03T00:56:30.324Z",
+        "filing_user": "user_amic_jwsuh",
+        "filing_time": "2026-07-03T09:59:38.852Z",
         "filing_mode": "manual",
         "confidentiality": "internal",
         "privilege": "undetermined",
@@ -129,8 +142,9 @@
         "email_runtime_executed": false,
         "reserved_for_rp08": true,
         "resource_id": "thread:conversation-proof-outlook",
-        "created_at": "2026-07-03T00:56:30.325Z",
-        "updated_at": "2026-07-03T00:56:30.325Z"
+        "created_at": "2026-07-03T09:59:38.852Z",
+        "updated_at": "2026-07-03T09:59:38.852Z",
+        "body_preview_sha256": "d4ead8b03a5f7ada0e08dd1625dc269b10606f4af91fb36c7f6f6188c3cc6bff"
       }
     ],
     "documents": [
@@ -166,7 +180,7 @@
         "event_id": "outlook.email.filed:tenant_upl_c09_c12_outlook:matter_upl_c09_c12_outlook:thread:conversation-proof-outlook",
         "tenant_id": "tenant_upl_c09_c12_outlook",
         "matter_id": "matter_upl_c09_c12_outlook",
-        "occurred_at": "2026-07-03T00:56:30.324Z",
+        "occurred_at": "2026-07-03T09:59:38.852Z",
         "type": "outlook.email.filed",
         "title": "계약 검토 의견 및 첨부",
         "source_ref": "thread:conversation-proof-outlook"
@@ -175,7 +189,7 @@
         "event_id": "outlook.attachment.saved:tenant_upl_c09_c12_outlook:matter_upl_c09_c12_outlook:doc:thread:conversation-proof-outlook:att-proof-contract",
         "tenant_id": "tenant_upl_c09_c12_outlook",
         "matter_id": "matter_upl_c09_c12_outlook",
-        "occurred_at": "2026-07-03T00:56:30.368Z",
+        "occurred_at": "2026-07-03T09:59:38.901Z",
         "type": "outlook.attachment.saved",
         "title": "계약검토의견.txt",
         "source_ref": "doc:thread:conversation-proof-outlook:att-proof-contract"
@@ -184,7 +198,7 @@
         "event_id": "outlook.attachment.saved:tenant_upl_c09_c12_outlook:matter_upl_c09_c12_outlook:doc:thread:conversation-proof-outlook:att-proof-reference",
         "tenant_id": "tenant_upl_c09_c12_outlook",
         "matter_id": "matter_upl_c09_c12_outlook",
-        "occurred_at": "2026-07-03T00:56:30.369Z",
+        "occurred_at": "2026-07-03T09:59:38.901Z",
         "type": "outlook.attachment.saved",
         "title": "참고자료.txt",
         "source_ref": "doc:thread:conversation-proof-outlook:att-proof-reference"
@@ -193,7 +207,7 @@
         "event_id": "matter.timeline.activity:tenant_upl_c09_c12_outlook:matter_upl_c09_c12_outlook:task_thread_conversation-proof-outlook",
         "tenant_id": "tenant_upl_c09_c12_outlook",
         "matter_id": "matter_upl_c09_c12_outlook",
-        "occurred_at": "2026-07-03T00:56:30.400Z",
+        "occurred_at": "2026-07-03T09:59:38.934Z",
         "type": "matter.activity.task",
         "title": "메일 검토 후 후속 조치",
         "source_ref": "task_thread_conversation-proof-outlook"
@@ -229,6 +243,43 @@
       "filing_user"
     ]
   },
+  "handler_probe": {
+    "associated_actions": [
+      "onMessageSendHandler"
+    ],
+    "handler_available": true,
+    "completed_payload": {
+      "allowEvent": true
+    },
+    "probe": {
+      "msal_bridge": {
+        "configured": true,
+        "initialized": true,
+        "account_count": 0,
+        "scopes": [
+          "User.Read",
+          "Mail.Read"
+        ],
+        "provider_runtime_executed": false,
+        "graph_request_executed": false,
+        "token_material_returned": false,
+        "production_write_claim": false
+      },
+      "last_completion": {
+        "allowEvent": true,
+        "completed_at": "2026-07-03T09:59:38.973Z"
+      },
+      "last_send_handler_result": {
+        "outcome": "evaluated",
+        "warning_count": 0,
+        "send_blocked": false,
+        "provider_runtime_executed": false,
+        "allowEvent": true,
+        "raw_body_written": false,
+        "attachment_bytes_written": false
+      }
+    }
+  },
   "checks": [
     {
       "id": "c09-taskpane-browser-load",
@@ -236,6 +287,22 @@
     },
     {
       "id": "c09-auth-shell-provider-gated-visible",
+      "passed": true
+    },
+    {
+      "id": "c09-msal-bridge-initialized",
+      "passed": true
+    },
+    {
+      "id": "c09-msal-bridge-noninteractive",
+      "passed": true
+    },
+    {
+      "id": "c09-signed-session-authorization-observed",
+      "passed": true
+    },
+    {
+      "id": "c09-legacy-permission-context-not-sent",
       "passed": true
     },
     {
@@ -266,6 +333,18 @@
     },
     {
       "id": "c12-smart-alert-warning-not-block",
+      "passed": true
+    },
+    {
+      "id": "c12-on-message-send-handler-associated",
+      "passed": true
+    },
+    {
+      "id": "c12-on-message-send-handler-completes-allow-event",
+      "passed": true
+    },
+    {
+      "id": "c12-on-message-send-handler-warning-only",
       "passed": true
     }
   ],

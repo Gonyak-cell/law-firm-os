@@ -374,6 +374,17 @@ function listMatterDocuments({ repository, tenant_id, matter_id } = {}) {
   );
 }
 
+function safeEmailThreadSnapshot(thread = {}) {
+  const snapshot = clone(thread);
+  if (typeof snapshot.body_preview === "string") {
+    snapshot.body_preview_sha256 = bodyHash(snapshot.body_preview);
+    delete snapshot.body_preview;
+  }
+  snapshot.raw_body_included = false;
+  snapshot.credential_material_included = false;
+  return Object.freeze(snapshot);
+}
+
 function handleBootstrap({ query, context, requestId }) {
   const tenantId = requiredString(query.tenant_id ?? context?.principal?.tenant_id, "tenant_id");
   const decision = evaluateOutlookPermission({
@@ -666,6 +677,12 @@ function evaluateSmartAlerts({ body, requestId }) {
   const recipients = safeRecipients(message.to);
   const attachments = Array.isArray(message.attachments) ? message.attachments : [];
   const bodyText = String(message.body_preview ?? message.body ?? "").toLowerCase();
+  const attachmentMetadata = attachments.map((attachment) => ({
+    attachment_id: optionalString(attachment.attachment_id ?? attachment.id, "attachment"),
+    content_type: optionalString(attachment.content_type ?? attachment.mime_type, "application/octet-stream"),
+    size: Number(attachment.size ?? attachment.byte_size ?? 0),
+    confidentiality: optionalString(attachment.confidentiality ?? attachment.sensitivity, "internal"),
+  }));
   const warnings = [];
   if (
     recipients.some((recipient) => recipient.external === true) &&
@@ -696,6 +713,14 @@ function evaluateSmartAlerts({ body, requestId }) {
       send_blocked: false,
       provider_runtime_executed: false,
       production_ready_claim: false,
+      message_hashes: {
+        body_preview_sha256: bodyHash(bodyText),
+        recipients_sha256: sha256Hex(JSON.stringify(recipients)),
+        attachment_metadata_sha256: sha256Hex(JSON.stringify(attachmentMetadata)),
+      },
+      raw_body_included: false,
+      attachment_bytes_included: false,
+      credential_material_included: false,
     },
   });
 }
@@ -779,7 +804,7 @@ export function handleOutlookAddinApiRequest({ pathname, method, query = {}, bod
 
 export function outlookAddinProofSnapshot({ runtime, tenant_id, matter_id } = {}) {
   return Object.freeze({
-    email_threads: runtime.dmsRuntime.repository.list({ tenant_id, model_type: "DmsEmailThread", matter_id }).map(clone),
+    email_threads: runtime.dmsRuntime.repository.list({ tenant_id, model_type: "DmsEmailThread", matter_id }).map(safeEmailThreadSnapshot),
     documents: listMatterDocuments({ repository: runtime.dmsRuntime.repository, tenant_id, matter_id }).map(clone),
     timeline: listMatterTimeline({ repository: runtime.matterRuntime.repository, tenant_id, matter_id }).visible_entries.map(clone),
     folder_structure: MATTER_FOLDER_NAMES,

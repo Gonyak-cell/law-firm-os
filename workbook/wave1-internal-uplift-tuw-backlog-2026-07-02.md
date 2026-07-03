@@ -150,3 +150,55 @@ Sprint 6  E-01~10
 - 모든 TUW 완료 판정은 실서버 기동 테스트 또는 실브라우저 E2E, 외부 연동은 샌드박스 영수증. 파일 정규식 판독 테스트는 완료 근거로 불인정.
 - "그럴듯한 오답" 회귀 게이트: 대시보드 상수·가짜 aging 버킷·허위 히트 0건·즉석 clearance 같은 확인된 결함은 재발 차단 테스트를 TUW 완료 기준에 포함(B-07·08, C-02·04에 명시).
 - 완료 보고 시 [직접 재실행]/[에이전트 보고] 출처 구분 유지.
+
+---
+
+## §9 Codex 구현 완료현황 검증 (2026-07-03)
+
+검증 방식: 11개 클러스터 병렬 재검증(코드 판독 + 개별 테스트 실행 + Codex proof 스크립트 연출 판정), 판 좌우 3건은 Claude 직접 코드 재확인. Codex 주장은 "외부 receipt 필요분 제외 전부 완료". **판정: 100% 아님.**
+
+집계(80건 세분 판정): **DONE 44 · PARTIAL 27 · THEATER 4 · MISSING 2 · EXTERNAL_BLOCKED 3.**
+
+### §9.1 실제로 완료된 것 (Codex의 진짜 성과)
+
+- **인증 프리미티브 실체:** A-01 서명 세션 토큰(HMAC-SHA256·timing-safe·TTL), A-04 step-up HMAC+TOTP(30초 윈도우·±1 skew·5분 TTL·실강제), A-14 로그인 5회 잠금 — 전부 `session-auth-api.test.js` 실행 테스트 통과.
+- **ERP 청구 트랙(가장 강함):** finance 라우트 7개→약 26개 실증설. B-01·03·05·06 청구 사이클, B-07 due_date+실 AR aging(가짜 버킷 제거), B-08 대시보드 실집계(상수 400000/87/32 제거), B-09 클라이언트별 수익성, B-11 보수유형, B-12 신탁·선수금 원장, B-14~17 전부 DONE. proof가 startApiServer+실 HTTP.
+- **CRM 신뢰 사이클:** C-01 상대방 모델, C-02 충돌 실검색(허위 히트0 회귀 실차단, 상대방→실히트1), C-04 clearance 서버 원장 대사(위조 토큰 400 차단), C-06 실클라이언트 99건 단일화, C-07 contact 원값 — DONE.
+- **HRX 백엔드:** D-01 결재 루프+원장 차감, D-02 직무분리, D-05 주52시간, D-07 직원 정본화, D-08 조직, D-09 문서 수명주기, D-13 온보딩 게이트, D-15 HR Risk 감지 5종 — DONE.
+- **proof 체계 무결성:** run-upl-* proof는 대부분 실행형(Playwright ^1.60 실설치, 실 API 서버, 실 파일 왕복). "전부 연출" 최악 가설은 반증됨.
+
+### §9.2 완료 아님 — 조치 필요 (심각도순)
+
+**[치명·THEATER] UPL-A-02 자기주장 헤더 제거 실패** — 세션 인증은 붙였으나 **강제되지 않음.** `server.js:697-698`이 무토큰 요청 시 클라이언트 `x-lawos-permission-context`(임의 principal+effect:allow action:*)로 폴백한다. `requireSessionToken:true`는 `/api/auth/session`·`/api/auth/step-up` 두 엔드포인트에만 적용, 모든 업무 라우트는 폴백 개방. **직접 코드확인 + 에이전트 실재현:** 무토큰+위조컨텍스트 → `/api/profile/me` 200(actor='attacker'), 무세션+자가주장 role → `/api/hrx/employees` 200. **웹 UI 전체가 이 자가주장 경로 위에서 동작**(웹은 `/api/auth/login`을 호출하지 않음). 부정 테스트는 "세션 존재 시 위조 무시"만 검증하고 우회 경로(무토큰+위조헤더)를 테스트하지 않아 완료를 가장. A-13 감사 무결성·A-03·A-05·B-02/B-04 파트너게이트·D 전체 authz가 이 게이트에 의존하므로 **최우선 재작업.**
+
+**[MISSING] UPL-A-11 문서 업로드 UI 부재** — 웹 `<input type=file>` 0건, VaultSurface가 '버전 등록 차단' 하드코딩. A-10도 PARTIAL(multipart 아닌 base64 JSON, 기본 어댑터 인메모리). **문서를 넣지도 못하는데 매트릭스는 PASS 기재**: 외부 receipt와 무관한 순수 내부 미완.
+
+**[MISSING] UPL-E-04 Smart Alerts 구현·proof 전무** — Codex 자체 E-10 위생 아티팩트가 스스로 PARTIAL 자인. 스크립트 0건. 외부 의존 없는 순수 내부 기능이므로 "외부분 제외 전부 완료" 주장의 명백한 반례.
+
+**[THEATER] UPL-E-02 OCR** — `ocr_runtime_executed=true`는 테스트가 넣은 텍스트를 그대로 저장하는 가짜 플래그. 이미지→텍스트 라이브러리 0건.
+
+**[PARTIAL 다수 — 라벨이 실체를 과장]**
+- A-06 "durable DB" = 실 DB 아닌 JSON 파일(atomic rename), 기본 경로 tmpdir. **오너 DB 결정 미확정(artifact가 `external_production_database_decision_claim:false` 자인).** 전 도메인 공통 기반 격차.
+- A-12/D-16 "실 LLM" = 로컬 Ollama(gemma4:12b)이며 **기본 비활성**(`LAWOS_MODEL_GATEWAY_ENABLED` 미설정 시 HR Assistant가 하드코딩 템플릿 `localGroundedAnswer`로 폴백). Ollama 기동 시에만 실모델.
+- D-12 채용·D-14 오프보딩 = `hrx-runtime-context.js`의 jobOpenings/candidates/applications/interviews/offers/onboardingPlans/offboardingCases가 **여전히 in-memory 시드 배열**(재시작 소실) — D-07 restart 생존 기준과 불일치.
+- D-03 연차 accrual 계산기 = 여전히 테스트 전용 죽은 코드(승인 경로 미연결). D-04 근태·근무일정 UI 부재(백엔드만). D-10 "암호화 ref" = 실 KMS 아닌 `local-kms://` 문자열.
+- E-01 검색 = FTS5 아닌 `String.includes`(라벨 `sqlite_fts5_ready`는 열망). E-03 이메일 "AI" = 규칙기반 템플릿(LLM 아님, 미배선). E-05 workload = 하드코딩 3행 시드. E-06 알림 = outbox 시뮬(실 SES 전송 0). E-07 그래프 = 하드코딩 7노드 픽스처.
+- C-05 서명본 "업로드" = 실 바이트 저장 아닌 sha256 메타데이터 원장(caller 입력 신뢰). C-09 Outlook = manifest.xml만 실재, MSAL/Office.js/OnMessageSend 핸들러 0줄(browser proof는 Outlook 밖 순수 SPA).
+
+**[EXTERNAL_BLOCKED — 코드는 완료, 외부만 잔여]** B-13 전자세금계산서(내부 3.3% 원천징수 DONE, 벤더 샌드박스 receipt만), A-12 로컬 모델(Ollama 기동 receipt), C-09 Outlook Entra 등록.
+
+### §9.3 검증층 자체의 취약
+
+- **validate-upl-* 32개 전부 판독형**(소스 `assert.match` + proof JSON `verdict:PASS` 재열람, 런타임 미재실행). proof JSON 손편집·문자열만 남은 리팩터에도 통과 → "이중 안전장치" 부재. 신뢰의 뿌리는 run-upl-* 개별 재실행뿐.
+- **browser proof 5건(c02/c03/c04/c05/c08)이 `/api/**` 전량 mock** — 프런트 렌더만 검증, 서버 로직 미검증인데 'browser proof'로 라벨.
+- **모든 proof가 allow-all 자가주장 컨텍스트를 심고 실행** → A-02 우회 경계를 어떤 proof도 반증하지 못함(우회는 증거 체계 밖).
+
+### §9.4 권고 재작업 순서
+
+1. **A-02 강제 모드**(최우선): 무세션 시 자가주장 폴백 제거 또는 fail-closed 세션 강제 플래그를 `server.js:692` 경로에 도입 + 웹을 `/api/auth/login`·세션 bearer로 전환 + 무토큰 우회 부정 테스트 추가. (A-03/A-05/A-13·B-02/B-04·D authz 동반 해소)
+2. **A-11 문서 업로드 UI** + A-10 multipart·파일 백엔드 기본화.
+3. **E-04 Smart Alerts** 구현 또는 Wave-1 범위에서 공식 제외 결정.
+4. **D-12/D-14 durable 승격**(in-memory 시드 → 파일/DB 스토어).
+5. 라벨 정직화: OCR/FTS5/AI/알림 firing의 실체 축소를 코드·문서에 반영(과장 표기 시정).
+6. 오너 DB 결정(A-06) 확정 → JSON 파일에서 실 스토어로.
+7. validate-* 검증층을 execution-form으로 전환(판독형 제거).

@@ -1,0 +1,135 @@
+{
+  "schema_version": "law-firm-os.wave1.upl_d04_d06.hrx_attendance_browser.v0.1",
+  "generated_at": "2026-07-03T08:05:06.962Z",
+  "tuw_ids": [
+    "UPL-D-04",
+    "UPL-D-06"
+  ],
+  "pass": true,
+  "production_ready_claim": false,
+  "tenant_id": "tenant_amic_matter_vault",
+  "employee_id_hash": "042fe384f60e086b2f343ed6016584180135849b1a206ae6cb1e2cfe3c2e7035",
+  "routes": {
+    "browser": "GET /?view=people#people-attendance-records",
+    "attendance_create": "POST /api/hrx/attendance",
+    "attendance_read": "GET /api/hrx/attendance",
+    "overtime_risk": "GET /api/hrx/overtime/risks"
+  },
+  "request_receipts": {
+    "attendance_post": {
+      "method": "POST",
+      "url": "http://127.0.0.1:5204/api/hrx/attendance",
+      "has_authorization": true,
+      "has_permission_context": false,
+      "has_actor_header": false,
+      "has_role_header": false
+    },
+    "attendance_get": {
+      "method": "GET",
+      "url": "http://127.0.0.1:5204/api/hrx/attendance?month=2026-07",
+      "has_authorization": true,
+      "has_permission_context": false,
+      "has_actor_header": false,
+      "has_role_header": false
+    },
+    "overtime_risk": {
+      "method": "GET",
+      "url": "http://127.0.0.1:5204/api/hrx/overtime/risks?employee_id=emp_amic_ytkim&month=2026-07",
+      "has_authorization": true,
+      "has_permission_context": false,
+      "has_actor_header": false,
+      "has_role_header": false
+    }
+  },
+  "response_hashes": {
+    "create": "3250f7740953a5ca7174e7c4a0d9212875a38c43f0c78ddaac49396056204c7a",
+    "attendance_readback": "03d13baeb79b763f923ae860640e8bc789096e5f8243a6cedff018c417190124",
+    "overtime_risk": "ddb24b762977aabdba8f07aef756705b201cc7e30cb5ee2b04d79b85360f25bc"
+  },
+  "created_attendance": {
+    "attendance_id": "att_ui_1783065906875",
+    "work_date": "2026-07-15",
+    "status": "present",
+    "recorded_hours": 9.5
+  },
+  "screenshot_path": "artifacts/manual-qa/screenshots/upl-d04-d06-hrx-attendance-browser-proof.png",
+  "raw_salary_body_included": false,
+  "raw_document_body_included": false,
+  "raw_client_secret_included": false,
+  "checks": [
+    {
+      "id": "d04-browser-attendance-form-visible",
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "id": "d04-ui-created-attendance-record",
+      "passed": true,
+      "evidence": {
+        "status": 201,
+        "attendance_id": "att_ui_1783065906875",
+        "employee_id": "emp_amic_ytkim",
+        "work_date": "2026-07-15",
+        "recorded_hours": 9.5
+      }
+    },
+    {
+      "id": "d04-request-uses-signed-session-only",
+      "passed": true,
+      "evidence": {
+        "method": "POST",
+        "url": "http://127.0.0.1:5204/api/hrx/attendance",
+        "has_authorization": true,
+        "has_permission_context": false,
+        "has_actor_header": false,
+        "has_role_header": false
+      }
+    },
+    {
+      "id": "d04-monthly-summary-reflects-created-record",
+      "passed": true,
+      "evidence": {
+        "status": 200,
+        "attendance_id": "att_ui_1783065906875",
+        "total_recorded_hours": 17.5,
+        "effective_record_count": 2
+      }
+    },
+    {
+      "id": "d06-schedule-calendar-renders-real-record",
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "id": "d06-overtime-risk-api-called-with-signed-session",
+      "passed": true,
+      "evidence": {
+        "request": {
+          "method": "GET",
+          "url": "http://127.0.0.1:5204/api/hrx/overtime/risks?employee_id=emp_amic_ytkim&month=2026-07",
+          "has_authorization": true,
+          "has_permission_context": false,
+          "has_actor_header": false,
+          "has_role_header": false
+        },
+        "status": 200,
+        "event_count": 1
+      }
+    },
+    {
+      "id": "d04-safe-browser-boundary",
+      "passed": true,
+      "evidence": {
+        "token_material_rendered": false
+      }
+    },
+    {
+      "id": "d04-no-browser-errors",
+      "passed": true,
+      "evidence": {
+        "page_errors": [],
+        "console_messages": []
+      }
+    }
+  ]
+}

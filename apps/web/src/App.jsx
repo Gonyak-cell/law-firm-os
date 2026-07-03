@@ -13,6 +13,7 @@ import { VaultSurface } from "./components/VaultSurface.jsx";
 import { PortalSurface } from "./components/PortalSurface.jsx";
 import { UserProfileSurface } from "./components/UserProfileSurface.jsx";
 import { PeopleHome } from "./people/PeopleHome.tsx";
+import { loginLawosApiSession } from "./data/apiClient.js";
 
 export function App() {
   const initialParams = new URLSearchParams(window.location.search);
@@ -41,6 +42,7 @@ export function App() {
   const [authStep, setAuthStep] = useState(initialAuthStep);
   const [query, setQuery] = useState(initialQuery);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [authError, setAuthError] = useState("");
   const labels = copy[locale];
 
   function resolveRoute(nextView, section = "") {
@@ -72,6 +74,17 @@ export function App() {
     setActiveSection(resolved.section);
     setNotificationsOpen(false);
     window.history.pushState({ view: resolved.view, section: resolved.section }, "", routeUrl(resolved.view, resolved.section));
+  }
+
+  async function handleLogin(credentials) {
+    setAuthError("");
+    const result = await loginLawosApiSession(credentials);
+    if (!result.ok) {
+      setAuthError("로그인 정보를 확인하세요.");
+      return;
+    }
+    setHandoffSplashVisible(true);
+    navigateToView("home");
   }
 
   useEffect(() => {
@@ -109,10 +122,8 @@ export function App() {
           locale={locale}
           authStep={authStep}
           setAuthStep={setAuthStep}
-          onLogin={() => {
-            setHandoffSplashVisible(true);
-            navigateToView("home");
-          }}
+          authError={authError}
+          onLogin={handleLogin}
         />
       </div>
     );
@@ -145,10 +156,8 @@ export function App() {
               locale={locale}
               authStep={authStep}
               setAuthStep={setAuthStep}
-              onLogin={() => {
-                setHandoffSplashVisible(true);
-                navigateToView("home");
-              }}
+              authError={authError}
+              onLogin={handleLogin}
             />
           )}
           {view === "home" && (

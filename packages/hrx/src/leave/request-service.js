@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { evaluateLeaveUsage } from "../rules/leave-policy.js";
 
 export const HRX_LEAVE_REQUEST_STATES = Object.freeze(["submitted", "approved", "rejected", "cancelled"]);
 
@@ -43,6 +44,18 @@ function guardedError(message, safeErrorCode, status = 400) {
   error.safe_error_code = safeErrorCode;
   error.status = status;
   return error;
+}
+
+async function resolveLeavePolicy(policyResolver, context, request) {
+  if (typeof policyResolver !== "function") return null;
+  return (await policyResolver({
+    tenant_id: context.tenant_id,
+    actor_id: context.actor_id,
+    request,
+    policy_id: request.policy_id,
+    leave_type: request.leave_type,
+    employee_id: request.employee_id,
+  })) ?? null;
 }
 
 function approverIdsForGuard(existing, ref, context) {
@@ -204,7 +217,7 @@ export function createSqlLeaveRequestStore({ store } = {}) {
   });
 }
 
-export function createLeaveRequestService({ store = createInMemoryLeaveRequestStore(), balanceLedger, audit } = {}) {
+export function createLeaveRequestService({ store = createInMemoryLeaveRequestStore(), balanceLedger, audit, policyResolver } = {}) {
   return Object.freeze({
     async submit(context, input = {}) {
       requireContext(context);
@@ -234,7 +247,15 @@ export function createLeaveRequestService({ store = createInMemoryLeaveRequestSt
           employee_id: existing.employee_id,
           policy_id: existing.policy_id,
         });
-        if (balance.available_balance < existing.amount) {
+        const policy = await resolveLeavePolicy(policyResolver, context, existing);
+        const usage = policy
+          ? evaluateLeaveUsage(policy, balance.available_balance, existing.amount)
+          : Object.freeze({
+              allowed: balance.available_balance >= existing.amount,
+              available_after: balance.available_balance - existing.amount,
+              reason: balance.available_balance >= existing.amount ? "within_balance" : "negative_balance_not_allowed",
+            });
+        if (!usage.allowed) {
           throw guardedError("Leave request amount exceeds available leave balance", "HRX_LEAVE_BALANCE_INSUFFICIENT", 409);
         }
       }

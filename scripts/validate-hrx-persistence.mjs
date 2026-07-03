@@ -5,7 +5,7 @@ import { join, resolve } from "node:path";
 import { createSqlHrxAuditEventStore } from "../packages/audit/src/hrx-event-store-sql.js";
 import { verifyHrxAuditHashChain } from "../packages/audit/src/hrx-hash-chain.js";
 import { createSqlAttendanceStore } from "../packages/hrx/src/attendance.js";
-import { createSqlCompensationRecordStore } from "../packages/hrx/src/compensation.js";
+import { COMPENSATION_ENVELOPE_PREFIX, createSqlCompensationRecordStore, encryptCompensationAmount } from "../packages/hrx/src/compensation.js";
 import { createSqlHrxDocumentStore } from "../packages/hrx/src/documents.js";
 import { createSqlLeaveBalanceLedger } from "../packages/hrx/src/leave/balance.js";
 import { createSqlLeaveRequestStore } from "../packages/hrx/src/leave/request-service.js";
@@ -33,6 +33,7 @@ for (const file of [
   "packages/hrx/src/migrations/003_hrx_ai_analytics.sql",
   "packages/hrx/src/migrations/004_hrx_attendance.sql",
   "packages/hrx/src/migrations/005_hrx_overtime.sql",
+  "packages/hrx/src/migrations/006_hrx_recruiting_lifecycle.sql",
   "packages/audit/src/hrx-event-store-sql.js",
   "packages/audit/src/hrx-hash-chain.js",
   "scripts/migrate-hrx.mjs",
@@ -73,6 +74,13 @@ try {
   const compensation = createSqlCompensationRecordStore({ store });
   const overtime = createSqlOvertimeStore({ store });
   const audit = createSqlHrxAuditEventStore({ store });
+  const encryptedAmountRef = encryptCompensationAmount({
+    tenant_id: "tenant-a",
+    compensation_id: "comp-001",
+    employee_id: "emp-001",
+    amount_minor: 12345678,
+    currency_ref: "Currency:KRW",
+  });
   repo.createEmployee({ tenant_id: "tenant-a", employee_id: "emp-001", display_name: "Ari Kim", status: "active" });
   repo.createEmploymentProfile({
     tenant_id: "tenant-a",
@@ -129,7 +137,7 @@ try {
     tenant_id: "tenant-a",
     compensation_id: "comp-001",
     employee_id: "emp-001",
-    encrypted_amount_ref: "local-kms://hrx/tenant-a/emp-001/comp-001",
+    encrypted_amount_ref: encryptedAmountRef,
     currency_ref: "Currency:KRW",
     effective_from: "2026-06-20",
     source_ref: "HRDoc:emp-001:compensation-record",
@@ -191,10 +199,15 @@ try {
   assert(reopenedLeaveLedger.list({ tenant_id: "tenant-a", employee_id: "emp-001" }).length === 1, "leave ledger must survive store reopen");
   assert(reopenedLeaveRequests.list({ tenant_id: "tenant-a", employee_id: "emp-001" }).length === 1, "leave request must survive store reopen");
   assert(reopenedAttendance.list({ tenant_id: "tenant-a", employee_id: "emp-001" }).length === 1, "attendance record must survive store reopen");
-  assert(reopenedCompensation.visible({ tenant_id: "tenant-a", employee_id: "emp-001" }).length === 1, "compensation record must survive store reopen");
+  const visibleCompensation = reopenedCompensation.visible({ tenant_id: "tenant-a", employee_id: "emp-001" });
+  assert(visibleCompensation.length === 1, "compensation record must survive store reopen");
   assert(
-    !JSON.stringify(reopenedCompensation.visible({ tenant_id: "tenant-a", employee_id: "emp-001" })).includes("encrypted_amount_ref"),
+    !Object.hasOwn(visibleCompensation[0] ?? {}, "encrypted_amount_ref"),
     "compensation persistence validator must expose masked refs only",
+  );
+  assert(
+    !JSON.stringify(visibleCompensation).includes(COMPENSATION_ENVELOPE_PREFIX),
+    "compensation persistence validator must not expose encryption envelopes",
   );
   assert(reopenedOvertime.list({ tenant_id: "tenant-a", employee_id: "emp-001" }).length === 1, "overtime request must survive store reopen");
   assert(verifyHrxAuditHashChain(reopenedAudit.list({ tenant_id: "tenant-a" })), "audit hash chain must survive store reopen");
@@ -212,4 +225,4 @@ if (errors.length > 0) {
 console.log("HRX persistence validation passed.");
 console.log("durable_store: file-backed");
 console.log("core_tables: hrx_employees, hrx_employment_profiles, hrx_employee_user_links");
-console.log("workflow_tables: hrx_documents, hrx_leave_balance_entries, hrx_leave_requests, hrx_attendance_records, hrx_compensation_records, hrx_overtime_requests, hrx_audit_events, hrx_ai_review_items, hrx_ai_source_chunks, hrx_analytics_snapshots");
+console.log("workflow_tables: hrx_documents, hrx_leave_balance_entries, hrx_leave_requests, hrx_attendance_records, hrx_compensation_records, hrx_overtime_requests, hrx_job_openings, hrx_candidates, hrx_candidate_consents, hrx_applications, hrx_interviews, hrx_offers, hrx_onboarding_plans, hrx_offboarding_cases, hrx_audit_events, hrx_ai_review_items, hrx_ai_source_chunks, hrx_analytics_snapshots");

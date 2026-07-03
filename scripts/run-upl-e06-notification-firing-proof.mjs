@@ -83,7 +83,9 @@ const artifact = {
   status: checks.every((check) => check.passed) ? "PASS" : "FAIL",
   scope: "lightweight SES-shaped email plus in-app event firing receipt",
   boundary: {
+    delivery_mode: "notification_simulated_local_recorder",
     aws_ses_provider_shape: true,
+    ses_transport: "local-ses-send-recorder",
     external_aws_ses_network_call_made: result.external_ses_network_call_made,
     production_ready_claim: false,
     credential_material_included: false,
@@ -106,6 +108,8 @@ writeFileSync(
     `- In-app deliveries: ${result.in_app_count}`,
     `- SES send records: ${result.ses_send_count}`,
     `- External AWS SES network call made: ${artifact.boundary.external_aws_ses_network_call_made}`,
+    `- Delivery mode: ${artifact.boundary.delivery_mode}`,
+    `- SES transport: ${artifact.boundary.ses_transport}`,
     `- Production-ready claim: ${artifact.boundary.production_ready_claim}`,
     "",
     "| Check | Passed |",

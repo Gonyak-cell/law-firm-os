@@ -2,6 +2,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import assert from "node:assert/strict";
+import { assertNodeProofPass } from "./lib/upl-proof-runner.mjs";
 
 const ROOT = process.cwd();
 
@@ -59,6 +60,7 @@ assert.match(apiTests, /clearance\.token\.issue/);
 
 assertExists("scripts/run-upl-c03-conflict-review-proof.mjs");
 assertExists("scripts/run-upl-c03-conflict-review-browser-proof.mjs");
+await assertNodeProofPass("scripts/run-upl-c03-conflict-review-proof.mjs");
 
 const apiProof = readJson("artifacts/manual-qa/upl-c03-conflict-review-proof.json");
 assert.equal(apiProof.verdict, "PASS");

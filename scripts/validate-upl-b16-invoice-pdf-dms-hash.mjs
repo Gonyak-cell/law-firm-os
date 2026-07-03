@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { renderInvoicePdf } from "../packages/billing/src/invoice-pdf-service.js";
+import { assertNodeProofPass } from "./lib/upl-proof-runner.mjs";
 
 const ROOT = process.cwd();
 const requiredFiles = [
@@ -32,6 +33,7 @@ const vaultRuntime = read("apps/api/src/vault-dms-runtime-context.js");
 const vaultTest = read("apps/api/test/cmp-r4-g5-vault.test.js");
 const dmsDownloadService = read("packages/dms/src/storage/download-service.js");
 const proofScript = read("scripts/run-upl-b16-invoice-pdf-dms-hash-proof.mjs");
+await assertNodeProofPass("scripts/run-upl-b16-invoice-pdf-dms-hash-proof.mjs");
 const artifact = JSON.parse(read("artifacts/manual-qa/upl-b16-invoice-pdf-dms-hash-proof.json"));
 
 for (const marker of [
@@ -56,7 +58,7 @@ assert.ok(billingIndex.includes("invoice-pdf-service.js"), "billing package inde
 
 for (const marker of [
   "content_base64",
-  "Buffer.from(String(body.content_base64), \"base64\")",
+  "Buffer.from(String(normalizedBody.content_base64), \"base64\")",
   "content_sha256",
   "document_bytes_included: true",
 ]) {

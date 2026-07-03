@@ -3,6 +3,9 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { createDmsRepository } from "../../dms/src/repository.js";
+import { createLocalStorageAdapter } from "../../dms/src/storage/local-storage-adapter.js";
+import { sha256Hex } from "../../dms/src/storage/storage-adapter.js";
 import {
   createCampaign,
   createCrmActivity,
@@ -239,6 +242,27 @@ test("G6 opportunity handoff and conflict workflow produce a valid clearance tok
   });
   assert.equal(handoff.intake_request.creates_matter, false);
   assert.equal(handoff.opportunity.stage, "intake_requested");
+
+  createOpportunity({
+    repository: crm,
+    opportunity: opportunityFixture({ opportunity_id: "opp-cmp-g6-new-001", stage: "new" }),
+    actor_id: ACTOR,
+    idempotency_key: "opp-new-1",
+  });
+  const newInquiryHandoff = handoffOpportunityToIntake({
+    crmRepository: crm,
+    intakeService: {
+      createIntakeRequest: ({ request, actor_id, idempotency_key }) =>
+        createIntakeRequest({ repository: intake, request, actor_id, idempotency_key }),
+    },
+    tenant_id: TENANT,
+    opportunity_id: "opp-cmp-g6-new-001",
+    intake_request_id: "intake-cmp-g6-new-001",
+    actor_id: ACTOR,
+    idempotency_key: "handoff-new-1",
+  });
+  assert.equal(newInquiryHandoff.intake_request.creates_matter, false);
+  assert.equal(newInquiryHandoff.opportunity.stage, "intake_requested");
 
   const check = createConflictCheck({
     repository: intake,
@@ -510,6 +534,93 @@ test("G6 conflict search derives hits from normalized adverse parties and ignore
     }).idempotent_replay,
     true,
   );
+});
+
+test("G6 engagement signed document bytes are stored in DMS with server hash verification", () => {
+  const intake = intakeRepo();
+  const dms = createDmsRepository();
+  const storage = createLocalStorageAdapter({ adapter_id: "intake-test-vault" });
+  const bytes = Buffer.from("%PDF-1.4\nsigned engagement\n%%EOF\n");
+  const serverHash = sha256Hex(bytes);
+
+  assert.throws(
+    () =>
+      approveEngagement({
+        repository: intake,
+        dms_repository: dms,
+        dms_storage: storage,
+        engagement: {
+          engagement_id: "engagement-cmp-g6-hash-mismatch",
+          tenant_id: TENANT,
+          intake_request_id: "intake-cmp-g6-001",
+          signed_document_id: "doc-engagement-hash-mismatch",
+          signature_ref: "signature:doc-engagement-hash-mismatch",
+          signed_document_upload: {
+            signed_document_upload_id: "signed-upload-hash-mismatch",
+            document_id: "doc-engagement-hash-mismatch",
+            signed_document_id: "doc-engagement-hash-mismatch",
+            signature_ref: "signature:doc-engagement-hash-mismatch",
+            content_sha256: "sha256:not-the-server-hash",
+            bytes_base64: bytes.toString("base64"),
+            byte_size: 1,
+            mime_type: "application/pdf",
+          },
+        },
+        actor_id: ACTOR,
+        idempotency_key: "engagement-hash-mismatch",
+      }),
+    /signed document hash mismatch/,
+  );
+
+  const engagement = approveEngagement({
+    repository: intake,
+    dms_repository: dms,
+    dms_storage: storage,
+    engagement: {
+      engagement_id: "engagement-cmp-g6-signed-bytes",
+      tenant_id: TENANT,
+      intake_request_id: "intake-cmp-g6-001",
+      signed_document_id: "doc-engagement-signed-bytes",
+      signature_ref: "signature:doc-engagement-signed-bytes",
+      template_document: {
+        template_document_id: "template-doc-engagement-signed-bytes",
+        template_id: "matter_engagement_letter",
+        document_title: "위임계약서",
+        generation_state: "generated",
+        merge_field_count: 3,
+      },
+      signed_document_upload: {
+        signed_document_upload_id: "signed-upload-engagement-signed-bytes",
+        document_id: "doc-engagement-signed-bytes",
+        signed_document_id: "doc-engagement-signed-bytes",
+        template_document_id: "template-doc-engagement-signed-bytes",
+        signature_ref: "signature:doc-engagement-signed-bytes",
+        bytes_base64: bytes.toString("base64"),
+        byte_size: 1,
+        mime_type: "application/pdf",
+        matter_id: "matter-cmp-g6-intake",
+        workspace_id: "workspace-cmp-g6-intake",
+      },
+    },
+    actor_id: ACTOR,
+    idempotency_key: "engagement-signed-bytes",
+  });
+
+  assert.equal(engagement.signed_document_upload.content_sha256, serverHash);
+  assert.equal(engagement.signed_document_upload.byte_size, bytes.byteLength);
+  assert.equal(engagement.signed_document_upload.server_hash_recomputed, true);
+  assert.equal(engagement.signed_document_upload.bytes_included, false);
+  assert.equal(engagement.signed_document_upload.storage_pointer_ref_included, false);
+  assert.equal(Object.hasOwn(engagement.signed_document_upload, "bytes_base64"), false);
+  assert.equal(engagement.dms_upload.storage_receipt.sha256, serverHash);
+  const fileObject = dms.get({
+    tenant_id: TENANT,
+    model_type: "DmsFileObject",
+    file_object_id: engagement.signed_document_upload.dms_file_object_id,
+  });
+  const object = storage.getObject({ object_id: fileObject.vault_object_id });
+  assert.equal(object.sha256, serverHash);
+  assert.deepEqual(object.bytes, bytes);
 });
 
 test("G6 conflict memo ACL omits unauthorized memo body without leaking counts", () => {

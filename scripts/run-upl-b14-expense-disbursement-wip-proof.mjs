@@ -2,44 +2,41 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createFinanceRepository } from "../packages/billing/src/finance-repository.js";
-import { PERMISSION_CONTEXT_HEADER } from "../apps/api/src/permission-gate.js";
+import { findRegisteredAccountByUserId, highestPrivilegeRegisteredAccount, MATTER_VAULT_REGISTERED_TENANT_ID } from "../apps/api/src/matter-vault-account-registry.js";
 import { startApiServer } from "../apps/api/src/server.js";
+import { apiSessionHeaders } from "../apps/api/test/helpers/session.js";
 
 const ROOT = process.cwd();
 const ARTIFACT_DIR = join(ROOT, "artifacts", "manual-qa");
 const PROOF_PATH = join(ARTIFACT_DIR, "upl-b14-expense-disbursement-wip-proof.json");
-const TENANT = "tenant_upl_b14_expense_disbursement";
-const ACTOR = "user_upl_b14_finance";
-const PARTNER = "user_upl_b14_partner";
+const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
+const PARTNER_ACCOUNT = highestPrivilegeRegisteredAccount();
+const NON_PARTNER_ACCOUNT = findRegisteredAccountByUserId("user_amic_sypark") ?? PARTNER_ACCOUNT;
+const ACTOR = PARTNER_ACCOUNT.user_id;
+const NON_PARTNER = NON_PARTNER_ACCOUNT.user_id;
+const PARTNER = PARTNER_ACCOUNT.user_id;
 const MATTER = "matter_upl_b14_wip";
 const RATE_CARD_ID = "rate-upl-b14";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=upl_b14_finance_read&audit_hint_ref=upl_b14_api_proof`;
 
 mkdirSync(ARTIFACT_DIR, { recursive: true });
 
-function permissionContext(roleIds = ["finance_user"]) {
-  return JSON.stringify({
-    principal: { user_id: roleIds.includes("partner") ? PARTNER : ACTOR, tenant_id: TENANT, role_ids: roleIds },
-    rules: [{ id: `rule_upl_b14_${roleIds.join("_")}`, effect: "allow", action: "*" }],
-    object_acl: [],
-  });
-}
-
 async function apiJson(baseUrl, path, options = {}) {
+  const { account = PARTNER_ACCOUNT, ...requestOptions } = options;
   const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
-    ...(options.headers ?? {}),
+    ...(await apiSessionHeaders(baseUrl, account)),
+    ...(requestOptions.headers ?? {}),
   };
-  if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
-  const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
+  if (requestOptions.body && !headers["content-type"]) headers["content-type"] = "application/json";
+  const response = await fetch(`${baseUrl}${path}`, { ...requestOptions, headers });
   const body = await response.json();
   return { status: response.status, body };
 }
 
-async function postJson(baseUrl, path, body, roleIds = ["finance_user"]) {
+async function postJson(baseUrl, path, body, account = PARTNER_ACCOUNT) {
   return apiJson(baseUrl, path, {
     method: "POST",
-    headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext(roleIds) },
+    account,
     body: JSON.stringify(body),
   });
 }
@@ -96,14 +93,14 @@ try {
   });
 
   const nonPartnerApproval = await postJson(baseUrl, "/api/finance/time-entries/approve", {
-    ...commonBody("upl-b14-time-nonpartner"),
+    ...commonBody("upl-b14-time-nonpartner", NON_PARTNER),
     time_entry_id: "time_upl_b14",
-  });
+  }, NON_PARTNER_ACCOUNT);
 
   const approvedTime = await postJson(baseUrl, "/api/finance/time-entries/approve", {
     ...commonBody("upl-b14-time-approve", PARTNER),
     time_entry_id: "time_upl_b14",
-  }, ["partner"]);
+  }, PARTNER_ACCOUNT);
 
   const expense = await postJson(baseUrl, "/api/finance/expenses", {
     ...commonBody("upl-b14-expense"),

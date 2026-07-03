@@ -1,0 +1,258 @@
+{
+  "schema_version": "law-firm-os.wave1.upl_d11.hrx_self_service_session.v0.2",
+  "generated_at": "2026-07-03T08:22:03.012Z",
+  "tuw": "UPL-D-11",
+  "verdict": "PASS",
+  "production_ready_claim": false,
+  "tenant_id": "tenant_amic_matter_vault",
+  "signed_staff_actor": {
+    "user_id": "user_amic_yjlee",
+    "employee_id": "emp_amic_yjlee",
+    "email_hash": "4e1464e0aed5256e2b2072f66c7a02f138fe4db04652b0c4d3740ca64871beb2",
+    "role_ids": [
+      "lawos_staff"
+    ]
+  },
+  "api_results": {
+    "employees": {
+      "path": "employees",
+      "status": 200,
+      "outcome": "ok",
+      "safe_error_code": null,
+      "required_scope": null,
+      "employee_ids": [
+        "emp_amic_yjlee"
+      ]
+    },
+    "ownEmployee": {
+      "path": "ownEmployee",
+      "status": 200,
+      "outcome": "ok",
+      "safe_error_code": null,
+      "required_scope": null
+    },
+    "otherEmployee": {
+      "path": "otherEmployee",
+      "status": 403,
+      "outcome": "blocked",
+      "safe_error_code": "HRX_SELF_SERVICE_SCOPE_DENIED",
+      "required_scope": null,
+      "count_leak_prevented": true
+    },
+    "forgedOtherEmployee": {
+      "path": "forgedOtherEmployee",
+      "status": 403,
+      "outcome": "blocked",
+      "safe_error_code": "HRX_SELF_SERVICE_SCOPE_DENIED",
+      "required_scope": null,
+      "count_leak_prevented": true
+    },
+    "ownDocuments": {
+      "path": "ownDocuments",
+      "status": 200,
+      "outcome": "ok",
+      "safe_error_code": null,
+      "required_scope": null
+    },
+    "otherDocuments": {
+      "path": "otherDocuments",
+      "status": 403,
+      "outcome": "blocked",
+      "safe_error_code": "HRX_SELF_SERVICE_SCOPE_DENIED",
+      "required_scope": null,
+      "count_leak_prevented": true
+    },
+    "ownLeave": {
+      "path": "ownLeave",
+      "status": 200,
+      "outcome": "ok",
+      "safe_error_code": null,
+      "required_scope": null,
+      "balance_employee_id": "emp_amic_yjlee"
+    },
+    "otherLeave": {
+      "path": "otherLeave",
+      "status": 403,
+      "outcome": "blocked",
+      "safe_error_code": "HRX_SELF_SERVICE_SCOPE_DENIED",
+      "required_scope": null,
+      "count_leak_prevented": true
+    },
+    "ownAttendance": {
+      "path": "ownAttendance",
+      "status": 403,
+      "outcome": "blocked",
+      "safe_error_code": "HRX_AUTHZ_DENIED",
+      "required_scope": "hrx.attendance.read"
+    },
+    "otherAttendance": {
+      "path": "otherAttendance",
+      "status": 403,
+      "outcome": "blocked",
+      "safe_error_code": "HRX_AUTHZ_DENIED",
+      "required_scope": "hrx.attendance.read"
+    },
+    "compensation": {
+      "path": "compensation",
+      "status": 403,
+      "outcome": "blocked",
+      "safe_error_code": "HRX_AUTHZ_DENIED",
+      "required_scope": "hrx.compensation.read"
+    },
+    "audit": {
+      "path": "audit",
+      "status": 403,
+      "outcome": "blocked",
+      "safe_error_code": "HRX_AUTHZ_DENIED",
+      "required_scope": "hrx.audit.read"
+    }
+  },
+  "api_response_hashes": {
+    "employees": "86a316808b120f01a2f09ed03866866cec97f124a392535e2061b88baa7d356b",
+    "ownEmployee": "0a7a7d02e6e9ff0bc51a1ce0c75c5f40b61b9525044639e0e3283dfa5a1e514a",
+    "otherEmployee": "b89fd55245bf99201e44c0f29f258d04f96520a6bbda8f364ca5e4e0258138bc",
+    "forgedOtherEmployee": "c7c1df9afe60c74b51274d05dac9c0c34fe5421e6e31904803cd3ec7cb873be9",
+    "ownDocuments": "f18c3354a56f779bb23262727fbe2fb1917a0308e0b08cd39f37778689e88cc8",
+    "otherDocuments": "8ac5b4079a50befa8825c60baa3f549ab22138847212b20b6df64c2cc4b57baf",
+    "ownLeave": "389591b9aa28946588c9806b76dff8ab41ee7e0080da55f891accdbafc40e00e",
+    "otherLeave": "a32c4568b94294e8020f9f771c23ea74a939337b80e5925876f763cc38463318",
+    "ownAttendance": "1157fff85f24a973dc6d5ff6736fd4ede3a214750a3baba2145329c06ba51dd6",
+    "otherAttendance": "f02bb74c881c7dbc313ab5aa06a2e6fa547585e62a71a98960d24da86f76e8dd",
+    "compensation": "283843db1fb079074262c9ad9a3694df993e1de94cd6ab49d01574ebb82318fa",
+    "audit": "2992d15662353ca332e20a00913c3cedf8fc6161f91c5a864c814aed5403422b"
+  },
+  "web_results": {
+    "screenshot": "artifacts/manual-qa/screenshots/upl-d11-hrx-self-service-session-proof.png",
+    "roster_text_hash": "ce9a6d3c456d14f93849ae1ce40e2791a24d281fb6fa72fcf0ef99673d71724c",
+    "contains_staff_display_name": true,
+    "contains_staff_email": true,
+    "contains_other_display_name": false,
+    "first_employee_request": {
+      "method": "GET",
+      "url_path": "/api/hrx/employees",
+      "has_authorization": true,
+      "has_permission_context": false,
+      "has_actor_header": false,
+      "has_role_header": false,
+      "has_scope_header": false
+    },
+    "hrx_request_count": 6,
+    "hrx_requests": [
+      {
+        "method": "GET",
+        "url_path": "/api/hrx/employees",
+        "has_authorization": true,
+        "has_permission_context": false,
+        "has_actor_header": false,
+        "has_role_header": false,
+        "has_scope_header": false
+      },
+      {
+        "method": "GET",
+        "url_path": "/api/hrx/employees",
+        "has_authorization": true,
+        "has_permission_context": false,
+        "has_actor_header": false,
+        "has_role_header": false,
+        "has_scope_header": false
+      },
+      {
+        "method": "GET",
+        "url_path": "/api/hrx/lifecycle/onboarding",
+        "has_authorization": true,
+        "has_permission_context": false,
+        "has_actor_header": false,
+        "has_role_header": false,
+        "has_scope_header": false
+      },
+      {
+        "method": "GET",
+        "url_path": "/api/hrx/lifecycle/offboarding",
+        "has_authorization": true,
+        "has_permission_context": false,
+        "has_actor_header": false,
+        "has_role_header": false,
+        "has_scope_header": false
+      },
+      {
+        "method": "GET",
+        "url_path": "/api/hrx/org-chart",
+        "has_authorization": true,
+        "has_permission_context": false,
+        "has_actor_header": false,
+        "has_role_header": false,
+        "has_scope_header": false
+      },
+      {
+        "method": "GET",
+        "url_path": "/api/hrx/employees",
+        "has_authorization": true,
+        "has_permission_context": false,
+        "has_actor_header": false,
+        "has_role_header": false,
+        "has_scope_header": false
+      }
+    ],
+    "page_errors": []
+  },
+  "leak_checks": {
+    "authorization_header_value_written": false,
+    "session_token_written": false,
+    "password_written": false,
+    "legacy_permission_context_sent": false,
+    "legacy_actor_header_sent": false
+  },
+  "checks": [
+    {
+      "id": "api_signed_staff_employee_list_self_only",
+      "passed": true
+    },
+    {
+      "id": "api_signed_staff_own_profile_success",
+      "passed": true
+    },
+    {
+      "id": "api_signed_staff_other_profile_403",
+      "passed": true
+    },
+    {
+      "id": "api_forged_actor_headers_do_not_expand_staff_scope",
+      "passed": true
+    },
+    {
+      "id": "api_signed_staff_own_documents_leave_success",
+      "passed": true
+    },
+    {
+      "id": "api_signed_staff_other_documents_leave_403",
+      "passed": true
+    },
+    {
+      "id": "api_signed_staff_ungranted_attendance_compensation_audit_scopes_denied",
+      "passed": true
+    },
+    {
+      "id": "web_hrx_request_uses_authorization_only",
+      "passed": true
+    },
+    {
+      "id": "web_hrx_visible_roster_self_only",
+      "passed": true
+    },
+    {
+      "id": "web_token_material_not_rendered",
+      "passed": true
+    },
+    {
+      "id": "web_no_page_errors",
+      "passed": true,
+      "evidence": {
+        "page_errors": []
+      }
+    }
+  ],
+  "commands": [
+    "node --test apps/api/test/session-auth-api.test.js",
+    "node scripts/run-upl-d11-hrx-self-service-session-proof.mjs"
+  ]
+}

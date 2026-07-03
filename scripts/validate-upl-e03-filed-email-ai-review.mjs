@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
@@ -22,6 +23,21 @@ function read(path) {
   return readFileSync(resolve(ROOT, path), "utf8");
 }
 
+function run(command, args) {
+  return new Promise((resolveRun) => {
+    const child = spawn(command, args, { stdio: ["ignore", "pipe", "pipe"] });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk;
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+    });
+    child.on("close", (status) => resolveRun({ status, stdout, stderr }));
+  });
+}
+
 for (const file of requiredFiles) {
   assert.equal(existsSync(resolve(ROOT, file)), true, `missing required file: ${file}`);
 }
@@ -30,10 +46,13 @@ const serviceSource = read("packages/matter/src/email-ai-matter-review-service.j
 const serviceTest = read("packages/matter/test/email-ai-matter-review-service.test.js");
 const matterIndex = read("packages/matter/src/index.js");
 const proofScript = read("scripts/run-upl-e03-filed-email-ai-review-proof.mjs");
+const executed = await run("node", ["scripts/run-upl-e03-filed-email-ai-review-proof.mjs"]);
+assert.equal(executed.status, 0, executed.stderr || executed.stdout);
 const artifact = JSON.parse(read("artifacts/manual-qa/upl-e03-filed-email-ai-review-proof.json"));
 
 for (const marker of [
   "FILED_EMAIL_AI_REVIEW_BOUNDARY",
+  "analysis_mode: \"rule_based_triage\"",
   "auto_create_matter_before_lawyer_approval: false",
   "pending_lawyer_approval",
   "createMatter(",
@@ -75,6 +94,8 @@ assert.equal(service.listMatters().length, 1);
 assert.equal(service.listTasks().length, 1);
 assert.equal(service.listDeadlines().length, 1);
 assert.equal(FILED_EMAIL_AI_REVIEW_BOUNDARY.auto_create_matter_before_lawyer_approval, false);
+assert.equal(FILED_EMAIL_AI_REVIEW_BOUNDARY.analysis_mode, "rule_based_triage");
+assert.equal(FILED_EMAIL_AI_REVIEW_BOUNDARY.external_model_claim, false);
 assert.equal(FILED_EMAIL_AI_REVIEW_BOUNDARY.lawyer_approval_required, true);
 assert.equal(FILED_EMAIL_AI_REVIEW_BOUNDARY.production_ready_claim, false);
 
@@ -83,6 +104,7 @@ assert.deepEqual(artifact.tuw_ids, ["UPL-E-03"]);
 assert.equal(artifact.production_ready_claim, false);
 assert.equal(artifact.go_live_claim, false);
 assert.equal(artifact.external_model_claim, false);
+assert.equal(artifact.analysis_mode, "rule_based_triage");
 assert.equal(artifact.before_approval.matter_count, 0);
 assert.equal(artifact.before_approval.task_count, 0);
 assert.equal(artifact.before_approval.deadline_count, 0);

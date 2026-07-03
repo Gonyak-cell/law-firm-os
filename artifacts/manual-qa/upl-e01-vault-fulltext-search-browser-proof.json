@@ -1,26 +1,33 @@
 {
-  "schema_version": "law-firm-os.upl-e01.vault-fulltext-search.browser-proof.v0.1",
-  "generated_at": "2026-07-02T17:18:13.247Z",
+  "schema_version": "law-firm-os.upl-e01.vault-fulltext-search.browser-proof.v0.2",
+  "generated_at": "2026-07-03T09:20:57.638Z",
   "verdict": "PASS",
-  "web_url": "http://127.0.0.1:5178",
-  "api_url": "http://127.0.0.1:4191",
-  "document_id": "doc_upl_e01_browser_1783012691799",
+  "web_url": "http://127.0.0.1:5201",
+  "api_url": "http://127.0.0.1:59616",
+  "document_id": "doc_upl_e01_browser_1783070454804",
   "query": "차임증액",
   "upload": {
     "status": 201,
     "outcome": "created",
     "search_index": {
-      "index_id": "idx:doc_upl_e01_browser_1783012691799",
+      "index_id": "idx:doc_upl_e01_browser_1783070454804",
       "body_text_indexed": true,
-      "search_backend": "sqlite_fts5_ready",
+      "ocr_text_indexed": false,
+      "ocr_runtime_executed": false,
+      "ocr_provider": null,
+      "search_backend": "json_substring_search",
       "raw_text_included": false,
       "storage_pointer_ref_included": false
     }
   },
   "direct_search": {
     "status": 200,
+    "search_backend": "json_substring_search",
     "returned_count": 1,
-    "matching_document_returned": true
+    "matching_document_returned": true,
+    "matching_fields": [
+      "body_text"
+    ]
   },
   "snapshot": {
     "marker_present": true,
@@ -32,31 +39,113 @@
     "hidden_body_term_visible": false,
     "document_title_visible": true
   },
+  "observed_requests": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5201/api/vault/search?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe&q=%EC%B0%A8%EC%9E%84%EC%A6%9D%EC%95%A1",
+      "has_authorization": true,
+      "has_permission_context": false
+    }
+  ],
+  "page_errors": [],
+  "console_message_count": 2,
   "checks": [
     {
+      "id": "unsigned-forged-permission-context-blocked",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
+    {
       "id": "api-upload-created-index",
-      "passed": true
+      "passed": true,
+      "evidence": {
+        "status": 201,
+        "outcome": "created"
+      }
+    },
+    {
+      "id": "api-search-label-is-substring",
+      "passed": true,
+      "evidence": {
+        "search_backend": "json_substring_search"
+      }
     },
     {
       "id": "api-body-keyword-hit",
-      "passed": true
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "id": "api-does-not-return-body-term",
+      "passed": true,
+      "evidence": {}
     },
     {
       "id": "ui-search-rendered-hit",
-      "passed": true
+      "passed": true,
+      "evidence": {
+        "marker_present": true,
+        "state": "data",
+        "query": "차임증액",
+        "result_count": 1,
+        "raw_text_included": "false",
+        "body_match_label_visible": true,
+        "hidden_body_term_visible": false,
+        "document_title_visible": true
+      }
     },
     {
       "id": "ui-match-field-body-visible",
-      "passed": true
+      "passed": true,
+      "evidence": {}
     },
     {
       "id": "ui-does-not-render-hidden-body-term",
-      "passed": true
+      "passed": true,
+      "evidence": {}
     },
     {
       "id": "ui-raw-text-flag-false",
-      "passed": true
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "id": "browser-search-uses-signed-session",
+      "passed": true,
+      "evidence": {
+        "searchRequests": [
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5201/api/vault/search?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe&q=%EC%B0%A8%EC%9E%84%EC%A6%9D%EC%95%A1",
+            "has_authorization": true,
+            "has_permission_context": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "browser-search-sends-no-permission-context",
+      "passed": true,
+      "evidence": {
+        "searchRequests": [
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5201/api/vault/search?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe&q=%EC%B0%A8%EC%9E%84%EC%A6%9D%EC%95%A1",
+            "has_authorization": true,
+            "has_permission_context": false
+          }
+        ]
+      }
     }
   ],
-  "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/artifacts/manual-qa/upl-e01-vault-fulltext-search-browser-proof.png"
+  "screenshot": "artifacts/manual-qa/screenshots/upl-e01-vault-fulltext-search-browser-proof.png",
+  "boundary": {
+    "search_backend_claim": "json_substring_search",
+    "sqlite_fts5_claim": false,
+    "raw_body_text_written_to_artifact": false,
+    "session_token_written_to_artifact": false,
+    "permission_context_header_used": false
+  }
 }

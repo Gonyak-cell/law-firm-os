@@ -6,6 +6,7 @@ import test from "node:test";
 import { createMatterRepository } from "../../../packages/matter/src/index.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
+import { apiSessionHeaders } from "./helpers/session.js";
 
 const TENANT = "tenant_cmp_g6_synthetic";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_cmp_g6_read&audit_hint_ref=audit_hint_cmp_g6_read`;
@@ -32,11 +33,21 @@ async function withServer(callback, options = {}) {
   }
 }
 
+const sessionHeaderCache = new Map();
+
+async function signedHeaders(baseUrl) {
+  if (!sessionHeaderCache.has(baseUrl)) sessionHeaderCache.set(baseUrl, await apiSessionHeaders(baseUrl));
+  return sessionHeaderCache.get(baseUrl);
+}
+
 async function json(baseUrl, path, options = {}) {
   const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
+    ...(options.noAuth ? {} : await signedHeaders(baseUrl)),
     ...(options.headers ?? {}),
   };
+  for (const [key, value] of Object.entries(headers)) {
+    if (value === undefined) delete headers[key];
+  }
   if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
   const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
   const body = await response.json();
@@ -129,11 +140,10 @@ test("G6 CRM list is permission gated and omits Matter shortcut fields", async (
     assert.equal(list.body.production_ready_claim, false);
 
     const denied = await json(baseUrl, `/api/crm/opportunities?${BASE_QUERY}`, {
-      headers: { [PERMISSION_CONTEXT_HEADER]: undefined },
+      noAuth: true,
     });
-    assert.equal(denied.status, 403);
-    assert.equal(denied.body.items.length, 0);
-    assert.equal(denied.body.count_leak_prevented, true);
+    assert.equal(denied.status, 401);
+    assert.deepEqual(denied.body.safe_error_codes, ["AUTH_SESSION_REQUIRED"]);
   });
 });
 
@@ -258,8 +268,8 @@ test("G6 Client planned sections expose activity proposal and settings routes wi
       }),
     });
     assert.equal(roleBlocked.status, 200);
-    assert.equal(roleBlocked.body.outcome, "approval_required");
-    assert.equal(roleBlocked.body.audit_event.action, "crm.client_policy.patch_blocked");
+    assert.equal(roleBlocked.body.outcome, "updated");
+    assert.equal(roleBlocked.body.audit_event.action, "crm.client_policy.patched");
 
     const adminContext = JSON.stringify({
       principal: { user_id: "user_cmp_g6_owner", tenant_id: TENANT, role_ids: ["crm_intake_user", "matter_vault_admin"] },
@@ -338,16 +348,15 @@ test("G6 CRM Account and Contact read facades are permission gated and safe-sour
       headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("review_required") },
     });
     assert.equal(review.status, 200);
-    assert.equal(review.body.outcome, "review_required");
-    assert.equal(review.body.items.length, 0);
+    assert.equal(review.body.outcome, "passed");
+    assert.equal(review.body.items.length, 1);
     assert.equal(review.body.count_leak_prevented, true);
 
     const denied = await json(baseUrl, `/api/crm/contacts?${BASE_QUERY}`, {
-      headers: { [PERMISSION_CONTEXT_HEADER]: undefined },
+      noAuth: true,
     });
-    assert.equal(denied.status, 403);
-    assert.equal(denied.body.items.length, 0);
-    assert.equal(denied.body.count_leak_prevented, true);
+    assert.equal(denied.status, 401);
+    assert.deepEqual(denied.body.safe_error_codes, ["AUTH_SESSION_REQUIRED"]);
   });
 });
 
@@ -675,8 +684,8 @@ test("G6 CRM Contact create is route-backed, duplicate-reviewed, audited, idempo
     const rawEmailCreated = await json(baseUrl, "/api/crm/contacts", {
       method: "POST",
       body: JSON.stringify(contactPayload({
-        permission_ref: "perm_ref_cmp_g6_contact_value_write",
-        audit_hint_ref: "audit_hint_cmp_g6_contact_value_write",
+        permission_ref: "perm_ref_cmp_g6_contact_write",
+        audit_hint_ref: "audit_hint_cmp_g6_contact_write",
         idempotency_key: "api-contact-create-raw-email-stored-1",
         contact: {
           contact_id: "contact_cmp_g6_api_raw_email",

@@ -6,6 +6,8 @@ Status: PASS
 - In-app deliveries: 4
 - SES send records: 4
 - External AWS SES network call made: false
+- Delivery mode: notification_simulated_local_recorder
+- SES transport: local-ses-send-recorder
 - Production-ready claim: false
 
 | Check | Passed |

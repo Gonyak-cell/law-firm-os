@@ -1,13 +1,13 @@
 {
   "schema_version": "lawos.upl_a05.real_tenant_synthetic_residue_proof.v1",
-  "generated_at": "2026-07-03T02:17:41.780Z",
+  "generated_at": "2026-07-03T09:20:22.504Z",
   "tuw_ids": [
     "UPL-A-05"
   ],
   "pass": true,
   "production_ready_claim": false,
   "go_live_claim": false,
-  "api_base_url": "http://127.0.0.1:62168",
+  "api_base_url": "http://127.0.0.1:59526",
   "tenant_id": "tenant_amic_matter_vault",
   "source_ref": "amic_current_onedrive_folder_inventory_2026_07_01",
   "readback": {
@@ -112,7 +112,20 @@
     "residue_rows": [],
     "removed_name_hits": []
   },
+  "boundary": {
+    "signed_session_used": true,
+    "permission_context_header_used": false,
+    "forged_permission_context_status": 401,
+    "session_token_written_to_artifact": false
+  },
   "checks": [
+    {
+      "id": "a05-forged-permission-context-blocked",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
     {
       "id": "a05-api-readback-uses-registered-tenant",
       "passed": true,

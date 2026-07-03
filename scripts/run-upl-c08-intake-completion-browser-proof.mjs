@@ -1,383 +1,354 @@
 #!/usr/bin/env node
+import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { chromium } from "playwright";
+import { highestPrivilegeRegisteredAccount } from "../apps/api/src/matter-vault-account-registry.js";
+import { startApiServer } from "../apps/api/src/server.js";
+import { createVaultDmsRuntimeContext } from "../apps/api/src/vault-dms-runtime-context.js";
+import { createDmsRepository } from "../packages/dms/src/repository.js";
+import { createLocalStorageAdapter } from "../packages/dms/src/storage/local-storage-adapter.js";
+import { sha256Hex } from "../packages/dms/src/storage/storage-adapter.js";
+import { createIntakeRuntimeRepository } from "../packages/intake/src/runtime-repository.js";
+import { createMatterRepository } from "../packages/matter/src/index.js";
 
 const ROOT = process.cwd();
-const WEB = process.env.MATTER_UI_URL ?? "http://127.0.0.1:5173";
 const ARTIFACT_DIR = "docs/lazycodex/evidence/matter-web/artifacts";
 const SCREENSHOT_DIR = `${ARTIFACT_DIR}/upl-c08-screenshots`;
 const JSON_PATH = `${ARTIFACT_DIR}/upl-c08-intake-completion-browser-proof.json`;
 const MD_PATH = `${ARTIFACT_DIR}/upl-c08-intake-completion-browser-proof.md`;
-const SESSION_KEY = "lawos.session.envelope";
+const PROOF_PORT = 5208;
+const TENANT = "tenant_cmp_g6_synthetic";
+const ACCOUNT = highestPrivilegeRegisteredAccount();
+const SIGNED_PDF_BYTES = Buffer.from(
+  "JVBERi0xLjQKTGF3IEZpcm0gT1Mgc2lnbmVkIGVuZ2FnZW1lbnQgYnJvd3NlciBwcm9vZgolJUVPRgo=",
+  "base64",
+);
+const SIGNED_PDF_SHA256 = sha256Hex(SIGNED_PDF_BYTES);
 
-const TENANT = "tenant_upl_c08_intake_completion";
-const ACTOR = "user_upl_c08_intake_operator";
-const PARTY_ID = "party_upl_c08_new_client";
-const ACCOUNT_ID = "account_upl_c08_new_client";
-const OPPORTUNITY_ID = "opp_upl_c08_ui";
-const INTAKE_ID = "intake_upl_c08_ui";
-const CONFLICT_ID = "conflict_upl_c08_ui";
-const SNAPSHOT_HASH = "snapshot_upl_c08_ui";
-const CLEARANCE_ID = "clearance_upl_c08_ui";
-const MATTER_ID = "matter_upl_c08_ui";
+function sleep(ms) {
+  return new Promise((resolveSleep) => setTimeout(resolveSleep, ms));
+}
 
-const sessionEnvelope = {
-  schema_version: "law-firm-os.desktop-web-session-envelope.v0.1",
-  state: "signed_in",
-  session_ref: "desktop:user_upl_c08_intake:browser-proof",
-  source: "desktop_offline_login",
-  actor_ref: ACTOR,
-  tenant_refs: { default: TENANT, client: TENANT, matter: TENANT, vault: TENANT, crm: TENANT },
-  role_ids: ["crm_intake_user", "conflict_reviewer", "matter_runtime_user"],
-  scopes: ["client_read", "matter_read"],
-  review_state: "allow",
-  expires_at: "2999-12-31T23:59:59.000Z",
-};
+async function waitForHttp(url, timeoutMs = 30000) {
+  const startedAt = Date.now();
+  let lastError = null;
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      const response = await fetch(url);
+      if (response.status < 500) return response;
+    } catch (error) {
+      lastError = error;
+    }
+    await sleep(250);
+  }
+  throw lastError ?? new Error(`Timed out waiting for ${url}`);
+}
 
-let opportunity = null;
-let intakeRequest = null;
-let conflictCheck = null;
-let conflictDecision = null;
-let engagementRecord = null;
-let clearanceToken = null;
-let openedMatter = null;
+async function startVite(apiBaseUrl) {
+  const child = spawn("npm", ["--workspace", "apps/web", "run", "dev", "--", "--port", String(PROOF_PORT)], {
+    cwd: ROOT,
+    env: { ...process.env, LAWOS_WEB_API_PROXY_TARGET: apiBaseUrl },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  let stderr = "";
+  child.stderr.on("data", (chunk) => {
+    stderr += chunk;
+  });
+  await waitForHttp(`http://127.0.0.1:${PROOF_PORT}/?view=auth&authStep=login`);
+  return { child, stderr: () => stderr };
+}
+
+async function stopProcess(child) {
+  if (!child || child.killed) return;
+  child.kill("SIGTERM");
+  await Promise.race([
+    new Promise((resolveStop) => child.once("exit", resolveStop)),
+    sleep(3000).then(() => {
+      if (!child.killed) child.kill("SIGKILL");
+    }),
+  ]);
+}
 
 function proofUrl(hash) {
-  return `${WEB}/?locale=ko&view=clients&data=live&ctx=allow#${hash}`;
+  return `http://127.0.0.1:${PROOF_PORT}/?locale=ko&view=clients&data=live&ctx=allow#${hash}`;
 }
 
-function collectionBody(requestId, items = []) {
-  return {
-    request_id: requestId,
-    outcome: "passed",
-    items,
-    page_info: { limit: 25, has_more: false },
-    safe_error_codes: [],
-    audit_hint_ref: "upl_c08_browser_proof",
-    ui_state: items.length === 0 ? "empty" : null,
-    count_leak_prevented: true,
-    production_ready_claim: false,
-  };
+function check(id, passed, evidence = {}) {
+  return { id, passed: Boolean(passed), evidence };
 }
 
-function itemBody(requestId, item, extra = {}, status = 201) {
-  return {
-    request_id: requestId,
-    outcome: status === 200 ? "idempotent_replay" : "created",
-    item,
-    audit_event: { event_id: `audit:${requestId}`, action: "browser.proof", decision: "allow", production_ready_claim: false },
-    safe_error_codes: [],
-    audit_hint_ref: "upl_c08_browser_proof",
-    production_ready_claim: false,
-    ...extra,
-  };
+function sanitizePayload(value) {
+  if (Array.isArray(value)) return value.map((item) => sanitizePayload(item));
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value).map(([key, entry]) => {
+    if (/bytes_base64|content_base64|session_token|authorization/i.test(key)) return [key, "[redacted]"];
+    return [key, sanitizePayload(entry)];
+  }));
 }
 
-function createOpportunityBody(payload = {}) {
-  opportunity = {
-    ...payload.opportunity,
-    opportunity_id: OPPORTUNITY_ID,
-    tenant_id: TENANT,
-    party_id: payload.opportunity?.party_id ?? PARTY_ID,
-    display_name: payload.opportunity?.display_name ?? "신규 의뢰",
-    requested_scope_summary: payload.opportunity?.requested_scope_summary ?? "신규 의뢰 수임 검토",
-    stage: "new",
-    status: "active",
-    allowed_conversion_target: "IntakeRequest",
-    matter_id: null,
-    production_ready_claim: false,
-  };
-  return itemBody("upl-c08-opportunity-create", opportunity);
+function writeMarkdown(report) {
+  writeFileSync(
+    join(ROOT, MD_PATH),
+    [
+      "# UPL-C-08 Intake Completion Browser Proof",
+      "",
+      `- verdict: ${report.verdict}`,
+      `- url: ${report.url}`,
+      `- screenshot: ${report.screenshot}`,
+      `- api_runtime: ${report.api_runtime}`,
+      `- manual_input_count: ${report.observed.manual_input_count}`,
+      "",
+      "## Checks",
+      ...report.checks.map((item) => `- ${item.passed ? "PASS" : "FAIL"} ${item.id}`),
+      "",
+      "## Write Order",
+      ...report.observed.write_order.map((kind, index) => `- ${index + 1}. ${kind}`),
+      "",
+      "## Linkage",
+      `- opportunity_id: ${report.observed.linkage.opportunity_id}`,
+      `- intake_request_id: ${report.observed.linkage.intake_request_id}`,
+      `- clearance_token_id: ${report.observed.linkage.clearance_token_id}`,
+      `- matter_id: ${report.observed.linkage.matter_id}`,
+      "",
+    ].join("\n"),
+  );
 }
 
-function handoffBody() {
-  opportunity = {
-    ...opportunity,
-    stage: "intake_requested",
-    status: "active",
-    intake_request_id: INTAKE_ID,
-  };
-  intakeRequest = {
-    intake_request_id: INTAKE_ID,
-    tenant_id: TENANT,
-    opportunity_id: OPPORTUNITY_ID,
-    requesting_party_id: opportunity.party_id,
-    party_ids: [opportunity.party_id],
-    requested_scope_summary: opportunity.requested_scope_summary,
-    status: "open",
-    owner_user_id: ACTOR,
-    production_ready_claim: false,
-  };
-  return itemBody("upl-c08-handoff", intakeRequest, { opportunity });
-}
+const intakeRepository = createIntakeRuntimeRepository({ seedRecords: [] });
+const matterRepository = createMatterRepository({ seedRecords: [] });
+const dmsRepository = createDmsRepository();
+const dmsStorage = createLocalStorageAdapter({ adapter_id: "upl-c08-intake-completion-vault" });
+const dmsRuntime = createVaultDmsRuntimeContext({ repository: dmsRepository, storage: dmsStorage });
 
-function conflictCheckBody(payload = {}) {
-  conflictCheck = {
-    ...payload.conflict_check,
-    conflict_check_id: CONFLICT_ID,
-    tenant_id: TENANT,
-    intake_request_id: INTAKE_ID,
-    party_snapshot: { party_ids: [PARTY_ID] },
-    snapshot_hash: SNAPSHOT_HASH,
-    status: "snapshot_recorded",
-    production_ready_claim: false,
-  };
-  return itemBody("upl-c08-conflict-check", conflictCheck, {
-    conflict_search: {
-      conflict_search_id: "search_upl_c08_ui",
-      tenant_id: TENANT,
-      conflict_check_id: CONFLICT_ID,
-      normalized_terms: ["신규의뢰"],
-      generated_hit_ids: [],
-      caller_supplied_hit_count_ignored: true,
-      hit_count: 0,
-      raw_query_included: false,
-      status: "executed",
-      production_ready_claim: false,
-    },
-    conflict_hits: [],
-    hit_count: 0,
+mkdirSync(resolve(ROOT, SCREENSHOT_DIR), { recursive: true });
+
+let api = null;
+let vite = null;
+let browser = null;
+
+try {
+  const started = await startApiServer({
+    port: 0,
+    intakeRepository,
+    matterRepository,
+    dmsRuntime,
   });
-}
-
-function decisionBody() {
-  conflictDecision = {
-    conflict_decision_id: "decision_upl_c08_ui",
-    tenant_id: TENANT,
-    conflict_check_id: CONFLICT_ID,
-    conflict_hit_ids: [],
-    reviewer_id: ACTOR,
-    decision: "clear",
-    rationale: "ui_intake_completion_review",
-    status: "cleared",
-    production_ready_claim: false,
+  api = {
+    ...started,
+    baseUrl: `http://${started.host}:${started.port}`,
+    close: () => new Promise((resolveClose) => started.server.close(resolveClose)),
   };
-  conflictCheck = { ...conflictCheck, status: "cleared", reviewer_id: ACTOR, review_decision: "clear" };
-  return itemBody("upl-c08-decision", conflictDecision, {
-    conflict_decision: conflictDecision,
-    conflict_check: conflictCheck,
-    conflict_hits: [],
-    clearance_link_ready: true,
-  });
-}
-
-function engagementBody(payload = {}) {
-  const engagement = payload.engagement ?? {};
-  engagementRecord = {
-    engagement_id: engagement.engagement_id,
-    tenant_id: TENANT,
-    intake_request_id: INTAKE_ID,
-    template_id: engagement.template_id,
-    template_document_id: engagement.template_document?.template_document_id,
-    signed_document_id: engagement.signed_document_id,
-    signature_ref: engagement.signature_ref,
-    signed_document_upload_id: engagement.signed_document_upload?.signed_document_upload_id,
-    signed_upload_verified: true,
-    status: "approved",
-    production_ready_claim: false,
-  };
-  return itemBody("upl-c08-engagement", engagementRecord, {
-    outcome: "approved",
-    engagement: engagementRecord,
-    engagement_ready: true,
-    template_document_id: engagementRecord.template_document_id,
-    signed_document_id: engagementRecord.signed_document_id,
-    signed_document_upload_id: engagementRecord.signed_document_upload_id,
-    signed_upload_verified: true,
-  });
-}
-
-function clearanceBody(payload = {}) {
-  clearanceToken = {
-    ...payload.token,
-    clearance_token_id: CLEARANCE_ID,
-    tenant_id: TENANT,
-    intake_request_id: INTAKE_ID,
-    conflict_check_id: CONFLICT_ID,
-    engagement_id: engagementRecord?.engagement_id,
-    snapshot_hash: SNAPSHOT_HASH,
-    token_state: "active",
-    status: "active",
-    conflict_review_satisfied: true,
-    engagement_review_satisfied: true,
-    production_ready_claim: false,
-  };
-  return itemBody("upl-c08-clearance", clearanceToken, {
-    validation: { valid: true, errors: [], token_state: "active", production_ready_claim: false },
-    conflict_review: { review_satisfied: true, reason: "clear_decision_recorded", conflict_check_id: CONFLICT_ID, hit_count: 0 },
-    engagement_review: { engagement_satisfied: true, reason: "approved_engagement_recorded", engagement_id: engagementRecord?.engagement_id },
-  });
-}
-
-function matterOpeningBody(payload = {}) {
-  openedMatter = {
-    ...payload.matter,
-    matter_id: MATTER_ID,
-    tenant_id: TENANT,
-    intake_request_id: INTAKE_ID,
-    clearance_token_id: payload.clearance_token?.clearance_token_id,
-    matter_number: "CMP-G6-INTAKE-0001",
-    status: "opening",
-    production_ready_claim: false,
-  };
-  return itemBody("upl-c08-matter-opening", openedMatter, {
-    matter: openedMatter,
-  });
-}
-
-async function fulfillJson(route, body, status = 200) {
-  await route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
-}
-
-async function run() {
-  mkdirSync(join(ROOT, SCREENSHOT_DIR), { recursive: true });
-  const browser = await chromium.launch({ headless: true });
+  vite = await startVite(api.baseUrl);
+  browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1180 } });
   const writes = [];
+  const apiRequests = [];
   const consoleEvents = [];
   const failedRequests = [];
+  const pageErrors = [];
 
+  page.on("pageerror", (error) => pageErrors.push(String(error)));
   page.on("console", (message) => {
     if (["error", "warning"].includes(message.type())) consoleEvents.push({ type: message.type(), text: message.text() });
   });
-  page.on("requestfailed", (request) => failedRequests.push({ url: request.url(), failure: request.failure()?.errorText ?? "request_failed" }));
-  await page.addInitScript(({ key, value }) => window.localStorage.setItem(key, JSON.stringify(value)), { key: SESSION_KEY, value: sessionEnvelope });
-
-  await page.route("**/api/**", (route) => fulfillJson(route, collectionBody("upl-c08-empty", [])));
-  await page.route("**/master-data/**", (route) => fulfillJson(route, collectionBody("upl-c08-master-empty", [])));
-  await page.route("**/api/crm/accounts?**", (route) =>
-    fulfillJson(route, collectionBody("upl-c08-accounts", [{
-      account_id: ACCOUNT_ID,
-      tenant_id: TENANT,
-      party_id: PARTY_ID,
-      display_name: "신규 의뢰 고객",
-      status: "active",
-      production_ready_claim: false,
-    }])),
-  );
-  await page.route("**/api/crm/opportunities?**", (route) =>
-    fulfillJson(route, collectionBody("upl-c08-opportunities", opportunity ? [opportunity] : [])),
-  );
-  await page.route("**/api/intake/requests**", (route) =>
-    fulfillJson(route, collectionBody("upl-c08-intake-list", intakeRequest ? [intakeRequest] : [])),
-  );
-  await page.route("**/api/intake/audit**", (route) => fulfillJson(route, collectionBody("upl-c08-audit", [])));
-  await page.route("**/api/crm/opportunities", async (route, request) => {
-    const payload = request.postDataJSON();
-    writes.push({ kind: "opportunity", payload });
-    await fulfillJson(route, createOpportunityBody(payload), 201);
+  page.on("requestfailed", (request) => {
+    const failure = request.failure()?.errorText ?? "request_failed";
+    if (failure === "net::ERR_ABORTED") return;
+    failedRequests.push({ url: request.url(), failure });
   });
-  await page.route("**/api/crm/opportunities/*/handoff", async (route, request) => {
-    const payload = request.postDataJSON();
-    writes.push({ kind: "handoff", payload });
-    await fulfillJson(route, handoffBody(), 201);
-  });
-  await page.route("**/api/intake/conflict-checks", async (route, request) => {
-    const payload = request.postDataJSON();
-    writes.push({ kind: "conflict_check", payload });
-    await fulfillJson(route, conflictCheckBody(payload), 201);
-  });
-  await page.route("**/api/intake/conflict-decisions", async (route, request) => {
-    const payload = request.postDataJSON();
-    writes.push({ kind: "decision", payload });
-    await fulfillJson(route, decisionBody(), 201);
-  });
-  await page.route("**/api/intake/engagements", async (route, request) => {
-    const payload = request.postDataJSON();
-    writes.push({ kind: "engagement", payload });
-    await fulfillJson(route, engagementBody(payload), 201);
-  });
-  await page.route("**/api/intake/clearance-tokens", async (route, request) => {
-    const payload = request.postDataJSON();
-    writes.push({ kind: "clearance", payload });
-    await fulfillJson(route, clearanceBody(payload), 201);
-  });
-  await page.route("**/api/matters/openings", async (route, request) => {
-    const payload = request.postDataJSON();
-    writes.push({ kind: "matter_opening", payload });
-    await fulfillJson(route, matterOpeningBody(payload), 201);
+  page.on("request", (request) => {
+    if (!request.url().includes("/api/")) return;
+    const observed = {
+      method: request.method(),
+      url: request.url(),
+      has_authorization: Boolean(request.headers().authorization),
+      has_permission_context: "x-lawos-permission-context" in request.headers(),
+    };
+    apiRequests.push(observed);
+    const routeMap = [
+      ["/api/crm/opportunities", "opportunity"],
+      ["/api/crm/opportunities/", "handoff"],
+      ["/api/intake/conflict-checks", "conflict_check"],
+      ["/api/intake/conflict-decisions", "decision"],
+      ["/api/intake/engagements", "engagement"],
+      ["/api/intake/clearance-tokens", "clearance"],
+      ["/api/matters/openings", "matter_opening"],
+    ];
+    const match = routeMap.find(([needle, kind]) => {
+      if (request.method() !== "POST") return false;
+      if (kind === "opportunity") return request.url().endsWith("/api/crm/opportunities");
+      if (kind === "handoff") return request.url().includes(needle) && request.url().endsWith("/handoff");
+      return request.url().includes(needle);
+    });
+    if (match) writes.push({ ...observed, kind: match[1], payload: sanitizePayload(request.postDataJSON()) });
   });
 
-  await page.goto(proofUrl("client-intake"), { waitUntil: "domcontentloaded" });
+  await page.goto(`http://127.0.0.1:${PROOF_PORT}/?locale=ko&view=auth&authStep=login&ctx=allow`, { waitUntil: "networkidle" });
+  await page.locator("[data-login-email]").fill(ACCOUNT.email);
+  await page.locator("[data-login-password]").fill(ACCOUNT.local_dev.synthetic_token);
+  await page.locator("[data-login-form='email-password'] button[type='submit']").click();
+  await page.waitForURL(/view=home/, { timeout: 15000 });
+
+  await page.goto(proofUrl("client-intake"), { waitUntil: "networkidle" });
   const surface = page.locator("[data-upl-c08-intake-completion-surface='true']");
   await surface.waitFor({ state: "visible", timeout: 15000 });
   const manualInputCount = await surface.locator("input, textarea").count();
-  await surface.getByRole("button", { name: "의뢰 접수" }).click();
+
+  await Promise.all([
+    page.waitForResponse((response) => response.url().includes("/api/crm/opportunities/") && response.url().endsWith("/handoff") && response.request().method() === "POST"),
+    surface.getByRole("button", { name: "의뢰 접수" }).click(),
+  ]);
   await surface.getByText("신규 의뢰가 인테이크로 접수되었습니다.").waitFor({ state: "visible", timeout: 15000 });
+
   const actionPanel = page.locator("[data-intake-matter-opening-flow='true']");
-  await actionPanel.getByRole("button", { name: "이해상충 검토" }).click();
+  await Promise.all([
+    page.waitForResponse((response) => response.url().includes("/api/intake/conflict-checks") && response.request().method() === "POST"),
+    actionPanel.getByRole("button", { name: "이해상충 검토" }).click(),
+  ]);
   await page.locator("[data-intake-conflict-hit-list='true']").getByText("히트 없음", { exact: true }).waitFor({ state: "visible", timeout: 15000 });
-  await actionPanel.getByRole("button", { name: "검토 결정" }).click();
+
+  await Promise.all([
+    page.waitForResponse((response) => response.url().includes("/api/intake/conflict-decisions") && response.request().method() === "POST"),
+    actionPanel.getByRole("button", { name: "검토 결정" }).click(),
+  ]);
   await actionPanel.getByText("검토 결정이 기록되었습니다.").waitFor({ state: "visible", timeout: 15000 });
-  await actionPanel.getByRole("button", { name: "수임 승인" }).click();
+
+  await Promise.all([
+    page.waitForResponse((response) => response.url().includes("/api/intake/engagements") && response.request().method() === "POST"),
+    actionPanel.getByRole("button", { name: "수임 승인" }).click(),
+  ]);
   await actionPanel.getByText("수임 승인 완료.").waitFor({ state: "visible", timeout: 15000 });
-  await actionPanel.getByRole("button", { name: "통과 처리" }).click();
+
+  await Promise.all([
+    page.waitForResponse((response) => response.url().includes("/api/intake/clearance-tokens") && response.request().method() === "POST"),
+    actionPanel.getByRole("button", { name: "통과 처리" }).click(),
+  ]);
   await actionPanel.getByText("통과 처리되었습니다.").waitFor({ state: "visible", timeout: 15000 });
-  await actionPanel.getByRole("button", { name: "Matter 개설" }).click();
+
+  await Promise.all([
+    page.waitForResponse((response) => response.url().includes("/api/matters/openings") && response.request().method() === "POST"),
+    actionPanel.getByRole("button", { name: "Matter 개설" }).click(),
+  ]);
   await actionPanel.getByText("Matter가 개설되었습니다.").waitFor({ state: "visible", timeout: 15000 });
 
   const surfaceText = await surface.innerText();
   const screenshot = join(ROOT, SCREENSHOT_DIR, "upl-c08-intake-completion.png");
   await page.screenshot({ path: screenshot, fullPage: true });
-  await browser.close();
-
+  const pageText = await page.locator("body").innerText();
   const writeOrder = writes.map((write) => write.kind);
   const opportunityWrite = writes.find((write) => write.kind === "opportunity");
   const handoffWrite = writes.find((write) => write.kind === "handoff");
   const conflictWrite = writes.find((write) => write.kind === "conflict_check");
+  const decisionWrite = writes.find((write) => write.kind === "decision");
+  const engagementWrite = writes.find((write) => write.kind === "engagement");
   const clearanceWrite = writes.find((write) => write.kind === "clearance");
   const matterWrite = writes.find((write) => write.kind === "matter_opening");
+  const opportunityId = opportunityWrite?.payload?.opportunity?.opportunity_id;
+  const createdPartyId = opportunityWrite?.payload?.opportunity?.party_id;
+  const intakeRequestId = handoffWrite?.payload?.intake_request_id;
+  const conflictCheckId = conflictWrite?.payload?.conflict_check?.conflict_check_id;
+  const engagement = engagementWrite?.payload?.engagement ?? {};
+  const upload = engagement.signed_document_upload ?? {};
+  const clearanceTokenId = clearanceWrite?.payload?.token?.clearance_token_id;
+  const matterId = matterWrite?.payload?.matter?.matter_id;
+  const storedIntake = intakeRepository.get({ tenant_id: TENANT, model_type: "IntakeRequest", intake_request_id: intakeRequestId });
+  const storedConflict = intakeRepository.get({ tenant_id: TENANT, model_type: "ConflictCheck", conflict_check_id: conflictCheckId });
+  const storedConflictHitCount = intakeRepository
+    .list({ tenant_id: TENANT, model_type: "ConflictHit" })
+    .filter((hit) => hit.conflict_check_id === conflictCheckId).length;
+  const storedUpload = intakeRepository.get({
+    tenant_id: TENANT,
+    model_type: "EngagementSignedDocumentUpload",
+    signed_document_upload_id: upload.signed_document_upload_id,
+  });
+  const storedDmsFileObject = storedUpload?.dms_file_object_id
+    ? dmsRepository.get({ tenant_id: TENANT, model_type: "DmsFileObject", file_object_id: storedUpload.dms_file_object_id })
+    : null;
+  const storedObject = storedDmsFileObject?.vault_object_id
+    ? dmsStorage.getObject({ object_id: storedDmsFileObject.vault_object_id })
+    : null;
+  const storedMatter = matterRepository.get({ tenant_id: TENANT, model_type: "Matter", matter_id: matterId });
   const checks = [
-    {
-      id: "intake-surface-mounted-with-new-inquiry-action",
-      passed: surfaceText.includes("신규 의뢰 접수") && surfaceText.includes("인테이크") && manualInputCount === 0,
-    },
-    {
-      id: "ui-drives-full-intake-to-matter-write-order",
-      passed: JSON.stringify(writeOrder) === JSON.stringify(["opportunity", "handoff", "conflict_check", "decision", "engagement", "clearance", "matter_opening"]),
-    },
-    {
-      id: "opportunity-does-not-shortcut-to-matter",
-      passed:
-        opportunityWrite?.payload?.opportunity?.party_id === PARTY_ID &&
+    check(
+      "intake-surface-mounted-with-new-inquiry-action",
+      surfaceText.includes("신규 의뢰 접수") && surfaceText.includes("인테이크") && manualInputCount === 0,
+      { manual_input_count: manualInputCount },
+    ),
+    check(
+      "ui-drives-full-intake-to-matter-write-order",
+      JSON.stringify(writeOrder) === JSON.stringify(["opportunity", "handoff", "conflict_check", "decision", "engagement", "clearance", "matter_opening"]),
+      { write_order: writeOrder },
+    ),
+    check(
+      "opportunity-does-not-shortcut-to-matter",
+      typeof createdPartyId === "string" &&
         opportunityWrite?.payload?.opportunity?.display_name === "신규 의뢰" &&
         opportunityWrite?.payload?.opportunity?.matter_id === undefined &&
         opportunityWrite?.payload?.opportunity?.matter_open_command === undefined,
-    },
-    {
-      id: "handoff-creates-active-intake-context",
-      passed: handoffWrite?.payload?.intake_request_id && intakeRequest?.intake_request_id === INTAKE_ID && intakeRequest?.opportunity_id === OPPORTUNITY_ID,
-    },
-    {
-      id: "conflict-clearance-uses-created-intake",
-      passed:
-        conflictWrite?.payload?.conflict_check?.intake_request_id === INTAKE_ID &&
-        conflictWrite?.payload?.conflict_check?.party_snapshot?.party_ids?.includes(PARTY_ID) &&
-        clearanceWrite?.payload?.token?.intake_request_id === INTAKE_ID &&
-        clearanceWrite?.payload?.token?.snapshot_hash === SNAPSHOT_HASH,
-    },
-    {
-      id: "matter-opening-uses-clearance-token",
-      passed:
+      { opportunity_id: opportunityId, party_id: createdPartyId },
+    ),
+    check(
+      "handoff-creates-active-intake-context",
+      typeof intakeRequestId === "string" &&
+        storedIntake?.opportunity_id === opportunityId &&
+        storedIntake?.requesting_party_id === createdPartyId &&
+        storedIntake?.status === "open",
+      { intake_request_id: intakeRequestId },
+    ),
+    check(
+      "conflict-decision-clearance-use-created-intake",
+      conflictWrite?.payload?.conflict_check?.intake_request_id === intakeRequestId &&
+        conflictWrite?.payload?.conflict_check?.party_snapshot?.party_ids?.includes(createdPartyId) &&
+        storedConflictHitCount === 0 &&
+        decisionWrite?.payload?.conflict_decision?.conflict_check_id === conflictCheckId &&
+        clearanceWrite?.payload?.token?.intake_request_id === intakeRequestId &&
+        clearanceWrite?.payload?.token?.snapshot_hash === storedConflict?.snapshot_hash,
+      { conflict_check_id: conflictCheckId, snapshot_hash: storedConflict?.snapshot_hash },
+    ),
+    check(
+      "engagement-upload-stored-through-dms-before-clearance",
+      upload.content_sha256 === SIGNED_PDF_SHA256 &&
+        upload.bytes_base64 === "[redacted]" &&
+        storedUpload?.content_sha256 === SIGNED_PDF_SHA256 &&
+        storedUpload?.server_hash_recomputed === true &&
+        storedDmsFileObject?.sha256 === SIGNED_PDF_SHA256 &&
+        storedObject?.sha256 === SIGNED_PDF_SHA256 &&
+        Buffer.isBuffer(storedObject?.bytes) &&
+        storedObject.bytes.equals(SIGNED_PDF_BYTES),
+      { signed_document_upload_id: upload.signed_document_upload_id },
+    ),
+    check(
+      "matter-opening-uses-issued-clearance-token",
         matterWrite?.payload?.permission_ref === "ui_cmp_g6_intake_matter_open" &&
-        matterWrite?.payload?.clearance_token?.clearance_token_id === CLEARANCE_ID &&
-        matterWrite?.payload?.matter?.legal_client_party_id === PARTY_ID,
-    },
-    {
-      id: "completion-success-rendered",
-      passed: surfaceText.includes("Matter가 개설되었습니다.") && surfaceText.includes("통과 처리되었습니다."),
-    },
-    {
-      id: "browser-proof-clean",
-      passed: consoleEvents.length === 0 && failedRequests.length === 0,
-    },
+        matterWrite?.payload?.clearance_token?.clearance_token_id === clearanceTokenId &&
+        matterWrite?.payload?.clearance_token?.intake_request_id === intakeRequestId &&
+        matterWrite?.payload?.matter?.legal_client_party_id === createdPartyId &&
+        storedMatter?.matter_id === matterId,
+      { clearance_token_id: clearanceTokenId, matter_id: matterId },
+    ),
+    check(
+      "completion-success-rendered",
+      surfaceText.includes("Matter가 개설되었습니다.") && surfaceText.includes("통과 처리되었습니다."),
+    ),
+    check(
+      "browser-uses-signed-session-without-legacy-permission-context",
+      writes.every((write) => write.has_authorization === true) && apiRequests.every((request) => request.has_permission_context === false),
+      { api_request_count: apiRequests.length },
+    ),
+    check(
+      "browser-proof-clean",
+      consoleEvents.length === 0 && failedRequests.length === 0 && pageErrors.length === 0,
+      { console_events: consoleEvents.length, failed_requests: failedRequests.length, page_errors: pageErrors.length },
+    ),
+    check("no-session-token-or-raw-bytes-rendered", !pageText.includes("lawos_session_v1.") && !pageText.includes(SIGNED_PDF_BYTES.toString("base64"))),
   ];
   const report = {
-    schema_version: "law-firm-os.upl-c08.browser-proof.v0.1",
+    schema_version: "law-firm-os.upl-c08.browser-proof.v0.2",
     generated_at: new Date().toISOString(),
     verdict: checks.every((item) => item.passed) ? "PASS" : "FAIL",
     contract_ref: "UPL-C-08",
+    api_runtime: "startApiServer+empty-intake-matter-repositories+dms-storage",
     url: proofUrl("client-intake"),
     screenshot,
     checks,
@@ -386,32 +357,35 @@ async function run() {
       writes,
       manual_input_count: manualInputCount,
       surface_text: surfaceText,
-      opened_matter: openedMatter,
+      linkage: {
+        opportunity_id: opportunityId,
+        party_id: createdPartyId,
+        intake_request_id: intakeRequestId,
+        conflict_check_id: conflictCheckId,
+        engagement_id: engagement.engagement_id,
+        signed_document_upload_id: upload.signed_document_upload_id,
+        clearance_token_id: clearanceTokenId,
+        matter_id: matterId,
+      },
+      stored_readback: {
+        intake_status: storedIntake?.status,
+        conflict_hit_count: storedConflictHitCount,
+        dms_file_object_sha256: storedDmsFileObject?.sha256,
+        downloaded_sha256: storedObject?.sha256,
+        matter_status: storedMatter?.status,
+        bytes_written_to_artifact: false,
+      },
       console_events: consoleEvents,
       failed_requests: failedRequests,
+      page_errors: pageErrors,
     },
   };
   writeFileSync(join(ROOT, JSON_PATH), `${JSON.stringify(report, null, 2)}\n`);
-  writeFileSync(
-    join(ROOT, MD_PATH),
-    [
-      "# UPL-C-08 Intake Completion Browser Proof",
-      "",
-      `- verdict: ${report.verdict}`,
-      `- url: ${report.url}`,
-      `- screenshot: ${screenshot}`,
-      `- manual_input_count: ${manualInputCount}`,
-      "",
-      "## Checks",
-      ...checks.map((check) => `- ${check.passed ? "PASS" : "FAIL"} ${check.id}`),
-      "",
-      "## Write Order",
-      ...writeOrder.map((kind, index) => `- ${index + 1}. ${kind}`),
-      "",
-    ].join("\n"),
-  );
+  writeMarkdown(report);
   console.log(JSON.stringify({ verdict: report.verdict, proof: JSON_PATH, screenshot }, null, 2));
   if (report.verdict !== "PASS") process.exit(1);
+} finally {
+  if (browser) await browser.close().catch(() => {});
+  if (vite) await stopProcess(vite.child);
+  if (api) await api.close().catch(() => {});
 }
-
-await run();

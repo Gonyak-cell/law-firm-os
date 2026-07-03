@@ -51,6 +51,7 @@ for (const route of [
   ["POST", "/api/hrx/risks/hrx-risk:employment_contract_missing:emp-001:current/transition"],
   ["POST", "/api/hrx/overtime/ot-001/approve"],
   ["GET", "/api/hrx/compensation"],
+  ["GET", "/api/hrx/compensation/comp-001/decrypt"],
   ["GET", "/api/hrx/legal-people/search"],
   ["GET", "/api/hrx/legal-people/person_client_contact_001"],
   ["GET", "/api/hrx/legal-people/relationships"],

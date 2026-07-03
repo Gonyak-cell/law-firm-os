@@ -22,6 +22,13 @@ const HRX_ATTORNEY_SCOPES = Object.freeze([
 const HRX_HR_SCOPES = Object.freeze([
   ...HRX_ATTORNEY_SCOPES,
   "hrx.employee.write",
+  "hrx.document.write",
+  "hrx.attendance.read",
+  "hrx.attendance.write",
+  "hrx.overtime.read",
+  "hrx.overtime.write",
+  "hrx.risk.read",
+  "hrx.risk.write",
   "hrx.candidate.read",
   "hrx.candidate.write",
   "hrx.lifecycle.read",

@@ -246,7 +246,7 @@ function principalHasRole(context, allowedRoles = []) {
 }
 
 function partnerApprovalGate({ context, query, requestId, runtime, action, resourceType }) {
-  if (principalHasRole(context, ["partner", "finance_partner", "admin", "administrator"])) return null;
+  if (principalHasRole(context, ["partner", "finance_partner", "lawos_partner", "managing_partner", "tenant_owner", "system_super_admin", "admin", "administrator"])) return null;
   appendFinanceRouteAudit({
     repository: runtime.repository,
     context,

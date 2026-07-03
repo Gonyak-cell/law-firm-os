@@ -2,15 +2,19 @@
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { PERMISSION_CONTEXT_HEADER } from "../apps/api/src/permission-gate.js";
+import { findRegisteredAccountByUserId, highestPrivilegeRegisteredAccount, MATTER_VAULT_REGISTERED_TENANT_ID } from "../apps/api/src/matter-vault-account-registry.js";
 import { startApiServer } from "../apps/api/src/server.js";
+import { apiSessionHeaders } from "../apps/api/test/helpers/session.js";
 
 const ROOT = process.cwd();
 const ARTIFACT_DIR = join(ROOT, "artifacts", "manual-qa");
 const JSON_PATH = join(ARTIFACT_DIR, "upl-c07-contact-raw-values-proof.json");
 const MD_PATH = join(ARTIFACT_DIR, "upl-c07-contact-raw-values-proof.md");
-const TENANT = "tenant_upl_c07_contact_values";
-const ACTOR = "user_upl_c07_operator";
+const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
+const VALUE_READER_ACCOUNT = highestPrivilegeRegisteredAccount();
+const CONTACT_OPERATOR_ACCOUNT = findRegisteredAccountByUserId("user_amic_tryoon") ?? VALUE_READER_ACCOUNT;
+const MASKED_READER_ACCOUNT = CONTACT_OPERATOR_ACCOUNT;
+const ACTOR = CONTACT_OPERATOR_ACCOUNT.user_id;
 const EMAIL_CONTACT_ID = "contact_upl_c07_raw_email";
 const PHONE_CONTACT_ID = "contact_upl_c07_raw_phone";
 const EMAIL_VALUE = "contact.raw.uplc07@example.invalid";
@@ -18,27 +22,14 @@ const PHONE_VALUE = "+82 10-5555-0707";
 
 mkdirSync(ARTIFACT_DIR, { recursive: true });
 
-function permissionContext({ contactValueReader = false } = {}) {
-  return JSON.stringify({
-    principal: {
-      user_id: ACTOR,
-      tenant_id: TENANT,
-      role_ids: contactValueReader
-        ? ["crm_intake_user", "conflict_reviewer", "crm_contact_value_reader"]
-        : ["crm_intake_user", "conflict_reviewer"],
-    },
-    rules: [{ id: `rule_upl_c07_${contactValueReader ? "reader" : "masked"}`, effect: "allow", action: "*" }],
-    object_acl: [],
-  });
-}
-
 async function apiJson(baseUrl, path, options = {}) {
+  const { account = CONTACT_OPERATOR_ACCOUNT, ...requestOptions } = options;
   const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(options.context ?? {}),
-    ...(options.headers ?? {}),
+    ...(await apiSessionHeaders(baseUrl, account)),
+    ...(requestOptions.headers ?? {}),
   };
-  if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
-  const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
+  if (requestOptions.body && !headers["content-type"]) headers["content-type"] = "application/json";
+  const response = await fetch(`${baseUrl}${path}`, { ...requestOptions, headers });
   return { status: response.status, body: await response.json() };
 }
 
@@ -103,11 +94,12 @@ await withServer(async (baseUrl) => {
   const maskedList = await apiJson(
     baseUrl,
     `/api/crm/contacts?tenant_id=${TENANT}&permission_ref=upl_c07_contact_read&audit_hint_ref=upl_c07_masked_read_probe`,
+    { account: MASKED_READER_ACCOUNT },
   );
   const visibleList = await apiJson(
     baseUrl,
     `/api/crm/contacts?tenant_id=${TENANT}&permission_ref=upl_c07_contact_value_read&audit_hint_ref=upl_c07_visible_read_probe`,
-    { context: { contactValueReader: true } },
+    { account: VALUE_READER_ACCOUNT },
   );
   const maskedEmail = contactById(maskedList, EMAIL_CONTACT_ID);
   const maskedPhone = contactById(maskedList, PHONE_CONTACT_ID);
@@ -212,7 +204,7 @@ await withServer(async (baseUrl) => {
   const visibleAfterRestart = await apiJson(
     baseUrl,
     `/api/crm/contacts?tenant_id=${TENANT}&permission_ref=upl_c07_contact_value_read&audit_hint_ref=upl_c07_restart_read_probe`,
-    { context: { contactValueReader: true } },
+    { account: VALUE_READER_ACCOUNT },
   );
   const restartedEmail = contactById(visibleAfterRestart, EMAIL_CONTACT_ID);
   const restartedPhone = contactById(visibleAfterRestart, PHONE_CONTACT_ID);
