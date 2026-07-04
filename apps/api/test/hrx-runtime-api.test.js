@@ -802,10 +802,46 @@ test("POST sign expire /api/hrx/documents wires employment contract lifecycle an
   const afterExpiry = await json("/api/hrx/documents/expiring?employee_id=emp_amic_ytkim&as_of=2026-07-02&days=30");
   assert.equal(afterExpiry.status, 200);
   assert.ok(!afterExpiry.body.documents.some((document) => document.document_id === "doc-api-contract-001"));
+
+  const renewalCandidate = await json("/api/hrx/documents", {
+    method: "POST",
+    body: JSON.stringify({
+      document_id: "doc-api-contract-002",
+      employee_id: "emp_amic_ytkim",
+      title: "근로계약서 갱신",
+      source_ref: "DMS:employment-contract-api-002",
+      contract_id: "contract-api-002",
+      expires_on: "2026-07-25",
+    }),
+  });
+  assert.equal(renewalCandidate.status, 201);
+  const signedRenewal = await json("/api/hrx/documents/doc-api-contract-002/sign", {
+    method: "POST",
+    body: JSON.stringify({
+      signature_ref: "DMS:employment-contract-api-002:signed",
+      signed_at: "2026-07-02T00:00:00.000Z",
+    }),
+  });
+  assert.equal(signedRenewal.status, 200);
+  const renewed = await json("/api/hrx/documents/doc-api-contract-002/renew", {
+    method: "POST",
+    body: JSON.stringify({ expires_on: "2026-08-25" }),
+  });
+  assert.equal(renewed.status, 200);
+  assert.equal(renewed.body.document.contract_state, "renewed");
+  assert.equal(renewed.body.document.expires_on, "2026-08-25");
+  const terminated = await json("/api/hrx/documents/doc-api-contract-002/terminate", {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  assert.equal(terminated.status, 200);
+  assert.equal(terminated.body.document.contract_state, "terminated");
   const audit = await json("/api/hrx/audit");
   assert.ok(audit.body.events.some((event) => event.action === "hrx.document.metadata.create" && event.object_id === "doc-api-contract-001"));
   assert.ok(audit.body.events.some((event) => event.action === "hrx.document.contract.sign" && event.object_id === "doc-api-contract-001"));
   assert.ok(audit.body.events.some((event) => event.action === "hrx.document.contract.expire" && event.object_id === "doc-api-contract-001"));
+  assert.ok(audit.body.events.some((event) => event.action === "hrx.document.contract.renew" && event.object_id === "doc-api-contract-002"));
+  assert.ok(audit.body.events.some((event) => event.action === "hrx.document.contract.terminate" && event.object_id === "doc-api-contract-002"));
 });
 
 test("GET and POST /api/hrx/leave use leave request workflow state", async () => {

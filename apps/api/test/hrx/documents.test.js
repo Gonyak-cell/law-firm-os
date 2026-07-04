@@ -139,6 +139,47 @@ test("HRX documents route signs and expires employment contracts without storing
   });
   assert.equal(expired.status, 200);
   assert.equal(expired.body.document.contract_state, "expired");
+
+  const renewalCandidate = await route.handle({
+    method: "POST",
+    context,
+    body: {
+      document_id: "doc-002",
+      employee_id: "emp-001",
+      document_type: "employment_contract",
+      source_ref: "dms://doc-001",
+      title: "Employment Contract Renewal",
+      contract_id: "contract-002",
+      profile_id: "profile-001",
+      expires_on: "2026-07-25",
+    },
+  });
+  assert.equal(renewalCandidate.status, 201);
+  await route.handle({
+    method: "POST",
+    context,
+    params: { document_id: "doc-002", lifecycle_action: "sign" },
+    body: { signature_ref: "signature:doc-002", signed_at: "2026-07-02T00:00:00.000Z" },
+  });
+  const renewed = await route.handle({
+    method: "POST",
+    context,
+    params: { document_id: "doc-002", lifecycle_action: "renew" },
+    body: { expires_on: "2026-08-25" },
+  });
+  assert.equal(renewed.status, 200);
+  assert.equal(renewed.body.document.contract_state, "renewed");
+  assert.equal(renewed.body.document.expires_on, "2026-08-25");
+  const terminated = await route.handle({
+    method: "POST",
+    context,
+    params: { document_id: "doc-002", lifecycle_action: "terminate" },
+    body: {},
+  });
+  assert.equal(terminated.status, 200);
+  assert.equal(terminated.body.document.contract_state, "terminated");
   assert.ok(audit.list({ tenant_id: "tenant-a" }).some((event) => event.action === "hrx.document.contract.sign"));
   assert.ok(audit.list({ tenant_id: "tenant-a" }).some((event) => event.action === "hrx.document.contract.expire"));
+  assert.ok(audit.list({ tenant_id: "tenant-a" }).some((event) => event.action === "hrx.document.contract.renew"));
+  assert.ok(audit.list({ tenant_id: "tenant-a" }).some((event) => event.action === "hrx.document.contract.terminate"));
 });

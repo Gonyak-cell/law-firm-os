@@ -576,6 +576,26 @@ export async function expireHrxEmploymentContractDocument(documentId: string | n
   return { kind: "data", document: result.body.document };
 }
 
+export async function renewHrxEmploymentContractDocument(documentId: string | null | undefined, expiresOn: string | null | undefined) {
+  if (!documentId) return { kind: "empty" };
+  const result = await requestJson(`/api/hrx/documents/${encodeURIComponent(documentId)}/renew`, {
+    method: "POST",
+    body: JSON.stringify({ expires_on: expiresOn || null })
+  });
+  if (result.kind !== "data" || !result.body.document) return { kind: "error", reason: result.reason };
+  return { kind: "data", document: result.body.document };
+}
+
+export async function terminateHrxEmploymentContractDocument(documentId: string | null | undefined) {
+  if (!documentId) return { kind: "empty" };
+  const result = await requestJson(`/api/hrx/documents/${encodeURIComponent(documentId)}/terminate`, {
+    method: "POST",
+    body: JSON.stringify({})
+  });
+  if (result.kind !== "data" || !result.body.document) return { kind: "error", reason: result.reason };
+  return { kind: "data", document: result.body.document };
+}
+
 export async function fetchHrxLeaveState(employeeId: string | null | undefined, policyId: string | undefined = undefined) {
   if (!employeeId) return { kind: "empty" };
   const result = await requestJson(withQuery("/api/hrx/leave", { employee_id: employeeId, policy_id: policyId }));

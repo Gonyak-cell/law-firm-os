@@ -7,7 +7,9 @@ import {
   expireHrxEmploymentContractDocument,
   fetchHrxDocuments,
   fetchHrxExpiringDocuments,
-  signHrxEmploymentContractDocument
+  renewHrxEmploymentContractDocument,
+  signHrxEmploymentContractDocument,
+  terminateHrxEmploymentContractDocument
 } from "../hrxApiClient.ts";
 
 type HrxDocument = {
@@ -80,7 +82,7 @@ const DOCUMENT_MODE: Record<DocumentModeKey, DocumentModeConfig> = {
     errorText: "근로계약서 목록을 불러오지 못했습니다.",
     emptyText: "표시할 근로계약서가 없습니다.",
     rowPrefix: "계약",
-    columns: ["계약서", "상태", "만료일", "서명본", "원본", "작업"],
+    columns: ["계약서", "상태", "만료일", "D-day", "서명본", "원본", "작업"],
     sourceState: (document: HrxDocument) => document.source_ref ? "등록됨" : "미등록",
     scope: "employee",
     types: new Set(["employment_contract"])
@@ -123,6 +125,27 @@ function contractStateLabel(value?: string | null): string {
 function compactRef(value?: string | null): string {
   if (!value) return "없음";
   return String(value).replace(/^Vault:/, "Vault ");
+}
+
+function daysUntilLabel(value?: string | null): string {
+  if (!value) return "미지정";
+  const expiresAt = new Date(`${value}T00:00:00.000Z`).getTime();
+  if (Number.isNaN(expiresAt)) return "확인";
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  const days = Math.ceil((expiresAt - todayStart) / (24 * 60 * 60 * 1000));
+  if (days < 0) return `D+${Math.abs(days)}`;
+  if (days === 0) return "D-day";
+  return `D-${days}`;
+}
+
+function vaultReferenceLink(value?: string | null) {
+  if (!value) return "없음";
+  return (
+    <a className="hr-document-ref-link" href={`?view=vault&query=${encodeURIComponent(value)}`}>
+      {compactRef(value)}
+    </a>
+  );
 }
 
 function isHrxDocument(value: unknown): value is HrxDocument {
@@ -197,6 +220,20 @@ export function HRDocumentWorkspace({ employeeId, refreshKey, mode = "regulation
     if (expired.kind === "data") reload();
   }
 
+  async function renewContract(document: HrxDocument) {
+    setActionStatus("processing");
+    const renewed = await renewHrxEmploymentContractDocument(document.document_id, form.expires_on || document.expires_on);
+    setActionStatus(renewed.kind === "data" ? "renewed" : "error");
+    if (renewed.kind === "data") reload();
+  }
+
+  async function terminateContract(document: HrxDocument) {
+    setActionStatus("processing");
+    const terminated = await terminateHrxEmploymentContractDocument(document.document_id);
+    setActionStatus(terminated.kind === "data" ? "terminated" : "error");
+    if (terminated.kind === "data") reload();
+  }
+
   function contractAction(document: HrxDocument) {
     if (document.contract_state === "draft" || document.contract_state === "approved") {
       return (
@@ -208,10 +245,20 @@ export function HRDocumentWorkspace({ employeeId, refreshKey, mode = "regulation
     }
     if (document.contract_state === "signed" || document.contract_state === "renewed") {
       return (
-        <button type="button" className="secondary-button hr-document-inline-action" onClick={() => expireContract(document)}>
-          <TimerReset size={14} />
-          만료 처리
-        </button>
+        <span className="hr-document-action-strip">
+          <button type="button" className="secondary-button hr-document-inline-action" onClick={() => renewContract(document)}>
+            <TimerReset size={14} />
+            갱신
+          </button>
+          <button type="button" className="secondary-button hr-document-inline-action" onClick={() => expireContract(document)}>
+            <TimerReset size={14} />
+            만료 처리
+          </button>
+          <button type="button" className="secondary-button hr-document-inline-action" onClick={() => terminateContract(document)}>
+            <FileText size={14} />
+            해지
+          </button>
+        </span>
       );
     }
     return <span className="hr-document-muted">완료</span>;
@@ -242,7 +289,7 @@ export function HRDocumentWorkspace({ employeeId, refreshKey, mode = "regulation
               계약 생성
             </button>
             <span className="hr-document-action-status" data-hr-document-action-status={actionStatus ?? "idle"}>
-              {actionStatus === "processing" ? "처리 중" : actionStatus === "error" ? "처리 실패" : actionStatus === "created" ? "생성됨" : actionStatus === "signed" ? "서명됨" : actionStatus === "expired" ? "만료됨" : "대기"}
+              {actionStatus === "processing" ? "처리 중" : actionStatus === "error" ? "처리 실패" : actionStatus === "created" ? "생성됨" : actionStatus === "signed" ? "서명됨" : actionStatus === "renewed" ? "갱신됨" : actionStatus === "terminated" ? "해지됨" : actionStatus === "expired" ? "만료됨" : "대기"}
             </span>
           </form>
           <div className="hr-document-lifecycle-summary">
@@ -258,8 +305,9 @@ export function HRDocumentWorkspace({ employeeId, refreshKey, mode = "regulation
                 `${config.rowPrefix} ${index + 1}`,
                 contractStateLabel(document.contract_state),
                 document.expires_on ?? "미지정",
-                compactRef(document.signature_ref),
-                compactRef(document.source_ref),
+                <span className="hr-document-mono-number">{daysUntilLabel(document.expires_on)}</span>,
+                vaultReferenceLink(document.signature_ref),
+                vaultReferenceLink(document.source_ref),
                 contractAction(document)
               ])}
             />

@@ -9802,6 +9802,22 @@ html[data-theme="dark"] .public-preview {
   padding: 0 8px;
 }
 
+.hr-document-action-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.hr-document-ref-link {
+  color: var(--am-accent);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.hr-document-ref-link:hover {
+  text-decoration: underline;
+}
+
 .leave-balance-strip {
   display: flex;
   align-items: stretch;
@@ -9826,7 +9842,8 @@ html[data-theme="dark"] .public-preview {
 }
 
 .leave-balance-item[data-metric="numeric"] strong,
-.leave-mono-number {
+.leave-mono-number,
+.hr-document-mono-number {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }

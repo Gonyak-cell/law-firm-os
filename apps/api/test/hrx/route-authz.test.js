@@ -69,6 +69,8 @@ test("HRX route policy map resolves implemented server routes and denies unknown
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/documents" }).required_scope, "hrx.document.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/documents/doc-001/sign" }).required_scope, "hrx.document.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/documents/doc-001/expire" }).required_scope, "hrx.document.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/documents/doc-001/renew" }).required_scope, "hrx.document.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/documents/doc-001/terminate" }).required_scope, "hrx.document.write");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/compensation" }).required_scope, "hrx.compensation.read");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/compensation" }).action, "hrx.compensation.read");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/compensation/comp-001/decrypt" }).required_scope, "hrx.compensation.read");
@@ -172,6 +174,24 @@ test("HRX document lifecycle write routes require document write scope before ru
   assert.equal(sign.status, 403);
   assert.equal(sign.body.safe_error_code, "HRX_AUTHZ_DENIED");
   assert.equal(sign.body.required_scope, "hrx.document.write");
+
+  const renew = await json("/api/hrx/documents/doc-authz-denied/renew", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({ expires_on: "2026-08-20" }),
+  });
+  assert.equal(renew.status, 403);
+  assert.equal(renew.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(renew.body.required_scope, "hrx.document.write");
+
+  const terminate = await json("/api/hrx/documents/doc-authz-denied/terminate", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({}),
+  });
+  assert.equal(terminate.status, 403);
+  assert.equal(terminate.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(terminate.body.required_scope, "hrx.document.write");
 });
 
 test("HRX overtime write route requires overtime write scope before runtime", async () => {

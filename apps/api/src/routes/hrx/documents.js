@@ -54,14 +54,21 @@ export function createHrxDocumentsRoute({ store = createInMemoryHrxDocumentStore
           await appendAudit(request, { action: "hrx.document.contract.sign", document, reason: "hrx_contract_document_signed" });
           return response(200, { outcome: "signed", document });
         }
-        if (request.method === "POST" && request.params?.document_id && request.params?.lifecycle_action === "expire") {
+        if (request.method === "POST" && request.params?.document_id && ["expire", "renew", "terminate"].includes(request.params?.lifecycle_action)) {
+          const action = request.params.lifecycle_action;
+          const change = action === "expire"
+            ? { state: "expired", expired_at: request.body?.expired_at ?? new Date().toISOString() }
+            : action === "renew"
+              ? { state: "renewed", expires_on: request.body?.expires_on, renewal_of_contract_id: request.body?.renewal_of_contract_id ?? request.params.document_id }
+              : { state: "terminated" };
           const document = store.transitionContract(
             { tenant_id: request.context?.tenant_id, document_id: request.params.document_id },
-            { state: "expired", expired_at: request.body?.expired_at ?? new Date().toISOString() },
+            change,
           );
           if (!document) return response(404, { outcome: "not_found" });
-          await appendAudit(request, { action: "hrx.document.contract.expire", document, reason: "hrx_contract_document_expired" });
-          return response(200, { outcome: "expired", document });
+          const outcome = action === "expire" ? "expired" : action === "renew" ? "renewed" : "terminated";
+          await appendAudit(request, { action: `hrx.document.contract.${action}`, document, reason: `hrx_contract_document_${outcome}` });
+          return response(200, { outcome: action === "expire" ? "expired" : action === "renew" ? "renewed" : "terminated", document });
         }
         if (request.method === "POST") {
           const candidate = { ...request.body, tenant_id: request.context?.tenant_id };

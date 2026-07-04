@@ -2412,24 +2412,29 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       return response(201, { outcome: "created", document });
     }
 
-    const documentLifecycleMatch = pathname.match(/^\/api\/hrx\/documents\/([^/]+)\/(sign|expire)$/);
+    const documentLifecycleMatch = pathname.match(/^\/api\/hrx\/documents\/([^/]+)\/(sign|expire|renew|terminate)$/);
     if (documentLifecycleMatch && method === "POST") {
       const documentId = decodeURIComponent(documentLifecycleMatch[1]);
       const action = documentLifecycleMatch[2];
       const change = action === "sign"
         ? { state: "signed", signature_ref: body.signature_ref, signed_at: body.signed_at ?? new Date().toISOString() }
-        : { state: "expired", expired_at: body.expired_at ?? new Date().toISOString() };
+        : action === "expire"
+          ? { state: "expired", expired_at: body.expired_at ?? new Date().toISOString() }
+          : action === "renew"
+            ? { state: "renewed", expires_on: body.expires_on, renewal_of_contract_id: body.renewal_of_contract_id ?? documentId }
+            : { state: "terminated" };
       const document = context.documents.transitionContract({ tenant_id: tenantId, document_id: documentId }, change);
       if (!document) return response(404, { outcome: "not_found", safe_error_code: "HRX_DOCUMENT_NOT_FOUND" });
+      const outcome = action === "sign" ? "signed" : action === "expire" ? "expired" : action === "renew" ? "renewed" : "terminated";
       appendRuntimeAudit(context.audit, {
         ...actorContext,
-        action: action === "sign" ? "hrx.document.contract.sign" : "hrx.document.contract.expire",
+        action: `hrx.document.contract.${action}`,
         object_type: "HRDocument",
         object_id: document.document_id,
-        reason: action === "sign" ? "hrx_contract_document_signed" : "hrx_contract_document_expired",
+        reason: `hrx_contract_document_${outcome}`,
         metadata: documentAuditMetadata(document),
       });
-      return response(200, { outcome: action === "sign" ? "signed" : "expired", document });
+      return response(200, { outcome, document });
     }
 
     if (pathname === "/api/hrx/attendance" && method === "GET") {
