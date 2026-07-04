@@ -173,7 +173,7 @@ export function GlobalUtilitySurface({ view, activeSection = "", setView, theme,
       data-global-utility-surface={utility.id}
       data-global-conditional={utility.status === "decision-required" ? "true" : "false"}
     >
-      <ForestHero title={utility.label} imageOpacity={0.18} />
+      <ForestHero title={utility.label} subtitle={utility.description ?? utility.decision} imageOpacity={0.18} />
       <div className="global-utility-layer">
         <PageHeader
           title={utility.label}

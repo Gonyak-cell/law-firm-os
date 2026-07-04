@@ -332,6 +332,9 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
   const skin = useSkin();
   const [openGroups, setOpenGroups] = useState({});
   const [utilityPanel, setUtilityPanel] = useState(null);
+  useEffect(() => {
+    setUtilityPanel(null);
+  }, [view]);
   const isForest = skin === "forest";
   const sessionUser = readLawosApiSession()?.session ?? {};
   const forestUserName = sessionUser.display_name ?? sessionUser.name ?? sessionUser.user_name ?? sessionUser.user_id ?? "";
@@ -515,7 +518,7 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
         className="workspace-card"
         data-workspace-menu-trigger="true"
         aria-expanded={utilityPanel?.kind === "workspace" ? "true" : "false"}
-        onClick={() => setUtilityPanel({ kind: "workspace", label: `${meta.title} 작업공간` })}
+        onClick={() => setUtilityPanel((current) => current?.kind === "workspace" ? null : { kind: "workspace", label: "워크스페이스" })}
       >
         <div>
           {labels.workspace && <span className="eyebrow">{labels.workspace}</span>}
@@ -630,7 +633,7 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
       {utilityPanel && (
         <div className="sidebar-utility-panel" role="status" data-sidebar-utility-panel="true">
           <strong>{utilityPanel.label}</strong>
-          <span>{utilityPanel.kind === "workspace" ? "작업공간 전환 메뉴를 이 화면에서 확인합니다." : `${utilityPanel.scope} 설정은 현재 세션에서만 열립니다.`}</span>
+          <span>{utilityPanel.kind === "workspace" ? "워크스페이스 전환 메뉴를 이 화면에서 확인합니다." : `${utilityPanel.scope} 설정은 현재 세션에서만 열립니다.`}</span>
         </div>
       )}
       {isForest && (

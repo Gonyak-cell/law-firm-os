@@ -147,7 +147,7 @@ export function PortalSurface({ labels, liveCtx = "allow" }) {
       data-c13-rfi-response={externalRfiState}
       data-c13-secure-link-access={externalLinkAccessState}
     >
-      <ForestHero title={labels.portalTitle} imageOpacity={0.18} />
+      <ForestHero title={labels.portalTitle} subtitle={inviteToken ? "외부 세션 범위 안에서 요청 응답과 공유 링크 상태를 확인합니다." : "의뢰인에게 공유할 Matter 정보와 문서 요청을 한곳에서 확인합니다."} imageOpacity={0.18} />
       <PageHeader
         eyebrow="공유 포털"
         title={labels.portalTitle}

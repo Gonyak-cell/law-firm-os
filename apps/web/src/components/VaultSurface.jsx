@@ -985,7 +985,7 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
 
   return (
     <section id="vault-home" className="surface stack vault-surface" data-cmp-g5-vault-surface="true">
-      <ForestHero title={labels.vaultTitle} imageOpacity={0.18} />
+      <ForestHero title={labels.vaultTitle} subtitle="Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다." imageOpacity={0.18} />
       <PageHeader
         title={labels.vaultTitle}
         subtitle="Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다."

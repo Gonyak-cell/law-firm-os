@@ -2197,7 +2197,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
       className="surface stack clients-surface"
       data-cmp-g2-live-clients="true"
     >
-      <ForestHero title={labels.clientsTitle} imageOpacity={0.18} />
+      <ForestHero title={labels.clientsTitle} subtitle="Client, 담당자, Opportunity, 상담 이력을 한 화면에서 확인합니다." imageOpacity={0.18} />
       <PageHeader
         title={labels.clientsTitle}
         subtitle="Client, 담당자, Opportunity, 상담 이력을 한 화면에서 확인합니다."

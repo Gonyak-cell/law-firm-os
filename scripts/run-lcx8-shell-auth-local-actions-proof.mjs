@@ -69,7 +69,7 @@ const rows = [
     action: "click",
     selector: "[data-workspace-menu-trigger]",
     expectSelector: "[data-sidebar-utility-panel]",
-    expectedText: /Home 작업공간/,
+    expectedText: /워크스페이스/,
     screenshot: `${SCREENSHOT_DIR}/lcx8-action-0034-workspace-menu-proof.png`,
     classification: "ui_state_only"
   },
