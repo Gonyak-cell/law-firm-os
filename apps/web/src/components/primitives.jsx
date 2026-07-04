@@ -1,9 +1,9 @@
 import React from "react";
 
-export function PageHeader({ eyebrow, title, subtitle, actions }) {
+export function PageHeader({ eyebrow, title, subtitle, actions, heroTakeover = false }) {
   return (
     <div className="page-header">
-      <div>
+      <div hidden={heroTakeover}>
         {eyebrow && <span className="eyebrow">{eyebrow}</span>}
         <h1>{title}</h1>
         {subtitle && <p>{subtitle}</p>}

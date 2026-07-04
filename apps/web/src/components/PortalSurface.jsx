@@ -11,6 +11,7 @@ import {
 } from "../data/apiClient.js";
 import { ForestHero } from "./ForestHero.jsx";
 import { CompactTable, PageHeader, Panel } from "./primitives.jsx";
+import { useSkin } from "../context/SkinContext.jsx";
 
 const PORTAL_PERMISSION_REF = "ui_cmp_g10_portal_live";
 const PORTAL_AUDIT_HINT_REF = "ui_cmp_g10_portal_probe";
@@ -43,6 +44,7 @@ function externalSessionState(result, session) {
 }
 
 export function PortalSurface({ labels, liveCtx = "allow" }) {
+  const skin = useSkin();
   const [inviteToken] = useState(() => portalQueryValue("portal_invite"));
   const [inviteNow] = useState(() => portalQueryValue("portal_invite_now") || undefined);
   const [accessNow] = useState(() => portalQueryValue("portal_access_now") || undefined);
@@ -152,6 +154,7 @@ export function PortalSurface({ labels, liveCtx = "allow" }) {
         eyebrow="공유 포털"
         title={labels.portalTitle}
         subtitle={inviteToken ? "외부 세션 범위 안에서 요청 응답과 공유 링크 상태를 확인합니다." : "의뢰인에게 공유할 Matter 정보와 문서 요청을 한곳에서 확인합니다."}
+        heroTakeover={skin === "forest"}
         actions={!inviteToken && (
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />

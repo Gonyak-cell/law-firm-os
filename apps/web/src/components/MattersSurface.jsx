@@ -61,6 +61,7 @@ import { MatterTeamRoster } from "./MatterTeamRoster.jsx";
 import { MatterVaultPanel } from "./MatterVaultPanel.jsx";
 import { ImportDataMappingPanel } from "./ImportDataMappingPanel.jsx";
 import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
+import { useSkin } from "../context/SkinContext.jsx";
 
 const MATTER_PERMISSION_REF = "ui_cmp_g4_matter_live";
 const MATTER_AUDIT_HINT_REF = "ui_cmp_g4_matter_probe";
@@ -2505,6 +2506,7 @@ function AnalyticsPanel({
 }
 
 export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", onNavigateSection = () => {} }) {
+  const skin = useSkin();
   const [result, setResult] = useState(null);
   const [commandResult, setCommandResult] = useState(null);
   const [timelineResult, setTimelineResult] = useState(null);
@@ -3691,6 +3693,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
       <PageHeader
         title={labels.mattersTitle}
         subtitle="사건 상태, 담당자·참여자, 문서, 일정, 결재·청구 흐름을 확인합니다."
+        heroTakeover={skin === "forest"}
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />

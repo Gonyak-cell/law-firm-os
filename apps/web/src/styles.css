@@ -10588,25 +10588,12 @@ html[data-skin="forest"] .forest-hero-stat small {
   line-height: 1.4;
 }
 
-html[data-skin="forest"] .clients-surface .page-header > div:first-child,
-html[data-skin="forest"] .matters-surface .page-header > div:first-child,
-html[data-skin="forest"] .vault-surface .page-header > div:first-child,
-html[data-skin="forest"] .portal-surface .page-header > div:first-child,
-html[data-skin="forest"] .global-utility-layer .page-header > div:first-child {
-  display: none;
-}
-
 html[data-skin="forest"] .clients-surface .page-header,
 html[data-skin="forest"] .matters-surface .page-header,
 html[data-skin="forest"] .vault-surface .page-header,
 html[data-skin="forest"] .portal-surface .page-header,
 html[data-skin="forest"] .global-utility-layer .page-header {
   justify-content: flex-end;
-}
-
-html[data-skin="forest"] #clients-home-panel .panel-head,
-html[data-skin="forest"] [data-client-overview-panel="true"] > .record-action-strip {
-  display: none;
 }
 
 html[data-skin="forest"] .forest-hero-stat strong {

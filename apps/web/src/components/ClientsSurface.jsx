@@ -46,6 +46,7 @@ import { ImportDataMappingPanel } from "./ImportDataMappingPanel.jsx";
 import { DataCloudEnrichmentPanel } from "./DataCloudEnrichmentPanel.jsx";
 import { ReportBuilderPanel } from "./ReportBuilderPanel.jsx";
 import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
+import { useSkin } from "../context/SkinContext.jsx";
 
 const CLIENTS_PERMISSION_REF = "ui_cmp_g2_party_clients_live";
 const CLIENTS_AUDIT_HINT_REF = "ui_cmp_g2_clients_live_probe";
@@ -1429,6 +1430,7 @@ export function IntakeSurface({
 }
 
 export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }) {
+  const skin = useSkin();
   const [clientsResult, setClientsResult] = useState(null);
   const [accountsResult, setAccountsResult] = useState(null);
   const [contactsResult, setContactsResult] = useState(null);
@@ -2201,6 +2203,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
       <PageHeader
         title={labels.clientsTitle}
         subtitle="Client, 담당자, Opportunity, 상담 이력을 한 화면에서 확인합니다."
+        heroTakeover={skin === "forest"}
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />

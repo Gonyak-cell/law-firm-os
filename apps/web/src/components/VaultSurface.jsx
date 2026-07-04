@@ -9,6 +9,7 @@ import { EmailFilingView } from "./EmailFilingView.jsx";
 import { VaultBreadcrumb } from "./VaultBreadcrumb.jsx";
 import { VaultDocumentDetail } from "./VaultDocumentDetail.jsx";
 import { VaultSecurityBadges } from "./VaultSecurityBadges.jsx";
+import { useSkin } from "../context/SkinContext.jsx";
 
 const VAULT_PERMISSION_REF = "ui_cmp_g5_vault_live";
 const VAULT_AUDIT_HINT_REF = "ui_cmp_g5_vault_probe";
@@ -812,6 +813,7 @@ function VaultSearchPanel({ query, setQuery, result, pending, submittedQuery, on
 }
 
 export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) {
+  const skin = useSkin();
   const [result, setResult] = useState(null);
   const [bridgeResult, setBridgeResult] = useState(null);
   const [vaultSearchQuery, setVaultSearchQuery] = useState("");
@@ -989,6 +991,7 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
       <PageHeader
         title={labels.vaultTitle}
         subtitle="Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다."
+        heroTakeover={skin === "forest"}
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />

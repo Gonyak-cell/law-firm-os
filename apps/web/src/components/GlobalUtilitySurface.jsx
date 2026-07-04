@@ -181,6 +181,7 @@ export function GlobalUtilitySurface({ view, activeSection = "", setView, theme,
         <PageHeader
           title={utility.label}
           subtitle={utility.description ?? utility.decision}
+          heroTakeover={skin === "forest"}
           actions={
             <span className="global-utility-status">
               <ShieldCheck size={15} />
