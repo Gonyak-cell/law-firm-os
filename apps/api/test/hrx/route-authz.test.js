@@ -83,6 +83,7 @@ test("HRX route policy map resolves implemented server routes and denies unknown
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/risks/scan" }).required_scope, "hrx.risk.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/risks/hrx-risk:employment_contract_missing:emp-001:current/transition" }).required_scope, "hrx.risk.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/overtime/ot-001/approve" }).required_scope, "hrx.overtime.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/leave/leave-001/approve" }).required_scope, "hrx.leave.write");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/legal-people/search" }).required_scope, "hrx.legal_people.read");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/legal-people/person_client_contact_001" }).required_scope, "hrx.legal_people.read");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/legal-people/relationships" }).required_scope, "hrx.legal_people.read");

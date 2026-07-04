@@ -1,10 +1,20 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { CalendarCheck } from "lucide-react";
-import { DataTable, Panel } from "../../components/primitives.jsx";
-import { fetchHrxLeaveState, submitHrxLeaveRequest } from "../hrxApiClient.ts";
+import { CalendarCheck, CheckCircle2, XCircle } from "lucide-react";
+import { Panel } from "../../components/primitives.jsx";
+import { fetchHrxLeaveState, resolveHrxLeaveRequest, submitHrxLeaveRequest } from "../hrxApiClient.ts";
 
-function leaveStateLabel(value) {
+type LeaveRecord = Record<string, unknown>;
+type LeaveAction = "approve" | "reject";
+type LeaveForm = { amount: string; start_date: string; end_date: string; leave_type: string; policy_id: string };
+type LeaveStateResult = { kind?: string; balance?: LeaveRecord | null; requests?: LeaveRecord[] };
+type LeaveRequestPageProps = {
+  employeeId?: string | null;
+  refreshKey?: string | number;
+  onSubmitted?: () => void;
+};
+
+function leaveStateLabel(value: unknown) {
   if (value === "approved") return "승인";
   if (value === "rejected") return "반려";
   if (value === "pending") return "대기";
@@ -13,19 +23,25 @@ function leaveStateLabel(value) {
   return "확인 필요";
 }
 
-const emptyLeaveForm = { amount: "", start_date: "", end_date: "", leave_type: "", policy_id: "" };
+function leaveStateTone(value: unknown) {
+  if (value === "approved") return "live";
+  if (value === "rejected" || value === "cancelled") return "error";
+  return "review";
+}
 
-function present(value) {
+const emptyLeaveForm: LeaveForm = { amount: "", start_date: "", end_date: "", leave_type: "", policy_id: "" };
+
+function present(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-function formatLeaveHours(value) {
+function formatLeaveHours(value: unknown) {
   const amount = Number(value);
   if (!Number.isFinite(amount)) return "확인 필요";
   return `${amount.toLocaleString("ko-KR", { maximumFractionDigits: 1 })}시간`;
 }
 
-function formatLeaveType(value) {
+function formatLeaveType(value: unknown) {
   const code = present(value);
   if (!code) return "확인 필요";
   if (code === "pto") return "연차 (pto)";
@@ -35,7 +51,7 @@ function formatLeaveType(value) {
   return code;
 }
 
-function formatLeavePeriod(request) {
+function formatLeavePeriod(request: LeaveRecord) {
   const start = present(request.start_date);
   const end = present(request.end_date);
   if (!start && !end) return "확인 필요";
@@ -44,19 +60,24 @@ function formatLeavePeriod(request) {
   return `${start} ~ ${end}`;
 }
 
-function balanceMetric(balance, key) {
+function balanceMetric(balance: LeaveRecord | null | undefined, key: string) {
   return balance && Object.prototype.hasOwnProperty.call(balance, key) ? balance[key] : null;
 }
 
-function suggestedLeaveType(requests) {
+function suggestedLeaveType(requests: LeaveRecord[]) {
   const request = requests.find((item) => present(item.leave_type));
   return present(request?.leave_type) ?? "";
 }
 
-export function LeaveRequestPage({ employeeId, refreshKey, onSubmitted }) {
+function canResolveLeaveRequest(request: LeaveRecord | null | undefined) {
+  return request?.state === "submitted" || request?.state === "pending";
+}
+
+export function LeaveRequestPage({ employeeId, refreshKey, onSubmitted }: LeaveRequestPageProps) {
   const [result, setResult] = useState(null);
   const [form, setForm] = useState(emptyLeaveForm);
   const [submitting, setSubmitting] = useState(false);
+  const [transitioning, setTransitioning] = useState(null);
   const amountValue = Number(form.amount);
   const canSubmit = Boolean(
     employeeId
@@ -76,14 +97,16 @@ export function LeaveRequestPage({ employeeId, refreshKey, onSubmitted }) {
   useEffect(() => {
     let cancelled = false;
     setResult(null);
-    fetchHrxLeaveState(employeeId).then((next) => {
+    fetchHrxLeaveState(employeeId).then((next: unknown) => {
       if (cancelled) return;
-      setResult(next);
-      if (next.kind === "data") {
-        setForm((current) => ({
+      const state = next as LeaveStateResult;
+      setResult(state);
+      if (state.kind === "data") {
+        const requests = Array.isArray(state.requests) ? state.requests : [];
+        setForm((current: LeaveForm) => ({
           ...current,
-          policy_id: current.policy_id || present(next.balance?.policy_id) || "",
-          leave_type: current.leave_type || suggestedLeaveType(next.requests)
+          policy_id: current.policy_id || present(state.balance?.policy_id) || "",
+          leave_type: current.leave_type || suggestedLeaveType(requests)
         }));
       }
     });
@@ -92,16 +115,27 @@ export function LeaveRequestPage({ employeeId, refreshKey, onSubmitted }) {
     };
   }, [employeeId, refreshKey]);
 
-  async function handleSubmit(event) {
+  async function handleSubmit(event: { preventDefault: () => void }) {
     event.preventDefault();
     if (!canSubmit) return;
     setSubmitting(true);
     const submitted = await submitHrxLeaveRequest(employeeId, form);
     setSubmitting(false);
     if (submitted.kind === "data") {
-      setForm((current) => ({ ...current, amount: "", start_date: "", end_date: "" }));
+      setForm((current: LeaveForm) => ({ ...current, amount: "", start_date: "", end_date: "" }));
       onSubmitted?.();
     }
+    else setResult({ kind: "error" });
+  }
+
+  async function handleResolve(request: LeaveRecord, action: LeaveAction) {
+    const requestId = present(request?.request_id);
+    if (!requestId || !canResolveLeaveRequest(request)) return;
+    const transitionKey = `${requestId}:${action}`;
+    setTransitioning(transitionKey);
+    const resolved = await resolveHrxLeaveRequest(requestId, action);
+    setTransitioning(null);
+    if (resolved.kind === "data") onSubmitted?.();
     else setResult({ kind: "error" });
   }
 
@@ -115,7 +149,8 @@ export function LeaveRequestPage({ employeeId, refreshKey, onSubmitted }) {
   } else if (result.kind === "error") {
     stateBody = <div className="live-data-state live-data-error">휴가 정보를 불러오지 못했습니다.</div>;
   } else {
-    const balance = result.balance;
+    const balance = result.balance ?? null;
+    const requests = Array.isArray(result.requests) ? result.requests : [];
     stateBody = (
       <>
         <div className="leave-balance-strip">
@@ -125,19 +160,19 @@ export function LeaveRequestPage({ employeeId, refreshKey, onSubmitted }) {
                 <strong>{present(balance.policy_id) ?? "정책 확인 필요"}</strong>
                 <span>정책</span>
               </div>
-              <div className="leave-balance-item">
+              <div className="leave-balance-item" data-metric="numeric">
                 <strong>{formatLeaveHours(balanceMetric(balance, "available_balance"))}</strong>
                 <span>사용 가능</span>
               </div>
-              <div className="leave-balance-item">
+              <div className="leave-balance-item" data-metric="numeric">
                 <strong>{formatLeaveHours(balanceMetric(balance, "used_balance"))}</strong>
                 <span>사용</span>
               </div>
-              <div className="leave-balance-item">
+              <div className="leave-balance-item" data-metric="numeric">
                 <strong>{formatLeaveHours(balanceMetric(balance, "earned_balance"))}</strong>
                 <span>발생</span>
               </div>
-              <div className="leave-balance-item">
+              <div className="leave-balance-item" data-metric="numeric">
                 <strong>{formatLeaveHours(balanceMetric(balance, "reserved_balance"))}</strong>
                 <span>예약</span>
               </div>
@@ -149,17 +184,68 @@ export function LeaveRequestPage({ employeeId, refreshKey, onSubmitted }) {
             </div>
           )}
         </div>
-        <DataTable
-          columns={["요청 ID", "정책", "유형", "기간", "시간", "상태"]}
-          rows={result.requests.map((request) => [
-            present(request.request_id) ?? "ID 확인 필요",
-            present(request.policy_id) ?? "정책 확인 필요",
-            formatLeaveType(request.leave_type),
-            formatLeavePeriod(request),
-            formatLeaveHours(request.amount),
-            leaveStateLabel(request.state)
-          ])}
-        />
+        {requests.length ? (
+          <div className="data-table-wrap">
+            <table className="data-table leave-request-table">
+              <thead>
+                <tr>
+                  <th>신청 ID</th>
+                  <th>정책</th>
+                  <th>유형</th>
+                  <th>기간</th>
+                  <th>시간</th>
+                  <th>상태</th>
+                  <th>처리</th>
+                </tr>
+              </thead>
+              <tbody>
+                {requests.map((request, index) => {
+                  const requestId = present(request.request_id);
+                  const rowKey = requestId ?? `${present(request.employee_id) ?? "leave"}-${index}`;
+                  const resolveEnabled = canResolveLeaveRequest(request);
+                  return (
+                    <tr key={rowKey}>
+                      <td><strong>{requestId ?? "ID 확인 필요"}</strong></td>
+                      <td>{present(request.policy_id) ?? "정책 확인 필요"}</td>
+                      <td>{formatLeaveType(request.leave_type)}</td>
+                      <td>{formatLeavePeriod(request)}</td>
+                      <td><span className="leave-mono-number">{formatLeaveHours(request.amount)}</span></td>
+                      <td>
+                        <span className="record-state-badge" data-state={leaveStateTone(request.state)}>
+                          {leaveStateLabel(request.state)}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="approval-actions">
+                          <button
+                            className="secondary-button"
+                            type="button"
+                            disabled={!resolveEnabled || transitioning === `${requestId}:reject`}
+                            onClick={() => handleResolve(request, "reject")}
+                          >
+                            <XCircle size={14} />
+                            반려
+                          </button>
+                          <button
+                            className="primary-button"
+                            type="button"
+                            disabled={!resolveEnabled || transitioning === `${requestId}:approve`}
+                            onClick={() => handleResolve(request, "approve")}
+                          >
+                            <CheckCircle2 size={14} />
+                            승인
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="live-data-state live-data-empty">신청 내역이 없습니다.</div>
+        )}
       </>
     );
   }

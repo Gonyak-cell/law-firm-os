@@ -9821,6 +9821,12 @@ html[data-theme="dark"] .public-preview {
   font-size: 13px;
 }
 
+.leave-balance-item[data-metric="numeric"] strong,
+.leave-mono-number {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
 .leave-balance-strip span {
   color: var(--am-text-muted);
 }

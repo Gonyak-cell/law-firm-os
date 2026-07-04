@@ -605,6 +605,16 @@ export async function submitHrxLeaveRequest(employeeId: string | null | undefine
   return { kind: "data", leave_request: result.body.leave_request };
 }
 
+export async function resolveHrxLeaveRequest(requestId: string | null | undefined, action: "approve" | "reject") {
+  if (!requestId) return { kind: "empty" };
+  const result = await requestJson(`/api/hrx/leave/${encodeURIComponent(requestId)}/${action}`, {
+    method: "POST",
+    body: JSON.stringify({ decision_reason: action === "approve" ? "approved_from_leave_page" : "rejected_from_leave_page" })
+  });
+  if (result.kind !== "data" || !result.body.leave_request) return { kind: "error" };
+  return { kind: "data", leave_request: result.body.leave_request };
+}
+
 export async function fetchHrxApprovals() {
   const result = await requestJson("/api/hrx/approvals");
   if (result.kind !== "data" || !Array.isArray(result.body.approvals)) return { kind: "error" };

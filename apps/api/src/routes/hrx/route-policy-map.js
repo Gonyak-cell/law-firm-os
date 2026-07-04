@@ -341,6 +341,17 @@ const HRX_ROUTE_POLICIES = Object.freeze([
     resource_type: "LeaveRequest",
   },
   {
+    id: "hrx.leave.decide",
+    method: "POST",
+    pattern: /^\/api\/hrx\/leave\/(?<request_id>[^/]+)\/(?<decision>approve|reject)$/,
+    action: "hrx.leave.write",
+    sensitivity: "leave",
+    required_scope: "hrx.leave.write",
+    purpose: "hr_operations",
+    resource_type: "LeaveRequest",
+    resource_param: "request_id",
+  },
+  {
     id: "hrx.approvals.list",
     method: "GET",
     pattern: /^\/api\/hrx\/approvals$/,

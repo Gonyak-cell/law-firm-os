@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { startApiServer } from "../src/server.js";
+import { findRegisteredAccountByUserId } from "../src/matter-vault-account-registry.js";
 import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
 import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
 import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
@@ -11,10 +12,12 @@ import {
   HRX_MEMBER_ROSTER_SOURCE_REF,
   listHrxMemberRosterRows,
 } from "../src/hrx-member-roster-registry.js";
+import { apiSessionHeaders } from "./helpers/session.js";
 import { signedStepUpHeader } from "./hrx-step-up-test-helper.js";
 
 let server;
 let baseUrl;
+let sessionHeaders;
 
 const HRX_AUTH_HEADERS = Object.freeze({
   "x-lawos-tenant-id": "tenant_amic_matter_vault",
@@ -53,8 +56,32 @@ const HRX_AUTH_HEADERS = Object.freeze({
   ].join(","),
 });
 
-function hrxSelfServiceHeaders(actor_id) {
+async function sessionHeadersForActor(targetBaseUrl, actor_id = null) {
+  if (!actor_id) return apiSessionHeaders(targetBaseUrl);
+  const account = findRegisteredAccountByUserId(actor_id);
+  assert.ok(account, `registered account for ${actor_id} should exist`);
+  return apiSessionHeaders(targetBaseUrl, account);
+}
+
+async function hrxAdminHeaders(targetBaseUrl = baseUrl) {
+  return { ...(await sessionHeadersForActor(targetBaseUrl)), ...HRX_AUTH_HEADERS };
+}
+
+async function hrxElevatedActorHeaders(actor_id, targetBaseUrl = baseUrl) {
   return {
+    ...(await sessionHeadersForActor(targetBaseUrl, actor_id)),
+    ...HRX_AUTH_HEADERS,
+    "x-lawos-actor-id": actor_id,
+    "x-lawos-hrx-step-up": signedStepUpHeader({
+      tenant_id: "tenant_amic_matter_vault",
+      actor_id,
+    }),
+  };
+}
+
+async function hrxSelfServiceHeaders(actor_id, targetBaseUrl = baseUrl) {
+  return {
+    ...(await sessionHeadersForActor(targetBaseUrl, actor_id)),
     "x-lawos-tenant-id": "tenant_amic_matter_vault",
     "x-lawos-actor-id": actor_id,
     "x-lawos-actor-role": "lawos_staff",
@@ -67,7 +94,9 @@ function hrxSelfServiceHeaders(actor_id) {
 }
 
 async function json(path, options = {}) {
-  const headers = path.startsWith("/api/hrx") ? { ...HRX_AUTH_HEADERS, ...(options.headers ?? {}) } : options.headers;
+  const headers = path.startsWith("/api/hrx")
+    ? { ...sessionHeaders, ...HRX_AUTH_HEADERS, ...(options.headers ?? {}) }
+    : options.headers;
   const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
   return { status: response.status, body: await response.json() };
 }
@@ -76,6 +105,7 @@ test.before(async () => {
   const started = await startApiServer({ port: 0 });
   server = started.server;
   baseUrl = `http://${started.host}:${started.port}`;
+  sessionHeaders = await sessionHeadersForActor(baseUrl);
 });
 
 test.after(() => new Promise((resolve) => server.close(resolve)));
@@ -216,7 +246,9 @@ test("durable HRX seed reconciles stale Matter Vault account seed rows to the me
   const started = await startApiServer({ port: 0, hrxStore: store });
   const localBaseUrl = `http://${started.host}:${started.port}`;
   try {
-    const response = await fetch(`${localBaseUrl}/api/hrx/employees`, { headers: HRX_AUTH_HEADERS });
+    const response = await fetch(`${localBaseUrl}/api/hrx/employees`, {
+      headers: await hrxAdminHeaders(localBaseUrl),
+    });
     const body = await response.json();
     assert.equal(response.status, 200);
     const kimYangTae = body.employees.find((employee) => employee.display_name === "김양태");
@@ -245,7 +277,8 @@ test("GET /api/hrx/employees/:id returns profile with compensation masked", asyn
   assert.equal(body.employee.department, "Finance");
   assert.equal(body.employee.organization_group, "PETRA BRIDGE PARTNERS");
   assert.equal(body.employment_profile.employee_id, "emp_amic_ytkim");
-  assert.equal(body.masked_compensation_ref, "local-kms://hrx/tenant_amic_matter_vault/emp_amic_ytkim/comp-001");
+  assert.match(body.masked_compensation_ref, /^compensation_ref_hash:[a-f0-9]{24}$/);
+  assert.equal(body.masked_compensation_ref.includes("local-kms://"), false);
   assert.equal(Object.hasOwn(body, "salary"), false);
 });
 
@@ -260,11 +293,12 @@ test("GET /api/hrx/compensation requires step-up and returns masked ref-only rec
   assert.equal(challenged.body.safe_error_code, "HRX_STEP_UP_REQUIRED");
 
   const self = await json("/api/hrx/compensation?employee_id=emp_amic_ytkim", {
-    headers: hrxSelfServiceHeaders("user_amic_ytkim"),
+    headers: await hrxSelfServiceHeaders("user_amic_ytkim"),
   });
   assert.equal(self.status, 200);
   assert.equal(self.body.outcome, "ok");
-  assert.equal(self.body.masked_compensation_ref, "local-kms://hrx/tenant_amic_matter_vault/emp_amic_ytkim/comp-001");
+  assert.match(self.body.masked_compensation_ref, /^compensation_ref_hash:[a-f0-9]{24}$/);
+  assert.equal(self.body.masked_compensation_ref.includes("local-kms://"), false);
   assert.equal(self.body.compensation_records[0].employment_contract_id, "contract-doc-003");
   assert.equal(self.body.compensation_records[0].contract_document_ref, "DMS:employment-contract-003");
   assert.equal(self.body.compensation_records[0].raw_amount_included, false);
@@ -272,10 +306,11 @@ test("GET /api/hrx/compensation requires step-up and returns masked ref-only rec
   assert.equal(JSON.stringify(self.body).includes("salary"), false);
 
   const otherDenied = await json("/api/hrx/compensation?employee_id=emp_amic_ytkim", {
-    headers: hrxSelfServiceHeaders("user_amic_bjpark"),
+    headers: await hrxSelfServiceHeaders("user_amic_bj_park"),
   });
   assert.equal(otherDenied.status, 403);
-  assert.equal(otherDenied.body.safe_error_code, "HRX_SELF_SERVICE_SCOPE_DENIED");
+  assert.equal(otherDenied.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(otherDenied.body.required_scope, "hrx.compensation.read");
 
   const elevated = await json("/api/hrx/compensation?employee_id=emp_amic_ytkim");
   assert.equal(elevated.status, 200);
@@ -343,9 +378,10 @@ test("employee registration and status survive HRX API server restart", async ()
   const first = await startApiServer({ port: 0, hrxStore: store });
   const firstBaseUrl = `http://${first.host}:${first.port}`;
   try {
+    const firstHeaders = await hrxAdminHeaders(firstBaseUrl);
     const created = await fetch(`${firstBaseUrl}/api/hrx/employees`, {
       method: "POST",
-      headers: HRX_AUTH_HEADERS,
+      headers: firstHeaders,
       body: JSON.stringify({
         employee_id: "emp_api_restart_001",
         display_name: "Restart Proof Employee",
@@ -358,7 +394,7 @@ test("employee registration and status survive HRX API server restart", async ()
 
     const active = await fetch(`${firstBaseUrl}/api/hrx/employees/emp_api_restart_001`, {
       method: "PATCH",
-      headers: HRX_AUTH_HEADERS,
+      headers: firstHeaders,
       body: JSON.stringify({ status: "probation" }),
     });
     const activeBody = await active.json();
@@ -373,8 +409,9 @@ test("employee registration and status survive HRX API server restart", async ()
   const second = await startApiServer({ port: 0, hrxStore: reopenedStore });
   const secondBaseUrl = `http://${second.host}:${second.port}`;
   try {
+    const secondHeaders = await hrxAdminHeaders(secondBaseUrl);
     const detail = await fetch(`${secondBaseUrl}/api/hrx/employees/emp_api_restart_001`, {
-      headers: HRX_AUTH_HEADERS,
+      headers: secondHeaders,
     });
     const detailBody = await detail.json();
     assert.equal(detail.status, 200);
@@ -387,46 +424,48 @@ test("employee registration and status survive HRX API server restart", async ()
 });
 
 test("HRX self-service reads are bound to EmployeeUserLink ownership", async () => {
-  const selfHeaders = hrxSelfServiceHeaders("user_amic_ytkim");
+  const ownEmployeeId = "emp_amic_yjlee";
+  const otherEmployeeId = "emp_amic_wsjo";
+  const selfHeaders = await hrxSelfServiceHeaders("user_amic_yjlee");
 
   const list = await json("/api/hrx/employees", { headers: selfHeaders });
   assert.equal(list.status, 200);
-  assert.deepEqual(list.body.employees.map((employee) => employee.employee_id), ["emp_amic_ytkim"]);
+  assert.deepEqual(list.body.employees.map((employee) => employee.employee_id), [ownEmployeeId]);
   assert.equal(list.body.permission_summary.self_service_filtered, true);
 
-  const ownEmployee = await json("/api/hrx/employees/emp_amic_ytkim", { headers: selfHeaders });
+  const ownEmployee = await json(`/api/hrx/employees/${ownEmployeeId}`, { headers: selfHeaders });
   assert.equal(ownEmployee.status, 200);
-  assert.equal(ownEmployee.body.employee.employee_id, "emp_amic_ytkim");
+  assert.equal(ownEmployee.body.employee.employee_id, ownEmployeeId);
 
-  const otherEmployee = await json("/api/hrx/employees/emp_amic_wsjo", { headers: selfHeaders });
+  const otherEmployee = await json(`/api/hrx/employees/${otherEmployeeId}`, { headers: selfHeaders });
   assert.equal(otherEmployee.status, 403);
   assert.equal(otherEmployee.body.safe_error_code, "HRX_SELF_SERVICE_SCOPE_DENIED");
   assert.equal(otherEmployee.body.employee, null);
 
-  const ownDocuments = await json("/api/hrx/documents?employee_id=emp_amic_ytkim", { headers: selfHeaders });
+  const ownDocuments = await json(`/api/hrx/documents?employee_id=${ownEmployeeId}`, { headers: selfHeaders });
   assert.equal(ownDocuments.status, 200);
-  assert.ok(ownDocuments.body.documents.length > 0);
+  assert.ok(ownDocuments.body.documents.every((document) => document.employee_id === ownEmployeeId));
 
-  const otherDocuments = await json("/api/hrx/documents?employee_id=emp_amic_wsjo", { headers: selfHeaders });
+  const otherDocuments = await json(`/api/hrx/documents?employee_id=${otherEmployeeId}`, { headers: selfHeaders });
   assert.equal(otherDocuments.status, 403);
   assert.equal(otherDocuments.body.safe_error_code, "HRX_SELF_SERVICE_SCOPE_DENIED");
   assert.deepEqual(otherDocuments.body.documents, []);
 
-  const ownAttendance = await json("/api/hrx/attendance?employee_id=emp_amic_ytkim&month=2026-07", { headers: selfHeaders });
-  assert.equal(ownAttendance.status, 200);
-  assert.ok(ownAttendance.body.attendance.length > 0);
-  assert.equal(ownAttendance.body.monthly_summary.month, "2026-07");
+  const ownAttendance = await json(`/api/hrx/attendance?employee_id=${ownEmployeeId}&month=2026-07`, { headers: selfHeaders });
+  assert.equal(ownAttendance.status, 403);
+  assert.equal(ownAttendance.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(ownAttendance.body.required_scope, "hrx.attendance.read");
 
-  const otherAttendance = await json("/api/hrx/attendance?employee_id=emp_amic_wsjo&month=2026-07", { headers: selfHeaders });
+  const otherAttendance = await json(`/api/hrx/attendance?employee_id=${otherEmployeeId}&month=2026-07`, { headers: selfHeaders });
   assert.equal(otherAttendance.status, 403);
-  assert.equal(otherAttendance.body.safe_error_code, "HRX_SELF_SERVICE_SCOPE_DENIED");
-  assert.deepEqual(otherAttendance.body.attendance, []);
+  assert.equal(otherAttendance.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(otherAttendance.body.required_scope, "hrx.attendance.read");
 
-  const ownLeave = await json("/api/hrx/leave?employee_id=emp_amic_ytkim&policy_id=pto-us", { headers: selfHeaders });
+  const ownLeave = await json(`/api/hrx/leave?employee_id=${ownEmployeeId}&policy_id=pto-us`, { headers: selfHeaders });
   assert.equal(ownLeave.status, 200);
-  assert.equal(ownLeave.body.balance.employee_id, "emp_amic_ytkim");
+  assert.equal(ownLeave.body.balance.employee_id, ownEmployeeId);
 
-  const otherLeave = await json("/api/hrx/leave?employee_id=emp_amic_wsjo&policy_id=pto-us", { headers: selfHeaders });
+  const otherLeave = await json(`/api/hrx/leave?employee_id=${otherEmployeeId}&policy_id=pto-us`, { headers: selfHeaders });
   assert.equal(otherLeave.status, 403);
   assert.equal(otherLeave.body.safe_error_code, "HRX_SELF_SERVICE_SCOPE_DENIED");
   assert.equal(otherLeave.body.balance, null);
@@ -523,9 +562,10 @@ test("attendance records survive HRX API server restart", async () => {
   const first = await startApiServer({ port: 0, hrxStore: store });
   const firstBaseUrl = `http://${first.host}:${first.port}`;
   try {
+    const firstHeaders = await hrxAdminHeaders(firstBaseUrl);
     const employee = await fetch(`${firstBaseUrl}/api/hrx/employees`, {
       method: "POST",
-      headers: HRX_AUTH_HEADERS,
+      headers: firstHeaders,
       body: JSON.stringify({
         employee_id: "emp_api_attendance_restart_001",
         display_name: "Restart Attendance Employee",
@@ -536,7 +576,7 @@ test("attendance records survive HRX API server restart", async () => {
 
     const created = await fetch(`${firstBaseUrl}/api/hrx/attendance`, {
       method: "POST",
-      headers: HRX_AUTH_HEADERS,
+      headers: firstHeaders,
       body: JSON.stringify({
         attendance_id: "att-api-restart-001",
         employee_id: "emp_api_attendance_restart_001",
@@ -558,9 +598,10 @@ test("attendance records survive HRX API server restart", async () => {
   const second = await startApiServer({ port: 0, hrxStore: reopenedStore });
   const secondBaseUrl = `http://${second.host}:${second.port}`;
   try {
+    const secondHeaders = await hrxAdminHeaders(secondBaseUrl);
     const listed = await fetch(
       `${secondBaseUrl}/api/hrx/attendance?employee_id=emp_api_attendance_restart_001&month=2026-07`,
-      { headers: HRX_AUTH_HEADERS },
+      { headers: secondHeaders },
     );
     const listedBody = await listed.json();
     assert.equal(listed.status, 200);
@@ -789,6 +830,18 @@ test("GET and POST /api/hrx/leave use leave request workflow state", async () =>
 
   const after = await json("/api/hrx/leave?employee_id=emp_amic_ytkim&policy_id=pto-us");
   assert.ok(after.body.requests.some((request) => request.request_id === "leave-api-001"));
+
+  const approved = await json("/api/hrx/leave/leave-api-001/approve", {
+    method: "POST",
+    body: JSON.stringify({ decision_reason: "approved from leave page" }),
+  });
+  assert.equal(approved.status, 200);
+  assert.equal(approved.body.leave_request.request_id, "leave-api-001");
+  assert.equal(approved.body.leave_request.state, "approved");
+
+  const afterApproval = await json("/api/hrx/leave?employee_id=emp_amic_ytkim&policy_id=pto-us");
+  assert.equal(afterApproval.body.balance.available_balance, 72);
+  assert.ok(afterApproval.body.requests.some((request) => request.request_id === "leave-api-001" && request.state === "approved"));
 });
 
 test("GET and POST /api/hrx/approvals resolves manager queue and records audit", async () => {
@@ -800,20 +853,14 @@ test("GET and POST /api/hrx/approvals resolves manager queue and records audit",
 
   const selfApproval = await json("/api/hrx/approvals/approval-leave-003/approve", {
     method: "POST",
-    headers: {
-      "x-lawos-actor-id": "user_amic_ytkim",
-      "x-lawos-hrx-step-up": signedStepUpHeader({
-        tenant_id: "tenant_amic_matter_vault",
-        actor_id: "user_amic_ytkim",
-      }),
-    },
+    headers: await hrxElevatedActorHeaders("user_amic_ytkim"),
     body: JSON.stringify({ decision_reason: "self approval probe" }),
   });
   assert.equal(selfApproval.status, 403);
   assert.equal(selfApproval.body.safe_error_code, "HRX_LEAVE_SELF_APPROVAL_FORBIDDEN");
 
   const leaveBefore = await json("/api/hrx/leave?employee_id=emp_amic_ytkim&policy_id=pto-us");
-  assert.equal(leaveBefore.body.balance.available_balance, 80);
+  const balanceBeforeApproval = leaveBefore.body.balance.available_balance;
 
   const approved = await json("/api/hrx/approvals/approval-leave-003/approve", {
     method: "POST",
@@ -825,7 +872,7 @@ test("GET and POST /api/hrx/approvals resolves manager queue and records audit",
   assert.equal(approved.body.leave_request.state, "approved");
 
   const leaveAfter = await json("/api/hrx/leave?employee_id=emp_amic_ytkim&policy_id=pto-us");
-  assert.equal(leaveAfter.body.balance.available_balance, 72);
+  assert.equal(leaveAfter.body.balance.available_balance, balanceBeforeApproval - 8);
   assert.ok(leaveAfter.body.requests.some((request) => request.request_id === "leave-003" && request.state === "approved"));
 
   const rejected = await json("/api/hrx/approvals/approval-leave-004/reject", {
@@ -838,7 +885,7 @@ test("GET and POST /api/hrx/approvals resolves manager queue and records audit",
   assert.equal(rejected.body.leave_request.state, "rejected");
 
   const leaveAfterReject = await json("/api/hrx/leave?employee_id=emp_amic_ytkim&policy_id=pto-us");
-  assert.equal(leaveAfterReject.body.balance.available_balance, 72);
+  assert.equal(leaveAfterReject.body.balance.available_balance, balanceBeforeApproval - 8);
 
   const audit = await json("/api/hrx/audit");
   assert.ok(audit.body.events.some((event) => event.action === "hrx.approval.approve"));

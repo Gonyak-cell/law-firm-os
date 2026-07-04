@@ -2718,6 +2718,39 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       ).catch(safeError);
     }
 
+    const leaveDecisionMatch = pathname.match(/^\/api\/hrx\/leave\/([^/]+)\/(approve|reject)$/);
+    if (leaveDecisionMatch && method === "POST") {
+      const requestId = decodeURIComponent(leaveDecisionMatch[1]);
+      const action = leaveDecisionMatch[2];
+      if (action === "approve") {
+        const leaveRequest = context.leaveStore.get({ tenant_id: tenantId, request_id: requestId });
+        const applicantActorIds = leaveRequest
+          ? [
+              leaveRequest.employee_id,
+              ...context.repository
+                .listEmployeeUserLinks({ tenant_id: tenantId, employee_id: leaveRequest.employee_id })
+                .map((link) => link.user_id),
+            ]
+          : [];
+        return context.leaveService
+          .approve(actorContext, {
+            request_id: requestId,
+            approver_id: actorContext.actor_id,
+            applicant_actor_ids: applicantActorIds,
+            decision_reason: body.decision_reason ?? "approved_from_leave_page",
+          })
+          .then((leave_request) => response(200, { outcome: "approved", leave_request }))
+          .catch(safeError);
+      }
+      return context.leaveService
+        .reject(actorContext, {
+          request_id: requestId,
+          decision_reason: body.decision_reason ?? "rejected_from_leave_page",
+        })
+        .then((leave_request) => response(200, { outcome: "rejected", leave_request }))
+        .catch(safeError);
+    }
+
     if (pathname === "/api/hrx/approvals" && method === "GET") {
       return response(200, {
         outcome: "ok",
