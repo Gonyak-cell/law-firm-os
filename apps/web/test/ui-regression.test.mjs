@@ -641,7 +641,12 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(mattersSource, /createAnalyticsExport/);
   assert.match(mattersSource, /ImportDataMappingPanel/);
   assert.match(mattersSource, /matter-import/);
-  assert.match(mattersSource, /data-matter-billing-actions="true"/);
+  assert.match(mattersSource, /data-matter-charge-actions="true"/);
+  assert.match(mattersSource, /data-matter-charge-step="prebill-review"/);
+  assert.match(mattersSource, /data-matter-charge-step="invoice-issue"/);
+  assert.match(mattersSource, /data-matter-charge-step="payment-allocation"/);
+  assert.match(mattersSource, /data-matter-payment-import-action="true"/);
+  assert.doesNotMatch(mattersSource, /\bBilling\b/);
   assert.match(mattersSource, /data-matter-time-entry-action="true"/);
   assert.match(mattersSource, /data-matter-time-entry-form="true"/);
   assert.match(mattersSource, /data-matter-time-entry-timer-action="true"/);

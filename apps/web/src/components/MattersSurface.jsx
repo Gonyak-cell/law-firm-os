@@ -1956,7 +1956,7 @@ function ChargeActionPanel({
     ? Number(payment.unapplied_amount ?? payment.amount ?? 0)
     : 0;
   return (
-    <div className="record-action-grid" data-matter-billing-actions="true">
+    <div className="record-action-grid" data-matter-charge-actions="true">
       <div className="record-action-strip record-action-time-entry-strip" data-matter-time-entry-action="true">
         <div>
           <strong>{timeEntry ? `${timeEntry.duration_minutes ?? 0}분` : "시간"}</strong>
@@ -2117,7 +2117,7 @@ function ChargeActionPanel({
           청구 준비
         </button>
       </div>
-      <div className="record-action-strip" data-matter-prebill-review-action="true">
+      <div className="record-action-strip" data-matter-charge-step="prebill-review" data-matter-prebill-review-action="true">
         <div>
           <strong>{prebill ? billingStatus(prebill.status) : "검토"}</strong>
           <span>{prebill ? "사전검토 승인됨" : wipTotal > 0 ? moneyLabel(wipTotal, "KRW") : "WIP 필요"}</span>
@@ -2127,7 +2127,7 @@ function ChargeActionPanel({
           검토 승인
         </button>
       </div>
-      <div className="record-action-strip" data-matter-invoice-issue-action="true">
+      <div className="record-action-strip" data-matter-charge-step="invoice-issue" data-matter-invoice-issue-action="true">
         <div>
           <strong>{activeInvoice?.invoice_number ?? "발행"}</strong>
           <span>{activeInvoice ? moneyLabel(activeInvoice.amount_due, activeInvoice.currency ?? "KRW") : "승인 검토 기준"}</span>
@@ -2137,25 +2137,21 @@ function ChargeActionPanel({
           발행
         </button>
       </div>
-      <div className="record-action-strip">
+      <div className="record-action-strip" data-matter-charge-step="payment-allocation" data-matter-payment-match-action="true">
         <div>
-          <strong>{payment ? moneyLabel(payment.amount, payment.currency ?? "KRW") : "수납"}</strong>
-          <span>{payment ? "입금 기록됨" : activeInvoice ? "청구 잔액 기준" : "청구서 필요"}</span>
+          <strong>{paymentMatch ? moneyLabel(paymentMatch.amount, "KRW") : payment ? "수납 대기" : "수납 배정"}</strong>
+          <span>{payment ? `미배정 ${moneyLabel(unappliedPayment, payment.currency ?? "KRW")}` : activeInvoice ? "청구 잔액 기준" : "청구서 필요"}</span>
           <ActionNotice pending={paymentPending} result={paymentResult} pendingText="수납 기록 중입니다." successText="수납이 기록되었습니다." />
-        </div>
-        <button className="secondary-button" type="button" disabled={!matter || !activeInvoice || invoiceOutstanding <= 0 || paymentPending} onClick={onImportPayment}>
-          입금 기록
-        </button>
-      </div>
-      <div className="record-action-strip" data-matter-payment-match-action="true">
-        <div>
-          <strong>{paymentMatch ? moneyLabel(paymentMatch.amount, "KRW") : "배정"}</strong>
-          <span>{payment ? `미배정 ${moneyLabel(unappliedPayment, payment.currency ?? "KRW")}` : "입금 필요"}</span>
           <ActionNotice pending={paymentMatchPending} result={paymentMatchResult} pendingText="입금 배정 중입니다." successText="입금이 배정되었습니다." />
         </div>
-        <button className="secondary-button" type="button" disabled={!matter || !activeInvoice || !payment || invoiceOutstanding <= 0 || paymentMatchPending} onClick={onMatchPayment}>
-          배정
-        </button>
+        <div className="record-action-button-group">
+          <button className="secondary-button" type="button" data-matter-payment-import-action="true" disabled={!matter || !activeInvoice || invoiceOutstanding <= 0 || paymentPending} onClick={onImportPayment}>
+            입금 기록
+          </button>
+          <button className="secondary-button" type="button" disabled={!matter || !activeInvoice || !payment || invoiceOutstanding <= 0 || paymentMatchPending} onClick={onMatchPayment}>
+            배정
+          </button>
+        </div>
       </div>
       <div className="record-action-strip record-action-time-entry-strip" data-matter-accounting-export-action="true">
         <div>
