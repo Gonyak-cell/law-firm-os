@@ -46,7 +46,7 @@ function displayValue(value: unknown): string {
 function compensationStatus(result: CompensationResult | null): string {
   if (result === null) return "확인 중";
   if (result.kind === "step_up_required") return "권한 필요";
-  if (result.kind === "data") return displayValue(result.masked_compensation_ref);
+  if (result.kind === "data") return "마스킹 참조";
   if (result.kind === "empty") return "확인 필요";
   return "확인 실패";
 }
@@ -78,6 +78,7 @@ function CompensationRecordList({ result, onRetry }: { result: CompensationResul
       <div className="people-compensation-list">
         {records.map((record) => (
           <div className="people-compensation-row" key={displayValue(record.masked_compensation_ref)}>
+            <span className="people-compensation-ref-label">마스킹 참조</span>
             <strong>{displayValue(record.masked_compensation_ref)}</strong>
             <span>계약 {displayValue(record.employment_contract_id)}</span>
             <span>{displayValue(record.contract_document_ref)}</span>

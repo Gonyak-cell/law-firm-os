@@ -51,7 +51,7 @@ test.before(async () => {
 
 test.after(() => new Promise((resolve) => server.close(resolve)));
 
-test("HRX compensation records expose only masked hashes and decrypt only after signed step-up", async () => {
+test("HRX compensation records expose only masked hashes after signed step-up", async () => {
   const readChallenge = await json(`/api/hrx/compensation?employee_id=${EMPLOYEE_ID}`);
   assert.equal(readChallenge.status, 403);
   assert.equal(readChallenge.body.safe_error_code, "HRX_STEP_UP_REQUIRED");
@@ -73,30 +73,31 @@ test("HRX compensation records expose only masked hashes and decrypt only after 
   assert.equal(decryptChallenge.status, 403);
   assert.equal(decryptChallenge.body.safe_error_code, "HRX_STEP_UP_REQUIRED");
 
-  const decrypted = await json(`/api/hrx/compensation/${COMPENSATION_ID}/decrypt`, {
+  const confirmed = await json(`/api/hrx/compensation/${COMPENSATION_ID}/decrypt`, {
     headers: stepUpHeaders(),
   });
-  assert.equal(decrypted.status, 200);
-  assert.equal(decrypted.body.outcome, "ok");
-  assert.equal(decrypted.body.compensation_id, COMPENSATION_ID);
-  assert.equal(decrypted.body.employee_id, EMPLOYEE_ID);
-  assert.equal(decrypted.body.compensation_amount.amount_minor, SYNTHETIC_AMOUNT_MINOR);
-  assert.equal(decrypted.body.compensation_amount.currency_ref, "Currency:KRW");
-  assert.equal(decrypted.body.encrypted_amount_ref_included, false);
-  assert.equal(decrypted.body.raw_amount_included, true);
-  assert.equal(JSON.stringify(decrypted.body).includes("lawos-comp-v1."), false);
-  assert.equal(JSON.stringify(decrypted.body).includes("local-kms://"), false);
+  assert.equal(confirmed.status, 200);
+  assert.equal(confirmed.body.outcome, "ok");
+  assert.equal(confirmed.body.compensation_id, COMPENSATION_ID);
+  assert.equal(confirmed.body.employee_id, EMPLOYEE_ID);
+  assert.match(confirmed.body.masked_compensation_ref, /^compensation_ref_hash:[a-f0-9]{24}$/);
+  assert.equal(confirmed.body.compensation_amount, null);
+  assert.equal(confirmed.body.encrypted_amount_ref_included, false);
+  assert.equal(confirmed.body.raw_amount_included, false);
+  assert.equal(JSON.stringify(confirmed.body).includes("lawos-comp-v1."), false);
+  assert.equal(JSON.stringify(confirmed.body).includes("local-kms://"), false);
+  assert.equal(JSON.stringify(confirmed.body).includes(String(SYNTHETIC_AMOUNT_MINOR)), false);
 
   const audit = await json("/api/hrx/audit", {
     headers: stepUpHeaders("security_audit"),
   });
   assert.equal(audit.status, 200);
-  const decryptEvent = audit.body.events.find(
+  const confirmEvent = audit.body.events.find(
     (event) => event.action === "hrx.compensation.decrypt" && event.object_id === COMPENSATION_ID && event.decision === "allow",
   );
-  assert.ok(decryptEvent);
-  assert.equal(decryptEvent.metadata.amount_minor_included, false);
-  assert.equal(decryptEvent.metadata.encrypted_amount_ref_included, false);
-  assert.equal(JSON.stringify(decryptEvent).includes(String(SYNTHETIC_AMOUNT_MINOR)), false);
-  assert.equal(JSON.stringify(decryptEvent).includes("lawos-comp-v1."), false);
+  assert.ok(confirmEvent);
+  assert.equal(confirmEvent.metadata.amount_minor_included, false);
+  assert.equal(confirmEvent.metadata.encrypted_amount_ref_included, false);
+  assert.equal(JSON.stringify(confirmEvent).includes(String(SYNTHETIC_AMOUNT_MINOR)), false);
+  assert.equal(JSON.stringify(confirmEvent).includes("lawos-comp-v1."), false);
 });

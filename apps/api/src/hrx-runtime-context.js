@@ -4,7 +4,6 @@ import { createHrxAuditEventStore } from "../../../packages/audit/src/hrx-event-
 import {
   createInMemoryCompensationRecordStore,
   createSqlCompensationRecordStore,
-  decryptCompensationAmountRef,
   encryptCompensationAmount,
   maskCompensationRef,
 } from "../../../packages/hrx/src/compensation.js";
@@ -2269,20 +2268,15 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         emptyBody: { compensation_amount: null },
       });
       if (selfGuard) return selfGuard;
-      const decrypted = decryptCompensationAmountRef(record.encrypted_amount_ref, {
-        tenant_id: tenantId,
-        employee_id: record.employee_id,
-        compensation_id: record.compensation_id,
-      });
+      const maskedCompensationRef = maskCompensationRef(record.encrypted_amount_ref);
       appendRuntimeAudit(context.audit, {
         ...actorContext,
         action: "hrx.compensation.decrypt",
         object_type: "CompensationRecord",
         object_id: record.compensation_id,
-        reason: "compensation_amount_decrypted_after_step_up",
+        reason: "compensation_ref_confirmed_after_step_up",
         metadata: {
           employee_id: record.employee_id,
-          key_ref: decrypted.key_ref,
           encrypted_amount_ref_included: false,
           amount_minor_included: false,
           payroll_runtime_opened: false,
@@ -2292,15 +2286,13 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         outcome: "ok",
         compensation_id: record.compensation_id,
         employee_id: record.employee_id,
-        compensation_amount: {
-          amount_minor: decrypted.amount_minor,
-          currency_ref: decrypted.currency_ref ?? record.currency_ref,
-          unit: "minor_currency_units",
-        },
+        masked_compensation_ref: maskedCompensationRef,
+        compensation_amount: null,
+        currency_ref: record.currency_ref,
         employment_contract_id: record.employment_contract_id,
         contract_document_ref: record.contract_document_ref,
         encrypted_amount_ref_included: false,
-        raw_amount_included: true,
+        raw_amount_included: false,
         payroll_runtime_opened: false,
       });
     }

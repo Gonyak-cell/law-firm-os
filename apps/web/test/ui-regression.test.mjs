@@ -1153,6 +1153,11 @@ test("product tables do not render raw ids or dummy KPI values", async () => {
   const employees = await readWebFile("src/people/employees/EmployeeList.tsx");
   assert.doesNotMatch(employees, /<small>{employee\.work_email/);
 
+  const employeeProfile = await readWebFile("src/people/employees/EmployeeProfile.tsx");
+  assert.match(employeeProfile, /data-hrx-compensation-records/);
+  assert.match(employeeProfile, /마스킹 참조/);
+  assert.doesNotMatch(employeeProfile, /compensation_amount|amount_minor|encrypted_amount_ref/);
+
   const auth = await readWebFile("src/components/AuthSurface.jsx");
   assert.doesNotMatch(auth, /Start Workspace|Sign up with Google|Data Storage Location|Work Areas|Client Portal|Matter Graph|\bDMS\b|\bBilling\b/);
 });
