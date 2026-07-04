@@ -1140,6 +1140,9 @@ test("product tables do not render raw ids or dummy KPI values", async () => {
 
   const recruiting = await readWebFile("src/people/recruiting/RecruitingPipeline.tsx");
   assert.doesNotMatch(recruiting, /job\.position_count\]/);
+  assert.match(recruiting, /recruiting-row-detail/);
+  assert.match(recruiting, /합격 전환/);
+  assert.match(recruiting, /보상 참조/);
 
   const leave = await readWebFile("src/people/leave/LeaveRequestPage.tsx");
   assert.doesNotMatch(leave, /available_balance\s*\?\?|,\s*request\.amount\s*,/);

@@ -87,6 +87,22 @@ function stageLabel(value: unknown) {
   return "확인 필요";
 }
 
+function dateTimeLabel(value: string) {
+  if (!value) return "일정 확인";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "일정 확인";
+  return new Intl.DateTimeFormat("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(date);
+}
+
+function referenceLabel(value: string) {
+  return value ? "참조 등록" : "참조 확인";
+}
+
+function nextStageActionLabel(stage: string | undefined) {
+  if (stage === "hired") return "합격 전환";
+  return "다음 단계";
+}
+
 export function RecruitingPipeline() {
   const [result, setResult] = useState<RecruitingResult | null>(null);
   const [form, setForm] = useState<FormState>(DEFAULT_FORM);
@@ -184,6 +200,7 @@ export function RecruitingPipeline() {
   } else {
     const candidateById = byField(result.candidates, "candidate_id");
     const jobById = byField(result.job_openings, "job_opening_id");
+    const interviewByApplication = new Map(result.interviews.map((interview: RecruitingRecord) => [recordString(interview, "application_id"), interview]));
     const offerByApplication = new Map(result.offers.map((offer: RecruitingRecord) => [recordString(offer, "application_id"), offer]));
     body = (
       <>
@@ -266,27 +283,37 @@ export function RecruitingPipeline() {
             const applicationId = recordString(application, "application_id");
             const candidate = candidateById.get(recordString(application, "candidate_id"));
             const job = jobById.get(recordString(application, "job_opening_id"));
+            const interview = interviewByApplication.get(applicationId);
             const offer = offerByApplication.get(applicationId);
             const nextStage = NEXT_STAGE[recordString(application, "stage") as keyof typeof NEXT_STAGE];
             const offerAccepted = recordString(offer, "state") === "accepted";
             const canConvert = recordString(application, "stage") === "hired" && offerAccepted;
+            const usesCurrentForm = createdRefs?.application_id === applicationId;
             return (
-              <div className="approval-row" key={applicationId || `application-${index}`}>
+              <div className="approval-row recruiting-application-row" key={applicationId || `application-${index}`} data-recruiting-application-state={recordString(application, "stage", "unknown")}>
                 <div>
                   <strong>{recordString(candidate, "legal_name", `지원 ${index + 1}`)}</strong>
                   <span>{recordString(job, "title", "지원자 / 구성원 등록")}</span>
+                  <div className="recruiting-row-detail">
+                    <span><strong>이메일</strong>{recordString(candidate, "email", "이메일 확인")}</span>
+                    <span><strong>면접일</strong>{dateTimeLabel(recordString(interview, "scheduled_for"))}</span>
+                    <span><strong>합격자 문서</strong>{referenceLabel(recordString(offer, "document_ref"))}</span>
+                    <span><strong>보상 참조</strong>{referenceLabel(recordString(offer, "compensation_ref"))}</span>
+                    <span><strong>전환 직무</strong>{usesCurrentForm ? form.employee_title : recordString(job, "title", "직무 확인")}</span>
+                    <span><strong>적용일</strong>{usesCurrentForm ? form.effective_from : "전환 시 확정"}</span>
+                  </div>
                 </div>
                 <em>{stageLabel(application.stage)}</em>
                 <div className="approval-actions">
-                  <button className="secondary-button" disabled={!nextStage || pendingAction === applicationId} onClick={() => advance(application)}>
+                  <button type="button" className="secondary-button" disabled={!nextStage || pendingAction === applicationId} onClick={() => advance(application)}>
                     <GitBranch size={14} />
-                    다음 단계
+                    {nextStageActionLabel(nextStage)}
                   </button>
-                  <button className="secondary-button" disabled={recordString(offer, "state") !== "sent" || pendingAction === recordString(offer, "offer_id")} onClick={() => offer && acceptOffer(offer)}>
+                  <button type="button" className="secondary-button" disabled={recordString(offer, "state") !== "sent" || pendingAction === recordString(offer, "offer_id")} onClick={() => offer && acceptOffer(offer)}>
                     <FileCheck2 size={14} />
                     합격자 수락
                   </button>
-                  <button className="secondary-button" disabled={!canConvert || pendingAction === `convert:${applicationId}`} onClick={() => convert(application)}>
+                  <button type="button" className="secondary-button" disabled={!canConvert || pendingAction === `convert:${applicationId}`} onClick={() => convert(application)}>
                     <CheckCircle2 size={14} />
                     구성원 등록
                   </button>

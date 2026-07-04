@@ -9891,6 +9891,31 @@ html[data-theme="dark"] .public-preview {
   justify-content: flex-end;
 }
 
+.recruiting-application-row {
+  align-items: start;
+}
+
+.recruiting-row-detail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(110px, 1fr));
+  gap: 6px 10px;
+  margin-top: 8px;
+}
+
+.recruiting-row-detail span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  color: var(--am-text);
+  font-size: 12px;
+}
+
+.recruiting-row-detail strong {
+  color: var(--am-text-muted);
+  font-size: 10px;
+  letter-spacing: 0;
+}
+
 .recruiting-create-form {
   display: grid;
   gap: 10px;
