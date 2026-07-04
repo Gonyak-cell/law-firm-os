@@ -137,13 +137,32 @@ function conflictSourceLabel(value) {
 }
 
 function conflictReviewLabel({ decision, waiver, conflict, decisionReady }) {
-  if (waiver?.status === "approved") return "Waiver 승인";
+  if (waiver?.status === "approved") return "동의서 승인";
   if (decisionReady) return "검토 통과";
   if (decision?.decision === "clear") return "검토 통과";
   if (decision?.decision === "block") return "수임 차단";
-  if (decision?.decision === "waiver_required") return "Waiver 필요";
+  if (decision?.decision === "waiver_required") return "동의서 필요";
   if (conflict) return "결정 필요";
   return "검색 전";
+}
+
+function conflictHitStatusLabel(value) {
+  if (value === "cleared") return "해소";
+  if (value === "waived") return "동의서";
+  if (value === "blocked") return "차단";
+  if (value === "review_required") return "미결";
+  return value ? pipelineStatus(value) : "확인 필요";
+}
+
+function conflictHitStatusTone(value) {
+  if (value === "cleared" || value === "waived") return "live";
+  if (value === "blocked") return "error";
+  if (value === "review_required") return "review";
+  return "guarded";
+}
+
+function RecordStateBadge({ tone = "guarded", children }) {
+  return <span className="record-state-badge" data-state={tone}>{children}</span>;
 }
 
 function policyDisplayName(value) {
@@ -1191,6 +1210,14 @@ function IntakeActionPanel({
   const engagementReady = engagementResult?.engagementReady === true || engagement?.status === "approved";
   const clearance = clearanceResult?.kind === "data" ? clearanceResult.validation : null;
   const openedMatter = matterOpeningResult?.kind === "data" ? matterOpeningResult.item : null;
+  const hitRows = conflictHits.map((hit, index) => [
+    businessLabel(hit.matched_display_name, `Hit ${index + 1}`),
+    hit.hit_source ? conflictSourceLabel(hit.hit_source) : "출처 확인",
+    hit.severity ? conflictSeverityLabel(hit.severity) : "해당 없음",
+    <RecordStateBadge tone={conflictHitStatusTone(hit.status)}>{conflictHitStatusLabel(hit.status)}</RecordStateBadge>
+  ]);
+  const gateTone = clearance?.valid || (reviewReady && engagementReady) ? "live" : reviewReady ? "review" : "guarded";
+  const gateLabel = clearance?.valid ? "클리어런스 완료" : reviewReady && engagementReady ? "클리어런스 가능" : reviewReady ? "수임 승인 필요" : "충돌 결정 필요";
   return (
     <div
       className="record-action-grid"
@@ -1217,7 +1244,7 @@ function IntakeActionPanel({
       <div className="record-action-strip">
         <div>
           <strong>{conflictReviewLabel({ decision, waiver, conflict, decisionReady })}</strong>
-          <span>{conflict ? "승인자 기록 필요" : "검색 결과 필요"}</span>
+          <span>{conflictHits.length > 0 ? `${conflictHits.length}건 결정 상태 확인` : conflict ? "히트 없음" : "검색 결과 필요"}</span>
           <ActionNotice
             pending={decisionPending}
             result={decisionResult}
@@ -1227,8 +1254,8 @@ function IntakeActionPanel({
           <ActionNotice
             pending={waiverPending}
             result={waiverResult}
-            pendingText="Waiver를 승인 중입니다."
-            successText="Waiver 승인 기록이 남았습니다."
+            pendingText="동의서를 승인 중입니다."
+            successText="동의서 승인 기록이 남았습니다."
           />
         </div>
         <div className="record-action-button-group">
@@ -1236,14 +1263,15 @@ function IntakeActionPanel({
             검토 결정
           </button>
           <button className="secondary-button" type="button" disabled={!conflict || waiverPending} onClick={onWaiverApprove}>
-            Waiver 승인
+            동의서 승인
           </button>
         </div>
       </div>
       <div className="record-action-strip">
         <div>
-          <strong>{clearance?.valid ? "통과" : "통과 검토"}</strong>
+          <strong>{gateLabel}</strong>
           <span>{reviewReady && engagementReady ? "결정·수임 원장 확인됨" : engagementReady ? "결정 필요" : "수임 승인 필요"}</span>
+          <RecordStateBadge tone={gateTone}>{gateLabel}</RecordStateBadge>
           <ActionNotice
             pending={engagementPending}
             result={engagementResult}
@@ -1285,13 +1313,13 @@ function IntakeActionPanel({
       <div className="record-action-table" data-intake-conflict-hit-list="true">
         <DataTable
           columns={["Hit", "출처", "심각도", "상태"]}
-          rows={(conflictHits.length > 0 ? conflictHits : [{ matched_display_name: "검색 후 표시", hit_source: null, severity: null, status: conflict ? "히트 없음" : "대기" }]).map((hit, index) => [
-            businessLabel(hit.matched_display_name, `Hit ${index + 1}`),
-            hit.hit_source ? conflictSourceLabel(hit.hit_source) : "검색 대기",
-            hit.severity ? conflictSeverityLabel(hit.severity) : "해당 없음",
-            pipelineStatus(hit.status)
-          ])}
+          rows={hitRows}
         />
+        {hitRows.length === 0 && (
+          <div className="live-data-state live-data-empty">
+            {conflict ? "기록된 충돌 히트가 없습니다." : "이해상충 검토 후 결과가 표시됩니다."}
+          </div>
+        )}
       </div>
     </div>
   );

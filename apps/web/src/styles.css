@@ -7570,6 +7570,39 @@ html[data-theme="dark"] .public-preview {
   color: #24613a;
 }
 
+.record-state-badge {
+  min-height: 22px;
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface-subtle);
+  color: var(--am-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.record-state-badge[data-state="live"] {
+  border-color: #b9e8c5;
+  background: #e8f8ed;
+  color: #26c260;
+}
+
+.record-state-badge[data-state="review"] {
+  border-color: #ead59b;
+  background: #fff9e8;
+  color: #8a6418;
+}
+
+.record-state-badge[data-state="error"] {
+  border-color: #edc3bb;
+  background: #fff2f0;
+  color: #bc2c1a;
+}
+
 .record-action-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }

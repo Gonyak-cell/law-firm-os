@@ -239,9 +239,9 @@ try {
 
   await Promise.all([
     page.waitForResponse((response) => response.url().includes("/api/intake/waivers") && response.request().method() === "POST"),
-    actionPanel.getByRole("button", { name: "Waiver 승인" }).click(),
+    actionPanel.getByRole("button", { name: "동의서 승인" }).click(),
   ]);
-  await actionPanel.getByText("Waiver 승인 기록이 남았습니다.").waitFor({ state: "visible", timeout: 15000 });
+  await actionPanel.getByText("동의서 승인 기록이 남았습니다.").waitFor({ state: "visible", timeout: 15000 });
 
   await Promise.all([
     page.waitForResponse((response) => response.url().includes("/api/intake/engagements") && response.request().method() === "POST"),

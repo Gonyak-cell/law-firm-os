@@ -238,9 +238,9 @@ try {
 
   await Promise.all([
     page.waitForResponse((response) => response.url().includes("/api/intake/waivers") && response.request().method() === "POST"),
-    actionPanel.getByRole("button", { name: "Waiver 승인" }).click(),
+    actionPanel.getByRole("button", { name: "동의서 승인" }).click(),
   ]);
-  await actionPanel.getByText("Waiver 승인 기록이 남았습니다.").waitFor({ state: "visible", timeout: 15000 });
+  await actionPanel.getByText("동의서 승인 기록이 남았습니다.").waitFor({ state: "visible", timeout: 15000 });
 
   await Promise.all([
     page.waitForResponse((response) => response.url().includes("/api/intake/engagements") && response.request().method() === "POST"),
@@ -268,10 +268,10 @@ try {
     ),
     check(
       "conflict-review-ui-shows-hit-decision-waiver-clearance",
-      hitListText.includes("상대방 주식회사") &&
+        hitListText.includes("상대방 주식회사") &&
         hitListText.includes("과거 Matter") &&
         panelText.includes("검토 결정이 기록되었습니다.") &&
-        panelText.includes("Waiver 승인 기록이 남았습니다.") &&
+        panelText.includes("동의서 승인 기록이 남았습니다.") &&
         panelText.includes("수임 승인 완료.") &&
         panelText.includes("통과 처리되었습니다."),
     ),
