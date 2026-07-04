@@ -1,0 +1,117 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-github-release-receipt.v0.1",
+  "status": "github_prerelease_published",
+  "local_release_date": "2026-07-04",
+  "release": {
+    "tag": "matter-desktop-v0.1.8-final-20260704",
+    "name": "matter Desktop v0.1.8 final package prerelease",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.8-final-20260704",
+    "created_at": "2026-07-04T13:26:54Z",
+    "published_at": "2026-07-04T13:27:39Z",
+    "target_commitish": "1b8bb676fe8a46a586a1271aed3deb4d9339e2cb",
+    "source_branch": "codex/lcx-vltui-owner-approval-intake",
+    "is_draft": false,
+    "is_prerelease": true
+  },
+  "assets": [
+    {
+      "name": "matter-0.1.8-macos.dmg",
+      "size": 156324295,
+      "digest": "sha256:7cdd9578efe44617f8de2315a1a12bd0591a0a60433f78f9b50299902492df6d",
+      "state": "uploaded"
+    },
+    {
+      "name": "matter-0.1.8-macos.zip",
+      "size": 130985389,
+      "digest": "sha256:373c4b9d63608d7430d3d5b3359894cb1e2b346e9def8692d734d07ec256e2a8",
+      "state": "uploaded"
+    },
+    {
+      "name": "matter-0.1.8-win-x64.exe",
+      "size": 107904921,
+      "digest": "sha256:8413973aae3fbf7f28cc2ad06a0ce9c2b0ba6414c0bbf71fa8b3d37d6cc97560",
+      "state": "uploaded"
+    },
+    {
+      "name": "matter-0.1.8-win-x64.exe.blockmap",
+      "size": 114928,
+      "digest": "sha256:5fd3e232b860e01b1d926c0d5f4faa88afc574542a7979873d95dfecf625c3f2",
+      "state": "uploaded"
+    },
+    {
+      "name": "matter-0.1.8-win-installer-manifest.json",
+      "size": 353,
+      "digest": "sha256:5a16afb6cb673de680078c74706155e1d0242bf23c749dcfde186331e95f0412",
+      "state": "uploaded"
+    },
+    {
+      "name": "matter-0.1.8-win-installer-manifest.json.sig",
+      "size": 65,
+      "digest": "sha256:cbb3717f276761a249c1cb9fc4bded03d896d9c82173955a81cd1e9ec045ec7c",
+      "state": "uploaded"
+    },
+    {
+      "name": "release-manifest.json",
+      "size": 4612,
+      "digest": "sha256:0ae698a473c43118969eb8c0a511401065570fda34412b65d2d91141a25ec9f5",
+      "state": "uploaded"
+    },
+    {
+      "name": "checksums.sha256",
+      "size": 1072,
+      "digest": "sha256:ddaa8c9324adc26e8d1bded6b8cb4f37496d33a7b11884e63e0c51ba239ef9a6",
+      "state": "uploaded"
+    },
+    {
+      "name": "matter-desktop-formal-release-receipt.md",
+      "size": 2697,
+      "digest": "sha256:eb59ab757b3ad2be4d1ebacf0687281295899f1df63efb89b432f5c966957146",
+      "state": "uploaded"
+    },
+    {
+      "name": "matter-desktop-v0.1.8-final-package-release-notes-2026-07-04.md",
+      "size": 3458,
+      "digest": "sha256:79c6a73050ec341a85cdfa9974858196f21ff601f757e94c3ba107fec94617d1",
+      "state": "uploaded"
+    },
+    {
+      "name": "macos-build.md",
+      "size": 1708,
+      "digest": "sha256:8f95cb464985f6bc18caf773f9a77f5e459c741b57221d064e56ca7e73c78f2e",
+      "state": "uploaded"
+    },
+    {
+      "name": "windows-build.md",
+      "size": 1695,
+      "digest": "sha256:f332f90a838c721e5598f512ba06181119ed08048b10099379bc0880784ef415",
+      "state": "uploaded"
+    }
+  ],
+  "verification": {
+    "desktop_smoke": "PASS 70/70",
+    "desktop_file_bridge": "PASS 17/17",
+    "aws_runtime_smoke": "PASS",
+    "macos_developer_id_signing": "PASS",
+    "macos_notarization": "submitted_and_accepted_by_notarytool",
+    "macos_gatekeeper_assess": "PASS",
+    "windows_nsis_installer": "generated",
+    "windows_native_install_smoke": "not_run_on_darwin",
+    "windows_authenticode_signing": false,
+    "formal_release_validate": "PASS",
+    "checksum_entries_verified": 9,
+    "root_test": "PASS 4152/4152",
+    "web_build": "PASS",
+    "web_ui": "PASS 42/42",
+    "dmg_verify": "PASS",
+    "zip_test": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "non_claims": {
+    "public_release": false,
+    "production_go_live": false,
+    "owner_final_approval": false,
+    "app_store_distribution": false,
+    "microsoft_store_distribution": false,
+    "windows_authenticode_signing": false
+  }
+}
