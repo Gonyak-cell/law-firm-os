@@ -44,7 +44,7 @@ export function App() {
     ? initialSkinParam
     : ["forest", "matter"].includes(storedSkin)
       ? storedSkin
-      : "matter";
+      : "forest";
   const rawInitialView = routableViews.includes(initialParams.get("view")) ? initialParams.get("view") : "home";
   const rawInitialSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
   const resolvedInitialRoute = resolveRoute(rawInitialView, rawInitialSection);

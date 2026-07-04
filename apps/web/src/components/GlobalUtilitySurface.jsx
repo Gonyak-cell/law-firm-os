@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { ArrowRight, Link2, ShieldCheck } from "lucide-react";
+import webPackage from "../../package.json";
 import { conditionalGlobalItems, getGlobalUtilityByView, globalUtilityItems } from "../data/globalUtilities.js";
 import { GuardedStateNotice } from "./GuardedState.js";
 import { ForestHero } from "./ForestHero.jsx";
 import { PageHeader, Panel } from "./primitives.jsx";
 import { EmployeeList } from "../people/employees/EmployeeList.tsx";
 import { HRDocumentWorkspace } from "../people/documents/HRDocumentWorkspace.tsx";
+
+const APP_VERSION = webPackage.version;
 
 function sectionStateLabel(section, utility) {
   if (section.state === "audit_required") return "감사 필요";
@@ -78,7 +81,7 @@ function SettingsThemeMenu({ theme, setTheme, skin, setSkin }) {
       <div className="settings-theme-row">
         <div>
           <strong>UI 스킨</strong>
-          <span>작업공간의 시각 톤을 선택합니다.</span>
+          <span>작업공간의 시각 톤을 선택합니다. 버전 {APP_VERSION}</span>
         </div>
         <div className="settings-theme-segment" role="group" aria-label="UI 스킨">
           {[
