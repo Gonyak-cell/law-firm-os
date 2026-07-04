@@ -1314,7 +1314,7 @@ function IntakeActionPanel({
       <div className="record-action-strip">
         <div>
           <strong>{openedMatter ? "Matter 개설됨" : "Matter 개설"}</strong>
-          <span>{clearance?.valid ? "통과 기록으로 개설 가능" : "통과 처리 필요"}</span>
+          <span>{openedMatter ? "Matter 목록에 반영됨" : clearance?.valid ? "통과 기록으로 개설 가능" : "통과 처리 필요"}</span>
           <ActionNotice
             pending={matterOpeningPending}
             result={matterOpeningResult}
@@ -1322,7 +1322,7 @@ function IntakeActionPanel({
             successText="Matter가 개설되었습니다."
           />
         </div>
-        <button className="secondary-button" type="button" disabled={!clearance?.valid || matterOpeningPending || Boolean(openedMatter)} onClick={onMatterOpening}>
+        <button className="primary-button" type="button" disabled={!clearance?.valid || matterOpeningPending || Boolean(openedMatter)} onClick={onMatterOpening}>
           <Plus size={15} />
           Matter 개설
         </button>

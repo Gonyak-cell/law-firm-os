@@ -1935,7 +1935,7 @@ export function openMatterFromIntakeClearance({
   ctx = "allow"
 } = {}) {
   const matterId = uiRuntimeId("matter_intake_ui");
-  const tenantId = clearanceToken?.tenant_id ?? intakeRequest?.tenant_id ?? CRM_INTAKE_TENANT_ID;
+  const tenantId = MATTER_TENANT_ID;
   const actorId = actorRefForDomain("matter", MATTER_PRINCIPAL.user_id);
   const partyId = clientPartyId ?? intakeRequest?.requesting_party_id ?? "party_cmp_g6_client_001";
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");

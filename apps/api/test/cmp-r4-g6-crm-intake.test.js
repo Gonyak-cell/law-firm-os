@@ -9,6 +9,7 @@ import { startApiServer } from "../src/server.js";
 import { apiSessionHeaders } from "./helpers/session.js";
 
 const TENANT = "tenant_cmp_g6_synthetic";
+const MATTER_TENANT = "tenant_rp05_synthetic";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_cmp_g6_read&audit_hint_ref=audit_hint_cmp_g6_read`;
 const CONTACT_VALUE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_cmp_g6_contact_value_read&audit_hint_ref=audit_hint_cmp_g6_contact_value_read`;
 
@@ -1205,6 +1206,44 @@ test("G6 conflict check, clearance token, and audit routes stay safe and tenant 
     });
     assert.equal(openedMatterRecord.clearance_token_id, "clearance_cmp_g6_api_001");
     assert.equal(openedMatterRecord.engagement_id, "engagement_cmp_g6_api_001");
+
+    const matterTenantOpening = {
+      ...matterOpening,
+      tenant_id: MATTER_TENANT,
+      permission_ref: "perm_ref_rp05_write",
+      audit_hint_ref: "audit_hint_rp05_write",
+      idempotency_key: "api-matter-open-c04-rp05-1",
+      matter_number_seed: "RP05-C04",
+      matter: {
+        ...matterOpening.matter,
+        matter_id: "matter_rp05_from_cmp_g6_001",
+        tenant_id: MATTER_TENANT,
+        title: "RP05 intake-backed matter opening",
+        matter_number: "M-RP05-C04-001",
+        permission_envelope_id: "perm_rp05_c04_001",
+        audit_trace_id: "audit_rp05_c04_001",
+      },
+    };
+    const openedInMatterTenant = await json(baseUrl, "/api/matters/openings", {
+      method: "POST",
+      body: JSON.stringify(matterTenantOpening),
+    });
+    assert.equal(openedInMatterTenant.status, 201);
+    assert.equal(openedInMatterTenant.body.item.matter_id, "matter_rp05_from_cmp_g6_001");
+    assert.equal(openedInMatterTenant.body.item.tenant_id, MATTER_TENANT);
+    const openedMatterTenantRecord = matterRepository.get({
+      tenant_id: MATTER_TENANT,
+      model_type: "Matter",
+      matter_id: "matter_rp05_from_cmp_g6_001",
+    });
+    assert.equal(openedMatterTenantRecord.clearance_token_id, "clearance_cmp_g6_api_001");
+    assert.equal(openedMatterTenantRecord.intake_request_id, "intake_cmp_g6_synthetic_001");
+    const listedInMatterTenant = await json(
+      baseUrl,
+      `/api/matters?tenant_id=${MATTER_TENANT}&permission_ref=perm_ref_rp05_read&audit_hint_ref=audit_hint_rp05_read`,
+    );
+    assert.equal(listedInMatterTenant.status, 200);
+    assert.ok(listedInMatterTenant.body.items.some((item) => item.matter_id === "matter_rp05_from_cmp_g6_001"));
 
     const audit = await json(baseUrl, `/api/intake/audit?${BASE_QUERY}`);
     assert.equal(audit.status, 200);

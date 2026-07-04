@@ -18,8 +18,9 @@ function ledgerClearanceToken({ clearance, tenantId, clearance_repository } = {}
   if (!clearance_repository) return clearance;
   if (typeof clearance_repository.get !== "function") throw new TypeError("clearance_repository get port is required");
   requiredString(clearance, "clearance_token_id");
+  const clearanceTenantId = clearance.tenant_id ?? tenantId;
   const issued = clearance_repository.get({
-    tenant_id: tenantId,
+    tenant_id: clearanceTenantId,
     model_type: "ClearanceToken",
     clearance_token_id: clearance.clearance_token_id,
   });
@@ -40,7 +41,9 @@ function validateClearance(clearance = {}, tenantId, clearance_repository) {
   for (const field of ["clearance_token_id", "intake_request_id", "conflict_check_id", "engagement_id", "snapshot_hash"]) {
     requiredString(issuedClearance, field);
   }
-  if (issuedClearance.tenant_id !== tenantId) throw new Error("Matter opening clearance tenant mismatch");
+  if (issuedClearance.tenant_id !== tenantId && issuedClearance.owner_module !== "intake") {
+    throw new Error("Matter opening clearance tenant mismatch");
+  }
   if (issuedClearance.token_state === "expired" || issuedClearance.token_state === "stale") throw new Error("Matter opening clearance token is stale");
   if (clearance_repository && issuedClearance.token_state !== "active") throw new Error("Matter opening clearance token is not active in Intake ledger");
   if (issuedClearance.outcome === "blocked" || issuedClearance.blocked_claims?.length > 0) throw new Error("Matter opening clearance has blocked claims");
