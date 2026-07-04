@@ -247,7 +247,6 @@ export async function loginLawosApiSession({ email, password } = {}, { source = 
 function sessionAuthorizedHeaders(headers = {}) {
   const requestHeaders = plainHeaders(headers);
   for (const name of [
-    PERMISSION_CONTEXT_HEADER,
     "x-lawos-tenant-id",
     "x-lawos-actor-id",
     "x-lawos-actor-role",
