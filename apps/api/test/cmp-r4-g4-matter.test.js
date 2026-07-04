@@ -201,6 +201,7 @@ function adversePartyPayload(overrides = {}) {
       matter_party_id: "matter_party_api_c01_adverse",
       party_id: "party_api_c01_adverse",
       display_name: "상대방 주식회사",
+      party_kind: "organization",
       party_role: "adverse_party",
       retroactive_entry: true,
     },
@@ -489,7 +490,9 @@ test("G4 Matter adverse party registration is idempotent and visible on detail",
     assert.equal(created.status, 201);
     assert.equal(created.body.outcome, "created");
     assert.equal(created.body.item.matter_party_id, "matter_party_api_c01_adverse");
+    assert.equal(created.body.item.party_kind, "organization");
     assert.equal(created.body.item.party_role, "adverse_party");
+    assert.equal(created.body.item.created_by, "user_rp05_owner");
     assert.equal(created.body.item.conflict_subject, true);
     assert.equal(created.body.item.retroactive_entry, true);
     assert.equal(created.body.item.raw_contact_values_included, false);
@@ -510,6 +513,8 @@ test("G4 Matter adverse party registration is idempotent and visible on detail",
     assert.equal(parties.status, 200);
     assert.equal(parties.body.items.length, 1);
     assert.equal(parties.body.items[0].display_name, "상대방 주식회사");
+    assert.equal(parties.body.items[0].party_kind, "organization");
+    assert.equal(parties.body.items[0].created_by, "user_rp05_owner");
     assert.equal(parties.body.adverse_parties.length, 1);
 
     const detail = await json(baseUrl, `/api/matters/matter_rp05_synthetic_opening?${BASE_QUERY}`);

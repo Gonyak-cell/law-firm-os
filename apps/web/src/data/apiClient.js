@@ -1981,7 +1981,7 @@ export function addMatterTeamMember({ matterId, payload, ctx = "allow" } = {}) {
   });
 }
 
-export function registerMatterParty({ matterId, displayName, partyRole = "adverse_party", retroactiveEntry = true, ctx = "allow" } = {}) {
+export function registerMatterParty({ matterId, displayName, partyRole = "adverse_party", partyKind = "organization", retroactiveEntry = true, ctx = "allow" } = {}) {
   const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
   const stamp = Date.now();
   return postMatterRuntime({
@@ -1996,6 +1996,7 @@ export function registerMatterParty({ matterId, displayName, partyRole = "advers
         tenant_id: MATTER_TENANT_ID,
         matter_id: matterId,
         display_name: displayName,
+        party_kind: partyKind,
         party_role: partyRole,
         retroactive_entry: retroactiveEntry
       }

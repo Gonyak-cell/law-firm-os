@@ -540,7 +540,7 @@ export async function createHrxEmploymentContractDocument(employeeId: string | n
   if (!employeeId) return { kind: "empty" };
   const stamp = Date.now();
   const documentId = `doc-contract-${employeeId}-${stamp}`;
-  const sourceRef = `DMS:employment-contract:${employeeId}:${stamp}`;
+  const sourceRef = `vault-doc:employment-contract:${employeeId}:${stamp}`;
   const result = await requestJson("/api/hrx/documents", {
     method: "POST",
     body: JSON.stringify({
@@ -674,7 +674,7 @@ export async function createHrxRecruitingJobOpening(form: HrxClientRecord, ids: 
       job_opening_id: ids.job_opening_id,
       title: formString(form, "job_title", "신규 포지션"),
       department_ref: formString(form, "department_ref", "PracticeGroup:litigation"),
-      hiring_manager_employee_id: formString(form, "hiring_manager_employee_id", "emp_amic_jwsuh"),
+      hiring_manager_employee_id: formString(form, "hiring_manager_employee_id", "emp-001"),
       position_count: Number(form.position_count ?? 1),
       state: "open",
       approval_ref: ids.approval_ref,
@@ -691,7 +691,7 @@ export async function createHrxRecruitingCandidate(form: HrxClientRecord, ids: R
       legal_name: formString(form, "candidate_name", "신규 지원자"),
       email: formString(form, "candidate_email", ""),
       source_ref: formString(form, "source_ref", `ATS:lawos-ui:${ids.suffix}`),
-      resume_ref: formString(form, "resume_ref", `DMS:resume:${ids.suffix}`),
+      resume_ref: formString(form, "resume_ref", `vault-resume:${ids.suffix}`),
       retention_policy_id: formString(form, "retention_policy_id", "candidate-retention-2y"),
       consent: {
         consent_id: ids.consent_id,
@@ -725,7 +725,7 @@ export async function createHrxRecruitingInterview(form: HrxClientRecord, ids: R
       candidate_id: ids.candidate_id,
       scheduled_for: scheduledIso(formString(form, "interview_date", currentDateKey()), formString(form, "interview_time", "10:00")),
       schedule_source_ref: formString(form, "schedule_source_ref", `CalendarEvent:${ids.interview_id}`),
-      interviewer_employee_ids: [formString(form, "interviewer_employee_id", formString(form, "hiring_manager_employee_id", "emp_amic_jwsuh"))]
+      interviewer_employee_ids: [formString(form, "interviewer_employee_id", formString(form, "hiring_manager_employee_id", "emp-001"))]
     })
   });
 }
@@ -738,7 +738,7 @@ export async function createHrxRecruitingOffer(form: HrxClientRecord, ids: Recor
       application_id: ids.application_id,
       candidate_id: ids.candidate_id,
       compensation_ref: formString(form, "compensation_ref", `CompPackage:${ids.offer_id}`),
-      document_ref: formString(form, "offer_document_ref", `DMS:offer-letter:${ids.suffix}`),
+      document_ref: formString(form, "offer_document_ref", `vault-offer-letter:${ids.suffix}`),
       state: "sent",
       approval_ref: ids.approval_ref
     })
@@ -792,7 +792,7 @@ export async function convertHrxApplicationToEmployee(applicationId: string, for
       profile_id: formString(form, "profile_id", `profile_ui_${suffix}`),
       title: formString(form, "employee_title", formString(form, "job_title", "구성원")),
       org_unit_id: formString(form, "org_unit_id", "org_legal"),
-      manager_employee_id: formString(form, "manager_employee_id", formString(form, "hiring_manager_employee_id", "emp_amic_jwsuh")),
+      manager_employee_id: formString(form, "manager_employee_id", formString(form, "hiring_manager_employee_id", "emp-001")),
       effective_from: formString(form, "effective_from", currentDateKey())
     })
   });

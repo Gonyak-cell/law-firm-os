@@ -11,6 +11,7 @@ const MATTER_PARTY_ROLES = new Set([
 ]);
 
 const CONFLICT_SUBJECT_ROLES = new Set(["adverse_party", "counterparty", "opposing_counsel", "related_party"]);
+const MATTER_PARTY_KINDS = new Set(["person", "organization"]);
 
 function requiredString(value, field) {
   const text = String(value ?? "").trim();
@@ -39,6 +40,13 @@ function normalizeRole(value) {
   throw new TypeError(`Unsupported MatterParty role: ${role}`);
 }
 
+function normalizeKind(value) {
+  const kind = String(value ?? "organization").trim();
+  if (["company", "corporation", "org", "entity"].includes(kind)) return "organization";
+  if (MATTER_PARTY_KINDS.has(kind)) return kind;
+  throw new TypeError(`Unsupported MatterParty kind: ${kind}`);
+}
+
 function visibleMatterPartyRecords(records = []) {
   return records
     .filter((record) => record.silent !== true && record.hidden_from_actor !== true && record.status !== "deleted")
@@ -53,6 +61,7 @@ export function serializeMatterParty(record = {}) {
     matter_id: record.matter_id,
     party_id: record.party_id ?? null,
     display_name: record.display_name,
+    party_kind: record.party_kind ?? "organization",
     party_role: record.party_role,
     role_scope: record.role_scope ?? "matter_party",
     conflict_subject: record.conflict_subject === true,
@@ -60,6 +69,7 @@ export function serializeMatterParty(record = {}) {
     retroactive_source: record.retroactive_source ?? null,
     status: record.status ?? "active",
     registered_at: record.registered_at ?? null,
+    created_by: record.created_by ?? null,
     raw_contact_values_included: false,
     production_ready_claim: false,
   });
@@ -81,6 +91,7 @@ export function registerMatterParty({ repository, matter, party, actor_id, audit
   if (!repository?.create) throw new TypeError("repository is required");
   if (!matter?.tenant_id || !matter?.matter_id) throw new TypeError("matter is required");
   const role = normalizeRole(party?.party_role ?? party?.role);
+  const kind = normalizeKind(party?.party_kind ?? party?.party_type);
   const displayName = safeText(party?.display_name ?? party?.name, "display_name");
   const registeredAt = party?.registered_at && !Number.isNaN(Date.parse(party.registered_at))
     ? party.registered_at
@@ -102,6 +113,7 @@ export function registerMatterParty({ repository, matter, party, actor_id, audit
     matter_party_id: matterPartyId,
     party_id: party?.party_id ? safeId(party.party_id) : null,
     display_name: displayName,
+    party_kind: kind,
     party_role: role,
     role_scope: conflictSubject ? "matter_conflict_subject" : "matter_party",
     conflict_subject: conflictSubject === true,

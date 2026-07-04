@@ -750,6 +750,25 @@ function matterPartyRoleLabel(value) {
   return "기타";
 }
 
+function matterPartyKindLabel(value) {
+  if (value === "person") return "개인";
+  if (value === "organization") return "법인";
+  return "미지정";
+}
+
+function matterPartyDateLabel(value) {
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) return "확인 필요";
+  return date.toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" });
+}
+
+function matterPartyActorLabel(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return "기록자 확인";
+  if (text.includes("_")) return "운영자";
+  return text;
+}
+
 function clientReportSectionLabel(section, index = 0) {
   const text = String(section?.title ?? section?.section_id ?? "").trim();
   if (text === "Status" || text === "status") return "상태";
@@ -1349,6 +1368,8 @@ function CommandPanel({
   onRegisterAdverseParty
 }) {
   const [adversePartyName, setAdversePartyName] = useState("");
+  const [adversePartyKind, setAdversePartyKind] = useState("organization");
+  const [adversePartyRelation, setAdversePartyRelation] = useState("adverse_party");
   const [retroactiveEntry, setRetroactiveEntry] = useState(true);
   const state = renderCommandState(result, matter);
   if (state) return state;
@@ -1361,7 +1382,7 @@ function CommandPanel({
     event.preventDefault();
     const displayName = adversePartyName.trim();
     if (!displayName || partyRegisterPending) return;
-    onRegisterAdverseParty(displayName, retroactiveEntry);
+    onRegisterAdverseParty(displayName, retroactiveEntry, adversePartyKind, adversePartyRelation);
     setAdversePartyName("");
   }
   return (
@@ -1404,6 +1425,22 @@ function CommandPanel({
               disabled={partyRegisterPending}
             />
           </label>
+          <label className="form-field">
+            유형
+            <select value={adversePartyKind} onChange={(event) => setAdversePartyKind(event.target.value)} disabled={partyRegisterPending}>
+              <option value="organization">법인</option>
+              <option value="person">개인</option>
+            </select>
+          </label>
+          <label className="form-field">
+            관계
+            <select value={adversePartyRelation} onChange={(event) => setAdversePartyRelation(event.target.value)} disabled={partyRegisterPending}>
+              <option value="adverse_party">상대방</option>
+              <option value="counterparty">거래 상대방</option>
+              <option value="related_party">관련자</option>
+              <option value="opposing_counsel">상대 대리인</option>
+            </select>
+          </label>
           <label className="checkbox-field">
             <input
               type="checkbox"
@@ -1427,11 +1464,13 @@ function CommandPanel({
       </div>
       <div data-matter-adverse-party-list="true">
         <DataTable
-          columns={["상대방", "역할", "상태"]}
+          columns={["상대방", "유형", "관계", "등록일", "등록자"]}
           rows={matterParties.map((party) => [
             party.display_name ?? "이름 미등록",
+            matterPartyKindLabel(party.party_kind ?? party.party_type),
             matterPartyRoleLabel(party.party_role),
-            party.retroactive_entry ? "소급" : "신규"
+            matterPartyDateLabel(party.registered_at),
+            matterPartyActorLabel(party.created_by)
           ])}
         />
       </div>
@@ -1857,7 +1896,7 @@ function ActionNotice({ pending, result, pendingText, successText }) {
   return message ? <small>{message}</small> : null;
 }
 
-function BillingActionPanel({
+function ChargeActionPanel({
   matter,
   invoiceRows,
   timeEntryResult,
@@ -2081,8 +2120,8 @@ function BillingActionPanel({
       <div className="record-action-strip" data-matter-prebill-review-action="true">
         <div>
           <strong>{prebill ? billingStatus(prebill.status) : "검토"}</strong>
-          <span>{prebill ? "PreBill 승인됨" : wipTotal > 0 ? moneyLabel(wipTotal, "KRW") : "WIP 필요"}</span>
-          <ActionNotice pending={prebillPending} result={prebillResult} pendingText="검토 승인 중입니다." successText="PreBill이 승인되었습니다." />
+          <span>{prebill ? "사전검토 승인됨" : wipTotal > 0 ? moneyLabel(wipTotal, "KRW") : "WIP 필요"}</span>
+          <ActionNotice pending={prebillPending} result={prebillResult} pendingText="검토 승인 중입니다." successText="사전검토가 승인되었습니다." />
         </div>
         <button className="secondary-button" type="button" disabled={!matter || wipItems.length === 0 || prebillPending} onClick={onCreatePreBill}>
           검토 승인
@@ -2091,7 +2130,7 @@ function BillingActionPanel({
       <div className="record-action-strip" data-matter-invoice-issue-action="true">
         <div>
           <strong>{activeInvoice?.invoice_number ?? "발행"}</strong>
-          <span>{activeInvoice ? moneyLabel(activeInvoice.amount_due, activeInvoice.currency ?? "KRW") : "승인 PreBill 기준"}</span>
+          <span>{activeInvoice ? moneyLabel(activeInvoice.amount_due, activeInvoice.currency ?? "KRW") : "승인 검토 기준"}</span>
           <ActionNotice pending={invoiceIssuePending} result={invoiceIssueResult} pendingText="청구서 발행 중입니다." successText="청구서가 발행되었습니다." />
         </div>
         <button className="secondary-button" type="button" disabled={!matter || !prebill || invoiceIssuePending} onClick={onIssueInvoice}>
@@ -2160,7 +2199,7 @@ function BillingActionPanel({
   );
 }
 
-function BillingPanel({
+function ChargePanel({
   timeResult,
   invoiceResult,
   agingResult,
@@ -2226,7 +2265,7 @@ function BillingPanel({
   const invoiceRows = resultItems(invoiceResult).filter((item) => !matterId || item.matter_id === matterId);
   const agingRows = resultItems(agingResult).filter((item) => !matterId || item.matter_id === matterId);
   const actionPanel = (
-      <BillingActionPanel
+      <ChargeActionPanel
         matter={matter}
         invoiceRows={invoiceRows}
         timeEntryResult={timeEntryResult}
@@ -2961,12 +3000,14 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     }
   }
 
-  async function handleRegisterAdverseParty(displayName, retroactiveEntry = true) {
+  async function handleRegisterAdverseParty(displayName, retroactiveEntry = true, partyKind = "organization", partyRole = "adverse_party") {
     if (!activeMatterId) return;
     setPartyRegisterPending(true);
     const next = await registerMatterParty({
       matterId: activeMatterId,
       displayName,
+      partyKind,
+      partyRole,
       retroactiveEntry,
       ctx: liveCtx
     });
@@ -3590,7 +3631,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     if (currentSection === "matter-expenses") {
       return (
         <div className="workspace-mini-grid" data-lcx-vltui-06-expenses-connected="true">
-          <BillingPanel
+          <ChargePanel
             timeResult={timeResult}
             invoiceResult={invoiceResult}
             agingResult={agingResult}
@@ -3864,7 +3905,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             title={currentSection === "matter-time" ? "시간 기록" : currentSection === "matter-ar" ? "미수금" : "청구 내역"}
             meta="결재·청구"
           >
-            <BillingPanel
+            <ChargePanel
               timeResult={timeResult}
               invoiceResult={invoiceResult}
               agingResult={agingResult}

@@ -551,7 +551,7 @@ function ClientConflictPanel({
   );
 }
 
-function ClientBillingPanel({ invoicesResult, arAgingResult }) {
+function ClientChargePanel({ invoicesResult, arAgingResult }) {
   const invoiceState = renderLiveState(invoicesResult, "청구 내역");
   const arState = renderLiveState(arAgingResult, "미수금");
   return (
@@ -2384,7 +2384,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
         )}
         {currentSection === "client-billing" && (
           <Panel id="client-billing" className="record-list-panel" title="청구·수금" meta="Finance 연결">
-            <ClientBillingPanel
+            <ClientChargePanel
               invoicesResult={financeInvoicesResult}
               arAgingResult={financeArAgingResult}
             />
