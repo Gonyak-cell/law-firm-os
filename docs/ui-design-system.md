@@ -86,6 +86,17 @@ Forest panel headings may use the small emerald tick idiom already present in li
 
 Use the current `.live-data-state` structure. In Forest, keep empty and denied states compact, left-aligned, and solid-bordered. Prefer one concise action-oriented sentence.
 
+### Runtime State Copy
+
+| State | Short Label | Sentence Pattern |
+| --- | --- | --- |
+| `loading` | 확인 중 | 상태를 확인하고 있습니다. |
+| `denied` | 권한 없음 | 권한 기준을 확인하세요. |
+| `guarded` | 확인 필요 | 추가 확인 후 표시합니다. |
+| `review` | 검토 | 담당자 검토 후 표시합니다. |
+| `unavailable` | 실패 | 연결 상태를 확인하세요. |
+| `empty` | 자료 없음 | 표시할 항목이 없습니다. |
+
 ### Sidebar
 
 Forest sidebar uses the deep forest gradient, a right-side 3px active bar, and restrained green glow. The workspace card label is `워크스페이스`; it toggles the local utility panel and closes on view changes.

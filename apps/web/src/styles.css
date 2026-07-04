@@ -10726,6 +10726,78 @@ html[data-skin="forest"] .home-audit-panel div {
   min-height: 28px;
 }
 
+html[data-skin="forest"] .forest-status-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+html[data-skin="forest"] .forest-status-item {
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--am-border-soft);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text);
+  box-shadow: var(--am-shadow-panel);
+}
+
+html[data-skin="forest"] .forest-status-item svg {
+  color: #26C260;
+}
+
+html[data-skin="forest"] .forest-status-item span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--am-text-muted);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html[data-skin="forest"] .forest-status-item em,
+html[data-skin="forest"] .home-priority-grid em {
+  min-height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  border-radius: var(--am-radius-pill);
+  background: var(--am-surface-subtle);
+  color: var(--am-text-muted);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+html[data-skin="forest"] .forest-onboarding-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(38, 194, 96, 0.26);
+  border-radius: var(--am-radius-sm);
+  background: #E8F8ED;
+  color: var(--am-text);
+}
+
+html[data-skin="forest"] .forest-onboarding-card p {
+  margin: 4px 0 0;
+  color: var(--am-text-muted);
+}
+
+html[data-skin="forest"] .forest-onboarding-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 html[data-skin="forest"] .forest-hero-stat small,
 html[data-skin="forest"] .home-priority-grid small,
 html[data-skin="forest"] .home-queue-row small {
@@ -10733,6 +10805,12 @@ html[data-skin="forest"] .home-queue-row small {
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
+}
+
+html[data-skin="forest"] .forest-hero-stat small,
+html[data-skin="forest"] .forest-status-strip ~ .home-ops-layout .home-priority-grid small,
+html[data-skin="forest"] .forest-status-strip ~ .home-ops-layout .home-queue-row small {
+  display: none;
 }
 
 html[data-skin="forest"] .panel-head h2::before,
@@ -10772,6 +10850,8 @@ html[data-skin="forest"] .matter-profile-status,
 html[data-skin="forest"] .hrx-risk-status,
 html[data-skin="forest"] .home-queue-row.live em,
 html[data-skin="forest"] .home-audit-panel em.live,
+html[data-skin="forest"] .home-priority-grid em.live,
+html[data-skin="forest"] .forest-status-item.live em,
 html[data-skin="forest"] .work-area-note.live,
 html[data-skin="forest"] .vault-bridge-status.ready {
   background: #E8F8ED;
@@ -10781,6 +10861,8 @@ html[data-skin="forest"] .vault-bridge-status.ready {
 html[data-skin="forest"] .home-queue-row.review em,
 html[data-skin="forest"] .work-area-note.review,
 html[data-skin="forest"] .home-audit-panel em.review,
+html[data-skin="forest"] .home-priority-grid em.review,
+html[data-skin="forest"] .forest-status-item.review em,
 html[data-skin="forest"] .live-data-review {
   background: rgba(173, 112, 0, 0.12);
   color: #7A4F00;
@@ -10790,6 +10872,10 @@ html[data-skin="forest"] .home-queue-row.guarded em,
 html[data-skin="forest"] .home-queue-row.denied em,
 html[data-skin="forest"] .home-audit-panel em.guarded,
 html[data-skin="forest"] .home-audit-panel em.denied,
+html[data-skin="forest"] .home-priority-grid em.guarded,
+html[data-skin="forest"] .home-priority-grid em.denied,
+html[data-skin="forest"] .forest-status-item.guarded em,
+html[data-skin="forest"] .forest-status-item.denied em,
 html[data-skin="forest"] .work-area-note.guarded,
 html[data-skin="forest"] .work-area-note.denied,
 html[data-skin="forest"] .live-data-denied {
@@ -10799,6 +10885,8 @@ html[data-skin="forest"] .live-data-denied {
 
 html[data-skin="forest"] .home-queue-row.unavailable em,
 html[data-skin="forest"] .home-audit-panel em.unavailable,
+html[data-skin="forest"] .home-priority-grid em.unavailable,
+html[data-skin="forest"] .forest-status-item.unavailable em,
 html[data-skin="forest"] .work-area-note.unavailable,
 html[data-skin="forest"] .live-data-error,
 html[data-skin="forest"] .vault-bridge-status.blocked,

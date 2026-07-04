@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, RefreshCw } from "lucide-react";
+import { ArrowRight, Bell, Briefcase, FolderOpen, RefreshCw, Users, X } from "lucide-react";
 import forestCover from "../assets/forest-cover.jpg";
 import { backendCapabilities } from "../data/capabilityMap.js";
 import {
@@ -22,8 +22,11 @@ import {
 import { fetchHrxPeopleOverview } from "../people/hrxApiClient.ts";
 import { ForestHero } from "./ForestHero.jsx";
 import { PageHeader } from "./primitives.jsx";
+import { RuntimeStatusStrip } from "./RuntimeStatusStrip.jsx";
+import { useSkin } from "../context/SkinContext.jsx";
 
 const heroDateFormatter = new Intl.DateTimeFormat("ko-KR", { dateStyle: "full" });
+const HOME_ONBOARDING_STORAGE_KEY = "matter.home.onboarding";
 
 function sessionText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -55,6 +58,23 @@ function sessionGreeting() {
   const session = readLawosApiSession()?.session ?? {};
   const titleLead = sessionTitleLead(session);
   return `Welcome, ${[sessionDisplayName(session), titleLead].filter(Boolean).join(" ")} 님`;
+}
+
+function readHomeOnboardingDismissed() {
+  try {
+    return window.localStorage.getItem(HOME_ONBOARDING_STORAGE_KEY) === "dismissed";
+  } catch {
+    return false;
+  }
+}
+
+function writeHomeOnboardingDismissed() {
+  try {
+    window.localStorage.setItem(HOME_ONBOARDING_STORAGE_KEY, "dismissed");
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function normalizeStatus(result) {
@@ -168,8 +188,10 @@ function QueueRow({ title, capability, onOpen }) {
 }
 
 export function HomeSurface({ labels, setView, liveCtx = "allow" }) {
+  const skin = useSkin();
   const [refreshToken, setRefreshToken] = useState(0);
   const [results, setResults] = useState([]);
+  const [homeOnboardingDismissed, setHomeOnboardingDismissed] = useState(readHomeOnboardingDismissed);
 
   useEffect(() => {
     let cancelled = false;
@@ -211,8 +233,24 @@ export function HomeSurface({ labels, setView, liveCtx = "allow" }) {
   const vaultCapability = capabilityById.get("vault") ?? capabilities[0];
   const failedCount = capabilities.filter((capability) => capability.status === "unavailable").length;
   const reviewCount = capabilities.filter((capability) => capability.status === "review" || capability.status === "guarded").length;
+  const notificationStatus = failedCount > 0 ? "unavailable" : reviewCount > 0 ? "review" : "live";
+  const statusStripItems = [
+    { id: "matter", label: "Matter", status: matterCapability.status, statusLabel: statusBadgeLabel(matterCapability.status), Icon: Briefcase },
+    { id: "vault", label: "Vault", status: vaultCapability.status, statusLabel: statusBadgeLabel(vaultCapability.status), Icon: FolderOpen },
+    { id: "people", label: "구성원", status: peopleCapability.status, statusLabel: statusBadgeLabel(peopleCapability.status), Icon: Users },
+    { id: "alerts", label: "알림", status: notificationStatus, statusLabel: statusBadgeLabel(notificationStatus), Icon: Bell }
+  ];
+  const guardedDomainStatuses = [matterCapability.status, peopleCapability.status, vaultCapability.status];
+  const showForestOnboarding =
+    skin === "forest" &&
+    guardedDomainStatuses.every((status) => status === "denied" || status === "guarded" || status === "unavailable") &&
+    !homeOnboardingDismissed;
   const forestHeroTitle = sessionGreeting();
   const forestHeroSubtitle = heroDateFormatter.format(new Date());
+  function dismissHomeOnboarding() {
+    writeHomeOnboardingDismissed();
+    setHomeOnboardingDismissed(true);
+  }
 
   return (
     <section className="surface stack lcx-web-command-center" data-lcx-web-command-center="true">
@@ -238,27 +276,48 @@ export function HomeSurface({ labels, setView, liveCtx = "allow" }) {
           </button>
         }
       />
+      {skin === "forest" && <RuntimeStatusStrip items={statusStripItems} />}
+      {showForestOnboarding && (
+        <section className="forest-onboarding-card" data-forest-onboarding-card="true">
+          <div>
+            <strong>연결 기준을 설정하세요</strong>
+            <p>런타임 연결과 권한 컨텍스트를 구성하면 지표가 채워집니다.</p>
+          </div>
+          <div className="forest-onboarding-actions">
+            <button className="secondary-button" type="button" onClick={() => setView("settings", "settings-theme")}>
+              설정 열기
+            </button>
+            <button className="icon-button" type="button" aria-label="온보딩 닫기" onClick={dismissHomeOnboarding}>
+              <X size={15} />
+            </button>
+          </div>
+        </section>
+      )}
       <div className="home-ops-layout" data-home-ops-queue="true">
         <div className="home-ops-main">
           <div className="home-priority-grid">
             <article>
               <span>오늘 처리할 Matter</span>
               <strong>{capabilityCount(matterCapability)}</strong>
+              {skin === "forest" && <em className={matterCapability.status}>{statusBadgeLabel(matterCapability.status)}</em>}
               <small>{capabilityStatusMessage(matterCapability)}</small>
             </article>
             <article>
               <span>승인 대기</span>
               <strong>{reviewCount}</strong>
+              {skin === "forest" && <em className={reviewCount > 0 ? "review" : "live"}>{reviewCount > 0 ? statusBadgeLabel("review") : statusBadgeLabel("live")}</em>}
               <small>{reviewCount > 0 ? "검토가 필요한 항목이 있습니다." : "현재 검토 대기 신호가 없습니다."}</small>
             </article>
             <article>
               <span>최근 문서</span>
               <strong>{capabilityCount(vaultCapability)}</strong>
+              {skin === "forest" && <em className={vaultCapability.status}>{statusBadgeLabel(vaultCapability.status)}</em>}
               <small>{capabilityStatusMessage(vaultCapability)}</small>
             </article>
             <article>
               <span>실패한 동기화</span>
               <strong>{failedCount}</strong>
+              {skin === "forest" && <em className={failedCount > 0 ? "unavailable" : "live"}>{failedCount > 0 ? statusBadgeLabel("unavailable") : statusBadgeLabel("live")}</em>}
               <small>{failedCount > 0 ? "로컬 런타임 또는 권한 컨텍스트를 확인하세요." : "연결 실패 신호가 없습니다."}</small>
             </article>
           </div>
