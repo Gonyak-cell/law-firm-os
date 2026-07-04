@@ -3236,7 +3236,20 @@ async function postCrmIntakeRuntime({ path, payload, ctx = "allow" } = {}) {
     conflictCheck: body.conflict_check ?? null,
     waiver: body.waiver ?? null,
     engagement: body.engagement ?? null,
+    templateDocument: body.template_document ?? null,
+    signedDocumentUpload: body.signed_document_upload ?? null,
     engagementReady: body.engagement_ready === true,
+    templateDocumentId:
+      body.template_document_id ??
+      body.template_document?.template_document_id ??
+      body.engagement?.template_document_id ??
+      null,
+    signedDocumentUploadId:
+      body.signed_document_upload_id ??
+      body.signed_document_upload?.signed_document_upload_id ??
+      body.engagement?.signed_document_upload_id ??
+      null,
+    signedUploadVerified: body.signed_upload_verified === true || body.engagement?.signed_upload_verified === true,
     clearanceLinkReady: body.clearance_link_ready === true,
     conflictReview: body.conflict_review ?? null,
     engagementReview: body.engagement_review ?? null,

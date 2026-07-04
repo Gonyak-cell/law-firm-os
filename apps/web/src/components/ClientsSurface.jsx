@@ -1203,11 +1203,24 @@ function IntakeActionPanel({
   const decision = decisionResult?.kind === "data" ? decisionResult.conflictDecision ?? decisionResult.item : null;
   const waiver = waiverResult?.kind === "data" ? waiverResult.waiver ?? waiverResult.item : null;
   const engagement = engagementResult?.kind === "data" ? engagementResult.engagement ?? engagementResult.item : null;
+  const templateReady = Boolean(
+    engagementResult?.templateDocumentId ||
+    engagementResult?.templateDocument?.template_document_id ||
+    engagement?.template_document_id ||
+    engagement?.template_document_generated === true
+  );
+  const signedReady = Boolean(
+    engagementResult?.signedDocumentUploadId ||
+    engagementResult?.signedDocumentUpload?.signed_document_upload_id ||
+    engagement?.signed_document_upload_id ||
+    engagementResult?.signedUploadVerified === true ||
+    engagement?.signed_upload_verified === true
+  );
   const decisionReady =
     decisionResult?.clearanceLinkReady === true ||
     (decisionResult?.kind === "data" && decisionResult.uiState !== "blocked" && decision?.decision !== "block");
   const reviewReady = decisionReady || waiverResult?.clearanceLinkReady === true || decision?.decision === "clear" || waiver?.status === "approved";
-  const engagementReady = engagementResult?.engagementReady === true || engagement?.status === "approved";
+  const engagementReady = engagementResult?.engagementReady === true || (engagement?.status === "approved" && templateReady && signedReady);
   const clearance = clearanceResult?.kind === "data" ? clearanceResult.validation : null;
   const openedMatter = matterOpeningResult?.kind === "data" ? matterOpeningResult.item : null;
   const hitRows = conflictHits.map((hit, index) => [
@@ -1270,8 +1283,12 @@ function IntakeActionPanel({
       <div className="record-action-strip">
         <div>
           <strong>{gateLabel}</strong>
-          <span>{reviewReady && engagementReady ? "결정·수임 원장 확인됨" : engagementReady ? "결정 필요" : "수임 승인 필요"}</span>
-          <RecordStateBadge tone={gateTone}>{gateLabel}</RecordStateBadge>
+          <span>{reviewReady && engagementReady ? "결정·수임 원장 확인됨" : reviewReady ? "수임 승인 전 잠금" : "충돌 결정 필요"}</span>
+          <div className="record-approval-state" data-intake-engagement-approval-state="true">
+            <RecordStateBadge tone={templateReady ? "live" : "guarded"}>{templateReady ? "템플릿 생성" : "템플릿 대기"}</RecordStateBadge>
+            <RecordStateBadge tone={signedReady ? "live" : "guarded"}>{signedReady ? "서명 문서 연결" : "서명 문서 대기"}</RecordStateBadge>
+            <RecordStateBadge tone={gateTone}>{gateLabel}</RecordStateBadge>
+          </div>
           <ActionNotice
             pending={engagementPending}
             result={engagementResult}
