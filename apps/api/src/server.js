@@ -939,6 +939,17 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
   if (isAdminPermissionPath) {
     const context = requestPermissionContext();
     const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    if (pathname.startsWith("/api/admin/security")) {
+      const result = sessionAuth.handleSecurityAdminApiRequest({
+        pathname,
+        method: req.method,
+        body,
+        context,
+        requestId,
+      });
+      sendJson(req, res, result.status, result.body);
+      return;
+    }
     const result = await handleAdminPermissionApiRequest({
       pathname,
       method: req.method,

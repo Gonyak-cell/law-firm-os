@@ -139,6 +139,16 @@ function errorBody(requestId, safeErrorCode, reason) {
   });
 }
 
+function securityAdminDenied(requestId) {
+  return Object.freeze({
+    status: 403,
+    body: Object.freeze({
+      ...errorBody(requestId, "ADMIN_SECURITY_PERMISSION_DENIED", "admin_security_permission_denied"),
+      outcome: "denied",
+    }),
+  });
+}
+
 function subjectsFromSeed(seed) {
   return seed.users.map((user) => {
     const roleAssignment = resolveLawosUserRoleAssignment(user, { tenantId: seed.tenant_id });
@@ -169,6 +179,71 @@ export function createApiSessionAuth({
 } = {}) {
   const provider = createLocalDevAuthProvider({ subjects: subjectsFromSeed(seed) });
   const failedLogins = new Map();
+  const accountStatusByUserId = new Map(seed.users.map((user) => [user.user_id, user.status === "disabled" ? "disabled" : "active"]));
+  const breakGlassRequests = new Map();
+  const securityAuditEvents = [];
+
+  function accountStatus(userOrUserId) {
+    const userId = typeof userOrUserId === "string" ? userOrUserId : userOrUserId?.user_id;
+    return accountStatusByUserId.get(userId) ?? "active";
+  }
+
+  function disabledAccountBody(requestId, user) {
+    return Object.freeze({
+      ...errorBody(requestId, "AUTH_ACCOUNT_DISABLED", "auth_account_disabled"),
+      account_status: accountStatus(user),
+      user_id: user?.user_id ?? null,
+    });
+  }
+
+  function hasSecurityAdminScope(context) {
+    const principal = context?.principal ?? {};
+    const scopes = new Set(principal.scopes ?? []);
+    const roleIds = new Set(principal.role_ids ?? []);
+    return scopes.has("security.admin") || scopes.has("tenant.admin") || roleIds.has("security_admin") || roleIds.has("system_super_admin") || roleIds.has("lawos_admin");
+  }
+
+  function securityActorId(context) {
+    return context?.principal?.user_id ?? "api_security_admin";
+  }
+
+  function appendSecurityAudit({ action, object_id, context, details = {} }) {
+    const event = Object.freeze({
+      audit_event_id: `security_audit_${securityAuditEvents.length + 1}`,
+      action,
+      object_id,
+      actor_id: securityActorId(context),
+      occurred_at: new Date(now()).toISOString(),
+      details: Object.freeze({ ...details }),
+      token_material_returned: false,
+      production_ready_claim: false,
+    });
+    securityAuditEvents.unshift(event);
+    return event;
+  }
+
+  function publicSecurityUser(user) {
+    const roleAssignment = resolveLawosUserRoleAssignment(user, { tenantId: trustedTenantId });
+    return Object.freeze({
+      user_id: user.user_id,
+      email: user.email,
+      display_name: user.display_name,
+      source_title: user.source_title,
+      status: accountStatus(user),
+      highest_privilege: user.highest_privilege === true,
+      role_profile_id: roleAssignment?.role_profile_id ?? null,
+      role_ids: Object.freeze([...(roleAssignment?.role_ids ?? user.role_ids ?? [])]),
+      group_ids: Object.freeze([...(roleAssignment?.group_ids ?? user.group_ids ?? [])]),
+      scopes: Object.freeze([...(roleAssignment?.scopes ?? user.scopes ?? [])]),
+      login_allowed: accountStatus(user) === "active",
+      token_material_returned: false,
+      production_ready_claim: false,
+    });
+  }
+
+  function publicBreakGlassRequest(request) {
+    return Object.freeze({ ...request, token_material_returned: false, production_ready_claim: false });
+  }
 
   function failedLoginState(email) {
     const key = normalizeLoginKey(email);
@@ -245,6 +320,9 @@ export function createApiSessionAuth({
     if (!user) {
       return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_UNKNOWN_USER", "auth_session_unknown_user") });
     }
+    if (accountStatus(user) !== "active") {
+      return Object.freeze({ ok: false, status: 403, body: disabledAccountBody(requestId, user) });
+    }
     const principal = deriveServerPrincipal({
       request: { headers: { authorization: `Bearer ${user.local_dev.synthetic_token}` } },
       provider,
@@ -291,6 +369,9 @@ export function createApiSessionAuth({
     if (!user) {
       recordFailedLogin(email);
       return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_CREDENTIAL_INVALID", "auth_credential_invalid") });
+    }
+    if (accountStatus(user) !== "active") {
+      return Object.freeze({ status: 403, body: disabledAccountBody(requestId, user) });
     }
     const principal = deriveServerPrincipal({
       request: { headers: { authorization: `Bearer ${credential}` } },
@@ -389,10 +470,153 @@ export function createApiSessionAuth({
     return Object.freeze({ status: 404, body: errorBody(requestId, "AUTH_ROUTE_NOT_FOUND", "auth_route_not_found") });
   }
 
+  function handleSecurityAdminApiRequest({ pathname, method, body = {}, context = {}, requestId = "req_unset" } = {}) {
+    if (!hasSecurityAdminScope(context)) return securityAdminDenied(requestId);
+
+    if (pathname === "/api/admin/security/users" && method === "GET") {
+      return Object.freeze({
+        status: 200,
+        body: Object.freeze({
+          request_id: requestId,
+          outcome: "passed",
+          items: Object.freeze(seed.users.map(publicSecurityUser)),
+          safe_error_codes: Object.freeze([]),
+          production_ready_claim: false,
+        }),
+      });
+    }
+
+    const userTransitionMatch = pathname.match(/^\/api\/admin\/security\/users\/([^/]+)\/(disable|reactivate)$/);
+    if (userTransitionMatch && method === "POST") {
+      const userId = decodeURIComponent(userTransitionMatch[1]);
+      const action = userTransitionMatch[2];
+      const target = findRegisteredAccountByUserId(userId, seed);
+      if (!target) return Object.freeze({ status: 404, body: errorBody(requestId, "ADMIN_SECURITY_USER_NOT_FOUND", "admin_security_user_not_found") });
+      if (action === "disable" && target.user_id === securityActorId(context)) {
+        return Object.freeze({ status: 400, body: errorBody(requestId, "ADMIN_SECURITY_SELF_DISABLE_DENIED", "admin_security_self_disable_denied") });
+      }
+      if (action === "disable" && body.confirmed !== true) {
+        return Object.freeze({ status: 400, body: errorBody(requestId, "ADMIN_SECURITY_DISABLE_CONFIRMATION_REQUIRED", "admin_security_disable_confirmation_required") });
+      }
+      const nextStatus = action === "disable" ? "disabled" : "active";
+      accountStatusByUserId.set(target.user_id, nextStatus);
+      appendSecurityAudit({
+        action: action === "disable" ? "admin.security.user.disabled" : "admin.security.user.reactivated",
+        object_id: target.user_id,
+        context,
+        details: { reason: body.reason ?? null, status: nextStatus },
+      });
+      return Object.freeze({
+        status: 200,
+        body: Object.freeze({
+          request_id: requestId,
+          outcome: action === "disable" ? "disabled" : "reactivated",
+          item: publicSecurityUser(target),
+          safe_error_codes: Object.freeze([]),
+          production_ready_claim: false,
+        }),
+      });
+    }
+
+    if (pathname === "/api/admin/security/break-glass" && method === "GET") {
+      return Object.freeze({
+        status: 200,
+        body: Object.freeze({
+          request_id: requestId,
+          outcome: "passed",
+          items: Object.freeze([...breakGlassRequests.values()].map(publicBreakGlassRequest)),
+          safe_error_codes: Object.freeze([]),
+          production_ready_claim: false,
+        }),
+      });
+    }
+
+    if (pathname === "/api/admin/security/break-glass" && method === "POST") {
+      const requesterUserId = String(body.requester_user_id ?? "").trim();
+      const requester = findRegisteredAccountByUserId(requesterUserId, seed);
+      if (!requester) return Object.freeze({ status: 400, body: errorBody(requestId, "ADMIN_SECURITY_BREAK_GLASS_REQUESTER_REQUIRED", "admin_security_break_glass_requester_required") });
+      const request = Object.freeze({
+        break_glass_request_id: `break_glass_${randomUUID()}`,
+        requester_user_id: requester.user_id,
+        requester_label: requester.display_name,
+        reason: String(body.reason ?? "운영 접근 요청").trim(),
+        state: "pending",
+        requested_at: new Date(now()).toISOString(),
+        decided_by: null,
+        decided_at: null,
+      });
+      breakGlassRequests.set(request.break_glass_request_id, request);
+      appendSecurityAudit({
+        action: "admin.security.break_glass.requested",
+        object_id: request.break_glass_request_id,
+        context,
+        details: { requester_user_id: requester.user_id },
+      });
+      return Object.freeze({
+        status: 201,
+        body: Object.freeze({
+          request_id: requestId,
+          outcome: "pending",
+          item: publicBreakGlassRequest(request),
+          safe_error_codes: Object.freeze([]),
+          production_ready_claim: false,
+        }),
+      });
+    }
+
+    const breakGlassTransitionMatch = pathname.match(/^\/api\/admin\/security\/break-glass\/([^/]+)\/(approve|revoke)$/);
+    if (breakGlassTransitionMatch && method === "POST") {
+      const breakGlassRequestId = decodeURIComponent(breakGlassTransitionMatch[1]);
+      const action = breakGlassTransitionMatch[2];
+      const current = breakGlassRequests.get(breakGlassRequestId);
+      if (!current) return Object.freeze({ status: 404, body: errorBody(requestId, "ADMIN_SECURITY_BREAK_GLASS_NOT_FOUND", "admin_security_break_glass_not_found") });
+      const nextState = action === "approve" ? "approved" : "revoked";
+      const next = Object.freeze({
+        ...current,
+        state: nextState,
+        decided_by: securityActorId(context),
+        decided_at: new Date(now()).toISOString(),
+      });
+      breakGlassRequests.set(breakGlassRequestId, next);
+      appendSecurityAudit({
+        action: action === "approve" ? "admin.security.break_glass.approved" : "admin.security.break_glass.revoked",
+        object_id: breakGlassRequestId,
+        context,
+        details: { state: nextState },
+      });
+      return Object.freeze({
+        status: 200,
+        body: Object.freeze({
+          request_id: requestId,
+          outcome: nextState,
+          item: publicBreakGlassRequest(next),
+          safe_error_codes: Object.freeze([]),
+          production_ready_claim: false,
+        }),
+      });
+    }
+
+    if (pathname === "/api/admin/security/audit" && method === "GET") {
+      return Object.freeze({
+        status: 200,
+        body: Object.freeze({
+          request_id: requestId,
+          outcome: "passed",
+          items: Object.freeze([...securityAuditEvents]),
+          safe_error_codes: Object.freeze([]),
+          production_ready_claim: false,
+        }),
+      });
+    }
+
+    return Object.freeze({ status: 404, body: errorBody(requestId, "ADMIN_SECURITY_ROUTE_NOT_FOUND", "admin_security_route_not_found") });
+  }
+
   return Object.freeze({
     login,
     verifyToken,
     resolvePermissionContextFromHeaders,
     handleAuthApiRequest,
+    handleSecurityAdminApiRequest,
   });
 }

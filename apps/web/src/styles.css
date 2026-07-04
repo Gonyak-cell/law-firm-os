@@ -675,6 +675,10 @@ p {
   min-width: 0;
 }
 
+.settings-admin-live-detail {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .global-utility-detail-header {
   display: flex;
   align-items: flex-start;

@@ -1372,6 +1372,75 @@ export function fetchAdminPermissionAudit({ ctx = "allow" } = {}) {
   return fetchAdminPermissionCollection({ path: "/api/admin/audit", ctx });
 }
 
+export function fetchAdminSecurityUsers({ ctx = "allow" } = {}) {
+  return fetchAdminPermissionCollection({ path: "/api/admin/security/users", ctx });
+}
+
+export function disableAdminSecurityUser({ userId, reason = "관리자 비활성화", ctx = "allow" } = {}) {
+  return writeAdminPermissionRuntime({
+    path: `/api/admin/security/users/${encodeURIComponent(userId)}/disable`,
+    ctx,
+    payload: {
+      idempotency_key: `ui:admin:security-user:disable:${userId}:${Date.now()}`,
+      confirmed: true,
+      reason,
+    },
+  });
+}
+
+export function reactivateAdminSecurityUser({ userId, reason = "관리자 재활성화", ctx = "allow" } = {}) {
+  return writeAdminPermissionRuntime({
+    path: `/api/admin/security/users/${encodeURIComponent(userId)}/reactivate`,
+    ctx,
+    payload: {
+      idempotency_key: `ui:admin:security-user:reactivate:${userId}:${Date.now()}`,
+      reason,
+    },
+  });
+}
+
+export function fetchAdminBreakGlassRequests({ ctx = "allow" } = {}) {
+  return fetchAdminPermissionCollection({ path: "/api/admin/security/break-glass", ctx });
+}
+
+export function requestAdminBreakGlass({ requesterUserId, reason = "긴급 접근 요청", ctx = "allow" } = {}) {
+  return writeAdminPermissionRuntime({
+    path: "/api/admin/security/break-glass",
+    ctx,
+    payload: {
+      idempotency_key: `ui:admin:break-glass:request:${requesterUserId}:${Date.now()}`,
+      requester_user_id: requesterUserId,
+      reason,
+    },
+  });
+}
+
+export function approveAdminBreakGlass({ requestId, reason = "관리자 승인", ctx = "allow" } = {}) {
+  return writeAdminPermissionRuntime({
+    path: `/api/admin/security/break-glass/${encodeURIComponent(requestId)}/approve`,
+    ctx,
+    payload: {
+      idempotency_key: `ui:admin:break-glass:approve:${requestId}:${Date.now()}`,
+      reason,
+    },
+  });
+}
+
+export function revokeAdminBreakGlass({ requestId, reason = "관리자 철회", ctx = "allow" } = {}) {
+  return writeAdminPermissionRuntime({
+    path: `/api/admin/security/break-glass/${encodeURIComponent(requestId)}/revoke`,
+    ctx,
+    payload: {
+      idempotency_key: `ui:admin:break-glass:revoke:${requestId}:${Date.now()}`,
+      reason,
+    },
+  });
+}
+
+export function fetchAdminSecurityAudit({ ctx = "allow" } = {}) {
+  return fetchAdminPermissionCollection({ path: "/api/admin/security/audit", ctx });
+}
+
 function dataCloudPayload(overrides = {}) {
   return {
     tenant_id: DATA_CLOUD_TENANT_ID,

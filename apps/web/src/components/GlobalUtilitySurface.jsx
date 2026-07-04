@@ -7,6 +7,7 @@ import { ForestHero } from "./ForestHero.jsx";
 import { PageHeader, Panel } from "./primitives.jsx";
 import { EmployeeList } from "../people/employees/EmployeeList.tsx";
 import { HRDocumentWorkspace } from "../people/documents/HRDocumentWorkspace.tsx";
+import { PermissionAdminPanel } from "../people/admin/PermissionAdminPanel.jsx";
 
 const APP_VERSION = webPackage.version;
 
@@ -165,6 +166,7 @@ export function GlobalUtilitySurface({ view, activeSection = "", setView, theme,
   const active = utility.sections.find((section) => section.id === activeId) ?? utility.sections[0];
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
   const liveEmploymentContracts = utility.id === "policies" && active.id === "policies-employment-contracts";
+  const livePermissionAdmin = utility.id === "settings" && active.id === "settings-permissions";
 
   function openSection(sectionId) {
     setView(utility.id, sectionId);
@@ -204,6 +206,10 @@ export function GlobalUtilitySurface({ view, activeSection = "", setView, theme,
             <div className="global-utility-live-detail" data-global-live-hr-documents="employment-contracts">
               <EmployeeList selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} refreshKey={activeId} />
               <HRDocumentWorkspace employeeId={selectedEmployeeId} refreshKey={activeId} mode="contracts" />
+            </div>
+          ) : livePermissionAdmin ? (
+            <div className="global-utility-live-detail settings-admin-live-detail" data-global-live-admin-permissions="settings-permissions">
+              <PermissionAdminPanel key={activeId} />
             </div>
           ) : (
             <UtilityDetail section={active} utility={utility} theme={theme} setTheme={setTheme} skin={skin} setSkin={setSkin} />
