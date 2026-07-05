@@ -1,6 +1,6 @@
 {
   "schema_version": "lawos.wave1.upl-a06.all-domain-durable-roundtrip-proof.v1",
-  "generated_at": "2026-07-03T10:27:30.616Z",
+  "generated_at": "2026-07-05T08:04:45.079Z",
   "row_id": "UPL-A-06",
   "status": "PASS",
   "owner_db_decision_boundary": {
@@ -29,7 +29,7 @@
   "domains": [
     {
       "domain": "hrx",
-      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/hrx-store.json",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/hrx-store.json",
       "durable": true,
       "model_type": "hrx_employees",
       "id": "emp_upl_a06_durable_001",
@@ -101,7 +101,7 @@
         ]
       },
       "store_file": {
-        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/hrx-store.json",
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/hrx-store.json",
         "exists": true,
         "bytes": 2074,
         "sha256": "06010ba2283beaf131f94fabfcbceddab4155e277a784c90e2bc123450cf7172"
@@ -109,7 +109,7 @@
     },
     {
       "domain": "master_data",
-      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/master-data-store.json",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/master-data-store.json",
       "durable": true,
       "model_type": "Entity",
       "id": "entity_upl_a06_master_001",
@@ -122,7 +122,7 @@
         "schema_version": "law-firm-os.master-data-repository.v0.1"
       },
       "store_file": {
-        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/master-data-store.json",
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/master-data-store.json",
         "exists": true,
         "bytes": 1076,
         "sha256": "ecfe609983b188bd7bea47b50a84b2e9484c61c1b1d299f01234b6028ae4f29f"
@@ -130,7 +130,7 @@
     },
     {
       "domain": "matter",
-      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/matter-store.json",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/matter-store.json",
       "durable": true,
       "model_type": "Matter",
       "id": "matter_upl_a06_durable_001",
@@ -150,7 +150,7 @@
         ]
       },
       "store_file": {
-        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/matter-store.json",
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/matter-store.json",
         "exists": true,
         "bytes": 2041,
         "sha256": "b0c93d239b25e4f9540eda11b7eff8e11f69fba6542fe3b73705d6497f6e3187"
@@ -158,14 +158,14 @@
     },
     {
       "domain": "dms",
-      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/dms-store.json",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/dms-store.json",
       "durable": true,
       "model_type": "DmsWorkspace",
       "id": "workspace_upl_a06_durable_001",
       "first_read_present": true,
       "second_read_present": true,
-      "first_hash": "33ccceb1a86d0031bdeef2fb1f63f651c775f35b4e61b918730cee38a801f623",
-      "second_hash": "33ccceb1a86d0031bdeef2fb1f63f651c775f35b4e61b918730cee38a801f623",
+      "first_hash": "7b6ee8373c221b7e27df68ebd168d32ec42ea316ae8e9848cf0df9ca33849f86",
+      "second_hash": "7b6ee8373c221b7e27df68ebd168d32ec42ea316ae8e9848cf0df9ca33849f86",
       "hash_stable_after_reopen": true,
       "schema": {
         "migrations": [
@@ -177,22 +177,22 @@
         ]
       },
       "store_file": {
-        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/dms-store.json",
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/dms-store.json",
         "exists": true,
         "bytes": 1369,
-        "sha256": "d9e64a978bd61df2d50f32500caf6d93fe605a8f9af1143fa1df606b30c09d1f"
+        "sha256": "ea0992441cf5bd86c92b41237f0dfa6fb98c227fd13d06f42dc7f237c2a16026"
       }
     },
     {
       "domain": "crm",
-      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/crm-store.json",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/crm-store.json",
       "durable": true,
       "model_type": "Lead",
       "id": "lead_upl_a06_durable_001",
       "first_read_present": true,
       "second_read_present": true,
-      "first_hash": "79f395ed9355a2508f9728982ecb974ba6e26f961e458aa5382ed124076d1f4d",
-      "second_hash": "79f395ed9355a2508f9728982ecb974ba6e26f961e458aa5382ed124076d1f4d",
+      "first_hash": "a98aa6f082e6e8bbc23fee9704fb20c4e8b155dcaa1f28662dc702e3d66fd1d5",
+      "second_hash": "a98aa6f082e6e8bbc23fee9704fb20c4e8b155dcaa1f28662dc702e3d66fd1d5",
       "hash_stable_after_reopen": true,
       "schema": {
         "migrations": [
@@ -200,22 +200,22 @@
         ]
       },
       "store_file": {
-        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/crm-store.json",
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/crm-store.json",
         "exists": true,
         "bytes": 1380,
-        "sha256": "04ca93a0e709f052b77848f0f9a8a315fe8b2dbef340fea22864a4f813751526"
+        "sha256": "ddc7aa474534b71caf3b39313db834680a9e119c8af0808582cda6086d1ead5f"
       }
     },
     {
       "domain": "intake",
-      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/intake-store.json",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/intake-store.json",
       "durable": true,
       "model_type": "IntakeRequest",
       "id": "intake_upl_a06_durable_001",
       "first_read_present": true,
       "second_read_present": true,
-      "first_hash": "a2a345c486565b8271655d831a7b691f4721116232e58a7f36d3bf1311065a89",
-      "second_hash": "a2a345c486565b8271655d831a7b691f4721116232e58a7f36d3bf1311065a89",
+      "first_hash": "cde7d8f44ef98d5d75c76de40e56d42647745a27c39d77f690c0ae7e79d33aa0",
+      "second_hash": "cde7d8f44ef98d5d75c76de40e56d42647745a27c39d77f690c0ae7e79d33aa0",
       "hash_stable_after_reopen": true,
       "schema": {
         "migrations": [
@@ -223,15 +223,15 @@
         ]
       },
       "store_file": {
-        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/intake-store.json",
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/intake-store.json",
         "exists": true,
         "bytes": 1489,
-        "sha256": "b191c2bafea3e01751661226aacaff394491e7357bd03ca78c266a27c8ad1be5"
+        "sha256": "ba9cbec6e3c79ff44a22e4ffca530471c068c7380ecd0523d38a278cda326590"
       }
     },
     {
       "domain": "crm_master_data",
-      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/crm-master-data-store.json",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/crm-master-data-store.json",
       "durable": true,
       "model_type": "Entity",
       "id": "entity_upl_a06_crm_master_001",
@@ -244,7 +244,7 @@
         "schema_version": "law-firm-os.master-data-repository.v0.1"
       },
       "store_file": {
-        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/crm-master-data-store.json",
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/crm-master-data-store.json",
         "exists": true,
         "bytes": 1092,
         "sha256": "af4aa5b3bf62e10dcafe261f7194a0ae60df1952f49f9bf97d782a517708d203"
@@ -252,14 +252,14 @@
     },
     {
       "domain": "finance",
-      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/finance-store.json",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/finance-store.json",
       "durable": true,
       "model_type": "Invoice",
       "id": "invoice_upl_a06_durable_001",
       "first_read_present": true,
       "second_read_present": true,
-      "first_hash": "919786b7a9eb5e875ff7b75b48a8de67c5cdcbdf530a603548028a9b47a9efe9",
-      "second_hash": "919786b7a9eb5e875ff7b75b48a8de67c5cdcbdf530a603548028a9b47a9efe9",
+      "first_hash": "866d353806bf7aea3c48ab1adba8d89e8aafb9c243b06a669fcc4fd968c1b7cb",
+      "second_hash": "866d353806bf7aea3c48ab1adba8d89e8aafb9c243b06a669fcc4fd968c1b7cb",
       "hash_stable_after_reopen": true,
       "schema": {
         "migrations": [
@@ -267,22 +267,22 @@
         ]
       },
       "store_file": {
-        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/finance-store.json",
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/finance-store.json",
         "exists": true,
         "bytes": 984,
-        "sha256": "47c25f4ec13360fcbf5833fb2c5e4d2b8fbcaf33cdc6f25535316e5813cf6e19"
+        "sha256": "3716963af799021b32a965434e279baa57075cd6ee2a7051db9f0137b854c8ce"
       }
     },
     {
       "domain": "analytics",
-      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/analytics-store.json",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/analytics-store.json",
       "durable": true,
       "model_type": "AnalyticsDashboard",
       "id": "dashboard_upl_a06_durable_001",
       "first_read_present": true,
       "second_read_present": true,
-      "first_hash": "dce0444af3efe707691dc64cde6fbfeb20cf7eef8dff1f1a6ed1876d02cb8634",
-      "second_hash": "dce0444af3efe707691dc64cde6fbfeb20cf7eef8dff1f1a6ed1876d02cb8634",
+      "first_hash": "c7d0efd5f8494dca88f0e61d3a94d918745abd6f94239c8742e2c6d835db4343",
+      "second_hash": "c7d0efd5f8494dca88f0e61d3a94d918745abd6f94239c8742e2c6d835db4343",
       "hash_stable_after_reopen": true,
       "schema": {
         "migrations": [
@@ -290,22 +290,22 @@
         ]
       },
       "store_file": {
-        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/analytics-store.json",
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/analytics-store.json",
         "exists": true,
         "bytes": 1091,
-        "sha256": "bd94f44a9c8b284f935d4de0a716a919ded214cebc7a9b67c496020a5622e74a"
+        "sha256": "e728408bcf40b72c9f13081f6e374971483340e583d3daa74832a3c6d1ea25ec"
       }
     },
     {
       "domain": "ai_governance",
-      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/ai-store.json",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/ai-store.json",
       "durable": true,
       "model_type": "AiPolicy",
       "id": "ai_policy_upl_a06_durable_001",
       "first_read_present": true,
       "second_read_present": true,
-      "first_hash": "6621f8ceef0a9266708b7117f5f5dc6faf818d55d6642cb3dff2d13966596af5",
-      "second_hash": "6621f8ceef0a9266708b7117f5f5dc6faf818d55d6642cb3dff2d13966596af5",
+      "first_hash": "66c08e2a72ca2e950b94d809238a2a4bf1c63dab0805991ab16247a68bb1979d",
+      "second_hash": "66c08e2a72ca2e950b94d809238a2a4bf1c63dab0805991ab16247a68bb1979d",
       "hash_stable_after_reopen": true,
       "schema": {
         "migrations": [
@@ -313,22 +313,22 @@
         ]
       },
       "store_file": {
-        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/ai-store.json",
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/ai-store.json",
         "exists": true,
         "bytes": 992,
-        "sha256": "24a017f373bb9a9a9d761914519c11af8d389679a4be96b55add2279552d142c"
+        "sha256": "3557eaf9caa8ed300a9d61402d55adbc9f05691874f42efaea28ba4a06d24fdc"
       }
     },
     {
       "domain": "client_portal",
-      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/portal-store.json",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/portal-store.json",
       "durable": true,
       "model_type": "ExternalUser",
       "id": "external_user_upl_a06_durable_001",
       "first_read_present": true,
       "second_read_present": true,
-      "first_hash": "ab19a6cf74c90670f6e5fed10f117e3c6be1912765d7762fef98d1f3ff19226b",
-      "second_hash": "ab19a6cf74c90670f6e5fed10f117e3c6be1912765d7762fef98d1f3ff19226b",
+      "first_hash": "3878148e0f2627c392300282569f78a0d2a7eac2ccbd3575e3e4c9639a320eef",
+      "second_hash": "3878148e0f2627c392300282569f78a0d2a7eac2ccbd3575e3e4c9639a320eef",
       "hash_stable_after_reopen": true,
       "schema": {
         "migrations": [
@@ -336,22 +336,22 @@
         ]
       },
       "store_file": {
-        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/portal-store.json",
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/portal-store.json",
         "exists": true,
         "bytes": 1173,
-        "sha256": "76c39bd420da45dc84b624061f7528d33c52147eb820820743a3984dacd33af2"
+        "sha256": "6b82643c1bd0488045e80ae0a46192bc64109a315f5ff5658642c967e568c417"
       }
     },
     {
       "domain": "ui_readiness",
-      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/ui-readiness-store.json",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/ui-readiness-store.json",
       "durable": true,
       "model_type": "UiReadinessCheck",
       "id": "ui_check_upl_a06_durable_001",
       "first_read_present": true,
       "second_read_present": true,
-      "first_hash": "de458fd58814b3858d0b46ffe0456e9fff9ff899c115e226cda145087a83539d",
-      "second_hash": "de458fd58814b3858d0b46ffe0456e9fff9ff899c115e226cda145087a83539d",
+      "first_hash": "e62e2c552ebeb3bd3cd0d313598b6dd52530e21872503646693cc26b2292b6d5",
+      "second_hash": "e62e2c552ebeb3bd3cd0d313598b6dd52530e21872503646693cc26b2292b6d5",
       "hash_stable_after_reopen": true,
       "schema": {
         "migrations": [
@@ -359,22 +359,22 @@
         ]
       },
       "store_file": {
-        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/ui-readiness-store.json",
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/ui-readiness-store.json",
         "exists": true,
         "bytes": 1127,
-        "sha256": "f779c662148f43741e022e2577e57c4faa24d72892197f563394771b57e451bb"
+        "sha256": "ac8317ab72d93e3920bb35a80f5fc56646319d87fed6fe303831cc831d5baf00"
       }
     },
     {
       "domain": "enterprise_readiness",
-      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/enterprise-readiness-store.json",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/enterprise-readiness-store.json",
       "durable": true,
       "model_type": "EnterpriseReadinessItem",
       "id": "enterprise_item_upl_a06_durable_001",
       "first_read_present": true,
       "second_read_present": true,
-      "first_hash": "5062f4d67d2177057faad8cb7211e87d3ff8606b046260cc891afeb79454422b",
-      "second_hash": "5062f4d67d2177057faad8cb7211e87d3ff8606b046260cc891afeb79454422b",
+      "first_hash": "0c5708a11abbde4b8ac3662581647cb60409934292e622248002fe51453e7477",
+      "second_hash": "0c5708a11abbde4b8ac3662581647cb60409934292e622248002fe51453e7477",
       "hash_stable_after_reopen": true,
       "schema": {
         "migrations": [
@@ -382,10 +382,10 @@
         ]
       },
       "store_file": {
-        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-HQu9Fd/enterprise-readiness-store.json",
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-vqWKZs/enterprise-readiness-store.json",
         "exists": true,
         "bytes": 1103,
-        "sha256": "449c470918594825ec65536a603c64100188b758c2b86b64478f5237136403b6"
+        "sha256": "6289a422e4dae18b372c675d7221f389f4274fd7123e5db8c381a64c4c5fa840"
       }
     }
   ]

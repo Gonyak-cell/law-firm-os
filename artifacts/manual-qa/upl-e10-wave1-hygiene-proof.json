@@ -1,8 +1,8 @@
 {
   "schema_version": "lawos.wave1.upl-e10.hygiene-proof.v1",
-  "generated_at": "2026-07-03T10:27:32.851Z",
+  "generated_at": "2026-07-05T07:10:41.828Z",
   "row_id": "UPL-E-10",
-  "status": "PASS",
+  "status": "FAIL",
   "whole_wave_completion_claim": false,
   "production_ready_claim": false,
   "commands": [
@@ -45,14 +45,17 @@
     },
     {
       "id": "e10-sloplint-no-strong",
-      "passed": true,
+      "passed": false,
       "evidence": {
-        "finding_count": 35,
-        "strong_count": 0,
-        "weak_count": 35,
+        "finding_count": 37,
+        "strong_count": 1,
+        "weak_count": 36,
         "no_verify_count": 0,
         "files": [
-          "apps/web/src/styles.css"
+          "workbook/enterprise-audit-2026-07/16-deferred-deep-dive-gates.md",
+          "workbook/enterprise-audit-2026-07/remediation-v3-executable/00-devplan-v3.md",
+          "workbook/enterprise-audit-2026-07/remediation-v3-executable/01-diagnosis-digest.md",
+          "workbook/enterprise-audit-2026-07/remediation-v3-executable/02-anchors-digest.md"
         ],
         "remaining_findings_documented_as": "weak CSS hierarchy/theme/motion signals retained for row-level manual review; no strong or no-verify findings remain in changed tree"
       }
@@ -61,12 +64,15 @@
       "id": "e10-sloplint-no-no-verify",
       "passed": true,
       "evidence": {
-        "finding_count": 35,
-        "strong_count": 0,
-        "weak_count": 35,
+        "finding_count": 37,
+        "strong_count": 1,
+        "weak_count": 36,
         "no_verify_count": 0,
         "files": [
-          "apps/web/src/styles.css"
+          "workbook/enterprise-audit-2026-07/16-deferred-deep-dive-gates.md",
+          "workbook/enterprise-audit-2026-07/remediation-v3-executable/00-devplan-v3.md",
+          "workbook/enterprise-audit-2026-07/remediation-v3-executable/01-diagnosis-digest.md",
+          "workbook/enterprise-audit-2026-07/remediation-v3-executable/02-anchors-digest.md"
         ],
         "remaining_findings_documented_as": "weak CSS hierarchy/theme/motion signals retained for row-level manual review; no strong or no-verify findings remain in changed tree"
       }
@@ -88,12 +94,15 @@
     }
   ],
   "sloplint": {
-    "finding_count": 35,
-    "strong_count": 0,
-    "weak_count": 35,
+    "finding_count": 37,
+    "strong_count": 1,
+    "weak_count": 36,
     "no_verify_count": 0,
     "files": [
-      "apps/web/src/styles.css"
+      "workbook/enterprise-audit-2026-07/16-deferred-deep-dive-gates.md",
+      "workbook/enterprise-audit-2026-07/remediation-v3-executable/00-devplan-v3.md",
+      "workbook/enterprise-audit-2026-07/remediation-v3-executable/01-diagnosis-digest.md",
+      "workbook/enterprise-audit-2026-07/remediation-v3-executable/02-anchors-digest.md"
     ],
     "remaining_findings_documented_as": "weak CSS hierarchy/theme/motion signals retained for row-level manual review; no strong or no-verify findings remain in changed tree"
   },

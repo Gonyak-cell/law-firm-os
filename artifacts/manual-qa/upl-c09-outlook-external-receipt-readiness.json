@@ -1,6 +1,6 @@
 {
   "schema_version": "lawos.wave1.upl-c09.outlook-external-receipt-readiness.v1",
-  "generated_at": "2026-07-03T10:27:30.700Z",
+  "generated_at": "2026-07-05T08:04:44.949Z",
   "row_id": "UPL-C-09",
   "status": "READY_NEEDS_OUTLOOK_EXTERNAL_RECEIPT",
   "receipt_path": "artifacts/manual-qa/upl-c09-outlook-external-receipt.json",

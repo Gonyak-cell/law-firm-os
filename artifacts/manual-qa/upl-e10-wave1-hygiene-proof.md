@@ -1,6 +1,6 @@
 # UPL-E-10 Wave-1 Hygiene Proof
 
-Status: PASS
+Status: FAIL
 
 ## Commands
 
@@ -12,7 +12,7 @@ Status: PASS
 | Check | Pass |
 |---|---:|
 | e10-ui-regression-16-of-16 | true |
-| e10-sloplint-no-strong | true |
+| e10-sloplint-no-strong | false |
 | e10-sloplint-no-no-verify | true |
 | e10-static-badge-count-zero | true |
 | e10-c13-portal-preserved | true |
