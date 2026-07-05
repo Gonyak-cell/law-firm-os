@@ -1,12 +1,12 @@
 # LCX-VLTUI Production Smoke
 
-Generated at: 2026-07-05T08:23:35.518Z
+Generated at: 2026-07-05T08:48:09.016Z
 
 Verdict: PASS
 
 Base URL: https://d2mthcc8vp3cr2.cloudfront.net
 
-Deployment commit: 45b5fa374b294477c66f80197a426625ff9ba847
+Deployment commit: 7b8abc99cb213ce1b4daacc5330f344b27b2a9bd
 
 Bridge token source: lambda_environment
 
@@ -24,8 +24,8 @@ Bridge token source: lambda_environment
 | matter-workspace-sections | true | command_center=200, timeline=200, vault_summary=200 |
 | vault-documents | true | status=200, documents=1 |
 | vault-bridge-status | true | status=200, source_mode=matter_app_api |
-| vault-bridge-client-upsert | true | status=200, action=skipped_idempotent |
-| vault-bridge-matter-upsert | true | status=200, action=skipped_idempotent |
+| vault-bridge-client-upsert | true | status=201, action=created |
+| vault-bridge-matter-upsert | true | status=201, action=created |
 | vault-bridge-lookup | true | status=200, matches=1 |
 | vault-upload-preflight-guarded | true | status=200, allowed_next_step=permission_check_only |
 
