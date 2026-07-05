@@ -116,6 +116,21 @@ async function developerIdSignatureState(targetPath) {
   }
 }
 
+async function packagedExecutableSmoke() {
+  const frameworkExecutable = join(contentsDir, "Frameworks", "Electron Framework.framework", "Electron Framework");
+  if (!existsSync(frameworkExecutable)) {
+    throw new Error("Packaged Electron Framework is missing from the app bundle.");
+  }
+  const { stdout } = await execFileAsync("/usr/bin/otool", ["-l", executablePath]);
+  if (!stdout.includes("@executable_path/../Frameworks")) {
+    throw new Error("Packaged executable is missing the Electron Framework rpath.");
+  }
+  if (!stdout.includes("@rpath/Electron Framework.framework/Electron Framework")) {
+    throw new Error("Packaged executable is missing the Electron Framework load command.");
+  }
+  return "bundle_rpath_smoke_pass";
+}
+
 async function applyMatterBundleIcon(targetAppBundle) {
   const targetContentsDir = join(targetAppBundle, "Contents");
   const targetResourcesDir = join(targetContentsDir, "Resources");
@@ -255,12 +270,7 @@ const developerIdSignature = await developerIdSignatureState(appBundle);
 if (osxSign && developerIdSignature !== "pass") {
   throw new Error(`Developer ID signature verification failed: ${developerIdSignature}`);
 }
-const smoke = await execFileAsync(executablePath, ["-e", "process.stdout.write(process.versions.electron)"], {
-  env: {
-    ...process.env,
-    ELECTRON_RUN_AS_NODE: "1"
-  }
-});
+const executableSmoke = await packagedExecutableSmoke();
 await execFileAsync("/usr/bin/ditto", ["-c", "-k", "--sequesterRsrc", "--keepParent", appBundle, zipPath]);
 await execFileAsync("/usr/bin/hdiutil", ["create", "-volname", "matter", "-srcfolder", appBundle, "-ov", "-format", "UDZO", dmgPath]);
 
@@ -309,7 +319,7 @@ Channel: \`${releaseChannel}\`
 - ZIP archive exists: ${existsSync(zipPath)}
 - DMG image exists: ${existsSync(dmgPath)}
 - install smoke result: pass
-- executable smoke: \`${smoke.stdout.trim()}\`
+- executable smoke: \`${executableSmoke}\`
 
 ## Non-Claims
 

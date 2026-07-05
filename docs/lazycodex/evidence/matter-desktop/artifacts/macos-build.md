@@ -5,7 +5,7 @@ Source TUW: MDT-P6-W01-T03
 App bundle: `apps/desktop/dist/mac/matter.app`
 App ID: `com.amic.matter.desktop`
 Product name: `matter`
-Version: `0.1.8`
+Version: `0.1.9`
 Channel: `formal`
 
 ## Package Structure
@@ -15,8 +15,8 @@ Channel: `formal`
 - packaged app icon: `apps/desktop/dist/mac/matter.app/Contents/Resources/matter.icns`
 - packaged app source: `apps/desktop/dist/mac/matter.app/Contents/Resources/app`
 - executable: `apps/desktop/dist/mac/matter.app/Contents/MacOS/matter`
-- archive: `apps/desktop/dist/mac/matter-0.1.8-macos.zip`
-- disk image: `apps/desktop/dist/mac/matter-0.1.8-macos.dmg`
+- archive: `apps/desktop/dist/mac/matter-0.1.9-macos.zip`
+- disk image: `apps/desktop/dist/mac/matter-0.1.9-macos.dmg`
 
 ## Signing
 
@@ -43,7 +43,7 @@ Channel: `formal`
 - ZIP archive exists: true
 - DMG image exists: true
 - install smoke result: pass
-- executable smoke: `42.4.1`
+- executable smoke: `bundle_rpath_smoke_pass`
 
 ## Non-Claims
 
