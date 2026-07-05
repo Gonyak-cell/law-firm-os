@@ -16,6 +16,11 @@ import {
   HRX_STEP_UP_TOKEN_CONTRACT_REF,
   createHrxStepUpAuthority,
 } from "./hrx-step-up-token.js";
+import {
+  LAWOS_RUNTIME_PROFILES,
+  resolveRuntimeProfile,
+  resolveSessionSecret,
+} from "./runtime-profile.js";
 
 export const AUTHORIZATION_HEADER = "authorization";
 export const API_AUTH_BOUNDED_CONTEXT = Object.freeze({
@@ -39,7 +44,6 @@ const TOKEN_PREFIX = "lawos_session_v1";
 const DEFAULT_TTL_MS = 8 * 60 * 60 * 1000;
 const DEFAULT_MAX_FAILED_LOGINS = 5;
 const DEFAULT_LOGIN_LOCK_MS = 15 * 60 * 1000;
-const DEFAULT_SESSION_SECRET = "lawos-local-wave1-session-secret";
 const LAWOS_RUNTIME_TENANT_IDS = Object.freeze([
   MATTER_VAULT_REGISTERED_TENANT_ID,
   "tenant_rp04_synthetic",
@@ -118,13 +122,20 @@ function permissionContextFromPrincipal(principal) {
   return Object.freeze({
     principal: Object.freeze({
       ...principal,
-      tenant_ids: LAWOS_RUNTIME_TENANT_IDS,
+      tenant_ids:
+        principal.tenant_id === MATTER_VAULT_REGISTERED_TENANT_ID
+          ? LAWOS_RUNTIME_TENANT_IDS
+          : Object.freeze([principal.tenant_id]),
       session_principal_source: "api_signed_session",
       session_source_ref: MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
     }),
     rules: Object.freeze([{ id: "api-session-internal-allow", effect: "allow", action: "*" }]),
     object_acl: Object.freeze([]),
   });
+}
+
+function homeTenantIdForUser(user = {}, fallbackTenantId = MATTER_VAULT_REGISTERED_TENANT_ID) {
+  return user.tenant_memberships?.[0]?.tenant_id ?? fallbackTenantId;
 }
 
 function errorBody(requestId, safeErrorCode, reason) {
@@ -149,9 +160,10 @@ function securityAdminDenied(requestId) {
   });
 }
 
-function subjectsFromSeed(seed) {
+function subjectsFromSeed(seed, { trustedTenantId = seed.tenant_id } = {}) {
   return seed.users.map((user) => {
-    const roleAssignment = resolveLawosUserRoleAssignment(user, { tenantId: seed.tenant_id });
+    const homeTenantId = homeTenantIdForUser(user, trustedTenantId);
+    const roleAssignment = resolveLawosUserRoleAssignment(user, { tenantId: homeTenantId });
     return {
       synthetic_token: user.local_dev?.synthetic_token,
       session_id: `sess_${user.user_id}`,
@@ -170,14 +182,20 @@ function normalizeLoginKey(email) {
 export function createApiSessionAuth({
   seed = MATTER_VAULT_USER_REGISTRATION_SEED,
   trustedTenantId = MATTER_VAULT_REGISTERED_TENANT_ID,
+  profile = resolveRuntimeProfile(),
   ttlMs = Number(process.env.LAWOS_API_SESSION_TTL_MS || DEFAULT_TTL_MS),
   maxFailedLogins = Number(process.env.LAWOS_API_MAX_FAILED_LOGINS || DEFAULT_MAX_FAILED_LOGINS),
   loginLockMs = Number(process.env.LAWOS_API_LOGIN_LOCK_MS || DEFAULT_LOGIN_LOCK_MS),
-  secret = process.env.LAWOS_API_SESSION_SECRET || DEFAULT_SESSION_SECRET,
+  secret,
   now = () => Date.now(),
   stepUpAuthority = createHrxStepUpAuthority(),
 } = {}) {
-  const provider = createLocalDevAuthProvider({ subjects: subjectsFromSeed(seed) });
+  const runtimeProfile = resolveRuntimeProfile({ LAWOS_RUNTIME_PROFILE: profile });
+  const sessionSecret = resolveSessionSecret({ profile: runtimeProfile, explicitSecret: secret });
+  const syntheticLoginEnabled = runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational;
+  const provider = syntheticLoginEnabled
+    ? createLocalDevAuthProvider({ subjects: subjectsFromSeed(seed, { trustedTenantId }) })
+    : null;
   const failedLogins = new Map();
   const accountStatusByUserId = new Map(seed.users.map((user) => [user.user_id, user.status === "disabled" ? "disabled" : "active"]));
   const breakGlassRequests = new Map();
@@ -279,7 +297,7 @@ export function createApiSessionAuth({
       exp: expiresAtMs,
     };
     const payloadPart = base64UrlJson(payload);
-    const signature = sign(secret, payloadPart);
+    const signature = sign(sessionSecret, payloadPart);
     return Object.freeze({
       token: `${TOKEN_PREFIX}.${payloadPart}.${signature}`,
       expires_at: new Date(expiresAtMs).toISOString(),
@@ -298,7 +316,7 @@ export function createApiSessionAuth({
       return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", "auth_session_invalid") });
     }
     const [, payloadPart, signature] = parts;
-    const expectedSignature = sign(secret, payloadPart);
+    const expectedSignature = sign(sessionSecret, payloadPart);
     if (!safeEqual(signature, expectedSignature)) {
       return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", "auth_session_invalid") });
     }
@@ -312,21 +330,24 @@ export function createApiSessionAuth({
     if (payload.typ !== TOKEN_PREFIX || payload.exp <= now()) {
       return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_EXPIRED", "auth_session_expired") });
     }
-    if (payload.tenant_id !== trustedTenantId) {
-      return Object.freeze({ ok: false, status: 403, body: errorBody(requestId, "AUTH_SESSION_TENANT_DENIED", "auth_session_tenant_denied") });
-    }
-
     const user = findRegisteredAccountByUserId(payload.user_id, seed);
     if (!user) {
       return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_UNKNOWN_USER", "auth_session_unknown_user") });
     }
+    const homeTenantId = homeTenantIdForUser(user, trustedTenantId);
+    if (payload.tenant_id !== homeTenantId) {
+      return Object.freeze({ ok: false, status: 403, body: errorBody(requestId, "AUTH_SESSION_TENANT_DENIED", "auth_session_tenant_denied") });
+    }
     if (accountStatus(user) !== "active") {
       return Object.freeze({ ok: false, status: 403, body: disabledAccountBody(requestId, user) });
+    }
+    if (!provider) {
+      return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", "auth_session_invalid") });
     }
     const principal = deriveServerPrincipal({
       request: { headers: { authorization: `Bearer ${user.local_dev.synthetic_token}` } },
       provider,
-      trustedTenantId,
+      trustedTenantId: homeTenantId,
       request_id: requestId,
     });
     if (!principal.ok) {
@@ -354,6 +375,12 @@ export function createApiSessionAuth({
         body: errorBody(requestId, "AUTH_EMAIL_CREDENTIAL_REQUIRED", "email_credential_required"),
       });
     }
+    if (!syntheticLoginEnabled) {
+      return Object.freeze({
+        status: 403,
+        body: errorBody(requestId, "AUTH_SYNTHETIC_LOGIN_DISABLED", "auth_synthetic_login_disabled"),
+      });
+    }
     const lock = failedLoginState(email);
     if (lock.locked) {
       return Object.freeze({
@@ -373,10 +400,11 @@ export function createApiSessionAuth({
     if (accountStatus(user) !== "active") {
       return Object.freeze({ status: 403, body: disabledAccountBody(requestId, user) });
     }
+    const homeTenantId = homeTenantIdForUser(user, trustedTenantId);
     const principal = deriveServerPrincipal({
       request: { headers: { authorization: `Bearer ${credential}` } },
       provider,
-      trustedTenantId,
+      trustedTenantId: homeTenantId,
       request_id: requestId,
     });
     if (!principal.ok || principal.user_id !== user.user_id) {

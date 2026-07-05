@@ -24,6 +24,7 @@ const expectedEmails = [
   "tryoon@amic.kr",
   "yjlee@amic.kr",
   "matter.desktop.qa@amic.kr",
+  "qa.tenant-b@amic.kr",
 ];
 
 const errors = [];
@@ -84,7 +85,8 @@ if (errors.length === 0) {
     assert(user.local_dev?.synthetic_only === true, `${user.email}: local synthetic token boundary missing`);
     assert(user.local_dev?.synthetic_token === `local-dev-only:${user.email}`, `${user.email}: local synthetic token mismatch`);
     assert(user.tenant_memberships?.length === 1, `${user.email}: one tenant membership required`);
-    assert(user.tenant_memberships?.[0]?.tenant_id === seed.tenant_id, `${user.email}: tenant membership mismatch`);
+    const expectedTenantId = user.email === "qa.tenant-b@amic.kr" ? "tenant_b_qa_synthetic" : seed.tenant_id;
+    assert(user.tenant_memberships?.[0]?.tenant_id === expectedTenantId, `${user.email}: tenant membership mismatch`);
     assert(user.tenant_memberships?.[0]?.role_ids?.join("|") === user.role_ids?.join("|"), `${user.email}: membership roles must mirror user roles`);
     assert(user.tenant_memberships?.[0]?.group_ids?.join("|") === user.group_ids?.join("|"), `${user.email}: membership groups must mirror user groups`);
     assert(user.tenant_memberships?.[0]?.scopes?.join("|") === user.scopes?.join("|"), `${user.email}: membership scopes must mirror user scopes`);
@@ -101,7 +103,7 @@ if (errors.length === 0) {
 
   const requiredReceiptPhrases = [
     "Status: registered-local-seed",
-    "Registered account count: 10",
+    "Registered account count: 11",
     "jwsuh@amic.kr",
     "system_super_admin",
     "production IDP account creation: false",
@@ -129,6 +131,6 @@ if (errors.length > 0) {
 }
 
 console.log("Matter-Vault user registration seed validation passed.");
-console.log("registered_account_count: 10");
+console.log("registered_account_count: 11");
 console.log("highest_privilege_account: jwsuh@amic.kr");
 console.log("production_idp_account_creation: false");

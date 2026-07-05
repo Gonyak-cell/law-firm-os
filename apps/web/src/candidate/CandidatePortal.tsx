@@ -75,7 +75,7 @@ export function CandidatePortal({ candidateId }) {
   }
 
   return (
-    <Panel className="people-panel span-2" title="지원자 정보" meta="구성원 등록">
+    <Panel id="people-candidate-portal" className="people-panel span-2" title="지원자 정보" meta="구성원 등록">
       <div className="people-panel-kicker">
         <BadgeCheck size={15} />
         지원 내역과 문서 정보를 확인합니다

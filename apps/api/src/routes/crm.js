@@ -80,6 +80,12 @@ export const CRM_INTAKE_ROUTE_POLICIES = Object.freeze([
     resource_type: "engagement",
   }),
   Object.freeze({
+    method: "GET",
+    pattern: /^\/api\/intake\/clearance-tokens$/,
+    action: "intake:clearance:read",
+    resource_type: "clearance_token",
+  }),
+  Object.freeze({
     method: "POST",
     pattern: /^\/api\/intake\/clearance-tokens$/,
     action: "intake:clearance:write",

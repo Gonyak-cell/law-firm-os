@@ -1,4 +1,5 @@
 const PERMISSION_CONTEXT_HEADER = "x-lawos-permission-context";
+const VAULT_BRIDGE_TOKEN_HEADER = "x-lawos-vault-bridge-token";
 const runtimeTenant = (...parts) => parts.join("_");
 const TENANT_ID = runtimeTenant("tenant", "rp04", "synthetic");
 const MATTER_TENANT_ID = runtimeTenant("tenant", "rp05", "synthetic");
@@ -1986,7 +1987,7 @@ function normalizeMatterOpeningPayload(payload = {}) {
     clearance_token: payload.clearance_token
       ? {
           ...payload.clearance_token,
-          tenant_id: MATTER_TENANT_ID
+          tenant_id: payload.clearance_token.tenant_id ?? MATTER_TENANT_ID
         }
       : payload.clearance_token
   };
@@ -2861,7 +2862,7 @@ export async function fetchVaultSearch({
 export async function fetchVaultBridgeStatus({ ctx = "allow", bridgeToken = null } = {}) {
   const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
   const headers = { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) };
-  if (bridgeToken) headers.Authorization = `Bearer ${bridgeToken}`;
+  if (bridgeToken) headers[VAULT_BRIDGE_TOKEN_HEADER] = bridgeToken;
 
   let response;
   let body;
@@ -2913,7 +2914,7 @@ export async function fetchVaultBridgeStatus({ ctx = "allow", bridgeToken = null
 export async function fetchVaultMatterLookup({ ctx = "allow", query = "", bridgeToken = null } = {}) {
   const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
   const headers = { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) };
-  if (bridgeToken) headers.Authorization = `Bearer ${bridgeToken}`;
+  if (bridgeToken) headers[VAULT_BRIDGE_TOKEN_HEADER] = bridgeToken;
   const params = new URLSearchParams({
     tenant_id: MATTER_TENANT_ID,
     permission_ref: DEFAULT_VAULT_PERMISSION_REF,
@@ -2976,7 +2977,7 @@ export async function fetchVaultUploadPreflight({
 } = {}) {
   const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
   const headers = { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) };
-  if (bridgeToken) headers.Authorization = `Bearer ${bridgeToken}`;
+  if (bridgeToken) headers[VAULT_BRIDGE_TOKEN_HEADER] = bridgeToken;
   const payload = {
     tenant_id: MATTER_TENANT_ID,
     permission_ref: DEFAULT_VAULT_PERMISSION_REF,
@@ -3742,6 +3743,10 @@ export function executeCrmMergeProposal({ proposalId, ctx = "allow" } = {}) {
 
 export function fetchIntakeRequests(options = {}) {
   return fetchCrmIntakeCollection({ ...options, path: "/api/intake/requests" });
+}
+
+export function fetchIntakeClearanceTokens(options = {}) {
+  return fetchCrmIntakeCollection({ ...options, path: "/api/intake/clearance-tokens" });
 }
 
 export function fetchIntakeAudit(options = {}) {

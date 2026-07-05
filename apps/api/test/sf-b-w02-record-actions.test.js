@@ -1,19 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
+import { authedJson } from "./helpers/session.js";
 import { startApiServer } from "../src/server.js";
 
 const MATTER_TENANT = "tenant_rp05_synthetic";
 const CLIENT_TENANT = "tenant_rp04_synthetic";
 const CRM_TENANT = "tenant_cmp_g6_synthetic";
-
-function permissionContext(tenantId, effect = "allow") {
-  return JSON.stringify({
-    principal: { user_id: `user_${tenantId}_record_actions`, tenant_id: tenantId, role_ids: ["record_actions_user"] },
-    rules: [{ id: `rule_record_actions_${tenantId}_${effect}`, effect, action: "*" }],
-    object_acl: [],
-  });
-}
 
 async function withServer(callback, options = {}) {
   const started = await startApiServer({ port: 0, ...options });
@@ -25,14 +17,8 @@ async function withServer(callback, options = {}) {
 }
 
 async function json(baseUrl, path, { tenantId = MATTER_TENANT, ...options } = {}) {
-  const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(tenantId),
-    ...(options.headers ?? {}),
-  };
-  if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
-  const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
-  const body = await response.json();
-  return { status: response.status, body };
+  void tenantId;
+  return authedJson(baseUrl, path, options);
 }
 
 function recordActionBody(tenantId, overrides = {}) {
@@ -195,10 +181,10 @@ test("SF-B-W02R field update patches Matter safely and exposes record action aud
     const denied = await json(
       baseUrl,
       `/api/record-actions/matter/fields?tenant_id=${MATTER_TENANT}&permission_ref=perm_ref_sf_b_w02&audit_hint_ref=audit_hint_sf_b_w02`,
-      { tenantId: MATTER_TENANT, headers: { [PERMISSION_CONTEXT_HEADER]: undefined } },
+      { tenantId: MATTER_TENANT, noAuth: true },
     );
-    assert.equal(denied.status, 403);
-    assert.equal(denied.body.count_leak_prevented, true);
+    assert.equal(denied.status, 401);
+    assert.deepEqual(denied.body.safe_error_codes, ["AUTH_SESSION_REQUIRED"]);
   });
 });
 

@@ -84,6 +84,14 @@ type OrgEmployee = {
   directReportCount: number;
 };
 
+function recordField(value: unknown): HrxRecord | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as HrxRecord : null;
+}
+
+function recordList(value: unknown): HrxRecord[] {
+  return Array.isArray(value) ? value.filter((item): item is HrxRecord => Boolean(recordField(item))) : [];
+}
+
 function stringField(record: HrxRecord, key: string) {
   const value = record[key];
   if (typeof value === "string" || typeof value === "number") return String(value);
@@ -434,8 +442,16 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
       manager_employee_id: orgEditManagerId || null
     });
     setOrgSaving(false);
-    if (result.kind === "data" && result.org_chart) {
-      setOrgChartResult({ kind: "data", ...result.org_chart } as OrgChartResult);
+    const orgChart = result.kind === "data" ? recordField(result.org_chart) : null;
+    if (orgChart) {
+      setOrgChartResult({
+        kind: "data",
+        org_units: recordList(orgChart.org_units),
+        employees: recordList(orgChart.employees),
+        reporting_lines: recordList(orgChart.reporting_lines),
+        change_events: recordList(orgChart.change_events),
+        claim_boundary: recordField(orgChart.claim_boundary)
+      });
       showLocalAction("조직 변경", "변경 이력이 기록되었습니다.");
       return;
     }

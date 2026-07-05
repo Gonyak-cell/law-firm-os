@@ -6,6 +6,14 @@ import { useSkin } from "../../context/SkinContext.jsx";
 import { fetchHrxEmployees } from "../hrxApiClient.ts";
 import { memberPhotoFor } from "../memberPhotos.js";
 
+type HrxEmployee = {
+  employee_id: string;
+  display_name?: string;
+  status?: string;
+  work_email?: string;
+};
+type EmployeeResult = { kind: "data"; employees: HrxEmployee[] } | { kind: "error" | "guarded" | "step_up_required" | "empty" };
+
 function accountLabel(employee) {
   return employee.work_email ? "등록 계정" : "계정 미등록";
 }
@@ -17,7 +25,7 @@ export function EmployeeList({ selectedEmployeeId, onSelectEmployee, refreshKey 
   useEffect(() => {
     let cancelled = false;
     setResult(null);
-    fetchHrxEmployees().then((next) => {
+    fetchHrxEmployees().then((next: EmployeeResult) => {
       if (cancelled) return;
       setResult(next);
       if (next.kind === "data" && next.employees.length > 0 && !selectedEmployeeId) {

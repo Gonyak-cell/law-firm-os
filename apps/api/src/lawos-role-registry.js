@@ -152,8 +152,17 @@ const DESKTOP_QA_ASSIGNMENT = assignment({
   hrx_scopes: [],
 });
 
+const TENANT_B_QA_ASSIGNMENT = assignment({
+  user_id: "user_qa_tenant_b",
+  role_profile_id: "lawos_qa_tenant_b",
+  role_ids: ["lawos_hr", "lawos_staff"],
+  group_ids: ["group_qa_isolation"],
+  scopes: ["matter.read", "vault.read"],
+  hrx_scopes: HRX_HR_SCOPES,
+});
+
 const ASSIGNMENTS_BY_USER_ID = new Map(
-  [...LAWOS_INTERNAL_ROLE_ASSIGNMENTS, DESKTOP_QA_ASSIGNMENT].map((entry) => [entry.user_id, entry]),
+  [...LAWOS_INTERNAL_ROLE_ASSIGNMENTS, DESKTOP_QA_ASSIGNMENT, TENANT_B_QA_ASSIGNMENT].map((entry) => [entry.user_id, entry]),
 );
 
 function tenantMembership(assignmentRef, tenantId) {

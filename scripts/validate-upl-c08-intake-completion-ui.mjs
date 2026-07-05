@@ -34,7 +34,7 @@ assertPatterns("apps/web/src/data/apiClient.js", [
 ]);
 
 assertPatterns("apps/web/src/components/ClientsSurface.jsx", [
-  /export function IntakeSurface/,
+  /export function ClientIntakePipelineSurface/,
   /data-upl-c08-intake-completion-surface="true"/,
   /data-upl-c08-new-inquiry-intake="true"/,
   /data-upl-c08-intake-pipeline="consultation-conflict-opening"/,

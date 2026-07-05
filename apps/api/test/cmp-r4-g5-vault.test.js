@@ -9,6 +9,7 @@ import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
 import { apiSessionHeaders } from "./helpers/session.js";
 import { renderInvoicePdf } from "../../../packages/billing/src/invoice-pdf-service.js";
+import { createDmsRepository } from "../../../packages/dms/src/repository.js";
 
 const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
 const ACTOR_ID = "user_amic_jwsuh";
@@ -118,6 +119,32 @@ test("G5 Vault document list is permission gated and never leaks raw storage fie
     assert.equal(denied.status, 401);
     assert.ok(denied.body.safe_error_codes.includes("AUTH_SESSION_REQUIRED"));
   });
+});
+
+test("G5 Vault foreign tenant list reaches permission gate and appends deny audit", async () => {
+  const repository = createDmsRepository();
+  const foreignTenantId = "tenant_foreign_unregistered";
+  const auditHintRef = "audit_hint_foreign_tenant_deny";
+  await withServer(async (baseUrl) => {
+    const denied = await json(
+      baseUrl,
+      `/api/vault/documents?tenant_id=${foreignTenantId}&permission_ref=perm_ref_foreign_tenant&audit_hint_ref=${auditHintRef}`,
+    );
+    assert.equal(denied.status, 403);
+    assert.deepEqual(denied.body.safe_error_codes, ["VAULT_DMS_UNAUTHORIZED_OMISSION"]);
+    assert.equal(denied.body.audit_hint_ref, auditHintRef);
+    assert.equal(denied.body.ui_state, "denied");
+    assert.equal(denied.body.count_leak_prevented, true);
+  }, { dmsRepository: repository });
+
+  const deniedAudit = repository.listAudit({ tenant_id: foreignTenantId }).find((event) => (
+    event.decision === "deny" &&
+    event.action === "dms:document:read" &&
+    event.metadata.audit_hint_ref === auditHintRef
+  ));
+  assert.ok(deniedAudit);
+  assert.equal(deniedAudit.metadata.denied_route_audit, true);
+  assert.equal(deniedAudit.metadata.raw_payload_included, false);
 });
 
 test("G5 Vault upload persists metadata, replays idempotently, and survives restart", async () => {

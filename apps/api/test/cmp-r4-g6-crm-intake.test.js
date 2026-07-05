@@ -1149,6 +1149,11 @@ test("G6 conflict check, clearance token, and audit routes stay safe and tenant 
     assert.equal(token.body.item.engagement_signed_document_sha256, "sha256:signed_doc_cmp_g6_api_001");
     assert.equal(token.body.production_ready_claim, false);
 
+    const tokenList = await json(baseUrl, `/api/intake/clearance-tokens?${BASE_QUERY}`);
+    assert.equal(tokenList.status, 200);
+    assert.ok(tokenList.body.items.some((item) => item.clearance_token_id === "clearance_cmp_g6_api_001"));
+    assert.equal(tokenList.body.count_leak_prevented, true);
+
     const matterOpening = {
       tenant_id: TENANT,
       permission_ref: "perm_ref_cmp_g6_write",
@@ -1181,6 +1186,7 @@ test("G6 conflict check, clearance token, and audit routes stay safe and tenant 
     });
     assert.equal(missingLedgerToken.status, 400);
     assert.equal(missingLedgerToken.body.ui_state, "blocked");
+    assert.deepEqual(missingLedgerToken.body.safe_error_codes, ["MATTER_CLEARANCE_TOKEN_NOT_ISSUED"]);
 
     const forgedEngagement = await json(baseUrl, "/api/matters/openings", {
       method: "POST",
@@ -1192,6 +1198,7 @@ test("G6 conflict check, clearance token, and audit routes stay safe and tenant 
     });
     assert.equal(forgedEngagement.status, 400);
     assert.equal(forgedEngagement.body.ui_state, "blocked");
+    assert.deepEqual(forgedEngagement.body.safe_error_codes, ["MATTER_CLEARANCE_LEDGER_MISMATCH"]);
 
     const opened = await json(baseUrl, "/api/matters/openings", {
       method: "POST",

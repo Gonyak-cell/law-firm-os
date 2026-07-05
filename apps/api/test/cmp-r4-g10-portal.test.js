@@ -3,19 +3,11 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
+import { authedJson } from "./helpers/session.js";
 
 const TENANT = "tenant_cmp_g10_synthetic";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_cmp_g10_read&audit_hint_ref=audit_hint_cmp_g10_read`;
-
-function permissionContext(effect = "allow") {
-  return JSON.stringify({
-    principal: { user_id: "user_cmp_g10_portal", tenant_id: TENANT, role_ids: ["portal_operator"] },
-    rules: [{ id: `rule_portal_${effect}`, effect, action: "*" }],
-    object_acl: [],
-  });
-}
 
 async function withServer(callback, options = {}) {
   const started = await startApiServer({ port: 0, ...options });
@@ -27,14 +19,7 @@ async function withServer(callback, options = {}) {
 }
 
 async function json(baseUrl, path, options = {}) {
-  const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
-    ...(options.headers ?? {}),
-  };
-  if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
-  const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
-  const body = await response.json();
-  return { status: response.status, body };
+  return authedJson(baseUrl, path, options);
 }
 
 test("G10 Portal/Data Room API health descriptor exposes runtime write-ready without production claim", async () => {
@@ -57,10 +42,10 @@ test("G10 portal reads are permission gated and metadata-only", async () => {
     assert.equal(dashboard.body.production_ready_claim, false);
 
     const denied = await json(baseUrl, `/api/portal/dashboard?${BASE_QUERY}`, {
-      headers: { [PERMISSION_CONTEXT_HEADER]: undefined },
+      noAuth: true,
     });
-    assert.equal(denied.status, 403);
-    assert.equal(denied.body.count_leak_prevented, true);
+    assert.equal(denied.status, 401);
+    assert.deepEqual(denied.body.safe_error_codes, ["AUTH_SESSION_REQUIRED"]);
   });
 });
 
@@ -249,7 +234,7 @@ test("C13 external portal invite flow is one-time, auditable, and byte-safe", as
 
     const consumed = await json(baseUrl, "/api/portal/invites/consume", {
       method: "POST",
-      headers: { [PERMISSION_CONTEXT_HEADER]: undefined },
+      noAuth: true,
       body: JSON.stringify({ token, now: "2026-07-03T00:00:00.000Z" }),
     });
     assert.equal(consumed.status, 200);
@@ -259,7 +244,7 @@ test("C13 external portal invite flow is one-time, auditable, and byte-safe", as
 
     const reused = await json(baseUrl, "/api/portal/invites/consume", {
       method: "POST",
-      headers: { [PERMISSION_CONTEXT_HEADER]: undefined },
+      noAuth: true,
       body: JSON.stringify({ token, now: "2026-07-03T00:00:01.000Z" }),
     });
     assert.equal(reused.status, 409);
@@ -267,7 +252,7 @@ test("C13 external portal invite flow is one-time, auditable, and byte-safe", as
 
     const response = await json(baseUrl, "/api/portal/external/rfi-responses", {
       method: "POST",
-      headers: { [PERMISSION_CONTEXT_HEADER]: undefined },
+      noAuth: true,
       body: JSON.stringify({
         external_session_id: externalSessionId,
         idempotency_key: "api-external-rfi-c13-1",
@@ -288,7 +273,7 @@ test("C13 external portal invite flow is one-time, auditable, and byte-safe", as
     const accessed = await json(
       baseUrl,
       `/api/portal/external/secure-links/secure_link_c13_api_001/access?tenant_id=${TENANT}&external_session_id=${externalSessionId}&now=2026-07-03T00%3A00%3A00.000Z`,
-      { headers: { [PERMISSION_CONTEXT_HEADER]: undefined } },
+      { noAuth: true },
     );
     assert.equal(accessed.status, 200);
     assert.equal(accessed.body.item.document_bytes_included, false);
@@ -310,7 +295,7 @@ test("C13 external portal invite flow is one-time, auditable, and byte-safe", as
     const blockedAccess = await json(
       baseUrl,
       `/api/portal/external/secure-links/secure_link_c13_api_001/access?tenant_id=${TENANT}&external_session_id=${externalSessionId}&now=2026-07-03T00%3A00%3A00.000Z`,
-      { headers: { [PERMISSION_CONTEXT_HEADER]: undefined } },
+      { noAuth: true },
     );
     assert.equal(blockedAccess.status, 403);
     assert.deepEqual(blockedAccess.body.safe_error_codes, ["PORTAL_SECURE_LINK_REVOKED"]);

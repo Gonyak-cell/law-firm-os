@@ -29,8 +29,10 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const globalUtilitySource = await readWebFile("src/data/globalUtilities.js");
+  const globalUtilitySurfaceSource = await readWebFile("src/components/GlobalUtilitySurface.jsx");
   const peopleCatalogSource = await readWebFile("src/people/peopleFeatureCatalog.js");
   const peopleNavigationSource = `${shellSource}\n${peopleCatalogSource}`;
+  const componentFiles = await listWebSourceFiles("src/components");
   const canonicalViews = ["clients", "matters", "people", "vault", "portal"];
   const removedViews = [
     "content",
@@ -59,6 +61,15 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
     assert.doesNotMatch(navSource, new RegExp(`id: "${view}"`));
     assert.doesNotMatch(appSource, new RegExp(`view === "${view}"`));
   }
+  for (const removedSurface of [
+    "src/components/AdminSurface.jsx",
+    "src/components/ContentSurface.jsx",
+    "src/components/DashboardsSurface.jsx",
+    "src/components/ExperimentsSurface.jsx",
+    "src/components/ThemeSurface.jsx"
+  ]) {
+    assert.equal(componentFiles.includes(removedSurface), false);
+  }
   assert.match(shellSource, /data-product-axis-nav="top-header"/);
   assert.match(shellSource, /navItems\.map/);
   assert.match(appSource, /function navigateToView/);
@@ -77,6 +88,8 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   assert.match(globalUtilitySource, /data-import-client/);
   assert.match(globalUtilitySource, /data-import-matter/);
   assert.match(globalUtilitySource, /messages-matter-channel/);
+  assert.match(globalUtilitySurfaceSource, /data-global-preview-marker="true"/);
+  assert.match(globalUtilitySurfaceSource, />미리보기</);
   for (const label of ["메시지", "알림", "요청함", "보고서", "설정", "전자계약"]) {
     assert.match(globalUtilitySource, new RegExp(`label: "${label}"`));
   }
@@ -128,6 +141,10 @@ test("matter startup branding uses shared splash and brand constants", async () 
   assert.match(authSource, /<MatterSplash compact className="auth-splash" \/>/);
   assert.match(i18nSource, /PRODUCT_BRAND/);
   assert.match(i18nSource, /Client Matter People Vault/);
+  assert.match(i18nSource, /signupPreviewNotice/);
+  for (const removedKey of ["content", "dashboards", "experiments", "adminTitle", "billingTitle", "themeTitle"]) {
+    assert.doesNotMatch(i18nSource, new RegExp(`${removedKey}:`));
+  }
   assert.doesNotMatch(i18nSource, /Project Atlas/);
 });
 
@@ -296,6 +313,8 @@ test("login surfaces keep credentials bounded and desktop supports password setu
   assert.match(authSource, /matter-login-photo-panel/);
   assert.match(authSource, /Samseong-dong Parnas Tower/);
   assert.match(authSource, /<MatterLogo \/>/);
+  assert.match(authSource, /labels\.signupPreviewNotice/);
+  assert.doesNotMatch(authSource, /Sign up now/);
   assert.match(authSource, /data-login-form="email-password"/);
   assert.match(authSource, /data-login-email/);
   assert.match(authSource, /data-login-password/);

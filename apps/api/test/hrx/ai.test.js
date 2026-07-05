@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { MATTER_VAULT_REGISTERED_TENANT_ID } from "../../src/matter-vault-account-registry.js";
 import { startApiServer } from "../../src/server.js";
+import { registeredAccount, signedHeaders } from "../helpers/session.js";
 
 let server;
 let baseUrl;
@@ -13,8 +15,11 @@ const HRX_AUTH_HEADERS = Object.freeze({
 });
 
 async function json(path, options = {}) {
-  const headers = path.startsWith("/api/hrx") ? { ...HRX_AUTH_HEADERS, ...(options.headers ?? {}) } : options.headers;
-  const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
+  const { account, ...requestOptions } = options;
+  const headers = path.startsWith("/api/hrx")
+    ? { ...(await signedHeaders(baseUrl, account)), ...HRX_AUTH_HEADERS, ...(options.headers ?? {}) }
+    : options.headers;
+  const response = await fetch(`${baseUrl}${path}`, { ...requestOptions, headers });
   return { status: response.status, body: await response.json() };
 }
 
@@ -45,10 +50,10 @@ test("POST /api/hrx/ai/assistant returns cited advisory answer for allowed sourc
   assert.equal(body.answer.answer.includes("Grounded HRX advisory response"), false);
 });
 
-test("POST /api/hrx/ai/assistant bounds RAG citations to actor-visible source scopes", async () => {
-  const missingDocumentScope = await json("/api/hrx/ai/assistant", {
+test("POST /api/hrx/ai/assistant enforces signed-session AI scope and bounds denied RAG sources", async () => {
+  const missingAiScope = await json("/api/hrx/ai/assistant", {
     method: "POST",
-    headers: { ...HRX_AUTH_HEADERS, "x-lawos-hrx-scopes": "hrx.ai.assistant,hrx.ai.review.read" },
+    account: registeredAccount("yjlee@amic.kr"),
     body: JSON.stringify({
       interaction_id: "ai-api-scope-denied",
       question: "Summarize leave policy guidance",
@@ -56,15 +61,13 @@ test("POST /api/hrx/ai/assistant bounds RAG citations to actor-visible source sc
     }),
   });
 
-  assert.equal(missingDocumentScope.status, 202);
-  assert.equal(missingDocumentScope.body.outcome, "review_required");
-  assert.equal(missingDocumentScope.body.answer_status, "insufficient_sources");
-  assert.deepEqual(missingDocumentScope.body.citations, []);
-  assert.deepEqual(missingDocumentScope.body.source_refs, []);
-  assert.equal(missingDocumentScope.body.retrieval.denied_source_refs.includes("Policy:leave:2026"), true);
+  assert.equal(missingAiScope.status, 403);
+  assert.equal(missingAiScope.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(missingAiScope.body.required_scope, "hrx.ai.assistant");
 
   const compensationDenied = await json("/api/hrx/ai/assistant", {
     method: "POST",
+    account: registeredAccount("bj.park@amic.kr"),
     body: JSON.stringify({
       interaction_id: "ai-api-comp-denied",
       question: "compensation source metadata",
@@ -72,10 +75,9 @@ test("POST /api/hrx/ai/assistant bounds RAG citations to actor-visible source sc
     }),
   });
 
-  assert.equal(compensationDenied.status, 202);
-  assert.equal(compensationDenied.body.outcome, "review_required");
-  assert.equal(compensationDenied.body.answer_status, "insufficient_sources");
-  assert.deepEqual(compensationDenied.body.citations, []);
+  assert.equal(compensationDenied.status, 200);
+  assert.equal(compensationDenied.body.outcome, "answered");
+  assert.equal(compensationDenied.body.answer.status, "answered");
   assert.equal(compensationDenied.body.retrieval.denied_source_refs.some((sourceRef) => sourceRef.includes(":compensation-record")), true);
   assert.equal(JSON.stringify(compensationDenied.body).includes("compensation source metadata"), false);
 });
@@ -105,7 +107,7 @@ test("POST /api/hrx/ai/assistant routes blocked final people decisions to review
 test("GET /api/hrx/analytics returns tenant-scoped aggregate read model", async () => {
   const { status, body } = await json("/api/hrx/analytics");
   assert.equal(status, 200);
-  assert.equal(body.analytics.tenant_id, "tenant-a");
+  assert.equal(body.analytics.tenant_id, MATTER_VAULT_REGISTERED_TENANT_ID);
   assert.equal(body.analytics.row_level_details_included, false);
   assert.ok(body.analytics.headcount.total >= 2);
   assert.ok(body.workload_projection.every((row) => row.workload_source === "time_entry_aggregation"));

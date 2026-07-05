@@ -43,7 +43,19 @@ export const MATTER_API_ERROR_CODES = Object.freeze({
   vault_upload_preflight_matter_required: "MATTER_VAULT_UPLOAD_PREFLIGHT_MATTER_REQUIRED",
   vault_upload_preflight_source_blocked: "MATTER_VAULT_UPLOAD_PREFLIGHT_SOURCE_BLOCKED",
   vault_upload_preflight_lifecycle_blocked: "MATTER_VAULT_UPLOAD_PREFLIGHT_LIFECYCLE_BLOCKED",
+  clearance_token_not_issued: "MATTER_CLEARANCE_TOKEN_NOT_ISSUED",
+  clearance_token_id_required: "MATTER_CLEARANCE_TOKEN_ID_REQUIRED",
+  clearance_ledger_mismatch: "MATTER_CLEARANCE_LEDGER_MISMATCH",
 });
+
+export const VAULT_BRIDGE_TOKEN_HEADER = "x-lawos-vault-bridge-token";
+export const MATTER_VAULT_BRIDGE_ROUTES = Object.freeze(new Set([
+  "GET /api/matters/vault-bridge/status",
+  "GET /api/matters/vault-bridge/matter-lookup",
+  "POST /api/matters/vault-bridge/upload-preflight",
+  "POST /api/matters/vault-bridge/clients/upsert",
+  "POST /api/matters/vault-bridge/matters/upsert",
+]));
 
 export const MATTER_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "matter-core",
@@ -127,11 +139,12 @@ function configuredVaultBridgeToken() {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-function bearerToken(headers = {}) {
-  const raw = headers.authorization ?? headers.Authorization;
-  if (typeof raw !== "string") return null;
-  const match = raw.match(/^Bearer\s+(.+)$/i);
-  return match ? match[1].trim() : null;
+function vaultBridgeHeaderToken(headers = {}) {
+  const raw =
+    headers[VAULT_BRIDGE_TOKEN_HEADER] ??
+    headers[VAULT_BRIDGE_TOKEN_HEADER.toUpperCase()] ??
+    headers["X-Lawos-Vault-Bridge-Token"];
+  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
 }
 
 function tokenDigest(value) {
@@ -398,6 +411,32 @@ function errorResponse(status, requestId, codes, extra = {}) {
   };
 }
 
+function matterOpeningClearanceError(error) {
+  const message = String(error?.message ?? "");
+  if (/clearance_token_id is required|requires clearance_token_id/.test(message)) {
+    return {
+      code: MATTER_API_ERROR_CODES.clearance_token_id_required,
+      safe_message: "Matter opening requires an issued clearance token.",
+    };
+  }
+  if (/not issued by Intake ledger/.test(message)) {
+    return {
+      code: MATTER_API_ERROR_CODES.clearance_token_not_issued,
+      safe_message: "Matter opening clearance token was not issued by Intake.",
+    };
+  }
+  if (/clearance ledger mismatch/.test(message)) {
+    return {
+      code: MATTER_API_ERROR_CODES.clearance_ledger_mismatch,
+      safe_message: "Matter opening clearance ledger does not match the issued token.",
+    };
+  }
+  return {
+    code: MATTER_API_ERROR_CODES.validation_error,
+    safe_message: "Matter opening validation failed.",
+  };
+}
+
 function vaultBridgeError(status, requestId, code, extra = {}) {
   return {
     status,
@@ -453,7 +492,7 @@ function validateVaultBridgeAuth({ headers, requestId } = {}) {
   if (!expected) {
     return vaultBridgeError(503, requestId, MATTER_API_ERROR_CODES.vault_bridge_required);
   }
-  if (!tokenMatches(expected, bearerToken(headers))) {
+  if (!tokenMatches(expected, vaultBridgeHeaderToken(headers))) {
     return vaultBridgeError(403, requestId, MATTER_API_ERROR_CODES.vault_bridge_blocked);
   }
   return null;
@@ -1400,10 +1439,11 @@ export function handleMatterOpening({ body, context, requestId, runtime = DEFAUL
       },
     };
   } catch (error) {
-    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+    const safeError = matterOpeningClearanceError(error);
+    return errorResponse(400, requestId, [safeError.code], {
       audit_hint_ref: query.audit_hint_ref,
       ui_state: "blocked",
-      message: error.message,
+      safe_message: safeError.safe_message,
     });
   }
 }

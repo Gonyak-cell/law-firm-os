@@ -3,19 +3,11 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
+import { authedJson } from "./helpers/session.js";
 
 const TENANT = "tenant_cmp_g11_synthetic";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_cmp_g11_read&audit_hint_ref=audit_hint_cmp_g11_read`;
-
-function permissionContext(effect = "allow") {
-  return JSON.stringify({
-    principal: { user_id: "user_cmp_g11_readiness", tenant_id: TENANT, role_ids: ["ui_readiness_reviewer"] },
-    rules: [{ id: `rule_ui_${effect}`, effect, action: "*" }],
-    object_acl: [],
-  });
-}
 
 async function withServer(callback, options = {}) {
   const started = await startApiServer({ port: 0, ...options });
@@ -27,14 +19,7 @@ async function withServer(callback, options = {}) {
 }
 
 async function json(baseUrl, path, options = {}) {
-  const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
-    ...(options.headers ?? {}),
-  };
-  if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
-  const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
-  const body = await response.json();
-  return { status: response.status, body };
+  return authedJson(baseUrl, path, options);
 }
 
 test("G11 UI readiness API health descriptor exposes runtime write-ready without production claim", async () => {
@@ -57,10 +42,10 @@ test("G11 UI readiness reads return 48 TUW checks and remain permission gated", 
     assert.equal(readiness.body.production_ready_claim, false);
 
     const denied = await json(baseUrl, `/api/ui/readiness?${BASE_QUERY}`, {
-      headers: { [PERMISSION_CONTEXT_HEADER]: undefined },
+      noAuth: true,
     });
-    assert.equal(denied.status, 403);
-    assert.equal(denied.body.count_leak_prevented, true);
+    assert.equal(denied.status, 401);
+    assert.deepEqual(denied.body.safe_error_codes, ["AUTH_SESSION_REQUIRED"]);
   });
 });
 

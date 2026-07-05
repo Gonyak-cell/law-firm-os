@@ -73,35 +73,35 @@
       "method": "GET",
       "path": "/api/matters/vault-bridge/status",
       "owner": "Law Firm OS",
-      "auth": "Authorization: Bearer <LAWOS_VAULT_BRIDGE_TOKEN>",
+      "auth": "x-lawos-vault-bridge-token: <LAWOS_VAULT_BRIDGE_TOKEN>",
       "implementation": "apps/api/src/matter-runtime-context.js"
     },
     {
       "method": "GET",
       "path": "/api/matters/vault-bridge/matter-lookup",
       "owner": "Law Firm OS",
-      "auth": "Authorization: Bearer <LAWOS_VAULT_BRIDGE_TOKEN>",
+      "auth": "x-lawos-vault-bridge-token: <LAWOS_VAULT_BRIDGE_TOKEN>",
       "implementation": "apps/api/src/matter-runtime-context.js"
     },
     {
       "method": "POST",
       "path": "/api/matters/vault-bridge/upload-preflight",
       "owner": "Law Firm OS",
-      "auth": "Authorization: Bearer <LAWOS_VAULT_BRIDGE_TOKEN>",
+      "auth": "x-lawos-vault-bridge-token: <LAWOS_VAULT_BRIDGE_TOKEN>",
       "implementation": "apps/api/src/matter-runtime-context.js"
     },
     {
       "method": "POST",
       "path": "/api/matters/vault-bridge/clients/upsert",
       "owner": "Law Firm OS",
-      "auth": "Authorization: Bearer <LAWOS_VAULT_BRIDGE_TOKEN>",
+      "auth": "x-lawos-vault-bridge-token: <LAWOS_VAULT_BRIDGE_TOKEN>",
       "implementation": "apps/api/src/matter-runtime-context.js"
     },
     {
       "method": "POST",
       "path": "/api/matters/vault-bridge/matters/upsert",
       "owner": "Law Firm OS",
-      "auth": "Authorization: Bearer <LAWOS_VAULT_BRIDGE_TOKEN>",
+      "auth": "x-lawos-vault-bridge-token: <LAWOS_VAULT_BRIDGE_TOKEN>",
       "implementation": "apps/api/src/matter-runtime-context.js"
     },
     {

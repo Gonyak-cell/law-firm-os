@@ -113,9 +113,12 @@ function safeCount(value) {
   return Array.isArray(value) ? value.length : 0;
 }
 
+const VAULT_BRIDGE_TOKEN_HEADER = "x-lawos-vault-bridge-token";
+
 function bridgeAuthHeaders() {
   assert(BRIDGE_TOKEN, "LAWOS_VAULT_BRIDGE_TOKEN is required for production bridge smoke");
-  return { authorization: `Bearer ${BRIDGE_TOKEN}` };
+  // Requires API deployment with dedicated bridge-header support; do not run against the old Bearer-only Lambda.
+  return { [VAULT_BRIDGE_TOKEN_HEADER]: BRIDGE_TOKEN };
 }
 
 function clientBridgePayload() {

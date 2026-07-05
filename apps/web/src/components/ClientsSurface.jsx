@@ -1370,7 +1370,7 @@ function OpportunitiesTable({ result, pending, handoffResult, onHandoff }) {
   );
 }
 
-export function IntakeSurface({
+export function ClientIntakePipelineSurface({
   result,
   auditResult,
   activeIntake,
@@ -2291,7 +2291,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
         )}
         {currentSection === "client-intake" && (
           <Panel id="client-intake" className="record-list-panel" title="인테이크" meta="수임 전 검토">
-            <IntakeSurface
+            <ClientIntakePipelineSurface
               result={intakeResult}
               auditResult={intakeAuditResult}
               activeIntake={activeIntake}

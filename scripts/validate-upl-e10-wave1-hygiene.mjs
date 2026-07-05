@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 import { assertNodeProofPass } from "./lib/upl-proof-runner.mjs";
 
 const ROOT = process.cwd();
-const artifactPath = "artifacts/manual-qa/upl-e10-wave1-hygiene-proof.json";
+const artifactPath = process.env.LAWOS_UPL_E10_ARTIFACT_JSON || "artifacts/manual-qa/upl-e10-wave1-hygiene-proof.json";
 const matrixPath = "artifacts/manual-qa/wave1-70-tuw-strict-verification-2026-07-03.md";
 
 assert.equal(existsSync(resolve(ROOT, artifactPath)), true, `missing ${artifactPath}`);

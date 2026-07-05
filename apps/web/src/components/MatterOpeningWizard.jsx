@@ -1,7 +1,7 @@
 import React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Send, ShieldCheck } from "lucide-react";
-import { createMatterOpening } from "../data/apiClient.js";
+import { createMatterOpening, fetchIntakeClearanceTokens } from "../data/apiClient.js";
 import { Panel } from "./primitives.jsx";
 
 const TENANT_ID = "matter-runtime-tenant";
@@ -15,11 +15,7 @@ function openingPayload({
   matterNumberSeed,
   legalClientPartyId,
   billingClientPartyId,
-  clearanceTokenId,
-  intakeRequestId,
-  conflictCheckId,
-  engagementId,
-  snapshotHash
+  clearanceToken
 }) {
   return {
     tenant_id: TENANT_ID,
@@ -41,16 +37,7 @@ function openingPayload({
       permission_envelope_id: "perm_ui_cmp_g4_opening",
       audit_trace_id: "audit_ui_cmp_g4_opening"
     },
-    clearance_token: {
-      clearance_token_id: clearanceTokenId,
-      tenant_id: TENANT_ID,
-      intake_request_id: intakeRequestId,
-      conflict_check_id: conflictCheckId,
-      engagement_id: engagementId,
-      snapshot_hash: snapshotHash,
-      token_state: "valid",
-      outcome: "passed"
-    }
+    clearance_token: clearanceToken
   };
 }
 
@@ -60,24 +47,38 @@ export function MatterOpeningWizard({ liveCtx = "allow", onCreated }) {
     title: "",
     matterNumberSeed: "",
     legalClientPartyId: "",
-    billingClientPartyId: "",
-    clearanceTokenId: "",
-    intakeRequestId: "",
-    conflictCheckId: "",
-    engagementId: "",
-    snapshotHash: ""
+    billingClientPartyId: ""
   });
+  const [clearanceTokens, setClearanceTokens] = useState([]);
+  const [selectedClearanceTokenId, setSelectedClearanceTokenId] = useState("");
   const [result, setResult] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const canSubmit = Object.values(form).every((value) => value.trim().length > 0);
+  const canSubmit = Object.values(form).every((value) => value.trim().length > 0) && selectedClearanceTokenId.trim().length > 0;
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadClearanceTokens() {
+      const next = await fetchIntakeClearanceTokens({ ctx: liveCtx });
+      if (cancelled || next.kind !== "data") return;
+      const issued = next.items.filter((item) => item?.clearance_token_id && item?.token_state !== "expired" && item?.token_state !== "stale");
+      setClearanceTokens(issued);
+      setSelectedClearanceTokenId((current) => current || issued[0]?.clearance_token_id || "");
+    }
+    loadClearanceTokens();
+    return () => {
+      cancelled = true;
+    };
+  }, [liveCtx]);
 
   async function submit(event) {
     event.preventDefault();
     if (!canSubmit) return;
+    const clearanceToken = clearanceTokens.find((token) => token.clearance_token_id === selectedClearanceTokenId);
+    if (!clearanceToken) return;
     setSubmitting(true);
     const next = await createMatterOpening({
       ctx: liveCtx,
-      payload: openingPayload(form)
+      payload: openingPayload({ ...form, clearanceToken })
     });
     setResult(next);
     setSubmitting(false);
@@ -91,6 +92,8 @@ export function MatterOpeningWizard({ liveCtx = "allow", onCreated }) {
   const statusText =
     result?.kind === "data"
       ? result.productionReadyClaim ? "승인 검토 필요" : "Matter가 개시되었습니다"
+      : clearanceTokens.length === 0
+        ? "발급된 클리어런스가 없습니다"
       : result?.kind === "error"
         ? "입력값과 연결 상태를 확인하세요"
         : "필수 정보를 입력하세요";
@@ -119,24 +122,15 @@ export function MatterOpeningWizard({ liveCtx = "allow", onCreated }) {
           <input value={form.billingClientPartyId} onChange={update("billingClientPartyId")} />
         </label>
         <label>
-          <span>이해상충 확인 번호</span>
-          <input value={form.clearanceTokenId} onChange={update("clearanceTokenId")} />
-        </label>
-        <label>
-          <span>접수 번호</span>
-          <input value={form.intakeRequestId} onChange={update("intakeRequestId")} />
-        </label>
-        <label>
-          <span>검토 번호</span>
-          <input value={form.conflictCheckId} onChange={update("conflictCheckId")} />
-        </label>
-        <label>
-          <span>위임 계약 번호</span>
-          <input value={form.engagementId} onChange={update("engagementId")} />
-        </label>
-        <label>
-          <span>확인 번호</span>
-          <input value={form.snapshotHash} onChange={update("snapshotHash")} />
+          <span>이해상충 클리어런스</span>
+          <select value={selectedClearanceTokenId} onChange={(event) => setSelectedClearanceTokenId(event.target.value)}>
+            <option value="">선택</option>
+            {clearanceTokens.map((token) => (
+              <option key={token.clearance_token_id} value={token.clearance_token_id}>
+                {token.clearance_token_id}
+              </option>
+            ))}
+          </select>
         </label>
         <div className="matter-form-footer">
           <div>

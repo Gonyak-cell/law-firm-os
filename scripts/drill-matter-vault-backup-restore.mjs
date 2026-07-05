@@ -1,34 +1,27 @@
 #!/usr/bin/env node
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  DERIVED_STORE_PATH_MANIFEST,
+  STORE_PATH_MANIFEST,
+} from "../apps/api/src/store-path-manifest.js";
 
 export const MATTER_VAULT_RUNTIME_BACKUP_SCHEMA_VERSION = "law-firm-os.matter-vault-runtime-backup.v0.1";
 export const MATTER_VAULT_RUNTIME_RESTORE_SCHEMA_VERSION = "law-firm-os.matter-vault-runtime-restore.v0.1";
 export const MATTER_VAULT_RUNTIME_BACKUP_MANIFEST_FILE = "lawos-runtime-store-backup-manifest.json";
 
-export const MATTER_VAULT_RUNTIME_STORE_FILES = Object.freeze([
-  { key: "hrxStorePath", bounded_context: "hrx", file_name: "hrx-store.json" },
-  { key: "masterDataStorePath", bounded_context: "master-data", file_name: "master-data-store.json" },
-  { key: "matterStorePath", bounded_context: "matter", file_name: "matter-store.json" },
-  { key: "dmsStorePath", bounded_context: "dms", file_name: "dms-store.json" },
-  { key: "crmStorePath", bounded_context: "crm", file_name: "crm-store.json" },
-  { key: "intakeStorePath", bounded_context: "intake", file_name: "intake-store.json" },
-  { key: "crmMasterDataStorePath", bounded_context: "crm-master-data", file_name: "crm-master-data-store.json" },
-  { key: "financeStorePath", bounded_context: "finance", file_name: "finance-store.json" },
-  { key: "analyticsStorePath", bounded_context: "analytics", file_name: "analytics-store.json" },
-  { key: "aiStorePath", bounded_context: "ai-governance", file_name: "ai-store.json" },
-  { key: "portalStorePath", bounded_context: "client-portal", file_name: "portal-store.json" },
-  { key: "uiReadinessStorePath", bounded_context: "ui-readiness", file_name: "ui-readiness-store.json" },
-  {
-    key: "enterpriseReadinessStorePath",
-    bounded_context: "enterprise-readiness",
-    file_name: "enterprise-readiness-store.json"
-  }
-]);
+export const MATTER_VAULT_RUNTIME_STORE_FILES = Object.freeze(
+  STORE_PATH_MANIFEST.map((entry) => Object.freeze({
+    key: entry.key,
+    env: entry.env,
+    bounded_context: entry.bounded_context,
+    file_name: entry.fileName,
+  })),
+);
 
 function secondsBetween(startNs, endNs = process.hrtime.bigint()) {
   const seconds = Number(endNs - startNs) / 1_000_000_000;
@@ -80,8 +73,71 @@ async function safeStat(filePath) {
   }
 }
 
+function dmsObjectManifest() {
+  return DERIVED_STORE_PATH_MANIFEST.find((entry) => entry.key === "dmsObjectStorePath");
+}
+
+function resolveStoreSources({ storeDir, env = process.env } = {}) {
+  const resolvedStoreDir = storeDir ? resolve(storeDir) : null;
+  const storeFiles = MATTER_VAULT_RUNTIME_STORE_FILES.map((definition) => {
+    const envPath = env[definition.env];
+    const sourcePath = envPath ? resolve(envPath) : join(resolvedStoreDir, definition.file_name);
+    return Object.freeze({
+      ...definition,
+      source_path: sourcePath,
+      source: envPath ? "env" : "store_dir",
+      restore_relative_path: definition.file_name,
+    });
+  });
+  const dmsStore = storeFiles.find((entry) => entry.key === "dmsStorePath");
+  const objectManifest = dmsObjectManifest();
+  const objectRoot = env[objectManifest.env]
+    ? resolve(env[objectManifest.env])
+    : dmsStore?.source_path
+      ? `${dmsStore.source_path}${objectManifest.suffix}`
+      : null;
+  return Object.freeze({
+    store_dir: resolvedStoreDir,
+    resolved_store_paths: Object.freeze(Object.fromEntries(storeFiles.map((entry) => [entry.env, entry.source_path]))),
+    dms_object_store_path: objectRoot,
+    storeFiles: Object.freeze(storeFiles),
+    objectStore: Object.freeze({
+      key: objectManifest.key,
+      env: objectManifest.env,
+      bounded_context: objectManifest.bounded_context,
+      source_path: objectRoot,
+      restore_relative_path: `${dmsStore?.file_name ?? "dms-store.json"}${objectManifest.suffix}`,
+      type: "directory",
+    }),
+  });
+}
+
+async function listObjectStoreFiles(rootPath) {
+  if (!rootPath) return [];
+  const rootStat = await safeStat(rootPath);
+  if (!rootStat?.isDirectory()) return [];
+  const files = [];
+  async function walk(current) {
+    const entries = await readdir(current, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = join(current, entry.name);
+      if (entry.isDirectory()) {
+        await walk(fullPath);
+        continue;
+      }
+      if (entry.isFile() && (entry.name.endsWith(".bin") || entry.name.endsWith(".json"))) {
+        files.push(fullPath);
+      }
+    }
+  }
+  await walk(rootPath);
+  files.sort();
+  return files;
+}
+
 export async function createMatterVaultRuntimeBackup({
   storeDir = defaultRuntimeStoreDir(),
+  env = process.env,
   backupRoot = defaultBackupRoot(),
   backupDir,
   now,
@@ -89,7 +145,8 @@ export async function createMatterVaultRuntimeBackup({
 } = {}) {
   const startedNs = process.hrtime.bigint();
   const generatedAt = toDate(now);
-  const resolvedStoreDir = resolve(storeDir);
+  const sources = resolveStoreSources({ storeDir, env });
+  const resolvedStoreDir = sources.store_dir;
   const resolvedBackupDir = resolve(backupDir ?? join(backupRoot, timestampSlug(generatedAt)));
   const storesBackupDir = join(resolvedBackupDir, "stores");
   await mkdir(storesBackupDir, { recursive: true });
@@ -99,8 +156,8 @@ export async function createMatterVaultRuntimeBackup({
   let newestMtimeMs = null;
   let backup_total_bytes = 0;
 
-  for (const definition of MATTER_VAULT_RUNTIME_STORE_FILES) {
-    const sourcePath = join(resolvedStoreDir, definition.file_name);
+  for (const definition of sources.storeFiles) {
+    const sourcePath = definition.source_path;
     const sourceStat = await safeStat(sourcePath);
     if (!sourceStat?.isFile()) {
       missing_store_files.push({ ...definition, source_path: sourcePath });
@@ -118,9 +175,40 @@ export async function createMatterVaultRuntimeBackup({
       ...definition,
       source_path: sourcePath,
       backup_relative_path,
+      restore_relative_path: definition.restore_relative_path,
+      type: "store_file",
       byte_length: bytes.byteLength,
       sha256: digest,
       source_mtime: sourceStat.mtime.toISOString()
+    });
+  }
+
+  const objectFiles = await listObjectStoreFiles(sources.objectStore.source_path);
+  for (const sourcePath of objectFiles) {
+    const sourceStat = await safeStat(sourcePath);
+    if (!sourceStat?.isFile()) continue;
+    const relativeObjectPath = relative(sources.objectStore.source_path, sourcePath);
+    const bytes = await readFile(sourcePath);
+    const digest = sha256(bytes);
+    const backup_relative_path = join("objects", relativeObjectPath);
+    const targetPath = resolveInside(resolvedBackupDir, backup_relative_path);
+    await mkdir(dirname(targetPath), { recursive: true });
+    await writeFile(targetPath, bytes);
+
+    newestMtimeMs = newestMtimeMs === null ? sourceStat.mtimeMs : Math.max(newestMtimeMs, sourceStat.mtimeMs);
+    backup_total_bytes += bytes.byteLength;
+    files.push({
+      key: sources.objectStore.key,
+      env: sources.objectStore.env,
+      bounded_context: sources.objectStore.bounded_context,
+      file_name: relativeObjectPath,
+      source_path: sourcePath,
+      backup_relative_path,
+      restore_relative_path: join(sources.objectStore.restore_relative_path, relativeObjectPath),
+      type: "dms_object_store_file",
+      byte_length: bytes.byteLength,
+      sha256: digest,
+      source_mtime: sourceStat.mtime.toISOString(),
     });
   }
 
@@ -142,6 +230,9 @@ export async function createMatterVaultRuntimeBackup({
     backup_created: files.length > 0,
     generated_at: generatedAt.toISOString(),
     store_dir: resolvedStoreDir,
+    resolved_store_paths: sources.resolved_store_paths,
+    dms_object_store_path: sources.objectStore.source_path,
+    backup_includes_dms_object_store: objectFiles.length > 0,
     backup_dir: resolvedBackupDir,
     manifest_path: join(resolvedBackupDir, MATTER_VAULT_RUNTIME_BACKUP_MANIFEST_FILE),
     known_store_file_count: MATTER_VAULT_RUNTIME_STORE_FILES.length,
@@ -186,14 +277,17 @@ export async function restoreMatterVaultRuntimeBackup({ backupDir, restoreDir, n
     const checksum_match = actualSha256 === file.sha256;
     if (!checksum_match) checksum_mismatch_count += 1;
 
-    const restorePath = resolveInside(resolvedRestoreDir, file.file_name);
+    const restorePath = resolveInside(resolvedRestoreDir, file.restore_relative_path ?? file.file_name);
+    await mkdir(dirname(restorePath), { recursive: true });
     await writeFile(restorePath, bytes);
     restored_total_bytes += bytes.byteLength;
     files.push({
       key: file.key,
       bounded_context: file.bounded_context,
       file_name: file.file_name,
+      type: file.type ?? "store_file",
       restore_path: restorePath,
+      restore_relative_path: file.restore_relative_path ?? file.file_name,
       byte_length: bytes.byteLength,
       expected_sha256: file.sha256,
       actual_sha256: actualSha256,
@@ -249,6 +343,17 @@ async function seedSyntheticRuntimeStores(storeDir) {
       records
     });
   }
+  const objectDir = join(storeDir, "dms-store.json.objects", "upl-a09");
+  const objectBytes = Buffer.from("UPL-A-09 synthetic DMS object bytes\n", "utf8");
+  await mkdir(objectDir, { recursive: true });
+  await writeFile(join(objectDir, "document_upl_a09_synthetic.bin"), objectBytes);
+  await writeJson(join(objectDir, "document_upl_a09_synthetic.json"), {
+    object_id: "document_upl_a09_synthetic",
+    byte_length: objectBytes.byteLength,
+    sha256: sha256(objectBytes),
+    synthetic_only: true,
+    production_ready_claim: false,
+  });
 }
 
 export async function runMatterVaultBackupRestoreDrill({

@@ -16,6 +16,8 @@ const ARTIFACT_DIR = "docs/lazycodex/evidence/matter-web/artifacts";
 const JSON_PATH = `${ARTIFACT_DIR}/amic-current-production-bridge-upsert-2026-07-01.json`;
 const MD_PATH = `${ARTIFACT_DIR}/amic-current-production-bridge-upsert-2026-07-01.md`;
 const VERIFY_JSON_PATH = `${ARTIFACT_DIR}/lcx-vltui-production-matter-code-verify-2026-07-01.json`;
+const VAULT_BRIDGE_TOKEN_HEADER = "x-lawos-vault-bridge-token";
+// Requires API deployment with dedicated bridge-header support; do not run against the old Bearer-only Lambda.
 const REQUIRED_CODES = Object.freeze([
   "제이에스테크/DEAL/Project Jade",
   "새빗켐/DEAL/Project Tempus",
@@ -45,8 +47,8 @@ function resolveLambdaEnvironment() {
     : { error: "", values: result.values, ssoLogin: result.ssoLogin };
 }
 
-function authHeaders(token) {
-  return { authorization: `Bearer ${token}` };
+function bridgeHeaders(token) {
+  return { [VAULT_BRIDGE_TOKEN_HEADER]: token };
 }
 
 function permissionHeaders() {
@@ -239,7 +241,7 @@ if (!token) {
   process.exit(1);
 }
 
-const headers = authHeaders(token);
+const headers = bridgeHeaders(token);
 const clientResults = [];
 for (const client of AMIC_CURRENT_MATTER_CLIENTS) {
   const response = await readJson("/api/matters/vault-bridge/clients/upsert", {

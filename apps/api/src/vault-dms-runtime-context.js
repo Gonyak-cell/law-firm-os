@@ -136,11 +136,6 @@ function errorResponse(status, requestId, codes, extra = {}) {
 
 function validateCommonQuery(query, requestId) {
   if (!query.tenant_id) return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.tenant_required]);
-  if (query.tenant_id !== MATTER_VAULT_REGISTERED_TENANT_ID) {
-    return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
-      ui_state: "blocked",
-    });
-  }
   if (!query.permission_ref) return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.permission_required]);
   if (!query.audit_hint_ref) return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.audit_hint_required]);
   return null;

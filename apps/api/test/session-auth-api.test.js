@@ -115,6 +115,35 @@ test("POST /api/auth/login issues a signed session token for the registered rost
   });
 });
 
+test("Local-dev sessions use per-instance secrets and operational synthetic login is disabled", () => {
+  const account = user();
+  const firstAuth = createApiSessionAuth({ now: () => Date.parse("2026-07-02T00:00:00.000Z") });
+  const secondAuth = createApiSessionAuth({ now: () => Date.parse("2026-07-02T00:00:00.000Z") });
+  const signed = firstAuth.login({
+    email: account.email,
+    password: account.local_dev.synthetic_token,
+  }, { requestId: "req_local_dev_random_secret" });
+  assert.equal(signed.status, 200);
+  const crossVerify = secondAuth.verifyToken(signed.body.session_token, { requestId: "req_cross_verify" });
+  assert.equal(crossVerify.status, 401);
+  assert.deepEqual(crossVerify.body.safe_error_codes, ["AUTH_SESSION_INVALID"]);
+
+  assert.throws(
+    () => createApiSessionAuth({ profile: "operational" }),
+    /LAWOS_API_SESSION_SECRET is required/,
+  );
+  const operationalAuth = createApiSessionAuth({
+    profile: "operational",
+    secret: "operational-session-secret-32-bytes",
+  });
+  const operationalLogin = operationalAuth.login({
+    email: account.email,
+    password: account.local_dev.synthetic_token,
+  }, { requestId: "req_operational_synthetic_disabled" });
+  assert.equal(operationalLogin.status, 403);
+  assert.deepEqual(operationalLogin.body.safe_error_codes, ["AUTH_SYNTHETIC_LOGIN_DISABLED"]);
+});
+
 test("POST /api/auth/step-up issues signed HRX step-up tokens for signed sessions", async () => {
   let now = Date.parse("2026-07-02T00:00:00.000Z");
   const stepUpAuthority = createHrxStepUpAuthority({

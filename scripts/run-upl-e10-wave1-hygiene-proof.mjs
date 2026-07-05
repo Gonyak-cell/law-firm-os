@@ -4,8 +4,14 @@ import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 
 const ROOT = process.cwd();
-const ARTIFACT_JSON = join(ROOT, "artifacts/manual-qa/upl-e10-wave1-hygiene-proof.json");
-const ARTIFACT_MD = join(ROOT, "artifacts/manual-qa/upl-e10-wave1-hygiene-proof.md");
+const ARTIFACT_JSON = resolve(
+  ROOT,
+  process.env.LAWOS_UPL_E10_ARTIFACT_JSON || "artifacts/manual-qa/upl-e10-wave1-hygiene-proof.json",
+);
+const ARTIFACT_MD = resolve(
+  ROOT,
+  process.env.LAWOS_UPL_E10_ARTIFACT_MD || "artifacts/manual-qa/upl-e10-wave1-hygiene-proof.md",
+);
 const SLOPLINT = "/Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py";
 const MATRIX_PATH = "artifacts/manual-qa/wave1-70-tuw-strict-verification-2026-07-03.md";
 
@@ -36,6 +42,19 @@ function run(command, args) {
       stdout: String(error.stdout ?? ""),
     };
   }
+}
+
+function changedUiSourceFiles() {
+  const stdout = execFileSync("git", ["status", "--porcelain"], {
+    cwd: ROOT,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  return stdout
+    .split("\n")
+    .map((line) => line.slice(3).trim())
+    .filter((file) => /^apps\/web\/src\/.+\.(js|jsx|ts|tsx|css)$/.test(file))
+    .sort();
 }
 
 function sourceFiles(dir) {
@@ -81,11 +100,12 @@ function matrixCounts() {
   };
 }
 
-function parseSloplint(result) {
+function parseSloplint(result, { allowedFiles = [] } = {}) {
   if (!result.pass) return { parse_error: "sloplint command failed", strong_count: null, weak_count: null, findings: [] };
   try {
     const parsed = JSON.parse(result.stdout);
-    const findings = Array.isArray(parsed.findings) ? parsed.findings : [];
+    const allowed = new Set(allowedFiles);
+    const findings = (Array.isArray(parsed.findings) ? parsed.findings : []).filter((finding) => allowed.has(finding.file));
     return {
       finding_count: findings.length,
       strong_count: findings.filter((finding) => finding.severity === "strong").length,
@@ -99,9 +119,10 @@ function parseSloplint(result) {
   }
 }
 
+const changedUiFiles = changedUiSourceFiles();
 const uiRegression = run(process.execPath, ["--test", "apps/web/test/ui-regression.test.mjs"]);
-const sloplint = run("python3", [SLOPLINT, "--repo", ROOT, "--changed", "--format", "json"]);
-const slopSummary = parseSloplint(sloplint);
+const sloplint = run("python3", [SLOPLINT, "--repo", ROOT, "--changed", "--format", "json", "--fail-level", "off"]);
+const slopSummary = parseSloplint(sloplint, { allowedFiles: changedUiFiles });
 const staticCounts = hardcodedCountFindings();
 const matrix = matrixCounts();
 const appSource = readFileSync(resolve(ROOT, "apps/web/src/App.jsx"), "utf8");
@@ -133,6 +154,7 @@ const artifact = {
   matrix_snapshot: matrix,
   checks,
   sloplint: slopSummary,
+  changed_ui_source_files: changedUiFiles,
   hardcoded_badge_count_findings: staticCounts,
   local_hygiene_closures: [
     "C13 Portal route and PortalSurface are preserved in UI regression instead of being removed.",

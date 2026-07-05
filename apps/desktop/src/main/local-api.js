@@ -1,42 +1,12 @@
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname, join, parse } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { LAWOS_RUNTIME_PROFILES } from "../../../api/src/runtime-profile.js";
+import { STORE_PATH_MANIFEST } from "../../../api/src/store-path-manifest.js";
 
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 const desktopRuntimeStoreDirName = "runtime-stores";
 const mkdirParentDirectoriesOption = Object.freeze({ ["recursive"]: true });
-
-const desktopRuntimeStoreFileNames = Object.freeze({
-  hrxStorePath: "hrx-store.json",
-  masterDataStorePath: "master-data-store.json",
-  matterStorePath: "matter-store.json",
-  dmsStorePath: "dms-store.json",
-  crmStorePath: "crm-store.json",
-  intakeStorePath: "intake-store.json",
-  crmMasterDataStorePath: "crm-master-data-store.json",
-  financeStorePath: "finance-store.json",
-  analyticsStorePath: "analytics-store.json",
-  aiStorePath: "ai-store.json",
-  portalStorePath: "portal-store.json",
-  uiReadinessStorePath: "ui-readiness-store.json",
-  enterpriseReadinessStorePath: "enterprise-readiness-store.json"
-});
-
-const desktopRuntimeStoreEnvOverrides = Object.freeze({
-  hrxStorePath: "LAWOS_HRX_STORE_PATH",
-  masterDataStorePath: "LAWOS_MASTER_DATA_STORE_PATH",
-  matterStorePath: "LAWOS_MATTER_STORE_PATH",
-  dmsStorePath: "LAWOS_DMS_STORE_PATH",
-  crmStorePath: "LAWOS_CRM_STORE_PATH",
-  intakeStorePath: "LAWOS_INTAKE_STORE_PATH",
-  crmMasterDataStorePath: "LAWOS_CRM_MASTER_DATA_STORE_PATH",
-  financeStorePath: "LAWOS_FINANCE_STORE_PATH",
-  analyticsStorePath: "LAWOS_ANALYTICS_STORE_PATH",
-  aiStorePath: "LAWOS_AI_STORE_PATH",
-  portalStorePath: "LAWOS_PORTAL_STORE_PATH",
-  uiReadinessStorePath: "LAWOS_UI_READINESS_STORE_PATH",
-  enterpriseReadinessStorePath: "LAWOS_ENTERPRISE_READINESS_STORE_PATH"
-});
 
 function ancestorApiServerEntries(start = moduleDir) {
   const entries = [];
@@ -73,9 +43,9 @@ export function desktopRuntimeStorePaths({
   mkdirSyncImpl(storeDir, mkdirParentDirectoriesOption);
   return Object.freeze(
     Object.fromEntries(
-      Object.entries(desktopRuntimeStoreFileNames).map(([key, fileName]) => [
-        key,
-        env[desktopRuntimeStoreEnvOverrides[key]] || join(storeDir, fileName)
+      STORE_PATH_MANIFEST.map((entry) => [
+        entry.key,
+        env[entry.env] || join(storeDir, entry.fileName)
       ])
     )
   );
@@ -95,7 +65,7 @@ export async function startDesktopLocalApiServer({
   const startApiServer =
     startApiServerImpl ?? (await import(pathToFileURL(entry).toString())).startApiServer;
   const storePaths = desktopRuntimeStorePaths({ env, mkdirSyncImpl, userDataPath });
-  const api = await startApiServer({ port: 0, ...storePaths });
+  const api = await startApiServer({ port: 0, runtimeProfile: LAWOS_RUNTIME_PROFILES.localDev, ...storePaths });
   return {
     ...api,
     entry,

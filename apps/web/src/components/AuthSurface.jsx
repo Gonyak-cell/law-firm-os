@@ -88,7 +88,7 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep, authError =
               <p>
                 {`Don't have a ${PRODUCT_BRAND} account yet? `}
                 <button type="button" onClick={() => setAuthStep("signup")}>
-                  Sign up now
+                  {labels.signupPreviewNotice}
                 </button>
               </p>
             </div>

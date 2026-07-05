@@ -60,6 +60,7 @@ export const CRM_INTAKE_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/intake/conflict-decisions",
     "POST /api/intake/waivers",
     "POST /api/intake/engagements",
+    "GET /api/intake/clearance-tokens",
     "POST /api/intake/clearance-tokens",
     "GET /api/intake/audit",
   ]),
@@ -2464,6 +2465,18 @@ export function handleIntakeRequestList({ query, context, requestId, runtime = D
   });
 }
 
+export function handleClearanceTokenList({ query, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
+  const gated = routeGate({ context, query, requestId, policy });
+  if (gated) return gated;
+  return listResponse({
+    requestId,
+    query,
+    context,
+    policy,
+    items: runtime.intakeRepository.list({ tenant_id: query.tenant_id, model_type: "ClearanceToken" }),
+  });
+}
+
 export function handleCrmLeadCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
   const query = { tenant_id: body?.lead?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
   const gated = routeGate({ context, query, requestId, policy });
@@ -2908,6 +2921,7 @@ export async function handleCrmIntakeApiRequest({
   if (pathname === "/api/intake/conflict-decisions" && method === "POST") return handleConflictDecisionRecord({ body, context, requestId, runtime, policy });
   if (pathname === "/api/intake/waivers" && method === "POST") return handleWaiverApprove({ body, context, requestId, runtime, policy });
   if (pathname === "/api/intake/engagements" && method === "POST") return handleEngagementApprove({ body, context, requestId, runtime, policy });
+  if (pathname === "/api/intake/clearance-tokens" && method === "GET") return handleClearanceTokenList({ query, context, requestId, runtime, policy });
   if (pathname === "/api/intake/clearance-tokens" && method === "POST") return handleClearanceTokenIssue({ body, context, requestId, runtime, policy });
   if (pathname === "/api/intake/audit" && method === "GET") return handleIntakeAudit({ query, context, requestId, runtime, policy });
   return errorResponse(404, requestId, [CRM_INTAKE_API_ERROR_CODES.not_found], { audit_hint_ref: query.audit_hint_ref });

@@ -1,20 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
+import { authedJson } from "./helpers/session.js";
 import { startApiServer } from "../src/server.js";
 
 const TENANT = "tenant_rp05_synthetic";
 const MATTER_ID = "matter_rp05_synthetic_opening";
 const ACTOR_ID = "user_rp05_owner";
 const CONFIRMER_ID = "user_rp05_associate";
-
-function permissionContext(effect = "allow") {
-  return JSON.stringify({
-    principal: { user_id: ACTOR_ID, tenant_id: TENANT, role_ids: ["matter_activity_user"] },
-    rules: [{ id: `rule_sf_b_w03_${effect}`, effect, action: "*" }],
-    object_acl: [],
-  });
-}
 
 async function withServer(callback) {
   const started = await startApiServer({ port: 0 });
@@ -25,18 +17,8 @@ async function withServer(callback) {
   }
 }
 
-async function json(baseUrl, path, { method = "GET", body, headers = {} } = {}) {
-  const requestHeaders = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
-    ...headers,
-  };
-  if (body !== undefined) requestHeaders["content-type"] = "application/json";
-  const response = await fetch(`${baseUrl}${path}`, {
-    method,
-    headers: requestHeaders,
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  return { status: response.status, body: await response.json() };
+async function json(baseUrl, path, { method = "GET", body, headers = {}, noAuth = false } = {}) {
+  return authedJson(baseUrl, path, { method, body, headers, noAuth });
 }
 
 function query(permission = "read") {
@@ -227,9 +209,9 @@ test("SF-B-W03R channel messages are internal-only and external sync stays provi
     assert.equal(sync.body.production_ready_claim, false);
 
     const denied = await json(baseUrl, `/api/matters/${MATTER_ID}/channel?${query("channel_denied")}`, {
-      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("deny") },
+      noAuth: true,
     });
-    assert.equal(denied.status, 403);
-    assert.equal(denied.body.count_leak_prevented, true);
+    assert.equal(denied.status, 401);
+    assert.deepEqual(denied.body.safe_error_codes, ["AUTH_SESSION_REQUIRED"]);
   });
 });

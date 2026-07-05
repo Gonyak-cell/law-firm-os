@@ -37,11 +37,13 @@ import {
 import { HRX_SESSION_BOUND_HEADER, authorizeHrxApiRequest } from "./middleware/hrx-authz.js";
 import { appendHrxRouteAudit } from "./middleware/hrx-audit-write.js";
 import { authorizeHrxStepUpRequest } from "./middleware/hrx-step-up-context.js";
-import { PERMISSION_CONTEXT_HEADER, PERMISSION_DECISION_ORDER, evaluateRouteDecision } from "./permission-gate.js";
+import { PERMISSION_CONTEXT_HEADER, PERMISSION_DECISION_ORDER, evaluateRouteDecision, parsePermissionContext } from "./permission-gate.js";
 import { createHrxRuntimeContext, handleHrxApiRequest, seedHrxDurableRuntimeStore } from "./hrx-runtime-context.js";
 import {
   MATTER_BOUNDED_CONTEXT,
+  MATTER_VAULT_BRIDGE_ROUTES,
   MATTER_RUNTIME_SEED,
+  VAULT_BRIDGE_TOKEN_HEADER,
   createMatterRuntimeContext,
   handleMatterApiRequest,
 } from "./matter-runtime-context.js";
@@ -122,12 +124,44 @@ import {
 } from "./session-auth.js";
 import { createHrxStepUpAuthority } from "./hrx-step-up-token.js";
 import {
+  LAWOS_RUNTIME_PROFILES,
+  resolveRuntimeProfile,
+  resolveSessionSecret,
+} from "./runtime-profile.js";
+import {
+  assertStorePathPreflight,
+} from "./store-path-manifest.js";
+import {
   OUTLOOK_ADDIN_BOUNDED_CONTEXT,
   handleOutlookAddinApiRequest,
 } from "./outlook-addin-runtime-context.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
+
+function normalizeRuntimeProfileOption(profile, env = process.env) {
+  if (!profile) return resolveRuntimeProfile(env);
+  return resolveRuntimeProfile({ ...env, LAWOS_RUNTIME_PROFILE: profile });
+}
+
+function startupStorePathOptions(options = {}) {
+  return {
+    hrxStorePath: options.hrxStorePath,
+    masterDataStorePath: options.masterDataStorePath,
+    matterStorePath: options.matterStorePath,
+    dmsStorePath: options.dmsStorePath,
+    dmsObjectStorePath: options.dmsObjectStorePath,
+    crmStorePath: options.crmStorePath,
+    intakeStorePath: options.intakeStorePath,
+    crmMasterDataStorePath: options.crmMasterDataStorePath,
+    financeStorePath: options.financeStorePath,
+    analyticsStorePath: options.analyticsStorePath,
+    aiStorePath: options.aiStorePath,
+    portalStorePath: options.portalStorePath,
+    uiReadinessStorePath: options.uiReadinessStorePath,
+    enterpriseReadinessStorePath: options.enterpriseReadinessStorePath,
+  };
+}
 
 function createEphemeralHrxStorePath() {
   return join(mkdtempSync(join(tmpdir(), "lawos-hrx-runtime-")), "hrx-store.json");
@@ -418,6 +452,7 @@ const CORS_BASE_HEADERS = Object.freeze({
     AUTHORIZATION_HEADER,
     "content-type",
     PERMISSION_CONTEXT_HEADER,
+    VAULT_BRIDGE_TOKEN_HEADER,
     "x-lawos-tenant-id",
     "x-lawos-actor-id",
     "x-lawos-actor-role",
@@ -565,6 +600,16 @@ function hasJsonRequestBody(method) {
   return method === "POST" || method === "PATCH" || method === "DELETE";
 }
 
+function isPortalExternalPublicRoute(method, pathname) {
+  return (
+    (method === "POST" && pathname === "/api/portal/invites/consume") ||
+    (method === "POST" && pathname === "/api/portal/external/rfi-responses") ||
+    (method === "GET" &&
+      pathname.startsWith("/api/portal/external/secure-links/") &&
+      pathname.endsWith("/access"))
+  );
+}
+
 function hrxAuditEffect(decision = {}) {
   return ["allow", "deny", "review_required", "approval_required"].includes(decision.effect)
     ? decision.effect
@@ -701,7 +746,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId }
   };
 }
 
-async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority } = {}) {
+async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -765,13 +810,51 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
   }
 
   if (pathname === "/api/health") {
-    sendJson(req, res, 200, { status: "ok", time: new Date().toISOString(), ...SERVICE_DESCRIPTOR });
+    sendJson(req, res, 200, {
+      status: "ok",
+      time: new Date().toISOString(),
+      runtime_profile: runtimeProfile,
+      synthetic_login_enabled: runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational,
+      ...SERVICE_DESCRIPTOR,
+    });
     return;
   }
 
   if (isAuthPath) {
     const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const result = sessionAuth.handleAuthApiRequest({ pathname, method: req.method, body, headers: req.headers, requestId });
+    sendJson(req, res, result.status, result.body);
+    return;
+  }
+
+  const matterBridgeRouteKey = `${req.method} ${pathname}`;
+  if (MATTER_VAULT_BRIDGE_ROUTES.has(matterBridgeRouteKey)) {
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    const result = await handleMatterApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      headers: req.headers,
+      context: parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]),
+      requestId,
+      runtime: matterRuntime,
+    });
+    sendJson(req, res, result.status, result.body);
+    return;
+  }
+
+  if (isPortalExternalPublicRoute(req.method, pathname)) {
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    const result = await handlePortalApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      context: null,
+      requestId,
+      runtime: portalRuntime,
+    });
     sendJson(req, res, result.status, result.body);
     return;
   }
@@ -1107,7 +1190,8 @@ export function createApiServer({
   uiReadinessRuntime = createDefaultUiReadinessRuntime(),
   enterpriseReadinessRuntime = createDefaultEnterpriseReadinessRuntime(),
   stepUpAuthority = createHrxStepUpAuthority(),
-  sessionAuth = createApiSessionAuth({ stepUpAuthority }),
+  runtimeProfile = resolveRuntimeProfile(),
+  sessionAuth = createApiSessionAuth({ stepUpAuthority, profile: runtimeProfile }),
 } = {}) {
   return http.createServer(async (req, res) => {
     try {
@@ -1115,7 +1199,7 @@ export function createApiServer({
         matterRuntime?.clearanceRepository || !crmIntakeRuntime?.intakeRepository
           ? matterRuntime
           : Object.freeze({ ...matterRuntime, clearanceRepository: crmIntakeRuntime.intakeRepository });
-      await handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime: matterRuntimeWithClearanceLedger, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority });
+      await handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime: matterRuntimeWithClearanceLedger, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile });
     } catch (error) {
       sendJson(req, res, 500, { outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "internal_error", message: error.message });
     }
@@ -1124,6 +1208,8 @@ export function createApiServer({
 
 export function startApiServer({
   port = DEFAULT_PORT,
+  runtimeProfile,
+  sessionSecret,
   hrxRuntime,
   hrxStore,
   hrxStorePath,
@@ -1136,6 +1222,7 @@ export function startApiServer({
   dmsRuntime,
   dmsRepository,
   dmsStorePath,
+  dmsObjectStorePath,
   crmIntakeRuntime: providedCrmIntakeRuntime,
   crmRepository,
   intakeRepository,
@@ -1165,18 +1252,53 @@ export function startApiServer({
   sessionAuth,
   stepUpAuthority,
 } = {}) {
-  const runtime = hrxRuntime ?? createDefaultHrxRuntime({ store: hrxStore, storePath: hrxStorePath });
+  const resolvedRuntimeProfile = normalizeRuntimeProfileOption(runtimeProfile);
+  const storePreflight = assertStorePathPreflight({
+    profile: resolvedRuntimeProfile,
+    providedStorePaths: startupStorePathOptions({
+      hrxStorePath,
+      masterDataStorePath,
+      matterStorePath,
+      dmsStorePath,
+      dmsObjectStorePath,
+      crmStorePath,
+      intakeStorePath,
+      crmMasterDataStorePath,
+      financeStorePath,
+      analyticsStorePath,
+      aiStorePath,
+      portalStorePath,
+      uiReadinessStorePath,
+      enterpriseReadinessStorePath,
+    }),
+  });
+  const resolvedSessionSecret = resolveSessionSecret({
+    profile: resolvedRuntimeProfile,
+    explicitSecret: sessionSecret,
+  });
+  const resolvedStorePaths = storePreflight.storePaths;
+  const runtime = hrxRuntime ?? createDefaultHrxRuntime({
+    store: hrxStore,
+    storePath: hrxStorePath ?? resolvedStorePaths.hrxStorePath,
+  });
   const masterRuntime =
     masterDataRuntime ??
-    createDefaultMasterDataRuntime({ repository: masterDataRepository, storePath: masterDataStorePath });
+    createDefaultMasterDataRuntime({
+      repository: masterDataRepository,
+      storePath: masterDataStorePath ?? resolvedStorePaths.masterDataStorePath,
+    });
   const dmsRuntimeContext =
     dmsRuntime ??
-    createDefaultDmsRuntime({ repository: dmsRepository, storePath: dmsStorePath });
+    createDefaultDmsRuntime({
+      repository: dmsRepository,
+      storePath: dmsStorePath ?? resolvedStorePaths.dmsStorePath,
+      storageRootPath: dmsObjectStorePath ?? resolvedStorePaths.dmsObjectStorePath,
+    });
   const resolvedMatterRepository =
     matterRuntime?.repository ??
     matterRepository ??
     createMatterRepository({
-      filePath: matterStorePath || createEphemeralMatterStorePath(),
+      filePath: matterStorePath ?? resolvedStorePaths.matterStorePath ?? createEphemeralMatterStorePath(),
       seedRecords: MATTER_RUNTIME_SEED.records,
     });
   const crmIntakeRuntime =
@@ -1185,9 +1307,9 @@ export function startApiServer({
       crmRepository,
       intakeRepository,
       crmMasterDataRepository,
-      crmStorePath,
-      intakeStorePath,
-      crmMasterDataStorePath,
+      crmStorePath: crmStorePath ?? resolvedStorePaths.crmStorePath,
+      intakeStorePath: intakeStorePath ?? resolvedStorePaths.intakeStorePath,
+      crmMasterDataStorePath: crmMasterDataStorePath ?? resolvedStorePaths.crmMasterDataStorePath,
       matterRepository: resolvedMatterRepository,
       dmsRuntime: dmsRuntimeContext,
     });
@@ -1201,28 +1323,44 @@ export function startApiServer({
     });
   const financeRuntimeContext =
     financeRuntime ??
-    createDefaultFinanceRuntime({ repository: financeRepository, storePath: financeStorePath });
+    createDefaultFinanceRuntime({
+      repository: financeRepository,
+      storePath: financeStorePath ?? resolvedStorePaths.financeStorePath,
+    });
   const analyticsRuntimeContext =
     analyticsRuntime ??
     createDefaultAnalyticsRuntime({
       repository: analyticsRepository,
-      storePath: analyticsStorePath,
+      storePath: analyticsStorePath ?? resolvedStorePaths.analyticsStorePath,
       financeRepository: analyticsFinanceRepository ?? financeRuntimeContext.repository,
     });
   const aiRuntimeContext =
     aiRuntime ??
-    createDefaultAiRuntime({ repository: aiRepository, storePath: aiStorePath });
+    createDefaultAiRuntime({ repository: aiRepository, storePath: aiStorePath ?? resolvedStorePaths.aiStorePath });
   const portalRuntimeContext =
     portalRuntime ??
-    createDefaultPortalRuntime({ repository: portalRepository, storePath: portalStorePath });
+    createDefaultPortalRuntime({
+      repository: portalRepository,
+      storePath: portalStorePath ?? resolvedStorePaths.portalStorePath,
+    });
   const uiReadinessRuntimeContext =
     uiReadinessRuntime ??
-    createDefaultUiReadinessRuntime({ repository: uiReadinessRepository, storePath: uiReadinessStorePath });
+    createDefaultUiReadinessRuntime({
+      repository: uiReadinessRepository,
+      storePath: uiReadinessStorePath ?? resolvedStorePaths.uiReadinessStorePath,
+    });
   const enterpriseReadinessRuntimeContext =
     enterpriseReadinessRuntime ??
-    createDefaultEnterpriseReadinessRuntime({ repository: enterpriseReadinessRepository, storePath: enterpriseReadinessStorePath });
+    createDefaultEnterpriseReadinessRuntime({
+      repository: enterpriseReadinessRepository,
+      storePath: enterpriseReadinessStorePath ?? resolvedStorePaths.enterpriseReadinessStorePath,
+    });
   const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority();
-  const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({ stepUpAuthority: resolvedStepUpAuthority });
+  const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
+    profile: resolvedRuntimeProfile,
+    secret: resolvedSessionSecret,
+    stepUpAuthority: resolvedStepUpAuthority,
+  });
   const server = createApiServer({
     hrxRuntime: runtime,
     masterDataRuntime: masterRuntime,
@@ -1237,6 +1375,7 @@ export function startApiServer({
     enterpriseReadinessRuntime: enterpriseReadinessRuntimeContext,
     stepUpAuthority: resolvedStepUpAuthority,
     sessionAuth: resolvedSessionAuth,
+    runtimeProfile: resolvedRuntimeProfile,
   });
   return new Promise((resolve, reject) => {
     server.once("error", reject);
@@ -1263,18 +1402,24 @@ function stopCliServer(signal) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  startApiServer().then(({ server, port }) => {
-    cliApiServer = server;
-    cliKeepAlive = setInterval(() => {}, 2_147_483_647);
-    server.once("close", () => {
-      if (cliKeepAlive) {
-        clearInterval(cliKeepAlive);
-        cliKeepAlive = null;
-      }
+  Promise.resolve()
+    .then(() => startApiServer())
+    .then(({ server, port }) => {
+      cliApiServer = server;
+      cliKeepAlive = setInterval(() => {}, 2_147_483_647);
+      server.once("close", () => {
+        if (cliKeepAlive) {
+          clearInterval(cliKeepAlive);
+          cliKeepAlive = null;
+        }
+      });
+      console.log(`law-firm-os api listening on http://${HOST}:${port}`);
+      console.log(`health: http://${HOST}:${port}/api/health`);
+    })
+    .catch((error) => {
+      console.error(`api startup failed: ${error?.message ?? String(error)}`);
+      process.exit(error?.exitCode ?? 1);
     });
-    console.log(`law-firm-os api listening on http://${HOST}:${port}`);
-    console.log(`health: http://${HOST}:${port}/api/health`);
-  });
   process.once("SIGINT", () => stopCliServer("SIGINT"));
   process.once("SIGTERM", () => stopCliServer("SIGTERM"));
 }

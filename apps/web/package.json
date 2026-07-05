@@ -7,6 +7,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
+    "typecheck": "tsc --project tsconfig.json --noEmit --pretty false",
     "test:ui": "node --test test/*.test.mjs"
   },
   "dependencies": {

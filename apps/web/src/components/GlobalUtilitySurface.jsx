@@ -220,10 +220,16 @@ export function GlobalUtilitySurface({ view, activeSection = "", setView, theme,
             {conditionalGlobalItems.map((item) => {
               const Icon = item.icon;
               return (
-                <button key={item.id} type="button" className="global-utility-related-item" onClick={() => setView(item.id, item.defaultSection)}>
+                <button
+                  key={item.id}
+                  type="button"
+                  className="global-utility-related-item"
+                  data-global-preview-marker="true"
+                  onClick={() => setView(item.id, item.defaultSection)}
+                >
                   <Icon size={15} />
                   <span>{item.label}</span>
-                  <small>조건부</small>
+                  <small>미리보기</small>
                 </button>
               );
             })}

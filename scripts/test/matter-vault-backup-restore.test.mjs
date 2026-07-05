@@ -60,6 +60,37 @@ test("Matter-Vault runtime backup copies store bytes and restores by checksum", 
   assert.equal(await readFile(join(restoreDir, "finance-store.json"), "utf8"), financeStore);
 });
 
+test("Matter-Vault runtime backup includes DMS object bytes and sidecars", async () => {
+  const root = await tempRoot();
+  const storeDir = join(root, "runtime-stores");
+  const backupRoot = join(root, "backups");
+  const restoreDir = join(root, "restored-runtime-stores");
+  const objectDir = join(storeDir, "dms-store.json.objects", "tenant-a09");
+  const objectBytes = Buffer.from("synthetic object bytes for UPL-A-09\n", "utf8");
+  const sidecar = `${JSON.stringify({ object_id: "object-a09", synthetic_only: true }, null, 2)}\n`;
+
+  await mkdir(objectDir, { recursive: true });
+  await writeFile(join(storeDir, "dms-store.json"), "{\"records\":[]}\n", "utf8");
+  await writeFile(join(objectDir, "object-a09.bin"), objectBytes);
+  await writeFile(join(objectDir, "object-a09.json"), sidecar, "utf8");
+
+  const backup = await createMatterVaultRuntimeBackup({ storeDir, backupRoot });
+  assert.equal(backup.backup_includes_dms_object_store, true);
+  assert.equal(backup.files.filter((file) => file.type === "dms_object_store_file").length, 2);
+
+  const restore = await restoreMatterVaultRuntimeBackup({ backupDir: backup.backup_dir, restoreDir });
+  assert.equal(restore.outcome, "passed");
+  assert.equal(restore.checksum_mismatch_count, 0);
+  assert.deepEqual(
+    await readFile(join(restoreDir, "dms-store.json.objects", "tenant-a09", "object-a09.bin")),
+    objectBytes,
+  );
+  assert.equal(
+    await readFile(join(restoreDir, "dms-store.json.objects", "tenant-a09", "object-a09.json"), "utf8"),
+    sidecar,
+  );
+});
+
 test("Matter-Vault backup/restore drill writes a synthetic-only receipt", async () => {
   const root = await tempRoot();
   const receiptPath = join(root, "a09-runtime-backup-restore-receipt.json");
@@ -75,8 +106,9 @@ test("Matter-Vault backup/restore drill writes a synthetic-only receipt", async 
   assert.equal(receipt.synthetic_only, true);
   assert.equal(receipt.production_ready_claim, false);
   assert.equal(receipt.go_live_claim, false);
-  assert.equal(receipt.backup.backup_file_count, 3);
-  assert.equal(receipt.restore.restored_file_count, 3);
+  assert.equal(receipt.backup.backup_file_count, 5);
+  assert.equal(receipt.backup.backup_includes_dms_object_store, true);
+  assert.equal(receipt.restore.restored_file_count, 5);
   assert.equal(receipt.restore.checksum_mismatch_count, 0);
 
   const persisted = JSON.parse(await readFile(receiptPath, "utf8"));
