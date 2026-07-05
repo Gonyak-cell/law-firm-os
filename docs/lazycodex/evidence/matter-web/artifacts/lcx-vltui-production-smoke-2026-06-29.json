@@ -1,8 +1,8 @@
 {
   "schema_version": "lawos.lcx_vltui.production_smoke.v0.1",
-  "generated_at": "2026-07-01T15:03:01.671Z",
+  "generated_at": "2026-07-05T08:23:35.518Z",
   "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
-  "deployment_commit": "3d7d9da36288549cbb2f90ab4e88b6faa9cfa72c",
+  "deployment_commit": "45b5fa374b294477c66f80197a426625ff9ba847",
   "verdict": "PASS",
   "bridge_token_resolution": {
     "source": "lambda_environment",
@@ -54,6 +54,13 @@
       }
     },
     {
+      "id": "api-session-login",
+      "passed": true,
+      "details": {
+        "summary": "signed synthetic session established without recording token material"
+      }
+    },
+    {
       "id": "profile-session-principal",
       "passed": true,
       "details": {
@@ -99,14 +106,14 @@
       "id": "vault-bridge-client-upsert",
       "passed": true,
       "details": {
-        "summary": "status=201, action=created"
+        "summary": "status=200, action=skipped_idempotent"
       }
     },
     {
       "id": "vault-bridge-matter-upsert",
       "passed": true,
       "details": {
-        "summary": "status=201, action=created"
+        "summary": "status=200, action=skipped_idempotent"
       }
     },
     {
@@ -130,6 +137,7 @@
     "synthetic_bridge_writes_only": true,
     "vault_document_write_enabled": false,
     "real_client_data_used": false,
+    "synthetic_session_login_used": true,
     "public_release_claim": false,
     "owner_final_approval_claim": false,
     "company_wide_go_live_claim": false

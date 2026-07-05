@@ -1,0 +1,139 @@
+{
+  "schema_version": "lawos.matter.lambda_redeploy_receipt.v0.1",
+  "recorded_at": "2026-07-05T08:25:31Z",
+  "reason": "Deploy all current Matter Lambda targets to the enterprise remediation / AWS SSO role-chain commit.",
+  "source": {
+    "branch": "codex/lcx-vltui-owner-approval-intake",
+    "commit": "45b5fa374b294477c66f80197a426625ff9ba847",
+    "commit_message": "docs(aws): document matter SSO role chain"
+  },
+  "aws": {
+    "account_id": "770880870480",
+    "region": "ap-northeast-2",
+    "profiles": {
+      "production_api": "matter-prod-deploy-admin",
+      "staging_api": "matter-staging-admin",
+      "desktop_runtime": "matter-staging-admin",
+      "sso_login_profile": "amic-vault-staging-admin"
+    },
+    "secret_values_recorded": false
+  },
+  "packages": {
+    "api": {
+      "zip_path": "/tmp/matter-lawos-api-prod-45b5fa37-enterprise-remediation.zip",
+      "zip_sha256": "8e497dc4cfe12a8da9ecb924c3bdd46eeed39be219be1e7017bcb4371b4de1bf",
+      "zip_bytes": 3624254,
+      "applied_to": [
+        "matter-lawos-api-prod",
+        "matter-lawos-api-staging"
+      ],
+      "included_runtime_roots": [
+        "apps/api/src",
+        "apps/api/package.json",
+        "packages",
+        "package.json",
+        "package-lock.json",
+        "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
+        "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json"
+      ]
+    },
+    "desktop_runtime": {
+      "zip_path": "/tmp/matter-temp-desktop-runtime-45b5fa37-seed11-v2.zip",
+      "zip_sha256": "534b0a6ec8948275a1b9ff5e5c84e89c68858d4b1e99569a4a9de21ced489afd",
+      "zip_bytes": 23343,
+      "applied_to": [
+        "matter-temp-desktop-runtime"
+      ],
+      "included_files": [
+        "index.mjs",
+        "matter-vault-account-registry.js",
+        "matter-vault-user-registration-seed.json",
+        "icon-source-mark.png",
+        "package.json"
+      ],
+      "transient_first_package_health": "502 missing matter-vault-account-registry.js; corrected by v2 package before final receipt"
+    }
+  },
+  "lambda_targets": [
+    {
+      "function_name": "matter-lawos-api-prod",
+      "runtime": "nodejs22.x",
+      "handler": "apps/api/src/lambda.handler",
+      "profile": "matter-prod-deploy-admin",
+      "last_modified": "2026-07-05T08:18:56.000+0000",
+      "state": "Active",
+      "last_update_status": "Successful",
+      "code_sha256": "jkl9xM/hKo2p7Lkkw73Ubu7Tm+IZvh5wF7y0NxtN4b8=",
+      "revision_id": "78d89cd6-8bfa-4abf-96b2-e405abe1720b",
+      "environment": {
+        "LAWOS_DEPLOYMENT_COMMIT": "45b5fa374b294477c66f80197a426625ff9ba847",
+        "LAWOS_DEPLOYMENT_MODE": "aws_lambda_function_url",
+        "LAWOS_VAULT_BRIDGE_TOKEN_present": true
+      },
+      "public_entrypoints_checked": [
+        "https://d2mthcc8vp3cr2.cloudfront.net/api/health",
+        "https://43whkpla74oln46xkmjar4jgae0ebzba.lambda-url.ap-northeast-2.on.aws/"
+      ]
+    },
+    {
+      "function_name": "matter-lawos-api-staging",
+      "runtime": "nodejs22.x",
+      "handler": "apps/api/src/lambda.handler",
+      "profile": "matter-staging-admin",
+      "last_modified": "2026-07-05T08:24:52.000+0000",
+      "state": "Active",
+      "last_update_status": "Successful",
+      "code_sha256": "jkl9xM/hKo2p7Lkkw73Ubu7Tm+IZvh5wF7y0NxtN4b8=",
+      "revision_id": "aad668b1-db48-44be-a0bf-896bcad85816",
+      "environment": {
+        "LAWOS_DEPLOYMENT_COMMIT": "45b5fa374b294477c66f80197a426625ff9ba847",
+        "LAWOS_DEPLOYMENT_MODE": "aws_lambda_function_url",
+        "LAWOS_VAULT_BRIDGE_TOKEN_present": true
+      },
+      "public_entrypoints_checked": [
+        "https://3iv7rfot4n6zdxzgdypbijyvze0mphlh.lambda-url.ap-northeast-2.on.aws/api/health"
+      ]
+    },
+    {
+      "function_name": "matter-temp-desktop-runtime",
+      "runtime": "nodejs20.x",
+      "handler": "index.handler",
+      "profile": "matter-staging-admin",
+      "last_modified": "2026-07-05T08:20:07.000+0000",
+      "state": "Active",
+      "last_update_status": "Successful",
+      "code_sha256": "U0sKbsiUgnWhuf9eXITonGiFjUsemVaaSp3iHO1Imv0=",
+      "revision_id": "541260d8-218b-4ba7-baf1-77ab91d6ac94",
+      "environment": {
+        "LAWOS_DEPLOYMENT_COMMIT": "45b5fa374b294477c66f80197a426625ff9ba847"
+      },
+      "public_entrypoints_checked": [
+        "https://73o8hpqpgl.execute-api.ap-northeast-2.amazonaws.com/staging/health"
+      ]
+    }
+  ],
+  "verification": {
+    "aws_function_inventory_query": "matter-lawos-api-prod, matter-lawos-api-staging, matter-temp-desktop-runtime were the Matter/LawOS Lambda functions returned in ap-northeast-2",
+    "health_checks": {
+      "production_cloudfront_api_health": "PASS service=@law-firm-os/api bounded_context_count=18",
+      "staging_function_url_api_health": "PASS service=@law-firm-os/api bounded_context_count=18",
+      "desktop_execute_api_health": "PASS service=matter-temp-desktop-runtime registered_account_count=11 production_ready_completed=false"
+    },
+    "production_smoke_command": "AWS_PROFILE=matter-prod-deploy-admin LAWOS_VAULT_BRIDGE_SSO_LOGIN_PROFILE=amic-vault-staging-admin LAWOS_DEPLOYMENT_COMMIT=$(git rev-parse HEAD) npm run lcx:vltui:production-smoke",
+    "production_smoke_json": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json",
+    "production_smoke_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.md",
+    "production_smoke_verdict": "PASS",
+    "production_smoke_check_count": 16
+  },
+  "boundary": {
+    "lambda_code_deployed": true,
+    "lambda_environment_commit_updated": true,
+    "synthetic_bridge_writes_only": true,
+    "vault_document_write_enabled": false,
+    "real_client_data_used": false,
+    "secret_values_recorded": false,
+    "public_release_claim": false,
+    "owner_final_approval_claim": false,
+    "company_wide_go_live_claim": false
+  }
+}

@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { readLambdaEnvironmentWithSsoAutoLogin } from "./lib/aws-sso-lambda-env.mjs";
+import { highestPrivilegeRegisteredAccount } from "../apps/api/src/matter-vault-account-registry.js";
 
 const BASE_URL = (process.env.LAWOS_PRODUCTION_BASE_URL ?? "https://d2mthcc8vp3cr2.cloudfront.net").replace(/\/+$/, "");
 const ARTIFACT_DIR = "docs/lazycodex/evidence/matter-web/artifacts";
@@ -16,6 +17,7 @@ const BRIDGE_TOKEN = BRIDGE_TOKEN_INFO.token;
 const COMMIT = process.env.LAWOS_DEPLOYMENT_COMMIT ?? BRIDGE_TOKEN_INFO.deploymentCommit ?? "unknown";
 
 const PERMISSION_HEADER = "x-lawos-permission-context";
+let sessionHeadersPromise;
 
 function nonEmpty(value) {
   return typeof value === "string" && value.trim() ? value.trim() : "";
@@ -102,6 +104,25 @@ async function readJson(path, options = {}) {
     body = { parse_error: true, text: text.slice(0, 200) };
   }
   return { status: response.status, body };
+}
+
+async function sessionAuthHeaders() {
+  if (!sessionHeadersPromise) {
+    sessionHeadersPromise = (async () => {
+      const account = highestPrivilegeRegisteredAccount();
+      const response = await readJson("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({
+          email: account.email,
+          password: account.local_dev?.synthetic_token
+        })
+      });
+      assert.equal(response.status, 200, "production smoke session login");
+      assert.match(response.body?.session_token ?? "", /^lawos_session_v1\./, "production smoke session token");
+      return { authorization: `Bearer ${response.body.session_token}` };
+    })();
+  }
+  return sessionHeadersPromise;
 }
 
 function record(checks, id, passed, details = {}) {
@@ -265,15 +286,26 @@ for (const context of ["profile", "matter-core", "vault-dms", "crm-intake"]) {
   });
 }
 
+const sessionHeaders = await sessionAuthHeaders();
+record(checks, "api-session-login", Boolean(sessionHeaders.authorization), {
+  summary: "signed synthetic session established without recording token material"
+});
+
 const profile = await readJson("/api/profile/me?tenant_id=tenant_rp04_synthetic&permission_ref=ui_profile_me&audit_hint_ref=ui_profile_me_probe", {
-  headers: permissionHeaders({ tenant: "tenant_rp04_synthetic", roles: ["master_data_reader", "matter_runtime_user"] })
+  headers: {
+    ...sessionHeaders,
+    ...permissionHeaders({ tenant: "tenant_rp04_synthetic", roles: ["master_data_reader", "matter_runtime_user"] })
+  }
 });
 record(checks, "profile-session-principal", profile.status === 200 && profile.body?.item?.secret_material_included === false, {
   summary: `status=${profile.status}, ui_state=${profile.body?.ui_state}`
 });
 
 const crmQuery = "tenant_id=tenant_cmp_g6_synthetic&permission_ref=perm_ref_cmp_g6_read&audit_hint_ref=audit_hint_cmp_g6_read";
-const crmHeaders = permissionHeaders({ tenant: "tenant_cmp_g6_synthetic", roles: ["crm_intake_user", "conflict_reviewer"] });
+const crmHeaders = {
+  ...sessionHeaders,
+  ...permissionHeaders({ tenant: "tenant_cmp_g6_synthetic", roles: ["crm_intake_user", "conflict_reviewer"] })
+};
 const opportunities = await readJson(`/api/crm/opportunities?${crmQuery}`, { headers: crmHeaders });
 const activities = await readJson(`/api/crm/activities?${crmQuery}`, { headers: crmHeaders });
 const proposals = await readJson(`/api/crm/proposals?${crmQuery}`, { headers: crmHeaders });
@@ -282,7 +314,10 @@ record(checks, "client-crm-sections", opportunities.status === 200 && activities
 });
 
 const matterQuery = "tenant_id=tenant_rp05_synthetic&permission_ref=perm_ref_rp05_read&audit_hint_ref=audit_hint_rp05_read";
-const matterHeaders = permissionHeaders({ tenant: "tenant_rp05_synthetic" });
+const matterHeaders = {
+  ...sessionHeaders,
+  ...permissionHeaders({ tenant: "tenant_rp05_synthetic" })
+};
 const matters = await readJson(`/api/matters?${matterQuery}`, { headers: matterHeaders });
 const firstMatter = matters.body?.items?.[0];
 record(checks, "matter-list", matters.status === 200 && safeCount(matters.body?.items) > 0 && Boolean(firstMatter?.matter_id), {
@@ -299,11 +334,14 @@ record(checks, "matter-workspace-sections", commandCenter.status === 200 && time
 
 const vaultQuery = "tenant_id=tenant_amic_matter_vault&permission_ref=perm_ref_rp07_read&audit_hint_ref=audit_hint_rp07_read";
 const vault = await readJson(`/api/vault/documents?${vaultQuery}`, {
-  headers: permissionHeaders({
-    tenant: "tenant_amic_matter_vault",
-    user: "user_amic_jwsuh",
-    roles: ["matter_vault_admin", "matter_vault_user", "dms_reader"]
-  })
+  headers: {
+    ...sessionHeaders,
+    ...permissionHeaders({
+      tenant: "tenant_amic_matter_vault",
+      user: "user_amic_jwsuh",
+      roles: ["matter_vault_admin", "matter_vault_user", "dms_reader"]
+    })
+  }
 });
 record(checks, "vault-documents", vault.status === 200 && safeCount(vault.body?.items) > 0, {
   summary: `status=${vault.status}, documents=${safeCount(vault.body?.items)}`
@@ -374,6 +412,7 @@ const report = {
     synthetic_bridge_writes_only: true,
     vault_document_write_enabled: false,
     real_client_data_used: false,
+    synthetic_session_login_used: true,
     public_release_claim: false,
     owner_final_approval_claim: false,
     company_wide_go_live_claim: false
