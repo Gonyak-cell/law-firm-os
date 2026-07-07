@@ -358,7 +358,7 @@ function mergeClientMatterResults(clientGroupsResult, matterClientsResult, matte
     ...(baseResult?.kind === "data" ? baseResult : {}),
     kind: "data",
     outcome: baseResult?.outcome ?? "passed",
-    uiState: items.length ? baseResult?.uiState ?? "passed" : "empty",
+    uiState: items.length ? (baseResult?.uiState === "empty" ? "passed" : baseResult?.uiState ?? "passed") : "empty",
     items,
     safeErrorCodes: [
       ...(clientGroupsResult?.safeErrorCodes ?? []),
