@@ -135,25 +135,25 @@ async function waitForProductUi(page) {
   });
   assert.equal(logoFlow.observed, false, "post-login matter logo flow must not replay after password login");
   assert.equal(logoFlow.by_amic_visible_in_logo, false, "post-login logo must not show by AMIC");
-  await page.waitForFunction(() => document.querySelectorAll("[data-capability-id]").length === 4, null, { timeout: 30_000 });
+  await page.waitForFunction(() => document.querySelector("[data-home-dashboard-shell='true']"), null, { timeout: 30_000 });
   const snapshot = await page.evaluate(() => {
     const text = document.body.textContent ?? "";
-    const capabilityLabels = Array.from(document.querySelectorAll("[data-capability-id] h2")).map((node) => node.textContent?.trim() ?? "");
+    const widgetIds = Array.from(document.querySelectorAll("[data-widget-id]")).map((node) => node.getAttribute("data-widget-id") ?? "");
     const positiveReleaseClaimPattern = /\b(public[- ]release|production go-live|owner approval|owner-approved)\b\s*[:|]\s*(true|approved|ready|yes|pass)\b/i;
     return {
       url: window.location.href,
-      title: document.querySelector("h1")?.textContent?.trim() ?? "",
-      capability_cards: document.querySelectorAll("[data-capability-id]").length,
-      capability_labels: capabilityLabels,
+      home_dashboard_shell: Boolean(document.querySelector("[data-home-dashboard-shell='true']")),
+      home_dashboard_grid: Boolean(document.querySelector("[data-home-dashboard-grid='true']")),
+      widget_ids: widgetIds,
       release_boundary_ui_has_no_positive_claim: !positiveReleaseClaimPattern.test(text),
       no_dummy_visible: !/mock|dummy|sample|synthetic|Project Atlas|Alex Smith|Riverstone/i.test(text),
       horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
       body_character_count: text.length
     };
   });
-  assert.equal(snapshot.title, "오늘의 운영 대기열", "post-login product UI must show the current home operations queue");
-  assert.equal(snapshot.capability_cards, 4, "command center must show four product-axis cards");
-  assert.deepEqual(snapshot.capability_labels.sort(), ["Client", "Matter", "구성원", "Vault"].sort(), "command center must show Client, Matter, 구성원, and Vault");
+  assert.equal(snapshot.home_dashboard_shell, true, "post-login product UI must show the Home dashboard shell");
+  assert.equal(snapshot.home_dashboard_grid, true, "post-login product UI must show the Home dashboard grid");
+  assert.deepEqual(snapshot.widget_ids.sort(), ["approval", "calendar", "feed", "system", "todo"].sort(), "home dashboard must show all five Stage 2 widgets");
   assert.equal(snapshot.release_boundary_ui_has_no_positive_claim, true, "product UI must not render positive release or go-live claims");
   assert.equal(snapshot.no_dummy_visible, true, "post-login product UI must not render dummy/sample/synthetic text");
   assert.equal(snapshot.horizontal_overflow, false, "product UI must not horizontally overflow");
@@ -161,15 +161,24 @@ async function waitForProductUi(page) {
     const nav = document.querySelector("[data-product-axis-nav='top-header']");
     const navRect = nav?.getBoundingClientRect();
     const topbarRect = document.querySelector(".topbar")?.getBoundingClientRect();
+    const portal = Array.from(document.querySelectorAll("[data-product-axis]")).find((node) => node.textContent?.trim().toLowerCase() === "portal");
+    const portalRect = portal?.getBoundingClientRect();
     return {
       labels: Array.from(document.querySelectorAll("[data-product-axis]")).map((node) => node.textContent.replace(/\s+/g, " ").trim()),
       axis_ids: Array.from(document.querySelectorAll("[data-product-axis]")).map((node) => node.getAttribute("data-product-axis")),
       in_topbar: Boolean(navRect && topbarRect && navRect.top >= topbarRect.top && navRect.bottom <= topbarRect.bottom + 1),
-      active_axis: document.querySelector("[data-product-axis][aria-current='page']")?.getAttribute("data-product-axis") ?? ""
+      active_axis: document.querySelector("[data-product-axis][aria-current='page']")?.getAttribute("data-product-axis") ?? "",
+      active_axis_count: document.querySelectorAll("[data-product-axis][aria-current='page']").length,
+      portal_fully_visible: Boolean(portalRect && navRect && portalRect.left >= navRect.left - 1 && portalRect.right <= navRect.right + 1),
+      nav_horizontal_overflow: nav ? nav.scrollWidth > nav.clientWidth : false
     };
   });
-  assert.deepEqual(topHeaderNav.labels, ["Home", "Client", "Matter", "People", "Vault"], "top header must render the five primary menu labels");
-  assert.deepEqual(topHeaderNav.axis_ids, ["home", "clients", "matters", "people", "vault"], "top header product-axis menu must stay fixed to Home/Client/Matter/People/Vault");
+  assert.deepEqual(topHeaderNav.labels, ["Home", "Client", "Matter", "People", "Vault", "Portal"], "top header must render the six primary menu labels");
+  assert.deepEqual(topHeaderNav.axis_ids, ["home", "clients", "matters", "people", "vault", "portal"], "top header product-axis menu must stay fixed to Home/Client/Matter/People/Vault/Portal");
+  assert.equal(topHeaderNav.active_axis_count, 1, "product-axis menu must have exactly one active axis");
+  assert.equal(topHeaderNav.active_axis, "home", "post-login Home dashboard must keep Home as the active axis");
+  assert.equal(topHeaderNav.portal_fully_visible, true, "Portal axis label must be fully visible in the top header");
+  assert.equal(topHeaderNav.nav_horizontal_overflow, false, "product-axis menu must not horizontally overflow");
   assert.equal(topHeaderNav.in_topbar, true, "product-axis menu must live inside the top header");
   const contextualSidebar = await page.evaluate(() => {
     const frame = document.querySelector(".app-frame");
@@ -184,7 +193,7 @@ async function waitForProductUi(page) {
       shell_contextual: frame?.classList.contains("contextual-shell") ?? false,
       sidebar_display: sidebarStyle?.display ?? "",
       workspace_visible: Boolean(workspace?.getBoundingClientRect().width && workspace?.getBoundingClientRect().height),
-      sidebar_product_axis_labels: sidebarLabels.filter((label) => ["Home", "Client", "Matter", "People", "Vault"].includes(label)),
+      sidebar_product_axis_labels: sidebarLabels.filter((label) => ["Home", "Client", "Matter", "People", "Vault", "Portal"].includes(label)),
       sidebar_item_count: sidebarLabels.length,
       horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth
     };
