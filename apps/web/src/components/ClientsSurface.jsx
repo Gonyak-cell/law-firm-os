@@ -26,6 +26,7 @@ import {
   fetchIntakeAudit,
   fetchIntakeRequests,
   fetchMasterDataRecords,
+  fetchMatterRecords,
   fetchRecordActionAudit,
   fetchRecordActionFields,
   handoffCrmOpportunityToIntake,
@@ -50,6 +51,8 @@ import { useSkin } from "../context/SkinContext.jsx";
 
 const CLIENTS_PERMISSION_REF = "ui_cmp_g2_party_clients_live";
 const CLIENTS_AUDIT_HINT_REF = "ui_cmp_g2_clients_live_probe";
+const CLIENTS_MATTER_LINK_PERMISSION_REF = "ui_cmp_g2_client_matter_code_links";
+const CLIENTS_MATTER_LINK_AUDIT_HINT_REF = "ui_cmp_g2_clients_matter_code_links_probe";
 const CLIENT_SECTIONS = new Set([
   "clients-home",
   "clients-list",
@@ -70,7 +73,14 @@ const CLIENT_SECTIONS = new Set([
 ]);
 
 function clientDisplayName(item, index) {
-  return businessLabel(item.display_name ?? item.client_name ?? item.name, `Client ${index + 1}`);
+  return businessLabel(
+    item.display_name ?? item.client_display_name ?? item.canonical_display_name ?? item.client_name ?? item.name,
+    `Client ${index + 1}`
+  );
+}
+
+function clientRecordId(item) {
+  return item?.client_group_id ?? item?.client_id ?? item?.legal_client_party_id ?? item?.billing_client_party_id ?? null;
 }
 
 function clientMembers(item) {
@@ -202,6 +212,161 @@ function contactValueLabel(item) {
 
 function linkedLabel(value) {
   return value ? "연결됨" : "미연결";
+}
+
+function lookupKey(value) {
+  const text = String(value ?? "").trim();
+  return text ? text.toLocaleLowerCase("ko-KR") : "";
+}
+
+function uniqueLookupKeys(values) {
+  return [...new Set(values.map(lookupKey).filter(Boolean))];
+}
+
+function clientLookupKeys(item) {
+  return uniqueLookupKeys([
+    item?.client_id,
+    item?.client_group_id,
+    item?.legal_client_party_id,
+    item?.billing_client_party_id,
+    item?.primary_party_id,
+    item?.primary_entity_id,
+    item?.client_display_name,
+    item?.canonical_display_name,
+    item?.display_name,
+    item?.client_name,
+    item?.name
+  ]);
+}
+
+function matterClientLookupKeys(item) {
+  return uniqueLookupKeys([
+    item?.client_id,
+    item?.legal_client_party_id,
+    item?.billing_client_party_id,
+    item?.client_display_name
+  ]);
+}
+
+function matterLinkLabel(item) {
+  return businessLabel(item?.matter_code ?? item?.matter_name ?? item?.title, "Matter");
+}
+
+function matterLinkFor(item) {
+  return {
+    matter_id: item?.matter_id ?? null,
+    matter_code: item?.matter_code ?? null,
+    label: matterLinkLabel(item),
+    status: item?.status ?? null
+  };
+}
+
+function mergeMatterLinks(...groups) {
+  const byLabel = new Map();
+  for (const group of groups) {
+    if (!Array.isArray(group)) continue;
+    for (const link of group) {
+      const key = lookupKey(link?.matter_code ?? link?.matter_id ?? link?.label);
+      if (key && !byLabel.has(key)) byLabel.set(key, link);
+    }
+  }
+  return [...byLabel.values()];
+}
+
+function buildMatterLinksByClient(matters) {
+  const linksByClient = new Map();
+  for (const matter of matters) {
+    const link = matterLinkFor(matter);
+    for (const key of matterClientLookupKeys(matter)) {
+      const existing = linksByClient.get(key) ?? [];
+      linksByClient.set(key, mergeMatterLinks(existing, [link]));
+    }
+  }
+  return linksByClient;
+}
+
+function derivedClientsFromMatters(matters) {
+  const byClient = new Map();
+  for (const matter of matters) {
+    const keys = matterClientLookupKeys(matter);
+    const key = keys[0];
+    if (!key || byClient.has(key)) continue;
+    byClient.set(key, {
+      model_type: "MatterLinkedClient",
+      client_id: matter.client_id ?? matter.legal_client_party_id ?? matter.billing_client_party_id ?? null,
+      client_display_name: matter.client_display_name ?? matter.client_name ?? null,
+      display_name: matter.client_display_name ?? matter.client_name ?? null,
+      status: "active",
+      matter_link_source: "matter_code_inventory"
+    });
+  }
+  return [...byClient.values()];
+}
+
+function withMatterLinks(item, linksByClient) {
+  const links = mergeMatterLinks(...clientLookupKeys(item).map((key) => linksByClient.get(key)));
+  if (links.length === 0) return item;
+  return {
+    ...item,
+    matter_code_links: links,
+    matter_count: links.length,
+    matter_core_enrichment: {
+      ...(item.matter_core_enrichment ?? {}),
+      matter_title: links[0].label,
+      matter_code: links[0].matter_code,
+      matter_count: links.length
+    }
+  };
+}
+
+function linkedMatterSummary(item) {
+  const links = Array.isArray(item?.matter_code_links) ? item.matter_code_links : [];
+  if (links.length > 0) {
+    const labels = links.slice(0, 2).map((link) => businessLabel(link.label ?? link.matter_code, "Matter"));
+    const suffix = links.length > 2 ? ` 외 ${links.length - 2}건` : "";
+    return `${labels.join(", ")}${suffix}`;
+  }
+  return businessLabel(item?.matter_core_enrichment?.matter_title, "미지정");
+}
+
+function mergeClientMatterResults(clientGroupsResult, matterClientsResult, mattersResult) {
+  const clientGroupItems = resultItems(clientGroupsResult).filter((item) => item.synthetic_only !== true);
+  const matterItems = resultItems(mattersResult);
+  const matterClientItems = resultItems(matterClientsResult).filter((item) => item.synthetic_only !== true);
+  const linksByClient = buildMatterLinksByClient(matterItems);
+  const byClient = new Map();
+
+  for (const item of [...clientGroupItems, ...matterClientItems, ...derivedClientsFromMatters(matterItems)]) {
+    const keys = clientLookupKeys(item);
+    const key = keys.find((candidate) => byClient.has(candidate)) ?? keys[0];
+    if (!key) continue;
+    const existing = byClient.get(key);
+    const next = existing
+      ? { ...item, ...existing, ...Object.fromEntries(Object.entries(item).filter(([, value]) => value != null && value !== "")) }
+      : item;
+    const linked = withMatterLinks(next, linksByClient);
+    byClient.set(key, linked);
+    for (const alias of clientLookupKeys(linked)) byClient.set(alias, linked);
+  }
+
+  const items = [...new Set(byClient.values())];
+  const baseResult = clientGroupsResult?.kind === "data" ? clientGroupsResult : matterClientsResult?.kind === "data" ? matterClientsResult : mattersResult;
+  if (!items.length && clientGroupsResult?.kind !== "data" && matterClientsResult?.kind !== "data" && mattersResult?.kind !== "data") {
+    return clientGroupsResult ?? matterClientsResult ?? mattersResult ?? { kind: "error" };
+  }
+  return {
+    ...(baseResult?.kind === "data" ? baseResult : {}),
+    kind: "data",
+    outcome: baseResult?.outcome ?? "passed",
+    uiState: items.length ? baseResult?.uiState ?? "passed" : "empty",
+    items,
+    safeErrorCodes: [
+      ...(clientGroupsResult?.safeErrorCodes ?? []),
+      ...(matterClientsResult?.safeErrorCodes ?? []),
+      ...(mattersResult?.safeErrorCodes ?? [])
+    ],
+    productionReadyClaim: false
+  };
 }
 
 function canonicalSyncLabel(value) {
@@ -654,7 +819,7 @@ function ClientRecordPanel({ client, leadCount, opportunityCount, intakeCount, a
         <Property label="법인 형태" value={client ? clientLegalForm(client.legal_form) : "해당 없음"} />
         <Property label="대표 당사자" value={client?.primary_entity_id ?? client?.primary_party_id ?? "미지정"} />
         <Property label="구성원" value={client ? String(clientMembers(client)) : "0"} />
-        <Property label="연결 Matter" value={businessLabel(client?.matter_core_enrichment?.matter_title, "미지정")} />
+        <Property label="연결 Matter" value={linkedMatterSummary(client)} />
       </div>
       <div className="record-meter-grid">
         <div>
@@ -792,7 +957,7 @@ function ClientsTable({ result }) {
           clientStatus(item.status),
           item.primary_entity_id || item.primary_party_id ? "대표 당사자" : "미지정",
           String(clientMembers(item)),
-          businessLabel(item.matter_core_enrichment?.matter_title, "미지정")
+          linkedMatterSummary(item)
         ])}
       />
     </div>
@@ -1553,20 +1718,29 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
         cancelled = true;
       };
     }
-    fetchAllMasterDataRecords({
-      ctx: liveCtx,
-      modelType: "ClientGroup",
-      limit: 100,
-      permissionRef: CLIENTS_PERMISSION_REF,
-      auditHintRef: CLIENTS_AUDIT_HINT_REF
-    }).then((next) => {
-      if (!cancelled) {
-        setClientsResult(
-          next.kind === "data"
-            ? { ...next, items: resultItems(next).filter((item) => item.synthetic_only !== true) }
-            : next
-        );
-      }
+    Promise.all([
+      fetchAllMasterDataRecords({
+        ctx: liveCtx,
+        modelType: "ClientGroup",
+        limit: 100,
+        permissionRef: CLIENTS_PERMISSION_REF,
+        auditHintRef: CLIENTS_AUDIT_HINT_REF
+      }),
+      fetchAllMasterDataRecords({
+        ctx: liveCtx,
+        modelType: "MatterClient",
+        limit: 100,
+        permissionRef: CLIENTS_MATTER_LINK_PERMISSION_REF,
+        auditHintRef: CLIENTS_MATTER_LINK_AUDIT_HINT_REF
+      }),
+      fetchMatterRecords({
+        ctx: liveCtx,
+        limit: 100,
+        permissionRef: CLIENTS_MATTER_LINK_PERMISSION_REF,
+        auditHintRef: CLIENTS_MATTER_LINK_AUDIT_HINT_REF
+      })
+    ]).then(([clientGroups, matterClients, matters]) => {
+      if (!cancelled) setClientsResult(mergeClientMatterResults(clientGroups, matterClients, matters));
     });
     return () => {
       cancelled = true;
@@ -1683,7 +1857,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
 
   const clients = useMemo(() => resultItems(clientsResult), [clientsResult]);
   const selectedClient = clients[0] ?? null;
-  const selectedClientId = selectedClient?.client_group_id ?? null;
+  const selectedClientId = clientRecordId(selectedClient);
   const accountCount = resultItems(accountsResult).length;
   const contactCount = resultItems(contactsResult).length;
   const mergeProposals = resultItems(mergeProposalsResult);

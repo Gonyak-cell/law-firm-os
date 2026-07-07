@@ -589,6 +589,11 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.doesNotMatch(clientsSource, /data-client-planned-section|메뉴를 준비 중입니다/);
   assert.match(clientsSource, /Client, 담당자, Opportunity, 상담 이력/);
   assert.match(clientsSource, /renderLiveState\(result, "Client"\)/);
+  assert.match(clientsSource, /fetchMatterRecords/);
+  assert.match(clientsSource, /modelType: "MatterClient"/);
+  assert.match(clientsSource, /function mergeClientMatterResults/);
+  assert.match(clientsSource, /matter_code_links/);
+  assert.match(clientsSource, /linkedMatterSummary/);
   assert.match(clientsSource, /권한이 있는 \{noun\}만 표시합니다/);
   assert.match(clientsSource, /검토가 끝나면 \{noun\} 정보를 확인할 수 있습니다/);
   assert.doesNotMatch(clientsSource, /의뢰인/);
