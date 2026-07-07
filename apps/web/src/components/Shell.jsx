@@ -826,6 +826,7 @@ export function Sidebar({
                     type="button"
                     className={active ? "sidebar-item sidebar-group-toggle active" : "sidebar-item sidebar-group-toggle"}
                     aria-expanded={open}
+                    aria-label={`${item.label} 하위 메뉴 ${open ? "접기" : "펼치기"}`}
                     onClick={() => toggleGroup(item, index)}
                   >
                     <span className="sidebar-icon"><Icon size={16} /></span>
@@ -937,7 +938,7 @@ export function GlobalSearch({ labels, query, setQuery, setView }) {
       <header>
         <Search size={16} />
         <strong>{labels.search}</strong>
-        <button className="icon-button" onClick={() => setQuery("")}>
+        <button className="icon-button" aria-label="검색 지우기" onClick={() => setQuery("")}>
           <X size={15} />
         </button>
       </header>

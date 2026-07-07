@@ -432,6 +432,7 @@ function DashboardRow({ title, meta, status, route, onOpen, allowedActions = [],
               className="text-button"
               disabled={pending}
               data-home-inline-action={action}
+              aria-label={`${title} ${actionButtonLabel(action)}`}
               onClick={() => onAction?.(action)}
             >
               {actionButtonLabel(action)}
@@ -721,20 +722,35 @@ export function HomeSurface({ labels, setView, liveCtx = "allow", activeSection 
           </div>
         </DashboardCard>
         <DashboardCard className="home-dashboard-feed" title="피드" meta={currentFeedTab.label} Icon={Newspaper} widgetId="feed">
-          <div className="home-feed-tabs" role="tablist" aria-label="Home 피드">
+          <div className="home-feed-tabs" role="tablist" aria-label="홈 피드">
             {feedTabs.map((tab) => (
-              <button key={tab.id} type="button" className={feedTab === tab.id ? "active" : ""} onClick={() => setFeedTab(tab.id)} role="tab" aria-selected={feedTab === tab.id ? "true" : "false"}>
+              <button
+                key={tab.id}
+                type="button"
+                id={`home-feed-tab-${tab.id}`}
+                className={feedTab === tab.id ? "active" : ""}
+                onClick={() => setFeedTab(tab.id)}
+                role="tab"
+                aria-selected={feedTab === tab.id ? "true" : "false"}
+                aria-controls={`home-feed-panel-${tab.id}`}
+                tabIndex={feedTab === tab.id ? 0 : -1}
+              >
                 {tab.label}
               </button>
             ))}
           </div>
+          <div
+            id={`home-feed-panel-${feedTab}`}
+            role="tabpanel"
+            aria-labelledby={`home-feed-tab-${feedTab}`}
+          >
           {primaryFeedEntry ? (
             <div className="home-feed-content" data-home-feed-entry-count={feedEntries.length}>
               <article className="home-feed-feature">
                 <span>{primaryFeedEntry.source}</span>
                 <strong>{primaryFeedEntry.title}</strong>
                 <p>{primaryFeedEntry.body_preview}</p>
-                {primaryFeedEntry.url && <a href={primaryFeedEntry.url} target="_blank" rel="noreferrer">원문 열기</a>}
+                {primaryFeedEntry.url && <a href={primaryFeedEntry.url} target="_blank" rel="noreferrer" aria-label={`${primaryFeedEntry.title} 원문 열기`}>원문 열기</a>}
               </article>
               <div className="home-feed-list">
                 {feedEntries.slice(1, 4).map((entry) => (
@@ -753,6 +769,7 @@ export function HomeSurface({ labels, setView, liveCtx = "allow", activeSection 
               {currentFeedTab.sources && <span>{currentFeedTab.sources}</span>}
             </div>
           )}
+          </div>
         </DashboardCard>
         <aside className="home-dashboard-rail" data-home-dashboard-rail="true">
           <DashboardCard className="home-dashboard-calendar" title="캘린더" meta={monthFormatter.format(selectedCalendarDate)} Icon={CalendarDays} widgetId="calendar">
@@ -774,6 +791,7 @@ export function HomeSurface({ labels, setView, liveCtx = "allow", activeSection 
                     .filter(Boolean)
                     .join(" ")}
                   onClick={() => setSelectedCalendarDate(cell.date)}
+                  aria-label={`${selectedDateFormatter.format(cell.date)}${cell.key === selectedCalendarKey ? " 선택됨" : ""}`}
                   aria-pressed={cell.key === selectedCalendarKey ? "true" : "false"}
                 >
                   {cell.day}

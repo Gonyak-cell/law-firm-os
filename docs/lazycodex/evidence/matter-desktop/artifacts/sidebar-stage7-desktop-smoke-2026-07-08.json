@@ -1,0 +1,354 @@
+{
+  "generated_at": "2026-07-07T17:18:15.897Z",
+  "source_commit": "5cdbd4485",
+  "desktop_target": "packaged_macos_executable_with_approved_dev_renderer",
+  "packaged_executable": "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "renderer_url": "http://127.0.0.1:5173/?desktop=1&view=home&data=live&ctx=allow&splash=0#home-dashboard",
+  "screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/sidebar-stage7-desktop-smoke-2026-07-08.png",
+  "checks": [
+    {
+      "name": "packaged desktop executable launched approved renderer URL",
+      "pass": true,
+      "url": "http://127.0.0.1:5173/?desktop=1&view=home&data=live&ctx=allow&splash=0#home-dashboard",
+      "rendererUrl": "http://127.0.0.1:5173/?desktop=1&view=home&data=live&ctx=allow&splash=0#home-dashboard"
+    },
+    {
+      "name": "preload exposes matterSession bridge in packaged shell",
+      "pass": true,
+      "hasBridge": true,
+      "hasStatus": true,
+      "hasSmoke": true,
+      "hasApi": true,
+      "desktopApiBaseUrl": "",
+      "status": {
+        "state": "signed_out"
+      },
+      "statusError": null
+    },
+    {
+      "name": "matterSession.status is callable without exposing token material",
+      "pass": true,
+      "status": {
+        "state": "signed_out"
+      },
+      "statusError": null
+    },
+    {
+      "name": "desktop Home dashboard shell is visible",
+      "pass": true,
+      "url": "http://127.0.0.1:5173/?desktop=1&view=home&data=live&ctx=allow&splash=0#home-dashboard",
+      "title": "matter",
+      "homeDashboardShell": true,
+      "homeDashboardGrid": true,
+      "activeHomeSection": "home-dashboard",
+      "topAxisLabels": [
+        "Home",
+        "Client",
+        "Matter",
+        "People",
+        "Vault",
+        "Portal"
+      ],
+      "topAxisIds": [
+        "home",
+        "clients",
+        "matters",
+        "people",
+        "vault",
+        "portal"
+      ],
+      "topAxisCurrentCount": 1,
+      "homeAxisCurrent": "page",
+      "sidebarContext": "home",
+      "sidebarCurrentCount": 1,
+      "sidebarProductAxisDuplicates": [],
+      "widgetIds": [
+        "approval",
+        "calendar",
+        "feed",
+        "system",
+        "todo"
+      ],
+      "portalFullyVisible": true,
+      "horizontalOverflow": false,
+      "releaseBoundaryPositiveClaimVisible": false
+    },
+    {
+      "name": "top axis has Home plus five product axes including Portal",
+      "pass": true,
+      "url": "http://127.0.0.1:5173/?desktop=1&view=home&data=live&ctx=allow&splash=0#home-dashboard",
+      "title": "matter",
+      "homeDashboardShell": true,
+      "homeDashboardGrid": true,
+      "activeHomeSection": "home-dashboard",
+      "topAxisLabels": [
+        "Home",
+        "Client",
+        "Matter",
+        "People",
+        "Vault",
+        "Portal"
+      ],
+      "topAxisIds": [
+        "home",
+        "clients",
+        "matters",
+        "people",
+        "vault",
+        "portal"
+      ],
+      "topAxisCurrentCount": 1,
+      "homeAxisCurrent": "page",
+      "sidebarContext": "home",
+      "sidebarCurrentCount": 1,
+      "sidebarProductAxisDuplicates": [],
+      "widgetIds": [
+        "approval",
+        "calendar",
+        "feed",
+        "system",
+        "todo"
+      ],
+      "portalFullyVisible": true,
+      "horizontalOverflow": false,
+      "releaseBoundaryPositiveClaimVisible": false
+    },
+    {
+      "name": "top axis has one Home current page",
+      "pass": true,
+      "url": "http://127.0.0.1:5173/?desktop=1&view=home&data=live&ctx=allow&splash=0#home-dashboard",
+      "title": "matter",
+      "homeDashboardShell": true,
+      "homeDashboardGrid": true,
+      "activeHomeSection": "home-dashboard",
+      "topAxisLabels": [
+        "Home",
+        "Client",
+        "Matter",
+        "People",
+        "Vault",
+        "Portal"
+      ],
+      "topAxisIds": [
+        "home",
+        "clients",
+        "matters",
+        "people",
+        "vault",
+        "portal"
+      ],
+      "topAxisCurrentCount": 1,
+      "homeAxisCurrent": "page",
+      "sidebarContext": "home",
+      "sidebarCurrentCount": 1,
+      "sidebarProductAxisDuplicates": [],
+      "widgetIds": [
+        "approval",
+        "calendar",
+        "feed",
+        "system",
+        "todo"
+      ],
+      "portalFullyVisible": true,
+      "horizontalOverflow": false,
+      "releaseBoundaryPositiveClaimVisible": false
+    },
+    {
+      "name": "Portal axis is visible without horizontal overflow",
+      "pass": true,
+      "url": "http://127.0.0.1:5173/?desktop=1&view=home&data=live&ctx=allow&splash=0#home-dashboard",
+      "title": "matter",
+      "homeDashboardShell": true,
+      "homeDashboardGrid": true,
+      "activeHomeSection": "home-dashboard",
+      "topAxisLabels": [
+        "Home",
+        "Client",
+        "Matter",
+        "People",
+        "Vault",
+        "Portal"
+      ],
+      "topAxisIds": [
+        "home",
+        "clients",
+        "matters",
+        "people",
+        "vault",
+        "portal"
+      ],
+      "topAxisCurrentCount": 1,
+      "homeAxisCurrent": "page",
+      "sidebarContext": "home",
+      "sidebarCurrentCount": 1,
+      "sidebarProductAxisDuplicates": [],
+      "widgetIds": [
+        "approval",
+        "calendar",
+        "feed",
+        "system",
+        "todo"
+      ],
+      "portalFullyVisible": true,
+      "horizontalOverflow": false,
+      "releaseBoundaryPositiveClaimVisible": false
+    },
+    {
+      "name": "sidebar remains contextual Home and does not duplicate product axes",
+      "pass": true,
+      "url": "http://127.0.0.1:5173/?desktop=1&view=home&data=live&ctx=allow&splash=0#home-dashboard",
+      "title": "matter",
+      "homeDashboardShell": true,
+      "homeDashboardGrid": true,
+      "activeHomeSection": "home-dashboard",
+      "topAxisLabels": [
+        "Home",
+        "Client",
+        "Matter",
+        "People",
+        "Vault",
+        "Portal"
+      ],
+      "topAxisIds": [
+        "home",
+        "clients",
+        "matters",
+        "people",
+        "vault",
+        "portal"
+      ],
+      "topAxisCurrentCount": 1,
+      "homeAxisCurrent": "page",
+      "sidebarContext": "home",
+      "sidebarCurrentCount": 1,
+      "sidebarProductAxisDuplicates": [],
+      "widgetIds": [
+        "approval",
+        "calendar",
+        "feed",
+        "system",
+        "todo"
+      ],
+      "portalFullyVisible": true,
+      "horizontalOverflow": false,
+      "releaseBoundaryPositiveClaimVisible": false
+    },
+    {
+      "name": "Home dashboard shows the five release widgets",
+      "pass": true,
+      "url": "http://127.0.0.1:5173/?desktop=1&view=home&data=live&ctx=allow&splash=0#home-dashboard",
+      "title": "matter",
+      "homeDashboardShell": true,
+      "homeDashboardGrid": true,
+      "activeHomeSection": "home-dashboard",
+      "topAxisLabels": [
+        "Home",
+        "Client",
+        "Matter",
+        "People",
+        "Vault",
+        "Portal"
+      ],
+      "topAxisIds": [
+        "home",
+        "clients",
+        "matters",
+        "people",
+        "vault",
+        "portal"
+      ],
+      "topAxisCurrentCount": 1,
+      "homeAxisCurrent": "page",
+      "sidebarContext": "home",
+      "sidebarCurrentCount": 1,
+      "sidebarProductAxisDuplicates": [],
+      "widgetIds": [
+        "approval",
+        "calendar",
+        "feed",
+        "system",
+        "todo"
+      ],
+      "portalFullyVisible": true,
+      "horizontalOverflow": false,
+      "releaseBoundaryPositiveClaimVisible": false
+    },
+    {
+      "name": "desktop UI does not render positive release or go-live claims",
+      "pass": true,
+      "url": "http://127.0.0.1:5173/?desktop=1&view=home&data=live&ctx=allow&splash=0#home-dashboard",
+      "title": "matter",
+      "homeDashboardShell": true,
+      "homeDashboardGrid": true,
+      "activeHomeSection": "home-dashboard",
+      "topAxisLabels": [
+        "Home",
+        "Client",
+        "Matter",
+        "People",
+        "Vault",
+        "Portal"
+      ],
+      "topAxisIds": [
+        "home",
+        "clients",
+        "matters",
+        "people",
+        "vault",
+        "portal"
+      ],
+      "topAxisCurrentCount": 1,
+      "homeAxisCurrent": "page",
+      "sidebarContext": "home",
+      "sidebarCurrentCount": 1,
+      "sidebarProductAxisDuplicates": [],
+      "widgetIds": [
+        "approval",
+        "calendar",
+        "feed",
+        "system",
+        "todo"
+      ],
+      "portalFullyVisible": true,
+      "horizontalOverflow": false,
+      "releaseBoundaryPositiveClaimVisible": false
+    },
+    {
+      "name": "legacy messages URL redirects into Home messages section without replacing sidebar axis",
+      "pass": true,
+      "url": "http://127.0.0.1:5173/?desktop=1&view=home&section=messages-matter-channel&data=live&ctx=allow&splash=0#home-messages",
+      "activeHomeSection": "home-messages",
+      "sidebarContext": "home",
+      "topAxisCurrentCount": 1,
+      "homeAxisCurrent": "page"
+    },
+    {
+      "name": "Data Import mode exception keeps Home sidebar and return anchor",
+      "pass": true,
+      "url": "http://127.0.0.1:5173/?desktop=1&view=data-import&data=live&ctx=allow&splash=0#data-import-client",
+      "sidebarContext": "home",
+      "modeException": "true",
+      "modeDepth": "deep",
+      "returnLabel": "업무로 돌아가기",
+      "returnView": "home",
+      "returnSection": "home-dashboard",
+      "topAxisCurrentCount": 1
+    },
+    {
+      "name": "Data Import return anchor restores Home dashboard",
+      "pass": true,
+      "url": "http://127.0.0.1:5173/?desktop=1&view=home&data=live&ctx=allow&splash=0#home-dashboard"
+    }
+  ],
+  "summary": {
+    "pass": true,
+    "failure_count": 0,
+    "failures": [],
+    "packaged_shell_smoke": true,
+    "packaged_renderer_rebuilt": false,
+    "owner_final_approval": false,
+    "public_release": false,
+    "production_go_live": false,
+    "production_ready_claim": false
+  }
+}

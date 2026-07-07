@@ -460,6 +460,32 @@ test("Stage 6 mode exception routes keep topbar and provide a return-to-work anc
   assert.doesNotMatch(shellSource, /data-mode-return-anchor="true"[\s\S]{0,240}setView\("home", "home-dashboard"\)/);
 });
 
+test("Stage 7 Home IA accessibility keeps tabs, dates, and navigation state named", async () => {
+  const shellSource = await readWebFile("src/components/Shell.jsx");
+  const homeSource = await readWebFile("src/components/HomeSurface.jsx");
+
+  assert.match(shellSource, /aria-current=\{axis === id \? "page" : undefined\}/);
+  assert.match(shellSource, /aria-current=\{childActive \? "location" : undefined\}/);
+  assert.match(shellSource, /aria-current=\{active \? "location" : undefined\}/);
+  assert.match(shellSource, /aria-label=\{`\$\{item\.label\} 하위 메뉴 \$\{open \? "접기" : "펼치기"\}`\}/);
+  assert.match(shellSource, /aria-label="검색 지우기"/);
+  assert.match(shellSource, /aria-expanded=\{notificationsOpen \? "true" : "false"\}/);
+  assert.match(shellSource, /aria-controls="notifications-utility-drawer"/);
+  assert.match(shellSource, /aria-controls="messages-utility-drawer"/);
+  assert.match(shellSource, /aria-controls="approvals-utility-drawer"/);
+
+  assert.match(homeSource, /role="tablist" aria-label="홈 피드"/);
+  assert.match(homeSource, /id=\{`home-feed-tab-\$\{tab\.id\}`\}/);
+  assert.match(homeSource, /aria-controls=\{`home-feed-panel-\$\{tab\.id\}`\}/);
+  assert.match(homeSource, /tabIndex=\{feedTab === tab\.id \? 0 : -1\}/);
+  assert.match(homeSource, /role="tabpanel"/);
+  assert.match(homeSource, /aria-labelledby=\{`home-feed-tab-\$\{feedTab\}`\}/);
+  assert.match(homeSource, /aria-label=\{`\$\{primaryFeedEntry\.title\} 원문 열기`\}/);
+  assert.match(homeSource, /aria-label=\{`\$\{title\} \$\{actionButtonLabel\(action\)\}`\}/);
+  assert.match(homeSource, /aria-label=\{`\$\{selectedDateFormatter\.format\(cell\.date\)\}\$\{cell\.key === selectedCalendarKey \? " 선택됨" : ""\}`\}/);
+  assert.match(homeSource, /aria-pressed=\{cell\.key === selectedCalendarKey \? "true" : "false"\}/);
+});
+
 test("avatar profile opens a matter-consistent personal profile surface without becoming a product axis", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");

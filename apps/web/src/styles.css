@@ -10858,7 +10858,7 @@ html[data-skin="forest"] .global-utility-surface {
 }
 
 html[data-skin="forest"] .topbar {
-  grid-template-columns: minmax(176px, 196px) minmax(0, 1fr) minmax(160px, 0.55fr) auto auto;
+  grid-template-columns: minmax(168px, 192px) minmax(0, 1.2fr) minmax(190px, 0.45fr) auto auto;
   gap: 8px;
   padding-inline: 16px;
   background: rgba(255, 255, 255, 0.8);
