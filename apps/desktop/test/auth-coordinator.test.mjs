@@ -73,10 +73,14 @@ test("auth coordinator rejects state mismatch and clears session on logout", asy
 });
 
 test("auth coordinator signs into AWS runtime account without exposing operator material", async () => {
+  const secureStore = memorySecureStore();
+  let featureSessionToken = "";
   const coordinator = new MainProcessAuthCoordinator({
+    secureStore,
     runtimeClient: {
       login: async ({ email, password }) => ({
         ok: true,
+        session_token: "lawos_session_v1.secret",
         session: {
           state: "signed_in",
           email,
@@ -86,15 +90,24 @@ test("auth coordinator signs into AWS runtime account without exposing operator 
         },
         password_seen_by_runtime: Boolean(password),
         features: [{ feature_id: "matter_vault_admin", allowed: true, decision: "allow" }]
-      })
+      }),
+      features: async ({ sessionToken }) => {
+        featureSessionToken = sessionToken;
+        return { ok: true, features: [{ feature_id: "matter_vault_dashboard", allowed: true }] };
+      }
     }
   });
 
   const response = await coordinator.login({ email: "jwsuh@amic.kr", password: "new-password" });
+  const features = await coordinator.features();
 
   assert.equal(response.session.email, "jwsuh@amic.kr");
   assert.equal(response.session.highest_privilege, "system_super_admin");
   assert.equal(JSON.stringify(response).includes("must-not-render"), false);
   assert.equal(JSON.stringify(response).includes("operatorToken"), false);
   assert.equal(JSON.stringify(response).includes("new-password"), false);
+  assert.equal(JSON.stringify(response).includes("lawos_session_v1.secret"), false);
+  assert.equal(secureStore.snapshot().session_token, "lawos_session_v1.secret");
+  assert.equal(featureSessionToken, "lawos_session_v1.secret");
+  assert.equal(features.features[0].feature_id, "matter_vault_dashboard");
 });

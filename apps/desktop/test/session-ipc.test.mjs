@@ -78,6 +78,16 @@ function fakeRuntimeClient() {
       feature_id: featureId,
       actor_email: email,
       http_status: email === "jwsuh@amic.kr" || featureId !== "matter_vault_admin" ? 200 : 403
+    }),
+    api: async ({ path, sessionToken }) => ({
+      http_status: 200,
+      body: {
+        request_id: "req-api",
+        path,
+        items: [{ matter_id: "matter-001" }]
+      },
+      sessionToken,
+      token_material_returned: false
     })
   };
 }
@@ -94,7 +104,8 @@ test("session IPC exposes account login and smoke without renderer token materia
   assert.equal((await ipcMain.invoke(SESSION_CHANNELS.accounts)).users.length, 2);
   assert.equal((await ipcMain.invoke(SESSION_CHANNELS.requestPasswordReset, { email: "jwsuh@amic.kr" })).accepted, true);
   const resetEmail = await ipcMain.invoke(SESSION_CHANNELS.latestResetEmail, { email: "jwsuh@amic.kr" });
-  assert.equal(resetEmail.email_message.reset_token, "reset-token");
+  assert.equal(resetEmail.email_message.reset_token, undefined);
+  assert.equal(JSON.stringify(resetEmail).includes("reset-token"), false);
   assert.equal(
     (await ipcMain.invoke(SESSION_CHANNELS.confirmPasswordReset, { token: "reset-token", password: "new-password" })).accepted,
     true
@@ -114,6 +125,9 @@ test("session IPC exposes account login and smoke without renderer token materia
   assert.equal(denied.ok, false);
   assert.equal(denied.decision, "deny");
   assert.equal(denied.http_status, 403);
+  const api = await ipcMain.invoke(SESSION_CHANNELS.api, { path: "/api/matters", method: "GET" });
+  assert.equal(api.body.items.length, 1);
+  assert.equal(JSON.stringify(api).includes("sessionToken"), false);
 
   registration.dispose();
   assert.equal(ipcMain.handlers.size, 0);

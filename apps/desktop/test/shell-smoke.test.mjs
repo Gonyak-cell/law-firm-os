@@ -14,6 +14,7 @@ import {
   passwordResetDeepLinkIntent,
   packagedRendererUrl,
   sendPasswordResetDeepLink,
+  shouldAutoStartElectronApp,
   startDesktopShell
 } from "../src/main/main.js";
 import {
@@ -87,6 +88,8 @@ test("desktop shell starts with packaged renderer target, preload, and hardened 
   assert.equal(window.focused, true);
   assert.match(preloadSource, /desktopApiBaseUrl/);
   assert.match(preloadSource, /claimLogoIntro/);
+  assert.match(preloadSource, /api: "session:api"/);
+  assert.match(preloadSource, /api: \(payload\) => invokeAllowed\("api", payload\)/);
 });
 
 test("desktop shell can resolve bundled or repo-local API server for web renderer data", () => {
@@ -352,6 +355,21 @@ test("desktop main entrypoint detection tolerates filesystem paths with spaces",
       versions: { electron: "42.4.1" },
       resourcesPath: "/Applications/matter.app/Contents/Resources",
       modulePath: "/Applications/matter.app/Contents/Resources/app/src/main/main.js"
+    }),
+    true
+  );
+});
+
+test("desktop auto-starts in packaged Electron browser process", () => {
+  assert.equal(shouldAutoStartElectronApp({ versions: {}, processType: "browser" }), false);
+  assert.equal(shouldAutoStartElectronApp({ versions: { electron: "42.4.1" }, processType: "renderer" }), false);
+  assert.equal(
+    shouldAutoStartElectronApp({
+      versions: { electron: "42.4.1" },
+      processType: "browser",
+      argv: ["matter"],
+      resourcesPath: "",
+      modulePath: "/unexpected/path/main.js"
     }),
     true
   );

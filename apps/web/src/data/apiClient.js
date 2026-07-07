@@ -112,6 +112,7 @@ const SESSION_DOMAINS = ["client", "matter", "vault", "crm", "default"];
 const SAFE_SESSION_STATES = new Set(["signed_in"]);
 const SAFE_REVIEW_STATES = new Set(["allow", "review", "denied"]);
 const SAFE_REF_PATTERN = /^[A-Za-z0-9._:-]{1,160}$/;
+const SAFE_ACTOR_REF_PATTERN = /^[A-Za-z0-9._:@+-]{1,200}$/;
 const FORBIDDEN_SESSION_TEXT = /(password|reset|bearer|cookie|secret|credential|authorization|token|sk-)/i;
 
 function desktopApiBaseUrl() {
@@ -136,6 +137,14 @@ function apiRequestUrl(input) {
   if (typeof input !== "string" || !input.startsWith("/")) return input;
   const baseUrl = desktopApiBaseUrl();
   return baseUrl ? `${baseUrl}${input}` : input;
+}
+
+function desktopReadBridge() {
+  if (typeof window === "undefined" || window.location?.protocol !== "file:") return null;
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("desktop") !== "1") return null;
+  if (desktopApiBaseUrl()) return null;
+  return typeof window.matterSession?.api === "function" ? window.matterSession.api : null;
 }
 
 function sessionStorageFor(source = globalThis) {
@@ -260,10 +269,26 @@ function sessionAuthorizedHeaders(headers = {}) {
   return requestHeaders;
 }
 
-function apiFetch(input, init = {}) {
+async function apiFetch(input, init = {}) {
+  const headers = sessionAuthorizedHeaders(init.headers);
+  const bridge = desktopReadBridge();
+  if (bridge && typeof input === "string" && input.startsWith("/")) {
+    const response = await bridge({
+      path: input,
+      method: init.method ?? "GET",
+      headers,
+      body: init.body ?? null
+    });
+    const status = Number(response?.http_status ?? response?.status ?? 0) || 500;
+    const body = response?.body ?? response ?? {};
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { "content-type": "application/json; charset=utf-8" }
+    });
+  }
   return fetch(apiRequestUrl(input), {
     ...init,
-    headers: sessionAuthorizedHeaders(init.headers)
+    headers
   });
 }
 
@@ -406,6 +431,13 @@ function safeSessionRef(value) {
   return ref;
 }
 
+function safeActorRef(value) {
+  if (typeof value !== "string") return null;
+  const ref = value.trim();
+  if (!ref || !SAFE_ACTOR_REF_PATTERN.test(ref) || FORBIDDEN_SESSION_TEXT.test(ref)) return null;
+  return ref;
+}
+
 function safeSessionRefList(values) {
   if (!Array.isArray(values)) return [];
   return values.map((value) => safeSessionRef(value)).filter(Boolean).slice(0, 24);
@@ -440,7 +472,7 @@ function readUrlSessionEnvelope(source) {
     const params = new URLSearchParams(search);
     if (params.get("desktop") !== "1") return null;
 
-    const actorRef = safeSessionRef(params.get("desktop_actor_ref"));
+    const actorRef = safeActorRef(params.get("desktop_actor_ref"));
     const tenantRef = safeSessionRef(params.get("desktop_tenant_ref"));
     if (!actorRef || !tenantRef) return null;
 
@@ -454,9 +486,9 @@ function readUrlSessionEnvelope(source) {
       actor_ref: actorRef,
       tenant_refs: {
         default: tenantRef,
-        client: TENANT_ID,
-        matter: MATTER_TENANT_ID,
-        vault: VAULT_TENANT_ID,
+        client: tenantRef,
+        matter: tenantRef,
+        vault: tenantRef,
         crm: CRM_INTAKE_TENANT_ID
       },
       role_ids: params.getAll("desktop_role_ref"),
@@ -485,7 +517,7 @@ export function readLawosSessionEnvelope(source = globalThis) {
 
   const schemaVersion = safeSessionRef(raw.schema_version);
   const state = typeof raw.state === "string" ? raw.state : null;
-  const actorRef = safeSessionRef(raw.actor_ref ?? raw.user_ref ?? raw.user_id);
+  const actorRef = safeActorRef(raw.actor_ref ?? raw.user_ref ?? raw.user_id);
   const sessionRef = safeSessionRef(raw.session_ref);
   const sourceRef = safeSessionRef(raw.source ?? raw.source_ref);
   const tenantRefs = safeTenantRefs(raw.tenant_refs, raw.tenant_ref ?? raw.tenant_id);
@@ -515,6 +547,10 @@ export function readLawosSessionEnvelope(source = globalThis) {
 function tenantRefForDomain(envelope, domain, fallbackTenantId) {
   if (!envelope) return fallbackTenantId;
   return envelope.tenant_refs[domain] ?? envelope.tenant_refs.default ?? fallbackTenantId;
+}
+
+function tenantIdForDomain(domain, fallbackTenantId) {
+  return tenantRefForDomain(readLawosSessionEnvelope(), domain, fallbackTenantId);
 }
 
 function principalWithSession(basePrincipal, domain, envelope = readLawosSessionEnvelope()) {
@@ -767,7 +803,7 @@ export async function fetchMasterDataRecords({
 } = {}) {
   const context = permissionContextFor(ctx, PERMISSION_CONTEXTS, "client");
   const params = new URLSearchParams({
-    tenant_id: TENANT_ID,
+    tenant_id: tenantIdForDomain("client", TENANT_ID),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef,
     limit: String(limit)
@@ -818,7 +854,7 @@ export async function fetchUserProfile({
 } = {}) {
   const context = permissionContextFor(ctx, PERMISSION_CONTEXTS, "client");
   const params = new URLSearchParams({
-    tenant_id: TENANT_ID,
+    tenant_id: tenantIdForDomain("client", TENANT_ID),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
@@ -885,7 +921,7 @@ export async function fetchMatterRecords({
   try {
     do {
       const params = new URLSearchParams({
-        tenant_id: MATTER_TENANT_ID,
+        tenant_id: tenantIdForDomain("matter", MATTER_TENANT_ID),
         permission_ref: permissionRef,
         audit_hint_ref: auditHintRef,
         limit: String(limit)
@@ -933,7 +969,7 @@ export async function fetchMatterListViews({
 } = {}) {
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
-    tenant_id: MATTER_TENANT_ID,
+    tenant_id: tenantIdForDomain("matter", MATTER_TENANT_ID),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef,
     limit: String(limit)
@@ -979,7 +1015,7 @@ export async function fetchMatterRecentlyViewed({
 } = {}) {
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
-    tenant_id: MATTER_TENANT_ID,
+    tenant_id: tenantIdForDomain("matter", MATTER_TENANT_ID),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef,
     limit: String(limit)
@@ -1083,7 +1119,7 @@ async function fetchMatterRuntimeCollection({
 } = {}) {
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
-    tenant_id: MATTER_TENANT_ID,
+    tenant_id: tenantIdForDomain("matter", MATTER_TENANT_ID),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
@@ -1123,7 +1159,7 @@ async function fetchMatterRuntimeItem({
 } = {}) {
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
-    tenant_id: MATTER_TENANT_ID,
+    tenant_id: tenantIdForDomain("matter", MATTER_TENANT_ID),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
@@ -1641,7 +1677,7 @@ function importDataPayload(overrides = {}) {
 async function fetchImportDataCollection({ path, ctx = "allow" } = {}) {
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
-    tenant_id: MATTER_TENANT_ID,
+    tenant_id: tenantIdForDomain("matter", MATTER_TENANT_ID),
     permission_ref: "ui_sf_b_w05_import_data_mapping",
     audit_hint_ref: "ui_sf_b_w05_import_data_mapping_probe"
   });
@@ -1811,7 +1847,7 @@ function recordActionRuntime(objectName, ctx = "allow") {
   if (normalized === "matter") {
     return {
       objectName: normalized,
-      tenantId: MATTER_TENANT_ID,
+      tenantId: tenantIdForDomain("matter", MATTER_TENANT_ID),
       principal: MATTER_PRINCIPAL,
       context: permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter"),
       permissionRef: "ui_sf_b_w02_record_actions_matter",
@@ -1821,7 +1857,7 @@ function recordActionRuntime(objectName, ctx = "allow") {
   if (normalized === "client") {
     return {
       objectName: normalized,
-      tenantId: TENANT_ID,
+      tenantId: tenantIdForDomain("client", TENANT_ID),
       principal: PRINCIPAL,
       context: permissionContextFor(ctx, PERMISSION_CONTEXTS, "client"),
       permissionRef: "ui_sf_b_w02_record_actions_client",

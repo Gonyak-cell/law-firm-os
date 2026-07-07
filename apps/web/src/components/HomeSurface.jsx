@@ -17,6 +17,7 @@ import {
   fetchPortalDashboard,
   fetchPortalRfi,
   readLawosApiSession,
+  readLawosSessionEnvelope,
   fetchVaultDocuments
 } from "../data/apiClient.js";
 import { fetchHrxPeopleOverview } from "../people/hrxApiClient.ts";
@@ -27,6 +28,12 @@ import { useSkin } from "../context/SkinContext.jsx";
 
 const heroDateFormatter = new Intl.DateTimeFormat("ko-KR", { dateStyle: "full" });
 const HOME_ONBOARDING_STORAGE_KEY = "matter.home.onboarding";
+const DESKTOP_HOME_FEATURE_IDS = Object.freeze({
+  client: "client_dashboard",
+  matter: "matter_vault_dashboard",
+  people: "people_dashboard",
+  vault: "vault_dashboard"
+});
 
 function sessionText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -38,6 +45,7 @@ function sessionDisplayName(session) {
     sessionText(session?.name) ||
     sessionText(session?.user_name) ||
     sessionText(session?.user_id) ||
+    sessionText(session?.actor_ref) ||
     "사용자"
   );
 }
@@ -55,9 +63,74 @@ function sessionTitleLead(session) {
 }
 
 function sessionGreeting() {
-  const session = readLawosApiSession()?.session ?? {};
+  const session = readLawosApiSession()?.session ?? readLawosSessionEnvelope() ?? {};
   const titleLead = sessionTitleLead(session);
   return `Welcome, ${[sessionDisplayName(session), titleLead].filter(Boolean).join(" ")} 님`;
+}
+
+function desktopSessionBridge(source = globalThis) {
+  const bridge = source?.matterSession ?? source?.window?.matterSession;
+  if (typeof bridge?.status !== "function" || typeof bridge?.smoke !== "function") return null;
+  try {
+    const location = source?.location ?? source?.window?.location;
+    if (location?.protocol !== "file:") return null;
+    const params = new URLSearchParams(location.search ?? "");
+    if (params.get("desktop") !== "1") return null;
+  } catch {
+    return null;
+  }
+  return bridge;
+}
+
+function desktopSmokeResult(response) {
+  const httpStatus = Number(response?.http_status ?? response?.status);
+  if (
+    response?.allowed === true ||
+    response?.decision === "allow" ||
+    response?.ok === true ||
+    (Number.isFinite(httpStatus) && httpStatus >= 200 && httpStatus < 400)
+  ) {
+    return {
+      kind: "data",
+      uiState: "allowed",
+      outcome: "allowed",
+      items: [],
+      desktopBridge: true
+    };
+  }
+  if (httpStatus === 403) {
+    return {
+      kind: "data",
+      uiState: "denied",
+      outcome: "denied",
+      items: [],
+      desktopBridge: true
+    };
+  }
+  return { kind: "error", desktopBridge: true };
+}
+
+async function fetchDesktopHomeBridgeResults() {
+  const bridge = desktopSessionBridge();
+  if (!bridge) return null;
+  let session;
+  try {
+    session = await bridge.status();
+  } catch {
+    return null;
+  }
+  if (session?.state !== "signed_in") return null;
+  const ids = ["client", "matter", "people", "vault"];
+  return Promise.all(
+    ids.map(async (id) => {
+      try {
+        const response = await bridge.smoke({ featureId: DESKTOP_HOME_FEATURE_IDS[id] });
+        return { id, result: desktopSmokeResult(response) };
+      } catch {
+        return { id, result: { kind: "error", desktopBridge: true } };
+      }
+    })
+  );
 }
 
 function readHomeOnboardingDismissed() {
@@ -197,7 +270,10 @@ export function HomeSurface({ labels, setView, liveCtx = "allow" }) {
     let cancelled = false;
     setResults([]);
     const args = { ctx: liveCtx };
-    Promise.all([
+    async function loadResults() {
+      const desktopResults = await fetchDesktopHomeBridgeResults();
+      if (desktopResults) return desktopResults;
+      return Promise.all([
       Promise.all([
         fetchMasterDataRecords({ ...args, modelType: "ClientGroup", limit: 10 }),
         fetchCrmOpportunities(args),
@@ -218,7 +294,9 @@ export function HomeSurface({ labels, setView, liveCtx = "allow" }) {
         id: "vault",
         result: combinePillarResults(results)
       }))
-    ]).then((nextResults) => {
+      ]);
+    }
+    loadResults().then((nextResults) => {
       if (!cancelled) setResults(nextResults);
     });
     return () => {

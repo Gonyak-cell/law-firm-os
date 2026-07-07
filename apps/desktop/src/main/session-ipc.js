@@ -9,6 +9,7 @@ export const SESSION_CHANNELS = Object.freeze({
   login: "session:login",
   features: "session:features",
   smoke: "session:smoke",
+  api: "session:api",
   logout: "session:logout"
 });
 
@@ -27,6 +28,7 @@ export function registerSessionIpcHandlers({ ipcMain, coordinator }) {
     [SESSION_CHANNELS.login, (_event, payload) => coordinator.login(payload)],
     [SESSION_CHANNELS.features, (_event, payload) => coordinator.features(payload)],
     [SESSION_CHANNELS.smoke, (_event, payload) => coordinator.smoke(payload)],
+    [SESSION_CHANNELS.api, (_event, payload) => coordinator.api(payload)],
     [SESSION_CHANNELS.logout, () => coordinator.logout()]
   ];
 

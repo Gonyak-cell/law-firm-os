@@ -128,7 +128,9 @@ export async function startElectronApp() {
   await app.whenReady();
   configureDesktopAppIcon(app);
   configureDesktopProtocol(app);
-  const localApi = await startDesktopLocalApiServer({ userDataPath: app.getPath("userData") });
+  const localApi = process.env.MATTER_DESKTOP_LOCAL_API_ENABLED === "1"
+    ? await startDesktopLocalApiServer({ userDataPath: app.getPath("userData") })
+    : null;
   if (localApi?.baseUrl) process.env.MATTER_DESKTOP_API_BASE_URL = localApi.baseUrl;
   app.on("before-quit", () => stopDesktopLocalApiServer(localApi));
   const runtimeClient = runtimeClientFromEnv();
@@ -169,7 +171,19 @@ export function isMainEntryPoint({
   });
 }
 
-if (isMainEntryPoint()) {
+export function shouldAutoStartElectronApp({
+  versions = process.versions,
+  processType = process.type,
+  ...entryPointArgs
+} = {}) {
+  if (!versions.electron) return false;
+  if (processType === "browser") return true;
+  if (processType && processType !== "browser") return false;
+  return isMainEntryPoint({ versions, ...entryPointArgs });
+}
+
+const shouldAutoStart = shouldAutoStartElectronApp();
+if (shouldAutoStart) {
   startElectronApp().catch((error) => {
     console.error(error);
     process.exit(1);

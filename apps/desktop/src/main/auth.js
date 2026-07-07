@@ -6,7 +6,18 @@ const RENDERER_FORBIDDEN_FIELDS = new Set([
   "id_token",
   "operator_token",
   "operatorToken",
+  "session_token",
+  "sessionToken",
+  "reset_token",
+  "resetToken",
+  "reset_url",
+  "resetUrl",
+  "reset_open_url",
+  "resetOpenUrl",
   "password",
+  "password_hash",
+  "credential_hash",
+  "digest",
   "secret"
 ]);
 
@@ -169,8 +180,14 @@ export class MainProcessAuthCoordinator {
   async login(input = {}) {
     const email = typeof input === "string" ? input : input.email;
     const password = typeof input === "string" ? undefined : input.password;
+    const rawResponse = await this.#runtimeClient?.login?.({ email, password });
+    if (rawResponse?.ok && typeof rawResponse.session_token === "string" && rawResponse.session_token) {
+      await this.#secureStore.set("session_token", rawResponse.session_token);
+    } else {
+      await this.#secureStore.delete("session_token");
+    }
     const response = sanitizeRendererPayload(
-      (await this.#runtimeClient?.login?.({ email, password })) ?? {
+      rawResponse ?? {
         ok: false,
         reason: "runtime_client_not_configured",
         token_material_returned: false
@@ -229,7 +246,8 @@ export class MainProcessAuthCoordinator {
 
   async features(input = {}) {
     const email = input.email ?? this.#session.email;
-    const response = await this.#runtimeClient?.features?.({ email });
+    const sessionToken = await this.#secureStore.get("session_token");
+    const response = await this.#runtimeClient?.features?.({ email, sessionToken });
     return sanitizeRendererPayload(
       response ?? {
         ok: false,
@@ -242,11 +260,31 @@ export class MainProcessAuthCoordinator {
   async smoke(input = {}) {
     const email = input.email ?? this.#session.email;
     const featureId = input.featureId ?? input.feature_id;
-    const response = await this.#runtimeClient?.smoke?.({ email, featureId });
+    const sessionToken = await this.#secureStore.get("session_token");
+    const response = await this.#runtimeClient?.smoke?.({ email, featureId, sessionToken });
     return sanitizeRendererPayload(
       response ?? {
         ok: false,
         reason: "runtime_client_not_configured",
+        token_material_returned: false
+      }
+    );
+  }
+
+  async api(input = {}) {
+    const sessionToken = await this.#secureStore.get("session_token");
+    const response = await this.#runtimeClient?.api?.({
+      path: input.path,
+      method: input.method,
+      headers: input.headers,
+      body: input.body,
+      sessionToken
+    });
+    return sanitizeRendererPayload(
+      response ?? {
+        ok: false,
+        reason: "runtime_client_not_configured",
+        http_status: 0,
         token_material_returned: false
       }
     );

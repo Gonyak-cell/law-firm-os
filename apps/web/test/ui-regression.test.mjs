@@ -161,7 +161,7 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(desktopSource, /LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION = "law-firm-os\.desktop-web-session-envelope\.v0\.1"/);
   assert.match(desktopSource, /function desktopSessionEnvelope/);
   assert.match(desktopSource, /actor_ref: actorRef/);
-  assert.match(desktopSource, /tenant_refs: \{[\s\S]*client: "tenant_rp04_synthetic"[\s\S]*matter: "tenant_rp05_synthetic"[\s\S]*vault: "tenant_amic_matter_vault"/);
+  assert.match(desktopSource, /tenant_refs: \{[\s\S]*default: tenantRef[\s\S]*client: tenantRef[\s\S]*matter: tenantRef[\s\S]*vault: tenantRef/);
   assert.match(desktopSource, /desktop_session_ref/);
   assert.match(desktopSource, /desktop_actor_ref/);
   assert.match(desktopSource, /desktop_tenant_ref/);
@@ -458,6 +458,11 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /fetchMasterDataRecords/);
   assert.match(apiClientSource, /cursor = null/);
   assert.match(apiClientSource, /params\.set\("cursor"/);
+  assert.match(apiClientSource, /function desktopReadBridge/);
+  assert.match(apiClientSource, /window\.matterSession\?\.api/);
+  assert.match(apiClientSource, /response = await bridge/);
+  assert.match(apiClientSource, /SAFE_ACTOR_REF_PATTERN/);
+  assert.match(apiClientSource, /safeActorRef\(params\.get\("desktop_actor_ref"\)\)/);
   assert.match(clientsSource, /fetchAllMasterDataRecords/);
   assert.match(clientsSource, /modelType: "ClientGroup",\s*limit: 100/);
   assert.match(clientsSource, /item\.synthetic_only !== true/);

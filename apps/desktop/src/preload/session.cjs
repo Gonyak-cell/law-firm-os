@@ -11,6 +11,7 @@ const PRELOAD_CHANNEL_ALLOWLIST = Object.freeze({
   login: "session:login",
   features: "session:features",
   smoke: "session:smoke",
+  api: "session:api",
   logout: "session:logout"
 });
 
@@ -48,6 +49,7 @@ const sessionApi = Object.freeze({
   login: (payload) => invokeAllowed("login", payload),
   features: (payload) => invokeAllowed("features", payload),
   smoke: (payload) => invokeAllowed("smoke", payload),
+  api: (payload) => invokeAllowed("api", payload),
   logout: () => invokeAllowed("logout"),
   onPasswordResetDeepLink: (handler) => onAllowedEvent("passwordResetDeepLink", handler)
 });

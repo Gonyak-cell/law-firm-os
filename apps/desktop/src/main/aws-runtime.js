@@ -3,6 +3,7 @@ import { dirname, parse, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const DEFAULT_ENV_FILE = ".env.matter-vault-r4.local";
+const DEFAULT_PRODUCTION_RUNTIME_BASE_URL = "https://43whkpla74oln46xkmjar4jgae0ebzba.lambda-url.ap-northeast-2.on.aws";
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 const FORBIDDEN_RESPONSE_FIELDS = new Set([
   "access_token",
@@ -83,15 +84,17 @@ export function loadMatterVaultRuntimeConfig({
     envPath ?? selectEnvPath({ env, cwd, moduleDirectory, existsSyncImpl })
   );
   const fileValues = existsSyncImpl(absoluteEnvPath) ? parseDotEnv(readFileSyncImpl(absoluteEnvPath, "utf8")) : {};
-  const baseUrl = valueFrom(env, fileValues, [
-    "MATTER_VAULT_R4_PRODUCTION_BASE_URL",
-    "MATTER_DESKTOP_RUNTIME_BASE_URL"
-  ]).replace(/\/+$/, "");
-  const operatorToken = valueFrom(env, fileValues, [
-    "MATTER_VAULT_R4_OPERATOR_TOKEN",
-    "MATTER_R4_OPERATOR_TOKEN",
-    "MATTER_OPERATOR_TOKEN"
-  ]);
+  const desktopRuntimeBaseUrl = valueFrom(env, fileValues, ["MATTER_DESKTOP_RUNTIME_BASE_URL"]);
+  const baseUrl = (desktopRuntimeBaseUrl || valueFrom(env, fileValues, [
+    "MATTER_VAULT_R4_PRODUCTION_BASE_URL"
+  ]) || DEFAULT_PRODUCTION_RUNTIME_BASE_URL).replace(/\/+$/, "");
+  const operatorToken = valueFrom(env, fileValues, desktopRuntimeBaseUrl
+    ? ["MATTER_DESKTOP_OPERATOR_TOKEN"]
+    : [
+        "MATTER_VAULT_R4_OPERATOR_TOKEN",
+        "MATTER_R4_OPERATOR_TOKEN",
+        "MATTER_OPERATOR_TOKEN"
+      ]);
   const tenantId = valueFrom(env, fileValues, [
     "MATTER_VAULT_R4_PRODUCTION_TENANT_ID",
     "MATTER_DESKTOP_TENANT_ID"
@@ -107,7 +110,6 @@ export function loadMatterVaultRuntimeConfig({
 
   const missing = [];
   if (!baseUrl) missing.push("MATTER_VAULT_R4_PRODUCTION_BASE_URL");
-  if (!operatorToken) missing.push("MATTER_VAULT_R4_OPERATOR_TOKEN");
   if (missing.length) {
     throw new MatterVaultRuntimeConfigError("Matter-Vault temporary runtime config is incomplete", {
       missing,
@@ -119,6 +121,7 @@ export function loadMatterVaultRuntimeConfig({
   return Object.freeze({
     baseUrl,
     operatorToken,
+    operatorRuntimeConfigured: Boolean(operatorToken),
     tenantId,
     operatorActor,
     migrationWindow,
@@ -130,11 +133,12 @@ export function loadMatterVaultRuntimeConfig({
 export function publicRuntimeConfig(config = {}) {
   return {
     configured: Boolean(config.baseUrl),
-    mode: "aws-temporary-execute-api",
+    mode: config.operatorToken ? "aws-temporary-execute-api" : "production-auth-http",
     baseUrl: config.baseUrl,
     tenantId: config.tenantId,
     operatorActor: config.operatorActor,
     migrationWindow: config.migrationWindow,
+    operatorRuntimeConfigured: Boolean(config.operatorToken),
     operatorTokenMaterialExposed: false
   };
 }
@@ -163,28 +167,52 @@ export function assertNoRuntimeSecretMaterial(value, operatorToken) {
 }
 
 function jsonHeaders(operatorToken) {
-  return {
-    authorization: `Bearer ${operatorToken}`,
-    "content-type": "application/json; charset=utf-8"
-  };
+  const headers = { "content-type": "application/json; charset=utf-8" };
+  if (operatorToken) headers.authorization = `Bearer ${operatorToken}`;
+  return headers;
 }
 
 export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetchImpl = globalThis.fetch, ...config }) {
   if (!baseUrl) throw new MatterVaultRuntimeConfigError("Matter-Vault runtime base URL is required");
-  if (!operatorToken) throw new MatterVaultRuntimeConfigError("Matter-Vault operator token is required");
   if (typeof fetchImpl !== "function") throw new MatterVaultRuntimeConfigError("fetch implementation is required");
 
-  const requestJson = async (path, { method = "GET", body, actorEmail, authRequired = true } = {}) => {
+  const requestJson = async (path, { method = "GET", body, actorEmail, authRequired = true, authToken, headers: extraHeaders = {} } = {}) => {
+    const credential = authToken ?? (authRequired ? operatorToken : "");
+    if (authRequired && !credential) {
+      return {
+        ok: false,
+        reason: "runtime_auth_not_configured",
+        http_status: 0,
+        token_material_returned: false
+      };
+    }
     const url = new URL(String(path).replace(/^\/+/, ""), `${baseUrl}/`);
-    const headers = authRequired ? jsonHeaders(operatorToken) : { "content-type": "application/json; charset=utf-8" };
+    const headers = { ...jsonHeaders(credential), ...extraHeaders };
     if (actorEmail) headers["x-matter-actor-email"] = actorEmail;
     const response = await fetchImpl(url, {
       method,
       headers,
       body: body == null ? undefined : JSON.stringify(body)
-    });
+    }).catch((error) => ({
+      ok: false,
+      reason: "runtime_request_failed",
+      error_code: error?.code ?? error?.name ?? "fetch_failed",
+      http_status: 0,
+      token_material_returned: false
+    }));
+    if (!response || typeof response.text !== "function") return response;
     const text = await response.text();
-    const parsed = text ? JSON.parse(text) : {};
+    let parsed = {};
+    try {
+      parsed = text ? JSON.parse(text) : {};
+    } catch {
+      parsed = {
+        ok: false,
+        reason: "runtime_response_not_json",
+        response_body_present: Boolean(text),
+        token_material_returned: false
+      };
+    }
     assertNoRuntimeSecretMaterial(parsed, operatorToken);
     return {
       ...parsed,
@@ -192,37 +220,132 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
     };
   };
 
+  const requestRuntimeApi = async ({ path, method = "GET", headers = {}, body = null, sessionToken } = {}) => {
+    const safeMethod = String(method ?? "GET").toUpperCase();
+    if (safeMethod !== "GET") {
+      return {
+        ok: false,
+        reason: "desktop_runtime_read_bridge_get_only",
+        http_status: 405,
+        token_material_returned: false
+      };
+    }
+    const safePath = typeof path === "string" ? path.trim() : "";
+    if (!safePath.startsWith("/api/") && !safePath.startsWith("/master-data/")) {
+      return {
+        ok: false,
+        reason: "desktop_runtime_read_bridge_path_blocked",
+        http_status: 403,
+        token_material_returned: false
+      };
+    }
+    if (safePath.startsWith("/api/auth/")) {
+      return {
+        ok: false,
+        reason: "desktop_runtime_read_bridge_auth_path_blocked",
+        http_status: 403,
+        token_material_returned: false
+      };
+    }
+    const forwardedHeaders = {};
+    const headerEntries = headers && typeof headers === "object" && !Array.isArray(headers)
+      ? Object.entries(headers)
+      : [];
+    for (const [name, value] of headerEntries) {
+      const lowerName = String(name).toLowerCase();
+      if (lowerName === "content-type" || lowerName === "x-lawos-permission-context") {
+        forwardedHeaders[name] = String(value);
+      }
+    }
+    const response = await requestJson(safePath, {
+      method: safeMethod,
+      body,
+      headers: forwardedHeaders,
+      authToken: sessionToken,
+      authRequired: true
+    });
+    return {
+      http_status: response.http_status,
+      body: response,
+      token_material_returned: false
+    };
+  };
+
   return Object.freeze({
     runtimeStatus() {
-      return publicRuntimeConfig({ baseUrl, ...config });
+      return publicRuntimeConfig({ baseUrl, operatorToken, ...config });
     },
     health() {
       return requestJson("/health", { authRequired: false });
     },
     accounts() {
+      if (!operatorToken) {
+        return {
+          ok: true,
+          users: [],
+          count: 0,
+          reason: "account_listing_deferred_until_sign_in",
+          http_status: 200,
+          token_material_returned: false
+        };
+      }
       return requestJson("/api/desktop/accounts");
     },
     requestPasswordReset({ email } = {}) {
-      return requestJson("/api/desktop/password-reset/request", { method: "POST", body: { email } });
+      return requestJson("/api/auth/password-reset/request", { method: "POST", body: { email }, authRequired: false });
     },
-    latestResetEmail({ email } = {}) {
-      return requestJson("/api/desktop/password-reset/latest-email", { method: "POST", body: { email } });
+    async latestResetEmail() {
+      return {
+        ok: false,
+        reason: "password_reset_email_token_not_available_in_production",
+        synthetic_only: false,
+        token_material_returned: false,
+        http_status: 410,
+      };
     },
     confirmPasswordReset({ token, password } = {}) {
-      return requestJson("/api/desktop/password-reset/confirm", { method: "POST", body: { token, password } });
+      return requestJson("/api/auth/password-reset/confirm", { method: "POST", body: { token, password }, authRequired: false });
     },
     login({ email, password } = {}) {
-      return requestJson("/api/desktop/login", { method: "POST", body: { email, password } });
+      return requestJson("/api/auth/login", { method: "POST", body: { email, password }, authRequired: false });
     },
-    features({ email } = {}) {
-      return requestJson("/api/matter-vault/features", { actorEmail: email });
+    async features({ email, sessionToken } = {}) {
+      if (!sessionToken && operatorToken) return requestJson("/api/matter-vault/features", { actorEmail: email });
+      if (!sessionToken) {
+        return { ok: false, reason: "auth_session_required", features: [], http_status: 401, token_material_returned: false };
+      }
+      const response = await requestJson("/api/auth/session", { authToken: sessionToken });
+      return {
+        ...response,
+        features: [],
+        token_material_returned: false
+      };
     },
-    smoke({ email, featureId = "matter_vault_dashboard" } = {}) {
-      return requestJson("/api/matter-vault/smoke", {
-        method: "POST",
-        body: { email, feature_id: featureId },
-        actorEmail: email
-      });
+    async smoke({ email, sessionToken, featureId = "matter_vault_dashboard" } = {}) {
+      if (!sessionToken && operatorToken) {
+        return requestJson("/api/matter-vault/smoke", {
+          method: "POST",
+          body: { email, feature_id: featureId },
+          actorEmail: email
+        });
+      }
+      if (!sessionToken) {
+        return { ok: false, allowed: false, decision: "deny", reason: "auth_session_required", http_status: 401 };
+      }
+      const path = featureId === "matter_vault_admin"
+        ? "/api/admin/security/users"
+        : "/api/profile/me?permission_ref=desktop_feature_check&audit_hint_ref=desktop_feature_check";
+      const response = await requestJson(path, { authToken: sessionToken });
+      return {
+        ...response,
+        allowed: response.http_status >= 200 && response.http_status < 400,
+        decision: response.http_status >= 200 && response.http_status < 400 ? "allow" : "deny",
+        feature_id: featureId,
+        token_material_returned: false
+      };
+    },
+    api(input = {}) {
+      return requestRuntimeApi(input);
     }
   });
 }
@@ -255,6 +378,7 @@ export function createDisabledMatterVaultRuntimeClient(error) {
     confirmPasswordReset: unavailable,
     login: unavailable,
     features: unavailable,
-    smoke: unavailable
+    smoke: unavailable,
+    api: unavailable
   });
 }
