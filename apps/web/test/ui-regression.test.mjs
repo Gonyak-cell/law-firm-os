@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import test from "node:test";
 
 const testDir = dirname(fileURLToPath(import.meta.url));
@@ -32,6 +32,9 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   const globalUtilitySurfaceSource = await readWebFile("src/components/GlobalUtilitySurface.jsx");
   const peopleCatalogSource = await readWebFile("src/people/peopleFeatureCatalog.js");
   const peopleNavigationSource = `${shellSource}\n${peopleCatalogSource}`;
+  const homeSidebarStart = shellSource.indexOf("home: {");
+  const clientsSidebarStart = shellSource.indexOf("clients:", homeSidebarStart);
+  const homeSidebarSource = shellSource.slice(homeSidebarStart, clientsSidebarStart);
   const componentFiles = await listWebSourceFiles("src/components");
   const canonicalViews = ["clients", "matters", "people", "vault", "portal"];
   const removedViews = [
@@ -73,18 +76,42 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   assert.match(shellSource, /data-product-axis-nav="top-header"/);
   assert.match(shellSource, /navItems\.map/);
   assert.match(appSource, /function navigateToView/);
+  assert.match(appSource, /export function resolveAxis/);
+  assert.match(appSource, /const routableViews = \["auth", "home", "loading", "profile", \.\.\.navItems\.map\(\(item\) => item\.id\), \.\.\.modeExceptionUtilityViewIds\]/);
+  assert.match(appSource, /const redirectableViews = \[\.\.\.routableViews, \.\.\.globalUtilityViewIds\]/);
   assert.match(appSource, /window\.history\.pushState/);
+  assert.match(appSource, /window\.history\.replaceState/);
   assert.doesNotMatch(appSource, /scrollIntoView/);
   assert.match(shellSource, /activeSection/);
-  assert.match(shellSource, /const showGlobalUtilityNav = view === "home"/);
-  assert.match(shellSource, /\{showGlobalUtilityNav && \(/);
-  assert.match(shellSource, /data-global-sidebar-nav="home-only"/);
-  assert.match(shellSource, /aria-label="Home 빠른 메뉴"/);
+  assert.match(shellSource, /ProductAxisNav axis=\{axis\}/);
+  assert.match(shellSource, /data-context-sidebar=\{axis\}/);
+  assert.doesNotMatch(shellSource, /data-global-sidebar-nav="home-only"/);
+  assert.doesNotMatch(shellSource, /aria-label="Home 빠른 메뉴"/);
   assert.doesNotMatch(shellSource, />공통<|aria-label="공통 메뉴"/);
-  assert.match(shellSource, /"sidebar-item global-sidebar-item/);
+  assert.doesNotMatch(shellSource, /"sidebar-item global-sidebar-item/);
   assert.match(shellSource, /<span className="sidebar-icon"><Icon size=\{16\} \/><\/span>/);
+  for (const label of ["대시보드", "메시지", "승인 요청", "전자 계약", "회사 현황", "데이터 가져오기", "설정"]) {
+    assert.match(homeSidebarSource, new RegExp(`label: "${label}"`));
+  }
+  assert.doesNotMatch(homeSidebarSource, /최근작업|notifications-center|label: "알림"/);
+  assert.match(homeSidebarSource, /view: "home", section: "home-dashboard"/);
+  assert.match(homeSidebarSource, /view: "home", section: "home-messages"/);
+  assert.match(homeSidebarSource, /view: "home", section: "home-requests"/);
+  assert.match(homeSidebarSource, /view: "home", section: "home-esign"/);
+  assert.match(homeSidebarSource, /view: "home", section: "home-company"/);
+  assert.match(homeSidebarSource, /view: "data-import", section: "data-import-client"/);
   assert.match(appSource, /globalUtilityViewIds/);
+  assert.match(globalUtilitySource, /modeExceptionUtilityViewIds = \["settings", "data-import"\]/);
   assert.match(appSource, /resolveGlobalShortcut/);
+  assert.match(globalUtilitySource, /"reports:reports-home-dashboard", route\("home", "home-dashboard"\)/);
+  assert.match(globalUtilitySource, /view === "messages"\) return route\("home", "home-messages"/);
+  assert.match(globalUtilitySource, /view === "requests"\) return route\("home", "home-requests"/);
+  assert.match(globalUtilitySource, /view === "esign"\) return route\("home", "home-esign"/);
+  assert.match(globalUtilitySource, /view === "reports"\) return route\("home", "home-company"/);
+  assert.match(globalUtilitySource, /view === "notifications"\) return route\("home", "home-dashboard"/);
+  assert.match(shellSource, /modeExceptionSubnav/);
+  assert.match(shellSource, /globalUtilityCatalog\.filter\(\(utility\) => modeExceptionUtilityViewIds\.includes\(utility\.id\)\)/);
+  assert.doesNotMatch(shellSource, /\.\.\.globalSubnav/);
   assert.match(globalUtilitySource, /data-import-client/);
   assert.match(globalUtilitySource, /data-import-matter/);
   assert.match(globalUtilitySource, /messages-matter-channel/);
@@ -103,6 +130,14 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   }
   assert.match(shellSource, /peopleNavigationGroups/);
   assert.match(shellSource, /peopleSidebarGroups/);
+  assert.match(shellSource, /fetchUserProfile/);
+  assert.match(shellSource, /readLawosSessionEnvelope/);
+  assert.match(shellSource, /sidebarSessionProfile/);
+  assert.match(shellSource, /readMatterSessionStatus/);
+  assert.match(shellSource, /matterSession\?\.\?status|bridge\.status/);
+  assert.match(shellSource, /genericSessionDisplayNames/);
+  assert.match(shellSource, /shellSessionDisplayName/);
+  assert.doesNotMatch(shellSource, /forestUserInitial = forestUserName\.trim\(\)\.slice\(0, 1\) \|\| "서"/);
   assert.match(peopleNavigationSource, /people-members/);
   assert.match(peopleNavigationSource, /people-org-chart/);
   assert.match(peopleNavigationSource, /people-documents/);
@@ -117,6 +152,27 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   assert.match(peopleNavigationSource, /people-admin/);
   assert.match(peopleNavigationSource, /people-work-schedule-external/);
   assert.doesNotMatch(appSource, /MatterModal|initialVariant|initialDataMode|setModal|mockData/);
+});
+
+test("Stage 1 IA redirects old global utility URLs into stable product axes", async () => {
+  const { modeExceptionUtilityViewIds, resolveGlobalShortcut } = await import(pathToFileURL(resolve(webRoot, "src/data/globalUtilities.js")).href);
+
+  assert.deepEqual(modeExceptionUtilityViewIds, ["settings", "data-import"]);
+  assert.deepEqual(resolveGlobalShortcut("home", ""), { view: "home", section: "home-dashboard" });
+  assert.deepEqual(resolveGlobalShortcut("home", "home-recent"), { view: "home", section: "home-dashboard" });
+  assert.deepEqual(resolveGlobalShortcut("reports", "reports-home-dashboard"), { view: "home", section: "home-dashboard" });
+  assert.equal(resolveGlobalShortcut("messages", "messages-matter-channel").view, "home");
+  assert.equal(resolveGlobalShortcut("messages", "messages-matter-channel").section, "home-messages");
+  assert.equal(resolveGlobalShortcut("requests", "requests-review-inbox").section, "home-requests");
+  assert.equal(resolveGlobalShortcut("esign", "esign-send").section, "home-esign");
+  assert.equal(resolveGlobalShortcut("reports", "reports-matter-analytics").section, "home-company");
+  const notificationRoute = resolveGlobalShortcut("notifications", "notifications-center");
+  assert.equal(notificationRoute.view, "home");
+  assert.equal(notificationRoute.section, "home-dashboard");
+  assert.equal(notificationRoute.openNotifications, true);
+  assert.equal(resolveGlobalShortcut("settings", "settings-company").view, "settings");
+  assert.equal(resolveGlobalShortcut("data-import", "data-import-client").view, "data-import");
+  assert.equal(resolveGlobalShortcut("home", "home-review").section, "home-requests");
 });
 
 test("matter startup branding uses shared splash and brand constants", async () => {
@@ -171,8 +227,13 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(desktopSource, /data-logo-intro="pending"/);
   assert.match(desktopSource, /claimLogoIntro/);
   assert.match(desktopSource, /\.auth-stage[\s\S]*display:\s*flex[\s\S]*align-items:\s*center[\s\S]*justify-content:\s*center/);
-  assert.match(desktopSource, /body\[data-logo-intro="play"\] \.brand-lockup[\s\S]*brandLoginIntro 1900ms/);
-  assert.match(desktopSource, /body\[data-logo-intro="play"\] \.matter-word-wrap[\s\S]*matterWordLoginReveal 1900ms/);
+  assert.match(desktopSource, /body\[data-logo-intro="play"\] \.brand-intro[\s\S]*amicLawIntroLayer 3200ms linear/);
+  assert.match(desktopSource, /body\[data-logo-intro="play"\] \.brand-intro-logo[\s\S]*amicLawLockupIntro 3200ms linear/);
+  assert.match(desktopSource, /body\[data-logo-intro="play"\] \.brand-intro-a[\s\S]*amicLawAIntro 3200ms linear/);
+  assert.match(desktopSource, /body\[data-logo-intro="play"\] \.brand-intro-mic[\s\S]*amicLawMicIntro 3200ms linear/);
+  assert.match(desktopSource, /body\[data-login-skin="forest"\]\[data-logo-intro="play"\] \.matter-login-photo-panel[\s\S]*forestPhotoIn 520ms var\(--ease-brand-dock\) 2780ms/);
+  assert.match(desktopSource, /body:not\(\[data-login-skin="forest"\]\)\[data-logo-intro="play"\] \.brand-lockup[\s\S]*brandLoginIntro 1900ms/);
+  assert.match(desktopSource, /body:not\(\[data-login-skin="forest"\]\)\[data-logo-intro="play"\] \.matter-word-wrap[\s\S]*matterWordLoginReveal 1900ms/);
   assert.match(desktopSource, /productUiTarget\(session, \{ splash: false \}\)/);
   assert.match(desktopSource, /setMatterWordTarget/);
   assert.match(desktopSource, /@keyframes matterWordLoginReveal[\s\S]*width:\s*var\(--word-target\)/);
@@ -193,13 +254,13 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(stylesSource, /@keyframes matter-mark-in[\s\S]*translateX\(calc\(\(var\(--matter-splash-word-width\) \+ var\(--matter-splash-gap\)\) \/ 2\)\)/);
   assert.match(stylesSource, /@keyframes matter-word-reveal[\s\S]*clip-path:\s*inset\(0 0 0 0\)/);
   assert.match(appSource, /data-sidebar-state="contextual"/);
-  assert.match(appSource, /notificationsOpen/);
-  assert.match(appSource, /<NotificationDrawer open=\{notificationsOpen\}/);
+  assert.match(appSource, /utilityDrawerType/);
+  assert.match(appSource, /<UtilityDrawer/);
   assert.match(shellSource, /data-product-axis-nav="top-header"/);
   assert.match(shellSource, /data-product-axis=\{id\}/);
-  assert.match(shellSource, /aria-current=\{view === id \? "page" : undefined\}/);
+  assert.match(shellSource, /aria-current=\{axis === id \? "page" : undefined\}/);
   assert.match(shellSource, /data-matter-logo-flow/);
-  assert.match(shellSource, /data-context-sidebar=\{view\}/);
+  assert.match(shellSource, /data-context-sidebar=\{axis\}/);
   assert.match(shellSource, /topbar-brand/);
   assert.match(shellSource, /sidebar-utilities/);
   assert.match(navSource, /id: "home"/);
@@ -209,13 +270,38 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(shellSource, /<MatterLogo \/>/);
   assert.doesNotMatch(shellSource, /export function Rail|<nav className="rail-nav"|nav-toggle|sidebarExpanded/);
   assert.doesNotMatch(appSource, /<Rail \/>|sidebarExpanded|initialSidebarExpanded/);
-  assert.match(homeSource, /title="오늘의 운영 대기열"/);
+  assert.match(homeSource, /data-home-dashboard-shell="true"/);
+  assert.match(homeSource, /data-home-dashboard-grid="true"/);
+  assert.match(homeSource, /data-active-home-section=\{activeSection \|\| "home-dashboard"\}/);
+  assert.match(homeSource, /widgetId="approval"/);
+  assert.match(homeSource, /widgetId="todo"/);
+  assert.match(homeSource, /widgetId="calendar"/);
+  assert.match(homeSource, /widgetId="feed"/);
+  assert.match(homeSource, /widgetId="system"/);
+  assert.match(homeSource, /title="승인 대기"/);
+  assert.match(homeSource, /title="오늘 To Do"/);
+  assert.match(homeSource, /title="캘린더"/);
+  assert.match(homeSource, /title="피드"/);
+  assert.match(homeSource, /title="시스템 상태"/);
+  assert.match(homeSource, /블로터 · 법률신문 · 딜사이트 · 인베스트조선/);
+  assert.match(stylesSource, /grid-template-areas:\s*"appr todo rail"\s*"feed feed rail"/);
+  assert.match(stylesSource, /\.home-dashboard-rail\s*\{[\s\S]*display:\s*flex[\s\S]*flex-direction:\s*column/);
+  assert.match(stylesSource, /\.home-dashboard-rail > \.home-dashboard-card:first-child\s*\{[\s\S]*flex:\s*1/);
   assert.match(homeSource, /data-home-ops-queue="true"/);
-  assert.match(homeSource, /실패한 동기화/);
+  assert.match(homeSource, /fetchUserProfile/);
+  assert.match(homeSource, /fetchHomeActionInbox/);
+  assert.match(homeSource, /fetchHomeAgenda/);
+  assert.match(homeSource, /fetchHomeFeed/);
+  assert.match(homeSource, /readHomeMatterSessionStatus/);
+  assert.match(homeSource, /genericSessionDisplayNames/);
+  assert.match(homeSource, /sessionProfessionalLabel/);
+  assert.match(homeSource, /sessionGreeting\(sessionProfile\.profileUser, sessionProfile\.desktopStatus\)/);
+  assert.doesNotMatch(homeSource, /sessionText\(session\?\.user_id\)\s*\|\|/);
+  assert.doesNotMatch(homeSource, /sessionText\(session\?\.actor_ref\)\s*\|\|/);
   assert.doesNotMatch(homeSource, /endpoint-strip|endpoint coverage|\$\{endpoint\}/);
   assert.doesNotMatch(homeSource, /MetricCard|metric-grid|Product axes|Record views|Protected actions|Release status|visible records|record views|safeguards|capability-card|capability-counts|boundary-ledger/);
+  assert.doesNotMatch(homeSource, /home-recent|WorkAreaRow|QueueRow|오늘의 운영 대기열|Matter 작업 큐|실패한 동기화/);
   assert.doesNotMatch(stylesSource, /metric-grid|clients-metric-grid|people-metric-grid|command-center-grid|pill-blue|pill-green|recipient-chip|report-chip/);
-  assert.match(homeSource, /work-area-list/);
   assert.match(stylesSource, /\.app-frame[\s\S]*grid-template-columns:\s*var\(--am-sidebar-width\) minmax\(0, 1fr\)/);
   assert.match(stylesSource, /--am-topbar-height:\s*78px/);
   assert.match(stylesSource, /\.topbar-brand/);
@@ -226,33 +312,152 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.doesNotMatch(stylesSource, /\.app-frame\.sidebar-expanded|\.rail-logo|\.nav-toggle\.active/);
 });
 
-test("topbar notifications open a right drawer with global dim and stacked alerts", async () => {
+test("Home dashboard Stage 4 keeps action counts on the single Home inbox source", async () => {
+  const appSource = await readWebFile("src/App.jsx");
+  const shellSource = await readWebFile("src/components/Shell.jsx");
+  const homeSource = await readWebFile("src/components/HomeSurface.jsx");
+  const apiClientSource = await readWebFile("src/data/apiClient.js");
+
+  assert.match(apiClientSource, /export async function fetchHomeActionInbox/);
+  assert.match(apiClientSource, /`\/api\/home\/action-inbox\?\$\{params\.toString\(\)\}`/);
+  assert.match(apiClientSource, /export async function decideHomeActionInboxItem/);
+  assert.match(apiClientSource, /`\/api\/home\/action-inbox\/\$\{encodeURIComponent\(id\)\}\/decision`/);
+  assert.match(apiClientSource, /export async function fetchHomeAgenda/);
+  assert.match(apiClientSource, /export async function fetchHomeFeed/);
+  assert.match(apiClientSource, /tenantIdForDomain\("vault", VAULT_TENANT_ID\)/);
+
+  assert.match(appSource, /const \[homeActionCounts, setHomeActionCounts\] = useState\(emptyHomeActionCounts\)/);
+  assert.match(appSource, /const homeApprovalCount = Number\(homeActionCounts\.approval \?\? 0\) \|\| 0/);
+  assert.match(appSource, /homeApprovalCount=\{homeApprovalCount\}/);
+  assert.match(appSource, /onHomeActionCountsChange=\{setHomeActionCounts\}/);
+
+  assert.match(shellSource, /data-home-topbar-approval-count=\{approvalCount\}/);
+  assert.match(shellSource, /data-home-sidebar-approval-count=\{item\.homeCount\}/);
+  assert.match(shellSource, /count: Number\(homeApprovalCount\) > 0 \? Number\(homeApprovalCount\) : null/);
+  assert.match(shellSource, /onClick=\{\(\) => onOpenUtilityDrawer\("approvals"\)\}/);
+  assert.doesNotMatch(shellSource, /onClick=\{\(\) => setView\("home", "home-requests"\)\}/);
+
+  assert.match(homeSource, /Promise\.all\(\[\s*fetchHomeActionInbox\(\{ type: "approval", ctx: liveCtx \}\),\s*fetchHomeActionInbox\(\{ type: "task", ctx: liveCtx \}\)/);
+  assert.match(homeSource, /const counts = approval\.counts \?\? task\.counts \?\? emptyHomeCounts/);
+  assert.match(homeSource, /onHomeActionCountsChange\(counts\)/);
+  assert.match(homeSource, /data-home-widget-approval-count=\{actionInbox\.counts\.approval\}/);
+  assert.match(homeSource, /meta=\{`\$\{actionInbox\.counts\.approval\}건`\}/);
+  assert.match(homeSource, /data-home-inline-action=\{action\}/);
+  assert.match(homeSource, /const previousActionInbox = actionInbox/);
+  assert.match(homeSource, /onHomeActionCountsChange\(nextCounts\)/);
+  assert.match(homeSource, /setActionInbox\(undoNotice\.previousActionInbox\)/);
+});
+
+test("topbar utilities open right drawers with global dim and stacked alerts", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const stylesSource = await readWebFile("src/styles.css");
 
-  assert.match(appSource, /setNotificationsOpen\(\(open\) => !open\)/);
-  assert.match(appSource, /setNotificationsOpen\(false\)/);
-  assert.match(shellSource, /export function NotificationDrawer/);
+  assert.match(appSource, /const \[utilityDrawerType, setUtilityDrawerType\] = useState/);
+  assert.match(appSource, /function toggleUtilityDrawer\(type\)/);
+  assert.match(appSource, /setUtilityDrawerType\(willOpen \? type : ""\)/);
+  assert.match(appSource, /if \(willOpen && type === "notifications"\) setNotificationUnreadCount\(0\)/);
+  assert.match(appSource, /function navigateFromUtilityDrawer\(section\)/);
+  assert.match(shellSource, /export function UtilityDrawer/);
+  assert.match(shellSource, /utilityDrawerConfig/);
   assert.match(shellSource, /notificationItems/);
+  assert.match(shellSource, /utilityMessageItems/);
   assert.match(shellSource, /data-notification-trigger="true"/);
+  assert.match(shellSource, /data-home-message-trigger="true"/);
+  assert.match(shellSource, /data-home-approval-trigger="true"/);
   assert.match(shellSource, /aria-expanded=\{notificationsOpen \? "true" : "false"\}/);
-  assert.match(shellSource, /data-notification-drawer="open"/);
+  assert.match(shellSource, /aria-expanded=\{messagesOpen \? "true" : "false"\}/);
+  assert.match(shellSource, /aria-expanded=\{approvalsOpen \? "true" : "false"\}/);
+  assert.match(shellSource, /data-utility-drawer="open"/);
+  assert.match(shellSource, /data-utility-drawer-kind=\{type\}/);
   assert.match(shellSource, /role="dialog"/);
   assert.match(shellSource, /aria-modal="true"/);
   assert.match(shellSource, /className="notification-scrim"/);
   assert.match(shellSource, /data-notification-card="stacked"/);
   assert.match(shellSource, /const notificationUnreadCount = notificationItems\.length;/);
-  assert.match(shellSource, /알림 <span>\{notificationUnreadCount\}<\/span>/);
+  assert.match(shellSource, /\{config\.title\} <span>\{count\}<\/span>/);
   assert.match(shellSource, /모두 읽음 처리/);
   assert.match(shellSource, /알림 설정/);
+  assert.match(shellSource, /data-home-message-read=\{item\.id\}/);
+  assert.match(shellSource, /data-utility-view-all="home-messages"/);
+  assert.match(shellSource, /data-utility-view-all="home-requests"/);
+  assert.match(shellSource, /onNavigateHomeSection\(config\.section\)/);
   assert.doesNotMatch(shellSource, />Notifications|Mark All as Read|>Settings<|status: "Conflict check"|status: "Approval"/);
   assert.match(stylesSource, /\.notification-layer[\s\S]*z-index:\s*140/);
   assert.match(stylesSource, /\.notification-scrim[\s\S]*background:\s*rgba\(15, 23, 42, 0\.46\)/);
   assert.match(stylesSource, /\.notification-drawer[\s\S]*right:\s*0[\s\S]*grid-template-rows:\s*auto minmax\(0, 1fr\) auto/);
+  assert.match(stylesSource, /\.utility-drawer[\s\S]*width:\s*min\(440px, 100vw\)/);
   assert.match(stylesSource, /\.notification-stack[\s\S]*overflow:\s*auto/);
   assert.match(stylesSource, /\.notification-card[\s\S]*grid-template-columns:\s*42px minmax\(0, 1fr\)/);
+  assert.match(stylesSource, /\.utility-empty-state/);
+  assert.match(stylesSource, /\.utility-drawer-footer\.single/);
   assert.match(stylesSource, /@keyframes notification-drawer-in/);
+});
+
+test("Stage 5 utility drawers keep the sidebar context unchanged until explicit Home view-all", async () => {
+  const appSource = await readWebFile("src/App.jsx");
+  const shellSource = await readWebFile("src/components/Shell.jsx");
+
+  assert.match(appSource, /utilityDrawerType=\{utilityDrawerType\}/);
+  assert.match(appSource, /onOpenUtilityDrawer=\{toggleUtilityDrawer\}/);
+  assert.match(appSource, /homeMessageCount=\{homeMessageCount\}/);
+  assert.match(appSource, /unreadMessageIds=\{unreadMessageIds\}/);
+  assert.match(appSource, /onNavigateHomeSection=\{navigateFromUtilityDrawer\}/);
+  assert.match(appSource, /function markMessageRead\(id\)/);
+  assert.match(appSource, /next\.delete\(id\)/);
+  assert.match(appSource, /function markAllMessagesRead\(\)/);
+  assert.match(appSource, /setUnreadMessageIds\(new Set\(\)\)/);
+  assert.match(appSource, /navigateToView\("home", section\)/);
+
+  assert.match(shellSource, /onClick=\{\(\) => onOpenUtilityDrawer\("notifications"\)\}/);
+  assert.match(shellSource, /onClick=\{\(\) => onOpenUtilityDrawer\("messages"\)\}/);
+  assert.match(shellSource, /onClick=\{\(\) => onOpenUtilityDrawer\("approvals"\)\}/);
+  assert.match(shellSource, /data-context-sidebar=\{axis\}/);
+  assert.match(shellSource, /data-home-topbar-message-count=\{messageCount\}/);
+  assert.match(shellSource, /data-home-topbar-approval-count=\{approvalCount\}/);
+  assert.doesNotMatch(shellSource, /data-home-message-trigger[\s\S]{0,220}setView\("home", "home-messages"\)/);
+  assert.doesNotMatch(shellSource, /data-home-approval-trigger[\s\S]{0,220}setView\("home", "home-requests"\)/);
+  assert.match(shellSource, /data-utility-view-all="home-messages"[\s\S]*onClick=\{goToHomeSection\}/);
+  assert.match(shellSource, /data-utility-view-all="home-requests"[\s\S]*onClick=\{goToHomeSection\}/);
+});
+
+test("Stage 6 mode exception routes keep topbar and provide a return-to-work anchor", async () => {
+  const appSource = await readWebFile("src/App.jsx");
+  const shellSource = await readWebFile("src/components/Shell.jsx");
+  const globalUtilitySurfaceSource = await readWebFile("src/components/GlobalUtilitySurface.jsx");
+  const stylesSource = await readWebFile("src/styles.css");
+
+  assert.match(appSource, /const defaultModeReturnTarget = Object\.freeze\(\{ view: "home", section: "home-dashboard" \}\)/);
+  assert.match(appSource, /const \[modeReturnTarget, setModeReturnTarget\] = useState/);
+  assert.match(appSource, /modeExceptionUtilityViewIds\.includes\(initialView\) \|\| \["auth", "loading"\]\.includes\(initialView\)/);
+  assert.match(appSource, /function isReturnableWorkView\(nextView\)/);
+  assert.match(appSource, /function currentModeReturnTarget\(\)/);
+  assert.match(appSource, /setModeReturnTarget\(currentModeReturnTarget\(\)\)/);
+  assert.match(appSource, /function returnToWork\(\)/);
+  assert.match(appSource, /navigateToView\(modeReturnTarget\.view, modeReturnTarget\.section\)/);
+  assert.match(appSource, /modeReturnTarget=\{modeReturnTarget\}/);
+  assert.match(appSource, /onReturnToWork=\{returnToWork\}/);
+  assert.match(appSource, /<Topbar[\s\S]*axis=\{axis\}[\s\S]*\/>/);
+  assert.match(appSource, /isGlobalUtilityView\(view\) && modeExceptionUtilityViewIds\.includes\(view\)/);
+
+  assert.match(shellSource, /data-mode-exception-sidebar=\{modeExceptionActive \? "true" : undefined\}/);
+  assert.match(shellSource, /data-mode-exception-depth=\{modeExceptionActive \? "deep" : undefined\}/);
+  assert.match(shellSource, /data-mode-return-anchor="true"/);
+  assert.match(shellSource, /data-mode-return-view=\{modeReturnTarget\.view\}/);
+  assert.match(shellSource, /data-mode-return-section=\{modeReturnTarget\.section \|\| ""\}/);
+  assert.match(shellSource, /aria-label="업무로 돌아가기"/);
+  assert.match(shellSource, />업무로 돌아가기<\/span>/);
+  assert.match(shellSource, /onClick=\{onReturnToWork\}/);
+  assert.match(shellSource, /modeExceptionSubnav/);
+  assert.match(shellSource, /globalUtilityCatalog\.filter\(\(utility\) => modeExceptionUtilityViewIds\.includes\(utility\.id\)\)/);
+
+  assert.match(globalUtilitySurfaceSource, /data-global-utility-surface=\{utility\.id\}/);
+  assert.match(globalUtilitySurfaceSource, /utility\.sections\.map/);
+  assert.match(globalUtilitySurfaceSource, /setView\(utility\.id, sectionId\)/);
+
+  assert.match(stylesSource, /\.sidebar-return-anchor/);
+  assert.match(stylesSource, /html\[data-skin="forest"\] \.sidebar-return-anchor/);
+  assert.doesNotMatch(shellSource, /data-mode-return-anchor="true"[\s\S]{0,240}setView\("home", "home-dashboard"\)/);
 });
 
 test("avatar profile opens a matter-consistent personal profile surface without becoming a product axis", async () => {
@@ -267,7 +472,7 @@ test("avatar profile opens a matter-consistent personal profile surface without 
   assert.match(appSource, /onProfile=\{\(\) => navigateToView\("profile"\)\}/);
   assert.match(shellSource, /data-profile-trigger="true"/);
   assert.match(shellSource, /profileSidebarItems/);
-  assert.match(shellSource, /data-context-sidebar=\{view\}/);
+  assert.match(shellSource, /data-context-sidebar=\{axis\}/);
   assert.doesNotMatch(shellSource, /\{labels\.upgrade\}/);
   assert.match(profileSource, /data-user-profile-surface="matter-consistent"/);
   assert.match(profileSource, /fetchUserProfile/);
@@ -397,6 +602,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   const apiClientSource = await readWebFile("src/data/apiClient.js");
   const peopleSource = await readWebFile("src/people/PeopleHome.tsx");
   const peopleApiSource = await readWebFile("src/people/hrxApiClient.ts");
+  const employeeProfileSource = await readWebFile("src/people/employees/EmployeeProfile.tsx");
   const stylesSource = await readWebFile("src/styles.css");
 
   for (const section of [
@@ -463,8 +669,8 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /response = await bridge/);
   assert.match(apiClientSource, /SAFE_ACTOR_REF_PATTERN/);
   assert.match(apiClientSource, /safeActorRef\(params\.get\("desktop_actor_ref"\)\)/);
-  assert.match(clientsSource, /fetchAllMasterDataRecords/);
-  assert.match(clientsSource, /modelType: "ClientGroup",\s*limit: 100/);
+  assert.match(clientsSource, /fetchMatterClients/);
+  assert.match(apiClientSource, /\/api\/matters\/clients/);
   assert.match(clientsSource, /item\.synthetic_only !== true/);
   assert.match(clientsSource, /Property label="법인 형태"/);
   assert.match(clientsSource, /clientLegalForm/);
@@ -592,6 +798,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /fetchMatterRecords/);
   assert.match(clientsSource, /modelType: "MatterClient"/);
   assert.match(clientsSource, /function mergeClientMatterResults/);
+  assert.match(clientsSource, /fallbackClientSourceUsed/);
   assert.match(clientsSource, /matter_code_links/);
   assert.match(clientsSource, /linkedMatterSummary/);
   assert.match(clientsSource, /baseResult\?\.uiState === "empty" \? "passed"/);
@@ -907,6 +1114,9 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(peopleApiSource, /function desktopApiBaseUrl/);
   assert.match(peopleApiSource, /window\.matterSession\?\.desktopApiBaseUrl/);
   assert.match(peopleApiSource, /params\.get\("desktop_api_base_url"\)/);
+  assert.match(peopleApiSource, /function desktopReadBridge/);
+  assert.match(peopleApiSource, /window\.matterSession\?\.api/);
+  assert.match(peopleApiSource, /response = await bridge|return bridge\(/);
   assert.match(peopleApiSource, /apiFetch\(path/);
   assert.match(apiClientSource, /session_principal_source: "desktop_web_session_envelope"/);
   assert.match(apiClientSource, /permissionContextFor\(ctx, PERMISSION_CONTEXTS, "client"\)/);
@@ -1091,6 +1301,11 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(peopleSource, /PermissionAdminPanel/);
   assert.match(peopleSource, /people-admin/);
   assert.match(peopleApiSource, /\/api\/hrx\/employees/);
+  assert.match(peopleApiSource, /professional_profile/);
+  assert.match(employeeProfileSource, /data-people-professional-profile-kind=\{profileKind\}/);
+  assert.match(employeeProfileSource, /주요 경력/);
+  assert.match(employeeProfileSource, /자격·면허/);
+  assert.match(employeeProfileSource, /출처/);
   assert.doesNotMatch(peopleApiSource, /mock/i);
 });
 

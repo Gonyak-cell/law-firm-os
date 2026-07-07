@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+<title>matter Home 대시보드 IA 목업</title>
+<style>
+  :root {
+    --pg-bg: #f3f6f4;
+    --pg-surface: #ffffff;
+    --pg-ink: #1c231f;
+    --pg-muted: #5f6b64;
+    --pg-border: #dde4df;
+    --pg-accent: #1c8f57;
+    --pg-note: #5b5bd6;
+    --pg-note-soft: #ecebfb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --pg-bg: #0c1512;
+      --pg-surface: #14201b;
+      --pg-ink: #e8ede9;
+      --pg-muted: #98a69e;
+      --pg-border: #26332c;
+      --pg-accent: #3ecf7e;
+      --pg-note: #9d9df2;
+      --pg-note-soft: #23233f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --pg-bg: #0c1512;
+    --pg-surface: #14201b;
+    --pg-ink: #e8ede9;
+    --pg-muted: #98a69e;
+    --pg-border: #26332c;
+    --pg-accent: #3ecf7e;
+    --pg-note: #9d9df2;
+    --pg-note-soft: #23233f;
+  }
+  :root[data-theme="light"] {
+    --pg-bg: #f3f6f4;
+    --pg-surface: #ffffff;
+    --pg-ink: #1c231f;
+    --pg-muted: #5f6b64;
+    --pg-border: #dde4df;
+    --pg-accent: #1c8f57;
+    --pg-note: #5b5bd6;
+    --pg-note-soft: #ecebfb;
+  }
+
+  body {
+    background: var(--pg-bg);
+    color: var(--pg-ink);
+    font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", "Noto Sans KR", sans-serif;
+    line-height: 1.55;
+    margin: 0;
+  }
+  .page { max-width: 1420px; margin: 0 auto; padding: 40px 28px 72px; display: flex; flex-direction: column; gap: 28px; }
+
+  .doc-head { display: flex; flex-direction: column; gap: 10px; max-width: 72ch; }
+  .doc-head .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--pg-accent); }
+  .doc-head h1 { font-size: 27px; font-weight: 800; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+  .doc-head p { margin: 0; color: var(--pg-muted); font-size: 14.5px; }
+
+  .decision-strip { display: flex; flex-wrap: wrap; gap: 8px; }
+  .decision-strip span {
+    font-size: 12.5px; font-weight: 600; color: var(--pg-ink);
+    background: var(--pg-surface); border: 1px solid var(--pg-border);
+    border-radius: 999px; padding: 5px 12px;
+  }
+  .decision-strip span b { color: var(--pg-accent); font-weight: 700; }
+
+  h2.sec { font-size: 17px; font-weight: 800; letter-spacing: -0.01em; margin: 12px 0 0; }
+  h2.sec small { font-weight: 500; color: var(--pg-muted); font-size: 13px; margin-left: 8px; }
+
+  .frame-scroll { overflow-x: auto; border-radius: 14px; }
+  .callout {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 19px; height: 19px; border-radius: 50%; flex: none;
+    background: var(--pg-note); color: #fff; font-size: 11.5px; font-weight: 700;
+    font-variant-numeric: tabular-nums; cursor: default; user-select: none;
+  }
+
+  /* ---------- app mockup frame: forest 스킨 고정(라이트) ---------- */
+  .mockup {
+    --canvas: #F7F8FA; --surface: #ffffff; --border: #E5E7EB;
+    --ink: #1A1A1A; --muted: #6B7280; --faint: #9CA3AF;
+    --green: #26C260; --green-deep: #1C8F57; --green-soft: #E8F8ED;
+    --danger: #BC2C1A; --warn: #EF6C00;
+    min-width: 1240px; background: var(--canvas); color: var(--ink);
+    border: 1px solid var(--pg-border); border-radius: 14px; overflow: hidden;
+    box-shadow: 0 18px 48px rgba(10, 40, 30, 0.14);
+    font-size: 13px;
+  }
+  .mockup, .mockup * { box-sizing: border-box; }
+
+  .m-topbar {
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(255,255,255,0.92); border-bottom: 1px solid var(--border);
+    padding: 12px 18px;
+  }
+  .m-brand { display: flex; align-items: baseline; gap: 7px; margin-right: 4px; }
+  .m-brand strong { font-size: 19px; font-weight: 800; letter-spacing: -0.03em; color: #0F3A32; }
+  .m-brand span { font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; color: var(--faint); }
+  .m-axis { display: flex; gap: 3px; align-items: center; }
+  .m-axis a {
+    padding: 7px 11px; border-radius: 8px; color: var(--muted);
+    font-weight: 600; text-decoration: none; font-size: 13px;
+  }
+  .m-axis a.on { background: var(--green-soft); color: var(--green-deep); }
+  .m-search {
+    margin-left: auto; display: flex; align-items: center; gap: 8px;
+    border: 1px solid var(--border); background: #fff; border-radius: 9px;
+    padding: 7px 12px; color: var(--faint); min-width: 230px; font-size: 12.5px;
+  }
+  .m-search kbd {
+    margin-left: auto; border: 1px solid var(--border); border-radius: 4px;
+    padding: 0 5px; font-size: 11px; color: var(--faint); font-family: inherit;
+  }
+  .m-new {
+    background: var(--green); color: #fff; font-weight: 700; font-size: 13px;
+    border-radius: 9px; padding: 8px 14px; white-space: nowrap;
+  }
+  .m-utils { display: flex; align-items: center; gap: 6px; }
+  .m-iconbtn {
+    position: relative; width: 34px; height: 34px; border-radius: 9px;
+    border: 1px solid transparent; display: grid; place-items: center;
+    color: var(--muted); font-size: 15px; background: transparent;
+  }
+  .m-iconbtn .cnt {
+    position: absolute; top: -4px; right: -5px; min-width: 16px; height: 16px;
+    border-radius: 999px; background: var(--danger); color: #fff;
+    font-size: 10px; font-weight: 700; display: grid; place-items: center;
+    padding: 0 4px; font-variant-numeric: tabular-nums;
+  }
+  .m-iconbtn .dot {
+    position: absolute; top: 2px; right: 3px; width: 7px; height: 7px;
+    border-radius: 50%; background: var(--warn);
+  }
+  .m-avatar {
+    width: 34px; height: 34px; border-radius: 50%; background: #0F3A32; color: #fff;
+    display: grid; place-items: center; font-weight: 700; font-size: 13px;
+  }
+
+  .m-body { display: grid; grid-template-columns: 250px 1fr; min-height: 780px; }
+
+  .m-side {
+    background: linear-gradient(180deg, #07201C 0%, #0F3A32 55%, #0B2D27 100%);
+    color: #fff; padding: 16px 12px 14px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .m-ws {
+    display: flex; align-items: center; justify-content: space-between;
+    border: 1px solid rgba(255,255,255,0.16); border-radius: 10px;
+    padding: 9px 12px; margin-bottom: 12px;
+  }
+  .m-ws .lab { font-size: 10px; letter-spacing: 0.1em; color: rgba(255,255,255,0.55); display: block; }
+  .m-ws strong { font-size: 14.5px; font-weight: 700; }
+  .m-ws .chev { color: rgba(255,255,255,0.5); font-size: 11px; }
+  .m-nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 11px;
+    border-radius: 9px; color: rgba(255,255,255,0.82); font-weight: 500; font-size: 13.5px;
+  }
+  .m-nav-item .ico { width: 17px; text-align: center; opacity: 0.85; }
+  .m-nav-item.on { background: rgba(255,255,255,0.14); color: #fff; font-weight: 700; }
+  .m-nav-item .cnt {
+    margin-left: auto; min-width: 20px; height: 18px; padding: 0 6px;
+    background: rgba(255,255,255,0.18); border-radius: 999px;
+    font-size: 11px; font-weight: 700; display: grid; place-items: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .m-nav-item .lock {
+    margin-left: auto; font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.55);
+    border: 1px solid rgba(255,255,255,0.25); border-radius: 5px; padding: 1px 6px;
+  }
+  .m-side-div { border: 0; border-top: 1px solid rgba(255,255,255,0.14); margin: 12px 4px; }
+  .m-side-sec { font-size: 10.5px; letter-spacing: 0.1em; color: rgba(255,255,255,0.45); padding: 0 11px 4px; }
+  .m-nav-item .mode { margin-left: auto; font-size: 10px; color: rgba(255,255,255,0.5); }
+  .m-side-user {
+    margin-top: auto; display: flex; align-items: center; gap: 10px;
+    padding: 10px 11px; border-top: 1px solid rgba(255,255,255,0.14);
+  }
+  .m-side-user .av { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.2); display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+  .m-side-user strong { display: block; font-size: 12.5px; }
+  .m-side-user small { color: rgba(255,255,255,0.55); font-size: 11px; }
+
+  .m-canvas { padding: 0 0 26px; }
+  .m-hero {
+    background: linear-gradient(90deg, #0B2D27 0%, #0F3A32 60%, #145043 100%);
+    color: #fff; padding: 16px 24px; display: flex; align-items: center; gap: 18px;
+  }
+  .m-hero h2 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+  .m-hero small { color: rgba(255,255,255,0.66); font-size: 12.5px; }
+  .m-hero .refresh {
+    margin-left: auto; border: 1px solid rgba(255,255,255,0.3); color: #fff;
+    border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600;
+  }
+
+  .m-grid {
+    display: grid; grid-template-columns: 1fr 1fr 348px;
+    grid-template-areas: "appr todo rail" "feed feed rail";
+    gap: 14px; padding: 18px 24px 0; align-items: stretch;
+  }
+  .m-rail { grid-area: rail; display: flex; flex-direction: column; gap: 14px; }
+  .m-rail > .m-card:first-child { flex: 1; }
+  .m-feed-card { grid-area: feed; }
+  .m-rows { flex: 1; }
+  .m-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(15,58,50,0.06); display: flex; flex-direction: column;
+  }
+  .m-card-h {
+    display: flex; align-items: center; gap: 8px; padding: 13px 16px 0;
+  }
+  .m-card-h .t { font-weight: 800; font-size: 14px; letter-spacing: -0.01em; }
+  .m-card-h .badge {
+    min-width: 20px; height: 19px; padding: 0 7px; border-radius: 999px;
+    background: var(--danger); color: #fff; font-size: 11.5px; font-weight: 700;
+    display: grid; place-items: center; font-variant-numeric: tabular-nums;
+  }
+  .m-card-h .badge.soft { background: var(--green-soft); color: var(--green-deep); }
+  .m-card-h .all { margin-left: auto; color: var(--green-deep); font-size: 12px; font-weight: 700; }
+  .m-tabs { display: flex; gap: 2px; padding: 10px 16px 0; }
+  .m-tabs span {
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    padding: 5px 10px; border-radius: 7px;
+  }
+  .m-tabs span.on { background: var(--green-soft); color: var(--green-deep); font-weight: 700; }
+  .m-rows { display: flex; flex-direction: column; padding: 8px 8px 10px; }
+  .m-row {
+    display: flex; align-items: center; gap: 10px; padding: 9px 8px;
+    border-radius: 8px;
+  }
+  .m-row + .m-row { border-top: 1px solid var(--border); border-top-color: color-mix(in srgb, var(--border) 55%, transparent); }
+  .m-row:hover { background: var(--canvas); }
+  .m-type {
+    flex: none; font-size: 10.5px; font-weight: 700; border-radius: 5px; padding: 2px 7px;
+    background: var(--canvas); color: var(--muted); border: 1px solid var(--border);
+  }
+  .m-row .txt { min-width: 0; }
+  .m-row .txt strong { display: block; font-size: 13px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .m-row .txt small { color: var(--faint); font-size: 11.5px; }
+  .m-act { margin-left: auto; display: flex; gap: 6px; flex: none; }
+  .m-act .ok { background: var(--green); color: #fff; border-radius: 7px; padding: 5px 11px; font-size: 12px; font-weight: 700; }
+  .m-act .no { border: 1px solid var(--border); color: var(--muted); border-radius: 7px; padding: 5px 11px; font-size: 12px; font-weight: 600; background: #fff; }
+  .m-act .open { border: 1px solid var(--green-deep); color: var(--green-deep); border-radius: 7px; padding: 5px 11px; font-size: 12px; font-weight: 700; background: #fff; }
+
+  .m-check { width: 17px; height: 17px; border: 1.6px solid var(--faint); border-radius: 50%; flex: none; }
+  .m-due {
+    margin-left: auto; flex: none; font-size: 11px; font-weight: 700;
+    border-radius: 5px; padding: 2.5px 8px; font-variant-numeric: tabular-nums;
+  }
+  .m-due.late { background: #FBEAE7; color: var(--danger); }
+  .m-due.today { background: #FDF0E3; color: var(--warn); }
+  .m-due.soon { background: var(--canvas); color: var(--muted); border: 1px solid var(--border); }
+
+  .m-appr { grid-area: appr; }
+  .m-todo { grid-area: todo; }
+
+  .m-month { padding: 10px 14px 2px; }
+  .m-month-head { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 8px; }
+  .m-month-head strong { font-size: 13.5px; font-weight: 800; letter-spacing: -0.01em; }
+  .m-month-head .nav { display: flex; gap: 4px; }
+  .m-month-head .nav span {
+    width: 22px; height: 22px; border: 1px solid var(--border); border-radius: 6px;
+    display: grid; place-items: center; color: var(--muted); font-size: 12px;
+  }
+  .m-month-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+    text-align: center; font-variant-numeric: tabular-nums;
+  }
+  .m-month-grid .wd { font-size: 10.5px; font-weight: 700; color: var(--faint); padding: 3px 0 5px; }
+  .m-month-grid .wd.sun { color: var(--danger); }
+  .m-month-grid .d {
+    height: 34px; border-radius: 7px; font-size: 12px; color: var(--ink);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  }
+  .m-month-grid .d:hover { background: var(--canvas); }
+  .m-month-grid .d.out { opacity: 0.4; }
+  .m-month-grid .d.sun { color: var(--danger); }
+  .m-month-grid .d .dots { display: flex; gap: 2.5px; height: 4px; }
+  .m-month-grid .d .dots i { width: 4px; height: 4px; border-radius: 50%; background: var(--green); display: inline-block; }
+  .m-month-grid .d .dots i.r { background: var(--danger); }
+  .m-month-grid .d.today {
+    background: var(--green-soft); font-weight: 800; color: var(--green-deep);
+    box-shadow: inset 0 0 0 1.5px var(--green);
+  }
+  .m-cal-agenda { padding: 4px 16px 12px; }
+  .m-cal-agenda h4 { margin: 8px 0 2px; font-size: 11px; letter-spacing: 0.07em; color: var(--faint); font-weight: 700; }
+  .m-ev { display: flex; gap: 10px; align-items: baseline; padding: 7px 2px; }
+  .m-ev + .m-ev { border-top: 1px solid color-mix(in srgb, var(--border) 55%, transparent); }
+  .m-ev time { flex: none; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 12.5px; color: var(--green-deep); width: 42px; }
+  .m-ev .what strong { display: block; font-size: 12.5px; font-weight: 650; }
+  .m-ev .what small { color: var(--faint); font-size: 11px; }
+  .m-ev .flag { margin-left: auto; flex: none; font-size: 10.5px; font-weight: 700; color: var(--danger); background: #FBEAE7; border-radius: 5px; padding: 2px 7px; }
+
+  .m-feed { padding: 6px 16px 14px; display: flex; flex-direction: column; gap: 10px; }
+  .m-feed-wide { flex: 1; display: grid; grid-template-columns: 1.1fr 1fr; gap: 4px 18px; align-items: start; }
+  .m-feed-list { display: flex; flex-direction: column; }
+  .m-feed-list .m-feed-item { padding: 7px 2px; }
+  .m-feed-list .m-feed-item + .m-feed-item { border-top: 1px solid color-mix(in srgb, var(--border) 55%, transparent); }
+  .m-feat {
+    border: 1px solid var(--border); border-left: 3px solid var(--green);
+    border-radius: 9px; padding: 10px 12px; background: var(--canvas);
+  }
+  .m-feat .k { font-size: 10.5px; font-weight: 700; color: var(--green-deep); }
+  .m-feat strong { display: block; font-size: 13.5px; font-weight: 750; margin: 2px 0; }
+  .m-feat p { margin: 0; color: var(--muted); font-size: 12px; }
+  .m-feat small { color: var(--faint); font-size: 11px; }
+  .m-feed-item { display: flex; gap: 8px; align-items: baseline; font-size: 12.5px; }
+  .m-feed-item small { margin-left: auto; flex: none; color: var(--faint); font-size: 11px; }
+
+  .m-status { display: flex; flex-wrap: wrap; gap: 7px; padding: 10px 16px 8px; }
+  .m-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--border); border-radius: 999px; padding: 4px 11px;
+    font-size: 11.5px; font-weight: 600; color: var(--muted); background: #fff;
+  }
+  .m-pill i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .m-pill .g { background: var(--green); }
+  .m-pill .a { background: var(--warn); }
+  .m-note-line { padding: 0 16px 13px; color: var(--faint); font-size: 11.5px; }
+
+  /* ---------- legend ---------- */
+  .legend { background: var(--pg-surface); border: 1px solid var(--pg-border); border-radius: 14px; padding: 6px 20px 14px; }
+  .legend table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .legend th { text-align: left; font-size: 11.5px; letter-spacing: 0.07em; color: var(--pg-muted); font-weight: 700; padding: 12px 10px 6px; border-bottom: 1px solid var(--pg-border); }
+  .legend td { padding: 9px 10px; border-bottom: 1px solid color-mix(in srgb, var(--pg-border) 55%, transparent); vertical-align: top; }
+  .legend tr:last-child td { border-bottom: 0; }
+  .legend code { font-family: "SFMono-Regular", ui-monospace, Consolas, monospace; font-size: 12px; background: var(--pg-note-soft); color: var(--pg-note); border-radius: 5px; padding: 1px 6px; white-space: nowrap; }
+
+  .mockup.settings { min-width: 860px; }
+  .mockup.settings .m-body { min-height: 380px; grid-template-columns: 250px 1fr; }
+  .m-back {
+    display: flex; align-items: center; gap: 8px; padding: 9px 11px; margin-bottom: 6px;
+    border-radius: 9px; background: rgba(255,255,255,0.1); color: #fff; font-weight: 700; font-size: 13px;
+  }
+  .m-side-title { font-size: 15px; font-weight: 800; padding: 4px 11px 8px; }
+  .m-settings-canvas { padding: 26px; color: var(--muted); font-size: 13px; }
+
+  .foot-notes { color: var(--pg-muted); font-size: 12.5px; max-width: 80ch; }
+  .foot-notes li { margin: 3px 0; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .m-row, .m-axis a, .m-nav-item { transition: background-color 120ms ease; }
+  }
+</style>
+
+<div class="page">
+  <header class="doc-head">
+    <span class="eyebrow">matter · UI 워크스트림 목업 — 2026-07-07</span>
+    <h1>Home 대시보드 &amp; 사이드바 IA 재설계</h1>
+    <p>실행 지시서 <b>workbook/sidebar-home-dashboard-execution-plan-2026-07-07.md</b>의 시각 사양.
+    번호 콜아웃은 지시서의 스펙 ID와 1:1로 대응합니다. 프레임 팔레트·타이포는 Forest 스킨 토큰을 그대로 사용했습니다.</p>
+  </header>
+
+  <div class="decision-strip" role="list">
+    <span role="listitem"><b>안 1 채택</b> — 축 계약 고정 + 유틸리티 승격</span>
+    <span role="listitem">사이드바 교체 트리거 = <b>축 전환뿐</b></span>
+    <span role="listitem">Home 기본 랜딩 = <b>대시보드</b></span>
+    <span role="listitem">메시지·승인 = Home 하위 섹션 + 상단 배지</span>
+    <span role="listitem">고정 그리드 v1 → 개인화 v2</span>
+    <span role="listitem">실데이터 완전 연동</span>
+  </div>
+
+  <h2 class="sec">A. Home 대시보드 (로그인 기본 랜딩) <small>1240px 데스크톱 기준 · 가로 스크롤 가능</small></h2>
+  <div class="frame-scroll">
+  <div class="mockup" aria-label="Home 대시보드 목업">
+    <div class="m-topbar">
+      <div class="m-brand"><strong>matter</strong><span>AMIC</span></div>
+      <nav class="m-axis" aria-label="제품 축">
+        <span class="callout" title="NAV-01 · 유일한 글로벌 좌표">1</span>
+        <a class="on" href="#" aria-current="page">Home</a><a href="#">Client</a><a href="#">Matter</a><a href="#">People</a><a href="#">Vault</a><a href="#">Portal</a>
+      </nav>
+      <div class="m-search">🔍 통합 검색 <kbd>/</kbd></div>
+      <div class="m-new">＋ 새로 만들기</div>
+      <div class="m-utils">
+        <span class="callout" title="NAV-04 · 배지 규약: 카운트=행동 필요, 점=정보성">3</span>
+        <div class="m-iconbtn" title="승인 대기 드로어">✓<span class="cnt">5</span></div>
+        <div class="m-iconbtn" title="메시지 드로어">✉<span class="cnt">3</span></div>
+        <div class="m-iconbtn" title="알림 드로어">🔔<span class="dot"></span></div>
+        <div class="m-avatar">서</div>
+      </div>
+    </div>
+
+    <div class="m-body">
+      <aside class="m-side" aria-label="Home 사이드바">
+        <div class="m-ws">
+          <div><span class="lab">워크스페이스</span><strong>Home</strong></div>
+          <span class="chev">▼</span>
+        </div>
+        <div class="m-nav-item on"><span class="ico">▦</span> 대시보드 <span class="callout" style="margin-left:auto" title="NAV-02 · 사이드바 = Home 로컬 내비, 콘텐츠만 전환">2</span></div>
+        <div class="m-nav-item"><span class="ico">✉</span> 메시지 <span class="cnt">3</span></div>
+        <div class="m-nav-item"><span class="ico">✓</span> 승인 요청 <span class="cnt">5</span></div>
+        <div class="m-nav-item"><span class="ico">✍</span> 전자 계약</div>
+        <div class="m-nav-item"><span class="ico">📊</span> 회사 현황 <span class="lock">관리자</span></div>
+        <hr class="m-side-div" />
+        <div class="m-side-sec">시스템</div>
+        <div class="m-nav-item"><span class="ico">⇪</span> 데이터 가져오기 <span class="mode">모드 ↗</span></div>
+        <div class="m-nav-item"><span class="ico">⚙</span> 설정 <span class="mode">모드 ↗</span></div>
+        <div class="m-side-user">
+          <span class="av">서</span>
+          <span><strong>서정욱</strong><small>변호사 · AMIC</small></span>
+        </div>
+      </aside>
+
+      <main class="m-canvas">
+        <div class="m-hero">
+          <div>
+            <h2>Welcome, 서정욱 변호사님</h2>
+            <small>2026년 7월 7일 화요일 · 오늘 처리할 항목 7건</small>
+          </div>
+          <span class="refresh">↻ 새로고침</span>
+        </div>
+
+        <div class="m-grid">
+          <section class="m-card m-appr" aria-label="승인 대기">
+            <div class="m-card-h">
+              <span class="callout" title="W-01 · 내가 결재할 차례 전부(업무+전사)">4</span>
+              <span class="t">승인 대기</span><span class="badge">5</span>
+              <a class="all" href="#">전체 보기 →</a>
+            </div>
+            <div class="m-tabs"><span class="on">받은 요청 5</span><span>보낸 요청 2</span></div>
+            <div class="m-rows">
+              <div class="m-row">
+                <span class="m-type">비용</span>
+                <span class="txt"><strong>출장비 ₩1,250,000 — 김하늘</strong><small>사건 2026-0142 · 어제 17:40</small></span>
+                <span class="m-act"><span class="ok">승인</span><span class="no">반려</span></span>
+              </div>
+              <div class="m-row">
+                <span class="m-type">휴가</span>
+                <span class="txt"><strong>연차 7/10 ~ 7/11 — 박지원</strong><small>잔여 연차 8일 · 오늘 09:12</small></span>
+                <span class="m-act"><span class="ok">승인</span><span class="no">반려</span></span>
+              </div>
+              <div class="m-row">
+                <span class="m-type">결재</span>
+                <span class="txt"><strong>Parnas Tower 임대차 검토 의견서 v3</strong><small>MiraeKorea Holdings · 문서 결재는 열람 후 처리</small></span>
+                <span class="m-act"><span class="open">열기</span></span>
+              </div>
+              <div class="m-row">
+                <span class="m-type">증명서</span>
+                <span class="txt"><strong>재직증명서 발급 — 이서연</strong><small>제출처: 은행 · 오늘 10:02</small></span>
+                <span class="m-act"><span class="ok">승인</span><span class="no">반려</span></span>
+              </div>
+              <div class="m-row">
+                <span class="m-type">근무</span>
+                <span class="txt"><strong>근무기록 정정 — 최민호</strong><small>7/3 외근 누락 · 오늘 11:20</small></span>
+                <span class="m-act"><span class="ok">승인</span><span class="no">반려</span></span>
+              </div>
+            </div>
+          </section>
+
+          <section class="m-card m-todo" aria-label="오늘 To Do">
+            <div class="m-card-h">
+              <span class="callout" title="W-02 · 내 미완료 업무 전부, 지연 강조">5</span>
+              <span class="t">오늘 To Do</span><span class="badge soft">지연 2 · 오늘 2</span>
+              <a class="all" href="#">전체 보기 →</a>
+            </div>
+            <div class="m-rows" style="padding-top:12px">
+              <div class="m-row">
+                <span class="m-check"></span>
+                <span class="txt"><strong>준비서면 초안 검토</strong><small>2026-0142 파르나스 임대차</small></span>
+                <span class="m-due late">D+2</span>
+              </div>
+              <div class="m-row">
+                <span class="m-check"></span>
+                <span class="txt"><strong>이해상충 확인 회신 — James Lee</strong><small>신규 자문 후보 · 동명이인 2건</small></span>
+                <span class="m-due late">D+1</span>
+              </div>
+              <div class="m-row">
+                <span class="m-check"></span>
+                <span class="txt"><strong>상대방 수정본 3건 대조</strong><small>Vault 수신함 → 리뷰 대기열</small></span>
+                <span class="m-due today">오늘</span>
+              </div>
+              <div class="m-row">
+                <span class="m-check"></span>
+                <span class="txt"><strong>증거목록 v2 정리</strong><small>2026-0138 주주총회 결의 취소</small></span>
+                <span class="m-due today">오늘</span>
+              </div>
+              <div class="m-row">
+                <span class="m-check"></span>
+                <span class="txt"><strong>수임계약서 날인 준비</strong><small>신규 사건 개시 절차</small></span>
+                <span class="m-due soon">7/9</span>
+              </div>
+              <div class="m-row">
+                <span class="m-check"></span>
+                <span class="txt"><strong>의견서 v3 반영사항 정리</strong><small>Parnas Tower 임대차 검토</small></span>
+                <span class="m-due soon">7/10</span>
+              </div>
+            </div>
+          </section>
+
+          <div class="m-rail">
+
+          <section class="m-card" aria-label="캘린더">
+            <div class="m-card-h">
+              <span class="callout" title="W-03 · 실제 월간 달력(우측 레일) + 오늘 일정, 내 일정 통합">6</span>
+              <span class="t">캘린더</span>
+              <a class="all" href="#">캘린더 열기 →</a>
+            </div>
+            <div class="m-month">
+              <div class="m-month-head">
+                <strong>2026년 7월</strong>
+                <span class="nav"><span>‹</span><span>›</span></span>
+              </div>
+              <div class="m-month-grid">
+                <span class="wd sun">일</span><span class="wd">월</span><span class="wd">화</span><span class="wd">수</span><span class="wd">목</span><span class="wd">금</span><span class="wd">토</span>
+                <span class="d out sun">28</span><span class="d out">29</span><span class="d out">30</span><span class="d">1</span><span class="d">2</span><span class="d">3</span><span class="d">4</span>
+                <span class="d sun">5</span><span class="d">6</span><span class="d today">7<span class="dots"><i></i><i></i></span></span><span class="d">8<span class="dots"><i class="r"></i></span></span><span class="d">9<span class="dots"><i></i></span></span><span class="d">10<span class="dots"><i></i></span></span><span class="d">11</span>
+                <span class="d sun">12</span><span class="d">13</span><span class="d">14<span class="dots"><i></i></span></span><span class="d">15</span><span class="d">16</span><span class="d">17<span class="dots"><i></i></span></span><span class="d">18</span>
+                <span class="d sun">19</span><span class="d">20</span><span class="d">21</span><span class="d">22</span><span class="d">23<span class="dots"><i></i></span></span><span class="d">24</span><span class="d">25</span>
+                <span class="d sun">26</span><span class="d">27</span><span class="d">28</span><span class="d">29</span><span class="d">30</span><span class="d">31</span><span class="d out">1</span>
+              </div>
+            </div>
+            <div class="m-cal-agenda">
+              <h4>오늘 · 7월 7일 (화) · 3건</h4>
+              <div class="m-ev"><time>10:30</time><span class="what"><strong>변론기일 — 서울중앙지법 358호</strong><small>2026-0142 파르나스 임대차</small></span></div>
+              <div class="m-ev"><time>14:00</time><span class="what"><strong>의뢰인 미팅 — MiraeKorea</strong><small>5F 회의실 · 참석 3명</small></span></div>
+              <div class="m-ev"><time>16:30</time><span class="what"><strong>주간 팀 회의</strong><small>송무 1팀</small></span></div>
+              <div class="m-ev"><time>수 14:00</time><span class="what"><strong>준비서면 제출기한</strong><small>2026-0142</small></span><span class="flag">기한</span></div>
+            </div>
+          </section>
+
+          <section class="m-card" aria-label="시스템 상태">
+            <div class="m-card-h">
+              <span class="callout" title="W-05 · 기존 운영 대기열·상태 스트립 흡수(보조 슬롯)">8</span>
+              <span class="t">시스템 상태</span>
+            </div>
+            <div class="m-status">
+              <span class="m-pill"><i class="g"></i>Matter 정상</span>
+              <span class="m-pill"><i class="g"></i>Vault 정상</span>
+              <span class="m-pill"><i class="a"></i>구성원 검토 1</span>
+              <span class="m-pill"><i class="g"></i>동기화 정상</span>
+            </div>
+            <div class="m-note-line">권한·감사 상세는 <b>회사 현황</b>(관리자)에서 확인합니다.</div>
+          </section>
+
+          </div>
+
+          <section class="m-card m-feed-card" aria-label="뉴스레터·공지">
+            <div class="m-card-h">
+              <span class="callout" title="W-04 · 사내 공지 + 법조 뉴스 + 펌 뉴스레터, 최신 1건 강조">7</span>
+              <span class="t">뉴스레터 · 공지</span>
+              <a class="all" href="#">더보기 →</a>
+            </div>
+            <div class="m-tabs"><span class="on">사내 공지</span><span>법조 뉴스</span><span>뉴스레터</span></div>
+            <div class="m-feed m-feed-wide">
+              <div class="m-feat">
+                <span class="k">공지 · 경영지원팀</span>
+                <strong>7월 정기 세미나 — 개정 상법 실무 대응</strong>
+                <p>7/17(금) 16시, 발표자 신청은 수요일까지 받습니다.</p>
+                <small>오늘 09:00</small>
+              </div>
+              <div class="m-feed-list">
+                <div class="m-feed-item">여름 휴가 신청 마감 안내 (7/15)<small>어제</small></div>
+                <div class="m-feed-item">6F 회의실 공사 일정 공유<small>7/4</small></div>
+                <div class="m-feed-item">복지포인트 상반기 사용 안내<small>7/1</small></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+  </div>
+
+  <section class="legend" aria-label="콜아웃 범례">
+    <table>
+      <thead><tr><th style="width:44px">번호</th><th style="width:220px">요소</th><th style="width:110px">스펙 ID</th><th>핵심 규칙</th></tr></thead>
+      <tbody>
+        <tr><td><span class="callout">1</span></td><td>상단 제품 축</td><td><code>NAV-01</code></td><td>유일한 L1 글로벌 좌표. 어떤 클릭도 축 하이라이트를 잃게 하지 않는다.</td></tr>
+        <tr><td><span class="callout">2</span></td><td>Home 사이드바</td><td><code>NAV-02</code></td><td>현재 축의 로컬 내비. 대시보드·메시지·승인·전자 계약·회사 현황 클릭 시 <b>콘텐츠 영역만</b> 전환. 사이드바 교체 트리거는 축 전환뿐.</td></tr>
+        <tr><td><span class="callout">3</span></td><td>상단 유틸리티 배지</td><td><code>NAV-04</code></td><td>행동 필요=숫자 카운트(승인·메시지), 정보성=점(알림). 클릭 시 사이드바를 건드리지 않는 오버레이 드로어. '전체 보기'는 Home 축 해당 뷰로 딥링크.</td></tr>
+        <tr><td><span class="callout">4</span></td><td>승인 대기 위젯</td><td><code>W-01</code></td><td>내가 결재할 차례 전부(업무 결재+전사 요청함). 저위험 유형은 인라인 승인/반려, 문서 결재는 '열기'. 받은/보낸 탭 분리. 좌상단 고정.</td></tr>
+        <tr><td><span class="callout">5</span></td><td>오늘 To Do 위젯</td><td><code>W-02</code></td><td>나에게 배정된 미완료 업무 태스크 전부를 마감순으로: 지연(D+n, 적색) → 오늘 → 임박. 체크 시 즉시 완료 처리. 업무 태스크만 집계.</td></tr>
+        <tr><td><span class="callout">6</span></td><td>캘린더 위젯</td><td><code>W-03</code></td><td><b>실제 월간 달력, 우측 레일 최상단.</b> 일정 있는 날 점(기한=적색 점), 오늘 하이라이트, 날짜 클릭 시 아래 일정 목록이 해당 일로 전환. 달력 아래 오늘 일정+임박 기한. 내 일정 통합(사건 기일·외부·부재), 항목 클릭 시 사건 딥링크.</td></tr>
+        <tr><td><span class="callout">7</span></td><td>뉴스레터·공지 위젯</td><td><code>W-04</code></td><td>사내 공지 / 법조 뉴스 / 펌 뉴스레터 3탭. 최신 1건 강조 + 목록. <b>본문 하단 풀폭</b>(액션 위젯 아래) — 액션 위젯을 밀어내지 않는 보조 슬롯.</td></tr>
+        <tr><td><span class="callout">8</span></td><td>시스템 상태 위젯</td><td><code>W-05</code></td><td>기존 Home의 운영 대기열·상태 스트립·권한 요약을 보조 슬롯 1개로 흡수(우측 레일 하단 고정). 상세는 권한 기반 '회사 현황'으로.</td></tr>
+        <tr><td><span class="callout">9</span></td><td>설정 모드 전환 (아래 B)</td><td><code>NAV-05</code></td><td>사이드바 전면 교체가 허용되는 유일한 예외(설정·데이터 가져오기). 조건: 상단 바 유지 + '← 업무로 돌아가기' 앵커 + 더 깊은 계층 진입일 것.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <h2 class="sec">B. 설정 진입 — 모드 전환 예외 <small>사이드바가 바뀌는 유일한 경우</small></h2>
+  <div class="frame-scroll">
+  <div class="mockup settings" aria-label="설정 모드 목업">
+    <div class="m-topbar">
+      <div class="m-brand"><strong>matter</strong><span>AMIC</span></div>
+      <nav class="m-axis"><a class="on" href="#">Home</a><a href="#">Client</a><a href="#">Matter</a><a href="#">People</a><a href="#">Vault</a><a href="#">Portal</a></nav>
+      <div class="m-search">🔍 통합 검색 <kbd>/</kbd></div>
+      <div class="m-utils"><div class="m-iconbtn">✓<span class="cnt">5</span></div><div class="m-avatar">서</div></div>
+    </div>
+    <div class="m-body">
+      <aside class="m-side">
+        <div class="m-back"><span class="callout" title="NAV-05 · 모드 전환 3조건">9</span> ← 업무로 돌아가기</div>
+        <div class="m-side-title">설정</div>
+        <div class="m-nav-item on"><span class="ico">⚙</span> 회사 설정</div>
+        <div class="m-nav-item"><span class="ico">🛡</span> 권한</div>
+        <div class="m-nav-item"><span class="ico">🔒</span> 보안</div>
+        <div class="m-nav-item"><span class="ico">🔗</span> 연동</div>
+        <div class="m-nav-item"><span class="ico">💳</span> 결제</div>
+        <div class="m-nav-item"><span class="ico">🏷</span> 태그 관리</div>
+      </aside>
+      <main class="m-settings-canvas">
+        상단 제품 축은 그대로 유지되고, 사이드바 최상단의 <b>'← 업무로 돌아가기'</b>가 직전 화면(대시보드)으로 복귀합니다.
+        일상 기능(대시보드·메시지·승인)은 이 예외를 사용할 수 없습니다.
+      </main>
+    </div>
+  </div>
+  </div>
+
+  <ul class="foot-notes">
+    <li>서체: 실서비스는 SUITE Matter / Pretendard Matter 웹폰트를 사용합니다. 이 목업은 시스템 폰트 대체로 렌더링됩니다.</li>
+    <li>데이터는 전부 예시이며, 위젯별 데이터 계약·빈 상태 문구·배지 감소 규칙은 실행 지시서 §5~6을 따릅니다.</li>
+    <li>프레임은 Forest 스킨의 고정 라이트 캔버스를 재현한 것으로, 페이지 테마(라이트/다크)와 무관하게 동일합니다.</li>
+  </ul>
+</div>
+
+</body>
+</html>

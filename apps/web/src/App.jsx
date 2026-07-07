@@ -2,8 +2,8 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { copy } from "./i18n.js";
 import { navItems } from "./data/nav.js";
-import { globalUtilityViewIds, isGlobalUtilityView, resolveGlobalShortcut } from "./data/globalUtilities.js";
-import { GlobalSearch, LoadingSurface, NotificationDrawer, Sidebar, Topbar } from "./components/Shell.jsx";
+import { globalUtilityViewIds, isGlobalUtilityView, modeExceptionUtilityViewIds, resolveGlobalShortcut } from "./data/globalUtilities.js";
+import { GlobalSearch, LoadingSurface, Sidebar, Topbar, UtilityDrawer, notificationItems, utilityMessageItems } from "./components/Shell.jsx";
 import { AuthSurface } from "./components/AuthSurface.jsx";
 import { GlobalUtilitySurface } from "./components/GlobalUtilitySurface.jsx";
 import { HomeSurface } from "./components/HomeSurface.jsx";
@@ -15,6 +15,15 @@ import { UserProfileSurface } from "./components/UserProfileSurface.jsx";
 import { PeopleHome } from "./people/PeopleHome.tsx";
 import { SkinContext } from "./context/SkinContext.jsx";
 import { loginLawosApiSession } from "./data/apiClient.js";
+
+const productAxisIds = new Set(navItems.map((item) => item.id));
+const emptyHomeActionCounts = Object.freeze({ approval: 0, task_late: 0, task_today: 0 });
+const initialUnreadMessageIds = Object.freeze(utilityMessageItems.filter((item) => item.unread).map((item) => item.id));
+const defaultModeReturnTarget = Object.freeze({ view: "home", section: "home-dashboard" });
+
+export function resolveAxis(view) {
+  return productAxisIds.has(view) ? view : "home";
+}
 
 function readStoredSkin() {
   try {
@@ -35,7 +44,8 @@ function storeSkin(skin) {
 
 export function App() {
   const initialParams = new URLSearchParams(window.location.search);
-  const routableViews = ["auth", "home", "loading", "profile", ...navItems.map((item) => item.id), ...globalUtilityViewIds];
+  const routableViews = ["auth", "home", "loading", "profile", ...navItems.map((item) => item.id), ...modeExceptionUtilityViewIds];
+  const redirectableViews = [...routableViews, ...globalUtilityViewIds];
   const initialLocale = initialParams.get("locale") === "en" ? "en" : "ko";
   const initialTheme = initialParams.get("theme") === "dark" ? "dark" : "light";
   const initialSkinParam = initialParams.get("skin");
@@ -45,7 +55,7 @@ export function App() {
     : ["forest", "matter"].includes(storedSkin)
       ? storedSkin
       : "forest";
-  const rawInitialView = routableViews.includes(initialParams.get("view")) ? initialParams.get("view") : "home";
+  const rawInitialView = redirectableViews.includes(initialParams.get("view")) ? initialParams.get("view") : "home";
   const rawInitialSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
   const resolvedInitialRoute = resolveRoute(rawInitialView, rawInitialSection);
   const initialView = resolvedInitialRoute.view;
@@ -67,9 +77,21 @@ export function App() {
   const [handoffSplashVisible, setHandoffSplashVisible] = useState(initialHandoffSplash);
   const [authStep, setAuthStep] = useState(initialAuthStep);
   const [query, setQuery] = useState(initialQuery);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [utilityDrawerType, setUtilityDrawerType] = useState(resolvedInitialRoute.openNotifications ? "notifications" : "");
+  const [notificationUnreadCount, setNotificationUnreadCount] = useState(notificationItems.length);
+  const [unreadMessageIds, setUnreadMessageIds] = useState(() => new Set(initialUnreadMessageIds));
+  const [homeActionCounts, setHomeActionCounts] = useState(emptyHomeActionCounts);
+  const [modeReturnTarget, setModeReturnTarget] = useState(() =>
+    modeExceptionUtilityViewIds.includes(initialView) || ["auth", "loading"].includes(initialView)
+      ? defaultModeReturnTarget
+      : { view: initialView, section: initialSection || (initialView === "home" ? "home-dashboard" : "") }
+  );
   const [authError, setAuthError] = useState("");
   const labels = copy[locale];
+  const axis = resolveAxis(view);
+  const homeApprovalCount = Number(homeActionCounts.approval ?? 0) || 0;
+  const homeMessageCount = unreadMessageIds.size;
+  const initialRouteWasRedirected = rawInitialView !== initialView || rawInitialSection !== initialSection;
 
   function resolveRoute(nextView, section = "") {
     const resolved = resolveGlobalShortcut(nextView, section);
@@ -79,7 +101,7 @@ export function App() {
 
   function routeFromLocation() {
     const params = new URLSearchParams(window.location.search);
-    const rawView = routableViews.includes(params.get("view")) ? params.get("view") : "home";
+    const rawView = redirectableViews.includes(params.get("view")) ? params.get("view") : "home";
     const nextLiveCtx = ["allow", "denied", "review"].includes(params.get("ctx")) ? params.get("ctx") : "allow";
     const rawSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
     return { ...resolveRoute(rawView, rawSection), liveCtx: nextLiveCtx };
@@ -93,13 +115,66 @@ export function App() {
     return `${window.location.pathname}?${params.toString()}${hash}`;
   }
 
+  function isReturnableWorkView(nextView) {
+    return !modeExceptionUtilityViewIds.includes(nextView) && !["auth", "loading"].includes(nextView);
+  }
+
+  function routeTargetFor(nextView, section = "") {
+    return { view: nextView, section: section || (nextView === "home" ? "home-dashboard" : "") };
+  }
+
+  function currentModeReturnTarget() {
+    return isReturnableWorkView(view) ? routeTargetFor(view, activeSection) : modeReturnTarget;
+  }
+
   function navigateToView(nextView, section = "") {
     const resolved = resolveRoute(nextView, section);
     if (!routableViews.includes(resolved.view)) return;
+    if (modeExceptionUtilityViewIds.includes(resolved.view)) {
+      setModeReturnTarget(currentModeReturnTarget());
+    } else if (isReturnableWorkView(resolved.view)) {
+      setModeReturnTarget(routeTargetFor(resolved.view, resolved.section));
+    }
     setView(resolved.view);
     setActiveSection(resolved.section);
-    setNotificationsOpen(false);
+    if (resolved.openNotifications) {
+      setUtilityDrawerType("notifications");
+      setNotificationUnreadCount(0);
+    } else {
+      setUtilityDrawerType("");
+    }
     window.history.pushState({ view: resolved.view, section: resolved.section }, "", routeUrl(resolved.view, resolved.section));
+  }
+
+  function returnToWork() {
+    navigateToView(modeReturnTarget.view, modeReturnTarget.section);
+  }
+
+  function toggleUtilityDrawer(type) {
+    const willOpen = utilityDrawerType !== type;
+    if (willOpen && type === "notifications") setNotificationUnreadCount(0);
+    setUtilityDrawerType(willOpen ? type : "");
+  }
+
+  function closeUtilityDrawer() {
+    setUtilityDrawerType("");
+  }
+
+  function navigateFromUtilityDrawer(section) {
+    navigateToView("home", section);
+    closeUtilityDrawer();
+  }
+
+  function markMessageRead(id) {
+    setUnreadMessageIds((current) => {
+      const next = new Set(current);
+      next.delete(id);
+      return next;
+    });
+  }
+
+  function markAllMessagesRead() {
+    setUnreadMessageIds(new Set());
   }
 
   async function handleLogin(credentials) {
@@ -128,11 +203,21 @@ export function App() {
   }, [handoffSplashVisible]);
 
   useEffect(() => {
+    if (!initialRouteWasRedirected) return;
+    window.history.replaceState({ view, section: activeSection }, "", routeUrl(view, activeSection));
+  }, []);
+
+  useEffect(() => {
     const onPopState = () => {
       const nextRoute = routeFromLocation();
       setView(nextRoute.view);
       setLiveCtx(nextRoute.liveCtx);
       setActiveSection(nextRoute.section);
+      if (isReturnableWorkView(nextRoute.view)) {
+        setModeReturnTarget(routeTargetFor(nextRoute.view, nextRoute.section));
+      }
+      setUtilityDrawerType(nextRoute.openNotifications ? "notifications" : "");
+      if (nextRoute.openNotifications) setNotificationUnreadCount(0);
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
@@ -175,15 +260,27 @@ export function App() {
           query={query}
           setQuery={setQuery}
           view={view}
+          axis={axis}
           setView={navigateToView}
           onCreate={() => navigateToView("matters", "matter-opening")}
-          onInvite={() => navigateToView("people", "people-members")}
           onProfile={() => navigateToView("profile")}
-          notificationsOpen={notificationsOpen}
-          onToggleNotifications={() => setNotificationsOpen((open) => !open)}
+          utilityDrawerType={utilityDrawerType}
+          onOpenUtilityDrawer={toggleUtilityDrawer}
+          notificationUnreadCount={notificationUnreadCount}
+          homeApprovalCount={homeApprovalCount}
+          homeMessageCount={homeMessageCount}
         />
         <div className="app-frame contextual-shell" data-sidebar-state="contextual">
-          <Sidebar labels={labels} view={view} setView={navigateToView} activeSection={activeSection} />
+          <Sidebar
+            labels={labels}
+            view={view}
+            axis={axis}
+            setView={navigateToView}
+            activeSection={activeSection}
+            homeApprovalCount={homeApprovalCount}
+            modeReturnTarget={modeReturnTarget}
+            onReturnToWork={returnToWork}
+          />
           <main className="page-canvas">
             {view === "auth" && (
               <AuthSurface
@@ -200,6 +297,8 @@ export function App() {
                 labels={labels}
                 setView={navigateToView}
                 liveCtx={liveCtx}
+                activeSection={activeSection}
+                onHomeActionCountsChange={setHomeActionCounts}
               />
             )}
             {view === "clients" && <ClientsSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} />}
@@ -208,7 +307,7 @@ export function App() {
             {view === "vault" && <VaultSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} />}
             {view === "portal" && <PortalSurface labels={labels} liveCtx={liveCtx} />}
             {view === "profile" && <UserProfileSurface liveCtx={liveCtx} onNavigate={navigateToView} />}
-            {isGlobalUtilityView(view) && (
+            {isGlobalUtilityView(view) && modeExceptionUtilityViewIds.includes(view) && (
               <GlobalUtilitySurface
                 view={view}
                 activeSection={activeSection}
@@ -234,7 +333,19 @@ export function App() {
           />
         )}
         {query && <GlobalSearch labels={labels} query={query} setQuery={setQuery} setView={navigateToView} />}
-        <NotificationDrawer open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
+        <UtilityDrawer
+          open={Boolean(utilityDrawerType)}
+          type={utilityDrawerType}
+          notificationUnreadCount={notificationUnreadCount}
+          homeApprovalCount={homeApprovalCount}
+          homeMessageCount={homeMessageCount}
+          unreadMessageIds={unreadMessageIds}
+          onClose={closeUtilityDrawer}
+          onNavigateHomeSection={navigateFromUtilityDrawer}
+          onMarkNotificationRead={() => setNotificationUnreadCount(0)}
+          onMarkMessageRead={markMessageRead}
+          onMarkAllMessagesRead={markAllMessagesRead}
+        />
       </div>
     </SkinContext.Provider>
   );

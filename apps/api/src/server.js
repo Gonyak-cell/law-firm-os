@@ -92,6 +92,11 @@ import {
   handleUiReadinessApiRequest,
 } from "./ui-readiness-context.js";
 import {
+import {
+  HOME_DASHBOARD_BOUNDED_CONTEXT,
+  createDefaultHomeDashboardRuntime,
+  handleHomeDashboardApiRequest,
+} from "./home-dashboard-runtime-context.js";
   ENTERPRISE_READINESS_BOUNDED_CONTEXT,
   ENTERPRISE_READINESS_RUNTIME_SEED,
   createEnterpriseReadinessRuntimeContext,
@@ -435,6 +440,7 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
     decision_order: PERMISSION_DECISION_ORDER,
     default_decision: "deny",
     fail_closed: true,
+    HOME_DASHBOARD_BOUNDED_CONTEXT,
   }),
   enrichment: Object.freeze({
     contract_ref: "contracts/matter-core-contract.json",
@@ -746,7 +752,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId }
   };
 }
 
-async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev } = {}) {
+async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -804,7 +810,7 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
     sendJson(req, res, 404, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "not_found" });
     return;
   }
-  if (!isAuthPath && !isHrxPath && !isProfilePath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isOutlookPath && !isUiReadinessPath && !isEnterpriseReadinessPath && req.method !== "GET") {
+  if (!isAuthPath && !isHrxPath && !isProfilePath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isOutlookPath && !isUiReadinessPath && !isHomeDashboardPath && !isEnterpriseReadinessPath && req.method !== "GET") {
     sendJson(req, res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
     return;
   }
@@ -851,6 +857,7 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
       method: req.method,
       query,
       body,
+  const isHomeDashboardPath = pathname.startsWith("/home") || pathname.startsWith("/api/home");
       context: null,
       requestId,
       runtime: portalRuntime,
@@ -875,6 +882,7 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
   const requestPermissionContext = () => sessionContext.context;
   const requestHeaders = () => {
     const principal = sessionContext.principal;
+    isHomeDashboardPath ||
     return {
       ...req.headers,
       "x-lawos-tenant-id": principal.tenant_id,
@@ -1199,7 +1207,7 @@ export function createApiServer({
         matterRuntime?.clearanceRepository || !crmIntakeRuntime?.intakeRepository
           ? matterRuntime
           : Object.freeze({ ...matterRuntime, clearanceRepository: crmIntakeRuntime.intakeRepository });
-      await handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime: matterRuntimeWithClearanceLedger, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile });
+      await handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime: matterRuntimeWithClearanceLedger, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile });
     } catch (error) {
       sendJson(req, res, 500, { outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "internal_error", message: error.message });
     }
@@ -1258,6 +1266,14 @@ export function startApiServer({
     providedStorePaths: startupStorePathOptions({
       hrxStorePath,
       masterDataStorePath,
+  if (isHomeDashboardPath) {
+    const context = requestPermissionContext();
+    const body = req.method === "POST" ? await readRequestBody(req) : {};
+    const result = await handleHomeDashboardApiRequest({ pathname, method: req.method, query, body, context, requestId, runtime: homeDashboardRuntime });
+    sendJson(req, res, result.status, result.body);
+    return;
+  }
+
       matterStorePath,
       dmsStorePath,
       dmsObjectStorePath,
@@ -1298,6 +1314,7 @@ export function startApiServer({
     matterRuntime?.repository ??
     matterRepository ??
     createMatterRepository({
+  homeDashboardRuntime = createDefaultHomeDashboardRuntime(),
       filePath: matterStorePath ?? resolvedStorePaths.matterStorePath ?? createEphemeralMatterStorePath(),
       seedRecords: MATTER_RUNTIME_SEED.records,
     });
@@ -1356,6 +1373,7 @@ export function startApiServer({
       storePath: enterpriseReadinessStorePath ?? resolvedStorePaths.enterpriseReadinessStorePath,
     });
   const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority();
+  homeDashboardRuntime,
   const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
     profile: resolvedRuntimeProfile,
     secret: resolvedSessionSecret,
@@ -1423,3 +1441,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   process.once("SIGINT", () => stopCliServer("SIGINT"));
   process.once("SIGTERM", () => stopCliServer("SIGTERM"));
 }
+  const homeDashboardRuntimeContext = homeDashboardRuntime ?? createDefaultHomeDashboardRuntime();
+    homeDashboardRuntime: homeDashboardRuntimeContext,

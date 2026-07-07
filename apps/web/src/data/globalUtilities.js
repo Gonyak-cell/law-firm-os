@@ -483,6 +483,7 @@ export const conditionalGlobalItems = [
 export const globalUtilityCatalog = [...globalUtilityItems, ...conditionalGlobalItems];
 
 export const globalUtilityViewIds = globalUtilityCatalog.map((item) => item.id);
+export const modeExceptionUtilityViewIds = ["settings", "data-import"];
 
 export const legacyGlobalRoutes = globalUtilityCatalog.flatMap((utility) =>
   utility.sections.flatMap((section) =>
@@ -498,6 +499,38 @@ export const legacyGlobalRoutes = globalUtilityCatalog.flatMap((utility) =>
 
 const legacyGlobalRouteMap = new Map(legacyGlobalRoutes.map((route) => [`${route.view}:${route.section}`, route]));
 
+const route = (view, section, extra = {}) => ({ view, section, ...extra });
+
+const directRouteMap = new Map([
+  ["home:", route("home", "home-dashboard")],
+  ["home:home-recent", route("home", "home-dashboard")],
+  ["home:home-dashboard", route("home", "home-dashboard")],
+  ["reports:reports-home-dashboard", route("home", "home-dashboard")],
+  ["calendar:calendar-matter", route("matters", "matter-calendar")],
+  ["calendar:calendar-people-external", route("people", "people-work-schedule-external")],
+  ["calendar:calendar-absence", route("people", "people-leave")],
+  ["finance:finance-matter-billing", route("matters", "matter-billing")],
+  ["finance:finance-expenses", route("people", "people-expense-requests")],
+  ["finance:finance-transactions", route("profile", "transactions")],
+  ["finance:finance-payments", route("profile", "payments")],
+  ["finance:finance-withdrawal", route("profile", "withdrawal")],
+  ["policies:policies-company", route("vault", "vault-documents")],
+  ["policies:policies-employment-contracts", route("home", "home-esign")],
+  ["policies:policies-annual-leave", route("vault", "vault-documents")]
+]);
+
+function resolveFinalUtilityRoute(view, section = "") {
+  const direct = directRouteMap.get(`${view}:${section}`);
+  if (direct) return direct;
+  if (modeExceptionUtilityViewIds.includes(view)) return route(view, section);
+  if (view === "messages") return route("home", "home-messages", { redirectedFrom: { view, section } });
+  if (view === "requests") return route("home", "home-requests", { redirectedFrom: { view, section } });
+  if (view === "esign") return route("home", "home-esign", { redirectedFrom: { view, section } });
+  if (view === "reports") return route("home", "home-company", { redirectedFrom: { view, section } });
+  if (view === "notifications") return route("home", "home-dashboard", { redirectedFrom: { view, section }, openNotifications: true });
+  return null;
+}
+
 export function isGlobalUtilityView(view) {
   return globalUtilityViewIds.includes(view);
 }
@@ -511,7 +544,11 @@ export function isLegacyGlobalRoute(view, section) {
 }
 
 export function resolveGlobalShortcut(view, section = "") {
-  const route = legacyGlobalRouteMap.get(`${view}:${section}`);
-  if (!route) return { view, section };
-  return { view: route.targetView, section: route.targetSection, legacy: route };
+  const direct = resolveFinalUtilityRoute(view, section);
+  if (direct) return direct;
+  const legacyRoute = legacyGlobalRouteMap.get(`${view}:${section}`);
+  if (!legacyRoute) return { view, section };
+  const resolved = resolveFinalUtilityRoute(legacyRoute.targetView, legacyRoute.targetSection);
+  if (resolved) return { ...resolved, legacy: legacyRoute };
+  return { view: legacyRoute.targetView, section: legacyRoute.targetSection, legacy: legacyRoute };
 }

@@ -41,6 +41,8 @@ const DEFAULT_REPORT_PERMISSION_REF = "ui_sf_b_w08_report_builder";
 const DEFAULT_REPORT_AUDIT_HINT_REF = "ui_sf_b_w08_report_builder_probe";
 const DEFAULT_PROFILE_PERMISSION_REF = "ui_profile_me";
 const DEFAULT_PROFILE_AUDIT_HINT_REF = "ui_profile_me_probe";
+const DEFAULT_HOME_PERMISSION_REF = "ui_home_dashboard_live";
+const DEFAULT_HOME_AUDIT_HINT_REF = "ui_home_dashboard_probe";
 const ENGAGEMENT_SIGNED_PDF_BYTES_BASE64 = "JVBERi0xLjQKTGF3IEZpcm0gT1Mgc2lnbmVkIGVuZ2FnZW1lbnQgYnJvd3NlciBwcm9vZgolJUVPRgo=";
 const ENGAGEMENT_SIGNED_PDF_SHA256 = "fcd3cf8ecefd324d0ef0772f3a86057241458e797a5d5373712041d3933b96ba";
 const ENGAGEMENT_SIGNED_PDF_BYTE_SIZE = 59;
@@ -907,6 +909,233 @@ export async function fetchUserProfile({
   };
 }
 
+function homeDashboardQuery({
+  ctx = "allow",
+  permissionRef = DEFAULT_HOME_PERMISSION_REF,
+  auditHintRef = DEFAULT_HOME_AUDIT_HINT_REF,
+  extra = {}
+} = {}) {
+  const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
+  const params = new URLSearchParams({
+    tenant_id: tenantIdForDomain("vault", VAULT_TENANT_ID),
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef
+  });
+  for (const [key, value] of Object.entries(extra)) {
+    if (value !== undefined && value !== null && value !== "") params.set(key, String(value));
+  }
+  return { context, params };
+}
+
+function guardedHomeResult(response, body, fallbackUiState = "denied") {
+  return {
+    kind: "guarded",
+    status: response?.status ?? 0,
+    requestId: body?.request_id ?? null,
+    outcome: body?.outcome ?? "blocked",
+    uiState: body?.ui_state ?? fallbackUiState,
+    items: [],
+    events: [],
+    entries: [],
+    counts: body?.counts ?? { approval: 0, task_late: 0, task_today: 0 },
+    safeErrorCodes: Array.isArray(body?.safe_error_codes) ? body.safe_error_codes : [],
+    auditHintRef: body?.audit_hint_ref ?? null,
+    countLeakPrevented: body?.count_leak_prevented === true,
+    productionReadyClaim: body?.production_ready_claim === true
+  };
+}
+
+export async function fetchHomeActionInbox({
+  type = "approval",
+  role = null,
+  ctx = "allow",
+  permissionRef = DEFAULT_HOME_PERMISSION_REF,
+  auditHintRef = DEFAULT_HOME_AUDIT_HINT_REF
+} = {}) {
+  const { context, params } = homeDashboardQuery({
+    ctx,
+    permissionRef,
+    auditHintRef,
+    extra: { type, role }
+  });
+  let response;
+  let body;
+  try {
+    response = await apiFetch(`/api/home/action-inbox?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", items: [], counts: { approval: 0, task_late: 0, task_today: 0 } };
+  }
+
+  const hasActionInboxShape =
+    body !== null &&
+    typeof body === "object" &&
+    !Array.isArray(body) &&
+    ["request_id", "outcome", "items", "counts", "safe_error_codes", "audit_hint_ref", "production_ready_claim"]
+      .every((key) => key in body) &&
+    Array.isArray(body.items);
+  if (!hasActionInboxShape) return guardedHomeResult(response, body);
+  if (!response.ok || body.outcome !== "passed") return guardedHomeResult(response, body, body.outcome === "review_required" ? "review_required" : "denied");
+  return {
+    kind: "data",
+    requestId: body.request_id,
+    outcome: body.outcome,
+    uiState: body.ui_state ?? "populated",
+    items: body.items,
+    counts: body.counts,
+    auditEvent: body.audit_event ?? null,
+    safeErrorCodes: body.safe_error_codes,
+    auditHintRef: body.audit_hint_ref,
+    countLeakPrevented: body.count_leak_prevented === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+export async function decideHomeActionInboxItem({
+  id,
+  action,
+  reason = null,
+  idempotencyKey = null,
+  ctx = "allow",
+  permissionRef = DEFAULT_HOME_PERMISSION_REF,
+  auditHintRef = DEFAULT_HOME_AUDIT_HINT_REF
+} = {}) {
+  const { context } = homeDashboardQuery({ ctx, permissionRef, auditHintRef });
+  const bodyPayload = {
+    tenant_id: tenantIdForDomain("vault", VAULT_TENANT_ID),
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef,
+    action,
+    reason,
+    idempotency_key: idempotencyKey ?? `home-${id}-${action}`
+  };
+  let response;
+  let body;
+  try {
+    response = await apiFetch(`/api/home/action-inbox/${encodeURIComponent(id)}/decision`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+      },
+      body: JSON.stringify(bodyPayload)
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", uiState: "error" };
+  }
+  const hasDecisionShape =
+    body !== null &&
+    typeof body === "object" &&
+    !Array.isArray(body) &&
+    ["request_id", "outcome", "safe_error_codes", "audit_hint_ref", "production_ready_claim"].every((key) => key in body);
+  if (!hasDecisionShape) return { kind: "error", uiState: "error" };
+  if (!response.ok) return guardedHomeResult(response, body);
+  return {
+    kind: "data",
+    status: response.status,
+    requestId: body.request_id,
+    outcome: body.outcome,
+    item: body.item ?? null,
+    decision: body.decision ?? null,
+    auditEvent: body.audit_event ?? null,
+    undoExpiresAt: body.undo_expires_at ?? null,
+    safeErrorCodes: body.safe_error_codes,
+    auditHintRef: body.audit_hint_ref,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+export async function fetchHomeAgenda({
+  from,
+  to,
+  ctx = "allow",
+  permissionRef = DEFAULT_HOME_PERMISSION_REF,
+  auditHintRef = DEFAULT_HOME_AUDIT_HINT_REF
+} = {}) {
+  const { context, params } = homeDashboardQuery({
+    ctx,
+    permissionRef,
+    auditHintRef,
+    extra: { from, to }
+  });
+  let response;
+  let body;
+  try {
+    response = await apiFetch(`/api/home/agenda?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", events: [] };
+  }
+  const hasAgendaShape =
+    body !== null &&
+    typeof body === "object" &&
+    !Array.isArray(body) &&
+    ["request_id", "outcome", "events", "safe_error_codes", "audit_hint_ref", "production_ready_claim"].every((key) => key in body) &&
+    Array.isArray(body.events);
+  if (!hasAgendaShape) return guardedHomeResult(response, body);
+  if (!response.ok || body.outcome !== "passed") return guardedHomeResult(response, body);
+  return {
+    kind: "data",
+    requestId: body.request_id,
+    outcome: body.outcome,
+    events: body.events,
+    auditEvent: body.audit_event ?? null,
+    safeErrorCodes: body.safe_error_codes,
+    auditHintRef: body.audit_hint_ref,
+    countLeakPrevented: body.count_leak_prevented === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+export async function fetchHomeFeed({
+  tab = "notice",
+  ctx = "allow",
+  permissionRef = DEFAULT_HOME_PERMISSION_REF,
+  auditHintRef = DEFAULT_HOME_AUDIT_HINT_REF
+} = {}) {
+  const { context, params } = homeDashboardQuery({
+    ctx,
+    permissionRef,
+    auditHintRef,
+    extra: { tab }
+  });
+  let response;
+  let body;
+  try {
+    response = await apiFetch(`/api/home/feed?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", entries: [] };
+  }
+  const hasFeedShape =
+    body !== null &&
+    typeof body === "object" &&
+    !Array.isArray(body) &&
+    ["request_id", "outcome", "entries", "safe_error_codes", "audit_hint_ref", "production_ready_claim"].every((key) => key in body) &&
+    Array.isArray(body.entries);
+  if (!hasFeedShape) return guardedHomeResult(response, body);
+  if (!response.ok) return guardedHomeResult(response, body);
+  return {
+    kind: body.entries.length > 0 ? "data" : "empty",
+    requestId: body.request_id,
+    outcome: body.outcome,
+    entries: body.entries,
+    sourceStatuses: body.source_statuses ?? [],
+    auditEvent: body.audit_event ?? null,
+    safeErrorCodes: body.safe_error_codes,
+    auditHintRef: body.audit_hint_ref,
+    countLeakPrevented: body.count_leak_prevented === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
 export async function fetchMatterRecords({
   ctx = "allow",
   limit = 100,
@@ -939,6 +1168,60 @@ export async function fetchMatterRecords({
           .every((key) => key in body) &&
         Array.isArray(body.items);
       if (!hasMatterShape) return { kind: "error" };
+      items.push(...body.items);
+      cursor = body.page_info?.next_cursor ?? null;
+      pageCount += 1;
+    } while (cursor && pageCount < 20);
+  } catch {
+    return { kind: "error" };
+  }
+
+  return {
+    kind: "data",
+    requestId: body.request_id,
+    uiState: body.ui_state,
+    outcome: body.outcome,
+    items,
+    pageInfo: body.page_info ? { ...body.page_info, returned_count: items.length } : null,
+    safeErrorCodes: body.safe_error_codes,
+    auditHintRef: body.audit_hint_ref,
+    countLeakPrevented: body.count_leak_prevented === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+export async function fetchMatterClients({
+  ctx = "allow",
+  limit = 100,
+  permissionRef = DEFAULT_MATTER_PERMISSION_REF,
+  auditHintRef = DEFAULT_MATTER_AUDIT_HINT_REF
+} = {}) {
+  const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
+  const items = [];
+  let body = null;
+  let cursor = null;
+  let pageCount = 0;
+  try {
+    do {
+      const params = new URLSearchParams({
+        tenant_id: tenantIdForDomain("matter", MATTER_TENANT_ID),
+        permission_ref: permissionRef,
+        audit_hint_ref: auditHintRef,
+        limit: String(limit)
+      });
+      if (cursor) params.set("cursor", cursor);
+      const response = await apiFetch(`/api/matters/clients?${params.toString()}`, {
+        headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+      });
+      body = await response.json();
+      const hasClientShape =
+        body !== null &&
+        typeof body === "object" &&
+        !Array.isArray(body) &&
+        ["request_id", "outcome", "items", "safe_error_codes", "audit_hint_ref", "ui_state", "production_ready_claim"]
+          .every((key) => key in body) &&
+        Array.isArray(body.items);
+      if (!hasClientShape) return { kind: "error" };
       items.push(...body.items);
       cursor = body.page_info?.next_cursor ?? null;
       pageCount += 1;

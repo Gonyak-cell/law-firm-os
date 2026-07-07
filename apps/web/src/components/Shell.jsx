@@ -1,6 +1,7 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import {
+  ArrowLeft,
   Bell,
   ChevronDown,
   CircleHelp,
@@ -9,6 +10,7 @@ import {
   Globe2,
   LayoutDashboard,
   Mail,
+  MessageCircle,
   Moon,
   Plus,
   Search,
@@ -26,9 +28,10 @@ import {
   getGlobalUtilityByView,
   globalUtilityCatalog,
   globalUtilityItems,
-  isLegacyGlobalRoute
+  isLegacyGlobalRoute,
+  modeExceptionUtilityViewIds
 } from "../data/globalUtilities.js";
-import { readLawosApiSession } from "../data/apiClient.js";
+import { fetchUserProfile, readLawosApiSession, readLawosSessionEnvelope } from "../data/apiClient.js";
 import { useSkin } from "../context/SkinContext.jsx";
 import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
@@ -47,6 +50,66 @@ const peopleIconMap = {
 };
 
 const peopleGlobalGroupLabels = new Set(["요청/전자결재", "리포트", "메시지", "전자계약", "회사 설정"]);
+const genericSessionDisplayNames = new Set(["사용자", "세션 사용자"]);
+
+function shellSessionText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function shellSessionFirst(records, keys) {
+  for (const record of records) {
+    if (!record || typeof record !== "object") continue;
+    for (const key of keys) {
+      const value = shellSessionText(record[key]);
+      if (value) return value;
+    }
+  }
+  return "";
+}
+
+function shellSessionDisplayName(records) {
+  for (const record of records) {
+    if (!record || typeof record !== "object") continue;
+    for (const key of ["display_name", "name", "user_name"]) {
+      const value = shellSessionText(record[key]);
+      if (value && !genericSessionDisplayNames.has(value)) return value;
+    }
+  }
+  return "";
+}
+
+function sidebarSessionProfile(profileUser) {
+  const apiSession = readLawosApiSession() ?? {};
+  const sessionEnvelope = readLawosSessionEnvelope() ?? {};
+  const records = [
+    profileUser,
+    apiSession.session,
+    apiSession.account,
+    apiSession.user,
+    apiSession.principal,
+    apiSession,
+    sessionEnvelope
+  ];
+  const name = shellSessionDisplayName(records);
+  const userRef = shellSessionFirst(records, ["user_id", "actor_ref", "email"]);
+  const role = shellSessionFirst(records, ["title", "source_title", "primary_role_label", "role_label", "position", "job_title"]);
+  return {
+    name: name || userRef,
+    role,
+    userRef
+  };
+}
+
+async function readMatterSessionStatus(source = globalThis) {
+  const bridge = source?.matterSession ?? source?.window?.matterSession;
+  if (typeof bridge?.status !== "function") return null;
+  try {
+    const status = await bridge.status();
+    return status?.state === "signed_in" ? status : null;
+  } catch {
+    return null;
+  }
+}
 
 function peopleSidebarGroups() {
   return peopleNavigationGroups.map((group) => {
@@ -93,15 +156,15 @@ export function LoadingSurface({ labels, locale, theme, skin, setLocale, setThem
   );
 }
 
-function ProductAxisNav({ view, setView }) {
+function ProductAxisNav({ axis = "home", setView }) {
   return (
     <nav className="top-axis-nav" aria-label="Home Client Matter People Vault Portal" data-product-axis-nav="top-header">
       {navItems.map(({ id, label, icon: Icon }) => (
         <button
           key={id}
           type="button"
-          className={view === id ? "top-axis-item active" : "top-axis-item"}
-          aria-current={view === id ? "page" : undefined}
+          className={axis === id ? "top-axis-item active" : "top-axis-item"}
+          aria-current={axis === id ? "page" : undefined}
           data-product-axis={id}
           onClick={() => setView(id)}
         >
@@ -113,7 +176,7 @@ function ProductAxisNav({ view, setView }) {
   );
 }
 
-const notificationItems = [
+export const notificationItems = [
   {
     id: "matter-lease-review",
     initials: "MK",
@@ -148,17 +211,87 @@ const notificationItems = [
 
 const notificationUnreadCount = notificationItems.length;
 
-export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQuery, view, setView, onCreate, onInvite, onProfile, notificationsOpen, onToggleNotifications }) {
+export const utilityMessageItems = Object.freeze([]);
+
+const utilityDrawerConfig = {
+  notifications: {
+    title: "알림",
+    subtitle: "작업 알림과 검토 신호",
+    section: "home-dashboard",
+    empty: "새 알림이 없습니다."
+  },
+  messages: {
+    title: "메시지",
+    subtitle: "Matter 대화와 공지 메시지",
+    section: "home-messages",
+    empty: "읽지 않은 메시지가 없습니다."
+  },
+  approvals: {
+    title: "승인 요청",
+    subtitle: "내 결재 차례인 요청",
+    section: "home-requests",
+    empty: "처리할 승인이 없습니다."
+  }
+};
+
+function utilityCountFor(type, { notificationUnreadCount: notifications, homeApprovalCount, homeMessageCount }) {
+  if (type === "notifications") return Number(notifications) || 0;
+  if (type === "messages") return Number(homeMessageCount) || 0;
+  if (type === "approvals") return Number(homeApprovalCount) || 0;
+  return 0;
+}
+
+function utilityApprovalItems(count) {
+  if (!count) return [];
+  return [
+    {
+      id: "home-approval-summary",
+      initials: "승",
+      type: "승인",
+      title: `승인 요청 ${count}건`,
+      client: "Home 승인 요청",
+      status: "처리 대기",
+      summary: "전체 보기에서 세부 요청을 열어 처리합니다.",
+      time: "실시간"
+    }
+  ];
+}
+
+export function Topbar({
+  labels,
+  locale,
+  setLocale,
+  theme,
+  setTheme,
+  query,
+  setQuery,
+  view,
+  axis = view,
+  setView,
+  onCreate,
+  onProfile,
+  utilityDrawerType = "",
+  onOpenUtilityDrawer,
+  notificationUnreadCount: topbarNotificationCount = notificationUnreadCount,
+  homeApprovalCount = 0,
+  homeMessageCount = 0
+}) {
   const [helpOpen, setHelpOpen] = useState(false);
   const skin = useSkin();
   const isForest = skin === "forest";
+  const notificationsOpen = utilityDrawerType === "notifications";
+  const messagesOpen = utilityDrawerType === "messages";
+  const approvalsOpen = utilityDrawerType === "approvals";
+  const notificationCount = Number(topbarNotificationCount) || 0;
+  const messageCount = Number(homeMessageCount) || 0;
+  const approvalCount = Number(homeApprovalCount) || 0;
 
   return (
     <header className="topbar">
       <div className="topbar-brand" data-logo-dock-target="top-left">
         {isForest ? <img className="forest-header-logo" src={amicPetraMain} alt="" /> : <MatterLogo />}
       </div>
-      <ProductAxisNav view={view} setView={setView} />
+      <ProductAxisNav axis={axis} setView={setView} />
       <label className="global-search">
         <Search size={16} />
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={labels.search} />
@@ -169,10 +302,6 @@ export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQ
         {labels.create}
       </button>
       <div className="top-actions">
-        <button className="ghost-button success" onClick={onInvite}>
-          <UserPlus size={15} />
-          {labels.invite}
-        </button>
         <button
           type="button"
           className={view === "profile" ? "profile-trigger active" : "profile-trigger"}
@@ -185,14 +314,38 @@ export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQ
         </button>
         <button
           className={notificationsOpen ? "icon-button notification-trigger active" : "icon-button notification-trigger"}
-          aria-label="알림"
+          aria-label={`알림 ${notificationCount}건`}
           aria-expanded={notificationsOpen ? "true" : "false"}
-          aria-controls="notification-drawer"
+          aria-controls="notifications-utility-drawer"
           data-notification-trigger="true"
-          onClick={onToggleNotifications}
+          onClick={() => onOpenUtilityDrawer("notifications")}
         >
           <Bell size={17} />
-          <span className="notification-badge">{notificationUnreadCount}</span>
+          {notificationCount > 0 && <span className="notification-badge">{notificationCount}</span>}
+        </button>
+        <button
+          className={messagesOpen ? "icon-button home-action-trigger active" : "icon-button home-action-trigger"}
+          aria-label={`메시지 ${messageCount}건`}
+          aria-expanded={messagesOpen ? "true" : "false"}
+          aria-controls="messages-utility-drawer"
+          data-home-message-trigger="true"
+          data-home-topbar-message-count={messageCount}
+          onClick={() => onOpenUtilityDrawer("messages")}
+        >
+          <MessageCircle size={17} />
+          {messageCount > 0 && <span className="notification-badge home-action-badge">{messageCount}</span>}
+        </button>
+        <button
+          className={approvalsOpen ? "icon-button home-action-trigger active" : "icon-button home-action-trigger"}
+          aria-label={`승인 요청 ${approvalCount}건`}
+          aria-expanded={approvalsOpen ? "true" : "false"}
+          aria-controls="approvals-utility-drawer"
+          data-home-approval-trigger="true"
+          data-home-topbar-approval-count={approvalCount}
+          onClick={() => onOpenUtilityDrawer("approvals")}
+        >
+          <ShieldCheck size={17} />
+          {approvalCount > 0 && <span className="notification-badge home-action-badge">{approvalCount}</span>}
         </button>
         <button
           className={helpOpen ? "icon-button active" : "icon-button"}
@@ -222,9 +375,27 @@ export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQ
   );
 }
 
-export function NotificationDrawer({ open, onClose }) {
+export function UtilityDrawer({
+  open,
+  type = "notifications",
+  notificationUnreadCount: drawerNotificationCount = notificationUnreadCount,
+  homeApprovalCount = 0,
+  homeMessageCount = 0,
+  unreadMessageIds = new Set(),
+  onClose = () => {},
+  onNavigateHomeSection = () => {},
+  onMarkNotificationRead = () => {},
+  onMarkMessageRead = () => {},
+  onMarkAllMessagesRead = () => {}
+}) {
   const [allRead, setAllRead] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const config = utilityDrawerConfig[type] ?? utilityDrawerConfig.notifications;
+  const count = utilityCountFor(type, {
+    notificationUnreadCount: drawerNotificationCount,
+    homeApprovalCount,
+    homeMessageCount
+  });
 
   useEffect(() => {
     if (!open) return undefined;
@@ -235,30 +406,69 @@ export function NotificationDrawer({ open, onClose }) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, onClose]);
 
+  useEffect(() => {
+    if (!open) return;
+    setAllRead(false);
+    setSettingsOpen(false);
+  }, [open, type]);
+
   if (!open) return null;
 
+  const drawerItems = type === "notifications"
+    ? notificationItems
+    : type === "messages"
+      ? utilityMessageItems
+      : utilityApprovalItems(count);
+  const visibleItems = type === "messages"
+    ? drawerItems.filter((item) => unreadMessageIds.has(item.id))
+    : drawerItems;
+
+  function markNotificationsRead() {
+    setAllRead(true);
+    onMarkNotificationRead();
+  }
+
+  function markMessage(id) {
+    onMarkMessageRead(id);
+  }
+
+  function markAllMessages() {
+    setAllRead(true);
+    onMarkAllMessagesRead();
+  }
+
+  function goToHomeSection() {
+    onNavigateHomeSection(config.section);
+  }
+
   return (
-    <div className="notification-layer" data-notification-drawer="open">
-      <button type="button" className="notification-scrim" aria-label="알림 닫기" onClick={onClose} />
-      <aside className="notification-drawer" id="notification-drawer" role="dialog" aria-modal="true" aria-labelledby="notification-drawer-title">
+    <div
+      className="notification-layer utility-layer"
+      data-notification-drawer={type === "notifications" ? "open" : undefined}
+      data-utility-drawer="open"
+      data-utility-drawer-kind={type}
+    >
+      <button type="button" className="notification-scrim" aria-label={`${config.title} 닫기`} onClick={onClose} />
+      <aside className="notification-drawer utility-drawer" id={`${type}-utility-drawer`} role="dialog" aria-modal="true" aria-labelledby={`${type}-utility-drawer-title`}>
         <header className="notification-drawer-header">
           <div>
-            <h2 id="notification-drawer-title">알림 <span>{notificationUnreadCount}</span></h2>
-            <p>작업 알림과 검토 신호</p>
+            <h2 id={`${type}-utility-drawer-title`}>{config.title} <span>{count}</span></h2>
+            <p>{config.subtitle}</p>
           </div>
-          <button type="button" className="icon-button" aria-label="알림 닫기" onClick={onClose}>
+          <button type="button" className="icon-button" aria-label={`${config.title} 닫기`} onClick={onClose}>
             <X size={18} />
           </button>
         </header>
         {(allRead || settingsOpen) && (
           <div className="notification-local-state" data-notification-local-state="true">
-            {allRead && <span data-notification-read-state="true">모든 알림을 읽음으로 표시했습니다.</span>}
+            {allRead && <span data-notification-read-state="true">{type === "messages" ? "모든 메시지를 읽음으로 표시했습니다." : "모든 알림을 읽음으로 표시했습니다."}</span>}
             {settingsOpen && <span data-notification-settings-state="true">알림 설정은 이 기기에서만 표시됩니다.</span>}
           </div>
         )}
         <div className="notification-stack">
-          {notificationItems.map((item) => (
-            <article className="notification-card" key={item.id} data-notification-card="stacked">
+          {visibleItems.length === 0 && <p className="utility-empty-state">{config.empty}</p>}
+          {visibleItems.map((item) => (
+            <article className="notification-card" key={item.id} data-notification-card="stacked" data-utility-drawer-card={type}>
               <div className="notification-avatar" aria-hidden="true">{item.initials}</div>
               <div className="notification-card-body">
                 <div className="notification-card-title">
@@ -272,13 +482,31 @@ export function NotificationDrawer({ open, onClose }) {
                   <time>{item.time}</time>
                 </div>
                 <small>{item.summary}</small>
+                {type === "messages" && (
+                  <button type="button" className="text-button utility-card-action" data-home-message-read={item.id} onClick={() => markMessage(item.id)}>
+                    읽음 처리
+                  </button>
+                )}
               </div>
             </article>
           ))}
         </div>
-        <footer className="notification-drawer-footer">
-          <button type="button" className="text-button" data-notification-mark-read="true" onClick={() => setAllRead(true)}>모두 읽음 처리</button>
-          <button type="button" className="text-button" data-notification-settings="true" onClick={() => setSettingsOpen((value) => !value)}>알림 설정</button>
+        <footer className={type === "approvals" ? "notification-drawer-footer utility-drawer-footer single" : "notification-drawer-footer utility-drawer-footer"}>
+          {type === "notifications" && (
+            <>
+              <button type="button" className="text-button" data-notification-mark-read="true" onClick={markNotificationsRead}>모두 읽음 처리</button>
+              <button type="button" className="text-button" data-notification-settings="true" onClick={() => setSettingsOpen((value) => !value)}>알림 설정</button>
+            </>
+          )}
+          {type === "messages" && (
+            <>
+              <button type="button" className="text-button" data-home-message-mark-read="true" onClick={markAllMessages}>모두 읽음 처리</button>
+              <button type="button" className="text-button" data-utility-view-all="home-messages" onClick={goToHomeSection}>전체 보기</button>
+            </>
+          )}
+          {type === "approvals" && (
+            <button type="button" className="text-button utility-drawer-footer-primary" data-utility-view-all="home-requests" onClick={goToHomeSection}>전체 보기</button>
+          )}
         </footer>
       </aside>
     </div>
@@ -289,13 +517,16 @@ const sidebarMeta = {
   home: {
     title: "Home",
     actions: [
-      { label: "최근 작업", view: "home", section: "home-recent", icon: ClipboardList },
-      { label: "대시보드", view: "reports", section: "reports-home-dashboard", icon: LayoutDashboard },
-      { label: "Matter 대화", view: "messages", section: "messages-matter-channel", icon: Mail },
-      { label: "Client 데이터 가져오기", view: "data-import", section: "data-import-client", icon: Tags },
-      { label: "검토함", view: "requests", section: "requests-review-inbox", icon: ShieldCheck }
+      { label: "대시보드", view: "home", section: "home-dashboard", icon: LayoutDashboard, active: true },
+      { label: "메시지", view: "home", section: "home-messages", icon: Mail },
+      { label: "승인 요청", view: "home", section: "home-requests", icon: ShieldCheck },
+      { label: "전자 계약", view: "home", section: "home-esign", icon: FileText },
+      { label: "회사 현황", view: "home", section: "home-company", icon: ClipboardList }
     ],
-    utilities: []
+    utilities: [
+      { label: "데이터 가져오기", icon: Tags, view: "data-import", section: "data-import-client" },
+      { label: "설정", icon: Settings, view: "settings", section: "settings-company" }
+    ]
   },
   clients: {
     title: "Client",
@@ -328,22 +559,50 @@ const sidebarMeta = {
   }
 };
 
-export function Sidebar({ labels, view, setView, activeSection = "" }) {
+export function Sidebar({
+  labels,
+  view,
+  axis = view,
+  setView,
+  activeSection = "",
+  homeApprovalCount = 0,
+  modeReturnTarget = { view: "home", section: "home-dashboard" },
+  onReturnToWork = () => {}
+}) {
   const skin = useSkin();
   const [openGroups, setOpenGroups] = useState({});
   const [utilityPanel, setUtilityPanel] = useState(null);
+  const [profileUser, setProfileUser] = useState(null);
   useEffect(() => {
     setUtilityPanel(null);
   }, [view]);
   const isForest = skin === "forest";
-  const sessionUser = readLawosApiSession()?.session ?? {};
-  const forestUserName = sessionUser.display_name ?? sessionUser.name ?? sessionUser.user_name ?? sessionUser.user_id ?? "";
-  const forestUserRole = sessionUser.title ?? sessionUser.role_label ?? sessionUser.position ?? "";
+  const sessionIdentity = sidebarSessionProfile(profileUser);
+  const forestUserName = sessionIdentity.name;
+  const forestUserRole = sessionIdentity.role;
   const forestUserPhoto = forestUserName ? memberPhotoFor(forestUserName) : undefined;
-  const forestUserInitial = forestUserName.trim().slice(0, 1) || "서";
-  const activeGlobalUtility = getGlobalUtilityByView(view);
-  const globalSubnav = Object.fromEntries(
-    globalUtilityCatalog.map((utility) => [
+  const forestUserInitial = (forestUserName || "사용자").trim().slice(0, 1);
+  useEffect(() => {
+    if (!isForest) return undefined;
+    let cancelled = false;
+    Promise.allSettled([readMatterSessionStatus(), fetchUserProfile({ ctx: "allow" })]).then((results) => {
+      if (cancelled) return;
+      const desktopStatus = results[0]?.status === "fulfilled" ? results[0].value : null;
+      const profileResult = results[1]?.status === "fulfilled" ? results[1].value : null;
+      if (desktopStatus) {
+        setProfileUser(desktopStatus);
+      } else if (profileResult?.kind === "data" && profileResult.item) {
+        setProfileUser(profileResult.item);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isForest]);
+  const activeGlobalUtility = modeExceptionUtilityViewIds.includes(view) ? getGlobalUtilityByView(view) : null;
+  const modeExceptionActive = Boolean(activeGlobalUtility);
+  const modeExceptionSubnav = Object.fromEntries(
+    globalUtilityCatalog.filter((utility) => modeExceptionUtilityViewIds.includes(utility.id)).map((utility) => [
       utility.id,
       utility.sections.map((section) => ({
         label: section.label,
@@ -355,12 +614,21 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
       }))
     ])
   );
+  const homeSubnav = sidebarMeta.home.actions.map((item) =>
+    item.section === "home-requests"
+      ? {
+          ...item,
+          count: Number(homeApprovalCount) > 0 ? Number(homeApprovalCount) : null,
+          homeCount: Number(homeApprovalCount) || 0
+        }
+      : item
+  );
   const subnav = {
     auth: [
       { label: "로그인", view: "auth" },
       { label: "비밀번호 재설정", view: "auth" }
     ],
-    home: sidebarMeta.home.actions,
+    home: homeSubnav,
     clients: [
       {
         label: "Client 관리",
@@ -478,12 +746,11 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
       { label: "감사 상태", view: "portal", section: "portal-audit", icon: ShieldCheck }
     ],
     profile: profileSidebarItems,
-    ...globalSubnav
+    ...modeExceptionSubnav
   }[view] ?? [];
   const meta = sidebarMeta[view] ?? (activeGlobalUtility ? { title: activeGlobalUtility.label, utilities: [] } : { title: "matter", utilities: [] });
   const flatSubnav = subnav.flatMap((item) => item.children ?? [item]);
   const hasPreferredActiveItem = flatSubnav.some((item) => item.active);
-  const showGlobalUtilityNav = view === "home";
 
   function isItemActive(item, index = 0) {
     if (item.section) {
@@ -498,13 +765,13 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
   }
 
   function groupOpen(item, index) {
-    const key = `${view}:${item.label}`;
+    const key = `${axis}:${view}:${item.label}`;
     if (Object.prototype.hasOwnProperty.call(openGroups, key)) return openGroups[key];
     return isGroupActive(item) || index === 0;
   }
 
   function toggleGroup(item, index) {
-    const key = `${view}:${item.label}`;
+    const key = `${axis}:${view}:${item.label}`;
     setOpenGroups((current) => {
       const currentOpen = Object.prototype.hasOwnProperty.call(current, key) ? current[key] : isGroupActive(item) || index === 0;
       return { ...current, [key]: !currentOpen };
@@ -512,7 +779,27 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
   }
 
   return (
-    <aside className="sidebar" data-context-sidebar={view} aria-label={`${meta.title} 메뉴`}>
+    <aside
+      className="sidebar"
+      data-context-sidebar={axis}
+      data-mode-exception-sidebar={modeExceptionActive ? "true" : undefined}
+      data-mode-exception-depth={modeExceptionActive ? "deep" : undefined}
+      aria-label={`${meta.title} 메뉴`}
+    >
+      {modeExceptionActive && (
+        <button
+          type="button"
+          className="sidebar-return-anchor"
+          data-mode-return-anchor="true"
+          data-mode-return-view={modeReturnTarget.view}
+          data-mode-return-section={modeReturnTarget.section || ""}
+          aria-label="업무로 돌아가기"
+          onClick={onReturnToWork}
+        >
+          <ArrowLeft size={15} />
+          <span>업무로 돌아가기</span>
+        </button>
+      )}
       <button
         type="button"
         className="workspace-card"
@@ -526,27 +813,6 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
         </div>
         <ChevronDown size={15} />
       </button>
-      {showGlobalUtilityNav && (
-        <nav className="global-sidebar-nav" aria-label="Home 빠른 메뉴" data-global-sidebar-nav="home-only">
-          {globalUtilityItems.map((item) => {
-            const Icon = item.icon;
-            const active = view === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                className={active ? "sidebar-item global-sidebar-item active" : "sidebar-item global-sidebar-item"}
-                aria-current={active ? "page" : undefined}
-                data-global-utility-nav={item.id}
-                onClick={() => setView(item.id, item.defaultSection)}
-              >
-                <span className="sidebar-icon"><Icon size={16} /></span>
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-      )}
       {subnav.length > 0 && (
         <nav className="sidebar-nav">
           {subnav.map((item, index) => {
@@ -601,6 +867,7 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
             >
               <span className="sidebar-icon"><Icon size={16} /></span>
               <span>{item.label}</span>
+              {item.homeCount !== undefined && <span className="sr-only" data-home-sidebar-approval-count={item.homeCount}>{item.homeCount}</span>}
               {item.count && <span className="sidebar-count">{item.count}</span>}
             </button>
             );
