@@ -26,6 +26,10 @@ const expectedEmails = [
   "matter.desktop.qa@amic.kr",
   "qa.tenant-b@amic.kr",
 ];
+const qaSyntheticOnlyEmails = new Set([
+  "matter.desktop.qa@amic.kr",
+  "qa.tenant-b@amic.kr",
+]);
 
 const errors = [];
 
@@ -80,6 +84,13 @@ if (errors.length === 0) {
   for (const user of users) {
     assert(user.status === "active", `${user.email}: status must be active`);
     assert(user.registration_state === "registered_seed", `${user.email}: registration state mismatch`);
+    if (qaSyntheticOnlyEmails.has(user.email)) {
+      assert(user.production_status === "disabled", `${user.email}: QA production_status must be disabled`);
+      assert(user.qa_tenant_scope === "synthetic_only", `${user.email}: QA tenant scope must be synthetic_only`);
+    } else {
+      assert(user.production_status !== "disabled", `${user.email}: non-QA account must not be production-disabled by QA guard`);
+      assert(user.qa_tenant_scope === undefined, `${user.email}: non-QA account must not declare QA tenant scope`);
+    }
     assert(user.mfa_required === true, `${user.email}: mfa_required must be true`);
     assert(user.assurance_level === "mfa", `${user.email}: assurance level must be mfa`);
     assert(user.local_dev?.synthetic_only === true, `${user.email}: local synthetic token boundary missing`);

@@ -93,6 +93,7 @@ assert(apiClient.includes('kind: "step_up_required"'), "HRX UI client must prese
 assert(apiClient.includes("tenant_amic_matter_vault"), "HRX UI client must use the registered Matter Vault tenant for local runtime");
 assert(apiClient.includes("lawos.session.envelope"), "HRX UI client must read the non-secret LawOS session envelope");
 assert(apiClient.includes("sessionHrxRuntimeHeaders"), "HRX UI client must derive HRX runtime headers from the signed-in session envelope");
+assert(apiClient.includes("function desktopReadBridge") && apiClient.includes("window.matterSession?.api"), "Desktop HRX UI client must use the main-process read bridge when no local API base URL is handed off");
 assert(apiClient.includes("user_amic_yjlee"), "HRX UI client must fall back to a self-service staff actor, not an admin actor");
 assert(apiClient.includes("lawos_staff"), "HRX UI client must fall back to the staff self-service role");
 assert(!apiClient.includes("security_admin,hr_admin,people_ops"), "HRX UI client must not hardcode all users as HR admins");
@@ -118,6 +119,9 @@ assert(employeeProfile.includes("fetchHrxCompensationRecords") && employeeProfil
 assert(employeeProfile.includes("보상 정보") && employeeProfile.includes("권한 필요"), "Employee profile must render masked sensitive fields");
 assert(employeeProfile.includes('data-hrx-compensation-records="true"'), "Employee profile must expose compensation records after step-up");
 assert(employeeProfile.includes("masked_compensation_ref") && employeeProfile.includes("contract_document_ref"), "Employee profile must render masked compensation refs with contract linkage");
+assert(employeeProfile.includes("ProfessionalProfileSection") && employeeProfile.includes('data-people-professional-profile="true"'), "Employee profile must render API-backed public professional profile sections");
+assert(employeeProfile.includes('data-people-professional-profile-kind={profileKind}') && employeeProfile.includes("professionalKindLabel"), "Employee profile must expose professional profile kind for browser proof");
+assert(employeeProfile.includes("주요 경력") && employeeProfile.includes("학력") && employeeProfile.includes("자격·면허") && employeeProfile.includes("출처"), "Employee profile must render career, education, qualification, and source sections");
 assert(!/salary|base_pay|bonus_amount/.test(employeeProfile), "Employee profile must not render raw compensation fields");
 
 const documents = read("apps/web/src/people/documents/HRDocumentWorkspace.tsx");

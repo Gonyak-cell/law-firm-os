@@ -1,6 +1,6 @@
 {
   "name": "law-firm-os",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "private": true,
   "type": "module",
   "packageManager": "npm@11.12.1",
@@ -218,6 +218,8 @@
     "matter-vault:r4:backup": "node scripts/drill-matter-vault-backup-restore.mjs backup",
     "matter-vault:r4:backup-drill": "node scripts/drill-matter-vault-backup-restore.mjs drill",
     "store-path-preflight:validate": "node scripts/validate-store-path-preflight.mjs",
+    "cti:s6:validate": "node scripts/validate-cti-s6-seal-final-validation.mjs",
+    "canonical-tenant:production-ready": "node scripts/validate-canonical-tenant-production-ready.mjs",
     "typecheck:web": "npm --workspace apps/web run typecheck",
     "matter-vault:user-registration:validate": "node scripts/validate-matter-vault-user-registration-seed.mjs",
     "matter-desktop:temporary-release:validate": "node scripts/validate-matter-desktop-temporary-release-plan.mjs",
@@ -282,6 +284,8 @@
     "ui:parity:audit": "node scripts/audit-matter-amplitude-pixel-parity.mjs",
     "ui:flows:verify": "node scripts/verify-matter-ui-flows.mjs",
     "ui:live:verify": "node scripts/verify-matter-live-data.mjs",
+    "people:professional-profile:proof": "node scripts/run-people-professional-profile-browser-proof.mjs",
+    "people:professional-profile:validate": "node scripts/validate-people-professional-profile.mjs",
     "lcx-web:validate": "node scripts/validate-lcx-web-canonical-ui.mjs",
     "progress:serve": "node scripts/serve-progress-control-room.mjs",
     "api:start": "npm --workspace apps/api run start",
@@ -383,6 +387,7 @@
     "playwright": "^1.60.0"
   },
   "dependencies": {
+    "pg": "^8.22.0",
     "popbill": "^1.64.2"
   }
 }

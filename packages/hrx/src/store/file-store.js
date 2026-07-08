@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { HRX_DURABLE_CORE_TABLES, HRX_DURABLE_WORKFLOW_TABLES, HRX_STORE_PORT_VERSION } from "./port.js";
@@ -195,7 +195,7 @@ export function createFileHrxStore({ filePath, initialState } = {}) {
   function flush() {
     if (!filePath) return;
     mkdirSync(dirname(filePath), { recursive: true });
-    const tempPath = `${filePath}.tmp`;
+    const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
     writeFileSync(tempPath, `${JSON.stringify(state, null, 2)}\n`);
     renameSync(tempPath, filePath);
   }

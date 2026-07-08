@@ -143,6 +143,8 @@ async function scenarioCatalogMatchesManifest() {
   for (const phrase of [
     "required-for-operational",
     "LAWOS_API_SESSION_SECRET",
+    "LAWOS_AUDIT_STORE_PATH",
+    "LAWOS_API_SESSION_SECRET_SECRET_ID",
     "MATTER_VAULT_BACKUP_ROOT",
     "LAWOS_DMS_OBJECT_STORE_PATH",
   ]) {

@@ -79,6 +79,24 @@ test("Matter repository persists tenant-scoped records across reopen", () => {
   assert.equal(reopened.list({ tenant_id: "tenant-other", model_type: "Matter" }).length, 0);
 });
 
+test("Matter repository seed guard preserves existing durable records during runtime restart", () => {
+  const storePath = filePath("matter-reseed-guard-");
+  const repository = createMatterRepository({ filePath: storePath });
+  repository.create(matterInput({ title: "Existing production readback marker" }));
+  repository.close();
+
+  const reopened = createMatterRepository({
+    filePath: storePath,
+    seedRecords: [
+      matterInput({ title: "Synthetic seed must not overwrite existing record" }),
+      matterInput({ matter_id: "matter-g4-seed-carveout", title: "Synthetic seed carve-out" }),
+    ],
+  });
+  const existing = reopened.get({ tenant_id, model_type: "Matter", matter_id: "matter-g4" });
+  assert.equal(existing.title, "Existing production readback marker");
+  assert.equal(reopened.get({ tenant_id, model_type: "Matter", matter_id: "matter-g4-seed-carveout" }).title, "Synthetic seed carve-out");
+});
+
 test("Matter numbering blocks duplicate matter numbers and supports idempotent replay", () => {
   const repository = createMatterRepository();
   const first = reserveMatterNumber({

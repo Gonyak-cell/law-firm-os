@@ -55,13 +55,22 @@ assert.equal(kimYangTae?.title, "대표이사");
 assert.equal(kimYangTae?.affiliation, "PETRA BRIDGE PARTNERS");
 assert.equal(kimYangTae?.department, "Finance");
 assert.equal(kimYangTae?.organization_group, "PETRA BRIDGE PARTNERS");
+assert.equal(kimYangTae?.professional_profile?.profile_kind, "cpa");
+assert.equal(kimYangTae?.professional_profile?.qualifications?.includes("대한민국 공인회계사"), true);
+assert.equal(kimYangTae?.professional_profile?.qualifications?.includes("대한민국 변호사"), false);
+assert.equal(membersByName.get("조우상")?.professional_profile?.profile_kind, "deal_advisor");
+assert.deepEqual(
+  ["박병준", "임영훈", "서지원", "조성민"].map((name) => membersByName.get(name)?.professional_profile?.profile_kind),
+  ["attorney", "attorney", "attorney", "attorney"]
+);
 
 for (const marker of [
   "repoRosterPath",
   "memberRosterPublicRef",
   "affiliation",
   "department",
-  "organization_group"
+  "organization_group",
+  "professional_profile"
 ]) {
   assert.ok(registry.includes(marker), `registry missing ${marker}`);
 }
@@ -71,6 +80,7 @@ for (const marker of [
   "employeeRosterReadFields",
   "member?.affiliation",
   "member?.organization_group",
+  "member?.professional_profile",
   "source_ref: member?.source_ref"
 ]) {
   assert.ok(runtime.includes(marker), `runtime roster mapping missing ${marker}`);

@@ -1,6 +1,6 @@
 {
   "schema_version": "lawos.wave1.upl-a12.local-model-gateway-proof.v1",
-  "generated_at": "2026-07-05T08:04:50.277Z",
+  "generated_at": "2026-07-08T03:43:57.760Z",
   "row_ids": [
     "UPL-A-12",
     "UPL-D-16"
@@ -49,8 +49,8 @@
     "context_payload_policy": "metadata_only"
   },
   "review_queue_receipt": {
-    "review_id": "review-upl-a12-local-model-f95246ac8803",
-    "interaction_id": "upl-a12-local-model-f95246ac8803",
+    "review_id": "review-upl-a12-local-model-05d1b5db06e2",
+    "interaction_id": "upl-a12-local-model-05d1b5db06e2",
     "state": "pending_review",
     "risk_level": "high",
     "answer_status": "review_required",
@@ -60,9 +60,9 @@
     ]
   },
   "audit_receipt": {
-    "event_id": "hrx_ai_evt_5858ed81-c0c3-4e81-894e-17f8b991d70b",
+    "event_id": "hrx_ai_evt_8e820965-a8a0-4f72-9a6e-42ea5d0b2c38",
     "action": "hrx.ai.interaction",
-    "object_id": "upl-a12-local-model-f95246ac8803",
+    "object_id": "upl-a12-local-model-05d1b5db06e2",
     "decision": "review_required",
     "prompt_hash": "4401157965c59df93734df4ce733155e5126860ca34dc6bf43ca2d9d82ff9d47",
     "output_hash": "bb99a42648cd0047fa4ddf831dcab4854b48ed36b9e7c02975327f536ba90c22",
