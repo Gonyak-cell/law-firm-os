@@ -857,7 +857,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /data-client-contract-esign-provider-blocked="true"/);
   assert.match(clientsSource, /data-client-billing-provider-blocked="true"/);
   assert.doesNotMatch(clientsSource, /data-client-planned-section|메뉴를 준비 중입니다/);
-  assert.match(clientsSource, /Client, 담당자, Opportunity, 상담 이력/);
+  assert.doesNotMatch(clientsSource, /Client, 담당자, Opportunity, 상담 이력/);
   assert.match(clientsSource, /renderLiveState\(result, "Client"\)/);
   assert.match(clientsSource, /fetchMatterRecords/);
   assert.match(clientsSource, /modelType: "MatterClient"/);
