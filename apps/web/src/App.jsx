@@ -1,9 +1,9 @@
 import React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { copy } from "./i18n.js";
 import { navItems } from "./data/nav.js";
 import { globalUtilityViewIds, isGlobalUtilityView, modeExceptionUtilityViewIds, resolveGlobalShortcut } from "./data/globalUtilities.js";
-import { GlobalSearch, LoadingSurface, Sidebar, Topbar, UtilityDrawer, notificationItems, utilityMessageItems } from "./components/Shell.jsx";
+import { GlobalSearch, LoadingSurface, Sidebar, Topbar, UtilityDrawer, notificationItems } from "./components/Shell.jsx";
 import { AuthSurface } from "./components/AuthSurface.jsx";
 import { GlobalUtilitySurface } from "./components/GlobalUtilitySurface.jsx";
 import { HomeSurface } from "./components/HomeSurface.jsx";
@@ -15,10 +15,10 @@ import { UserProfileSurface } from "./components/UserProfileSurface.jsx";
 import { PeopleHome } from "./people/PeopleHome.tsx";
 import { SkinContext } from "./context/SkinContext.jsx";
 import { loginLawosApiSession } from "./data/apiClient.js";
+import { fetchHomeMessageItems } from "./data/homeMessages.js";
 
 const productAxisIds = new Set(navItems.map((item) => item.id));
 const emptyHomeActionCounts = Object.freeze({ approval: 0, task_late: 0, task_today: 0 });
-const initialUnreadMessageIds = Object.freeze(utilityMessageItems.filter((item) => item.unread).map((item) => item.id));
 const defaultModeReturnTarget = Object.freeze({ view: "home", section: "home-dashboard" });
 
 export function resolveAxis(view) {
@@ -80,8 +80,10 @@ export function App() {
   const [query, setQuery] = useState(initialQuery);
   const [utilityDrawerType, setUtilityDrawerType] = useState(resolvedInitialRoute.openNotifications ? "notifications" : "");
   const [notificationUnreadCount, setNotificationUnreadCount] = useState(notificationItems.length);
-  const [unreadMessageIds, setUnreadMessageIds] = useState(() => new Set(initialUnreadMessageIds));
+  const [homeMessageItems, setHomeMessageItems] = useState([]);
+  const [unreadMessageIds, setUnreadMessageIds] = useState(() => new Set());
   const [homeActionCounts, setHomeActionCounts] = useState(emptyHomeActionCounts);
+  const readMessageIdsRef = useRef(new Set());
   const [modeReturnTarget, setModeReturnTarget] = useState(() =>
     modeExceptionUtilityViewIds.includes(initialView) || ["auth", "loading"].includes(initialView)
       ? defaultModeReturnTarget
@@ -168,6 +170,10 @@ export function App() {
   }
 
   function markMessageRead(id) {
+    if (!id) return;
+    const readIds = new Set(readMessageIdsRef.current);
+    readIds.add(id);
+    readMessageIdsRef.current = readIds;
     setUnreadMessageIds((current) => {
       const next = new Set(current);
       next.delete(id);
@@ -176,6 +182,7 @@ export function App() {
   }
 
   function markAllMessagesRead() {
+    readMessageIdsRef.current = new Set(homeMessageItems.map((item) => item.id));
     setUnreadMessageIds(new Set());
   }
 
@@ -197,6 +204,23 @@ export function App() {
     document.documentElement.lang = locale === "ko" ? "ko" : "en";
     storeSkin(skin);
   }, [locale, theme, skin]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchHomeMessageItems({ ctx: liveCtx }).then((items) => {
+      if (cancelled) return;
+      const nextItems = Array.isArray(items) ? items : [];
+      setHomeMessageItems(nextItems);
+      setUnreadMessageIds(new Set(
+        nextItems
+          .filter((item) => item.unread !== false && !readMessageIdsRef.current.has(item.id))
+          .map((item) => item.id)
+      ));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [liveCtx]);
 
   useEffect(() => {
     if (!handoffSplashVisible) return undefined;
@@ -281,6 +305,7 @@ export function App() {
             setView={navigateToView}
             activeSection={activeSection}
             homeApprovalCount={homeApprovalCount}
+            homeMessageCount={homeMessageCount}
             modeReturnTarget={modeReturnTarget}
             onReturnToWork={returnToWork}
           />
@@ -302,6 +327,9 @@ export function App() {
                 liveCtx={liveCtx}
                 activeSection={activeSection}
                 redirectedFrom={activeRedirectedFrom}
+                messageItems={homeMessageItems}
+                unreadMessageIds={unreadMessageIds}
+                onMessageThreadOpen={markMessageRead}
                 onHomeActionCountsChange={setHomeActionCounts}
               />
             )}
@@ -343,6 +371,7 @@ export function App() {
           notificationUnreadCount={notificationUnreadCount}
           homeApprovalCount={homeApprovalCount}
           homeMessageCount={homeMessageCount}
+          messageItems={homeMessageItems}
           unreadMessageIds={unreadMessageIds}
           onClose={closeUtilityDrawer}
           onNavigateHomeSection={navigateFromUtilityDrawer}

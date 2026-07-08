@@ -2389,6 +2389,115 @@ kbd {
   gap: 8px;
 }
 
+.home-message-layout {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.home-message-thread-list {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.home-message-thread {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--am-border-soft);
+  border-radius: var(--am-radius-xs);
+  background: var(--am-surface);
+  color: inherit;
+  text-align: left;
+}
+
+.home-message-thread:hover,
+.home-message-thread[aria-pressed="true"] {
+  border-color: rgba(11, 101, 229, 0.32);
+  background: #f7faff;
+}
+
+.home-message-thread.unread {
+  border-color: rgba(11, 101, 229, 0.42);
+}
+
+.home-message-thread-main {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.home-message-thread strong,
+.home-message-thread small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-message-thread strong {
+  color: var(--am-text);
+  font-size: 13px;
+}
+
+.home-message-thread small,
+.home-message-thread-meta {
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+.home-message-thread-meta {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+}
+
+.home-message-thread-meta em {
+  color: var(--am-blue);
+  font-style: normal;
+  font-weight: 800;
+}
+
+.home-message-thread-panel {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--am-border-soft);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+}
+
+.home-message-thread-panel header {
+  display: grid;
+  gap: 3px;
+}
+
+.home-message-thread-panel header span,
+.home-message-thread-panel header small {
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+.home-message-thread-panel header strong {
+  color: var(--am-text);
+  font-family: var(--font-heading);
+  font-size: 15px;
+}
+
+.home-message-thread-panel p {
+  margin: 0;
+  color: var(--am-text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .home-company-grid {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
@@ -2468,6 +2577,7 @@ kbd {
   }
 
   .home-status-grid,
+  .home-message-layout,
   .home-company-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -2498,6 +2608,14 @@ kbd {
 
   .home-feed-content {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .home-message-thread {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .home-message-thread-meta {
+    justify-items: start;
   }
 
   .home-dashboard-row-actions {

@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
+import { createServer as createNetServer } from "node:net";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
+import { chromium } from "playwright";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createServer } from "vite";
@@ -57,6 +59,102 @@ async function renderAppAtLegacyRoute(route) {
   }
 }
 
+function jsonResponse(route, body, status = 200) {
+  return route.fulfill({
+    status,
+    contentType: "application/json; charset=utf-8",
+    body: JSON.stringify(body)
+  });
+}
+
+async function availablePort() {
+  return new Promise((resolvePort, rejectPort) => {
+    const server = createNetServer();
+    server.once("error", rejectPort);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      const port = typeof address === "object" && address ? address.port : 0;
+      server.close(() => resolvePort(port));
+    });
+  });
+}
+
+function wp3ApiBody(pathname) {
+  if (pathname === "/api/matters") {
+    return {
+      request_id: "r1-wp3-matters",
+      outcome: "passed",
+      items: [
+        {
+          resource_id: "matter-r1-wp3-001",
+          matter_id: "matter-r1-wp3-001",
+          matter_name: "WP3 검수 사건",
+          title: "WP3 검수 사건"
+        }
+      ],
+      safe_error_codes: [],
+      audit_hint_ref: "ui_home_messages_matter_list_probe",
+      ui_state: "ready",
+      production_ready_claim: false,
+      page_info: { next_cursor: null }
+    };
+  }
+  if (pathname === "/api/matters/matter-r1-wp3-001/channel") {
+    return {
+      request_id: "r1-wp3-channel",
+      outcome: "passed",
+      ui_state: "ready",
+      item: {
+        matter_id: "matter-r1-wp3-001",
+        thread_id: "matter-channel:matter-r1-wp3-001",
+        provider_state: "internal_only",
+        production_ready_claim: false,
+        messages: [
+          {
+            message_id: "msg-r1-wp3-001",
+            thread_id: "matter-channel:matter-r1-wp3-001",
+            matter_id: "matter-r1-wp3-001",
+            author_role: "internal",
+            safe_message_excerpt: "검수용 Matter 대화 안전 요약",
+            created_at: "2026-07-08T01:30:00.000Z",
+            external_send_state: "internal_only",
+            raw_provider_payload_included: false,
+            direct_personal_contact_identifier_included: false,
+            production_ready_claim: false
+          }
+        ]
+      },
+      safe_error_codes: [],
+      audit_hint_ref: "ui_sf_b_w03_channel_read_probe",
+      count_leak_prevented: true,
+      production_ready_claim: false
+    };
+  }
+  if (pathname === "/api/home/feed") {
+    return {
+      request_id: "r1-wp3-feed",
+      outcome: "passed",
+      entries: [
+        {
+          id: "people_notice:wp3",
+          resource_id: "people_notice:wp3",
+          tab: "notice",
+          source: "People notices",
+          title: "WP3 공지",
+          body_preview: "검수용 공지 안전 요약",
+          published_at: "2026-07-08T01:10:00.000Z"
+        }
+      ],
+      source_statuses: [],
+      safe_error_codes: [],
+      audit_hint_ref: "ui_home_feed_read_probe",
+      count_leak_prevented: true,
+      production_ready_claim: false
+    };
+  }
+  return { request_id: "r1-wp3-empty", outcome: "passed", safe_error_codes: [], production_ready_claim: false };
+}
+
 test("R1 WP-2 restores legacy request route context into Home request tab and filter", async () => {
   const html = await renderAppAtLegacyRoute({ view: "requests", section: "requests-leave" });
 
@@ -82,4 +180,41 @@ test("R1 WP-2 renders dedicated Home utility screens from legacy route context",
   assert.match(company, /data-home-section-screen="home-company"/);
   assert.match(company, /data-home-company-tab="reports-matter-analytics"/);
   assert.match(company, /data-home-audit-summary="true"/);
+});
+
+test("R1 WP-3 opens Home message threads and decreases unread counts at runtime", async () => {
+  const port = await availablePort();
+  const server = await createServer({
+    root: webRoot,
+    logLevel: "silent",
+    server: { host: "127.0.0.1", port, strictPort: true }
+  });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      return jsonResponse(route, wp3ApiBody(url.pathname));
+    });
+    await page.goto(`http://127.0.0.1:${port}/?view=messages&ctx=allow#messages-matter-channel`, { waitUntil: "networkidle" });
+
+    await page.waitForSelector('[data-home-sidebar-message-count="2"]');
+    assert.equal(await page.locator("[data-home-topbar-message-count]").getAttribute("data-home-topbar-message-count"), "2");
+    assert.equal(await page.locator('[data-home-message-thread="msg-r1-wp3-001"]').count(), 1);
+
+    await page.locator('[data-home-message-thread="msg-r1-wp3-001"]').click();
+    await page.waitForSelector('[data-home-message-thread-panel="msg-r1-wp3-001"]');
+    await page.waitForFunction(() => document.querySelector("[data-home-topbar-message-count]")?.getAttribute("data-home-topbar-message-count") === "1");
+
+    assert.equal(await page.locator("[data-home-sidebar-message-count]").getAttribute("data-home-sidebar-message-count"), "1");
+    assert.equal(await page.locator('[data-home-message-thread="msg-r1-wp3-001"]').getAttribute("data-home-message-unread"), "false");
+
+    await page.locator("[data-home-message-trigger]").click();
+    await page.waitForSelector('[data-home-message-drawer-item="people_notice:wp3"]');
+    assert.equal(await page.locator('[data-home-message-drawer-item="msg-r1-wp3-001"]').count(), 0);
+  } finally {
+    await browser.close();
+    await server.close();
+  }
 });

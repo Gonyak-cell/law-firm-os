@@ -211,8 +211,6 @@ export const notificationItems = [
 
 const notificationUnreadCount = notificationItems.length;
 
-export const utilityMessageItems = Object.freeze([]);
-
 const utilityDrawerConfig = {
   notifications: {
     title: "알림",
@@ -381,6 +379,7 @@ export function UtilityDrawer({
   notificationUnreadCount: drawerNotificationCount = notificationUnreadCount,
   homeApprovalCount = 0,
   homeMessageCount = 0,
+  messageItems = [],
   unreadMessageIds = new Set(),
   onClose = () => {},
   onNavigateHomeSection = () => {},
@@ -417,7 +416,7 @@ export function UtilityDrawer({
   const drawerItems = type === "notifications"
     ? notificationItems
     : type === "messages"
-      ? utilityMessageItems
+      ? (Array.isArray(messageItems) ? messageItems : [])
       : utilityApprovalItems(count);
   const visibleItems = type === "messages"
     ? drawerItems.filter((item) => unreadMessageIds.has(item.id))
@@ -468,7 +467,7 @@ export function UtilityDrawer({
         <div className="notification-stack">
           {visibleItems.length === 0 && <p className="utility-empty-state">{config.empty}</p>}
           {visibleItems.map((item) => (
-            <article className="notification-card" key={item.id} data-notification-card="stacked" data-utility-drawer-card={type}>
+            <article className="notification-card" key={item.id} data-notification-card="stacked" data-utility-drawer-card={type} data-home-message-drawer-item={type === "messages" ? item.id : undefined}>
               <div className="notification-avatar" aria-hidden="true">{item.initials}</div>
               <div className="notification-card-body">
                 <div className="notification-card-title">
@@ -566,6 +565,7 @@ export function Sidebar({
   setView,
   activeSection = "",
   homeApprovalCount = 0,
+  homeMessageCount = 0,
   modeReturnTarget = { view: "home", section: "home-dashboard" },
   onReturnToWork = () => {}
 }) {
@@ -614,15 +614,25 @@ export function Sidebar({
       }))
     ])
   );
-  const homeSubnav = sidebarMeta.home.actions.map((item) =>
-    item.section === "home-requests"
-      ? {
-          ...item,
-          count: Number(homeApprovalCount) > 0 ? Number(homeApprovalCount) : null,
-          homeCount: Number(homeApprovalCount) || 0
-        }
-      : item
-  );
+  const homeSubnav = sidebarMeta.home.actions.map((item) => {
+    if (item.section === "home-messages") {
+      return {
+        ...item,
+        count: Number(homeMessageCount) > 0 ? Number(homeMessageCount) : null,
+        homeCount: Number(homeMessageCount) || 0,
+        homeCountKind: "message"
+      };
+    }
+    if (item.section === "home-requests") {
+      return {
+        ...item,
+        count: Number(homeApprovalCount) > 0 ? Number(homeApprovalCount) : null,
+        homeCount: Number(homeApprovalCount) || 0,
+        homeCountKind: "approval"
+      };
+    }
+    return item;
+  });
   const subnav = {
     auth: [
       { label: "로그인", view: "auth" },
@@ -868,7 +878,8 @@ export function Sidebar({
             >
               <span className="sidebar-icon"><Icon size={16} /></span>
               <span>{item.label}</span>
-              {item.homeCount !== undefined && <span className="sr-only" data-home-sidebar-approval-count={item.homeCount}>{item.homeCount}</span>}
+              {item.homeCountKind === "approval" && <span className="sr-only" data-home-sidebar-approval-count={item.homeCount}>{item.homeCount}</span>}
+              {item.homeCountKind === "message" && <span className="sr-only" data-home-sidebar-message-count={item.homeCount}>{item.homeCount}</span>}
               {item.count && <span className="sidebar-count">{item.count}</span>}
             </button>
             );

@@ -351,6 +351,7 @@ test("Home dashboard Stage 4 keeps action counts on the single Home inbox source
 test("topbar utilities open right drawers with global dim and stacked alerts", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
+  const homeMessagesSource = await readWebFile("src/data/homeMessages.js");
   const stylesSource = await readWebFile("src/styles.css");
 
   assert.match(appSource, /const \[utilityDrawerType, setUtilityDrawerType\] = useState/);
@@ -358,10 +359,17 @@ test("topbar utilities open right drawers with global dim and stacked alerts", a
   assert.match(appSource, /setUtilityDrawerType\(willOpen \? type : ""\)/);
   assert.match(appSource, /if \(willOpen && type === "notifications"\) setNotificationUnreadCount\(0\)/);
   assert.match(appSource, /function navigateFromUtilityDrawer\(section\)/);
+  assert.match(appSource, /fetchHomeMessageItems\(\{ ctx: liveCtx \}\)/);
+  assert.match(appSource, /messageItems=\{homeMessageItems\}/);
   assert.match(shellSource, /export function UtilityDrawer/);
   assert.match(shellSource, /utilityDrawerConfig/);
   assert.match(shellSource, /notificationItems/);
-  assert.match(shellSource, /utilityMessageItems/);
+  assert.match(shellSource, /messageItems = \[\]/);
+  assert.match(shellSource, /Array\.isArray\(messageItems\) \? messageItems : \[\]/);
+  assert.match(homeMessagesSource, /fetchMatterRecords/);
+  assert.match(homeMessagesSource, /fetchMatterChannel/);
+  assert.match(homeMessagesSource, /fetchHomeFeed/);
+  assert.doesNotMatch(shellSource, /utilityMessageItems\s*=\s*Object\.freeze\(\[\]\)/);
   assert.match(shellSource, /data-notification-trigger="true"/);
   assert.match(shellSource, /data-home-message-trigger="true"/);
   assert.match(shellSource, /data-home-approval-trigger="true"/);
@@ -414,6 +422,7 @@ test("Stage 5 utility drawers keep the sidebar context unchanged until explicit 
   assert.match(shellSource, /onClick=\{\(\) => onOpenUtilityDrawer\("approvals"\)\}/);
   assert.match(shellSource, /data-context-sidebar=\{axis\}/);
   assert.match(shellSource, /data-home-topbar-message-count=\{messageCount\}/);
+  assert.match(shellSource, /data-home-sidebar-message-count=\{item\.homeCount\}/);
   assert.match(shellSource, /data-home-topbar-approval-count=\{approvalCount\}/);
   assert.doesNotMatch(shellSource, /data-home-message-trigger[\s\S]{0,220}setView\("home", "home-messages"\)/);
   assert.doesNotMatch(shellSource, /data-home-approval-trigger[\s\S]{0,220}setView\("home", "home-requests"\)/);

@@ -581,6 +581,9 @@ export function HomeSurface({
   liveCtx = "allow",
   activeSection = "home-dashboard",
   redirectedFrom = null,
+  messageItems = [],
+  unreadMessageIds = new Set(),
+  onMessageThreadOpen = noop,
   onHomeActionCountsChange = noop
 }) {
   const skin = useSkin();
@@ -605,6 +608,7 @@ export function HomeSurface({
   const [requestFilter, setRequestFilter] = useState(initialHomeContext.requestFilter);
   const [esignTab, setEsignTab] = useState(initialHomeContext.esignTab);
   const [companyTab, setCompanyTab] = useState(initialHomeContext.companyTab);
+  const [selectedMessageThreadId, setSelectedMessageThreadId] = useState("");
 
   useEffect(() => {
     setMessageTab(initialHomeContext.messageTab);
@@ -832,15 +836,66 @@ export function HomeSurface({
     );
   }
 
+  function openMessageThread(item) {
+    if (!item?.id) return;
+    setSelectedMessageThreadId(item.id);
+    onMessageThreadOpen(item.id);
+  }
+
   function renderMessagesScreen() {
     const currentTab = messageTabs.find((tab) => tab.id === messageTab) ?? messageTabs[0];
+    const unreadIds = unreadMessageIds instanceof Set ? unreadMessageIds : new Set();
+    const allMessages = Array.isArray(messageItems) ? messageItems : [];
+    const tabMessages = allMessages.filter((item) => item.tab === currentTab.id || item.section === currentTab.section);
+    const selectedMessage = tabMessages.find((item) => item.id === selectedMessageThreadId) ?? null;
     return (
-      <HomeSectionPanel section="home-messages" title="메시지" meta={currentTab.label} Icon={Mail}>
+      <HomeSectionPanel section="home-messages" title="메시지" meta={`${currentTab.label} · ${tabMessages.length}건`} Icon={Mail}>
         <HomeTabList label="메시지 탭" tabs={messageTabs} activeTab={messageTab} onSelect={setMessageTab} dataPrefix="messages" />
         <div className="home-section-content" role="tabpanel" data-home-message-tab={messageTab}>
-          <HomeStatusList title={currentTab.label} count={0} empty="읽지 않은 메시지가 없습니다.">
-            {null}
-          </HomeStatusList>
+          <div className="home-message-layout">
+            <HomeStatusList title={currentTab.label} count={tabMessages.length} empty="표시할 메시지가 없습니다.">
+              <div className="home-message-thread-list">
+                {tabMessages.map((item) => {
+                  const unread = unreadIds.has(item.id);
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={unread ? "home-message-thread unread" : "home-message-thread"}
+                      data-home-message-thread={item.id}
+                      data-home-message-unread={unread ? "true" : "false"}
+                      aria-pressed={selectedMessageThreadId === item.id ? "true" : "false"}
+                      onClick={() => openMessageThread(item)}
+                    >
+                      <span className="home-message-thread-main">
+                        <strong>{item.title}</strong>
+                        <small>{item.summary}</small>
+                      </span>
+                      <span className="home-message-thread-meta">
+                        <em>{unread ? item.status : "읽음"}</em>
+                        <time>{item.time}</time>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </HomeStatusList>
+            {selectedMessage && (
+              <aside className="home-message-thread-panel" data-home-message-thread-panel={selectedMessage.id}>
+                <header>
+                  <span>{selectedMessage.type}</span>
+                  <strong>{selectedMessage.title}</strong>
+                  <small>{selectedMessage.client}</small>
+                </header>
+                <p>{selectedMessage.summary}</p>
+                {selectedMessage.matterId && (
+                  <button type="button" className="text-button" onClick={() => setView("matters", "matter-channel")}>
+                    Matter 대화 열기
+                  </button>
+                )}
+              </aside>
+            )}
+          </div>
         </div>
       </HomeSectionPanel>
     );
