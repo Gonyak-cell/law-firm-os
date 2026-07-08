@@ -5,12 +5,16 @@ import {
   Briefcase,
   CalendarDays,
   CheckCircle2,
+  ClipboardList,
   Clock3,
+  FileCheck2,
   FileSignature,
   FolderOpen,
   Inbox,
+  Mail,
   Newspaper,
   RefreshCw,
+  ShieldCheck,
   Users,
   X
 } from "lucide-react";
@@ -52,6 +56,48 @@ const feedTabs = Object.freeze([
   { id: "news", label: "뉴스", empty: "새 뉴스가 없습니다.", sources: "블로터 · 법률신문 · 딜사이트 · 인베스트조선" },
   { id: "newsletter", label: "뉴스레터", empty: "새 뉴스레터가 없습니다." }
 ]);
+const messageTabs = Object.freeze([
+  { id: "send", section: "messages-send", label: "전송" },
+  { id: "automation", section: "messages-automation", label: "자동화" },
+  { id: "templates", section: "messages-templates", label: "템플릿" },
+  { id: "notices", section: "messages-notices", label: "공지" },
+  { id: "matter", section: "messages-matter-channel", label: "Matter 대화" }
+]);
+const requestTabs = Object.freeze([
+  { id: "received", label: "받은 요청" },
+  { id: "sent", label: "보낸 요청" }
+]);
+const requestFilters = Object.freeze([
+  { id: "all", section: "requests-inbox", label: "전체", subtypes: [] },
+  { id: "leave", section: "requests-leave", label: "휴가", subtypes: ["leave"] },
+  { id: "expenses", section: "requests-expenses", label: "비용", subtypes: ["cost", "expense", "expenses"] },
+  { id: "certificates", section: "requests-certificates", label: "증명서", subtypes: ["certificate", "certificates"] },
+  { id: "attendance", section: "requests-attendance", label: "근무기록", subtypes: ["attendance", "work_record"] },
+  { id: "custom", section: "requests-custom", label: "커스텀", subtypes: ["custom"] },
+  { id: "force", section: "requests-force-decision", label: "강제", subtypes: ["force", "force_decision"] }
+]);
+const esignTabs = Object.freeze([
+  { id: "send", section: "esign-send", label: "전송" },
+  { id: "templates", section: "esign-templates", label: "템플릿" },
+  { id: "status", section: "esign-status", label: "상태" },
+  { id: "settings", section: "esign-settings", label: "설정" }
+]);
+const companyTabs = Object.freeze([
+  { id: "reports-home-dashboard", label: "Home" },
+  { id: "reports-people-live", label: "People 실시간" },
+  { id: "reports-people-snapshots", label: "People 스냅샷" },
+  { id: "reports-people-items", label: "People 항목" },
+  { id: "reports-people-attention", label: "주의 항목" },
+  { id: "reports-client", label: "Client" },
+  { id: "reports-matter-analytics", label: "Matter" }
+]);
+const homeSectionMeta = Object.freeze({
+  "home-dashboard": { eyebrow: "Home", title: "", Icon: Briefcase },
+  "home-messages": { eyebrow: "메시지", title: "메시지", subtitle: "업무 메시지", Icon: Mail },
+  "home-requests": { eyebrow: "승인 요청", title: "승인 요청", subtitle: "요청 상태", Icon: ShieldCheck },
+  "home-esign": { eyebrow: "전자 계약", title: "전자 계약", subtitle: "서명 상태", Icon: FileCheck2 },
+  "home-company": { eyebrow: "회사 현황", title: "회사 현황", subtitle: "권한·감사", Icon: ClipboardList }
+});
 const HOME_ONBOARDING_STORAGE_KEY = "matter.home.onboarding";
 const DESKTOP_HOME_FEATURE_IDS = Object.freeze({
   client: "client_dashboard",
@@ -90,6 +136,12 @@ function sessionDisplayName(records) {
 
 function sessionRoleIds(records) {
   return records.flatMap((record) => (Array.isArray(record?.role_ids) ? record.role_ids : []));
+}
+
+function sessionHasExplicitNonApproverRole(records) {
+  const roleIds = sessionRoleIds(records).map((role) => String(role).toLowerCase());
+  if (roleIds.length === 0) return false;
+  return !roleIds.some((role) => /admin|approver|approval|partner|manager|hr|legal|lawos_staff/.test(role));
 }
 
 function sessionProfessionalLabel(records) {
@@ -222,21 +274,6 @@ function normalizeStatus(result) {
   return "guarded";
 }
 
-function capabilityCount(capability) {
-  return itemsFromResult(capability.result).length;
-}
-
-function capabilityStatusMessage(capability) {
-  const count = capabilityCount(capability);
-  if (capability.status === "loading") return `${capability.label} 상태를 확인하는 중입니다.`;
-  if (capability.status === "unavailable") return `${capability.label} 목록을 불러오지 못했습니다. 로컬 런타임 또는 권한 컨텍스트를 확인하세요.`;
-  if (capability.status === "denied") return `${capability.label} 접근 권한이 없습니다. 권한 요청 또는 사용자 컨텍스트를 확인하세요.`;
-  if (capability.status === "review") return `${capability.label} 검토가 필요합니다. 담당자 승인 대기열을 확인하세요.`;
-  if (capability.status === "guarded") return `${capability.label} 추가 확인이 필요합니다.`;
-  if (count === 0) return `${capability.label}에 표시할 항목이 없습니다.`;
-  return `${count}개 항목을 확인했습니다.`;
-}
-
 function statusBadgeLabel(status) {
   if (status === "live") return "정상";
   if (status === "loading") return "확인 중";
@@ -313,6 +350,56 @@ function homeActionRoute(item) {
   return item.type === "task" ? "home-dashboard" : "home-requests";
 }
 
+function textKey(value) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function redirectedSection(redirectedFrom, view) {
+  return redirectedFrom?.view === view ? String(redirectedFrom.section ?? "") : "";
+}
+
+function tabIdFromSection(tabs, section, fallback) {
+  return tabs.find((tab) => tab.section === section)?.id ?? fallback;
+}
+
+function companyTabFromSection(section) {
+  return companyTabs.some((tab) => tab.id === section) ? section : "reports-home-dashboard";
+}
+
+function requestFilterFromSection(section) {
+  return requestFilters.find((filter) => filter.section === section)?.id ?? "all";
+}
+
+function requestSubtypeKey(item) {
+  const subtype = textKey(item?.subtype);
+  if (["cost", "expense", "expenses"].includes(subtype)) return "expenses";
+  if (["certificate", "certificates"].includes(subtype)) return "certificates";
+  if (["attendance", "work_record"].includes(subtype)) return "attendance";
+  if (["force", "force_decision"].includes(subtype)) return "force";
+  if (subtype === "leave" || subtype === "custom") return subtype;
+  return subtype || "all";
+}
+
+function filterRequestItems(items, filterId) {
+  if (filterId === "all") return items;
+  return items.filter((item) => requestSubtypeKey(item) === filterId);
+}
+
+function activeHomeContext(activeSection, redirectedFrom) {
+  const messageSection = redirectedSection(redirectedFrom, "messages");
+  const requestSection = redirectedSection(redirectedFrom, "requests");
+  const esignSection = redirectedSection(redirectedFrom, "esign");
+  const companySection = redirectedSection(redirectedFrom, "reports");
+  return {
+    messageTab: tabIdFromSection(messageTabs, messageSection, "send"),
+    requestTab: requestSection.includes("sent") ? "sent" : "received",
+    requestFilter: requestFilterFromSection(requestSection),
+    esignTab: tabIdFromSection(esignTabs, esignSection, "send"),
+    companyTab: companyTabFromSection(companySection),
+    section: homeSectionMeta[activeSection] ? activeSection : "home-dashboard"
+  };
+}
+
 function actionButtonLabel(action) {
   if (action === "approve") return "승인";
   if (action === "reject") return "반려";
@@ -364,32 +451,6 @@ function buildMonthCells(baseDate) {
       isToday: dateKey(date) === todayKey
     };
   });
-}
-
-function buildApprovalRows(capabilities) {
-  return capabilities
-    .filter((capability) => capability.status === "review" || capability.status === "guarded")
-    .slice(0, 3)
-    .map((capability) => ({
-      id: capability.id,
-      title: `${capability.label} 승인 확인`,
-      meta: capabilityStatusMessage(capability),
-      status: capability.status,
-      route: capability.route
-    }));
-}
-
-function buildTodoRows(capabilities) {
-  return capabilities
-    .filter((capability) => capability.status !== "live" || capabilityCount(capability) > 0)
-    .slice(0, 4)
-    .map((capability) => ({
-      id: capability.id,
-      title: `${capability.label} 상태 확인`,
-      meta: capabilityStatusMessage(capability),
-      status: capability.status,
-      route: capability.route
-    }));
 }
 
 function DashboardCard({ className = "", title, meta, Icon, children, widgetId }) {
@@ -457,8 +518,73 @@ function EmptyWidgetState({ children }) {
   );
 }
 
-export function HomeSurface({ labels, setView, liveCtx = "allow", activeSection = "home-dashboard", onHomeActionCountsChange = noop }) {
+function HomeTabList({ label, tabs, activeTab, onSelect, dataPrefix = "home-tab" }) {
+  return (
+    <div className="home-section-tabs" role="tablist" aria-label={label}>
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          type="button"
+          className={activeTab === tab.id ? "active" : ""}
+          role="tab"
+          aria-selected={activeTab === tab.id ? "true" : "false"}
+          tabIndex={activeTab === tab.id ? 0 : -1}
+          data-home-tab-id={tab.id}
+          data-home-tab-active={activeTab === tab.id ? "true" : undefined}
+          data-home-tab-prefix={dataPrefix}
+          onClick={() => onSelect(tab.id)}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function HomeSectionPanel({ section, title, meta, Icon, children }) {
+  const PanelIcon = Icon;
+  return (
+    <section className="home-section-panel" data-home-section-screen={section}>
+      <header className="home-section-panel-header">
+        <div>
+          <span>{title}</span>
+          {meta && <small>{meta}</small>}
+        </div>
+        {PanelIcon && (
+          <span className="home-dashboard-card-icon" aria-hidden="true">
+            <PanelIcon size={18} />
+          </span>
+        )}
+      </header>
+      {children}
+    </section>
+  );
+}
+
+function HomeStatusList({ title, count, children, empty }) {
+  return (
+    <section className="home-status-list">
+      <header>
+        <strong>{title}</strong>
+        <span>{count}건</span>
+      </header>
+      <div className="home-status-list-body">
+        {count > 0 ? children : <EmptyWidgetState>{empty}</EmptyWidgetState>}
+      </div>
+    </section>
+  );
+}
+
+export function HomeSurface({
+  labels,
+  setView,
+  liveCtx = "allow",
+  activeSection = "home-dashboard",
+  redirectedFrom = null,
+  onHomeActionCountsChange = noop
+}) {
   const skin = useSkin();
+  const initialHomeContext = useMemo(() => activeHomeContext(activeSection, redirectedFrom), [activeSection, redirectedFrom?.view, redirectedFrom?.section]);
   const [refreshToken, setRefreshToken] = useState(0);
   const [results, setResults] = useState([]);
   const [actionInbox, setActionInbox] = useState({
@@ -474,6 +600,19 @@ export function HomeSurface({ labels, setView, liveCtx = "allow", activeSection 
   const [sessionProfile, setSessionProfile] = useState({ profileUser: null, desktopStatus: null });
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => new Date());
   const [feedTab, setFeedTab] = useState("notice");
+  const [messageTab, setMessageTab] = useState(initialHomeContext.messageTab);
+  const [requestTab, setRequestTab] = useState(initialHomeContext.requestTab);
+  const [requestFilter, setRequestFilter] = useState(initialHomeContext.requestFilter);
+  const [esignTab, setEsignTab] = useState(initialHomeContext.esignTab);
+  const [companyTab, setCompanyTab] = useState(initialHomeContext.companyTab);
+
+  useEffect(() => {
+    setMessageTab(initialHomeContext.messageTab);
+    setRequestTab(initialHomeContext.requestTab);
+    setRequestFilter(initialHomeContext.requestFilter);
+    setEsignTab(initialHomeContext.esignTab);
+    setCompanyTab(initialHomeContext.companyTab);
+  }, [initialHomeContext]);
 
   useEffect(() => {
     let cancelled = false;
@@ -591,6 +730,23 @@ export function HomeSurface({ labels, setView, liveCtx = "allow", activeSection 
   ];
   const approvalRows = buildHomeActionRows(actionInbox.approval.items, "approval");
   const todoRows = buildHomeActionRows(actionInbox.task.items, "task");
+  const approvalItems = Array.isArray(actionInbox.approval.items) ? actionInbox.approval.items : [];
+  const requesterRecords = [
+    sessionProfile.profileUser,
+    sessionProfile.desktopStatus,
+    readLawosApiSession()?.session,
+    readLawosSessionEnvelope()
+  ];
+  const requestApproverDenied = sessionHasExplicitNonApproverRole(requesterRecords);
+  const visibleRequestTabs = requestApproverDenied ? requestTabs.filter((tab) => tab.id === "sent") : requestTabs;
+  const activeRequestTab = visibleRequestTabs.some((tab) => tab.id === requestTab) ? requestTab : visibleRequestTabs[0]?.id ?? "sent";
+  const filteredApprovalItems = filterRequestItems(approvalItems, requestFilter);
+  const filteredApprovalRows = buildHomeActionRows(filteredApprovalItems, "approval");
+  const sentRequestRows = [];
+  const selectedRequestFilter = requestFilters.find((filter) => filter.id === requestFilter) ?? requestFilters[0];
+  const guardedApprovalRows = filteredApprovalRows.filter((row) => row.status === "review" || row.status === "guarded");
+  const readyApprovalRows = filteredApprovalRows.filter((row) => row.status === "live");
+  const blockedApprovalRows = filteredApprovalRows.filter((row) => row.status === "denied" || row.status === "unavailable");
   const calendarCells = useMemo(() => buildMonthCells(selectedCalendarDate), [selectedCalendarDate]);
   const selectedCalendarKey = dateKey(selectedCalendarDate);
   const selectedAgenda = agendaForDate(agendaResult.events, selectedCalendarDate);
@@ -604,6 +760,15 @@ export function HomeSurface({ labels, setView, liveCtx = "allow", activeSection 
     !homeOnboardingDismissed;
   const forestHeroTitle = sessionGreeting(sessionProfile.profileUser, sessionProfile.desktopStatus);
   const forestHeroSubtitle = heroDateFormatter.format(new Date());
+  const activeHomeSection = homeSectionMeta[activeSection] ? activeSection : "home-dashboard";
+  const currentHomeSectionMeta = homeSectionMeta[activeHomeSection] ?? homeSectionMeta["home-dashboard"];
+  const heroTitle = activeHomeSection === "home-dashboard" ? forestHeroTitle : currentHomeSectionMeta.title;
+  const heroSubtitle = activeHomeSection === "home-dashboard" ? forestHeroSubtitle : currentHomeSectionMeta.subtitle;
+  const auditSummary = [
+    { id: "approval-audit", label: "승인 감사", value: actionInbox.approval.auditHintRef ?? "대기" },
+    { id: "task-audit", label: "업무 감사", value: actionInbox.task.auditHintRef ?? "대기" },
+    { id: "feed-audit", label: "피드 감사", value: feedResult.auditHintRef ?? "대기" }
+  ];
   function dismissHomeOnboarding() {
     writeHomeOnboardingDismissed();
     setHomeOnboardingDismissed(true);
@@ -655,41 +820,156 @@ export function HomeSurface({ labels, setView, liveCtx = "allow", activeSection 
     setUndoNotice(null);
   }
 
-  return (
-    <section className="surface stack lcx-web-command-center home-dashboard-surface" data-lcx-web-command-center="true" data-home-dashboard-shell="true" data-active-home-section={activeSection || "home-dashboard"}>
-      <section className="home-dashboard-hero" style={{ backgroundImage: `linear-gradient(90deg, rgba(9, 43, 39, 0.92), rgba(9, 43, 39, 0.62)), url(${forestCover})` }}>
-        <div>
-          <span>Home</span>
-          <h1>{forestHeroTitle}</h1>
-          <p>{forestHeroSubtitle}</p>
+  function renderRequestRow(row) {
+    return (
+      <DashboardRow
+        key={row.id}
+        {...row}
+        onOpen={(route) => setView(route === "home-requests" ? "home" : "matters", route)}
+        onAction={(action) => handleHomeAction(row, action)}
+        pending={pendingActionId.startsWith(`${row.id}:`)}
+      />
+    );
+  }
+
+  function renderMessagesScreen() {
+    const currentTab = messageTabs.find((tab) => tab.id === messageTab) ?? messageTabs[0];
+    return (
+      <HomeSectionPanel section="home-messages" title="메시지" meta={currentTab.label} Icon={Mail}>
+        <HomeTabList label="메시지 탭" tabs={messageTabs} activeTab={messageTab} onSelect={setMessageTab} dataPrefix="messages" />
+        <div className="home-section-content" role="tabpanel" data-home-message-tab={messageTab}>
+          <HomeStatusList title={currentTab.label} count={0} empty="읽지 않은 메시지가 없습니다.">
+            {null}
+          </HomeStatusList>
         </div>
-        <button className="secondary-button" type="button" onClick={() => setRefreshToken((value) => value + 1)}>
-          <RefreshCw size={15} />
-          새로고침
-        </button>
-      </section>
-      {showForestOnboarding && (
-        <section className="forest-onboarding-card" data-forest-onboarding-card="true">
-          <div>
-            <strong>연결 기준을 설정하세요</strong>
-            <p>런타임 연결과 권한 컨텍스트를 구성하면 지표가 채워집니다.</p>
+      </HomeSectionPanel>
+    );
+  }
+
+  function renderRequestsScreen() {
+    const rows = activeRequestTab === "sent" ? sentRequestRows : filteredApprovalRows;
+    const readyRows = activeRequestTab === "sent" ? [] : readyApprovalRows;
+    const reviewRows = activeRequestTab === "sent" ? [] : guardedApprovalRows;
+    const blockedRows = activeRequestTab === "sent" ? [] : blockedApprovalRows;
+    return (
+      <HomeSectionPanel section="home-requests" title="승인 요청" meta={`${selectedRequestFilter.label} · ${rows.length}건`} Icon={ShieldCheck}>
+        <div className="home-section-toolbar">
+          <HomeTabList label="승인 요청 방향" tabs={visibleRequestTabs} activeTab={activeRequestTab} onSelect={setRequestTab} dataPrefix="requests-direction" />
+          <div className="home-section-filters" role="tablist" aria-label="승인 요청 유형" data-home-request-tab={activeRequestTab} data-home-request-filter={requestFilter}>
+            {requestFilters.map((filter) => (
+              <button
+                key={filter.id}
+                type="button"
+                className={requestFilter === filter.id ? "active" : ""}
+                role="tab"
+                aria-selected={requestFilter === filter.id ? "true" : "false"}
+                tabIndex={requestFilter === filter.id ? 0 : -1}
+                data-home-request-filter-id={filter.id}
+                data-home-request-filter-active={requestFilter === filter.id ? "true" : undefined}
+                onClick={() => setRequestFilter(filter.id)}
+              >
+                {filter.label}
+              </button>
+            ))}
           </div>
-          <div className="forest-onboarding-actions">
-            <button className="secondary-button" type="button" onClick={() => setView("settings", "settings-theme")}>
-              설정 열기
-            </button>
-            <button className="icon-button" type="button" aria-label="온보딩 닫기" onClick={dismissHomeOnboarding}>
-              <X size={15} />
-            </button>
-          </div>
-        </section>
-      )}
-      {undoNotice && (
-        <div className="home-action-undo" role="status" data-home-action-undo="true">
-          <span>{undoNotice.message}</span>
-          {undoNotice.undoExpiresAt && <button type="button" className="text-button" onClick={handleUndoNotice}>실행 취소</button>}
         </div>
-      )}
+        {activeRequestTab === "sent" ? (
+          <HomeStatusList title="보낸 요청" count={sentRequestRows.length} empty="진행 중인 보낸 요청이 없습니다.">
+            {sentRequestRows.map(renderRequestRow)}
+          </HomeStatusList>
+        ) : (
+          <div className="home-status-grid">
+            <HomeStatusList title="처리 대기" count={readyRows.length} empty="처리할 승인이 없습니다.">
+              {readyRows.map(renderRequestRow)}
+            </HomeStatusList>
+            <HomeStatusList title="검토 필요" count={reviewRows.length} empty="검토가 필요한 요청이 없습니다.">
+              {reviewRows.map(renderRequestRow)}
+            </HomeStatusList>
+            <HomeStatusList title="제한됨" count={blockedRows.length} empty="제한된 요청이 없습니다.">
+              {blockedRows.map(renderRequestRow)}
+            </HomeStatusList>
+          </div>
+        )}
+      </HomeSectionPanel>
+    );
+  }
+
+  function renderEsignScreen() {
+    const currentTab = esignTabs.find((tab) => tab.id === esignTab) ?? esignTabs[0];
+    return (
+      <HomeSectionPanel section="home-esign" title="전자 계약" meta={currentTab.label} Icon={FileCheck2}>
+        <HomeTabList label="전자 계약 탭" tabs={esignTabs} activeTab={esignTab} onSelect={setEsignTab} dataPrefix="esign" />
+        <div className="home-section-content" role="tabpanel" data-home-esign-tab={esignTab}>
+          <HomeStatusList title={currentTab.label} count={0} empty="표시할 전자 계약 항목이 없습니다.">
+            {null}
+          </HomeStatusList>
+        </div>
+      </HomeSectionPanel>
+    );
+  }
+
+  function renderCompanyScreen() {
+    const currentTab = companyTabs.find((tab) => tab.id === companyTab) ?? companyTabs[0];
+    return (
+      <HomeSectionPanel section="home-company" title="회사 현황" meta={currentTab.label} Icon={ClipboardList}>
+        <HomeTabList label="회사 현황 리포트" tabs={companyTabs} activeTab={companyTab} onSelect={setCompanyTab} dataPrefix="company" />
+        <div className="home-company-grid" role="tabpanel" data-home-company-tab={companyTab}>
+          <section className="home-company-summary" data-home-permission-summary="true">
+            <header>
+              <strong>권한 상태</strong>
+              <small>{failedCount > 0 || reviewCount > 0 ? "확인 필요" : "정상"}</small>
+            </header>
+            <div className="home-system-pill-grid">
+              {systemStatusItems.map(({ id, label, status, statusLabel, Icon }) => (
+                <div key={id} className={`home-system-pill ${status}`}>
+                  <Icon size={15} />
+                  <span>{label}</span>
+                  <em>{statusLabel}</em>
+                </div>
+              ))}
+            </div>
+          </section>
+          <section className="home-company-summary" data-home-audit-summary="true">
+            <header>
+              <strong>감사 요약</strong>
+              <small>최근 읽기 기준</small>
+            </header>
+            <div className="home-audit-summary-list">
+              {auditSummary.map((item) => (
+                <div key={item.id}>
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                </div>
+              ))}
+            </div>
+          </section>
+          <section className="home-company-summary" data-home-company-report-summary="true">
+            <header>
+              <strong>{currentTab.label}</strong>
+              <small>회사 현황</small>
+            </header>
+            <div className="home-audit-summary-list">
+              <div>
+                <span>승인 대기</span>
+                <strong>{actionInbox.counts.approval}건</strong>
+              </div>
+              <div>
+                <span>지연 업무</span>
+                <strong>{actionInbox.counts.task_late}건</strong>
+              </div>
+              <div>
+                <span>오늘 업무</span>
+                <strong>{actionInbox.counts.task_today}건</strong>
+              </div>
+            </div>
+          </section>
+        </div>
+      </HomeSectionPanel>
+    );
+  }
+
+  function renderDashboardGrid() {
+    return (
       <div className="home-dashboard-grid" data-home-ops-queue="true" data-home-dashboard-grid="true" data-lcx-web-capability-count={capabilities.length}>
         <DashboardCard className="home-dashboard-approval" title="승인 대기" meta={`${actionInbox.counts.approval}건`} Icon={Inbox} widgetId="approval">
           <span className="sr-only" data-home-widget-approval-count={actionInbox.counts.approval}>{actionInbox.counts.approval}</span>
@@ -827,6 +1107,53 @@ export function HomeSurface({ labels, setView, liveCtx = "allow", activeSection 
           </DashboardCard>
         </aside>
       </div>
+    );
+  }
+
+  function renderActiveHomeSection() {
+    if (activeHomeSection === "home-messages") return renderMessagesScreen();
+    if (activeHomeSection === "home-requests") return renderRequestsScreen();
+    if (activeHomeSection === "home-esign") return renderEsignScreen();
+    if (activeHomeSection === "home-company") return renderCompanyScreen();
+    return renderDashboardGrid();
+  }
+
+  return (
+    <section className="surface stack lcx-web-command-center home-dashboard-surface" data-lcx-web-command-center="true" data-home-dashboard-shell="true" data-active-home-section={activeHomeSection}>
+      <section className="home-dashboard-hero" style={{ backgroundImage: `linear-gradient(90deg, rgba(9, 43, 39, 0.92), rgba(9, 43, 39, 0.62)), url(${forestCover})` }}>
+        <div>
+          <span>{currentHomeSectionMeta.eyebrow}</span>
+          <h1>{heroTitle}</h1>
+          <p>{heroSubtitle}</p>
+        </div>
+        <button className="secondary-button" type="button" onClick={() => setRefreshToken((value) => value + 1)}>
+          <RefreshCw size={15} />
+          새로고침
+        </button>
+      </section>
+      {showForestOnboarding && (
+        <section className="forest-onboarding-card" data-forest-onboarding-card="true">
+          <div>
+            <strong>연결 기준을 설정하세요</strong>
+            <p>런타임 연결과 권한 컨텍스트를 구성하면 지표가 채워집니다.</p>
+          </div>
+          <div className="forest-onboarding-actions">
+            <button className="secondary-button" type="button" onClick={() => setView("settings", "settings-theme")}>
+              설정 열기
+            </button>
+            <button className="icon-button" type="button" aria-label="온보딩 닫기" onClick={dismissHomeOnboarding}>
+              <X size={15} />
+            </button>
+          </div>
+        </section>
+      )}
+      {undoNotice && (
+        <div className="home-action-undo" role="status" data-home-action-undo="true">
+          <span>{undoNotice.message}</span>
+          {undoNotice.undoExpiresAt && <button type="button" className="text-button" onClick={handleUndoNotice}>실행 취소</button>}
+        </div>
+      )}
+      {renderActiveHomeSection()}
     </section>
   );
 }

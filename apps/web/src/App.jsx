@@ -74,6 +74,7 @@ export function App() {
   const [view, setView] = useState(initialView);
   const [liveCtx, setLiveCtx] = useState(initialLiveCtx);
   const [activeSection, setActiveSection] = useState(initialSection);
+  const [activeRedirectedFrom, setActiveRedirectedFrom] = useState(resolvedInitialRoute.redirectedFrom ?? null);
   const [handoffSplashVisible, setHandoffSplashVisible] = useState(initialHandoffSplash);
   const [authStep, setAuthStep] = useState(initialAuthStep);
   const [query, setQuery] = useState(initialQuery);
@@ -137,6 +138,7 @@ export function App() {
     }
     setView(resolved.view);
     setActiveSection(resolved.section);
+    setActiveRedirectedFrom(resolved.redirectedFrom ?? null);
     if (resolved.openNotifications) {
       setUtilityDrawerType("notifications");
       setNotificationUnreadCount(0);
@@ -213,6 +215,7 @@ export function App() {
       setView(nextRoute.view);
       setLiveCtx(nextRoute.liveCtx);
       setActiveSection(nextRoute.section);
+      setActiveRedirectedFrom(nextRoute.redirectedFrom ?? null);
       if (isReturnableWorkView(nextRoute.view)) {
         setModeReturnTarget(routeTargetFor(nextRoute.view, nextRoute.section));
       }
@@ -298,6 +301,7 @@ export function App() {
                 setView={navigateToView}
                 liveCtx={liveCtx}
                 activeSection={activeSection}
+                redirectedFrom={activeRedirectedFrom}
                 onHomeActionCountsChange={setHomeActionCounts}
               />
             )}

@@ -272,7 +272,7 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.doesNotMatch(appSource, /<Rail \/>|sidebarExpanded|initialSidebarExpanded/);
   assert.match(homeSource, /data-home-dashboard-shell="true"/);
   assert.match(homeSource, /data-home-dashboard-grid="true"/);
-  assert.match(homeSource, /data-active-home-section=\{activeSection \|\| "home-dashboard"\}/);
+  assert.match(homeSource, /data-active-home-section=\{activeHomeSection\}/);
   assert.match(homeSource, /widgetId="approval"/);
   assert.match(homeSource, /widgetId="todo"/);
   assert.match(homeSource, /widgetId="calendar"/);
