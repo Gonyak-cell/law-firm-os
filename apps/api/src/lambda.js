@@ -1054,6 +1054,24 @@ async function writeI18ProbeCredential({ env = process.env, generatedAt = new Da
     ok: true,
     password: probePassword,
     user,
+    restoreCredentialStore: async () => {
+      if (beforeBytes === null) {
+        await rm(resolvedPath, { force: true });
+      } else {
+        await writeFile(resolvedPath, beforeBytes);
+      }
+      const restoredBytes = beforeBytes === null ? null : await readFile(resolvedPath);
+      return {
+        executed: true,
+        mode: beforeBytes === null ? "removed_probe_store" : "restored_previous_store",
+        credential_store_path_hash: hashRef(resolvedPath),
+        before_sha256: beforeBytes ? sha256Hex(beforeBytes) : null,
+        restored_sha256: restoredBytes ? sha256Hex(restoredBytes) : null,
+        plaintext_password_returned: false,
+        password_hash_digest_returned: false,
+        password_hash_salt_returned: false,
+      };
+    },
     summary: {
       credential_store_env: LAWOS_AUTH_CREDENTIAL_STORE_ENV,
       credential_store_path_hash: hashRef(resolvedPath),
@@ -1166,81 +1184,84 @@ export async function buildCtiS1GAuthenticatedProductionProbeReceipt({
     };
   }
 
-  if (apiBaseUrlFn === apiBaseUrl) await resetCachedApiServer();
-  const baseUrl = await apiBaseUrlFn();
-  const login = await apiJson(baseUrl, "/api/auth/login", {
-    method: "POST",
-    body: {
-      email: CTI_S1G_PROBE_PRINCIPAL_EMAIL,
-      password: credential.password,
-    },
-  });
-  const sessionToken = login.body?.session_token;
-  const authHeaders = typeof sessionToken === "string" && sessionToken
-    ? { authorization: `Bearer ${sessionToken}` }
-    : {};
-  const query = new URLSearchParams({
-    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
-    permission_ref: CTI_S1G_PROBE_PERMISSION_REF,
-    audit_hint_ref: "cti_s1g_i18_authenticated_probe",
-  });
-  const session = await apiJson(baseUrl, "/api/auth/session", { headers: authHeaders });
-  const matterList = await apiJson(baseUrl, `/api/matters?${query}`, { headers: authHeaders });
-  const firstMatter = Array.isArray(matterList.body?.items) ? matterList.body.items[0] : null;
-  const matterId = firstMatter?.matter_id;
-  const markerMode = matterId ? "matter_recently_viewed_marker" : "security_audit_break_glass_marker";
-  const marker = matterId
-    ? await apiJson(baseUrl, `/api/matters/${encodeURIComponent(matterId)}/recently-viewed`, {
-        method: "POST",
-        headers: authHeaders,
-        body: {
-          tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
-          permission_ref: CTI_S1G_PROBE_PERMISSION_REF,
-          audit_hint_ref: "cti_s1g_i18_marker",
-          viewed_at: generatedAt,
-        },
-      })
-    : await apiJson(baseUrl, "/api/admin/security/break-glass", {
-        method: "POST",
-        headers: authHeaders,
-        body: {
-          requester_user_id: credential.user.user_id,
-          reason: "cti_s1g_i18_authenticated_probe",
-        },
-      });
-  const audit = matterId
-    ? await apiJson(baseUrl, `/api/matters/audit?${query}`, { headers: authHeaders })
-    : await apiJson(baseUrl, "/api/admin/security/audit", { headers: authHeaders });
-  const markerReadback = matterId
-    ? await apiJson(baseUrl, `/api/matters/recently-viewed?${query}&limit=10`, { headers: authHeaders })
-    : await apiJson(baseUrl, "/api/admin/security/audit", { headers: authHeaders });
-  const markerObjectId = marker.body?.item?.break_glass_request_id ?? matterId ?? null;
-  const auditMatchCount = Array.isArray(audit.body?.items)
-    ? audit.body.items.filter((item) => (
-        matterId
-          ? item.action === "matter.recently_viewed.mark" && item.object_id === matterId
-          : item.action === "admin.security.break_glass.requested" && item.object_id === markerObjectId
-      )).length
-    : 0;
-  const readbackMatchCount = Array.isArray(markerReadback.body?.items)
-    ? markerReadback.body.items.filter((item) => (
-        matterId
-          ? item.matter_id === matterId
-          : item.action === "admin.security.break_glass.requested" && item.object_id === markerObjectId
-      )).length
-    : 0;
-  const markerStatusOk = marker.status === 200 || marker.status === 201;
-  const passed =
-    login.status === 200 &&
-    session.status === 200 &&
-    matterList.status === 200 &&
-    markerStatusOk &&
-    audit.status === 200 &&
-    markerReadback.status === 200 &&
-    auditMatchCount > 0 &&
-    readbackMatchCount > 0;
+  let probeReceipt;
+  let credentialStoreRestore = null;
+  try {
+    if (apiBaseUrlFn === apiBaseUrl) await resetCachedApiServer();
+    const baseUrl = await apiBaseUrlFn();
+    const login = await apiJson(baseUrl, "/api/auth/login", {
+      method: "POST",
+      body: {
+        email: CTI_S1G_PROBE_PRINCIPAL_EMAIL,
+        password: credential.password,
+      },
+    });
+    const sessionToken = login.body?.session_token;
+    const authHeaders = typeof sessionToken === "string" && sessionToken
+      ? { authorization: `Bearer ${sessionToken}` }
+      : {};
+    const query = new URLSearchParams({
+      tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+      permission_ref: CTI_S1G_PROBE_PERMISSION_REF,
+      audit_hint_ref: "cti_s1g_i18_authenticated_probe",
+    });
+    const session = await apiJson(baseUrl, "/api/auth/session", { headers: authHeaders });
+    const matterList = await apiJson(baseUrl, `/api/matters?${query}`, { headers: authHeaders });
+    const firstMatter = Array.isArray(matterList.body?.items) ? matterList.body.items[0] : null;
+    const matterId = firstMatter?.matter_id;
+    const markerMode = matterId ? "matter_recently_viewed_marker" : "security_audit_break_glass_marker";
+    const marker = matterId
+      ? await apiJson(baseUrl, `/api/matters/${encodeURIComponent(matterId)}/recently-viewed`, {
+          method: "POST",
+          headers: authHeaders,
+          body: {
+            tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+            permission_ref: CTI_S1G_PROBE_PERMISSION_REF,
+            audit_hint_ref: "cti_s1g_i18_marker",
+            viewed_at: generatedAt,
+          },
+        })
+      : await apiJson(baseUrl, "/api/admin/security/break-glass", {
+          method: "POST",
+          headers: authHeaders,
+          body: {
+            requester_user_id: credential.user.user_id,
+            reason: "cti_s1g_i18_authenticated_probe",
+          },
+        });
+    const audit = matterId
+      ? await apiJson(baseUrl, `/api/matters/audit?${query}`, { headers: authHeaders })
+      : await apiJson(baseUrl, "/api/admin/security/audit", { headers: authHeaders });
+    const markerReadback = matterId
+      ? await apiJson(baseUrl, `/api/matters/recently-viewed?${query}&limit=10`, { headers: authHeaders })
+      : await apiJson(baseUrl, "/api/admin/security/audit", { headers: authHeaders });
+    const markerObjectId = marker.body?.item?.break_glass_request_id ?? matterId ?? null;
+    const auditMatchCount = Array.isArray(audit.body?.items)
+      ? audit.body.items.filter((item) => (
+          matterId
+            ? item.action === "matter.recently_viewed.mark" && item.object_id === matterId
+            : item.action === "admin.security.break_glass.requested" && item.object_id === markerObjectId
+        )).length
+      : 0;
+    const readbackMatchCount = Array.isArray(markerReadback.body?.items)
+      ? markerReadback.body.items.filter((item) => (
+          matterId
+            ? item.matter_id === matterId
+            : item.action === "admin.security.break_glass.requested" && item.object_id === markerObjectId
+        )).length
+      : 0;
+    const markerStatusOk = marker.status === 200 || marker.status === 201;
+    const passed =
+      login.status === 200 &&
+      session.status === 200 &&
+      matterList.status === 200 &&
+      markerStatusOk &&
+      audit.status === 200 &&
+      markerReadback.status === 200 &&
+      auditMatchCount > 0 &&
+      readbackMatchCount > 0;
 
-  return {
+    probeReceipt = {
     ok: passed,
     schema_version: CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_SCHEMA_VERSION,
     goal_id: "cti-s1g-authenticated-production-probe",
@@ -1300,6 +1321,7 @@ export async function buildCtiS1GAuthenticatedProductionProbeReceipt({
       temporary_backdoor_principal_used: false,
       credential_store_write_executed: true,
       credential_store_write_principal_count: 1,
+      credential_store_restored: false,
       s1g_marker_write_executed: marker.status === 200,
       token_or_password_returned: false,
       token_material_recorded: false,
@@ -1321,6 +1343,18 @@ export async function buildCtiS1GAuthenticatedProductionProbeReceipt({
       db_conversion_executed: false,
       production_ready_claimed: false,
       go_live_claimed: false,
+    },
+  };
+  } finally {
+    credentialStoreRestore = await credential.restoreCredentialStore();
+    if (apiBaseUrlFn === apiBaseUrl) await resetCachedApiServer();
+  }
+  return {
+    ...probeReceipt,
+    credential_store_restore: credentialStoreRestore,
+    boundary: {
+      ...probeReceipt.boundary,
+      credential_store_restored: credentialStoreRestore?.executed === true,
     },
   };
 }

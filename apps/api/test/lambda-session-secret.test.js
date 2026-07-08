@@ -294,7 +294,7 @@ test("I26 DB connection proof surface is direct-invoke only and approval gated",
   assert.equal(approvalBody.secret_value_returned, false);
 });
 
-test("I18 S1-G authenticated production probe writes one credential and returns only safe evidence", async () => {
+test("I18 S1-G authenticated production probe restores credential store and returns only safe evidence", async () => {
   const artifactsRoot = resolve("artifacts", "tmp");
   await mkdir(artifactsRoot, { recursive: true });
   const root = await mkdtemp(join(artifactsRoot, "lawos-cti-i18-test-"));
@@ -347,18 +347,24 @@ test("I18 S1-G authenticated production probe writes one credential and returns 
     assert.equal(receipt.boundary.token_or_password_returned, false);
     assert.equal(receipt.boundary.plaintext_password_recorded, false);
     assert.equal(receipt.boundary.credential_material_recorded_in_receipt, false);
+    assert.equal(receipt.boundary.credential_store_restored, true);
     assert.equal(receipt.boundary.production_migration_executed, false);
     assert.equal(receipt.boundary.cutover_executed, false);
+    assert.equal(receipt.credential_store_restore.executed, true);
+    assert.equal(receipt.credential_store_restore.mode, "removed_probe_store");
+    assert.equal(receipt.credential_store_restore.plaintext_password_returned, false);
+    assert.equal(receipt.credential_store_restore.password_hash_digest_returned, false);
+    assert.equal(receipt.credential_store_restore.password_hash_salt_returned, false);
 
     const receiptText = JSON.stringify(receipt);
     assert.doesNotMatch(receiptText, /jwsuh@amic\.kr/);
     assert.doesNotMatch(receiptText, /lawos_session_v1\./);
     assert.doesNotMatch(receiptText, /operational-session-secret-32-bytes/);
 
-    const credentialStore = JSON.parse(await readFile(paths.authCredentialStorePath, "utf8"));
-    assert.equal(credentialStore.records.length, 1);
-    assert.equal(credentialStore.records[0].email, "jwsuh@amic.kr");
-    assert.equal(credentialStore.records[0].password_hash.algorithm, "node:crypto.scrypt");
+    await assert.rejects(
+      readFile(paths.authCredentialStorePath, "utf8"),
+      /ENOENT/,
+    );
   } finally {
     if (started) await new Promise((resolveClose) => started.server.close(resolveClose));
     await rm(root, { recursive: true, force: true });
