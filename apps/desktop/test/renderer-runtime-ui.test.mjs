@@ -25,6 +25,8 @@ test("packaged renderer presents user-facing connection login and feature checks
   assert.match(source, /amic-law-a-lockup-accent\.svg/);
   assert.match(source, /amic-law-mic-accent\.svg/);
   assert.match(source, /amic-law-logo-accent\.svg/);
+  assert.match(source, /\.\.\/\.\.\/build\/icon\.png/);
+  assert.doesNotMatch(source, /icon-source-mark\.png/);
   assert.doesNotMatch(source, /<img class="brand-intro-logo"/);
   assert.match(source, /aria-label="AMIC Law"/);
   assert.doesNotMatch(source, /amic-petra-main\.svg/);
@@ -181,6 +183,8 @@ test("archived matter login design stays separate from the forest runtime login"
   assert.match(archived, /data-login-email/);
   assert.match(archived, /data-login-password/);
   assert.match(archived, /data-matter-login/);
+  assert.match(archived, /\.\.\/\.\.\/build\/icon\.png/);
+  assert.doesNotMatch(archived, /icon-source-mark\.png/);
   assert.doesNotMatch(archived, /data-login-skin="forest"/);
   assert.doesNotMatch(archived, /auth-forest-panel/);
   assert.doesNotMatch(archived, /forest-login\.jpg/);
