@@ -968,7 +968,7 @@ export function HomeSurface({
   const currentHomeSectionMeta = localizedHomeSectionMeta(homeSectionMeta[activeHomeSection] ?? homeSectionMeta["home-dashboard"], labels);
   const heroTitle = activeHomeSection === "home-dashboard" ? forestHeroTitle : currentHomeSectionMeta.title;
   const heroSubtitle = activeHomeSection === "home-dashboard"
-    ? `${forestHeroSubtitle} · ${homeCopy(labels, "homeHeroActionSummary", "오늘 처리할 항목")} ${homeActionTotal}${homeCopy(labels, "countSuffix", "건")}`
+    ? forestHeroSubtitle
     : currentHomeSectionMeta.subtitle;
   const auditSummary = [
     { id: "approval-audit", label: "승인 감사", value: actionInbox.approval.auditHintRef ?? "대기" },
@@ -1565,9 +1565,9 @@ export function HomeSurface({
     <section className="surface stack lcx-web-command-center home-dashboard-surface" data-lcx-web-command-center="true" data-home-dashboard-shell="true" data-active-home-section={activeHomeSection}>
       <section className="home-dashboard-hero" style={{ backgroundImage: `linear-gradient(90deg, rgba(9, 43, 39, 0.92), rgba(9, 43, 39, 0.62)), url(${forestCover})` }}>
         <div>
-          <span>{currentHomeSectionMeta.eyebrow}</span>
+          {activeHomeSection !== "home-dashboard" && <span>{currentHomeSectionMeta.eyebrow}</span>}
           <h1>{heroTitle}</h1>
-          <p data-home-hero-action-count={activeHomeSection === "home-dashboard" ? homeActionTotal : undefined}>{heroSubtitle}</p>
+          <p>{heroSubtitle}</p>
         </div>
         <button className="secondary-button" type="button" onClick={refreshHome}>
           <RefreshCw size={15} />

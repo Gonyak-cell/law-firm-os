@@ -250,7 +250,8 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(desktopSource, /setMatterWordTarget/);
   assert.match(desktopSource, /@keyframes matterWordLoginReveal[\s\S]*width:\s*var\(--word-target\)/);
   assert.match(desktopSource, /<span class="matter-word">[\s\S]*<span>m<\/span><span>a<\/span><span>t<\/span><span>t<\/span><span>e<\/span><span>r<\/span>/);
-  assert.match(desktopSource, /\.\.\/\.\.\/build\/icon-source-mark\.png/);
+  assert.match(desktopSource, /\.\.\/\.\.\/build\/icon\.png/);
+  assert.doesNotMatch(desktopSource, /icon-source-mark\.png/);
   assert.doesNotMatch(desktopSource, /logo-handoff-active/);
   assert.doesNotMatch(desktopSource, /logoDockToHeader/);
   assert.doesNotMatch(desktopSource, /launch-splash/);

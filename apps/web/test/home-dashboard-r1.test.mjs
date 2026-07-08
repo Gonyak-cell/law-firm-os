@@ -395,7 +395,10 @@ test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async ()
     });
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
 
-    await page.waitForSelector('[data-home-hero-action-count="8"]');
+    await page.waitForSelector(".home-dashboard-hero h1");
+    const heroText = await page.locator(".home-dashboard-hero").innerText();
+    assert.doesNotMatch(heroText, /\bHOME\b/);
+    assert.doesNotMatch(heroText, /오늘 처리할 항목/);
     const approvalIds = await page.locator('[data-widget-id="approval"] [data-home-action-id]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-home-action-id")));
     assert.deepEqual(approvalIds, ["approval_oldest", "approval_today", "approval_mid", "approval_tomorrow"]);
 
@@ -411,12 +414,12 @@ test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async ()
 
     await page.locator('[data-home-action-id="approval_oldest"] [data-home-inline-action="approve"]').click();
     await page.waitForSelector('[data-home-action-undo-button="true"]');
-    assert.equal(await page.locator('[data-home-hero-action-count]').getAttribute("data-home-hero-action-count"), "7");
+    assert.equal(await page.locator("[data-home-hero-action-count]").count(), 0);
     await page.locator('[data-home-action-undo-button="true"]').click();
     await page.waitForSelector('[data-home-action-id="approval_oldest"]');
     await page.waitForTimeout(250);
     assert.equal(state.decisionCalls, 0);
-    assert.equal(await page.locator('[data-home-hero-action-count]').getAttribute("data-home-hero-action-count"), "8");
+    assert.doesNotMatch(await page.locator(".home-dashboard-hero").innerText(), /오늘 처리할 항목/);
 
     const todayKey = wp5DateKey(0);
     await page.waitForSelector(`[data-home-calendar-day="${todayKey}"][data-home-calendar-day-kind="deadline"]`);
