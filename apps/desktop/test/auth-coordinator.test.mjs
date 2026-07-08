@@ -1,6 +1,17 @@
 import assert from "node:assert/strict";
+import { existsSync, mkdtempSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import test from "node:test";
-import { MainProcessAuthCoordinator, memorySecureStore } from "../src/main/auth.js";
+import { tmpdir } from "node:os";
+import { MainProcessAuthCoordinator, encryptedFileSecureStore, memorySecureStore } from "../src/main/auth.js";
+
+function fakeSafeStorage() {
+  return {
+    isEncryptionAvailable: () => true,
+    encryptString: (value) => Buffer.from(`encrypted:${value}`, "utf8"),
+    decryptString: (value) => String(value).replace(/^encrypted:/, "")
+  };
+}
 
 test("auth coordinator starts PKCE login without exposing verifier or tokens", () => {
   const coordinator = new MainProcessAuthCoordinator();
@@ -110,4 +121,142 @@ test("auth coordinator signs into AWS runtime account without exposing operator 
   assert.equal(secureStore.snapshot().session_token, "lawos_session_v1.secret");
   assert.equal(featureSessionToken, "lawos_session_v1.secret");
   assert.equal(features.features[0].feature_id, "matter_vault_dashboard");
+});
+
+test("encrypted file secure store persists session token without plaintext token material", async () => {
+  const filePath = join(mkdtempSync(join(tmpdir(), "matter-desktop-secure-store-")), "secure-session-store.json");
+  const store = encryptedFileSecureStore({ filePath, safeStorage: fakeSafeStorage() });
+
+  await store.set("session_token", "lawos_session_v1.secret");
+  await store.set("session_snapshot", { email: "matter.desktop.qa@amic.kr", state: "signed_in" });
+  await store.set("token_set", { access_token: "access_secret" });
+
+  const raw = readFileSync(filePath, "utf8");
+  assert.equal(raw.includes("lawos_session_v1.secret"), false);
+  assert.equal(raw.includes("matter.desktop.qa@amic.kr"), false);
+  assert.equal(raw.includes("access_secret"), false);
+
+  const reloaded = encryptedFileSecureStore({ filePath, safeStorage: fakeSafeStorage() });
+  assert.equal(await reloaded.get("session_token"), "lawos_session_v1.secret");
+  assert.deepEqual(await reloaded.get("session_snapshot"), { email: "matter.desktop.qa@amic.kr", state: "signed_in" });
+  assert.equal(await reloaded.get("token_set"), undefined);
+  await reloaded.clear();
+  assert.equal(existsSync(filePath), false);
+});
+
+test("auth coordinator restores a persisted session through runtime verification", async () => {
+  const secureStore = memorySecureStore();
+  await secureStore.set("session_token", "lawos_session_v1.secret");
+  let observedSessionToken = "";
+  const coordinator = new MainProcessAuthCoordinator({
+    secureStore,
+    runtimeClient: {
+      features: async ({ sessionToken }) => {
+        observedSessionToken = sessionToken;
+        return {
+          ok: true,
+          session: {
+            state: "signed_in",
+            email: "jwsuh@amic.kr",
+            user_id: "user_amic_jwsuh",
+            tenant_id: "tenant_amic_matter_vault",
+            role_ids: ["system_super_admin"],
+            session_token: "must-not-render"
+          }
+        };
+      }
+    }
+  });
+
+  const session = await coordinator.restoreSession();
+
+  assert.equal(observedSessionToken, "lawos_session_v1.secret");
+  assert.equal(session.email, "jwsuh@amic.kr");
+  assert.deepEqual(session.role_ids, ["system_super_admin"]);
+  assert.equal(JSON.stringify(session).includes("lawos_session_v1.secret"), false);
+  assert.equal(JSON.stringify(session).includes("must-not-render"), false);
+});
+
+test("auth coordinator persists and restores tokenless desktop sessions through account validation", async () => {
+  const secureStore = memorySecureStore();
+  const coordinator = new MainProcessAuthCoordinator({
+    secureStore,
+    runtimeClient: {
+      login: async ({ email }) => ({
+        ok: true,
+        session: {
+          state: "signed_in",
+          email,
+          user_id: "user_amic_matter_desktop_qa",
+          tenant_id: "tenant_amic_matter_vault",
+          role_ids: ["matter_vault_user"],
+          password: "must-not-render"
+        },
+        token_material_returned: false
+      }),
+      accounts: async () => ({
+        ok: true,
+        users: [
+          {
+            email: "matter.desktop.qa@amic.kr",
+            status: "active",
+            role_ids: ["matter_vault_user"],
+            tenant_ids: ["tenant_amic_matter_vault"],
+            scopes: ["matter.read"]
+          }
+        ],
+        token_material_returned: false
+      })
+    }
+  });
+
+  const login = await coordinator.login({ email: "matter.desktop.qa@amic.kr", password: "qa-password" });
+  assert.equal(login.ok, true);
+  assert.equal(await secureStore.get("session_token"), undefined);
+  assert.equal((await secureStore.get("session_snapshot")).email, "matter.desktop.qa@amic.kr");
+  assert.equal(JSON.stringify(await secureStore.get("session_snapshot")).includes("must-not-render"), false);
+
+  const restoredCoordinator = new MainProcessAuthCoordinator({
+    secureStore,
+    runtimeClient: {
+      accounts: async () => ({
+        ok: true,
+        users: [
+          {
+            email: "matter.desktop.qa@amic.kr",
+            status: "active",
+            role_ids: ["matter_vault_user"],
+            tenant_ids: ["tenant_amic_matter_vault"],
+            scopes: ["matter.read"]
+          }
+        ],
+        token_material_returned: false
+      })
+    }
+  });
+  const restored = await restoredCoordinator.restoreSession();
+
+  assert.equal(restored.email, "matter.desktop.qa@amic.kr");
+  assert.equal(restored.state, "signed_in");
+  assert.deepEqual(restored.scopes, ["matter.read"]);
+});
+
+test("auth coordinator drops persisted session when runtime verification fails", async () => {
+  const secureStore = memorySecureStore();
+  await secureStore.set("session_token", "lawos_session_v1.revoked");
+  const coordinator = new MainProcessAuthCoordinator({
+    secureStore,
+    runtimeClient: {
+      features: async () => ({
+        ok: false,
+        reason: "auth_session_invalid",
+        token_material_returned: false
+      })
+    }
+  });
+
+  const session = await coordinator.restoreSession();
+
+  assert.deepEqual(session, { state: "signed_out", reason: "auth_session_invalid" });
+  assert.equal(await secureStore.get("session_token"), undefined);
 });

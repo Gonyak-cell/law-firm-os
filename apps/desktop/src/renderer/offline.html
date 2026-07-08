@@ -2624,7 +2624,9 @@
       const accountsResponse = await api.accounts();
       if (accountsResponse.ok) renderAccounts(accountsResponse.users ?? []);
       else nodes.loginResult.textContent = "계정 정보를 불러오지 못했습니다.";
-      renderSession(await api.status());
+      const session = await api.status();
+      renderSession(session);
+      if (session?.state === "signed_in" || session?.email) handoffToProductUi(session);
     }
 
     async function login() {

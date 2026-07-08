@@ -5,7 +5,7 @@ import {
   createMatterVaultAwsRuntimeClient,
   loadMatterVaultRuntimeConfig
 } from "./aws-runtime.js";
-import { MainProcessAuthCoordinator } from "./auth.js";
+import { MainProcessAuthCoordinator, encryptedFileSecureStore } from "./auth.js";
 import { parseMatterDeepLink, redactDeepLinkIntent } from "./deepLinks.js";
 import { startDesktopLocalApiServer, stopDesktopLocalApiServer } from "./local-api.js";
 import { assertApprovedRendererUrl, installNavigationGuards } from "./origin-policy.js";
@@ -53,6 +53,16 @@ export function configureDesktopProtocol(app) {
 
 export function rendererTargetFromEnv(env = process.env) {
   return env.MATTER_DESKTOP_RENDERER_URL ?? packagedRendererUrl();
+}
+
+export function desktopUserDataPath(app, env = process.env) {
+  const override = env.MATTER_DESKTOP_USER_DATA_PATH;
+  if (typeof override === "string" && override.trim()) {
+    const userDataPath = resolve(override.trim());
+    app.setPath?.("userData", userDataPath);
+    return userDataPath;
+  }
+  return app.getPath("userData");
 }
 
 export function runtimeClientFromEnv(env = process.env) {
@@ -117,9 +127,10 @@ export async function startDesktopShell({
 }
 
 export async function startElectronApp() {
-  const { app, BrowserWindow, ipcMain } = await import("electron");
+  const { app, BrowserWindow, ipcMain, safeStorage } = await import("electron");
   const pendingDeepLinks = collectMatterDeepLinkArgs(process.argv);
   let activeWindow = null;
+  const userDataPath = desktopUserDataPath(app);
   app.on("open-url", (event, url) => {
     event.preventDefault();
     if (activeWindow) sendPasswordResetDeepLink(activeWindow, url);
@@ -129,12 +140,17 @@ export async function startElectronApp() {
   configureDesktopAppIcon(app);
   configureDesktopProtocol(app);
   const localApi = process.env.MATTER_DESKTOP_LOCAL_API_ENABLED === "1"
-    ? await startDesktopLocalApiServer({ userDataPath: app.getPath("userData") })
+    ? await startDesktopLocalApiServer({ userDataPath })
     : null;
   if (localApi?.baseUrl) process.env.MATTER_DESKTOP_API_BASE_URL = localApi.baseUrl;
   app.on("before-quit", () => stopDesktopLocalApiServer(localApi));
   const runtimeClient = runtimeClientFromEnv();
-  const coordinator = new MainProcessAuthCoordinator({ runtimeClient });
+  const secureStore = encryptedFileSecureStore({
+    filePath: join(userDataPath, "secure-session-store.json"),
+    safeStorage
+  });
+  const coordinator = new MainProcessAuthCoordinator({ runtimeClient, secureStore });
+  await coordinator.restoreSession();
   const shell = await startDesktopShell({
     BrowserWindowConstructor: BrowserWindow,
     ipcMain,

@@ -10,6 +10,7 @@ import {
   configureDesktopProtocol,
   desktopPreloadPath,
   desktopWindowIconPath,
+  desktopUserDataPath,
   isMainEntryPoint,
   passwordResetDeepLinkIntent,
   packagedRendererUrl,
@@ -150,6 +151,25 @@ test("desktop local API preserves explicit store overrides", () => {
   assert.deepEqual(madeDirs, [{ dir: storeDir, options: { recursive: true } }]);
   assert.equal(stores.matterStorePath, "/tmp/matter-override.json");
   assert.equal(stores.hrxStorePath, join(storeDir, "hrx-store.json"));
+});
+
+test("desktop userData can be isolated for packaged QA runs", () => {
+  const app = {
+    calls: [],
+    setPath(name, value) {
+      this.calls.push({ name, value });
+    },
+    getPath() {
+      return "/default/user-data";
+    }
+  };
+
+  assert.equal(
+    desktopUserDataPath(app, { MATTER_DESKTOP_USER_DATA_PATH: "/tmp/matter-desktop-qa-profile" }),
+    "/tmp/matter-desktop-qa-profile"
+  );
+  assert.deepEqual(app.calls, [{ name: "userData", value: "/tmp/matter-desktop-qa-profile" }]);
+  assert.equal(desktopUserDataPath(app, {}), "/default/user-data");
 });
 
 test("desktop local API starts bundled API with userData-backed stores", async () => {

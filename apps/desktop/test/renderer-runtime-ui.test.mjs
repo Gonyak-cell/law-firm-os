@@ -119,6 +119,7 @@ test("packaged renderer presents user-facing connection login and feature checks
   assert.match(source, /desktop_api_base_url/);
   assert.match(source, /\["127\.0\.0\.1", "localhost"\]\.includes\(url\.hostname\)/);
   assert.match(source, /productUiTarget\(session, \{ splash: false \}\)/);
+  assert.match(source, /const session = await api\.status\(\);[\s\S]*renderSession\(session\);[\s\S]*handoffToProductUi\(session\);/);
   assert.match(source, /window\.setTimeout\(\(\) => \{[\s\S]*window\.location\.assign\(target\);[\s\S]*\}, 0\);/);
   assert.match(source, /function loginFailureMessage/);
   assert.match(source, /function resetFailureMessage/);

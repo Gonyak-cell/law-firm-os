@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { _electron as electron } from "playwright";
@@ -26,6 +27,15 @@ const initialLoginScreenshotPath = path.join(artifactDir, "desktop-initial-login
 const qaAccountProductScreenshotPath = path.join(artifactDir, "desktop-qa-account-product-ui.png");
 const screenshotPath = path.join(artifactDir, "desktop-screen-qa.png");
 const resultPath = path.join(artifactDir, "desktop-screen-qa-result.json");
+
+function createQaUserDataPath() {
+  const root = process.env.MATTER_DESKTOP_QA_USER_DATA_PATH;
+  if (typeof root === "string" && root.trim()) {
+    mkdirSync(root, { recursive: true });
+    return mkdtempSync(path.join(root, "launch-"));
+  }
+  return mkdtempSync(path.join(tmpdir(), "matter-desktop-screen-qa-"));
+}
 
 function readPlistValue(source, key) {
   const pattern = new RegExp(`<key>${key}</key>\\s*<string>([^<]+)</string>`);
@@ -208,12 +218,14 @@ async function waitForProductUi(page) {
 }
 
 async function launchMatterApp(qaTarget) {
+  const userDataPath = createQaUserDataPath();
   const app = await electron.launch({
     executablePath: qaTarget === "packaged" ? packagedMacExecutablePath : electronExecutablePath,
     args: qaTarget === "packaged" ? [] : [desktopMainPath],
     env: {
       ...process.env,
-      MATTER_DESKTOP_ENV_FILE: envFilePath
+      MATTER_DESKTOP_ENV_FILE: envFilePath,
+      MATTER_DESKTOP_USER_DATA_PATH: userDataPath
     },
     timeout: 30_000
   });
@@ -227,7 +239,7 @@ async function launchMatterApp(qaTarget) {
     throw new Error(`Desktop runtime did not connect: ${JSON.stringify(diagnostics)}`, { cause: error });
   }
   const accountCountLabel = await waitForText(page, "[data-account-count]", /^([1-9]\d* registered|등록된 계정 [1-9]\d*개)$/);
-  return { app, page, runtimeLabel, accountCountLabel };
+  return { app, page, runtimeLabel, accountCountLabel, userDataPath };
 }
 
 async function main() {
@@ -338,6 +350,11 @@ async function main() {
         operator_token_material_printed: false,
         password_material_printed: false,
         reset_token_material_printed: false
+      },
+      desktop_user_data: {
+        isolated_per_launch: true,
+        first_launch_path: firstLaunch.userDataPath,
+        second_launch_path: secondLaunch.userDataPath
       },
       packaged_bundle_inspection: {
         mac_bundle_present: existsSync(packagedMacAppPath),
