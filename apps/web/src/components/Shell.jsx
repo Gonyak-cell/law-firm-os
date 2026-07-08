@@ -566,6 +566,7 @@ export function Sidebar({
   activeSection = "",
   homeApprovalCount = 0,
   homeMessageCount = 0,
+  canViewCompanyStatus = false,
   modeReturnTarget = { view: "home", section: "home-dashboard" },
   onReturnToWork = () => {}
 }) {
@@ -614,7 +615,7 @@ export function Sidebar({
       }))
     ])
   );
-  const homeSubnav = sidebarMeta.home.actions.map((item) => {
+  const homeSubnav = sidebarMeta.home.actions.filter((item) => canViewCompanyStatus || item.section !== "home-company").map((item) => {
     if (item.section === "home-messages") {
       return {
         ...item,
@@ -878,6 +879,7 @@ export function Sidebar({
             >
               <span className="sidebar-icon"><Icon size={16} /></span>
               <span>{item.label}</span>
+              {item.section === "home-company" && <span className="sr-only" data-home-sidebar-company-link="true">회사 현황</span>}
               {item.homeCountKind === "approval" && <span className="sr-only" data-home-sidebar-approval-count={item.homeCount}>{item.homeCount}</span>}
               {item.homeCountKind === "message" && <span className="sr-only" data-home-sidebar-message-count={item.homeCount}>{item.homeCount}</span>}
               {item.count && <span className="sidebar-count">{item.count}</span>}

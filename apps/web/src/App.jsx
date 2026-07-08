@@ -14,12 +14,22 @@ import { PortalSurface } from "./components/PortalSurface.jsx";
 import { UserProfileSurface } from "./components/UserProfileSurface.jsx";
 import { PeopleHome } from "./people/PeopleHome.tsx";
 import { SkinContext } from "./context/SkinContext.jsx";
-import { loginLawosApiSession } from "./data/apiClient.js";
+import { loginLawosApiSession, readLawosApiSession, readLawosSessionEnvelope } from "./data/apiClient.js";
+import { canAccessHomeCompany } from "./data/homeAccess.js";
 import { fetchHomeMessageItems } from "./data/homeMessages.js";
 
 const productAxisIds = new Set(navItems.map((item) => item.id));
 const emptyHomeActionCounts = Object.freeze({ approval: 0, task_late: 0, task_today: 0 });
 const defaultModeReturnTarget = Object.freeze({ view: "home", section: "home-dashboard" });
+
+function homeCompanyAccessRecords(source = globalThis) {
+  const apiSession = readLawosApiSession(source);
+  return [apiSession, apiSession?.session, readLawosSessionEnvelope(source)];
+}
+
+function readHomeCompanyAccess(source = globalThis) {
+  return canAccessHomeCompany(homeCompanyAccessRecords(source));
+}
 
 export function resolveAxis(view) {
   return productAxisIds.has(view) ? view : "home";
@@ -57,7 +67,8 @@ export function App() {
       : "forest";
   const rawInitialView = redirectableViews.includes(initialParams.get("view")) ? initialParams.get("view") : "home";
   const rawInitialSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
-  const resolvedInitialRoute = resolveRoute(rawInitialView, rawInitialSection);
+  const initialCompanyAccess = readHomeCompanyAccess();
+  const resolvedInitialRoute = resolveRoute(rawInitialView, rawInitialSection, initialCompanyAccess);
   const initialView = resolvedInitialRoute.view;
   const initialAuthStep = ["signup", "signupModal", "login", "verify", "password", "org", "reset", "sent", "onboarding"].includes(initialParams.get("authStep"))
     ? initialParams.get("authStep")
@@ -75,6 +86,8 @@ export function App() {
   const [liveCtx, setLiveCtx] = useState(initialLiveCtx);
   const [activeSection, setActiveSection] = useState(initialSection);
   const [activeRedirectedFrom, setActiveRedirectedFrom] = useState(resolvedInitialRoute.redirectedFrom ?? null);
+  const [canViewCompanyStatus, setCanViewCompanyStatus] = useState(initialCompanyAccess);
+  const [homeCompanyAccessDenied, setHomeCompanyAccessDenied] = useState(resolvedInitialRoute.homeCompanyAccessDenied === true);
   const [handoffSplashVisible, setHandoffSplashVisible] = useState(initialHandoffSplash);
   const [authStep, setAuthStep] = useState(initialAuthStep);
   const [query, setQuery] = useState(initialQuery);
@@ -96,9 +109,12 @@ export function App() {
   const homeMessageCount = unreadMessageIds.size;
   const initialRouteWasRedirected = rawInitialView !== initialView || rawInitialSection !== initialSection;
 
-  function resolveRoute(nextView, section = "") {
+  function resolveRoute(nextView, section = "", companyAllowed = canViewCompanyStatus) {
     const resolved = resolveGlobalShortcut(nextView, section);
     if (!routableViews.includes(resolved.view)) return { view: "home", section: "" };
+    if (resolved.view === "home" && resolved.section === "home-company" && !companyAllowed) {
+      return { ...resolved, section: "home-dashboard", homeCompanyAccessDenied: true };
+    }
     return resolved;
   }
 
@@ -107,7 +123,8 @@ export function App() {
     const rawView = redirectableViews.includes(params.get("view")) ? params.get("view") : "home";
     const nextLiveCtx = ["allow", "denied", "review"].includes(params.get("ctx")) ? params.get("ctx") : "allow";
     const rawSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
-    return { ...resolveRoute(rawView, rawSection), liveCtx: nextLiveCtx };
+    const companyAllowed = readHomeCompanyAccess();
+    return { ...resolveRoute(rawView, rawSection, companyAllowed), liveCtx: nextLiveCtx, companyAllowed };
   }
 
   function routeUrl(nextView, section = "") {
@@ -131,7 +148,9 @@ export function App() {
   }
 
   function navigateToView(nextView, section = "") {
-    const resolved = resolveRoute(nextView, section);
+    const companyAllowed = readHomeCompanyAccess();
+    setCanViewCompanyStatus(companyAllowed);
+    const resolved = resolveRoute(nextView, section, companyAllowed);
     if (!routableViews.includes(resolved.view)) return;
     if (modeExceptionUtilityViewIds.includes(resolved.view)) {
       setModeReturnTarget(currentModeReturnTarget());
@@ -141,6 +160,7 @@ export function App() {
     setView(resolved.view);
     setActiveSection(resolved.section);
     setActiveRedirectedFrom(resolved.redirectedFrom ?? null);
+    setHomeCompanyAccessDenied(resolved.homeCompanyAccessDenied === true);
     if (resolved.openNotifications) {
       setUtilityDrawerType("notifications");
       setNotificationUnreadCount(0);
@@ -238,8 +258,10 @@ export function App() {
       const nextRoute = routeFromLocation();
       setView(nextRoute.view);
       setLiveCtx(nextRoute.liveCtx);
+      setCanViewCompanyStatus(nextRoute.companyAllowed);
       setActiveSection(nextRoute.section);
       setActiveRedirectedFrom(nextRoute.redirectedFrom ?? null);
+      setHomeCompanyAccessDenied(nextRoute.homeCompanyAccessDenied === true);
       if (isReturnableWorkView(nextRoute.view)) {
         setModeReturnTarget(routeTargetFor(nextRoute.view, nextRoute.section));
       }
@@ -306,6 +328,7 @@ export function App() {
             activeSection={activeSection}
             homeApprovalCount={homeApprovalCount}
             homeMessageCount={homeMessageCount}
+            canViewCompanyStatus={canViewCompanyStatus}
             modeReturnTarget={modeReturnTarget}
             onReturnToWork={returnToWork}
           />
@@ -330,6 +353,8 @@ export function App() {
                 messageItems={homeMessageItems}
                 unreadMessageIds={unreadMessageIds}
                 onMessageThreadOpen={markMessageRead}
+                canViewCompanyStatus={canViewCompanyStatus}
+                homeCompanyAccessDenied={homeCompanyAccessDenied}
                 onHomeActionCountsChange={setHomeActionCounts}
               />
             )}

@@ -584,6 +584,8 @@ export function HomeSurface({
   messageItems = [],
   unreadMessageIds = new Set(),
   onMessageThreadOpen = noop,
+  canViewCompanyStatus = false,
+  homeCompanyAccessDenied = false,
   onHomeActionCountsChange = noop
 }) {
   const skin = useSkin();
@@ -965,6 +967,16 @@ export function HomeSurface({
 
   function renderCompanyScreen() {
     const currentTab = companyTabs.find((tab) => tab.id === companyTab) ?? companyTabs[0];
+    if (!canViewCompanyStatus) {
+      return (
+        <HomeSectionPanel section="home-company" title="회사 현황" meta="권한 필요" Icon={ClipboardList}>
+          <div className="home-company-access-notice" role="status" data-home-company-access-denied="true">
+            <strong>관리자 권한이 필요합니다.</strong>
+            <span>회사 현황은 관리자 role이 확인된 세션에서만 열 수 있습니다.</span>
+          </div>
+        </HomeSectionPanel>
+      );
+    }
     return (
       <HomeSectionPanel section="home-company" title="회사 현황" meta={currentTab.label} Icon={ClipboardList}>
         <HomeTabList label="회사 현황 리포트" tabs={companyTabs} activeTab={companyTab} onSelect={setCompanyTab} dataPrefix="company" />
@@ -1201,6 +1213,12 @@ export function HomeSurface({
             </button>
           </div>
         </section>
+      )}
+      {homeCompanyAccessDenied && (
+        <div className="home-company-access-notice" role="status" data-home-company-access-denied="true">
+          <strong>회사 현황 접근이 제한되었습니다.</strong>
+          <span>관리자 role이 확인되면 사이드바에서 다시 열 수 있습니다.</span>
+        </div>
       )}
       {undoNotice && (
         <div className="home-action-undo" role="status" data-home-action-undo="true">

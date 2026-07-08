@@ -11,7 +11,7 @@ import { createServer } from "vite";
 const testDir = dirname(fileURLToPath(import.meta.url));
 const webRoot = resolve(testDir, "..");
 
-function installRouteWindow({ view, section }) {
+function installRouteWindow({ view, section, roleIds = [] }) {
   const storage = new Map();
   const search = `?view=${encodeURIComponent(view)}&ctx=allow`;
   const hash = section ? `#${encodeURIComponent(section)}` : "";
@@ -38,6 +38,19 @@ function installRouteWindow({ view, section }) {
       return { matches: false, addEventListener() {}, removeEventListener() {} };
     }
   };
+  if (roleIds.length > 0) {
+    globalThis.__LAWOS_SESSION_CONTEXT__ = {
+      schema_version: "law-firm-os.desktop-web-session-envelope.v0.1",
+      state: "signed_in",
+      session_ref: "session:r1",
+      source: "r1-render-test",
+      actor_ref: "actor:r1",
+      tenant_refs: { default: "tenant_amic_matter_vault" },
+      role_ids: roleIds,
+      scopes: [],
+      review_state: "allow"
+    };
+  }
   globalThis.document = { documentElement: { dataset: {}, lang: "" } };
 }
 
@@ -56,6 +69,7 @@ async function renderAppAtLegacyRoute(route) {
     await server.close();
     delete globalThis.window;
     delete globalThis.document;
+    delete globalThis.__LAWOS_SESSION_CONTEXT__;
   }
 }
 
@@ -167,7 +181,7 @@ test("R1 WP-2 restores legacy request route context into Home request tab and fi
 test("R1 WP-2 renders dedicated Home utility screens from legacy route context", async () => {
   const messages = await renderAppAtLegacyRoute({ view: "messages", section: "messages-matter-channel" });
   const esign = await renderAppAtLegacyRoute({ view: "esign", section: "esign-status" });
-  const company = await renderAppAtLegacyRoute({ view: "reports", section: "reports-matter-analytics" });
+  const company = await renderAppAtLegacyRoute({ view: "reports", section: "reports-matter-analytics", roleIds: ["admin"] });
 
   assert.match(messages, /data-home-section-screen="home-messages"/);
   assert.match(messages, /data-home-message-tab="matter"/);
@@ -180,6 +194,22 @@ test("R1 WP-2 renders dedicated Home utility screens from legacy route context",
   assert.match(company, /data-home-section-screen="home-company"/);
   assert.match(company, /data-home-company-tab="reports-matter-analytics"/);
   assert.match(company, /data-home-audit-summary="true"/);
+});
+
+test("R1 WP-4 gates Home company status to admin sessions", async () => {
+  const denied = await renderAppAtLegacyRoute({ view: "reports", section: "reports-matter-analytics", roleIds: ["staff"] });
+  const admin = await renderAppAtLegacyRoute({ view: "reports", section: "reports-matter-analytics", roleIds: ["admin"] });
+
+  assert.match(denied, /data-active-home-section="home-dashboard"/);
+  assert.match(denied, /data-home-company-access-denied="true"/);
+  assert.doesNotMatch(denied, /data-home-section-screen="home-company"/);
+  assert.doesNotMatch(denied, /data-home-sidebar-company-link="true"/);
+
+  assert.match(admin, /data-active-home-section="home-company"/);
+  assert.match(admin, /data-home-section-screen="home-company"/);
+  assert.match(admin, /data-home-company-tab="reports-matter-analytics"/);
+  assert.match(admin, /data-home-sidebar-company-link="true"/);
+  assert.doesNotMatch(admin, /data-home-company-access-denied="true"/);
 });
 
 test("R1 WP-3 opens Home message threads and decreases unread counts at runtime", async () => {
