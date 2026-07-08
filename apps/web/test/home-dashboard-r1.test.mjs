@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createServer as createNetServer } from "node:net";
 import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import test from "node:test";
 import { chromium } from "playwright";
 import React from "react";
@@ -475,6 +475,113 @@ test("R1 WP-6 renders notification dot from action inbox counts and i18n labels 
     assert.match(await page.locator('[data-widget-id="todo"]').textContent(), /Late 2 · Today 1/);
     assert.equal(await page.locator("#home-feed-tab-notice").textContent(), "Internal notices");
     assert.ok((await page.locator('.sidebar button:has-text("Dashboard")').count()) > 0);
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
+test("R1 WP-7 keeps Home counts equal across widget, sidebar, topbar, and dedicated views", async () => {
+  const port = await availablePort();
+  const server = await createServer({
+    root: webRoot,
+    logLevel: "silent",
+    server: { host: "127.0.0.1", port, strictPort: true }
+  });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  const state = { decisionCalls: 0, newsCalls: 0 };
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
+    });
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
+
+    await page.waitForSelector('[data-home-widget-approval-count="5"]');
+    const dashboardCounts = await page.evaluate(() => ({
+      widget: document.querySelector("[data-home-widget-approval-count]")?.getAttribute("data-home-widget-approval-count"),
+      sidebar: document.querySelector("[data-home-sidebar-approval-count]")?.getAttribute("data-home-sidebar-approval-count"),
+      topbar: document.querySelector("[data-home-topbar-approval-count]")?.getAttribute("data-home-topbar-approval-count")
+    }));
+    assert.deepEqual(dashboardCounts, { widget: "5", sidebar: "5", topbar: "5" });
+
+    await page.locator('[data-home-widget-view-all="todo"]').click();
+    await page.waitForFunction(() => window.__MATTER_HOME_METRICS__?.some((event) => event.event_type === "home_deeplink_misclick" && event.outcome === "same_route"));
+
+    await page.locator('[data-product-axis="matters"]').click();
+    await page.waitForFunction(() => new URL(window.location.href).searchParams.get("view") === "matters");
+    await page.locator('[data-product-axis="home"]').click();
+    await page.waitForSelector('[data-home-widget-approval-count="5"]');
+    const afterAxisCounts = await page.evaluate(() => ({
+      widget: document.querySelector("[data-home-widget-approval-count]")?.getAttribute("data-home-widget-approval-count"),
+      sidebar: document.querySelector("[data-home-sidebar-approval-count]")?.getAttribute("data-home-sidebar-approval-count"),
+      topbar: document.querySelector("[data-home-topbar-approval-count]")?.getAttribute("data-home-topbar-approval-count")
+    }));
+    assert.deepEqual(afterAxisCounts, { widget: "5", sidebar: "5", topbar: "5" });
+
+    await page.locator('[data-home-widget-view-all="approval"]').click();
+    await page.waitForSelector('[data-home-section-screen="home-requests"]');
+    const dedicatedCounts = await page.evaluate(() => ({
+      dedicated: String(document.querySelectorAll('[data-home-section-screen="home-requests"] [data-home-action-type="approval"]').length),
+      sidebar: document.querySelector("[data-home-sidebar-approval-count]")?.getAttribute("data-home-sidebar-approval-count"),
+      topbar: document.querySelector("[data-home-topbar-approval-count]")?.getAttribute("data-home-topbar-approval-count")
+    }));
+    assert.deepEqual(dedicatedCounts, { dedicated: "5", sidebar: "5", topbar: "5" });
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
+test("R1 WP-7 emits Home first-action and deep-link telemetry at runtime", async () => {
+  const { HOME_METRIC_EVENT_NAME } = await import(pathToFileURL(resolve(webRoot, "src/data/homeTelemetry.js")).href);
+  const port = await availablePort();
+  const server = await createServer({
+    root: webRoot,
+    logLevel: "silent",
+    server: { host: "127.0.0.1", port, strictPort: true }
+  });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  const state = { decisionCalls: 0, newsCalls: 0 };
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    await page.addInitScript((eventName) => {
+      window.__MATTER_HOME_METRIC_EVENTS__ = [];
+      window.addEventListener(eventName, (event) => {
+        window.__MATTER_HOME_METRIC_EVENTS__.push(event.detail);
+      });
+    }, HOME_METRIC_EVENT_NAME);
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
+    });
+    await page.goto(`http://127.0.0.1:${port}/?view=requests&ctx=allow#requests-leave`, { waitUntil: "networkidle" });
+
+    await page.waitForSelector('[data-home-section-screen="home-requests"]');
+    await page.waitForFunction(() => window.__MATTER_HOME_METRICS__?.some((event) => event.event_type === "home_deeplink_misclick" && event.source === "initial_route"));
+    await page.locator('[data-home-action-id="approval_oldest"] [data-home-inline-action="approve"]').click();
+    await page.waitForFunction(() => window.__MATTER_HOME_METRICS__?.some((event) => event.event_type === "home_time_to_first_action"));
+
+    const metrics = await page.evaluate(() => window.__MATTER_HOME_METRICS__);
+    const deepLinkMetric = metrics.find((event) => event.event_type === "home_deeplink_misclick" && event.source === "initial_route");
+    const firstActionMetric = metrics.find((event) => event.event_type === "home_time_to_first_action");
+    assert.equal(deepLinkMetric.requested_view, "requests");
+    assert.equal(deepLinkMetric.requested_section, "requests-leave");
+    assert.equal(deepLinkMetric.resolved_view, "home");
+    assert.equal(deepLinkMetric.resolved_section, "home-requests");
+    assert.equal(deepLinkMetric.outcome, "redirected");
+    assert.equal(firstActionMetric.action_kind, "home_action_decision");
+    assert.equal(firstActionMetric.action, "approve");
+    assert.equal(firstActionMetric.item_id, "approval_oldest");
+    assert.equal(firstActionMetric.active_section, "home-requests");
+    assert.equal(typeof firstActionMetric.elapsed_ms, "number");
+    assert.ok(firstActionMetric.elapsed_ms >= 0);
+    const metricEvents = await page.evaluate(() => window.__MATTER_HOME_METRIC_EVENTS__);
+    assert.ok(metricEvents.some((event) => event.event_type === "home_deeplink_misclick"));
+    assert.ok(metricEvents.some((event) => event.event_type === "home_time_to_first_action"));
   } finally {
     await browser.close();
     await server.close();

@@ -158,7 +158,7 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
 });
 
 test("Stage 1 IA redirects old global utility URLs into stable product axes", async () => {
-  const { modeExceptionUtilityViewIds, resolveGlobalShortcut } = await import(pathToFileURL(resolve(webRoot, "src/data/globalUtilities.js")).href);
+  const { legacyGlobalRoutes, modeExceptionUtilityViewIds, resolveGlobalShortcut } = await import(pathToFileURL(resolve(webRoot, "src/data/globalUtilities.js")).href);
 
   assert.deepEqual(modeExceptionUtilityViewIds, ["settings", "data-import"]);
   assert.deepEqual(resolveGlobalShortcut("home", ""), { view: "home", section: "home-dashboard" });
@@ -176,6 +176,15 @@ test("Stage 1 IA redirects old global utility URLs into stable product axes", as
   assert.equal(resolveGlobalShortcut("settings", "settings-company").view, "settings");
   assert.equal(resolveGlobalShortcut("data-import", "data-import-client").view, "data-import");
   assert.equal(resolveGlobalShortcut("home", "home-review").section, "home-requests");
+  assert.ok(legacyGlobalRoutes.length > 30);
+
+  for (const legacyRoute of legacyGlobalRoutes) {
+    const routeName = `${legacyRoute.view}:${legacyRoute.section}`;
+    const resolved = resolveGlobalShortcut(legacyRoute.view, legacyRoute.section);
+    const expected = resolveGlobalShortcut(legacyRoute.targetView, legacyRoute.targetSection);
+    assert.equal(resolved.view, expected.view, `${routeName} view`);
+    assert.equal(resolved.section, expected.section, `${routeName} section`);
+  }
 });
 
 test("matter startup branding uses shared splash and brand constants", async () => {

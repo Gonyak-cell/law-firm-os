@@ -17,6 +17,7 @@ import { SkinContext } from "./context/SkinContext.jsx";
 import { loginLawosApiSession, readLawosApiSession, readLawosSessionEnvelope } from "./data/apiClient.js";
 import { canAccessHomeCompany } from "./data/homeAccess.js";
 import { fetchHomeMessageItems } from "./data/homeMessages.js";
+import { emitHomeMetric } from "./data/homeTelemetry.js";
 
 const productAxisIds = new Set(navItems.map((item) => item.id));
 const emptyHomeActionCounts = Object.freeze({ approval: 0, task_late: 0, task_today: 0 });
@@ -155,6 +156,26 @@ export function App() {
     setCanViewCompanyStatus(companyAllowed);
     const resolved = resolveRoute(nextView, section, companyAllowed);
     if (!routableViews.includes(resolved.view)) return;
+    const requestedSection = section || "";
+    const resolvedSection = resolved.section || "";
+    const currentSection = activeSection || "";
+    const redirected =
+      resolved.view !== nextView ||
+      resolvedSection !== requestedSection ||
+      Boolean(resolved.redirectedFrom) ||
+      resolved.homeCompanyAccessDenied === true ||
+      resolved.openNotifications === true;
+    emitHomeMetric("home_deeplink_misclick", {
+      requested_view: nextView,
+      requested_section: requestedSection,
+      resolved_view: resolved.view,
+      resolved_section: resolvedSection,
+      current_view: view,
+      current_section: currentSection,
+      outcome: redirected ? "redirected" : resolved.view === view && resolvedSection === currentSection ? "same_route" : "navigated",
+      home_company_access_denied: resolved.homeCompanyAccessDenied === true,
+      open_notifications: resolved.openNotifications === true
+    });
     if (modeExceptionUtilityViewIds.includes(resolved.view)) {
       setModeReturnTarget(currentModeReturnTarget());
     } else if (isReturnableWorkView(resolved.view)) {
@@ -257,6 +278,18 @@ export function App() {
 
   useEffect(() => {
     if (!initialRouteWasRedirected) return;
+    emitHomeMetric("home_deeplink_misclick", {
+      requested_view: rawInitialView,
+      requested_section: rawInitialSection,
+      resolved_view: view,
+      resolved_section: activeSection,
+      current_view: view,
+      current_section: activeSection,
+      outcome: "redirected",
+      source: "initial_route",
+      home_company_access_denied: homeCompanyAccessDenied,
+      open_notifications: resolvedInitialRoute.openNotifications === true
+    });
     window.history.replaceState({ view, section: activeSection }, "", routeUrl(view, activeSection));
   }, []);
 

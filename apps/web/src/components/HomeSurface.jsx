@@ -44,6 +44,7 @@ import {
   readLawosSessionEnvelope,
   fetchVaultDocuments
 } from "../data/apiClient.js";
+import { emitHomeMetric, homeMetricNowMs } from "../data/homeTelemetry.js";
 import { fetchHrxPeopleOverview } from "../people/hrxApiClient.ts";
 import { useSkin } from "../context/SkinContext.jsx";
 
@@ -777,6 +778,8 @@ export function HomeSurface({
   const [approvalWidgetTab, setApprovalWidgetTab] = useState("received");
   const [selectedFeedEntryId, setSelectedFeedEntryId] = useState("");
   const pendingActionTimersRef = useRef(new Map());
+  const firstActionStartedAtRef = useRef(homeMetricNowMs());
+  const firstActionLoggedRef = useRef(false);
 
   useEffect(() => {
     setMessageTab(initialHomeContext.messageTab);
@@ -972,6 +975,41 @@ export function HomeSurface({
     { id: "task-audit", label: "업무 감사", value: actionInbox.task.auditHintRef ?? "대기" },
     { id: "feed-audit", label: "피드 감사", value: feedResult.auditHintRef ?? "대기" }
   ];
+
+  function recordTimeToFirstAction(actionKind, detail = {}) {
+    if (firstActionLoggedRef.current) return;
+    firstActionLoggedRef.current = true;
+    emitHomeMetric("home_time_to_first_action", {
+      elapsed_ms: Math.max(0, Math.round(homeMetricNowMs() - firstActionStartedAtRef.current)),
+      active_section: activeHomeSection,
+      action_kind: actionKind,
+      ...detail
+    });
+  }
+
+  function openHomeRoute(route, targetView, detail = {}) {
+    recordTimeToFirstAction("home_route_open", {
+      route,
+      target_view: targetView,
+      ...detail
+    });
+    setView(targetView, route);
+  }
+
+  function selectFeedEntry(entryId) {
+    recordTimeToFirstAction("feed_entry_open", { item_id: entryId, feed_tab: feedTab });
+    setSelectedFeedEntryId(entryId);
+  }
+
+  function retryFeed() {
+    recordTimeToFirstAction("feed_retry", { feed_tab: feedTab });
+    setRefreshToken((value) => value + 1);
+  }
+
+  function refreshHome() {
+    recordTimeToFirstAction("home_refresh");
+    setRefreshToken((value) => value + 1);
+  }
   function dismissHomeOnboarding() {
     writeHomeOnboardingDismissed();
     setHomeOnboardingDismissed(true);
@@ -984,6 +1022,11 @@ export function HomeSurface({
   }
 
   function handleHomeAction(row, action) {
+    recordTimeToFirstAction("home_action_decision", {
+      action,
+      item_id: row.id,
+      action_type: row.type
+    });
     const previousActionInbox = actionInbox;
     const actionStateId = `${row.id}:${action}`;
     const pendingKey = `${row.id}:${action}:${Date.now()}`;
@@ -1048,7 +1091,7 @@ export function HomeSurface({
       <DashboardRow
         key={row.id}
         {...row}
-        onOpen={(route) => setView(route === "home-requests" ? "home" : "matters", route)}
+        onOpen={(route) => openHomeRoute(route, route === "home-requests" ? "home" : "matters", { item_id: row.id, action_type: row.type })}
         onAction={(action) => handleHomeAction(row, action)}
         pending={pendingActionId.startsWith(`${row.id}:`)}
         labels={labels}
@@ -1058,6 +1101,7 @@ export function HomeSurface({
 
   function openMessageThread(item) {
     if (!item?.id) return;
+    recordTimeToFirstAction("message_thread_open", { item_id: item.id, message_tab: item.tab ?? item.section ?? "" });
     setSelectedMessageThreadId(item.id);
     onMessageThreadOpen(item.id);
   }
@@ -1109,7 +1153,7 @@ export function HomeSurface({
                 </header>
                 <p>{selectedMessage.summary}</p>
                 {selectedMessage.matterId && (
-                  <button type="button" className="text-button" onClick={() => setView("matters", "matter-channel")}>
+                  <button type="button" className="text-button" onClick={() => openHomeRoute("matter-channel", "matters", { source: "message_thread_panel" })}>
                     {homeCopy(labels, "homeMessagesMatterOpen", "Matter 대화 열기")}
                   </button>
                 )}
@@ -1261,7 +1305,7 @@ export function HomeSurface({
     if (showForestOnboarding) {
       return (
         <div className="home-widget-empty actionable">
-          <button type="button" className="text-button" data-home-todo-onboarding-cta="true" onClick={() => setView("matters", "matter-tasks")}>
+          <button type="button" className="text-button" data-home-todo-onboarding-cta="true" onClick={() => openHomeRoute("matter-tasks", "matters", { source: "todo_onboarding" })}>
             {homeCopy(labels, "homeTodoOnboardingCta", "첫 할 일 만들기")} <ArrowRight size={14} />
           </button>
         </div>
@@ -1279,7 +1323,7 @@ export function HomeSurface({
           meta={`${actionInbox.counts.approval}${homeCopy(labels, "countSuffix", "건")}`}
           Icon={Inbox}
           widgetId="approval"
-          onViewAll={() => setView("home", "home-requests")}
+          onViewAll={() => openHomeRoute("home-requests", "home", { source: "approval_widget_view_all" })}
           viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
         >
           <span className="sr-only" data-home-widget-approval-count={actionInbox.counts.approval}>{actionInbox.counts.approval}</span>
@@ -1289,7 +1333,7 @@ export function HomeSurface({
               <DashboardRow
                 key={row.id}
                 {...row}
-                onOpen={(route) => setView(route === "home-requests" ? "home" : "matters", route)}
+                onOpen={(route) => openHomeRoute(route, route === "home-requests" ? "home" : "matters", { item_id: row.id, action_type: row.type })}
                 onAction={(action) => handleHomeAction(row, action)}
                 pending={pendingActionId.startsWith(`${row.id}:`)}
                 labels={labels}
@@ -1304,7 +1348,7 @@ export function HomeSurface({
           meta={`${homeCopy(labels, "homeTodoLate", "지연")} ${actionInbox.counts.task_late} · ${homeCopy(labels, "homeTodoToday", "오늘")} ${actionInbox.counts.task_today}`}
           Icon={Clock3}
           widgetId="todo"
-          onViewAll={() => setView("home", "home-dashboard")}
+          onViewAll={() => openHomeRoute("home-dashboard", "home", { source: "todo_widget_view_all" })}
           viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
         >
           <span className="sr-only" data-home-widget-task-count={actionInbox.counts.task_today}>{actionInbox.counts.task_today}</span>
@@ -1313,7 +1357,7 @@ export function HomeSurface({
               <DashboardRow
                 key={row.id}
                 {...row}
-                onOpen={(route) => setView(route === "home-dashboard" ? "home" : "matters", route)}
+                onOpen={(route) => openHomeRoute(route, route === "home-dashboard" ? "home" : "matters", { item_id: row.id, action_type: row.type })}
                 onAction={(action) => handleHomeAction(row, action)}
                 pending={pendingActionId.startsWith(`${row.id}:`)}
                 labels={labels}
@@ -1328,7 +1372,7 @@ export function HomeSurface({
           meta={currentFeedTab.label}
           Icon={Newspaper}
           widgetId="feed"
-          onViewAll={() => setView("home", "home-dashboard")}
+          onViewAll={() => openHomeRoute("home-dashboard", "home", { source: "feed_widget_view_all" })}
           viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
         >
           <div className="home-feed-tabs" role="tablist" aria-label={homeCopy(labels, "homeFeedTabLabel", "홈 피드")}>
@@ -1355,14 +1399,14 @@ export function HomeSurface({
           >
           {primaryFeedEntry ? (
             <div className="home-feed-content" data-home-feed-entry-count={feedEntries.length}>
-              <button type="button" className="home-feed-feature" data-home-feed-entry={primaryFeedEntry.id} onClick={() => setSelectedFeedEntryId(primaryFeedEntry.id)}>
+              <button type="button" className="home-feed-feature" data-home-feed-entry={primaryFeedEntry.id} onClick={() => selectFeedEntry(primaryFeedEntry.id)}>
                 <span>{primaryFeedEntry.source}</span>
                 <strong>{primaryFeedEntry.title}</strong>
                 <p>{primaryFeedEntry.body_preview}</p>
               </button>
               <div className="home-feed-list">
                 {feedEntries.slice(1, 4).map((entry) => (
-                  <button type="button" key={entry.id} data-home-feed-entry={entry.id} onClick={() => setSelectedFeedEntryId(entry.id)}>
+                  <button type="button" key={entry.id} data-home-feed-entry={entry.id} onClick={() => selectFeedEntry(entry.id)}>
                     <span>{entry.source}</span>
                     <strong>{entry.title}</strong>
                     <small>{formatDateTime(entry.published_at)}</small>
@@ -1376,7 +1420,7 @@ export function HomeSurface({
               <strong>{feedEmptyMessage(feedTab, currentFeedTab, feedResult, labels)}</strong>
               {currentFeedTab.sources && <span>{currentFeedTab.sources}</span>}
               {canRetryFeed && (
-                <button type="button" className="text-button home-feed-retry" data-home-feed-retry="true" onClick={() => setRefreshToken((value) => value + 1)}>
+                <button type="button" className="text-button home-feed-retry" data-home-feed-retry="true" onClick={retryFeed}>
                   {homeCopy(labels, "homeFeedRetry", "다시 시도")}
                 </button>
               )}
@@ -1406,7 +1450,7 @@ export function HomeSurface({
             meta={monthFormatter.format(selectedCalendarDate)}
             Icon={CalendarDays}
             widgetId="calendar"
-            onViewAll={() => setView("home", "home-dashboard")}
+            onViewAll={() => openHomeRoute("home-dashboard", "home", { source: "calendar_widget_view_all" })}
             viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
             headerExtra={(
               <span className="home-calendar-nav" aria-label={homeCopy(labels, "homeCalendarMoveLabel", "월 이동")}>
@@ -1461,12 +1505,12 @@ export function HomeSurface({
             <div className="home-calendar-agenda">
               <div className="home-calendar-agenda-header">
                 <strong>{selectedDateFormatter.format(selectedCalendarDate)}</strong>
-                <button type="button" className="text-button home-calendar-open" data-home-calendar-open="true" onClick={() => setView("matters", "matter-calendar")}>
+                <button type="button" className="text-button home-calendar-open" data-home-calendar-open="true" onClick={() => openHomeRoute("matter-calendar", "matters", { source: "calendar_open" })}>
                   {homeCopy(labels, "homeCalendarOpen", "캘린더 열기")}
                 </button>
               </div>
               {nextDeadline && (
-                <button type="button" className="home-calendar-deadline-callout" data-home-upcoming-deadline="true" onClick={() => setView("matters", "matter-calendar")}>
+                <button type="button" className="home-calendar-deadline-callout" data-home-upcoming-deadline="true" onClick={() => openHomeRoute("matter-calendar", "matters", { source: "upcoming_deadline" })}>
                   <span>{homeCopy(labels, "homeCalendarUpcomingDeadline", "임박 기한 1건")}</span>
                   <strong>{nextDeadline.title}</strong>
                 </button>
@@ -1476,7 +1520,7 @@ export function HomeSurface({
               ) : (
                 <div className="home-calendar-agenda-list" data-home-agenda-count={selectedAgenda.length}>
                   {selectedAgenda.slice(0, 3).map((event) => (
-                    <button key={event.id} type="button" className={event.kind === "deadline" ? "deadline" : ""} onClick={() => setView("matters", event.matter_ref ? "matter-calendar" : "matter-home")}>
+                    <button key={event.id} type="button" className={event.kind === "deadline" ? "deadline" : ""} onClick={() => openHomeRoute(event.matter_ref ? "matter-calendar" : "matter-home", "matters", { item_id: event.id, source: "calendar_agenda" })}>
                       <span>{event.kind === "deadline" ? homeCopy(labels, "homeCalendarDeadlineKind", "기한") : event.kind}</span>
                       <strong>{event.title}</strong>
                     </button>
@@ -1491,7 +1535,7 @@ export function HomeSurface({
             meta={failedCount > 0 || reviewCount > 0 ? homeCopy(labels, "homeSystemNeedsReview", "확인 필요") : homeCopy(labels, "homeSystemOk", "정상")}
             Icon={Briefcase}
             widgetId="system"
-            onViewAll={() => setView("home", "home-company")}
+            onViewAll={() => openHomeRoute("home-company", "home", { source: "system_widget_view_all" })}
             viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
           >
             <div className="home-system-pill-grid">
@@ -1525,7 +1569,7 @@ export function HomeSurface({
           <h1>{heroTitle}</h1>
           <p data-home-hero-action-count={activeHomeSection === "home-dashboard" ? homeActionTotal : undefined}>{heroSubtitle}</p>
         </div>
-        <button className="secondary-button" type="button" onClick={() => setRefreshToken((value) => value + 1)}>
+        <button className="secondary-button" type="button" onClick={refreshHome}>
           <RefreshCw size={15} />
           {homeCopy(labels, "homeRefresh", "새로고침")}
         </button>
@@ -1537,7 +1581,7 @@ export function HomeSurface({
             <p>{homeCopy(labels, "homeOnboardingBody", "런타임 연결과 권한 컨텍스트를 구성하면 지표가 채워집니다.")}</p>
           </div>
           <div className="forest-onboarding-actions">
-            <button className="secondary-button" type="button" onClick={() => setView("settings", "settings-theme")}>
+            <button className="secondary-button" type="button" onClick={() => openHomeRoute("settings-theme", "settings", { source: "forest_onboarding" })}>
               {homeCopy(labels, "homeOnboardingSettings", "설정 열기")}
             </button>
             <button className="icon-button" type="button" aria-label={homeCopy(labels, "homeOnboardingClose", "온보딩 닫기")} onClick={dismissHomeOnboarding}>
