@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createDefaultHomeDashboardRuntime } from "../src/home-dashboard-runtime-context.js";
+import { createDefaultHomeDashboardRuntime, createHomeDashboardSourceCollectors } from "../src/home-dashboard-runtime-context.js";
+import { highestPrivilegeRegisteredAccount } from "../src/matter-vault-account-registry.js";
 import { startApiServer } from "../src/server.js";
 import { authedJson } from "./helpers/session.js";
 
@@ -109,6 +110,139 @@ function createSeedRuntime(overrides = {}) {
         },
       ],
     },
+  });
+}
+
+function listMatching(records, query = {}) {
+  return records
+    .filter((record) => !query.tenant_id || record.tenant_id === query.tenant_id)
+    .filter((record) => !query.model_type || record.model_type === query.model_type)
+    .filter((record) => !query.matter_id || record.matter_id === query.matter_id);
+}
+
+function repositoryFixture(records, { failModelType = null } = {}) {
+  return {
+    list(query = {}) {
+      if (query.model_type === failModelType) throw new Error(`${query.model_type}_SOURCE_DOWN`);
+      return listMatching(records, query);
+    },
+  };
+}
+
+function createSourceRuntime({ failMatterTasks = false } = {}) {
+  const account = highestPrivilegeRegisteredAccount();
+  const hrxRuntime = {
+    approvals: [
+      {
+        tenant_id: TENANT,
+        approval_id: "approval-source-leave-001",
+        object_type: "LeaveRequest",
+        object_id: "leave-source-001",
+        route: "manager",
+        approver_role: "manager",
+        state: "pending",
+      },
+    ],
+    leaveStore: {
+      list: ({ tenant_id } = {}) =>
+        listMatching(
+          [
+            {
+              tenant_id: TENANT,
+              request_id: "leave-source-absence-001",
+              employee_id: "employee-source-001",
+              state: "approved",
+              start_date: "2026-07-07T04:00:00.000Z",
+              end_date: "2026-07-07T08:00:00.000Z",
+            },
+          ],
+          { tenant_id },
+        ),
+    },
+    peopleNotices: [
+      {
+        tenant_id: TENANT,
+        notice_id: "notice-source-001",
+        title: "Home source notice",
+        body_preview: "Notice source body",
+        published_at: "2026-07-07T01:00:00.000Z",
+      },
+    ],
+    externalScheduleEvents: [
+      {
+        tenant_id: TENANT,
+        event_id: "external-source-001",
+        title: "External counsel check-in",
+        starts_at: "2026-07-07T09:00:00.000Z",
+        ends_at: "2026-07-07T09:30:00.000Z",
+      },
+    ],
+  };
+  const matterRuntime = {
+    repository: repositoryFixture(
+      [
+        {
+          tenant_id: TENANT,
+          model_type: "MatterBuilderApprovalRequest",
+          approval_request_id: "matter-approval-source-001",
+          matter_id: "matter-source-001",
+          status: "pending_owner_approval",
+          created_at: "2026-07-07T02:00:00.000Z",
+        },
+        {
+          tenant_id: TENANT,
+          model_type: "MatterTask",
+          task_id: "matter-task-source-001",
+          matter_id: "matter-source-001",
+          title: "Review source task",
+          status: "todo",
+          assigned_to: account.user_id,
+          due_at: "2026-07-07T10:00:00.000Z",
+        },
+        {
+          tenant_id: TENANT,
+          model_type: "MatterCalendarEvent",
+          event_id: "matter-calendar-source-001",
+          matter_id: "matter-source-001",
+          title: "Filing deadline",
+          status: "scheduled",
+          starts_at: "2026-07-07T12:00:00.000Z",
+          ends_at: "2026-07-07T12:30:00.000Z",
+          source_ref: "matter_deadline:source",
+        },
+      ],
+      { failModelType: failMatterTasks ? "MatterTask" : null },
+    ),
+  };
+  const aiRuntime = {
+    repository: repositoryFixture([
+      {
+        tenant_id: TENANT,
+        model_type: "HumanReviewTask",
+        review_task_id: "ai-review-source-001",
+        matter_id: "matter-source-001",
+        status: "open",
+        reviewer_role: "manager",
+        created_at: "2026-07-07T03:00:00.000Z",
+      },
+    ]),
+  };
+  const dmsRuntime = {
+    repository: repositoryFixture([
+      {
+        tenant_id: TENANT,
+        model_type: "DmsDocument",
+        document_id: "newsletter-source-001",
+        title: "Vault newsletter source",
+        summary: "Newsletter body",
+        tags: ["newsletter"],
+        created_at: "2026-07-07T00:30:00.000Z",
+      },
+    ]),
+  };
+  return createDefaultHomeDashboardRuntime({
+    now: () => new Date(FIXED_NOW),
+    sourceCollectors: createHomeDashboardSourceCollectors({ hrxRuntime, matterRuntime, dmsRuntime, aiRuntime }),
   });
 }
 
@@ -228,6 +362,53 @@ test("Home agenda and Vault-tag newsletter feed return sanitized contract shapes
     assert.equal(newsletter.body.entries[0].source, "Vault tag collection");
     assert.equal(newsletter.body.entries[0].body_preview, "Vault tagged digest");
     assert.equal(newsletter.body.entries[0].full_body_included, false);
+  }, { homeDashboardRuntime: runtime });
+});
+
+test("Home dashboard aggregates HRX, Matter, AI, agenda, notice, and Vault newsletter sources without seed data", async () => {
+  const runtime = createSourceRuntime();
+  await withServer(async (baseUrl) => {
+    const approvals = await json(baseUrl, `/home/action-inbox?${BASE_QUERY}&type=approval&role=manager`);
+    assert.equal(approvals.status, 200);
+    assert.equal(approvals.body.outcome, "passed");
+    assert.ok(approvals.body.items.some((item) => item.id === "hrx_approval:approval-source-leave-001"));
+    assert.ok(approvals.body.items.some((item) => item.id === "matter_approval:matter-approval-source-001"));
+    assert.ok(approvals.body.items.some((item) => item.id === "ai_review:ai-review-source-001"));
+    assert.ok(approvals.body.source_statuses.every((status) => status.status === "ok"));
+
+    const tasks = await json(baseUrl, `/home/action-inbox?${BASE_QUERY}&type=task`);
+    assert.equal(tasks.status, 200);
+    assert.equal(tasks.body.items.length, 1);
+    assert.equal(tasks.body.items[0].id, "matter_task:matter-task-source-001");
+    assert.equal(tasks.body.items[0].due_at, "2026-07-07T10:00:00.000Z");
+
+    const agenda = await json(baseUrl, `/home/agenda?${BASE_QUERY}&from=2026-07-07T00:00:00.000Z&to=2026-07-07T23:59:59.000Z`);
+    assert.equal(agenda.status, 200);
+    assert.ok(agenda.body.events.some((event) => event.kind === "deadline"));
+    assert.ok(agenda.body.events.some((event) => event.kind === "external"));
+    assert.ok(agenda.body.events.some((event) => event.kind === "absence"));
+
+    const notices = await json(baseUrl, `/home/feed?${BASE_QUERY}&tab=notice`);
+    assert.equal(notices.status, 200);
+    assert.equal(notices.body.entries[0].source, "People notices");
+    assert.equal(notices.body.entries[0].body_preview, "Notice source body");
+
+    const newsletter = await json(baseUrl, `/home/feed?${BASE_QUERY}&tab=newsletter`);
+    assert.equal(newsletter.status, 200);
+    assert.equal(newsletter.body.entries[0].source, "Vault tag collection");
+    assert.equal(newsletter.body.entries[0].body_preview, "Newsletter body");
+  }, { homeDashboardRuntime: runtime });
+});
+
+test("Home dashboard source aggregation returns partial success when one runtime source fails", async () => {
+  const runtime = createSourceRuntime({ failMatterTasks: true });
+  await withServer(async (baseUrl) => {
+    const approvals = await json(baseUrl, `/home/action-inbox?${BASE_QUERY}&type=approval&role=manager`);
+    assert.equal(approvals.status, 200);
+    assert.equal(approvals.body.outcome, "partial");
+    assert.ok(approvals.body.items.some((item) => item.id === "hrx_approval:approval-source-leave-001"));
+    assert.ok(approvals.body.source_statuses.some((status) => status.source === "matter_tasks" && status.status === "failed"));
+    assert.deepEqual(approvals.body.safe_error_codes, []);
   }, { homeDashboardRuntime: runtime });
 });
 

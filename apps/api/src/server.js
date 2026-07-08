@@ -92,11 +92,12 @@ import {
   handleUiReadinessApiRequest,
 } from "./ui-readiness-context.js";
 import {
-import {
   HOME_DASHBOARD_BOUNDED_CONTEXT,
+  createHomeDashboardSourceCollectors,
   createDefaultHomeDashboardRuntime,
   handleHomeDashboardApiRequest,
 } from "./home-dashboard-runtime-context.js";
+import {
   ENTERPRISE_READINESS_BOUNDED_CONTEXT,
   ENTERPRISE_READINESS_RUNTIME_SEED,
   createEnterpriseReadinessRuntimeContext,
@@ -431,6 +432,7 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
     PORTAL_BOUNDED_CONTEXT,
     OUTLOOK_ADDIN_BOUNDED_CONTEXT,
     UI_READINESS_BOUNDED_CONTEXT,
+    HOME_DASHBOARD_BOUNDED_CONTEXT,
     ENTERPRISE_READINESS_BOUNDED_CONTEXT,
   ]),
   permission_gate: Object.freeze({
@@ -440,7 +442,6 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
     decision_order: PERMISSION_DECISION_ORDER,
     default_decision: "deny",
     fail_closed: true,
-    HOME_DASHBOARD_BOUNDED_CONTEXT,
   }),
   enrichment: Object.freeze({
     contract_ref: "contracts/matter-core-contract.json",
@@ -781,6 +782,7 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
   const isPortalPath = pathname.startsWith("/api/portal") || pathname.startsWith("/api/data-room");
   const isOutlookPath = pathname.startsWith("/api/outlook");
   const isUiReadinessPath = pathname.startsWith("/api/ui");
+  const isHomeDashboardPath = pathname.startsWith("/home") || pathname.startsWith("/api/home");
   const isEnterpriseReadinessPath = pathname.startsWith("/api/enterprise");
   const knownPath =
     pathname === "/api/health" ||
@@ -804,6 +806,7 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
     isPortalPath ||
     isOutlookPath ||
     isUiReadinessPath ||
+    isHomeDashboardPath ||
     isEnterpriseReadinessPath;
 
   if (!knownPath) {
@@ -857,7 +860,6 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
       method: req.method,
       query,
       body,
-  const isHomeDashboardPath = pathname.startsWith("/home") || pathname.startsWith("/api/home");
       context: null,
       requestId,
       runtime: portalRuntime,
@@ -882,7 +884,6 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
   const requestPermissionContext = () => sessionContext.context;
   const requestHeaders = () => {
     const principal = sessionContext.principal;
-    isHomeDashboardPath ||
     return {
       ...req.headers,
       "x-lawos-tenant-id": principal.tenant_id,
@@ -1158,6 +1159,14 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
     return;
   }
 
+  if (isHomeDashboardPath) {
+    const context = requestPermissionContext();
+    const body = req.method === "POST" ? await readRequestBody(req) : {};
+    const result = await handleHomeDashboardApiRequest({ pathname, method: req.method, query, body, context, requestId, runtime: homeDashboardRuntime });
+    sendJson(req, res, result.status, result.body);
+    return;
+  }
+
   if (isEnterpriseReadinessPath) {
     const context = requestPermissionContext();
     const body = req.method === "POST" ? await readRequestBody(req) : {};
@@ -1196,6 +1205,9 @@ export function createApiServer({
   aiRuntime = createDefaultAiRuntime(),
   portalRuntime = createDefaultPortalRuntime(),
   uiReadinessRuntime = createDefaultUiReadinessRuntime(),
+  homeDashboardRuntime = createDefaultHomeDashboardRuntime({
+    sourceCollectors: createHomeDashboardSourceCollectors({ hrxRuntime, matterRuntime, dmsRuntime, aiRuntime }),
+  }),
   enterpriseReadinessRuntime = createDefaultEnterpriseReadinessRuntime(),
   stepUpAuthority = createHrxStepUpAuthority(),
   runtimeProfile = resolveRuntimeProfile(),
@@ -1254,6 +1266,7 @@ export function startApiServer({
   uiReadinessRuntime,
   uiReadinessRepository,
   uiReadinessStorePath,
+  homeDashboardRuntime,
   enterpriseReadinessRuntime,
   enterpriseReadinessRepository,
   enterpriseReadinessStorePath,
@@ -1266,14 +1279,6 @@ export function startApiServer({
     providedStorePaths: startupStorePathOptions({
       hrxStorePath,
       masterDataStorePath,
-  if (isHomeDashboardPath) {
-    const context = requestPermissionContext();
-    const body = req.method === "POST" ? await readRequestBody(req) : {};
-    const result = await handleHomeDashboardApiRequest({ pathname, method: req.method, query, body, context, requestId, runtime: homeDashboardRuntime });
-    sendJson(req, res, result.status, result.body);
-    return;
-  }
-
       matterStorePath,
       dmsStorePath,
       dmsObjectStorePath,
@@ -1314,7 +1319,6 @@ export function startApiServer({
     matterRuntime?.repository ??
     matterRepository ??
     createMatterRepository({
-  homeDashboardRuntime = createDefaultHomeDashboardRuntime(),
       filePath: matterStorePath ?? resolvedStorePaths.matterStorePath ?? createEphemeralMatterStorePath(),
       seedRecords: MATTER_RUNTIME_SEED.records,
     });
@@ -1366,6 +1370,14 @@ export function startApiServer({
       repository: uiReadinessRepository,
       storePath: uiReadinessStorePath ?? resolvedStorePaths.uiReadinessStorePath,
     });
+  const homeDashboardRuntimeContext = homeDashboardRuntime ?? createDefaultHomeDashboardRuntime({
+    sourceCollectors: createHomeDashboardSourceCollectors({
+      hrxRuntime: runtime,
+      matterRuntime: matterRuntimeContext,
+      dmsRuntime: dmsRuntimeContext,
+      aiRuntime: aiRuntimeContext,
+    }),
+  });
   const enterpriseReadinessRuntimeContext =
     enterpriseReadinessRuntime ??
     createDefaultEnterpriseReadinessRuntime({
@@ -1373,7 +1385,6 @@ export function startApiServer({
       storePath: enterpriseReadinessStorePath ?? resolvedStorePaths.enterpriseReadinessStorePath,
     });
   const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority();
-  homeDashboardRuntime,
   const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
     profile: resolvedRuntimeProfile,
     secret: resolvedSessionSecret,
@@ -1390,6 +1401,7 @@ export function startApiServer({
     aiRuntime: aiRuntimeContext,
     portalRuntime: portalRuntimeContext,
     uiReadinessRuntime: uiReadinessRuntimeContext,
+    homeDashboardRuntime: homeDashboardRuntimeContext,
     enterpriseReadinessRuntime: enterpriseReadinessRuntimeContext,
     stepUpAuthority: resolvedStepUpAuthority,
     sessionAuth: resolvedSessionAuth,
@@ -1441,5 +1453,3 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   process.once("SIGINT", () => stopCliServer("SIGINT"));
   process.once("SIGTERM", () => stopCliServer("SIGTERM"));
 }
-  const homeDashboardRuntimeContext = homeDashboardRuntime ?? createDefaultHomeDashboardRuntime();
-    homeDashboardRuntime: homeDashboardRuntimeContext,

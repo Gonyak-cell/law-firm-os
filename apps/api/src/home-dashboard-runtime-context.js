@@ -7,6 +7,9 @@ const VALID_ACTION_TYPES = Object.freeze(["approval", "task"]);
 const VALID_FEED_TABS = Object.freeze(["notice", "news", "newsletter"]);
 const VALID_DECISIONS = Object.freeze(["approve", "reject", "complete"]);
 const VALID_AGENDA_KINDS = Object.freeze(["hearing", "deadline", "meeting", "external", "absence"]);
+const CLOSED_ACTION_STATES = Object.freeze(["approved", "rejected", "complete", "completed", "closed", "cancelled", "canceled", "done"]);
+const OPEN_TASK_STATES = Object.freeze(["todo", "doing", "open", "pending", "in_progress", "blocked"]);
+export const HOME_DASHBOARD_NEWSLETTER_VAULT_TAG = "newsletter";
 
 export const HOME_DASHBOARD_NEWS_SOURCES = Object.freeze([
   Object.freeze({
@@ -105,6 +108,7 @@ export function createDefaultHomeDashboardRuntime({
   newsFetch = globalThis.fetch?.bind(globalThis),
   cacheTtlMs = NEWS_CACHE_MIN_MS,
   seed = {},
+  sourceCollectors = {},
 } = {}) {
   return {
     now,
@@ -113,11 +117,34 @@ export function createDefaultHomeDashboardRuntime({
     actionItems: Array.isArray(seed.actionItems) ? [...seed.actionItems] : [],
     agendaEvents: Array.isArray(seed.agendaEvents) ? [...seed.agendaEvents] : [],
     feedEntries: Array.isArray(seed.feedEntries) ? [...seed.feedEntries] : [],
+    sourceCollectors: normalizeSourceCollectors(sourceCollectors),
     decisions: new Map(),
     auditEvents: [],
     usageEvents: [],
     newsCache: new Map(),
   };
+}
+
+function normalizeSourceCollectors(sourceCollectors = {}) {
+  return Object.freeze({
+    actionItems: normalizeCollectorList(sourceCollectors.actionItems),
+    agendaEvents: normalizeCollectorList(sourceCollectors.agendaEvents),
+    feedEntries: normalizeCollectorList(sourceCollectors.feedEntries),
+  });
+}
+
+function normalizeCollectorList(value) {
+  if (!Array.isArray(value)) return Object.freeze([]);
+  return Object.freeze(
+    value
+      .filter((collector) => collector && typeof collector.collect === "function")
+      .map((collector) =>
+        Object.freeze({
+          id: String(collector.id ?? "home_source"),
+          collect: collector.collect,
+        }),
+      ),
+  );
 }
 
 const DEFAULT_RUNTIME = createDefaultHomeDashboardRuntime();
@@ -321,10 +348,157 @@ function baseQuery(body = {}, query = {}) {
   };
 }
 
-function filterActionItems({ runtime, context, query }) {
-  const type = query.type ?? null;
-  const activeItems = runtime.actionItems.filter(
-    (item) => item.tenant_id === query.tenant_id && !isClosedDecision(runtime, item.id),
+export function createHomeDashboardSourceCollectors({
+  hrxRuntime = null,
+  matterRuntime = null,
+  dmsRuntime = null,
+  aiRuntime = null,
+} = {}) {
+  return Object.freeze({
+    actionItems: Object.freeze([
+      Object.freeze({ id: "hrx_approvals", collect: (args) => collectHrxApprovalItems(hrxRuntime, args) }),
+      Object.freeze({ id: "matter_approvals", collect: (args) => collectMatterApprovalItems(matterRuntime, args) }),
+      Object.freeze({ id: "ai_review_queue", collect: (args) => collectAiReviewItems({ hrxRuntime, aiRuntime }, args) }),
+      Object.freeze({ id: "matter_tasks", collect: (args) => collectMatterTaskItems(matterRuntime, args) }),
+    ]),
+    agendaEvents: Object.freeze([
+      Object.freeze({ id: "matter_calendar", collect: (args) => collectMatterAgendaEvents(matterRuntime, args) }),
+      Object.freeze({ id: "external_schedule", collect: (args) => collectExternalScheduleEvents(hrxRuntime, args) }),
+      Object.freeze({ id: "hrx_absence", collect: (args) => collectHrxAbsenceEvents(hrxRuntime, args) }),
+    ]),
+    feedEntries: Object.freeze([
+      Object.freeze({ id: "people_notices", collect: (args) => collectPeopleNoticeEntries(hrxRuntime, args) }),
+      Object.freeze({ id: "vault_tag_collection", collect: (args) => collectVaultFeedEntries(dmsRuntime, args) }),
+    ]),
+  });
+}
+
+function addStringValues(target, value) {
+  if (Array.isArray(value)) {
+    value.forEach((item) => addStringValues(target, item));
+    return;
+  }
+  if (value === undefined || value === null || value === "") return;
+  target.add(String(value).trim().toLowerCase());
+}
+
+function actorIds(context = {}) {
+  const values = new Set();
+  const principal = context?.principal ?? {};
+  addStringValues(values, [
+    principal.user_id,
+    principal.actor_id,
+    principal.email,
+    principal.auth_subject,
+    principal.employee_id,
+    principal.subject,
+  ]);
+  return values;
+}
+
+function actorRoles(context = {}, query = {}) {
+  const values = new Set();
+  const principal = context?.principal ?? {};
+  addStringValues(values, [query.role, principal.role_id, principal.role_ids, principal.group_ids, principal.hrx_scopes, principal.scopes]);
+  return values;
+}
+
+function assignmentValues(item = {}, fields = []) {
+  const values = new Set();
+  for (const field of fields) addStringValues(values, item[field]);
+  return values;
+}
+
+function intersects(left, right) {
+  for (const value of left) {
+    if (right.has(value)) return true;
+  }
+  return false;
+}
+
+function isAssignedToActor(item = {}, context = {}, query = {}) {
+  const idFields = [
+    "assignee",
+    "assignee_id",
+    "assigned_to",
+    "assigned_to_user_id",
+    "approver_id",
+    "approver_user_id",
+    "current_approver_id",
+    "reviewer_id",
+    "reviewer_user_id",
+    "next_actor_id",
+  ];
+  const roleFields = [
+    "approver_role",
+    "approver_role_id",
+    "required_role",
+    "reviewer_role",
+    "assigned_role",
+    "role",
+    "route",
+  ];
+  const ids = assignmentValues(item, idFields);
+  const roles = assignmentValues(item, roleFields);
+  if (ids.size === 0 && roles.size === 0) return true;
+  return intersects(ids, actorIds(context)) || intersects(roles, actorRoles(context, query));
+}
+
+function normalizeState(value) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function isOpenActionState(item = {}) {
+  const state = normalizeState(item.state ?? item.status ?? item.approval_state);
+  return state === "" || !CLOSED_ACTION_STATES.includes(state);
+}
+
+function sourceErrorCode(error) {
+  const message = String(error?.message ?? "");
+  return /^[A-Z0-9_:-]+$/.test(message) ? message.slice(0, 80) : "HOME_SOURCE_FAILED";
+}
+
+async function collectRuntimeSources({ runtime, kind, query, context, fallbackItems = [], extra = {} }) {
+  const collectors = runtime?.sourceCollectors?.[kind] ?? [];
+  const items = [...fallbackItems];
+  const sourceStatuses = [];
+  for (const collector of collectors) {
+    try {
+      const result = await collector.collect({
+        tenant_id: query.tenant_id,
+        query,
+        context,
+        now: runtime.now,
+        ...extra,
+      });
+      const loaded = Array.isArray(result) ? result : result?.items ?? [];
+      items.push(...loaded);
+      sourceStatuses.push(Object.freeze({ source: collector.id, status: "ok", count: loaded.length, error_code: null }));
+    } catch (error) {
+      sourceStatuses.push(Object.freeze({ source: collector.id, status: "failed", count: 0, error_code: sourceErrorCode(error) }));
+    }
+  }
+  return {
+    items,
+    sourceStatuses,
+    failedCount: sourceStatuses.filter((status) => status.status === "failed").length,
+  };
+}
+
+async function loadActionItems({ runtime, context, query, includeClosedDecisions = false }) {
+  const collected = await collectRuntimeSources({
+    runtime,
+    kind: "actionItems",
+    query,
+    context,
+    fallbackItems: runtime.actionItems,
+  });
+  const activeItems = collected.items.filter(
+    (item) =>
+      item.tenant_id === query.tenant_id
+      && (includeClosedDecisions || !isClosedDecision(runtime, item.id))
+      && isOpenActionState(item)
+      && (item._requires_actor_assignment !== true || isAssignedToActor(item, context, query)),
   );
   const { allowed } = trimItemsByPermission({
     context,
@@ -332,10 +506,14 @@ function filterActionItems({ runtime, context, query }) {
     action: "home:action_inbox:read",
     resourceType: "home_action_item",
   });
-  return type ? allowed.filter((item) => item.type === type) : allowed;
+  return {
+    allowed,
+    sourceStatuses: collected.sourceStatuses,
+    failedCount: collected.failedCount,
+  };
 }
 
-function handleActionInbox({ pathname, method, query, context, requestId, runtime }) {
+async function handleActionInbox({ pathname, method, query, context, requestId, runtime }) {
   if (dashboardPath(pathname) !== "/home/action-inbox") return null;
   if (method !== "GET") {
     return errorResponse(405, requestId, [HOME_DASHBOARD_API_ERROR_CODES.method_not_allowed], {
@@ -356,7 +534,8 @@ function handleActionInbox({ pathname, method, query, context, requestId, runtim
     runtime,
   });
   if (gated) return gated;
-  const allAllowed = filterActionItems({ runtime, context, query: { ...query, type: null } });
+  const loaded = await loadActionItems({ runtime, context, query: { ...query, type: null } });
+  const allAllowed = loaded.allowed;
   const filtered = query.type ? allAllowed.filter((item) => item.type === query.type) : allAllowed;
   const auditEvent = appendAudit(runtime, {
     tenant_id: query.tenant_id,
@@ -380,9 +559,10 @@ function handleActionInbox({ pathname, method, query, context, requestId, runtim
     status: 200,
     body: {
       request_id: requestId,
-      outcome: "passed",
+      outcome: loaded.failedCount > 0 ? "partial" : "passed",
       items: filtered.map(sanitizeActionItem),
       counts: countsFor(allAllowed, runtime.now),
+      source_statuses: loaded.sourceStatuses,
       audit_event: auditEvent,
       safe_error_codes: [],
       audit_hint_ref: query.audit_hint_ref,
@@ -396,7 +576,7 @@ function decisionKey(body, itemId, action) {
   return body.idempotency_key ?? `${body.tenant_id}:${itemId}:${action}`;
 }
 
-function handleDecision({ pathname, method, query, body, context, requestId, runtime }) {
+async function handleDecision({ pathname, method, query, body, context, requestId, runtime }) {
   const match = dashboardPath(pathname).match(/^\/home\/action-inbox\/([^/]+)\/decision$/);
   if (!match) return null;
   if (method !== "POST") {
@@ -421,7 +601,8 @@ function handleDecision({ pathname, method, query, body, context, requestId, run
     runtime,
   });
   if (gated) return gated;
-  const item = runtime.actionItems.find((candidate) => candidate.tenant_id === decisionQuery.tenant_id && candidate.id === itemId);
+  const loaded = await loadActionItems({ runtime, context, query: decisionQuery, includeClosedDecisions: true });
+  const item = loaded.allowed.find((candidate) => candidate.tenant_id === decisionQuery.tenant_id && candidate.id === itemId);
   if (!item) {
     return errorResponse(404, requestId, [HOME_DASHBOARD_API_ERROR_CODES.item_not_found], {
       audit_hint_ref: decisionQuery.audit_hint_ref,
@@ -520,7 +701,7 @@ function sanitizeAgendaEvent(event) {
   });
 }
 
-function handleAgenda({ pathname, method, query, context, requestId, runtime }) {
+async function handleAgenda({ pathname, method, query, context, requestId, runtime }) {
   if (dashboardPath(pathname) !== "/home/agenda") return null;
   if (method !== "GET") {
     return errorResponse(405, requestId, [HOME_DASHBOARD_API_ERROR_CODES.method_not_allowed], {
@@ -543,7 +724,14 @@ function handleAgenda({ pathname, method, query, context, requestId, runtime }) 
     runtime,
   });
   if (gated) return gated;
-  const rawEvents = runtime.agendaEvents.filter((event) => {
+  const collected = await collectRuntimeSources({
+    runtime,
+    kind: "agendaEvents",
+    query,
+    context,
+    fallbackItems: runtime.agendaEvents,
+  });
+  const rawEvents = collected.items.filter((event) => {
     if (event.tenant_id !== query.tenant_id) return false;
     const startsAt = new Date(event.starts_at);
     return !Number.isNaN(startsAt.getTime()) && startsAt >= from && startsAt <= to;
@@ -576,8 +764,9 @@ function handleAgenda({ pathname, method, query, context, requestId, runtime }) 
     status: 200,
     body: {
       request_id: requestId,
-      outcome: "passed",
+      outcome: collected.failedCount > 0 ? "partial" : "passed",
       events: allowed.map(sanitizeAgendaEvent),
+      source_statuses: collected.sourceStatuses,
       audit_event: auditEvent,
       safe_error_codes: [],
       audit_hint_ref: query.audit_hint_ref,
@@ -585,6 +774,312 @@ function handleAgenda({ pathname, method, query, context, requestId, runtime }) 
       production_ready_claim: false,
     },
   };
+}
+
+function listRepository(runtime, query) {
+  if (!runtime?.repository || typeof runtime.repository.list !== "function") return [];
+  return runtime.repository.list(query);
+}
+
+function listFromStore(store, query) {
+  if (!store || typeof store.list !== "function") return [];
+  return store.list(query);
+}
+
+function riskTier(value, fallback = "normal") {
+  const normalized = normalizeState(value);
+  if (["low", "normal", "medium", "high", "critical"].includes(normalized)) return normalized;
+  return fallback;
+}
+
+function hrxApprovalSubtype(approval = {}) {
+  const objectType = String(approval.object_type ?? "").toLowerCase();
+  if (objectType.includes("leave")) return "leave";
+  if (objectType.includes("certificate")) return "certificate";
+  if (objectType.includes("attendance") || objectType.includes("overtime")) return "attendance";
+  if (objectType.includes("expense")) return "expense";
+  if (objectType.includes("force")) return "force";
+  if (objectType.includes("custom")) return "custom";
+  return approval.route === "legal" ? "legal" : "hrx";
+}
+
+function mapHrxApproval(approval = {}) {
+  const subtype = hrxApprovalSubtype(approval);
+  return Object.freeze({
+    id: `hrx_approval:${approval.approval_id}`,
+    resource_id: `hrx_approval:${approval.approval_id}`,
+    tenant_id: approval.tenant_id,
+    type: "approval",
+    subtype,
+    title: approval.title ?? `${approval.object_type} approval`,
+    requester: approval.requester ?? approval.object_id ?? null,
+    due_at: approval.due_at ?? null,
+    risk_tier: approval.route === "legal" ? "high" : "normal",
+    approver_role: approval.approver_role,
+    approver_id: approval.approver_id ?? null,
+    _requires_actor_assignment: true,
+  });
+}
+
+function mapHrxLeaveRequest(request = {}) {
+  return Object.freeze({
+    id: `hrx_leave:${request.request_id}`,
+    resource_id: `hrx_leave:${request.request_id}`,
+    tenant_id: request.tenant_id,
+    type: "approval",
+    subtype: "leave",
+    title: "Leave approval request",
+    requester: request.employee_id,
+    due_at: request.start_date,
+    risk_tier: "low",
+    approver_role: request.approver_role ?? "manager",
+    approver_id: request.approver_id ?? null,
+    _requires_actor_assignment: true,
+  });
+}
+
+function mapHrxOvertimeRequest(request = {}) {
+  return Object.freeze({
+    id: `hrx_overtime:${request.overtime_id}`,
+    resource_id: `hrx_overtime:${request.overtime_id}`,
+    tenant_id: request.tenant_id,
+    type: "approval",
+    subtype: "attendance",
+    title: "Overtime approval request",
+    requester: request.employee_id,
+    due_at: request.work_date,
+    risk_tier: "normal",
+    approver_role: request.approver_role ?? "manager",
+    approver_id: request.approver_id ?? null,
+    _requires_actor_assignment: true,
+  });
+}
+
+function collectHrxApprovalItems(hrxRuntime, { tenant_id } = {}) {
+  if (!hrxRuntime) return [];
+  const approvals = Array.isArray(hrxRuntime.approvals) ? hrxRuntime.approvals : [];
+  const pendingApprovals = approvals
+    .filter((approval) => approval.tenant_id === tenant_id && normalizeState(approval.state) === "pending")
+    .map(mapHrxApproval);
+  const approvalRefs = new Set(approvals.map((approval) => `${approval.object_type}:${approval.object_id}`));
+  const leaveRequests = listFromStore(hrxRuntime.leaveStore, { tenant_id })
+    .filter((request) => ["submitted", "pending"].includes(normalizeState(request.state)))
+    .filter((request) => !approvalRefs.has(`LeaveRequest:${request.request_id}`))
+    .map(mapHrxLeaveRequest);
+  const overtimeRequests = listFromStore(hrxRuntime.overtime, { tenant_id })
+    .filter((request) => ["submitted", "pending"].includes(normalizeState(request.state)))
+    .map(mapHrxOvertimeRequest);
+  return [...pendingApprovals, ...leaveRequests, ...overtimeRequests];
+}
+
+function mapMatterApproval(record = {}) {
+  return Object.freeze({
+    id: `matter_approval:${record.approval_request_id ?? record.resource_id}`,
+    resource_id: `matter_approval:${record.approval_request_id ?? record.resource_id}`,
+    tenant_id: record.tenant_id,
+    type: "approval",
+    subtype: "matter",
+    title: record.title ?? "Matter approval request",
+    requester: record.requester ?? record.created_by ?? record.actor_id ?? null,
+    due_at: record.due_at ?? record.created_at ?? null,
+    matter_ref: record.matter_id ?? null,
+    risk_tier: riskTier(record.risk_tier, "medium"),
+    approver_id: record.approver_id ?? record.approver_user_id ?? null,
+    approver_role: record.approver_role ?? record.reviewer_role ?? null,
+    _requires_actor_assignment: true,
+  });
+}
+
+function collectMatterApprovalItems(matterRuntime, { tenant_id } = {}) {
+  const approvalModels = ["MatterBuilderApprovalRequest", "MatterApprovalRequest"];
+  return approvalModels.flatMap((model_type) =>
+    listRepository(matterRuntime, { tenant_id, model_type })
+      .filter((record) => !CLOSED_ACTION_STATES.includes(normalizeState(record.status ?? record.approval_state)))
+      .map(mapMatterApproval),
+  );
+}
+
+function mapAiReviewTask(record = {}) {
+  return Object.freeze({
+    id: `ai_review:${record.review_task_id ?? record.review_id}`,
+    resource_id: `ai_review:${record.review_task_id ?? record.review_id}`,
+    tenant_id: record.tenant_id,
+    type: "approval",
+    subtype: "ai_review",
+    title: record.title ?? "AI review task",
+    requester: record.created_by ?? record.ai_output_id ?? record.interaction_id ?? null,
+    due_at: record.due_at ?? record.created_at ?? null,
+    matter_ref: record.matter_id ?? null,
+    risk_tier: riskTier(record.risk_level ?? record.risk_tier, "high"),
+    reviewer_role: record.reviewer_role ?? record.approver_role ?? null,
+    reviewer_id: record.reviewer_id ?? null,
+    _requires_actor_assignment: true,
+  });
+}
+
+function collectAiReviewItems({ hrxRuntime, aiRuntime } = {}, { tenant_id } = {}) {
+  const hrxItems = listFromStore(hrxRuntime?.aiReviewQueue, { tenant_id, state: "pending_review" }).map(mapAiReviewTask);
+  const aiItems = listRepository(aiRuntime, { tenant_id, model_type: "HumanReviewTask" })
+    .filter((record) => !CLOSED_ACTION_STATES.includes(normalizeState(record.status)))
+    .map(mapAiReviewTask);
+  return [...hrxItems, ...aiItems];
+}
+
+function collectMatterTaskItems(matterRuntime, { tenant_id, context, query } = {}) {
+  return listRepository(matterRuntime, { tenant_id, model_type: "MatterTask" })
+    .filter((task) => OPEN_TASK_STATES.includes(normalizeState(task.status)))
+    .filter((task) => task.due_at)
+    .map((task) =>
+      Object.freeze({
+        id: `matter_task:${task.task_id}`,
+        resource_id: `matter_task:${task.task_id}`,
+        tenant_id: task.tenant_id,
+        type: "task",
+        subtype: "matter_task",
+        title: task.title,
+        matter_ref: task.matter_id ?? null,
+        due_at: task.due_at,
+        risk_tier: riskTier(task.risk_tier, "normal"),
+        assignee_id: task.assigned_to ?? task.assignee_id ?? null,
+        assigned_to: task.assigned_to ?? null,
+        _requires_actor_assignment: true,
+      }),
+    )
+    .filter((task) => isAssignedToActor(task, context, query));
+}
+
+function agendaKindForMatterEvent(event = {}) {
+  const text = `${event.kind ?? ""} ${event.source_ref ?? ""} ${event.title ?? ""}`.toLowerCase();
+  if (text.includes("hearing") || text.includes("court")) return "hearing";
+  if (text.includes("deadline") || text.includes("due")) return "deadline";
+  return "meeting";
+}
+
+function collectMatterAgendaEvents(matterRuntime, { tenant_id } = {}) {
+  return listRepository(matterRuntime, { tenant_id, model_type: "MatterCalendarEvent" }).map((event) =>
+    Object.freeze({
+      id: `matter_calendar:${event.event_id}`,
+      resource_id: `matter_calendar:${event.event_id}`,
+      tenant_id: event.tenant_id,
+      kind: agendaKindForMatterEvent(event),
+      title: event.title,
+      starts_at: event.starts_at,
+      ends_at: event.ends_at ?? null,
+      location: event.location ?? null,
+      matter_ref: event.matter_id ?? null,
+    }),
+  );
+}
+
+function collectExternalScheduleEvents(hrxRuntime, { tenant_id } = {}) {
+  const rows = Array.isArray(hrxRuntime?.externalScheduleEvents) ? hrxRuntime.externalScheduleEvents : [];
+  return rows
+    .filter((event) => event.tenant_id === tenant_id)
+    .map((event) =>
+      Object.freeze({
+        id: `external_schedule:${event.event_id ?? event.id}`,
+        resource_id: `external_schedule:${event.event_id ?? event.id}`,
+        tenant_id: event.tenant_id,
+        kind: "external",
+        title: event.title,
+        starts_at: event.starts_at,
+        ends_at: event.ends_at ?? null,
+        location: event.location ?? null,
+        matter_ref: event.matter_id ?? event.matter_ref ?? null,
+      }),
+    );
+}
+
+function collectHrxAbsenceEvents(hrxRuntime, { tenant_id } = {}) {
+  return listFromStore(hrxRuntime?.leaveStore, { tenant_id })
+    .filter((request) => !["rejected", "cancelled", "canceled"].includes(normalizeState(request.state)))
+    .map((request) =>
+      Object.freeze({
+        id: `hrx_absence:${request.request_id}`,
+        resource_id: `hrx_absence:${request.request_id}`,
+        tenant_id: request.tenant_id,
+        kind: "absence",
+        title: request.title ?? "Leave absence",
+        starts_at: request.start_date,
+        ends_at: request.end_date ?? request.start_date,
+        location: null,
+        matter_ref: null,
+      }),
+    );
+}
+
+function hasTag(record = {}, tag) {
+  const normalized = String(tag ?? "").trim().toLowerCase();
+  const values = new Set();
+  addStringValues(values, [
+    record.tag,
+    record.tags,
+    record.tag_ids,
+    record.labels,
+    record.collections,
+    record.collection_ids,
+    record.vault_tags,
+    record.metadata?.tags,
+    record.source_metadata?.tags,
+  ]);
+  return values.has(normalized);
+}
+
+function mapNoticeEntry(record = {}) {
+  return Object.freeze({
+    id: `people_notice:${record.notice_id ?? record.id}`,
+    resource_id: `people_notice:${record.notice_id ?? record.id}`,
+    tenant_id: record.tenant_id,
+    tab: "notice",
+    source: "People notices",
+    title: record.title,
+    body_preview: record.body_preview ?? record.summary ?? record.description ?? "",
+    published_at: record.published_at ?? record.created_at ?? record.updated_at,
+    pinned_until: record.pinned_until ?? null,
+    audience: record.audience ?? null,
+    url: record.url ?? null,
+  });
+}
+
+function collectPeopleNoticeEntries(hrxRuntime, { tenant_id, query } = {}) {
+  if (query.tab && query.tab !== "notice") return [];
+  const rows = [
+    ...(Array.isArray(hrxRuntime?.peopleNotices) ? hrxRuntime.peopleNotices : []),
+    ...(Array.isArray(hrxRuntime?.notices) ? hrxRuntime.notices : []),
+  ];
+  return rows.filter((notice) => notice.tenant_id === tenant_id).map(mapNoticeEntry);
+}
+
+function feedTabForDmsDocument(document = {}) {
+  if (hasTag(document, HOME_DASHBOARD_NEWSLETTER_VAULT_TAG)) return "newsletter";
+  if (hasTag(document, "notice") || String(document.document_type ?? "").toLowerCase().includes("notice")) return "notice";
+  return null;
+}
+
+function mapDmsDocumentFeedEntry(document = {}) {
+  const tab = feedTabForDmsDocument(document);
+  return Object.freeze({
+    id: `vault_feed:${document.document_id}`,
+    resource_id: `vault_feed:${document.document_id}`,
+    tenant_id: document.tenant_id,
+    tab,
+    source: tab === "newsletter" ? "Vault tag collection" : "People notices",
+    title: document.title ?? document.filename ?? "Vault update",
+    body_preview: document.body_preview ?? document.summary ?? document.description ?? "",
+    published_at: document.published_at ?? document.created_at ?? document.updated_at,
+    pinned_until: document.pinned_until ?? null,
+    audience: document.audience ?? null,
+    url: document.url ?? document.external_url ?? null,
+  });
+}
+
+function collectVaultFeedEntries(dmsRuntime, { tenant_id, query } = {}) {
+  return listRepository(dmsRuntime, { tenant_id, model_type: "DmsDocument" })
+    .filter((document) => {
+      const tab = feedTabForDmsDocument(document);
+      return tab && (!query.tab || tab === query.tab);
+    })
+    .map(mapDmsDocumentFeedEntry);
 }
 
 function stripTags(value = "") {
@@ -766,7 +1261,16 @@ async function handleFeed({ pathname, method, query, context, requestId, runtime
       outcome = "partial";
     }
   } else {
-    const rawEntries = runtime.feedEntries.filter((entry) => entry.tenant_id === query.tenant_id && entry.tab === tab);
+    const collected = await collectRuntimeSources({
+      runtime,
+      kind: "feedEntries",
+      query: { ...query, tab },
+      context,
+      fallbackItems: runtime.feedEntries,
+    });
+    sourceStatuses = collected.sourceStatuses;
+    if (collected.failedCount > 0) outcome = "partial";
+    const rawEntries = collected.items.filter((entry) => entry.tenant_id === query.tenant_id && entry.tab === tab);
     const { allowed } = trimItemsByPermission({
       context,
       items: rawEntries,

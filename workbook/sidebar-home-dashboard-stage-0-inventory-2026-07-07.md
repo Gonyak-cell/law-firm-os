@@ -204,6 +204,19 @@ Stage 0 smoke command result:
 | Vault/Data room | Vault documents/search/audit, data room rooms/projections, portal dashboard/RFI/approvals/audit. |
 | AI/Analytics/Reports | AI review queue, analytics dashboards, matter/client profitability, realization/utilization, reports CRUD/run/share/audit. |
 
+### 5.3 R1 WP-1 Contract Mapping Update
+
+Date: 2026-07-08
+Source of truth: `workbook/sidebar-home-dashboard-remediation-r1-2026-07-08.md` WP-1
+
+| §6 contract | R1 WP-1 mapping | Remaining gap |
+|---|---|---|
+| `GET /home/action-inbox?type=approval&role=...` | `apps/api/src/home-dashboard-runtime-context.js` now aggregates HRX approvals/leave-overtime queues, Matter builder approval requests, and AI review queues through `createHomeDashboardSourceCollectors`. Items are normalized to the existing Home action item schema, keep raw payloads out, and are filtered by actor id or role when assignment metadata is present. | Domain-native decision dispatch remains intentionally unchanged; the Home decision endpoint still records the Home audit/idempotency envelope without changing source contracts. |
+| `GET /home/action-inbox?type=task&role=...` | Matter `MatterTask` rows are read from the Matter runtime repository, restricted to open states with `assigned_to=me` and a non-empty `due_at`, then normalized to `type=task`. | Only Matter task rows are wired in WP-1; no new task source was added outside the §6 Matter task source. |
+| `GET /home/agenda?from&to` | Matter `MatterCalendarEvent`, HRX/external schedule events, and HRX leave absence rows are collected at request time and returned through the existing agenda event schema. | External schedule uses the runtime-provided `externalScheduleEvents` port when present; no new connector/storage contract was introduced. |
+| `GET /home/feed?tab=notice\|news\|newsletter` | Notice tab reads People notice runtime rows when present; newsletter reads Vault/DMS `DmsDocument` rows tagged with `newsletter` (`HOME_DASHBOARD_NEWSLETTER_VAULT_TAG`). The O-01 RSS news connector remains unchanged. | People notice persistence still depends on the runtime exposing notices; WP-1 does not create a new notice store. |
+| Source failure isolation | Runtime source collectors report `source_statuses` and return `outcome=partial` when one non-news source fails while other source data is returned. | No new public error code was added; `safe_error_codes` remains contract-compatible. |
+
 ## 6. Stage 0 Gap List
 
 | Gap ID | Finding | Blocks |
