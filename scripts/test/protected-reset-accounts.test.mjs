@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  ALLOW_QA_PASSWORD_RESET_ENV,
   ALLOW_PROTECTED_RESET_ENV,
   PROTECTED_RESET_EMAILS_ENV,
   QA_RESET_EMAIL_ENV,
@@ -36,10 +37,35 @@ test("jwsuh@amic.kr is protected by default", () => {
 test("dangerous override is explicit", () => {
   assert.equal(protectedResetOverrideEnabled({ env: {} }), false);
   assert.equal(protectedResetOverrideEnabled({ env: { [ALLOW_PROTECTED_RESET_ENV]: "1" } }), true);
-  assert.deepEqual(assertResetAllowed("jwsuh@amic.kr", { env: { [ALLOW_PROTECTED_RESET_ENV]: "1" } }), {
+  assert.deepEqual(assertResetAllowed("jwsuh@amic.kr", {
+    env: { [ALLOW_PROTECTED_RESET_ENV]: "1", [ALLOW_QA_PASSWORD_RESET_ENV]: "1" }
+  }), {
     email: "jwsuh@amic.kr",
     protected: true,
     override_enabled: true,
+    qa_reset_approval_enabled: true,
+    reset_allowed: true,
+    token_material_returned: false
+  });
+});
+
+test("password reset is blocked without explicit QA reset approval", () => {
+  assert.throws(
+    () => assertResetAllowed("matter.desktop.qa@amic.kr", { env: {}, context: "unit QA reset" }),
+    (error) =>
+      error instanceof ProtectedResetAccountError &&
+      error.details.email === "matter.desktop.qa@amic.kr" &&
+      error.details.qa_reset_approval_enabled === false &&
+      /password reset is disabled by default/.test(error.message)
+  );
+  assert.deepEqual(assertResetAllowed("matter.desktop.qa@amic.kr", {
+    env: { [ALLOW_QA_PASSWORD_RESET_ENV]: "1" },
+    context: "unit QA reset"
+  }), {
+    email: "matter.desktop.qa@amic.kr",
+    protected: false,
+    override_enabled: false,
+    qa_reset_approval_enabled: true,
     reset_allowed: true,
     token_material_returned: false
   });
@@ -57,6 +83,7 @@ test("QA account selection defaults to the dedicated synthetic QA account", () =
   assert.equal(selected.email, DEFAULT_QA_RESET_EMAIL);
   assert.equal(selected.reset_policy.reset_allowed, true);
   assert.equal(selected.reset_policy.protected, false);
+  assert.equal(selected.reset_policy.qa_reset_approval_enabled, false);
 });
 
 test("QA account selection honors explicit non-protected email", () => {
