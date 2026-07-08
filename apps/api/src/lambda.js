@@ -11,6 +11,11 @@ import {
   createAuthCredentialRecord,
 } from "./auth-credential-store.js";
 import {
+  DEFAULT_PASSWORD_RESET_TTL_MS,
+  LAWOS_AUTH_PASSWORD_RESET_STORE_ENV,
+  createAuthPasswordResetStore,
+} from "./auth-password-reset-store.js";
+import {
   MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
   MATTER_VAULT_USER_REGISTRATION_SEED,
   MATTER_VAULT_REGISTERED_TENANT_ID,
@@ -64,6 +69,8 @@ export const CTI_MATTER_STORE_READ_MODEL_PROOF_APPROVAL_REF =
 export const CTI_CLIENT_DISPLAY_NAME_REPAIR_ACTION = "cti_client_display_name_repair";
 export const CTI_CLIENT_DISPLAY_NAME_REPAIR_APPROVAL_REF =
   "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06";
+export const LCX_AUTH_RESET_RECOVERY_ACTION = "lcx_auth_reset_recovery_01";
+export const LCX_AUTH_RESET_RECOVERY_APPROVAL_REF = "LCX-AUTH-RESET-RECOVERY-01";
 
 const CTI_READONLY_EFS_SNAPSHOT_SCHEMA_VERSION = "law-firm-os.cti.readonly-efs-snapshot.v0.1";
 const CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_SCHEMA_VERSION =
@@ -76,12 +83,14 @@ const CTI_MATTER_STORE_READ_MODEL_PROOF_SCHEMA_VERSION =
   "law-firm-os.cti.matter-store-read-model-proof.v0.1";
 const CTI_CLIENT_DISPLAY_NAME_REPAIR_SCHEMA_VERSION =
   "law-firm-os.cti.client-display-name-repair.v0.1";
+const LCX_AUTH_RESET_RECOVERY_SCHEMA_VERSION = "law-firm-os.lcx.auth-reset-recovery.v0.1";
 const DEFAULT_CTI_READONLY_SNAPSHOT_ROOT = "/mnt/lawos";
 const DEFAULT_DATABASE_URL_SECRET_ID = "/amic-vault/prod/api/database-url";
 const LAWOS_DATABASE_TENANT_ID_ENV = "LAWOS_DATABASE_TENANT_ID";
 const LAWOS_MATTER_DB_READ_OVERLAY_ENABLED_ENV = "LAWOS_MATTER_DB_READ_OVERLAY_ENABLED";
 const DEFAULT_OBJECT_STORE_DETAIL_LIMIT = 500;
 const CTI_S1G_PROBE_PRINCIPAL_EMAIL = "jwsuh@amic.kr";
+const LCX_AUTH_RESET_RECOVERY_TARGET_EMAIL = "jwsuh@amic.kr";
 const CTI_S1G_PROBE_PERMISSION_REF = "cti_s1g_i18_authenticated_probe";
 const CTI_CUTOVER_CURRENT_SNAPSHOT_HASH = "b4139c730895d173cf964a92fa6ba375c93cefcb13687b0f82732c4c0531da49";
 const CTI_CUTOVER_PARTIAL_STATE_RESUME_SNAPSHOT_HASH =
@@ -823,6 +832,209 @@ export function createLambdaPasswordResetEmailDelivery({
       token_material_returned: false,
       reset_url_returned: false,
     });
+  };
+}
+
+function passwordResetRecoveryUrlConfig(env = process.env) {
+  const resetConfirmBaseUrl = String(
+    env.LAWOS_AUTH_PASSWORD_RESET_BASE_URL ?? env.MATTER_PASSWORD_RESET_BASE_URL ?? env.MATTER_DESKTOP_PASSWORD_RESET_BASE_URL ?? "",
+  ).trim();
+  const resetOpenBaseUrl = String(env.LAWOS_AUTH_PASSWORD_RESET_OPEN_BASE_URL ?? "").trim();
+  let resetConfirmBaseUrlValid = false;
+  let resetOpenBaseUrlValid = false;
+  try {
+    resetConfirmBaseUrlValid = Boolean(resetConfirmBaseUrl) && Boolean(new URL(resetConfirmBaseUrl));
+  } catch {
+    resetConfirmBaseUrlValid = false;
+  }
+  try {
+    resetOpenBaseUrlValid = !resetOpenBaseUrl || Boolean(new URL(resetOpenBaseUrl));
+  } catch {
+    resetOpenBaseUrlValid = false;
+  }
+  return Object.freeze({
+    configured: resetConfirmBaseUrlValid && resetOpenBaseUrlValid,
+    resetConfirmBaseUrl,
+    resetOpenBaseUrl,
+    reason: !resetConfirmBaseUrl
+      ? "password_reset_base_url_required"
+      : !resetConfirmBaseUrlValid
+        ? "password_reset_base_url_invalid"
+        : !resetOpenBaseUrlValid
+          ? "password_reset_open_base_url_invalid"
+          : null,
+  });
+}
+
+function passwordResetRecordCount(parsed = {}) {
+  return Array.isArray(parsed?.records) ? parsed.records.length : 0;
+}
+
+export async function buildLcxAuthResetRecoveryReceipt({
+  event = {},
+  env = process.env,
+  now = () => Date.now(),
+} = {}) {
+  const generatedAtMs = now();
+  const generatedAt = new Date(generatedAtMs).toISOString();
+  const targetEmail = String(event.target_email ?? event.email ?? LCX_AUTH_RESET_RECOVERY_TARGET_EMAIL).trim().toLowerCase();
+  if (targetEmail !== LCX_AUTH_RESET_RECOVERY_TARGET_EMAIL) {
+    return {
+      ok: false,
+      schema_version: LCX_AUTH_RESET_RECOVERY_SCHEMA_VERSION,
+      maintenance_action: LCX_AUTH_RESET_RECOVERY_ACTION,
+      approval_signature_ref: LCX_AUTH_RESET_RECOVERY_APPROVAL_REF,
+      status: "BLOCKED_TARGET_NOT_ALLOWED",
+      status_code: 403,
+      reason: "lcx_auth_reset_recovery_target_not_allowed",
+      target_email_hash: hashRef(targetEmail),
+      allowed_target_email_hash: hashRef(LCX_AUTH_RESET_RECOVERY_TARGET_EMAIL),
+      token_material_returned_to_caller: false,
+      reset_url_returned_to_caller: false,
+      production_ready_claim: false,
+      go_live_claim: false,
+    };
+  }
+
+  const resetStorePath = cleanPath(env[LAWOS_AUTH_PASSWORD_RESET_STORE_ENV]);
+  if (!resetStorePath) {
+    return {
+      ok: false,
+      schema_version: LCX_AUTH_RESET_RECOVERY_SCHEMA_VERSION,
+      maintenance_action: LCX_AUTH_RESET_RECOVERY_ACTION,
+      approval_signature_ref: LCX_AUTH_RESET_RECOVERY_APPROVAL_REF,
+      status: "BLOCKED_RESET_STORE_PATH_REQUIRED",
+      reason: "lawos_auth_password_reset_store_path_required",
+      token_material_returned_to_caller: false,
+      reset_url_returned_to_caller: false,
+      production_ready_claim: false,
+      go_live_claim: false,
+    };
+  }
+  const allowedRoot = snapshotAllowedRoot(env);
+  const resolvedStorePath = resolve(resetStorePath);
+  if (!isAbsolute(resetStorePath) || !isInsideRoot(allowedRoot, resolvedStorePath)) {
+    return {
+      ok: false,
+      schema_version: LCX_AUTH_RESET_RECOVERY_SCHEMA_VERSION,
+      maintenance_action: LCX_AUTH_RESET_RECOVERY_ACTION,
+      approval_signature_ref: LCX_AUTH_RESET_RECOVERY_APPROVAL_REF,
+      status: "BLOCKED_RESET_STORE_PATH_OUTSIDE_ALLOWED_ROOT",
+      reason: "password_reset_store_path_outside_allowed_root",
+      reset_store_path_hash: hashRef(resolvedStorePath),
+      token_material_returned_to_caller: false,
+      reset_url_returned_to_caller: false,
+      production_ready_claim: false,
+      go_live_claim: false,
+    };
+  }
+
+  const user = findRegisteredAccountByEmail(LCX_AUTH_RESET_RECOVERY_TARGET_EMAIL);
+  if (!user) {
+    return {
+      ok: false,
+      schema_version: LCX_AUTH_RESET_RECOVERY_SCHEMA_VERSION,
+      maintenance_action: LCX_AUTH_RESET_RECOVERY_ACTION,
+      approval_signature_ref: LCX_AUTH_RESET_RECOVERY_APPROVAL_REF,
+      status: "BLOCKED_TARGET_ACCOUNT_NOT_REGISTERED",
+      reason: "target_account_not_registered",
+      target_email_hash: hashRef(LCX_AUTH_RESET_RECOVERY_TARGET_EMAIL),
+      token_material_returned_to_caller: false,
+      reset_url_returned_to_caller: false,
+      production_ready_claim: false,
+      go_live_claim: false,
+    };
+  }
+
+  const urlConfig = passwordResetRecoveryUrlConfig(env);
+  if (!urlConfig.configured) {
+    return {
+      ok: false,
+      schema_version: LCX_AUTH_RESET_RECOVERY_SCHEMA_VERSION,
+      maintenance_action: LCX_AUTH_RESET_RECOVERY_ACTION,
+      approval_signature_ref: LCX_AUTH_RESET_RECOVERY_APPROVAL_REF,
+      status: "BLOCKED_RESET_URL_CONFIG_INVALID",
+      reason: urlConfig.reason,
+      token_material_returned_to_caller: false,
+      reset_url_returned_to_caller: false,
+      production_ready_claim: false,
+      go_live_claim: false,
+    };
+  }
+
+  const beforeBytes = await readFile(resolvedStorePath).catch((error) => {
+    if (error?.code === "ENOENT") return null;
+    throw error;
+  });
+  const beforeParsed = await readOptionalJson(resolvedStorePath);
+  const token = randomBytes(32).toString("base64url");
+  const ttlMs = Number(env.LAWOS_AUTH_PASSWORD_RESET_TTL_MS || DEFAULT_PASSWORD_RESET_TTL_MS);
+  const resetStore = createAuthPasswordResetStore({
+    filePath: resolvedStorePath,
+    now: () => generatedAtMs,
+  });
+  const resetRecord = resetStore.create({ user, token, ttlMs });
+  const resetUrl = passwordResetUrl({ baseUrl: urlConfig.resetConfirmBaseUrl, token });
+  const resetOpenUrl = passwordResetOpenUrl({
+    baseUrl: urlConfig.resetOpenBaseUrl,
+    token,
+    fallbackUrl: resetUrl,
+  });
+  const afterBytes = await readFile(resolvedStorePath);
+  const afterParsed = JSON.parse(afterBytes.toString("utf8"));
+
+  return {
+    ok: true,
+    schema_version: LCX_AUTH_RESET_RECOVERY_SCHEMA_VERSION,
+    maintenance_action: LCX_AUTH_RESET_RECOVERY_ACTION,
+    approval_signature_ref: LCX_AUTH_RESET_RECOVERY_APPROVAL_REF,
+    request_id: String(event.request_id ?? event.requestId ?? "lcx-auth-reset-recovery-01"),
+    generated_at: generatedAt,
+    status: "PASS_ONE_TIME_RESET_OPEN_URL_CREATED",
+    target: {
+      email_hash: hashRef(LCX_AUTH_RESET_RECOVERY_TARGET_EMAIL),
+      user_id_hash: hashRef(user.user_id),
+      plaintext_identifier_recorded: false,
+    },
+    reset_store: {
+      env: LAWOS_AUTH_PASSWORD_RESET_STORE_ENV,
+      relative_path: safeRelativePath(allowedRoot, resolvedStorePath),
+      path_hash: hashRef(resolvedStorePath),
+      existed_before: beforeBytes !== null,
+      records_before_count: passwordResetRecordCount(beforeParsed),
+      records_after_count: passwordResetRecordCount(afterParsed),
+      before_sha256: beforeBytes ? `sha256:${sha256Hex(beforeBytes)}` : null,
+      after_sha256: `sha256:${sha256Hex(afterBytes)}`,
+      write_executed: true,
+      target_user_only: true,
+      other_user_impact: false,
+    },
+    reset_open_url: resetOpenUrl,
+    expires_at: resetRecord.expires_at,
+    token_material_returned_to_caller: true,
+    reset_url_returned_to_caller: true,
+    password_plaintext_returned: false,
+    password_plaintext_recorded: false,
+    credential_store_write_executed: false,
+    boundary: {
+      direct_invoke_only: true,
+      public_http_endpoint: false,
+      target_email_hash: hashRef(LCX_AUTH_RESET_RECOVERY_TARGET_EMAIL),
+      target_count: 1,
+      target_user_only: true,
+      other_user_credential_mutated: false,
+      password_value_set: false,
+      password_value_returned: false,
+      credential_store_write_executed: false,
+      reset_token_store_write_executed: true,
+      reset_open_url_returned_once_to_caller: true,
+      token_material_returned_to_caller: true,
+      production_migration_executed: false,
+      production_ready_claim: false,
+      go_live_claim: false,
+    },
+    production_ready_claim: false,
+    go_live_claim: false,
   };
 }
 
@@ -3763,6 +3975,54 @@ async function handleClientDisplayNameRepair(event = {}) {
   }
 }
 
+async function handleLcxAuthResetRecovery(event = {}) {
+  if (isHttpLambdaEvent(event)) {
+    return jsonLambdaResponse(403, {
+      ok: false,
+      reason: "lcx_auth_reset_recovery_direct_invoke_only",
+      maintenance_action: LCX_AUTH_RESET_RECOVERY_ACTION,
+      public_http_endpoint: false,
+      token_material_returned_to_caller: false,
+      reset_url_returned_to_caller: false,
+      production_ready_claim: false,
+      go_live_claim: false,
+    });
+  }
+  if (event.approval_signature_ref !== LCX_AUTH_RESET_RECOVERY_APPROVAL_REF) {
+    return jsonLambdaResponse(403, {
+      ok: false,
+      reason: "lcx_auth_reset_recovery_approval_ref_required",
+      maintenance_action: LCX_AUTH_RESET_RECOVERY_ACTION,
+      required_approval_signature_ref: LCX_AUTH_RESET_RECOVERY_APPROVAL_REF,
+      public_http_endpoint: false,
+      token_material_returned_to_caller: false,
+      reset_url_returned_to_caller: false,
+      production_ready_claim: false,
+      go_live_claim: false,
+    });
+  }
+  try {
+    const receipt = await buildLcxAuthResetRecoveryReceipt({ event });
+    return jsonLambdaResponse(receipt.ok ? 200 : receipt.status_code ?? 424, receipt);
+  } catch (error) {
+    return jsonLambdaResponse(500, {
+      ok: false,
+      reason: "lcx_auth_reset_recovery_failed",
+      maintenance_action: LCX_AUTH_RESET_RECOVERY_ACTION,
+      error_name: error?.name ?? "Error",
+      error_code: error?.code ?? null,
+      error_message_hash: hashRef(error?.message ?? "unknown"),
+      public_http_endpoint: false,
+      token_material_returned_to_caller: false,
+      reset_url_returned_to_caller: false,
+      password_plaintext_returned: false,
+      password_plaintext_recorded: false,
+      production_ready_claim: false,
+      go_live_claim: false,
+    });
+  }
+}
+
 async function apiBaseUrl() {
   if (!serverPromise) {
     serverPromise = (async () => startApiServer({
@@ -3787,6 +4047,9 @@ async function resetCachedApiServer() {
 }
 
 export async function handler(event = {}) {
+  if (maintenanceAction(event) === LCX_AUTH_RESET_RECOVERY_ACTION) {
+    return handleLcxAuthResetRecovery(event);
+  }
   if (maintenanceAction(event) === CTI_CLIENT_DISPLAY_NAME_REPAIR_ACTION) {
     return handleClientDisplayNameRepair(event);
   }

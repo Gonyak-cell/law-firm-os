@@ -11,7 +11,10 @@ import {
   CTI_DB_CONNECTION_PROOF_APPROVAL_REF,
   CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_ACTION,
   CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_APPROVAL_REF,
+  LCX_AUTH_RESET_RECOVERY_ACTION,
+  LCX_AUTH_RESET_RECOVERY_APPROVAL_REF,
   buildCtiS1GAuthenticatedProductionProbeReceipt,
+  buildLcxAuthResetRecoveryReceipt,
   createLambdaPasswordResetEmailDelivery,
   handler,
   resolveLambdaSessionSecret,
@@ -383,4 +386,114 @@ test("I18 S1-G authenticated production probe surface is direct-invoke only", as
   const body = JSON.parse(response.body);
   assert.equal(body.reason, "cti_s1g_probe_surface_direct_invoke_only");
   assert.equal(body.public_http_endpoint, false);
+});
+
+test("LCX-AUTH reset recovery creates one target reset URL without setting a password", async () => {
+  const artifactsRoot = resolve("artifacts", "tmp");
+  await mkdir(artifactsRoot, { recursive: true });
+  const root = await mkdtemp(join(artifactsRoot, "lawos-lcx-auth-reset-test-"));
+  const paths = await createDurableStorePaths(root);
+  let started = null;
+  const issuedAt = Date.now();
+  try {
+    const receipt = await buildLcxAuthResetRecoveryReceipt({
+      event: {
+        lawos_maintenance_action: LCX_AUTH_RESET_RECOVERY_ACTION,
+        approval_signature_ref: LCX_AUTH_RESET_RECOVERY_APPROVAL_REF,
+        request_id: "unit-test-lcx-auth-reset",
+        target_email: "jwsuh@amic.kr",
+      },
+      env: {
+        LAWOS_READONLY_SNAPSHOT_ALLOWED_ROOT: root,
+        LAWOS_AUTH_PASSWORD_RESET_STORE_PATH: paths.authPasswordResetStorePath,
+        LAWOS_AUTH_PASSWORD_RESET_BASE_URL: "matter://password-reset/confirm",
+        LAWOS_AUTH_PASSWORD_RESET_OPEN_BASE_URL: "https://matter.example.test/api/auth/password-reset/open",
+      },
+      now: () => issuedAt,
+    });
+
+    assert.equal(receipt.ok, true);
+    assert.equal(receipt.status, "PASS_ONE_TIME_RESET_OPEN_URL_CREATED");
+    assert.equal(receipt.approval_signature_ref, LCX_AUTH_RESET_RECOVERY_APPROVAL_REF);
+    assert.match(receipt.reset_open_url, /^https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=/);
+    assert.equal(receipt.reset_store.write_executed, true);
+    assert.equal(receipt.reset_store.records_before_count, 0);
+    assert.equal(receipt.reset_store.records_after_count, 1);
+    assert.equal(receipt.boundary.direct_invoke_only, true);
+    assert.equal(receipt.boundary.public_http_endpoint, false);
+    assert.equal(receipt.boundary.target_count, 1);
+    assert.equal(receipt.boundary.target_user_only, true);
+    assert.equal(receipt.boundary.other_user_credential_mutated, false);
+    assert.equal(receipt.boundary.password_value_set, false);
+    assert.equal(receipt.boundary.password_value_returned, false);
+    assert.equal(receipt.boundary.credential_store_write_executed, false);
+    assert.equal(receipt.boundary.reset_token_store_write_executed, true);
+    assert.equal(receipt.token_material_returned_to_caller, true);
+    assert.equal(receipt.reset_url_returned_to_caller, true);
+    assert.equal(receipt.production_ready_claim, false);
+    assert.equal(receipt.go_live_claim, false);
+
+    const receiptText = JSON.stringify(receipt);
+    assert.doesNotMatch(receiptText, /jwsuh@amic\.kr/);
+    assert.doesNotMatch(receiptText, /new-test-password/);
+
+    const resetUrl = new URL(receipt.reset_open_url);
+    const token = new URLSearchParams(resetUrl.hash.slice(1)).get("token");
+    assert.equal(typeof token, "string");
+    assert.ok(token.length >= 32);
+
+    started = await startApiServer({
+      port: 0,
+      runtimeProfile: "operational",
+      sessionSecret: "operational-session-secret-32-bytes",
+      ...paths,
+    });
+    const baseUrl = `http://${started.host}:${started.port}`;
+    const confirm = await fetch(`${baseUrl}/api/auth/password-reset/confirm`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ token, password: "new-test-password-1234" }),
+    });
+    assert.equal(confirm.status, 200);
+    const confirmBody = await confirm.json();
+    assert.equal(confirmBody.ok, true);
+    assert.equal(confirmBody.token_material_returned, false);
+
+    const login = await fetch(`${baseUrl}/api/auth/login`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: "jwsuh@amic.kr", password: "new-test-password-1234" }),
+    });
+    assert.equal(login.status, 200);
+    const loginBody = await login.json();
+    assert.equal(loginBody.ok, true);
+    assert.equal(loginBody.session.user_id, "user_amic_jwsuh");
+  } finally {
+    if (started) await new Promise((resolveClose) => started.server.close(resolveClose));
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("LCX-AUTH reset recovery surface rejects HTTP and missing approval", async () => {
+  const httpResponse = await handler({
+    rawPath: "/api/maintenance/lcx-auth-reset-recovery",
+    requestContext: { http: { method: "POST" } },
+    lawos_maintenance_action: LCX_AUTH_RESET_RECOVERY_ACTION,
+    approval_signature_ref: LCX_AUTH_RESET_RECOVERY_APPROVAL_REF,
+  });
+
+  assert.equal(httpResponse.statusCode, 403);
+  const httpBody = JSON.parse(httpResponse.body);
+  assert.equal(httpBody.reason, "lcx_auth_reset_recovery_direct_invoke_only");
+  assert.equal(httpBody.public_http_endpoint, false);
+  assert.equal(httpBody.token_material_returned_to_caller, false);
+  assert.equal(httpBody.reset_url_returned_to_caller, false);
+
+  const approvalResponse = await handler({
+    lawos_maintenance_action: LCX_AUTH_RESET_RECOVERY_ACTION,
+  });
+  assert.equal(approvalResponse.statusCode, 403);
+  const approvalBody = JSON.parse(approvalResponse.body);
+  assert.equal(approvalBody.reason, "lcx_auth_reset_recovery_approval_ref_required");
+  assert.equal(approvalBody.required_approval_signature_ref, LCX_AUTH_RESET_RECOVERY_APPROVAL_REF);
 });
