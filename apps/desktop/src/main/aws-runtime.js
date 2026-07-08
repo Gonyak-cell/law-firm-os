@@ -85,16 +85,25 @@ export function loadMatterVaultRuntimeConfig({
   );
   const fileValues = existsSyncImpl(absoluteEnvPath) ? parseDotEnv(readFileSyncImpl(absoluteEnvPath, "utf8")) : {};
   const desktopRuntimeBaseUrl = valueFrom(env, fileValues, ["MATTER_DESKTOP_RUNTIME_BASE_URL"]);
-  const baseUrl = (desktopRuntimeBaseUrl || valueFrom(env, fileValues, [
+  const desktopOperatorToken = valueFrom(env, fileValues, ["MATTER_DESKTOP_OPERATOR_TOKEN"]);
+  const productionRuntimeBaseUrl = valueFrom(env, fileValues, [
     "MATTER_VAULT_R4_PRODUCTION_BASE_URL"
-  ]) || DEFAULT_PRODUCTION_RUNTIME_BASE_URL).replace(/\/+$/, "");
-  const operatorToken = valueFrom(env, fileValues, desktopRuntimeBaseUrl
-    ? ["MATTER_DESKTOP_OPERATOR_TOKEN"]
-    : [
-        "MATTER_VAULT_R4_OPERATOR_TOKEN",
-        "MATTER_R4_OPERATOR_TOKEN",
-        "MATTER_OPERATOR_TOKEN"
-      ]);
+  ]);
+  const productionOperatorToken = valueFrom(env, fileValues, [
+    "MATTER_VAULT_R4_OPERATOR_TOKEN",
+    "MATTER_R4_OPERATOR_TOKEN",
+    "MATTER_OPERATOR_TOKEN"
+  ]);
+  const hasProductionRuntimePair = Boolean(productionRuntimeBaseUrl && productionOperatorToken);
+  const useDesktopRuntimeOverride = Boolean(desktopRuntimeBaseUrl && (desktopOperatorToken || !hasProductionRuntimePair));
+  const baseUrl = (
+    useDesktopRuntimeOverride
+      ? desktopRuntimeBaseUrl
+      : productionRuntimeBaseUrl || desktopRuntimeBaseUrl || DEFAULT_PRODUCTION_RUNTIME_BASE_URL
+  ).replace(/\/+$/, "");
+  const operatorToken = useDesktopRuntimeOverride
+    ? desktopOperatorToken || productionOperatorToken
+    : productionOperatorToken;
   const tenantId = valueFrom(env, fileValues, [
     "MATTER_VAULT_R4_PRODUCTION_TENANT_ID",
     "MATTER_DESKTOP_TENANT_ID"

@@ -38,7 +38,7 @@ test("runtime config loads AWS execute-api URL and operator credential from loca
   assert.equal(config.tenantId, "tenant_amic_matter_vault");
 });
 
-test("runtime config finds desktop production auth override from app bundle ancestors", () => {
+test("runtime config ignores partial stale desktop auth override when a production runtime pair is present", () => {
   const envText = [
     "MATTER_VAULT_R4_PRODUCTION_BASE_URL=https://example.execute-api.ap-northeast-2.amazonaws.com/staging/",
     "MATTER_DESKTOP_RUNTIME_BASE_URL=https://desktop-auth.example.test/",
@@ -59,9 +59,36 @@ test("runtime config finds desktop production auth override from app bundle ance
 
   assert.equal(config.envPath, repoEnvPath);
   assert.equal(config.envFilePresent, true);
+  assert.equal(config.baseUrl, "https://example.execute-api.ap-northeast-2.amazonaws.com/staging");
+  assert.equal(config.operatorToken, "runtime-secret");
+  assert.equal(config.operatorRuntimeConfigured, true);
+});
+
+test("runtime config keeps a complete desktop auth override from app bundle ancestors", () => {
+  const envText = [
+    "MATTER_VAULT_R4_PRODUCTION_BASE_URL=https://example.execute-api.ap-northeast-2.amazonaws.com/staging/",
+    "MATTER_DESKTOP_RUNTIME_BASE_URL=https://desktop-auth.example.test/",
+    "MATTER_VAULT_R4_OPERATOR_TOKEN=runtime-secret",
+    "MATTER_DESKTOP_OPERATOR_TOKEN=desktop-runtime-secret"
+  ].join("\n");
+  const repoEnvPath = "/workspace/law-firm-os/.env.matter-vault-r4.local";
+
+  const config = loadMatterVaultRuntimeConfig({
+    env: {},
+    cwd: "/",
+    moduleDirectory: "/workspace/law-firm-os/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/main",
+    existsSyncImpl: (candidate) => candidate === repoEnvPath,
+    readFileSyncImpl: (candidate) => {
+      assert.equal(candidate, repoEnvPath);
+      return envText;
+    }
+  });
+
+  assert.equal(config.envPath, repoEnvPath);
+  assert.equal(config.envFilePresent, true);
   assert.equal(config.baseUrl, "https://desktop-auth.example.test");
-  assert.equal(config.operatorToken, "");
-  assert.equal(config.operatorRuntimeConfigured, false);
+  assert.equal(config.operatorToken, "desktop-runtime-secret");
+  assert.equal(config.operatorRuntimeConfigured, true);
 });
 
 test("runtime config falls back to production auth URL without operator credential", () => {

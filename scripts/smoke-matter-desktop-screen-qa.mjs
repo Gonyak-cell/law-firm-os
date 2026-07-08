@@ -266,8 +266,8 @@ async function main() {
         text,
         brand_text: brandText,
         brand_visible:
-          Boolean(brandRect && brandRect.width > 50 && brandRect.height > 40 && brandText.includes("matter")) ||
-          Boolean(logoRect && logoRect.width > 50 && logoRect.height > 40),
+          Boolean(brandRect && brandRect.width > 120 && brandRect.height > 20 && brandText.includes("matter")) ||
+          Boolean(logoRect && logoRect.width > 120 && logoRect.height > 20),
         login_panel_visible: Boolean(panelRect && panelRect.width > 300 && panelRect.height > 200)
       };
     });

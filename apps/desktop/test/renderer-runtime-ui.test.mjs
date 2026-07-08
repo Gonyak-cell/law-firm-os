@@ -137,6 +137,11 @@ test("packaged renderer presents user-facing connection login and feature checks
   assert.doesNotMatch(source, /비밀번호는 8자 이상/);
   assert.match(source, /이메일 또는 비밀번호가 맞지 않습니다/);
   assert.match(source, /event\.key !== "Enter"/);
+  assert.match(source, /nodes\.loginButton\?\.addEventListener/);
+  assert.match(source, /\[nodes\.loginEmailInput, nodes\.loginPasswordInput\]\.filter\(Boolean\)\.forEach/);
+  assert.match(source, /if \(!target\?\.input\) return/);
+  assert.match(source, /nodes\.signinHelpButton\?\.addEventListener/);
+  assert.match(source, /nodes\.dashboardCheckButton\?\.addEventListener/);
   assert.match(source, /onPasswordResetDeepLink/);
   assert.match(source, /비밀번호가 설정되었습니다\. 새 비밀번호로 로그인하세요\./);
   assert.match(source, /등록 여부와 관계없이 같은 안내를 보여드립니다\./);

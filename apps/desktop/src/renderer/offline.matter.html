@@ -2050,10 +2050,10 @@
       nodes.checkResult.textContent = summarizeCheck(response);
     }
 
-    nodes.loginButton.addEventListener("click", () => login().catch((error) => {
+    nodes.loginButton?.addEventListener("click", () => login().catch((error) => {
       nodes.loginResult.textContent = "로그인 요청을 처리하지 못했습니다.";
     }));
-    [nodes.loginEmailInput, nodes.loginPasswordInput].forEach((input) => {
+    [nodes.loginEmailInput, nodes.loginPasswordInput].filter(Boolean).forEach((input) => {
       input.addEventListener("keydown", (event) => {
         if (event.key !== "Enter" || state.authMode !== "sign_in") return;
         event.preventDefault();
@@ -2070,35 +2070,35 @@
           "reset-confirm-password": { input: nodes.resetConfirmPasswordInput, label: "새 비밀번호 확인" }
         };
         const target = targets[button.dataset.passwordToggleTarget];
-        if (!target) return;
+        if (!target?.input) return;
         setPasswordVisible(target.input, button, target.input.type === "password", target.label);
       });
     });
-    nodes.forgotPasswordButton.addEventListener("click", () => requestPasswordReset().catch((error) => {
+    nodes.forgotPasswordButton?.addEventListener("click", () => requestPasswordReset().catch((error) => {
       nodes.loginResult.textContent = "비밀번호 안내 요청을 처리하지 못했습니다.";
     }));
-    nodes.resendPasswordResetButton.addEventListener("click", () => requestPasswordReset({ keepMode: true }).catch((error) => {
+    nodes.resendPasswordResetButton?.addEventListener("click", () => requestPasswordReset({ keepMode: true }).catch((error) => {
       nodes.loginResult.textContent = "비밀번호 안내 재전송을 처리하지 못했습니다.";
     }));
-    nodes.resetConfirmSubmitButton.addEventListener("click", () => confirmPasswordResetFromForm().catch((error) => {
+    nodes.resetConfirmSubmitButton?.addEventListener("click", () => confirmPasswordResetFromForm().catch((error) => {
       clearResetSensitiveFields();
       nodes.loginResult.textContent = "비밀번호 설정을 완료하지 못했습니다.";
     }));
     nodes.returnToSigninButtons.forEach((button) => {
       button.addEventListener("click", () => setAuthMode("sign_in"));
     });
-    nodes.accountHelpButton.addEventListener("click", showAccountHelp);
-    nodes.signinHelpButton.addEventListener("click", showSigninHelp);
+    nodes.accountHelpButton?.addEventListener("click", showAccountHelp);
+    nodes.signinHelpButton?.addEventListener("click", showSigninHelp);
     nodes.legalHelpButtons.forEach((button) => {
       button.addEventListener("click", showLegalHelp);
     });
-    nodes.logoutButton.addEventListener("click", () => logout().catch((error) => {
+    nodes.logoutButton?.addEventListener("click", () => logout().catch((error) => {
       nodes.loginResult.textContent = "로그아웃 요청을 처리하지 못했습니다.";
     }));
-    nodes.dashboardCheckButton.addEventListener("click", () => checkFeature("matter_vault_dashboard").catch((error) => {
+    nodes.dashboardCheckButton?.addEventListener("click", () => checkFeature("matter_vault_dashboard").catch((error) => {
       nodes.checkResult.textContent = "기능 확인에 실패했습니다.";
     }));
-    nodes.adminCheckButton.addEventListener("click", () => checkFeature("matter_vault_admin").catch((error) => {
+    nodes.adminCheckButton?.addEventListener("click", () => checkFeature("matter_vault_admin").catch((error) => {
       nodes.checkResult.textContent = "기능 확인에 실패했습니다.";
     }));
 
