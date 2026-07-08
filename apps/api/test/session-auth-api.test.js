@@ -163,6 +163,10 @@ test("GET /api/auth/password-reset/open returns a browser bridge page without se
     assert.equal(response.status, 200);
     assert.match(response.headers.get("content-type") ?? "", /text\/html/);
     assert.match(response.body, /Matter 열기/);
+    assert.match(response.body, /id="reset-form"/);
+    assert.match(response.body, /id="new-password"/);
+    assert.match(response.body, /id="confirm-password"/);
+    assert.match(response.body, /fetch\("\/api\/auth\/password-reset\/confirm"/);
     assert.match(response.body, /window\.location\.hash/);
     assert.match(response.body, /matter:\/\/password-reset\/confirm\?token=/);
     assert.doesNotMatch(response.body, /reset-token-value/);

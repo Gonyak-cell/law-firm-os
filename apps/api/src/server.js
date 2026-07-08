@@ -526,8 +526,16 @@ function passwordResetOpenPageHtml() {
     section{width:min(100%,440px);background:#fff;border:1px solid #ded8cc;border-radius:8px;padding:28px;box-sizing:border-box}
     h1{margin:0 0 10px;font-size:24px;line-height:32px;letter-spacing:0}
     p{margin:0 0 18px;color:#374151;font-size:15px;line-height:24px}
-    a{display:inline-block;background:#17212b;color:#fff;text-decoration:none;border-radius:6px;padding:12px 18px;font-size:15px;line-height:20px;font-weight:700}
+    a,button{display:inline-block;background:#17212b;color:#fff;text-decoration:none;border:0;border-radius:6px;padding:12px 18px;font-size:15px;line-height:20px;font-weight:700;cursor:pointer}
+    label{display:block;margin:14px 0 6px;color:#374151;font-size:13px;line-height:18px;font-weight:700}
+    input{width:100%;box-sizing:border-box;border:1px solid #d8d2c7;border-radius:6px;padding:12px 13px;font:inherit;color:#17212b;background:#fff}
+    button{margin-top:16px;width:100%}
+    button:disabled{cursor:not-allowed;opacity:.68}
     .secondary{margin-top:16px;color:#4b5563;font-size:13px;line-height:21px}
+    .divider{height:1px;background:#ece7de;margin:22px 0}
+    .status{min-height:21px;margin:12px 0 0;color:#4b5563;font-size:13px;line-height:21px}
+    .status[data-state="error"]{color:#b42318}
+    .status[data-state="success"]{color:#067647}
     [hidden]{display:none}
   </style>
 </head>
@@ -537,7 +545,16 @@ function passwordResetOpenPageHtml() {
       <h1>비밀번호를 설정하세요</h1>
       <p>Matter 앱에서 비밀번호 설정을 계속합니다.</p>
       <a id="open-app" href="#">Matter 열기</a>
-      <p class="secondary">앱이 열리지 않으면 Matter 앱을 먼저 실행한 뒤 이 버튼을 다시 누르세요.</p>
+      <p class="secondary">앱이 열리지 않아도 아래에서 바로 새 비밀번호를 설정할 수 있습니다.</p>
+      <div class="divider"></div>
+      <form id="reset-form">
+        <label for="new-password">새 비밀번호</label>
+        <input id="new-password" type="password" autocomplete="new-password" minlength="12" required>
+        <label for="confirm-password">새 비밀번호 확인</label>
+        <input id="confirm-password" type="password" autocomplete="new-password" minlength="12" required>
+        <button id="submit-reset" type="submit">비밀번호 설정</button>
+        <p id="reset-status" class="status" aria-live="polite"></p>
+      </form>
     </section>
     <section id="invalid" hidden>
       <h1>링크를 확인하세요</h1>
@@ -550,12 +567,60 @@ function passwordResetOpenPageHtml() {
     const ready = document.getElementById("ready");
     const invalid = document.getElementById("invalid");
     const openApp = document.getElementById("open-app");
+    const form = document.getElementById("reset-form");
+    const newPassword = document.getElementById("new-password");
+    const confirmPassword = document.getElementById("confirm-password");
+    const submitReset = document.getElementById("submit-reset");
+    const resetStatus = document.getElementById("reset-status");
+    const setStatus = (message, state = "") => {
+      resetStatus.textContent = message;
+      resetStatus.dataset.state = state;
+    };
     if (token) {
       const appUrl = "matter://password-reset/confirm?token=" + encodeURIComponent(token);
       openApp.href = appUrl;
       ready.hidden = false;
       openApp.addEventListener("click", () => {
         window.location.href = appUrl;
+      });
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const password = newPassword.value;
+        const passwordConfirm = confirmPassword.value;
+        if (password.length < 12) {
+          setStatus("비밀번호는 12자 이상이어야 합니다.", "error");
+          newPassword.focus();
+          return;
+        }
+        if (password !== passwordConfirm) {
+          setStatus("새 비밀번호가 서로 다릅니다.", "error");
+          confirmPassword.focus();
+          return;
+        }
+        submitReset.disabled = true;
+        setStatus("비밀번호를 설정하는 중입니다.");
+        try {
+          const response = await fetch("/api/auth/password-reset/confirm", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ token, password })
+          });
+          const body = await response.json().catch(() => ({}));
+          if (response.ok && (body.ok || body.accepted || body.activated)) {
+            newPassword.value = "";
+            confirmPassword.value = "";
+            setStatus("비밀번호가 설정되었습니다. Matter 앱에서 새 비밀번호로 로그인하세요.", "success");
+            return;
+          }
+          const reason = body.reason || body.error || "password_reset_failed";
+          setStatus(reason === "password_too_short"
+            ? "비밀번호는 12자 이상이어야 합니다."
+            : "링크가 만료되었거나 이미 사용되었습니다. 새 재설정 메일을 요청하세요.", "error");
+        } catch {
+          setStatus("비밀번호 설정 요청을 완료하지 못했습니다. 네트워크 상태를 확인한 뒤 다시 시도하세요.", "error");
+        } finally {
+          submitReset.disabled = false;
+        }
       });
       window.setTimeout(() => {
         window.location.href = appUrl;
