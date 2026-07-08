@@ -1,10 +1,12 @@
 import React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   Briefcase,
   CalendarDays,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   ClipboardList,
   Clock3,
   FileCheck2,
@@ -52,7 +54,7 @@ const homeDateTimeFormatter = new Intl.DateTimeFormat("ko-KR", { month: "numeric
 const calendarWeekdays = Object.freeze(["일", "월", "화", "수", "목", "금", "토"]);
 const emptyHomeCounts = Object.freeze({ approval: 0, task_late: 0, task_today: 0 });
 const feedTabs = Object.freeze([
-  { id: "notice", label: "공지", empty: "표시할 공지가 없습니다." },
+  { id: "notice", label: "사내 공지", empty: "표시할 공지가 없습니다." },
   { id: "news", label: "뉴스", empty: "새 뉴스가 없습니다.", sources: "블로터 · 법률신문 · 딜사이트 · 인베스트조선" },
   { id: "newsletter", label: "뉴스레터", empty: "새 뉴스레터가 없습니다." }
 ]);
@@ -107,6 +109,8 @@ const DESKTOP_HOME_FEATURE_IDS = Object.freeze({
 });
 const genericSessionDisplayNames = new Set(["사용자", "세션 사용자"]);
 const noop = () => {};
+const HOME_ACTION_UNDO_WINDOW_MS = 5000;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 function sessionText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -339,6 +343,28 @@ function formatDateTime(value) {
   return parsed ? homeDateTimeFormatter.format(parsed) : "기한 없음";
 }
 
+function startOfLocalDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function dayDeltaFromToday(value) {
+  const parsed = parseDate(value);
+  if (!parsed) return null;
+  return Math.round((startOfLocalDay(parsed).getTime() - startOfLocalDay(new Date()).getTime()) / MS_PER_DAY);
+}
+
+function taskDeadlineInfo(item) {
+  const delta = dayDeltaFromToday(item?.due_at);
+  if (delta === null) return { bucket: "upcoming", label: "기한 없음", order: 3 };
+  if (delta < 0) return { bucket: "late", label: `D+${Math.abs(delta)}`, order: 0 };
+  if (delta === 0) return { bucket: "today", label: "오늘", order: 1 };
+  return { bucket: "upcoming", label: `D-${delta}`, order: 2 };
+}
+
+function dueSortValue(value) {
+  return parseDate(value)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+}
+
 function homeActionStatus(item) {
   if (item.risk_tier === "high") return "review";
   if (item.risk_tier === "medium") return "guarded";
@@ -408,15 +434,53 @@ function actionButtonLabel(action) {
 }
 
 function buildHomeActionRows(items, type) {
-  return (Array.isArray(items) ? items : []).map((item) => ({
-    id: item.id,
-    title: item.title,
-    meta: [item.requester, formatDateTime(item.due_at), item.matter_ref].filter(Boolean).join(" · "),
-    status: homeActionStatus(item),
-    route: homeActionRoute({ ...item, type }),
-    type,
-    allowedActions: Array.isArray(item.allowed_actions) ? item.allowed_actions : ["open"]
-  }));
+  return (Array.isArray(items) ? items : []).map((item) => {
+    const deadline = type === "task" ? taskDeadlineInfo(item) : null;
+    return {
+      id: item.id,
+      title: item.title,
+      meta: [item.requester, formatDateTime(item.due_at), item.matter_ref].filter(Boolean).join(" · "),
+      status: deadline?.bucket ?? homeActionStatus(item),
+      statusLabel: deadline?.label ?? statusBadgeLabel(homeActionStatus(item)),
+      route: homeActionRoute({ ...item, type }),
+      type,
+      focusId: item.resource_id ?? item.id,
+      dueAt: item.due_at ?? null,
+      deadlineBucket: deadline?.bucket ?? null,
+      deadlineOrder: deadline?.order ?? 0,
+      allowedActions: Array.isArray(item.allowed_actions) ? item.allowed_actions : ["open"]
+    };
+  });
+}
+
+function sortApprovalRows(rows) {
+  return [...rows].sort((left, right) => dueSortValue(left.dueAt) - dueSortValue(right.dueAt) || String(left.id).localeCompare(String(right.id)));
+}
+
+function sortTodoRows(rows) {
+  return [...rows].sort((left, right) => (
+    left.deadlineOrder - right.deadlineOrder ||
+    dueSortValue(left.dueAt) - dueSortValue(right.dueAt) ||
+    String(left.id).localeCompare(String(right.id))
+  ));
+}
+
+function countTotal(counts = emptyHomeCounts) {
+  return Number(counts.approval ?? 0) + Number(counts.task_late ?? 0) + Number(counts.task_today ?? 0);
+}
+
+function decrementCountsForRow(counts = emptyHomeCounts, row = {}) {
+  const nextCounts = { ...counts };
+  if (row.type === "approval") {
+    nextCounts.approval = Math.max(0, Number(nextCounts.approval ?? 0) - 1);
+  }
+  if (row.type === "task" && row.deadlineBucket === "late") {
+    nextCounts.task_late = Math.max(0, Number(nextCounts.task_late ?? 0) - 1);
+  }
+  if (row.type === "task" && row.deadlineBucket === "today") {
+    nextCounts.task_today = Math.max(0, Number(nextCounts.task_today ?? 0) - 1);
+  }
+  return nextCounts;
 }
 
 function agendaForDate(events, date) {
@@ -427,10 +491,32 @@ function agendaForDate(events, date) {
   });
 }
 
+function agendaSummaryByDate(events) {
+  const summaries = new Map();
+  for (const event of Array.isArray(events) ? events : []) {
+    const startsAt = parseDate(event.starts_at);
+    if (!startsAt) continue;
+    const key = dateKey(startsAt);
+    const current = summaries.get(key) ?? { total: 0, deadline: 0 };
+    current.total += 1;
+    if (event.kind === "deadline") current.deadline += 1;
+    summaries.set(key, current);
+  }
+  return summaries;
+}
+
+function upcomingDeadline(events) {
+  const now = Date.now();
+  return (Array.isArray(events) ? events : [])
+    .filter((event) => event.kind === "deadline")
+    .sort((left, right) => dueSortValue(left.starts_at) - dueSortValue(right.starts_at))
+    .find((event) => dueSortValue(event.starts_at) >= now) ?? null;
+}
+
 function feedEmptyMessage(tab, tabSpec, result) {
   if (result.kind === "loading") return "피드를 불러오는 중입니다.";
   if (tab === "news" && result.safeErrorCodes?.includes("HOME_NEWS_ALL_SOURCES_FAILED")) {
-    return "뉴스 피드를 불러오지 못했습니다 · 다시 시도";
+    return "뉴스 피드를 불러오지 못했습니다.";
   }
   return tabSpec.empty;
 }
@@ -448,12 +534,13 @@ function buildMonthCells(baseDate) {
       key: dateKey(date),
       day: date.getDate(),
       inMonth: date.getMonth() === baseDate.getMonth(),
+      isSunday: date.getDay() === 0,
       isToday: dateKey(date) === todayKey
     };
   });
 }
 
-function DashboardCard({ className = "", title, meta, Icon, children, widgetId }) {
+function DashboardCard({ className = "", title, meta, Icon, children, widgetId, onViewAll, headerExtra = null }) {
   const WidgetIcon = Icon;
   return (
     <section className={`home-dashboard-card ${className}`} data-widget-id={widgetId}>
@@ -462,42 +549,94 @@ function DashboardCard({ className = "", title, meta, Icon, children, widgetId }
           <span>{title}</span>
           {meta && <small>{meta}</small>}
         </div>
-        {WidgetIcon && (
-          <span className="home-dashboard-card-icon" aria-hidden="true">
-            <WidgetIcon size={18} />
-          </span>
-        )}
+        <div className="home-dashboard-card-actions">
+          {WidgetIcon && (
+            <span className="home-dashboard-card-icon" aria-hidden="true">
+              <WidgetIcon size={18} />
+            </span>
+          )}
+          {headerExtra}
+          {onViewAll && (
+            <button type="button" className="home-widget-view-all" data-home-widget-view-all={widgetId} onClick={onViewAll}>
+              전체 보기 <ArrowRight size={14} />
+            </button>
+          )}
+        </div>
       </header>
       {children}
     </section>
   );
 }
 
-function DashboardRow({ title, meta, status, route, onOpen, allowedActions = [], onAction, pending = false }) {
+function DashboardRow({
+  id,
+  title,
+  meta,
+  status,
+  statusLabel,
+  route,
+  type,
+  focusId,
+  deadlineBucket,
+  onOpen,
+  allowedActions = [],
+  onAction,
+  pending = false
+}) {
   const inlineActions = allowedActions.filter((action) => action !== "open");
   return (
-    <div className={`home-dashboard-row ${status}`} data-home-action-row={route}>
-      <button type="button" className="home-dashboard-row-main" onClick={() => onOpen(route)}>
+    <div
+      className={`home-dashboard-row ${status}`}
+      data-home-action-id={id}
+      data-home-action-type={type}
+      data-home-action-row={route}
+      data-home-deadline-bucket={deadlineBucket ?? undefined}
+    >
+      <button
+        type="button"
+        className="home-dashboard-row-main"
+        data-home-task-focus-route={type === "task" ? route : undefined}
+        data-home-task-focus-id={type === "task" ? focusId : undefined}
+        onClick={() => onOpen(route)}
+      >
         <span>
           <strong>{title}</strong>
           <small>{meta}</small>
         </span>
       </button>
-      <em>{statusBadgeLabel(status)}</em>
+      <em>{statusLabel ?? statusBadgeLabel(status)}</em>
       {inlineActions.length > 0 ? (
         <span className="home-dashboard-row-actions">
           {inlineActions.map((action) => (
-            <button
-              key={action}
-              type="button"
-              className="text-button"
-              disabled={pending}
-              data-home-inline-action={action}
-              aria-label={`${title} ${actionButtonLabel(action)}`}
-              onClick={() => onAction?.(action)}
-            >
-              {actionButtonLabel(action)}
-            </button>
+            action === "complete" ? (
+              <button
+                key={action}
+                type="button"
+                className="home-task-check-button"
+                role="checkbox"
+                aria-checked="false"
+                disabled={pending}
+                data-home-inline-action={action}
+                data-home-task-checkbox={id}
+                aria-label={`${title} ${actionButtonLabel(action)}`}
+                onClick={() => onAction?.(action)}
+              >
+                <CheckCircle2 size={16} />
+                <span className="sr-only">{actionButtonLabel(action)}</span>
+              </button>
+            ) : (
+              <button
+                key={action}
+                type="button"
+                className="text-button"
+                disabled={pending}
+                data-home-inline-action={action}
+                aria-label={`${title} ${actionButtonLabel(action)}`}
+                onClick={() => onAction?.(action)}
+              >
+                {actionButtonLabel(action)}
+              </button>
+            )
           ))}
         </span>
       ) : (
@@ -611,6 +750,9 @@ export function HomeSurface({
   const [esignTab, setEsignTab] = useState(initialHomeContext.esignTab);
   const [companyTab, setCompanyTab] = useState(initialHomeContext.companyTab);
   const [selectedMessageThreadId, setSelectedMessageThreadId] = useState("");
+  const [approvalWidgetTab, setApprovalWidgetTab] = useState("received");
+  const [selectedFeedEntryId, setSelectedFeedEntryId] = useState("");
+  const pendingActionTimersRef = useRef(new Map());
 
   useEffect(() => {
     setMessageTab(initialHomeContext.messageTab);
@@ -619,6 +761,17 @@ export function HomeSurface({
     setEsignTab(initialHomeContext.esignTab);
     setCompanyTab(initialHomeContext.companyTab);
   }, [initialHomeContext]);
+
+  useEffect(() => {
+    return () => {
+      for (const timer of pendingActionTimersRef.current.values()) clearTimeout(timer);
+      pendingActionTimersRef.current.clear();
+    };
+  }, []);
+
+  useEffect(() => {
+    setSelectedFeedEntryId("");
+  }, [feedTab]);
 
   useEffect(() => {
     let cancelled = false;
@@ -734,8 +887,8 @@ export function HomeSurface({
       Icon: RefreshCw
     }
   ];
-  const approvalRows = buildHomeActionRows(actionInbox.approval.items, "approval");
-  const todoRows = buildHomeActionRows(actionInbox.task.items, "task");
+  const approvalRows = sortApprovalRows(buildHomeActionRows(actionInbox.approval.items, "approval"));
+  const todoRows = sortTodoRows(buildHomeActionRows(actionInbox.task.items, "task"));
   const approvalItems = Array.isArray(actionInbox.approval.items) ? actionInbox.approval.items : [];
   const requesterRecords = [
     sessionProfile.profileUser,
@@ -746,19 +899,30 @@ export function HomeSurface({
   const requestApproverDenied = sessionHasExplicitNonApproverRole(requesterRecords);
   const visibleRequestTabs = requestApproverDenied ? requestTabs.filter((tab) => tab.id === "sent") : requestTabs;
   const activeRequestTab = visibleRequestTabs.some((tab) => tab.id === requestTab) ? requestTab : visibleRequestTabs[0]?.id ?? "sent";
+  const visibleApprovalWidgetTabs = requestApproverDenied ? requestTabs.filter((tab) => tab.id === "sent") : requestTabs;
+  const activeApprovalWidgetTab = visibleApprovalWidgetTabs.some((tab) => tab.id === approvalWidgetTab)
+    ? approvalWidgetTab
+    : visibleApprovalWidgetTabs[0]?.id ?? "sent";
   const filteredApprovalItems = filterRequestItems(approvalItems, requestFilter);
-  const filteredApprovalRows = buildHomeActionRows(filteredApprovalItems, "approval");
+  const filteredApprovalRows = sortApprovalRows(buildHomeActionRows(filteredApprovalItems, "approval"));
   const sentRequestRows = [];
+  const approvalPreviewRows = activeApprovalWidgetTab === "sent" ? sentRequestRows.slice(0, 4) : approvalRows.slice(0, 4);
+  const todoPreviewRows = todoRows.slice(0, 5);
   const selectedRequestFilter = requestFilters.find((filter) => filter.id === requestFilter) ?? requestFilters[0];
   const guardedApprovalRows = filteredApprovalRows.filter((row) => row.status === "review" || row.status === "guarded");
   const readyApprovalRows = filteredApprovalRows.filter((row) => row.status === "live");
   const blockedApprovalRows = filteredApprovalRows.filter((row) => row.status === "denied" || row.status === "unavailable");
   const calendarCells = useMemo(() => buildMonthCells(selectedCalendarDate), [selectedCalendarDate]);
   const selectedCalendarKey = dateKey(selectedCalendarDate);
-  const selectedAgenda = agendaForDate(agendaResult.events, selectedCalendarDate);
+  const agendaEvents = Array.isArray(agendaResult.events) ? agendaResult.events : [];
+  const agendaByDate = useMemo(() => agendaSummaryByDate(agendaEvents), [agendaEvents]);
+  const selectedAgenda = agendaForDate(agendaEvents, selectedCalendarDate);
+  const nextDeadline = upcomingDeadline(agendaEvents);
   const currentFeedTab = feedTabs.find((tab) => tab.id === feedTab) ?? feedTabs[0];
   const feedEntries = Array.isArray(feedResult.entries) ? feedResult.entries : [];
   const primaryFeedEntry = feedEntries[0] ?? null;
+  const selectedFeedEntry = feedEntries.find((entry) => entry.id === selectedFeedEntryId) ?? null;
+  const canRetryFeed = feedResult.kind === "error" || (feedTab === "news" && feedResult.safeErrorCodes?.includes("HOME_NEWS_ALL_SOURCES_FAILED"));
   const guardedDomainStatuses = [matterCapability.status, peopleCapability.status, vaultCapability.status];
   const showForestOnboarding =
     skin === "forest" &&
@@ -766,10 +930,13 @@ export function HomeSurface({
     !homeOnboardingDismissed;
   const forestHeroTitle = sessionGreeting(sessionProfile.profileUser, sessionProfile.desktopStatus);
   const forestHeroSubtitle = heroDateFormatter.format(new Date());
+  const homeActionTotal = countTotal(actionInbox.counts);
   const activeHomeSection = homeSectionMeta[activeSection] ? activeSection : "home-dashboard";
   const currentHomeSectionMeta = homeSectionMeta[activeHomeSection] ?? homeSectionMeta["home-dashboard"];
   const heroTitle = activeHomeSection === "home-dashboard" ? forestHeroTitle : currentHomeSectionMeta.title;
-  const heroSubtitle = activeHomeSection === "home-dashboard" ? forestHeroSubtitle : currentHomeSectionMeta.subtitle;
+  const heroSubtitle = activeHomeSection === "home-dashboard"
+    ? `${forestHeroSubtitle} · 오늘 처리할 항목 ${homeActionTotal}건`
+    : currentHomeSectionMeta.subtitle;
   const auditSummary = [
     { id: "approval-audit", label: "승인 감사", value: actionInbox.approval.auditHintRef ?? "대기" },
     { id: "task-audit", label: "업무 감사", value: actionInbox.task.auditHintRef ?? "대기" },
@@ -780,25 +947,18 @@ export function HomeSurface({
     setHomeOnboardingDismissed(true);
   }
 
-  async function handleHomeAction(row, action) {
-    setPendingActionId(`${row.id}:${action}`);
-    const result = await decideHomeActionInboxItem({
-      id: row.id,
-      action,
-      ctx: liveCtx,
-      idempotencyKey: `${row.id}:${action}:${Date.now()}`
-    });
-    setPendingActionId("");
-    if (result.kind !== "data") {
-      setUndoNotice({ id: row.id, title: row.title, message: "요청을 처리하지 못했습니다." });
-      return;
-    }
+  function restoreActionInbox(previousActionInbox) {
+    if (!previousActionInbox) return;
+    setActionInbox(previousActionInbox);
+    onHomeActionCountsChange(previousActionInbox.counts);
+  }
+
+  function handleHomeAction(row, action) {
     const previousActionInbox = actionInbox;
-    const nextCounts = {
-      ...actionInbox.counts,
-      approval: row.type === "approval" ? Math.max(0, Number(actionInbox.counts.approval ?? 0) - 1) : actionInbox.counts.approval,
-      task_today: row.type === "task" ? Math.max(0, Number(actionInbox.counts.task_today ?? 0) - 1) : actionInbox.counts.task_today
-    };
+    const actionStateId = `${row.id}:${action}`;
+    const pendingKey = `${row.id}:${action}:${Date.now()}`;
+    const nextCounts = decrementCountsForRow(actionInbox.counts, row);
+    setPendingActionId(actionStateId);
     setActionInbox((current) => ({
       ...current,
       [row.type]: {
@@ -808,20 +968,47 @@ export function HomeSurface({
       counts: nextCounts
     }));
     onHomeActionCountsChange(nextCounts);
+    const timer = setTimeout(async () => {
+      pendingActionTimersRef.current.delete(pendingKey);
+      const result = await decideHomeActionInboxItem({
+        id: row.id,
+        action,
+        ctx: liveCtx,
+        idempotencyKey: pendingKey
+      });
+      setPendingActionId((current) => (current === actionStateId ? "" : current));
+      if (result.kind !== "data") {
+        restoreActionInbox(previousActionInbox);
+        setUndoNotice({ id: row.id, title: row.title, message: "요청을 처리하지 못했습니다." });
+        return;
+      }
+      setUndoNotice((current) => (
+        current?.pendingKey === pendingKey
+          ? { id: row.id, title: row.title, action, message: `${actionButtonLabel(action)} 처리했습니다.` }
+          : current
+      ));
+    }, HOME_ACTION_UNDO_WINDOW_MS);
+    pendingActionTimersRef.current.set(pendingKey, timer);
     setUndoNotice({
       id: row.id,
       title: row.title,
       previousActionInbox,
+      pendingKey,
       action,
-      message: `${actionButtonLabel(action)} 처리했습니다.`,
-      undoExpiresAt: result.undoExpiresAt
+      message: `${actionButtonLabel(action)} 대기 중입니다.`,
+      undoExpiresAt: new Date(Date.now() + HOME_ACTION_UNDO_WINDOW_MS).toISOString()
     });
   }
 
   function handleUndoNotice() {
+    if (undoNotice?.pendingKey) {
+      const timer = pendingActionTimersRef.current.get(undoNotice.pendingKey);
+      if (timer) clearTimeout(timer);
+      pendingActionTimersRef.current.delete(undoNotice.pendingKey);
+      setPendingActionId("");
+    }
     if (undoNotice?.previousActionInbox) {
-      setActionInbox(undoNotice.previousActionInbox);
-      onHomeActionCountsChange(undoNotice.previousActionInbox.counts);
+      restoreActionInbox(undoNotice.previousActionInbox);
     }
     setUndoNotice(null);
   }
@@ -1035,13 +1222,38 @@ export function HomeSurface({
     );
   }
 
+  function shiftCalendarMonth(delta) {
+    setSelectedCalendarDate((current) => new Date(current.getFullYear(), current.getMonth() + delta, Math.min(current.getDate(), 28)));
+  }
+
+  function renderTodoEmpty() {
+    if (showForestOnboarding) {
+      return (
+        <div className="home-widget-empty actionable">
+          <button type="button" className="text-button" data-home-todo-onboarding-cta="true" onClick={() => setView("matters", "matter-tasks")}>
+            첫 할 일 만들기 <ArrowRight size={14} />
+          </button>
+        </div>
+      );
+    }
+    return <EmptyWidgetState>오늘 마감 업무가 없습니다</EmptyWidgetState>;
+  }
+
   function renderDashboardGrid() {
     return (
       <div className="home-dashboard-grid" data-home-ops-queue="true" data-home-dashboard-grid="true" data-lcx-web-capability-count={capabilities.length}>
-        <DashboardCard className="home-dashboard-approval" title="승인 대기" meta={`${actionInbox.counts.approval}건`} Icon={Inbox} widgetId="approval">
+        <DashboardCard
+          className="home-dashboard-approval"
+          title="승인 대기"
+          meta={`${actionInbox.counts.approval}건`}
+          Icon={Inbox}
+          widgetId="approval"
+          onViewAll={() => setView("home", "home-requests")}
+        >
           <span className="sr-only" data-home-widget-approval-count={actionInbox.counts.approval}>{actionInbox.counts.approval}</span>
+          <HomeTabList label="승인 요청 방향" tabs={visibleApprovalWidgetTabs} activeTab={activeApprovalWidgetTab} onSelect={setApprovalWidgetTab} dataPrefix="approval-widget" />
           <div className="home-widget-list">
-            {approvalRows.map((row) => (
+            {approvalPreviewRows.map((row) => (
               <DashboardRow
                 key={row.id}
                 {...row}
@@ -1050,13 +1262,20 @@ export function HomeSurface({
                 pending={pendingActionId.startsWith(`${row.id}:`)}
               />
             ))}
-            {approvalRows.length === 0 && <EmptyWidgetState>처리할 승인이 없습니다.</EmptyWidgetState>}
+            {approvalPreviewRows.length === 0 && <EmptyWidgetState>처리할 승인이 없습니다 — 모두 완료했습니다</EmptyWidgetState>}
           </div>
         </DashboardCard>
-        <DashboardCard className="home-dashboard-todo" title="오늘 To Do" meta={`${actionInbox.counts.task_today}건`} Icon={Clock3} widgetId="todo">
+        <DashboardCard
+          className="home-dashboard-todo"
+          title="오늘 To Do"
+          meta={`지연 ${actionInbox.counts.task_late} · 오늘 ${actionInbox.counts.task_today}`}
+          Icon={Clock3}
+          widgetId="todo"
+          onViewAll={() => setView("home", "home-dashboard")}
+        >
           <span className="sr-only" data-home-widget-task-count={actionInbox.counts.task_today}>{actionInbox.counts.task_today}</span>
           <div className="home-widget-list">
-            {todoRows.map((row) => (
+            {todoPreviewRows.map((row) => (
               <DashboardRow
                 key={row.id}
                 {...row}
@@ -1065,10 +1284,17 @@ export function HomeSurface({
                 pending={pendingActionId.startsWith(`${row.id}:`)}
               />
             ))}
-            {todoRows.length === 0 && <EmptyWidgetState>오늘 마감 업무가 없습니다.</EmptyWidgetState>}
+            {todoPreviewRows.length === 0 && renderTodoEmpty()}
           </div>
         </DashboardCard>
-        <DashboardCard className="home-dashboard-feed" title="피드" meta={currentFeedTab.label} Icon={Newspaper} widgetId="feed">
+        <DashboardCard
+          className="home-dashboard-feed"
+          title="피드"
+          meta={currentFeedTab.label}
+          Icon={Newspaper}
+          widgetId="feed"
+          onViewAll={() => setView("home", "home-dashboard")}
+        >
           <div className="home-feed-tabs" role="tablist" aria-label="홈 피드">
             {feedTabs.map((tab) => (
               <button
@@ -1093,19 +1319,18 @@ export function HomeSurface({
           >
           {primaryFeedEntry ? (
             <div className="home-feed-content" data-home-feed-entry-count={feedEntries.length}>
-              <article className="home-feed-feature">
+              <button type="button" className="home-feed-feature" data-home-feed-entry={primaryFeedEntry.id} onClick={() => setSelectedFeedEntryId(primaryFeedEntry.id)}>
                 <span>{primaryFeedEntry.source}</span>
                 <strong>{primaryFeedEntry.title}</strong>
                 <p>{primaryFeedEntry.body_preview}</p>
-                {primaryFeedEntry.url && <a href={primaryFeedEntry.url} target="_blank" rel="noreferrer" aria-label={`${primaryFeedEntry.title} 원문 열기`}>원문 열기</a>}
-              </article>
+              </button>
               <div className="home-feed-list">
                 {feedEntries.slice(1, 4).map((entry) => (
-                  <article key={entry.id}>
+                  <button type="button" key={entry.id} data-home-feed-entry={entry.id} onClick={() => setSelectedFeedEntryId(entry.id)}>
                     <span>{entry.source}</span>
                     <strong>{entry.title}</strong>
                     <small>{formatDateTime(entry.published_at)}</small>
-                  </article>
+                  </button>
                 ))}
               </div>
             </div>
@@ -1114,45 +1339,107 @@ export function HomeSurface({
               <FileSignature size={16} />
               <strong>{feedEmptyMessage(feedTab, currentFeedTab, feedResult)}</strong>
               {currentFeedTab.sources && <span>{currentFeedTab.sources}</span>}
+              {canRetryFeed && (
+                <button type="button" className="text-button home-feed-retry" data-home-feed-retry="true" onClick={() => setRefreshToken((value) => value + 1)}>
+                  다시 시도
+                </button>
+              )}
             </div>
           )}
           </div>
+          {selectedFeedEntry && (
+            <div className="home-feed-read-panel" role="dialog" aria-modal="false" data-home-feed-read-panel={selectedFeedEntry.id}>
+              <article>
+                <header>
+                  <span>{selectedFeedEntry.source}</span>
+                  <button type="button" className="icon-button" aria-label="읽기 패널 닫기" onClick={() => setSelectedFeedEntryId("")}>
+                    <X size={15} />
+                  </button>
+                </header>
+                <strong>{selectedFeedEntry.title}</strong>
+                <p>{selectedFeedEntry.body_preview}</p>
+                {selectedFeedEntry.url && <a href={selectedFeedEntry.url} target="_blank" rel="noreferrer" aria-label={`${selectedFeedEntry.title} 원문 열기`}>원문 열기</a>}
+              </article>
+            </div>
+          )}
         </DashboardCard>
         <aside className="home-dashboard-rail" data-home-dashboard-rail="true">
-          <DashboardCard className="home-dashboard-calendar" title="캘린더" meta={monthFormatter.format(selectedCalendarDate)} Icon={CalendarDays} widgetId="calendar">
+          <DashboardCard
+            className="home-dashboard-calendar"
+            title="캘린더"
+            meta={monthFormatter.format(selectedCalendarDate)}
+            Icon={CalendarDays}
+            widgetId="calendar"
+            onViewAll={() => setView("home", "home-dashboard")}
+            headerExtra={(
+              <span className="home-calendar-nav" aria-label="월 이동">
+                <button type="button" aria-label="이전 달" data-home-calendar-prev="true" onClick={() => shiftCalendarMonth(-1)}>
+                  <ChevronLeft size={14} />
+                </button>
+                <button type="button" aria-label="다음 달" data-home-calendar-next="true" onClick={() => shiftCalendarMonth(1)}>
+                  <ChevronRight size={14} />
+                </button>
+              </span>
+            )}
+          >
             <div className="home-calendar-weekdays">
               {calendarWeekdays.map((weekday) => (
                 <span key={weekday}>{weekday}</span>
               ))}
             </div>
             <div className="home-calendar-grid">
-              {calendarCells.map((cell) => (
-                <button
-                  key={cell.key}
-                  type="button"
-                  className={[
-                    cell.inMonth ? "in-month" : "out-month",
-                    cell.isToday ? "today" : "",
-                    cell.key === selectedCalendarKey ? "selected" : ""
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  onClick={() => setSelectedCalendarDate(cell.date)}
-                  aria-label={`${selectedDateFormatter.format(cell.date)}${cell.key === selectedCalendarKey ? " 선택됨" : ""}`}
-                  aria-pressed={cell.key === selectedCalendarKey ? "true" : "false"}
-                >
-                  {cell.day}
-                </button>
-              ))}
+              {calendarCells.map((cell) => {
+                const summary = agendaByDate.get(cell.key);
+                const hasGeneral = Number(summary?.total ?? 0) > Number(summary?.deadline ?? 0);
+                const hasDeadline = Number(summary?.deadline ?? 0) > 0;
+                return (
+                  <button
+                    key={cell.key}
+                    type="button"
+                    className={[
+                      cell.inMonth ? "in-month" : "out-month",
+                      cell.isSunday ? "sunday" : "",
+                      cell.isToday ? "today" : "",
+                      cell.key === selectedCalendarKey ? "selected" : ""
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    data-home-calendar-day={cell.key}
+                    data-home-calendar-day-kind={hasDeadline ? "deadline" : hasGeneral ? "general" : "empty"}
+                    onClick={() => setSelectedCalendarDate(cell.date)}
+                    aria-label={`${selectedDateFormatter.format(cell.date)}${cell.key === selectedCalendarKey ? " 선택됨" : ""}`}
+                    aria-pressed={cell.key === selectedCalendarKey ? "true" : "false"}
+                  >
+                    <span className="home-calendar-day">{cell.day}</span>
+                    {(hasGeneral || hasDeadline) && (
+                      <span className="home-calendar-dots" aria-hidden="true">
+                        {hasGeneral && <i className="home-calendar-dot general" />}
+                        {hasDeadline && <i className="home-calendar-dot deadline" />}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
             <div className="home-calendar-agenda">
-              <strong>{selectedDateFormatter.format(selectedCalendarDate)}</strong>
+              <div className="home-calendar-agenda-header">
+                <strong>{selectedDateFormatter.format(selectedCalendarDate)}</strong>
+                <button type="button" className="text-button home-calendar-open" data-home-calendar-open="true" onClick={() => setView("matters", "matter-calendar")}>
+                  캘린더 열기
+                </button>
+              </div>
+              {nextDeadline && (
+                <button type="button" className="home-calendar-deadline-callout" data-home-upcoming-deadline="true" onClick={() => setView("matters", "matter-calendar")}>
+                  <span>임박 기한 1건</span>
+                  <strong>{nextDeadline.title}</strong>
+                </button>
+              )}
               {selectedAgenda.length === 0 ? (
                 <span>{agendaResult.kind === "loading" ? "일정을 불러오는 중입니다." : "이 날 일정이 없습니다."}</span>
               ) : (
                 <div className="home-calendar-agenda-list" data-home-agenda-count={selectedAgenda.length}>
                   {selectedAgenda.slice(0, 3).map((event) => (
-                    <button key={event.id} type="button" onClick={() => setView("matters", event.matter_ref ? "matter-calendar" : "matter-home")}>
+                    <button key={event.id} type="button" className={event.kind === "deadline" ? "deadline" : ""} onClick={() => setView("matters", event.matter_ref ? "matter-calendar" : "matter-home")}>
                       <span>{event.kind === "deadline" ? "기한" : event.kind}</span>
                       <strong>{event.title}</strong>
                     </button>
@@ -1161,7 +1448,14 @@ export function HomeSurface({
               )}
             </div>
           </DashboardCard>
-          <DashboardCard className="home-dashboard-system" title="시스템 상태" meta={failedCount > 0 || reviewCount > 0 ? "확인 필요" : "정상"} Icon={Briefcase} widgetId="system">
+          <DashboardCard
+            className="home-dashboard-system"
+            title="시스템 상태"
+            meta={failedCount > 0 || reviewCount > 0 ? "확인 필요" : "정상"}
+            Icon={Briefcase}
+            widgetId="system"
+            onViewAll={() => setView("home", "home-company")}
+          >
             <div className="home-system-pill-grid">
               {systemStatusItems.map(({ id, label, status, statusLabel, Icon }) => (
                 <div key={id} className={`home-system-pill ${status}`}>
@@ -1191,7 +1485,7 @@ export function HomeSurface({
         <div>
           <span>{currentHomeSectionMeta.eyebrow}</span>
           <h1>{heroTitle}</h1>
-          <p>{heroSubtitle}</p>
+          <p data-home-hero-action-count={activeHomeSection === "home-dashboard" ? homeActionTotal : undefined}>{heroSubtitle}</p>
         </div>
         <button className="secondary-button" type="button" onClick={() => setRefreshToken((value) => value + 1)}>
           <RefreshCw size={15} />
@@ -1223,7 +1517,7 @@ export function HomeSurface({
       {undoNotice && (
         <div className="home-action-undo" role="status" data-home-action-undo="true">
           <span>{undoNotice.message}</span>
-          {undoNotice.undoExpiresAt && <button type="button" className="text-button" onClick={handleUndoNotice}>실행 취소</button>}
+          {undoNotice.undoExpiresAt && <button type="button" className="text-button" data-home-action-undo-button="true" onClick={handleUndoNotice}>실행 취소</button>}
         </div>
       )}
       {renderActiveHomeSection()}

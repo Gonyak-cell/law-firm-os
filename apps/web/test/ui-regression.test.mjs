@@ -344,8 +344,11 @@ test("Home dashboard Stage 4 keeps action counts on the single Home inbox source
   assert.match(homeSource, /meta=\{`\$\{actionInbox\.counts\.approval\}건`\}/);
   assert.match(homeSource, /data-home-inline-action=\{action\}/);
   assert.match(homeSource, /const previousActionInbox = actionInbox/);
+  assert.match(homeSource, /const pendingKey = `\$\{row\.id\}:\$\{action\}:\$\{Date\.now\(\)\}`/);
+  assert.match(homeSource, /setTimeout\(async \(\) => \{/);
+  assert.match(homeSource, /HOME_ACTION_UNDO_WINDOW_MS/);
   assert.match(homeSource, /onHomeActionCountsChange\(nextCounts\)/);
-  assert.match(homeSource, /setActionInbox\(undoNotice\.previousActionInbox\)/);
+  assert.match(homeSource, /restoreActionInbox\(undoNotice\.previousActionInbox\)/);
 });
 
 test("topbar utilities open right drawers with global dim and stacked alerts", async () => {
@@ -489,7 +492,7 @@ test("Stage 7 Home IA accessibility keeps tabs, dates, and navigation state name
   assert.match(homeSource, /tabIndex=\{feedTab === tab\.id \? 0 : -1\}/);
   assert.match(homeSource, /role="tabpanel"/);
   assert.match(homeSource, /aria-labelledby=\{`home-feed-tab-\$\{feedTab\}`\}/);
-  assert.match(homeSource, /aria-label=\{`\$\{primaryFeedEntry\.title\} 원문 열기`\}/);
+  assert.match(homeSource, /aria-label=\{`\$\{selectedFeedEntry\.title\} 원문 열기`\}/);
   assert.match(homeSource, /aria-label=\{`\$\{title\} \$\{actionButtonLabel\(action\)\}`\}/);
   assert.match(homeSource, /aria-label=\{`\$\{selectedDateFormatter\.format\(cell\.date\)\}\$\{cell\.key === selectedCalendarKey \? " 선택됨" : ""\}`\}/);
   assert.match(homeSource, /aria-pressed=\{cell\.key === selectedCalendarKey \? "true" : "false"\}/);

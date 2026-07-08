@@ -1892,6 +1892,7 @@ kbd {
 }
 
 .home-dashboard-card {
+  position: relative;
   min-width: 0;
   min-height: 0;
   display: flex;
@@ -1928,6 +1929,7 @@ kbd {
 }
 
 .home-dashboard-card-icon {
+  flex: 0 0 auto;
   width: 34px;
   height: 34px;
   display: inline-flex;
@@ -1935,6 +1937,32 @@ kbd {
   justify-content: center;
   border-radius: var(--am-radius-sm);
   background: var(--am-surface-subtle);
+  color: var(--am-blue);
+}
+
+.home-dashboard-card-actions {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.home-widget-view-all {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface-subtle);
+  color: var(--am-text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.home-widget-view-all:hover {
   color: var(--am-blue);
 }
 
@@ -1982,6 +2010,22 @@ kbd {
 .home-dashboard-row-actions .text-button {
   min-height: 28px;
   padding-inline: 8px;
+}
+
+.home-task-check-button {
+  width: 30px;
+  height: 30px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-blue);
+}
+
+.home-task-check-button:disabled {
+  opacity: 0.54;
 }
 
 .home-dashboard-row-open {
@@ -2041,6 +2085,7 @@ kbd {
 .home-dashboard-row.denied em,
 .home-dashboard-row.review em,
 .home-dashboard-row.guarded em,
+.home-dashboard-row.today em,
 .home-system-pill.denied em,
 .home-system-pill.review em,
 .home-system-pill.guarded em {
@@ -2048,7 +2093,13 @@ kbd {
   color: #8a5a00;
 }
 
+.home-dashboard-row.late em {
+  background: #f7e7e7;
+  color: #923232;
+}
+
 .home-dashboard-row.live em,
+.home-dashboard-row.upcoming em,
 .home-system-pill.live em {
   background: #e5f5ed;
   color: #1f6b4a;
@@ -2064,6 +2115,16 @@ kbd {
   border: 1px dashed var(--am-border);
   border-radius: var(--am-radius-sm);
   color: var(--am-text-muted);
+}
+
+.home-widget-empty.actionable {
+  justify-content: center;
+}
+
+.home-widget-empty.actionable .text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .home-feed-tabs {
@@ -2113,7 +2174,7 @@ kbd {
 }
 
 .home-feed-feature,
-.home-feed-list article {
+.home-feed-list button {
   min-width: 0;
   display: grid;
   gap: 6px;
@@ -2121,6 +2182,7 @@ kbd {
   border: 1px solid var(--am-border-soft);
   border-radius: var(--am-radius-sm);
   background: var(--am-surface-subtle);
+  text-align: left;
 }
 
 .home-feed-feature span,
@@ -2159,6 +2221,61 @@ kbd {
   color: var(--am-text-faint);
 }
 
+.home-feed-retry {
+  width: fit-content;
+  margin-top: 4px;
+}
+
+.home-feed-read-panel {
+  position: absolute;
+  inset: 112px 14px 14px;
+  z-index: 2;
+  display: grid;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: color-mix(in srgb, var(--am-surface) 94%, transparent);
+  box-shadow: var(--am-shadow-panel);
+}
+
+.home-feed-read-panel article {
+  display: grid;
+  gap: 8px;
+}
+
+.home-feed-read-panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.home-feed-read-panel span {
+  color: var(--am-text-faint);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.home-feed-read-panel strong {
+  color: var(--am-text);
+}
+
+.home-feed-read-panel p {
+  margin: 0;
+  color: var(--am-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.home-feed-read-panel a {
+  width: fit-content;
+  color: var(--am-blue);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
 .home-feed-empty strong {
   color: var(--am-text);
 }
@@ -2185,12 +2302,19 @@ kbd {
 .home-calendar-grid button {
   min-width: 0;
   aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  gap: 1px;
   padding: 0;
   border: 1px solid transparent;
   border-radius: var(--am-radius-sm);
   background: transparent;
   color: var(--am-text);
   font-weight: 800;
+}
+
+.home-calendar-grid button.sunday {
+  color: #bc2c1a;
 }
 
 .home-calendar-grid button.out-month {
@@ -2206,6 +2330,50 @@ kbd {
   color: #ffffff;
 }
 
+.home-calendar-day {
+  line-height: 1;
+}
+
+.home-calendar-dots {
+  min-height: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.home-calendar-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--am-radius-pill);
+  background: #26c260;
+}
+
+.home-calendar-dot.deadline {
+  background: #bc2c1a;
+}
+
+.home-calendar-grid button.selected .home-calendar-dot {
+  background: #ffffff;
+}
+
+.home-calendar-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.home-calendar-nav button {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface-subtle);
+  color: var(--am-text-muted);
+}
+
 .home-calendar-agenda {
   display: grid;
   gap: 4px;
@@ -2214,9 +2382,46 @@ kbd {
   border-top: 1px solid var(--am-border-soft);
 }
 
+.home-calendar-agenda-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.home-calendar-open {
+  min-height: 28px;
+  padding-inline: 8px;
+}
+
 .home-calendar-agenda span {
   color: var(--am-text-muted);
   font-size: 12px;
+}
+
+.home-calendar-deadline-callout {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  padding: 8px;
+  border: 1px solid rgba(188, 44, 26, 0.22);
+  border-radius: var(--am-radius-sm);
+  background: rgba(188, 44, 26, 0.08);
+  color: var(--am-text);
+  text-align: left;
+}
+
+.home-calendar-deadline-callout span {
+  color: #923232;
+  font-weight: 800;
+}
+
+.home-calendar-deadline-callout strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--am-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .home-calendar-agenda-list {
@@ -2245,6 +2450,11 @@ kbd {
   color: var(--am-text-muted);
   font-size: 11px;
   font-weight: 800;
+}
+
+.home-calendar-agenda-list button.deadline span {
+  background: #f7e7e7;
+  color: #923232;
 }
 
 .home-calendar-agenda-list button strong {
@@ -2627,6 +2837,12 @@ kbd {
     display: none;
   }
 
+  .home-task-check-button svg,
+  .home-widget-view-all svg,
+  .home-calendar-nav svg {
+    display: block;
+  }
+
   .home-feed-content {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -2641,6 +2857,15 @@ kbd {
 
   .home-dashboard-row-actions {
     flex-wrap: wrap;
+  }
+
+  .home-dashboard-card-header {
+    flex-wrap: wrap;
+  }
+
+  .home-dashboard-card-actions {
+    width: 100%;
+    justify-content: flex-start;
   }
 }
 
@@ -11597,6 +11822,11 @@ html[data-skin="forest"] .home-dashboard-card-icon {
   color: #26C260;
 }
 
+html[data-skin="forest"] .home-widget-view-all,
+html[data-skin="forest"] .home-calendar-nav button {
+  background: var(--am-surface);
+}
+
 html[data-skin="forest"] .home-dashboard-row {
   min-height: 56px;
   padding: 10px 12px;
@@ -11727,6 +11957,7 @@ html[data-skin="forest"] .people-feature-status,
 html[data-skin="forest"] .matter-profile-status,
 html[data-skin="forest"] .hrx-risk-status,
 html[data-skin="forest"] .home-dashboard-row.live em,
+html[data-skin="forest"] .home-dashboard-row.upcoming em,
 html[data-skin="forest"] .home-system-pill.live em,
 html[data-skin="forest"] .forest-status-item.live em,
 html[data-skin="forest"] .work-area-note.live,
@@ -11736,6 +11967,7 @@ html[data-skin="forest"] .vault-bridge-status.ready {
 }
 
 html[data-skin="forest"] .home-dashboard-row.review em,
+html[data-skin="forest"] .home-dashboard-row.today em,
 html[data-skin="forest"] .home-system-pill.review em,
 html[data-skin="forest"] .work-area-note.review,
 html[data-skin="forest"] .forest-status-item.review em,
@@ -11758,6 +11990,7 @@ html[data-skin="forest"] .live-data-denied {
 }
 
 html[data-skin="forest"] .home-dashboard-row.unavailable em,
+html[data-skin="forest"] .home-dashboard-row.late em,
 html[data-skin="forest"] .home-system-pill.unavailable em,
 html[data-skin="forest"] .forest-status-item.unavailable em,
 html[data-skin="forest"] .work-area-note.unavailable,
