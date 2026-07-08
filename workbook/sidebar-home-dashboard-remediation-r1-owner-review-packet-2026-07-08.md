@@ -2,8 +2,8 @@
 
 Date: 2026-07-08
 Branch: `codex/lcx-vltui-owner-approval-intake`
-Status: owner review requested, not closed
-Owner confirmation recorded: false
+Status: owner approved for Stage 7 owner-confirmation gate
+Owner confirmation recorded: true
 Public release or go-live claim: false
 
 ## Scope
@@ -59,7 +59,32 @@ Observed screenshot receipt values:
 
 | Item | Reason |
 | --- | --- |
-| Owner confirmation | Must be recorded by owner after reviewing this packet. |
-| Stage 7 gate closure | Not claimed until owner confirmation is recorded. |
 | Public release or go-live | Out of scope for this packet and not claimed. |
-| External owner audit verdict | Awaiting owner-side review of this packet. |
+| Production_ready gate weakening | Not requested and not approved. |
+
+## Owner Approval
+
+Recorded at: 2026-07-08 10:57:15 KST
+Approval receipt: `workbook/sidebar-home-dashboard-remediation-r1-owner-approval-receipt-2026-07-08.md`
+Machine-readable receipt: `docs/lazycodex/evidence/matter-web/artifacts/sidebar-home-dashboard-r1-owner-approval-receipt-2026-07-08.json`
+
+Owner approved:
+
+```text
+R1 오너 검수 승인합니다.
+
+검수 대상:
+- workbook/sidebar-home-dashboard-remediation-r1-owner-review-packet-2026-07-08.md
+- WP-1~WP-8 커밋: da103cb15, 18fa89549, 1ec0e9df3, 7dca3e1b3, cdce6c266, 22c5289b1, ec05883b4, 2cd8eed8d
+- 오너 검수 패킷 커밋: 4e5e2a498
+
+확인 사항:
+- R1 보완 범위 승인
+- 첨부 스크린샷 및 QA receipt 확인
+- [직접 재실행] 검증 표 확인
+- Stage 7 게이트의 오너 확인 항목 충족 승인
+
+단, 이 승인은 public release/go-live 승인이 아니며, production_ready 게이트 완화도 승인하지 않습니다.
+```
+
+Gate statement: Stage 7 owner-confirmation item is satisfied by this approval. This does not approve public release, go-live, or any production_ready gate weakening.
