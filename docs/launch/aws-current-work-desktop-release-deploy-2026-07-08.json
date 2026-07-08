@@ -1,26 +1,30 @@
 {
-  "schema_version": "matter.release.deploy.receipt.v1",
-  "generated_at": "2026-07-08T02:35:00Z",
+  "schema_version": "law-firm-os.aws-current-work-desktop-release-deploy.v2",
+  "generated_at": "2026-07-08T07:40:43Z",
   "status": "desktop_release_candidate_and_aws_deploy_completed",
-  "repo": {
+  "source": {
     "branch": "codex/lcx-vltui-owner-approval-intake",
-    "head": "51fd7f14fd0d5d28f12897c2a99f29486bb5ecc8",
-    "worktree_state": "dirty-current-worktree",
-    "commit_created": false,
-    "reason_commit_not_created": "worktree contains many unrelated modified and untracked files; release and deploy were executed from current working tree without broad staging"
+    "head": "365325a0213b015ecfccb3b8130786605a83de93",
+    "release_marker": "matter-desktop-v0.1.10-current-20260708-365325a",
+    "worktree_at_release_start": "clean",
+    "public_release_claim": false,
+    "production_go_live_claim": false,
+    "production_ready_claim": false
   },
   "desktop_release": {
-    "release_id": "matter-desktop-v0.1.10-current-20260708",
+    "release_id": "matter-desktop-v0.1.10-current-20260708-365325a",
     "channel": "formal-candidate",
-    "manifest": "apps/desktop/dist/release/matter-desktop-v0.1.10-current-20260708/release-manifest.json",
-    "checksums": "apps/desktop/dist/release/matter-desktop-v0.1.10-current-20260708/checksums.sha256",
+    "manifest": "apps/desktop/dist/release/matter-desktop-v0.1.10-current-20260708-365325a/release-manifest.json",
+    "checksums": "apps/desktop/dist/release/matter-desktop-v0.1.10-current-20260708-365325a/checksums.sha256",
     "artifact_count": 9,
     "macos": {
       "app_bundle": "apps/desktop/dist/mac/matter.app",
       "zip": "apps/desktop/dist/mac/matter-0.1.10-macos.zip",
-      "zip_sha256": "d9476cd43937a9f22b10a64f0c0077280762024f82967952204f3980d1e9c40a",
+      "zip_sha256": "770d2b26ceaca292ae396bc2fbe6fa86b06e26045069a50f8862c94146353699",
+      "zip_bytes": 131420944,
       "dmg": "apps/desktop/dist/mac/matter-0.1.10-macos.dmg",
-      "dmg_sha256": "53f735752b56164b22ddcb9beee80a2f5eb0a12e577dcc611693301415cfd27b",
+      "dmg_sha256": "558188c2010c31a4a1958d41eceab4ab9bb1e5a83a0b4205a537bf260fa1b521",
+      "dmg_bytes": 156709669,
       "developer_id_signing": "applied",
       "resolved_signing_identity": "Developer ID Application: Jiwon Suh (LHDXU66NX3)",
       "codesign_verify": "pass",
@@ -31,13 +35,15 @@
     },
     "windows": {
       "installer": "apps/desktop/dist/matter-0.1.10-win-x64.exe",
-      "installer_sha256": "482ffdaf17b36efb084bd2bdec22dccdc6fe8b01dcea80a93b3f58628e39510e",
-      "installer_bytes": 107918318,
+      "installer_sha256": "dab2ec8cead072f199b526f19b63da56e5053b1433590d576df1edc5b0bffd86",
+      "installer_bytes": 107918319,
       "blockmap": "apps/desktop/dist/matter-0.1.10-win-x64.exe.blockmap",
-      "blockmap_sha256": "98f78d23a8aa30777bccb2c54c85dd565de01388b09d29eef879bd7641a8dffb",
+      "blockmap_sha256": "4513cffcf6381ba9d323cd9e4f3e29812b2b4cb8fdef57887ae0adca228567ff",
+      "blockmap_bytes": 115260,
       "manifest": "apps/desktop/dist/win/matter-0.1.10-win-installer-manifest.json",
       "manifest_sha256": "72bdf5f7ca55befdb9620d347e91f21051063afbda4f65d2ebf33103cb23c5c5",
       "manifest_signature": "apps/desktop/dist/win/matter-0.1.10-win-installer-manifest.json.sig",
+      "manifest_signature_sha256": "3cf133b6d8a1a7162923cf4ce441947df5732aa6fafc3b26854c15f7a45127ed",
       "signing_identity": "matter-formal-candidate-nonproduction-signing-key",
       "authenticode_signing": false,
       "native_install_smoke": "not_run_on_darwin"
@@ -54,87 +60,105 @@
   "aws_deploy": {
     "region": "ap-northeast-2",
     "profile": "matter-prod-deploy-admin",
+    "account": "770880870480",
     "web": {
       "bucket": "s3://matter-lawos-web-prod-770880870480-apne2",
       "cloudfront_distribution_id": "E3MVAKX2DIR3CS",
       "cloudfront_url": "https://d2mthcc8vp3cr2.cloudfront.net",
-      "cloudfront_invalidation_id": "I3OR2IXWWSVG25MBE3FUNJEEHZ",
+      "cloudfront_invalidation_id": "IBVGHR1L2BM63AJQRTKQJH1VI2",
+      "cloudfront_invalidation_status": "Completed",
       "assets": [
         "dist/assets/index-D0_pUF9C.js",
         "dist/assets/index-BOiUIWl9.css"
-      ]
+      ],
+      "root_http_status": 200,
+      "api_health_http_status": 200,
+      "desktop_health_http_status": 200
     },
     "api_lambda": {
       "function_name": "matter-lawos-api-prod",
-      "zip": "/tmp/matter-lawos-api-prod-51fd7f14f-current-20260708T022442Z.zip",
-      "zip_sha256": "9c257ebf00ba703127d1e30ad91e9915e79db9aeb65882e3b006ecf8d5beb5bb",
+      "action": "verified_current_no_code_redeploy_required",
       "state": "Active",
       "last_update_status": "Successful",
-      "last_modified": "2026-07-08T02:24:51.000+0000",
-      "code_sha256": "nCV+vwC6cDEn0eMK2R6ZFeedua62WILjsAbs+NW+tbs=",
-      "deployment_commit": "51fd7f14fd0d5d28f12897c2a99f29486bb5ecc8-dirty-current-20260708T022442Z"
+      "last_modified": "2026-07-08T07:24:07.000+0000",
+      "runtime": "nodejs22.x",
+      "code_sha256": "4Ib6XdunKuKJF39n6rP3fiVgf0uZf33BN2r5uxO/aWQ=",
+      "deployment_commit": "365325a0213b015ecfccb3b8130786605a83de93"
     },
     "desktop_runtime_lambda": {
       "function_name": "matter-temp-desktop-runtime",
+      "action": "redeployed_current_runtime_zip",
       "base_url": "https://73o8hpqpgl.execute-api.ap-northeast-2.amazonaws.com/staging",
-      "zip": "/tmp/matter-temp-desktop-runtime-51fd7f14f-current-20260708T021942Z.zip",
-      "zip_sha256": "a4d74358a9858b94c25eead1d54687217f035b8e9b2a1997a7f656c6f2817966",
+      "cloudfront_base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+      "zip_sha256": "b77d5ff1b21ec4225baa8366e4965fe20fb4987b0e7c6948868c7f946f104687",
+      "zip_bytes": 25572,
       "state": "Active",
       "last_update_status": "Successful",
-      "last_modified": "2026-07-08T02:20:02.000+0000",
-      "code_sha256": "pNdDWKmFi5TCXurR1UaHIX8DW46bKhmXp/ZWxvKBeWY=",
-      "deployment_commit": "51fd7f14fd0d5d28f12897c2a99f29486bb5ecc8-dirty-current-20260708T021942Z"
+      "last_modified": "2026-07-08T07:38:33.000+0000",
+      "runtime": "nodejs20.x",
+      "code_sha256": "t31f8bIexCJbqoNm5JZf4g+0mHsOfGlIhox/lG8QRoc=",
+      "deployment_commit": "365325a0213b015ecfccb3b8130786605a83de93-current-20260708T073826Z"
     }
   },
   "direct_rerun_validation": [
     {
       "command": "npm test",
-      "exit_code": 0,
+      "exit": 0,
       "result": "4157/4157 tests passed"
     },
     {
       "command": "npm run build",
-      "exit_code": 0,
-      "result": "web build completed"
+      "exit": 0,
+      "result": "Vite web build completed; chunk-size warning only"
     },
     {
-      "command": "npm --workspace apps/api test",
-      "exit_code": 0,
-      "result": "292/292 tests passed"
-    },
-    {
-      "command": "node --test apps/api/test/lambda-session-secret.test.js apps/api/test/session-auth-api.test.js",
-      "exit_code": 0,
-      "result": "27/27 tests passed"
-    },
-    {
-      "command": "npm run lcx:vltui:production-smoke",
-      "exit_code": 0,
-      "result": "PASS; 11 production smoke checks"
-    },
-    {
-      "command": "MATTER_DESKTOP_RUNTIME_BASE_URL=https://73o8hpqpgl.execute-api.ap-northeast-2.amazonaws.com/staging npm run matter-desktop:aws-runtime:smoke",
-      "exit_code": 0,
-      "result": "PASS; account_count 11, protected reset denied, QA login/reset pass"
-    },
-    {
-      "command": "MATTER_DESKTOP_RUNTIME_BASE_URL=https://73o8hpqpgl.execute-api.ap-northeast-2.amazonaws.com/staging MATTER_DESKTOP_GITHUB_RELEASE_TAG=matter-desktop-v0.1.10-current-20260708 MATTER_DESKTOP_RELEASE_CHANNEL=formal npm run matter-desktop:formal-release",
-      "exit_code": 0,
+      "command": "MATTER_DESKTOP_RUNTIME_BASE_URL=https://73o8hpqpgl.execute-api.ap-northeast-2.amazonaws.com/staging MATTER_DESKTOP_GITHUB_RELEASE_TAG=matter-desktop-v0.1.10-current-20260708-365325a MATTER_DESKTOP_RELEASE_CHANNEL=formal npm run matter-desktop:formal-release",
+      "exit": 0,
       "result": "formal release candidate generated and validated"
     },
     {
-      "command": "aws lambda get-function-configuration --function-name matter-lawos-api-prod --profile matter-prod-deploy-admin --region ap-northeast-2",
-      "exit_code": 0,
-      "result": "Active / Successful"
+      "command": "aws lambda update-function-code --function-name matter-temp-desktop-runtime ...",
+      "exit": 0,
+      "result": "runtime zip deployed"
     },
     {
-      "command": "aws lambda get-function-configuration --function-name matter-temp-desktop-runtime --profile matter-prod-deploy-admin --region ap-northeast-2",
-      "exit_code": 0,
-      "result": "Active / Successful"
+      "command": "aws s3 sync apps/web/dist s3://matter-lawos-web-prod-770880870480-apne2 --delete",
+      "exit": 0,
+      "result": "current web build uploaded"
+    },
+    {
+      "command": "aws cloudfront create-invalidation --distribution-id E3MVAKX2DIR3CS --paths /*",
+      "exit": 0,
+      "result": "invalidation IBVGHR1L2BM63AJQRTKQJH1VI2 completed"
+    },
+    {
+      "command": "npm run lcx:vltui:production-smoke",
+      "exit": 0,
+      "result": "PASS; 11 production smoke checks"
+    },
+    {
+      "command": "MATTER_DESKTOP_RUNTIME_BASE_URL=https://d2mthcc8vp3cr2.cloudfront.net npm run matter-desktop:aws-runtime:smoke",
+      "exit": 0,
+      "result": "PASS; account_count 11; protected reset denied; QA login/reset pass"
+    },
+    {
+      "command": "GET https://d2mthcc8vp3cr2.cloudfront.net/",
+      "exit": 0,
+      "result": "HTTP 200"
+    },
+    {
+      "command": "GET https://d2mthcc8vp3cr2.cloudfront.net/api/health",
+      "exit": 0,
+      "result": "HTTP 200; service @law-firm-os/api"
+    },
+    {
+      "command": "GET https://d2mthcc8vp3cr2.cloudfront.net/health",
+      "exit": 0,
+      "result": "HTTP 200; service matter-temp-desktop-runtime; registered accounts 11"
     },
     {
       "command": "npm run canonical-tenant:production-ready",
-      "exit_code": 1,
+      "exit": 1,
       "result": "expected boundary failure; production_ready and go-live claims not permitted"
     }
   ],
@@ -143,27 +167,38 @@
     "artifact_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.md",
     "verdict": "PASS",
     "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+    "deployment_commit": "365325a0213b015ecfccb3b8130786605a83de93",
+    "bridge_token_source": "lambda_environment",
     "check_count": 11,
-    "boundary": {
-      "production_web_deployed": true,
-      "production_api_redeployed": true,
-      "vault_bridge_remote_write_executed": false,
-      "vault_bridge_blocked": true,
-      "vault_document_write_enabled": false,
-      "real_client_data_used": false,
-      "synthetic_session_login_used": false,
-      "direct_authenticated_probe_used": true,
-      "public_release_claim": false,
-      "owner_final_approval_claim": false,
-      "company_wide_go_live_claim": false
-    }
+    "real_client_data_used": false,
+    "public_release_claim": false,
+    "owner_final_approval_claim": false,
+    "company_wide_go_live_claim": false
   },
   "unverified_or_not_claimed": [
-    "No public release or go-live approval is claimed.",
-    "production_ready remains blocked by canonical-tenant-production-ready.",
-    "Windows native install smoke was not run on Darwin.",
-    "Windows Authenticode signing is not claimed.",
-    "Vault bridge remote writes were not executed because the bridge remains disabled.",
-    "No commit was created for this receipt because the working tree contains unrelated dirty files."
+    {
+      "item": "public release / go-live",
+      "state": "not claimed"
+    },
+    {
+      "item": "production_ready",
+      "state": "not claimed; validator still fails by design"
+    },
+    {
+      "item": "Windows native install smoke",
+      "state": "not run on Darwin"
+    },
+    {
+      "item": "Windows Authenticode signing",
+      "state": "not claimed"
+    },
+    {
+      "item": "App Store / Microsoft Store distribution",
+      "state": "not claimed"
+    },
+    {
+      "item": "API Lambda code redeploy in this pass",
+      "state": "not executed because matter-lawos-api-prod already matched HEAD"
+    }
   ]
 }
