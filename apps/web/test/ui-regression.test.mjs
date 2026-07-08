@@ -78,7 +78,7 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   assert.match(shellSource, /navItems\.map/);
   assert.match(appSource, /function navigateToView/);
   assert.match(appSource, /export function resolveAxis/);
-  assert.match(appSource, /const routableViews = \["auth", "home", "loading", "profile", \.\.\.navItems\.map\(\(item\) => item\.id\), \.\.\.modeExceptionUtilityViewIds\]/);
+  assert.match(appSource, /const routableViews = \["auth", "home", "loading", \.\.\.navItems\.map\(\(item\) => item\.id\), \.\.\.modeExceptionUtilityViewIds\]/);
   assert.match(appSource, /const redirectableViews = \[\.\.\.routableViews, \.\.\.globalUtilityViewIds\]/);
   assert.match(appSource, /window\.history\.pushState/);
   assert.match(appSource, /window\.history\.replaceState/);
@@ -104,7 +104,7 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   assert.match(homeSidebarSource, /view: "home", section: "home-company"/);
   assert.match(homeSidebarSource, /view: "data-import", section: "data-import-client"/);
   assert.match(appSource, /globalUtilityViewIds/);
-  assert.match(globalUtilitySource, /modeExceptionUtilityViewIds = \["settings", "data-import"\]/);
+  assert.match(globalUtilitySource, /modeExceptionUtilityViewIds = \["settings", "data-import", "profile"\]/);
   assert.match(appSource, /resolveGlobalShortcut/);
   assert.match(globalUtilitySource, /"reports:reports-home-dashboard", route\("home", "home-dashboard"\)/);
   assert.match(globalUtilitySource, /view === "messages"\) return route\("home", "home-messages"/);
@@ -160,7 +160,7 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
 test("Stage 1 IA redirects old global utility URLs into stable product axes", async () => {
   const { legacyGlobalRoutes, modeExceptionUtilityViewIds, resolveGlobalShortcut } = await import(pathToFileURL(resolve(webRoot, "src/data/globalUtilities.js")).href);
 
-  assert.deepEqual(modeExceptionUtilityViewIds, ["settings", "data-import"]);
+  assert.deepEqual(modeExceptionUtilityViewIds, ["settings", "data-import", "profile"]);
   assert.deepEqual(resolveGlobalShortcut("home", ""), { view: "home", section: "home-dashboard" });
   assert.deepEqual(resolveGlobalShortcut("home", "home-recent"), { view: "home", section: "home-dashboard" });
   assert.deepEqual(resolveGlobalShortcut("reports", "reports-home-dashboard"), { view: "home", section: "home-dashboard" });
@@ -453,10 +453,14 @@ test("Stage 5 utility drawers keep the sidebar context unchanged until explicit 
 test("Stage 6 mode exception routes keep topbar and provide a return-to-work anchor", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
+  const globalUtilitySource = await readWebFile("src/data/globalUtilities.js");
   const globalUtilitySurfaceSource = await readWebFile("src/components/GlobalUtilitySurface.jsx");
   const stylesSource = await readWebFile("src/styles.css");
 
   assert.match(appSource, /const defaultModeReturnTarget = Object\.freeze\(\{ view: "home", section: "home-dashboard" \}\)/);
+  assert.match(appSource, /const homeFallbackSection = "home-dashboard"/);
+  assert.match(appSource, /function normalizeHomeRoute\(route\)/);
+  assert.match(appSource, /if \(!routableViews\.includes\(resolved\.view\)\) return \{ view: "home", section: homeFallbackSection \}/);
   assert.match(appSource, /const \[modeReturnTarget, setModeReturnTarget\] = useState/);
   assert.match(appSource, /modeExceptionUtilityViewIds\.includes\(initialView\) \|\| \["auth", "loading"\]\.includes\(initialView\)/);
   assert.match(appSource, /function isReturnableWorkView\(nextView\)/);
@@ -469,8 +473,10 @@ test("Stage 6 mode exception routes keep topbar and provide a return-to-work anc
   assert.match(appSource, /<Topbar[\s\S]*axis=\{axis\}[\s\S]*\/>/);
   assert.match(appSource, /isGlobalUtilityView\(view\) && modeExceptionUtilityViewIds\.includes\(view\)/);
 
+  assert.match(globalUtilitySource, /modeExceptionUtilityViewIds = \["settings", "data-import", "profile"\]/);
   assert.match(shellSource, /data-mode-exception-sidebar=\{modeExceptionActive \? "true" : undefined\}/);
   assert.match(shellSource, /data-mode-exception-depth=\{modeExceptionActive \? "deep" : undefined\}/);
+  assert.match(shellSource, /const modeExceptionActive = modeExceptionUtilityViewIds\.includes\(view\)/);
   assert.match(shellSource, /data-mode-return-anchor="true"/);
   assert.match(shellSource, /data-mode-return-view=\{modeReturnTarget\.view\}/);
   assert.match(shellSource, /data-mode-return-section=\{modeReturnTarget\.section \|\| ""\}/);
@@ -518,15 +524,17 @@ test("Stage 7 Home IA accessibility keeps tabs, dates, and navigation state name
 test("avatar profile opens a matter-consistent personal profile surface without becoming a product axis", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
+  const globalUtilitySource = await readWebFile("src/data/globalUtilities.js");
   const navSource = await readWebFile("src/data/nav.js");
   const profileSource = await readWebFile("src/components/UserProfileSurface.jsx");
   const stylesSource = await readWebFile("src/styles.css");
 
-  assert.match(appSource, /"profile"/);
+  assert.match(globalUtilitySource, /modeExceptionUtilityViewIds = \["settings", "data-import", "profile"\]/);
   assert.match(appSource, /<UserProfileSurface liveCtx=\{liveCtx\} onNavigate=\{navigateToView\} \/>/);
   assert.match(appSource, /onProfile=\{\(\) => navigateToView\("profile"\)\}/);
   assert.match(shellSource, /data-profile-trigger="true"/);
   assert.match(shellSource, /profileSidebarItems/);
+  assert.match(shellSource, /data-mode-return-anchor="true"/);
   assert.match(shellSource, /data-context-sidebar=\{axis\}/);
   assert.doesNotMatch(shellSource, /\{labels\.upgrade\}/);
   assert.match(profileSource, /data-user-profile-surface="matter-consistent"/);

@@ -606,8 +606,8 @@ export function Sidebar({
       cancelled = true;
     };
   }, [isForest]);
-  const activeGlobalUtility = modeExceptionUtilityViewIds.includes(view) ? getGlobalUtilityByView(view) : null;
-  const modeExceptionActive = Boolean(activeGlobalUtility);
+  const modeExceptionActive = modeExceptionUtilityViewIds.includes(view);
+  const activeGlobalUtility = modeExceptionActive ? getGlobalUtilityByView(view) : null;
   const localizedHomeMeta = homeSidebarMeta(labels);
   const modeExceptionSubnav = Object.fromEntries(
     globalUtilityCatalog.filter((utility) => modeExceptionUtilityViewIds.includes(utility.id)).map((utility) => [

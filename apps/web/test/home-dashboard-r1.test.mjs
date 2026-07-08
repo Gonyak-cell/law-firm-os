@@ -587,3 +587,39 @@ test("R1 WP-7 emits Home first-action and deep-link telemetry at runtime", async
     await server.close();
   }
 });
+
+test("R1 WP-8 treats profile as a mode exception and normalizes Home fallback sections", async () => {
+  const port = await availablePort();
+  const server = await createServer({
+    root: webRoot,
+    logLevel: "silent",
+    server: { host: "127.0.0.1", port, strictPort: true }
+  });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  const state = { decisionCalls: 0, newsCalls: 0 };
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
+    });
+    await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow#matter-calendar`, { waitUntil: "networkidle" });
+
+    await page.locator("[data-profile-trigger]").click();
+    await page.waitForSelector('[data-mode-exception-sidebar="true"] [data-mode-return-anchor="true"]');
+    assert.equal(await page.locator("[data-mode-return-anchor]").getAttribute("data-mode-return-view"), "matters");
+    assert.equal(await page.locator("[data-mode-return-anchor]").getAttribute("data-mode-return-section"), "matter-calendar");
+
+    await page.locator("[data-mode-return-anchor]").click();
+    await page.waitForFunction(() => new URL(window.location.href).searchParams.get("view") === "matters" && window.location.hash === "#matter-calendar");
+
+    await page.goto(`http://127.0.0.1:${port}/?view=unknown&ctx=allow#not-a-real-section`, { waitUntil: "networkidle" });
+    await page.waitForSelector('[data-active-home-section="home-dashboard"]');
+    await page.waitForFunction(() => new URL(window.location.href).searchParams.get("view") === "home" && window.location.hash === "#home-dashboard");
+    assert.equal(await page.locator("[data-active-home-section]").getAttribute("data-active-home-section"), "home-dashboard");
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});

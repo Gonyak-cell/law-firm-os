@@ -21,7 +21,15 @@ import { emitHomeMetric } from "./data/homeTelemetry.js";
 
 const productAxisIds = new Set(navItems.map((item) => item.id));
 const emptyHomeActionCounts = Object.freeze({ approval: 0, task_late: 0, task_today: 0 });
+const homeFallbackSection = "home-dashboard";
+const homeSectionIds = new Set([homeFallbackSection, "home-messages", "home-requests", "home-esign", "home-company"]);
 const defaultModeReturnTarget = Object.freeze({ view: "home", section: "home-dashboard" });
+
+function normalizeHomeRoute(route) {
+  if (route.view !== "home") return route;
+  const section = route.section || homeFallbackSection;
+  return { ...route, section: homeSectionIds.has(section) ? section : homeFallbackSection };
+}
 
 function homeCompanyAccessRecords(source = globalThis) {
   const apiSession = readLawosApiSession(source);
@@ -55,7 +63,7 @@ function storeSkin(skin) {
 
 export function App() {
   const initialParams = new URLSearchParams(window.location.search);
-  const routableViews = ["auth", "home", "loading", "profile", ...navItems.map((item) => item.id), ...modeExceptionUtilityViewIds];
+  const routableViews = ["auth", "home", "loading", ...navItems.map((item) => item.id), ...modeExceptionUtilityViewIds];
   const redirectableViews = [...routableViews, ...globalUtilityViewIds];
   const initialLocale = initialParams.get("locale") === "en" ? "en" : "ko";
   const initialTheme = initialParams.get("theme") === "dark" ? "dark" : "light";
@@ -114,8 +122,8 @@ export function App() {
   const initialRouteWasRedirected = rawInitialView !== initialView || rawInitialSection !== initialSection;
 
   function resolveRoute(nextView, section = "", companyAllowed = canViewCompanyStatus) {
-    const resolved = resolveGlobalShortcut(nextView, section);
-    if (!routableViews.includes(resolved.view)) return { view: "home", section: "" };
+    const resolved = normalizeHomeRoute(resolveGlobalShortcut(nextView, section));
+    if (!routableViews.includes(resolved.view)) return { view: "home", section: homeFallbackSection };
     if (resolved.view === "home" && resolved.section === "home-company" && !companyAllowed) {
       return { ...resolved, section: "home-dashboard", homeCompanyAccessDenied: true };
     }

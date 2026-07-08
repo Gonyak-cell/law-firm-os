@@ -483,7 +483,7 @@ export const conditionalGlobalItems = [
 export const globalUtilityCatalog = [...globalUtilityItems, ...conditionalGlobalItems];
 
 export const globalUtilityViewIds = globalUtilityCatalog.map((item) => item.id);
-export const modeExceptionUtilityViewIds = ["settings", "data-import"];
+export const modeExceptionUtilityViewIds = ["settings", "data-import", "profile"];
 
 export const legacyGlobalRoutes = globalUtilityCatalog.flatMap((utility) =>
   utility.sections.flatMap((section) =>
@@ -522,7 +522,7 @@ const directRouteMap = new Map([
 function resolveFinalUtilityRoute(view, section = "") {
   const direct = directRouteMap.get(`${view}:${section}`);
   if (direct) return direct;
-  if (modeExceptionUtilityViewIds.includes(view)) return route(view, section);
+  if (modeExceptionUtilityViewIds.includes(view) && view !== "profile") return route(view, section);
   if (view === "messages") return route("home", "home-messages", { redirectedFrom: { view, section } });
   if (view === "requests") return route("home", "home-requests", { redirectedFrom: { view, section } });
   if (view === "esign") return route("home", "home-esign", { redirectedFrom: { view, section } });
