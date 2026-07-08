@@ -935,6 +935,17 @@ p {
   line-height: 1;
 }
 
+.notification-dot {
+  position: absolute;
+  right: 7px;
+  top: 7px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--am-surface);
+  border-radius: 999px;
+  background: var(--am-danger);
+}
+
 .home-action-trigger {
   position: relative;
 }

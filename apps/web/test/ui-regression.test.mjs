@@ -31,9 +31,10 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   const globalUtilitySource = await readWebFile("src/data/globalUtilities.js");
   const globalUtilitySurfaceSource = await readWebFile("src/components/GlobalUtilitySurface.jsx");
   const peopleCatalogSource = await readWebFile("src/people/peopleFeatureCatalog.js");
+  const i18nSource = await readWebFile("src/i18n.js");
   const peopleNavigationSource = `${shellSource}\n${peopleCatalogSource}`;
-  const homeSidebarStart = shellSource.indexOf("home: {");
-  const clientsSidebarStart = shellSource.indexOf("clients:", homeSidebarStart);
+  const homeSidebarStart = shellSource.indexOf("function homeSidebarMeta");
+  const clientsSidebarStart = shellSource.indexOf("const sidebarMeta", homeSidebarStart);
   const homeSidebarSource = shellSource.slice(homeSidebarStart, clientsSidebarStart);
   const componentFiles = await listWebSourceFiles("src/components");
   const canonicalViews = ["clients", "matters", "people", "vault", "portal"];
@@ -83,15 +84,17 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   assert.match(appSource, /window\.history\.replaceState/);
   assert.doesNotMatch(appSource, /scrollIntoView/);
   assert.match(shellSource, /activeSection/);
-  assert.match(shellSource, /ProductAxisNav axis=\{axis\}/);
+  assert.match(shellSource, /ProductAxisNav axis=\{axis\} setView=\{setView\} labels=\{labels\}/);
   assert.match(shellSource, /data-context-sidebar=\{axis\}/);
   assert.doesNotMatch(shellSource, /data-global-sidebar-nav="home-only"/);
   assert.doesNotMatch(shellSource, /aria-label="Home 빠른 메뉴"/);
   assert.doesNotMatch(shellSource, />공통<|aria-label="공통 메뉴"/);
   assert.doesNotMatch(shellSource, /"sidebar-item global-sidebar-item/);
   assert.match(shellSource, /<span className="sidebar-icon"><Icon size=\{16\} \/><\/span>/);
-  for (const label of ["대시보드", "메시지", "승인 요청", "전자 계약", "회사 현황", "데이터 가져오기", "설정"]) {
-    assert.match(homeSidebarSource, new RegExp(`label: "${label}"`));
+  assert.match(shellSource, /function homeSidebarMeta\(labels = \{\}\)/);
+  for (const key of ["homeDashboardLabel", "homeMessagesLabel", "homeRequestsLabel", "homeEsignLabel", "homeCompanyLabel", "homeDataImportLabel", "homeSettingsLabel"]) {
+    assert.match(homeSidebarSource, new RegExp(`shellLabel\\(labels, "${key}"`));
+    assert.match(i18nSource, new RegExp(`${key}:`));
   }
   assert.doesNotMatch(homeSidebarSource, /최근작업|notifications-center|label: "알림"/);
   assert.match(homeSidebarSource, /view: "home", section: "home-dashboard"/);
@@ -278,11 +281,11 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(homeSource, /widgetId="calendar"/);
   assert.match(homeSource, /widgetId="feed"/);
   assert.match(homeSource, /widgetId="system"/);
-  assert.match(homeSource, /title="승인 대기"/);
-  assert.match(homeSource, /title="오늘 To Do"/);
-  assert.match(homeSource, /title="캘린더"/);
-  assert.match(homeSource, /title="피드"/);
-  assert.match(homeSource, /title="시스템 상태"/);
+  assert.match(homeSource, /homeWidgetApprovalTitle/);
+  assert.match(homeSource, /homeWidgetTodoTitle/);
+  assert.match(homeSource, /homeWidgetCalendarTitle/);
+  assert.match(homeSource, /homeWidgetFeedTitle/);
+  assert.match(homeSource, /homeWidgetSystemTitle/);
   assert.match(homeSource, /블로터 · 법률신문 · 딜사이트 · 인베스트조선/);
   assert.match(stylesSource, /grid-template-areas:\s*"appr todo rail"\s*"feed feed rail"/);
   assert.match(stylesSource, /\.home-dashboard-rail\s*\{[\s\S]*display:\s*flex[\s\S]*flex-direction:\s*column/);
@@ -341,7 +344,7 @@ test("Home dashboard Stage 4 keeps action counts on the single Home inbox source
   assert.match(homeSource, /const counts = approval\.counts \?\? task\.counts \?\? emptyHomeCounts/);
   assert.match(homeSource, /onHomeActionCountsChange\(counts\)/);
   assert.match(homeSource, /data-home-widget-approval-count=\{actionInbox\.counts\.approval\}/);
-  assert.match(homeSource, /meta=\{`\$\{actionInbox\.counts\.approval\}건`\}/);
+  assert.match(homeSource, /meta=\{`\$\{actionInbox\.counts\.approval\}\$\{homeCopy\(labels, "countSuffix", "건"\)\}`\}/);
   assert.match(homeSource, /data-home-inline-action=\{action\}/);
   assert.match(homeSource, /const previousActionInbox = actionInbox/);
   assert.match(homeSource, /const pendingKey = `\$\{row\.id\}:\$\{action\}:\$\{Date\.now\(\)\}`/);
@@ -358,16 +361,20 @@ test("topbar utilities open right drawers with global dim and stacked alerts", a
   const stylesSource = await readWebFile("src/styles.css");
 
   assert.match(appSource, /const \[utilityDrawerType, setUtilityDrawerType\] = useState/);
+  assert.match(appSource, /const \[notificationItemsRead, setNotificationItemsRead\] = useState/);
+  assert.match(appSource, /buildNotificationItems\(\{ homeActionCounts, labels \}\)/);
   assert.match(appSource, /function toggleUtilityDrawer\(type\)/);
   assert.match(appSource, /setUtilityDrawerType\(willOpen \? type : ""\)/);
-  assert.match(appSource, /if \(willOpen && type === "notifications"\) setNotificationUnreadCount\(0\)/);
+  assert.match(appSource, /if \(willOpen && type === "notifications"\) setNotificationItemsRead\(true\)/);
   assert.match(appSource, /function navigateFromUtilityDrawer\(section\)/);
   assert.match(appSource, /fetchHomeMessageItems\(\{ ctx: liveCtx \}\)/);
   assert.match(appSource, /messageItems=\{homeMessageItems\}/);
+  assert.match(appSource, /notificationItems=\{notificationItems\}/);
   assert.match(shellSource, /export function UtilityDrawer/);
-  assert.match(shellSource, /utilityDrawerConfig/);
-  assert.match(shellSource, /notificationItems/);
+  assert.match(shellSource, /utilityDrawerConfigFor/);
+  assert.match(shellSource, /export function buildNotificationItems/);
   assert.match(shellSource, /messageItems = \[\]/);
+  assert.match(shellSource, /notificationItems = \[\]/);
   assert.match(shellSource, /Array\.isArray\(messageItems\) \? messageItems : \[\]/);
   assert.match(homeMessagesSource, /fetchMatterRecords/);
   assert.match(homeMessagesSource, /fetchMatterChannel/);
@@ -379,16 +386,17 @@ test("topbar utilities open right drawers with global dim and stacked alerts", a
   assert.match(shellSource, /aria-expanded=\{notificationsOpen \? "true" : "false"\}/);
   assert.match(shellSource, /aria-expanded=\{messagesOpen \? "true" : "false"\}/);
   assert.match(shellSource, /aria-expanded=\{approvalsOpen \? "true" : "false"\}/);
+  assert.match(shellSource, /data-notification-info-count=\{notificationCount\}/);
+  assert.match(shellSource, /data-notification-dot="true"/);
   assert.match(shellSource, /data-utility-drawer="open"/);
   assert.match(shellSource, /data-utility-drawer-kind=\{type\}/);
   assert.match(shellSource, /role="dialog"/);
   assert.match(shellSource, /aria-modal="true"/);
   assert.match(shellSource, /className="notification-scrim"/);
   assert.match(shellSource, /data-notification-card="stacked"/);
-  assert.match(shellSource, /const notificationUnreadCount = notificationItems\.length;/);
   assert.match(shellSource, /\{config\.title\} <span>\{count\}<\/span>/);
-  assert.match(shellSource, /모두 읽음 처리/);
-  assert.match(shellSource, /알림 설정/);
+  assert.match(shellSource, /utilityMarkAllRead/);
+  assert.match(shellSource, /utilityNotificationSettings/);
   assert.match(shellSource, /data-home-message-read=\{item\.id\}/);
   assert.match(shellSource, /data-utility-view-all="home-messages"/);
   assert.match(shellSource, /data-utility-view-all="home-requests"/);
@@ -457,8 +465,8 @@ test("Stage 6 mode exception routes keep topbar and provide a return-to-work anc
   assert.match(shellSource, /data-mode-return-anchor="true"/);
   assert.match(shellSource, /data-mode-return-view=\{modeReturnTarget\.view\}/);
   assert.match(shellSource, /data-mode-return-section=\{modeReturnTarget\.section \|\| ""\}/);
-  assert.match(shellSource, /aria-label="업무로 돌아가기"/);
-  assert.match(shellSource, />업무로 돌아가기<\/span>/);
+  assert.match(shellSource, /aria-label=\{shellLabel\(labels, "returnToWork", "업무로 돌아가기"\)\}/);
+  assert.match(shellSource, /\{shellLabel\(labels, "returnToWork", "업무로 돌아가기"\)\}<\/span>/);
   assert.match(shellSource, /onClick=\{onReturnToWork\}/);
   assert.match(shellSource, /modeExceptionSubnav/);
   assert.match(shellSource, /globalUtilityCatalog\.filter\(\(utility\) => modeExceptionUtilityViewIds\.includes\(utility\.id\)\)/);
@@ -486,15 +494,15 @@ test("Stage 7 Home IA accessibility keeps tabs, dates, and navigation state name
   assert.match(shellSource, /aria-controls="messages-utility-drawer"/);
   assert.match(shellSource, /aria-controls="approvals-utility-drawer"/);
 
-  assert.match(homeSource, /role="tablist" aria-label="홈 피드"/);
+  assert.match(homeSource, /role="tablist" aria-label=\{homeCopy\(labels, "homeFeedTabLabel", "홈 피드"\)\}/);
   assert.match(homeSource, /id=\{`home-feed-tab-\$\{tab\.id\}`\}/);
   assert.match(homeSource, /aria-controls=\{`home-feed-panel-\$\{tab\.id\}`\}/);
   assert.match(homeSource, /tabIndex=\{feedTab === tab\.id \? 0 : -1\}/);
   assert.match(homeSource, /role="tabpanel"/);
   assert.match(homeSource, /aria-labelledby=\{`home-feed-tab-\$\{feedTab\}`\}/);
-  assert.match(homeSource, /aria-label=\{`\$\{selectedFeedEntry\.title\} 원문 열기`\}/);
-  assert.match(homeSource, /aria-label=\{`\$\{title\} \$\{actionButtonLabel\(action\)\}`\}/);
-  assert.match(homeSource, /aria-label=\{`\$\{selectedDateFormatter\.format\(cell\.date\)\}\$\{cell\.key === selectedCalendarKey \? " 선택됨" : ""\}`\}/);
+  assert.match(homeSource, /aria-label=\{`\$\{selectedFeedEntry\.title\} \$\{homeCopy\(labels, "homeFeedOriginalOpen", "원문 열기"\)\}`\}/);
+  assert.match(homeSource, /aria-label=\{`\$\{title\} \$\{actionButtonLabel\(action, labels\)\}`\}/);
+  assert.match(homeSource, /aria-label=\{`\$\{selectedDateFormatter\.format\(cell\.date\)\}\$\{cell\.key === selectedCalendarKey \? homeCopy\(labels, "homeCalendarSelectedSuffix", " 선택됨"\) : ""\}`\}/);
   assert.match(homeSource, /aria-pressed=\{cell\.key === selectedCalendarKey \? "true" : "false"\}/);
 });
 

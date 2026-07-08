@@ -54,35 +54,35 @@ const homeDateTimeFormatter = new Intl.DateTimeFormat("ko-KR", { month: "numeric
 const calendarWeekdays = Object.freeze(["일", "월", "화", "수", "목", "금", "토"]);
 const emptyHomeCounts = Object.freeze({ approval: 0, task_late: 0, task_today: 0 });
 const feedTabs = Object.freeze([
-  { id: "notice", label: "사내 공지", empty: "표시할 공지가 없습니다." },
-  { id: "news", label: "뉴스", empty: "새 뉴스가 없습니다.", sources: "블로터 · 법률신문 · 딜사이트 · 인베스트조선" },
-  { id: "newsletter", label: "뉴스레터", empty: "새 뉴스레터가 없습니다." }
+  { id: "notice", labelKey: "homeFeedNotice", label: "사내 공지", emptyKey: "homeFeedNoticeEmpty", empty: "표시할 공지가 없습니다." },
+  { id: "news", labelKey: "homeFeedNews", label: "뉴스", emptyKey: "homeFeedNewsEmpty", empty: "새 뉴스가 없습니다.", sourcesKey: "homeFeedSources", sources: "블로터 · 법률신문 · 딜사이트 · 인베스트조선" },
+  { id: "newsletter", labelKey: "homeFeedNewsletter", label: "뉴스레터", emptyKey: "homeFeedNewsletterEmpty", empty: "새 뉴스레터가 없습니다." }
 ]);
 const messageTabs = Object.freeze([
-  { id: "send", section: "messages-send", label: "전송" },
-  { id: "automation", section: "messages-automation", label: "자동화" },
-  { id: "templates", section: "messages-templates", label: "템플릿" },
-  { id: "notices", section: "messages-notices", label: "공지" },
-  { id: "matter", section: "messages-matter-channel", label: "Matter 대화" }
+  { id: "send", section: "messages-send", labelKey: "messageTabSend", label: "전송" },
+  { id: "automation", section: "messages-automation", labelKey: "messageTabAutomation", label: "자동화" },
+  { id: "templates", section: "messages-templates", labelKey: "messageTabTemplates", label: "템플릿" },
+  { id: "notices", section: "messages-notices", labelKey: "messageTabNotices", label: "공지" },
+  { id: "matter", section: "messages-matter-channel", labelKey: "messageTabMatter", label: "Matter 대화" }
 ]);
 const requestTabs = Object.freeze([
-  { id: "received", label: "받은 요청" },
-  { id: "sent", label: "보낸 요청" }
+  { id: "received", labelKey: "requestTabReceived", label: "받은 요청" },
+  { id: "sent", labelKey: "requestTabSent", label: "보낸 요청" }
 ]);
 const requestFilters = Object.freeze([
-  { id: "all", section: "requests-inbox", label: "전체", subtypes: [] },
-  { id: "leave", section: "requests-leave", label: "휴가", subtypes: ["leave"] },
-  { id: "expenses", section: "requests-expenses", label: "비용", subtypes: ["cost", "expense", "expenses"] },
-  { id: "certificates", section: "requests-certificates", label: "증명서", subtypes: ["certificate", "certificates"] },
-  { id: "attendance", section: "requests-attendance", label: "근무기록", subtypes: ["attendance", "work_record"] },
-  { id: "custom", section: "requests-custom", label: "커스텀", subtypes: ["custom"] },
-  { id: "force", section: "requests-force-decision", label: "강제", subtypes: ["force", "force_decision"] }
+  { id: "all", section: "requests-inbox", labelKey: "requestFilterAll", label: "전체", subtypes: [] },
+  { id: "leave", section: "requests-leave", labelKey: "requestFilterLeave", label: "휴가", subtypes: ["leave"] },
+  { id: "expenses", section: "requests-expenses", labelKey: "requestFilterExpenses", label: "비용", subtypes: ["cost", "expense", "expenses"] },
+  { id: "certificates", section: "requests-certificates", labelKey: "requestFilterCertificates", label: "증명서", subtypes: ["certificate", "certificates"] },
+  { id: "attendance", section: "requests-attendance", labelKey: "requestFilterAttendance", label: "근무기록", subtypes: ["attendance", "work_record"] },
+  { id: "custom", section: "requests-custom", labelKey: "requestFilterCustom", label: "커스텀", subtypes: ["custom"] },
+  { id: "force", section: "requests-force-decision", labelKey: "requestFilterForce", label: "강제", subtypes: ["force", "force_decision"] }
 ]);
 const esignTabs = Object.freeze([
-  { id: "send", section: "esign-send", label: "전송" },
-  { id: "templates", section: "esign-templates", label: "템플릿" },
-  { id: "status", section: "esign-status", label: "상태" },
-  { id: "settings", section: "esign-settings", label: "설정" }
+  { id: "send", section: "esign-send", labelKey: "messageTabSend", label: "전송" },
+  { id: "templates", section: "esign-templates", labelKey: "messageTabTemplates", label: "템플릿" },
+  { id: "status", section: "esign-status", labelKey: "esignTabStatus", label: "상태" },
+  { id: "settings", section: "esign-settings", labelKey: "homeSettingsLabel", label: "설정" }
 ]);
 const companyTabs = Object.freeze([
   { id: "reports-home-dashboard", label: "Home" },
@@ -95,10 +95,10 @@ const companyTabs = Object.freeze([
 ]);
 const homeSectionMeta = Object.freeze({
   "home-dashboard": { eyebrow: "Home", title: "", Icon: Briefcase },
-  "home-messages": { eyebrow: "메시지", title: "메시지", subtitle: "업무 메시지", Icon: Mail },
-  "home-requests": { eyebrow: "승인 요청", title: "승인 요청", subtitle: "요청 상태", Icon: ShieldCheck },
-  "home-esign": { eyebrow: "전자 계약", title: "전자 계약", subtitle: "서명 상태", Icon: FileCheck2 },
-  "home-company": { eyebrow: "회사 현황", title: "회사 현황", subtitle: "권한·감사", Icon: ClipboardList }
+  "home-messages": { eyebrowKey: "homeMessagesLabel", eyebrow: "메시지", titleKey: "homeMessagesLabel", title: "메시지", subtitleKey: "homeMessagesSubtitle", subtitle: "업무 메시지", Icon: Mail },
+  "home-requests": { eyebrowKey: "homeRequestsLabel", eyebrow: "승인 요청", titleKey: "homeRequestsLabel", title: "승인 요청", subtitleKey: "homeRequestsSubtitle", subtitle: "요청 상태", Icon: ShieldCheck },
+  "home-esign": { eyebrowKey: "homeEsignLabel", eyebrow: "전자 계약", titleKey: "homeEsignLabel", title: "전자 계약", subtitleKey: "homeEsignSubtitle", subtitle: "서명 상태", Icon: FileCheck2 },
+  "home-company": { eyebrowKey: "homeCompanyLabel", eyebrow: "회사 현황", titleKey: "homeCompanyLabel", title: "회사 현황", subtitleKey: "homeCompanySubtitle", subtitle: "권한·감사", Icon: ClipboardList }
 });
 const HOME_ONBOARDING_STORAGE_KEY = "matter.home.onboarding";
 const DESKTOP_HOME_FEATURE_IDS = Object.freeze({
@@ -111,6 +111,28 @@ const genericSessionDisplayNames = new Set(["사용자", "세션 사용자"]);
 const noop = () => {};
 const HOME_ACTION_UNDO_WINDOW_MS = 5000;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+function homeCopy(labels, key, fallback) {
+  return labels?.[key] ?? fallback;
+}
+
+function localizedTabs(tabs, labels) {
+  return tabs.map((tab) => ({
+    ...tab,
+    label: homeCopy(labels, tab.labelKey, tab.label),
+    empty: homeCopy(labels, tab.emptyKey, tab.empty),
+    sources: homeCopy(labels, tab.sourcesKey, tab.sources)
+  }));
+}
+
+function localizedHomeSectionMeta(meta, labels) {
+  return {
+    ...meta,
+    eyebrow: homeCopy(labels, meta.eyebrowKey, meta.eyebrow),
+    title: homeCopy(labels, meta.titleKey, meta.title),
+    subtitle: homeCopy(labels, meta.subtitleKey, meta.subtitle)
+  };
+}
 
 function sessionText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -278,13 +300,13 @@ function normalizeStatus(result) {
   return "guarded";
 }
 
-function statusBadgeLabel(status) {
-  if (status === "live") return "정상";
-  if (status === "loading") return "확인 중";
-  if (status === "unavailable") return "실패";
-  if (status === "denied") return "권한 없음";
-  if (status === "review") return "검토";
-  return "확인 필요";
+function statusBadgeLabel(status, labels = {}) {
+  if (status === "live") return homeCopy(labels, "homeSystemOk", "정상");
+  if (status === "loading") return homeCopy(labels, "statusLoading", "확인 중");
+  if (status === "unavailable") return homeCopy(labels, "statusFailed", "실패");
+  if (status === "denied") return homeCopy(labels, "statusDenied", "권한 없음");
+  if (status === "review") return homeCopy(labels, "statusReview", "검토");
+  return homeCopy(labels, "homeSystemNeedsReview", "확인 필요");
 }
 
 function buildProbeMap(results) {
@@ -426,22 +448,23 @@ function activeHomeContext(activeSection, redirectedFrom) {
   };
 }
 
-function actionButtonLabel(action) {
-  if (action === "approve") return "승인";
-  if (action === "reject") return "반려";
-  if (action === "complete") return "완료";
-  return "열기";
+function actionButtonLabel(action, labels = {}) {
+  if (action === "approve") return homeCopy(labels, "homeActionApprove", "승인");
+  if (action === "reject") return homeCopy(labels, "homeActionReject", "반려");
+  if (action === "complete") return homeCopy(labels, "homeActionComplete", "완료");
+  return homeCopy(labels, "homeActionOpen", "열기");
 }
 
-function buildHomeActionRows(items, type) {
+function buildHomeActionRows(items, type, labels = {}) {
   return (Array.isArray(items) ? items : []).map((item) => {
     const deadline = type === "task" ? taskDeadlineInfo(item) : null;
+    const deadlineLabel = deadline?.bucket === "today" ? homeCopy(labels, "homeTodoToday", "오늘") : deadline?.label;
     return {
       id: item.id,
       title: item.title,
       meta: [item.requester, formatDateTime(item.due_at), item.matter_ref].filter(Boolean).join(" · "),
       status: deadline?.bucket ?? homeActionStatus(item),
-      statusLabel: deadline?.label ?? statusBadgeLabel(homeActionStatus(item)),
+      statusLabel: deadlineLabel ?? statusBadgeLabel(homeActionStatus(item), labels),
       route: homeActionRoute({ ...item, type }),
       type,
       focusId: item.resource_id ?? item.id,
@@ -513,10 +536,10 @@ function upcomingDeadline(events) {
     .find((event) => dueSortValue(event.starts_at) >= now) ?? null;
 }
 
-function feedEmptyMessage(tab, tabSpec, result) {
-  if (result.kind === "loading") return "피드를 불러오는 중입니다.";
+function feedEmptyMessage(tab, tabSpec, result, labels = {}) {
+  if (result.kind === "loading") return homeCopy(labels, "homeFeedLoading", "피드를 불러오는 중입니다.");
   if (tab === "news" && result.safeErrorCodes?.includes("HOME_NEWS_ALL_SOURCES_FAILED")) {
-    return "뉴스 피드를 불러오지 못했습니다.";
+    return homeCopy(labels, "homeFeedNewsFailed", "뉴스 피드를 불러오지 못했습니다.");
   }
   return tabSpec.empty;
 }
@@ -540,7 +563,7 @@ function buildMonthCells(baseDate) {
   });
 }
 
-function DashboardCard({ className = "", title, meta, Icon, children, widgetId, onViewAll, headerExtra = null }) {
+function DashboardCard({ className = "", title, meta, Icon, children, widgetId, onViewAll, headerExtra = null, viewAllLabel = "전체 보기" }) {
   const WidgetIcon = Icon;
   return (
     <section className={`home-dashboard-card ${className}`} data-widget-id={widgetId}>
@@ -558,7 +581,7 @@ function DashboardCard({ className = "", title, meta, Icon, children, widgetId, 
           {headerExtra}
           {onViewAll && (
             <button type="button" className="home-widget-view-all" data-home-widget-view-all={widgetId} onClick={onViewAll}>
-              전체 보기 <ArrowRight size={14} />
+              {viewAllLabel} <ArrowRight size={14} />
             </button>
           )}
         </div>
@@ -581,7 +604,8 @@ function DashboardRow({
   onOpen,
   allowedActions = [],
   onAction,
-  pending = false
+  pending = false,
+  labels = {}
 }) {
   const inlineActions = allowedActions.filter((action) => action !== "open");
   return (
@@ -618,11 +642,11 @@ function DashboardRow({
                 disabled={pending}
                 data-home-inline-action={action}
                 data-home-task-checkbox={id}
-                aria-label={`${title} ${actionButtonLabel(action)}`}
+                aria-label={`${title} ${actionButtonLabel(action, labels)}`}
                 onClick={() => onAction?.(action)}
               >
                 <CheckCircle2 size={16} />
-                <span className="sr-only">{actionButtonLabel(action)}</span>
+                <span className="sr-only">{actionButtonLabel(action, labels)}</span>
               </button>
             ) : (
               <button
@@ -631,16 +655,16 @@ function DashboardRow({
                 className="text-button"
                 disabled={pending}
                 data-home-inline-action={action}
-                aria-label={`${title} ${actionButtonLabel(action)}`}
+                aria-label={`${title} ${actionButtonLabel(action, labels)}`}
                 onClick={() => onAction?.(action)}
               >
-                {actionButtonLabel(action)}
+                {actionButtonLabel(action, labels)}
               </button>
             )
           ))}
         </span>
       ) : (
-        <button type="button" className="home-dashboard-row-open" aria-label={`${title} 열기`} onClick={() => onOpen(route)}>
+        <button type="button" className="home-dashboard-row-open" aria-label={`${title} ${homeCopy(labels, "homeActionOpen", "열기")}`} onClick={() => onOpen(route)}>
           <ArrowRight size={15} />
         </button>
       )}
@@ -700,12 +724,12 @@ function HomeSectionPanel({ section, title, meta, Icon, children }) {
   );
 }
 
-function HomeStatusList({ title, count, children, empty }) {
+function HomeStatusList({ title, count, children, empty, countSuffix = "건" }) {
   return (
     <section className="home-status-list">
       <header>
         <strong>{title}</strong>
-        <span>{count}건</span>
+        <span>{count}{countSuffix}</span>
       </header>
       <div className="home-status-list-body">
         {count > 0 ? children : <EmptyWidgetState>{empty}</EmptyWidgetState>}
@@ -869,6 +893,12 @@ export function HomeSurface({
   }, [liveCtx]);
 
   const capabilities = useMemo(() => buildProbeMap(results), [results]);
+  const localizedMessageTabs = useMemo(() => localizedTabs(messageTabs, labels), [labels]);
+  const localizedRequestTabs = useMemo(() => localizedTabs(requestTabs, labels), [labels]);
+  const localizedRequestFilters = useMemo(() => localizedTabs(requestFilters, labels), [labels]);
+  const localizedEsignTabs = useMemo(() => localizedTabs(esignTabs, labels), [labels]);
+  const localizedFeedTabs = useMemo(() => localizedTabs(feedTabs, labels), [labels]);
+  const localizedCalendarWeekdays = Array.isArray(labels.homeCalendarWeekdays) ? labels.homeCalendarWeekdays : calendarWeekdays;
   const capabilityById = useMemo(() => new Map(capabilities.map((capability) => [capability.id, capability])), [capabilities]);
   const matterCapability = capabilityById.get("matter") ?? capabilities[0];
   const peopleCapability = capabilityById.get("people") ?? capabilities[0];
@@ -876,19 +906,19 @@ export function HomeSurface({
   const failedCount = capabilities.filter((capability) => capability.status === "unavailable").length;
   const reviewCount = capabilities.filter((capability) => capability.status === "review" || capability.status === "guarded").length;
   const systemStatusItems = [
-    { id: "matter", label: "Matter", status: matterCapability.status, statusLabel: statusBadgeLabel(matterCapability.status), Icon: Briefcase },
-    { id: "vault", label: "Vault", status: vaultCapability.status, statusLabel: statusBadgeLabel(vaultCapability.status), Icon: FolderOpen },
-    { id: "people", label: "구성원", status: peopleCapability.status, statusLabel: statusBadgeLabel(peopleCapability.status), Icon: Users },
+    { id: "matter", label: "Matter", status: matterCapability.status, statusLabel: statusBadgeLabel(matterCapability.status, labels), Icon: Briefcase },
+    { id: "vault", label: "Vault", status: vaultCapability.status, statusLabel: statusBadgeLabel(vaultCapability.status, labels), Icon: FolderOpen },
+    { id: "people", label: homeCopy(labels, "homeSystemPeople", "구성원"), status: peopleCapability.status, statusLabel: statusBadgeLabel(peopleCapability.status, labels), Icon: Users },
     {
       id: "sync",
-      label: "동기화",
+      label: homeCopy(labels, "homeSystemSync", "동기화"),
       status: failedCount > 0 ? "unavailable" : "live",
-      statusLabel: failedCount > 0 ? `${failedCount}건 실패` : statusBadgeLabel("live"),
+      statusLabel: failedCount > 0 ? `${failedCount}${homeCopy(labels, "homeSystemFailedSuffix", "건 실패")}` : statusBadgeLabel("live", labels),
       Icon: RefreshCw
     }
   ];
-  const approvalRows = sortApprovalRows(buildHomeActionRows(actionInbox.approval.items, "approval"));
-  const todoRows = sortTodoRows(buildHomeActionRows(actionInbox.task.items, "task"));
+  const approvalRows = sortApprovalRows(buildHomeActionRows(actionInbox.approval.items, "approval", labels));
+  const todoRows = sortTodoRows(buildHomeActionRows(actionInbox.task.items, "task", labels));
   const approvalItems = Array.isArray(actionInbox.approval.items) ? actionInbox.approval.items : [];
   const requesterRecords = [
     sessionProfile.profileUser,
@@ -897,18 +927,18 @@ export function HomeSurface({
     readLawosSessionEnvelope()
   ];
   const requestApproverDenied = sessionHasExplicitNonApproverRole(requesterRecords);
-  const visibleRequestTabs = requestApproverDenied ? requestTabs.filter((tab) => tab.id === "sent") : requestTabs;
+  const visibleRequestTabs = requestApproverDenied ? localizedRequestTabs.filter((tab) => tab.id === "sent") : localizedRequestTabs;
   const activeRequestTab = visibleRequestTabs.some((tab) => tab.id === requestTab) ? requestTab : visibleRequestTabs[0]?.id ?? "sent";
-  const visibleApprovalWidgetTabs = requestApproverDenied ? requestTabs.filter((tab) => tab.id === "sent") : requestTabs;
+  const visibleApprovalWidgetTabs = requestApproverDenied ? localizedRequestTabs.filter((tab) => tab.id === "sent") : localizedRequestTabs;
   const activeApprovalWidgetTab = visibleApprovalWidgetTabs.some((tab) => tab.id === approvalWidgetTab)
     ? approvalWidgetTab
     : visibleApprovalWidgetTabs[0]?.id ?? "sent";
   const filteredApprovalItems = filterRequestItems(approvalItems, requestFilter);
-  const filteredApprovalRows = sortApprovalRows(buildHomeActionRows(filteredApprovalItems, "approval"));
+  const filteredApprovalRows = sortApprovalRows(buildHomeActionRows(filteredApprovalItems, "approval", labels));
   const sentRequestRows = [];
   const approvalPreviewRows = activeApprovalWidgetTab === "sent" ? sentRequestRows.slice(0, 4) : approvalRows.slice(0, 4);
   const todoPreviewRows = todoRows.slice(0, 5);
-  const selectedRequestFilter = requestFilters.find((filter) => filter.id === requestFilter) ?? requestFilters[0];
+  const selectedRequestFilter = localizedRequestFilters.find((filter) => filter.id === requestFilter) ?? localizedRequestFilters[0];
   const guardedApprovalRows = filteredApprovalRows.filter((row) => row.status === "review" || row.status === "guarded");
   const readyApprovalRows = filteredApprovalRows.filter((row) => row.status === "live");
   const blockedApprovalRows = filteredApprovalRows.filter((row) => row.status === "denied" || row.status === "unavailable");
@@ -918,7 +948,7 @@ export function HomeSurface({
   const agendaByDate = useMemo(() => agendaSummaryByDate(agendaEvents), [agendaEvents]);
   const selectedAgenda = agendaForDate(agendaEvents, selectedCalendarDate);
   const nextDeadline = upcomingDeadline(agendaEvents);
-  const currentFeedTab = feedTabs.find((tab) => tab.id === feedTab) ?? feedTabs[0];
+  const currentFeedTab = localizedFeedTabs.find((tab) => tab.id === feedTab) ?? localizedFeedTabs[0];
   const feedEntries = Array.isArray(feedResult.entries) ? feedResult.entries : [];
   const primaryFeedEntry = feedEntries[0] ?? null;
   const selectedFeedEntry = feedEntries.find((entry) => entry.id === selectedFeedEntryId) ?? null;
@@ -932,10 +962,10 @@ export function HomeSurface({
   const forestHeroSubtitle = heroDateFormatter.format(new Date());
   const homeActionTotal = countTotal(actionInbox.counts);
   const activeHomeSection = homeSectionMeta[activeSection] ? activeSection : "home-dashboard";
-  const currentHomeSectionMeta = homeSectionMeta[activeHomeSection] ?? homeSectionMeta["home-dashboard"];
+  const currentHomeSectionMeta = localizedHomeSectionMeta(homeSectionMeta[activeHomeSection] ?? homeSectionMeta["home-dashboard"], labels);
   const heroTitle = activeHomeSection === "home-dashboard" ? forestHeroTitle : currentHomeSectionMeta.title;
   const heroSubtitle = activeHomeSection === "home-dashboard"
-    ? `${forestHeroSubtitle} · 오늘 처리할 항목 ${homeActionTotal}건`
+    ? `${forestHeroSubtitle} · ${homeCopy(labels, "homeHeroActionSummary", "오늘 처리할 항목")} ${homeActionTotal}${homeCopy(labels, "countSuffix", "건")}`
     : currentHomeSectionMeta.subtitle;
   const auditSummary = [
     { id: "approval-audit", label: "승인 감사", value: actionInbox.approval.auditHintRef ?? "대기" },
@@ -979,12 +1009,12 @@ export function HomeSurface({
       setPendingActionId((current) => (current === actionStateId ? "" : current));
       if (result.kind !== "data") {
         restoreActionInbox(previousActionInbox);
-        setUndoNotice({ id: row.id, title: row.title, message: "요청을 처리하지 못했습니다." });
+        setUndoNotice({ id: row.id, title: row.title, message: homeCopy(labels, "homeActionFailed", "요청을 처리하지 못했습니다.") });
         return;
       }
       setUndoNotice((current) => (
         current?.pendingKey === pendingKey
-          ? { id: row.id, title: row.title, action, message: `${actionButtonLabel(action)} 처리했습니다.` }
+          ? { id: row.id, title: row.title, action, message: `${actionButtonLabel(action, labels)} ${homeCopy(labels, "homeActionProcessedSuffix", "처리했습니다.")}` }
           : current
       ));
     }, HOME_ACTION_UNDO_WINDOW_MS);
@@ -995,7 +1025,7 @@ export function HomeSurface({
       previousActionInbox,
       pendingKey,
       action,
-      message: `${actionButtonLabel(action)} 대기 중입니다.`,
+      message: `${actionButtonLabel(action, labels)} ${homeCopy(labels, "homeActionPendingSuffix", "대기 중입니다.")}`,
       undoExpiresAt: new Date(Date.now() + HOME_ACTION_UNDO_WINDOW_MS).toISOString()
     });
   }
@@ -1021,6 +1051,7 @@ export function HomeSurface({
         onOpen={(route) => setView(route === "home-requests" ? "home" : "matters", route)}
         onAction={(action) => handleHomeAction(row, action)}
         pending={pendingActionId.startsWith(`${row.id}:`)}
+        labels={labels}
       />
     );
   }
@@ -1032,17 +1063,17 @@ export function HomeSurface({
   }
 
   function renderMessagesScreen() {
-    const currentTab = messageTabs.find((tab) => tab.id === messageTab) ?? messageTabs[0];
+    const currentTab = localizedMessageTabs.find((tab) => tab.id === messageTab) ?? localizedMessageTabs[0];
     const unreadIds = unreadMessageIds instanceof Set ? unreadMessageIds : new Set();
     const allMessages = Array.isArray(messageItems) ? messageItems : [];
     const tabMessages = allMessages.filter((item) => item.tab === currentTab.id || item.section === currentTab.section);
     const selectedMessage = tabMessages.find((item) => item.id === selectedMessageThreadId) ?? null;
     return (
-      <HomeSectionPanel section="home-messages" title="메시지" meta={`${currentTab.label} · ${tabMessages.length}건`} Icon={Mail}>
-        <HomeTabList label="메시지 탭" tabs={messageTabs} activeTab={messageTab} onSelect={setMessageTab} dataPrefix="messages" />
+      <HomeSectionPanel section="home-messages" title={homeCopy(labels, "homeMessagesLabel", "메시지")} meta={`${currentTab.label} · ${tabMessages.length}${homeCopy(labels, "countSuffix", "건")}`} Icon={Mail}>
+        <HomeTabList label={homeCopy(labels, "homeMessagesLabel", "메시지")} tabs={localizedMessageTabs} activeTab={messageTab} onSelect={setMessageTab} dataPrefix="messages" />
         <div className="home-section-content" role="tabpanel" data-home-message-tab={messageTab}>
           <div className="home-message-layout">
-            <HomeStatusList title={currentTab.label} count={tabMessages.length} empty="표시할 메시지가 없습니다.">
+            <HomeStatusList title={currentTab.label} count={tabMessages.length} empty={homeCopy(labels, "homeMessagesEmpty", "표시할 메시지가 없습니다.")} countSuffix={homeCopy(labels, "countSuffix", "건")}>
               <div className="home-message-thread-list">
                 {tabMessages.map((item) => {
                   const unread = unreadIds.has(item.id);
@@ -1061,7 +1092,7 @@ export function HomeSurface({
                         <small>{item.summary}</small>
                       </span>
                       <span className="home-message-thread-meta">
-                        <em>{unread ? item.status : "읽음"}</em>
+                        <em>{unread ? item.status : homeCopy(labels, "homeMessageRead", "읽음")}</em>
                         <time>{item.time}</time>
                       </span>
                     </button>
@@ -1079,7 +1110,7 @@ export function HomeSurface({
                 <p>{selectedMessage.summary}</p>
                 {selectedMessage.matterId && (
                   <button type="button" className="text-button" onClick={() => setView("matters", "matter-channel")}>
-                    Matter 대화 열기
+                    {homeCopy(labels, "homeMessagesMatterOpen", "Matter 대화 열기")}
                   </button>
                 )}
               </aside>
@@ -1096,11 +1127,11 @@ export function HomeSurface({
     const reviewRows = activeRequestTab === "sent" ? [] : guardedApprovalRows;
     const blockedRows = activeRequestTab === "sent" ? [] : blockedApprovalRows;
     return (
-      <HomeSectionPanel section="home-requests" title="승인 요청" meta={`${selectedRequestFilter.label} · ${rows.length}건`} Icon={ShieldCheck}>
+      <HomeSectionPanel section="home-requests" title={homeCopy(labels, "homeRequestsLabel", "승인 요청")} meta={`${selectedRequestFilter.label} · ${rows.length}${homeCopy(labels, "countSuffix", "건")}`} Icon={ShieldCheck}>
         <div className="home-section-toolbar">
-          <HomeTabList label="승인 요청 방향" tabs={visibleRequestTabs} activeTab={activeRequestTab} onSelect={setRequestTab} dataPrefix="requests-direction" />
-          <div className="home-section-filters" role="tablist" aria-label="승인 요청 유형" data-home-request-tab={activeRequestTab} data-home-request-filter={requestFilter}>
-            {requestFilters.map((filter) => (
+          <HomeTabList label={homeCopy(labels, "homeApprovalDirectionLabel", "승인 요청 방향")} tabs={visibleRequestTabs} activeTab={activeRequestTab} onSelect={setRequestTab} dataPrefix="requests-direction" />
+          <div className="home-section-filters" role="tablist" aria-label={homeCopy(labels, "homeRequestsLabel", "승인 요청")} data-home-request-tab={activeRequestTab} data-home-request-filter={requestFilter}>
+            {localizedRequestFilters.map((filter) => (
               <button
                 key={filter.id}
                 type="button"
@@ -1118,18 +1149,18 @@ export function HomeSurface({
           </div>
         </div>
         {activeRequestTab === "sent" ? (
-          <HomeStatusList title="보낸 요청" count={sentRequestRows.length} empty="진행 중인 보낸 요청이 없습니다.">
+          <HomeStatusList title={homeCopy(labels, "homeRequestsSentTitle", "보낸 요청")} count={sentRequestRows.length} empty={homeCopy(labels, "homeRequestsSentEmpty", "진행 중인 보낸 요청이 없습니다.")} countSuffix={homeCopy(labels, "countSuffix", "건")}>
             {sentRequestRows.map(renderRequestRow)}
           </HomeStatusList>
         ) : (
           <div className="home-status-grid">
-            <HomeStatusList title="처리 대기" count={readyRows.length} empty="처리할 승인이 없습니다.">
+            <HomeStatusList title={homeCopy(labels, "homeRequestsReady", "처리 대기")} count={readyRows.length} empty={homeCopy(labels, "homeRequestsReadyEmpty", "처리할 승인이 없습니다.")} countSuffix={homeCopy(labels, "countSuffix", "건")}>
               {readyRows.map(renderRequestRow)}
             </HomeStatusList>
-            <HomeStatusList title="검토 필요" count={reviewRows.length} empty="검토가 필요한 요청이 없습니다.">
+            <HomeStatusList title={homeCopy(labels, "homeRequestsReview", "검토 필요")} count={reviewRows.length} empty={homeCopy(labels, "homeRequestsReviewEmpty", "검토가 필요한 요청이 없습니다.")} countSuffix={homeCopy(labels, "countSuffix", "건")}>
               {reviewRows.map(renderRequestRow)}
             </HomeStatusList>
-            <HomeStatusList title="제한됨" count={blockedRows.length} empty="제한된 요청이 없습니다.">
+            <HomeStatusList title={homeCopy(labels, "homeRequestsBlocked", "제한됨")} count={blockedRows.length} empty={homeCopy(labels, "homeRequestsBlockedEmpty", "제한된 요청이 없습니다.")} countSuffix={homeCopy(labels, "countSuffix", "건")}>
               {blockedRows.map(renderRequestRow)}
             </HomeStatusList>
           </div>
@@ -1139,12 +1170,12 @@ export function HomeSurface({
   }
 
   function renderEsignScreen() {
-    const currentTab = esignTabs.find((tab) => tab.id === esignTab) ?? esignTabs[0];
+    const currentTab = localizedEsignTabs.find((tab) => tab.id === esignTab) ?? localizedEsignTabs[0];
     return (
-      <HomeSectionPanel section="home-esign" title="전자 계약" meta={currentTab.label} Icon={FileCheck2}>
-        <HomeTabList label="전자 계약 탭" tabs={esignTabs} activeTab={esignTab} onSelect={setEsignTab} dataPrefix="esign" />
+      <HomeSectionPanel section="home-esign" title={homeCopy(labels, "homeEsignLabel", "전자 계약")} meta={currentTab.label} Icon={FileCheck2}>
+        <HomeTabList label={homeCopy(labels, "homeEsignLabel", "전자 계약")} tabs={localizedEsignTabs} activeTab={esignTab} onSelect={setEsignTab} dataPrefix="esign" />
         <div className="home-section-content" role="tabpanel" data-home-esign-tab={esignTab}>
-          <HomeStatusList title={currentTab.label} count={0} empty="표시할 전자 계약 항목이 없습니다.">
+          <HomeStatusList title={currentTab.label} count={0} empty={homeCopy(labels, "homeEsignEmpty", "표시할 전자 계약 항목이 없습니다.")} countSuffix={homeCopy(labels, "countSuffix", "건")}>
             {null}
           </HomeStatusList>
         </div>
@@ -1156,22 +1187,22 @@ export function HomeSurface({
     const currentTab = companyTabs.find((tab) => tab.id === companyTab) ?? companyTabs[0];
     if (!canViewCompanyStatus) {
       return (
-        <HomeSectionPanel section="home-company" title="회사 현황" meta="권한 필요" Icon={ClipboardList}>
+        <HomeSectionPanel section="home-company" title={homeCopy(labels, "homeCompanyLabel", "회사 현황")} meta={homeCopy(labels, "homeSystemNeedsReview", "확인 필요")} Icon={ClipboardList}>
           <div className="home-company-access-notice" role="status" data-home-company-access-denied="true">
-            <strong>관리자 권한이 필요합니다.</strong>
-            <span>회사 현황은 관리자 role이 확인된 세션에서만 열 수 있습니다.</span>
+            <strong>{homeCopy(labels, "homeCompanyAdminRequiredTitle", "관리자 권한이 필요합니다.")}</strong>
+            <span>{homeCopy(labels, "homeCompanyAdminRequiredBody", "회사 현황은 관리자 role이 확인된 세션에서만 열 수 있습니다.")}</span>
           </div>
         </HomeSectionPanel>
       );
     }
     return (
-      <HomeSectionPanel section="home-company" title="회사 현황" meta={currentTab.label} Icon={ClipboardList}>
-        <HomeTabList label="회사 현황 리포트" tabs={companyTabs} activeTab={companyTab} onSelect={setCompanyTab} dataPrefix="company" />
+      <HomeSectionPanel section="home-company" title={homeCopy(labels, "homeCompanyLabel", "회사 현황")} meta={currentTab.label} Icon={ClipboardList}>
+        <HomeTabList label={homeCopy(labels, "homeCompanyReportLabel", "회사 현황 리포트")} tabs={companyTabs} activeTab={companyTab} onSelect={setCompanyTab} dataPrefix="company" />
         <div className="home-company-grid" role="tabpanel" data-home-company-tab={companyTab}>
           <section className="home-company-summary" data-home-permission-summary="true">
             <header>
-              <strong>권한 상태</strong>
-              <small>{failedCount > 0 || reviewCount > 0 ? "확인 필요" : "정상"}</small>
+              <strong>{homeCopy(labels, "homeCompanyPermissionTitle", "권한 상태")}</strong>
+              <small>{failedCount > 0 || reviewCount > 0 ? homeCopy(labels, "homeSystemNeedsReview", "확인 필요") : homeCopy(labels, "homeSystemOk", "정상")}</small>
             </header>
             <div className="home-system-pill-grid">
               {systemStatusItems.map(({ id, label, status, statusLabel, Icon }) => (
@@ -1185,8 +1216,8 @@ export function HomeSurface({
           </section>
           <section className="home-company-summary" data-home-audit-summary="true">
             <header>
-              <strong>감사 요약</strong>
-              <small>최근 읽기 기준</small>
+              <strong>{homeCopy(labels, "homeCompanyAuditTitle", "감사 요약")}</strong>
+              <small>{homeCopy(labels, "homeCompanyRecentRead", "최근 읽기 기준")}</small>
             </header>
             <div className="home-audit-summary-list">
               {auditSummary.map((item) => (
@@ -1200,20 +1231,20 @@ export function HomeSurface({
           <section className="home-company-summary" data-home-company-report-summary="true">
             <header>
               <strong>{currentTab.label}</strong>
-              <small>회사 현황</small>
+              <small>{homeCopy(labels, "homeCompanyReportSuffix", "회사 현황")}</small>
             </header>
             <div className="home-audit-summary-list">
               <div>
-                <span>승인 대기</span>
-                <strong>{actionInbox.counts.approval}건</strong>
+                <span>{homeCopy(labels, "homeCompanyApprovalPending", "승인 대기")}</span>
+                <strong>{actionInbox.counts.approval}{homeCopy(labels, "countSuffix", "건")}</strong>
               </div>
               <div>
-                <span>지연 업무</span>
-                <strong>{actionInbox.counts.task_late}건</strong>
+                <span>{homeCopy(labels, "homeCompanyLateTask", "지연 업무")}</span>
+                <strong>{actionInbox.counts.task_late}{homeCopy(labels, "countSuffix", "건")}</strong>
               </div>
               <div>
-                <span>오늘 업무</span>
-                <strong>{actionInbox.counts.task_today}건</strong>
+                <span>{homeCopy(labels, "homeCompanyTodayTask", "오늘 업무")}</span>
+                <strong>{actionInbox.counts.task_today}{homeCopy(labels, "countSuffix", "건")}</strong>
               </div>
             </div>
           </section>
@@ -1231,12 +1262,12 @@ export function HomeSurface({
       return (
         <div className="home-widget-empty actionable">
           <button type="button" className="text-button" data-home-todo-onboarding-cta="true" onClick={() => setView("matters", "matter-tasks")}>
-            첫 할 일 만들기 <ArrowRight size={14} />
+            {homeCopy(labels, "homeTodoOnboardingCta", "첫 할 일 만들기")} <ArrowRight size={14} />
           </button>
         </div>
       );
     }
-    return <EmptyWidgetState>오늘 마감 업무가 없습니다</EmptyWidgetState>;
+    return <EmptyWidgetState>{homeCopy(labels, "homeTodoEmpty", "오늘 마감 업무가 없습니다")}</EmptyWidgetState>;
   }
 
   function renderDashboardGrid() {
@@ -1244,14 +1275,15 @@ export function HomeSurface({
       <div className="home-dashboard-grid" data-home-ops-queue="true" data-home-dashboard-grid="true" data-lcx-web-capability-count={capabilities.length}>
         <DashboardCard
           className="home-dashboard-approval"
-          title="승인 대기"
-          meta={`${actionInbox.counts.approval}건`}
+          title={homeCopy(labels, "homeWidgetApprovalTitle", "승인 대기")}
+          meta={`${actionInbox.counts.approval}${homeCopy(labels, "countSuffix", "건")}`}
           Icon={Inbox}
           widgetId="approval"
           onViewAll={() => setView("home", "home-requests")}
+          viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
         >
           <span className="sr-only" data-home-widget-approval-count={actionInbox.counts.approval}>{actionInbox.counts.approval}</span>
-          <HomeTabList label="승인 요청 방향" tabs={visibleApprovalWidgetTabs} activeTab={activeApprovalWidgetTab} onSelect={setApprovalWidgetTab} dataPrefix="approval-widget" />
+          <HomeTabList label={homeCopy(labels, "homeApprovalDirectionLabel", "승인 요청 방향")} tabs={visibleApprovalWidgetTabs} activeTab={activeApprovalWidgetTab} onSelect={setApprovalWidgetTab} dataPrefix="approval-widget" />
           <div className="home-widget-list">
             {approvalPreviewRows.map((row) => (
               <DashboardRow
@@ -1260,18 +1292,20 @@ export function HomeSurface({
                 onOpen={(route) => setView(route === "home-requests" ? "home" : "matters", route)}
                 onAction={(action) => handleHomeAction(row, action)}
                 pending={pendingActionId.startsWith(`${row.id}:`)}
+                labels={labels}
               />
             ))}
-            {approvalPreviewRows.length === 0 && <EmptyWidgetState>처리할 승인이 없습니다 — 모두 완료했습니다</EmptyWidgetState>}
+            {approvalPreviewRows.length === 0 && <EmptyWidgetState>{homeCopy(labels, "homeApprovalEmptyComplete", "처리할 승인이 없습니다 — 모두 완료했습니다")}</EmptyWidgetState>}
           </div>
         </DashboardCard>
         <DashboardCard
           className="home-dashboard-todo"
-          title="오늘 To Do"
-          meta={`지연 ${actionInbox.counts.task_late} · 오늘 ${actionInbox.counts.task_today}`}
+          title={homeCopy(labels, "homeWidgetTodoTitle", "오늘 To Do")}
+          meta={`${homeCopy(labels, "homeTodoLate", "지연")} ${actionInbox.counts.task_late} · ${homeCopy(labels, "homeTodoToday", "오늘")} ${actionInbox.counts.task_today}`}
           Icon={Clock3}
           widgetId="todo"
           onViewAll={() => setView("home", "home-dashboard")}
+          viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
         >
           <span className="sr-only" data-home-widget-task-count={actionInbox.counts.task_today}>{actionInbox.counts.task_today}</span>
           <div className="home-widget-list">
@@ -1282,6 +1316,7 @@ export function HomeSurface({
                 onOpen={(route) => setView(route === "home-dashboard" ? "home" : "matters", route)}
                 onAction={(action) => handleHomeAction(row, action)}
                 pending={pendingActionId.startsWith(`${row.id}:`)}
+                labels={labels}
               />
             ))}
             {todoPreviewRows.length === 0 && renderTodoEmpty()}
@@ -1289,14 +1324,15 @@ export function HomeSurface({
         </DashboardCard>
         <DashboardCard
           className="home-dashboard-feed"
-          title="피드"
+          title={homeCopy(labels, "homeWidgetFeedTitle", "피드")}
           meta={currentFeedTab.label}
           Icon={Newspaper}
           widgetId="feed"
           onViewAll={() => setView("home", "home-dashboard")}
+          viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
         >
-          <div className="home-feed-tabs" role="tablist" aria-label="홈 피드">
-            {feedTabs.map((tab) => (
+          <div className="home-feed-tabs" role="tablist" aria-label={homeCopy(labels, "homeFeedTabLabel", "홈 피드")}>
+            {localizedFeedTabs.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
@@ -1337,11 +1373,11 @@ export function HomeSurface({
           ) : (
             <div className="home-feed-empty">
               <FileSignature size={16} />
-              <strong>{feedEmptyMessage(feedTab, currentFeedTab, feedResult)}</strong>
+              <strong>{feedEmptyMessage(feedTab, currentFeedTab, feedResult, labels)}</strong>
               {currentFeedTab.sources && <span>{currentFeedTab.sources}</span>}
               {canRetryFeed && (
                 <button type="button" className="text-button home-feed-retry" data-home-feed-retry="true" onClick={() => setRefreshToken((value) => value + 1)}>
-                  다시 시도
+                  {homeCopy(labels, "homeFeedRetry", "다시 시도")}
                 </button>
               )}
             </div>
@@ -1352,13 +1388,13 @@ export function HomeSurface({
               <article>
                 <header>
                   <span>{selectedFeedEntry.source}</span>
-                  <button type="button" className="icon-button" aria-label="읽기 패널 닫기" onClick={() => setSelectedFeedEntryId("")}>
+                  <button type="button" className="icon-button" aria-label={homeCopy(labels, "homeFeedPanelClose", "읽기 패널 닫기")} onClick={() => setSelectedFeedEntryId("")}>
                     <X size={15} />
                   </button>
                 </header>
                 <strong>{selectedFeedEntry.title}</strong>
                 <p>{selectedFeedEntry.body_preview}</p>
-                {selectedFeedEntry.url && <a href={selectedFeedEntry.url} target="_blank" rel="noreferrer" aria-label={`${selectedFeedEntry.title} 원문 열기`}>원문 열기</a>}
+                {selectedFeedEntry.url && <a href={selectedFeedEntry.url} target="_blank" rel="noreferrer" aria-label={`${selectedFeedEntry.title} ${homeCopy(labels, "homeFeedOriginalOpen", "원문 열기")}`}>{homeCopy(labels, "homeFeedOriginalOpen", "원문 열기")}</a>}
               </article>
             </div>
           )}
@@ -1366,24 +1402,25 @@ export function HomeSurface({
         <aside className="home-dashboard-rail" data-home-dashboard-rail="true">
           <DashboardCard
             className="home-dashboard-calendar"
-            title="캘린더"
+            title={homeCopy(labels, "homeWidgetCalendarTitle", "캘린더")}
             meta={monthFormatter.format(selectedCalendarDate)}
             Icon={CalendarDays}
             widgetId="calendar"
             onViewAll={() => setView("home", "home-dashboard")}
+            viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
             headerExtra={(
-              <span className="home-calendar-nav" aria-label="월 이동">
-                <button type="button" aria-label="이전 달" data-home-calendar-prev="true" onClick={() => shiftCalendarMonth(-1)}>
+              <span className="home-calendar-nav" aria-label={homeCopy(labels, "homeCalendarMoveLabel", "월 이동")}>
+                <button type="button" aria-label={homeCopy(labels, "homeCalendarPrev", "이전 달")} data-home-calendar-prev="true" onClick={() => shiftCalendarMonth(-1)}>
                   <ChevronLeft size={14} />
                 </button>
-                <button type="button" aria-label="다음 달" data-home-calendar-next="true" onClick={() => shiftCalendarMonth(1)}>
+                <button type="button" aria-label={homeCopy(labels, "homeCalendarNext", "다음 달")} data-home-calendar-next="true" onClick={() => shiftCalendarMonth(1)}>
                   <ChevronRight size={14} />
                 </button>
               </span>
             )}
           >
             <div className="home-calendar-weekdays">
-              {calendarWeekdays.map((weekday) => (
+              {localizedCalendarWeekdays.map((weekday) => (
                 <span key={weekday}>{weekday}</span>
               ))}
             </div>
@@ -1407,7 +1444,7 @@ export function HomeSurface({
                     data-home-calendar-day={cell.key}
                     data-home-calendar-day-kind={hasDeadline ? "deadline" : hasGeneral ? "general" : "empty"}
                     onClick={() => setSelectedCalendarDate(cell.date)}
-                    aria-label={`${selectedDateFormatter.format(cell.date)}${cell.key === selectedCalendarKey ? " 선택됨" : ""}`}
+                    aria-label={`${selectedDateFormatter.format(cell.date)}${cell.key === selectedCalendarKey ? homeCopy(labels, "homeCalendarSelectedSuffix", " 선택됨") : ""}`}
                     aria-pressed={cell.key === selectedCalendarKey ? "true" : "false"}
                   >
                     <span className="home-calendar-day">{cell.day}</span>
@@ -1425,22 +1462,22 @@ export function HomeSurface({
               <div className="home-calendar-agenda-header">
                 <strong>{selectedDateFormatter.format(selectedCalendarDate)}</strong>
                 <button type="button" className="text-button home-calendar-open" data-home-calendar-open="true" onClick={() => setView("matters", "matter-calendar")}>
-                  캘린더 열기
+                  {homeCopy(labels, "homeCalendarOpen", "캘린더 열기")}
                 </button>
               </div>
               {nextDeadline && (
                 <button type="button" className="home-calendar-deadline-callout" data-home-upcoming-deadline="true" onClick={() => setView("matters", "matter-calendar")}>
-                  <span>임박 기한 1건</span>
+                  <span>{homeCopy(labels, "homeCalendarUpcomingDeadline", "임박 기한 1건")}</span>
                   <strong>{nextDeadline.title}</strong>
                 </button>
               )}
               {selectedAgenda.length === 0 ? (
-                <span>{agendaResult.kind === "loading" ? "일정을 불러오는 중입니다." : "이 날 일정이 없습니다."}</span>
+                <span>{agendaResult.kind === "loading" ? homeCopy(labels, "homeCalendarLoading", "일정을 불러오는 중입니다.") : homeCopy(labels, "homeCalendarEmptyDay", "이 날 일정이 없습니다.")}</span>
               ) : (
                 <div className="home-calendar-agenda-list" data-home-agenda-count={selectedAgenda.length}>
                   {selectedAgenda.slice(0, 3).map((event) => (
                     <button key={event.id} type="button" className={event.kind === "deadline" ? "deadline" : ""} onClick={() => setView("matters", event.matter_ref ? "matter-calendar" : "matter-home")}>
-                      <span>{event.kind === "deadline" ? "기한" : event.kind}</span>
+                      <span>{event.kind === "deadline" ? homeCopy(labels, "homeCalendarDeadlineKind", "기한") : event.kind}</span>
                       <strong>{event.title}</strong>
                     </button>
                   ))}
@@ -1450,11 +1487,12 @@ export function HomeSurface({
           </DashboardCard>
           <DashboardCard
             className="home-dashboard-system"
-            title="시스템 상태"
-            meta={failedCount > 0 || reviewCount > 0 ? "확인 필요" : "정상"}
+            title={homeCopy(labels, "homeWidgetSystemTitle", "시스템 상태")}
+            meta={failedCount > 0 || reviewCount > 0 ? homeCopy(labels, "homeSystemNeedsReview", "확인 필요") : homeCopy(labels, "homeSystemOk", "정상")}
             Icon={Briefcase}
             widgetId="system"
             onViewAll={() => setView("home", "home-company")}
+            viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
           >
             <div className="home-system-pill-grid">
               {systemStatusItems.map(({ id, label, status, statusLabel, Icon }) => (
@@ -1489,20 +1527,20 @@ export function HomeSurface({
         </div>
         <button className="secondary-button" type="button" onClick={() => setRefreshToken((value) => value + 1)}>
           <RefreshCw size={15} />
-          새로고침
+          {homeCopy(labels, "homeRefresh", "새로고침")}
         </button>
       </section>
       {showForestOnboarding && (
         <section className="forest-onboarding-card" data-forest-onboarding-card="true">
           <div>
-            <strong>연결 기준을 설정하세요</strong>
-            <p>런타임 연결과 권한 컨텍스트를 구성하면 지표가 채워집니다.</p>
+            <strong>{homeCopy(labels, "homeOnboardingTitle", "연결 기준을 설정하세요")}</strong>
+            <p>{homeCopy(labels, "homeOnboardingBody", "런타임 연결과 권한 컨텍스트를 구성하면 지표가 채워집니다.")}</p>
           </div>
           <div className="forest-onboarding-actions">
             <button className="secondary-button" type="button" onClick={() => setView("settings", "settings-theme")}>
-              설정 열기
+              {homeCopy(labels, "homeOnboardingSettings", "설정 열기")}
             </button>
-            <button className="icon-button" type="button" aria-label="온보딩 닫기" onClick={dismissHomeOnboarding}>
+            <button className="icon-button" type="button" aria-label={homeCopy(labels, "homeOnboardingClose", "온보딩 닫기")} onClick={dismissHomeOnboarding}>
               <X size={15} />
             </button>
           </div>
@@ -1510,14 +1548,14 @@ export function HomeSurface({
       )}
       {homeCompanyAccessDenied && (
         <div className="home-company-access-notice" role="status" data-home-company-access-denied="true">
-          <strong>회사 현황 접근이 제한되었습니다.</strong>
-          <span>관리자 role이 확인되면 사이드바에서 다시 열 수 있습니다.</span>
+          <strong>{homeCopy(labels, "homeCompanyDeniedTitle", "회사 현황 접근이 제한되었습니다.")}</strong>
+          <span>{homeCopy(labels, "homeCompanyDeniedBody", "관리자 role이 확인되면 사이드바에서 다시 열 수 있습니다.")}</span>
         </div>
       )}
       {undoNotice && (
         <div className="home-action-undo" role="status" data-home-action-undo="true">
           <span>{undoNotice.message}</span>
-          {undoNotice.undoExpiresAt && <button type="button" className="text-button" data-home-action-undo-button="true" onClick={handleUndoNotice}>실행 취소</button>}
+          {undoNotice.undoExpiresAt && <button type="button" className="text-button" data-home-action-undo-button="true" onClick={handleUndoNotice}>{homeCopy(labels, "homeActionUndo", "실행 취소")}</button>}
         </div>
       )}
       {renderActiveHomeSection()}

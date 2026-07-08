@@ -1,9 +1,9 @@
 import React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { copy } from "./i18n.js";
 import { navItems } from "./data/nav.js";
 import { globalUtilityViewIds, isGlobalUtilityView, modeExceptionUtilityViewIds, resolveGlobalShortcut } from "./data/globalUtilities.js";
-import { GlobalSearch, LoadingSurface, Sidebar, Topbar, UtilityDrawer, notificationItems } from "./components/Shell.jsx";
+import { GlobalSearch, LoadingSurface, Sidebar, Topbar, UtilityDrawer, buildNotificationItems } from "./components/Shell.jsx";
 import { AuthSurface } from "./components/AuthSurface.jsx";
 import { GlobalUtilitySurface } from "./components/GlobalUtilitySurface.jsx";
 import { HomeSurface } from "./components/HomeSurface.jsx";
@@ -92,7 +92,7 @@ export function App() {
   const [authStep, setAuthStep] = useState(initialAuthStep);
   const [query, setQuery] = useState(initialQuery);
   const [utilityDrawerType, setUtilityDrawerType] = useState(resolvedInitialRoute.openNotifications ? "notifications" : "");
-  const [notificationUnreadCount, setNotificationUnreadCount] = useState(notificationItems.length);
+  const [notificationItemsRead, setNotificationItemsRead] = useState(resolvedInitialRoute.openNotifications === true);
   const [homeMessageItems, setHomeMessageItems] = useState([]);
   const [unreadMessageIds, setUnreadMessageIds] = useState(() => new Set());
   const [homeActionCounts, setHomeActionCounts] = useState(emptyHomeActionCounts);
@@ -107,6 +107,9 @@ export function App() {
   const axis = resolveAxis(view);
   const homeApprovalCount = Number(homeActionCounts.approval ?? 0) || 0;
   const homeMessageCount = unreadMessageIds.size;
+  const notificationItems = useMemo(() => buildNotificationItems({ homeActionCounts, labels }), [homeActionCounts, labels]);
+  const notificationSignature = notificationItems.map((item) => item.id).join("|");
+  const notificationUnreadCount = notificationItemsRead ? 0 : notificationItems.length;
   const initialRouteWasRedirected = rawInitialView !== initialView || rawInitialSection !== initialSection;
 
   function resolveRoute(nextView, section = "", companyAllowed = canViewCompanyStatus) {
@@ -163,7 +166,7 @@ export function App() {
     setHomeCompanyAccessDenied(resolved.homeCompanyAccessDenied === true);
     if (resolved.openNotifications) {
       setUtilityDrawerType("notifications");
-      setNotificationUnreadCount(0);
+      setNotificationItemsRead(true);
     } else {
       setUtilityDrawerType("");
     }
@@ -176,7 +179,7 @@ export function App() {
 
   function toggleUtilityDrawer(type) {
     const willOpen = utilityDrawerType !== type;
-    if (willOpen && type === "notifications") setNotificationUnreadCount(0);
+    if (willOpen && type === "notifications") setNotificationItemsRead(true);
     setUtilityDrawerType(willOpen ? type : "");
   }
 
@@ -243,6 +246,10 @@ export function App() {
   }, [liveCtx]);
 
   useEffect(() => {
+    setNotificationItemsRead(utilityDrawerType === "notifications");
+  }, [notificationSignature]);
+
+  useEffect(() => {
     if (!handoffSplashVisible) return undefined;
     const timer = window.setTimeout(() => setHandoffSplashVisible(false), 2600);
     return () => window.clearTimeout(timer);
@@ -266,7 +273,7 @@ export function App() {
         setModeReturnTarget(routeTargetFor(nextRoute.view, nextRoute.section));
       }
       setUtilityDrawerType(nextRoute.openNotifications ? "notifications" : "");
-      if (nextRoute.openNotifications) setNotificationUnreadCount(0);
+      if (nextRoute.openNotifications) setNotificationItemsRead(true);
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
@@ -391,16 +398,18 @@ export function App() {
         )}
         {query && <GlobalSearch labels={labels} query={query} setQuery={setQuery} setView={navigateToView} />}
         <UtilityDrawer
+          labels={labels}
           open={Boolean(utilityDrawerType)}
           type={utilityDrawerType}
           notificationUnreadCount={notificationUnreadCount}
           homeApprovalCount={homeApprovalCount}
           homeMessageCount={homeMessageCount}
+          notificationItems={notificationItems}
           messageItems={homeMessageItems}
           unreadMessageIds={unreadMessageIds}
           onClose={closeUtilityDrawer}
           onNavigateHomeSection={navigateFromUtilityDrawer}
-          onMarkNotificationRead={() => setNotificationUnreadCount(0)}
+          onMarkNotificationRead={() => setNotificationItemsRead(true)}
           onMarkMessageRead={markMessageRead}
           onMarkAllMessagesRead={markAllMessagesRead}
         />

@@ -440,3 +440,43 @@ test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async ()
     await server.close();
   }
 });
+
+test("R1 WP-6 renders notification dot from action inbox counts and i18n labels at runtime", async () => {
+  const port = await availablePort();
+  const server = await createServer({
+    root: webRoot,
+    logLevel: "silent",
+    server: { host: "127.0.0.1", port, strictPort: true }
+  });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  const state = { decisionCalls: 0, newsCalls: 0 };
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
+    });
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
+
+    await page.waitForSelector('[data-notification-info-count="2"]');
+    assert.equal(await page.locator("[data-notification-dot]").count(), 1);
+    assert.equal(await page.locator("[data-notification-trigger] .notification-badge").count(), 0);
+
+    await page.locator("[data-notification-trigger]").click();
+    await page.waitForSelector('[data-notification-card-id="home-task-late:2"]');
+    await page.waitForSelector('[data-notification-info-count="0"]');
+    assert.equal(await page.locator("[data-notification-dot]").count(), 0);
+    assert.equal(await page.locator('[data-notification-card-id="home-task-today:1"]').count(), 1);
+
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow&locale=en#home-dashboard`, { waitUntil: "networkidle" });
+    await page.waitForSelector('[data-notification-info-count="2"]');
+    assert.match(await page.locator('[data-widget-id="approval"]').textContent(), /Pending approvals/);
+    assert.match(await page.locator('[data-widget-id="todo"]').textContent(), /Late 2 · Today 1/);
+    assert.equal(await page.locator("#home-feed-tab-notice").textContent(), "Internal notices");
+    assert.ok((await page.locator('.sidebar button:has-text("Dashboard")').count()) > 0);
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});

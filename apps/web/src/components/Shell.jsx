@@ -52,6 +52,10 @@ const peopleIconMap = {
 const peopleGlobalGroupLabels = new Set(["요청/전자결재", "리포트", "메시지", "전자계약", "회사 설정"]);
 const genericSessionDisplayNames = new Set(["사용자", "세션 사용자"]);
 
+function shellLabel(labels, key, fallback) {
+  return labels?.[key] ?? fallback;
+}
+
 function shellSessionText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -156,7 +160,7 @@ export function LoadingSurface({ labels, locale, theme, skin, setLocale, setThem
   );
 }
 
-function ProductAxisNav({ axis = "home", setView }) {
+function ProductAxisNav({ axis = "home", setView, labels = {} }) {
   return (
     <nav className="top-axis-nav" aria-label="Home Client Matter People Vault Portal" data-product-axis-nav="top-header">
       {navItems.map(({ id, label, icon: Icon }) => (
@@ -169,68 +173,63 @@ function ProductAxisNav({ axis = "home", setView }) {
           onClick={() => setView(id)}
         >
           <Icon size={15} />
-          <span>{label}</span>
+          <span>{shellLabel(labels, `${id}AxisLabel`, label)}</span>
         </button>
       ))}
     </nav>
   );
 }
 
-export const notificationItems = [
-  {
-    id: "matter-lease-review",
-    initials: "MK",
-    type: "Matter",
-    title: "Parnas Tower 임대차 검토",
-    client: "MiraeKorea Holdings",
-    status: "Vault 문서 수신",
-    summary: "상대방 수정본 3건이 들어와 리뷰 대기열에 쌓였습니다.",
-    time: "10:11 PM"
-  },
-  {
-    id: "client-conflict-check",
-    initials: "JL",
-    type: "Client",
-    title: "James Lee",
-    client: "신규 자문 후보",
-    status: "이해상충 확인",
-    summary: "동명이인 후보 2건이 있어 담당자 확인이 필요합니다.",
-    time: "10:07 PM"
-  },
-  {
-    id: "people-approval",
-    initials: "HR",
-    type: "구성원",
-    title: "액세스 권한 승인",
-    client: "회사 설정",
-    status: "승인 요청",
-    summary: "구성원 정보 열람 범위가 제한된 상태로 승인 요청되었습니다.",
-    time: "9:58 PM"
-  }
-];
+export function buildNotificationItems({ homeActionCounts = {}, labels = {} } = {}) {
+  const countSuffix = shellLabel(labels, "countSuffix", "건");
+  const lateCount = Number(homeActionCounts.task_late ?? 0) || 0;
+  const todayCount = Number(homeActionCounts.task_today ?? 0) || 0;
+  return [
+    lateCount > 0 && {
+      id: `home-task-late:${lateCount}`,
+      initials: shellLabel(labels, "homeNotificationInitialLate", "지"),
+      type: shellLabel(labels, "homeNotificationType", "To Do"),
+      title: `${shellLabel(labels, "homeNotificationLateTitle", "지연 업무")} ${lateCount}${countSuffix}`,
+      client: shellLabel(labels, "homeNotificationActionInboxClient", "Home 액션 인박스"),
+      status: shellLabel(labels, "homeNotificationLateStatus", "확인 필요"),
+      summary: shellLabel(labels, "homeNotificationLateSummary", "오늘 처리 목록에서 지연 업무를 먼저 확인합니다."),
+      time: shellLabel(labels, "realtimeLabel", "실시간")
+    },
+    todayCount > 0 && {
+      id: `home-task-today:${todayCount}`,
+      initials: shellLabel(labels, "homeNotificationInitialToday", "오"),
+      type: shellLabel(labels, "homeNotificationType", "To Do"),
+      title: `${shellLabel(labels, "homeNotificationTodayTitle", "오늘 업무")} ${todayCount}${countSuffix}`,
+      client: shellLabel(labels, "homeNotificationActionInboxClient", "Home 액션 인박스"),
+      status: shellLabel(labels, "homeNotificationTodayStatus", "오늘"),
+      summary: shellLabel(labels, "homeNotificationTodaySummary", "오늘 마감 업무를 액션 인박스에서 확인합니다."),
+      time: shellLabel(labels, "realtimeLabel", "실시간")
+    }
+  ].filter(Boolean);
+}
 
-const notificationUnreadCount = notificationItems.length;
-
-const utilityDrawerConfig = {
-  notifications: {
-    title: "알림",
-    subtitle: "작업 알림과 검토 신호",
-    section: "home-dashboard",
-    empty: "새 알림이 없습니다."
-  },
-  messages: {
-    title: "메시지",
-    subtitle: "Matter 대화와 공지 메시지",
-    section: "home-messages",
-    empty: "읽지 않은 메시지가 없습니다."
-  },
-  approvals: {
-    title: "승인 요청",
-    subtitle: "내 결재 차례인 요청",
-    section: "home-requests",
-    empty: "처리할 승인이 없습니다."
-  }
-};
+function utilityDrawerConfigFor(labels = {}) {
+  return {
+    notifications: {
+      title: shellLabel(labels, "utilityNotificationsTitle", "알림"),
+      subtitle: shellLabel(labels, "utilityNotificationsSubtitle", "작업 알림과 검토 신호"),
+      section: "home-dashboard",
+      empty: shellLabel(labels, "utilityNotificationsEmpty", "새 알림이 없습니다.")
+    },
+    messages: {
+      title: shellLabel(labels, "utilityMessagesTitle", "메시지"),
+      subtitle: shellLabel(labels, "utilityMessagesSubtitle", "Matter 대화와 공지 메시지"),
+      section: "home-messages",
+      empty: shellLabel(labels, "utilityMessagesEmpty", "읽지 않은 메시지가 없습니다.")
+    },
+    approvals: {
+      title: shellLabel(labels, "utilityApprovalsTitle", "승인 요청"),
+      subtitle: shellLabel(labels, "utilityApprovalsSubtitle", "내 결재 차례인 요청"),
+      section: "home-requests",
+      empty: shellLabel(labels, "utilityApprovalsEmpty", "처리할 승인이 없습니다.")
+    }
+  };
+}
 
 function utilityCountFor(type, { notificationUnreadCount: notifications, homeApprovalCount, homeMessageCount }) {
   if (type === "notifications") return Number(notifications) || 0;
@@ -239,18 +238,18 @@ function utilityCountFor(type, { notificationUnreadCount: notifications, homeApp
   return 0;
 }
 
-function utilityApprovalItems(count) {
+function utilityApprovalItems(count, labels = {}) {
   if (!count) return [];
   return [
     {
       id: "home-approval-summary",
-      initials: "승",
-      type: "승인",
-      title: `승인 요청 ${count}건`,
-      client: "Home 승인 요청",
-      status: "처리 대기",
-      summary: "전체 보기에서 세부 요청을 열어 처리합니다.",
-      time: "실시간"
+      initials: shellLabel(labels, "utilityApprovalInitial", "승"),
+      type: shellLabel(labels, "utilityApprovalType", "승인"),
+      title: `${shellLabel(labels, "utilityApprovalTitle", "승인 요청")} ${count}${shellLabel(labels, "countSuffix", "건")}`,
+      client: shellLabel(labels, "utilityApprovalClient", "Home 승인 요청"),
+      status: shellLabel(labels, "utilityApprovalStatus", "처리 대기"),
+      summary: shellLabel(labels, "utilityApprovalSummary", "전체 보기에서 세부 요청을 열어 처리합니다."),
+      time: shellLabel(labels, "realtimeLabel", "실시간")
     }
   ];
 }
@@ -270,7 +269,7 @@ export function Topbar({
   onProfile,
   utilityDrawerType = "",
   onOpenUtilityDrawer,
-  notificationUnreadCount: topbarNotificationCount = notificationUnreadCount,
+  notificationUnreadCount: topbarNotificationCount = 0,
   homeApprovalCount = 0,
   homeMessageCount = 0
 }) {
@@ -289,7 +288,7 @@ export function Topbar({
       <div className="topbar-brand" data-logo-dock-target="top-left">
         {isForest ? <img className="forest-header-logo" src={amicPetraMain} alt="" /> : <MatterLogo />}
       </div>
-      <ProductAxisNav axis={axis} setView={setView} />
+      <ProductAxisNav axis={axis} setView={setView} labels={labels} />
       <label className="global-search">
         <Search size={16} />
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={labels.search} />
@@ -303,7 +302,7 @@ export function Topbar({
         <button
           type="button"
           className={view === "profile" ? "profile-trigger active" : "profile-trigger"}
-          aria-label="내 프로필"
+          aria-label={shellLabel(labels, "profileAria", "내 프로필")}
           aria-current={view === "profile" ? "page" : undefined}
           data-profile-trigger="true"
           onClick={onProfile}
@@ -312,18 +311,19 @@ export function Topbar({
         </button>
         <button
           className={notificationsOpen ? "icon-button notification-trigger active" : "icon-button notification-trigger"}
-          aria-label={`알림 ${notificationCount}건`}
+          aria-label={`${shellLabel(labels, "topbarNotificationsAria", "알림")} ${notificationCount}${shellLabel(labels, "countSuffix", "건")}`}
           aria-expanded={notificationsOpen ? "true" : "false"}
           aria-controls="notifications-utility-drawer"
           data-notification-trigger="true"
+          data-notification-info-count={notificationCount}
           onClick={() => onOpenUtilityDrawer("notifications")}
         >
           <Bell size={17} />
-          {notificationCount > 0 && <span className="notification-badge">{notificationCount}</span>}
+          {notificationCount > 0 && <span className="notification-dot" data-notification-dot="true" />}
         </button>
         <button
           className={messagesOpen ? "icon-button home-action-trigger active" : "icon-button home-action-trigger"}
-          aria-label={`메시지 ${messageCount}건`}
+          aria-label={`${shellLabel(labels, "topbarMessagesAria", "메시지")} ${messageCount}${shellLabel(labels, "countSuffix", "건")}`}
           aria-expanded={messagesOpen ? "true" : "false"}
           aria-controls="messages-utility-drawer"
           data-home-message-trigger="true"
@@ -335,7 +335,7 @@ export function Topbar({
         </button>
         <button
           className={approvalsOpen ? "icon-button home-action-trigger active" : "icon-button home-action-trigger"}
-          aria-label={`승인 요청 ${approvalCount}건`}
+          aria-label={`${shellLabel(labels, "topbarApprovalsAria", "승인 요청")} ${approvalCount}${shellLabel(labels, "countSuffix", "건")}`}
           aria-expanded={approvalsOpen ? "true" : "false"}
           aria-controls="approvals-utility-drawer"
           data-home-approval-trigger="true"
@@ -347,7 +347,7 @@ export function Topbar({
         </button>
         <button
           className={helpOpen ? "icon-button active" : "icon-button"}
-          aria-label="도움말"
+          aria-label={shellLabel(labels, "topbarHelpAria", "도움말")}
           aria-expanded={helpOpen ? "true" : "false"}
           aria-controls="topbar-help-panel"
           data-topbar-help-trigger="true"
@@ -365,8 +365,8 @@ export function Topbar({
       </div>
       {helpOpen && (
         <div className="topbar-help-panel" id="topbar-help-panel" role="status" data-topbar-help-panel="true">
-          <strong>도움말</strong>
-          <span>현재 화면의 운영 상태와 권한 경계를 확인합니다.</span>
+          <strong>{shellLabel(labels, "topbarHelpTitle", "도움말")}</strong>
+          <span>{shellLabel(labels, "topbarHelpBody", "현재 화면의 운영 상태와 권한 경계를 확인합니다.")}</span>
         </div>
       )}
     </header>
@@ -374,11 +374,13 @@ export function Topbar({
 }
 
 export function UtilityDrawer({
+  labels = {},
   open,
   type = "notifications",
-  notificationUnreadCount: drawerNotificationCount = notificationUnreadCount,
+  notificationUnreadCount: drawerNotificationCount = 0,
   homeApprovalCount = 0,
   homeMessageCount = 0,
+  notificationItems = [],
   messageItems = [],
   unreadMessageIds = new Set(),
   onClose = () => {},
@@ -389,6 +391,7 @@ export function UtilityDrawer({
 }) {
   const [allRead, setAllRead] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const utilityDrawerConfig = utilityDrawerConfigFor(labels);
   const config = utilityDrawerConfig[type] ?? utilityDrawerConfig.notifications;
   const count = utilityCountFor(type, {
     notificationUnreadCount: drawerNotificationCount,
@@ -414,10 +417,10 @@ export function UtilityDrawer({
   if (!open) return null;
 
   const drawerItems = type === "notifications"
-    ? notificationItems
+    ? (Array.isArray(notificationItems) ? notificationItems : [])
     : type === "messages"
       ? (Array.isArray(messageItems) ? messageItems : [])
-      : utilityApprovalItems(count);
+      : utilityApprovalItems(count, labels);
   const visibleItems = type === "messages"
     ? drawerItems.filter((item) => unreadMessageIds.has(item.id))
     : drawerItems;
@@ -447,27 +450,27 @@ export function UtilityDrawer({
       data-utility-drawer="open"
       data-utility-drawer-kind={type}
     >
-      <button type="button" className="notification-scrim" aria-label={`${config.title} 닫기`} onClick={onClose} />
+      <button type="button" className="notification-scrim" aria-label={`${config.title} ${shellLabel(labels, "closeLabel", "닫기")}`} onClick={onClose} />
       <aside className="notification-drawer utility-drawer" id={`${type}-utility-drawer`} role="dialog" aria-modal="true" aria-labelledby={`${type}-utility-drawer-title`}>
         <header className="notification-drawer-header">
           <div>
             <h2 id={`${type}-utility-drawer-title`}>{config.title} <span>{count}</span></h2>
             <p>{config.subtitle}</p>
           </div>
-          <button type="button" className="icon-button" aria-label={`${config.title} 닫기`} onClick={onClose}>
+          <button type="button" className="icon-button" aria-label={`${config.title} ${shellLabel(labels, "closeLabel", "닫기")}`} onClick={onClose}>
             <X size={18} />
           </button>
         </header>
         {(allRead || settingsOpen) && (
           <div className="notification-local-state" data-notification-local-state="true">
-            {allRead && <span data-notification-read-state="true">{type === "messages" ? "모든 메시지를 읽음으로 표시했습니다." : "모든 알림을 읽음으로 표시했습니다."}</span>}
-            {settingsOpen && <span data-notification-settings-state="true">알림 설정은 이 기기에서만 표시됩니다.</span>}
+            {allRead && <span data-notification-read-state="true">{type === "messages" ? shellLabel(labels, "utilityMessagesReadAll", "모든 메시지를 읽음으로 표시했습니다.") : shellLabel(labels, "utilityNotificationsReadAll", "모든 알림을 읽음으로 표시했습니다.")}</span>}
+            {settingsOpen && <span data-notification-settings-state="true">{shellLabel(labels, "utilitySettingsLocal", "알림 설정은 이 기기에서만 표시됩니다.")}</span>}
           </div>
         )}
         <div className="notification-stack">
           {visibleItems.length === 0 && <p className="utility-empty-state">{config.empty}</p>}
           {visibleItems.map((item) => (
-            <article className="notification-card" key={item.id} data-notification-card="stacked" data-utility-drawer-card={type} data-home-message-drawer-item={type === "messages" ? item.id : undefined}>
+            <article className="notification-card" key={item.id} data-notification-card="stacked" data-notification-card-id={item.id} data-utility-drawer-card={type} data-home-message-drawer-item={type === "messages" ? item.id : undefined}>
               <div className="notification-avatar" aria-hidden="true">{item.initials}</div>
               <div className="notification-card-body">
                 <div className="notification-card-title">
@@ -483,7 +486,7 @@ export function UtilityDrawer({
                 <small>{item.summary}</small>
                 {type === "messages" && (
                   <button type="button" className="text-button utility-card-action" data-home-message-read={item.id} onClick={() => markMessage(item.id)}>
-                    읽음 처리
+                    {shellLabel(labels, "utilityCardRead", "읽음 처리")}
                   </button>
                 )}
               </div>
@@ -493,18 +496,18 @@ export function UtilityDrawer({
         <footer className={type === "approvals" ? "notification-drawer-footer utility-drawer-footer single" : "notification-drawer-footer utility-drawer-footer"}>
           {type === "notifications" && (
             <>
-              <button type="button" className="text-button" data-notification-mark-read="true" onClick={markNotificationsRead}>모두 읽음 처리</button>
-              <button type="button" className="text-button" data-notification-settings="true" onClick={() => setSettingsOpen((value) => !value)}>알림 설정</button>
+              <button type="button" className="text-button" data-notification-mark-read="true" onClick={markNotificationsRead}>{shellLabel(labels, "utilityMarkAllRead", "모두 읽음 처리")}</button>
+              <button type="button" className="text-button" data-notification-settings="true" onClick={() => setSettingsOpen((value) => !value)}>{shellLabel(labels, "utilityNotificationSettings", "알림 설정")}</button>
             </>
           )}
           {type === "messages" && (
             <>
-              <button type="button" className="text-button" data-home-message-mark-read="true" onClick={markAllMessages}>모두 읽음 처리</button>
-              <button type="button" className="text-button" data-utility-view-all="home-messages" onClick={goToHomeSection}>전체 보기</button>
+              <button type="button" className="text-button" data-home-message-mark-read="true" onClick={markAllMessages}>{shellLabel(labels, "utilityMarkAllRead", "모두 읽음 처리")}</button>
+              <button type="button" className="text-button" data-utility-view-all="home-messages" onClick={goToHomeSection}>{shellLabel(labels, "utilityViewAll", "전체 보기")}</button>
             </>
           )}
           {type === "approvals" && (
-            <button type="button" className="text-button utility-drawer-footer-primary" data-utility-view-all="home-requests" onClick={goToHomeSection}>전체 보기</button>
+            <button type="button" className="text-button utility-drawer-footer-primary" data-utility-view-all="home-requests" onClick={goToHomeSection}>{shellLabel(labels, "utilityViewAll", "전체 보기")}</button>
           )}
         </footer>
       </aside>
@@ -512,21 +515,24 @@ export function UtilityDrawer({
   );
 }
 
-const sidebarMeta = {
-  home: {
-    title: "Home",
+function homeSidebarMeta(labels = {}) {
+  return {
+    title: shellLabel(labels, "homeSidebarTitle", "Home"),
     actions: [
-      { label: "대시보드", view: "home", section: "home-dashboard", icon: LayoutDashboard, active: true },
-      { label: "메시지", view: "home", section: "home-messages", icon: Mail },
-      { label: "승인 요청", view: "home", section: "home-requests", icon: ShieldCheck },
-      { label: "전자 계약", view: "home", section: "home-esign", icon: FileText },
-      { label: "회사 현황", view: "home", section: "home-company", icon: ClipboardList }
+      { label: shellLabel(labels, "homeDashboardLabel", "대시보드"), view: "home", section: "home-dashboard", icon: LayoutDashboard, active: true },
+      { label: shellLabel(labels, "homeMessagesLabel", "메시지"), view: "home", section: "home-messages", icon: Mail },
+      { label: shellLabel(labels, "homeRequestsLabel", "승인 요청"), view: "home", section: "home-requests", icon: ShieldCheck },
+      { label: shellLabel(labels, "homeEsignLabel", "전자 계약"), view: "home", section: "home-esign", icon: FileText },
+      { label: shellLabel(labels, "homeCompanyLabel", "회사 현황"), view: "home", section: "home-company", icon: ClipboardList }
     ],
     utilities: [
-      { label: "데이터 가져오기", icon: Tags, view: "data-import", section: "data-import-client" },
-      { label: "설정", icon: Settings, view: "settings", section: "settings-company" }
+      { label: shellLabel(labels, "homeDataImportLabel", "데이터 가져오기"), icon: Tags, view: "data-import", section: "data-import-client" },
+      { label: shellLabel(labels, "homeSettingsLabel", "설정"), icon: Settings, view: "settings", section: "settings-company" }
     ]
-  },
+  };
+}
+
+const sidebarMeta = {
   clients: {
     title: "Client",
     utilities: []
@@ -582,7 +588,7 @@ export function Sidebar({
   const forestUserName = sessionIdentity.name;
   const forestUserRole = sessionIdentity.role;
   const forestUserPhoto = forestUserName ? memberPhotoFor(forestUserName) : undefined;
-  const forestUserInitial = (forestUserName || "사용자").trim().slice(0, 1);
+  const forestUserInitial = (forestUserName || shellLabel(labels, "sessionUserFallback", "사용자")).trim().slice(0, 1);
   useEffect(() => {
     if (!isForest) return undefined;
     let cancelled = false;
@@ -602,6 +608,7 @@ export function Sidebar({
   }, [isForest]);
   const activeGlobalUtility = modeExceptionUtilityViewIds.includes(view) ? getGlobalUtilityByView(view) : null;
   const modeExceptionActive = Boolean(activeGlobalUtility);
+  const localizedHomeMeta = homeSidebarMeta(labels);
   const modeExceptionSubnav = Object.fromEntries(
     globalUtilityCatalog.filter((utility) => modeExceptionUtilityViewIds.includes(utility.id)).map((utility) => [
       utility.id,
@@ -615,7 +622,7 @@ export function Sidebar({
       }))
     ])
   );
-  const homeSubnav = sidebarMeta.home.actions.filter((item) => canViewCompanyStatus || item.section !== "home-company").map((item) => {
+  const homeSubnav = localizedHomeMeta.actions.filter((item) => canViewCompanyStatus || item.section !== "home-company").map((item) => {
     if (item.section === "home-messages") {
       return {
         ...item,
@@ -759,7 +766,8 @@ export function Sidebar({
     profile: profileSidebarItems,
     ...modeExceptionSubnav
   }[view] ?? [];
-  const meta = sidebarMeta[view] ?? (activeGlobalUtility ? { title: activeGlobalUtility.label, utilities: [] } : { title: "matter", utilities: [] });
+  const localizedSidebarMeta = { ...sidebarMeta, home: localizedHomeMeta };
+  const meta = localizedSidebarMeta[view] ?? (activeGlobalUtility ? { title: activeGlobalUtility.label, utilities: [] } : { title: "matter", utilities: [] });
   const flatSubnav = subnav.flatMap((item) => item.children ?? [item]);
   const hasPreferredActiveItem = flatSubnav.some((item) => item.active);
 
@@ -804,11 +812,11 @@ export function Sidebar({
           data-mode-return-anchor="true"
           data-mode-return-view={modeReturnTarget.view}
           data-mode-return-section={modeReturnTarget.section || ""}
-          aria-label="업무로 돌아가기"
+          aria-label={shellLabel(labels, "returnToWork", "업무로 돌아가기")}
           onClick={onReturnToWork}
         >
           <ArrowLeft size={15} />
-          <span>업무로 돌아가기</span>
+          <span>{shellLabel(labels, "returnToWork", "업무로 돌아가기")}</span>
         </button>
       )}
       <button
@@ -816,7 +824,7 @@ export function Sidebar({
         className="workspace-card"
         data-workspace-menu-trigger="true"
         aria-expanded={utilityPanel?.kind === "workspace" ? "true" : "false"}
-        onClick={() => setUtilityPanel((current) => current?.kind === "workspace" ? null : { kind: "workspace", label: "워크스페이스" })}
+        onClick={() => setUtilityPanel((current) => current?.kind === "workspace" ? null : { kind: "workspace", label: shellLabel(labels, "workspaceSwitchLabel", "워크스페이스") })}
       >
         <div>
           {labels.workspace && <span className="eyebrow">{labels.workspace}</span>}
@@ -879,7 +887,7 @@ export function Sidebar({
             >
               <span className="sidebar-icon"><Icon size={16} /></span>
               <span>{item.label}</span>
-              {item.section === "home-company" && <span className="sr-only" data-home-sidebar-company-link="true">회사 현황</span>}
+              {item.section === "home-company" && <span className="sr-only" data-home-sidebar-company-link="true">{shellLabel(labels, "homeCompanyLabel", "회사 현황")}</span>}
               {item.homeCountKind === "approval" && <span className="sr-only" data-home-sidebar-approval-count={item.homeCount}>{item.homeCount}</span>}
               {item.homeCountKind === "message" && <span className="sr-only" data-home-sidebar-message-count={item.homeCount}>{item.homeCount}</span>}
               {item.count && <span className="sidebar-count">{item.count}</span>}
@@ -914,7 +922,7 @@ export function Sidebar({
       {utilityPanel && (
         <div className="sidebar-utility-panel" role="status" data-sidebar-utility-panel="true">
           <strong>{utilityPanel.label}</strong>
-          <span>{utilityPanel.kind === "workspace" ? "워크스페이스 전환 메뉴를 이 화면에서 확인합니다." : `${utilityPanel.scope} 설정은 현재 세션에서만 열립니다.`}</span>
+          <span>{utilityPanel.kind === "workspace" ? shellLabel(labels, "workspacePanelText", "워크스페이스 전환 메뉴를 이 화면에서 확인합니다.") : `${utilityPanel.scope} ${shellLabel(labels, "homeSettingsLabel", "설정")}은 현재 세션에서만 열립니다.`}</span>
         </div>
       )}
       {isForest && (
@@ -923,7 +931,7 @@ export function Sidebar({
             {forestUserPhoto ? <img src={forestUserPhoto} alt="" /> : forestUserInitial}
           </span>
           <span className="forest-sidebar-user-copy">
-            <strong>{forestUserName || "사용자"}</strong>
+            <strong>{forestUserName || shellLabel(labels, "sessionUserFallback", "사용자")}</strong>
             {forestUserRole && <small>{forestUserRole}</small>}
           </span>
         </div>
