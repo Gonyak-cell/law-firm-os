@@ -1,0 +1,30 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.packet.v0.1",
+  "goal_id": "cti-password-reset-jwsuh-live-send",
+  "status": "BLOCKED_JWSUH_LIVE_SEND",
+  "recorded_at": "2026-07-06T12:01:58.810Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "approval_signature_refs": [
+    "I23-CTI-PASSWORD-RESET-EMAIL-DELIVERY-STORE-OWNER-APPROVAL-2026-07-06",
+    "I23-SCOPE-NARROWING-JWSUH-LIVE-SEND-ONLY-2026-07-06"
+  ],
+  "closeout_verdict": "BLOCKED",
+  "summary": "Password reset one-recipient live-send lane stopped after producing safe evidence; remaining production users were not sent reset emails.",
+  "evidence_refs": [
+    "docs/launch/cti-password-reset-jwsuh-live-send-owner-direction-2026-07-06.json",
+    "docs/launch/cti-password-reset-jwsuh-live-send-receipt-2026-07-06.json",
+    "docs/launch/cti-password-reset-jwsuh-live-send-network-blocker-2026-07-06.json"
+  ],
+  "boundary": {
+    "other_user_reset_email_sent": false,
+    "other_user_credential_mutated": false,
+    "token_value_recorded": false,
+    "reset_url_recorded": false,
+    "password_value_recorded": false,
+    "secret_value_recorded": false,
+    "plaintext_password_distribution": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "next_required_action": "Obtain I25 approval for SES API interface VPC endpoint com.amazonaws.ap-northeast-2.email, then rerun the jwsuh@amic.kr one-recipient live-send lane; do not send reset emails to other users."
+}

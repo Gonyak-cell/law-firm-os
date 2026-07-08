@@ -19,6 +19,9 @@ Generated for enterprise audit remediation v3, C4/C8.
 | LAWOS_PORTAL_STORE_PATH | client-portal | yes | Absolute durable JSON store path. |
 | LAWOS_UI_READINESS_STORE_PATH | ui-readiness | yes | Absolute durable JSON store path. |
 | LAWOS_ENTERPRISE_READINESS_STORE_PATH | enterprise-readiness | yes | Absolute durable JSON store path. |
+| LAWOS_AUDIT_STORE_PATH | api-security-audit | yes | Absolute durable NDJSON append/read store path for admin security audit events. |
+| LAWOS_AUTH_CREDENTIAL_STORE_PATH | api-auth-credentials | yes | Absolute durable JSON credential store path for `lawos-internal-password-provider-v1`; receipts must stay hash/count-only. |
+| LAWOS_AUTH_PASSWORD_RESET_STORE_PATH | api-auth-password-reset | yes | Absolute durable JSON password reset token store path; stores token hashes only, never token values or reset URLs. |
 | LAWOS_DMS_OBJECT_STORE_PATH | vault-dms | derived | Optional explicit object-byte root. Defaults to `LAWOS_DMS_STORE_PATH + ".objects"` when omitted. |
 
 Operational profile refuses to listen when a required store path is missing, relative, or under `os.tmpdir()`. `startApiServer` treats function parameters and env vars as equivalent, so packaged desktop userData paths satisfy the preflight without env mutation.
@@ -29,9 +32,12 @@ Operational profile refuses to listen when a required store path is missing, rel
 | --- | --- | --- |
 | LAWOS_RUNTIME_PROFILE | yes | `operational` or `local-dev`; aliases `dev`, `test`, and `desktop` resolve to `local-dev`. |
 | LAWOS_API_SESSION_SECRET | yes | At least 32 characters in `operational`; local-dev uses a per-instance random secret when omitted. |
+| LAWOS_API_SESSION_SECRET_SECRET_ID | lambda | Secrets Manager secret id used by Lambda runtime bootstrap to fetch `LAWOS_API_SESSION_SECRET` without committing or logging the value. |
 | LAWOS_API_SESSION_TTL_MS | tunable | Signed API session TTL. |
 | LAWOS_API_MAX_FAILED_LOGINS | tunable | Login lock threshold. |
 | LAWOS_API_LOGIN_LOCK_MS | tunable | Login lock duration. |
+| LAWOS_AUTH_PASSWORD_RESET_TTL_MS | tunable | Email reset token TTL. |
+| LAWOS_AUTH_PASSWORD_RESET_MIN_LENGTH | tunable | Minimum accepted password length for reset confirmation. |
 | LAWOS_HRX_STEP_UP_SECRET | conditional | Required for coordinated operational HRX step-up issuance. |
 | LAWOS_HRX_STEP_UP_TOTP_SECRET | conditional | Required for coordinated operational HRX step-up TOTP checks. |
 | LAWOS_HRX_STEP_UP_TTL_MS | tunable | Step-up token TTL. |
@@ -72,7 +78,7 @@ Operational profile refuses to listen when a required store path is missing, rel
 
 ## Cloud And Lambda Deploy Only
 
-These are not required for local operational preflight, but are required by their deployment lanes: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, `AWS_PROFILE`, `AWS_REGION`, `LAWOS_AWS_REGION`, `LAWOS_API_LAMBDA_FUNCTION_NAME`, `OPERATOR_TOKEN_SHA256`, `AUTH_STATE_SECRET_NAME`, `MATTER_DESKTOP_AUTH_STATE_SECRET_NAME`, `MATTER_PASSWORD_RESET_BASE_URL`, `MATTER_PASSWORD_RESET_SECRET`, `MATTER_PASSWORD_RESET_TTL_MS`, `MATTER_DESKTOP_PASSWORD_RESET_BASE_URL`, `MATTER_DESKTOP_PASSWORD_RESET_SECRET`, and `MATTER_DESKTOP_PASSWORD_RESET_TTL_MS`.
+These are not required for local operational preflight, but are required by their deployment lanes: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, `AWS_PROFILE`, `AWS_REGION`, `LAWOS_AWS_REGION`, `LAWOS_API_LAMBDA_FUNCTION_NAME`, `OPERATOR_TOKEN_SHA256`, `AUTH_STATE_SECRET_NAME`, `MATTER_DESKTOP_AUTH_STATE_SECRET_NAME`, `LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY`, `LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM`, `LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM_NAME`, `LAWOS_AUTH_PASSWORD_RESET_EMAIL_REPLY_TO`, `LAWOS_AUTH_PASSWORD_RESET_EMAIL_REGION`, `LAWOS_AUTH_PASSWORD_RESET_BASE_URL`, `MATTER_PASSWORD_RESET_BASE_URL`, `MATTER_PASSWORD_RESET_SECRET`, `MATTER_PASSWORD_RESET_TTL_MS`, `MATTER_DESKTOP_PASSWORD_RESET_BASE_URL`, `MATTER_DESKTOP_PASSWORD_RESET_SECRET`, and `MATTER_DESKTOP_PASSWORD_RESET_TTL_MS`.
 
 ## Dev, QA, And Proof Only
 

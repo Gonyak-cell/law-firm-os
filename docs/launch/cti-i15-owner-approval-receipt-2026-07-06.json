@@ -1,0 +1,65 @@
+{
+  "schema_version": "law-firm-os.cti-owner-approval-receipt.v0.1",
+  "approval_id": "I15",
+  "approval_signature_ref": "I15-CTI-CUTOVER-ROLLBACK-ABORT-CRITERIA-OWNER-APPROVAL-2026-07-06",
+  "status": "approval_recorded",
+  "recorded_date": "2026-07-06",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "future_cti_binding": [
+    "CUTOVER execute go/no-go rollback criteria",
+    "CUTOVER abort criteria",
+    "failure-triggered rollback decision criteria",
+    "CUTOVER preflight closeout and runbook criteria evidence"
+  ],
+  "snapshot_binding": {
+    "receipt": "docs/launch/cti-cutover-current-production-snapshot-receipt-2026-07-06.json",
+    "snapshot_hash": "2ce798915fccf16aff5c25746e8db4478dc5f160b7ebe7ca430833ce7735cffb",
+    "restore_rehearsal_status": "PASS",
+    "restore_rehearsal_receipt_hash": "e2020638c06ad0cd0140d5a0aebde852814330d51e6272236c58a9321d9e4e2c",
+    "readable_store_file_count": 13,
+    "checksum_mismatch_count": 0
+  },
+  "approved_scope": [
+    "rollback criteria for CUTOVER go/no-go judgment",
+    "abort criteria for CUTOVER stop conditions",
+    "failure-triggered rollback decision criteria",
+    "rollback/abort criteria recording in CUTOVER preflight closeout and runbook",
+    "PII-safe hash/count receipt generation"
+  ],
+  "conditions": {
+    "rollback_criteria_bound_to_verified_snapshot_and_restore_rehearsal": true,
+    "rollback_execution_allowed_only_if_failure_condition_occurs_during_cutover_execute": true,
+    "production_restore_allowed_only_inside_cutover_execute_goal_after_criteria_match": true
+  },
+  "explicit_non_approval": {
+    "cutover_immediate_execution": true,
+    "production_restore_immediate_execution": true,
+    "tenant_migration": true,
+    "account_permission_injection": true,
+    "operational_profile_switch": true,
+    "bridge_token_rotation": true,
+    "password_issuance_distribution": true,
+    "freeze_execution": true,
+    "s5_s6": true,
+    "oidc_implementation": true,
+    "db_conversion": true,
+    "production_ready_go_live_claim": true
+  },
+  "cutover_executed_by_this_receipt": false,
+  "rollback_executed_by_this_receipt": false,
+  "production_restore_executed_by_this_receipt": false,
+  "production_write_executed_by_this_receipt": false,
+  "tenant_migration_executed": false,
+  "account_permission_injection_executed": false,
+  "operational_profile_switch_executed": false,
+  "bridge_token_rotation_executed": false,
+  "password_issuance_distribution_executed": false,
+  "freeze_execution_executed": false,
+  "secret_values_recorded": false,
+  "plaintext_pii_recorded": false,
+  "credential_material_recorded": false,
+  "token_material_recorded": false,
+  "password_material_recorded": false,
+  "production_ready_claim": false,
+  "go_live_claim": false
+}

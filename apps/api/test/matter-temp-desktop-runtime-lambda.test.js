@@ -102,6 +102,8 @@ test("temporary desktop runtime health exposes AWS no-domain synthetic boundary"
   assert.equal(body.operator_token_required_for_runtime_routes, true);
   assert.equal(body.operator_token_configured, true);
   assert.equal(body.password_login_required, true);
+  assert.equal(body.password_auth_provider, "lawos-internal-password-provider-v1");
+  assert.equal(body.password_hash_algorithm, "node:crypto.scrypt");
   assert.equal(body.password_reset_delivery_mode, "synthetic_email_outbox");
   assert.equal(body.password_reset_email_provider, "synthetic_outbox");
   assert.equal(body.password_reset_email_configured, false);
@@ -170,15 +172,16 @@ test("configured SESv2 reset delivery sends registered reset mail without return
         const textPart = decodeBase64MimePart(rawEmail, "Content-Type: text/plain");
         const htmlPart = decodeBase64MimePart(rawEmail, "Content-Type: text/html");
         assert.match(textPart, /https:\/\/runtime\.example\.test\/api\/desktop\/password-reset\/open\?token=/);
-        assert.match(textPart, /matter:\/\/password-reset\/confirm\?token=/);
         assert.match(textPart, /matter OS 비밀번호 설정/);
+        assert.doesNotMatch(textPart, /코드|설정 코드|직접 입력|matter:\/\/password-reset\/confirm/);
         assert.match(htmlPart, /<h1[^>]*>비밀번호를 설정하세요<\/h1>/);
         assert.match(htmlPart, /<img src="cid:matter-app-logo"[^>]+alt="matter"/);
         assert.match(htmlPart, /Matter Desktop App Services/);
         assert.match(htmlPart, /비밀번호 설정 열기/);
         assert.match(htmlPart, /https:\/\/runtime\.example\.test\/api\/desktop\/password-reset\/open\?token=/);
-        assert.match(htmlPart, /앱 링크: matter:\/\/password-reset\/confirm\?token=/);
         assert.match(htmlPart, /AMIC 내부 계정 보안 알림/);
+        assert.match(htmlPart, /브라우저 링크: https:\/\/runtime\.example\.test\/api\/desktop\/password-reset\/open\?token=/);
+        assert.doesNotMatch(htmlPart, /코드|설정 코드|직접 입력|앱 링크:/);
 
         const latestEmail = await handler(
           event({
@@ -330,6 +333,8 @@ test("temporary desktop runtime completes reset email, password setup, and passw
   assert.equal(loginBody.ok, true);
   assert.equal(loginBody.session.email, "jwsuh@amic.kr");
   assert.ok(loginBody.session.role_ids.includes("system_super_admin"));
+  assert.equal(loginBody.session.credential_provider, "lawos-internal-password-provider-v1");
+  assert.equal(typeof loginBody.session.credential_rev, "number");
   assert.equal(loginBody.session.token_material_returned, false);
   assert.equal(JSON.stringify(loginBody).includes("new-jwsuh-password"), false);
 
@@ -359,7 +364,7 @@ test("password reset email open page bridges browser clicks to the desktop app l
   assert.equal(page.headers["content-type"], "text/html; charset=utf-8");
   assert.match(page.body, /matter 앱에서 열기/);
   assert.match(page.body, new RegExp(`matter://password-reset/confirm\\?token=${token}`));
-  assert.match(page.body, new RegExp(token));
+  assert.doesNotMatch(page.body, /코드|직접 입력|class="code"/);
 
   const invalid = await handler(
     event({

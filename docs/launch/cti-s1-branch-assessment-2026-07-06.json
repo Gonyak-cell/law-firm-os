@@ -1,0 +1,14 @@
+{
+  "schema_version": "law-firm-os.cti.s1-branch-assessment.v0.2",
+  "generated_at": "2026-07-06T02:31:07.212Z",
+  "goal_id": "cti-g0-s0",
+  "approval_signature_ref": "I4-CTI-G0-S0-OWNER-RATIFICATION-2026-07-06",
+  "branch_status": "efs_and_store_path_absent_s1_durable_foundation_required",
+  "lambda_runtime_profile_env": null,
+  "lambda_handler": "apps/api/src/lambda.handler",
+  "efs_file_system_config_count": 0,
+  "store_path_env_keys_present": [],
+  "cold_start_persistence_verdict": "marker_lost_after_cold_start",
+  "allowed_next_step": "Open a separate S1 FOUNDATION goal with its own bounded approval before durable store or infra changes.",
+  "no_s1_execution_started": true
+}

@@ -1,0 +1,51 @@
+{
+  "schema_version": "law-firm-os.cti.matter-db-snapshot-materialize-runtime-client-projection.v0.1",
+  "recorded_at": "2026-07-07T05:44:14.357Z",
+  "approval_signature_ref": "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06",
+  "aws": {
+    "region": "ap-northeast-2",
+    "lambda_function_name": "matter-lawos-api-prod",
+    "before_revision_id": "3ab08146-f1db-4253-a4de-63ca66d173df",
+    "config_revision_id": "960aa56a-5033-4344-856e-604ebf091120",
+    "code_revision_id": "02354447-39ca-4bbb-88ae-215927c5421b",
+    "code_sha256": "1oqf4v/B+HM5SX+x3QBwZJkcZFL6oj/95JIgUfzYu8Y=",
+    "package_sha256": "sha256:d68a9fe2ffc1f87339497fb1dd007064991c6452faa23ffde4922051fcd8bbc6",
+    "overlay_enabled_after": "false",
+    "env_values_recorded": false
+  },
+  "invoke": {
+    "status_code": 200,
+    "function_error": null,
+    "executed_version": "$LATEST"
+  },
+  "receipt": {
+    "ok": true,
+    "schema_version": "law-firm-os.cti.matter-db-snapshot-materialize.v0.1",
+    "maintenance_action": "cti_matter_db_snapshot_materialize",
+    "approval_signature_ref": "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06",
+    "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+    "generated_at": "2026-07-07T05:44:30.377Z",
+    "app_tenant_id": "tenant_amic_matter_vault",
+    "database_tenant_id_hash": "sha256:9b94711d6ad83039fef084d0f0cc0345ec694902c6d67462c3383afbbcdf6e97",
+    "matter_store_path_hash": "sha256:5f98cea290526114154a6a7a3ee6a04fe9018ebf26a3d2cc95c1095aad79c225",
+    "before_sha256": "sha256:c4dfd17b53497e3cd092ed91675b8763af3df5e99a140b35cc8811c59ba3b1bd",
+    "after_sha256": "sha256:714da58dc00a7c2557b5882cd4d0abf094f22eb5d33bd509c0637036f7ccfdc9",
+    "materialized_counts": {
+      "Client": 80,
+      "MatterClient": 80,
+      "Matter": 123,
+      "MatterMember": 123
+    },
+    "total_materialized_record_count": 406,
+    "matter_store_total_record_count": 2254,
+    "pii_safe": true,
+    "secret_value_returned": false,
+    "credential_material_returned": false,
+    "token_or_password_returned": false,
+    "production_write_executed": true,
+    "production_write_scope": "matter_runtime_store_materialized_read_model_only",
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "verdict": "PASS"
+}

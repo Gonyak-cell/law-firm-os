@@ -25,7 +25,39 @@
       "department": "Finance",
       "organization_group": "PETRA BRIDGE PARTNERS",
       "org_unit_id": "org_finance",
-      "country": "대한민국"
+      "country": "대한민국",
+      "professional_profile": {
+        "schema_version": "law-firm-os.people-professional-profile.v0.1",
+        "profile_kind": "cpa",
+        "public_role_labels": ["CEO / KICPA", "대표이사", "고문"],
+        "practice_areas": ["M&A 자문", "Deal Advisory", "재무 실사", "가치평가", "거래구조 설계"],
+        "experience": [
+          "페트라브릿지파트너스 대표이사 (2026~현재)",
+          "미래에셋비전기업인수목적11호(KOSDAQ 상장) 대표이사 (2025~현재)",
+          "신협중앙회 블라인드펀드 투자심사위원 (2025~현재)",
+          "KPMG 삼정회계법인 Deal Advisory 부문 파트너 (2017~2025)",
+          "KPMG China 베이징 사무소 국제조세 부문 (2016~2017)",
+          "KPMG 삼정회계법인 Deal Advisory 부문 (2015~2016)",
+          "KCBC Beijing 세무자문 (2013~2015)",
+          "Deloitte 안진회계법인 회계감사 부문 (2010~2013)"
+        ],
+        "education": ["중국 베이징 UIBE MBA", "서울시립대학교 세무학 학사"],
+        "qualifications": ["대한민국 공인회계사"],
+        "source_refs": [
+          {
+            "source_url": "https://petrabridge.vercel.app/",
+            "source_section": "Team / 김양태",
+            "source_priority": "primary"
+          },
+          {
+            "source_url": "https://amic-law.vercel.app/",
+            "source_section": "People / 김양태",
+            "source_priority": "supporting"
+          }
+        ],
+        "source_notes": ["공개 원천상 법조 자격이 아니라 대한민국 공인회계사 자격으로 확인된다."],
+        "excluded_claim_refs": ["amic-law.case-selected-2025", "petrabridge.successful-transactions"]
+      }
     },
     {
       "user_id": "user_amic_wsjo",
@@ -41,7 +73,33 @@
       "department": "Finance",
       "organization_group": "PETRA BRIDGE PARTNERS",
       "org_unit_id": "org_finance",
-      "country": "대한민국"
+      "country": "대한민국",
+      "professional_profile": {
+        "schema_version": "law-firm-os.people-professional-profile.v0.1",
+        "profile_kind": "deal_advisor",
+        "public_role_labels": ["DIRECTOR", "이사", "전문위원"],
+        "practice_areas": ["M&A 전략", "거래 구조 설계", "재무·사업 분석", "Commercial Due Diligence"],
+        "experience": [
+          "페트라브릿지파트너스 이사 (2026~현재)",
+          "KPMG 삼정회계법인 Deal Advisory 부문 (2017~2025)"
+        ],
+        "education": ["프랑스 파리 Sciences Po 공공정책경제학 석사", "미국 Brandeis University 경제학·수학 학사"],
+        "qualifications": [],
+        "source_refs": [
+          {
+            "source_url": "https://petrabridge.vercel.app/",
+            "source_section": "Team / 조우상",
+            "source_priority": "primary"
+          },
+          {
+            "source_url": "https://amic-law.vercel.app/",
+            "source_section": "People / 조우상",
+            "source_priority": "supporting"
+          }
+        ],
+        "source_notes": ["공개 원천상 별도 전문자격 표시는 확인되지 않는다."],
+        "excluded_claim_refs": ["amic-law.case-selected-2025", "petrabridge.successful-transactions"]
+      }
     },
     {
       "user_id": "user_amic_sypark",
@@ -57,7 +115,29 @@
       "department": "Finance",
       "organization_group": "PETRA BRIDGE PARTNERS",
       "org_unit_id": "org_finance",
-      "country": "대한민국"
+      "country": "대한민국",
+      "professional_profile": {
+        "schema_version": "law-firm-os.people-professional-profile.v0.1",
+        "profile_kind": "cpa",
+        "public_role_labels": ["MANAGER / KICPA", "차장"],
+        "practice_areas": ["Deal Advisory", "Audit"],
+        "experience": [
+          "페트라브릿지파트너스 차장 (2026~현재)",
+          "KPMG 삼정회계법인 Audit 부문 (2025~2026)",
+          "KPMG 삼정회계법인 Deal Advisory 부문 (2023~2025)"
+        ],
+        "education": ["이화여자대학교 커뮤니케이션미디어학 학사"],
+        "qualifications": ["대한민국 공인회계사"],
+        "source_refs": [
+          {
+            "source_url": "https://petrabridge.vercel.app/",
+            "source_section": "Team / 박서영",
+            "source_priority": "primary"
+          }
+        ],
+        "source_notes": ["공개 PetraBridge Team 원천에 근거한 CPA 프로필이다."],
+        "excluded_claim_refs": ["petrabridge.successful-transactions"]
+      }
     },
     {
       "user_id": "user_amic_bj_park",
@@ -73,7 +153,30 @@
       "department": "Legal",
       "organization_group": "AMIC Law",
       "org_unit_id": "org_legal",
-      "country": "대한민국"
+      "country": "대한민국",
+      "professional_profile": {
+        "schema_version": "law-firm-os.people-professional-profile.v0.1",
+        "profile_kind": "attorney",
+        "public_role_labels": ["대표변호사"],
+        "practice_areas": ["상사분쟁", "경영권 분쟁", "민·형사소송", "건설·부동산 소송", "IP"],
+        "experience": [
+          "법무법인 아믹 대표변호사 (2025~현재)",
+          "미국 Gori Company 고문변호사 (2024~2025)",
+          "김·장 법률사무소 변호사 (2017~2024)",
+          "서울고등법원 재판연구원 (2015~2017)"
+        ],
+        "education": ["UC Berkeley School of Law, LL.M.", "서울대학교 대학원 법학과 석사 수료", "성균관대학교 물리학과 학사", "사법연수원 제44기"],
+        "qualifications": ["대한민국 변호사", "미국 변호사(캘리포니아·텍사스)"],
+        "source_refs": [
+          {
+            "source_url": "https://amic-law.vercel.app/",
+            "source_section": "People / 박병준",
+            "source_priority": "primary"
+          }
+        ],
+        "source_notes": ["PetraBridge Alongside AMIC mirror의 2026~현재 표기는 AMIC People 원천과 달라 개인 프로필에는 AMIC People 원천을 우선한다."],
+        "excluded_claim_refs": ["petrabridge.alongside-amic-date-variant", "amic-law.case-selected-2025"]
+      }
     },
     {
       "user_id": "user_amic_yhlim",
@@ -89,7 +192,31 @@
       "department": "Legal",
       "organization_group": "AMIC Law",
       "org_unit_id": "org_legal",
-      "country": "대한민국"
+      "country": "대한민국",
+      "professional_profile": {
+        "schema_version": "law-firm-os.people-professional-profile.v0.1",
+        "profile_kind": "attorney",
+        "public_role_labels": ["대표변호사"],
+        "practice_areas": ["경영권분쟁", "조세쟁송", "국제조세", "M&A", "IP", "금융소송"],
+        "experience": [
+          "법무법인 아믹 대표변호사 (2025~현재)",
+          "법무법인 에스엘파트너스 대표변호사 (2023~2025)",
+          "삼성전자 법무실 변호사 (2021~2023)",
+          "김·장 법률사무소 변호사 (2017~2021)",
+          "딜로이트 안진회계법인 공인회계사 (2011~2012)"
+        ],
+        "education": ["연세대학교 경제학과 학사", "사법연수원 제46기"],
+        "qualifications": ["대한민국 변호사", "대한민국 공인회계사"],
+        "source_refs": [
+          {
+            "source_url": "https://amic-law.vercel.app/",
+            "source_section": "People / 임영훈",
+            "source_priority": "primary"
+          }
+        ],
+        "source_notes": ["PetraBridge Alongside AMIC mirror의 2026~현재 표기는 AMIC People 원천과 달라 개인 프로필에는 AMIC People 원천을 우선한다."],
+        "excluded_claim_refs": ["petrabridge.alongside-amic-date-variant", "amic-law.case-selected-2025"]
+      }
     },
     {
       "user_id": "user_amic_jwsuh",
@@ -105,7 +232,32 @@
       "department": "Legal",
       "organization_group": "AMIC Law",
       "org_unit_id": "org_legal",
-      "country": "대한민국"
+      "country": "대한민국",
+      "professional_profile": {
+        "schema_version": "law-firm-os.people-professional-profile.v0.1",
+        "profile_kind": "attorney",
+        "public_role_labels": ["대표변호사"],
+        "practice_areas": ["M&A", "기업지배구조자문", "공정거래", "회사법", "사모투자"],
+        "experience": [
+          "법무법인 아믹 대표변호사 (2025~현재)",
+          "법무법인 에스엘파트너스 파트너변호사 (2024~2025)",
+          "김·장 법률사무소 변호사 (2020~2024)",
+          "국방부 법무관 (2019~2020)",
+          "해군본부 법무관 (2018~2019)",
+          "해병대 제1사단 법무관 (2017~2018)"
+        ],
+        "education": ["서울대학교 교육학과 학사", "사법연수원 제46기"],
+        "qualifications": ["대한민국 변호사"],
+        "source_refs": [
+          {
+            "source_url": "https://amic-law.vercel.app/",
+            "source_section": "People / 서지원",
+            "source_priority": "primary"
+          }
+        ],
+        "source_notes": ["PetraBridge Alongside AMIC mirror의 2026~현재 표기는 AMIC People 원천과 달라 개인 프로필에는 AMIC People 원천을 우선한다."],
+        "excluded_claim_refs": ["petrabridge.alongside-amic-date-variant", "amic-law.case-selected-2025"]
+      }
     },
     {
       "user_id": "user_amic_smcho",
@@ -121,7 +273,29 @@
       "department": "Legal",
       "organization_group": "AMIC Law",
       "org_unit_id": "org_legal",
-      "country": "대한민국"
+      "country": "대한민국",
+      "professional_profile": {
+        "schema_version": "law-firm-os.people-professional-profile.v0.1",
+        "profile_kind": "attorney",
+        "public_role_labels": ["대표변호사"],
+        "practice_areas": ["상사분쟁", "민·형사소송", "금융규제 및 컴플라이언스", "인사노무", "가사 및 상속"],
+        "experience": [
+          "법무법인 아믹 대표변호사 (2026~현재)",
+          "법무법인 화온 대표변호사 (2024~2026)",
+          "김·장 법률사무소 변호사 (2018~2024)"
+        ],
+        "education": ["연세대학교 법학과 학사", "사법연수원 제47기"],
+        "qualifications": ["대한민국 변호사"],
+        "source_refs": [
+          {
+            "source_url": "https://amic-law.vercel.app/",
+            "source_section": "People / 조성민",
+            "source_priority": "primary"
+          }
+        ],
+        "source_notes": ["AMIC People 원천과 PetraBridge Alongside AMIC mirror의 핵심 경력·자격이 일치한다."],
+        "excluded_claim_refs": ["amic-law.case-selected-2025", "petrabridge.successful-transactions"]
+      }
     },
     {
       "user_id": "user_amic_tryoon",

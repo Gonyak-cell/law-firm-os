@@ -1,5 +1,5 @@
 import https from "node:https";
-import { createHash, createHmac, pbkdf2Sync, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { readFileSync } from "node:fs";
 import {
   MATTER_VAULT_USER_REGISTRATION_SEED,
@@ -7,6 +7,11 @@ import {
   normalizeAccountEmail,
   registeredAccountPublicRef,
 } from "./matter-vault-account-registry.js";
+import {
+  LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
+  createScryptPasswordHash,
+  verifyScryptPasswordHash,
+} from "./auth-credential-store.js";
 
 const seed = MATTER_VAULT_USER_REGISTRATION_SEED;
 
@@ -58,7 +63,6 @@ const FEATURE_CATALOG = Object.freeze([
 ]);
 
 const PASSWORD_RESET_TTL_MS = 1000 * 60 * 30;
-const PASSWORD_HASH_ITERATIONS = 120_000;
 const PASSWORD_MIN_LENGTH = 8;
 const MAX_PERSISTED_RESET_TOKENS = 20;
 const MAX_PERSISTED_OUTBOX_MESSAGES = 20;
@@ -112,19 +116,11 @@ function normalizeEmail(email) {
 }
 
 function hashPassword(password, salt = randomBytes(16).toString("base64url")) {
-  const hash = pbkdf2Sync(String(password), salt, PASSWORD_HASH_ITERATIONS, 32, "sha256").toString("hex");
-  return {
-    algorithm: "pbkdf2-sha256",
-    iterations: PASSWORD_HASH_ITERATIONS,
-    salt,
-    hash
-  };
+  return createScryptPasswordHash(password, { salt });
 }
 
 function verifyPassword(credential, password) {
-  if (!credential?.hash || !credential?.salt) return false;
-  const candidate = hashPassword(password, credential.salt);
-  return safeEqualHex(candidate.hash, credential.hash);
+  return verifyScryptPasswordHash(credential, password);
 }
 
 function safeEqualHex(left, right) {
@@ -428,6 +424,8 @@ function sessionFor(user, state) {
     group_ids: user.group_ids,
     scopes: user.scopes,
     session_generation: state.sessionGeneration.get(email) ?? 0,
+    credential_provider: LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
+    credential_rev: state.sessionGeneration.get(email) ?? 0,
     token_material_returned: false
   };
 }
@@ -483,21 +481,19 @@ function publicResetOpenUrl(token, event = {}, env = process.env) {
 function passwordResetOpenPage(token) {
   const resetUrl = publicResetUrl(token);
   const safeResetUrl = escapeHtml(resetUrl);
-  const safeResetToken = escapeHtml(token);
   return htmlResponse(200, [
     "<!doctype html>",
     '<html lang="ko">',
     '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
     "<title>matter 비밀번호 설정</title>",
-    '<style>body{margin:0;background:#f7f6f2;color:#17212b;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Apple SD Gothic Neo,Noto Sans KR,sans-serif}.wrap{max-width:560px;margin:48px auto;padding:0 20px}.panel{background:#fff;border:1px solid #ded8cc;border-radius:8px;padding:28px}h1{margin:0 0 12px;font-size:26px;line-height:34px}p{font-size:15px;line-height:24px;color:#4b5563}.button{display:inline-block;margin:8px 0 22px;background:#17212b;color:#fff;text-decoration:none;border-radius:6px;padding:12px 18px;font-weight:700}.code{font-family:SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;word-break:break-all;background:#faf9f6;border:1px solid #e5dfd4;border-radius:6px;padding:12px;color:#111827}.hint{font-size:13px;color:#6b7280}</style>',
+    '<style>body{margin:0;background:#f7f6f2;color:#17212b;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Apple SD Gothic Neo,Noto Sans KR,sans-serif}.wrap{max-width:560px;margin:48px auto;padding:0 20px}.panel{background:#fff;border:1px solid #ded8cc;border-radius:8px;padding:28px}h1{margin:0 0 12px;font-size:26px;line-height:34px}p{font-size:15px;line-height:24px;color:#4b5563}.button{display:inline-block;margin:8px 0 22px;background:#17212b;color:#fff;text-decoration:none;border-radius:6px;padding:12px 18px;font-weight:700}.hint{font-size:13px;color:#6b7280}</style>',
     "</head>",
     "<body>",
     '<main class="wrap"><section class="panel">',
     "<h1>비밀번호를 설정하세요</h1>",
     "<p>아래 버튼을 눌러 matter 앱을 열고 새 비밀번호를 설정하세요. 브라우저가 앱 열기를 묻는 경우 허용을 선택하세요.</p>",
     `<a class="button" href="${safeResetUrl}">matter 앱에서 열기</a>`,
-    '<p class="hint">앱이 자동으로 열리지 않으면 로그인 화면의 비밀번호 설정 화면에서 아래 코드를 직접 입력하세요.</p>',
-    `<div class="code">${safeResetToken}</div>`,
+    '<p class="hint">앱이 자동으로 열리지 않으면 이 창을 닫고 최신 메일의 버튼을 다시 여세요.</p>',
     "</section></main>",
     "</body>",
     "</html>"
@@ -581,7 +577,7 @@ function encodedMimeWord(value) {
   return `=?UTF-8?B?${base64Utf8(value)}?=`;
 }
 
-function passwordResetEmailText({ resetUrl, resetOpenUrl, resetToken, expiresAt }) {
+function passwordResetEmailText({ resetUrl, resetOpenUrl, expiresAt }) {
   return [
     "matter OS 비밀번호 설정",
     "",
@@ -589,21 +585,16 @@ function passwordResetEmailText({ resetUrl, resetOpenUrl, resetToken, expiresAt 
     "아래 링크를 열어 새 비밀번호를 설정하세요.",
     resetOpenUrl,
     "",
-    "브라우저에서 앱이 열리지 않는 경우 아래 앱 링크를 직접 열 수 있습니다.",
-    resetUrl,
+    "브라우저에서 앱이 바로 열리지 않는 경우 열린 화면의 Matter 열기 버튼을 다시 누르세요.",
     "",
-    "앱에서 코드를 직접 입력해야 하는 경우 아래 설정 코드를 사용하세요.",
-    resetToken,
-    "",
-    `이 링크와 코드는 ${expiresAt}까지 한 번만 사용할 수 있습니다.`,
+    `이 링크는 ${expiresAt}까지 한 번만 사용할 수 있습니다.`,
     "본인이 요청하지 않았다면 이 메일을 무시하세요."
   ].join("\n");
 }
 
-function passwordResetEmailHtml({ resetUrl, resetOpenUrl, resetToken, expiresAt, logoSrc = `cid:${PASSWORD_RESET_LOGO_CONTENT_ID}` }) {
+function passwordResetEmailHtml({ resetUrl, resetOpenUrl, expiresAt, logoSrc = `cid:${PASSWORD_RESET_LOGO_CONTENT_ID}` }) {
   const safeResetUrl = escapeHtml(resetUrl);
   const safeResetOpenUrl = escapeHtml(resetOpenUrl);
-  const safeResetToken = escapeHtml(resetToken);
   const safeExpiresAt = escapeHtml(expiresAt);
   const safeLogoSrc = escapeHtml(logoSrc);
   return [
@@ -631,12 +622,12 @@ function passwordResetEmailHtml({ resetUrl, resetOpenUrl, resetToken, expiresAt,
     `<p style="margin:0 0 24px;"><a href="${safeResetOpenUrl}" style="display:inline-block;background:#17212b;color:#ffffff;text-decoration:none;border-radius:6px;padding:12px 18px;font-size:15px;line-height:20px;font-weight:700;">비밀번호 설정 열기</a></p>`,
     '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e5dfd4;border-radius:8px;background:#faf9f6;margin:0 0 20px;">',
     '<tr><td style="padding:16px 18px;">',
-    '<div style="font-size:13px;line-height:20px;color:#4b5563;margin-bottom:8px;">앱에서 코드를 직접 입력해야 하는 경우</div>',
-    `<div style="font-family:SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;font-size:15px;line-height:22px;color:#111827;word-break:break-all;background:#ffffff;border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px;">${safeResetToken}</div>`,
-    `<div style="font-size:12px;line-height:18px;color:#6b7280;margin-top:10px;word-break:break-all;">앱 링크: ${safeResetUrl}</div>`,
+    '<div style="font-size:13px;line-height:20px;color:#4b5563;margin-bottom:8px;">앱이 바로 열리지 않는 경우</div>',
+    `<div style="font-size:12px;line-height:18px;color:#6b7280;word-break:break-all;">브라우저 링크: ${safeResetOpenUrl}</div>`,
+    `<div style="font-size:0;line-height:0;color:#ffffff;max-height:0;overflow:hidden;">${safeResetUrl}</div>`,
     "</td></tr>",
     "</table>",
-    `<p style="margin:0 0 10px;font-size:13px;line-height:21px;color:#4b5563;">이 링크와 코드는 <strong style="color:#17212b;">${safeExpiresAt}</strong>까지 한 번만 사용할 수 있습니다.</p>`,
+    `<p style="margin:0 0 10px;font-size:13px;line-height:21px;color:#4b5563;">이 링크는 <strong style="color:#17212b;">${safeExpiresAt}</strong>까지 한 번만 사용할 수 있습니다.</p>`,
     '<p style="margin:0;font-size:13px;line-height:21px;color:#6b7280;">본인이 요청하지 않았다면 이 메일을 무시하세요. 기존 비밀번호나 세션은 이 메일만으로 변경되지 않습니다.</p>',
     "</td></tr>",
     '<tr><td style="padding:18px 28px;border-top:1px solid #ece7de;background:#fbfaf8;">',
@@ -650,7 +641,7 @@ function passwordResetEmailHtml({ resetUrl, resetOpenUrl, resetToken, expiresAt,
   ].join("");
 }
 
-function passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, resetToken, expiresAt }) {
+function passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }) {
   const rootBoundary = `matter-reset-root-${randomUUID()}`;
   const alternativeBoundary = `matter-reset-alt-${randomUUID()}`;
   const from = emailHeaderValue(formattedEmailAddress({ name: config.fromName, email: config.fromEmail }));
@@ -664,8 +655,8 @@ function passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, resetToken,
     ...(config.replyToEmail ? [`Reply-To: ${emailHeaderValue(config.replyToEmail)}`] : []),
     `Content-Type: multipart/related; boundary="${rootBoundary}"`
   ];
-  const textBody = base64MimeLines(base64Utf8(passwordResetEmailText({ resetUrl, resetOpenUrl, resetToken, expiresAt })));
-  const htmlBody = base64MimeLines(base64Utf8(passwordResetEmailHtml({ resetUrl, resetOpenUrl, resetToken, expiresAt })));
+  const textBody = base64MimeLines(base64Utf8(passwordResetEmailText({ resetUrl, resetOpenUrl, expiresAt })));
+  const htmlBody = base64MimeLines(base64Utf8(passwordResetEmailHtml({ resetUrl, resetOpenUrl, expiresAt })));
   const parts = [
     ...headers,
     "",
@@ -699,7 +690,7 @@ function passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, resetToken,
   return Buffer.from(parts.join("\r\n"), "utf8").toString("base64");
 }
 
-async function sendPasswordResetSesEmail({ config, to, resetUrl, resetOpenUrl, resetToken, expiresAt }) {
+async function sendPasswordResetSesEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }) {
   const result = await awsRestJsonRequest({
     service: "ses",
     region: config.region,
@@ -713,7 +704,7 @@ async function sendPasswordResetSesEmail({ config, to, resetUrl, resetOpenUrl, r
       ...(config.replyToEmail ? { ReplyToAddresses: [config.replyToEmail] } : {}),
       Content: {
         Raw: {
-          Data: passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, resetToken, expiresAt })
+          Data: passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt })
         }
       }
     }
@@ -734,7 +725,7 @@ async function deliverPasswordResetEmail({ to, resetUrl, resetOpenUrl, resetToke
   }
 
   try {
-    const messageId = await sendPasswordResetSesEmail({ config, to, resetUrl, resetOpenUrl, resetToken, expiresAt });
+    const messageId = await sendPasswordResetSesEmail({ config, to, resetUrl, resetOpenUrl, expiresAt });
     return {
       mode: config.mode,
       provider: config.provider,
@@ -936,6 +927,8 @@ function health() {
     operator_token_required_for_runtime_routes: true,
     operator_token_configured: Boolean(process.env.OPERATOR_TOKEN_SHA256),
     password_login_required: true,
+    password_auth_provider: LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
+    password_hash_algorithm: "node:crypto.scrypt",
     password_reset_delivery_mode: emailConfig.mode,
     password_reset_email_provider: emailConfig.provider,
     password_reset_email_configured: emailConfig.configured,

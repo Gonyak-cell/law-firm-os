@@ -1,0 +1,82 @@
+{
+  "schema_version": "law-firm-os.cti-launch-tuw-crosswalk.v0.1",
+  "goal_id": "cti-build-s3-s4-code-prep",
+  "recorded_at": "2026-07-06T07:30:00Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "approval_signature_refs": [
+    "I10-CTI-BUILD-S3-S4-CODE-PREP-OWNER-APPROVAL-2026-07-06"
+  ],
+  "work_package": "LT-PRE-W14",
+  "work_package_title": "canonical tenant injection BUILD S3/S4 code-only preparation",
+  "cti_to_tuw": {
+    "S3-T01": [
+      "LT-PRE-W14-T01"
+    ],
+    "S3-T05": [
+      "LT-PRE-W14-T02"
+    ],
+    "S3-T06": [
+      "LT-PRE-W14-T02"
+    ],
+    "S3-T07": [
+      "LT-PRE-W14-T05"
+    ],
+    "S3-T08": [
+      "LT-PRE-W14-T03"
+    ],
+    "S4-T02": [
+      "LT-PRE-W14-T05"
+    ],
+    "S4-T04a": [
+      "LT-PRE-W14-T04"
+    ],
+    "BUILD-G": [
+      "LT-PRE-W14-T06"
+    ]
+  },
+  "tuw_to_deliverables": {
+    "LT-PRE-W14-T01": [
+      "packages/matter/src/amic-matter-code-candidates.js",
+      "scripts/generate-amic-matter-code-candidates.mjs",
+      "apps/api/src/matter-runtime-context.js"
+    ],
+    "LT-PRE-W14-T02": [
+      "apps/api/src/session-auth.js",
+      "apps/api/src/matter-vault-account-registry.js"
+    ],
+    "LT-PRE-W14-T03": [
+      "apps/api/src/matter-runtime-context.js",
+      "apps/api/test/matter-vault-bridge-api.test.js",
+      "scripts/run-current-matter-codes-production-bridge-upsert.mjs"
+    ],
+    "LT-PRE-W14-T04": [
+      "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
+      "scripts/validate-matter-vault-user-registration-seed.mjs"
+    ],
+    "LT-PRE-W14-T05": [
+      "scripts/validate-cti-build-s3-s4-code-prep.mjs",
+      "docs/goal-closeout/cti-build-s3-s4-code-prep/"
+    ],
+    "LT-PRE-W14-T06": [
+      "scripts/validate-cti-build-s3-s4-code-prep.mjs",
+      "docs/goal-closeout/cti-build-s3-s4-code-prep/command-evidence.json"
+    ]
+  },
+  "non_execution_boundary": {
+    "s3_execution": false,
+    "s4_execution": false,
+    "production_tenant_migration_executed": false,
+    "production_account_permission_injection_executed": false,
+    "bridge_token_actual_rotation_executed": false,
+    "password_issuance_distribution_executed": false,
+    "cutover_execution": false,
+    "s5_enrichment_executed": false,
+    "s6_final_seal_executed": false,
+    "oidc_implementation_executed": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "validator": "scripts/validate-cti-build-s3-s4-code-prep.mjs",
+  "verdict": "PASS_CODE_ONLY"
+}

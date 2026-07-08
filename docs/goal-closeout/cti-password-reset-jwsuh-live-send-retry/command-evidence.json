@@ -1,0 +1,86 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.command-evidence.v0.1",
+  "goal_id": "cti-password-reset-jwsuh-live-send-retry",
+  "recorded_at": "2026-07-06T12:09:25.826Z",
+  "decision": "BLOCKED",
+  "commands": [
+    {
+      "command": "node --check scripts/run-cti-password-reset-jwsuh-live-send-retry.mjs",
+      "exit_code": 0,
+      "summary": "Retry runner syntax check PASS.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "aws lambda get-function-configuration --function-name matter-lawos-api-prod --profile matter-prod-deploy-admin --region ...",
+      "exit_code": 0,
+      "summary": "Read Lambda VPC/env/code status before I25 retry.",
+      "sensitive_output_suppressed": true
+    },
+    {
+      "command": "aws ec2 describe-security-groups --filters Name=vpc-id,Values=vpc-038f70d924a774bea Name=group-name,Values=matter-lawos-prod-ses-api-vpce-sg --profile matter-prod-deploy-admin ...",
+      "exit_code": 0,
+      "summary": "Checked for existing SES API VPCE security group.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "aws ec2 describe-security-groups --group-ids sg-00d32ddc8de3a5a30 --profile matter-prod-deploy-admin --region ...",
+      "exit_code": 0,
+      "summary": "Read SES API VPCE SG ingress before authorizing Lambda source.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "aws ec2 describe-vpc-endpoints --filters Name=vpc-id,Values=vpc-038f70d924a774bea Name=service-name,Values=com.amazonaws.ap-northeast-2.email --profile matter-prod-deploy-admin ...",
+      "exit_code": 0,
+      "summary": "Checked for existing SES API interface VPC endpoint.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "aws ec2 describe-vpc-endpoints --vpc-endpoint-ids vpce-04fb1f44d80a790d6 --profile matter-prod-deploy-admin --region ...",
+      "exit_code": 0,
+      "summary": "Read SES API VPC endpoint state after creation, attempt 1.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "aws ec2 describe-vpc-endpoints --vpc-endpoint-ids vpce-04fb1f44d80a790d6 --profile matter-prod-deploy-admin --region ...",
+      "exit_code": 0,
+      "summary": "Read SES API VPC endpoint state after creation, attempt 2.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "aws ec2 describe-vpc-endpoints --vpc-endpoint-ids vpce-04fb1f44d80a790d6 --profile matter-prod-deploy-admin --region ...",
+      "exit_code": 0,
+      "summary": "Read SES API VPC endpoint state after creation, attempt 3.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "aws ec2 describe-vpc-endpoints --vpc-endpoint-ids vpce-04fb1f44d80a790d6 --profile matter-prod-deploy-admin --region ...",
+      "exit_code": 0,
+      "summary": "Read SES API VPC endpoint state after creation, attempt 4.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "aws ec2 describe-vpc-endpoints --vpc-endpoint-ids vpce-04fb1f44d80a790d6 --profile matter-prod-deploy-admin --region ...",
+      "exit_code": 0,
+      "summary": "Read SES API VPC endpoint state after creation, attempt 5.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "aws lambda invoke --function-name matter-lawos-api-prod --cli-binary-format raw-in-base64-out --payload ...",
+      "exit_code": 0,
+      "summary": "Invoked password reset request for jwsuh@amic.kr only.",
+      "sensitive_output_suppressed": true
+    }
+  ],
+  "boundary": {
+    "live_send_target_count": 1,
+    "non_live_send_user_count": 8,
+    "other_user_reset_email_sent": false,
+    "other_user_credential_mutated": false,
+    "token_value_recorded": false,
+    "reset_url_recorded": false,
+    "password_value_recorded": false,
+    "secret_value_recorded": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

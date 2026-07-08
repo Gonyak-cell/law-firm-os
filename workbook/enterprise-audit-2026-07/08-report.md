@@ -1,5 +1,11 @@
 # W7 최종 보고서
 
+> Successor note - 2026-07-06:
+> 이 문서는 W0-W7 감사 당시 스냅샷 보고서다. 이후 repo-local C0-C8 remediation
+> 입력과 2026-07-05 local gate 결과는 `17-reverification-decision-ledger.md`를
+> 정본으로 본다. 이 note는 production-ready 판정을 올리지 않으며,
+> `production_ready_claim`은 별도 owner/production gate 전까지 false다.
+
 ## 1. Executive Summary
 
 현재 코드베이스는 [축 A: 데모 가능, 축 B 기준: 구현되어 있으나 운영 부적합] 수준으로 판단됩니다. API·web·desktop·Vault는 상당히 전진했고, signed session과 no-token 401, Vault 문서 영속 표본은 직접 확인됐다. 그러나 root/API test가 green이 아니고, 신규 Matter opening 표본이 validation block으로 중단되며, SSO/SCIM/seat billing/SOC2 준비도와 외부 provider roundtrip이 미확인이다.

@@ -1,0 +1,60 @@
+{
+  "schema_version": "law-firm-os.cti.s0-receipt.v0.2",
+  "generated_at": "2026-07-06T02:31:07.212Z",
+  "goal_id": "cti-g0-s0",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "approval_signature_ref": "I4-CTI-G0-S0-OWNER-RATIFICATION-2026-07-06",
+  "cti_item": "S0-T03",
+  "launch_tuw": "LT-PRE-W08-T04",
+  "status": "completed",
+  "pii_boundary": {
+    "plaintext_client_or_matter_names_written": false,
+    "phone_or_email_pii_written": false,
+    "credential_material_written": false,
+    "token_material_written": false
+  },
+  "execution_boundary": {
+    "production_credentials_used": true,
+    "real_data_contact_performed": true,
+    "product_state_write_performed": true,
+    "migration_executed": false,
+    "cutover_executed": false,
+    "password_distribution_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "marker_approval_ref": "cti-probe-markers",
+  "sequence": {
+    "s0_t04_completed_first": true,
+    "s0_t04_snapshot_sha256": "c98b45752806109a644b82fbb958912821bfae5aaab58aaff36b138908b209ea"
+  },
+  "permission_audit_impact": {
+    "noop_environment_update_performed": true,
+    "lambda_configuration_write_performed": true,
+    "environment_values_recorded_in_repo": false,
+    "token_or_secret_values_recorded_in_repo": false,
+    "migration_or_cutover_write": false
+  },
+  "cold_start_probe": {
+    "status": "completed",
+    "marker_tenant_id": "tenant_rp05_synthetic",
+    "marker_matter_hash": "7489b5f9452b0c8b1476dae7c69e2ef6e7f3d6664f5f7ba5bac90a2744d2db02",
+    "marker_candidate_match": true,
+    "marker_write_status": 200,
+    "marker_before_cold_start_found": true,
+    "marker_before_cold_start_count": 1,
+    "noop_environment_update": {
+      "performed": true,
+      "function_name": "matter-lawos-api-prod",
+      "last_update_status": "InProgress",
+      "revision_id": "e9123cef-e17a-4a80-b5fc-c48e5b8fe89e",
+      "last_modified": "2026-07-06T02:31:09.000+0000",
+      "secret_material_written_to_repo": false,
+      "temp_cli_input_removed": true
+    },
+    "marker_after_cold_start_found": false,
+    "marker_after_cold_start_count": 0,
+    "persistence_verdict": "marker_lost_after_cold_start",
+    "product_state_write_performed": true
+  }
+}

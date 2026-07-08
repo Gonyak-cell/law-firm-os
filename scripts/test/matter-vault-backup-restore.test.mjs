@@ -5,6 +5,9 @@ import { join } from "node:path";
 import test from "node:test";
 import {
   MATTER_VAULT_RUNTIME_BACKUP_MANIFEST_FILE,
+  MATTER_VAULT_RUNTIME_BACKUP_RESTORE_DRILL_SCHEMA_VERSION_V0_2,
+  MATTER_VAULT_RUNTIME_BACKUP_SCHEMA_VERSION_V0_2,
+  MATTER_VAULT_RUNTIME_RESTORE_SCHEMA_VERSION_V0_2,
   MATTER_VAULT_RUNTIME_STORE_FILES,
   createMatterVaultRuntimeBackup,
   restoreMatterVaultRuntimeBackup,
@@ -106,12 +109,49 @@ test("Matter-Vault backup/restore drill writes a synthetic-only receipt", async 
   assert.equal(receipt.synthetic_only, true);
   assert.equal(receipt.production_ready_claim, false);
   assert.equal(receipt.go_live_claim, false);
-  assert.equal(receipt.backup.backup_file_count, 5);
+  assert.equal(receipt.backup.backup_file_count, 6);
   assert.equal(receipt.backup.backup_includes_dms_object_store, true);
-  assert.equal(receipt.restore.restored_file_count, 5);
+  assert.equal(receipt.restore.restored_file_count, 6);
   assert.equal(receipt.restore.checksum_mismatch_count, 0);
 
   const persisted = JSON.parse(await readFile(receiptPath, "utf8"));
   assert.equal(persisted.receipt_type, "matter_vault_runtime_backup_restore_drill");
   assert.equal(persisted.restore.rto_seconds_measured >= 0, true);
+});
+
+test("Matter-Vault backup/restore drill v0.2 records real_client_data_used for isolated runtime-store rehearsal", async () => {
+  const root = await tempRoot();
+  const storeDir = join(root, "runtime-stores");
+  const backupRoot = join(root, "backups");
+  const restoreDir = join(root, "restore-rehearsals", "s1");
+  const receiptPath = join(root, "s1-runtime-backup-restore-receipt.json");
+
+  await mkdir(storeDir, { recursive: true });
+  await writeFile(join(storeDir, "matter-store.json"), "{\"records\":[{\"matter_id\":\"matter_hash_only\"}]}\n", "utf8");
+  await writeFile(join(storeDir, "security-audit-events.ndjson"), "{\"audit_event_id\":\"security_audit_hash_only\",\"action\":\"s1.rehearsal\"}\n", "utf8");
+
+  const receipt = await runMatterVaultBackupRestoreDrill({
+    storeDir,
+    backupRoot,
+    restoreDir,
+    receiptPath,
+    realClientDataUsed: true,
+  });
+
+  assert.equal(receipt.schema_version, MATTER_VAULT_RUNTIME_BACKUP_RESTORE_DRILL_SCHEMA_VERSION_V0_2);
+  assert.equal(receipt.outcome, "passed");
+  assert.equal(receipt.synthetic_only, false);
+  assert.equal(receipt.real_client_data_used, true);
+  assert.equal(receipt.production_ready_claim, false);
+  assert.equal(receipt.go_live_claim, false);
+  assert.equal(receipt.production_restore_executed, false);
+  assert.equal(receipt.backup.schema_version, MATTER_VAULT_RUNTIME_BACKUP_SCHEMA_VERSION_V0_2);
+  assert.equal(receipt.backup.real_client_data_used, true);
+  assert.equal(receipt.restore.schema_version, MATTER_VAULT_RUNTIME_RESTORE_SCHEMA_VERSION_V0_2);
+  assert.equal(receipt.restore.real_client_data_used, true);
+  assert.equal(receipt.restore.restore_dir, restoreDir);
+  assert.equal(receipt.restore.checksum_mismatch_count, 0);
+
+  const persisted = JSON.parse(await readFile(receiptPath, "utf8"));
+  assert.equal(persisted.schema_version, MATTER_VAULT_RUNTIME_BACKUP_RESTORE_DRILL_SCHEMA_VERSION_V0_2);
 });

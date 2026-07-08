@@ -1,0 +1,41 @@
+{
+  "schema_version": "lawos.amic_current.production_bridge_upsert.v0.2",
+  "generated_at": "2026-07-06T05:07:16.598Z",
+  "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+  "tenant_id": "tenant_amic_matter_vault",
+  "verdict": "PASS",
+  "dry_run": true,
+  "execute_env_required": "LAWOS_CURRENT_MATTER_CODE_BRIDGE_EXECUTE=true",
+  "source_schema_version": "lawos.amic_matter_codes.v1",
+  "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+  "approval_ref": "amic-current-matter-codes-production-bridge-2026-07-01",
+  "secret_value_recorded": false,
+  "client_upserts": {
+    "total": 99,
+    "actions": {
+      "dry_run_only": 99
+    },
+    "failed": []
+  },
+  "matter_upserts": {
+    "total": 148,
+    "actions": {
+      "dry_run_only": 148
+    },
+    "failed": []
+  },
+  "readback": {
+    "matter_count": 0,
+    "required_codes": [],
+    "short_axis_count": 0
+  },
+  "boundary": {
+    "remote_production_bridge_write_executed": false,
+    "real_client_matter_code_inventory_used": true,
+    "raw_document_content_used": false,
+    "vault_document_write_enabled": false,
+    "public_release_claim": false,
+    "company_wide_go_live_claim": false,
+    "production_ready_claim": false
+  }
+}

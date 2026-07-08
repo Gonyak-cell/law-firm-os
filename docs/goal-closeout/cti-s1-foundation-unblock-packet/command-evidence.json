@@ -1,0 +1,72 @@
+{
+  "goal_id": "cti-s1-foundation-unblock-packet",
+  "created_at": "2026-07-06T02:50:59Z",
+  "status": "owner_approved_for_s1_execute",
+  "commands": [
+    {
+      "id": "s1-unblock-anchor-sha256",
+      "command": "shasum -a 256 workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md docs/launch/cti-s1-foundation-blocker-register-2026-07-06.md docs/launch/cti-s1-foundation-aws-inventory-2026-07-06.json docs/goal-closeout/cti-s1-foundation/packet.json apps/api/src/store-path-manifest.js scripts/drill-matter-vault-backup-restore.mjs",
+      "exit_code": 0,
+      "summary": "Captured SHA256 anchors for the governing plan, S1 blocker register, S1 AWS inventory, S1 blocked packet, current store path manifest, and current backup/restore drill."
+    },
+    {
+      "id": "store-path-manifest-read",
+      "command": "node -e 'import {STORE_PATH_MANIFEST} from \"./apps/api/src/store-path-manifest.js\"; console.log(JSON.stringify(STORE_PATH_MANIFEST.map(e=>({key:e.key,env:e.env,fileName:e.fileName,bounded_context:e.bounded_context})),null,2))'",
+      "exit_code": 0,
+      "summary": "Confirmed 13 required STORE_PATH manifest entries for the unblock mapping."
+    }
+  ],
+  "commands_not_run": [
+    "aws efs create-file-system",
+    "aws efs create-access-point",
+    "aws efs create-mount-target",
+    "aws lambda update-function-configuration",
+    "aws secretsmanager get-secret-value",
+    "production store migration",
+    "restore rehearsal",
+    "S2-S6",
+    "CUTOVER",
+    "password issuance",
+    "OIDC",
+    "DB conversion",
+    "production_ready or go-live claim"
+  ],
+  "final_validation": [
+    {
+      "id": "cti-s1-unblock-validator-syntax",
+      "command": "node --check scripts/validate-cti-s1-unblock-packet-closeout.mjs",
+      "exit_code": 0,
+      "summary": "S1 unblock packet validator syntax check passed."
+    },
+    {
+      "id": "cti-s1-unblock-packet-closeout-validate",
+      "command": "node scripts/validate-cti-s1-unblock-packet-closeout.mjs",
+      "exit_code": 0,
+      "summary": "PASS. closeout_verdict=OWNER_APPROVED_FOR_S1_EXECUTE, required_approval_ref=I5-CTI-S1-FOUNDATION-UNBLOCK-PACKET-OWNER-APPROVAL-2026-07-06, store_path_mappings=13, s1_execute_authorized=true, production_write_executed=false."
+    },
+    {
+      "id": "launch-tuw-ledger-validate-after-s1-unblock",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "PASS. TUW total 359, WP total 75, PRE phase total 29, violations 0."
+    },
+    {
+      "id": "cti-s1-unblock-json-parse-check",
+      "command": "jq empty docs/launch/cti-s1-foundation-unblock-crosswalk-2026-07-06.json docs/goal-closeout/cti-s1-foundation-unblock-packet/packet.json docs/goal-closeout/cti-s1-foundation-unblock-packet/command-evidence.json docs/goal-closeout/cti-s1-foundation-unblock-packet/construction-inspection.json docs/goal-closeout/cti-s1-foundation-unblock-packet/claude-review-result.json workbook/launch-tuw/launch-tuw-ledger.json",
+      "exit_code": 0,
+      "summary": "All S1 unblock packet JSON artifacts and launch-TUW ledger parse successfully."
+    },
+    {
+      "id": "cti-s1-unblock-secret-pattern-scan",
+      "command": "rg -n <secret-pattern-bundle> docs/launch/cti-s1-foundation-unblock-packet-2026-07-06.md docs/launch/cti-s1-foundation-unblock-crosswalk-2026-07-06.json docs/launch/cti-s1-foundation-unblock-crosswalk-2026-07-06.md docs/goal-closeout/cti-s1-foundation-unblock-packet scripts/validate-cti-s1-unblock-packet-closeout.mjs",
+      "exit_code": 1,
+      "summary": "No AWS key, session token, bearer token, lawos session token, raw secret field, or bridge-token value assignment patterns were found. Exit 1 is the expected rg no-match result."
+    },
+    {
+      "id": "git-diff-check-s1-unblock",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "Whitespace/error check passed."
+    }
+  ]
+}

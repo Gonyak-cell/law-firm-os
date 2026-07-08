@@ -1,0 +1,359 @@
+{
+  "verdict": "PASS",
+  "app": "/Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "screenshots": {
+    "aMark": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-refined-a-mark-2026-07-07.png",
+    "wordmark": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-refined-wordmark-2026-07-07.png",
+    "settled": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-refined-settled-2026-07-07.png",
+    "final": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-refined-final-2026-07-07.png"
+  },
+  "checks": {
+    "durationIsSlower": true,
+    "aMarkVisible": true,
+    "wordmarkVisibleWithoutA": true,
+    "dynamicHandoffVarsApplied": true,
+    "settledPositionMatchesFinalLogo": true,
+    "finalForestReady": true,
+    "noUnexpectedOverflow": true,
+    "loginWasNotSubmitted": true
+  },
+  "states": {
+    "aMark": {
+      "logoIntro": "play",
+      "introLayer": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "grid",
+        "transform": "none",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 768
+        }
+      },
+      "introA": {
+        "opacity": 0.991265,
+        "visibility": "visible",
+        "display": "block",
+        "transform": "matrix(0.997903, 0, 0, 0.997903, -28, -32.375)",
+        "rect": {
+          "x": 612.0587158203125,
+          "y": 351.69287109375,
+          "width": 55.882568359375,
+          "height": 64.6142578125
+        }
+      },
+      "introLogo": {
+        "opacity": 0,
+        "visibility": "visible",
+        "display": "block",
+        "transform": "matrix(0.98, 0, 0, 0.98, -92, -17.5977)",
+        "rect": {
+          "x": 550.2000122070312,
+          "y": 366.7543029785156,
+          "width": 215.5999755859375,
+          "height": 34.49139404296875
+        }
+      },
+      "finalLogo": {
+        "opacity": 0,
+        "visibility": "visible",
+        "display": "flex",
+        "transform": "matrix(1, 0, 0, 1, 0, 10)",
+        "rect": {
+          "x": 885.296875,
+          "y": 129.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "finalLogoImage": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "transform": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 129.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "naturalTarget": {
+        "x": 885.296875,
+        "y": 119.8515625,
+        "width": 175,
+        "height": 28
+      },
+      "computedVars": {
+        "dx": "332.797px",
+        "dy": "-250.148px",
+        "scale": "0.7955"
+      },
+      "handoffDelta": {
+        "centerX": 314.796875,
+        "centerY": 250.1484375,
+        "width": 40.5999755859375,
+        "height": 6.49139404296875
+      },
+      "loginResultText": "",
+      "emailValue": "",
+      "passwordValue": "",
+      "hasOverflow": false
+    },
+    "wordmark": {
+      "logoIntro": "play",
+      "introLayer": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "grid",
+        "transform": "none",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 768
+        }
+      },
+      "introA": {
+        "opacity": 0,
+        "visibility": "visible",
+        "display": "block",
+        "transform": "matrix(0.92, 0, 0, 0.92, -110, -32.375)",
+        "rect": {
+          "x": 532.239990234375,
+          "y": 354.2149963378906,
+          "width": 51.52001953125,
+          "height": 59.57000732421875
+        }
+      },
+      "introLogo": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "transform": "matrix(1, 0, 0, 1, -110, -17.5977)",
+        "rect": {
+          "x": 530,
+          "y": 366.40234375,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "finalLogo": {
+        "opacity": 0,
+        "visibility": "visible",
+        "display": "flex",
+        "transform": "matrix(1, 0, 0, 1, 0, 10)",
+        "rect": {
+          "x": 885.296875,
+          "y": 129.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "finalLogoImage": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "transform": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 129.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "naturalTarget": {
+        "x": 885.296875,
+        "y": 119.8515625,
+        "width": 175,
+        "height": 28
+      },
+      "computedVars": {
+        "dx": "332.797px",
+        "dy": "-250.148px",
+        "scale": "0.7955"
+      },
+      "handoffDelta": {
+        "centerX": 332.796875,
+        "centerY": 250.1484375,
+        "width": 45,
+        "height": 7.1953125
+      },
+      "loginResultText": "",
+      "emailValue": "",
+      "passwordValue": "",
+      "hasOverflow": false
+    },
+    "settled": {
+      "logoIntro": "play",
+      "introLayer": {
+        "opacity": 0.0442805,
+        "visibility": "visible",
+        "display": "grid",
+        "transform": "none",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 768
+        }
+      },
+      "introA": {
+        "opacity": 0,
+        "visibility": "visible",
+        "display": "block",
+        "transform": "matrix(0.92, 0, 0, 0.92, -110, -32.375)",
+        "rect": {
+          "x": 532.239990234375,
+          "y": 354.2149963378906,
+          "width": 51.52001953125,
+          "height": 59.57000732421875
+        }
+      },
+      "introLogo": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "transform": "matrix(0.7955, 0, 0, 0.7955, 222.797, -267.746)",
+        "rect": {
+          "x": 885.2919921875,
+          "y": 119.85305786132812,
+          "width": 175.010009765625,
+          "height": 27.99786376953125
+        }
+      },
+      "finalLogo": {
+        "opacity": 0,
+        "visibility": "visible",
+        "display": "flex",
+        "transform": "matrix(1, 0, 0, 1, 0, 10)",
+        "rect": {
+          "x": 885.296875,
+          "y": 129.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "finalLogoImage": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "transform": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 129.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "naturalTarget": {
+        "x": 885.296875,
+        "y": 119.8515625,
+        "width": 175,
+        "height": 28
+      },
+      "computedVars": {
+        "dx": "332.797px",
+        "dy": "-250.148px",
+        "scale": "0.7955"
+      },
+      "handoffDelta": {
+        "centerX": 0.0001220703125,
+        "centerY": 0.00042724609375,
+        "width": 0.010009765625,
+        "height": 0.00213623046875
+      },
+      "loginResultText": "",
+      "emailValue": "",
+      "passwordValue": "",
+      "hasOverflow": false
+    },
+    "final": {
+      "logoIntro": "complete",
+      "introLayer": {
+        "opacity": 0,
+        "visibility": "hidden",
+        "display": "grid",
+        "transform": "none",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 768
+        }
+      },
+      "introA": {
+        "opacity": 0.96,
+        "visibility": "hidden",
+        "display": "block",
+        "transform": "matrix(1, 0, 0, 1, -28, -32.375)",
+        "rect": {
+          "x": 612,
+          "y": 351.625,
+          "width": 56,
+          "height": 64.75
+        }
+      },
+      "introLogo": {
+        "opacity": 0,
+        "visibility": "hidden",
+        "display": "block",
+        "transform": "matrix(1, 0, 0, 1, -110, -17.5977)",
+        "rect": {
+          "x": 530,
+          "y": 366.40234375,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "finalLogo": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "flex",
+        "transform": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 119.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "finalLogoImage": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "transform": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 119.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "naturalTarget": {
+        "x": 885.296875,
+        "y": 119.8515625,
+        "width": 175,
+        "height": 28
+      },
+      "computedVars": {
+        "dx": "332.797px",
+        "dy": "-250.148px",
+        "scale": "0.7955"
+      },
+      "handoffDelta": {
+        "centerX": 332.796875,
+        "centerY": 250.1484375,
+        "width": 45,
+        "height": 7.1953125
+      },
+      "loginResultText": "",
+      "emailValue": "",
+      "passwordValue": "",
+      "hasOverflow": false
+    }
+  },
+  "note": "QA launched fresh packaged app instances for each timing frame, measured the settled moving AMIC Law logo against the final login logo, and did not submit login credentials."
+}

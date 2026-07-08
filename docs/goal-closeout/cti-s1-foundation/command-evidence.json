@@ -1,0 +1,155 @@
+{
+  "goal_id": "cti-s1-foundation",
+  "created_at": "2026-07-06T02:40:01Z",
+  "status": "blocked_s1_stop_condition",
+  "commands": [
+    {
+      "id": "aws-sts-readonly-s1",
+      "command": "aws sts get-caller-identity --profile matter-prod-deploy-admin --no-cli-pager --output json",
+      "exit_code": 0,
+      "summary": "Confirmed production credential access through account 770880870480 assumed role matter-prod-deploy-admin. No credential material recorded."
+    },
+    {
+      "id": "aws-lambda-config-masked-s1",
+      "command": "aws lambda get-function-configuration --function-name matter-lawos-api-prod --profile matter-prod-deploy-admin --region ap-northeast-2 --query '{FunctionName:FunctionName,Runtime:Runtime,Handler:Handler,LastModified:LastModified,RevisionId:RevisionId,EnvironmentKeys:keys(Environment.Variables),FileSystemConfigs:FileSystemConfigs,VpcConfig:VpcConfig,State:State,LastUpdateStatus:LastUpdateStatus}' --output json --no-cli-pager",
+      "exit_code": 0,
+      "summary": "PASS. Handler apps/api/src/lambda.handler, runtime nodejs22.x, env keys count 3, required STORE_PATH env count 0, FileSystemConfigs null, VpcConfig null; env values and token material not printed."
+    },
+    {
+      "id": "aws-efs-file-systems-s1",
+      "command": "aws efs describe-file-systems --profile matter-prod-deploy-admin --region ap-northeast-2 --query 'FileSystems[].{FileSystemId:FileSystemId,Name:Name,LifeCycleState:LifeCycleState,Encrypted:Encrypted,PerformanceMode:PerformanceMode,ThroughputMode:ThroughputMode,Tags:Tags}' --output json --no-cli-pager",
+      "exit_code": 0,
+      "summary": "PASS. Returned an empty list; no EFS file system exists in ap-northeast-2 for this account/profile."
+    },
+    {
+      "id": "aws-efs-access-points-s1",
+      "command": "aws efs describe-access-points --profile matter-prod-deploy-admin --region ap-northeast-2 --query 'AccessPoints[].{AccessPointId:AccessPointId,FileSystemId:FileSystemId,LifeCycleState:LifeCycleState,Name:Name,Tags:Tags}' --output json --no-cli-pager",
+      "exit_code": 0,
+      "summary": "PASS. Returned an empty list; no EFS access point exists."
+    },
+    {
+      "id": "aws-prod-vpc-s1",
+      "command": "aws ec2 describe-vpcs --profile matter-prod-deploy-admin --region ap-northeast-2 --filters Name=tag:Name,Values=amic-vault-prod-vpc --query 'Vpcs[].{VpcId:VpcId,CidrBlock:CidrBlock,State:State,Tags:Tags}' --output json --no-cli-pager",
+      "exit_code": 0,
+      "summary": "PASS. Prod VPC vpc-038f70d924a774bea exists and is available."
+    },
+    {
+      "id": "aws-prod-subnets-s1",
+      "command": "aws ec2 describe-subnets --profile matter-prod-deploy-admin --region ap-northeast-2 --filters Name=vpc-id,Values=vpc-038f70d924a774bea --query 'Subnets[].{SubnetId:SubnetId,AvailabilityZone:AvailabilityZone,CidrBlock:CidrBlock,MapPublicIpOnLaunch:MapPublicIpOnLaunch,Tags:Tags}' --output json --no-cli-pager",
+      "exit_code": 0,
+      "summary": "PASS. Two prod public subnets were observed: ap-northeast-2a and ap-northeast-2b."
+    },
+    {
+      "id": "aws-prod-security-groups-s1",
+      "command": "aws ec2 describe-security-groups --profile matter-prod-deploy-admin --region ap-northeast-2 --filters Name=vpc-id,Values=vpc-038f70d924a774bea --query 'SecurityGroups[].{GroupId:GroupId,GroupName:GroupName,Description:Description,Tags:Tags}' --output json --no-cli-pager",
+      "exit_code": 0,
+      "summary": "PASS. Default, ECS, ALB, and RDS security groups exist; no Lambda/EFS security group was selected for S1."
+    },
+    {
+      "id": "aws-session-signing-secret-inventory-s1",
+      "command": "aws secretsmanager list-secrets --profile matter-prod-deploy-admin --region ap-northeast-2 --query 'SecretList[?Name==`/amic-vault/prod/api/session-signing`].{Name:Name,ARN:ARN,LastChangedDate:LastChangedDate}' --output json --no-cli-pager",
+      "exit_code": 0,
+      "summary": "PASS. Session-signing secret exists; secret value was not fetched."
+    },
+    {
+      "id": "repo-audit-store-gap-s1",
+      "command": "rg -n \"LAWOS_AUDIT_STORE_PATH|securityAuditEvents|recordSecurityAuditEvent|audit\" apps/api/src/session-auth.js apps/api/src/store-path-manifest.js docs/runbooks/store-env-catalog.md",
+      "exit_code": 0,
+      "summary": "Confirmed LAWOS_AUDIT_STORE_PATH is absent while session-auth keeps securityAuditEvents in memory."
+    },
+    {
+      "id": "repo-session-secret-gap-s1",
+      "command": "rg -n \"LAWOS_API_SESSION_SECRET|SecretsManager|session-signing|resolveSessionSecret\" apps/api/src docs/runbooks scripts",
+      "exit_code": 0,
+      "summary": "Confirmed runtime resolves LAWOS_API_SESSION_SECRET from env/explicit secret only; no Secrets Manager session-secret fetch path is present."
+    },
+    {
+      "id": "repo-restore-schema-gap-s1",
+      "command": "rg -n \"synthetic_only|real_client_data_used|restore|backup_root|MATTER_VAULT_BACKUP_ROOT\" scripts/drill-matter-vault-backup-restore.mjs docs/runbooks/store-env-catalog.md",
+      "exit_code": 0,
+      "summary": "Confirmed current backup/restore drill emits synthetic_only true and refuses non-synthetic backup claims."
+    },
+    {
+      "id": "cti-s1-anchor-sha256",
+      "command": "shasum -a 256 contracts/production-data-policy-contract.json workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md docs/goal-closeout/cti-g0-s0/packet.json docs/launch/cti-s0-t01-lambda-config-receipt-2026-07-06.json docs/launch/cti-s0-t03-coldstart-probe-receipt-2026-07-06.json docs/launch/cti-s0-t04-store-readback-snapshot-receipt-2026-07-06.json docs/launch/cti-s1-branch-assessment-2026-07-06.json",
+      "exit_code": 0,
+      "summary": "Captured SHA256 anchors for governing contract, CTI plan, G0/S0 packet, S0-T01, S0-T03, S0-T04, and S1 branch assessment."
+    }
+  ],
+  "commands_not_run": [
+    {
+      "command": "aws efs create-file-system",
+      "reason": "No owner-approved S1 durable target packet existed; stop condition forbids infra write."
+    },
+    {
+      "command": "aws efs create-access-point",
+      "reason": "No EFS file system or access point design existed."
+    },
+    {
+      "command": "aws efs create-mount-target",
+      "reason": "No EFS file system, Lambda VPC config, or selected Lambda/EFS security group existed."
+    },
+    {
+      "command": "aws lambda update-function-configuration for EFS or STORE_PATH env wiring",
+      "reason": "Would be S1 production infra/config write before durable target, audit path, and rollback path are defined."
+    },
+    {
+      "command": "aws secretsmanager get-secret-value /amic-vault/prod/api/session-signing",
+      "reason": "Inventory required existence only; secret value was not needed and was not fetched."
+    },
+    {
+      "command": "production store migration or restore rehearsal",
+      "reason": "No durable target or real-data-safe restore schema existed."
+    }
+  ],
+  "out_of_scope_commands_not_run": [
+    "S2 implementation",
+    "S3 migration",
+    "S4 account injection",
+    "desktop v0.1.10",
+    "CUTOVER",
+    "account password generation or distribution",
+    "S5/S6",
+    "Entra ID/OIDC",
+    "DB conversion",
+    "production_ready or go-live claim"
+  ],
+  "final_validation": [
+    {
+      "id": "cti-s1-validator-syntax",
+      "command": "node --check scripts/validate-cti-s1-foundation-closeout.mjs",
+      "exit_code": 0,
+      "summary": "S1 closeout validator syntax check passed."
+    },
+    {
+      "id": "cti-s1-foundation-closeout-validate",
+      "command": "node scripts/validate-cti-s1-foundation-closeout.mjs",
+      "exit_code": 0,
+      "summary": "PASS. closeout_verdict=BLOCKED_S1_STOP_CONDITION, blockers=5, s1_tuws=5, infrastructure_write_performed=false, migration_executed=false, production_ready_claim=false."
+    },
+    {
+      "id": "launch-tuw-ledger-validate-after-s1",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "PASS. TUW total 354, WP total 74, PRE phase total 24, violations 0."
+    },
+    {
+      "id": "cti-s1-json-parse-check",
+      "command": "jq empty docs/launch/cti-s1-foundation-aws-inventory-2026-07-06.json docs/launch/cti-s1-tuw-crosswalk-2026-07-06.json docs/goal-closeout/cti-s1-foundation/packet.json docs/goal-closeout/cti-s1-foundation/command-evidence.json docs/goal-closeout/cti-s1-foundation/construction-inspection.json docs/goal-closeout/cti-s1-foundation/claude-review-result.json workbook/launch-tuw/launch-tuw-ledger.json",
+      "exit_code": 0,
+      "summary": "All S1 JSON closeout artifacts and launch-TUW ledger parse successfully."
+    },
+    {
+      "id": "cti-s1-secret-pattern-scan",
+      "command": "rg -n <secret-pattern-bundle> docs/goal-closeout/cti-s1-foundation docs/launch/cti-s1-foundation-aws-inventory-2026-07-06.json docs/launch/cti-s1-foundation-blocker-register-2026-07-06.md docs/launch/cti-s1-tuw-crosswalk-2026-07-06.json docs/launch/cti-s1-tuw-crosswalk-2026-07-06.md scripts/validate-cti-s1-foundation-closeout.mjs",
+      "exit_code": 1,
+      "summary": "No AWS key, session token, bearer token, lawos session token, secret-value field, or bridge-token value assignment patterns were found. Exit 1 is the expected rg no-match result."
+    },
+    {
+      "id": "git-diff-check-s1",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "Whitespace/error check passed."
+    }
+  ]
+}

@@ -138,6 +138,30 @@ test("runtime client supports password reset and password login without operator
   assert.equal(latest.token_material_returned, false);
 });
 
+test("runtime client uses desktop auth endpoints when operator credential is configured", async () => {
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "https://example.execute-api.ap-northeast-2.amazonaws.com/staging",
+    operatorToken: "runtime-secret",
+    fetchImpl: async (url, init) => {
+      calls.push({ url: url.toString(), init });
+      return jsonResponse(200, { ok: true, email_message: { to: "jwsuh@amic.kr" }, token_material_returned: false });
+    }
+  });
+
+  await client.requestPasswordReset({ email: "jwsuh@amic.kr" });
+  await client.latestResetEmail({ email: "jwsuh@amic.kr" });
+  await client.confirmPasswordReset({ token: "reset-token-from-email-link", password: "new-password" });
+  await client.login({ email: "jwsuh@amic.kr", password: "new-password" });
+
+  assert.equal(calls[0].url.endsWith("/api/desktop/password-reset/request"), true);
+  assert.equal(calls[1].url.endsWith("/api/desktop/password-reset/latest-email"), true);
+  assert.equal(calls[2].url.endsWith("/api/desktop/password-reset/confirm"), true);
+  assert.equal(calls[3].url.endsWith("/api/desktop/login"), true);
+  assert.equal(calls.every((call) => call.init.headers.authorization === "Bearer runtime-secret"), true);
+  assert.equal(JSON.stringify(calls).includes("runtime-secret"), true);
+});
+
 test("runtime client wraps reset confirm transport and non-json failures without secret material", async () => {
   const transportClient = createMatterVaultAwsRuntimeClient({
     baseUrl: "https://example.execute-api.ap-northeast-2.amazonaws.com/staging",

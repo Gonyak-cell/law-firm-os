@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.command-evidence.v0.1",
+  "goal_id": "cti-cutover-execute",
+  "recorded_at": "2026-07-06T09:36:08.376Z",
+  "decision": "PASS",
+  "commands": [
+    {
+      "command": "aws sts get-caller-identity",
+      "exit_code": 0,
+      "summary": "Matter production deploy role chain verified."
+    },
+    {
+      "command": "aws lambda update-function-code",
+      "exit_code": 0,
+      "summary": "Deployed CUTOVER retry maintenance action; CodeSha256=hlYswUiT1g89MsKaQFGigwJwr65LyVsiUghglZAh8Ng=."
+    },
+    {
+      "command": "aws lambda update-function-configuration bridge token rotation/control",
+      "exit_code": 0,
+      "summary": "Bridge token rotated, bridge disabled/window closed, canonical tenant allow-list and service actor applied; token value not recorded."
+    },
+    {
+      "command": "aws lambda invoke cti_cutover_execute_retry",
+      "exit_code": 0,
+      "summary": "Lambda maintenance action returned PASS."
+    },
+    {
+      "command": "real login/session validation for generated production credentials",
+      "exit_code": 0,
+      "summary": "production_login_pass=9/9; qa_rejected=2/2; synthetic_token_rejected=true."
+    }
+  ],
+  "private_handoff": {
+    "json_path_hash": "sha256:7fdcfb670e778972e1a5fffbcdfd831f3c2105b0a30627c2718137bbb1833c1f",
+    "csv_path_hash": "sha256:f9811788b372ff29d7391d7b02d2fc3486155e55ec459b316729610a99e12f08",
+    "json_sha256": "8d579999d4dc3a6cbd0cc3fe32578c11d7d3b1a0af06ca610b4c12be341bc50e",
+    "csv_sha256": "2fc80293802b116b068f48eb9c0bcf22427428adfb3e4138aedb1098ce4040dd",
+    "row_count": 9,
+    "reused_existing_private_handoff": true,
+    "plaintext_password_recorded_in_repo": false
+  },
+  "boundary": {
+    "public_http_endpoint": false,
+    "production_write_executed": true,
+    "production_restore_executed": false,
+    "operational_profile_switch_executed": true,
+    "tenant_migration_executed": true,
+    "account_permission_injection_executed": true,
+    "bridge_token_rotation_executed": true,
+    "password_issuance_distribution_executed": true,
+    "first_login_validation_executed": true,
+    "cut_g_validation_executed": true,
+    "cutover_executed": true,
+    "s5_enrichment_executed": false,
+    "s6_final_seal_executed": false,
+    "oidc_implementation_executed": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "plaintext_pii_recorded": false,
+    "credential_material_recorded": false,
+    "token_material_recorded": false
+  }
+}

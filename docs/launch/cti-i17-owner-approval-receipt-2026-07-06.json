@@ -1,0 +1,57 @@
+{
+  "schema_version": "law-firm-os.cti-owner-approval-receipt.v0.1",
+  "approval_id": "I17",
+  "approval_signature_ref": "I17-CTI-S1G-AUTHENTICATED-PRODUCTION-PROBE-OWNER-APPROVAL-2026-07-06",
+  "status": "approval_recorded_probe_preconditions_required",
+  "recorded_date": "2026-07-06",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "future_cti_binding": [
+    "S1-G authenticated marker/audit/readback probe",
+    "actual production principal/session model",
+    "PII-safe hash/count evidence",
+    "rollback/abort criteria failure handling"
+  ],
+  "approved_scope": [
+    "I8-scoped S1-G authenticated marker/audit/readback probe",
+    "real production principal/session model only",
+    "debug endpoint, direct token mint, temporary backdoor principal prohibited",
+    "secret value, token, and password output prohibited",
+    "PII-safe hash/count-centered evidence and receipt",
+    "abort/rollback criteria adjudication on failure"
+  ],
+  "conditions": {
+    "probe_only_before_cutover_execute": true,
+    "production_migration_write_allowed": false,
+    "tenant_migration_allowed": false,
+    "account_permission_injection_allowed": false,
+    "operational_profile_switch_allowed": false,
+    "bridge_token_rotation_allowed": false,
+    "password_issuance_distribution_allowed": false
+  },
+  "explicit_non_approval": {
+    "cutover": true,
+    "production_write_migration": true,
+    "production_restore": true,
+    "s3_s4_execution": true,
+    "s5_s6": true,
+    "oidc_implementation": true,
+    "db_conversion": true,
+    "production_ready_go_live_claim": true
+  },
+  "s1_g_authenticated_probe_executed_by_this_receipt": false,
+  "cutover_executed_by_this_receipt": false,
+  "production_write_executed_by_this_receipt": false,
+  "production_restore_executed_by_this_receipt": false,
+  "tenant_migration_executed": false,
+  "account_permission_injection_executed": false,
+  "operational_profile_switch_executed": false,
+  "bridge_token_rotation_executed": false,
+  "password_issuance_distribution_executed": false,
+  "secret_values_recorded": false,
+  "plaintext_pii_recorded": false,
+  "credential_material_recorded": false,
+  "token_material_recorded": false,
+  "password_material_recorded": false,
+  "production_ready_claim": false,
+  "go_live_claim": false
+}

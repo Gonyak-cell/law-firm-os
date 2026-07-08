@@ -1,0 +1,310 @@
+{
+  "verdict": "PASS",
+  "app": "/Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "screenshots": {
+    "aBirth": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-a-born-a-birth-2026-07-07.png",
+    "aHold": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-a-born-a-hold-2026-07-07.png",
+    "micReveal": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-a-born-mic-reveal-2026-07-07.png",
+    "settled": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-a-born-settled-2026-07-07.png",
+    "final": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-a-born-final-2026-07-07.png"
+  },
+  "checks": {
+    "aBirthHasGeneratedState": true,
+    "aHoldCenteredAndComplete": true,
+    "micRevealsAfterA": true,
+    "finalLogoFixed": true,
+    "settledPositionMatchesFinalLogo": true,
+    "emptyLoginFields": true,
+    "finalForestReady": true,
+    "noUnexpectedOverflow": true,
+    "loginWasNotSubmitted": true
+  },
+  "states": {
+    "aBirth": {
+      "logoIntro": "play",
+      "introA": {
+        "opacity": 0.764641,
+        "clipPath": "inset(45.7269% 9.41436% 0px)",
+        "transform": "matrix(0.973102, 0, 0, 0.973102, 0, 0)",
+        "animationName": "amicLawAIntro",
+        "rect": {
+          "x": 627.9588012695312,
+          "y": 366.4733581542969,
+          "width": 214.0823974609375,
+          "height": 34.248626708984375
+        }
+      },
+      "introMic": {
+        "opacity": 0,
+        "clipPath": "inset(0px 100% 0px 0px)",
+        "transform": "matrix(1, 0, 0, 1, -18, 0)",
+        "animationName": "amicLawMicIntro",
+        "rect": {
+          "x": 607,
+          "y": 366,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "finalLogo": {
+        "opacity": 1,
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 119.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "aCenter": {
+        "x": 640.2890571428571,
+        "y": 384
+      },
+      "viewportCenter": {
+        "x": 640,
+        "y": 384
+      },
+      "settledDelta": {
+        "centerX": 237.796875,
+        "centerY": 250.1484375
+      },
+      "emailValue": "",
+      "emailPlaceholder": null,
+      "passwordValue": "",
+      "passwordPlaceholder": null,
+      "loginResultText": "",
+      "hasOverflow": false
+    },
+    "aHold": {
+      "logoIntro": "play",
+      "introA": {
+        "opacity": 1,
+        "clipPath": "inset(0px)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "animationName": "amicLawAIntro",
+        "rect": {
+          "x": 625,
+          "y": 366,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "introMic": {
+        "opacity": 0,
+        "clipPath": "inset(0px 100% 0px 0px)",
+        "transform": "matrix(1, 0, 0, 1, -18, 0)",
+        "animationName": "amicLawMicIntro",
+        "rect": {
+          "x": 607,
+          "y": 366,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "finalLogo": {
+        "opacity": 1,
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 119.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "aCenter": {
+        "x": 640.2890571428571,
+        "y": 384
+      },
+      "viewportCenter": {
+        "x": 640,
+        "y": 384
+      },
+      "settledDelta": {
+        "centerX": 237.796875,
+        "centerY": 250.1484375
+      },
+      "emailValue": "",
+      "emailPlaceholder": null,
+      "passwordValue": "",
+      "passwordPlaceholder": null,
+      "loginResultText": "",
+      "hasOverflow": false
+    },
+    "micReveal": {
+      "logoIntro": "play",
+      "introA": {
+        "opacity": 1,
+        "clipPath": "inset(0px)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "animationName": "amicLawAIntro",
+        "rect": {
+          "x": 530.5023193359375,
+          "y": 366,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "introMic": {
+        "opacity": 0.919737,
+        "clipPath": "inset(0px 8.02626% 0px 0px)",
+        "transform": "matrix(1, 0, 0, 1, -1.44473, 0)",
+        "animationName": "amicLawMicIntro",
+        "rect": {
+          "x": 529.0576171875,
+          "y": 366,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "finalLogo": {
+        "opacity": 1,
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 119.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "aCenter": {
+        "x": 545.7913764787946,
+        "y": 384
+      },
+      "viewportCenter": {
+        "x": 640,
+        "y": 384
+      },
+      "settledDelta": {
+        "centerX": 332.2945556640625,
+        "centerY": 250.1484375
+      },
+      "emailValue": "",
+      "emailPlaceholder": null,
+      "passwordValue": "",
+      "passwordPlaceholder": null,
+      "loginResultText": "",
+      "hasOverflow": false
+    },
+    "settled": {
+      "logoIntro": "play",
+      "introA": {
+        "opacity": 1,
+        "clipPath": "inset(0px)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "animationName": "amicLawAIntro",
+        "rect": {
+          "x": 885.2919921875,
+          "y": 119.53302001953125,
+          "width": 175.010009765625,
+          "height": 27.99786376953125
+        }
+      },
+      "introMic": {
+        "opacity": 1,
+        "clipPath": "inset(0px)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "animationName": "amicLawMicIntro",
+        "rect": {
+          "x": 885.2919921875,
+          "y": 119.53302001953125,
+          "width": 175.010009765625,
+          "height": 27.99786376953125
+        }
+      },
+      "finalLogo": {
+        "opacity": 1,
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 119.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "aCenter": {
+        "x": 897.454437823312,
+        "y": 133.85202026367188
+      },
+      "viewportCenter": {
+        "x": 640,
+        "y": 384
+      },
+      "settledDelta": {
+        "centerX": 0.0001220703125,
+        "centerY": 0.000457763671875
+      },
+      "emailValue": "",
+      "emailPlaceholder": null,
+      "passwordValue": "",
+      "passwordPlaceholder": null,
+      "loginResultText": "",
+      "hasOverflow": false
+    },
+    "final": {
+      "logoIntro": "complete",
+      "introA": {
+        "opacity": 0,
+        "clipPath": "inset(100% 18% 0px)",
+        "transform": "matrix(0.94, 0, 0, 0.94, 0, 0)",
+        "animationName": "none",
+        "rect": {
+          "x": 631.5999755859375,
+          "y": 367.05584716796875,
+          "width": 206.800048828125,
+          "height": 33.0836181640625
+        }
+      },
+      "introMic": {
+        "opacity": 0,
+        "clipPath": "inset(0px 100% 0px 0px)",
+        "transform": "matrix(1, 0, 0, 1, -18, 0)",
+        "animationName": "none",
+        "rect": {
+          "x": 607,
+          "y": 366,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "finalLogo": {
+        "opacity": 1,
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 119.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "aCenter": {
+        "x": 640.2890571428571,
+        "y": 384
+      },
+      "viewportCenter": {
+        "x": 640,
+        "y": 384
+      },
+      "settledDelta": {
+        "centerX": 237.796875,
+        "centerY": 250.1484375
+      },
+      "emailValue": "",
+      "emailPlaceholder": null,
+      "passwordValue": "",
+      "passwordPlaceholder": null,
+      "loginResultText": "",
+      "hasOverflow": false
+    }
+  },
+  "note": "QA launched fresh packaged app instances, verified A generation animation, center hold, MIC Law reveal, fixed final logo, and empty login fields without submitting credentials."
+}

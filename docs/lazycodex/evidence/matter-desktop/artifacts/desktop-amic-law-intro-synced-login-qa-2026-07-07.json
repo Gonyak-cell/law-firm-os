@@ -1,0 +1,240 @@
+{
+  "schema_version": "lawos.desktop_amic_law_intro_synced_login_qa.v1",
+  "generated_at": "2026-07-07T09:06:54.933Z",
+  "verdict": "PASS",
+  "executablePath": "/Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "screenshots": {
+    "beforeDock": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-synced-login-before-dock-2026-07-07.png",
+    "dockSync": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-synced-login-dock-sync-2026-07-07.png",
+    "final": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-synced-login-final-2026-07-07.png"
+  },
+  "checks": {
+    "beforeDockLoginStillMostlyHidden": true,
+    "dockMatchesTarget": true,
+    "loginAppearsAtDock": true,
+    "loginDelaysSynced": true,
+    "finalLogoComplete": true,
+    "finalLoginVisible": true,
+    "emptyLoginFields": true,
+    "noDummyPlaceholders": true
+  },
+  "samples": {
+    "beforeDock": {
+      "elapsedMs": 2700,
+      "bodyLogoIntro": "play",
+      "logo": {
+        "rect": {
+          "left": 772.671142578125,
+          "top": 197.65841674804688,
+          "width": 189.27093505859375,
+          "height": 30.97161865234375,
+          "centerX": 867.3066101074219,
+          "centerY": 213.14422607421875
+        },
+        "style": {
+          "opacity": 1,
+          "transform": "matrix(0.860323, 0, 0, 0.860323, 117.307, -188.856)",
+          "visibility": "visible",
+          "animationDelay": "0s"
+        }
+      },
+      "target": {
+        "rect": {
+          "left": 885.296875,
+          "top": 119.8515625,
+          "width": 175,
+          "height": 28,
+          "centerX": 972.796875,
+          "centerY": 133.8515625
+        },
+        "style": {
+          "opacity": 1,
+          "transform": "none",
+          "visibility": "visible",
+          "animationDelay": "0s"
+        }
+      },
+      "photo": {
+        "opacity": 0,
+        "transform": "matrix(1.016, 0, 0, 1.016, 0, 0)",
+        "visibility": "visible",
+        "animationDelay": "2.78s"
+      },
+      "heading": {
+        "opacity": 0,
+        "transform": "matrix(1, 0, 0, 1, 0, 10)",
+        "visibility": "visible",
+        "animationDelay": "2.78s"
+      },
+      "firstField": {
+        "opacity": 0,
+        "transform": "matrix(1, 0, 0, 1, 0, 10)",
+        "visibility": "visible",
+        "animationDelay": "2.78s"
+      },
+      "options": {
+        "opacity": 0,
+        "transform": "matrix(1, 0, 0, 1, 0, 10)",
+        "visibility": "visible",
+        "animationDelay": "2.78s"
+      },
+      "actions": {
+        "opacity": 0,
+        "transform": "matrix(1, 0, 0, 1, 0, 10)",
+        "visibility": "visible",
+        "animationDelay": "2.78s"
+      },
+      "login": {
+        "emailValue": "",
+        "passwordValue": "",
+        "emailPlaceholder": null,
+        "passwordPlaceholder": null
+      }
+    },
+    "dockSync": {
+      "elapsedMs": 2840,
+      "bodyLogoIntro": "play",
+      "logo": {
+        "rect": {
+          "left": 885.2919921875,
+          "top": 119.53302001953125,
+          "width": 175.010009765625,
+          "height": 28.63800048828125,
+          "centerX": 972.7969970703125,
+          "centerY": 133.85202026367188
+        },
+        "style": {
+          "opacity": 1,
+          "transform": "matrix(0.7955, 0, 0, 0.7955, 222.797, -268.148)",
+          "visibility": "visible",
+          "animationDelay": "0s"
+        }
+      },
+      "target": {
+        "rect": {
+          "left": 885.296875,
+          "top": 119.8515625,
+          "width": 175,
+          "height": 28,
+          "centerX": 972.796875,
+          "centerY": 133.8515625
+        },
+        "style": {
+          "opacity": 1,
+          "transform": "none",
+          "visibility": "visible",
+          "animationDelay": "0s"
+        }
+      },
+      "photo": {
+        "opacity": 0.686097,
+        "transform": "matrix(1.00502, 0, 0, 1.00502, 0, 0)",
+        "visibility": "visible",
+        "animationDelay": "2.78s"
+      },
+      "heading": {
+        "opacity": 0.813981,
+        "transform": "matrix(1, 0, 0, 1, 0, 1.86019)",
+        "visibility": "visible",
+        "animationDelay": "2.78s"
+      },
+      "firstField": {
+        "opacity": 0.813981,
+        "transform": "matrix(1, 0, 0, 1, 0, 1.86019)",
+        "visibility": "visible",
+        "animationDelay": "2.78s"
+      },
+      "options": {
+        "opacity": 0.813981,
+        "transform": "matrix(1, 0, 0, 1, 0, 1.86019)",
+        "visibility": "visible",
+        "animationDelay": "2.78s"
+      },
+      "actions": {
+        "opacity": 0.813981,
+        "transform": "matrix(1, 0, 0, 1, 0, 1.86019)",
+        "visibility": "visible",
+        "animationDelay": "2.78s"
+      },
+      "login": {
+        "emailValue": "",
+        "passwordValue": "",
+        "emailPlaceholder": null,
+        "passwordPlaceholder": null
+      }
+    },
+    "final": {
+      "elapsedMs": 3720,
+      "bodyLogoIntro": "complete",
+      "logo": {
+        "rect": {
+          "left": 625,
+          "top": 366,
+          "width": 220,
+          "height": 36,
+          "centerX": 735,
+          "centerY": 384
+        },
+        "style": {
+          "opacity": 1,
+          "transform": "matrix(1, 0, 0, 1, -15, -18)",
+          "visibility": "hidden",
+          "animationDelay": "0s"
+        }
+      },
+      "target": {
+        "rect": {
+          "left": 885.296875,
+          "top": 119.8515625,
+          "width": 175,
+          "height": 28,
+          "centerX": 972.796875,
+          "centerY": 133.8515625
+        },
+        "style": {
+          "opacity": 1,
+          "transform": "none",
+          "visibility": "visible",
+          "animationDelay": "0s"
+        }
+      },
+      "photo": {
+        "opacity": 1,
+        "transform": "none",
+        "visibility": "visible",
+        "animationDelay": "0s"
+      },
+      "heading": {
+        "opacity": 1,
+        "transform": "none",
+        "visibility": "visible",
+        "animationDelay": "0s"
+      },
+      "firstField": {
+        "opacity": 1,
+        "transform": "none",
+        "visibility": "visible",
+        "animationDelay": "0s"
+      },
+      "options": {
+        "opacity": 1,
+        "transform": "none",
+        "visibility": "visible",
+        "animationDelay": "0s"
+      },
+      "actions": {
+        "opacity": 1,
+        "transform": "none",
+        "visibility": "visible",
+        "animationDelay": "0s"
+      },
+      "login": {
+        "emailValue": "",
+        "passwordValue": "",
+        "emailPlaceholder": null,
+        "passwordPlaceholder": null
+      }
+    }
+  },
+  "login_was_not_submitted": true
+}

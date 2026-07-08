@@ -1,0 +1,47 @@
+{
+  "schema_version": "law-firm-os.cti-owner-approval-receipt.v0.1",
+  "approval_id": "I13",
+  "approval_signature_ref": "I13-CTI-S6-SEAL-FINAL-VALIDATION-OWNER-APPROVAL-2026-07-06",
+  "status": "conditional_approval_recorded",
+  "recorded_date": "2026-07-06",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "future_cti_binding": [
+    "S6 SEAL and final validation after CUT-G PASS and S5-G PASS",
+    "S6-T01 through S6-T06 final seal",
+    "permanent validator and CI guard application",
+    "real_client_data_used additive transition validation",
+    "final evidence manifest generation",
+    "closeout 5-pack generation",
+    "production_ready/go-live claim eligibility determination"
+  ],
+  "effective_conditions": {
+    "cut_g_pass_required": true,
+    "s5_g_pass_required": true,
+    "launch_tuw_cti_crosswalk_validator_pass_required": true,
+    "pii_safe_evidence_manifest_pass_required": true
+  },
+  "approved_scope": [
+    "S6-T01 through S6-T06 final seal",
+    "permanent validator and CI guard application",
+    "real_client_data_used additive transition validation",
+    "final evidence manifest generation",
+    "closeout 5-pack generation",
+    "production_ready/go-live claim eligibility determination"
+  ],
+  "explicit_non_approval": {
+    "production_ready_go_live_claim_with_failed_validation": true,
+    "safety_gate_weakening": true,
+    "plaintext_pii_credential_token_commit": true
+  },
+  "s6_final_seal_executed_by_this_receipt": false,
+  "final_validation_executed_by_this_receipt": false,
+  "ci_guard_applied_by_this_receipt": false,
+  "closeout_pack_generated_by_this_receipt": false,
+  "production_ready_go_live_claim_evaluated_by_this_receipt": false,
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "safety_gate_weakened": false,
+  "plaintext_pii_recorded": false,
+  "credential_material_recorded": false,
+  "token_material_recorded": false
+}

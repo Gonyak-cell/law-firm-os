@@ -12,6 +12,10 @@ import {
 
 export const MATTER_VAULT_RUNTIME_BACKUP_SCHEMA_VERSION = "law-firm-os.matter-vault-runtime-backup.v0.1";
 export const MATTER_VAULT_RUNTIME_RESTORE_SCHEMA_VERSION = "law-firm-os.matter-vault-runtime-restore.v0.1";
+export const MATTER_VAULT_RUNTIME_BACKUP_SCHEMA_VERSION_V0_2 = "law-firm-os.matter-vault-runtime-backup.v0.2";
+export const MATTER_VAULT_RUNTIME_RESTORE_SCHEMA_VERSION_V0_2 = "law-firm-os.matter-vault-runtime-restore.v0.2";
+export const MATTER_VAULT_RUNTIME_BACKUP_RESTORE_DRILL_SCHEMA_VERSION = "law-firm-os.matter-vault-runtime-backup-restore-drill.v0.1";
+export const MATTER_VAULT_RUNTIME_BACKUP_RESTORE_DRILL_SCHEMA_VERSION_V0_2 = "law-firm-os.matter-vault-runtime-backup-restore-drill.v0.2";
 export const MATTER_VAULT_RUNTIME_BACKUP_MANIFEST_FILE = "lawos-runtime-store-backup-manifest.json";
 
 export const MATTER_VAULT_RUNTIME_STORE_FILES = Object.freeze(
@@ -47,6 +51,11 @@ function defaultRuntimeStoreDir() {
 
 function defaultBackupRoot() {
   return process.env.MATTER_VAULT_BACKUP_ROOT || resolve("artifacts/backups/matter-vault-runtime-stores");
+}
+
+function boolOption(value) {
+  if (value === true || value === "true" || value === "1" || value === "yes") return true;
+  return false;
 }
 
 function resolveInside(root, target) {
@@ -141,7 +150,8 @@ export async function createMatterVaultRuntimeBackup({
   backupRoot = defaultBackupRoot(),
   backupDir,
   now,
-  requireFiles = true
+  requireFiles = true,
+  realClientDataUsed = false
 } = {}) {
   const startedNs = process.hrtime.bigint();
   const generatedAt = toDate(now);
@@ -216,17 +226,21 @@ export async function createMatterVaultRuntimeBackup({
     throw new Error(`No runtime store files found under ${resolvedStoreDir}`);
   }
 
+  const containsRealClientData = Boolean(realClientDataUsed);
+  const backupSchemaVersion = containsRealClientData
+    ? MATTER_VAULT_RUNTIME_BACKUP_SCHEMA_VERSION_V0_2
+    : MATTER_VAULT_RUNTIME_BACKUP_SCHEMA_VERSION;
   const manifest = {
-    schema_version: MATTER_VAULT_RUNTIME_BACKUP_SCHEMA_VERSION,
+    schema_version: backupSchemaVersion,
     receipt_type: "matter_vault_runtime_store_backup",
     contract_ref: "UPL-A-09",
     daily_backup_job_contract_ref: "workbook/wave1-internal-uplift-tuw-backlog-2026-07-02.md#UPL-A-09",
     outcome: files.length > 0 ? "passed" : "empty",
-    synthetic_only: true,
+    synthetic_only: !containsRealClientData,
     production_ready_claim: false,
     go_live_claim: false,
     production_restore_executed: false,
-    real_client_data_used: false,
+    real_client_data_used: containsRealClientData,
     backup_created: files.length > 0,
     generated_at: generatedAt.toISOString(),
     store_dir: resolvedStoreDir,
@@ -258,11 +272,24 @@ export async function restoreMatterVaultRuntimeBackup({ backupDir, restoreDir, n
   const manifestPath = join(resolvedBackupDir, MATTER_VAULT_RUNTIME_BACKUP_MANIFEST_FILE);
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
 
-  if (manifest.schema_version !== MATTER_VAULT_RUNTIME_BACKUP_SCHEMA_VERSION) {
+  const backupSchemaAllowed = new Set([
+    MATTER_VAULT_RUNTIME_BACKUP_SCHEMA_VERSION,
+    MATTER_VAULT_RUNTIME_BACKUP_SCHEMA_VERSION_V0_2,
+  ]);
+  if (!backupSchemaAllowed.has(manifest.schema_version)) {
     throw new TypeError("invalid Matter-Vault runtime backup schema");
   }
-  if (manifest.synthetic_only !== true || manifest.production_ready_claim !== false || manifest.go_live_claim !== false) {
-    throw new Error("Matter-Vault runtime restore refuses non-synthetic backup claims");
+  if (manifest.production_ready_claim !== false || manifest.go_live_claim !== false || manifest.production_restore_executed !== false) {
+    throw new Error("Matter-Vault runtime restore refuses unsafe production/go-live claims");
+  }
+  if (manifest.schema_version === MATTER_VAULT_RUNTIME_BACKUP_SCHEMA_VERSION && manifest.synthetic_only !== true) {
+    throw new Error("Matter-Vault runtime restore refuses v0.1 non-synthetic backup claims");
+  }
+  if (
+    manifest.schema_version === MATTER_VAULT_RUNTIME_BACKUP_SCHEMA_VERSION_V0_2
+    && (manifest.synthetic_only !== false || manifest.real_client_data_used !== true)
+  ) {
+    throw new Error("Matter-Vault runtime restore v0.2 requires explicit real_client_data_used=true");
   }
 
   await mkdir(resolvedRestoreDir, { recursive: true });
@@ -296,17 +323,19 @@ export async function restoreMatterVaultRuntimeBackup({ backupDir, restoreDir, n
   }
 
   return {
-    schema_version: MATTER_VAULT_RUNTIME_RESTORE_SCHEMA_VERSION,
+    schema_version: manifest.schema_version === MATTER_VAULT_RUNTIME_BACKUP_SCHEMA_VERSION_V0_2
+      ? MATTER_VAULT_RUNTIME_RESTORE_SCHEMA_VERSION_V0_2
+      : MATTER_VAULT_RUNTIME_RESTORE_SCHEMA_VERSION,
     backup_schema_version: manifest.schema_version,
     receipt_type: "matter_vault_runtime_store_restore",
     contract_ref: manifest.contract_ref ?? "UPL-A-09",
     daily_backup_job_contract_ref: manifest.daily_backup_job_contract_ref,
     outcome: checksum_mismatch_count === 0 ? "passed" : "failed",
-    synthetic_only: true,
+    synthetic_only: manifest.synthetic_only === true,
     production_ready_claim: false,
     go_live_claim: false,
     production_restore_executed: false,
-    real_client_data_used: false,
+    real_client_data_used: manifest.real_client_data_used === true,
     generated_at: generatedAt.toISOString(),
     backup_generated_at: manifest.generated_at,
     backup_dir: resolvedBackupDir,
@@ -328,10 +357,22 @@ async function seedSyntheticRuntimeStores(storeDir) {
   const fixtures = [
     ["matter-store.json", "matter", [{ record_id: "matter_upl_a09_synthetic", tenant_id: "tenant_upl_a09" }]],
     ["dms-store.json", "dms", [{ record_id: "document_upl_a09_synthetic", matter_id: "matter_upl_a09_synthetic" }]],
-    ["finance-store.json", "finance", [{ record_id: "invoice_upl_a09_synthetic", matter_id: "matter_upl_a09_synthetic" }]]
+    ["finance-store.json", "finance", [{ record_id: "invoice_upl_a09_synthetic", matter_id: "matter_upl_a09_synthetic" }]],
+    ["security-audit-events.ndjson", "api-security-audit", [{ audit_event_id: "security_audit_upl_a09_synthetic", action: "backup.drill.synthetic" }]],
   ];
 
   for (const [fileName, boundedContext, records] of fixtures) {
+    if (fileName.endsWith(".ndjson")) {
+      await writeFile(join(storeDir, fileName), records.map((record) => JSON.stringify({
+        ...record,
+        bounded_context: boundedContext,
+        synthetic_only: true,
+        production_ready_claim: false,
+        real_client_data_used: false,
+        occurred_at: seededAt,
+      })).join("\n") + "\n", "utf8");
+      continue;
+    }
     await writeJson(join(storeDir, fileName), {
       schema_version: "law-firm-os.synthetic-runtime-store.v0.1",
       bounded_context: boundedContext,
@@ -361,9 +402,13 @@ export async function runMatterVaultBackupRestoreDrill({
   backupRoot = defaultBackupRoot(),
   restoreDir,
   receiptPath,
-  now
+  now,
+  realClientDataUsed = false
 } = {}) {
   const seeded_synthetic_runtime_store = !storeDir;
+  if (realClientDataUsed && seeded_synthetic_runtime_store) {
+    throw new Error("backup/restore v0.2 real-client-data drill requires an explicit storeDir");
+  }
   let drillStoreDir = storeDir ? resolve(storeDir) : null;
   if (!drillStoreDir) {
     const tempRoot = await mkdtemp(join(tmpdir(), "lawos-matter-vault-backup-drill-"));
@@ -371,22 +416,25 @@ export async function runMatterVaultBackupRestoreDrill({
     await seedSyntheticRuntimeStores(drillStoreDir);
   }
 
-  const backup = await createMatterVaultRuntimeBackup({ storeDir: drillStoreDir, backupRoot, now });
+  const backup = await createMatterVaultRuntimeBackup({ storeDir: drillStoreDir, backupRoot, now, realClientDataUsed });
   const restore = await restoreMatterVaultRuntimeBackup({
     backupDir: backup.backup_dir,
     restoreDir,
     now
   });
+  const containsRealClientData = Boolean(realClientDataUsed);
   const receipt = {
-    schema_version: "law-firm-os.matter-vault-runtime-backup-restore-drill.v0.1",
+    schema_version: containsRealClientData
+      ? MATTER_VAULT_RUNTIME_BACKUP_RESTORE_DRILL_SCHEMA_VERSION_V0_2
+      : MATTER_VAULT_RUNTIME_BACKUP_RESTORE_DRILL_SCHEMA_VERSION,
     receipt_type: "matter_vault_runtime_backup_restore_drill",
     contract_ref: "UPL-A-09",
     outcome: backup.outcome === "passed" && restore.outcome === "passed" ? "passed" : "failed",
-    synthetic_only: true,
+    synthetic_only: !containsRealClientData,
     production_ready_claim: false,
     go_live_claim: false,
     production_restore_executed: false,
-    real_client_data_used: false,
+    real_client_data_used: containsRealClientData,
     seeded_synthetic_runtime_store,
     backup,
     restore
@@ -423,9 +471,10 @@ async function main(argv = process.argv.slice(2)) {
   const backupDir = options["backup-dir"];
   const restoreDir = options["restore-dir"];
   const receiptPath = options["receipt-path"];
+  const realClientDataUsed = boolOption(options["real-client-data-used"]);
 
   if (command === "backup") {
-    const receipt = await createMatterVaultRuntimeBackup({ storeDir, backupRoot, backupDir });
+    const receipt = await createMatterVaultRuntimeBackup({ storeDir, backupRoot, backupDir, realClientDataUsed });
     if (receiptPath) await writeJson(receiptPath, receipt);
     console.log(JSON.stringify(receipt, null, 2));
     return;
@@ -439,7 +488,7 @@ async function main(argv = process.argv.slice(2)) {
   }
 
   if (command === "drill") {
-    const receipt = await runMatterVaultBackupRestoreDrill({ storeDir, backupRoot, restoreDir, receiptPath });
+    const receipt = await runMatterVaultBackupRestoreDrill({ storeDir, backupRoot, restoreDir, receiptPath, realClientDataUsed });
     console.log(JSON.stringify(receipt, null, 2));
     return;
   }

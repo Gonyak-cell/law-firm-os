@@ -1,0 +1,502 @@
+{
+  "verdict": "PASS",
+  "app": "/Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "screenshots": {
+    "aHold": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-fixed-a-hold-2026-07-07.png",
+    "micReveal": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-fixed-mic-reveal-2026-07-07.png",
+    "settled": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-fixed-settled-2026-07-07.png",
+    "final": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-fixed-final-2026-07-07.png"
+  },
+  "checks": {
+    "aStartsCenteredAndHolds": true,
+    "aMovesLeftWhileMicReveals": true,
+    "finalLogoDoesNotSlideIn": true,
+    "settledPositionMatchesFinalLogo": true,
+    "finalForestReady": true,
+    "noUnexpectedOverflow": true,
+    "loginWasNotSubmitted": true
+  },
+  "states": {
+    "aHold": {
+      "logoIntro": "play",
+      "introLayer": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "grid",
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "amicLawIntroLayer",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 768
+        }
+      },
+      "introA": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "animationName": "amicLawAIntro",
+        "rect": {
+          "x": 625,
+          "y": 366,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "introMic": {
+        "opacity": 0,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "inset(0px 100% 0px 0px)",
+        "transform": "matrix(1, 0, 0, 1, -18, 0)",
+        "animationName": "amicLawMicIntro",
+        "rect": {
+          "x": 607,
+          "y": 366,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "introLockup": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "matrix(1, 0, 0, 1, -15, -18)",
+        "animationName": "amicLawLockupIntro",
+        "rect": {
+          "x": 625,
+          "y": 366,
+          "width": 220,
+          "height": 36
+        }
+      },
+      "finalLogo": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "flex",
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 119.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "finalLogoImage": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 119.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "naturalTarget": {
+        "x": 885.296875,
+        "y": 119.8515625,
+        "width": 175,
+        "height": 28
+      },
+      "aCenter": {
+        "x": 640.2890571428571,
+        "y": 384
+      },
+      "viewportCenter": {
+        "x": 640,
+        "y": 384
+      },
+      "computedVars": {
+        "dx": "332.797px",
+        "dy": "-250.148px",
+        "scale": "0.7955"
+      },
+      "settledDelta": {
+        "centerX": 237.796875,
+        "centerY": 250.1484375,
+        "width": 45,
+        "height": 8
+      },
+      "finalLogoFixedDelta": {
+        "centerX": 0,
+        "centerY": 0
+      },
+      "loginResultText": "",
+      "emailValue": "",
+      "passwordValue": "",
+      "hasOverflow": false
+    },
+    "micReveal": {
+      "logoIntro": "play",
+      "introLayer": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "grid",
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "amicLawIntroLayer",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 768
+        }
+      },
+      "introA": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "animationName": "amicLawAIntro",
+        "rect": {
+          "x": 530.3309326171875,
+          "y": 366,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "introMic": {
+        "opacity": 0.87824,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "inset(0px 12.176% 0px 0px)",
+        "transform": "matrix(1, 0, 0, 1, -2.19169, 0)",
+        "animationName": "amicLawMicIntro",
+        "rect": {
+          "x": 528.1392211914062,
+          "y": 366,
+          "width": 220.00006103515625,
+          "height": 35.1953125
+        }
+      },
+      "introLockup": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "matrix(1, 0, 0, 1, -109.669, -18)",
+        "animationName": "amicLawLockupIntro",
+        "rect": {
+          "x": 530.3309326171875,
+          "y": 366,
+          "width": 220,
+          "height": 36
+        }
+      },
+      "finalLogo": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "flex",
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 119.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "finalLogoImage": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 119.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "naturalTarget": {
+        "x": 885.296875,
+        "y": 119.8515625,
+        "width": 175,
+        "height": 28
+      },
+      "aCenter": {
+        "x": 545.6199897600446,
+        "y": 384
+      },
+      "viewportCenter": {
+        "x": 640,
+        "y": 384
+      },
+      "computedVars": {
+        "dx": "332.797px",
+        "dy": "-250.148px",
+        "scale": "0.7955"
+      },
+      "settledDelta": {
+        "centerX": 332.4659423828125,
+        "centerY": 250.1484375,
+        "width": 45,
+        "height": 8
+      },
+      "finalLogoFixedDelta": {
+        "centerX": 0,
+        "centerY": 0
+      },
+      "loginResultText": "",
+      "emailValue": "",
+      "passwordValue": "",
+      "hasOverflow": false
+    },
+    "settled": {
+      "logoIntro": "play",
+      "introLayer": {
+        "opacity": 0.0248195,
+        "visibility": "visible",
+        "display": "grid",
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "amicLawIntroLayer",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 768
+        }
+      },
+      "introA": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "animationName": "amicLawAIntro",
+        "rect": {
+          "x": 885.2919921875,
+          "y": 119.53302001953125,
+          "width": 175.010009765625,
+          "height": 27.99786376953125
+        }
+      },
+      "introMic": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "inset(0px)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "animationName": "amicLawMicIntro",
+        "rect": {
+          "x": 885.2919921875,
+          "y": 119.53302001953125,
+          "width": 175.010009765625,
+          "height": 27.99786376953125
+        }
+      },
+      "introLockup": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "matrix(0.7955, 0, 0, 0.7955, 222.797, -268.148)",
+        "animationName": "amicLawLockupIntro",
+        "rect": {
+          "x": 885.2919921875,
+          "y": 119.53302001953125,
+          "width": 175.010009765625,
+          "height": 28.63800048828125
+        }
+      },
+      "finalLogo": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "flex",
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 119.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "finalLogoImage": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 119.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "naturalTarget": {
+        "x": 885.296875,
+        "y": 119.8515625,
+        "width": 175,
+        "height": 28
+      },
+      "aCenter": {
+        "x": 897.454437823312,
+        "y": 133.85202026367188
+      },
+      "viewportCenter": {
+        "x": 640,
+        "y": 384
+      },
+      "computedVars": {
+        "dx": "332.797px",
+        "dy": "-250.148px",
+        "scale": "0.7955"
+      },
+      "settledDelta": {
+        "centerX": 0.0001220703125,
+        "centerY": 0.000457763671875,
+        "width": 0.010009765625,
+        "height": 0.63800048828125
+      },
+      "finalLogoFixedDelta": {
+        "centerX": 0,
+        "centerY": 0
+      },
+      "loginResultText": "",
+      "emailValue": "",
+      "passwordValue": "",
+      "hasOverflow": false
+    },
+    "final": {
+      "logoIntro": "complete",
+      "introLayer": {
+        "opacity": 0,
+        "visibility": "hidden",
+        "display": "grid",
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "none",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 768
+        }
+      },
+      "introA": {
+        "opacity": 0.96,
+        "visibility": "hidden",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "none",
+        "rect": {
+          "x": 625,
+          "y": 366,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "introMic": {
+        "opacity": 0,
+        "visibility": "hidden",
+        "display": "block",
+        "clipPath": "inset(0px 100% 0px 0px)",
+        "transform": "matrix(1, 0, 0, 1, -18, 0)",
+        "animationName": "none",
+        "rect": {
+          "x": 607,
+          "y": 366,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "introLockup": {
+        "opacity": 1,
+        "visibility": "hidden",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "matrix(1, 0, 0, 1, -15, -18)",
+        "animationName": "none",
+        "rect": {
+          "x": 625,
+          "y": 366,
+          "width": 220,
+          "height": 36
+        }
+      },
+      "finalLogo": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "flex",
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 119.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "finalLogoImage": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "none",
+        "animationName": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 119.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "naturalTarget": {
+        "x": 885.296875,
+        "y": 119.8515625,
+        "width": 175,
+        "height": 28
+      },
+      "aCenter": {
+        "x": 640.2890571428571,
+        "y": 384
+      },
+      "viewportCenter": {
+        "x": 640,
+        "y": 384
+      },
+      "computedVars": {
+        "dx": "332.797px",
+        "dy": "-250.148px",
+        "scale": "0.7955"
+      },
+      "settledDelta": {
+        "centerX": 237.796875,
+        "centerY": 250.1484375,
+        "width": 45,
+        "height": 8
+      },
+      "finalLogoFixedDelta": {
+        "centerX": 0,
+        "centerY": 0
+      },
+      "loginResultText": "",
+      "emailValue": "",
+      "passwordValue": "",
+      "hasOverflow": false
+    }
+  },
+  "note": "QA launched fresh packaged app instances, verified A holds in the center before moving left, verified MIC Law reveals while A moves, and verified the final logo is fixed with no second slide-in."
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": "law-firm-os.cti-owner-approval-receipt.v0.1",
+  "approval_id": "I3",
+  "approval_signature_ref": "I3-CTI-INITIAL-PASSWORD-DISTRIBUTION-CHANNEL-OWNER-APPROVAL-2026-07-06",
+  "status": "recorded",
+  "recorded_date": "2026-07-06",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "future_cti_binding": [
+    "S2-T03",
+    "CUTOVER password distribution validation"
+  ],
+  "approved_distribution_channel": {
+    "channel": "in_person",
+    "plaintext_password_email_allowed": false,
+    "plaintext_password_messenger_allowed": false,
+    "plaintext_password_repo_storage_allowed": false,
+    "plaintext_password_log_storage_allowed": false,
+    "must_change_password_required": true,
+    "receipt_payload": "user_identifier_hash_and_counts_only"
+  },
+  "explicit_non_approval": {
+    "pre_cutover_password_generation": true,
+    "pre_cutover_password_issuance_distribution": true,
+    "credential_store_write": true,
+    "production_mutation": true,
+    "cutover_execution": true,
+    "plaintext_password_email_or_messenger_delivery": true,
+    "password_list_repo_storage": true,
+    "production_ready_go_live_claim": true
+  },
+  "password_generation_executed": false,
+  "password_issuance_distribution_executed": false,
+  "credential_store_write_executed": false,
+  "production_mutation_executed": false,
+  "cutover_executed": false,
+  "secret_values_recorded": false,
+  "plaintext_password_recorded": false
+}

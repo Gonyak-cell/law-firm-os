@@ -1,0 +1,8 @@
+{
+  "goal_id": "cti-s1-foundation-unblock-packet",
+  "status": "not_run",
+  "reason": "This goal creates an owner approval packet and does not implement S1 runtime changes. External Claude review is deferred until the S1 execute implementation diff exists.",
+  "valid_review_evidence": false,
+  "claude_is_final_approval": false,
+  "review_deferred_to": "cti-s1-foundation-execute after I5 owner approval"
+}

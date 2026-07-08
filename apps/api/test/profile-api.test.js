@@ -64,7 +64,10 @@ test("Profile API returns session-derived safe profile read model", async () => 
     assert.equal(profile.body.outcome, "passed");
     assert.equal(profile.body.ui_state, "populated");
     assert.equal(profile.body.item.actor_ref, "user_amic_jwsuh");
+    assert.equal(profile.body.item.display_name, "서지원");
+    assert.equal(profile.body.item.primary_role_label, "대표변호사");
     assert.equal(profile.body.item.tenant_ref, "tenant_amic_matter_vault");
+    assert.equal(profile.body.item.contract_summary.source_ref, "hrx-member-roster-source-of-truth");
     assert.equal(profile.body.item.account_summary.session_principal_source, "api_signed_session");
     assert.equal(profile.body.item.secret_material_included, false);
     assert.equal(profile.body.item.direct_identifier_included, false);

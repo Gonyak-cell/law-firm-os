@@ -352,6 +352,7 @@ function employeeRosterReadFields(employee, profile) {
     department,
     organization_group: member?.organization_group ?? orgUnit?.organization_group ?? department,
     country: member?.country ?? "대한민국",
+    professional_profile: member?.professional_profile ?? null,
     source_ref: member?.source_ref ?? employee.source_ref,
     employment_profile_id: profile?.profile_id ?? null,
     org_unit_id: profile?.org_unit_id ?? member?.org_unit_id ?? null,
@@ -2179,13 +2180,15 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       const employee = context.repository.getEmployee({ tenant_id: tenantId, employee_id: employeeId });
       if (!employee) return response(404, { outcome: "not_found", safe_error_code: "HRX_EMPLOYEE_NOT_FOUND" });
       const [employmentProfile] = context.repository.listEmploymentProfiles({ tenant_id: tenantId, employee_id: employeeId });
+      const rosterReadFields = employeeRosterReadFields(employee, employmentProfile);
       return response(200, {
         outcome: "ok",
         employee: {
           ...employee,
-          ...employeeRosterReadFields(employee, employmentProfile),
+          ...rosterReadFields,
         },
         employment_profile: employmentProfile ?? null,
+        professional_profile: rosterReadFields.professional_profile,
         masked_compensation_ref: latestMaskedCompensationRef(context.compensation, tenantId, employeeId),
       });
     }

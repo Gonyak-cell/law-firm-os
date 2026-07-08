@@ -1,0 +1,83 @@
+{
+  "schema_version": "law-firm-os.cti-launch-tuw-crosswalk.v0.1",
+  "crosswalk_id": "cti-s1-foundation-execute-crosswalk-2026-07-06",
+  "goal_id": "cti-s1-foundation-execute",
+  "launch_tuw_work_package": "LT-PRE-W11",
+  "status": "blocked_s1_g_authenticated_probe_requires_s2_or_approved_probe_principal",
+  "approval_signature_refs": [
+    "I5-CTI-S1-FOUNDATION-UNBLOCK-PACKET-OWNER-APPROVAL-2026-07-06",
+    "I6-CTI-S1-SECRETSMANAGER-VPCE-IAM-OWNER-APPROVAL-2026-07-06"
+  ],
+  "closeout_dir": "docs/goal-closeout/cti-s1-foundation-execute",
+  "validator": "scripts/validate-cti-s1-foundation-execute-closeout.mjs",
+  "mappings": [
+    {
+      "cti_item": "S1-T01a",
+      "launch_tuw": "LT-PRE-W11-T02",
+      "status": "PASS",
+      "evidence": "EFS/AP/SG/mount targets available under I5/I6 scope."
+    },
+    {
+      "cti_item": "S1-T01b",
+      "launch_tuw": "LT-PRE-W11-T02",
+      "status": "PASS",
+      "evidence": "Lambda VPC/EFS mount and STORE_PATH env keys applied."
+    },
+    {
+      "cti_item": "S1-T02",
+      "launch_tuw": "LT-PRE-W11-T03",
+      "status": "PASS_LOCAL_BLOCKED_LIVE_AUTH",
+      "evidence": "Manifest/preflight/durable audit test passed; live authenticated audit write blocked until S2/probe principal."
+    },
+    {
+      "cti_item": "S1-T03",
+      "launch_tuw": "LT-PRE-W11-T03",
+      "status": "PASS",
+      "evidence": "LAWOS_API_SESSION_SECRET_SECRET_ID bootstrap passed production health and local mock; no secret value fetched."
+    },
+    {
+      "cti_item": "S1-T04",
+      "launch_tuw": "LT-PRE-W11-T03",
+      "status": "PASS_LOCAL_BLOCKED_LIVE_AUTH",
+      "evidence": "Reseed guard local test passed; S0/S1 live readback hash blocked until authenticated readback."
+    },
+    {
+      "cti_item": "S1-T05",
+      "launch_tuw": "LT-PRE-W11-T03",
+      "status": "PASS_LOCAL",
+      "evidence": "backup/restore v0.2 isolated rehearsal passed; production restore not run."
+    },
+    {
+      "cti_item": "S1-G",
+      "launch_tuw": "LT-PRE-W11-T04",
+      "status": "blocked_authenticated_probe_requires_s2_or_approved_probe_principal",
+      "evidence": "health 200 operational, synthetic login 403, unauthenticated audit 401."
+    }
+  ],
+  "authority_boundary": {
+    "production_infrastructure_mutation_executed": true,
+    "efs_created": true,
+    "efs_access_point_created": true,
+    "efs_mount_target_created": true,
+    "security_groups_created": true,
+    "secretsmanager_vpc_endpoint_created": true,
+    "lambda_role_mutated": true,
+    "lambda_code_deployed": true,
+    "lambda_configuration_mutated": true,
+    "store_path_env_applied": true,
+    "lawos_audit_store_path_applied": true,
+    "lawos_api_session_secret_secret_id_applied": true,
+    "secret_value_fetched": false,
+    "authenticated_production_marker_probe_executed": false,
+    "production_store_migration_executed": false,
+    "restore_execution_performed": false,
+    "password_issuance_performed": false,
+    "cutover_executed": false,
+    "s2_authentication_implemented": false,
+    "s3_tenant_migration_executed": false,
+    "oidc_implemented": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

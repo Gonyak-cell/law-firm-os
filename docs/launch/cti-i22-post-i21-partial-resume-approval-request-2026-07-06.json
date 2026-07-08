@@ -1,0 +1,49 @@
+{
+  "schema_version": "law-firm-os.cti.owner-approval-request.v0.1",
+  "request_id": "I22",
+  "requested_approval_signature_ref": "I22-CTI-CUTOVER-POST-I21-PARTIAL-RESUME-BOUNDARY-OWNER-APPROVAL-2026-07-06",
+  "status": "owner_approval_required",
+  "goal_id": "cti-cutover-execute",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "current_snapshot_hash": "6b66029c055ece6c3cfa6a7cd559c8eb387a958261e92f006aa67f3f48767ddd",
+  "current_readable_store_file_count": 15,
+  "current_matter_store_record_count": 404,
+  "current_auth_credential_store_record_count": 11,
+  "blocking_closeout": "docs/goal-closeout/cti-cutover-execute/packet.json",
+  "i21_blocked_receipt": "docs/launch/cti-cutover-execute-retry-receipt-2026-07-06.json",
+  "local_patch_status": {
+    "synthetic_matter_delete_root_cause_identified": true,
+    "synthetic_matter_delete_root_cause": "primaryIdForRecord selected client_id before matter_id, so Matter deletes targeted the client id rather than the matter id.",
+    "canonical_fixture_count_root_cause_identified": true,
+    "canonical_fixture_count_root_cause": "canonical current Matter ids may start with matter_rp05_, so fixture detection must exclude CTI current source_revision.",
+    "patch_prepared_locally": true,
+    "production_deploy_executed_after_i21_block": false
+  },
+  "requested_scope": [
+    "Lambda code patch/deploy",
+    "Private direct invoke resume from the post-I21 partial snapshot boundary",
+    "Idempotent S3 synthetic Matter residue cleanup",
+    "Existing private handoff hash credential record regeneration",
+    "Idempotent 9 production credential injection",
+    "Idempotent 2 QA disabled credential records",
+    "Bridge token rotation/control reconfirmation",
+    "First-login validation",
+    "CUT-G validation",
+    "PII-safe hash/count evidence and closeout generation"
+  ],
+  "conditions": [
+    "Plaintext passwords must not be printed, logged, or committed",
+    "Secret, token, and password values must not be queried for output, printed, or committed",
+    "Production restore is not approved",
+    "Production matter mutation is limited to S3 synthetic residue cleanup and idempotent canonical readback/repair",
+    "No production_ready or go-live claim before CUT-G PASS"
+  ],
+  "explicit_non_approval": [
+    "production restore",
+    "OIDC implementation",
+    "DB conversion",
+    "S5 enrichment",
+    "S6 seal",
+    "production_ready claim when validation failed"
+  ]
+}

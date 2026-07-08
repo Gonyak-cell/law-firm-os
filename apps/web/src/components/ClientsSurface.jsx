@@ -26,6 +26,7 @@ import {
   fetchIntakeAudit,
   fetchIntakeRequests,
   fetchMasterDataRecords,
+  fetchMatterClients,
   fetchMatterRecords,
   fetchRecordActionAudit,
   fetchRecordActionFields,
@@ -329,14 +330,17 @@ function linkedMatterSummary(item) {
   return businessLabel(item?.matter_core_enrichment?.matter_title, "미지정");
 }
 
-function mergeClientMatterResults(clientGroupsResult, matterClientsResult, mattersResult) {
-  const clientGroupItems = resultItems(clientGroupsResult).filter((item) => item.synthetic_only !== true);
+function mergeClientMatterResults(clientRecordsResult, matterClientsResult, mattersResult) {
+  const clientItems = resultItems(clientRecordsResult).filter((item) => item.synthetic_only !== true);
   const matterItems = resultItems(mattersResult);
   const matterClientItems = resultItems(matterClientsResult).filter((item) => item.synthetic_only !== true);
   const linksByClient = buildMatterLinksByClient(matterItems);
+  const clientSourceItems = clientItems.length
+    ? clientItems
+    : [...matterClientItems, ...derivedClientsFromMatters(matterItems)];
   const byClient = new Map();
 
-  for (const item of [...clientGroupItems, ...matterClientItems, ...derivedClientsFromMatters(matterItems)]) {
+  for (const item of clientSourceItems) {
     const keys = clientLookupKeys(item);
     const key = keys.find((candidate) => byClient.has(candidate)) ?? keys[0];
     if (!key) continue;
@@ -350,9 +354,9 @@ function mergeClientMatterResults(clientGroupsResult, matterClientsResult, matte
   }
 
   const items = [...new Set(byClient.values())];
-  const baseResult = clientGroupsResult?.kind === "data" ? clientGroupsResult : matterClientsResult?.kind === "data" ? matterClientsResult : mattersResult;
-  if (!items.length && clientGroupsResult?.kind !== "data" && matterClientsResult?.kind !== "data" && mattersResult?.kind !== "data") {
-    return clientGroupsResult ?? matterClientsResult ?? mattersResult ?? { kind: "error" };
+  const baseResult = clientRecordsResult?.kind === "data" ? clientRecordsResult : matterClientsResult?.kind === "data" ? matterClientsResult : mattersResult;
+  if (!items.length && clientRecordsResult?.kind !== "data" && matterClientsResult?.kind !== "data" && mattersResult?.kind !== "data") {
+    return clientRecordsResult ?? matterClientsResult ?? mattersResult ?? { kind: "error" };
   }
   return {
     ...(baseResult?.kind === "data" ? baseResult : {}),
@@ -360,8 +364,10 @@ function mergeClientMatterResults(clientGroupsResult, matterClientsResult, matte
     outcome: baseResult?.outcome ?? "passed",
     uiState: items.length ? (baseResult?.uiState === "empty" ? "passed" : baseResult?.uiState ?? "passed") : "empty",
     items,
+    canonicalClientCount: clientItems.length,
+    fallbackClientSourceUsed: clientItems.length === 0,
     safeErrorCodes: [
-      ...(clientGroupsResult?.safeErrorCodes ?? []),
+      ...(clientRecordsResult?.safeErrorCodes ?? []),
       ...(matterClientsResult?.safeErrorCodes ?? []),
       ...(mattersResult?.safeErrorCodes ?? [])
     ],
@@ -1719,9 +1725,8 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
       };
     }
     Promise.all([
-      fetchAllMasterDataRecords({
+      fetchMatterClients({
         ctx: liveCtx,
-        modelType: "ClientGroup",
         limit: 100,
         permissionRef: CLIENTS_PERMISSION_REF,
         auditHintRef: CLIENTS_AUDIT_HINT_REF

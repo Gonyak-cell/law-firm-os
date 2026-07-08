@@ -1,0 +1,80 @@
+{
+  "schema_version": "law-firm-os.cti-launch-tuw-crosswalk.v0.1",
+  "crosswalk_id": "cti-s2-authentication-unblock-crosswalk-2026-07-06",
+  "goal_id": "cti-s2-authentication-unblock-packet",
+  "launch_tuw_work_package": "LT-PRE-W12",
+  "status": "i7_owner_approval_recorded",
+  "required_approval_ref": "I7-CTI-S2-AUTHENTICATION-UNBLOCK-PACKET-OWNER-APPROVAL-2026-07-06",
+  "approval_status": "approved",
+  "approval_signature_ref": "I7-CTI-S2-AUTHENTICATION-UNBLOCK-PACKET-OWNER-APPROVAL-2026-07-06",
+  "approval_receipt": "docs/launch/cti-i7-owner-approval-receipt-2026-07-06.md",
+  "packet": "docs/launch/cti-s2-authentication-unblock-packet-2026-07-06.md",
+  "closeout_dir": "docs/goal-closeout/cti-s2-authentication-unblock-packet",
+  "validator": "scripts/validate-cti-s2-authentication-unblock-packet-closeout.mjs",
+  "mappings": [
+    {
+      "cti_item": "S2-T01",
+      "launch_tuw": "LT-PRE-W12-T01",
+      "status": "choice_owner_approved_by_i7",
+      "evidence": "credential store provider, scrypt hash boundary, and credential store path selected"
+    },
+    {
+      "cti_item": "S2-T02",
+      "launch_tuw": "LT-PRE-W12-T02",
+      "status": "choice_owner_approved_by_i7",
+      "evidence": "login/verifyToken cut path selected"
+    },
+    {
+      "cti_item": "S2-T04",
+      "launch_tuw": "LT-PRE-W12-T03",
+      "status": "choice_owner_approved_by_i7",
+      "evidence": "password reset, lockout, revocation, and distribution boundary selected"
+    },
+    {
+      "cti_item": "S2-T06",
+      "launch_tuw": "LT-PRE-W12-T04",
+      "status": "choice_owner_approved_by_i7",
+      "evidence": "desktop v0.1.10 dependency selected"
+    },
+    {
+      "cti_item": "S1-G authenticated probe",
+      "launch_tuw": "LT-PRE-W12-T05",
+      "status": "conditional_probe_approval_recorded_i8_effective_after_s2_execute_pass",
+      "evidence": "I8 conditional approval receipt recorded; real-session-only probe method selected; no debug endpoint/secret fetch/direct mint"
+    }
+  ],
+  "conditional_probe_approval": {
+    "approval_ref": "I8-CTI-S2-S1G-AUTHENTICATED-PROBE-OWNER-APPROVAL-2026-07-06",
+    "approval_status": "conditional_approval_recorded",
+    "approval_receipt": "docs/launch/cti-i8-owner-approval-receipt-2026-07-06.md",
+    "effective_after": "S2 AUTHENTICATION execute PASS",
+    "s1_g_authenticated_probe_executed": false
+  },
+  "s2_execute_approval": {
+    "approval_ref": "I9-CTI-S2-AUTHENTICATION-EXECUTE-OWNER-APPROVAL-2026-07-06",
+    "approval_status": "recorded",
+    "approval_receipt": "docs/launch/cti-i9-owner-approval-receipt-2026-07-06.md",
+    "approved_goal": "cti-s2-authentication-execute",
+    "approved_items": [
+      "S2-T01",
+      "S2-T02",
+      "S2-T04",
+      "S2-T06"
+    ],
+    "s2_implementation_executed_by_this_closeout": false,
+    "production_mutation_executed_by_this_closeout": false
+  },
+  "authority_boundary": {
+    "s2_implementation_executed": false,
+    "production_mutation_executed": false,
+    "credential_store_write_executed": false,
+    "password_generation_issuance_distribution_executed": false,
+    "s1_g_authenticated_probe_executed": false,
+    "s3_tenant_migration_executed": false,
+    "cutover_executed": false,
+    "oidc_implementation_executed": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

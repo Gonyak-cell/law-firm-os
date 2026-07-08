@@ -1,0 +1,32 @@
+{
+  "schema_version": "lawos.sidebar_session_display_proof.v1",
+  "generated_at": "2026-07-07T02:25:13.411Z",
+  "verdict": "PASS",
+  "api_base_redacted": "local-startApiServer",
+  "web_base_redacted": "local-vite-dev-server",
+  "assertions": [
+    {
+      "id": "sidebar-name-from-session-profile",
+      "passed": true,
+      "observed": "서지원"
+    },
+    {
+      "id": "generic-user-fallback-not-visible",
+      "passed": true,
+      "observed": false
+    },
+    {
+      "id": "forest-skin-active",
+      "passed": true,
+      "observed": "forest"
+    }
+  ],
+  "snapshot": {
+    "sidebar_name": "서지원",
+    "sidebar_role": "대표변호사",
+    "user_fallback_visible": false,
+    "document_skin": "forest",
+    "current_url": "http://127.0.0.1:5197/?view=home&ctx=allow&skin=forest&splash=0"
+  },
+  "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-web/artifacts/sidebar-session-display-screenshots-2026-07-07/home-sidebar-session-display.png"
+}

@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "node:fs";
-import { AMIC_CURRENT_MATTER_CLIENTS, AMIC_CURRENT_MATTER_CODE_CANDIDATES } from "../packages/matter/src/amic-matter-code-candidates.js";
+import {
+  AMIC_CURRENT_MATTER_CLIENTS,
+  AMIC_CURRENT_MATTER_CODE_CANDIDATES,
+  AMIC_CURRENT_MATTER_CODES_SCHEMA_VERSION,
+} from "../packages/matter/src/amic-matter-code-candidates.js";
 import { readLambdaEnvironmentWithSsoAutoLogin } from "./lib/aws-sso-lambda-env.mjs";
 
 const BASE_URL = (process.env.LAWOS_PRODUCTION_BASE_URL ?? "https://d2mthcc8vp3cr2.cloudfront.net").replace(/\/+$/, "");
@@ -9,12 +13,19 @@ const AWS_PROFILE = process.env.LAWOS_VAULT_BRIDGE_AWS_PROFILE ?? process.env.AW
 const AWS_SSO_LOGIN_PROFILE = process.env.LAWOS_VAULT_BRIDGE_SSO_LOGIN_PROFILE ?? "amic-vault-staging-admin";
 const AWS_REGION = process.env.LAWOS_AWS_REGION ?? process.env.AWS_REGION ?? "ap-northeast-2";
 const API_LAMBDA_FUNCTION = process.env.LAWOS_API_LAMBDA_FUNCTION_NAME ?? "matter-lawos-api-prod";
-const TENANT = process.env.LAWOS_CURRENT_MATTER_CODE_TENANT ?? "tenant_rp05_synthetic";
+const TENANT = process.env.LAWOS_CURRENT_MATTER_CODE_TENANT ?? "tenant_amic_matter_vault";
+const EXECUTE_REMOTE_BRIDGE_WRITE = process.env.LAWOS_CURRENT_MATTER_CODE_BRIDGE_EXECUTE === "true";
 const SOURCE_REVISION = "amic_current_onedrive_matter_code_inventory_2026_07_01";
 const APPROVAL_REF = "amic-current-matter-codes-production-bridge-2026-07-01";
-const ARTIFACT_DIR = "docs/lazycodex/evidence/matter-web/artifacts";
-const JSON_PATH = `${ARTIFACT_DIR}/amic-current-production-bridge-upsert-2026-07-01.json`;
-const MD_PATH = `${ARTIFACT_DIR}/amic-current-production-bridge-upsert-2026-07-01.md`;
+const ARTIFACT_DIR = EXECUTE_REMOTE_BRIDGE_WRITE
+  ? "docs/lazycodex/evidence/matter-web/artifacts"
+  : "docs/goal-closeout/cti-build-s3-s4-code-prep";
+const JSON_PATH = EXECUTE_REMOTE_BRIDGE_WRITE
+  ? `${ARTIFACT_DIR}/amic-current-production-bridge-upsert-2026-07-01.json`
+  : `${ARTIFACT_DIR}/bridge-upsert-dry-run-evidence.json`;
+const MD_PATH = EXECUTE_REMOTE_BRIDGE_WRITE
+  ? `${ARTIFACT_DIR}/amic-current-production-bridge-upsert-2026-07-01.md`
+  : `${ARTIFACT_DIR}/bridge-upsert-dry-run-evidence.md`;
 const VERIFY_JSON_PATH = `${ARTIFACT_DIR}/lcx-vltui-production-matter-code-verify-2026-07-01.json`;
 const VAULT_BRIDGE_TOKEN_HEADER = "x-lawos-vault-bridge-token";
 // Requires API deployment with dedicated bridge-header support; do not run against the old Bearer-only Lambda.
@@ -178,7 +189,9 @@ function renderMarkdown(report) {
     "",
     "## Boundary",
     "",
-    "- Remote production bridge client/matter upsert endpoints were called.",
+    report.boundary?.remote_production_bridge_write_executed
+      ? "- Remote production bridge client/matter upsert endpoints were called."
+      : "- Dry-run only: remote production bridge client/matter upsert endpoints were not called.",
     "- Source values are current AMIC client and matter-code inventory records only.",
     "- No document bytes, raw source document bodies, bearer values, or AWS secrets are recorded.",
     "- This receipt does not claim public external distribution or company-wide go-live."
@@ -190,7 +203,7 @@ function writeReport(report) {
   mkdirSync(ARTIFACT_DIR, { recursive: true });
   writeFileSync(JSON_PATH, `${JSON.stringify(report, null, 2)}\n`);
   writeFileSync(MD_PATH, renderMarkdown(report));
-  if (report.verdict === "PASS") {
+  if (report.verdict === "PASS" && report.dry_run !== true) {
     writeFileSync(VERIFY_JSON_PATH, `${JSON.stringify({
       schema_version: "lawos.production_matter_code_inventory_verify.v0.1",
       recorded_at: report.generated_at,
@@ -212,6 +225,64 @@ function writeReport(report) {
       }
     }, null, 2)}\n`);
   }
+}
+
+function dryRunReport() {
+  assert.equal(
+    AMIC_CURRENT_MATTER_CODE_CANDIDATES.filter((matter) => Object.hasOwn(matter, "tenant_id")).length,
+    0,
+    "current matter code candidates must be tenant-free in code-only prep",
+  );
+  assert.equal(TENANT, "tenant_amic_matter_vault", "default bridge tenant must be the canonical Matter tenant");
+  return {
+    schema_version: "lawos.amic_current.production_bridge_upsert.v0.2",
+    generated_at: new Date().toISOString(),
+    base_url: BASE_URL,
+    tenant_id: TENANT,
+    verdict: "PASS",
+    dry_run: true,
+    execute_env_required: "LAWOS_CURRENT_MATTER_CODE_BRIDGE_EXECUTE=true",
+    source_schema_version: AMIC_CURRENT_MATTER_CODES_SCHEMA_VERSION,
+    source_revision: SOURCE_REVISION,
+    approval_ref: APPROVAL_REF,
+    secret_value_recorded: false,
+    client_upserts: {
+      total: AMIC_CURRENT_MATTER_CLIENTS.length,
+      actions: { dry_run_only: AMIC_CURRENT_MATTER_CLIENTS.length },
+      failed: [],
+    },
+    matter_upserts: {
+      total: AMIC_CURRENT_MATTER_CODE_CANDIDATES.length,
+      actions: { dry_run_only: AMIC_CURRENT_MATTER_CODE_CANDIDATES.length },
+      failed: [],
+    },
+    readback: { matter_count: 0, required_codes: [], short_axis_count: 0 },
+    boundary: {
+      remote_production_bridge_write_executed: false,
+      real_client_matter_code_inventory_used: true,
+      raw_document_content_used: false,
+      vault_document_write_enabled: false,
+      public_release_claim: false,
+      company_wide_go_live_claim: false,
+      production_ready_claim: false,
+    },
+  };
+}
+
+if (!EXECUTE_REMOTE_BRIDGE_WRITE) {
+  const report = dryRunReport();
+  writeReport(report);
+  console.log(JSON.stringify({
+    verdict: report.verdict,
+    dry_run: true,
+    execute_env_required: report.execute_env_required,
+    tenant_id: report.tenant_id,
+    client_upserts: report.client_upserts,
+    matter_upserts: report.matter_upserts,
+    artifact_json: JSON_PATH,
+    artifact_md: MD_PATH,
+  }, null, 2));
+  process.exit(0);
 }
 
 const lambdaEnv = resolveLambdaEnvironment();

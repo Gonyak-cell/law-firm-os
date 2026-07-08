@@ -1,0 +1,7 @@
+{
+  "goal_id": "cti-g0-s0",
+  "status": "not_run",
+  "reason": "Initial kickoff artifacts do not yet request an external Claude review. Human I4 ratification remains the controlling blocker for risk-A execution.",
+  "valid_review_evidence": false,
+  "claude_is_final_approval": false
+}

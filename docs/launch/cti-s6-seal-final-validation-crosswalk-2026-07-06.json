@@ -1,0 +1,86 @@
+{
+  "schema_version": "law-firm-os.cti.crosswalk.v0.1",
+  "goal_id": "cti-s6-seal-final-validation",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "approval_signature_refs": [
+    "I13-CTI-S6-SEAL-FINAL-VALIDATION-OWNER-APPROVAL-2026-07-06",
+    "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06"
+  ],
+  "tasks": {
+    "S6-T01": {
+      "status": "BLOCKED",
+      "evidence": {
+        "status": "BLOCKED",
+        "proof_path": "docs/launch/cti-s6-surface-proof-2026-07-06.json",
+        "required_surface_count": 9,
+        "passed_surface_count": 0,
+        "missing_surfaces": [
+          "Matters",
+          "Vault",
+          "Clients",
+          "CRM",
+          "People",
+          "Finance",
+          "Analytics",
+          "Intake",
+          "Admin"
+        ],
+        "reason": "real_user_session_surface_proof_missing"
+      }
+    },
+    "S6-T02": {
+      "status": "PASS",
+      "evidence": {
+        "additive_validator_script": "scripts/validate-canonical-tenant-production-ready.mjs",
+        "package_script": "canonical-tenant:production-ready",
+        "existing_gate_weakened": false,
+        "fail_closed_until_s6_pass": true
+      }
+    },
+    "S6-T03": {
+      "status": "PASS",
+      "evidence": {
+        "status": "PASS",
+        "checked_file_count": 4,
+        "findings": [],
+        "plaintext_pii_credential_token_committed": false
+      }
+    },
+    "S6-T04": {
+      "status": "PASS",
+      "evidence": {
+        "backfill_manifest_mode": "append_only",
+        "retroactive_2026_07_01_entry_required_for_future_non_blocking_catalog": true,
+        "current_cti_final_validation_receipt_records_current_execution": true
+      }
+    },
+    "S6-T05": {
+      "status": "BLOCKED",
+      "evidence": {
+        "status": "BLOCKED",
+        "proof_path": "docs/launch/cti-s6-coldstart-smoke-2026-07-06.json",
+        "consecutive_pass_count": 0,
+        "required_consecutive_pass_count": 2,
+        "reason": "two_consecutive_coldstart_smokes_missing"
+      }
+    },
+    "S6-T06": {
+      "status": "BLOCKED",
+      "evidence": {
+        "real_client_data_used_transition_executed": false,
+        "existing_closed_receipts_modified": false,
+        "additive_transition_allowed_after_surface_and_coldstart_pass": true
+      }
+    }
+  },
+  "S6-G": {
+    "status": "BLOCKED",
+    "blocked_tasks": [
+      "S6-T01",
+      "S6-T05",
+      "S6-T06"
+    ]
+  },
+  "production_ready_claim": false,
+  "go_live_claim": false
+}

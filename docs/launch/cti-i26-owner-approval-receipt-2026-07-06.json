@@ -1,0 +1,58 @@
+{
+  "schema_version": "law-firm-os.cti.owner-approval-receipt.v0.1",
+  "approval_id": "I26",
+  "approval_signature_ref": "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06",
+  "recorded_at": "2026-07-06T12:15:25Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "current_goal_id": "cti-password-reset-jwsuh-live-send-completion",
+  "approved_followup_goal_ids": [
+    "cti-s5-enrichment-execute",
+    "cti-s6-seal-final-validation",
+    "cti-oidc-implementation",
+    "cti-db-conversion",
+    "cti-production-network-egress-unblock"
+  ],
+  "approved_scope": {
+    "aws_account": "770880870480",
+    "region": "ap-northeast-2",
+    "lambda_function_name": "matter-lawos-api-prod",
+    "vpc_id": "vpc-038f70d924a774bea",
+    "password_reset_live_send_target_count": 1,
+    "password_reset_live_send_target_email_hash": "e3f6fb36413783be3393dd8647f17d661a44187a1b057f646d33ccb98a6484fb",
+    "password_reset_live_send_target_domain": "amic.kr",
+    "network_and_infra": [
+      "Lambda SG egress TCP 443 to SES API VPCE SG",
+      "SES API VPCE/SG/endpoint policy/private DNS/subnet attachment reconciliation",
+      "NAT gateway and route table reinforcement if required",
+      "Broad outbound internet egress if required, recorded and narrowed where possible"
+    ],
+    "runtime_and_data": [
+      "Lambda env/IAM/code patch/deploy",
+      "S5 enrichment execute",
+      "S6 seal/final validation execute",
+      "OIDC/Entra ID implementation and validation",
+      "DB conversion design/execute/validate",
+      "Backup/snapshot/restore rehearsal/rollback receipt generation"
+    ]
+  },
+  "conditions": {
+    "token_password_secret_reset_url_output_log_commit_forbidden": true,
+    "plaintext_pii_evidence_commit_forbidden": true,
+    "db_conversion_requires_current_snapshot_backup_restore_rehearsal_pass": true,
+    "oidc_db_s5_s6_each_requires_separate_closeout": true,
+    "failure_requires_abort_or_rollback_receipt": true,
+    "failed_validation_production_ready_go_live_claim_forbidden": true
+  },
+  "explicit_maintained_limits": {
+    "password_reset_email_send_to_non_jwsuh_requires_separate_explicit_approval": true,
+    "password_distribution_forbidden": true,
+    "token_password_secret_value_read_output_commit_forbidden": true,
+    "production_ready_go_live_claim_allowed_only_after_s6_final_validation_pass": true
+  },
+  "this_receipt_boundary": {
+    "production_ready_claim_made": false,
+    "go_live_claim_made": false,
+    "password_distribution_executed": false,
+    "non_jwsuh_reset_email_sent": false
+  }
+}

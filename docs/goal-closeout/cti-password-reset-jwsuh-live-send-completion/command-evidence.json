@@ -1,0 +1,50 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.command-evidence.v0.1",
+  "goal_id": "cti-password-reset-jwsuh-live-send-completion",
+  "recorded_at": "2026-07-06T12:16:21Z",
+  "decision": "PASS",
+  "commands": [
+    {
+      "command": "aws sts get-caller-identity",
+      "exit_code": 0,
+      "summary": "matter-prod-deploy-admin role chain verified for account 770880870480."
+    },
+    {
+      "command": "aws ec2 describe-security-groups",
+      "exit_code": 0,
+      "summary": "Confirmed Lambda SG lacked egress to SES API VPCE SG before I26 mutation."
+    },
+    {
+      "command": "aws ec2 describe-vpc-endpoints",
+      "exit_code": 0,
+      "summary": "Confirmed SES API VPCE vpce-04fb1f44d80a790d6 available with private DNS enabled."
+    },
+    {
+      "command": "aws ec2 authorize-security-group-egress",
+      "exit_code": 0,
+      "summary": "Authorized TCP 443 egress from Lambda SG sg-0f555cc1f1708fc22 to SES API VPCE SG sg-00d32ddc8de3a5a30."
+    },
+    {
+      "command": "aws ec2 describe-security-group-rules",
+      "exit_code": 0,
+      "summary": "Confirmed egress rule sgr-085e052c69b79f8a8 exists."
+    },
+    {
+      "command": "aws lambda invoke",
+      "exit_code": 0,
+      "summary": "Invoked POST /api/auth/password-reset/request for jwsuh@amic.kr only; response status 200 and SESv2 delivery status sent."
+    }
+  ],
+  "boundary": {
+    "live_send_target_count": 1,
+    "non_live_send_user_count": 8,
+    "other_user_reset_email_sent": false,
+    "other_user_credential_mutated": false,
+    "token_material_recorded": false,
+    "reset_url_recorded": false,
+    "password_material_recorded": false,
+    "secret_material_recorded": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

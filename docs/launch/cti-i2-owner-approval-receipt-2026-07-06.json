@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.cti-owner-approval-receipt.v0.1",
+  "approval_id": "I2",
+  "approval_signature_ref": "I2-CTI-KYT-ACCESS-SCOPE-OWNER-APPROVAL-2026-07-06",
+  "status": "recorded",
+  "recorded_date": "2026-07-06",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "future_cti_binding": [
+    "S4-T03",
+    "CUTOVER access validation"
+  ],
+  "subject": {
+    "person": "Kim Yang Tae",
+    "role_label": "representative",
+    "affiliation": "PETRA BRIDGE PARTNERS"
+  },
+  "approved_access_scope": {
+    "allowed": [
+      "M&A/advisory matters",
+      "finance dashboard"
+    ],
+    "excluded": [
+      "litigation/dispute records"
+    ],
+    "permission_model": "conservative_default_owner_approved"
+  },
+  "explicit_non_approval": {
+    "all_litigation_access": true,
+    "unrestricted_admin_access": true,
+    "pre_cutover_actual_account_permission_activation": true,
+    "s4_account_permission_injection": true,
+    "cutover_execution": true,
+    "production_migration": true,
+    "password_issuance_distribution": true,
+    "production_ready_go_live_claim": true
+  },
+  "production_permission_write_executed": false,
+  "cutover_executed": false,
+  "secret_values_recorded": false,
+  "plaintext_pii_recorded": false
+}

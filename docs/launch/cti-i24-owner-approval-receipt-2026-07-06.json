@@ -1,0 +1,44 @@
+{
+  "schema_version": "law-firm-os.cti.owner-approval-receipt.v0.1",
+  "approval_id": "I24",
+  "approval_signature_ref": "I24-CTI-SES-PRODUCTION-ACCESS-REQUEST-OWNER-APPROVAL-2026-07-06",
+  "recorded_at": "2026-07-06T11:53:24Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "goal_id": "cti-ses-production-access-request",
+  "approved_scope": {
+    "aws_account": "770880870480",
+    "region": "ap-northeast-2",
+    "service": "sesv2",
+    "request_action": "put-account-details",
+    "mail_type": "TRANSACTIONAL",
+    "production_access_enabled_requested": true,
+    "sender": "jwsuh@amic.kr",
+    "purpose": "AMIC internal Matter OS account password reset email",
+    "expected_volume": "Low volume; initial 9 internal users; future internal account recovery only.",
+    "contact_email": "jwsuh@amic.kr",
+    "contact_language": "EN",
+    "request_website_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+    "request_website_url_basis": "AWS CLI requires website-url; this URL is the reachable Matter production runtime surface."
+  },
+  "explicit_non_approval": {
+    "lambda_code_deploy": false,
+    "lambda_env_mutation": false,
+    "lambda_iam_mutation": false,
+    "production_credential_mutation": false,
+    "reset_email_send": false,
+    "s5_enrichment": false,
+    "s6_seal": false,
+    "oidc_implementation": false,
+    "db_conversion": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "boundary": {
+    "production_code_deployed_by_this_receipt": false,
+    "lambda_env_mutated_by_this_receipt": false,
+    "lambda_iam_mutated_by_this_receipt": false,
+    "production_credential_mutated_by_this_receipt": false,
+    "password_reset_email_sent_by_this_receipt": false,
+    "secret_token_password_value_recorded": false
+  }
+}

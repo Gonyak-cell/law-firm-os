@@ -30,6 +30,11 @@ function stringField(record, key) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function objectField(record, key) {
+  const value = record?.[key];
+  return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+}
+
 function memberRosterPublicRef(member) {
   return Object.freeze({
     user_id: stringField(member, "user_id"),
@@ -46,6 +51,7 @@ function memberRosterPublicRef(member) {
     organization_group: stringField(member, "organization_group"),
     org_unit_id: stringField(member, "org_unit_id"),
     country: stringField(member, "country") || "대한민국",
+    professional_profile: objectField(member, "professional_profile"),
     source_ref: HRX_MEMBER_ROSTER_SOURCE_REF,
   });
 }

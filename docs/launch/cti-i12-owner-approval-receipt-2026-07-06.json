@@ -1,0 +1,45 @@
+{
+  "schema_version": "law-firm-os.cti-owner-approval-receipt.v0.1",
+  "approval_id": "I12",
+  "approval_signature_ref": "I12-CTI-S5-ENRICHMENT-OWNER-APPROVAL-2026-07-06",
+  "status": "conditional_approval_recorded",
+  "recorded_date": "2026-07-06",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "future_cti_binding": [
+    "S5 ENRICHMENT after CUT-G PASS",
+    "S5-T01 lead lawyer/team mapping application",
+    "S5-T02 party/counterparty enrichment",
+    "S5-T03 contacts enrichment",
+    "S5-T04 conflict index",
+    "S5-T05 matter status enrichment",
+    "S5-T06 finance/analytics references"
+  ],
+  "effective_conditions": {
+    "cut_g_pass_required": true,
+    "i1_lead_lawyer_mapping_final_required": true,
+    "contact_party_status_input_pii_safe_handling_required": true,
+    "rollback_restore_boundary_required": true
+  },
+  "approved_scope": [
+    "S5-T01 lead lawyer/team mapping application",
+    "S5-T02 party/counterparty enrichment",
+    "S5-T03 contacts enrichment",
+    "S5-T04 conflict index",
+    "S5-T05 matter status enrichment",
+    "S5-T06 finance/analytics references",
+    "hash/count-centered evidence and receipt generation"
+  ],
+  "explicit_non_approval": {
+    "plaintext_pii_evidence_commit": true,
+    "unapproved_external_contact_source": true,
+    "db_conversion": true,
+    "production_ready_go_live_claim": true
+  },
+  "s5_enrichment_executed_by_this_receipt": false,
+  "production_mutation_executed_by_this_receipt": false,
+  "plaintext_pii_recorded": false,
+  "unapproved_external_contact_source_used": false,
+  "db_conversion_executed": false,
+  "production_ready_claim": false,
+  "go_live_claim": false
+}

@@ -1,0 +1,44 @@
+{
+  "schema_version": "law-firm-os.cti-owner-approval-receipt.v0.1",
+  "approval_id": "I10",
+  "approval_signature_ref": "I10-CTI-BUILD-S3-S4-CODE-PREP-OWNER-APPROVAL-2026-07-06",
+  "status": "recorded",
+  "recorded_date": "2026-07-06",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "future_cti_binding": [
+    "BUILD stage",
+    "S3 tenant unification code path preparation",
+    "S3 bridge token rotation/control code path preparation",
+    "S4 account/permission injection code path preparation",
+    "QA disable guard preparation",
+    "validators",
+    "dry-run paths",
+    "rollback checks",
+    "PII-safe evidence wiring"
+  ],
+  "approved_scope": [
+    "S3 tenant unification code path preparation",
+    "S3 bridge token rotation/control code path preparation",
+    "S4 account/permission injection code path preparation",
+    "QA disable guard preparation",
+    "validators, dry-runs, rollback checks, and PII-safe evidence wiring"
+  ],
+  "explicit_non_approval": {
+    "production_tenant_migration": true,
+    "production_account_permission_injection": true,
+    "bridge_token_actual_rotation": true,
+    "password_issuance_distribution": true,
+    "cutover": true,
+    "production_ready_go_live_claim": true
+  },
+  "code_changes_executed_by_this_receipt": false,
+  "production_tenant_migration_executed": false,
+  "production_account_permission_injection_executed": false,
+  "bridge_token_rotation_executed": false,
+  "password_issuance_distribution_executed": false,
+  "cutover_executed": false,
+  "secret_values_recorded": false,
+  "plaintext_pii_recorded": false,
+  "production_ready_claim": false,
+  "go_live_claim": false
+}

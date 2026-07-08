@@ -1,0 +1,20 @@
+{
+  "schema_version": "law-firm-os.cti.d07-disposition-register.v0.2",
+  "generated_at": "2026-07-06T02:31:07.212Z",
+  "goal_id": "cti-g0-s0",
+  "approval_signature_ref": "I4-CTI-G0-S0-OWNER-RATIFICATION-2026-07-06",
+  "local_candidate_matter_count": 148,
+  "production_rp05_visible_matter_count": 149,
+  "production_candidate_match_count": 148,
+  "production_unmatched_count": 1,
+  "production_149th_row_state": "production_149th_row_identified_as_runtime_seed_exclude_from_cti_migration",
+  "recommendation": "Do not migrate the unmatched 149th production row in S3; treat it as the existing synthetic runtime seed unless owner later approves otherwise. Do not delete it in G0/S0.",
+  "pii_boundary": {
+    "plaintext_row_values_included": false,
+    "row_hashes_only": true
+  },
+  "evidence_refs": {
+    "s0_t04_receipt": "docs/launch/cti-s0-t04-store-readback-snapshot-receipt-2026-07-06.json",
+    "non_git_snapshot_sha256": "c98b45752806109a644b82fbb958912821bfae5aaab58aaff36b138908b209ea"
+  }
+}

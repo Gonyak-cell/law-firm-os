@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.command-evidence.v0.1",
+  "goal_id": "cti-s5-enrichment-execute",
+  "commands": [
+    {
+      "command": "aws sts get-caller-identity",
+      "exit_code": 0,
+      "summary": "AWS caller verified for account 770880870480."
+    },
+    {
+      "command": "private I1 workbook parse",
+      "exit_code": 0,
+      "summary": "Parsed 148 rows; raw principal values not persisted."
+    },
+    {
+      "command": "aws lambda update-function-code",
+      "exit_code": 0,
+      "summary": "Deployed matter-lawos-api-prod for S5 maintenance action."
+    },
+    {
+      "command": "aws lambda update-function-configuration --timeout",
+      "exit_code": 0,
+      "summary": "matter-lawos-api-prod timeout already 120s."
+    },
+    {
+      "command": "aws lambda invoke cti_s5_enrichment_execute",
+      "exit_code": 0,
+      "summary": "Lambda maintenance action returned PASS."
+    }
+  ],
+  "pii_safe": true
+}

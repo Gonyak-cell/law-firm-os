@@ -1,0 +1,35 @@
+{
+  "schema_version": "law-firm-os.cti.owner-approval-receipt.v0.1",
+  "approval_id": "I20",
+  "approval_signature_ref": "I20-CTI-CUTOVER-PARTIAL-STATE-RESUME-OWNER-APPROVAL-2026-07-06",
+  "recorded_at": "2026-07-06T09:00:00.000Z",
+  "goal_id": "cti-cutover-execute",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "approval_type": "partial_state_resume",
+  "partial_snapshot_hash": "8b53d5148f69a939e8e38f9f0813befe0675f4de59c9f54dad81d5451ab53d8a",
+  "current_readable_store_file_count": 15,
+  "current_matter_store_record_count": 503,
+  "current_auth_credential_store_record_count": 1,
+  "approved_scope": [
+    "Use the post-partial snapshot as the CUTOVER resume boundary",
+    "Regenerate hash credential records from the existing private handoff file without printing, logging, or committing plaintext passwords",
+    "Inject 9 production credentials",
+    "Apply 2 QA disabled credential records",
+    "Reconfirm bridge token rotation/control",
+    "Run first-login validation",
+    "Generate PII-safe hash/count evidence and closeout"
+  ],
+  "conditions": [
+    "Plaintext passwords must not be printed, logged, or committed",
+    "Secret, token, and password values must not be queried for output, printed, or committed",
+    "Production matter migration is limited to idempotent readback/repair of the already reflected canonical state",
+    "No production_ready or go-live claim before CUT-G PASS"
+  ],
+  "explicit_non_approval": [
+    "OIDC implementation",
+    "DB conversion",
+    "S5 enrichment",
+    "S6 seal",
+    "production_ready claim when validation failed"
+  ]
+}

@@ -42,6 +42,17 @@ declare global {
     __LAWOS_SESSION_CONTEXT__?: unknown;
     matterSession?: {
       desktopApiBaseUrl?: string;
+      api?: (input: {
+        path?: string;
+        method?: string;
+        headers?: Record<string, string>;
+        body?: BodyInit | null;
+      }) => Promise<{
+        http_status?: number;
+        status?: number;
+        body?: unknown;
+        [key: string]: unknown;
+      }>;
     };
   }
 }
@@ -70,6 +81,14 @@ function apiRequestUrl(input: string): string {
   if (typeof input !== "string" || !input.startsWith("/")) return input;
   const baseUrl = desktopApiBaseUrl();
   return baseUrl ? `${baseUrl}${input}` : input;
+}
+
+function desktopReadBridge() {
+  if (typeof window === "undefined" || window.location?.protocol !== "file:") return null;
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("desktop") !== "1") return null;
+  if (desktopApiBaseUrl()) return null;
+  return typeof window.matterSession?.api === "function" ? window.matterSession.api : null;
 }
 
 function plainHeaders(headers: HeadersInit | undefined): Record<string, string> {
@@ -104,6 +123,22 @@ function apiFetch(input: string, init: RequestInit = {}): Promise<Response> {
   }
   const session = readLawosApiSession() as { session_token?: string } | null;
   if (session?.session_token) setHeader(headers, "authorization", `Bearer ${session.session_token}`);
+  const bridge = desktopReadBridge();
+  if (bridge && typeof input === "string" && input.startsWith("/")) {
+    return bridge({
+      path: input,
+      method: init.method ?? "GET",
+      headers,
+      body: init.body ?? null
+    }).then((response) => {
+      const status = Number(response?.http_status ?? response?.status ?? 0) || 500;
+      const body = response?.body ?? response ?? {};
+      return new Response(JSON.stringify(body), {
+        status,
+        headers: { "content-type": "application/json; charset=utf-8" }
+      });
+    });
+  }
   return fetch(apiRequestUrl(input), { ...init, headers });
 }
 
@@ -330,10 +365,14 @@ export async function fetchHrxEmployeeProfile(employeeId: string | null | undefi
   if (!employeeId) return { kind: "empty" };
   const result = await requestJson(`/api/hrx/employees/${encodeURIComponent(employeeId)}`);
   if (result.kind !== "data" || !result.body.employee) return { kind: "error" };
+  const employee = result.body.employee && typeof result.body.employee === "object" && !Array.isArray(result.body.employee)
+    ? result.body.employee as HrxClientRecord
+    : {};
   return {
     kind: "data",
-    employee: result.body.employee,
+    employee,
     employment_profile: result.body.employment_profile ?? null,
+    professional_profile: result.body.professional_profile ?? employee.professional_profile ?? null,
     masked_compensation_ref: result.body.masked_compensation_ref ?? null
   };
 }

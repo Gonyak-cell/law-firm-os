@@ -1,0 +1,29 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.review.v0.1",
+  "goal_id": "cti-s6-seal-final-validation",
+  "reviewer": "codex-local-adversarial-review",
+  "verdict": "BLOCKED",
+  "findings": [
+    {
+      "severity": "P1",
+      "task": "S6-T01",
+      "finding": "real_user_session_surface_proof_missing"
+    },
+    {
+      "severity": "P1",
+      "task": "S6-T05",
+      "finding": "two_consecutive_coldstart_smokes_missing"
+    },
+    {
+      "severity": "P1",
+      "task": "S6-T06",
+      "finding": "required_s6_evidence_missing"
+    }
+  ],
+  "checked_boundaries": [
+    "production_ready/go-live only after S6-G PASS",
+    "existing gates remain additive and unweakened",
+    "KYT accountant boundary remains from S5",
+    "PII-safe evidence scan"
+  ]
+}

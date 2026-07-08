@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.cti.s0-receipt.v0.2",
+  "generated_at": "2026-07-06T02:31:07.212Z",
+  "goal_id": "cti-g0-s0",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "approval_signature_ref": "I4-CTI-G0-S0-OWNER-RATIFICATION-2026-07-06",
+  "cti_item": "S0-T01",
+  "launch_tuw": "LT-PRE-W08-T04",
+  "status": "completed",
+  "pii_boundary": {
+    "plaintext_client_or_matter_names_written": false,
+    "phone_or_email_pii_written": false,
+    "credential_material_written": false,
+    "token_material_written": false
+  },
+  "execution_boundary": {
+    "production_credentials_used": true,
+    "real_data_contact_performed": false,
+    "product_state_write_performed": false,
+    "migration_executed": false,
+    "cutover_executed": false,
+    "password_distribution_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "aws_identity": {
+    "account": "770880870480",
+    "arn_role_ref": "arn:aws:sts::770880870480:assumed-role/matter-prod-deploy-admin/<session>",
+    "arn_hash": "847d93c26575ee35dd932fdd92e4c1bcc497dab445388716fa95166708314e18",
+    "user_id_hash": "0e64db2236266965fda06e310b0752bf645cedbc9209e8b2b4ef32dad939e8ab"
+  },
+  "lambda_configuration": {
+    "function_name": "matter-lawos-api-prod",
+    "runtime": "nodejs22.x",
+    "handler": "apps/api/src/lambda.handler",
+    "state": "Active",
+    "last_update_status": "Successful",
+    "last_modified": "2026-07-05T08:49:25.000+0000",
+    "revision_id": "9c4fba57-bdb3-4272-b358-5112a03abc1c",
+    "code_sha256": "DH9bEc8nJTXpjtMZC0GASWjTA4wOlksI5qY0iZDx5nE=",
+    "timeout": 30,
+    "memory_size": 1024,
+    "environment_key_count": 3,
+    "environment_keys": [
+      "LAWOS_DEPLOYMENT_COMMIT",
+      "LAWOS_DEPLOYMENT_MODE",
+      "LAWOS_VAULT_BRIDGE_TOKEN"
+    ],
+    "secret_like_environment_keys": [
+      "LAWOS_VAULT_BRIDGE_TOKEN"
+    ],
+    "non_secret_environment_values": {
+      "LAWOS_DEPLOYMENT_COMMIT": "83eac1073522066df312d0e21618a7b7f954f777",
+      "LAWOS_DEPLOYMENT_MODE": "aws_lambda_function_url"
+    },
+    "store_path_env_keys_present": [],
+    "all_required_store_paths_absent": true,
+    "efs_file_system_config_count": 0,
+    "vpc_config_present": false
+  },
+  "s1_branch_signal": {
+    "efs_present": false,
+    "store_path_env_keys_present": [],
+    "durable_store_signal": false
+  }
+}

@@ -22,6 +22,7 @@ export function normalizeAccountEmail(email) {
 
 export function registeredAccountPublicRef(user) {
   if (!user) return null;
+  const tenantIds = [...new Set((user.tenant_memberships ?? []).map((membership) => membership.tenant_id).filter(Boolean))];
   return Object.freeze({
     user_id: user.user_id,
     email: user.email,
@@ -29,12 +30,15 @@ export function registeredAccountPublicRef(user) {
     english_name: user.english_name,
     source_title: user.source_title,
     status: user.status,
+    production_status: user.production_status ?? null,
+    qa_tenant_scope: user.qa_tenant_scope ?? null,
     registration_state: user.registration_state,
     highest_privilege: user.highest_privilege === true,
     privilege_rank: user.privilege_rank,
     role_ids: Object.freeze([...(user.role_ids ?? [])]),
     group_ids: Object.freeze([...(user.group_ids ?? [])]),
     scopes: Object.freeze([...(user.scopes ?? [])]),
+    tenant_ids: Object.freeze(tenantIds),
   });
 }
 

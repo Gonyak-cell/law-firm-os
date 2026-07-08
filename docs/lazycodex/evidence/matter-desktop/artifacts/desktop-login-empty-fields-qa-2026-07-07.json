@@ -1,0 +1,24 @@
+{
+  "verdict": "PASS",
+  "app": "/Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-login-empty-fields-final-2026-07-07.png",
+  "checks": {
+    "emailValueEmpty": true,
+    "passwordValueEmpty": true,
+    "emailPlaceholderRemoved": true,
+    "passwordPlaceholderRemoved": true,
+    "loginWasNotSubmitted": true,
+    "finalScreenReady": true,
+    "noUnexpectedOverflow": true
+  },
+  "state": {
+    "logoIntro": "complete",
+    "emailValue": "",
+    "emailPlaceholder": null,
+    "passwordValue": "",
+    "passwordPlaceholder": null,
+    "loginResultText": "",
+    "hasOverflow": false
+  },
+  "note": "QA launched packaged app and verified login dummy placeholders/values are empty without submitting credentials."
+}

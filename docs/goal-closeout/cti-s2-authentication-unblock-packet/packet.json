@@ -1,0 +1,119 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.packet.v0.1",
+  "goal_id": "cti-s2-authentication-unblock-packet",
+  "status": "i7_owner_approval_recorded",
+  "recorded_at": "2026-07-06T04:10:00Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "input_closeout": "docs/goal-closeout/cti-s1-foundation-execute/",
+  "input_blocker": "BLOCKED_S1_G_AUTHENTICATED_PROBE_REQUIRES_S2_OR_APPROVED_PROBE_PRINCIPAL",
+  "approval_ready_packet": "docs/launch/cti-s2-authentication-unblock-packet-2026-07-06.md",
+  "required_approval_ref": "I7-CTI-S2-AUTHENTICATION-UNBLOCK-PACKET-OWNER-APPROVAL-2026-07-06",
+  "approval_status": "approved",
+  "approval_signature_ref": "I7-CTI-S2-AUTHENTICATION-UNBLOCK-PACKET-OWNER-APPROVAL-2026-07-06",
+  "approval_recorded_at": "2026-07-06",
+  "approval_receipt": "docs/launch/cti-i7-owner-approval-receipt-2026-07-06.md",
+  "s2_execute_approval": {
+    "approval_ref": "I9-CTI-S2-AUTHENTICATION-EXECUTE-OWNER-APPROVAL-2026-07-06",
+    "approval_status": "recorded",
+    "approval_receipt": "docs/launch/cti-i9-owner-approval-receipt-2026-07-06.md",
+    "approved_goal": "cti-s2-authentication-execute",
+    "approved_items": [
+      "S2-T01",
+      "S2-T02",
+      "S2-T04",
+      "S2-T06"
+    ],
+    "s2_implementation_executed_by_this_closeout": false,
+    "production_mutation_executed_by_this_closeout": false
+  },
+  "closeout_verdict": "I7_OWNER_APPROVAL_RECORDED",
+  "selected_choices": {
+    "auth_provider": {
+      "provider_id": "lawos-internal-password-provider-v1",
+      "type": "credential_store_backed_internal_password_provider",
+      "hash_algorithm": "node_crypto_scrypt_first_argon2id_later_upgrade_reserved",
+      "credential_store_env": "LAWOS_AUTH_CREDENTIAL_STORE_PATH",
+      "credential_store_path": "/mnt/lawos/auth/credential-store.json",
+      "schema": "law-firm-os.auth-credential-store.v0.1",
+      "operational_synthetic_login_allowed": false,
+      "local_dev_synthetic_login_allowed": true
+    },
+    "login_verify_cut_path": {
+      "api_auth_login": "operational_credential_store_provider",
+      "api_desktop_login": "same_credential_store_provider",
+      "verify_token": "signed_session_payload_account_registry_credential_status_revision_role_registry",
+      "synthetic_token_dependency_in_operational": false
+    },
+    "session_principal_model": {
+      "user_id_source": "signed_session_payload_checked_against_account_registry_and_credential_store",
+      "tenant_id_source": "canonical_registered_tenant_before_s3",
+      "role_scope_source": "lawos-role-registry",
+      "credential_rev_required": true,
+      "token_material_in_session_payload": false
+    },
+    "password_distribution_boundary": {
+      "production_password_generation_issuance_distribution": "out_of_scope_until_i3_or_later_explicit_owner_approval",
+      "s2_execute_allows": "provider_reset_lockout_schema_and_synthetic_or_staging_fixture_tests",
+      "plaintext_password_receipts_allowed": false
+    },
+    "desktop_dependency": {
+      "target_version": "v0.1.10",
+      "required_capabilities": [
+        "email_password_login",
+        "must_change_handling",
+        "password_reset_request_confirm",
+        "route_only_deep_link_reset_confirmation"
+      ],
+      "package_release_executed": false
+    },
+    "s1_g_authenticated_probe": {
+      "method": "real_session_only_no_debug_endpoint_no_secret_fetch_no_direct_token_mint",
+      "requires_future_approval_ref": "I8-CTI-S2-S1G-AUTHENTICATED-PROBE-OWNER-APPROVAL-2026-07-06",
+      "conditional_approval_status": "recorded_effective_after_s2_execute_pass",
+      "conditional_approval_receipt": "docs/launch/cti-i8-owner-approval-receipt-2026-07-06.md",
+      "effective_conditions": [
+        "I7 recorded",
+        "S2 AUTHENTICATION execute PASS",
+        "real production principal/session model",
+        "no debug endpoint",
+        "no direct token mint",
+        "no secret value lookup or output"
+      ],
+      "executed_by_this_goal": false
+    },
+    "rollback_abort": {
+      "restore_previous_lambda_deployment_ref": true,
+      "disable_provider_env_without_deleting_efs_credential_store": true,
+      "revoke_probe_credential_by_status_not_deletion": true,
+      "production_restore_requires_separate_goal": true
+    }
+  },
+  "done_criteria_coverage": {
+    "auth_provider_choice": true,
+    "login_verify_token_cut_path": true,
+    "session_principal_model": true,
+    "password_distribution_boundary": true,
+    "desktop_dependency": true,
+    "s1_g_authenticated_probe_method": true,
+    "required_approval_ref": true,
+    "rollback_abort_criteria": true,
+    "closeout_5_files": true,
+    "validator_pass_required": true
+  },
+  "authority_boundary": {
+    "s2_implementation_executed": false,
+    "production_mutation_executed": false,
+    "credential_store_write_executed": false,
+    "password_generation_issuance_distribution_executed": false,
+    "s1_g_authenticated_probe_executed": false,
+    "s3_tenant_migration_executed": false,
+    "cutover_executed": false,
+    "oidc_implementation_executed": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "next_allowed_goal_after_i7": "cti-s2-authentication-execute",
+  "next_allowed_goal_after_i9": "cti-s2-authentication-execute",
+  "s2_execute_boundary": "I9_RECORDED_EXECUTE_ALLOWED_ONLY_IN_SEPARATE_BOUNDED_GOAL"
+}

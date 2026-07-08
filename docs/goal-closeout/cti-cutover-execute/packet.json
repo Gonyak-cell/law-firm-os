@@ -1,0 +1,265 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.packet.v0.1",
+  "goal_id": "cti-cutover-execute",
+  "status": "cutover_execute_retry_pass",
+  "recorded_at": "2026-07-06T09:36:08.376Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "approval_signature_refs": [
+    "I11-CTI-CUTOVER-EXECUTE-OWNER-APPROVAL-2026-07-06",
+    "I18-CTI-S2-PRODUCTION-AUTH-PROBE-PRINCIPAL-OWNER-APPROVAL-2026-07-06",
+    "I19-CTI-CUTOVER-POST-I18-SNAPSHOT-REBIND-OWNER-APPROVAL-2026-07-06",
+    "I22-CTI-CUTOVER-POST-I21-PARTIAL-RESUME-BOUNDARY-OWNER-APPROVAL-2026-07-06"
+  ],
+  "closeout_verdict": "PASS",
+  "current_snapshot_hash": "6b66029c055ece6c3cfa6a7cd559c8eb387a958261e92f006aa67f3f48767ddd",
+  "original_post_i18_snapshot_hash": "b4139c730895d173cf964a92fa6ba375c93cefcb13687b0f82732c4c0531da49",
+  "i20_resume_snapshot_hash": "8b53d5148f69a939e8e38f9f0813befe0675f4de59c9f54dad81d5451ab53d8a",
+  "current_partial_resume_snapshot_hash": null,
+  "post_i21_partial_resume_snapshot_hash": "6b66029c055ece6c3cfa6a7cd559c8eb387a958261e92f006aa67f3f48767ddd",
+  "resume_from_partial_state": false,
+  "resume_from_current_partial_state": false,
+  "resume_from_post_i21_partial_state": true,
+  "runbook_steps": {
+    "preflight_reverified": true,
+    "i20_partial_resume_approval_recorded": false,
+    "i21_current_partial_resume_approval_recorded": false,
+    "i22_post_i21_partial_resume_approval_recorded": true,
+    "existing_private_handoff_reused": true,
+    "lambda_cutover_action_deployed": true,
+    "bridge_token_rotation_control_applied": true,
+    "direct_invoke_cutover_action_executed": true,
+    "first_login_validation_executed": true,
+    "closeout_generated": true
+  },
+  "migration": {
+    "matter_store_relative_path": "stores/matter-store.json",
+    "matter_store_path_hash": "sha256:5f98cea290526114154a6a7a3ee6a04fe9018ebf26a3d2cc95c1095aad79c225",
+    "clients_expected": 99,
+    "matters_expected": 148,
+    "canonical_client_count": 99,
+    "canonical_matter_count": 148,
+    "canonical_current_record_count": 247,
+    "synthetic_current_record_count": 0,
+    "canonical_synthetic_fixture_count": 0,
+    "created_or_restored_record_count": 0,
+    "removed_synthetic_current_record_count": 148,
+    "removed_canonical_synthetic_fixture_count": 0,
+    "removed_synthetic_residue_record_count": 148,
+    "d07_disposition": "no_149th_source_candidate_in_cutover_batch",
+    "readback_100_percent": true,
+    "plaintext_pii_recorded": false
+  },
+  "account_permission_injection": {
+    "registered_account_count": 11,
+    "production_user_count": 9,
+    "qa_disabled_user_count": 2,
+    "kyt_access_scope": "I2 conservative default: M&A/advisory matter and finance dashboard allowed; litigation/dispute excluded",
+    "credential_fields_preserved_except_cutover_password_hashes": true,
+    "role_scope_source": "matter-vault-user-registration-seed",
+    "plaintext_pii_recorded": false
+  },
+  "credential_injection": {
+    "credential_store_env": "LAWOS_AUTH_CREDENTIAL_STORE_PATH",
+    "credential_store_relative_path": "auth/credential-store.json",
+    "credential_store_path_hash": "sha256:57d20d6a99bf46b9941d13fde2ef410e3f5463005ff3a332d45f5c8a97a5d28d",
+    "records_before_count": 11,
+    "records_after_count": 11,
+    "production_user_credential_count": 9,
+    "qa_disabled_credential_count": 2,
+    "preserved_record_count": 0,
+    "before_sha256": "10064234ca46b408b4d2a44765351a7766dbd34a86213ae537d61861743b499d",
+    "after_sha256": "925249e17b1f11a80262441f26bb521d1bbf7487a56d4f14983a347233f59805",
+    "plaintext_password_recorded": false,
+    "password_hash_digest_recorded": false,
+    "password_hash_salt_recorded": false
+  },
+  "bridge_control": {
+    "function_name": "matter-lawos-api-prod",
+    "before_revision_id": "1eb14e11-dbac-4de8-949b-d1ba185c9aa3",
+    "after_revision_id": "adf232d1-6fc2-4cc7-b193-1b967dc27afb",
+    "before_token_sha256": "sha256:23fc71ad61d82c8fe175dc5a3eba71513e2c0459080ad37e264b90edd8b7fa57",
+    "after_token_sha256": "sha256:12a8fb58961d5a3e55862683adc0b9fad742ba5088e4aeb19bbcfe5856fb4706",
+    "bridge_enabled_after": "false",
+    "allowed_tenant_ids_after": "tenant_amic_matter_vault",
+    "service_actor_after": "cti-cutover-bridge-service",
+    "token_value_recorded": false
+  },
+  "password_issuance_distribution": {
+    "generated_password_count": 9,
+    "private_handoff_created": true,
+    "private_handoff_json_path": "/Users/jws/Downloads/cti-cutover-initial-password-handoff-private-2026-07-06.json",
+    "private_handoff_csv_path": "/Users/jws/Downloads/cti-cutover-initial-password-handoff-private-2026-07-06.csv",
+    "distribution_channel": "in_person",
+    "plaintext_password_recorded_in_repo": false,
+    "plaintext_password_printed_to_stdout": false
+  },
+  "first_login_validation": {
+    "production_user_count": 9,
+    "production_login_pass_count": 9,
+    "must_change_count": 9,
+    "qa_user_count": 2,
+    "qa_rejected_count": 2,
+    "synthetic_token_status": 401,
+    "synthetic_token_rejected": true,
+    "results": [
+      {
+        "user_id_hash": "sha256:32249268f174b0f43824f391f91a9e20eda2897328dfbc483cb0da1c69edcebb",
+        "email_hash": "sha256:9b1ff741ff57852b8c1407c2d2239775ac83612e5e5102801cb17bf12b5005df",
+        "login_status": 200,
+        "session_status": 200,
+        "must_change_password": true,
+        "token_received_in_process": true,
+        "token_recorded": false,
+        "plaintext_password_recorded": false
+      },
+      {
+        "user_id_hash": "sha256:272ac31453a112bf704a2468df2bfa2810395a9702fef45d0fdc7c3d88c8cf9e",
+        "email_hash": "sha256:71cddee16f6b03256810e77653b3a002c73bb696e17668b2fc8a6eeb99d803cb",
+        "login_status": 200,
+        "session_status": 200,
+        "must_change_password": true,
+        "token_received_in_process": true,
+        "token_recorded": false,
+        "plaintext_password_recorded": false
+      },
+      {
+        "user_id_hash": "sha256:d833678b7a5546f7449fa3897647a44fa18ce05c24484066a6419a0496cf749d",
+        "email_hash": "sha256:dbf375aa3b327c8d1b381197956cede8e2205c6abcdaee8c830cf02df43b1052",
+        "login_status": 200,
+        "session_status": 200,
+        "must_change_password": true,
+        "token_received_in_process": true,
+        "token_recorded": false,
+        "plaintext_password_recorded": false
+      },
+      {
+        "user_id_hash": "sha256:adcafd460cf64a5646e0992d9d6642eb5cd39c15f6388b4ab0fb6be62403734c",
+        "email_hash": "sha256:8928f381c9c5adf4e149a29b2dc403eb5282f14b883da0b33abb3024f214aecb",
+        "login_status": 200,
+        "session_status": 200,
+        "must_change_password": true,
+        "token_received_in_process": true,
+        "token_recorded": false,
+        "plaintext_password_recorded": false
+      },
+      {
+        "user_id_hash": "sha256:12ccf66835aa53f00ff503d31c44aae8b3da1195b2ac04c4134c7138d9ed7106",
+        "email_hash": "sha256:cf48ee1eb2a7c278e5b52e46e19da1978d71536d3df9f7c84f163daa0d31f48e",
+        "login_status": 200,
+        "session_status": 200,
+        "must_change_password": true,
+        "token_received_in_process": true,
+        "token_recorded": false,
+        "plaintext_password_recorded": false
+      },
+      {
+        "user_id_hash": "sha256:0406522ba100ee2743f18f79001a4a18a8b99847257d6843af62284a72121af4",
+        "email_hash": "sha256:4443b93fddf0b956b9c0788da3e9e07ea69999cac2246a2b835f5f5cd48cc38e",
+        "login_status": 200,
+        "session_status": 200,
+        "must_change_password": true,
+        "token_received_in_process": true,
+        "token_recorded": false,
+        "plaintext_password_recorded": false
+      },
+      {
+        "user_id_hash": "sha256:d986a4253a2a33bdd9f554e7e6544bc11f9f4cea5c542e6badbe23da760fb7dd",
+        "email_hash": "sha256:393378933ae6b56152f4b33ff368af9da14b49b234e46ff278461e1581d17f80",
+        "login_status": 200,
+        "session_status": 200,
+        "must_change_password": true,
+        "token_received_in_process": true,
+        "token_recorded": false,
+        "plaintext_password_recorded": false
+      },
+      {
+        "user_id_hash": "sha256:787d93ed7336a279af6982f721a0c14900fcd47116a20bea76d052dcbe9f7222",
+        "email_hash": "sha256:70a2a44c839a387f245a431180049a829d808d0e275a9acf84aa290b0c674db4",
+        "login_status": 200,
+        "session_status": 200,
+        "must_change_password": true,
+        "token_received_in_process": true,
+        "token_recorded": false,
+        "plaintext_password_recorded": false
+      },
+      {
+        "user_id_hash": "sha256:a0231329e7c6d830f8924f3b2d6624b3b6c7ff7221516a991830ff8e0ceeb946",
+        "email_hash": "sha256:afc460cc5f86df869ab890af2d7fe814108a8f36185d02f2d0472548a567d6e4",
+        "login_status": 200,
+        "session_status": 200,
+        "must_change_password": true,
+        "token_received_in_process": true,
+        "token_recorded": false,
+        "plaintext_password_recorded": false
+      }
+    ],
+    "qa_results": [
+      {
+        "user_id_hash": "sha256:85543adc33588417ea4e5f509954fb52b9b9a2a7f1bee5a24221d48749def2b8",
+        "email_hash": "sha256:6f0bf332be752507942b8b47ece2e439dcbce63a55438d54a0dfd0171ae4a87e",
+        "login_status": 403,
+        "safe_error_codes": [
+          "AUTH_CREDENTIAL_DISABLED"
+        ]
+      },
+      {
+        "user_id_hash": "sha256:ba97580880451cd21b12deb1e05c76524e5c04764f54df84c62e1a093f986590",
+        "email_hash": "sha256:55d01e081eb16ab7a7838546ef203369fbbd80f8cf4e379854412c737cbb7061",
+        "login_status": 403,
+        "safe_error_codes": [
+          "AUTH_CREDENTIAL_DISABLED"
+        ]
+      }
+    ],
+    "plaintext_password_recorded": false,
+    "token_material_recorded": false
+  },
+  "cut_g_validation": {
+    "canonical_client_count": 99,
+    "canonical_matter_count": 148,
+    "synthetic_current_record_count": 0,
+    "canonical_synthetic_fixture_count": 0,
+    "production_login_pass_count": 9,
+    "must_change_count": 9,
+    "qa_rejected_count": 2,
+    "synthetic_token_rejected": true,
+    "durable_audit_recorded": true,
+    "pass": true
+  },
+  "rollback_abort_adjudication": {
+    "rollback_required": false,
+    "rollback_executed": false,
+    "abort_required": false,
+    "criteria_ref": "docs/launch/cutover-rollback-criteria.md",
+    "snapshot_boundary_hash": "6b66029c055ece6c3cfa6a7cd559c8eb387a958261e92f006aa67f3f48767ddd"
+  },
+  "blocking_conditions": [],
+  "authority_boundary": {
+    "public_http_endpoint": false,
+    "production_write_executed": true,
+    "production_restore_executed": false,
+    "operational_profile_switch_executed": true,
+    "tenant_migration_executed": true,
+    "account_permission_injection_executed": true,
+    "bridge_token_rotation_executed": true,
+    "password_issuance_distribution_executed": true,
+    "first_login_validation_executed": true,
+    "cut_g_validation_executed": true,
+    "cutover_executed": true,
+    "s5_enrichment_executed": false,
+    "s6_final_seal_executed": false,
+    "oidc_implementation_executed": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "plaintext_pii_recorded": false,
+    "credential_material_recorded": false,
+    "token_material_recorded": false
+  },
+  "next_allowed_goal": {
+    "s5_enrichment_allowed_after_owner_confirms_password_handoff": true,
+    "s6_allowed": false,
+    "production_ready_claim_allowed": false,
+    "go_live_claim_allowed": false
+  }
+}

@@ -1,0 +1,222 @@
+{
+  "schema_version": "law-firm-os.cti-cutover-execute.live-snapshot-precheck.v0.1",
+  "goal_id": "cti-cutover-execute",
+  "status": "BLOCKED_SNAPSHOT_HASH_MISMATCH",
+  "recorded_at": "2026-07-06T08:10:00Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "approval_signature_refs": [
+    "I11-CTI-CUTOVER-EXECUTE-OWNER-APPROVAL-2026-07-06",
+    "I15-CTI-CUTOVER-ROLLBACK-ABORT-CRITERIA-OWNER-APPROVAL-2026-07-06",
+    "I18-CTI-S2-PRODUCTION-AUTH-PROBE-PRINCIPAL-OWNER-APPROVAL-2026-07-06"
+  ],
+  "preflight_packet": "docs/goal-closeout/cti-cutover-preflight-go-no-go/packet.json",
+  "expected_i15_snapshot_hash": "2ce798915fccf16aff5c25746e8db4478dc5f160b7ebe7ca430833ce7735cffb",
+  "live_snapshot": {
+    "generated_at": "2026-07-06T08:07:43.898Z",
+    "snapshot_hash": "b4139c730895d173cf964a92fa6ba375c93cefcb13687b0f82732c4c0531da49",
+    "readable_store_file_count": 15,
+    "store_path_manifest_count": 15,
+    "missing_store_env_count": 0,
+    "read_error_count": 0,
+    "blocked_path_count": 0,
+    "restore_rehearsal_status": "PASS",
+    "restore_source_file_count": 15,
+    "restore_restored_file_count": 15,
+    "restore_checksum_mismatch_count": 0,
+    "store_files": [
+      {
+        "key": "hrxStorePath",
+        "env": "LAWOS_HRX_STORE_PATH",
+        "bounded_context": "hrx",
+        "relative_path": "stores/hrx-store.json",
+        "record_count": 6,
+        "sha256": "caac932c185b3c160eee365ae222cce0fb3709a30ed66f1b3660c244e7817be4",
+        "readable": true,
+        "parse_status": "pass"
+      },
+      {
+        "key": "masterDataStorePath",
+        "env": "LAWOS_MASTER_DATA_STORE_PATH",
+        "bounded_context": "master-data",
+        "relative_path": "stores/master-data-store.json",
+        "record_count": 305,
+        "sha256": "b61e6efc3e8394eaa8d07840acbb746f50e608c0fac7f37451a114b61cbadce1",
+        "readable": true,
+        "parse_status": "pass"
+      },
+      {
+        "key": "matterStorePath",
+        "env": "LAWOS_MATTER_STORE_PATH",
+        "bounded_context": "matter",
+        "relative_path": "stores/matter-store.json",
+        "record_count": 256,
+        "sha256": "644e1d74e20322b509d70e3ee68c44cf2eed7c005a3a1b7875f60ec8963eca1e",
+        "readable": true,
+        "parse_status": "pass"
+      },
+      {
+        "key": "dmsStorePath",
+        "env": "LAWOS_DMS_STORE_PATH",
+        "bounded_context": "vault-dms",
+        "relative_path": "stores/dms-store.json",
+        "record_count": 5,
+        "sha256": "9f5594b8b36c2a3e2da23138e20751f2056638ee81a3d03d8018a93fa2b26845",
+        "readable": true,
+        "parse_status": "pass"
+      },
+      {
+        "key": "crmStorePath",
+        "env": "LAWOS_CRM_STORE_PATH",
+        "bounded_context": "crm",
+        "relative_path": "stores/crm-store.json",
+        "record_count": 6,
+        "sha256": "5c0be4dabda328079fc82c030d91fb7b3a52cb14d0ed808729607ab72cfbe785",
+        "readable": true,
+        "parse_status": "pass"
+      },
+      {
+        "key": "intakeStorePath",
+        "env": "LAWOS_INTAKE_STORE_PATH",
+        "bounded_context": "intake",
+        "relative_path": "stores/intake-store.json",
+        "record_count": 3,
+        "sha256": "2526e0a61ff243038e0392982605f76d1c321999c5fe09335fa55dd9bd84259a",
+        "readable": true,
+        "parse_status": "pass"
+      },
+      {
+        "key": "crmMasterDataStorePath",
+        "env": "LAWOS_CRM_MASTER_DATA_STORE_PATH",
+        "bounded_context": "crm-master-data",
+        "relative_path": "stores/crm-master-data-store.json",
+        "record_count": 10,
+        "sha256": "87857019686e6bed10b21d00b2af9c007bb3064eadad6ab930a650bfa01a3043",
+        "readable": true,
+        "parse_status": "pass"
+      },
+      {
+        "key": "financeStorePath",
+        "env": "LAWOS_FINANCE_STORE_PATH",
+        "bounded_context": "finance",
+        "relative_path": "stores/finance-store.json",
+        "record_count": 5,
+        "sha256": "c6c92bc30ac663c57e0df1fbf0228ddc16ef3b1af14d1aecd932cddc8766ffad",
+        "readable": true,
+        "parse_status": "pass"
+      },
+      {
+        "key": "analyticsStorePath",
+        "env": "LAWOS_ANALYTICS_STORE_PATH",
+        "bounded_context": "analytics",
+        "relative_path": "stores/analytics-store.json",
+        "record_count": 4,
+        "sha256": "9eba200d3776fd39144e6c6d380418dc76a994f2bdefc4de8ed0b40e864b8ecd",
+        "readable": true,
+        "parse_status": "pass"
+      },
+      {
+        "key": "aiStorePath",
+        "env": "LAWOS_AI_STORE_PATH",
+        "bounded_context": "ai-governance",
+        "relative_path": "stores/ai-store.json",
+        "record_count": 3,
+        "sha256": "c47c63c3441af6e6bb169cc236587306b8e4c0e4d48b5299a71a5354b2cd1fcf",
+        "readable": true,
+        "parse_status": "pass"
+      },
+      {
+        "key": "portalStorePath",
+        "env": "LAWOS_PORTAL_STORE_PATH",
+        "bounded_context": "client-portal",
+        "relative_path": "stores/portal-store.json",
+        "record_count": 8,
+        "sha256": "886389cfb63dce93c220d641fe97050aa38c99164028a1725ee0679802018563",
+        "readable": true,
+        "parse_status": "pass"
+      },
+      {
+        "key": "uiReadinessStorePath",
+        "env": "LAWOS_UI_READINESS_STORE_PATH",
+        "bounded_context": "ui-readiness",
+        "relative_path": "stores/ui-readiness-store.json",
+        "record_count": 49,
+        "sha256": "cd8827cd51fa64ac440f2feeed1717c46b8fbb760a1fd3526b6352d7af9fcc95",
+        "readable": true,
+        "parse_status": "pass"
+      },
+      {
+        "key": "enterpriseReadinessStorePath",
+        "env": "LAWOS_ENTERPRISE_READINESS_STORE_PATH",
+        "bounded_context": "enterprise-readiness",
+        "relative_path": "stores/enterprise-readiness-store.json",
+        "record_count": 29,
+        "sha256": "1d2752c49a823ebec9c7edfae31cffd2b7e78c55a12f0163e94a95f2d334620e",
+        "readable": true,
+        "parse_status": "pass"
+      },
+      {
+        "key": "securityAuditStorePath",
+        "env": "LAWOS_AUDIT_STORE_PATH",
+        "bounded_context": "api-security-audit",
+        "relative_path": "audit/security-audit-events.ndjson",
+        "record_count": 1,
+        "sha256": "84c7863bb9f24d8f8860199177bfec4f6b1c1da5732fb76480dc64b0f4117435",
+        "readable": true,
+        "parse_status": "pass"
+      },
+      {
+        "key": "authCredentialStorePath",
+        "env": "LAWOS_AUTH_CREDENTIAL_STORE_PATH",
+        "bounded_context": "api-auth-credentials",
+        "relative_path": "auth/credential-store.json",
+        "record_count": 1,
+        "sha256": "eabafe2441314f12fd3942c256915f188f2f93829dd48d760a0fa4a81b3b8d38",
+        "readable": true,
+        "parse_status": "pass"
+      }
+    ]
+  },
+  "mismatch_analysis": {
+    "snapshot_hash_matches_i15": false,
+    "expected_readable_store_file_count": 13,
+    "live_readable_store_file_count": 15,
+    "store_file_count_delta": 2,
+    "likely_approved_delta": "I18 added/updated auth credential store and authenticated security audit marker evidence after the I14/I15-bound snapshot.",
+    "stop_condition_triggered": true
+  },
+  "direct_invoke": {
+    "function_name": "matter-lawos-api-prod",
+    "maintenance_action": "cti_cutover_readonly_efs_snapshot",
+    "request_id": "cti-cutover-execute-precheck-live-snapshot",
+    "status_code": 200,
+    "function_error": null,
+    "response_path": "/tmp/cti-cutover-live-snapshot.Pccozz/response.json",
+    "meta_path": "/tmp/cti-cutover-live-snapshot.Pccozz/meta.json"
+  },
+  "boundary": {
+    "public_http_endpoint": false,
+    "read_only_snapshot": true,
+    "plaintext_file_content_returned": false,
+    "secret_value_returned": false,
+    "token_or_password_returned": false,
+    "production_write_executed": false,
+    "production_restore_executed": false,
+    "operational_profile_switch_executed": false,
+    "tenant_migration_executed": false,
+    "account_permission_injection_executed": false,
+    "bridge_token_rotation_executed": false,
+    "password_issuance_distribution_executed": false,
+    "first_login_validation_executed": false,
+    "cut_g_validation_executed": false,
+    "cutover_executed": false,
+    "s5_enrichment_executed": false,
+    "s6_final_seal_executed": false,
+    "oidc_implementation_executed": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "plaintext_pii_recorded": false,
+    "credential_material_recorded": false,
+    "token_material_recorded": false
+  }
+}

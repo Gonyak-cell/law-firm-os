@@ -20,17 +20,17 @@ Channel: `formal`
 
 ## Signing
 
-- Developer ID signing: not_applied_internal_package
-- requested signing mode: internal
-- resolved signing identity: not_applied_internal_package
-- Developer ID signature: not_distribution_ready: Developer ID authority missing; TeamIdentifier=not set
-- codesign verify: not_distribution_ready: /Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
-- strict codesign verify: not_distribution_ready: /Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
-- gatekeeper assess: not_distribution_ready: /Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
+- Developer ID signing: applied
+- requested signing mode: developer-id
+- resolved signing identity: Developer ID Application: Jiwon Suh (LHDXU66NX3)
+- Developer ID signature: pass
+- codesign verify: pass
+- strict codesign verify: pass
+- gatekeeper assess: pass
 - public distribution approval: not claimed
-- notarization requested: false
-- notarization credential source: missing
-- notarization state: not_submitted_internal_only
+- notarization requested: true
+- notarization credential source: present
+- notarization state: submitted_and_accepted_by_notarytool
 
 ## Install Smoke
 

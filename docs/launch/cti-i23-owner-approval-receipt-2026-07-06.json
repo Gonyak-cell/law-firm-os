@@ -1,0 +1,45 @@
+{
+  "schema_version": "law-firm-os.cti.owner-approval-receipt.v0.1",
+  "approval_id": "I23",
+  "approval_signature_ref": "I23-CTI-PASSWORD-RESET-EMAIL-DELIVERY-STORE-OWNER-APPROVAL-2026-07-06",
+  "recorded_at": "2026-07-06T11:48:46Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "goal_id": "cti-password-reset-remediation-execute",
+  "approved_scope": {
+    "LAWOS_AUTH_PASSWORD_RESET_STORE_PATH": "/mnt/lawos/auth/password-reset-store.json",
+    "LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY": "sesv2",
+    "LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM": "jwsuh@amic.kr",
+    "LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM_NAME": "Matter OS",
+    "LAWOS_AUTH_PASSWORD_RESET_BASE_URL": "matter://password-reset/confirm",
+    "lambda_iam_ses_send_email_resource": "arn:aws:ses:ap-northeast-2:770880870480:identity/jwsuh@amic.kr",
+    "lambda_env_mutation_approved": true,
+    "lambda_code_deploy_approved": true,
+    "nine_user_reset_request_send_approved": true,
+    "qa_disabled_reset_login_rejection_validation_approved": true,
+    "one_time_confirm_reuse_invalid_token_validation_approved": true
+  },
+  "conditions": {
+    "token_password_secret_value_output_log_commit_forbidden": true,
+    "repo_evidence_hash_count_message_id_status_only": true,
+    "plaintext_temporary_password_distribution_forbidden": true,
+    "production_ready_claim_forbidden": true,
+    "go_live_claim_forbidden": true
+  },
+  "explicit_non_approval": [
+    "S5 enrichment",
+    "S6 seal",
+    "OIDC",
+    "DB conversion",
+    "production_ready/go-live claim"
+  ],
+  "boundary": {
+    "approval_record_only": true,
+    "production_code_deployed_by_this_receipt": false,
+    "production_env_mutated_by_this_receipt": false,
+    "production_credential_mutated_by_this_receipt": false,
+    "password_reset_emails_sent_by_this_receipt": false,
+    "secret_value_recorded": false,
+    "token_value_recorded": false,
+    "password_value_recorded": false
+  }
+}

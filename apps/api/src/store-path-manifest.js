@@ -94,6 +94,28 @@ export const STORE_PATH_MANIFEST = Object.freeze([
     bounded_context: "enterprise-readiness",
     required: true,
   }),
+  Object.freeze({
+    key: "securityAuditStorePath",
+    env: "LAWOS_AUDIT_STORE_PATH",
+    fileName: "security-audit-events.ndjson",
+    bounded_context: "api-security-audit",
+    required: true,
+    format: "ndjson",
+  }),
+  Object.freeze({
+    key: "authCredentialStorePath",
+    env: "LAWOS_AUTH_CREDENTIAL_STORE_PATH",
+    fileName: "auth/credential-store.json",
+    bounded_context: "api-auth-credentials",
+    required: true,
+  }),
+  Object.freeze({
+    key: "authPasswordResetStorePath",
+    env: "LAWOS_AUTH_PASSWORD_RESET_STORE_PATH",
+    fileName: "auth/password-reset-store.json",
+    bounded_context: "api-auth-password-reset",
+    required: true,
+  }),
 ]);
 
 export const DERIVED_STORE_PATH_MANIFEST = Object.freeze([

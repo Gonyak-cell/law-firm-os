@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.construction-inspection.v0.1",
+  "goal_id": "cti-password-reset-remediation-execute",
+  "recorded_at": "2026-07-06T11:48:46Z",
+  "status": "BLOCKED",
+  "required_files": [
+    "docs/goal-closeout/cti-password-reset-remediation-execute/packet.json",
+    "docs/goal-closeout/cti-password-reset-remediation-execute/command-evidence.json",
+    "docs/goal-closeout/cti-password-reset-remediation-execute/claude-review-result.json",
+    "docs/goal-closeout/cti-password-reset-remediation-execute/adjudication.md",
+    "docs/goal-closeout/cti-password-reset-remediation-execute/construction-inspection.json",
+    "docs/launch/cti-i23-owner-approval-receipt-2026-07-06.json",
+    "docs/launch/cti-password-reset-remediation-execute-blocker-2026-07-06.json"
+  ],
+  "inspection": {
+    "closeout_5_files_present": true,
+    "i23_approval_recorded": true,
+    "ses_preflight_recorded": true,
+    "targeted_tests_pass": true,
+    "production_stop_condition_triggered": true,
+    "production_mutation_absent": true
+  },
+  "boundary": {
+    "production_code_deployed": false,
+    "lambda_env_mutated": false,
+    "lambda_iam_mutated": false,
+    "production_credential_mutated": false,
+    "password_reset_email_sent": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

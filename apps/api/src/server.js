@@ -39,6 +39,7 @@ import { appendHrxRouteAudit } from "./middleware/hrx-audit-write.js";
 import { authorizeHrxStepUpRequest } from "./middleware/hrx-step-up-context.js";
 import { PERMISSION_CONTEXT_HEADER, PERMISSION_DECISION_ORDER, evaluateRouteDecision, parsePermissionContext } from "./permission-gate.js";
 import { createHrxRuntimeContext, handleHrxApiRequest, seedHrxDurableRuntimeStore } from "./hrx-runtime-context.js";
+import { findHrxMemberRosterByUserId } from "./hrx-member-roster-registry.js";
 import {
   MATTER_BOUNDED_CONTEXT,
   MATTER_VAULT_BRIDGE_ROUTES,
@@ -166,6 +167,9 @@ function startupStorePathOptions(options = {}) {
     portalStorePath: options.portalStorePath,
     uiReadinessStorePath: options.uiReadinessStorePath,
     enterpriseReadinessStorePath: options.enterpriseReadinessStorePath,
+    securityAuditStorePath: options.securityAuditStorePath,
+    authCredentialStorePath: options.authCredentialStorePath,
+    authPasswordResetStorePath: options.authPasswordResetStorePath,
   };
 }
 
@@ -221,14 +225,19 @@ function createEphemeralEnterpriseReadinessStorePath() {
   return join(mkdtempSync(join(tmpdir(), "lawos-enterprise-readiness-runtime-")), "enterprise-readiness-store.json");
 }
 
-export function createDefaultHrxRuntime({ store, storePath = process.env.LAWOS_HRX_STORE_PATH, modelGateway } = {}) {
+export function createDefaultHrxRuntime({
+  store,
+  storePath = process.env.LAWOS_HRX_STORE_PATH,
+  modelGateway,
+  runtimeProfile = resolveRuntimeProfile(),
+} = {}) {
   const hrxStore = store ?? createFileHrxStore({ filePath: storePath || createEphemeralHrxStorePath() });
   runHrxMigrations(hrxStore);
   assertRuntimePersistenceStore(hrxStore, {
     bounded_context: "hrx",
     requiredTables: [...HRX_DURABLE_CORE_TABLES, ...HRX_DURABLE_WORKFLOW_TABLES],
   });
-  seedHrxDurableRuntimeStore(hrxStore);
+  if (runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational) seedHrxDurableRuntimeStore(hrxStore);
   return createHrxRuntimeContext({ store: hrxStore, modelGateway });
 }
 
@@ -495,6 +504,70 @@ function sendJson(req, res, status, body) {
   res.end(JSON.stringify(body));
 }
 
+function sendHtml(req, res, status, body) {
+  res.writeHead(status, {
+    "content-type": "text/html; charset=utf-8",
+    "cache-control": "no-store",
+    ...corsHeadersForRequest(req),
+  });
+  res.end(body);
+}
+
+function passwordResetOpenPageHtml() {
+  return `<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Matter 비밀번호 설정</title>
+  <style>
+    body{margin:0;background:#f5f4f0;color:#17212b;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif}
+    main{min-height:100vh;display:grid;place-items:center;padding:24px}
+    section{width:min(100%,440px);background:#fff;border:1px solid #ded8cc;border-radius:8px;padding:28px;box-sizing:border-box}
+    h1{margin:0 0 10px;font-size:24px;line-height:32px;letter-spacing:0}
+    p{margin:0 0 18px;color:#374151;font-size:15px;line-height:24px}
+    a{display:inline-block;background:#17212b;color:#fff;text-decoration:none;border-radius:6px;padding:12px 18px;font-size:15px;line-height:20px;font-weight:700}
+    .secondary{margin-top:16px;color:#4b5563;font-size:13px;line-height:21px}
+    [hidden]{display:none}
+  </style>
+</head>
+<body>
+  <main>
+    <section id="ready" hidden>
+      <h1>비밀번호를 설정하세요</h1>
+      <p>Matter 앱에서 비밀번호 설정을 계속합니다.</p>
+      <a id="open-app" href="#">Matter 열기</a>
+      <p class="secondary">앱이 열리지 않으면 Matter 앱을 먼저 실행한 뒤 이 버튼을 다시 누르세요.</p>
+    </section>
+    <section id="invalid" hidden>
+      <h1>링크를 확인하세요</h1>
+      <p>비밀번호 설정 링크가 없거나 만료되었습니다. 새 재설정 메일을 요청하세요.</p>
+    </section>
+  </main>
+  <script>
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    const token = params.get("token") || "";
+    const ready = document.getElementById("ready");
+    const invalid = document.getElementById("invalid");
+    const openApp = document.getElementById("open-app");
+    if (token) {
+      const appUrl = "matter://password-reset/confirm?token=" + encodeURIComponent(token);
+      openApp.href = appUrl;
+      ready.hidden = false;
+      openApp.addEventListener("click", () => {
+        window.location.href = appUrl;
+      });
+      window.setTimeout(() => {
+        window.location.href = appUrl;
+      }, 350);
+    } else {
+      invalid.hidden = false;
+    }
+  </script>
+</body>
+</html>`;
+}
+
 function sendOptions(req, res) {
   res.writeHead(204, {
     "cache-control": "no-store",
@@ -718,6 +791,9 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId }
   }
 
   const roleIds = Array.isArray(context?.principal?.role_ids) ? context.principal.role_ids : [];
+  const rosterMember = findHrxMemberRosterByUserId(actorRef);
+  const displayName = rosterMember?.display_name ?? "세션 사용자";
+  const primaryRoleLabel = rosterMember?.title || roleIds[0] || "role_unassigned";
   return {
     status: 200,
     body: {
@@ -727,13 +803,13 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId }
         profile_ref: `profile:${actorRef}`,
         actor_ref: actorRef,
         tenant_ref: tenantId,
-        display_name: "세션 사용자",
-        primary_role_label: roleIds[0] ?? "role_unassigned",
+        display_name: displayName,
+        primary_role_label: primaryRoleLabel,
         role_count: roleIds.length,
         contract_summary: {
           state: "connected",
           visible_contract_count: 0,
-          source_ref: "session_profile_projection",
+          source_ref: rosterMember?.source_ref ?? "session_profile_projection",
         },
         account_summary: {
           state: "connected",
@@ -753,7 +829,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId }
   };
 }
 
-async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -786,6 +862,7 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
   const isEnterpriseReadinessPath = pathname.startsWith("/api/enterprise");
   const knownPath =
     pathname === "/api/health" ||
+    pathname === "/health" ||
     isAuthPath ||
     pathname === "/master-data/records" ||
     pathname === "/master-data/relationships" ||
@@ -818,7 +895,7 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
     return;
   }
 
-  if (pathname === "/api/health") {
+  if (pathname === "/api/health" || pathname === "/health") {
     sendJson(req, res, 200, {
       status: "ok",
       time: new Date().toISOString(),
@@ -829,9 +906,18 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
     return;
   }
 
+  if (pathname === "/api/auth/password-reset/open") {
+    if (req.method !== "GET") {
+      sendJson(req, res, 405, { request_id: requestId, outcome: "blocked", reason: "auth_method_not_allowed" });
+      return;
+    }
+    sendHtml(req, res, 200, passwordResetOpenPageHtml());
+    return;
+  }
+
   if (isAuthPath) {
     const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
-    const result = sessionAuth.handleAuthApiRequest({ pathname, method: req.method, body, headers: req.headers, requestId });
+    const result = await sessionAuth.handleAuthApiRequest({ pathname, method: req.method, body, headers: req.headers, requestId });
     sendJson(req, res, result.status, result.body);
     return;
   }
@@ -895,6 +981,18 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
   };
 
   if (isHrxPath) {
+    if (hrxRuntimeUnavailable) {
+      sendJson(req, res, 503, {
+        request_id: requestId,
+        outcome: "blocked",
+        ok: false,
+        reason: "hrx_runtime_unavailable",
+        safe_error_codes: ["HRX_RUNTIME_UNAVAILABLE"],
+        runtime_profile: runtimeProfile,
+        production_ready_claim: false,
+      });
+      return;
+    }
     const hrxAuthz = authorizeHrxApiRequest({ method: req.method, pathname, query, headers: requestHeaders() });
     if (!hrxAuthz.ok) {
       await appendHrxDeniedRouteAudit({
@@ -1088,6 +1186,16 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
   }
 
   if (isFinancePath) {
+    if (!financeRuntime) {
+      sendJson(req, res, 503, {
+        request_id: requestId,
+        outcome: "blocked",
+        safe_error_codes: ["FINANCE_RUNTIME_UNAVAILABLE"],
+        reason: financeRuntimeUnavailable?.reason ?? "finance_runtime_unavailable",
+        production_ready_claim: false,
+      });
+      return;
+    }
     const context = requestPermissionContext();
     const body = req.method === "POST" ? await readRequestBody(req) : {};
     const result = await handleFinanceApiRequest({
@@ -1196,11 +1304,13 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
 
 export function createApiServer({
   hrxRuntime = createDefaultHrxRuntime(),
+  hrxRuntimeUnavailable = null,
   masterDataRuntime = createDefaultMasterDataRuntime(),
   matterRuntime = createDefaultMatterRuntime({ hrxRuntime }),
   dmsRuntime = createDefaultDmsRuntime(),
   crmIntakeRuntime = createDefaultCrmIntakeRuntime({ dmsRuntime }),
   financeRuntime = createDefaultFinanceRuntime(),
+  financeRuntimeUnavailable = null,
   analyticsRuntime = createDefaultAnalyticsRuntime({ financeRepository: financeRuntime?.repository }),
   aiRuntime = createDefaultAiRuntime(),
   portalRuntime = createDefaultPortalRuntime(),
@@ -1219,7 +1329,7 @@ export function createApiServer({
         matterRuntime?.clearanceRepository || !crmIntakeRuntime?.intakeRepository
           ? matterRuntime
           : Object.freeze({ ...matterRuntime, clearanceRepository: crmIntakeRuntime.intakeRepository });
-      await handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime: matterRuntimeWithClearanceLedger, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile });
+      await handle(req, res, { hrxRuntime, hrxRuntimeUnavailable, masterDataRuntime, matterRuntime: matterRuntimeWithClearanceLedger, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile });
     } catch (error) {
       sendJson(req, res, 500, { outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "internal_error", message: error.message });
     }
@@ -1270,6 +1380,10 @@ export function startApiServer({
   enterpriseReadinessRuntime,
   enterpriseReadinessRepository,
   enterpriseReadinessStorePath,
+  securityAuditStorePath,
+  authCredentialStorePath,
+  authPasswordResetStorePath,
+  passwordResetEmailDelivery,
   sessionAuth,
   stepUpAuthority,
 } = {}) {
@@ -1291,6 +1405,9 @@ export function startApiServer({
       portalStorePath,
       uiReadinessStorePath,
       enterpriseReadinessStorePath,
+      securityAuditStorePath,
+      authCredentialStorePath,
+      authPasswordResetStorePath,
     }),
   });
   const resolvedSessionSecret = resolveSessionSecret({
@@ -1298,10 +1415,25 @@ export function startApiServer({
     explicitSecret: sessionSecret,
   });
   const resolvedStorePaths = storePreflight.storePaths;
-  const runtime = hrxRuntime ?? createDefaultHrxRuntime({
-    store: hrxStore,
-    storePath: hrxStorePath ?? resolvedStorePaths.hrxStorePath,
-  });
+  let hrxRuntimeUnavailable = null;
+  let runtime = hrxRuntime;
+  if (!runtime) {
+    try {
+      runtime = createDefaultHrxRuntime({
+        store: hrxStore,
+        storePath: hrxStorePath ?? resolvedStorePaths.hrxStorePath,
+        runtimeProfile: resolvedRuntimeProfile,
+      });
+    } catch (error) {
+      if (resolvedRuntimeProfile !== LAWOS_RUNTIME_PROFILES.operational) throw error;
+      hrxRuntimeUnavailable = {
+        reason: "hrx_runtime_unavailable",
+        error_name: error?.name ?? "Error",
+        error_code: error?.code ?? null,
+      };
+      runtime = null;
+    }
+  }
   const masterRuntime =
     masterDataRuntime ??
     createDefaultMasterDataRuntime({
@@ -1342,18 +1474,30 @@ export function startApiServer({
       hrxRuntime: runtime,
       clearanceRepository: crmIntakeRuntime.intakeRepository,
     });
-  const financeRuntimeContext =
-    financeRuntime ??
-    createDefaultFinanceRuntime({
-      repository: financeRepository,
-      storePath: financeStorePath ?? resolvedStorePaths.financeStorePath,
-    });
+  let financeRuntimeUnavailable = null;
+  let financeRuntimeContext = financeRuntime;
+  if (!financeRuntimeContext) {
+    try {
+      financeRuntimeContext = createDefaultFinanceRuntime({
+        repository: financeRepository,
+        storePath: financeStorePath ?? resolvedStorePaths.financeStorePath,
+      });
+    } catch (error) {
+      if (resolvedRuntimeProfile !== LAWOS_RUNTIME_PROFILES.operational) throw error;
+      financeRuntimeUnavailable = {
+        reason: "finance_runtime_unavailable",
+        error_name: error?.name ?? "Error",
+        error_code: error?.code ?? null,
+      };
+      financeRuntimeContext = null;
+    }
+  }
   const analyticsRuntimeContext =
     analyticsRuntime ??
     createDefaultAnalyticsRuntime({
       repository: analyticsRepository,
       storePath: analyticsStorePath ?? resolvedStorePaths.analyticsStorePath,
-      financeRepository: analyticsFinanceRepository ?? financeRuntimeContext.repository,
+      financeRepository: analyticsFinanceRepository ?? financeRuntimeContext?.repository ?? null,
     });
   const aiRuntimeContext =
     aiRuntime ??
@@ -1388,6 +1532,10 @@ export function startApiServer({
   const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
     profile: resolvedRuntimeProfile,
     secret: resolvedSessionSecret,
+    securityAuditStorePath: securityAuditStorePath ?? resolvedStorePaths.securityAuditStorePath,
+    credentialStorePath: authCredentialStorePath ?? resolvedStorePaths.authCredentialStorePath,
+    passwordResetTokenStorePath: authPasswordResetStorePath ?? resolvedStorePaths.authPasswordResetStorePath,
+    passwordResetEmailDelivery,
     stepUpAuthority: resolvedStepUpAuthority,
   });
   const server = createApiServer({
@@ -1397,6 +1545,7 @@ export function startApiServer({
     dmsRuntime: dmsRuntimeContext,
     crmIntakeRuntime,
     financeRuntime: financeRuntimeContext,
+    financeRuntimeUnavailable,
     analyticsRuntime: analyticsRuntimeContext,
     aiRuntime: aiRuntimeContext,
     portalRuntime: portalRuntimeContext,
@@ -1406,6 +1555,7 @@ export function startApiServer({
     stepUpAuthority: resolvedStepUpAuthority,
     sessionAuth: resolvedSessionAuth,
     runtimeProfile: resolvedRuntimeProfile,
+    hrxRuntimeUnavailable,
   });
   return new Promise((resolve, reject) => {
     server.once("error", reject);

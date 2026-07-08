@@ -116,6 +116,14 @@ test("HRX member roster source of truth preserves the registered AMIC and PETRA 
   assert.ok(roster.every((member) => member.source_ref === HRX_MEMBER_ROSTER_SOURCE_REF));
   const membersByName = new Map(roster.map((member) => [member.display_name, member]));
   assert.equal(membersByName.get("김양태")?.title, "대표이사");
+  assert.equal(membersByName.get("김양태")?.professional_profile?.profile_kind, "cpa");
+  assert.equal(membersByName.get("김양태")?.professional_profile?.qualifications?.includes("대한민국 공인회계사"), true);
+  assert.equal(membersByName.get("김양태")?.professional_profile?.qualifications?.includes("대한민국 변호사"), false);
+  assert.equal(membersByName.get("조우상")?.professional_profile?.profile_kind, "deal_advisor");
+  assert.deepEqual(
+    ["박병준", "임영훈", "서지원", "조성민"].map((displayName) => membersByName.get(displayName)?.professional_profile?.profile_kind),
+    ["attorney", "attorney", "attorney", "attorney"],
+  );
   for (const displayName of ["박서영", "조우상", "김양태"]) {
     const member = membersByName.get(displayName);
     assert.equal(member?.affiliation, "PETRA BRIDGE PARTNERS");
@@ -158,6 +166,14 @@ test("GET /api/hrx/employees returns synthetic API-backed employee rows", async 
   assert.ok(body.employees.some((employee) => employee.display_name === "김양태" && employee.title === "대표이사"));
   assert.ok(body.employees.some((employee) => employee.display_name === "이예진" && employee.title === "대리"));
   const employeesByName = new Map(body.employees.map((employee) => [employee.display_name, employee]));
+  assert.equal(employeesByName.get("김양태")?.professional_profile?.profile_kind, "cpa");
+  assert.equal(employeesByName.get("김양태")?.professional_profile?.qualifications?.includes("대한민국 공인회계사"), true);
+  assert.equal(employeesByName.get("김양태")?.professional_profile?.qualifications?.includes("대한민국 변호사"), false);
+  assert.equal(employeesByName.get("조우상")?.professional_profile?.profile_kind, "deal_advisor");
+  assert.deepEqual(
+    ["박병준", "임영훈", "서지원", "조성민"].map((displayName) => employeesByName.get(displayName)?.professional_profile?.profile_kind),
+    ["attorney", "attorney", "attorney", "attorney"],
+  );
   for (const displayName of ["박서영", "조우상", "김양태"]) {
     assert.equal(employeesByName.get(displayName)?.affiliation, "PETRA BRIDGE PARTNERS");
     assert.equal(employeesByName.get(displayName)?.department, "Finance");
@@ -276,6 +292,10 @@ test("GET /api/hrx/employees/:id returns profile with compensation masked", asyn
   assert.equal(body.employee.affiliation, "PETRA BRIDGE PARTNERS");
   assert.equal(body.employee.department, "Finance");
   assert.equal(body.employee.organization_group, "PETRA BRIDGE PARTNERS");
+  assert.equal(body.employee.professional_profile.profile_kind, "cpa");
+  assert.equal(body.professional_profile.profile_kind, "cpa");
+  assert.equal(body.professional_profile.qualifications.includes("대한민국 공인회계사"), true);
+  assert.equal(body.professional_profile.qualifications.includes("대한민국 변호사"), false);
   assert.equal(body.employment_profile.employee_id, "emp_amic_ytkim");
   assert.match(body.masked_compensation_ref, /^compensation_ref_hash:[a-f0-9]{24}$/);
   assert.equal(body.masked_compensation_ref.includes("local-kms://"), false);

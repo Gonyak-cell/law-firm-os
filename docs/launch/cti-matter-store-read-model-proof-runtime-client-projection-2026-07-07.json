@@ -1,0 +1,60 @@
+{
+  "schema_version": "law-firm-os.cti.matter-store-read-model-proof-runtime-client-projection.v0.1",
+  "recorded_at": "2026-07-07T05:44:14.357Z",
+  "approval_signature_ref": "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06",
+  "aws": {
+    "region": "ap-northeast-2",
+    "lambda_function_name": "matter-lawos-api-prod",
+    "before_revision_id": "3ab08146-f1db-4253-a4de-63ca66d173df",
+    "config_revision_id": "960aa56a-5033-4344-856e-604ebf091120",
+    "code_revision_id": "02354447-39ca-4bbb-88ae-215927c5421b",
+    "code_sha256": "1oqf4v/B+HM5SX+x3QBwZJkcZFL6oj/95JIgUfzYu8Y=",
+    "package_sha256": "sha256:d68a9fe2ffc1f87339497fb1dd007064991c6452faa23ffde4922051fcd8bbc6",
+    "overlay_enabled_after": "false",
+    "env_values_recorded": false
+  },
+  "invoke": {
+    "status_code": 200,
+    "function_error": null,
+    "executed_version": "$LATEST"
+  },
+  "store_only_proof": {
+    "db_connection_used": false,
+    "production_write_executed": false,
+    "matter_store_sha256": "sha256:714da58dc00a7c2557b5882cd4d0abf094f22eb5d33bd509c0637036f7ccfdc9",
+    "matter_store_total_record_count": 2254,
+    "app_tenant_record_count": 2246,
+    "read_model_counts": {
+      "Client": 80,
+      "MatterClient": 179,
+      "Matter": 271,
+      "MatterMember": 1716
+    }
+  },
+  "receipt": {
+    "ok": true,
+    "schema_version": "law-firm-os.cti.matter-store-read-model-proof.v0.1",
+    "maintenance_action": "cti_matter_store_read_model_proof",
+    "approval_signature_ref": "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06",
+    "generated_at": "2026-07-07T05:45:11.573Z",
+    "app_tenant_id": "tenant_amic_matter_vault",
+    "matter_store_path_hash": "sha256:5f98cea290526114154a6a7a3ee6a04fe9018ebf26a3d2cc95c1095aad79c225",
+    "matter_store_sha256": "sha256:714da58dc00a7c2557b5882cd4d0abf094f22eb5d33bd509c0637036f7ccfdc9",
+    "matter_store_total_record_count": 2254,
+    "app_tenant_record_count": 2246,
+    "read_model_counts": {
+      "Client": 80,
+      "MatterClient": 179,
+      "Matter": 271,
+      "MatterMember": 1716
+    },
+    "db_connection_used": false,
+    "secret_value_returned": false,
+    "credential_material_returned": false,
+    "token_or_password_returned": false,
+    "production_write_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "verdict": "PASS"
+}

@@ -1,0 +1,8 @@
+{
+  "goal_id": "cti-s1-foundation",
+  "status": "not_run",
+  "reason": "S1 FOUNDATION reached the stop condition before implementation or production infra writes. The closeout is a blocked evidence packet, not a production_ready implementation.",
+  "valid_review_evidence": false,
+  "claude_is_final_approval": false,
+  "review_deferred_to": "cti-s1-foundation-unblock-targets after owner-approved durable target packet"
+}

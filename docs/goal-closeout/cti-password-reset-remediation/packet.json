@@ -1,0 +1,47 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.packet.v0.1",
+  "goal_id": "cti-password-reset-remediation",
+  "status": "BLOCKED_MAIL_PROVIDER_AND_RESET_STORE_ENV_MISSING",
+  "recorded_at": "2026-07-06T10:06:40Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "closeout_verdict": "BLOCKED",
+  "summary": "Local code and targeted tests for email-based password reset remediation passed, but production reset-token durable store env and approved SES/email delivery configuration are missing.",
+  "evidence_refs": [
+    "docs/launch/cti-password-reset-remediation-evidence-2026-07-06.json",
+    "docs/launch/cti-password-reset-remediation-evidence-2026-07-06.md",
+    "docs/launch/cti-password-reset-remediation-crosswalk-2026-07-06.json",
+    "docs/launch/cti-password-reset-remediation-crosswalk-2026-07-06.md"
+  ],
+  "implemented_local_surfaces": [
+    "apps/api/src/auth-password-reset-store.js",
+    "apps/api/src/auth-credential-store.js",
+    "apps/api/src/session-auth.js",
+    "apps/api/src/lambda.js",
+    "apps/api/src/store-path-manifest.js",
+    "apps/api/src/server.js",
+    "apps/desktop/src/main/aws-runtime.js",
+    "docs/runbooks/store-env-catalog.md"
+  ],
+  "blocked_conditions": [
+    "Production Lambda env lacks LAWOS_AUTH_PASSWORD_RESET_STORE_PATH.",
+    "Production Lambda env lacks approved SES/email delivery configuration.",
+    "I23 approval for sender/base URL/IAM/env mutation is not recorded."
+  ],
+  "next_required_action": "Obtain I23 approval, configure production reset store/email env and IAM, deploy, then run 9-user reset request/send and reset-confirm validation.",
+  "boundary": {
+    "production_code_deployed": false,
+    "production_env_mutated": false,
+    "production_credential_mutation_executed": false,
+    "password_reset_emails_sent": false,
+    "plaintext_temporary_password_distribution_allowed": false,
+    "token_value_recorded": false,
+    "password_value_recorded": false,
+    "secret_value_recorded": false,
+    "s5_enrichment_executed": false,
+    "s6_seal_executed": false,
+    "oidc_implementation_executed": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

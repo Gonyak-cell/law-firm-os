@@ -1,8 +1,8 @@
 {
   "schema_version": "lawos.lcx_vltui.production_smoke.v0.1",
-  "generated_at": "2026-07-05T08:48:09.016Z",
+  "generated_at": "2026-07-08T02:27:25.124Z",
   "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
-  "deployment_commit": "7b8abc99cb213ce1b4daacc5330f344b27b2a9bd",
+  "deployment_commit": "51fd7f14fd0d5d28f12897c2a99f29486bb5ecc8-dirty-current-20260708T022442Z",
   "verdict": "PASS",
   "bridge_token_resolution": {
     "source": "lambda_environment",
@@ -22,7 +22,7 @@
       "id": "cloudfront-root-new-assets",
       "passed": true,
       "details": {
-        "summary": "root=200, assets=index-C4I169hQ.js/index-COfWDa_0.css"
+        "summary": "root=200, assets=index-D0_pUF9C.js/index-BOiUIWl9.css"
       }
     },
     {
@@ -54,90 +54,57 @@
       }
     },
     {
-      "id": "api-session-login",
+      "id": "public-synthetic-login-disabled",
       "passed": true,
       "details": {
-        "summary": "signed synthetic session established without recording token material"
+        "summary": "status=403, reason=auth_synthetic_login_disabled"
       }
     },
     {
-      "id": "profile-session-principal",
+      "id": "public-business-routes-require-session",
       "passed": true,
       "details": {
-        "summary": "status=200, ui_state=populated"
+        "summary": "status=401, reason=auth_session_required"
       }
     },
     {
-      "id": "client-crm-sections",
+      "id": "direct-authenticated-production-probe",
       "passed": true,
       "details": {
-        "summary": "opportunities=1, activities=1, proposals=1"
+        "summary": "invoke=200, response=200, status=PASS"
       }
     },
     {
-      "id": "matter-list",
+      "id": "direct-authenticated-probe-no-secret-material",
       "passed": true,
       "details": {
-        "summary": "status=200, matters=25"
+        "summary": "direct probe returned hash/count evidence only"
       }
     },
     {
-      "id": "matter-workspace-sections",
+      "id": "direct-authenticated-probe-no-release-claim",
       "passed": true,
       "details": {
-        "summary": "command_center=200, timeline=200, vault_summary=200"
+        "summary": "direct probe preserved non-go-live boundary"
       }
     },
     {
-      "id": "vault-documents",
+      "id": "vault-bridge-disabled-boundary",
       "passed": true,
       "details": {
-        "summary": "status=200, documents=1"
-      }
-    },
-    {
-      "id": "vault-bridge-status",
-      "passed": true,
-      "details": {
-        "summary": "status=200, source_mode=matter_app_api"
-      }
-    },
-    {
-      "id": "vault-bridge-client-upsert",
-      "passed": true,
-      "details": {
-        "summary": "status=201, action=created"
-      }
-    },
-    {
-      "id": "vault-bridge-matter-upsert",
-      "passed": true,
-      "details": {
-        "summary": "status=201, action=created"
-      }
-    },
-    {
-      "id": "vault-bridge-lookup",
-      "passed": true,
-      "details": {
-        "summary": "status=200, matches=1"
-      }
-    },
-    {
-      "id": "vault-upload-preflight-guarded",
-      "passed": true,
-      "details": {
-        "summary": "status=200, allowed_next_step=permission_check_only"
+        "summary": "status=403, safe_error_codes=MATTER_VAULT_BRIDGE_BLOCKED"
       }
     }
   ],
   "boundary": {
     "production_web_deployed": true,
     "production_api_redeployed": true,
-    "synthetic_bridge_writes_only": true,
+    "vault_bridge_remote_write_executed": false,
+    "vault_bridge_blocked": true,
     "vault_document_write_enabled": false,
     "real_client_data_used": false,
-    "synthetic_session_login_used": true,
+    "synthetic_session_login_used": false,
+    "direct_authenticated_probe_used": true,
     "public_release_claim": false,
     "owner_final_approval_claim": false,
     "company_wide_go_live_claim": false

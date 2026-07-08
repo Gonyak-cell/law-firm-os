@@ -1,0 +1,90 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.packet.v0.1",
+  "goal_id": "cti-build-s3-s4-code-prep",
+  "status": "build_g_pass_code_only",
+  "recorded_at": "2026-07-06T05:06:09.697Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "source_plan_sections": [
+    "Stage 3 S3 TENANT UNIFICATION",
+    "Stage 4 S4 ACCOUNT AND PERMISSION INJECTION",
+    "BUILD-G"
+  ],
+  "approval_signature_refs": [
+    "I10-CTI-BUILD-S3-S4-CODE-PREP-OWNER-APPROVAL-2026-07-06"
+  ],
+  "closeout_verdict": "BUILD_G_PASS_CODE_ONLY",
+  "build_g": {
+    "status": "PASS",
+    "execution_mode": "code_only",
+    "s3_tenant_unification_code_paths": "PASS",
+    "bridge_token_rotation_control_code_paths": "PASS",
+    "s4_account_permission_injection_code_paths": "PASS",
+    "qa_backdoor_disable_guard": "PASS",
+    "dry_run_validators": "PASS",
+    "rollback_abort_checks": "PASS",
+    "pii_safe_evidence_wiring": "PASS"
+  },
+  "implemented_surfaces": {
+    "s3_tenant_unification": {
+      "current_matter_candidates_tenant_free": true,
+      "schema_version": "lawos.amic_matter_codes.v1",
+      "runtime_seed_tenant_parameterized": true,
+      "canonical_default_tenant": "tenant_amic_matter_vault"
+    },
+    "session_tenant_refs": {
+      "session_tenant_ids_exposed": true,
+      "session_tenant_refs_exposed": true,
+      "account_registry_tenant_ids_exposed": true,
+      "synthetic_only_not_hard_coded_true": true
+    },
+    "bridge_control": {
+      "enabled_env_required": "LAWOS_VAULT_BRIDGE_ENABLED=true",
+      "tenant_allow_list_env": "LAWOS_VAULT_BRIDGE_ALLOWED_TENANT_IDS",
+      "service_actor_env": "LAWOS_VAULT_BRIDGE_SERVICE_ACTOR_ID",
+      "caller_supplied_actor_trusted": false,
+      "production_bridge_script_default": "dry_run"
+    },
+    "s4_qa_disable_guard": {
+      "qa_accounts_status_remains_active_for_existing_validator": true,
+      "qa_production_status_disabled": true,
+      "qa_tenant_scope_synthetic_only": true
+    }
+  },
+  "test_evidence": {
+    "node_check_changed_build_files": "PASS",
+    "matter_vault_bridge_api_test": "PASS_8_TESTS",
+    "session_auth_api_test": "PASS_12_TESTS",
+    "matter_vault_user_registration_validator": "PASS",
+    "bridge_upsert_dry_run": "PASS_DRY_RUN_REMOTE_WRITE_FALSE",
+    "build_g_validator": "PASS_BUILD_G",
+    "launch_tuw_ledger": "PASS_0_VIOLATIONS"
+  },
+  "pii_safe_evidence": {
+    "evidence_style": "hash_count_schema_path_only",
+    "plaintext_pii_recorded": false,
+    "secret_or_token_value_recorded": false,
+    "credential_material_recorded": false,
+    "document_body_recorded": false
+  },
+  "authority_boundary": {
+    "code_only_paths_implemented": true,
+    "dry_run_validators_executed": true,
+    "s3_tenant_migration_executed": false,
+    "s4_production_account_permission_injection_executed": false,
+    "production_store_migration_or_write_executed": false,
+    "bridge_token_rotation_executed": false,
+    "password_issuance_distribution_executed": false,
+    "cutover_executed": false,
+    "s5_enrichment_executed": false,
+    "s6_final_seal_executed": false,
+    "oidc_implementation_executed": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "next_allowed_goal": {
+    "cutover_allowed_by_this_closeout_alone": false,
+    "reason": "BUILD-G code-only prerequisite is satisfied, but CUTOVER still requires all I11 conditions including freeze window notice/status, verified production snapshot, restore rehearsal, rollback/abort closeout, and any remaining owner inputs.",
+    "allowed_next_goal_type": "CUTOVER preflight or execute only after I11 conditions are independently verified"
+  }
+}

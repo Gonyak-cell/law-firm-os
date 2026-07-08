@@ -1,0 +1,176 @@
+{
+  "schema_version": "law-firm-os.cti.s0-artifact-index.v0.2",
+  "generated_at": "2026-07-06T02:34:21.719Z",
+  "goal_id": "cti-g0-s0",
+  "status": "i4_ratified_s0_probes_executed",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "source_plan_sha256": "92b0d9197bc075ce3a61135414458d89a80173ace43ddfb7c57cd70a69e9f197",
+  "contract_ref": "contracts/production-data-policy-contract.json",
+  "contract_sha256": "3a7af805ca00b42d6bb42e02d1e6121b57b0a7d44d732aec39fcbacba248d874",
+  "approval_signature_ref": "I4-CTI-G0-S0-OWNER-RATIFICATION-2026-07-06",
+  "s0_g_artifacts": {
+    "s0_t01": "docs/launch/cti-s0-t01-lambda-config-receipt-2026-07-06.json",
+    "s0_t02": "docs/launch/cti-s0-t02-persistence-census-2026-07-06.json",
+    "s0_t03": "docs/launch/cti-s0-t03-coldstart-probe-receipt-2026-07-06.json",
+    "s0_t04": "docs/launch/cti-s0-t04-store-readback-snapshot-receipt-2026-07-06.json",
+    "s0_t05": "docs/launch/cti-s0-t05-desktop-seed-drift-diff-2026-07-06.json",
+    "s0_t06": "docs/launch/cti-s0-t06-lead-lawyer-mapping-workbook-receipt-2026-07-06.json",
+    "s0_t07": "docs/launch/cti-s0-t07-real-client-data-used-inventory-2026-07-06.json",
+    "s0_t08": "docs/launch/cti-production-data-policy-ratification-packet-2026-07-06.md"
+  },
+  "post_closeout_owner_inputs": {
+    "i2_access_scope_receipt": "docs/launch/cti-i2-owner-approval-receipt-2026-07-06.md",
+    "i2_access_scope_receipt_json": "docs/launch/cti-i2-owner-approval-receipt-2026-07-06.json",
+    "i3_password_distribution_receipt": "docs/launch/cti-i3-owner-approval-receipt-2026-07-06.md",
+    "i3_password_distribution_receipt_json": "docs/launch/cti-i3-owner-approval-receipt-2026-07-06.json",
+    "i10_build_s3_s4_code_prep_receipt": "docs/launch/cti-i10-owner-approval-receipt-2026-07-06.md",
+    "i10_build_s3_s4_code_prep_receipt_json": "docs/launch/cti-i10-owner-approval-receipt-2026-07-06.json"
+  },
+  "blockers": [],
+  "follow_up_required": [
+    "S1 foundation must be opened as a separate goal before any durable store or infra write beyond the S0-T03 probe.",
+    "S1/CUTOVER require their own approval_ref and are not authorized by I4."
+  ],
+  "artifact_hashes": [
+    {
+      "path": "docs/launch/cti-decision-register-2026-07-06.md",
+      "sha256": "df853a0fc19b40afb45a8f5f440360f06356d9256016cd554e62c76898ea7ead"
+    },
+    {
+      "path": "docs/launch/cti-i2-owner-approval-receipt-2026-07-06.md",
+      "sha256": "f8496eb20c1efaf622b214bb28f5d242de87e64b1dd0eddea7dff2d07a09977b"
+    },
+    {
+      "path": "docs/launch/cti-i2-owner-approval-receipt-2026-07-06.json",
+      "sha256": "07129e728506b47a790d0b7853062018c85ee48c5ee21abcc24a459f6c0ed68c"
+    },
+    {
+      "path": "docs/launch/cti-i3-owner-approval-receipt-2026-07-06.md",
+      "sha256": "8095b64a11e502640c95038c93941cf7c1a76aeb61a853834fc9d24160aa9591"
+    },
+    {
+      "path": "docs/launch/cti-i3-owner-approval-receipt-2026-07-06.json",
+      "sha256": "d445e7e7ca4800f9523971b7481e954fc7dcd87913c05b1da6af28bae7c8525d"
+    },
+    {
+      "path": "docs/launch/cti-i10-owner-approval-receipt-2026-07-06.md",
+      "sha256": "a08988ac84e246b30cfd4c16685bcb6d41f8212fa61979d6f1e5360b13b4ac2e"
+    },
+    {
+      "path": "docs/launch/cti-i10-owner-approval-receipt-2026-07-06.json",
+      "sha256": "b019ada4b720aaea325e918318f1b8d3ad43908aea091c613b57aa2e21db9c56"
+    },
+    {
+      "path": "docs/launch/cti-production-data-policy-ratification-packet-2026-07-06.md",
+      "sha256": "4fa782308ba0b20352aa414e1dddc7b1ec565b4b5060fc04e6c4f4eef0473c1d"
+    },
+    {
+      "path": "docs/launch/cti-s0-probe-boundary-register-2026-07-06.md",
+      "sha256": "4386d18b1ddb319d200e6855b55e0bd882db5ce1430f375749ec02ebe49fdf73"
+    },
+    {
+      "path": "docs/launch/cti-tuw-crosswalk-2026-07-06.json",
+      "sha256": "5231686fab270c8baac79eb244d4cc017c1051179dab35b32c92b7754b840af5"
+    },
+    {
+      "path": "docs/launch/cti-tuw-crosswalk-2026-07-06.md",
+      "sha256": "800ed1669457162dfc31b1e5ba9a681b0dbf819667b04de7cd760af7314cc3b5"
+    },
+    {
+      "path": "docs/launch/cti-next-goal-objectives-2026-07-06.md",
+      "sha256": "35d2b790bea3190c647584b5d36acf8125d4336742c50d738ab7903849254009"
+    },
+    {
+      "path": "docs/launch/cti-s0-t01-lambda-config-receipt-2026-07-06.json",
+      "sha256": "b0e3eb8948a9b5a7a782b21eea767b1b20cc1161c35a1ea14973e5b1a2fb1b11"
+    },
+    {
+      "path": "docs/launch/cti-s0-t02-persistence-census-2026-07-06.json",
+      "sha256": "cd482b4c1bb32cc8fd01f42720a702592ae598d07ec22a702e0f21796961835e"
+    },
+    {
+      "path": "docs/launch/cti-s0-t03-coldstart-probe-receipt-2026-07-06.json",
+      "sha256": "de7a783732655509bffa4f9baf005758b413e5971bc82255eccfddbbc0638b1c"
+    },
+    {
+      "path": "docs/launch/cti-s0-t04-store-readback-snapshot-receipt-2026-07-06.json",
+      "sha256": "38664f2769a614e50fb1ef04a330817b33d49bf768a2ab8770446d6702c1a26d"
+    },
+    {
+      "path": "docs/launch/cti-s0-t05-desktop-seed-drift-diff-2026-07-06.json",
+      "sha256": "1dfa5343e9f66cd02ffd9311b395dd88961cb142845c0d5bb0d714c94582cb7b"
+    },
+    {
+      "path": "docs/launch/cti-s0-t06-lead-lawyer-mapping-workbook-receipt-2026-07-06.json",
+      "sha256": "09d57659e35a549cb9ceda98e8131b6a654aa38ed7514e9d35f7ef9fb658e557"
+    },
+    {
+      "path": "docs/launch/cti-s0-t07-real-client-data-used-inventory-2026-07-06.json",
+      "sha256": "96823c09a1758565f966ff8264fb25bae00538e49874d32df35bb41c2d35d87d"
+    },
+    {
+      "path": "workbook/cti-i1-lead-lawyer-mapping-template-2026-07-06.csv",
+      "sha256": "4cb518b422fb7fbaeab9d1d1f4d8cb830319f3d60335cfe4ba000aa34edee3e7"
+    },
+    {
+      "path": "workbook/cti-i1-lead-lawyer-mapping-template-2026-07-06.json",
+      "sha256": "b1981c9a4368080bbe63fd46bf257e3c32cc7a4499fed128732a0b62831352d7"
+    },
+    {
+      "path": "docs/launch/cti-d07-disposition-register-2026-07-06.json",
+      "sha256": "9d5d03dbdab2f424b246c45dc799f0d099b21ffccc64f5eb38dc354349c3a24e"
+    },
+    {
+      "path": "docs/launch/cti-d07-disposition-register-2026-07-06.md",
+      "sha256": "23378fa18f6b31fd87456d07aa7f9f16fa6453b1312b24a99b06f72f7b8d2154"
+    },
+    {
+      "path": "docs/launch/cti-s1-branch-assessment-2026-07-06.json",
+      "sha256": "9e9d72031fb112f76602e487655e485f164d1d2fc43de48734ae8f21e5a4307f"
+    },
+    {
+      "path": "docs/launch/cti-s1-branch-assessment-2026-07-06.md",
+      "sha256": "de205e15e7857a739d4d336af250b02a6ac4c755b777430a4f09af886d27a66a"
+    },
+    {
+      "path": "docs/goal-closeout/cti-g0-s0/packet.json",
+      "sha256": "2e5db82a4c0041d0d598005c81c60719cff7bf867390d9a9a1aad4fdcf5b85ce"
+    },
+    {
+      "path": "docs/goal-closeout/cti-g0-s0/command-evidence.json",
+      "sha256": "0770a63125eeb9f019f59bd5c7dce482d190bc397333b260c1890da6e2bf2a04"
+    },
+    {
+      "path": "docs/goal-closeout/cti-g0-s0/adjudication.md",
+      "sha256": "a32a7d3c5dd071c34231b15dcdfd8ad5bb8f8ba98325efe0a436a4c2ccdd6d5b"
+    },
+    {
+      "path": "docs/goal-closeout/cti-g0-s0/construction-inspection.json",
+      "sha256": "56e968d0a1a38506ddc90c91321c55ff0b1313d1f376e00173b794d761144fb0"
+    },
+    {
+      "path": "docs/goal-closeout/cti-g0-s0/claude-review-result.json",
+      "sha256": "a6104f51066683c6dc0f9676f568e97195f1066d7c452eacca1cbb52c695c629"
+    },
+    {
+      "path": "scripts/generate-cti-g0-s0-evidence.mjs",
+      "sha256": "2206a5748e354a0d0b2ab9510f9da873d6d4a920c899717e3023d7cbb526e4a2"
+    },
+    {
+      "path": "scripts/run-cti-g0-s0-production-probes.mjs",
+      "sha256": "85f93e57d7acf21799c439d886e17e1d6ce17df08f0211319f656429b504f019"
+    },
+    {
+      "path": "scripts/validate-cti-g0-s0-closeout.mjs",
+      "sha256": "6e48dfd5ea0314fa44d4adfec7c7077e72fccfaa070a914a54c70bfcc7dc4446"
+    },
+    {
+      "path": "workbook/launch-tuw/launch-tuw-ledger.json",
+      "sha256": "8ab0ade4e06cd20e0d60208bbcb18e797262d9760c829da4fee527dd19a1cabb"
+    },
+    {
+      "path": "workbook/launch-tuw/10_PRE.md",
+      "sha256": "55893843a390c32af88d87b27998e9d4c3a39d727eca97d9576a264979bc6e1f"
+    }
+  ]
+}

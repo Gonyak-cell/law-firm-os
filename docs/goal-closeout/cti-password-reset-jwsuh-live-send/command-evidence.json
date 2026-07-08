@@ -1,0 +1,99 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.command-evidence.v0.1",
+  "goal_id": "cti-password-reset-jwsuh-live-send",
+  "recorded_at": "2026-07-06T12:01:58.810Z",
+  "decision": "BLOCKED",
+  "commands": [
+    {
+      "command": "node --check apps/api/src/lambda.js",
+      "exit_code": 0,
+      "summary": "Lambda syntax check PASS before deploy.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "node --check apps/api/src/session-auth.js",
+      "exit_code": 0,
+      "summary": "Session auth syntax check PASS before deploy.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "node --test apps/api/test/session-auth-api.test.js apps/api/test/lambda-session-secret.test.js apps/desktop/test/aws-runtime-client.test.mjs",
+      "exit_code": 0,
+      "summary": "Focused password reset/auth/Lambda/desktop tests PASS before deploy.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "aws sesv2 get-account --profile matter-prod-deploy-admin --region ap-northeast-2 ...",
+      "exit_code": 0,
+      "summary": "Read SES account state before one-recipient send.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "aws sesv2 get-email-identity --email-identity jwsuh@amic.kr --profile matter-prod-deploy-admin ...",
+      "exit_code": 0,
+      "summary": "Read SES identity state for jwsuh@amic.kr.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "aws lambda get-function-configuration --function-name matter-lawos-api-prod --profile matter-prod-deploy-admin ...",
+      "exit_code": 0,
+      "summary": "Read Lambda configuration for revision/env-key preflight.",
+      "sensitive_output_suppressed": true
+    },
+    {
+      "command": "aws iam put-role-policy --role-name matter-lawos-api-prod-lambda-role --policy-name matter-lawos-prod-password-reset-jwsuh-ses-send ...",
+      "exit_code": 0,
+      "summary": "Attached scoped ses:SendEmail inline policy for jwsuh@amic.kr identity.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "aws lambda update-function-configuration --function-name matter-lawos-api-prod --revision-id 47d913f3-aa45-4f93-8ab6-4fb78137b3e2 ...",
+      "exit_code": 0,
+      "summary": "Updated Lambda password reset env keys without printing env values.",
+      "sensitive_output_suppressed": true
+    },
+    {
+      "command": "aws lambda wait function-updated --function-name matter-lawos-api-prod --profile ...",
+      "exit_code": 0,
+      "summary": "Waited for Lambda env update to complete.",
+      "sensitive_output_suppressed": true
+    },
+    {
+      "command": "zip -qr /var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/cti-password-reset-lambda-vG79su/matter-lawos-api-prod-password-reset-jwsuh.zip apps/api/src packages docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json ...",
+      "exit_code": 0,
+      "summary": "Built Lambda deployment zip from current API source.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "aws lambda update-function-code --function-name matter-lawos-api-prod --zip-file fileb:///var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/cti-password-reset-lambda-vG79su/matter-lawos-api-prod-password-reset-jwsuh.zip ...",
+      "exit_code": 0,
+      "summary": "Deployed password reset route/code to production Lambda.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "aws lambda wait function-updated --function-name matter-lawos-api-prod --profile ...",
+      "exit_code": 0,
+      "summary": "Waited for Lambda code update to complete.",
+      "sensitive_output_suppressed": false
+    },
+    {
+      "command": "aws lambda invoke --function-name matter-lawos-api-prod --cli-binary-format raw-in-base64-out ...",
+      "exit_code": 0,
+      "summary": "Invoked production reset request for jwsuh@amic.kr only.",
+      "sensitive_output_suppressed": true
+    }
+  ],
+  "live_send_target_count": 1,
+  "non_live_send_user_count": 8,
+  "boundary": {
+    "other_user_reset_email_sent": false,
+    "other_user_credential_mutated": false,
+    "token_value_recorded": false,
+    "reset_url_recorded": false,
+    "password_value_recorded": false,
+    "secret_value_recorded": false,
+    "plaintext_password_distribution": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

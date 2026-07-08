@@ -1,0 +1,57 @@
+{
+  "schema_version": "law-firm-os.cti-owner-approval-receipt.v0.1",
+  "approval_id": "I14",
+  "approval_signature_ref": "I14-CTI-CUTOVER-READONLY-EFS-SNAPSHOT-SURFACE-OWNER-APPROVAL-2026-07-06",
+  "status": "approval_recorded",
+  "recorded_date": "2026-07-06",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "goal_id": "cti-cutover-readonly-efs-snapshot-surface",
+  "target": {
+    "lambda_function_name": "matter-lawos-api-prod",
+    "efs_access_point_id": "fsap-0be58113c42e109fe",
+    "runtime_mount_path": "/mnt/lawos"
+  },
+  "approved_scope": [
+    "read-only snapshot code path implementation",
+    "Lambda code deployment",
+    "private direct invoke snapshot surface execution",
+    "current production snapshot hash/count receipt generation",
+    "snapshot-bound isolated restore rehearsal",
+    "closeout and validator update"
+  ],
+  "required_method": {
+    "public_http_endpoint_allowed": false,
+    "lambda_direct_invoke_only": true,
+    "maintenance_event_or_equivalent_private_read_only_surface": true
+  },
+  "required_output_boundary": {
+    "pii_safe_hash_count_schema_path_receipt_only": true,
+    "plaintext_file_content_output_allowed": false,
+    "secret_value_output_allowed": false,
+    "credential_token_password_output_allowed": false
+  },
+  "explicit_non_approval": {
+    "production_write_migration": true,
+    "tenant_migration": true,
+    "account_permission_injection": true,
+    "operational_profile_switch": true,
+    "bridge_token_rotation": true,
+    "password_issuance_distribution": true,
+    "freeze_execution": true,
+    "cutover": true,
+    "s5_s6": true,
+    "oidc_implementation": true,
+    "db_conversion": true,
+    "production_ready_go_live_claim": true
+  },
+  "production_write_executed_by_this_receipt": false,
+  "production_restore_executed_by_this_receipt": false,
+  "cutover_executed_by_this_receipt": false,
+  "secret_values_recorded": false,
+  "plaintext_pii_recorded": false,
+  "credential_material_recorded": false,
+  "token_material_recorded": false,
+  "password_material_recorded": false,
+  "production_ready_claim": false,
+  "go_live_claim": false
+}

@@ -1,0 +1,119 @@
+{
+  "schema_version": "law-firm-os.cti.s1-foundation-aws-inventory.v0.1",
+  "generated_at": "2026-07-06T02:40:01Z",
+  "goal_id": "cti-s1-foundation",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "approval_signature_ref": "I4-CTI-G0-S0-OWNER-RATIFICATION-2026-07-06",
+  "scope": "S1 FOUNDATION prewrite inventory only",
+  "pii_boundary": {
+    "plaintext_client_or_matter_names_written": false,
+    "phone_or_email_pii_written": false,
+    "credential_material_written": false,
+    "token_material_written": false,
+    "secret_value_fetched": false
+  },
+  "execution_boundary": {
+    "production_credentials_used_for_read_only_inventory": true,
+    "infrastructure_write_performed": false,
+    "lambda_configuration_write_performed": false,
+    "product_state_write_performed": false,
+    "migration_executed": false,
+    "restore_executed": false,
+    "cutover_executed": false,
+    "password_distribution_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "aws_identity": {
+    "account": "770880870480",
+    "arn_role_ref": "arn:aws:sts::770880870480:assumed-role/matter-prod-deploy-admin/<session>"
+  },
+  "lambda_configuration": {
+    "function_name": "matter-lawos-api-prod",
+    "runtime": "nodejs22.x",
+    "handler": "apps/api/src/lambda.handler",
+    "last_modified": "2026-07-06T02:31:09.000+0000",
+    "revision_id": "f4ed1305-1efb-4332-9a82-c21bcfd9b7f3",
+    "state": "Active",
+    "last_update_status": "Successful",
+    "environment_keys": [
+      "LAWOS_DEPLOYMENT_COMMIT",
+      "LAWOS_VAULT_BRIDGE_TOKEN",
+      "LAWOS_DEPLOYMENT_MODE"
+    ],
+    "environment_values_recorded": false,
+    "store_path_env_keys_present": [],
+    "store_path_env_key_count": 0,
+    "lawos_runtime_profile_env_present": false,
+    "lawos_api_session_secret_env_present": false,
+    "file_system_config_count": 0,
+    "vpc_config_present": false
+  },
+  "efs_inventory": {
+    "file_system_count": 0,
+    "access_point_count": 0,
+    "mount_target_count": 0,
+    "durable_store_target_available": false
+  },
+  "network_inventory": {
+    "prod_vpc": {
+      "exists": true,
+      "vpc_id": "vpc-038f70d924a774bea",
+      "cidr_block": "10.84.0.0/16",
+      "state": "available",
+      "name": "amic-vault-prod-vpc"
+    },
+    "prod_subnets": [
+      {
+        "subnet_id": "subnet-0a718a221e621715f",
+        "availability_zone": "ap-northeast-2a",
+        "cidr_block": "10.84.1.0/24",
+        "map_public_ip_on_launch": true,
+        "name": "amic-vault-prod-public-a"
+      },
+      {
+        "subnet_id": "subnet-0af415c198603de77",
+        "availability_zone": "ap-northeast-2b",
+        "cidr_block": "10.84.2.0/24",
+        "map_public_ip_on_launch": true,
+        "name": "amic-vault-prod-public-b"
+      }
+    ],
+    "security_groups": [
+      {
+        "group_id": "sg-00f1754a023d447f5",
+        "group_name": "default"
+      },
+      {
+        "group_id": "sg-05429a0e4f1d9904e",
+        "group_name": "amic-vault-prod-ecs-sg"
+      },
+      {
+        "group_id": "sg-0c59fac0f956f75d1",
+        "group_name": "amic-vault-prod-alb-sg"
+      },
+      {
+        "group_id": "sg-07146d5dedea4bbd8",
+        "group_name": "amic-vault-prod-rds-sg"
+      }
+    ],
+    "lambda_efs_security_group_selected": false
+  },
+  "secret_inventory": {
+    "session_signing_secret_exists": true,
+    "session_signing_secret_name": "/amic-vault/prod/api/session-signing",
+    "session_signing_secret_arn_ref": "arn:aws:secretsmanager:ap-northeast-2:770880870480:secret:/amic-vault/prod/api/session-signing-LdKovh",
+    "session_signing_secret_last_changed": "2026-06-14T21:34:09.555000+09:00",
+    "secret_value_fetched": false,
+    "lambda_environment_wired_to_session_secret": false,
+    "runtime_code_fetches_secrets_manager_session_secret": false
+  },
+  "s1_readiness_verdict": {
+    "production_credential_access_present": true,
+    "durable_store_target_present": false,
+    "durable_audit_store_path_present": false,
+    "rollback_restore_path_present": false,
+    "stop_condition_triggered": true,
+    "verdict": "BLOCKED_MISSING_S1_DURABLE_TARGETS"
+  }
+}

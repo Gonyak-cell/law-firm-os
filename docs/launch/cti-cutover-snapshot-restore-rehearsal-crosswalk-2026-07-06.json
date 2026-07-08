@@ -1,0 +1,46 @@
+{
+  "schema_version": "law-firm-os.cti-launch-tuw-crosswalk.v0.1",
+  "goal_id": "cti-cutover-snapshot-restore-rehearsal",
+  "recorded_at": "2026-07-06T06:53:24.756Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "work_package": "LT-PRE-W16",
+  "work_package_title": "canonical tenant injection CUTOVER current snapshot and restore rehearsal evidence",
+  "decision": "BLOCKED_NO_APPROVED_EFS_FILE_READ_SURFACE",
+  "snapshot_restore_to_tuw": {
+    "approval/ref and upstream evidence inventory": [
+      "LT-PRE-W16-T01"
+    ],
+    "current production snapshot attempt": [
+      "LT-PRE-W16-T02"
+    ],
+    "snapshot-bound restore rehearsal decision": [
+      "LT-PRE-W16-T03"
+    ],
+    "closeout and crosswalk": [
+      "LT-PRE-W16-T04"
+    ],
+    "validator and launch-TUW PASS": [
+      "LT-PRE-W16-T05"
+    ]
+  },
+  "blocking_conditions": [
+    "current production snapshot hash/count receipt blocked: no approved EFS file read surface",
+    "snapshot-bound restore rehearsal blocked: current snapshot hash/count receipt is missing"
+  ],
+  "non_execution_boundary": {
+    "production_write_executed": false,
+    "production_restore_executed": false,
+    "restore_execution_against_production": false,
+    "tenant_migration_executed": false,
+    "account_permission_injection_executed": false,
+    "operational_profile_switch_executed": false,
+    "bridge_token_rotation_executed": false,
+    "password_distribution_executed": false,
+    "cutover_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "secret_value_recorded": false,
+    "plaintext_pii_recorded": false
+  },
+  "validator": "scripts/validate-cti-cutover-snapshot-restore-rehearsal.mjs"
+}

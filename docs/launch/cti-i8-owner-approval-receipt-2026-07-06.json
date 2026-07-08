@@ -1,0 +1,38 @@
+{
+  "schema_version": "law-firm-os.cti-owner-approval-receipt.v0.1",
+  "approval_id": "I8",
+  "approval_signature_ref": "I8-CTI-S2-S1G-AUTHENTICATED-PROBE-OWNER-APPROVAL-2026-07-06",
+  "status": "conditional_approval_recorded",
+  "recorded_date": "2026-07-06",
+  "source_packet": "docs/launch/cti-s2-authentication-unblock-packet-2026-07-06.md",
+  "future_cti_binding": [
+    "S1-G authenticated production probe after S2 execute PASS"
+  ],
+  "effective_conditions": {
+    "i7_recorded": true,
+    "s2_authentication_execute_pass_required": true,
+    "real_production_principal_session_model_required": true,
+    "debug_endpoint_allowed": false,
+    "direct_token_mint_allowed": false,
+    "secret_value_lookup_or_output_allowed": false
+  },
+  "approved_scope": [
+    "S1-G authenticated marker/audit/readback probe",
+    "PII-safe evidence",
+    "hash/count-centered receipt",
+    "abort on failure using rollback/abort criteria"
+  ],
+  "explicit_non_approval": {
+    "temporary_backdoor_principal": true,
+    "secret_value_output": true,
+    "production_migration_write": true,
+    "cutover": true,
+    "production_ready_go_live_claim": true
+  },
+  "s1_g_authenticated_probe_executed": false,
+  "production_migration_executed": false,
+  "production_store_write_executed": false,
+  "cutover_executed": false,
+  "secret_values_recorded": false,
+  "plaintext_pii_recorded": false
+}

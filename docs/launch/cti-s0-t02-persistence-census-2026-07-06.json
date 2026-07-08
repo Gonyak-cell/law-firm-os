@@ -1,0 +1,88 @@
+{
+  "schema_version": "law-firm-os.cti.s0-receipt.v0.1",
+  "generated_at": "2026-07-06T02:05:06Z",
+  "goal_id": "cti-g0-s0",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "cti_item": "S0-T02",
+  "launch_tuw": "LT-PRE-W08-T03",
+  "status": "local_static_complete",
+  "pii_boundary": {
+    "plaintext_client_or_matter_names_written": false,
+    "phone_or_email_pii_written": false,
+    "credential_material_written": false
+  },
+  "execution_boundary": {
+    "production_credentials_used": false,
+    "real_data_contact_performed": false,
+    "product_state_write_performed": false,
+    "migration_executed": false,
+    "cutover_executed": false
+  },
+  "store_path_manifest": {
+    "store_path_count": 13,
+    "derived_store_path_count": 1,
+    "envs": [
+      "LAWOS_HRX_STORE_PATH",
+      "LAWOS_MASTER_DATA_STORE_PATH",
+      "LAWOS_MATTER_STORE_PATH",
+      "LAWOS_DMS_STORE_PATH",
+      "LAWOS_CRM_STORE_PATH",
+      "LAWOS_INTAKE_STORE_PATH",
+      "LAWOS_CRM_MASTER_DATA_STORE_PATH",
+      "LAWOS_FINANCE_STORE_PATH",
+      "LAWOS_ANALYTICS_STORE_PATH",
+      "LAWOS_AI_STORE_PATH",
+      "LAWOS_PORTAL_STORE_PATH",
+      "LAWOS_UI_READINESS_STORE_PATH",
+      "LAWOS_ENTERPRISE_READINESS_STORE_PATH"
+    ],
+    "derived_envs": [
+      "LAWOS_DMS_OBJECT_STORE_PATH"
+    ]
+  },
+  "repository_import_census": {
+    "file_count": 64,
+    "sample_files": [
+      "apps/api/src/ai-runtime-context.js",
+      "apps/api/src/analytics-runtime-context.js",
+      "apps/api/src/crm-intake-runtime-context.js",
+      "apps/api/src/enterprise-readiness-context.js",
+      "apps/api/src/finance-runtime-context.js",
+      "apps/api/src/matter-runtime-context.js",
+      "apps/api/src/portal-runtime-context.js",
+      "apps/api/src/server.js",
+      "apps/api/src/vault-dms-runtime-context.js",
+      "apps/api/test/audit/matter-vault-audit.test.js",
+      "apps/api/test/cmp-r4-g4-matter.test.js",
+      "apps/api/test/cmp-r4-g5-vault.test.js",
+      "apps/api/test/cmp-r4-g7-finance.test.js",
+      "apps/api/test/cmp-r4-g8-analytics.test.js",
+      "apps/api/test/e2e/ai-vault-permission.test.js",
+      "apps/api/test/e2e/matter-opening-vault.test.js",
+      "apps/api/test/e2e/matter-vault-rollback.test.js",
+      "apps/api/test/e2e/matter-vault-workflow.test.js",
+      "apps/api/test/e2e/portal-vault-projection.test.js",
+      "apps/api/test/e2e/vault-search-acl.test.js",
+      "apps/api/test/e2e/vault-storage-security.test.js",
+      "apps/api/test/idempotency/matter-vault-idempotency.test.js",
+      "apps/api/test/master-data-runtime.test.js",
+      "apps/api/test/matter-vault-hardening.test.js",
+      "apps/api/test/matter-vault-integration.test.js",
+      "apps/api/test/matter-vault-persistence.test.js",
+      "apps/api/test/perf/matter-vault-smoke.test.js",
+      "apps/api/test/security/matter-vault-ethical-wall.test.js",
+      "apps/api/test/security/matter-vault-legal-hold.test.js",
+      "apps/api/test/security/matter-vault-security.test.js",
+      "apps/api/test/security/matter-vault-tenant-leak.test.js",
+      "apps/api/test/sf-b-w08-report-builder-client-profitability.test.js",
+      "scripts/generate-sf-client-matter-surface-ledger.mjs",
+      "scripts/run-upl-a06-all-domain-durable-roundtrip-proof.mjs",
+      "scripts/run-upl-a08-packaged-desktop-restart-proof.mjs",
+      "scripts/run-upl-b10-analytics-finance-pipeline-proof.mjs",
+      "scripts/run-upl-b11-fee-arrangement-types-proof.mjs",
+      "scripts/run-upl-b12-trust-ledger-proof.mjs",
+      "scripts/run-upl-b14-expense-disbursement-wip-proof.mjs",
+      "scripts/run-upl-b15-finance-kpi-dashboard-proof.mjs"
+    ]
+  }
+}

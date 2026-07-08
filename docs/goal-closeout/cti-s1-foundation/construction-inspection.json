@@ -1,0 +1,72 @@
+{
+  "goal_id": "cti-s1-foundation",
+  "status": "blocked_s1_stop_condition",
+  "inspected_at": "2026-07-06T02:40:01Z",
+  "approval_signature_ref": "I4-CTI-G0-S0-OWNER-RATIFICATION-2026-07-06",
+  "checks": [
+    {
+      "id": "i4_signature_present",
+      "result": "PASS",
+      "detail": "Owner supplied the scoped I4 approval_signature_ref used by G0/S0."
+    },
+    {
+      "id": "s0_g_receipts_present",
+      "result": "PASS",
+      "detail": "G0/S0 packet plus S0-T01, S0-T03, and S0-T04 receipts are present and hash anchored."
+    },
+    {
+      "id": "s0_t01_input",
+      "result": "PASS",
+      "detail": "S0-T01 shows EFS file system config count 0 and STORE_PATH env key count 0."
+    },
+    {
+      "id": "s0_t03_input",
+      "result": "PASS",
+      "detail": "S0-T03 persistence verdict is marker_lost_after_cold_start."
+    },
+    {
+      "id": "production_credential_access",
+      "result": "PASS",
+      "detail": "Read-only AWS inventory succeeded with matter-prod-deploy-admin."
+    },
+    {
+      "id": "durable_store_target",
+      "result": "FAIL_BLOCKER",
+      "detail": "No EFS file system, no EFS access point, no Lambda file system config, and no Lambda VPC config exist."
+    },
+    {
+      "id": "store_path_env_wiring",
+      "result": "FAIL_BLOCKER",
+      "detail": "Production Lambda exposes zero required STORE_PATH env keys."
+    },
+    {
+      "id": "durable_audit_path",
+      "result": "FAIL_BLOCKER",
+      "detail": "LAWOS_AUDIT_STORE_PATH is absent from STORE_PATH_MANIFEST and securityAuditEvents are in-memory."
+    },
+    {
+      "id": "fixed_session_secret_runtime_wiring",
+      "result": "FAIL_BLOCKER",
+      "detail": "Session-signing secret exists, but Lambda env and runtime code are not wired to use it."
+    },
+    {
+      "id": "rollback_restore_path",
+      "result": "FAIL_BLOCKER",
+      "detail": "Current backup/restore drill is synthetic-only v0.1 and refuses non-synthetic backup claims."
+    },
+    {
+      "id": "out_of_scope_preserved",
+      "result": "PASS",
+      "detail": "No S2, S3 migration, S4 account injection, desktop v0.1.10, CUTOVER, passwords, S5/S6, OIDC, DB conversion, production_ready, or go-live work was performed."
+    }
+  ],
+  "s1_g_status": {
+    "cold_start_marker_survives": false,
+    "audit_event_survives": false,
+    "fixed_session_secret": false,
+    "tmpdir_preflight_including_audit_store": false,
+    "restore_rehearsal_passed": false
+  },
+  "final_verdict": "BLOCKED_S1_STOP_CONDITION",
+  "human_acceptance_or_explicit_next_goal_boundary": "Open a separate S1 unblock target goal before any EFS, Lambda env, STORE_PATH migration, durable audit, or restore rehearsal write."
+}

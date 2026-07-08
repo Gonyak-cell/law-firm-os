@@ -1,0 +1,148 @@
+{
+  "schema_version": "law-firm-os.cti.s1g-authenticated-production-probe.receipt.v0.1",
+  "goal_id": "cti-s1g-authenticated-production-probe",
+  "status": "PASS",
+  "recorded_at": "2026-07-06T07:55:00Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "approval_signature_ref": "I18-CTI-S2-PRODUCTION-AUTH-PROBE-PRINCIPAL-OWNER-APPROVAL-2026-07-06",
+  "upstream_approval_signature_refs": [
+    "I8-CTI-S2-S1G-AUTHENTICATED-PROBE-OWNER-APPROVAL-2026-07-06",
+    "I17-CTI-S1G-AUTHENTICATED-PRODUCTION-PROBE-OWNER-APPROVAL-2026-07-06",
+    "I18-CTI-S2-PRODUCTION-AUTH-PROBE-PRINCIPAL-OWNER-APPROVAL-2026-07-06"
+  ],
+  "lambda": {
+    "function_name": "matter-lawos-api-prod",
+    "state": "Active",
+    "last_update_status": "Successful",
+    "revision_id": "8f45b4d6-d7d7-435f-9dc0-934d6378e31c",
+    "code_sha256": "FjmpI+t+zyB4YToT9IPzL8HddRgalcSbcV5CgLO78iM=",
+    "deployment_commit": "83eac1073522066df312d0e21618a7b7f954f777-dirty-cti-s2-i18-20260706",
+    "file_system_config_count": 1,
+    "lawos_auth_credential_store_path_env_present": true
+  },
+  "direct_invoke": {
+    "maintenance_action": "cti_s1g_authenticated_production_probe",
+    "request_id": "cti-i18-s1g-authenticated-production-probe",
+    "status_code": 200,
+    "function_error": null,
+    "executed_version": "$LATEST",
+    "public_http_endpoint": false
+  },
+  "credential_store": {
+    "credential_store_env": "LAWOS_AUTH_CREDENTIAL_STORE_PATH",
+    "credential_store_path_hash": "sha256:57d20d6a99bf46b9941d13fde2ef410e3f5463005ff3a332d45f5c8a97a5d28d",
+    "credential_store_relative_path": "auth/credential-store.json",
+    "existed_before": true,
+    "records_before_count": 1,
+    "records_after_count": 1,
+    "target_record_created": false,
+    "target_record_updated": true,
+    "target_user_id_hash": "sha256:0406522ba100ee2743f18f79001a4a18a8b99847257d6843af62284a72121af4",
+    "target_email_hash": "sha256:4443b93fddf0b956b9c0788da3e9e07ea69999cac2246a2b835f5f5cd48cc38e",
+    "target_credential_rev": 2,
+    "target_status": "must_change",
+    "password_hash_algorithm": "node:crypto.scrypt",
+    "before_sha256": "e6cd6799f366f06c34ce2a9c641feb4d59d51157587dcaac00168fae933f620c",
+    "after_sha256": "eabafe2441314f12fd3942c256915f188f2f93829dd48d760a0fa4a81b3b8d38",
+    "plaintext_password_returned": false,
+    "password_hash_digest_returned": false,
+    "password_hash_salt_returned": false
+  },
+  "probe_principal": {
+    "email_hash": "sha256:4443b93fddf0b956b9c0788da3e9e07ea69999cac2246a2b835f5f5cd48cc38e",
+    "user_id_hash": "sha256:0406522ba100ee2743f18f79001a4a18a8b99847257d6843af62284a72121af4",
+    "tenant_id": "tenant_amic_matter_vault",
+    "email_recorded": false,
+    "plaintext_identifier_recorded": false
+  },
+  "probe_results": {
+    "login": {
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "credential_provider": "lawos-internal-password-provider-v1",
+      "must_change_password": true,
+      "session_user_id_hash": "sha256:0406522ba100ee2743f18f79001a4a18a8b99847257d6843af62284a72121af4",
+      "session_tenant_id": "tenant_amic_matter_vault",
+      "role_count": 4,
+      "scope_count": 34,
+      "session_token_received_in_process": true,
+      "session_token_recorded": false,
+      "token_material_returned_to_caller": false
+    },
+    "session": {
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "body_sha256": "d494a159722cb55bc730800113c39565b74674cfc7dadb8dc7d9680dbc655e5a",
+      "plaintext_body_returned": false
+    },
+    "matter_readback": {
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "item_count": 0,
+      "body_sha256": "37f5401c4dcfd9477397b13a0321f6ba503bfb5d8eb6a4afa7131f03cf65f38d",
+      "plaintext_body_returned": false,
+      "first_matter_id_hash": null
+    },
+    "marker": {
+      "status": 201,
+      "marker_mode": "security_audit_break_glass_marker",
+      "marker_object_id_hash": "sha256:1f6aa3f06d5058978b22083700fe75d65219ce34fbf704aa40045ae8bd2ef4da",
+      "plaintext_body_returned": false
+    },
+    "audit_readback": {
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "marker_mode": "security_audit_break_glass_marker",
+      "matching_marker_audit_count": 1,
+      "plaintext_body_returned": false
+    },
+    "marker_readback": {
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "marker_mode": "security_audit_break_glass_marker",
+      "matching_marker_readback_count": 1,
+      "plaintext_body_returned": false
+    }
+  },
+  "boundary": {
+    "direct_invoke_only": true,
+    "public_http_endpoint": false,
+    "real_login_flow_used": true,
+    "debug_endpoint_used": false,
+    "direct_token_mint_used": false,
+    "temporary_backdoor_principal_used": false,
+    "credential_store_write_executed": true,
+    "credential_store_write_principal_count": 1,
+    "s1g_marker_write_executed": false,
+    "security_audit_marker_used_because_matter_count_was_zero": true,
+    "token_or_password_returned": false,
+    "token_material_recorded": false,
+    "plaintext_password_recorded": false,
+    "credential_material_recorded_in_receipt": false,
+    "secret_value_returned": false,
+    "secret_value_recorded": false,
+    "production_migration_executed": false,
+    "tenant_migration_executed": false,
+    "account_permission_injection_executed": false,
+    "operational_profile_switch_executed": false,
+    "bridge_token_rotation_executed": false,
+    "password_issuance_distribution_executed": false,
+    "production_restore_executed": false,
+    "cutover_executed": false,
+    "s5_enrichment_executed": false,
+    "s6_final_seal_executed": false,
+    "oidc_implementation_executed": false,
+    "db_conversion_executed": false,
+    "production_ready_claimed": false,
+    "go_live_claimed": false
+  },
+  "local_evidence": {
+    "lambda_invoke_response": "/Users/jws/.codex/local-evidence/cti-s1g-authenticated-production-probe/i18b-s1g-probe-response.json",
+    "lambda_invoke_meta": "/Users/jws/.codex/local-evidence/cti-s1g-authenticated-production-probe/i18b-s1g-probe-meta.json"
+  }
+}

@@ -248,3 +248,7 @@ GET  /home/feed?tab=notice|news|newsletter
 - 리서치 근거(패턴·제품 사례·수치): **[에이전트 보고·미재검증]** — 에이전트 팩트체커의 confirmed/plausible 판정만 존재, 원문 직접 재열람 없음. refuted 5건은 배제됨.
 - 현행 코드 구조(§1, §4.3, §5.3): **[직접 확인]** — 2026-07-07 Claude가 Shell.jsx·App.jsx·HomeSurface.jsx·globalUtilities.js·nav.js·styles.css 열람.
 - apps/api 라우트 가용성(§6): **미확인** — Stage 0 인벤토리로 확정할 것.
+
+## 개정 이력
+
+- **v1.1 (2026-07-08)**: 구현 검수([impl-audit](sidebar-home-dashboard-impl-audit-2026-07-08.md)) 결과 반영 — (1) NAV-05 모드 전환 예외에 **profile 뷰 편입**(복귀 앵커 필수), (2) §4.2 폴백: 섹션 미지정/미매칭 진입의 최종 폴백은 `home#home-dashboard`로 통일, (3) §6 예외 경로(빈 상태 릴리스) **폐기** — 오너가 실소스 wiring 착수를 지시함(D-12 원칙 확정). 보완 작업은 [remediation-r1](sidebar-home-dashboard-remediation-r1-2026-07-08.md) WP-1~8로 실행.

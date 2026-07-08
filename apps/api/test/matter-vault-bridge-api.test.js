@@ -7,9 +7,18 @@ import { startApiServer } from "../src/server.js";
 
 const TENANT = "tenant_vault_bridge";
 const TOKEN = "test-vault-bridge-token";
+const SERVICE_ACTOR = "vault-bridge-service-test";
 
-async function withServer(callback) {
-  const previousToken = process.env.LAWOS_VAULT_BRIDGE_TOKEN;
+async function withServer(callback, envOverrides = {}) {
+  const previousEnv = {
+    LAWOS_VAULT_BRIDGE_TOKEN: process.env.LAWOS_VAULT_BRIDGE_TOKEN,
+    LAWOS_VAULT_BRIDGE_ENABLED: process.env.LAWOS_VAULT_BRIDGE_ENABLED,
+    LAWOS_VAULT_BRIDGE_ALLOWED_TENANT_IDS: process.env.LAWOS_VAULT_BRIDGE_ALLOWED_TENANT_IDS,
+    LAWOS_VAULT_BRIDGE_SERVICE_ACTOR_ID: process.env.LAWOS_VAULT_BRIDGE_SERVICE_ACTOR_ID,
+  };
+  process.env.LAWOS_VAULT_BRIDGE_ENABLED = envOverrides.LAWOS_VAULT_BRIDGE_ENABLED ?? "true";
+  process.env.LAWOS_VAULT_BRIDGE_ALLOWED_TENANT_IDS = envOverrides.LAWOS_VAULT_BRIDGE_ALLOWED_TENANT_IDS ?? TENANT;
+  process.env.LAWOS_VAULT_BRIDGE_SERVICE_ACTOR_ID = envOverrides.LAWOS_VAULT_BRIDGE_SERVICE_ACTOR_ID ?? SERVICE_ACTOR;
   const base = mkdtempSync(join(tmpdir(), "lawos-vault-bridge-api-"));
   const started = await startApiServer({
     port: 0,
@@ -18,8 +27,10 @@ async function withServer(callback) {
   try {
     return await callback(`http://${started.host}:${started.port}`);
   } finally {
-    if (previousToken === undefined) delete process.env.LAWOS_VAULT_BRIDGE_TOKEN;
-    else process.env.LAWOS_VAULT_BRIDGE_TOKEN = previousToken;
+    for (const [key, value] of Object.entries(previousEnv)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
     await new Promise((resolve) => started.server.close(resolve));
   }
 }
@@ -160,6 +171,28 @@ test("Vault bridge rejects missing bridge headers and invalid canonical upsert p
   });
 });
 
+test("Vault bridge stays blocked unless the approved code-only control window is explicit", async () => {
+  process.env.LAWOS_VAULT_BRIDGE_TOKEN = TOKEN;
+  await withServer(async (baseUrl) => {
+    const disabled = await json(baseUrl, "/api/matters/vault-bridge/status", {
+      headers: bridgeHeaders(),
+    });
+    assert.equal(disabled.status, 403);
+    assert.deepEqual(disabled.body.safe_error_codes, ["MATTER_VAULT_BRIDGE_BLOCKED"]);
+  }, { LAWOS_VAULT_BRIDGE_ENABLED: "false" });
+
+  await withServer(async (baseUrl) => {
+    const rejectedTenant = await json(baseUrl, "/api/matters/vault-bridge/clients/upsert", {
+      method: "POST",
+      headers: bridgeHeaders(),
+      body: JSON.stringify(clientRequest()),
+    });
+    assert.equal(rejectedTenant.status, 403);
+    assert.deepEqual(rejectedTenant.body.safe_error_codes, ["MATTER_VAULT_BRIDGE_BLOCKED"]);
+    assert.equal(rejectedTenant.body.production_ready_claim, false);
+  }, { LAWOS_VAULT_BRIDGE_ALLOWED_TENANT_IDS: "tenant_other" });
+});
+
 test("Vault bridge rejects Authorization-only session or bearer tokens", async () => {
   process.env.LAWOS_VAULT_BRIDGE_TOKEN = TOKEN;
   await withServer(async (baseUrl) => {
@@ -180,6 +213,11 @@ test("Vault bridge upserts Matter app client and matter with idempotent replay",
     assert.equal(status.status, 200);
     assert.equal(status.body.item.source_mode, "matter_app_api");
     assert.equal(status.body.item.runtime_write_ready, true);
+    assert.equal(status.body.item.bridge_enabled, true);
+    assert.equal(status.body.item.allowed_tenant_count, 1);
+    assert.equal(status.body.item.service_actor_id, SERVICE_ACTOR);
+    assert.equal(status.body.item.token_rotation_receipt_required, true);
+    assert.equal(status.body.item.window_control_required, true);
 
     const client = await json(baseUrl, "/api/matters/vault-bridge/clients/upsert", {
       method: "POST",
@@ -189,6 +227,7 @@ test("Vault bridge upserts Matter app client and matter with idempotent replay",
     assert.equal(client.status, 201);
     assert.equal(client.body.clientShortName, "Alpha");
     assert.equal(client.body.sourceRevision, "approval-ref-alpha");
+    assert.equal(client.body.bridge_service_identity_ref, SERVICE_ACTOR);
     assert.equal(client.body.production_ready_claim, false);
 
     const matter = await json(baseUrl, "/api/matters/vault-bridge/matters/upsert", {
@@ -202,6 +241,7 @@ test("Vault bridge upserts Matter app client and matter with idempotent replay",
     assert.equal(matter.body.clientCaseRole, "피고");
     assert.equal(matter.body.clientCaseRoleConfidence, "vault_bridge_test");
     assert.equal(matter.body.sourceRevision, "approval-ref-alpha");
+    assert.equal(matter.body.bridge_service_identity_ref, SERVICE_ACTOR);
 
     const replay = await json(baseUrl, "/api/matters/vault-bridge/matters/upsert", {
       method: "POST",

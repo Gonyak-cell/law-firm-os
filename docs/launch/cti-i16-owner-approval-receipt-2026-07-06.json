@@ -1,0 +1,79 @@
+{
+  "schema_version": "law-firm-os.cti-owner-approval-receipt.v0.1",
+  "approval_id": "I16",
+  "approval_signature_ref": "I16-CTI-CUTOVER-FREEZE-WINDOW-NOTICE-OWNER-APPROVAL-2026-07-06",
+  "status": "approval_recorded_no_active_use_freeze_not_required",
+  "recorded_date": "2026-07-06",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "future_cti_binding": [
+    "CUTOVER freeze window notice wording",
+    "CUTOVER freeze coordination receipt",
+    "affected systems and owner notice scope",
+    "production write prohibition notice during freeze",
+    "owner attestation that active production use/writers are absent and freeze notice is not required"
+  ],
+  "approved_scope": [
+    "freeze window notice wording confirmation",
+    "affected systems and responsible party notice scope confirmation",
+    "planned freeze start/end time recording once supplied",
+    "production write prohibition notice during freeze",
+    "freeze notice receipt and PII-safe evidence generation"
+  ],
+  "conditions": {
+    "notice_and_coordination_receipt_only": true,
+    "freeze_state_confirmation_requires_separate_evidence": false,
+    "freeze_state_confirmation_replaced_by_no_active_use_attestation": true,
+    "cutover_execute_requires_notice_and_state_confirmation_before_reassessment": false,
+    "cutover_execute_requires_no_active_use_recheck_before_reassessment": true
+  },
+  "notice_coordination_status": {
+    "notice_wording_approved": true,
+    "affected_system_scope_approved": true,
+    "planned_window_start_recorded": false,
+    "planned_window_end_recorded": false,
+    "notice_dispatch_receipt_recorded": false,
+    "freeze_state_confirmed": false,
+    "notice_dispatch_not_required_due_to_no_active_use": true
+  },
+  "no_active_use_attestation": {
+    "recorded": true,
+    "source": "owner chat correction",
+    "attestation_text": "현재 사용하고 있지도 않아서 freeze 하지 않아도 된다",
+    "active_production_users": false,
+    "active_production_writers": false,
+    "freeze_notice_required": false,
+    "freeze_state_confirmation_required": false,
+    "replacement_control": "pre-CUTOVER no-active-use/no-active-writer attestation; if active users or writers appear before CUTOVER, freeze notice and freeze state confirmation must be reopened"
+  },
+  "explicit_non_approval": {
+    "cutover_immediate_execution": true,
+    "production_write_migration": true,
+    "production_restore": true,
+    "tenant_migration": true,
+    "account_permission_injection": true,
+    "operational_profile_switch": true,
+    "bridge_token_rotation": true,
+    "password_issuance_distribution": true,
+    "s5_s6": true,
+    "oidc_implementation": true,
+    "db_conversion": true,
+    "production_ready_go_live_claim": true
+  },
+  "cutover_executed_by_this_receipt": false,
+  "freeze_executed_by_this_receipt": false,
+  "notice_dispatched_by_this_receipt": false,
+  "production_write_executed_by_this_receipt": false,
+  "production_restore_executed_by_this_receipt": false,
+  "tenant_migration_executed": false,
+  "account_permission_injection_executed": false,
+  "operational_profile_switch_executed": false,
+  "bridge_token_rotation_executed": false,
+  "password_issuance_distribution_executed": false,
+  "secret_values_recorded": false,
+  "plaintext_pii_recorded": false,
+  "credential_material_recorded": false,
+  "token_material_recorded": false,
+  "password_material_recorded": false,
+  "production_ready_claim": false,
+  "go_live_claim": false
+}

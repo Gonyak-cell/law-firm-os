@@ -1,0 +1,109 @@
+{
+  "schema_version": "law-firm-os.cti.s0-receipt.v0.1",
+  "generated_at": "2026-07-06T02:05:06Z",
+  "goal_id": "cti-g0-s0",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "cti_item": "S0-T07",
+  "launch_tuw": "LT-PRE-W08-T03",
+  "status": "local_static_complete",
+  "pii_boundary": {
+    "plaintext_client_or_matter_names_written": false,
+    "phone_or_email_pii_written": false,
+    "credential_material_written": false
+  },
+  "execution_boundary": {
+    "production_credentials_used": false,
+    "real_data_contact_performed": false,
+    "product_state_write_performed": false,
+    "migration_executed": false,
+    "cutover_executed": false
+  },
+  "inventory_site_count": 9,
+  "inventory_sites": [
+    {
+      "file": "scripts/run-lcx-vltui-production-smoke.mjs",
+      "hits": [
+        {
+          "line": 257
+        },
+        {
+          "line": 414
+        }
+      ]
+    },
+    {
+      "file": "scripts/smoke-matter-desktop-aws-runtime.mjs",
+      "hits": [
+        {
+          "line": 105
+        }
+      ]
+    },
+    {
+      "file": "scripts/drill-matter-vault-backup-restore.mjs",
+      "hits": [
+        {
+          "line": 229
+        },
+        {
+          "line": 309
+        },
+        {
+          "line": 341
+        },
+        {
+          "line": 389
+        }
+      ]
+    },
+    {
+      "file": "scripts/run-lcx-full-release-preflight-proof.mjs",
+      "hits": [
+        {
+          "line": 231
+        }
+      ]
+    },
+    {
+      "file": "scripts/validate-matter-vault-r4-external-receipts.mjs",
+      "hits": [
+        {
+          "line": 70
+        }
+      ]
+    },
+    {
+      "file": "scripts/validate-matter-vault-r4-aws-env-plan.mjs",
+      "hits": [
+        {
+          "line": 171
+        }
+      ]
+    },
+    {
+      "file": "scripts/validate-lcx-full-final-release-packet.mjs",
+      "hits": [
+        {
+          "line": 70
+        }
+      ]
+    },
+    {
+      "file": "apps/api/src/server.js",
+      "hits": [
+        {
+          "line": 445
+        }
+      ]
+    },
+    {
+      "file": "apps/api/src/master-data-context.js",
+      "hits": [
+        {
+          "line": 77
+        }
+      ]
+    }
+  ],
+  "additive_transition_rule": "Do not rewrite closed receipts. Future CTI receipts must use schema/version branching so legacy false assertions remain valid and CTI true receipts are explicitly scoped."
+}

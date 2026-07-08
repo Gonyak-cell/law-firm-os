@@ -292,9 +292,15 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       return requestJson("/api/desktop/accounts");
     },
     requestPasswordReset({ email } = {}) {
+      if (operatorToken) {
+        return requestJson("/api/desktop/password-reset/request", { method: "POST", body: { email } });
+      }
       return requestJson("/api/auth/password-reset/request", { method: "POST", body: { email }, authRequired: false });
     },
-    async latestResetEmail() {
+    latestResetEmail({ email } = {}) {
+      if (operatorToken) {
+        return requestJson("/api/desktop/password-reset/latest-email", { method: "POST", body: { email } });
+      }
       return {
         ok: false,
         reason: "password_reset_email_token_not_available_in_production",
@@ -304,9 +310,15 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       };
     },
     confirmPasswordReset({ token, password } = {}) {
+      if (operatorToken) {
+        return requestJson("/api/desktop/password-reset/confirm", { method: "POST", body: { token, password } });
+      }
       return requestJson("/api/auth/password-reset/confirm", { method: "POST", body: { token, password }, authRequired: false });
     },
     login({ email, password } = {}) {
+      if (operatorToken) {
+        return requestJson("/api/desktop/login", { method: "POST", body: { email, password } });
+      }
       return requestJson("/api/auth/login", { method: "POST", body: { email, password }, authRequired: false });
     },
     async features({ email, sessionToken } = {}) {

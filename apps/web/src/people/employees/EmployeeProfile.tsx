@@ -16,6 +16,10 @@ function recordList(value: unknown): UnknownRecord[] {
   return Array.isArray(value) ? value.map(objectValue).filter((item) => Object.keys(item).length > 0) : [];
 }
 
+function stringList(value: unknown): string[] {
+  return Array.isArray(value) ? value.map((item) => String(item ?? "").trim()).filter(Boolean) : [];
+}
+
 function roleLabel(value: unknown): string {
   const text = String(value ?? "").trim();
   if (!text) return "미등록";
@@ -49,6 +53,67 @@ function compensationStatus(result: CompensationResult | null): string {
   if (result.kind === "data") return "마스킹 참조";
   if (result.kind === "empty") return "확인 필요";
   return "확인 실패";
+}
+
+function professionalKindLabel(value: unknown): string {
+  const normalized = String(value ?? "").trim();
+  if (normalized === "attorney") return "변호사";
+  if (normalized === "cpa") return "공인회계사 / Deal Advisory";
+  if (normalized === "deal_advisor") return "Deal Advisory";
+  return displayValue(normalized);
+}
+
+function ProfessionalList({ title, items }: { title: string; items: string[] }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="people-professional-list">
+      <strong>{title}</strong>
+      <ul>
+        {items.map((item, index) => <li key={`${title}-${index}-${item}`}>{item}</li>)}
+      </ul>
+    </div>
+  );
+}
+
+function ProfessionalProfileSection({ profile }: { profile: unknown }) {
+  const record = objectValue(profile);
+  const profileKind = String(record.profile_kind ?? "").trim();
+  if (!profileKind) {
+    return (
+      <div className="live-data-state live-data-empty" data-people-professional-profile="empty">
+        공개 전문 프로필 없음
+      </div>
+    );
+  }
+
+  const sourceRefs = recordList(record.source_refs);
+  const sourceLabels = sourceRefs.map((source) => {
+    const section = displayValue(source.source_section);
+    const url = displayValue(source.source_url);
+    return `${section} · ${url}`;
+  });
+
+  return (
+    <section
+      className="people-professional-profile"
+      data-people-professional-profile="true"
+      data-people-professional-profile-kind={profileKind}
+    >
+      <header className="people-compensation-head">
+        <strong>전문 프로필</strong>
+        <span>{professionalKindLabel(profileKind)}</span>
+      </header>
+      <div className="property-grid people-profile-grid">
+        <Property label="공개 역할" value={stringList(record.public_role_labels).join(" · ") || professionalKindLabel(profileKind)} />
+        <Property label="전문 분야" value={stringList(record.practice_areas).join(" · ") || "확인 필요"} />
+      </div>
+      <ProfessionalList title="주요 경력" items={stringList(record.experience)} />
+      <ProfessionalList title="학력" items={stringList(record.education)} />
+      <ProfessionalList title="자격·면허" items={stringList(record.qualifications)} />
+      <ProfessionalList title="출처" items={sourceLabels} />
+      <ProfessionalList title="비고" items={stringList(record.source_notes)} />
+    </section>
+  );
 }
 
 function CompensationRecordList({ result, onRetry }: { result: CompensationResult | null; onRetry: () => void }) {
@@ -132,6 +197,7 @@ export function EmployeeProfile({ employeeId, refreshKey }: { employeeId?: strin
   } else {
     const employee = objectValue(result.employee);
     const profile = objectValue(result.employment_profile);
+    const professionalProfile = result.professional_profile ?? employee.professional_profile ?? null;
     body = (
       <>
         <div className="property-grid people-profile-grid">
@@ -144,6 +210,7 @@ export function EmployeeProfile({ employeeId, refreshKey }: { employeeId?: strin
           <Property label="조직" value={displayValue(employee.organization_group)} />
           <Property label="보상 정보" value={compensationStatus(compensationResult)} />
         </div>
+        <ProfessionalProfileSection profile={professionalProfile} />
         <CompensationRecordList
           result={compensationResult}
           onRetry={() => setCompensationRefreshKey((current) => current + 1)}
