@@ -245,7 +245,7 @@ try {
       throw new Error(`${error.message}\npackaged screen diagnostics: ${JSON.stringify(diagnostics)}`);
     }
     if (options.readySelector) await page.waitForSelector(options.readySelector, { timeout: 30_000 });
-    await page.waitForTimeout(options.settleMs ?? 600);
+    await page.waitForTimeout(options.settleMs ?? 1800);
     await page.locator('[data-profile-trigger="true"]').evaluate((node) => { node.style.visibility = "hidden"; }).catch(() => {});
     const screenshot = resolve(artifactDir, `${name}.png`);
     await page.screenshot({ path: screenshot, animations: "disabled", caret: "hide" });
@@ -301,6 +301,7 @@ try {
     actorRef: "user_packaged_finance_denied",
     roleRefs: ["lawos_employee"],
     scopeRefs: ["matter.read", "vault.read"],
+    settleMs: 1800,
   });
 
   await page.evaluate((url) => window.location.assign(url), productUrl("matters", "matter-home"));

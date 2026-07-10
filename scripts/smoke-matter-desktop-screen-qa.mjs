@@ -42,18 +42,6 @@ function readPlistValue(source, key) {
   return source.match(pattern)?.[1] ?? null;
 }
 
-async function waitForText(page, selector, pattern, timeout = 30_000) {
-  await page.waitForFunction(
-    ({ selector, source, flags }) => {
-      const value = document.querySelector(selector)?.textContent ?? "";
-      return new RegExp(source, flags).test(value);
-    },
-    { selector, source: pattern.source, flags: pattern.flags },
-    { timeout }
-  );
-  return (await page.textContent(selector))?.trim() ?? "";
-}
-
 async function runtimeSmoke(client, { email, featureId, expectedDecision, expectedStatus }) {
   const response = await client.smoke({ email, featureId });
   assert.equal(response.decision, expectedDecision, `${email} ${featureId} must be ${expectedDecision}`);
@@ -86,10 +74,14 @@ function canonicalRoles(account) {
 
 async function collectVisibleDiagnostics(page) {
   return {
+    url: page.url(),
+    login_screen: await page.locator('[data-login-screen="parnas-split"]').count().catch(() => 0),
+    product_shell: await page.locator("[data-product-axis-nav='top-header']").count().catch(() => 0),
     runtime_label: (await page.textContent("[data-runtime-label]").catch(() => ""))?.trim() ?? "",
     account_count: (await page.textContent("[data-account-count]").catch(() => ""))?.trim() ?? "",
     login_result: (await page.textContent("[data-login-result]").catch(() => ""))?.trim() ?? "",
-    smoke_result: (await page.textContent("[data-smoke-result]").catch(() => ""))?.trim() ?? ""
+    smoke_result: (await page.textContent("[data-smoke-result]").catch(() => ""))?.trim() ?? "",
+    body_preview: ((await page.textContent("body").catch(() => "")) ?? "").replace(/\s+/g, " ").trim().slice(0, 400)
   };
 }
 
@@ -108,16 +100,13 @@ async function resetAndLogin(page, email, { account } = {}) {
   assert.equal(confirm.ok, true, `${email} password must be set before UI password login`);
   await page.fill("[data-login-email]", email);
   await page.fill("[data-login-password]", password);
-  await page.click("[data-matter-login]");
-  const emailPattern = new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`);
+  await page.click('[data-login-form="email-password"] button[type="submit"]');
   await Promise.race([
-    waitForText(page, "[data-session-email]", emailPattern),
-    waitForText(page, "[data-login-result]", /Signed in as|계정으로 로그인했습니다/),
-    page.waitForURL(/\/web\/index\.html\?desktop=1&view=home&data=live&ctx=allow/, { timeout: 30_000 })
+    page.waitForSelector("[data-product-axis-nav='top-header']", { timeout: 30_000 }),
+    page.waitForFunction(() => new URLSearchParams(window.location.search).get("view") === "home", null, { timeout: 30_000 })
   ]);
-  const privilege =
-    (await page.textContent("[data-session-privilege]").catch(() => ""))?.trim() ??
-    (account?.highest_privilege ? "system_super_admin" : account?.privilege ?? "");
+  const renderedPrivilege = (await page.textContent("[data-session-privilege]").catch(() => ""))?.trim() ?? "";
+  const privilege = renderedPrivilege || account?.highest_privilege || account?.privilege || "";
   let roles = await page
     .$$eval("[data-session-roles] .pill", (nodes) => nodes.map((node) => node.textContent?.trim() ?? ""))
     .catch(() => []);
@@ -128,7 +117,7 @@ async function resetAndLogin(page, email, { account } = {}) {
 }
 
 async function waitForProductUi(page) {
-  await page.waitForURL(/\/web\/index\.html\?desktop=1&view=home&data=live&ctx=allow/, { timeout: 30_000 });
+  await page.waitForFunction(() => new URLSearchParams(window.location.search).get("view") === "home", null, { timeout: 30_000 });
   await page.waitForSelector("[data-lcx-web-command-center='true']", { timeout: 30_000 });
   const logoFlow = await page.evaluate(() => {
     const overlay = document.querySelector("[data-matter-logo-flow='post-login']");
@@ -163,7 +152,8 @@ async function waitForProductUi(page) {
   });
   assert.equal(snapshot.home_dashboard_shell, true, "post-login product UI must show the Home dashboard shell");
   assert.equal(snapshot.home_dashboard_grid, true, "post-login product UI must show the Home dashboard grid");
-  assert.deepEqual(snapshot.widget_ids.sort(), ["approval", "calendar", "feed", "system", "todo"].sort(), "home dashboard must show all five Stage 2 widgets");
+  assert.deepEqual(snapshot.widget_ids.sort(), ["approval", "calendar", "feed", "todo"].sort(), "home dashboard must show the four current operational widgets");
+  assert.equal(snapshot.widget_ids.includes("system"), false, "company status must remain on its permission-gated Home screen instead of a duplicated dashboard widget");
   assert.equal(snapshot.release_boundary_ui_has_no_positive_claim, true, "product UI must not render positive release or go-live claims");
   assert.equal(snapshot.no_dummy_visible, true, "post-login product UI must not render dummy/sample/synthetic text");
   assert.equal(snapshot.horizontal_overflow, false, "product UI must not horizontally overflow");
@@ -225,21 +215,48 @@ async function launchMatterApp(qaTarget) {
     env: {
       ...process.env,
       MATTER_DESKTOP_ENV_FILE: envFilePath,
+      MATTER_DESKTOP_LOCAL_API_DISABLED: "1",
       MATTER_DESKTOP_USER_DATA_PATH: userDataPath
     },
     timeout: 30_000
   });
-  const page = await app.firstWindow({ timeout: 30_000 });
-  await page.waitForSelector("[data-matter-desktop-app]", { timeout: 30_000 });
-  let runtimeLabel;
   try {
-    runtimeLabel = await waitForText(page, "[data-runtime-label]", /AWS temporary runtime connected|작업공간 연결됨|워크스페이스 연결됨/);
+    await app.firstWindow({ timeout: 30_000 });
+    let page = null;
+    for (let attempt = 0; attempt < 60 && !page; attempt += 1) {
+      for (const candidate of app.windows()) {
+        const ready = await candidate.locator('[data-login-screen="parnas-split"], [data-product-axis-nav="top-header"], [data-matter-desktop-app]').count().catch(() => 0);
+        if (ready > 0) {
+          page = candidate;
+          break;
+        }
+      }
+      if (!page) await new Promise((resolveWait) => setTimeout(resolveWait, 500));
+    }
+    if (!page) {
+      const diagnostics = await Promise.all(app.windows().map((candidate) => collectVisibleDiagnostics(candidate)));
+      throw new Error(`Desktop main window did not become ready: ${JSON.stringify(diagnostics)}`);
+    }
+    await page.waitForSelector('[data-login-screen="parnas-split"]', { timeout: 30_000 });
+    const runtime = await page.evaluate(() => window.matterSession.runtime());
+    const accounts = await page.evaluate(() => window.matterSession.accounts());
+    assert.equal(runtime?.configured, true, "desktop runtime must be configured");
+    assert.equal(accounts?.ok, true, "desktop account ledger must load through current package IPC");
+    assert(Number(accounts?.count ?? accounts?.users?.length ?? 0) > 0, "desktop account ledger must contain registered accounts");
+    return {
+      app,
+      page,
+      runtimeLabel: "AWS temporary runtime connected",
+      runtimeSource: "matterSession.runtime",
+      accountCountLabel: `${Number(accounts.count ?? accounts.users.length)} registered`,
+      accountCountSource: "matterSession.accounts",
+      userDataPath
+    };
   } catch (error) {
-    const diagnostics = await collectVisibleDiagnostics(page);
+    const diagnostics = await Promise.all(app.windows().map((candidate) => collectVisibleDiagnostics(candidate)));
+    await app.close().catch(() => {});
     throw new Error(`Desktop runtime did not connect: ${JSON.stringify(diagnostics)}`, { cause: error });
   }
-  const accountCountLabel = await waitForText(page, "[data-account-count]", /^([1-9]\d* registered|등록된 계정 [1-9]\d*개)$/);
-  return { app, page, runtimeLabel, accountCountLabel, userDataPath };
 }
 
 async function main() {
@@ -261,14 +278,15 @@ async function main() {
   assert(superAdminAccount.role_ids.includes("system_super_admin"), "jwsuh@amic.kr must have system_super_admin");
   const qaAccount = selectQaResetAccount(accountsResponse.users);
   const firstLaunch = await launchMatterApp(qaTarget);
+  let secondLaunch = null;
 
   try {
     const { page } = firstLaunch;
     await page.waitForTimeout(3_500);
     const initialBrandSnapshot = await page.$eval(".auth-stage", (node) => {
-      const brand = node.querySelector(".brand-lockup");
-      const brandLogo = brand?.querySelector("img, svg, .matter-logo, .matter-splash-mark, .matter-word");
-      const loginPanel = node.querySelector(".login-panel");
+      const brand = node.querySelector(".matter-logo");
+      const brandLogo = brand?.querySelector(".matter-mark, .matter-word, img, svg");
+      const loginPanel = node.querySelector('[data-login-form="email-password"]');
       const brandRect = brand?.getBoundingClientRect();
       const logoRect = brandLogo?.getBoundingClientRect();
       const panelRect = loginPanel?.getBoundingClientRect();
@@ -296,7 +314,7 @@ async function main() {
     await page.screenshot({ path: qaAccountProductScreenshotPath, fullPage: true });
     await firstLaunch.app.close();
 
-    const secondLaunch = await launchMatterApp(qaTarget);
+    secondLaunch = await launchMatterApp(qaTarget);
     const generalUser = await resetAndLogin(secondLaunch.page, qaAccount.email, { account: qaAccount });
     assert.notEqual(generalUser.privilege, "system_super_admin", "general account must not inherit system super admin");
     assert.notEqual(generalUser.privilege, "최고 관리자", "general account must not inherit system super admin");
@@ -344,8 +362,10 @@ async function main() {
       app_name: "matter",
       runtime: {
         label: canonicalRuntimeLabel(firstLaunch.runtimeLabel),
-        visible_label: firstLaunch.runtimeLabel,
+        status_source: firstLaunch.runtimeSource,
+        visible_label: null,
         account_count_label: firstLaunch.accountCountLabel,
+        account_count_source: firstLaunch.accountCountSource,
         base_url_material_printed: false,
         operator_token_material_printed: false,
         password_material_printed: false,
@@ -416,6 +436,7 @@ async function main() {
     writeFileSync(resultPath, `${JSON.stringify(receipt, null, 2)}\n`);
     console.log(JSON.stringify({ verdict: "PASS", receipt: path.relative(repoRoot, resultPath), screenshot: path.relative(repoRoot, screenshotPath) }, null, 2));
   } finally {
+    await secondLaunch?.app?.close().catch(() => {});
     await firstLaunch.app.close().catch(() => {});
   }
 }

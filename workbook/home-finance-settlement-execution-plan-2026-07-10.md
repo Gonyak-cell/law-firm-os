@@ -1,7 +1,7 @@
 # Home 매출·비용·정산 통합 실행 지시서 — 2026-07-10
 
 - 문서 ID: `HOME-FIN-SETTLEMENT-2026-07-10`
-- 상태: WP-FIN-1~6 및 WP-FIN-7 비파괴 검증 완료, 외부 QA 계정 reset screen QA 승인 대기
+- 상태: WP-FIN-1~7 구현 및 최신 internal `matter.app` QA 완료
 - 적용 저장소: `/Users/jws/Documents/Codex/Law Firm OS`
 - 기준 화면: Home 및 Matter 사이드바, Home 대시보드, Matter 정산 실행 화면
 - 실행 원칙: 작업 패키지별 독립 커밋, 테스트·브라우저·패키지 증거 확인 후 다음 패키지 진행
@@ -19,7 +19,9 @@ Home을 전사 운영 축으로 유지하면서 다음 기능을 Home 사이드�
 
 완료 후 Matter는 개별 사건의 실행·문서·업무 맥락을 담당하고, Home은 전사 집계와 재무 운영 진입점을 담당한다. Matter 화면에는 선택 사건을 유지한 Home 재무 화면 바로가기만 남긴다.
 
-## 2. 현재 상태와 직접 확인한 코드 앵커
+## 2. 분석 당시 기준선과 직접 확인한 코드 앵커
+
+이 섹션은 통합 구현 전 중복과 이동 대상을 기록한 기준선이다. 구현 후 현재 진실 상태는 섹션 15와 closeout 문서를 따른다.
 
 ### 2.1 내비게이션
 
@@ -613,7 +615,7 @@ WP-FIN-1 계약·라우트
 ## 15. 현재 진실 상태
 
 - 계획 문서: 작성 완료
-- 코드 구현: WP-FIN-1~6 완료, WP-FIN-7 구현·비파괴 패키지 QA 완료 / 외부 QA 계정 reset screen QA 승인 대기
+- 코드 구현: WP-FIN-1~7 완료
 - 테스트 PASS: WP-FIN-1~6 라우트·집계·재무 UI·정산 실행·명시적 scope·Matter 메뉴 제거/하위 호환 계약 PASS
 - 브라우저 QA: 집계 화면, 정산 실행 흐름, scope별 메뉴/회계 CSV 비노출 PASS
 - 권한 진실선: 실제 서명 세션의 명시적 scope를 API에서 재검증하고 denied/review를 안전 감사 이벤트로 기록; scope 없는 로컬 fixture만 기존 permission context 호환 유지
@@ -621,7 +623,8 @@ WP-FIN-1 계약·라우트
 - 메뉴 진실선: Matter 사이드바의 정산 그룹은 제거했고 기존 Matter/Finance 주소는 Home 재무 화면으로 리다이렉트
 - 패키지 `matter.app` 반영: 내부 unsigned package 재빌드 및 Home 재무/Matter 메뉴 화면 PASS
 - 패키지 QA 경계: 브라우저 9장 + 실제 package 필수 9장 및 Matter 메뉴 확인 1장 PASS; 실제 package 증거는 격리 userData와 loopback 계약 서버를 사용해 운영 데이터·외부 상태를 읽거나 변경하지 않음
-- 기존 screen QA 경계: `matter-desktop:screen-qa`는 `MATTER_ALLOW_QA_PASSWORD_RESET=1` 승인 전 미실행
+- 기존 screen QA 경계: 오너 승인 후 QA 전용 계정으로 PASS; 보호 계정 reset 미시도
+- 최신 bundle 진실선: 현재 working source에서 web build·renderer prepare·desktop 89/89·internal macOS package를 다시 실행했고, 최신 package 필수 화면 9장과 Matter 메뉴 보조 1장을 갱신
 - 서명/공증: 범위 밖
 - 공개 릴리스: 승인 없음
 - go-live: 승인 없음

@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-desktop-screen-qa.v0.1",
-  "generated_at": "2026-07-01T15:59:57.694Z",
+  "generated_at": "2026-07-10T08:57:42.071Z",
   "status": "passed",
   "command": "npm run matter-desktop:screen-qa",
   "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
@@ -8,12 +8,19 @@
   "app_name": "matter",
   "runtime": {
     "label": "AWS temporary runtime connected",
-    "visible_label": "워크스페이스 연결됨",
-    "account_count_label": "등록된 계정 10개",
+    "status_source": "matterSession.runtime",
+    "visible_label": null,
+    "account_count_label": "12 registered",
+    "account_count_source": "matterSession.accounts",
     "base_url_material_printed": false,
     "operator_token_material_printed": false,
     "password_material_printed": false,
     "reset_token_material_printed": false
+  },
+  "desktop_user_data": {
+    "isolated_per_launch": true,
+    "first_launch_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-desktop-screen-qa-JdWgw2",
+    "second_launch_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-desktop-screen-qa-nINu3G"
   },
   "packaged_bundle_inspection": {
     "mac_bundle_present": true,
@@ -22,7 +29,7 @@
     "cf_bundle_identifier": "com.amic.matter.desktop.internal"
   },
   "accounts": {
-    "count": 10,
+    "count": 12,
     "jwsuh_at_amic_kr": {
       "email": "jwsuh@amic.kr",
       "highest_privilege": true,
@@ -63,19 +70,19 @@
       "password_reset_confirm": "passed",
       "password_login": "passed",
       "product_handoff": {
-        "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=0&desktop_api_base_url=http%3A%2F%2F127.0.0.1%3A57981&desktop_session_ref=desktop%3Auser_amic_matter_desktop_qa%3A14&desktop_source_ref=desktop_offline_login&desktop_actor_ref=user_amic_matter_desktop_qa&desktop_tenant_ref=tenant_amic_matter_vault&desktop_expires_at=2026-07-01T16%3A59%3A27.275Z&desktop_role_ref=matter_vault_user&desktop_scope_ref=matter.read&desktop_scope_ref=vault.read",
-        "title": "오늘의 운영 대기열",
-        "capability_cards": 4,
-        "capability_labels": [
-          "Client",
-          "Matter",
-          "Vault",
-          "구성원"
+        "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&ctx=allow#home-dashboard",
+        "home_dashboard_shell": true,
+        "home_dashboard_grid": true,
+        "widget_ids": [
+          "approval",
+          "calendar",
+          "feed",
+          "todo"
         ],
         "release_boundary_ui_has_no_positive_claim": true,
         "no_dummy_visible": true,
         "horizontal_overflow": false,
-        "body_character_count": 597,
+        "body_character_count": 337,
         "logo_flow": {
           "observed": false,
           "image_alt": "",
@@ -90,17 +97,22 @@
             "Client",
             "Matter",
             "People",
-            "Vault"
+            "Vault",
+            "Portal"
           ],
           "axis_ids": [
             "home",
             "clients",
             "matters",
             "people",
-            "vault"
+            "vault",
+            "portal"
           ],
           "in_topbar": true,
-          "active_axis": "home"
+          "active_axis": "home",
+          "active_axis_count": 1,
+          "portal_fully_visible": true,
+          "nav_horizontal_overflow": false
         },
         "sidebar": {
           "contextual": {
@@ -109,7 +121,7 @@
             "sidebar_display": "grid",
             "workspace_visible": true,
             "sidebar_product_axis_labels": [],
-            "sidebar_item_count": 5,
+            "sidebar_item_count": 7,
             "horizontal_overflow": false
           }
         }
@@ -141,9 +153,11 @@
     ],
     "default_qa_reset_email": "matter.desktop.qa@amic.kr",
     "allow_protected_reset_env": "MATTER_ALLOW_PROTECTED_ACCOUNT_RESET",
+    "allow_qa_password_reset_env": "MATTER_ALLOW_QA_PASSWORD_RESET",
     "protected_reset_emails_env": "MATTER_PROTECTED_RESET_EMAILS",
     "qa_reset_email_env": "MATTER_DESKTOP_QA_EMAIL",
     "override_enabled": false,
+    "qa_reset_approval_enabled": true,
     "token_material_returned": false
   },
   "ui_brand_checks": {
@@ -157,7 +171,7 @@
     "token_or_password_visible_in_final_dom": false,
     "reset_token_input_cleared_before_screenshot": true,
     "generated_password_visible_in_final_dom": false,
-    "final_dom_character_count": 597
+    "final_dom_character_count": 337
   },
   "release_claims": {
     "production_go_live": false,
