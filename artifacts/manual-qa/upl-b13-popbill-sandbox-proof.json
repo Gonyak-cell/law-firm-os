@@ -1,6 +1,6 @@
 {
   "schema_version": "lawos.wave1.upl-b13.popbill-sandbox-proof.v1",
-  "generated_at": "2026-07-10T12:22:23.843Z",
+  "generated_at": "2026-07-10T12:29:56.519Z",
   "row_id": "UPL-B-13",
   "vendor": "popbill",
   "sdk": {
@@ -39,8 +39,8 @@
   "vendor_payload_summary": {
     "provider": "popbill",
     "environment": "test",
-    "request_hash": "2cecee0e967cc712e0b18571a8d917d9ec847823b1e44ccc799212fa81b25d0a",
-    "mgt_key_hash": "996ce223ba1a",
+    "request_hash": "655a671a422094ff3b7248d1fc04f57a01384813a617b86edaea0e521b544938",
+    "mgt_key_hash": "07f499b00359",
     "write_date": "20260710",
     "issue_type": "정발행",
     "purpose_type": "청구",

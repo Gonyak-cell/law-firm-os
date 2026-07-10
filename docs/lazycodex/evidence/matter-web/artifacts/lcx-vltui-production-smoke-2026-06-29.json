@@ -1,8 +1,8 @@
 {
   "schema_version": "lawos.lcx_vltui.production_smoke.v0.1",
-  "generated_at": "2026-07-08T07:39:31.542Z",
+  "generated_at": "2026-07-10T12:29:16.118Z",
   "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
-  "deployment_commit": "365325a0213b015ecfccb3b8130786605a83de93",
+  "deployment_commit": "1502e6772f80fa7aa9d950da2122e9c6d1d64bc9",
   "verdict": "PASS",
   "bridge_token_resolution": {
     "source": "lambda_environment",
@@ -22,7 +22,7 @@
       "id": "cloudfront-root-new-assets",
       "passed": true,
       "details": {
-        "summary": "root=200, assets=index-D0_pUF9C.js/index-BOiUIWl9.css"
+        "summary": "root=200, assets=index-BIku680h.js/index-C0nmq8_D.css"
       }
     },
     {

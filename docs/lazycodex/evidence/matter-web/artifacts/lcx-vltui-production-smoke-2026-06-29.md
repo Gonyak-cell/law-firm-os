@@ -1,18 +1,18 @@
 # LCX-VLTUI Production Smoke
 
-Generated at: 2026-07-08T07:39:31.542Z
+Generated at: 2026-07-10T12:29:16.118Z
 
 Verdict: PASS
 
 Base URL: https://d2mthcc8vp3cr2.cloudfront.net
 
-Deployment commit: 365325a0213b015ecfccb3b8130786605a83de93
+Deployment commit: 1502e6772f80fa7aa9d950da2122e9c6d1d64bc9
 
 Bridge token source: lambda_environment
 
 | Check | Passed | Detail |
 | --- | --- | --- |
-| cloudfront-root-new-assets | true | root=200, assets=index-D0_pUF9C.js/index-BOiUIWl9.css |
+| cloudfront-root-new-assets | true | root=200, assets=index-BIku680h.js/index-C0nmq8_D.css |
 | health-context-profile | true | profile present |
 | health-context-matter-core | true | matter-core present |
 | health-context-vault-dms | true | vault-dms present |
