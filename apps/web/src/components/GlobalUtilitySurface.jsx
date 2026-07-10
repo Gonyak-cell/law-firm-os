@@ -143,14 +143,14 @@ function UtilityDetail({ section, utility, theme, setTheme, skin, setSkin }) {
         </GuardedStateNotice>
       )}
       {utility.status === "decision-required" && (
-        <GuardedStateNotice state="owner_blocked" title="조건부 전역화 항목입니다." dataAttrs={{ "data-global-decision-required": "true" }}>
+        <GuardedStateNotice state="owner_blocked" title="확인이 필요한 항목입니다." dataAttrs={{ "data-global-decision-required": "true" }}>
           {utility.decision}
         </GuardedStateNotice>
       )}
       {utility.id === "notifications" && section.id === "notifications-center" && (
         <div className="live-data-state live-data-empty" data-global-notifications-center="true">
-          <strong>상단 알림 드로어와 같은 알림 원장을 사용합니다.</strong>
-          드로어의 읽음 처리와 알림 설정은 이 전역 알림 센터의 항목으로 연결됩니다.
+          <strong>알림과 메시지를 한곳에서 확인합니다.</strong>
+          읽음 처리와 알림 설정을 여기에서 관리합니다.
         </div>
       )}
       {isSettingsTheme && (
@@ -178,11 +178,10 @@ export function GlobalUtilitySurface({ view, activeSection = "", setView, theme,
       data-global-utility-surface={utility.id}
       data-global-conditional={utility.status === "decision-required" ? "true" : "false"}
     >
-      <ForestHero title={utility.label} subtitle={utility.description ?? utility.decision} imageOpacity={0.18} />
+      <ForestHero title={utility.label} imageOpacity={0.18} />
       <div className="global-utility-layer">
         <PageHeader
           title={utility.label}
-          subtitle={utility.description ?? utility.decision}
           heroTakeover={skin === "forest"}
           actions={
             <span className="global-utility-status">

@@ -1,6 +1,6 @@
 import React from "react";
-import { useEffect, useState } from "react";
-import { AlertTriangle, CheckCircle2, FileCheck2, FileWarning, Link2, LockKeyhole, RefreshCw, Search, ShieldCheck, UploadCloud } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { AlertTriangle, CheckCircle2, FileCheck2, FileWarning, Link2, LockKeyhole, Search, ShieldCheck, UploadCloud } from "lucide-react";
 import { fetchVaultBridgeStatus, fetchVaultDocuments, fetchVaultMatterLookup, fetchVaultSearch, fetchVaultUploadPreflight, uploadVaultDocumentFile } from "../data/apiClient.js";
 import { ForestHero } from "./ForestHero.jsx";
 import { DataTable, PageHeader, Panel } from "./primitives.jsx";
@@ -56,18 +56,18 @@ function holdLabel(value) {
 const VAULT_SECTIONS = new Set(["vault-documents", "vault-detail", "vault-email"]);
 
 function bridgeCodeLabel(code) {
-  if (code === "MATTER_VAULT_BRIDGE_REQUIRED") return "브리지 설정 필요";
-  if (code === "MATTER_VAULT_BRIDGE_BLOCKED") return "브리지 인증 차단";
-  if (code === "MATTER_VAULT_BRIDGE_RUNTIME_UNAVAILABLE") return "Vault 런타임 확인 필요";
+  if (code === "MATTER_VAULT_BRIDGE_REQUIRED") return "연결 설정 필요";
+  if (code === "MATTER_VAULT_BRIDGE_BLOCKED") return "연결 확인 필요";
+  if (code === "MATTER_VAULT_BRIDGE_RUNTIME_UNAVAILABLE") return "Vault 연결 확인 필요";
   if (code === "MATTER_VAULT_BRIDGE_STATUS_UNAVAILABLE") return "Vault 상태 확인 필요";
   return code ?? "확인 필요";
 }
 
 function bridgeSourceLabel(mode) {
-  if (mode === "matter_app_api") return "Matter app API";
-  if (mode === "vault_projection_only") return "Vault projection-only";
-  if (mode === "stale_projection") return "Stale projection";
-  if (mode === "denied") return "권한 차단";
+  if (mode === "matter_app_api") return "Matter";
+  if (mode === "vault_projection_only") return "Vault";
+  if (mode === "stale_projection") return "동기화 필요";
+  if (mode === "denied") return "확인 필요";
   return "확인 필요";
 }
 
@@ -79,7 +79,7 @@ function bridgeDescriptor(result) {
       meta: "확인 중",
       state: "상태 확인 중",
       source: "대기",
-      boundary: "쓰기 차단",
+      boundary: "대기",
       request: "대기",
       note: "Matter, Client, Vault 연결 상태를 확인하고 있습니다.",
       ready: false
@@ -91,14 +91,14 @@ function bridgeDescriptor(result) {
     return {
       tone: ready ? "ready" : "blocked",
       Icon: ready ? CheckCircle2 : LockKeyhole,
-      meta: ready ? "API 준비" : "경계 확인",
-      state: ready ? "런타임 준비" : "쓰기 차단",
+      meta: ready ? "준비됨" : "확인 필요",
+      state: ready ? "작업 준비됨" : "확인 필요",
       source: bridgeSourceLabel(result.sourceMode),
-      boundary: ready ? "합성 사전검사 가능" : "쓰기 차단",
+      boundary: ready ? "문서 준비 가능" : "확인 필요",
       request: result.requestId ?? "요청 없음",
       note: result.productionReadyClaim
-        ? "운영 승인 주장이 감지되어 쓰기 상태로 올리지 않습니다."
-        : "운영 승인 주장은 만들지 않고 연결 상태만 표시합니다.",
+        ? "문서 작업 전 연결 상태를 다시 확인하세요."
+        : "문서 작업에 필요한 연결 상태를 확인했습니다.",
       ready
     };
   }
@@ -108,12 +108,12 @@ function bridgeDescriptor(result) {
     return {
       tone: "blocked",
       Icon: LockKeyhole,
-      meta: "차단됨",
+      meta: "확인 필요",
       state: bridgeCodeLabel(code),
-      source: "fail-closed",
-      boundary: result.countLeakPrevented ? "건수 비노출" : "쓰기 차단",
+      source: "확인 필요",
+      boundary: result.countLeakPrevented ? "표시 제한" : "확인 필요",
       request: result.requestId ?? "요청 없음",
-      note: "토큰 값은 화면에 표시하지 않습니다.",
+      note: "연결 정보를 다시 확인하세요.",
       ready: false
     };
   }
@@ -124,9 +124,9 @@ function bridgeDescriptor(result) {
     meta: "확인 실패",
     state: "연결 상태 확인 실패",
     source: "확인 필요",
-    boundary: "쓰기 차단",
+    boundary: "확인 필요",
     request: "요청 없음",
-    note: "새로고침하거나 런타임 설정을 확인하세요.",
+    note: "새로고침하거나 연결 설정을 확인하세요.",
     ready: false
   };
 }
@@ -178,20 +178,20 @@ function VaultBridgeStatusPanel({ result }) {
 }
 
 function matterLookupCodeLabel(code) {
-  if (code === "MATTER_VAULT_BRIDGE_REQUIRED") return "브리지 설정 필요";
-  if (code === "MATTER_VAULT_BRIDGE_BLOCKED") return "브리지 인증 차단";
+  if (code === "MATTER_VAULT_BRIDGE_REQUIRED") return "연결 설정 필요";
+  if (code === "MATTER_VAULT_BRIDGE_BLOCKED") return "연결 확인 필요";
   if (code === "MATTER_VAULT_LOOKUP_QUERY_REQUIRED") return "검색어 필요";
-  if (code === "MATTER_API_VALIDATION_ERROR") return "입력 형식 차단";
+  if (code === "MATTER_API_VALIDATION_ERROR") return "입력 형식 확인 필요";
   return code ?? "확인 필요";
 }
 
 function uploadPreflightCodeLabel(code) {
-  if (code === "MATTER_VAULT_BRIDGE_REQUIRED") return "브리지 설정 필요";
-  if (code === "MATTER_VAULT_BRIDGE_BLOCKED") return "브리지 인증 차단";
+  if (code === "MATTER_VAULT_BRIDGE_REQUIRED") return "연결 설정 필요";
+  if (code === "MATTER_VAULT_BRIDGE_BLOCKED") return "연결 확인 필요";
   if (code === "MATTER_VAULT_UPLOAD_PREFLIGHT_MATTER_REQUIRED") return "Matter 선택 필요";
-  if (code === "MATTER_VAULT_UPLOAD_PREFLIGHT_SOURCE_BLOCKED") return "원천 상태 차단";
-  if (code === "MATTER_VAULT_UPLOAD_PREFLIGHT_LIFECYCLE_BLOCKED") return "사건 상태 차단";
-  if (code === "MATTER_UNAUTHORIZED_OMISSION") return "권한 차단";
+  if (code === "MATTER_VAULT_UPLOAD_PREFLIGHT_SOURCE_BLOCKED") return "연결 상태 확인 필요";
+  if (code === "MATTER_VAULT_UPLOAD_PREFLIGHT_LIFECYCLE_BLOCKED") return "사건 상태 확인 필요";
+  if (code === "MATTER_UNAUTHORIZED_OMISSION") return "접근 확인 필요";
   if (code === "MATTER_REVIEW_REQUIRED") return "검토 필요";
   if (code === "MATTER_APPROVAL_REQUIRED") return "승인 필요";
   if (code === "MATTER_NOT_FOUND") return "Matter 확인 필요";
@@ -231,7 +231,7 @@ function MatterLookupState({ result, queryTooShort, uuidBlocked }) {
   if (result.kind === "guarded") {
     return (
       <div className="live-data-state live-data-denied">
-        <strong>Matter lookup 차단됨</strong>
+        <strong>Matter를 확인할 수 없습니다</strong>
         {result.safeErrorCodes?.map(matterLookupCodeLabel).join(" / ") || "연결 상태를 확인하세요."}
       </div>
     );
@@ -330,7 +330,7 @@ function uploadPreflightDescriptor({ bridgeResult, selectedMatter, result, pendi
       tone: "loading",
       Icon: ShieldCheck,
       label: "연결 확인 중",
-      note: "Matter app 원천 상태를 확인하고 있습니다.",
+      note: "Matter 연결 상태를 확인하고 있습니다.",
       next: "대기",
       canRun: false
     };
@@ -340,9 +340,9 @@ function uploadPreflightDescriptor({ bridgeResult, selectedMatter, result, pendi
       state: "source-blocked",
       tone: "blocked",
       Icon: LockKeyhole,
-      label: "사전검사 차단",
-      note: "Matter app 원천, 저장소, 승인 경계를 통과해야 합니다.",
-      next: "쓰기 차단",
+      label: "준비 확인 필요",
+      note: "Matter와 Vault 연결 상태를 먼저 확인하세요.",
+      next: "대기",
       canRun: false
     };
   }
@@ -351,8 +351,8 @@ function uploadPreflightDescriptor({ bridgeResult, selectedMatter, result, pendi
       state: "checking",
       tone: "loading",
       Icon: ShieldCheck,
-      label: "사전검사 중",
-      note: "문서 파일은 전송하지 않고 권한만 확인합니다.",
+      label: "확인 중",
+      note: "문서 등록 준비 상태를 확인하고 있습니다.",
       next: "확인 중",
       canRun: false
     };
@@ -362,9 +362,9 @@ function uploadPreflightDescriptor({ bridgeResult, selectedMatter, result, pendi
       state: "passed",
       tone: "ready",
       Icon: FileCheck2,
-      label: "사전검사 통과",
-      note: "참조가 생성되었지만 Vault 쓰기는 계속 차단됩니다.",
-      next: "권한 확인만 가능",
+      label: "준비 완료",
+      note: "문서 등록 준비가 완료되었습니다.",
+      next: "등록 준비",
       canRun: true
     };
   }
@@ -373,9 +373,9 @@ function uploadPreflightDescriptor({ bridgeResult, selectedMatter, result, pendi
       state: "guarded",
       tone: "blocked",
       Icon: LockKeyhole,
-      label: "사전검사 차단",
-      note: "권한 또는 원천 상태가 통과하지 않았습니다.",
-      next: "쓰기 차단",
+      label: "확인 필요",
+      note: "문서 작업 준비 상태를 다시 확인하세요.",
+      next: "대기",
       canRun: true
     };
   }
@@ -384,7 +384,7 @@ function uploadPreflightDescriptor({ bridgeResult, selectedMatter, result, pendi
       state: "error",
       tone: "error",
       Icon: AlertTriangle,
-      label: "사전검사 실패",
+      label: "확인 실패",
       note: "새로고침 후 다시 확인하세요.",
       next: "확인 필요",
       canRun: true
@@ -394,9 +394,9 @@ function uploadPreflightDescriptor({ bridgeResult, selectedMatter, result, pendi
     state: "ready-to-check",
     tone: "ready",
     Icon: UploadCloud,
-    label: "사전검사 준비",
-    note: "문서 파일은 전송하지 않고 Matter 원천과 권한만 확인합니다.",
-    next: "권한 확인만 가능",
+    label: "준비 확인",
+    note: "문서 등록 전 Matter와 Vault 연결을 확인합니다.",
+    next: "준비 확인",
     canRun: true
   };
 }
@@ -411,7 +411,7 @@ function VaultUploadPreflightPanel({ bridgeResult, selectedMatter, result, pendi
   const preflightRef = result?.kind === "data" ? result.preflightRef : "";
   const writeEnabled = result?.vaultDocumentWriteEnabled === true;
   return (
-    <Panel id="vault-upload-preflight" className="vault-panel vault-upload-preflight-panel" title="업로드 사전검사" meta="문서 전송 없음">
+    <Panel id="vault-upload-preflight" className="vault-panel vault-upload-preflight-panel" title="업로드 준비 확인" meta="문서 등록">
       <div
         className={`vault-upload-preflight ${descriptor.tone}`}
         data-lcx-vltui-02-upload-preflight="true"
@@ -437,8 +437,8 @@ function VaultUploadPreflightPanel({ bridgeResult, selectedMatter, result, pendi
             <dd>{descriptor.next}</dd>
           </div>
           <div>
-            <dt>Vault 쓰기</dt>
-            <dd>{writeEnabled ? "허용" : "차단"}</dd>
+            <dt>Vault 등록</dt>
+            <dd>{writeEnabled ? "가능" : "대기"}</dd>
           </div>
         </dl>
         <button
@@ -448,10 +448,10 @@ function VaultUploadPreflightPanel({ bridgeResult, selectedMatter, result, pendi
           disabled={!descriptor.canRun || pending}
         >
           <UploadCloud size={15} />
-          사전검사 실행
+          준비 확인
         </button>
         {safeCodes.length > 0 && (
-          <div className="vault-bridge-codes" aria-label="업로드 사전검사 안전 오류 코드">
+          <div className="vault-bridge-codes" aria-label="업로드 준비 확인 메시지">
             {safeCodes.map((code) => (
               <span key={code}>{uploadPreflightCodeLabel(code)}</span>
             ))}
@@ -547,9 +547,9 @@ function VaultDocumentUploadPanel({ selectedMatter, result, pending, onUpload })
           </div>
         )}
         {result?.kind === "guarded" && (
-          <div className="live-data-state live-data-denied">
-            <strong>등록이 차단됐습니다</strong>
-            {result.safeErrorCodes?.join(" / ") || "권한 상태를 확인하세요."}
+      <div className="live-data-state live-data-denied">
+        <strong>등록할 수 없습니다</strong>
+        {result.safeErrorCodes?.join(" / ") || "권한 상태를 확인하세요."}
           </div>
         )}
         {result?.kind === "error" && (
@@ -569,7 +569,7 @@ function actionBoundaryBase({ bridgeResult, selectedMatter, uploadPreflightResul
       tone: "blocked",
       Icon: FileWarning,
       label: "Matter 선택 필요",
-      note: "Matter를 선택해야 문서 작업 경계를 확인할 수 있습니다."
+      note: "Matter를 선택해야 문서 작업을 준비할 수 있습니다."
     };
   }
   if (!canRunVaultUploadPreflight({ bridgeResult, selectedMatter })) {
@@ -577,8 +577,8 @@ function actionBoundaryBase({ bridgeResult, selectedMatter, uploadPreflightResul
       state: "source-blocked",
       tone: "blocked",
       Icon: LockKeyhole,
-      label: "원천 확인 필요",
-      note: "Matter app 원천, 저장소, 승인 경계를 먼저 통과해야 합니다."
+      label: "연결 확인 필요",
+      note: "Matter와 Vault 연결 상태를 먼저 확인하세요."
     };
   }
   if (uploadPreflightResult?.kind === "data") {
@@ -586,8 +586,8 @@ function actionBoundaryBase({ bridgeResult, selectedMatter, uploadPreflightResul
       state: "preflight-checked",
       tone: "ready",
       Icon: ShieldCheck,
-      label: "권한 확인 완료",
-      note: "사전검사 참조는 생성됐지만 Vault 쓰기는 차단됩니다."
+      label: "준비 완료",
+      note: "문서 작업 준비가 완료되었습니다."
     };
   }
   if (uploadPreflightResult?.kind === "guarded") {
@@ -595,8 +595,8 @@ function actionBoundaryBase({ bridgeResult, selectedMatter, uploadPreflightResul
       state: "permission-blocked",
       tone: "blocked",
       Icon: LockKeyhole,
-      label: "권한 차단",
-      note: "권한 또는 원천 상태가 통과하지 않았습니다."
+      label: "확인 필요",
+      note: "문서 작업 준비 상태를 다시 확인하세요."
     };
   }
   if (uploadPreflightResult?.kind === "error") {
@@ -605,23 +605,23 @@ function actionBoundaryBase({ bridgeResult, selectedMatter, uploadPreflightResul
       tone: "error",
       Icon: AlertTriangle,
       label: "확인 실패",
-      note: "사전검사를 다시 실행한 뒤 문서 작업 경계를 확인하세요."
+      note: "준비 확인을 다시 실행하세요."
     };
   }
   return {
     state: "preflight-required",
     tone: "blocked",
     Icon: UploadCloud,
-    label: "사전검사 필요",
-    note: "업로드 사전검사를 실행해야 문서 작업 경계를 확인할 수 있습니다."
+    label: "준비 확인 필요",
+    note: "업로드 준비 확인을 실행하세요."
   };
 }
 
 function actionBoundaryRows(base) {
   const checked = base.state === "preflight-checked";
   const guardedState = checked ? "guarded" : base.state;
-  const guardedStatus = checked ? "권한 확인만 완료" : base.label;
-  const guardedNote = checked ? "실제 파일과 저장소 포인터는 전송하지 않습니다." : base.note;
+  const guardedStatus = checked ? "준비 완료" : base.label;
+  const guardedNote = checked ? "문서 등록 준비가 완료되었습니다." : base.note;
   return [
     {
       id: "version-upload",
@@ -638,8 +638,8 @@ function actionBoundaryRows(base) {
       owner: "Matter app",
       state: guardedState,
       status: guardedStatus,
-      note: checked ? "Matter 참조만 확인했고 메타데이터 변경은 차단합니다." : base.note,
-      action: "변경 차단"
+      note: checked ? "메타데이터 변경은 담당자 확인 후 진행합니다." : base.note,
+      action: "변경 대기"
     },
     {
       id: "legal-hold",
@@ -648,7 +648,7 @@ function actionBoundaryRows(base) {
       state: checked ? "owner-blocked" : base.state,
       status: checked ? "결정 필요" : base.label,
       note: checked ? "보존 설정은 소유자 결정 전까지 변경하지 않습니다." : base.note,
-      action: "보존 변경 차단"
+      action: "보존 변경 대기"
     },
     {
       id: "retention",
@@ -657,7 +657,7 @@ function actionBoundaryRows(base) {
       state: checked ? "records-blocked" : base.state,
       status: checked ? "정책 연결 필요" : base.label,
       note: checked ? "기록 정책 연결 전까지 보존 기간을 변경하지 않습니다." : base.note,
-      action: "정책 변경 차단"
+      action: "정책 변경 대기"
     },
     {
       id: "document-action",
@@ -665,8 +665,8 @@ function actionBoundaryRows(base) {
       owner: "Matter app + Vault",
       state: guardedState,
       status: guardedStatus,
-      note: checked ? "문서 열람 외 작업은 별도 정책 확인 전까지 차단합니다." : base.note,
-      action: "작업 차단"
+      note: checked ? "문서 작업은 담당자 확인 후 진행합니다." : base.note,
+      action: "작업 대기"
     }
   ];
 }
@@ -681,7 +681,7 @@ function VaultActionBoundaryPanel({ bridgeResult, selectedMatter, uploadPrefligh
   const Icon = base.Icon;
   const preflightRef = uploadPreflightResult?.kind === "data" ? uploadPreflightResult.preflightRef : "";
   return (
-    <Panel id="vault-action-boundaries" className="vault-panel vault-action-boundary-panel" title="문서 작업 경계" meta="쓰기 차단">
+    <Panel id="vault-action-boundaries" className="vault-panel vault-action-boundary-panel" title="문서 작업 준비" meta="확인 필요">
       <div
         className={`vault-action-boundary ${base.tone}`}
         data-lcx-vltui-02-action-boundaries="true"
@@ -812,7 +812,7 @@ function VaultSearchPanel({ query, setQuery, result, pending, submittedQuery, on
   );
 }
 
-export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) {
+export function VaultSurface({ labels, liveCtx = "allow", activeSection = "", refreshSignal = 0 }) {
   const skin = useSkin();
   const [result, setResult] = useState(null);
   const [bridgeResult, setBridgeResult] = useState(null);
@@ -828,7 +828,14 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
   const [documentUploadResult, setDocumentUploadResult] = useState(null);
   const [documentUploadPending, setDocumentUploadPending] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
+  const refreshSignalRef = useRef(refreshSignal);
   const currentSection = VAULT_SECTIONS.has(activeSection) ? activeSection : "vault-documents";
+
+  useEffect(() => {
+    if (refreshSignalRef.current === refreshSignal) return;
+    refreshSignalRef.current = refreshSignal;
+    setRefreshToken((value) => value + 1);
+  }, [refreshSignal]);
 
   useEffect(() => {
     let cancelled = false;
@@ -962,7 +969,7 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
     body = (
       <div className="live-data-state live-data-review">
         <strong>검토가 필요합니다</strong>
-        검토가 끝나면 Vault 문서를 확인할 수 있습니다.
+        담당자 확인 후 Vault 문서를 볼 수 있습니다.
       </div>
     );
   } else if (documents.length === 0) {
@@ -974,10 +981,6 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
   } else {
     body = (
       <div className="vault-live-stack">
-        <div className="vault-safe-strip">
-          <ShieldCheck size={15} />
-          <span>문서 본문은 권한이 있을 때만 표시합니다.</span>
-        </div>
         <VaultBreadcrumb matterId={selected?.matter_id} workspaceId={selected?.workspace_id} />
         <VaultSecurityBadges document={selected} />
         <DataTable columns={["문서", "제목", "등록 계정", "상태", "버전", "권한", "보존"]} rows={vaultRows(documents)} />
@@ -991,12 +994,6 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
       <PageHeader
         title={labels.vaultTitle}
         heroTakeover={skin === "forest"}
-        actions={
-          <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
-            <RefreshCw size={15} />
-            새로고침
-          </button>
-        }
       />
       <div className="vault-runtime-grid">
         {currentSection === "vault-documents" && (
@@ -1010,7 +1007,7 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
                 submittedQuery={vaultSearchSubmittedQuery}
                 onSubmit={handleVaultSearch}
               />
-              <Panel id="vault-documents" className="vault-panel" title="Vault 문서함" meta="권한 기준 적용">
+              <Panel id="vault-documents" className="vault-panel" title="Vault 문서함" meta="">
                 {body}
               </Panel>
             </div>

@@ -109,7 +109,6 @@ export function AskSurface({ labels, variant, liveCtx = "allow" }) {
         <Panel title="활동 기록" meta="최근 업무">
           <div className="live-data-state live-data-empty">
             <strong>표시할 활동 기록이 없습니다</strong>
-            권한이 있는 활동 기록만 이곳에 표시됩니다.
           </div>
         </Panel>
       </div>

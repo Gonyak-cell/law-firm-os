@@ -157,8 +157,8 @@ export function IntakeSurface({ labels, liveCtx = "allow" }) {
         <Panel className="intake-panel" title="이해상충 확인" meta="민감 정보 보호">
           <div className="matter-boundary-card">
             <ClipboardCheck size={20} />
-            <strong>메모 본문은 목록에서 숨깁니다</strong>
-            <span>상세 내용은 권한이 있는 담당자 화면에서만 확인합니다.</span>
+            <strong>메모 상세</strong>
+            <span>상세 내용은 담당자 화면에서 확인합니다.</span>
           </div>
         </Panel>
         <Panel className="intake-panel" title="담당자 검토" meta="접수 전 확인">

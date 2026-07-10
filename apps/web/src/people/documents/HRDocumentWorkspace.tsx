@@ -62,7 +62,7 @@ const DOCUMENT_MODE: Record<DocumentModeKey, DocumentModeConfig> = {
   certificates: {
     panelId: "people-certificates",
     title: "증명서 발급 요청",
-    meta: "재직·경력",
+    meta: "증명서",
     kicker: "재직증명서와 경력증명서의 증명서 발급 요청을 확인합니다.",
     loadingText: "증명서 발급 요청 목록을 불러오는 중입니다",
     errorText: "증명서 발급 요청 목록을 불러오지 못했습니다.",

@@ -90,7 +90,7 @@ function ProfessionalProfileSection({ profile }: { profile: unknown }) {
   const sourceLabels = sourceRefs.map((source) => {
     const section = displayValue(source.source_section);
     const url = displayValue(source.source_url);
-    return `${section} · ${url}`;
+    return `${section}, ${url}`;
   });
 
   return (
@@ -104,12 +104,12 @@ function ProfessionalProfileSection({ profile }: { profile: unknown }) {
         <span>{professionalKindLabel(profileKind)}</span>
       </header>
       <div className="property-grid people-profile-grid">
-        <Property label="공개 역할" value={stringList(record.public_role_labels).join(" · ") || professionalKindLabel(profileKind)} />
-        <Property label="전문 분야" value={stringList(record.practice_areas).join(" · ") || "확인 필요"} />
+        <Property label="공개 역할" value={stringList(record.public_role_labels).join(", ") || professionalKindLabel(profileKind)} />
+        <Property label="전문 분야" value={stringList(record.practice_areas).join(", ") || "확인 필요"} />
       </div>
       <ProfessionalList title="주요 경력" items={stringList(record.experience)} />
       <ProfessionalList title="학력" items={stringList(record.education)} />
-      <ProfessionalList title="자격·면허" items={stringList(record.qualifications)} />
+      <ProfessionalList title="자격" items={stringList(record.qualifications)} />
       <ProfessionalList title="출처" items={sourceLabels} />
       <ProfessionalList title="비고" items={stringList(record.source_notes)} />
     </section>

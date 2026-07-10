@@ -120,7 +120,8 @@ export function encryptedFileSecureStore({
       removeFile();
       return;
     }
-    mkdirSyncImpl(dirname(filePath), { recursive: true });
+    const parentDir = dirname(filePath);
+    if (!existsSyncImpl(parentDir)) mkdirSyncImpl(parentDir);
     writeFileSyncImpl(
       filePath,
       JSON.stringify({

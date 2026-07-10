@@ -17,7 +17,7 @@ test("desktop denied state hides matter row counts, snippets, citations, and met
   const vaultSource = await readWebFile("src/components/VaultSurface.jsx");
 
   assert.match(deniedSource, /접근 권한이 없습니다/);
-  assert.match(deniedSource, /권한이 있는 정보만 표시됩니다/);
+  assert.match(deniedSource, /담당자에게 접근을 요청하세요/);
   assert.match(mattersSource, /<DesktopDeniedState \/>/);
   assert.match(vaultSource, /<DesktopDeniedState \/>/);
   assert.match(mattersSource, /result\.uiState === "denied"/);

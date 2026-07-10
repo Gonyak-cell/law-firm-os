@@ -28,9 +28,9 @@ test("LCX-FULL guarded components render write-disabled evidence attributes", ()
         title: "감사 대상 작업입니다.",
         dataAttrs: { "data-global-audit-required": "true" }
       }),
-      React.createElement(GuardedReceiptRow, { kind: "provider", state: "provider_blocked", title: "제공자 receipt" }),
+      React.createElement(GuardedReceiptRow, { kind: "provider", state: "provider_blocked", title: "외부 확인" }),
       React.createElement(GuardedActionRow, { state: "owner_blocked", title: "실행 요청" }),
-      React.createElement(GuardedActionButton, { state: "write_disabled" }, "실행 차단")
+      React.createElement(GuardedActionButton, { state: "write_disabled" }, "대기")
     )
   );
   assert.match(html, /data-lcx-full-guarded-state="provider_blocked"/);

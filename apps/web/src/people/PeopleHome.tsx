@@ -111,7 +111,7 @@ function PeopleFeatureStatePanel({ feature }: { feature: PeopleFeature }) {
         <div className="people-feature-section">
           <h3>구현 상태</h3>
           <p>{stateMeta.description}</p>
-          <p>운영 기준, 권한, API 영수증이 준비되면 이 항목을 실제 화면으로 전환합니다.</p>
+          <p>담당자 확인 후 실제 화면으로 전환합니다.</p>
         </div>
       </div>
 
@@ -138,14 +138,14 @@ function peopleGuardState(liveCtx: string) {
     return {
       className: "live-data-denied",
       title: "접근 권한이 없습니다",
-      body: "권한이 있는 구성원 정보만 표시합니다."
+      body: "담당자에게 접근을 요청하세요."
     };
   }
   if (liveCtx === "review") {
     return {
       className: "live-data-review",
       title: "검토가 필요합니다",
-      body: "검토가 끝나면 구성원 정보를 확인할 수 있습니다."
+      body: "담당자 확인 후 구성원 정보를 볼 수 있습니다."
     };
   }
   return null;

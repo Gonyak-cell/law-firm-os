@@ -64,6 +64,31 @@ test("runtime config ignores partial stale desktop auth override when a producti
   assert.equal(config.operatorRuntimeConfigured, true);
 });
 
+test("runtime config keeps loopback desktop runtime override for local API even when a production pair is present", () => {
+  const envText = [
+    "MATTER_VAULT_R4_PRODUCTION_BASE_URL=https://example.execute-api.ap-northeast-2.amazonaws.com/staging/",
+    "MATTER_VAULT_R4_OPERATOR_TOKEN=runtime-secret"
+  ].join("\n");
+  const repoEnvPath = "/workspace/law-firm-os/.env.matter-vault-r4.local";
+
+  const config = loadMatterVaultRuntimeConfig({
+    env: { MATTER_DESKTOP_RUNTIME_BASE_URL: "http://127.0.0.1:4812" },
+    cwd: "/",
+    moduleDirectory: "/workspace/law-firm-os/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/main",
+    existsSyncImpl: (candidate) => candidate === repoEnvPath,
+    readFileSyncImpl: (candidate) => {
+      assert.equal(candidate, repoEnvPath);
+      return envText;
+    }
+  });
+
+  assert.equal(config.envPath, repoEnvPath);
+  assert.equal(config.envFilePresent, true);
+  assert.equal(config.baseUrl, "http://127.0.0.1:4812");
+  assert.equal(config.operatorToken, "");
+  assert.equal(config.operatorRuntimeConfigured, false);
+});
+
 test("runtime config keeps a complete desktop auth override from app bundle ancestors", () => {
   const envText = [
     "MATTER_VAULT_R4_PRODUCTION_BASE_URL=https://example.execute-api.ap-northeast-2.amazonaws.com/staging/",
@@ -163,6 +188,32 @@ test("runtime client supports password reset and password login without operator
   assert.equal("authorization" in calls[2].init.headers, false);
   assert.equal(latest.http_status, 410);
   assert.equal(latest.token_material_returned, false);
+});
+
+test("runtime client maps loopback local API logins to local-dev credentials in main process", async () => {
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      calls.push({ url: url.toString(), init });
+      return jsonResponse(200, {
+        ok: true,
+        session_token: "lawos_session_v1.secret",
+        session: { email: "jwsuh@amic.kr", tenant_id: "tenant_amic_matter_vault" },
+        token_material_returned: false
+      });
+    }
+  });
+
+  const response = await client.login({ email: "JWSUH@AMIC.KR", password: "typed-password" });
+
+  assert.equal(response.ok, true);
+  assert.equal(calls[0].url, "http://127.0.0.1:4812/api/auth/login");
+  assert.deepEqual(JSON.parse(calls[0].init.body), {
+    email: "JWSUH@AMIC.KR",
+    password: "local-dev-only:jwsuh@amic.kr"
+  });
+  assert.equal(JSON.stringify(response).includes("typed-password"), false);
 });
 
 test("runtime client uses desktop auth endpoints when operator credential is configured", async () => {
@@ -292,6 +343,70 @@ test("runtime client read API bridge blocks writes and auth routes", async () =>
   assert.equal(write.http_status, 405);
   assert.equal(auth.http_status, 403);
   assert.equal(outside.http_status, 403);
+});
+
+test("runtime client permits only authenticated Matter profile and stakeholder writes", async () => {
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      calls.push({ url: url.toString(), init });
+      return jsonResponse(200, { outcome: "updated", token_material_returned: false });
+    }
+  });
+
+  const profile = await client.api({
+    path: "/api/matters/matter-001/profile",
+    method: "PATCH",
+    headers: { "x-lawos-permission-context": "{\"principal\":{\"user_id\":\"user-001\"}}" },
+    body: JSON.stringify({ profile: { data: { case_name: "테스트" } } }),
+    sessionToken: "lawos_session_v1.secret"
+  });
+  const stakeholder = await client.api({
+    path: "/api/matters/matter-001/stakeholders",
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ stakeholder: { display_name: "담당자", relationship_role: "court_clerk" } }),
+    sessionToken: "lawos_session_v1.secret"
+  });
+  const blocked = await client.api({
+    path: "/api/matters/matter-001",
+    method: "PATCH",
+    body: JSON.stringify({ status: "closed" }),
+    sessionToken: "lawos_session_v1.secret"
+  });
+
+  assert.equal(profile.http_status, 200);
+  assert.equal(stakeholder.http_status, 200);
+  assert.equal(blocked.http_status, 405);
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].init.method, "PATCH");
+  assert.equal(calls[1].init.method, "POST");
+  assert.deepEqual(JSON.parse(calls[0].init.body), { profile: { data: { case_name: "테스트" } } });
+  assert.deepEqual(JSON.parse(calls[1].init.body), { stakeholder: { display_name: "담당자", relationship_role: "court_clerk" } });
+  assert.equal(calls.every((call) => call.init.headers.authorization === "Bearer lawos_session_v1.secret"), true);
+});
+
+test("runtime client never substitutes the desktop operator credential for a missing signed session", async () => {
+  let fetchCount = 0;
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "https://example.execute-api.ap-northeast-2.amazonaws.com/staging",
+    operatorToken: "runtime-secret",
+    fetchImpl: async () => {
+      fetchCount += 1;
+      throw new Error("missing session must not call the runtime");
+    }
+  });
+
+  const response = await client.api({
+    path: "/api/matters/matter-001/profile",
+    method: "PATCH",
+    body: JSON.stringify({ profile: { data: { case_name: "차단" } } })
+  });
+
+  assert.equal(response.http_status, 401);
+  assert.equal(response.reason, "desktop_runtime_session_required");
+  assert.equal(fetchCount, 0);
 });
 
 test("runtime response guard rejects secret-bearing payloads", () => {

@@ -5,40 +5,36 @@ import {
   Bell,
   CalendarDays,
   ChevronDown,
-  CircleHelp,
   ClipboardList,
   FileText,
-  Globe2,
   LayoutDashboard,
   Mail,
   MessageCircle,
-  Moon,
   Plus,
+  RefreshCw,
   Search,
   Settings,
   Share2,
   ShieldCheck,
   Tags,
   UserPlus,
-  UserRound,
   X
 } from "lucide-react";
 import { navItems } from "../data/nav.js";
-import amicPetraMain from "../assets/logos/AMIC_n_PETRA_Main_Simple.svg";
+import amicLawLogo from "../assets/amic-law.svg";
 import {
-  getGlobalUtilityByView,
   globalUtilityCatalog,
   globalUtilityItems,
   isLegacyGlobalRoute,
   modeExceptionUtilityViewIds
 } from "../data/globalUtilities.js";
-import { fetchUserProfile, readLawosApiSession, readLawosSessionEnvelope } from "../data/apiClient.js";
+import { fetchUserProfile, readDesktopMatterSessionStatus, readLawosApiSession, readLawosSessionEnvelope } from "../data/apiClient.js";
 import { useSkin } from "../context/SkinContext.jsx";
 import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
-import { profileSidebarItems } from "./UserProfileSurface.jsx";
 import { peopleNavigationGroups } from "../people/peopleFeatureCatalog.js";
 import { memberPhotoFor } from "../people/memberPhotos.js";
+import { localHrxRosterDisplayNameForSession, localHrxRosterTitleForSession } from "../people/hrxLocalRoster.ts";
 import { canAccessHomeFinanceSection } from "../data/financeAccess.js";
 
 const peopleIconMap = {
@@ -96,25 +92,14 @@ function sidebarSessionProfile(profileUser) {
     apiSession,
     sessionEnvelope
   ];
-  const name = shellSessionDisplayName(records);
+  const name = shellSessionDisplayName(records) || localHrxRosterDisplayNameForSession(records);
   const userRef = shellSessionFirst(records, ["user_id", "actor_ref", "email"]);
-  const role = shellSessionFirst(records, ["title", "source_title", "primary_role_label", "role_label", "position", "job_title"]);
+  const role = shellSessionFirst(records, ["title", "source_title", "primary_role_label", "role_label", "position", "job_title"]) || localHrxRosterTitleForSession(records);
   return {
     name: name || userRef,
     role,
     userRef
   };
-}
-
-async function readMatterSessionStatus(source = globalThis) {
-  const bridge = source?.matterSession ?? source?.window?.matterSession;
-  if (typeof bridge?.status !== "function") return null;
-  try {
-    const status = await bridge.status();
-    return status?.state === "signed_in" ? status : null;
-  } catch {
-    return null;
-  }
 }
 
 function peopleSidebarGroups() {
@@ -165,7 +150,7 @@ export function LoadingSurface({ labels, locale, theme, skin, setLocale, setThem
 function ProductAxisNav({ axis = "home", setView, labels = {} }) {
   return (
     <nav className="top-axis-nav" aria-label="Home Client Matter People Vault Portal" data-product-axis-nav="top-header">
-      {navItems.map(({ id, label, icon: Icon }) => (
+      {navItems.map(({ id, label }) => (
         <button
           key={id}
           type="button"
@@ -174,7 +159,6 @@ function ProductAxisNav({ axis = "home", setView, labels = {} }) {
           data-product-axis={id}
           onClick={() => setView(id)}
         >
-          <Icon size={15} />
           <span>{shellLabel(labels, `${id}AxisLabel`, label)}</span>
         </button>
       ))}
@@ -183,7 +167,6 @@ function ProductAxisNav({ axis = "home", setView, labels = {} }) {
 }
 
 export function buildNotificationItems({ homeActionCounts = {}, labels = {} } = {}) {
-  const countSuffix = shellLabel(labels, "countSuffix", "건");
   const lateCount = Number(homeActionCounts.task_late ?? 0) || 0;
   const todayCount = Number(homeActionCounts.task_today ?? 0) || 0;
   return [
@@ -191,7 +174,7 @@ export function buildNotificationItems({ homeActionCounts = {}, labels = {} } = 
       id: `home-task-late:${lateCount}`,
       initials: shellLabel(labels, "homeNotificationInitialLate", "지"),
       type: shellLabel(labels, "homeNotificationType", "To Do"),
-      title: `${shellLabel(labels, "homeNotificationLateTitle", "지연 업무")} ${lateCount}${countSuffix}`,
+      title: shellLabel(labels, "homeNotificationLateTitle", "지연 업무"),
       client: shellLabel(labels, "homeNotificationActionInboxClient", "Home 액션 인박스"),
       status: shellLabel(labels, "homeNotificationLateStatus", "확인 필요"),
       summary: shellLabel(labels, "homeNotificationLateSummary", "오늘 처리 목록에서 지연 업무를 먼저 확인합니다."),
@@ -201,7 +184,7 @@ export function buildNotificationItems({ homeActionCounts = {}, labels = {} } = 
       id: `home-task-today:${todayCount}`,
       initials: shellLabel(labels, "homeNotificationInitialToday", "오"),
       type: shellLabel(labels, "homeNotificationType", "To Do"),
-      title: `${shellLabel(labels, "homeNotificationTodayTitle", "오늘 업무")} ${todayCount}${countSuffix}`,
+      title: shellLabel(labels, "homeNotificationTodayTitle", "오늘 업무"),
       client: shellLabel(labels, "homeNotificationActionInboxClient", "Home 액션 인박스"),
       status: shellLabel(labels, "homeNotificationTodayStatus", "오늘"),
       summary: shellLabel(labels, "homeNotificationTodaySummary", "오늘 마감 업무를 액션 인박스에서 확인합니다."),
@@ -225,7 +208,7 @@ function utilityDrawerConfigFor(labels = {}) {
       empty: shellLabel(labels, "utilityMessagesEmpty", "읽지 않은 메시지가 없습니다.")
     },
     approvals: {
-      title: shellLabel(labels, "utilityApprovalsTitle", "승인 요청"),
+      title: shellLabel(labels, "utilityApprovalsTitle", "승인 대기"),
       subtitle: shellLabel(labels, "utilityApprovalsSubtitle", "내 결재 차례인 요청"),
       section: "home-requests",
       empty: shellLabel(labels, "utilityApprovalsEmpty", "처리할 승인이 없습니다.")
@@ -247,8 +230,8 @@ function utilityApprovalItems(count, labels = {}) {
       id: "home-approval-summary",
       initials: shellLabel(labels, "utilityApprovalInitial", "승"),
       type: shellLabel(labels, "utilityApprovalType", "승인"),
-      title: `${shellLabel(labels, "utilityApprovalTitle", "승인 요청")} ${count}${shellLabel(labels, "countSuffix", "건")}`,
-      client: shellLabel(labels, "utilityApprovalClient", "Home 승인 요청"),
+      title: shellLabel(labels, "utilityApprovalTitle", "승인 대기"),
+      client: shellLabel(labels, "utilityApprovalClient", "Home 승인 대기"),
       status: shellLabel(labels, "utilityApprovalStatus", "처리 대기"),
       summary: shellLabel(labels, "utilityApprovalSummary", "전체 보기에서 세부 요청을 열어 처리합니다."),
       time: shellLabel(labels, "realtimeLabel", "실시간")
@@ -258,24 +241,18 @@ function utilityApprovalItems(count, labels = {}) {
 
 export function Topbar({
   labels,
-  locale,
-  setLocale,
-  theme,
-  setTheme,
   query,
   setQuery,
-  view,
-  axis = view,
+  axis = "home",
   setView,
   onCreate,
-  onProfile,
+  onRefresh = () => {},
   utilityDrawerType = "",
   onOpenUtilityDrawer,
   notificationUnreadCount: topbarNotificationCount = 0,
   homeApprovalCount = 0,
   homeMessageCount = 0
 }) {
-  const [helpOpen, setHelpOpen] = useState(false);
   const skin = useSkin();
   const isForest = skin === "forest";
   const notificationsOpen = utilityDrawerType === "notifications";
@@ -288,7 +265,7 @@ export function Topbar({
   return (
     <header className="topbar">
       <div className="topbar-brand" data-logo-dock-target="top-left">
-        {isForest ? <img className="forest-header-logo" src={amicPetraMain} alt="" /> : <MatterLogo />}
+        {!isForest && <MatterLogo />}
       </div>
       <ProductAxisNav axis={axis} setView={setView} labels={labels} />
       <label className="global-search">
@@ -301,16 +278,6 @@ export function Topbar({
         {labels.create}
       </button>
       <div className="top-actions">
-        <button
-          type="button"
-          className={view === "profile" ? "profile-trigger active" : "profile-trigger"}
-          aria-label={shellLabel(labels, "profileAria", "내 프로필")}
-          aria-current={view === "profile" ? "page" : undefined}
-          data-profile-trigger="true"
-          onClick={onProfile}
-        >
-          <span>서</span>
-        </button>
         <button
           className={notificationsOpen ? "icon-button notification-trigger active" : "icon-button notification-trigger"}
           aria-label={`${shellLabel(labels, "topbarNotificationsAria", "알림")} ${notificationCount}${shellLabel(labels, "countSuffix", "건")}`}
@@ -337,7 +304,7 @@ export function Topbar({
         </button>
         <button
           className={approvalsOpen ? "icon-button home-action-trigger active" : "icon-button home-action-trigger"}
-          aria-label={`${shellLabel(labels, "topbarApprovalsAria", "승인 요청")} ${approvalCount}${shellLabel(labels, "countSuffix", "건")}`}
+          aria-label={`${shellLabel(labels, "topbarApprovalsAria", "승인 대기")} ${approvalCount}${shellLabel(labels, "countSuffix", "건")}`}
           aria-expanded={approvalsOpen ? "true" : "false"}
           aria-controls="approvals-utility-drawer"
           data-home-approval-trigger="true"
@@ -348,29 +315,15 @@ export function Topbar({
           {approvalCount > 0 && <span className="notification-badge home-action-badge">{approvalCount}</span>}
         </button>
         <button
-          className={helpOpen ? "icon-button active" : "icon-button"}
-          aria-label={shellLabel(labels, "topbarHelpAria", "도움말")}
-          aria-expanded={helpOpen ? "true" : "false"}
-          aria-controls="topbar-help-panel"
-          data-topbar-help-trigger="true"
-          onClick={() => setHelpOpen((open) => !open)}
+          type="button"
+          className="icon-button topbar-refresh-trigger"
+          aria-label={shellLabel(labels, "refreshAria", "새로고침")}
+          data-topbar-refresh-trigger="true"
+          onClick={onRefresh}
         >
-          <CircleHelp size={17} />
-        </button>
-        <button className="icon-button" aria-label={labels.theme} onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-          <Moon size={17} />
-        </button>
-        <button className="top-link locale-toggle" onClick={() => setLocale(locale === "ko" ? "en" : "ko")}>
-          <Globe2 size={15} />
-          {labels.language}
+          <RefreshCw size={17} />
         </button>
       </div>
-      {helpOpen && (
-        <div className="topbar-help-panel" id="topbar-help-panel" role="status" data-topbar-help-panel="true">
-          <strong>{shellLabel(labels, "topbarHelpTitle", "도움말")}</strong>
-          <span>{shellLabel(labels, "topbarHelpBody", "현재 화면의 운영 상태와 권한 경계를 확인합니다.")}</span>
-        </div>
-      )}
     </header>
   );
 }
@@ -536,8 +489,11 @@ function homeSidebarMeta(labels = {}, financeAccessRecords = []) {
           { label: shellLabel(labels, "homeFinanceArLabel", "미수금"), view: "home", section: "home-finance-ar", icon: ShieldCheck }
         ].filter((item) => canAccessHomeFinanceSection(financeAccessRecords, item.section))
       },
+      { label: shellLabel(labels, "homeApprovalPendingLabel", "승인 대기"), view: "home", section: "home-requests", icon: ShieldCheck },
+      { label: shellLabel(labels, "homeTodoSidebarLabel", "To Do"), view: "home", section: "home-todo", icon: ClipboardList },
+      { label: shellLabel(labels, "homeFeedSidebarLabel", "피드"), view: "home", section: "home-feed", icon: Bell },
+      { label: shellLabel(labels, "homeCalendarSidebarLabel", "캘린더"), view: "home", section: "home-calendar", icon: CalendarDays },
       { label: shellLabel(labels, "homeMessagesLabel", "메시지"), view: "home", section: "home-messages", icon: Mail },
-      { label: shellLabel(labels, "homeRequestsLabel", "승인 요청"), view: "home", section: "home-requests", icon: ShieldCheck },
       { label: shellLabel(labels, "homeEsignLabel", "전자 계약"), view: "home", section: "home-esign", icon: FileText },
       { label: shellLabel(labels, "homeCompanyLabel", "회사 현황"), view: "home", section: "home-company", icon: ClipboardList }
     ],
@@ -570,15 +526,211 @@ const sidebarMeta = {
   portal: {
     title: "공유 포털",
     utilities: []
-  },
-  profile: {
-    title: "내 프로필",
-    utilities: [
-      { label: "초대 관리", icon: UserPlus },
-      { label: "커뮤니티", icon: UserRound }
-    ]
   }
 };
+
+export function buildContextualNavigation({
+  labels = {},
+  financeAccessRecords = [],
+  homeApprovalCount = 0,
+  homeMessageCount = 0,
+  canViewCompanyStatus = false
+} = {}) {
+  const localizedHomeMeta = homeSidebarMeta(labels, financeAccessRecords);
+  const homeItems = localizedHomeMeta.actions
+    .filter((item) => item.groupId !== "home-finance" || item.children.length > 0)
+    .filter((item) => canViewCompanyStatus || item.section !== "home-company")
+    .map((item) => {
+      if (item.section === "home-messages") {
+        return {
+          ...item,
+          count: Number(homeMessageCount) > 0 ? Number(homeMessageCount) : null,
+          homeCount: Number(homeMessageCount) || 0,
+          homeCountKind: "message"
+        };
+      }
+      if (item.section === "home-requests") {
+        return {
+          ...item,
+          count: Number(homeApprovalCount) > 0 ? Number(homeApprovalCount) : null,
+          homeCount: Number(homeApprovalCount) || 0,
+          homeCountKind: "approval"
+        };
+      }
+      return item;
+    });
+  const modeExceptionNavigation = Object.fromEntries(
+    globalUtilityCatalog
+      .filter((utility) => modeExceptionUtilityViewIds.includes(utility.id))
+      .map((utility) => [
+        utility.id,
+        {
+          title: utility.label,
+          utilities: [],
+          items: utility.sections.map((section) => ({
+            label: section.label,
+            view: utility.id,
+            section: section.id,
+            icon: section.icon ?? utility.icon,
+            count: section.badge,
+            active: section.id === utility.defaultSection
+          }))
+        }
+      ])
+  );
+
+  return {
+    auth: {
+      title: "matter",
+      utilities: [],
+      items: [
+        { label: "로그인", view: "auth" },
+        { label: "비밀번호 재설정", view: "auth" }
+      ]
+    },
+    home: { ...localizedHomeMeta, items: homeItems },
+    clients: {
+      ...sidebarMeta.clients,
+      items: [
+        {
+          label: "관리",
+          icon: ClipboardList,
+          children: [
+            { label: "대시보드", view: "clients", section: "clients-home", icon: LayoutDashboard, active: true },
+            { label: "목록", view: "clients", section: "clients-list", icon: ClipboardList },
+            { label: "계정 정보", view: "clients", section: "client-accounts", icon: ShieldCheck },
+            { label: "담당자", view: "clients", section: "client-contacts", icon: UserPlus }
+          ]
+        },
+        {
+          label: "수임 전 업무",
+          icon: FileText,
+          children: [
+            { label: "Opportunity", view: "clients", section: "client-opportunities", icon: ClipboardList },
+            { label: "상담", view: "clients", section: "client-intake", icon: FileText },
+            { label: "접촉 이력", view: "clients", section: "client-activities", icon: ClipboardList },
+            { label: "제안", view: "clients", section: "client-contracts", icon: FileText },
+            { label: "관계", view: "clients", section: "client-relationships", icon: UserPlus },
+            { label: "이해상충 확인", view: "clients", section: "client-conflict", icon: ShieldCheck }
+          ]
+        },
+        {
+          label: "운영",
+          icon: Settings,
+          children: [
+            { label: "청구", view: "clients", section: "client-billing", icon: FileText },
+            { label: "리포트", view: "clients", section: "client-reports", icon: FileText },
+            { label: "데이터", view: "clients", section: "client-data", icon: Settings },
+            { label: "데이터 가져오기", view: "clients", section: "client-import", icon: Plus },
+            { label: "설정", view: "clients", section: "client-settings", icon: Settings }
+          ]
+        }
+      ]
+    },
+    matters: {
+      ...sidebarMeta.matters,
+      items: [
+        {
+          label: "사건 운영",
+          icon: LayoutDashboard,
+          children: [
+            { label: "대시보드", view: "matters", section: "matter-home", icon: LayoutDashboard, active: true },
+            { label: "사건 목록", view: "matters", section: "matters-list", icon: ClipboardList },
+            { label: "사건 문서", view: "matters", section: "matter-vault", icon: FileText },
+            { label: "신규 사건", view: "matters", section: "matter-opening", icon: Plus },
+            { label: "수임 진행", view: "matters", section: "matter-intake", icon: ShieldCheck },
+            { label: "종결 처리", view: "matters", section: "matter-closeout", icon: ShieldCheck },
+            { label: "보관 사건", view: "matters", section: "matter-archive", icon: FileText }
+          ]
+        },
+        {
+          label: "업무 진행",
+          icon: FileText,
+          children: [
+            { label: "업무 보드", view: "matters", section: "matter-board", icon: ClipboardList },
+            { label: "할 일", view: "matters", section: "matter-tasks", icon: ClipboardList },
+            { label: "일정", view: "matters", section: "matter-calendar", icon: ClipboardList },
+            { label: "외부 일정", view: "matters", section: "matter-external-schedule", icon: ClipboardList },
+            { label: "검토 의견", view: "matters", section: "matter-notes", icon: FileText }
+          ]
+        },
+        {
+          label: "소통",
+          icon: Mail,
+          children: [
+            { label: "메시지", view: "matters", section: "matter-channel", icon: Mail },
+            { label: "회의 기록", view: "matters", section: "matter-meetings", icon: ClipboardList },
+            { label: "공지", view: "matters", section: "matter-announcements", icon: Bell },
+            { label: "팀", view: "matters", section: "matter-team", icon: UserPlus },
+            { label: "의뢰인 요청", view: "matters", section: "matter-client-requests", icon: FileText }
+          ]
+        },
+        {
+          label: "리포트",
+          icon: Settings,
+          children: [
+            { label: "사건 리포트", view: "matters", section: "matter-analytics", icon: ClipboardList },
+            { label: "검색", view: "matters", section: "matter-search", icon: Search },
+            { label: "사건 위험", view: "matters", section: "matter-risk", icon: ShieldCheck },
+            { label: "감사 이력", view: "matters", section: "matter-audit", icon: FileText },
+            { label: "연동", view: "matters", section: "matter-integrations", icon: Bell },
+            { label: "사건 설정", view: "matters", section: "matter-settings", icon: Settings }
+          ]
+        }
+      ]
+    },
+    people: { ...sidebarMeta.people, items: peopleSidebarGroups() },
+    vault: {
+      ...sidebarMeta.vault,
+      items: [
+        { label: "문서함", view: "vault", section: "vault-documents", icon: FileText },
+        { label: "문서 상세", view: "vault", section: "vault-detail", icon: ClipboardList },
+        { label: "메일 보관함", view: "vault", section: "vault-email", icon: FileText }
+      ]
+    },
+    portal: {
+      ...sidebarMeta.portal,
+      items: [
+        { label: "공유 홈", view: "portal", section: "portal-home", icon: LayoutDashboard, active: true },
+        { label: "요청 응답", view: "portal", section: "portal-rfi", icon: FileText },
+        { label: "공유 링크", view: "portal", section: "portal-links", icon: Share2 },
+        { label: "감사 상태", view: "portal", section: "portal-audit", icon: ShieldCheck }
+      ]
+    },
+    ...modeExceptionNavigation
+  };
+}
+
+export function ContextSubnav({ navigation, view, activeSection = "", setView }) {
+  const items = navigation?.[view]?.items ?? [];
+  const activeGroup = items.find((item) => item.children?.some((child) => (
+    child.section === activeSection || (!activeSection && child.active === true)
+  )));
+  if (!activeGroup) return null;
+
+  return (
+    <nav
+      className="context-subnav"
+      aria-label={`${activeGroup.label} 하위 메뉴`}
+      data-context-subnav={activeGroup.groupId ?? activeGroup.label}
+    >
+      {activeGroup.children.map((item) => {
+        const active = item.section === activeSection || (!activeSection && item.active === true);
+        return (
+          <button
+            key={item.section ?? item.label}
+            type="button"
+            className={active ? "context-subnav-item active" : "context-subnav-item"}
+            aria-current={active ? "page" : undefined}
+            onClick={() => setView(item.view, item.section ?? "")}
+          >
+            {item.label}
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
 
 export function Sidebar({
   labels,
@@ -590,10 +742,11 @@ export function Sidebar({
   homeMessageCount = 0,
   canViewCompanyStatus = false,
   modeReturnTarget = { view: "home", section: "home-dashboard" },
-  onReturnToWork = () => {}
+  onProfile = () => {},
+  onReturnToWork = () => {},
+  navigation: navigationProp
 }) {
   const skin = useSkin();
-  const [openGroups, setOpenGroups] = useState({});
   const [utilityPanel, setUtilityPanel] = useState(null);
   const [profileUser, setProfileUser] = useState(null);
   useEffect(() => {
@@ -608,7 +761,7 @@ export function Sidebar({
   useEffect(() => {
     if (!isForest) return undefined;
     let cancelled = false;
-    Promise.allSettled([readMatterSessionStatus(), fetchUserProfile({ ctx: "allow" })]).then((results) => {
+    Promise.allSettled([readDesktopMatterSessionStatus(), fetchUserProfile({ ctx: "allow" })]).then((results) => {
       if (cancelled) return;
       const desktopStatus = results[0]?.status === "fulfilled" ? results[0].value : null;
       const profileResult = results[1]?.status === "fulfilled" ? results[1].value : null;
@@ -623,158 +776,15 @@ export function Sidebar({
     };
   }, [isForest]);
   const modeExceptionActive = modeExceptionUtilityViewIds.includes(view);
-  const activeGlobalUtility = modeExceptionActive ? getGlobalUtilityByView(view) : null;
-  const localizedHomeMeta = homeSidebarMeta(labels, [profileUser, readLawosApiSession(), readLawosSessionEnvelope()]);
-  const modeExceptionSubnav = Object.fromEntries(
-    globalUtilityCatalog.filter((utility) => modeExceptionUtilityViewIds.includes(utility.id)).map((utility) => [
-      utility.id,
-      utility.sections.map((section) => ({
-        label: section.label,
-        view: utility.id,
-        section: section.id,
-        icon: section.icon ?? utility.icon,
-        count: section.badge,
-        active: section.id === utility.defaultSection
-      }))
-    ])
-  );
-  const homeSubnav = localizedHomeMeta.actions
-    .filter((item) => item.groupId !== "home-finance" || item.children.length > 0)
-    .filter((item) => canViewCompanyStatus || item.section !== "home-company").map((item) => {
-    if (item.section === "home-messages") {
-      return {
-        ...item,
-        count: Number(homeMessageCount) > 0 ? Number(homeMessageCount) : null,
-        homeCount: Number(homeMessageCount) || 0,
-        homeCountKind: "message"
-      };
-    }
-    if (item.section === "home-requests") {
-      return {
-        ...item,
-        count: Number(homeApprovalCount) > 0 ? Number(homeApprovalCount) : null,
-        homeCount: Number(homeApprovalCount) || 0,
-        homeCountKind: "approval"
-      };
-    }
-    return item;
+  const navigation = navigationProp ?? buildContextualNavigation({
+    labels,
+    financeAccessRecords: [profileUser, readLawosApiSession(), readLawosSessionEnvelope()],
+    homeApprovalCount,
+    homeMessageCount,
+    canViewCompanyStatus
   });
-  const subnav = {
-    auth: [
-      { label: "로그인", view: "auth" },
-      { label: "비밀번호 재설정", view: "auth" }
-    ],
-    home: homeSubnav,
-    clients: [
-      {
-        label: "Client 관리",
-        icon: ClipboardList,
-        children: [
-          { label: "Client 홈", view: "clients", section: "clients-home", icon: LayoutDashboard, active: true },
-          { label: "Client 목록", view: "clients", section: "clients-list", icon: ClipboardList },
-          { label: "법인·개인 Client", view: "clients", section: "client-accounts", icon: ShieldCheck },
-          { label: "담당자", view: "clients", section: "client-contacts", icon: UserPlus }
-        ]
-      },
-      {
-        label: "수임 전 업무",
-        icon: FileText,
-        children: [
-          { label: "Opportunity", view: "clients", section: "client-opportunities", icon: ClipboardList },
-          { label: "상담·문의", view: "clients", section: "client-intake", icon: FileText },
-          { label: "접촉 이력", view: "clients", section: "client-activities", icon: ClipboardList },
-          { label: "제안·계약", view: "clients", section: "client-contracts", icon: FileText },
-          { label: "Client 관계", view: "clients", section: "client-relationships", icon: UserPlus },
-          { label: "이해상충 확인", view: "clients", section: "client-conflict", icon: ShieldCheck }
-        ]
-      },
-      {
-        label: "운영",
-        icon: Settings,
-        children: [
-          { label: "청구·수금", view: "clients", section: "client-billing", icon: FileText },
-          { label: "Client 리포트", view: "clients", section: "client-reports", icon: FileText },
-          { label: "Client 데이터", view: "clients", section: "client-data", icon: Settings },
-          { label: "Client 데이터 가져오기", view: "clients", section: "client-import", icon: Plus },
-          { label: "Client 설정", view: "clients", section: "client-settings", icon: Settings }
-        ]
-      }
-    ],
-    matters: [
-      {
-        label: "사건 운영",
-        icon: LayoutDashboard,
-        children: [
-          { label: "홈", view: "matters", section: "matter-home", icon: LayoutDashboard, active: true },
-          { label: "사건 목록", view: "matters", section: "matters-list", icon: ClipboardList },
-          { label: "신규 사건", view: "matters", section: "matter-opening", icon: Plus },
-          { label: "수임 진행", view: "matters", section: "matter-intake", icon: ShieldCheck },
-          { label: "종결 처리", view: "matters", section: "matter-closeout", icon: ShieldCheck },
-          { label: "보관 사건", view: "matters", section: "matter-archive", icon: FileText }
-        ]
-      },
-      {
-        label: "업무 진행",
-        icon: FileText,
-        children: [
-          { label: "업무 보드", view: "matters", section: "matter-board", icon: ClipboardList },
-          { label: "할 일", view: "matters", section: "matter-tasks", icon: ClipboardList },
-          { label: "일정", view: "matters", section: "matter-calendar", icon: ClipboardList },
-          { label: "외부 일정", view: "matters", section: "matter-external-schedule", icon: ClipboardList },
-          { label: "메모·검토 의견", view: "matters", section: "matter-notes", icon: FileText }
-        ]
-      },
-      {
-        label: "문서·자료",
-        icon: FileText,
-        children: [
-          { label: "사건 문서", view: "matters", section: "matter-vault", icon: FileText },
-          { label: "증거·자료", view: "matters", section: "matter-evidence", icon: FileText },
-          { label: "양식·템플릿", view: "matters", section: "matter-templates", icon: FileText },
-          { label: "인장·날인", view: "matters", section: "matter-seal", icon: ShieldCheck }
-        ]
-      },
-      {
-        label: "소통·참여",
-        icon: Mail,
-        children: [
-          { label: "이메일·메시지", view: "matters", section: "matter-channel", icon: Mail },
-          { label: "회의·통화 기록", view: "matters", section: "matter-meetings", icon: ClipboardList },
-          { label: "공지·공유", view: "matters", section: "matter-announcements", icon: Bell },
-          { label: "담당자·참여자", view: "matters", section: "matter-team", icon: UserPlus },
-          { label: "의뢰인 요청", view: "matters", section: "matter-client-requests", icon: FileText }
-        ]
-      },
-      {
-        label: "리포트·관리",
-        icon: Settings,
-        children: [
-          { label: "사건 리포트", view: "matters", section: "matter-analytics", icon: ClipboardList },
-          { label: "검색·통계", view: "matters", section: "matter-search", icon: Search },
-          { label: "사건 위험", view: "matters", section: "matter-risk", icon: ShieldCheck },
-          { label: "감사 이력", view: "matters", section: "matter-audit", icon: FileText },
-          { label: "연동·알림", view: "matters", section: "matter-integrations", icon: Bell },
-          { label: "사건 설정", view: "matters", section: "matter-settings", icon: Settings }
-        ]
-      }
-    ],
-    people: peopleSidebarGroups(),
-    vault: [
-      { label: "문서함", view: "vault", section: "vault-documents", icon: FileText },
-      { label: "문서 상세", view: "vault", section: "vault-detail", icon: ClipboardList },
-      { label: "메일 보관함", view: "vault", section: "vault-email", icon: FileText }
-    ],
-    portal: [
-      { label: "공유 홈", view: "portal", section: "portal-home", icon: LayoutDashboard, active: true },
-      { label: "요청 응답", view: "portal", section: "portal-rfi", icon: FileText },
-      { label: "공유 링크", view: "portal", section: "portal-links", icon: Share2 },
-      { label: "감사 상태", view: "portal", section: "portal-audit", icon: ShieldCheck }
-    ],
-    profile: profileSidebarItems,
-    ...modeExceptionSubnav
-  }[view] ?? [];
-  const localizedSidebarMeta = { ...sidebarMeta, home: localizedHomeMeta };
-  const meta = localizedSidebarMeta[view] ?? (activeGlobalUtility ? { title: activeGlobalUtility.label, utilities: [] } : { title: "matter", utilities: [] });
+  const meta = navigation[view] ?? { title: "matter", utilities: [], items: [] };
+  const subnav = meta.items;
   const flatSubnav = subnav.flatMap((item) => item.children ?? [item]);
   const hasPreferredActiveItem = flatSubnav.some((item) => item.active);
 
@@ -790,42 +800,6 @@ export function Sidebar({
     return item.children?.some((child) => isItemActive(child)) ?? false;
   }
 
-  function sidebarGroupScopeKey() {
-    return `${axis}:${view}`;
-  }
-
-  function sidebarGroupItemKey(item) {
-    return `${sidebarGroupScopeKey()}:${item.label}`;
-  }
-
-  function defaultOpenGroupKey() {
-    const activeGroup = subnav.find((item) => item.children && isGroupActive(item));
-    const firstGroup = subnav.find((item) => item.children);
-    const group = activeGroup ?? firstGroup;
-    return group ? sidebarGroupItemKey(group) : "";
-  }
-
-  function groupOpen(item) {
-    if (!item.children) return false;
-    const scopeKey = sidebarGroupScopeKey();
-    const openKey = Object.prototype.hasOwnProperty.call(openGroups, scopeKey)
-      ? openGroups[scopeKey]
-      : defaultOpenGroupKey();
-    return openKey === sidebarGroupItemKey(item);
-  }
-
-  function toggleGroup(item) {
-    if (!item.children) return;
-    const scopeKey = sidebarGroupScopeKey();
-    const itemKey = sidebarGroupItemKey(item);
-    setOpenGroups((current) => {
-      const currentOpenKey = Object.prototype.hasOwnProperty.call(current, scopeKey)
-        ? current[scopeKey]
-        : defaultOpenGroupKey();
-      return { ...current, [scopeKey]: currentOpenKey === itemKey ? "" : itemKey };
-    });
-  }
-
   return (
     <aside
       className="sidebar"
@@ -834,6 +808,11 @@ export function Sidebar({
       data-mode-exception-depth={modeExceptionActive ? "deep" : undefined}
       aria-label={`${meta.title} 메뉴`}
     >
+      {isForest && (
+        <div className="sidebar-brand" data-sidebar-brand="amic-law">
+          <img className="forest-sidebar-logo" src={amicLawLogo} alt="AMIC Law" />
+        </div>
+      )}
       {modeExceptionActive && (
         <button
           type="button"
@@ -852,6 +831,7 @@ export function Sidebar({
         type="button"
         className="workspace-card"
         data-workspace-menu-trigger="true"
+        aria-label={`${meta.title} 워크스페이스 메뉴`}
         aria-expanded={utilityPanel?.kind === "workspace" ? "true" : "false"}
         onClick={() => setUtilityPanel((current) => current?.kind === "workspace" ? null : { kind: "workspace", label: shellLabel(labels, "workspaceSwitchLabel", "워크스페이스") })}
       >
@@ -867,41 +847,19 @@ export function Sidebar({
             const Icon = item.icon ?? ClipboardList;
             if (item.children) {
               const active = isGroupActive(item);
-              const open = groupOpen(item);
+              const defaultItem = item.children[0];
               return (
                 <div key={item.label} className={active ? "sidebar-group active" : "sidebar-group"} data-sidebar-group={item.groupId}>
                   <button
                     type="button"
                     className={active ? "sidebar-item sidebar-group-toggle active" : "sidebar-item sidebar-group-toggle"}
-                    aria-expanded={open}
-                    aria-label={`${item.label} 하위 메뉴 ${open ? "접기" : "펼치기"}`}
-                    onClick={() => toggleGroup(item)}
+                    aria-current={active ? "location" : undefined}
+                    data-sidebar-default-section={defaultItem?.section}
+                    onClick={() => defaultItem && setView(defaultItem.view, defaultItem.section ?? "")}
                   >
                     <span className="sidebar-icon"><Icon size={16} /></span>
                     <span>{item.label}</span>
-                    <ChevronDown size={15} className={open ? "sidebar-chevron open" : "sidebar-chevron"} />
                   </button>
-                  {open && (
-                    <div className="sidebar-subnav">
-                      {item.children.map((child, childIndex) => {
-                        const ChildIcon = child.icon ?? ClipboardList;
-                        const childActive = isItemActive(child, childIndex);
-                        return (
-                          <button
-                            key={child.label}
-                            type="button"
-                            className={childActive ? "sidebar-item sidebar-child active" : "sidebar-item sidebar-child"}
-                            aria-current={childActive ? "location" : undefined}
-                            onClick={() => setView(child.view, child.section ?? "")}
-                          >
-                            <span className="sidebar-icon"><ChildIcon size={15} /></span>
-                            <span>{child.label}</span>
-                            {child.count && <span className="sidebar-count">{child.count}</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
                 </div>
               );
             }
@@ -925,37 +883,37 @@ export function Sidebar({
           })}
         </nav>
       )}
-      {meta.utilities.length > 0 && (
-        <div className="sidebar-utilities">
-          {meta.utilities.map(({ label, icon: Icon, view: utilityView, section }) => (
-            <button
-              key={label}
-              type="button"
-              className="sidebar-utility"
-              data-sidebar-utility={label}
-              aria-expanded={utilityPanel?.label === label ? "true" : "false"}
-              onClick={() => {
-                if (utilityView) {
-                  setView(utilityView, section ?? "");
-                  return;
-                }
-                setUtilityPanel({ kind: "utility", label, scope: meta.title });
-              }}
-            >
-              <Icon size={16} />
-              <span>{label}</span>
-            </button>
-          ))}
-        </div>
-      )}
       {utilityPanel && (
-        <div className="sidebar-utility-panel" role="status" data-sidebar-utility-panel="true">
+        <div className="sidebar-utility-panel" role="region" aria-label={utilityPanel.label} data-sidebar-utility-panel="true">
           <strong>{utilityPanel.label}</strong>
-          <span>{utilityPanel.kind === "workspace" ? shellLabel(labels, "workspacePanelText", "워크스페이스 전환 메뉴를 이 화면에서 확인합니다.") : `${utilityPanel.scope} ${shellLabel(labels, "homeSettingsLabel", "설정")}은 현재 세션에서만 열립니다.`}</span>
+          {utilityPanel.kind === "workspace" && meta.utilities.length > 0 ? (
+            <div className="sidebar-workspace-actions">
+              {meta.utilities.map(({ label, icon: Icon, view: utilityView, section }) => (
+                <button
+                  key={label}
+                  type="button"
+                  className="sidebar-workspace-action"
+                  data-sidebar-utility={label}
+                  onClick={() => setView(utilityView, section ?? "")}
+                >
+                  <Icon size={15} />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <span>{utilityPanel.kind === "workspace" ? shellLabel(labels, "workspacePanelText", "워크스페이스 전환 메뉴를 이 화면에서 확인합니다.") : `${utilityPanel.scope} ${shellLabel(labels, "homeSettingsLabel", "설정")}은 현재 세션에서만 열립니다.`}</span>
+          )}
         </div>
       )}
       {isForest && (
-        <div className="forest-sidebar-user">
+        <button
+          type="button"
+          className="forest-sidebar-user"
+          aria-label={shellLabel(labels, "profileAria", "내 프로필")}
+          data-profile-trigger="true"
+          onClick={onProfile}
+        >
           <span className="forest-sidebar-avatar">
             {forestUserPhoto ? <img src={forestUserPhoto} alt="" /> : forestUserInitial}
           </span>
@@ -963,7 +921,7 @@ export function Sidebar({
             <strong>{forestUserName || shellLabel(labels, "sessionUserFallback", "사용자")}</strong>
             {forestUserRole && <small>{forestUserRole}</small>}
           </span>
-        </div>
+        </button>
       )}
     </aside>
   );
@@ -977,7 +935,7 @@ export function GlobalSearch({ labels, query, setQuery, setView }) {
   })).concat(
     globalUtilityItems.map(({ id, label, localLabel, icon, defaultSection }) => ({
       icon,
-      title: query.trim() ? `${label}에서 "${query.trim()}" 검색` : `${label} · ${localLabel}`,
+      title: query.trim() ? `${label}에서 "${query.trim()}" 검색` : `${label}, ${localLabel}`,
       view: id,
       section: defaultSection
     }))

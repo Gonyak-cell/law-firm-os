@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { copy } from "./i18n.js";
 import { navItems } from "./data/nav.js";
 import { globalUtilityViewIds, isGlobalUtilityView, modeExceptionUtilityViewIds, resolveGlobalShortcut } from "./data/globalUtilities.js";
-import { GlobalSearch, LoadingSurface, Sidebar, Topbar, UtilityDrawer, buildNotificationItems } from "./components/Shell.jsx";
+import { ContextSubnav, GlobalSearch, LoadingSurface, Sidebar, Topbar, UtilityDrawer, buildContextualNavigation, buildNotificationItems } from "./components/Shell.jsx";
 import { AuthSurface } from "./components/AuthSurface.jsx";
 import { GlobalUtilitySurface } from "./components/GlobalUtilitySurface.jsx";
 import { HomeSurface } from "./components/HomeSurface.jsx";
@@ -16,6 +16,7 @@ import { PeopleHome } from "./people/PeopleHome.tsx";
 import { SkinContext } from "./context/SkinContext.jsx";
 import { loginLawosApiSession, readLawosApiSession, readLawosSessionEnvelope } from "./data/apiClient.js";
 import { canAccessHomeCompany } from "./data/homeAccess.js";
+import { canAccessHomeFinanceSection } from "./data/financeAccess.js";
 import { fetchHomeMessageItems } from "./data/homeMessages.js";
 import { emitHomeMetric } from "./data/homeTelemetry.js";
 
@@ -31,8 +32,10 @@ const homeFinanceSectionIds = new Set([
   "home-finance-billing",
   "home-finance-ar"
 ]);
-const homeSectionIds = new Set([homeFallbackSection, ...homeFinanceSectionIds, "home-messages", "home-requests", "home-esign", "home-company"]);
+const homeSectionIds = new Set([homeFallbackSection, ...homeFinanceSectionIds, "home-requests", "home-todo", "home-feed", "home-calendar", "home-messages", "home-esign", "home-company"]);
 const defaultModeReturnTarget = Object.freeze({ view: "home", section: "home-dashboard" });
+const desktopLocalDefaultEmail = "jwsuh@amic.kr";
+const desktopLocalDefaultPassword = "local-loopback-desktop-session";
 
 function normalizeHomeRoute(route) {
   if (route.view !== "home") return route;
@@ -47,6 +50,27 @@ function homeCompanyAccessRecords(source = globalThis) {
 
 function readHomeCompanyAccess(source = globalThis) {
   return canAccessHomeCompany(homeCompanyAccessRecords(source));
+}
+
+function isDesktopRenderer(source = globalThis) {
+  const windowLike = source?.window ?? source;
+  const location = windowLike?.location ?? source?.location;
+  if (location?.protocol !== "file:") return false;
+  try {
+    const params = new URLSearchParams(location.search ?? "");
+    return params.get("desktop") === "1" && typeof windowLike?.matterSession?.status === "function";
+  } catch {
+    return false;
+  }
+}
+
+function isLocalDesktopRuntime(runtime = {}) {
+  try {
+    const url = new URL(runtime?.baseUrl ?? "");
+    return ["127.0.0.1", "localhost"].includes(url.hostname) && runtime.operatorRuntimeConfigured !== true;
+  } catch {
+    return false;
+  }
 }
 
 export function resolveAxis(view) {
@@ -114,7 +138,9 @@ export function App() {
   const [homeMessageItems, setHomeMessageItems] = useState([]);
   const [unreadMessageIds, setUnreadMessageIds] = useState(() => new Set());
   const [homeActionCounts, setHomeActionCounts] = useState(emptyHomeActionCounts);
+  const [globalRefreshSignal, setGlobalRefreshSignal] = useState(0);
   const readMessageIdsRef = useRef(new Set());
+  const [desktopSessionChecked, setDesktopSessionChecked] = useState(() => !isDesktopRenderer());
   const [modeReturnTarget, setModeReturnTarget] = useState(() =>
     modeExceptionUtilityViewIds.includes(initialView) || ["auth", "loading"].includes(initialView)
       ? defaultModeReturnTarget
@@ -123,18 +149,30 @@ export function App() {
   const [authError, setAuthError] = useState("");
   const labels = copy[locale];
   const axis = resolveAxis(view);
+  const profileStandalone = view === "profile";
   const homeApprovalCount = Number(homeActionCounts.approval ?? 0) || 0;
   const homeMessageCount = unreadMessageIds.size;
+  const contextualNavigation = useMemo(() => buildContextualNavigation({
+    labels,
+    financeAccessRecords: homeCompanyAccessRecords(),
+    homeApprovalCount,
+    homeMessageCount,
+    canViewCompanyStatus
+  }), [labels, homeApprovalCount, homeMessageCount, canViewCompanyStatus]);
   const notificationItems = useMemo(() => buildNotificationItems({ homeActionCounts, labels }), [homeActionCounts, labels]);
   const notificationSignature = notificationItems.map((item) => item.id).join("|");
   const notificationUnreadCount = notificationItemsRead ? 0 : notificationItems.length;
   const initialRouteWasRedirected = rawInitialView !== initialView || rawInitialSection !== initialSection;
 
-  function resolveRoute(nextView, section = "", companyAllowed = canViewCompanyStatus) {
+  function resolveRoute(nextView, section = "", companyAllowed = canViewCompanyStatus, financeAccessRecords = homeCompanyAccessRecords()) {
     const resolved = normalizeHomeRoute(resolveGlobalShortcut(nextView, section));
     if (!routableViews.includes(resolved.view)) return { view: "home", section: homeFallbackSection };
     if (resolved.view === "home" && resolved.section === "home-company" && !companyAllowed) {
       return { ...resolved, section: "home-dashboard", homeCompanyAccessDenied: true };
+    }
+    if (resolved.view === "home" && homeFinanceSectionIds.has(resolved.section) && !canAccessHomeFinanceSection(financeAccessRecords, resolved.section)) {
+      const financeFallback = [...homeFinanceSectionIds].find((financeSection) => canAccessHomeFinanceSection(financeAccessRecords, financeSection));
+      return { ...resolved, section: financeFallback ?? homeFallbackSection, homeFinanceAccessDenied: true };
     }
     return resolved;
   }
@@ -174,6 +212,10 @@ export function App() {
 
   function currentModeReturnTarget() {
     return isReturnableWorkView(view) ? routeTargetFor(view, activeSection) : modeReturnTarget;
+  }
+
+  function refreshCurrentSurface() {
+    setGlobalRefreshSignal((value) => value + 1);
   }
 
   function navigateToView(nextView, section = "", routeContext = {}) {
@@ -279,6 +321,44 @@ export function App() {
   }, [locale, theme, skin]);
 
   useEffect(() => {
+    if (!isDesktopRenderer()) return undefined;
+    let cancelled = false;
+    async function verifyDesktopSession() {
+      try {
+        const status = await window.matterSession.status();
+        if (status?.state === "signed_in") {
+          if (!cancelled) setDesktopSessionChecked(true);
+          return;
+        }
+        const runtime = typeof window.matterSession.runtime === "function" ? await window.matterSession.runtime() : null;
+        if (isLocalDesktopRuntime(runtime)) {
+          const result = await loginLawosApiSession({
+            email: desktopLocalDefaultEmail,
+            password: desktopLocalDefaultPassword
+          });
+          if (result?.ok) {
+            if (cancelled) return;
+            setCanViewCompanyStatus(readHomeCompanyAccess());
+            setDesktopSessionChecked(true);
+            return;
+          }
+        }
+      } catch {
+      }
+      if (cancelled) return;
+      setAuthStep("login");
+      setView("auth");
+      setActiveSection("");
+      setDesktopSessionChecked(true);
+    }
+    verifyDesktopSession();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!desktopSessionChecked) return undefined;
     let cancelled = false;
     fetchHomeMessageItems({ ctx: liveCtx }).then((items) => {
       if (cancelled) return;
@@ -293,7 +373,7 @@ export function App() {
     return () => {
       cancelled = true;
     };
-  }, [liveCtx]);
+  }, [desktopSessionChecked, liveCtx]);
 
   useEffect(() => {
     setNotificationItemsRead(utilityDrawerType === "notifications");
@@ -341,7 +421,7 @@ export function App() {
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
-  if (view === "loading") {
+  if (!desktopSessionChecked || view === "loading") {
     return (
       <SkinContext.Provider value={skin}>
         <LoadingSurface labels={labels} locale={locale} theme={theme} skin={skin} setLocale={setLocale} setTheme={setTheme} />
@@ -381,27 +461,42 @@ export function App() {
           axis={axis}
           setView={navigateToView}
           onCreate={() => navigateToView("matters", "matter-opening")}
-          onProfile={() => navigateToView("profile")}
           utilityDrawerType={utilityDrawerType}
           onOpenUtilityDrawer={toggleUtilityDrawer}
+          onRefresh={refreshCurrentSurface}
           notificationUnreadCount={notificationUnreadCount}
           homeApprovalCount={homeApprovalCount}
           homeMessageCount={homeMessageCount}
         />
-        <div className="app-frame contextual-shell" data-sidebar-state="contextual">
-          <Sidebar
-            labels={labels}
-            view={view}
-            axis={axis}
-            setView={navigateToView}
-            activeSection={activeSection}
-            homeApprovalCount={homeApprovalCount}
-            homeMessageCount={homeMessageCount}
-            canViewCompanyStatus={canViewCompanyStatus}
-            modeReturnTarget={modeReturnTarget}
-            onReturnToWork={returnToWork}
-          />
+        <div
+          className={profileStandalone ? "app-frame contextual-shell profile-standalone-shell" : "app-frame contextual-shell"}
+          data-sidebar-state={profileStandalone ? "none" : "contextual"}
+        >
+          {!profileStandalone && (
+            <Sidebar
+              labels={labels}
+              view={view}
+              axis={axis}
+              setView={navigateToView}
+              activeSection={activeSection}
+              homeApprovalCount={homeApprovalCount}
+              homeMessageCount={homeMessageCount}
+              canViewCompanyStatus={canViewCompanyStatus}
+              modeReturnTarget={modeReturnTarget}
+              onProfile={() => navigateToView("profile")}
+              onReturnToWork={returnToWork}
+              navigation={contextualNavigation}
+            />
+          )}
           <main className="page-canvas">
+            {!profileStandalone && (
+              <ContextSubnav
+                navigation={contextualNavigation}
+                view={view}
+                activeSection={activeSection}
+                setView={navigateToView}
+              />
+            )}
             {view === "auth" && (
               <AuthSurface
                 labels={labels}
@@ -425,14 +520,15 @@ export function App() {
                 canViewCompanyStatus={canViewCompanyStatus}
                 homeCompanyAccessDenied={homeCompanyAccessDenied}
                 onHomeActionCountsChange={setHomeActionCounts}
+                refreshSignal={globalRefreshSignal}
               />
             )}
-            {view === "clients" && <ClientsSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} />}
-            {view === "matters" && <MattersSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} onNavigateSection={(section) => navigateToView("matters", section)} />}
+            {view === "clients" && <ClientsSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} refreshSignal={globalRefreshSignal} />}
+            {view === "matters" && <MattersSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} refreshSignal={globalRefreshSignal} onNavigateSection={(section) => navigateToView("matters", section)} />}
             {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} liveCtx={liveCtx} />}
-            {view === "vault" && <VaultSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} />}
-            {view === "portal" && <PortalSurface labels={labels} liveCtx={liveCtx} />}
-            {view === "profile" && <UserProfileSurface liveCtx={liveCtx} onNavigate={navigateToView} />}
+            {view === "vault" && <VaultSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} refreshSignal={globalRefreshSignal} />}
+            {view === "portal" && <PortalSurface labels={labels} liveCtx={liveCtx} refreshSignal={globalRefreshSignal} />}
+            {view === "profile" && <UserProfileSurface liveCtx={liveCtx} onNavigate={navigateToView} onReturnToWork={returnToWork} />}
             {isGlobalUtilityView(view) && modeExceptionUtilityViewIds.includes(view) && (
               <GlobalUtilitySurface
                 view={view}

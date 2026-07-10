@@ -2,8 +2,8 @@ const PERMISSION_CONTEXT_HEADER = "x-lawos-permission-context";
 const VAULT_BRIDGE_TOKEN_HEADER = "x-lawos-vault-bridge-token";
 const runtimeTenant = (...parts) => parts.join("_");
 const TENANT_ID = runtimeTenant("tenant", "rp04", "synthetic");
-const MATTER_TENANT_ID = runtimeTenant("tenant", "rp05", "synthetic");
 const VAULT_TENANT_ID = "tenant_amic_matter_vault";
+const MATTER_TENANT_ID = VAULT_TENANT_ID;
 const CRM_INTAKE_TENANT_ID = runtimeTenant("tenant", "cmp", "g6", "synthetic");
 const FINANCE_TENANT_ID = runtimeTenant("tenant", "cmp", "g7", "synthetic");
 const ANALYTICS_TENANT_ID = runtimeTenant("tenant", "cmp", "g8", "synthetic");
@@ -145,7 +145,6 @@ function desktopReadBridge() {
   if (typeof window === "undefined" || window.location?.protocol !== "file:") return null;
   const params = new URLSearchParams(window.location.search);
   if (params.get("desktop") !== "1") return null;
-  if (desktopApiBaseUrl()) return null;
   return typeof window.matterSession?.api === "function" ? window.matterSession.api : null;
 }
 
@@ -199,6 +198,17 @@ export function readLawosApiSession(source = globalThis) {
   }
 }
 
+export async function readDesktopMatterSessionStatus(source = globalThis) {
+  const bridge = source?.matterSession ?? source?.window?.matterSession;
+  if (typeof bridge?.status !== "function") return null;
+  try {
+    const status = await bridge.status();
+    return status?.state === "signed_in" ? status : null;
+  } catch {
+    return null;
+  }
+}
+
 function writeSessionEnvelopeFromApiSession(body, source = globalThis) {
   const storage = sessionStorageFor(source);
   const session = body?.session;
@@ -209,6 +219,9 @@ function writeSessionEnvelopeFromApiSession(body, source = globalThis) {
     session_ref: session.session_id ?? `api:${session.user_id}`,
     source: "api_signed_session",
     actor_ref: session.user_id,
+    user_id: session.user_id,
+    email: session.email ?? null,
+    display_name: session.display_name ?? null,
     tenant_refs: {
       default: session.tenant_id,
       client: session.tenant_id,
@@ -223,6 +236,27 @@ function writeSessionEnvelopeFromApiSession(body, source = globalThis) {
     expires_at: body.expires_at ?? session.expires_at ?? null
   };
   storage.setItem(LAWOS_SESSION_ENVELOPE_STORAGE_KEY, JSON.stringify(envelope));
+}
+
+function desktopSessionLoginBridge(source = globalThis) {
+  const windowLike = source?.window ?? source;
+  const location = windowLike?.location ?? source?.location;
+  if (location?.protocol !== "file:") return null;
+  try {
+    const params = new URLSearchParams(location.search ?? "");
+    if (params.get("desktop") !== "1") return null;
+  } catch {
+    return null;
+  }
+  const bridge = windowLike?.matterSession ?? source?.matterSession;
+  return typeof bridge?.login === "function" ? bridge.login.bind(bridge) : null;
+}
+
+function writeLawosDesktopSession(body, source = globalThis) {
+  const session = body?.session;
+  if (session?.state !== "signed_in" || !session.user_id || !session.tenant_id) return false;
+  writeSessionEnvelopeFromApiSession(body, source);
+  return Boolean(readLawosSessionEnvelope(source));
 }
 
 function writeLawosApiSession(body, source = globalThis) {
@@ -240,6 +274,20 @@ function writeLawosApiSession(body, source = globalThis) {
 }
 
 export async function loginLawosApiSession({ email, password } = {}, { source = globalThis } = {}) {
+  const desktopLogin = desktopSessionLoginBridge(source);
+  if (desktopLogin) {
+    try {
+      const body = await desktopLogin({ email, password });
+      const stored = body?.ok ? writeLawosDesktopSession(body, source) : false;
+      return {
+        ok: Boolean(body?.ok && stored),
+        status: Number(body?.http_status ?? body?.status ?? (body?.ok ? 200 : 0)) || 0,
+        body
+      };
+    } catch {
+      return { ok: false, status: 0, body: { reason: "desktop_login_bridge_failed" } };
+    }
+  }
   let response;
   let body;
   try {
@@ -2320,7 +2368,7 @@ export function openMatterFromIntakeClearance({
   intakeRequest,
   clearanceToken,
   clientPartyId,
-  title = "상담·문의 Matter",
+  title = "상담 Matter",
   ctx = "allow"
 } = {}) {
   const matterId = uiRuntimeId("matter_intake_ui");
@@ -2389,6 +2437,40 @@ export function registerMatterParty({ matterId, displayName, partyRole = "advers
         party_role: partyRole,
         retroactive_entry: retroactiveEntry
       }
+    },
+    ctx
+  });
+}
+
+export function updateMatterProfile({ matterId, profile = {}, ctx = "allow" } = {}) {
+  const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  return patchMatterRuntime({
+    path: `/api/matters/${encodeURIComponent(matterId)}/profile`,
+    payload: {
+      tenant_id: MATTER_TENANT_ID,
+      permission_ref: "ui_matter_profile_write",
+      audit_hint_ref: "ui_matter_profile_write_probe",
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
+      idempotency_key: `ui:${safeMatterId}:profile:${stamp}`,
+      profile
+    },
+    ctx
+  });
+}
+
+export function registerMatterStakeholder({ matterId, stakeholder = {}, ctx = "allow" } = {}) {
+  const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  return postMatterRuntime({
+    path: `/api/matters/${encodeURIComponent(matterId)}/stakeholders`,
+    payload: {
+      tenant_id: MATTER_TENANT_ID,
+      permission_ref: "ui_matter_stakeholder_write",
+      audit_hint_ref: "ui_matter_stakeholder_write_probe",
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
+      idempotency_key: `ui:${safeMatterId}:stakeholder:${stamp}`,
+      stakeholder
     },
     ctx
   });
@@ -2949,6 +3031,8 @@ export async function fetchMatterCommandCenter({
     outcome: body.outcome,
     item: body.item,
     team: body.team ?? [],
+    matterProfile: body.matter_profile ?? null,
+    matterStakeholders: body.matter_stakeholders ?? [],
     matterParties: body.matter_parties ?? [],
     adverseParties: body.adverse_parties ?? [],
     clientReport: body.client_report ?? null,
@@ -4107,7 +4191,7 @@ export function createCrmOpportunity({
 
 export function handoffCrmOpportunityToIntake({
   opportunityId,
-  requestedScopeSummary = "Client 상담·문의 요청",
+  requestedScopeSummary = "Client 상담 요청",
   ctx = "allow"
 } = {}) {
   const requestId = uiRuntimeId("intake_ui");

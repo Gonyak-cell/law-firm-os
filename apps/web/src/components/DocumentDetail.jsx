@@ -1,5 +1,5 @@
 import React from "react";
-import { FileText, ShieldCheck } from "lucide-react";
+import { FileText } from "lucide-react";
 import { Panel } from "./primitives.jsx";
 
 function privilegeLabel(value) {
@@ -33,7 +33,7 @@ export function DocumentDetail({ document }) {
   };
 
   return (
-    <Panel id="vault-detail" className="vault-panel" title="문서 상세" meta="권한 기준 적용">
+    <Panel id="vault-detail" className="vault-panel" title="문서 상세" meta="">
       <div className="document-detail" data-cmp-g5-document-detail="true">
         <div className="document-detail-icon">
           <FileText size={18} />
@@ -55,10 +55,6 @@ export function DocumentDetail({ document }) {
           <strong>{item.storage_pointer_ref_included ? "표시 제한" : "숨김"}</strong>
           <span>문서 내용</span>
           <strong>{item.document_bytes_included ? "표시 제한" : "숨김"}</strong>
-        </div>
-        <div className="vault-safe-strip">
-          <ShieldCheck size={15} />
-          <span>문서 내용은 권한이 있을 때만 표시됩니다.</span>
         </div>
       </div>
     </Panel>

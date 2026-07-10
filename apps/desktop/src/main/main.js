@@ -5,7 +5,7 @@ import {
   createMatterVaultAwsRuntimeClient,
   loadMatterVaultRuntimeConfig
 } from "./aws-runtime.js";
-import { MainProcessAuthCoordinator, encryptedFileSecureStore } from "./auth.js";
+import { MainProcessAuthCoordinator, encryptedFileSecureStore, memorySecureStore } from "./auth.js";
 import { parseMatterDeepLink, redactDeepLinkIntent } from "./deepLinks.js";
 import { startDesktopLocalApiServer, stopDesktopLocalApiServer } from "./local-api.js";
 import { assertApprovedRendererUrl, installNavigationGuards } from "./origin-policy.js";
@@ -30,7 +30,9 @@ export function describeDesktopSkeleton() {
 }
 
 export function packagedRendererUrl() {
-  return pathToFileURL(join(moduleDir, "../renderer/offline.html")).toString();
+  const url = pathToFileURL(join(moduleDir, "../renderer/web/index.html"));
+  url.searchParams.set("desktop", "1");
+  return url.toString();
 }
 
 export function desktopPreloadPath() {
@@ -65,12 +67,31 @@ export function desktopUserDataPath(app, env = process.env) {
   return app.getPath("userData");
 }
 
+export function shouldStartDesktopLocalApi(env = process.env) {
+  return env.MATTER_DESKTOP_LOCAL_API_DISABLED !== "1";
+}
+
 export function runtimeClientFromEnv(env = process.env) {
   try {
     return createMatterVaultAwsRuntimeClient(loadMatterVaultRuntimeConfig({ env }));
   } catch (error) {
     return createDisabledMatterVaultRuntimeClient(error);
   }
+}
+
+export function shouldUseVolatileDesktopSessionStore(runtimeClient) {
+  try {
+    const status = runtimeClient?.runtimeStatus?.();
+    const baseUrl = new URL(status?.baseUrl);
+    return ["127.0.0.1", "localhost"].includes(baseUrl.hostname) && status.operatorRuntimeConfigured !== true;
+  } catch {
+    return false;
+  }
+}
+
+export function desktopSecureStoreForRuntime({ runtimeClient, filePath, safeStorage } = {}) {
+  if (shouldUseVolatileDesktopSessionStore(runtimeClient)) return memorySecureStore();
+  return encryptedFileSecureStore({ filePath, safeStorage });
 }
 
 function windowOptionsWithPreload(windowOptions = {}) {
@@ -139,13 +160,17 @@ export async function startElectronApp() {
   await app.whenReady();
   configureDesktopAppIcon(app);
   configureDesktopProtocol(app);
-  const localApi = process.env.MATTER_DESKTOP_LOCAL_API_ENABLED === "1"
+  const localApi = shouldStartDesktopLocalApi(process.env)
     ? await startDesktopLocalApiServer({ userDataPath })
     : null;
-  if (localApi?.baseUrl) process.env.MATTER_DESKTOP_API_BASE_URL = localApi.baseUrl;
+  if (localApi?.baseUrl) {
+    process.env.MATTER_DESKTOP_API_BASE_URL = localApi.baseUrl;
+    process.env.MATTER_DESKTOP_RUNTIME_BASE_URL = localApi.baseUrl;
+  }
   app.on("before-quit", () => stopDesktopLocalApiServer(localApi));
   const runtimeClient = runtimeClientFromEnv();
-  const secureStore = encryptedFileSecureStore({
+  const secureStore = desktopSecureStoreForRuntime({
+    runtimeClient,
     filePath: join(userDataPath, "secure-session-store.json"),
     safeStorage
   });

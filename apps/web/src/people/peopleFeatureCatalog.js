@@ -526,8 +526,8 @@ export const PEOPLE_FEATURE_GROUPS = [
         section: "people-company-organization",
         icon: "clipboard",
         state: "setup_required",
-        summary: "조직 코드와 상위 조직을 설정합니다. 지점은 기본 비활성 상태로 둡니다.",
-        capabilities: ["조직 코드", "상위 조직", "지점 비활성", "조직관리자"]
+        summary: "조직 코드와 연결 조직을 설정합니다. 지점은 기본 비활성 상태로 둡니다.",
+        capabilities: ["조직 코드", "연결 조직", "지점 비활성", "조직관리자"]
       },
       {
         label: "구성원",

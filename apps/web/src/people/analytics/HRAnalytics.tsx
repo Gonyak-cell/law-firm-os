@@ -38,7 +38,7 @@ export function HRAnalytics() {
           ["구성원 현황", summaryState(analytics.headcount.active), "구성원"],
           ["퇴사 현황", summaryState(analytics.turnover), "구성원"],
           ["구성원 등록 현황", summaryState(analytics.recruiting_funnel), "구성원"],
-          ["업무 여력", `${analytics.workload.total_hours ?? 0}시간 · ${analytics.workload.average_capacity_pct ?? 0}%`, workloadRows.every((row: Record<string, unknown>) => row.workload_source === "time_entry_aggregation") ? "시간기록" : "요약"],
+          ["업무 여력", `${analytics.workload.total_hours ?? 0}시간, ${analytics.workload.average_capacity_pct ?? 0}%`, workloadRows.every((row: Record<string, unknown>) => row.workload_source === "time_entry_aggregation") ? "시간기록" : "요약"],
           ["휴가-기한 충돌", conflictRows.length ? `${conflictRows.length}건` : "없음", "경고"],
           ["개별 상세", analytics.row_level_details_included ? "표시" : "비공개", "보호"]
         ]}

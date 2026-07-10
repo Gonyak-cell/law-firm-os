@@ -52,7 +52,7 @@ input:focus-visible {
 .top-link,
 .text-button,
 .sso-button,
-.profile-trigger,
+.forest-sidebar-user,
 .workspace-card,
 .sidebar-utility,
 .notification-card,
@@ -74,23 +74,17 @@ input:focus-visible {
     color var(--ui-menu) var(--ease-out);
 }
 
-.sidebar-chevron {
-  transition:
-    color var(--ui-menu) var(--ease-out),
-    transform var(--ui-menu) var(--ease-emphasized);
-}
-
 .surface,
 .builder-surface {
   animation: ui-content-in var(--ui-content) var(--ease-out) both;
 }
 
-.topbar-help-panel,
-.sidebar-subnav {
+.topbar-help-panel {
   animation: ui-content-in var(--ui-panel) var(--ease-out) both;
 }
 
 .notification-drawer,
+.record-overlay-panel,
 .people-detail-panel {
   animation-duration: var(--ui-panel);
   animation-timing-function: var(--ease-out);
@@ -153,8 +147,8 @@ input:focus-visible {
   .surface,
   .builder-surface,
   .topbar-help-panel,
-  .sidebar-subnav,
   .notification-drawer,
+  .record-overlay-panel,
   .people-detail-panel,
   .live-data-loading {
     animation: none !important;

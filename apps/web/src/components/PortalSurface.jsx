@@ -1,6 +1,6 @@
 import React from "react";
-import { useEffect, useState } from "react";
-import { AlertTriangle, FileText, RefreshCw, ShieldCheck, Share2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { AlertTriangle, FileText, ShieldCheck, Share2 } from "lucide-react";
 import {
   accessPortalExternalSecureLink,
   consumePortalInvite,
@@ -17,9 +17,9 @@ const PORTAL_PERMISSION_REF = "ui_cmp_g10_portal_live";
 const PORTAL_AUDIT_HINT_REF = "ui_cmp_g10_portal_probe";
 
 function LiveState({ result, label }) {
-  if (result === null) return <div className="live-data-state live-data-loading"><strong>{label} 불러오는 중</strong> 공유 정보를 확인하고 있습니다.</div>;
+  if (result === null) return <div className="live-data-state live-data-loading"><strong>{label} 불러오는 중</strong></div>;
   if (result.kind === "error") return <div className="live-data-state live-data-error"><strong>{label}를 불러올 수 없습니다</strong> 새로고침하거나 연결 상태를 확인하세요.</div>;
-  if (result.uiState === "denied") return <div className="live-data-state live-data-denied"><strong>접근할 수 없습니다</strong> 현재 권한으로는 이 공유 화면을 볼 수 없습니다.</div>;
+  if (result.uiState === "denied") return <div className="live-data-state live-data-denied"><strong>접근할 수 없습니다</strong> 담당자에게 접근을 요청하세요.</div>;
   if (result.uiState === "review_required" || result.outcome === "review_required") return <div className="live-data-state live-data-review"><strong>검토가 필요합니다</strong> 담당자 확인 후 공유 정보를 볼 수 있습니다.</div>;
   return null;
 }
@@ -43,7 +43,7 @@ function externalSessionState(result, session) {
   return "blocked";
 }
 
-export function PortalSurface({ labels, liveCtx = "allow" }) {
+export function PortalSurface({ labels, liveCtx = "allow", refreshSignal = 0 }) {
   const skin = useSkin();
   const [inviteToken] = useState(() => portalQueryValue("portal_invite"));
   const [inviteNow] = useState(() => portalQueryValue("portal_invite_now") || undefined);
@@ -52,11 +52,18 @@ export function PortalSurface({ labels, liveCtx = "allow" }) {
   const [rfi, setRfi] = useState(null);
   const [dataRoom, setDataRoom] = useState(null);
   const [refreshToken, setRefreshToken] = useState(0);
+  const refreshSignalRef = useRef(refreshSignal);
   const [externalInviteResult, setExternalInviteResult] = useState(inviteToken ? null : { kind: "idle" });
   const [externalSession, setExternalSession] = useState(null);
   const [externalRfiResult, setExternalRfiResult] = useState(null);
   const [externalLinkResult, setExternalLinkResult] = useState(null);
   const [externalBusy, setExternalBusy] = useState("");
+
+  useEffect(() => {
+    if (refreshSignalRef.current === refreshSignal) return;
+    refreshSignalRef.current = refreshSignal;
+    setRefreshToken((value) => value + 1);
+  }, [refreshSignal]);
 
   useEffect(() => {
     if (inviteToken) return undefined;
@@ -149,18 +156,10 @@ export function PortalSurface({ labels, liveCtx = "allow" }) {
       data-c13-rfi-response={externalRfiState}
       data-c13-secure-link-access={externalLinkAccessState}
     >
-      <ForestHero title={labels.portalTitle} subtitle={inviteToken ? "외부 세션 범위 안에서 요청 응답과 공유 링크 상태를 확인합니다." : null} imageOpacity={0.18} />
+      <ForestHero title={labels.portalTitle} imageOpacity={0.18} />
       <PageHeader
-        eyebrow="공유 포털"
         title={labels.portalTitle}
-        subtitle={inviteToken ? "외부 세션 범위 안에서 요청 응답과 공유 링크 상태를 확인합니다." : null}
         heroTakeover={skin === "forest"}
-        actions={!inviteToken && (
-          <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
-            <RefreshCw size={15} />
-            새로고침
-          </button>
-        )}
       />
       {inviteToken && (
         <div className="portal-runtime-grid">
@@ -188,10 +187,10 @@ export function PortalSurface({ labels, liveCtx = "allow" }) {
               </button>
             </div>
           </Panel>
-          <Panel title="공유 링크" meta={externalLinkAccessState === "expired-denied" ? "만료 차단" : "본문 비공개"}>
+          <Panel title="공유 링크" meta={externalLinkAccessState === "expired-denied" ? "만료 확인" : "공유 문서"}>
             <div className="matter-boundary-card" data-c13-secure-link-panel="true">
               {externalLinkAccessState === "expired-denied" ? <AlertTriangle size={20} /> : <Share2 size={20} />}
-              <strong>{externalLinkAccessState === "expired-denied" ? "만료 링크 차단됨" : externalLinkAccessState === "allowed-no-bytes" ? "링크 확인됨" : "링크 확인 대기"}</strong>
+              <strong>{externalLinkAccessState === "expired-denied" ? "만료 링크" : externalLinkAccessState === "allowed-no-bytes" ? "링크 확인됨" : "링크 확인 대기"}</strong>
               <span>{externalLinkAccessState === "allowed-no-bytes" ? "접근은 기록되었고 문서 본문은 노출되지 않았습니다." : externalLinkAccessState === "revoked-denied" ? "회수된 링크는 열 수 없습니다." : "만료되었거나 회수된 링크는 열 수 없습니다."}</span>
               <button type="button" className="secondary-button" disabled={!externalSession || externalBusy === "link"} onClick={accessExternalLink} data-c13-access-link="true">
                 <Share2 size={15} />
@@ -203,7 +202,7 @@ export function PortalSurface({ labels, liveCtx = "allow" }) {
       )}
       {!inviteToken && (
       <div className="portal-runtime-grid">
-        <Panel className="span-2 portal-panel" title="공유 범위" meta="권한 기준 적용">
+        <Panel className="span-2 portal-panel" title="공유 범위">
           {blocking ?? (
             <div className="portal-safe-strip">
               <ShieldCheck size={15} />

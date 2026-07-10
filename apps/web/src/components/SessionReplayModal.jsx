@@ -12,7 +12,6 @@ export function SessionReplayModal({ onClose }) {
       </header>
       <div className="live-data-state live-data-empty">
         <strong>표시할 활동 기록이 없습니다</strong>
-        권한이 있는 업무 기록만 이곳에 표시됩니다.
       </div>
     </div>
   );

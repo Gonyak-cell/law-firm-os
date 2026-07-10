@@ -1,8 +1,8 @@
 import React from "react";
-import { useEffect, useMemo, useState } from "react";
-import { CalendarClock, CheckCircle2, FileText, Link2, ListChecks, MessageSquare, Pencil, RefreshCw, ShieldCheck, UserCheck } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { CalendarClock, CheckCircle2, FileText, Link2, ListChecks, MessageSquare, Pencil, ShieldCheck, UserCheck, X } from "lucide-react";
 import {
-  bulkCompleteMatterStatus,
   changeMatterOwner,
   completeMatterStatus,
   createAnalyticsExport,
@@ -46,20 +46,21 @@ import {
   refreshAnalyticsDashboards,
   refreshMatterProfitability,
   registerMatterParty,
-  saveMatterListView,
+  registerMatterStakeholder,
   syncMatterChannelProvider,
   confirmMatterDeadlineChange,
   bulkUpdateRecordActions,
   updateRecordActionField,
-  updateMatterInlineFields
+  updateMatterInlineFields,
+  updateMatterProfile
 } from "../data/apiClient.js";
 import { ForestHero } from "./ForestHero.jsx";
 import { DataTable, PageHeader, Panel, Property } from "./primitives.jsx";
 import { DesktopDeniedState } from "./DesktopDeniedState.jsx";
 import { MatterOpeningWizard } from "./MatterOpeningWizard.jsx";
 import { MatterTeamRoster } from "./MatterTeamRoster.jsx";
+import { MatterProfilePanel } from "./MatterProfilePanel.jsx";
 import { MatterVaultPanel } from "./MatterVaultPanel.jsx";
-import { ImportDataMappingPanel } from "./ImportDataMappingPanel.jsx";
 import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
 import { useSkin } from "../context/SkinContext.jsx";
 
@@ -98,28 +99,19 @@ const MATTER_SECTIONS = new Set([
   "matter-risk",
   "matter-audit",
   "matter-integrations",
-  "matter-settings",
-  "matter-import"
+  "matter-settings"
 ]);
-const MATTER_WORK_TABS = [
-  { section: "matter-home", label: "홈" },
-  { section: "matters-list", label: "사건 목록" },
-  { section: "matter-board", label: "업무 보드" },
-  { section: "matter-calendar", label: "일정" },
-  { section: "matter-external-schedule", label: "외부 일정" },
-  { section: "matter-vault", label: "사건 문서" }
-];
 const MATTER_PATH_STEPS = ["신규", "이해상충", "계약", "수행", "청구"];
 const MATTER_EXTERNAL_SCHEDULE_ROWS = [
   ["법원 일정", "판결선고 청취, 변론기일, 조정기일", "법원명, 재판부, 사건번호, 출석자"],
-  ["검찰 일정", "기록 열람·복사, 출석, 의견서 제출", "검찰청, 담당부, 사건번호, 준비물"],
+  ["검찰 일정", "기록 열람, 출석, 의견서 제출", "검찰청, 담당부, 사건번호, 준비물"],
   ["우체국 발송", "내용증명, 등기, 송달 추적", "발송처, 수신처, 등기번호, 마감"],
   ["관공서 방문", "인허가, 민원, 자료 제출", "기관명, 접수번호, 방문자, 제출물"],
   ["세무서 업무", "신고, 납부, 자료 제출, 사실조회 대응", "세무서명, 업무 유형, 기한"],
-  ["기록 열람·복사", "법원·검찰 기록 복사와 수령", "기관, 예약일, 복사 범위"],
-  ["제출·접수", "서면 제출, 전자 접수, 방문 접수", "제출처, 제출물, 접수번호"],
+  ["기록 열람", "법원, 검찰 기록 복사와 수령", "기관, 예약일, 복사 범위"],
+  ["제출", "서면 제출, 전자 접수, 방문 접수", "제출처, 제출물, 접수번호"],
   ["송달 확인", "송달 상태와 수령 여부 확인", "송달 대상, 송달일, 확인자"],
-  ["마감·기한", "항소·상고, 답변서, 보정명령 등 기한 관리", "기한일, 기준일, 담당자"]
+  ["기한", "항소, 상고, 답변서, 보정명령 등 기한 관리", "기한일, 기준일, 담당자"]
 ];
 const MATTER_CONNECTED_SECTIONS = {
   "matter-closeout": {
@@ -128,7 +120,7 @@ const MATTER_CONNECTED_SECTIONS = {
     meta: "생애주기",
     rows: [
       ["종결 체크리스트", "종결 보고, 미수금, 문서 보관 확인", "Matter 상태 전환 연결"],
-      ["Vault 변경", "종결 후 문서 쓰기와 보관 정책", "법적 보존 검토 전 차단"]
+      ["Vault 변경", "종결 후 문서 등록과 보관 정책", "법적 보존 검토 필요"]
     ]
   },
   "matter-archive": {
@@ -137,7 +129,7 @@ const MATTER_CONNECTED_SECTIONS = {
     meta: "보관 정책",
     rows: [
       ["보관 기준", "종결일, 보관 위치, 접근 권한", "보존 정책 연결"],
-      ["재개 처리", "보관 사건 재활성화", "담당자 승인 전 차단"]
+      ["재개 처리", "보관 사건 재활성화", "담당자 승인 필요"]
     ]
   },
       "matter-tasks": {
@@ -150,34 +142,34 @@ const MATTER_CONNECTED_SECTIONS = {
     ]
   },
   "matter-notes": {
-    title: "메모·검토 의견",
+    title: "검토 의견",
     marker: "notes",
     meta: "내부 기록",
     rows: [
       ["검토 의견", "쟁점, 리스크, 다음 액션", "Matter 활동 유형 연결"],
-      ["내부 메모", "권한 기준 비공개 메모", "외부 공유 차단"]
+      ["내부 메모", "비공개 메모", "외부 공유 제한"]
     ]
   },
   "matter-evidence": {
-    title: "증거·자료",
+    title: "증거",
     marker: "evidence",
     meta: "Vault 단축 경로",
     rows: [
       ["증거 목록", "증거번호, 제출 여부, 관련 쟁점", "Matter Vault 문서 워크스페이스 연결"],
-      ["자료 분류", "의뢰인 제공, 상대방 제출, 기관 회신", "사전검사 후 작업 가능"]
+      ["자료 분류", "의뢰인 제공, 상대방 제출, 기관 회신", "준비 확인 후 작업 가능"]
     ]
   },
   "matter-templates": {
-    title: "양식·템플릿",
+    title: "양식",
     marker: "templates",
     meta: "문서 초안",
     rows: [
       ["문서 양식", "소장, 답변서, 의견서, 내용증명", "Vault 템플릿 읽기 연결"],
-      ["사건 유형별 템플릿", "송무, 자문, M&A 분류", "승인 요청 후 게시 차단"]
+      ["사건 유형별 템플릿", "송무, 자문, M&A 분류", "승인 요청 후 게시 대기"]
     ]
   },
   "matter-seal": {
-    title: "인장·날인",
+    title: "인장",
     marker: "seal",
     meta: "승인 경계",
     rows: [
@@ -186,21 +178,21 @@ const MATTER_CONNECTED_SECTIONS = {
     ]
   },
   "matter-meetings": {
-    title: "회의·통화 기록",
+    title: "회의 기록",
     marker: "meetings",
-    meta: "일정·대화",
+    meta: "일정",
     rows: [
       ["회의록", "참석자, 안건, 결정사항", "Matter 일정/활동 연결"],
       ["통화 기록", "통화자, 요지, 후속 업무", "내부 기록 연결"]
     ]
   },
   "matter-announcements": {
-    title: "공지·공유",
+    title: "공지",
     marker: "announcements",
     meta: "내부 공유",
     rows: [
       ["사건 공지", "팀 공지와 변경사항 공유", "Matter 채널 연결"],
-      ["공유 범위", "담당자·참여자 권한 기준", "외부 전송 provider 차단"]
+      ["공유 범위", "팀 공유 범위", "외부 전송 준비 필요"]
     ]
   },
   "matter-client-requests": {
@@ -209,11 +201,11 @@ const MATTER_CONNECTED_SECTIONS = {
     meta: "요청 관리",
     rows: [
       ["요청 접수", "자료 요청, 진행 문의, 일정 문의", "내부 메시지 연결"],
-      ["응답 관리", "담당자, 상태, 회신 기한", "외부 회신 provider 차단"]
+      ["응답 관리", "담당자, 상태, 회신 기한", "외부 회신 준비 필요"]
     ]
   },
   "matter-approvals": {
-    title: "결재·승인",
+    title: "결재",
     marker: "approvals",
     meta: "소유자 승인",
     rows: [
@@ -227,11 +219,11 @@ const MATTER_CONNECTED_SECTIONS = {
     meta: "청구 경계",
     rows: [
       ["비용 신청", "인지대, 송달료, 교통비, 복사비", "Finance 후보 기록 연결"],
-      ["증빙 관리", "영수증, 청구 가능 여부, 정산 상태", "외부 지급/발송 차단"]
+      ["증빙 관리", "영수증, 청구 가능 여부, 정산 상태", "외부 지급/발송 준비 필요"]
     ]
   },
   "matter-search": {
-    title: "검색·통계",
+    title: "검색",
     marker: "search",
     meta: "권한 검색",
     rows: [
@@ -249,12 +241,12 @@ const MATTER_CONNECTED_SECTIONS = {
     ]
   },
   "matter-integrations": {
-    title: "연동·알림",
+    title: "연동",
     marker: "integrations",
-    meta: "공급자 상태",
+    meta: "연동 상태",
     rows: [
       ["알림 규칙", "기한, 대화, 문서, 결재 알림", "내부 상태 확인"],
-      ["외부 연동", "캘린더, 이메일, 문서 저장소", "외부 승인 기록 전 차단"]
+      ["외부 연동", "캘린더, 이메일, 문서 저장소", "외부 승인 기록 필요"]
     ]
   },
   "matter-settings": {
@@ -263,16 +255,7 @@ const MATTER_CONNECTED_SECTIONS = {
     meta: "정책 설정",
     rows: [
       ["사건 유형", "송무, 자문, M&A별 필드와 단계", "허용 필드 정책 연결"],
-      ["권한 기준", "담당자·참여자 접근 범위", "권한/감사 경계 연결"]
-    ]
-  },
-  "matter-import": {
-    title: "자료 가져오기",
-    marker: "import",
-    meta: "가져오기 검증",
-    rows: [
-      ["가져오기", "사건 자료 매핑과 검증", "필드 매핑 패널 연결"],
-      ["검증", "중복, 권한, 필수 필드 확인", "사전 검증 후 실행 승인 대기"]
+      ["접근 범위", "팀 접근 범위", "검토 기록 연결"]
     ]
   }
 };
@@ -292,6 +275,19 @@ function matterNumberLabel(value, index = 0) {
 
 function matterCodeLabel(item, index = 0) {
   return matterNumberLabel(item?.matter_code ?? item?.matter_number, index);
+}
+
+function matterSafeLabel(value, fallback) {
+  const text = String(value ?? "").trim();
+  if (!text || /synthetic|rp0|tenant|_[a-z0-9]/i.test(text)) return fallback;
+  return text;
+}
+
+function matterClientLabel(item) {
+  return matterSafeLabel(
+    item?.client_display_name ?? item?.client_name ?? item?.client_short_name ?? item?.client_id ?? item?.legal_client_party_id,
+    "미지정"
+  );
 }
 
 function matterTitleLabel(value, index = 0) {
@@ -414,7 +410,7 @@ function legalPeopleItems(result) {
 function LegalMatterPeopleBacklinkPanel({ result }) {
   const people = legalPeopleItems(result);
   return (
-    <Panel id="matter-people-backlinks" className="record-list-panel" title="Matter 인물 연결" meta="참여자·연락처">
+    <Panel id="matter-people-backlinks" className="record-list-panel" title="Matter 인물 연결" meta="연락처">
       <div className="legal-people-backlink-panel" data-lcx-ppl-matter-backlink="true">
         <div className="people-panel-kicker">
           <Link2 size={15} />
@@ -450,7 +446,7 @@ function ConnectedMatterSection({ sectionId, config, children }) {
     >
       <div className="matter-review-strip" data-lcx-vltui-06-boundary-state="connected-or-blocked">
         <ShieldCheck size={15} />
-        <span>현재 Matter와 권한 컨텍스트를 기준으로 연결 상태만 표시합니다.</span>
+        <span>현재 Matter의 연결 상태를 확인합니다.</span>
       </div>
       <DataTable
         columns={["항목", "연결 기준", "상태"]}
@@ -466,7 +462,7 @@ function VaultShortcutPanel({ label, onOpenVault }) {
     <div className="record-action-strip" data-lcx-vltui-06-vault-shortcut="true">
       <div>
         <strong>{label}</strong>
-        <span>Matter Vault 문서 워크스페이스 사전검사를 사용합니다.</span>
+        <span>Matter Vault 문서 작업으로 이동합니다.</span>
       </div>
       <button className="secondary-button" type="button" data-lcx-vltui-06-vault-shortcut-action="true" onClick={onOpenVault}>
         <FileText size={15} />
@@ -492,7 +488,7 @@ function LifecycleBoundaryPanel({ commandResult, matter, statusResult, statusPen
         data-lcx-vltui-06-legal-hold-required="true"
       >
         <ShieldCheck size={15} />
-        <span>종결/보관 상태에서는 legal hold와 보존 정책 확인 전 Vault 변경을 열지 않습니다.</span>
+        <span>종결/보관 상태에서는 보존 정책 확인 후 Vault 변경을 진행합니다.</span>
       </div>
       <AuditTrailPanel result={matterAuditResult} events={[statusResult?.auditEvent].filter(Boolean)} marker="lcx-vltui-06-lifecycle-audit" />
     </div>
@@ -513,12 +509,12 @@ function ApprovalBoundaryPanel({
       <div className="record-action-strip" data-lcx-vltui-06-owner-blocked-action="true">
         <div>
           <strong>담당자 승인</strong>
-          <span>{recordActionBulkResult?.uiState === "owner_blocked" ? "승인 대기" : "승인 경계 확인"}</span>
+          <span>{recordActionBulkResult?.uiState === "owner_blocked" ? "승인 대기" : "승인 확인"}</span>
           <ActionNotice
             pending={recordActionBulkPending}
             result={recordActionBulkResult}
-            pendingText="승인 경계를 확인 중입니다."
-            successText="승인 필요 상태가 기록되었습니다."
+            pendingText="승인 상태를 확인 중입니다."
+            successText="승인 요청이 준비되었습니다."
           />
         </div>
         <button className="secondary-button" type="button" disabled={recordActionBulkPending} onClick={onRecordActionOwnerBlocked}>
@@ -528,13 +524,13 @@ function ApprovalBoundaryPanel({
       </div>
       <div className="record-action-strip" data-lcx-vltui-06-provider-blocked-action="true">
         <div>
-          <strong>외부 공급자</strong>
-          <span>{channelProviderResult?.uiState === "provider_blocked" ? "공급자 차단" : "연동 상태 확인"}</span>
+          <strong>외부 연동</strong>
+          <span>{channelProviderResult?.uiState === "provider_blocked" ? "연동 준비 필요" : "연동 상태 확인"}</span>
           <ActionNotice
             pending={channelProviderPending}
             result={channelProviderResult}
-            pendingText="공급자 상태를 확인 중입니다."
-            successText="공급자 연결 전이라 차단되었습니다."
+            pendingText="연동 상태를 확인 중입니다."
+            successText="연동 준비가 필요합니다."
           />
         </div>
         <button className="secondary-button" type="button" disabled={channelProviderPending} onClick={onProviderSync}>
@@ -570,7 +566,7 @@ function SearchRiskPanel({
       <DataTable
         columns={["범위", "결과", "표시"]}
         rows={[
-          ["Matter", matter ? matterStatus(matter.status) : "대기", "권한 기준"],
+          ["Matter", matter ? matterStatus(matter.status) : "기본 정보"],
           ["활동", `${timelineEntries.length}건`, "요약만 표시"],
           ["감사", `${resultItems(matterAuditResult).length}건`, "결정 상태만 표시"]
         ]}
@@ -625,7 +621,7 @@ function IntegrationsSettingsPanel({
             pending={channelProviderPending}
             result={channelProviderResult}
             pendingText="연동 상태를 확인 중입니다."
-            successText="공급자 승인 대기 상태입니다."
+            successText="연동 승인 대기 상태입니다."
           />
         </div>
         <button className="secondary-button" type="button" disabled={channelProviderPending} onClick={onProviderSync}>
@@ -781,7 +777,7 @@ function clientReportSectionLabel(section, index = 0) {
 
 function clientReportBodyLabel(section) {
   if (section?.section_id === "status") return matterStatus(section.body);
-  return section?.body ?? "권한 기준 적용";
+  return section?.body ?? "확인 필요";
 }
 
 function moneyLabel(value, currency = "KRW") {
@@ -886,7 +882,7 @@ function renderCollectionState(result, noun) {
     return (
       <div className="live-data-state live-data-review">
         <strong>검토가 필요합니다</strong>
-        검토가 끝나면 {noun} 목록을 확인할 수 있습니다.
+        담당자 확인 후 {noun} 목록을 볼 수 있습니다.
       </div>
     );
   }
@@ -898,6 +894,187 @@ function renderCollectionState(result, noun) {
     );
   }
   return null;
+}
+
+function renderDashboardState(result, noun) {
+  if (result === null) {
+    return (
+      <div className="live-data-state live-data-loading">
+        <strong>{noun} 대시보드를 불러오는 중입니다</strong>
+      </div>
+    );
+  }
+  if (result.kind === "error") {
+    return (
+      <div className="live-data-state live-data-error">
+        <strong>{noun} 대시보드를 불러오지 못했습니다</strong>
+        새로고침하거나 연결 상태를 확인하세요.
+      </div>
+    );
+  }
+  if (result.uiState === "denied") return <DesktopDeniedState />;
+  if (result.uiState === "review_required" || result.outcome === "review_required") {
+    return (
+      <div className="live-data-state live-data-review">
+        <strong>검토가 필요합니다</strong>
+        담당자 확인 후 {noun} 대시보드를 볼 수 있습니다.
+      </div>
+    );
+  }
+  return null;
+}
+
+function matterDueDateValue(matter) {
+  for (const key of ["next_deadline_at", "next_due_at", "deadline_at", "due_at", "starts_at", "target_completion_date"]) {
+    const value = matter?.[key];
+    if (!value) continue;
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) return date;
+  }
+  return null;
+}
+
+function matterDaysUntil(date, now = new Date()) {
+  if (!date) return null;
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  return Math.round((target - start) / 86400000);
+}
+
+function matterDueLabel(matter) {
+  const date = matterDueDateValue(matter);
+  const days = matterDaysUntil(date);
+  if (days === null) {
+    const count = Number(matter?.deadline_count ?? matter?.calendar_event_count ?? 0);
+    return count > 0 ? `${count}건` : "기한 없음";
+  }
+  if (days < 0) return `${Math.abs(days)}일 지남`;
+  if (days === 0) return "오늘";
+  if (days <= 7) return `${days}일 남음`;
+  return date.toLocaleDateString("ko-KR", { month: "2-digit", day: "2-digit" });
+}
+
+function matterIsDueWithin(matter, days) {
+  const distance = matterDaysUntil(matterDueDateValue(matter));
+  if (distance !== null) return distance >= 0 && distance <= days;
+  return Number(matter?.deadline_count ?? 0) > 0 && days >= 7;
+}
+
+function matterNeedsBillingReview(matter) {
+  return ["review_required", "partner_review_required", "draft", "issued", "partially_paid"].includes(matter?.wip_status);
+}
+
+function matterNeedsRiskReview(matter) {
+  return ["high", "critical", "elevated", "review_required"].includes(matter?.risk_level) || matter?.status === "review_required";
+}
+
+function matterVaultStatus(matter) {
+  return matter?.vault_workspace_id || Number(matter?.document_count ?? 0) > 0 ? "연결됨" : "미연결";
+}
+
+function MatterDashboardPanel({
+  result,
+  matters,
+  visibleMatters,
+  selectedMatterId,
+  selectedMatterIds,
+  onSelectMatter,
+  onToggleMatter,
+  onToggleAll
+}) {
+  const state = renderDashboardState(result, "Matter");
+  if (state) return state;
+  const activeMatters = matters.filter((item) => item.status !== "closed");
+  const dueTodayMatters = matters.filter((item) => matterIsDueWithin(item, 0));
+  const dueSoonMatters = matters.filter((item) => matterIsDueWithin(item, 7));
+  const ownerMissingMatters = matters.filter((item) => ownerLabel(item) === "미지정");
+  const billingReviewMatters = matters.filter(matterNeedsBillingReview);
+  const riskMatters = matters.filter(matterNeedsRiskReview);
+  const vaultMissingMatters = matters.filter((item) => matterVaultStatus(item) === "미연결");
+  const priorityRows = [
+    ["오늘 기한", String(dueTodayMatters.length), dueTodayMatters[0] ? matterCodeLabel(dueTodayMatters[0], 0) : "없음", "일정"],
+    ["7일 내 기한", String(dueSoonMatters.length), dueSoonMatters[0] ? matterCodeLabel(dueSoonMatters[0], 0) : "없음", "일정"],
+    ["담당자 미지정", String(ownerMissingMatters.length), ownerMissingMatters[0] ? matterCodeLabel(ownerMissingMatters[0], 0) : "없음", "팀"],
+    ["청구/WIP 확인", String(billingReviewMatters.length), billingReviewMatters[0] ? matterCodeLabel(billingReviewMatters[0], 0) : "없음", "청구"],
+    ["Vault 미연결", String(vaultMissingMatters.length), vaultMissingMatters[0] ? matterCodeLabel(vaultMissingMatters[0], 0) : "없음", "사건 문서"],
+    ["위험 표시", String(riskMatters.length), riskMatters[0] ? matterCodeLabel(riskMatters[0], 0) : "없음", "사건 위험"]
+  ];
+  const statusRows = [
+    ["개시 중", String(matters.filter((item) => item.status === "opening").length), "수임 진행"],
+    ["진행 중", String(activeMatters.filter((item) => item.status !== "opening").length), "업무 진행"],
+    ["검토 필요", String(matters.filter((item) => item.status === "review_required").length), "위험 확인"],
+    ["종료", String(matters.filter((item) => item.status === "closed").length), "종결 처리"]
+  ];
+  const operationRows = visibleMatters.slice(0, 8);
+  return (
+    <div className="matter-live-stack" data-matter-dashboard="true">
+      <div className="record-action-grid" data-matter-dashboard-kpis="true">
+        <div className="record-action-strip">
+          <div>
+            <span>진행 중 Matter</span>
+            <strong>{activeMatters.length}</strong>
+            <small>전체 {matters.length}건</small>
+          </div>
+        </div>
+        <div className="record-action-strip">
+          <div>
+            <span>7일 내 기한</span>
+            <strong>{dueSoonMatters.length}</strong>
+            <small>오늘 {dueTodayMatters.length}건</small>
+          </div>
+        </div>
+        <div className="record-action-strip">
+          <div>
+            <span>담당자 미지정</span>
+            <strong>{ownerMissingMatters.length}</strong>
+            <small>팀 확인 필요</small>
+          </div>
+        </div>
+        <div className="record-action-strip">
+          <div>
+            <span>청구/WIP 확인</span>
+            <strong>{billingReviewMatters.length}</strong>
+            <small>위험 표시 {riskMatters.length}건</small>
+          </div>
+        </div>
+      </div>
+      <div className="workspace-mini-grid" data-matter-priority-queue="true">
+        <DataTable columns={["우선 확인", "건수", "대표 Matter", "이동 메뉴"]} rows={priorityRows} />
+      </div>
+      <div className="record-action-grid">
+        <div className="workspace-mini-grid" data-matter-status-distribution="true">
+          <DataTable columns={["상태", "건수", "업무"]} rows={statusRows} />
+        </div>
+        <div className="workspace-mini-grid" data-matter-risk-summary="true">
+          <DataTable
+            columns={["Matter", "Client", "기한", "위험"]}
+            rows={(riskMatters.length > 0 ? riskMatters : activeMatters).slice(0, 5).map((item, index) => [
+              matterCodeLabel(item, index),
+              matterClientLabel(item),
+              matterDueLabel(item),
+              riskLabel(item.risk_level)
+            ])}
+          />
+        </div>
+      </div>
+      <div data-matter-dashboard-table="true">
+        {operationRows.length > 0 ? (
+          <MatterSelectableList
+            matters={operationRows}
+            selectedMatterId={selectedMatterId}
+            selectedMatterIds={selectedMatterIds}
+            onSelectMatter={onSelectMatter}
+            onToggleMatter={onToggleMatter}
+            onToggleAll={onToggleAll}
+          />
+        ) : (
+          <div className="live-data-state live-data-empty">
+            <strong>표시할 Matter가 없습니다</strong>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function renderCommandState(result, matter) {
@@ -956,7 +1133,10 @@ function MatterRecordPanel({
   matterCodeEditValue,
   onMatterCodeEditChange,
   onRecordActionFieldUpdate,
-  onRecordActionOwnerBlocked
+  onRecordActionOwnerBlocked,
+  onMatterProfileSave,
+  onMatterStakeholderRegister,
+  onClose
 }) {
   const command = commandResult?.kind === "data" ? commandResult : null;
   const timelineEntries = timelineResult?.kind === "data" ? timelineResult.item?.visible_entries ?? [] : [];
@@ -967,19 +1147,38 @@ function MatterRecordPanel({
   const vaultCount = command?.vaultSummary?.document_count ?? matter?.document_count ?? 0;
   const recordActionFields = recordActionFieldsResult?.kind === "data" && Array.isArray(recordActionFieldsResult.item?.fields) ? recordActionFieldsResult.item.fields : [];
   const recordActionAuditCount = resultItems(recordActionAuditResult).length;
+  const matterProfile = command?.matterProfile ?? {
+    profile_id: `matter_profile_${matter?.matter_id ?? "unknown"}`,
+    matter_id: matter?.matter_id ?? null,
+    profile_kind: matter?.matter_profile_kind ?? "dispute",
+    data: {},
+    evidence: { review_status: matter?.matter_profile_review_status ?? "not_available" },
+  };
   return (
     <aside className="record-side-panel" data-matter-record-workspace="right-panel">
       <div className="record-side-header">
-        <span className="eyebrow">레코드</span>
-        <strong>{matterCodeLabel(matter)}</strong>
+        <div>
+          <span className="eyebrow">레코드</span>
+          <strong>{matterCodeLabel(matter)}</strong>
+        </div>
+        <button type="button" className="record-overlay-close" aria-label="Matter code 정보 닫기" onClick={onClose}>
+          <X size={17} />
+        </button>
       </div>
       <div className="property-grid tight">
         <Property label="상태" value={matter ? matterStatus(matter.status) : "대기"} />
+        <Property label="Client" value={matter ? matterClientLabel(matter) : "미지정"} />
         <Property label="청구" value={matter ? billingStatus(matter.wip_status) : "대기"} />
         <Property label="책임자" value={ownerLabel(matter)} />
         <Property label="팀" value={String(teamCount)} />
         <Property label="문서" value={String(vaultCount)} />
       </div>
+      <MatterProfilePanel
+        profile={matterProfile}
+        stakeholders={command?.matterStakeholders ?? []}
+        onSave={onMatterProfileSave}
+        onRegisterStakeholder={onMatterStakeholderRegister}
+      />
       <div className="record-meter-grid">
         <div>
           <span>활동</span>
@@ -1071,18 +1270,18 @@ function MatterRecordPanel({
       {recordActionUpdateResult?.kind === "data" && recordActionUpdateResult.fieldPatch && (
         <div className="record-boundary-note" data-sf-b-w02-matter-record-action-result="true">
           <ShieldCheck size={15} />
-          <span>허용된 Matter 필드가 업데이트되었습니다.</span>
+          <span>Matter 정보가 업데이트되었습니다.</span>
         </div>
       )}
       <div className="record-action-strip" data-sf-b-w02-matter-owner-blocked-action="true">
         <div>
           <strong>책임자 일괄 변경</strong>
-          <span>{recordActionBulkResult?.uiState === "owner_blocked" ? "승인 필요" : "승인 조건 확인"}</span>
+          <span>{recordActionBulkResult?.uiState === "owner_blocked" ? "승인 필요" : "변경 준비"}</span>
           <ActionNotice
             pending={recordActionBulkPending}
             result={recordActionBulkResult}
             pendingText="승인 조건을 확인 중입니다."
-            successText="승인 필요 상태가 기록되었습니다."
+            successText="변경 요청이 준비되었습니다."
           />
         </div>
         <button className="secondary-button" type="button" disabled={!matter || recordActionBulkPending} onClick={onRecordActionOwnerBlocked}>
@@ -1093,20 +1292,12 @@ function MatterRecordPanel({
       {recordActionBulkResult?.uiState === "owner_blocked" && (
         <div className="record-boundary-note" data-sf-b-w02-matter-owner-blocked-result="true">
           <ShieldCheck size={15} />
-          <span>승인 후 처리할 수 있습니다.</span>
+          <span>담당자 확인 후 처리됩니다.</span>
         </div>
       )}
       <div className="record-boundary-note" data-sf-b-w02-matter-action-audit-feed="true">
         <ShieldCheck size={15} />
         <span>최근 작업 {recordActionAuditCount}건</span>
-      </div>
-      <div className="record-boundary-note" data-sf-b-w03-channel-provider-state="true">
-        <ShieldCheck size={15} />
-        <span>{channelProviderState === "provider_blocked" ? "외부 연동 승인 대기" : "내부 대화 준비"}</span>
-      </div>
-      <div className="record-boundary-note">
-        <ShieldCheck size={15} />
-        <span>권한 기준에 맞춰 표시됩니다.</span>
       </div>
     </aside>
   );
@@ -1154,85 +1345,6 @@ function RecentlyViewedPanel({ result }) {
   );
 }
 
-function MatterListViewPanel({
-  result,
-  activeListViewId,
-  onSelectListView,
-  onSaveListView,
-  pending,
-  actionResult
-}) {
-  const views = resultItems(result);
-  return (
-    <div className="matter-list-view-panel" data-matter-saved-list-views="true">
-      <div className="matter-list-view-options" role="tablist" aria-label="Matter 저장 목록">
-        {views.length === 0 && <span className="subtle-text">저장된 View 없음</span>}
-        {views.map((view) => {
-          const active = view.list_view_id === activeListViewId;
-          return (
-            <button
-              key={view.list_view_id}
-              type="button"
-              className={active ? "matter-list-view-option active" : "matter-list-view-option"}
-              role="tab"
-              aria-selected={active}
-              data-matter-list-view-option="true"
-              data-active={active ? "true" : "false"}
-              onClick={() => onSelectListView(view.list_view_id)}
-            >
-              {view.label}
-            </button>
-          );
-        })}
-      </div>
-      <div className="matter-list-view-actions">
-        <ActionNotice
-          pending={pending}
-          result={actionResult}
-          pendingText="View 저장 중입니다."
-          successText="View가 저장되었습니다."
-        />
-        <button
-          className="secondary-button"
-          type="button"
-          disabled={pending || result?.kind !== "data"}
-          data-matter-save-list-view-action="true"
-          onClick={onSaveListView}
-        >
-          <ListChecks size={15} />
-          개시 저장
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function MatterBulkActionBar({ selectedCount, pending, result, onComplete }) {
-  return (
-    <div className="matter-bulk-action-bar" data-matter-bulk-actions="true">
-      <div>
-        <strong>{selectedCount}개 선택</strong>
-        <ActionNotice
-          pending={pending}
-          result={result}
-          pendingText="일괄 완료 처리 중입니다."
-          successText="선택 항목이 완료되었습니다."
-        />
-      </div>
-      <button
-        className="secondary-button"
-        type="button"
-        disabled={selectedCount === 0 || pending}
-        data-matter-bulk-status-action="true"
-        onClick={onComplete}
-      >
-        <CheckCircle2 size={15} />
-        선택 완료
-      </button>
-    </div>
-  );
-}
-
 function MatterSelectableList({
   matters,
   selectedMatterId,
@@ -1257,6 +1369,7 @@ function MatterSelectableList({
           />
         </span>
         <span>Matter</span>
+        <span>Client</span>
         <span>제목</span>
         <span>진행 상태</span>
         <span>청구 상태</span>
@@ -1294,6 +1407,7 @@ function MatterSelectableList({
               onClick={() => onSelectMatter(item.matter_id)}
             >
               <strong>{matterCodeLabel(item, index)}</strong>
+              <span>{matterClientLabel(item)}</span>
               <span>{matterTitleLabel(item.title, index)}</span>
               <span>{matterStatus(item.status)}</span>
               <span>{billingStatus(item.wip_status)}</span>
@@ -1311,41 +1425,14 @@ function MattersTable({
   selectedMatterId,
   onSelectMatter,
   recentResult,
-  listViewResult,
-  activeListViewId,
-  onSelectListView,
-  onSaveListView,
-  listViewPending,
-  listViewActionResult,
   selectedMatterIds,
   onToggleMatter,
-  onToggleAll,
-  bulkPending,
-  bulkResult,
-  onBulkComplete
+  onToggleAll
 }) {
   const state = renderCollectionState(result, "Matter");
   if (state) return state;
   return (
     <div className="matter-live-stack">
-      <div className="matter-review-strip">
-        <ShieldCheck size={15} />
-        <span>새 Matter 개시는 승인 후 반영됩니다.</span>
-      </div>
-      <MatterListViewPanel
-        result={listViewResult}
-        activeListViewId={activeListViewId}
-        onSelectListView={onSelectListView}
-        onSaveListView={onSaveListView}
-        pending={listViewPending}
-        actionResult={listViewActionResult}
-      />
-      <MatterBulkActionBar
-        selectedCount={selectedMatterIds.length}
-        pending={bulkPending}
-        result={bulkResult}
-        onComplete={onBulkComplete}
-      />
       <MatterSelectableList
         matters={matters}
         selectedMatterId={selectedMatterId}
@@ -1460,7 +1547,7 @@ function CommandPanel({
       </div>
       <div className="record-summary-grid">
         <Property label="제목" value={matterTitleLabel(item.title)} />
-        <Property label="Client" value={item.legal_client_party_id || item.client_id ? "연결됨" : "미지정"} />
+        <Property label="Client" value={matterClientLabel(item)} />
         <Property label="위험도" value={riskLabel(item.risk_level)} />
         <Property label="Vault" value={result.vaultLink?.vault_workspace_id || item.vault_workspace_id ? "연결됨" : "미연결"} />
       </div>
@@ -1528,7 +1615,7 @@ function TimelinePanel({ result }) {
     <div className="activity-timeline-panel" data-matter-activity-timeline="true">
       <div className="matter-review-strip" data-matter-activity-read-boundary="true">
         <ShieldCheck size={15} />
-        <span>권한 기준 활동 기록</span>
+        <span>Matter 활동 기록</span>
       </div>
       <div className="activity-filter-tabs" data-matter-activity-filters="true">
         {TIMELINE_FILTERS.map((filter) => {
@@ -1830,7 +1917,7 @@ function ChannelWorkspacePanel({
       {(providerResult?.uiState === "provider_blocked" || channel?.provider_state?.external_send_state === "provider_blocked") && (
         <div className="record-boundary-note" data-sf-b-w03-provider-blocked-result="true">
           <ShieldCheck size={15} />
-          <span>외부 연동은 승인과 설정이 필요합니다.</span>
+          <span>외부 발송 준비가 필요합니다.</span>
         </div>
       )}
       <DataTable
@@ -2405,9 +2492,9 @@ function AnalyticsActionPanel({
     <div className="record-action-grid" data-matter-analytics-actions="true">
       <div className="record-action-strip">
         <div>
-          <strong>대시보드</strong>
+          <strong>지표 갱신</strong>
           <span>{refreshResult?.kind === "data" ? "새로고침됨" : "게시 지표"}</span>
-          <ActionNotice pending={refreshPending} result={refreshResult} pendingText="새로고침 중입니다." successText="대시보드가 갱신되었습니다." />
+          <ActionNotice pending={refreshPending} result={refreshResult} pendingText="새로고침 중입니다." successText="지표가 갱신되었습니다." />
         </div>
         <button className="secondary-button" type="button" disabled={!matter || refreshPending} onClick={onRefresh}>
           새로고침
@@ -2533,7 +2620,7 @@ function AnalyticsPanel({
         utilizationResult={utilizationResult}
       />
       <DataTable
-        columns={["대시보드", "유형", "지표", "상태"]}
+        columns={["보고서", "유형", "지표", "상태"]}
         rows={dashboards.map((item) => [
           item.title ?? item.dashboard_id,
           dashboardTypeLabel(item.dashboard_type),
@@ -2556,7 +2643,7 @@ function AnalyticsPanel({
   );
 }
 
-export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", onNavigateSection = () => {} }) {
+export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", refreshSignal = 0, onNavigateSection = () => {} }) {
   const skin = useSkin();
   const [result, setResult] = useState(null);
   const [commandResult, setCommandResult] = useState(null);
@@ -2586,8 +2673,6 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [partyRegisterResult, setPartyRegisterResult] = useState(null);
   const [recentResult, setRecentResult] = useState(null);
   const [listViewResult, setListViewResult] = useState(null);
-  const [listViewActionResult, setListViewActionResult] = useState(null);
-  const [bulkTransitionResult, setBulkTransitionResult] = useState(null);
   const [inlineEditResult, setInlineEditResult] = useState(null);
   const [ownerChangeResult, setOwnerChangeResult] = useState(null);
   const [recordActionFieldsResult, setRecordActionFieldsResult] = useState(null);
@@ -2626,8 +2711,6 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [profitabilityPending, setProfitabilityPending] = useState(false);
   const [statusTransitionPending, setStatusTransitionPending] = useState(false);
   const [partyRegisterPending, setPartyRegisterPending] = useState(false);
-  const [listViewPending, setListViewPending] = useState(false);
-  const [bulkTransitionPending, setBulkTransitionPending] = useState(false);
   const [inlineEditPending, setInlineEditPending] = useState(false);
   const [ownerChangePending, setOwnerChangePending] = useState(false);
   const [recordActionPending, setRecordActionPending] = useState(false);
@@ -2640,12 +2723,19 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [channelMessagePending, setChannelMessagePending] = useState(false);
   const [channelProviderPending, setChannelProviderPending] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
+  const refreshSignalRef = useRef(refreshSignal);
   const [createdItems, setCreatedItems] = useState([]);
   const [selectedMatterId, setSelectedMatterId] = useState(null);
   const [selectedMatterIds, setSelectedMatterIds] = useState([]);
   const [activeListViewId, setActiveListViewId] = useState(null);
   const [matterCodeEditValue, setMatterCodeEditValue] = useState("");
   const currentSection = MATTER_SECTIONS.has(activeSection) ? activeSection : "matter-home";
+
+  useEffect(() => {
+    if (refreshSignalRef.current === refreshSignal) return;
+    refreshSignalRef.current = refreshSignal;
+    setRefreshToken((value) => value + 1);
+  }, [refreshSignal]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2685,7 +2775,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   const listViews = resultItems(listViewResult);
   const activeListView = listViews.find((item) => item.list_view_id === activeListViewId) ?? listViews[0] ?? null;
   const visibleMatters = useMemo(() => applyMatterListView(matters, activeListView), [matters, activeListView]);
-  const selectedMatter = visibleMatters.find((item) => item.matter_id === selectedMatterId) ?? visibleMatters[0] ?? null;
+  const selectedMatter = visibleMatters.find((item) => item.matter_id === selectedMatterId) ?? null;
   const activeMatterId = selectedMatter?.matter_id ?? null;
 
   useEffect(() => {
@@ -2725,14 +2815,23 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
       if (selectedMatterId !== null) setSelectedMatterId(null);
       return;
     }
-    if (!visibleMatters.some((item) => item.matter_id === selectedMatterId)) {
-      setSelectedMatterId(visibleMatters[0].matter_id);
+    if (selectedMatterId !== null && !visibleMatters.some((item) => item.matter_id === selectedMatterId)) {
+      setSelectedMatterId(null);
     }
   }, [visibleMatters, selectedMatterId]);
 
   useEffect(() => {
     setMatterCodeEditValue(selectedMatter?.matter_code ?? "");
   }, [activeMatterId, selectedMatter?.matter_code]);
+
+  useEffect(() => {
+    if (!selectedMatter) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setSelectedMatterId(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selectedMatter]);
 
   useEffect(() => {
     setTimeEntryForm(defaultTimeEntryForm());
@@ -3049,6 +3148,35 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     }
   }
 
+  async function handleMatterProfileSave(profile) {
+    if (!activeMatterId) return { kind: "error" };
+    const next = await updateMatterProfile({ matterId: activeMatterId, profile, ctx: liveCtx });
+    if (next.kind === "data" && next.statusOutcome === "updated" && next.item) {
+      if (next.matter) applyMatterUpdate(next.matter);
+      setCommandResult((current) => (
+        current?.kind === "data"
+          ? { ...current, matterProfile: next.item, matterStakeholders: next.matterStakeholders ?? current.matterStakeholders ?? [] }
+          : current
+      ));
+    }
+    return next;
+  }
+
+  async function handleMatterStakeholderRegister(stakeholder) {
+    if (!activeMatterId) return { kind: "error" };
+    const next = await registerMatterStakeholder({ matterId: activeMatterId, stakeholder, ctx: liveCtx });
+    if (next.kind === "data" && next.statusOutcome === "created" && next.item) {
+      setCommandResult((current) => {
+        if (current?.kind !== "data") return current;
+        const matterStakeholders = Array.isArray(next.matterStakeholders) && next.matterStakeholders.length > 0
+          ? next.matterStakeholders
+          : [next.item, ...(current.matterStakeholders ?? []).filter((item) => item.stakeholder_id !== next.item.stakeholder_id)];
+        return { ...current, matterStakeholders };
+      });
+    }
+    return next;
+  }
+
   function applyMatterUpdate(nextMatter) {
     if (!nextMatter) return;
     setSelectedMatterId(nextMatter.matter_id);
@@ -3108,19 +3236,6 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
       return;
     }
     setSelectedMatterIds(visibleMatters.map((item) => item.matter_id));
-  }
-
-  async function handleBulkCompleteStatus() {
-    if (selectedMatterIds.length === 0) return;
-    setBulkTransitionPending(true);
-    const next = await bulkCompleteMatterStatus({ matterIds: selectedMatterIds, ctx: liveCtx });
-    setBulkTransitionResult(next);
-    setBulkTransitionPending(false);
-    if (next.kind === "data" && next.items.length > 0) {
-      applyMatterUpdates(next.items);
-      setSelectedMatterId(next.items[0].matter_id);
-      setSelectedMatterIds([]);
-    }
   }
 
   async function handleInlineEdit() {
@@ -3342,29 +3457,6 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     }
   }
 
-  async function handleSaveOpeningListView() {
-    setListViewPending(true);
-    const next = await saveMatterListView({
-      label: "개시 Matter",
-      status: "opening",
-      listViewId: "matter_view_user_opening",
-      ctx: liveCtx
-    });
-    setListViewActionResult(next);
-    setListViewPending(false);
-    if (next.kind === "data" && next.item) {
-      setActiveListViewId(next.item.list_view_id);
-      setListViewResult((current) => {
-        const currentItems = resultItems(current).filter((item) => item.list_view_id !== next.item.list_view_id);
-        return {
-          ...(current?.kind === "data" ? current : {}),
-          kind: "data",
-          items: [next.item, ...currentItems]
-        };
-      });
-    }
-  }
-
   async function handleGenerateWip() {
     if (!activeMatterId) return;
     setWipPending(true);
@@ -3558,8 +3650,8 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             data-lcx-vltui-06-vault-preflight-required="true"
             data-lcx-vltui-06-owner-blocked="true"
           >
-            <ShieldCheck size={15} />
-            <span>문서 바이트나 저장 경로를 표시하지 않고 LCX-VLTUI-03 문서 사전검사로 이동합니다.</span>
+          <ShieldCheck size={15} />
+          <span>Vault 문서 작업으로 이동합니다.</span>
           </div>
         </div>
       );
@@ -3693,7 +3785,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
           />
           <div className="record-boundary-note" data-lcx-vltui-06-expense-finance-boundary="true">
             <ShieldCheck size={15} />
-            <span>외부 지급이나 청구서 발송은 공급자 승인 기록 없이는 실행하지 않습니다.</span>
+            <span>외부 지급이나 청구서 발송은 승인 기록 확인 후 진행합니다.</span>
           </div>
         </div>
       );
@@ -3727,88 +3819,84 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
         />
       );
     }
-    if (currentSection === "matter-import") {
-      return (
-        <div
-          className="record-boundary-note"
-          data-lcx-vltui-06-import-lifecycle="dry-run-guarded-execute"
-          data-lcx-vltui-06-import-execute-blocked="true"
-        >
-          <ShieldCheck size={15} />
-          <span>가져오기는 안전한 사전 검증과 오류 보고서까지 열고, 실제 실행은 승인 전 차단합니다.</span>
-        </div>
-      );
-    }
     return null;
   }
+
+  const selectedMatterOverlay = currentSection !== "matter-opening" && selectedMatter ? (
+    <div className="record-overlay-layer" data-record-overlay="matter">
+      <button type="button" className="record-overlay-scrim" aria-label="Matter code 정보 닫기" onClick={() => setSelectedMatterId(null)} />
+      <div className="record-overlay-panel" role="dialog" aria-modal="true" aria-label={`${matterCodeLabel(selectedMatter)} 정보`}>
+        <MatterRecordPanel
+          matter={selectedMatter}
+          commandResult={commandResult}
+          timelineResult={timelineResult}
+          deadlineResult={deadlineResult}
+          channelResult={channelResult}
+          billingCount={billingCount}
+          analyticsCount={analyticsCount}
+          inlineEditResult={inlineEditResult}
+          inlineEditPending={inlineEditPending}
+          onInlineEdit={handleInlineEdit}
+          ownerChangeResult={ownerChangeResult}
+          ownerChangePending={ownerChangePending}
+          onOwnerChange={handleOwnerChange}
+          recordActionFieldsResult={recordActionFieldsResult}
+          recordActionAuditResult={recordActionAuditResult}
+          recordActionUpdateResult={recordActionUpdateResult}
+          recordActionBulkResult={recordActionBulkResult}
+          recordActionPending={recordActionPending}
+          recordActionBulkPending={recordActionBulkPending}
+          matterCodeEditValue={matterCodeEditValue}
+          onMatterCodeEditChange={setMatterCodeEditValue}
+          onRecordActionFieldUpdate={handleMatterCodeFieldUpdate}
+          onRecordActionOwnerBlocked={handleRecordActionOwnerBlocked}
+          onMatterProfileSave={handleMatterProfileSave}
+          onMatterStakeholderRegister={handleMatterStakeholderRegister}
+          onClose={() => setSelectedMatterId(null)}
+        />
+      </div>
+    </div>
+  ) : null;
+  const overlayRoot = typeof document === "undefined" ? null : document.body;
 
   return (
     <section id="matters-home" className="surface stack matters-surface" data-cmp-g4-live-matters="true">
       <ForestHero title={labels.mattersTitle} imageOpacity={0.18} />
-      <PageHeader
-        title={labels.mattersTitle}
-        heroTakeover={skin === "forest"}
-        actions={
-          <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
-            <RefreshCw size={15} />
-            새로고침
-          </button>
-        }
-      />
-      <nav className="matter-section-tabs" aria-label="Matter 업무 탭">
-        {MATTER_WORK_TABS.map((tab) => (
-          <button
-            key={tab.section}
-            type="button"
-            className={currentSection === tab.section ? "active" : ""}
-            onClick={() => onNavigateSection(tab.section)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </nav>
-      <div className="matter-runtime-grid record-workspace" data-salesforce-matter-workspace="list-detail-right-panel">
+      {skin !== "forest" && <PageHeader title={labels.mattersTitle} />}
+      <div
+        className="matter-runtime-grid record-workspace record-workspace-list-only"
+        data-salesforce-matter-workspace="list-detail-overlay"
+      >
         {currentSection === "matter-home" && (
-          <Panel id="matter-home" className="record-list-panel" title="홈" meta="사건 운영">
-            {matterAccessState ?? (
-              <CommandPanel
-                result={commandResult}
-                matter={selectedMatter}
-                statusResult={statusTransitionResult}
-                statusPending={statusTransitionPending}
-                onCompleteStatus={handleCompleteStatus}
-                partyRegisterResult={partyRegisterResult}
-                partyRegisterPending={partyRegisterPending}
-                onRegisterAdverseParty={handleRegisterAdverseParty}
-              />
-            )}
+          <Panel id="matter-home" className="record-list-panel" title="대시보드" meta="사건 운영" hideHeader>
+            <MatterDashboardPanel
+              result={result}
+              matters={matters}
+              visibleMatters={visibleMatters}
+              selectedMatterId={activeMatterId}
+              selectedMatterIds={selectedMatterIds}
+              onSelectMatter={setSelectedMatterId}
+              onToggleMatter={handleToggleMatter}
+              onToggleAll={handleToggleAllVisible}
+            />
           </Panel>
         )}
         {currentSection === "matters-list" && (
-          <Panel id="matters-list" className="record-list-panel" title="사건 목록" meta="권한 기준 적용">
+          <Panel id="matters-list" className="record-list-panel" title="사건 목록" hideHeader>
             <MattersTable
               result={result}
               matters={visibleMatters}
               selectedMatterId={activeMatterId}
               onSelectMatter={setSelectedMatterId}
               recentResult={recentResult}
-              listViewResult={listViewResult}
-              activeListViewId={activeListView?.list_view_id ?? null}
-              onSelectListView={setActiveListViewId}
-              onSaveListView={handleSaveOpeningListView}
-              listViewPending={listViewPending}
-              listViewActionResult={listViewActionResult}
               selectedMatterIds={selectedMatterIds}
               onToggleMatter={handleToggleMatter}
               onToggleAll={handleToggleAllVisible}
-              bulkPending={bulkTransitionPending}
-              bulkResult={bulkTransitionResult}
-              onBulkComplete={handleBulkCompleteStatus}
             />
           </Panel>
         )}
         {["matter-intake", "matter-command"].includes(currentSection) && (
-          <Panel id={currentSection} className="record-list-panel" title="수임 진행" meta="진행 관리">
+          <Panel id={currentSection} className="record-list-panel" title="수임 진행" meta="진행 관리" hideHeader>
             {matterAccessState ?? (
               <>
                 <CommandPanel
@@ -3832,7 +3920,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
         )}
         {currentSection === "matter-vault" && <MatterVaultPanel matterId={activeMatterId} liveCtx={liveCtx} />}
         {["matter-board", "matter-timeline"].includes(currentSection) && (
-          <Panel id={currentSection} className="record-list-panel" title="업무 보드" meta="업무·활동 이력">
+          <Panel id={currentSection} className="record-list-panel" title="업무 보드" meta="활동 이력" hideHeader>
             <ActivityWorkspacePanel
               activityResult={activityResult}
               timelineResult={timelineResult}
@@ -3846,7 +3934,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "matter-calendar" && (
-          <Panel id="matter-calendar" className="record-list-panel" title="일정" meta="일정 관리">
+          <Panel id="matter-calendar" className="record-list-panel" title="일정" meta="일정 관리" hideHeader>
             <CalendarWorkspacePanel
               calendarResult={calendarResult}
               deadlineResult={deadlineResult}
@@ -3863,7 +3951,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "matter-external-schedule" && (
-          <Panel id="matter-external-schedule" className="record-list-panel" title="외부 일정" meta="법원·검찰·우체국·관공서">
+          <Panel id="matter-external-schedule" className="record-list-panel" title="외부 일정" meta="기관 일정" hideHeader>
             <CalendarWorkspacePanel
               calendarResult={calendarResult}
               deadlineResult={deadlineResult}
@@ -3884,7 +3972,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "matter-channel" && (
-          <Panel id="matter-channel" className="record-list-panel" title="이메일·메시지" meta="소통">
+          <Panel id="matter-channel" className="record-list-panel" title="메시지" meta="소통" hideHeader>
             <ChannelWorkspacePanel
               channelResult={channelResult}
               messageResult={channelMessageResult}
@@ -3916,7 +4004,8 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             id={currentSection}
             className="record-list-panel"
             title={currentSection === "matter-time" ? "시간 기록" : currentSection === "matter-ar" ? "미수금" : "청구 내역"}
-            meta="결재·청구"
+            meta="정산"
+            hideHeader
           >
             <ChargePanel
               timeResult={timeResult}
@@ -3967,7 +4056,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "matter-analytics" && (
-          <Panel id="matter-analytics" className="record-list-panel" title="사건 리포트" meta="리포트·관리">
+          <Panel id="matter-analytics" className="record-list-panel" title="사건 리포트" meta="리포트">
             <AnalyticsPanel
               result={analyticsResult}
               profitabilityResult={profitabilityResult}
@@ -3989,16 +4078,6 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             />
           </Panel>
         )}
-        {currentSection === "matter-import" && (
-          <>
-            <Panel id="matter-import-guard" className="record-list-panel" title={connectedMatterSection.title} meta={connectedMatterSection.meta}>
-              <ConnectedMatterSection sectionId={currentSection} config={connectedMatterSection}>
-                {renderConnectedMatterContent(connectedMatterSection)}
-              </ConnectedMatterSection>
-            </Panel>
-            <ImportDataMappingPanel ctx={liveCtx} surface="matter" />
-          </>
-        )}
         {currentSection === "matter-audit" && (
           <AuditTrailPanel
             result={matterAuditResult}
@@ -4006,41 +4085,15 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             marker="matter-command-audit-trail"
           />
         )}
-        {connectedMatterSection && currentSection !== "matter-import" && (
-          <Panel id={currentSection} className="record-list-panel" title={connectedMatterSection.title} meta={connectedMatterSection.meta}>
+        {connectedMatterSection && (
+          <Panel id={currentSection} className="record-list-panel" title={connectedMatterSection.title} meta={connectedMatterSection.meta} hideHeader>
             <ConnectedMatterSection sectionId={currentSection} config={connectedMatterSection}>
               {renderConnectedMatterContent(connectedMatterSection)}
             </ConnectedMatterSection>
           </Panel>
         )}
-        {currentSection !== "matter-opening" && (
-          <MatterRecordPanel
-            matter={selectedMatter}
-            commandResult={commandResult}
-            timelineResult={timelineResult}
-            deadlineResult={deadlineResult}
-            channelResult={channelResult}
-            billingCount={billingCount}
-            analyticsCount={analyticsCount}
-            inlineEditResult={inlineEditResult}
-            inlineEditPending={inlineEditPending}
-            onInlineEdit={handleInlineEdit}
-            ownerChangeResult={ownerChangeResult}
-            ownerChangePending={ownerChangePending}
-            onOwnerChange={handleOwnerChange}
-            recordActionFieldsResult={recordActionFieldsResult}
-            recordActionAuditResult={recordActionAuditResult}
-            recordActionUpdateResult={recordActionUpdateResult}
-            recordActionBulkResult={recordActionBulkResult}
-            recordActionPending={recordActionPending}
-            recordActionBulkPending={recordActionBulkPending}
-            matterCodeEditValue={matterCodeEditValue}
-            onMatterCodeEditChange={setMatterCodeEditValue}
-            onRecordActionFieldUpdate={handleMatterCodeFieldUpdate}
-            onRecordActionOwnerBlocked={handleRecordActionOwnerBlocked}
-          />
-        )}
       </div>
+      {selectedMatterOverlay && overlayRoot ? createPortal(selectedMatterOverlay, overlayRoot) : selectedMatterOverlay}
     </section>
   );
 }

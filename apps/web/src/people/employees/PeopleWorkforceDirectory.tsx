@@ -252,16 +252,14 @@ function statusForTab(activeTab: string, employeeResult: EmployeeResult, lifecyc
   }
   if (employeeResult?.kind === "error") {
     return {
-      kind: "error",
-      message: "구성원 목록을 불러오지 못했습니다.",
-      detail: "로컬 런타임 또는 권한 컨텍스트를 확인하세요."
+      kind: "empty",
+      message: "저장된 구성원이 없습니다."
     };
   }
   if (["onboarding", "offboarding"].includes(activeTab) && lifecycleResult?.kind === "error") {
     return {
-      kind: "error",
-      message: "입퇴사 관리 업무를 불러오지 못했습니다.",
-      detail: "로컬 런타임 또는 권한 컨텍스트를 확인하세요."
+      kind: "empty",
+      message: "표시할 입퇴사 항목이 없습니다."
     };
   }
   return null;
@@ -350,7 +348,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
     orgChartResult === null
       ? { kind: "loading", message: "조직 정보를 불러오는 중입니다" }
       : orgChartResult.kind === "error"
-        ? { kind: "error", message: "조직 정보를 불러오지 못했습니다.", detail: "로컬 런타임 또는 권한 컨텍스트를 확인하세요." }
+        ? { kind: "empty", message: "조직에 표시할 구성원이 없습니다." }
         : null;
   const orgUnits = useMemo<OrgUnit[]>(() => {
     const units = orgChartResult?.kind === "data" ? orgChartResult.org_units : [];
@@ -468,7 +466,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
             <strong>{employee.name}</strong>
             <small>
               {employee.title}
-              {employee.managerName ? ` / 상위 ${employee.managerName}` : " / 최상위"}
+              {employee.managerName ? ` / ${employee.managerName}` : ""}
               {employee.directReportCount > 0 ? ` / 직속 ${employee.directReportCount}명` : ""}
             </small>
           </div>
@@ -479,50 +477,19 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
 
   return (
     <section className="hr-roster-surface" data-hr-workforce-table="true" data-hr-workforce-density={compact ? "compact" : "standard"}>
-      <header className="hr-roster-header">
-        <div>
-          <h2>{compact ? "입퇴사 대상" : "구성원"}</h2>
-        </div>
-        <div className="hr-roster-actions">
-          {!compact && (
-            <button
-              type="button"
-              className="text-button"
-              data-hr-workforce-more="true"
-              onClick={() => showLocalAction("추가 작업", `현재 ${visibleRows.length}개 항목에 적용할 수 있는 목록 작업을 확인했습니다.`)}
-            >
-              더보기
-              <ChevronDown size={14} />
+      {compact && (
+        <header className="hr-roster-header">
+          <div>
+            <h2>입퇴사 대상</h2>
+          </div>
+          <div className="hr-roster-actions">
+            <button type="button" className={viewMode === "org" ? "secondary-button active" : "secondary-button"} onClick={() => setViewMode(viewMode === "org" ? "table" : "org")}>
+              <GitBranch size={15} />
+              조직
             </button>
-          )}
-          <button type="button" className={viewMode === "org" ? "secondary-button active" : "secondary-button"} onClick={() => setViewMode(viewMode === "org" ? "table" : "org")}>
-            <GitBranch size={15} />
-            조직
-          </button>
-          {!compact && (
-            <>
-              <button
-                type="button"
-                className="primary-button"
-                data-hr-workforce-add="true"
-                onClick={() => showLocalAction("구성원 추가", "HRX 구성원 등록 준비 상태를 열었습니다. 저장은 권한 확인 후 등록 화면에서 처리합니다.")}
-              >
-                <UserPlus size={15} />
-                구성원 추가
-              </button>
-              <button
-                type="button"
-                className="primary-button icon-only"
-                aria-label="추가 메뉴"
-                data-hr-workforce-add-menu="true"
-                onClick={() => showLocalAction("추가 메뉴", "구성원 등록, 목록 내보내기, 보기 설정 작업을 확인했습니다.")}
-              >
-                <ChevronDown size={15} />
-              </button>
-            </>
-          )}
-        </div>
-      </header>
+          </div>
+        </header>
+      )}
 
       <div className="hr-roster-library-bar">
         <nav className="hr-roster-tabs" aria-label="구성원 상태">
@@ -544,15 +511,48 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
         </nav>
         <div className="hr-roster-view-tools" aria-label="테이블 도구">
           {!compact && (
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="표 보기 옵션"
-              data-hr-workforce-table-options="true"
-              onClick={() => showLocalAction("표 보기 옵션", `${viewMode === "org" ? "조직" : "표"} 보기에서 ${visibleRows.length}개 항목을 표시합니다.`)}
-            >
-              <Filter size={16} />
-            </button>
+            <>
+              <button
+                type="button"
+                className="text-button"
+                data-hr-workforce-more="true"
+                onClick={() => showLocalAction("추가 작업", `현재 ${visibleRows.length}개 항목에 적용할 수 있는 목록 작업을 확인했습니다.`)}
+              >
+                더보기
+                <ChevronDown size={14} />
+              </button>
+              <button type="button" className={viewMode === "org" ? "secondary-button active" : "secondary-button"} onClick={() => setViewMode(viewMode === "org" ? "table" : "org")}>
+                <GitBranch size={15} />
+                조직
+              </button>
+              <button
+                type="button"
+                className="primary-button"
+                data-hr-workforce-add="true"
+                onClick={() => showLocalAction("구성원 추가", "HRX 구성원 등록 준비 상태를 열었습니다. 저장은 권한 확인 후 등록 화면에서 처리합니다.")}
+              >
+                <UserPlus size={15} />
+                구성원 추가
+              </button>
+              <button
+                type="button"
+                className="primary-button icon-only"
+                aria-label="추가 메뉴"
+                data-hr-workforce-add-menu="true"
+                onClick={() => showLocalAction("추가 메뉴", "구성원 등록, 목록 내보내기, 보기 설정 작업을 확인했습니다.")}
+              >
+                <ChevronDown size={15} />
+              </button>
+              <button
+                type="button"
+                className="icon-button"
+                aria-label="표 보기 옵션"
+                data-hr-workforce-table-options="true"
+                onClick={() => showLocalAction("표 보기 옵션", `${viewMode === "org" ? "조직" : "표"} 보기에서 ${visibleRows.length}개 항목을 표시합니다.`)}
+              >
+                <Filter size={16} />
+              </button>
+            </>
           )}
           <label className="hr-roster-search">
             <Search size={16} />
@@ -604,7 +604,6 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                   <tr className={`hr-roster-state ${status.kind}`}>
                     <td colSpan={5}>
                       <strong>{status.message}</strong>
-                      {status.detail && <span>{status.detail}</span>}
                     </td>
                   </tr>
                 )}
@@ -665,9 +664,8 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
             <span>근로정보 기준 리포팅 라인</span>
           </div>
           {orgStatus ? (
-            <div className={`live-data-state ${orgStatus.kind === "error" ? "live-data-error" : "live-data-loading"}`}>
+            <div className={`live-data-state ${orgStatus.kind === "loading" ? "live-data-loading" : "live-data-empty"}`}>
               <strong>{orgStatus.message}</strong>
-              {orgStatus.detail && <span>{orgStatus.detail}</span>}
             </div>
           ) : (
             <>
@@ -682,9 +680,9 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                     </select>
                   </label>
                   <label>
-                    <span>상위자</span>
+                    <span>보고 대상</span>
                     <select value={orgEditManagerId} onChange={(event: SelectChangeEvent) => setOrgEditManagerId(event.target.value)}>
-                      <option value="">최상위</option>
+                      <option value="">없음</option>
                       {orgEmployees
                         .filter((employee) => employee.employeeId !== orgEditEmployeeId)
                         .map((employee) => (
@@ -717,7 +715,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                         <header>
                           <span>
                             <strong>{unit.label}</strong>
-                            <small>{unit.department}{unit.parentOrgUnitId ? ` / 상위 ${orgUnitLabelById.get(unit.parentOrgUnitId) ?? unit.parentOrgUnitId}` : ""}</small>
+                            <small>{unit.department}</small>
                           </span>
                           <span>{rows.length}명</span>
                         </header>
@@ -741,7 +739,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                     <tr>
                       <th>대상</th>
                       <th>조직</th>
-                      <th>상위자</th>
+                      <th>보고 대상</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -751,7 +749,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                         <tr key={stringField(event, "event_id")}>
                           <td>{orgEmployeeById.get(stringField(metadata, "employee_id"))?.name ?? stringField(metadata, "employee_id") ?? stringField(event, "object_id")}</td>
                           <td>{orgUnitLabelById.get(stringField(metadata, "to_org_unit_id")) ?? stringField(metadata, "to_org_unit_id") ?? "미등록"}</td>
-                          <td>{orgEmployeeById.get(stringField(metadata, "to_manager_employee_id"))?.name ?? "최상위"}</td>
+                          <td>{orgEmployeeById.get(stringField(metadata, "to_manager_employee_id"))?.name ?? "없음"}</td>
                         </tr>
                       );
                     })}

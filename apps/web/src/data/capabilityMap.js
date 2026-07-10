@@ -132,7 +132,7 @@ export const backendCapabilities = Object.freeze([
       "POST /api/data-room/projections"
     ],
     auditEndpoints: ["GET /api/vault/audit"],
-    boundary: "Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다."
+    boundary: "Vault 문서와 공유 상태를 확인합니다."
   }
 ]);
 

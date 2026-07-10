@@ -14,7 +14,6 @@ export function HrxStepUpChallenge({ onRetry }: HrxStepUpChallengeProps) {
       <div className="hrx-step-up-copy">
         <strong>추가 확인이 필요합니다</strong>
         <span>인사기록을 보려면 다시 확인하세요.</span>
-        <small>확인 후 권한이 있는 정보만 표시됩니다.</small>
       </div>
       <div className="hrx-step-up-actions">
         <span>

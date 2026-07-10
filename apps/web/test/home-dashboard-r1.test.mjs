@@ -181,6 +181,13 @@ function wp5DateKey(offset = 0) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
+function visibleLineCount(text, expected) {
+  return String(text)
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter((line) => line === expected).length;
+}
+
 function wp5ActionItem({ id, type, title, dueOffset, dueHour = 9, riskTier = "normal", allowedActions = ["open"], requester = "R1" }) {
   return {
     id,
@@ -400,8 +407,8 @@ test("WP-FIN-1 preserves Matter context and sidebar state in the browser", async
 
     const group = page.locator('[data-sidebar-group="home-finance"]');
     assert.equal(await group.count(), 1);
-    assert.equal(await group.locator(".sidebar-group-toggle").getAttribute("aria-expanded"), "true");
-    await group.getByRole("button", { name: "고객별 매출/비용", exact: true }).click();
+    assert.equal(await group.locator(".sidebar-group-toggle").getAttribute("aria-expanded"), null);
+    await page.getByRole("navigation", { name: "매출/비용 하위 메뉴" }).getByRole("button", { name: "고객별 매출/비용", exact: true }).click();
     await page.waitForSelector('[data-home-finance-route-contract="home-finance-clients"]');
     assert.equal(new URL(page.url()).hash, "#home-finance-clients");
   } finally {
@@ -410,7 +417,7 @@ test("WP-FIN-1 preserves Matter context and sidebar state in the browser", async
   }
 });
 
-test("grouped sidebars collapse an open group when its header is clicked again", async () => {
+test("grouped sidebars route to defaults and expose children only in contextual navigation", async () => {
   const port = await availablePort();
   const server = await createServer({
     root: webRoot,
@@ -434,10 +441,15 @@ test("grouped sidebars collapse an open group when its header is clicked again",
       assert.ok(count > 0, `${view} must render at least one grouped sidebar menu`);
       for (let index = 0; index < count; index += 1) {
         const toggle = toggles.nth(index);
-        if (await toggle.getAttribute("aria-expanded") !== "true") await toggle.click();
-        assert.equal(await toggle.getAttribute("aria-expanded"), "true", `${view} group ${index} must open`);
+        const expectedSection = await toggle.getAttribute("data-sidebar-default-section");
+        assert.ok(expectedSection, `${view} group ${index} must declare a default section`);
+        assert.equal(await toggle.getAttribute("aria-expanded"), null, `${view} group ${index} must not be an accordion`);
         await toggle.click();
-        assert.equal(await toggle.getAttribute("aria-expanded"), "false", `${view} group ${index} must close on its second click`);
+        await page.waitForFunction((section) => window.location.hash === `#${section}`, expectedSection);
+        assert.equal(await page.locator(".sidebar-subnav,.sidebar-child").count(), 0, `${view} group ${index} must not render nested sidebar items`);
+        const contextSubnav = page.locator(".context-subnav");
+        assert.equal(await contextSubnav.count(), 1, `${view} group ${index} must render contextual navigation`);
+        assert.equal(await contextSubnav.locator('[aria-current="page"]').count(), 1, `${view} group ${index} must mark one contextual route current`);
       }
     }
   } finally {
@@ -468,10 +480,11 @@ test("WP-FIN-3 renders reconciled Home finance views and keeps filters in the UR
 
     await overview.getByLabel("통화").selectOption("KRW");
     await page.waitForFunction(() => new URL(window.location.href).searchParams.get("currency") === "KRW");
-    await page.locator('[data-sidebar-group="home-finance"]').getByRole("button", { name: "월별 매출/비용", exact: true }).click();
+    const financeSubnav = page.getByRole("navigation", { name: "매출/비용 하위 메뉴" });
+    await financeSubnav.getByRole("button", { name: "월별 매출/비용", exact: true }).click();
     await page.waitForSelector('[data-home-finance-monthly-table="true"]');
     assert.equal(new URL(page.url()).searchParams.get("currency"), "KRW");
-    await page.locator('[data-sidebar-group="home-finance"]').getByRole("button", { name: "고객별 매출/비용", exact: true }).click();
+    await financeSubnav.getByRole("button", { name: "고객별 매출/비용", exact: true }).click();
     await page.waitForSelector('[data-home-finance-client-table="true"]');
     assert.equal(await page.locator('[data-home-finance-unlinked-client="true"]').count(), 1);
 
@@ -523,8 +536,8 @@ test("WP-FIN-4 runs the shared Matter finance workflow from Home", async () => {
     await page.locator('[data-upl-b01-time-entry-submit="true"]').click();
     await page.waitForSelector('text=시간이 기록되었습니다.');
 
-    const financeGroup = page.locator('[data-sidebar-group="home-finance"]');
-    await financeGroup.getByRole("button", { name: "비용 처리", exact: true }).click();
+    const financeSubnav = page.getByRole("navigation", { name: "매출/비용 하위 메뉴" });
+    await financeSubnav.getByRole("button", { name: "비용 처리", exact: true }).click();
     await page.waitForSelector('[data-home-finance-operation="expenses"]');
     await page.locator('[data-matter-expense-form="true"]').getByLabel("영수증").fill("receipt-live-1");
     await page.locator('[data-matter-expense-form="true"]').getByRole("button", { name: "경비 기록" }).click();
@@ -533,7 +546,7 @@ test("WP-FIN-4 runs the shared Matter finance workflow from Home", async () => {
     await page.locator('[data-matter-disbursement-form="true"]').getByRole("button", { name: "대납 기록" }).click();
     await page.waitForSelector('text=대납이 기록되었습니다.');
 
-    await financeGroup.getByRole("button", { name: "청구/수납", exact: true }).click();
+    await financeSubnav.getByRole("button", { name: "청구/수납", exact: true }).click();
     await page.waitForSelector('[data-home-finance-operation="billing"]');
     await page.getByRole("button", { name: "청구 준비", exact: true }).click();
     await page.waitForFunction(() => !document.querySelector('[data-matter-prebill-review-action="true"] button')?.disabled);
@@ -550,7 +563,7 @@ test("WP-FIN-4 runs the shared Matter finance workflow from Home", async () => {
     await page.locator('[data-matter-accounting-export-form="true"]').getByRole("button", { name: "CSV 생성" }).click();
     await page.waitForSelector('[data-matter-accounting-export-summary="true"]');
 
-    await financeGroup.getByRole("button", { name: "미수금", exact: true }).click();
+    await financeSubnav.getByRole("button", { name: "미수금", exact: true }).click();
     await page.waitForSelector('[data-home-finance-operation="ar"]');
     assert.match(await page.locator('[data-home-finance-operation="ar"]').innerText(), /KRW 1,000/);
     assert.equal(new URL(page.url()).searchParams.get("matter_id"), "matter-live-1");
@@ -592,13 +605,15 @@ test("WP-FIN-5 exposes only scoped finance navigation and hides accounting expor
     });
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow&matter_id=matter-scoped#home-finance-billing`, { waitUntil: "networkidle" });
     await page.waitForTimeout(500);
-    assert.equal(await page.locator('[data-active-home-section]').getAttribute("data-active-home-section"), "home-finance-billing");
+    assert.equal(await page.locator('[data-active-home-section]').getAttribute("data-active-home-section"), "home-finance-expenses");
+    assert.equal(new URL(page.url()).hash, "#home-finance-expenses");
     const group = page.locator('[data-sidebar-group="home-finance"]');
     assert.equal(await group.count(), 1);
-    if (await group.locator(".sidebar-group-toggle").getAttribute("aria-expanded") !== "true") await group.locator(".sidebar-group-toggle").click();
-    assert.equal(await group.getByRole("button", { name: "비용 처리", exact: true }).count(), 1);
-    assert.equal(await group.getByRole("button", { name: "전체 현황", exact: true }).count(), 0);
-    assert.equal(await group.getByRole("button", { name: "청구/수납", exact: true }).count(), 0);
+    assert.equal(await group.locator(".sidebar-group-toggle").getAttribute("aria-expanded"), null);
+    const subnav = page.getByRole("navigation", { name: "매출/비용 하위 메뉴" });
+    assert.equal(await subnav.getByRole("button", { name: "비용 처리", exact: true }).count(), 1);
+    assert.equal(await subnav.getByRole("button", { name: "전체 현황", exact: true }).count(), 0);
+    assert.equal(await subnav.getByRole("button", { name: "청구/수납", exact: true }).count(), 0);
     assert.equal(await page.locator('[data-matter-accounting-export-action="true"]').count(), 0);
   } finally {
     await browser.close();
@@ -683,10 +698,7 @@ test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async ()
     assert.doesNotMatch(heroText, /오늘 처리할 항목/);
     const approvalIds = await page.locator('[data-widget-id="approval"] [data-home-action-id]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-home-action-id")));
     assert.deepEqual(approvalIds, ["approval_oldest", "approval_today", "approval_mid", "approval_tomorrow"]);
-
-    await page.locator('[data-widget-id="approval"] [data-home-tab-id="sent"]').click();
-    await page.waitForSelector("text=처리할 승인이 없습니다 — 모두 완료했습니다");
-    await page.locator('[data-widget-id="approval"] [data-home-tab-id="received"]').click();
+    assert.equal(await page.locator('[data-widget-id="approval"] [data-home-tab-id]').count(), 0);
 
     const todoIds = await page.locator('[data-widget-id="todo"] [data-home-action-id]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-home-action-id")));
     assert.deepEqual(todoIds, ["task_late_three", "task_late_one", "task_today", "task_upcoming_one", "task_upcoming_two"]);
@@ -706,8 +718,8 @@ test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async ()
     const todayKey = wp5DateKey(0);
     await page.waitForSelector(`[data-home-calendar-day="${todayKey}"][data-home-calendar-day-kind="deadline"]`);
     assert.ok(await page.locator(".home-calendar-grid button.sunday").count() > 0);
-    assert.equal(await page.locator("[data-home-calendar-prev]").count(), 1);
-    assert.equal(await page.locator("[data-home-calendar-next]").count(), 1);
+    assert.equal(await page.locator("[data-home-calendar-prev]").count(), 0);
+    assert.equal(await page.locator("[data-home-calendar-next]").count(), 0);
     assert.equal(await page.locator("[data-home-calendar-open]").count(), 1);
     assert.equal(await page.locator("[data-home-upcoming-deadline]").count(), 1);
 
@@ -757,7 +769,7 @@ test("R1 WP-6 renders notification dot from action inbox counts and i18n labels 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow&locale=en#home-dashboard`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-notification-info-count="2"]');
     assert.match(await page.locator('[data-widget-id="approval"]').textContent(), /Pending approvals/);
-    assert.match(await page.locator('[data-widget-id="todo"]').textContent(), /Late 2 · Today 1/);
+    assert.doesNotMatch(await page.locator('[data-widget-id="todo"]').textContent(), /Late 2, Today 1/);
     assert.equal(await page.locator("#home-feed-tab-notice").textContent(), "Internal notices");
     assert.ok((await page.locator('.sidebar button:has-text("Dashboard")').count()) > 0);
   } finally {
@@ -785,6 +797,10 @@ test("R1 WP-7 keeps Home counts equal across widget, sidebar, topbar, and dedica
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
 
     await page.waitForSelector('[data-home-widget-approval-count="5"]');
+    const dashboardSurfaceText = await page.locator(".home-dashboard-surface").innerText();
+    assert.equal(visibleLineCount(dashboardSurfaceText, "승인 대기"), 1);
+    assert.doesNotMatch(dashboardSurfaceText, /승인 요청/);
+    assert.doesNotMatch(dashboardSurfaceText, /·/);
     const dashboardCounts = await page.evaluate(() => ({
       widget: document.querySelector("[data-home-widget-approval-count]")?.getAttribute("data-home-widget-approval-count"),
       sidebar: document.querySelector("[data-home-sidebar-approval-count]")?.getAttribute("data-home-sidebar-approval-count"),
@@ -793,7 +809,9 @@ test("R1 WP-7 keeps Home counts equal across widget, sidebar, topbar, and dedica
     assert.deepEqual(dashboardCounts, { widget: "5", sidebar: "5", topbar: "5" });
 
     await page.locator('[data-home-widget-view-all="todo"]').click();
-    await page.waitForFunction(() => window.__MATTER_HOME_METRICS__?.some((event) => event.event_type === "home_deeplink_misclick" && event.outcome === "same_route"));
+    await page.waitForFunction(() => window.location.hash === "#home-todo");
+    assert.equal(await page.locator("[data-active-home-section]").getAttribute("data-active-home-section"), "home-todo");
+    assert.equal(await page.locator("[data-home-dashboard-grid]").getAttribute("data-home-dashboard-focus"), "home-todo");
 
     await page.locator('[data-product-axis="matters"]').click();
     await page.waitForFunction(() => new URL(window.location.href).searchParams.get("view") === "matters");
@@ -808,12 +826,40 @@ test("R1 WP-7 keeps Home counts equal across widget, sidebar, topbar, and dedica
 
     await page.locator('[data-home-widget-view-all="approval"]').click();
     await page.waitForSelector('[data-home-section-screen="home-requests"]');
+    await page.waitForSelector(".home-dashboard-hero h1");
+    const requestsSurfaceText = await page.locator(".home-dashboard-surface").innerText();
+    assert.equal(await page.locator(".home-dashboard-hero h1").textContent(), "승인 대기");
+    assert.equal(await page.locator(".home-dashboard-hero p").count(), 0);
+    assert.equal(await page.locator('[data-home-section-screen="home-requests"] > header').count(), 0);
+    assert.equal(visibleLineCount(requestsSurfaceText, "승인 대기"), 1);
+    assert.doesNotMatch(requestsSurfaceText, /승인 요청/);
+    assert.doesNotMatch(requestsSurfaceText, /·/);
     const dedicatedCounts = await page.evaluate(() => ({
       dedicated: String(document.querySelectorAll('[data-home-section-screen="home-requests"] [data-home-action-type="approval"]').length),
+      requestTabs: String(document.querySelectorAll('[data-home-section-screen="home-requests"] [data-home-tab-prefix="requests-direction"]').length),
+      underlineTabs: String(document.querySelectorAll('[data-home-section-screen="home-requests"] .home-section-tabs.underline').length),
       sidebar: document.querySelector("[data-home-sidebar-approval-count]")?.getAttribute("data-home-sidebar-approval-count"),
       topbar: document.querySelector("[data-home-topbar-approval-count]")?.getAttribute("data-home-topbar-approval-count")
     }));
-    assert.deepEqual(dedicatedCounts, { dedicated: "5", sidebar: "5", topbar: "5" });
+    assert.deepEqual(dedicatedCounts, { dedicated: "5", requestTabs: "2", underlineTabs: "1", sidebar: "5", topbar: "5" });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=messages&ctx=allow#messages-matter-channel`, { waitUntil: "networkidle" });
+    await page.waitForSelector('[data-home-section-screen="home-messages"]');
+    const messagesSurfaceText = await page.locator(".home-dashboard-surface").innerText();
+    assert.equal(await page.locator(".home-dashboard-hero h1").textContent(), "메시지");
+    assert.equal(await page.locator(".home-dashboard-hero p").count(), 0);
+    assert.equal(await page.locator('[data-home-section-screen="home-messages"] > header, [data-home-section-screen="home-messages"] .home-status-list header').count(), 0);
+    assert.equal(visibleLineCount(messagesSurfaceText, "메시지"), 1);
+    assert.doesNotMatch(messagesSurfaceText, /·/);
+
+    await page.goto(`http://127.0.0.1:${port}/?view=esign&ctx=allow#esign-status`, { waitUntil: "networkidle" });
+    await page.waitForSelector('[data-home-section-screen="home-esign"]');
+    const esignSurfaceText = await page.locator(".home-dashboard-surface").innerText();
+    assert.equal(await page.locator(".home-dashboard-hero h1").textContent(), "전자 계약");
+    assert.equal(await page.locator(".home-dashboard-hero p").count(), 0);
+    assert.equal(await page.locator('[data-home-section-screen="home-esign"] > header, [data-home-section-screen="home-esign"] .home-status-list header').count(), 0);
+    assert.equal(visibleLineCount(esignSurfaceText, "전자 계약"), 1);
+    assert.doesNotMatch(esignSurfaceText, /·/);
   } finally {
     await browser.close();
     await server.close();
@@ -873,7 +919,7 @@ test("R1 WP-7 emits Home first-action and deep-link telemetry at runtime", async
   }
 });
 
-test("R1 WP-8 treats profile as a mode exception and normalizes Home fallback sections", async () => {
+test("R1 WP-8 opens profile as a standalone shell and normalizes Home fallback sections", async () => {
   const port = await availablePort();
   const server = await createServer({
     root: webRoot,
@@ -891,18 +937,63 @@ test("R1 WP-8 treats profile as a mode exception and normalizes Home fallback se
     });
     await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow#matter-calendar`, { waitUntil: "networkidle" });
 
-    await page.locator("[data-profile-trigger]").click();
-    await page.waitForSelector('[data-mode-exception-sidebar="true"] [data-mode-return-anchor="true"]');
-    assert.equal(await page.locator("[data-mode-return-anchor]").getAttribute("data-mode-return-view"), "matters");
-    assert.equal(await page.locator("[data-mode-return-anchor]").getAttribute("data-mode-return-section"), "matter-calendar");
+    await page.locator("[data-profile-trigger]").evaluate((node) => node.click());
+    await page.waitForSelector('[data-user-profile-surface="my-profile"]');
+    assert.equal(await page.locator(".app-frame").getAttribute("data-sidebar-state"), "none");
+    assert.equal(await page.locator("[data-context-sidebar]").count(), 0);
+    assert.ok(await page.locator("[data-profile-return-to-work]").isVisible());
 
-    await page.locator("[data-mode-return-anchor]").click();
+    await page.locator("[data-profile-return-to-work]").click();
     await page.waitForFunction(() => new URL(window.location.href).searchParams.get("view") === "matters" && window.location.hash === "#matter-calendar");
 
     await page.goto(`http://127.0.0.1:${port}/?view=unknown&ctx=allow#not-a-real-section`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-active-home-section="home-dashboard"]');
     await page.waitForFunction(() => new URL(window.location.href).searchParams.get("view") === "home" && window.location.hash === "#home-dashboard");
     assert.equal(await page.locator("[data-active-home-section]").getAttribute("data-active-home-section"), "home-dashboard");
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
+test("profile keeps the main-process signed-in identity when its profile API read fails", async () => {
+  const port = await availablePort();
+  const server = await createServer({
+    root: webRoot,
+    logLevel: "silent",
+    server: { host: "127.0.0.1", port, strictPort: true }
+  });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  const state = { decisionCalls: 0, newsCalls: 0 };
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    await page.addInitScript(() => {
+      window.matterSession = {
+        status: async () => ({
+          state: "signed_in",
+          user_id: "user_amic_jwsuh",
+          display_name: "서지원",
+          tenant_id: "tenant_amic_matter_vault"
+        })
+      };
+    });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname === "/api/profile/me") {
+        return jsonResponse(route, { request_id: "profile-unavailable" }, 503);
+      }
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
+    });
+    await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow`, { waitUntil: "networkidle" });
+    await page.locator("[data-profile-trigger]").click();
+    const profile = page.locator('[data-user-profile-surface="my-profile"]');
+    await profile.waitFor();
+    await page.waitForFunction(() => document.querySelector('[data-user-profile-surface="my-profile"]')?.getAttribute("data-profile-api-state") === "error");
+
+    assert.equal(await profile.getAttribute("data-profile-member"), "emp_amic_jwsuh");
+    assert.equal(await profile.locator("h1").innerText(), "서지원");
+    assert.doesNotMatch(await profile.innerText(), /김양태/);
   } finally {
     await browser.close();
     await server.close();

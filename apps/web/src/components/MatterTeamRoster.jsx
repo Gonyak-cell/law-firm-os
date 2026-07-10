@@ -108,7 +108,7 @@ export function MatterTeamRoster({ matters = [], liveCtx = "allow", onMatterUpda
   const canSubmit = Boolean(activeMatter && form.memberId.trim() && form.role.trim() && (form.employeeId.trim() || form.userId.trim()));
 
   return (
-    <Panel id="matter-team" className="matter-runtime-panel" title="Matter 구성원" meta="권한 기준 적용">
+    <Panel id="matter-team" className="matter-runtime-panel" title="Matter 구성원" meta="">
       <div
         className="matter-team-roster"
         data-cmp-g4-team-roster="true"

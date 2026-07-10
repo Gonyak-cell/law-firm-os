@@ -67,8 +67,8 @@ export function PayrollBoundaryPanel() {
     ? [
         ["상태", stateLabel(preview.state), preview.preview_id],
         ["대상 기간", preview.payroll_period, `${preview.employee_ids.length}명`],
-        ["정산 실행", executionStateLabel(preview.calculation_runtime), "계산·세금 처리는 아직 구현되지 않았습니다"],
-        ["지급 실행", executionStateLabel(preview.disbursement_instruction_included), "송금·지급 처리는 아직 구현되지 않았습니다"],
+        ["정산 실행", executionStateLabel(preview.calculation_runtime), "계산 처리는 아직 구현되지 않았습니다"],
+        ["지급 실행", executionStateLabel(preview.disbursement_instruction_included), "지급 처리는 아직 구현되지 않았습니다"],
         ["검토", preview.human_review_required ? "필수" : "확인 필요", preview.external_provider ?? "외부 급여 서비스 없음"]
       ]
     : [];
@@ -76,16 +76,16 @@ export function PayrollBoundaryPanel() {
   if (artifact) {
     rows.push(
       ["내보내기 파일", artifact.artifact_id, artifact.export_artifact_ref],
-      ["정산 처리", executionStateLabel(artifact.calculation_runtime), "계산·세금 처리는 아직 구현되지 않았습니다"],
-      ["지급 처리", executionStateLabel(artifact.disbursement_instruction_included), "송금·지급 지시는 아직 구현되지 않았습니다"]
+      ["정산 처리", executionStateLabel(artifact.calculation_runtime), "계산 처리는 아직 구현되지 않았습니다"],
+      ["지급 처리", executionStateLabel(artifact.disbursement_instruction_included), "지급 지시는 아직 구현되지 않았습니다"]
     );
   }
 
   return (
-    <Panel id="people-payroll" className="people-panel span-2" title="급여정산" meta="미리보기·내보내기 전용">
+    <Panel id="people-payroll" className="people-panel span-2" title="급여정산" meta="내보내기 전용">
       <div className="people-panel-kicker">
         <ShieldCheck size={15} />
-        현재는 정산 미리보기, 검토 승인, 내보내기만 제공합니다. 계산·세금·지급 실행은 아직 제공하지 않습니다.
+        현재는 정산 미리보기, 검토 승인, 내보내기만 제공합니다. 계산과 지급 실행은 아직 제공하지 않습니다.
       </div>
       <form className="leave-request-form" onSubmit={handlePreview}>
         <label>

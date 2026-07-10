@@ -49,6 +49,20 @@ function valueFrom(env, fileValues, keys) {
   return "";
 }
 
+function isLoopbackBaseUrl(value) {
+  try {
+    const url = new URL(value);
+    return ["127.0.0.1", "localhost"].includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function localDevCredentialForEmail(email) {
+  const normalizedEmail = String(email ?? "").trim().toLowerCase();
+  return normalizedEmail ? `local-dev-only:${normalizedEmail}` : "";
+}
+
 function envPathCandidates({ env = process.env, cwd = process.cwd(), moduleDirectory = moduleDir } = {}) {
   if (env.MATTER_DESKTOP_ENV_FILE) return [resolve(env.MATTER_DESKTOP_ENV_FILE)];
   const starts = [cwd, moduleDirectory].filter(Boolean).map((candidate) => resolve(candidate));
@@ -95,14 +109,19 @@ export function loadMatterVaultRuntimeConfig({
     "MATTER_OPERATOR_TOKEN"
   ]);
   const hasProductionRuntimePair = Boolean(productionRuntimeBaseUrl && productionOperatorToken);
-  const useDesktopRuntimeOverride = Boolean(desktopRuntimeBaseUrl && (desktopOperatorToken || !hasProductionRuntimePair));
+  const desktopRuntimeIsLoopback = isLoopbackBaseUrl(desktopRuntimeBaseUrl);
+  const useDesktopRuntimeOverride = Boolean(desktopRuntimeBaseUrl && (
+    desktopOperatorToken ||
+    !hasProductionRuntimePair ||
+    desktopRuntimeIsLoopback
+  ));
   const baseUrl = (
     useDesktopRuntimeOverride
       ? desktopRuntimeBaseUrl
       : productionRuntimeBaseUrl || desktopRuntimeBaseUrl || DEFAULT_PRODUCTION_RUNTIME_BASE_URL
   ).replace(/\/+$/, "");
   const operatorToken = useDesktopRuntimeOverride
-    ? desktopOperatorToken || productionOperatorToken
+    ? desktopOperatorToken || (desktopRuntimeIsLoopback ? "" : productionOperatorToken)
     : productionOperatorToken;
   const tenantId = valueFrom(env, fileValues, [
     "MATTER_VAULT_R4_PRODUCTION_TENANT_ID",
@@ -181,9 +200,27 @@ function jsonHeaders(operatorToken) {
   return headers;
 }
 
+function isDesktopMatterWriteRoute(method, path) {
+  return (
+    (method === "PATCH" && /^\/api\/matters\/[A-Za-z0-9_-]+\/profile$/.test(path)) ||
+    (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/stakeholders$/.test(path))
+  );
+}
+
+function parseDesktopMatterWriteBody(body) {
+  if (typeof body !== "string" || !body.trim()) return null;
+  try {
+    const parsed = JSON.parse(body);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetchImpl = globalThis.fetch, ...config }) {
   if (!baseUrl) throw new MatterVaultRuntimeConfigError("Matter-Vault runtime base URL is required");
   if (typeof fetchImpl !== "function") throw new MatterVaultRuntimeConfigError("fetch implementation is required");
+  const runtimeBaseIsLoopback = isLoopbackBaseUrl(baseUrl);
 
   const requestJson = async (path, { method = "GET", body, actorEmail, authRequired = true, authToken, headers: extraHeaders = {} } = {}) => {
     const credential = authToken ?? (authRequired ? operatorToken : "");
@@ -231,7 +268,18 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
 
   const requestRuntimeApi = async ({ path, method = "GET", headers = {}, body = null, sessionToken } = {}) => {
     const safeMethod = String(method ?? "GET").toUpperCase();
-    if (safeMethod !== "GET") {
+    const safePath = typeof path === "string" ? path.trim() : "";
+    const signedSessionToken = typeof sessionToken === "string" ? sessionToken.trim() : "";
+    if (!signedSessionToken) {
+      return {
+        ok: false,
+        reason: "desktop_runtime_session_required",
+        http_status: 401,
+        token_material_returned: false
+      };
+    }
+    const allowedMatterWrite = isDesktopMatterWriteRoute(safeMethod, safePath);
+    if (safeMethod !== "GET" && !allowedMatterWrite) {
       return {
         ok: false,
         reason: "desktop_runtime_read_bridge_get_only",
@@ -239,12 +287,20 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
         token_material_returned: false
       };
     }
-    const safePath = typeof path === "string" ? path.trim() : "";
     if (!safePath.startsWith("/api/") && !safePath.startsWith("/master-data/")) {
       return {
         ok: false,
         reason: "desktop_runtime_read_bridge_path_blocked",
         http_status: 403,
+        token_material_returned: false
+      };
+    }
+    const parsedBody = allowedMatterWrite ? parseDesktopMatterWriteBody(body) : body;
+    if (allowedMatterWrite && !parsedBody) {
+      return {
+        ok: false,
+        reason: "desktop_runtime_write_body_invalid",
+        http_status: 400,
         token_material_returned: false
       };
     }
@@ -268,9 +324,9 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
     }
     const response = await requestJson(safePath, {
       method: safeMethod,
-      body,
+      body: parsedBody,
       headers: forwardedHeaders,
-      authToken: sessionToken,
+      authToken: signedSessionToken,
       authRequired: true
     });
     return {
@@ -328,7 +384,12 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       if (operatorToken) {
         return requestJson("/api/desktop/login", { method: "POST", body: { email, password } });
       }
-      return requestJson("/api/auth/login", { method: "POST", body: { email, password }, authRequired: false });
+      const localDevCredential = runtimeBaseIsLoopback ? localDevCredentialForEmail(email) : "";
+      return requestJson("/api/auth/login", {
+        method: "POST",
+        body: { email, password: localDevCredential || password },
+        authRequired: false
+      });
     },
     async features({ email, sessionToken } = {}) {
       if (!sessionToken && operatorToken) return requestJson("/api/matter-vault/features", { actorEmail: email });

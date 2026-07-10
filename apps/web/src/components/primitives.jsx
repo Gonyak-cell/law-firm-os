@@ -13,15 +13,18 @@ export function PageHeader({ eyebrow, title, subtitle, actions, heroTakeover = f
   );
 }
 
-export function Panel({ id, title, meta, children, className = "" }) {
+export function Panel({ id, title, meta, children, className = "", hideHeader = false }) {
+  const shouldShowHeader = !hideHeader && (title || meta);
   return (
-    <section id={id} className={`panel ${className}`}>
-      <header className="panel-head">
-        <div>
-          <h2>{title}</h2>
-          {meta && <span>{meta}</span>}
-        </div>
-      </header>
+    <section id={id} className={`panel ${hideHeader ? "panel--headerless" : ""} ${className}`} aria-label={hideHeader && title ? title : undefined}>
+      {shouldShowHeader && (
+        <header className="panel-head">
+          <div>
+            {title && <h2>{title}</h2>}
+            {meta && <span>{meta}</span>}
+          </div>
+        </header>
+      )}
       <div className="panel-body">{children}</div>
     </section>
   );

@@ -313,7 +313,7 @@ export function PermissionAdminPanel() {
       <Panel title="권한 범위" meta={`${ethicsPermissionLinks.length}개`} className="people-admin-panel">
         <div className="people-panel-kicker" data-lcx-ppl-06-permission-linkage="true">
           <ShieldCheck size={14} />
-          이해상충·접근 제한 민감 항목과 권한 세트 연결을 확인합니다.
+          이해상충과 접근 제한 민감 항목의 권한 세트 연결을 확인합니다.
         </div>
         <DataTable
           columns={["항목", "필요 역할", "권한 세트", "표시"]}

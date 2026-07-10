@@ -2,11 +2,11 @@ import React from "react";
 
 export const GUARDED_STATE_COPY = Object.freeze({
   not_configured: Object.freeze({ label: "설정 필요", tone: "review", detail: "운영 기준을 정한 뒤 진행합니다." }),
-  preflight_required: Object.freeze({ label: "사전검사 필요", tone: "review", detail: "권한과 대상 범위를 먼저 확인합니다." }),
+  preflight_required: Object.freeze({ label: "준비 확인 필요", tone: "review", detail: "대상 범위를 먼저 확인합니다." }),
   owner_blocked: Object.freeze({ label: "승인 대기", tone: "review", detail: "책임자 승인 전에는 실행하지 않습니다." }),
-  provider_blocked: Object.freeze({ label: "외부 확인 대기", tone: "review", detail: "제공자 receipt 없이는 실행하지 않습니다." }),
-  audit_required: Object.freeze({ label: "감사 필요", tone: "review", detail: "사유와 권한 기록이 필요합니다." }),
-  write_disabled: Object.freeze({ label: "쓰기 차단", tone: "empty", detail: "이 화면은 상태 확인만 허용합니다." }),
+  provider_blocked: Object.freeze({ label: "외부 확인 대기", tone: "review", detail: "외부 발송 준비가 필요합니다." }),
+  audit_required: Object.freeze({ label: "감사 필요", tone: "review", detail: "사유 기록이 필요합니다." }),
+  write_disabled: Object.freeze({ label: "대기", tone: "empty", detail: "현재 상태를 확인하세요." }),
   ready_read_only: Object.freeze({ label: "확인됨", tone: "empty", detail: "읽기 또는 요청 패키지만 가능합니다." })
 });
 
@@ -64,7 +64,7 @@ export function GuardedReceiptRow({ kind, state = "write_disabled", title, detai
       "div",
       { className: "vault-action-boundary-meta" },
       React.createElement("span", null, kind),
-      React.createElement("span", null, receiptRef || "receipt 없음")
+      React.createElement("span", null, receiptRef || "대기")
     )
   );
 }

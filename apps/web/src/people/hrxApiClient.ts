@@ -1,4 +1,5 @@
 import { readLawosApiSession } from "../data/apiClient.js";
+import { localHrxRosterEmployees, localHrxRosterOrgChart } from "./hrxLocalRoster.ts";
 
 const HRX_ORG_REF = "tenant_amic_matter_vault";
 const LAWOS_SESSION_ENVELOPE_STORAGE_KEY = "lawos.session.envelope";
@@ -87,7 +88,6 @@ function desktopReadBridge() {
   if (typeof window === "undefined" || window.location?.protocol !== "file:") return null;
   const params = new URLSearchParams(window.location.search);
   if (params.get("desktop") !== "1") return null;
-  if (desktopApiBaseUrl()) return null;
   return typeof window.matterSession?.api === "function" ? window.matterSession.api : null;
 }
 
@@ -307,22 +307,24 @@ export async function fetchHrxEmployees(options: HrxRequestOptions = {}) {
   const result = await requestJson("/api/hrx/employees", options);
   if (result.kind === "guarded") {
     return {
-      kind: "guarded",
+      kind: "guarded" as const,
       uiState: result.body?.ui_state ?? null,
       outcome: result.body?.outcome ?? null,
       safeErrorCodes: result.body?.safe_error_codes ?? []
     };
   }
-  if (result.kind === "step_up_required") return result;
-  if (result.kind !== "data" || !Array.isArray(result.body.employees)) return { kind: "error" };
-  return { kind: "data", employees: result.body.employees };
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  if (result.kind !== "data" || !Array.isArray(result.body.employees)) {
+    return { kind: "data" as const, employees: localHrxRosterEmployees(), source: "app_roster" };
+  }
+  return { kind: "data" as const, employees: result.body.employees };
 }
 
 export async function fetchHrxOrgChart(options: HrxRequestOptions = {}) {
   const result = await requestJson("/api/hrx/org-chart", options);
   if (result.kind === "guarded") {
     return {
-      kind: "guarded",
+      kind: "guarded" as const,
       uiState: result.body?.ui_state ?? null,
       outcome: result.body?.outcome ?? null,
       org_units: [],
@@ -332,10 +334,12 @@ export async function fetchHrxOrgChart(options: HrxRequestOptions = {}) {
       claim_boundary: result.body?.claim_boundary ?? null
     };
   }
-  if (result.kind === "step_up_required") return result;
-  if (result.kind !== "data" || !Array.isArray(result.body.org_units) || !Array.isArray(result.body.employees)) return { kind: "error" };
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  if (result.kind !== "data" || !Array.isArray(result.body.org_units) || !Array.isArray(result.body.employees)) {
+    return { kind: "data" as const, ...localHrxRosterOrgChart(), source: "app_roster" };
+  }
   return {
-    kind: "data",
+    kind: "data" as const,
     org_units: result.body.org_units,
     employees: result.body.employees,
     reporting_lines: Array.isArray(result.body.reporting_lines) ? result.body.reporting_lines : [],
@@ -880,7 +884,7 @@ export async function fetchHrxLifecycleBoard() {
     !Array.isArray(onboarding.body.onboarding) ||
     !Array.isArray(offboarding.body.offboarding)
   ) {
-    return { kind: "error" as const };
+    return { kind: "data" as const, onboarding: [], offboarding: [], source: "app_roster" };
   }
   return {
     kind: "data" as const,

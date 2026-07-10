@@ -2,12 +2,17 @@ import React from "react";
 import forestBg from "../assets/forest-bg.jpg";
 import { useSkin } from "../context/SkinContext.jsx";
 
-export function ForestHero({ title, subtitle = null, image = forestBg, imageOpacity = 0.18, children = null }) {
+export function ForestHero({ title, subtitle = null, image = forestBg, imageOpacity = 0.18, actions = null, children = null }) {
   const skin = useSkin();
   if (skin !== "forest") return null;
+  const heroClassName = [
+    "forest-hero",
+    children ? "forest-hero-with-stats" : "",
+    actions ? "forest-hero-with-actions" : ""
+  ].filter(Boolean).join(" ");
 
   return (
-    <div className={children ? "forest-hero forest-hero-with-stats" : "forest-hero"}>
+    <div className={heroClassName}>
       {image && (
         <img
           className="forest-hero-image"
@@ -23,6 +28,7 @@ export function ForestHero({ title, subtitle = null, image = forestBg, imageOpac
           {subtitle && <p>{subtitle}</p>}
         </div>
         {children && <div className="forest-hero-stats">{children}</div>}
+        {actions && <div className="forest-hero-actions">{actions}</div>}
       </div>
     </div>
   );

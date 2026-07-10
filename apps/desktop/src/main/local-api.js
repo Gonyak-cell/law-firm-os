@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync } from "node:fs";
+import { homedir } from "node:os";
 import { dirname, join, parse } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -6,6 +7,13 @@ const moduleDir = dirname(fileURLToPath(import.meta.url));
 const desktopRuntimeStoreDirName = "runtime-stores";
 const mkdirParentDirectoriesOption = Object.freeze({ ["recursive"]: true });
 const localDevRuntimeProfile = "local-dev";
+export const LAWOS_DURABLE_RUNTIME_HOME = join(
+  homedir(),
+  "Library",
+  "Application Support",
+  "LawFirmOS",
+  desktopRuntimeStoreDirName
+);
 const DESKTOP_STORE_PATH_MANIFEST = Object.freeze([
   ["hrxStorePath", "LAWOS_HRX_STORE_PATH", "hrx-store.json"],
   ["masterDataStorePath", "LAWOS_MASTER_DATA_STORE_PATH", "master-data-store.json"],
@@ -54,8 +62,8 @@ export function desktopRuntimeStorePaths({
   mkdirSyncImpl = mkdirSync,
   userDataPath
 } = {}) {
-  const storeDir =
-    env.MATTER_DESKTOP_RUNTIME_STORE_DIR || (userDataPath ? join(userDataPath, desktopRuntimeStoreDirName) : null);
+  const storeDir = env.MATTER_DESKTOP_RUNTIME_STORE_DIR || LAWOS_DURABLE_RUNTIME_HOME ||
+    (userDataPath ? join(userDataPath, desktopRuntimeStoreDirName) : null);
   if (!storeDir) return Object.freeze({});
   mkdirSyncImpl(storeDir, mkdirParentDirectoriesOption);
   return Object.freeze(

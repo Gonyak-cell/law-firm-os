@@ -8,6 +8,7 @@ import {
   collectMatterDeepLinkArgs,
   configureDesktopAppIcon,
   configureDesktopProtocol,
+  desktopSecureStoreForRuntime,
   desktopPreloadPath,
   desktopWindowIconPath,
   desktopUserDataPath,
@@ -15,10 +16,13 @@ import {
   passwordResetDeepLinkIntent,
   packagedRendererUrl,
   sendPasswordResetDeepLink,
+  shouldStartDesktopLocalApi,
+  shouldUseVolatileDesktopSessionStore,
   shouldAutoStartElectronApp,
   startDesktopShell
 } from "../src/main/main.js";
 import {
+  LAWOS_DURABLE_RUNTIME_HOME,
   desktopRuntimeStorePaths,
   desktopApiServerEntryCandidates,
   resolveDesktopApiServerEntry,
@@ -75,6 +79,9 @@ test("desktop shell starts with packaged renderer target, preload, and hardened 
 
   assert.equal(target, packagedRendererUrl());
   assert.equal(window.loadedURL, packagedRendererUrl());
+  const packagedUrl = new URL(packagedRendererUrl());
+  assert.equal(packagedUrl.pathname.endsWith("/renderer/web/index.html"), true);
+  assert.equal(packagedUrl.searchParams.get("desktop"), "1");
   assert.equal(window.options.webPreferences.nodeIntegration, false);
   assert.equal(window.options.webPreferences.contextIsolation, true);
   assert.equal(window.options.webPreferences.sandbox, true);
@@ -106,7 +113,7 @@ test("desktop shell can resolve bundled or repo-local API server for web rendere
   );
 });
 
-test("desktop local API maps runtime stores under Electron userData", () => {
+test("desktop local API maps runtime stores under the durable LawFirmOS home", () => {
   const userDataPath = join("/Users/test/Library/Application Support", "matter");
   const madeDirs = [];
   const stores = desktopRuntimeStorePaths({
@@ -116,7 +123,7 @@ test("desktop local API maps runtime stores under Electron userData", () => {
       madeDirs.push({ dir, options });
     }
   });
-  const storeDir = join(userDataPath, "runtime-stores");
+  const storeDir = LAWOS_DURABLE_RUNTIME_HOME;
 
   assert.deepEqual(madeDirs, [{ dir: storeDir, options: { recursive: true } }]);
   assert.equal(stores.hrxStorePath, join(storeDir, "hrx-store.json"));
@@ -172,11 +179,52 @@ test("desktop userData can be isolated for packaged QA runs", () => {
   assert.equal(desktopUserDataPath(app, {}), "/default/user-data");
 });
 
-test("desktop local API starts bundled API with userData-backed stores", async () => {
+test("desktop local API starts by default and only the explicit disable flag turns it off", () => {
+  assert.equal(shouldStartDesktopLocalApi({}), true);
+  assert.equal(shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_ENABLED: "0" }), true);
+  assert.equal(shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_DISABLED: "1" }), false);
+});
+
+test("desktop uses volatile session storage for loopback local API to avoid Keychain prompts", async () => {
+  const localRuntimeClient = {
+    runtimeStatus() {
+      return {
+        baseUrl: "http://127.0.0.1:4812",
+        operatorRuntimeConfigured: false
+      };
+    }
+  };
+  const remoteRuntimeClient = {
+    runtimeStatus() {
+      return {
+        baseUrl: "https://73o8hpqpgl.execute-api.ap-northeast-2.amazonaws.com/staging",
+        operatorRuntimeConfigured: true
+      };
+    }
+  };
+  const safeStorage = {
+    isEncryptionAvailable: () => true,
+    encryptString: (value) => Buffer.from(value),
+    decryptString: (value) => value.toString()
+  };
+
+  assert.equal(shouldUseVolatileDesktopSessionStore(localRuntimeClient), true);
+  assert.equal(shouldUseVolatileDesktopSessionStore(remoteRuntimeClient), false);
+
+  const localStore = desktopSecureStoreForRuntime({
+    runtimeClient: localRuntimeClient,
+    filePath: "/tmp/should-not-write-secure-session-store.json",
+    safeStorage
+  });
+  await localStore.set("session_token", "local-session-token");
+  assert.deepEqual(localStore.snapshot(), { session_token: "local-session-token" });
+});
+
+test("desktop local API starts bundled API with durable LawFirmOS stores", async () => {
   const packagedStart = "/App/Contents/Resources/app/src/main";
   const packagedEntry = "/App/Contents/Resources/app/runtime/apps/api/src/server.js";
   const userDataPath = join("/Users/test/Library/Application Support", "matter");
-  const storeDir = join(userDataPath, "runtime-stores");
+  const storeDir = LAWOS_DURABLE_RUNTIME_HOME;
   let apiOptions = null;
   const localApi = await startDesktopLocalApiServer({
     env: {},

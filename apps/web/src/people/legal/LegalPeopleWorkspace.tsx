@@ -18,12 +18,12 @@ const TYPE_FILTERS = [
 const MODE_META = {
   directory: {
     title: "Matter 참여자 확인",
-    meta: "Client·Matter 관련 기록",
+    meta: "관련 기록",
     kicker: "권한 범위 안에서 Matter 참여자와 이해상충 검토 상태를 확인합니다."
   },
   relationships: {
     title: "관련 기록",
-    meta: "Client·Matter",
+    meta: "관련 기록",
     kicker: "선택한 참여자의 Client, Matter, 조직 관련 기록을 권한 범위 안에서 봅니다."
   },
   conflicts: {
@@ -203,7 +203,7 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
                   <span className="people-row-avatar">{photo ? <img src={photo} alt="" /> : person.display_name?.slice(0, 1) ?? "P"}</span>
                   <span>
                     <strong>{person.display_name}</strong>
-                    <small>{person.korean_label} · {person.organization_label ?? "조직 미등록"}</small>
+                    <small>{person.korean_label}, {person.organization_label ?? "조직 미등록"}</small>
                   </span>
                   <em>{statusLabel(person.status)}</em>
                 </button>
@@ -231,7 +231,7 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
               </span>
               <div>
                 <strong>{detail.person.display_name}</strong>
-                <small>{detail.person.korean_label} · {detail.person.primary_role ?? "역할 미등록"}</small>
+                <small>{detail.person.korean_label}, {detail.person.primary_role ?? "역할 미등록"}</small>
               </div>
               <em>{detail.person.permission_summary?.sensitive_fields_visible ? "상세 권한" : "제한 보기"}</em>
             </div>
@@ -263,13 +263,13 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
         )}
       </Panel>
 
-      <Panel id="people-relationship-panel" className="people-panel legal-people-relationships" title="Client·Matter 관련 기록" meta={`${relationships.length}개`}>
+      <Panel id="people-relationship-panel" className="people-panel legal-people-relationships" title="관련 기록" meta={`${relationships.length}개`}>
         <div className="people-panel-kicker">
           <Link2 size={15} />
           Client, Matter, 조직 관련 기록과 권한 상태를 함께 보여줍니다.
         </div>
-        {relationshipResult === null && <div className="live-data-state live-data-loading">Client·Matter 관련 기록을 불러오는 중입니다</div>}
-        {relationshipResult?.kind === "error" && <div className="live-data-state live-data-error">Client·Matter 관련 기록을 불러오지 못했습니다.</div>}
+        {relationshipResult === null && <div className="live-data-state live-data-loading">관련 기록을 불러오는 중입니다</div>}
+        {relationshipResult?.kind === "error" && <div className="live-data-state live-data-error">관련 기록을 불러오지 못했습니다.</div>}
         {relationships.length === 0 && relationshipResult?.kind === "data" && <div className="live-data-state live-data-empty">표시할 관련 기록이 없습니다.</div>}
         {relationships.length > 0 && (
           <div className="legal-relationship-list">
@@ -300,8 +300,8 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
               {reviewQueue.map((item) => (
                 <div key={item.review_item_id} className={`legal-ethics-row ${item.state}`}>
                   <div>
-                    <strong>{reviewTypeLabel(item.review_type)} · {reviewStateLabel(item.state)}</strong>
-                    <small>{item.related_ref} · {item.reviewer_role_required}</small>
+                    <strong>{reviewTypeLabel(item.review_type)}, {reviewStateLabel(item.state)}</strong>
+                    <small>{item.related_ref}, {item.reviewer_role_required}</small>
                   </div>
                   <span>{priorityLabel(item.priority)}</span>
                   <em>{item.ai_final_decision_allowed ? "확인 필요" : "사람 검토"}</em>
@@ -325,7 +325,7 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
                 <div key={wall.wall_ref_id} className={`legal-ethics-row ${wall.wall_status}`}>
                   <div>
                     <strong>{reviewStateLabel(wall.wall_status)}</strong>
-                    <small>{wall.matter_id} · {wall.reason_code}</small>
+                    <small>{wall.matter_id}, {wall.reason_code}</small>
                   </div>
                   <span>{wall.access_effect}</span>
                   <em>{wall.reviewer_receipt_id ? "검토 기록" : "대기"}</em>
@@ -349,7 +349,7 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
                 <div key={receipt.receipt_id} className={receipt.access_state === "restricted" ? "legal-ethics-row restricted" : "legal-ethics-row"}>
                   <div>
                     <strong>{receipt.decision}</strong>
-                    <small>{receipt.reviewer_role} · {receipt.review_item_id}</small>
+                    <small>{receipt.reviewer_role}, {receipt.review_item_id}</small>
                   </div>
                   <span>{receipt.rollback_ref ? "되돌림 기준" : "제한"}</span>
                   <em>{receipt.ai_final_decision_allowed ? "확인 필요" : "사람 검토"}</em>

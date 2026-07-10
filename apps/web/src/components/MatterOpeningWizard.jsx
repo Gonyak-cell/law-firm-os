@@ -15,6 +15,8 @@ function openingPayload({
   matterNumberSeed,
   legalClientPartyId,
   billingClientPartyId,
+  matterType,
+  litigationAxis,
   clearanceToken
 }) {
   return {
@@ -29,6 +31,9 @@ function openingPayload({
       tenant_id: TENANT_ID,
       legal_client_party_id: legalClientPartyId,
       billing_client_party_id: billingClientPartyId,
+      matter_type_english: matterType,
+      matter_litigation_axis: matterType === "LIT" ? litigationAxis : null,
+      matter_detail_type_korean: title,
       title,
       status: "opening",
       matter_number: matterNumberSeed,
@@ -47,13 +52,18 @@ export function MatterOpeningWizard({ liveCtx = "allow", onCreated }) {
     title: "",
     matterNumberSeed: "",
     legalClientPartyId: "",
-    billingClientPartyId: ""
+    billingClientPartyId: "",
+    matterType: "LIT",
+    litigationAxis: "CIV"
   });
   const [clearanceTokens, setClearanceTokens] = useState([]);
   const [selectedClearanceTokenId, setSelectedClearanceTokenId] = useState("");
   const [result, setResult] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const canSubmit = Object.values(form).every((value) => value.trim().length > 0) && selectedClearanceTokenId.trim().length > 0;
+  const canSubmit = ["matterId", "title", "matterNumberSeed", "legalClientPartyId", "billingClientPartyId", "matterType"]
+    .every((field) => form[field].trim().length > 0)
+    && (form.matterType !== "LIT" || form.litigationAxis.trim().length > 0)
+    && selectedClearanceTokenId.trim().length > 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -121,6 +131,25 @@ export function MatterOpeningWizard({ liveCtx = "allow", onCreated }) {
           <span>청구 Client</span>
           <input value={form.billingClientPartyId} onChange={update("billingClientPartyId")} />
         </label>
+        <label>
+          <span>업무 유형</span>
+          <select value={form.matterType} onChange={update("matterType")}>
+            <option value="LIT">소송</option>
+            <option value="DEAL">Deal</option>
+            <option value="Advisory">기업자문</option>
+            <option value="Dispute">분쟁</option>
+          </select>
+        </label>
+        {form.matterType === "LIT" && (
+          <label>
+            <span>소송 구분</span>
+            <select value={form.litigationAxis} onChange={update("litigationAxis")}>
+              <option value="CIV">민사소송</option>
+              <option value="CRM">형사소송</option>
+              <option value="ADM">행정소송</option>
+            </select>
+          </label>
+        )}
         <label>
           <span>이해상충 클리어런스</span>
           <select value={selectedClearanceTokenId} onChange={(event) => setSelectedClearanceTokenId(event.target.value)}>
