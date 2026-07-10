@@ -229,10 +229,28 @@ function appendFinanceSensitiveReadAudit({ repository, context, query, action, r
   });
 }
 
+function requiredFinanceScope(action = "") {
+  if (["finance:time:approve", "finance:prebill:approve", "finance:prebill:reject"].includes(action)) return "finance.approve";
+  if (action.startsWith("finance:time:")) return "finance.time.write";
+  if (action.startsWith("finance:expense:") || action.startsWith("finance:disbursement:")) return "finance.expense.write";
+  if (action.startsWith("finance:payment:") || action.startsWith("finance:payment_match:") || action.startsWith("finance:trust_ledger:")) return "finance.payment.write";
+  if (action.startsWith("finance:accounting_export:")) return "finance.export";
+  if (action.startsWith("finance:audit:")) return "finance.audit.read";
+  if (action.startsWith("finance:ar:")) return "analytics.finance.read";
+  if (["finance:fee_arrangement:", "finance:wip:", "finance:wip_snapshot:", "finance:prebill:", "finance:invoice:"].some((prefix) => action.startsWith(prefix))) return "finance.billing.write";
+  return null;
+}
+
+function explicitScopeDecision(context, requiredScope) {
+  const scopes = context?.principal?.scopes;
+  if (!requiredScope || !Array.isArray(scopes) || scopes.includes(requiredScope)) return null;
+  return { effect: "deny", reason: `finance_scope_required:${requiredScope}`, fail_closed: true };
+}
+
 function routeGate({ context, query, requestId, action, resourceType, repository }) {
   const invalid = validateCommon(query, requestId);
   if (invalid) return invalid;
-  const decision = evaluateRouteDecision({
+  const decision = explicitScopeDecision(context, requiredFinanceScope(action)) ?? evaluateRouteDecision({
     context,
     resource: { tenant_id: query.tenant_id, resource_type: resourceType },
     action,

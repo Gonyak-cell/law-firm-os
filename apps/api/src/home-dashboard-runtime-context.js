@@ -873,12 +873,14 @@ function collectHrxApprovalItems(hrxRuntime, { tenant_id } = {}) {
 }
 
 function mapMatterApproval(record = {}) {
+  const financeText = `${record.object_type ?? ""} ${record.title ?? ""} ${record.approval_type ?? ""}`.toLowerCase();
+  const subtype = /(finance|billing|prebill|invoice|expense|time entry|정산|청구|비용)/.test(financeText) ? "finance" : "matter";
   return Object.freeze({
     id: `matter_approval:${record.approval_request_id ?? record.resource_id}`,
     resource_id: `matter_approval:${record.approval_request_id ?? record.resource_id}`,
     tenant_id: record.tenant_id,
     type: "approval",
-    subtype: "matter",
+    subtype,
     title: record.title ?? "Matter approval request",
     requester: record.requester ?? record.created_by ?? record.actor_id ?? null,
     due_at: record.due_at ?? record.created_at ?? null,

@@ -77,6 +77,7 @@ const requestFilters = Object.freeze([
   { id: "all", section: "requests-inbox", labelKey: "requestFilterAll", label: "전체", subtypes: [] },
   { id: "leave", section: "requests-leave", labelKey: "requestFilterLeave", label: "휴가", subtypes: ["leave"] },
   { id: "expenses", section: "requests-expenses", labelKey: "requestFilterExpenses", label: "비용", subtypes: ["cost", "expense", "expenses"] },
+  { id: "finance", section: "requests-finance", labelKey: "requestFilterFinance", label: "재무", subtypes: ["finance", "billing", "prebill", "invoice"] },
   { id: "certificates", section: "requests-certificates", labelKey: "requestFilterCertificates", label: "증명서", subtypes: ["certificate", "certificates"] },
   { id: "attendance", section: "requests-attendance", labelKey: "requestFilterAttendance", label: "근무기록", subtypes: ["attendance", "work_record"] },
   { id: "custom", section: "requests-custom", labelKey: "requestFilterCustom", label: "커스텀", subtypes: ["custom"] },
@@ -450,6 +451,7 @@ function requestSubtypeKey(item) {
 
 function filterRequestItems(items, filterId) {
   if (filterId === "all") return items;
+  if (filterId === "finance") return items.filter((item) => ["finance", "expenses"].includes(requestSubtypeKey(item)));
   return items.filter((item) => requestSubtypeKey(item) === filterId);
 }
 
@@ -458,10 +460,11 @@ function activeHomeContext(activeSection, redirectedFrom) {
   const requestSection = redirectedSection(redirectedFrom, "requests");
   const esignSection = redirectedSection(redirectedFrom, "esign");
   const companySection = redirectedSection(redirectedFrom, "reports");
+  const routeFilter = redirectedFrom?.filter ?? new URLSearchParams(globalThis.location?.search ?? "").get("filter");
   return {
     messageTab: tabIdFromSection(messageTabs, messageSection, "send"),
     requestTab: requestSection.includes("sent") ? "sent" : "received",
-    requestFilter: requestFilterFromSection(requestSection),
+    requestFilter: routeFilter === "finance" ? "finance" : requestFilterFromSection(requestSection),
     esignTab: tabIdFromSection(esignTabs, esignSection, "send"),
     companyTab: companyTabFromSection(companySection),
     section: homeSectionMeta[activeSection] ? activeSection : "home-dashboard"

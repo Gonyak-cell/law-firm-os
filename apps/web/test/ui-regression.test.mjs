@@ -91,7 +91,7 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   assert.doesNotMatch(shellSource, />공통<|aria-label="공통 메뉴"/);
   assert.doesNotMatch(shellSource, /"sidebar-item global-sidebar-item/);
   assert.match(shellSource, /<span className="sidebar-icon"><Icon size=\{16\} \/><\/span>/);
-  assert.match(shellSource, /function homeSidebarMeta\(labels = \{\}\)/);
+  assert.match(shellSource, /function homeSidebarMeta\(labels = \{\}, financeAccessRecords = \[\]\)/);
   for (const key of ["homeDashboardLabel", "homeMessagesLabel", "homeRequestsLabel", "homeEsignLabel", "homeCompanyLabel", "homeDataImportLabel", "homeSettingsLabel"]) {
     assert.match(homeSidebarSource, new RegExp(`shellLabel\\(labels, "${key}"`));
     assert.match(i18nSource, new RegExp(`${key}:`));

@@ -186,6 +186,7 @@ function createSourceRuntime({ failMatterTasks = false } = {}) {
           model_type: "MatterBuilderApprovalRequest",
           approval_request_id: "matter-approval-source-001",
           matter_id: "matter-source-001",
+          title: "PreBill 정산 승인",
           status: "pending_owner_approval",
           created_at: "2026-07-07T02:00:00.000Z",
         },
@@ -373,6 +374,7 @@ test("Home dashboard aggregates HRX, Matter, AI, agenda, notice, and Vault newsl
     assert.equal(approvals.body.outcome, "passed");
     assert.ok(approvals.body.items.some((item) => item.id === "hrx_approval:approval-source-leave-001"));
     assert.ok(approvals.body.items.some((item) => item.id === "matter_approval:matter-approval-source-001"));
+    assert.equal(approvals.body.items.find((item) => item.id === "matter_approval:matter-approval-source-001").subtype, "finance");
     assert.ok(approvals.body.items.some((item) => item.id === "ai_review:ai-review-source-001"));
     assert.ok(approvals.body.source_statuses.every((status) => status.status === "ok"));
 

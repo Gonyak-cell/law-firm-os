@@ -84,6 +84,22 @@ test("G7 Finance list routes are permission gated and hide finance secrets", asy
   });
 });
 
+test("WP-FIN-5 signed staff sessions cannot read finance data and denial is audited", async () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [{ model_type: "Invoice", invoice_id: "invoice-wp-fin-5", tenant_id: TENANT, matter_id: "matter-wp-fin-5", amount_due: 100, currency: "KRW", status: "issued" }],
+  });
+  await withServer(async (baseUrl) => {
+    const denied = await json(baseUrl, `/api/finance/invoices?${BASE_QUERY}`, { account: NON_PARTNER_ACCOUNT });
+    assert.equal(denied.status, 403);
+    assert.deepEqual(denied.body.items, []);
+    assert.equal(denied.body.count_leak_prevented, true);
+    const audit = financeRepository.listAudit({ tenant_id: TENANT });
+    assert.equal(audit.at(-1).decision, "deny");
+    assert.equal(audit.at(-1).reason, "finance_scope_required:finance.billing.write");
+    assert.equal(audit.at(-1).metadata.raw_payload_included, false);
+  }, { financeRepository });
+});
+
 test("WP-FIN-2 exposes sanitized Payment and PaymentMatch read routes", async () => {
   const financeRepository = createFinanceRepository({
     seedRecords: [
@@ -1145,7 +1161,7 @@ test("G7 approval expense disbursement and WIP lock routes feed WIP sources", as
     assert.ok(audit.body.items.some((event) => event.action === "prebill.reject"));
     assert.ok(audit.body.items.some((event) => event.action === "invoice.issue"));
     assert.ok(audit.body.items.some((event) => event.action === "payment.match"));
-    assert.ok(audit.body.items.some((event) => event.reason === "finance_partner_role_required"));
+    assert.ok(audit.body.items.some((event) => event.reason === "finance_scope_required:finance.approve"));
   }, { financeRepository });
 });
 

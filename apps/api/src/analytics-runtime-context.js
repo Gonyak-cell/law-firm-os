@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { createAnalyticsRepository } from "../../../packages/analytics/src/runtime-repository.js";
 import {
   refreshAnalyticsReadModels,
@@ -121,15 +122,45 @@ function validateCommon(query, requestId) {
   return null;
 }
 
-function routeGate({ context, query, requestId, action, resourceType }) {
+function appendAnalyticsRouteAudit({ repository, context, query, action, resourceType, decision } = {}) {
+  if (!repository || typeof repository.appendAudit !== "function" || !query?.tenant_id || decision?.effect === "allow") return null;
+  return repository.appendAudit({
+    event_id: `analytics_route_${randomUUID()}`,
+    tenant_id: query.tenant_id,
+    actor_id: context?.principal?.user_id ?? context?.principal?.actor_id ?? "unknown_actor",
+    action,
+    object_type: resourceType,
+    object_id: resourceType,
+    decision: ["review_required", "approval_required"].includes(decision?.effect) ? decision.effect : "deny",
+    reason: decision?.reason ?? "analytics_route_denied",
+    occurred_at: new Date().toISOString(),
+    metadata: {
+      permission_ref: query.permission_ref ?? null,
+      audit_hint_ref: query.audit_hint_ref ?? null,
+      fail_closed: Boolean(decision?.fail_closed),
+      denied_route_audit: true,
+      raw_payload_included: false,
+      credential_material_included: false,
+    },
+  });
+}
+
+function routeGate({ context, query, requestId, action, resourceType, repository }) {
   const invalid = validateCommon(query, requestId);
   if (invalid) return invalid;
-  const decision = evaluateRouteDecision({
+  const explicitScopes = context?.principal?.scopes;
+  const financeScopeDenied = action === "analytics:finance:read" && Array.isArray(explicitScopes) && !explicitScopes.includes("analytics.finance.read");
+  const decision = financeScopeDenied ? {
+    effect: "deny",
+    reason: "finance_scope_required:analytics.finance.read",
+    fail_closed: true,
+  } : evaluateRouteDecision({
     context,
     resource: { tenant_id: query.tenant_id, resource_type: resourceType },
     action,
   });
   if (decision.effect === "allow") return null;
+  appendAnalyticsRouteAudit({ repository, context, query, action, resourceType, decision });
   if (decision.effect === "review_required" || decision.effect === "approval_required") {
     return {
       status: 200,
@@ -210,6 +241,7 @@ function financeReadModelResponse({ kind, query, context, requestId, runtime }) 
     requestId,
     action: "analytics:finance:read",
     resourceType: "finance_read_model",
+    repository: runtime.repository,
   });
   if (gated) return gated;
   try {

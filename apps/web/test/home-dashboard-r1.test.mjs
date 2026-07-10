@@ -372,6 +372,7 @@ test("WP-FIN-1 resolves finance and Matter settlement routes into Home", async (
   const approvals = await renderAppAtLegacyRoute({ view: "matters", section: "matter-approvals" });
   assert.match(approvals, /data-active-home-section="home-requests"/);
   assert.match(approvals, /data-home-section-screen="home-requests"/);
+  assert.match(approvals, /data-home-request-filter="finance"/);
 });
 
 test("WP-FIN-1 preserves Matter context and sidebar state in the browser", async () => {
@@ -520,6 +521,49 @@ test("WP-FIN-4 runs the shared Matter finance workflow from Home", async () => {
     for (const expected of ["POST /api/finance/time-entries", "POST /api/finance/expenses", "POST /api/finance/disbursements", "POST /api/finance/wip", "POST /api/finance/wip-snapshots", "POST /api/finance/prebills", "POST /api/finance/prebills/approve", "POST /api/finance/invoices", "POST /api/finance/payments", "POST /api/finance/payment-matches", "GET /api/finance/accounting-export.csv"]) {
       assert.ok(calls.includes(expected), `missing ${expected}`);
     }
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
+test("WP-FIN-5 exposes only scoped finance navigation and hides accounting export", async () => {
+  const port = await availablePort();
+  const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    await page.addInitScript(() => {
+      window.__LAWOS_SESSION_CONTEXT__ = {
+        schema_version: "law-firm-os.desktop-web-session-envelope.v0.1",
+        state: "signed_in",
+        session_ref: "session:wp-fin-5",
+        source: "wp-fin-5-browser-test",
+        actor_ref: "user_scoped_expense",
+        tenant_refs: { default: "tenant_amic_matter_vault", finance: "tenant_cmp_g7_synthetic" },
+        role_ids: ["lawos_staff"],
+        scopes: ["matter.read", "finance.expense.write"],
+        expires_at: "2099-01-01T00:00:00.000Z",
+        review_state: "allow",
+      };
+    });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname === "/api/matters") return jsonResponse(route, { request_id: "wp-fin-5-matters", outcome: "passed", items: [{ matter_id: "matter-scoped", matter_code: "2026-005", title: "권한 검수" }], safe_error_codes: [], audit_hint_ref: "wp-fin-5-audit", page_info: { next_cursor: null }, count_leak_prevented: true, production_ready_claim: false });
+      if (["/api/finance/time-entries", "/api/finance/invoices", "/api/finance/ar-aging", "/api/finance/audit"].includes(url.pathname)) return jsonResponse(route, { request_id: "wp-fin-5-list", outcome: "passed", items: [], safe_error_codes: [], audit_hint_ref: "wp-fin-5-audit", page_info: { next_cursor: null, returned_count: 0 }, count_leak_prevented: true, production_ready_claim: false });
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, { decisionCalls: 0, newsCalls: 0 }));
+    });
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow&matter_id=matter-scoped#home-finance-billing`, { waitUntil: "networkidle" });
+    await page.waitForTimeout(500);
+    assert.equal(await page.locator('[data-active-home-section]').getAttribute("data-active-home-section"), "home-finance-billing");
+    const group = page.locator('[data-sidebar-group="home-finance"]');
+    assert.equal(await group.count(), 1);
+    if (await group.locator(".sidebar-group-toggle").getAttribute("aria-expanded") !== "true") await group.locator(".sidebar-group-toggle").click();
+    assert.equal(await group.getByRole("button", { name: "비용 처리", exact: true }).count(), 1);
+    assert.equal(await group.getByRole("button", { name: "전체 현황", exact: true }).count(), 0);
+    assert.equal(await group.getByRole("button", { name: "청구/수납", exact: true }).count(), 0);
+    assert.equal(await page.locator('[data-matter-accounting-export-action="true"]').count(), 0);
   } finally {
     await browser.close();
     await server.close();

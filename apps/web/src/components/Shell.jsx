@@ -39,6 +39,7 @@ import { MatterLogo } from "./MatterLogo.jsx";
 import { profileSidebarItems } from "./UserProfileSurface.jsx";
 import { peopleNavigationGroups } from "../people/peopleFeatureCatalog.js";
 import { memberPhotoFor } from "../people/memberPhotos.js";
+import { canAccessHomeFinanceSection } from "../data/financeAccess.js";
 
 const peopleIconMap = {
   bell: Bell,
@@ -516,7 +517,7 @@ export function UtilityDrawer({
   );
 }
 
-function homeSidebarMeta(labels = {}) {
+function homeSidebarMeta(labels = {}, financeAccessRecords = []) {
   return {
     title: shellLabel(labels, "homeSidebarTitle", "Home"),
     actions: [
@@ -533,7 +534,7 @@ function homeSidebarMeta(labels = {}) {
           { label: shellLabel(labels, "homeFinanceExpensesLabel", "비용 처리"), view: "home", section: "home-finance-expenses", icon: FileText },
           { label: shellLabel(labels, "homeFinanceBillingLabel", "청구/수납"), view: "home", section: "home-finance-billing", icon: FileText },
           { label: shellLabel(labels, "homeFinanceArLabel", "미수금"), view: "home", section: "home-finance-ar", icon: ShieldCheck }
-        ]
+        ].filter((item) => canAccessHomeFinanceSection(financeAccessRecords, item.section))
       },
       { label: shellLabel(labels, "homeMessagesLabel", "메시지"), view: "home", section: "home-messages", icon: Mail },
       { label: shellLabel(labels, "homeRequestsLabel", "승인 요청"), view: "home", section: "home-requests", icon: ShieldCheck },
@@ -623,7 +624,7 @@ export function Sidebar({
   }, [isForest]);
   const modeExceptionActive = modeExceptionUtilityViewIds.includes(view);
   const activeGlobalUtility = modeExceptionActive ? getGlobalUtilityByView(view) : null;
-  const localizedHomeMeta = homeSidebarMeta(labels);
+  const localizedHomeMeta = homeSidebarMeta(labels, [profileUser, readLawosApiSession(), readLawosSessionEnvelope()]);
   const modeExceptionSubnav = Object.fromEntries(
     globalUtilityCatalog.filter((utility) => modeExceptionUtilityViewIds.includes(utility.id)).map((utility) => [
       utility.id,
@@ -637,7 +638,9 @@ export function Sidebar({
       }))
     ])
   );
-  const homeSubnav = localizedHomeMeta.actions.filter((item) => canViewCompanyStatus || item.section !== "home-company").map((item) => {
+  const homeSubnav = localizedHomeMeta.actions
+    .filter((item) => item.groupId !== "home-finance" || item.children.length > 0)
+    .filter((item) => canViewCompanyStatus || item.section !== "home-company").map((item) => {
     if (item.section === "home-messages") {
       return {
         ...item,

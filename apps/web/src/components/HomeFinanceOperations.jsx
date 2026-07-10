@@ -16,9 +16,12 @@ import {
   importFinancePayment,
   issueFinanceInvoice,
   lockFinanceWipSnapshot,
-  matchFinancePayment
+  matchFinancePayment,
+  readLawosApiSession,
+  readLawosSessionEnvelope
 } from "../data/apiClient.js";
 import { ChargePanel } from "./MattersSurface.jsx";
+import { canAccessFinanceScope } from "../data/financeAccess.js";
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -66,6 +69,10 @@ function operationMode(section) {
 }
 
 export function HomeFinanceOperations({ liveCtx = "allow", activeSection }) {
+  const canExportAccounting = canAccessFinanceScope(
+    [readLawosApiSession(), readLawosSessionEnvelope()],
+    ["finance.export"],
+  );
   const [matterResult, setMatterResult] = useState(null);
   const [matterId, setMatterId] = useState(() => initialMatterId());
   const [timeResult, setTimeResult] = useState(null);
@@ -285,6 +292,7 @@ export function HomeFinanceOperations({ liveCtx = "allow", activeSection }) {
       ) : (
         <ChargePanel
           operationMode={operationMode(activeSection)}
+          showAccountingExport={canExportAccounting}
           timeResult={timeResult} invoiceResult={invoiceResult} agingResult={agingResult} financeAuditResult={financeAuditResult}
           matter={selectedMatter} matterId={matterId}
           timeEntryResult={timeEntryResult} expenseResult={expenseResult} disbursementResult={disbursementResult} wipResult={wipResult} prebillResult={prebillResult} invoiceIssueResult={invoiceIssueResult} paymentResult={paymentResult} paymentMatchResult={paymentMatchResult} accountingExportResult={accountingExportResult}

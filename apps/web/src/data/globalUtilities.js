@@ -514,7 +514,7 @@ const directRouteMap = new Map([
   ["finance:finance-transactions", route("home", "home-finance-billing", { redirectedFrom: { view: "finance", section: "finance-transactions" } })],
   ["finance:finance-payments", route("home", "home-finance-billing", { redirectedFrom: { view: "finance", section: "finance-payments" } })],
   ["finance:finance-withdrawal", route("home", "home-finance-billing", { redirectedFrom: { view: "finance", section: "finance-withdrawal" } })],
-  ["matters:matter-approvals", route("home", "home-requests", { redirectedFrom: { view: "matters", section: "matter-approvals" }, filter: "finance" })],
+  ["matters:matter-approvals", route("home", "home-requests", { redirectedFrom: { view: "matters", section: "matter-approvals", filter: "finance" }, filter: "finance" })],
   ["matters:matter-time", route("home", "home-finance-time", { redirectedFrom: { view: "matters", section: "matter-time" } })],
   ["matters:matter-expenses", route("home", "home-finance-expenses", { redirectedFrom: { view: "matters", section: "matter-expenses" } })],
   ["matters:matter-billing", route("home", "home-finance-billing", { redirectedFrom: { view: "matters", section: "matter-billing" } })],

@@ -5,6 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { createAnalyticsRepository } from "../../../packages/analytics/src/runtime-repository.js";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
+import { findRegisteredAccountByUserId } from "../src/matter-vault-account-registry.js";
 import { createAnalyticsRuntimeContext } from "../src/analytics-runtime-context.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
@@ -68,14 +69,15 @@ async function withServer(callback, options = {}) {
 
 const sessionHeaderCache = new Map();
 
-async function signedHeaders(baseUrl) {
-  if (!sessionHeaderCache.has(baseUrl)) sessionHeaderCache.set(baseUrl, await apiSessionHeaders(baseUrl));
-  return sessionHeaderCache.get(baseUrl);
+async function signedHeaders(baseUrl, account = null) {
+  const key = `${baseUrl}:${account?.user_id ?? "default"}`;
+  if (!sessionHeaderCache.has(key)) sessionHeaderCache.set(key, await apiSessionHeaders(baseUrl, account ?? undefined));
+  return sessionHeaderCache.get(key);
 }
 
 async function json(baseUrl, path, options = {}) {
   const headers = {
-    ...(options.noAuth ? {} : await signedHeaders(baseUrl)),
+    ...(options.noAuth ? {} : await signedHeaders(baseUrl, options.account)),
     ...(options.headers ?? {}),
   };
   for (const [key, value] of Object.entries(headers)) {
@@ -182,6 +184,22 @@ test("WP-FIN-2 finance read APIs fail closed without count leakage", async () =>
     assert.equal(denied.body.count_leak_prevented, true);
     assert.equal(denied.body.page_info, undefined);
   }, { analyticsRuntime: financeReadModelRuntime(), sessionAuth: deniedSessionAuth });
+});
+
+test("WP-FIN-5 finance analytics require an explicit signed-session scope and audit denial", async () => {
+  const runtime = financeReadModelRuntime();
+  const staff = findRegisteredAccountByUserId("user_amic_sypark");
+  assert.ok(staff);
+  await withServer(async (baseUrl) => {
+    const denied = await json(baseUrl, `/api/analytics/finance/overview?${BASE_QUERY}`, { account: staff });
+    assert.equal(denied.status, 403);
+    assert.deepEqual(denied.body.items, []);
+    assert.equal(denied.body.count_leak_prevented, true);
+    const audit = runtime.repository.listAudit({ tenant_id: TENANT });
+    assert.equal(audit.at(-1).decision, "deny");
+    assert.equal(audit.at(-1).reason, "finance_scope_required:analytics.finance.read");
+    assert.equal(audit.at(-1).metadata.raw_payload_included, false);
+  }, { analyticsRuntime: runtime });
 });
 
 test("G8 dashboard refresh derives metrics from live finance repository writes", async () => {

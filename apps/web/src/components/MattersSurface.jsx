@@ -1900,6 +1900,7 @@ function ActionNotice({ pending, result, pendingText, successText }) {
 
 function ChargeActionPanel({
   operationMode = "all",
+  showAccountingExport = true,
   matter,
   invoiceRows,
   timeEntryResult,
@@ -2164,7 +2165,7 @@ function ChargeActionPanel({
           </button>
         </div>
       </div>
-      <div className="record-action-strip record-action-time-entry-strip" data-finance-billing-action="true" data-matter-accounting-export-action="true">
+      {showAccountingExport && <div className="record-action-strip record-action-time-entry-strip" data-finance-billing-action="true" data-matter-accounting-export-action="true">
         <div>
           <strong>{accountingExport ? `${accountingExport.row_count ?? 0}행` : "회계 CSV"}</strong>
           <span>{accountingExport?.balanced ? "차대변 일치" : "기간 지정"}</span>
@@ -2201,13 +2202,14 @@ function ChargeActionPanel({
             CSV 생성
           </button>
         </form>
-      </div>
+      </div>}
     </div>
   );
 }
 
 export function ChargePanel({
   operationMode = "all",
+  showAccountingExport = true,
   timeResult,
   invoiceResult,
   agingResult,
@@ -2275,6 +2277,7 @@ export function ChargePanel({
   const actionPanel = operationMode === "ar" ? null : (
       <ChargeActionPanel
         operationMode={operationMode}
+        showAccountingExport={showAccountingExport}
         matter={matter}
         invoiceRows={invoiceRows}
         timeEntryResult={timeEntryResult}

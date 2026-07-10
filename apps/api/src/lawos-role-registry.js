@@ -51,6 +51,30 @@ const HRX_ADMIN_SCOPES = Object.freeze([
   "hrx.payroll.export",
 ]);
 
+export const LAWOS_FINANCE_SCOPES = Object.freeze([
+  "analytics.finance.read",
+  "finance.time.write",
+  "finance.expense.write",
+  "finance.billing.write",
+  "finance.approve",
+  "finance.payment.write",
+  "finance.export",
+  "finance.audit.read",
+]);
+
+const LAWOS_FINANCE_OPERATIONS_SCOPES = Object.freeze(
+  LAWOS_FINANCE_SCOPES.filter((scope) => scope !== "finance.approve"),
+);
+
+const LAWOS_FINANCE_PARTNER_SCOPES = Object.freeze([
+  "analytics.finance.read",
+  "finance.time.write",
+  "finance.expense.write",
+  "finance.billing.write",
+  "finance.approve",
+  "finance.audit.read",
+]);
+
 function unique(items = []) {
   return Object.freeze([...new Set(items.filter(Boolean))]);
 }
@@ -74,7 +98,7 @@ export const LAWOS_INTERNAL_ROLE_ASSIGNMENTS = Object.freeze([
     role_profile_id: "lawos_admin_partner",
     role_ids: ["lawos_admin", "lawos_partner", "lawos_attorney", "managing_partner"],
     group_ids: ["group_firm_leadership", "group_lawos_admins"],
-    scopes: ["tenant.admin", "matter.read", "matter.write", "vault.read", "vault.write", "audit.read"],
+    scopes: ["tenant.admin", "matter.read", "matter.write", "vault.read", "vault.write", "audit.read", ...LAWOS_FINANCE_SCOPES],
     hrx_scopes: HRX_ADMIN_SCOPES,
   }),
   assignment({
@@ -82,7 +106,7 @@ export const LAWOS_INTERNAL_ROLE_ASSIGNMENTS = Object.freeze([
     role_profile_id: "lawos_admin_operations",
     role_ids: ["lawos_admin", "lawos_staff"],
     group_ids: ["group_firm_operations", "group_lawos_admins"],
-    scopes: ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"],
+    scopes: ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read", ...LAWOS_FINANCE_OPERATIONS_SCOPES],
     hrx_scopes: HRX_ADMIN_SCOPES,
   }),
   assignment({
@@ -98,7 +122,7 @@ export const LAWOS_INTERNAL_ROLE_ASSIGNMENTS = Object.freeze([
     role_profile_id: "lawos_partner_attorney",
     role_ids: ["lawos_partner", "lawos_attorney", "managing_partner"],
     group_ids: ["group_firm_leadership", "group_attorneys"],
-    scopes: ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"],
+    scopes: ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read", ...LAWOS_FINANCE_PARTNER_SCOPES],
     hrx_scopes: HRX_ATTORNEY_SCOPES,
   }),
   assignment({
@@ -106,7 +130,7 @@ export const LAWOS_INTERNAL_ROLE_ASSIGNMENTS = Object.freeze([
     role_profile_id: "lawos_partner_attorney",
     role_ids: ["lawos_partner", "lawos_attorney", "managing_partner"],
     group_ids: ["group_firm_leadership", "group_attorneys"],
-    scopes: ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"],
+    scopes: ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read", ...LAWOS_FINANCE_PARTNER_SCOPES],
     hrx_scopes: HRX_ATTORNEY_SCOPES,
   }),
   assignment({
@@ -114,7 +138,7 @@ export const LAWOS_INTERNAL_ROLE_ASSIGNMENTS = Object.freeze([
     role_profile_id: "lawos_system_admin_partner",
     role_ids: ["lawos_admin", "lawos_partner", "lawos_attorney", "security_admin"],
     group_ids: ["group_system_admins", "group_firm_leadership", "group_lawos_admins"],
-    scopes: ["tenant.admin", "user.admin", "security.admin", "cutover.execute", "matter.read", "matter.write", "vault.read", "vault.write", "audit.read", "audit.export"],
+    scopes: ["tenant.admin", "user.admin", "security.admin", "cutover.execute", "matter.read", "matter.write", "vault.read", "vault.write", "audit.read", "audit.export", ...LAWOS_FINANCE_SCOPES],
     hrx_scopes: HRX_ADMIN_SCOPES,
   }),
   assignment({
@@ -122,7 +146,7 @@ export const LAWOS_INTERNAL_ROLE_ASSIGNMENTS = Object.freeze([
     role_profile_id: "lawos_partner_attorney",
     role_ids: ["lawos_partner", "lawos_attorney", "managing_partner"],
     group_ids: ["group_firm_leadership", "group_attorneys"],
-    scopes: ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"],
+    scopes: ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read", ...LAWOS_FINANCE_PARTNER_SCOPES],
     hrx_scopes: HRX_ATTORNEY_SCOPES,
   }),
   assignment({
