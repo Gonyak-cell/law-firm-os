@@ -148,23 +148,27 @@ function countActions(results) {
   }, {});
 }
 
-async function listProductionMatterCodes() {
-  const items = [];
-  let cursor = null;
-  do {
+async function lookupProductionRequiredCodes(bridgeToken) {
+  const results = [];
+  for (const code of REQUIRED_CODES) {
     const query = new URLSearchParams({
       tenant_id: TENANT,
       permission_ref: `${APPROVAL_REF}:readback`,
       audit_hint_ref: `${APPROVAL_REF}:readback`,
-      limit: "100"
+      q: code
     });
-    if (cursor) query.set("cursor", cursor);
-    const response = await readJson(`/api/matters?${query}`, { headers: permissionHeaders() });
-    assert.equal(response.status, 200, `matter readback status=${response.status}`);
-    items.push(...(response.body?.items ?? []));
-    cursor = response.body?.page_info?.next_cursor ?? null;
-  } while (cursor);
-  return items;
+    const response = await readJson(`/api/matters/vault-bridge/matter-lookup?${query}`, {
+      headers: { ...bridgeHeaders(bridgeToken), ...permissionHeaders() }
+    });
+    assert.equal(response.status, 200, `matter bridge lookup status=${response.status} code=${code}`);
+    const matches = response.body?.items ?? [];
+    results.push({
+      code,
+      found: matches.some((item) => item?.matter_code === code),
+      match_count: matches.length
+    });
+  }
+  return results;
 }
 
 function renderMarkdown(report) {
@@ -351,9 +355,7 @@ for (const matter of AMIC_CURRENT_MATTER_CODE_CANDIDATES) {
 const failedMatters = matterResults.filter((item) => ![200, 201].includes(item.status) || item.safe_error_codes.length);
 assert.deepEqual(failedMatters, [], "matter bridge upserts failed");
 
-const readbackItems = await listProductionMatterCodes();
-const readbackCodes = new Set(readbackItems.map((item) => item.matter_code));
-const requiredCodeResults = REQUIRED_CODES.map((code) => ({ code, found: readbackCodes.has(code) }));
+const requiredCodeResults = await lookupProductionRequiredCodes(token);
 assert.deepEqual(requiredCodeResults.filter((item) => !item.found), [], "required matter codes missing from production readback");
 
 const report = {
@@ -380,9 +382,8 @@ const report = {
     failed: []
   },
   readback: {
-    matter_count: readbackItems.length,
     required_codes: requiredCodeResults,
-    short_axis_count: readbackItems.filter((item) => /\/(ADV|DISP|DIST)\//.test(item.matter_code ?? "")).length
+    lookup_count_leak_prevented: true
   },
   boundary: {
     remote_production_bridge_write_executed: true,
@@ -402,7 +403,7 @@ console.log(JSON.stringify({
   tenant_id: report.tenant_id,
   client_upserts: report.client_upserts,
   matter_upserts: report.matter_upserts,
-  readback_matter_count: report.readback.matter_count,
+  readback_required_codes_found: report.readback.required_codes.filter((item) => item.found).length,
   artifact_json: JSON_PATH,
   artifact_md: MD_PATH,
   verify_artifact_json: VERIFY_JSON_PATH

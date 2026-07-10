@@ -44,6 +44,7 @@ function memberRosterPublicRef(member) {
     work_email: stringField(member, "work_email"),
     title: stringField(member, "title"),
     employment_type: stringField(member, "employment_type") || "full_time",
+    start_date: stringField(member, "start_date"),
     status: stringField(member, "status") || "active",
     profile_status: stringField(member, "profile_status") || "active",
     affiliation: stringField(member, "affiliation"),

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -7,7 +7,11 @@ import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { createDefaultHrxRuntime, startApiServer } from "../src/server.js";
 import { apiSessionHeaders } from "./helpers/session.js";
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
-import { createMatterRepository } from "../../../packages/matter/src/index.js";
+import {
+  AMIC_CURRENT_MATTER_CLIENTS,
+  AMIC_CURRENT_MATTER_CODE_CANDIDATES,
+  createMatterRepository,
+} from "../../../packages/matter/src/index.js";
 import { createOnboardingPlan, updateOnboardingTask } from "../../../packages/hrx/src/onboarding.js";
 
 const TENANT = "tenant_rp05_synthetic";
@@ -50,6 +54,23 @@ async function json(baseUrl, path, options = {}) {
   const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
   const body = await response.json();
   return { status: response.status, body };
+}
+
+async function collectPagedMatterItems(baseUrl, path, options = {}) {
+  const items = [];
+  let cursor = null;
+  for (let page = 0; page < 10; page += 1) {
+    const separator = path.includes("?") ? "&" : "?";
+    const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : "";
+    const result = await json(baseUrl, `${path}${separator}limit=100${cursorParam}`, options);
+    assert.equal(result.status, 200);
+    assert.equal(result.body.outcome, "passed");
+    items.push(...result.body.items);
+    cursor = result.body.page_info?.next_cursor ?? null;
+    if (!cursor) break;
+  }
+  assert.equal(cursor, null, "paged Matter API readback should finish within test page budget");
+  return items;
 }
 
 function openingPayload(overrides = {}) {
@@ -234,6 +255,48 @@ test("G4 Matter API health descriptor exposes matter-core runtime without produc
     assert.equal(matter.r5_r6_owner_decision_ready, true);
     assert.equal(matter.production_ready_claim, false);
   });
+});
+
+test("G4 Matter current clients and matter codes rehydrate from an empty durable store", async () => {
+  const storePath = join(mkdtempSync(join(tmpdir(), "lawos-matter-current-store-")), "matter-store.json");
+  writeFileSync(storePath, "{\"records\":[],\"idempotency\":[],\"audit_events\":[]}\n", "utf8");
+
+  await withServer(async (baseUrl) => {
+    const query = `tenant_id=${TENANT}&permission_ref=perm_ref_current_read&audit_hint_ref=audit_hint_current_read`;
+    const options = { headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext() } };
+    const clients = await collectPagedMatterItems(baseUrl, `/api/matters/clients?${query}`, options);
+    const matters = await collectPagedMatterItems(baseUrl, `/api/matters?${query}`, options);
+    const currentClientIds = new Set(
+      clients
+        .filter((item) => item.source_revision === "amic_current_onedrive_matter_code_inventory_2026_07_01")
+        .map((item) => item.client_id),
+    );
+    const currentMatterCodes = new Set(
+      matters
+        .filter((item) => item.source_revision === "amic_current_onedrive_matter_code_inventory_2026_07_01")
+        .map((item) => item.matter_code),
+    );
+    const currentMatterByCode = new Map(
+      matters
+        .filter((item) => item.source_revision === "amic_current_onedrive_matter_code_inventory_2026_07_01")
+        .map((item) => [item.matter_code, item]),
+    );
+
+    assert.equal(currentClientIds.size, AMIC_CURRENT_MATTER_CLIENTS.length);
+    assert.equal(currentMatterCodes.size, AMIC_CURRENT_MATTER_CODE_CANDIDATES.length);
+    assert.deepEqual(
+      AMIC_CURRENT_MATTER_CLIENTS.filter((client) => !currentClientIds.has(client.client_id)),
+      [],
+    );
+    assert.deepEqual(
+      AMIC_CURRENT_MATTER_CODE_CANDIDATES.filter((matter) => !currentMatterCodes.has(matter.matter_code)),
+      [],
+    );
+    for (const matter of AMIC_CURRENT_MATTER_CODE_CANDIDATES) {
+      assert.equal(currentMatterByCode.get(matter.matter_code)?.client_display_name, matter.client_display_name);
+      assert.equal(currentMatterByCode.get(matter.matter_code)?.client_name, matter.client_display_name);
+    }
+  }, { matterStorePath: storePath });
 });
 
 test("G4 Matter list is repository-backed, permission-trimmed, and count-leak safe", async () => {

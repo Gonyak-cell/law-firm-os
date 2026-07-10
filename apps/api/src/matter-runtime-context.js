@@ -6,8 +6,15 @@ import {
   createMatterRepository,
   AMIC_CURRENT_MATTER_CLIENTS,
   AMIC_CURRENT_MATTER_CODE_CANDIDATES,
+  getMatterProfile,
   listMatterParties,
+  listMatterStakeholders,
+  matterProfileSeedForMatter,
+  profileKindForMatter,
   registerMatterParty,
+  registerMatterStakeholder,
+  serializeMatterProfile,
+  updateMatterProfile,
   upsertMatterAppClientFromVaultContract,
   upsertMatterAppMatterFromVaultContract,
 } from "../../../packages/matter/src/index.js";
@@ -66,6 +73,10 @@ export const MATTER_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/matters/clients",
     "GET /api/matters",
     "GET /api/matters/:matter_id",
+    "GET /api/matters/:matter_id/profile",
+    "PATCH /api/matters/:matter_id/profile",
+    "GET /api/matters/:matter_id/stakeholders",
+    "POST /api/matters/:matter_id/stakeholders",
     "GET /api/matters/:matter_id/parties",
     "GET /api/matters/:matter_id/command-center",
     "GET /api/matters/:matter_id/vault-summary",
@@ -121,6 +132,7 @@ export const MATTER_BOUNDED_CONTEXT = Object.freeze({
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 100;
 const MAX_BULK_MATTERS = 25;
+const AMIC_CURRENT_MATTER_CODE_SOURCE_REVISION = "amic_current_onedrive_matter_code_inventory_2026_07_01";
 export const MATTER_RUNTIME_SYNTHETIC_TENANT_ID = "tenant_rp05_synthetic";
 export const MATTER_RUNTIME_CANONICAL_TENANT_ID = MATTER_VAULT_REGISTERED_TENANT_ID;
 export const LAWOS_CURRENT_MATTER_CODE_SEED_TENANT_ENV = "LAWOS_CURRENT_MATTER_CODE_SEED_TENANT";
@@ -140,6 +152,10 @@ const DEFAULT_MATTER_LIST_VIEWS = Object.freeze([
 
 function clone(value) {
   return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+}
+
+function isCurrentMatterInventoryRecord(record = {}) {
+  return record.source_revision === AMIC_CURRENT_MATTER_CODE_SOURCE_REVISION;
 }
 
 function configuredVaultBridgeToken(env = process.env) {
@@ -283,6 +299,7 @@ export function createMatterRuntimeSeed({
           client_short_name: client.client_short_name,
           status: "active",
           source_revision: client.source_revision,
+          synthetic_only: false,
           created_by: "amic_current_onedrive_import",
           created_at: "2026-07-01T00:00:00.000+09:00",
           updated_by: "amic_current_onedrive_import",
@@ -305,6 +322,10 @@ export function createMatterRuntimeSeed({
           client_case_role_confidence: matter.client_case_role_confidence ?? null,
           practice_group: matter.matter_axis,
           source_revision: matter.source_revision,
+          source_ref: matter.source_ref ?? null,
+          confidence: matter.confidence ?? null,
+          review_required: matter.review_required === true,
+          synthetic_only: false,
           legal_client_party_id: matter.client_id,
           billing_client_party_id: matter.client_id,
           title: matter.title,
@@ -335,6 +356,28 @@ export function createMatterRuntimeSeed({
       owner_user_id: null,
       created_at: "2026-06-20T00:00:00.000Z",
       updated_at: "2026-06-20T00:00:00.000Z",
+    });
+  }
+  for (const matter of records.filter((record) => record.model_type === "Matter")) {
+    const seed = matterProfileSeedForMatter(matter);
+    const profileId = `matter_profile_${matter.matter_id}`;
+    records.push({
+      model_type: "MatterProfile",
+      resource_id: profileId,
+      profile_id: profileId,
+      tenant_id: matter.tenant_id,
+      matter_id: matter.matter_id,
+      profile_kind: seed.profile_kind,
+      schema_version: "lawos.matter_profile.v1",
+      data: seed.data,
+      evidence: seed.evidence,
+      status: "active",
+      created_by: "matter_profile_seed",
+      created_at: matter.created_at ?? "2026-07-01T00:00:00.000+09:00",
+      updated_by: "matter_profile_seed",
+      updated_at: matter.created_at ?? "2026-07-01T00:00:00.000+09:00",
+      raw_contact_values_included: false,
+      production_ready_claim: false,
     });
   }
   return Object.freeze({
@@ -374,6 +417,38 @@ export const MATTER_EMPLOYEE_DIRECTORY_SEED = Object.freeze([
     availability: "unavailable",
   }),
 ]);
+
+export function repairCurrentMatterInventoryClassification(repository) {
+  if (!repository?.list || !repository?.update) return Object.freeze({ repaired_client_count: 0, repaired_matter_count: 0 });
+  const tenantIds = new Set(
+    repository
+      .list()
+      .filter((record) => isCurrentMatterInventoryRecord(record))
+      .map((record) => record.tenant_id)
+      .filter(Boolean),
+  );
+  let repairedClientCount = 0;
+  let repairedMatterCount = 0;
+  for (const tenantId of tenantIds) {
+    for (const client of repository.list({ tenant_id: tenantId, model_type: "MatterClient" })) {
+      if (!isCurrentMatterInventoryRecord(client) || client.synthetic_only !== true) continue;
+      repository.update(
+        { tenant_id: tenantId, model_type: "MatterClient", client_id: client.client_id },
+        { synthetic_only: false },
+      );
+      repairedClientCount += 1;
+    }
+    for (const matter of repository.list({ tenant_id: tenantId, model_type: "Matter" })) {
+      if (!isCurrentMatterInventoryRecord(matter) || matter.synthetic_only !== true) continue;
+      repository.update(
+        { tenant_id: tenantId, model_type: "Matter", matter_id: matter.matter_id },
+        { synthetic_only: false },
+      );
+      repairedMatterCount += 1;
+    }
+  }
+  return Object.freeze({ repaired_client_count: repairedClientCount, repaired_matter_count: repairedMatterCount });
+}
 
 function defaultEmployeeDirectory(seed = MATTER_EMPLOYEE_DIRECTORY_SEED) {
   return Object.freeze({
@@ -951,6 +1026,17 @@ function gateDecisionResponse(decision, requestId, auditHintRef) {
 }
 
 function serializeMatter(record, runtime) {
+  const clientId = record.client_id ?? record.legal_client_party_id ?? null;
+  const clientRecord = clientId && runtime?.repository?.get
+    ? runtime.repository.get({ tenant_id: record.tenant_id, model_type: "MatterClient", client_id: clientId })
+    : null;
+  const clientDisplayName =
+    record.client_display_name ??
+    record.client_name ??
+    clientRecord?.display_name ??
+    clientRecord?.client_display_name ??
+    clientRecord?.client_name ??
+    null;
   const teamMemberCount =
     runtime?.repository
       ?.list({ tenant_id: record.tenant_id, model_type: "MatterMember", matter_id: record.matter_id })
@@ -962,6 +1048,9 @@ function serializeMatter(record, runtime) {
   const link = runtime?.repository
     ? getMatterVaultLink({ repository: runtime.repository, tenant_id: record.tenant_id, matter_id: record.matter_id })
     : null;
+  const profile = runtime?.repository
+    ? getMatterProfile({ repository: runtime.repository, tenant_id: record.tenant_id, matter_id: record.matter_id })
+    : null;
   return Object.freeze({
     tenant_id: record.tenant_id,
     resource_id: record.matter_id,
@@ -971,13 +1060,16 @@ function serializeMatter(record, runtime) {
     matter_name: record.matter_name ?? record.title,
     title: record.title,
     status: record.status,
-    client_id: record.client_id ?? record.legal_client_party_id ?? null,
-    client_display_name: record.client_display_name ?? null,
+    client_id: clientId,
+    client_display_name: clientDisplayName,
+    client_name: clientDisplayName,
     legal_client_party_id: record.legal_client_party_id ?? record.client_id ?? null,
     billing_client_party_id: record.billing_client_party_id ?? record.legal_client_party_id ?? record.client_id ?? null,
     matter_type_english: record.matter_type_english ?? null,
     matter_litigation_axis: record.matter_litigation_axis ?? null,
     matter_detail_type_korean: record.matter_detail_type_korean ?? null,
+    matter_profile_kind: profile?.profile_kind ?? profileKindForMatter(record),
+    matter_profile_review_status: profile?.evidence?.review_status ?? "not_available",
     client_case_role: record.client_case_role ?? null,
     client_case_role_confidence: record.client_case_role_confidence ?? null,
     source_revision: record.source_revision ?? null,
@@ -1016,7 +1108,7 @@ function serializeMatterRuntimeClient(record) {
     client_type: record.client_type ?? null,
     confidentiality_level: record.confidentiality_level ?? null,
     source_revision: record.source_revision ?? null,
-    synthetic_only: record.synthetic_only === true,
+    synthetic_only: record.synthetic_only === true && !isCurrentMatterInventoryRecord(record),
     runtime_write_ready: true,
     production_ready_claim: false,
   });
@@ -1326,8 +1418,8 @@ export function handleMatterClientList({ query, context, requestId, runtime = DE
   if (cursorError) return cursorError;
   const records = runtime.repository
     .list({ tenant_id: query.tenant_id })
-    .filter((record) => record.model_type === "Client" || record.object_type === "Client")
-    .filter((record) => record.synthetic_only !== true);
+    .filter((record) => record.model_type === "MatterClient" || record.model_type === "Client" || record.object_type === "Client")
+    .filter((record) => record.synthetic_only !== true || isCurrentMatterInventoryRecord(record));
   const serialized = records.map(serializeMatterRuntimeClient);
   const { allowed } = trimItemsByPermission({
     context,
@@ -1397,6 +1489,20 @@ export function handleMatterDetail({ matterId, query, context, requestId, runtim
     action: "matter:party:read",
     resourceType: "matter_party",
   });
+  const profile = matterProfileReadModel(record, runtime);
+  const { allowed: allowedProfiles } = trimItemsByPermission({
+    context,
+    items: profile ? [profile] : [],
+    action: "matter:profile:read",
+    resourceType: "matter_profile",
+  });
+  const stakeholders = listMatterStakeholders({ repository: runtime.repository, tenant_id: query.tenant_id, matter_id: matterId });
+  const { allowed: allowedStakeholders } = trimItemsByPermission({
+    context,
+    items: stakeholders,
+    action: "matter:stakeholder:read",
+    resourceType: "matter_stakeholder",
+  });
   const report = createMatterClientReportProjection({
     tenant_id: query.tenant_id,
     matter_id: matterId,
@@ -1413,6 +1519,8 @@ export function handleMatterDetail({ matterId, query, context, requestId, runtim
       outcome: "passed",
       item: allowed[0],
       team,
+      matter_profile: allowedProfiles[0] ?? null,
+      matter_stakeholders: allowedStakeholders,
       matter_parties: allowedMatterParties,
       adverse_parties: allowedMatterParties.filter((party) => party.party_role === "adverse_party"),
       client_report: report,
@@ -1423,6 +1531,233 @@ export function handleMatterDetail({ matterId, query, context, requestId, runtim
       production_ready_claim: false,
     },
   };
+}
+
+function matterProfileReadModel(matter, runtime) {
+  const current = getMatterProfile({
+    repository: runtime.repository,
+    tenant_id: matter.tenant_id,
+    matter_id: matter.matter_id,
+  });
+  if (current) return current;
+  const seed = matterProfileSeedForMatter(matter);
+  return serializeMatterProfile({
+    resource_id: `matter_profile_${matter.matter_id}`,
+    profile_id: `matter_profile_${matter.matter_id}`,
+    tenant_id: matter.tenant_id,
+    matter_id: matter.matter_id,
+    profile_kind: seed.profile_kind,
+    data: seed.data,
+    evidence: seed.evidence,
+    status: "not_started",
+  });
+}
+
+function readableMatterStakeholders({ context, runtime, tenantId, matterId } = {}) {
+  const items = listMatterStakeholders({ repository: runtime.repository, tenant_id: tenantId, matter_id: matterId });
+  return trimItemsByPermission({
+    context,
+    items,
+    action: "matter:stakeholder:read",
+    resourceType: "matter_stakeholder",
+  }).allowed;
+}
+
+function redactStakeholderContactReferences(stakeholder) {
+  return {
+    ...stakeholder,
+    contact_id: null,
+    contact_point_id: null,
+  };
+}
+
+function profileMatterOrNotFound({ matterId, query, requestId, runtime }) {
+  const matter = runtime.repository.get({ tenant_id: query.tenant_id, model_type: "Matter", matter_id: matterId });
+  if (!matter || matter.silent === true || matter.hidden_from_actor === true) {
+    return {
+      error: errorResponse(404, requestId, [MATTER_API_ERROR_CODES.not_found], {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: "empty",
+      }),
+    };
+  }
+  return { matter };
+}
+
+export function handleMatterProfileRead({ matterId, query, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:profile:read",
+    resource: { resource_type: "matter_profile", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const result = profileMatterOrNotFound({ matterId, query, requestId, runtime });
+  if (result.error) return result.error;
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      item: matterProfileReadModel(result.matter, runtime),
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: null,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
+export function handleMatterProfilePatch({ matterId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:profile:write",
+    resource: { resource_type: "matter_profile", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const result = profileMatterOrNotFound({ matterId, query, requestId, runtime });
+  if (result.error) return result.error;
+  const actorId = context?.principal?.user_id;
+  if (typeof actorId !== "string" || actorId.trim() === "") {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+  const idempotencyKey = `matter-profile:${matterId}:${actorId}:${body?.idempotency_key ?? "default"}`;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
+  if (replay) return replay;
+  try {
+    const item = updateMatterProfile({
+      repository: runtime.repository,
+      matter: result.matter,
+      actor_id: actorId,
+      patch: body?.profile ?? {},
+      audit: {
+        append: (event) =>
+          appendAudit(runtime, {
+            ...event,
+            event_id: `matter.profile.updated:${query.tenant_id}:${matterId}:${idempotencyKey}`,
+            metadata: { ...(event.metadata ?? {}), permission_ref: query.permission_ref },
+          }),
+      },
+    });
+    const response = {
+      request_id: requestId,
+      outcome: "updated",
+      item,
+      matter: serializeMatter(result.matter, runtime),
+      matter_stakeholders: readableMatterStakeholders({ context, runtime, tenantId: query.tenant_id, matterId }),
+      idempotent_replay: false,
+      state_idempotent: true,
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    };
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_profile_patch", response);
+    return { status: 200, body: response };
+  } catch (error) {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+      message: error.message,
+    });
+  }
+}
+
+export function handleMatterStakeholderList({ matterId, query, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:stakeholder:read",
+    resource: { resource_type: "matter_stakeholder", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const result = profileMatterOrNotFound({ matterId, query, requestId, runtime });
+  if (result.error) return result.error;
+  const allowed = readableMatterStakeholders({ context, runtime, tenantId: query.tenant_id, matterId });
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      items: allowed,
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: allowed.length === 0 ? "empty" : null,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
+export function handleMatterStakeholderRegister({ matterId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:stakeholder:write",
+    resource: { resource_type: "matter_stakeholder", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const result = profileMatterOrNotFound({ matterId, query, requestId, runtime });
+  if (result.error) return result.error;
+  const actorId = context?.principal?.user_id;
+  if (typeof actorId !== "string" || actorId.trim() === "") {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+  const idempotencyKey = `matter-stakeholder:${matterId}:${actorId}:${body?.idempotency_key ?? body?.stakeholder?.display_name ?? "stakeholder"}`;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
+  if (replay) return replay;
+  try {
+    const item = registerMatterStakeholder({
+      repository: runtime.repository,
+      matter: result.matter,
+      actor_id: actorId,
+      stakeholder: body?.stakeholder ?? {},
+      audit: {
+        append: (event) =>
+          appendAudit(runtime, {
+            ...event,
+            event_id: `matter.stakeholder.registered:${query.tenant_id}:${matterId}:${idempotencyKey}`,
+            metadata: { ...(event.metadata ?? {}), permission_ref: query.permission_ref },
+          }),
+      },
+    });
+    const response = {
+      request_id: requestId,
+      outcome: "created",
+      item: readableMatterStakeholders({ context, runtime, tenantId: query.tenant_id, matterId }).some((candidate) => candidate.stakeholder_id === item.stakeholder_id)
+        ? item
+        : redactStakeholderContactReferences(item),
+      matter_stakeholders: readableMatterStakeholders({ context, runtime, tenantId: query.tenant_id, matterId }),
+      idempotent_replay: false,
+      state_idempotent: true,
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    };
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_stakeholder_register", response);
+    return { status: 201, body: response };
+  } catch (error) {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+      message: error.message,
+    });
+  }
 }
 
 export function handleMatterVaultSummary({ matterId, query, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
@@ -3679,6 +4014,44 @@ export async function handleMatterApiRequest({
   if (documentFacadeMatch && method === "POST") {
     return handleMatterDocumentFacade({
       matterId: decodeURIComponent(documentFacadeMatch[1]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const matterProfileMatch = pathname.match(/^\/api\/matters\/([^/]+)\/profile$/);
+  if (matterProfileMatch && method === "GET") {
+    return handleMatterProfileRead({
+      matterId: decodeURIComponent(matterProfileMatch[1]),
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  if (matterProfileMatch && method === "PATCH") {
+    return handleMatterProfilePatch({
+      matterId: decodeURIComponent(matterProfileMatch[1]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const matterStakeholdersMatch = pathname.match(/^\/api\/matters\/([^/]+)\/stakeholders$/);
+  if (matterStakeholdersMatch && method === "GET") {
+    return handleMatterStakeholderList({
+      matterId: decodeURIComponent(matterStakeholdersMatch[1]),
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  if (matterStakeholdersMatch && method === "POST") {
+    return handleMatterStakeholderRegister({
+      matterId: decodeURIComponent(matterStakeholdersMatch[1]),
       body,
       context,
       requestId,

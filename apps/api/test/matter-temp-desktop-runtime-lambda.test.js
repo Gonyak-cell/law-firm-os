@@ -109,8 +109,15 @@ test("temporary desktop runtime health exposes AWS no-domain synthetic boundary"
   assert.equal(body.password_reset_email_configured, false);
   assert.equal(body.production_ready_completed, false);
   assert.equal(body.public_release_completed, false);
-  assert.equal(body.registered_account_count, 11);
+  assert.equal(body.registered_account_count, 12);
   assert.equal(body.highest_privilege_account, "jwsuh@amic.kr");
+
+  const accounts = json(await handler(event({ path: "/api/desktop/accounts", headers: authHeaders() })));
+  const hanJehee = accounts.users.find((user) => user.email === "jh731@amic.kr");
+  assert.equal(accounts.count, 12);
+  assert.equal(hanJehee?.display_name, "한제희");
+  assert.equal(hanJehee?.source_title, "고문변호사");
+  assert.ok(hanJehee?.role_ids.includes("attorney"));
 });
 
 test("configured SESv2 reset delivery sends registered reset mail without returning token material", async () => {

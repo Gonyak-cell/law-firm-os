@@ -594,19 +594,23 @@ test("POST /api/auth/step-up issues signed HRX step-up tokens for signed session
   });
 });
 
-test("Server role registry maps the 9-person roster outside the login seed", async () => {
+test("Server role registry maps the 10-person roster outside the login seed", async () => {
   const staff = userByEmail("yjlee@amic.kr");
   const staffAssignment = resolveLawosUserRoleAssignment(staff);
+  const attorney = userByEmail("jh731@amic.kr");
+  const attorneyAssignment = resolveLawosUserRoleAssignment(attorney);
   const financeAdminAssignment = resolveLawosUserRoleAssignment(userByEmail("jwsuh@amic.kr"));
   const financeOperationsAssignment = resolveLawosUserRoleAssignment(userByEmail("wsjo@amic.kr"));
   const financePartnerAssignment = resolveLawosUserRoleAssignment(userByEmail("bj.park@amic.kr"));
-  assert.equal(listLawosInternalRoleAssignments().length, 9);
+  assert.equal(listLawosInternalRoleAssignments().length, 10);
   assert.equal(staffAssignment.role_profile_id, "lawos_staff");
   assert.deepEqual(staffAssignment.role_ids, ["lawos_staff"]);
   assert.ok(staffAssignment.scopes.includes("hrx.employee.read"));
   assert.ok(staffAssignment.scopes.includes("hrx.leave.write"));
   assert.equal(staffAssignment.scopes.includes("hrx.payroll.export"), false);
   assert.equal(staffAssignment.scopes.includes("hrx.audit.read"), false);
+  assert.equal(attorneyAssignment.role_profile_id, "lawos_attorney");
+  assert.deepEqual(attorneyAssignment.role_ids, ["lawos_attorney"]);
   assert.ok(financeAdminAssignment.scopes.includes("finance.export"));
   assert.ok(financeAdminAssignment.scopes.includes("finance.approve"));
   assert.ok(financeOperationsAssignment.scopes.includes("finance.export"));
@@ -614,6 +618,9 @@ test("Server role registry maps the 9-person roster outside the login seed", asy
   assert.ok(financePartnerAssignment.scopes.includes("finance.approve"));
   assert.equal(financePartnerAssignment.scopes.includes("finance.export"), false);
   assert.equal(staffAssignment.scopes.some((scope) => scope.startsWith("finance.") || scope === "analytics.finance.read"), false);
+  assert.equal(attorneyAssignment.scopes.some((scope) => scope.startsWith("finance.") || scope === "analytics.finance.read"), false);
+  assert.ok(attorneyAssignment.scopes.includes("hrx.legal_people.read"));
+  assert.ok(attorneyAssignment.scopes.includes("hrx.analytics.read"));
 
   await withServer({}, async (baseUrl) => {
     const response = await login(baseUrl, staff);
@@ -622,6 +629,11 @@ test("Server role registry maps the 9-person roster outside the login seed", asy
     assert.deepEqual(response.body.session.role_ids, ["lawos_staff"]);
     assert.ok(response.body.session.hrx_scopes.includes("hrx.employee.read"));
     assert.equal(response.body.session.hrx_scopes.includes("hrx.payroll.export"), false);
+    const attorneyResponse = await login(baseUrl, attorney);
+    assert.equal(attorneyResponse.status, 200);
+    assert.equal(attorneyResponse.body.session.display_name, "한제희");
+    assert.equal(attorneyResponse.body.session.role_profile_id, "lawos_attorney");
+    assert.ok(attorneyResponse.body.session.hrx_scopes.includes("hrx.legal_people.read"));
   });
 });
 

@@ -9,7 +9,10 @@ Source sheet: `연락처`
 
 Source sha256: `cbb61404ac48363373716941e38d46ef96fc0dcda92c8bce9b7f4656e158a6f3`
 
-Registered account count: 11
+Registered account count: 12
+
+Supplemental account source:
+- `jh731@amic.kr` / `한제희` / joined `2026-07-06` / `user_instruction_2026-07-09`
 
 Registered accounts:
 - `ytkim@amic.kr`
@@ -19,6 +22,7 @@ Registered accounts:
 - `yhlim@amic.kr`
 - `jwsuh@amic.kr`
 - `smcho@amic.kr`
+- `jh731@amic.kr`
 - `tryoon@amic.kr`
 - `yjlee@amic.kr`
 - `matter.desktop.qa@amic.kr`

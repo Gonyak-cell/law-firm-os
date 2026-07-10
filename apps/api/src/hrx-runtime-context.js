@@ -200,8 +200,6 @@ const HRX_ORG_UNIT_BY_ID = new Map(HRX_ORG_UNITS.map((unit) => [unit.org_unit_id
 const REGISTERED_MANAGER_BY_EMPLOYEE_ID = Object.freeze({
   emp_amic_wsjo: "emp_amic_ytkim",
   emp_amic_sypark: "emp_amic_ytkim",
-  emp_amic_tryoon: "emp_amic_jwsuh",
-  emp_amic_yjlee: "emp_amic_tryoon",
 });
 const COMPATIBILITY_MANAGER_BY_EMPLOYEE_ID = Object.freeze({
   "emp-002": "emp-001",
@@ -253,7 +251,7 @@ function registeredEmploymentProfiles(tenantId) {
       title: member.title ?? account?.source_title ?? "구성원",
       org_unit_id: member.org_unit_id || account?.group_ids?.[0] || "group_matter_vault_users",
       manager_employee_id: REGISTERED_MANAGER_BY_EMPLOYEE_ID[member.employee_id] ?? null,
-      effective_from: "2026-06-22",
+      effective_from: member.start_date || "2026-06-22",
       source_ref: member.source_ref,
     };
   });

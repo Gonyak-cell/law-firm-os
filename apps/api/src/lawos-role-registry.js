@@ -150,6 +150,14 @@ export const LAWOS_INTERNAL_ROLE_ASSIGNMENTS = Object.freeze([
     hrx_scopes: HRX_ATTORNEY_SCOPES,
   }),
   assignment({
+    user_id: "user_amic_jhhan",
+    role_profile_id: "lawos_attorney",
+    role_ids: ["lawos_attorney"],
+    group_ids: ["group_attorneys"],
+    scopes: ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"],
+    hrx_scopes: HRX_ATTORNEY_SCOPES,
+  }),
+  assignment({
     user_id: "user_amic_tryoon",
     role_profile_id: "lawos_hr_operations",
     role_ids: ["lawos_hr", "lawos_staff"],

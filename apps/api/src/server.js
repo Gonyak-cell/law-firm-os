@@ -47,6 +47,7 @@ import {
   VAULT_BRIDGE_TOKEN_HEADER,
   createMatterRuntimeContext,
   handleMatterApiRequest,
+  repairCurrentMatterInventoryClassification,
 } from "./matter-runtime-context.js";
 import {
   VAULT_DMS_BOUNDED_CONTEXT,
@@ -138,6 +139,12 @@ import {
 import {
   assertStorePathPreflight,
 } from "./store-path-manifest.js";
+import {
+  ensureLawosDurableStoreHome,
+  lawosDurableStorePathOptions,
+  readOrCreateLocalSessionSecret,
+  shouldUseDurableLocalDefaults,
+} from "./local-durable-store-paths.js";
 import {
   OUTLOOK_ADDIN_BOUNDED_CONTEXT,
   handleOutlookAddinApiRequest,
@@ -267,6 +274,7 @@ export function createDefaultMatterRuntime({
       filePath: storePath || createEphemeralMatterStorePath(),
       seedRecords: MATTER_RUNTIME_SEED.records,
     });
+  repairCurrentMatterInventoryClassification(matterRepository);
   return createMatterRuntimeContext({ repository: matterRepository, dmsRuntime, hrxRuntime, clearanceRepository });
 }
 
@@ -1651,8 +1659,15 @@ function stopCliServer(signal) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const cliStartupOptions = shouldUseDurableLocalDefaults()
+    ? {
+        runtimeProfile: LAWOS_RUNTIME_PROFILES.operational,
+        sessionSecret: readOrCreateLocalSessionSecret(),
+        ...lawosDurableStorePathOptions({ root: ensureLawosDurableStoreHome() }),
+      }
+    : {};
   Promise.resolve()
-    .then(() => startApiServer())
+    .then(() => startApiServer(cliStartupOptions))
     .then(({ server, port }) => {
       cliApiServer = server;
       cliKeepAlive = setInterval(() => {}, 2_147_483_647);
@@ -1664,6 +1679,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       });
       console.log(`law-firm-os api listening on http://${HOST}:${port}`);
       console.log(`health: http://${HOST}:${port}/api/health`);
+      if (cliStartupOptions.runtimeProfile === LAWOS_RUNTIME_PROFILES.operational) {
+        console.log("runtime stores: ~/Library/Application Support/LawFirmOS/runtime-stores");
+      }
     })
     .catch((error) => {
       console.error(`api startup failed: ${error?.message ?? String(error)}`);

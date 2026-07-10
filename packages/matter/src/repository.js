@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import path from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { writeJsonFileDurably } from "../../persistence/src/durable-file.js";
 import { createMatterCoreRecord } from "./model.js";
 import { MATTER_CORE_MIGRATIONS } from "./migrations/index.js";
 
@@ -106,29 +106,31 @@ export function createMatterRepository({ filePath, seedRecords = [] } = {}) {
   const idempotency = new Map();
   const auditEvents = new Map();
 
-  function persist() {
+  function currentState() {
+    return {
+      migrations: state.migrations,
+      records: [...records.values()],
+      idempotency: [...idempotency.values()],
+      audit_events: [...auditEvents.values()],
+    };
+  }
+
+  function persist({ createBackup = true } = {}) {
     if (!filePath) return;
-    mkdirSync(path.dirname(filePath), { recursive: true });
-    writeFileSync(
+    writeJsonFileDurably({
       filePath,
-      `${JSON.stringify(
-        {
-          migrations: state.migrations,
-          records: [...records.values()],
-          idempotency: [...idempotency.values()],
-          audit_events: [...auditEvents.values()],
-        },
-        null,
-        2,
-      )}\n`,
-    );
+      value: currentState(),
+      previousState: state,
+      createBackup,
+    });
+    state = loadState(filePath);
   }
 
   function assertOpen() {
     if (closed) throw new Error("Matter repository is closed");
   }
 
-  function put(record, { overwrite = false } = {}) {
+  function put(record, { overwrite = false, createBackup = true } = {}) {
     const normalized = normalizeRecord(record);
     const key = recordKey(normalized);
     const conflict = findUniquenessConflict({ records, record: normalized, key });
@@ -138,7 +140,7 @@ export function createMatterRepository({ filePath, seedRecords = [] } = {}) {
     }
     if (!overwrite && records.has(key)) throw new Error(`${normalized.model_type} already exists: ${primaryIdOf(normalized)}`);
     records.set(key, clone(normalized));
-    persist();
+    persist({ createBackup });
     return Object.freeze(clone(normalized));
   }
 
@@ -146,7 +148,7 @@ export function createMatterRepository({ filePath, seedRecords = [] } = {}) {
   for (const entry of state.idempotency) idempotency.set(`${entry.tenant_id}:${entry.idempotency_key}`, clone(entry));
   for (const event of state.audit_events) auditEvents.set(`${event.tenant_id}:${event.event_id}`, clone(event));
   for (const record of seedRecords) {
-    if (!records.has(recordKey(normalizeRecord(record)))) put(record, { overwrite: true });
+    if (!records.has(recordKey(normalizeRecord(record)))) put(record, { overwrite: true, createBackup: false });
   }
 
   return Object.freeze({

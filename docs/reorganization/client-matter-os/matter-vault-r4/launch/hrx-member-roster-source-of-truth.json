@@ -298,6 +298,51 @@
       }
     },
     {
+      "user_id": "user_amic_jhhan",
+      "employee_id": "emp_amic_jhhan",
+      "display_name": "한제희",
+      "legal_name": "한제희",
+      "work_email": "jh731@amic.kr",
+      "title": "고문변호사",
+      "employment_type": "full_time",
+      "start_date": "2026-07-06",
+      "status": "active",
+      "profile_status": "active",
+      "affiliation": "AMIC Law",
+      "department": "Legal",
+      "organization_group": "AMIC Law",
+      "org_unit_id": "org_legal",
+      "country": "대한민국",
+      "professional_profile": {
+        "schema_version": "law-firm-os.people-professional-profile.v0.1",
+        "profile_kind": "attorney",
+        "public_role_labels": ["고문변호사", "변호사"],
+        "practice_areas": ["조세", "국제조세", "조세쟁송", "금융·회계 관련 자문", "기업 법무"],
+        "experience": [
+          "법무법인 아믹 고문변호사 (2026~현재)",
+          "서울지방국세청 송무3과장 (2021~2026)",
+          "변호사 한제희 법률사무소 대표변호사 (2021)",
+          "반포세무서·중부지방국세청 국제심사위원 (2018~2021)",
+          "법무법인 가온 조세그룹 변호사 (2020~2021)",
+          "법무법인 케이에스앤피 송무팀 변호사 (2018~2019)",
+          "조세심판원 상임심판관실 근무 (2015~2018)",
+          "금융감독원 법무실 조사역 (2013~2015)",
+          "법무법인 대륙아주 변호사 (2012~2013)"
+        ],
+        "education": ["서울대학교 경영학과 졸업 (2008)", "서울대학교 법학전문대학원 졸업 (2012)", "네덜란드 암스테르담대학교 국제조세법 석사(Adv. LL.M.)"],
+        "qualifications": ["대한민국 변호사", "대한민국 공인회계사"],
+        "source_refs": [
+          {
+            "source_url": "attachment:스크린샷 2026-07-09 오후 1.03.51.png",
+            "source_section": "한제희 변호사 약력",
+            "source_priority": "primary"
+          }
+        ],
+        "source_notes": ["입사일 2026-07-06 및 AMIC Law 추가는 사용자 지시에 근거한다."],
+        "excluded_claim_refs": []
+      }
+    },
+    {
       "user_id": "user_amic_tryoon",
       "employee_id": "emp_amic_tryoon",
       "display_name": "윤태리",

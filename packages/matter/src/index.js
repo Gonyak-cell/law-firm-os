@@ -32,4 +32,5 @@ export * from "./activity-calendar-channel-service.js";
 export * from "./document-email-builder-service.js";
 export * from "./amic-matter-code-candidates.js";
 export * from "./matter-party-service.js";
+export * from "./matter-profile-service.js";
 export * from "./email-ai-matter-review-service.js";

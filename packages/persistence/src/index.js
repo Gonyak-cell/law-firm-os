@@ -9,5 +9,7 @@ export * from "./idempotency.js";
 export * from "./outbox.js";
 export * from "./residency.js";
 export * from "./transaction.js";
+export * from "./durable-file.js";
+export * from "./s3-backup-queue.js";
 export * from "./migration-runner.js";
 export * from "./migrations/index.js";

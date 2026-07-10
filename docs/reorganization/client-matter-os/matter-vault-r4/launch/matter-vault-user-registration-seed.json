@@ -9,7 +9,15 @@
     "sheet": "연락처",
     "sha256": "cbb61404ac48363373716941e38d46ef96fc0dcda92c8bce9b7f4656e158a6f3",
     "account_rows": "4-12",
-    "account_count": 10,
+    "account_count": 11,
+    "supplemental_accounts": [
+      {
+        "email": "jh731@amic.kr",
+        "display_name": "한제희",
+        "joined_on": "2026-07-06",
+        "source": "user_instruction_2026-07-09"
+      }
+    ],
     "phone_numbers_imported": false
   },
   "registration_boundary": {
@@ -264,6 +272,34 @@
           "tenant_id": "tenant_amic_matter_vault",
           "role_ids": ["managing_partner", "attorney", "matter_vault_user"],
           "group_ids": ["group_firm_leadership", "group_attorneys", "group_matter_vault_users"],
+          "scopes": ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"]
+        }
+      ]
+    },
+    {
+      "user_id": "user_amic_jhhan",
+      "email": "jh731@amic.kr",
+      "display_name": "한제희",
+      "english_name": "Jehee Han",
+      "source_title": "고문변호사",
+      "status": "active",
+      "registration_state": "registered_seed",
+      "mfa_required": true,
+      "highest_privilege": false,
+      "privilege_rank": 500,
+      "role_ids": ["attorney", "matter_vault_user"],
+      "group_ids": ["group_attorneys", "group_matter_vault_users"],
+      "scopes": ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"],
+      "assurance_level": "mfa",
+      "local_dev": {
+        "synthetic_only": true,
+        "synthetic_token": "local-dev-only:jh731@amic.kr"
+      },
+      "tenant_memberships": [
+        {
+          "tenant_id": "tenant_amic_matter_vault",
+          "role_ids": ["attorney", "matter_vault_user"],
+          "group_ids": ["group_attorneys", "group_matter_vault_users"],
           "scopes": ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"]
         }
       ]
