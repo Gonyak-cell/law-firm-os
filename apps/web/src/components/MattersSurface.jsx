@@ -338,6 +338,7 @@ function defaultTimeEntryForm() {
 
 function defaultExpenseForm() {
   return {
+    expenseDate: todayWorkDate(),
     amount: "25000",
     receiptDocumentId: "receipt_matter_expense",
     currency: "KRW"
@@ -346,6 +347,7 @@ function defaultExpenseForm() {
 
 function defaultDisbursementForm() {
   return {
+    disbursedAt: todayWorkDate(),
     amount: "15000",
     vendorRef: "vendor_matter_disbursement",
     currency: "KRW"
@@ -1897,6 +1899,7 @@ function ActionNotice({ pending, result, pendingText, successText }) {
 }
 
 function ChargeActionPanel({
+  operationMode = "all",
   matter,
   invoiceRows,
   timeEntryResult,
@@ -1956,7 +1959,7 @@ function ChargeActionPanel({
     ? Number(payment.unapplied_amount ?? payment.amount ?? 0)
     : 0;
   return (
-    <div className="record-action-grid" data-matter-charge-actions="true">
+    <div className="record-action-grid" data-matter-charge-actions="true" data-finance-operation-mode={operationMode}>
       <div className="record-action-strip record-action-time-entry-strip" data-matter-time-entry-action="true">
         <div>
           <strong>{timeEntry ? `${timeEntry.duration_minutes ?? 0}분` : "시간"}</strong>
@@ -2033,6 +2036,10 @@ function ChargeActionPanel({
         </div>
         <form className="record-action-edit-form time-entry-form" data-matter-expense-form="true" onSubmit={onCreateExpense}>
           <label>
+            비용일
+            <input type="date" value={expenseForm.expenseDate} onChange={(event) => onExpenseFormChange("expenseDate", event.target.value)} />
+          </label>
+          <label>
             금액
             <input
               type="number"
@@ -2074,6 +2081,10 @@ function ChargeActionPanel({
         </div>
         <form className="record-action-edit-form time-entry-form" data-matter-disbursement-form="true" onSubmit={onCreateDisbursement}>
           <label>
+            지급일
+            <input type="date" value={disbursementForm.disbursedAt} onChange={(event) => onDisbursementFormChange("disbursedAt", event.target.value)} />
+          </label>
+          <label>
             금액
             <input
               type="number"
@@ -2107,7 +2118,7 @@ function ChargeActionPanel({
           </button>
         </form>
       </div>
-      <div className="record-action-strip">
+      <div className="record-action-strip" data-finance-billing-action="true">
         <div>
           <strong>{wipItems.length > 0 ? moneyLabel(wipItems[0]?.amount, wipItems[0]?.currency ?? "KRW") : "청구 준비"}</strong>
           <span>{wipItems.length > 0 ? "청구 준비됨" : "승인 시간 기준"}</span>
@@ -2117,7 +2128,7 @@ function ChargeActionPanel({
           청구 준비
         </button>
       </div>
-      <div className="record-action-strip" data-matter-charge-step="prebill-review" data-matter-prebill-review-action="true">
+      <div className="record-action-strip" data-finance-billing-action="true" data-matter-charge-step="prebill-review" data-matter-prebill-review-action="true">
         <div>
           <strong>{prebill ? billingStatus(prebill.status) : "검토"}</strong>
           <span>{prebill ? "사전검토 승인됨" : wipTotal > 0 ? moneyLabel(wipTotal, "KRW") : "WIP 필요"}</span>
@@ -2127,7 +2138,7 @@ function ChargeActionPanel({
           검토 승인
         </button>
       </div>
-      <div className="record-action-strip" data-matter-charge-step="invoice-issue" data-matter-invoice-issue-action="true">
+      <div className="record-action-strip" data-finance-billing-action="true" data-matter-charge-step="invoice-issue" data-matter-invoice-issue-action="true">
         <div>
           <strong>{activeInvoice?.invoice_number ?? "발행"}</strong>
           <span>{activeInvoice ? moneyLabel(activeInvoice.amount_due, activeInvoice.currency ?? "KRW") : "승인 검토 기준"}</span>
@@ -2137,7 +2148,7 @@ function ChargeActionPanel({
           발행
         </button>
       </div>
-      <div className="record-action-strip" data-matter-charge-step="payment-allocation" data-matter-payment-match-action="true">
+      <div className="record-action-strip" data-finance-billing-action="true" data-matter-charge-step="payment-allocation" data-matter-payment-match-action="true">
         <div>
           <strong>{paymentMatch ? moneyLabel(paymentMatch.amount, "KRW") : payment ? "수납 대기" : "수납 배정"}</strong>
           <span>{payment ? `미배정 ${moneyLabel(unappliedPayment, payment.currency ?? "KRW")}` : activeInvoice ? "청구 잔액 기준" : "청구서 필요"}</span>
@@ -2153,14 +2164,14 @@ function ChargeActionPanel({
           </button>
         </div>
       </div>
-      <div className="record-action-strip record-action-time-entry-strip" data-matter-accounting-export-action="true">
+      <div className="record-action-strip record-action-time-entry-strip" data-finance-billing-action="true" data-matter-accounting-export-action="true">
         <div>
           <strong>{accountingExport ? `${accountingExport.row_count ?? 0}행` : "회계 CSV"}</strong>
           <span>{accountingExport?.balanced ? "차대변 일치" : "기간 지정"}</span>
           <ActionNotice pending={accountingExportPending} result={accountingExportResult} pendingText="회계 내보내기 생성 중입니다." successText="회계 CSV가 생성되었습니다." />
           {accountingExport && (
             <small data-matter-accounting-export-summary="true">
-              {moneyLabel(accountingExport.debit_total, "KRW")} / {moneyLabel(accountingExport.credit_total, "KRW")} · {String(accountingExport.csv_sha256 ?? "").slice(0, 12)}
+              {moneyLabel(accountingExport.debit_total, "KRW")} / {moneyLabel(accountingExport.credit_total, "KRW")}, {String(accountingExport.csv_sha256 ?? "").slice(0, 12)}
             </small>
           )}
         </div>
@@ -2195,7 +2206,8 @@ function ChargeActionPanel({
   );
 }
 
-function ChargePanel({
+export function ChargePanel({
+  operationMode = "all",
   timeResult,
   invoiceResult,
   agingResult,
@@ -2260,8 +2272,9 @@ function ChargePanel({
   const timeRows = resultItems(timeResult).filter((item) => !matterId || item.matter_id === matterId);
   const invoiceRows = resultItems(invoiceResult).filter((item) => !matterId || item.matter_id === matterId);
   const agingRows = resultItems(agingResult).filter((item) => !matterId || item.matter_id === matterId);
-  const actionPanel = (
+  const actionPanel = operationMode === "ar" ? null : (
       <ChargeActionPanel
+        operationMode={operationMode}
         matter={matter}
         invoiceRows={invoiceRows}
         timeEntryResult={timeEntryResult}
@@ -2317,7 +2330,7 @@ function ChargePanel({
   return (
     <div className="workspace-mini-grid" data-upl-b01-time-entry-readback-count={timeRows.length}>
       {actionPanel}
-      <DataTable
+      {["all", "time"].includes(operationMode) && <DataTable
         columns={["내용", "일자", "상태", "분"]}
         rows={timeRows.map((item, index) => [
           item.narrative ?? `시간 ${index + 1}`,
@@ -2325,8 +2338,8 @@ function ChargePanel({
           billingStatus(item.status),
           String(item.duration_minutes ?? 0)
         ])}
-      />
-      <DataTable
+      />}
+      {["all", "billing"].includes(operationMode) && <DataTable
         columns={["청구서", "상태", "금액", "통화"]}
         rows={invoiceRows.map((item, index) => [
           `청구서 ${index + 1}`,
@@ -2334,8 +2347,8 @@ function ChargePanel({
           moneyLabel(item.amount_due, item.currency ?? "KRW"),
           item.currency ?? "KRW"
         ])}
-      />
-      {agingRows.length > 0 && (
+      />}
+      {["all", "ar"].includes(operationMode) && agingRows.length > 0 && (
         <DataTable
           columns={["미수금", "상태", "잔액"]}
           rows={agingRows.map((item, index) => [
@@ -2918,6 +2931,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     setExpensePending(true);
     const next = await createFinanceExpense({
       matterId: activeMatterId,
+      expenseDate: expenseForm.expenseDate,
       amount: normalizeMoneyAmount(expenseForm.amount),
       receiptDocumentId: expenseForm.receiptDocumentId.trim(),
       currency: expenseForm.currency || "KRW",
@@ -2940,6 +2954,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     setDisbursementPending(true);
     const next = await createFinanceDisbursement({
       matterId: activeMatterId,
+      disbursedAt: disbursementForm.disbursedAt,
       amount: normalizeMoneyAmount(disbursementForm.amount),
       vendorRef: disbursementForm.vendorRef.trim(),
       currency: disbursementForm.currency || "KRW",

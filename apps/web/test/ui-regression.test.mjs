@@ -245,6 +245,26 @@ test("WP-FIN-3 mounts server-reconciled finance views with guarded states and re
   assert.match(stylesSource, /@media \(max-width:\s*720px\)[\s\S]*\.home-finance-filterbar[\s\S]*grid-template-columns:\s*1fr/);
 });
 
+test("WP-FIN-4 reuses the Matter charge panel for Home finance operations", async () => {
+  const homeSource = await readWebFile("src/components/HomeSurface.jsx");
+  const financeSource = await readWebFile("src/components/FinanceSurface.jsx");
+  const operationsSource = await readWebFile("src/components/HomeFinanceOperations.jsx");
+  const mattersSource = await readWebFile("src/components/MattersSurface.jsx");
+  const apiClientSource = await readWebFile("src/data/apiClient.js");
+
+  assert.match(homeSource, /if \(homeFinanceSectionIds\.has\(activeHomeSection\)\)/);
+  assert.match(financeSource, /<HomeFinanceOperations liveCtx=\{liveCtx\} activeSection=\{activeSection\}/);
+  assert.match(operationsSource, /import \{ ChargePanel \} from "\.\/MattersSurface\.jsx"/);
+  assert.match(operationsSource, /<ChargePanel/);
+  assert.doesNotMatch(operationsSource, /function ChargePanel|function ChargeActionPanel/);
+  assert.match(mattersSource, /export function ChargePanel/);
+  assert.match(mattersSource, /data-finance-operation-mode=\{operationMode\}/);
+  assert.match(mattersSource, /expenseDate: todayWorkDate\(\)/);
+  assert.match(mattersSource, /disbursedAt: todayWorkDate\(\)/);
+  assert.match(apiClientSource, /expense_date: expenseDate/);
+  assert.match(apiClientSource, /disbursed_at: disbursedAt/);
+});
+
 test("matter startup branding uses shared splash and brand constants", async () => {
   const brandSource = await readWebFile("src/brand/brand.js");
   const splashSource = await readWebFile("src/components/MatterSplash.jsx");

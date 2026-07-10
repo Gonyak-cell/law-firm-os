@@ -1321,7 +1321,7 @@ export function HomeSurface({
   }
 
   function renderFinanceRouteContract() {
-    if (["home-finance-overview", "home-finance-monthly", "home-finance-clients"].includes(activeHomeSection)) {
+    if (homeFinanceSectionIds.has(activeHomeSection)) {
       return (
         <HomeSectionPanel section={activeHomeSection} title={currentHomeSectionMeta.title}>
           <div data-home-finance-route-contract={activeHomeSection}>
@@ -1330,14 +1330,7 @@ export function HomeSurface({
         </HomeSectionPanel>
       );
     }
-    return (
-      <HomeSectionPanel section={activeHomeSection} title={currentHomeSectionMeta.title} Icon={currentHomeSectionMeta.Icon}>
-        <div className="live-data-state live-data-empty" role="status" data-home-finance-route-contract={activeHomeSection}>
-          <strong>{currentHomeSectionMeta.title}</strong>
-          <span>{homeCopy(labels, "homeFinanceRoutePending", "집계와 정산 기능을 연결하고 있습니다.")}</span>
-        </div>
-      </HomeSectionPanel>
-    );
+    return null;
   }
 
   function renderTodoEmpty() {

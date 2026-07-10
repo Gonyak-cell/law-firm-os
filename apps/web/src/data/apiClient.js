@@ -4451,6 +4451,7 @@ export function createFinanceTimeEntry({
 
 export function createFinanceExpense({
   matterId,
+  expenseDate = new Date().toISOString().slice(0, 10),
   amount = 25000,
   receiptDocumentId = null,
   currency = "KRW",
@@ -4470,6 +4471,7 @@ export function createFinanceExpense({
         expense_id: expenseId,
         tenant_id: FINANCE_TENANT_ID,
         matter_id: matterId,
+        expense_date: expenseDate,
         receipt_document_id: receiptDocumentId || uiStableId("receipt_ui", expenseId),
         amount: Number(amount),
         currency,
@@ -4482,6 +4484,7 @@ export function createFinanceExpense({
 
 export function createFinanceDisbursement({
   matterId,
+  disbursedAt = new Date().toISOString().slice(0, 10),
   amount = 15000,
   vendorRef = null,
   currency = "KRW",
@@ -4501,6 +4504,7 @@ export function createFinanceDisbursement({
         disbursement_id: disbursementId,
         tenant_id: FINANCE_TENANT_ID,
         matter_id: matterId,
+        disbursed_at: disbursedAt,
         vendor_ref: vendorRef || uiStableId("vendor_ui", disbursementId),
         amount: Number(amount),
         currency,

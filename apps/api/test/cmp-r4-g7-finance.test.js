@@ -887,6 +887,7 @@ test("G7 approval expense disbursement and WIP lock routes feed WIP sources", as
           expense_id: "expense_api_g7_b14",
           tenant_id: TENANT,
           matter_id: "matter_api_g7_b14",
+          expense_date: "2026-07-08",
           receipt_document_id: "receipt_api_g7_b14",
           amount: 25000,
           currency: "KRW",
@@ -897,6 +898,7 @@ test("G7 approval expense disbursement and WIP lock routes feed WIP sources", as
     });
     assert.equal(expense.status, 201);
     assert.equal(expense.body.item.approved_for_wip, true);
+    assert.equal(expense.body.item.expense_date, "2026-07-08");
     assert.equal(expense.body.item.production_ready_claim, false);
 
     const disbursement = await json(baseUrl, "/api/finance/disbursements", {
@@ -911,6 +913,7 @@ test("G7 approval expense disbursement and WIP lock routes feed WIP sources", as
           disbursement_id: "disbursement_api_g7_b14",
           tenant_id: TENANT,
           matter_id: "matter_api_g7_b14",
+          disbursed_at: "2026-07-09",
           vendor_ref: "vendor_api_g7_b14",
           amount: 15000,
           currency: "KRW",
@@ -920,6 +923,7 @@ test("G7 approval expense disbursement and WIP lock routes feed WIP sources", as
     });
     assert.equal(disbursement.status, 201);
     assert.equal(disbursement.body.item.recoverable, true);
+    assert.equal(disbursement.body.item.disbursed_at, "2026-07-09");
 
     const wip = await json(baseUrl, "/api/finance/wip", {
       method: "POST",

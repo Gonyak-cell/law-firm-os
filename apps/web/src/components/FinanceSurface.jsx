@@ -6,6 +6,7 @@ import {
   fetchAnalyticsFinanceMonthly,
   fetchAnalyticsFinanceOverview
 } from "../data/apiClient.js";
+import { HomeFinanceOperations } from "./HomeFinanceOperations.jsx";
 
 const FINANCE_PERMISSION_REF = "ui_home_finance_read";
 const FINANCE_AUDIT_HINT_REF = "ui_home_finance_probe";
@@ -215,7 +216,7 @@ function ReconciliationNotice({ totals, partial }) {
   );
 }
 
-export function FinanceSurface({ liveCtx = "allow", activeSection = "home-finance-overview" }) {
+function FinanceAggregateSurface({ liveCtx = "allow", activeSection = "home-finance-overview" }) {
   const section = aggregateSections.has(activeSection) ? activeSection : "home-finance-overview";
   const [filters, setFilters] = useState(() => defaultFinanceFilters());
   const [overview, setOverview] = useState(null);
@@ -278,4 +279,9 @@ export function FinanceSurface({ liveCtx = "allow", activeSection = "home-financ
       </FinanceReadState>
     </section>
   );
+}
+
+export function FinanceSurface({ liveCtx = "allow", activeSection = "home-finance-overview" }) {
+  if (!aggregateSections.has(activeSection)) return <HomeFinanceOperations liveCtx={liveCtx} activeSection={activeSection} />;
+  return <FinanceAggregateSurface liveCtx={liveCtx} activeSection={activeSection} />;
 }

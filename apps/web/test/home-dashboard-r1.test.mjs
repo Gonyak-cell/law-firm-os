@@ -446,6 +446,86 @@ test("WP-FIN-3 renders reconciled Home finance views and keeps filters in the UR
   }
 });
 
+test("WP-FIN-4 runs the shared Matter finance workflow from Home", async () => {
+  const port = await availablePort();
+  const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  const calls = [];
+  const listBody = (items = []) => ({ request_id: "wp-fin-4-list", outcome: "passed", items, page_info: { next_cursor: null, returned_count: items.length }, safe_error_codes: [], audit_hint_ref: "wp-fin-4-audit", ui_state: items.length === 0 ? "empty" : null, count_leak_prevented: true, production_ready_claim: false });
+  const actionBody = (extra = {}) => ({ request_id: "wp-fin-4-action", outcome: "created", safe_error_codes: [], audit_hint_ref: "wp-fin-4-action-audit", production_ready_claim: false, ...extra });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 1000 } });
+    await page.route("**/api/**", async (route) => {
+      const request = route.request();
+      const url = new URL(request.url());
+      const key = `${request.method()} ${url.pathname}`;
+      calls.push(key);
+      if (url.pathname === "/api/matters") return jsonResponse(route, listBody([{ matter_id: "matter-live-1", matter_code: "2026-001", title: "고객 자문", billing_client_party_id: "party-live-1", status: "active" }]));
+      if (url.pathname === "/api/finance/time-entries" && request.method() === "GET") return jsonResponse(route, listBody([]));
+      if (url.pathname === "/api/finance/invoices" && request.method() === "GET") return jsonResponse(route, listBody([]));
+      if (url.pathname === "/api/finance/ar-aging" && request.method() === "GET") return jsonResponse(route, listBody([{ ar_balance_id: "ar-live-1", matter_id: "matter-live-1", balance: 1000, status: "open" }]));
+      if (url.pathname === "/api/finance/audit" && request.method() === "GET") return jsonResponse(route, listBody([]));
+      if (url.pathname === "/api/finance/time-entries" && request.method() === "POST") return jsonResponse(route, actionBody({ item: { time_entry_id: "time-live-1", matter_id: "matter-live-1", work_date: "2026-07-10", narrative: "WP4 시간 기록", duration_minutes: 30, status: "approved" } }), 201);
+      if (url.pathname === "/api/finance/expenses" && request.method() === "POST") return jsonResponse(route, actionBody({ item: { expense_id: "expense-live-1", matter_id: "matter-live-1", amount: 25000, currency: "KRW" } }), 201);
+      if (url.pathname === "/api/finance/disbursements" && request.method() === "POST") return jsonResponse(route, actionBody({ item: { disbursement_id: "disbursement-live-1", matter_id: "matter-live-1", amount: 15000, currency: "KRW" } }), 201);
+      if (url.pathname === "/api/finance/wip") return jsonResponse(route, actionBody({ items: [{ wip_item_id: "wip-live-1", matter_id: "matter-live-1", amount: 1000, currency: "KRW" }] }), 201);
+      if (url.pathname === "/api/finance/wip-snapshots") return jsonResponse(route, actionBody({ item: { wip_snapshot_id: "snapshot-live-1" } }), 201);
+      if (url.pathname === "/api/finance/prebills") return jsonResponse(route, actionBody({ item: { prebill_id: "prebill-live-1", status: "draft" } }), 201);
+      if (url.pathname === "/api/finance/prebills/approve") return jsonResponse(route, actionBody({ item: { prebill_id: "prebill-live-1", status: "approved" } }));
+      if (url.pathname === "/api/finance/invoices" && request.method() === "POST") return jsonResponse(route, actionBody({ item: { invoice_id: "invoice-live-1", matter_id: "matter-live-1", invoice_number: "INV-001", amount_due: 1000, amount_paid: 0, currency: "KRW", status: "issued" } }), 201);
+      if (url.pathname === "/api/finance/payments" && request.method() === "POST") return jsonResponse(route, actionBody({ item: { payment_id: "payment-live-1", matter_id: "matter-live-1", amount: 1000, unapplied_amount: 1000, currency: "KRW" } }), 201);
+      if (url.pathname === "/api/finance/payment-matches") return jsonResponse(route, actionBody({ item: { payment_match_id: "match-live-1", amount: 1000 }, invoice: { invoice_id: "invoice-live-1", matter_id: "matter-live-1", amount_due: 1000, amount_paid: 1000, currency: "KRW", status: "paid" }, payment: { payment_id: "payment-live-1", amount: 1000, unapplied_amount: 0, currency: "KRW" } }), 201);
+      if (url.pathname === "/api/finance/accounting-export.csv") return jsonResponse(route, actionBody({ item: { accounting_export_id: "export-live-1", row_count: 2, balanced: true, debit_total: 1000, credit_total: 1000, csv_sha256: "0123456789abcdef" } }));
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, { decisionCalls: 0, newsCalls: 0 }));
+    });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow&matter_id=matter-live-1#home-finance-time`, { waitUntil: "networkidle" });
+    await page.waitForSelector('[data-home-finance-operation="time"] [data-matter-time-entry-form="true"]');
+    await page.locator('[data-upl-b01-time-entry-narrative="true"]').fill("WP4 시간 기록");
+    await page.locator('[data-upl-b01-time-entry-submit="true"]').click();
+    await page.waitForSelector('text=시간이 기록되었습니다.');
+
+    const financeGroup = page.locator('[data-sidebar-group="home-finance"]');
+    await financeGroup.getByRole("button", { name: "비용 처리", exact: true }).click();
+    await page.waitForSelector('[data-home-finance-operation="expenses"]');
+    await page.locator('[data-matter-expense-form="true"]').getByLabel("영수증").fill("receipt-live-1");
+    await page.locator('[data-matter-expense-form="true"]').getByRole("button", { name: "경비 기록" }).click();
+    await page.waitForSelector('text=경비가 기록되었습니다.');
+    await page.locator('[data-matter-disbursement-form="true"]').getByLabel("거래처").fill("vendor-live-1");
+    await page.locator('[data-matter-disbursement-form="true"]').getByRole("button", { name: "대납 기록" }).click();
+    await page.waitForSelector('text=대납이 기록되었습니다.');
+
+    await financeGroup.getByRole("button", { name: "청구/수납", exact: true }).click();
+    await page.waitForSelector('[data-home-finance-operation="billing"]');
+    await page.getByRole("button", { name: "청구 준비", exact: true }).click();
+    await page.waitForFunction(() => !document.querySelector('[data-matter-prebill-review-action="true"] button')?.disabled);
+    await page.getByRole("button", { name: "검토 승인", exact: true }).click();
+    await page.waitForFunction(() => !document.querySelector('[data-matter-invoice-issue-action="true"] button')?.disabled);
+    await page.getByRole("button", { name: "발행", exact: true }).click();
+    await page.waitForFunction(() => !document.querySelector('[data-matter-payment-import-action="true"]')?.disabled);
+    await page.getByRole("button", { name: "입금 기록", exact: true }).click();
+    await page.waitForFunction(() => {
+      const buttons = [...document.querySelectorAll('[data-matter-payment-match-action="true"] button')];
+      return buttons.some((button) => button.textContent.trim() === "배정" && !button.disabled);
+    });
+    await page.getByRole("button", { name: "배정", exact: true }).click();
+    await page.locator('[data-matter-accounting-export-form="true"]').getByRole("button", { name: "CSV 생성" }).click();
+    await page.waitForSelector('[data-matter-accounting-export-summary="true"]');
+
+    await financeGroup.getByRole("button", { name: "미수금", exact: true }).click();
+    await page.waitForSelector('[data-home-finance-operation="ar"]');
+    assert.match(await page.locator('[data-home-finance-operation="ar"]').innerText(), /KRW 1,000/);
+    assert.equal(new URL(page.url()).searchParams.get("matter_id"), "matter-live-1");
+    for (const expected of ["POST /api/finance/time-entries", "POST /api/finance/expenses", "POST /api/finance/disbursements", "POST /api/finance/wip", "POST /api/finance/wip-snapshots", "POST /api/finance/prebills", "POST /api/finance/prebills/approve", "POST /api/finance/invoices", "POST /api/finance/payments", "POST /api/finance/payment-matches", "GET /api/finance/accounting-export.csv"]) {
+      assert.ok(calls.includes(expected), `missing ${expected}`);
+    }
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
 test("R1 WP-4 gates Home company status to admin sessions", async () => {
   const denied = await renderAppAtLegacyRoute({ view: "reports", section: "reports-matter-analytics", roleIds: ["staff"] });
   const admin = await renderAppAtLegacyRoute({ view: "reports", section: "reports-matter-analytics", roleIds: ["admin"] });
