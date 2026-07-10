@@ -9,7 +9,7 @@ import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 
 const execFileAsync = promisify(execFile);
-const npxExecutable = process.platform === "win32" ? "npx.cmd" : "npx";
+const npxExecutable = process.platform === "win32" ? (process.env.ComSpec ?? "cmd.exe") : "npx";
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, "..");
 const desktopRoot = join(repoRoot, "apps/desktop");
@@ -71,20 +71,21 @@ try {
   );
   await writeFile(join(stagingProjectRoot, "electron-builder.yml"), await readFile(builderConfigPath, "utf8"));
 
+  const npxArgs = [
+    "-y",
+    "electron-builder@26.15.3",
+    "--win",
+    "nsis",
+    "--x64",
+    "--publish",
+    "never",
+    `-c.appId=${appId}`,
+    `-c.artifactName=${artifactName}-\${os}-\${arch}.\${ext}`,
+    "-c.electronVersion=42.4.1",
+  ];
   await execFileAsync(
     npxExecutable,
-    [
-      "-y",
-      "electron-builder@26.15.3",
-      "--win",
-      "nsis",
-      "--x64",
-      "--publish",
-      "never",
-      `-c.appId=${appId}`,
-      `-c.artifactName=${artifactName}-\${os}-\${arch}.\${ext}`,
-      "-c.electronVersion=42.4.1",
-    ],
+    process.platform === "win32" ? ["/d", "/s", "/c", "npx", ...npxArgs] : npxArgs,
     {
       cwd: stagingProjectRoot,
       env: process.env,
