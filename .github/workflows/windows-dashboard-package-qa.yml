@@ -42,10 +42,6 @@ jobs:
       - name: Build Windows NSIS installer
         run: npm --workspace apps/desktop run build:win:installer
 
-      - name: Build Windows unpacked app for native launch
-        working-directory: apps/desktop
-        run: npx -y electron-builder@26.15.3 --win dir --x64 --publish never -c.electronVersion=42.4.1
-
       - name: Run native packaged dashboard screen QA
         run: npm run matter-desktop:dashboard-package-qa
 

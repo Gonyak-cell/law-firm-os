@@ -25,6 +25,7 @@ const appId = formalRelease ? "com.amic.matter.desktop" : "com.amic.matter.deskt
 const artifactName = formalRelease ? `matter-${packageJson.version}` : `matter-internal-${packageJson.version}`;
 const installerPath = join(desktopRoot, "dist", `${artifactName}-win-x64.exe`);
 const blockmapPath = `${installerPath}.blockmap`;
+const unpackedPath = join(desktopRoot, "dist", "win-unpacked");
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md");
 
 function sha256(buffer) {
@@ -44,11 +45,13 @@ async function fileRecord(filePath) {
 
 await rm(installerPath, { force: true });
 await rm(blockmapPath, { force: true });
+await rm(unpackedPath, { recursive: true, force: true });
 
 const stagingRoot = await mkdtemp(join(tmpdir(), "matter-desktop-win-builder-"));
 const stagingProjectRoot = join(stagingRoot, "desktop");
 const stagingInstallerPath = join(stagingProjectRoot, "dist", `${artifactName}-win-x64.exe`);
 const stagingBlockmapPath = `${stagingInstallerPath}.blockmap`;
+const stagingUnpackedPath = join(stagingProjectRoot, "dist", "win-unpacked");
 
 try {
   await mkdir(stagingProjectRoot, { recursive: true });
@@ -96,6 +99,7 @@ try {
   await mkdir(dirname(installerPath), { recursive: true });
   await cp(stagingInstallerPath, installerPath);
   await cp(stagingBlockmapPath, blockmapPath);
+  await cp(stagingUnpackedPath, unpackedPath, { recursive: true });
 } finally {
   await rm(stagingRoot, { recursive: true, force: true });
 }
