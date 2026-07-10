@@ -90,6 +90,9 @@ requireText(shellPath, "view: \"data-import\", section: \"data-import-client\"")
 requireText(shellPath, "groupId: \"home-finance\"");
 requireText(shellPath, "view: \"home\", section: \"home-finance-overview\"");
 requireText(shellPath, "view: \"home\", section: \"home-finance-expenses\"");
+for (const legacyMatterFinanceSection of ["matter-approvals", "matter-time", "matter-expenses", "matter-billing", "matter-ar"]) {
+  assert.doesNotMatch(read(shellPath), new RegExp(`section: "${legacyMatterFinanceSection}"`), `${shellPath} still exposes ${legacyMatterFinanceSection}`);
+}
 requireText(surfacePath, "data-global-utility-surface");
 requireText(surfacePath, "data-global-decision-required");
 requireText(stylesPath, ".global-utility-layer");

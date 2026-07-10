@@ -746,17 +746,6 @@ export function Sidebar({
         ]
       },
       {
-        label: "결재·청구",
-        icon: ShieldCheck,
-        children: [
-          { label: "결재·승인", view: "matters", section: "matter-approvals", icon: ShieldCheck },
-          { label: "시간 기록", view: "matters", section: "matter-time", icon: ClipboardList },
-          { label: "비용 처리", view: "matters", section: "matter-expenses", icon: FileText },
-          { label: "청구 내역", view: "matters", section: "matter-billing", icon: FileText },
-          { label: "미수금", view: "matters", section: "matter-ar", icon: FileText }
-        ]
-      },
-      {
         label: "리포트·관리",
         icon: Settings,
         children: [

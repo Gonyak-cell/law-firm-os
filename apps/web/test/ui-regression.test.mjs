@@ -128,7 +128,7 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   for (const label of ["Client 홈", "Client 목록", "담당자", "Opportunity", "상담·문의", "접촉 이력", "제안·계약", "Client 관계", "이해상충 확인", "청구·수금", "Client 리포트", "Client 설정"]) {
     assert.match(shellSource, new RegExp(label));
   }
-  for (const label of ["사건 운영", "홈", "사건 목록", "신규 사건", "수임 진행", "종결 처리", "보관 사건", "업무 진행", "업무 보드", "할 일", "외부 일정", "메모·검토 의견", "문서·자료", "사건 문서", "증거·자료", "양식·템플릿", "인장·날인", "소통·참여", "이메일·메시지", "회의·통화 기록", "공지·공유", "담당자·참여자", "의뢰인 요청", "결재·청구", "결재·승인", "시간 기록", "비용 처리", "청구 내역", "미수금", "리포트·관리", "사건 리포트", "검색·통계", "사건 위험", "감사 이력", "연동·알림", "사건 설정"]) {
+  for (const label of ["사건 운영", "홈", "사건 목록", "신규 사건", "수임 진행", "종결 처리", "보관 사건", "업무 진행", "업무 보드", "할 일", "외부 일정", "메모·검토 의견", "문서·자료", "사건 문서", "증거·자료", "양식·템플릿", "인장·날인", "소통·참여", "이메일·메시지", "회의·통화 기록", "공지·공유", "담당자·참여자", "의뢰인 요청", "리포트·관리", "사건 리포트", "검색·통계", "사건 위험", "감사 이력", "연동·알림", "사건 설정"]) {
     assert.match(shellSource, new RegExp(label));
   }
   assert.match(shellSource, /peopleNavigationGroups/);
@@ -219,6 +219,9 @@ test("WP-FIN-1 registers the Home finance group and context-preserving legacy ro
   assert.match(appSource, /params\.set\("matter_id", routeContext\.matterId\)/);
   assert.match(appSource, /params\.set\("filter", routeContext\.filter\)/);
   assert.match(homeSource, /data-home-finance-route-contract=\{activeHomeSection\}/);
+  for (const legacyMatterSection of ["matter-approvals", "matter-time", "matter-expenses", "matter-billing", "matter-ar"]) {
+    assert.doesNotMatch(shellSource, new RegExp(`section: "${legacyMatterSection}"`));
+  }
 });
 
 test("WP-FIN-3 mounts server-reconciled finance views with guarded states and responsive filters", async () => {
@@ -776,11 +779,6 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
     "matter-opening",
     "matter-team",
     "matter-client-requests",
-    "matter-approvals",
-    "matter-time",
-    "matter-expenses",
-    "matter-billing",
-    "matter-ar",
     "matter-analytics",
     "matter-search",
     "matter-risk",
