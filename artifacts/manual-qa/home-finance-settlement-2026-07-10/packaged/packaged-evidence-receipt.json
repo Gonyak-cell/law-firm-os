@@ -1,11 +1,11 @@
 {
   "schema_version": "law-firm-os.home-finance-packaged-evidence.v0.1",
-  "generated_at": "2026-07-10T11:40:50.795Z",
+  "generated_at": "2026-07-10T17:25:19.211Z",
   "status": "passed",
   "package": {
     "app_bundle": "apps/desktop/dist/mac/matter.app",
     "executable_sha256": "c0bf182389ea930585e3b0bf5c4f16529461e02bf3be751cb364d0e25f2257e0",
-    "renderer_index_sha256": "b6c4ff41f23d7cd15372a9bff809a9757b58868d9a78b9cb77fa54ff447821fa",
+    "renderer_index_sha256": "05d2d6551e2101b6b7181dba35dad3c91d584a38aef4291022286324a1ee1bcc",
     "internal_package_only": true,
     "developer_id_signed": false,
     "notarized": false
@@ -23,7 +23,8 @@
     "active_view": "home",
     "active_section": "home-finance-overview",
     "group_visible": true,
-    "group_is_accordion": false,
+    "group_is_accordion": true,
+    "group_expanded": "true",
     "child_labels": [
       "전체 현황",
       "월별 매출/비용",
@@ -33,15 +34,15 @@
       "청구/수납",
       "미수금"
     ],
-    "context_subnav_label": "매출/비용 하위 메뉴",
-    "nested_sidebar_item_count": 0,
+    "context_subnav_count": 0,
+    "nested_sidebar_item_count": 8,
     "route_contract_visible": true,
     "horizontal_overflow": false
   },
   "matter_snapshot": {
     "settlement_group_visible": false,
     "forbidden_section_count": 0,
-    "sidebar_text": "사건 운영업무 진행소통리포트"
+    "sidebar_text": "사건 운영대시보드사건 목록사건 문서신규 사건수임 진행종결 처리보관 사건업무 진행소통리포트"
   },
   "layout_1280x640_snapshot": {
     "viewport": {
@@ -54,43 +55,40 @@
       "overflow_y": "hidden"
     },
     "sidebar_nav": {
-      "client_height": 444,
-      "scroll_height": 444,
-      "overflow_y": "hidden"
+      "client_height": 512,
+      "scroll_height": 746,
+      "overflow_y": "auto"
     },
     "page_canvas": {
       "client_height": 640,
-      "scroll_height": 1086,
+      "scroll_height": 1038,
       "overflow_y": "auto"
     },
-    "nested_sidebar_item_count": 0,
-    "accordion_control_count": 0
+    "nested_sidebar_item_count": 8,
+    "accordion_control_count": 1
   },
   "product_group_snapshots": [
     {
       "resolved_hash": "client-opportunities",
-      "sidebar_current": "수임 전 업무",
-      "context_subnav_label": "수임 전 업무 하위 메뉴",
-      "context_subnav_current": "Opportunity",
-      "nested_sidebar_item_count": 0,
+      "sidebar_current": "Opportunity",
+      "context_subnav_count": 0,
+      "nested_sidebar_item_count": 7,
       "expected_section": "client-opportunities",
       "expected_current": "Opportunity"
     },
     {
       "resolved_hash": "matter-board",
-      "sidebar_current": "업무 진행",
-      "context_subnav_label": "업무 진행 하위 메뉴",
-      "context_subnav_current": "업무 보드",
-      "nested_sidebar_item_count": 0,
+      "sidebar_current": "업무 보드",
+      "context_subnav_count": 0,
+      "nested_sidebar_item_count": 6,
       "expected_section": "matter-board",
       "expected_current": "업무 보드"
     },
     {
       "resolved_hash": "people-work-schedule",
-      "sidebar_current": "근무일정",
-      "context_subnav_label": "근무일정 하위 메뉴",
-      "context_subnav_current": "근무표",
-      "nested_sidebar_item_count": 0,
+      "sidebar_current": "근무표",
+      "context_subnav_count": 0,
+      "nested_sidebar_item_count": 5,
       "expected_section": "people-work-schedule",
       "expected_current": "근무표"
     }
@@ -106,7 +104,7 @@
     {
       "name": "01-packaged-overview-sidebar",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/01-packaged-overview-sidebar.png",
-      "screenshot_sha256": "4959b7b9d4240081c3fa6cf3ef424f5680f7077e7b0f5f0375d622cca3d3181b",
+      "screenshot_sha256": "390c21d58c6b2c32ac5b172bf58b6569c336c4575315e2d512a17149dc50a8a3",
       "selector": "[data-home-finance-summary=\"true\"]",
       "snapshot": {
         "requested_view": "home",
@@ -125,25 +123,24 @@
           "overflow_y": "hidden"
         },
         "sidebar_nav": {
-          "client_height": 444,
-          "scroll_height": 444,
-          "overflow_y": "hidden"
+          "client_height": 692,
+          "scroll_height": 746,
+          "overflow_y": "auto"
         },
         "page_canvas": {
           "client_height": 820,
-          "scroll_height": 1086,
+          "scroll_height": 1038,
           "overflow_y": "auto"
         },
-        "nested_sidebar_item_count": 0,
-        "accordion_control_count": 0,
-        "context_subnav_label": "매출/비용 하위 메뉴",
-        "context_subnav_current": "전체 현황"
+        "nested_sidebar_item_count": 8,
+        "accordion_control_count": 1,
+        "context_subnav_count": 0
       }
     },
     {
       "name": "02-packaged-monthly",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/02-packaged-monthly.png",
-      "screenshot_sha256": "fcc56e336fb352bca5a5f017494642c661c4933569c1055c19c97c24e6c33e53",
+      "screenshot_sha256": "f0e026ef0d7e07d61e29dacba6859c81c6a57b5af18688a7455bd6c7fa398324",
       "selector": "[data-home-finance-monthly-table=\"true\"]",
       "snapshot": {
         "requested_view": "home",
@@ -162,25 +159,24 @@
           "overflow_y": "hidden"
         },
         "sidebar_nav": {
-          "client_height": 444,
-          "scroll_height": 444,
-          "overflow_y": "hidden"
+          "client_height": 692,
+          "scroll_height": 746,
+          "overflow_y": "auto"
         },
         "page_canvas": {
           "client_height": 820,
-          "scroll_height": 868,
+          "scroll_height": 820,
           "overflow_y": "auto"
         },
-        "nested_sidebar_item_count": 0,
-        "accordion_control_count": 0,
-        "context_subnav_label": "매출/비용 하위 메뉴",
-        "context_subnav_current": "월별 매출/비용"
+        "nested_sidebar_item_count": 8,
+        "accordion_control_count": 1,
+        "context_subnav_count": 0
       }
     },
     {
       "name": "03-packaged-clients-unlinked",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/03-packaged-clients-unlinked.png",
-      "screenshot_sha256": "b2ecb1d6cac2bb1ee9e591c7bbcacd29b5d473448b7f8c40f0cf1141e2ea5347",
+      "screenshot_sha256": "ebbae69b8d8c11fa24f7d9cb04c4b3ba6b06acd7c5c481de946ecb1df86c3c5b",
       "selector": "[data-home-finance-unlinked-client=\"true\"]",
       "snapshot": {
         "requested_view": "home",
@@ -199,25 +195,24 @@
           "overflow_y": "hidden"
         },
         "sidebar_nav": {
-          "client_height": 444,
-          "scroll_height": 444,
-          "overflow_y": "hidden"
+          "client_height": 692,
+          "scroll_height": 746,
+          "overflow_y": "auto"
         },
         "page_canvas": {
           "client_height": 820,
-          "scroll_height": 868,
+          "scroll_height": 820,
           "overflow_y": "auto"
         },
-        "nested_sidebar_item_count": 0,
-        "accordion_control_count": 0,
-        "context_subnav_label": "매출/비용 하위 메뉴",
-        "context_subnav_current": "고객별 매출/비용"
+        "nested_sidebar_item_count": 8,
+        "accordion_control_count": 1,
+        "context_subnav_count": 0
       }
     },
     {
       "name": "04-packaged-time",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/04-packaged-time.png",
-      "screenshot_sha256": "bffb755d9fb0ffe6ca2471025499e5135c8d0c35de42eb9b0d60f069db80245e",
+      "screenshot_sha256": "26f3b3d8866016aeeebff371d8694ab8a35ccf3fcf9ec43f1071d63e06cad039",
       "selector": "[data-home-finance-operation=\"time\"]",
       "snapshot": {
         "requested_view": "home",
@@ -236,25 +231,24 @@
           "overflow_y": "hidden"
         },
         "sidebar_nav": {
-          "client_height": 444,
-          "scroll_height": 444,
-          "overflow_y": "hidden"
+          "client_height": 692,
+          "scroll_height": 746,
+          "overflow_y": "auto"
         },
         "page_canvas": {
           "client_height": 820,
-          "scroll_height": 868,
+          "scroll_height": 820,
           "overflow_y": "auto"
         },
-        "nested_sidebar_item_count": 0,
-        "accordion_control_count": 0,
-        "context_subnav_label": "매출/비용 하위 메뉴",
-        "context_subnav_current": "시간 기록"
+        "nested_sidebar_item_count": 8,
+        "accordion_control_count": 1,
+        "context_subnav_count": 0
       }
     },
     {
       "name": "05-packaged-expenses",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/05-packaged-expenses.png",
-      "screenshot_sha256": "852e425e5552e3f3cb81fc81e22c390dd556b5e6e3393d693b9bae64a979239a",
+      "screenshot_sha256": "5f33709cf4bec9d5096fb5cbf6501d6550a834378deaa4f44f0734a747770c07",
       "selector": "[data-home-finance-operation=\"expenses\"]",
       "snapshot": {
         "requested_view": "home",
@@ -273,25 +267,24 @@
           "overflow_y": "hidden"
         },
         "sidebar_nav": {
-          "client_height": 444,
-          "scroll_height": 444,
-          "overflow_y": "hidden"
+          "client_height": 692,
+          "scroll_height": 746,
+          "overflow_y": "auto"
         },
         "page_canvas": {
           "client_height": 820,
-          "scroll_height": 868,
+          "scroll_height": 820,
           "overflow_y": "auto"
         },
-        "nested_sidebar_item_count": 0,
-        "accordion_control_count": 0,
-        "context_subnav_label": "매출/비용 하위 메뉴",
-        "context_subnav_current": "비용 처리"
+        "nested_sidebar_item_count": 8,
+        "accordion_control_count": 1,
+        "context_subnav_count": 0
       }
     },
     {
       "name": "06-packaged-billing",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/06-packaged-billing.png",
-      "screenshot_sha256": "9347bca3a91fb5871160ac950e08f0669120f6552fc78e9a32401ff9961c82f6",
+      "screenshot_sha256": "22cfa4b53b2fdb263fcfd2ff3266982be52fe15147db49c6c72c4ec2e8c05bb8",
       "selector": "[data-home-finance-operation=\"billing\"]",
       "snapshot": {
         "requested_view": "home",
@@ -310,25 +303,24 @@
           "overflow_y": "hidden"
         },
         "sidebar_nav": {
-          "client_height": 444,
-          "scroll_height": 444,
-          "overflow_y": "hidden"
+          "client_height": 692,
+          "scroll_height": 746,
+          "overflow_y": "auto"
         },
         "page_canvas": {
           "client_height": 820,
-          "scroll_height": 868,
+          "scroll_height": 820,
           "overflow_y": "auto"
         },
-        "nested_sidebar_item_count": 0,
-        "accordion_control_count": 0,
-        "context_subnav_label": "매출/비용 하위 메뉴",
-        "context_subnav_current": "청구/수납"
+        "nested_sidebar_item_count": 8,
+        "accordion_control_count": 1,
+        "context_subnav_count": 0
       }
     },
     {
       "name": "07-packaged-ar",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/07-packaged-ar.png",
-      "screenshot_sha256": "07604a0bd2c53db6afc229d4e766fc40535715601be1a6b0aac96621b1827b5b",
+      "screenshot_sha256": "5b1529178786b1e65d92d69461aa84e8cddf1b5cb3c98f481d8071d869cc0852",
       "selector": "[data-home-finance-operation=\"ar\"]",
       "snapshot": {
         "requested_view": "home",
@@ -347,25 +339,24 @@
           "overflow_y": "hidden"
         },
         "sidebar_nav": {
-          "client_height": 444,
-          "scroll_height": 444,
-          "overflow_y": "hidden"
+          "client_height": 692,
+          "scroll_height": 746,
+          "overflow_y": "auto"
         },
         "page_canvas": {
           "client_height": 820,
-          "scroll_height": 868,
+          "scroll_height": 820,
           "overflow_y": "auto"
         },
-        "nested_sidebar_item_count": 0,
-        "accordion_control_count": 0,
-        "context_subnav_label": "매출/비용 하위 메뉴",
-        "context_subnav_current": "미수금"
+        "nested_sidebar_item_count": 8,
+        "accordion_control_count": 1,
+        "context_subnav_count": 0
       }
     },
     {
       "name": "08-packaged-matter-context-redirect",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/08-packaged-matter-context-redirect.png",
-      "screenshot_sha256": "9347bca3a91fb5871160ac950e08f0669120f6552fc78e9a32401ff9961c82f6",
+      "screenshot_sha256": "22cfa4b53b2fdb263fcfd2ff3266982be52fe15147db49c6c72c4ec2e8c05bb8",
       "selector": "[data-home-finance-operation=\"billing\"]",
       "snapshot": {
         "requested_view": "matters",
@@ -384,25 +375,24 @@
           "overflow_y": "hidden"
         },
         "sidebar_nav": {
-          "client_height": 444,
-          "scroll_height": 444,
-          "overflow_y": "hidden"
+          "client_height": 692,
+          "scroll_height": 746,
+          "overflow_y": "auto"
         },
         "page_canvas": {
           "client_height": 820,
-          "scroll_height": 868,
+          "scroll_height": 820,
           "overflow_y": "auto"
         },
-        "nested_sidebar_item_count": 0,
-        "accordion_control_count": 0,
-        "context_subnav_label": "매출/비용 하위 메뉴",
-        "context_subnav_current": "청구/수납"
+        "nested_sidebar_item_count": 8,
+        "accordion_control_count": 1,
+        "context_subnav_count": 0
       }
     },
     {
       "name": "09-packaged-denied",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/09-packaged-denied.png",
-      "screenshot_sha256": "b9707e5ebded359bcc2c617736e3572ce48f42155d5bf6f47764f0722c519f7b",
+      "screenshot_sha256": "d5b4a61d47c3f6096458eaf41c8c4b8507bad2fb86cd505cc476d0d6fc029cef",
       "selector": "[data-home-dashboard-shell=\"true\"]",
       "snapshot": {
         "requested_view": "home",
@@ -423,23 +413,22 @@
         "sidebar_nav": {
           "client_height": 344,
           "scroll_height": 344,
-          "overflow_y": "hidden"
+          "overflow_y": "auto"
         },
         "page_canvas": {
           "client_height": 820,
-          "scroll_height": 820,
+          "scroll_height": 947,
           "overflow_y": "auto"
         },
         "nested_sidebar_item_count": 0,
         "accordion_control_count": 0,
-        "context_subnav_label": null,
-        "context_subnav_current": null
+        "context_subnav_count": 0
       }
     },
     {
       "name": "10-packaged-home-finance-1280x640",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/10-packaged-home-finance-1280x640.png",
-      "screenshot_sha256": "a06f0460dc7023b7dfa87a08370b9a577ff4ac67303562b54f1025060a6b98df",
+      "screenshot_sha256": "034682843b5cdd753b0fd830d3f55442f1a454a384b94db4a9e7156c057c1b20",
       "selector": "[data-sidebar-group=\"home-finance\"]",
       "snapshot": {
         "viewport": {
@@ -452,71 +441,68 @@
           "overflow_y": "hidden"
         },
         "sidebar_nav": {
-          "client_height": 444,
-          "scroll_height": 444,
-          "overflow_y": "hidden"
+          "client_height": 512,
+          "scroll_height": 746,
+          "overflow_y": "auto"
         },
         "page_canvas": {
           "client_height": 640,
-          "scroll_height": 1086,
+          "scroll_height": 1038,
           "overflow_y": "auto"
         },
-        "nested_sidebar_item_count": 0,
-        "accordion_control_count": 0
+        "nested_sidebar_item_count": 8,
+        "accordion_control_count": 1
       }
     },
     {
       "name": "11-packaged-matter-sidebar-without-settlement",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/11-packaged-matter-sidebar-without-settlement.png",
-      "screenshot_sha256": "214c325a08cd7d9205dd64bfb5755371d79f6fcddc3359941c120897a785ef07",
+      "screenshot_sha256": "fa2fe9cb4c4e499360edb7f4d0791deb41907db392202c47ce63d5d8261ceb25",
       "selector": "[data-context-sidebar=\"matters\"]",
       "snapshot": {
         "settlement_group_visible": false,
         "forbidden_section_count": 0,
-        "sidebar_text": "사건 운영업무 진행소통리포트"
+        "sidebar_text": "사건 운영대시보드사건 목록사건 문서신규 사건수임 진행종결 처리보관 사건업무 진행소통리포트"
       }
     },
     {
-      "name": "12-packaged-client-context-nav",
-      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/12-packaged-client-context-nav.png",
-      "screenshot_sha256": "297376dd6a0552975b8ab02d5cf7003589a0545874cb83bf041f68352e5a2548",
-      "selector": ".context-subnav [aria-current=\"page\"]",
+      "name": "12-packaged-client-sidebar-accordion",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/12-packaged-client-sidebar-accordion.png",
+      "screenshot_sha256": "262205271b1c009cf37656e96fb54ff9396bc8808381f301e4406f762bbfc77d",
+      "selector": ".sidebar-child[aria-current=\"location\"]",
       "snapshot": {
         "resolved_hash": "client-opportunities",
-        "sidebar_current": "수임 전 업무",
-        "context_subnav_label": "수임 전 업무 하위 메뉴",
-        "context_subnav_current": "Opportunity",
-        "nested_sidebar_item_count": 0,
+        "sidebar_current": "Opportunity",
+        "context_subnav_count": 0,
+        "nested_sidebar_item_count": 7,
         "expected_section": "client-opportunities",
         "expected_current": "Opportunity"
       }
     },
     {
-      "name": "13-packaged-matter-context-nav",
-      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/13-packaged-matter-context-nav.png",
-      "screenshot_sha256": "159883e3173867adc677c2c6e16310315583a87e64d100788b9d0fffe0816f70",
-      "selector": ".context-subnav [aria-current=\"page\"]",
+      "name": "13-packaged-matter-sidebar-accordion",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/13-packaged-matter-sidebar-accordion.png",
+      "screenshot_sha256": "ede7dc95f070fee4d3d5483455960d25934c9b376c2cc11455256ee2f7c38b16",
+      "selector": ".sidebar-child[aria-current=\"location\"]",
       "snapshot": {
         "resolved_hash": "matter-board",
-        "sidebar_current": "업무 진행",
-        "context_subnav_label": "업무 진행 하위 메뉴",
-        "context_subnav_current": "업무 보드",
-        "nested_sidebar_item_count": 0,
+        "sidebar_current": "업무 보드",
+        "context_subnav_count": 0,
+        "nested_sidebar_item_count": 6,
         "expected_section": "matter-board",
         "expected_current": "업무 보드"
       }
     },
     {
-      "name": "14-packaged-people-context-nav",
-      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/14-packaged-people-context-nav.png",
-      "screenshot_sha256": "6c765b31a65817c77c850d0261d0b4b9fbfee71f2a1018d4f13b3addb7bf0e56",
-      "selector": ".context-subnav [aria-current=\"page\"]",
+      "name": "14-packaged-people-sidebar-accordion",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/14-packaged-people-sidebar-accordion.png",
+      "screenshot_sha256": "3f7c0475d149ff057187f534b84115f13f2a076c6c35e0a96b04be8cc053f246",
+      "selector": ".sidebar-child[aria-current=\"location\"]",
       "snapshot": {
         "resolved_hash": "people-work-schedule",
-        "sidebar_current": "근무일정",
-        "context_subnav_label": "근무일정 하위 메뉴",
-        "context_subnav_current": "근무표",
-        "nested_sidebar_item_count": 0,
+        "sidebar_current": "근무표",
+        "context_subnav_count": 0,
+        "nested_sidebar_item_count": 5,
         "expected_section": "people-work-schedule",
         "expected_current": "근무표"
       }
@@ -534,9 +520,9 @@
     "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/09-packaged-denied.png",
     "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/10-packaged-home-finance-1280x640.png",
     "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/11-packaged-matter-sidebar-without-settlement.png",
-    "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/12-packaged-client-context-nav.png",
-    "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/13-packaged-matter-context-nav.png",
-    "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/14-packaged-people-context-nav.png"
+    "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/12-packaged-client-sidebar-accordion.png",
+    "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/13-packaged-matter-sidebar-accordion.png",
+    "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/14-packaged-people-sidebar-accordion.png"
   ],
   "production_ready_claim": false,
   "public_release_claim": false,

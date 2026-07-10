@@ -31,8 +31,7 @@ input:focus-visible {
 }
 
 .top-axis-item,
-.sidebar-item,
-.global-utility-tabs button {
+.sidebar-item {
   transition:
     background-color var(--ui-menu) var(--ease-out),
     color var(--ui-menu) var(--ease-out),

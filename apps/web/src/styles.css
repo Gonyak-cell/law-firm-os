@@ -457,7 +457,13 @@ p {
   align-content: start;
   gap: 6px;
   margin: 8px 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .sidebar-item {
@@ -590,47 +596,6 @@ p {
   background: var(--am-canvas);
 }
 
-.context-subnav {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  min-height: 48px;
-  display: flex;
-  align-items: stretch;
-  gap: 22px;
-  overflow-x: auto;
-  padding: 0 var(--am-page-pad-x);
-  border-bottom: 1px solid var(--am-border);
-  background: var(--am-surface);
-}
-
-.context-subnav-item {
-  position: relative;
-  flex: 0 0 auto;
-  padding: 0;
-  background: transparent;
-  color: var(--am-text-muted);
-  font-size: 13px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.context-subnav-item:hover,
-.context-subnav-item:focus-visible,
-.context-subnav-item.active {
-  color: var(--am-text);
-}
-
-.context-subnav-item.active::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 3px;
-  background: var(--am-blue);
-}
-
 .surface,
 .builder-surface {
   min-height: 100%;
@@ -663,35 +628,6 @@ p {
   border-radius: var(--am-radius-sm);
   color: var(--am-text-muted);
   font-weight: 600;
-}
-
-.global-utility-tabs {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
-  overflow-x: auto;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--am-border-soft);
-}
-
-.global-utility-tabs button {
-  min-height: 34px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 0 10px;
-  border-radius: var(--am-radius-sm);
-  background: transparent;
-  color: var(--am-text-muted);
-  white-space: nowrap;
-  font-weight: 600;
-}
-
-.global-utility-tabs button:hover,
-.global-utility-tabs button.active {
-  background: var(--am-blue-soft);
-  color: var(--am-blue);
 }
 
 .global-utility-layout {
@@ -1840,6 +1776,38 @@ kbd {
 
 .sidebar-group-toggle {
   width: 100%;
+}
+
+.sidebar-chevron {
+  justify-self: end;
+  color: var(--am-text-muted);
+  transition: transform 160ms ease;
+}
+
+.sidebar-chevron.open {
+  transform: rotate(180deg);
+}
+
+.sidebar-subnav {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 8px 17px;
+  padding-left: 12px;
+  border-left: 1px solid var(--am-border-soft);
+}
+
+.sidebar-child {
+  min-height: 38px;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  padding: 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sidebar-child .sidebar-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--am-radius-sm);
 }
 
 .home-dashboard-surface {
@@ -7201,6 +7169,7 @@ html[data-theme="dark"] .public-preview {
     gap: 6px;
     margin: 0;
     overflow-x: auto;
+    overflow-y: hidden;
     scrollbar-width: none;
   }
 
@@ -12037,9 +12006,6 @@ html[data-theme="dark"] .public-preview {
     justify-content: center;
   }
 
-  .sidebar-group {
-    min-width: max-content;
-  }
 }
 
 html[data-skin="forest"] {
@@ -12159,11 +12125,6 @@ html[data-skin="forest"] .page-canvas {
   padding-top: var(--am-topbar-height);
 }
 
-html[data-skin="forest"] .context-subnav {
-  top: 0;
-  background: rgba(255, 255, 255, 0.94);
-}
-
 html[data-skin="forest"] .sidebar-brand {
   display: flex;
   align-items: center;
@@ -12237,6 +12198,10 @@ html[data-skin="forest"] .sidebar-icon {
   height: 18px;
   border: 0;
   background: transparent;
+  color: currentColor;
+}
+
+html[data-skin="forest"] .sidebar-chevron {
   color: currentColor;
 }
 
@@ -12825,7 +12790,6 @@ html[data-skin="forest"] .settings-theme-segment button.active {
 
 html[data-skin="forest"] .top-axis-item,
 html[data-skin="forest"] .sidebar-item,
-html[data-skin="forest"] .global-utility-tabs button,
 html[data-skin="forest"] .settings-theme-segment button,
 html[data-skin="forest"] .primary-button,
 html[data-skin="forest"] .secondary-button,
@@ -12849,7 +12813,6 @@ html[data-skin="forest"] .icon-button:active,
 html[data-skin="forest"] .top-link:active,
 html[data-skin="forest"] .forest-sidebar-user:active,
 html[data-skin="forest"] .sidebar-item:active,
-html[data-skin="forest"] .global-utility-tabs button:active,
 html[data-skin="forest"] .settings-theme-segment button:active,
 html[data-skin="forest"] .matter-login-submit:active {
   transform: scale(0.98);
@@ -12938,7 +12901,6 @@ html[data-skin="forest"] .modal {
 @media (prefers-reduced-motion: reduce) {
   html[data-skin="forest"] .top-axis-item,
   html[data-skin="forest"] .sidebar-item,
-  html[data-skin="forest"] .global-utility-tabs button,
   html[data-skin="forest"] .settings-theme-segment button,
   html[data-skin="forest"] .primary-button,
   html[data-skin="forest"] .secondary-button,
@@ -13308,5 +13270,45 @@ html[data-skin="forest"][data-theme="dark"] .public-preview .matter-mark .mark-m
   .home-finance-operation-header {
     align-items: stretch;
     flex-direction: column;
+  }
+}
+
+@media (max-width: 760px) {
+  .sidebar-group {
+    min-width: max-content;
+  }
+
+  .sidebar-subnav {
+    display: flex;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    border-left: 0;
+  }
+
+  .sidebar-child {
+    min-width: max-content;
+  }
+
+  html[data-skin="forest"] .topbar {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  html[data-skin="forest"] .app-frame {
+    height: auto;
+    margin-top: 0;
+  }
+
+  html[data-skin="forest"] .sidebar {
+    position: sticky;
+    top: 0;
+    min-height: 0;
+    height: auto;
+  }
+
+  html[data-skin="forest"] .page-canvas {
+    padding-top: 0;
+    overflow: visible;
   }
 }

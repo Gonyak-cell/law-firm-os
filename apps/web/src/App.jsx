@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { copy } from "./i18n.js";
 import { navItems } from "./data/nav.js";
 import { globalUtilityViewIds, isGlobalUtilityView, modeExceptionUtilityViewIds, resolveGlobalShortcut } from "./data/globalUtilities.js";
-import { ContextSubnav, GlobalSearch, LoadingSurface, Sidebar, Topbar, UtilityDrawer, buildContextualNavigation, buildNotificationItems } from "./components/Shell.jsx";
+import { GlobalSearch, LoadingSurface, Sidebar, Topbar, UtilityDrawer, buildContextualNavigation, buildNotificationItems } from "./components/Shell.jsx";
 import { AuthSurface } from "./components/AuthSurface.jsx";
 import { GlobalUtilitySurface } from "./components/GlobalUtilitySurface.jsx";
 import { HomeSurface } from "./components/HomeSurface.jsx";
@@ -489,14 +489,6 @@ export function App() {
             />
           )}
           <main className="page-canvas">
-            {!profileStandalone && (
-              <ContextSubnav
-                navigation={contextualNavigation}
-                view={view}
-                activeSection={activeSection}
-                setView={navigateToView}
-              />
-            )}
             {view === "auth" && (
               <AuthSurface
                 labels={labels}

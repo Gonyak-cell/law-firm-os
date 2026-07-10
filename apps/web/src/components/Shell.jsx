@@ -1,5 +1,5 @@
 import React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   Bell,
@@ -567,14 +567,19 @@ export function buildContextualNavigation({
         {
           title: utility.label,
           utilities: [],
-          items: utility.sections.map((section) => ({
-            label: section.label,
-            view: utility.id,
-            section: section.id,
-            icon: section.icon ?? utility.icon,
-            count: section.badge,
-            active: section.id === utility.defaultSection
-          }))
+          items: [{
+            label: utility.label,
+            icon: utility.icon,
+            groupId: `${utility.id}-sections`,
+            children: utility.sections.map((section) => ({
+              label: section.label,
+              view: utility.id,
+              section: section.id,
+              icon: section.icon ?? utility.icon,
+              count: section.badge,
+              active: section.id === utility.defaultSection
+            }))
+          }]
         }
       ])
   );
@@ -701,37 +706,6 @@ export function buildContextualNavigation({
   };
 }
 
-export function ContextSubnav({ navigation, view, activeSection = "", setView }) {
-  const items = navigation?.[view]?.items ?? [];
-  const activeGroup = items.find((item) => item.children?.some((child) => (
-    child.section === activeSection || (!activeSection && child.active === true)
-  )));
-  if (!activeGroup) return null;
-
-  return (
-    <nav
-      className="context-subnav"
-      aria-label={`${activeGroup.label} 하위 메뉴`}
-      data-context-subnav={activeGroup.groupId ?? activeGroup.label}
-    >
-      {activeGroup.children.map((item) => {
-        const active = item.section === activeSection || (!activeSection && item.active === true);
-        return (
-          <button
-            key={item.section ?? item.label}
-            type="button"
-            className={active ? "context-subnav-item active" : "context-subnav-item"}
-            aria-current={active ? "page" : undefined}
-            onClick={() => setView(item.view, item.section ?? "")}
-          >
-            {item.label}
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
-
 export function Sidebar({
   labels,
   view,
@@ -747,6 +721,8 @@ export function Sidebar({
   navigation: navigationProp
 }) {
   const skin = useSkin();
+  const [openGroups, setOpenGroups] = useState({});
+  const activeRouteByScope = useRef({});
   const [utilityPanel, setUtilityPanel] = useState(null);
   const [profileUser, setProfileUser] = useState(null);
   useEffect(() => {
@@ -800,6 +776,55 @@ export function Sidebar({
     return item.children?.some((child) => isItemActive(child)) ?? false;
   }
 
+  function sidebarGroupScopeKey() {
+    return `${axis}:${view}`;
+  }
+
+  function sidebarGroupItemKey(item) {
+    const stableId = item.groupId ?? item.children?.[0]?.section ?? item.label;
+    return `${sidebarGroupScopeKey()}:${stableId}`;
+  }
+
+  function defaultOpenGroupKey() {
+    const activeGroup = subnav.find((item) => item.children && isGroupActive(item));
+    return activeGroup ? sidebarGroupItemKey(activeGroup) : "";
+  }
+
+  function groupOpen(item) {
+    if (!item.children) return false;
+    const scopeKey = sidebarGroupScopeKey();
+    const openKey = Object.prototype.hasOwnProperty.call(openGroups, scopeKey)
+      ? openGroups[scopeKey]
+      : defaultOpenGroupKey();
+    return openKey === sidebarGroupItemKey(item);
+  }
+
+  function toggleGroup(item) {
+    if (!item.children) return;
+    const scopeKey = sidebarGroupScopeKey();
+    const itemKey = sidebarGroupItemKey(item);
+    setOpenGroups((current) => {
+      const currentOpenKey = Object.prototype.hasOwnProperty.call(current, scopeKey)
+        ? current[scopeKey]
+        : defaultOpenGroupKey();
+      return { ...current, [scopeKey]: currentOpenKey === itemKey ? "" : itemKey };
+    });
+  }
+
+  const scopeKey = sidebarGroupScopeKey();
+  const activeGroup = subnav.find((item) => item.children && isGroupActive(item));
+  const activeGroupKey = activeGroup ? sidebarGroupItemKey(activeGroup) : "";
+  const activeRouteKey = `${scopeKey}:${activeSection}`;
+
+  useEffect(() => {
+    const previousRouteKey = activeRouteByScope.current[scopeKey];
+    activeRouteByScope.current[scopeKey] = activeRouteKey;
+    if (previousRouteKey === undefined || previousRouteKey === activeRouteKey || !activeGroupKey) return;
+    setOpenGroups((current) => current[scopeKey] === "" || current[scopeKey] === activeGroupKey
+      ? current
+      : { ...current, [scopeKey]: activeGroupKey });
+  }, [scopeKey, activeRouteKey, activeGroupKey]);
+
   return (
     <aside
       className="sidebar"
@@ -846,20 +871,47 @@ export function Sidebar({
           {subnav.map((item, index) => {
             const Icon = item.icon ?? ClipboardList;
             if (item.children) {
-              const active = isGroupActive(item);
+              const open = groupOpen(item);
               const defaultItem = item.children[0];
+              const stableGroupId = item.groupId ?? defaultItem?.section ?? `group-${index}`;
+              const panelId = `sidebar-group-${axis}-${view}-${stableGroupId}`.replace(/[^a-zA-Z0-9_-]/g, "-");
               return (
-                <div key={item.label} className={active ? "sidebar-group active" : "sidebar-group"} data-sidebar-group={item.groupId}>
+                <div key={stableGroupId} className={open ? "sidebar-group active" : "sidebar-group"} data-sidebar-group={stableGroupId}>
                   <button
                     type="button"
-                    className={active ? "sidebar-item sidebar-group-toggle active" : "sidebar-item sidebar-group-toggle"}
-                    aria-current={active ? "location" : undefined}
+                    className={open ? "sidebar-item sidebar-group-toggle active" : "sidebar-item sidebar-group-toggle"}
+                    aria-expanded={open}
+                    aria-controls={panelId}
+                    aria-label={`${item.label} 하위 메뉴 ${open ? "접기" : "펼치기"}`}
                     data-sidebar-default-section={defaultItem?.section}
-                    onClick={() => defaultItem && setView(defaultItem.view, defaultItem.section ?? "")}
+                    onClick={() => toggleGroup(item)}
                   >
                     <span className="sidebar-icon"><Icon size={16} /></span>
                     <span>{item.label}</span>
+                    <ChevronDown size={15} className={open ? "sidebar-chevron open" : "sidebar-chevron"} />
                   </button>
+                  {open && (
+                    <div id={panelId} className="sidebar-subnav" role="group" aria-label={`${item.label} 하위 메뉴`}>
+                      {item.children.map((child, childIndex) => {
+                        const ChildIcon = child.icon ?? ClipboardList;
+                        const childActive = isItemActive(child, childIndex);
+                        return (
+                          <button
+                            key={child.section ?? child.label}
+                            type="button"
+                            className={childActive ? "sidebar-item sidebar-child active" : "sidebar-item sidebar-child"}
+                            aria-current={childActive ? "location" : undefined}
+                            data-sidebar-section={child.section}
+                            onClick={() => setView(child.view, child.section ?? "")}
+                          >
+                            <span className="sidebar-icon"><ChildIcon size={15} /></span>
+                            <span>{child.label}</span>
+                            {child.count && <span className="sidebar-count">{child.count}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             }

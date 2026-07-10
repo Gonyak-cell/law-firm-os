@@ -436,8 +436,8 @@ test("WP-FIN-1 preserves Matter context and sidebar state in the browser", async
 
     const group = page.locator('[data-sidebar-group="home-finance"]');
     assert.equal(await group.count(), 1);
-    assert.equal(await group.locator(".sidebar-group-toggle").getAttribute("aria-expanded"), null);
-    await page.getByRole("navigation", { name: "매출/비용 하위 메뉴" }).getByRole("button", { name: "고객별 매출/비용", exact: true }).click();
+    assert.equal(await group.locator(".sidebar-group-toggle").getAttribute("aria-expanded"), "true");
+    await group.getByRole("button", { name: "고객별 매출/비용", exact: true }).click();
     await page.waitForSelector('[data-home-finance-route-contract="home-finance-clients"]');
     assert.equal(new URL(page.url()).hash, "#home-finance-clients");
   } finally {
@@ -446,7 +446,7 @@ test("WP-FIN-1 preserves Matter context and sidebar state in the browser", async
   }
 });
 
-test("grouped sidebars route to defaults and expose children only in contextual navigation", async () => {
+test("grouped sidebars render children in collapsible sidebar accordions", async () => {
   const port = await availablePort();
   const server = await createServer({
     root: webRoot,
@@ -474,18 +474,73 @@ test("grouped sidebars route to defaults and expose children only in contextual 
         const toggle = toggles.nth(index);
         const expectedSection = await toggle.getAttribute("data-sidebar-default-section");
         assert.ok(expectedSection, `${view} group ${index} must declare a default section`);
-        assert.equal(await toggle.getAttribute("aria-expanded"), null, `${view} group ${index} must not be an accordion`);
-        const alreadyDefault = await toggle.getAttribute("aria-current");
-        if (!alreadyDefault) {
-          await toggle.evaluate((element) => element.click());
-          await page.waitForFunction((section) => window.location.hash === `#${section}`, expectedSection);
-        }
-        assert.equal(await page.locator(".sidebar-subnav,.sidebar-child").count(), 0, `${view} group ${index} must not render nested sidebar items`);
-        const contextSubnav = page.locator(".context-subnav");
-        assert.equal(await contextSubnav.count(), 1, `${view} group ${index} must render contextual navigation`);
-        assert.equal(await contextSubnav.locator('[aria-current="page"]').count(), 1, `${view} group ${index} must mark one contextual route current`);
+        if (await toggle.getAttribute("aria-expanded") !== "true") await toggle.click();
+        assert.equal(await toggle.getAttribute("aria-expanded"), "true", `${view} group ${index} must open`);
+        const panelId = await toggle.getAttribute("aria-controls");
+        assert.ok(panelId, `${view} group ${index} must identify its controlled panel`);
+        assert.equal(await toggle.evaluate((element) => element.classList.contains("active")), true, `${view} group ${index} must highlight the opened group`);
+        assert.equal(await toggles.evaluateAll((elements, openIndex) => elements.filter((element, itemIndex) => itemIndex !== openIndex && element.classList.contains("active")).length, index), 0, `${view} must not highlight a closed sibling group`);
+        const group = toggle.locator("xpath=..");
+        assert.equal(await group.locator(`#${panelId}[role="group"]`).count(), 1, `${view} group ${index} must expose an associated submenu group`);
+        assert.ok(await group.locator(".sidebar-child").count() > 0, `${view} group ${index} must render nested sidebar items`);
+        await group.locator(".sidebar-child").first().click();
+        await page.waitForFunction((section) => window.location.hash === `#${section}`, expectedSection);
+        assert.equal(await group.locator('.sidebar-child[aria-current="location"]').count(), 1, `${view} group ${index} must mark its current child`);
+        await toggle.click();
+        assert.equal(await toggle.getAttribute("aria-expanded"), "false", `${view} group ${index} must close on its second click`);
+        assert.equal(await toggle.evaluate((element) => element.classList.contains("active")), false, `${view} group ${index} must clear its highlight when closed`);
+        assert.equal(await group.locator(".sidebar-child").count(), 0, `${view} group ${index} must hide children when closed`);
       }
+      assert.equal(await page.locator(".context-subnav").count(), 0, `${view} must not render duplicate top contextual navigation`);
     }
+
+    for (const view of ["settings", "data-import"]) {
+      await page.goto(`http://127.0.0.1:${port}/?view=${view}&ctx=allow`, { waitUntil: "networkidle" });
+      const sidebar = page.locator('[data-mode-exception-sidebar="true"]');
+      const toggle = sidebar.locator(".sidebar-group-toggle");
+      assert.equal(await toggle.count(), 1, `${view} must render its sections as one sidebar accordion`);
+      if (await toggle.getAttribute("aria-expanded") !== "true") await toggle.click();
+      assert.equal(await toggle.getAttribute("aria-expanded"), "true", `${view} accordion must expose its sections when opened`);
+      assert.equal(await page.locator(".global-utility-tabs").count(), 0, `${view} must not duplicate sections in a horizontal content menu`);
+      await toggle.click();
+      assert.equal(await toggle.getAttribute("aria-expanded"), "false", `${view} accordion must collapse on repeat click`);
+    }
+
+    await page.setViewportSize({ width: 1366, height: 900 });
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
+    const clientPrimaryToggle = page.locator('[data-sidebar-group="clients-home"] .sidebar-group-toggle');
+    if (await clientPrimaryToggle.getAttribute("aria-expanded") !== "false") await clientPrimaryToggle.click();
+    await page.locator('[data-product-axis="home"]').click();
+    await page.locator('[data-product-axis="clients"]').click();
+    assert.equal(await clientPrimaryToggle.getAttribute("aria-expanded"), "false", "explicit collapse must survive leaving and returning to the same product view");
+
+    await page.setViewportSize({ width: 900, height: 800 });
+    if (await clientPrimaryToggle.getAttribute("aria-expanded") !== "true") await clientPrimaryToggle.click();
+    assert.equal(await page.locator('[data-sidebar-group="clients-home"] .sidebar-subnav').evaluate((node) => getComputedStyle(node).display), "grid", "tablet sidebar children must stay vertical");
+
+    await page.evaluate(() => window.localStorage.setItem("matter.skin", "forest"));
+    await page.setViewportSize({ width: 720, height: 800 });
+    await page.reload({ waitUntil: "networkidle" });
+    const mobileLayout = await page.evaluate(() => {
+      const topbar = document.querySelector(".topbar").getBoundingClientRect();
+      const sidebar = document.querySelector(".sidebar").getBoundingClientRect();
+      const canvas = document.querySelector(".page-canvas").getBoundingClientRect();
+      return {
+        innerWidth: window.innerWidth,
+        innerHeight: window.innerHeight,
+        topbarLeft: topbar.left,
+        topbarRight: topbar.right,
+        sidebarHeight: sidebar.height,
+        canvasTop: canvas.top,
+        documentHeight: document.documentElement.scrollHeight,
+        horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth
+      };
+    });
+    assert.ok(Math.abs(mobileLayout.topbarLeft) < 1, "Forest mobile topbar must start at the viewport edge");
+    assert.ok(mobileLayout.topbarRight <= mobileLayout.innerWidth + 1, "Forest mobile topbar must fit the viewport");
+    assert.ok(mobileLayout.sidebarHeight < mobileLayout.innerHeight, "Forest mobile sidebar must not consume a full viewport height");
+    assert.ok(mobileLayout.canvasTop < mobileLayout.documentHeight, "Forest mobile page canvas must remain reachable below the sidebar");
+    assert.equal(mobileLayout.horizontalOverflow, false, "Forest mobile layout must not overflow horizontally");
   } finally {
     await browser.close();
     await server.close();
@@ -514,7 +569,7 @@ test("WP-FIN-3 renders reconciled Home finance views and keeps filters in the UR
 
     await overview.getByLabel("통화").selectOption("KRW");
     await page.waitForFunction(() => new URL(window.location.href).searchParams.get("currency") === "KRW");
-    const financeSubnav = page.getByRole("navigation", { name: "매출/비용 하위 메뉴" });
+    const financeSubnav = page.locator('[data-sidebar-group="home-finance"]');
     await financeSubnav.getByRole("button", { name: "월별 매출/비용", exact: true }).click();
     await page.waitForSelector('[data-home-finance-monthly-table="true"]');
     assert.equal(new URL(page.url()).searchParams.get("currency"), "KRW");
@@ -570,7 +625,7 @@ test("WP-FIN-4 runs the shared Matter finance workflow from Home", async () => {
     await page.locator('[data-upl-b01-time-entry-submit="true"]').click();
     await page.waitForSelector('text=시간이 기록되었습니다.');
 
-    const financeSubnav = page.getByRole("navigation", { name: "매출/비용 하위 메뉴" });
+    const financeSubnav = page.locator('[data-sidebar-group="home-finance"]');
     await financeSubnav.getByRole("button", { name: "비용 처리", exact: true }).click();
     await page.waitForSelector('[data-home-finance-operation="expenses"]');
     await page.locator('[data-matter-expense-form="true"]').getByLabel("영수증").fill("receipt-live-1");
@@ -643,8 +698,8 @@ test("WP-FIN-5 exposes only scoped finance navigation and hides accounting expor
     assert.equal(new URL(page.url()).hash, "#home-finance-expenses");
     const group = page.locator('[data-sidebar-group="home-finance"]');
     assert.equal(await group.count(), 1);
-    assert.equal(await group.locator(".sidebar-group-toggle").getAttribute("aria-expanded"), null);
-    const subnav = page.getByRole("navigation", { name: "매출/비용 하위 메뉴" });
+    assert.equal(await group.locator(".sidebar-group-toggle").getAttribute("aria-expanded"), "true");
+    const subnav = group;
     assert.equal(await subnav.getByRole("button", { name: "비용 처리", exact: true }).count(), 1);
     assert.equal(await subnav.getByRole("button", { name: "전체 현황", exact: true }).count(), 0);
     assert.equal(await subnav.getByRole("button", { name: "청구/수납", exact: true }).count(), 0);

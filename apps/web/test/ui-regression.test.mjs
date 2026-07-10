@@ -224,7 +224,7 @@ test("WP-FIN-1 registers the Home finance group and context-preserving legacy ro
     assert.match(homeSource, new RegExp(`"${section}"`));
   }
   assert.match(shellSource, /groupId: "home-finance"/);
-  assert.match(shellSource, /data-sidebar-group=\{item\.groupId\}/);
+  assert.match(shellSource, /data-sidebar-group=\{stableGroupId\}/);
   assert.match(globalUtilitySource, /status: "integrated-home"/);
   assert.match(globalUtilitySource, /"matters:matter-approvals", route\("home", "home-requests"[^\n]*filter: "finance"/);
   assert.match(globalUtilitySource, /"matters:matter-time", route\("home", "home-finance-time"/);
@@ -645,6 +645,8 @@ test("Stage 6 mode exception routes keep topbar and provide a return-to-work anc
   assert.match(globalUtilitySurfaceSource, /data-global-utility-surface=\{utility\.id\}/);
   assert.match(globalUtilitySurfaceSource, /utility\.sections\.map/);
   assert.match(globalUtilitySurfaceSource, /setView\(utility\.id, sectionId\)/);
+  assert.doesNotMatch(globalUtilitySurfaceSource, /global-utility-tabs|function UtilityTab/);
+  assert.match(shellSource, /groupId: `\$\{utility\.id\}-sections`/);
 
   assert.match(stylesSource, /\.sidebar-return-anchor/);
   assert.match(stylesSource, /html\[data-skin="forest"\] \.sidebar-return-anchor/);
@@ -656,13 +658,22 @@ test("Stage 7 Home IA accessibility keeps tabs, dates, and navigation state name
   const homeSource = await readWebFile("src/components/HomeSurface.jsx");
 
   assert.match(shellSource, /aria-current=\{axis === id \? "page" : undefined\}/);
-  assert.match(shellSource, /export function ContextSubnav/);
-  assert.match(shellSource, /aria-label=\{`\$\{activeGroup\.label\} 하위 메뉴`\}/);
-  assert.match(shellSource, /aria-current=\{active \? "page" : undefined\}/);
   assert.match(shellSource, /aria-current=\{active \? "location" : undefined\}/);
+  assert.match(shellSource, /aria-current=\{childActive \? "location" : undefined\}/);
   assert.match(shellSource, /data-sidebar-default-section=\{defaultItem\?\.section\}/);
-  assert.match(shellSource, /onClick=\{\(\) => defaultItem && setView\(defaultItem\.view, defaultItem\.section \?\? ""\)\}/);
-  assert.doesNotMatch(shellSource, /openGroups|toggleGroup|sidebar-subnav|sidebar-chevron/);
+  assert.match(shellSource, /function sidebarGroupScopeKey\(\)/);
+  assert.match(shellSource, /Object\.prototype\.hasOwnProperty\.call\(openGroups, scopeKey\)/);
+  assert.match(shellSource, /item\.groupId \?\? item\.children\?\.\[0\]\?\.section \?\? item\.label/);
+  assert.match(shellSource, /activeRouteByScope = useRef\(\{\}\)/);
+  assert.match(shellSource, /previousRouteKey === undefined \|\| previousRouteKey === activeRouteKey/);
+  assert.match(shellSource, /current\[scopeKey\] === "" \|\| current\[scopeKey\] === activeGroupKey/);
+  assert.match(shellSource, /\[scopeKey\]: currentOpenKey === itemKey \? "" : itemKey/);
+  assert.match(shellSource, /aria-label=\{`\$\{item\.label\} 하위 메뉴 \$\{open \? "접기" : "펼치기"\}`\}/);
+  assert.match(shellSource, /aria-controls=\{panelId\}/);
+  assert.match(shellSource, /id=\{panelId\} className="sidebar-subnav" role="group"/);
+  assert.match(shellSource, /className=\{open \? "sidebar-item sidebar-group-toggle active" : "sidebar-item sidebar-group-toggle"\}/);
+  assert.match(shellSource, /className=\{childActive \? "sidebar-item sidebar-child active" : "sidebar-item sidebar-child"\}/);
+  assert.doesNotMatch(shellSource, /export function ContextSubnav|className="context-subnav"/);
   assert.match(shellSource, /aria-label=\{`\$\{meta\.title\} 워크스페이스 메뉴`\}/);
   assert.match(shellSource, /aria-label="검색 지우기"/);
   assert.match(shellSource, /aria-expanded=\{notificationsOpen \? "true" : "false"\}/);

@@ -50,16 +50,6 @@ function UtilitySectionCard({ section, utility, active, onOpen }) {
   );
 }
 
-function UtilityTab({ section, utility, active, onOpen }) {
-  const Icon = section.icon ?? utility.icon;
-  return (
-    <button type="button" className={active ? "active" : ""} onClick={() => onOpen(section.id)}>
-      <Icon size={14} />
-      <span>{section.label}</span>
-    </button>
-  );
-}
-
 function SettingsThemeMenu({ theme, setTheme, skin, setSkin }) {
   return (
     <div className="settings-theme-menu" data-settings-theme-menu="true">
@@ -190,11 +180,6 @@ export function GlobalUtilitySurface({ view, activeSection = "", setView, theme,
             </span>
           }
         />
-        <div className="global-utility-tabs" role="tablist" aria-label={`${utility.label} 항목`}>
-          {utility.sections.map((section) => (
-            <UtilityTab key={section.id} section={section} utility={utility} active={section.id === activeId} onOpen={openSection} />
-          ))}
-        </div>
         <div className="global-utility-layout">
           <div className="global-utility-card-list">
             {utility.sections.map((section) => (
