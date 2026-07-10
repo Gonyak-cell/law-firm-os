@@ -6,6 +6,6 @@ Status: PASS
 - Model: gemma4:12b
 - Request hash: d7121c704b28f3d06bbbbcec33b01f536925d740d4ce153490cf914ddeca96bd
 - Response hash: 058b99f74cf75edcf5d131ea9f0edc7e5b1153d5017088c15ed9c3f5503ec67a
-- Review item: review-upl-a12-local-model-dbd4f0bcd9a4
-- Audit event: hrx_ai_evt_4b8a06cb-bf09-456a-b897-b8183df3b26b
+- Review item: review-upl-a12-local-model-a37848c884ef
+- Audit event: hrx_ai_evt_1456e5b4-d344-4fa1-917e-8febbbbfdebe
 - Production ready claim: false

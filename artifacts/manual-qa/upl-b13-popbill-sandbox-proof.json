@@ -1,6 +1,6 @@
 {
   "schema_version": "lawos.wave1.upl-b13.popbill-sandbox-proof.v1",
-  "generated_at": "2026-07-08T14:25:24.020Z",
+  "generated_at": "2026-07-10T12:11:55.258Z",
   "row_id": "UPL-B-13",
   "vendor": "popbill",
   "sdk": {
@@ -39,9 +39,9 @@
   "vendor_payload_summary": {
     "provider": "popbill",
     "environment": "test",
-    "request_hash": "d8306a06bb3ac56d1c058a7071f078b1e22ecc6a9f60cdb9c5c4e61255a5d218",
-    "mgt_key_hash": "4ce3dadc962e",
-    "write_date": "20260708",
+    "request_hash": "928905f137cd1fe23bb720aae8de65e0a51239685d43c1e522adbaf0570cc840",
+    "mgt_key_hash": "8f53a86d2b1a",
+    "write_date": "20260710",
     "issue_type": "정발행",
     "purpose_type": "청구",
     "tax_type": "과세",
