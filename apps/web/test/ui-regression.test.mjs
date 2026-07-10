@@ -584,6 +584,12 @@ test("Stage 7 Home IA accessibility keeps tabs, dates, and navigation state name
   assert.match(shellSource, /aria-current=\{axis === id \? "page" : undefined\}/);
   assert.match(shellSource, /aria-current=\{childActive \? "location" : undefined\}/);
   assert.match(shellSource, /aria-current=\{active \? "location" : undefined\}/);
+  assert.match(shellSource, /function sidebarGroupScopeKey\(\)/);
+  assert.match(shellSource, /function defaultOpenGroupKey\(\)/);
+  assert.match(shellSource, /Object\.prototype\.hasOwnProperty\.call\(openGroups, scopeKey\)/);
+  assert.match(shellSource, /const currentOpenKey = Object\.prototype\.hasOwnProperty\.call\(current, scopeKey\)/);
+  assert.match(shellSource, /\[scopeKey\]: currentOpenKey === itemKey \? "" : itemKey/);
+  assert.doesNotMatch(shellSource, /\[scopeKey\]: itemKey \}\)\)/);
   assert.match(shellSource, /aria-label=\{`\$\{item\.label\} 하위 메뉴 \$\{open \? "접기" : "펼치기"\}`\}/);
   assert.match(shellSource, /aria-label="검색 지우기"/);
   assert.match(shellSource, /aria-expanded=\{notificationsOpen \? "true" : "false"\}/);

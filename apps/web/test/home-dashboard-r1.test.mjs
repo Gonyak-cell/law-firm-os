@@ -410,6 +410,42 @@ test("WP-FIN-1 preserves Matter context and sidebar state in the browser", async
   }
 });
 
+test("grouped sidebars collapse an open group when its header is clicked again", async () => {
+  const port = await availablePort();
+  const server = await createServer({
+    root: webRoot,
+    logLevel: "silent",
+    server: { host: "127.0.0.1", port, strictPort: true }
+  });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  const state = { decisionCalls: 0, newsCalls: 0 };
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
+    });
+
+    for (const view of ["home", "clients", "matters", "people"]) {
+      await page.goto(`http://127.0.0.1:${port}/?view=${view}&ctx=allow`, { waitUntil: "networkidle" });
+      const toggles = page.locator(`[data-context-sidebar="${view}"] .sidebar-group-toggle`);
+      const count = await toggles.count();
+      assert.ok(count > 0, `${view} must render at least one grouped sidebar menu`);
+      for (let index = 0; index < count; index += 1) {
+        const toggle = toggles.nth(index);
+        if (await toggle.getAttribute("aria-expanded") !== "true") await toggle.click();
+        assert.equal(await toggle.getAttribute("aria-expanded"), "true", `${view} group ${index} must open`);
+        await toggle.click();
+        assert.equal(await toggle.getAttribute("aria-expanded"), "false", `${view} group ${index} must close on its second click`);
+      }
+    }
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
 test("WP-FIN-3 renders reconciled Home finance views and keeps filters in the URL", async () => {
   const port = await availablePort();
   const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });

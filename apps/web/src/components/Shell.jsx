@@ -790,17 +790,39 @@ export function Sidebar({
     return item.children?.some((child) => isItemActive(child)) ?? false;
   }
 
-  function groupOpen(item, index) {
-    const key = `${axis}:${view}:${item.label}`;
-    if (Object.prototype.hasOwnProperty.call(openGroups, key)) return openGroups[key];
-    return isGroupActive(item) || index === 0;
+  function sidebarGroupScopeKey() {
+    return `${axis}:${view}`;
   }
 
-  function toggleGroup(item, index) {
-    const key = `${axis}:${view}:${item.label}`;
+  function sidebarGroupItemKey(item) {
+    return `${sidebarGroupScopeKey()}:${item.label}`;
+  }
+
+  function defaultOpenGroupKey() {
+    const activeGroup = subnav.find((item) => item.children && isGroupActive(item));
+    const firstGroup = subnav.find((item) => item.children);
+    const group = activeGroup ?? firstGroup;
+    return group ? sidebarGroupItemKey(group) : "";
+  }
+
+  function groupOpen(item) {
+    if (!item.children) return false;
+    const scopeKey = sidebarGroupScopeKey();
+    const openKey = Object.prototype.hasOwnProperty.call(openGroups, scopeKey)
+      ? openGroups[scopeKey]
+      : defaultOpenGroupKey();
+    return openKey === sidebarGroupItemKey(item);
+  }
+
+  function toggleGroup(item) {
+    if (!item.children) return;
+    const scopeKey = sidebarGroupScopeKey();
+    const itemKey = sidebarGroupItemKey(item);
     setOpenGroups((current) => {
-      const currentOpen = Object.prototype.hasOwnProperty.call(current, key) ? current[key] : isGroupActive(item) || index === 0;
-      return { ...current, [key]: !currentOpen };
+      const currentOpenKey = Object.prototype.hasOwnProperty.call(current, scopeKey)
+        ? current[scopeKey]
+        : defaultOpenGroupKey();
+      return { ...current, [scopeKey]: currentOpenKey === itemKey ? "" : itemKey };
     });
   }
 
@@ -845,7 +867,7 @@ export function Sidebar({
             const Icon = item.icon ?? ClipboardList;
             if (item.children) {
               const active = isGroupActive(item);
-              const open = groupOpen(item, index);
+              const open = groupOpen(item);
               return (
                 <div key={item.label} className={active ? "sidebar-group active" : "sidebar-group"} data-sidebar-group={item.groupId}>
                   <button
@@ -853,7 +875,7 @@ export function Sidebar({
                     className={active ? "sidebar-item sidebar-group-toggle active" : "sidebar-item sidebar-group-toggle"}
                     aria-expanded={open}
                     aria-label={`${item.label} 하위 메뉴 ${open ? "접기" : "펼치기"}`}
-                    onClick={() => toggleGroup(item, index)}
+                    onClick={() => toggleGroup(item)}
                   >
                     <span className="sidebar-icon"><Icon size={16} /></span>
                     <span>{item.label}</span>
