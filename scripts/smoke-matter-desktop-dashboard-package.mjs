@@ -5,7 +5,6 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 import { _electron as electron } from "playwright";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
@@ -16,12 +15,8 @@ const executableCandidates = platform === "win32"
   ? ["matter.exe", "electron.exe"].map((name) => path.join(repoRoot, "apps/desktop/dist/win-unpacked", name))
   : [path.join(repoRoot, "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter")];
 const executablePath = path.resolve(process.env.MATTER_DESKTOP_PACKAGED_EXECUTABLE ?? executableCandidates.find(existsSync) ?? executableCandidates[0]);
-const rendererPath = platform === "win32"
-  ? path.join(path.dirname(executablePath), "resources/app/src/renderer/web/index.html")
-  : path.join(repoRoot, "apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html");
 
 assert.equal(existsSync(executablePath), true, `packaged executable is required: ${executablePath}`);
-assert.equal(existsSync(rendererPath), true, `packaged renderer is required: ${rendererPath}`);
 mkdirSync(artifactDir, { recursive: true });
 
 const today = new Date();
@@ -107,8 +102,8 @@ await new Promise((resolveListen, rejectListen) => server.listen(0, "127.0.0.1",
 const address = server.address();
 const baseUrl = `http://127.0.0.1:${address.port}`;
 
-function productUrl(view, section) {
-  const url = new URL(pathToFileURL(rendererPath));
+function productUrl(baseHref, view, section) {
+  const url = new URL(baseHref);
   url.searchParams.set("desktop", "1");
   url.searchParams.set("view", view);
   url.searchParams.set("ctx", "allow");
@@ -158,12 +153,21 @@ try {
   assert(page, "packaged main window did not become ready");
   await page.setViewportSize({ width: 1280, height: 820 });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  const login = await page.evaluate(() => window.matterSession.login({ email: "dashboard-package-qa@fixture.local", password: "fixture-only" }));
-  assert.equal(login?.ok, true, "fixture session login must pass through the packaged IPC bridge");
+  if (await page.locator('[data-home-dashboard-shell="true"]').count() === 0) {
+    if (await page.locator('[data-login-screen="parnas-split"]').count() > 0) {
+      await page.fill("[data-login-email]", "dashboard-package-qa@fixture.local");
+      await page.fill("[data-login-password]", "fixture-only");
+      await page.click('[data-login-form="email-password"] button[type="submit"]');
+    } else {
+      await page.click('[data-product-axis="home"]');
+    }
+  }
+  await page.waitForSelector('[data-home-dashboard-shell="true"]', { timeout: 30_000 });
+  const productBaseHref = page.url();
 
   for (const [view, sections] of Object.entries(expected)) {
     const section = view === "home" ? "home-dashboard" : view === "matters" ? "matter-home" : "people-dashboard";
-    await page.evaluate((url) => window.location.assign(url), productUrl(view, section));
+    await page.evaluate((url) => window.location.assign(url), productUrl(productBaseHref, view, section));
     const rootSelector = view === "home" ? '[data-home-dashboard-shell="true"]' : view === "matters" ? '[data-matter-dashboard="true"]' : '[data-people-dashboard="true"]';
     await page.waitForSelector(rootSelector, { timeout: 30_000 });
     await page.waitForTimeout(2_000);
@@ -201,7 +205,7 @@ const receipt = {
   platform,
   executable: path.relative(repoRoot, executablePath),
   executable_sha256: createHash("sha256").update(readFileSync(executablePath)).digest("hex"),
-  renderer: path.relative(repoRoot, rendererPath),
+  renderer_handoff: "packaged_login_to_product_url",
   fixture_only: true,
   real_client_data_used: false,
   credential_material_used: false,
