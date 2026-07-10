@@ -36,11 +36,11 @@ Channel: `formal`
 ## Installer Package
 
 - Windows installer: `apps/desktop/dist/matter-0.1.10-win-x64.exe`
-- Windows installer sha256: `b8c701da93fb8f0c45a1279393ce887221cd2ed6754f6c0b103bd6973e9cffe1`
-- Windows installer bytes: 107917935
+- Windows installer sha256: `46fa2e392ac25ba685d3dfe064c41349863562b1f39ba7e69006c53901395ac8`
+- Windows installer bytes: 108188089
 - Windows installer blockmap: `apps/desktop/dist/matter-0.1.10-win-x64.exe.blockmap`
-- Windows installer blockmap sha256: `c4f4144a4c9f9d92c662b075497687ebf85fc5577a69507e8ffe222c64c3a87d`
-- Windows installer blockmap bytes: 115318
+- Windows installer blockmap sha256: `574ea99938057ae4c46be60833805ad4d5d5d469c3060a9aa4cf4d6b821bd305`
+- Windows installer blockmap bytes: 115483
 - Windows installer packaging: nsis-x64
 - Windows native install smoke: not_run_on_darwin
 - Windows Authenticode signing: false
