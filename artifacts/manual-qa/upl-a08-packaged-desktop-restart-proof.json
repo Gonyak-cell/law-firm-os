@@ -1,6 +1,6 @@
 {
   "schema_version": "lawos.wave1.upl-a08.packaged-desktop-restart-proof.v1",
-  "generated_at": "2026-07-08T14:25:26.537Z",
+  "generated_at": "2026-07-10T12:11:38.671Z",
   "row_id": "UPL-A-08",
   "status": "PASS",
   "scope": "packaged desktop local API restart receipt for matter and leave persistence",
@@ -11,7 +11,7 @@
     "local_api_start_count": 2
   },
   "restart_boundary": {
-    "user_data_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK",
+    "user_data_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn",
     "direct_store_write_from_script": false,
     "start_api_server_injected_for_repo_test_only": true,
     "production_ready_claim": false
@@ -20,8 +20,8 @@
     "same_store_paths": true,
     "matter_survived_restart": true,
     "leave_survived_restart": true,
-    "first_matter_hash": "20dda9e0e48c57ba11e0587d4d95fe804f4ee00b7489194ecc1a9a881347e094",
-    "second_matter_hash": "20dda9e0e48c57ba11e0587d4d95fe804f4ee00b7489194ecc1a9a881347e094"
+    "first_matter_hash": "54505d7aedf7e24315559232d904cf0a029a59ef8b0a842b124af04912e4379f",
+    "second_matter_hash": "54505d7aedf7e24315559232d904cf0a029a59ef8b0a842b124af04912e4379f"
   },
   "first_launch": {
     "base_url": null,
@@ -30,40 +30,40 @@
     "matter_read_status": 200,
     "leave_read_status": 200,
     "store_paths": {
-      "hrxStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/hrx-store.json",
-      "masterDataStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/master-data-store.json",
-      "matterStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/matter-store.json",
-      "dmsStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/dms-store.json",
-      "crmStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/crm-store.json",
-      "intakeStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/intake-store.json",
-      "crmMasterDataStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/crm-master-data-store.json",
-      "financeStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/finance-store.json",
-      "analyticsStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/analytics-store.json",
-      "aiStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/ai-store.json",
-      "portalStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/portal-store.json",
-      "uiReadinessStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/ui-readiness-store.json",
-      "enterpriseReadinessStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/enterprise-readiness-store.json",
-      "securityAuditStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/security-audit-events.ndjson",
-      "authCredentialStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/auth/credential-store.json",
-      "authPasswordResetStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/auth/password-reset-store.json"
+      "hrxStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/hrx-store.json",
+      "masterDataStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/master-data-store.json",
+      "matterStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/matter-store.json",
+      "dmsStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/dms-store.json",
+      "crmStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/crm-store.json",
+      "intakeStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/intake-store.json",
+      "crmMasterDataStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/crm-master-data-store.json",
+      "financeStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/finance-store.json",
+      "analyticsStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/analytics-store.json",
+      "aiStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/ai-store.json",
+      "portalStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/portal-store.json",
+      "uiReadinessStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/ui-readiness-store.json",
+      "enterpriseReadinessStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/enterprise-readiness-store.json",
+      "securityAuditStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/security-audit-events.ndjson",
+      "authCredentialStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/auth/credential-store.json",
+      "authPasswordResetStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/auth/password-reset-store.json"
     },
     "store_files": {
       "matterStorePath": {
-        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/matter-store.json",
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/matter-store.json",
         "exists": true,
-        "bytes": 876646,
+        "bytes": 1239416,
         "under_runtime_store_dir": false
       },
       "hrxStorePath": {
-        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/hrx-store.json",
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/hrx-store.json",
         "exists": true,
-        "bytes": 63644,
+        "bytes": 66334,
         "under_runtime_store_dir": false
       }
     }
   },
   "second_launch": {
-    "base_url": "http://127.0.0.1:61878",
+    "base_url": "http://127.0.0.1:57264",
     "matter_read_status": 200,
     "leave_read_status": 200,
     "matter_id": "matter_upl_a08_desktop_restart_001",
@@ -72,34 +72,34 @@
       "leave-upl-a08-desktop-restart-001"
     ],
     "store_paths": {
-      "hrxStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/hrx-store.json",
-      "masterDataStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/master-data-store.json",
-      "matterStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/matter-store.json",
-      "dmsStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/dms-store.json",
-      "crmStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/crm-store.json",
-      "intakeStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/intake-store.json",
-      "crmMasterDataStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/crm-master-data-store.json",
-      "financeStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/finance-store.json",
-      "analyticsStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/analytics-store.json",
-      "aiStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/ai-store.json",
-      "portalStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/portal-store.json",
-      "uiReadinessStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/ui-readiness-store.json",
-      "enterpriseReadinessStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/enterprise-readiness-store.json",
-      "securityAuditStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/security-audit-events.ndjson",
-      "authCredentialStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/auth/credential-store.json",
-      "authPasswordResetStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/auth/password-reset-store.json"
+      "hrxStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/hrx-store.json",
+      "masterDataStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/master-data-store.json",
+      "matterStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/matter-store.json",
+      "dmsStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/dms-store.json",
+      "crmStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/crm-store.json",
+      "intakeStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/intake-store.json",
+      "crmMasterDataStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/crm-master-data-store.json",
+      "financeStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/finance-store.json",
+      "analyticsStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/analytics-store.json",
+      "aiStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/ai-store.json",
+      "portalStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/portal-store.json",
+      "uiReadinessStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/ui-readiness-store.json",
+      "enterpriseReadinessStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/enterprise-readiness-store.json",
+      "securityAuditStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/security-audit-events.ndjson",
+      "authCredentialStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/auth/credential-store.json",
+      "authPasswordResetStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/auth/password-reset-store.json"
     },
     "store_files": {
       "matterStorePath": {
-        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/matter-store.json",
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/matter-store.json",
         "exists": true,
-        "bytes": 876646,
+        "bytes": 1239416,
         "under_runtime_store_dir": false
       },
       "hrxStorePath": {
-        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-tBtfuK/runtime-stores/hrx-store.json",
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-zT7iWn/runtime-stores/hrx-store.json",
         "exists": true,
-        "bytes": 65102,
+        "bytes": 67792,
         "under_runtime_store_dir": false
       }
     }

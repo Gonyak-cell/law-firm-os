@@ -93,7 +93,7 @@ async function json(baseUrl, path, options = {}) {
 
 async function startPackagedDesktopLocalApi(userDataPath) {
   return startDesktopLocalApiServer({
-    env: {},
+    env: { MATTER_DESKTOP_RUNTIME_STORE_DIR: join(userDataPath, "runtime-stores") },
     start: PACKAGED_START,
     userDataPath,
     existsSyncImpl: (candidate) => candidate === PACKAGED_ENTRY,
