@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-desktop-screen-qa.v0.1",
-  "generated_at": "2026-07-10T08:57:42.071Z",
+  "generated_at": "2026-07-10T13:56:19.392Z",
   "status": "passed",
   "command": "npm run matter-desktop:screen-qa",
   "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
@@ -19,8 +19,8 @@
   },
   "desktop_user_data": {
     "isolated_per_launch": true,
-    "first_launch_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-desktop-screen-qa-JdWgw2",
-    "second_launch_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-desktop-screen-qa-nINu3G"
+    "first_launch_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-desktop-screen-qa-aeqEwz",
+    "second_launch_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-desktop-screen-qa-9lv7I2"
   },
   "packaged_bundle_inspection": {
     "mac_bundle_present": true,
@@ -74,15 +74,23 @@
         "home_dashboard_shell": true,
         "home_dashboard_grid": true,
         "widget_ids": [
-          "approval",
           "calendar",
           "feed",
           "todo"
         ],
+        "dashboard_sections": [
+          "calendar",
+          "feed",
+          "home",
+          "monthly-sales",
+          "new-engagements",
+          "recent-work",
+          "today-todo"
+        ],
         "release_boundary_ui_has_no_positive_claim": true,
         "no_dummy_visible": true,
         "horizontal_overflow": false,
-        "body_character_count": 337,
+        "body_character_count": 355,
         "logo_flow": {
           "observed": false,
           "image_alt": "",
@@ -121,7 +129,7 @@
             "sidebar_display": "grid",
             "workspace_visible": true,
             "sidebar_product_axis_labels": [],
-            "sidebar_item_count": 7,
+            "sidebar_item_count": 8,
             "horizontal_overflow": false
           }
         }
@@ -145,7 +153,25 @@
   "ui_artifacts": {
     "initial_login_screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-initial-login-ui.png",
     "qa_account_product_screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-qa-account-product-ui.png",
-    "screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa.png"
+    "screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa.png",
+    "matter_dashboard_screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-matter-dashboard-qa.png",
+    "people_dashboard_screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-people-dashboard-qa.png"
+  },
+  "dashboard_surfaces": {
+    "matter_sections": [
+      "closed-matters",
+      "my-matters",
+      "new-engagements",
+      "recent-work",
+      "today-todo"
+    ],
+    "people_sections": [
+      "accounts-receivable",
+      "client-meetings",
+      "new-clients",
+      "prospects-contacts",
+      "revenue-ranking"
+    ]
   },
   "reset_protection": {
     "protected_emails": [
@@ -171,7 +197,7 @@
     "token_or_password_visible_in_final_dom": false,
     "reset_token_input_cleared_before_screenshot": true,
     "generated_password_visible_in_final_dom": false,
-    "final_dom_character_count": 337
+    "final_dom_character_count": 355
   },
   "release_claims": {
     "production_go_live": false,

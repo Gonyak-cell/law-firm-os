@@ -26,6 +26,8 @@ const artifactDir = path.join(repoRoot, "docs/lazycodex/evidence/matter-desktop/
 const initialLoginScreenshotPath = path.join(artifactDir, "desktop-initial-login-ui.png");
 const qaAccountProductScreenshotPath = path.join(artifactDir, "desktop-qa-account-product-ui.png");
 const screenshotPath = path.join(artifactDir, "desktop-screen-qa.png");
+const matterDashboardScreenshotPath = path.join(artifactDir, "desktop-matter-dashboard-qa.png");
+const peopleDashboardScreenshotPath = path.join(artifactDir, "desktop-people-dashboard-qa.png");
 const resultPath = path.join(artifactDir, "desktop-screen-qa-result.json");
 
 function createQaUserDataPath() {
@@ -138,12 +140,14 @@ async function waitForProductUi(page) {
   const snapshot = await page.evaluate(() => {
     const text = document.body.textContent ?? "";
     const widgetIds = Array.from(document.querySelectorAll("[data-widget-id]")).map((node) => node.getAttribute("data-widget-id") ?? "");
+    const dashboardSections = Array.from(document.querySelectorAll("[data-dashboard-section]")).map((node) => node.getAttribute("data-dashboard-section") ?? "");
     const positiveReleaseClaimPattern = /\b(public[- ]release|production go-live|owner approval|owner-approved)\b\s*[:|]\s*(true|approved|ready|yes|pass)\b/i;
     return {
       url: window.location.href,
       home_dashboard_shell: Boolean(document.querySelector("[data-home-dashboard-shell='true']")),
       home_dashboard_grid: Boolean(document.querySelector("[data-home-dashboard-grid='true']")),
       widget_ids: widgetIds,
+      dashboard_sections: dashboardSections,
       release_boundary_ui_has_no_positive_claim: !positiveReleaseClaimPattern.test(text),
       no_dummy_visible: !/mock|dummy|sample|synthetic|Project Atlas|Alex Smith|Riverstone/i.test(text),
       horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -152,7 +156,9 @@ async function waitForProductUi(page) {
   });
   assert.equal(snapshot.home_dashboard_shell, true, "post-login product UI must show the Home dashboard shell");
   assert.equal(snapshot.home_dashboard_grid, true, "post-login product UI must show the Home dashboard grid");
-  assert.deepEqual(snapshot.widget_ids.sort(), ["approval", "calendar", "feed", "todo"].sort(), "home dashboard must show the four current operational widgets");
+  assert.deepEqual(snapshot.widget_ids.sort(), ["calendar", "feed", "todo"].sort(), "Home dashboard must keep the interactive calendar, feed, and To Do widgets");
+  assert.deepEqual(snapshot.dashboard_sections.sort(), ["home", "recent-work", "today-todo", "calendar", "monthly-sales", "new-engagements", "feed"].sort(), "Home dashboard must show the seven requested body areas");
+  assert.equal(snapshot.widget_ids.includes("approval"), false, "approval counts must stay outside the Home dashboard body");
   assert.equal(snapshot.widget_ids.includes("system"), false, "company status must remain on its permission-gated Home screen instead of a duplicated dashboard widget");
   assert.equal(snapshot.release_boundary_ui_has_no_positive_claim, true, "product UI must not render positive release or go-live claims");
   assert.equal(snapshot.no_dummy_visible, true, "post-login product UI must not render dummy/sample/synthetic text");
@@ -205,6 +211,25 @@ async function waitForProductUi(page) {
   assert.deepEqual(contextualSidebar.sidebar_product_axis_labels, [], "contextual sidebar must not duplicate the top product-axis menu");
   assert.equal(contextualSidebar.horizontal_overflow, false, "contextual sidebar must not horizontally overflow");
   return { ...snapshot, logo_flow: logoFlow, top_header_nav: topHeaderNav, sidebar: { contextual: contextualSidebar } };
+}
+
+async function captureDashboardSurfaces(page) {
+  await page.click('[data-product-axis="matters"]');
+  await page.waitForSelector('[data-matter-dashboard="true"]', { timeout: 30_000 });
+  const matterSections = await page.$$eval('[data-matter-dashboard="true"] [data-dashboard-section]', (nodes) => nodes.map((node) => node.getAttribute("data-dashboard-section")));
+  assert.deepEqual(matterSections.sort(), ["recent-work", "today-todo", "my-matters", "new-engagements", "closed-matters"].sort(), "Matter dashboard must show the five requested body areas");
+  assert.equal(await page.locator('[data-matter-dashboard-kpis], [data-matter-priority-queue]').count(), 0, "Matter dashboard must not render count KPI blocks");
+  await page.screenshot({ path: matterDashboardScreenshotPath, fullPage: true });
+
+  await page.click('[data-product-axis="people"]');
+  await page.waitForSelector('[data-people-dashboard="true"]', { timeout: 30_000 });
+  const peopleSections = await page.$$eval('[data-people-dashboard="true"] [data-dashboard-section]', (nodes) => nodes.map((node) => node.getAttribute("data-dashboard-section")));
+  assert.deepEqual(peopleSections.sort(), ["new-clients", "prospects-contacts", "revenue-ranking", "client-meetings", "accounts-receivable"].sort(), "People dashboard must show the five requested body areas");
+  await page.screenshot({ path: peopleDashboardScreenshotPath, fullPage: true });
+
+  await page.click('[data-product-axis="home"]');
+  await page.waitForSelector('[data-home-dashboard-grid="true"]', { timeout: 30_000 });
+  return { matter_sections: matterSections, people_sections: peopleSections };
 }
 
 async function launchMatterApp(qaTarget) {
@@ -319,6 +344,7 @@ async function main() {
     assert.notEqual(generalUser.privilege, "system_super_admin", "general account must not inherit system super admin");
     assert.notEqual(generalUser.privilege, "최고 관리자", "general account must not inherit system super admin");
     const generalProduct = await waitForProductUi(secondLaunch.page);
+    const dashboardSurfaces = await captureDashboardSurfaces(secondLaunch.page);
     await secondLaunch.page.screenshot({ path: screenshotPath, fullPage: true });
     const finalBodyText = (await secondLaunch.page.textContent("body")) ?? "";
     await secondLaunch.app.close();
@@ -410,8 +436,11 @@ async function main() {
       ui_artifacts: {
         initial_login_screenshot: path.relative(repoRoot, initialLoginScreenshotPath),
         qa_account_product_screenshot: path.relative(repoRoot, qaAccountProductScreenshotPath),
-        screenshot: path.relative(repoRoot, screenshotPath)
+        screenshot: path.relative(repoRoot, screenshotPath),
+        matter_dashboard_screenshot: path.relative(repoRoot, matterDashboardScreenshotPath),
+        people_dashboard_screenshot: path.relative(repoRoot, peopleDashboardScreenshotPath)
       },
+      dashboard_surfaces: dashboardSurfaces,
       reset_protection: resetProtectionSummary(),
       ui_brand_checks: {
         initial_login_brand_visible: initialBrandSnapshot.brand_visible,
