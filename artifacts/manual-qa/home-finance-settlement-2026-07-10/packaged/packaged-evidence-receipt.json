@@ -1,0 +1,241 @@
+{
+  "schema_version": "law-firm-os.home-finance-packaged-evidence.v0.1",
+  "generated_at": "2026-07-10T07:21:06.692Z",
+  "status": "passed",
+  "package": {
+    "app_bundle": "apps/desktop/dist/mac/matter.app",
+    "executable_sha256": "c0bf182389ea930585e3b0bf5c4f16529461e02bf3be751cb364d0e25f2257e0",
+    "renderer_index_sha256": "11f24cea1b71bc1825dcaae7a020a03a55de744f72981229e1e5ca04ed9eeee6",
+    "internal_package_only": true,
+    "developer_id_signed": false,
+    "notarized": false
+  },
+  "qa_session": {
+    "mode": "packaged_app_loopback_contract_server",
+    "explicit_finance_scope_fixture": true,
+    "local_fixture_api": true,
+    "backend_authentication_claim": false,
+    "production_data_claim": false,
+    "isolated_user_data": true,
+    "raw_user_data_path_included": false
+  },
+  "home_snapshot": {
+    "active_view": "home",
+    "active_section": "home-finance-overview",
+    "group_visible": true,
+    "group_expanded": true,
+    "child_labels": [
+      "전체 현황",
+      "월별 매출/비용",
+      "고객별 매출/비용",
+      "시간 기록",
+      "비용 처리",
+      "청구/수납",
+      "미수금"
+    ],
+    "route_contract_visible": true,
+    "horizontal_overflow": false
+  },
+  "matter_snapshot": {
+    "settlement_group_visible": false,
+    "forbidden_section_count": 0,
+    "sidebar_text": "사건 운영대시보드사건 목록사건 문서신규 사건수임 진행종결 처리보관 사건업무 진행소통리포트"
+  },
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "required_packaged_screen_count": 9,
+  "captured_packaged_screen_count": 10,
+  "required_packaged_screens_passed": true,
+  "evidence": [
+    {
+      "name": "01-packaged-overview-sidebar",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/01-packaged-overview-sidebar.png",
+      "screenshot_sha256": "d7e7d4bbabe66f9db3d7616076030b92cd737f13aac3bccae37078ff7edb2b71",
+      "selector": "[data-home-finance-summary=\"true\"]",
+      "snapshot": {
+        "requested_view": "home",
+        "requested_section": "home-finance-overview",
+        "active_view": "home",
+        "active_section": "home-finance-overview",
+        "expected_view": "home",
+        "expected_section": "home-finance-overview",
+        "resolved_query_view": "home",
+        "resolved_hash": "home-finance-overview",
+        "resolved_matter_id": null,
+        "horizontal_overflow": false
+      }
+    },
+    {
+      "name": "02-packaged-monthly",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/02-packaged-monthly.png",
+      "screenshot_sha256": "648cb6602690e1859b5b6bb25a43e3e77c9069e461458f5f6c9e22dd5bdbbefe",
+      "selector": "[data-home-finance-monthly-table=\"true\"]",
+      "snapshot": {
+        "requested_view": "home",
+        "requested_section": "home-finance-monthly",
+        "active_view": "home",
+        "active_section": "home-finance-monthly",
+        "expected_view": "home",
+        "expected_section": "home-finance-monthly",
+        "resolved_query_view": "home",
+        "resolved_hash": "home-finance-monthly",
+        "resolved_matter_id": null,
+        "horizontal_overflow": false
+      }
+    },
+    {
+      "name": "03-packaged-clients-unlinked",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/03-packaged-clients-unlinked.png",
+      "screenshot_sha256": "72cf03c36f18e2261aeb08677140398ae69738353eb41f8d6c8352f429f68e8b",
+      "selector": "[data-home-finance-unlinked-client=\"true\"]",
+      "snapshot": {
+        "requested_view": "home",
+        "requested_section": "home-finance-clients",
+        "active_view": "home",
+        "active_section": "home-finance-clients",
+        "expected_view": "home",
+        "expected_section": "home-finance-clients",
+        "resolved_query_view": "home",
+        "resolved_hash": "home-finance-clients",
+        "resolved_matter_id": null,
+        "horizontal_overflow": false
+      }
+    },
+    {
+      "name": "04-packaged-time",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/04-packaged-time.png",
+      "screenshot_sha256": "73b4094c76bbe8bf435bfb3c720acb69c1a1f2907c5c7d0223e20bb12c338a01",
+      "selector": "[data-home-finance-operation=\"time\"]",
+      "snapshot": {
+        "requested_view": "home",
+        "requested_section": "home-finance-time",
+        "active_view": "home",
+        "active_section": "home-finance-time",
+        "expected_view": "home",
+        "expected_section": "home-finance-time",
+        "resolved_query_view": "home",
+        "resolved_hash": "home-finance-time",
+        "resolved_matter_id": "matter-evidence-001",
+        "horizontal_overflow": false
+      }
+    },
+    {
+      "name": "05-packaged-expenses",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/05-packaged-expenses.png",
+      "screenshot_sha256": "af4967b02f84763eb92679aa500e81d82f470b089994e9d6829b1a98f4833fe9",
+      "selector": "[data-home-finance-operation=\"expenses\"]",
+      "snapshot": {
+        "requested_view": "home",
+        "requested_section": "home-finance-expenses",
+        "active_view": "home",
+        "active_section": "home-finance-expenses",
+        "expected_view": "home",
+        "expected_section": "home-finance-expenses",
+        "resolved_query_view": "home",
+        "resolved_hash": "home-finance-expenses",
+        "resolved_matter_id": "matter-evidence-001",
+        "horizontal_overflow": false
+      }
+    },
+    {
+      "name": "06-packaged-billing",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/06-packaged-billing.png",
+      "screenshot_sha256": "f523ccf586615e744ad4841196801c6e8774f65d00402f40a0168af0edf3ae53",
+      "selector": "[data-home-finance-operation=\"billing\"]",
+      "snapshot": {
+        "requested_view": "home",
+        "requested_section": "home-finance-billing",
+        "active_view": "home",
+        "active_section": "home-finance-billing",
+        "expected_view": "home",
+        "expected_section": "home-finance-billing",
+        "resolved_query_view": "home",
+        "resolved_hash": "home-finance-billing",
+        "resolved_matter_id": "matter-evidence-001",
+        "horizontal_overflow": false
+      }
+    },
+    {
+      "name": "07-packaged-ar",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/07-packaged-ar.png",
+      "screenshot_sha256": "0e4592d13c61ac330bfc15c44306d6de4da7785a8b27594559206d51ba66f930",
+      "selector": "[data-home-finance-operation=\"ar\"]",
+      "snapshot": {
+        "requested_view": "home",
+        "requested_section": "home-finance-ar",
+        "active_view": "home",
+        "active_section": "home-finance-ar",
+        "expected_view": "home",
+        "expected_section": "home-finance-ar",
+        "resolved_query_view": "home",
+        "resolved_hash": "home-finance-ar",
+        "resolved_matter_id": "matter-evidence-001",
+        "horizontal_overflow": false
+      }
+    },
+    {
+      "name": "08-packaged-matter-context-redirect",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/08-packaged-matter-context-redirect.png",
+      "screenshot_sha256": "f523ccf586615e744ad4841196801c6e8774f65d00402f40a0168af0edf3ae53",
+      "selector": "[data-home-finance-operation=\"billing\"]",
+      "snapshot": {
+        "requested_view": "matters",
+        "requested_section": "matter-billing",
+        "active_view": "home",
+        "active_section": "home-finance-billing",
+        "expected_view": "home",
+        "expected_section": "home-finance-billing",
+        "resolved_query_view": "home",
+        "resolved_hash": "home-finance-billing",
+        "resolved_matter_id": "matter-evidence-001",
+        "horizontal_overflow": false
+      }
+    },
+    {
+      "name": "09-packaged-denied",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/09-packaged-denied.png",
+      "screenshot_sha256": "5fb6154d833b6a5cfcc2c020669734f0ba6074d810ecb7553425803937eced24",
+      "selector": "[data-home-finance-state=\"denied\"]",
+      "snapshot": {
+        "requested_view": "home",
+        "requested_section": "home-finance-overview",
+        "active_view": "home",
+        "active_section": "home-finance-overview",
+        "expected_view": "home",
+        "expected_section": "home-finance-overview",
+        "resolved_query_view": "home",
+        "resolved_hash": "home-finance-overview",
+        "resolved_matter_id": null,
+        "horizontal_overflow": false
+      }
+    },
+    {
+      "name": "10-packaged-matter-sidebar-without-settlement",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/10-packaged-matter-sidebar-without-settlement.png",
+      "screenshot_sha256": "42c8df26203f21b2f90839199b37569b7249ff3235a318e5ad276abc3c8340b9",
+      "selector": "[data-context-sidebar=\"matters\"]",
+      "snapshot": {
+        "settlement_group_visible": false,
+        "forbidden_section_count": 0,
+        "sidebar_text": "사건 운영대시보드사건 목록사건 문서신규 사건수임 진행종결 처리보관 사건업무 진행소통리포트"
+      }
+    }
+  ],
+  "screenshots": [
+    "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/01-packaged-overview-sidebar.png",
+    "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/02-packaged-monthly.png",
+    "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/03-packaged-clients-unlinked.png",
+    "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/04-packaged-time.png",
+    "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/05-packaged-expenses.png",
+    "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/06-packaged-billing.png",
+    "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/07-packaged-ar.png",
+    "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/08-packaged-matter-context-redirect.png",
+    "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/09-packaged-denied.png",
+    "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/10-packaged-matter-sidebar-without-settlement.png"
+  ],
+  "production_ready_claim": false,
+  "public_release_claim": false,
+  "go_live_claim": false
+}

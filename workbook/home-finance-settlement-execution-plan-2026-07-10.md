@@ -1,7 +1,7 @@
 # Home 매출·비용·정산 통합 실행 지시서 — 2026-07-10
 
 - 문서 ID: `HOME-FIN-SETTLEMENT-2026-07-10`
-- 상태: 구현 계획 확정, 실행 대기
+- 상태: WP-FIN-1~6 및 WP-FIN-7 비파괴 검증 완료, 외부 QA 계정 reset screen QA 승인 대기
 - 적용 저장소: `/Users/jws/Documents/Codex/Law Firm OS`
 - 기준 화면: Home 및 Matter 사이드바, Home 대시보드, Matter 정산 실행 화면
 - 실행 원칙: 작업 패키지별 독립 커밋, 테스트·브라우저·패키지 증거 확인 후 다음 패키지 진행
@@ -613,13 +613,15 @@ WP-FIN-1 계약·라우트
 ## 15. 현재 진실 상태
 
 - 계획 문서: 작성 완료
-- 코드 구현: WP-FIN-1~6 완료, WP-FIN-7 대기
+- 코드 구현: WP-FIN-1~6 완료, WP-FIN-7 구현·비파괴 패키지 QA 완료 / 외부 QA 계정 reset screen QA 승인 대기
 - 테스트 PASS: WP-FIN-1~6 라우트·집계·재무 UI·정산 실행·명시적 scope·Matter 메뉴 제거/하위 호환 계약 PASS
 - 브라우저 QA: 집계 화면, 정산 실행 흐름, scope별 메뉴/회계 CSV 비노출 PASS
 - 권한 진실선: 실제 서명 세션의 명시적 scope를 API에서 재검증하고 denied/review를 안전 감사 이벤트로 기록; scope 없는 로컬 fixture만 기존 permission context 호환 유지
 - 승인함 진실선: 레거시 Matter 결재 딥링크는 Home 승인 대기의 `재무` 필터로 이동하며, 비용 및 재무 분류 항목을 한 화면에서 조회
 - 메뉴 진실선: Matter 사이드바의 정산 그룹은 제거했고 기존 Matter/Finance 주소는 Home 재무 화면으로 리다이렉트
-- 패키지 `matter.app` 반영: 미실행
+- 패키지 `matter.app` 반영: 내부 unsigned package 재빌드 및 Home 재무/Matter 메뉴 화면 PASS
+- 패키지 QA 경계: 브라우저 9장 + 실제 package 필수 9장 및 Matter 메뉴 확인 1장 PASS; 실제 package 증거는 격리 userData와 loopback 계약 서버를 사용해 운영 데이터·외부 상태를 읽거나 변경하지 않음
+- 기존 screen QA 경계: `matter-desktop:screen-qa`는 `MATTER_ALLOW_QA_PASSWORD_RESET=1` 승인 전 미실행
 - 서명/공증: 범위 밖
 - 공개 릴리스: 승인 없음
 - go-live: 승인 없음
