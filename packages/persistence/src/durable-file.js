@@ -18,6 +18,10 @@ import { queueRuntimeStoreBackupUpload } from "./s3-backup-queue.js";
 export const LAWOS_LOCAL_BACKUP_ROOT = join(homedir(), "lawos-backups", "data");
 export const DEFAULT_LOCAL_GENERATION_LIMIT = 200;
 
+export function resolveLocalBackupRoot(env = process.env) {
+  return env.LAWOS_LOCAL_BACKUP_ROOT || env.MATTER_VAULT_BACKUP_ROOT || LAWOS_LOCAL_BACKUP_ROOT;
+}
+
 function safeStoreName(filePath) {
   return basename(filePath || "store.json").replace(/[^A-Za-z0-9._-]/g, "_");
 }
@@ -66,12 +70,13 @@ function stateRecordCount(state = {}) {
 
 export function backupExistingStoreGeneration({
   filePath,
-  backupRoot = LAWOS_LOCAL_BACKUP_ROOT,
+  backupRoot,
+  env = process.env,
   now = new Date(),
   keep = DEFAULT_LOCAL_GENERATION_LIMIT,
 } = {}) {
   if (!filePath || !existsSync(filePath)) return null;
-  const backupDir = join(backupRoot, safeStoreName(filePath));
+  const backupDir = join(backupRoot || resolveLocalBackupRoot(env), safeStoreName(filePath));
   mkdirSync(backupDir, { recursive: true });
   const backupPath = join(backupDir, `${timestampSlug(now)}.json`);
   writeFileSync(backupPath, readFileSync(filePath));
@@ -102,6 +107,7 @@ export function writeJsonFileDurably({
   previousState,
   createBackup = true,
   backupRoot,
+  env = process.env,
   keep = DEFAULT_LOCAL_GENERATION_LIMIT,
   now = new Date(),
 } = {}) {
@@ -109,12 +115,12 @@ export function writeJsonFileDurably({
   assertNoUnsafeStoreShrink({ previousState, nextState: value });
   const dirPath = dirname(filePath);
   mkdirSync(dirPath, { recursive: true });
-  const backupPath = createBackup ? backupExistingStoreGeneration({ filePath, backupRoot, now, keep }) : null;
+  const backupPath = createBackup ? backupExistingStoreGeneration({ filePath, backupRoot, env, now, keep }) : null;
   const tempPath = join(dirPath, `.${basename(filePath)}.${process.pid}.${Date.now()}.tmp`);
   writeFileSync(tempPath, `${JSON.stringify(value, null, 2)}\n`);
   fsyncFile(tempPath);
   renameSync(tempPath, filePath);
   fsyncDirectory(dirPath);
-  queueRuntimeStoreBackupUpload({ reasonFilePath: filePath, now });
+  queueRuntimeStoreBackupUpload({ reasonFilePath: filePath, env, now });
   return backupPath;
 }
