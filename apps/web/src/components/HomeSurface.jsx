@@ -49,6 +49,7 @@ import {
 import { emitHomeMetric, homeMetricNowMs } from "../data/homeTelemetry.js";
 import { fetchHrxPeopleOverview } from "../people/hrxApiClient.ts";
 import { useSkin } from "../context/SkinContext.jsx";
+import { FinanceSurface } from "./FinanceSurface.jsx";
 
 const heroDateFormatter = new Intl.DateTimeFormat("ko-KR", { dateStyle: "full" });
 const monthFormatter = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "long" });
@@ -1320,6 +1321,15 @@ export function HomeSurface({
   }
 
   function renderFinanceRouteContract() {
+    if (["home-finance-overview", "home-finance-monthly", "home-finance-clients"].includes(activeHomeSection)) {
+      return (
+        <HomeSectionPanel section={activeHomeSection} title={currentHomeSectionMeta.title}>
+          <div data-home-finance-route-contract={activeHomeSection}>
+            <FinanceSurface liveCtx={liveCtx} activeSection={activeHomeSection} />
+          </div>
+        </HomeSectionPanel>
+      );
+    }
     return (
       <HomeSectionPanel section={activeHomeSection} title={currentHomeSectionMeta.title} Icon={currentHomeSectionMeta.Icon}>
         <div className="live-data-state live-data-empty" role="status" data-home-finance-route-contract={activeHomeSection}>

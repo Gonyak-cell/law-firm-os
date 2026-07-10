@@ -12305,3 +12305,214 @@ html[data-skin="forest"] .public-preview .matter-mark .mark-matter,
 html[data-skin="forest"][data-theme="dark"] .public-preview .matter-mark .mark-matter {
   display: none;
 }
+
+.home-finance-surface {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.home-finance-filterbar {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(120px, 1fr)) auto;
+  gap: 10px;
+  align-items: end;
+  padding: 14px;
+  border: 1px solid var(--am-border);
+  border-radius: 10px;
+  background: var(--am-surface);
+}
+
+.home-finance-filterbar label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.home-finance-filterbar label > span {
+  color: var(--am-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.home-finance-filterbar input,
+.home-finance-filterbar select {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  border: 1px solid var(--am-border);
+  border-radius: 7px;
+  background: var(--am-surface);
+  color: var(--am-text);
+  padding: 0 10px;
+}
+
+.home-finance-refresh {
+  min-height: 38px;
+  white-space: nowrap;
+}
+
+.home-finance-context-note {
+  grid-column: 1 / -1;
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+.home-finance-scope-note {
+  margin: -6px 0 0;
+  color: var(--am-text-muted);
+  font-size: 13px;
+}
+
+.home-finance-summary {
+  display: grid;
+  gap: 12px;
+}
+
+.home-finance-currency-block,
+.home-finance-section-block {
+  min-width: 0;
+  border: 1px solid var(--am-border);
+  border-radius: 10px;
+  background: var(--am-surface);
+}
+
+.home-finance-currency-block > header,
+.home-finance-section-block > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--am-border-soft);
+}
+
+.home-finance-currency-block > header span,
+.home-finance-section-block > header span {
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+.home-finance-section-block h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.home-finance-currency-block dl {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 0;
+}
+
+.home-finance-currency-block dl > div {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-right: 1px solid var(--am-border-soft);
+}
+
+.home-finance-currency-block dl > div:last-child {
+  border-right: 0;
+}
+
+.home-finance-currency-block dt {
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+.home-finance-currency-block dd {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-finance-overview {
+  display: grid;
+  gap: 16px;
+}
+
+.home-finance-table-wrap {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.home-finance-table-wrap table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.home-finance-table-wrap th,
+.home-finance-table-wrap td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--am-border-soft);
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-finance-table-wrap th:first-child,
+.home-finance-table-wrap td:first-child {
+  text-align: left;
+}
+
+.home-finance-table-wrap thead th {
+  color: var(--am-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.home-finance-reconciliation {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 1px solid var(--am-warning-border, #d7b46a);
+  border-radius: 8px;
+  background: var(--am-warning-soft, #fff8e8);
+}
+
+.home-finance-reconciliation div {
+  display: grid;
+  gap: 3px;
+}
+
+.home-finance-reconciliation span {
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+@media (max-width: 1180px) {
+  .home-finance-filterbar {
+    grid-template-columns: repeat(3, minmax(140px, 1fr));
+  }
+
+  .home-finance-currency-block dl {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .home-finance-currency-block dl > div:nth-child(3) {
+    border-right: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .home-finance-filterbar {
+    grid-template-columns: 1fr;
+  }
+
+  .home-finance-currency-block dl {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .home-finance-currency-block dl > div:nth-child(odd) {
+    border-right: 1px solid var(--am-border-soft);
+  }
+
+  .home-finance-currency-block dl > div:nth-child(even) {
+    border-right: 0;
+  }
+}

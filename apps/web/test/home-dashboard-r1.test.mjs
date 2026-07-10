@@ -199,6 +199,36 @@ function wp5ActionItem({ id, type, title, dueOffset, dueHour = 9, riskTier = "no
 }
 
 function wp5ApiBody(pathname, searchParams, state) {
+  if (pathname === "/api/analytics/finance/overview") {
+    return {
+      request_id: "wp-fin-3-overview",
+      outcome: "passed",
+      item: {
+        scope_label: "Matter 기반 집계",
+        totals: [{ currency: "KRW", billed_amount: 900, collected_amount: 400, matter_cost: 250, recoverable_cost: 250, ar_balance: 500, contribution_amount: 650, unlinked_amount: 50, transaction_count: 7, date_inferred_count: 1 }],
+        currency_conversion_applied: false,
+        ar_balance_is_point_in_time: true
+      },
+      source_statuses: [], safe_error_codes: [], audit_hint_ref: "wp-fin-3-overview-audit", count_leak_prevented: true, raw_source_payload_included: false, production_ready_claim: false
+    };
+  }
+  if (pathname === "/api/analytics/finance/monthly") {
+    return {
+      request_id: "wp-fin-3-monthly", outcome: "passed",
+      items: [{ month: "2026-07", currency: "KRW", billed_amount: 900, collected_amount: 400, matter_cost: 250, recoverable_cost: 250, ar_balance: 500, contribution_amount: 650, unlinked_amount: 50, transaction_count: 7, date_inferred_count: 1 }],
+      source_statuses: [], safe_error_codes: [], audit_hint_ref: "wp-fin-3-monthly-audit", count_leak_prevented: true, raw_source_payload_included: false, production_ready_claim: false
+    };
+  }
+  if (pathname === "/api/analytics/finance/clients") {
+    return {
+      request_id: "wp-fin-3-clients", outcome: "passed",
+      items: [
+        { client_group_id: "client-group-visible", client_group_label: "고객 A", client_mapping_source: "master-data.ClientGroup", matter_count: 1, currency: "KRW", billed_amount: 900, collected_amount: 400, matter_cost: 200, recoverable_cost: 200, ar_balance: 500, contribution_amount: 700, unlinked_amount: 0, transaction_count: 6, date_inferred_count: 1 },
+        { client_group_id: null, client_group_label: "미연결 고객", client_mapping_source: "unlinked", matter_count: 1, currency: "KRW", billed_amount: 0, collected_amount: 0, matter_cost: 50, recoverable_cost: 50, ar_balance: 0, contribution_amount: -50, unlinked_amount: 50, transaction_count: 1, date_inferred_count: 0 }
+      ],
+      source_statuses: [], safe_error_codes: [], audit_hint_ref: "wp-fin-3-clients-audit", count_leak_prevented: true, raw_source_payload_included: false, production_ready_claim: false
+    };
+  }
   if (pathname === "/api/home/action-inbox") {
     const type = searchParams.get("type");
     if (type === "task") {
@@ -373,6 +403,43 @@ test("WP-FIN-1 preserves Matter context and sidebar state in the browser", async
     await group.getByRole("button", { name: "고객별 매출/비용", exact: true }).click();
     await page.waitForSelector('[data-home-finance-route-contract="home-finance-clients"]');
     assert.equal(new URL(page.url()).hash, "#home-finance-clients");
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
+test("WP-FIN-3 renders reconciled Home finance views and keeps filters in the URL", async () => {
+  const port = await availablePort();
+  const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  const state = { decisionCalls: 0, newsCalls: 0 };
+  try {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
+    });
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-finance-overview`, { waitUntil: "networkidle" });
+    await page.waitForSelector('[data-home-finance-summary="true"]');
+    const overview = page.locator('[data-home-finance-surface="true"]');
+    assert.match(await overview.innerText(), /900원/);
+    assert.match(await overview.innerText(), /400원/);
+    assert.match(await overview.innerText(), /미연결 고객/);
+    assert.doesNotMatch(await overview.innerText(), /client-group-visible|tenant_cmp|party-/);
+
+    await overview.getByLabel("통화").selectOption("KRW");
+    await page.waitForFunction(() => new URL(window.location.href).searchParams.get("currency") === "KRW");
+    await page.locator('[data-sidebar-group="home-finance"]').getByRole("button", { name: "월별 매출/비용", exact: true }).click();
+    await page.waitForSelector('[data-home-finance-monthly-table="true"]');
+    assert.equal(new URL(page.url()).searchParams.get("currency"), "KRW");
+    await page.locator('[data-sidebar-group="home-finance"]').getByRole("button", { name: "고객별 매출/비용", exact: true }).click();
+    await page.waitForSelector('[data-home-finance-client-table="true"]');
+    assert.equal(await page.locator('[data-home-finance-unlinked-client="true"]').count(), 1);
+
+    await page.setViewportSize({ width: 700, height: 900 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
   } finally {
     await browser.close();
     await server.close();

@@ -613,9 +613,9 @@ WP-FIN-1 계약·라우트
 ## 15. 현재 진실 상태
 
 - 계획 문서: 작성 완료
-- 코드 구현: WP-FIN-1~2 완료, WP-FIN-3~7 대기
-- 테스트 PASS: WP-FIN-1 및 WP-FIN-2 집계·API·결제 읽기 계약 PASS
-- 브라우저 QA: WP-FIN-1 라우트·Matter 컨텍스트·사이드바 상태 PASS
+- 코드 구현: WP-FIN-1~3 완료, WP-FIN-4~7 대기
+- 테스트 PASS: WP-FIN-1~3 라우트·집계 API·재무 UI 계약 PASS
+- 브라우저 QA: 전체·월별·고객별 집계, 필터 URL, 좁은 화면 PASS
 - 패키지 `matter.app` 반영: 미실행
 - 서명/공증: 범위 밖
 - 공개 릴리스: 승인 없음

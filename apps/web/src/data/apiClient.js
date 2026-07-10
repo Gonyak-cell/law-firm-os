@@ -4700,6 +4700,70 @@ export async function fetchAnalyticsDashboards({
   };
 }
 
+async function fetchAnalyticsFinanceReadModel({
+  kind,
+  ctx = "allow",
+  permissionRef = DEFAULT_ANALYTICS_PERMISSION_REF,
+  auditHintRef = DEFAULT_ANALYTICS_AUDIT_HINT_REF,
+  from = null,
+  to = null,
+  currency = null,
+  clientGroupId = null,
+  matterId = null,
+  recognitionBasis = "billed"
+} = {}) {
+  const context = permissionContextFor(ctx, ANALYTICS_PERMISSION_CONTEXTS, "matter");
+  const params = new URLSearchParams({
+    tenant_id: FINANCE_TENANT_ID,
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef,
+    recognition_basis: recognitionBasis
+  });
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+  if (currency) params.set("currency", currency);
+  if (clientGroupId) params.set("client_group_id", clientGroupId);
+  if (matterId) params.set("matter_id", matterId);
+
+  let body;
+  try {
+    const response = await apiFetch(`/api/analytics/finance/${kind}?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body) || !("outcome" in body)) return { kind: "error" };
+  return {
+    kind: "data",
+    requestId: body.request_id ?? null,
+    outcome: body.outcome,
+    uiState: body.ui_state ?? null,
+    item: body.item ?? null,
+    items: Array.isArray(body.items) ? body.items : [],
+    sourceStatuses: Array.isArray(body.source_statuses) ? body.source_statuses : [],
+    filters: body.filters ?? null,
+    safeErrorCodes: Array.isArray(body.safe_error_codes) ? body.safe_error_codes : [],
+    auditHintRef: body.audit_hint_ref ?? null,
+    countLeakPrevented: body.count_leak_prevented === true,
+    rawSourcePayloadIncluded: body.raw_source_payload_included === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+export function fetchAnalyticsFinanceOverview(options = {}) {
+  return fetchAnalyticsFinanceReadModel({ ...options, kind: "overview" });
+}
+
+export function fetchAnalyticsFinanceMonthly(options = {}) {
+  return fetchAnalyticsFinanceReadModel({ ...options, kind: "monthly" });
+}
+
+export function fetchAnalyticsFinanceClients(options = {}) {
+  return fetchAnalyticsFinanceReadModel({ ...options, kind: "clients" });
+}
+
 function normalizeAnalyticsCollectionBody(body) {
   const hasShape =
     body !== null &&

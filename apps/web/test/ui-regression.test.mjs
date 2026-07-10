@@ -221,6 +221,30 @@ test("WP-FIN-1 registers the Home finance group and context-preserving legacy ro
   assert.match(homeSource, /data-home-finance-route-contract=\{activeHomeSection\}/);
 });
 
+test("WP-FIN-3 mounts server-reconciled finance views with guarded states and responsive filters", async () => {
+  const homeSource = await readWebFile("src/components/HomeSurface.jsx");
+  const financeSource = await readWebFile("src/components/FinanceSurface.jsx");
+  const apiClientSource = await readWebFile("src/data/apiClient.js");
+  const stylesSource = await readWebFile("src/styles.css");
+
+  assert.match(homeSource, /<FinanceSurface liveCtx=\{liveCtx\} activeSection=\{activeHomeSection\}/);
+  for (const name of ["fetchAnalyticsFinanceOverview", "fetchAnalyticsFinanceMonthly", "fetchAnalyticsFinanceClients"]) {
+    assert.match(financeSource, new RegExp(name));
+    assert.match(apiClientSource, new RegExp(`export function ${name}`));
+  }
+  assert.doesNotMatch(financeSource, /fetchFinanceInvoices|fetchFinanceTimeEntries|fetchFinanceArAging/);
+  for (const state of ["loading", "error", "denied", "review", "empty"]) {
+    assert.match(financeSource, new RegExp(state));
+  }
+  assert.match(financeSource, /data-home-finance-summary="true"/);
+  assert.match(financeSource, /data-home-finance-monthly-table="true"/);
+  assert.match(financeSource, /data-home-finance-client-table="true"/);
+  assert.match(financeSource, /writeFinanceFilters/);
+  assert.match(apiClientSource, /tenant_id: FINANCE_TENANT_ID/);
+  assert.match(stylesSource, /\.home-finance-table-wrap[\s\S]*overflow-x:\s*auto/);
+  assert.match(stylesSource, /@media \(max-width:\s*720px\)[\s\S]*\.home-finance-filterbar[\s\S]*grid-template-columns:\s*1fr/);
+});
+
 test("matter startup branding uses shared splash and brand constants", async () => {
   const brandSource = await readWebFile("src/brand/brand.js");
   const splashSource = await readWebFile("src/components/MatterSplash.jsx");
