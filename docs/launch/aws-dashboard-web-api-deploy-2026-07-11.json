@@ -1,0 +1,85 @@
+{
+  "schema_version": "law-firm-os.aws-dashboard-web-api-deploy.v0.1",
+  "generated_at": "2026-07-10T16:34:11Z",
+  "status": "passed",
+  "deployment_scope": "aws_production_web_and_api",
+  "source_commit": "067c6c51876e6d041b300c97632e370cbaef63b1",
+  "source_branch": "codex/lcx-vltui-owner-approval-intake",
+  "aws": {
+    "account_id": "770880870480",
+    "region": "ap-northeast-2",
+    "profile": "matter-prod-deploy-admin"
+  },
+  "api_deployment": {
+    "function_name": "matter-lawos-api-prod",
+    "previous_deployment_commit": "1502e6772f80fa7aa9d950da2122e9c6d1d64bc9",
+    "previous_code_sha256": "VrQIvtvC6V1CoUqSEwxpKZNHCqfjIejSQq2MJLfcJX4=",
+    "candidate_zip_sha256": "c1735895ca62f849588b3c7f3a078126033ea1850406b0338559b16b9c339be0",
+    "deployed_code_sha256": "wXNYlcpi+ElYizx/OgeBJgM+oYUEBrAzhVmxa5wzm+A=",
+    "revision_id": "37a18f9b-df59-4b15-baaa-5ec4aabffcb3",
+    "deployment_commit_metadata": "067c6c51876e6d041b300c97632e370cbaef63b1",
+    "state": "Active",
+    "last_update_status": "Successful",
+    "runtime_profile": "operational",
+    "api_health_http_status": 200,
+    "health_http_status": 200,
+    "unauthenticated_crm_http_status": 401,
+    "unauthenticated_crm_safe_error_codes": [
+      "AUTH_SESSION_REQUIRED"
+    ],
+    "authenticated_production_record_probe_performed": false,
+    "environment_values_recorded": false
+  },
+  "web_deployment": {
+    "bucket": "matter-lawos-web-prod-770880870480-apne2",
+    "cloudfront_distribution_id": "E3MVAKX2DIR3CS",
+    "cloudfront_domain": "d2mthcc8vp3cr2.cloudfront.net",
+    "invalidation_id": "I9F9E5PCIWER2WG12QL5V5VVDJ",
+    "invalidation_status": "Completed",
+    "previous_assets": [
+      "assets/index-BIku680h.js",
+      "assets/index-C0nmq8_D.css"
+    ],
+    "deployed_assets": {
+      "index.html": "8eb9c7581d32a8811af07017e2131e3c57518d659d4e2244b331c9c9048d599c",
+      "assets/index-BtXlQxsV.js": "4c383562994e6db8759c2301c929ee2ebbafbc45af85cce869b5e2a89e2421b0",
+      "assets/index-PtUyPPmI.css": "84757131f2ecd22f24e72bc39573a147eb46b7a97b91fbfc8371387c373c0420"
+    },
+    "live_hashes_match": true,
+    "previous_hashed_assets_preserved": true,
+    "objects_deleted": 0,
+    "rendered_root_product_shell": true,
+    "rendered_root_horizontal_overflow": false
+  },
+  "rollback": {
+    "workspace": "/tmp/lawos-prod-deploy-2c4ad2e80-20260710T161934Z",
+    "s3_snapshot_file_count": 33,
+    "lambda_zip_sha256": "56b408bedbc2e95d42a14a92130c692993470aa7e321e8d242ad8c24b7dc257e",
+    "lambda_zip_integrity": "passed",
+    "bucket_versioning_enabled": false
+  },
+  "verification": {
+    "home_browser_tests": "19 passed",
+    "crm_api_focused_tests": "2 passed",
+    "desktop_smoke_tests": "89 passed",
+    "macos_internal_package_qa": "passed",
+    "macos_package_home_source_rows": {
+      "recent-work": 3,
+      "new-engagements": 1,
+      "monthly-sales": 1
+    },
+    "macos_package_matter_today_todo_rows": 1,
+    "macos_package_people_rows": 7,
+    "macos_package_forbidden_visible_values": [],
+    "windows_dashboard_package_qa_run": "https://github.com/Gonyak-cell/law-firm-os/actions/runs/29107496228",
+    "windows_dashboard_package_qa": "passed",
+    "ai_slop_review": "passed"
+  },
+  "claim_boundaries": {
+    "aws_production_deployment_completed": true,
+    "desktop_public_release": false,
+    "public_release": false,
+    "production_go_live": false,
+    "production_ready": false
+  }
+}
