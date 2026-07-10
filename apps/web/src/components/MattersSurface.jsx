@@ -998,7 +998,7 @@ function MatterDashboardPanel({
   onSelectMatter,
   onNavigateSection
 }) {
-  const recentRows = (resultItems(recentResult).length > 0 ? resultItems(recentResult) : matters)
+  const recentRows = resultItems(recentResult)
     .slice()
     .sort((left, right) => dashboardDateValue(right) - dashboardDateValue(left))
     .slice(0, 5);

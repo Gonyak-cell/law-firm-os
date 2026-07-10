@@ -819,6 +819,44 @@ test("dashboard bodies render the requested Home, Matter, and People work areas 
     }
     assert.equal(await page.locator('[data-dashboard-section="new-clients"] .dashboard-record-row').count(), 1);
     assert.equal(await page.locator('[data-dashboard-section="client-meetings"] .dashboard-record-row').count(), 1);
+    const peopleDashboardText = await page.locator('[data-people-dashboard="true"]').innerText();
+    assert.doesNotMatch(peopleDashboardText, /jwsuh@amic\.kr|party-dashboard-1|account-dashboard-1/);
+    assert.doesNotMatch(peopleDashboardText, /\b(?:Client|qualified|active)\b/);
+    assert.match(peopleDashboardText, /고객|검토 완료|진행 중/);
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
+test("Home dashboard keeps independent cards available when monthly finance is denied", async () => {
+  const port = await availablePort();
+  const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname === "/api/analytics/finance/monthly") {
+        return jsonResponse(route, {
+          request_id: "dashboard-monthly-denied",
+          outcome: "denied",
+          ui_state: "denied",
+          items: [],
+          safe_error_codes: ["ANALYTICS_FINANCE_READ_DENIED"],
+          audit_hint_ref: "dashboard-monthly-denied-audit",
+          count_leak_prevented: true,
+          production_ready_claim: false
+        });
+      }
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, { decisionCalls: 0, newsCalls: 0 }));
+    });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
+    assert.equal(await page.locator('[data-dashboard-section="recent-work"] .dashboard-record-row').count() > 0, true);
+    assert.equal(await page.locator('[data-dashboard-section="new-engagements"] .dashboard-record-row').count() > 0, true);
+    assert.match(await page.locator('[data-dashboard-section="monthly-sales"]').innerText(), /월별 매출 접근 권한이 없습니다/);
   } finally {
     await browser.close();
     await server.close();

@@ -170,6 +170,8 @@ test("G6 Client planned sections expose activity proposal and settings routes wi
     const activities = await json(baseUrl, `/api/crm/activities?${BASE_QUERY}`);
     assert.equal(activities.status, 200);
     assert.equal(activities.body.items[0].direct_matter_reference_included, false);
+    assert.match(activities.body.items[0].occurred_at, /^\d{4}-\d{2}-\d{2}T/);
+    assert.match(activities.body.items[0].created_at, /^\d{4}-\d{2}-\d{2}T/);
     assert.equal("matter_id" in activities.body.items[0], false);
 
     const createdActivity = await json(baseUrl, "/api/crm/activities", {
@@ -194,6 +196,8 @@ test("G6 Client planned sections expose activity proposal and settings routes wi
     });
     assert.equal(createdActivity.status, 201);
     assert.equal(createdActivity.body.audit_event.action, "crm.activity.created");
+    assert.match(createdActivity.body.item.occurred_at, /^\d{4}-\d{2}-\d{2}T/);
+    assert.match(createdActivity.body.item.created_at, /^\d{4}-\d{2}-\d{2}T/);
 
     const patchedActivity = await json(baseUrl, "/api/crm/activities/activity_cmp_g6_api_001", {
       method: "PATCH",
@@ -555,6 +559,8 @@ test("G6 CRM Account create is route-backed, audited, idempotent, and safe-sourc
     assert.equal(created.body.outcome, "created");
     assert.equal(created.body.item.account_id, "account_cmp_g6_api_001");
     assert.equal(created.body.item.display_name, "API created account");
+    assert.match(created.body.item.created_at, /^\d{4}-\d{2}-\d{2}T/);
+    assert.match(created.body.item.updated_at, /^\d{4}-\d{2}-\d{2}T/);
     assert.equal(created.body.item.registration_number_included, false);
     assert.equal(created.body.item.direct_matter_reference_included, false);
     assert.equal("registration_number" in created.body.item, false);

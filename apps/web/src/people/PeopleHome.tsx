@@ -128,6 +128,25 @@ function moneyLabel(value: unknown, currency = "KRW") {
   return `${peopleMoneyFormatter.format(Number(value) || 0)} ${currency}`;
 }
 
+function peopleCategoryLabel(value: unknown, fallback: string) {
+  const labels: Record<string, string> = {
+    client: "고객",
+    prospect: "잠재 고객",
+    active: "진행 중",
+    new: "신규",
+    contacted: "접촉 완료",
+    qualified: "검토 완료",
+    review_required: "검토 필요",
+    pending: "대기"
+  };
+  return labels[String(value ?? "").trim().toLowerCase()] ?? fallback;
+}
+
+function peopleDisplayLabel(value: unknown, fallback: string) {
+  const text = String(value ?? "").trim();
+  return text && !text.includes("_") && !text.includes("@") ? text : fallback;
+}
+
 function combinedReadState(results: DashboardResult[]) {
   if (results.some((result) => result === null)) return null;
   return results.find((result) => result?.uiState === "denied")
@@ -150,14 +169,14 @@ function PeopleDashboardPanel({ results, onNavigate }: { results: PeopleDashboar
       <DashboardListCard className="people-dashboard-new-clients" title="신규 고객" section="new-clients" onViewAll={() => onNavigate("clients", "clients-list")}>
         <DashboardReadState result={results.accounts} noun="신규 고객">
           <DashboardRecordList emptyText="신규 고객이 없습니다">
-            {newClients.map((item, index) => <DashboardRecordRow key={`client:${item.account_id ?? index}`} title={item.display_name ?? `고객 ${index + 1}`} meta={item.account_type ?? item.status ?? "Client"} detail={dashboardDateLabel(item.created_at ?? item.updated_at)} status={item.owner_display_name ?? item.owner_user_id ?? "담당 미지정"} onOpen={() => onNavigate("clients", "clients-list")} />)}
+            {newClients.map((item, index) => <DashboardRecordRow key={`client:${item.account_id ?? index}`} title={item.display_name ?? `고객 ${index + 1}`} meta={peopleCategoryLabel(item.account_type ?? item.status, "고객")} detail={dashboardDateLabel(item.created_at ?? item.updated_at)} status={peopleDisplayLabel(item.owner_display_name, "담당 미지정")} onOpen={() => onNavigate("clients", "clients-list")} />)}
           </DashboardRecordList>
         </DashboardReadState>
       </DashboardListCard>
       <DashboardListCard className="people-dashboard-prospects" title="잠재 고객/접촉" section="prospects-contacts" onViewAll={() => onNavigate("clients", "client-opportunities")}>
         <DashboardReadState result={prospectResult} noun="잠재 고객과 접촉">
           <DashboardRecordList emptyText="잠재 고객 또는 접촉 기록이 없습니다">
-            {prospects.map((item, index) => <DashboardRecordRow key={`prospect:${item.lead_id ?? item.opportunity_id ?? item.contact_id ?? index}`} title={item.display_name ?? item.subject ?? `접촉 ${index + 1}`} meta={item.stage ?? item.account_id ?? item.status ?? "접촉"} detail={dashboardDateLabel(item.updated_at ?? item.created_at)} status={item.owner_display_name ?? item.owner_user_id ?? "담당 미지정"} onOpen={() => onNavigate("clients", item.contact_id ? "client-contacts" : "client-opportunities")} />)}
+            {prospects.map((item, index) => <DashboardRecordRow key={`prospect:${item.lead_id ?? item.opportunity_id ?? item.contact_id ?? index}`} title={item.display_name ?? item.subject ?? `접촉 ${index + 1}`} meta={peopleCategoryLabel(item.stage ?? item.status, "접촉")} detail={dashboardDateLabel(item.updated_at ?? item.created_at)} status={peopleDisplayLabel(item.owner_display_name, "담당 미지정")} onOpen={() => onNavigate("clients", item.contact_id ? "client-contacts" : "client-opportunities")} />)}
           </DashboardRecordList>
         </DashboardReadState>
       </DashboardListCard>
@@ -171,7 +190,7 @@ function PeopleDashboardPanel({ results, onNavigate }: { results: PeopleDashboar
       <DashboardListCard className="people-dashboard-meetings" title="고객 미팅" section="client-meetings" onViewAll={() => onNavigate("clients", "client-activities")}>
         <DashboardReadState result={results.activities} noun="고객 미팅">
           <DashboardRecordList emptyText="고객 미팅이 없습니다">
-            {meetings.map((item, index) => <DashboardRecordRow key={`meeting:${item.crm_activity_id ?? index}`} title={item.subject ?? `고객 미팅 ${index + 1}`} meta={item.party_display_name ?? item.display_name ?? item.party_id ?? "고객 미지정"} detail={dashboardDateLabel(item.scheduled_at ?? item.occurred_at ?? item.created_at)} status={item.owner_display_name ?? item.owner_user_id ?? "담당 미지정"} onOpen={() => onNavigate("clients", "client-activities")} />)}
+            {meetings.map((item, index) => <DashboardRecordRow key={`meeting:${item.crm_activity_id ?? index}`} title={item.subject ?? `고객 미팅 ${index + 1}`} meta={peopleDisplayLabel(item.party_display_name ?? item.display_name, "고객 미지정")} detail={dashboardDateLabel(item.scheduled_at ?? item.occurred_at ?? item.created_at ?? item.updated_at)} status={peopleDisplayLabel(item.owner_display_name, "담당 미지정")} onOpen={() => onNavigate("clients", "client-activities")} />)}
           </DashboardRecordList>
         </DashboardReadState>
       </DashboardListCard>

@@ -414,6 +414,19 @@ function dashboardMoney(value, currency = "KRW") {
   return `${homeMoneyFormatter.format(Number(value) || 0)} ${currency}`;
 }
 
+function dashboardRecordStatusLabel(value) {
+  const labels = {
+    active: "진행 중",
+    opening: "수임 준비",
+    closed: "종결",
+    review: "검토 중",
+    review_required: "검토 필요",
+    pending: "대기",
+    approved: "승인"
+  };
+  return labels[String(value ?? "").trim().toLowerCase()] ?? undefined;
+}
+
 function startOfLocalDay(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
@@ -510,10 +523,12 @@ function buildHomeActionRows(items, type, labels = {}) {
   return (Array.isArray(items) ? items : []).map((item) => {
     const deadline = type === "task" ? taskDeadlineInfo(item) : null;
     const deadlineLabel = deadline?.bucket === "today" ? homeCopy(labels, "homeTodoToday", "오늘") : deadline?.label;
+    const matterCandidate = item.matter_code ?? item.matter_title;
+    const matterLabel = matterCandidate && !String(matterCandidate).includes("_") ? matterCandidate : item.matter_ref ? "매터 연결" : null;
     return {
       id: item.id,
       title: item.title,
-      meta: [item.requester, formatDateTime(item.due_at), item.matter_ref].filter(Boolean).join(", "),
+      meta: [item.requester, formatDateTime(item.due_at), matterLabel].filter(Boolean).join(", "),
       status: deadline?.bucket ?? homeActionStatus(item),
       statusLabel: deadlineLabel ?? statusBadgeLabel(homeActionStatus(item), labels),
       route: homeActionRoute({ ...item, type }),
@@ -790,6 +805,7 @@ export function HomeSurface({
   const [refreshToken, setRefreshToken] = useState(0);
   const refreshSignalRef = useRef(refreshSignal);
   const [results, setResults] = useState([]);
+  const [dashboardResults, setDashboardResults] = useState({ matters: null, intake: null, monthly: null });
   const [actionInbox, setActionInbox] = useState({
     approval: { kind: "loading", items: [] },
     task: { kind: "loading", items: [] },
@@ -842,39 +858,49 @@ export function HomeSurface({
   useEffect(() => {
     let cancelled = false;
     setResults([]);
+    setDashboardResults({ matters: null, intake: null, monthly: null });
     const args = { ctx: liveCtx };
     async function loadResults() {
-      const desktopResults = await fetchDesktopHomeBridgeResults();
-      if (desktopResults) return desktopResults;
-      return Promise.all([
-      Promise.all([
-        homeReadProbe(fetchMasterDataRecords({ ...args, modelType: "ClientGroup", limit: 10 }), "client_groups"),
-        homeReadProbe(fetchCrmOpportunities(args), "client_opportunities"),
-        homeReadProbe(fetchIntakeRequests(args), "client_intake"),
-        homeReadProbe(fetchPortalDashboard(args), "client_portal"),
-        homeReadProbe(fetchPortalRfi(args), "client_rfi")
-      ]).then((results) => ({ id: "client", result: combinePillarResults(results) })),
-      Promise.all([
-        homeReadProbe(fetchMatterRecords(args), "matter_records"),
-        homeReadProbe(fetchFinanceTimeEntries(args), "matter_time"),
-        homeReadProbe(fetchFinanceInvoices(args), "matter_invoices"),
-        homeReadProbe(fetchFinanceArAging(args), "matter_ar"),
-        homeReadProbe(fetchAnalyticsFinanceMonthly(args), "matter_finance_monthly"),
-        homeReadProbe(fetchAnalyticsDashboards(args), "matter_analytics"),
-        homeReadProbe(fetchAiReviewQueue(args), "matter_ai_review")
-      ]).then((results) => ({ id: "matter", result: combinePillarResults(results) })),
-      homeReadProbe(fetchHrxPeopleOverview(args), "people_overview").then((result) => ({ id: "people", result })),
-      Promise.all([
-        homeReadProbe(fetchVaultDocuments(args), "vault_documents"),
-        homeReadProbe(fetchDataRoomProjections(args), "vault_data_room")
-      ]).then((results) => ({
-        id: "vault",
-        result: combinePillarResults(results)
-      }))
+      const [desktopResults, matters, intake, monthly] = await Promise.all([
+        fetchDesktopHomeBridgeResults(),
+        homeReadProbe(fetchMatterRecords(args), "dashboard_matter_records"),
+        homeReadProbe(fetchIntakeRequests(args), "dashboard_intake"),
+        homeReadProbe(fetchAnalyticsFinanceMonthly(args), "dashboard_finance_monthly")
       ]);
+      const dashboard = { matters, intake, monthly };
+      if (desktopResults) return { results: desktopResults, dashboard };
+      const nextResults = await Promise.all([
+        Promise.all([
+          homeReadProbe(fetchMasterDataRecords({ ...args, modelType: "ClientGroup", limit: 10 }), "client_groups"),
+          homeReadProbe(fetchCrmOpportunities(args), "client_opportunities"),
+          intake,
+          homeReadProbe(fetchPortalDashboard(args), "client_portal"),
+          homeReadProbe(fetchPortalRfi(args), "client_rfi")
+        ]).then((results) => ({ id: "client", result: combinePillarResults(results) })),
+        Promise.all([
+          matters,
+          homeReadProbe(fetchFinanceTimeEntries(args), "matter_time"),
+          homeReadProbe(fetchFinanceInvoices(args), "matter_invoices"),
+          homeReadProbe(fetchFinanceArAging(args), "matter_ar"),
+          monthly,
+          homeReadProbe(fetchAnalyticsDashboards(args), "matter_analytics"),
+          homeReadProbe(fetchAiReviewQueue(args), "matter_ai_review")
+        ]).then((results) => ({ id: "matter", result: combinePillarResults(results) })),
+        homeReadProbe(fetchHrxPeopleOverview(args), "people_overview").then((result) => ({ id: "people", result })),
+        Promise.all([
+          homeReadProbe(fetchVaultDocuments(args), "vault_documents"),
+          homeReadProbe(fetchDataRoomProjections(args), "vault_data_room")
+        ]).then((results) => ({
+          id: "vault",
+          result: combinePillarResults(results)
+        }))
+      ]);
+      return { results: nextResults, dashboard };
     }
-    loadResults().then((nextResults) => {
-      if (!cancelled) setResults(nextResults);
+    loadResults().then((next) => {
+      if (cancelled) return;
+      setResults(next.results);
+      setDashboardResults(next.dashboard);
     });
     return () => {
       cancelled = true;
@@ -946,7 +972,6 @@ export function HomeSurface({
   const localizedFeedTabs = useMemo(() => localizedTabs(feedTabs, labels), [labels]);
   const localizedCalendarWeekdays = Array.isArray(labels.homeCalendarWeekdays) ? labels.homeCalendarWeekdays : calendarWeekdays;
   const capabilityById = useMemo(() => new Map(capabilities.map((capability) => [capability.id, capability])), [capabilities]);
-  const clientCapability = capabilityById.get("client") ?? capabilities[0];
   const matterCapability = capabilityById.get("matter") ?? capabilities[0];
   const peopleCapability = capabilityById.get("people") ?? capabilities[0];
   const vaultCapability = capabilityById.get("vault") ?? capabilities[0];
@@ -979,8 +1004,8 @@ export function HomeSurface({
   const filteredApprovalRows = sortApprovalRows(buildHomeActionRows(filteredApprovalItems, "approval", labels));
   const sentRequestRows = [];
   const todoPreviewRows = todoRows.slice(0, 5);
-  const clientDashboardItems = itemsFromResult(clientCapability?.result);
-  const matterDashboardItems = itemsFromResult(matterCapability?.result);
+  const clientDashboardItems = itemsFromResult(dashboardResults.intake);
+  const matterDashboardItems = itemsFromResult(dashboardResults.matters);
   const matterDashboardRows = matterDashboardItems
     .filter((item) => item?.matter_id && !item?.invoice_id && !item?.time_entry_id && !item?.ar_aging_snapshot_id && !item?.ar_balance_id)
     .sort((left, right) => dashboardDateValue(right) - dashboardDateValue(left))
@@ -989,7 +1014,7 @@ export function HomeSurface({
     .filter((item) => item?.intake_request_id)
     .sort((left, right) => dashboardDateValue(right) - dashboardDateValue(left))
     .slice(0, 5);
-  const monthlyDashboardRows = matterDashboardItems
+  const monthlyDashboardRows = itemsFromResult(dashboardResults.monthly)
     .filter((item) => item?.month && Object.hasOwn(item, "billed_amount"))
     .sort((left, right) => String(right.month).localeCompare(String(left.month)))
     .slice(0, 5);
@@ -1384,7 +1409,7 @@ export function HomeSurface({
           onViewAll={() => openHomeRoute("matters-list", "matters", { source: "recent_work_view_all" })}
           viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
         >
-          <DashboardReadState result={matterCapability?.result} noun="최근 작업">
+          <DashboardReadState result={dashboardResults.matters} noun="최근 작업">
             <DashboardRecordList emptyText="최근 작업이 없습니다">
               {matterDashboardRows.map((item, index) => (
                 <DashboardRecordRow
@@ -1392,7 +1417,7 @@ export function HomeSurface({
                   title={dashboardMatterTitle(item, index)}
                   meta={[dashboardClientTitle(item), item.title].filter(Boolean).join(" / ")}
                   detail={formatDateTime(item.updated_at ?? item.created_at)}
-                  status={item.status ? String(item.status) : undefined}
+                  status={dashboardRecordStatusLabel(item.status)}
                   onOpen={() => openHomeRoute("matters-list", "matters", { item_id: item.matter_id, source: "recent_work" })}
                 />
               ))}
@@ -1428,7 +1453,7 @@ export function HomeSurface({
           onViewAll={() => openHomeRoute("matter-intake", "matters", { source: "new_engagements_view_all" })}
           viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
         >
-          <DashboardReadState result={clientCapability?.result} noun="신규 수임">
+          <DashboardReadState result={dashboardResults.intake} noun="신규 수임">
             <DashboardRecordList emptyText="신규 수임이 없습니다">
               {intakeDashboardRows.map((item, index) => (
                 <DashboardRecordRow
@@ -1436,7 +1461,7 @@ export function HomeSurface({
                   title={dashboardClientTitle(item)}
                   meta={item.requested_scope_summary ?? item.display_name ?? "수임 검토"}
                   detail={formatDateTime(item.requested_at ?? item.created_at)}
-                  status={item.status ? String(item.status) : undefined}
+                  status={dashboardRecordStatusLabel(item.status)}
                   onOpen={() => openHomeRoute("matter-intake", "matters", { item_id: item.intake_request_id, source: "new_engagement" })}
                 />
               ))}
@@ -1450,7 +1475,7 @@ export function HomeSurface({
           onViewAll={() => openHomeRoute("home-finance-monthly", "home", { source: "monthly_sales_view_all" })}
           viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
         >
-          <DashboardReadState result={matterCapability?.result} noun="월별 매출">
+          <DashboardReadState result={dashboardResults.monthly} noun="월별 매출">
             <DashboardRecordList emptyText="표시할 월별 매출이 없습니다">
               {monthlyDashboardRows.map((item) => (
                 <DashboardRecordRow

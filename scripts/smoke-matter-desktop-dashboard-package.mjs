@@ -171,21 +171,31 @@ try {
     const rootSelector = view === "home" ? '[data-home-dashboard-shell="true"]' : view === "matters" ? '[data-matter-dashboard="true"]' : '[data-people-dashboard="true"]';
     await page.waitForSelector(rootSelector, { timeout: 30_000 });
     await page.waitForTimeout(2_000);
-    const snapshot = await page.evaluate(({ selector }) => ({
-      sections: [...document.querySelectorAll(`${selector} [data-dashboard-section]`)].map((node) => node.getAttribute("data-dashboard-section")),
-      record_rows: document.querySelectorAll(`${selector} .dashboard-record-row`).length,
-      horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
-      matter_kpi_count: document.querySelectorAll('[data-matter-dashboard-kpis], [data-matter-priority-queue]').length,
-      approval_widget_count: document.querySelectorAll('[data-widget-id="approval"]').length,
-      body_preview: (document.body?.innerText ?? "").replace(/\s+/g, " ").slice(0, 800)
-    }), { selector: rootSelector });
+    const snapshot = await page.evaluate(({ selector }) => {
+      const surfaceText = document.querySelector(selector)?.innerText ?? "";
+      const forbiddenPatterns = [
+        /\b(?:matter|user|tenant|account|lead|opportunity|contact|activity)_[a-z0-9_]+\b/gi,
+        /\b(?:Client|contacted|qualified|active|opening|closed|review_required|review)\b/g
+      ];
+      return {
+        sections: [...document.querySelectorAll(`${selector} [data-dashboard-section]`)].map((node) => node.getAttribute("data-dashboard-section")),
+        record_rows: document.querySelectorAll(`${selector} .dashboard-record-row`).length,
+        horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+        matter_kpi_count: document.querySelectorAll('[data-matter-dashboard-kpis], [data-matter-priority-queue]').length,
+        approval_widget_count: document.querySelectorAll('[data-widget-id="approval"]').length,
+        forbidden_visible_values: [...new Set(forbiddenPatterns.flatMap((pattern) => surfaceText.match(pattern) ?? []))],
+        body_preview: surfaceText.replace(/\s+/g, " ").slice(0, 800)
+      };
+    }, { selector: rootSelector });
     assert.deepEqual([...snapshot.sections].sort(), [...sections].sort(), `${view} dashboard sections`);
     if (view === "home") {
       assert.match(snapshot.body_preview, /오늘 계약서 검토/, "Home today To Do must render fixture data");
       assert.match(snapshot.body_preview, /대시보드 QA 공지/, "Home feed must render fixture data");
+      assert(snapshot.record_rows >= 3, `Home dashboard must render direct Matter, intake, and monthly rows: ${JSON.stringify(snapshot)}`);
     } else {
       assert(snapshot.record_rows >= 5, `${view} dashboard must render actual list rows: ${JSON.stringify(snapshot)}`);
     }
+    assert.deepEqual(snapshot.forbidden_visible_values, [], `${view} dashboard must not expose backend identifiers or raw enums`);
     assert.equal(snapshot.horizontal_overflow, false, `${view} dashboard must not horizontally overflow`);
     assert.equal(snapshot.matter_kpi_count, 0, "Matter count KPI blocks must stay removed");
     assert.equal(snapshot.approval_widget_count, 0, "Home approval count widget must stay removed");

@@ -573,6 +573,7 @@ function resolveAccountOrganization(runtime, tenantId, accountId) {
 
 function serializeAccount(organization, runtime) {
   const clientGroup = clientGroupForOrganization(runtime.masterDataRepository, organization);
+  const runtimeAccount = runtimeAccountForAccountId(runtime.crmRepository, organization.tenant_id, organization.organization_id);
   return Object.freeze({
     resource_id: organization.organization_id,
     tenant_id: organization.tenant_id,
@@ -584,6 +585,8 @@ function serializeAccount(organization, runtime) {
     display_name: organization.display_name,
     status: organization.status,
     owner_user_id: organization.owner_user_id,
+    created_at: runtimeAccount?.created_at ?? organization.created_at ?? null,
+    updated_at: runtimeAccount?.updated_at ?? organization.updated_at ?? runtimeAccount?.created_at ?? organization.created_at ?? null,
     account_source: "master-data.Organization",
     client_group_source: clientGroup ? "master-data.ClientGroup" : null,
     canonical_sync_state: "canonical_source",
@@ -606,6 +609,8 @@ function serializeRuntimeAccount(account) {
     display_name: account.display_name,
     status: account.status ?? "active",
     owner_user_id: account.owner_user_id ?? null,
+    created_at: account.created_at ?? null,
+    updated_at: account.updated_at ?? account.created_at ?? null,
     account_source: "crm-runtime.Account",
     client_group_source: account.client_group_id ? "crm-runtime.linked_client_group" : null,
     canonical_sync_state: account.organization_id && account.client_group_id ? "synced" : "facade_only",
@@ -950,6 +955,9 @@ function serializeActivity(activity = {}) {
     confidential_subject_included: !confidential,
     status: activity.status,
     owner_user_id: activity.owner_user_id,
+    occurred_at: activity.occurred_at ?? activity.created_at ?? null,
+    created_at: activity.created_at ?? null,
+    updated_at: activity.updated_at ?? activity.created_at ?? null,
     direct_matter_reference_included: false,
     production_ready_claim: false,
   });
