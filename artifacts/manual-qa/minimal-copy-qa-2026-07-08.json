@@ -1,0 +1,61 @@
+{
+  "verdict": "PASS",
+  "checked_at": "2026-07-08T13:28:55.809Z",
+  "checks": [
+    {
+      "route": "dashboard",
+      "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/artifacts/manual-qa/minimal-copy-dashboard-2026-07-08.png",
+      "hasForbiddenMiddleDot": false,
+      "hasVisibleCountSuffix": false,
+      "hasLegacyHomeHero": false,
+      "hasLegacyApprovalRequestLabel": false,
+      "hasLegacyClientSidebarCopy": false,
+      "exactTitleLineCount": null,
+      "heroParagraphs": 1
+    },
+    {
+      "route": "requests",
+      "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/artifacts/manual-qa/minimal-copy-requests-2026-07-08.png",
+      "hasForbiddenMiddleDot": false,
+      "hasVisibleCountSuffix": false,
+      "hasLegacyHomeHero": false,
+      "hasLegacyApprovalRequestLabel": false,
+      "hasLegacyClientSidebarCopy": false,
+      "exactTitleLineCount": 1,
+      "heroParagraphs": 0
+    },
+    {
+      "route": "messages",
+      "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/artifacts/manual-qa/minimal-copy-messages-2026-07-08.png",
+      "hasForbiddenMiddleDot": false,
+      "hasVisibleCountSuffix": false,
+      "hasLegacyHomeHero": false,
+      "hasLegacyApprovalRequestLabel": false,
+      "hasLegacyClientSidebarCopy": false,
+      "exactTitleLineCount": 1,
+      "heroParagraphs": 0
+    },
+    {
+      "route": "esign",
+      "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/artifacts/manual-qa/minimal-copy-esign-2026-07-08.png",
+      "hasForbiddenMiddleDot": false,
+      "hasVisibleCountSuffix": false,
+      "hasLegacyHomeHero": false,
+      "hasLegacyApprovalRequestLabel": false,
+      "hasLegacyClientSidebarCopy": false,
+      "exactTitleLineCount": 1,
+      "heroParagraphs": 0
+    },
+    {
+      "route": "clients",
+      "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/artifacts/manual-qa/minimal-copy-clients-2026-07-08.png",
+      "hasForbiddenMiddleDot": false,
+      "hasVisibleCountSuffix": false,
+      "hasLegacyHomeHero": false,
+      "hasLegacyApprovalRequestLabel": false,
+      "hasLegacyClientSidebarCopy": false,
+      "exactTitleLineCount": 1,
+      "heroParagraphs": 0
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": "lawos.desktop.top_axis_underline.v1",
+  "checked_at": "2026-07-09T02:30:21.970Z",
+  "app_bundle": "apps/desktop/dist/mac/matter.app",
+  "executable": "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "user_data_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-desktop-top-axis-qa-ZgASTe",
+  "checks": {
+    "autologin": {
+      "passed": true,
+      "state": "signed_in",
+      "email": "jwsuh@amic.kr"
+    },
+    "top_axis_menu": {
+      "passed": true,
+      "labels": [
+        "Home",
+        "Client",
+        "Matter",
+        "People",
+        "Vault",
+        "Portal"
+      ],
+      "axis_ids": [
+        "home",
+        "clients",
+        "matters",
+        "people",
+        "vault",
+        "portal"
+      ],
+      "active_axis": "home",
+      "active_count": 1,
+      "nav": {
+        "top": 0,
+        "bottom": 77,
+        "height": 77,
+        "overflow": false
+      }
+    },
+    "underline_style": {
+      "passed": true,
+      "height": 77,
+      "bottom": 77,
+      "border_radius": "0px",
+      "background": "rgba(15, 58, 50, 0.05)",
+      "color": "rgb(15, 58, 50)",
+      "after_display": "block",
+      "after_height": "4px",
+      "after_background": "rgb(38, 194, 96)",
+      "after_bottom": "0px"
+    },
+    "horizontal_overflow": {
+      "passed": true,
+      "value": false
+    }
+  },
+  "screenshot": "artifacts/manual-qa/desktop-top-axis-underline-2026-07-09.png",
+  "verdict": "PASS"
+}

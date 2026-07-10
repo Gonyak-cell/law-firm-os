@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.desktop-record-overlay-client-matter.v1",
+  "generated_at": "2026-07-09T03:26:22.714Z",
+  "status": "passed",
+  "launch_target": "packaged_mac_app",
+  "app_bundle": "apps/desktop/dist/mac/matter.app",
+  "desktop_user_data_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-record-overlay-qa-7cy3Rk",
+  "screenshots": {
+    "client": "artifacts/manual-qa/desktop-record-overlay-client-2026-07-09.png",
+    "matter": "artifacts/manual-qa/desktop-record-overlay-matter-2026-07-09.png"
+  },
+  "selected_rows": {
+    "client": "귀한사람들사용 중미지정없음귀한사람들/Advisory/retainer",
+    "matter": "귀한사람들/Advisory/retainer귀한사람들귀한사람들/Advisory/retainer개시 중시작 전"
+  },
+  "overlays": {
+    "client": {
+      "kind": "client",
+      "overlay_present": true,
+      "overlay_position": "fixed",
+      "overlay_z_index": 1200,
+      "record_panel_present": true,
+      "workspace_contract": true,
+      "scrim_present": true,
+      "scrim_background": "rgba(8, 20, 18, 0.44)",
+      "scrim_alpha": 0.44,
+      "scrim_covers_viewport": true,
+      "panel_visible": true,
+      "panel_width": 640,
+      "panel_height": 724,
+      "panel_center_delta": 0,
+      "panel_animation": "record-overlay-panel-in",
+      "overlay_covers_viewport": true,
+      "horizontal_overflow": false,
+      "body_text_sample": "HomeClientMatterPeopleVaultPortal/새로 만들기서한국어Client관리요약목록계정 정보담당자수임 전 업무운영서지원대표변호사Client목록권한 기준 적용Client진행 상태대표 당사자구성원연결된 Matter귀한사람들사용 중미지정없음귀한사람들/Advisory/retainer그래비티랩스사용 중미지정없음그래비티랩스/LIT/CIV/특허권침해금지, 그래비티랩스/Advisory/유권해석그로브사용 중미지정없음그로브/LIT/CIV/제소전화해금홍사용 중미지정없음금홍/LIT/CIV/가압류, 금홍/LIT/CIV/가압류이의김정사용 중미지정없음김정/LIT/CIV/중개보수청구김지은사용 중미지정없음김지은/LIT/CIV/대여금등반환청구동림산업사용 중미지정없음동림산업/LIT/CIV/건물철거청구동문시장사용 중미지정없음동문시장/Dispute/임대차계약갱신및차임분쟁라이트팜텍사용 중미지정없음라이트팜텍/LIT/CIV/용역대금청구매크로머신사용 중미지정없음매크로머신/LIT/CIV/주주총회결의취소, 매크로머신/LIT/CIV/상환금청구 외 5건박수현사용 중미지정없음박수현/LIT/CIV/손해배상청구삼원페이퍼사용 중미지정없음삼원페이퍼/LIT/CIV/손해배상청구송명숙사용 중미지정없음송명숙"
+    },
+    "matter": {
+      "kind": "matter",
+      "overlay_present": true,
+      "overlay_position": "fixed",
+      "overlay_z_index": 1200,
+      "record_panel_present": true,
+      "workspace_contract": true,
+      "scrim_present": true,
+      "scrim_background": "rgba(8, 20, 18, 0.44)",
+      "scrim_alpha": 0.44,
+      "scrim_covers_viewport": true,
+      "panel_visible": true,
+      "panel_width": 640,
+      "panel_height": 724,
+      "panel_center_delta": 0,
+      "panel_animation": "record-overlay-panel-in",
+      "overlay_covers_viewport": true,
+      "horizontal_overflow": false,
+      "body_text_sample": "HomeClientMatterPeopleVaultPortal/새로 만들기서한국어Matter사건 운영홈사건 목록신규 사건수임 진행종결 처리보관 사건업무 진행문서소통정산리포트서지원대표변호사MatterMatter홈사건 목록업무 보드일정외부 일정사건 문서사건 목록권한 기준 적용새 Matter 개시는 승인 후 반영됩니다.저장된 View 없음개시 저장0개 선택선택 완료MatterClient제목진행 상태청구 상태귀한사람들/Advisory/retainer귀한사람들귀한사람들/Advisory/retainer개시 중시작 전그래비티랩스/LIT/CIV/특허권침해금지그래비티랩스그래비티랩스/LIT/CIV/특허권침해금지개시 중시작 전그로브/LIT/CIV/제소전화해그로브그로브/LIT/CIV/제소전화해개시 중시작 전금홍/LIT/CIV/가압류금홍금홍/LIT/CIV/가압류개시 중시작 전김정/LIT/CIV/중개보수청구김정김정/LIT/CIV/중개보수청구개시 중시작 전김지은/LIT/CIV/대여금등반환청구김지은김지은/LIT/CIV/대여금등반환청구개시 중시작 전동림산업/LIT/CIV/건물철거청구동림산업동림산업/LIT/CIV/건물철거청구개시 중시작 전동문시장/Dispute/임대차계약갱신및차임분쟁동문시장동"
+    }
+  },
+  "assertions": {
+    "client_modal_above_whole_screen": true,
+    "matter_modal_above_whole_screen": true,
+    "dimmed_background": true,
+    "entrance_animation": true,
+    "escape_closes_overlay": true,
+    "horizontal_overflow": false
+  }
+}

@@ -1,0 +1,188 @@
+{
+  "schema_version": "law-firm-os.durable-data-rescue-api-validation.v0.1",
+  "validator": "durable-data-rescue-api",
+  "outcome": "passed",
+  "generated_at": "2026-07-09T00:12:41.759Z",
+  "durable_runtime_home": "/Users/jws/Library/Application Support/LawFirmOS/runtime-stores",
+  "api_base_url": "http://127.0.0.1:53897",
+  "tenant_id": "tenant_amic_matter_vault",
+  "probe_terms": [
+    "그래비티랩스",
+    "오윤록 외 2명",
+    "새빗켐",
+    "DEAL",
+    "Project Tempus"
+  ],
+  "probes": [
+    {
+      "term": "그래비티랩스",
+      "status": 200,
+      "outcome": "passed",
+      "item_count": 2,
+      "term_present_in_response": true,
+      "items": [
+        {
+          "matter_id": "matter_rp05_amic_current_002",
+          "matter_code": "그래비티랩스/LIT/CIV/특허권침해금지",
+          "matter_name": "그래비티랩스/LIT/CIV/특허권침해금지",
+          "client_display_name": "그래비티랩스",
+          "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+          "production_ready_claim": false
+        },
+        {
+          "matter_id": "matter_rp05_amic_current_003",
+          "matter_code": "그래비티랩스/Advisory/유권해석",
+          "matter_name": "그래비티랩스/Advisory/유권해석",
+          "client_display_name": "그래비티랩스",
+          "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+          "production_ready_claim": false
+        }
+      ],
+      "safe_error_codes": [],
+      "production_ready_claim": false
+    },
+    {
+      "term": "오윤록 외 2명",
+      "status": 200,
+      "outcome": "passed",
+      "item_count": 2,
+      "term_present_in_response": true,
+      "items": [
+        {
+          "matter_id": "matter_rp05_amic_current_146",
+          "matter_code": "타이탄컴퍼니/DEAL/Project Titan",
+          "matter_name": "타이탄컴퍼니/DEAL/Project Titan",
+          "client_display_name": "오윤록 외 2명",
+          "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+          "production_ready_claim": false
+        },
+        {
+          "matter_id": "matter_rp05_amic_current_147",
+          "matter_code": "오윤록 외 2명/Advisory/retainer",
+          "matter_name": "오윤록 외 2명/Advisory/retainer",
+          "client_display_name": "오윤록 외 2명",
+          "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+          "production_ready_claim": false
+        }
+      ],
+      "safe_error_codes": [],
+      "production_ready_claim": false
+    },
+    {
+      "term": "새빗켐",
+      "status": 200,
+      "outcome": "passed",
+      "item_count": 1,
+      "term_present_in_response": true,
+      "items": [
+        {
+          "matter_id": "matter_rp05_amic_current_138",
+          "matter_code": "새빗켐/DEAL/Project Tempus",
+          "matter_name": "새빗켐/DEAL/Project Tempus",
+          "client_display_name": "박민규 외 5명",
+          "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+          "production_ready_claim": false
+        }
+      ],
+      "safe_error_codes": [],
+      "production_ready_claim": false
+    },
+    {
+      "term": "DEAL",
+      "status": 200,
+      "outcome": "passed",
+      "item_count": 8,
+      "term_present_in_response": true,
+      "items": [
+        {
+          "matter_id": "matter_rp05_amic_current_127",
+          "matter_code": "바이포엠스튜디오/DEAL/K-PLUS",
+          "matter_name": "바이포엠스튜디오/DEAL/K-PLUS",
+          "client_display_name": "바이포엠스튜디오",
+          "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+          "production_ready_claim": false
+        },
+        {
+          "matter_id": "matter_rp05_amic_current_128",
+          "matter_code": "Peyto/DEAL/건물매각",
+          "matter_name": "Peyto/DEAL/건물매각",
+          "client_display_name": "Peyto",
+          "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+          "production_ready_claim": false
+        },
+        {
+          "matter_id": "matter_rp05_amic_current_129",
+          "matter_code": "SLL/DEAL/자산매각",
+          "matter_name": "SLL/DEAL/자산매각",
+          "client_display_name": "SLL",
+          "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+          "production_ready_claim": false
+        },
+        {
+          "matter_id": "matter_rp05_amic_current_130",
+          "matter_code": "벨로크/DEAL/주식매각",
+          "matter_name": "벨로크/DEAL/주식매각",
+          "client_display_name": "벨로크",
+          "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+          "production_ready_claim": false
+        },
+        {
+          "matter_id": "matter_rp05_amic_current_131",
+          "matter_code": "언코어/DEAL/인수자문",
+          "matter_name": "언코어/DEAL/인수자문",
+          "client_display_name": "언코어",
+          "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+          "production_ready_claim": false
+        },
+        {
+          "matter_id": "matter_rp05_amic_current_132",
+          "matter_code": "한양화스너/DEAL/인수자문",
+          "matter_name": "한양화스너/DEAL/인수자문",
+          "client_display_name": "한양화스너",
+          "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+          "production_ready_claim": false
+        },
+        {
+          "matter_id": "matter_rp05_amic_current_133",
+          "matter_code": "헬스앤바이오/DEAL/주식매각",
+          "matter_name": "헬스앤바이오/DEAL/주식매각",
+          "client_display_name": "헬스앤바이오",
+          "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+          "production_ready_claim": false
+        },
+        {
+          "matter_id": "matter_rp05_amic_current_134",
+          "matter_code": "제이에스테크/DEAL/Project Jade",
+          "matter_name": "제이에스테크/DEAL/Project Jade",
+          "client_display_name": "한흥수 외 3명",
+          "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+          "production_ready_claim": false
+        }
+      ],
+      "safe_error_codes": [],
+      "production_ready_claim": false
+    },
+    {
+      "term": "Project Tempus",
+      "status": 200,
+      "outcome": "passed",
+      "item_count": 1,
+      "term_present_in_response": true,
+      "items": [
+        {
+          "matter_id": "matter_rp05_amic_current_138",
+          "matter_code": "새빗켐/DEAL/Project Tempus",
+          "matter_name": "새빗켐/DEAL/Project Tempus",
+          "client_display_name": "박민규 외 5명",
+          "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+          "production_ready_claim": false
+        }
+      ],
+      "safe_error_codes": [],
+      "production_ready_claim": false
+    }
+  ],
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "public_release_claim": false
+}

@@ -1,55 +1,63 @@
 {
   "schema_version": "lawos.production_matter_code_inventory_verify.v0.1",
-  "recorded_at": "2026-07-01T15:04:10.735Z",
+  "recorded_at": "2026-07-09T01:25:24.394Z",
   "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
   "endpoint": "/api/matters",
-  "tenant_id": "tenant_rp05_synthetic",
-  "deployment_commit": "3d7d9da36288549cbb2f90ab4e88b6faa9cfa72c",
+  "tenant_id": "tenant_amic_matter_vault",
+  "deployment_commit": "365325a0213b015ecfccb3b8130786605a83de93",
   "verdict": "PASS",
-  "item_count": 149,
   "required_codes": [
     {
       "code": "제이에스테크/DEAL/Project Jade",
-      "found": true
+      "found": true,
+      "match_count": 1
     },
     {
       "code": "새빗켐/DEAL/Project Tempus",
-      "found": true
+      "found": true,
+      "match_count": 1
     },
     {
       "code": "성일하이텍/DEAL/Project S",
-      "found": true
+      "found": true,
+      "match_count": 1
     },
     {
       "code": "포이스/DEAL/Project Fausta",
-      "found": true
+      "found": true,
+      "match_count": 1
     },
     {
       "code": "위즈코어/DEAL/Project Wiz",
-      "found": true
+      "found": true,
+      "match_count": 1
     },
     {
       "code": "엠피닉스/DEAL/Project Phoenix",
-      "found": true
+      "found": true,
+      "match_count": 1
     },
     {
       "code": "유진이엔티/DEAL/Project Horizon",
-      "found": true
+      "found": true,
+      "match_count": 1
     },
     {
       "code": "타이탄컴퍼니/DEAL/Project Titan",
-      "found": true
+      "found": true,
+      "match_count": 1
     },
     {
       "code": "성진종합전기/DEAL/Project Switch",
-      "found": true
+      "found": true,
+      "match_count": 1
     },
     {
       "code": "귀한사람들/Advisory/retainer",
-      "found": true
+      "found": true,
+      "match_count": 1
     }
   ],
-  "short_axis_count": 0,
   "secret_values_recorded": false,
   "boundary": {
     "read_only_inventory_check": true,

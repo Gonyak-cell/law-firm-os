@@ -1,18 +1,18 @@
 # AMIC Current Matter Codes Production Bridge Upsert
 
-Generated at: 2026-07-01T15:04:10.735Z
+Generated at: 2026-07-09T01:25:24.394Z
 
 Verdict: PASS
 
 Base URL: https://d2mthcc8vp3cr2.cloudfront.net
 
-Tenant: tenant_rp05_synthetic
+Tenant: tenant_amic_matter_vault
 
 Clients: 99
 
 Matters: 148
 
-Readback matters: 149
+Readback matters: undefined
 
 Secret value recorded: false
 

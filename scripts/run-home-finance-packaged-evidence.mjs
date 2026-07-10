@@ -201,6 +201,8 @@ const app = await electron.launch({
 
 let homeSnapshot;
 let matterSnapshot;
+let layout640Snapshot;
+const productGroupSnapshots = [];
 const evidence = [];
 try {
   await app.firstWindow({ timeout: 30_000 });
@@ -222,7 +224,7 @@ try {
     })));
     assert(page, `packaged main window did not become ready: ${JSON.stringify(diagnostics)}`);
   }
-  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.setViewportSize({ width: 1280, height: 820 });
   await page.emulateMedia({ reducedMotion: "reduce" });
 
   async function capture(name, view, section, selector, options = {}) {
@@ -249,23 +251,43 @@ try {
     await page.locator('[data-profile-trigger="true"]').evaluate((node) => { node.style.visibility = "hidden"; }).catch(() => {});
     const screenshot = resolve(artifactDir, `${name}.png`);
     await page.screenshot({ path: screenshot, animations: "disabled", caret: "hide" });
-    const snapshot = await page.evaluate(({ expectedView, expectedSection }) => ({
-      requested_view: expectedView,
-      requested_section: expectedSection,
-      active_view: document.querySelector("[data-context-sidebar]")?.getAttribute("data-context-sidebar") ?? null,
-      active_section: document.querySelector("[data-active-home-section]")?.getAttribute("data-active-home-section") ?? null,
-      expected_view: expectedView,
-      expected_section: expectedSection,
-      resolved_query_view: new URLSearchParams(window.location.search).get("view"),
-      resolved_hash: window.location.hash.slice(1),
-      resolved_matter_id: new URLSearchParams(window.location.search).get("matter_id"),
-      horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
-    }), { expectedView: options.expectedView ?? view, expectedSection: options.expectedSection ?? section });
+    const snapshot = await page.evaluate(({ expectedView, expectedSection }) => {
+      const metric = (selector) => {
+        const node = document.querySelector(selector);
+        return node ? { client_height: node.clientHeight, scroll_height: node.scrollHeight, overflow_y: getComputedStyle(node).overflowY } : null;
+      };
+      return {
+        requested_view: expectedView,
+        requested_section: expectedSection,
+        active_view: document.querySelector("[data-context-sidebar]")?.getAttribute("data-context-sidebar") ?? null,
+        active_section: document.querySelector("[data-active-home-section]")?.getAttribute("data-active-home-section") ?? null,
+        expected_view: expectedView,
+        expected_section: expectedSection,
+        resolved_query_view: new URLSearchParams(window.location.search).get("view"),
+        resolved_hash: window.location.hash.slice(1),
+        resolved_matter_id: new URLSearchParams(window.location.search).get("matter_id"),
+        horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+        sidebar: metric(".sidebar"),
+        sidebar_nav: metric(".sidebar-nav"),
+        page_canvas: metric(".page-canvas"),
+        nested_sidebar_item_count: document.querySelectorAll(".sidebar-subnav,.sidebar-child").length,
+        accordion_control_count: document.querySelectorAll(".sidebar [aria-expanded][data-sidebar-default-section]").length,
+        context_subnav_label: document.querySelector(".context-subnav")?.getAttribute("aria-label") ?? null,
+        context_subnav_current: document.querySelector('.context-subnav [aria-current="page"]')?.textContent?.trim() ?? null,
+      };
+    }, { expectedView: options.expectedView ?? view, expectedSection: options.expectedSection ?? section });
     snapshot.requested_view = view;
     snapshot.requested_section = section;
     assert.equal(snapshot.active_view, snapshot.expected_view);
     if (snapshot.expected_view === "home") assert.equal(snapshot.active_section, snapshot.expected_section);
     assert.equal(snapshot.horizontal_overflow, false);
+    assert.equal(snapshot.sidebar?.scroll_height, snapshot.sidebar?.client_height);
+    assert.equal(snapshot.sidebar_nav?.scroll_height, snapshot.sidebar_nav?.client_height);
+    assert.equal(snapshot.sidebar?.overflow_y, "hidden");
+    assert.equal(snapshot.sidebar_nav?.overflow_y, "hidden");
+    assert.equal(snapshot.page_canvas?.overflow_y, "auto");
+    assert.equal(snapshot.nested_sidebar_item_count, 0);
+    assert.equal(snapshot.accordion_control_count, 0);
     evidence.push({ name, path: screenshot.slice(repoRoot.length + 1), screenshot_sha256: sha256(screenshot), selector, snapshot });
   }
 
@@ -276,14 +298,19 @@ try {
       active_view: document.querySelector("[data-context-sidebar]")?.getAttribute("data-context-sidebar") ?? null,
       active_section: document.querySelector("[data-active-home-section]")?.getAttribute("data-active-home-section") ?? null,
       group_visible: Boolean(group),
-      group_expanded: group?.querySelector(".sidebar-group-toggle")?.getAttribute("aria-expanded") === "true",
-      child_labels: [...(group?.querySelectorAll(".sidebar-subnav .sidebar-item") ?? [])].map((node) => node.textContent?.replace(/\s+/g, " ").trim()),
+      group_is_accordion: group?.querySelector(".sidebar-group-toggle")?.hasAttribute("aria-expanded") ?? false,
+      child_labels: [...document.querySelectorAll(".context-subnav-item")].map((node) => node.textContent?.replace(/\s+/g, " ").trim()),
+      context_subnav_label: document.querySelector(".context-subnav")?.getAttribute("aria-label") ?? null,
+      nested_sidebar_item_count: document.querySelectorAll(".sidebar-subnav,.sidebar-child").length,
       route_contract_visible: Boolean(document.querySelector('[data-home-finance-route-contract="home-finance-overview"]')),
       horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
     };
   });
   assert.equal(homeSnapshot.group_visible, true);
+  assert.equal(homeSnapshot.group_is_accordion, false);
   assert.deepEqual(homeSnapshot.child_labels, ["전체 현황", "월별 매출/비용", "고객별 매출/비용", "시간 기록", "비용 처리", "청구/수납", "미수금"]);
+  assert.equal(homeSnapshot.context_subnav_label, "매출/비용 하위 메뉴");
+  assert.equal(homeSnapshot.nested_sidebar_item_count, 0);
   assert.equal(homeSnapshot.route_contract_visible, true);
   assert.equal(homeSnapshot.horizontal_overflow, false);
   await capture("02-packaged-monthly", "home", "home-finance-monthly", '[data-home-finance-monthly-table="true"]');
@@ -297,12 +324,45 @@ try {
   const deniedLogin = await page.evaluate(() => window.matterSession.login({ email: "denied-finance@packaged-fixture.local", password: "fixture-only" }));
   assert.equal(deniedLogin?.ok, true);
   assert.equal(deniedLogin?.session?.scopes?.includes("analytics.finance.read"), false);
-  await capture("09-packaged-denied", "home", "home-finance-overview", '[data-home-finance-state="denied"]', {
+  await capture("09-packaged-denied", "home", "home-finance-overview", '[data-home-dashboard-shell="true"]', {
     actorRef: "user_packaged_finance_denied",
     roleRefs: ["lawos_employee"],
     scopeRefs: ["matter.read", "vault.read"],
+    expectedSection: "home-dashboard",
     settleMs: 1800,
   });
+
+  const allowLogin = await page.evaluate(() => window.matterSession.login({ email: "allow-finance@packaged-fixture.local", password: "fixture-only" }));
+  assert.equal(allowLogin?.ok, true);
+  await page.evaluate((url) => window.location.assign(url), productUrl("home", "home-finance-overview"));
+  await page.waitForSelector('[data-home-finance-summary="true"]', { timeout: 30_000 });
+  await page.setViewportSize({ width: 1280, height: 640 });
+  await page.waitForTimeout(500);
+  layout640Snapshot = await page.evaluate(() => {
+    const metric = (selector) => {
+      const node = document.querySelector(selector);
+      return { client_height: node.clientHeight, scroll_height: node.scrollHeight, overflow_y: getComputedStyle(node).overflowY };
+    };
+    return {
+      viewport: { width: innerWidth, height: innerHeight },
+      sidebar: metric(".sidebar"),
+      sidebar_nav: metric(".sidebar-nav"),
+      page_canvas: metric(".page-canvas"),
+      nested_sidebar_item_count: document.querySelectorAll(".sidebar-subnav,.sidebar-child").length,
+      accordion_control_count: document.querySelectorAll(".sidebar [aria-expanded][data-sidebar-default-section]").length,
+    };
+  });
+  assert.equal(layout640Snapshot.sidebar.scroll_height, layout640Snapshot.sidebar.client_height);
+  assert.equal(layout640Snapshot.sidebar_nav.scroll_height, layout640Snapshot.sidebar_nav.client_height);
+  assert.equal(layout640Snapshot.sidebar.overflow_y, "hidden");
+  assert.equal(layout640Snapshot.sidebar_nav.overflow_y, "hidden");
+  assert.equal(layout640Snapshot.page_canvas.overflow_y, "auto");
+  assert.equal(layout640Snapshot.nested_sidebar_item_count, 0);
+  assert.equal(layout640Snapshot.accordion_control_count, 0);
+  const layout640Screenshot = resolve(artifactDir, "10-packaged-home-finance-1280x640.png");
+  await page.screenshot({ path: layout640Screenshot, animations: "disabled", caret: "hide" });
+  evidence.push({ name: "10-packaged-home-finance-1280x640", path: layout640Screenshot.slice(repoRoot.length + 1), screenshot_sha256: sha256(layout640Screenshot), selector: '[data-sidebar-group="home-finance"]', snapshot: layout640Snapshot });
+  await page.setViewportSize({ width: 1280, height: 820 });
 
   await page.evaluate((url) => window.location.assign(url), productUrl("matters", "matter-home"));
   await page.waitForSelector('[data-context-sidebar="matters"]', { timeout: 30_000 });
@@ -318,9 +378,41 @@ try {
   assert.equal(matterSnapshot.settlement_group_visible, false);
   assert.equal(matterSnapshot.forbidden_section_count, 0);
   await page.locator('[data-profile-trigger="true"]').evaluate((node) => { node.style.visibility = "hidden"; });
-  const matterScreenshot = resolve(artifactDir, "10-packaged-matter-sidebar-without-settlement.png");
+  const matterScreenshot = resolve(artifactDir, "11-packaged-matter-sidebar-without-settlement.png");
   await page.screenshot({ path: matterScreenshot, animations: "disabled", caret: "hide" });
-  evidence.push({ name: "10-packaged-matter-sidebar-without-settlement", path: matterScreenshot.slice(repoRoot.length + 1), screenshot_sha256: sha256(matterScreenshot), selector: '[data-context-sidebar="matters"]', snapshot: matterSnapshot });
+  evidence.push({ name: "11-packaged-matter-sidebar-without-settlement", path: matterScreenshot.slice(repoRoot.length + 1), screenshot_sha256: sha256(matterScreenshot), selector: '[data-context-sidebar="matters"]', snapshot: matterSnapshot });
+
+  async function verifyProductGroup(name, view, groupLabel, expectedSection, expectedCurrent) {
+    await page.evaluate((url) => window.location.assign(url), productUrl(view, ""));
+    await page.waitForSelector(`[data-context-sidebar="${view}"]`, { timeout: 30_000 });
+    const groupButton = page.locator(".sidebar-group-toggle", { hasText: groupLabel }).first();
+    assert.equal(await groupButton.getAttribute("aria-expanded"), null);
+    assert.equal(await groupButton.getAttribute("data-sidebar-default-section"), expectedSection);
+    await groupButton.click();
+    await page.waitForFunction((section) => window.location.hash === `#${section}`, expectedSection);
+    await page.waitForSelector('.context-subnav [aria-current="page"]', { timeout: 30_000 });
+    const snapshot = await page.evaluate(({ expectedSection: section, expectedCurrent: current }) => ({
+      resolved_hash: window.location.hash.slice(1),
+      sidebar_current: document.querySelector('.sidebar [aria-current="location"]')?.textContent?.trim() ?? null,
+      context_subnav_label: document.querySelector(".context-subnav")?.getAttribute("aria-label") ?? null,
+      context_subnav_current: document.querySelector('.context-subnav [aria-current="page"]')?.textContent?.trim() ?? null,
+      nested_sidebar_item_count: document.querySelectorAll(".sidebar-subnav,.sidebar-child").length,
+      expected_section: section,
+      expected_current: current,
+    }), { expectedSection, expectedCurrent });
+    assert.equal(snapshot.resolved_hash, expectedSection);
+    assert.equal(snapshot.sidebar_current, groupLabel);
+    assert.equal(snapshot.context_subnav_current, expectedCurrent);
+    assert.equal(snapshot.nested_sidebar_item_count, 0);
+    const screenshot = resolve(artifactDir, `${name}.png`);
+    await page.screenshot({ path: screenshot, animations: "disabled", caret: "hide" });
+    productGroupSnapshots.push(snapshot);
+    evidence.push({ name, path: screenshot.slice(repoRoot.length + 1), screenshot_sha256: sha256(screenshot), selector: '.context-subnav [aria-current="page"]', snapshot });
+  }
+
+  await verifyProductGroup("12-packaged-client-context-nav", "clients", "수임 전 업무", "client-opportunities", "Opportunity");
+  await verifyProductGroup("13-packaged-matter-context-nav", "matters", "업무 진행", "matter-board", "업무 보드");
+  await verifyProductGroup("14-packaged-people-context-nav", "people", "근무일정", "people-work-schedule", "근무표");
 } finally {
   await app.close();
   await new Promise((resolveClose) => fixtureServer.close(resolveClose));
@@ -336,6 +428,11 @@ const requiredScreenNames = [
   "07-packaged-ar",
   "08-packaged-matter-context-redirect",
   "09-packaged-denied",
+  "10-packaged-home-finance-1280x640",
+  "11-packaged-matter-sidebar-without-settlement",
+  "12-packaged-client-context-nav",
+  "13-packaged-matter-context-nav",
+  "14-packaged-people-context-nav",
 ];
 assert.deepEqual(evidence.slice(0, requiredScreenNames.length).map((item) => item.name), requiredScreenNames);
 
@@ -362,7 +459,9 @@ const receipt = {
   },
   home_snapshot: homeSnapshot,
   matter_snapshot: matterSnapshot,
-  viewport: { width: 1440, height: 1000 },
+  layout_1280x640_snapshot: layout640Snapshot,
+  product_group_snapshots: productGroupSnapshots,
+  viewport: { width: 1280, height: 820 },
   required_packaged_screen_count: requiredScreenNames.length,
   captured_packaged_screen_count: evidence.length,
   required_packaged_screens_passed: evidence.slice(0, requiredScreenNames.length).every((item) => existsSync(resolve(repoRoot, item.path)) && typeof item.screenshot_sha256 === "string"),

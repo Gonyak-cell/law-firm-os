@@ -1,0 +1,92 @@
+{
+  "schema_version": "law-firm-os.people-han-jehee-account.v1",
+  "generated_at": "2026-07-09T05:10:26.479Z",
+  "verdict": "PASS",
+  "app_bundle": "apps/desktop/dist/mac/matter.app",
+  "desktop_user_data_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-people-han-jehee-qa-VzydXT",
+  "account_seed": {
+    "path": "apps/desktop/dist/mac/matter.app/Contents/Resources/app/runtime/apps/api/src/matter-vault-user-registration-seed.json",
+    "count": 12,
+    "account_count": 11,
+    "han_account": {
+      "email": "jh731@amic.kr",
+      "display_name": "한제희",
+      "source_title": "고문변호사",
+      "status": "active",
+      "role_ids": [
+        "attorney",
+        "matter_vault_user"
+      ],
+      "group_ids": [
+        "group_attorneys",
+        "group_matter_vault_users"
+      ],
+      "scopes": [
+        "matter.read",
+        "matter.write",
+        "vault.read",
+        "vault.write",
+        "audit.read"
+      ]
+    },
+    "production_idp_account_creation": false
+  },
+  "account_bridge": {
+    "ok": true,
+    "count": 0,
+    "reason": "account_listing_deferred_until_sign_in",
+    "token_material_returned": false
+  },
+  "login": {
+    "ok": true,
+    "email": "jh731@amic.kr",
+    "display_name": "한제희",
+    "role_profile_id": "lawos_attorney",
+    "role_ids": [
+      "lawos_attorney"
+    ],
+    "scopes": [
+      "matter.read",
+      "matter.write",
+      "vault.read",
+      "vault.write",
+      "audit.read",
+      "hrx.employee.read",
+      "hrx.document.read",
+      "hrx.leave.read",
+      "hrx.leave.write",
+      "hrx.approval.read",
+      "hrx.approval.write",
+      "hrx.legal_people.read",
+      "hrx.analytics.read",
+      "hrx.ai.assistant",
+      "hrx.ai.review.read"
+    ],
+    "token_material_returned": false
+  },
+  "people": {
+    "roster": {
+      "visible_text_sample": "HOME CLIENT MATTER PEOPLE VAULT PORTAL / 새로 만들기 구성원 관리 구성원 조직 직무/역할 설정 근로정보 설정 구성원 등록 입퇴사 관리 근무일정 출퇴근기록 휴가 마감 및 급여 급여정산 서지원 대표변호사 People 현재 재직 입사예정 퇴사예정 퇴사 계약직 더보기 조직 구성원 추가 구성원 직위 소속 부서 이메일 PETRA BRIDGE PARTNERS 3명 김양태 대표이사 P PETRA BRIDGE PARTNERS Finance ytkim@amic.kr 박서영 차장 P PETRA BRIDGE PARTNERS Finance sypark@amic.kr 조우상 이사 P PETRA BRIDGE PARTNERS Finance wsjo@amic.kr AMIC Law 5명 박병준 대표변호사 A AMIC Law Legal bj.park@amic.kr 서지원 대표변호사 A AMIC Law Legal jwsuh@amic.kr 임영훈 대표변호사 A AMIC Law Legal yhlim@amic.kr 조성민 대표변호사 A AMIC Law Legal smcho@amic.kr 한제희 고문변호사 A AMIC Law Legal jh731@amic.kr Staff 2명 윤태리 실장 A AMIC Law Staff tryoon@amic.kr 이예진 대리 A AMIC Law Staff yjlee@amic.kr",
+      "han_row_present": true,
+      "has_han_name": true,
+      "has_han_email": true,
+      "has_han_title": true,
+      "org_chart_has_han": false,
+      "horizontal_overflow": false
+    },
+    "org_chart": {
+      "visible_text_sample": "HOME CLIENT MATTER PEOPLE VAULT PORTAL / 새로 만들기 구성원 관리 구성원 조직 직무/역할 설정 근로정보 설정 구성원 등록 입퇴사 관리 근무일정 출퇴근기록 휴가 마감 및 급여 급여정산 서지원 대표변호사 People 현재 재직 입사예정 퇴사예정 퇴사 계약직 더보기 조직 구성원 추가 조직 근로정보 기준 리포팅 라인 구성원 박병준 서지원 임영훈 조성민 한제희 김양태 박서영 조우상 윤태리 이예진 보고 대상 없음 서지원 임영훈 조성민 한제희 김양태 박서영 조우상 윤태리 이예진 조직 AMIC Law PETRA BRIDGE PARTNERS Staff 저장 AMIC Law Legal 5명 박병준 대표변호사 서지원 대표변호사 임영훈 대표변호사 조 조성민 대표변호사 한 한제희 고문변호사 PETRA BRIDGE PARTNERS Finance 3명 김양태 대표이사 / 직속 2명 박 박서영 차장 / 김양태 조우상 이사 / 김양태 Staff Staff 2명 윤 윤태리 실장 이 이예진 대리 조직 변경 이력 0건 대상 조직 보고 대상 기록 없음",
+      "han_row_present": false,
+      "has_han_name": true,
+      "has_han_email": false,
+      "has_han_title": true,
+      "org_chart_has_han": true,
+      "horizontal_overflow": false
+    }
+  },
+  "screenshots": {
+    "people_roster": "artifacts/manual-qa/people-han-jehee-account-2026-07-09/people-roster.png",
+    "people_profile": "artifacts/manual-qa/people-han-jehee-account-2026-07-09/people-profile.png",
+    "people_org_chart": "artifacts/manual-qa/people-han-jehee-account-2026-07-09/people-org-chart.png"
+  }
+}

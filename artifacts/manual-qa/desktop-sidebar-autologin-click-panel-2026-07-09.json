@@ -1,0 +1,44 @@
+{
+  "schema_version": "lawos.desktop.autologin.sidebar.client_matter_panel.v1",
+  "checked_at": "2026-07-09T02:05:06.626Z",
+  "app_bundle": "apps/desktop/dist/mac/matter.app",
+  "executable": "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "user_data_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-desktop-autologin-qa-RTBCTn",
+  "expected_local_session_email": "jwsuh@amic.kr",
+  "checks": {
+    "autologin": {
+      "passed": true,
+      "login_email_field_count": 0,
+      "session_state": "signed_in",
+      "session_email": "jwsuh@amic.kr",
+      "session_display_name": "서지원",
+      "runtime_base_url": "http://127.0.0.1:58136",
+      "runtime_operator_configured": false
+    },
+    "sidebar": {
+      "passed": true,
+      "measured_width_px": 214,
+      "target_width_px": 214,
+      "previous_width_px": 320,
+      "ratio": 0.669
+    },
+    "client_click_panel": {
+      "passed": true,
+      "rows": 99,
+      "right_panel_before_click": 0,
+      "right_panel_after_click": 1,
+      "selected_row_text": "그래비티랩스사용 중미지정없음그래비티랩스/LIT/CIV/특허권침해금지, 그래비티랩스/Advisory/유권해석",
+      "target_name_visible": true
+    },
+    "matter_click_panel": {
+      "passed": true,
+      "rows": 148,
+      "right_panel_before_click": 0,
+      "right_panel_after_click": 1,
+      "selected_row_text": "새빗켐/DEAL/Project Tempus박민규 외 5명새빗켐/DEAL/Project Tempus진행 중시작 전",
+      "preferred_name_visible": true
+    }
+  },
+  "screenshot": "artifacts/manual-qa/desktop-sidebar-autologin-click-panel-2026-07-09.png",
+  "verdict": "PASS"
+}

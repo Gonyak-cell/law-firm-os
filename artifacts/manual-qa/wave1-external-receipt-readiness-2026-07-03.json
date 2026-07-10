@@ -1,6 +1,6 @@
 {
   "schema_version": "lawos.wave1.external-receipt-readiness.v1",
-  "generated_at": "2026-07-08T03:43:53.549Z",
+  "generated_at": "2026-07-08T14:25:23.942Z",
   "status": "PASS_EXTERNAL_RECEIPT_READINESS_LEDGER",
   "strict_completion_claim": false,
   "production_ready_claim": false,

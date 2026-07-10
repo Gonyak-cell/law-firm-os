@@ -1,7 +1,7 @@
 {
   "verdict": "PASS",
   "objective": "LCX-SHD-80",
-  "generated_at": "2026-07-07T23:49:13.334Z",
+  "generated_at": "2026-07-08T14:28:12.218Z",
   "packaged_app": {
     "root": "apps/desktop/dist/mac/matter.app",
     "executable": {
@@ -12,7 +12,7 @@
     "renderer": {
       "path": "apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html",
       "bytes": 1357,
-      "sha256": "489a28cf3c8102a0f8bccfa1676e57cca09fcc590354daeeceb36af1365f6d04"
+      "sha256": "b1043d78230237b267f8aded9bace007b8db2ab6f6563a1752853d178ded7d6f"
     }
   },
   "renderer_url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=0#home-dashboard",
@@ -26,9 +26,11 @@
       "approval",
       "calendar",
       "feed",
-      "system",
       "todo"
     ],
+    "topbar_refresh_trigger_count": 1,
+    "visible_refresh_button_texts": [],
+    "legacy_hero_refresh_class_count": 0,
     "top_header_nav": {
       "labels": [
         "Home",
@@ -56,7 +58,7 @@
       "duplicated_product_axis_labels": []
     },
     "matter_session_bridge_present": true,
-    "matter_session_status_state": "signed_out",
+    "matter_session_status_state": "signed_in",
     "release_boundary_ui_has_no_positive_claim": true,
     "no_dummy_visible": true,
     "horizontal_overflow": false,
@@ -64,9 +66,42 @@
       "width": 1280,
       "height": 788
     },
-    "body_character_count": 399
+    "body_character_count": 319
   },
-  "console_events": [],
+  "console_events": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    }
+  ],
   "non_claims": {
     "public_release": false,
     "production_go_live": false,

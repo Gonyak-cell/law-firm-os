@@ -34,7 +34,7 @@ assert.equal(rosterJson.schema_version, "law-firm-os.hrx-member-roster-source-of
 assert.equal(rosterJson.source_ref, HRX_MEMBER_ROSTER_SOURCE_REF);
 assert.equal(HRX_MEMBER_ROSTER_SOURCE_OF_TRUTH.source_ref, HRX_MEMBER_ROSTER_SOURCE_REF);
 assert.ok(HRX_MEMBER_ROSTER_SOURCE_PATH.endsWith(rosterPath), `registry must resolve repo roster path, got ${HRX_MEMBER_ROSTER_SOURCE_PATH}`);
-assert.equal(rosterRows.length, 9);
+assert.equal(rosterRows.length, 10);
 assert.ok(rosterRows.every((member) => member.source_ref === HRX_MEMBER_ROSTER_SOURCE_REF));
 
 assert.deepEqual(
@@ -42,8 +42,8 @@ assert.deepEqual(
   ["PETRA BRIDGE PARTNERS", "PETRA BRIDGE PARTNERS", "PETRA BRIDGE PARTNERS"]
 );
 assert.deepEqual(
-  ["박병준", "조성민", "임영훈", "서지원"].map((name) => membersByName.get(name)?.organization_group),
-  ["AMIC Law", "AMIC Law", "AMIC Law", "AMIC Law"]
+  ["박병준", "조성민", "임영훈", "서지원", "한제희"].map((name) => membersByName.get(name)?.organization_group),
+  ["AMIC Law", "AMIC Law", "AMIC Law", "AMIC Law", "AMIC Law"]
 );
 assert.deepEqual(
   ["윤태리", "이예진"].map((name) => membersByName.get(name)?.organization_group),
@@ -60,9 +60,14 @@ assert.equal(kimYangTae?.professional_profile?.qualifications?.includes("대한�
 assert.equal(kimYangTae?.professional_profile?.qualifications?.includes("대한민국 변호사"), false);
 assert.equal(membersByName.get("조우상")?.professional_profile?.profile_kind, "deal_advisor");
 assert.deepEqual(
-  ["박병준", "임영훈", "서지원", "조성민"].map((name) => membersByName.get(name)?.professional_profile?.profile_kind),
-  ["attorney", "attorney", "attorney", "attorney"]
+  ["박병준", "임영훈", "서지원", "조성민", "한제희"].map((name) => membersByName.get(name)?.professional_profile?.profile_kind),
+  ["attorney", "attorney", "attorney", "attorney", "attorney"]
 );
+assert.equal(membersByName.get("한제희")?.work_email, "jh731@amic.kr");
+assert.equal(membersByName.get("한제희")?.title, "고문변호사");
+assert.equal(membersByName.get("한제희")?.start_date, "2026-07-06");
+assert.equal(membersByName.get("한제희")?.professional_profile?.qualifications?.includes("대한민국 변호사"), true);
+assert.equal(membersByName.get("한제희")?.professional_profile?.qualifications?.includes("대한민국 공인회계사"), true);
 
 for (const marker of [
   "repoRosterPath",

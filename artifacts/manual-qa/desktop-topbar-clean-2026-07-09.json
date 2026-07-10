@@ -1,0 +1,104 @@
+{
+  "schema_version": "law-firm-os.desktop-topbar-clean.v1",
+  "generated_at": "2026-07-09T03:34:14.365Z",
+  "status": "passed",
+  "app_bundle": "apps/desktop/dist/mac/matter.app",
+  "screenshot": "artifacts/manual-qa/desktop-topbar-clean-2026-07-09.png",
+  "snapshot": {
+    "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&ctx=allow#home-dashboard",
+    "topbar_text": "HomeClientMatterPeopleVaultPortal/새로 만들기서",
+    "help_trigger_count": 0,
+    "help_panel_count": 0,
+    "locale_toggle_count": 0,
+    "language_label_visible": false,
+    "theme_button_count": 0,
+    "refresh_trigger_count": 1,
+    "buttons": [
+      {
+        "className": "top-axis-item active",
+        "ariaLabel": "",
+        "text": "Home",
+        "dataHelp": null,
+        "dataRefresh": null
+      },
+      {
+        "className": "top-axis-item",
+        "ariaLabel": "",
+        "text": "Client",
+        "dataHelp": null,
+        "dataRefresh": null
+      },
+      {
+        "className": "top-axis-item",
+        "ariaLabel": "",
+        "text": "Matter",
+        "dataHelp": null,
+        "dataRefresh": null
+      },
+      {
+        "className": "top-axis-item",
+        "ariaLabel": "",
+        "text": "People",
+        "dataHelp": null,
+        "dataRefresh": null
+      },
+      {
+        "className": "top-axis-item",
+        "ariaLabel": "",
+        "text": "Vault",
+        "dataHelp": null,
+        "dataRefresh": null
+      },
+      {
+        "className": "top-axis-item",
+        "ariaLabel": "",
+        "text": "Portal",
+        "dataHelp": null,
+        "dataRefresh": null
+      },
+      {
+        "className": "primary-button",
+        "ariaLabel": "",
+        "text": "새로 만들기",
+        "dataHelp": null,
+        "dataRefresh": null
+      },
+      {
+        "className": "profile-trigger",
+        "ariaLabel": "내 프로필",
+        "text": "서",
+        "dataHelp": null,
+        "dataRefresh": null
+      },
+      {
+        "className": "icon-button notification-trigger",
+        "ariaLabel": "알림 0건",
+        "text": "",
+        "dataHelp": null,
+        "dataRefresh": null
+      },
+      {
+        "className": "icon-button home-action-trigger",
+        "ariaLabel": "메시지 0건",
+        "text": "",
+        "dataHelp": null,
+        "dataRefresh": null
+      },
+      {
+        "className": "icon-button home-action-trigger",
+        "ariaLabel": "승인 대기 0건",
+        "text": "",
+        "dataHelp": null,
+        "dataRefresh": null
+      },
+      {
+        "className": "icon-button topbar-refresh-trigger",
+        "ariaLabel": "새로고침",
+        "text": "",
+        "dataHelp": null,
+        "dataRefresh": "true"
+      }
+    ],
+    "horizontal_overflow": false
+  }
+}

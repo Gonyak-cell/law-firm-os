@@ -222,7 +222,7 @@ async function run() {
 
     await visit(page, routes, "/?view=people&ctx=allow#people-relationships", "People Relationships");
     checks.push(await expectVisible(page, '[data-lcx-ppl-05-ui="true"]', "Relationship workspace visible"));
-    checks.push(await expectTextMatch(page, "#people-directory", /관련 기록|Client·Matter/, "Relationship mode title visible"));
+    checks.push(await expectTextMatch(page, "#people-directory", /관련 기록/, "Relationship mode title visible"));
     checks.push(await expectCountAtLeast(page, ".legal-people-row", 2, "Relationship mode People rows visible"));
     await page.locator(".legal-people-row").nth(1).click();
     checks.push(await expectVisible(page, "#people-relationship-panel", "Relationship panel visible in relationship mode"));

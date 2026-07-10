@@ -1,0 +1,40 @@
+{
+  "schema_version": "law-firm-os.desktop-jws-client-matter-click-right-panel.v1",
+  "generated_at": "2026-07-09T01:49:34.737Z",
+  "status": "passed",
+  "launch_target": "apps/desktop/dist/mac/matter.app",
+  "qa_user_data_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-desktop-jws-click-panel-qa-be0CnQ",
+  "login": {
+    "email": "jwsuh@amic.kr",
+    "state": "signed_in",
+    "login_form_visible_before_submit": true,
+    "password_material_rendered": false,
+    "screenshot": "artifacts/manual-qa/desktop-jws-login-2026-07-09.png"
+  },
+  "client": {
+    "row_count": 99,
+    "right_panel_before_click_count": 0,
+    "selected_row": {
+      "term": "그래비티랩스",
+      "label": "그래비티랩스사용 중미지정없음그래비티랩스/LIT/CIV/특허권침해금지, 그래비티랩스/Advisory/유권해석"
+    },
+    "active_row_count_after_click": 1,
+    "right_panel_after_click_visible": true,
+    "right_panel_excerpt": "정보그래비티랩스상태사용 중법인 형태해당 없음대표 당사자미지정구성원없음연결 Matter그래비티랩스/LIT/CIV/특허권침해금지, 그래비티랩스/Advisory/유권해석잠재 계정1Opportunity1상담1계정2담당자2권한 기준에 맞춰 표시됩니다.병합 검토 상태는 관계 메뉴에서 확인합니다.데이터 보강 상태는 데이터 메뉴에서 확인합니다.보고서와 손익은 리포트에서 확인합니다.",
+    "screenshot": "artifacts/manual-qa/desktop-client-click-right-panel-2026-07-09.png"
+  },
+  "matter": {
+    "row_count": 148,
+    "right_panel_before_click_count": 0,
+    "selected_row": {
+      "term": "새빗켐",
+      "label": "새빗켐/DEAL/Project Tempus박민규 외 5명새빗켐/DEAL/Project Tempus진행 중시작 전"
+    },
+    "active_row_count_after_click": 1,
+    "right_panel_after_click_visible": true,
+    "right_panel_excerpt": "레코드새빗켐/DEAL/Project Tempus상태진행 중Client박민규 외 5명청구시작 전책임자미지정팀0문서0활동0기한0대화0청구0분석2청구 상태시작 전저장책임자미지정변경레코드 필드Matter 제목 / Matter code / 청구 준비 상태 / 위험도Matter code저장책임자 일괄 변경승인 조건 확인승인 확인최근 작업 0건외부 연동 승인 대기권한 기준에 맞춰 표시됩니다.",
+    "screenshot": "artifacts/manual-qa/desktop-matter-click-right-panel-2026-07-09.png"
+  },
+  "public_release_claim": false,
+  "production_go_live_claim": false
+}

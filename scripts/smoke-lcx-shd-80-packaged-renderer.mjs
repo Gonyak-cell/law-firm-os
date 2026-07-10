@@ -97,6 +97,11 @@ async function main() {
         widget_ids: Array.from(document.querySelectorAll("[data-widget-id]")).map((node) =>
           node.getAttribute("data-widget-id")
         ),
+        topbar_refresh_trigger_count: document.querySelectorAll("[data-topbar-refresh-trigger='true']").length,
+        visible_refresh_button_texts: Array.from(document.querySelectorAll("button")).map((node) =>
+          node.textContent?.replace(/\s+/g, " ").trim() ?? ""
+        ).filter((label) => /새로고침/.test(label)),
+        legacy_hero_refresh_class_count: document.querySelectorAll(".forest-hero-refresh-button").length,
         top_header_nav: {
           labels: Array.from(document.querySelectorAll("[data-product-axis]")).map((node) =>
             node.textContent?.replace(/\s+/g, " ").trim() ?? ""
@@ -137,7 +142,10 @@ async function main() {
     assert.equal(snapshot.home_dashboard_shell, true, "Home dashboard shell must render");
     assert.equal(snapshot.home_dashboard_grid, true, "Home dashboard grid must render");
     assert.equal(snapshot.home_dashboard_rail, true, "Home dashboard rail must render");
-    assert.deepEqual(snapshot.widget_ids.sort(), ["approval", "calendar", "feed", "system", "todo"].sort(), "all five Home widgets must render");
+    assert.deepEqual(snapshot.widget_ids.sort(), ["approval", "calendar", "feed", "todo"].sort(), "the four Home dashboard widgets must render without the removed system card");
+    assert.equal(snapshot.topbar_refresh_trigger_count, 1, "top header must expose exactly one refresh icon trigger");
+    assert.deepEqual(snapshot.visible_refresh_button_texts, [], "page surfaces must not render visible refresh text buttons");
+    assert.equal(snapshot.legacy_hero_refresh_class_count, 0, "legacy hero refresh buttons must not render");
     assert.deepEqual(snapshot.top_header_nav.labels, ["Home", "Client", "Matter", "People", "Vault", "Portal"], "top header must show the six-axis Portal IA");
     assert.deepEqual(snapshot.top_header_nav.axis_ids, ["home", "clients", "matters", "people", "vault", "portal"], "top header axis IDs must match the six-axis Portal IA");
     assert.equal(snapshot.top_header_nav.active_axis_count, 1, "exactly one product axis must be active");

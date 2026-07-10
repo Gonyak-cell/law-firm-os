@@ -1,0 +1,50 @@
+{
+  "schema_version": "lawos.desktop.sidebar_amic_law_top.v1",
+  "checked_at": "2026-07-09T02:24:53.822Z",
+  "app_bundle": "apps/desktop/dist/mac/matter.app",
+  "executable": "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "user_data_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-desktop-sidebar-logo-qa-3rucQa",
+  "checks": {
+    "autologin": {
+      "passed": true,
+      "state": "signed_in",
+      "email": "jwsuh@amic.kr"
+    },
+    "sidebar_full_height": {
+      "passed": true,
+      "top": 0,
+      "bottom": 788,
+      "height": 788,
+      "width": 214,
+      "viewport_height": 788
+    },
+    "topbar_offset": {
+      "passed": true,
+      "left": 214,
+      "width": 1066,
+      "top": 0,
+      "sidebar_width": 214
+    },
+    "sidebar_logo": {
+      "passed": true,
+      "present": true,
+      "alt": "AMIC Law",
+      "natural_width": 175,
+      "natural_height": 28,
+      "rendered_width": 126,
+      "rendered_height": 20,
+      "filter": "brightness(0) invert(1)",
+      "brand_top": 18
+    },
+    "petra_removed": {
+      "passed": true,
+      "topbar_brand_visible": false
+    },
+    "horizontal_overflow": {
+      "passed": true,
+      "value": false
+    }
+  },
+  "screenshot": "artifacts/manual-qa/desktop-sidebar-amic-law-top-2026-07-09.png",
+  "verdict": "PASS"
+}

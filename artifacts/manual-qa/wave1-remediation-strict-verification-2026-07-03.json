@@ -1,6 +1,6 @@
 {
   "schema_version": "lawos.wave1.remediation-strict-verification.v1",
-  "generated_at": "2026-07-08T03:43:53.592Z",
+  "generated_at": "2026-07-08T14:25:23.917Z",
   "verdict": "PARTIAL_EXTERNAL_BLOCKED",
   "strict_completion_claim": false,
   "production_ready_claim": false,

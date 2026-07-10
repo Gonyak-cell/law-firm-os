@@ -14,7 +14,12 @@ const webDist = join(webRoot, "dist");
 const desktopRendererWeb = join(repoRoot, "apps/desktop/src/renderer/web");
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-web/desktop-web-renderer-asset.md");
 
-await execFileAsync("npm", ["--workspace", "apps/web", "run", "build"], { cwd: repoRoot });
+try {
+  await execFileAsync("npm", ["--workspace", "apps/web", "run", "build"], { cwd: repoRoot });
+} catch (error) {
+  if (error?.code !== "ENOENT") throw error;
+  await execFileAsync(process.execPath, [join(repoRoot, "node_modules/vite/bin/vite.js"), "build"], { cwd: webRoot });
+}
 
 if (!existsSync(join(webDist, "index.html"))) {
   throw new Error("apps/web build did not produce dist/index.html");

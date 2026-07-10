@@ -121,7 +121,7 @@ assert(employeeProfile.includes('data-hrx-compensation-records="true"'), "Employ
 assert(employeeProfile.includes("masked_compensation_ref") && employeeProfile.includes("contract_document_ref"), "Employee profile must render masked compensation refs with contract linkage");
 assert(employeeProfile.includes("ProfessionalProfileSection") && employeeProfile.includes('data-people-professional-profile="true"'), "Employee profile must render API-backed public professional profile sections");
 assert(employeeProfile.includes('data-people-professional-profile-kind={profileKind}') && employeeProfile.includes("professionalKindLabel"), "Employee profile must expose professional profile kind for browser proof");
-assert(employeeProfile.includes("주요 경력") && employeeProfile.includes("학력") && employeeProfile.includes("자격·면허") && employeeProfile.includes("출처"), "Employee profile must render career, education, qualification, and source sections");
+assert(employeeProfile.includes("주요 경력") && employeeProfile.includes("학력") && employeeProfile.includes("자격") && employeeProfile.includes("출처"), "Employee profile must render career, education, qualification, and source sections");
 assert(!/salary|base_pay|bonus_amount/.test(employeeProfile), "Employee profile must not render raw compensation fields");
 
 const documents = read("apps/web/src/people/documents/HRDocumentWorkspace.tsx");
@@ -131,7 +131,7 @@ assert(documents.includes("증명서 발급 요청") && documents.includes("재�
 assert(documents.includes("createHrxEmploymentContractDocument") && documents.includes("signHrxEmploymentContractDocument") && documents.includes("expireHrxEmploymentContractDocument"), "HR documents UI must wire employment contract lifecycle actions");
 assert(documents.includes("30일 내 만료") && documents.includes("signature_ref"), "HR documents UI must expose signed-ref and 30-day expiry monitoring");
 assert(documents.includes("합격자 문서") && !documents.includes("오퍼 문서"), "HR documents UI must avoid offer loanword copy");
-assert(!/문서·증명서|인사 문서|인사규정/.test(documents), "HR documents UI must avoid unclear mixed document/certificate copy");
+assert(!/문서 증명서|인사 문서|인사규정/.test(documents), "HR documents UI must avoid unclear mixed document/certificate copy");
 assert(!/document\.body|document_body|content_text/.test(documents), "HR documents UI must not render document bodies");
 
 const globalUtilitySurface = read("apps/web/src/components/GlobalUtilitySurface.jsx");
@@ -211,7 +211,7 @@ assert(peopleNavigationSource.includes("인사기록") && !peopleNavigationSourc
 assert(peopleNavigationSource.includes('label: "권한"') && !peopleNavigationSource.includes('label: "권한 관리"'), "People menu must use Shiftee permission label");
 assert(peopleNavigationSource.includes("리포트") && !peopleNavigationSource.includes('label: "현황"'), "People menu must use Shiftee report label");
 assert(peopleNavigationSource.includes("근무일정") && peopleNavigationSource.includes("외부일정") && peopleNavigationSource.includes("출퇴근기록"), "People menu must expose Shiftee-style work schedule and attendance labels");
-assert(!/문서·증명서|인사 문서|인사 정책|인사규정|활동 기록|권한 관리|권한 설정|인사 현황|구성원 인사이트|급여 정산|인력 현황|인사정보 접근 권한|인사 변경 이력|휴가·승인 규칙|관계자 관리|사건 관련 인물|인물 목록|인물 검색|연결 관계|Client\/Matter 연결/.test(peopleNavigationSource), "People menu must not reintroduce unclear or removed labels");
+assert(!/문서 증명서|인사 문서|인사 정책|인사규정|활동 기록|권한 관리|권한 설정|인사 현황|구성원 인사이트|급여 정산|인력 현황|인사정보 접근 권한|인사 변경 이력|휴가 승인 규칙|관계자 관리|사건 관련 인물|인물 목록|인물 검색|연결 관계|Client\/Matter 연결/.test(peopleNavigationSource), "People menu must not reintroduce unclear or removed labels");
 
 const analytics = read("apps/web/src/people/analytics/HRAnalytics.tsx");
 assert(analytics.includes("fetchHrxAnalytics") && analytics.includes("row_level_details_included"), "People analytics must fetch API and show privacy grain");
@@ -231,9 +231,9 @@ const payroll = read("apps/web/src/people/payroll/PayrollBoundaryPanel.tsx");
 assert(peopleHome.includes("PayrollBoundaryPanel") && peopleHome.includes("people-payroll"), "People home must expose payroll boundary panel");
 assert(payroll.includes("createHrxPayrollPreview") && payroll.includes("approveHrxPayrollPreview") && payroll.includes("exportHrxPayrollArtifact"), "Payroll UI must use payroll boundary APIs");
 assert(payroll.includes("calculation_runtime") && payroll.includes("disbursement_instruction_included"), "Payroll UI must preserve calculation and disbursement boundary fields");
-assert(payroll.includes("급여정산") && payroll.includes("미리보기·내보내기 전용"), "Payroll UI must use Korean HR SaaS payroll settlement copy");
-assert(payroll.includes("계산·세금·지급 실행은 아직 제공하지 않습니다"), "Payroll UI must show unavailable payroll execution state");
-assert(payroll.includes("정산 처리") && payroll.includes("송금·지급 지시는 아직 구현되지 않았습니다"), "Payroll UI must translate payroll execution gaps for users");
+assert(payroll.includes("급여정산") && payroll.includes("내보내기 전용"), "Payroll UI must use Korean HR SaaS payroll settlement copy");
+assert(payroll.includes("계산과 지급 실행은 아직 제공하지 않습니다"), "Payroll UI must show unavailable payroll execution state");
+assert(payroll.includes("정산 처리") && payroll.includes("지급 지시는 아직 구현되지 않았습니다"), "Payroll UI must translate payroll execution gaps for users");
 assert(!/calculation_runtime=false|disbursement_instruction_included=false|문서 ref|external-preview-only/.test(payroll), "Payroll UI must not expose raw internal payroll boundary strings");
 assert(
   !/net_pay|gross_pay|tax_withholding|["']disbursement_instruction["']|disbursement_instruction\s*:/.test(payroll),

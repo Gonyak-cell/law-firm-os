@@ -48,7 +48,7 @@ assertPatterns("apps/web/src/components/ClientsSurface.jsx", [
 ]);
 
 assertPatterns("apps/web/src/components/Shell.jsx", [
-  /\{ label: "상담·문의", view: "clients", section: "client-intake"/,
+  /\{ label: "상담", view: "clients", section: "client-intake"/,
 ]);
 
 assertExists("scripts/run-upl-c08-intake-completion-browser-proof.mjs");

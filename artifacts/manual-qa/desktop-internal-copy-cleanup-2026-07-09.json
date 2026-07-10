@@ -1,0 +1,90 @@
+{
+  "schema_version": "law-firm-os.desktop-internal-copy-cleanup.v1",
+  "generated_at": "2026-07-09T04:34:05.000Z",
+  "verdict": "PASS",
+  "app_bundle": "apps/desktop/dist/mac/matter.app",
+  "desktop_user_data_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-internal-copy-qa-YDmHGW",
+  "forbidden_copy_checked": [
+    "권한 기준에 맞춰 표시됩니다",
+    "병합 검토 상태는",
+    "데이터 보강 상태는",
+    "보고서와 손익은",
+    "권한 기준 적용",
+    "권한이 있는 정보만 표시됩니다",
+    "권한이 있는 구성원 정보만 표시",
+    "검토가 끝나면",
+    "제공자 receipt",
+    "제공자 차단",
+    "공급자 차단",
+    "조건부 전역화 항목",
+    "런타임 연결과 권한 컨텍스트",
+    "Matter app 원천",
+    "bridge status read",
+    "fail-closed",
+    "write=false",
+    "reference-only",
+    "문서 바이트",
+    "원본 저장 경로",
+    "본문과 병합 값은 숨깁",
+    "수신자와 본문 원문은 숨깁",
+    "본문 비공개",
+    "원본 행 미노출"
+  ],
+  "selected_rows": {
+    "client": "귀한사람들사용 중미지정없음귀한사람들/Advisory/retainer",
+    "matter": "귀한사람들/Advisory/retainer귀한사람들귀한사람들/Advisory/retainer개시 중시작 전"
+  },
+  "surfaces": [
+    {
+      "surface": "clients-home",
+      "visible_text_chars": 238,
+      "forbidden_matches": [],
+      "sample": "HOME CLIENT MATTER PEOPLE VAULT PORTAL 새로 만들기 Client 관리 요약 목록 계정 정보 담당자 수임 전 업무 운영 서지원 대표변호사 Client 요약 운영 현황 구분 건수 확인할 메뉴 상태 계정 99 목록 사용 중 잠재 계정 1 상담 수임 전 Opportunity 1 Opportunity 수임 전 기회 상담 1 상담 검토 흐름 계정 정보 2 계정 정보 고객 정보 담당자 2 담당자 연락 창구"
+    },
+    {
+      "surface": "client-overlay",
+      "visible_text_chars": 4901,
+      "forbidden_matches": [],
+      "sample": "HOME CLIENT MATTER PEOPLE VAULT PORTAL 새로 만들기 Client 관리 요약 목록 계정 정보 담당자 수임 전 업무 운영 서지원 대표변호사 Client 목록 Client 진행 상태 대표 당사자 구성원 연결된 Matter 귀한사람들 사용 중 미지정 없음 귀한사람들/Advisory/retainer 그래비티랩스 사용 중 미지정 없음 그래비티랩스/LIT/CIV/특허권침해금지, 그래비티랩스/Advisory/유권해석 그로브 사용 중 미지정 없음 그로브/LIT/CIV/제소전화해 금홍 사용 중 미지정 없음 금홍/LIT/CIV/가압류, 금홍/LIT/CIV/가압류이의 김정 사용 중 미지정 없음 김정/LIT/CIV/중개보수청구 김지은 사용 중 미지정 없음 김지은/LIT/CIV/대여금등반환청구 동림산업 사용 중 미지정 없음 동림산업/LIT/CIV/건물철거청구 동문시장 사용 중 미지정 없음 동문시장/Dispute/임대차계약갱신및차임분쟁 라이트팜텍 사용 중 미지정 없음 라이트팜텍/"
+    },
+    {
+      "surface": "people",
+      "visible_text_chars": 638,
+      "forbidden_matches": [],
+      "sample": "HOME CLIENT MATTER PEOPLE VAULT PORTAL 새로 만들기 구성원 관리 구성원 조직 직무/역할 설정 근로정보 설정 구성원 등록 입퇴사 관리 근무일정 출퇴근기록 휴가 마감 및 급여 급여정산 서지원 대표변호사 People 현재 재직 입사예정 퇴사예정 퇴사 계약직 더보기 조직 구성원 추가 구성원 직위 소속 부서 이메일 PETRA BRIDGE PARTNERS 3명 김양태 대표이사 P PETRA BRIDGE PARTNERS Finance ytkim@amic.kr 박서영 차장 P PETRA BRIDGE PARTNERS Finance sypark@amic.kr 조우상 이사 P PETRA BRIDGE PARTNERS Finance wsjo@amic.kr AMIC Law 4명 박병준 대표변호사 A AMIC Law Legal bj.park@amic.kr 서지원 대표변호사 A AMIC Law Legal jwsuh@amic.kr 임영훈 대표변호사 A AMIC Law Legal yh"
+    },
+    {
+      "surface": "matters-home",
+      "visible_text_chars": 184,
+      "forbidden_matches": [],
+      "sample": "HOME CLIENT MATTER PEOPLE VAULT PORTAL 새로 만들기 Matter 사건 운영 홈 사건 목록 신규 사건 수임 진행 종결 처리 보관 사건 업무 진행 문서 소통 정산 리포트 서지원 대표변호사 Matter 홈 사건 목록 업무 보드 일정 외부 일정 사건 문서 홈 사건 운영 Matter 현황을 불러오는 중입니다"
+    },
+    {
+      "surface": "matter-overlay",
+      "visible_text_chars": 9426,
+      "forbidden_matches": [],
+      "sample": "HOME CLIENT MATTER PEOPLE VAULT PORTAL 새로 만들기 Matter 사건 운영 홈 사건 목록 신규 사건 수임 진행 종결 처리 보관 사건 업무 진행 문서 소통 정산 리포트 서지원 대표변호사 Matter 홈 사건 목록 업무 보드 일정 외부 일정 사건 문서 사건 목록 새 Matter 개시는 승인 후 반영됩니다. 저장된 View 없음 개시 저장 0개 선택 선택 완료 Matter Client 제목 진행 상태 청구 상태 귀한사람들/Advisory/retainer 귀한사람들 귀한사람들/Advisory/retainer 개시 중 시작 전 그래비티랩스/LIT/CIV/특허권침해금지 그래비티랩스 그래비티랩스/LIT/CIV/특허권침해금지 개시 중 시작 전 그로브/LIT/CIV/제소전화해 그로브 그로브/LIT/CIV/제소전화해 개시 중 시작 전 금홍/LIT/CIV/가압류 금홍 금홍/LIT/CIV/가압류 개시 중 시작 전 김정/LIT/CIV/중개보수청구 김정 김정/LIT/CIV/중개"
+    },
+    {
+      "surface": "vault",
+      "visible_text_chars": 988,
+      "forbidden_matches": [],
+      "sample": "HOME CLIENT MATTER PEOPLE VAULT PORTAL 새로 만들기 Vault 문서함 문서 상세 메일 보관함 서지원 대표변호사 Vault 전문검색 권한 필터 본문 검색 검색 검색어를 입력하세요 Vault 문서함 Matter 선택됨 / Vault / 작업공간 준비됨 보존 설정 없음 / 기밀 설정 있음 문서 제목 등록 계정 상태 버전 권한 보존 문서 1 Synthetic engagement letter 서지원 사용 중 현재 버전 기본 없음 Matter 연결 상태 확인 필요 연결 정보를 다시 확인하세요. 상태 연결 설정 필요 소스 확인 필요 경계 표시 제한 요청 req_d68b56f0-137b-4da6-a173-4e6d7cdb4a5d 연결 설정 필요 Matter 선택 문서 작업 기준 Matter 검색 Matter를 확인할 수 없습니다 연결 설정 필요 Matter 선택 전 업로드 준비 확인 문서 등록 먼저 Matter를 선택하세요. 상태 Matter 선택 전 Matter Ma"
+    },
+    {
+      "surface": "portal",
+      "visible_text_chars": 323,
+      "forbidden_matches": [],
+      "sample": "HOME CLIENT MATTER PEOPLE VAULT PORTAL 새로 만들기 공유 포털 공유 홈 요청 응답 공유 링크 감사 상태 서지원 대표변호사 공유 포털 공유 범위 Client 화면 공유 요약 공유 항목 Client Matter 요청 공유 1 Client 공유됨 요청 있음 요청 목록 의뢰인 요청 요청 Matter 상태 요청자 요청 1 Matter 요청 의뢰인 담당자 문서 공유함 보호된 문서 공유 항목 공유함 상태 본문 문서 1 공유함 1 확인 필요 비공개 공유 링크 담당자 확인 문서 본문은 기본적으로 비공개입니다 담당자가 공유 범위를 확인한 뒤 링크를 발송합니다."
+    }
+  ],
+  "screenshots": {
+    "clients_home": "artifacts/manual-qa/desktop-internal-copy-cleanup-2026-07-09/clients-home.png",
+    "client_overlay": "artifacts/manual-qa/desktop-internal-copy-cleanup-2026-07-09/client-overlay.png",
+    "people": "artifacts/manual-qa/desktop-internal-copy-cleanup-2026-07-09/people.png",
+    "matters_home": "artifacts/manual-qa/desktop-internal-copy-cleanup-2026-07-09/matters-home.png",
+    "matter_overlay": "artifacts/manual-qa/desktop-internal-copy-cleanup-2026-07-09/matter-overlay.png",
+    "vault": "artifacts/manual-qa/desktop-internal-copy-cleanup-2026-07-09/vault.png",
+    "portal": "artifacts/manual-qa/desktop-internal-copy-cleanup-2026-07-09/portal.png"
+  }
+}

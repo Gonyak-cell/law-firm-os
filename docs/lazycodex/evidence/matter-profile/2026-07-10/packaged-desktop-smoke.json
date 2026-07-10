@@ -1,0 +1,28 @@
+{
+  "schema_version": "law-firm-os.matter-profile.packaged-desktop.v1",
+  "generated_at": "2026-07-10T02:41:20.076Z",
+  "status": "passed",
+  "launch_target": "apps/desktop/dist/mac/matter.app",
+  "runtime_profile": "isolated_local_qa",
+  "profile_api_state": "populated",
+  "profile_identity": {
+    "session": {
+      "state": "signed_in",
+      "user_id": "user_amic_jwsuh",
+      "display_name": "서지원"
+    },
+    "rendered": {
+      "member_id": "emp_amic_jwsuh",
+      "display_name": "서지원"
+    }
+  },
+  "fixtures": [
+    "civil",
+    "criminal",
+    "administrative",
+    "deal",
+    "corporate-advisory"
+  ],
+  "public_release": false,
+  "production_go_live": false
+}

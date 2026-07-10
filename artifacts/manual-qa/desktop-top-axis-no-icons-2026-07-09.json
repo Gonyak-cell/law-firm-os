@@ -1,0 +1,28 @@
+{
+  "schema_version": "law-firm-os.desktop-top-axis-no-icons.v1",
+  "generated_at": "2026-07-09T03:39:40.341Z",
+  "status": "passed",
+  "app_bundle": "apps/desktop/dist/mac/matter.app",
+  "screenshot": "artifacts/manual-qa/desktop-top-axis-no-icons-2026-07-09.png",
+  "snapshot": {
+    "labels": [
+      "Home",
+      "Client",
+      "Matter",
+      "People",
+      "Vault",
+      "Portal"
+    ],
+    "icon_counts": {
+      "home": 0,
+      "clients": 0,
+      "matters": 0,
+      "people": 0,
+      "vault": 0,
+      "portal": 0
+    },
+    "total_axis_icons": 0,
+    "button_count": 6,
+    "horizontal_overflow": false
+  }
+}

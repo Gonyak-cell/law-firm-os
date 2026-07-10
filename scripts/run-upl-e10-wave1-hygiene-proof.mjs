@@ -160,7 +160,7 @@ const artifact = {
     "C13 Portal route and PortalSurface are preserved in UI regression instead of being removed.",
     "Notification drawer count is derived from notificationItems.length.",
     "Static sidebar/global hardcoded numeric badge/count values were removed from apps/web/src.",
-    "Client intake menu label uses the customer-facing Korean label 상담·문의.",
+    "Client intake menu label uses the customer-facing Korean label 상담.",
   ],
   external_receipts_not_locally_generated: [
     { row_id: "UPL-C-09", reason: "No Outlook web/new desktop runtime, Entra consent, or provider runtime receipt is available locally." },

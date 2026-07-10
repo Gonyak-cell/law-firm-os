@@ -14,9 +14,11 @@ const expectedKinds = new Map([
   ["임영훈", "attorney"],
   ["서지원", "attorney"],
   ["조성민", "attorney"],
+  ["한제희", "attorney"],
   ["김양태", "cpa"],
   ["조우상", "deal_advisor"]
 ]);
+const browserProofExpectedKinds = new Map([...expectedKinds].filter(([displayName]) => displayName !== "한제희"));
 
 function read(path) {
   return readFileSync(resolve(path), "utf8");
@@ -70,11 +72,16 @@ assert.ok(textOf(membersByName.get("김양태")?.professional_profile).includes(
 assert.ok(!textOf(membersByName.get("조우상")?.professional_profile?.qualifications).includes("공인회계사"), "조우상 must not carry unsupported CPA qualification");
 
 const attorneyNames = Array.from(expectedKinds.entries()).filter(([, kind]) => kind === "attorney").map(([name]) => name);
-assert.deepEqual(attorneyNames, ["박병준", "임영훈", "서지원", "조성민"]);
+assert.deepEqual(attorneyNames, ["박병준", "임영훈", "서지원", "조성민", "한제희"]);
 assert.deepEqual(
   attorneyNames.map((name) => membersByName.get(name)?.professional_profile?.profile_kind),
-  ["attorney", "attorney", "attorney", "attorney"]
+  ["attorney", "attorney", "attorney", "attorney", "attorney"]
 );
+assert.equal(membersByName.get("한제희")?.work_email, "jh731@amic.kr");
+assert.equal(membersByName.get("한제희")?.title, "고문변호사");
+assert.equal(membersByName.get("한제희")?.start_date, "2026-07-06");
+assert.equal(textOf(membersByName.get("한제희")?.professional_profile).includes("대한민국 변호사"), true);
+assert.equal(textOf(membersByName.get("한제희")?.professional_profile).includes("대한민국 공인회계사"), true);
 
 for (const member of sourceMap.profiles) {
   assert.ok(member.source_refs?.length > 0, `${member.display_name} source map refs missing`);
@@ -87,7 +94,7 @@ for (const [path, content, markers] of [
   ["apps/api/src/hrx-member-roster-registry.js", registry, ["professional_profile", "objectField(member"]],
   ["apps/api/src/hrx-runtime-context.js", runtimeContext, ["professional_profile: rosterReadFields.professional_profile", "employeeRosterReadFields"]],
   ["apps/web/src/people/hrxApiClient.ts", apiClient, ["professional_profile", "fetchHrxEmployeeProfile"]],
-  ["apps/web/src/people/employees/EmployeeProfile.tsx", employeeProfile, ["ProfessionalProfileSection", "data-people-professional-profile-kind={profileKind}", "주요 경력", "학력", "자격·면허", "출처"]],
+  ["apps/web/src/people/employees/EmployeeProfile.tsx", employeeProfile, ["ProfessionalProfileSection", "data-people-professional-profile-kind={profileKind}", "주요 경력", "학력", "자격", "출처"]],
   ["apps/web/src/styles.css", styles, [".people-professional-profile", ".people-professional-list"]],
   ["apps/api/test/hrx-runtime-api.test.js", hrxRuntimeTest, ["professional_profile", "김양태", "조우상"]],
   ["apps/web/test/ui-regression.test.mjs", uiRegressionTest, ["professional_profile", "data-people-professional-profile-kind"]],
@@ -104,10 +111,10 @@ assert.equal(browserProof.claim_boundary.production_write, false);
 assert.equal(browserProof.claim_boundary.runtime_web_scraping, false);
 assert.equal(browserProof.claim_boundary.production_ready_claim, false);
 assert.ok(fileExists(BROWSER_PROOF_MD), "browser proof markdown missing");
-assert.equal(browserProof.subjects.length, expectedKinds.size);
+assert.equal(browserProof.subjects.length, browserProofExpectedKinds.size);
 for (const subject of browserProof.subjects) {
   assert.equal(subject.verdict, "PASS", `${subject.display_name} browser verdict`);
-  assert.equal(subject.expected_kind, expectedKinds.get(subject.display_name), `${subject.display_name} browser kind`);
+  assert.equal(subject.expected_kind, browserProofExpectedKinds.get(subject.display_name), `${subject.display_name} browser kind`);
   assert.ok(fileExists(subject.screenshot), `${subject.display_name} screenshot missing`);
 }
 assert.ok(browserProof.assertions.every((assertion) => assertion.passed), "browser proof assertion failed");

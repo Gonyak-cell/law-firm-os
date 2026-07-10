@@ -23,7 +23,7 @@ const viewChecks = [
   {
     name: "matters-live",
     url: "/?skin=matter&locale=en&view=matters&data=live&ctx=allow",
-    expectTexts: ["사건 상태, 담당자·참여자, 문서, 일정, 결재·청구 흐름"],
+    expectTexts: ["사건 상태, 팀, 문서, 일정, 정산 흐름"],
     selector: "[data-cmp-g4-live-matters='true']"
   },
   {
