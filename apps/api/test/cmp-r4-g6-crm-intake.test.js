@@ -170,6 +170,7 @@ test("G6 Client planned sections expose activity proposal and settings routes wi
     const activities = await json(baseUrl, `/api/crm/activities?${BASE_QUERY}`);
     assert.equal(activities.status, 200);
     assert.equal(activities.body.items[0].direct_matter_reference_included, false);
+    assert.equal(activities.body.items[0].party_display_name, "CMP G6 synthetic account");
     assert.match(activities.body.items[0].occurred_at, /^\d{4}-\d{2}-\d{2}T/);
     assert.match(activities.body.items[0].created_at, /^\d{4}-\d{2}-\d{2}T/);
     assert.equal("matter_id" in activities.body.items[0], false);
@@ -196,6 +197,7 @@ test("G6 Client planned sections expose activity proposal and settings routes wi
     });
     assert.equal(createdActivity.status, 201);
     assert.equal(createdActivity.body.audit_event.action, "crm.activity.created");
+    assert.equal(createdActivity.body.item.party_display_name, "CMP G6 synthetic account");
     assert.match(createdActivity.body.item.occurred_at, /^\d{4}-\d{2}-\d{2}T/);
     assert.match(createdActivity.body.item.created_at, /^\d{4}-\d{2}-\d{2}T/);
 

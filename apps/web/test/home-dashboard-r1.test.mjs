@@ -863,6 +863,36 @@ test("Home dashboard keeps independent cards available when monthly finance is d
   }
 });
 
+test("Home dashboard preserves a source error without hiding independent cards", async () => {
+  const port = await availablePort();
+  const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname === "/api/matters") {
+        return jsonResponse(route, {
+          request_id: "dashboard-matters-error",
+          outcome: "blocked",
+          safe_error_codes: ["MATTER_READ_UNAVAILABLE"],
+          production_ready_claim: false
+        }, 503);
+      }
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, { decisionCalls: 0, newsCalls: 0 }));
+    });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
+    assert.match(await page.locator('[data-dashboard-section="recent-work"]').innerText(), /최근 작업을 불러오지 못했습니다/);
+    assert.equal(await page.locator('[data-dashboard-section="new-engagements"] .dashboard-record-row').count() > 0, true);
+    assert.equal(await page.locator('[data-dashboard-section="monthly-sales"] .dashboard-record-row').count() > 0, true);
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
 test("R1 WP-6 renders notification dot from action inbox counts and i18n labels at runtime", async () => {
   const port = await availablePort();
   const server = await createServer({

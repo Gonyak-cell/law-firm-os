@@ -941,13 +941,21 @@ function actorIdFrom(body, context) {
   return typeof actorId === "string" && actorId.trim() !== "" ? actorId : null;
 }
 
-function serializeActivity(activity = {}) {
+function partyDisplayName(runtime, tenantId, partyId) {
+  if (!runtime?.masterDataRepository || !partyId) return null;
+  return runtime.masterDataRepository
+    .list({ tenant_id: tenantId, model_type: "Party" })
+    .find((party) => party.party_id === partyId)?.display_name ?? null;
+}
+
+function serializeActivity(activity = {}, runtime = DEFAULT_RUNTIME) {
   const confidential = activity.confidential === true;
   return Object.freeze({
     resource_id: activity.crm_activity_id,
     tenant_id: activity.tenant_id,
     crm_activity_id: activity.crm_activity_id,
     party_id: activity.party_id,
+    party_display_name: partyDisplayName(runtime, activity.tenant_id, activity.party_id),
     opportunity_id: activity.opportunity_id ?? null,
     activity_type: activity.activity_type,
     subject: confidential ? "보호된 이력" : activity.subject,
@@ -2052,7 +2060,7 @@ export function handleCrmActivityList({ query, context, requestId, runtime = DEF
     context,
     policy,
     items: runtime.crmRepository.list({ tenant_id: query.tenant_id, model_type: "CRMActivity" }),
-    serializer: serializeActivity,
+    serializer: (activity) => serializeActivity(activity, runtime),
   });
 }
 
@@ -2113,7 +2121,7 @@ export function handleCrmActivityCreate({ body, context, requestId, runtime = DE
     const response = {
       request_id: requestId,
       outcome: "created",
-      item: sanitizeItem(serializeActivity(created)),
+      item: sanitizeItem(serializeActivity(created, runtime)),
       audit_event: auditEvent,
       safe_error_codes: [],
       audit_hint_ref: query.audit_hint_ref,
@@ -2168,7 +2176,7 @@ export function handleCrmActivityPatch({ activityId, body, context, requestId, r
     const response = {
       request_id: requestId,
       outcome: "updated",
-      item: sanitizeItem(serializeActivity(updated)),
+      item: sanitizeItem(serializeActivity(updated, runtime)),
       audit_event: auditEvent,
       safe_error_codes: [],
       audit_hint_ref: query.audit_hint_ref,

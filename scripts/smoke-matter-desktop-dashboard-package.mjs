@@ -20,7 +20,7 @@ assert.equal(existsSync(executablePath), true, `packaged executable is required:
 mkdirSync(artifactDir, { recursive: true });
 
 const today = new Date();
-const todayKey = today.toISOString().slice(0, 10);
+const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 const nowIso = today.toISOString();
 const session = {
   state: "signed_in",
@@ -78,7 +78,7 @@ const server = createServer(async (request, response) => {
   if (pathname === "/api/profile/me") return respondJson(response, 200, { ...listBody(), item: { user_id: session.user_id, display_name: session.display_name, title: "QA" } });
   if (pathname === "/api/home/action-inbox") {
     const taskItems = url.searchParams.get("type") === "task"
-      ? [{ id: "task_dashboard_today", type: "task", title: "오늘 계약서 검토", matter_ref: matters[0].matter_id, due_at: `${todayKey}T12:00:00.000Z`, status: "todo" }]
+      ? [{ id: "task_dashboard_today", type: "task", title: "오늘 계약서 검토", matter_ref: matters[0].matter_id, due_at: `${todayKey}T12:00:00`, status: "todo" }]
       : [];
     return respondJson(response, 200, { ...listBody(taskItems), counts: { approval: 0, task_late: 0, task_today: taskItems.length } });
   }
@@ -175,10 +175,11 @@ try {
       const surfaceText = document.querySelector(selector)?.innerText ?? "";
       const forbiddenPatterns = [
         /\b(?:matter|user|tenant|account|lead|opportunity|contact|activity)_[a-z0-9_]+\b/gi,
-        /\b(?:Client|contacted|qualified|active|opening|closed|review_required|review)\b/g
+        /\b(?:Client|contacted|qualified|active|opening|closed|review_required|review|todo|in_progress|completed)\b/g
       ];
       return {
         sections: [...document.querySelectorAll(`${selector} [data-dashboard-section]`)].map((node) => node.getAttribute("data-dashboard-section")),
+        section_row_counts: Object.fromEntries([...document.querySelectorAll(`${selector} [data-dashboard-section]`)].map((node) => [node.getAttribute("data-dashboard-section"), node.querySelectorAll(".dashboard-record-row").length])),
         record_rows: document.querySelectorAll(`${selector} .dashboard-record-row`).length,
         horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
         matter_kpi_count: document.querySelectorAll('[data-matter-dashboard-kpis], [data-matter-priority-queue]').length,
@@ -191,7 +192,9 @@ try {
     if (view === "home") {
       assert.match(snapshot.body_preview, /오늘 계약서 검토/, "Home today To Do must render fixture data");
       assert.match(snapshot.body_preview, /대시보드 QA 공지/, "Home feed must render fixture data");
-      assert(snapshot.record_rows >= 3, `Home dashboard must render direct Matter, intake, and monthly rows: ${JSON.stringify(snapshot)}`);
+      for (const section of ["recent-work", "new-engagements", "monthly-sales"]) {
+        assert(snapshot.section_row_counts[section] >= 1, `Home ${section} must render its direct source: ${JSON.stringify(snapshot)}`);
+      }
     } else {
       assert(snapshot.record_rows >= 5, `${view} dashboard must render actual list rows: ${JSON.stringify(snapshot)}`);
     }

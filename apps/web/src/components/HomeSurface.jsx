@@ -295,6 +295,15 @@ async function homeReadProbe(promise, source) {
   }
 }
 
+async function dashboardReadProbe(promise, source) {
+  try {
+    const result = await promise;
+    return result ?? { kind: "error", source };
+  } catch {
+    return { kind: "error", source };
+  }
+}
+
 async function readHomeMatterSessionStatus() {
   const bridge = desktopSessionBridge();
   if (!bridge) return null;
@@ -863,9 +872,9 @@ export function HomeSurface({
     async function loadResults() {
       const [desktopResults, matters, intake, monthly] = await Promise.all([
         fetchDesktopHomeBridgeResults(),
-        homeReadProbe(fetchMatterRecords(args), "dashboard_matter_records"),
-        homeReadProbe(fetchIntakeRequests(args), "dashboard_intake"),
-        homeReadProbe(fetchAnalyticsFinanceMonthly(args), "dashboard_finance_monthly")
+        dashboardReadProbe(fetchMatterRecords(args), "dashboard_matter_records"),
+        dashboardReadProbe(fetchIntakeRequests(args), "dashboard_intake"),
+        dashboardReadProbe(fetchAnalyticsFinanceMonthly(args), "dashboard_finance_monthly")
       ]);
       const dashboard = { matters, intake, monthly };
       if (desktopResults) return { results: desktopResults, dashboard };

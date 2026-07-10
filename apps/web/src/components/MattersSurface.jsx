@@ -307,6 +307,13 @@ function matterStatus(value) {
   return "진행 중";
 }
 
+function matterTaskStatus(value) {
+  if (value === "in_progress") return "진행 중";
+  if (["done", "closed", "completed"].includes(value)) return "완료";
+  if (value === "review_required") return "검토 필요";
+  return "예정";
+}
+
 function billingStatus(value) {
   if (value === "not_started") return "시작 전";
   if (value === "review_required") return "검토 필요";
@@ -1006,6 +1013,7 @@ function MatterDashboardPanel({
   const myMatters = matters.filter((item) => matterAssignedToCurrentUser(item, currentOwnerRefs)).slice(0, 6);
   const newMatters = matters.filter((item) => item.status === "opening").sort((left, right) => dashboardDateValue(right) - dashboardDateValue(left)).slice(0, 5);
   const closedMatters = matters.filter((item) => item.status === "closed").sort((left, right) => dashboardDateValue(right) - dashboardDateValue(left)).slice(0, 5);
+  const mattersById = new Map(matters.map((item) => [item.matter_id, item]));
 
   function openSection(section, matter) {
     if (matter?.matter_id) onSelectMatter(matter.matter_id);
@@ -1024,7 +1032,10 @@ function MatterDashboardPanel({
       <DashboardListCard className="matter-dashboard-todo" title="오늘의 To Do" section="today-todo" onViewAll={() => onNavigateSection("matter-tasks")}>
         <DashboardReadState result={taskResult} noun="오늘의 To Do">
           <DashboardRecordList emptyText="오늘 마감 업무가 없습니다">
-            {todayTasks.map((item, index) => <DashboardRecordRow key={`task:${item.id ?? index}`} title={item.title ?? `업무 ${index + 1}`} meta={item.matter_ref ?? "Matter 미지정"} detail={viewedAtLabel(item.due_at)} status={item.status ?? "예정"} onOpen={() => onNavigateSection("matter-tasks")} />)}
+            {todayTasks.map((item, index) => {
+              const linkedMatter = mattersById.get(item.matter_ref);
+              return <DashboardRecordRow key={`task:${item.id ?? index}`} title={item.title ?? `업무 ${index + 1}`} meta={linkedMatter ? matterCodeLabel(linkedMatter) : item.matter_ref ? "매터 연결" : "매터 미지정"} detail={viewedAtLabel(item.due_at)} status={matterTaskStatus(item.status)} onOpen={() => onNavigateSection("matter-tasks")} />;
+            })}
           </DashboardRecordList>
         </DashboardReadState>
       </DashboardListCard>
