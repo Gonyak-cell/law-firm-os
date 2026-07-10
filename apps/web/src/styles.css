@@ -1890,18 +1890,27 @@ kbd {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 348px;
   grid-template-areas:
-    "appr todo rail"
-    "feed feed rail";
+    "recent recent rail"
+    "todo intake rail"
+    "monthly feed feed";
   gap: 14px;
   align-items: stretch;
 }
 
-.home-dashboard-approval {
-  grid-area: appr;
+.home-dashboard-recent {
+  grid-area: recent;
 }
 
 .home-dashboard-todo {
   grid-area: todo;
+}
+
+.home-dashboard-intake {
+  grid-area: intake;
+}
+
+.home-dashboard-monthly {
+  grid-area: monthly;
 }
 
 .home-dashboard-feed {
@@ -2740,6 +2749,114 @@ kbd {
   background: var(--am-surface);
 }
 
+.operational-dashboard-grid {
+  display: grid;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.matter-dashboard-layout,
+.people-dashboard-layout {
+  grid-template-columns: minmax(0, 7fr) minmax(300px, 5fr);
+  grid-template-areas:
+    "primary-one secondary-one"
+    "primary-two secondary-two"
+    "full full";
+}
+
+.matter-dashboard-recent,
+.people-dashboard-new-clients {
+  grid-area: primary-one;
+}
+
+.matter-dashboard-todo,
+.people-dashboard-prospects {
+  grid-area: secondary-one;
+}
+
+.matter-dashboard-mine,
+.people-dashboard-revenue {
+  grid-area: primary-two;
+}
+
+.matter-dashboard-intake,
+.people-dashboard-meetings {
+  grid-area: secondary-two;
+}
+
+.matter-dashboard-closed,
+.people-dashboard-ar {
+  grid-area: full;
+}
+
+.dashboard-record-list {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-record-row {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--am-border-soft);
+  border-radius: 0;
+  background: transparent;
+  color: var(--am-text);
+  text-align: left;
+}
+
+button.dashboard-record-row {
+  cursor: pointer;
+}
+
+button.dashboard-record-row:hover,
+button.dashboard-record-row:focus-visible {
+  background: var(--am-surface-subtle);
+}
+
+.dashboard-record-row:last-child {
+  border-bottom: 0;
+}
+
+.dashboard-record-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.dashboard-record-copy strong,
+.dashboard-record-copy small,
+.dashboard-record-detail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-record-copy strong {
+  font-size: 13px;
+}
+
+.dashboard-record-copy small,
+.dashboard-record-detail {
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+.dashboard-record-row em {
+  color: var(--am-text-subtle);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+}
+
 .home-message-thread-panel header {
   display: grid;
   gap: 3px;
@@ -2829,8 +2946,9 @@ kbd {
   .home-dashboard-grid {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-areas:
-      "appr todo"
-      "feed feed"
+      "recent recent"
+      "todo intake"
+      "monthly feed"
       "rail rail";
   }
 
@@ -2848,10 +2966,32 @@ kbd {
   .home-dashboard-grid {
     grid-template-columns: 1fr;
     grid-template-areas:
-      "appr"
+      "recent"
       "todo"
+      "intake"
+      "monthly"
       "feed"
       "rail";
+  }
+
+  .matter-dashboard-layout,
+  .people-dashboard-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "primary-one"
+      "secondary-one"
+      "primary-two"
+      "secondary-two"
+      "full";
+  }
+
+  .dashboard-record-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .dashboard-record-detail,
+  .dashboard-record-row em {
+    display: none;
   }
 
   .home-dashboard-rail {

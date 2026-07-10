@@ -22,6 +22,15 @@ import { LegalPeopleWorkspace } from "./legal/LegalPeopleWorkspace.tsx";
 import { HrxRiskDashboard } from "./security/HrxRiskDashboard.tsx";
 import { AttendanceWorkspace } from "./attendance/AttendanceWorkspace.tsx";
 import { PEOPLE_SECTION_IDS, getPeopleFeatureBySection } from "./peopleFeatureCatalog.js";
+import {
+  fetchAnalyticsFinanceClients,
+  fetchCrmAccounts,
+  fetchCrmActivities,
+  fetchCrmContacts,
+  fetchCrmLeads,
+  fetchCrmOpportunities
+} from "../data/apiClient.js";
+import { DashboardListCard, DashboardReadState, DashboardRecordList, DashboardRecordRow } from "../components/DashboardList.jsx";
 
 const LEGACY_LEGAL_PEOPLE_SECTIONS = [
   "people-directory",
@@ -30,11 +39,13 @@ const LEGACY_LEGAL_PEOPLE_SECTIONS = [
 ];
 
 const PEOPLE_SECTIONS = new Set([
+  "people-dashboard",
   ...LEGACY_LEGAL_PEOPLE_SECTIONS,
   ...PEOPLE_SECTION_IDS
 ]);
 
 const HANDLED_PEOPLE_SECTIONS = new Set([
+  "people-dashboard",
   "people-members",
   "people-org-chart",
   "people-documents",
@@ -83,6 +94,97 @@ type PeopleOverviewState = {
   metrics?: Record<string, unknown>;
   [key: string]: unknown;
 };
+
+type DashboardResult = { kind?: string; uiState?: string; outcome?: string; items?: any[] } | null;
+type PeopleDashboardResults = {
+  accounts: DashboardResult;
+  leads: DashboardResult;
+  opportunities: DashboardResult;
+  contacts: DashboardResult;
+  activities: DashboardResult;
+  financeClients: DashboardResult;
+};
+
+const peopleMoneyFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
+
+function dashboardItems(result: DashboardResult) {
+  return result?.kind === "data" && Array.isArray(result.items) ? result.items : [];
+}
+
+function dashboardDateValue(item: any) {
+  const value = item?.updated_at ?? item?.created_at ?? item?.scheduled_at ?? item?.occurred_at;
+  const parsed = value ? new Date(value) : null;
+  return parsed && !Number.isNaN(parsed.getTime()) ? parsed.getTime() : 0;
+}
+
+function dashboardDateLabel(value: unknown) {
+  const parsed = value ? new Date(String(value)) : null;
+  return parsed && !Number.isNaN(parsed.getTime())
+    ? parsed.toLocaleString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
+    : "일정 미정";
+}
+
+function moneyLabel(value: unknown, currency = "KRW") {
+  return `${peopleMoneyFormatter.format(Number(value) || 0)} ${currency}`;
+}
+
+function combinedReadState(results: DashboardResult[]) {
+  if (results.some((result) => result === null)) return null;
+  return results.find((result) => result?.uiState === "denied")
+    ?? results.find((result) => result?.uiState === "review_required" || result?.outcome === "review_required")
+    ?? results.find((result) => result?.kind === "error")
+    ?? { kind: "data", items: results.flatMap(dashboardItems) };
+}
+
+function PeopleDashboardPanel({ results, onNavigate }: { results: PeopleDashboardResults; onNavigate: (view: string, section: string) => void }) {
+  const newClients = dashboardItems(results.accounts).slice().sort((left, right) => dashboardDateValue(right) - dashboardDateValue(left)).slice(0, 5);
+  const prospectResult = combinedReadState([results.leads, results.opportunities, results.contacts]);
+  const prospects = dashboardItems(prospectResult).slice().sort((left, right) => dashboardDateValue(right) - dashboardDateValue(left)).slice(0, 5);
+  const financeClients = dashboardItems(results.financeClients);
+  const revenueRows = financeClients.slice().sort((left, right) => Number(right.billed_amount ?? 0) - Number(left.billed_amount ?? 0)).slice(0, 5);
+  const meetings = dashboardItems(results.activities).filter((item) => item.activity_type === "meeting").sort((left, right) => dashboardDateValue(right) - dashboardDateValue(left)).slice(0, 5);
+  const arRows = financeClients.filter((item) => Number(item.ar_balance ?? 0) > 0).sort((left, right) => Number(right.ar_balance ?? 0) - Number(left.ar_balance ?? 0)).slice(0, 5);
+
+  return (
+    <div className="operational-dashboard-grid people-dashboard-layout" data-people-dashboard="true">
+      <DashboardListCard className="people-dashboard-new-clients" title="신규 고객" section="new-clients" onViewAll={() => onNavigate("clients", "clients-list")}>
+        <DashboardReadState result={results.accounts} noun="신규 고객">
+          <DashboardRecordList emptyText="신규 고객이 없습니다">
+            {newClients.map((item, index) => <DashboardRecordRow key={`client:${item.account_id ?? index}`} title={item.display_name ?? `고객 ${index + 1}`} meta={item.account_type ?? item.status ?? "Client"} detail={dashboardDateLabel(item.created_at ?? item.updated_at)} status={item.owner_display_name ?? item.owner_user_id ?? "담당 미지정"} onOpen={() => onNavigate("clients", "clients-list")} />)}
+          </DashboardRecordList>
+        </DashboardReadState>
+      </DashboardListCard>
+      <DashboardListCard className="people-dashboard-prospects" title="잠재 고객/접촉" section="prospects-contacts" onViewAll={() => onNavigate("clients", "client-opportunities")}>
+        <DashboardReadState result={prospectResult} noun="잠재 고객과 접촉">
+          <DashboardRecordList emptyText="잠재 고객 또는 접촉 기록이 없습니다">
+            {prospects.map((item, index) => <DashboardRecordRow key={`prospect:${item.lead_id ?? item.opportunity_id ?? item.contact_id ?? index}`} title={item.display_name ?? item.subject ?? `접촉 ${index + 1}`} meta={item.stage ?? item.account_id ?? item.status ?? "접촉"} detail={dashboardDateLabel(item.updated_at ?? item.created_at)} status={item.owner_display_name ?? item.owner_user_id ?? "담당 미지정"} onOpen={() => onNavigate("clients", item.contact_id ? "client-contacts" : "client-opportunities")} />)}
+          </DashboardRecordList>
+        </DashboardReadState>
+      </DashboardListCard>
+      <DashboardListCard className="people-dashboard-revenue" title="매출 순위" section="revenue-ranking" onViewAll={() => onNavigate("home", "home-finance-clients")}>
+        <DashboardReadState result={results.financeClients} noun="고객별 매출">
+          <DashboardRecordList emptyText="표시할 고객별 매출이 없습니다">
+            {revenueRows.map((item, index) => <DashboardRecordRow key={`revenue:${item.client_group_id ?? index}:${item.currency ?? "KRW"}`} title={`${index + 1}. ${item.client_group_label ?? "미연결 고객"}`} meta={`청구 ${moneyLabel(item.billed_amount, item.currency)}`} detail={`수납 ${moneyLabel(item.collected_amount, item.currency)}`} onOpen={() => onNavigate("home", "home-finance-clients")} />)}
+          </DashboardRecordList>
+        </DashboardReadState>
+      </DashboardListCard>
+      <DashboardListCard className="people-dashboard-meetings" title="고객 미팅" section="client-meetings" onViewAll={() => onNavigate("clients", "client-activities")}>
+        <DashboardReadState result={results.activities} noun="고객 미팅">
+          <DashboardRecordList emptyText="고객 미팅이 없습니다">
+            {meetings.map((item, index) => <DashboardRecordRow key={`meeting:${item.crm_activity_id ?? index}`} title={item.subject ?? `고객 미팅 ${index + 1}`} meta={item.party_display_name ?? item.display_name ?? item.party_id ?? "고객 미지정"} detail={dashboardDateLabel(item.scheduled_at ?? item.occurred_at ?? item.created_at)} status={item.owner_display_name ?? item.owner_user_id ?? "담당 미지정"} onOpen={() => onNavigate("clients", "client-activities")} />)}
+          </DashboardRecordList>
+        </DashboardReadState>
+      </DashboardListCard>
+      <DashboardListCard className="people-dashboard-ar" title="미수금" section="accounts-receivable" onViewAll={() => onNavigate("home", "home-finance-ar")}>
+        <DashboardReadState result={results.financeClients} noun="고객별 미수금">
+          <DashboardRecordList emptyText="표시할 미수금이 없습니다">
+            {arRows.map((item, index) => <DashboardRecordRow key={`ar:${item.client_group_id ?? index}:${item.currency ?? "KRW"}`} title={item.client_group_label ?? "미연결 고객"} meta={`미수 ${moneyLabel(item.ar_balance, item.currency)}`} detail={item.month ?? "현재 잔액"} status={Number(item.ar_balance ?? 0) > 0 ? "회수 확인" : "정상"} onOpen={() => onNavigate("home", "home-finance-ar")} />)}
+          </DashboardRecordList>
+        </DashboardReadState>
+      </DashboardListCard>
+    </div>
+  );
+}
 
 function PeopleFeatureStatePanel({ feature }: { feature: PeopleFeature }) {
   const stateMeta = feature.stateMeta;
@@ -151,11 +253,12 @@ function peopleGuardState(liveCtx: string) {
   return null;
 }
 
-export function PeopleHome({ activeSection = "", liveCtx = "allow" }: { activeSection?: string; liveCtx?: string }) {
+export function PeopleHome({ activeSection = "", liveCtx = "allow", onNavigate = () => {} }: { activeSection?: string; liveCtx?: string; onNavigate?: (view: string, section: string) => void }) {
   const [overview, setOverview] = useState<PeopleOverviewState | null>(null);
+  const [dashboardResults, setDashboardResults] = useState<PeopleDashboardResults>({ accounts: null, leads: null, opportunities: null, contacts: null, activities: null, financeClients: null });
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const currentSection = PEOPLE_SECTIONS.has(activeSection) ? activeSection : "people-members";
+  const currentSection = PEOPLE_SECTIONS.has(activeSection) ? activeSection : "people-dashboard";
   const currentFeature = getPeopleFeatureBySection(currentSection);
   const guardedState = peopleGuardState(liveCtx);
 
@@ -176,6 +279,24 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }: { activeSe
       cancelled = true;
     };
   }, [liveCtx, refreshKey]);
+
+  useEffect(() => {
+    if (currentSection !== "people-dashboard" || guardedState) return undefined;
+    let cancelled = false;
+    setDashboardResults({ accounts: null, leads: null, opportunities: null, contacts: null, activities: null, financeClients: null });
+    const args = { ctx: liveCtx };
+    Promise.all([
+      fetchCrmAccounts(args),
+      fetchCrmLeads(args),
+      fetchCrmOpportunities(args),
+      fetchCrmContacts(args),
+      fetchCrmActivities(args),
+      fetchAnalyticsFinanceClients(args)
+    ]).then(([accounts, leads, opportunities, contacts, activities, financeClients]) => {
+      if (!cancelled) setDashboardResults({ accounts, leads, opportunities, contacts, activities, financeClients });
+    });
+    return () => { cancelled = true; };
+  }, [currentSection, liveCtx, refreshKey]);
 
   useEffect(() => {
     if (!selectedEmployeeId) return undefined;
@@ -203,6 +324,8 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }: { activeSe
             {guardedState.body}
           </div>
         )}
+
+        {!guardedState && currentSection === "people-dashboard" && <PeopleDashboardPanel results={dashboardResults} onNavigate={onNavigate} />}
 
         {!guardedState && currentSection === "people-directory" && <LegalPeopleWorkspace mode="directory" refreshKey={refreshKey} liveCtx={liveCtx} />}
 

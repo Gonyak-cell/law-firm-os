@@ -409,12 +409,11 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(homeSource, /data-home-dashboard-shell="true"/);
   assert.match(homeSource, /data-home-dashboard-grid="true"/);
   assert.match(homeSource, /data-active-home-section=\{activeHomeSection\}/);
-  assert.match(homeSource, /widgetId="approval"/);
+  assert.doesNotMatch(homeSource, /widgetId="approval"/);
   assert.match(homeSource, /widgetId="todo"/);
   assert.match(homeSource, /widgetId="calendar"/);
   assert.match(homeSource, /widgetId="feed"/);
   assert.doesNotMatch(homeSource, /widgetId="system"|home-dashboard-system/);
-  assert.match(homeSource, /homeWidgetApprovalTitle/);
   assert.match(homeSource, /homeWidgetTodoTitle/);
   assert.match(homeSource, /homeWidgetCalendarTitle/);
   assert.match(homeSource, /homeWidgetFeedTitle/);
@@ -429,7 +428,10 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(stylesSource, /\.home-feed-tabs button::after[\s\S]*height:\s*3px/);
   assert.match(stylesSource, /\.home-feed-tabs button\.active::after[\s\S]*background:\s*var\(--am-success\)/);
   assert.match(homeSource, /블로터, 법률신문, 딜사이트, 인베스트조선/);
-  assert.match(stylesSource, /grid-template-areas:\s*"appr todo rail"\s*"feed feed rail"/);
+  assert.match(stylesSource, /grid-template-areas:\s*"recent recent rail"\s*"todo intake rail"\s*"monthly feed feed"/);
+  for (const section of ["recent-work", "today-todo", "monthly-sales", "new-engagements", "feed", "calendar"]) {
+    assert.match(homeSource, new RegExp(`section="${section}"`));
+  }
   assert.match(stylesSource, /\.home-dashboard-rail\s*\{[\s\S]*display:\s*flex[\s\S]*flex-direction:\s*column/);
   assert.match(stylesSource, /\.home-dashboard-rail > \.home-dashboard-card:first-child\s*\{[\s\S]*flex:\s*1/);
   assert.match(stylesSource, /@media \(max-width:\s*1180px\)[\s\S]*\.home-dashboard-rail\s*\{[\s\S]*display:\s*flex[\s\S]*flex-direction:\s*column/);
@@ -500,7 +502,7 @@ test("Home dashboard Stage 4 keeps action counts on the single Home inbox source
   assert.match(homeSource, /Promise\.all\(\[\s*fetchHomeActionInbox\(\{ type: "approval", ctx: liveCtx \}\),\s*fetchHomeActionInbox\(\{ type: "task", ctx: liveCtx \}\)/);
   assert.match(homeSource, /const counts = approval\.counts \?\? task\.counts \?\? emptyHomeCounts/);
   assert.match(homeSource, /onHomeActionCountsChange\(counts\)/);
-  assert.match(homeSource, /data-home-widget-approval-count=\{actionInbox\.counts\.approval\}/);
+  assert.doesNotMatch(homeSource, /data-home-widget-approval-count=\{actionInbox\.counts\.approval\}/);
   assert.doesNotMatch(homeSource, /meta=\{`\$\{actionInbox\.counts\.approval\}\$\{homeCopy\(labels, "countSuffix", "건"\)\}`\}/);
   assert.match(homeSource, /data-home-inline-action=\{action\}/);
   assert.match(homeSource, /const previousActionInbox = actionInbox/);
@@ -1164,9 +1166,12 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(mattersSource, /onMatterUpdated=\{applyMatterUpdate\}/);
   assert.match(mattersSource, /function MatterDashboardPanel/);
   assert.match(mattersSource, /data-matter-dashboard="true"/);
-  assert.match(mattersSource, /data-matter-dashboard-kpis="true"/);
-  assert.match(mattersSource, /data-matter-priority-queue="true"/);
-  assert.match(mattersSource, /data-matter-dashboard-table="true"/);
+  assert.doesNotMatch(mattersSource, /data-matter-dashboard-kpis="true"/);
+  assert.doesNotMatch(mattersSource, /data-matter-priority-queue="true"/);
+  assert.doesNotMatch(mattersSource, /data-matter-dashboard-table="true"/);
+  for (const section of ["recent-work", "today-todo", "my-matters", "new-engagements", "closed-matters"]) {
+    assert.match(mattersSource, new RegExp(`section="${section}"`));
+  }
   assert.match(mattersSource, /title="대시보드"[\s\S]*<MatterDashboardPanel/);
   assert.doesNotMatch(mattersSource, /currentSection === "matter-home"[\s\S]{0,600}<CommandPanel/);
   assert.match(shellSource, /label: "대시보드", view: "matters", section: "matter-home"/);
@@ -1491,6 +1496,14 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /\/api\/analytics\/exports/);
   assert.doesNotMatch(apiClientSource, /mergeCrmContact|deleteCrmContact|postCrmContactMerge/);
   assert.match(peopleSource, /data-hrx-api-backed="true"/);
+  assert.match(peopleSource, /data-people-dashboard="true"/);
+  assert.match(peopleSource, /currentSection === "people-dashboard"/);
+  for (const title of ["신규 고객", "잠재 고객\/접촉", "매출 순위", "고객 미팅", "미수금"]) {
+    assert.match(peopleSource, new RegExp(title));
+  }
+  for (const source of ["fetchCrmAccounts", "fetchCrmLeads", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmActivities", "fetchAnalyticsFinanceClients"]) {
+    assert.match(peopleSource, new RegExp(source));
+  }
   assert.match(peopleSource, /data-people-work-layer="white"/);
   assert.doesNotMatch(peopleSource, /PageHeader|peopleTitle|구성원 관리/);
   assert.match(peopleSource, /data-people-detail-open=\{selectedEmployeeId \? "true" : "false"\}/);

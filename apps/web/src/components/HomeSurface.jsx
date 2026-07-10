@@ -10,6 +10,7 @@ import { backendCapabilities } from "../data/capabilityMap.js";
 import {
   fetchAiReviewQueue,
   fetchAnalyticsDashboards,
+  fetchAnalyticsFinanceMonthly,
   fetchCrmOpportunities,
   fetchDataRoomProjections,
   decideHomeActionInboxItem,
@@ -34,11 +35,13 @@ import { fetchHrxPeopleOverview } from "../people/hrxApiClient.ts";
 import { localHrxRosterDisplayNameForSession, localHrxRosterProfessionalLabelForSession } from "../people/hrxLocalRoster.ts";
 import { useSkin } from "../context/SkinContext.jsx";
 import { FinanceSurface } from "./FinanceSurface.jsx";
+import { DashboardListCard, DashboardReadState, DashboardRecordList, DashboardRecordRow } from "./DashboardList.jsx";
 
 const heroDateFormatter = new Intl.DateTimeFormat("ko-KR", { dateStyle: "full" });
 const monthFormatter = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "long" });
 const selectedDateFormatter = new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "short" });
 const homeDateTimeFormatter = new Intl.DateTimeFormat("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const homeMoneyFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
 const calendarWeekdays = Object.freeze(["일", "월", "화", "수", "목", "금", "토"]);
 const emptyHomeCounts = Object.freeze({ approval: 0, task_late: 0, task_today: 0 });
 const feedTabs = Object.freeze([
@@ -395,6 +398,22 @@ function formatDateTime(value) {
   return parsed ? homeDateTimeFormatter.format(parsed) : "기한 없음";
 }
 
+function dashboardDateValue(item) {
+  return parseDate(item?.updated_at ?? item?.viewed_at ?? item?.created_at ?? item?.requested_at ?? item?.opened_at)?.getTime() ?? 0;
+}
+
+function dashboardMatterTitle(item, index = 0) {
+  return item?.matter_code ?? item?.matter_number ?? item?.title ?? `Matter ${index + 1}`;
+}
+
+function dashboardClientTitle(item) {
+  return item?.client_display_name ?? item?.client_group_label ?? item?.display_name ?? item?.party_display_name ?? "고객 미지정";
+}
+
+function dashboardMoney(value, currency = "KRW") {
+  return `${homeMoneyFormatter.format(Number(value) || 0)} ${currency}`;
+}
+
 function startOfLocalDay(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
@@ -595,9 +614,9 @@ function buildMonthCells(baseDate) {
   });
 }
 
-function DashboardCard({ className = "", title, children, widgetId, onViewAll, headerExtra = null, viewAllLabel = "전체 보기" }) {
+function DashboardCard({ className = "", title, children, widgetId, section = widgetId, onViewAll, headerExtra = null, viewAllLabel = "전체 보기" }) {
   return (
-    <section className={`home-dashboard-card ${className}`} data-widget-id={widgetId}>
+    <section className={`home-dashboard-card ${className}`} data-widget-id={widgetId} data-dashboard-section={section}>
       <header className="home-dashboard-card-header">
         <div>
           <span>{title}</span>
@@ -840,6 +859,7 @@ export function HomeSurface({
         homeReadProbe(fetchFinanceTimeEntries(args), "matter_time"),
         homeReadProbe(fetchFinanceInvoices(args), "matter_invoices"),
         homeReadProbe(fetchFinanceArAging(args), "matter_ar"),
+        homeReadProbe(fetchAnalyticsFinanceMonthly(args), "matter_finance_monthly"),
         homeReadProbe(fetchAnalyticsDashboards(args), "matter_analytics"),
         homeReadProbe(fetchAiReviewQueue(args), "matter_ai_review")
       ]).then((results) => ({ id: "matter", result: combinePillarResults(results) })),
@@ -926,6 +946,7 @@ export function HomeSurface({
   const localizedFeedTabs = useMemo(() => localizedTabs(feedTabs, labels), [labels]);
   const localizedCalendarWeekdays = Array.isArray(labels.homeCalendarWeekdays) ? labels.homeCalendarWeekdays : calendarWeekdays;
   const capabilityById = useMemo(() => new Map(capabilities.map((capability) => [capability.id, capability])), [capabilities]);
+  const clientCapability = capabilityById.get("client") ?? capabilities[0];
   const matterCapability = capabilityById.get("matter") ?? capabilities[0];
   const peopleCapability = capabilityById.get("people") ?? capabilities[0];
   const vaultCapability = capabilityById.get("vault") ?? capabilities[0];
@@ -957,8 +978,21 @@ export function HomeSurface({
   const filteredApprovalItems = filterRequestItems(approvalItems, requestFilter);
   const filteredApprovalRows = sortApprovalRows(buildHomeActionRows(filteredApprovalItems, "approval", labels));
   const sentRequestRows = [];
-  const approvalPreviewRows = approvalRows.slice(0, 4);
   const todoPreviewRows = todoRows.slice(0, 5);
+  const clientDashboardItems = itemsFromResult(clientCapability?.result);
+  const matterDashboardItems = itemsFromResult(matterCapability?.result);
+  const matterDashboardRows = matterDashboardItems
+    .filter((item) => item?.matter_id && !item?.invoice_id && !item?.time_entry_id && !item?.ar_aging_snapshot_id && !item?.ar_balance_id)
+    .sort((left, right) => dashboardDateValue(right) - dashboardDateValue(left))
+    .slice(0, 5);
+  const intakeDashboardRows = clientDashboardItems
+    .filter((item) => item?.intake_request_id)
+    .sort((left, right) => dashboardDateValue(right) - dashboardDateValue(left))
+    .slice(0, 5);
+  const monthlyDashboardRows = matterDashboardItems
+    .filter((item) => item?.month && Object.hasOwn(item, "billed_amount"))
+    .sort((left, right) => String(right.month).localeCompare(String(left.month)))
+    .slice(0, 5);
   const selectedRequestFilter = localizedRequestFilters.find((filter) => filter.id === requestFilter) ?? localizedRequestFilters[0];
   const guardedApprovalRows = filteredApprovalRows.filter((row) => row.status === "review" || row.status === "guarded");
   const readyApprovalRows = filteredApprovalRows.filter((row) => row.status === "live");
@@ -1343,36 +1377,36 @@ export function HomeSurface({
         data-home-dashboard-focus={activeHomeSection !== "home-dashboard" ? activeHomeSection : undefined}
         data-lcx-web-capability-count={capabilities.length}
       >
-        <DashboardCard
-          className="home-dashboard-approval"
-          title={homeCopy(labels, "homeWidgetApprovalTitle", "승인 대기")}
-          widgetId="approval"
-          onViewAll={() => openHomeRoute("home-requests", "home", { source: "approval_widget_view_all" })}
+        <DashboardListCard
+          className="home-dashboard-recent"
+          title="최근 작업"
+          section="recent-work"
+          onViewAll={() => openHomeRoute("matters-list", "matters", { source: "recent_work_view_all" })}
           viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
         >
-          <span className="sr-only" data-home-widget-approval-count={actionInbox.counts.approval} aria-hidden="true" />
-          <div className="home-widget-list">
-            {approvalPreviewRows.map((row) => (
-              <DashboardRow
-                key={row.id}
-                {...row}
-                onOpen={(route) => openHomeRoute(route, route === "home-requests" ? "home" : "matters", { item_id: row.id, action_type: row.type })}
-                onAction={(action) => handleHomeAction(row, action)}
-                pending={pendingActionId.startsWith(`${row.id}:`)}
-                labels={labels}
-              />
-            ))}
-            {approvalPreviewRows.length === 0 && <EmptyWidgetState>{homeCopy(labels, "homeApprovalEmptyComplete", "처리할 승인이 없습니다 — 모두 완료했습니다")}</EmptyWidgetState>}
-          </div>
-        </DashboardCard>
+          <DashboardReadState result={matterCapability?.result} noun="최근 작업">
+            <DashboardRecordList emptyText="최근 작업이 없습니다">
+              {matterDashboardRows.map((item, index) => (
+                <DashboardRecordRow
+                  key={`recent:${item.matter_id ?? index}`}
+                  title={dashboardMatterTitle(item, index)}
+                  meta={[dashboardClientTitle(item), item.title].filter(Boolean).join(" / ")}
+                  detail={formatDateTime(item.updated_at ?? item.created_at)}
+                  status={item.status ? String(item.status) : undefined}
+                  onOpen={() => openHomeRoute("matters-list", "matters", { item_id: item.matter_id, source: "recent_work" })}
+                />
+              ))}
+            </DashboardRecordList>
+          </DashboardReadState>
+        </DashboardListCard>
         <DashboardCard
           className="home-dashboard-todo"
           title={homeCopy(labels, "homeWidgetTodoTitle", "오늘 To Do")}
           widgetId="todo"
+          section="today-todo"
           onViewAll={() => openHomeRoute("home-todo", "home", { source: "todo_widget_view_all" })}
           viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
         >
-          <span className="sr-only" data-home-widget-task-count={actionInbox.counts.task_today} aria-hidden="true" />
           <div className="home-widget-list">
             {todoPreviewRows.map((row) => (
               <DashboardRow
@@ -1387,10 +1421,54 @@ export function HomeSurface({
             {todoPreviewRows.length === 0 && renderTodoEmpty()}
           </div>
         </DashboardCard>
+        <DashboardListCard
+          className="home-dashboard-intake"
+          title="신규 수임"
+          section="new-engagements"
+          onViewAll={() => openHomeRoute("matter-intake", "matters", { source: "new_engagements_view_all" })}
+          viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
+        >
+          <DashboardReadState result={clientCapability?.result} noun="신규 수임">
+            <DashboardRecordList emptyText="신규 수임이 없습니다">
+              {intakeDashboardRows.map((item, index) => (
+                <DashboardRecordRow
+                  key={`intake:${item.intake_request_id ?? index}`}
+                  title={dashboardClientTitle(item)}
+                  meta={item.requested_scope_summary ?? item.display_name ?? "수임 검토"}
+                  detail={formatDateTime(item.requested_at ?? item.created_at)}
+                  status={item.status ? String(item.status) : undefined}
+                  onOpen={() => openHomeRoute("matter-intake", "matters", { item_id: item.intake_request_id, source: "new_engagement" })}
+                />
+              ))}
+            </DashboardRecordList>
+          </DashboardReadState>
+        </DashboardListCard>
+        <DashboardListCard
+          className="home-dashboard-monthly"
+          title="월별 매출"
+          section="monthly-sales"
+          onViewAll={() => openHomeRoute("home-finance-monthly", "home", { source: "monthly_sales_view_all" })}
+          viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
+        >
+          <DashboardReadState result={matterCapability?.result} noun="월별 매출">
+            <DashboardRecordList emptyText="표시할 월별 매출이 없습니다">
+              {monthlyDashboardRows.map((item) => (
+                <DashboardRecordRow
+                  key={`monthly:${item.month}:${item.currency ?? "KRW"}`}
+                  title={item.month}
+                  meta={`청구 ${dashboardMoney(item.billed_amount, item.currency)}`}
+                  detail={`수납 ${dashboardMoney(item.collected_amount, item.currency)}`}
+                  onOpen={() => openHomeRoute("home-finance-monthly", "home", { item_id: item.month, source: "monthly_sales" })}
+                />
+              ))}
+            </DashboardRecordList>
+          </DashboardReadState>
+        </DashboardListCard>
         <DashboardCard
           className="home-dashboard-feed"
           title={homeCopy(labels, "homeWidgetFeedTitle", "피드")}
           widgetId="feed"
+          section="feed"
           onViewAll={() => openHomeRoute("home-feed", "home", { source: "feed_widget_view_all" })}
           viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
         >
@@ -1466,6 +1544,7 @@ export function HomeSurface({
             className="home-dashboard-calendar"
             title={homeCopy(labels, "homeWidgetCalendarTitle", "캘린더")}
             widgetId="calendar"
+            section="calendar"
             onViewAll={() => openHomeRoute("home-calendar", "home", { source: "calendar_widget_view_all" })}
             viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
           >
@@ -1551,7 +1630,7 @@ export function HomeSurface({
 
   return (
     <section className="surface stack lcx-web-command-center home-dashboard-surface" data-lcx-web-command-center="true" data-home-dashboard-shell="true" data-active-home-section={activeHomeSection}>
-      <section className="home-dashboard-hero" style={{ backgroundImage: `linear-gradient(90deg, rgba(9, 43, 39, 0.92), rgba(9, 43, 39, 0.62)), url(${forestCover})` }}>
+      <section className="home-dashboard-hero" data-dashboard-section={activeHomeSection === "home-dashboard" ? "home" : undefined} style={{ backgroundImage: `linear-gradient(90deg, rgba(9, 43, 39, 0.92), rgba(9, 43, 39, 0.62)), url(${forestCover})` }}>
         <div>
           <h1>{heroTitle}</h1>
           {heroSubtitle && <p>{heroSubtitle}</p>}

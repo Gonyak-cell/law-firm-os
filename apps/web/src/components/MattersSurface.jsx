@@ -21,6 +21,7 @@ import {
   fetchFinanceAccountingExport,
   fetchFinanceInvoices,
   fetchFinanceTimeEntries,
+  fetchHomeActionInbox,
   fetchMatterActivities,
   fetchMatterAudit,
   fetchMatterCalendarEvents,
@@ -52,7 +53,9 @@ import {
   bulkUpdateRecordActions,
   updateRecordActionField,
   updateMatterInlineFields,
-  updateMatterProfile
+  updateMatterProfile,
+  readLawosApiSession,
+  readLawosSessionEnvelope
 } from "../data/apiClient.js";
 import { ForestHero } from "./ForestHero.jsx";
 import { DataTable, PageHeader, Panel, Property } from "./primitives.jsx";
@@ -63,6 +66,7 @@ import { MatterProfilePanel } from "./MatterProfilePanel.jsx";
 import { MatterVaultPanel } from "./MatterVaultPanel.jsx";
 import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
 import { useSkin } from "../context/SkinContext.jsx";
+import { DashboardListCard, DashboardReadState, DashboardRecordList, DashboardRecordRow } from "./DashboardList.jsx";
 
 const MATTER_PERMISSION_REF = "ui_cmp_g4_matter_live";
 const MATTER_AUDIT_HINT_REF = "ui_cmp_g4_matter_probe";
@@ -667,6 +671,37 @@ function viewedAtLabel(value) {
   });
 }
 
+function dashboardDateValue(item) {
+  const value = item?.updated_at ?? item?.viewed_at ?? item?.created_at ?? item?.opened_at ?? item?.closed_at;
+  const parsed = value ? new Date(value) : null;
+  return parsed && !Number.isNaN(parsed.getTime()) ? parsed.getTime() : 0;
+}
+
+function sameLocalDay(value, date = new Date()) {
+  const parsed = value ? new Date(value) : null;
+  return Boolean(parsed && !Number.isNaN(parsed.getTime()) && parsed.getFullYear() === date.getFullYear() && parsed.getMonth() === date.getMonth() && parsed.getDate() === date.getDate());
+}
+
+function sessionOwnerRefs() {
+  const apiSession = readLawosApiSession();
+  const envelope = readLawosSessionEnvelope();
+  const records = [apiSession?.user, apiSession?.principal, apiSession?.session, apiSession, envelope?.user, envelope];
+  const refs = new Set();
+  for (const record of records) {
+    for (const key of ["user_id", "employee_id", "actor_ref", "email", "display_name"]) {
+      const value = String(record?.[key] ?? "").trim().toLowerCase();
+      if (value) refs.add(value);
+    }
+  }
+  return refs;
+}
+
+function matterAssignedToCurrentUser(matter, ownerRefs) {
+  return [matter?.owner_user_id, matter?.owner_employee_id, matter?.owner_email, matter?.owner_display_name]
+    .map((value) => String(value ?? "").trim().toLowerCase())
+    .some((value) => value && ownerRefs.has(value));
+}
+
 function timelineTimeLabel(value) {
   if (!value) return "시각 미정";
   const parsed = new Date(value);
@@ -954,125 +989,66 @@ function matterDueLabel(matter) {
   return date.toLocaleDateString("ko-KR", { month: "2-digit", day: "2-digit" });
 }
 
-function matterIsDueWithin(matter, days) {
-  const distance = matterDaysUntil(matterDueDateValue(matter));
-  if (distance !== null) return distance >= 0 && distance <= days;
-  return Number(matter?.deadline_count ?? 0) > 0 && days >= 7;
-}
-
-function matterNeedsBillingReview(matter) {
-  return ["review_required", "partner_review_required", "draft", "issued", "partially_paid"].includes(matter?.wip_status);
-}
-
-function matterNeedsRiskReview(matter) {
-  return ["high", "critical", "elevated", "review_required"].includes(matter?.risk_level) || matter?.status === "review_required";
-}
-
-function matterVaultStatus(matter) {
-  return matter?.vault_workspace_id || Number(matter?.document_count ?? 0) > 0 ? "연결됨" : "미연결";
-}
-
 function MatterDashboardPanel({
   result,
   matters,
-  visibleMatters,
-  selectedMatterId,
-  selectedMatterIds,
+  recentResult,
+  taskResult,
+  currentOwnerRefs,
   onSelectMatter,
-  onToggleMatter,
-  onToggleAll
+  onNavigateSection
 }) {
-  const state = renderDashboardState(result, "Matter");
-  if (state) return state;
-  const activeMatters = matters.filter((item) => item.status !== "closed");
-  const dueTodayMatters = matters.filter((item) => matterIsDueWithin(item, 0));
-  const dueSoonMatters = matters.filter((item) => matterIsDueWithin(item, 7));
-  const ownerMissingMatters = matters.filter((item) => ownerLabel(item) === "미지정");
-  const billingReviewMatters = matters.filter(matterNeedsBillingReview);
-  const riskMatters = matters.filter(matterNeedsRiskReview);
-  const vaultMissingMatters = matters.filter((item) => matterVaultStatus(item) === "미연결");
-  const priorityRows = [
-    ["오늘 기한", String(dueTodayMatters.length), dueTodayMatters[0] ? matterCodeLabel(dueTodayMatters[0], 0) : "없음", "일정"],
-    ["7일 내 기한", String(dueSoonMatters.length), dueSoonMatters[0] ? matterCodeLabel(dueSoonMatters[0], 0) : "없음", "일정"],
-    ["담당자 미지정", String(ownerMissingMatters.length), ownerMissingMatters[0] ? matterCodeLabel(ownerMissingMatters[0], 0) : "없음", "팀"],
-    ["청구/WIP 확인", String(billingReviewMatters.length), billingReviewMatters[0] ? matterCodeLabel(billingReviewMatters[0], 0) : "없음", "청구"],
-    ["Vault 미연결", String(vaultMissingMatters.length), vaultMissingMatters[0] ? matterCodeLabel(vaultMissingMatters[0], 0) : "없음", "사건 문서"],
-    ["위험 표시", String(riskMatters.length), riskMatters[0] ? matterCodeLabel(riskMatters[0], 0) : "없음", "사건 위험"]
-  ];
-  const statusRows = [
-    ["개시 중", String(matters.filter((item) => item.status === "opening").length), "수임 진행"],
-    ["진행 중", String(activeMatters.filter((item) => item.status !== "opening").length), "업무 진행"],
-    ["검토 필요", String(matters.filter((item) => item.status === "review_required").length), "위험 확인"],
-    ["종료", String(matters.filter((item) => item.status === "closed").length), "종결 처리"]
-  ];
-  const operationRows = visibleMatters.slice(0, 8);
+  const recentRows = (resultItems(recentResult).length > 0 ? resultItems(recentResult) : matters)
+    .slice()
+    .sort((left, right) => dashboardDateValue(right) - dashboardDateValue(left))
+    .slice(0, 5);
+  const todayTasks = resultItems(taskResult).filter((item) => sameLocalDay(item.due_at)).slice(0, 5);
+  const myMatters = matters.filter((item) => matterAssignedToCurrentUser(item, currentOwnerRefs)).slice(0, 6);
+  const newMatters = matters.filter((item) => item.status === "opening").sort((left, right) => dashboardDateValue(right) - dashboardDateValue(left)).slice(0, 5);
+  const closedMatters = matters.filter((item) => item.status === "closed").sort((left, right) => dashboardDateValue(right) - dashboardDateValue(left)).slice(0, 5);
+
+  function openSection(section, matter) {
+    if (matter?.matter_id) onSelectMatter(matter.matter_id);
+    onNavigateSection(section);
+  }
+
   return (
-    <div className="matter-live-stack" data-matter-dashboard="true">
-      <div className="record-action-grid" data-matter-dashboard-kpis="true">
-        <div className="record-action-strip">
-          <div>
-            <span>진행 중 Matter</span>
-            <strong>{activeMatters.length}</strong>
-            <small>전체 {matters.length}건</small>
-          </div>
-        </div>
-        <div className="record-action-strip">
-          <div>
-            <span>7일 내 기한</span>
-            <strong>{dueSoonMatters.length}</strong>
-            <small>오늘 {dueTodayMatters.length}건</small>
-          </div>
-        </div>
-        <div className="record-action-strip">
-          <div>
-            <span>담당자 미지정</span>
-            <strong>{ownerMissingMatters.length}</strong>
-            <small>팀 확인 필요</small>
-          </div>
-        </div>
-        <div className="record-action-strip">
-          <div>
-            <span>청구/WIP 확인</span>
-            <strong>{billingReviewMatters.length}</strong>
-            <small>위험 표시 {riskMatters.length}건</small>
-          </div>
-        </div>
-      </div>
-      <div className="workspace-mini-grid" data-matter-priority-queue="true">
-        <DataTable columns={["우선 확인", "건수", "대표 Matter", "이동 메뉴"]} rows={priorityRows} />
-      </div>
-      <div className="record-action-grid">
-        <div className="workspace-mini-grid" data-matter-status-distribution="true">
-          <DataTable columns={["상태", "건수", "업무"]} rows={statusRows} />
-        </div>
-        <div className="workspace-mini-grid" data-matter-risk-summary="true">
-          <DataTable
-            columns={["Matter", "Client", "기한", "위험"]}
-            rows={(riskMatters.length > 0 ? riskMatters : activeMatters).slice(0, 5).map((item, index) => [
-              matterCodeLabel(item, index),
-              matterClientLabel(item),
-              matterDueLabel(item),
-              riskLabel(item.risk_level)
-            ])}
-          />
-        </div>
-      </div>
-      <div data-matter-dashboard-table="true">
-        {operationRows.length > 0 ? (
-          <MatterSelectableList
-            matters={operationRows}
-            selectedMatterId={selectedMatterId}
-            selectedMatterIds={selectedMatterIds}
-            onSelectMatter={onSelectMatter}
-            onToggleMatter={onToggleMatter}
-            onToggleAll={onToggleAll}
-          />
-        ) : (
-          <div className="live-data-state live-data-empty">
-            <strong>표시할 Matter가 없습니다</strong>
-          </div>
-        )}
-      </div>
+    <div className="operational-dashboard-grid matter-dashboard-layout" data-matter-dashboard="true">
+      <DashboardListCard className="matter-dashboard-recent" title="최근 작업" section="recent-work" onViewAll={() => onNavigateSection("matters-list")}>
+        <DashboardReadState result={recentResult ?? result} noun="최근 작업">
+          <DashboardRecordList emptyText="최근 작업이 없습니다">
+            {recentRows.map((item, index) => <DashboardRecordRow key={`recent:${item.matter_id ?? index}`} title={matterCodeLabel(item, index)} meta={`${matterClientLabel(item)} / ${matterTitleLabel(item.title, index)}`} detail={viewedAtLabel(item.viewed_at ?? item.updated_at ?? item.created_at)} status={matterStatus(item.status)} onOpen={() => openSection("matters-list", item)} />)}
+          </DashboardRecordList>
+        </DashboardReadState>
+      </DashboardListCard>
+      <DashboardListCard className="matter-dashboard-todo" title="오늘의 To Do" section="today-todo" onViewAll={() => onNavigateSection("matter-tasks")}>
+        <DashboardReadState result={taskResult} noun="오늘의 To Do">
+          <DashboardRecordList emptyText="오늘 마감 업무가 없습니다">
+            {todayTasks.map((item, index) => <DashboardRecordRow key={`task:${item.id ?? index}`} title={item.title ?? `업무 ${index + 1}`} meta={item.matter_ref ?? "Matter 미지정"} detail={viewedAtLabel(item.due_at)} status={item.status ?? "예정"} onOpen={() => onNavigateSection("matter-tasks")} />)}
+          </DashboardRecordList>
+        </DashboardReadState>
+      </DashboardListCard>
+      <DashboardListCard className="matter-dashboard-mine" title="나의 매터(담당 지정)" section="my-matters" onViewAll={() => onNavigateSection("matters-list")}>
+        <DashboardReadState result={result} noun="나의 매터">
+          <DashboardRecordList emptyText="담당 지정된 Matter가 없습니다">
+            {myMatters.map((item, index) => <DashboardRecordRow key={`mine:${item.matter_id ?? index}`} title={matterCodeLabel(item, index)} meta={`${matterClientLabel(item)} / ${matterTitleLabel(item.title, index)}`} detail={matterDueLabel(item)} status={matterStatus(item.status)} onOpen={() => openSection("matters-list", item)} />)}
+          </DashboardRecordList>
+        </DashboardReadState>
+      </DashboardListCard>
+      <DashboardListCard className="matter-dashboard-intake" title="신규 수임" section="new-engagements" onViewAll={() => onNavigateSection("matter-intake")}>
+        <DashboardReadState result={result} noun="신규 수임">
+          <DashboardRecordList emptyText="신규 수임이 없습니다">
+            {newMatters.map((item, index) => <DashboardRecordRow key={`opening:${item.matter_id ?? index}`} title={matterCodeLabel(item, index)} meta={`${matterClientLabel(item)} / ${matterTitleLabel(item.title, index)}`} detail={viewedAtLabel(item.opened_at ?? item.created_at)} status="개시 중" onOpen={() => openSection("matter-intake", item)} />)}
+          </DashboardRecordList>
+        </DashboardReadState>
+      </DashboardListCard>
+      <DashboardListCard className="matter-dashboard-closed" title="종결 매터" section="closed-matters" onViewAll={() => onNavigateSection("matters-list")}>
+        <DashboardReadState result={result} noun="종결 매터">
+          <DashboardRecordList emptyText="종결된 Matter가 없습니다">
+            {closedMatters.map((item, index) => <DashboardRecordRow key={`closed:${item.matter_id ?? index}`} title={matterCodeLabel(item, index)} meta={`${matterClientLabel(item)} / ${matterTitleLabel(item.title, index)}`} detail={viewedAtLabel(item.closed_at ?? item.updated_at)} status="종결" onOpen={() => openSection("matters-list", item)} />)}
+          </DashboardRecordList>
+        </DashboardReadState>
+      </DashboardListCard>
     </div>
   );
 }
@@ -2672,6 +2648,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [statusTransitionResult, setStatusTransitionResult] = useState(null);
   const [partyRegisterResult, setPartyRegisterResult] = useState(null);
   const [recentResult, setRecentResult] = useState(null);
+  const [dashboardTaskResult, setDashboardTaskResult] = useState(null);
   const [listViewResult, setListViewResult] = useState(null);
   const [inlineEditResult, setInlineEditResult] = useState(null);
   const [ownerChangeResult, setOwnerChangeResult] = useState(null);
@@ -2730,6 +2707,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [activeListViewId, setActiveListViewId] = useState(null);
   const [matterCodeEditValue, setMatterCodeEditValue] = useState("");
   const currentSection = MATTER_SECTIONS.has(activeSection) ? activeSection : "matter-home";
+  const currentOwnerRefs = useMemo(() => sessionOwnerRefs(), [refreshToken]);
 
   useEffect(() => {
     if (refreshSignalRef.current === refreshSignal) return;
@@ -2750,6 +2728,15 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     return () => {
       cancelled = true;
     };
+  }, [liveCtx, refreshToken]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setDashboardTaskResult(null);
+    fetchHomeActionInbox({ type: "task", ctx: liveCtx }).then((next) => {
+      if (!cancelled) setDashboardTaskResult(next);
+    });
+    return () => { cancelled = true; };
   }, [liveCtx, refreshToken]);
 
   useEffect(() => {
@@ -2932,9 +2919,8 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   useEffect(() => {
     let cancelled = false;
     setRecentResult(null);
-    if (!activeMatterId) return undefined;
-    markMatterRecentlyViewed({ matterId: activeMatterId, ctx: liveCtx })
-      .then(() => fetchMatterRecentlyViewed({ ctx: liveCtx }))
+    const markRecent = activeMatterId ? markMatterRecentlyViewed({ matterId: activeMatterId, ctx: liveCtx }) : Promise.resolve();
+    markRecent.then(() => fetchMatterRecentlyViewed({ ctx: liveCtx }))
       .then((next) => {
         if (!cancelled) setRecentResult(next);
       });
@@ -3872,12 +3858,11 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             <MatterDashboardPanel
               result={result}
               matters={matters}
-              visibleMatters={visibleMatters}
-              selectedMatterId={activeMatterId}
-              selectedMatterIds={selectedMatterIds}
+              recentResult={recentResult}
+              taskResult={dashboardTaskResult}
+              currentOwnerRefs={currentOwnerRefs}
               onSelectMatter={setSelectedMatterId}
-              onToggleMatter={handleToggleMatter}
-              onToggleAll={handleToggleAllVisible}
+              onNavigateSection={onNavigateSection}
             />
           </Panel>
         )}

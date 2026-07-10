@@ -206,6 +206,35 @@ function wp5ActionItem({ id, type, title, dueOffset, dueHour = 9, riskTier = "no
 }
 
 function wp5ApiBody(pathname, searchParams, state) {
+  const list = (id, items) => ({ request_id: id, outcome: "passed", ui_state: "ready", items, page_info: { next_cursor: null, returned_count: items.length }, safe_error_codes: [], audit_hint_ref: `${id}-audit`, count_leak_prevented: true, production_ready_claim: false });
+  if (pathname === "/api/matters") {
+    return list("dashboard-matters", [
+      { matter_id: "matter-dashboard-opening", matter_code: "2026-101", title: "신규 자문", client_display_name: "고객 A", status: "opening", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) },
+      { matter_id: "matter-dashboard-active", matter_code: "2026-099", title: "진행 자문", client_display_name: "고객 B", status: "active", owner_user_id: "jwsuh@amic.kr", updated_at: wp5IsoDay(0) },
+      { matter_id: "matter-dashboard-closed", matter_code: "2026-088", title: "종결 자문", client_display_name: "고객 C", status: "closed", closed_at: wp5IsoDay(-2) }
+    ]);
+  }
+  if (pathname === "/api/matters/recently-viewed") {
+    return list("dashboard-recent", [{ matter_id: "matter-dashboard-active", matter_code: "2026-099", title: "진행 자문", client_display_name: "고객 B", status: "active", viewed_at: wp5IsoDay(0) }]);
+  }
+  if (pathname === "/api/intake/requests") {
+    return list("dashboard-intakes", [{ intake_request_id: "intake-dashboard-1", display_name: "고객 A", requested_scope_summary: "신규 자문 수임", status: "review_required", requested_at: wp5IsoDay(-1) }]);
+  }
+  if (pathname === "/api/crm/accounts") {
+    return list("dashboard-accounts", [{ account_id: "account-dashboard-1", display_name: "고객 A", status: "active", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) }]);
+  }
+  if (pathname === "/api/crm/leads") {
+    return list("dashboard-leads", [{ lead_id: "lead-dashboard-1", display_name: "잠재 고객 A", status: "active", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) }]);
+  }
+  if (pathname === "/api/crm/opportunities") {
+    return list("dashboard-opportunities", [{ opportunity_id: "opp-dashboard-1", display_name: "잠재 수임 A", stage: "qualified", status: "active", owner_user_id: "jwsuh@amic.kr", updated_at: wp5IsoDay(0) }]);
+  }
+  if (pathname === "/api/crm/contacts") {
+    return list("dashboard-contacts", [{ contact_id: "contact-dashboard-1", account_id: "account-dashboard-1", display_name: "고객 담당자 A", status: "active", updated_at: wp5IsoDay(0) }]);
+  }
+  if (pathname === "/api/crm/activities") {
+    return list("dashboard-activities", [{ crm_activity_id: "meeting-dashboard-1", party_id: "party-dashboard-1", activity_type: "meeting", subject: "고객 정기 미팅", status: "active", owner_user_id: "jwsuh@amic.kr", scheduled_at: wp5IsoDay(1) }]);
+  }
   if (pathname === "/api/analytics/finance/overview") {
     return {
       request_id: "wp-fin-3-overview",
@@ -436,6 +465,8 @@ test("grouped sidebars route to defaults and expose children only in contextual 
 
     for (const view of ["home", "clients", "matters", "people"]) {
       await page.goto(`http://127.0.0.1:${port}/?view=${view}&ctx=allow`, { waitUntil: "networkidle" });
+      const overlayScrim = page.locator(".record-overlay-scrim");
+      if (await overlayScrim.count()) await overlayScrim.click();
       const toggles = page.locator(`[data-context-sidebar="${view}"] .sidebar-group-toggle`);
       const count = await toggles.count();
       assert.ok(count > 0, `${view} must render at least one grouped sidebar menu`);
@@ -444,8 +475,11 @@ test("grouped sidebars route to defaults and expose children only in contextual 
         const expectedSection = await toggle.getAttribute("data-sidebar-default-section");
         assert.ok(expectedSection, `${view} group ${index} must declare a default section`);
         assert.equal(await toggle.getAttribute("aria-expanded"), null, `${view} group ${index} must not be an accordion`);
-        await toggle.click();
-        await page.waitForFunction((section) => window.location.hash === `#${section}`, expectedSection);
+        const alreadyDefault = await toggle.getAttribute("aria-current");
+        if (!alreadyDefault) {
+          await toggle.evaluate((element) => element.click());
+          await page.waitForFunction((section) => window.location.hash === `#${section}`, expectedSection);
+        }
         assert.equal(await page.locator(".sidebar-subnav,.sidebar-child").count(), 0, `${view} group ${index} must not render nested sidebar items`);
         const contextSubnav = page.locator(".context-subnav");
         assert.equal(await contextSubnav.count(), 1, `${view} group ${index} must render contextual navigation`);
@@ -696,9 +730,10 @@ test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async ()
     const heroText = await page.locator(".home-dashboard-hero").innerText();
     assert.doesNotMatch(heroText, /\bHOME\b/);
     assert.doesNotMatch(heroText, /오늘 처리할 항목/);
-    const approvalIds = await page.locator('[data-widget-id="approval"] [data-home-action-id]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-home-action-id")));
-    assert.deepEqual(approvalIds, ["approval_oldest", "approval_today", "approval_mid", "approval_tomorrow"]);
-    assert.equal(await page.locator('[data-widget-id="approval"] [data-home-tab-id]').count(), 0);
+    assert.equal(await page.locator('[data-widget-id="approval"]').count(), 0);
+    for (const section of ["home", "recent-work", "today-todo", "calendar", "monthly-sales", "new-engagements", "feed"]) {
+      assert.equal(await page.locator(`[data-dashboard-section="${section}"]`).count(), 1);
+    }
 
     const todoIds = await page.locator('[data-widget-id="todo"] [data-home-action-id]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-home-action-id")));
     assert.deepEqual(todoIds, ["task_late_three", "task_late_one", "task_today", "task_upcoming_one", "task_upcoming_two"]);
@@ -706,13 +741,17 @@ test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async ()
     assert.equal(await page.locator('[data-home-action-id="task_today"]').getAttribute("data-home-deadline-bucket"), "today");
     assert.equal(await page.locator('[data-home-action-id="task_late_three"] [data-home-task-checkbox]').count(), 1);
 
-    await page.locator('[data-home-action-id="approval_oldest"] [data-home-inline-action="approve"]').click();
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-requests`, { waitUntil: "networkidle" });
+    const approvalIds = await page.locator('[data-home-section-screen="home-requests"] [data-home-action-id]').evaluateAll((nodes) => [...new Set(nodes.map((node) => node.getAttribute("data-home-action-id")))]);
+    assert.deepEqual(approvalIds, ["approval_oldest", "approval_today", "approval_mid", "approval_tomorrow", "approval_newest"]);
+    await page.locator('[data-home-action-id="approval_oldest"] [data-home-inline-action="approve"]').first().click();
     await page.waitForSelector('[data-home-action-undo-button="true"]');
     assert.equal(await page.locator("[data-home-hero-action-count]").count(), 0);
     await page.locator('[data-home-action-undo-button="true"]').click();
     await page.waitForSelector('[data-home-action-id="approval_oldest"]');
     await page.waitForTimeout(250);
     assert.equal(state.decisionCalls, 0);
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
     assert.doesNotMatch(await page.locator(".home-dashboard-hero").innerText(), /오늘 처리할 항목/);
 
     const todayKey = wp5DateKey(0);
@@ -732,6 +771,54 @@ test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async ()
     await page.locator('[data-home-feed-retry="true"]').click();
     await page.waitForFunction(() => window.document.querySelector("[data-home-feed-retry='true']") !== null);
     assert.ok(state.newsCalls >= 2);
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
+test("dashboard bodies render the requested Home, Matter, and People work areas without KPI counts", async () => {
+  const port = await availablePort();
+  const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  const state = { decisionCalls: 0, newsCalls: 0 };
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
+    });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
+    for (const title of ["최근 작업", "오늘 To Do", "캘린더", "월별 매출", "신규 수임", "피드"]) {
+      assert.equal(await page.getByText(title, { exact: true }).count() > 0, true, `Home must show ${title}`);
+    }
+    assert.equal(await page.locator('[data-home-widget-approval-count], [data-widget-id="approval"]').count(), 0);
+    assert.equal(await page.locator('[data-dashboard-section="recent-work"] .dashboard-record-row').count() > 0, true);
+    assert.equal(await page.locator('[data-dashboard-section="monthly-sales"] .dashboard-record-row').count() > 0, true);
+    await page.setViewportSize({ width: 1024, height: 768 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), false, "Home dashboard must not overflow at 1024px");
+    await page.setViewportSize({ width: 1366, height: 900 });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow#matter-home`, { waitUntil: "networkidle" });
+    await page.waitForSelector('[data-matter-dashboard="true"]');
+    for (const title of ["최근 작업", "오늘의 To Do", "나의 매터(담당 지정)", "신규 수임", "종결 매터"]) {
+      assert.equal(await page.getByText(title, { exact: true }).count(), 1, `Matter must show ${title}`);
+    }
+    assert.equal(await page.locator('[data-matter-dashboard-kpis], [data-matter-priority-queue]').count(), 0);
+    assert.equal(await page.locator('[data-dashboard-section="closed-matters"] .dashboard-record-row').count(), 1);
+
+    await page.goto(`http://127.0.0.1:${port}/?view=people&ctx=allow#people-dashboard`, { waitUntil: "networkidle" });
+    await page.waitForSelector('[data-people-dashboard="true"]');
+    for (const title of ["신규 고객", "잠재 고객/접촉", "매출 순위", "고객 미팅", "미수금"]) {
+      assert.equal(await page.getByText(title, { exact: true }).count(), 1, `People must show ${title}`);
+    }
+    for (const section of ["new-clients", "prospects-contacts", "revenue-ranking", "client-meetings", "accounts-receivable"]) {
+      assert.equal(await page.locator(`[data-dashboard-section="${section}"]`).count(), 1);
+    }
+    assert.equal(await page.locator('[data-dashboard-section="new-clients"] .dashboard-record-row').count(), 1);
+    assert.equal(await page.locator('[data-dashboard-section="client-meetings"] .dashboard-record-row').count(), 1);
   } finally {
     await browser.close();
     await server.close();
@@ -768,7 +855,7 @@ test("R1 WP-6 renders notification dot from action inbox counts and i18n labels 
 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow&locale=en#home-dashboard`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-notification-info-count="2"]');
-    assert.match(await page.locator('[data-widget-id="approval"]').textContent(), /Pending approvals/);
+    assert.equal(await page.locator('[data-widget-id="approval"]').count(), 0);
     assert.doesNotMatch(await page.locator('[data-widget-id="todo"]').textContent(), /Late 2, Today 1/);
     assert.equal(await page.locator("#home-feed-tab-notice").textContent(), "Internal notices");
     assert.ok((await page.locator('.sidebar button:has-text("Dashboard")').count()) > 0);
@@ -778,7 +865,7 @@ test("R1 WP-6 renders notification dot from action inbox counts and i18n labels 
   }
 });
 
-test("R1 WP-7 keeps Home counts equal across widget, sidebar, topbar, and dedicated views", async () => {
+test("R1 WP-7 keeps approval counts out of dashboard cards and equal across sidebar, topbar, and dedicated views", async () => {
   const port = await availablePort();
   const server = await createServer({
     root: webRoot,
@@ -796,17 +883,17 @@ test("R1 WP-7 keeps Home counts equal across widget, sidebar, topbar, and dedica
     });
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
 
-    await page.waitForSelector('[data-home-widget-approval-count="5"]');
+    await page.waitForSelector('[data-home-sidebar-approval-count="5"]');
     const dashboardSurfaceText = await page.locator(".home-dashboard-surface").innerText();
-    assert.equal(visibleLineCount(dashboardSurfaceText, "승인 대기"), 1);
+    assert.equal(visibleLineCount(dashboardSurfaceText, "승인 대기"), 0);
     assert.doesNotMatch(dashboardSurfaceText, /승인 요청/);
     assert.doesNotMatch(dashboardSurfaceText, /·/);
     const dashboardCounts = await page.evaluate(() => ({
-      widget: document.querySelector("[data-home-widget-approval-count]")?.getAttribute("data-home-widget-approval-count"),
       sidebar: document.querySelector("[data-home-sidebar-approval-count]")?.getAttribute("data-home-sidebar-approval-count"),
       topbar: document.querySelector("[data-home-topbar-approval-count]")?.getAttribute("data-home-topbar-approval-count")
     }));
-    assert.deepEqual(dashboardCounts, { widget: "5", sidebar: "5", topbar: "5" });
+    assert.deepEqual(dashboardCounts, { sidebar: "5", topbar: "5" });
+    assert.equal(await page.locator("[data-home-widget-approval-count]").count(), 0);
 
     await page.locator('[data-home-widget-view-all="todo"]').click();
     await page.waitForFunction(() => window.location.hash === "#home-todo");
@@ -816,15 +903,14 @@ test("R1 WP-7 keeps Home counts equal across widget, sidebar, topbar, and dedica
     await page.locator('[data-product-axis="matters"]').click();
     await page.waitForFunction(() => new URL(window.location.href).searchParams.get("view") === "matters");
     await page.locator('[data-product-axis="home"]').click();
-    await page.waitForSelector('[data-home-widget-approval-count="5"]');
+    await page.waitForSelector('[data-home-sidebar-approval-count="5"]');
     const afterAxisCounts = await page.evaluate(() => ({
-      widget: document.querySelector("[data-home-widget-approval-count]")?.getAttribute("data-home-widget-approval-count"),
       sidebar: document.querySelector("[data-home-sidebar-approval-count]")?.getAttribute("data-home-sidebar-approval-count"),
       topbar: document.querySelector("[data-home-topbar-approval-count]")?.getAttribute("data-home-topbar-approval-count")
     }));
-    assert.deepEqual(afterAxisCounts, { widget: "5", sidebar: "5", topbar: "5" });
+    assert.deepEqual(afterAxisCounts, { sidebar: "5", topbar: "5" });
 
-    await page.locator('[data-home-widget-view-all="approval"]').click();
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-requests`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-home-section-screen="home-requests"]');
     await page.waitForSelector(".home-dashboard-hero h1");
     const requestsSurfaceText = await page.locator(".home-dashboard-surface").innerText();
