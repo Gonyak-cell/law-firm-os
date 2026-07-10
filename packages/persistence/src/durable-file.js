@@ -22,6 +22,19 @@ export function resolveLocalBackupRoot(env = process.env) {
   return env.LAWOS_LOCAL_BACKUP_ROOT || env.MATTER_VAULT_BACKUP_ROOT || LAWOS_LOCAL_BACKUP_ROOT;
 }
 
+export function readFileSyncWithStaleRetry(filePath, options = "utf8", { attempts = 3, readFileSyncImpl = readFileSync } = {}) {
+  let lastError;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      return readFileSyncImpl(filePath, options);
+    } catch (error) {
+      lastError = error;
+      if (error?.code !== "ESTALE" && error?.errno !== -116) throw error;
+    }
+  }
+  throw lastError;
+}
+
 function safeStoreName(filePath) {
   return basename(filePath || "store.json").replace(/[^A-Za-z0-9._-]/g, "_");
 }

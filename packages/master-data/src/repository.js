@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
-import { writeJsonFileDurably } from "../../persistence/src/durable-file.js";
+import { existsSync } from "node:fs";
+import { readFileSyncWithStaleRetry, writeJsonFileDurably } from "../../persistence/src/durable-file.js";
 import { createMasterDataRecord } from "./model.js";
 
 export const MASTER_DATA_REPOSITORY_SCHEMA_VERSION = "law-firm-os.master-data-repository.v0.1";
@@ -70,7 +70,7 @@ function matchesQuery(record, query = {}) {
 }
 
 export function createMasterDataRepository({ filePath, seedRecords = [] } = {}) {
-  let state = normalizeState(filePath && existsSync(filePath) ? JSON.parse(readFileSync(filePath, "utf8")) : undefined);
+  let state = normalizeState(filePath && existsSync(filePath) ? JSON.parse(readFileSyncWithStaleRetry(filePath)) : undefined);
   let closed = false;
 
   function ensureOpen() {
@@ -82,7 +82,7 @@ export function createMasterDataRepository({ filePath, seedRecords = [] } = {}) 
     writeJsonFileDurably({
       filePath,
       value: state,
-      previousState: filePath && existsSync(filePath) ? JSON.parse(readFileSync(filePath, "utf8")) : undefined,
+      previousState: filePath && existsSync(filePath) ? JSON.parse(readFileSyncWithStaleRetry(filePath)) : undefined,
       createBackup,
     });
   }

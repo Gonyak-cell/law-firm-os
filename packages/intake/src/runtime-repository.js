@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
-import { writeJsonFileDurably } from "../../persistence/src/durable-file.js";
+import { existsSync } from "node:fs";
+import { readFileSyncWithStaleRetry, writeJsonFileDurably } from "../../persistence/src/durable-file.js";
 import { createIntakeCoreRecord } from "./model.js";
 
 const CORE_MODELS = Object.freeze(["IntakeRequest", "ConflictCheck", "ConflictHit"]);
@@ -81,7 +81,7 @@ function emptyState() {
 
 function loadState(filePath) {
   if (!filePath || !existsSync(filePath)) return emptyState();
-  const parsed = JSON.parse(readFileSync(filePath, "utf8"));
+  const parsed = JSON.parse(readFileSyncWithStaleRetry(filePath));
   return {
     ...emptyState(),
     ...parsed,
@@ -113,13 +113,14 @@ export function createIntakeRuntimeRepository({ filePath, seedRecords = [] } = {
 
   function persist({ createBackup = true } = {}) {
     if (!filePath) return;
+    const nextState = currentState();
     writeJsonFileDurably({
       filePath,
-      value: currentState(),
+      value: nextState,
       previousState: state,
       createBackup,
     });
-    state = loadState(filePath);
+    state = nextState;
   }
 
   function put(record, { overwrite = false, createBackup = true } = {}) {

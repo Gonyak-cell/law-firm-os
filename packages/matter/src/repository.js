@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
-import { writeJsonFileDurably } from "../../persistence/src/durable-file.js";
+import { existsSync } from "node:fs";
+import { readFileSyncWithStaleRetry, writeJsonFileDurably } from "../../persistence/src/durable-file.js";
 import { createMatterCoreRecord } from "./model.js";
 import { MATTER_CORE_MIGRATIONS } from "./migrations/index.js";
 
@@ -89,7 +89,7 @@ function emptyState() {
 
 function loadState(filePath) {
   if (!filePath || !existsSync(filePath)) return emptyState();
-  const parsed = JSON.parse(readFileSync(filePath, "utf8"));
+  const parsed = JSON.parse(readFileSyncWithStaleRetry(filePath));
   return {
     ...emptyState(),
     ...parsed,
@@ -117,13 +117,14 @@ export function createMatterRepository({ filePath, seedRecords = [] } = {}) {
 
   function persist({ createBackup = true } = {}) {
     if (!filePath) return;
+    const nextState = currentState();
     writeJsonFileDurably({
       filePath,
-      value: currentState(),
+      value: nextState,
       previousState: state,
       createBackup,
     });
-    state = loadState(filePath);
+    state = nextState;
   }
 
   function assertOpen() {
