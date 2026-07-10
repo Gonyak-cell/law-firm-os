@@ -2756,7 +2756,7 @@ kbd {
 }
 
 .matter-dashboard-layout,
-.people-dashboard-layout {
+.client-dashboard-layout {
   grid-template-columns: minmax(0, 7fr) minmax(300px, 5fr);
   grid-template-areas:
     "primary-one secondary-one"
@@ -2765,27 +2765,27 @@ kbd {
 }
 
 .matter-dashboard-recent,
-.people-dashboard-new-clients {
+.client-dashboard-new-clients {
   grid-area: primary-one;
 }
 
 .matter-dashboard-todo,
-.people-dashboard-prospects {
+.client-dashboard-prospects {
   grid-area: secondary-one;
 }
 
 .matter-dashboard-mine,
-.people-dashboard-revenue {
+.client-dashboard-revenue {
   grid-area: primary-two;
 }
 
 .matter-dashboard-intake,
-.people-dashboard-meetings {
+.client-dashboard-meetings {
   grid-area: secondary-two;
 }
 
 .matter-dashboard-closed,
-.people-dashboard-ar {
+.client-dashboard-ar {
   grid-area: full;
 }
 
@@ -2975,7 +2975,7 @@ button.dashboard-record-row:focus-visible {
   }
 
   .matter-dashboard-layout,
-  .people-dashboard-layout {
+  .client-dashboard-layout {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       "primary-one"

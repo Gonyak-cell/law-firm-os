@@ -27,20 +27,11 @@ export const PEOPLE_FEATURE_GROUPS = [
     icon: "users",
     children: [
       {
-        label: "대시보드",
-        section: "people-dashboard",
-        icon: "clipboard",
-        state: "active",
-        active: true,
-        summary: "고객, 접촉, 매출, 미팅과 미수금 현황을 확인합니다.",
-        capabilities: ["신규 고객", "잠재 고객/접촉", "매출 순위", "고객 미팅", "미수금"]
-      },
-      {
         label: "구성원",
         section: "people-members",
         icon: "users",
         state: "active",
-        active: false,
+        active: true,
         summary: "구성원 명단과 재직 상태를 확인합니다.",
         capabilities: ["구성원 명단", "재직 상태", "직위", "소속", "부서", "이메일"]
       },

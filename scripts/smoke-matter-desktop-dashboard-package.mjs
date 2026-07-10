@@ -136,8 +136,9 @@ const app = await electron.launch({
 
 const expected = {
   home: ["home", "recent-work", "today-todo", "calendar", "monthly-sales", "new-engagements", "feed"],
+  clients: ["new-clients", "prospects-contacts", "revenue-ranking", "client-meetings", "accounts-receivable"],
   matters: ["recent-work", "today-todo", "my-matters", "new-engagements", "closed-matters"],
-  people: ["new-clients", "prospects-contacts", "revenue-ranking", "client-meetings", "accounts-receivable"]
+  people: []
 };
 const surfaces = {};
 
@@ -166,9 +167,15 @@ try {
   const productBaseHref = page.url();
 
   for (const [view, sections] of Object.entries(expected)) {
-    const section = view === "home" ? "home-dashboard" : view === "matters" ? "matter-home" : "people-dashboard";
+    const section = view === "home" ? "home-dashboard" : view === "clients" ? "clients-home" : view === "matters" ? "matter-home" : "people-members";
     await page.evaluate((url) => window.location.assign(url), productUrl(productBaseHref, view, section));
-    const rootSelector = view === "home" ? '[data-home-dashboard-shell="true"]' : view === "matters" ? '[data-matter-dashboard="true"]' : '[data-people-dashboard="true"]';
+    const rootSelector = view === "home"
+      ? '[data-home-dashboard-shell="true"]'
+      : view === "clients"
+        ? '[data-client-dashboard="true"]'
+        : view === "matters"
+          ? '[data-matter-dashboard="true"]'
+          : '[data-hr-workforce-table="true"]';
     await page.waitForSelector(rootSelector, { timeout: 30_000 });
     await page.waitForTimeout(2_000);
     const snapshot = await page.evaluate(({ selector }) => {
@@ -184,6 +191,8 @@ try {
         horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
         matter_kpi_count: document.querySelectorAll('[data-matter-dashboard-kpis], [data-matter-priority-queue]').length,
         approval_widget_count: document.querySelectorAll('[data-widget-id="approval"]').length,
+        people_dashboard_count: document.querySelectorAll('[data-people-dashboard="true"]').length,
+        customer_dashboard_title_count: ["신규 고객", "잠재 고객/접촉", "매출 순위", "고객 미팅", "미수금"].filter((title) => surfaceText.includes(title)).length,
         forbidden_visible_values: [...new Set(forbiddenPatterns.flatMap((pattern) => surfaceText.match(pattern) ?? []))],
         body_preview: surfaceText.replace(/\s+/g, " ").slice(0, 800)
       };
@@ -195,14 +204,23 @@ try {
       for (const section of ["recent-work", "new-engagements", "monthly-sales"]) {
         assert(snapshot.section_row_counts[section] >= 1, `Home ${section} must render its direct source: ${JSON.stringify(snapshot)}`);
       }
-    } else {
+    } else if (view === "clients" || view === "matters") {
       assert(snapshot.record_rows >= 5, `${view} dashboard must render actual list rows: ${JSON.stringify(snapshot)}`);
+      if (view === "clients") {
+        for (const clientSection of sections) {
+          assert(snapshot.section_row_counts[clientSection] >= 1, `Client ${clientSection} must render its direct source: ${JSON.stringify(snapshot)}`);
+        }
+        assert.equal(snapshot.customer_dashboard_title_count, 5, "Client must show all five customer dashboard titles");
+      }
+    } else {
+      assert.equal(snapshot.people_dashboard_count, 0, "People must not render the customer dashboard");
+      assert.equal(snapshot.customer_dashboard_title_count, 0, "People must not show customer dashboard titles");
     }
     assert.deepEqual(snapshot.forbidden_visible_values, [], `${view} dashboard must not expose backend identifiers or raw enums`);
     assert.equal(snapshot.horizontal_overflow, false, `${view} dashboard must not horizontally overflow`);
     assert.equal(snapshot.matter_kpi_count, 0, "Matter count KPI blocks must stay removed");
     assert.equal(snapshot.approval_widget_count, 0, "Home approval count widget must stay removed");
-    const screenshotPath = path.join(artifactDir, `${view}-dashboard-${platform}.png`);
+    const screenshotPath = path.join(artifactDir, `${view}-${view === "people" ? "workforce" : "dashboard"}-${platform}.png`);
     await page.screenshot({ path: screenshotPath, fullPage: true, animations: "disabled", caret: "hide" });
     surfaces[view] = { ...snapshot, screenshot: path.relative(repoRoot, screenshotPath) };
   }

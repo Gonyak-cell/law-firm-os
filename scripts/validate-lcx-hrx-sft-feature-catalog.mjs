@@ -72,7 +72,7 @@ const forbiddenPattern = /법률 People|관계망|충돌·윤리벽|활동 기�
 
 const groupLabels = PEOPLE_FEATURE_GROUPS.map((group) => group.label);
 assert.deepEqual(groupLabels, expectedGroups);
-assert.equal(PEOPLE_FEATURE_ITEMS.length, 71);
+assert.equal(PEOPLE_FEATURE_ITEMS.length, 73);
 
 const sectionIds = new Set();
 for (const item of PEOPLE_FEATURE_ITEMS) {

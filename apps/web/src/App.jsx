@@ -523,9 +523,9 @@ export function App() {
                 refreshSignal={globalRefreshSignal}
               />
             )}
-            {view === "clients" && <ClientsSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} refreshSignal={globalRefreshSignal} />}
+            {view === "clients" && <ClientsSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} refreshSignal={globalRefreshSignal} onNavigate={navigateToView} />}
             {view === "matters" && <MattersSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} refreshSignal={globalRefreshSignal} onNavigateSection={(section) => navigateToView("matters", section)} />}
-            {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} liveCtx={liveCtx} onNavigate={navigateToView} />}
+            {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} liveCtx={liveCtx} />}
             {view === "vault" && <VaultSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} refreshSignal={globalRefreshSignal} />}
             {view === "portal" && <PortalSurface labels={labels} liveCtx={liveCtx} refreshSignal={globalRefreshSignal} />}
             {view === "profile" && <UserProfileSurface liveCtx={liveCtx} onNavigate={navigateToView} onReturnToWork={returnToWork} />}

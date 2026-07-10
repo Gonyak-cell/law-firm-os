@@ -13,6 +13,7 @@ import {
   approveIntakeConflictWaiver,
   approveIntakeEngagement,
   executeCrmMergeProposal,
+  fetchAnalyticsFinanceClients,
   fetchCrmActivities,
   fetchCrmAccountContacts,
   fetchCrmAccounts,
@@ -50,6 +51,7 @@ import { DataCloudEnrichmentPanel } from "./DataCloudEnrichmentPanel.jsx";
 import { ReportBuilderPanel } from "./ReportBuilderPanel.jsx";
 import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
 import { useSkin } from "../context/SkinContext.jsx";
+import { DashboardListCard, DashboardReadState, DashboardRecordList, DashboardRecordRow } from "./DashboardList.jsx";
 
 const CLIENTS_PERMISSION_REF = "ui_cmp_g2_party_clients_live";
 const CLIENTS_AUDIT_HINT_REF = "ui_cmp_g2_clients_live_probe";
@@ -518,134 +520,110 @@ function renderLiveState(result, noun) {
   return null;
 }
 
-function clientMatterCount(item) {
-  if (Array.isArray(item?.matter_code_links)) return item.matter_code_links.length;
-  return Number(item?.matter_count ?? item?.matter_core_enrichment?.matter_count ?? 0) || 0;
+const clientDashboardMoneyFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
+
+function clientDashboardDateValue(item) {
+  const value = item?.updated_at ?? item?.created_at ?? item?.scheduled_at ?? item?.occurred_at;
+  const parsed = value ? new Date(value) : null;
+  return parsed && !Number.isNaN(parsed.getTime()) ? parsed.getTime() : 0;
 }
 
-function clientHasOwner(item) {
-  return Boolean(
-    item?.owner_user_id ||
-    item?.owner_employee_id ||
-    item?.representative_attorney_id ||
-    item?.primary_contact_id ||
-    item?.primary_entity_id ||
-    item?.primary_party_id
-  );
+function clientDashboardDateLabel(value) {
+  const parsed = value ? new Date(String(value)) : null;
+  return parsed && !Number.isNaN(parsed.getTime())
+    ? parsed.toLocaleString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
+    : "일정 미정";
 }
 
-function isActiveWorkflow(item) {
-  const status = String(item?.status ?? item?.opportunity_status ?? item?.intake_status ?? "").toLowerCase();
-  return !["closed", "completed", "cancelled", "canceled", "rejected", "lost", "paid"].includes(status);
+function clientDashboardMoneyLabel(value, currency = "KRW") {
+  return `${clientDashboardMoneyFormatter.format(Number(value) || 0)} ${currency}`;
 }
 
-function hasPositiveBalance(item) {
-  return Number(item?.balance ?? item?.amount_due ?? item?.outstanding_amount ?? 0) > 0;
+function clientDashboardCategoryLabel(value, fallback) {
+  const labels = {
+    client: "고객",
+    prospect: "잠재 고객",
+    active: "진행 중",
+    new: "신규",
+    contacted: "접촉 완료",
+    qualified: "검토 완료",
+    review_required: "검토 필요",
+    pending: "대기"
+  };
+  return labels[String(value ?? "").trim().toLowerCase()] ?? fallback;
 }
 
-function activitySubject(item, index) {
-  return businessLabel(item?.subject ?? item?.display_name ?? item?.title, `활동 ${index + 1}`);
+function clientDashboardDisplayLabel(value, fallback) {
+  const text = String(value ?? "").trim();
+  const isEmail = /[^\s@]+@[^\s@]+\.[^\s@]+/.test(text);
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(text);
+  const isInternalId = /^(?:party|account|client|lead|opportunity|opp|contact|activity|meeting|user|tenant)(?:[_:-][a-z0-9_-]+|-[a-z0-9-]+)$/i.test(text);
+  const isRawEnum = /^(?:client|prospect|active|new|contacted|qualified|review_required|pending|opening|closed)$/i.test(text);
+  return text && !text.includes("_") && !isEmail && !isUuid && !isInternalId && !isRawEnum ? text : fallback;
 }
 
-function ClientDashboardPanel({
-  result,
-  clients,
-  leads,
-  opportunities,
-  intakes,
-  activities,
-  invoices,
-  arAging,
-  accounts,
-  contacts,
-  selectedClientId,
-  onSelectClient
-}) {
-  if (result === null || result?.kind === "error" || result?.uiState === "denied" || result?.uiState === "review_required" || result?.outcome === "review_required") {
-    return renderLiveState(result, "Client");
-  }
-  const activeOpportunities = opportunities.filter(isActiveWorkflow);
-  const openIntakes = intakes.filter(isActiveWorkflow);
-  const ownerMissingClients = clients.filter((item) => !clientHasOwner(item));
-  const unlinkedClients = clients.filter((item) => clientMatterCount(item) === 0);
-  const arRiskItems = arAging.filter(hasPositiveBalance);
-  const invoiceRiskItems = invoices.filter((item) => hasPositiveBalance(item) || ["draft", "review_required", "overdue"].includes(item.status));
-  const priorityRows = [
-    ["담당자 미지정", String(ownerMissingClients.length), ownerMissingClients[0] ? clientDisplayName(ownerMissingClients[0], 0) : "없음", "목록"],
-    ["Matter 연결 없음", String(unlinkedClients.length), unlinkedClients[0] ? clientDisplayName(unlinkedClients[0], 0) : "없음", "목록"],
-    ["수임 전 기회", String(activeOpportunities.length), activeOpportunities[0] ? businessLabel(activeOpportunities[0].display_name, "Opportunity") : "없음", "Opportunity"],
-    ["인테이크 대기", String(openIntakes.length), openIntakes[0] ? businessLabel(openIntakes[0].requested_scope_summary, "상담") : "없음", "상담"],
-    ["청구/미수 확인", String(arRiskItems.length + invoiceRiskItems.length), arRiskItems[0]?.invoice_id ?? invoiceRiskItems[0]?.invoice_id ?? "없음", "청구"]
-  ];
-  const recentActivityRows = activities.slice(0, 5).map((item, index) => [
-    activitySubject(item, index),
-    activityTypeLabel(item.activity_type),
-    clientStatus(item.status),
-    item.confidential ? "보호됨" : "표시 가능"
-  ]);
-  const fallbackActivityRows = recentActivityRows.length > 0 ? recentActivityRows : [["최근 접촉", "기록 없음", "대기", "접촉 이력"]];
-  const linkedMatterTotal = clients.reduce((sum, item) => sum + clientMatterCount(item), 0);
+function clientDashboardRecordLabel(value, recordId, fallback) {
+  const text = String(value ?? "").trim();
+  const id = String(recordId ?? "").trim();
+  return id && text === id ? fallback : clientDashboardDisplayLabel(text, fallback);
+}
+
+function combinedClientDashboardState(results) {
+  if (results.every((result) => result === null)) return null;
+  const readableResults = results.filter((result) => result?.kind === "data" && result?.uiState !== "denied" && result?.uiState !== "review_required" && result?.outcome !== "review_required");
+  if (readableResults.length > 0) return { kind: "data", items: readableResults.flatMap(resultItems) };
+  return results.find((result) => result?.uiState === "denied")
+    ?? results.find((result) => result?.uiState === "review_required" || result?.outcome === "review_required")
+    ?? results.find((result) => result?.kind === "error")
+    ?? { kind: "data", items: results.flatMap(resultItems) };
+}
+
+function ClientDashboardPanel({ results, onNavigate }) {
+  const newClients = resultItems(results.accounts).slice().sort((left, right) => clientDashboardDateValue(right) - clientDashboardDateValue(left)).slice(0, 5);
+  const prospectResult = combinedClientDashboardState([results.leads, results.opportunities, results.contacts]);
+  const prospects = resultItems(prospectResult).slice().sort((left, right) => clientDashboardDateValue(right) - clientDashboardDateValue(left)).slice(0, 5);
+  const financeClients = resultItems(results.financeClients);
+  const revenueRows = financeClients.slice().sort((left, right) => Number(right.billed_amount ?? 0) - Number(left.billed_amount ?? 0)).slice(0, 5);
+  const meetings = resultItems(results.activities).filter((item) => item.activity_type === "meeting").sort((left, right) => clientDashboardDateValue(right) - clientDashboardDateValue(left)).slice(0, 5);
+  const arRows = financeClients.filter((item) => Number(item.ar_balance ?? 0) > 0).sort((left, right) => Number(right.ar_balance ?? 0) - Number(left.ar_balance ?? 0)).slice(0, 5);
+
   return (
-    <div className="clients-live-stack" data-client-dashboard="true">
-      <div className="record-action-grid" data-client-dashboard-kpis="true">
-        <div className="record-action-strip">
-          <div>
-            <span>활성 Client</span>
-            <strong>{clients.length}</strong>
-            <small>{accounts.length}개 계정 / {contacts.length}명 담당자</small>
-          </div>
-        </div>
-        <div className="record-action-strip">
-          <div>
-            <span>수임 전 기회</span>
-            <strong>{activeOpportunities.length}</strong>
-            <small>잠재 계정 {leads.length}건</small>
-          </div>
-        </div>
-        <div className="record-action-strip">
-          <div>
-            <span>검토 대기</span>
-            <strong>{openIntakes.length + ownerMissingClients.length}</strong>
-            <small>인테이크와 담당자 확인</small>
-          </div>
-        </div>
-        <div className="record-action-strip">
-          <div>
-            <span>청구/미수 위험</span>
-            <strong>{arRiskItems.length + invoiceRiskItems.length}</strong>
-            <small>연결 Matter {linkedMatterTotal}건</small>
-          </div>
-        </div>
-      </div>
-      <div className="workspace-mini-grid" data-client-priority-queue="true">
-        <DataTable columns={["우선 확인", "건수", "대표 항목", "이동 메뉴"]} rows={priorityRows} />
-      </div>
-      <div className="record-action-grid">
-        <div className="workspace-mini-grid" data-client-recent-activity="true">
-          <DataTable columns={["최근 접촉", "유형", "상태", "표시"]} rows={fallbackActivityRows} />
-        </div>
-        <div className="workspace-mini-grid" data-client-pipeline-summary="true">
-          <DataTable
-            columns={["구분", "건수", "상태"]}
-            rows={[
-              ["Client", String(clients.length), clients.length > 0 ? "운영 중" : "등록 대기"],
-              ["Opportunity", String(activeOpportunities.length), activeOpportunities.length > 0 ? "확인 필요" : "대기"],
-              ["상담", String(openIntakes.length), openIntakes.length > 0 ? "검토 중" : "대기"],
-              ["송장", String(invoices.length), invoiceRiskItems.length > 0 ? "청구 확인" : "정상"],
-              ["미수금", String(arRiskItems.length), arRiskItems.length > 0 ? "회수 확인" : "정상"]
-            ]}
-          />
-        </div>
-      </div>
-      <div data-client-dashboard-table="true">
-        {clients.length > 0 ? (
-          <ClientSelectableList clients={clients.slice(0, 10)} selectedClientId={selectedClientId} onSelectClient={onSelectClient} />
-        ) : (
-          <div className="live-data-state live-data-empty">
-            <strong>표시할 Client가 없습니다</strong>
-          </div>
-        )}
-      </div>
+    <div className="operational-dashboard-grid client-dashboard-layout" data-client-dashboard="true">
+      <DashboardListCard className="client-dashboard-new-clients" title="신규 고객" section="new-clients" onViewAll={() => onNavigate("clients", "clients-list")}>
+        <DashboardReadState result={results.accounts} noun="신규 고객">
+          <DashboardRecordList emptyText="신규 고객이 없습니다">
+            {newClients.map((item, index) => <DashboardRecordRow key={`client:${item.account_id ?? index}`} title={clientDashboardRecordLabel(item.display_name, item.account_id, `고객 ${index + 1}`)} meta={clientDashboardCategoryLabel(item.account_type ?? item.status, "고객")} detail={clientDashboardDateLabel(item.created_at ?? item.updated_at)} status={clientDashboardRecordLabel(item.owner_display_name, item.owner_user_id, "담당 미지정")} onOpen={() => onNavigate("clients", "clients-list")} />)}
+          </DashboardRecordList>
+        </DashboardReadState>
+      </DashboardListCard>
+      <DashboardListCard className="client-dashboard-prospects" title="잠재 고객/접촉" section="prospects-contacts" onViewAll={() => onNavigate("clients", "client-opportunities")}>
+        <DashboardReadState result={prospectResult} noun="잠재 고객과 접촉">
+          <DashboardRecordList emptyText="잠재 고객 또는 접촉 기록이 없습니다">
+            {prospects.map((item, index) => <DashboardRecordRow key={`prospect:${item.lead_id ?? item.opportunity_id ?? item.contact_id ?? index}`} title={clientDashboardRecordLabel(item.display_name ?? item.subject, item.lead_id ?? item.opportunity_id ?? item.contact_id, `접촉 ${index + 1}`)} meta={clientDashboardCategoryLabel(item.stage ?? item.status, "접촉")} detail={clientDashboardDateLabel(item.updated_at ?? item.created_at)} status={clientDashboardRecordLabel(item.owner_display_name, item.owner_user_id, "담당 미지정")} onOpen={() => onNavigate("clients", item.contact_id ? "client-contacts" : item.lead_id ? "client-leads" : "client-opportunities")} />)}
+          </DashboardRecordList>
+        </DashboardReadState>
+      </DashboardListCard>
+      <DashboardListCard className="client-dashboard-revenue" title="매출 순위" section="revenue-ranking" onViewAll={() => onNavigate("home", "home-finance-clients")}>
+        <DashboardReadState result={results.financeClients} noun="고객별 매출">
+          <DashboardRecordList emptyText="표시할 고객별 매출이 없습니다">
+            {revenueRows.map((item, index) => <DashboardRecordRow key={`revenue:${item.client_group_id ?? index}:${item.currency ?? "KRW"}`} title={`${index + 1}. ${clientDashboardRecordLabel(item.client_group_label, item.client_group_id, "고객명 미확인")}`} meta={`청구 ${clientDashboardMoneyLabel(item.billed_amount, item.currency)}`} detail={`수납 ${clientDashboardMoneyLabel(item.collected_amount, item.currency)}`} onOpen={() => onNavigate("home", "home-finance-clients")} />)}
+          </DashboardRecordList>
+        </DashboardReadState>
+      </DashboardListCard>
+      <DashboardListCard className="client-dashboard-meetings" title="고객 미팅" section="client-meetings" onViewAll={() => onNavigate("clients", "client-activities")}>
+        <DashboardReadState result={results.activities} noun="고객 미팅">
+          <DashboardRecordList emptyText="고객 미팅이 없습니다">
+            {meetings.map((item, index) => <DashboardRecordRow key={`meeting:${item.crm_activity_id ?? index}`} title={clientDashboardRecordLabel(item.subject, item.crm_activity_id, `고객 미팅 ${index + 1}`)} meta={clientDashboardRecordLabel(item.party_display_name ?? item.display_name, item.party_id, "고객 미지정")} detail={clientDashboardDateLabel(item.scheduled_at ?? item.occurred_at ?? item.created_at ?? item.updated_at)} status={clientDashboardRecordLabel(item.owner_display_name, item.owner_user_id, "담당 미지정")} onOpen={() => onNavigate("clients", "client-activities")} />)}
+          </DashboardRecordList>
+        </DashboardReadState>
+      </DashboardListCard>
+      <DashboardListCard className="client-dashboard-ar" title="미수금" section="accounts-receivable" onViewAll={() => onNavigate("home", "home-finance-ar")}>
+        <DashboardReadState result={results.financeClients} noun="고객별 미수금">
+          <DashboardRecordList emptyText="표시할 미수금이 없습니다">
+            {arRows.map((item, index) => <DashboardRecordRow key={`ar:${item.client_group_id ?? index}:${item.currency ?? "KRW"}`} title={clientDashboardRecordLabel(item.client_group_label, item.client_group_id, "고객명 미확인")} meta={`미수 ${clientDashboardMoneyLabel(item.ar_balance, item.currency)}`} detail={item.month ?? "현재 잔액"} status={Number(item.ar_balance ?? 0) > 0 ? "회수 확인" : "정상"} onOpen={() => onNavigate("home", "home-finance-ar")} />)}
+          </DashboardRecordList>
+        </DashboardReadState>
+      </DashboardListCard>
     </div>
   );
 }
@@ -1774,7 +1752,7 @@ export function ClientIntakePipelineSurface({
   );
 }
 
-export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", refreshSignal = 0 }) {
+export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", refreshSignal = 0, onNavigate = () => {} }) {
   const skin = useSkin();
   const [clientsResult, setClientsResult] = useState(null);
   const [accountsResult, setAccountsResult] = useState(null);
@@ -1786,6 +1764,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [clientSettingsResult, setClientSettingsResult] = useState(null);
   const [financeInvoicesResult, setFinanceInvoicesResult] = useState(null);
   const [financeArAgingResult, setFinanceArAgingResult] = useState(null);
+  const [financeClientsResult, setFinanceClientsResult] = useState(null);
   const [leadsResult, setLeadsResult] = useState(null);
   const [opportunitiesResult, setOpportunitiesResult] = useState(null);
   const [intakeResult, setIntakeResult] = useState(null);
@@ -1997,8 +1976,26 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
     };
   }, [liveCtx, refreshToken]);
 
+  useEffect(() => {
+    if (currentSection !== "clients-home") {
+      setFinanceClientsResult(null);
+      return undefined;
+    }
+    let cancelled = false;
+    const guardedResult = guardedResultForContext(liveCtx);
+    if (guardedResult) {
+      setFinanceClientsResult(guardedResult);
+      return () => { cancelled = true; };
+    }
+    setFinanceClientsResult(null);
+    fetchAnalyticsFinanceClients({ ctx: liveCtx }).then((result) => {
+      if (!cancelled) setFinanceClientsResult(result);
+    });
+    return () => { cancelled = true; };
+  }, [currentSection, liveCtx, refreshToken]);
+
   const clients = useMemo(() => resultItems(clientsResult), [clientsResult]);
-  const selectedClient = clients.find((item) => clientRecordId(item) === selectedClientId) ?? null;
+  const selectedClient = selectedClientId === null ? null : clients.find((item) => clientRecordId(item) === selectedClientId) ?? null;
   const accountCount = resultItems(accountsResult).length;
   const contactCount = resultItems(contactsResult).length;
   const mergeProposals = resultItems(mergeProposalsResult);
@@ -2617,18 +2614,15 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
         {currentSection === "clients-home" && (
           <Panel id="clients-home-panel" className="record-list-panel" title="대시보드" hideHeader>
             <ClientDashboardPanel
-              result={clientsResult}
-              clients={clients}
-              leads={resultItems(leadsResult)}
-              opportunities={opportunities}
-              intakes={intakes}
-              activities={resultItems(activitiesResult)}
-              invoices={resultItems(financeInvoicesResult)}
-              arAging={resultItems(financeArAgingResult)}
-              accounts={resultItems(accountsResult)}
-              contacts={resultItems(contactsResult)}
-              selectedClientId={selectedClientId}
-              onSelectClient={setSelectedClientId}
+              results={{
+                accounts: accountsResult,
+                leads: leadsResult,
+                opportunities: opportunitiesResult,
+                contacts: contactsResult,
+                activities: activitiesResult,
+                financeClients: financeClientsResult
+              }}
+              onNavigate={onNavigate}
             />
           </Panel>
         )}

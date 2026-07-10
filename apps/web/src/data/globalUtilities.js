@@ -499,6 +499,7 @@ const directRouteMap = new Map([
   ["home:", route("home", "home-dashboard")],
   ["home:home-recent", route("home", "home-dashboard")],
   ["home:home-dashboard", route("home", "home-dashboard")],
+  ["people:people-dashboard", route("clients", "clients-home", { redirectedFrom: { view: "people", section: "people-dashboard" } })],
   ["reports:reports-home-dashboard", route("home", "home-dashboard")],
   ["calendar:calendar-matter", route("matters", "matter-calendar")],
   ["calendar:calendar-people-external", route("people", "people-work-schedule-external")],

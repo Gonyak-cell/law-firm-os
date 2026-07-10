@@ -55,7 +55,7 @@ for (const task of ledger.tasks) {
   assert.notEqual(task.status, "unclassified", `${task.id} is still unclassified`);
 }
 
-assert.equal(PEOPLE_FEATURE_ITEMS.length, 71);
+assert.equal(PEOPLE_FEATURE_ITEMS.length, 73);
 assert.equal(getPeopleFeatureBySection("people-work-schedule-external")?.groupLabel, "근무일정");
 assert.equal(browserProof.verdict, "PASS");
 assert.equal(browserProof.roster.has_kim_yang_tae, true);

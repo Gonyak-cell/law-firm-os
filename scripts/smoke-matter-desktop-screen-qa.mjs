@@ -27,7 +27,8 @@ const initialLoginScreenshotPath = path.join(artifactDir, "desktop-initial-login
 const qaAccountProductScreenshotPath = path.join(artifactDir, "desktop-qa-account-product-ui.png");
 const screenshotPath = path.join(artifactDir, "desktop-screen-qa.png");
 const matterDashboardScreenshotPath = path.join(artifactDir, "desktop-matter-dashboard-qa.png");
-const peopleDashboardScreenshotPath = path.join(artifactDir, "desktop-people-dashboard-qa.png");
+const clientDashboardScreenshotPath = path.join(artifactDir, "desktop-client-dashboard-qa.png");
+const peopleWorkforceScreenshotPath = path.join(artifactDir, "desktop-people-workforce-qa.png");
 const resultPath = path.join(artifactDir, "desktop-screen-qa-result.json");
 
 function createQaUserDataPath() {
@@ -221,15 +222,20 @@ async function captureDashboardSurfaces(page) {
   assert.equal(await page.locator('[data-matter-dashboard-kpis], [data-matter-priority-queue]').count(), 0, "Matter dashboard must not render count KPI blocks");
   await page.screenshot({ path: matterDashboardScreenshotPath, fullPage: true });
 
+  await page.click('[data-product-axis="clients"]');
+  await page.waitForSelector('[data-client-dashboard="true"]', { timeout: 30_000 });
+  const clientSections = await page.$$eval('[data-client-dashboard="true"] [data-dashboard-section]', (nodes) => nodes.map((node) => node.getAttribute("data-dashboard-section")));
+  assert.deepEqual(clientSections.sort(), ["new-clients", "prospects-contacts", "revenue-ranking", "client-meetings", "accounts-receivable"].sort(), "Client dashboard must show the five requested body areas");
+  await page.screenshot({ path: clientDashboardScreenshotPath, fullPage: true });
+
   await page.click('[data-product-axis="people"]');
-  await page.waitForSelector('[data-people-dashboard="true"]', { timeout: 30_000 });
-  const peopleSections = await page.$$eval('[data-people-dashboard="true"] [data-dashboard-section]', (nodes) => nodes.map((node) => node.getAttribute("data-dashboard-section")));
-  assert.deepEqual(peopleSections.sort(), ["new-clients", "prospects-contacts", "revenue-ranking", "client-meetings", "accounts-receivable"].sort(), "People dashboard must show the five requested body areas");
-  await page.screenshot({ path: peopleDashboardScreenshotPath, fullPage: true });
+  await page.waitForSelector('[data-hr-workforce-table="true"]', { timeout: 30_000 });
+  assert.equal(await page.locator('[data-people-dashboard="true"]').count(), 0, "People must not render the customer dashboard");
+  await page.screenshot({ path: peopleWorkforceScreenshotPath, fullPage: true });
 
   await page.click('[data-product-axis="home"]');
   await page.waitForSelector('[data-home-dashboard-grid="true"]', { timeout: 30_000 });
-  return { matter_sections: matterSections, people_sections: peopleSections };
+  return { matter_sections: matterSections, client_sections: clientSections, people_surface: "workforce" };
 }
 
 async function launchMatterApp(qaTarget) {
@@ -438,7 +444,8 @@ async function main() {
         qa_account_product_screenshot: path.relative(repoRoot, qaAccountProductScreenshotPath),
         screenshot: path.relative(repoRoot, screenshotPath),
         matter_dashboard_screenshot: path.relative(repoRoot, matterDashboardScreenshotPath),
-        people_dashboard_screenshot: path.relative(repoRoot, peopleDashboardScreenshotPath)
+        client_dashboard_screenshot: path.relative(repoRoot, clientDashboardScreenshotPath),
+        people_workforce_screenshot: path.relative(repoRoot, peopleWorkforceScreenshotPath)
       },
       dashboard_surfaces: dashboardSurfaces,
       reset_protection: resetProtectionSummary(),

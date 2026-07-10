@@ -221,19 +221,19 @@ function wp5ApiBody(pathname, searchParams, state) {
     return list("dashboard-intakes", [{ intake_request_id: "intake-dashboard-1", display_name: "고객 A", requested_scope_summary: "신규 자문 수임", status: "review_required", requested_at: wp5IsoDay(-1) }]);
   }
   if (pathname === "/api/crm/accounts") {
-    return list("dashboard-accounts", [{ account_id: "account-dashboard-1", display_name: "고객 A", status: "active", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) }]);
+    return list("dashboard-accounts", [{ account_id: "account-dashboard-1", display_name: "account-dashboard-1", status: "active", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) }]);
   }
   if (pathname === "/api/crm/leads") {
-    return list("dashboard-leads", [{ lead_id: "lead-dashboard-1", display_name: "잠재 고객 A", status: "active", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) }]);
+    return list("dashboard-leads", [{ lead_id: "lead-dashboard-1", display_name: "담당자 unsafe-dashboard@amic.kr", status: "active", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) }]);
   }
   if (pathname === "/api/crm/opportunities") {
-    return list("dashboard-opportunities", [{ opportunity_id: "opp-dashboard-1", display_name: "잠재 수임 A", stage: "qualified", status: "active", owner_user_id: "jwsuh@amic.kr", updated_at: wp5IsoDay(0) }]);
+    return list("dashboard-opportunities", [{ opportunity_id: "opp-dashboard-1", display_name: "550e8400-e29b-41d4-a716-446655440000", stage: "qualified", status: "active", owner_user_id: "jwsuh@amic.kr", updated_at: wp5IsoDay(0) }]);
   }
   if (pathname === "/api/crm/contacts") {
     return list("dashboard-contacts", [{ contact_id: "contact-dashboard-1", account_id: "account-dashboard-1", display_name: "고객 담당자 A", status: "active", updated_at: wp5IsoDay(0) }]);
   }
   if (pathname === "/api/crm/activities") {
-    return list("dashboard-activities", [{ crm_activity_id: "meeting-dashboard-1", party_id: "party-dashboard-1", activity_type: "meeting", subject: "고객 정기 미팅", status: "active", owner_user_id: "jwsuh@amic.kr", scheduled_at: wp5IsoDay(1) }]);
+    return list("dashboard-activities", [{ crm_activity_id: "meeting-dashboard-1", party_id: "party-dashboard-1", activity_type: "meeting", subject: "meeting-dashboard-1", status: "active", owner_user_id: "jwsuh@amic.kr", scheduled_at: wp5IsoDay(1) }]);
   }
   if (pathname === "/api/analytics/finance/overview") {
     return {
@@ -259,7 +259,7 @@ function wp5ApiBody(pathname, searchParams, state) {
     return {
       request_id: "wp-fin-3-clients", outcome: "passed",
       items: [
-        { client_group_id: "client-group-visible", client_group_label: "고객 A", client_mapping_source: "master-data.ClientGroup", matter_count: 1, currency: "KRW", billed_amount: 900, collected_amount: 400, matter_cost: 200, recoverable_cost: 200, ar_balance: 500, contribution_amount: 700, unlinked_amount: 0, transaction_count: 6, date_inferred_count: 1 },
+        { client_group_id: "api-fin-client", client_group_label: "api-fin-client", client_mapping_source: "master-data.ClientGroup", matter_count: 1, currency: "KRW", billed_amount: 900, collected_amount: 400, matter_cost: 200, recoverable_cost: 200, ar_balance: 500, contribution_amount: 700, unlinked_amount: 0, transaction_count: 6, date_inferred_count: 1 },
         { client_group_id: null, client_group_label: "미연결 고객", client_mapping_source: "unlinked", matter_count: 1, currency: "KRW", billed_amount: 0, collected_amount: 0, matter_cost: 50, recoverable_cost: 50, ar_balance: 0, contribution_amount: -50, unlinked_amount: 50, transaction_count: 1, date_inferred_count: 0 }
       ],
       source_statuses: [], safe_error_codes: [], audit_hint_ref: "wp-fin-3-clients-audit", count_leak_prevented: true, raw_source_payload_included: false, production_ready_claim: false
@@ -777,7 +777,7 @@ test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async ()
   }
 });
 
-test("dashboard bodies render the requested Home, Matter, and People work areas without KPI counts", async () => {
+test("dashboard bodies render the requested Home, Matter, and Client work areas without KPI counts", async () => {
   const port = await availablePort();
   const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
   await server.listen();
@@ -809,20 +809,83 @@ test("dashboard bodies render the requested Home, Matter, and People work areas 
     assert.equal(await page.locator('[data-matter-dashboard-kpis], [data-matter-priority-queue]').count(), 0);
     assert.equal(await page.locator('[data-dashboard-section="closed-matters"] .dashboard-record-row').count(), 1);
 
-    await page.goto(`http://127.0.0.1:${port}/?view=people&ctx=allow#people-dashboard`, { waitUntil: "networkidle" });
-    await page.waitForSelector('[data-people-dashboard="true"]');
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
+    await page.waitForSelector('[data-client-dashboard="true"]');
     for (const title of ["신규 고객", "잠재 고객/접촉", "매출 순위", "고객 미팅", "미수금"]) {
-      assert.equal(await page.getByText(title, { exact: true }).count(), 1, `People must show ${title}`);
+      assert.equal(await page.getByText(title, { exact: true }).count(), 1, `Client must show ${title}`);
     }
     for (const section of ["new-clients", "prospects-contacts", "revenue-ranking", "client-meetings", "accounts-receivable"]) {
       assert.equal(await page.locator(`[data-dashboard-section="${section}"]`).count(), 1);
     }
     assert.equal(await page.locator('[data-dashboard-section="new-clients"] .dashboard-record-row').count(), 1);
     assert.equal(await page.locator('[data-dashboard-section="client-meetings"] .dashboard-record-row').count(), 1);
-    const peopleDashboardText = await page.locator('[data-people-dashboard="true"]').innerText();
-    assert.doesNotMatch(peopleDashboardText, /jwsuh@amic\.kr|party-dashboard-1|account-dashboard-1/);
-    assert.doesNotMatch(peopleDashboardText, /\b(?:Client|qualified|active)\b/);
-    assert.match(peopleDashboardText, /고객|검토 완료|진행 중/);
+    const clientDashboardText = await page.locator('[data-client-dashboard="true"]').innerText();
+    assert.doesNotMatch(clientDashboardText, /@amic\.kr|party-dashboard-1|account-dashboard-1|api-fin-client|meeting-dashboard-1|550e8400-e29b-41d4-a716-446655440000/);
+    assert.doesNotMatch(clientDashboardText, /\b(?:Client|qualified|active)\b/);
+    assert.match(clientDashboardText, /고객|검토 완료|진행 중/);
+
+    for (const [section, label, expectedView, expectedSection] of [
+      ["new-clients", "신규 고객 전체 보기", "clients", "clients-list"],
+      ["prospects-contacts", "잠재 고객/접촉 전체 보기", "clients", "client-opportunities"],
+      ["revenue-ranking", "매출 순위 전체 보기", "home", "home-finance-clients"],
+      ["client-meetings", "고객 미팅 전체 보기", "clients", "client-activities"],
+      ["accounts-receivable", "미수금 전체 보기", "home", "home-finance-ar"]
+    ]) {
+      await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
+      await page.keyboard.press("Escape");
+      await page.locator(`[data-dashboard-section="${section}"]`).getByRole("button", { name: label }).click();
+      await page.waitForFunction(({ view, section: hash }) => new URL(window.location.href).searchParams.get("view") === view && window.location.hash === `#${hash}`, { view: expectedView, section: expectedSection });
+    }
+
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
+    await page.keyboard.press("Escape");
+    await page.locator('[data-dashboard-section="prospects-contacts"] .dashboard-record-row').last().click();
+    await page.waitForFunction(() => window.location.hash === "#client-leads");
+
+    await page.goto(`http://127.0.0.1:${port}/?view=people&ctx=allow#people-dashboard`, { waitUntil: "networkidle" });
+    await page.waitForSelector('[data-client-dashboard="true"]');
+    assert.equal(new URL(page.url()).searchParams.get("view"), "clients");
+    assert.equal(new URL(page.url()).hash, "#clients-home");
+
+    await page.goto(`http://127.0.0.1:${port}/?view=people&ctx=allow#people-members`, { waitUntil: "networkidle" });
+    await page.waitForSelector('[data-hr-workforce-table="true"]');
+    assert.equal(await page.locator('[data-people-dashboard="true"]').count(), 0);
+    for (const title of ["신규 고객", "잠재 고객/접촉", "매출 순위", "고객 미팅", "미수금"]) {
+      assert.equal(await page.getByText(title, { exact: true }).count(), 0, `People must not show ${title}`);
+    }
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
+test("Client prospect card preserves readable sources when one source is denied", async () => {
+  const port = await availablePort();
+  const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 820 } });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname === "/api/crm/contacts") {
+        return jsonResponse(route, {
+          request_id: "dashboard-contacts-denied",
+          outcome: "denied",
+          ui_state: "denied",
+          items: [],
+          safe_error_codes: ["permission_denied"],
+          count_leak_prevented: true,
+          production_ready_claim: false
+        }, 403);
+      }
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, { decisionCalls: 0, newsCalls: 0 }));
+    });
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
+    await page.waitForSelector('[data-client-dashboard="true"]');
+    const prospectsCard = page.locator('[data-dashboard-section="prospects-contacts"]');
+    assert.equal(await prospectsCard.locator(".dashboard-record-row").count(), 2);
+    assert.equal(await prospectsCard.getByText("잠재 고객과 접촉 접근 권한이 없습니다", { exact: true }).count(), 0);
   } finally {
     await browser.close();
     await server.close();

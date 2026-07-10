@@ -896,9 +896,15 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /record-overlay-close/);
   assert.match(clientsSource, /function ClientDashboardPanel/);
   assert.match(clientsSource, /data-client-dashboard="true"/);
-  assert.match(clientsSource, /data-client-dashboard-kpis="true"/);
-  assert.match(clientsSource, /data-client-priority-queue="true"/);
-  assert.match(clientsSource, /data-client-dashboard-table="true"/);
+  assert.doesNotMatch(clientsSource, /data-client-dashboard-kpis="true"/);
+  assert.doesNotMatch(clientsSource, /data-client-priority-queue="true"/);
+  assert.doesNotMatch(clientsSource, /data-client-dashboard-table="true"/);
+  for (const title of ["신규 고객", "잠재 고객\/접촉", "매출 순위", "고객 미팅", "미수금"]) {
+    assert.match(clientsSource, new RegExp(title));
+  }
+  for (const source of ["fetchCrmAccounts", "fetchCrmLeads", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmActivities", "fetchAnalyticsFinanceClients"]) {
+    assert.match(clientsSource, new RegExp(source));
+  }
   assert.match(clientsSource, /title="대시보드"[\s\S]*<ClientDashboardPanel/);
   assert.doesNotMatch(clientsSource, /ClientsOverviewPanel|data-client-overview-panel|title="요약"[\s\S]*clients-home/);
   assert.match(shellSource, /label: "대시보드", view: "clients", section: "clients-home"/);
@@ -1496,14 +1502,15 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /\/api\/analytics\/exports/);
   assert.doesNotMatch(apiClientSource, /mergeCrmContact|deleteCrmContact|postCrmContactMerge/);
   assert.match(peopleSource, /data-hrx-api-backed="true"/);
-  assert.match(peopleSource, /data-people-dashboard="true"/);
-  assert.match(peopleSource, /currentSection === "people-dashboard"/);
+  assert.doesNotMatch(peopleSource, /data-people-dashboard="true"/);
+  assert.doesNotMatch(peopleSource, /currentSection === "people-dashboard"/);
   for (const title of ["신규 고객", "잠재 고객\/접촉", "매출 순위", "고객 미팅", "미수금"]) {
-    assert.match(peopleSource, new RegExp(title));
+    assert.doesNotMatch(peopleSource, new RegExp(title));
   }
   for (const source of ["fetchCrmAccounts", "fetchCrmLeads", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmActivities", "fetchAnalyticsFinanceClients"]) {
-    assert.match(peopleSource, new RegExp(source));
+    assert.doesNotMatch(peopleSource, new RegExp(source));
   }
+  assert.match(peopleSource, /: "people-members"/);
   assert.match(peopleSource, /data-people-work-layer="white"/);
   assert.doesNotMatch(peopleSource, /PageHeader|peopleTitle|구성원 관리/);
   assert.match(peopleSource, /data-people-detail-open=\{selectedEmployeeId \? "true" : "false"\}/);
