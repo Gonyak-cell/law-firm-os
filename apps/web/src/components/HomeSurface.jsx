@@ -10,10 +10,12 @@ import {
   ClipboardList,
   Clock3,
   FileCheck2,
+  FileText,
   FileSignature,
   FolderOpen,
   Inbox,
   Mail,
+  LayoutDashboard,
   Newspaper,
   RefreshCw,
   ShieldCheck,
@@ -94,8 +96,24 @@ const companyTabs = Object.freeze([
   { id: "reports-client", label: "Client" },
   { id: "reports-matter-analytics", label: "Matter" }
 ]);
+const homeFinanceSectionIds = new Set([
+  "home-finance-overview",
+  "home-finance-monthly",
+  "home-finance-clients",
+  "home-finance-time",
+  "home-finance-expenses",
+  "home-finance-billing",
+  "home-finance-ar"
+]);
 const homeSectionMeta = Object.freeze({
   "home-dashboard": { eyebrow: "Home", title: "", Icon: Briefcase },
+  "home-finance-overview": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceOverviewLabel", title: "전체 현황", Icon: LayoutDashboard },
+  "home-finance-monthly": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceMonthlyLabel", title: "월별 매출/비용", Icon: CalendarDays },
+  "home-finance-clients": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceClientsLabel", title: "고객별 매출/비용", Icon: ClipboardList },
+  "home-finance-time": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceTimeLabel", title: "시간 기록", Icon: ClipboardList },
+  "home-finance-expenses": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceExpensesLabel", title: "비용 처리", Icon: FileText },
+  "home-finance-billing": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceBillingLabel", title: "청구/수납", Icon: FileText },
+  "home-finance-ar": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceArLabel", title: "미수금", Icon: ShieldCheck },
   "home-messages": { eyebrowKey: "homeMessagesLabel", eyebrow: "메시지", titleKey: "homeMessagesLabel", title: "메시지", subtitleKey: "homeMessagesSubtitle", subtitle: "업무 메시지", Icon: Mail },
   "home-requests": { eyebrowKey: "homeRequestsLabel", eyebrow: "승인 요청", titleKey: "homeRequestsLabel", title: "승인 요청", subtitleKey: "homeRequestsSubtitle", subtitle: "요청 상태", Icon: ShieldCheck },
   "home-esign": { eyebrowKey: "homeEsignLabel", eyebrow: "전자 계약", titleKey: "homeEsignLabel", title: "전자 계약", subtitleKey: "homeEsignSubtitle", subtitle: "서명 상태", Icon: FileCheck2 },
@@ -1301,6 +1319,17 @@ export function HomeSurface({
     setSelectedCalendarDate((current) => new Date(current.getFullYear(), current.getMonth() + delta, Math.min(current.getDate(), 28)));
   }
 
+  function renderFinanceRouteContract() {
+    return (
+      <HomeSectionPanel section={activeHomeSection} title={currentHomeSectionMeta.title} Icon={currentHomeSectionMeta.Icon}>
+        <div className="live-data-state live-data-empty" role="status" data-home-finance-route-contract={activeHomeSection}>
+          <strong>{currentHomeSectionMeta.title}</strong>
+          <span>{homeCopy(labels, "homeFinanceRoutePending", "집계와 정산 기능을 연결하고 있습니다.")}</span>
+        </div>
+      </HomeSectionPanel>
+    );
+  }
+
   function renderTodoEmpty() {
     if (showForestOnboarding) {
       return (
@@ -1554,6 +1583,7 @@ export function HomeSurface({
   }
 
   function renderActiveHomeSection() {
+    if (homeFinanceSectionIds.has(activeHomeSection)) return renderFinanceRouteContract();
     if (activeHomeSection === "home-messages") return renderMessagesScreen();
     if (activeHomeSection === "home-requests") return renderRequestsScreen();
     if (activeHomeSection === "home-esign") return renderEsignScreen();

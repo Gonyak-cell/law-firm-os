@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   Bell,
+  CalendarDays,
   ChevronDown,
   CircleHelp,
   ClipboardList,
@@ -520,6 +521,20 @@ function homeSidebarMeta(labels = {}) {
     title: shellLabel(labels, "homeSidebarTitle", "Home"),
     actions: [
       { label: shellLabel(labels, "homeDashboardLabel", "대시보드"), view: "home", section: "home-dashboard", icon: LayoutDashboard, active: true },
+      {
+        label: shellLabel(labels, "homeFinanceLabel", "매출/비용"),
+        icon: FileText,
+        groupId: "home-finance",
+        children: [
+          { label: shellLabel(labels, "homeFinanceOverviewLabel", "전체 현황"), view: "home", section: "home-finance-overview", icon: LayoutDashboard },
+          { label: shellLabel(labels, "homeFinanceMonthlyLabel", "월별 매출/비용"), view: "home", section: "home-finance-monthly", icon: CalendarDays },
+          { label: shellLabel(labels, "homeFinanceClientsLabel", "고객별 매출/비용"), view: "home", section: "home-finance-clients", icon: ClipboardList },
+          { label: shellLabel(labels, "homeFinanceTimeLabel", "시간 기록"), view: "home", section: "home-finance-time", icon: ClipboardList },
+          { label: shellLabel(labels, "homeFinanceExpensesLabel", "비용 처리"), view: "home", section: "home-finance-expenses", icon: FileText },
+          { label: shellLabel(labels, "homeFinanceBillingLabel", "청구/수납"), view: "home", section: "home-finance-billing", icon: FileText },
+          { label: shellLabel(labels, "homeFinanceArLabel", "미수금"), view: "home", section: "home-finance-ar", icon: ShieldCheck }
+        ]
+      },
       { label: shellLabel(labels, "homeMessagesLabel", "메시지"), view: "home", section: "home-messages", icon: Mail },
       { label: shellLabel(labels, "homeRequestsLabel", "승인 요청"), view: "home", section: "home-requests", icon: ShieldCheck },
       { label: shellLabel(labels, "homeEsignLabel", "전자 계약"), view: "home", section: "home-esign", icon: FileText },
@@ -840,7 +855,7 @@ export function Sidebar({
               const active = isGroupActive(item);
               const open = groupOpen(item, index);
               return (
-                <div key={item.label} className={active ? "sidebar-group active" : "sidebar-group"}>
+                <div key={item.label} className={active ? "sidebar-group active" : "sidebar-group"} data-sidebar-group={item.groupId}>
                   <button
                     type="button"
                     className={active ? "sidebar-item sidebar-group-toggle active" : "sidebar-item sidebar-group-toggle"}

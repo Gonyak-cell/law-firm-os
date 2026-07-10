@@ -187,6 +187,40 @@ test("Stage 1 IA redirects old global utility URLs into stable product axes", as
   }
 });
 
+test("WP-FIN-1 registers the Home finance group and context-preserving legacy routes", async () => {
+  const appSource = await readWebFile("src/App.jsx");
+  const shellSource = await readWebFile("src/components/Shell.jsx");
+  const homeSource = await readWebFile("src/components/HomeSurface.jsx");
+  const globalUtilitySource = await readWebFile("src/data/globalUtilities.js");
+
+  const sections = [
+    "home-finance-overview",
+    "home-finance-monthly",
+    "home-finance-clients",
+    "home-finance-time",
+    "home-finance-expenses",
+    "home-finance-billing",
+    "home-finance-ar"
+  ];
+  for (const section of sections) {
+    assert.match(appSource, new RegExp(`"${section}"`));
+    assert.match(shellSource, new RegExp(`section: "${section}"`));
+    assert.match(homeSource, new RegExp(`"${section}"`));
+  }
+  assert.match(shellSource, /groupId: "home-finance"/);
+  assert.match(shellSource, /data-sidebar-group=\{item\.groupId\}/);
+  assert.match(globalUtilitySource, /status: "integrated-home"/);
+  assert.match(globalUtilitySource, /"matters:matter-approvals", route\("home", "home-requests"[^\n]*filter: "finance"/);
+  assert.match(globalUtilitySource, /"matters:matter-time", route\("home", "home-finance-time"/);
+  assert.match(globalUtilitySource, /"matters:matter-expenses", route\("home", "home-finance-expenses"/);
+  assert.match(globalUtilitySource, /"matters:matter-billing", route\("home", "home-finance-billing"/);
+  assert.match(globalUtilitySource, /"matters:matter-ar", route\("home", "home-finance-ar"/);
+  assert.match(appSource, /routeUrl\(resolved\.view, resolved\.section, \{ \.\.\.resolved, \.\.\.routeContext \}\)/);
+  assert.match(appSource, /params\.set\("matter_id", routeContext\.matterId\)/);
+  assert.match(appSource, /params\.set\("filter", routeContext\.filter\)/);
+  assert.match(homeSource, /data-home-finance-route-contract=\{activeHomeSection\}/);
+});
+
 test("matter startup branding uses shared splash and brand constants", async () => {
   const brandSource = await readWebFile("src/brand/brand.js");
   const splashSource = await readWebFile("src/components/MatterSplash.jsx");

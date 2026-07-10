@@ -22,7 +22,16 @@ import { emitHomeMetric } from "./data/homeTelemetry.js";
 const productAxisIds = new Set(navItems.map((item) => item.id));
 const emptyHomeActionCounts = Object.freeze({ approval: 0, task_late: 0, task_today: 0 });
 const homeFallbackSection = "home-dashboard";
-const homeSectionIds = new Set([homeFallbackSection, "home-messages", "home-requests", "home-esign", "home-company"]);
+const homeFinanceSectionIds = new Set([
+  "home-finance-overview",
+  "home-finance-monthly",
+  "home-finance-clients",
+  "home-finance-time",
+  "home-finance-expenses",
+  "home-finance-billing",
+  "home-finance-ar"
+]);
+const homeSectionIds = new Set([homeFallbackSection, ...homeFinanceSectionIds, "home-messages", "home-requests", "home-esign", "home-company"]);
 const defaultModeReturnTarget = Object.freeze({ view: "home", section: "home-dashboard" });
 
 function normalizeHomeRoute(route) {
@@ -139,10 +148,18 @@ export function App() {
     return { ...resolveRoute(rawView, rawSection, companyAllowed), liveCtx: nextLiveCtx, companyAllowed };
   }
 
-  function routeUrl(nextView, section = "") {
+  function routeUrl(nextView, section = "", routeContext = {}) {
     const params = new URLSearchParams(window.location.search);
     params.set("view", nextView);
     params.set("ctx", liveCtx);
+    if (routeContext.filter) params.set("filter", routeContext.filter);
+    else params.delete("filter");
+    if (Object.prototype.hasOwnProperty.call(routeContext, "matterId")) {
+      if (routeContext.matterId) params.set("matter_id", routeContext.matterId);
+      else params.delete("matter_id");
+    } else if (!homeFinanceSectionIds.has(section)) {
+      params.delete("matter_id");
+    }
     const hash = section ? `#${encodeURIComponent(section)}` : "";
     return `${window.location.pathname}?${params.toString()}${hash}`;
   }
@@ -159,7 +176,7 @@ export function App() {
     return isReturnableWorkView(view) ? routeTargetFor(view, activeSection) : modeReturnTarget;
   }
 
-  function navigateToView(nextView, section = "") {
+  function navigateToView(nextView, section = "", routeContext = {}) {
     const companyAllowed = readHomeCompanyAccess();
     setCanViewCompanyStatus(companyAllowed);
     const resolved = resolveRoute(nextView, section, companyAllowed);
@@ -199,7 +216,11 @@ export function App() {
     } else {
       setUtilityDrawerType("");
     }
-    window.history.pushState({ view: resolved.view, section: resolved.section }, "", routeUrl(resolved.view, resolved.section));
+    window.history.pushState(
+      { view: resolved.view, section: resolved.section },
+      "",
+      routeUrl(resolved.view, resolved.section, { ...resolved, ...routeContext })
+    );
   }
 
   function returnToWork() {
@@ -298,7 +319,7 @@ export function App() {
       home_company_access_denied: homeCompanyAccessDenied,
       open_notifications: resolvedInitialRoute.openNotifications === true
     });
-    window.history.replaceState({ view, section: activeSection }, "", routeUrl(view, activeSection));
+    window.history.replaceState({ view, section: activeSection }, "", routeUrl(view, activeSection, resolvedInitialRoute));
   }, []);
 
   useEffect(() => {

@@ -324,6 +324,61 @@ test("R1 WP-2 renders dedicated Home utility screens from legacy route context",
   assert.match(company, /data-home-audit-summary="true"/);
 });
 
+test("WP-FIN-1 resolves finance and Matter settlement routes into Home", async () => {
+  const cases = [
+    { view: "finance", section: "finance-matter-billing", target: "home-finance-billing" },
+    { view: "finance", section: "finance-expenses", target: "home-finance-expenses" },
+    { view: "matters", section: "matter-time", target: "home-finance-time" },
+    { view: "matters", section: "matter-expenses", target: "home-finance-expenses" },
+    { view: "matters", section: "matter-billing", target: "home-finance-billing" },
+    { view: "matters", section: "matter-ar", target: "home-finance-ar" }
+  ];
+  for (const route of cases) {
+    const html = await renderAppAtLegacyRoute(route);
+    assert.match(html, new RegExp(`data-active-home-section="${route.target}"`));
+    assert.match(html, new RegExp(`data-home-finance-route-contract="${route.target}"`));
+    assert.match(html, /data-sidebar-group="home-finance"/);
+  }
+  const approvals = await renderAppAtLegacyRoute({ view: "matters", section: "matter-approvals" });
+  assert.match(approvals, /data-active-home-section="home-requests"/);
+  assert.match(approvals, /data-home-section-screen="home-requests"/);
+});
+
+test("WP-FIN-1 preserves Matter context and sidebar state in the browser", async () => {
+  const port = await availablePort();
+  const server = await createServer({
+    root: webRoot,
+    logLevel: "silent",
+    server: { host: "127.0.0.1", port, strictPort: true }
+  });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  const state = { decisionCalls: 0, newsCalls: 0 };
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
+    });
+    await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow&matter_id=matter_wp_fin#matter-time`, { waitUntil: "networkidle" });
+    await page.waitForSelector('[data-home-finance-route-contract="home-finance-time"]');
+    await page.waitForFunction(() => {
+      const url = new URL(window.location.href);
+      return url.searchParams.get("view") === "home" && url.searchParams.get("matter_id") === "matter_wp_fin" && url.hash === "#home-finance-time";
+    });
+
+    const group = page.locator('[data-sidebar-group="home-finance"]');
+    assert.equal(await group.count(), 1);
+    assert.equal(await group.locator(".sidebar-group-toggle").getAttribute("aria-expanded"), "true");
+    await group.getByRole("button", { name: "고객별 매출/비용", exact: true }).click();
+    await page.waitForSelector('[data-home-finance-route-contract="home-finance-clients"]');
+    assert.equal(new URL(page.url()).hash, "#home-finance-clients");
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
 test("R1 WP-4 gates Home company status to admin sessions", async () => {
   const denied = await renderAppAtLegacyRoute({ view: "reports", section: "reports-matter-analytics", roleIds: ["staff"] });
   const admin = await renderAppAtLegacyRoute({ view: "reports", section: "reports-matter-analytics", roleIds: ["admin"] });

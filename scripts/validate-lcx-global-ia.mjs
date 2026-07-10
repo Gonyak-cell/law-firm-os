@@ -87,7 +87,9 @@ requireText(shellPath, "view: \"reports\", section: \"reports-home-dashboard\"")
 requireText(shellPath, "view: \"requests\", section: \"requests-review-inbox\"");
 requireText(shellPath, "view: \"messages\", section: \"messages-matter-channel\"");
 requireText(shellPath, "view: \"data-import\", section: \"data-import-client\"");
-requireText(profilePath, "view: \"finance\", section: \"finance-expenses\"");
+requireText(shellPath, "groupId: \"home-finance\"");
+requireText(shellPath, "view: \"home\", section: \"home-finance-overview\"");
+requireText(shellPath, "view: \"home\", section: \"home-finance-expenses\"");
 requireText(surfacePath, "data-global-utility-surface");
 requireText(surfacePath, "data-global-decision-required");
 requireText(stylesPath, ".global-utility-layer");
