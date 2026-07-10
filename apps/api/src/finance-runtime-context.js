@@ -41,7 +41,9 @@ export const FINANCE_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/finance/prebills/reject",
     "GET /api/finance/invoices",
     "POST /api/finance/invoices",
+    "GET /api/finance/payments",
     "POST /api/finance/payments",
+    "GET /api/finance/payment-matches",
     "POST /api/finance/payment-matches",
     "GET /api/finance/ar-aging",
     "GET /api/finance/accounting-export.csv",
@@ -939,7 +941,13 @@ export async function handleFinanceApiRequest({ pathname, method, query, body, c
     return listResponse({ query, context, requestId, runtime, action: "finance:invoice:read", resourceType: "invoice", modelType: "Invoice" });
   }
   if (pathname === "/api/finance/invoices" && method === "POST") return handleFinanceInvoiceIssue({ body, context, requestId, runtime });
+  if (pathname === "/api/finance/payments" && method === "GET") {
+    return listResponse({ query, context, requestId, runtime, action: "finance:payment:read", resourceType: "payment", modelType: "Payment" });
+  }
   if (pathname === "/api/finance/payments" && method === "POST") return handleFinancePaymentImport({ body, context, requestId, runtime });
+  if (pathname === "/api/finance/payment-matches" && method === "GET") {
+    return listResponse({ query, context, requestId, runtime, action: "finance:payment_match:read", resourceType: "payment_match", modelType: "PaymentMatch" });
+  }
   if (pathname === "/api/finance/payment-matches" && method === "POST") return handleFinancePaymentMatchCreate({ body, context, requestId, runtime });
   if (pathname === "/api/finance/ar-aging" && method === "GET") return handleFinanceArAging({ query, context, requestId, runtime });
   if (pathname === "/api/finance/accounting-export.csv" && method === "GET") return handleFinanceAccountingExportCsv({ query, context, requestId, runtime });

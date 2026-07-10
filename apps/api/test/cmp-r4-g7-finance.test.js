@@ -84,6 +84,26 @@ test("G7 Finance list routes are permission gated and hide finance secrets", asy
   });
 });
 
+test("WP-FIN-2 exposes sanitized Payment and PaymentMatch read routes", async () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      { model_type: "Payment", payment_id: "payment-wp-fin-2", tenant_id: TENANT, matter_id: "matter-wp-fin-2", amount: 500, currency: "KRW", received_at: "2026-07-01", bank_reference: "secret-bank-ref", status: "received" },
+      { model_type: "PaymentMatch", payment_match_id: "match-wp-fin-2", tenant_id: TENANT, payment_id: "payment-wp-fin-2", invoice_id: "invoice-wp-fin-2", matched_amount: 300, currency: "KRW", matched_at: "2026-07-02", status: "matched" },
+    ],
+  });
+  await withServer(async (baseUrl) => {
+    const payments = await json(baseUrl, `/api/finance/payments?${BASE_QUERY}`);
+    const matches = await json(baseUrl, `/api/finance/payment-matches?${BASE_QUERY}`);
+    assert.equal(payments.status, 200);
+    assert.equal(matches.status, 200);
+    assert.equal(payments.body.items[0].amount, 500);
+    assert.equal(payments.body.items[0].bank_reference, undefined);
+    assert.equal(payments.body.items[0].bank_reference_included, false);
+    assert.equal(matches.body.items[0].matched_amount, 300);
+    assert.equal(matches.body.items[0].credential_material_included, false);
+  }, { financeRepository });
+});
+
 test("G7 Finance sensitive reads write durable allow audits without leaking payload metadata", async () => {
   const financeStorePath = join(mkdtempSync(join(tmpdir(), "finance-api-g7-read-audit-")), "finance.json");
   await withServer(async (baseUrl) => {

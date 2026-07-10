@@ -11,6 +11,7 @@ import {
   createRealizationMetric,
 } from "../../../packages/analytics/src/metrics-service.js";
 import { createAnalyticsExport } from "../../../packages/analytics/src/export-control-service.js";
+import { buildFinanceReadModels } from "../../../packages/analytics/src/finance-read-model.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
 
 export const ANALYTICS_BOUNDED_CONTEXT = Object.freeze({
@@ -19,6 +20,9 @@ export const ANALYTICS_BOUNDED_CONTEXT = Object.freeze({
   contract_schema_version: "law-firm-os.analytics-runtime-contract.v0.1",
   endpoints: Object.freeze([
     "GET /api/analytics/dashboards",
+    "GET /api/analytics/finance/overview",
+    "GET /api/analytics/finance/monthly",
+    "GET /api/analytics/finance/clients",
     "POST /api/analytics/refresh",
     "GET /api/analytics/matter-profitability",
     "POST /api/analytics/matter-profitability",
@@ -86,8 +90,10 @@ export const ANALYTICS_RUNTIME_SEED = Object.freeze([
 export function createAnalyticsRuntimeContext({
   repository = createAnalyticsRepository({ seedRecords: ANALYTICS_RUNTIME_SEED }),
   financeRepository = null,
+  masterDataRepository = null,
+  matterRepository = null,
 } = {}) {
-  return Object.freeze({ repository, financeRepository, seed_ref: "cmp-g8-analytics-synthetic" });
+  return Object.freeze({ repository, financeRepository, masterDataRepository, matterRepository, seed_ref: "cmp-g8-analytics-synthetic" });
 }
 
 const DEFAULT_RUNTIME = createAnalyticsRuntimeContext();
@@ -195,6 +201,56 @@ function listResponse({ query, context, requestId, runtime, action, resourceType
       production_ready_claim: false,
     },
   };
+}
+
+function financeReadModelResponse({ kind, query, context, requestId, runtime }) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "analytics:finance:read",
+    resourceType: "finance_read_model",
+  });
+  if (gated) return gated;
+  try {
+    const model = buildFinanceReadModels({
+      financeRepository: runtime.financeRepository,
+      masterDataRepository: runtime.masterDataRepository,
+      matterRepository: runtime.matterRepository,
+      tenant_id: query.tenant_id,
+      from: query.from ?? null,
+      to: query.to ?? null,
+      currency: query.currency ?? null,
+      client_group_id: query.client_group_id ?? null,
+      matter_id: query.matter_id ?? null,
+      recognition_basis: query.recognition_basis ?? "billed",
+    });
+    const items = kind === "monthly" ? model.monthly : kind === "clients" ? model.clients : model.overview.totals;
+    const empty = items.length === 0 || items.every((item) => item.transaction_count === 0);
+    return {
+      status: 200,
+      body: {
+        request_id: requestId,
+        outcome: model.partial ? "partial" : "passed",
+        ...(kind === "overview" ? { item: model.overview } : { items }),
+        source_statuses: model.source_statuses,
+        filters: model.filters,
+        safe_error_codes: model.partial ? ["ANALYTICS_FINANCE_PARTIAL_SOURCE"] : [],
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: empty ? "empty" : model.partial ? "partial" : null,
+        count_leak_prevented: true,
+        raw_source_payload_included: false,
+        credential_material_included: false,
+        journal_lines_included: false,
+        production_ready_claim: false,
+      },
+    };
+  } catch {
+    return errorResponse(400, requestId, [ANALYTICS_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
 }
 
 export function handleRealizationCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
@@ -434,6 +490,15 @@ export function handleAnalyticsAudit({ query, context, requestId, runtime = DEFA
 }
 
 export async function handleAnalyticsApiRequest({ pathname, method, query, body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  if (pathname === "/api/analytics/finance/overview" && method === "GET") {
+    return financeReadModelResponse({ kind: "overview", query, context, requestId, runtime });
+  }
+  if (pathname === "/api/analytics/finance/monthly" && method === "GET") {
+    return financeReadModelResponse({ kind: "monthly", query, context, requestId, runtime });
+  }
+  if (pathname === "/api/analytics/finance/clients" && method === "GET") {
+    return financeReadModelResponse({ kind: "clients", query, context, requestId, runtime });
+  }
   if (pathname === "/api/analytics/dashboards" && method === "GET") {
     return listResponse({ query, context, requestId, runtime, action: "analytics:dashboard:read", resourceType: "analytics_dashboard", modelType: "AnalyticsDashboard" });
   }

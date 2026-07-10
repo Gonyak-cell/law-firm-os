@@ -613,8 +613,8 @@ WP-FIN-1 계약·라우트
 ## 15. 현재 진실 상태
 
 - 계획 문서: 작성 완료
-- 코드 구현: WP-FIN-1 완료, WP-FIN-2~7 대기
-- 테스트 PASS: WP-FIN-1 전용·UI 회귀·웹 빌드 PASS
+- 코드 구현: WP-FIN-1~2 완료, WP-FIN-3~7 대기
+- 테스트 PASS: WP-FIN-1 및 WP-FIN-2 집계·API·결제 읽기 계약 PASS
 - 브라우저 QA: WP-FIN-1 라우트·Matter 컨텍스트·사이드바 상태 PASS
 - 패키지 `matter.app` 반영: 미실행
 - 서명/공증: 범위 밖

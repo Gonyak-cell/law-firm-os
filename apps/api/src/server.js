@@ -346,6 +346,8 @@ export function createDefaultAnalyticsRuntime({
   repository,
   storePath = process.env.LAWOS_ANALYTICS_STORE_PATH,
   financeRepository = null,
+  masterDataRepository = null,
+  matterRepository = null,
 } = {}) {
   const analyticsRepository =
     repository ??
@@ -353,7 +355,7 @@ export function createDefaultAnalyticsRuntime({
       filePath: storePath || createEphemeralAnalyticsStorePath(),
       seedRecords: ANALYTICS_RUNTIME_SEED,
     });
-  return createAnalyticsRuntimeContext({ repository: analyticsRepository, financeRepository });
+  return createAnalyticsRuntimeContext({ repository: analyticsRepository, financeRepository, masterDataRepository, matterRepository });
 }
 
 export function createDefaultAiRuntime({
@@ -1563,6 +1565,8 @@ export function startApiServer({
       repository: analyticsRepository,
       storePath: analyticsStorePath ?? resolvedStorePaths.analyticsStorePath,
       financeRepository: analyticsFinanceRepository ?? financeRuntimeContext?.repository ?? null,
+      masterDataRepository: masterRuntime?.repository ?? null,
+      matterRepository: matterRuntimeContext?.repository ?? null,
     });
   const aiRuntimeContext =
     aiRuntime ??

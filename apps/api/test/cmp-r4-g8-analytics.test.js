@@ -5,6 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { createAnalyticsRepository } from "../../../packages/analytics/src/runtime-repository.js";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
+import { createAnalyticsRuntimeContext } from "../src/analytics-runtime-context.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
 import { apiSessionHeaders } from "./helpers/session.js";
@@ -17,6 +18,42 @@ function permissionContext(effect = "allow") {
     principal: { user_id: "user_cmp_g8_analytics", tenant_id: TENANT, role_ids: ["analytics_user"] },
     rules: [{ id: `rule_analytics_${effect}`, effect, action: "*" }],
     object_acl: [],
+  });
+}
+
+function listRepository(records) {
+  return {
+    list(query = {}) {
+      return records.filter((record) =>
+        (!query.tenant_id || record.tenant_id === query.tenant_id) &&
+        (!query.model_type || record.model_type === query.model_type)
+      );
+    },
+  };
+}
+
+function financeReadModelRuntime() {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      { model_type: "Invoice", invoice_id: "api-fin-invoice", tenant_id: TENANT, matter_id: "api-fin-matter", billing_client_party_id: "api-fin-party", amount_due: 1000, currency: "KRW", issued_at: "2026-07-01", status: "issued" },
+      { model_type: "BillingAdjustment", adjustment_id: "api-fin-credit", tenant_id: TENANT, invoice_id: "api-fin-invoice", adjustment_amount: 100, adjustment_type: "credit", adjusted_at: "2026-07-02", status: "approved" },
+      { model_type: "Payment", payment_id: "api-fin-payment", tenant_id: TENANT, matter_id: "api-fin-matter", amount: 700, currency: "KRW", received_at: "2026-07-03", status: "received" },
+      { model_type: "PaymentMatch", payment_match_id: "api-fin-match", tenant_id: TENANT, payment_id: "api-fin-payment", invoice_id: "api-fin-invoice", matched_amount: 400, currency: "KRW", matched_at: "2026-07-04", status: "matched" },
+      { model_type: "Expense", expense_id: "api-fin-expense", tenant_id: TENANT, matter_id: "api-fin-matter", amount: 200, currency: "KRW", expense_date: "2026-07-05", approved_for_wip: true, status: "approved" },
+      { model_type: "Disbursement", disbursement_id: "api-fin-unlinked", tenant_id: TENANT, matter_id: "api-fin-unlinked-matter", amount: 50, currency: "KRW", disbursed_at: "2026-07-06", recoverable: true, status: "approved" },
+    ],
+  });
+  return createAnalyticsRuntimeContext({
+    repository: createAnalyticsRepository(),
+    financeRepository,
+    masterDataRepository: listRepository([
+      { model_type: "ClientGroup", tenant_id: TENANT, client_group_id: "api-fin-client", display_name: "API 고객" },
+      { model_type: "BillingProfile", tenant_id: TENANT, billing_profile_id: "api-fin-profile", client_group_id: "api-fin-client", billing_client_party_id: "api-fin-party" },
+    ]),
+    matterRepository: listRepository([
+      { model_type: "Matter", tenant_id: TENANT, matter_id: "api-fin-matter", billing_client_party_id: "api-fin-party" },
+      { model_type: "Matter", tenant_id: TENANT, matter_id: "api-fin-unlinked-matter" },
+    ]),
   });
 }
 
@@ -90,6 +127,61 @@ test("G8 dashboard API is permission gated and omits raw matter detail", async (
     assert.equal(denied.status, 401);
     assert.ok(denied.body.safe_error_codes.includes("AUTH_SESSION_REQUIRED"));
   });
+});
+
+test("WP-FIN-2 finance read APIs reconcile overview, monthly, clients, and unlinked amounts", async () => {
+  await withServer(async (baseUrl) => {
+    const query = `${BASE_QUERY}&from=2026-07-01&to=2026-07-31`;
+    const overview = await json(baseUrl, `/api/analytics/finance/overview?${query}`);
+    const monthly = await json(baseUrl, `/api/analytics/finance/monthly?${query}`);
+    const clients = await json(baseUrl, `/api/analytics/finance/clients?${query}`);
+
+    assert.equal(overview.status, 200);
+    assert.equal(monthly.status, 200);
+    assert.equal(clients.status, 200);
+    const total = overview.body.item.totals.find((row) => row.currency === "KRW");
+    const month = monthly.body.items.find((row) => row.month === "2026-07" && row.currency === "KRW");
+    const client = clients.body.items.find((row) => row.client_group_id === "api-fin-client");
+    const unlinked = clients.body.items.find((row) => row.client_group_id === null);
+    assert.deepEqual(
+      { billed: total.billed_amount, collected: total.collected_amount, cost: total.matter_cost },
+      { billed: 900, collected: 400, cost: 250 },
+    );
+    assert.equal(month.billed_amount, total.billed_amount);
+    assert.equal(month.collected_amount, total.collected_amount);
+    assert.equal(client.billed_amount + unlinked.billed_amount, total.billed_amount);
+    assert.equal(client.matter_cost + unlinked.matter_cost, total.matter_cost);
+    assert.equal(unlinked.matter_cost, 50);
+    assert.equal(overview.body.raw_source_payload_included, false);
+    assert.equal(overview.body.credential_material_included, false);
+    assert.equal(overview.body.journal_lines_included, false);
+    assert.equal(overview.body.production_ready_claim, false);
+  }, { analyticsRuntime: financeReadModelRuntime() });
+});
+
+test("WP-FIN-2 finance read APIs fail closed without count leakage", async () => {
+  await withServer(async (baseUrl) => {
+    const missingTenant = await json(baseUrl, "/api/analytics/finance/overview?permission_ref=perm&audit_hint_ref=audit");
+    assert.equal(missingTenant.status, 400);
+    assert.equal(missingTenant.body.count_leak_prevented, true);
+  }, { analyticsRuntime: financeReadModelRuntime() });
+
+  const deniedSessionAuth = {
+    resolvePermissionContextFromHeaders() {
+      const context = JSON.parse(permissionContext("deny"));
+      return { ok: true, principal: context.principal, context };
+    },
+  };
+  await withServer(async (baseUrl) => {
+    const denied = await json(baseUrl, `/api/analytics/finance/overview?${BASE_QUERY}`, {
+      noAuth: true,
+      headers: { authorization: "Bearer test-denied-session" },
+    });
+    assert.equal(denied.status, 403);
+    assert.deepEqual(denied.body.items, []);
+    assert.equal(denied.body.count_leak_prevented, true);
+    assert.equal(denied.body.page_info, undefined);
+  }, { analyticsRuntime: financeReadModelRuntime(), sessionAuth: deniedSessionAuth });
 });
 
 test("G8 dashboard refresh derives metrics from live finance repository writes", async () => {
