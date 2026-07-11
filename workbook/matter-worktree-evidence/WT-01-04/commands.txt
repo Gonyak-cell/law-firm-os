@@ -1,0 +1,7 @@
+LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue node --test packages/matter/test/worktree-repository.test.js
+LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+node --check packages/matter/src/repository.js
+node --check packages/matter/src/repository-record.js
+node --check packages/matter/src/migrations/index.js
+sqlite3 :memory: < packages/matter/src/migrations/002_matter_worktree.sql
+git diff --check -- packages/matter/src/repository.js packages/matter/src/repository-record.js packages/matter/src/migrations/index.js packages/matter/src/migrations/002_matter_worktree.sql packages/matter/test/worktree-repository.test.js

@@ -1,0 +1,33 @@
+INITIAL RED
+command: LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue node --test packages/matter/test/worktree-repository.test.js
+exit: 1
+result: 0 passed, 2 failed
+causes: Worktree canonical primary IDs were absent; legacy store exposed only migration 001
+
+INTERMEDIATE TEST CORRECTION
+The first persistence rerun exposed an inaccurate test lookup that selected a node's worktree_id before node_id. The test was corrected to select the canonical ID by model type. No production change was made for that test defect.
+
+PERSISTED MIGRATION RED
+command: same targeted test after adding on-disk manifest assertion
+exit: 1
+result: 1 passed, 1 failed
+cause: migration 002 was merged in memory but not written to the legacy store
+
+GREEN
+command: LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue node --test packages/matter/test/worktree-repository.test.js
+exit: 0
+result: 2 passed, 0 failed
+
+MATTER PACKAGE REGRESSION
+command: LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+exit: 0
+result: 151 passed, 0 failed
+
+MANUAL STORAGE QA
+SQLite migration syntax: passed
+Repository restart path: passed in targeted test using a real temporary durable file
+Legacy manifest disk rewrite: passed by direct file readback
+
+STATIC CHECKS
+node --check: passed for three changed JavaScript modules
+git diff --check: passed
