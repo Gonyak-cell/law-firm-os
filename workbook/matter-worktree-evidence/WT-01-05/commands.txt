@@ -1,0 +1,5 @@
+node --test packages/matter/test/worktree-structure.test.js
+LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+node --check packages/matter/src/worktree-structure.js
+git diff --check -- packages/matter/src/worktree-structure.js packages/matter/src/index.js packages/matter/test/worktree-structure.test.js
+node --input-type=module -e '<manual valid-tree and cycle-move driver>'
