@@ -2,6 +2,8 @@ import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { CalendarClock, CheckCircle2, FileText, Link2, ListChecks, MessageSquare, Pencil, ShieldCheck, UserCheck, X } from "lucide-react";
+import { classifyMatterPracticeArea } from "../../../../packages/matter/src/practice-area.js";
+import heroMatterArchitecture from "../assets/heroes/hero-matter-architecture.jpg";
 import {
   changeMatterOwner,
   completeMatterStatus,
@@ -87,8 +89,6 @@ const MATTER_SECTIONS = new Set([
   "matter-seal",
   "matter-timeline",
   "matter-calendar",
-  "matter-external-schedule",
-  "matter-notes",
   "matter-channel",
   "matter-meetings",
   "matter-announcements",
@@ -119,6 +119,15 @@ const MATTER_EXTERNAL_SCHEDULE_ROWS = [
   ["송달 확인", "송달 상태와 수령 여부 확인", "송달 대상, 송달일, 확인자"],
   ["기한", "항소, 상고, 답변서, 보정명령 등 기한 관리", "기한일, 기준일, 담당자"]
 ];
+const MATTER_BOARD_TABS = Object.freeze([
+  Object.freeze({ id: "dashboard", label: "홈" }),
+  Object.freeze({ id: "litigation", label: "송무" }),
+  Object.freeze({ id: "corporate-advisory", label: "기업 자문" }),
+  Object.freeze({ id: "dispute", label: "분쟁" }),
+  Object.freeze({ id: "transaction", label: "트랜잭션" })
+]);
+
+const matterBoardCategory = classifyMatterPracticeArea;
 const MATTER_CONNECTED_SECTIONS = {
   "matter-closeout": {
     title: "종결 처리",
@@ -145,15 +154,6 @@ const MATTER_CONNECTED_SECTIONS = {
         rows: [
       ["개인 할 일", "담당자, 기한, 우선순위", "Matter 활동 기록 연결"],
       ["사건별 할 일", "업무 보드와 연결", "생성/상태 변경/감사 연결"]
-    ]
-  },
-  "matter-notes": {
-    title: "검토 의견",
-    marker: "notes",
-    meta: "내부 기록",
-    rows: [
-      ["검토 의견", "쟁점, 리스크, 다음 액션", "Matter 활동 유형 연결"],
-      ["내부 메모", "비공개 메모", "외부 공유 제한"]
     ]
   },
   "matter-evidence": {
@@ -2719,8 +2719,13 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [selectedMatterIds, setSelectedMatterIds] = useState([]);
   const [activeListViewId, setActiveListViewId] = useState(null);
   const [matterCodeEditValue, setMatterCodeEditValue] = useState("");
+  const [activeMatterBoardTab, setActiveMatterBoardTab] = useState("dashboard");
   const currentSection = MATTER_SECTIONS.has(activeSection) ? activeSection : "matter-home";
   const currentOwnerRefs = useMemo(() => sessionOwnerRefs(), [refreshToken]);
+
+  useEffect(() => {
+    if (currentSection === "matter-board") setActiveMatterBoardTab("dashboard");
+  }, [currentSection]);
 
   useEffect(() => {
     if (refreshSignalRef.current === refreshSignal) return;
@@ -2775,6 +2780,10 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   const listViews = resultItems(listViewResult);
   const activeListView = listViews.find((item) => item.list_view_id === activeListViewId) ?? listViews[0] ?? null;
   const visibleMatters = useMemo(() => applyMatterListView(matters, activeListView), [matters, activeListView]);
+  const boardMatters = useMemo(
+    () => visibleMatters.filter((item) => matterBoardCategory(item) === activeMatterBoardTab),
+    [activeMatterBoardTab, visibleMatters]
+  );
   const selectedMatter = visibleMatters.find((item) => item.matter_id === selectedMatterId) ?? null;
   const activeMatterId = selectedMatter?.matter_id ?? null;
 
@@ -3237,6 +3246,35 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     setSelectedMatterIds(visibleMatters.map((item) => item.matter_id));
   }
 
+  function handleToggleAllBoard(checked) {
+    const boardIds = new Set(boardMatters.map((item) => item.matter_id));
+    setSelectedMatterIds((current) => {
+      const next = new Set(current);
+      for (const matterId of boardIds) {
+        if (checked) next.add(matterId);
+        else next.delete(matterId);
+      }
+      return [...next];
+    });
+  }
+
+  function handleMatterBoardTabKeyDown(event) {
+    const currentIndex = MATTER_BOARD_TABS.findIndex((tab) => tab.id === activeMatterBoardTab);
+    let nextIndex = currentIndex;
+    if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % MATTER_BOARD_TABS.length;
+    else if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + MATTER_BOARD_TABS.length) % MATTER_BOARD_TABS.length;
+    else if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = MATTER_BOARD_TABS.length - 1;
+    else return;
+
+    event.preventDefault();
+    const nextTab = MATTER_BOARD_TABS[nextIndex];
+    setActiveMatterBoardTab(nextTab.id);
+    event.currentTarget.parentElement
+      ?.querySelector(`[data-matter-board-tab="${nextTab.id}"]`)
+      ?.focus();
+  }
+
   async function handleInlineEdit() {
     if (!activeMatterId) return;
     setInlineEditPending(true);
@@ -3621,25 +3659,6 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
         />
       );
     }
-    if (currentSection === "matter-notes") {
-      return (
-        <ActivityWorkspacePanel
-          activityResult={activityResult}
-          timelineResult={timelineResult}
-          createResult={activityCreateResult}
-          patchResult={activityPatchResult}
-          createPending={activityCreatePending}
-          patchPending={activityPatchPending}
-          onCreateActivity={handleCreateActivity}
-          onPatchActivity={handlePatchActivity}
-          activityType="note"
-          actionLabel="메모"
-          createButtonLabel="메모 추가"
-          createTitle="검토 의견"
-          bodyText="내부 검토 의견"
-        />
-      );
-    }
     if (["matter-evidence", "matter-templates"].includes(currentSection)) {
       return (
         <div className="workspace-mini-grid" data-lcx-vltui-06-vault-backed-shortcuts={config.marker}>
@@ -3860,7 +3879,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
 
   return (
     <section id="matters-home" className="surface stack matters-surface" data-cmp-g4-live-matters="true">
-      <ForestHero title={labels.mattersTitle} imageOpacity={0.18} />
+      <ForestHero title={labels.mattersTitle} image={heroMatterArchitecture} imageOpacity={0.24} />
       {skin !== "forest" && <PageHeader title={labels.mattersTitle} />}
       <div
         className="matter-runtime-grid record-workspace record-workspace-list-only"
@@ -3917,13 +3936,51 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "matter-vault" && <MatterVaultPanel matterId={activeMatterId} liveCtx={liveCtx} />}
+        {currentSection === "matter-board" && (
+          <Panel id="matter-board" className="record-list-panel" title="업무 보드" hideHeader>
+            <div className="matter-board-tabs" role="tablist" aria-label="업무 보드">
+              {MATTER_BOARD_TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  className={activeMatterBoardTab === tab.id ? "active" : ""}
+                  role="tab"
+                  aria-selected={activeMatterBoardTab === tab.id ? "true" : "false"}
+                  aria-controls="matter-board-tab-panel"
+                  tabIndex={activeMatterBoardTab === tab.id ? 0 : -1}
+                  data-matter-board-tab={tab.id}
+                  onClick={() => setActiveMatterBoardTab(tab.id)}
+                  onKeyDown={handleMatterBoardTabKeyDown}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            {activeMatterBoardTab === "dashboard" ? (
+              <div id="matter-board-tab-panel" role="tabpanel" aria-label="홈" />
+            ) : (
+              <div className="matter-board-tab-panel" id="matter-board-tab-panel" role="tabpanel" aria-label={MATTER_BOARD_TABS.find((tab) => tab.id === activeMatterBoardTab)?.label}>
+                <MattersTable
+                  result={result}
+                  matters={boardMatters}
+                  selectedMatterId={activeMatterId}
+                  onSelectMatter={setSelectedMatterId}
+                  recentResult={recentResult}
+                  selectedMatterIds={selectedMatterIds}
+                  onToggleMatter={handleToggleMatter}
+                  onToggleAll={handleToggleAllBoard}
+                />
+              </div>
+            )}
+          </Panel>
+        )}
         {currentSection === "matter-worktree" && (
           <Panel id="matter-worktree" className="record-list-panel" title="워크트리" hideHeader>
             <MatterWorktreeSurface matters={matters} liveCtx={liveCtx} />
           </Panel>
         )}
-        {["matter-board", "matter-timeline"].includes(currentSection) && (
-          <Panel id={currentSection} className="record-list-panel" title="업무 보드" meta="활동 이력" hideHeader>
+        {currentSection === "matter-timeline" && (
+          <Panel id="matter-timeline" className="record-list-panel" title="활동 이력" hideHeader>
             <ActivityWorkspacePanel
               activityResult={activityResult}
               timelineResult={timelineResult}
@@ -3951,27 +4008,16 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
               onRequestDeadlineChange={handleRequestDeadlineChange}
               onConfirmDeadlineChange={handleConfirmDeadlineChange}
             />
-          </Panel>
-        )}
-        {currentSection === "matter-external-schedule" && (
-          <Panel id="matter-external-schedule" className="record-list-panel" title="외부 일정" meta="기관 일정" hideHeader>
-            <CalendarWorkspacePanel
-              calendarResult={calendarResult}
-              deadlineResult={deadlineResult}
-              createResult={calendarCreateResult}
-              approvalResult={deadlineApprovalResult}
-              confirmResult={deadlineConfirmResult}
-              createPending={calendarCreatePending}
-              approvalPending={deadlineApprovalPending}
-              confirmPending={deadlineConfirmPending}
-              onCreateCalendarEvent={handleCreateCalendarEvent}
-              onRequestDeadlineChange={handleRequestDeadlineChange}
-              onConfirmDeadlineChange={handleConfirmDeadlineChange}
-            />
-            <DataTable
-              columns={["유형", "업무", "관리 필드"]}
-              rows={MATTER_EXTERNAL_SCHEDULE_ROWS}
-            />
+            <section className="matter-live-stack" aria-label="기관 일정">
+              <div className="matter-review-strip">
+                <CalendarClock size={18} aria-hidden="true" />
+                <span>기관 일정</span>
+              </div>
+              <DataTable
+                columns={["유형", "업무", "관리 필드"]}
+                rows={MATTER_EXTERNAL_SCHEDULE_ROWS}
+              />
+            </section>
           </Panel>
         )}
         {currentSection === "matter-channel" && (

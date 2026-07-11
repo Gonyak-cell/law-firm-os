@@ -209,9 +209,9 @@ function wp5ApiBody(pathname, searchParams, state) {
   const list = (id, items) => ({ request_id: id, outcome: "passed", ui_state: "ready", items, page_info: { next_cursor: null, returned_count: items.length }, safe_error_codes: [], audit_hint_ref: `${id}-audit`, count_leak_prevented: true, production_ready_claim: false });
   if (pathname === "/api/matters") {
     return list("dashboard-matters", [
-      { matter_id: "matter-dashboard-opening", matter_code: "2026-101", title: "신규 자문", client_display_name: "고객 A", status: "opening", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) },
-      { matter_id: "matter-dashboard-active", matter_code: "2026-099", title: "진행 자문", client_display_name: "고객 B", status: "active", owner_user_id: "jwsuh@amic.kr", updated_at: wp5IsoDay(0) },
-      { matter_id: "matter-dashboard-closed", matter_code: "2026-088", title: "종결 자문", client_display_name: "고객 C", status: "closed", closed_at: wp5IsoDay(-2) }
+      { matter_id: "matter-dashboard-opening", matter_code: "2026-101", title: "신규 자문", client_display_name: "고객 A", status: "opening", matter_type_english: "Advisory", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) },
+      { matter_id: "matter-dashboard-active", matter_code: "2026-099", title: "진행 자문", client_display_name: "고객 B", status: "active", matter_type_english: "LIT", owner_user_id: "jwsuh@amic.kr", updated_at: wp5IsoDay(0) },
+      { matter_id: "matter-dashboard-closed", matter_code: "2026-088", title: "종결 자문", client_display_name: "고객 C", status: "closed", matter_type_english: "DEAL", closed_at: wp5IsoDay(-2) }
     ]);
   }
   if (pathname === "/api/matters/recently-viewed") {
@@ -923,6 +923,66 @@ test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async ()
     await page.locator("#home-feed-tab-newsletter").click();
     await page.waitForSelector('[data-home-feed-entry="newsletter-r1-wp5"]');
     assert.ok(state.newsletterCalls >= 1);
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
+test("Matter work management groups board tabs and integrates external schedules", async () => {
+  const port = await availablePort();
+  const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  const state = { decisionCalls: 0, newsCalls: 0 };
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
+    });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow#matter-home`, { waitUntil: "networkidle" });
+    const matterSidebar = page.locator('[data-context-sidebar="matters"]');
+    assert.deepEqual(await matterSidebar.locator(".sidebar-group-toggle > span:nth-child(2)").allTextContents(), ["업무 관리", "사건 운영", "소통", "리포트"]);
+    assert.doesNotMatch(await matterSidebar.innerText(), /업무 진행|외부 일정|검토 의견/);
+
+    const workManagement = matterSidebar.locator('[data-sidebar-group="matter-board"]');
+    if (await workManagement.locator(".sidebar-group-toggle").getAttribute("aria-expanded") !== "true") await workManagement.locator(".sidebar-group-toggle").click();
+    assert.deepEqual(await workManagement.locator(".sidebar-child").allTextContents(), ["업무 보드", "워크트리", "할 일", "일정"]);
+    await workManagement.getByRole("button", { name: "업무 보드", exact: true }).click();
+    await page.waitForFunction(() => window.location.hash === "#matter-board");
+
+    const boardTabs = page.getByRole("tablist", { name: "업무 보드" });
+    assert.deepEqual(await boardTabs.getByRole("tab").allTextContents(), ["홈", "송무", "기업 자문", "분쟁", "트랜잭션"]);
+    assert.equal(await boardTabs.getByRole("tab", { name: "홈" }).getAttribute("aria-selected"), "true");
+    assert.equal((await page.getByRole("tabpanel", { name: "홈" }).innerText()).trim(), "");
+
+    await boardTabs.getByRole("tab", { name: "송무" }).click();
+    assert.equal(await boardTabs.getByRole("tab", { name: "송무" }).getAttribute("aria-selected"), "true");
+    assert.equal(await page.locator('[data-matter-select-row="true"]').count(), 1);
+    assert.match(await page.locator('[data-matter-select-row="true"]').innerText(), /진행 자문/);
+
+    await boardTabs.getByRole("tab", { name: "송무" }).press("ArrowRight");
+    assert.equal(await boardTabs.getByRole("tab", { name: "기업 자문" }).getAttribute("aria-selected"), "true");
+    assert.equal(await boardTabs.getByRole("tab", { name: "기업 자문" }).evaluate((node) => document.activeElement === node), true);
+    await boardTabs.getByRole("tab", { name: "기업 자문" }).press("Home");
+    assert.equal(await boardTabs.getByRole("tab", { name: "홈" }).getAttribute("aria-selected"), "true");
+    assert.equal(await boardTabs.getByRole("tab", { name: "홈" }).evaluate((node) => document.activeElement === node), true);
+
+    await page.goto("about:blank");
+    await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow#matter-timeline`, { waitUntil: "networkidle" });
+    assert.equal(await page.locator('[data-sf-b-w03-activity-workspace="true"]').count(), 1);
+
+    await page.goto("about:blank");
+    await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow#matter-external-schedule`, { waitUntil: "networkidle" });
+    await page.waitForFunction(() => window.location.hash === "#matter-calendar");
+    assert.equal(await workManagement.getByRole("button", { name: "일정", exact: true }).getAttribute("aria-current"), "location");
+
+    await workManagement.getByRole("button", { name: "일정", exact: true }).click();
+    await page.waitForFunction(() => window.location.hash === "#matter-calendar");
+    assert.equal(await page.getByText("법원 일정", { exact: true }).count(), 1);
+    assert.equal(await page.getByText("세무서 업무", { exact: true }).count(), 1);
   } finally {
     await browser.close();
     await server.close();

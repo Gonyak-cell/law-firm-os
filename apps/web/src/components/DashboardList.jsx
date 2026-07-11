@@ -21,7 +21,7 @@ export function DashboardListCard({
           </div>
         )}
       </header>
-      {children}
+      <div className="home-dashboard-card-body">{children}</div>
     </section>
   );
 }

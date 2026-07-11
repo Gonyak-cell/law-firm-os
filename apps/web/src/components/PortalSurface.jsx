@@ -1,6 +1,7 @@
 import React from "react";
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, FileText, ShieldCheck, Share2 } from "lucide-react";
+import heroPortalArchitecture from "../assets/heroes/hero-portal-architecture.jpg";
 import {
   accessPortalExternalSecureLink,
   consumePortalInvite,
@@ -156,7 +157,7 @@ export function PortalSurface({ labels, liveCtx = "allow", refreshSignal = 0 }) 
       data-c13-rfi-response={externalRfiState}
       data-c13-secure-link-access={externalLinkAccessState}
     >
-      <ForestHero title={labels.portalTitle} imageOpacity={0.18} />
+      <ForestHero title={labels.portalTitle} image={heroPortalArchitecture} imageOpacity={0.24} />
       <PageHeader
         title={labels.portalTitle}
         heroTakeover={skin === "forest"}

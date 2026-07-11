@@ -1,6 +1,7 @@
 import React from "react";
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, FileCheck2, FileWarning, Link2, LockKeyhole, Search, ShieldCheck, UploadCloud } from "lucide-react";
+import heroVaultArchitecture from "../assets/heroes/hero-vault-architecture.jpg";
 import { fetchVaultBridgeStatus, fetchVaultDocuments, fetchVaultMatterLookup, fetchVaultSearch, fetchVaultUploadPreflight, uploadVaultDocumentFile } from "../data/apiClient.js";
 import { ForestHero } from "./ForestHero.jsx";
 import { DataTable, PageHeader, Panel } from "./primitives.jsx";
@@ -990,7 +991,7 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "", re
 
   return (
     <section id="vault-home" className="surface stack vault-surface" data-cmp-g5-vault-surface="true">
-      <ForestHero title={labels.vaultTitle} imageOpacity={0.18} />
+      <ForestHero title={labels.vaultTitle} image={heroVaultArchitecture} imageOpacity={0.24} />
       <PageHeader
         title={labels.vaultTitle}
         heroTakeover={skin === "forest"}

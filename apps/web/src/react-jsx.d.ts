@@ -23,6 +23,11 @@ declare module "*.jsx" {
   export const Property: (...args: unknown[]) => unknown;
 }
 
+declare module "*.jpg" {
+  const src: string;
+  export default src;
+}
+
 declare namespace JSX {
   interface IntrinsicElements {
     [elementName: string]: Record<string, unknown>;

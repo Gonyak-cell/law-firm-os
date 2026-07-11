@@ -2,6 +2,7 @@ import React from "react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import heroPeopleArchitecture from "../assets/heroes/hero-people-architecture.jpg";
 import { ForestHero } from "../components/ForestHero.jsx";
 import { fetchHrxPeopleOverview } from "./hrxApiClient.ts";
 import { EmployeeList } from "./employees/EmployeeList.tsx";
@@ -219,7 +220,7 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }: { activeSe
 
   return (
     <section id="people-home" className="surface stack people-surface" data-hrx-api-backed="true">
-      <ForestHero title="People" imageOpacity={0.18} />
+      <ForestHero title="People" image={heroPeopleArchitecture} imageOpacity={0.24} />
       <div className="people-work-layer" data-people-work-layer="white">
         {overview?.kind === "error" && !WORKFORCE_SECTIONS.has(currentSection) && (
           <div className="live-data-state live-data-error">

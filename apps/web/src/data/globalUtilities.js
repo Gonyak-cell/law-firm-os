@@ -514,6 +514,8 @@ const directRouteMap = new Map([
   ["matters:matter-expenses", route("home", "home-finance-expenses", { redirectedFrom: { view: "matters", section: "matter-expenses" } })],
   ["matters:matter-billing", route("home", "home-finance-billing", { redirectedFrom: { view: "matters", section: "matter-billing" } })],
   ["matters:matter-ar", route("home", "home-finance-ar", { redirectedFrom: { view: "matters", section: "matter-ar" } })],
+  ["matters:matter-external-schedule", route("matters", "matter-calendar", { redirectedFrom: { view: "matters", section: "matter-external-schedule" } })],
+  ["matters:matter-notes", route("matters", "matter-board", { redirectedFrom: { view: "matters", section: "matter-notes" } })],
   ["policies:policies-company", route("vault", "vault-documents")],
   ["policies:policies-employment-contracts", route("home", "home-esign")],
   ["policies:policies-annual-leave", route("vault", "vault-documents")]
@@ -544,6 +546,7 @@ export function isLegacyGlobalRoute(view, section) {
 }
 
 export function resolveGlobalShortcut(view, section = "") {
+  if (view === "matters" && !section) return { view, section: "matter-board" };
   const direct = resolveFinalUtilityRoute(view, section);
   if (direct) return direct;
   const legacyRoute = legacyGlobalRouteMap.get(`${view}:${section}`);

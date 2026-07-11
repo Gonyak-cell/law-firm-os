@@ -2,6 +2,7 @@ import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowRight, Link2, Plus, ShieldCheck, X } from "lucide-react";
+import heroClientArchitecture from "../assets/heroes/hero-client-architecture.jpg";
 import {
   createCrmAccount,
   createCrmActivity,
@@ -2641,7 +2642,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
       className="surface stack clients-surface"
       data-cmp-g2-live-clients="true"
     >
-      <ForestHero title={labels.clientsTitle} imageOpacity={0.18} />
+      <ForestHero title={labels.clientsTitle} image={heroClientArchitecture} imageOpacity={0.24} />
       {skin !== "forest" && <PageHeader title={labels.clientsTitle} />}
       <div
         className="clients-runtime-grid record-workspace record-workspace-list-only"

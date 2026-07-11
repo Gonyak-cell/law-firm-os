@@ -3,6 +3,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import test from "node:test";
+import { createServer } from "vite";
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 const webRoot = resolve(testDir, "..");
@@ -61,6 +62,7 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   const navSource = await readWebFile("src/data/nav.js");
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
+  const stylesSource = await readWebFile("src/styles.css");
   const globalUtilitySource = await readWebFile("src/data/globalUtilities.js");
   const globalUtilitySurfaceSource = await readWebFile("src/components/GlobalUtilitySurface.jsx");
   const homeSource = await readWebFile("src/components/HomeSurface.jsx");
@@ -99,6 +101,7 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
     assert.match(appSource, new RegExp(`view === "${view}"`));
   }
   assert.match(navSource, /id: "people", label: "People"/);
+  assert.match(shellSource, /people:\s*\{[\s\S]*?title:\s*"People"/);
   assert.match(shellSource, /aria-label="Home Client Matter People Vault Portal"/);
   assert.match(appSource, /view === "home"/);
   assert.match(appSource, /view === "auth"/);
@@ -116,6 +119,12 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
     assert.equal(componentFiles.includes(removedSurface), false);
   }
   assert.match(shellSource, /data-product-axis-nav="top-header"/);
+  assert.match(stylesSource, /\.top-axis-item\s*\{[\s\S]*font-size:\s*16px[\s\S]*letter-spacing:\s*0\.02em/);
+  assert.match(stylesSource, /html\[data-skin="forest"\] \.top-axis-item\s*\{[\s\S]*font-size:\s*16px[\s\S]*font-weight:\s*400/);
+  assert.match(stylesSource, /html\[data-skin="forest"\] \.top-axis-item\s*\{[\s\S]*letter-spacing:\s*0\.02em[\s\S]*text-transform:\s*uppercase/);
+  assert.match(stylesSource, /\.sidebar-item\s*\{[\s\S]*min-height:\s*48px[\s\S]*font-size:\s*15px[\s\S]*font-weight:\s*400[\s\S]*letter-spacing:\s*0\.01em/);
+  assert.match(stylesSource, /\.workspace-card\s*\{[\s\S]*align-items:\s*center[\s\S]*min-height:\s*46px[\s\S]*padding:\s*0 12px/);
+  assert.match(stylesSource, /\.workspace-card strong\s*\{[\s\S]*margin-top:\s*0/);
   assert.match(shellSource, /navItems\.map/);
   assert.doesNotMatch(productAxisSource, /<Icon\s+size=/);
   assert.match(appSource, /function navigateToView/);
@@ -174,17 +183,26 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
     assert.match(globalUtilitySource, new RegExp(`label: "${label}"`));
   }
   assert.doesNotMatch(globalUtilitySource, /label: "Messages"|label: "Notifications"|label: "Requests"|label: "Reports"|label: "Settings"|label: "E-Sign"/);
-  assert.match(shellSource, /client-import/);
-  for (const label of ["고객 관리", "대시보드", "고객 목록", "신규 고객", "잠재 고객", "매출 내역", "Pipeline", "상담/수임 제안", "접촉 이력", "청구", "리포트", "데이터", "데이터 가져오기", "설정"]) {
+  for (const label of ["고객 관리", "대시보드", "고객 목록", "신규 고객", "잠재 고객", "매출 내역", "Pipeline", "상담/수임 제안", "접촉 이력", "청구", "리포트"]) {
     assert.match(shellSource, new RegExp(label));
+  }
+  const viteServer = await createServer({ root: webRoot, server: { middlewareMode: true }, appType: "custom", logLevel: "error" });
+  try {
+    const { buildContextualNavigation } = await viteServer.ssrLoadModule("/src/components/Shell.jsx");
+    const clientOperations = buildContextualNavigation().clients.items.find((item) => item.label === "운영").children;
+    assert.deepEqual(clientOperations.map((item) => [item.label, item.section]), [["청구", "client-billing"], ["리포트", "client-reports"]]);
+  } finally {
+    await viteServer.close();
   }
   for (const section of ["client-accounts", "client-contacts", "client-relationships", "client-conflict"]) {
     assert.doesNotMatch(shellSource, new RegExp(`section: "${section}"`));
   }
   assert.doesNotMatch(shellSource, /Client 관리|Client 목록|Client 계정|Client 관계|Client 리포트|Client 데이터|Client 설정/);
-  for (const label of ["사건 운영", "대시보드", "사건 목록", "신규 사건", "종결 처리", "보관 사건", "업무 진행", "업무 보드", "할 일", "외부 일정", "검토 의견", "소통", "메시지", "회의 기록", "공지", "팀", "의뢰인 요청", "리포트", "사건 리포트", "검색", "사건 위험", "감사 이력", "연동", "사건 설정"]) {
+  for (const label of ["업무 관리", "업무 보드", "워크트리", "할 일", "일정", "사건 운영", "대시보드", "사건 목록", "신규 사건", "종결 처리", "보관 사건", "소통", "메시지", "회의 기록", "공지", "팀", "의뢰인 요청", "리포트", "사건 리포트", "검색", "사건 위험", "감사 이력", "연동", "사건 설정"]) {
     assert.match(shellSource, new RegExp(label));
   }
+  assert.match(shellSource, /label: "업무 관리"[\s\S]*label: "사건 운영"/);
+  assert.doesNotMatch(shellSource, /업무 진행|외부 일정|검토 의견/);
   assert.doesNotMatch(`${shellSource}\n${globalUtilitySource}\n${homeSource}\n${clientsSource}\n${mattersSource}\n${userProfileSource}\n${employeeProfileSource}\n${i18nSource}`, /·/);
   assert.match(shellSource, /peopleNavigationGroups/);
   assert.match(shellSource, /peopleSidebarGroups/);
@@ -211,11 +229,24 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   assert.doesNotMatch(appSource, /MatterModal|initialVariant|initialDataMode|setModal|mockData/);
 });
 
+test("context sidebar uses English People title and vertically centers every menu row", async () => {
+  const shellSource = await readWebFile("src/components/Shell.jsx");
+  const stylesSource = await readWebFile("src/styles.css");
+
+  assert.match(shellSource, /people:\s*\{[\s\S]*?title:\s*"People"/);
+  assert.doesNotMatch(shellSource, /people:\s*\{[\s\S]*?title:\s*"구성원"/);
+  assert.match(shellSource, /className="workspace-card-label"/);
+  assert.match(shellSource, /className="sidebar-label"/);
+  assert.match(stylesSource, /\.workspace-card-label,\s*\.sidebar-label\s*\{[\s\S]*?display:\s*flex;[\s\S]*?align-items:\s*center;[\s\S]*?align-self:\s*stretch;/);
+  assert.match(stylesSource, /\.sidebar-icon,\s*\.sidebar-chevron\s*\{[\s\S]*?align-self:\s*center;/);
+});
+
 test("Stage 1 IA redirects old global utility URLs into stable product axes", async () => {
   const { legacyGlobalRoutes, modeExceptionUtilityViewIds, resolveGlobalShortcut } = await import(pathToFileURL(resolve(webRoot, "src/data/globalUtilities.js")).href);
 
   assert.deepEqual(modeExceptionUtilityViewIds, ["settings", "data-import", "profile"]);
   assert.deepEqual(resolveGlobalShortcut("home", ""), { view: "home", section: "home-dashboard" });
+  assert.deepEqual(resolveGlobalShortcut("matters", ""), { view: "matters", section: "matter-board" });
   assert.deepEqual(resolveGlobalShortcut("home", "home-recent"), { view: "home", section: "home-dashboard" });
   assert.deepEqual(resolveGlobalShortcut("reports", "reports-home-dashboard"), { view: "home", section: "home-dashboard" });
   assert.equal(resolveGlobalShortcut("messages", "messages-matter-channel").view, "home");
@@ -230,6 +261,16 @@ test("Stage 1 IA redirects old global utility URLs into stable product axes", as
   assert.equal(resolveGlobalShortcut("settings", "settings-company").view, "settings");
   assert.equal(resolveGlobalShortcut("data-import", "data-import-client").view, "data-import");
   assert.equal(resolveGlobalShortcut("home", "home-review").section, "home-requests");
+  assert.deepEqual(resolveGlobalShortcut("matters", "matter-external-schedule"), {
+    view: "matters",
+    section: "matter-calendar",
+    redirectedFrom: { view: "matters", section: "matter-external-schedule" }
+  });
+  assert.deepEqual(resolveGlobalShortcut("matters", "matter-notes"), {
+    view: "matters",
+    section: "matter-board",
+    redirectedFrom: { view: "matters", section: "matter-notes" }
+  });
   assert.ok(legacyGlobalRoutes.length > 30);
 
   for (const legacyRoute of legacyGlobalRoutes) {
@@ -378,6 +419,7 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const navSource = await readWebFile("src/data/nav.js");
   const homeSource = await readWebFile("src/components/HomeSurface.jsx");
+  const dashboardListSource = await readWebFile("src/components/DashboardList.jsx");
   const clientsSource = await readWebFile("src/components/ClientsSurface.jsx");
   const forestHeroSource = await readWebFile("src/components/ForestHero.jsx");
   const stylesSource = await readWebFile("src/styles.css");
@@ -465,6 +507,8 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(stylesSource, /\.home-feed-tabs\s*\{[\s\S]*background:\s*transparent/);
   assert.match(stylesSource, /\.home-feed-tabs button::after[\s\S]*height:\s*3px/);
   assert.match(stylesSource, /\.home-feed-tabs button\.active::after[\s\S]*background:\s*var\(--am-success\)/);
+  assert.match(stylesSource, /\.home-feed-tabs button\s*\{[\s\S]*font-size:\s*16px[\s\S]*font-weight:\s*400[\s\S]*letter-spacing:\s*0\.02em/);
+  assert.match(stylesSource, /\.home-section-tabs button\s*\{[\s\S]*font-size:\s*16px[\s\S]*letter-spacing:\s*0\.02em/);
   assert.match(homeSource, /id: "notice", labelKey: "homeFeedNotice", label: "공지사항"/);
   assert.match(homeSource, /id: "newsletter", labelKey: "homeFeedNewsletter", label: "뉴스레터"/);
   assert.doesNotMatch(homeSource, /id: "news"/);
@@ -474,6 +518,16 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   }
   assert.match(stylesSource, /\.home-dashboard-rail\s*\{[\s\S]*display:\s*flex[\s\S]*flex-direction:\s*column/);
   assert.match(stylesSource, /\.home-dashboard-rail > \.home-dashboard-card:first-child\s*\{[\s\S]*flex:\s*1/);
+  assert.match(dashboardListSource, /className="home-dashboard-card-body">\{children\}/);
+  assert.match(homeSource, /function DashboardCard[\s\S]*className="home-dashboard-card-body">\{children\}/);
+  assert.match(stylesSource, /\.home-dashboard-card\s*\{[^}]*gap:\s*0;[^}]*padding:\s*0;[^}]*overflow:\s*hidden;[^}]*border:\s*1px solid var\(--am-border\);[^}]*border-radius:\s*var\(--am-radius-sm\);[^}]*background:\s*var\(--am-surface\);/);
+  assert.match(stylesSource, /\.home-dashboard-card-header\s*\{[^}]*min-height:\s*52px;[^}]*padding:\s*10px 18px;[^}]*border-bottom:\s*1px solid var\(--am-border-soft\);[^}]*background:\s*var\(--am-surface\);/);
+  assert.match(stylesSource, /\.home-dashboard-card-header > div:first-child::before\s*\{[^}]*width:\s*4px;[^}]*height:\s*24px;[^}]*background:\s*var\(--am-success\);/);
+  assert.match(stylesSource, /\.home-dashboard-card-header > div > span\s*\{[^}]*font-size:\s*16px;[^}]*letter-spacing:\s*0\.01em;/);
+  assert.match(stylesSource, /\.home-dashboard-card-body\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*1;[^}]*flex:\s*1;[^}]*padding:\s*14px 18px;[^}]*background:\s*transparent;/);
+  assert.match(stylesSource, /\.home-dashboard-card-header \+ \.home-dashboard-card-body\s*\{[^}]*margin-top:\s*0;/);
+  assert.match(stylesSource, /html\[data-skin="forest"\] \.home-dashboard-card\s*\{[^}]*border-color:\s*rgba\(38, 194, 96, 0\.18\);/);
+  assert.match(stylesSource, /html\[data-skin="forest"\] \.home-dashboard-card:hover\s*\{[^}]*transform:\s*none;[^}]*box-shadow:\s*var\(--am-shadow-panel\);/);
   assert.match(stylesSource, /@media \(max-width:\s*1180px\)[\s\S]*\.home-dashboard-rail\s*\{[\s\S]*display:\s*flex[\s\S]*flex-direction:\s*column/);
   assert.match(homeSource, /data-home-ops-queue="true"/);
   assert.match(homeSource, /fetchUserProfile/);
@@ -502,7 +556,7 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(forestHeroSource, /forest-hero-with-actions/);
   assert.match(shellSource, /data-topbar-refresh-trigger="true"/);
   assert.match(shellSource, /<RefreshCw size=\{17\} \/>/);
-  assert.match(clientsSource, /<ForestHero title=\{labels\.clientsTitle\} imageOpacity=\{0\.18\} \/>/);
+  assert.match(clientsSource, /<ForestHero title=\{labels\.clientsTitle\} image=\{heroClientArchitecture\} imageOpacity=\{0\.24\} \/>/);
   assert.match(clientsSource, /skin !== "forest" && <PageHeader title=\{labels\.clientsTitle\} \/>/);
   assert.doesNotMatch(clientsSource, /refreshButton|forest-hero-refresh-button|actions=\{refreshButton\}/);
   assert.match(stylesSource, /\.forest-hero-actions/);
@@ -512,6 +566,29 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(shellSource, /<Icon size=\{15\} \/>/);
   assert.match(shellSource, /utilityPanel\.kind === "workspace" && meta\.utilities\.length > 0/);
   assert.doesNotMatch(stylesSource, /\.app-frame\.sidebar-expanded|\.rail-logo|\.nav-toggle\.active/);
+});
+
+test("six product heroes use six unique architectural backgrounds", async () => {
+  const sources = await Promise.all([
+    readWebFile("src/components/HomeSurface.jsx"),
+    readWebFile("src/components/ClientsSurface.jsx"),
+    readWebFile("src/components/MattersSurface.jsx"),
+    readWebFile("src/people/PeopleHome.tsx"),
+    readWebFile("src/components/VaultSurface.jsx"),
+    readWebFile("src/components/PortalSurface.jsx")
+  ]);
+  const assetNames = ["home", "client", "matter", "people", "vault", "portal"].map((axis) => `hero-${axis}-architecture.jpg`);
+
+  assetNames.forEach((assetName, index) => {
+    assert.match(sources[index], new RegExp(assetName.replace(".", "\\.")));
+    assert.equal(sources.filter((source) => source.includes(assetName)).length, 1, `${assetName} must be used by one product hero only`);
+  });
+  assert.match(sources[0], /url\(\$\{heroHomeArchitecture\}\)/);
+  assert.match(sources[0], /rgba\(9, 43, 39, 0\.58\) 0%[\s\S]*rgba\(9, 43, 39, 0\.28\) 45%[\s\S]*rgba\(9, 43, 39, 0\.16\) 100%/);
+  assert.match(sources[0], /backgroundPosition: "center 52%"/);
+  for (const source of sources.slice(1)) {
+    assert.match(source, /<ForestHero[^>]*image=\{hero[A-Z][A-Za-z]+Architecture\}[^>]*imageOpacity=\{0\.24\}/);
+  }
 });
 
 test("Home dashboard Stage 4 keeps action counts on the single Home inbox source", async () => {
@@ -905,15 +982,12 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
     "client-activities",
     "client-billing",
     "client-sales-history",
-    "client-data",
-    "client-settings",
     "matter-home",
     "matter-closeout",
     "matter-archive",
     "matter-board",
     "matter-tasks",
-    "matter-external-schedule",
-    "matter-notes",
+    "matter-calendar",
     "matter-channel",
     "matter-opening",
     "matter-team",
@@ -1244,6 +1318,29 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(mattersSource, /법원 일정/);
   assert.match(mattersSource, /우체국 발송/);
   assert.match(mattersSource, /세무서 업무/);
+  assert.match(mattersSource, /const MATTER_BOARD_TABS = Object\.freeze\([\s\S]*홈[\s\S]*송무[\s\S]*기업 자문[\s\S]*분쟁[\s\S]*트랜잭션/);
+  assert.match(mattersSource, /className="matter-board-tabs" role="tablist" aria-label="업무 보드"/);
+  assert.match(mattersSource, /data-matter-board-tab=\{tab\.id\}/);
+  assert.match(mattersSource, /onKeyDown=\{handleMatterBoardTabKeyDown\}/);
+  assert.match(stylesSource, /\.matter-board-tabs\s*\{[\s\S]*grid-template-columns:\s*repeat\(5, minmax\(116px, 1fr\)\)/);
+  assert.match(stylesSource, /\.matter-board-tabs\s*\{[\s\S]*width:\s*min\(100%, 632px\)[\s\S]*overflow-x:\s*auto/);
+  assert.match(stylesSource, /\.matter-board-tabs\s*\{[\s\S]*padding:\s*3px 0 10px/);
+  assert.match(stylesSource, /\.matter-board-tabs button\s*\{[\s\S]*min-width:\s*116px/);
+  assert.match(stylesSource, /\.matter-board-tabs button\s*\{[\s\S]*font-size:\s*16px[\s\S]*font-weight:\s*400[\s\S]*letter-spacing:\s*0\.02em/);
+  assert.match(stylesSource, /\.hr-roster-tabs button\s*\{[\s\S]*font-size:\s*16px[\s\S]*font-weight:\s*400[\s\S]*letter-spacing:\s*0\.02em/);
+  assert.match(stylesSource, /\.hr-roster-surface\[data-hr-workforce-density="compact"\] \.hr-roster-tabs button\s*\{[\s\S]*min-height:\s*34px[\s\S]*font-size:\s*16px/);
+  assert.match(stylesSource, /\.matter-board-tabs button\s*\{[\s\S]*border-radius:\s*var\(--am-radius-sm\)[\s\S]*white-space:\s*nowrap/);
+  assert.match(stylesSource, /\.matter-board-tabs button\.active\s*\{[\s\S]*background:\s*var\(--am-surface-subtle\)/);
+  assert.match(mattersSource, /className="matter-board-tab-panel"[\s\S]*<MattersTable/);
+  assert.match(stylesSource, /\.matter-board-tab-panel\s*\{[\s\S]*margin-top:\s*8px/);
+  assert.match(stylesSource, /\.matter-selectable-header\s*\{[\s\S]*min-height:\s*44px[\s\S]*font-size:\s*14px[\s\S]*letter-spacing:\s*0\.01em/);
+  assert.match(stylesSource, /\.matter-selectable-row\s*\{[\s\S]*min-height:\s*50px[\s\S]*font-size:\s*15px[\s\S]*font-weight:\s*400[\s\S]*letter-spacing:\s*0\.01em/);
+  assert.match(stylesSource, /\.matter-selectable-record-button\s*\{[\s\S]*min-height:\s*50px/);
+  assert.doesNotMatch(stylesSource, /\.matter-board-tabs[^\n]*::after/);
+  assert.match(mattersSource, /activeMatterBoardTab === "dashboard"[\s\S]*role="tabpanel"[\s\S]*aria-label="홈"/);
+  assert.match(mattersSource, /currentSection === "matter-calendar"[\s\S]*MATTER_EXTERNAL_SCHEDULE_ROWS/);
+  assert.match(mattersSource, /currentSection === "matter-timeline"[\s\S]*<ActivityWorkspacePanel/);
+  assert.doesNotMatch(mattersSource, /id="matter-external-schedule"|currentSection === "matter-notes"|"matter-notes"|"matter-external-schedule"/);
   assert.match(mattersSource, /MATTER_CONNECTED_SECTIONS/);
   assert.match(mattersSource, /data-lcx-vltui-06-connected-section=\{config\.marker\}/);
   assert.match(mattersSource, /data-lcx-vltui-06-lifecycle-boundary=\"true\"/);

@@ -511,7 +511,7 @@ const sidebarMeta = {
     utilities: []
   },
   people: {
-    title: "구성원",
+    title: "People",
     utilities: [
       { label: "급여정산", icon: FileText, view: "people", section: "people-payroll" }
     ]
@@ -525,6 +525,8 @@ const sidebarMeta = {
     utilities: []
   }
 };
+
+const hiddenClientLegacySections = new Set(["client-data", "client-settings"]);
 
 export function buildContextualNavigation({
   labels = {},
@@ -619,10 +621,7 @@ export function buildContextualNavigation({
           icon: Settings,
           children: [
             { label: "청구", view: "clients", section: "client-billing", icon: FileText },
-            { label: "리포트", view: "clients", section: "client-reports", icon: FileText },
-            { label: "데이터", view: "clients", section: "client-data", icon: Settings },
-            { label: "데이터 가져오기", view: "clients", section: "client-import", icon: Plus },
-            { label: "설정", view: "clients", section: "client-settings", icon: Settings }
+            { label: "리포트", view: "clients", section: "client-reports", icon: FileText }
           ]
         }
       ]
@@ -854,7 +853,7 @@ export function Sidebar({
       >
         <div>
           {labels.workspace && <span className="eyebrow">{labels.workspace}</span>}
-          <strong>{meta.title}</strong>
+          <strong className="workspace-card-label">{meta.title}</strong>
         </div>
         <ChevronDown size={15} />
       </button>
@@ -879,7 +878,7 @@ export function Sidebar({
                     onClick={() => toggleGroup(item)}
                   >
                     <span className="sidebar-icon"><Icon size={16} /></span>
-                    <span>{item.label}</span>
+                    <span className="sidebar-label">{item.label}</span>
                     <ChevronDown size={15} className={open ? "sidebar-chevron open" : "sidebar-chevron"} />
                   </button>
                   {open && (
@@ -897,7 +896,7 @@ export function Sidebar({
                             onClick={() => setView(child.view, child.section ?? "")}
                           >
                             <span className="sidebar-icon"><ChildIcon size={15} /></span>
-                            <span>{child.label}</span>
+                            <span className="sidebar-label">{child.label}</span>
                             {child.count && <span className="sidebar-count">{child.count}</span>}
                           </button>
                         );
@@ -917,7 +916,7 @@ export function Sidebar({
               onClick={() => setView(item.view, item.section ?? "")}
             >
               <span className="sidebar-icon"><Icon size={16} /></span>
-              <span>{item.label}</span>
+              <span className="sidebar-label">{item.label}</span>
               {item.section === "home-company" && <span className="sr-only" data-home-sidebar-company-link="true">{shellLabel(labels, "homeCompanyLabel", "회사 현황")}</span>}
               {item.homeCountKind === "approval" && <span className="sr-only" data-home-sidebar-approval-count={item.homeCount}>{item.homeCount}</span>}
               {item.homeCountKind === "message" && <span className="sr-only" data-home-sidebar-message-count={item.homeCount}>{item.homeCount}</span>}

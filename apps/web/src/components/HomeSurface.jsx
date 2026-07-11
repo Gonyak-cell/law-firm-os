@@ -5,7 +5,7 @@ import {
   CheckCircle2,
   X
 } from "lucide-react";
-import forestCover from "../assets/forest-cover.jpg";
+import heroHomeArchitecture from "../assets/heroes/hero-home-architecture.jpg";
 import { backendCapabilities } from "../data/capabilityMap.js";
 import {
   fetchAiReviewQueue,
@@ -660,7 +660,7 @@ function DashboardCard({ className = "", title, children, widgetId, section = wi
           </div>
         </header>
       )}
-      {children}
+      <div className="home-dashboard-card-body">{children}</div>
     </section>
   );
 }
@@ -1700,7 +1700,7 @@ export function HomeSurface({
 
   return (
     <section className="surface stack lcx-web-command-center home-dashboard-surface" data-lcx-web-command-center="true" data-home-dashboard-shell="true" data-active-home-section={activeHomeSection}>
-      <section className="home-dashboard-hero" data-dashboard-section={activeHomeSection === "home-dashboard" ? "home" : undefined} style={{ backgroundImage: `linear-gradient(90deg, rgba(9, 43, 39, 0.92), rgba(9, 43, 39, 0.62)), url(${forestCover})` }}>
+      <section className="home-dashboard-hero" data-dashboard-section={activeHomeSection === "home-dashboard" ? "home" : undefined} style={{ backgroundImage: `linear-gradient(90deg, rgba(9, 43, 39, 0.58) 0%, rgba(9, 43, 39, 0.28) 45%, rgba(9, 43, 39, 0.16) 100%), url(${heroHomeArchitecture})`, backgroundPosition: "center 52%" }}>
         <div>
           <h1>{heroTitle}</h1>
           {heroSubtitle && <p>{heroSubtitle}</p>}
