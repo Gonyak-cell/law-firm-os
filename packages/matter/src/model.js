@@ -8,6 +8,11 @@ import {
   MATTER_WIKI_SOURCE_POLICIES,
   getMatterCoreModelDefinition,
 } from "./registry.js";
+import { createMatterWorktree, createMatterWorktreeNode } from "./worktree-model.js";
+import { createMatterWorktreeTemplate, createMatterWorktreeTemplateNode } from "./worktree-template-model.js";
+
+export { createMatterWorktree, createMatterWorktreeNode } from "./worktree-model.js";
+export { createMatterWorktreeTemplate, createMatterWorktreeTemplateNode } from "./worktree-template-model.js";
 
 function freezeRecord(record) {
   return Object.freeze(record);
@@ -19,7 +24,10 @@ function freezeList(list) {
 
 export function missingMatterCoreRequiredFields(modelType, input) {
   const definition = getMatterCoreModelDefinition(modelType);
-  return definition.required_fields.filter((field) => input?.[field] === undefined || input?.[field] === null || input?.[field] === "");
+  const nullable = new Set(definition.nullable_required_fields ?? []);
+  return definition.required_fields.filter((field) =>
+    input?.[field] === undefined || (!nullable.has(field) && (input?.[field] === null || input?.[field] === "")),
+  );
 }
 
 function assertRequiredFields(modelType, input) {
@@ -357,6 +365,10 @@ const FACTORIES = Object.freeze({
   MatterTask: createMatterTask,
   MatterCalendarEvent: createMatterCalendarEvent,
   MatterChecklist: createMatterChecklist,
+  MatterWorktree: createMatterWorktree,
+  MatterWorktreeNode: createMatterWorktreeNode,
+  MatterWorktreeTemplate: createMatterWorktreeTemplate,
+  MatterWorktreeTemplateNode: createMatterWorktreeTemplateNode,
   MatterWiki: createMatterWiki,
   MatterWikiSection: createMatterWikiSection,
   MatterWikiSourceLink: createMatterWikiSourceLink,
