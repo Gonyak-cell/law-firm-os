@@ -1,0 +1,2 @@
+Exit: 1
+Failure: 1024px outline transition and internal canvas overflow rules were absent.
