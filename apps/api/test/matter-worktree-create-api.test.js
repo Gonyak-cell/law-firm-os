@@ -85,3 +85,21 @@ test("WT-02-02 rejects a draft template without partial writes", async () => {
   assert.equal(matterRuntime.repository.list({ tenant_id: tenantId, model_type: "MatterWorktree" }).length, 0);
   assert.equal(matterRuntime.repository.listAudit({ tenant_id: tenantId }).length, 0);
 });
+
+test("Worktree writes use a server timestamp instead of client-controlled occurred_at", async () => {
+  const matterRuntime = runtime(records());
+  const supplied = "2000-01-01T00:00:00.000Z";
+  const created = await handleMatterApiRequest({
+    pathname: `/api/matters/${matterId}/worktree`,
+    method: "POST",
+    body: body({ occurred_at: supplied }),
+    context,
+    requestId: "req-server-time",
+    runtime: matterRuntime,
+  });
+
+  const [audit] = matterRuntime.repository.listAudit({ tenant_id: tenantId });
+  assert.equal(created.status, 201);
+  assert.notEqual(created.body.item.created_at, supplied);
+  assert.equal(audit.occurred_at, created.body.item.created_at);
+});

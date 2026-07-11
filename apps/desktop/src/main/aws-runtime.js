@@ -209,7 +209,7 @@ function isDesktopMatterWriteRoute(method, path) {
     (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree\/nodes$/.test(path)) ||
     (method === "PATCH" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree\/nodes\/[A-Za-z0-9_-]+$/.test(path)) ||
     (method === "DELETE" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree\/nodes\/[A-Za-z0-9_-]+$/.test(path)) ||
-    (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree\/tasks\/[A-Za-z0-9_-]+\/(complete|reopen)$/.test(path))
+    (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree\/tasks\/[A-Za-z0-9_-]+\/(complete|reopen|unblock)$/.test(path))
   );
 }
 
@@ -275,6 +275,10 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
   const requestRuntimeApi = async ({ path, method = "GET", headers = {}, body = null, sessionToken } = {}) => {
     const safeMethod = String(method ?? "GET").toUpperCase();
     const safePath = typeof path === "string" ? path.trim() : "";
+    const rawPathname = safePath.split(/[?#]/, 1)[0];
+    const normalizedPathname = safePath.startsWith("/") && !safePath.includes("\\")
+      ? new URL(safePath, "http://desktop.invalid").pathname
+      : "";
     const signedSessionToken = typeof sessionToken === "string" ? sessionToken.trim() : "";
     if (!signedSessionToken) {
       return {
@@ -284,7 +288,15 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
         token_material_returned: false
       };
     }
-    const allowedMatterWrite = isDesktopMatterWriteRoute(safeMethod, safePath);
+    if (!normalizedPathname || normalizedPathname !== rawPathname) {
+      return {
+        ok: false,
+        reason: "desktop_runtime_read_bridge_path_blocked",
+        http_status: 403,
+        token_material_returned: false
+      };
+    }
+    const allowedMatterWrite = isDesktopMatterWriteRoute(safeMethod, normalizedPathname);
     if (safeMethod !== "GET" && !allowedMatterWrite) {
       return {
         ok: false,
@@ -293,7 +305,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
         token_material_returned: false
       };
     }
-    if (!safePath.startsWith("/api/") && !safePath.startsWith("/master-data/")) {
+    if (!normalizedPathname.startsWith("/api/") && !normalizedPathname.startsWith("/master-data/")) {
       return {
         ok: false,
         reason: "desktop_runtime_read_bridge_path_blocked",
@@ -310,7 +322,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
         token_material_returned: false
       };
     }
-    if (safePath.startsWith("/api/auth/")) {
+    if (normalizedPathname.startsWith("/api/auth/")) {
       return {
         ok: false,
         reason: "desktop_runtime_read_bridge_auth_path_blocked",

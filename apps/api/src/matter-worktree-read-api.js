@@ -1,5 +1,6 @@
 import { projectMatterWorktree } from "../../../packages/matter/src/worktree-projection.js";
 import { authorizeMatterWorktreeAccess, WORKTREE_READ_ROLES } from "./matter-worktree-authorization.js";
+import { classifyMatterPracticeArea } from "../../../packages/matter/src/practice-area.js";
 
 function blocked(status, requestId, code, auditHintRef, uiState) {
   return {
@@ -54,4 +55,18 @@ export function handleMatterWorktreeRead({ matterId, query = {}, context, reques
       production_ready_claim: false,
     },
   };
+}
+
+export function handleMatterWorktreeTemplateList({ matterId, query = {}, context, requestId, runtime } = {}) {
+  if (!query.tenant_id) return blocked(400, requestId, "MATTER_TENANT_REQUIRED", query.audit_hint_ref, "blocked");
+  if (!query.permission_ref) return blocked(400, requestId, "MATTER_PERMISSION_REQUIRED", query.audit_hint_ref, "blocked");
+  if (!query.audit_hint_ref) return blocked(400, requestId, "MATTER_AUDIT_HINT_REQUIRED", null, "blocked");
+  const authorization = authorizeMatterWorktreeAccess({ repository: runtime.repository, context, tenantId: query.tenant_id, matterId, roles: WORKTREE_READ_ROLES, action: "matter:worktree:read", resourceType: "matter_worktree_template", resourceId: matterId });
+  if (!authorization.allowed) return blocked(404, requestId, "MATTER_NOT_FOUND", query.audit_hint_ref, "empty");
+  const practiceArea = classifyMatterPracticeArea(authorization.matter);
+  const items = runtime.repository
+    .list({ tenant_id: query.tenant_id, model_type: "MatterWorktreeTemplate" })
+    .filter((template) => template.status === "approved" && template.practice_area === practiceArea)
+    .map(({ template_id, name, version, practice_area }) => ({ template_id, name, version, practice_area }));
+  return { status: 200, body: { request_id: requestId, outcome: "passed", items, safe_error_codes: [], audit_hint_ref: query.audit_hint_ref, count_leak_prevented: true, production_ready_claim: false } };
 }

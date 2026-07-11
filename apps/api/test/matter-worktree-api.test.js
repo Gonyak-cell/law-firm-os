@@ -18,7 +18,7 @@ function context(userId = "user_wt_02_01") {
 function fixtures() {
   const evidence = { permission_envelope_id: "perm_wt_02_01", audit_trace_id: "audit_wt_02_01" };
   return [
-    { model_type: "Matter", matter_id: matterId, tenant_id: tenantId, client_id: "client_wt_02_01", title: "[QA] 워크트리 조회", status: "open", created_by: "user_wt_02_01", created_at: "2026-07-11T12:00:00.000Z", ...evidence },
+    { model_type: "Matter", matter_id: matterId, tenant_id: tenantId, client_id: "client_wt_02_01", matter_type_english: "LIT", title: "[QA] 워크트리 조회", status: "open", created_by: "user_wt_02_01", created_at: "2026-07-11T12:00:00.000Z", ...evidence },
     { model_type: "MatterMember", member_id: "member_wt_02_01", matter_id: matterId, tenant_id: tenantId, user_id: "user_wt_02_01", role: "associate", status: "active", ...evidence },
     { model_type: "MatterWorktree", worktree_id: "worktree_wt_02_01", matter_id: matterId, tenant_id: tenantId, status: "active", version: 3, created_by: "user_wt_02_01", created_at: "2026-07-11T12:00:00.000Z", updated_by: "user_wt_02_01", updated_at: "2026-07-11T12:00:00.000Z", ...evidence },
     { model_type: "MatterTask", task_id: "task_linked_wt_02_01", matter_id: matterId, tenant_id: tenantId, title: "연결 업무", status: "done", created_by: "user_wt_02_01", ...evidence },
@@ -26,6 +26,8 @@ function fixtures() {
     { model_type: "MatterWorktreeNode", node_id: "node_branch_wt_02_01", worktree_id: "worktree_wt_02_01", matter_id: matterId, tenant_id: tenantId, node_type: "branch", parent_node_id: null, title: "준비", sort_order: 0, status: "active", task_id: null, ...evidence },
     { model_type: "MatterWorktreeNode", node_id: "node_task_wt_02_01", worktree_id: "worktree_wt_02_01", matter_id: matterId, tenant_id: tenantId, node_type: "task", parent_node_id: "node_branch_wt_02_01", title: "연결 업무", sort_order: 0, status: "active", task_id: "task_linked_wt_02_01", ...evidence },
     { model_type: "MatterTask", task_id: "task_other_wt_02_01", matter_id: "matter_other", tenant_id: tenantId, title: "권한 밖 업무", status: "blocked", created_by: "user_other", ...evidence },
+    { model_type: "MatterWorktreeTemplate", template_id: "template-approved", tenant_id: tenantId, practice_area: "litigation", name: "송무 준비", status: "approved", version: 2, approval_ref: "approval", approved_by: "approver", approved_at: "2026-07-11T12:00:00.000Z", created_by: "author", created_at: "2026-07-11T12:00:00.000Z", updated_by: "approver", updated_at: "2026-07-11T12:00:00.000Z" },
+    { model_type: "MatterWorktreeTemplate", template_id: "template-draft", tenant_id: tenantId, practice_area: "litigation", name: "초안", status: "draft", version: 1, approval_ref: null, approved_by: null, approved_at: null, created_by: "author", created_at: "2026-07-11T12:00:00.000Z", updated_by: "author", updated_at: "2026-07-11T12:00:00.000Z" },
   ];
 }
 
@@ -50,6 +52,13 @@ test("WT-02-01 returns the virtual root, scoped tree, unclassified tasks, and pr
   assert.deepEqual(response.body.item.progress, { done: 1, total: 2, percent: 50, blocked: 0, overdue: 0 });
   assert.equal(JSON.stringify(response.body).includes("task_other_wt_02_01"), false);
   assert.equal(response.body.count_leak_prevented, true);
+});
+
+test("Worktree template picker lists only approved templates for the Matter practice area", async () => {
+  const response = await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/templates`, method: "GET", query, context: context(), requestId: "req-template-list", runtime: runtime() });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.body.items, [{ template_id: "template-approved", name: "송무 준비", version: 2, practice_area: "litigation" }]);
 });
 
 test("WT-02-01 hides the Worktree and all counts from a non-member", async () => {

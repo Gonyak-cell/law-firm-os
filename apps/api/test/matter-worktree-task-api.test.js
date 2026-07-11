@@ -43,6 +43,16 @@ test("WT-02-05 requires a reason to reopen done Tasks", async () => {
   assert.equal(reopened.body.item.status, "in_progress");
 });
 
+test("WT-02-05 unblocks blocked Tasks only through a reasoned endpoint", async () => {
+  const matterRuntime = runtime("associate", "blocked");
+  const pathname = `/api/matters/${matterId}/worktree/tasks/task_wt_02_05/unblock`;
+  const missing = await handleMatterApiRequest({ pathname, method: "POST", body: body({ reason: "" }), context, requestId: "missing-unblock", runtime: matterRuntime });
+  const unblocked = await handleMatterApiRequest({ pathname, method: "POST", body: body({ idempotency_key: "unblock-2", reason: "의존 자료 수령" }), context, requestId: "unblock", runtime: matterRuntime });
+  assert.equal(missing.status, 400);
+  assert.equal(unblocked.status, 200);
+  assert.equal(unblocked.body.item.status, "in_progress");
+});
+
 test("WT-02-05 hides Task state from a read-only Matter role", async () => {
   const matterRuntime = runtime("billing_reviewer");
   const response = await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/tasks/task_wt_02_05/complete`, method: "POST", body: body(), context, requestId: "denied", runtime: matterRuntime });

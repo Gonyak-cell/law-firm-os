@@ -33,9 +33,9 @@ import { createMatterClientReportProjection } from "../../../packages/matter/src
 import { uploadDocument } from "../../../packages/dms/src/document-service.js";
 import { serializeFileObjectSafe } from "../../../packages/dms/src/file-object-service.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
-import { handleMatterWorktreeRead } from "./matter-worktree-read-api.js";
+import { handleMatterWorktreeRead, handleMatterWorktreeTemplateList } from "./matter-worktree-read-api.js";
 import { handleMatterWorktreeCreate, handleMatterWorktreeNodeArchive, handleMatterWorktreeNodeCreate, handleMatterWorktreeNodePatch, handleMatterWorktreeTemplateApply } from "./matter-worktree-write-api.js";
-import { handleMatterWorktreeTaskComplete, handleMatterWorktreeTaskReopen } from "./matter-worktree-task-api.js";
+import { handleMatterWorktreeTaskComplete, handleMatterWorktreeTaskReopen, handleMatterWorktreeTaskUnblock } from "./matter-worktree-task-api.js";
 import { MATTER_VAULT_REGISTERED_TENANT_ID } from "./matter-vault-account-registry.js";
 
 export const MATTER_API_ERROR_CODES = Object.freeze({
@@ -78,6 +78,7 @@ export const MATTER_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/matters/:matter_id",
     "GET /api/matters/:matter_id/profile",
     "GET /api/matters/:matter_id/worktree",
+    "GET /api/matters/:matter_id/worktree/templates",
     "POST /api/matters/:matter_id/worktree",
     "POST /api/matters/:matter_id/worktree/template-applications",
     "POST /api/matters/:matter_id/worktree/nodes",
@@ -85,6 +86,7 @@ export const MATTER_BOUNDED_CONTEXT = Object.freeze({
     "DELETE /api/matters/:matter_id/worktree/nodes/:node_id",
     "POST /api/matters/:matter_id/worktree/tasks/:task_id/complete",
     "POST /api/matters/:matter_id/worktree/tasks/:task_id/reopen",
+    "POST /api/matters/:matter_id/worktree/tasks/:task_id/unblock",
     "PATCH /api/matters/:matter_id/profile",
     "GET /api/matters/:matter_id/stakeholders",
     "POST /api/matters/:matter_id/stakeholders",
@@ -4067,6 +4069,10 @@ export async function handleMatterApiRequest({
   if (matterWorktreeTemplateMatch && method === "POST") {
     return handleMatterWorktreeTemplateApply({ matterId: decodeURIComponent(matterWorktreeTemplateMatch[1]), body, context, requestId, runtime });
   }
+  const matterWorktreeTemplatesMatch = pathname.match(/^\/api\/matters\/([^/]+)\/worktree\/templates$/);
+  if (matterWorktreeTemplatesMatch && method === "GET") {
+    return handleMatterWorktreeTemplateList({ matterId: decodeURIComponent(matterWorktreeTemplatesMatch[1]), query, context, requestId, runtime });
+  }
   const matterWorktreeNodesMatch = pathname.match(/^\/api\/matters\/([^/]+)\/worktree\/nodes$/);
   if (matterWorktreeNodesMatch && method === "POST") {
     return handleMatterWorktreeNodeCreate({ matterId: decodeURIComponent(matterWorktreeNodesMatch[1]), body, context, requestId, runtime });
@@ -4078,12 +4084,12 @@ export async function handleMatterApiRequest({
   if (matterWorktreeNodeMatch && method === "DELETE") {
     return handleMatterWorktreeNodeArchive({ matterId: decodeURIComponent(matterWorktreeNodeMatch[1]), nodeId: decodeURIComponent(matterWorktreeNodeMatch[2]), body, context, requestId, runtime });
   }
-  const matterWorktreeTaskMatch = pathname.match(/^\/api\/matters\/([^/]+)\/worktree\/tasks\/([^/]+)\/(complete|reopen)$/);
+  const matterWorktreeTaskMatch = pathname.match(/^\/api\/matters\/([^/]+)\/worktree\/tasks\/([^/]+)\/(complete|reopen|unblock)$/);
   if (matterWorktreeTaskMatch && method === "POST") {
     const options = { matterId: decodeURIComponent(matterWorktreeTaskMatch[1]), taskId: decodeURIComponent(matterWorktreeTaskMatch[2]), body, context, requestId, runtime };
-    return matterWorktreeTaskMatch[3] === "complete"
-      ? handleMatterWorktreeTaskComplete(options)
-      : handleMatterWorktreeTaskReopen(options);
+    if (matterWorktreeTaskMatch[3] === "complete") return handleMatterWorktreeTaskComplete(options);
+    if (matterWorktreeTaskMatch[3] === "reopen") return handleMatterWorktreeTaskReopen(options);
+    return handleMatterWorktreeTaskUnblock(options);
   }
   const matterStakeholdersMatch = pathname.match(/^\/api\/matters\/([^/]+)\/stakeholders$/);
   if (matterStakeholdersMatch && method === "GET") {

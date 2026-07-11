@@ -20,13 +20,13 @@ function runtime() {
 }
 
 function body(idempotencyKey, node, overrides = {}) {
-  return { tenant_id: tenantId, permission_ref: "perm", audit_hint_ref: "audit", actor_id: "user_wt_02_03", idempotency_key: idempotencyKey, reason: "노드 편집", source_ref: "worktree-editor", occurred_at: at, node, ...overrides };
+  return { tenant_id: tenantId, permission_ref: "perm", audit_hint_ref: "audit", actor_id: "user_wt_02_03", idempotency_key: idempotencyKey, reason: "노드 편집", source_ref: "worktree-editor", occurred_at: at, expected_version: 1, node, ...overrides };
 }
 
 test("WT-02-03 creates branch and task nodes and increments Worktree versions", async () => {
   const matterRuntime = runtime();
   const branch = await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/nodes`, method: "POST", body: body("node-branch", { node_id: "branch", node_type: "branch", parent_node_id: null, title: "준비", sort_order: 0, status: "active", task_id: null }), context, requestId: "branch", runtime: matterRuntime });
-  const task = await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/nodes`, method: "POST", body: body("node-task", { node_id: "task-node", node_type: "task", parent_node_id: "branch", title: "기록 검토", sort_order: 0, status: "active", task_id: "task_wt_02_03" }), context, requestId: "task", runtime: matterRuntime });
+  const task = await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/nodes`, method: "POST", body: body("node-task", { node_id: "task-node", node_type: "task", parent_node_id: "branch", title: "기록 검토", sort_order: 0, status: "active", task_id: "task_wt_02_03" }, { expected_version: 2 }), context, requestId: "task", runtime: matterRuntime });
   assert.equal(branch.status, 201);
   assert.equal(task.status, 201);
   assert.equal(task.body.item.task_id, "task_wt_02_03");
@@ -53,19 +53,20 @@ test("WT-02-03 rejects linking a Task from another Matter", async () => {
 test("WT-02-04 rejects moving a branch below its descendant", async () => {
   const matterRuntime = runtime();
   await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/nodes`, method: "POST", body: body("parent", { node_id: "parent", node_type: "branch", parent_node_id: null, title: "상위", sort_order: 0, status: "active", task_id: null }), context, requestId: "parent", runtime: matterRuntime });
-  await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/nodes`, method: "POST", body: body("child", { node_id: "child", node_type: "branch", parent_node_id: "parent", title: "하위", sort_order: 0, status: "active", task_id: null }), context, requestId: "child", runtime: matterRuntime });
+  await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/nodes`, method: "POST", body: body("child", { node_id: "child", node_type: "branch", parent_node_id: "parent", title: "하위", sort_order: 0, status: "active", task_id: null }, { expected_version: 2 }), context, requestId: "child", runtime: matterRuntime });
   const moved = await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/nodes/parent`, method: "PATCH", body: body("cycle", { parent_node_id: "child" }, { expected_version: 3 }), context, requestId: "cycle", runtime: matterRuntime });
   assert.equal(moved.status, 400);
   assert.equal(matterRuntime.repository.get({ tenant_id: tenantId, model_type: "MatterWorktreeNode", id: "parent" }).parent_node_id, null);
 });
 
-test("WT-02-04 archives a branch subtree without deleting MatterTask", async () => {
+test("WT-02-04 rejects archiving a branch with active descendants and retains MatterTask", async () => {
   const matterRuntime = runtime();
   await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/nodes`, method: "POST", body: body("archive-parent", { node_id: "parent", node_type: "branch", parent_node_id: null, title: "상위", sort_order: 0, status: "active", task_id: null }), context, requestId: "parent", runtime: matterRuntime });
-  await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/nodes`, method: "POST", body: body("archive-task", { node_id: "task-node", node_type: "task", parent_node_id: "parent", title: "업무", sort_order: 0, status: "active", task_id: "task_wt_02_03" }), context, requestId: "task", runtime: matterRuntime });
+  await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/nodes`, method: "POST", body: body("archive-task", { node_id: "task-node", node_type: "task", parent_node_id: "parent", title: "업무", sort_order: 0, status: "active", task_id: "task_wt_02_03" }, { expected_version: 2 }), context, requestId: "task", runtime: matterRuntime });
   const archived = await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/nodes/parent`, method: "DELETE", body: body("archive-subtree", {}, { expected_version: 3 }), context, requestId: "archive", runtime: matterRuntime });
-  assert.equal(archived.status, 200);
-  assert.deepEqual(archived.body.archived_node_ids.sort(), ["parent", "task-node"]);
+  assert.equal(archived.status, 400);
+  assert.equal(matterRuntime.repository.get({ tenant_id: tenantId, model_type: "MatterWorktreeNode", id: "parent" }).status, "active");
+  assert.equal(matterRuntime.repository.get({ tenant_id: tenantId, model_type: "MatterWorktreeNode", id: "task-node" }).status, "active");
   assert.equal(matterRuntime.repository.get({ tenant_id: tenantId, model_type: "MatterTask", id: "task_wt_02_03" }).status, "todo");
 });
 
@@ -76,4 +77,35 @@ test("WT-02-07 returns 409 and current version for stale node writes", async () 
   assert.equal(stale.status, 409);
   assert.equal(stale.body.current_version, 2);
   assert.equal(matterRuntime.repository.get({ tenant_id: tenantId, model_type: "MatterWorktreeNode", id: "branch" }).title, "원본");
+});
+
+test("node creation rejects a stale expected Worktree version", async () => {
+  const matterRuntime = runtime();
+  const response = await handleMatterApiRequest({
+    pathname: `/api/matters/${matterId}/worktree/nodes`,
+    method: "POST",
+    body: body("node-stale-create", { node_id: "stale", node_type: "branch", parent_node_id: null, title: "stale", sort_order: 0, status: "active", task_id: null }, { expected_version: 0 }),
+    context,
+    requestId: "node-stale-create",
+    runtime: matterRuntime,
+  });
+
+  assert.equal(response.status, 409);
+  assert.equal(response.body.current_version, 1);
+  assert.equal(matterRuntime.repository.get({ tenant_id: tenantId, model_type: "MatterWorktreeNode", id: "stale" }), undefined);
+});
+
+test("node structural writes require an explicit expected Worktree version", async () => {
+  const matterRuntime = runtime();
+  const response = await handleMatterApiRequest({
+    pathname: `/api/matters/${matterId}/worktree/nodes`,
+    method: "POST",
+    body: body("node-without-version", { node_id: "no-version", node_type: "branch", parent_node_id: null, title: "버전 없음", sort_order: 0, status: "active", task_id: null }, { expected_version: undefined }),
+    context,
+    requestId: "node-without-version",
+    runtime: matterRuntime,
+  });
+
+  assert.equal(response.status, 400);
+  assert.equal(matterRuntime.repository.get({ tenant_id: tenantId, model_type: "MatterWorktreeNode", id: "no-version" }), undefined);
 });

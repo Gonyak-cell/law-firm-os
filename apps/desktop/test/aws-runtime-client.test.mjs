@@ -403,7 +403,8 @@ test("WT-02-09 desktop runtime permits only the explicit Worktree write routes",
     ["PATCH", "/api/matters/matter-001/worktree/nodes/node-001"],
     ["DELETE", "/api/matters/matter-001/worktree/nodes/node-001"],
     ["POST", "/api/matters/matter-001/worktree/tasks/task-001/complete"],
-    ["POST", "/api/matters/matter-001/worktree/tasks/task-001/reopen"]
+    ["POST", "/api/matters/matter-001/worktree/tasks/task-001/reopen"],
+    ["POST", "/api/matters/matter-001/worktree/tasks/task-001/unblock"]
   ];
   for (const [method, path] of allowed) {
     const result = await client.api({ path, method, body: JSON.stringify({ tenant_id: "tenant-001" }), sessionToken: "lawos_session_v1.secret" });
@@ -416,6 +417,27 @@ test("WT-02-09 desktop runtime permits only the explicit Worktree write routes",
   ]);
   assert.equal(calls.length, allowed.length);
   assert.deepEqual(blocked.map(({ http_status }) => http_status), [405, 405, 405]);
+});
+
+test("desktop runtime blocks dot-segment paths before URL normalization", async () => {
+  let fetchCount = 0;
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async () => {
+      fetchCount += 1;
+      return jsonResponse(200, { ok: true });
+    },
+  });
+
+  const response = await client.api({
+    path: "/api/matters/../auth/session",
+    method: "GET",
+    sessionToken: "lawos_session_v1.secret",
+  });
+
+  assert.equal(response.http_status, 403);
+  assert.equal(response.reason, "desktop_runtime_read_bridge_path_blocked");
+  assert.equal(fetchCount, 0);
 });
 
 test("runtime client never substitutes the desktop operator credential for a missing signed session", async () => {

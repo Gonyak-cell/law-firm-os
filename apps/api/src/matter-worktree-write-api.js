@@ -20,7 +20,7 @@ function authorize({ matterId, body, context, requestId, runtime }) {
   return null;
 }
 
-function command(body, matterId, requestId) {
+function command(body, matterId, requestId, requestFingerprint = null) {
   return {
     tenant_id: body.tenant_id,
     matter_id: matterId,
@@ -29,13 +29,14 @@ function command(body, matterId, requestId) {
     idempotency_key: body.idempotency_key,
     reason: body.reason,
     source_ref: body.source_ref,
-    occurred_at: body.occurred_at,
+    occurred_at: new Date().toISOString(),
     request_id: requestId,
+    request_fingerprint: requestFingerprint,
   };
 }
 
 function writeError(error, requestId, body) {
-  const conflict = ["WORKTREE_ACTIVE_CONFLICT", "WORKTREE_VERSION_CONFLICT"].includes(error?.code) || /active MatterWorktree already exists/.test(error?.message ?? "");
+  const conflict = ["WORKTREE_ACTIVE_CONFLICT", "WORKTREE_VERSION_CONFLICT", "WORKTREE_IDEMPOTENCY_CONFLICT"].includes(error?.code) || /active MatterWorktree already exists/.test(error?.message ?? "");
   return response(conflict ? 409 : 400, requestId, { outcome: "blocked", items: [], safe_error_codes: [conflict ? "MATTER_WORKTREE_VERSION_CONFLICT" : "MATTER_API_VALIDATION_ERROR"], ui_state: conflict ? "conflict" : "blocked", ...(error?.current_version === null || error?.current_version === undefined ? {} : { current_version: error.current_version }) }, body);
 }
 
@@ -43,7 +44,7 @@ export function handleMatterWorktreeCreate({ matterId, body, context, requestId,
   const denied = authorize({ matterId, body, context, requestId, runtime });
   if (denied) return denied;
   try {
-    const input = command(body, matterId, requestId);
+    const input = command(body, matterId, requestId, { worktree_id: body.worktree_id });
     const result = executeWorktreeMutation(runtime.repository, { ...input, operation: "matter.worktree.create", object_type: "MatterWorktree", object_id: input.worktree_id }, (transaction) => ({
       item: createActiveMatterWorktree(transaction, { model_type: "MatterWorktree", ...input, status: "active", version: 1, created_by: input.actor_id, created_at: input.occurred_at, updated_by: input.actor_id, updated_at: input.occurred_at }),
     }));
@@ -57,7 +58,7 @@ export function handleMatterWorktreeTemplateApply({ matterId, body, context, req
   const denied = authorize({ matterId, body, context, requestId, runtime });
   if (denied) return denied;
   try {
-    const result = applyMatterWorktreeTemplate(runtime.repository, { ...command(body, matterId, requestId), template_id: body.template_id });
+    const result = applyMatterWorktreeTemplate(runtime.repository, { ...command(body, matterId, requestId, { worktree_id: body.worktree_id, template_id: body.template_id }), template_id: body.template_id });
     const item = { worktree: result.worktree, tasks: result.tasks, nodes: result.nodes };
     return response(result.idempotent_replay ? 200 : 201, requestId, { outcome: result.idempotent_replay ? "idempotent_replay" : "created", item, idempotent_replay: result.idempotent_replay, safe_error_codes: [] }, body);
   } catch (error) {
@@ -99,13 +100,15 @@ function handleNodeWrite({ matterId, nodeId, body, context, requestId, runtime, 
   const denied = authorize({ matterId, body, context, requestId, runtime });
   if (denied) return denied;
   try {
+    if (!Number.isInteger(body.expected_version)) throw new TypeError("expected_version is required");
     const prepared = nodeWriteResult(runtime.repository, body, matterId, nodeId, body.node ?? {});
     const operation = create ? "matter.worktree.node.create" : "matter.worktree.node.patch";
-    const result = executeWorktreeMutation(runtime.repository, { ...command(body, matterId, requestId), operation, object_type: "MatterWorktreeNode", object_id: prepared.node.node_id }, (transaction) => {
+    const input = command(body, matterId, requestId, { node: body.node ?? {}, expected_version: body.expected_version ?? null });
+    const result = executeWorktreeMutation(runtime.repository, { ...input, operation, object_type: "MatterWorktreeNode", object_id: prepared.node.node_id }, (transaction) => {
       const item = create
         ? transaction.create(prepared.node)
         : transaction.update({ tenant_id: body.tenant_id, model_type: "MatterWorktreeNode", id: prepared.node.node_id }, prepared.node);
-      const version = advanceMatterWorktreeVersion(transaction, { tenant_id: body.tenant_id, worktree_id: prepared.worktree.worktree_id, expected_version: create ? prepared.worktree.version : body.expected_version, updated_by: body.actor_id, updated_at: body.occurred_at });
+      const version = advanceMatterWorktreeVersion(transaction, { tenant_id: body.tenant_id, worktree_id: prepared.worktree.worktree_id, expected_version: body.expected_version, updated_by: body.actor_id, updated_at: input.occurred_at });
       return { item, worktree_version: version.version };
     });
     return response(result.idempotent_replay ? 200 : create ? 201 : 200, requestId, { outcome: result.idempotent_replay ? "idempotent_replay" : create ? "created" : "updated", item: result.item, worktree_version: result.worktree_version, idempotent_replay: result.idempotent_replay, safe_error_codes: [] }, body);
@@ -146,9 +149,11 @@ export function handleMatterWorktreeNodeArchive({ matterId, nodeId, body, contex
     const nodes = runtime.repository.list({ tenant_id: body.tenant_id, model_type: "MatterWorktreeNode", matter_id: matterId }).filter((node) => node.worktree_id === worktree.worktree_id);
     if (!nodes.some((node) => node.node_id === nodeId)) throw new Error("Worktree node not found");
     const archivedNodeIds = subtreeIds(nodes, nodeId);
-    const result = executeWorktreeMutation(runtime.repository, { ...command(body, matterId, requestId), operation: "matter.worktree.node.archive", object_type: "MatterWorktreeNode", object_id: nodeId }, (transaction) => {
-      for (const archivedId of archivedNodeIds) transaction.update({ tenant_id: body.tenant_id, model_type: "MatterWorktreeNode", id: archivedId }, { status: "archived" });
-      const version = advanceMatterWorktreeVersion(transaction, { tenant_id: body.tenant_id, worktree_id: worktree.worktree_id, expected_version: body.expected_version, updated_by: body.actor_id, updated_at: body.occurred_at });
+    if (archivedNodeIds.length > 1) throw new Error("Active descendants must be archived before their parent");
+    const input = command(body, matterId, requestId, { expected_version: body.expected_version ?? null });
+    const result = executeWorktreeMutation(runtime.repository, { ...input, operation: "matter.worktree.node.archive", object_type: "MatterWorktreeNode", object_id: nodeId }, (transaction) => {
+      transaction.update({ tenant_id: body.tenant_id, model_type: "MatterWorktreeNode", id: nodeId }, { status: "archived" });
+      const version = advanceMatterWorktreeVersion(transaction, { tenant_id: body.tenant_id, worktree_id: worktree.worktree_id, expected_version: body.expected_version, updated_by: body.actor_id, updated_at: input.occurred_at });
       return { archived_node_ids: archivedNodeIds, worktree_version: version.version };
     });
     return response(200, requestId, { outcome: result.idempotent_replay ? "idempotent_replay" : "updated", archived_node_ids: result.archived_node_ids, worktree_version: result.worktree_version, idempotent_replay: result.idempotent_replay, safe_error_codes: [] }, body);

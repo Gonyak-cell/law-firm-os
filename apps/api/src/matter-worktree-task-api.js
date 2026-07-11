@@ -1,4 +1,4 @@
-import { completeMatterTask, reopenMatterTask } from "../../../packages/matter/src/task-service.js";
+import { completeMatterTask, reopenMatterTask, unblockMatterTask } from "../../../packages/matter/src/task-service.js";
 import { authorizeMatterWorktreeAccess, WORKTREE_TASK_ROLES } from "./matter-worktree-authorization.js";
 
 function apiResponse(status, requestId, input, values) {
@@ -23,7 +23,7 @@ function handleTaskTransition({ matterId, taskId, body, context, requestId, runt
   const authorized = authorize({ matterId, taskId, body, context, requestId, runtime, action });
   if (authorized.error) return authorized.error;
   try {
-    const item = transition({ repository: runtime.repository, task: authorized.task, actor_id: body.actor_id, reason: body.reason, idempotency_key: body.idempotency_key, source_ref: body.source_ref, occurred_at: body.occurred_at, request_id: requestId });
+    const item = transition({ repository: runtime.repository, task: authorized.task, actor_id: body.actor_id, reason: body.reason, idempotency_key: body.idempotency_key, source_ref: body.source_ref, occurred_at: new Date().toISOString(), request_id: requestId });
     return apiResponse(200, requestId, body, { outcome: item.idempotent_replay ? "idempotent_replay" : "updated", item, idempotent_replay: item.idempotent_replay, safe_error_codes: [] });
   } catch {
     return apiResponse(400, requestId, body, { outcome: "blocked", items: [], safe_error_codes: ["MATTER_API_VALIDATION_ERROR"], ui_state: "blocked" });
@@ -36,4 +36,8 @@ export function handleMatterWorktreeTaskComplete(options = {}) {
 
 export function handleMatterWorktreeTaskReopen(options = {}) {
   return handleTaskTransition({ ...options, transition: reopenMatterTask, action: "matter:worktree:task:reopen" });
+}
+
+export function handleMatterWorktreeTaskUnblock(options = {}) {
+  return handleTaskTransition({ ...options, transition: unblockMatterTask, action: "matter:worktree:task:unblock" });
 }
