@@ -1,0 +1,7 @@
+node --test packages/matter/test/worktree-practice-area.test.js
+node --test apps/web/test/matter-board-practice-area-contract.test.mjs
+LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+npm --workspace apps/web run test:ui
+npm --workspace apps/web run build
+git diff --check -- packages/matter/src/practice-area.js packages/matter/src/index.js packages/matter/test/worktree-practice-area.test.js apps/web/src/components/MattersSurface.jsx apps/web/test/matter-board-practice-area-contract.test.mjs
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed

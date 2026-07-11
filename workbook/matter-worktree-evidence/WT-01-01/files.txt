@@ -1,0 +1,9 @@
+packages/matter/src/practice-area.js
+packages/matter/src/index.js
+packages/matter/test/worktree-practice-area.test.js
+apps/web/src/components/MattersSurface.jsx
+apps/web/test/matter-board-practice-area-contract.test.mjs
+workbook/matter-worktree-evidence/WT-01-01/acceptance.md
+workbook/matter-worktree-evidence/WT-01-01/commands.txt
+workbook/matter-worktree-evidence/WT-01-01/tests.txt
+workbook/matter-worktree-evidence/WT-01-01/files.txt
