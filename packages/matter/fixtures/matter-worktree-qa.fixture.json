@@ -1,0 +1,55 @@
+{
+  "fixture_id": "matter-worktree-qa-v1",
+  "schema_version": "1.0.0",
+  "synthetic_only": true,
+  "as_of": "2026-07-11T12:00:00.000Z",
+  "matters": [
+    { "model_type": "Matter", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_lit_01", "matter_number": "QA-LIT-001", "matter_type_english": "LIT", "title": "[QA] 송무 특허침해 대응" },
+    { "model_type": "Matter", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_lit_02", "matter_number": "QA-LIT-002", "matter_type_english": "Litigation", "title": "[QA] 송무 손해배상 청구" },
+    { "model_type": "Matter", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_adv_01", "matter_number": "QA-ADV-001", "matter_type_english": "ADV", "title": "[QA] 기업 자문 정기 자문" },
+    { "model_type": "Matter", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_adv_02", "matter_number": "QA-ADV-002", "matter_type_english": "Advisory", "title": "[QA] 기업 자문 규제 검토" },
+    { "model_type": "Matter", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_dispute_01", "matter_number": "QA-DSP-001", "matter_type_english": "Dispute", "title": "[QA] 분쟁 공급계약 협상" },
+    { "model_type": "Matter", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_dispute_02", "matter_number": "QA-DSP-002", "matter_type_english": "분쟁", "title": "[QA] 분쟁 주주간 합의" },
+    { "model_type": "Matter", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_deal_01", "matter_number": "QA-DEAL-001", "matter_type_english": "DEAL", "title": "[QA] 트랜잭션 지분 투자" },
+    { "model_type": "Matter", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_deal_02", "matter_number": "QA-DEAL-002", "matter_type_english": "Transaction", "title": "[QA] 트랜잭션 자산 양수도" }
+  ],
+  "tasks": [
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_lit_01", "task_id": "task_wt_qa_lit_01_01", "title": "답변서 쟁점 정리", "status": "blocked", "assigned_to": "user_wt_qa_associate", "due_at": "2026-07-14T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_lit_01", "task_id": "task_wt_qa_lit_01_02", "title": "소장 검토", "status": "done", "assigned_to": "user_wt_qa_responsible", "due_at": "2026-07-09T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_lit_01", "task_id": "task_wt_qa_lit_01_03", "title": "증거 목록 작성", "status": "todo", "assigned_to": "user_wt_qa_paralegal", "due_at": "2026-07-18T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_lit_02", "task_id": "task_wt_qa_lit_02_01", "title": "준비서면 초안", "status": "todo", "assigned_to": "user_wt_qa_associate", "due_at": "2026-07-10T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_lit_02", "task_id": "task_wt_qa_lit_02_02", "title": "기일 일정 확인", "status": "in_progress", "assigned_to": "user_wt_qa_paralegal", "due_at": "2026-07-15T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_lit_02", "task_id": "task_wt_qa_lit_02_03", "title": "구 자료 정리", "status": "cancelled", "assigned_to": "user_wt_qa_associate", "due_at": "2026-07-08T09:00:00.000Z" },
+
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_adv_01", "task_id": "task_wt_qa_adv_01_01", "title": "규정 해석 질의 정리", "status": "blocked", "assigned_to": "user_wt_qa_associate", "due_at": "2026-07-16T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_adv_01", "task_id": "task_wt_qa_adv_01_02", "title": "자문 의견서 검토", "status": "done", "assigned_to": "user_wt_qa_responsible", "due_at": "2026-07-09T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_adv_01", "task_id": "task_wt_qa_adv_01_03", "title": "고객 질문 취합", "status": "todo", "assigned_to": "user_wt_qa_paralegal", "due_at": "2026-07-20T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_adv_02", "task_id": "task_wt_qa_adv_02_01", "title": "법령 개정 영향 분석", "status": "in_progress", "assigned_to": "user_wt_qa_associate", "due_at": "2026-07-10T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_adv_02", "task_id": "task_wt_qa_adv_02_02", "title": "의견서 목차 작성", "status": "todo", "assigned_to": "user_wt_qa_associate", "due_at": "2026-07-17T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_adv_02", "task_id": "task_wt_qa_adv_02_03", "title": "중복 질의 폐기", "status": "cancelled", "assigned_to": "user_wt_qa_paralegal", "due_at": "2026-07-08T09:00:00.000Z" },
+
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_dispute_01", "task_id": "task_wt_qa_dispute_01_01", "title": "상대방 입장 확인", "status": "blocked", "assigned_to": "user_wt_qa_responsible", "due_at": "2026-07-19T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_dispute_01", "task_id": "task_wt_qa_dispute_01_02", "title": "협상안 초안", "status": "done", "assigned_to": "user_wt_qa_associate", "due_at": "2026-07-09T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_dispute_01", "task_id": "task_wt_qa_dispute_01_03", "title": "쟁점표 갱신", "status": "todo", "assigned_to": "user_wt_qa_paralegal", "due_at": "2026-07-15T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_dispute_02", "task_id": "task_wt_qa_dispute_02_01", "title": "합의 조건 검토", "status": "todo", "assigned_to": "user_wt_qa_associate", "due_at": "2026-07-10T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_dispute_02", "task_id": "task_wt_qa_dispute_02_02", "title": "협상 회의 준비", "status": "in_progress", "assigned_to": "user_wt_qa_responsible", "due_at": "2026-07-18T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_dispute_02", "task_id": "task_wt_qa_dispute_02_03", "title": "이전 합의안 폐기", "status": "cancelled", "assigned_to": "user_wt_qa_associate", "due_at": "2026-07-07T09:00:00.000Z" },
+
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_deal_01", "task_id": "task_wt_qa_deal_01_01", "title": "실사 자료 요청", "status": "blocked", "assigned_to": "user_wt_qa_paralegal", "due_at": "2026-07-16T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_deal_01", "task_id": "task_wt_qa_deal_01_02", "title": "투자계약 쟁점 검토", "status": "done", "assigned_to": "user_wt_qa_responsible", "due_at": "2026-07-09T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_deal_01", "task_id": "task_wt_qa_deal_01_03", "title": "선행조건 목록 작성", "status": "todo", "assigned_to": "user_wt_qa_associate", "due_at": "2026-07-17T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_deal_02", "task_id": "task_wt_qa_deal_02_01", "title": "양수도계약 초안", "status": "in_progress", "assigned_to": "user_wt_qa_associate", "due_at": "2026-07-10T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_deal_02", "task_id": "task_wt_qa_deal_02_02", "title": "클로징 체크리스트", "status": "todo", "assigned_to": "user_wt_qa_paralegal", "due_at": "2026-07-20T09:00:00.000Z" },
+    { "model_type": "MatterTask", "tenant_id": "tenant_worktree_qa", "matter_id": "matter_wt_qa_deal_02", "task_id": "task_wt_qa_deal_02_03", "title": "구 실사 요청 폐기", "status": "cancelled", "assigned_to": "user_wt_qa_associate", "due_at": "2026-07-08T09:00:00.000Z" }
+  ],
+  "expected_projection": [
+    { "matter_id": "matter_wt_qa_lit_01", "task_ids": ["task_wt_qa_lit_01_01", "task_wt_qa_lit_01_02", "task_wt_qa_lit_01_03"] },
+    { "matter_id": "matter_wt_qa_lit_02", "task_ids": ["task_wt_qa_lit_02_01", "task_wt_qa_lit_02_02", "task_wt_qa_lit_02_03"] },
+    { "matter_id": "matter_wt_qa_adv_01", "task_ids": ["task_wt_qa_adv_01_01", "task_wt_qa_adv_01_02", "task_wt_qa_adv_01_03"] },
+    { "matter_id": "matter_wt_qa_adv_02", "task_ids": ["task_wt_qa_adv_02_01", "task_wt_qa_adv_02_02", "task_wt_qa_adv_02_03"] },
+    { "matter_id": "matter_wt_qa_dispute_01", "task_ids": ["task_wt_qa_dispute_01_01", "task_wt_qa_dispute_01_02", "task_wt_qa_dispute_01_03"] },
+    { "matter_id": "matter_wt_qa_dispute_02", "task_ids": ["task_wt_qa_dispute_02_01", "task_wt_qa_dispute_02_02", "task_wt_qa_dispute_02_03"] },
+    { "matter_id": "matter_wt_qa_deal_01", "task_ids": ["task_wt_qa_deal_01_01", "task_wt_qa_deal_01_02", "task_wt_qa_deal_01_03"] },
+    { "matter_id": "matter_wt_qa_deal_02", "task_ids": ["task_wt_qa_deal_02_01", "task_wt_qa_deal_02_02", "task_wt_qa_deal_02_03"] }
+  ]
+}

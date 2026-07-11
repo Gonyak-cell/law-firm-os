@@ -1,0 +1,4 @@
+node --test packages/matter/test/worktree-qa-fixture-contract.test.js
+LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+git diff --check -- contracts/matter-worktree-qa-fixture-contract.json packages/matter/fixtures/matter-worktree-qa.fixture.json packages/matter/test/worktree-qa-fixture-contract.test.js
+rg -n --hidden -g 'matter-worktree-qa*' -g 'worktree-qa-fixture-contract.test.js' '(AKIA[0-9A-Z]{16}|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|password\s*[:=]|secret\s*[:=]|token\s*[:=])' contracts packages/matter

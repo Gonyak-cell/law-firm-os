@@ -1,0 +1,20 @@
+{
+  "contract_id": "matter-worktree-qa-fixture-v1",
+  "schema_version": "1.0.0",
+  "tuw_id": "WT-00-04",
+  "synthetic_only": true,
+  "tenant_id": "tenant_worktree_qa",
+  "matter_count": 8,
+  "matters_per_practice_area": 2,
+  "practice_area_ids": ["litigation", "corporate-advisory", "dispute", "transaction"],
+  "completion_source": "MatterTask.status",
+  "supported_task_statuses": ["todo", "in_progress", "blocked", "done", "cancelled"],
+  "forbidden_completion_fields": ["completed", "completed_at", "is_complete", "checked"],
+  "coverage_requirements": {
+    "tasks_per_matter_minimum": 1,
+    "blocked_task_per_practice_area_minimum": 1,
+    "overdue_task_per_practice_area_minimum": 1,
+    "projected_task_omissions": 0,
+    "practice_area_misclassifications": 0
+  }
+}
