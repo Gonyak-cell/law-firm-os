@@ -1,0 +1,2 @@
+Exit: 0
+Result: Worktree contract tests, UI regression, typecheck, and production build passed.

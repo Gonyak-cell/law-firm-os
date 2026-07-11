@@ -1,0 +1,4 @@
+apps/web/src/components/MatterWorktreeSurface.jsx
+apps/web/src/components/matterWorktreeTree.js
+apps/web/src/styles.css
+apps/web/test/matter-worktree-ui-contract.test.mjs
