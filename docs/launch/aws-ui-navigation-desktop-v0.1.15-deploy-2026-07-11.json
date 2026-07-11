@@ -1,0 +1,88 @@
+{
+  "schema_version": "law-firm-os.aws-ui-navigation-desktop-deploy.v0.1",
+  "generated_at": "2026-07-11T09:37:30Z",
+  "status": "passed",
+  "source_commit": "7e8796db4dc8c7df40f8a40906d247fbdd1dada7",
+  "source_branch": "codex/lcx-vltui-owner-approval-intake",
+  "aws": {
+    "account_id": "770880870480",
+    "region": "ap-northeast-2",
+    "profile": "matter-prod-deploy-admin"
+  },
+  "desktop_release": {
+    "release_id": "matter-desktop-v0.1.15-20260711-7e8796db4",
+    "channel": "formal-candidate",
+    "prerelease": true,
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.15-20260711-7e8796db4",
+    "asset_count": 11,
+    "macos": {
+      "zip_sha256": "5762e8a6ca03f6d2cc6beaedf6a4587f602c808fbcd6c3b81a6bb275f052ae0f",
+      "dmg_sha256": "96662958775fb6fd4a6e9e40c234f3261c77ef1870d8c3d69780e33a6e2e7a4c",
+      "developer_id_signed": true,
+      "notarized": true,
+      "gatekeeper_passed": true,
+      "packaged_visual_qa": "passed"
+    },
+    "windows": {
+      "installer_sha256": "e1466c888bc00f114a81cd2079e77534204e497446aaa80da81b305d5178abd8",
+      "blockmap_sha256": "3d15c175824594a69937e7c43f8785f80c0eac0e6dcc9a8a2ebb2bbc4aaee95c",
+      "authenticode_signed": false,
+      "native_install_smoke": "not_run_on_darwin"
+    }
+  },
+  "web_deployment": {
+    "bucket": "matter-lawos-web-prod-770880870480-apne2",
+    "cloudfront_distribution_id": "E3MVAKX2DIR3CS",
+    "cloudfront_domain": "d2mthcc8vp3cr2.cloudfront.net",
+    "invalidation_id": "I5R6ZRI2U3BMRF73W3H3AR25T9",
+    "invalidation_status": "Completed",
+    "deployed_assets": {
+      "index.html": "048bae1362e4920aa3351f02a3786dbb97b20234ed78c40b6d85a3df54d8da74",
+      "assets/index-2YWf4Myl.js": "0cfad63a2e950d6b36a3cbbbd57befbf39fd0bd99e76d18784ba2328bcc73784",
+      "assets/index-DmbhoYKY.css": "dc91c8447d312ea8728b5f690be9fa1f5239460498a7ee9308d3d3f22cdf3290"
+    },
+    "live_hashes_match": true,
+    "rendered_root_product_shell": true,
+    "http_status": {
+      "root": 200,
+      "api_health": 200,
+      "health": 200
+    },
+    "objects_deleted": 0,
+    "post_deploy_object_count": 35
+  },
+  "api_deployment": {
+    "function_name": "matter-lawos-api-prod",
+    "deployed_in_this_operation": false,
+    "reason": "web-only source changes",
+    "code_sha256": "2BiLXBQmTKPi90KcdWGWjghKdCtlJIC85+0SvSCP+sU=",
+    "revision_id": "f2586478-88ac-4980-a505-0a232d10f60b",
+    "state": "Active",
+    "last_update_status": "Successful",
+    "pre_post_configuration_match": true
+  },
+  "rollback": {
+    "workspace": "/Users/jws/Library/Application Support/LawFirmOS/deploy-rollbacks/lawos-web-0.1.15-7e8796db4-20260711T093459Z",
+    "s3_snapshot_file_count": 33,
+    "previous_index_sha256": "258a7e31d4ff97290cc49730dfb3278df94cbc3d904d05975cf4f2e37d2ca996",
+    "checksum_manifest": "predeploy-checksums.sha256"
+  },
+  "verification": {
+    "full_tests": "4173 passed",
+    "web_ui_tests": "81 passed, 1 intentional skip",
+    "desktop_smoke_tests": "91 passed",
+    "file_bridge_tests": "17 passed",
+    "package_checksum_files": "9 passed",
+    "aws_live_visual_qa": "passed",
+    "ai_slop_review": "passed"
+  },
+  "claim_boundaries": {
+    "aws_production_web_deployment_completed": true,
+    "api_redeployed": false,
+    "desktop_formal_candidate_published": true,
+    "desktop_stable_public_release": false,
+    "windows_native_qa_completed": false,
+    "production_go_live": false,
+    "production_ready": false
+  }
+}
