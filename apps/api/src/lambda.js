@@ -1428,7 +1428,8 @@ export async function buildCtiS1GAuthenticatedProductionProbeReceipt({
     const hrxEmployeeRows = Array.isArray(hrxEmployees.body?.employees) ? hrxEmployees.body.employees : [];
     const expectedReportingLines = [
       ["emp_amic_wsjo", "emp_amic_ytkim"],
-      ["emp_amic_sypark", "emp_amic_wsjo"],
+      ["emp_amic_sypark", "emp_amic_ytkim"],
+      ["emp_amic_yjlee", "emp_amic_tryoon"],
     ];
     const verifyCurrentHrxRoster = event.verify_current_hrx_roster === true;
     const reportingLineMatchCount = expectedReportingLines.filter(([employeeId, managerEmployeeId]) => (

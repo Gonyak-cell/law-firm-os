@@ -345,7 +345,7 @@ test("I18 S1-G authenticated production probe restores credential store and retu
     assert.equal(receipt.probe_results.hrx_employees.status, 200);
     assert.equal(receipt.probe_results.hrx_employees.employee_count, 0);
     assert.equal(receipt.probe_results.hrx_employees.roster_source_ref_count, 0);
-    assert.equal(receipt.probe_results.hrx_employees.expected_reporting_line_count, 2);
+    assert.equal(receipt.probe_results.hrx_employees.expected_reporting_line_count, 3);
     assert.equal(receipt.probe_results.hrx_employees.matching_reporting_line_count, 0);
     assert.equal(receipt.probe_results.hrx_employees.current_roster_verification_requested, false);
     assert.equal(receipt.probe_results.hrx_employees.plaintext_employee_identifiers_returned, false);
@@ -425,7 +425,8 @@ test("approved HRX roster reconciliation creates the current members and reporti
     assert.equal(repository.listEmployees({ tenant_id: "tenant_amic_matter_vault" }).length, 10);
     const profiles = repository.listEmploymentProfiles({ tenant_id: "tenant_amic_matter_vault" });
     assert.equal(profiles.find((profile) => profile.employee_id === "emp_amic_wsjo")?.manager_employee_id, "emp_amic_ytkim");
-    assert.equal(profiles.find((profile) => profile.employee_id === "emp_amic_sypark")?.manager_employee_id, "emp_amic_wsjo");
+    assert.equal(profiles.find((profile) => profile.employee_id === "emp_amic_sypark")?.manager_employee_id, "emp_amic_ytkim");
+    assert.equal(profiles.find((profile) => profile.employee_id === "emp_amic_yjlee")?.manager_employee_id, "emp_amic_tryoon");
   } finally {
     await rm(root, { recursive: true, force: true });
   }

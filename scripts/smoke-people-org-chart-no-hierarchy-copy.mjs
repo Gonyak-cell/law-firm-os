@@ -124,7 +124,7 @@ async function main() {
     assert.equal(roster.park.includes("PETRA BRIDGE PARTNERS"), false, "People roster rows must not expose organization names");
     assert.equal(await page.locator(".hr-roster-organization-row").count(), 0, "People roster must not render organization group rows");
     assert(roster.cho.includes("김양태"), `Cho Woo-sang roster row must report to Kim Yang-tae: ${roster.cho}`);
-    assert(roster.park.includes("조우상"), `Park Seo-young roster row must report to Cho Woo-sang: ${roster.park}`);
+    assert(roster.park.includes("김양태"), `Park Seo-young roster row must report to Kim Yang-tae: ${roster.park}`);
     assert.equal(roster.horizontal_overflow, false, "People roster must not create horizontal overflow");
     await page.screenshot({ path: screenshotPath("people-roster-manager"), fullPage: true });
 
@@ -139,7 +139,7 @@ async function main() {
     );
     const profileText = await profile.innerText();
     assert(profileText.includes("상사"), "Park Seo-young profile must expose the manager field");
-    assert(profileText.includes("조우상"), "Park Seo-young profile must show Cho Woo-sang as manager");
+    assert(profileText.includes("김양태"), "Park Seo-young profile must show Kim Yang-tae as manager");
     const profileOverflow = await page.evaluate(() => {
       const canvas = document.querySelector(".page-canvas");
       const canvasRect = canvas?.getBoundingClientRect();
@@ -166,14 +166,14 @@ async function main() {
     assert.equal(snapshot.root_present, true, "People org chart must render");
     assert.deepEqual(snapshot.forbidden_matches, [], "People org chart must not render hierarchy terms");
     assert(snapshot.person_blocks.cho.includes("상사 김양태"), "Cho Woo-sang org row must report to Kim Yang-tae");
-    assert(snapshot.person_blocks.cho.includes("직속 1명"), "Cho Woo-sang must have one direct report");
-    assert(snapshot.person_blocks.park.includes("상사 조우상"), "Park Seo-young org row must report to Cho Woo-sang");
+    assert.equal(snapshot.person_blocks.cho.includes("직속"), false, "Cho Woo-sang must not show direct reports");
+    assert(snapshot.person_blocks.park.includes("상사 김양태"), "Park Seo-young org row must report to Kim Yang-tae");
     assert(snapshot.person_blocks.yoon.includes("윤태리"), "Yoon Tae-ri card must render");
     assert(snapshot.person_blocks.yoon.includes("실장"), "Yoon Tae-ri title must render");
     assert.equal(snapshot.person_blocks.yoon.includes("서지원"), false, "Yoon Tae-ri must not report to Seo Ji-won");
-    assert.equal(snapshot.person_blocks.yoon.includes("직속"), false, "Yoon Tae-ri must not show direct reports");
+    assert(snapshot.person_blocks.yoon.includes("직속 1명"), "Yoon Tae-ri must have one direct report");
     assert(snapshot.person_blocks.lee.includes("이예진"), "Lee Ye-jin card must render");
-    assert.equal(snapshot.person_blocks.lee.includes("윤태리"), false, "Lee Ye-jin must not report to Yoon Tae-ri");
+    assert(snapshot.person_blocks.lee.includes("상사 윤태리"), "Lee Ye-jin must report to Yoon Tae-ri");
     assert.equal(snapshot.staff_header.includes("AMIC Law"), false, "Staff header must not render parent organization copy");
     assert.equal(snapshot.horizontal_overflow, false, "People org chart must not create horizontal overflow");
 
@@ -187,7 +187,7 @@ async function main() {
       app_bundle: "apps/desktop/dist/mac/matter.app",
       desktop_user_data_path: userDataPath,
       roster,
-      profile: { park_seoyoung_has_manager_cho_woosang: true, horizontal_overflow: profileOverflow },
+      profile: { park_seoyoung_has_manager_kim_yangtae: true, horizontal_overflow: profileOverflow },
       snapshot,
       screenshots: {
         people_roster: path.relative(repoRoot, screenshotPath("people-roster-manager")),

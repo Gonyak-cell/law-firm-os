@@ -197,7 +197,7 @@ const HRX_ORG_UNITS = Object.freeze([
   }),
 ]);
 const HRX_ORG_UNIT_BY_ID = new Map(HRX_ORG_UNITS.map((unit) => [unit.org_unit_id, unit]));
-const PARK_REPORTING_LINE_PROFILE_SOURCE_REF = `${HRX_MEMBER_ROSTER_SOURCE_REF}:park-manager-v2`;
+const REPORTING_LINE_PROFILE_SOURCE_VERSION = "manager-v3";
 const COMPATIBILITY_MANAGER_BY_EMPLOYEE_ID = Object.freeze({
   "emp-002": "emp-001",
 });
@@ -249,7 +249,9 @@ function registeredEmploymentProfiles(tenantId) {
       org_unit_id: member.org_unit_id || account?.group_ids?.[0] || "group_matter_vault_users",
       manager_employee_id: member.manager_employee_id ?? null,
       effective_from: member.start_date || "2026-06-22",
-      source_ref: member.employee_id === "emp_amic_sypark" ? PARK_REPORTING_LINE_PROFILE_SOURCE_REF : member.source_ref,
+      source_ref: member.manager_employee_id
+        ? `${member.source_ref}:${REPORTING_LINE_PROFILE_SOURCE_VERSION}`
+        : member.source_ref,
     };
   });
 }

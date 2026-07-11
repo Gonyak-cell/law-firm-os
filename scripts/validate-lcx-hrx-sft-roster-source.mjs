@@ -50,7 +50,8 @@ for (const member of rosterRows) {
   }
 }
 assert.equal(membersByName.get("조우상")?.manager_employee_id, membersByName.get("김양태")?.employee_id);
-assert.equal(membersByName.get("박서영")?.manager_employee_id, membersByName.get("조우상")?.employee_id);
+assert.equal(membersByName.get("박서영")?.manager_employee_id, membersByName.get("김양태")?.employee_id);
+assert.equal(membersByName.get("이예진")?.manager_employee_id, membersByName.get("윤태리")?.employee_id);
 
 assert.deepEqual(
   ["박서영", "조우상", "김양태"].map((name) => membersByName.get(name)?.organization_group),
