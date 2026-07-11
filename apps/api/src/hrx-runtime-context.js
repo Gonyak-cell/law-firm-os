@@ -1709,14 +1709,8 @@ function reconcileSeedEmploymentProfile(repository, profile) {
   return "reconciled";
 }
 
-function seedHrxDurableRuntimeTenant(store, tenantId) {
+function reconcileHrxMemberRosterTenant(store, tenantId) {
   const repository = createSqlHrxRepository({ store, clock: () => "2026-06-20T00:00:00.000Z" });
-  const documents = createSqlHrxDocumentStore({ store });
-  const compensation = createSqlCompensationRecordStore({ store });
-  const leaveLedger = createSqlLeaveBalanceLedger({ store });
-  const leaveStore = createSqlLeaveRequestStore({ store });
-  const attendance = createSqlAttendanceStore({ store });
-
   const employees = seedEmployees(tenantId);
   const employeeResults = { created: 0, reconciled: 0 };
   for (const employee of employees) {
@@ -1732,6 +1726,38 @@ function seedHrxDurableRuntimeTenant(store, tenantId) {
     if (result === "created") profileResults.created += 1;
     if (result === "reconciled") profileResults.reconciled += 1;
   }
+
+  return Object.freeze({
+    tenant_id: tenantId,
+    employees: employees.length,
+    employees_created: employeeResults.created,
+    employees_reconciled: employeeResults.reconciled,
+    employment_profiles: profiles.length,
+    employment_profiles_created: profileResults.created,
+    employment_profiles_reconciled: profileResults.reconciled,
+  });
+}
+
+export function reconcileHrxMemberRosterStore(store, options = {}) {
+  if (!store || typeof store.query !== "function") throw new TypeError("HRX roster reconciliation requires store.query");
+  const summaries = resolveSeedTenantIds(options).map((tenantId) => reconcileHrxMemberRosterTenant(store, tenantId));
+  if (summaries.length === 1) return summaries[0];
+  return Object.freeze({
+    tenant_ids: summaries.map((summary) => summary.tenant_id),
+    tenants: summaries,
+    employees: summaries.reduce((total, summary) => total + summary.employees, 0),
+    employment_profiles: summaries.reduce((total, summary) => total + summary.employment_profiles, 0),
+  });
+}
+
+function seedHrxDurableRuntimeTenant(store, tenantId) {
+  const rosterSummary = reconcileHrxMemberRosterTenant(store, tenantId);
+  const repository = createSqlHrxRepository({ store, clock: () => "2026-06-20T00:00:00.000Z" });
+  const documents = createSqlHrxDocumentStore({ store });
+  const compensation = createSqlCompensationRecordStore({ store });
+  const leaveLedger = createSqlLeaveBalanceLedger({ store });
+  const leaveStore = createSqlLeaveRequestStore({ store });
+  const attendance = createSqlAttendanceStore({ store });
 
   const links = seedEmployeeUserLinks(tenantId);
   for (const link of links) {
@@ -1777,12 +1803,12 @@ function seedHrxDurableRuntimeTenant(store, tenantId) {
 
   return Object.freeze({
     tenant_id: tenantId,
-    employees: employees.length,
-    employees_created: employeeResults.created,
-    employees_reconciled: employeeResults.reconciled,
-    employment_profiles: profiles.length,
-    employment_profiles_created: profileResults.created,
-    employment_profiles_reconciled: profileResults.reconciled,
+    employees: rosterSummary.employees,
+    employees_created: rosterSummary.employees_created,
+    employees_reconciled: rosterSummary.employees_reconciled,
+    employment_profiles: rosterSummary.employment_profiles,
+    employment_profiles_created: rosterSummary.employment_profiles_created,
+    employment_profiles_reconciled: rosterSummary.employment_profiles_reconciled,
     employee_user_links: links.length,
     documents: documentRows.length,
     compensation_records: compensationRows.length,

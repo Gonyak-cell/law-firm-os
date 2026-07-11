@@ -1,6 +1,6 @@
 import { createHash, createHmac, randomBytes, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { appendFile, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { appendFile, copyFile, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, extname, isAbsolute, join, relative, resolve } from "node:path";
 import {
@@ -22,7 +22,10 @@ import {
   findRegisteredAccountByEmail,
 } from "./matter-vault-account-registry.js";
 import { startApiServer } from "./server.js";
+import { reconcileHrxMemberRosterStore } from "./hrx-runtime-context.js";
 import { DERIVED_STORE_PATH_MANIFEST, STORE_PATH_MANIFEST } from "./store-path-manifest.js";
+import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
+import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
 import {
   AMIC_CURRENT_MATTER_CLIENTS,
   AMIC_CURRENT_MATTER_CODE_CANDIDATES,
@@ -42,6 +45,9 @@ export const CTI_READONLY_EFS_SNAPSHOT_APPROVAL_REF =
 export const CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_ACTION = "cti_s1g_authenticated_production_probe";
 export const CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_APPROVAL_REF =
   "I18-CTI-S2-PRODUCTION-AUTH-PROBE-PRINCIPAL-OWNER-APPROVAL-2026-07-06";
+export const HRX_ROSTER_RECONCILE_ACTION = "hrx_roster_reconcile";
+export const HRX_ROSTER_RECONCILE_APPROVAL_REF =
+  "USER-HRX-ROSTER-RECONCILE-AWS-DEPLOY-APPROVAL-2026-07-11";
 export const CTI_CUTOVER_EXECUTE_RETRY_ACTION = "cti_cutover_execute_retry";
 export const CTI_CUTOVER_EXECUTE_RETRY_APPROVAL_REF =
   "I11-CTI-CUTOVER-EXECUTE-OWNER-APPROVAL-2026-07-06";
@@ -3283,6 +3289,100 @@ async function handleCtiS1GAuthenticatedProductionProbe(event = {}) {
   }
 }
 
+export async function buildHrxRosterReconcileReceipt({ env = process.env, now = () => new Date() } = {}) {
+  const storePath = cleanPath(env.LAWOS_HRX_STORE_PATH);
+  if (!storePath) {
+    return {
+      ok: false,
+      status: "BLOCKED_HRX_STORE_PATH_REQUIRED",
+      reason: "lawos_hrx_store_path_required",
+      production_write_executed: false,
+    };
+  }
+  const allowedRoot = snapshotAllowedRoot(env);
+  const resolvedPath = resolve(storePath);
+  if (!isAbsolute(storePath) || !isInsideRoot(allowedRoot, resolvedPath)) {
+    return {
+      ok: false,
+      status: "BLOCKED_HRX_STORE_PATH_OUTSIDE_ALLOWED_ROOT",
+      reason: "hrx_store_path_outside_allowed_root",
+      store_path_hash: hashRef(resolvedPath),
+      production_write_executed: false,
+    };
+  }
+
+  const beforeBytes = await readFile(resolvedPath).catch((error) => {
+    if (error?.code === "ENOENT") return null;
+    throw error;
+  });
+  const timestamp = now().toISOString().replace(/[:.]/g, "-");
+  const backupPath = `${resolvedPath}.pre-roster-reconcile-${timestamp}.bak`;
+  if (beforeBytes !== null) await copyFile(resolvedPath, backupPath);
+
+  try {
+    const store = createFileHrxStore({ filePath: resolvedPath });
+    runHrxMigrations(store);
+    const reconciliation = reconcileHrxMemberRosterStore(store, {
+      tenant_ids: [MATTER_VAULT_REGISTERED_TENANT_ID],
+    });
+    const afterBytes = await readFile(resolvedPath);
+    return {
+      ok: true,
+      status: "PASS",
+      reconciliation,
+      store_path_hash: hashRef(resolvedPath),
+      store_relative_path: safeRelativePath(allowedRoot, resolvedPath),
+      backup_created: beforeBytes !== null,
+      backup_path_hash: beforeBytes !== null ? hashRef(backupPath) : null,
+      before_sha256: beforeBytes ? sha256Hex(beforeBytes) : null,
+      after_sha256: sha256Hex(afterBytes),
+      production_write_executed: true,
+      plaintext_store_content_returned: false,
+      employee_pii_returned: false,
+      secret_value_returned: false,
+      public_release_claim: false,
+      go_live_claim: false,
+    };
+  } catch (error) {
+    if (beforeBytes === null) await rm(resolvedPath, { force: true });
+    else await writeFile(resolvedPath, beforeBytes);
+    throw error;
+  }
+}
+
+async function handleHrxRosterReconcile(event = {}) {
+  if (isHttpLambdaEvent(event)) {
+    return jsonLambdaResponse(403, {
+      ok: false,
+      reason: "hrx_roster_reconcile_direct_invoke_only",
+      public_http_endpoint: false,
+    });
+  }
+  if (event.approval_signature_ref !== HRX_ROSTER_RECONCILE_APPROVAL_REF) {
+    return jsonLambdaResponse(403, {
+      ok: false,
+      reason: "hrx_roster_reconcile_approval_ref_required",
+      required_approval_signature_ref: HRX_ROSTER_RECONCILE_APPROVAL_REF,
+      public_http_endpoint: false,
+    });
+  }
+  try {
+    const receipt = await buildHrxRosterReconcileReceipt();
+    if (receipt.ok) await resetCachedApiServer();
+    return jsonLambdaResponse(receipt.ok ? 200 : 424, receipt);
+  } catch (error) {
+    return jsonLambdaResponse(500, {
+      ok: false,
+      status: "ERROR_HRX_ROSTER_RECONCILE_FAILED",
+      reason: "hrx_roster_reconcile_failed",
+      error_name: error?.name ?? "Error",
+      error_message_hash: hashRef(error?.message ?? "unknown"),
+      production_write_executed: false,
+      secret_value_returned: false,
+    });
+  }
+}
+
 async function handleCtiCutoverExecuteRetry(event = {}) {
   if (isHttpLambdaEvent(event)) {
     return jsonLambdaResponse(403, {
@@ -4077,6 +4177,9 @@ async function resetCachedApiServer() {
 }
 
 export async function handler(event = {}) {
+  if (maintenanceAction(event) === HRX_ROSTER_RECONCILE_ACTION) {
+    return handleHrxRosterReconcile(event);
+  }
   if (maintenanceAction(event) === LCX_AUTH_RESET_RECOVERY_ACTION) {
     return handleLcxAuthResetRecovery(event);
   }

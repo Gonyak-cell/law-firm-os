@@ -11,15 +11,20 @@ import {
   CTI_DB_CONNECTION_PROOF_APPROVAL_REF,
   CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_ACTION,
   CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_APPROVAL_REF,
+  HRX_ROSTER_RECONCILE_ACTION,
+  HRX_ROSTER_RECONCILE_APPROVAL_REF,
   LCX_AUTH_RESET_RECOVERY_ACTION,
   LCX_AUTH_RESET_RECOVERY_APPROVAL_REF,
   buildCtiS1GAuthenticatedProductionProbeReceipt,
+  buildHrxRosterReconcileReceipt,
   buildLcxAuthResetRecoveryReceipt,
   createLambdaPasswordResetEmailDelivery,
   handler,
   resolveLambdaSessionSecret,
 } from "../src/lambda.js";
 import { STORE_PATH_MANIFEST } from "../src/store-path-manifest.js";
+import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
+import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
 
 async function createDurableStorePaths(root) {
   const paths = {};
@@ -393,6 +398,54 @@ test("I18 S1-G authenticated production probe surface is direct-invoke only", as
   const body = JSON.parse(response.body);
   assert.equal(body.reason, "cti_s1g_probe_surface_direct_invoke_only");
   assert.equal(body.public_http_endpoint, false);
+});
+
+test("approved HRX roster reconciliation creates the current members and reporting lines with backup-safe evidence", async () => {
+  const root = await mkdtemp(join(tmpdir(), "lawos-hrx-roster-reconcile-"));
+  const paths = await createDurableStorePaths(root);
+  try {
+    const receipt = await buildHrxRosterReconcileReceipt({
+      env: {
+        LAWOS_READONLY_SNAPSHOT_ALLOWED_ROOT: root,
+        LAWOS_HRX_STORE_PATH: paths.hrxStorePath,
+      },
+      now: () => new Date("2026-07-11T05:30:00.000Z"),
+    });
+    assert.equal(receipt.ok, true);
+    assert.equal(receipt.status, "PASS");
+    assert.equal(receipt.reconciliation.employees, 10);
+    assert.equal(receipt.reconciliation.employees_created, 10);
+    assert.equal(receipt.reconciliation.employment_profiles, 10);
+    assert.equal(receipt.reconciliation.employment_profiles_created, 10);
+    assert.equal(receipt.production_write_executed, true);
+    assert.equal(receipt.employee_pii_returned, false);
+    assert.equal(receipt.secret_value_returned, false);
+
+    const repository = createSqlHrxRepository({ store: createFileHrxStore({ filePath: paths.hrxStorePath }) });
+    assert.equal(repository.listEmployees({ tenant_id: "tenant_amic_matter_vault" }).length, 10);
+    const profiles = repository.listEmploymentProfiles({ tenant_id: "tenant_amic_matter_vault" });
+    assert.equal(profiles.find((profile) => profile.employee_id === "emp_amic_wsjo")?.manager_employee_id, "emp_amic_ytkim");
+    assert.equal(profiles.find((profile) => profile.employee_id === "emp_amic_sypark")?.manager_employee_id, "emp_amic_wsjo");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("HRX roster reconciliation surface is direct-invoke only and approval gated", async () => {
+  const httpResponse = await handler({
+    rawPath: "/api/maintenance/hrx-roster-reconcile",
+    requestContext: { http: { method: "POST" } },
+    maintenance_action: HRX_ROSTER_RECONCILE_ACTION,
+    approval_signature_ref: HRX_ROSTER_RECONCILE_APPROVAL_REF,
+  });
+  assert.equal(httpResponse.statusCode, 403);
+  assert.equal(JSON.parse(httpResponse.body).reason, "hrx_roster_reconcile_direct_invoke_only");
+
+  const approvalResponse = await handler({ maintenance_action: HRX_ROSTER_RECONCILE_ACTION });
+  assert.equal(approvalResponse.statusCode, 403);
+  const approvalBody = JSON.parse(approvalResponse.body);
+  assert.equal(approvalBody.reason, "hrx_roster_reconcile_approval_ref_required");
+  assert.equal(approvalBody.required_approval_signature_ref, HRX_ROSTER_RECONCILE_APPROVAL_REF);
 });
 
 test("LCX-AUTH reset recovery creates one target reset URL without setting a password", async () => {
