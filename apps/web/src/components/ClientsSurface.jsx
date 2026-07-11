@@ -60,8 +60,10 @@ const CLIENTS_MATTER_LINK_AUDIT_HINT_REF = "ui_cmp_g2_clients_matter_code_links_
 const CLIENT_SECTIONS = new Set([
   "clients-home",
   "clients-list",
+  "client-new",
   "client-leads",
   "client-opportunities",
+  "client-consultation-proposals",
   "client-intake",
   "client-accounts",
   "client-contacts",
@@ -70,6 +72,7 @@ const CLIENT_SECTIONS = new Set([
   "client-relationships",
   "client-conflict",
   "client-billing",
+  "client-sales-history",
   "client-data",
   "client-reports",
   "client-import",
@@ -628,6 +631,39 @@ function ClientDashboardPanel({ results, onNavigate }) {
   );
 }
 
+function ClientNewCustomersPanel({ result }) {
+  const state = renderLiveState(result, "신규 고객");
+  if (state) return state;
+  const accounts = resultItems(result).slice().sort((left, right) => clientDashboardDateValue(right) - clientDashboardDateValue(left));
+  return (
+    <DataTable
+      columns={["고객", "상태", "담당", "등록일"]}
+      rows={accounts.map((item, index) => [
+        clientDashboardRecordLabel(item.display_name, item.account_id, `고객 ${index + 1}`),
+        clientDashboardCategoryLabel(item.account_type ?? item.status, "고객"),
+        clientDashboardRecordLabel(item.owner_display_name, item.owner_user_id, "담당 미지정"),
+        clientDashboardDateLabel(item.created_at ?? item.updated_at)
+      ])}
+    />
+  );
+}
+
+function ClientSalesHistoryPanel({ result }) {
+  const state = renderLiveState(result, "매출 내역");
+  if (state) return state;
+  return (
+    <DataTable
+      columns={["고객", "청구", "수납", "미수"]}
+      rows={resultItems(result).map((item) => [
+        clientDashboardRecordLabel(item.client_group_label, item.client_group_id, "고객명 미확인"),
+        clientDashboardMoneyLabel(item.billed_amount, item.currency),
+        clientDashboardMoneyLabel(item.collected_amount, item.currency),
+        clientDashboardMoneyLabel(item.ar_balance, item.currency)
+      ])}
+    />
+  );
+}
+
 function ClientActivitiesPanel({ result, createResult, patchResult, createPending, patchPending, onCreate, onPatch }) {
   const state = renderLiveState(result, "접촉 이력");
   if (state) return state;
@@ -638,7 +674,7 @@ function ClientActivitiesPanel({ result, createResult, patchResult, createPendin
       <div className="record-action-strip" data-client-activity-create-action="true">
         <div>
           <strong>접촉 이력 추가</strong>
-          <span>Client와 Opportunity 기준으로 후속 조치를 남깁니다.</span>
+          <span>Client와 Pipeline 기준으로 후속 조치를 남깁니다.</span>
           <ActionNotice pending={createPending} result={createResult} pendingText="이력을 추가 중입니다." successText="접촉 이력이 추가되었습니다." />
         </div>
         <button className="secondary-button" type="button" disabled={createPending} onClick={onCreate}>
@@ -687,7 +723,7 @@ function ClientContractsPanel({ result, createResult, patchResult, createPending
       <div className="record-action-strip" data-client-contract-create-action="true">
         <div>
           <strong>계약 초안 생성</strong>
-          <span>Opportunity와 Vault 문서 참조를 묶어 제안 초안을 만듭니다.</span>
+          <span>Pipeline과 Vault 문서 참조를 묶어 제안 초안을 만듭니다.</span>
           <ActionNotice pending={createPending} result={createResult} pendingText="초안을 생성 중입니다." successText="계약 초안이 생성되었습니다." />
         </div>
         <button className="secondary-button" type="button" disabled={createPending} onClick={onCreate}>
@@ -924,7 +960,7 @@ function ClientRecordPanel({ client, leadCount, opportunityCount, intakeCount, a
           <strong>{leadCount}</strong>
         </div>
         <div>
-          <span>Opportunity</span>
+          <span>Pipeline</span>
           <strong>{opportunityCount}</strong>
         </div>
         <div>
@@ -1437,7 +1473,7 @@ function OpportunityActionPanel({ opportunity, pending, result, onHandoff }) {
   return (
     <div className="record-action-strip" data-crm-handoff-action="true">
       <div>
-          <strong>{refreshedOpportunity ? businessLabel(refreshedOpportunity.display_name, "Opportunity 1") : "Opportunity"}</strong>
+          <strong>{refreshedOpportunity ? businessLabel(refreshedOpportunity.display_name, "Pipeline 1") : "Pipeline"}</strong>
         <span>{linked ? "상담 연결됨" : "상담 전환 대기"}</span>
         <ActionNotice
           pending={pending}
@@ -1621,7 +1657,7 @@ function IntakeActionPanel({
 }
 
 function OpportunitiesTable({ result, pending, handoffResult, onHandoff }) {
-  const state = renderLiveState(result, "Opportunity");
+  const state = renderLiveState(result, "Pipeline");
   if (state) return state;
   const opportunities = resultItems(result);
   return (
@@ -1631,14 +1667,14 @@ function OpportunitiesTable({ result, pending, handoffResult, onHandoff }) {
         <div className="record-boundary-note" data-crm-handoff-refresh-result="true">
           <ShieldCheck size={15} />
           <span>
-            Opportunity 상태가 {pipelineStatus(handoffResult.opportunity.stage)} 단계로 갱신되고 상담 레코드와 연결되었습니다.
+            Pipeline 상태가 {pipelineStatus(handoffResult.opportunity.stage)} 단계로 갱신되고 상담 레코드와 연결되었습니다.
           </span>
         </div>
       )}
       <DataTable
-        columns={["Opportunity", "단계", "상태", "상담"]}
+        columns={["Pipeline", "단계", "상태", "상담"]}
         rows={opportunities.map((item, index) => [
-          businessLabel(item.display_name, `Opportunity ${index + 1}`),
+          businessLabel(item.display_name, `Pipeline ${index + 1}`),
           pipelineStatus(item.stage),
           pipelineStatus(item.status),
           linkedLabel(item.intake_request_id)
@@ -1740,7 +1776,7 @@ export function ClientIntakePipelineSurface({
         onMatterOpening={onMatterOpening}
       />
       <DataTable
-        columns={["인테이크", "상태", "Opportunity", "범위"]}
+        columns={["인테이크", "상태", "Pipeline", "범위"]}
         rows={intakeRows.map((item, index) => [
           `인테이크 ${index + 1}`,
           pipelineStatus(item.status),
@@ -1977,7 +2013,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
   }, [liveCtx, refreshToken]);
 
   useEffect(() => {
-    if (currentSection !== "clients-home") {
+    if (currentSection !== "clients-home" && currentSection !== "client-sales-history") {
       setFinanceClientsResult(null);
       return undefined;
     }
@@ -2631,13 +2667,18 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
             <ClientsTable result={clientsResult} selectedClientId={selectedClientId} onSelectClient={setSelectedClientId} />
           </Panel>
         )}
+        {currentSection === "client-new" && (
+          <Panel id="client-new" className="record-list-panel" title="신규 고객" meta="" hideHeader>
+            <ClientNewCustomersPanel result={accountsResult} />
+          </Panel>
+        )}
         {currentSection === "client-leads" && (
-          <Panel id="client-leads" className="record-list-panel" title="잠재 계정" meta="수임 전">
+          <Panel id="client-leads" className="record-list-panel" title="잠재 고객" meta="수임 전">
             <LeadsTable result={leadsResult} />
           </Panel>
         )}
         {currentSection === "client-opportunities" && (
-          <Panel id="client-opportunities" className="record-list-panel" title="Opportunity" meta="수임 전 기회" hideHeader>
+          <Panel id="client-opportunities" className="record-list-panel" title="Pipeline" meta="수임 전 기회" hideHeader>
             <OpportunitiesTable
               result={opportunitiesResult}
               pending={handoffPending}
@@ -2675,6 +2716,49 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
               onMatterOpening={handleMatterOpening}
             />
           </Panel>
+        )}
+        {currentSection === "client-consultation-proposals" && (
+          <>
+            <Panel id="client-consultation-proposals-intake" className="record-list-panel" title="상담 기록" meta="수임 전 검토">
+              <ClientIntakePipelineSurface
+                result={intakeResult}
+                auditResult={intakeAuditResult}
+                activeIntake={activeIntake}
+                createResult={intakeCreateResult}
+                conflictResult={conflictResult}
+                decisionResult={decisionResult}
+                waiverResult={waiverResult}
+                engagementResult={engagementResult}
+                clearanceResult={clearanceResult}
+                matterOpeningResult={matterOpeningResult}
+                createPending={intakeCreatePending}
+                conflictPending={conflictPending}
+                decisionPending={decisionPending}
+                waiverPending={waiverPending}
+                engagementPending={engagementPending}
+                clearancePending={clearancePending}
+                matterOpeningPending={matterOpeningPending}
+                onCreateIntake={handleCreateIntakePipeline}
+                onConflictCheck={handleConflictCheck}
+                onConflictDecision={handleConflictDecision}
+                onWaiverApprove={handleWaiverApprove}
+                onEngagementApprove={handleEngagementApprove}
+                onClearance={handleClearance}
+                onMatterOpening={handleMatterOpening}
+              />
+            </Panel>
+            <Panel id="client-consultation-proposals-contracts" className="record-list-panel" title="수임 제안" meta="Vault/e-sign 경계">
+              <ClientContractsPanel
+                result={proposalsResult}
+                createResult={proposalCreateResult}
+                patchResult={proposalPatchResult}
+                createPending={proposalCreatePending}
+                patchPending={proposalPatchPending}
+                onCreate={handleCreateProposal}
+                onProviderCheck={handleProposalProviderCheck}
+              />
+            </Panel>
+          </>
         )}
         {currentSection === "client-accounts" && (
           <Panel id="client-accounts" className="record-list-panel" title="계정 정보" meta="관리" hideHeader>
@@ -2790,6 +2874,11 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
               invoicesResult={financeInvoicesResult}
               arAgingResult={financeArAgingResult}
             />
+          </Panel>
+        )}
+        {currentSection === "client-sales-history" && (
+          <Panel id="client-sales-history" className="record-list-panel" title="매출 내역" meta="" hideHeader>
+            <ClientSalesHistoryPanel result={financeClientsResult} />
           </Panel>
         )}
         {currentSection === "client-data" && (

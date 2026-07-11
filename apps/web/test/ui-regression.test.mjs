@@ -173,7 +173,7 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   }
   assert.doesNotMatch(globalUtilitySource, /label: "Messages"|label: "Notifications"|label: "Requests"|label: "Reports"|label: "Settings"|label: "E-Sign"/);
   assert.match(shellSource, /client-import/);
-  for (const label of ["고객 관리", "대시보드", "고객 목록", "Opportunity", "상담 기록", "접촉 이력", "수임 제안", "청구", "리포트", "데이터", "데이터 가져오기", "설정"]) {
+  for (const label of ["고객 관리", "대시보드", "고객 목록", "신규 고객", "잠재 고객", "매출 내역", "Pipeline", "상담/수임 제안", "접촉 이력", "청구", "리포트", "데이터", "데이터 가져오기", "설정"]) {
     assert.match(shellSource, new RegExp(label));
   }
   for (const section of ["client-accounts", "client-contacts", "client-relationships", "client-conflict"]) {
@@ -894,11 +894,13 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   for (const section of [
     "clients-home",
     "clients-list",
+    "client-new",
+    "client-leads",
     "client-opportunities",
-    "client-intake",
+    "client-consultation-proposals",
     "client-activities",
-    "client-contracts",
     "client-billing",
+    "client-sales-history",
     "client-data",
     "client-settings",
     "matter-home",
@@ -921,7 +923,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   ]) {
     assert.match(shellSource, new RegExp(section));
   }
-  for (const hiddenClientMenuSection of ["client-accounts", "client-contacts", "client-relationships", "client-conflict"]) {
+  for (const hiddenClientMenuSection of ["client-accounts", "client-contacts", "client-intake", "client-contracts", "client-relationships", "client-conflict"]) {
     assert.doesNotMatch(shellSource, new RegExp(`section: "${hiddenClientMenuSection}"`));
   }
   for (const hiddenMatterMenuSection of ["matter-vault", "matter-intake", "matter-evidence", "matter-templates", "matter-seal", "matter-approvals", "matter-time", "matter-expenses", "matter-billing", "matter-ar"]) {

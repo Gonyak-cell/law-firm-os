@@ -1750,6 +1750,10 @@ kbd {
   font-weight: 400;
 }
 
+.sidebar-child > span:nth-child(2) {
+  word-break: keep-all;
+}
+
 .sidebar-child .sidebar-icon {
   width: 24px;
   height: 24px;
@@ -12025,6 +12029,12 @@ html[data-skin="forest"] .topbar {
   backdrop-filter: blur(12px);
 }
 
+@media (min-width: 761px) and (max-width: 1180px) {
+  html[data-skin="forest"] {
+    --am-sidebar-width: 181px;
+  }
+}
+
 html[data-skin="forest"] .topbar-brand {
   display: none;
 }
@@ -12820,6 +12830,11 @@ html[data-skin="forest"] .people-feature-state:hover,
 html[data-skin="forest"] .matter-boundary-card:hover {
   transform: translateY(-3px);
   box-shadow: var(--am-shadow-floating);
+}
+
+html[data-skin="forest"] .panel:hover {
+  transform: none;
+  box-shadow: var(--am-shadow-panel);
 }
 
 html[data-skin="forest"] .record-overlay-panel .record-side-panel:hover {

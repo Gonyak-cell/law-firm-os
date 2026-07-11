@@ -524,7 +524,12 @@ test("grouped sidebars render children in collapsible sidebar accordions", async
     await page.setViewportSize({ width: 1366, height: 900 });
     await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
     const clientPrimaryToggle = page.locator('[data-sidebar-group="clients-home"] .sidebar-group-toggle');
-    if (await clientPrimaryToggle.getAttribute("aria-expanded") !== "false") await clientPrimaryToggle.click();
+    assert.deepEqual(await page.locator('[data-sidebar-group="clients-home"] .sidebar-child').allTextContents(), ["대시보드", "고객 목록", "신규 고객", "잠재 고객", "매출 내역"]);
+    const clientPreEngagementToggle = page.locator('[data-sidebar-group="client-opportunities"] .sidebar-group-toggle');
+    await clientPreEngagementToggle.click();
+    assert.deepEqual(await page.locator('[data-sidebar-group="client-opportunities"] .sidebar-child').allTextContents(), ["Pipeline", "상담/수임 제안", "접촉 이력"]);
+    if (await clientPrimaryToggle.getAttribute("aria-expanded") !== "true") await clientPrimaryToggle.click();
+    await clientPrimaryToggle.click();
     await page.locator('[data-product-axis="home"]').click();
     await page.locator('[data-product-axis="clients"]').click();
     assert.equal(await clientPrimaryToggle.getAttribute("aria-expanded"), "false", "explicit collapse must survive leaving and returning to the same product view");
@@ -971,8 +976,9 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
 
     await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-client-dashboard="true"]');
+    const clientDashboard = page.locator('[data-client-dashboard="true"]');
     for (const title of ["신규 고객", "잠재 고객/접촉", "매출 순위", "고객 미팅", "미수금"]) {
-      assert.equal(await page.getByText(title, { exact: true }).count(), 1, `Client must show ${title}`);
+      assert.equal(await clientDashboard.getByText(title, { exact: true }).count(), 1, `Client must show ${title}`);
     }
     for (const section of ["new-clients", "prospects-contacts", "revenue-ranking", "client-meetings", "accounts-receivable"]) {
       assert.equal(await page.locator(`[data-dashboard-section="${section}"]`).count(), 1);
