@@ -1,0 +1,93 @@
+{
+  "schema_version": "law-firm-os.aws-ui-people-desktop-deploy.v0.1",
+  "generated_at": "2026-07-11T05:42:00.000Z",
+  "aws_account_id": "770880870480",
+  "aws_region": "ap-northeast-2",
+  "aws_profile": "matter-prod-deploy-admin",
+  "source": {
+    "release_version": "0.1.12",
+    "release_id": "matter-desktop-v0.1.12-20260711-2eb4e7ab6",
+    "release_source_commit": "2eb4e7ab6",
+    "deployed_api_commit": "d04ce78e9"
+  },
+  "desktop": {
+    "channel": "formal-candidate",
+    "macos_zip_sha256": "1039e0e0480974d51d34b7ee32747b591e5d4727ab4d58a96391e5f53ffc6789",
+    "macos_dmg_sha256": "2b4732b46768f6dbeec0cb0c9aadd9f2aa425c821695e6721d48fbf53485ac62",
+    "windows_installer_sha256": "f479f66b944cc8026317402ca907a93e57195f962189bac88d4638cd57c5b3a1",
+    "windows_blockmap_sha256": "0a4a0aeff78d24a752bc579c662fbc829f8815f9e155df83edfd77e30715e79b",
+    "portable_checksum_entries_verified": 9,
+    "macos_developer_id": true,
+    "macos_notarized": true,
+    "windows_authenticode": false,
+    "windows_native_install_smoke": "not_run_on_darwin"
+  },
+  "lambda": {
+    "function_name": "matter-lawos-api-prod",
+    "runtime": "nodejs22.x",
+    "state": "Active",
+    "last_update_status": "Successful",
+    "last_modified": "2026-07-11T05:38:44.000+0000",
+    "code_sha256_base64": "LF4M4Suib/bACyfoNL1ox5GdrZhjRZPSeeWIfQReQGI=",
+    "revision_id": "5c8d5d78-e31b-421b-990e-6e1721cafd69",
+    "deployment_commit": "d04ce78e9"
+  },
+  "web": {
+    "bucket": "matter-lawos-web-prod-770880870480-apne2",
+    "distribution_id": "E3MVAKX2DIR3CS",
+    "invalidation_id": "IBMQNRDDDT33LYLILJPU8UNCE3",
+    "invalidation_status": "Completed",
+    "javascript_asset": "assets/index-DE9ws8IM.js",
+    "javascript_sha256": "7935c06dce8a9104bcaba55e676eb14013b3acf7a9502c5214378ecec05e5b97",
+    "stylesheet_asset": "assets/index-BtzWKNPR.css",
+    "stylesheet_sha256": "de25a72f4c43ee4b4956ccd9bacaa75713ee0af18a20f447f859d774cf3eb72b"
+  },
+  "hrx_reconciliation": {
+    "verdict": "PASS",
+    "backup_created": true,
+    "employees": 10,
+    "employees_created": 1,
+    "employees_reconciled": 0,
+    "employment_profiles": 10,
+    "employment_profiles_created": 1,
+    "employment_profiles_reconciled": 9,
+    "before_sha256": "35233832547b91971793abd749fe4f6c8075bbd1e06afd0336f4585db58bf0f8",
+    "after_sha256": "d94dcbdf83918e1027c76a4f0427da6846d80146149f26c909065372d24936e1",
+    "employee_pii_returned": false,
+    "secret_value_returned": false
+  },
+  "authenticated_smoke": {
+    "verdict": "PASS",
+    "login_status": 200,
+    "session_status": 200,
+    "hrx_status": 200,
+    "employee_count": 10,
+    "roster_source_ref_count": 10,
+    "expected_reporting_line_count": 2,
+    "matching_reporting_line_count": 2,
+    "credential_store_restored": true,
+    "token_or_password_returned": false,
+    "secret_value_returned": false
+  },
+  "browser_smoke": {
+    "verdict": "PASS",
+    "http_status": 200,
+    "people_error_state_distinct_from_empty": true,
+    "current_javascript_loaded": true,
+    "page_error_count": 0,
+    "server_error_count": 0
+  },
+  "rollback": {
+    "predeploy_lambda_sha256": "6ce47feffa9e17538c09d15ef3efd399b0b02b7e0a68e0ccf2a6316128d39702",
+    "pre_reconcile_lambda_sha256": "4aad4c332d57856006e295c3bf6a38d8c6306288489836bdf861298f40d7c160",
+    "s3_object_count": 37,
+    "durable_local_copy": "~/Library/Application Support/LawFirmOS/deploy-rollbacks/lawos-prod-deploy-19e47a8c4-20260711T053019Z"
+  },
+  "claims": {
+    "aws_production_deployed": true,
+    "desktop_formal_candidate_published": false,
+    "public_stable_desktop_release": false,
+    "company_wide_go_live": false,
+    "owner_final_approval": false
+  }
+}
