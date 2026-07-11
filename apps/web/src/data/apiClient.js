@@ -333,7 +333,7 @@ async function apiFetch(input, init = {}) {
     const body = response?.body ?? response ?? {};
     return new Response(JSON.stringify(body), {
       status,
-      headers: { "content-type": "application/json; charset=utf-8" }
+      headers: { "content-type": "application/json; charset=utf-8", ...(response?.headers ?? {}) }
     });
   }
   return fetch(apiRequestUrl(input), {
@@ -1382,6 +1382,111 @@ export async function fetchMatterRecentlyViewed({
     countLeakPrevented: body.count_leak_prevented === true,
     productionReadyClaim: body.production_ready_claim === true
   };
+}
+
+export const MATTER_WORKTREE_UI_STATES = Object.freeze({
+  loading: "loading",
+  data: "data",
+  empty: "empty",
+  denied: "denied",
+  error: "error",
+  conflict: "conflict"
+});
+
+export function createMatterWorktreeUiState() {
+  return { kind: MATTER_WORKTREE_UI_STATES.loading };
+}
+
+function matterWorktreeResult(response, body) {
+  const status = Number(response?.status ?? 0);
+  const base = {
+    status,
+    safeErrorCodes: Array.isArray(body?.safe_error_codes) ? body.safe_error_codes : [],
+    countLeakPrevented: body?.count_leak_prevented === true,
+    requestId: body?.request_id ?? null
+  };
+  if ([401, 403, 404].includes(status)) return { kind: MATTER_WORKTREE_UI_STATES.denied, ...base };
+  if (status === 409) {
+    return {
+      kind: MATTER_WORKTREE_UI_STATES.conflict,
+      ...base,
+      currentVersion: body?.current_version ?? null,
+      item: body?.item ?? null
+    };
+  }
+  if (!response?.ok || !body || typeof body !== "object" || Array.isArray(body)) {
+    return { kind: MATTER_WORKTREE_UI_STATES.error, ...base };
+  }
+  const item = body.item ?? null;
+  const nodeCount = Array.isArray(item?.nodes) ? item.nodes.length : null;
+  const unclassifiedCount = Array.isArray(item?.unclassified?.tasks) ? item.unclassified.tasks.length : 0;
+  const kind = item === null || (nodeCount === 0 && unclassifiedCount === 0)
+    ? MATTER_WORKTREE_UI_STATES.empty
+    : MATTER_WORKTREE_UI_STATES.data;
+  return {
+    kind,
+    ...base,
+    item,
+    items: Array.isArray(body.items) ? body.items : [],
+    etag: response.headers?.get?.("etag") ?? body.etag ?? null,
+    currentVersion: body.current_version ?? body.worktree_version ?? item?.version ?? null,
+    idempotentReplay: body.idempotent_replay === true,
+    archivedNodeIds: Array.isArray(body.archived_node_ids) ? body.archived_node_ids : []
+  };
+}
+
+async function matterWorktreeRequest({ method = "GET", path, payload, ctx = "allow", query = false } = {}) {
+  const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
+  const params = new URLSearchParams({
+    tenant_id: tenantIdForDomain("matter", MATTER_TENANT_ID),
+    permission_ref: payload?.permission_ref ?? DEFAULT_MATTER_PERMISSION_REF,
+    audit_hint_ref: payload?.audit_hint_ref ?? DEFAULT_MATTER_AUDIT_HINT_REF
+  });
+  try {
+    const response = await apiFetch(query ? `${path}?${params.toString()}` : path, {
+      method,
+      headers: {
+        ...(method === "GET" ? {} : { "content-type": "application/json" }),
+        [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+      },
+      ...(method === "GET" ? {} : { body: JSON.stringify(payload ?? {}) })
+    });
+    return matterWorktreeResult(response, await response.json());
+  } catch {
+    return { kind: MATTER_WORKTREE_UI_STATES.error, status: 0, safeErrorCodes: [] };
+  }
+}
+
+export function fetchMatterWorktree({ matterId, ctx = "allow" } = {}) {
+  return matterWorktreeRequest({ path: `/api/matters/${encodeURIComponent(matterId)}/worktree`, ctx, query: true });
+}
+
+export function createMatterWorktree({ matterId, payload, ctx = "allow" } = {}) {
+  return matterWorktreeRequest({ method: "POST", path: `/api/matters/${encodeURIComponent(matterId)}/worktree`, payload, ctx });
+}
+
+export function applyMatterWorktreeTemplate({ matterId, payload, ctx = "allow" } = {}) {
+  return matterWorktreeRequest({ method: "POST", path: `/api/matters/${encodeURIComponent(matterId)}/worktree/template-applications`, payload, ctx });
+}
+
+export function createMatterWorktreeNode({ matterId, payload, ctx = "allow" } = {}) {
+  return matterWorktreeRequest({ method: "POST", path: `/api/matters/${encodeURIComponent(matterId)}/worktree/nodes`, payload, ctx });
+}
+
+export function patchMatterWorktreeNode({ matterId, nodeId, payload, ctx = "allow" } = {}) {
+  return matterWorktreeRequest({ method: "PATCH", path: `/api/matters/${encodeURIComponent(matterId)}/worktree/nodes/${encodeURIComponent(nodeId)}`, payload, ctx });
+}
+
+export function deleteMatterWorktreeNode({ matterId, nodeId, payload, ctx = "allow" } = {}) {
+  return matterWorktreeRequest({ method: "DELETE", path: `/api/matters/${encodeURIComponent(matterId)}/worktree/nodes/${encodeURIComponent(nodeId)}`, payload, ctx });
+}
+
+export function completeMatterWorktreeTask({ matterId, taskId, payload, ctx = "allow" } = {}) {
+  return matterWorktreeRequest({ method: "POST", path: `/api/matters/${encodeURIComponent(matterId)}/worktree/tasks/${encodeURIComponent(taskId)}/complete`, payload, ctx });
+}
+
+export function reopenMatterWorktreeTask({ matterId, taskId, payload, ctx = "allow" } = {}) {
+  return matterWorktreeRequest({ method: "POST", path: `/api/matters/${encodeURIComponent(matterId)}/worktree/tasks/${encodeURIComponent(taskId)}/reopen`, payload, ctx });
 }
 
 async function writeMatterRuntime({ method = "POST", path, payload, ctx = "allow", contextOverride = null } = {}) {
