@@ -1,0 +1,2 @@
+RED: four-field selector absent.
+GREEN: equal-track contract passed.
