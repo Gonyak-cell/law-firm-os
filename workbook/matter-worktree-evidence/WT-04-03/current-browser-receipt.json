@@ -1,0 +1,26 @@
+{
+  "schema_version": "law-firm-os.matter-worktree.browser-qa.v1",
+  "verified_commit": "5135f0504",
+  "status": "passed",
+  "viewports": {
+    "375": { "overflow": false, "equal_practice_widths": true },
+    "768": { "overflow": false, "equal_practice_widths": true },
+    "1024": { "overflow": false, "equal_practice_widths": true },
+    "1280": { "overflow": false, "equal_practice_widths": true }
+  },
+  "keyboard_scenarios": { "passed": 8, "total": 8 },
+  "structure_calls": { "add": 1, "rename": 1, "archive": 1, "template": 1 },
+  "reopen_calls": 2,
+  "recovery_states": { "denied": true, "conflict": true, "error": true },
+  "performance": {
+    "node_count": 301,
+    "stable_render_ms": 71.596125,
+    "budget_ms": 1500,
+    "page_overflow": false,
+    "long_tasks": 0
+  },
+  "command": "node output/playwright/matter-worktree-render-qa.mjs",
+  "public_release": false,
+  "aws_deployment": false,
+  "production_go_live": false
+}

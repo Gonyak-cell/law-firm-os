@@ -1,4 +1,4 @@
 node --test apps/web/test/matter-worktree-performance.test.mjs
 Exit: 0
 300 nodes: p50=0.17ms p95=0.57ms max=1.09ms.
-Actual Chromium stable render: 72.80ms; 50ms+ long tasks 0; page overflow 0px.
+Actual Chromium stable render: 71.60ms; 50ms+ long tasks 0; page overflow 0px.

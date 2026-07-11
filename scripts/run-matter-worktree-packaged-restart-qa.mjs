@@ -166,6 +166,7 @@ async function run() {
   let secondApp;
   let firstRuntimeBaseUrl;
   let secondRuntimeBaseUrl;
+  let peopleSidebarAlignment;
   try {
     ({ app: firstApp } = await launchPackagedApp().then(async ({ app, page }) => {
       firstRuntimeBaseUrl = await page.evaluate(() => window.matterSession.desktopApiBaseUrl);
@@ -187,6 +188,20 @@ async function run() {
       assert.equal(await checkbox.isChecked(), true, "completed task must remain checked after full app restart");
       assert.match(await page.locator('.matter-worktree-progress-copy').innerText(), /1\/1 완료/, "second launch must restore completed progress");
       await page.screenshot({ path: path.join(evidenceDir, "packaged-after-restart.png"), fullPage: false, animations: "disabled", caret: "hide" });
+      await page.locator('[data-product-axis="people"]').click();
+      await page.locator('[data-context-sidebar="people"]').waitFor({ state: "visible" });
+      peopleSidebarAlignment = await page.evaluate(() => {
+        const middleDelta = (element) => {
+          const parent = element.parentElement.getBoundingClientRect();
+          const child = element.getBoundingClientRect();
+          return Math.abs((parent.top + parent.bottom) / 2 - (child.top + child.bottom) / 2);
+        };
+        const title = document.querySelector(".workspace-card-label");
+        const labels = [...document.querySelectorAll(".sidebar-label")];
+        return { title: title?.textContent?.trim(), title_delta: middleDelta(title), max_label_delta: Math.max(0, ...labels.map(middleDelta)) };
+      });
+      assert.deepEqual(peopleSidebarAlignment, { title: "People", title_delta: 0, max_label_delta: 0 });
+      await page.screenshot({ path: path.join(evidenceDir, "packaged-people-centered.png"), fullPage: false, animations: "disabled", caret: "hide" });
       return { app };
     }));
     await secondApp.close();
@@ -213,6 +228,7 @@ async function run() {
       task_state_after_first_launch: "done",
       task_state_after_restart: persistedTask.status,
       restored_progress: "1/1",
+      people_sidebar_alignment: peopleSidebarAlignment,
       durable_audit_event_count: auditCount,
       matter_task_is_completion_source: true,
       isolated_runtime_store: true,
@@ -224,6 +240,7 @@ async function run() {
       screenshots: [
         "workbook/matter-worktree-evidence/WT-04-07/packaged-before-restart.png",
         "workbook/matter-worktree-evidence/WT-04-07/packaged-after-restart.png",
+        "workbook/matter-worktree-evidence/WT-04-07/packaged-people-centered.png",
       ],
     };
     writeFileSync(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`);

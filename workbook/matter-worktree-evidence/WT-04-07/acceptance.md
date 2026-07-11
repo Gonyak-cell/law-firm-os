@@ -8,6 +8,7 @@
 - live flow: login → Matter → 업무 관리 → 워크트리 → seeded Matter Code → Task 체크 → 앱 종료 → 동일 앱 재실행 → 재로그인 → 동일 Matter Code.
 - restored UI: checkbox checked, `1/1 완료`, horizontal page overflow absent in the captured 1440×960 screen.
 - durable state: `MatterTask.status=done`; duplicated completion field 없음; audit event 1건.
-- visual evidence: `packaged-before-restart.png`, `packaged-after-restart.png`.
+- visual evidence: `packaged-before-restart.png`, `packaged-after-restart.png`, `packaged-people-centered.png`.
+- People sidebar: workspace title is `People`; title and all menu labels have 0px vertical-center delta.
 - receipt: `packaged-restart-receipt.json` contains no credential material or real client data.
 - package channel: internal QA only. public release: false. AWS deployment: false. production go-live: false.
