@@ -1,0 +1,28 @@
+RED
+command: node --test packages/matter/test/worktree-projection.test.js
+exit: 1
+result: 0 passed, 5 failed
+cause: worktree-projection.js did not exist
+
+GREEN
+command: node --test packages/matter/test/worktree-projection.test.js
+exit: 0
+result: 5 passed, 0 failed
+
+STRUCTURE REGRESSION
+command: node --test packages/matter/test/worktree-structure.test.js
+exit: 0
+result: 7 passed, 0 failed
+
+MATTER PACKAGE REGRESSION
+command: LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+exit: 0
+result: 173 passed, 0 failed
+
+MANUAL LIBRARY QA
+exit: 0
+output: {"root":"root","progress":{"done":1,"total":2,"percent":50,"blocked":0,"overdue":1},"unclassified":["todo"],"persisted":false}
+
+STATIC CHECKS
+node --check: passed
+git diff --check: passed
