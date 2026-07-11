@@ -1,3 +1,5 @@
+RED: canonical parent did not run all eight fixtures through the production classifier and Worktree projection together.
 node --test packages/matter/test/worktree-qa-fixture-contract.test.js packages/matter/test/worktree-practice-area.test.js
 Exit: 0
 Tests: 8 passed, 0 failed.
+GREEN: eight fixtures completed with zero missing tasks and zero practice-area misclassifications.

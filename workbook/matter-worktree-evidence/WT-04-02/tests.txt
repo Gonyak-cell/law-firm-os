@@ -1,3 +1,5 @@
+RED: canonical parent had no single API E2E evidence set covering isolation, role denial, idempotent replay, and stale-version conflict.
 node --test apps/api/test/matter-worktree-api.test.js apps/api/test/matter-worktree-authorization.test.js apps/api/test/matter-worktree-create-api.test.js apps/api/test/matter-worktree-node-api.test.js apps/api/test/matter-worktree-task-api.test.js
 Exit: 0
 Tests: 20 passed, 0 failed.
+GREEN: tenant isolation, role denial, idempotency, audit, and version-conflict scenarios all passed.
