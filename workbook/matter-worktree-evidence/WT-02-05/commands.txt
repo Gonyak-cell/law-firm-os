@@ -1,0 +1,7 @@
+node --test apps/api/test/matter-worktree-task-api.test.js
+node --test apps/api/test/matter-worktree-task-api.test.js apps/api/test/matter-worktree-node-api.test.js apps/api/test/matter-worktree-create-api.test.js apps/api/test/matter-worktree-api.test.js
+node --input-type=module -  # manual complete/replay API-handler driver
+node --check apps/api/src/matter-worktree-task-api.js
+wc -l apps/api/src/matter-worktree-task-api.js
+git diff --check
+
