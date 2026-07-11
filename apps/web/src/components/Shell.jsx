@@ -598,13 +598,11 @@ export function buildContextualNavigation({
       ...sidebarMeta.clients,
       items: [
         {
-          label: "관리",
+          label: "고객 관리",
           icon: ClipboardList,
           children: [
             { label: "대시보드", view: "clients", section: "clients-home", icon: LayoutDashboard, active: true },
-            { label: "목록", view: "clients", section: "clients-list", icon: ClipboardList },
-            { label: "계정 정보", view: "clients", section: "client-accounts", icon: ShieldCheck },
-            { label: "담당자", view: "clients", section: "client-contacts", icon: UserPlus }
+            { label: "고객 목록", view: "clients", section: "clients-list", icon: ClipboardList }
           ]
         },
         {
@@ -612,11 +610,9 @@ export function buildContextualNavigation({
           icon: FileText,
           children: [
             { label: "Opportunity", view: "clients", section: "client-opportunities", icon: ClipboardList },
-            { label: "상담", view: "clients", section: "client-intake", icon: FileText },
+            { label: "상담 기록", view: "clients", section: "client-intake", icon: FileText },
             { label: "접촉 이력", view: "clients", section: "client-activities", icon: ClipboardList },
-            { label: "제안", view: "clients", section: "client-contracts", icon: FileText },
-            { label: "관계", view: "clients", section: "client-relationships", icon: UserPlus },
-            { label: "이해상충 확인", view: "clients", section: "client-conflict", icon: ShieldCheck }
+            { label: "수임 제안", view: "clients", section: "client-contracts", icon: FileText }
           ]
         },
         {

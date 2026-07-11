@@ -173,8 +173,11 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   }
   assert.doesNotMatch(globalUtilitySource, /label: "Messages"|label: "Notifications"|label: "Requests"|label: "Reports"|label: "Settings"|label: "E-Sign"/);
   assert.match(shellSource, /client-import/);
-  for (const label of ["관리", "대시보드", "목록", "계정 정보", "담당자", "Opportunity", "상담", "접촉 이력", "제안", "관계", "이해상충 확인", "청구", "리포트", "데이터", "데이터 가져오기", "설정"]) {
+  for (const label of ["고객 관리", "대시보드", "고객 목록", "Opportunity", "상담 기록", "접촉 이력", "수임 제안", "청구", "리포트", "데이터", "데이터 가져오기", "설정"]) {
     assert.match(shellSource, new RegExp(label));
+  }
+  for (const section of ["client-accounts", "client-contacts", "client-relationships", "client-conflict"]) {
+    assert.doesNotMatch(shellSource, new RegExp(`section: "${section}"`));
   }
   assert.doesNotMatch(shellSource, /Client 관리|Client 목록|Client 계정|Client 관계|Client 리포트|Client 데이터|Client 설정/);
   for (const label of ["사건 운영", "대시보드", "사건 목록", "사건 문서", "신규 사건", "수임 진행", "종결 처리", "보관 사건", "업무 진행", "업무 보드", "할 일", "외부 일정", "검토 의견", "소통", "메시지", "회의 기록", "공지", "팀", "의뢰인 요청", "리포트", "사건 리포트", "검색", "사건 위험", "감사 이력", "연동", "사건 설정"]) {
@@ -890,14 +893,11 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
 
   for (const section of [
     "clients-home",
+    "clients-list",
     "client-opportunities",
     "client-intake",
-    "client-accounts",
-    "client-contacts",
     "client-activities",
     "client-contracts",
-    "client-relationships",
-    "client-conflict",
     "client-billing",
     "client-data",
     "client-settings",
@@ -922,6 +922,9 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
     "matter-settings"
   ]) {
     assert.match(shellSource, new RegExp(section));
+  }
+  for (const hiddenClientMenuSection of ["client-accounts", "client-contacts", "client-relationships", "client-conflict"]) {
+    assert.doesNotMatch(shellSource, new RegExp(`section: "${hiddenClientMenuSection}"`));
   }
   for (const hiddenMatterMenuSection of ["matter-evidence", "matter-templates", "matter-seal", "matter-approvals", "matter-time", "matter-expenses", "matter-billing", "matter-ar"]) {
     assert.doesNotMatch(shellSource, new RegExp(`section: "${hiddenMatterMenuSection}"`));
