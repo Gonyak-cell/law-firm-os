@@ -4,6 +4,17 @@ Status: AWS correction deployed; desktop formal candidate published
 
 This sanitized receipt records three owner-requested reporting-line corrections without repeating identifiable employee or manager values.
 
+## Provenance
+
+| Boundary | Value |
+| --- | --- |
+| HRX idempotence correction / Lambda source | `d2bf615ee` |
+| Desktop version source / Windows QA head | `c30dfe525` |
+| Annotated release tag target | `66a75ebdc` |
+| Closeout receipt introduction | `546632cf4` |
+| Release branch | `codex/lcx-vltui-owner-approval-intake` |
+| Contained in `origin/main` | false |
+
 ## Verification
 
 | Check | Result |
@@ -59,4 +70,3 @@ The earlier v0.1.13 prerelease is marked superseded and must not be used for val
 - Public stable desktop release: false
 - Owner final approval: false
 - Company-wide go-live: false
-

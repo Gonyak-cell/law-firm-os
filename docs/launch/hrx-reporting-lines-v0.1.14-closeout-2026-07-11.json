@@ -1,6 +1,14 @@
 {
   "schema_version": "law-firm-os.hrx-reporting-lines-closeout.v0.1",
   "generated_at": "2026-07-11T06:36:38Z",
+  "provenance": {
+    "hrx_idempotence_correction_lambda_source_commit": "d2bf615ee",
+    "desktop_version_source_windows_qa_head_commit": "c30dfe525",
+    "annotated_release_tag_target_commit": "66a75ebdc",
+    "closeout_receipt_introduction_commit": "546632cf4",
+    "release_branch": "codex/lcx-vltui-owner-approval-intake",
+    "contained_in_origin_main": false
+  },
   "reporting_line_scope": {
     "approved_relationship_count": 3,
     "matching_relationship_count": 3,
