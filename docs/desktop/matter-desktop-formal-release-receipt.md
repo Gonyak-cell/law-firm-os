@@ -8,12 +8,12 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 
 | Field | Value |
 | --- | --- |
-| Release ID | `matter-desktop-v0.1.10-20260710-1502e6772` |
-| Manifest | `apps/desktop/dist/release/matter-desktop-v0.1.10-20260710-1502e6772/release-manifest.json` |
-| Checksums | `apps/desktop/dist/release/matter-desktop-v0.1.10-20260710-1502e6772/checksums.sha256` |
+| Release ID | `matter-desktop-v0.1.11-20260711-d1b880e30` |
+| Manifest | `apps/desktop/dist/release/matter-desktop-v0.1.11-20260711-d1b880e30/release-manifest.json` |
+| Checksums | `apps/desktop/dist/release/matter-desktop-v0.1.11-20260711-d1b880e30/checksums.sha256` |
 | Channel | `formal-candidate` |
 | App ID | `com.amic.matter.desktop` |
-| GitHub tag candidate | `matter-desktop-v0.1.10-20260710-1502e6772` |
+| GitHub tag candidate | `matter-desktop-v0.1.11-20260711-d1b880e30` |
 | Custom domain requirement | false |
 
 ## Release Artifacts
@@ -21,16 +21,16 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 | Artifact | Result |
 | --- | --- |
 | macOS app bundle | `apps/desktop/dist/mac/matter.app` |
-| macOS ZIP archive | `apps/desktop/dist/mac/matter-0.1.10-macos.zip` |
-| macOS ZIP SHA-256 | `45694c7f3770d9171e21e407ac91aadf32a6fe5c10c913c97fb8209c7f2726bf` |
-| macOS DMG image | `apps/desktop/dist/mac/matter-0.1.10-macos.dmg` |
-| macOS DMG SHA-256 | `7b5abaaefab48ed4be651720a44b97f9b81c78f1537d516d3020962f08d55b74` |
-| Windows formal manifest | `apps/desktop/dist/win/matter-0.1.10-win-installer-manifest.json` |
-| Windows formal manifest SHA-256 | `72bdf5f7ca55befdb9620d347e91f21051063afbda4f65d2ebf33103cb23c5c5` |
-| Windows formal installer | `apps/desktop/dist/matter-0.1.10-win-x64.exe` |
-| Windows formal installer SHA-256 | `72c7909f38f9d58106d3f2d61d8f85d294c0738637416e8ff3155a049b89c40f` |
-| Windows installer blockmap | `apps/desktop/dist/matter-0.1.10-win-x64.exe.blockmap` |
-| Windows installer blockmap SHA-256 | `6b77970724aeb36ee27dee085b2e09e0fabf2792855b267527849c3ffd990d46` |
+| macOS ZIP archive | `apps/desktop/dist/mac/matter-0.1.11-macos.zip` |
+| macOS ZIP SHA-256 | `e60b6879a81539e587040c42d37c93bfb19d3174ea1f52ce17bd4c6a4e747d89` |
+| macOS DMG image | `apps/desktop/dist/mac/matter-0.1.11-macos.dmg` |
+| macOS DMG SHA-256 | `d31ccdfe43ba71be03f00d91058ed0777867d9c46ed984408feff5d3c023c528` |
+| Windows formal manifest | `apps/desktop/dist/win/matter-0.1.11-win-installer-manifest.json` |
+| Windows formal manifest SHA-256 | `63c63f4ff11b71d5c46f43c2c2148aec1adfe838fcbebdd86eacf707cd026a43` |
+| Windows formal installer | `apps/desktop/dist/matter-0.1.11-win-x64.exe` |
+| Windows formal installer SHA-256 | `fd771c02038fccc1debbba0c7b3a8f7a3074f98c67892b1b36cfbef9642cef20` |
+| Windows installer blockmap | `apps/desktop/dist/matter-0.1.11-win-x64.exe.blockmap` |
+| Windows installer blockmap SHA-256 | `c805376a864305dcd7051296fbdecbbdfc8a5b20d10dce2ffc357de6f36283f3` |
 
 ## macOS Signing and Notarization
 
