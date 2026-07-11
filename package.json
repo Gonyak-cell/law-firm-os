@@ -1,6 +1,6 @@
 {
   "name": "law-firm-os",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "private": true,
   "type": "module",
   "packageManager": "npm@11.12.1",
