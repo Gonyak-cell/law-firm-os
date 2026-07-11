@@ -2,7 +2,6 @@ import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
   Building2,
-  ChevronDown,
   CircleDollarSign,
   CircleUserRound,
   FileText,
@@ -13,7 +12,6 @@ import {
   Scale,
   Search,
   SlidersHorizontal,
-  UserPlus,
   UsersRound
 } from "lucide-react";
 import { useSkin } from "../../context/SkinContext.jsx";
@@ -45,6 +43,7 @@ type WorkforceRow = {
   country: string;
   affiliation: string;
   organizationGroup: string;
+  managerName: string;
   email: string;
   employeeId?: string;
   muted?: boolean;
@@ -207,6 +206,7 @@ function rowsForTab(activeTab: string, employeeResult: EmployeeResult, lifecycle
       country: "확인 필요",
       affiliation: "AMIC Law",
       organizationGroup: "인사",
+      managerName: "확인 필요",
       email: "확인 필요",
       muted: true
     }));
@@ -222,6 +222,7 @@ function rowsForTab(activeTab: string, employeeResult: EmployeeResult, lifecycle
       country: "확인 필요",
       affiliation: "AMIC Law",
       organizationGroup: "인사",
+      managerName: "확인 필요",
       email: "확인 필요",
       muted: true
     }));
@@ -240,6 +241,7 @@ function rowsForTab(activeTab: string, employeeResult: EmployeeResult, lifecycle
         country: countryLabel(stringField(employee, "country") || stringField(employee, "country_label")),
         affiliation: affiliationLabel(employee),
         organizationGroup: stringField(employee, "organization_group") || organizationGroupLabel(department),
+        managerName: stringField(employee, "manager_display_name") || "없음",
         email: stringField(employee, "work_email") || stringField(employee, "email") || "확인 필요",
         employeeId: stringField(employee, "employee_id") || undefined
       };
@@ -331,18 +333,11 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
     const normalizedQuery = query.trim().toLowerCase();
     if (!normalizedQuery) return allRows;
     return allRows.filter((row) =>
-      [row.name, row.department, row.jobTitle, row.workerType, row.country, row.affiliation, row.email].some((value) =>
+      [row.name, row.department, row.jobTitle, row.workerType, row.country, row.affiliation, row.organizationGroup, row.managerName, row.email].some((value) =>
         String(value ?? "").toLowerCase().includes(normalizedQuery)
       )
     );
   }, [allRows, query]);
-  const rowsByOrganization = useMemo(() => {
-    return visibleRows.reduce((groups, row) => {
-      const key = row.organizationGroup || row.department || "미등록";
-      groups.set(key, [...(groups.get(key) ?? []), row]);
-      return groups;
-    }, new Map<string, WorkforceRow[]>());
-  }, [visibleRows]);
   const status = statusForTab(activeTab, employeeResult, lifecycleResult);
   const orgStatus =
     orgChartResult === null
@@ -466,7 +461,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
             <strong>{employee.name}</strong>
             <small>
               {employee.title}
-              {employee.managerName ? ` / ${employee.managerName}` : ""}
+              {employee.managerName ? ` / 상사 ${employee.managerName}` : ""}
               {employee.directReportCount > 0 ? ` / 직속 ${employee.directReportCount}명` : ""}
             </small>
           </div>
@@ -481,12 +476,6 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
         <header className="hr-roster-header">
           <div>
             <h2>입퇴사 대상</h2>
-          </div>
-          <div className="hr-roster-actions">
-            <button type="button" className={viewMode === "org" ? "secondary-button active" : "secondary-button"} onClick={() => setViewMode(viewMode === "org" ? "table" : "org")}>
-              <GitBranch size={15} />
-              조직
-            </button>
           </div>
         </header>
       )}
@@ -511,48 +500,15 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
         </nav>
         <div className="hr-roster-view-tools" aria-label="테이블 도구">
           {!compact && (
-            <>
-              <button
-                type="button"
-                className="text-button"
-                data-hr-workforce-more="true"
-                onClick={() => showLocalAction("추가 작업", `현재 ${visibleRows.length}개 항목에 적용할 수 있는 목록 작업을 확인했습니다.`)}
-              >
-                더보기
-                <ChevronDown size={14} />
-              </button>
-              <button type="button" className={viewMode === "org" ? "secondary-button active" : "secondary-button"} onClick={() => setViewMode(viewMode === "org" ? "table" : "org")}>
-                <GitBranch size={15} />
-                조직
-              </button>
-              <button
-                type="button"
-                className="primary-button"
-                data-hr-workforce-add="true"
-                onClick={() => showLocalAction("구성원 추가", "HRX 구성원 등록 준비 상태를 열었습니다. 저장은 권한 확인 후 등록 화면에서 처리합니다.")}
-              >
-                <UserPlus size={15} />
-                구성원 추가
-              </button>
-              <button
-                type="button"
-                className="primary-button icon-only"
-                aria-label="추가 메뉴"
-                data-hr-workforce-add-menu="true"
-                onClick={() => showLocalAction("추가 메뉴", "구성원 등록, 목록 내보내기, 보기 설정 작업을 확인했습니다.")}
-              >
-                <ChevronDown size={15} />
-              </button>
-              <button
-                type="button"
-                className="icon-button"
-                aria-label="표 보기 옵션"
-                data-hr-workforce-table-options="true"
-                onClick={() => showLocalAction("표 보기 옵션", `${viewMode === "org" ? "조직" : "표"} 보기에서 ${visibleRows.length}개 항목을 표시합니다.`)}
-              >
-                <Filter size={16} />
-              </button>
-            </>
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="표 보기 옵션"
+              data-hr-workforce-table-options="true"
+              onClick={() => showLocalAction("표 보기 옵션", `${viewMode === "org" ? "조직" : "표"} 보기에서 ${visibleRows.length}개 항목을 표시합니다.`)}
+            >
+              <Filter size={16} />
+            </button>
           )}
           <label className="hr-roster-search">
             <Search size={16} />
@@ -564,7 +520,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
               className="icon-button"
               aria-label="속성 조정"
               data-hr-workforce-property-options="true"
-              onClick={() => showLocalAction("속성 조정", "직위, 구성원, 소속, 부서, 이메일 열을 기준으로 목록 속성을 확인했습니다.")}
+              onClick={() => showLocalAction("속성 조정", "구성원, 직위, 부서, 상사, 이메일 열을 기준으로 목록 속성을 확인했습니다.")}
             >
               <SlidersHorizontal size={16} />
             </button>
@@ -586,16 +542,16 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
               <colgroup>
                 <col className="hr-roster-col-member" />
                 <col className="hr-roster-col-title" />
-                <col className="hr-roster-col-affiliation" />
                 <col className="hr-roster-col-department" />
+                <col className="hr-roster-col-manager" />
                 <col className="hr-roster-col-email" />
               </colgroup>
               <thead>
                 <tr>
                   <th><HeaderCell icon={FileText}>구성원</HeaderCell></th>
                   <th><HeaderCell icon={CircleUserRound}>직위</HeaderCell></th>
-                  <th><HeaderCell icon={CircleUserRound}>소속</HeaderCell></th>
                   <th><HeaderCell icon={Building2}>부서</HeaderCell></th>
+                  <th><HeaderCell icon={GitBranch}>상사</HeaderCell></th>
                   <th><HeaderCell icon={Mail}>이메일</HeaderCell></th>
                 </tr>
               </thead>
@@ -614,14 +570,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                     </td>
                   </tr>
                 )}
-                {!status && Array.from(rowsByOrganization.entries()).flatMap(([organization, rows]) => [
-                  <tr key={`${organization}-group`} className="hr-roster-organization-row">
-                    <td colSpan={5}>
-                      <strong>{organization}</strong>
-                      <span>{rows.length}명</span>
-                    </td>
-                  </tr>,
-                  ...rows.map((row) => {
+                {!status && visibleRows.map((row) => {
                     const isSelected = Boolean(row.employeeId && row.employeeId === selectedEmployeeId);
                     return (
                       <tr key={row.key} className={[row.muted ? "muted" : "", isSelected ? "selected" : ""].filter(Boolean).join(" ")}>
@@ -636,22 +585,16 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                         </td>
                         <td>{row.jobTitle}</td>
                         <td>
-                          <span className="hr-roster-owner">
-                            <span className="hr-roster-avatar">{initials(row.affiliation)}</span>
-                            {row.affiliation}
-                          </span>
-                        </td>
-                        <td>
                           <span className="hr-roster-source">
                             {sourceIcon(row.department)}
                             {row.department}
                           </span>
                         </td>
+                        <td>{row.managerName}</td>
                         <td>{row.email}</td>
                       </tr>
                     );
-                  })
-                ])}
+                })}
               </tbody>
             </table>
           </div>

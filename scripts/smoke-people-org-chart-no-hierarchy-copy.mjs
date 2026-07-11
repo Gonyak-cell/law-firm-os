@@ -11,8 +11,8 @@ const repoRoot = path.resolve(scriptDir, "..");
 const envFilePath = path.join(repoRoot, ".env.matter-vault-r4.local");
 const packagedExecutablePath = path.join(repoRoot, "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter");
 const artifactDir = path.join(repoRoot, "artifacts/manual-qa");
-const screenshotDir = path.join(artifactDir, "people-org-chart-no-hierarchy-copy-2026-07-09");
-const resultPath = path.join(artifactDir, "people-org-chart-no-hierarchy-copy-2026-07-09.json");
+const screenshotDir = path.join(artifactDir, "people-flat-roster-2026-07-11");
+const resultPath = path.join(artifactDir, "people-flat-roster-2026-07-11.json");
 
 function createUserDataPath() {
   return mkdtempSync(path.join(tmpdir(), "matter-people-org-chart-qa-"));
@@ -47,6 +47,21 @@ async function clickSidebarChild(page, exactLabel) {
   await page.waitForTimeout(300);
 }
 
+async function rosterSnapshot(page) {
+  return page.evaluate(() => {
+    const table = document.querySelector("[data-hr-library-table='true']");
+    const rows = [...document.querySelectorAll(".hr-roster-table tbody tr")];
+    const rowText = (name) => rows.find((row) => row.querySelector("button.hr-roster-person strong")?.textContent?.trim() === name)?.textContent?.replace(/\s+/g, " ").trim() ?? "";
+    return {
+      header: document.querySelector(".hr-roster-table thead")?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+      table_text: table?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+      cho: rowText("조우상"),
+      park: rowText("박서영"),
+      horizontal_overflow: Boolean(table && table.scrollWidth > table.clientWidth)
+    };
+  });
+}
+
 async function orgChartSnapshot(page) {
   return page.evaluate(() => {
     const root = document.querySelector("[data-hr-org-chart='true']");
@@ -62,6 +77,8 @@ async function orgChartSnapshot(page) {
       forbidden_matches: forbiddenCopy.filter((copy) => text.includes(copy)),
       person_blocks: {
         seo: findPerson("서지원"),
+        cho: findPerson("조우상"),
+        park: findPerson("박서영"),
         yoon: findPerson("윤태리"),
         lee: findPerson("이예진")
       },
@@ -96,6 +113,51 @@ async function main() {
     await waitForProductShell(page);
 
     await clickAxis(page, "people");
+    await page.waitForSelector("[data-hr-library-table='true']", { timeout: 30_000 });
+    await page.waitForFunction(() => document.body.innerText.includes("조우상") && document.body.innerText.includes("박서영"), null, { timeout: 30_000 });
+    const roster = await rosterSnapshot(page);
+    assert(roster.header.includes("상사"), "People roster must expose the manager column");
+    assert.equal(roster.header.includes("소속"), false, "People roster must not expose the affiliation column");
+    assert.equal(roster.table_text.includes("PETRA BRIDGE PARTNERS"), false, "People roster must not expose PETRA organization names");
+    assert.equal(roster.table_text.includes("AMIC Law"), false, "People roster must not expose AMIC organization names");
+    assert.equal(roster.cho.includes("PETRA BRIDGE PARTNERS"), false, "People roster rows must not expose organization names");
+    assert.equal(roster.park.includes("PETRA BRIDGE PARTNERS"), false, "People roster rows must not expose organization names");
+    assert.equal(await page.locator(".hr-roster-organization-row").count(), 0, "People roster must not render organization group rows");
+    assert(roster.cho.includes("김양태"), `Cho Woo-sang roster row must report to Kim Yang-tae: ${roster.cho}`);
+    assert(roster.park.includes("조우상"), `Park Seo-young roster row must report to Cho Woo-sang: ${roster.park}`);
+    assert.equal(roster.horizontal_overflow, false, "People roster must not create horizontal overflow");
+    await page.screenshot({ path: screenshotPath("people-roster-manager"), fullPage: true });
+
+    await page.locator("button.hr-roster-person", { hasText: "박서영" }).first().click();
+    const profile = page.locator('[data-people-detail-panel="open"]').first();
+    await profile.waitFor({ state: "visible", timeout: 20_000 });
+    await page.waitForTimeout(250);
+    assert.equal(
+      await page.evaluate(() => document.activeElement?.classList.contains("people-detail-close") === true),
+      true,
+      "People profile dialog must move focus to its close button"
+    );
+    const profileText = await profile.innerText();
+    assert(profileText.includes("상사"), "Park Seo-young profile must expose the manager field");
+    assert(profileText.includes("조우상"), "Park Seo-young profile must show Cho Woo-sang as manager");
+    const profileOverflow = await page.evaluate(() => {
+      const canvas = document.querySelector(".page-canvas");
+      const canvasRect = canvas?.getBoundingClientRect();
+      return {
+        document: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+        canvas: Boolean(canvas && canvas.scrollWidth > canvas.clientWidth),
+        canvas_content_exceeds_width: Boolean(canvas && canvas.scrollWidth > canvas.clientWidth),
+        offenders: canvas && canvasRect ? [...canvas.querySelectorAll("*")]
+          .filter((element) => element.getBoundingClientRect().right > canvasRect.right + 1)
+          .slice(0, 8)
+          .map((element) => ({ className: element.className, right: Math.round(element.getBoundingClientRect().right), canvasRight: Math.round(canvasRect.right) })) : []
+      };
+    });
+    assert.equal(profileOverflow.document, false, `People profile document overflow: ${JSON.stringify(profileOverflow)}`);
+    assert.equal(profileOverflow.canvas, false, `People profile canvas overflow: ${JSON.stringify(profileOverflow)}`);
+    await page.screenshot({ path: screenshotPath("people-profile-manager"), fullPage: true });
+    await page.locator("button.people-detail-close").first().click({ timeout: 10_000 });
+
     await clickSidebarChild(page, "조직");
     await page.waitForSelector("[data-hr-org-chart='true']", { timeout: 30_000 });
     await page.waitForFunction(() => document.body.innerText.includes("윤태리") && document.body.innerText.includes("이예진"), null, { timeout: 30_000 });
@@ -103,6 +165,9 @@ async function main() {
     const snapshot = await orgChartSnapshot(page);
     assert.equal(snapshot.root_present, true, "People org chart must render");
     assert.deepEqual(snapshot.forbidden_matches, [], "People org chart must not render hierarchy terms");
+    assert(snapshot.person_blocks.cho.includes("상사 김양태"), "Cho Woo-sang org row must report to Kim Yang-tae");
+    assert(snapshot.person_blocks.cho.includes("직속 1명"), "Cho Woo-sang must have one direct report");
+    assert(snapshot.person_blocks.park.includes("상사 조우상"), "Park Seo-young org row must report to Cho Woo-sang");
     assert(snapshot.person_blocks.yoon.includes("윤태리"), "Yoon Tae-ri card must render");
     assert(snapshot.person_blocks.yoon.includes("실장"), "Yoon Tae-ri title must render");
     assert.equal(snapshot.person_blocks.yoon.includes("서지원"), false, "Yoon Tae-ri must not report to Seo Ji-won");
@@ -121,8 +186,12 @@ async function main() {
       verdict: "PASS",
       app_bundle: "apps/desktop/dist/mac/matter.app",
       desktop_user_data_path: userDataPath,
+      roster,
+      profile: { park_seoyoung_has_manager_cho_woosang: true, horizontal_overflow: profileOverflow },
       snapshot,
       screenshots: {
+        people_roster: path.relative(repoRoot, screenshotPath("people-roster-manager")),
+        people_profile: path.relative(repoRoot, screenshotPath("people-profile-manager")),
         people_org_chart: path.relative(repoRoot, screenshot)
       }
     };

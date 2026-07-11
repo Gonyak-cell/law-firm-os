@@ -32,13 +32,24 @@ export function DashboardRecordList({ children, emptyText = "표시할 항목이
   return <div className="dashboard-record-list">{rows}</div>;
 }
 
+function uniqueDashboardMeta(title, meta) {
+  if (typeof title !== "string" || typeof meta !== "string") return meta;
+  const normalize = (value) => value.trim().replace(/\s+/g, " ").toLocaleLowerCase("ko-KR");
+  const normalizedTitle = normalize(title);
+  if (!normalizedTitle) return meta;
+  const parts = meta.split(/\s+(?:\/|·|\||—)\s+/).map((part) => part.trim()).filter(Boolean);
+  const uniqueParts = parts.filter((part) => normalize(part) !== normalizedTitle);
+  return uniqueParts.length === parts.length ? meta : uniqueParts.join(" / ") || null;
+}
+
 export function DashboardRecordRow(props) {
   const { title, meta, detail, status = null, onOpen = null } = props;
+  const uniqueMeta = uniqueDashboardMeta(title, meta);
   const content = (
     <>
       <span className="dashboard-record-copy">
         <strong>{title}</strong>
-        {meta && <small>{meta}</small>}
+        {uniqueMeta && <small>{uniqueMeta}</small>}
       </span>
       {detail && <span className="dashboard-record-detail">{detail}</span>}
       {status && <em>{status}</em>}

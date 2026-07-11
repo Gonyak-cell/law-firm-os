@@ -5,6 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>matter desktop</title>
   <style>
+    @font-face {
+      font-family: "Pretendard Matter";
+      src: url("./web/fonts/pretendard/Pretendard-Regular.otf") format("opentype");
+      font-weight: 400;
+    }
+
+    @font-face {
+      font-family: "SUITE Matter";
+      src: url("./web/fonts/suite/SUITE-Regular.otf") format("opentype");
+      font-weight: 400;
+    }
+
     :root {
       color-scheme: light;
       --ink: #24242a;
@@ -46,7 +58,8 @@
       --motion-panel: 240ms;
       --motion-large: 400ms;
       --motion-pulse: 900ms;
-      font-family: Pretendard, SUIT, Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      font-family: "Pretendard Matter", "SUITE Matter", sans-serif;
+      font-synthesis: none;
       background: #ffffff;
       color: var(--ink);
       font-size: 16px;
@@ -83,7 +96,7 @@
       color: #ffffff;
       cursor: pointer;
       font-size: 14px;
-      font-weight: 750;
+      font-weight: 400;
       line-height: 1;
       transition:
         background-color var(--motion-hover) var(--ease-out),
@@ -138,7 +151,7 @@
       background: #ffffff;
       color: var(--ink);
       font-size: 15px;
-      font-weight: 550;
+      font-weight: 400;
       outline: none;
       transition:
         border-color var(--motion-hover) var(--ease-out),
@@ -182,7 +195,7 @@
       background: rgba(255, 255, 255, 0.9);
       color: rgba(36, 36, 42, 0.62);
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 400;
       white-space: nowrap;
       pointer-events: none;
       opacity: 0.01;
@@ -482,9 +495,9 @@
       display: inline-flex;
       align-items: baseline;
       color: var(--ink);
-      font-family: Comfortaa, "Avenir Next", "SF Pro Rounded", Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: "SUITE Matter", "Pretendard Matter", sans-serif;
       font-size: var(--word-size);
-      font-weight: 300;
+      font-weight: 400;
       letter-spacing: 0;
       transform: translateX(-0.32em) scaleX(0.92);
       transform-origin: 0 50%;
@@ -568,7 +581,7 @@
     .login-heading h1 {
       color: var(--ink);
       font-size: 40px;
-      font-weight: 700;
+      font-weight: 400;
       letter-spacing: 0;
       line-height: 1.1;
     }
@@ -576,7 +589,7 @@
     .login-heading p {
       color: var(--forest-muted);
       font-size: 18px;
-      font-weight: 440;
+      font-weight: 400;
       line-height: 1.35;
     }
 
@@ -587,7 +600,7 @@
       padding: 0 18px;
       color: var(--ink-2);
       font-size: 18px;
-      font-weight: 500;
+      font-weight: 400;
       line-height: 1;
     }
 
@@ -625,7 +638,7 @@
     .meta-row strong {
       color: rgba(6, 16, 45, 0.66);
       font-size: 12px;
-      font-weight: 760;
+      font-weight: 400;
     }
 
     .sr-only {
@@ -714,7 +727,7 @@
       background: var(--forest-accent);
       color: #ffffff;
       font-size: 18px;
-      font-weight: 650;
+      font-weight: 400;
       letter-spacing: 0;
       box-shadow: none;
     }
@@ -728,7 +741,7 @@
     .reset-copy {
       color: rgba(36, 36, 42, 0.76);
       font-size: 17px;
-      font-weight: 480;
+      font-weight: 400;
       line-height: 1.45;
       text-align: center;
     }
@@ -736,7 +749,7 @@
     .reset-detail {
       color: rgba(36, 36, 42, 0.58);
       font-size: 14px;
-      font-weight: 560;
+      font-weight: 400;
       line-height: 1.45;
       text-align: center;
     }
@@ -757,13 +770,13 @@
     .reset-status-card strong {
       color: var(--ink);
       font-size: 14px;
-      font-weight: 780;
+      font-weight: 400;
     }
 
     .reset-status-card span {
       color: rgba(36, 36, 42, 0.62);
       font-size: 13px;
-      font-weight: 560;
+      font-weight: 400;
       line-height: 1.4;
     }
 
@@ -776,7 +789,7 @@
       min-height: 50px;
       border-radius: 8px;
       font-size: 15px;
-      font-weight: 760;
+      font-weight: 400;
     }
 
     .reset-actions button.primary-action {
@@ -803,7 +816,7 @@
       background: transparent;
       color: var(--forest-accent);
       font-size: inherit;
-      font-weight: 760;
+      font-weight: 400;
       line-height: inherit;
       box-shadow: none;
     }
@@ -832,7 +845,7 @@
     .auth-note {
       color: rgba(81, 91, 102, 0.88);
       font-size: 15px;
-      font-weight: 520;
+      font-weight: 400;
       line-height: 1.35;
     }
 
@@ -841,7 +854,7 @@
       margin-top: 0;
       color: rgba(36, 36, 42, 0.58);
       font-size: 13px;
-      font-weight: 560;
+      font-weight: 400;
       line-height: 1.35;
       text-align: center;
       white-space: nowrap;
@@ -934,7 +947,7 @@
       gap: 24px;
       color: rgba(15, 58, 50, 0.42);
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 400;
     }
 
     .legal-links {
@@ -946,7 +959,7 @@
     .legal-link {
       color: rgba(15, 58, 50, 0.46);
       font-size: 13px;
-      font-weight: 540;
+      font-weight: 400;
     }
 
     body[data-login-skin="forest"] .matter-login-stage {
@@ -1071,7 +1084,7 @@
       margin: 0;
       color: var(--am-text);
       font-size: 40px;
-      font-weight: 700;
+      font-weight: 400;
       line-height: 1.1;
     }
 
@@ -1086,7 +1099,7 @@
       min-height: auto;
       background: transparent;
       color: var(--forest-accent);
-      font-weight: 700;
+      font-weight: 400;
       padding: 0;
     }
 
@@ -1118,7 +1131,7 @@
     body[data-login-skin="forest"] .matter-login-field span {
       color: #69737f;
       font-size: 15px;
-      font-weight: 600;
+      font-weight: 400;
       line-height: 1;
     }
 
@@ -1133,7 +1146,7 @@
       color: var(--am-text);
       padding: 0;
       font-size: 21px;
-      font-weight: 500;
+      font-weight: 400;
       line-height: 1.2;
     }
 
@@ -1212,7 +1225,7 @@
       color: var(--forest-accent);
       padding: 0;
       font-size: 18px;
-      font-weight: 700;
+      font-weight: 400;
       line-height: 1.25;
       text-align: left;
     }
@@ -1225,7 +1238,7 @@
       background: var(--forest-accent);
       color: #ffffff;
       font-size: 18px;
-      font-weight: 600;
+      font-weight: 400;
       box-shadow: 0 8px 18px rgba(38, 194, 96, 0.26);
     }
 
@@ -1309,7 +1322,7 @@
       min-width: 0;
       color: rgba(6, 16, 45, 0.66);
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 400;
     }
 
     .header-session button {
@@ -1350,7 +1363,7 @@
     .panel-header h2 {
       color: var(--ink);
       font-size: 17px;
-      font-weight: 820;
+      font-weight: 400;
     }
 
     .panel-body {
@@ -1369,7 +1382,7 @@
       background: #f1f4f5;
       color: rgba(6, 16, 45, 0.72);
       font-size: 12px;
-      font-weight: 750;
+      font-weight: 400;
       white-space: nowrap;
     }
 
@@ -1395,7 +1408,7 @@
       align-items: start;
       min-height: 26px;
       font-size: 14px;
-      font-weight: 650;
+      font-weight: 400;
     }
 
     .status-list {
@@ -1421,7 +1434,7 @@
       background: #fbfcfd;
       color: var(--ink);
       font-size: 14px;
-      font-weight: 720;
+      font-weight: 400;
       transition:
         background-color var(--motion-hover) var(--ease-out),
         border-color var(--motion-hover) var(--ease-out),
@@ -1442,7 +1455,7 @@
       background: #fafbfc;
       color: rgba(6, 16, 45, 0.74);
       font-size: 13px;
-      font-weight: 650;
+      font-weight: 400;
       line-height: 1.45;
       white-space: pre-wrap;
       overflow-wrap: anywhere;

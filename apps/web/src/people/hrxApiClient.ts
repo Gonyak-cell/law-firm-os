@@ -1,5 +1,4 @@
 import { readLawosApiSession } from "../data/apiClient.js";
-import { localHrxRosterEmployees, localHrxRosterOrgChart } from "./hrxLocalRoster.ts";
 
 const HRX_ORG_REF = "tenant_amic_matter_vault";
 const LAWOS_SESSION_ENVELOPE_STORAGE_KEY = "lawos.session.envelope";
@@ -315,7 +314,7 @@ export async function fetchHrxEmployees(options: HrxRequestOptions = {}) {
   }
   if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
   if (result.kind !== "data" || !Array.isArray(result.body.employees)) {
-    return { kind: "data" as const, employees: localHrxRosterEmployees(), source: "app_roster" };
+    return { kind: "error" as const, reason: result.reason ?? "unexpected_response" };
   }
   return { kind: "data" as const, employees: result.body.employees };
 }
@@ -336,7 +335,7 @@ export async function fetchHrxOrgChart(options: HrxRequestOptions = {}) {
   }
   if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
   if (result.kind !== "data" || !Array.isArray(result.body.org_units) || !Array.isArray(result.body.employees)) {
-    return { kind: "data" as const, ...localHrxRosterOrgChart(), source: "app_roster" };
+    return { kind: "error" as const, reason: result.reason ?? "unexpected_response" };
   }
   return {
     kind: "data" as const,

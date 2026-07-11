@@ -22,7 +22,7 @@ async function withWebModule(path, callback) {
   }
 }
 
-test("HRX member roster uses app roster when runtime read fails", async () => {
+test("HRX member roster fails closed when runtime read fails", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => {
     throw new Error("network disabled for member roster fallback test");
@@ -30,21 +30,10 @@ test("HRX member roster uses app roster when runtime read fails", async () => {
   try {
     await withWebModule("/src/people/hrxApiClient.ts", async ({ fetchHrxEmployees, fetchHrxOrgChart, fetchHrxLifecycleBoard }) => {
       const employees = await fetchHrxEmployees();
-      assert.equal(employees.kind, "data");
-      assert.ok(employees.employees.length >= 10);
-      const seoJiwon = employees.employees.find((employee) => employee.work_email === "jwsuh@amic.kr");
-      assert.equal(seoJiwon?.display_name, "서지원");
-      assert.equal(seoJiwon?.title, "대표변호사");
-      assert.equal(seoJiwon?.professional_profile?.profile_kind, "attorney");
-      const hanJehee = employees.employees.find((employee) => employee.work_email === "jh731@amic.kr");
-      assert.equal(hanJehee?.display_name, "한제희");
-      assert.equal(hanJehee?.title, "고문변호사");
-      assert.equal(hanJehee?.professional_profile?.profile_kind, "attorney");
+      assert.equal(employees.kind, "error");
 
       const orgChart = await fetchHrxOrgChart();
-      assert.equal(orgChart.kind, "data");
-      assert.ok(orgChart.employees.some((employee) => employee.work_email === "jwsuh@amic.kr"));
-      assert.ok(orgChart.org_units.length >= 2);
+      assert.equal(orgChart.kind, "error");
 
       const lifecycle = await fetchHrxLifecycleBoard();
       assert.equal(lifecycle.kind, "data");
@@ -54,6 +43,20 @@ test("HRX member roster uses app roster when runtime read fails", async () => {
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("app roster source encodes the Jo Woosang to Park Seoyoung reporting line", async () => {
+  await withWebModule("/src/people/hrxLocalRoster.ts", async ({ localHrxRosterEmployees, localHrxRosterOrgChart }) => {
+    const employees = localHrxRosterEmployees();
+    const byName = new Map(employees.map((employee) => [employee.display_name, employee]));
+    assert.equal(byName.get("조우상")?.manager_display_name, "김양태");
+    assert.equal(byName.get("박서영")?.manager_display_name, "조우상");
+
+    const orgChart = localHrxRosterOrgChart();
+    const orgByName = new Map(orgChart.employees.map((employee) => [employee.display_name, employee]));
+    assert.equal(orgByName.get("조우상")?.direct_report_count, 1);
+    assert.equal(orgByName.get("박서영")?.manager_display_name, "조우상");
+  });
 });
 
 test("home greeting keeps lawyer honorific from app roster", async () => {

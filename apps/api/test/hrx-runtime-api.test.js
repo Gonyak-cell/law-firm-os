@@ -120,6 +120,8 @@ test("HRX member roster source of truth preserves the registered AMIC and PETRA 
   assert.equal(membersByName.get("김양태")?.professional_profile?.qualifications?.includes("대한민국 공인회계사"), true);
   assert.equal(membersByName.get("김양태")?.professional_profile?.qualifications?.includes("대한민국 변호사"), false);
   assert.equal(membersByName.get("조우상")?.professional_profile?.profile_kind, "deal_advisor");
+  assert.equal(membersByName.get("조우상")?.manager_employee_id, "emp_amic_ytkim");
+  assert.equal(membersByName.get("박서영")?.manager_employee_id, "emp_amic_wsjo");
   assert.deepEqual(
     ["박병준", "임영훈", "서지원", "조성민", "한제희"].map((displayName) => membersByName.get(displayName)?.professional_profile?.profile_kind),
     ["attorney", "attorney", "attorney", "attorney", "attorney"],
@@ -176,6 +178,8 @@ test("GET /api/hrx/employees returns synthetic API-backed employee rows", async 
   assert.equal(employeesByName.get("김양태")?.professional_profile?.qualifications?.includes("대한민국 공인회계사"), true);
   assert.equal(employeesByName.get("김양태")?.professional_profile?.qualifications?.includes("대한민국 변호사"), false);
   assert.equal(employeesByName.get("조우상")?.professional_profile?.profile_kind, "deal_advisor");
+  assert.equal(employeesByName.get("조우상")?.manager_display_name, "김양태");
+  assert.equal(employeesByName.get("박서영")?.manager_display_name, "조우상");
   assert.deepEqual(
     ["박병준", "임영훈", "서지원", "조성민", "한제희"].map((displayName) => employeesByName.get(displayName)?.professional_profile?.profile_kind),
     ["attorney", "attorney", "attorney", "attorney", "attorney"],
@@ -214,7 +218,10 @@ test("GET PATCH /api/hrx/org-chart wires organization units and reporting lines 
   const beforeById = new Map(before.body.employees.map((employee) => [employee.employee_id, employee]));
   assert.equal(beforeById.get("emp_amic_wsjo").manager_employee_id, "emp_amic_ytkim");
   assert.equal(beforeById.get("emp_amic_wsjo").manager_display_name, "김양태");
+  assert.equal(beforeById.get("emp_amic_wsjo").direct_report_count, 1);
   assert.equal(beforeById.get("emp_amic_sypark").org_unit_id, "org_finance");
+  assert.equal(beforeById.get("emp_amic_sypark").manager_employee_id, "emp_amic_wsjo");
+  assert.equal(beforeById.get("emp_amic_sypark").manager_display_name, "조우상");
   assert.equal(beforeById.get("emp_amic_tryoon").manager_employee_id, null);
   assert.equal(beforeById.get("emp_amic_tryoon").manager_display_name, null);
   assert.equal(beforeById.get("emp_amic_tryoon").direct_report_count, 0);
@@ -249,7 +256,9 @@ test("durable HRX seed reconciles stale Matter Vault account seed rows to the me
   runHrxMigrations(store);
   const repository = createSqlHrxRepository({ store, clock: () => "2026-06-19T00:00:00.000Z" });
   const member = listHrxMemberRosterRows().find((row) => row.display_name === "김양태");
+  const parkSeoyoung = listHrxMemberRosterRows().find((row) => row.display_name === "박서영");
   assert.ok(member);
+  assert.ok(parkSeoyoung);
   const tenant_id = "tenant_amic_matter_vault";
   const staleSourceRef = "matter-vault-user-registration-seed";
   const profile_id = `profile_${member.user_id.replace(/^user_/, "")}`;
@@ -270,6 +279,28 @@ test("durable HRX seed reconciles stale Matter Vault account seed rows to the me
     status: "active",
     title: "대표",
     org_unit_id: "group_matter_vault_users",
+    effective_from: "2026-06-22",
+    source_ref: staleSourceRef,
+  });
+  const parkProfileId = `profile_${parkSeoyoung.user_id.replace(/^user_/, "")}`;
+  repository.createEmployee({
+    tenant_id,
+    employee_id: parkSeoyoung.employee_id,
+    display_name: parkSeoyoung.display_name,
+    legal_name: parkSeoyoung.legal_name,
+    work_email: parkSeoyoung.work_email,
+    status: "active",
+    source_ref: staleSourceRef,
+  });
+  repository.createEmploymentProfile({
+    tenant_id,
+    profile_id: parkProfileId,
+    employee_id: parkSeoyoung.employee_id,
+    employment_type: "full_time",
+    status: "active",
+    title: parkSeoyoung.title,
+    org_unit_id: parkSeoyoung.org_unit_id,
+    manager_employee_id: member.employee_id,
     effective_from: "2026-06-22",
     source_ref: staleSourceRef,
   });
@@ -295,8 +326,24 @@ test("durable HRX seed reconciles stale Matter Vault account seed rows to the me
     assert.equal(storedProfile.source_ref, HRX_MEMBER_ROSTER_SOURCE_REF);
     assert.equal(storedProfile.title, "대표이사");
     assert.equal(storedProfile.org_unit_id, member.org_unit_id);
+    const storedParkProfile = repository.getEmploymentProfile({ tenant_id, profile_id: parkProfileId });
+    assert.equal(storedParkProfile.source_ref, `${HRX_MEMBER_ROSTER_SOURCE_REF}:park-manager-v2`);
+    assert.equal(storedParkProfile.manager_employee_id, "emp_amic_wsjo");
   } finally {
     await new Promise((resolve) => started.server.close(resolve));
+  }
+
+  repository.updateEmploymentProfile(
+    { tenant_id, profile_id: parkProfileId },
+    { manager_employee_id: member.employee_id },
+  );
+  const restarted = await startApiServer({ port: 0, hrxStore: store });
+  try {
+    const editedParkProfile = repository.getEmploymentProfile({ tenant_id, profile_id: parkProfileId });
+    assert.equal(editedParkProfile.source_ref, `${HRX_MEMBER_ROSTER_SOURCE_REF}:park-manager-v2`);
+    assert.equal(editedParkProfile.manager_employee_id, member.employee_id);
+  } finally {
+    await new Promise((resolve) => restarted.server.close(resolve));
   }
 });
 

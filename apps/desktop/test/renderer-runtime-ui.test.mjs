@@ -149,7 +149,7 @@ test("packaged renderer presents user-facing connection login and feature checks
   assert.doesNotMatch(source, /data-account-select|재설정 토큰/);
   assert.match(source, /matter_vault_admin/);
   assert.match(source, /워크스페이스 연결됨/);
-  assert.match(source, /Pretendard, SUIT/);
+  assert.match(source, /font-family: "Pretendard Matter", "SUITE Matter", sans-serif/);
   assert.match(source, /--forest-accent:\s*#26c260/);
   assert.match(source, /--am-text:\s*#15191f/);
   assert.match(source, /grid-template-columns:\s*minmax\(520px, 52fr\) minmax\(420px, 48fr\)/);
@@ -209,7 +209,7 @@ test("desktop web renderer uses restrained SaaS motion tokens", async () => {
   assert.match(source, /--ui-pulse:\s*900ms/);
   assert.match(source, /--ease-standard:\s*cubic-bezier\(0\.2, 0, 0\.38, 0\.9\)/);
   assert.match(source, /button:active:not\(:disabled\)/);
-  assert.match(source, /\.top-axis-item,[\s\S]*\.sidebar-item,[\s\S]*var\(--ui-menu\)/);
+  assert.match(source, /\.top-axis-item,\s*\.sidebar-item\s*\{[\s\S]*var\(--ui-menu\)/);
   assert.doesNotMatch(source, /\.sidebar-subnav|\.sidebar-chevron/);
   assert.match(source, /\.surface,[\s\S]*\.builder-surface[\s\S]*animation: ui-content-in var\(--ui-content\) var\(--ease-out\) both/);
   assert.match(source, /\.live-data-loading[\s\S]*animation: ui-state-pulse var\(--ui-pulse\) var\(--ease-standard\) infinite alternate/);

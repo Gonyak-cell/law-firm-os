@@ -41,8 +41,8 @@ export function EmployeeList({ selectedEmployeeId, onSelectEmployee, refreshKey 
   let body;
   if (result === null) {
     body = <div className="live-data-state live-data-loading">구성원 목록을 불러오는 중입니다</div>;
-  } else if (result.kind === "error") {
-    body = <div className="live-data-state live-data-empty">저장된 구성원이 없습니다.</div>;
+  } else if (result.kind !== "data") {
+    body = <div className="live-data-state live-data-error">구성원 정보를 확인할 수 없습니다.</div>;
   } else if (result.employees.length === 0) {
     body = <div className="live-data-state live-data-empty">표시할 구성원이 없습니다.</div>;
   } else {

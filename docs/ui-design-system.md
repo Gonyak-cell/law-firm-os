@@ -33,10 +33,12 @@ Shadows are restrained and green-tinted in Forest: use existing panel, hover, an
 
 ## Typography
 
-- Headings: `"SUITE Matter", "Avenir Next", sans-serif`.
-- Body: `"Pretendard Matter", "Avenir Next", sans-serif`.
-- Numeric counters: IBM Plex Mono with `font-variant-numeric: tabular-nums`.
-- Do not use mono for labels, body copy, or table prose.
+- Headings: `"SUITE Matter", "Pretendard Matter", sans-serif`.
+- Body: `"Pretendard Matter", "SUITE Matter", sans-serif`.
+- Product text uses the bundled Regular faces at `font-weight: 400`, except table headers which use the bundled SemiBold face at `600`.
+- Numeric counters and mixed Korean/English record values use Pretendard Regular with `font-variant-numeric: tabular-nums` where alignment is needed.
+- Do not use mono or operating-system font fallbacks in product UI text.
+- Table body cells and table-like record rows stay at `400`, including nested `strong`, links, buttons, and status text.
 - Do not use negative letter spacing or viewport-scaled font sizes.
 
 ## Motion

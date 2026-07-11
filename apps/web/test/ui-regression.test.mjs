@@ -24,6 +24,39 @@ async function listWebSourceFiles(relativeDir) {
   return files.flat();
 }
 
+test("product typography uses bundled Pretendard and SUITE without mono or macOS fallbacks", async () => {
+  const stylesSource = await readWebFile("src/styles.css");
+  const indexSource = await readWebFile("index.html");
+  const logoSource = await readWebFile("src/assets/matter-logo.svg");
+  const dashboardListSource = await readWebFile("src/components/DashboardList.jsx");
+
+  assert.match(stylesSource, /--font-heading: "SUITE Matter", "Pretendard Matter", sans-serif;/);
+  assert.match(stylesSource, /--font-body: "Pretendard Matter", "SUITE Matter", sans-serif;/);
+  assert.doesNotMatch(stylesSource, /IBM Plex Mono|--font-mono|SFMono|Consolas|Liberation Mono|monospace|-apple-system|BlinkMacSystemFont|Segoe UI/);
+  assert.doesNotMatch(stylesSource, /font-family:[^;]*(?:Comfortaa|Avenir Next|SF Pro Rounded|Inter)/);
+  assert.doesNotMatch(stylesSource, /html\[data-locale="en"\][\s\S]{0,180}Comfortaa/);
+  const fontWeights = new Set([...stylesSource.matchAll(/font-weight:\s*([^;]+);/g)].map((match) => match[1].trim()));
+  assert.deepEqual(fontWeights, new Set(["400", "600"]));
+  assert.match(stylesSource, /Pretendard-SemiBold\.otf[\s\S]{0,80}font-weight: 600/);
+  assert.match(stylesSource, /SUITE-SemiBold\.otf[\s\S]{0,80}font-weight: 600/);
+  const productRules = stylesSource.replaceAll(/@font-face\s*\{[^}]+\}/gs, "");
+  assert.equal([...productRules.matchAll(/font-weight:\s*600;/g)].length, 1);
+  assert.match(productRules, /table tbody,[\s\S]{0,300}\.subscribe-table-row \*[\s\S]{0,40}font-weight: 400;/);
+  assert.match(productRules, /\.data-table thead th,[\s\S]{0,500}\.subscribe-table-head \*[\s\S]{0,40}font-weight: 600;/);
+  assert.match(stylesSource, /\.dashboard-record-row,[\s\S]{0,80}\.dashboard-record-row \*[\s\S]{0,40}font-weight: 400;/);
+  assert.match(stylesSource, /\.dashboard-record-row \{[\s\S]{0,260}grid-template-columns:[\s\S]{0,180}18px;/);
+  assert.match(stylesSource, /\.dashboard-record-copy \{[\s\S]{0,80}display: contents;/);
+  assert.match(dashboardListSource, /function uniqueDashboardMeta\(title, meta\)/);
+  assert.match(dashboardListSource, /uniqueParts\.join\(" \/ "\) \|\| null/);
+  assert.match(stylesSource, /font-synthesis:\s*none/);
+  assert.match(stylesSource, /\.property strong \{[\s\S]{0,140}font-weight: 400;/);
+  assert.match(stylesSource, /\.matter-selectable-record-button strong \{[\s\S]{0,100}font-weight: 400;/);
+  assert.match(stylesSource, /html\[data-skin="forest"\] \.forest-hero-stat strong,[\s\S]{0,520}font-family: var\(--font-body\);[\s\S]{0,80}font-weight: 400;/);
+  assert.doesNotMatch(indexSource, /fonts\.googleapis|fonts\.gstatic|Comfortaa/);
+  assert.match(logoSource, /font-family="SUITE Matter, Pretendard Matter, sans-serif"/);
+  assert.doesNotMatch(logoSource, /Avenir Next|Comfortaa|Inter|Arial|font-weight="300"/);
+});
+
 test("post-login product UI routes only Client, Matter, People, Vault, and Portal", async () => {
   const navSource = await readWebFile("src/data/nav.js");
   const appSource = await readWebFile("src/App.jsx");
@@ -266,11 +299,11 @@ test("WP-FIN-3 mounts server-reconciled finance views with guarded states and re
   assert.match(stylesSource, /@media \(max-width:\s*720px\)[\s\S]*\.home-finance-filterbar[\s\S]*grid-template-columns:\s*1fr/);
 });
 
-test("table and selectable-list headers use the accent green header tokens", async () => {
+test("table and selectable-list headers use the light gray header tokens", async () => {
   const stylesSource = await readWebFile("src/styles.css");
 
-  assert.match(stylesSource, /--am-table-header-bg:\s*#26C260/);
-  assert.match(stylesSource, /--am-table-header-text:\s*#07201C/);
+  assert.match(stylesSource, /--am-table-header-bg:\s*#EEF2F6/);
+  assert.match(stylesSource, /--am-table-header-text:\s*#202428/);
   for (const selector of [
     ".data-table th",
     ".compact-table th",
@@ -1541,15 +1574,20 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(workforceDirectorySource, /현재 재직/);
   assert.match(workforceDirectorySource, /입사예정/);
   assert.match(workforceDirectorySource, /퇴사예정/);
-  assert.match(workforceDirectorySource, /<HeaderCell icon=\{FileText\}>구성원<\/HeaderCell>[\s\S]*<HeaderCell icon=\{CircleUserRound\}>직위<\/HeaderCell>[\s\S]*<HeaderCell icon=\{CircleUserRound\}>소속<\/HeaderCell>[\s\S]*<HeaderCell icon=\{Building2\}>부서<\/HeaderCell>[\s\S]*<HeaderCell icon=\{Mail\}>이메일<\/HeaderCell>/);
-  assert.match(workforceDirectorySource, /<HeaderCell icon=\{CircleUserRound\}>소속<\/HeaderCell>/);
+  assert.doesNotMatch(workforceDirectorySource, /data-hr-workforce-more|data-hr-workforce-add(?:-menu)?/);
+  assert.doesNotMatch(workforceDirectorySource, /className="primary-button"[\s\S]{0,240}구성원 추가/);
+  assert.match(workforceDirectorySource, /data-hr-workforce-table-options="true"/);
+  assert.match(stylesSource, /\.hr-roster-table-wrap \{[\s\S]{0,140}overflow-x: hidden;/);
+  assert.match(stylesSource, /\.hr-roster-table \{[\s\S]{0,140}min-width: 0;[\s\S]{0,80}max-width: 100%;/);
+  assert.doesNotMatch(stylesSource, /\.hr-roster-table \{[\s\S]{0,120}min-width: 1040px;/);
+  assert.match(workforceDirectorySource, /<HeaderCell icon=\{FileText\}>구성원<\/HeaderCell>[\s\S]*<HeaderCell icon=\{CircleUserRound\}>직위<\/HeaderCell>[\s\S]*<HeaderCell icon=\{Building2\}>부서<\/HeaderCell>[\s\S]*<HeaderCell icon=\{GitBranch\}>상사<\/HeaderCell>[\s\S]*<HeaderCell icon=\{Mail\}>이메일<\/HeaderCell>/);
+  assert.doesNotMatch(workforceDirectorySource, />소속<\/HeaderCell>|hr-roster-col-affiliation|hr-roster-organization-row|rowsByOrganization/);
   assert.doesNotMatch(workforceDirectorySource, />소스</);
   assert.doesNotMatch(workforceDirectorySource, />작성자</);
   assert.doesNotMatch(workforceDirectorySource, /PETRA_AFFILIATION_NAMES/);
   assert.match(workforceDirectorySource, /affiliationLabel\(employee\)/);
   assert.match(workforceDirectorySource, /stringField\(employee, "affiliation"\)/);
   assert.match(workforceDirectorySource, /stringField\(employee, "organization_group"\)/);
-  assert.match(workforceDirectorySource, /<col className="hr-roster-col-affiliation" \/>/);
   assert.match(workforceDirectorySource, /<HeaderCell icon=\{Mail\}>이메일<\/HeaderCell>/);
   assert.doesNotMatch(workforceDirectorySource, />마지막 변경</);
   assert.doesNotMatch(workforceDirectorySource, />최근 확인</);
@@ -1564,15 +1602,16 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(workforceDirectorySource, /if \(source === "Legal"\) return <Scale size=\{15\} \/>/);
   assert.match(workforceDirectorySource, /if \(source === "Finance"\) return <CircleDollarSign size=\{15\} \/>/);
   assert.match(workforceDirectorySource, /if \(source === "Staff"\) return <UsersRound size=\{15\} \/>/);
-  assert.match(workforceDirectorySource, /if \(department === "Legal"\) return "AMIC Law"/);
-  assert.match(workforceDirectorySource, /if \(department === "Finance"\) return "PETRA BRIDGE PARTNERS"/);
-  assert.match(workforceDirectorySource, /const key = row\.organizationGroup \|\| row\.department \|\| "미등록";/);
-  assert.match(workforceDirectorySource, /<strong>\{organization\}<\/strong>/);
+  assert.doesNotMatch(workforceDirectorySource, /<strong>\{organization\}<\/strong>/);
   assert.match(workforceDirectorySource, /className="hr-roster-source"[\s\S]*\{row\.department\}/);
-  assert.match(stylesSource, /\.hr-roster-owner,\s*[\r\n]+\.hr-roster-source\s*\{[\s\S]*font-weight: 400;[\s\S]*white-space: nowrap;/);
-  assert.match(stylesSource, /\.hr-roster-table\s*\{[\s\S]*min-width: 1040px;[\s\S]*table-layout: fixed;/);
-  assert.match(stylesSource, /\.hr-roster-col-affiliation\s*\{[\s\S]*width: 24%;/);
-  assert.match(stylesSource, /\.hr-roster-col-email\s*\{[\s\S]*width: 22%;/);
+  assert.match(stylesSource, /\.hr-roster-source\s*\{[\s\S]*font-weight: 400;[\s\S]*white-space: nowrap;/);
+  assert.match(stylesSource, /\.hr-roster-table\s*\{[\s\S]*min-width: 0;[\s\S]*max-width: 100%;[\s\S]*table-layout: fixed;/);
+  assert.match(peopleSource, /createPortal\([\s\S]*people-detail-overlay[\s\S]*document\.body/);
+  assert.match(stylesSource, /\.hr-roster-col-member\s*\{[\s\S]*width: 24%;/);
+  assert.match(stylesSource, /\.hr-roster-col-manager\s*\{[\s\S]*width: 16%;/);
+  assert.match(stylesSource, /\.hr-roster-col-email\s*\{[\s\S]*width: 27%;/);
+  assert.match(workforceDirectorySource, /<HeaderCell icon=\{GitBranch\}>상사<\/HeaderCell>/);
+  assert.match(workforceDirectorySource, /managerName: stringField\(employee, "manager_display_name"\) \|\| "없음"/);
   assert.match(workforceDirectorySource, /\/\[가-힣\]\/\.test\(text\)/);
   assert.match(workforceDirectorySource, /onSelectEmployee\?\.\(null\)/);
   assert.match(workforceDirectorySource, /aria-pressed=\{isSelected \? "true" : "false"\}/);
@@ -1580,9 +1619,10 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(peopleSource, /people-admin/);
   assert.match(peopleApiSource, /\/api\/hrx\/employees/);
   assert.match(peopleApiSource, /professional_profile/);
-  assert.match(peopleApiSource, /localHrxRosterEmployees/);
-  assert.match(peopleApiSource, /localHrxRosterOrgChart/);
+  assert.doesNotMatch(peopleApiSource, /localHrxRosterEmployees|localHrxRosterOrgChart/);
+  assert.match(peopleApiSource, /result\.kind !== "data" \|\| !Array\.isArray\(result\.body\.employees\)[\s\S]*kind: "error"/);
   assert.match(peopleLocalRosterSource, /hrx-member-roster-source-of-truth\.json/);
+  assert.match(employeeProfileSource, /<Property label="상사"/);
   const memberFailureCopy = new RegExp(["구성원 목록을", "불러오지 못했습니다"].join(".*"));
   const runtimeContextCopy = new RegExp(["로컬 런타임", "권한 컨텍스트"].join(".*"));
   assert.doesNotMatch(`${workforceDirectorySource}\n${employeeListSource}`, memberFailureCopy);

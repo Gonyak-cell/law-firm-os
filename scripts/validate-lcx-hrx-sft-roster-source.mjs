@@ -28,6 +28,7 @@ const peopleHome = read(peopleHomePath);
 const taskLedger = JSON.parse(read(taskLedgerPath));
 const rosterRows = listHrxMemberRosterRows();
 const membersByName = new Map(rosterRows.map((member) => [member.display_name, member]));
+const membersByEmployeeId = new Map(rosterRows.map((member) => [member.employee_id, member]));
 
 assert.equal(HRX_MEMBER_ROSTER_SOURCE_REF, "hrx-member-roster-source-of-truth");
 assert.equal(rosterJson.schema_version, "law-firm-os.hrx-member-roster-source-of-truth.v0.1");
@@ -36,6 +37,20 @@ assert.equal(HRX_MEMBER_ROSTER_SOURCE_OF_TRUTH.source_ref, HRX_MEMBER_ROSTER_SOU
 assert.ok(HRX_MEMBER_ROSTER_SOURCE_PATH.endsWith(rosterPath), `registry must resolve repo roster path, got ${HRX_MEMBER_ROSTER_SOURCE_PATH}`);
 assert.equal(rosterRows.length, 10);
 assert.ok(rosterRows.every((member) => member.source_ref === HRX_MEMBER_ROSTER_SOURCE_REF));
+for (const member of rosterRows) {
+  if (!member.manager_employee_id) continue;
+  assert.notEqual(member.manager_employee_id, member.employee_id, `${member.display_name} must not manage themself`);
+  assert.ok(membersByEmployeeId.has(member.manager_employee_id), `${member.display_name} manager must reference a roster member`);
+  const visited = new Set([member.employee_id]);
+  let managerEmployeeId = member.manager_employee_id;
+  while (managerEmployeeId) {
+    assert.equal(visited.has(managerEmployeeId), false, `${member.display_name} reporting line must be acyclic`);
+    visited.add(managerEmployeeId);
+    managerEmployeeId = membersByEmployeeId.get(managerEmployeeId)?.manager_employee_id ?? null;
+  }
+}
+assert.equal(membersByName.get("조우상")?.manager_employee_id, membersByName.get("김양태")?.employee_id);
+assert.equal(membersByName.get("박서영")?.manager_employee_id, membersByName.get("조우상")?.employee_id);
 
 assert.deepEqual(
   ["박서영", "조우상", "김양태"].map((name) => membersByName.get(name)?.organization_group),
@@ -75,6 +90,7 @@ for (const marker of [
   "affiliation",
   "department",
   "organization_group",
+  "manager_employee_id",
   "professional_profile"
 ]) {
   assert.ok(registry.includes(marker), `registry missing ${marker}`);
@@ -99,6 +115,15 @@ for (const marker of [
   "stringField(employee, \"work_email\")"
 ]) {
   assert.ok(workforce.includes(marker), `workforce UI must prefer roster/API field: ${marker}`);
+}
+
+for (const marker of [
+  ">소속</HeaderCell>",
+  "hr-roster-col-affiliation",
+  "hr-roster-organization-row",
+  "rowsByOrganization"
+]) {
+  assert.equal(workforce.includes(marker), false, `main workforce roster must not render organization UI: ${marker}`);
 }
 
 assert.ok(peopleHome.includes("PeopleWorkforceDirectory"), "PeopleHome must mount roster-backed workforce directory");

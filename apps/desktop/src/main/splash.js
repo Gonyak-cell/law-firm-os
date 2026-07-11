@@ -1,5 +1,9 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+
 export const SPLASH_BRAND = "matter";
 export const SPLASH_HANDOFF_TIMEOUT_MS = 8000;
+const splashFontDataUrl = Symbol("splashFontDataUrl");
 
 export const SPLASH_WINDOW_OPTIONS = Object.freeze({
   width: 420,
@@ -17,7 +21,13 @@ export const SPLASH_WINDOW_OPTIONS = Object.freeze({
   }
 });
 
-export function splashHtml() {
+function splashFontFace(fontDataUrl = "") {
+  return fontDataUrl
+    ? `@font-face{font-family:"SUITE Matter";src:url("${fontDataUrl}") format("opentype");font-weight:400}`
+    : "";
+}
+
+export function splashHtml(fontDataUrl = "") {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -25,12 +35,13 @@ export function splashHtml() {
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>${SPLASH_BRAND}</title>
 <style>
-body{margin:0;min-height:100vh;display:grid;place-items:center;background:#fff;color:#06102d;font-family:Pretendard,SUIT,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+${splashFontFace(fontDataUrl)}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#fff;color:#06102d;font-family:"SUITE Matter",sans-serif;font-synthesis:none}
 .splash{display:grid;justify-items:center;gap:12px}
 .mark{position:relative;width:88px;height:72px}
 .mark-stroke{position:absolute;top:4px;width:20px;height:58px;border-radius:8px;transform:rotate(31deg)}
 .red{left:10px;background:#ff2d55}.yellow{left:45px;background:#ffcc00}.dot{position:absolute;right:0;bottom:8px;width:22px;height:22px;border-radius:50%;background:#00ca72}
-.word{font-size:42px;font-weight:300}
+.word{font-size:42px;font-weight:400}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:1ms!important;transition-duration:1ms!important;scroll-behavior:auto!important}.splash{gap:8px}}
 </style>
 </head>
@@ -43,14 +54,14 @@ body{margin:0;min-height:100vh;display:grid;place-items:center;background:#fff;c
 </html>`;
 }
 
-export function splashDataUrl() {
-  return `data:text/html;charset=utf-8,${encodeURIComponent(splashHtml())}`;
+export function splashDataUrl(fontDataUrl = "") {
+  return `data:text/html;charset=utf-8,${encodeURIComponent(splashHtml(fontDataUrl))}`;
 }
 
-export function fallbackHtml(reason = "startup-timeout") {
+export function fallbackHtml(reason = "startup-timeout", fontDataUrl = "") {
   return `<!doctype html>
 <html lang="en">
-<head><meta charset="utf-8" /><title>${SPLASH_BRAND}</title><style>body{font-family:Pretendard,SUIT,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}</style></head>
+<head><meta charset="utf-8" /><title>${SPLASH_BRAND}</title><style>${splashFontFace(fontDataUrl)}body{font-family:"SUITE Matter",sans-serif;font-synthesis:none}strong{font-weight:400}</style></head>
 <body>
 <main aria-label="${SPLASH_BRAND} 시작 화면">
 <strong>${SPLASH_BRAND}</strong>
@@ -60,17 +71,22 @@ export function fallbackHtml(reason = "startup-timeout") {
 </html>`;
 }
 
-export function fallbackDataUrl(reason) {
-  return `data:text/html;charset=utf-8,${encodeURIComponent(fallbackHtml(reason))}`;
+export function fallbackDataUrl(reason, fontDataUrl = "") {
+  return `data:text/html;charset=utf-8,${encodeURIComponent(fallbackHtml(reason, fontDataUrl))}`;
 }
 
-export async function createSplashWindow({ BrowserWindowConstructor } = {}) {
-  const Constructor = BrowserWindowConstructor ?? (await import("electron")).BrowserWindow;
+export async function createSplashWindow({ BrowserWindowConstructor, appPath } = {}) {
+  const electron = BrowserWindowConstructor && appPath ? null : await import("electron");
+  const Constructor = BrowserWindowConstructor ?? electron.BrowserWindow;
+  const resolvedAppPath = appPath ?? electron.app.getAppPath();
+  const suiteRegular = await readFile(join(resolvedAppPath, "src/renderer/web/fonts/suite/SUITE-Regular.otf"));
+  const fontDataUrl = `data:font/otf;base64,${suiteRegular.toString("base64")}`;
   const splash = new Constructor(SPLASH_WINDOW_OPTIONS);
+  splash[splashFontDataUrl] = fontDataUrl;
   splash.once("ready-to-show", () => {
     splash.show();
   });
-  await splash.loadURL(splashDataUrl());
+  await splash.loadURL(splashDataUrl(fontDataUrl));
   return splash;
 }
 
@@ -97,7 +113,7 @@ export function wireSplashToMainWindow({
     if (handedOff || fallbackActive) return;
     fallbackActive = true;
     clearTimeoutFn(timer);
-    await splashWindow.loadURL(fallbackDataUrl(reason));
+    await splashWindow.loadURL(fallbackDataUrl(reason, splashWindow[splashFontDataUrl]));
     splashWindow.show?.();
   }
 

@@ -215,7 +215,7 @@ function wp5ApiBody(pathname, searchParams, state) {
     ]);
   }
   if (pathname === "/api/matters/recently-viewed") {
-    return list("dashboard-recent", [{ matter_id: "matter-dashboard-active", matter_code: "2026-099", title: "진행 자문", client_display_name: "고객 B", status: "active", viewed_at: wp5IsoDay(0) }]);
+    return list("dashboard-recent", [{ matter_id: "matter-dashboard-active", matter_code: "진행 자문", title: "진행 자문", client_display_name: "고객 B", status: "active", viewed_at: wp5IsoDay(0) }]);
   }
   if (pathname === "/api/intake/requests") {
     return list("dashboard-intakes", [{ intake_request_id: "intake-dashboard-1", display_name: "고객 A", requested_scope_summary: "신규 자문 수임", status: "review_required", requested_at: wp5IsoDay(-1) }]);
@@ -547,6 +547,70 @@ test("grouped sidebars render children in collapsible sidebar accordions", async
   }
 });
 
+test("mixed Korean and English record text uses regular Pretendard and SUITE", async () => {
+  const port = await availablePort();
+  const server = await createServer({
+    root: webRoot,
+    logLevel: "silent",
+    server: { host: "127.0.0.1", port, strictPort: true }
+  });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  const state = { decisionCalls: 0, newsCalls: 0 };
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    await page.addInitScript(() => window.localStorage.setItem("matter.skin", "forest"));
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
+    });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow#matters-list`, { waitUntil: "networkidle" });
+    await page.waitForSelector('[data-matter-selected-record-list="true"] .matter-selectable-record-button strong');
+    const matterTypography = await page.evaluate(async () => {
+      await document.fonts.ready;
+      const header = getComputedStyle(document.querySelector(".matter-selectable-header"));
+      const record = getComputedStyle(document.querySelector(".matter-selectable-record-button strong"));
+      return {
+        headerFamily: header.fontFamily,
+        headerWeight: header.fontWeight,
+        recordFamily: record.fontFamily,
+        recordWeight: record.fontWeight,
+        pretendardLoaded: document.fonts.check('12px "Pretendard Matter"'),
+        suiteLoaded: document.fonts.check('12px "SUITE Matter"')
+      };
+    });
+    assert.match(matterTypography.headerFamily, /SUITE Matter/);
+    assert.equal(matterTypography.headerWeight, "600");
+    assert.match(matterTypography.recordFamily, /Pretendard Matter/);
+    assert.doesNotMatch(matterTypography.recordFamily, /IBM Plex|Mono|SFMono|Menlo/);
+    assert.equal(matterTypography.recordWeight, "400");
+    assert.equal(matterTypography.pretendardLoaded, true);
+    assert.equal(matterTypography.suiteLoaded, true);
+
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-list`, { waitUntil: "networkidle" });
+    await page.waitForSelector(".client-selectable-record-button strong");
+    const clientTypography = await page.evaluate(() => {
+      const header = getComputedStyle(document.querySelector(".client-selectable-header"));
+      const record = getComputedStyle(document.querySelector(".client-selectable-record-button strong"));
+      return {
+        headerFamily: header.fontFamily,
+        headerWeight: header.fontWeight,
+        recordFamily: record.fontFamily,
+        recordWeight: record.fontWeight
+      };
+    });
+    assert.match(clientTypography.headerFamily, /SUITE Matter/);
+    assert.equal(clientTypography.headerWeight, "600");
+    assert.match(clientTypography.recordFamily, /Pretendard Matter/);
+    assert.doesNotMatch(clientTypography.recordFamily, /IBM Plex|Mono|SFMono|Menlo/);
+    assert.equal(clientTypography.recordWeight, "400");
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
 test("WP-FIN-3 renders reconciled Home finance views and keeps filters in the URL", async () => {
   const port = await availablePort();
   const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
@@ -572,6 +636,12 @@ test("WP-FIN-3 renders reconciled Home finance views and keeps filters in the UR
     const financeSubnav = page.locator('[data-sidebar-group="home-finance"]');
     await financeSubnav.getByRole("button", { name: "월별 매출/비용", exact: true }).click();
     await page.waitForSelector('[data-home-finance-monthly-table="true"]');
+    const tableTypography = await page.locator('[data-home-finance-monthly-table="true"]').evaluate((table) => {
+      const header = getComputedStyle(table.querySelector("thead th"));
+      const cell = getComputedStyle(table.querySelector("tbody td"));
+      return { headerWeight: header.fontWeight, cellWeight: cell.fontWeight };
+    });
+    assert.deepEqual(tableTypography, { headerWeight: "600", cellWeight: "400" });
     assert.equal(new URL(page.url()).searchParams.get("currency"), "KRW");
     await financeSubnav.getByRole("button", { name: "고객별 매출/비용", exact: true }).click();
     await page.waitForSelector('[data-home-finance-client-table="true"]');
@@ -863,6 +933,23 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     }
     assert.equal(await page.locator('[data-matter-dashboard-kpis], [data-matter-priority-queue]').count(), 0);
     assert.equal(await page.locator('[data-dashboard-section="closed-matters"] .dashboard-record-row').count(), 1);
+    const recentMatterRow = page.locator('[data-dashboard-section="recent-work"] .dashboard-record-row').first();
+    assert.equal(await recentMatterRow.locator("strong").evaluate((node) => getComputedStyle(node).fontWeight), "400");
+    assert.equal(await recentMatterRow.locator("small").innerText(), "고객 B");
+    assert.equal((await recentMatterRow.innerText()).split("진행 자문").length - 1, 1);
+    const matterRowLayout = await recentMatterRow.evaluate((row) => {
+      const title = row.querySelector("strong").getBoundingClientRect();
+      const meta = row.querySelector("small").getBoundingClientRect();
+      return {
+        copyDisplay: getComputedStyle(row.querySelector(".dashboard-record-copy")).display,
+        titleCenter: title.top + title.height / 2,
+        metaCenter: meta.top + meta.height / 2,
+        overflow: row.scrollWidth > row.clientWidth
+      };
+    });
+    assert.equal(matterRowLayout.copyDisplay, "contents");
+    assert.ok(Math.abs(matterRowLayout.titleCenter - matterRowLayout.metaCenter) < 2, "Matter record fields must share one table row");
+    assert.equal(matterRowLayout.overflow, false);
 
     await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-client-dashboard="true"]');
@@ -874,6 +961,9 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     }
     assert.equal(await page.locator('[data-dashboard-section="new-clients"] .dashboard-record-row').count(), 1);
     assert.equal(await page.locator('[data-dashboard-section="client-meetings"] .dashboard-record-row').count(), 1);
+    const clientRow = page.locator('[data-dashboard-section="client-meetings"] .dashboard-record-row').first();
+    assert.equal(await clientRow.evaluate((row) => row.scrollWidth > row.clientWidth), false);
+    assert.equal(await clientRow.locator("em").evaluate((node) => getComputedStyle(node).whiteSpace), "nowrap");
     const clientDashboardText = await page.locator('[data-client-dashboard="true"]').innerText();
     assert.doesNotMatch(clientDashboardText, /@amic\.kr|party-dashboard-1|account-dashboard-1|api-fin-client|meeting-dashboard-1|550e8400-e29b-41d4-a716-446655440000/);
     assert.doesNotMatch(clientDashboardText, /\b(?:Client|qualified|active)\b/);
@@ -904,7 +994,20 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
 
     await page.goto(`http://127.0.0.1:${port}/?view=people&ctx=allow#people-members`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-hr-workforce-table="true"]');
+    const workforceOverflow = await page.locator('[data-hr-workforce-table="true"] .hr-roster-table-wrap').evaluate((node) => ({
+      clientWidth: node.clientWidth,
+      scrollWidth: node.scrollWidth,
+      tableWidth: node.querySelector("table")?.getBoundingClientRect().width ?? 0
+    }));
+    assert.equal(workforceOverflow.scrollWidth, workforceOverflow.clientWidth);
+    assert.equal(workforceOverflow.tableWidth <= workforceOverflow.clientWidth, true);
     assert.equal(await page.locator('[data-people-dashboard="true"]').count(), 0);
+    const workforceTools = page.locator('[data-hr-workforce-table="true"] .hr-roster-view-tools');
+    for (const removedAction of ["더보기", "조직", "구성원 추가", "추가 메뉴"]) {
+      assert.equal(await workforceTools.getByRole("button", { name: removedAction, exact: true }).count(), 0, `${removedAction} action must be removed`);
+    }
+    assert.equal(await workforceTools.getByRole("button", { name: "표 보기 옵션", exact: true }).count(), 1);
+    assert.equal(await workforceTools.getByLabel("구성원 검색").count(), 1);
     for (const title of ["신규 고객", "잠재 고객/접촉", "매출 순위", "고객 미팅", "미수금"]) {
       assert.equal(await page.getByText(title, { exact: true }).count(), 0, `People must not show ${title}`);
     }

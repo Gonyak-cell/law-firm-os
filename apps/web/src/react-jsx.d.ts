@@ -3,6 +3,7 @@ declare module "react" {
   export type Dispatch<T> = (value: T | ((previous: T) => T)) => void;
   export function useEffect(effect: () => void | (() => void), deps?: readonly unknown[]): void;
   export function useMemo<T>(factory: () => T, deps?: readonly unknown[]): T;
+  export function useRef<T>(initialValue: T): { current: T };
   export function useState<T>(initialState: T | (() => T)): [T, Dispatch<T>];
   const React: {
     createElement: (...args: unknown[]) => unknown;

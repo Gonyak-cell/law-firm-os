@@ -1,5 +1,6 @@
 import React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { ForestHero } from "../components/ForestHero.jsx";
 import { fetchHrxPeopleOverview } from "./hrxApiClient.ts";
@@ -155,6 +156,8 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }: { activeSe
   const [overview, setOverview] = useState<PeopleOverviewState | null>(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const detailPanelRef = useRef<HTMLElement | null>(null);
+  const detailCloseRef = useRef<HTMLButtonElement | null>(null);
   const currentSection = PEOPLE_SECTIONS.has(activeSection) ? activeSection : "people-members";
   const currentFeature = getPeopleFeatureBySection(currentSection);
   const guardedState = peopleGuardState(liveCtx);
@@ -179,11 +182,39 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }: { activeSe
 
   useEffect(() => {
     if (!selectedEmployeeId) return undefined;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusFrame = window.requestAnimationFrame(() => detailCloseRef.current?.focus());
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSelectedEmployeeId(null);
+      if (event.key === "Escape") {
+        setSelectedEmployeeId(null);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(
+        detailPanelRef.current?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) ?? []
+      );
+      if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      window.removeEventListener("keydown", handleKeyDown);
+      previousFocus?.focus();
+    };
   }, [selectedEmployeeId]);
 
   return (
@@ -216,15 +247,18 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }: { activeSe
               <PeopleWorkforceDirectory initialTab="active" refreshKey={refreshKey} selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} />
             </div>
             {selectedEmployeeId && (
-              <div className="people-detail-overlay" data-people-detail-overlay="open">
-                <button type="button" className="people-detail-backdrop" aria-label="구성원 상세 닫기" onClick={() => setSelectedEmployeeId(null)} />
-                <aside className="people-detail-panel" data-people-detail-panel="open" role="dialog" aria-modal="true" aria-label="구성원 상세">
-                  <button type="button" className="icon-button people-detail-close" aria-label="상세 패널 닫기" onClick={() => setSelectedEmployeeId(null)}>
-                    <X size={18} />
-                  </button>
-                  <EmployeeProfile employeeId={selectedEmployeeId} refreshKey={refreshKey} />
-                </aside>
-              </div>
+              createPortal(
+                <div className="people-detail-overlay" data-people-detail-overlay="open">
+                  <button type="button" className="people-detail-backdrop" aria-label="구성원 상세 닫기" onClick={() => setSelectedEmployeeId(null)} />
+                  <aside ref={detailPanelRef} className="people-detail-panel" data-people-detail-panel="open" role="dialog" aria-modal="true" aria-label="구성원 상세">
+                    <button ref={detailCloseRef} type="button" className="icon-button people-detail-close" aria-label="상세 패널 닫기" onClick={() => setSelectedEmployeeId(null)}>
+                      <X size={18} />
+                    </button>
+                    <EmployeeProfile employeeId={selectedEmployeeId} refreshKey={refreshKey} />
+                  </aside>
+                </div>,
+                document.body
+              )
             )}
           </>
         )}

@@ -197,10 +197,7 @@ const HRX_ORG_UNITS = Object.freeze([
   }),
 ]);
 const HRX_ORG_UNIT_BY_ID = new Map(HRX_ORG_UNITS.map((unit) => [unit.org_unit_id, unit]));
-const REGISTERED_MANAGER_BY_EMPLOYEE_ID = Object.freeze({
-  emp_amic_wsjo: "emp_amic_ytkim",
-  emp_amic_sypark: "emp_amic_ytkim",
-});
+const PARK_REPORTING_LINE_PROFILE_SOURCE_REF = `${HRX_MEMBER_ROSTER_SOURCE_REF}:park-manager-v2`;
 const COMPATIBILITY_MANAGER_BY_EMPLOYEE_ID = Object.freeze({
   "emp-002": "emp-001",
 });
@@ -250,9 +247,9 @@ function registeredEmploymentProfiles(tenantId) {
       status: member.profile_status ?? (account?.status === "active" ? "active" : "terminated"),
       title: member.title ?? account?.source_title ?? "구성원",
       org_unit_id: member.org_unit_id || account?.group_ids?.[0] || "group_matter_vault_users",
-      manager_employee_id: REGISTERED_MANAGER_BY_EMPLOYEE_ID[member.employee_id] ?? null,
+      manager_employee_id: member.manager_employee_id ?? null,
       effective_from: member.start_date || "2026-06-22",
-      source_ref: member.source_ref,
+      source_ref: member.employee_id === "emp_amic_sypark" ? PARK_REPORTING_LINE_PROFILE_SOURCE_REF : member.source_ref,
     };
   });
 }
@@ -363,7 +360,7 @@ function employeeDirectoryRows(repository, tenantId) {
   const profilesByEmployeeId = new Map(
     repository.listEmploymentProfiles({ tenant_id: tenantId }).map((profile) => [profile.employee_id, profile]),
   );
-  return repository
+  const rows = repository
     .listEmployees({ tenant_id: tenantId })
     .map((employee) => {
       const profile = profilesByEmployeeId.get(employee.employee_id);
@@ -371,7 +368,13 @@ function employeeDirectoryRows(repository, tenantId) {
         ...employee,
         ...employeeRosterReadFields(employee, profile),
       };
-    })
+    });
+  const employeeById = new Map(rows.map((employee) => [employee.employee_id, employee]));
+  return rows
+    .map((employee) => ({
+      ...employee,
+      manager_display_name: employee.manager_employee_id ? employeeById.get(employee.manager_employee_id)?.display_name ?? null : null,
+    }))
     .sort((left, right) => KOREAN_DISPLAY_NAME_COLLATOR.compare(left.display_name, right.display_name));
 }
 
@@ -1693,12 +1696,14 @@ function reconcileSeedEmploymentProfile(repository, profile) {
     "employment_type",
     "status",
     "title",
-    "org_unit_id",
-    "manager_employee_id",
     "effective_from",
     "effective_to",
     "source_ref",
   ]);
+  if (current.source_ref !== profile.source_ref) {
+    patch.org_unit_id = profile.org_unit_id;
+    patch.manager_employee_id = profile.manager_employee_id;
+  }
   if (Object.keys(patch).length === 0) return "unchanged";
   repository.updateEmploymentProfile(ref, patch);
   return "reconciled";
@@ -2179,11 +2184,15 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       if (!employee) return response(404, { outcome: "not_found", safe_error_code: "HRX_EMPLOYEE_NOT_FOUND" });
       const [employmentProfile] = context.repository.listEmploymentProfiles({ tenant_id: tenantId, employee_id: employeeId });
       const rosterReadFields = employeeRosterReadFields(employee, employmentProfile);
+      const manager = employmentProfile?.manager_employee_id
+        ? context.repository.getEmployee({ tenant_id: tenantId, employee_id: employmentProfile.manager_employee_id })
+        : null;
       return response(200, {
         outcome: "ok",
         employee: {
           ...employee,
           ...rosterReadFields,
+          manager_display_name: manager?.display_name ?? null,
         },
         employment_profile: employmentProfile ?? null,
         professional_profile: rosterReadFields.professional_profile,

@@ -42,6 +42,7 @@ function publicRosterEmployee(member: HrxRecord): HrxRecord {
     department: stringField(member, "department") || "Staff",
     organization_group: stringField(member, "organization_group") || stringField(member, "affiliation") || stringField(member, "department") || "AMIC Law",
     org_unit_id: orgUnitIdFor(member),
+    manager_employee_id: stringField(member, "manager_employee_id") || null,
     country: stringField(member, "country") || "대한민국",
     professional_profile: recordField(member.professional_profile),
     source_ref: HRX_LOCAL_ROSTER_SOURCE_REF
@@ -49,7 +50,12 @@ function publicRosterEmployee(member: HrxRecord): HrxRecord {
 }
 
 export function localHrxRosterEmployees(): HrxRecord[] {
-  return localRosterMembers().map(publicRosterEmployee);
+  const employees = localRosterMembers().map(publicRosterEmployee);
+  const employeeById = new Map(employees.map((employee) => [stringField(employee, "employee_id"), employee]));
+  return employees.map((employee) => ({
+    ...employee,
+    manager_display_name: stringField(employeeById.get(stringField(employee, "manager_employee_id")), "display_name")
+  }));
 }
 
 export function localHrxRosterOrgChart(): {
@@ -60,6 +66,11 @@ export function localHrxRosterOrgChart(): {
   claim_boundary: HrxRecord;
 } {
   const employees = localHrxRosterEmployees();
+  const directReportCount = new Map<string, number>();
+  for (const employee of employees) {
+    const managerEmployeeId = stringField(employee, "manager_employee_id");
+    if (managerEmployeeId) directReportCount.set(managerEmployeeId, (directReportCount.get(managerEmployeeId) ?? 0) + 1);
+  }
   const orgUnitMap = new Map<string, HrxRecord>();
   for (const employee of employees) {
     const orgUnitId = stringField(employee, "org_unit_id");
@@ -80,11 +91,15 @@ export function localHrxRosterOrgChart(): {
     employees: employees.map((employee) => ({
       ...employee,
       org_unit_label: stringField(employee, "organization_group") || stringField(employee, "department"),
-      manager_employee_id: null,
-      manager_display_name: "",
-      direct_report_count: 0
+      direct_report_count: directReportCount.get(stringField(employee, "employee_id")) ?? 0
     })),
-    reporting_lines: [],
+    reporting_lines: employees.map((employee) => ({
+      employee_id: stringField(employee, "employee_id"),
+      employee_display_name: stringField(employee, "display_name"),
+      manager_employee_id: stringField(employee, "manager_employee_id") || null,
+      manager_display_name: stringField(employee, "manager_display_name") || null,
+      state: stringField(employee, "manager_employee_id") ? "assigned" : "top_level"
+    })),
     change_events: [],
     claim_boundary: { source_ref: HRX_LOCAL_ROSTER_SOURCE_REF, roster_available: true }
   };

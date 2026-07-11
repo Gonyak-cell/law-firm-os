@@ -73,6 +73,7 @@
       "department": "Finance",
       "organization_group": "PETRA BRIDGE PARTNERS",
       "org_unit_id": "org_finance",
+      "manager_employee_id": "emp_amic_ytkim",
       "country": "대한민국",
       "professional_profile": {
         "schema_version": "law-firm-os.people-professional-profile.v0.1",
@@ -115,6 +116,7 @@
       "department": "Finance",
       "organization_group": "PETRA BRIDGE PARTNERS",
       "org_unit_id": "org_finance",
+      "manager_employee_id": "emp_amic_wsjo",
       "country": "대한민국",
       "professional_profile": {
         "schema_version": "law-firm-os.people-professional-profile.v0.1",

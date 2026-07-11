@@ -208,6 +208,7 @@ export function EmployeeProfile({ employeeId, refreshKey }: { employeeId?: strin
           <Property label="소속" value={displayValue(employee.affiliation)} />
           <Property label="부서" value={displayValue(employee.department)} />
           <Property label="조직" value={displayValue(employee.organization_group)} />
+          <Property label="상사" value={employee.manager_display_name ? displayValue(employee.manager_display_name) : "없음"} />
           <Property label="보상 정보" value={compensationStatus(compensationResult)} />
         </div>
         <ProfessionalProfileSection profile={professionalProfile} />

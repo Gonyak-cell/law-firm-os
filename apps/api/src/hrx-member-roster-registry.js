@@ -51,6 +51,7 @@ function memberRosterPublicRef(member) {
     department: stringField(member, "department"),
     organization_group: stringField(member, "organization_group"),
     org_unit_id: stringField(member, "org_unit_id"),
+    manager_employee_id: stringField(member, "manager_employee_id") || null,
     country: stringField(member, "country") || "대한민국",
     professional_profile: objectField(member, "professional_profile"),
     source_ref: HRX_MEMBER_ROSTER_SOURCE_REF,
