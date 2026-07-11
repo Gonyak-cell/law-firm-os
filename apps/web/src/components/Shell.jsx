@@ -637,9 +637,7 @@ export function buildContextualNavigation({
           children: [
             { label: "대시보드", view: "matters", section: "matter-home", icon: LayoutDashboard, active: true },
             { label: "사건 목록", view: "matters", section: "matters-list", icon: ClipboardList },
-            { label: "사건 문서", view: "matters", section: "matter-vault", icon: FileText },
             { label: "신규 사건", view: "matters", section: "matter-opening", icon: Plus },
-            { label: "수임 진행", view: "matters", section: "matter-intake", icon: ShieldCheck },
             { label: "종결 처리", view: "matters", section: "matter-closeout", icon: ShieldCheck },
             { label: "보관 사건", view: "matters", section: "matter-archive", icon: FileText }
           ]
