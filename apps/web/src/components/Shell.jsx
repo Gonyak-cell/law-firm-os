@@ -631,6 +631,16 @@ export function buildContextualNavigation({
       ...sidebarMeta.matters,
       items: [
         {
+          label: "업무 관리",
+          icon: FileText,
+          children: [
+            { label: "업무 보드", view: "matters", section: "matter-board", icon: LayoutDashboard },
+            { label: "워크트리", view: "matters", section: "matter-worktree", icon: Share2 },
+            { label: "할 일", view: "matters", section: "matter-tasks", icon: ClipboardList },
+            { label: "일정", view: "matters", section: "matter-calendar", icon: CalendarDays }
+          ]
+        },
+        {
           label: "사건 운영",
           icon: LayoutDashboard,
           children: [
@@ -639,17 +649,6 @@ export function buildContextualNavigation({
             { label: "신규 사건", view: "matters", section: "matter-opening", icon: Plus },
             { label: "종결 처리", view: "matters", section: "matter-closeout", icon: ShieldCheck },
             { label: "보관 사건", view: "matters", section: "matter-archive", icon: FileText }
-          ]
-        },
-        {
-          label: "업무 진행",
-          icon: FileText,
-          children: [
-            { label: "업무 보드", view: "matters", section: "matter-board", icon: ClipboardList },
-            { label: "할 일", view: "matters", section: "matter-tasks", icon: ClipboardList },
-            { label: "일정", view: "matters", section: "matter-calendar", icon: ClipboardList },
-            { label: "외부 일정", view: "matters", section: "matter-external-schedule", icon: ClipboardList },
-            { label: "검토 의견", view: "matters", section: "matter-notes", icon: FileText }
           ]
         },
         {

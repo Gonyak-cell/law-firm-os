@@ -67,6 +67,7 @@ import { MatterVaultPanel } from "./MatterVaultPanel.jsx";
 import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
 import { useSkin } from "../context/SkinContext.jsx";
 import { DashboardListCard, DashboardReadState, DashboardRecordList, DashboardRecordRow } from "./DashboardList.jsx";
+import { MatterWorktreeSurface } from "./MatterWorktreeSurface.jsx";
 
 const MATTER_PERMISSION_REF = "ui_cmp_g4_matter_live";
 const MATTER_AUDIT_HINT_REF = "ui_cmp_g4_matter_probe";
@@ -78,6 +79,7 @@ const MATTER_SECTIONS = new Set([
   "matter-closeout",
   "matter-archive",
   "matter-board",
+  "matter-worktree",
   "matter-tasks",
   "matter-vault",
   "matter-evidence",
@@ -3915,6 +3917,11 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "matter-vault" && <MatterVaultPanel matterId={activeMatterId} liveCtx={liveCtx} />}
+        {currentSection === "matter-worktree" && (
+          <Panel id="matter-worktree" className="record-list-panel" title="워크트리" hideHeader>
+            <MatterWorktreeSurface matters={matters} liveCtx={liveCtx} />
+          </Panel>
+        )}
         {["matter-board", "matter-timeline"].includes(currentSection) && (
           <Panel id={currentSection} className="record-list-panel" title="업무 보드" meta="활동 이력" hideHeader>
             <ActivityWorkspacePanel
