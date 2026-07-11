@@ -12,7 +12,7 @@ This receipt records the correction of the People reporting lines requested on 2
 | 조우상 | 김양태 |
 | 이예진 | 윤태리 |
 
-The repository roster validator, API/Lambda tests, authenticated production readback, macOS packaged-app People roster, employee detail, organization screen, and Windows packaged dashboard QA all passed with these relationships.
+The repository roster validator, API/Lambda tests, authenticated production readback, and macOS packaged-app People roster, employee detail, and organization screen passed with these relationships. The Windows workflow passed packaging and dashboard-screen QA; it did not independently inspect the People reporting lines.
 
 ## Source and AWS
 
