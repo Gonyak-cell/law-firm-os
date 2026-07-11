@@ -1,0 +1,6 @@
+RED: node create/patch routes were absent and returned unmatched-route errors.
+GREEN Worktree API slice: 9/9.
+MANUAL QA: {"status":201,"node":"qa-branch","version":2,"audits":1}
+STATIC: node --check and git diff --check passed.
+LOC: matter-worktree-write-api.js 131.
+
