@@ -1,0 +1,23 @@
+RED
+command: node --test packages/matter/test/worktree-template-model.test.js
+exit: 1
+result: 0 passed, 4 failed
+cause: registry and generic factory rejected both template model types as unknown
+
+GREEN
+command: node --test packages/matter/test/worktree-template-model.test.js
+exit: 0
+result: 4 passed, 0 failed
+
+MATTER PACKAGE REGRESSION
+command: LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+exit: 0
+result: 149 passed, 0 failed
+
+MANUAL LIBRARY QA
+exit: 0
+result: immutable draft template created; approval without approval_ref, approved_by, and approved_at rejected
+output: {"status":"draft","frozen":true,"unapproved_rejected":true}
+
+STATIC CHECKS
+git diff --check: passed

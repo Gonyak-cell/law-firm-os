@@ -1,0 +1,9 @@
+packages/matter/src/registry.js
+packages/matter/src/model.js
+packages/matter/src/worktree-model.js
+packages/matter/src/worktree-template-model.js
+packages/matter/test/worktree-template-model.test.js
+workbook/matter-worktree-evidence/WT-01-03/acceptance.md
+workbook/matter-worktree-evidence/WT-01-03/commands.txt
+workbook/matter-worktree-evidence/WT-01-03/tests.txt
+workbook/matter-worktree-evidence/WT-01-03/files.txt

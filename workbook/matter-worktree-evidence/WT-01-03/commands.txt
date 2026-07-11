@@ -1,0 +1,4 @@
+node --test packages/matter/test/worktree-template-model.test.js
+LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+git diff --check -- packages/matter/src/registry.js packages/matter/src/model.js packages/matter/src/worktree-model.js packages/matter/src/worktree-template-model.js packages/matter/test/worktree-template-model.test.js
+node --input-type=module -e '<manual draft creation and evidence-free approval rejection driver>'
