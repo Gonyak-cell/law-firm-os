@@ -333,6 +333,21 @@ function wp5ApiBody(pathname, searchParams, state) {
   }
   if (pathname === "/api/home/feed") {
     const tab = searchParams.get("tab") ?? "notice";
+    if (tab === "newsletter") {
+      state.newsletterCalls = (state.newsletterCalls ?? 0) + 1;
+      return {
+        request_id: "r1-wp5-newsletter",
+        outcome: "passed",
+        entries: [
+          { id: "newsletter-r1-wp5", tab: "newsletter", source: "Vault tag collection", title: "WP5 뉴스레터", body_preview: "WP5 뉴스레터 요약", published_at: wp5IsoDay(0, 7) }
+        ],
+        source_statuses: [],
+        safe_error_codes: [],
+        audit_hint_ref: "r1-wp5-newsletter-audit",
+        count_leak_prevented: true,
+        production_ready_claim: false
+      };
+    }
     if (tab === "news") {
       state.newsCalls += 1;
       return {
@@ -887,15 +902,16 @@ test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async ()
     assert.equal(await page.locator("[data-home-calendar-open]").count(), 1);
     assert.equal(await page.locator("[data-home-upcoming-deadline]").count(), 1);
 
-    assert.equal(await page.locator("#home-feed-tab-notice").textContent(), "사내 공지");
+    assert.equal(await page.locator("#home-feed-tab-notice").textContent(), "공지사항");
+    assert.equal(await page.locator("#home-feed-tab-news").count(), 0);
+    assert.equal(await page.locator("#home-feed-tab-newsletter").textContent(), "뉴스레터");
+    assert.equal(await page.locator(".home-dashboard-feed .home-dashboard-card-header").count(), 0);
     await page.locator('[data-home-feed-entry="notice-r1-wp5"]').click();
     await page.waitForSelector('[data-home-feed-read-panel="notice-r1-wp5"]');
 
-    await page.locator("#home-feed-tab-news").click();
-    await page.waitForSelector('[data-home-feed-retry="true"]');
-    await page.locator('[data-home-feed-retry="true"]').click();
-    await page.waitForFunction(() => window.document.querySelector("[data-home-feed-retry='true']") !== null);
-    assert.ok(state.newsCalls >= 2);
+    await page.locator("#home-feed-tab-newsletter").click();
+    await page.waitForSelector('[data-home-feed-entry="newsletter-r1-wp5"]');
+    assert.ok(state.newsletterCalls >= 1);
   } finally {
     await browser.close();
     await server.close();
@@ -916,9 +932,11 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     });
 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
-    for (const title of ["최근 작업", "오늘 To Do", "캘린더", "월별 매출", "신규 수임", "피드"]) {
+    for (const title of ["최근 작업", "오늘 To Do", "캘린더", "월별 매출", "신규 수임"]) {
       assert.equal(await page.getByText(title, { exact: true }).count() > 0, true, `Home must show ${title}`);
     }
+    assert.equal(await page.locator('.home-dashboard-feed .home-dashboard-card-header').count(), 0);
+    assert.deepEqual(await page.locator('.home-dashboard-feed [role="tab"]').allTextContents(), ["공지사항", "뉴스레터"]);
     assert.equal(await page.locator('[data-home-widget-approval-count], [data-widget-id="approval"]').count(), 0);
     assert.equal(await page.locator('[data-dashboard-section="recent-work"] .dashboard-record-row').count() > 0, true);
     assert.equal(await page.locator('[data-dashboard-section="monthly-sales"] .dashboard-record-row').count() > 0, true);

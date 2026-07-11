@@ -45,8 +45,7 @@ const homeMoneyFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigit
 const calendarWeekdays = Object.freeze(["일", "월", "화", "수", "목", "금", "토"]);
 const emptyHomeCounts = Object.freeze({ approval: 0, task_late: 0, task_today: 0 });
 const feedTabs = Object.freeze([
-  { id: "notice", labelKey: "homeFeedNotice", label: "사내 공지", emptyKey: "homeFeedNoticeEmpty", empty: "표시할 공지가 없습니다." },
-  { id: "news", labelKey: "homeFeedNews", label: "뉴스", emptyKey: "homeFeedNewsEmpty", empty: "새 뉴스가 없습니다.", sourcesKey: "homeFeedSources", sources: "블로터, 법률신문, 딜사이트, 인베스트조선" },
+  { id: "notice", labelKey: "homeFeedNotice", label: "공지사항", emptyKey: "homeFeedNoticeEmpty", empty: "표시할 공지가 없습니다." },
   { id: "newsletter", labelKey: "homeFeedNewsletter", label: "뉴스레터", emptyKey: "homeFeedNewsletterEmpty", empty: "새 뉴스레터가 없습니다." }
 ]);
 const messageTabs = Object.freeze([
@@ -639,21 +638,24 @@ function buildMonthCells(baseDate) {
 }
 
 function DashboardCard({ className = "", title, children, widgetId, section = widgetId, onViewAll, headerExtra = null, viewAllLabel = "전체 보기" }) {
+  const hasHeader = Boolean(title || headerExtra || onViewAll);
   return (
     <section className={`home-dashboard-card ${className}`} data-widget-id={widgetId} data-dashboard-section={section}>
-      <header className="home-dashboard-card-header">
-        <div>
-          <span>{title}</span>
-        </div>
-        <div className="home-dashboard-card-actions">
-          {headerExtra}
-          {onViewAll && (
-            <button type="button" className="home-widget-view-all" data-home-widget-view-all={widgetId} aria-label={viewAllLabel} onClick={onViewAll}>
-              <ArrowRight size={18} />
-            </button>
-          )}
-        </div>
-      </header>
+      {hasHeader && (
+        <header className="home-dashboard-card-header">
+          <div>
+            <span>{title}</span>
+          </div>
+          <div className="home-dashboard-card-actions">
+            {headerExtra}
+            {onViewAll && (
+              <button type="button" className="home-widget-view-all" data-home-widget-view-all={widgetId} aria-label={viewAllLabel} onClick={onViewAll}>
+                <ArrowRight size={18} />
+              </button>
+            )}
+          </div>
+        </header>
+      )}
       {children}
     </section>
   );
@@ -1500,11 +1502,8 @@ export function HomeSurface({
         </DashboardListCard>
         <DashboardCard
           className="home-dashboard-feed"
-          title={homeCopy(labels, "homeWidgetFeedTitle", "피드")}
           widgetId="feed"
           section="feed"
-          onViewAll={() => openHomeRoute("home-feed", "home", { source: "feed_widget_view_all" })}
-          viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
         >
           <div className="home-feed-tabs" role="tablist" aria-label={homeCopy(labels, "homeFeedTabLabel", "홈 피드")}>
             {localizedFeedTabs.map((tab) => (

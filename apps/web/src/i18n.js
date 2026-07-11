@@ -107,7 +107,7 @@ const homeKo = {
   homeTodoToday: "오늘",
   homeTodoEmpty: "오늘 마감 업무가 없습니다",
   homeTodoOnboardingCta: "첫 할 일 만들기",
-  homeFeedNotice: "사내 공지",
+  homeFeedNotice: "공지사항",
   homeFeedNoticeEmpty: "표시할 공지가 없습니다.",
   homeFeedNews: "뉴스",
   homeFeedNewsEmpty: "새 뉴스가 없습니다.",
