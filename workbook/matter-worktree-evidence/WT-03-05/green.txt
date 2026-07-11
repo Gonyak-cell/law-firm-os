@@ -1,0 +1,3 @@
+Command: node --test apps/web/test/ui-regression.test.mjs apps/web/test/matter-worktree-ui-contract.test.mjs apps/web/test/matter-worktree-api-client.test.mjs && npm --workspace apps/web run typecheck && npm --workspace apps/web run build
+Exit: 0
+Result: 40 tests passed; typecheck and production build passed.

@@ -2538,6 +2538,482 @@ kbd {
   background: var(--am-success);
 }
 
+.matter-board-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(116px, 1fr));
+  gap: 8px;
+  width: min(100%, 632px);
+  overflow-x: auto;
+  padding: 3px 0 10px;
+  scrollbar-width: none;
+}
+
+.matter-board-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.matter-board-tabs button {
+  min-width: 116px;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: var(--am-radius-sm);
+  background: transparent;
+  color: var(--am-text-muted);
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.matter-board-tabs button.active {
+  background: var(--am-surface-subtle);
+  color: var(--am-text);
+}
+
+.matter-board-tab-panel {
+  margin-top: 8px;
+}
+
+.matter-worktree {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+
+.matter-worktree-practice-areas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.matter-worktree-practice-areas button {
+  min-width: 0;
+  min-height: 52px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text-muted);
+  font: inherit;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.matter-worktree-practice-areas button.active {
+  border-color: var(--am-accent);
+  background: var(--am-surface-subtle);
+  color: var(--am-text);
+}
+
+.matter-worktree-selector {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(280px, 1.2fr);
+  gap: 12px;
+}
+
+.matter-worktree-selector label {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.matter-worktree-selector input,
+.matter-worktree-selector select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text);
+  font: inherit;
+  font-weight: 400;
+  padding: 0 12px;
+}
+
+.matter-worktree-stage {
+  --worktree-node-width: 220px;
+  min-height: 320px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-md);
+  padding: 24px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.matter-worktree-stage p {
+  margin: 0;
+  color: var(--am-text-muted);
+  font-weight: 400;
+}
+
+.matter-worktree-progress {
+  display: grid;
+  grid-template-columns: auto minmax(160px, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.matter-worktree-progress-copy,
+.matter-worktree-status-counts {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.matter-worktree-progressbar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--am-surface-subtle);
+}
+
+.matter-worktree-progressbar > span {
+  display: block;
+  height: 100%;
+  background: var(--am-accent);
+}
+
+.matter-worktree-status-counts span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.matter-worktree-status-counts svg,
+.matter-worktree-tools svg,
+.matter-worktree-detail svg,
+.matter-worktree-message svg {
+  width: 18px;
+  height: 18px;
+}
+
+.matter-worktree-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  min-width: 0;
+}
+
+.matter-worktree-tools button,
+.matter-worktree-empty button,
+.matter-worktree-message button,
+.matter-worktree-dialog button {
+  min-height: 38px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text);
+  font: inherit;
+  font-weight: 400;
+  padding: 0 12px;
+}
+
+.matter-worktree-tools button,
+.matter-worktree-tools label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.matter-worktree-tools label {
+  min-width: 160px;
+  margin-left: auto;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  padding: 0 10px;
+}
+
+.matter-worktree-tools input {
+  min-width: 0;
+  min-height: 36px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--am-text);
+  font: inherit;
+  font-weight: 400;
+}
+
+.matter-worktree-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
+  gap: 14px;
+  min-width: 0;
+}
+
+.matter-worktree-canvas {
+  min-width: 0;
+  min-height: 420px;
+  height: min(60vh, 640px);
+  max-width: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface-subtle);
+  padding: 24px;
+}
+
+.matter-worktree-tree {
+  display: inline-flex;
+  min-width: max-content;
+  align-items: center;
+}
+
+.matter-worktree-branch {
+  display: flex;
+  align-items: center;
+  min-width: max-content;
+}
+
+.matter-worktree-node {
+  display: grid;
+  grid-template-columns: 24px 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  width: var(--worktree-node-width);
+  min-height: 56px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text);
+  padding: 9px 11px;
+  font-weight: 400;
+}
+
+.matter-worktree-node.selected {
+  border-color: var(--am-accent);
+  background: var(--am-surface-subtle);
+}
+
+.matter-worktree-node:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--am-accent) 45%, transparent);
+  outline-offset: 3px;
+}
+
+.matter-worktree-node small {
+  color: var(--am-text-muted);
+  font-weight: 400;
+}
+
+.matter-worktree-node-title {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: keep-all;
+}
+
+.matter-worktree-expander {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.matter-worktree-expander svg {
+  width: 18px;
+  transition: transform 120ms ease;
+}
+
+.matter-worktree-expander svg.expanded {
+  transform: rotate(90deg);
+}
+
+.matter-worktree-expander-spacer {
+  width: 24px;
+}
+
+.matter-worktree-node-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.matter-worktree-children {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  margin-left: 44px;
+}
+
+.matter-worktree-children::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  width: 44px;
+  border-top: 1px solid var(--am-border-strong);
+}
+
+.matter-worktree-detail {
+  min-width: 0;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  padding: 18px;
+}
+
+.matter-worktree-detail h3 {
+  margin: 0 0 14px;
+  font-size: 18px;
+}
+
+.matter-worktree-detail dl,
+.matter-worktree-detail dl > div {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.matter-worktree-detail dl > div {
+  grid-template-columns: 110px minmax(0, 1fr);
+  border-top: 1px solid var(--am-border);
+  padding: 11px 0;
+}
+
+.matter-worktree-detail dt,
+.matter-worktree-detail dd {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 400;
+}
+
+.matter-worktree-detail dt {
+  color: var(--am-text-muted);
+}
+
+.matter-worktree-message,
+.matter-worktree-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 220px;
+  justify-content: center;
+}
+
+.matter-worktree-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  background: rgba(8, 22, 19, 0.42);
+  padding: 20px;
+}
+
+.matter-worktree-dialog {
+  width: min(100%, 440px);
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-md);
+  background: var(--am-surface);
+  padding: 22px;
+}
+
+.matter-worktree-dialog h3 {
+  margin: 0 0 10px;
+  font-size: 19px;
+}
+
+.matter-worktree-dialog label,
+.matter-worktree-dialog label > span {
+  display: grid;
+  gap: 8px;
+}
+
+.matter-worktree-dialog textarea {
+  min-height: 96px;
+  resize: vertical;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  padding: 10px;
+  font: inherit;
+  font-weight: 400;
+}
+
+.matter-worktree-dialog > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+@media (max-width: 1024px) {
+  .matter-worktree-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .matter-worktree-canvas {
+    min-height: 360px;
+    overflow: auto;
+  }
+
+  .matter-worktree-tree,
+  .matter-worktree-branch {
+    display: block;
+    min-width: 0;
+  }
+
+  .matter-worktree-node {
+    width: 100%;
+  }
+
+  .matter-worktree-children {
+    margin: 8px 0 0 20px;
+    padding-left: 14px;
+    border-left: 1px solid var(--am-border-strong);
+  }
+
+  .matter-worktree-children::before {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .matter-worktree-practice-areas,
+  .matter-worktree-selector,
+  .matter-worktree-progress {
+    grid-template-columns: 1fr;
+  }
+
+  .matter-worktree-tools {
+    flex-wrap: wrap;
+  }
+
+  .matter-worktree-tools label {
+    order: -1;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .matter-worktree-stage,
+  .matter-worktree-canvas {
+    padding: 14px;
+  }
+
+  .matter-worktree-node {
+    grid-template-columns: 24px 22px minmax(0, 1fr);
+  }
+
+  .matter-worktree-node small {
+    grid-column: 3;
+  }
+}
+
+@media (max-width: 480px) {
+  .matter-worktree-children {
+    margin-left: 8px;
+    padding-left: 8px;
+  }
+}
+
 .home-section-toolbar {
   display: flex;
   align-items: center;
