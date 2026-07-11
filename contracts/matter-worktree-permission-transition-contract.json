@@ -1,0 +1,157 @@
+{
+  "contract_id": "matter-worktree-permission-transition-v1",
+  "schema_version": "1.0.0",
+  "tuw_id": "WT-00-03",
+  "source_contracts": {
+    "matter_roles": "packages/matter/src/client-matter-g4.js#MATTER_G4A_MEMBER_ROLES",
+    "role_permissions": "packages/matter/src/role-policy.js#MATTER_ROLE_PERMISSIONS",
+    "task_statuses": "packages/matter/src/client-matter-g4.js#MATTER_G4B_TASK_STATUS_TRANSITIONS"
+  },
+  "roles": [
+    "responsible_attorney",
+    "supervising_partner",
+    "associate",
+    "paralegal",
+    "billing_reviewer",
+    "knowledge_manager"
+  ],
+  "actions": [
+    "worktree:read",
+    "task:complete",
+    "task:reopen",
+    "structure:edit",
+    "template:manage",
+    "template:approve"
+  ],
+  "role_permissions": {
+    "responsible_attorney": {
+      "worktree:read": "allow",
+      "task:complete": "allow",
+      "task:reopen": "allow",
+      "structure:edit": "allow",
+      "template:manage": "deny",
+      "template:approve": "deny"
+    },
+    "supervising_partner": {
+      "worktree:read": "allow",
+      "task:complete": "allow",
+      "task:reopen": "allow",
+      "structure:edit": "allow",
+      "template:manage": "deny",
+      "template:approve": "deny"
+    },
+    "associate": {
+      "worktree:read": "allow",
+      "task:complete": "allow",
+      "task:reopen": "allow",
+      "structure:edit": "allow",
+      "template:manage": "deny",
+      "template:approve": "deny"
+    },
+    "paralegal": {
+      "worktree:read": "allow",
+      "task:complete": "allow",
+      "task:reopen": "allow",
+      "structure:edit": "deny",
+      "template:manage": "deny",
+      "template:approve": "deny"
+    },
+    "billing_reviewer": {
+      "worktree:read": "allow",
+      "task:complete": "deny",
+      "task:reopen": "deny",
+      "structure:edit": "deny",
+      "template:manage": "deny",
+      "template:approve": "deny"
+    },
+    "knowledge_manager": {
+      "worktree:read": "allow",
+      "task:complete": "deny",
+      "task:reopen": "deny",
+      "structure:edit": "deny",
+      "template:manage": "allow",
+      "template:approve": "deny"
+    }
+  },
+  "authorization_resolution": {
+    "worktree_actions_require_explicit_grant": true,
+    "generic_matter_write_is_not_a_worktree_grant": true,
+    "generic_matter_write_never_grants": ["template:manage", "template:approve"],
+    "explicit_deny_precedence": true
+  },
+  "access_boundary": {
+    "default_outcome": "deny",
+    "required_matches": ["tenant_id", "matter_id"],
+    "active_matter_member_required": true,
+    "permission_envelope_required": true,
+    "denied_resource_disclosure": "not_found",
+    "denied_counts_disclosed": false
+  },
+  "actor_requirements": {
+    "task_complete": {
+      "assignment": "assignee_or_active_matter_team_member",
+      "allowed_roles": ["responsible_attorney", "supervising_partner", "associate", "paralegal"],
+      "reason_required": false
+    },
+    "task_reopen": {
+      "assignment": "assignee_or_active_matter_team_member",
+      "allowed_roles": ["responsible_attorney", "supervising_partner", "associate", "paralegal"],
+      "reason_required": true
+    },
+    "structure_edit": {
+      "assignment": "active_matter_team_member",
+      "allowed_roles": ["responsible_attorney", "supervising_partner", "associate"]
+    },
+    "template_manage": {
+      "assignment": "active_matter_team_member",
+      "allowed_roles": ["knowledge_manager"]
+    }
+  },
+  "task_transitions": {
+    "complete": {
+      "from": ["todo", "in_progress"],
+      "to": "done",
+      "blocked_source_allowed": false,
+      "cancelled_source_allowed": false,
+      "status_source": "MatterTask.status"
+    },
+    "reopen": {
+      "from": ["done"],
+      "to": "in_progress",
+      "reason_required": true,
+      "status_source": "MatterTask.status"
+    },
+    "unblock": {
+      "from": ["blocked"],
+      "to": "in_progress",
+      "reason_required": true,
+      "status_source": "MatterTask.status"
+    }
+  },
+  "template_transitions": {
+    "draft": {
+      "approved": "owner_gate",
+      "archived": "allow"
+    },
+    "approved": {
+      "draft": "deny_new_version_required",
+      "archived": "allow"
+    },
+    "archived": {
+      "draft": "deny_new_version_required",
+      "approved": "deny"
+    }
+  },
+  "template_approval_gate": {
+    "status": "owner_assignment_required",
+    "approver_id": null,
+    "approval_ref_required": true,
+    "approved_template_application_blocked": true
+  },
+  "audit_requirements": {
+    "mutations_require_actor_id": true,
+    "mutations_require_request_id": true,
+    "reopen_and_unblock_require_reason": true,
+    "template_approval_requires_approval_ref": true
+  }
+}

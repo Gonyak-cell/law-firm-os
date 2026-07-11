@@ -1,0 +1,19 @@
+RED
+command: node --test packages/matter/test/worktree-permission-transition-contract.test.js
+exit: 1
+result: 0 passed, 5 failed
+cause: expected contract and fixture did not exist; each test failed with ENOENT for contracts/matter-worktree-permission-transition-contract.json
+
+GREEN
+command: node --test packages/matter/test/worktree-permission-transition-contract.test.js
+exit: 0
+result: 5 passed, 0 failed
+
+PACKAGE REGRESSION
+command: LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+exit: 0
+result: 132 passed, 0 failed
+
+STATIC CHECKS
+git diff --check: passed
+secret-pattern scan: no matches

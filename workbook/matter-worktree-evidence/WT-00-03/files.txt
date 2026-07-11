@@ -1,0 +1,7 @@
+contracts/matter-worktree-permission-transition-contract.json
+packages/matter/fixtures/matter-worktree-permission-transition-contract.fixture.json
+packages/matter/test/worktree-permission-transition-contract.test.js
+workbook/matter-worktree-evidence/WT-00-03/acceptance.md
+workbook/matter-worktree-evidence/WT-00-03/commands.txt
+workbook/matter-worktree-evidence/WT-00-03/tests.txt
+workbook/matter-worktree-evidence/WT-00-03/files.txt
