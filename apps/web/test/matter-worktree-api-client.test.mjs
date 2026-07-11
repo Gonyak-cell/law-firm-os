@@ -37,10 +37,17 @@ test("WT-03-02 models loading, data, empty, denied, error, and conflict states",
   );
   assert.equal(data.result.kind, MATTER_WORKTREE_UI_STATES.data);
   assert.equal(data.result.etag, '"3"');
+  assert.equal(data.result.currentVersion, 3);
   assert.match(String(data.request.input), /\/api\/matters\/matter-1\/worktree\?/);
 
+  const existingEmptyTree = await withFetch(
+    jsonResponse(200, { item: { version: 1, root: { node_id: "root-1", title: "Matter" }, nodes: [], unclassified: { tasks: [] } } }),
+    () => fetchMatterWorktree({ matterId: "matter-1" })
+  );
+  assert.equal(existingEmptyTree.result.kind, MATTER_WORKTREE_UI_STATES.data);
+
   const empty = await withFetch(
-    jsonResponse(200, { item: { version: 1, nodes: [], unclassified: { tasks: [] } } }),
+    jsonResponse(200, { item: null, ui_state: "empty" }),
     () => fetchMatterWorktree({ matterId: "matter-1" })
   );
   assert.equal(empty.result.kind, MATTER_WORKTREE_UI_STATES.empty);

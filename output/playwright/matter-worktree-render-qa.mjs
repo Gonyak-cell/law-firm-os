@@ -58,10 +58,12 @@ function largeWorktreeNodes(nodeCount = 300) {
 }
 
 let reopenCalls = 0;
+const structureCalls = { add: 0, rename: 0, archive: 0, template: 0 };
 let renderLargeWorktree = false;
 let worktreeResponseMode = "data";
 const browser = await chromium.launch({ headless: true, args: ["--allow-file-access-from-files"] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+await page.emulateMedia({ reducedMotion: "reduce" });
 await page.route("**/api/**", async (route) => {
   const request = route.request();
   const url = new URL(request.url());
@@ -69,6 +71,9 @@ await page.route("**/api/**", async (route) => {
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ request_id: "qa-matters", outcome: "passed", items: [matter], safe_error_codes: [], audit_hint_ref: "qa", ui_state: "data", production_ready_claim: false }) });
   }
   if (url.pathname === `/api/matters/${matter.matter_id}/worktree` && request.method() === "GET") {
+    if (worktreeResponseMode === "empty") {
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ request_id: "qa-empty", outcome: "passed", item: null, safe_error_codes: [] }) });
+    }
     if (worktreeResponseMode === "denied") {
       return route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ request_id: "qa-denied", outcome: "denied", safe_error_codes: ["NOT_FOUND"], count_leak_prevented: true }) });
     }
@@ -82,6 +87,13 @@ await page.route("**/api/**", async (route) => {
       : worktreeBody;
     return route.fulfill({ status: 200, contentType: "application/json", headers: { etag: '"4"' }, body: JSON.stringify(body) });
   }
+  if (url.pathname === `/api/matters/${matter.matter_id}/worktree/templates` && request.method() === "GET") {
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ request_id: "qa-templates", outcome: "passed", items: [{ template_id: "template-approved", name: "송무 준비", version: 2 }], safe_error_codes: [] }) });
+  }
+  if (url.pathname.endsWith("/worktree/template-applications") && request.method() === "POST") structureCalls.template += 1;
+  if (url.pathname.endsWith("/worktree/nodes") && request.method() === "POST") structureCalls.add += 1;
+  if (url.pathname.endsWith("/worktree/nodes/task-done") && request.method() === "PATCH") structureCalls.rename += 1;
+  if (url.pathname.endsWith("/worktree/nodes/task-done") && request.method() === "DELETE") structureCalls.archive += 1;
   if (url.pathname.endsWith("/tasks/task-done/reopen") && request.method() === "POST") {
     reopenCalls += 1;
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ outcome: "passed", item: { ...nodes[2].task, status: "in_progress" } }) });
@@ -190,6 +202,32 @@ keyboard.spaceOpenedReopen = reopenCalls === 2;
 
 for (const [scenario, passed] of Object.entries(keyboard)) assert.equal(passed, true, `${scenario} keyboard scenario`);
 
+await page.locator('[data-worktree-node-id="worktree-root:qa"]').click();
+await page.getByPlaceholder("이름").fill("추가 가지");
+await page.getByRole("button", { name: "하위 노드 추가" }).click();
+await page.waitForFunction(() => document.querySelector('[role="tree"]'));
+assert.equal(structureCalls.add, 1, "add node control calls POST once");
+
+await page.locator('[data-worktree-node-id="task-done"]').click();
+await page.getByPlaceholder("이름").fill("변경된 업무 이름");
+await page.getByRole("button", { name: "선택 노드 이름 변경" }).click();
+await page.waitForFunction(() => document.querySelector('[role="tree"]'));
+assert.equal(structureCalls.rename, 1, "rename node control calls PATCH once");
+
+await page.locator('[data-worktree-node-id="task-done"]').click();
+await page.getByRole("button", { name: "선택 노드 보관" }).click();
+await page.getByRole("dialog", { name: "노드 보관" }).waitFor();
+await page.getByRole("button", { name: "보관", exact: true }).click();
+await page.waitForFunction(() => document.querySelector('[role="tree"]'));
+assert.equal(structureCalls.archive, 1, "archive confirmation calls DELETE once");
+
+worktreeResponseMode = "empty";
+await page.reload({ waitUntil: "domcontentloaded" });
+await page.getByLabel("승인된 템플릿").selectOption("template-approved");
+await page.getByRole("button", { name: "템플릿 적용" }).click();
+assert.equal(structureCalls.template, 1, "approved template control calls POST once");
+worktreeResponseMode = "data";
+
 await page.addInitScript(() => {
   globalThis.__qaLongTasks = [];
   if (typeof PerformanceObserver === "function" && PerformanceObserver.supportedEntryTypes?.includes("longtask")) {
@@ -243,10 +281,11 @@ for (const mode of ["denied", "conflict", "error"]) {
       ? "다른 사용자의 변경이 먼저 저장됐습니다. 변경 내용을 유지한 채 최신 버전을 다시 불러옵니다."
       : "네트워크 오류로 워크트리를 불러오지 못했습니다.";
   await page.getByText(copy, { exact: true }).waitFor();
+  await page.waitForTimeout(400);
   recoveryStates[mode] = true;
   await page.screenshot({ path: fileURLToPath(new URL(`worktree-${mode}.png`, outputDir)), fullPage: true });
 }
 
-await writeFile(new URL("receipt.json", outputDir), `${JSON.stringify({ results, reopenCalls, keyboardSearchFocused: true, keyboard, largeRenderMs, largeRender, largeLayout, recoveryStates }, null, 2)}\n`);
+await writeFile(new URL("receipt.json", outputDir), `${JSON.stringify({ results, reopenCalls, structureCalls, keyboardSearchFocused: true, keyboard, largeRenderMs, largeRender, largeLayout, recoveryStates }, null, 2)}\n`);
 await browser.close();
-console.log(JSON.stringify({ ok: true, results, reopenCalls, keyboard, largeRenderMs, largeRender, largeLayout, recoveryStates }));
+console.log(JSON.stringify({ ok: true, results, reopenCalls, structureCalls, keyboard, largeRenderMs, largeRender, largeLayout, recoveryStates }));

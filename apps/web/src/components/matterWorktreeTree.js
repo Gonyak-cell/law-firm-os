@@ -47,3 +47,16 @@ export function matterWorktreeExpandableIds(node, result = []) {
   for (const child of node.children ?? []) matterWorktreeExpandableIds(child, result);
   return result;
 }
+
+export function createLatestWorktreeRequestSequence() {
+  let latest = 0;
+  return {
+    begin() {
+      latest += 1;
+      return latest;
+    },
+    isCurrent(requestId) {
+      return requestId === latest;
+    },
+  };
+}

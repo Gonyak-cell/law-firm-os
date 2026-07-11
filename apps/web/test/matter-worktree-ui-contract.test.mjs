@@ -105,3 +105,12 @@ test("WT-03-02 exposes Worktree read and mutation clients plus six explicit UI s
     assert.match(apiClientSource, new RegExp(`\\b${kind}\\b`));
   }
 });
+
+test("Worktree exposes approved template application and structure editing controls", () => {
+  for (const label of ["승인된 템플릿", "템플릿 적용", "하위 노드 추가", "선택 노드 이름 변경", "선택 노드 보관", "연결할 업무"]) {
+    assert.match(worktreeSource, new RegExp(label));
+  }
+  for (const client of ["fetchMatterWorktreeTemplates", "applyMatterWorktreeTemplate", "createMatterWorktreeNode", "patchMatterWorktreeNode", "deleteMatterWorktreeNode"]) {
+    assert.match(worktreeSource, new RegExp(client));
+  }
+});

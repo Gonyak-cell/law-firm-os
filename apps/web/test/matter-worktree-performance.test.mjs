@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { performance } from "node:perf_hooks";
 import test from "node:test";
-import { buildMatterWorktreeTree, flattenMatterWorktree, matterWorktreeExpandableIds } from "../src/components/matterWorktreeTree.js";
+import { buildMatterWorktreeTree, createLatestWorktreeRequestSequence, flattenMatterWorktree, matterWorktreeExpandableIds } from "../src/components/matterWorktreeTree.js";
 
 function projection(nodeCount = 300) {
   const nodes = [];
@@ -34,4 +34,50 @@ test("WT-04-05 prepares and traverses 300 Worktree nodes within the 1.5 second r
   t.diagnostic(`300 nodes: p50=${p50.toFixed(2)}ms p95=${p95.toFixed(2)}ms max=${samples.at(-1).toFixed(2)}ms`);
   assert.ok(p50 < 1500, `p50 ${p50.toFixed(2)}ms`);
   assert.ok(p95 < 1500, `p95 ${p95.toFixed(2)}ms`);
+});
+
+test("only the latest Matter selection may commit after out-of-order responses", async () => {
+  const sequence = createLatestWorktreeRequestSequence();
+  const deferred = () => {
+    let resolve;
+    const promise = new Promise((done) => { resolve = done; });
+    return { promise, resolve };
+  };
+  const slowMatter = deferred();
+  const fastMatter = deferred();
+  let renderedMatter = "";
+  const load = async (matterId, response) => {
+    const requestId = sequence.begin();
+    await response;
+    if (sequence.isCurrent(requestId)) renderedMatter = matterId;
+  };
+
+  const slowLoad = load("matter-a", slowMatter.promise);
+  const fastLoad = load("matter-b", fastMatter.promise);
+  fastMatter.resolve();
+  await fastLoad;
+  slowMatter.resolve();
+  await slowLoad;
+
+  assert.equal(renderedMatter, "matter-b");
+});
+
+test("a mutation response cannot commit after the user selects another Matter", async () => {
+  const mutationSequence = createLatestWorktreeRequestSequence();
+  let resolveMutation;
+  const response = new Promise((resolve) => { resolveMutation = resolve; });
+  let selectedMatter = "matter-a";
+  let renderedMatter = selectedMatter;
+  const operation = { matterId: selectedMatter, requestId: mutationSequence.begin() };
+  const mutation = response.then(() => {
+    if (selectedMatter === operation.matterId && mutationSequence.isCurrent(operation.requestId)) renderedMatter = operation.matterId;
+  });
+
+  selectedMatter = "matter-b";
+  renderedMatter = selectedMatter;
+  mutationSequence.begin();
+  resolveMutation();
+  await mutation;
+
+  assert.equal(renderedMatter, "matter-b");
 });

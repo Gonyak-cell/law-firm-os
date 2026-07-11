@@ -1399,6 +1399,8 @@ export function createMatterWorktreeUiState() {
 
 function matterWorktreeResult(response, body) {
   const status = Number(response?.status ?? 0);
+  const etag = response?.headers?.get?.("etag") ?? body?.etag ?? null;
+  const etagVersion = Number.parseInt(String(etag ?? "").replaceAll('"', ""), 10);
   const base = {
     status,
     safeErrorCodes: Array.isArray(body?.safe_error_codes) ? body.safe_error_codes : [],
@@ -1418,18 +1420,14 @@ function matterWorktreeResult(response, body) {
     return { kind: MATTER_WORKTREE_UI_STATES.error, ...base };
   }
   const item = body.item ?? null;
-  const nodeCount = Array.isArray(item?.nodes) ? item.nodes.length : null;
-  const unclassifiedCount = Array.isArray(item?.unclassified?.tasks) ? item.unclassified.tasks.length : 0;
-  const kind = item === null || (nodeCount === 0 && unclassifiedCount === 0)
-    ? MATTER_WORKTREE_UI_STATES.empty
-    : MATTER_WORKTREE_UI_STATES.data;
+  const kind = item === null ? MATTER_WORKTREE_UI_STATES.empty : MATTER_WORKTREE_UI_STATES.data;
   return {
     kind,
     ...base,
     item,
     items: Array.isArray(body.items) ? body.items : [],
-    etag: response.headers?.get?.("etag") ?? body.etag ?? null,
-    currentVersion: body.current_version ?? body.worktree_version ?? item?.version ?? null,
+    etag,
+    currentVersion: body.current_version ?? body.worktree_version ?? item?.version ?? (Number.isInteger(etagVersion) ? etagVersion : null),
     idempotentReplay: body.idempotent_replay === true,
     archivedNodeIds: Array.isArray(body.archived_node_ids) ? body.archived_node_ids : []
   };
@@ -1461,6 +1459,10 @@ export function fetchMatterWorktree({ matterId, ctx = "allow" } = {}) {
   return matterWorktreeRequest({ path: `/api/matters/${encodeURIComponent(matterId)}/worktree`, ctx, query: true });
 }
 
+export function fetchMatterWorktreeTemplates({ matterId, ctx = "allow" } = {}) {
+  return matterWorktreeRequest({ path: `/api/matters/${encodeURIComponent(matterId)}/worktree/templates`, ctx, query: true });
+}
+
 export function createMatterWorktree({ matterId, payload, ctx = "allow" } = {}) {
   return matterWorktreeRequest({ method: "POST", path: `/api/matters/${encodeURIComponent(matterId)}/worktree`, payload, ctx });
 }
@@ -1487,6 +1489,10 @@ export function completeMatterWorktreeTask({ matterId, taskId, payload, ctx = "a
 
 export function reopenMatterWorktreeTask({ matterId, taskId, payload, ctx = "allow" } = {}) {
   return matterWorktreeRequest({ method: "POST", path: `/api/matters/${encodeURIComponent(matterId)}/worktree/tasks/${encodeURIComponent(taskId)}/reopen`, payload, ctx });
+}
+
+export function unblockMatterWorktreeTask({ matterId, taskId, payload, ctx = "allow" } = {}) {
+  return matterWorktreeRequest({ method: "POST", path: `/api/matters/${encodeURIComponent(matterId)}/worktree/tasks/${encodeURIComponent(taskId)}/unblock`, payload, ctx });
 }
 
 async function writeMatterRuntime({ method = "POST", path, payload, ctx = "allow", contextOverride = null } = {}) {

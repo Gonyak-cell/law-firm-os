@@ -4,13 +4,19 @@ import { AlertTriangle, Ban, CalendarClock, CheckCircle2, ChevronRight, Circle, 
 import { classifyMatterPracticeArea } from "../../../../packages/matter/src/practice-area.js";
 import {
   completeMatterWorktreeTask,
+  applyMatterWorktreeTemplate,
   createMatterWorktree,
+  createMatterWorktreeNode,
   createMatterWorktreeUiState,
+  deleteMatterWorktreeNode,
   fetchMatterWorktree,
+  fetchMatterWorktreeTemplates,
+  patchMatterWorktreeNode,
   readLawosSessionEnvelope,
   reopenMatterWorktreeTask,
+  unblockMatterWorktreeTask,
 } from "../data/apiClient.js";
-import { buildMatterWorktreeTree, flattenMatterWorktree, matterWorktreeExpandableIds } from "./matterWorktreeTree.js";
+import { buildMatterWorktreeTree, createLatestWorktreeRequestSequence, flattenMatterWorktree, matterWorktreeExpandableIds } from "./matterWorktreeTree.js";
 
 const PRACTICE_AREAS = Object.freeze([
   Object.freeze({ id: "litigation", label: "송무" }),
@@ -18,6 +24,7 @@ const PRACTICE_AREAS = Object.freeze([
   Object.freeze({ id: "dispute", label: "분쟁" }),
   Object.freeze({ id: "transaction", label: "트랜잭션" }),
 ]);
+const WORKTREE_STATUS_LABELS = Object.freeze({ todo: "할 일", in_progress: "진행 중", blocked: "차단", done: "완료", cancelled: "취소", branch: "가지", root: "워크트리" });
 
 function urlSelection(source = globalThis) {
   try {
@@ -102,7 +109,7 @@ function WorktreeNode({ node, level, expandedIds, selectedId, pendingTaskId, onS
           />
         ) : <Circle aria-hidden="true" className="matter-worktree-node-icon" />}
         <span className="matter-worktree-node-title">{node.title}</span>
-        {task?.status && <small>{task.status}</small>}
+        {task?.status && <small>{WORKTREE_STATUS_LABELS[task.status] ?? task.status}</small>}
       </div>
       {hasChildren && expanded && (
         <div className="matter-worktree-children" role="group">
@@ -153,10 +160,10 @@ function WorktreeDetail({ node }) {
     <aside className="matter-worktree-detail" aria-label="선택한 노드 상세">
       <h3>{node?.title ?? "노드를 선택하세요"}</h3>
       <dl>
-        <div><dt><UserRound aria-hidden="true" />담당자</dt><dd>{task?.assigned_to ?? "미지정"}</dd></div>
+        <div><dt><UserRound aria-hidden="true" />담당자</dt><dd>{task?.assignee_name ?? task?.assigned_to_name ?? (task?.assigned_to ? "지정됨" : "미지정")}</dd></div>
         <div><dt><CalendarClock aria-hidden="true" />기한</dt><dd>{task?.due_at ?? "없음"}</dd></div>
-        <div><dt><CheckCircle2 aria-hidden="true" />상태</dt><dd>{task?.status ?? node?.node_type ?? "-"}</dd></div>
-        <div><dt><FileText aria-hidden="true" />연결 문서</dt><dd>{task?.document_refs?.length ? task.document_refs.join(", ") : "없음"}</dd></div>
+        <div><dt><CheckCircle2 aria-hidden="true" />상태</dt><dd>{WORKTREE_STATUS_LABELS[task?.status ?? node?.node_type] ?? "-"}</dd></div>
+        <div><dt><FileText aria-hidden="true" />연결 문서</dt><dd>{task?.document_titles?.length ? task.document_titles.join(", ") : task?.document_refs?.length ? `${task.document_refs.length}개` : "없음"}</dd></div>
         <div><dt><AlertTriangle aria-hidden="true" />감사 요약</dt><dd>{task?.updated_at ? `최근 변경 ${task.updated_at}` : "변경 기록 없음"}</dd></div>
       </dl>
     </aside>
@@ -175,14 +182,43 @@ export function MatterWorktreeSurface({ matters = [], liveCtx = "allow" }) {
   const [pendingTaskId, setPendingTaskId] = useState("");
   const [reopenTarget, setReopenTarget] = useState(null);
   const [reopenReason, setReopenReason] = useState("");
+  const [archiveTarget, setArchiveTarget] = useState(null);
+  const [templateId, setTemplateId] = useState("");
+  const [templates, setTemplates] = useState([]);
+  const [templateListState, setTemplateListState] = useState("idle");
+  const [nodeType, setNodeType] = useState("branch");
+  const [nodeTitle, setNodeTitle] = useState("");
+  const [taskId, setTaskId] = useState("");
+  const [structurePending, setStructurePending] = useState(false);
   const canvasRef = useRef(null);
   const preservedSelectionRef = useRef("");
+  const selectedNodeIdRef = useRef("");
+  const requestSequenceRef = useRef(createLatestWorktreeRequestSequence());
+  const templateRequestSequenceRef = useRef(createLatestWorktreeRequestSequence());
+  const structureMutationSequenceRef = useRef(createLatestWorktreeRequestSequence());
+  const taskMutationSequenceRef = useRef(createLatestWorktreeRequestSequence());
+  const matterIdRef = useRef(matterId);
+
+  useEffect(() => {
+    selectedNodeIdRef.current = selectedNodeId;
+  }, [selectedNodeId]);
+
+  useEffect(() => {
+    matterIdRef.current = matterId;
+  }, [matterId]);
 
   useEffect(() => {
     const restore = () => {
       const next = urlSelection(window);
+      matterIdRef.current = next.matterId;
+      structureMutationSequenceRef.current.begin();
+      taskMutationSequenceRef.current.begin();
       setPracticeArea(next.area);
       setMatterId(next.matterId);
+      setPendingTaskId("");
+      setReopenTarget(null);
+      setArchiveTarget(null);
+      setStructurePending(false);
     };
     window.addEventListener("popstate", restore);
     return () => window.removeEventListener("popstate", restore);
@@ -198,13 +234,15 @@ export function MatterWorktreeSurface({ matters = [], liveCtx = "allow" }) {
   const selectedMatter = matters.find((matter) => matter.matter_id === matterId) ?? null;
 
   const loadWorktree = useCallback(async () => {
+    const requestId = requestSequenceRef.current.begin();
     if (!matterId) {
       setWorktreeResult(null);
       return;
     }
-    preservedSelectionRef.current = selectedNodeId;
+    preservedSelectionRef.current = selectedNodeIdRef.current;
     setWorktreeResult(createMatterWorktreeUiState());
     const next = await fetchMatterWorktree({ matterId, ctx: liveCtx });
+    if (!requestSequenceRef.current.isCurrent(requestId)) return;
     setWorktreeResult(next);
     if (next.kind === "data") {
       const tree = buildMatterWorktreeTree(next.item);
@@ -212,9 +250,26 @@ export function MatterWorktreeSurface({ matters = [], liveCtx = "allow" }) {
       const ids = new Set(flattenMatterWorktree(tree, new Set(matterWorktreeExpandableIds(tree))).map(({ node }) => node.node_id));
       setSelectedNodeId(ids.has(preservedSelectionRef.current) ? preservedSelectionRef.current : tree?.node_id ?? "");
     }
-  }, [liveCtx, matterId, selectedNodeId]);
+  }, [liveCtx, matterId]);
 
-  useEffect(() => { loadWorktree(); }, [matterId, liveCtx]);
+  useEffect(() => { loadWorktree(); }, [loadWorktree]);
+
+  useEffect(() => {
+    const requestId = templateRequestSequenceRef.current.begin();
+    setTemplates([]);
+    setTemplateId("");
+    setTemplateListState(matterId ? "loading" : "idle");
+    if (!matterId) return;
+    fetchMatterWorktreeTemplates({ matterId, ctx: liveCtx }).then((result) => {
+      if (!templateRequestSequenceRef.current.isCurrent(requestId)) return;
+      if (["denied", "error"].includes(result.kind)) {
+        setTemplateListState(result.kind);
+        return;
+      }
+      setTemplates(result.items ?? []);
+      setTemplateListState("ready");
+    });
+  }, [liveCtx, matterId]);
 
   const tree = useMemo(() => buildMatterWorktreeTree(worktreeResult?.item), [worktreeResult?.item]);
   const visibleNodes = useMemo(() => flattenMatterWorktree(tree, expandedIds), [tree, expandedIds]);
@@ -228,15 +283,29 @@ export function MatterWorktreeSurface({ matters = [], liveCtx = "allow" }) {
   }, [selectedNodeId, tree]);
 
   function selectPracticeArea(nextArea) {
+    matterIdRef.current = "";
+    structureMutationSequenceRef.current.begin();
+    taskMutationSequenceRef.current.begin();
     setPracticeArea(nextArea);
     setMatterId("");
     setSelectedNodeId("");
+    setPendingTaskId("");
+    setReopenTarget(null);
+    setArchiveTarget(null);
+    setStructurePending(false);
     writeUrlSelection({ area: nextArea, matterId: "" });
   }
 
   function selectMatter(nextMatterId) {
+    matterIdRef.current = nextMatterId;
+    structureMutationSequenceRef.current.begin();
+    taskMutationSequenceRef.current.begin();
     setMatterId(nextMatterId);
     setSelectedNodeId("");
+    setPendingTaskId("");
+    setReopenTarget(null);
+    setArchiveTarget(null);
+    setStructurePending(false);
     writeUrlSelection({ area: practiceArea, matterId: nextMatterId });
   }
 
@@ -249,29 +318,120 @@ export function MatterWorktreeSurface({ matters = [], liveCtx = "allow" }) {
     });
   }
 
+  function beginMutation(scope = "structure") {
+    const sequence = scope === "task" ? taskMutationSequenceRef.current : structureMutationSequenceRef.current;
+    return { matterId, sequence, requestId: sequence.begin() };
+  }
+
+  function mutationIsCurrent(operation) {
+    return matterIdRef.current === operation.matterId && operation.sequence.isCurrent(operation.requestId);
+  }
+
   async function createEmptyWorktree() {
+    const operation = beginMutation();
     setWorktreeResult(createMatterWorktreeUiState());
     const result = await createMatterWorktree({
       matterId,
       ctx: liveCtx,
       payload: mutationPayload("빈 워크트리 생성", { worktree_id: `worktree_${globalThis.crypto?.randomUUID?.() ?? Date.now()}` }),
     });
+    if (!mutationIsCurrent(operation)) return;
+    if (result.kind === "data" || result.kind === "empty") await loadWorktree();
+    else setWorktreeResult(result);
+  }
+
+  async function applyTemplate() {
+    if (!templateId.trim()) return;
+    const operation = beginMutation();
+    setStructurePending(true);
+    const result = await applyMatterWorktreeTemplate({
+      matterId,
+      ctx: liveCtx,
+      payload: mutationPayload("승인된 워크트리 템플릿 적용", {
+        worktree_id: `worktree_${globalThis.crypto?.randomUUID?.() ?? Date.now()}`,
+        template_id: templateId.trim(),
+      }),
+    });
+    if (!mutationIsCurrent(operation)) return;
+    setStructurePending(false);
+    if (result.kind === "data" || result.kind === "empty") await loadWorktree();
+    else setWorktreeResult(result);
+  }
+
+  async function addNode() {
+    if (!nodeTitle.trim() || (nodeType === "task" && !taskId.trim())) return;
+    const parent = selectedNode?.node_type === "root" ? null : selectedNode;
+    if (parent && parent.node_type !== "branch") return;
+    const operation = beginMutation();
+    setStructurePending(true);
+    const result = await createMatterWorktreeNode({
+      matterId,
+      ctx: liveCtx,
+      payload: mutationPayload("워크트리 노드 추가", {
+        expected_version: worktreeResult.currentVersion,
+        node: {
+          node_id: `node_${globalThis.crypto?.randomUUID?.() ?? Date.now()}`,
+          node_type: nodeType,
+          parent_node_id: parent?.node_id ?? null,
+          title: nodeTitle.trim(),
+          sort_order: parent?.children?.length ?? tree?.children?.length ?? 0,
+          ...(nodeType === "task" ? { task_id: taskId.trim() } : {}),
+        },
+      }),
+    });
+    if (!mutationIsCurrent(operation)) return;
+    setStructurePending(false);
+    if (result.kind === "data" || result.kind === "empty") {
+      setNodeTitle("");
+      setTaskId("");
+      await loadWorktree();
+    } else setWorktreeResult(result);
+  }
+
+  async function renameSelectedNode() {
+    if (!selectedNode?.node_id || ["root", "virtual_branch"].includes(selectedNode.node_type) || !nodeTitle.trim()) return;
+    const operation = beginMutation();
+    setStructurePending(true);
+    const result = await patchMatterWorktreeNode({ matterId, nodeId: selectedNode.node_id, ctx: liveCtx, payload: mutationPayload("워크트리 노드 이름 변경", { expected_version: worktreeResult.currentVersion, node: { title: nodeTitle.trim() } }) });
+    if (!mutationIsCurrent(operation)) return;
+    setStructurePending(false);
+    if (result.kind === "data" || result.kind === "empty") {
+      setNodeTitle("");
+      await loadWorktree();
+    } else setWorktreeResult(result);
+  }
+
+  async function archiveSelectedNode() {
+    if (!selectedNode?.node_id || ["root", "virtual_branch"].includes(selectedNode.node_type) || selectedNode.children?.length) return;
+    setArchiveTarget(selectedNode);
+  }
+
+  async function confirmArchiveSelectedNode() {
+    if (!archiveTarget) return;
+    const operation = beginMutation();
+    setStructurePending(true);
+    setArchiveTarget(null);
+    const result = await deleteMatterWorktreeNode({ matterId, nodeId: archiveTarget.node_id, ctx: liveCtx, payload: mutationPayload("워크트리 노드 보관", { expected_version: worktreeResult.currentVersion }) });
+    if (!mutationIsCurrent(operation)) return;
+    setStructurePending(false);
     if (result.kind === "data" || result.kind === "empty") await loadWorktree();
     else setWorktreeResult(result);
   }
 
   async function completeTask(node) {
     const taskId = node.task.task_id;
+    const operation = beginMutation("task");
     setPendingTaskId(taskId);
     const result = await completeMatterWorktreeTask({ matterId, taskId, ctx: liveCtx, payload: mutationPayload("워크트리 체크 완료") });
+    if (!mutationIsCurrent(operation)) return;
     setPendingTaskId("");
     if (result.kind === "data" || result.kind === "empty") await loadWorktree();
     else setWorktreeResult(result);
   }
 
   function toggleTask(node) {
-    if (node.task?.status === "done") {
-      setReopenTarget(node);
+    if (["done", "blocked"].includes(node.task?.status)) {
+      setReopenTarget({ ...node, transitionKind: node.task.status === "blocked" ? "unblock" : "reopen" });
       setReopenReason("");
       return;
     }
@@ -280,10 +440,13 @@ export function MatterWorktreeSurface({ matters = [], liveCtx = "allow" }) {
 
   async function confirmReopen() {
     if (!reopenTarget || !reopenReason.trim()) return;
+    const operation = beginMutation("task");
     const taskId = reopenTarget.task.task_id;
     setPendingTaskId(taskId);
     setReopenTarget(null);
-    const result = await reopenMatterWorktreeTask({ matterId, taskId, ctx: liveCtx, payload: mutationPayload(reopenReason.trim()) });
+    const transition = reopenTarget.transitionKind === "unblock" ? unblockMatterWorktreeTask : reopenMatterWorktreeTask;
+    const result = await transition({ matterId, taskId, ctx: liveCtx, payload: mutationPayload(reopenReason.trim()) });
+    if (!mutationIsCurrent(operation)) return;
     setPendingTaskId("");
     if (result.kind === "data" || result.kind === "empty") await loadWorktree();
     else setWorktreeResult(result);
@@ -349,13 +512,21 @@ export function MatterWorktreeSurface({ matters = [], liveCtx = "allow" }) {
     if (!selectedMatter) return <p>Matter Code를 선택하면 워크트리를 표시합니다.</p>;
     switch (worktreeResult?.kind) {
       case "loading": return <p role="status">워크트리를 불러오는 중입니다.</p>;
-      case "empty": return <div className="matter-worktree-empty"><p>등록된 워크트리가 없습니다.</p><button type="button" onClick={createEmptyWorktree}>빈 워크트리 만들기</button></div>;
+      case "empty": return <div className="matter-worktree-empty"><p>등록된 워크트리가 없습니다.</p><div><button type="button" disabled={structurePending} onClick={createEmptyWorktree}>빈 워크트리 만들기</button><label><span>승인된 템플릿</span><select value={templateId} onChange={(event) => setTemplateId(event.target.value)} disabled={templateListState !== "ready"}><option value="">선택하세요</option>{templates.map((template) => <option key={template.template_id} value={template.template_id}>{template.name} · v{template.version}</option>)}</select></label><button type="button" disabled={structurePending || !templateId} onClick={applyTemplate}>템플릿 적용</button></div>{templateListState === "ready" && templates.length === 0 && <small>이 분야에 승인된 템플릿이 없습니다.</small>}{templateListState === "loading" && <small>승인된 템플릿을 확인하는 중입니다.</small>}{templateListState === "denied" && <small>템플릿 목록을 볼 권한이 없습니다.</small>}{templateListState === "error" && <small>템플릿 목록을 불러오지 못했습니다.</small>}</div>;
       case "denied": return <div className="matter-worktree-message denied"><Ban aria-hidden="true" /><p>이 Matter의 워크트리를 볼 권한이 없습니다.</p></div>;
-      case "error": return <div className="matter-worktree-message error"><AlertTriangle aria-hidden="true" /><p>네트워크 오류로 워크트리를 불러오지 못했습니다.</p><button type="button" onClick={loadWorktree}>다시 시도</button></div>;
+      case "error": return <div className="matter-worktree-message error"><AlertTriangle aria-hidden="true" /><p>{worktreeResult.status === 400 ? "요청을 처리하지 못했습니다. 입력 내용과 하위 노드 상태를 확인하세요." : "네트워크 오류로 워크트리를 불러오지 못했습니다."}</p><button type="button" onClick={loadWorktree}>다시 시도</button></div>;
       case "conflict": return <div className="matter-worktree-message conflict"><AlertTriangle aria-hidden="true" /><p>다른 사용자의 변경이 먼저 저장됐습니다. 변경 내용을 유지한 채 최신 버전을 다시 불러옵니다.</p><button type="button" onClick={loadWorktree}>최신 버전 불러오기</button></div>;
       case "data": return (
         <>
           <ProgressSummary progress={worktreeResult.item?.progress} />
+          <div className="matter-worktree-structure" aria-label="워크트리 구조 편집">
+            <label><span>노드 종류</span><select value={nodeType} onChange={(event) => setNodeType(event.target.value)}><option value="branch">가지</option><option value="task">기존 업무 연결</option></select></label>
+            <label><span>노드 이름</span><input value={nodeTitle} onChange={(event) => setNodeTitle(event.target.value)} placeholder="이름" /></label>
+            {nodeType === "task" && <label><span>연결할 업무</span><select value={taskId} onChange={(event) => setTaskId(event.target.value)}><option value="">선택하세요</option>{(worktreeResult.item?.unclassified?.tasks ?? []).map((task) => <option key={task.task_id} value={task.task_id}>{task.title}</option>)}</select></label>}
+            <button type="button" disabled={structurePending || !nodeTitle.trim() || ["task", "virtual_branch"].includes(selectedNode?.node_type)} onClick={addNode}>하위 노드 추가</button>
+            <button type="button" disabled={structurePending || !nodeTitle.trim() || !selectedNode || ["root", "virtual_branch"].includes(selectedNode.node_type)} onClick={renameSelectedNode}>선택 노드 이름 변경</button>
+            <button type="button" disabled={structurePending || !selectedNode || ["root", "virtual_branch"].includes(selectedNode.node_type) || Boolean(selectedNode.children?.length)} onClick={archiveSelectedNode}>선택 노드 보관</button>
+          </div>
           <div className="matter-worktree-tools" aria-label="캔버스 도구">
             <button type="button" onClick={() => setExpandedIds(new Set(matterWorktreeExpandableIds(tree)))}>전체 펼치기</button>
             <button type="button" onClick={() => setExpandedIds(new Set(tree ? [tree.node_id] : []))}>전체 접기</button>
@@ -391,10 +562,20 @@ export function MatterWorktreeSurface({ matters = [], liveCtx = "allow" }) {
       {reopenTarget && (
         <div className="matter-worktree-dialog-backdrop">
           <div className="matter-worktree-dialog" role="dialog" aria-modal="true" aria-labelledby="matter-worktree-reopen-title">
-            <h3 id="matter-worktree-reopen-title">완료 업무 재개</h3>
+            <h3 id="matter-worktree-reopen-title">{reopenTarget.transitionKind === "unblock" ? "차단 업무 해제" : "완료 업무 재개"}</h3>
             <p>{reopenTarget.title}</p>
-            <label><span>재개 사유</span><textarea value={reopenReason} onChange={(event) => setReopenReason(event.target.value)} autoFocus /></label>
-            <div><button type="button" onClick={() => setReopenTarget(null)}>취소</button><button type="button" disabled={!reopenReason.trim()} onClick={confirmReopen}>재개</button></div>
+            <label><span>{reopenTarget.transitionKind === "unblock" ? "해제 사유" : "재개 사유"}</span><textarea value={reopenReason} onChange={(event) => setReopenReason(event.target.value)} autoFocus /></label>
+            <div><button type="button" onClick={() => setReopenTarget(null)}>취소</button><button type="button" disabled={!reopenReason.trim()} onClick={confirmReopen}>{reopenTarget.transitionKind === "unblock" ? "차단 해제" : "재개"}</button></div>
+          </div>
+        </div>
+      )}
+      {archiveTarget && (
+        <div className="matter-worktree-dialog-backdrop">
+          <div className="matter-worktree-dialog" role="dialog" aria-modal="true" aria-labelledby="matter-worktree-archive-title">
+            <h3 id="matter-worktree-archive-title">노드 보관</h3>
+            <p>{archiveTarget.title}</p>
+            <p>워크트리 배치에서만 숨겨지며 연결된 업무는 삭제되지 않습니다.</p>
+            <div><button type="button" onClick={() => setArchiveTarget(null)}>취소</button><button type="button" onClick={confirmArchiveSelectedNode}>보관</button></div>
           </div>
         </div>
       )}
