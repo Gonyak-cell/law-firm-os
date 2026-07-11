@@ -1,7 +1,14 @@
 {
   "schema_version": "law-firm-os.hrx-reporting-lines-deploy.v0.1",
   "generated_at": "2026-07-11T06:14:50Z",
-  "source_commit": "e0df8f50d",
+  "provenance": {
+    "hrx_correction_commit": "e0df8f50d",
+    "desktop_version_artifact_source_commit": "e9a5b285f",
+    "release_tag_target_commit": "b2316e9b4",
+    "deployment_receipt_introduction_commit": "58cb8f3a2",
+    "release_branch": "codex/lcx-vltui-owner-approval-intake",
+    "contained_in_origin_main": false
+  },
   "reporting_lines": [
     { "employee": "박서영", "manager": "김양태" },
     { "employee": "조우상", "manager": "김양태" },

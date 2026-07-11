@@ -14,11 +14,16 @@ This receipt records the correction of the People reporting lines requested on 2
 
 The repository roster validator, API/Lambda tests, authenticated production readback, and macOS packaged-app People roster, employee detail, and organization screen passed with these relationships. The Windows workflow passed packaging and dashboard-screen QA; it did not independently inspect the People reporting lines.
 
-## Source and AWS
+## Provenance and AWS
 
 | Field | Value |
 | --- | --- |
-| Source commit | `e0df8f50d` |
+| HRX correction commit | `e0df8f50d` |
+| Desktop version/artifact source | `e9a5b285f` |
+| Release tag target / Windows QA head | `b2316e9b4` |
+| Deployment receipt introduction | `58cb8f3a2` |
+| Release branch | `codex/lcx-vltui-owner-approval-intake` |
+| Release relation to `main` | branch-only prerelease; not contained in `origin/main` |
 | Lambda | `matter-lawos-api-prod` |
 | State | `Active` / `Successful` |
 | Code SHA-256 | `oiDeEsw+GiZSYDnUK614SZmo1yeUPhFgwK4q1t6MYWU=` |
@@ -45,6 +50,8 @@ The repository roster validator, API/Lambda tests, authenticated production read
 ## Desktop Formal Candidate
 
 Release: `matter-desktop-v0.1.13-20260711-e9a5b285f`
+
+The annotated release tag peels to `b2316e9b4` on `codex/lcx-vltui-owner-approval-intake`. This formal candidate is not represented as a release from `main`.
 
 | Artifact | SHA-256 / state |
 | --- | --- |
