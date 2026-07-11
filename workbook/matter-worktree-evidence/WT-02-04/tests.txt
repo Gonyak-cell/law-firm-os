@@ -1,0 +1,6 @@
+RED: descendant-move rejection passed through existing validation; DELETE route was absent.
+GREEN Worktree API slice: 11/11.
+MANUAL QA: {"status":200,"archived":["qa-parent","qa-task-node"],"task_status":"todo","version":2}
+STATIC: node --check and git diff --check passed.
+LOC: matter-worktree-write-api.js 166.
+
