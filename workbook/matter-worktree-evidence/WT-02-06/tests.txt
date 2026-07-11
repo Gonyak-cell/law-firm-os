@@ -1,0 +1,5 @@
+RED: forged actor returned 201 and mismatched member envelope returned 200.
+GREEN Worktree API and authorization slice: 19/19.
+MANUAL QA: {"allowed":true,"forged":false,"role":"associate","envelope_match":true}
+STATIC: node --check and git diff --check passed; each touched API module remains below 250 LOC.
+

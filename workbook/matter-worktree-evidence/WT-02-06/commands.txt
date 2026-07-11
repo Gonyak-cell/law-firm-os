@@ -1,0 +1,9 @@
+node --test apps/api/test/matter-worktree-authorization.test.js
+node --test apps/api/test/matter-worktree-authorization.test.js apps/api/test/matter-worktree-task-api.test.js apps/api/test/matter-worktree-node-api.test.js apps/api/test/matter-worktree-create-api.test.js apps/api/test/matter-worktree-api.test.js
+node --input-type=module -  # manual shared-authorization driver
+node --check apps/api/src/matter-worktree-authorization.js
+node --check apps/api/src/matter-worktree-read-api.js
+node --check apps/api/src/matter-worktree-write-api.js
+node --check apps/api/src/matter-worktree-task-api.js
+git diff --check
+
