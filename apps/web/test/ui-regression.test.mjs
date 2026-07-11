@@ -883,6 +883,11 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   const employeeProfileSource = await readWebFile("src/people/employees/EmployeeProfile.tsx");
   const stylesSource = await readWebFile("src/styles.css");
 
+  assert.match(workforceDirectorySource, /kind: "error",\s*message: "구성원 정보를 확인할 수 없습니다\."/);
+  assert.match(workforceDirectorySource, /kind: "error",\s*message: "입퇴사 정보를 확인할 수 없습니다\."/);
+  assert.match(workforceDirectorySource, /kind: "error", message: "조직 정보를 확인할 수 없습니다\."/);
+  assert.match(workforceDirectorySource, /orgStatus\.kind === "loading" \? "live-data-loading" : "live-data-error"/);
+
   for (const section of [
     "clients-home",
     "client-opportunities",

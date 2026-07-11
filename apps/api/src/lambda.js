@@ -1418,6 +1418,21 @@ export async function buildCtiS1GAuthenticatedProductionProbeReceipt({
       audit_hint_ref: "cti_s1g_i18_authenticated_probe",
     });
     const session = await apiJson(baseUrl, "/api/auth/session", { headers: authHeaders });
+    const hrxEmployees = await apiJson(baseUrl, "/api/hrx/employees", { headers: authHeaders });
+    const hrxEmployeeRows = Array.isArray(hrxEmployees.body?.employees) ? hrxEmployees.body.employees : [];
+    const expectedReportingLines = [
+      ["emp_amic_wsjo", "emp_amic_ytkim"],
+      ["emp_amic_sypark", "emp_amic_wsjo"],
+    ];
+    const verifyCurrentHrxRoster = event.verify_current_hrx_roster === true;
+    const reportingLineMatchCount = expectedReportingLines.filter(([employeeId, managerEmployeeId]) => (
+      hrxEmployeeRows.some((employee) => (
+        employee.employee_id === employeeId && employee.manager_employee_id === managerEmployeeId
+      ))
+    )).length;
+    const rosterSourceRefCount = hrxEmployeeRows.filter((employee) => (
+      employee.source_ref === "hrx-member-roster-source-of-truth"
+    )).length;
     const matterList = await apiJson(baseUrl, `/api/matters?${query}`, { headers: authHeaders });
     const firstMatter = Array.isArray(matterList.body?.items) ? matterList.body.items[0] : null;
     const matterId = firstMatter?.matter_id;
@@ -1466,6 +1481,12 @@ export async function buildCtiS1GAuthenticatedProductionProbeReceipt({
     const passed =
       login.status === 200 &&
       session.status === 200 &&
+      hrxEmployees.status === 200 &&
+      (!verifyCurrentHrxRoster || (
+        hrxEmployeeRows.length === 10 &&
+        rosterSourceRefCount === 10 &&
+        reportingLineMatchCount === expectedReportingLines.length
+      )) &&
       matterList.status === 200 &&
       markerStatusOk &&
       audit.status === 200 &&
@@ -1506,6 +1527,15 @@ export async function buildCtiS1GAuthenticatedProductionProbeReceipt({
       session: responseEvidence(session, {
         session_user_id_hash: session.body?.session?.user_id ? hashRef(session.body.session.user_id) : null,
         session_tenant_id: session.body?.session?.tenant_id ?? null,
+      }),
+      hrx_employees: responseEvidence(hrxEmployees, {
+        expected_employee_count: 10,
+        employee_count: hrxEmployeeRows.length,
+        roster_source_ref_count: rosterSourceRefCount,
+        expected_reporting_line_count: expectedReportingLines.length,
+        matching_reporting_line_count: reportingLineMatchCount,
+        current_roster_verification_requested: verifyCurrentHrxRoster,
+        plaintext_employee_identifiers_returned: false,
       }),
       matter_readback: responseEvidence(matterList, {
         first_matter_id_hash: matterId ? hashRef(matterId) : null,

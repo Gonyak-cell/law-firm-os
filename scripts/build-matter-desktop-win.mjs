@@ -45,9 +45,9 @@ const artifact = {
   ownerApproval: false
 };
 const artifactBody = `${JSON.stringify(artifact, null, 2)}\n`;
-const installerHash = createHash("sha256").update(artifactBody).digest("hex");
+const manifestHash = createHash("sha256").update(artifactBody).digest("hex");
 const signatureKey = formalRelease ? "matter-formal-candidate-nonproduction-signing-key" : "matter-internal-nonproduction-signing-key";
-const signature = createHmac("sha256", signatureKey).update(installerHash).digest("hex");
+const signature = createHmac("sha256", signatureKey).update(manifestHash).digest("hex");
 
 await writeFile(artifactPath, artifactBody);
 await writeFile(signaturePath, `${signature}\n`);
@@ -70,10 +70,10 @@ Channel: \`${releaseChannel}\`
 - signing type: HMAC receipt signature for internal validation, not Windows Authenticode
 - signature file: \`apps/desktop/dist/win/${artifactName}-win-installer-manifest.json.sig\`
 
-## Installer Hash
+## Manifest Hash
 
-- installer hash algorithm: sha256
-- installer hash: \`${installerHash}\`
+- manifest hash algorithm: sha256
+- manifest hash: \`${manifestHash}\`
 
 ## Install Smoke
 
@@ -100,7 +100,7 @@ console.log(
       release_channel: releaseChannel,
       app_id: appId,
       signing_identity: signatureKey,
-      installer_hash: installerHash,
+      manifest_hash: manifestHash,
       icon: "apps/desktop/build/icon.ico",
       icon_sha256: iconHash,
       install_smoke_result: "manifest_smoke_pass",

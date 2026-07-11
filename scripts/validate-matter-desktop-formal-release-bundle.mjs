@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
 const ROOT = process.cwd();
@@ -76,8 +76,9 @@ assert.equal(manifest.artifacts.length, 9);
 for (const artifact of manifest.artifacts) {
   const artifactPath = path.join(ROOT, artifact.path);
   assert(existsSync(artifactPath), `missing artifact in formal release manifest: ${artifact.path}`);
+  assert(statSync(artifactPath).isFile(), `formal release checksum target must be a file: ${artifact.path}`);
   assert.equal(artifact.sha256, sha256(artifactPath), `sha256 mismatch for ${artifact.path}`);
-  assert(checksums.includes(`${artifact.sha256}  ${artifact.display_path}`), `checksum entry missing for ${artifact.display_path}`);
+  assert(checksums.includes(`${artifact.sha256}  ${artifact.path}`), `checksum entry missing for ${artifact.path}`);
 }
 
 const requiredReceiptPhrases = [

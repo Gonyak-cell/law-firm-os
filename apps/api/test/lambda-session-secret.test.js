@@ -327,7 +327,7 @@ test("I18 S1-G authenticated production probe restores credential store and retu
       },
     });
 
-    assert.equal(receipt.ok, true);
+    assert.equal(receipt.ok, true, JSON.stringify({ status: receipt.status, hrx: receipt.probe_results?.hrx_employees }));
     assert.equal(receipt.status, "PASS");
     assert.equal(receipt.approval_signature_ref, CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_APPROVAL_REF);
     assert.equal(receipt.credential_store.records_before_count, 0);
@@ -337,6 +337,13 @@ test("I18 S1-G authenticated production probe restores credential store and retu
     assert.equal(receipt.probe_results.login.credential_provider, "lawos-internal-password-provider-v1");
     assert.equal(receipt.probe_results.login.local_dev_synthetic_only, false);
     assert.equal(receipt.probe_results.session.status, 200);
+    assert.equal(receipt.probe_results.hrx_employees.status, 200);
+    assert.equal(receipt.probe_results.hrx_employees.employee_count, 0);
+    assert.equal(receipt.probe_results.hrx_employees.roster_source_ref_count, 0);
+    assert.equal(receipt.probe_results.hrx_employees.expected_reporting_line_count, 2);
+    assert.equal(receipt.probe_results.hrx_employees.matching_reporting_line_count, 0);
+    assert.equal(receipt.probe_results.hrx_employees.current_roster_verification_requested, false);
+    assert.equal(receipt.probe_results.hrx_employees.plaintext_employee_identifiers_returned, false);
     assert.equal(receipt.probe_results.matter_readback.status, 200);
     assert.equal(receipt.probe_results.marker.status, 200);
     assert.equal(receipt.probe_results.audit_readback.matching_marker_audit_count, 1);

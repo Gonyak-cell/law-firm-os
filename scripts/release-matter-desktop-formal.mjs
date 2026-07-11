@@ -150,7 +150,7 @@ await mkdir(releaseRoot, { recursive: true });
 await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 await writeFile(
   checksumPath,
-  artifactRecords.map((artifact) => `${artifact.sha256}  ${artifact.display_path}`).join("\n") + "\n",
+  artifactRecords.map((artifact) => `${artifact.sha256}  ${artifact.path}`).join("\n") + "\n",
 );
 
 const macZip = artifactRecords.find((artifact) => artifact.id === "macos_zip_archive");

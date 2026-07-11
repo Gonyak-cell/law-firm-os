@@ -254,14 +254,14 @@ function statusForTab(activeTab: string, employeeResult: EmployeeResult, lifecyc
   }
   if (employeeResult?.kind === "error") {
     return {
-      kind: "empty",
-      message: "저장된 구성원이 없습니다."
+      kind: "error",
+      message: "구성원 정보를 확인할 수 없습니다."
     };
   }
   if (["onboarding", "offboarding"].includes(activeTab) && lifecycleResult?.kind === "error") {
     return {
-      kind: "empty",
-      message: "표시할 입퇴사 항목이 없습니다."
+      kind: "error",
+      message: "입퇴사 정보를 확인할 수 없습니다."
     };
   }
   return null;
@@ -343,7 +343,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
     orgChartResult === null
       ? { kind: "loading", message: "조직 정보를 불러오는 중입니다" }
       : orgChartResult.kind === "error"
-        ? { kind: "empty", message: "조직에 표시할 구성원이 없습니다." }
+        ? { kind: "error", message: "조직 정보를 확인할 수 없습니다." }
         : null;
   const orgUnits = useMemo<OrgUnit[]>(() => {
     const units = orgChartResult?.kind === "data" ? orgChartResult.org_units : [];
@@ -607,7 +607,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
             <span>근로정보 기준 리포팅 라인</span>
           </div>
           {orgStatus ? (
-            <div className={`live-data-state ${orgStatus.kind === "loading" ? "live-data-loading" : "live-data-empty"}`}>
+            <div className={`live-data-state ${orgStatus.kind === "loading" ? "live-data-loading" : "live-data-error"}`}>
               <strong>{orgStatus.message}</strong>
             </div>
           ) : (
