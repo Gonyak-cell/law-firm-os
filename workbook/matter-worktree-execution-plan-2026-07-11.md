@@ -2,7 +2,7 @@
 
 - 작성일: 2026-07-11
 - 저장소: `/Users/jws/Documents/Codex/Law Firm OS`
-- 상태: 실행 정본 / 구현 전
+- 상태: 기술 구현·브라우저·내부 패키지 QA 완료 / G0 지정 책임자 승인 대기
 - 적용 범위: Matter 워크트리 v1
 - 원본: Codex 첨부 명세 `98804161-c357-4f5a-a6fc-2f7573932999/pasted-text.txt`
 
