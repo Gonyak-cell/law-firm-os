@@ -1,0 +1,27 @@
+RED
+command: node --test packages/matter/test/worktree-task-state.test.js
+exit: 1
+result: 0 passed, 5 failed
+cause: completeMatterTask, reopenMatterTask, and unblockMatterTask did not exist
+
+GREEN
+command: node --test packages/matter/test/worktree-task-state.test.js
+exit: 0
+result: 5 passed, 0 failed
+
+G4 REGRESSION RECONCILIATION
+Initial existing descriptor run: 6 passed, 1 failed because its old expected todo targets omitted done.
+After updating the exact expected transition contract: 7 passed, 0 failed.
+
+MATTER PACKAGE REGRESSION
+command: LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+exit: 0
+result: 178 passed, 0 failed
+
+MANUAL LIBRARY QA
+exit: 0
+output: {"completed":"done","missing_reason_rejected":true,"reopened":"in_progress","completion_field":false}
+
+STATIC CHECKS
+node --check: passed
+git diff --check: passed

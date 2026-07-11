@@ -104,7 +104,7 @@ test("G4-B MatterTask transition descriptor enforces allowed status changes", ()
 
   assert.equal(descriptor.outcome, "review_required");
   assert.equal(descriptor.from_status, "todo");
-  assert.deepEqual(descriptor.allowed_targets, ["in_progress", "blocked", "cancelled"]);
+  assert.deepEqual(descriptor.allowed_targets, ["in_progress", "blocked", "done", "cancelled"]);
   assert.equal(descriptor.transition_receipt.transition_persisted, false);
 
   const invalid = createMatterTaskTransitionDescriptor({

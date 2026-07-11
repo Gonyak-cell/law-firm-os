@@ -1,0 +1,7 @@
+node --test packages/matter/test/worktree-task-state.test.js
+node --test packages/matter/test/client-matter-g4-execution.test.js
+LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+node --check packages/matter/src/task-service.js
+node --check packages/matter/src/client-matter-g4.js
+git diff --check -- packages/matter/src/task-service.js packages/matter/src/client-matter-g4.js packages/matter/test/worktree-task-state.test.js packages/matter/test/client-matter-g4-execution.test.js
+node --input-type=module - <<'NODE' '<manual complete and reopen driver>'
