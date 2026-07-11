@@ -1,0 +1,2 @@
+node output/playwright/matter-worktree-render-qa.mjs
+Result: exit 0; browser UI, recovery states, keyboard, screenshots PASS.
