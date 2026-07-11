@@ -4,15 +4,13 @@ Status: AWS production deployed; desktop formal candidate published
 
 This receipt records the correction of the People reporting lines requested on 2026-07-11. It does not claim a public stable desktop release, Windows Authenticode signing, owner final approval, or company-wide go-live.
 
-## Reporting Lines
+## Reporting-line Verification
 
-| Employee | Manager |
-| --- | --- |
-| 박서영 | 김양태 |
-| 조우상 | 김양태 |
-| 이예진 | 윤태리 |
+- Approved relationship corrections: 3
+- Authenticated production matches: 3 of 3
+- Identifiable employee or manager values recorded in this receipt: false
 
-The repository roster validator, API/Lambda tests, authenticated production readback, and macOS packaged-app People roster, employee detail, and organization screen passed with these relationships. The Windows workflow passed packaging and dashboard-screen QA; it did not independently inspect the People reporting lines.
+The repository roster validator, API/Lambda tests, authenticated production readback, and macOS packaged-app People roster, employee detail, and organization screen passed with the requested relationships. The Windows workflow passed packaging and dashboard-screen QA; it did not independently inspect the People reporting lines.
 
 ## Provenance and AWS
 

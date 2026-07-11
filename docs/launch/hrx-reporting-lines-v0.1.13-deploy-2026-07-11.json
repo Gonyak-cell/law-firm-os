@@ -9,11 +9,10 @@
     "release_branch": "codex/lcx-vltui-owner-approval-intake",
     "contained_in_origin_main": false
   },
-  "reporting_lines": [
-    { "employee": "박서영", "manager": "김양태" },
-    { "employee": "조우상", "manager": "김양태" },
-    { "employee": "이예진", "manager": "윤태리" }
-  ],
+  "reporting_line_scope": {
+    "approved_relationship_count": 3,
+    "identifiable_employee_or_manager_values_recorded": false
+  },
   "lambda": {
     "function_name": "matter-lawos-api-prod",
     "state": "Active",
