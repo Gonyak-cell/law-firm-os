@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.matter-worktree-domain-contract.v1",
+  "models": {
+    "MatterWorktree": {
+      "worktree_id": "worktree_wt_contract",
+      "tenant_id": "tenant_wt_contract",
+      "matter_id": "matter_wt_contract",
+      "status": "active",
+      "version": 1,
+      "created_by": "user_wt_contract_owner",
+      "created_at": "2026-07-11T00:00:00.000Z",
+      "updated_by": "user_wt_contract_owner",
+      "updated_at": "2026-07-11T00:00:00.000Z"
+    },
+    "MatterWorktreeNode": [
+      {
+        "node_id": "node_wt_contract_branch",
+        "worktree_id": "worktree_wt_contract",
+        "tenant_id": "tenant_wt_contract",
+        "matter_id": "matter_wt_contract",
+        "node_type": "branch",
+        "parent_node_id": null,
+        "title": "준비",
+        "sort_order": 0,
+        "status": "active",
+        "task_id": null
+      },
+      {
+        "node_id": "node_wt_contract_task",
+        "worktree_id": "worktree_wt_contract",
+        "tenant_id": "tenant_wt_contract",
+        "matter_id": "matter_wt_contract",
+        "node_type": "task",
+        "parent_node_id": "node_wt_contract_branch",
+        "title": "기초 자료 검토",
+        "sort_order": 0,
+        "status": "active",
+        "task_id": "task_wt_contract_001"
+      }
+    ]
+  },
+  "expected_projection": {
+    "root": {
+      "node_id": "worktree-root:worktree_wt_contract",
+      "node_type": "root",
+      "title": "WT 계약 검증 Matter",
+      "depth": 0
+    },
+    "computed_progress": {
+      "persisted": false,
+      "completion_source": "MatterTask.status"
+    },
+    "unclassified_branch": {
+      "persisted": false,
+      "label": "미분류 업무"
+    }
+  },
+  "expected_deletion": {
+    "node_id": "node_wt_contract_task",
+    "node_status": "archived",
+    "matter_task_id": "task_wt_contract_001",
+    "matter_task_deleted": false
+  }
+}

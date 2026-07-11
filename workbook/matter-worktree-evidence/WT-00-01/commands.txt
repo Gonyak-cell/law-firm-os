@@ -1,0 +1,32 @@
+WT-00-01 command evidence
+
+1. Red test
+node --test packages/matter/test/worktree-domain-contract.test.js
+exit: 1
+result: 0 passed, 5 failed
+reason: contracts/matter-worktree-domain-contract.json did not exist
+
+2. Green targeted test
+node --test packages/matter/test/worktree-domain-contract.test.js
+exit: 0
+result: 5 passed, 0 failed
+
+3. Related package test, default environment
+npm --workspace packages/matter test
+exit: 1
+result: 121 passed, 1 failed
+reason: sandbox denied write to /Users/jws/lawos-backups/data
+
+4. Related package test, isolated test backup roots
+LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+exit: 0
+result: 122 passed, 0 failed
+
+5. Diff validation
+git diff --check -- contracts/matter-worktree-domain-contract.json packages/matter/fixtures/matter-worktree-domain-contract.fixture.json packages/matter/test/worktree-domain-contract.test.js
+exit: 0
+
+6. Commit attempt
+git add -- workbook/matter-worktree-execution-plan-2026-07-11.md
+exit: 128
+result: fatal: Unable to create .git/index.lock: Operation not permitted

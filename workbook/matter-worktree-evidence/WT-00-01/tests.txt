@@ -1,0 +1,22 @@
+WT-00-01 red-to-green evidence
+
+RED
+- WT-00-01 validates the domain contract fixture schema: FAIL ENOENT
+- WT-00-01 fixes worktree models and status vocabularies: FAIL ENOENT
+- WT-00-01 projects the root instead of persisting a root node: FAIL ENOENT
+- WT-00-01 archives placement without deleting MatterTask: FAIL ENOENT
+- WT-00-01 fixes depth and one-active-worktree constraints: FAIL ENOENT
+- summary: 0 passed, 5 failed
+
+GREEN
+- WT-00-01 validates the domain contract fixture schema: PASS
+- WT-00-01 fixes worktree models and status vocabularies: PASS
+- WT-00-01 projects the root instead of persisting a root node: PASS
+- WT-00-01 archives placement without deleting MatterTask: PASS
+- WT-00-01 fixes depth and one-active-worktree constraints: PASS
+- summary: 5 passed, 0 failed
+
+RELATED PACKAGE
+- @law-firm-os/matter: 122 passed, 0 failed
+- environment: LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data
+- environment: LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue
