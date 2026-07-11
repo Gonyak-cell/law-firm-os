@@ -1,0 +1,5 @@
+RED: GET had no ETag and stale PATCH returned 200.
+GREEN Worktree API slice: 20/20.
+MANUAL QA: {"etag":"\"2\"","stale_status":409,"current_version":2,"title":"원본"}
+STATIC: node --check and git diff --check passed.
+

@@ -505,11 +505,12 @@ export function corsHeadersForRequest(req, { env = process.env } = {}) {
   return headers;
 }
 
-function sendJson(req, res, status, body) {
+function sendJson(req, res, status, body, extraHeaders = {}) {
   res.writeHead(status, {
     "content-type": "application/json; charset=utf-8",
     "cache-control": "no-store",
     ...corsHeadersForRequest(req),
+    ...extraHeaders,
   });
   res.end(JSON.stringify(body));
 }
@@ -993,7 +994,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
   if (isAuthPath) {
     const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const result = await sessionAuth.handleAuthApiRequest({ pathname, method: req.method, body, headers: req.headers, requestId });
-    sendJson(req, res, result.status, result.body);
+    sendJson(req, res, result.status, result.body, result.headers);
     return;
   }
 
@@ -1010,7 +1011,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       requestId,
       runtime: matterRuntime,
     });
-    sendJson(req, res, result.status, result.body);
+    sendJson(req, res, result.status, result.body, result.headers);
     return;
   }
 
@@ -1133,7 +1134,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       requestId,
       runtime: matterRuntime,
     });
-    sendJson(req, res, result.status, result.body);
+    sendJson(req, res, result.status, result.body, result.headers);
     return;
   }
 
