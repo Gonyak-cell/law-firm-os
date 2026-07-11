@@ -465,7 +465,9 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(stylesSource, /\.home-feed-tabs\s*\{[\s\S]*background:\s*transparent/);
   assert.match(stylesSource, /\.home-feed-tabs button::after[\s\S]*height:\s*3px/);
   assert.match(stylesSource, /\.home-feed-tabs button\.active::after[\s\S]*background:\s*var\(--am-success\)/);
-  assert.match(homeSource, /블로터, 법률신문, 딜사이트, 인베스트조선/);
+  assert.match(homeSource, /id: "notice", labelKey: "homeFeedNotice", label: "공지사항"/);
+  assert.match(homeSource, /id: "newsletter", labelKey: "homeFeedNewsletter", label: "뉴스레터"/);
+  assert.doesNotMatch(homeSource, /id: "news"/);
   assert.match(stylesSource, /grid-template-areas:\s*"recent recent rail"\s*"todo intake rail"\s*"monthly feed feed"/);
   for (const section of ["recent-work", "today-todo", "monthly-sales", "new-engagements", "feed", "calendar"]) {
     assert.match(homeSource, new RegExp(`section="${section}"`));
