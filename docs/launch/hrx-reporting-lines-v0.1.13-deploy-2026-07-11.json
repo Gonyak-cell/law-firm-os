@@ -1,0 +1,69 @@
+{
+  "schema_version": "law-firm-os.hrx-reporting-lines-deploy.v0.1",
+  "generated_at": "2026-07-11T06:14:50Z",
+  "source_commit": "e0df8f50d",
+  "reporting_lines": [
+    { "employee": "박서영", "manager": "김양태" },
+    { "employee": "조우상", "manager": "김양태" },
+    { "employee": "이예진", "manager": "윤태리" }
+  ],
+  "lambda": {
+    "function_name": "matter-lawos-api-prod",
+    "state": "Active",
+    "last_update_status": "Successful",
+    "code_sha256_base64": "oiDeEsw+GiZSYDnUK614SZmo1yeUPhFgwK4q1t6MYWU=",
+    "revision_id": "d129a728-eb4a-4ac4-ac9f-c02584fe88b1",
+    "runtime_generation": "2026-07-11T06:04:06Z",
+    "reserved_concurrency": 1
+  },
+  "authenticated_readback": {
+    "verdict": "PASS",
+    "employee_count": 10,
+    "roster_source_ref_count": 10,
+    "expected_reporting_line_count": 3,
+    "matching_reporting_line_count": 3,
+    "credential_store_restored": true,
+    "token_or_password_returned": false,
+    "secret_value_returned": false
+  },
+  "web": {
+    "bucket": "matter-lawos-web-prod-770880870480-apne2",
+    "distribution_id": "E3MVAKX2DIR3CS",
+    "invalidation_id": "I67EPOER3COKOWDJRM3KQ2E342",
+    "invalidation_status": "Completed",
+    "javascript_asset": "assets/index-CYmd0u2r.js",
+    "javascript_sha256": "90bfb3999da33b8d3fb6d13d4c4c4375ce39e22c64eb0675b3c084c39cc9e2a9",
+    "root_status": 200,
+    "api_health_status": 200,
+    "unauthenticated_hrx_status": 401
+  },
+  "desktop": {
+    "version": "0.1.13",
+    "release_id": "matter-desktop-v0.1.13-20260711-e9a5b285f",
+    "channel": "formal-candidate",
+    "macos_zip_sha256": "5db2bcc7edb68f1fd2ac9a409f0554cae7d8502c3f66f99fc4d34431adef6b49",
+    "macos_dmg_sha256": "b3c231ebdf287995daef3801660074292dd047517db2aecbfa0d92b3debc7bf5",
+    "windows_installer_sha256": "b97c3ae048d9a720ad7fac460aa0f07df17de864a5ad5763a199a0d360bdfbad",
+    "windows_blockmap_sha256": "78118a5447a360f4dd75e7abd91a2a1e69069c131769cff05c8be6c1c8cbfac4",
+    "checksum_entries_verified": 9,
+    "macos_developer_id": true,
+    "macos_notarized": true,
+    "windows_package_qa_run_id": 29142400909,
+    "windows_package_qa_verdict": "PASS",
+    "windows_authenticode": false,
+    "native_windows_installer_execution": "not_claimed"
+  },
+  "rollback": {
+    "predeploy_lambda_sha256": "2c5e0ce12ba26ff6c00b27e834bd68c7919dad98634593d279e5887d045e4062",
+    "s3_object_count": 38,
+    "durable_local_root": "~/Library/Application Support/LawFirmOS/deploy-rollbacks/lawos-hrx-reporting-lines-e0df8f50d",
+    "hrx_store_backup_created": true
+  },
+  "claims": {
+    "aws_production_deployed": true,
+    "desktop_formal_candidate_published": true,
+    "public_stable_desktop_release": false,
+    "owner_final_approval": false,
+    "company_wide_go_live": false
+  }
+}
