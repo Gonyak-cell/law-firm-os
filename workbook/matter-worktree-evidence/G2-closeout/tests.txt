@@ -1,0 +1,5 @@
+PASS packages/matter: 184/184.
+PASS Worktree API contract: 20/20.
+PASS desktop smoke: 92/92.
+PASS aws-runtime-client: 19/19.
+INCONCLUSIVE full apps/api glob: TAP started but emitted no test completion for 60 seconds on two attempts; sessions were terminated.
