@@ -1,0 +1,26 @@
+{
+  "schema_version": "law-firm-os.matter-worktree.packaged-restart-qa.v1",
+  "generated_at": "2026-07-11T15:51:45.825Z",
+  "status": "passed",
+  "exact_bundle": "apps/desktop/dist/mac/matter.app",
+  "exact_executable": "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "executable_sha256": "c0bf182389ea930585e3b0bf5c4f16529461e02bf3be751cb364d0e25f2257e0",
+  "app_launch_count": 2,
+  "local_api_port_changed": true,
+  "task_state_before_write": "todo",
+  "task_state_after_first_launch": "done",
+  "task_state_after_restart": "done",
+  "restored_progress": "1/1",
+  "durable_audit_event_count": 1,
+  "matter_task_is_completion_source": true,
+  "isolated_runtime_store": true,
+  "credential_material_recorded": false,
+  "real_client_data_used": false,
+  "public_release": false,
+  "aws_deployment": false,
+  "production_go_live": false,
+  "screenshots": [
+    "workbook/matter-worktree-evidence/WT-04-07/packaged-before-restart.png",
+    "workbook/matter-worktree-evidence/WT-04-07/packaged-after-restart.png"
+  ]
+}

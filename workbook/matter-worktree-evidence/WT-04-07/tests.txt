@@ -1,0 +1,3 @@
+Static renderer parity and internal package creation PASS.
+Exact current bundle live flow PASS: two full app launches, first-launch write, second-launch checked state and 1/1 progress restoration, durable MatterTask status, one audit event.
+Distribution signing/notarization is not claimed by this internal package QA.

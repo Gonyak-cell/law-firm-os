@@ -1,0 +1,4 @@
+npm --workspace apps/desktop run prepare:web-renderer
+MATTER_ELECTRON_ZIP_DIR=/tmp/matter-electron-zips npm --workspace apps/desktop run build:mac
+/usr/bin/codesign --verify --deep --strict --verbose=2 apps/desktop/dist/mac/matter.app
+node scripts/run-matter-worktree-packaged-restart-qa.mjs
