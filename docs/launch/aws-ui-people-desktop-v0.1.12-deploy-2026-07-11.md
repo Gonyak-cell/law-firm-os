@@ -1,6 +1,6 @@
 # Matter UI, People, and Desktop v0.1.12 Deployment Receipt
 
-Status: AWS production deployed; desktop formal candidate prepared
+Status: AWS production deployed; desktop formal candidate published
 
 This receipt records the 2026-07-11 deployment of the current People UI/API state and the preparation of Matter Desktop `0.1.12`. It does not claim a public stable desktop release, Windows Authenticode signing, native Windows installation QA, owner final approval, or company-wide go-live.
 
@@ -81,7 +81,7 @@ The browser smoke loaded the current JavaScript, rendered the People surface, di
 ## Claim Boundary
 
 - AWS production deployed: true
-- Desktop formal candidate published: false at receipt generation time
+- Desktop formal candidate published: true
 - Public stable desktop release: false
 - Company-wide go-live: false
 - Owner final approval: false

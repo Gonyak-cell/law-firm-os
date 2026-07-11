@@ -85,7 +85,7 @@
   },
   "claims": {
     "aws_production_deployed": true,
-    "desktop_formal_candidate_published": false,
+    "desktop_formal_candidate_published": true,
     "public_stable_desktop_release": false,
     "company_wide_go_live": false,
     "owner_final_approval": false
