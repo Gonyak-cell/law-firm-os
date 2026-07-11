@@ -1,0 +1,2 @@
+Exit: 1
+Failure: selected-node detail fields and panel were absent.
