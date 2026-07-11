@@ -1,0 +1,9 @@
+RED: worktree-mutation.test.js 0/5; missing common module and task replay flag.
+GREEN: worktree-mutation.test.js 5/5.
+RED: worktree-template-snapshot.test.js 4/5; replay hit active Worktree conflict.
+GREEN targeted regression: 15/15.
+GREEN full Matter suite: 184/184.
+MANUAL QA: {"first_status":"done","first_replay":false,"replay_status":"done","replay_replay":true,"audit_count":1,"idempotency_count":1}
+STATIC: node --check and git diff --check passed.
+LOC: worktree-mutation.js 52; task-service.js 73; worktree-template-snapshot.js 94.
+

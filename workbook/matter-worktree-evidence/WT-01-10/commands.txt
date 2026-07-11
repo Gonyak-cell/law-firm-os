@@ -1,0 +1,11 @@
+node --test packages/matter/test/worktree-mutation.test.js
+node --test packages/matter/test/worktree-template-snapshot.test.js
+node --test packages/matter/test/worktree-mutation.test.js packages/matter/test/worktree-task-state.test.js packages/matter/test/worktree-template-snapshot.test.js
+LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+node --input-type=module -  # manual library driver: complete the same task twice
+node --check packages/matter/src/worktree-mutation.js
+node --check packages/matter/src/task-service.js
+node --check packages/matter/src/worktree-template-snapshot.js
+wc -l packages/matter/src/worktree-mutation.js packages/matter/src/task-service.js packages/matter/src/worktree-template-snapshot.js
+git diff --check
+
