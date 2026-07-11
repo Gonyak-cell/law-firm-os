@@ -1,0 +1,7 @@
+RED: all three create/template API cases returned the unmatched-route error.
+GREEN create/read API: 6/6.
+GREEN full Matter regression: 184/184.
+MANUAL QA: {"created_status":201,"created_state":"active","duplicate_status":409,"stored_worktrees":1,"audit_count":1}
+STATIC: node --check and git diff --check passed.
+LOC: matter-worktree-write-api.js 73.
+
