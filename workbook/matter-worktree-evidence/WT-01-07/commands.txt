@@ -1,0 +1,5 @@
+node --test packages/matter/test/worktree-template-snapshot.test.js
+LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+node --check packages/matter/src/worktree-template-snapshot.js
+git diff --check -- packages/matter/src/worktree-model.js packages/matter/src/worktree-template-snapshot.js packages/matter/src/index.js packages/matter/test/worktree-template-snapshot.test.js
+node --input-type=module - <<'NODE' '<manual synthetic approved-template application driver>'

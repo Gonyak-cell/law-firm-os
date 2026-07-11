@@ -1,0 +1,8 @@
+packages/matter/src/worktree-model.js
+packages/matter/src/worktree-template-snapshot.js
+packages/matter/src/index.js
+packages/matter/test/worktree-template-snapshot.test.js
+workbook/matter-worktree-evidence/WT-01-07/acceptance.md
+workbook/matter-worktree-evidence/WT-01-07/commands.txt
+workbook/matter-worktree-evidence/WT-01-07/tests.txt
+workbook/matter-worktree-evidence/WT-01-07/files.txt
