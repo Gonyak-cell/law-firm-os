@@ -121,16 +121,20 @@ for (const width of [1280, 1024, 768, 375]) {
   const measurement = await page.evaluate(() => {
     const buttons = [...document.querySelectorAll(".matter-worktree-practice-areas button")];
     const widths = buttons.map((button) => Math.round(button.getBoundingClientRect().width * 10) / 10);
+    const fontSizes = buttons.map((button) => getComputedStyle(button).fontSize);
     return {
       viewport: document.documentElement.clientWidth,
       pageWidth: document.documentElement.scrollWidth,
       overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
       practiceWidths: widths,
+      practiceFontSizes: fontSizes,
+      practiceFontSizeMatchesBoard: fontSizes.every((fontSize) => fontSize === "16px"),
       equalPracticeWidths: Math.max(...widths) - Math.min(...widths) < 1,
       treeItems: document.querySelectorAll('[role="treeitem"]').length,
     };
   });
   assert.equal(measurement.overflow, false, `${width}px page overflow`);
+  assert.equal(measurement.practiceFontSizeMatchesBoard, true, `${width}px practice font matches Matter board tabs`);
   if (width > 768) assert.equal(measurement.equalPracticeWidths, true, `${width}px practice widths`);
   results.push(measurement);
   await page.screenshot({ path: fileURLToPath(new URL(`worktree-${width}.png`, outputDir)), fullPage: true });

@@ -2652,6 +2652,7 @@ kbd {
   background: var(--am-surface);
   color: var(--am-text-muted);
   font: inherit;
+  font-size: 16px;
   font-weight: 400;
   letter-spacing: 0.02em;
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-worktree.packaged-restart-qa.v1",
-  "generated_at": "2026-07-11T16:55:46.955Z",
+  "generated_at": "2026-07-11T17:12:49.720Z",
   "status": "passed",
   "exact_bundle": "apps/desktop/dist/mac/matter.app",
   "exact_executable": "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
@@ -11,6 +11,20 @@
   "task_state_after_first_launch": "done",
   "task_state_after_restart": "done",
   "restored_progress": "1/1",
+  "worktree_practice_typography": {
+    "labels": [
+      "송무",
+      "기업 자문",
+      "분쟁",
+      "트랜잭션"
+    ],
+    "font_sizes": [
+      "16px",
+      "16px",
+      "16px",
+      "16px"
+    ]
+  },
   "people_sidebar_alignment": {
     "title": "People",
     "title_delta": 0,

@@ -167,6 +167,7 @@ async function run() {
   let firstRuntimeBaseUrl;
   let secondRuntimeBaseUrl;
   let peopleSidebarAlignment;
+  let worktreePracticeTypography;
   try {
     ({ app: firstApp } = await launchPackagedApp().then(async ({ app, page }) => {
       firstRuntimeBaseUrl = await page.evaluate(() => window.matterSession.desktopApiBaseUrl);
@@ -187,6 +188,14 @@ async function run() {
       const checkbox = await openSeededWorktree(page);
       assert.equal(await checkbox.isChecked(), true, "completed task must remain checked after full app restart");
       assert.match(await page.locator('.matter-worktree-progress-copy').innerText(), /1\/1 완료/, "second launch must restore completed progress");
+      worktreePracticeTypography = await page.locator('.matter-worktree-practice-areas button').evaluateAll((buttons) => ({
+        labels: buttons.map((button) => button.textContent.trim()),
+        font_sizes: buttons.map((button) => getComputedStyle(button).fontSize),
+      }));
+      assert.deepEqual(worktreePracticeTypography, {
+        labels: ["송무", "기업 자문", "분쟁", "트랜잭션"],
+        font_sizes: ["16px", "16px", "16px", "16px"],
+      });
       await page.screenshot({ path: path.join(evidenceDir, "packaged-after-restart.png"), fullPage: false, animations: "disabled", caret: "hide" });
       await page.locator('[data-product-axis="people"]').click();
       await page.locator('[data-context-sidebar="people"]').waitFor({ state: "visible" });
@@ -228,6 +237,7 @@ async function run() {
       task_state_after_first_launch: "done",
       task_state_after_restart: persistedTask.status,
       restored_progress: "1/1",
+      worktree_practice_typography: worktreePracticeTypography,
       people_sidebar_alignment: peopleSidebarAlignment,
       durable_audit_event_count: auditCount,
       matter_task_is_completion_source: true,
