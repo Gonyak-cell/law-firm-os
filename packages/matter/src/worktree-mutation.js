@@ -19,11 +19,43 @@ function requireMutationEvidence(command) {
   }
 }
 
+function canonical(value) {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonical(value[key])]));
+  }
+  return value ?? null;
+}
+
+function requestFingerprint(command) {
+  return JSON.stringify(canonical({
+    operation: command.operation,
+    actor_id: command.actor_id,
+    reason: command.reason,
+    source_ref: command.source_ref,
+    object_type: command.object_type,
+    object_id: command.object_id,
+    request: command.request_fingerprint ?? null,
+  }));
+}
+
+export class MatterWorktreeIdempotencyError extends Error {
+  constructor() {
+    super("Idempotency key was already used for another Worktree request");
+    this.name = "MatterWorktreeIdempotencyError";
+    this.code = "WORKTREE_IDEMPOTENCY_CONFLICT";
+  }
+}
+
 export function executeWorktreeMutation(repository, command, mutate) {
   requireMutationEvidence(command);
   if (typeof mutate !== "function") throw new TypeError("mutate is required");
+  const fingerprint = requestFingerprint(command);
   const existing = repository.getIdempotency(command);
-  if (existing) return Object.freeze({ ...existing.response, idempotent_replay: true });
+  if (existing) {
+    if (existing.request_fingerprint !== fingerprint) throw new MatterWorktreeIdempotencyError();
+    return Object.freeze({ ...existing.response, idempotent_replay: true });
+  }
 
   return repository.transaction((transaction) => {
     const result = mutate(transaction);
@@ -46,6 +78,10 @@ export function executeWorktreeMutation(repository, command, mutate) {
       tenant_id: command.tenant_id,
       idempotency_key: command.idempotency_key,
       operation: command.operation,
+      object_type: command.object_type,
+      object_id: command.object_id,
+      actor_id: command.actor_id,
+      request_fingerprint: fingerprint,
       response,
       created_at: command.occurred_at,
     });

@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import { existsSync, mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 import { createMatterRepository } from "../src/repository.js";
 
@@ -126,4 +129,65 @@ test("WT-01-10 makes Worktree task completion idempotent with one audit event", 
   assert.equal(first.idempotent_replay, false);
   assert.equal(replay.idempotent_replay, true);
   assert.equal(repository.listAudit({ tenant_id: "tenant_wt_01_10" }).length, 1);
+});
+
+test("Worktree idempotency refuses a key reused for another operation, actor, object, or payload", async () => {
+  const { executeWorktreeMutation, MatterWorktreeIdempotencyError } = await import("../src/worktree-mutation.js");
+  const repository = createMatterRepository();
+  executeWorktreeMutation(repository, mutationCommand({ request_fingerprint: { title: "A" } }), () => ({ item: { id: "matter-a" } }));
+
+  for (const command of [
+    mutationCommand({ operation: "patch" }),
+    mutationCommand({ actor_id: "user_other" }),
+    mutationCommand({ reason: "다른 변경 사유" }),
+    mutationCommand({ object_id: "worktree_other" }),
+    mutationCommand({ request_fingerprint: { title: "B" } }),
+  ]) {
+    assert.throws(
+      () => executeWorktreeMutation(repository, command, () => ({ item: { id: "should-not-run" } })),
+      (error) => error instanceof MatterWorktreeIdempotencyError && error.code === "WORKTREE_IDEMPOTENCY_CONFLICT",
+    );
+  }
+});
+
+test("repository restores transaction depth after a commit persistence failure", () => {
+  let failNextWrite = true;
+  const writes = [];
+  const repository = createMatterRepository({
+    filePath: "/virtual/matter.json",
+    writeState({ value }) {
+      if (failNextWrite) {
+        failNextWrite = false;
+        throw new Error("synthetic durable write failure");
+      }
+      writes.push(structuredClone(value));
+    },
+  });
+
+  assert.throws(() => repository.transaction((transaction) => {
+    transaction.create(worktreeInput());
+  }), /synthetic durable write failure/);
+
+  repository.transaction((transaction) => {
+    transaction.create(worktreeInput());
+    transaction.appendAudit({ tenant_id: "tenant_wt_01_10", event_id: "event-after-recovery" });
+  });
+
+  assert.equal(writes.length, 1);
+  assert.equal(writes[0].records.length, 1);
+  assert.equal(writes[0].audit_events.length, 1);
+});
+
+test("repository transactions do not expose intermediate durable states", () => {
+  const dir = mkdtempSync(join(tmpdir(), "matter-worktree-atomic-"));
+  const filePath = join(dir, "matter.json");
+  const repository = createMatterRepository({ filePath });
+
+  repository.transaction((transaction) => {
+    transaction.create(worktreeInput());
+    assert.equal(existsSync(filePath), false);
+  });
+
+  const after = JSON.parse(readFileSync(filePath, "utf8"));
+  assert.equal(after.records.some(({ model_type }) => model_type === "MatterWorktree"), true);
 });

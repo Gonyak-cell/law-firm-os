@@ -78,8 +78,9 @@ function loadState(filePath) {
   };
 }
 
-export function createMatterRepository({ filePath, seedRecords = [] } = {}) {
+export function createMatterRepository({ filePath, seedRecords = [], writeState = writeJsonFileDurably } = {}) {
   let closed = false;
+  let transactionDepth = 0;
   let state = loadState(filePath);
   const records = new Map();
   const idempotency = new Map();
@@ -94,10 +95,10 @@ export function createMatterRepository({ filePath, seedRecords = [] } = {}) {
     };
   }
 
-  function persist({ createBackup = true } = {}) {
-    if (!filePath) return;
+  function persist({ createBackup = true, force = false } = {}) {
+    if (!filePath || (transactionDepth > 0 && !force)) return;
     const nextState = currentState();
-    writeJsonFileDurably({
+    writeState({
       filePath,
       value: nextState,
       previousState: state,
@@ -182,6 +183,10 @@ export function createMatterRepository({ filePath, seedRecords = [] } = {}) {
         tenant_id: entry.tenant_id,
         idempotency_key: entry.idempotency_key,
         operation: entry.operation ?? "matter_operation",
+        object_type: entry.object_type ?? null,
+        object_id: entry.object_id ?? null,
+        actor_id: entry.actor_id ?? null,
+        request_fingerprint: entry.request_fingerprint ?? null,
         response: clone(entry.response ?? {}),
         created_at: entry.created_at ?? new Date().toISOString(),
       });
@@ -214,14 +219,17 @@ export function createMatterRepository({ filePath, seedRecords = [] } = {}) {
     },
     transaction(fn) {
       assertOpen();
+      const entryDepth = transactionDepth;
       const before = {
         records: new Map([...records.entries()].map(([key, value]) => [key, clone(value)])),
         idempotency: new Map([...idempotency.entries()].map(([key, value]) => [key, clone(value)])),
         auditEvents: new Map([...auditEvents.entries()].map(([key, value]) => [key, clone(value)])),
       };
+      transactionDepth = entryDepth + 1;
       try {
         const result = fn(this);
-        persist();
+        transactionDepth = entryDepth;
+        persist({ force: entryDepth === 0 });
         return result;
       } catch (error) {
         records.clear();
@@ -230,8 +238,10 @@ export function createMatterRepository({ filePath, seedRecords = [] } = {}) {
         for (const [key, value] of before.records) records.set(key, value);
         for (const [key, value] of before.idempotency) idempotency.set(key, value);
         for (const [key, value] of before.auditEvents) auditEvents.set(key, value);
-        persist();
+        transactionDepth = entryDepth;
         throw error;
+      } finally {
+        transactionDepth = entryDepth;
       }
     },
     snapshot() {

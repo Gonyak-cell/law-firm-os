@@ -48,6 +48,7 @@ function transitionWithEvidence(options, toStatus, operation, defaultReason) {
     source_ref,
     object_type: "MatterTask",
     object_id: task?.task_id,
+    request_fingerprint: { to_status: toStatus, reason },
     occurred_at,
     request_id,
   }, (transaction) => transitionMatterTask({
