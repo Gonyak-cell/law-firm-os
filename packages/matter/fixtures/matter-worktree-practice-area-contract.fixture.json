@@ -1,0 +1,60 @@
+{
+  "schema_version": "law-firm-os.matter-worktree-practice-area-contract.v1",
+  "alias_cases": [
+    {
+      "input": "LIT",
+      "expected": "litigation"
+    },
+    {
+      "input": "litigation",
+      "expected": "litigation"
+    },
+    {
+      "input": " 송무 ",
+      "expected": "litigation"
+    },
+    {
+      "input": "ADV",
+      "expected": "corporate-advisory"
+    },
+    {
+      "input": "Advisory",
+      "expected": "corporate-advisory"
+    },
+    {
+      "input": "corporate_advisory",
+      "expected": "corporate-advisory"
+    },
+    {
+      "input": "기업 자문",
+      "expected": "corporate-advisory"
+    },
+    {
+      "input": "Dispute",
+      "expected": "dispute"
+    },
+    {
+      "input": "분쟁",
+      "expected": "dispute"
+    },
+    {
+      "input": "DEAL",
+      "expected": "transaction"
+    },
+    {
+      "input": "transaction",
+      "expected": "transaction"
+    },
+    {
+      "input": "트랜잭션",
+      "expected": "transaction"
+    }
+  ],
+  "unclassified_cases": [
+    null,
+    "",
+    "   ",
+    "UNKNOWN",
+    "General"
+  ]
+}

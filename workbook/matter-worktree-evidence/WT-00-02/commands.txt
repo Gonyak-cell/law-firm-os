@@ -1,0 +1,24 @@
+WT-00-02 command evidence
+
+1. Red test
+node --test packages/matter/test/worktree-practice-area-contract.test.js
+exit: 1
+result: 0 passed, 5 failed
+reason: contracts/matter-worktree-practice-area-contract.json did not exist
+
+2. Green targeted test
+node --test packages/matter/test/worktree-practice-area-contract.test.js
+exit: 0
+result: 5 passed, 0 failed
+
+3. Related package test
+LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+exit: 0
+result: 127 passed, 0 failed
+
+4. Diff validation
+git diff --check -- contracts/matter-worktree-practice-area-contract.json packages/matter/fixtures/matter-worktree-practice-area-contract.fixture.json packages/matter/test/worktree-practice-area-contract.test.js
+exit: 0
+
+5. Commit state
+result: pending because .git/index.lock cannot be created in the current sandbox

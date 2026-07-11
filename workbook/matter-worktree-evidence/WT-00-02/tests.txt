@@ -1,0 +1,20 @@
+WT-00-02 red-to-green evidence
+
+RED
+- WT-00-02 fixes the four canonical practice-area identities: FAIL ENOENT
+- WT-00-02 maps every declared alias to its canonical practice area: FAIL ENOENT
+- WT-00-02 returns unclassified for blank and unknown input: FAIL ENOENT
+- WT-00-02 has no alias collision across practice areas: FAIL ENOENT
+- WT-00-02 preserves the existing Matter board field precedence: FAIL ENOENT
+- summary: 0 passed, 5 failed
+
+GREEN
+- WT-00-02 fixes the four canonical practice-area identities: PASS
+- WT-00-02 maps every declared alias to its canonical practice area: PASS
+- WT-00-02 returns unclassified for blank and unknown input: PASS
+- WT-00-02 has no alias collision across practice areas: PASS
+- WT-00-02 preserves the existing Matter board field precedence: PASS
+- summary: 5 passed, 0 failed
+
+RELATED PACKAGE
+- @law-firm-os/matter: 127 passed, 0 failed
