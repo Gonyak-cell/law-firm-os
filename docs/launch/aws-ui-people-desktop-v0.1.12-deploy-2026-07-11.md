@@ -38,8 +38,11 @@ This receipt records the 2026-07-11 deployment of the current People UI/API stat
 | State | `Active` |
 | Last update | `Successful` |
 | Code SHA-256 | `LF4M4Suib/bACyfoNL1ox5GdrZhjRZPSeeWIfQReQGI=` |
-| Revision | `5c8d5d78-e31b-421b-990e-6e1721cafd69` |
+| Revision | `f45bb6f5-5598-457b-a96f-0170e4f15744` |
 | Deployment commit | `d04ce78e9` |
+| Reserved concurrency | `1` |
+| HRX write serialization | `reserved-concurrency-1` |
+| Runtime generation | `2026-07-11T05:50:00Z` |
 
 ## HRX Reconciliation and Authenticated Smoke
 
@@ -54,6 +57,8 @@ The final authenticated probe passed with:
 - Required reporting lines: 2 of 2
 - Credential store restored after the probe: true
 - Token, password, employee PII, or secret material returned: false
+
+Because the operational HRX store is file-backed, the Lambda was then constrained to one reserved concurrent execution and its runtime generation was advanced. After the old execution environment drained, a second reconciliation was a no-op at the store level: 10 employees remained, no employees were created or changed, and the before/after store SHA-256 values were identical (`b6f17ab449d1b146e0ea56b082011e215f9d9ee43916036c83a96516c39e7948`). Two authenticated probes, separated by ten seconds, both retained 10 employees, 10 roster-source references, and both required reporting lines. This is the deployed serialization boundary for this file-backed store; it is not a database-level concurrency guarantee.
 
 ## Web and CloudFront
 

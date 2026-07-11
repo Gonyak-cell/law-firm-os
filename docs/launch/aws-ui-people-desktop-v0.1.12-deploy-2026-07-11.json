@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.aws-ui-people-desktop-deploy.v0.1",
-  "generated_at": "2026-07-11T05:42:00.000Z",
+  "generated_at": "2026-07-11T05:53:00.000Z",
   "aws_account_id": "770880870480",
   "aws_region": "ap-northeast-2",
   "aws_profile": "matter-prod-deploy-admin",
@@ -27,10 +27,13 @@
     "runtime": "nodejs22.x",
     "state": "Active",
     "last_update_status": "Successful",
-    "last_modified": "2026-07-11T05:38:44.000+0000",
+    "last_modified": "2026-07-11T05:50:25.000+0000",
     "code_sha256_base64": "LF4M4Suib/bACyfoNL1ox5GdrZhjRZPSeeWIfQReQGI=",
-    "revision_id": "5c8d5d78-e31b-421b-990e-6e1721cafd69",
-    "deployment_commit": "d04ce78e9"
+    "revision_id": "f45bb6f5-5598-457b-a96f-0170e4f15744",
+    "deployment_commit": "d04ce78e9",
+    "reserved_concurrency": 1,
+    "hrx_write_serialization_mode": "reserved-concurrency-1",
+    "runtime_generation": "2026-07-11T05:50:00Z"
   },
   "web": {
     "bucket": "matter-lawos-web-prod-770880870480-apne2",
@@ -68,6 +71,24 @@
     "credential_store_restored": true,
     "token_or_password_returned": false,
     "secret_value_returned": false
+  },
+  "post_serialization_verification": {
+    "verdict": "PASS",
+    "reconciliation_employee_count": 10,
+    "reconciliation_employees_created": 0,
+    "reconciliation_employees_reconciled": 0,
+    "store_before_sha256": "b6f17ab449d1b146e0ea56b082011e215f9d9ee43916036c83a96516c39e7948",
+    "store_after_sha256": "b6f17ab449d1b146e0ea56b082011e215f9d9ee43916036c83a96516c39e7948",
+    "authenticated_probe_count": 2,
+    "probe_interval_seconds": 10,
+    "employee_count": 10,
+    "roster_source_ref_count": 10,
+    "expected_reporting_line_count": 2,
+    "matching_reporting_line_count": 2,
+    "credential_store_restored": true,
+    "token_or_password_returned": false,
+    "secret_value_returned": false,
+    "boundary": "lambda_reserved_concurrency_1_for_file_backed_store"
   },
   "browser_smoke": {
     "verdict": "PASS",
