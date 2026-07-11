@@ -203,7 +203,13 @@ function jsonHeaders(operatorToken) {
 function isDesktopMatterWriteRoute(method, path) {
   return (
     (method === "PATCH" && /^\/api\/matters\/[A-Za-z0-9_-]+\/profile$/.test(path)) ||
-    (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/stakeholders$/.test(path))
+    (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/stakeholders$/.test(path)) ||
+    (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree$/.test(path)) ||
+    (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree\/template-applications$/.test(path)) ||
+    (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree\/nodes$/.test(path)) ||
+    (method === "PATCH" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree\/nodes\/[A-Za-z0-9_-]+$/.test(path)) ||
+    (method === "DELETE" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree\/nodes\/[A-Za-z0-9_-]+$/.test(path)) ||
+    (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree\/tasks\/[A-Za-z0-9_-]+\/(complete|reopen)$/.test(path))
   );
 }
 

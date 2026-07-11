@@ -387,6 +387,37 @@ test("runtime client permits only authenticated Matter profile and stakeholder w
   assert.equal(calls.every((call) => call.init.headers.authorization === "Bearer lawos_session_v1.secret"), true);
 });
 
+test("WT-02-09 desktop runtime permits only the explicit Worktree write routes", async () => {
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      calls.push({ url: url.toString(), init });
+      return jsonResponse(200, { outcome: "updated", token_material_returned: false });
+    }
+  });
+  const allowed = [
+    ["POST", "/api/matters/matter-001/worktree"],
+    ["POST", "/api/matters/matter-001/worktree/template-applications"],
+    ["POST", "/api/matters/matter-001/worktree/nodes"],
+    ["PATCH", "/api/matters/matter-001/worktree/nodes/node-001"],
+    ["DELETE", "/api/matters/matter-001/worktree/nodes/node-001"],
+    ["POST", "/api/matters/matter-001/worktree/tasks/task-001/complete"],
+    ["POST", "/api/matters/matter-001/worktree/tasks/task-001/reopen"]
+  ];
+  for (const [method, path] of allowed) {
+    const result = await client.api({ path, method, body: JSON.stringify({ tenant_id: "tenant-001" }), sessionToken: "lawos_session_v1.secret" });
+    assert.equal(result.http_status, 200, `${method} ${path}`);
+  }
+  const blocked = await Promise.all([
+    client.api({ path: "/api/matters/matter-001/worktree/export", method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" }),
+    client.api({ path: "/api/matters/matter-001/worktree", method: "PATCH", body: "{}", sessionToken: "lawos_session_v1.secret" }),
+    client.api({ path: "/api/matters/matter-001/worktree/nodes/node-001", method: "PUT", body: "{}", sessionToken: "lawos_session_v1.secret" })
+  ]);
+  assert.equal(calls.length, allowed.length);
+  assert.deepEqual(blocked.map(({ http_status }) => http_status), [405, 405, 405]);
+});
+
 test("runtime client never substitutes the desktop operator credential for a missing signed session", async () => {
   let fetchCount = 0;
   const client = createMatterVaultAwsRuntimeClient({

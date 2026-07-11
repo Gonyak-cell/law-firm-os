@@ -1,0 +1,5 @@
+RED: first explicit Worktree POST returned 405.
+GREEN AWS runtime client: 19/19.
+MANUAL QA: {"allowed":200,"blocked":405,"fetches":1,"method":"DELETE"}
+STATIC: node --check and git diff --check passed.
+
