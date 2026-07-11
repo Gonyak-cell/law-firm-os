@@ -522,6 +522,11 @@ test("grouped sidebars render children in collapsible sidebar accordions", async
     }
 
     await page.setViewportSize({ width: 1366, height: 900 });
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
+    assert.deepEqual(
+      await page.locator('[data-context-sidebar="home"] .sidebar-nav > .sidebar-item > span:nth-child(2), [data-context-sidebar="home"] .sidebar-nav > .sidebar-group > .sidebar-group-toggle > span:nth-child(2)').allTextContents(),
+      ["대시보드", "할 일", "피드", "캘린더", "전자계약", "매출/비용"]
+    );
     await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
     const clientPrimaryToggle = page.locator('[data-sidebar-group="clients-home"] .sidebar-group-toggle');
     assert.deepEqual(await page.locator('[data-sidebar-group="clients-home"] .sidebar-child').allTextContents(), ["대시보드", "고객 목록", "신규 고객", "잠재 고객", "매출 내역"]);
@@ -812,7 +817,7 @@ test("R1 WP-4 gates Home company status to admin sessions", async () => {
   assert.match(admin, /data-active-home-section="home-company"/);
   assert.match(admin, /data-home-section-screen="home-company"/);
   assert.match(admin, /data-home-company-tab="reports-matter-analytics"/);
-  assert.match(admin, /data-home-sidebar-company-link="true"/);
+  assert.doesNotMatch(admin, /data-home-sidebar-company-link="true"/);
   assert.doesNotMatch(admin, /data-home-company-access-denied="true"/);
 });
 
@@ -833,7 +838,8 @@ test("R1 WP-3 opens Home message threads and decreases unread counts at runtime"
     });
     await page.goto(`http://127.0.0.1:${port}/?view=messages&ctx=allow#messages-matter-channel`, { waitUntil: "networkidle" });
 
-    await page.waitForSelector('[data-home-sidebar-message-count="2"]');
+    await page.waitForSelector('[data-home-topbar-message-count="2"]');
+    assert.equal(await page.locator("[data-home-sidebar-message-count]").count(), 0);
     assert.equal(await page.locator("[data-home-topbar-message-count]").getAttribute("data-home-topbar-message-count"), "2");
     assert.equal(await page.locator('[data-home-message-thread="msg-r1-wp3-001"]').count(), 1);
 
@@ -841,7 +847,7 @@ test("R1 WP-3 opens Home message threads and decreases unread counts at runtime"
     await page.waitForSelector('[data-home-message-thread-panel="msg-r1-wp3-001"]');
     await page.waitForFunction(() => document.querySelector("[data-home-topbar-message-count]")?.getAttribute("data-home-topbar-message-count") === "1");
 
-    assert.equal(await page.locator("[data-home-sidebar-message-count]").getAttribute("data-home-sidebar-message-count"), "1");
+    assert.equal(await page.locator("[data-home-topbar-message-count]").getAttribute("data-home-topbar-message-count"), "1");
     assert.equal(await page.locator('[data-home-message-thread="msg-r1-wp3-001"]').getAttribute("data-home-message-unread"), "false");
 
     await page.locator("[data-home-message-trigger]").click();
@@ -937,7 +943,7 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     });
 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
-    for (const title of ["최근 작업", "오늘 To Do", "캘린더", "월별 매출", "신규 수임"]) {
+    for (const title of ["최근 작업", "오늘 할 일", "캘린더", "월별 매출", "신규 수임"]) {
       assert.equal(await page.getByText(title, { exact: true }).count() > 0, true, `Home must show ${title}`);
     }
     assert.equal(await page.locator('.home-dashboard-feed .home-dashboard-card-header').count(), 0);
@@ -1211,7 +1217,9 @@ test("R1 WP-7 keeps approval counts out of dashboard cards and equal across side
     await page.locator('[data-home-widget-view-all="todo"]').click();
     await page.waitForFunction(() => window.location.hash === "#home-todo");
     assert.equal(await page.locator("[data-active-home-section]").getAttribute("data-active-home-section"), "home-todo");
-    assert.equal(await page.locator("[data-home-dashboard-grid]").getAttribute("data-home-dashboard-focus"), "home-todo");
+    assert.equal(await page.locator(".home-dashboard-hero h1").textContent(), "할 일");
+    assert.equal(await page.locator('[data-home-section-screen="home-todo"] [data-home-tab-prefix="work"]').count(), 2);
+    assert.equal(await page.locator('[data-home-tab-prefix="work"][aria-selected="true"]').textContent(), "오늘 할 일");
 
     await page.locator('[data-product-axis="matters"]').click();
     await page.waitForFunction(() => new URL(window.location.href).searchParams.get("view") === "matters");
@@ -1227,7 +1235,7 @@ test("R1 WP-7 keeps approval counts out of dashboard cards and equal across side
     await page.waitForSelector('[data-home-section-screen="home-requests"]');
     await page.waitForSelector(".home-dashboard-hero h1");
     const requestsSurfaceText = await page.locator(".home-dashboard-surface").innerText();
-    assert.equal(await page.locator(".home-dashboard-hero h1").textContent(), "승인 대기");
+    assert.equal(await page.locator(".home-dashboard-hero h1").textContent(), "할 일");
     assert.equal(await page.locator(".home-dashboard-hero p").count(), 0);
     assert.equal(await page.locator('[data-home-section-screen="home-requests"] > header').count(), 0);
     assert.equal(visibleLineCount(requestsSurfaceText, "승인 대기"), 1);
@@ -1240,7 +1248,7 @@ test("R1 WP-7 keeps approval counts out of dashboard cards and equal across side
       sidebar: document.querySelector("[data-home-sidebar-approval-count]")?.getAttribute("data-home-sidebar-approval-count"),
       topbar: document.querySelector("[data-home-topbar-approval-count]")?.getAttribute("data-home-topbar-approval-count")
     }));
-    assert.deepEqual(dedicatedCounts, { dedicated: "5", requestTabs: "2", underlineTabs: "1", sidebar: "5", topbar: "5" });
+    assert.deepEqual(dedicatedCounts, { dedicated: "5", requestTabs: "2", underlineTabs: "2", sidebar: "5", topbar: "5" });
 
     await page.goto(`http://127.0.0.1:${port}/?view=messages&ctx=allow#messages-matter-channel`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-home-section-screen="home-messages"]');
@@ -1254,10 +1262,10 @@ test("R1 WP-7 keeps approval counts out of dashboard cards and equal across side
     await page.goto(`http://127.0.0.1:${port}/?view=esign&ctx=allow#esign-status`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-home-section-screen="home-esign"]');
     const esignSurfaceText = await page.locator(".home-dashboard-surface").innerText();
-    assert.equal(await page.locator(".home-dashboard-hero h1").textContent(), "전자 계약");
+    assert.equal(await page.locator(".home-dashboard-hero h1").textContent(), "전자계약");
     assert.equal(await page.locator(".home-dashboard-hero p").count(), 0);
     assert.equal(await page.locator('[data-home-section-screen="home-esign"] > header, [data-home-section-screen="home-esign"] .home-status-list header').count(), 0);
-    assert.equal(visibleLineCount(esignSurfaceText, "전자 계약"), 1);
+    assert.equal(visibleLineCount(esignSurfaceText, "전자계약"), 1);
     assert.doesNotMatch(esignSurfaceText, /·/);
   } finally {
     await browser.close();

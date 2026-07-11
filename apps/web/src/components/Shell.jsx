@@ -173,7 +173,7 @@ export function buildNotificationItems({ homeActionCounts = {}, labels = {} } = 
     lateCount > 0 && {
       id: `home-task-late:${lateCount}`,
       initials: shellLabel(labels, "homeNotificationInitialLate", "지"),
-      type: shellLabel(labels, "homeNotificationType", "To Do"),
+      type: shellLabel(labels, "homeNotificationType", "할 일"),
       title: shellLabel(labels, "homeNotificationLateTitle", "지연 업무"),
       client: shellLabel(labels, "homeNotificationActionInboxClient", "Home 액션 인박스"),
       status: shellLabel(labels, "homeNotificationLateStatus", "확인 필요"),
@@ -183,7 +183,7 @@ export function buildNotificationItems({ homeActionCounts = {}, labels = {} } = 
     todayCount > 0 && {
       id: `home-task-today:${todayCount}`,
       initials: shellLabel(labels, "homeNotificationInitialToday", "오"),
-      type: shellLabel(labels, "homeNotificationType", "To Do"),
+      type: shellLabel(labels, "homeNotificationType", "할 일"),
       title: shellLabel(labels, "homeNotificationTodayTitle", "오늘 업무"),
       client: shellLabel(labels, "homeNotificationActionInboxClient", "Home 액션 인박스"),
       status: shellLabel(labels, "homeNotificationTodayStatus", "오늘"),
@@ -475,6 +475,10 @@ function homeSidebarMeta(labels = {}, financeAccessRecords = []) {
     title: shellLabel(labels, "homeSidebarTitle", "Home"),
     actions: [
       { label: shellLabel(labels, "homeDashboardLabel", "대시보드"), view: "home", section: "home-dashboard", icon: LayoutDashboard, active: true },
+      { label: shellLabel(labels, "homeTodoSidebarLabel", "할 일"), view: "home", section: "home-todo", icon: ClipboardList },
+      { label: shellLabel(labels, "homeFeedSidebarLabel", "피드"), view: "home", section: "home-feed", icon: Bell },
+      { label: shellLabel(labels, "homeCalendarSidebarLabel", "캘린더"), view: "home", section: "home-calendar", icon: CalendarDays },
+      { label: shellLabel(labels, "homeEsignLabel", "전자계약"), view: "home", section: "home-esign", icon: FileText },
       {
         label: shellLabel(labels, "homeFinanceLabel", "매출/비용"),
         icon: FileText,
@@ -488,14 +492,7 @@ function homeSidebarMeta(labels = {}, financeAccessRecords = []) {
           { label: shellLabel(labels, "homeFinanceBillingLabel", "청구/수납"), view: "home", section: "home-finance-billing", icon: FileText },
           { label: shellLabel(labels, "homeFinanceArLabel", "미수금"), view: "home", section: "home-finance-ar", icon: ShieldCheck }
         ].filter((item) => canAccessHomeFinanceSection(financeAccessRecords, item.section))
-      },
-      { label: shellLabel(labels, "homeApprovalPendingLabel", "승인 대기"), view: "home", section: "home-requests", icon: ShieldCheck },
-      { label: shellLabel(labels, "homeTodoSidebarLabel", "To Do"), view: "home", section: "home-todo", icon: ClipboardList },
-      { label: shellLabel(labels, "homeFeedSidebarLabel", "피드"), view: "home", section: "home-feed", icon: Bell },
-      { label: shellLabel(labels, "homeCalendarSidebarLabel", "캘린더"), view: "home", section: "home-calendar", icon: CalendarDays },
-      { label: shellLabel(labels, "homeMessagesLabel", "메시지"), view: "home", section: "home-messages", icon: Mail },
-      { label: shellLabel(labels, "homeEsignLabel", "전자 계약"), view: "home", section: "home-esign", icon: FileText },
-      { label: shellLabel(labels, "homeCompanyLabel", "회사 현황"), view: "home", section: "home-company", icon: ClipboardList }
+      }
     ],
     utilities: [
       { label: shellLabel(labels, "homeDataImportLabel", "데이터 가져오기"), icon: Tags, view: "data-import", section: "data-import-client" },
@@ -549,7 +546,7 @@ export function buildContextualNavigation({
           homeCountKind: "message"
         };
       }
-      if (item.section === "home-requests") {
+      if (item.section === "home-todo") {
         return {
           ...item,
           count: Number(homeApprovalCount) > 0 ? Number(homeApprovalCount) : null,

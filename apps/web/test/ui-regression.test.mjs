@@ -134,21 +134,23 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   assert.doesNotMatch(shellSource, /"sidebar-item global-sidebar-item/);
   assert.match(shellSource, /<span className="sidebar-icon"><Icon size=\{16\} \/><\/span>/);
   assert.match(shellSource, /function homeSidebarMeta\(labels = \{\}, financeAccessRecords = \[\]\)/);
-  for (const key of ["homeDashboardLabel", "homeApprovalPendingLabel", "homeTodoSidebarLabel", "homeFeedSidebarLabel", "homeCalendarSidebarLabel", "homeMessagesLabel", "homeEsignLabel", "homeCompanyLabel", "homeDataImportLabel", "homeSettingsLabel"]) {
+  for (const key of ["homeDashboardLabel", "homeTodoSidebarLabel", "homeFeedSidebarLabel", "homeCalendarSidebarLabel", "homeEsignLabel", "homeFinanceLabel", "homeDataImportLabel", "homeSettingsLabel"]) {
     assert.match(homeSidebarSource, new RegExp(`shellLabel\\(labels, "${key}"`));
     assert.match(i18nSource, new RegExp(`${key}:`));
   }
-  assert.match(homeSidebarSource, /homeApprovalPendingLabel", "승인 대기"/);
+  assert.match(homeSidebarSource, /homeTodoSidebarLabel", "할 일"/);
+  assert.match(homeSidebarSource, /homeEsignLabel", "전자계약"/);
   assert.doesNotMatch(homeSidebarSource, /homeRequestsLabel", "승인 요청"[\s\S]{0,80}section: "home-requests"/);
   assert.doesNotMatch(homeSidebarSource, /최근작업|notifications-center|label: "알림"/);
   assert.match(homeSidebarSource, /view: "home", section: "home-dashboard"/);
   assert.match(homeSidebarSource, /view: "home", section: "home-todo"/);
   assert.match(homeSidebarSource, /view: "home", section: "home-feed"/);
   assert.match(homeSidebarSource, /view: "home", section: "home-calendar"/);
-  assert.match(homeSidebarSource, /view: "home", section: "home-messages"/);
-  assert.match(homeSidebarSource, /view: "home", section: "home-requests"/);
   assert.match(homeSidebarSource, /view: "home", section: "home-esign"/);
-  assert.match(homeSidebarSource, /view: "home", section: "home-company"/);
+  for (const hiddenHomeSection of ["home-messages", "home-requests", "home-company"]) {
+    assert.doesNotMatch(homeSidebarSource, new RegExp(`view: "home", section: "${hiddenHomeSection}"`));
+  }
+  assert.match(homeSidebarSource, /home-dashboard[\s\S]*home-todo[\s\S]*home-feed[\s\S]*home-calendar[\s\S]*home-esign[\s\S]*homeFinanceLabel/);
   assert.match(homeSidebarSource, /view: "data-import", section: "data-import-client"/);
   assert.match(appSource, /globalUtilityViewIds/);
   assert.match(globalUtilitySource, /modeExceptionUtilityViewIds = \["settings", "data-import", "profile"\]/);

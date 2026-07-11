@@ -69,6 +69,10 @@ const requestFilters = Object.freeze([
   { id: "custom", section: "requests-custom", labelKey: "requestFilterCustom", label: "커스텀", subtypes: ["custom"] },
   { id: "force", section: "requests-force-decision", labelKey: "requestFilterForce", label: "강제", subtypes: ["force", "force_decision"] }
 ]);
+const workTabs = Object.freeze([
+  { id: "todo", labelKey: "homeWorkTodoTab", label: "오늘 할 일" },
+  { id: "approvals", labelKey: "homeWorkApprovalsTab", label: "승인 대기" }
+]);
 const esignTabs = Object.freeze([
   { id: "send", section: "esign-send", labelKey: "messageTabSend", label: "전송" },
   { id: "templates", section: "esign-templates", labelKey: "messageTabTemplates", label: "템플릿" },
@@ -93,7 +97,7 @@ const homeFinanceSectionIds = new Set([
   "home-finance-billing",
   "home-finance-ar"
 ]);
-const homeDashboardSectionIds = new Set(["home-dashboard", "home-todo", "home-feed", "home-calendar"]);
+const homeDashboardSectionIds = new Set(["home-dashboard", "home-feed", "home-calendar"]);
 const homeSectionMeta = Object.freeze({
   "home-dashboard": { eyebrow: "Home", title: "" },
   "home-finance-overview": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceOverviewLabel", title: "전체 현황" },
@@ -103,12 +107,12 @@ const homeSectionMeta = Object.freeze({
   "home-finance-expenses": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceExpensesLabel", title: "비용 처리" },
   "home-finance-billing": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceBillingLabel", title: "청구/수납" },
   "home-finance-ar": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceArLabel", title: "미수금" },
-  "home-todo": { eyebrowKey: "homeTodoSidebarLabel", eyebrow: "To Do", titleKey: "homeWidgetTodoTitle", title: "오늘 To Do", subtitleKey: "homeTodoToday", subtitle: "오늘" },
+  "home-todo": { eyebrowKey: "homeTodoSidebarLabel", eyebrow: "할 일", titleKey: "homeTodoSidebarLabel", title: "할 일" },
   "home-feed": { eyebrowKey: "homeFeedSidebarLabel", eyebrow: "피드", titleKey: "homeWidgetFeedTitle", title: "피드", subtitleKey: "homeFeedTabLabel", subtitle: "홈 피드" },
   "home-calendar": { eyebrowKey: "homeCalendarSidebarLabel", eyebrow: "캘린더", titleKey: "homeWidgetCalendarTitle", title: "캘린더", subtitleKey: "homeCalendarOpen", subtitle: "캘린더 열기" },
   "home-messages": { eyebrowKey: "homeMessagesLabel", eyebrow: "메시지", titleKey: "homeMessagesLabel", title: "메시지", subtitleKey: "homeMessagesSubtitle", subtitle: "업무 메시지" },
-  "home-requests": { eyebrowKey: "homeApprovalPendingLabel", eyebrow: "승인 대기", titleKey: "homeApprovalPendingLabel", title: "승인 대기", subtitleKey: "homeRequestsSubtitle", subtitle: "요청 상태" },
-  "home-esign": { eyebrowKey: "homeEsignLabel", eyebrow: "전자 계약", titleKey: "homeEsignLabel", title: "전자 계약", subtitleKey: "homeEsignSubtitle", subtitle: "서명 상태" },
+  "home-requests": { eyebrowKey: "homeTodoSidebarLabel", eyebrow: "할 일", titleKey: "homeTodoSidebarLabel", title: "할 일" },
+  "home-esign": { eyebrowKey: "homeEsignLabel", eyebrow: "전자계약", titleKey: "homeEsignLabel", title: "전자계약", subtitleKey: "homeEsignSubtitle", subtitle: "서명 상태" },
   "home-company": { eyebrowKey: "homeCompanyLabel", eyebrow: "회사 현황", titleKey: "homeCompanyLabel", title: "회사 현황", subtitleKey: "homeCompanySubtitle", subtitle: "감사" }
 });
 const HOME_ONBOARDING_STORAGE_KEY = "matter.home.onboarding";
@@ -979,6 +983,7 @@ export function HomeSurface({
   const localizedMessageTabs = useMemo(() => localizedTabs(messageTabs, labels), [labels]);
   const localizedRequestTabs = useMemo(() => localizedTabs(requestTabs, labels), [labels]);
   const localizedRequestFilters = useMemo(() => localizedTabs(requestFilters, labels), [labels]);
+  const localizedWorkTabs = useMemo(() => localizedTabs(workTabs, labels), [labels]);
   const localizedEsignTabs = useMemo(() => localizedTabs(esignTabs, labels), [labels]);
   const localizedFeedTabs = useMemo(() => localizedTabs(feedTabs, labels), [labels]);
   const localizedCalendarWeekdays = Array.isArray(labels.homeCalendarWeekdays) ? labels.homeCalendarWeekdays : calendarWeekdays;
@@ -1248,13 +1253,13 @@ export function HomeSurface({
     );
   }
 
-  function renderRequestsScreen() {
+  function renderRequestsContent() {
     const rows = activeRequestTab === "sent" ? sentRequestRows : filteredApprovalRows;
     const readyRows = activeRequestTab === "sent" ? [] : readyApprovalRows;
     const reviewRows = activeRequestTab === "sent" ? [] : guardedApprovalRows;
     const blockedRows = activeRequestTab === "sent" ? [] : blockedApprovalRows;
     return (
-      <HomeSectionPanel section="home-requests" title={homeCopy(labels, "homeRequestsLabel", "승인 대기")}>
+      <>
         <div className="home-section-toolbar">
           <HomeTabList label={homeCopy(labels, "homeApprovalDirectionLabel", "요청 방향")} tabs={visibleRequestTabs} activeTab={activeRequestTab} onSelect={setRequestTab} dataPrefix="requests-direction" variant="underline" />
           <div className="home-section-filters" role="tablist" aria-label={homeCopy(labels, "homeRequestsLabel", "승인 대기")} data-home-request-tab={activeRequestTab} data-home-request-filter={requestFilter}>
@@ -1292,6 +1297,38 @@ export function HomeSurface({
             </HomeStatusList>
           </div>
         )}
+      </>
+    );
+  }
+
+  function renderWorkScreen() {
+    const activeWorkTab = activeHomeSection === "home-requests" ? "approvals" : "todo";
+    return (
+      <HomeSectionPanel section={activeHomeSection} title={homeCopy(labels, "homeTodoSidebarLabel", "할 일")}>
+        <HomeTabList
+          label={homeCopy(labels, "homeTodoSidebarLabel", "할 일")}
+          tabs={localizedWorkTabs}
+          activeTab={activeWorkTab}
+          onSelect={(tab) => openHomeRoute(tab === "approvals" ? "home-requests" : "home-todo", "home", { source: "work_tab" })}
+          dataPrefix="work"
+          variant="underline"
+        />
+        {activeWorkTab === "approvals" ? renderRequestsContent() : (
+          <HomeStatusList title={homeCopy(labels, "homeWorkTodoTab", "오늘 할 일")} count={todoRows.length} empty={homeCopy(labels, "homeTodoEmpty", "오늘 마감 업무가 없습니다")} showTitle={false}>
+            <div className="home-widget-list" data-home-work-todo-list="true">
+              {todoRows.map((row) => (
+                <DashboardRow
+                  key={row.id}
+                  {...row}
+                  onOpen={(route) => openHomeRoute(route, route === "home-dashboard" || route === "home-todo" ? "home" : "matters", { item_id: row.id, action_type: row.type })}
+                  onAction={(action) => handleHomeAction(row, action)}
+                  pending={pendingActionId.startsWith(`${row.id}:`)}
+                  labels={labels}
+                />
+              ))}
+            </div>
+          </HomeStatusList>
+        )}
       </HomeSectionPanel>
     );
   }
@@ -1299,10 +1336,10 @@ export function HomeSurface({
   function renderEsignScreen() {
     const currentTab = localizedEsignTabs.find((tab) => tab.id === esignTab) ?? localizedEsignTabs[0];
     return (
-      <HomeSectionPanel section="home-esign" title={homeCopy(labels, "homeEsignLabel", "전자 계약")}>
-        <HomeTabList label={homeCopy(labels, "homeEsignLabel", "전자 계약")} tabs={localizedEsignTabs} activeTab={esignTab} onSelect={setEsignTab} dataPrefix="esign" />
+      <HomeSectionPanel section="home-esign" title={homeCopy(labels, "homeEsignLabel", "전자계약")}>
+        <HomeTabList label={homeCopy(labels, "homeEsignLabel", "전자계약")} tabs={localizedEsignTabs} activeTab={esignTab} onSelect={setEsignTab} dataPrefix="esign" />
         <div className="home-section-content" role="tabpanel" data-home-esign-tab={esignTab}>
-          <HomeStatusList title={currentTab.label} count={0} empty={homeCopy(labels, "homeEsignEmpty", "표시할 전자 계약 항목이 없습니다.")} showTitle={false}>
+          <HomeStatusList title={currentTab.label} count={0} empty={homeCopy(labels, "homeEsignEmpty", "표시할 전자계약 항목이 없습니다.")} showTitle={false}>
             {null}
           </HomeStatusList>
         </div>
@@ -1437,7 +1474,7 @@ export function HomeSurface({
         </DashboardListCard>
         <DashboardCard
           className="home-dashboard-todo"
-          title={homeCopy(labels, "homeWidgetTodoTitle", "오늘 To Do")}
+          title={homeCopy(labels, "homeWidgetTodoTitle", "오늘 할 일")}
           widgetId="todo"
           section="today-todo"
           onViewAll={() => openHomeRoute("home-todo", "home", { source: "todo_widget_view_all" })}
@@ -1654,8 +1691,8 @@ export function HomeSurface({
 
   function renderActiveHomeSection() {
     if (homeFinanceSectionIds.has(activeHomeSection)) return renderFinanceRouteContract();
+    if (activeHomeSection === "home-todo" || activeHomeSection === "home-requests") return renderWorkScreen();
     if (activeHomeSection === "home-messages") return renderMessagesScreen();
-    if (activeHomeSection === "home-requests") return renderRequestsScreen();
     if (activeHomeSection === "home-esign") return renderEsignScreen();
     if (activeHomeSection === "home-company") return renderCompanyScreen();
     return renderDashboardGrid();
