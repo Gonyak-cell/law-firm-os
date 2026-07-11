@@ -8,6 +8,7 @@ import { findRegisteredAccountByUserId } from "../src/matter-vault-account-regis
 import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
 import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
 import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
+import { reconcileHrxMemberRosterStore } from "../src/hrx-runtime-context.js";
 import {
   HRX_MEMBER_ROSTER_SOURCE_REF,
   listHrxMemberRosterRows,
@@ -329,7 +330,7 @@ test("durable HRX seed reconciles stale Matter Vault account seed rows to the me
     assert.equal(storedProfile.title, "대표이사");
     assert.equal(storedProfile.org_unit_id, member.org_unit_id);
     const storedParkProfile = repository.getEmploymentProfile({ tenant_id, profile_id: parkProfileId });
-    assert.equal(storedParkProfile.source_ref, `${HRX_MEMBER_ROSTER_SOURCE_REF}:manager-v3`);
+    assert.equal(storedParkProfile.source_ref, `${HRX_MEMBER_ROSTER_SOURCE_REF}:manager:emp_amic_sypark:emp_amic_ytkim`);
     assert.equal(storedParkProfile.manager_employee_id, "emp_amic_ytkim");
   } finally {
     await new Promise((resolve) => started.server.close(resolve));
@@ -337,13 +338,16 @@ test("durable HRX seed reconciles stale Matter Vault account seed rows to the me
 
   repository.updateEmploymentProfile(
     { tenant_id, profile_id: parkProfileId },
-    { manager_employee_id: member.employee_id },
+    { manager_employee_id: "emp_amic_wsjo", effective_to: "2026-12-31" },
   );
+  const repeated = reconcileHrxMemberRosterStore(store, { tenant_id });
+  assert.equal(repeated.employment_profiles_reconciled, 0);
   const restarted = await startApiServer({ port: 0, hrxStore: store });
   try {
     const editedParkProfile = repository.getEmploymentProfile({ tenant_id, profile_id: parkProfileId });
-    assert.equal(editedParkProfile.source_ref, `${HRX_MEMBER_ROSTER_SOURCE_REF}:manager-v3`);
-    assert.equal(editedParkProfile.manager_employee_id, member.employee_id);
+    assert.equal(editedParkProfile.source_ref, `${HRX_MEMBER_ROSTER_SOURCE_REF}:manager:emp_amic_sypark:emp_amic_ytkim`);
+    assert.equal(editedParkProfile.manager_employee_id, "emp_amic_wsjo");
+    assert.equal(editedParkProfile.effective_to, "2026-12-31");
   } finally {
     await new Promise((resolve) => restarted.server.close(resolve));
   }

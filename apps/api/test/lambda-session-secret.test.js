@@ -386,6 +386,57 @@ test("I18 S1-G authenticated production probe restores credential store and retu
   }
 });
 
+test("I18 S1-G authenticated production probe verifies the current reporting lines", async () => {
+  const artifactsRoot = resolve("artifacts", "tmp");
+  await mkdir(artifactsRoot, { recursive: true });
+  const root = await mkdtemp(join(artifactsRoot, "lawos-cti-i18-roster-test-"));
+  const paths = await createDurableStorePaths(root);
+  let started = null;
+  try {
+    await buildHrxRosterReconcileReceipt({
+      env: {
+        LAWOS_READONLY_SNAPSHOT_ALLOWED_ROOT: root,
+        LAWOS_HRX_STORE_PATH: paths.hrxStorePath,
+      },
+    });
+    const receipt = await buildCtiS1GAuthenticatedProductionProbeReceipt({
+      event: {
+        lawos_maintenance_action: CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_ACTION,
+        approval_signature_ref: CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_APPROVAL_REF,
+        request_id: "unit-test-i18-current-roster",
+        verify_current_hrx_roster: true,
+      },
+      env: {
+        LAWOS_RUNTIME_PROFILE: "operational",
+        LAWOS_READONLY_SNAPSHOT_ALLOWED_ROOT: root,
+        LAWOS_AUTH_CREDENTIAL_STORE_PATH: paths.authCredentialStorePath,
+        AWS_LAMBDA_FUNCTION_NAME: "matter-lawos-api-prod",
+      },
+      apiBaseUrlFn: async () => {
+        started = await startApiServer({
+          port: 0,
+          runtimeProfile: "operational",
+          sessionSecret: "operational-session-secret-32-bytes",
+          ...paths,
+        });
+        return `http://${started.host}:${started.port}`;
+      },
+    });
+
+    assert.equal(receipt.status, "PASS");
+    assert.equal(receipt.probe_results.hrx_employees.employee_count, 10);
+    assert.equal(receipt.probe_results.hrx_employees.roster_source_ref_count, 10);
+    assert.equal(receipt.probe_results.hrx_employees.expected_reporting_line_count, 3);
+    assert.equal(receipt.probe_results.hrx_employees.matching_reporting_line_count, 3);
+    assert.equal(receipt.probe_results.hrx_employees.current_roster_verification_requested, true);
+    assert.equal(receipt.boundary.credential_store_restored, true);
+    assert.equal(receipt.boundary.token_or_password_returned, false);
+  } finally {
+    if (started) await new Promise((resolveClose) => started.server.close(resolveClose));
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("I18 S1-G authenticated production probe surface is direct-invoke only", async () => {
   const response = await handler({
     rawPath: "/api/maintenance/cti-s1g-probe",

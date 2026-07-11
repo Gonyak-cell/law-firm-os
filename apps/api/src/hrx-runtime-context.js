@@ -197,7 +197,6 @@ const HRX_ORG_UNITS = Object.freeze([
   }),
 ]);
 const HRX_ORG_UNIT_BY_ID = new Map(HRX_ORG_UNITS.map((unit) => [unit.org_unit_id, unit]));
-const REPORTING_LINE_PROFILE_SOURCE_VERSION = "manager-v3";
 const COMPATIBILITY_MANAGER_BY_EMPLOYEE_ID = Object.freeze({
   "emp-002": "emp-001",
 });
@@ -250,7 +249,7 @@ function registeredEmploymentProfiles(tenantId) {
       manager_employee_id: member.manager_employee_id ?? null,
       effective_from: member.start_date || "2026-06-22",
       source_ref: member.manager_employee_id
-        ? `${member.source_ref}:${REPORTING_LINE_PROFILE_SOURCE_VERSION}`
+        ? `${member.source_ref}:manager:${member.employee_id}:${member.manager_employee_id}`
         : member.source_ref,
     };
   });
@@ -1699,7 +1698,6 @@ function reconcileSeedEmploymentProfile(repository, profile) {
     "status",
     "title",
     "effective_from",
-    "effective_to",
     "source_ref",
   ]);
   if (current.source_ref !== profile.source_ref) {
