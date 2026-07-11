@@ -4,6 +4,7 @@
 |---|---|
 | Worktree implementation | PASS |
 | Current focused Worktree/domain/API/web/desktop tests | 134/134 PASS |
+| Full repository regression | 4,244/4,244 PASS |
 | Product UI regression | 28/28 PASS |
 | Matter/Home browser integration | 22/22 PASS |
 | 8-Matter fixture | PASS |
@@ -21,6 +22,7 @@
 | Internal app/ZIP/DMG | CREATED |
 | 43 canonical TUW commits | PASS, 43 IDs / 43 commits / 43 evidence directories |
 | Canonical boundary audit | PASS, `scripts/validate-matter-worktree-commit-boundaries.mjs` |
+| Runtime debugging audit | PASS, three hypotheses rejected with browser/package evidence |
 | Post-canonical remediation | PASS, atomicity/API/editor/UI/package evidence kept in separate follow-up commits |
 | Practice-area owner | NOT RECORDED |
 | Permission-rule owner | NOT RECORDED |
