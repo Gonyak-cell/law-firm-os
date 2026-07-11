@@ -1,0 +1,8 @@
+node --test packages/matter/test/worktree-mutation.test.js packages/matter/test/worktree-template-snapshot.test.js packages/matter/test/worktree-task-state.test.js
+node --test apps/api/test/matter-worktree-authorization.test.js apps/api/test/matter-worktree-task-api.test.js apps/api/test/matter-worktree-node-api.test.js apps/api/test/matter-worktree-create-api.test.js apps/api/test/matter-worktree-api.test.js
+node --input-type=module -  # manual create/replay audit driver
+node --check packages/matter/src/worktree-mutation.js
+node --check apps/api/src/matter-worktree-write-api.js
+node --check apps/api/src/matter-worktree-task-api.js
+git diff --check
+

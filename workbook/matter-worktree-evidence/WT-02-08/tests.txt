@@ -1,0 +1,6 @@
+RED boundary: previous audit events lacked the API request ID required by the frozen contract.
+GREEN core mutation/template/task slice: 15/15.
+GREEN Worktree API slice: 20/20.
+MANUAL QA: {"events":1,"stored_events":1,"request_id":"qa-request-42","actor":"user_rp05_owner","reason":"manual audit QA","source":"manual-api-qa","idempotency":1}
+STATIC: node --check and git diff --check passed.
+
