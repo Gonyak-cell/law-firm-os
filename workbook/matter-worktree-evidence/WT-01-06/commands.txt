@@ -1,0 +1,5 @@
+node --test packages/matter/test/worktree-concurrency.test.js
+LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+node --check packages/matter/src/worktree-concurrency.js
+git diff --check -- packages/matter/src/worktree-concurrency.js packages/matter/src/repository.js packages/matter/src/index.js packages/matter/test/worktree-concurrency.test.js
+node --input-type=module -e '<manual version advance and stale retry driver>'

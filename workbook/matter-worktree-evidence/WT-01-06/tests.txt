@@ -1,0 +1,23 @@
+RED
+command: node --test packages/matter/test/worktree-concurrency.test.js
+exit: 1
+result: 0 passed, 6 failed
+cause: worktree-concurrency.js did not exist and repository had no active uniqueness guard
+
+GREEN
+command: node --test packages/matter/test/worktree-concurrency.test.js
+exit: 0
+result: 6 passed, 0 failed
+
+MATTER PACKAGE REGRESSION
+command: LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+exit: 0
+result: 164 passed, 0 failed
+
+MANUAL LIBRARY QA
+exit: 0
+output: {"version":2,"stale":{"code":"WORKTREE_VERSION_CONFLICT","current":2},"stored":2}
+
+STATIC CHECKS
+node --check: passed
+git diff --check: passed
