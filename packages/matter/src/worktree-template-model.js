@@ -1,13 +1,21 @@
 import { MATTER_WORKTREE_NODE_TYPES } from "./registry.js";
 import { createWorktreeBaseRecord } from "./worktree-model.js";
 
+export const MATTER_WORKTREE_TEMPLATE_APPROVER_ID = "jwsuh@amic.kr";
+
+export function hasMatterWorktreeTemplateApproval(input) {
+  return Boolean(input.approval_ref)
+    && input.approved_by === MATTER_WORKTREE_TEMPLATE_APPROVER_ID
+    && Boolean(input.approved_at);
+}
+
 export function createMatterWorktreeTemplate(input) {
   const base = createWorktreeBaseRecord("MatterWorktreeTemplate", input);
   if (!Number.isInteger(input.version) || input.version < 1) {
     throw new TypeError("MatterWorktreeTemplate version must be a positive integer");
   }
-  if (input.status === "approved" && ![input.approval_ref, input.approved_by, input.approved_at].every(Boolean)) {
-    throw new TypeError("MatterWorktreeTemplate approved template requires approval_ref, approved_by, approved_at");
+  if (input.status === "approved" && !hasMatterWorktreeTemplateApproval(input)) {
+    throw new TypeError(`MatterWorktreeTemplate approved template requires approval_ref, approved_by, approved_at; approved_by must match assigned approver ${MATTER_WORKTREE_TEMPLATE_APPROVER_ID}`);
   }
   return Object.freeze({
     ...base,

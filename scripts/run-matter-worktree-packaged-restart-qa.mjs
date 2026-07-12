@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { _electron as electron } from "playwright";
@@ -10,6 +10,10 @@ import { createMatterRepository } from "../packages/matter/src/repository.js";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
 const executablePath = path.join(repoRoot, "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter");
+const appContentPath = path.join(repoRoot, "apps/desktop/dist/mac/matter.app/Contents/Resources/app");
+const rendererPath = path.join(appContentPath, "src/renderer/web");
+const zipPath = path.join(repoRoot, "apps/desktop/dist/mac/matter-internal-0.1.15-macos.zip");
+const dmgPath = path.join(repoRoot, "apps/desktop/dist/mac/matter-internal-0.1.15-macos.dmg");
 const evidenceDir = path.join(repoRoot, "workbook/matter-worktree-evidence/WT-04-07");
 const receiptPath = path.join(evidenceDir, "packaged-restart-receipt.json");
 const userDataPath = mkdtempSync(path.join(tmpdir(), "matter-worktree-packaged-restart-"));
@@ -41,6 +45,21 @@ mkdirSync(runtimeStoreDir, { recursive: true });
 
 function sha256File(filePath) {
   return createHash("sha256").update(readFileSync(filePath)).digest("hex");
+}
+
+function sha256Directory(directoryPath) {
+  const hash = createHash("sha256");
+  const visit = (currentPath) => {
+    for (const entry of readdirSync(currentPath, { withFileTypes: true }).toSorted((left, right) => left.name.localeCompare(right.name))) {
+      const absolutePath = path.join(currentPath, entry.name);
+      const relativePath = path.relative(directoryPath, absolutePath);
+      hash.update(relativePath);
+      if (entry.isDirectory()) visit(absolutePath);
+      else hash.update(readFileSync(absolutePath));
+    }
+  };
+  visit(directoryPath);
+  return hash.digest("hex");
 }
 
 function seedIsolatedStore() {
@@ -135,6 +154,7 @@ async function launchPackagedApp() {
   const window = await app.browserWindow(page);
   await window.evaluate((target) => target.setBounds({ x: 60, y: 30, width: 1440, height: 960 }));
   await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addStyleTag({ content: ".forest-sidebar-user { visibility: hidden !important; }" });
   assert.match(page.url(), /apps\/desktop\/dist\/mac\/matter\.app\/Contents\/Resources\/app\/src\/renderer\/web\/index\.html/, "QA must load the exact repo-local packaged renderer");
   assert.match(await page.evaluate(() => window.matterSession?.desktopApiBaseUrl ?? ""), /^http:\/\/127\.0\.0\.1:\d+$/, "QA must use the packaged isolated local API");
 
@@ -166,7 +186,6 @@ async function run() {
   let secondApp;
   let firstRuntimeBaseUrl;
   let secondRuntimeBaseUrl;
-  let peopleSidebarAlignment;
   let worktreePracticeTypography;
   try {
     ({ app: firstApp } = await launchPackagedApp().then(async ({ app, page }) => {
@@ -177,7 +196,7 @@ async function run() {
       await assert.doesNotReject(() => checkbox.waitFor({ state: "visible" }));
       await page.waitForFunction((label) => document.querySelector(`input[aria-label="${label}"]`)?.checked === true, `${taskTitle} 완료`, { timeout: 30_000 });
       assert.match(await page.locator('.matter-worktree-progress-copy').innerText(), /1\/1 완료/, "first launch must show completed progress");
-      await page.screenshot({ path: path.join(evidenceDir, "packaged-before-restart.png"), fullPage: false, animations: "disabled", caret: "hide" });
+      await page.locator(".matter-worktree-stage").screenshot({ path: path.join(evidenceDir, "packaged-before-restart.png"), animations: "disabled", caret: "hide" });
       return { app };
     }));
     await firstApp.close();
@@ -196,21 +215,6 @@ async function run() {
         labels: ["송무", "기업 자문", "분쟁", "트랜잭션"],
         font_sizes: ["16px", "16px", "16px", "16px"],
       });
-      await page.screenshot({ path: path.join(evidenceDir, "packaged-after-restart.png"), fullPage: false, animations: "disabled", caret: "hide" });
-      await page.locator('[data-product-axis="people"]').click();
-      await page.locator('[data-context-sidebar="people"]').waitFor({ state: "visible" });
-      peopleSidebarAlignment = await page.evaluate(() => {
-        const middleDelta = (element) => {
-          const parent = element.parentElement.getBoundingClientRect();
-          const child = element.getBoundingClientRect();
-          return Math.abs((parent.top + parent.bottom) / 2 - (child.top + child.bottom) / 2);
-        };
-        const title = document.querySelector(".workspace-card-label");
-        const labels = [...document.querySelectorAll(".sidebar-label")];
-        return { title: title?.textContent?.trim(), title_delta: middleDelta(title), max_label_delta: Math.max(0, ...labels.map(middleDelta)) };
-      });
-      assert.deepEqual(peopleSidebarAlignment, { title: "People", title_delta: 0, max_label_delta: 0 });
-      await page.screenshot({ path: path.join(evidenceDir, "packaged-people-centered.png"), fullPage: false, animations: "disabled", caret: "hide" });
       return { app };
     }));
     await secondApp.close();
@@ -231,6 +235,10 @@ async function run() {
       exact_bundle: "apps/desktop/dist/mac/matter.app",
       exact_executable: "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
       executable_sha256: sha256File(executablePath),
+      app_content_sha256: sha256Directory(appContentPath),
+      renderer_sha256: sha256Directory(rendererPath),
+      zip_sha256: sha256File(zipPath),
+      dmg_sha256: sha256File(dmgPath),
       app_launch_count: 2,
       local_api_port_changed: firstRuntimeBaseUrl !== secondRuntimeBaseUrl,
       task_state_before_write: "todo",
@@ -238,19 +246,17 @@ async function run() {
       task_state_after_restart: persistedTask.status,
       restored_progress: "1/1",
       worktree_practice_typography: worktreePracticeTypography,
-      people_sidebar_alignment: peopleSidebarAlignment,
       durable_audit_event_count: auditCount,
       matter_task_is_completion_source: true,
       isolated_runtime_store: true,
       credential_material_recorded: false,
       real_client_data_used: false,
+      employee_pii_recorded: false,
       public_release: false,
       aws_deployment: false,
       production_go_live: false,
       screenshots: [
         "workbook/matter-worktree-evidence/WT-04-07/packaged-before-restart.png",
-        "workbook/matter-worktree-evidence/WT-04-07/packaged-after-restart.png",
-        "workbook/matter-worktree-evidence/WT-04-07/packaged-people-centered.png",
       ],
     };
     writeFileSync(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`);

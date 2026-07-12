@@ -147,8 +147,9 @@ export function handleMatterWorktreeNodeArchive({ matterId, nodeId, body, contex
     const worktree = activeWorktree(runtime.repository, body.tenant_id, matterId);
     if (!worktree) throw new Error("active Worktree not found");
     const nodes = runtime.repository.list({ tenant_id: body.tenant_id, model_type: "MatterWorktreeNode", matter_id: matterId }).filter((node) => node.worktree_id === worktree.worktree_id);
-    if (!nodes.some((node) => node.node_id === nodeId)) throw new Error("Worktree node not found");
-    const archivedNodeIds = subtreeIds(nodes, nodeId);
+    const current = nodes.find((node) => node.node_id === nodeId);
+    if (!current || current.status !== "active") throw new Error("Active Worktree node not found");
+    const archivedNodeIds = subtreeIds(nodes.filter(({ status }) => status === "active"), nodeId);
     if (archivedNodeIds.length > 1) throw new Error("Active descendants must be archived before their parent");
     const input = command(body, matterId, requestId, { expected_version: body.expected_version ?? null });
     const result = executeWorktreeMutation(runtime.repository, { ...input, operation: "matter.worktree.node.archive", object_type: "MatterWorktreeNode", object_id: nodeId }, (transaction) => {

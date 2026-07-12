@@ -1,6 +1,7 @@
 import { createActiveMatterWorktree } from "./worktree-concurrency.js";
 import { executeWorktreeMutation } from "./worktree-mutation.js";
 import { validateWorktreeStructure } from "./worktree-structure.js";
+import { hasMatterWorktreeTemplateApproval } from "./worktree-template-model.js";
 
 export class MatterWorktreeTemplateError extends Error {
   constructor(code, message) {
@@ -58,7 +59,7 @@ export function applyMatterWorktreeTemplate(repository, command) {
   if (!template) {
     throw new MatterWorktreeTemplateError("WORKTREE_TEMPLATE_NOT_FOUND", "Worktree template not found");
   }
-  if (template.status !== "approved") {
+  if (template.status !== "approved" || !hasMatterWorktreeTemplateApproval(template)) {
     throw new MatterWorktreeTemplateError("WORKTREE_TEMPLATE_NOT_APPROVED", "Worktree template is not approved");
   }
   const templateNodes = repository.list({

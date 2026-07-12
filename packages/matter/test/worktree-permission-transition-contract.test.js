@@ -29,6 +29,15 @@ test("WT-00-03 fixes allow and deny outcomes for every Matter role and worktree 
   assert.deepEqual(contract.authorization_resolution.generic_matter_write_never_grants, ["template:manage", "template:approve"]);
 });
 
+test("WT-00-03 exhaustively records unblock permission for every Matter role", async () => {
+  const [contract, fixture] = await loadContractAndFixture();
+  const unblockCases = fixture.permission_cases.filter(({ action }) => action === "task:unblock");
+
+  assert.equal(contract.actions.includes("task:unblock"), true);
+  assert.equal(unblockCases.length, contract.roles.length);
+  assert.deepEqual(unblockCases.map(({ role, expected }) => [role, expected]), contract.roles.map((role) => [role, contract.role_permissions[role]["task:unblock"]]));
+});
+
 test("WT-00-03 requires active same-tenant Matter membership before any worktree access", async () => {
   // Given
   const contract = await readJson(contractUrl);

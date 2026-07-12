@@ -70,6 +70,19 @@ test("WT-02-04 rejects archiving a branch with active descendants and retains Ma
   assert.equal(matterRuntime.repository.get({ tenant_id: tenantId, model_type: "MatterTask", id: "task_wt_02_03" }).status, "todo");
 });
 
+test("WT-02-04 permits bottom-up archive after every descendant is archived", async () => {
+  const matterRuntime = runtime();
+  await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/nodes`, method: "POST", body: body("bottom-up-parent", { node_id: "parent", node_type: "branch", parent_node_id: null, title: "상위", sort_order: 0, status: "active", task_id: null }), context, requestId: "parent", runtime: matterRuntime });
+  await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/nodes`, method: "POST", body: body("bottom-up-child", { node_id: "child", node_type: "branch", parent_node_id: "parent", title: "하위", sort_order: 0, status: "active", task_id: null }, { expected_version: 2 }), context, requestId: "child", runtime: matterRuntime });
+  const child = await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/nodes/child`, method: "DELETE", body: body("archive-child", {}, { expected_version: 3 }), context, requestId: "archive-child", runtime: matterRuntime });
+
+  const parent = await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/nodes/parent`, method: "DELETE", body: body("archive-parent-after-child", {}, { expected_version: 4 }), context, requestId: "archive-parent", runtime: matterRuntime });
+
+  assert.equal(child.status, 200);
+  assert.equal(parent.status, 200);
+  assert.equal(matterRuntime.repository.get({ tenant_id: tenantId, model_type: "MatterWorktreeNode", id: "parent" }).status, "archived");
+});
+
 test("WT-02-07 returns 409 and current version for stale node writes", async () => {
   const matterRuntime = runtime();
   await handleMatterApiRequest({ pathname: `/api/matters/${matterId}/worktree/nodes`, method: "POST", body: body("stale-create", { node_id: "branch", node_type: "branch", parent_node_id: null, title: "원본", sort_order: 0, status: "active", task_id: null }), context, requestId: "create", runtime: matterRuntime });

@@ -15,7 +15,7 @@ function template(status = "approved") {
     status,
     version: 1,
     approval_ref: approved ? "approval_qa_wt_01_07" : null,
-    approved_by: approved ? "user_qa_approver" : null,
+    approved_by: approved ? "jwsuh@amic.kr" : null,
     approved_at: approved ? timestamp : null,
     created_by: "user_wt_01_07",
     created_at: timestamp,
@@ -112,6 +112,18 @@ test("WT-01-07 rejects draft templates without creating Worktree records", async
   assert.throws(applyDraft, (error) => error.code === "WORKTREE_TEMPLATE_NOT_APPROVED");
   assert.equal(repository.list({ tenant_id: "tenant_wt_01_07", model_type: "MatterWorktree" }).length, 0);
   assert.equal(repository.list({ tenant_id: "tenant_wt_01_07", model_type: "MatterTask" }).length, 0);
+});
+
+test("WT-01-07 rejects approved templates signed by a different approver", async () => {
+  const { applyMatterWorktreeTemplate } = await import("../src/worktree-template-snapshot.js");
+  const repository = {
+    get: () => ({ ...template(), approved_by: "other@example.com" }),
+    list: () => [],
+  };
+
+  const applyMismatchedApproval = () => applyMatterWorktreeTemplate(repository, command());
+
+  assert.throws(applyMismatchedApproval, (error) => error.code === "WORKTREE_TEMPLATE_NOT_APPROVED");
 });
 
 test("WT-01-07 rejects cross-tenant template application without existence disclosure", async () => {

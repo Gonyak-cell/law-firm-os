@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
 import { createMatterRuntimeContext, handleMatterApiRequest } from "../src/matter-runtime-context.js";
+import { handleMatterWorktreeTemplateList } from "../src/matter-worktree-read-api.js";
 
 const tenantId = "tenant_wt_02_01";
 const matterId = "matter_wt_02_01";
@@ -26,7 +27,7 @@ function fixtures() {
     { model_type: "MatterWorktreeNode", node_id: "node_branch_wt_02_01", worktree_id: "worktree_wt_02_01", matter_id: matterId, tenant_id: tenantId, node_type: "branch", parent_node_id: null, title: "준비", sort_order: 0, status: "active", task_id: null, ...evidence },
     { model_type: "MatterWorktreeNode", node_id: "node_task_wt_02_01", worktree_id: "worktree_wt_02_01", matter_id: matterId, tenant_id: tenantId, node_type: "task", parent_node_id: "node_branch_wt_02_01", title: "연결 업무", sort_order: 0, status: "active", task_id: "task_linked_wt_02_01", ...evidence },
     { model_type: "MatterTask", task_id: "task_other_wt_02_01", matter_id: "matter_other", tenant_id: tenantId, title: "권한 밖 업무", status: "blocked", created_by: "user_other", ...evidence },
-    { model_type: "MatterWorktreeTemplate", template_id: "template-approved", tenant_id: tenantId, practice_area: "litigation", name: "송무 준비", status: "approved", version: 2, approval_ref: "approval", approved_by: "approver", approved_at: "2026-07-11T12:00:00.000Z", created_by: "author", created_at: "2026-07-11T12:00:00.000Z", updated_by: "approver", updated_at: "2026-07-11T12:00:00.000Z" },
+    { model_type: "MatterWorktreeTemplate", template_id: "template-approved", tenant_id: tenantId, practice_area: "litigation", name: "송무 준비", status: "approved", version: 2, approval_ref: "approval", approved_by: "jwsuh@amic.kr", approved_at: "2026-07-11T12:00:00.000Z", created_by: "author", created_at: "2026-07-11T12:00:00.000Z", updated_by: "jwsuh@amic.kr", updated_at: "2026-07-11T12:00:00.000Z" },
     { model_type: "MatterWorktreeTemplate", template_id: "template-draft", tenant_id: tenantId, practice_area: "litigation", name: "초안", status: "draft", version: 1, approval_ref: null, approved_by: null, approved_at: null, created_by: "author", created_at: "2026-07-11T12:00:00.000Z", updated_by: "author", updated_at: "2026-07-11T12:00:00.000Z" },
   ];
 }
@@ -59,6 +60,21 @@ test("Worktree template picker lists only approved templates for the Matter prac
 
   assert.equal(response.status, 200);
   assert.deepEqual(response.body.items, [{ template_id: "template-approved", name: "송무 준비", version: 2, practice_area: "litigation" }]);
+});
+
+test("Worktree template picker hides legacy approved records signed by another approver", () => {
+  const base = runtime().repository;
+  const repository = {
+    get: (ref) => base.get(ref),
+    list: (request) => request.model_type === "MatterWorktreeTemplate"
+      ? [{ ...fixtures().find(({ template_id }) => template_id === "template-approved"), approved_by: "other@example.com" }]
+      : base.list(request),
+  };
+
+  const response = handleMatterWorktreeTemplateList({ matterId, query, context: context(), requestId: "req-template-list-invalid-owner", runtime: { repository } });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.body.items, []);
 });
 
 test("WT-02-01 hides the Worktree and all counts from a non-member", async () => {

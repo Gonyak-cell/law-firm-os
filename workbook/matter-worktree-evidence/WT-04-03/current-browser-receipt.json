@@ -1,12 +1,12 @@
 {
   "schema_version": "law-firm-os.matter-worktree.browser-qa.v1",
-  "verified_parent_commit": "d523c6087",
+  "verified_parent_commit": "9a4584b4d",
   "status": "passed",
   "viewports": {
-    "375": { "overflow": false, "equal_practice_widths": true },
-    "768": { "overflow": false, "equal_practice_widths": true },
-    "1024": { "overflow": false, "equal_practice_widths": true },
-    "1280": { "overflow": false, "equal_practice_widths": true }
+    "375": { "overflow": false, "equal_practice_widths": true, "all_product_axes_visible": true },
+    "768": { "overflow": false, "equal_practice_widths": true, "all_product_axes_visible": true },
+    "1024": { "overflow": false, "equal_practice_widths": true, "all_product_axes_visible": true },
+    "1280": { "overflow": false, "equal_practice_widths": true, "all_product_axes_visible": true }
   },
   "keyboard_scenarios": { "passed": 8, "total": 8 },
   "practice_typography": {
@@ -17,9 +17,12 @@
   "structure_calls": { "add": 1, "rename": 1, "archive": 1, "template": 1 },
   "reopen_calls": 2,
   "recovery_states": { "denied": true, "conflict": true, "error": true },
+  "virtual_branch": { "visible": true, "border_style": "dashed", "label": "자동 분류" },
+  "search_focus_indicator": true,
+  "fit_view": { "fitted_tree_items": 11, "canvas_client_width": 634, "canvas_scroll_width": 634 },
   "performance": {
     "node_count": 301,
-    "stable_render_ms": 79.381708,
+    "stable_render_ms": 63.174166,
     "budget_ms": 1500,
     "page_overflow": false,
     "long_tasks": 0

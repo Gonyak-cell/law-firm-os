@@ -1,10 +1,14 @@
 {
   "schema_version": "law-firm-os.matter-worktree.packaged-restart-qa.v1",
-  "generated_at": "2026-07-11T17:12:49.720Z",
+  "generated_at": "2026-07-12T05:38:39.247Z",
   "status": "passed",
   "exact_bundle": "apps/desktop/dist/mac/matter.app",
   "exact_executable": "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
   "executable_sha256": "c0bf182389ea930585e3b0bf5c4f16529461e02bf3be751cb364d0e25f2257e0",
+  "app_content_sha256": "bd818026084ff2d29b20c1e2b9814628c28f7942b2fbe22b13b14991141b5134",
+  "renderer_sha256": "80653afa942ecde437263d4febf09b03371ed2c2e9002dafe70cbfaf75151cce",
+  "zip_sha256": "30163d71af60727ab919c04ea33c75c135e4439d9f45b97c586302663509340f",
+  "dmg_sha256": "cc481fb55fefbceb86de4c6bbf0a274841f79a7476d7764eeb2d5637f5ca5576",
   "app_launch_count": 2,
   "local_api_port_changed": true,
   "task_state_before_write": "todo",
@@ -25,22 +29,16 @@
       "16px"
     ]
   },
-  "people_sidebar_alignment": {
-    "title": "People",
-    "title_delta": 0,
-    "max_label_delta": 0
-  },
   "durable_audit_event_count": 1,
   "matter_task_is_completion_source": true,
   "isolated_runtime_store": true,
   "credential_material_recorded": false,
   "real_client_data_used": false,
+  "employee_pii_recorded": false,
   "public_release": false,
   "aws_deployment": false,
   "production_go_live": false,
   "screenshots": [
-    "workbook/matter-worktree-evidence/WT-04-07/packaged-before-restart.png",
-    "workbook/matter-worktree-evidence/WT-04-07/packaged-after-restart.png",
-    "workbook/matter-worktree-evidence/WT-04-07/packaged-people-centered.png"
+    "workbook/matter-worktree-evidence/WT-04-07/packaged-before-restart.png"
   ]
 }

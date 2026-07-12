@@ -20,6 +20,7 @@ const nodes = [
   { node_id: "task-done", node_type: "task", parent_node_id: "branch-records", title: "의뢰인 자료 확인", sort_order: 0, status: "active", task_id: "task-done", task: { task_id: "task-done", title: "의뢰인 자료 확인", status: "done", assigned_to: "qa-lawyer", due_at: "2026-07-10T09:00:00.000Z", document_refs: ["doc-1"] } },
   { node_id: "task-blocked", node_type: "task", parent_node_id: "branch-records", title: "상대방 자료 확인", sort_order: 1, status: "active", task_id: "task-blocked", task: { task_id: "task-blocked", title: "상대방 자료 확인", status: "blocked", assigned_to: "qa-staff", due_at: "2026-07-09T09:00:00.000Z" } },
 ];
+const unclassifiedTask = { task_id: "task-unclassified", title: "미분류 후속 확인", status: "todo", assigned_to: "qa-lawyer" };
 const worktreeBody = {
   request_id: "qa-render-read",
   outcome: "passed",
@@ -28,8 +29,8 @@ const worktreeBody = {
   item: {
     root: { node_id: "worktree-root:qa", node_type: "root", title: matter.title, depth: 0, persisted: false },
     nodes,
-    unclassified: { node_id: "worktree-unclassified:qa", node_type: "virtual_branch", title: "미분류 업무", depth: 1, persisted: false, tasks: [] },
-    progress: { done: 1, total: 2, percent: 50, blocked: 1, overdue: 1 },
+    unclassified: { node_id: "worktree-unclassified:qa", node_type: "virtual_branch", title: "미분류 업무", depth: 1, persisted: false, tasks: [unclassifiedTask] },
+    progress: { done: 1, total: 3, percent: 33, blocked: 1, overdue: 1 },
   },
   safe_error_codes: [],
 };
@@ -83,7 +84,7 @@ await page.route("**/api/**", async (route) => {
     if (worktreeResponseMode === "error") return route.abort("failed");
     const largeNodes = renderLargeWorktree ? largeWorktreeNodes() : null;
     const body = largeNodes
-      ? { ...worktreeBody, item: { ...worktreeBody.item, nodes: largeNodes, progress: { done: 80, total: 290, percent: 28, blocked: 0, overdue: 0 } } }
+      ? { ...worktreeBody, item: { ...worktreeBody.item, nodes: largeNodes, unclassified: { ...worktreeBody.item.unclassified, tasks: [] }, progress: { done: 80, total: 290, percent: 28, blocked: 0, overdue: 0 } } }
       : worktreeBody;
     return route.fulfill({ status: 200, contentType: "application/json", headers: { etag: '"4"' }, body: JSON.stringify(body) });
   }
@@ -120,6 +121,9 @@ for (const width of [1280, 1024, 768, 375]) {
   await page.waitForTimeout(100);
   const measurement = await page.evaluate(() => {
     const buttons = [...document.querySelectorAll(".matter-worktree-practice-areas button")];
+    const axisItems = [...document.querySelectorAll(".top-axis-item")];
+    const navRect = document.querySelector(".top-axis-nav").getBoundingClientRect();
+    const virtualNode = document.querySelector(".matter-worktree-node.virtual");
     const widths = buttons.map((button) => Math.round(button.getBoundingClientRect().width * 10) / 10);
     const fontSizes = buttons.map((button) => getComputedStyle(button).fontSize);
     return {
@@ -131,11 +135,20 @@ for (const width of [1280, 1024, 768, 375]) {
       practiceFontSizeMatchesBoard: fontSizes.every((fontSize) => fontSize === "16px"),
       equalPracticeWidths: Math.max(...widths) - Math.min(...widths) < 1,
       treeItems: document.querySelectorAll('[role="treeitem"]').length,
+      allAxesVisible: axisItems.every((item) => {
+        const rect = item.getBoundingClientRect();
+        return rect.left >= navRect.left && rect.right <= navRect.right;
+      }),
+      virtualBranchVisible: Boolean(virtualNode),
+      virtualBranchBorderStyle: virtualNode ? getComputedStyle(virtualNode).borderStyle : null,
     };
   });
   assert.equal(measurement.overflow, false, `${width}px page overflow`);
   assert.equal(measurement.practiceFontSizeMatchesBoard, true, `${width}px practice font matches Matter board tabs`);
   if (width > 768) assert.equal(measurement.equalPracticeWidths, true, `${width}px practice widths`);
+  assert.equal(measurement.allAxesVisible, true, `${width}px product axes visible`);
+  assert.equal(measurement.virtualBranchVisible, true, `${width}px virtual branch visible`);
+  assert.equal(measurement.virtualBranchBorderStyle, "dashed", `${width}px virtual branch distinction`);
   results.push(measurement);
   await page.screenshot({ path: fileURLToPath(new URL(`worktree-${width}.png`, outputDir)), fullPage: true });
 }
@@ -189,10 +202,13 @@ await page.waitForTimeout(50);
 assert.equal(reopenCalls, 1, "confirm must call reopen once");
 
 await page.getByPlaceholder("트리 검색").fill("상대방");
+const searchFocusOutline = await page.getByPlaceholder("트리 검색").evaluate((input) => getComputedStyle(input.closest("label")).outlineWidth);
+assert.notEqual(searchFocusOutline, "0px", "tree search must retain a visible keyboard focus indicator");
+await page.locator(".matter-worktree-tools").screenshot({ path: fileURLToPath(new URL("worktree-search-input-focus.png", outputDir)) });
 await page.getByPlaceholder("트리 검색").press("Enter");
 await page.waitForFunction(() => document.activeElement?.dataset?.worktreeNodeId === "task-blocked");
 assert.equal(await page.locator('[data-worktree-node-id="task-blocked"]').evaluate((node) => document.activeElement === node), true);
-await page.screenshot({ path: fileURLToPath(new URL("worktree-search-focus.png", outputDir)), fullPage: true });
+await page.locator(".matter-worktree-workspace").screenshot({ path: fileURLToPath(new URL("worktree-search-focus.png", outputDir)) });
 
 await page.locator('[data-worktree-node-id="task-done"]').focus();
 await page.keyboard.press("Space");
@@ -255,6 +271,8 @@ assert.equal(largeRender.treeItems, 301, "300 persisted nodes plus projected roo
 assert.equal(largeRender.pageOverflow, false, "300-node page overflow");
 assert.ok(largeRenderMs <= 1500, `300-node stable render ${largeRenderMs.toFixed(2)}ms`);
 assert.equal(largeRender.longTasks.filter((duration) => duration >= 50).length, 0, "300-node long main-thread tasks");
+await page.getByRole("button", { name: "상위 구조 맞춤" }).click();
+await page.waitForFunction(() => document.querySelectorAll('[role="treeitem"]').length === 11);
 const largeLayout = await page.evaluate(() => {
   const canvas = document.querySelector(".matter-worktree-canvas");
   const root = document.querySelector('[data-worktree-node-id="worktree-root:qa"]');
@@ -268,11 +286,15 @@ const largeLayout = await page.evaluate(() => {
     canvas: { left: canvasRect.left, right: canvasRect.right, top: canvasRect.top, bottom: canvasRect.bottom },
     root: { left: rootRect.left, right: rootRect.right, top: rootRect.top, bottom: rootRect.bottom },
     tree: { left: treeRect.left, right: treeRect.right },
+    canvasClientWidth: canvas.clientWidth,
+    canvasScrollWidth: canvas.scrollWidth,
+    fittedTreeItems: document.querySelectorAll('[role="treeitem"]').length,
   };
 });
 assert.ok(largeLayout.root.left >= largeLayout.canvas.left && largeLayout.root.right <= largeLayout.canvas.right, "300-node root visible at canvas origin");
 assert.ok(largeLayout.root.top >= largeLayout.canvas.top && largeLayout.root.bottom <= largeLayout.canvas.bottom, "300-node root visible vertically");
-await page.screenshot({ path: fileURLToPath(new URL("worktree-300.png", outputDir)), fullPage: true });
+assert.ok(largeLayout.canvasScrollWidth <= largeLayout.canvasClientWidth, "fit view must contain the collapsed top-level tree without horizontal clipping");
+await page.locator(".matter-worktree-workspace").screenshot({ path: fileURLToPath(new URL("worktree-300.png", outputDir)) });
 
 renderLargeWorktree = false;
 const recoveryStates = {};
@@ -287,7 +309,7 @@ for (const mode of ["denied", "conflict", "error"]) {
   await page.getByText(copy, { exact: true }).waitFor();
   await page.waitForTimeout(400);
   recoveryStates[mode] = true;
-  await page.screenshot({ path: fileURLToPath(new URL(`worktree-${mode}.png`, outputDir)), fullPage: true });
+  await page.locator(".matter-worktree-stage").screenshot({ path: fileURLToPath(new URL(`worktree-${mode}.png`, outputDir)) });
 }
 
 await writeFile(new URL("receipt.json", outputDir), `${JSON.stringify({ results, reopenCalls, structureCalls, keyboardSearchFocused: true, keyboard, largeRenderMs, largeRender, largeLayout, recoveryStates }, null, 2)}\n`);

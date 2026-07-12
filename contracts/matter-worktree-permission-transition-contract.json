@@ -20,6 +20,7 @@
     "worktree:read",
     "task:complete",
     "task:reopen",
+    "task:unblock",
     "structure:edit",
     "template:manage",
     "template:approve"
@@ -29,6 +30,7 @@
       "worktree:read": "allow",
       "task:complete": "allow",
       "task:reopen": "allow",
+      "task:unblock": "allow",
       "structure:edit": "allow",
       "template:manage": "deny",
       "template:approve": "deny"
@@ -37,6 +39,7 @@
       "worktree:read": "allow",
       "task:complete": "allow",
       "task:reopen": "allow",
+      "task:unblock": "allow",
       "structure:edit": "allow",
       "template:manage": "deny",
       "template:approve": "deny"
@@ -45,6 +48,7 @@
       "worktree:read": "allow",
       "task:complete": "allow",
       "task:reopen": "allow",
+      "task:unblock": "allow",
       "structure:edit": "allow",
       "template:manage": "deny",
       "template:approve": "deny"
@@ -53,6 +57,7 @@
       "worktree:read": "allow",
       "task:complete": "allow",
       "task:reopen": "allow",
+      "task:unblock": "allow",
       "structure:edit": "deny",
       "template:manage": "deny",
       "template:approve": "deny"
@@ -61,6 +66,7 @@
       "worktree:read": "allow",
       "task:complete": "deny",
       "task:reopen": "deny",
+      "task:unblock": "deny",
       "structure:edit": "deny",
       "template:manage": "deny",
       "template:approve": "deny"
@@ -69,6 +75,7 @@
       "worktree:read": "allow",
       "task:complete": "deny",
       "task:reopen": "deny",
+      "task:unblock": "deny",
       "structure:edit": "deny",
       "template:manage": "allow",
       "template:approve": "deny"

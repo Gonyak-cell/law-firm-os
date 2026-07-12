@@ -69,13 +69,27 @@ test("WT-01-03 requires complete approval evidence for approved templates", asyn
     ...draftInput,
     status: "approved",
     approval_ref: "approval_qa_wt_01_03",
-    approved_by: "user_qa_template_approver",
+    approved_by: "jwsuh@amic.kr",
     approved_at: "2026-07-11T13:00:00.000Z",
   });
 
   // Then
   assert.throws(createWithoutEvidence, /approved template requires approval_ref, approved_by, approved_at/);
   assert.equal(approved.status, "approved");
+});
+
+test("approved Worktree templates reject an approver other than the assigned owner", async () => {
+  const { createMatterCoreRecord } = await import("../src/model.js");
+
+  const createWithWrongApprover = () => createMatterCoreRecord("MatterWorktreeTemplate", {
+    ...draftInput,
+    status: "approved",
+    approval_ref: "approval_qa_wt_01_03",
+    approved_by: "other@example.com",
+    approved_at: "2026-07-11T13:00:00.000Z",
+  });
+
+  assert.throws(createWithWrongApprover, /approved_by must match assigned approver jwsuh@amic\.kr/);
 });
 
 test("WT-01-03 rejects root template nodes and missing nullable keys", async () => {

@@ -48,6 +48,10 @@ export function matterWorktreeExpandableIds(node, result = []) {
   return result;
 }
 
+export function nextMatterWorktreeSortOrder(siblings = []) {
+  return siblings.reduce((highest, node) => Math.max(highest, Number.isInteger(node.sort_order) ? node.sort_order : -1), -1) + 1;
+}
+
 export function createLatestWorktreeRequestSequence() {
   let latest = 0;
   return {

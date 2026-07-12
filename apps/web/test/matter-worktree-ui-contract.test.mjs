@@ -40,6 +40,8 @@ test("WT-03-05 renders a collapsible root, branch, and Task tree with connectors
   assert.match(worktreeSource, /toggleExpanded/);
   assert.match(stylesSource, /\.matter-worktree-children::before/);
   assert.match(stylesSource, /--worktree-node-width/);
+  assert.match(worktreeSource, /node\.node_type === "virtual_branch" \? "virtual"/);
+  assert.match(stylesSource, /\.matter-worktree-node\.virtual/);
 });
 
 test("WT-03-06 completes Tasks and requires confirmation plus reason to reopen", () => {
@@ -62,11 +64,13 @@ test("WT-03-08 renders the selected Task detail panel", () => {
 });
 
 test("WT-03-09 provides expand, collapse, search, and fit tools", () => {
-  for (const label of ["전체 펼치기", "전체 접기", "화면 맞춤", "트리 검색"]) assert.match(worktreeSource, new RegExp(label));
+  for (const label of ["전체 펼치기", "전체 접기", "상위 구조 맞춤", "트리 검색"]) assert.match(worktreeSource, new RegExp(label));
   assert.match(worktreeSource, /scrollIntoView/);
   assert.match(worktreeSource, /function scrollNodeIntoCanvas/);
   assert.match(worktreeSource, /canvas\.scrollTo/);
   assert.match(stylesSource, /\.matter-worktree-canvas\s*\{[\s\S]*height:\s*min\(60vh, 640px\)[\s\S]*overflow:\s*auto/);
+  assert.match(worktreeSource, /setExpandedIds\(new Set\(tree \? \[tree\.node_id\] : \[\]\)\)/);
+  assert.match(stylesSource, /\.matter-worktree-tools label:focus-within/);
 });
 
 test("WT-03-10 switches to an outline without page overflow at 1024px", () => {
@@ -113,4 +117,15 @@ test("Worktree exposes approved template application and structure editing contr
   for (const client of ["fetchMatterWorktreeTemplates", "applyMatterWorktreeTemplate", "createMatterWorktreeNode", "patchMatterWorktreeNode", "deleteMatterWorktreeNode"]) {
     assert.match(worktreeSource, new RegExp(client));
   }
+});
+
+test("Worktree node creation sends every required model field", () => {
+  assert.match(worktreeSource, /status:\s*"active"/);
+  assert.match(worktreeSource, /task_id:\s*nodeType === "task" \? taskId\.trim\(\) : null/);
+});
+
+test("tablet and mobile product navigation keep every axis visible without a hidden horizontal continuation", () => {
+  assert.match(stylesSource, /@media \(max-width: 820px\)[\s\S]*\.top-axis-nav\s*\{[\s\S]*grid-column:\s*1 \/ -1/);
+  assert.match(stylesSource, /@media \(max-width: 480px\)[\s\S]*\.top-axis-item\s*\{[\s\S]*min-width:\s*0/);
+  assert.match(stylesSource, /@media \(max-width: 480px\)[\s\S]*\.sidebar-subnav\s*\{[\s\S]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
 });

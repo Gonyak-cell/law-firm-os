@@ -1,6 +1,7 @@
 import { projectMatterWorktree } from "../../../packages/matter/src/worktree-projection.js";
 import { authorizeMatterWorktreeAccess, WORKTREE_READ_ROLES } from "./matter-worktree-authorization.js";
 import { classifyMatterPracticeArea } from "../../../packages/matter/src/practice-area.js";
+import { hasMatterWorktreeTemplateApproval } from "../../../packages/matter/src/worktree-template-model.js";
 
 function blocked(status, requestId, code, auditHintRef, uiState) {
   return {
@@ -66,7 +67,7 @@ export function handleMatterWorktreeTemplateList({ matterId, query = {}, context
   const practiceArea = classifyMatterPracticeArea(authorization.matter);
   const items = runtime.repository
     .list({ tenant_id: query.tenant_id, model_type: "MatterWorktreeTemplate" })
-    .filter((template) => template.status === "approved" && template.practice_area === practiceArea)
+    .filter((template) => template.status === "approved" && hasMatterWorktreeTemplateApproval(template) && template.practice_area === practiceArea)
     .map(({ template_id, name, version, practice_area }) => ({ template_id, name, version, practice_area }));
   return { status: 200, body: { request_id: requestId, outcome: "passed", items, safe_error_codes: [], audit_hint_ref: query.audit_hint_ref, count_leak_prevented: true, production_ready_claim: false } };
 }

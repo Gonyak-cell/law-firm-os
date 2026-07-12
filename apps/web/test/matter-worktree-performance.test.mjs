@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { performance } from "node:perf_hooks";
 import test from "node:test";
-import { buildMatterWorktreeTree, createLatestWorktreeRequestSequence, flattenMatterWorktree, matterWorktreeExpandableIds } from "../src/components/matterWorktreeTree.js";
+import { buildMatterWorktreeTree, createLatestWorktreeRequestSequence, flattenMatterWorktree, matterWorktreeExpandableIds, nextMatterWorktreeSortOrder } from "../src/components/matterWorktreeTree.js";
 
 function projection(nodeCount = 300) {
   const nodes = [];
@@ -80,4 +80,13 @@ test("a mutation response cannot commit after the user selects another Matter", 
   await mutation;
 
   assert.equal(renderedMatter, "matter-b");
+});
+
+test("new Worktree siblings append after the highest active sort order when gaps exist", () => {
+  const siblingsAfterArchive = [{ node_id: "remaining", sort_order: 1 }];
+
+  const nextSortOrder = nextMatterWorktreeSortOrder(siblingsAfterArchive);
+
+  assert.equal(nextSortOrder, 2);
+  assert.equal(nextMatterWorktreeSortOrder([]), 0);
 });

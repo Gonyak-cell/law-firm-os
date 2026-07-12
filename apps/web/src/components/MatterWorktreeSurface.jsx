@@ -16,7 +16,7 @@ import {
   reopenMatterWorktreeTask,
   unblockMatterWorktreeTask,
 } from "../data/apiClient.js";
-import { buildMatterWorktreeTree, createLatestWorktreeRequestSequence, flattenMatterWorktree, matterWorktreeExpandableIds } from "./matterWorktreeTree.js";
+import { buildMatterWorktreeTree, createLatestWorktreeRequestSequence, flattenMatterWorktree, matterWorktreeExpandableIds, nextMatterWorktreeSortOrder } from "./matterWorktreeTree.js";
 
 const PRACTICE_AREAS = Object.freeze([
   Object.freeze({ id: "litigation", label: "송무" }),
@@ -82,7 +82,7 @@ function WorktreeNode({ node, level, expandedIds, selectedId, pendingTaskId, onS
   return (
     <div className="matter-worktree-branch">
       <div
-        className={`matter-worktree-node ${selectedId === node.node_id ? "selected" : ""} ${task ? "task" : "branch"}`}
+        className={`matter-worktree-node ${selectedId === node.node_id ? "selected" : ""} ${task ? "task" : "branch"} ${node.node_type === "virtual_branch" ? "virtual" : ""}`}
         role="treeitem"
         aria-level={level}
         aria-selected={selectedId === node.node_id}
@@ -110,6 +110,7 @@ function WorktreeNode({ node, level, expandedIds, selectedId, pendingTaskId, onS
         ) : <Circle aria-hidden="true" className="matter-worktree-node-icon" />}
         <span className="matter-worktree-node-title">{node.title}</span>
         {task?.status && <small>{WORKTREE_STATUS_LABELS[task.status] ?? task.status}</small>}
+        {node.node_type === "virtual_branch" && <small>자동 분류</small>}
       </div>
       {hasChildren && expanded && (
         <div className="matter-worktree-children" role="group">
@@ -374,8 +375,9 @@ export function MatterWorktreeSurface({ matters = [], liveCtx = "allow" }) {
           node_type: nodeType,
           parent_node_id: parent?.node_id ?? null,
           title: nodeTitle.trim(),
-          sort_order: parent?.children?.length ?? tree?.children?.length ?? 0,
-          ...(nodeType === "task" ? { task_id: taskId.trim() } : {}),
+          sort_order: nextMatterWorktreeSortOrder(parent?.children ?? tree?.children ?? []),
+          status: "active",
+          task_id: nodeType === "task" ? taskId.trim() : null,
         },
       }),
     });
@@ -505,7 +507,9 @@ export function MatterWorktreeSurface({ matters = [], liveCtx = "allow" }) {
   }
 
   function fitCanvas() {
-    canvasRef.current?.scrollTo({ left: 0, top: 0, behavior: "smooth" });
+    setExpandedIds(new Set(tree ? [tree.node_id] : []));
+    if (tree?.node_id) setSelectedNodeId(tree.node_id);
+    requestAnimationFrame(() => canvasRef.current?.scrollTo({ left: 0, top: 0, behavior: "smooth" }));
   }
 
   function renderWorktreeState() {
@@ -531,7 +535,7 @@ export function MatterWorktreeSurface({ matters = [], liveCtx = "allow" }) {
             <button type="button" onClick={() => setExpandedIds(new Set(matterWorktreeExpandableIds(tree)))}>전체 펼치기</button>
             <button type="button" onClick={() => setExpandedIds(new Set(tree ? [tree.node_id] : []))}>전체 접기</button>
             <label><Search aria-hidden="true" /><span className="sr-only">트리 검색</span><input value={treeQuery} onChange={(event) => setTreeQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") focusSearchResult(); }} placeholder="트리 검색" /></label>
-            <button type="button" onClick={fitCanvas}><Maximize2 aria-hidden="true" />화면 맞춤</button>
+            <button type="button" onClick={fitCanvas} title="상위 단계만 보이도록 하위 가지를 접습니다"><Maximize2 aria-hidden="true" />상위 구조 맞춤</button>
           </div>
           <div className="matter-worktree-workspace">
             <div className="matter-worktree-canvas" ref={canvasRef}>
