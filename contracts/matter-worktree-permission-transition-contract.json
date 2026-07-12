@@ -5,7 +5,8 @@
   "source_contracts": {
     "matter_roles": "packages/matter/src/client-matter-g4.js#MATTER_G4A_MEMBER_ROLES",
     "role_permissions": "packages/matter/src/role-policy.js#MATTER_ROLE_PERMISSIONS",
-    "task_statuses": "packages/matter/src/client-matter-g4.js#MATTER_G4B_TASK_STATUS_TRANSITIONS"
+    "task_statuses": "packages/matter/src/client-matter-g4.js#MATTER_G4B_TASK_STATUS_TRANSITIONS",
+    "owner_assignment": "contracts/matter-worktree-owner-assignment.json"
   },
   "roles": [
     "responsible_attorney",
@@ -143,10 +144,11 @@
     }
   },
   "template_approval_gate": {
-    "status": "owner_assignment_required",
-    "approver_id": null,
+    "status": "owner_assigned",
+    "approver_id": "jwsuh@amic.kr",
+    "approver_identity_match_required": true,
     "approval_ref_required": true,
-    "approved_template_application_blocked": true
+    "approved_template_application_blocked": false
   },
   "audit_requirements": {
     "mutations_require_actor_id": true,

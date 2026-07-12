@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const contractUrl = new URL("../../../contracts/matter-worktree-permission-transition-contract.json", import.meta.url);
+const ownerAssignmentUrl = new URL("../../../contracts/matter-worktree-owner-assignment.json", import.meta.url);
 const fixtureUrl = new URL("../fixtures/matter-worktree-permission-transition-contract.fixture.json", import.meta.url);
 
 async function readJson(url) {
@@ -78,19 +79,29 @@ test("WT-00-03 forbids blocked completion and permits done reopen only to in_pro
   assert.equal(validReopen.expected, "allow");
 });
 
-test("WT-00-03 keeps template approval closed until a named approver is recorded", async () => {
+test("G0 records named owners while keeping template approval identity and reference gated", async () => {
   // Given
-  const contract = await readJson(contractUrl);
+  const [contract, ownerAssignment] = await Promise.all([readJson(contractUrl), readJson(ownerAssignmentUrl)]);
 
   // When
   const gate = contract.template_approval_gate;
   const approvalGrants = contract.roles.map((role) => contract.role_permissions[role]["template:approve"]);
 
   // Then
-  assert.equal(gate.status, "owner_assignment_required");
-  assert.equal(gate.approver_id, null);
+  assert.equal(gate.status, "owner_assigned");
+  assert.equal(gate.approver_id, "jwsuh@amic.kr");
   assert.equal(gate.approval_ref_required, true);
+  assert.equal(gate.approved_template_application_blocked, false);
   assert.deepEqual(approvalGrants, contract.roles.map(() => "deny"));
+  assert.deepEqual(ownerAssignment.practice_area_owners, {
+    litigation: "jwsuh@amic.kr",
+    "corporate-advisory": "jwsuh@amic.kr",
+    dispute: "jwsuh@amic.kr",
+    transaction: "jwsuh@amic.kr",
+  });
+  assert.equal(ownerAssignment.permission_rule_owner, "jwsuh@amic.kr");
+  assert.equal(ownerAssignment.legal_template_approver, "jwsuh@amic.kr");
+  assert.equal(ownerAssignment.actual_template_approval, "separate_approval_ref_required");
   assert.equal(contract.template_transitions.draft.approved, "owner_gate");
   assert.equal(contract.template_transitions.approved.draft, "deny_new_version_required");
 });

@@ -1,6 +1,6 @@
 # WT-00-03 acceptance
 
-Status: implementation, contract test, package regression, and evidence complete; isolated commit pending because the current sandbox cannot write `.git/index.lock`.
+Status: PASS. Contract, owner assignment, tests, and evidence are complete.
 
 ## Accepted contract
 
@@ -9,10 +9,13 @@ Status: implementation, contract test, package regression, and evidence complete
 - Task completion and reopen are limited to an assignee or active Matter team member whose role has an explicit grant.
 - `todo` and `in_progress` can complete to `done`; `blocked` and `cancelled` cannot complete.
 - Only `done` can reopen to `in_progress`, and reopen requires a reason.
-- Template drafts can only become approved through the owner gate. No role receives `template:approve` until a named approver and approval reference are recorded.
+- Template drafts can only become approved through the owner gate. No role receives blanket `template:approve`; the named approver identity and a separate approval reference are both required.
 - Generic `matter:write` does not implicitly grant Worktree template management or approval.
 - Unauthorized reads disclose neither resource existence nor counts.
 
-## Open Gate 0 dependency
+## Gate 0 owner assignment
 
-G0 remains open. A named template approver and the practice-area owners have not been recorded, so approved-template application remains blocked.
+- 송무·기업 자문·분쟁·트랜잭션 분야 책임자: `jwsuh@amic.kr`
+- Worktree 권한 규칙 책임자: `jwsuh@amic.kr`
+- 법률업무 템플릿 승인자: `jwsuh@amic.kr`
+- 실제 템플릿 `draft → approved` 전환: 별도 `approval_ref` 필요; 이 책임자 지정만으로 수행하지 않음.

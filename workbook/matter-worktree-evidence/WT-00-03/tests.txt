@@ -17,3 +17,15 @@ result: 132 passed, 0 failed
 STATIC CHECKS
 git diff --check: passed
 secret-pattern scan: no matches
+
+OWNER ASSIGNMENT RED
+command: node --test packages/matter/test/worktree-permission-transition-contract.test.js
+exit: 1
+result: 4 passed, 1 failed
+cause: `contracts/matter-worktree-owner-assignment.json` did not exist.
+
+OWNER ASSIGNMENT GREEN
+command: node --test packages/matter/test/worktree-permission-transition-contract.test.js
+exit: 0
+result: 5 passed, 0 failed
+approver identity: jwsuh@amic.kr; separate approval reference remains required.
