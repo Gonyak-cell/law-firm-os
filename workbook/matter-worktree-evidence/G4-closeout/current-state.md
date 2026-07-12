@@ -16,6 +16,7 @@
 | Restart persistence | PASS |
 | Browser rendered E2E | PASS |
 | 375/768/1024/1280 pixel QA | PASS, overflow 0px, keyboard 8/8 |
+| Practice selector typography | PASS, 송무·기업 자문·분쟁·트랜잭션 all 16px / 400 and equal width |
 | Exact latest bundle static parity | PASS |
 | Exact latest bundle live visual QA | PASS, app launch 2/2 and checked state restored |
 | Exact packaged restart persistence | PASS, fresh local API port and MatterTask `done` restored |
@@ -23,7 +24,7 @@
 | 43 canonical TUW commits | PASS, 43 IDs / 43 commits / 43 evidence directories |
 | Canonical boundary audit | PASS, `scripts/validate-matter-worktree-commit-boundaries.mjs` |
 | Runtime debugging audit | PASS, three hypotheses rejected with browser/package evidence |
-| Post-canonical remediation | PASS, atomicity/API/editor/UI/package evidence kept in separate follow-up commits |
+| Post-canonical remediation | PASS through `bdbe295ad`, atomicity/API/editor/UI/typography/package evidence kept in separate follow-up commits |
 | Practice-area owner | NOT RECORDED |
 | Permission-rule owner | NOT RECORDED |
 | Legal-template approver | NOT RECORDED |
