@@ -7,5 +7,4 @@
 - The complete candidate tree is validated before the transaction.
 - Task nodes can link only to a `MatterTask` in the same tenant and Matter.
 - Node state, Worktree version, audit event, and idempotency receipt share one transaction.
-- Required isolated Git commit is pending because this sandbox cannot write `.git/index.lock`.
-
+- Canonical evidence commit: `156c35243`; the historical `.git/index.lock` wait is resolved.

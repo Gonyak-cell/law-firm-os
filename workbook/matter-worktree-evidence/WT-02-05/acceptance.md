@@ -6,5 +6,4 @@
 - Reopen requires a non-empty reason and moves done to in_progress.
 - Cross-Matter Task identifiers are not disclosed.
 - Repeated completion returns the stored result with one audit event.
-- Required isolated Git commit is pending because this sandbox cannot write `.git/index.lock`.
-
+- Canonical evidence commit: `4cf9e2561`; the historical `.git/index.lock` wait is resolved.

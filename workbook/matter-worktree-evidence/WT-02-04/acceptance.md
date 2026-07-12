@@ -5,5 +5,4 @@
 - DELETE archives the selected node and all descendants in one transaction.
 - Archived task placement never deletes or changes the linked `MatterTask`.
 - Subtree archive increments Worktree version once and writes one audit/idempotency pair.
-- Required isolated Git commit is pending because this sandbox cannot write `.git/index.lock`.
-
+- Canonical evidence commit: `815e0bfaf`; the historical `.git/index.lock` wait is resolved.

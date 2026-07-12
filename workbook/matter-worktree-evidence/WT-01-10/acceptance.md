@@ -8,5 +8,4 @@
 - Mutation failure rolls back state, audit, and idempotency records.
 - MatterTask complete and approved synthetic template application use the common mutation boundary.
 - `MatterTask.status` remains the sole completion source.
-- Required isolated Git commit is pending because this sandbox cannot write `.git/index.lock`.
-
+- Canonical evidence commit: `cd963ee67`; the historical `.git/index.lock` wait is resolved.

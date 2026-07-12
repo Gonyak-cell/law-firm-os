@@ -7,5 +7,4 @@
 - Template replay returns 200 without duplicating Worktree, nodes, tasks, or audit.
 - Draft template rejection leaves no partial state or audit event.
 - Writes require explicit route permission, matching tenant, permission envelope, and an active edit-capable Matter member.
-- Required isolated Git commit is pending because this sandbox cannot write `.git/index.lock`.
-
+- Canonical evidence commit: `7d4982797`; the historical `.git/index.lock` wait is resolved.

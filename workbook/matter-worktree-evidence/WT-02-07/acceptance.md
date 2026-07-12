@@ -6,5 +6,4 @@
 - Stale writes return 409 with the current version and roll back node changes, audit, and idempotency state.
 - Successful structural writes return the incremented version and ETag.
 - The HTTP server forwards handler ETag headers without changing other response headers.
-- Required isolated Git commit is pending because this sandbox cannot write `.git/index.lock`.
-
+- Canonical evidence commit: `e4411abdb`; the historical `.git/index.lock` wait is resolved.

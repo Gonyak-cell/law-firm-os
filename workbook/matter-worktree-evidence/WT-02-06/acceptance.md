@@ -6,5 +6,4 @@
 - Read, structure edit, and Task transitions use distinct role sets from the frozen contract.
 - Cross-tenant, forged-actor, envelope-mismatch, and role-denied requests return count-safe 404 without writes.
 - Paralegal read/Task access remains allowed while structure edits remain denied.
-- Required isolated Git commit is pending because this sandbox cannot write `.git/index.lock`.
-
+- Canonical evidence commit: `e5be7701b`; the historical `.git/index.lock` wait is resolved.

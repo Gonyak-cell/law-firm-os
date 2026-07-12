@@ -8,4 +8,4 @@
 - idempotent template/Task replay creates no duplicate state or audit.
 - stale node version returns 409/current_version and leaves state unchanged.
 - verification: 20/20 security/conflict API tests passed.
-- isolated commit pending because `.git/index.lock` is not writable.
+- Canonical evidence commit: `f4c66bf90`; the historical `.git/index.lock` wait is resolved.

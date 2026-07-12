@@ -1,6 +1,6 @@
 # WT-01-04 acceptance
 
-Status: implementation, targeted tests, Matter regression, SQL syntax QA, restart QA, and evidence complete; isolated commit pending because the current sandbox cannot write `.git/index.lock`.
+Status: implementation, targeted tests, Matter regression, SQL syntax QA, restart QA, and evidence complete. Canonical evidence commit: `90bc855be`; the historical `.git/index.lock` wait is resolved.
 
 ## Accepted implementation
 

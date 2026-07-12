@@ -7,4 +7,4 @@
 - blocked and overdue coverage exists in every practice area.
 - cancelled tasks remain present as MatterTask records but are excluded only from progress math.
 - verification: 8/8 fixture and classification tests passed.
-- isolated commit pending because `.git/index.lock` is not writable.
+- Canonical evidence commit: `275b9f51e`; the historical `.git/index.lock` wait is resolved.

@@ -1,6 +1,6 @@
 # WT-00-01 수용 결과
 
-상태: 구현·테스트 완료 / 커밋 대기
+상태: 구현·테스트·정본 증거 커밋 완료
 
 ## 수용 기준
 
@@ -27,4 +27,4 @@
 
 기본 전체 패키지 테스트의 첫 실행은 `/Users/jws/lawos-backups` 쓰기가 현재 샌드박스에서 `EPERM`으로 거부되어 기존 `matter-profile-service` 테스트 1건이 실패했다. `LAWOS_LOCAL_BACKUP_ROOT`와 `LAWOS_RUNTIME_BACKUP_QUEUE_ROOT`를 `/tmp`로 지정한 동일 테스트 실행은 122/122 통과했다.
 
-커밋은 `.git/index.lock` 생성 권한이 거부되어 아직 생성되지 않았다. 다른 미커밋 변경과 섞이지 않도록 `files.txt`의 경로만 커밋 후보로 유지한다.
+정본 증거 커밋은 `a9290bb69`다. 과거 `.git/index.lock` 대기 메모는 해소됐다.

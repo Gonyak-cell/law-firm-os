@@ -6,5 +6,4 @@
 - Every allowed write still requires a signed desktop session and a valid JSON object body.
 - Existing profile/stakeholder allowlist behavior remains unchanged.
 - No wildcard path or method grant was introduced.
-- Required isolated Git commit is pending because this sandbox cannot write `.git/index.lock`.
-
+- Canonical evidence commit: `a448da8c9`; the historical `.git/index.lock` wait is resolved.

@@ -1,6 +1,6 @@
 # WT-00-04 acceptance
 
-Status: implementation, contract test, package regression, and evidence complete; isolated commit pending because the current sandbox cannot write `.git/index.lock`.
+Status: implementation, contract test, package regression, and evidence complete. Canonical evidence commit: `9bb32a4de`; the historical `.git/index.lock` wait is resolved.
 
 ## Accepted fixture
 

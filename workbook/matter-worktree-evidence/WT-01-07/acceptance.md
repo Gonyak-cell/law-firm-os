@@ -1,6 +1,6 @@
 # WT-01-07 acceptance
 
-Status: implementation, targeted tests, Matter regression, manual library QA, and evidence complete; isolated commit pending because the current sandbox cannot write `.git/index.lock`.
+Status: implementation, targeted tests, Matter regression, manual library QA, and evidence complete. Canonical evidence commit: `b0180c49e`; the historical `.git/index.lock` wait is resolved.
 
 ## Accepted implementation
 
@@ -15,7 +15,7 @@ Status: implementation, targeted tests, Matter regression, manual library QA, an
 
 ## Approval boundary
 
-Only synthetic `[QA]` approval evidence was used in tests and manual QA. No real legal template was approved, persisted, or applied, and the named-owner Gate 0 dependency remains open.
+Only synthetic `[QA]` approval evidence was used in tests and manual QA. No real legal template was approved, persisted, or applied. G0 names `jwsuh@amic.kr`; a specific template still requires its own `approval_ref` before leaving `draft`.
 
 ## Architecture review
 
