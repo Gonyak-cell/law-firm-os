@@ -1,0 +1,83 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-windows-authenticode-korea-provider-pivot.v0.1",
+  "status": "external_provider_required_for_korea_seoul",
+  "recorded_at": "2026-06-30T02:45:00Z",
+  "recorded_at_original": "2026-06-30 11:45:00 KST",
+  "issue": "https://github.com/Gonyak-cell/law-firm-os/issues/145",
+  "target_jurisdiction": {
+    "country": "KR",
+    "city": "Seoul",
+    "organization_context": "Korea/Seoul legal organization"
+  },
+  "azure_trusted_signing_assessment": {
+    "account_name": "lawosmattersigning",
+    "resource_group": "amic-platform-rg",
+    "account_uri": "https://krc.codesigning.azure.net/",
+    "public_identity_validation_form_reached": true,
+    "public_identity_validation_request_submitted": false,
+    "portal_notice": "Artifact Signing is currently available to organizations in the USA, Canada, European Union & United Kingdom.",
+    "azure_public_identity_validation_viable_for_target_jurisdiction": false,
+    "decision": "do_not_use_azure_public_identity_validation_for_korea_seoul_authenticode_lane"
+  },
+  "provider_strategy": {
+    "required_path": "external_windows_authenticode_provider",
+    "selection_state": "not_selected",
+    "procurement_required": true,
+    "acceptable_certificate_types": [
+      "OV Code Signing certificate",
+      "EV Code Signing certificate"
+    ],
+    "minimum_selection_criteria": [
+      "supports South Korea legal organization validation",
+      "supports Windows Authenticode signing",
+      "provides certificate fingerprint or verification output without exposing private key material",
+      "supports private key custody compatible with Windows signing host or CI signing workflow",
+      "can provide signed artifact verification evidence for Get-AuthenticodeSignature or equivalent"
+    ],
+    "provider_candidates_for_procurement_review": [
+      {
+        "name": "DigiCert",
+        "source_url": "https://www.digicert.com/signing/code-signing-certificates",
+        "review_state": "candidate_requires_procurement_confirmation"
+      },
+      {
+        "name": "GlobalSign",
+        "source_url": "https://www.globalsign.com/en/code-signing-certificate",
+        "review_state": "candidate_requires_procurement_confirmation"
+      },
+      {
+        "name": "Sectigo",
+        "source_url": "https://www.sectigo.com/ssl-certificates-tls/code-signing",
+        "review_state": "candidate_requires_procurement_confirmation"
+      },
+      {
+        "name": "SSL.com",
+        "source_url": "https://www.ssl.com/certificates/code-signing/",
+        "review_state": "candidate_requires_procurement_confirmation"
+      }
+    ]
+  },
+  "required_next_steps": {
+    "provider_selection": "select a Windows Authenticode provider that supports South Korea organization validation",
+    "legal_identity_packet": "prepare authorized legal organization name, website, business identifier, address, requester, and validation emails",
+    "certificate_procurement": "procure OV or EV code signing certificate without committing secrets",
+    "signing_host": "provide a Windows host or CI signing runner with approved key custody",
+    "verification": "record sanitized signing command, certificate fingerprint, Authenticode verification output, and Windows native install smoke"
+  },
+  "boundary": {
+    "azure_account_created": true,
+    "azure_public_identity_validation_viable_for_korea_seoul": false,
+    "external_provider_required": true,
+    "external_provider_selected": false,
+    "certificate_procured": false,
+    "certificate_fingerprint_recorded": false,
+    "signing_execution_allowed": false,
+    "windows_authenticode_signing": false,
+    "windows_native_install_smoke": "not_run",
+    "public_release_approved": false,
+    "microsoft_store_distribution_approved": false,
+    "external_pilot_distribution_approved": false,
+    "vault_document_writes_approved": false,
+    "real_client_data_migration_approved": false
+  }
+}

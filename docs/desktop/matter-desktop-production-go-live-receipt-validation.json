@@ -1,0 +1,28 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-production-go-live-receipt.validation.v0.1",
+  "generated_at": "2026-06-30T01:15:20Z",
+  "source_refs": [
+    "docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json",
+    "docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.md",
+    "docs/desktop/matter-desktop-owner-approval-receipt-2026-06-30.json",
+    "docs/desktop/matter-desktop-production-go-live-decision-intake.json",
+    "docs/desktop/matter-desktop-production-go-live-decision-validation.json",
+    "docs/desktop/matter-desktop-lcx-vltui-github-release-receipt-2026-06-30.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/hrx-production-smoke-2026-06-30.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-go-live-receipt-2026-06-30.json"
+  ],
+  "verdict": "PASS",
+  "summary": {
+    "final_go_live_decision_recorded": true,
+    "production_go_live_receipt_committed": true,
+    "named_lane_runtime_go_live": true,
+    "public_release_approved": false,
+    "company_wide_production_go_live_approved": false,
+    "windows_authenticode_signing_approved": false,
+    "lcx_production_smoke_verdict": "PASS",
+    "hrx_production_smoke_verdict": "PASS",
+    "finding_count": 0
+  },
+  "findings": []
+}

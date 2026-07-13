@@ -1,0 +1,33 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-real-client-data-migration-mapping-workbook.v0.1",
+  "status": "mapping_workbook_ready",
+  "recorded_at": "2026-06-30T06:20:00Z",
+  "recorded_at_original": "2026-06-30 15:20:00 KST",
+  "source_inventory_ref": "docs/desktop/matter-desktop-real-client-data-migration-source-inventory-2026-06-30.json",
+  "vault_write_approval_ref": "docs/desktop/matter-desktop-vault-document-writes-approval-receipt-2026-06-30.json",
+  "target": {
+    "system": "Law Firm OS Vault bridge",
+    "scope": "LCX VLTUI desktop named lane only",
+    "company_wide_target": false
+  },
+  "mappings": [
+    {
+      "source_record_id": "lcx-vltui-named-lane-production-bridge-smoke-population",
+      "target_client_key": "vault_bridge_client_lookup_key",
+      "target_matter_key": "vault_bridge_matter_lookup_key",
+      "target_document_scope": "bounded_vault_document_write_verification",
+      "max_document_count": 10,
+      "requires_audit_log": true,
+      "requires_rollback_plan": true
+    }
+  ],
+  "boundary": {
+    "mapping_ready": true,
+    "real_client_data_migration_approved_by_this_file": false,
+    "real_client_data_migration_execution_authorized_by_this_file": false,
+    "vault_document_writes_approved_by_this_file": false,
+    "public_release_approved": false,
+    "external_pilot_distribution_approved": false,
+    "windows_authenticode_signing_approved": false
+  }
+}

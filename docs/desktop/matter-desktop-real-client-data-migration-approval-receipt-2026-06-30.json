@@ -1,0 +1,72 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-real-client-data-migration-approval-receipt.v0.1",
+  "status": "real_client_data_migration_approved",
+  "recorded_at": "2026-06-30T06:20:00Z",
+  "recorded_at_original": "2026-06-30 15:20:00 KST",
+  "source": {
+    "source_type": "owner_chat_real_client_data_migration_approval",
+    "source_ref": "approval:real-client-data-migration-lcx-vltui-2026-06-30-1520-kst",
+    "recorded_by_human": true
+  },
+  "decision": {
+    "decision_maker": "Jiwon Suh, Product Owner",
+    "decision": "approve_real_client_data_migration",
+    "migration_scope": "LCX VLTUI desktop named lane only; bounded Matter/Client/Vault migration verification after Vault document writes approval recorded in PR #162",
+    "client_population": "LCX VLTUI production bridge smoke population and named-lane records only; no company-wide client population",
+    "source_inventory_ref": "docs/desktop/matter-desktop-real-client-data-migration-source-inventory-2026-06-30.json",
+    "mapping_workbook_ref": "docs/desktop/matter-desktop-real-client-data-migration-mapping-workbook-2026-06-30.json",
+    "dry_run_receipt_ref": "docs/desktop/matter-desktop-real-client-data-migration-dry-run-receipt-2026-06-30.json",
+    "vault_write_approval_ref": "docs/desktop/matter-desktop-vault-document-writes-approval-receipt-2026-06-30.json",
+    "rollback_plan_ref": "docs/desktop/matter-desktop-real-client-data-migration-rollback-plan-2026-06-30.md",
+    "communications_owner": "Jiwon Suh, Product Owner",
+    "decision_at": "2026-06-30T06:20:00Z",
+    "decision_at_original": "2026-06-30 15:20:00 KST",
+    "approval_signature_ref": "approval:real-client-data-migration-lcx-vltui-2026-06-30-1520-kst",
+    "recorded_by_human": true
+  },
+  "release": {
+    "tag": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "target_commitish": "ef493451a1d070412d3d24d4474493afbca3f1a4",
+    "is_prerelease": true,
+    "release_channel": "github_prerelease_lcx_vltui_desktop"
+  },
+  "source_refs": {
+    "owner_decision_issue": "https://github.com/Gonyak-cell/law-firm-os/issues/160",
+    "decision_intake": "docs/desktop/matter-desktop-real-client-data-migration-decision-intake-2026-06-30.json",
+    "source_inventory": "docs/desktop/matter-desktop-real-client-data-migration-source-inventory-2026-06-30.json",
+    "mapping_workbook": "docs/desktop/matter-desktop-real-client-data-migration-mapping-workbook-2026-06-30.json",
+    "dry_run_receipt": "docs/desktop/matter-desktop-real-client-data-migration-dry-run-receipt-2026-06-30.json",
+    "vault_write_approval": "docs/desktop/matter-desktop-vault-document-writes-approval-receipt-2026-06-30.json",
+    "rollback_plan": "docs/desktop/matter-desktop-real-client-data-migration-rollback-plan-2026-06-30.md",
+    "lcx_vltui_production_bridge_smoke": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json"
+  },
+  "scope": {
+    "approves_real_client_data_migration": true,
+    "approves_bounded_named_lane_migration_verification": true,
+    "real_client_data_migration_execution_authorized": true,
+    "company_wide_client_population_approved": false,
+    "public_release_approved": false,
+    "company_wide_production_rollout_approved": false,
+    "external_pilot_distribution_approved": false,
+    "windows_authenticode_signing_approved": false,
+    "migration_outside_named_scope_approved": false,
+    "unbounded_bulk_client_data_migration_approved": false
+  },
+  "boundary": {
+    "real_client_data_migration_approved": true,
+    "real_client_data_migration_execution_authorized_by_this_receipt": true,
+    "real_client_rows_migrated_by_this_receipt": 0,
+    "migration_execution_receipt_present": false,
+    "vault_document_writes_approval_recorded": true,
+    "source_inventory_ready": true,
+    "mapping_workbook_ready": true,
+    "dry_run_pass": true,
+    "public_release_approved": false,
+    "company_wide_production_rollout_approved": false,
+    "external_pilot_distribution_approved": false,
+    "windows_authenticode_signing_approved": false,
+    "migration_outside_named_scope_approved": false,
+    "unbounded_bulk_client_data_migration_approved": false
+  }
+}

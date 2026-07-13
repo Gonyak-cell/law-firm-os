@@ -1,0 +1,38 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-real-client-data-migration-source-inventory.v0.1",
+  "status": "source_inventory_ready",
+  "recorded_at": "2026-06-30T06:20:00Z",
+  "recorded_at_original": "2026-06-30 15:20:00 KST",
+  "scope": {
+    "population": "LCX VLTUI production bridge smoke population and named-lane records only",
+    "company_wide_client_population": false,
+    "named_lane_only": true,
+    "source_record_count": 1,
+    "max_vault_document_count": 10
+  },
+  "source_refs": {
+    "lcx_vltui_production_bridge_smoke": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json",
+    "vault_write_approval": "docs/desktop/matter-desktop-vault-document-writes-approval-receipt-2026-06-30.json"
+  },
+  "records": [
+    {
+      "record_id": "lcx-vltui-named-lane-production-bridge-smoke-population",
+      "record_type": "matter_client_vault_named_lane",
+      "client_scope": "named_lane_only",
+      "matter_scope": "named_lane_only",
+      "vault_document_write_limit": 10,
+      "source_system": "Law Firm OS Matter app API and LCX VLTUI desktop bridge",
+      "secret_material_included": false,
+      "direct_personal_contact_included": false,
+      "company_wide_population_included": false
+    }
+  ],
+  "boundary": {
+    "real_client_data_migration_approved_by_this_file": false,
+    "real_client_data_migration_execution_authorized_by_this_file": false,
+    "company_wide_population_included": false,
+    "public_release_approved": false,
+    "external_pilot_distribution_approved": false,
+    "windows_authenticode_signing_approved": false
+  }
+}

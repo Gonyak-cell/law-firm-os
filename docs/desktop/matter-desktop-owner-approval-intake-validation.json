@@ -6,13 +6,14 @@
     "docs/desktop/matter-desktop-owner-approval-intake.md",
     "docs/desktop/matter-desktop-lcx-vltui-github-release-receipt-2026-06-30.json",
     "docs/desktop/matter-desktop-lcx-vltui-post-release-kickoff-2026-06-30.md",
-    "docs/desktop/matter-desktop-owner-decision-packet.md"
+    "docs/desktop/matter-desktop-owner-decision-packet.md",
+    "docs/desktop/matter-desktop-owner-approval-receipt-2026-06-30.json"
   ],
   "verdict": "PASS",
   "summary": {
     "release_tag": "matter-desktop-v0.1.0-lcx-vltui-20260630",
-    "pending_response_count": 1,
-    "real_response_count": 0,
+    "pending_response_count": 0,
+    "real_response_count": 1,
     "required_review_artifact_count": 7,
     "public_release_claim": false,
     "production_go_live_claim": false,

@@ -1,0 +1,22 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-nonwindows-execution-closeout-validation.v0.1",
+  "generated_at": "2026-06-30T07:04:00.748Z",
+  "verdict": "PASS",
+  "summary": {
+    "execution_ref": "execution:lcx-vltui-nonwindows-approved-scope-2026-06-30",
+    "vault_documents_written": 1,
+    "real_client_rows_migrated": 1,
+    "post_execution_smoke_verdict": "PASS",
+    "rollback_possible": true,
+    "findings": 0
+  },
+  "sources": {
+    "vault_document_write_execution_receipt": "docs/desktop/matter-desktop-vault-document-writes-execution-receipt-2026-06-30.json",
+    "real_client_data_migration_execution_receipt": "docs/desktop/matter-desktop-real-client-data-migration-execution-receipt-2026-06-30.json",
+    "post_execution_smoke": "docs/desktop/matter-desktop-nonwindows-post-execution-smoke-2026-06-30.json",
+    "closeout_receipt": "docs/desktop/matter-desktop-nonwindows-execution-closeout-receipt-2026-06-30.json",
+    "vault_document_writes_approval": "docs/desktop/matter-desktop-vault-document-writes-approval-receipt-2026-06-30.json",
+    "real_client_data_migration_approval": "docs/desktop/matter-desktop-real-client-data-migration-approval-receipt-2026-06-30.json"
+  },
+  "findings": []
+}

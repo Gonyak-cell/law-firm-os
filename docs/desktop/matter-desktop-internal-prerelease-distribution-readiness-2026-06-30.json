@@ -1,0 +1,52 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-internal-prerelease-distribution-readiness.v0.1",
+  "status": "internal_prerelease_distribution_ready",
+  "recorded_at": "2026-06-30T03:58:37Z",
+  "recorded_at_original": "2026-06-30 12:58:37 KST",
+  "release": {
+    "tag": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "target_commitish": "ef493451a1d070412d3d24d4474493afbca3f1a4",
+    "is_prerelease": true,
+    "release_channel": "github_prerelease_lcx_vltui_desktop"
+  },
+  "distribution_scope": {
+    "audience": "internal_named_lane_operators_only",
+    "channel": "github_prerelease_asset_link",
+    "approved_assets": [
+      "matter-0.1.0-macos.dmg",
+      "matter-0.1.0-macos.zip",
+      "release-manifest.json",
+      "checksums.sha256"
+    ],
+    "windows_lane": "excluded_from_this_non_windows_gate",
+    "external_pilot_distribution": false,
+    "public_release": false
+  },
+  "source_refs": {
+    "github_release_receipt": "docs/desktop/matter-desktop-lcx-vltui-github-release-receipt-2026-06-30.json",
+    "owner_approval_receipt": "docs/desktop/matter-desktop-owner-approval-receipt-2026-06-30.json",
+    "production_go_live_receipt": "docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json",
+    "hrx_production_smoke": "docs/lazycodex/evidence/matter-web/artifacts/hrx-production-smoke-2026-06-30.json",
+    "lcx_vltui_production_bridge_smoke": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json"
+  },
+  "operator_controls": {
+    "checksum_verification_required": true,
+    "use_release_manifest": true,
+    "record_recipient_or_operator": true,
+    "record_install_result": true,
+    "report_smoke_failure_before_expanding_distribution": true
+  },
+  "boundary": {
+    "internal_prerelease_distribution_readiness_recorded": true,
+    "distribution_execution_recorded_by_this_file": false,
+    "public_release_approved": false,
+    "company_wide_production_rollout_approved": false,
+    "external_pilot_distribution_approved": false,
+    "windows_authenticode_signing_approved": false,
+    "vault_document_writes_approved": false,
+    "real_client_data_migration_approved": false,
+    "vault_document_write_execution_authorized_by_this_file": false,
+    "real_client_data_used_by_this_file": false
+  }
+}

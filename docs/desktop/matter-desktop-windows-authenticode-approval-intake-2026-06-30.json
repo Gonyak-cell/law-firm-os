@@ -1,0 +1,49 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-windows-authenticode-approval-intake.v0.1",
+  "status": "blocked_placeholder_authenticode_approval_input",
+  "recorded_at": "2026-06-30T01:51:02Z",
+  "recorded_at_original": "2026-06-30 10:51:02 KST",
+  "issue": "https://github.com/Gonyak-cell/law-firm-os/issues/145",
+  "release": {
+    "tag": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-lcx-vltui-20260630"
+  },
+  "submitted_approval_text": {
+    "decision_maker": "Jiwon Suh, Product Owner",
+    "signing_provider_or_certificate": "<provider or certificate name>",
+    "certificate_fingerprint": "<fingerprint, if already known>",
+    "windows_host": "<machine/runner name>",
+    "decision": "proceed with signing and Windows native install smoke for matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "scope": "Authenticode signing and Windows-host verification only. No Microsoft Store distribution, public release expansion, external pilot, Vault document writes, or real client data migration."
+  },
+  "placeholder_fields": [
+    "signing_provider_or_certificate",
+    "certificate_fingerprint",
+    "windows_host"
+  ],
+  "environment_discovery": {
+    "github_actions_secret_names_visible": [],
+    "repo_authenticode_provider_config_found": false,
+    "repo_windows_signing_workflow_found": false
+  },
+  "required_to_unblock": {
+    "signing_provider_or_certificate": "real provider or certificate name",
+    "certificate_fingerprint": "real certificate fingerprint or explicit provider-managed fingerprint reference",
+    "windows_host": "real Windows host, runner, or workflow name",
+    "sanitized_signing_command": "command template with secret values redacted",
+    "authenticode_verification_output": "Get-AuthenticodeSignature or equivalent output",
+    "windows_native_install_smoke": "PASS receipt from Windows"
+  },
+  "boundary": {
+    "approval_input_recorded": true,
+    "approval_input_is_actionable": false,
+    "signing_execution_allowed": false,
+    "windows_authenticode_signing": false,
+    "windows_native_install_smoke": "not_run",
+    "public_release_approved": false,
+    "microsoft_store_distribution_approved": false,
+    "external_pilot_distribution_approved": false,
+    "vault_document_writes_approved": false,
+    "real_client_data_migration_approved": false
+  }
+}

@@ -18,9 +18,9 @@ Local date: 2026-06-30
 
 | Workstream | Tracker | Started State | Completion Gate |
 | --- | --- | --- | --- |
-| Owner approval evidence | https://github.com/Gonyak-cell/law-firm-os/issues/146 | Open, intake validator ready | Explicit owner approval or rejection receipt recorded through `docs/desktop/matter-desktop-owner-approval-intake.json` and `npm run matter-desktop:owner-approval:intake:validate`. |
-| Production go-live receipt | https://github.com/Gonyak-cell/law-firm-os/issues/144 | Open, blocked by owner approval | Go-live receipt committed after owner approval and final decision validation. |
-| Windows Authenticode signing | https://github.com/Gonyak-cell/law-firm-os/issues/145 | Open, blocked by signing provider/certificate and Windows host verification | Sanitized Authenticode receipt plus Windows native install smoke. |
+| Owner approval evidence | https://github.com/Gonyak-cell/law-firm-os/issues/146 | Closed, owner approval gate recorded | Explicit owner approval receipt recorded through `docs/desktop/matter-desktop-owner-approval-intake.json` and `npm run matter-desktop:owner-approval:intake:validate`. |
+| Production go-live receipt | https://github.com/Gonyak-cell/law-firm-os/issues/144 | Ready to close after receipt merge | Go-live receipt committed after final decision validation and explicit final decision input. |
+| Windows Authenticode signing | https://github.com/Gonyak-cell/law-firm-os/issues/145 | Open, package candidate created but blocked by signing provider/certificate and Windows host verification | Sanitized Authenticode receipt plus Windows native install smoke. |
 
 ## Current Evidence
 
@@ -28,7 +28,7 @@ Local date: 2026-06-30
 - macOS strict codesign: pass
 - macOS Gatekeeper assessment: pass
 - macOS notarization: submitted and accepted by notarytool
-- GitHub release assets: 14 uploaded
+- GitHub release assets: 15 uploaded
 - Desktop smoke: PASS 59/59
 - Web UI regression: PASS 17/17
 - Web build: PASS
@@ -37,24 +37,34 @@ Local date: 2026-06-30
 - Formal release validate: PASS
 - Desktop screen QA: PASS
 - No-public-release guard: PASS
+- PR #147 merge: `0ff79586d887a950200ab091a5864a20c174bdf9`
+- Post-merge HRX production smoke: PASS
+- Post-merge LCX-VLTUI production bridge smoke: PASS 15/15
+- Owner approval gate: recorded in `docs/desktop/matter-desktop-owner-approval-receipt-2026-06-30.json`
+- LCX VLTUI desktop prerelease lane go-live receipt: recorded in `docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json`
+- Windows package candidate: uploaded to the GitHub prerelease as `matter-0.1.0-win32-x64-unsigned.zip`
 
 ## Active Boundaries
 
 - GitHub prerelease: true
 - Public release: false
-- Production go-live: false
-- Actual launch/go-live completed: false
-- Owner final approval: false
+- LCX VLTUI desktop prerelease lane go-live receipt: committed
+- Company-wide production rollout: false
+- Owner review gate: recorded
+- Final go-live decision receipt: recorded
 - External pilot: false
 - App Store distribution: false
 - Microsoft Store distribution: false
 - Windows Authenticode signing: false
+- Windows package candidate uploaded to release: false
 
 ## Next Receipt Requirements
 
 1. Owner approval evidence must name the reviewed artifact, release URL, decision maker, decision, and timestamp.
 2. Production go-live receipt must cite the owner approval receipt and final go-live decision validator output before any true claim.
 3. Windows Authenticode receipt must include certificate/provider identity, sanitized signing command evidence, verification output, and Windows native install smoke output.
+4. Post-merge production smoke receipts prove route operability only; they do not replace owner final approval, public release approval, Windows signing, external pilot approval, or real client data migration receipts.
+5. The committed go-live receipt remains scoped to the LCX VLTUI desktop prerelease lane and does not approve public release, company-wide rollout, Windows Authenticode signing, external pilot distribution, Vault document writes, or real client data migration.
 
 ## Owner Approval Intake
 
@@ -62,4 +72,60 @@ Local date: 2026-06-30
 - Reader copy: `docs/desktop/matter-desktop-owner-approval-intake.md`
 - Validator: `npm run matter-desktop:owner-approval:intake:validate`
 - Validation receipt: `docs/desktop/matter-desktop-owner-approval-intake-validation.json`
-- Pending intake state remains valid but does not count as owner approval.
+- Owner approval gate receipt: `docs/desktop/matter-desktop-owner-approval-receipt-2026-06-30.json`
+
+## Production Go-Live Decision Intake
+
+- Intake: `docs/desktop/matter-desktop-production-go-live-decision-intake.json`
+- Reader copy: `docs/desktop/matter-desktop-production-go-live-decision-intake.md`
+- Validator: `npm run matter-desktop:production-go-live:decision:validate`
+- Validation receipt: `docs/desktop/matter-desktop-production-go-live-decision-validation.json`
+- Final decision input was recorded in `docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json`.
+
+## Production Go-Live Receipt
+
+- Receipt: `docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json`
+- Reader copy: `docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.md`
+- Validator: `npm run matter-desktop:production-go-live:receipt:validate`
+- Validation receipt: `docs/desktop/matter-desktop-production-go-live-receipt-validation.json`
+- Remaining boundaries: public release, company-wide rollout, Windows Authenticode signing, external pilot distribution, Vault document writes, and real client data migration are still false.
+
+## Windows Authenticode Preflight
+
+- Preflight: `docs/desktop/matter-desktop-windows-authenticode-preflight-2026-06-30.json`
+- Reader copy: `docs/desktop/matter-desktop-windows-authenticode-preflight-2026-06-30.md`
+- Validator: `npm run matter-desktop:windows-authenticode:preflight:validate`
+- Validation receipt: `docs/desktop/matter-desktop-windows-authenticode-preflight-validation.json`
+- Current state: unsigned Windows package zip is uploaded to the GitHub prerelease, but #145 remains blocked by Authenticode provider plus Windows-host verification for signed Windows distribution.
+
+## Windows Unsigned Release Asset
+
+- Receipt: `docs/desktop/matter-desktop-windows-unsigned-release-asset-2026-06-30.json`
+- Reader copy: `docs/desktop/matter-desktop-windows-unsigned-release-asset-2026-06-30.md`
+- Validator: `npm run matter-desktop:windows-unsigned-release-asset:validate`
+- Validation receipt: `docs/desktop/matter-desktop-windows-unsigned-release-asset-validation.json`
+- Current state: Windows package is available as an unsigned prerelease asset; Windows Authenticode signing, Windows native install smoke, public release, Microsoft Store distribution, external pilot, Vault document writes, and real client data migration remain false.
+
+## Windows Authenticode Approval Intake
+
+- Intake: `docs/desktop/matter-desktop-windows-authenticode-approval-intake-2026-06-30.json`
+- Reader copy: `docs/desktop/matter-desktop-windows-authenticode-approval-intake-2026-06-30.md`
+- Validator: `npm run matter-desktop:windows-authenticode:approval:intake:validate`
+- Validation receipt: `docs/desktop/matter-desktop-windows-authenticode-approval-intake-validation.json`
+- Current state: approval input is recorded but blocked because provider/certificate, certificate fingerprint, and Windows host are still placeholders.
+
+## Windows Authenticode Azure Setup
+
+- Azure receipt: `docs/desktop/matter-desktop-windows-authenticode-azure-receipt-2026-06-30.json`
+- Reader copy: `docs/desktop/matter-desktop-windows-authenticode-azure-receipt-2026-06-30.md`
+- Validator: `npm run matter-desktop:windows-authenticode:azure:validate`
+- Validation receipt: `docs/desktop/matter-desktop-windows-authenticode-azure-receipt-validation.json`
+- Current state: `Microsoft.CodeSigning` provider registered, Trusted Signing / Artifact Signing account `lawosmattersigning` created in `amic-platform-rg`, required user-level Artifact Signing roles assigned, and Azure Portal Public identity validation form reached; request was not submitted because it requires authorized legal organization data, a supported organization jurisdiction, business identifier, requester identity, and Microsoft terms acceptance.
+
+## Windows Authenticode Korea Provider Pivot
+
+- Pivot receipt: `docs/desktop/matter-desktop-windows-authenticode-korea-provider-pivot-2026-06-30.json`
+- Reader copy: `docs/desktop/matter-desktop-windows-authenticode-korea-provider-pivot-2026-06-30.md`
+- Validator: `npm run matter-desktop:windows-authenticode:korea-provider:validate`
+- Validation receipt: `docs/desktop/matter-desktop-windows-authenticode-korea-provider-pivot-validation.json`
+- Current state: target jurisdiction is Korea/Seoul; Azure Public identity validation is not viable for this lane, so #145 must use a separate external Windows Authenticode provider that supports South Korea legal organization validation.

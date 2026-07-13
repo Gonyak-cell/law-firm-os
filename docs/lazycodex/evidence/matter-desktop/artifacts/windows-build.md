@@ -23,7 +23,10 @@ Channel: `formal`
 
 ## Install Smoke
 
-- install smoke result: manifest_smoke_pass
+- package directory exists: true
+- executable exists: true
+- unsigned package zip exists: true
+- install smoke result: package_candidate_created
 - Windows native install smoke: not_run_on_darwin
 
 ## Non-Claims

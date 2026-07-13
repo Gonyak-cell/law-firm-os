@@ -53,6 +53,13 @@ const artifacts = [
     kind: "internal_detached_signature",
   },
   {
+    id: "windows_internal_package_zip",
+    path: `apps/desktop/dist/win/matter-internal-${version}-win32-x64-unsigned.zip`,
+    display_path: `apps/desktop/dist/win/matter-internal-${version}-win32-x64-unsigned.zip`,
+    platform: "win32",
+    kind: "unsigned_windows_package_zip",
+  },
+  {
     id: "macos_build_receipt",
     path: "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
     display_path: "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
@@ -231,6 +238,8 @@ No domain was registered.
 | Windows internal manifest | \`apps/desktop/dist/win/matter-internal-${version}-win-installer-manifest.json\` |
 | Windows manifest SHA-256 | \`${artifactRecords.find((artifact) => artifact.id === "windows_internal_manifest").sha256}\` |
 | Windows detached signature | \`apps/desktop/dist/win/matter-internal-${version}-win-installer-manifest.json.sig\` |
+| Windows unsigned package ZIP | \`apps/desktop/dist/win/matter-internal-${version}-win32-x64-unsigned.zip\` |
+| Windows unsigned package ZIP SHA-256 | \`${artifactRecords.find((artifact) => artifact.id === "windows_internal_package_zip").sha256}\` |
 
 ## macOS Signing and Notarization
 

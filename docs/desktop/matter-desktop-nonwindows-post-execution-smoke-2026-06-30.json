@@ -1,0 +1,67 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-nonwindows-post-execution-smoke.v0.1",
+  "generated_at": "2026-06-30T06:57:12.246Z",
+  "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+  "deployment_commit": "0ff79586d887a950200ab091a5864a20c174bdf9",
+  "verdict": "PASS",
+  "execution_ref": "execution:lcx-vltui-nonwindows-approved-scope-2026-06-30",
+  "checks": [
+    {
+      "id": "bridge-status",
+      "passed": true,
+      "summary": "status=200, source_mode=matter_app_api"
+    },
+    {
+      "id": "bridge-client-upsert",
+      "passed": true,
+      "summary": "status=201, client_id_present=true"
+    },
+    {
+      "id": "bridge-matter-upsert",
+      "passed": true,
+      "summary": "status=201, matter_id_present=true"
+    },
+    {
+      "id": "bridge-lookup",
+      "passed": true,
+      "summary": "status=200, matches=1"
+    },
+    {
+      "id": "vault-document-write",
+      "passed": true,
+      "summary": "written=1, max=10"
+    },
+    {
+      "id": "vault-document-visibility",
+      "passed": true,
+      "summary": "status=200, visible=true"
+    },
+    {
+      "id": "matter-client-vault-linked-state",
+      "passed": true,
+      "summary": "client=true, matter=true, document_matter_match=true"
+    },
+    {
+      "id": "rollback-target-identification",
+      "passed": true,
+      "summary": "rollback_targets=1"
+    }
+  ],
+  "rollback": {
+    "rollback_possible": true,
+    "rollback_target_count": 1,
+    "rollback_plan_refs": [
+      "docs/desktop/matter-desktop-vault-document-writes-rollback-plan-2026-06-30.md",
+      "docs/desktop/matter-desktop-real-client-data-migration-rollback-plan-2026-06-30.md"
+    ]
+  },
+  "boundary": {
+    "approved_scope_only": true,
+    "public_release_approved": false,
+    "company_wide_production_rollout_approved": false,
+    "external_pilot_distribution_approved": false,
+    "windows_authenticode_signing_approved": false,
+    "migration_outside_named_scope_approved": false,
+    "unbounded_bulk_client_data_migration_approved": false
+  }
+}

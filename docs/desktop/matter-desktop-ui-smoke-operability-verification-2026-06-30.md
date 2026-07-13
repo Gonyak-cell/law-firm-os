@@ -2,7 +2,8 @@
 
 Status: verified-production-smoke-pass
 Local date: 2026-06-30
-Branch: `codex/lcx-vltui-owner-approval-intake`
+Branch: `main`
+Merge commit: `0ff79586d887a950200ab091a5864a20c174bdf9`
 
 ## Scope
 
@@ -23,8 +24,8 @@ This verification checks the currently implemented web UI, LCX-VLTUI Client/Matt
 | LCX-VLTUI bridge/status/picker/workspace/session/profile/client/matter/action validators | PASS | All LCX-VLTUI validators run in this pass returned PASS. |
 | Owner approval intake guard | PASS | `npm run matter-desktop:owner-approval:intake:validate`; pending owner response remains non-approval. |
 | Public/go-live claim guard | PASS | `node scripts/validate-matter-desktop-no-public-release-claim.mjs`. |
-| LCX-VLTUI production bridge smoke | PASS | Token was sourced from the production Lambda environment without printing the value; `npm run lcx:vltui:production-smoke` passed 15/15 and wrote `docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json`. |
-| HRX production smoke | PASS | `npm run hrx:production:smoke` passed after production Lambda redeploy to `fc0482d59122b476589262d5fdb5b2d4618477ba`; 9/9 employees now return `hrx-member-roster-source-of-truth`. |
+| LCX-VLTUI production bridge smoke | PASS | Post-merge `main` smoke used merge commit `0ff79586d887a950200ab091a5864a20c174bdf9`; token was sourced from the production Lambda environment without printing the value; `npm run lcx:vltui:production-smoke` passed 15/15 and wrote `docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json`. |
+| HRX production smoke | PASS | Post-merge `main` smoke ran `npm run hrx:production:smoke`; 9/9 employees return `hrx-member-roster-source-of-truth`. Production Lambda was previously redeployed with code commit `fc0482d59122b476589262d5fdb5b2d4618477ba`. |
 
 ## Observed UI
 
@@ -35,8 +36,8 @@ This verification checks the currently implemented web UI, LCX-VLTUI Client/Matt
 ## Smoke Operability
 
 - Local/development smoke is operable for web UI, LCX-VLTUI browser QA, packaged desktop screen QA, desktop file bridge, desktop runtime, and AWS temporary runtime.
-- Production LCX-VLTUI bridge smoke is operable when `LAWOS_VAULT_BRIDGE_TOKEN` is sourced from the production Lambda environment; the token value was not printed or written to receipts.
-- Production HRX smoke is operable after Lambda redeploy to `fc0482d59122b476589262d5fdb5b2d4618477ba`: production web root is 200, `/api/health` is 200, `/api/hrx/employees` is 200, employee count is 9, and all employee rows now use `hrx-member-roster-source-of-truth`.
+- Production LCX-VLTUI bridge smoke is operable on post-merge `main` when `LAWOS_VAULT_BRIDGE_TOKEN` is sourced from the production Lambda environment; the token value was not printed or written to receipts.
+- Production HRX smoke is operable on post-merge `main`: production web root is 200, `/api/health` is 200, `/api/hrx/employees` is 200, employee count is 9, and all employee rows now use `hrx-member-roster-source-of-truth`.
 
 ## Non-Claims
 
