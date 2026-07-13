@@ -22,6 +22,10 @@ const macosDir = join(contentsDir, "MacOS");
 const resourcesDir = join(contentsDir, "Resources");
 const executablePath = join(macosDir, "matter");
 const appSourceDir = join(resourcesDir, "app");
+const packagedPrivateContactSourcePath = join(
+  appSourceDir,
+  "runtime/apps/api/src/hrx-member-contact-source-of-truth.json",
+);
 const desktopRendererWebIndex = join(desktopRoot, "src/renderer/web/index.html");
 const iconPath = join(desktopRoot, "build/icon.icns");
 const packagedIconFile = "matter.icns";
@@ -316,7 +320,7 @@ Channel: \`${releaseChannel}\`
 - executable exists: ${existsSync(executablePath)}
 - packaged app icon exists: ${existsSync(packagedIconPath)}
 - packaged app source exists: ${existsSync(appSourceDir)}
-- private HRX contact source excluded: ${!existsSync(join(apiRuntimeSrcDir, "hrx-member-contact-source-of-truth.json"))}
+- private HRX contact source excluded: ${!existsSync(packagedPrivateContactSourcePath)}
 - web renderer prepare state: ${webRendererPrepareState}
 - packaged URL scheme metadata: matter
 - ZIP archive exists: ${existsSync(zipPath)}
@@ -356,7 +360,7 @@ console.log(
       notarization_state: notarizationState,
       install_smoke_result: "pass",
       packaged_app_icon: existsSync(packagedIconPath),
-      private_hrx_contact_source_excluded: !existsSync(join(apiRuntimeSrcDir, "hrx-member-contact-source-of-truth.json")),
+      private_hrx_contact_source_excluded: !existsSync(packagedPrivateContactSourcePath),
       electron_runtime_packaged: true,
       web_renderer_prepare_state: webRendererPrepareState,
       public_release: false,
