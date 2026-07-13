@@ -128,7 +128,7 @@ for (const marker of [
 }
 
 for (const marker of [
-  "hrx.legal_people.read",
+  "sessionHrxRuntimeHeaders",
   "/api/hrx/legal-people/search",
   "/api/hrx/legal-people/relationships",
   "fetchLegalPeopleSearch",
