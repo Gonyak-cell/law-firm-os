@@ -35,6 +35,7 @@ const APP_BUNDLE = path.join(ROOT, "apps/desktop/dist/mac/matter.app");
 const EXECUTABLE = path.join(APP_BUNDLE, "Contents/MacOS/matter");
 const PACKAGED_APP_ROOT = path.join(APP_BUNDLE, "Contents/Resources/app");
 const RENDERER_INDEX = path.join(PACKAGED_APP_ROOT, "src/renderer/web/index.html");
+const PRIVATE_ROSTER_SOURCE = path.join(ROOT, "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json");
 const ARTIFACT_DIR = path.resolve(process.env.MATTER_LEAVE_PACKAGE_QA_ARTIFACT_DIR || path.join(ROOT, "output/playwright/leave-management-package"));
 const DOC_RECEIPT = path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/leave-management-package-qa.json");
 const RESTART_RECEIPT = path.join(ARTIFACT_DIR, "leave-management-restart.json");
@@ -370,7 +371,8 @@ async function launchPackagedApp() {
       MATTER_DESKTOP_RUNTIME_STORE_DIR: runtimeStoreDir,
       MATTER_DESKTOP_LOCAL_API_DISABLED: "0",
       MATTER_DESKTOP_LOCAL_API_ENABLED: "1",
-      MATTER_DESKTOP_LOCAL_LOGIN_EMAIL: accounts.employee.email,
+      MATTER_DESKTOP_LOCAL_LOGIN_EMAIL: accounts.hr_admin.email,
+      LAWOS_HRX_MEMBER_ROSTER_SOURCE_PATH: PRIVATE_ROSTER_SOURCE,
       MATTER_DESKTOP_ENV_FILE: path.join(userDataPath, "fixture-only.env"),
       MATTER_DESKTOP_OPERATOR_TOKEN: "",
       MATTER_VAULT_R4_OPERATOR_TOKEN: "",
@@ -829,7 +831,7 @@ try {
   await app.close();
   app = null;
 
-  // 10. Relaunch the exact app and prove secure-session plus durable-store restoration.
+  // 10. Relaunch the exact app, re-authenticate through the explicit loopback QA bootstrap, and prove durable-store restoration.
   ({ app, page } = await launchPackagedApp());
   attachDiagnostics(page);
   const restoredSession = await page.evaluate(() => window.matterSession?.status?.());
@@ -903,6 +905,8 @@ try {
     scenarios,
     role_checks: roleChecks,
     restart: {
+      session_restoration_mode: "explicit_loopback_qa_auto_login",
+      secure_session_restoration_claim: false,
       before: beforeRestart,
       after: afterRestart,
       identical: scenarios.restart_persistence,
