@@ -5,7 +5,7 @@ Source TUW: MDT-P6-W01-T03
 App bundle: `apps/desktop/dist/mac/matter.app`
 App ID: `com.amic.matter.desktop`
 Product name: `matter`
-Version: `0.1.15`
+Version: `0.1.16`
 Channel: `formal`
 
 ## Package Structure
@@ -15,8 +15,8 @@ Channel: `formal`
 - packaged app icon: `apps/desktop/dist/mac/matter.app/Contents/Resources/matter.icns`
 - packaged app source: `apps/desktop/dist/mac/matter.app/Contents/Resources/app`
 - executable: `apps/desktop/dist/mac/matter.app/Contents/MacOS/matter`
-- archive: `apps/desktop/dist/mac/matter-0.1.15-macos.zip`
-- disk image: `apps/desktop/dist/mac/matter-0.1.15-macos.dmg`
+- archive: `apps/desktop/dist/mac/matter-0.1.16-macos.zip`
+- disk image: `apps/desktop/dist/mac/matter-0.1.16-macos.dmg`
 
 ## Signing
 
@@ -31,6 +31,11 @@ Channel: `formal`
 - notarization requested: true
 - notarization credential source: present
 - notarization state: submitted_and_accepted_by_notarytool
+- DMG codesign verify: pass
+- DMG notarization state: submitted_and_accepted_by_notarytool
+- DMG stapler validate: pass
+- DMG Gatekeeper assess: pass
+- DMG image verify: pass
 
 ## Install Smoke
 
@@ -39,6 +44,8 @@ Channel: `formal`
 - packaged app icon exists: true
 - packaged app source exists: true
 - private HRX contact source excluded: true
+- private HRX roster source excluded: true
+- formal release marker: true
 - web renderer prepare state: rebuilt_from_apps_web
 - packaged URL scheme metadata: matter
 - ZIP archive exists: true
