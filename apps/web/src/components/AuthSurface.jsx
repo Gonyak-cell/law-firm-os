@@ -14,8 +14,6 @@ import {
 } from "lucide-react";
 import { PRODUCT_BRAND } from "../brand/brand";
 import brochureCover from "../assets/brochure-cover.jpg";
-import parnasTower from "../assets/parnas-tower-login.jpg";
-import { useSkin } from "../context/SkinContext.jsx";
 import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
 import { Field } from "./primitives.jsx";
@@ -75,11 +73,9 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep, authError =
   ];
   const current = steps.find(([id]) => id === authStep) ?? steps[0];
   const Icon = current[2];
-  const skin = useSkin();
-
   if (authStep === "login") {
     return (
-      <section className="auth-stage step-login matter-login-stage" data-login-screen="parnas-split">
+      <section className="auth-stage step-login matter-login-stage" data-login-screen="forest-split">
         <div className="matter-login-copy">
           <div className="matter-login-form-column">
             <MatterLogo />
@@ -95,8 +91,8 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep, authError =
             <AuthForm labels={labels} locale={locale} step={authStep} authError={authError} onLogin={onLogin} />
           </div>
         </div>
-        <aside className="matter-login-photo-panel" aria-label={skin === "forest" ? "AMIC Forest" : "Samseong-dong Parnas Tower"}>
-          <img src={skin === "forest" ? brochureCover : parnasTower} alt={skin === "forest" ? "AMIC Forest" : "Samseong-dong Parnas Tower"} />
+        <aside className="matter-login-photo-panel" aria-label="AMIC Forest">
+          <img src={brochureCover} alt="AMIC Forest" />
         </aside>
       </section>
     );

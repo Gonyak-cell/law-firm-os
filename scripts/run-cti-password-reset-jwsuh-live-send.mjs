@@ -289,7 +289,7 @@ function buildAndDeployLambdaZip() {
       "-qr",
       zipPath,
       "apps/api/src",
-      "apps/desktop/build/icon-source-mark.png",
+      "apps/desktop/build/icon.png",
       "packages",
       "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
       "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json",

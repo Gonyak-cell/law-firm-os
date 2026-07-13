@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { ArrowRight, Link2, ShieldCheck } from "lucide-react";
-import webPackage from "../../package.json";
 import { conditionalGlobalItems, getGlobalUtilityByView, globalUtilityItems } from "../data/globalUtilities.js";
 import { GuardedStateNotice } from "./GuardedState.js";
 import { ForestHero } from "./ForestHero.jsx";
@@ -8,8 +7,6 @@ import { PageHeader, Panel } from "./primitives.jsx";
 import { EmployeeList } from "../people/employees/EmployeeList.tsx";
 import { HRDocumentWorkspace } from "../people/documents/HRDocumentWorkspace.tsx";
 import { PermissionAdminPanel } from "../people/admin/PermissionAdminPanel.jsx";
-
-const APP_VERSION = webPackage.version;
 
 function sectionStateLabel(section, utility) {
   if (section.state === "audit_required") return "감사 필요";
@@ -50,48 +47,8 @@ function UtilitySectionCard({ section, utility, active, onOpen }) {
   );
 }
 
-function SettingsThemeMenu({ theme, setTheme, skin, setSkin }) {
-  return (
-    <div className="settings-theme-menu" data-settings-theme-menu="true">
-      <div className="settings-theme-row">
-        <div>
-          <strong>화면 테마</strong>
-          <span>밝기 기준을 선택합니다.</span>
-        </div>
-        <div className="settings-theme-segment" role="group" aria-label="화면 테마">
-          {[
-            ["light", "라이트"],
-            ["dark", "다크"]
-          ].map(([id, label]) => (
-            <button key={id} type="button" className={theme === id ? "active" : ""} onClick={() => setTheme(id)}>
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="settings-theme-row">
-        <div>
-          <strong>UI 스킨</strong>
-          <span>작업공간의 시각 톤을 선택합니다. 버전 {APP_VERSION}</span>
-        </div>
-        <div className="settings-theme-segment" role="group" aria-label="UI 스킨">
-          {[
-            ["matter", "Matter"],
-            ["forest", "AMIC Forest"]
-          ].map(([id, label]) => (
-            <button key={id} type="button" className={skin === id ? "active" : ""} onClick={() => setSkin(id)}>
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function UtilityDetail({ section, utility, theme, setTheme, skin, setSkin }) {
+function UtilityDetail({ section, utility }) {
   const Icon = section.icon ?? utility.icon;
-  const isSettingsTheme = utility.id === "settings" && section.id === "settings-theme";
   return (
     <Panel id={`global-${utility.id}-detail`} className="global-utility-detail" title={section.label} meta={sectionStateLabel(section, utility)}>
       <div className="global-utility-detail-header">
@@ -143,14 +100,11 @@ function UtilityDetail({ section, utility, theme, setTheme, skin, setSkin }) {
           읽음 처리와 알림 설정을 여기에서 관리합니다.
         </div>
       )}
-      {isSettingsTheme && (
-        <SettingsThemeMenu theme={theme} setTheme={setTheme} skin={skin} setSkin={setSkin} />
-      )}
     </Panel>
   );
 }
 
-export function GlobalUtilitySurface({ view, activeSection = "", setView, theme, setTheme, skin, setSkin }) {
+export function GlobalUtilitySurface({ view, activeSection = "", setView }) {
   const utility = getGlobalUtilityByView(view) ?? globalUtilityItems[0];
   const activeId = utility.sections.some((section) => section.id === activeSection) ? activeSection : utility.defaultSection;
   const active = utility.sections.find((section) => section.id === activeId) ?? utility.sections[0];
@@ -172,7 +126,7 @@ export function GlobalUtilitySurface({ view, activeSection = "", setView, theme,
       <div className="global-utility-layer">
         <PageHeader
           title={utility.label}
-          heroTakeover={skin === "forest"}
+          heroTakeover
           actions={
             <span className="global-utility-status">
               <ShieldCheck size={15} />
@@ -196,7 +150,7 @@ export function GlobalUtilitySurface({ view, activeSection = "", setView, theme,
               <PermissionAdminPanel key={activeId} />
             </div>
           ) : (
-            <UtilityDetail section={active} utility={utility} theme={theme} setTheme={setTheme} skin={skin} setSkin={setSkin} />
+            <UtilityDetail section={active} utility={utility} />
           )}
         </div>
         {utility.id === "settings" && (

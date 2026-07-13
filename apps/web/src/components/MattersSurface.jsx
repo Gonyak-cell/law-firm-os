@@ -60,14 +60,13 @@ import {
   readLawosSessionEnvelope
 } from "../data/apiClient.js";
 import { ForestHero } from "./ForestHero.jsx";
-import { DataTable, PageHeader, Panel, Property } from "./primitives.jsx";
+import { DataTable, Panel, Property } from "./primitives.jsx";
 import { DesktopDeniedState } from "./DesktopDeniedState.jsx";
 import { MatterOpeningWizard } from "./MatterOpeningWizard.jsx";
 import { MatterTeamRoster } from "./MatterTeamRoster.jsx";
 import { MatterProfilePanel } from "./MatterProfilePanel.jsx";
 import { MatterVaultPanel } from "./MatterVaultPanel.jsx";
 import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
-import { useSkin } from "../context/SkinContext.jsx";
 import { DashboardListCard, DashboardReadState, DashboardRecordList, DashboardRecordRow } from "./DashboardList.jsx";
 import { MatterWorktreeSurface } from "./MatterWorktreeSurface.jsx";
 
@@ -2633,7 +2632,6 @@ function AnalyticsPanel({
 }
 
 export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", requestedMatterId = "", requestedMatterRevision = 0, refreshSignal = 0, onNavigateSection = () => {} }) {
-  const skin = useSkin();
   const [result, setResult] = useState(null);
   const [commandResult, setCommandResult] = useState(null);
   const [timelineResult, setTimelineResult] = useState(null);
@@ -3893,7 +3891,6 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   return (
     <section id="matters-home" className="surface stack matters-surface" data-cmp-g4-live-matters="true">
       <ForestHero title={labels.mattersTitle} image={heroMatterArchitecture} imageOpacity={0.24} />
-      {skin !== "forest" && <PageHeader title={labels.mattersTitle} />}
       <div
         className="matter-runtime-grid record-workspace record-workspace-list-only"
         data-salesforce-matter-workspace="list-detail-overlay"

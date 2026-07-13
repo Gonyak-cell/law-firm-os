@@ -32,9 +32,7 @@ export function describeDesktopSkeleton() {
 }
 
 export function packagedRendererUrl() {
-  const url = pathToFileURL(join(moduleDir, "../renderer/web/index.html"));
-  url.searchParams.set("desktop", "1");
-  return url.toString();
+  return pathToFileURL(join(moduleDir, "../renderer/offline.html")).toString();
 }
 
 export function desktopPreloadPath() {

@@ -72,7 +72,7 @@ test("Matter profile renders the right contract for every Matter Code family", {
     session: loginBody.session
   });
 
-  await page.goto(`${baseUrl}/?skin=matter&locale=ko&view=matters&ctx=allow#matters-list`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/?locale=ko&view=matters&ctx=allow#matters-list`, { waitUntil: "networkidle" });
   await page.locator("[data-cmp-g4-live-matters='true']").waitFor();
   for (const fixture of fixtures) {
     const matterButton = page.getByRole("button", { name: fixture.button });

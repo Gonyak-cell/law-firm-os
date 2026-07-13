@@ -551,7 +551,6 @@ test("grouped sidebars render children in collapsible sidebar accordions", async
     if (await clientPrimaryToggle.getAttribute("aria-expanded") !== "true") await clientPrimaryToggle.click();
     assert.equal(await page.locator('[data-sidebar-group="clients-home"] .sidebar-subnav').evaluate((node) => getComputedStyle(node).display), "grid", "tablet sidebar children must stay vertical");
 
-    await page.evaluate(() => window.localStorage.setItem("matter.skin", "forest"));
     await page.setViewportSize({ width: 720, height: 800 });
     await page.reload({ waitUntil: "networkidle" });
     const mobileLayout = await page.evaluate(() => {
@@ -592,7 +591,6 @@ test("mixed Korean and English record text uses regular Pretendard and SUITE", a
   const state = { decisionCalls: 0, newsCalls: 0 };
   try {
     const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
-    await page.addInitScript(() => window.localStorage.setItem("matter.skin", "forest"));
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));

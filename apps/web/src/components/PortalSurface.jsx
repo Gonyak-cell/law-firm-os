@@ -12,7 +12,6 @@ import {
 } from "../data/apiClient.js";
 import { ForestHero } from "./ForestHero.jsx";
 import { CompactTable, PageHeader, Panel } from "./primitives.jsx";
-import { useSkin } from "../context/SkinContext.jsx";
 
 const PORTAL_PERMISSION_REF = "ui_cmp_g10_portal_live";
 const PORTAL_AUDIT_HINT_REF = "ui_cmp_g10_portal_probe";
@@ -45,7 +44,6 @@ function externalSessionState(result, session) {
 }
 
 export function PortalSurface({ labels, liveCtx = "allow", refreshSignal = 0 }) {
-  const skin = useSkin();
   const [inviteToken] = useState(() => portalQueryValue("portal_invite"));
   const [inviteNow] = useState(() => portalQueryValue("portal_invite_now") || undefined);
   const [accessNow] = useState(() => portalQueryValue("portal_access_now") || undefined);
@@ -160,7 +158,7 @@ export function PortalSurface({ labels, liveCtx = "allow", refreshSignal = 0 }) 
       <ForestHero title={labels.portalTitle} image={heroPortalArchitecture} imageOpacity={0.24} />
       <PageHeader
         title={labels.portalTitle}
-        heroTakeover={skin === "forest"}
+        heroTakeover
       />
       {inviteToken && (
         <div className="portal-runtime-grid">

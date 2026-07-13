@@ -5,9 +5,8 @@ read-only imports from `packages/*` (allowed workspace dependencies).
 
 ## Status
 
-The first bounded context is live: **Master Data (read surface)**, the
-recommended first wiring target from `docs/ui-reference/contract-screen-map.md`
-(P5 `user-profiles-list`). The remaining bounded contexts are still planned:
+The first bounded context is live: **Master Data (read surface)**. The remaining
+bounded contexts are still planned:
 
 - Core Platform
 - Master Data ✅ (read surface, synthetic fixture data)

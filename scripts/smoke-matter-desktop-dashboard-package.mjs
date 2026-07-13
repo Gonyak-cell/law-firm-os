@@ -147,7 +147,7 @@ try {
   let page = null;
   for (let attempt = 0; attempt < 60 && !page; attempt += 1) {
     for (const candidate of app.windows()) {
-      if (await candidate.locator('[data-login-screen="parnas-split"], [data-product-axis-nav]').count().catch(() => 0)) { page = candidate; break; }
+      if (await candidate.locator('[data-login-screen="forest-split"], [data-product-axis-nav]').count().catch(() => 0)) { page = candidate; break; }
     }
     if (!page) await new Promise((resolveWait) => setTimeout(resolveWait, 500));
   }
@@ -155,7 +155,7 @@ try {
   await page.setViewportSize({ width: 1280, height: 820 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   if (await page.locator('[data-home-dashboard-shell="true"]').count() === 0) {
-    if (await page.locator('[data-login-screen="parnas-split"]').count() > 0) {
+    if (await page.locator('[data-login-screen="forest-split"]').count() > 0) {
       await page.fill("[data-login-email]", "dashboard-package-qa@fixture.local");
       await page.fill("[data-login-password]", "fixture-only");
       await page.click('[data-login-form="email-password"] button[type="submit"]');

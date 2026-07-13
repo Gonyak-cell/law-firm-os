@@ -67,13 +67,13 @@ const PASSWORD_MIN_LENGTH = 8;
 const MAX_PERSISTED_RESET_TOKENS = 20;
 const MAX_PERSISTED_OUTBOX_MESSAGES = 20;
 const PASSWORD_RESET_EMAIL_DELIVERY_SES_V2 = "sesv2";
-const PASSWORD_RESET_LOGO_CONTENT_ID = "matter-app-logo";
-const PASSWORD_RESET_LOGO_FILE_NAME = "icon-source-mark.png";
+const PASSWORD_RESET_LOGO_CONTENT_ID = "amic-law-icon";
+const PASSWORD_RESET_LOGO_FILE_NAME = "icon.png";
 const PASSWORD_RESET_LOGO_MIME_TYPE = "image/png";
 const PASSWORD_RESET_TOKEN_PATTERN = /^[A-Za-z0-9_-]{16,256}$/;
 const PASSWORD_RESET_LOGO_CANDIDATES = Object.freeze([
   new URL(`./${PASSWORD_RESET_LOGO_FILE_NAME}`, import.meta.url),
-  new URL("../../desktop/build/icon-source-mark.png", import.meta.url)
+  new URL("../../desktop/build/icon.png", import.meta.url)
 ]);
 
 const memoryAuthState = (globalThis.__matterDesktopAuthState ??= {
@@ -608,7 +608,7 @@ function passwordResetEmailHtml({ resetUrl, resetOpenUrl, expiresAt, logoSrc = `
     '<tr><td style="padding:22px 28px 18px;border-bottom:1px solid #ece7de;background:#ffffff;">',
     '<table role="presentation" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">',
     '<tr>',
-    `<td style="padding:0 12px 0 0;vertical-align:middle;"><img src="${safeLogoSrc}" width="58" height="39" alt="matter" style="display:block;width:58px;height:39px;border:0;outline:none;text-decoration:none;"></td>`,
+    `<td style="padding:0 12px 0 0;vertical-align:middle;"><img src="${safeLogoSrc}" width="42" height="42" alt="AMIC Law" style="display:block;width:42px;height:42px;border:0;outline:none;text-decoration:none;"></td>`,
     '<td style="padding:0;vertical-align:middle;">',
     '<div style="font-size:17px;line-height:23px;font-weight:700;letter-spacing:0;color:#17212b;">Matter Desktop App Services</div>',
     '<div style="font-size:12px;line-height:18px;color:#6b7280;margin-top:3px;">AMIC 내부 계정 보안 알림</div>',
@@ -678,10 +678,10 @@ function passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }
   if (logoBase64) {
     parts.push(
       `--${rootBoundary}`,
-      `Content-Type: ${PASSWORD_RESET_LOGO_MIME_TYPE}; name="matter-logo.png"`,
+      `Content-Type: ${PASSWORD_RESET_LOGO_MIME_TYPE}; name="amic-law-icon.png"`,
       "Content-Transfer-Encoding: base64",
       `Content-ID: <${PASSWORD_RESET_LOGO_CONTENT_ID}>`,
-      'Content-Disposition: inline; filename="matter-logo.png"',
+      'Content-Disposition: inline; filename="amic-law-icon.png"',
       "",
       base64MimeLines(logoBase64)
     );

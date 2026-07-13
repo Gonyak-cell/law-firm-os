@@ -1,9 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-export const SPLASH_BRAND = "matter";
+export const SPLASH_BRAND = "AMIC Law";
 export const SPLASH_HANDOFF_TIMEOUT_MS = 8000;
 const splashFontDataUrl = Symbol("splashFontDataUrl");
+const splashLogoDataUrl = Symbol("splashLogoDataUrl");
 
 export const SPLASH_WINDOW_OPTIONS = Object.freeze({
   width: 420,
@@ -27,7 +28,13 @@ function splashFontFace(fontDataUrl = "") {
     : "";
 }
 
-export function splashHtml(fontDataUrl = "") {
+function splashLogo(logoDataUrl = "") {
+  return logoDataUrl
+    ? `<img class="logo" src="${logoDataUrl}" alt="" aria-hidden="true" />`
+    : `<strong class="word">${SPLASH_BRAND}</strong>`;
+}
+
+export function splashHtml(fontDataUrl = "", logoDataUrl = "") {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -36,57 +43,59 @@ export function splashHtml(fontDataUrl = "") {
 <title>${SPLASH_BRAND}</title>
 <style>
 ${splashFontFace(fontDataUrl)}
-body{margin:0;min-height:100vh;display:grid;place-items:center;background:#fff;color:#06102d;font-family:"SUITE Matter",sans-serif;font-synthesis:none}
-.splash{display:grid;justify-items:center;gap:12px}
-.mark{position:relative;width:88px;height:72px}
-.mark-stroke{position:absolute;top:4px;width:20px;height:58px;border-radius:8px;transform:rotate(31deg)}
-.red{left:10px;background:#ff2d55}.yellow{left:45px;background:#ffcc00}.dot{position:absolute;right:0;bottom:8px;width:22px;height:22px;border-radius:50%;background:#00ca72}
-.word{font-size:42px;font-weight:400}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#fff;color:#0f3a32;font-family:"SUITE Matter",sans-serif;font-synthesis:none}
+.splash{display:grid;justify-items:center}
+.logo{display:block;width:250px;height:40px;object-fit:contain}
+.word{font-size:36px;font-weight:400}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:1ms!important;transition-duration:1ms!important;scroll-behavior:auto!important}.splash{gap:8px}}
 </style>
 </head>
 <body>
 <main class="splash" aria-label="${SPLASH_BRAND}">
-<span class="mark" aria-hidden="true"><span class="mark-stroke red"></span><span class="mark-stroke yellow"></span><span class="dot"></span></span>
-<strong class="word">matter</strong>
+${splashLogo(logoDataUrl)}
 </main>
 </body>
 </html>`;
 }
 
-export function splashDataUrl(fontDataUrl = "") {
-  return `data:text/html;charset=utf-8,${encodeURIComponent(splashHtml(fontDataUrl))}`;
+export function splashDataUrl(fontDataUrl = "", logoDataUrl = "") {
+  return `data:text/html;charset=utf-8,${encodeURIComponent(splashHtml(fontDataUrl, logoDataUrl))}`;
 }
 
-export function fallbackHtml(reason = "startup-timeout", fontDataUrl = "") {
+export function fallbackHtml(reason = "startup-timeout", fontDataUrl = "", logoDataUrl = "") {
   return `<!doctype html>
 <html lang="en">
-<head><meta charset="utf-8" /><title>${SPLASH_BRAND}</title><style>${splashFontFace(fontDataUrl)}body{font-family:"SUITE Matter",sans-serif;font-synthesis:none}strong{font-weight:400}</style></head>
+<head><meta charset="utf-8" /><title>${SPLASH_BRAND}</title><style>${splashFontFace(fontDataUrl)}body{font-family:"SUITE Matter",sans-serif;font-synthesis:none}.logo{display:block;width:175px;height:28px;object-fit:contain}.word,strong{font-weight:400}</style></head>
 <body>
 <main aria-label="${SPLASH_BRAND} 시작 화면">
-<strong>${SPLASH_BRAND}</strong>
+${splashLogo(logoDataUrl)}
 <p>시작 화면을 준비하고 있습니다.</p>
 </main>
 </body>
 </html>`;
 }
 
-export function fallbackDataUrl(reason, fontDataUrl = "") {
-  return `data:text/html;charset=utf-8,${encodeURIComponent(fallbackHtml(reason, fontDataUrl))}`;
+export function fallbackDataUrl(reason, fontDataUrl = "", logoDataUrl = "") {
+  return `data:text/html;charset=utf-8,${encodeURIComponent(fallbackHtml(reason, fontDataUrl, logoDataUrl))}`;
 }
 
 export async function createSplashWindow({ BrowserWindowConstructor, appPath } = {}) {
   const electron = BrowserWindowConstructor && appPath ? null : await import("electron");
   const Constructor = BrowserWindowConstructor ?? electron.BrowserWindow;
   const resolvedAppPath = appPath ?? electron.app.getAppPath();
-  const suiteRegular = await readFile(join(resolvedAppPath, "src/renderer/web/fonts/suite/SUITE-Regular.otf"));
+  const [suiteRegular, amicLawLogo] = await Promise.all([
+    readFile(join(resolvedAppPath, "src/renderer/web/fonts/suite/SUITE-Regular.otf")),
+    readFile(join(resolvedAppPath, "build/amic-law-logo-accent.svg"))
+  ]);
   const fontDataUrl = `data:font/otf;base64,${suiteRegular.toString("base64")}`;
+  const logoDataUrl = `data:image/svg+xml;base64,${amicLawLogo.toString("base64")}`;
   const splash = new Constructor(SPLASH_WINDOW_OPTIONS);
   splash[splashFontDataUrl] = fontDataUrl;
+  splash[splashLogoDataUrl] = logoDataUrl;
   splash.once("ready-to-show", () => {
     splash.show();
   });
-  await splash.loadURL(splashDataUrl(fontDataUrl));
+  await splash.loadURL(splashDataUrl(fontDataUrl, logoDataUrl));
   return splash;
 }
 
@@ -113,7 +122,7 @@ export function wireSplashToMainWindow({
     if (handedOff || fallbackActive) return;
     fallbackActive = true;
     clearTimeoutFn(timer);
-    await splashWindow.loadURL(fallbackDataUrl(reason, splashWindow[splashFontDataUrl]));
+    await splashWindow.loadURL(fallbackDataUrl(reason, splashWindow[splashFontDataUrl], splashWindow[splashLogoDataUrl]));
     splashWindow.show?.();
   }
 

@@ -155,15 +155,16 @@ async function launchPackagedApp() {
   await window.evaluate((target) => target.setBounds({ x: 60, y: 30, width: 1440, height: 960 }));
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addStyleTag({ content: ".forest-sidebar-user { visibility: hidden !important; }" });
-  assert.match(page.url(), /apps\/desktop\/dist\/mac\/matter\.app\/Contents\/Resources\/app\/src\/renderer\/web\/index\.html/, "QA must load the exact repo-local packaged renderer");
+  assert.match(page.url(), /apps\/desktop\/dist\/mac\/matter\.app\/Contents\/Resources\/app\/src\/renderer\/offline\.html$/, "QA must start from the exact repo-local Forest login renderer");
   assert.match(await page.evaluate(() => window.matterSession?.desktopApiBaseUrl ?? ""), /^http:\/\/127\.0\.0\.1:\d+$/, "QA must use the packaged isolated local API");
 
-  if (await page.locator('[data-login-screen="parnas-split"]').count()) {
+  if (await page.locator('[data-login-screen="forest-split"]').count()) {
     await page.fill("[data-login-email]", account.email);
     await page.fill("[data-login-password]", account.local_dev.synthetic_token);
     await page.click('[data-login-form="email-password"] button[type="submit"]');
   }
   await page.waitForSelector('[data-product-axis-nav="top-header"]', { timeout: 45_000 });
+  assert.match(page.url(), /apps\/desktop\/dist\/mac\/matter\.app\/Contents\/Resources\/app\/src\/renderer\/web\/index\.html/, "QA must hand off to the exact repo-local packaged product renderer");
   return { app, page };
 }
 

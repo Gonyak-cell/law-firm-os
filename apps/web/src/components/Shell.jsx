@@ -33,9 +33,7 @@ import {
   modeExceptionUtilityViewIds
 } from "../data/globalUtilities.js";
 import { fetchMatterRecentlyViewed, fetchMatterRecords, fetchUserProfile, readDesktopMatterSessionStatus, readLawosApiSession, readLawosSessionEnvelope } from "../data/apiClient.js";
-import { useSkin } from "../context/SkinContext.jsx";
 import { MatterSplash } from "./MatterSplash.jsx";
-import { MatterLogo } from "./MatterLogo.jsx";
 import { peopleNavigationGroups } from "../people/peopleFeatureCatalog.js";
 import { memberPhotoFor } from "../people/memberPhotos.js";
 import { canAccessHomeFinanceSection } from "../data/financeAccess.js";
@@ -198,13 +196,13 @@ function peopleSidebarGroups({ canManageLeavePolicy = false, canApproveLeave = f
   }).filter(Boolean);
 }
 
-export function LoadingSurface({ labels, locale, theme, skin, setLocale, setTheme, className = "", message = labels.loading }) {
+export function LoadingSurface({ labels, locale, setLocale, className = "", message = labels.loading }) {
   useEffect(() => {
     document.documentElement.dataset.locale = locale;
-    document.documentElement.dataset.theme = theme;
-    if (skin) document.documentElement.dataset.skin = skin;
+    document.documentElement.dataset.theme = "light";
+    document.documentElement.dataset.skin = "forest";
     document.documentElement.lang = locale === "ko" ? "ko" : "en";
-  }, [locale, theme, skin]);
+  }, [locale]);
 
   return (
     <main className={["loading-stage", className].filter(Boolean).join(" ")} data-matter-logo-flow={className.includes("post-login-splash") ? "post-login" : "startup"}>
@@ -213,7 +211,6 @@ export function LoadingSurface({ labels, locale, theme, skin, setLocale, setThem
       <p>최근 작업공간을 준비하고 있습니다.</p>
       <div className="loading-actions">
         <button className="secondary-button" onClick={() => setLocale(locale === "ko" ? "en" : "ko")}>{labels.language}</button>
-        <button className="secondary-button" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{labels.theme}</button>
       </div>
     </main>
   );
@@ -326,8 +323,6 @@ export function Topbar({
   homeMessageCount = 0,
   liveCtx = "allow"
 }) {
-  const skin = useSkin();
-  const isForest = skin === "forest";
   const notificationsOpen = utilityDrawerType === "notifications";
   const messagesOpen = utilityDrawerType === "messages";
   const approvalsOpen = utilityDrawerType === "approvals";
@@ -407,9 +402,7 @@ export function Topbar({
 
   return (
     <header className="topbar">
-      <div className="topbar-brand" data-logo-dock-target="top-left">
-        {!isForest && <MatterLogo />}
-      </div>
+      <div className="topbar-brand" data-logo-dock-target="top-left" />
       <ProductAxisNav axis={axis} setView={setView} labels={labels} />
       <div className="global-search-wrap" ref={searchRootRef}>
         <label className="global-search">
@@ -909,7 +902,6 @@ export function Sidebar({
   onReturnToWork = () => {},
   navigation: navigationProp
 }) {
-  const skin = useSkin();
   const [openGroups, setOpenGroups] = useState({});
   const activeRouteByScope = useRef({});
   const [utilityPanel, setUtilityPanel] = useState(null);
@@ -917,14 +909,12 @@ export function Sidebar({
   useEffect(() => {
     setUtilityPanel(null);
   }, [view]);
-  const isForest = skin === "forest";
   const sessionIdentity = sidebarSessionProfile(profileUser);
   const forestUserName = sessionIdentity.name;
   const forestUserRole = sessionIdentity.role;
   const forestUserPhoto = forestUserName ? memberPhotoFor(forestUserName) : undefined;
   const forestUserInitial = (forestUserName || shellLabel(labels, "sessionUserFallback", "사용자")).trim().slice(0, 1);
   useEffect(() => {
-    if (!isForest) return undefined;
     let cancelled = false;
     Promise.allSettled([readDesktopMatterSessionStatus(), fetchUserProfile({ ctx: "allow" })]).then((results) => {
       if (cancelled) return;
@@ -939,7 +929,7 @@ export function Sidebar({
     return () => {
       cancelled = true;
     };
-  }, [isForest]);
+  }, []);
   const modeExceptionActive = modeExceptionUtilityViewIds.includes(view);
   const navigation = navigationProp ?? buildContextualNavigation({
     labels,
@@ -1029,11 +1019,9 @@ export function Sidebar({
       data-mode-exception-depth={modeExceptionActive ? "deep" : undefined}
       aria-label={`${meta.title} 메뉴`}
     >
-      {isForest && (
-        <div className="sidebar-brand" data-sidebar-brand="amic-law">
-          <img className="forest-sidebar-logo" src={amicLawLogo} alt="AMIC Law" />
-        </div>
-      )}
+      <div className="sidebar-brand" data-sidebar-brand="amic-law">
+        <img className="forest-sidebar-logo" src={amicLawLogo} alt="AMIC Law" />
+      </div>
       {modeExceptionActive && (
         <button
           type="button"
@@ -1157,23 +1145,21 @@ export function Sidebar({
           )}
         </div>
       )}
-      {isForest && (
-        <button
-          type="button"
-          className="forest-sidebar-user"
-          aria-label={shellLabel(labels, "profileAria", "내 프로필")}
-          data-profile-trigger="true"
-          onClick={onProfile}
-        >
-          <span className="forest-sidebar-avatar">
-            {forestUserPhoto ? <img src={forestUserPhoto} alt="" /> : forestUserInitial}
-          </span>
-          <span className="forest-sidebar-user-copy">
-            <strong>{forestUserName || shellLabel(labels, "sessionUserFallback", "사용자")}</strong>
-            {forestUserRole && <small>{forestUserRole}</small>}
-          </span>
-        </button>
-      )}
+      <button
+        type="button"
+        className="forest-sidebar-user"
+        aria-label={shellLabel(labels, "profileAria", "내 프로필")}
+        data-profile-trigger="true"
+        onClick={onProfile}
+      >
+        <span className="forest-sidebar-avatar">
+          {forestUserPhoto ? <img src={forestUserPhoto} alt="" /> : forestUserInitial}
+        </span>
+        <span className="forest-sidebar-user-copy">
+          <strong>{forestUserName || shellLabel(labels, "sessionUserFallback", "사용자")}</strong>
+          {forestUserRole && <small>{forestUserRole}</small>}
+        </span>
+      </button>
     </aside>
   );
 }

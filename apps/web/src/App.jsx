@@ -13,7 +13,6 @@ import { VaultSurface } from "./components/VaultSurface.jsx";
 import { PortalSurface } from "./components/PortalSurface.jsx";
 import { UserProfileSurface } from "./components/UserProfileSurface.jsx";
 import { PeopleHome } from "./people/PeopleHome.tsx";
-import { SkinContext } from "./context/SkinContext.jsx";
 import { loginLawosApiSession, readLawosApiSession, readLawosSessionEnvelope } from "./data/apiClient.js";
 import { canAccessHomeCompany } from "./data/homeAccess.js";
 import { canAccessHomeFinanceSection } from "./data/financeAccess.js";
@@ -109,36 +108,11 @@ export function resolveAxis(view) {
   return productAxisIds.has(view) ? view : "home";
 }
 
-function readStoredSkin() {
-  try {
-    return window.localStorage.getItem("matter.skin");
-  } catch {
-    return null;
-  }
-}
-
-function storeSkin(skin) {
-  try {
-    window.localStorage.setItem("matter.skin", skin);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export function App() {
   const initialParams = new URLSearchParams(window.location.search);
   const routableViews = ["auth", "home", "loading", ...navItems.map((item) => item.id), ...modeExceptionUtilityViewIds];
   const redirectableViews = [...routableViews, ...globalUtilityViewIds];
   const initialLocale = initialParams.get("locale") === "en" ? "en" : "ko";
-  const initialTheme = initialParams.get("theme") === "dark" ? "dark" : "light";
-  const initialSkinParam = initialParams.get("skin");
-  const storedSkin = readStoredSkin();
-  const initialSkin = ["forest", "matter"].includes(initialSkinParam)
-    ? initialSkinParam
-    : ["forest", "matter"].includes(storedSkin)
-      ? storedSkin
-      : "forest";
   const rawInitialView = redirectableViews.includes(initialParams.get("view")) ? initialParams.get("view") : "home";
   const rawInitialSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
   const initialCompanyAccess = readHomeCompanyAccess();
@@ -154,8 +128,6 @@ export function App() {
   const initialSection = resolvedInitialRoute.section;
   const initialHandoffSplash = initialParams.get("splash") === "1";
   const [locale, setLocale] = useState(initialLocale);
-  const [theme, setTheme] = useState(initialTheme);
-  const [skin, setSkin] = useState(initialSkin);
   const [view, setView] = useState(initialView);
   const [liveCtx, setLiveCtx] = useState(initialLiveCtx);
   const [activeSection, setActiveSection] = useState(initialSection);
@@ -404,11 +376,10 @@ export function App() {
 
   useEffect(() => {
     document.documentElement.dataset.locale = locale;
-    document.documentElement.dataset.theme = theme;
-    document.documentElement.dataset.skin = skin;
+    document.documentElement.dataset.theme = "light";
+    document.documentElement.dataset.skin = "forest";
     document.documentElement.lang = locale === "ko" ? "ko" : "en";
-    storeSkin(skin);
-  }, [locale, theme, skin]);
+  }, [locale]);
 
   useEffect(() => {
     if (!isDesktopRenderer()) return undefined;
@@ -535,39 +506,30 @@ export function App() {
   }, []);
 
   if (!desktopSessionChecked || view === "loading") {
-    return (
-      <SkinContext.Provider value={skin}>
-        <LoadingSurface labels={labels} locale={locale} theme={theme} skin={skin} setLocale={setLocale} setTheme={setTheme} />
-      </SkinContext.Provider>
-    );
+    return <LoadingSurface labels={labels} locale={locale} setLocale={setLocale} />;
   }
 
   if (view === "auth" && authStep === "login") {
     return (
-      <SkinContext.Provider value={skin}>
-        <div className="matter-app auth-only-app">
-          <AuthSurface
-            labels={labels}
-            locale={locale}
-            authStep={authStep}
-            setAuthStep={setAuthStep}
-            authError={authError}
-            onLogin={handleLogin}
-          />
-        </div>
-      </SkinContext.Provider>
+      <div className="matter-app auth-only-app">
+        <AuthSurface
+          labels={labels}
+          locale={locale}
+          authStep={authStep}
+          setAuthStep={setAuthStep}
+          authError={authError}
+          onLogin={handleLogin}
+        />
+      </div>
     );
   }
 
   return (
-    <SkinContext.Provider value={skin}>
-      <div className="matter-app">
+    <div className="matter-app">
         <Topbar
           labels={labels}
           locale={locale}
           setLocale={setLocale}
-          theme={theme}
-          setTheme={setTheme}
           query={query}
           setQuery={setQuery}
           view={view}
@@ -652,10 +614,6 @@ export function App() {
                 view={view}
                 activeSection={activeSection}
                 setView={navigateToView}
-                theme={theme}
-                setTheme={setTheme}
-                skin={skin}
-                setSkin={setSkin}
               />
             )}
           </main>
@@ -664,10 +622,7 @@ export function App() {
           <LoadingSurface
             labels={labels}
             locale={locale}
-            theme={theme}
-            skin={skin}
             setLocale={setLocale}
-            setTheme={setTheme}
             className="post-login-splash"
             message="matter 작업공간을 여는 중"
           />
@@ -688,7 +643,6 @@ export function App() {
           onMarkMessageRead={markMessageRead}
           onMarkAllMessagesRead={markAllMessagesRead}
         />
-      </div>
-    </SkinContext.Provider>
+    </div>
   );
 }

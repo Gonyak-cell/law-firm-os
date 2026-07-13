@@ -1,10 +1,7 @@
 import React from "react";
 import forestBg from "../assets/forest-bg.jpg";
-import { useSkin } from "../context/SkinContext.jsx";
 
 export function ForestHero({ title, subtitle = null, image = forestBg, imageOpacity = 0.18, actions = null, children = null }) {
-  const skin = useSkin();
-  if (skin !== "forest") return null;
   const heroClassName = [
     "forest-hero",
     children ? "forest-hero-with-stats" : "",

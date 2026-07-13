@@ -32,7 +32,6 @@ import {
 } from "../data/apiClient.js";
 import { emitHomeMetric, homeMetricNowMs } from "../data/homeTelemetry.js";
 import { fetchHrxPeopleOverview } from "../people/hrxApiClient.ts";
-import { useSkin } from "../context/SkinContext.jsx";
 import { FinanceSurface } from "./FinanceSurface.jsx";
 import { DashboardListCard, DashboardReadState, DashboardRecordList, DashboardRecordRow } from "./DashboardList.jsx";
 
@@ -819,7 +818,6 @@ export function HomeSurface({
   onHomeActionCountsChange = noop,
   refreshSignal = 0
 }) {
-  const skin = useSkin();
   const initialHomeContext = useMemo(() => activeHomeContext(activeSection, redirectedFrom), [activeSection, redirectedFrom?.view, redirectedFrom?.section]);
   const [refreshToken, setRefreshToken] = useState(0);
   const refreshSignalRef = useRef(refreshSignal);
@@ -1062,7 +1060,6 @@ export function HomeSurface({
   const canRetryFeed = feedResult.kind === "error" || (feedTab === "news" && feedResult.safeErrorCodes?.includes("HOME_NEWS_ALL_SOURCES_FAILED"));
   const guardedDomainStatuses = [matterCapability.status, peopleCapability.status, vaultCapability.status];
   const showForestOnboarding =
-    skin === "forest" &&
     guardedDomainStatuses.every((status) => status === "denied" || status === "guarded" || status === "unavailable") &&
     !homeOnboardingDismissed;
   const forestHeroTitle = sessionGreeting(sessionProfile.profileUser, sessionProfile.desktopStatus);
@@ -1774,7 +1771,7 @@ export function HomeSurface({
             <p>{homeCopy(labels, "homeOnboardingBody", "업무 데이터 연결이 준비되면 지표가 채워집니다.")}</p>
           </div>
           <div className="forest-onboarding-actions">
-            <button className="secondary-button" type="button" onClick={() => openHomeRoute("settings-theme", "settings", { source: "forest_onboarding" })}>
+            <button className="secondary-button" type="button" onClick={() => openHomeRoute("settings-company", "settings", { source: "forest_onboarding" })}>
               {homeCopy(labels, "homeOnboardingSettings", "설정 열기")}
             </button>
             <button className="icon-button" type="button" aria-label={homeCopy(labels, "homeOnboardingClose", "온보딩 닫기")} onClick={dismissHomeOnboarding}>

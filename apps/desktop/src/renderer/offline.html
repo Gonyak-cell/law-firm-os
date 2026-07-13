@@ -26,9 +26,6 @@
       --soft-line: rgba(6, 16, 45, 0.07);
       --surface: #ffffff;
       --surface-soft: #fafbfc;
-      --red: #ff2d55;
-      --yellow: #ffcc00;
-      --green: #00ca72;
       --forest: #0f3a32;
       --forest-accent: #26c260;
       --forest-accent-hover: #1faa52;
@@ -222,7 +219,7 @@
     }
 
     .connection-dot.ok {
-      background: var(--green);
+      background: var(--forest-accent);
     }
 
     .connection-dot.bad {
@@ -445,11 +442,6 @@
     }
 
     .brand-lockup {
-      --mark-size: 34px;
-      --word-size: 29px;
-      --word-target: 78px;
-      --dock-translate-x: calc(-50vw + 76px);
-      --dock-translate-y: -104px;
       position: relative;
       display: inline-flex;
       align-items: center;
@@ -466,8 +458,8 @@
 
     .matter-mark {
       position: relative;
-      width: calc(var(--mark-size) * 1.24);
-      height: var(--mark-size);
+      width: 175px;
+      height: 28px;
       flex: 0 0 auto;
     }
 
@@ -479,44 +471,6 @@
       will-change: transform, opacity;
       animation: none;
     }
-
-    .matter-word-wrap {
-      flex: 0 0 auto;
-      display: inline-flex;
-      align-items: center;
-      width: 0;
-      overflow: hidden;
-      opacity: 0;
-      clip-path: inset(-0.18em 100% -0.18em 0);
-      animation: none;
-    }
-
-    .matter-word {
-      display: inline-flex;
-      align-items: baseline;
-      color: var(--ink);
-      font-family: "SUITE Matter", "Pretendard Matter", sans-serif;
-      font-size: var(--word-size);
-      font-weight: 400;
-      letter-spacing: 0;
-      transform: translateX(-0.32em) scaleX(0.92);
-      transform-origin: 0 50%;
-      animation: none;
-    }
-
-    .matter-word span {
-      display: inline-block;
-      opacity: 0;
-      transform: translateX(-0.24em) scale(0.96);
-      animation: none;
-    }
-
-    .matter-word span:nth-child(1) { animation-delay: 0ms; }
-    .matter-word span:nth-child(2) { animation-delay: 40ms; }
-    .matter-word span:nth-child(3) { animation-delay: 80ms; }
-    .matter-word span:nth-child(4) { animation-delay: 120ms; }
-    .matter-word span:nth-child(5) { animation-delay: 160ms; }
-    .matter-word span:nth-child(6) { animation-delay: 200ms; }
 
     .login-panel {
       position: relative;
@@ -534,32 +488,6 @@
 
     body[data-logo-intro="pending"] .auth-stage {
       visibility: hidden;
-    }
-
-    body:not([data-login-skin="forest"])[data-logo-intro="play"] .brand-lockup {
-      animation: brandLoginIntro 1900ms var(--ease) both;
-    }
-
-    body:not([data-login-skin="forest"])[data-logo-intro="play"] .matter-mark img {
-      animation: matterMarkImageIn 520ms var(--spring) both;
-    }
-
-    body:not([data-login-skin="forest"])[data-logo-intro="play"] .matter-word-wrap {
-      animation: matterWordLoginReveal 1900ms var(--ease) both;
-    }
-
-    body:not([data-login-skin="forest"])[data-logo-intro="play"] .matter-word {
-      animation: matterWordLoginPop 1900ms var(--ease) both;
-    }
-
-    body:not([data-login-skin="forest"])[data-logo-intro="play"] .matter-word span {
-      animation: matterLetterLoginPop 1900ms var(--ease) both;
-    }
-
-    body:not([data-login-skin="forest"])[data-logo-intro="play"] .login-panel {
-      opacity: 0;
-      transform: translateY(12px);
-      animation: loginPanelAfterBrand 520ms var(--ease) 1500ms both;
     }
 
     .login-form {
@@ -876,8 +804,6 @@
     }
 
     body[data-auth-mode="reset_confirm"] .brand-lockup {
-      --mark-size: 46px;
-      --word-size: 42px;
       margin-bottom: 10px;
       animation: none;
       transform: none;
@@ -888,10 +814,6 @@
       animation: none;
       opacity: 1;
       transform: none;
-    }
-
-    body[data-auth-mode="reset_confirm"] .matter-word-wrap {
-      display: none;
     }
 
     body[data-auth-mode="reset_confirm"] .login-form {
@@ -1011,19 +933,7 @@
       transform: none;
     }
 
-    body[data-login-skin="forest"] .matter-login-form-column .matter-logo .matter-mark {
-      width: 175px;
-      height: 28px;
-    }
-
-    body[data-login-skin="forest"] .matter-login-form-column .matter-logo .matter-word-wrap {
-      display: none;
-    }
-
-    body[data-login-skin="forest"][data-logo-intro="play"] .matter-login-form-column .matter-mark img,
-    body[data-login-skin="forest"][data-logo-intro="play"] .matter-login-form-column .matter-word-wrap,
-    body[data-login-skin="forest"][data-logo-intro="play"] .matter-login-form-column .matter-word,
-    body[data-login-skin="forest"][data-logo-intro="play"] .matter-login-form-column .matter-word span {
+    body[data-login-skin="forest"][data-logo-intro="play"] .matter-login-form-column .matter-mark img {
       animation: none;
       opacity: 1;
       transform: none;
@@ -1290,28 +1200,10 @@
       opacity: 1;
     }
 
-    .dock-brand .matter-mark {
-      --mark-size: 34px;
-      width: 44px;
-      height: 34px;
-    }
-
-    .dock-brand .matter-mark img {
-      animation: none;
-      opacity: 1;
-    }
-
-    .dock-brand .matter-word {
-      font-size: 36px;
-      opacity: 1;
-      transform: none;
-      animation: none;
-    }
-
-    .dock-brand .matter-word span {
-      opacity: 1;
-      transform: none;
-      animation: none;
+    .dock-brand img {
+      display: block;
+      width: 175px;
+      height: 28px;
     }
 
     .header-session {
@@ -1581,104 +1473,6 @@
       }
     }
 
-    @keyframes matterMarkImageIn {
-      0% {
-        opacity: 0;
-        transform: translateY(0.14em) scale(0.86);
-      }
-
-      100% {
-        opacity: 1;
-        transform: translate(0, 0) scale(1);
-      }
-    }
-
-    @keyframes brandLoginIntro {
-      0%,
-      20% {
-        gap: 0;
-        transform: translateY(176px) scale(1.2);
-      }
-
-      36%,
-      70% {
-        gap: calc(var(--mark-size) * 0.2);
-        transform: translateY(176px) scale(1.2);
-      }
-
-      100% {
-        gap: 0;
-        transform: translateY(0) scale(1);
-      }
-    }
-
-    @keyframes matterWordLoginReveal {
-      0%,
-      22% {
-        width: 0;
-        opacity: 0;
-        clip-path: inset(-0.18em 100% -0.18em 0);
-      }
-
-      36%,
-      70% {
-        width: var(--word-target);
-        opacity: 1;
-        clip-path: inset(-0.18em -0.12em -0.18em 0);
-      }
-
-      88%,
-      100% {
-        width: 0;
-        opacity: 0;
-        clip-path: inset(-0.18em 100% -0.18em 0);
-      }
-    }
-
-    @keyframes matterWordLoginPop {
-      0%,
-      24% {
-        transform: translateX(-0.32em) scaleX(0.92);
-      }
-
-      36%,
-      70% {
-        transform: translateX(0) scaleX(1);
-      }
-
-      88%,
-      100% {
-        transform: translateX(-0.08em) scaleX(0.98);
-      }
-    }
-
-    @keyframes matterLetterLoginPop {
-      0%,
-      28% {
-        opacity: 0;
-        transform: translateX(-0.24em) scale(0.96);
-      }
-
-      40%,
-      70% {
-        opacity: 1;
-        transform: translateX(0) scale(1);
-      }
-
-      88%,
-      100% {
-        opacity: 0;
-        transform: translateX(-0.08em) scale(0.98);
-      }
-    }
-
-    @keyframes loginPanelAfterBrand {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
     @keyframes authPanelIn {
       from {
         opacity: 0;
@@ -1712,14 +1506,6 @@
         width: min(460px, calc(100vw - 40px));
         min-height: 100vh;
         padding: 72px 0 150px;
-      }
-
-      .brand-lockup {
-        --mark-size: 54px;
-        --word-size: 48px;
-        --word-target: 130px;
-        --dock-translate-x: calc(-50vw + 68px);
-        --dock-translate-y: -76px;
       }
 
       .login-panel {
@@ -1798,9 +1584,6 @@
       }
 
       .brand-lockup {
-        --mark-size: 34px;
-        --word-size: 29px;
-        --word-target: 78px;
         margin-bottom: 24px;
       }
 
@@ -1850,12 +1633,6 @@
     }
 
     @media (max-width: 520px) {
-      .brand-lockup {
-        --mark-size: 54px;
-        --word-size: 48px;
-        --word-target: 130px;
-      }
-
       .auth-stack {
         width: min(340px, calc(100vw - 36px));
       }
@@ -1876,6 +1653,7 @@
       }
 
       .login-heading h1 {
+        font-family: "SUITE Matter", "Pretendard Matter", sans-serif;
         font-size: 30px;
       }
 
@@ -1970,9 +1748,6 @@
 
       .brand-lockup,
       .matter-mark img,
-      .matter-word-wrap,
-      .matter-word,
-      .matter-word span,
       .login-panel,
       .matter-login-photo-panel,
       .matter-login-heading,
@@ -1985,9 +1760,6 @@
         transform: none;
       }
 
-      .matter-word-wrap {
-        display: none;
-      }
     }
   </style>
 </head>
@@ -2007,9 +1779,9 @@
       </div>
     </div>
 
-    <main class="auth-stage step-login matter-login-stage" data-auth-stage data-login-screen="parnas-split">
+    <main class="auth-stage step-login matter-login-stage" data-auth-stage data-login-screen="forest-split">
       <aside class="auth-forest-panel matter-login-photo-panel" aria-label="AMIC Forest">
-        <img src="../../build/forest-login.jpg" alt="AMIC Forest" />
+        <img src="../../build/forest-login.jpg?v=5ff17761" alt="AMIC Forest" />
       </aside>
 
       <div class="auth-decor" aria-hidden="true">
@@ -2027,11 +1799,6 @@
           <div class="brand-lockup matter-logo" data-launch-logo-flow role="img" aria-label="AMIC Law">
             <span class="matter-mark" aria-hidden="true">
               <img class="mark-amic mark-amic-law" src="../../build/amic-law-logo-accent.svg" alt="" />
-            </span>
-            <span class="matter-word-wrap" aria-hidden="true">
-              <span class="matter-word">
-                <span>m</span><span>a</span><span>t</span><span>t</span><span>e</span><span>r</span>
-              </span>
             </span>
           </div>
 
@@ -2131,13 +1898,8 @@
 
     <section class="app-shell" aria-label="matter 워크스페이스">
       <header class="app-header">
-        <div class="dock-brand" role="img" aria-label="matter">
-          <span class="matter-mark" aria-hidden="true">
-            <img src="../../build/icon.png" alt="" />
-          </span>
-          <span class="matter-word" aria-hidden="true">
-            <span>m</span><span>a</span><span>t</span><span>t</span><span>e</span><span>r</span>
-          </span>
+        <div class="dock-brand" role="img" aria-label="AMIC Law">
+          <img src="../../build/amic-law-logo-accent.svg" alt="" aria-hidden="true" width="175" height="28" />
         </div>
         <div class="header-session">
           <span data-account-count class="account-count">등록된 계정 0개</span>
@@ -2234,21 +1996,9 @@
     };
 
     const brandLockup = document.querySelector("[data-launch-logo-flow]");
-    const brandWord = brandLockup?.querySelector(".matter-word");
     const introLogo = document.querySelector("[data-brand-intro-logo]");
     const introLogoParts = document.querySelectorAll("[data-brand-intro-logo] img");
     const introTargetLogo = document.querySelector(".matter-login-form-column .mark-amic-law");
-
-    function setMatterWordTarget() {
-      if (!brandLockup || !brandWord) return;
-      brandLockup.style.setProperty("--word-target", `${Math.ceil(brandWord.scrollWidth + 10)}px`);
-    }
-
-    setMatterWordTarget();
-    window.addEventListener("resize", setMatterWordTarget);
-    if (document.fonts) {
-      document.fonts.ready.then(setMatterWordTarget);
-    }
 
     const logoIntroMotionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
     const LOGO_INTRO_DURATION_MS = 3600;

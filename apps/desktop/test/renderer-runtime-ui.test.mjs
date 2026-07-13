@@ -10,7 +10,8 @@ test("packaged renderer presents user-facing connection login and feature checks
 
   assert.match(source, /data-matter-desktop-app/);
   assert.match(source, /data-login-skin="forest"/);
-  assert.match(source, /data-login-screen="parnas-split"/);
+  assert.match(source, /data-login-screen="forest-split"/);
+  assert.doesNotMatch(source, /parnas|Parnas/);
   assert.match(source, /matter-login-stage/);
   assert.match(source, /matter-login-copy/);
   assert.match(source, /matter-login-form-column/);
@@ -25,7 +26,7 @@ test("packaged renderer presents user-facing connection login and feature checks
   assert.match(source, /amic-law-a-lockup-accent\.svg/);
   assert.match(source, /amic-law-mic-accent\.svg/);
   assert.match(source, /amic-law-logo-accent\.svg/);
-  assert.match(source, /\.\.\/\.\.\/build\/icon\.png/);
+  assert.match(source, /\.\.\/\.\.\/build\/amic-law-logo-accent\.svg/);
   assert.doesNotMatch(source, /icon-source-mark\.png/);
   assert.doesNotMatch(source, /<img class="brand-intro-logo"/);
   assert.match(source, /aria-label="AMIC Law"/);
@@ -100,7 +101,7 @@ test("packaged renderer presents user-facing connection login and feature checks
   assert.match(source, /prefers-reduced-motion: reduce/);
   assert.match(source, /transform: none !important/);
   assert.match(source, /logoIntroMotionQuery\?\.matches/);
-  assert.match(source, /body:not\(\[data-login-skin="forest"\]\)\[data-logo-intro="play"\] \.brand-lockup/);
+  assert.doesNotMatch(source, /body:not\(\[data-login-skin="forest"\]\)/);
   assert.doesNotMatch(source, /logo-handoff-active/);
   assert.doesNotMatch(source, /logoDockToHeader/);
   assert.doesNotMatch(source, /appShellAfterLogoHandoff/);
@@ -177,23 +178,6 @@ test("packaged renderer presents user-facing connection login and feature checks
   assert.doesNotMatch(source, /latestResetEmail/);
   assert.doesNotMatch(source, /reset_url|email_message|reset_token\s*[:=]/);
   assert.doesNotMatch(source, /localStorage|sessionStorage|indexedDB/);
-});
-
-test("archived matter login design stays separate from the forest runtime login", async () => {
-  const archived = await readFile(new URL("../src/renderer/offline.matter.html", import.meta.url), "utf8");
-
-  assert.match(archived, /<body data-logo-intro="pending">/);
-  assert.match(archived, /display:\s*flex;[\s\S]*align-items:\s*center;[\s\S]*justify-content:\s*center;/);
-  assert.match(archived, /width:\s*min\(580px, 100%\)/);
-  assert.match(archived, /background:\s*var\(--reference-blue\)/);
-  assert.match(archived, /data-login-email/);
-  assert.match(archived, /data-login-password/);
-  assert.match(archived, /data-matter-login/);
-  assert.match(archived, /\.\.\/\.\.\/build\/icon\.png/);
-  assert.doesNotMatch(archived, /icon-source-mark\.png/);
-  assert.doesNotMatch(archived, /data-login-skin="forest"/);
-  assert.doesNotMatch(archived, /auth-forest-panel/);
-  assert.doesNotMatch(archived, /forest-login\.jpg/);
 });
 
 test("desktop web renderer uses restrained SaaS motion tokens", async () => {

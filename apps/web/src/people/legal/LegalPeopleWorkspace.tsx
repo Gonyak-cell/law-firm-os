@@ -2,7 +2,6 @@ import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { Building2, Link2, LockKeyhole, Network, Scale, Search, ShieldAlert, UsersRound } from "lucide-react";
 import { Panel, Property } from "../../components/primitives.jsx";
-import { useSkin } from "../../context/SkinContext.jsx";
 import { fetchLegalPeopleEthics, fetchLegalPeopleRelationships, fetchLegalPeopleSearch, fetchLegalPersonDetail } from "../hrxApiClient.ts";
 import { memberPhotoFor } from "../memberPhotos.js";
 
@@ -92,7 +91,6 @@ function modeFilters(mode) {
 }
 
 export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveCtx = "allow" }) {
-  const skin = useSkin();
   const [query, setQuery] = useState("");
   const [typeId, setTypeId] = useState("");
   const [searchResult, setSearchResult] = useState(null);
@@ -192,7 +190,7 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
         {people.length > 0 && (
           <div className="people-row-list legal-people-row-list">
             {people.map((person) => {
-              const photo = skin === "forest" ? memberPhotoFor(person.display_name) : undefined;
+              const photo = memberPhotoFor(person.display_name);
               return (
                 <button
                   key={person.person_id}
@@ -225,7 +223,7 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
           <div className="legal-people-detail-stack">
             <div className="legal-people-identity">
               <span className="people-row-avatar">
-                {skin === "forest" && memberPhotoFor(detail.person.display_name)
+                {memberPhotoFor(detail.person.display_name)
                   ? <img src={memberPhotoFor(detail.person.display_name)} alt="" />
                   : detail.person.display_name?.slice(0, 1) ?? "P"}
               </span>

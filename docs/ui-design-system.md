@@ -4,7 +4,7 @@ This document records the live-code design contract for the matter by AMIC web U
 
 ## Scope
 
-- Forest is the default skin. Matter remains available through `?skin=matter` and the settings UI.
+- Forest is the only supported skin. Runtime query parameters and settings cannot switch to a retired skin or dark variant.
 - Forest is a light canvas with white panels. Deep forest tones are reserved for the sidebar, hero band, selected navigation states, and structural accents.
 - New UI should reuse existing classes first. Add a `forest-` prefixed class only when no existing class carries the intended role.
 
@@ -25,9 +25,9 @@ This document records the live-code design contract for the matter by AMIC web U
 | Muted text | `#5B677A` |
 | Inverse text | `#FFFFFF` |
 
-Semantic CSS variables map forest emerald through `--am-blue`, `--am-blue-hover`, and `--am-blue-soft` so legacy component contracts continue to work. Focus uses `--am-focus-ring`: Matter keeps `rgba(11, 101, 229, 0.45)`, Forest uses `rgba(38, 194, 96, 0.5)`.
+Semantic CSS variables map forest emerald through `--am-blue`, `--am-blue-hover`, and `--am-blue-soft` so existing component contracts continue to work. Focus uses `--am-focus-ring: rgba(38, 194, 96, 0.5)`.
 
-Spacing is compact: panels use `--am-panel-pad: 12px`, page vertical spacing uses `--am-page-pad-y: 12px`, and component gaps should prefer the existing 4px and 8px rhythm. Cards and panels stay at 8px radius or less unless an existing component already defines a smaller value.
+Spacing follows the current rendered shell: panels use `--am-panel-pad: 16px`, page vertical spacing uses `--am-page-pad-y: 16px`, and component gaps should prefer the existing 4px and 8px rhythm. Cards and panels stay at 8px radius or less unless an existing component already defines a smaller value.
 
 Shadows are restrained and green-tinted in Forest: use existing panel, hover, and primary-button shadows before adding a new shadow. Avoid decorative blur-only layers.
 

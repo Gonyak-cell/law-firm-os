@@ -1,7 +1,6 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { Panel } from "../../components/primitives.jsx";
-import { useSkin } from "../../context/SkinContext.jsx";
 import { fetchHrxEmployees } from "../hrxApiClient.ts";
 import { memberPhotoFor } from "../memberPhotos.js";
 
@@ -19,7 +18,6 @@ function accountLabel(employee) {
 }
 
 export function EmployeeList({ selectedEmployeeId, onSelectEmployee, refreshKey }) {
-  const skin = useSkin();
   const [result, setResult] = useState(null);
 
   useEffect(() => {
@@ -49,7 +47,7 @@ export function EmployeeList({ selectedEmployeeId, onSelectEmployee, refreshKey 
     body = (
       <div className="people-row-list">
         {result.employees.map((employee) => {
-          const photo = skin === "forest" ? memberPhotoFor(employee.display_name) : undefined;
+          const photo = memberPhotoFor(employee.display_name);
           return (
             <button
               key={employee.employee_id ?? employee.display_name}

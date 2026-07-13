@@ -3,24 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/matter-mark.svg" />
-    <link rel="apple-touch-icon" href="/matter-mark.svg" />
+    <link rel="icon" type="image/png" href="/amic-law-icon.png" />
+    <link rel="apple-touch-icon" href="/amic-law-icon.png" />
     <script>
       (() => {
-        const params = new URLSearchParams(window.location.search);
-        const urlSkin = params.get("skin");
-        let storedSkin = null;
-        try {
-          storedSkin = window.localStorage.getItem("matter.skin");
-        } catch {
-          storedSkin = null;
-        }
-        document.documentElement.dataset.skin =
-          urlSkin === "forest" || urlSkin === "matter"
-            ? urlSkin
-            : storedSkin === "forest" || storedSkin === "matter"
-              ? storedSkin
-              : "forest";
+        document.documentElement.dataset.skin = "forest";
       })();
     </script>
     <title>matter</title>

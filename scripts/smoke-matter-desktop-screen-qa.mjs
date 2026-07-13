@@ -78,7 +78,7 @@ function canonicalRoles(account) {
 async function collectVisibleDiagnostics(page) {
   return {
     url: page.url(),
-    login_screen: await page.locator('[data-login-screen="parnas-split"]').count().catch(() => 0),
+    login_screen: await page.locator('[data-login-screen="forest-split"]').count().catch(() => 0),
     product_shell: await page.locator("[data-product-axis-nav='top-header']").count().catch(() => 0),
     runtime_label: (await page.textContent("[data-runtime-label]").catch(() => ""))?.trim() ?? "",
     account_count: (await page.textContent("[data-account-count]").catch(() => ""))?.trim() ?? "",
@@ -124,7 +124,7 @@ async function waitForProductUi(page) {
   await page.waitForSelector("[data-lcx-web-command-center='true']", { timeout: 30_000 });
   const logoFlow = await page.evaluate(() => {
     const overlay = document.querySelector("[data-matter-logo-flow='post-login']");
-    const image = document.querySelector(".matter-splash-mark img, .matter-splash-image");
+    const image = document.querySelector(".matter-splash-image");
     const overlayStyle = overlay ? getComputedStyle(overlay) : null;
     return {
       observed: Boolean(overlay),
@@ -256,7 +256,7 @@ async function launchMatterApp(qaTarget) {
     let page = null;
     for (let attempt = 0; attempt < 60 && !page; attempt += 1) {
       for (const candidate of app.windows()) {
-        const ready = await candidate.locator('[data-login-screen="parnas-split"], [data-product-axis-nav="top-header"], [data-matter-desktop-app]').count().catch(() => 0);
+        const ready = await candidate.locator('[data-login-screen="forest-split"], [data-product-axis-nav="top-header"], [data-matter-desktop-app]').count().catch(() => 0);
         if (ready > 0) {
           page = candidate;
           break;
@@ -268,7 +268,7 @@ async function launchMatterApp(qaTarget) {
       const diagnostics = await Promise.all(app.windows().map((candidate) => collectVisibleDiagnostics(candidate)));
       throw new Error(`Desktop main window did not become ready: ${JSON.stringify(diagnostics)}`);
     }
-    await page.waitForSelector('[data-login-screen="parnas-split"]', { timeout: 30_000 });
+    await page.waitForSelector('[data-login-screen="forest-split"]', { timeout: 30_000 });
     const runtime = await page.evaluate(() => window.matterSession.runtime());
     const accounts = await page.evaluate(() => window.matterSession.accounts());
     assert.equal(runtime?.configured, true, "desktop runtime must be configured");

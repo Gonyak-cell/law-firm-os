@@ -4,8 +4,8 @@
 
 범위:
 - 최신 로컬 패키지 앱 기준: `apps/desktop/dist/mac/matter.app`.
-- 패키지 식별값: `CFBundleIdentifier=com.amic.matter.desktop.internal`, `CFBundleShortVersionString=0.1.10`.
-- 패키지 안의 실제 렌더러 경로: `apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html`.
+- 패키지 식별값: `CFBundleIdentifier=com.amic.matter.desktop.internal`, `CFBundleShortVersionString=0.1.15`.
+- 패키지의 실제 시작 렌더러는 `apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/offline.html`이며, 인증 후 동일 번들의 `renderer/web/index.html`로 이동합니다.
 - UI 라우트와 컨트롤 기준 파일: `apps/web/src/components/Shell.jsx`, `apps/web/src/data/nav.js`, `apps/web/src/data/globalUtilities.js`, `apps/web/src/people/peopleFeatureCatalog.js`, `apps/web/src/components` 및 `apps/web/src/people` 아래 활성 surface 컴포넌트.
 
 주의:
@@ -112,7 +112,7 @@
 | 캘린더 열기 | `matters#matter-calendar`로 이동합니다. |
 | 임박 기한 콜아웃 | 임박 기한 컨텍스트로 Matter 캘린더를 엽니다. |
 | 안건 이벤트 행 | 선택된 안건에 따라 Matter 캘린더 또는 Matter 홈을 엽니다. |
-| 설정 열기 | `settings#settings-theme`로 이동합니다. |
+| 설정 열기 | Forest로 고정된 `settings#settings-company`로 이동합니다. |
 | 온보딩 닫기 | Home 온보딩을 로컬 상태에서 닫습니다. |
 | 실행 취소 | 실행 취소 가능 시간 안에서 최근 Home 액션을 되돌립니다. |
 
@@ -359,7 +359,7 @@ People 메뉴는 `peopleNavigationGroups`에서 생성됩니다. 요청/전자�
 | 알림 | 알림 센터, 출퇴근 누락 알림, 회사 알림 설정 | 전역 알림 센터와 알림 설정입니다. |
 | 요청함 | 요청 관리, 승인 대기함, 강제 승인/거절, 비용 처리 요청, 증명서, 휴가, 근무기록, 커스텀 요청 | 통합 승인/요청 인박스입니다. |
 | 보고서 | Home 대시보드, People 실시간 리포트, People 스냅샷/항목/주의 필요, Client 보고서, Matter 분석 | 통합 리포트 허브입니다. |
-| 설정 | 회사 설정, 테마, 권한, 보안, 연동, 결제, 지원, 고급 옵션, 태그 | 전역 설정과 감사 대상 관리자 구성을 다룹니다. |
+| 설정 | 회사 설정, 권한, 보안, 연동, 결제, 지원, 고급 옵션, 태그 | 전역 설정과 감사 대상 관리자 구성을 다룹니다. |
 | 전자계약 | 전송, 템플릿, 서명 진행 상태, 전자계약 설정 | 전자계약/전자서명 허브입니다. |
 | 일정 | Matter 일정, People 외부일정, 부재 일정 | 향후 전역 캘린더 후보입니다. |
 | 매출/비용 | Matter 청구, 비용 관리, 정산 내역, 지급 설정, 입금 계좌 | 재무 업무를 Home 매출/비용 라우트로 연결합니다. |
@@ -372,8 +372,6 @@ People 메뉴는 `peopleNavigationGroups`에서 생성됩니다. 요청/전자�
 |---|---|
 | 유틸리티 섹션 탭 | 활성 유틸리티 섹션을 전환합니다. |
 | 유틸리티 섹션 카드 | 선택한 유틸리티 섹션 상세를 엽니다. |
-| 테마: 라이트/다크 | 작업공간 밝기 테마를 설정합니다. |
-| UI 스킨: Matter/AMIC Forest | 작업공간 시각 스킨을 설정합니다. |
 | 조건부 미리보기 항목 | 설정 화면에서 조건부 전역 유틸리티 미리보기를 엽니다. |
 | 근로계약서 live 구성원 행 | 근로계약서 상세에 사용할 구성원을 선택합니다. |
 | 권한 관리자 버튼 | 위 People 권한/관리자 버튼과 같은 동작을 재사용합니다. |

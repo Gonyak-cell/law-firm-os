@@ -28,7 +28,7 @@ async function listWebSourceFiles(relativeDir) {
 test("product typography uses bundled Pretendard and SUITE without mono or macOS fallbacks", async () => {
   const stylesSource = await readWebFile("src/styles.css");
   const indexSource = await readWebFile("index.html");
-  const logoSource = await readWebFile("src/assets/matter-logo.svg");
+  const logoSource = await readWebFile("src/components/MatterLogo.jsx");
   const dashboardListSource = await readWebFile("src/components/DashboardList.jsx");
 
   assert.match(stylesSource, /--font-heading: "SUITE Matter", "Pretendard Matter", sans-serif;/);
@@ -57,8 +57,8 @@ test("product typography uses bundled Pretendard and SUITE without mono or macOS
   assert.match(stylesSource, /\.matter-selectable-record-button strong \{[\s\S]{0,100}font-weight: 400;/);
   assert.match(stylesSource, /html\[data-skin="forest"\] \.forest-hero-stat strong,[\s\S]{0,520}font-family: var\(--font-body\);[\s\S]{0,80}font-weight: 400;/);
   assert.doesNotMatch(indexSource, /fonts\.googleapis|fonts\.gstatic|Comfortaa/);
-  assert.match(logoSource, /font-family="SUITE Matter, Pretendard Matter, sans-serif"/);
-  assert.doesNotMatch(logoSource, /Avenir Next|Comfortaa|Inter|Arial|font-weight="300"/);
+  assert.match(logoSource, /amic-law\.svg/);
+  assert.doesNotMatch(logoSource, /matter-mark\.svg|AMIC_n_PETRA/);
 });
 
 test("post-login product UI shows Home, Client, Matter, People, Search, and Portal", async () => {
@@ -451,24 +451,31 @@ test("WP-FIN-4 reuses the Matter charge panel for Home finance operations", asyn
   assert.match(apiClientSource, /disbursed_at: disbursedAt/);
 });
 
-test("matter startup branding uses shared splash and brand constants", async () => {
+test("Forest startup branding excludes retired Matter and Petra assets", async () => {
+  const indexSource = await readWebFile("index.html");
   const brandSource = await readWebFile("src/brand/brand.js");
   const splashSource = await readWebFile("src/components/MatterSplash.jsx");
   const logoSource = await readWebFile("src/components/MatterLogo.jsx");
-  const markSource = await readWebFile("src/assets/matter-mark.svg");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const authSource = await readWebFile("src/components/AuthSurface.jsx");
   const i18nSource = await readWebFile("src/i18n.js");
+  const assetFiles = await readdir(resolve(webRoot, "src/assets"));
+  const publicFiles = await readdir(resolve(webRoot, "public"));
+  const logoFiles = await readdir(resolve(webRoot, "src/assets/logos"));
 
   assert.match(brandSource, /PRODUCT_BRAND\s*=\s*"matter"/);
   assert.match(brandSource, /UI_BRAND\s*=\s*"matter"/);
-  assert.match(splashSource, /matter-mark\.svg/);
-  assert.match(splashSource, /matter-splash-mark/);
-  assert.match(splashSource, /aria-label=\{UI_BRAND\}/);
-  assert.match(markSource, /docs\/ui-reference\/brand\/matter-by-amic-logo\.png/);
-  assert.match(markSource, /data:image\/png;base64/);
-  assert.doesNotMatch(markSource, /<circle\b/);
-  assert.doesNotMatch(logoSource, /amic-law|matter-byline|BRAND_BYLINE|BRAND_ORGANIZATION/);
+  assert.match(splashSource, /amic-law\.svg/);
+  assert.doesNotMatch(splashSource, /matter-mark\.svg|matter-splash-mark/);
+  assert.match(logoSource, /amic-law\.svg/);
+  assert.doesNotMatch(logoSource, /matter-mark\.svg|AMIC_n_PETRA|mark-matter/);
+  assert.equal(assetFiles.includes("matter-mark.svg"), false);
+  assert.equal(assetFiles.includes("matter-logo.svg"), false);
+  assert.equal(assetFiles.includes("parnas-tower-login.jpg"), false);
+  assert.equal(publicFiles.includes("matter-mark.svg"), false);
+  assert.equal(publicFiles.includes("amic-law-icon.png"), true);
+  assert.match(indexSource, /amic-law-icon\.png/);
+  assert.equal(logoFiles.some((name) => /PETRA/i.test(name)), false);
   assert.match(shellSource, /<MatterSplash \/>/);
   assert.match(authSource, /<MatterSplash compact className="auth-splash" \/>/);
   assert.match(i18nSource, /PRODUCT_BRAND/);
@@ -511,13 +518,10 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(desktopSource, /body\[data-logo-intro="play"\] \.brand-intro-a[\s\S]*amicLawAIntro 3200ms linear/);
   assert.match(desktopSource, /body\[data-logo-intro="play"\] \.brand-intro-mic[\s\S]*amicLawMicIntro 3200ms linear/);
   assert.match(desktopSource, /body\[data-login-skin="forest"\]\[data-logo-intro="play"\] \.matter-login-photo-panel[\s\S]*forestPhotoIn 520ms var\(--ease-brand-dock\) 2780ms/);
-  assert.match(desktopSource, /body:not\(\[data-login-skin="forest"\]\)\[data-logo-intro="play"\] \.brand-lockup[\s\S]*brandLoginIntro 1900ms/);
-  assert.match(desktopSource, /body:not\(\[data-login-skin="forest"\]\)\[data-logo-intro="play"\] \.matter-word-wrap[\s\S]*matterWordLoginReveal 1900ms/);
+  assert.doesNotMatch(desktopSource, /body:not\(\[data-login-skin="forest"\]\)|brandLoginIntro/);
   assert.match(desktopSource, /productUiTarget\(session, \{ splash: false \}\)/);
-  assert.match(desktopSource, /setMatterWordTarget/);
-  assert.match(desktopSource, /@keyframes matterWordLoginReveal[\s\S]*width:\s*var\(--word-target\)/);
-  assert.match(desktopSource, /<span class="matter-word">[\s\S]*<span>m<\/span><span>a<\/span><span>t<\/span><span>t<\/span><span>e<\/span><span>r<\/span>/);
-  assert.match(desktopSource, /\.\.\/\.\.\/build\/icon\.png/);
+  assert.doesNotMatch(desktopSource, /setMatterWordTarget|matterWordLoginReveal|matter-word-wrap/);
+  assert.match(desktopSource, /\.\.\/\.\.\/build\/amic-law-logo-accent\.svg/);
   assert.doesNotMatch(desktopSource, /icon-source-mark\.png/);
   assert.doesNotMatch(desktopSource, /logo-handoff-active/);
   assert.doesNotMatch(desktopSource, /logoDockToHeader/);
@@ -530,9 +534,8 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(stylesSource, /\.loading-stage\.post-login-splash \.matter-splash[\s\S]*min-height:\s*auto/);
   assert.match(stylesSource, /@keyframes post-login-logo-dock/);
   assert.match(shellSource, /data-logo-dock-target="top-left"/);
-  assert.match(stylesSource, /--matter-splash-word-width/);
-  assert.match(stylesSource, /@keyframes matter-mark-in[\s\S]*translateX\(calc\(\(var\(--matter-splash-word-width\) \+ var\(--matter-splash-gap\)\) \/ 2\)\)/);
-  assert.match(stylesSource, /@keyframes matter-word-reveal[\s\S]*clip-path:\s*inset\(0 0 0 0\)/);
+  assert.match(stylesSource, /\.matter-splash-image/);
+  assert.doesNotMatch(stylesSource, /@keyframes matter-mark-in|@keyframes matter-word-reveal/);
   assert.match(appSource, /data-sidebar-state=\{profileStandalone \? "none" : "contextual"\}/);
   assert.match(appSource, /profile-standalone-shell/);
   assert.match(appSource, /utilityDrawerType/);
@@ -549,7 +552,7 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   for (const axis of ["home", "clients", "matters", "people", "vault"]) {
     assert.match(navSource, new RegExp(`id: "${axis}"`));
   }
-  assert.match(shellSource, /<MatterLogo \/>/);
+  assert.doesNotMatch(shellSource, /<MatterLogo \/>|AMIC_n_PETRA/);
   assert.doesNotMatch(shellSource, /export function Rail|<nav className="rail-nav"|nav-toggle|sidebarExpanded/);
   assert.doesNotMatch(appSource, /<Rail \/>|sidebarExpanded|initialSidebarExpanded/);
   assert.match(homeSource, /data-home-dashboard-shell="true"/);
@@ -643,7 +646,7 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(shellSource, /data-topbar-refresh-trigger="true"/);
   assert.match(shellSource, /<RefreshCw size=\{17\} \/>/);
   assert.match(clientsSource, /<ForestHero title=\{labels\.clientsTitle\} image=\{heroClientArchitecture\} imageOpacity=\{0\.24\} \/>/);
-  assert.match(clientsSource, /skin !== "forest" && <PageHeader title=\{labels\.clientsTitle\} \/>/);
+  assert.doesNotMatch(clientsSource, /useSkin|skin !== "forest"/);
   assert.doesNotMatch(clientsSource, /refreshButton|forest-hero-refresh-button|actions=\{refreshButton\}/);
   assert.match(stylesSource, /\.forest-hero-actions/);
   assert.match(stylesSource, /\.sidebar-workspace-action/);
@@ -851,6 +854,8 @@ test("Stage 6 mode exception routes keep topbar and provide a return-to-work anc
   assert.match(globalUtilitySurfaceSource, /utility\.sections\.map/);
   assert.match(globalUtilitySurfaceSource, /setView\(utility\.id, sectionId\)/);
   assert.doesNotMatch(globalUtilitySurfaceSource, /global-utility-tabs|function UtilityTab/);
+  assert.doesNotMatch(globalUtilitySource, /settings-theme|MonitorCog/);
+  assert.doesNotMatch(globalUtilitySurfaceSource, /setTheme|data-settings-theme-menu/);
   assert.match(shellSource, /groupId: `\$\{utility\.id\}-sections`/);
 
   assert.match(stylesSource, /\.sidebar-return-anchor/);
@@ -962,10 +967,11 @@ test("login surfaces keep credentials bounded and desktop supports password setu
   assert.match(appSource, /onLogin=\{handleLogin\}/);
   assert.match(appSource, /auth-only-app/);
   assert.match(appSource, /view === "auth" && authStep === "login"/);
-  assert.match(authSource, /parnas-tower-login\.jpg/);
-  assert.match(authSource, /data-login-screen="parnas-split"/);
+  assert.match(authSource, /brochure-cover\.jpg/);
+  assert.match(authSource, /data-login-screen="forest-split"/);
   assert.match(authSource, /matter-login-photo-panel/);
-  assert.match(authSource, /Samseong-dong Parnas Tower/);
+  assert.match(authSource, /AMIC Forest/);
+  assert.doesNotMatch(authSource, /parnas|Parnas/);
   assert.match(authSource, /<MatterLogo \/>/);
   assert.match(authSource, /labels\.signupPreviewNotice/);
   assert.doesNotMatch(authSource, /Sign up now/);
@@ -975,7 +981,8 @@ test("login surfaces keep credentials bounded and desktop supports password setu
   assert.match(stylesSource, /\.matter-login-stage/);
   assert.match(stylesSource, /\.matter-login-photo-panel img[\s\S]*object-fit:\s*cover/);
   assert.match(stylesSource, /@keyframes post-login-logo-dock/);
-  assert.ok(assetFiles.includes("parnas-tower-login.jpg"));
+  assert.equal(assetFiles.includes("parnas-tower-login.jpg"), false);
+  assert.equal(assetFiles.includes("brochure-cover.jpg"), true);
   assert.doesNotMatch(authSource, /Continue with SSO|SSO로 계속/);
   assert.doesNotMatch(authSource, /Remote Talent|remote talent|Mobbin|curated by|Remote account/);
   assert.doesNotMatch(stylesSource, /Remote Talent|remote talent|Mobbin|curated by/);

@@ -120,7 +120,7 @@ const artifact = {
   executableSha256: executableHash,
   packageZip: `apps/desktop/dist/win/${artifactName}-win32-x64-unsigned.zip`,
   packageZipSha256: packageZipHash,
-  files: ["src/**/*", "package.json"],
+  files: ["src/**/*", "build/**/*", "package.json"],
   publicRelease: false,
   ownerApproval: false,
   windowsAuthenticodeSigning: false

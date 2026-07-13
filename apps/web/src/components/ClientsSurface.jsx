@@ -46,12 +46,11 @@ import {
   updateRecordActionField
 } from "../data/apiClient.js";
 import { ForestHero } from "./ForestHero.jsx";
-import { DataTable, PageHeader, Panel, Property } from "./primitives.jsx";
+import { DataTable, Panel, Property } from "./primitives.jsx";
 import { ImportDataMappingPanel } from "./ImportDataMappingPanel.jsx";
 import { DataCloudEnrichmentPanel } from "./DataCloudEnrichmentPanel.jsx";
 import { ReportBuilderPanel } from "./ReportBuilderPanel.jsx";
 import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
-import { useSkin } from "../context/SkinContext.jsx";
 import { DashboardListCard, DashboardReadState, DashboardRecordList, DashboardRecordRow } from "./DashboardList.jsx";
 
 const CLIENTS_PERMISSION_REF = "ui_cmp_g2_party_clients_live";
@@ -1790,7 +1789,6 @@ export function ClientIntakePipelineSurface({
 }
 
 export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", refreshSignal = 0, onNavigate = () => {} }) {
-  const skin = useSkin();
   const [clientsResult, setClientsResult] = useState(null);
   const [accountsResult, setAccountsResult] = useState(null);
   const [contactsResult, setContactsResult] = useState(null);
@@ -2643,7 +2641,6 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
       data-cmp-g2-live-clients="true"
     >
       <ForestHero title={labels.clientsTitle} image={heroClientArchitecture} imageOpacity={0.24} />
-      {skin !== "forest" && <PageHeader title={labels.clientsTitle} />}
       <div
         className="clients-runtime-grid record-workspace record-workspace-list-only"
         data-salesforce-client-workspace="list-detail-overlay"
