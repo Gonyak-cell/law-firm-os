@@ -158,7 +158,10 @@ try {
     if (await page.locator('[data-login-screen="forest-split"]').count() > 0) {
       await page.fill("[data-login-email]", "dashboard-package-qa@fixture.local");
       await page.fill("[data-login-password]", "fixture-only");
-      await page.click('[data-login-form="email-password"] button[type="submit"]');
+      const submitSelector = await page.locator('[data-login-form="email-password"] button[type="submit"]').count() > 0
+        ? '[data-login-form="email-password"] button[type="submit"]'
+        : "[data-matter-login]";
+      await page.click(submitSelector);
     } else {
       await page.click('[data-product-axis="home"]');
     }

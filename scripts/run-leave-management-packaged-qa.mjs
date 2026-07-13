@@ -348,7 +348,7 @@ async function findProductPage(app) {
   await app.firstWindow({ timeout: 45_000 });
   for (let attempt = 0; attempt < 90; attempt += 1) {
     for (const candidate of app.windows()) {
-      const ready = await candidate.locator("[data-product-axis-nav], [data-login-form='email-password']").count().catch(() => 0);
+      const ready = await candidate.locator("[data-product-axis-nav], [data-login-form='email-password'], [data-login-screen='forest-split']").count().catch(() => 0);
       if (ready) return candidate;
     }
     await new Promise((resolveWait) => setTimeout(resolveWait, 500));
@@ -383,7 +383,7 @@ async function launchPackagedApp() {
   });
   const page = await findProductPage(app);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  assert.match(page.url(), /matter\.app\/Contents\/Resources\/app\/src\/renderer\/web\/index\.html/, "packaged QA must use the matter.app renderer");
+  assert.match(page.url(), /matter\.app\/Contents\/Resources\/app\/src\/renderer\/(?:offline\.html|web\/index\.html)/, "packaged QA must use the matter.app renderer");
   return { app, page };
 }
 
@@ -831,12 +831,11 @@ try {
   await app.close();
   app = null;
 
-  // 10. Relaunch the exact app, re-authenticate through the explicit loopback QA bootstrap, and prove durable-store restoration.
+  // 10. Relaunch the exact app, prove it starts signed out, then re-authenticate and verify durable-store restoration.
   ({ app, page } = await launchPackagedApp());
   attachDiagnostics(page);
   const restoredSession = await page.evaluate(() => window.matterSession?.status?.());
-  assert.equal(restoredSession?.state, "signed_in");
-  assert.equal(restoredSession?.user_id, HR_ACTOR);
+  assert.equal(restoredSession?.state, "signed_out");
   secondRuntime = await page.evaluate(async () => ({
     endpoint: window.matterSession?.desktopApiBaseUrl ?? null,
     status: await window.matterSession?.runtime?.(),
@@ -844,6 +843,7 @@ try {
   assert.match(secondRuntime.endpoint, /^http:\/\/127\.0\.0\.1:\d+$/);
   const secondHealth = await fetch(`${secondRuntime.endpoint}/api/health`).then(async (response) => ({ status: response.status, body: await response.json() }));
   assert.equal(secondHealth.status, 200);
+  await login(page, accounts.hr_admin);
   await navigate(page, "people-leave-usage");
   await page.locator("#people-leave-usage").waitFor({ state: "visible", timeout: 20_000 });
   await page.getByText("업무 시스템 연동", { exact: true }).waitFor();
@@ -883,9 +883,10 @@ try {
       executable: path.relative(ROOT, EXECUTABLE),
       app_bundle_sha256: appBundleSha,
       executable_sha256: sha256File(EXECUTABLE),
-      release_channel: "internal",
-      signed: false,
-      notarized: false,
+      verification_scope: "functional_only",
+      release_channel: "not_attested_by_functional_qa",
+      signed: null,
+      notarized: null,
     },
     runtime: {
       profile: "local-dev",
@@ -905,7 +906,7 @@ try {
     scenarios,
     role_checks: roleChecks,
     restart: {
-      session_restoration_mode: "explicit_loopback_qa_auto_login",
+      session_restoration_mode: "signed_out_then_explicit_loopback_qa_login",
       secure_session_restoration_claim: false,
       before: beforeRestart,
       after: afterRestart,
