@@ -1,0 +1,173 @@
+{
+  "schema_version": "law-firm-os.aws-search-leave-desktop-release-deploy.v1",
+  "generated_at": "2026-07-13T09:47:43Z",
+  "status": "desktop_formal_candidate_published_and_aws_production_deployment_completed",
+  "source": {
+    "branch": "codex/leave-search-release-20260713",
+    "implementation_commit": "5617706aa0041ca33bead25917e5c46ea805ef60",
+    "main_merge_commit": "83788396a94a35799b3d5c4b888d84a86979d6c5",
+    "deployed_source_commit": "ca59b3f23cbdd8a71bc66e9b119c333fd107caab",
+    "remote_branch_matches_local_head": true
+  },
+  "github_release": {
+    "tag": "matter-desktop-v0.1.15-20260713-ca59b3f23",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.15-20260713-ca59b3f23",
+    "published_at": "2026-07-13T09:37:31Z",
+    "draft": false,
+    "prerelease": true,
+    "target_commit": "ca59b3f23cbdd8a71bc66e9b119c333fd107caab",
+    "uploaded_asset_count": 12,
+    "manifest_artifact_count": 10,
+    "uploaded_checksums_roundtrip_match": true
+  },
+  "desktop_release": {
+    "release_id": "matter-desktop-v0.1.15-20260713-ca59b3f23",
+    "version": "0.1.15",
+    "channel": "formal-candidate",
+    "macos": {
+      "dmg_sha256": "198c6923fdc5d8d0146cfc52a5a690e04606d18d4bd5a8b30f47d9e3af002aba",
+      "dmg_bytes": 158473152,
+      "zip_sha256": "2d7d54a9f0fea6368367a4341126f82aa74fc4446b1fcfacb155f7ee1b05034c",
+      "zip_bytes": 133199865,
+      "developer_id_identity": "Developer ID Application: Jiwon Suh (LHDXU66NX3)",
+      "notarization_submission_id": "187bb848-b8b9-4978-a534-a8650169a86e",
+      "notarization_state": "Accepted",
+      "codesign_strict": "PASS",
+      "gatekeeper": "PASS",
+      "stapler_validate": "PASS",
+      "private_contact_source_excluded": true,
+      "fresh_process_launched_at": "2026-07-13T18:57:57+09:00",
+      "rendered_window": "1280x820",
+      "visual_inspection": "PASS",
+      "packaged_click_qa": {
+        "search_hero_visible": true,
+        "leave_heading_visible": true,
+        "leave_form_visible": true,
+        "leave_error_visible": false,
+        "page_error_count": 0,
+        "console_error_count": 0,
+        "client_error_response_count": 0,
+        "request_failure_count": 0,
+        "server_error_count": 0,
+        "temporary_cdp_scope": "127.0.0.1:9223",
+        "temporary_cdp_removed": true,
+        "normal_app_relaunched_without_debug_flags": true
+      }
+    },
+    "windows": {
+      "installer_sha256": "2815e436742794d22f261f074c6714ad5c58011f4577bce28d910eb39cfeb835",
+      "installer_bytes": 109469983,
+      "blockmap_sha256": "f43ca14c3ede8106a01bb8217fa2ddc7e17279c37cef6f10393b4bc9d98757d1",
+      "blockmap_bytes": 117387,
+      "unsigned_zip_sha256": "25ab43c1619c28922712d1c66d09a2a48af53e809507783ae7d8c0cbb76949a1",
+      "unsigned_zip_bytes": 158374946,
+      "authenticode_signing": false,
+      "native_install_smoke": "not_run_on_darwin"
+    }
+  },
+  "aws_deploy": {
+    "account": "770880870480",
+    "profile": "matter-prod-deploy-admin",
+    "region": "ap-northeast-2",
+    "web": {
+      "bucket": "matter-lawos-web-prod-770880870480-apne2",
+      "bucket_versioning": "not_enabled",
+      "cloudfront_distribution_id": "E3MVAKX2DIR3CS",
+      "cloudfront_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+      "cloudfront_state": "Deployed",
+      "cloudfront_enabled": true,
+      "invalidation_id": "I2VF6D49DKFH35VTXAYNSOSQ0",
+      "invalidation_status": "Completed",
+      "index_sha256": "dec208a35f4be61aa633e941ba49fa994621aea093443c4af45746c270dc685d",
+      "index_etag": "5d33127ec1e9903a96972819c4b4af33",
+      "index_bytes": 1102,
+      "index_cache_control": "no-cache, no-store, must-revalidate",
+      "js_asset": "assets/index-DeiqVPGE.js",
+      "js_sha256": "2d30926ad2f167b6449771add9ec390a676f58ae24f5b9e69a7607135cea2fa4",
+      "css_asset": "assets/index-Bc5Magze.css",
+      "css_sha256": "b85856ccc9f4d4e6f848cf3d9d7eda6ae3c9c5eefcacff25624cca523f551d16",
+      "live_asset_parity": true,
+      "root_http_status": 200,
+      "api_health_http_status": 200,
+      "desktop_health_http_status": 200,
+      "unauthenticated_hrx_status": 401,
+      "objects_deleted": false
+    },
+    "lambda": {
+      "function_name": "matter-lawos-api-prod",
+      "state": "Active",
+      "last_update_status": "Successful",
+      "runtime": "nodejs22.x",
+      "revision_id": "ff755798-402e-4bd4-93ac-a534405fab54",
+      "code_sha256_base64": "nccmOoKBjK1TLjA0Hqk346+6TJpIA9zTdmwXf57bJWU=",
+      "candidate_zip_sha256": "9dc7263a82818cad532e30341ea937e3afba4c9a4803dcd3766c177f9edb2565",
+      "candidate_zip_bytes": 3837272,
+      "candidate_zip_entries": 1125,
+      "deployment_commit": "ca59b3f23cbdd8a71bc66e9b119c333fd107caab",
+      "contact_source_path": "apps/api/src/hrx-member-contact-source-of-truth.json",
+      "private_contact_source_restricted_to_lambda_package": true,
+      "direct_health_status": 200,
+      "unauthenticated_protected_status": 401
+    }
+  },
+  "monitoring": {
+    "window_start": "2026-07-13T09:22:34Z",
+    "window_end": "2026-07-13T09:46:00Z",
+    "lambda_invocations": 8,
+    "lambda_errors": 0,
+    "lambda_error_log_events": 0,
+    "cloudfront_5xx_error_rate_maximum": 0.0
+  },
+  "runtime_observations": {
+    "clean_browser_search_visible": true,
+    "clean_browser_leave_panel_visible": true,
+    "clean_browser_leave_outcome": "fail_closed_error",
+    "clean_browser_page_error_count": 0,
+    "clean_browser_request_failure_count": 0,
+    "clean_browser_server_error_count": 0,
+    "transient_unauthenticated_client_statuses": {
+      "401": 8,
+      "403": 1,
+      "429": 24
+    },
+    "independent_reprobe_health_status": 200,
+    "independent_reprobe_protected_status": 401,
+    "authenticated_packaged_flow_reproduced_transient_rate_limit": false
+  },
+  "rollback": {
+    "root": "/Users/jws/Library/Application Support/LawFirmOS/deploy-rollbacks/lawos-prod-ca59b3f23-20260713-183802",
+    "owner_only_permissions": true,
+    "lambda_predeploy_zip_sha256": "d8188b5c14264ca3e2f7429c7561968e084a742b652480bce7ed12bd208ffac5",
+    "lambda_predeploy_zip_bytes": 3690309,
+    "lambda_predeploy_code_sha256_base64": "2BiLXBQmTKPi90KcdWGWjghKdCtlJIC85+0SvSCP+sU=",
+    "lambda_predeploy_revision_id": "f2586478-88ac-4980-a505-0a232d10f60b",
+    "lambda_predeploy_commit": "d2bf615ee",
+    "lambda_environment_key_count": 39,
+    "lambda_environment_values_printed_or_committed": false,
+    "web_snapshot_file_count": 35,
+    "web_predeploy_index_sha256": "048bae1362e4920aa3351f02a3786dbb97b20234ed78c40b6d85a3df54d8da74"
+  },
+  "validation": {
+    "hrx_package": "PASS 425/425",
+    "web_ui": "PASS 136, SKIP 1 intentional",
+    "web_typecheck": "PASS",
+    "web_production_build": "PASS",
+    "desktop_smoke": "PASS 95/95",
+    "desktop_file_bridge": "PASS 17/17",
+    "hrx_api_targeted_post_merge": "PASS 27/27",
+    "leave_validators": "PASS",
+    "qa_password_reset_executed": false,
+    "secret_or_private_contact_values_printed": false
+  },
+  "claim_boundary": {
+    "aws_production_web_api_deploy_completed": true,
+    "github_stable_public_release": false,
+    "production_ready": false,
+    "company_wide_go_live": false,
+    "owner_final_approval": false,
+    "app_store_distribution": false,
+    "microsoft_store_distribution": false,
+    "windows_authenticode": false,
+    "windows_native_install_smoke": false
+  }
+}
