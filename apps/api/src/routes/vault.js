@@ -4,6 +4,8 @@ export const MATTER_VAULT_VAULT_ROUTES = Object.freeze([
   'POST /api/vault/documents/upload',
   'POST /api/vault/documents/:document_id/versions',
   'GET /api/vault/file-objects/:file_object_id/download',
+  'GET /api/vault/search/preferences',
+  'POST /api/vault/search/preferences',
   'POST /api/vault/documents/:document_id/checkout-locks',
   'POST /api/vault/documents/:document_id/privilege-label',
   'POST /api/vault/documents/:document_id/legal-hold',

@@ -1,0 +1,15 @@
+{
+  "surface": "direct HRX runtime handler",
+  "invocation": "node --input-type=module with createFileHrxStore, runHrxMigrations, reconcileHrxMemberRosterStore, createHrxRuntimeContext, and handleHrxApiRequest",
+  "listener_opened": false,
+  "employees_status": 200,
+  "employees_count": 10,
+  "populated_mobile_phone_count": 9,
+  "missing_mobile_phone_count": 1,
+  "org_status": 200,
+  "org_employee_count": 10,
+  "reporting_line_count": 3,
+  "manager_display_name_count": 3,
+  "all_rows_have_source_ref": true,
+  "verdict": "PASS"
+}

@@ -10,6 +10,8 @@ import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js"
 import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
 import { reconcileHrxMemberRosterStore } from "../src/hrx-runtime-context.js";
 import {
+  HRX_MEMBER_CONTACT_SOURCE_OF_TRUTH,
+  HRX_MEMBER_CONTACT_SOURCE_PATH,
   HRX_MEMBER_ROSTER_SOURCE_REF,
   listHrxMemberRosterRows,
 } from "../src/hrx-member-roster-registry.js";
@@ -122,6 +124,9 @@ test("HRX member roster source of truth preserves the registered AMIC and PETRA 
   assert.equal(membersByName.get("김양태")?.professional_profile?.qualifications?.includes("대한민국 변호사"), false);
   assert.equal(membersByName.get("조우상")?.professional_profile?.profile_kind, "deal_advisor");
   assert.equal(membersByName.get("조우상")?.manager_employee_id, "emp_amic_ytkim");
+  assert.equal(HRX_MEMBER_CONTACT_SOURCE_PATH, null);
+  assert.equal(HRX_MEMBER_CONTACT_SOURCE_OF_TRUTH.contacts.length, 0);
+  assert.equal(roster.filter((member) => member.mobile_phone).length, 0);
   assert.equal(membersByName.get("박서영")?.manager_employee_id, "emp_amic_ytkim");
   assert.equal(membersByName.get("이예진")?.manager_employee_id, "emp_amic_tryoon");
   assert.deepEqual(
@@ -153,11 +158,30 @@ test("HRX member roster source of truth preserves the registered AMIC and PETRA 
   }
 });
 
+test("HRX member roster projects explicitly configured contact data without committing private values", () => {
+  const rows = listHrxMemberRosterRows(
+    {
+      members: [{
+        user_id: "user-contact-test",
+        employee_id: "employee-contact-test",
+        display_name: "Contact Test",
+        legal_name: "Contact Test",
+        work_email: "contact@example.test",
+      }],
+    },
+    {
+      contacts: [{ work_email: "contact@example.test", mobile_phone: "synthetic-contact" }],
+    },
+  );
+  assert.equal(rows[0].mobile_phone, "synthetic-contact");
+});
+
 test("GET /api/hrx/employees returns synthetic API-backed employee rows", async () => {
   const { status, body } = await json("/api/hrx/employees");
   assert.equal(status, 200);
   assert.equal(body.outcome, "ok");
   assert.equal(body.employees.length, 10);
+  assert.equal(body.employees.filter((employee) => employee.mobile_phone).length, 0);
   assert.equal(body.employees[0].tenant_id, "tenant_amic_matter_vault");
   assert.deepEqual(body.employees.map((employee) => employee.display_name), [
     "김양태",

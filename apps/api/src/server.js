@@ -1107,7 +1107,12 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       query,
       body,
       context: hrxRuntime,
-      requestContext: { ...hrxAuthz.context, hrx_scopes: hrxAuthz.principal?.hrx_scopes ?? [] },
+      requestContext: {
+        ...hrxAuthz.context,
+        hrx_scopes: hrxAuthz.principal?.hrx_scopes ?? [],
+        step_up_verified: hrxStepUp.decision?.effect === "allow" && hrxStepUp.decision?.step_up_required === true,
+        step_up_purpose: hrxStepUp.decision?.purpose ?? null,
+      },
       permissionContext,
     });
     sendJson(req, res, result.status, { request_id: requestId, ...result.body });

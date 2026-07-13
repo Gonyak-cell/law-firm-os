@@ -9,6 +9,7 @@ import {
   GitBranch,
   LockKeyhole,
   Mail,
+  Phone,
   Scale,
   Search,
   SlidersHorizontal,
@@ -43,7 +44,7 @@ type WorkforceRow = {
   country: string;
   affiliation: string;
   organizationGroup: string;
-  managerName: string;
+  contact: string;
   email: string;
   employeeId?: string;
   muted?: boolean;
@@ -193,7 +194,7 @@ function HeaderCell({ icon: Icon, children }: { icon: IconComponent; children: u
   );
 }
 
-function rowsForTab(activeTab: string, employeeResult: EmployeeResult, lifecycleResult: LifecycleResult): WorkforceRow[] {
+export function rowsForTab(activeTab: string, employeeResult: EmployeeResult, lifecycleResult: LifecycleResult): WorkforceRow[] {
   const employees = employeeResult?.kind === "data" ? employeeResult.employees : [];
   if (activeTab === "onboarding") {
     const plans = lifecycleResult?.kind === "data" ? lifecycleResult.onboarding : [];
@@ -206,7 +207,7 @@ function rowsForTab(activeTab: string, employeeResult: EmployeeResult, lifecycle
       country: "확인 필요",
       affiliation: "AMIC Law",
       organizationGroup: "인사",
-      managerName: "확인 필요",
+      contact: "확인 필요",
       email: "확인 필요",
       muted: true
     }));
@@ -222,7 +223,7 @@ function rowsForTab(activeTab: string, employeeResult: EmployeeResult, lifecycle
       country: "확인 필요",
       affiliation: "AMIC Law",
       organizationGroup: "인사",
-      managerName: "확인 필요",
+      contact: "확인 필요",
       email: "확인 필요",
       muted: true
     }));
@@ -241,7 +242,7 @@ function rowsForTab(activeTab: string, employeeResult: EmployeeResult, lifecycle
         country: countryLabel(stringField(employee, "country") || stringField(employee, "country_label")),
         affiliation: affiliationLabel(employee),
         organizationGroup: stringField(employee, "organization_group") || organizationGroupLabel(department),
-        managerName: stringField(employee, "manager_display_name") || "없음",
+        contact: stringField(employee, "mobile_phone") || "미등록",
         email: stringField(employee, "work_email") || stringField(employee, "email") || "확인 필요",
         employeeId: stringField(employee, "employee_id") || undefined
       };
@@ -333,7 +334,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
     const normalizedQuery = query.trim().toLowerCase();
     if (!normalizedQuery) return allRows;
     return allRows.filter((row) =>
-      [row.name, row.department, row.jobTitle, row.workerType, row.country, row.affiliation, row.organizationGroup, row.managerName, row.email].some((value) =>
+      [row.name, row.department, row.jobTitle, row.workerType, row.country, row.affiliation, row.organizationGroup, row.contact, row.email].some((value) =>
         String(value ?? "").toLowerCase().includes(normalizedQuery)
       )
     );
@@ -520,7 +521,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
               className="icon-button"
               aria-label="속성 조정"
               data-hr-workforce-property-options="true"
-              onClick={() => showLocalAction("속성 조정", "구성원, 직위, 부서, 상사, 이메일 열을 기준으로 목록 속성을 확인했습니다.")}
+              onClick={() => showLocalAction("속성 조정", "구성원, 직위, 부서, 연락처, 이메일 열을 기준으로 목록 속성을 확인했습니다.")}
             >
               <SlidersHorizontal size={16} />
             </button>
@@ -543,7 +544,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                 <col className="hr-roster-col-member" />
                 <col className="hr-roster-col-title" />
                 <col className="hr-roster-col-department" />
-                <col className="hr-roster-col-manager" />
+                <col className="hr-roster-col-contact" />
                 <col className="hr-roster-col-email" />
               </colgroup>
               <thead>
@@ -551,7 +552,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                   <th><HeaderCell icon={FileText}>구성원</HeaderCell></th>
                   <th><HeaderCell icon={CircleUserRound}>직위</HeaderCell></th>
                   <th><HeaderCell icon={Building2}>부서</HeaderCell></th>
-                  <th><HeaderCell icon={GitBranch}>상사</HeaderCell></th>
+                  <th><HeaderCell icon={Phone}>연락처</HeaderCell></th>
                   <th><HeaderCell icon={Mail}>이메일</HeaderCell></th>
                 </tr>
               </thead>
@@ -590,7 +591,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                             {row.department}
                           </span>
                         </td>
-                        <td>{row.managerName}</td>
+                        <td>{row.contact}</td>
                         <td>{row.email}</td>
                       </tr>
                     );

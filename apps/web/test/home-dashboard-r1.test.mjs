@@ -188,12 +188,12 @@ function visibleLineCount(text, expected) {
     .filter((line) => line === expected).length;
 }
 
-function wp5ActionItem({ id, type, title, dueOffset, dueHour = 9, riskTier = "normal", allowedActions = ["open"], requester = "R1" }) {
+function wp5ActionItem({ id, type, title, dueOffset, dueHour = 9, riskTier = "normal", allowedActions = ["open"], requester = "R1", subtype = type === "task" ? "matter_task" : "leave" }) {
   return {
     id,
     resource_id: id,
     type,
-    subtype: type === "task" ? "matter_task" : "leave",
+    subtype,
     title,
     requester,
     matter_ref: type === "task" ? "matter-r1-wp5" : null,
@@ -291,7 +291,7 @@ function wp5ApiBody(pathname, searchParams, state) {
       request_id: "r1-wp5-approval",
       outcome: "passed",
       items: [
-        wp5ActionItem({ id: "approval_newest", type: "approval", title: "가장 늦은 승인", dueOffset: 4, dueHour: 12, allowedActions: ["approve", "reject", "open"] }),
+        wp5ActionItem({ id: "approval_newest", type: "approval", subtype: "expenses", title: "가장 늦은 승인", dueOffset: 4, dueHour: 12, allowedActions: ["approve", "reject", "open"] }),
         wp5ActionItem({ id: "approval_oldest", type: "approval", title: "가장 오래된 승인", dueOffset: -4, dueHour: 9, allowedActions: ["approve", "reject", "open"] }),
         wp5ActionItem({ id: "approval_mid", type: "approval", title: "중간 승인", dueOffset: 1, dueHour: 9, allowedActions: ["approve", "reject", "open"] }),
         wp5ActionItem({ id: "approval_today", type: "approval", title: "오늘 승인", dueOffset: 0, dueHour: 9, allowedActions: ["approve", "reject", "open"] }),
@@ -493,17 +493,17 @@ test("grouped sidebars render children in collapsible sidebar accordions", async
         assert.equal(await toggle.getAttribute("aria-expanded"), "true", `${view} group ${index} must open`);
         const panelId = await toggle.getAttribute("aria-controls");
         assert.ok(panelId, `${view} group ${index} must identify its controlled panel`);
-        assert.equal(await toggle.evaluate((element) => element.classList.contains("active")), true, `${view} group ${index} must highlight the opened group`);
-        assert.equal(await toggles.evaluateAll((elements, openIndex) => elements.filter((element, itemIndex) => itemIndex !== openIndex && element.classList.contains("active")).length, index), 0, `${view} must not highlight a closed sibling group`);
         const group = toggle.locator("xpath=..");
         assert.equal(await group.locator(`#${panelId}[role="group"]`).count(), 1, `${view} group ${index} must expose an associated submenu group`);
         assert.ok(await group.locator(".sidebar-child").count() > 0, `${view} group ${index} must render nested sidebar items`);
         await group.locator(".sidebar-child").first().click();
         await page.waitForFunction((section) => window.location.hash === `#${section}`, expectedSection);
+        assert.equal(await toggle.evaluate((element) => element.classList.contains("active")), true, `${view} group ${index} must highlight its active child route`);
+        assert.equal(await toggles.evaluateAll((elements, activeIndex) => elements.filter((element, itemIndex) => itemIndex !== activeIndex && element.classList.contains("active")).length, index), 0, `${view} must not highlight a sibling without the active route`);
         assert.equal(await group.locator('.sidebar-child[aria-current="location"]').count(), 1, `${view} group ${index} must mark its current child`);
         await toggle.click();
         assert.equal(await toggle.getAttribute("aria-expanded"), "false", `${view} group ${index} must close on its second click`);
-        assert.equal(await toggle.evaluate((element) => element.classList.contains("active")), false, `${view} group ${index} must clear its highlight when closed`);
+        assert.equal(await toggle.evaluate((element) => element.classList.contains("active")), true, `${view} group ${index} must retain route highlight when collapsed`);
         assert.equal(await group.locator(".sidebar-child").count(), 0, `${view} group ${index} must hide children when closed`);
       }
       assert.equal(await page.locator(".context-subnav").count(), 0, `${view} must not render duplicate top contextual navigation`);
@@ -525,8 +525,16 @@ test("grouped sidebars render children in collapsible sidebar accordions", async
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
     assert.deepEqual(
       await page.locator('[data-context-sidebar="home"] .sidebar-nav > .sidebar-item > span:nth-child(2), [data-context-sidebar="home"] .sidebar-nav > .sidebar-group > .sidebar-group-toggle > span:nth-child(2)').allTextContents(),
-      ["대시보드", "할 일", "피드", "캘린더", "전자계약", "매출/비용"]
+      ["대시보드", "할 일", "승인 대기", "회의실 예약", "피드", "캘린더", "전자계약", "매출/비용"]
     );
+    const homeApprovalGroup = page.locator('[data-sidebar-group="home-approvals"]');
+    await homeApprovalGroup.locator(".sidebar-group-toggle").click();
+    assert.deepEqual(await homeApprovalGroup.locator(".sidebar-child").allTextContents(), ["휴가", "비용처리"]);
+    await page.getByRole("button", { name: "회의실 예약", exact: true }).click();
+    await page.waitForSelector('[data-home-section-screen="home-meeting-rooms"]');
+    assert.equal(new URL(page.url()).hash, "#home-meeting-rooms");
+    assert.equal(await homeApprovalGroup.locator(".sidebar-group-toggle").evaluate((element) => element.classList.contains("active")), false);
+    assert.equal(await page.getByRole("button", { name: "회의실 예약", exact: true }).getAttribute("aria-current"), "location");
     await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
     const clientPrimaryToggle = page.locator('[data-sidebar-group="clients-home"] .sidebar-group-toggle');
     assert.deepEqual(await page.locator('[data-sidebar-group="clients-home"] .sidebar-child').allTextContents(), ["대시보드", "고객 목록", "신규 고객", "잠재 고객", "매출 내역"]);
@@ -877,12 +885,10 @@ test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async ()
     });
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
 
-    await page.waitForSelector(".home-dashboard-hero h1");
-    const heroText = await page.locator(".home-dashboard-hero").innerText();
-    assert.doesNotMatch(heroText, /\bHOME\b/);
-    assert.doesNotMatch(heroText, /오늘 처리할 항목/);
-    assert.equal(await page.locator('[data-widget-id="approval"]').count(), 0);
-    for (const section of ["home", "recent-work", "today-todo", "calendar", "monthly-sales", "new-engagements", "feed"]) {
+    assert.equal(await page.locator(".home-dashboard-hero").count(), 1);
+    assert.equal(await page.locator('[data-dashboard-section="pending-approvals"]').count(), 1);
+    assert.deepEqual(await page.locator('[data-dashboard-section="pending-approvals"] .dashboard-record-copy strong').allTextContents(), ["휴가", "비용처리"]);
+    for (const section of ["recent-work", "today-todo", "monthly-sales", "new-engagements", "pending-approvals"]) {
       assert.equal(await page.locator(`[data-dashboard-section="${section}"]`).count(), 1);
     }
 
@@ -903,8 +909,10 @@ test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async ()
     await page.waitForTimeout(250);
     assert.equal(state.decisionCalls, 0);
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
-    assert.doesNotMatch(await page.locator(".home-dashboard-hero").innerText(), /오늘 처리할 항목/);
+    assert.equal(await page.locator(".home-dashboard-hero").count(), 1);
 
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-calendar`, { waitUntil: "networkidle" });
+    await page.waitForSelector('.home-dashboard-hero h1');
     const todayKey = wp5DateKey(0);
     await page.waitForSelector(`[data-home-calendar-day="${todayKey}"][data-home-calendar-day-kind="deadline"]`);
     assert.ok(await page.locator(".home-calendar-grid button.sunday").count() > 0);
@@ -913,6 +921,8 @@ test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async ()
     assert.equal(await page.locator("[data-home-calendar-open]").count(), 1);
     assert.equal(await page.locator("[data-home-upcoming-deadline]").count(), 1);
 
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-feed`, { waitUntil: "networkidle" });
+    await page.waitForSelector('#home-feed-tab-notice');
     assert.equal(await page.locator("#home-feed-tab-notice").textContent(), "공지사항");
     assert.equal(await page.locator("#home-feed-tab-news").count(), 0);
     assert.equal(await page.locator("#home-feed-tab-newsletter").textContent(), "뉴스레터");
@@ -994,27 +1004,68 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
   const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
   await server.listen();
   const browser = await chromium.launch({ headless: true });
-  const state = { decisionCalls: 0, newsCalls: 0 };
+  const state = { decisionCalls: 0, newsCalls: 0, matterListCalls: 0, matterListLimits: [] };
   try {
     const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
+      if (url.pathname === "/api/matters") {
+        state.matterListCalls += 1;
+        state.matterListLimits.push(url.searchParams.get("limit"));
+      }
       return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
     });
 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
-    for (const title of ["최근 작업", "오늘 할 일", "캘린더", "월별 매출", "신규 수임"]) {
+    for (const title of ["최근 작업", "오늘 할 일", "승인 대기", "월별 매출", "신규 수임"]) {
       assert.equal(await page.getByText(title, { exact: true }).count() > 0, true, `Home must show ${title}`);
     }
-    assert.equal(await page.locator('.home-dashboard-feed .home-dashboard-card-header').count(), 0);
-    assert.deepEqual(await page.locator('.home-dashboard-feed [role="tab"]').allTextContents(), ["공지사항", "뉴스레터"]);
-    assert.equal(await page.locator('[data-home-widget-approval-count], [data-widget-id="approval"]').count(), 0);
+    assert.equal(await page.locator('.home-dashboard-hero').count(), 1);
+    assert.equal(await page.locator('.home-dashboard-feed').isHidden(), true);
+    assert.equal(await page.locator('.home-dashboard-rail').isHidden(), true);
+    assert.equal(await page.locator('[data-dashboard-section="pending-approvals"]').count(), 1);
     assert.equal(await page.locator('[data-dashboard-section="recent-work"] .dashboard-record-row').count() > 0, true);
     assert.equal(await page.locator('[data-dashboard-section="monthly-sales"] .dashboard-record-row').count() > 0, true);
+    const dashboardLayout = await page.evaluate(() => {
+      const todo = document.querySelector('.home-dashboard-todo').getBoundingClientRect();
+      const recent = document.querySelector('.home-dashboard-recent').getBoundingClientRect();
+      const grid = getComputedStyle(document.querySelector('.home-dashboard-grid'));
+      return { columns: grid.gridTemplateColumns.split(' ').length, recentRight: recent.left > todo.right, recentTaller: recent.height > todo.height * 1.8 };
+    });
+    assert.deepEqual(dashboardLayout, { columns: 3, recentRight: true, recentTaller: true });
     await page.setViewportSize({ width: 1024, height: 768 });
-    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), false, "Home dashboard must not overflow at 1024px");
+    assert.equal((await page.locator('.home-dashboard-grid').evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(' ').length)), 2);
+    await page.setViewportSize({ width: 821, height: 768 });
+    assert.equal((await page.locator('.home-dashboard-grid').evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(' ').length)), 1);
     await page.setViewportSize({ width: 1366, height: 900 });
 
+    const matterListCallsBeforeSearch = state.matterListCalls;
+    await page.locator('.global-search input').focus();
+    await page.waitForSelector('[data-search-history-section="viewed"] .search-history-row');
+    assert.equal(await page.getByText("최근 열람", { exact: true }).count(), 1);
+    assert.equal(await page.getByText("최근 수정", { exact: true }).count(), 1);
+    assert.equal(await page.getByRole("button", { name: /최근 기록 모두 보기/ }).count(), 1);
+    assert.equal(await page.locator('[data-search-history-section="viewed"] .search-history-row').count(), 1);
+    assert.equal(await page.locator('[data-search-history-section="modified"] .search-history-row').count(), 3);
+    assert.deepEqual(state.matterListLimits.slice(matterListCallsBeforeSearch), ["5"]);
+    await page.keyboard.press('Tab');
+    assert.equal(await page.locator(':focus').evaluate((node) => node.classList.contains('search-history-row')), true);
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('#global-search-popover').count(), 0);
+    await page.locator('.global-search input').focus();
+    await page.waitForSelector('[data-search-history-section="viewed"] .search-history-row');
+    assert.equal(state.matterListCalls, matterListCallsBeforeSearch + 1, "refocusing search must reuse the loaded history");
+    await page.locator('[data-search-history-section="viewed"] .search-history-row').click();
+    await page.waitForURL(/matter_id=matter-dashboard-active/);
+    await page.waitForSelector('#matters-list');
+    assert.equal(await page.locator('[data-record-overlay="matter"]').count(), 1, "recent history must open the selected Matter");
+    await page.locator('.record-overlay-scrim').click();
+    assert.equal(await page.locator('[data-record-overlay="matter"]').count(), 0);
+    await page.locator('.global-search input').focus();
+    await page.waitForSelector('[data-search-history-section="viewed"] .search-history-row');
+    await page.locator('[data-search-history-section="viewed"] .search-history-row').click();
+    await page.waitForSelector('[data-record-overlay="matter"]');
+    assert.equal(await page.locator('[data-record-overlay="matter"]').count(), 1, "selecting the same recent Matter again must reopen it");
     await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow#matter-home`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-matter-dashboard="true"]');
     for (const title of ["최근 작업", "오늘의 To Do", "나의 매터(담당 지정)", "신규 수임", "종결 매터"]) {
@@ -1101,6 +1152,31 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     for (const title of ["신규 고객", "잠재 고객/접촉", "매출 순위", "고객 미팅", "미수금"]) {
       assert.equal(await page.getByText(title, { exact: true }).count(), 0, `People must not show ${title}`);
     }
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
+test("search history keeps a failed source distinct from a genuinely empty source", async () => {
+  const port = await availablePort();
+  const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname === "/api/matters/recently-viewed") return jsonResponse(route, {});
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, { decisionCalls: 0, newsCalls: 0 }));
+    });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
+    await page.locator('.global-search input').focus();
+    const viewedSection = page.locator('[data-search-history-section="viewed"]');
+    await viewedSection.getByText("최근 기록을 불러오지 못했습니다.").waitFor();
+    assert.equal(await viewedSection.getByText("표시할 기록이 없습니다.").count(), 0);
+    assert.equal(await page.locator('[data-search-history-section="modified"] .search-history-row').count(), 3);
   } finally {
     await browser.close();
     await server.close();
@@ -1234,7 +1310,7 @@ test("R1 WP-6 renders notification dot from action inbox counts and i18n labels 
 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow&locale=en#home-dashboard`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-notification-info-count="2"]');
-    assert.equal(await page.locator('[data-widget-id="approval"]').count(), 0);
+    assert.equal(await page.locator('[data-dashboard-section="pending-approvals"]').count(), 1);
     assert.doesNotMatch(await page.locator('[data-widget-id="todo"]').textContent(), /Late 2, Today 1/);
     assert.equal(await page.locator("#home-feed-tab-notice").textContent(), "Internal notices");
     assert.ok((await page.locator('.sidebar button:has-text("Dashboard")').count()) > 0);
@@ -1244,7 +1320,7 @@ test("R1 WP-6 renders notification dot from action inbox counts and i18n labels 
   }
 });
 
-test("R1 WP-7 keeps approval counts out of dashboard cards and equal across sidebar, topbar, and dedicated views", async () => {
+test("R1 WP-7 keeps approval counts aligned across the dashboard card, sidebar, topbar, and dedicated views", async () => {
   const port = await availablePort();
   const server = await createServer({
     root: webRoot,
@@ -1264,7 +1340,7 @@ test("R1 WP-7 keeps approval counts out of dashboard cards and equal across side
 
     await page.waitForSelector('[data-home-sidebar-approval-count="5"]');
     const dashboardSurfaceText = await page.locator(".home-dashboard-surface").innerText();
-    assert.equal(visibleLineCount(dashboardSurfaceText, "승인 대기"), 0);
+    assert.equal(visibleLineCount(dashboardSurfaceText, "승인 대기"), 1);
     assert.doesNotMatch(dashboardSurfaceText, /승인 요청/);
     assert.doesNotMatch(dashboardSurfaceText, /·/);
     const dashboardCounts = await page.evaluate(() => ({
@@ -1273,13 +1349,15 @@ test("R1 WP-7 keeps approval counts out of dashboard cards and equal across side
     }));
     assert.deepEqual(dashboardCounts, { sidebar: "5", topbar: "5" });
     assert.equal(await page.locator("[data-home-widget-approval-count]").count(), 0);
+    assert.deepEqual(await page.locator('[data-dashboard-section="pending-approvals"] .dashboard-record-copy strong').allTextContents(), ["휴가", "비용처리"]);
+    assert.deepEqual(await page.locator('[data-dashboard-section="pending-approvals"] .dashboard-record-detail').allTextContents(), ["4건", "1건"]);
 
     await page.locator('[data-home-widget-view-all="todo"]').click();
     await page.waitForFunction(() => window.location.hash === "#home-todo");
     assert.equal(await page.locator("[data-active-home-section]").getAttribute("data-active-home-section"), "home-todo");
     assert.equal(await page.locator(".home-dashboard-hero h1").textContent(), "할 일");
-    assert.equal(await page.locator('[data-home-section-screen="home-todo"] [data-home-tab-prefix="work"]').count(), 2);
-    assert.equal(await page.locator('[data-home-tab-prefix="work"][aria-selected="true"]').textContent(), "오늘 할 일");
+    assert.equal(await page.locator('[data-home-section-screen="home-todo"] [data-home-tab-prefix="work"]').count(), 0);
+    assert.equal(await page.locator('[data-home-section-screen="home-todo"] [data-home-work-todo-list="true"]').count(), 1);
 
     await page.locator('[data-product-axis="matters"]').click();
     await page.waitForFunction(() => new URL(window.location.href).searchParams.get("view") === "matters");
@@ -1295,7 +1373,7 @@ test("R1 WP-7 keeps approval counts out of dashboard cards and equal across side
     await page.waitForSelector('[data-home-section-screen="home-requests"]');
     await page.waitForSelector(".home-dashboard-hero h1");
     const requestsSurfaceText = await page.locator(".home-dashboard-surface").innerText();
-    assert.equal(await page.locator(".home-dashboard-hero h1").textContent(), "할 일");
+    assert.equal(await page.locator(".home-dashboard-hero h1").textContent(), "승인 대기");
     assert.equal(await page.locator(".home-dashboard-hero p").count(), 0);
     assert.equal(await page.locator('[data-home-section-screen="home-requests"] > header').count(), 0);
     assert.equal(visibleLineCount(requestsSurfaceText, "승인 대기"), 1);
@@ -1308,7 +1386,7 @@ test("R1 WP-7 keeps approval counts out of dashboard cards and equal across side
       sidebar: document.querySelector("[data-home-sidebar-approval-count]")?.getAttribute("data-home-sidebar-approval-count"),
       topbar: document.querySelector("[data-home-topbar-approval-count]")?.getAttribute("data-home-topbar-approval-count")
     }));
-    assert.deepEqual(dedicatedCounts, { dedicated: "5", requestTabs: "2", underlineTabs: "2", sidebar: "5", topbar: "5" });
+    assert.deepEqual(dedicatedCounts, { dedicated: "5", requestTabs: "2", underlineTabs: "1", sidebar: "5", topbar: "5" });
 
     await page.goto(`http://127.0.0.1:${port}/?view=messages&ctx=allow#messages-matter-channel`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-home-section-screen="home-messages"]');

@@ -37,11 +37,14 @@ test("product typography uses bundled Pretendard and SUITE without mono or macOS
   assert.doesNotMatch(stylesSource, /font-family:[^;]*(?:Comfortaa|Avenir Next|SF Pro Rounded|Inter)/);
   assert.doesNotMatch(stylesSource, /html\[data-locale="en"\][\s\S]{0,180}Comfortaa/);
   const fontWeights = new Set([...stylesSource.matchAll(/font-weight:\s*([^;]+);/g)].map((match) => match[1].trim()));
-  assert.deepEqual(fontWeights, new Set(["400", "600"]));
+  assert.deepEqual(fontWeights, new Set(["400", "600", "700"]));
   assert.match(stylesSource, /Pretendard-SemiBold\.otf[\s\S]{0,80}font-weight: 600/);
   assert.match(stylesSource, /SUITE-SemiBold\.otf[\s\S]{0,80}font-weight: 600/);
+  assert.match(stylesSource, /Pretendard-Bold\.otf[\s\S]{0,80}font-weight: 700/);
+  assert.match(stylesSource, /SUITE-Bold\.otf[\s\S]{0,80}font-weight: 700/);
   const productRules = stylesSource.replaceAll(/@font-face\s*\{[^}]+\}/gs, "");
   assert.equal([...productRules.matchAll(/font-weight:\s*600;/g)].length, 1);
+  assert.equal([...productRules.matchAll(/font-weight:\s*700;/g)].length, 2);
   assert.match(productRules, /table tbody,[\s\S]{0,300}\.subscribe-table-row \*[\s\S]{0,40}font-weight: 400;/);
   assert.match(productRules, /\.data-table thead th,[\s\S]{0,500}\.subscribe-table-head \*[\s\S]{0,40}font-weight: 600;/);
   assert.match(stylesSource, /\.dashboard-record-row,[\s\S]{0,80}\.dashboard-record-row \*[\s\S]{0,40}font-weight: 400;/);
@@ -58,7 +61,7 @@ test("product typography uses bundled Pretendard and SUITE without mono or macOS
   assert.doesNotMatch(logoSource, /Avenir Next|Comfortaa|Inter|Arial|font-weight="300"/);
 });
 
-test("post-login product UI routes only Client, Matter, People, Vault, and Portal", async () => {
+test("post-login product UI shows Home, Client, Matter, People, Search, and Portal", async () => {
   const navSource = await readWebFile("src/data/nav.js");
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
@@ -100,9 +103,12 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
     assert.match(navSource, new RegExp(`id: "${view}"`));
     assert.match(appSource, new RegExp(`view === "${view}"`));
   }
+  assert.match(navSource, /label: "Home"[\s\S]*label: "Client"[\s\S]*label: "Matter"[\s\S]*label: "People"[\s\S]*label: "Search"[\s\S]*label: "Portal"/);
   assert.match(navSource, /id: "people", label: "People"/);
+  assert.match(navSource, /id: "vault", label: "Search"/);
+  assert.match(i18nSource, /vaultAxisLabel: "Search"/);
   assert.match(shellSource, /people:\s*\{[\s\S]*?title:\s*"People"/);
-  assert.match(shellSource, /aria-label="Home Client Matter People Vault Portal"/);
+  assert.match(shellSource, /aria-label="Home Client Matter People Search Portal"/);
   assert.match(appSource, /view === "home"/);
   assert.match(appSource, /view === "auth"/);
   for (const view of removedViews) {
@@ -119,9 +125,11 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
     assert.equal(componentFiles.includes(removedSurface), false);
   }
   assert.match(shellSource, /data-product-axis-nav="top-header"/);
-  assert.match(stylesSource, /\.top-axis-item\s*\{[\s\S]*font-size:\s*16px[\s\S]*letter-spacing:\s*0\.02em/);
-  assert.match(stylesSource, /html\[data-skin="forest"\] \.top-axis-item\s*\{[\s\S]*font-size:\s*16px[\s\S]*font-weight:\s*400/);
-  assert.match(stylesSource, /html\[data-skin="forest"\] \.top-axis-item\s*\{[\s\S]*letter-spacing:\s*0\.02em[\s\S]*text-transform:\s*uppercase/);
+  assert.match(stylesSource, /\.top-axis-item\s*\{[\s\S]*font-size:\s*var\(--am-font-size-body\)[\s\S]*letter-spacing:\s*0\.02em/);
+  assert.match(stylesSource, /html\[data-skin="forest"\] \.top-axis-item\s*\{[\s\S]*color:\s*#000000[\s\S]*font-size:\s*var\(--am-font-size-body\)[\s\S]*font-weight:\s*400/);
+  assert.match(stylesSource, /html\[data-skin="forest"\] \.top-axis-nav button\.active\s*\{[^}]*font-weight:\s*700/);
+  assert.match(stylesSource, /html\[data-skin="forest"\] \.top-axis-item\s*\{[\s\S]*letter-spacing:\s*0\.02em[\s\S]*text-transform:\s*none/);
+  assert.doesNotMatch(stylesSource, /html\[data-skin="forest"\] \.top-axis-item\s*\{[^}]*text-transform:\s*uppercase/);
   assert.match(stylesSource, /\.sidebar-item\s*\{[\s\S]*min-height:\s*48px[\s\S]*font-size:\s*15px[\s\S]*font-weight:\s*400[\s\S]*letter-spacing:\s*0\.01em/);
   assert.match(stylesSource, /\.workspace-card\s*\{[\s\S]*align-items:\s*center[\s\S]*min-height:\s*46px[\s\S]*padding:\s*0 12px/);
   assert.match(stylesSource, /\.workspace-card strong\s*\{[\s\S]*margin-top:\s*0/);
@@ -143,23 +151,27 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   assert.doesNotMatch(shellSource, /"sidebar-item global-sidebar-item/);
   assert.match(shellSource, /<span className="sidebar-icon"><Icon size=\{16\} \/><\/span>/);
   assert.match(shellSource, /function homeSidebarMeta\(labels = \{\}, financeAccessRecords = \[\]\)/);
-  for (const key of ["homeDashboardLabel", "homeTodoSidebarLabel", "homeFeedSidebarLabel", "homeCalendarSidebarLabel", "homeEsignLabel", "homeFinanceLabel", "homeDataImportLabel", "homeSettingsLabel"]) {
+  for (const key of ["homeDashboardLabel", "homeTodoSidebarLabel", "homeRequestsLabel", "homeMeetingRoomsLabel", "homeFeedSidebarLabel", "homeCalendarSidebarLabel", "homeEsignLabel", "homeFinanceLabel", "homeDataImportLabel", "homeSettingsLabel"]) {
     assert.match(homeSidebarSource, new RegExp(`shellLabel\\(labels, "${key}"`));
     assert.match(i18nSource, new RegExp(`${key}:`));
   }
   assert.match(homeSidebarSource, /homeTodoSidebarLabel", "할 일"/);
   assert.match(homeSidebarSource, /homeEsignLabel", "전자계약"/);
-  assert.doesNotMatch(homeSidebarSource, /homeRequestsLabel", "승인 요청"[\s\S]{0,80}section: "home-requests"/);
+  assert.match(homeSidebarSource, /groupId: "home-approvals"/);
+  assert.match(homeSidebarSource, /homeRequestsLabel", "승인 대기"/);
+  assert.match(homeSidebarSource, /requestFilterLeave", "휴가"[\s\S]*section: "home-requests-leave"/);
+  assert.match(homeSidebarSource, /requestFilterExpenses", "비용처리"[\s\S]*section: "home-requests-expenses"/);
+  assert.match(homeSidebarSource, /homeMeetingRoomsLabel", "회의실 예약"[\s\S]*section: "home-meeting-rooms"/);
   assert.doesNotMatch(homeSidebarSource, /최근작업|notifications-center|label: "알림"/);
   assert.match(homeSidebarSource, /view: "home", section: "home-dashboard"/);
   assert.match(homeSidebarSource, /view: "home", section: "home-todo"/);
   assert.match(homeSidebarSource, /view: "home", section: "home-feed"/);
   assert.match(homeSidebarSource, /view: "home", section: "home-calendar"/);
   assert.match(homeSidebarSource, /view: "home", section: "home-esign"/);
-  for (const hiddenHomeSection of ["home-messages", "home-requests", "home-company"]) {
+  for (const hiddenHomeSection of ["home-messages", "home-company"]) {
     assert.doesNotMatch(homeSidebarSource, new RegExp(`view: "home", section: "${hiddenHomeSection}"`));
   }
-  assert.match(homeSidebarSource, /home-dashboard[\s\S]*home-todo[\s\S]*home-feed[\s\S]*home-calendar[\s\S]*home-esign[\s\S]*homeFinanceLabel/);
+  assert.match(homeSidebarSource, /home-dashboard[\s\S]*home-todo[\s\S]*home-approvals[\s\S]*home-meeting-rooms[\s\S]*home-feed[\s\S]*home-calendar[\s\S]*home-esign[\s\S]*homeFinanceLabel/);
   assert.match(homeSidebarSource, /view: "data-import", section: "data-import-client"/);
   assert.match(appSource, /globalUtilityViewIds/);
   assert.match(globalUtilitySource, /modeExceptionUtilityViewIds = \["settings", "data-import", "profile"\]/);
@@ -186,11 +198,16 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   for (const label of ["고객 관리", "대시보드", "고객 목록", "신규 고객", "잠재 고객", "매출 내역", "Pipeline", "상담/수임 제안", "접촉 이력", "청구", "리포트"]) {
     assert.match(shellSource, new RegExp(label));
   }
-  const viteServer = await createServer({ root: webRoot, server: { middlewareMode: true }, appType: "custom", logLevel: "error" });
+  const viteServer = await createServer({ configFile: false, root: webRoot, server: { middlewareMode: true, hmr: false }, appType: "custom", logLevel: "error" });
   try {
     const { buildContextualNavigation } = await viteServer.ssrLoadModule("/src/components/Shell.jsx");
-    const clientOperations = buildContextualNavigation().clients.items.find((item) => item.label === "운영").children;
+    const navigation = buildContextualNavigation();
+    const clientOperations = navigation.clients.items.find((item) => item.label === "운영").children;
+    const matterCommunication = navigation.matters.items.find((item) => item.label === "소통").children;
+    const matterReports = navigation.matters.items.find((item) => item.label === "리포트").children;
     assert.deepEqual(clientOperations.map((item) => [item.label, item.section]), [["청구", "client-billing"], ["리포트", "client-reports"]]);
+    assert.deepEqual(matterCommunication.map((item) => [item.label, item.section]), [["회의 기록", "matter-meetings"], ["의뢰인 요청", "matter-client-requests"]]);
+    assert.deepEqual(matterReports.map((item) => [item.label, item.section]), [["사건 리포트", "matter-analytics"], ["연동", "matter-integrations"]]);
   } finally {
     await viteServer.close();
   }
@@ -198,7 +215,7 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
     assert.doesNotMatch(shellSource, new RegExp(`section: "${section}"`));
   }
   assert.doesNotMatch(shellSource, /Client 관리|Client 목록|Client 계정|Client 관계|Client 리포트|Client 데이터|Client 설정/);
-  for (const label of ["업무 관리", "업무 보드", "워크트리", "할 일", "일정", "사건 운영", "대시보드", "사건 목록", "신규 사건", "종결 처리", "보관 사건", "소통", "메시지", "회의 기록", "공지", "팀", "의뢰인 요청", "리포트", "사건 리포트", "검색", "사건 위험", "감사 이력", "연동", "사건 설정"]) {
+  for (const label of ["업무 관리", "업무 보드", "워크트리", "할 일", "일정", "사건 운영", "대시보드", "사건 목록", "신규 사건", "종결 처리", "보관 사건", "소통", "회의 기록", "의뢰인 요청", "리포트", "사건 리포트", "연동"]) {
     assert.match(shellSource, new RegExp(label));
   }
   assert.match(shellSource, /label: "업무 관리"[\s\S]*label: "사건 운영"/);
@@ -227,6 +244,50 @@ test("post-login product UI routes only Client, Matter, People, Vault, and Porta
   assert.match(peopleNavigationSource, /people-admin/);
   assert.match(peopleNavigationSource, /people-work-schedule-external/);
   assert.doesNotMatch(appSource, /MatterModal|initialVariant|initialDataMode|setModal|mockData/);
+});
+
+test("Search workspace keeps vault compatibility while adding dashboard, grouped navigation, and topbar handoff", async () => {
+  const appSource = await readWebFile("src/App.jsx");
+  const shellSource = await readWebFile("src/components/Shell.jsx");
+  const vaultSource = await readWebFile("src/components/VaultSurface.jsx");
+  const stylesSource = await readWebFile("src/styles.css");
+
+  assert.match(appSource, /const vaultFallbackSection = "vault-search-home"/);
+  assert.match(appSource, /function normalizeVaultRoute\(route\)/);
+  assert.match(appSource, /"vault-documents": "vault-search-documents"/);
+  assert.match(appSource, /<VaultSurface[\s\S]*initialQuery=\{query\}[\s\S]*onNavigateSection=/);
+  assert.match(appSource, /current_version/);
+  assert.match(appSource, /date_from/);
+  assert.match(appSource, /date_to/);
+
+  const viteServer = await createServer({ configFile: false, root: webRoot, server: { middlewareMode: true, hmr: false }, appType: "custom", logLevel: "error" });
+  try {
+    const { buildContextualNavigation } = await viteServer.ssrLoadModule("/src/components/Shell.jsx");
+    const searchNavigation = buildContextualNavigation().vault;
+    assert.equal(searchNavigation.title, "Search");
+    assert.deepEqual(searchNavigation.items.map((item) => item.label), ["검색", "내 검색"]);
+    assert.deepEqual(searchNavigation.items.flatMap((item) => item.children.map((child) => child.section)), [
+      "vault-search-home",
+      "vault-search-all",
+      "vault-search-documents",
+      "vault-search-recent",
+      "vault-search-saved"
+    ]);
+  } finally {
+    await viteServer.close();
+  }
+
+  assert.match(shellSource, /searchInWorkspace[\s\S]*trimmedQuery/);
+  assert.match(shellSource, /setView\("vault", "vault-search-all", \{ query: trimmedQuery \}\)/);
+  assert.match(vaultSource, /<ForestHero title="Search" image=\{heroVaultArchitecture\} imageOpacity=\{0\.24\} \/>/);
+  assert.match(vaultSource, /data-search-scope="documents-ocr"/);
+  assert.match(vaultSource, /searchCurrentVersionOnly/);
+  assert.match(vaultSource, /searchOcrSidecarNotice/);
+  assert.match(vaultSource, /operation: "share_authorize"/);
+  assert.match(vaultSource, /vault-search-recent/);
+  assert.match(vaultSource, /vault-search-saved/);
+  assert.match(vaultSource, /hero-vault-architecture\.jpg/);
+  assert.doesNotMatch(stylesSource, /\.search-hero/);
 });
 
 test("context sidebar uses English People title and vertically centers every menu row", async () => {
@@ -270,6 +331,11 @@ test("Stage 1 IA redirects old global utility URLs into stable product axes", as
     view: "matters",
     section: "matter-board",
     redirectedFrom: { view: "matters", section: "matter-notes" }
+  });
+  assert.deepEqual(resolveGlobalShortcut("people", "people-company-leave"), {
+    view: "people",
+    section: "people-leave-types",
+    redirectedFrom: { view: "people", section: "people-company-leave" }
   });
   assert.ok(legacyGlobalRoutes.length > 30);
 
@@ -489,7 +555,9 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(homeSource, /data-home-dashboard-shell="true"/);
   assert.match(homeSource, /data-home-dashboard-grid="true"/);
   assert.match(homeSource, /data-active-home-section=\{activeHomeSection\}/);
-  assert.doesNotMatch(homeSource, /widgetId="approval"/);
+  assert.match(homeSource, /section="pending-approvals"/);
+  assert.match(homeSource, /home-requests-leave/);
+  assert.match(homeSource, /home-requests-expenses/);
   assert.match(homeSource, /widgetId="todo"/);
   assert.match(homeSource, /widgetId="calendar"/);
   assert.match(homeSource, /widgetId="feed"/);
@@ -502,6 +570,7 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.doesNotMatch(homeSource, /dataPrefix="approval-widget"/);
   assert.match(homeSource, /aria-label=\{viewAllLabel\}/);
   assert.match(homeSource, /dataPrefix="requests-direction" variant="underline"/);
+  assert.doesNotMatch(homeSource, /dataPrefix="work"|const workTabs/);
   assert.match(stylesSource, /\.home-section-tabs\.underline[\s\S]*background:\s*transparent/);
   assert.match(stylesSource, /\.home-section-tabs\.underline button\.active::after[\s\S]*background:\s*var\(--am-success\)/);
   assert.match(stylesSource, /\.home-feed-tabs\s*\{[\s\S]*background:\s*transparent/);
@@ -512,12 +581,13 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(homeSource, /id: "notice", labelKey: "homeFeedNotice", label: "공지사항"/);
   assert.match(homeSource, /id: "newsletter", labelKey: "homeFeedNewsletter", label: "뉴스레터"/);
   assert.doesNotMatch(homeSource, /id: "news"/);
-  assert.match(stylesSource, /grid-template-areas:\s*"recent recent rail"\s*"todo intake rail"\s*"monthly feed feed"/);
-  for (const section of ["recent-work", "today-todo", "monthly-sales", "new-engagements", "feed", "calendar"]) {
+  assert.match(stylesSource, /home-dashboard-surface\[data-active-home-section="home-dashboard"\] \.home-dashboard-grid\s*\{[^}]*grid-template-areas:\s*"todo approvals recent"\s*"intake monthly recent"/);
+  for (const section of ["recent-work", "today-todo", "pending-approvals", "monthly-sales", "new-engagements", "feed", "calendar"]) {
     assert.match(homeSource, new RegExp(`section="${section}"`));
   }
   assert.match(stylesSource, /\.home-dashboard-rail\s*\{[\s\S]*display:\s*flex[\s\S]*flex-direction:\s*column/);
   assert.match(stylesSource, /\.home-dashboard-rail > \.home-dashboard-card:first-child\s*\{[\s\S]*flex:\s*1/);
+  assert.match(stylesSource, /home-dashboard-surface\[data-active-home-section="home-dashboard"\][\s\S]*\.home-dashboard-grid > \.home-dashboard-feed,[\s\S]*\.home-dashboard-grid > \.home-dashboard-rail\s*\{[^}]*display:\s*none/);
   assert.match(dashboardListSource, /className="home-dashboard-card-body">\{children\}/);
   assert.match(homeSource, /function DashboardCard[\s\S]*className="home-dashboard-card-body">\{children\}/);
   assert.match(stylesSource, /\.home-dashboard-card\s*\{[^}]*gap:\s*0;[^}]*padding:\s*0;[^}]*overflow:\s*hidden;[^}]*border:\s*1px solid var\(--am-border\);[^}]*border-radius:\s*var\(--am-radius-sm\);[^}]*background:\s*var\(--am-surface\);/);
@@ -550,6 +620,22 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(stylesSource, /\.top-axis-item[\s\S]*min-width:\s*96px/);
   assert.match(stylesSource, /@media \(max-width:\s*1180px\)[\s\S]*\.top-axis-item[\s\S]*min-width:\s*84px/);
   assert.match(stylesSource, /\.topbar \.global-search[\s\S]*height:\s*38px/);
+  assert.match(shellSource, /onFocus=\{\(\) => setSearchOpen\(true\)\}[\s\S]*placeholder=\{labels\.search\}[\s\S]*aria-label=\{labels\.search\}[\s\S]*aria-expanded=\{searchOpen/);
+  assert.match(shellSource, /fetchMatterRecentlyViewed\(\{ ctx: liveCtx, limit: 5 \}\)/);
+  assert.match(shellSource, /data-search-history-section=\{section\.id\}/);
+  assert.match(shellSource, /최근 열람/);
+  assert.match(shellSource, /최근 수정/);
+  assert.match(shellSource, /searchViewMatters/);
+  assert.match(stylesSource, /\.global-search-wrap\s*\{[^}]*position:\s*relative/);
+  assert.match(stylesSource, /\.search-popover\s*\{[^}]*position:\s*absolute;[^}]*top:\s*calc\(100% \+ 4px\)/);
+  assert.match(stylesSource, /@media \(max-width: 1320px\) \{[\s\S]*?html\[data-skin="forest"\] \.topbar \{[^}]*grid-template-columns: minmax\(0, 1fr\) minmax\(160px, 240px\) auto auto;[^}]*\}[\s\S]*?html\[data-skin="forest"\] \.topbar \.global-search \{[^}]*display: grid;/);
+  assert.doesNotMatch(stylesSource, /@media \(max-width: 1320px\) \{[\s\S]*?html\[data-skin="forest"\] \.topbar \.global-search \{[^}]*display: none;/);
+  assert.match(stylesSource, /@media \(min-width: 821px\) and \(max-width: 1180px\) \{[\s\S]*?html\[data-skin="forest"\] \.top-axis-nav \{[^}]*grid-column: 1 \/ -1;[^}]*grid-row: 2;/);
+  assert.match(stylesSource, /\.home-dashboard-surface\s*\{[^}]*container-type:\s*inline-size;/);
+  assert.doesNotMatch(stylesSource, /@container \(max-width: 1100px\)/);
+  assert.match(stylesSource, /html\[data-skin="forest"\] \.sidebar \{[^}]*grid-template-rows:\s*auto auto minmax\(0, 1fr\) auto;/);
+  assert.match(stylesSource, /html\[data-skin="forest"\] \.sidebar\[data-mode-exception-sidebar="true"\] \{[^}]*grid-template-rows:\s*auto auto auto minmax\(0, 1fr\) auto;/);
+  assert.match(stylesSource, /@media \(max-width: 820px\) \{[\s\S]*?html\[data-skin="forest"\] \.topbar \{[^}]*grid-template-columns: minmax\(0, 1fr\) auto;[^}]*\}[\s\S]*?html\[data-skin="forest"\] \.topbar \.global-search-wrap \{[^}]*grid-column: 1;[^}]*grid-row: 1;/);
   assert.match(stylesSource, /html\[data-skin="forest"\] \.forest-hero \{[\s\S]*min-height:\s*108px/);
   assert.match(stylesSource, /html\[data-skin="forest"\] \.forest-hero:not\(\.forest-hero-with-stats\):not\(\.forest-hero-with-actions\) \{[\s\S]*min-height:\s*88px/);
   assert.match(forestHeroSource, /actions = null/);
@@ -568,7 +654,7 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.doesNotMatch(stylesSource, /\.app-frame\.sidebar-expanded|\.rail-logo|\.nav-toggle\.active/);
 });
 
-test("six product heroes use six unique architectural backgrounds", async () => {
+test("six photographic product heroes stay unique while Vault is renamed to Search", async () => {
   const sources = await Promise.all([
     readWebFile("src/components/HomeSurface.jsx"),
     readWebFile("src/components/ClientsSurface.jsx"),
@@ -578,9 +664,10 @@ test("six product heroes use six unique architectural backgrounds", async () => 
     readWebFile("src/components/PortalSurface.jsx")
   ]);
   const assetNames = ["home", "client", "matter", "people", "vault", "portal"].map((axis) => `hero-${axis}-architecture.jpg`);
+  const imageBackedSources = sources;
 
   assetNames.forEach((assetName, index) => {
-    assert.match(sources[index], new RegExp(assetName.replace(".", "\\.")));
+    assert.match(imageBackedSources[index], new RegExp(assetName.replace(".", "\\.")));
     assert.equal(sources.filter((source) => source.includes(assetName)).length, 1, `${assetName} must be used by one product hero only`);
   });
   assert.match(sources[0], /url\(\$\{heroHomeArchitecture\}\)/);
@@ -589,6 +676,7 @@ test("six product heroes use six unique architectural backgrounds", async () => 
   for (const source of sources.slice(1)) {
     assert.match(source, /<ForestHero[^>]*image=\{hero[A-Z][A-Za-z]+Architecture\}[^>]*imageOpacity=\{0\.24\}/);
   }
+  assert.match(sources[4], /<ForestHero title="Search" image=\{heroVaultArchitecture\} imageOpacity=\{0\.24\} \/>/);
 });
 
 test("Home dashboard Stage 4 keeps action counts on the single Home inbox source", async () => {
@@ -788,11 +876,12 @@ test("Stage 7 Home IA accessibility keeps tabs, dates, and navigation state name
   assert.match(shellSource, /aria-label=\{`\$\{item\.label\} 하위 메뉴 \$\{open \? "접기" : "펼치기"\}`\}/);
   assert.match(shellSource, /aria-controls=\{panelId\}/);
   assert.match(shellSource, /id=\{panelId\} className="sidebar-subnav" role="group"/);
-  assert.match(shellSource, /className=\{open \? "sidebar-item sidebar-group-toggle active" : "sidebar-item sidebar-group-toggle"\}/);
+  assert.match(shellSource, /const active = isGroupActive\(item\)/);
+  assert.match(shellSource, /className=\{active \? "sidebar-item sidebar-group-toggle active" : "sidebar-item sidebar-group-toggle"\}/);
   assert.match(shellSource, /className=\{childActive \? "sidebar-item sidebar-child active" : "sidebar-item sidebar-child"\}/);
   assert.doesNotMatch(shellSource, /export function ContextSubnav|className="context-subnav"/);
   assert.match(shellSource, /aria-label=\{`\$\{meta\.title\} 워크스페이스 메뉴`\}/);
-  assert.match(shellSource, /aria-label="검색 지우기"/);
+  assert.match(shellSource, /aria-label=\{shellLabel\(labels, "searchClear", "검색 지우기"\)\}/);
   assert.match(shellSource, /aria-expanded=\{notificationsOpen \? "true" : "false"\}/);
   assert.match(shellSource, /aria-controls="notifications-utility-drawer"/);
   assert.match(shellSource, /aria-controls="messages-utility-drawer"/);
@@ -965,6 +1054,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   const peopleApiSource = await readWebFile("src/people/hrxApiClient.ts");
   const peopleLocalRosterSource = await readWebFile("src/people/hrxLocalRoster.ts");
   const employeeProfileSource = await readWebFile("src/people/employees/EmployeeProfile.tsx");
+  const i18nSource = await readWebFile("src/i18n.js");
   const stylesSource = await readWebFile("src/styles.css");
 
   assert.match(workforceDirectorySource, /kind: "error",\s*message: "구성원 정보를 확인할 수 없습니다\."/);
@@ -988,16 +1078,10 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
     "matter-board",
     "matter-tasks",
     "matter-calendar",
-    "matter-channel",
     "matter-opening",
-    "matter-team",
     "matter-client-requests",
     "matter-analytics",
-    "matter-search",
-    "matter-risk",
-    "matter-audit",
-    "matter-integrations",
-    "matter-settings"
+    "matter-integrations"
   ]) {
     assert.match(shellSource, new RegExp(section));
   }
@@ -1322,15 +1406,15 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(mattersSource, /className="matter-board-tabs" role="tablist" aria-label="업무 보드"/);
   assert.match(mattersSource, /data-matter-board-tab=\{tab\.id\}/);
   assert.match(mattersSource, /onKeyDown=\{handleMatterBoardTabKeyDown\}/);
-  assert.match(stylesSource, /\.matter-board-tabs\s*\{[\s\S]*grid-template-columns:\s*repeat\(5, minmax\(116px, 1fr\)\)/);
-  assert.match(stylesSource, /\.matter-board-tabs\s*\{[\s\S]*width:\s*min\(100%, 632px\)[\s\S]*overflow-x:\s*auto/);
-  assert.match(stylesSource, /\.matter-board-tabs\s*\{[\s\S]*padding:\s*3px 0 10px/);
-  assert.match(stylesSource, /\.matter-board-tabs button\s*\{[\s\S]*min-width:\s*116px/);
-  assert.match(stylesSource, /\.matter-board-tabs button\s*\{[\s\S]*font-size:\s*16px[\s\S]*font-weight:\s*400[\s\S]*letter-spacing:\s*0\.02em/);
+  assert.match(stylesSource, /\.matter-board-tabs\s*\{[^}]*grid-template-columns:\s*repeat\(5, minmax\(0, 1fr\)\)/);
+  assert.doesNotMatch(stylesSource, /\.matter-board-tabs\s*\{[^}]*(?:width:\s*min\(100%, 632px\)|overflow-x:\s*auto|padding:\s*3px 0 10px)/);
+  assert.match(stylesSource, /\.matter-board-tabs button,\s*\.matter-worktree-practice-areas button\s*\{[^}]*min-width:\s*0;[^}]*min-height:\s*var\(--am-tab-height\);[^}]*border:\s*1px solid var\(--am-border\);/);
+  assert.match(stylesSource, /\.matter-board-tabs button,\s*\.matter-worktree-practice-areas button\s*\{[^}]*font-size:\s*16px;[^}]*font-weight:\s*400;[^}]*letter-spacing:\s*0\.02em;/);
   assert.match(stylesSource, /\.hr-roster-tabs button\s*\{[\s\S]*font-size:\s*16px[\s\S]*font-weight:\s*400[\s\S]*letter-spacing:\s*0\.02em/);
-  assert.match(stylesSource, /\.hr-roster-surface\[data-hr-workforce-density="compact"\] \.hr-roster-tabs button\s*\{[\s\S]*min-height:\s*34px[\s\S]*font-size:\s*16px/);
-  assert.match(stylesSource, /\.matter-board-tabs button\s*\{[\s\S]*border-radius:\s*var\(--am-radius-sm\)[\s\S]*white-space:\s*nowrap/);
-  assert.match(stylesSource, /\.matter-board-tabs button\.active\s*\{[\s\S]*background:\s*var\(--am-surface-subtle\)/);
+  assert.match(stylesSource, /\.hr-roster-surface\[data-hr-workforce-density="compact"\] \.hr-roster-tabs button\s*\{[^}]*min-height:\s*var\(--am-tab-height\);[^}]*font-size:\s*var\(--am-font-size-section\);/);
+  assert.match(stylesSource, /\.matter-board-tabs button,\s*\.matter-worktree-practice-areas button\s*\{[^}]*border-radius:\s*var\(--am-radius-sm\);[^}]*background:\s*var\(--am-surface\);/);
+  assert.match(stylesSource, /\.matter-board-tabs button\.active,\s*\.matter-worktree-practice-areas button\.active\s*\{[^}]*border-color:\s*var\(--am-success\);[^}]*background:\s*color-mix\(in srgb, var\(--am-success\) 10%, var\(--am-surface\)\);[^}]*font-weight:\s*700;/);
+  assert.match(stylesSource, /@media \(max-width: 768px\)[\s\S]*?\.matter-board-tabs,\s*\.matter-worktree-practice-areas,[\s\S]*?grid-template-columns:\s*1fr/);
   assert.match(mattersSource, /className="matter-board-tab-panel"[\s\S]*<MattersTable/);
   assert.match(stylesSource, /\.matter-board-tab-panel\s*\{[\s\S]*margin-top:\s*8px/);
   assert.match(stylesSource, /\.matter-selectable-header\s*\{[\s\S]*min-height:\s*44px[\s\S]*font-size:\s*14px[\s\S]*letter-spacing:\s*0\.01em/);
@@ -1471,44 +1555,19 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(rosterSource, /MATTER_ONBOARDING_GATE_REQUIRED|온보딩 완료 후 배정 가능/);
   assert.doesNotMatch(openingSource, /tenant_rp|matter_ui_|M-UI|party_rp|user_rp/);
   assert.doesNotMatch(rosterSource, /tenant_rp|member_ui|emp-002|user_rp/);
-  assert.match(vaultSource, /data-cmp-g5-vault-surface="true"/);
+  assert.match(vaultSource, /data-amic-search-surface="true"/);
+  assert.match(vaultSource, /<ForestHero title="Search" image=\{heroVaultArchitecture\} imageOpacity=\{0\.24\} \/>/);
+  assert.doesNotMatch(vaultSource, /search-hero|searchHeroSubtitle/);
   assert.match(vaultSource, /fetchVaultDocuments/);
-  assert.match(vaultSource, /fetchVaultBridgeStatus/);
-  assert.match(vaultSource, /fetchVaultMatterLookup/);
-  assert.match(vaultSource, /fetchVaultUploadPreflight/);
-  assert.match(vaultSource, /data-lcx-vltui-02-vault-bridge-panel="true"/);
-  assert.match(vaultSource, /data-vault-bridge-kind/);
-  assert.match(vaultSource, /data-vault-bridge-ready/);
-  assert.match(vaultSource, /data-lcx-vltui-02-matter-picker="true"/);
-  assert.match(vaultSource, /data-vault-matter-lookup-kind/);
-  assert.match(vaultSource, /data-vault-matter-selected-ref/);
-  assert.match(vaultSource, /data-lcx-vltui-02-upload-preflight="true"/);
-  assert.match(vaultSource, /data-vault-upload-preflight-state/);
-  assert.match(vaultSource, /data-vault-upload-write-enabled/);
-  assert.match(vaultSource, /업로드 준비 확인/);
-  assert.match(vaultSource, /문서 등록/);
-  assert.match(vaultSource, /문서 등록 준비가 완료되었습니다/);
-  assert.match(vaultSource, /data-lcx-vltui-02-action-boundaries="true"/);
-  assert.match(vaultSource, /data-vault-version-upload-state/);
-  assert.match(vaultSource, /data-vault-metadata-mutation-state/);
-  assert.match(vaultSource, /data-vault-legal-hold-state/);
-  assert.match(vaultSource, /data-vault-retention-state/);
-  assert.match(vaultSource, /data-vault-document-action-state/);
-  assert.match(vaultSource, /data-vault-boundary-write-enabled="false"/);
-  assert.match(vaultSource, /문서 작업 준비/);
-  assert.match(vaultSource, /새 문서 등록/);
-  assert.match(vaultSource, /메타데이터 변경/);
-  assert.match(vaultSource, /법적 보존/);
-  assert.match(vaultSource, /보존 정책/);
-  assert.match(vaultSource, /Owner 결정 필요/);
-  assert.match(vaultSource, /Vault Records/);
-  assert.match(vaultSource, /UUID 직접 입력은 허용하지 않습니다/);
-  assert.match(vaultSource, /Matter 연결 상태/);
-  assert.match(vaultSource, /연결 정보를 다시 확인하세요/);
-  assert.match(vaultSource, /productionReadyClaim/);
-  assert.doesNotMatch(vaultSource, /bridgeToken/);
-  assert.match(vaultSource, /registered_account/);
-  assert.match(vaultSource, /등록 계정/);
+  assert.match(vaultSource, /fetchVaultSearch/);
+  assert.doesNotMatch(`${vaultSource}\n${shellSource}\n${i18nSource}`, /AMIC Search/);
+  assert.match(vaultSource, /aria-label="Search"/);
+  assert.match(vaultSource, /문서 제목, 본문, Matter 검색/);
+  assert.match(vaultSource, /문서\/OCR/);
+  assert.match(vaultSource, /data-amic-search-section=\{section\}/);
+  assert.doesNotMatch(vaultSource, /item\?\.document_id \?\?/);
+  assert.doesNotMatch(vaultSource, /Matter 연결 상태|문서 작업 기준|권한 필터|확인 필요/);
+  assert.doesNotMatch(vaultSource, /fetchVaultBridgeStatus|fetchVaultMatterLookup|fetchVaultUploadPreflight|uploadVaultDocumentFile/);
   assert.match(documentDetailSource, /registered_account/);
   assert.match(apiClientSource, /fetchVaultBridgeStatus/);
   assert.match(apiClientSource, /fetchVaultMatterLookup/);
@@ -1688,8 +1747,12 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(workforceDirectorySource, /data-hr-workforce-table-options="true"/);
   assert.match(stylesSource, /\.hr-roster-table-wrap \{[\s\S]{0,140}overflow-x: hidden;/);
   assert.match(stylesSource, /\.hr-roster-table \{[\s\S]{0,140}min-width: 0;[\s\S]{0,80}max-width: 100%;/);
+  assert.match(stylesSource, /\.hr-roster-table \{[^}]*font-size: 14px;/);
+  assert.match(stylesSource, /\.hr-roster-table th,\s*\.hr-roster-table td \{[^}]*height: 44px;[^}]*vertical-align: middle;/);
+  assert.match(stylesSource, /\.hr-roster-header-cell,\s*\.hr-roster-source \{[^}]*display: inline-flex;[^}]*align-items: center;/);
+  assert.doesNotMatch(stylesSource, /\.hr-roster-table th \{[^}]*(?:height: 34px|font-size: 12px)/);
   assert.doesNotMatch(stylesSource, /\.hr-roster-table \{[\s\S]{0,120}min-width: 1040px;/);
-  assert.match(workforceDirectorySource, /<HeaderCell icon=\{FileText\}>구성원<\/HeaderCell>[\s\S]*<HeaderCell icon=\{CircleUserRound\}>직위<\/HeaderCell>[\s\S]*<HeaderCell icon=\{Building2\}>부서<\/HeaderCell>[\s\S]*<HeaderCell icon=\{GitBranch\}>상사<\/HeaderCell>[\s\S]*<HeaderCell icon=\{Mail\}>이메일<\/HeaderCell>/);
+  assert.match(workforceDirectorySource, /<HeaderCell icon=\{FileText\}>구성원<\/HeaderCell>[\s\S]*<HeaderCell icon=\{CircleUserRound\}>직위<\/HeaderCell>[\s\S]*<HeaderCell icon=\{Building2\}>부서<\/HeaderCell>[\s\S]*<HeaderCell icon=\{Phone\}>연락처<\/HeaderCell>[\s\S]*<HeaderCell icon=\{Mail\}>이메일<\/HeaderCell>/);
   assert.doesNotMatch(workforceDirectorySource, />소속<\/HeaderCell>|hr-roster-col-affiliation|hr-roster-organization-row|rowsByOrganization/);
   assert.doesNotMatch(workforceDirectorySource, />소스</);
   assert.doesNotMatch(workforceDirectorySource, />작성자</);
@@ -1717,10 +1780,20 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(stylesSource, /\.hr-roster-table\s*\{[\s\S]*min-width: 0;[\s\S]*max-width: 100%;[\s\S]*table-layout: fixed;/);
   assert.match(peopleSource, /createPortal\([\s\S]*people-detail-overlay[\s\S]*document\.body/);
   assert.match(stylesSource, /\.hr-roster-col-member\s*\{[\s\S]*width: 24%;/);
-  assert.match(stylesSource, /\.hr-roster-col-manager\s*\{[\s\S]*width: 16%;/);
-  assert.match(stylesSource, /\.hr-roster-col-email\s*\{[\s\S]*width: 27%;/);
-  assert.match(workforceDirectorySource, /<HeaderCell icon=\{GitBranch\}>상사<\/HeaderCell>/);
-  assert.match(workforceDirectorySource, /managerName: stringField\(employee, "manager_display_name"\) \|\| "없음"/);
+  assert.match(stylesSource, /\.hr-roster-col-contact\s*\{[\s\S]*width: 20%;/);
+  assert.match(stylesSource, /\.hr-roster-col-email\s*\{[\s\S]*width: 23%;/);
+  const rosterColumnWidths = ["member", "title", "department", "contact", "email"].map((column) => {
+    const match = stylesSource.match(new RegExp(`\\.hr-roster-col-${column}\\s*\\{[^}]*width:\\s*(\\d+)%`));
+    assert.ok(match, `missing ${column} roster column width`);
+    return Number(match[1]);
+  });
+  assert.equal(rosterColumnWidths.reduce((total, width) => total + width, 0), 100);
+  assert.doesNotMatch(stylesSource, /\.hr-roster-table (?:th|td):last-child[^}]*text-align:\s*right|\.hr-roster-table th:last-child \.hr-roster-header-cell[^}]*justify-content:\s*flex-end/);
+  assert.match(workforceDirectorySource, /<HeaderCell icon=\{Phone\}>연락처<\/HeaderCell>/);
+  assert.match(workforceDirectorySource, /contact: stringField\(employee, "mobile_phone"\) \|\| "미등록"/);
+  assert.match(workforceDirectorySource, /export function rowsForTab/);
+  assert.match(workforceDirectorySource, /구성원, 직위, 부서, 연락처, 이메일 열을 기준으로 목록 속성을 확인했습니다/);
+  assert.doesNotMatch(workforceDirectorySource, /<HeaderCell icon=\{GitBranch\}>상사<\/HeaderCell>|hr-roster-col-manager/);
   assert.match(workforceDirectorySource, /\/\[가-힣\]\/\.test\(text\)/);
   assert.match(workforceDirectorySource, /onSelectEmployee\?\.\(null\)/);
   assert.match(workforceDirectorySource, /aria-pressed=\{isSelected \? "true" : "false"\}/);
@@ -1739,7 +1812,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(employeeProfileSource, /data-people-professional-profile-kind=\{profileKind\}/);
   assert.match(employeeProfileSource, /주요 경력/);
   assert.match(employeeProfileSource, /자격/);
-  assert.match(employeeProfileSource, /출처/);
+  assert.doesNotMatch(employeeProfileSource, /title="출처"|title="비고"|권한이 없는 정보는 숨깁니다/);
   assert.doesNotMatch(peopleApiSource, /mock/i);
 });
 

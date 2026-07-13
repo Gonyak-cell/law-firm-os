@@ -2632,7 +2632,7 @@ function AnalyticsPanel({
   );
 }
 
-export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", refreshSignal = 0, onNavigateSection = () => {} }) {
+export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", requestedMatterId = "", requestedMatterRevision = 0, refreshSignal = 0, onNavigateSection = () => {} }) {
   const skin = useSkin();
   const [result, setResult] = useState(null);
   const [commandResult, setCommandResult] = useState(null);
@@ -2784,7 +2784,10 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     () => visibleMatters.filter((item) => matterBoardCategory(item) === activeMatterBoardTab),
     [activeMatterBoardTab, visibleMatters]
   );
-  const selectedMatter = visibleMatters.find((item) => item.matter_id === selectedMatterId) ?? null;
+  const selectedMatter =
+    visibleMatters.find((item) => item.matter_id === selectedMatterId) ??
+    (selectedMatterId === requestedMatterId ? matters.find((item) => item.matter_id === selectedMatterId) : null) ??
+    null;
   const activeMatterId = selectedMatter?.matter_id ?? null;
 
   useEffect(() => {
@@ -2803,6 +2806,12 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
       cancelled = true;
     };
   }, [liveCtx, refreshToken, activeMatterId]);
+
+  useEffect(() => {
+    if (currentSection !== "matters-list" || !requestedMatterId) return;
+    if (!matters.some((item) => item.matter_id === requestedMatterId)) return;
+    setSelectedMatterId(requestedMatterId);
+  }, [currentSection, matters, requestedMatterId, requestedMatterRevision]);
 
   useEffect(() => {
     const visibleIds = new Set(visibleMatters.map((item) => item.matter_id));
@@ -2824,10 +2833,14 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
       if (selectedMatterId !== null) setSelectedMatterId(null);
       return;
     }
-    if (selectedMatterId !== null && !visibleMatters.some((item) => item.matter_id === selectedMatterId)) {
+    if (
+      selectedMatterId !== null &&
+      selectedMatterId !== requestedMatterId &&
+      !visibleMatters.some((item) => item.matter_id === selectedMatterId)
+    ) {
       setSelectedMatterId(null);
     }
-  }, [visibleMatters, selectedMatterId]);
+  }, [requestedMatterId, selectedMatterId, visibleMatters]);
 
   useEffect(() => {
     setMatterCodeEditValue(selectedMatter?.matter_code ?? "");

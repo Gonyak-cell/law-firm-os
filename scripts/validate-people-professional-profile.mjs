@@ -7,6 +7,7 @@ const SOURCE_MAP_JSON = "docs/lazycodex/evidence/matter-web/artifacts/people-pro
 const SOURCE_MAP_MD = "docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-source-map-2026-07-07.md";
 const BROWSER_PROOF_JSON = "docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-browser-proof-2026-07-07.json";
 const BROWSER_PROOF_MD = "docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-browser-proof-2026-07-07.md";
+const COPY_REMOVAL_PROOF_JSON = "artifacts/manual-qa/people-profile-copy-removal-2026-07-12/runtime-result.json";
 const ROSTER_PATH = "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json";
 
 const expectedKinds = new Map([
@@ -94,7 +95,7 @@ for (const [path, content, markers] of [
   ["apps/api/src/hrx-member-roster-registry.js", registry, ["professional_profile", "objectField(member"]],
   ["apps/api/src/hrx-runtime-context.js", runtimeContext, ["professional_profile: rosterReadFields.professional_profile", "employeeRosterReadFields"]],
   ["apps/web/src/people/hrxApiClient.ts", apiClient, ["professional_profile", "fetchHrxEmployeeProfile"]],
-  ["apps/web/src/people/employees/EmployeeProfile.tsx", employeeProfile, ["ProfessionalProfileSection", "data-people-professional-profile-kind={profileKind}", "주요 경력", "학력", "자격", "출처"]],
+  ["apps/web/src/people/employees/EmployeeProfile.tsx", employeeProfile, ["ProfessionalProfileSection", "data-people-professional-profile-kind={profileKind}", "주요 경력", "학력", "자격"]],
   ["apps/web/src/styles.css", styles, [".people-professional-profile", ".people-professional-list"]],
   ["apps/api/test/hrx-runtime-api.test.js", hrxRuntimeTest, ["professional_profile", "김양태", "조우상"]],
   ["apps/web/test/ui-regression.test.mjs", uiRegressionTest, ["professional_profile", "data-people-professional-profile-kind"]],
@@ -104,26 +105,48 @@ for (const [path, content, markers] of [
   for (const marker of markers) assert.ok(content.includes(marker), `${path} missing marker ${marker}`);
 }
 
-const browserProof = readJson(BROWSER_PROOF_JSON);
-assert.equal(browserProof.schema_version, "law-firm-os.lazycodex.people-professional-profile-browser-proof.v0.1");
-assert.equal(browserProof.verdict, "PASS");
-assert.equal(browserProof.claim_boundary.production_write, false);
-assert.equal(browserProof.claim_boundary.runtime_web_scraping, false);
-assert.equal(browserProof.claim_boundary.production_ready_claim, false);
+for (const hiddenCopy of ['title="출처"', 'title="비고"', "권한이 없는 정보는 숨깁니다."]) {
+  assert.ok(!employeeProfile.includes(hiddenCopy), `Employee profile must omit ${hiddenCopy}`);
+}
+
+const historicalBrowserProof = readJson(BROWSER_PROOF_JSON);
+assert.equal(historicalBrowserProof.schema_version, "law-firm-os.lazycodex.people-professional-profile-browser-proof.v0.1");
+assert.equal(historicalBrowserProof.verdict, "PASS");
+assert.equal(historicalBrowserProof.claim_boundary.production_write, false);
+assert.equal(historicalBrowserProof.claim_boundary.runtime_web_scraping, false);
+assert.equal(historicalBrowserProof.claim_boundary.production_ready_claim, false);
 assert.ok(fileExists(BROWSER_PROOF_MD), "browser proof markdown missing");
-assert.equal(browserProof.subjects.length, browserProofExpectedKinds.size);
-for (const subject of browserProof.subjects) {
+assert.equal(historicalBrowserProof.subjects.length, browserProofExpectedKinds.size);
+for (const subject of historicalBrowserProof.subjects) {
   assert.equal(subject.verdict, "PASS", `${subject.display_name} browser verdict`);
   assert.equal(subject.expected_kind, browserProofExpectedKinds.get(subject.display_name), `${subject.display_name} browser kind`);
   assert.ok(fileExists(subject.screenshot), `${subject.display_name} screenshot missing`);
 }
-assert.ok(browserProof.assertions.every((assertion) => assertion.passed), "browser proof assertion failed");
-assert.equal(browserProof.network.api_writes.length, 0);
+const historicalNonCopyAssertions = historicalBrowserProof.assertions.filter(
+  (assertion) => !String(assertion.name).includes("UI contains 출처")
+);
+assert.ok(historicalNonCopyAssertions.every((assertion) => assertion.passed), "historical browser proof assertion failed");
+assert.equal(historicalBrowserProof.network.api_writes.length, 0);
+
+const copyRemovalProof = readJson(COPY_REMOVAL_PROOF_JSON);
+assert.equal(copyRemovalProof.schema_version, "law-firm-os.people-profile-copy-removal.v1");
+assert.equal(copyRemovalProof.verdict, "PASS");
+assert.equal(copyRemovalProof.checked_profiles, 10);
+assert.deepEqual(copyRemovalProof.profile_kinds, ["attorney", "cpa", "deal_advisor"]);
+assert.equal(copyRemovalProof.payload_profiles_with_source_refs, 10);
+assert.equal(copyRemovalProof.payload_profiles_with_source_notes, 10);
+assert.deepEqual(copyRemovalProof.forbidden_copy, ["출처", "비고", "권한이 없는 정보는 숨깁니다."]);
+assert.equal(copyRemovalProof.forbidden_match_count, 0);
+assert.ok(fileExists(copyRemovalProof.screenshot), "copy removal screenshot missing");
+assert.equal(copyRemovalProof.synthetic_data, true);
+assert.equal(copyRemovalProof.production_write, false);
+assert.equal(copyRemovalProof.public_release_claim, false);
 
 console.log(JSON.stringify({
   verdict: "PASS",
   source_map: SOURCE_MAP_JSON,
-  browser_proof: BROWSER_PROOF_JSON,
+  historical_browser_proof: BROWSER_PROOF_JSON,
+  copy_removal_proof: COPY_REMOVAL_PROOF_JSON,
   roster_source: ROSTER_PATH,
   subjects: Array.from(expectedKinds, ([display_name, profile_kind]) => ({ display_name, profile_kind })),
   production_write: false,

@@ -100,7 +100,8 @@ test("desktop web login uses the main-process session bridge without storing ren
               display_name: "서지원",
               tenant_id: "tenant_amic_matter_vault",
               role_ids: ["lawos_admin"],
-              scopes: ["tenant.admin"],
+              scopes: ["tenant.admin", ...Array.from({ length: 30 }, (_, index) => `scope.${index}`)],
+              hrx_scopes: ["hrx.leave.accrual.execute"],
               token_material_returned: false
             }
           };
@@ -118,6 +119,7 @@ test("desktop web login uses the main-process session bridge without storing ren
     assert.equal(envelope.actor_ref, "user_amic_jwsuh");
     assert.equal(envelope.tenant_refs.default, "tenant_amic_matter_vault");
     assert.ok(envelope.scopes.includes("tenant.admin"));
+    assert.ok(envelope.scopes.includes("hrx.leave.accrual.execute"));
   });
 });
 

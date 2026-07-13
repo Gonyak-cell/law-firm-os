@@ -20,48 +20,49 @@ const API_HEALTH = process.env.PEOPLE_PROFILE_API_HEALTH ?? `${API_ORIGIN}/api/h
 const WEB_ORIGIN = process.env.PEOPLE_PROFILE_WEB_ORIGIN ?? "http://127.0.0.1:5187";
 const TEMP_STORE_DIR = mkdtempSync(join(tmpdir(), "lawos-people-professional-profile-"));
 const BROWSER_ACCOUNT_EMAIL = "jwsuh@amic.kr";
+const UI_FORBIDDEN_TEXTS = ["출처", "비고", "권한이 없는 정보는 숨깁니다."];
 
 const subjects = [
   {
     slug: "park-byungjun",
     displayName: "박병준",
     expectedKind: "attorney",
-    requiredTexts: ["전문 프로필", "변호사", "상사분쟁", "김·장", "서울고등법원", "UC Berkeley", "사법연수원 제44기", "출처"],
+    requiredTexts: ["전문 프로필", "변호사", "상사분쟁", "김·장", "서울고등법원", "UC Berkeley", "사법연수원 제44기"],
     forbiddenTexts: []
   },
   {
     slug: "lim-younghoon",
     displayName: "임영훈",
     expectedKind: "attorney",
-    requiredTexts: ["전문 프로필", "변호사", "조세쟁송", "삼성전자", "김·장", "연세대학교", "공인회계사", "출처"],
+    requiredTexts: ["전문 프로필", "변호사", "조세쟁송", "삼성전자", "김·장", "연세대학교", "공인회계사"],
     forbiddenTexts: []
   },
   {
     slug: "suh-jiwon",
     displayName: "서지원",
     expectedKind: "attorney",
-    requiredTexts: ["전문 프로필", "변호사", "M&A", "김·장", "국방부", "서울대학교", "사법연수원 제46기", "출처"],
+    requiredTexts: ["전문 프로필", "변호사", "M&A", "김·장", "국방부", "서울대학교", "사법연수원 제46기"],
     forbiddenTexts: []
   },
   {
     slug: "cho-sungmin",
     displayName: "조성민",
     expectedKind: "attorney",
-    requiredTexts: ["전문 프로필", "변호사", "금융규제", "화온", "김·장", "연세대학교", "사법연수원 제47기", "출처"],
+    requiredTexts: ["전문 프로필", "변호사", "금융규제", "화온", "김·장", "연세대학교", "사법연수원 제47기"],
     forbiddenTexts: []
   },
   {
     slug: "kim-yangtae",
     displayName: "김양태",
     expectedKind: "cpa",
-    requiredTexts: ["전문 프로필", "공인회계사", "Deal Advisory", "페트라브릿지", "KPMG", "UIBE", "서울시립대학교", "출처"],
+    requiredTexts: ["전문 프로필", "공인회계사", "Deal Advisory", "페트라브릿지", "KPMG", "UIBE", "서울시립대학교"],
     forbiddenTexts: ["변호사", "attorney"]
   },
   {
     slug: "jo-woosang",
     displayName: "조우상",
     expectedKind: "deal_advisor",
-    requiredTexts: ["전문 프로필", "Deal Advisory", "페트라브릿지", "KPMG", "Sciences Po", "Brandeis", "출처"],
+    requiredTexts: ["전문 프로필", "Deal Advisory", "페트라브릿지", "KPMG", "Sciences Po", "Brandeis"],
     forbiddenTexts: ["변호사", "공인회계사", "attorney", "CPA"]
   }
 ];
@@ -180,7 +181,7 @@ function assertProfilePayload(subject, payload) {
     actual: profile?.profile_kind
   });
   const serialized = JSON.stringify(profile ?? {});
-  for (const requiredText of subject.requiredTexts.filter((text) => !["전문 프로필", "출처"].includes(text))) {
+  for (const requiredText of subject.requiredTexts.filter((text) => text !== "전문 프로필")) {
     checks.push({
       name: `${subject.displayName} API contains ${requiredText}`,
       passed: serialized.includes(requiredText),
@@ -264,6 +265,13 @@ function subjectChecks(subject, observed) {
     checks.push({
       name: `${subject.displayName} UI excludes ${forbiddenText}`,
       passed: !observed.profileText.includes(forbiddenText),
+      forbidden: forbiddenText
+    });
+  }
+  for (const forbiddenText of UI_FORBIDDEN_TEXTS) {
+    checks.push({
+      name: `${subject.displayName} UI excludes ${forbiddenText}`,
+      passed: !observed.panelText.includes(forbiddenText),
       forbidden: forbiddenText
     });
   }

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { copy } from "./i18n.js";
 import { navItems } from "./data/nav.js";
 import { globalUtilityViewIds, isGlobalUtilityView, modeExceptionUtilityViewIds, resolveGlobalShortcut } from "./data/globalUtilities.js";
-import { GlobalSearch, LoadingSurface, Sidebar, Topbar, UtilityDrawer, buildContextualNavigation, buildNotificationItems } from "./components/Shell.jsx";
+import { LoadingSurface, Sidebar, Topbar, UtilityDrawer, buildContextualNavigation, buildNotificationItems } from "./components/Shell.jsx";
 import { AuthSurface } from "./components/AuthSurface.jsx";
 import { GlobalUtilitySurface } from "./components/GlobalUtilitySurface.jsx";
 import { HomeSurface } from "./components/HomeSurface.jsx";
@@ -19,6 +19,7 @@ import { canAccessHomeCompany } from "./data/homeAccess.js";
 import { canAccessHomeFinanceSection } from "./data/financeAccess.js";
 import { fetchHomeMessageItems } from "./data/homeMessages.js";
 import { emitHomeMetric } from "./data/homeTelemetry.js";
+import { canAdjustLeaveLedger, canApproveLeave, canExecuteLeaveAccrual, canExportLeaveReport, canManageLeavePolicy, canManageLeavePromotion, canSettleLeaveTermination } from "./data/hrxAccess.js";
 
 const productAxisIds = new Set(navItems.map((item) => item.id));
 const emptyHomeActionCounts = Object.freeze({ approval: 0, task_late: 0, task_today: 0 });
@@ -32,7 +33,33 @@ const homeFinanceSectionIds = new Set([
   "home-finance-billing",
   "home-finance-ar"
 ]);
-const homeSectionIds = new Set([homeFallbackSection, ...homeFinanceSectionIds, "home-requests", "home-todo", "home-feed", "home-calendar", "home-messages", "home-esign", "home-company"]);
+const homeSectionIds = new Set([
+  homeFallbackSection,
+  ...homeFinanceSectionIds,
+  "home-requests",
+  "home-requests-leave",
+  "home-requests-expenses",
+  "home-todo",
+  "home-feed",
+  "home-calendar",
+  "home-meeting-rooms",
+  "home-messages",
+  "home-esign",
+  "home-company"
+]);
+const vaultFallbackSection = "vault-search-home";
+const vaultSectionIds = new Set([
+  vaultFallbackSection,
+  "vault-search-all",
+  "vault-search-documents",
+  "vault-search-recent",
+  "vault-search-saved"
+]);
+const vaultLegacySections = Object.freeze({
+  "vault-documents": "vault-search-documents",
+  "vault-detail": "vault-search-documents",
+  "vault-email": "vault-search-home"
+});
 const defaultModeReturnTarget = Object.freeze({ view: "home", section: "home-dashboard" });
 const desktopLocalDefaultEmail = "jwsuh@amic.kr";
 const desktopLocalDefaultPassword = "local-loopback-desktop-session";
@@ -41,6 +68,12 @@ function normalizeHomeRoute(route) {
   if (route.view !== "home") return route;
   const section = route.section || homeFallbackSection;
   return { ...route, section: homeSectionIds.has(section) ? section : homeFallbackSection };
+}
+
+function normalizeVaultRoute(route) {
+  if (route.view !== "vault") return route;
+  const section = vaultLegacySections[route.section] ?? route.section ?? vaultFallbackSection;
+  return { ...route, section: vaultSectionIds.has(section) ? section : vaultFallbackSection };
 }
 
 function homeCompanyAccessRecords(source = globalThis) {
@@ -139,6 +172,7 @@ export function App() {
   const [unreadMessageIds, setUnreadMessageIds] = useState(() => new Set());
   const [homeActionCounts, setHomeActionCounts] = useState(emptyHomeActionCounts);
   const [globalRefreshSignal, setGlobalRefreshSignal] = useState(0);
+  const [routeRevision, setRouteRevision] = useState(0);
   const readMessageIdsRef = useRef(new Set());
   const [desktopSessionChecked, setDesktopSessionChecked] = useState(() => !isDesktopRenderer());
   const [modeReturnTarget, setModeReturnTarget] = useState(() =>
@@ -152,20 +186,40 @@ export function App() {
   const profileStandalone = view === "profile";
   const homeApprovalCount = Number(homeActionCounts.approval ?? 0) || 0;
   const homeMessageCount = unreadMessageIds.size;
+  const leavePolicyAccess = canManageLeavePolicy(homeCompanyAccessRecords());
+  const leaveApprovalAccess = canApproveLeave(homeCompanyAccessRecords());
+  const leaveAccrualAccess = canExecuteLeaveAccrual(homeCompanyAccessRecords());
+  const leaveLedgerAccess = canAdjustLeaveLedger(homeCompanyAccessRecords());
+  const leaveReportExportAccess = canExportLeaveReport(homeCompanyAccessRecords());
+  const leaveTerminationAccess = canSettleLeaveTermination(homeCompanyAccessRecords());
+  const leavePromotionAccess = canManageLeavePromotion(homeCompanyAccessRecords());
   const contextualNavigation = useMemo(() => buildContextualNavigation({
     labels,
     financeAccessRecords: homeCompanyAccessRecords(),
     homeApprovalCount,
     homeMessageCount,
-    canViewCompanyStatus
-  }), [labels, homeApprovalCount, homeMessageCount, canViewCompanyStatus]);
+    canViewCompanyStatus,
+    canManageLeavePolicy: leavePolicyAccess,
+    canApproveLeave: leaveApprovalAccess,
+    canExecuteLeaveAccrual: leaveAccrualAccess,
+    canAdjustLeaveLedger: leaveLedgerAccess,
+    canExportLeaveReport: leaveReportExportAccess,
+    canSettleLeaveTermination: leaveTerminationAccess,
+    canManageLeavePromotion: leavePromotionAccess
+  }), [labels, homeApprovalCount, homeMessageCount, canViewCompanyStatus, leavePolicyAccess, leaveApprovalAccess, leaveAccrualAccess, leaveLedgerAccess, leaveReportExportAccess, leaveTerminationAccess, leavePromotionAccess]);
   const notificationItems = useMemo(() => buildNotificationItems({ homeActionCounts, labels }), [homeActionCounts, labels]);
   const notificationSignature = notificationItems.map((item) => item.id).join("|");
   const notificationUnreadCount = notificationItemsRead ? 0 : notificationItems.length;
   const initialRouteWasRedirected = rawInitialView !== initialView || rawInitialSection !== initialSection;
+  const initialCurrentVersionWasUnsupported = initialView === "vault" && initialParams.get("current_version") === "all";
+  const locationParams = new URLSearchParams(window.location.search);
+  const requestedMatterId = locationParams.get("matter_id") ?? "";
+  const requestedDocumentId = locationParams.get("document_id") ?? "";
+  const requestedDateFrom = locationParams.get("date_from") ?? "";
+  const requestedDateTo = locationParams.get("date_to") ?? "";
 
   function resolveRoute(nextView, section = "", companyAllowed = canViewCompanyStatus, financeAccessRecords = homeCompanyAccessRecords()) {
-    const resolved = normalizeHomeRoute(resolveGlobalShortcut(nextView, section));
+    const resolved = normalizeVaultRoute(normalizeHomeRoute(resolveGlobalShortcut(nextView, section)));
     if (!routableViews.includes(resolved.view)) return { view: "home", section: homeFallbackSection };
     if (resolved.view === "home" && resolved.section === "home-company" && !companyAllowed) {
       return { ...resolved, section: "home-dashboard", homeCompanyAccessDenied: true };
@@ -183,7 +237,16 @@ export function App() {
     const nextLiveCtx = ["allow", "denied", "review"].includes(params.get("ctx")) ? params.get("ctx") : "allow";
     const rawSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
     const companyAllowed = readHomeCompanyAccess();
-    return { ...resolveRoute(rawView, rawSection, companyAllowed), liveCtx: nextLiveCtx, companyAllowed };
+    return {
+      ...resolveRoute(rawView, rawSection, companyAllowed),
+      liveCtx: nextLiveCtx,
+      companyAllowed,
+      query: params.get("query") ?? "",
+      documentId: params.get("document_id") ?? "",
+      currentVersionOnly: true,
+      dateFrom: params.get("date_from") ?? "",
+      dateTo: params.get("date_to") ?? ""
+    };
   }
 
   function routeUrl(nextView, section = "", routeContext = {}) {
@@ -192,12 +255,33 @@ export function App() {
     params.set("ctx", liveCtx);
     if (routeContext.filter) params.set("filter", routeContext.filter);
     else params.delete("filter");
+    if (Object.prototype.hasOwnProperty.call(routeContext, "query")) {
+      if (routeContext.query) params.set("query", routeContext.query);
+      else params.delete("query");
+    } else {
+      params.delete("query");
+    }
     if (Object.prototype.hasOwnProperty.call(routeContext, "matterId")) {
       if (routeContext.matterId) params.set("matter_id", routeContext.matterId);
       else params.delete("matter_id");
     } else if (!homeFinanceSectionIds.has(section)) {
       params.delete("matter_id");
     }
+    if (Object.prototype.hasOwnProperty.call(routeContext, "documentId")) {
+      if (routeContext.documentId) params.set("document_id", routeContext.documentId);
+      else params.delete("document_id");
+    } else {
+      params.delete("document_id");
+    }
+    if (Object.prototype.hasOwnProperty.call(routeContext, "currentVersionOnly")) {
+      params.set("current_version", "current");
+    } else {
+      params.delete("current_version");
+    }
+    if (routeContext.dateFrom) params.set("date_from", routeContext.dateFrom);
+    else params.delete("date_from");
+    if (routeContext.dateTo) params.set("date_to", routeContext.dateTo);
+    else params.delete("date_to");
     const hash = section ? `#${encodeURIComponent(section)}` : "";
     return `${window.location.pathname}?${params.toString()}${hash}`;
   }
@@ -248,8 +332,14 @@ export function App() {
     } else if (isReturnableWorkView(resolved.view)) {
       setModeReturnTarget(routeTargetFor(resolved.view, resolved.section));
     }
+    if (Object.prototype.hasOwnProperty.call(routeContext, "query")) {
+      setQuery(String(routeContext.query ?? ""));
+    } else if (resolved.view === "vault") {
+      setQuery("");
+    }
     setView(resolved.view);
     setActiveSection(resolved.section);
+    setRouteRevision((value) => value + 1);
     setActiveRedirectedFrom(resolved.redirectedFrom ?? null);
     setHomeCompanyAccessDenied(resolved.homeCompanyAccessDenied === true);
     if (resolved.openNotifications) {
@@ -386,7 +476,7 @@ export function App() {
   }, [handoffSplashVisible]);
 
   useEffect(() => {
-    if (!initialRouteWasRedirected) return;
+    if (!initialRouteWasRedirected && !initialCurrentVersionWasUnsupported) return;
     emitHomeMetric("home_deeplink_misclick", {
       requested_view: rawInitialView,
       requested_section: rawInitialSection,
@@ -399,16 +489,26 @@ export function App() {
       home_company_access_denied: homeCompanyAccessDenied,
       open_notifications: resolvedInitialRoute.openNotifications === true
     });
-    window.history.replaceState({ view, section: activeSection }, "", routeUrl(view, activeSection, resolvedInitialRoute));
+    window.history.replaceState({ view, section: activeSection }, "", routeUrl(view, activeSection, {
+      ...resolvedInitialRoute,
+      query: initialQuery,
+      documentId: initialParams.get("document_id") ?? "",
+      currentVersionOnly: true,
+      dateFrom: initialParams.get("date_from") ?? "",
+      dateTo: initialParams.get("date_to") ?? ""
+    }));
   }, []);
 
   useEffect(() => {
     const onPopState = () => {
       const nextRoute = routeFromLocation();
+      const nextParams = new URLSearchParams(window.location.search);
       setView(nextRoute.view);
       setLiveCtx(nextRoute.liveCtx);
       setCanViewCompanyStatus(nextRoute.companyAllowed);
       setActiveSection(nextRoute.section);
+      setQuery(nextRoute.view === "vault" ? nextRoute.query : "");
+      setRouteRevision((value) => value + 1);
       setActiveRedirectedFrom(nextRoute.redirectedFrom ?? null);
       setHomeCompanyAccessDenied(nextRoute.homeCompanyAccessDenied === true);
       if (isReturnableWorkView(nextRoute.view)) {
@@ -416,6 +516,14 @@ export function App() {
       }
       setUtilityDrawerType(nextRoute.openNotifications ? "notifications" : "");
       if (nextRoute.openNotifications) setNotificationItemsRead(true);
+      if (nextRoute.view === "vault" && nextParams.get("current_version") === "all") {
+        nextParams.set("current_version", "current");
+        window.history.replaceState(
+          { view: nextRoute.view, section: nextRoute.section },
+          "",
+          `${window.location.pathname}?${nextParams.toString()}${window.location.hash}`
+        );
+      }
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
@@ -467,6 +575,7 @@ export function App() {
           notificationUnreadCount={notificationUnreadCount}
           homeApprovalCount={homeApprovalCount}
           homeMessageCount={homeMessageCount}
+          liveCtx={liveCtx}
         />
         <div
           className={profileStandalone ? "app-frame contextual-shell profile-standalone-shell" : "app-frame contextual-shell"}
@@ -516,9 +625,21 @@ export function App() {
               />
             )}
             {view === "clients" && <ClientsSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} refreshSignal={globalRefreshSignal} onNavigate={navigateToView} />}
-            {view === "matters" && <MattersSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} refreshSignal={globalRefreshSignal} onNavigateSection={(section) => navigateToView("matters", section)} />}
-            {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} liveCtx={liveCtx} />}
-            {view === "vault" && <VaultSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} refreshSignal={globalRefreshSignal} />}
+            {view === "matters" && <MattersSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} requestedMatterId={requestedMatterId} requestedMatterRevision={routeRevision} refreshSignal={globalRefreshSignal} onNavigateSection={(section) => navigateToView("matters", section)} />}
+            {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} liveCtx={liveCtx} canManageLeavePolicy={leavePolicyAccess} canApproveLeave={leaveApprovalAccess} canExecuteLeaveAccrual={leaveAccrualAccess} canAdjustLeaveLedger={leaveLedgerAccess} canExportLeaveReport={leaveReportExportAccess} canSettleLeaveTermination={leaveTerminationAccess} canManageLeavePromotion={leavePromotionAccess} />}
+            {view === "vault" && (
+              <VaultSurface
+                labels={labels}
+                liveCtx={liveCtx}
+                activeSection={activeSection}
+                initialQuery={query}
+                initialDocumentId={requestedDocumentId}
+                initialDateFrom={requestedDateFrom}
+                initialDateTo={requestedDateTo}
+                refreshSignal={globalRefreshSignal}
+                onNavigateSection={(section, routeContext) => navigateToView("vault", section, routeContext)}
+              />
+            )}
             {view === "portal" && <PortalSurface labels={labels} liveCtx={liveCtx} refreshSignal={globalRefreshSignal} />}
             {view === "profile" && <UserProfileSurface liveCtx={liveCtx} onNavigate={navigateToView} onReturnToWork={returnToWork} />}
             {isGlobalUtilityView(view) && modeExceptionUtilityViewIds.includes(view) && (
@@ -546,7 +667,6 @@ export function App() {
             message="matter 작업공간을 여는 중"
           />
         )}
-        {query && <GlobalSearch labels={labels} query={query} setQuery={setQuery} setView={navigateToView} />}
         <UtilityDrawer
           labels={labels}
           open={Boolean(utilityDrawerType)}

@@ -162,6 +162,7 @@ async function copyDesktopLocalApiRuntime(targetAppBundle) {
   await rm(runtimeDir, { recursive: true, force: true });
   await mkdir(join(runtimeDir, "apps/api"), { recursive: true });
   await cp(join(repoRoot, "apps/api/src"), apiRuntimeSrcDir, { recursive: true });
+  await rm(join(apiRuntimeSrcDir, "hrx-member-contact-source-of-truth.json"), { force: true });
   await copyFile(
     join(repoRoot, "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json"),
     join(apiRuntimeSrcDir, "matter-vault-user-registration-seed.json"),
@@ -220,7 +221,8 @@ try {
     asar: false,
     prune: true,
     ignore: shouldIgnorePackagedPath,
-    osxSign: false
+    osxSign: false,
+    ...(process.env.MATTER_ELECTRON_ZIP_DIR ? { electronZipDir: process.env.MATTER_ELECTRON_ZIP_DIR } : {})
   });
   const generatedAppBundle = join(generatedAppRoot, "matter.app");
   await applyMatterBundleIcon(generatedAppBundle);
@@ -314,6 +316,7 @@ Channel: \`${releaseChannel}\`
 - executable exists: ${existsSync(executablePath)}
 - packaged app icon exists: ${existsSync(packagedIconPath)}
 - packaged app source exists: ${existsSync(appSourceDir)}
+- private HRX contact source excluded: ${!existsSync(join(apiRuntimeSrcDir, "hrx-member-contact-source-of-truth.json"))}
 - web renderer prepare state: ${webRendererPrepareState}
 - packaged URL scheme metadata: matter
 - ZIP archive exists: ${existsSync(zipPath)}
@@ -353,6 +356,7 @@ console.log(
       notarization_state: notarizationState,
       install_smoke_result: "pass",
       packaged_app_icon: existsSync(packagedIconPath),
+      private_hrx_contact_source_excluded: !existsSync(join(apiRuntimeSrcDir, "hrx-member-contact-source-of-truth.json")),
       electron_runtime_packaged: true,
       web_renderer_prepare_state: webRendererPrepareState,
       public_release: false,

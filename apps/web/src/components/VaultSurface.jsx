@@ -1,836 +1,240 @@
-import React from "react";
-import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, CheckCircle2, FileCheck2, FileWarning, Link2, LockKeyhole, Search, ShieldCheck, UploadCloud } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { Bookmark, FileText, Search, Share2, Trash2 } from "lucide-react";
+import {
+  fetchVaultDocuments,
+  fetchVaultSearch,
+  fetchVaultSearchPreferences,
+  writeVaultSearchPreferences
+} from "../data/apiClient.js";
 import heroVaultArchitecture from "../assets/heroes/hero-vault-architecture.jpg";
-import { fetchVaultBridgeStatus, fetchVaultDocuments, fetchVaultMatterLookup, fetchVaultSearch, fetchVaultUploadPreflight, uploadVaultDocumentFile } from "../data/apiClient.js";
-import { ForestHero } from "./ForestHero.jsx";
-import { DataTable, PageHeader, Panel } from "./primitives.jsx";
 import { DesktopDeniedState } from "./DesktopDeniedState.jsx";
-import { EmailFilingView } from "./EmailFilingView.jsx";
-import { VaultBreadcrumb } from "./VaultBreadcrumb.jsx";
+import { ForestHero } from "./ForestHero.jsx";
 import { VaultDocumentDetail } from "./VaultDocumentDetail.jsx";
-import { VaultSecurityBadges } from "./VaultSecurityBadges.jsx";
-import { useSkin } from "../context/SkinContext.jsx";
 
 const VAULT_PERMISSION_REF = "ui_cmp_g5_vault_live";
 const VAULT_AUDIT_HINT_REF = "ui_cmp_g5_vault_probe";
-const DEFAULT_MATTER_LOOKUP_QUERY = "AMIC";
-const UUID_INPUT_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const SEARCH_QUERY_LIMIT = 200;
+const SEARCH_RECENT_LIMIT = 20;
+const EMPTY_SEARCH_PREFERENCES = Object.freeze({ recent: [], saved: [] });
+const SEARCH_SECTIONS = new Set([
+  "vault-search-home",
+  "vault-search-all",
+  "vault-search-documents",
+  "vault-search-recent",
+  "vault-search-saved"
+]);
 
-function vaultRows(items) {
-  return items.map((item, index) => [
-    `문서 ${index + 1}`,
-    item.title,
-    registeredAccountLabel(item),
-    vaultStatus(item.status),
-    item.current_version_id ? "현재 버전" : "확인 필요",
-    privilegeLabel(item.privilege_label_id),
-    holdLabel(item.legal_hold_id)
-  ]);
+function searchLabel(labels, key, fallback) {
+  return labels?.[key] ?? fallback;
 }
 
-function registeredAccountLabel(item) {
-  const account = item.registered_account;
-  if (!account) return "미연동";
-  return account.display_name ?? "등록 계정";
-}
-
-function vaultStatus(value) {
-  if (value === "review_required") return "검토 필요";
-  if (value === "archived") return "보관됨";
-  if (value === "current") return "현재 버전";
-  return "사용 중";
-}
-
-function privilegeLabel(value) {
-  if (!value) return "기본";
-  if (value.includes("confidential")) return "기밀";
-  if (value.includes("privileged")) return "특권";
-  return "기본";
-}
-
-function holdLabel(value) {
-  if (!value) return "없음";
-  return value.includes("hold") ? "보존 설정" : "확인 필요";
-}
-
-const VAULT_SECTIONS = new Set(["vault-documents", "vault-detail", "vault-email"]);
-
-function bridgeCodeLabel(code) {
-  if (code === "MATTER_VAULT_BRIDGE_REQUIRED") return "연결 설정 필요";
-  if (code === "MATTER_VAULT_BRIDGE_BLOCKED") return "연결 확인 필요";
-  if (code === "MATTER_VAULT_BRIDGE_RUNTIME_UNAVAILABLE") return "Vault 연결 확인 필요";
-  if (code === "MATTER_VAULT_BRIDGE_STATUS_UNAVAILABLE") return "Vault 상태 확인 필요";
-  return code ?? "확인 필요";
-}
-
-function bridgeSourceLabel(mode) {
-  if (mode === "matter_app_api") return "Matter";
-  if (mode === "vault_projection_only") return "Vault";
-  if (mode === "stale_projection") return "동기화 필요";
-  if (mode === "denied") return "확인 필요";
-  return "확인 필요";
-}
-
-function bridgeDescriptor(result) {
-  if (result === null) {
-    return {
-      tone: "loading",
-      Icon: ShieldCheck,
-      meta: "확인 중",
-      state: "상태 확인 중",
-      source: "대기",
-      boundary: "대기",
-      request: "대기",
-      note: "Matter, Client, Vault 연결 상태를 확인하고 있습니다.",
-      ready: false
-    };
-  }
-
-  if (result.kind === "data") {
-    const ready = result.runtimeWriteReady && result.repositoryDurable && !result.productionReadyClaim;
-    return {
-      tone: ready ? "ready" : "blocked",
-      Icon: ready ? CheckCircle2 : LockKeyhole,
-      meta: ready ? "준비됨" : "확인 필요",
-      state: ready ? "작업 준비됨" : "확인 필요",
-      source: bridgeSourceLabel(result.sourceMode),
-      boundary: ready ? "문서 준비 가능" : "확인 필요",
-      request: result.requestId ?? "요청 없음",
-      note: result.productionReadyClaim
-        ? "문서 작업 전 연결 상태를 다시 확인하세요."
-        : "문서 작업에 필요한 연결 상태를 확인했습니다.",
-      ready
-    };
-  }
-
-  if (result.kind === "guarded") {
-    const code = result.safeErrorCodes?.[0] ?? null;
-    return {
-      tone: "blocked",
-      Icon: LockKeyhole,
-      meta: "확인 필요",
-      state: bridgeCodeLabel(code),
-      source: "확인 필요",
-      boundary: result.countLeakPrevented ? "표시 제한" : "확인 필요",
-      request: result.requestId ?? "요청 없음",
-      note: "연결 정보를 다시 확인하세요.",
-      ready: false
-    };
-  }
-
+function normalizeSearchFilters(value = {}) {
+  const dateFrom = typeof value.date_from === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.date_from) ? value.date_from : null;
+  const dateTo = typeof value.date_to === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.date_to) ? value.date_to : null;
   return {
-    tone: "error",
-    Icon: AlertTriangle,
-    meta: "확인 실패",
-    state: "연결 상태 확인 실패",
-    source: "확인 필요",
-    boundary: "확인 필요",
-    request: "요청 없음",
-    note: "새로고침하거나 연결 설정을 확인하세요.",
-    ready: false
+    current_version_only: true,
+    date_from: dateFrom,
+    date_to: dateTo,
   };
 }
 
-function VaultBridgeStatusPanel({ result }) {
-  const descriptor = bridgeDescriptor(result);
-  const Icon = descriptor.Icon;
-  const safeCodes = result?.safeErrorCodes ?? [];
-  return (
-    <Panel id="vault-connection-status" className="vault-panel vault-bridge-panel" title="Matter 연결 상태" meta={descriptor.meta}>
-      <div
-        className={`vault-bridge-status ${descriptor.tone}`}
-        data-lcx-vltui-02-vault-bridge-panel="true"
-        data-vault-bridge-kind={result?.kind ?? "loading"}
-        data-vault-bridge-ready={descriptor.ready ? "true" : "false"}
-      >
-        <div className="vault-bridge-strip">
-          <Icon size={16} />
-          <span>{descriptor.note}</span>
-        </div>
-        <dl className="vault-bridge-facts">
-          <div>
-            <dt>상태</dt>
-            <dd>{descriptor.state}</dd>
-          </div>
-          <div>
-            <dt>소스</dt>
-            <dd>{descriptor.source}</dd>
-          </div>
-          <div>
-            <dt>경계</dt>
-            <dd>{descriptor.boundary}</dd>
-          </div>
-          <div>
-            <dt>요청</dt>
-            <dd>{descriptor.request}</dd>
-          </div>
-        </dl>
-        {safeCodes.length > 0 && (
-          <div className="vault-bridge-codes" aria-label="안전 오류 코드">
-            {safeCodes.map((code) => (
-              <span key={code}>{bridgeCodeLabel(code)}</span>
-            ))}
-          </div>
-        )}
-      </div>
-    </Panel>
-  );
+function searchPreferenceKey(value) {
+  const filters = normalizeSearchFilters(value);
+  return JSON.stringify([String(value?.query ?? "").trim(), filters.current_version_only, filters.date_from, filters.date_to]);
 }
 
-function matterLookupCodeLabel(code) {
-  if (code === "MATTER_VAULT_BRIDGE_REQUIRED") return "연결 설정 필요";
-  if (code === "MATTER_VAULT_BRIDGE_BLOCKED") return "연결 확인 필요";
-  if (code === "MATTER_VAULT_LOOKUP_QUERY_REQUIRED") return "검색어 필요";
-  if (code === "MATTER_API_VALIDATION_ERROR") return "입력 형식 확인 필요";
-  return code ?? "확인 필요";
-}
-
-function uploadPreflightCodeLabel(code) {
-  if (code === "MATTER_VAULT_BRIDGE_REQUIRED") return "연결 설정 필요";
-  if (code === "MATTER_VAULT_BRIDGE_BLOCKED") return "연결 확인 필요";
-  if (code === "MATTER_VAULT_UPLOAD_PREFLIGHT_MATTER_REQUIRED") return "Matter 선택 필요";
-  if (code === "MATTER_VAULT_UPLOAD_PREFLIGHT_SOURCE_BLOCKED") return "연결 상태 확인 필요";
-  if (code === "MATTER_VAULT_UPLOAD_PREFLIGHT_LIFECYCLE_BLOCKED") return "사건 상태 확인 필요";
-  if (code === "MATTER_UNAUTHORIZED_OMISSION") return "접근 확인 필요";
-  if (code === "MATTER_REVIEW_REQUIRED") return "검토 필요";
-  if (code === "MATTER_APPROVAL_REQUIRED") return "승인 필요";
-  if (code === "MATTER_NOT_FOUND") return "Matter 확인 필요";
-  return code ?? "확인 필요";
-}
-
-function MatterLookupState({ result, queryTooShort, uuidBlocked }) {
-  if (uuidBlocked) {
-    return (
-      <div className="live-data-state live-data-denied" data-vault-matter-lookup-uuid-blocked="true">
-        <strong>UUID 직접 입력은 허용하지 않습니다</strong>
-        Matter Code, 이름, 고객명으로 검색하세요.
-      </div>
-    );
-  }
-  if (queryTooShort) {
-    return (
-      <div className="live-data-state live-data-empty">
-        <strong>두 글자 이상 입력하세요</strong>
-      </div>
-    );
-  }
-  if (result === null) {
-    return (
-      <div className="live-data-state live-data-loading">
-        <strong>Matter 후보를 확인하는 중입니다</strong>
-      </div>
-    );
-  }
-  if (result.kind === "error") {
-    return (
-      <div className="live-data-state live-data-error">
-        <strong>Matter 후보를 확인하지 못했습니다</strong>
-      </div>
-    );
-  }
-  if (result.kind === "guarded") {
-    return (
-      <div className="live-data-state live-data-denied">
-        <strong>Matter를 확인할 수 없습니다</strong>
-        {result.safeErrorCodes?.map(matterLookupCodeLabel).join(" / ") || "연결 상태를 확인하세요."}
-      </div>
-    );
-  }
-  if (result.uiState === "empty" || result.items.length === 0) {
-    return (
-      <div className="live-data-state live-data-empty">
-        <strong>선택할 Matter가 없습니다</strong>
-      </div>
-    );
-  }
-  return null;
-}
-
-function VaultMatterLookupPanel({ query, setQuery, result, selectedMatter, setSelectedMatter }) {
-  const normalizedQuery = query.trim();
-  const uuidBlocked = UUID_INPUT_PATTERN.test(normalizedQuery);
-  const queryTooShort = normalizedQuery.length < 2;
-  const items = !uuidBlocked && result?.kind === "data" ? result.items : [];
-  const kind = uuidBlocked ? "blocked-local" : queryTooShort ? "query-required" : result?.kind ?? "loading";
-  return (
-    <Panel id="vault-matter-picker" className="vault-panel vault-matter-picker-panel" title="Matter 선택" meta="문서 작업 기준">
-      <div
-        className="vault-matter-picker"
-        data-lcx-vltui-02-matter-picker="true"
-        data-vault-matter-lookup-kind={kind}
-        data-vault-matter-selected-ref={selectedMatter?.selected_ref ?? ""}
-      >
-        <label className="vault-lookup-field">
-          <span>
-            <Search size={14} />
-            Matter 검색
-          </span>
-          <input
-            value={query}
-            onChange={(event) => {
-              setQuery(event.target.value);
-              setSelectedMatter(null);
-            }}
-            aria-label="Matter 검색"
-            placeholder="Matter Code, 이름, 고객명"
-          />
-        </label>
-        <MatterLookupState result={result} queryTooShort={queryTooShort} uuidBlocked={uuidBlocked} />
-        {items.length > 0 && (
-          <div className="vault-lookup-results" data-vault-matter-lookup-results="true">
-            {items.map((item) => (
-              <button
-                type="button"
-                key={item.selected_ref}
-                className={selectedMatter?.selected_ref === item.selected_ref ? "selected" : ""}
-                onClick={() => setSelectedMatter(item)}
-              >
-                <strong>{item.matter_code ?? item.matter_name}</strong>
-                <span>{item.client_display_name ?? "고객 확인 필요"}</span>
-              </button>
-            ))}
-          </div>
-        )}
-        <div className="vault-selected-matter" data-vault-selected-matter-state={selectedMatter ? "selected" : "empty"}>
-          <Link2 size={15} />
-          <span>{selectedMatter ? `${selectedMatter.matter_code ?? selectedMatter.matter_name} / ${selectedMatter.client_display_name ?? "고객"}` : "Matter 선택 전"}</span>
-        </div>
-      </div>
-    </Panel>
-  );
-}
-
-function canRunVaultUploadPreflight({ bridgeResult, selectedMatter }) {
-  return Boolean(
-    selectedMatter &&
-    bridgeResult?.kind === "data" &&
-    bridgeResult.sourceMode === "matter_app_api" &&
-    bridgeResult.runtimeWriteReady &&
-    bridgeResult.repositoryDurable &&
-    !bridgeResult.productionReadyClaim
-  );
-}
-
-function uploadPreflightDescriptor({ bridgeResult, selectedMatter, result, pending }) {
-  const ready = canRunVaultUploadPreflight({ bridgeResult, selectedMatter });
-  if (!selectedMatter) {
-    return {
-      state: "no-matter",
-      tone: "blocked",
-      Icon: FileWarning,
-      label: "Matter 선택 전",
-      note: "먼저 Matter를 선택하세요.",
-      next: "대기",
-      canRun: false
-    };
-  }
-  if (bridgeResult === null) {
-    return {
-      state: "source-checking",
-      tone: "loading",
-      Icon: ShieldCheck,
-      label: "연결 확인 중",
-      note: "Matter 연결 상태를 확인하고 있습니다.",
-      next: "대기",
-      canRun: false
-    };
-  }
-  if (!ready) {
-    return {
-      state: "source-blocked",
-      tone: "blocked",
-      Icon: LockKeyhole,
-      label: "준비 확인 필요",
-      note: "Matter와 Vault 연결 상태를 먼저 확인하세요.",
-      next: "대기",
-      canRun: false
-    };
-  }
-  if (pending) {
-    return {
-      state: "checking",
-      tone: "loading",
-      Icon: ShieldCheck,
-      label: "확인 중",
-      note: "문서 등록 준비 상태를 확인하고 있습니다.",
-      next: "확인 중",
-      canRun: false
-    };
-  }
-  if (result?.kind === "data") {
-    return {
-      state: "passed",
-      tone: "ready",
-      Icon: FileCheck2,
-      label: "준비 완료",
-      note: "문서 등록 준비가 완료되었습니다.",
-      next: "등록 준비",
-      canRun: true
-    };
-  }
-  if (result?.kind === "guarded") {
-    return {
-      state: "guarded",
-      tone: "blocked",
-      Icon: LockKeyhole,
-      label: "확인 필요",
-      note: "문서 작업 준비 상태를 다시 확인하세요.",
-      next: "대기",
-      canRun: true
-    };
-  }
-  if (result?.kind === "error") {
-    return {
-      state: "error",
-      tone: "error",
-      Icon: AlertTriangle,
-      label: "확인 실패",
-      note: "새로고침 후 다시 확인하세요.",
-      next: "확인 필요",
-      canRun: true
-    };
-  }
+function searchRecord(value) {
+  if (!value || typeof value.query !== "string" || typeof value.searched_at !== "string") return null;
+  const query = value.query.trim().slice(0, SEARCH_QUERY_LIMIT);
+  const searchedAt = Date.parse(value.searched_at);
+  if (!query || !Number.isFinite(searchedAt)) return null;
   return {
-    state: "ready-to-check",
-    tone: "ready",
-    Icon: UploadCloud,
-    label: "준비 확인",
-    note: "문서 등록 전 Matter와 Vault 연결을 확인합니다.",
-    next: "준비 확인",
-    canRun: true
+    id: typeof value.id === "string" && value.id ? value.id : `${query}:${value.searched_at}`,
+    query,
+    scope: "documents-ocr",
+    searched_at: new Date(searchedAt).toISOString(),
+    ...normalizeSearchFilters(value)
   };
 }
 
-function VaultUploadPreflightPanel({ bridgeResult, selectedMatter, result, pending, onRun }) {
-  const descriptor = uploadPreflightDescriptor({ bridgeResult, selectedMatter, result, pending });
-  const Icon = descriptor.Icon;
-  const safeCodes = result?.safeErrorCodes ?? [];
-  const selectedLabel = selectedMatter
-    ? `${selectedMatter.matter_code ?? selectedMatter.matter_name} / ${selectedMatter.client_display_name ?? "고객"}`
-    : "Matter 선택 전";
-  const preflightRef = result?.kind === "data" ? result.preflightRef : "";
-  const writeEnabled = result?.vaultDocumentWriteEnabled === true;
-  return (
-    <Panel id="vault-upload-preflight" className="vault-panel vault-upload-preflight-panel" title="업로드 준비 확인" meta="문서 등록">
-      <div
-        className={`vault-upload-preflight ${descriptor.tone}`}
-        data-lcx-vltui-02-upload-preflight="true"
-        data-vault-upload-preflight-state={descriptor.state}
-        data-vault-upload-write-enabled={writeEnabled ? "true" : "false"}
-        data-vault-upload-preflight-ref={preflightRef}
-      >
-        <div className="vault-upload-preflight-strip">
-          <Icon size={16} />
-          <span>{descriptor.note}</span>
-        </div>
-        <dl className="vault-bridge-facts">
-          <div>
-            <dt>상태</dt>
-            <dd>{descriptor.label}</dd>
-          </div>
-          <div>
-            <dt>Matter</dt>
-            <dd>{selectedLabel}</dd>
-          </div>
-          <div>
-            <dt>다음 단계</dt>
-            <dd>{descriptor.next}</dd>
-          </div>
-          <div>
-            <dt>Vault 등록</dt>
-            <dd>{writeEnabled ? "가능" : "대기"}</dd>
-          </div>
-        </dl>
-        <button
-          type="button"
-          className="secondary-button vault-upload-preflight-action"
-          onClick={onRun}
-          disabled={!descriptor.canRun || pending}
-        >
-          <UploadCloud size={15} />
-          준비 확인
-        </button>
-        {safeCodes.length > 0 && (
-          <div className="vault-bridge-codes" aria-label="업로드 준비 확인 메시지">
-            {safeCodes.map((code) => (
-              <span key={code}>{uploadPreflightCodeLabel(code)}</span>
-            ))}
-          </div>
-        )}
-        {preflightRef && (
-          <div className="vault-preflight-ref">
-            <FileCheck2 size={15} />
-            <span>{preflightRef}</span>
-          </div>
-        )}
-      </div>
-    </Panel>
-  );
-}
-
-function VaultDocumentUploadPanel({ selectedMatter, result, pending, onUpload }) {
-  const [title, setTitle] = useState("");
-  const [file, setFile] = useState(null);
-  const selectedLabel = selectedMatter
-    ? `${selectedMatter.matter_code ?? selectedMatter.matter_name} / ${selectedMatter.client_display_name ?? "고객"}`
-    : "기본 Matter";
-  const canSubmit = Boolean(file && !pending);
-  const state = pending ? "uploading" : result?.kind ?? "idle";
-  return (
-    <Panel id="vault-document-upload" className="vault-panel vault-document-upload-panel" title="문서 등록" meta="파일 업로드">
-      <form
-        className="vault-document-upload"
-        data-upl-a11-vault-upload-ui="true"
-        data-vault-document-upload-state={state}
-        data-vault-document-upload-document-id={result?.kind === "data" ? result.item.document_id : ""}
-        data-vault-document-upload-sha256={result?.kind === "data" ? result.sha256 ?? "" : ""}
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (canSubmit) onUpload({ file, title });
-        }}
-      >
-        <label className="vault-lookup-field">
-          <span>
-            <UploadCloud size={14} />
-            파일
-          </span>
-          <input
-            type="file"
-            data-upl-a11-file-input="true"
-            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-          />
-        </label>
-        <label className="vault-lookup-field">
-          <span>
-            <FileCheck2 size={14} />
-            제목
-          </span>
-          <input
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            aria-label="문서 제목"
-            placeholder={file?.name ?? "문서 제목"}
-          />
-        </label>
-        <dl className="vault-bridge-facts">
-          <div>
-            <dt>Matter</dt>
-            <dd>{selectedLabel}</dd>
-          </div>
-          <div>
-            <dt>파일</dt>
-            <dd>{file?.name ?? "선택 전"}</dd>
-          </div>
-        </dl>
-        <button
-          type="submit"
-          className="secondary-button vault-document-upload-action"
-          disabled={!canSubmit}
-          onClick={(event) => {
-            event.preventDefault();
-            if (canSubmit) onUpload({ file, title });
-          }}
-        >
-          <UploadCloud size={15} />
-          등록
-        </button>
-        {pending && (
-          <div className="live-data-state live-data-loading">
-            <strong>등록 중입니다</strong>
-          </div>
-        )}
-        {result?.kind === "data" && (
-          <div className="vault-upload-receipt" data-upl-a11-upload-receipt="true">
-            <FileCheck2 size={15} />
-            <span>{result.item.title}</span>
-            <code>{result.sha256}</code>
-          </div>
-        )}
-        {result?.kind === "guarded" && (
-      <div className="live-data-state live-data-denied">
-        <strong>등록할 수 없습니다</strong>
-        {result.safeErrorCodes?.join(" / ") || "권한 상태를 확인하세요."}
-          </div>
-        )}
-        {result?.kind === "error" && (
-          <div className="live-data-state live-data-error">
-            <strong>등록하지 못했습니다</strong>
-          </div>
-        )}
-      </form>
-    </Panel>
-  );
-}
-
-function actionBoundaryBase({ bridgeResult, selectedMatter, uploadPreflightResult }) {
-  if (!selectedMatter) {
-    return {
-      state: "matter-required",
-      tone: "blocked",
-      Icon: FileWarning,
-      label: "Matter 선택 필요",
-      note: "Matter를 선택해야 문서 작업을 준비할 수 있습니다."
-    };
-  }
-  if (!canRunVaultUploadPreflight({ bridgeResult, selectedMatter })) {
-    return {
-      state: "source-blocked",
-      tone: "blocked",
-      Icon: LockKeyhole,
-      label: "연결 확인 필요",
-      note: "Matter와 Vault 연결 상태를 먼저 확인하세요."
-    };
-  }
-  if (uploadPreflightResult?.kind === "data") {
-    return {
-      state: "preflight-checked",
-      tone: "ready",
-      Icon: ShieldCheck,
-      label: "준비 완료",
-      note: "문서 작업 준비가 완료되었습니다."
-    };
-  }
-  if (uploadPreflightResult?.kind === "guarded") {
-    return {
-      state: "permission-blocked",
-      tone: "blocked",
-      Icon: LockKeyhole,
-      label: "확인 필요",
-      note: "문서 작업 준비 상태를 다시 확인하세요."
-    };
-  }
-  if (uploadPreflightResult?.kind === "error") {
-    return {
-      state: "check-failed",
-      tone: "error",
-      Icon: AlertTriangle,
-      label: "확인 실패",
-      note: "준비 확인을 다시 실행하세요."
-    };
-  }
+export function normalizeSearchPreferences(value) {
   return {
-    state: "preflight-required",
-    tone: "blocked",
-    Icon: UploadCloud,
-    label: "준비 확인 필요",
-    note: "업로드 준비 확인을 실행하세요."
+    recent: (Array.isArray(value?.recent) ? value.recent : []).map(searchRecord).filter(Boolean).slice(0, SEARCH_RECENT_LIMIT),
+    saved: (Array.isArray(value?.saved) ? value.saved : []).map(searchRecord).filter(Boolean)
   };
 }
 
-function actionBoundaryRows(base) {
-  const checked = base.state === "preflight-checked";
-  const guardedState = checked ? "guarded" : base.state;
-  const guardedStatus = checked ? "준비 완료" : base.label;
-  const guardedNote = checked ? "문서 등록 준비가 완료되었습니다." : base.note;
-  return [
-    {
-      id: "version-upload",
-      label: "새 문서 등록",
-      owner: "Vault",
-      state: checked ? "ready" : guardedState,
-      status: checked ? "등록 가능" : guardedStatus,
-      note: checked ? "문서 등록 패널에서 파일을 등록합니다." : guardedNote,
-      action: checked ? "등록 패널 확인" : "선택 필요"
-    },
-    {
-      id: "metadata-mutation",
-      label: "메타데이터 변경",
-      owner: "Matter app",
-      state: guardedState,
-      status: guardedStatus,
-      note: checked ? "메타데이터 변경은 담당자 확인 후 진행합니다." : base.note,
-      action: "변경 대기"
-    },
-    {
-      id: "legal-hold",
-      label: "법적 보존",
-      owner: "Owner 결정 필요",
-      state: checked ? "owner-blocked" : base.state,
-      status: checked ? "결정 필요" : base.label,
-      note: checked ? "보존 설정은 소유자 결정 전까지 변경하지 않습니다." : base.note,
-      action: "보존 변경 대기"
-    },
-    {
-      id: "retention",
-      label: "보존 정책",
-      owner: "Vault Records",
-      state: checked ? "records-blocked" : base.state,
-      status: checked ? "정책 연결 필요" : base.label,
-      note: checked ? "기록 정책 연결 전까지 보존 기간을 변경하지 않습니다." : base.note,
-      action: "정책 변경 대기"
-    },
-    {
-      id: "document-action",
-      label: "문서 작업",
-      owner: "Matter app + Vault",
-      state: guardedState,
-      status: guardedStatus,
-      note: checked ? "문서 작업은 담당자 확인 후 진행합니다." : base.note,
-      action: "작업 대기"
-    }
-  ];
+export function rememberSearch(current, query, filters = {}) {
+  const normalized = String(query ?? "").trim().slice(0, SEARCH_QUERY_LIMIT);
+  if (!normalized) return current;
+  const preference = { query: normalized, scope: "documents-ocr", searched_at: new Date().toISOString(), ...normalizeSearchFilters(filters) };
+  const next = {
+    ...current,
+    recent: [
+      { id: `recent:${Date.now()}`, ...preference },
+      ...current.recent.filter((item) => searchPreferenceKey(item) !== searchPreferenceKey(preference))
+    ].slice(0, SEARCH_RECENT_LIMIT)
+  };
+  return next;
 }
 
-function boundaryState(rows, id) {
-  return rows.find((row) => row.id === id)?.state ?? "unknown";
+export function saveSearch(current, query, filters = {}) {
+  const normalized = String(query ?? "").trim().slice(0, SEARCH_QUERY_LIMIT);
+  if (!normalized) return current;
+  const preference = { query: normalized, scope: "documents-ocr", searched_at: new Date().toISOString(), ...normalizeSearchFilters(filters) };
+  if (current.saved.some((item) => searchPreferenceKey(item) === searchPreferenceKey(preference))) return current;
+  const next = {
+    ...current,
+    saved: [{ id: `saved:${Date.now()}`, ...preference }, ...current.saved]
+  };
+  return next;
 }
 
-function VaultActionBoundaryPanel({ bridgeResult, selectedMatter, uploadPreflightResult }) {
-  const base = actionBoundaryBase({ bridgeResult, selectedMatter, uploadPreflightResult });
-  const rows = actionBoundaryRows(base);
-  const Icon = base.Icon;
-  const preflightRef = uploadPreflightResult?.kind === "data" ? uploadPreflightResult.preflightRef : "";
+export function removeSavedSearch(current, id) {
+  const next = { ...current, saved: current.saved.filter((item) => item.id !== id) };
+  return next;
+}
+
+export function clearRecentSearches(current) {
+  const next = { ...current, recent: [] };
+  return next;
+}
+
+function SearchCard({ title, section, count, labels, className = "", children }) {
   return (
-    <Panel id="vault-action-boundaries" className="vault-panel vault-action-boundary-panel" title="문서 작업 준비" meta="확인 필요">
-      <div
-        className={`vault-action-boundary ${base.tone}`}
-        data-lcx-vltui-02-action-boundaries="true"
-        data-vault-boundary-base-state={base.state}
-        data-vault-boundary-write-enabled="false"
-        data-vault-boundary-preflight-ref={preflightRef}
-        data-vault-version-upload-state={boundaryState(rows, "version-upload")}
-        data-vault-metadata-mutation-state={boundaryState(rows, "metadata-mutation")}
-        data-vault-legal-hold-state={boundaryState(rows, "legal-hold")}
-        data-vault-retention-state={boundaryState(rows, "retention")}
-        data-vault-document-action-state={boundaryState(rows, "document-action")}
-      >
-        <div className="vault-action-boundary-strip">
-          <Icon size={16} />
-          <span>{base.note}</span>
+    <section
+      className={`home-dashboard-card amic-search-card ${className}`.trim()}
+      data-amic-search-section={section}
+    >
+      <header className="home-dashboard-card-header">
+        <div>
+          <span>{title}</span>
         </div>
-        <div className="vault-action-boundary-list">
-          {rows.map((row) => (
-            <div
-              key={row.id}
-              className="vault-action-boundary-row"
-              data-vault-boundary-row="true"
-              data-vault-boundary-action={row.id}
-              data-vault-boundary-state={row.state}
-              data-vault-boundary-owner={row.owner}
-              data-vault-boundary-write-enabled="false"
-            >
-              <div className="vault-action-boundary-main">
-                <strong>{row.label}</strong>
-                <span>{row.note}</span>
-              </div>
-              <div className="vault-action-boundary-meta">
-                <span>{row.owner}</span>
-                <span>{row.status}</span>
-              </div>
-              <button type="button" className="secondary-button vault-action-boundary-action" disabled>
-                <LockKeyhole size={14} />
-                {row.action}
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    </Panel>
+        {Number.isFinite(count) && <strong>{count}{labels?.language === "English" ? "" : "건"}</strong>}
+      </header>
+      <div className="home-dashboard-card-body">{children}</div>
+    </section>
   );
 }
 
-function searchMatchLabel(fields = []) {
-  if (!Array.isArray(fields) || fields.length === 0) return "색인";
-  const labels = fields.map((field) => {
-    if (field === "body_text") return "본문";
-    if (field === "ocr_text") return "OCR";
-    if (field === "title") return "제목";
-    if (field === "matter_id") return "Matter";
-    if (field === "version_id") return "버전";
-    return "색인";
+function matchLabel(fields = [], localizedLabels) {
+  const matches = fields.flatMap((field) => {
+    if (field === "body_text") return [searchLabel(localizedLabels, "searchMatchBody", "본문")];
+    if (field === "ocr_text") return ["OCR"];
+    if (field === "title") return [searchLabel(localizedLabels, "searchMatchTitle", "제목")];
+    if (field === "matter_id") return ["Matter"];
+    if (field === "version_id") return [searchLabel(localizedLabels, "searchMatchVersion", "버전")];
+    return [];
   });
-  return [...new Set(labels)].join(", ");
+  return [...new Set(matches)].join(" / ") || searchLabel(localizedLabels, "searchDocumentFallback", "문서");
 }
 
-function vaultSearchRows(result) {
-  if (result?.kind !== "data") return [];
-  return result.items.map((item, index) => [
-    item.title ?? item.document_id ?? `결과 ${index + 1}`,
-    searchMatchLabel(item.match_fields),
-    item.version_id ?? "버전 확인",
-    item.raw_text_included === false && item.storage_pointer_ref_included === false ? "본문 비노출" : "검토 필요"
-  ]);
+function documentTitle(item, index, labels) {
+  return item?.title ?? item?.document_name ?? `${searchLabel(labels, "searchDocumentFallback", "문서")} ${index + 1}`;
 }
 
-function VaultSearchPanel({ query, setQuery, result, pending, submittedQuery, onSubmit }) {
-  const rows = vaultSearchRows(result);
-  const state = pending ? "loading" : result?.kind ?? (submittedQuery ? "ready" : "idle");
-  const rawTextIncluded = result?.kind === "data" && result.items.some((item) => item.raw_text_included === true);
+function SearchRows({ items, emptyText, labels, onOpen }) {
+  if (items.length === 0) {
+    return <div className="amic-search-empty">{emptyText}</div>;
+  }
+
   return (
-    <Panel id="vault-fulltext-search" className="vault-panel vault-search-panel" title="전문검색" meta="권한 필터">
-      <div
-        className="vault-search"
-        data-upl-e01-vault-search="true"
-        data-vault-search-state={state}
-        data-vault-search-query={submittedQuery}
-        data-vault-search-result-count={rows.length}
-        data-vault-search-raw-text-included={rawTextIncluded ? "true" : "false"}
-      >
-        <form className="vault-search-form" onSubmit={onSubmit}>
-          <label className="vault-lookup-field">
-            <span>
-              <Search size={14} />
-              본문 검색
-            </span>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              aria-label="Vault 본문 검색"
-              placeholder="문서 제목 또는 본문 키워드"
-            />
-          </label>
-          <button type="submit" className="secondary-button vault-search-action" disabled={!query.trim() || pending}>
-            <Search size={15} />
-            검색
-          </button>
-        </form>
-        {!submittedQuery && (
-          <div className="live-data-state live-data-empty">
-            <strong>검색어를 입력하세요</strong>
-          </div>
-        )}
-        {pending && (
-          <div className="live-data-state live-data-loading">
-            <strong>검색 중입니다</strong>
-          </div>
-        )}
-        {!pending && result?.kind === "error" && (
-          <div className="live-data-state live-data-error">
-            <strong>검색 결과를 불러오지 못했습니다</strong>
-          </div>
-        )}
-        {!pending && result?.kind === "data" && rows.length === 0 && (
-          <div className="live-data-state live-data-empty">
-            <strong>검색 결과가 없습니다</strong>
-          </div>
-        )}
-        {!pending && rows.length > 0 && (
-          <DataTable columns={["문서", "일치", "버전", "보안"]} rows={rows} />
-        )}
-      </div>
-    </Panel>
+    <div className="amic-search-list">
+      {items.map((item, index) => (
+        <button type="button" className="amic-search-row" key={item.document_id ?? item.version_id ?? `${documentTitle(item, index, labels)}-${index}`} onClick={() => onOpen?.(item)}>
+          <FileText size={17} aria-hidden="true" />
+          <strong>{documentTitle(item, index, labels)}</strong>
+          <span>{matchLabel(item.match_fields, labels)}</span>
+        </button>
+      ))}
+    </div>
   );
 }
 
-export function VaultSurface({ labels, liveCtx = "allow", activeSection = "", refreshSignal = 0 }) {
-  const skin = useSkin();
-  const [result, setResult] = useState(null);
-  const [bridgeResult, setBridgeResult] = useState(null);
-  const [vaultSearchQuery, setVaultSearchQuery] = useState("");
-  const [vaultSearchSubmittedQuery, setVaultSearchSubmittedQuery] = useState("");
-  const [vaultSearchResult, setVaultSearchResult] = useState(null);
-  const [vaultSearchPending, setVaultSearchPending] = useState(false);
-  const [matterLookupQuery, setMatterLookupQuery] = useState(DEFAULT_MATTER_LOOKUP_QUERY);
-  const [matterLookupResult, setMatterLookupResult] = useState(null);
-  const [selectedMatter, setSelectedMatter] = useState(null);
-  const [uploadPreflightResult, setUploadPreflightResult] = useState(null);
-  const [uploadPreflightPending, setUploadPreflightPending] = useState(false);
-  const [documentUploadResult, setDocumentUploadResult] = useState(null);
-  const [documentUploadPending, setDocumentUploadPending] = useState(false);
+function RecentDocuments({ result, labels, onOpen }) {
+  if (result === null) return <div className="amic-search-empty">{searchLabel(labels, "searchDocumentsLoading", "문서를 불러오는 중입니다")}</div>;
+  if (result.kind === "error") return <div className="amic-search-empty">{searchLabel(labels, "searchDocumentsError", "문서를 불러오지 못했습니다")}</div>;
+  if (result.uiState === "denied") return <DesktopDeniedState />;
+  if (result.uiState === "review_required") return <div className="live-data-state"><strong>{searchLabel(labels, "searchReviewTitle", "검토가 필요합니다")}</strong>{searchLabel(labels, "searchReviewDocuments", "문서 접근 권한을 확인하세요.")}</div>;
+
+  return <SearchRows items={result.items.slice(0, 6)} emptyText={searchLabel(labels, "searchDocumentsEmpty", "최근 문서가 없습니다")} labels={labels} onOpen={onOpen} />;
+}
+
+function SearchResults({ result, pending, submittedQuery, labels, onOpen }) {
+  if (pending) return <div className="amic-search-empty">{searchLabel(labels, "searchLoading", "검색 중입니다")}</div>;
+  if (!submittedQuery) return <div className="amic-search-empty">{searchLabel(labels, "searchInputEmpty", "검색어를 입력하면 결과가 표시됩니다")}</div>;
+  if (result?.kind === "error") return <div className="amic-search-empty">{searchLabel(labels, "searchResultsError", "검색 결과를 불러오지 못했습니다")}</div>;
+  if (result?.uiState === "denied") return <DesktopDeniedState />;
+  if (result?.uiState === "review_required") return <div className="live-data-state"><strong>{searchLabel(labels, "searchReviewTitle", "검토가 필요합니다")}</strong>{searchLabel(labels, "searchReviewResults", "권한 검토 후 다시 검색하세요.")}</div>;
+
+  return <SearchRows items={result?.kind === "data" ? result.items : []} emptyText={searchLabel(labels, "searchResultsEmpty", "검색 결과가 없습니다")} labels={labels} onOpen={onOpen} />;
+}
+
+function SearchPreferenceState({ state, labels, children }) {
+  if (state === "ready") return children;
+  if (state === "loading") return <div className="amic-search-empty">{searchLabel(labels, "searchHistoryPreferenceLoading", "검색 기록을 불러오는 중입니다")}</div>;
+  if (state === "denied") return <DesktopDeniedState />;
+  if (state === "review_required") return <div className="live-data-state"><strong>{searchLabel(labels, "searchReviewTitle", "검토가 필요합니다")}</strong>{searchLabel(labels, "searchReviewHistory", "검색 기록 권한을 확인하세요.")}</div>;
+  return <div className="amic-search-empty">{searchLabel(labels, "searchHistoryPreferenceError", "검색 기록을 불러오지 못했습니다")}</div>;
+}
+
+function SearchHistoryRows({ items, emptyText, labels, onRun, onDelete, deleteDisabled = false }) {
+  if (items.length === 0) return <div className="amic-search-empty">{emptyText}</div>;
+  return (
+    <div className="search-query-list">
+      {items.map((item) => (
+        <div className="search-query-row" key={item.id}>
+          <button type="button" className="search-query-open" onClick={() => onRun(item)}>
+            <Search size={16} aria-hidden="true" />
+            <span>
+              <strong>{item.query}</strong>
+              <small>{searchLabel(labels, "searchDocumentsLabel", "문서/OCR")} / {new Date(item.searched_at).toLocaleDateString(labels?.language === "English" ? "en-US" : "ko-KR")}</small>
+            </span>
+          </button>
+          {onDelete && (
+            <button type="button" className="icon-button" disabled={deleteDisabled} aria-label={`${item.query} ${searchLabel(labels, "searchDeleteSuffix", "삭제")}`} onClick={() => onDelete(item.id)}>
+              <Trash2 size={15} />
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function VaultSurface({ labels = {}, liveCtx = "allow", activeSection = "vault-search-home", initialQuery = "", initialDocumentId = "", initialDateFrom = "", initialDateTo = "", refreshSignal = 0, onNavigateSection = () => {} }) {
+  const [documentsResult, setDocumentsResult] = useState(null);
+  const [query, setQuery] = useState(initialQuery);
+  const [submittedQuery, setSubmittedQuery] = useState(() => initialQuery.trim());
+  const currentVersionOnly = true;
+  const [dateFrom, setDateFrom] = useState(initialDateFrom);
+  const [dateTo, setDateTo] = useState(initialDateTo);
+  const [submittedDateFrom, setSubmittedDateFrom] = useState(initialDateFrom);
+  const [submittedDateTo, setSubmittedDateTo] = useState(initialDateTo);
+  const [searchResult, setSearchResult] = useState(null);
+  const [searchPending, setSearchPending] = useState(false);
+  const [linkCopyState, setLinkCopyState] = useState("idle");
+  const [preferenceError, setPreferenceError] = useState(false);
+  const [preferenceWriteCount, setPreferenceWriteCount] = useState(0);
   const [refreshToken, setRefreshToken] = useState(0);
+  const [preferences, setPreferences] = useState(EMPTY_SEARCH_PREFERENCES);
+  const [preferenceAccess, setPreferenceAccess] = useState("loading");
+  const [selectedDocument, setSelectedDocument] = useState(null);
   const refreshSignalRef = useRef(refreshSignal);
-  const currentSection = VAULT_SECTIONS.has(activeSection) ? activeSection : "vault-documents";
+  const preferenceRevisionRef = useRef(0);
+  const preferenceWriteRef = useRef(Promise.resolve());
+  const section = SEARCH_SECTIONS.has(activeSection) ? activeSection : "vault-search-home";
+
+  useEffect(() => {
+    const normalized = initialQuery.trim().slice(0, SEARCH_QUERY_LIMIT);
+    setQuery(normalized);
+    if (["vault-search-all", "vault-search-documents"].includes(section)) setSubmittedQuery(normalized);
+    else setSubmittedQuery("");
+    setDateFrom(initialDateFrom);
+    setDateTo(initialDateTo);
+    setSubmittedDateFrom(initialDateFrom);
+    setSubmittedDateTo(initialDateTo);
+  }, [initialQuery, initialDateFrom, initialDateTo, section]);
 
   useEffect(() => {
     if (refreshSignalRef.current === refreshSignal) return;
@@ -840,19 +244,13 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "", re
 
   useEffect(() => {
     let cancelled = false;
-    setResult(null);
-    setBridgeResult(null);
-    setUploadPreflightResult(null);
-    setUploadPreflightPending(false);
+    setDocumentsResult(null);
     fetchVaultDocuments({
       ctx: liveCtx,
       permissionRef: VAULT_PERMISSION_REF,
       auditHintRef: VAULT_AUDIT_HINT_REF
     }).then((next) => {
-      if (!cancelled) setResult(next);
-    });
-    fetchVaultBridgeStatus({ ctx: liveCtx }).then((next) => {
-      if (!cancelled) setBridgeResult(next);
+      if (!cancelled) setDocumentsResult(next);
     });
     return () => {
       cancelled = true;
@@ -861,189 +259,267 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "", re
 
   useEffect(() => {
     let cancelled = false;
-    const query = vaultSearchSubmittedQuery.trim();
-    if (!query) {
-      setVaultSearchResult(null);
-      setVaultSearchPending(false);
+    const requestedRevision = preferenceRevisionRef.current;
+    fetchVaultSearchPreferences({
+      ctx: liveCtx,
+      permissionRef: VAULT_PERMISSION_REF,
+      auditHintRef: VAULT_AUDIT_HINT_REF
+    }).then((next) => {
+      if (cancelled || preferenceRevisionRef.current !== requestedRevision) return;
+      if (next.kind !== "data") {
+        setPreferences(EMPTY_SEARCH_PREFERENCES);
+        setPreferenceAccess(next.kind === "guarded" ? next.uiState : "error");
+        setPreferenceError(next.kind === "error");
+        return;
+      }
+      setPreferences(normalizeSearchPreferences(next.item));
+      setPreferenceAccess("ready");
+      setPreferenceError(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [liveCtx, refreshToken]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const normalizedQuery = submittedQuery.trim();
+    if (!normalizedQuery) {
+      setSearchResult(null);
+      setSearchPending(false);
       return () => {
         cancelled = true;
       };
     }
-    setVaultSearchPending(true);
+
+    setSearchPending(true);
     fetchVaultSearch({
       ctx: liveCtx,
-      query,
+      query: normalizedQuery,
+      currentVersionOnly,
+      dateFrom: submittedDateFrom,
+      dateTo: submittedDateTo,
       permissionRef: VAULT_PERMISSION_REF,
       auditHintRef: VAULT_AUDIT_HINT_REF
     }).then((next) => {
       if (!cancelled) {
-        setVaultSearchResult(next);
-        setVaultSearchPending(false);
+        setSearchResult(next);
+        setSearchPending(false);
       }
     });
     return () => {
       cancelled = true;
     };
-  }, [liveCtx, vaultSearchSubmittedQuery, refreshToken]);
+  }, [liveCtx, submittedQuery, submittedDateFrom, submittedDateTo, refreshToken]);
+
+  const searchReadable = searchResult?.kind === "data" && searchResult.outcome === "passed" && !["denied", "review_required"].includes(searchResult.uiState);
+  const documentsReadable = documentsResult?.kind === "data" && documentsResult.outcome === "passed" && !["denied", "review_required"].includes(documentsResult.uiState);
+  const searchItems = searchReadable ? searchResult.items : [];
+  const documentCount = documentsReadable ? documentsResult.items.length : null;
+  const draftFilters = normalizeSearchFilters({ current_version_only: true, date_from: dateFrom, date_to: dateTo });
+  const submittedFilters = normalizeSearchFilters({ current_version_only: true, date_from: submittedDateFrom, date_to: submittedDateTo });
+  const submittedPreference = { query: submittedQuery, ...submittedFilters };
+  const searchStateDirty = query.trim() !== submittedQuery || searchPreferenceKey({ query: submittedQuery, ...draftFilters }) !== searchPreferenceKey(submittedPreference);
+  const isSaved = preferences.saved.some((item) => searchPreferenceKey(item) === searchPreferenceKey(submittedPreference));
 
   useEffect(() => {
-    let cancelled = false;
-    const query = matterLookupQuery.trim();
-    setMatterLookupResult(null);
-    if (UUID_INPUT_PATTERN.test(query) || query.length < 2) {
-      return () => {
-        cancelled = true;
-      };
+    if (!initialDocumentId) {
+      setSelectedDocument(null);
+      return;
     }
-    fetchVaultMatterLookup({ ctx: liveCtx, query }).then((next) => {
-      if (!cancelled) setMatterLookupResult(next);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [liveCtx, matterLookupQuery, refreshToken]);
+    const document = [...(documentsReadable ? documentsResult.items : []), ...searchItems]
+      .find((item) => item.document_id === initialDocumentId);
+    setSelectedDocument(document ?? null);
+  }, [initialDocumentId, searchResult, documentsResult]);
 
-  useEffect(() => {
-    setUploadPreflightResult(null);
-    setUploadPreflightPending(false);
-  }, [selectedMatter?.selected_ref, bridgeResult?.requestId, liveCtx]);
-
-  useEffect(() => {
-    setDocumentUploadResult(null);
-    setDocumentUploadPending(false);
-  }, [selectedMatter?.selected_ref, liveCtx]);
-
-  const handleUploadPreflight = async () => {
-    if (!canRunVaultUploadPreflight({ bridgeResult, selectedMatter }) || uploadPreflightPending) return;
-    setUploadPreflightPending(true);
-    setUploadPreflightResult(null);
-    const next = await fetchVaultUploadPreflight({
+  function commitSearchPreferences(next, operation, payload = {}, previous = preferences) {
+    const revision = preferenceRevisionRef.current + 1;
+    preferenceRevisionRef.current = revision;
+    setPreferences(next);
+    setPreferenceWriteCount((count) => count + 1);
+    preferenceWriteRef.current = preferenceWriteRef.current.then(() => writeVaultSearchPreferences({
+      operation,
+      ...payload,
       ctx: liveCtx,
-      selectedMatter,
-      bridgeStatus: bridgeResult
-    });
-    setUploadPreflightResult(next);
-    setUploadPreflightPending(false);
-  };
-
-  const handleVaultDocumentUpload = async ({ file, title }) => {
-    if (!file || documentUploadPending) return;
-    setDocumentUploadPending(true);
-    setDocumentUploadResult(null);
-    const next = await uploadVaultDocumentFile({
-      ctx: liveCtx,
-      file,
-      title,
-      selectedMatter
-    });
-    setDocumentUploadResult(next);
-    setDocumentUploadPending(false);
-    if (next.kind === "data") setRefreshToken((value) => value + 1);
-  };
-
-  const handleVaultSearch = (event) => {
-    event.preventDefault();
-    const query = vaultSearchQuery.trim();
-    setVaultSearchSubmittedQuery(query);
-    if (!query) setVaultSearchResult(null);
-  };
-
-  const documents = result?.kind === "data" ? result.items : [];
-  const selected = documents[0] ?? null;
-  let body;
-  if (result === null) {
-    body = (
-      <div className="live-data-state live-data-loading">
-        <strong>Vault 문서 목록을 불러오는 중입니다</strong>
-      </div>
-    );
-  } else if (result.kind === "error") {
-    body = (
-      <div className="live-data-state live-data-error">
-        <strong>Vault 문서 목록을 불러오지 못했습니다</strong>
-        새로고침하거나 연결 상태를 확인하세요.
-      </div>
-    );
-  } else if (result.uiState === "denied") {
-    body = <DesktopDeniedState />;
-  } else if (result.uiState === "review_required" || result.outcome === "review_required") {
-    body = (
-      <div className="live-data-state live-data-review">
-        <strong>검토가 필요합니다</strong>
-        담당자 확인 후 Vault 문서를 볼 수 있습니다.
-      </div>
-    );
-  } else if (documents.length === 0) {
-    body = (
-      <div className="live-data-state live-data-empty">
-        <strong>표시할 문서가 없습니다</strong>
-      </div>
-    );
-  } else {
-    body = (
-      <div className="vault-live-stack">
-        <VaultBreadcrumb matterId={selected?.matter_id} workspaceId={selected?.workspace_id} />
-        <VaultSecurityBadges document={selected} />
-        <DataTable columns={["문서", "제목", "등록 계정", "상태", "버전", "권한", "보존"]} rows={vaultRows(documents)} />
-      </div>
-    );
+      permissionRef: VAULT_PERMISSION_REF,
+      auditHintRef: VAULT_AUDIT_HINT_REF
+    }));
+    preferenceWriteRef.current.then((result) => {
+      if (preferenceRevisionRef.current !== revision) return;
+      const canonical = result.kind === "data" ? normalizeSearchPreferences(result.item) : previous;
+      setPreferences(canonical);
+      setPreferenceAccess(result.kind === "guarded" ? result.uiState : result.kind === "data" ? "ready" : "error");
+      setPreferenceError(result.kind === "error");
+    }).finally(() => setPreferenceWriteCount((count) => Math.max(0, count - 1)));
   }
 
+  function runSearch(nextQuery) {
+    const preference = nextQuery && typeof nextQuery === "object" ? nextQuery : null;
+    const normalized = String(preference?.query ?? nextQuery ?? query).trim().slice(0, SEARCH_QUERY_LIMIT);
+    if (!normalized) return;
+    const nextFilters = normalizeSearchFilters(preference ?? draftFilters);
+    setQuery(normalized);
+    setSubmittedQuery(normalized);
+    setDateFrom(nextFilters.date_from ?? "");
+    setDateTo(nextFilters.date_to ?? "");
+    setSubmittedDateFrom(nextFilters.date_from ?? "");
+    setSubmittedDateTo(nextFilters.date_to ?? "");
+    setLinkCopyState("idle");
+    commitSearchPreferences(rememberSearch(preferences, normalized, nextFilters), "remember", { query: normalized, ...nextFilters });
+    const resultSection = section === "vault-search-documents" ? section : "vault-search-all";
+    onNavigateSection(resultSection, { query: normalized, currentVersionOnly: nextFilters.current_version_only, dateFrom: nextFilters.date_from, dateTo: nextFilters.date_to });
+  }
+
+  async function copySearchLink() {
+    if (!submittedQuery || typeof window === "undefined" || typeof navigator?.clipboard?.writeText !== "function") return;
+    if (!window.confirm(searchLabel(labels, "searchCopyConfirm", "검색어가 링크에 포함됩니다. 링크를 복사할까요?"))) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("view", "vault");
+    url.searchParams.set("query", submittedQuery);
+    url.searchParams.set("current_version", "current");
+    if (submittedFilters.date_from) url.searchParams.set("date_from", submittedFilters.date_from);
+    else url.searchParams.delete("date_from");
+    if (submittedFilters.date_to) url.searchParams.set("date_to", submittedFilters.date_to);
+    else url.searchParams.delete("date_to");
+    url.hash = section === "vault-search-documents" ? section : "vault-search-all";
+    try {
+      const auditResult = await writeVaultSearchPreferences({
+        operation: "share_authorize",
+        query: submittedQuery,
+        ...submittedFilters,
+        ctx: liveCtx,
+        permissionRef: VAULT_PERMISSION_REF,
+        auditHintRef: VAULT_AUDIT_HINT_REF
+      });
+      if (auditResult.kind !== "data") {
+        setLinkCopyState("failed");
+        return;
+      }
+      await navigator.clipboard.writeText(url.toString());
+      setLinkCopyState("copied");
+    } catch {
+      setLinkCopyState("failed");
+    }
+  }
+
+  function openDocument(document) {
+    if (!document?.document_id) return;
+    const completeDocument = documentsReadable
+      ? documentsResult.items.find((item) => item.document_id === document.document_id)
+      : null;
+    setSelectedDocument(completeDocument ?? document);
+    const resultSection = section === "vault-search-documents" ? section : "vault-search-all";
+    onNavigateSection(resultSection, { query: submittedQuery, currentVersionOnly: true, dateFrom: submittedDateFrom, dateTo: submittedDateTo, documentId: document.document_id });
+  }
+
+  const showDashboard = section === "vault-search-home";
+  const showRecent = section === "vault-search-recent";
+  const showSaved = section === "vault-search-saved";
+  const invalidDateRange = Boolean(dateFrom && dateTo && dateFrom > dateTo);
+
   return (
-    <section id="vault-home" className="surface stack vault-surface" data-cmp-g5-vault-surface="true">
-      <ForestHero title={labels.vaultTitle} image={heroVaultArchitecture} imageOpacity={0.24} />
-      <PageHeader
-        title={labels.vaultTitle}
-        heroTakeover={skin === "forest"}
-      />
-      <div className="vault-runtime-grid">
-        {currentSection === "vault-documents" && (
+    <section
+      id="vault-home"
+      className="surface stack vault-surface amic-search-surface"
+      data-amic-search-surface="true"
+      data-search-section={section}
+      data-search-scope="documents-ocr"
+    >
+      <ForestHero title="Search" image={heroVaultArchitecture} imageOpacity={0.24} />
+
+      <div className="amic-search-grid">
+        <SearchCard title={searchLabel(labels, "searchFormTitle", "문서/OCR 검색")} section="search" labels={labels} className="amic-search-query-card">
+          <form
+            className="amic-search-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              runSearch();
+            }}
+          >
+            <Search size={19} aria-hidden="true" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              aria-label="Search"
+              placeholder={searchLabel(labels, "searchPlaceholder", "문서 제목, 본문, Matter 검색")}
+            />
+            <button type="submit" disabled={!query.trim() || searchPending || invalidDateRange}>{searchLabel(labels, "searchSubmit", "검색")}</button>
+          </form>
+          <div className="amic-search-filters" aria-label={searchLabel(labels, "searchDocumentsLabel", "문서/OCR")}>
+            <span className="amic-search-version-filter">{searchLabel(labels, "searchCurrentVersionOnly", "현재 버전만")}</span>
+            <label>
+              <span>{searchLabel(labels, "searchDateFrom", "시작일")}</span>
+              <input type="date" value={dateFrom} max={dateTo || undefined} onChange={(event) => setDateFrom(event.target.value)} />
+            </label>
+            <label>
+              <span>{searchLabel(labels, "searchDateTo", "종료일")}</span>
+              <input type="date" value={dateTo} min={dateFrom || undefined} onChange={(event) => setDateTo(event.target.value)} />
+            </label>
+          </div>
+          {invalidDateRange && <p className="search-preference-error" role="alert">{searchLabel(labels, "searchDateRangeError", "시작일은 종료일보다 늦을 수 없습니다")}</p>}
+          {preferenceError && <p className="search-preference-error" role="alert">{searchLabel(labels, "searchPreferenceError", "검색 기록을 저장하지 못했습니다")}</p>}
+        </SearchCard>
+
+        {showDashboard && (
           <>
-            <div className="vault-main-stack">
-              <VaultSearchPanel
-                query={vaultSearchQuery}
-                setQuery={setVaultSearchQuery}
-                result={vaultSearchResult}
-                pending={vaultSearchPending}
-                submittedQuery={vaultSearchSubmittedQuery}
-                onSubmit={handleVaultSearch}
-              />
-              <Panel id="vault-documents" className="vault-panel" title="Vault 문서함" meta="">
-                {body}
-              </Panel>
-            </div>
-            <div className="vault-side-stack">
-              <VaultBridgeStatusPanel result={bridgeResult} />
-              <VaultMatterLookupPanel
-                query={matterLookupQuery}
-                setQuery={setMatterLookupQuery}
-                result={matterLookupResult}
-                selectedMatter={selectedMatter}
-                setSelectedMatter={setSelectedMatter}
-              />
-              <VaultUploadPreflightPanel
-                bridgeResult={bridgeResult}
-                selectedMatter={selectedMatter}
-                result={uploadPreflightResult}
-                pending={uploadPreflightPending}
-                onRun={handleUploadPreflight}
-              />
-              <VaultDocumentUploadPanel
-                selectedMatter={selectedMatter}
-                result={documentUploadResult}
-                pending={documentUploadPending}
-                onUpload={handleVaultDocumentUpload}
-              />
-              <VaultActionBoundaryPanel
-                bridgeResult={bridgeResult}
-                selectedMatter={selectedMatter}
-                uploadPreflightResult={uploadPreflightResult}
-              />
-            </div>
+            <SearchCard title={searchLabel(labels, "searchRecentLabel", "최근 검색")} section="vault-search-recent" count={preferenceAccess === "ready" ? preferences.recent.length : null} labels={labels}>
+              <SearchPreferenceState state={preferenceAccess} labels={labels}><SearchHistoryRows items={preferences.recent.slice(0, 5)} emptyText={searchLabel(labels, "searchRecentEmpty", "최근 검색이 없습니다")} labels={labels} onRun={runSearch} /></SearchPreferenceState>
+            </SearchCard>
+            <SearchCard title={searchLabel(labels, "searchSavedLabel", "저장한 검색")} section="vault-search-saved" count={preferenceAccess === "ready" ? preferences.saved.length : null} labels={labels}>
+              <SearchPreferenceState state={preferenceAccess} labels={labels}><SearchHistoryRows items={preferences.saved.slice(0, 5)} emptyText={searchLabel(labels, "searchSavedEmpty", "저장한 검색이 없습니다")} labels={labels} onRun={runSearch} /></SearchPreferenceState>
+            </SearchCard>
           </>
         )}
-        {currentSection === "vault-detail" && <VaultDocumentDetail document={selected} />}
-        {currentSection === "vault-email" && <EmailFilingView />}
+
+        {showRecent && (
+          <SearchCard title={searchLabel(labels, "searchRecentLabel", "최근 검색")} section="vault-search-recent" count={preferenceAccess === "ready" ? preferences.recent.length : null} labels={labels} className="amic-search-results-card">
+            <SearchPreferenceState state={preferenceAccess} labels={labels}><SearchHistoryRows items={preferences.recent} emptyText={searchLabel(labels, "searchRecentEmpty", "최근 검색이 없습니다")} labels={labels} onRun={runSearch} /></SearchPreferenceState>
+            {preferences.recent.length > 0 && (
+              <button type="button" className="text-button search-list-action" disabled={preferenceWriteCount > 0} onClick={() => {
+                if (window.confirm(searchLabel(labels, "searchClearConfirm", "최근 검색 기록을 모두 비울까요?"))) {
+                  commitSearchPreferences(clearRecentSearches(preferences), "clear_recent");
+                }
+              }}>{searchLabel(labels, "searchClearRecent", "최근 검색 비우기")}</button>
+            )}
+          </SearchCard>
+        )}
+
+        {showSaved && (
+          <SearchCard title={searchLabel(labels, "searchSavedLabel", "저장한 검색")} section="vault-search-saved" count={preferenceAccess === "ready" ? preferences.saved.length : null} labels={labels} className="amic-search-results-card">
+            <SearchPreferenceState state={preferenceAccess} labels={labels}><SearchHistoryRows items={preferences.saved} emptyText={searchLabel(labels, "searchSavedEmpty", "저장한 검색이 없습니다")} labels={labels} onRun={runSearch} onDelete={(id) => commitSearchPreferences(removeSavedSearch(preferences, id), "delete_saved", { id })} deleteDisabled={preferenceWriteCount > 0} /></SearchPreferenceState>
+          </SearchCard>
+        )}
+
+        {!showDashboard && !showRecent && !showSaved && (
+          <SearchCard title={searchLabel(labels, "searchResultsTitle", "검색 결과")} section="results" count={submittedQuery && searchReadable ? searchItems.length : null} labels={labels} className="amic-search-results-card">
+            <div className="search-results-toolbar">
+              <span>{searchLabel(labels, "searchDocumentsLabel", "문서/OCR")}</span>
+              <button type="button" className="text-button" disabled={!submittedQuery || searchStateDirty || preferenceWriteCount > 0} onClick={copySearchLink}>
+                <Share2 size={15} />
+                {linkCopyState === "copied" ? searchLabel(labels, "searchCopySuccess", "링크 복사됨") : linkCopyState === "failed" ? searchLabel(labels, "searchCopyFailed", "복사 실패") : searchLabel(labels, "searchCopyLink", "검색 링크 복사")}
+              </button>
+              <button
+                type="button"
+                className="text-button"
+                disabled={!submittedQuery || searchStateDirty || isSaved || preferenceWriteCount > 0}
+                onClick={() => commitSearchPreferences(saveSearch(preferences, submittedQuery, submittedFilters), "save", { query: submittedQuery, ...submittedFilters })}
+              >
+                <Bookmark size={15} />
+                {isSaved ? searchLabel(labels, "searchSavedState", "저장됨") : searchLabel(labels, "searchSave", "검색 저장")}
+              </button>
+            </div>
+            <p className="amic-search-ocr-notice">{searchLabel(labels, "searchOcrSidecarNotice", "OCR은 업로드 시 제공된 사이드카 텍스트를 검색하며, 이 화면에서 OCR을 실행하지 않습니다.")}</p>
+            <SearchResults result={searchResult} pending={searchPending} submittedQuery={submittedQuery} labels={labels} onOpen={openDocument} />
+          </SearchCard>
+        )}
+
+        {selectedDocument && <VaultDocumentDetail document={selectedDocument} labels={labels} />}
+
+        {showDashboard && (
+          <SearchCard title={searchLabel(labels, "searchRecentDocuments", "최근 문서")} section="recent" count={documentCount} labels={labels}>
+            <RecentDocuments result={documentsResult} labels={labels} onOpen={openDocument} />
+          </SearchCard>
+        )}
       </div>
     </section>
   );

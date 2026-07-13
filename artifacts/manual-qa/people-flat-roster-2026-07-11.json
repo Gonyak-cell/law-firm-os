@@ -1,0 +1,47 @@
+{
+  "schema_version": "law-firm-os.people-org-chart-no-hierarchy-copy.v1",
+  "generated_at": "2026-07-11T06:34:44.440Z",
+  "verdict": "PASS",
+  "app_bundle": "apps/desktop/dist/mac/matter.app",
+  "desktop_user_data_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-people-org-chart-qa-sJPtAb",
+  "roster": {
+    "header": "구성원직위부서상사이메일",
+    "table_text": "구성원직위부서상사이메일김양태대표이사Finance없음ytkim@amic.kr박병준대표변호사Legal없음bj.park@amic.kr박서영차장Finance김양태sypark@amic.kr서지원대표변호사Legal없음jwsuh@amic.kr윤태리실장Staff없음tryoon@amic.kr이예진대리Staff윤태리yjlee@amic.kr임영훈대표변호사Legal없음yhlim@amic.kr조성민대표변호사Legal없음smcho@amic.kr조우상이사Finance김양태wsjo@amic.kr한제희고문변호사Legal없음jh731@amic.kr",
+    "cho": "조우상이사Finance김양태wsjo@amic.kr",
+    "park": "박서영차장Finance김양태sypark@amic.kr",
+    "horizontal_overflow": false
+  },
+  "profile": {
+    "park_seoyoung_has_manager_kim_yangtae": true,
+    "horizontal_overflow": {
+      "document": false,
+      "canvas": false,
+      "canvas_content_exceeds_width": false,
+      "offenders": []
+    }
+  },
+  "snapshot": {
+    "root_present": true,
+    "text": "조직근로정보 기준 리포팅 라인구성원박병준서지원임영훈조성민한제희김양태박서영조우상윤태리이예진보고 대상없음서지원임영훈조성민한제희김양태박서영조우상윤태리이예진조직AMIC LawPETRA BRIDGE PARTNERSStaff저장AMIC LawLegal5명박병준대표변호사서지원대표변호사임영훈대표변호사조조성민대표변호사한한제희고문변호사PETRA BRIDGE PARTNERSFinance3명김양태대표이사 / 직속 2명박박서영차장 / 상사 김양태조우상이사 / 상사 김양태StaffStaff2명윤윤태리실장 / 직속 1명이이예진대리 / 상사 윤태리조직 변경 이력0건대상조직보고 대상기록 없음",
+    "forbidden_matches": [],
+    "person_blocks": {
+      "seo": "서지원대표변호사",
+      "cho": "조우상이사 / 상사 김양태",
+      "park": "박박서영차장 / 상사 김양태",
+      "yoon": "윤윤태리실장 / 직속 1명",
+      "lee": "이이예진대리 / 상사 윤태리"
+    },
+    "staff_header": "StaffStaff2명",
+    "group_headers": [
+      "AMIC LawLegal5명",
+      "PETRA BRIDGE PARTNERSFinance3명",
+      "StaffStaff2명"
+    ],
+    "horizontal_overflow": false
+  },
+  "screenshots": {
+    "people_roster": "artifacts/manual-qa/people-flat-roster-2026-07-11/people-roster-manager.png",
+    "people_profile": "artifacts/manual-qa/people-flat-roster-2026-07-11/people-profile-manager.png",
+    "people_org_chart": "artifacts/manual-qa/people-flat-roster-2026-07-11/people-org-chart.png"
+  }
+}

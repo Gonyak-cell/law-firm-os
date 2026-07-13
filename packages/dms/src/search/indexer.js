@@ -114,6 +114,7 @@ export function createSearchIndexEnvelope({ document, version, file_object, byte
     ocr_character_count: ocr.character_count,
     ocr_runtime_executed: ocr.ocr_runtime_executed,
     ocr_provider: ocr.ocr_provider,
+    indexed_at: version?.created_at ?? document.created_at ?? new Date().toISOString(),
     extractor: extracted.extractor,
     ocr_extractor: ocr.extractor,
     search_backend: "json_substring_search",

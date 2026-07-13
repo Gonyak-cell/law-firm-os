@@ -10,6 +10,13 @@ import { EmployeeProfile } from "./employees/EmployeeProfile.tsx";
 import { PeopleWorkforceDirectory } from "./employees/PeopleWorkforceDirectory.tsx";
 import { HRDocumentWorkspace } from "./documents/HRDocumentWorkspace.tsx";
 import { LeaveRequestPage } from "./leave/LeaveRequestPage.tsx";
+import { LeaveApprovalQueue } from "./leave/LeaveApprovalQueue.tsx";
+import { LeaveTypeSettingsPage } from "./leave/LeaveTypeSettingsPage.tsx";
+import { LeaveAccrualAutoPage } from "./leave/LeaveAccrualAutoPage.tsx";
+import { LeaveAccrualManualPage } from "./leave/LeaveAccrualManualPage.tsx";
+import { LeaveUsagePage } from "./leave/LeaveUsagePage.tsx";
+import { LeaveTerminationPage } from "./leave/LeaveTerminationPage.tsx";
+import { LeavePromotionPage } from "./leave/LeavePromotionPage.tsx";
 import { ManagerApprovalQueue } from "./approvals/ManagerApprovalQueue.tsx";
 import { RecruitingPipeline } from "./recruiting/RecruitingPipeline.tsx";
 import { CandidatePortal } from "../candidate/CandidatePortal.tsx";
@@ -42,6 +49,13 @@ const HANDLED_PEOPLE_SECTIONS = new Set([
   "people-documents",
   "people-certificates",
   "people-leave",
+  "people-leave-requests",
+  "people-leave-types",
+  "people-leave-accrual-auto",
+  "people-leave-accrual-manual",
+  "people-leave-usage",
+  "people-leave-termination",
+  "people-annual-leave-notices",
   "people-approvals",
   "people-recruiting",
   "people-lifecycle",
@@ -153,7 +167,7 @@ function peopleGuardState(liveCtx: string) {
   return null;
 }
 
-export function PeopleHome({ activeSection = "", liveCtx = "allow" }: { activeSection?: string; liveCtx?: string }) {
+export function PeopleHome({ activeSection = "", liveCtx = "allow", canManageLeavePolicy = false, canApproveLeave = false, canExecuteLeaveAccrual = false, canAdjustLeaveLedger = false, canExportLeaveReport = false, canSettleLeaveTermination = false, canManageLeavePromotion = false }: { activeSection?: string; liveCtx?: string; canManageLeavePolicy?: boolean; canApproveLeave?: boolean; canExecuteLeaveAccrual?: boolean; canAdjustLeaveLedger?: boolean; canExportLeaveReport?: boolean; canSettleLeaveTermination?: boolean; canManageLeavePromotion?: boolean }) {
   const [overview, setOverview] = useState<PeopleOverviewState | null>(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -283,8 +297,91 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }: { activeSe
 
         {!guardedState && currentSection === "people-leave" && (
           <div className="people-runtime-grid">
-            <EmployeeList selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} refreshKey={refreshKey} />
-            <LeaveRequestPage employeeId={selectedEmployeeId} refreshKey={refreshKey} onSubmitted={() => setRefreshKey((key) => key + 1)} />
+            <LeaveRequestPage canViewTeam={canApproveLeave} />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-requests" && canApproveLeave && (
+          <div className="people-runtime-grid">
+            <LeaveApprovalQueue />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-requests" && !canApproveLeave && (
+          <div className="live-data-state live-data-denied" data-leave-approval-access="denied">
+            <strong>휴가 승인 권한이 없습니다</strong>
+            지정 승인자 또는 인사 담당자에게 접근을 요청하세요.
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-types" && canManageLeavePolicy && (
+          <div className="people-runtime-grid">
+            <LeaveTypeSettingsPage />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-types" && !canManageLeavePolicy && (
+          <div className="live-data-state live-data-denied" data-leave-policy-access="denied">
+            <strong>휴가 설정 권한이 없습니다</strong>
+            인사 담당자에게 접근을 요청하세요.
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-accrual-auto" && canExecuteLeaveAccrual && (
+          <div className="people-runtime-grid">
+            <LeaveAccrualAutoPage />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-accrual-auto" && !canExecuteLeaveAccrual && (
+          <div className="live-data-state live-data-denied" data-leave-accrual-access="denied">
+            <strong>자동 발생 권한이 없습니다</strong>
+            인사 담당자에게 접근을 요청하세요.
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-accrual-manual" && canAdjustLeaveLedger && (
+          <div className="people-runtime-grid">
+            <LeaveAccrualManualPage />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-accrual-manual" && !canAdjustLeaveLedger && (
+          <div className="live-data-state live-data-denied" data-leave-ledger-access="denied">
+            <strong>수동 발생 권한이 없습니다</strong>
+            인사 담당자에게 접근을 요청하세요.
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-usage" && (
+          <div className="people-runtime-grid">
+            <LeaveUsagePage canExport={canExportLeaveReport} canProcessIntegrations={canManageLeavePolicy} />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-termination" && canSettleLeaveTermination && (
+          <div className="people-runtime-grid">
+            <LeaveTerminationPage />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-termination" && !canSettleLeaveTermination && (
+          <div className="live-data-state live-data-denied" data-leave-termination-access="denied">
+            <strong>퇴사 휴가 정산 권한이 없습니다</strong>
+            승인된 인사 운영 범위와 정산 권한을 확인하세요.
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-annual-leave-notices" && canManageLeavePromotion && (
+          <div className="people-runtime-grid">
+            <LeavePromotionPage />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-annual-leave-notices" && !canManageLeavePromotion && (
+          <div className="live-data-state live-data-denied" data-leave-promotion-access="denied">
+            <strong>연차 사용 촉진 관리 권한이 없습니다</strong>
+            승인된 인사 운영 범위와 촉진 관리 권한을 확인하세요.
           </div>
         )}
 

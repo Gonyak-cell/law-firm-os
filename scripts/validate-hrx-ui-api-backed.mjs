@@ -121,7 +121,8 @@ assert(employeeProfile.includes('data-hrx-compensation-records="true"'), "Employ
 assert(employeeProfile.includes("masked_compensation_ref") && employeeProfile.includes("contract_document_ref"), "Employee profile must render masked compensation refs with contract linkage");
 assert(employeeProfile.includes("ProfessionalProfileSection") && employeeProfile.includes('data-people-professional-profile="true"'), "Employee profile must render API-backed public professional profile sections");
 assert(employeeProfile.includes('data-people-professional-profile-kind={profileKind}') && employeeProfile.includes("professionalKindLabel"), "Employee profile must expose professional profile kind for browser proof");
-assert(employeeProfile.includes("주요 경력") && employeeProfile.includes("학력") && employeeProfile.includes("자격") && employeeProfile.includes("출처"), "Employee profile must render career, education, qualification, and source sections");
+assert(employeeProfile.includes("주요 경력") && employeeProfile.includes("학력") && employeeProfile.includes("자격"), "Employee profile must render career, education, and qualification sections");
+assert(!employeeProfile.includes('title="출처"') && !employeeProfile.includes('title="비고"') && !employeeProfile.includes("권한이 없는 정보는 숨깁니다."), "Employee profile must omit source, note, and generic hidden-information copy");
 assert(!/salary|base_pay|bonus_amount/.test(employeeProfile), "Employee profile must not render raw compensation fields");
 
 const documents = read("apps/web/src/people/documents/HRDocumentWorkspace.tsx");
@@ -140,8 +141,8 @@ const globalUtilities = read("apps/web/src/data/globalUtilities.js");
 assert(globalUtilities.includes("policies-employment-contracts") && globalUtilities.includes("Vault 원본과 HRX 계약 상태"), "Global utility catalog must route employment contracts to the live HRX/Vault surface");
 
 const leave = read("apps/web/src/people/leave/LeaveRequestPage.tsx");
-assert(leave.includes("submitHrxLeaveRequest") && leave.includes("onSubmitted?.()"), "Leave UI must submit through API and refresh state");
-assert(leave.includes("formatLeaveHours") && leave.includes("request.request_id") && leave.includes("request.policy_id"), "Leave UI must render API leave balances and request identifiers");
+assert(leave.includes("submitHrxLeaveSelfRequest") && leave.includes("await load()"), "Leave UI must submit through the signed /me API and refresh state");
+assert(leave.includes("formatMinutes") && leave.includes("state.requests.map") && leave.includes('text(request, "request_id")'), "Leave UI must render API leave balances and preserve stable request identity");
 assert(!leave.includes("요청 ${index + 1}") && !leave.includes("신청됨"), "Leave UI must not hide leave rows behind anonymous placeholder labels");
 assert(!apiClient.includes('policy_id: "pto-us"') && apiClient.includes("policy_id: String(form.policy_id") && apiClient.includes("leave_type: String(form.leave_type"), "Leave API client must submit the selected policy and leave type instead of hardcoding PTO");
 

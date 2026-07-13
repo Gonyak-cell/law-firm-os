@@ -116,47 +116,64 @@ async function main() {
     await page.waitForSelector("[data-hr-library-table='true']", { timeout: 30_000 });
     await page.waitForFunction(() => document.body.innerText.includes("조우상") && document.body.innerText.includes("박서영"), null, { timeout: 30_000 });
     const roster = await rosterSnapshot(page);
-    assert(roster.header.includes("상사"), "People roster must expose the manager column");
+    assert(roster.header.includes("연락처"), "People roster must expose the contact column");
     assert.equal(roster.header.includes("소속"), false, "People roster must not expose the affiliation column");
     assert.equal(roster.table_text.includes("PETRA BRIDGE PARTNERS"), false, "People roster must not expose PETRA organization names");
     assert.equal(roster.table_text.includes("AMIC Law"), false, "People roster must not expose AMIC organization names");
     assert.equal(roster.cho.includes("PETRA BRIDGE PARTNERS"), false, "People roster rows must not expose organization names");
     assert.equal(roster.park.includes("PETRA BRIDGE PARTNERS"), false, "People roster rows must not expose organization names");
     assert.equal(await page.locator(".hr-roster-organization-row").count(), 0, "People roster must not render organization group rows");
-    assert(roster.cho.includes("김양태"), `Cho Woo-sang roster row must report to Kim Yang-tae: ${roster.cho}`);
-    assert(roster.park.includes("김양태"), `Park Seo-young roster row must report to Kim Yang-tae: ${roster.park}`);
+    assert.match(roster.cho, /010-\d{4}-\d{4}/, "People roster rows must expose a formatted contact");
+    assert.match(roster.park, /010-\d{4}-\d{4}/, "People roster rows must expose a formatted contact");
+    assert(roster.table_text.includes("미등록"), "People roster must show the missing contact state");
     assert.equal(roster.horizontal_overflow, false, "People roster must not create horizontal overflow");
-    await page.screenshot({ path: screenshotPath("people-roster-manager"), fullPage: true });
+    await page.screenshot({ path: screenshotPath("people-roster-contact"), fullPage: true });
 
-    await page.locator("button.hr-roster-person", { hasText: "박서영" }).first().click();
-    const profile = page.locator('[data-people-detail-panel="open"]').first();
-    await profile.waitFor({ state: "visible", timeout: 20_000 });
-    await page.waitForTimeout(250);
-    assert.equal(
-      await page.evaluate(() => document.activeElement?.classList.contains("people-detail-close") === true),
-      true,
-      "People profile dialog must move focus to its close button"
-    );
-    const profileText = await profile.innerText();
-    assert(profileText.includes("상사"), "Park Seo-young profile must expose the manager field");
-    assert(profileText.includes("김양태"), "Park Seo-young profile must show Kim Yang-tae as manager");
-    const profileOverflow = await page.evaluate(() => {
-      const canvas = document.querySelector(".page-canvas");
-      const canvasRect = canvas?.getBoundingClientRect();
-      return {
-        document: document.documentElement.scrollWidth > document.documentElement.clientWidth,
-        canvas: Boolean(canvas && canvas.scrollWidth > canvas.clientWidth),
-        canvas_content_exceeds_width: Boolean(canvas && canvas.scrollWidth > canvas.clientWidth),
-        offenders: canvas && canvasRect ? [...canvas.querySelectorAll("*")]
-          .filter((element) => element.getBoundingClientRect().right > canvasRect.right + 1)
-          .slice(0, 8)
-          .map((element) => ({ className: element.className, right: Math.round(element.getBoundingClientRect().right), canvasRight: Math.round(canvasRect.right) })) : []
-      };
-    });
-    assert.equal(profileOverflow.document, false, `People profile document overflow: ${JSON.stringify(profileOverflow)}`);
-    assert.equal(profileOverflow.canvas, false, `People profile canvas overflow: ${JSON.stringify(profileOverflow)}`);
-    await page.screenshot({ path: screenshotPath("people-profile-manager"), fullPage: true });
-    await page.locator("button.people-detail-close").first().click({ timeout: 10_000 });
+    const memberNames = await page.locator("button.hr-roster-person strong").allTextContents();
+    const forbiddenProfileCopy = ["출처", "비고", "권한이 없는 정보는 숨깁니다."];
+    let checkedProfileCount = 0;
+    let parkProfileOverflow = null;
+    for (const memberName of memberNames.map((name) => name.trim()).filter(Boolean)) {
+      await page.locator("button.hr-roster-person", { hasText: memberName }).first().click();
+      const profile = page.locator('[data-people-detail-panel="open"]').first();
+      await profile.waitFor({ state: "visible", timeout: 20_000 });
+      await page.waitForTimeout(250);
+      assert.equal(
+        await page.evaluate(() => document.activeElement?.classList.contains("people-detail-close") === true),
+        true,
+        `${memberName} profile dialog must move focus to its close button`
+      );
+      const profileText = await profile.innerText();
+      assert.deepEqual(
+        forbiddenProfileCopy.filter((copy) => profileText.includes(copy)),
+        [],
+        `${memberName} profile must omit source, note, and generic hidden-information copy`
+      );
+      checkedProfileCount += 1;
+      if (memberName === "박서영") {
+        assert(profileText.includes("상사"), "Park Seo-young profile must expose the manager field");
+        assert(profileText.includes("김양태"), "Park Seo-young profile must show Kim Yang-tae as manager");
+        parkProfileOverflow = await page.evaluate(() => {
+          const canvas = document.querySelector(".page-canvas");
+          const canvasRect = canvas?.getBoundingClientRect();
+          return {
+            document: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+            canvas: Boolean(canvas && canvas.scrollWidth > canvas.clientWidth),
+            canvas_content_exceeds_width: Boolean(canvas && canvas.scrollWidth > canvas.clientWidth),
+            offenders: canvas && canvasRect ? [...canvas.querySelectorAll("*")]
+              .filter((element) => element.getBoundingClientRect().right > canvasRect.right + 1)
+              .slice(0, 8)
+              .map((element) => ({ className: element.className, right: Math.round(element.getBoundingClientRect().right), canvasRight: Math.round(canvasRect.right) })) : []
+          };
+        });
+        assert.equal(parkProfileOverflow.document, false, `People profile document overflow: ${JSON.stringify(parkProfileOverflow)}`);
+        assert.equal(parkProfileOverflow.canvas, false, `People profile canvas overflow: ${JSON.stringify(parkProfileOverflow)}`);
+        await page.screenshot({ path: screenshotPath("people-profile-manager"), fullPage: true });
+      }
+      await page.locator("button.people-detail-close").first().click({ timeout: 10_000 });
+    }
+    assert.equal(checkedProfileCount, memberNames.length, "Every People roster member profile must be checked");
+    assert.ok(parkProfileOverflow, "Park Seo-young profile overflow result must be captured");
 
     await clickSidebarChild(page, "조직");
     await page.waitForSelector("[data-hr-org-chart='true']", { timeout: 30_000 });
@@ -187,10 +204,15 @@ async function main() {
       app_bundle: "apps/desktop/dist/mac/matter.app",
       desktop_user_data_path: userDataPath,
       roster,
-      profile: { park_seoyoung_has_manager_kim_yangtae: true, horizontal_overflow: profileOverflow },
+      profile: {
+        park_seoyoung_has_manager_kim_yangtae: true,
+        horizontal_overflow: parkProfileOverflow,
+        checked_members: checkedProfileCount,
+        forbidden_copy_matches: 0
+      },
       snapshot,
       screenshots: {
-        people_roster: path.relative(repoRoot, screenshotPath("people-roster-manager")),
+        people_roster: path.relative(repoRoot, screenshotPath("people-roster-contact")),
         people_profile: path.relative(repoRoot, screenshotPath("people-profile-manager")),
         people_org_chart: path.relative(repoRoot, screenshot)
       }

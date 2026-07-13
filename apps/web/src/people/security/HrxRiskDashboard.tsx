@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, RotateCw, ShieldAlert } from "lucide-react";
+import { CalendarClock, CheckCircle2, RotateCw, ShieldAlert } from "lucide-react";
 import { Panel } from "../../components/primitives.jsx";
 import { fetchHrxRiskEvents, scanHrxRiskEvents, transitionHrxRiskEvent } from "../hrxApiClient.ts";
 
@@ -99,6 +99,7 @@ function RiskTypeStrip({ dashboard }: { dashboard: RiskDashboard | null }) {
 function RiskRow({ event, onAcknowledge, busy }: { key?: unknown; event: RiskEvent; onAcknowledge: (event: RiskEvent) => void | Promise<void>; busy: boolean }) {
   const eventId = event.risk_event_id ?? "";
   const canAcknowledge = event.status === "open" && Boolean(eventId);
+  const promotionTarget = event.risk_type === "annual_leave_promotion_target";
   return (
     <div className="hrx-risk-row" data-risk-event-id={eventId} data-risk-type={event.risk_type ?? ""}>
       <div className="hrx-risk-row-main">
@@ -108,9 +109,9 @@ function RiskRow({ event, onAcknowledge, busy }: { key?: unknown; event: RiskEve
       <span className={`hrx-risk-severity severity-${event.severity ?? "medium"}`}>{severityLabel(event.severity)}</span>
       <span className="hrx-risk-status">{statusLabel(event.status)}</span>
       <span className="hrx-risk-date">{event.detected_on || "날짜 없음"}</span>
-      <button type="button" className="secondary-button hrx-risk-row-action" disabled={!canAcknowledge || busy} onClick={() => onAcknowledge(event)}>
-        <CheckCircle2 size={15} />
-        확인
+      <button type="button" className="secondary-button hrx-risk-row-action" disabled={promotionTarget ? busy : !canAcknowledge || busy} onClick={() => promotionTarget ? window.location.assign("?view=people&ctx=allow#people-annual-leave-notices") : onAcknowledge(event)}>
+        {promotionTarget ? <CalendarClock size={15} /> : <CheckCircle2 size={15} />}
+        {promotionTarget ? "캠페인" : "확인"}
       </button>
     </div>
   );

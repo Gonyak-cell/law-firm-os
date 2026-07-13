@@ -1,5 +1,4 @@
 import React, { useEffect, useState, type ReactNode } from "react";
-import { ShieldCheck } from "lucide-react";
 import { Panel, Property } from "../../components/primitives.jsx";
 import { fetchHrxEmployeeProfile, fetchHrxCompensationRecords } from "../hrxApiClient.ts";
 import { HrxStepUpChallenge } from "../security/HrxStepUpChallenge.tsx";
@@ -86,13 +85,6 @@ function ProfessionalProfileSection({ profile }: { profile: unknown }) {
     );
   }
 
-  const sourceRefs = recordList(record.source_refs);
-  const sourceLabels = sourceRefs.map((source) => {
-    const section = displayValue(source.source_section);
-    const url = displayValue(source.source_url);
-    return `${section}, ${url}`;
-  });
-
   return (
     <section
       className="people-professional-profile"
@@ -110,8 +102,6 @@ function ProfessionalProfileSection({ profile }: { profile: unknown }) {
       <ProfessionalList title="주요 경력" items={stringList(record.experience)} />
       <ProfessionalList title="학력" items={stringList(record.education)} />
       <ProfessionalList title="자격" items={stringList(record.qualifications)} />
-      <ProfessionalList title="출처" items={sourceLabels} />
-      <ProfessionalList title="비고" items={stringList(record.source_notes)} />
     </section>
   );
 }
@@ -222,10 +212,6 @@ export function EmployeeProfile({ employeeId, refreshKey }: { employeeId?: strin
 
   return (
     <Panel id="people-profile" className="people-panel" title="구성원 상세" meta={employeeId ? "선택됨" : "미선택"}>
-      <div className="people-panel-kicker">
-        <ShieldCheck size={15} />
-        권한이 없는 정보는 숨깁니다.
-      </div>
       {body}
     </Panel>
   );

@@ -54,6 +54,7 @@ test("lifecycle route creates and closes offboarding only after checks clear", a
       legal_hold_checks: [{ hold_ref: "HoldCheck:001", clear: false }],
       matter_reassignments: [{ matter_id: "matter-001", reassigned: false }],
       handover_items: [{ item_id: "handover-001", title: "Matter handover", completed: false }],
+      leave_reconciliation_status: "pending",
     },
   });
   assert.equal(created.status, 201);
@@ -82,6 +83,7 @@ test("lifecycle route creates and closes offboarding only after checks clear", a
         },
       ],
       handover_items: [{ item_id: "handover-001", title: "Matter handover", completed: true }],
+      leave_reconciliation_status: "approved_and_synced",
     },
   });
   assert.equal(closed.status, 200);

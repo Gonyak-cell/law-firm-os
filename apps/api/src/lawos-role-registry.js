@@ -7,12 +7,16 @@ const HRX_SELF_SERVICE_SCOPES = Object.freeze([
   "hrx.document.read",
   "hrx.leave.read",
   "hrx.leave.write",
+  "hrx.leave.self.read",
+  "hrx.leave.self.write",
 ]);
 
 const HRX_ATTORNEY_SCOPES = Object.freeze([
   ...HRX_SELF_SERVICE_SCOPES,
   "hrx.approval.read",
   "hrx.approval.write",
+  "hrx.leave.team.read",
+  "hrx.leave.approve",
   "hrx.legal_people.read",
   "hrx.analytics.read",
   "hrx.ai.assistant",
@@ -35,6 +39,13 @@ const HRX_HR_SCOPES = Object.freeze([
   "hrx.lifecycle.write",
   "hrx.policy.read",
   "hrx.policy.write",
+  "hrx.leave.policy.read",
+  "hrx.leave.policy.write",
+  "hrx.leave.accrual.execute",
+  "hrx.leave.ledger.adjust",
+  "hrx.leave.promotion.manage",
+  "hrx.leave.report.export",
+  "hrx.leave.termination.settle",
   "hrx.payroll.preview",
 ]);
 

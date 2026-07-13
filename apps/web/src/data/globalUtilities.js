@@ -143,7 +143,7 @@ export const globalUtilityItems = [
         label: "휴가 요청",
         source: "People",
         icon: ClipboardList,
-        legacyRoutes: [legacy("people", "people-leave-requests")]
+        legacyRoutes: []
       },
       {
         id: "requests-attendance",
@@ -468,7 +468,8 @@ export const conditionalGlobalItems = [
         label: "연차휴가 사용 촉진 문서",
         source: "Vault",
         icon: FileText,
-        legacyRoutes: [legacy("people", "people-annual-leave-notices")]
+        description: "문서 원문은 Vault에 보관하고 People의 촉진 캠페인에서는 참조와 전달 증거를 관리합니다.",
+        legacyRoutes: []
       }
     ]
   }
@@ -504,6 +505,7 @@ const directRouteMap = new Map([
   ["calendar:calendar-matter", route("matters", "matter-calendar")],
   ["calendar:calendar-people-external", route("people", "people-work-schedule-external")],
   ["calendar:calendar-absence", route("people", "people-leave")],
+  ["people:people-company-leave", route("people", "people-leave-types", { redirectedFrom: { view: "people", section: "people-company-leave" } })],
   ["finance:finance-matter-billing", route("home", "home-finance-billing", { redirectedFrom: { view: "finance", section: "finance-matter-billing" } })],
   ["finance:finance-expenses", route("home", "home-finance-expenses", { redirectedFrom: { view: "finance", section: "finance-expenses" } })],
   ["finance:finance-transactions", route("home", "home-finance-billing", { redirectedFrom: { view: "finance", section: "finance-transactions" } })],

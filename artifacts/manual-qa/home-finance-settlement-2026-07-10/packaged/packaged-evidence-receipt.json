@@ -1,11 +1,11 @@
 {
   "schema_version": "law-firm-os.home-finance-packaged-evidence.v0.1",
-  "generated_at": "2026-07-10T17:25:19.211Z",
+  "generated_at": "2026-07-11T01:48:40.327Z",
   "status": "passed",
   "package": {
     "app_bundle": "apps/desktop/dist/mac/matter.app",
     "executable_sha256": "c0bf182389ea930585e3b0bf5c4f16529461e02bf3be751cb364d0e25f2257e0",
-    "renderer_index_sha256": "05d2d6551e2101b6b7181dba35dad3c91d584a38aef4291022286324a1ee1bcc",
+    "renderer_index_sha256": "670c5769569b9c4491ec654c69c98db63df38c82ade2a6ebd2e5f6bec01c76e4",
     "internal_package_only": true,
     "developer_id_signed": false,
     "notarized": false
@@ -104,7 +104,7 @@
     {
       "name": "01-packaged-overview-sidebar",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/01-packaged-overview-sidebar.png",
-      "screenshot_sha256": "390c21d58c6b2c32ac5b172bf58b6569c336c4575315e2d512a17149dc50a8a3",
+      "screenshot_sha256": "a9c14fcf676a9f342ea7cdfe58b52b7683cd665e908ced2c183b67ea4b416e53",
       "selector": "[data-home-finance-summary=\"true\"]",
       "snapshot": {
         "requested_view": "home",
@@ -140,7 +140,7 @@
     {
       "name": "02-packaged-monthly",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/02-packaged-monthly.png",
-      "screenshot_sha256": "f0e026ef0d7e07d61e29dacba6859c81c6a57b5af18688a7455bd6c7fa398324",
+      "screenshot_sha256": "07b71224af4fd4907472b5b563c20f7e61857f55cf86826e793f20f50729aac4",
       "selector": "[data-home-finance-monthly-table=\"true\"]",
       "snapshot": {
         "requested_view": "home",
@@ -176,7 +176,7 @@
     {
       "name": "03-packaged-clients-unlinked",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/03-packaged-clients-unlinked.png",
-      "screenshot_sha256": "ebbae69b8d8c11fa24f7d9cb04c4b3ba6b06acd7c5c481de946ecb1df86c3c5b",
+      "screenshot_sha256": "001dcf3b1346a16b3e6b934256ec4ad2decb7eefbbf5fee81b8956388d43ed53",
       "selector": "[data-home-finance-unlinked-client=\"true\"]",
       "snapshot": {
         "requested_view": "home",
@@ -212,7 +212,7 @@
     {
       "name": "04-packaged-time",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/04-packaged-time.png",
-      "screenshot_sha256": "26f3b3d8866016aeeebff371d8694ab8a35ccf3fcf9ec43f1071d63e06cad039",
+      "screenshot_sha256": "2cb7e4e27bf4050dc652851c09035f84c401f02e409197991886121485fa4583",
       "selector": "[data-home-finance-operation=\"time\"]",
       "snapshot": {
         "requested_view": "home",
@@ -248,7 +248,7 @@
     {
       "name": "05-packaged-expenses",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/05-packaged-expenses.png",
-      "screenshot_sha256": "5f33709cf4bec9d5096fb5cbf6501d6550a834378deaa4f44f0734a747770c07",
+      "screenshot_sha256": "664b248d55f30c26b22e86f7b4d98a188e8897d27698f6cb86259bd7c1307f36",
       "selector": "[data-home-finance-operation=\"expenses\"]",
       "snapshot": {
         "requested_view": "home",
@@ -284,7 +284,7 @@
     {
       "name": "06-packaged-billing",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/06-packaged-billing.png",
-      "screenshot_sha256": "22cfa4b53b2fdb263fcfd2ff3266982be52fe15147db49c6c72c4ec2e8c05bb8",
+      "screenshot_sha256": "e1b66dbae4ec0e3cd73010b39eb6ef9e28761b7559ad9b4b5de64cad2c23dd7f",
       "selector": "[data-home-finance-operation=\"billing\"]",
       "snapshot": {
         "requested_view": "home",
@@ -320,7 +320,7 @@
     {
       "name": "07-packaged-ar",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/07-packaged-ar.png",
-      "screenshot_sha256": "5b1529178786b1e65d92d69461aa84e8cddf1b5cb3c98f481d8071d869cc0852",
+      "screenshot_sha256": "a35df8c3c9e022eac4582ce67a162c8a0e01f561d061f653eb25afd337ca3885",
       "selector": "[data-home-finance-operation=\"ar\"]",
       "snapshot": {
         "requested_view": "home",
@@ -356,7 +356,7 @@
     {
       "name": "08-packaged-matter-context-redirect",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/08-packaged-matter-context-redirect.png",
-      "screenshot_sha256": "22cfa4b53b2fdb263fcfd2ff3266982be52fe15147db49c6c72c4ec2e8c05bb8",
+      "screenshot_sha256": "e1b66dbae4ec0e3cd73010b39eb6ef9e28761b7559ad9b4b5de64cad2c23dd7f",
       "selector": "[data-home-finance-operation=\"billing\"]",
       "snapshot": {
         "requested_view": "matters",
@@ -392,7 +392,7 @@
     {
       "name": "09-packaged-denied",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/09-packaged-denied.png",
-      "screenshot_sha256": "d5b4a61d47c3f6096458eaf41c8c4b8507bad2fb86cd505cc476d0d6fc029cef",
+      "screenshot_sha256": "08c056de9388de59827e0b94618edd8308443b9b3bf33bf66397613664a00d18",
       "selector": "[data-home-dashboard-shell=\"true\"]",
       "snapshot": {
         "requested_view": "home",
@@ -428,7 +428,7 @@
     {
       "name": "10-packaged-home-finance-1280x640",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/10-packaged-home-finance-1280x640.png",
-      "screenshot_sha256": "034682843b5cdd753b0fd830d3f55442f1a454a384b94db4a9e7156c057c1b20",
+      "screenshot_sha256": "ea2ec7d11e912e36b54a79b94fb873d62324f9f724916f9bf4aec84a7054da87",
       "selector": "[data-sidebar-group=\"home-finance\"]",
       "snapshot": {
         "viewport": {
@@ -457,7 +457,7 @@
     {
       "name": "11-packaged-matter-sidebar-without-settlement",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/11-packaged-matter-sidebar-without-settlement.png",
-      "screenshot_sha256": "fa2fe9cb4c4e499360edb7f4d0791deb41907db392202c47ce63d5d8261ceb25",
+      "screenshot_sha256": "24fe2365d790693730bb258df2afda575e098ab262d4254238462f8bc7c582f1",
       "selector": "[data-context-sidebar=\"matters\"]",
       "snapshot": {
         "settlement_group_visible": false,
@@ -468,7 +468,7 @@
     {
       "name": "12-packaged-client-sidebar-accordion",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/12-packaged-client-sidebar-accordion.png",
-      "screenshot_sha256": "262205271b1c009cf37656e96fb54ff9396bc8808381f301e4406f762bbfc77d",
+      "screenshot_sha256": "f8288ae8bda92c35f4dfb69fab3158152b32ab98407ded35841c546a79492ca4",
       "selector": ".sidebar-child[aria-current=\"location\"]",
       "snapshot": {
         "resolved_hash": "client-opportunities",
@@ -482,7 +482,7 @@
     {
       "name": "13-packaged-matter-sidebar-accordion",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/13-packaged-matter-sidebar-accordion.png",
-      "screenshot_sha256": "ede7dc95f070fee4d3d5483455960d25934c9b376c2cc11455256ee2f7c38b16",
+      "screenshot_sha256": "185a628e54af7ddf6dfd55eec8b7588df4d8940dad3437a874c0cf257ed20bde",
       "selector": ".sidebar-child[aria-current=\"location\"]",
       "snapshot": {
         "resolved_hash": "matter-board",
@@ -496,7 +496,7 @@
     {
       "name": "14-packaged-people-sidebar-accordion",
       "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/packaged/14-packaged-people-sidebar-accordion.png",
-      "screenshot_sha256": "3f7c0475d149ff057187f534b84115f13f2a076c6c35e0a96b04be8cc053f246",
+      "screenshot_sha256": "2ec4595c3c6fbc675b2a8cad83dbc2255679b11ba69e69aadac75dfb56fa475b",
       "selector": ".sidebar-child[aria-current=\"location\"]",
       "snapshot": {
         "resolved_hash": "people-work-schedule",

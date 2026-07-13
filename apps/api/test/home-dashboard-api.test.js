@@ -192,6 +192,15 @@ function createSourceRuntime({ failMatterTasks = false } = {}) {
         },
         {
           tenant_id: TENANT,
+          model_type: "MatterApprovalRequest",
+          approval_request_id: "matter-expense-approval-source-001",
+          matter_id: "matter-source-001",
+          title: "출장 비용 승인",
+          status: "pending_owner_approval",
+          created_at: "2026-07-07T03:00:00.000Z",
+        },
+        {
+          tenant_id: TENANT,
           model_type: "MatterTask",
           task_id: "matter-task-source-001",
           matter_id: "matter-source-001",
@@ -375,6 +384,7 @@ test("Home dashboard aggregates HRX, Matter, AI, agenda, notice, and Vault newsl
     assert.ok(approvals.body.items.some((item) => item.id === "hrx_approval:approval-source-leave-001"));
     assert.ok(approvals.body.items.some((item) => item.id === "matter_approval:matter-approval-source-001"));
     assert.equal(approvals.body.items.find((item) => item.id === "matter_approval:matter-approval-source-001").subtype, "finance");
+    assert.equal(approvals.body.items.find((item) => item.id === "matter_approval:matter-expense-approval-source-001").subtype, "expenses");
     assert.ok(approvals.body.items.some((item) => item.id === "ai_review:ai-review-source-001"));
     assert.ok(approvals.body.source_statuses.every((status) => status.status === "ok"));
 

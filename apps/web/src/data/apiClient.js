@@ -488,9 +488,9 @@ function safeActorRef(value) {
   return ref;
 }
 
-function safeSessionRefList(values) {
+function safeSessionRefList(values, limit = 24) {
   if (!Array.isArray(values)) return [];
-  return values.map((value) => safeSessionRef(value)).filter(Boolean).slice(0, 24);
+  return values.map((value) => safeSessionRef(value)).filter(Boolean).slice(0, limit);
 }
 
 function safeTenantRefs(value, fallbackTenantRef = null) {
@@ -588,7 +588,7 @@ export function readLawosSessionEnvelope(source = globalThis) {
     actor_ref: actorRef,
     tenant_refs: tenantRefs,
     role_ids: safeSessionRefList(raw.role_ids),
-    scopes: safeSessionRefList(raw.scopes),
+    scopes: safeSessionRefList(raw.scopes, 96),
     review_state: reviewState,
     expires_at: expiresAt
   };
@@ -1187,6 +1187,7 @@ export async function fetchHomeFeed({
 export async function fetchMatterRecords({
   ctx = "allow",
   limit = 100,
+  maxPages = 20,
   permissionRef = DEFAULT_MATTER_PERMISSION_REF,
   auditHintRef = DEFAULT_MATTER_AUDIT_HINT_REF
 } = {}) {
@@ -1219,7 +1220,7 @@ export async function fetchMatterRecords({
       items.push(...body.items);
       cursor = body.page_info?.next_cursor ?? null;
       pageCount += 1;
-    } while (cursor && pageCount < 20);
+    } while (cursor && pageCount < maxPages);
   } catch {
     return { kind: "error" };
   }
@@ -3327,6 +3328,9 @@ export async function fetchVaultDocuments({
 
 export async function fetchVaultSearch({
   query = "",
+  currentVersionOnly = true,
+  dateFrom = "",
+  dateTo = "",
   ctx = "allow",
   permissionRef = DEFAULT_VAULT_PERMISSION_REF,
   auditHintRef = DEFAULT_VAULT_AUDIT_HINT_REF
@@ -3339,6 +3343,9 @@ export async function fetchVaultSearch({
   });
   const normalizedQuery = String(query ?? "").trim();
   if (normalizedQuery) params.set("q", normalizedQuery);
+  params.set("current_version", currentVersionOnly ? "current" : "all");
+  if (dateFrom) params.set("date_from", dateFrom);
+  if (dateTo) params.set("date_to", dateTo);
 
   let body;
   try {
@@ -3371,6 +3378,80 @@ export async function fetchVaultSearch({
     countLeakPrevented: body.count_leak_prevented === true,
     productionReadyClaim: body.production_ready_claim === true
   };
+}
+
+export async function fetchVaultSearchPreferences({
+  ctx = "allow",
+  permissionRef = DEFAULT_VAULT_PERMISSION_REF,
+  auditHintRef = DEFAULT_VAULT_AUDIT_HINT_REF
+} = {}) {
+  const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
+  const params = new URLSearchParams({
+    tenant_id: tenantIdForDomain("vault", VAULT_TENANT_ID),
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef
+  });
+  let body;
+  try {
+    const response = await apiFetch(`/api/vault/search/preferences?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+  if (body && typeof body === "object" && ["denied", "review_required"].includes(body.ui_state)) {
+    return { kind: "guarded", uiState: body.ui_state, outcome: body.outcome, safeErrorCodes: body.safe_error_codes ?? [] };
+  }
+  if (!body || typeof body !== "object" || body.outcome !== "passed" || !body.item || !Array.isArray(body.item.recent) || !Array.isArray(body.item.saved)) {
+    return { kind: "error" };
+  }
+  return { kind: "data", item: body.item, requestId: body.request_id, productionReadyClaim: body.production_ready_claim === true };
+}
+
+export async function writeVaultSearchPreferences({
+  operation,
+  query = "",
+  id = "",
+  current_version_only = true,
+  date_from = null,
+  date_to = null,
+  ctx = "allow",
+  permissionRef = DEFAULT_VAULT_PERMISSION_REF,
+  auditHintRef = DEFAULT_VAULT_AUDIT_HINT_REF
+} = {}) {
+  const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
+  let body;
+  try {
+    const response = await apiFetch("/api/vault/search/preferences", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+      },
+      body: JSON.stringify({
+        tenant_id: tenantIdForDomain("vault", VAULT_TENANT_ID),
+        permission_ref: permissionRef,
+        audit_hint_ref: auditHintRef,
+        operation,
+        query,
+        id,
+        current_version_only,
+        date_from,
+        date_to
+      })
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+  if (body && typeof body === "object" && ["denied", "review_required"].includes(body.ui_state)) {
+    return { kind: "guarded", uiState: body.ui_state, outcome: body.outcome, safeErrorCodes: body.safe_error_codes ?? [] };
+  }
+  if (!body || typeof body !== "object" || body.outcome !== "passed" || !body.item || !Array.isArray(body.item.recent) || !Array.isArray(body.item.saved)) {
+    return { kind: "error" };
+  }
+  return { kind: "data", item: body.item, requestId: body.request_id, productionReadyClaim: body.production_ready_claim === true };
 }
 
 export async function fetchVaultBridgeStatus({ ctx = "allow", bridgeToken = null } = {}) {

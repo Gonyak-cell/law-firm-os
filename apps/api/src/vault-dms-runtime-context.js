@@ -28,6 +28,8 @@ export const VAULT_DMS_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/vault/documents",
     "GET /api/vault/documents/:document_id/download",
     "GET /api/vault/search",
+    "GET /api/vault/search/preferences",
+    "POST /api/vault/search/preferences",
     "GET /api/vault/audit",
   ]),
   data_source: "vault_dms_runtime_repository",
@@ -117,6 +119,12 @@ export function createVaultDmsRuntimeContext({
 }
 
 const DEFAULT_RUNTIME = createVaultDmsRuntimeContext();
+const SEARCH_PREFERENCES_MODEL_TYPE = "VaultSearchPreferences";
+const SEARCH_QUERY_LIMIT = 200;
+const SEARCH_RECENT_LIMIT = 20;
+const SEARCH_SAVED_LIMIT = 50;
+const SEARCH_HISTORY_RETENTION_MS = 90 * 24 * 60 * 60 * 1000;
+const SEARCH_PREFERENCE_OPERATIONS = new Set(["remember", "save", "delete_saved", "clear_recent", "share_authorize"]);
 
 function errorResponse(status, requestId, codes, extra = {}) {
   return {
@@ -592,31 +600,270 @@ export function handleVaultSearch({ query, context, requestId, runtime = DEFAULT
     index_rows: indexRows,
     allowed_document_ids: allowedDocumentIds,
   });
+  if (query.current_version && query.current_version !== "current") {
+    return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+  const currentVersionOnly = true;
+  const dateFrom = typeof query.date_from === "string" && /^\d{4}-\d{2}-\d{2}$/.test(query.date_from) ? query.date_from : "";
+  const dateTo = typeof query.date_to === "string" && /^\d{4}-\d{2}-\d{2}$/.test(query.date_to) ? query.date_to : "";
+  if ((query.date_from && !dateFrom) || (query.date_to && !dateTo) || (dateFrom && dateTo && dateFrom > dateTo)) {
+    return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+  const currentVersionByDocument = new Map(documents.map((document) => [document.document_id, document.current_version_id]));
+  const results = filtered.results.filter((item) => {
+    if (currentVersionOnly && currentVersionByDocument.get(item.document_id) !== item.version_id) return false;
+    const indexedDate = typeof item.indexed_at === "string" ? item.indexed_at.slice(0, 10) : "";
+    if (dateFrom && (!indexedDate || indexedDate < dateFrom)) return false;
+    if (dateTo && (!indexedDate || indexedDate > dateTo)) return false;
+    return true;
+  });
   appendVaultSensitiveReadAudit({
     repository: runtime.repository,
     context,
     query,
     action: "dms:search",
     resource: { resource_type: "vault_search" },
-    returnedCount: filtered.results.length,
+    returnedCount: results.length,
   });
   return {
     status: 200,
     body: {
       request_id: requestId,
       outcome: "passed",
-      items: filtered.results,
+      items: results,
       page_info: {
         query: searchQuery,
-        returned_count: filtered.results.length,
+        returned_count: results.length,
         omitted_result_count: filtered.omitted_result_count,
+        current_version_only: currentVersionOnly,
+        date_from: dateFrom || null,
+        date_to: dateTo || null,
         search_backend: "json_substring_search",
-        body_text_indexed: filtered.results.some((item) => item.body_text_indexed === true),
+        body_text_indexed: results.some((item) => item.body_text_indexed === true),
+        ocr_index_mode: "caller_supplied_sidecar",
+        ocr_runtime_executed: false,
       },
       safe_error_codes: [],
       audit_hint_ref: query.audit_hint_ref,
-      ui_state: filtered.results.length === 0 ? "empty" : null,
+      ui_state: results.length === 0 ? "empty" : null,
       count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
+function searchPreferenceResourceId(actorId) {
+  return `vault_search_preferences:${actorId}`;
+}
+
+function normalizeSearchPreferenceFilters(value = {}) {
+  const dateFrom = typeof value.date_from === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.date_from) ? value.date_from : null;
+  const dateTo = typeof value.date_to === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.date_to) ? value.date_to : null;
+  if (dateFrom && dateTo && dateFrom > dateTo) return null;
+  return Object.freeze({
+    current_version_only: true,
+    date_from: dateFrom,
+    date_to: dateTo,
+  });
+}
+
+function searchPreferenceKey(value) {
+  return JSON.stringify([value.query, value.current_version_only, value.date_from, value.date_to]);
+}
+
+function normalizeSearchPreferenceRecord(value) {
+  if (!value || typeof value.query !== "string" || typeof value.searched_at !== "string") return null;
+  const query = value.query.trim().slice(0, SEARCH_QUERY_LIMIT);
+  const searchedAt = Date.parse(value.searched_at);
+  const filters = normalizeSearchPreferenceFilters(value);
+  if (!query || !Number.isFinite(searchedAt) || !filters) return null;
+  return Object.freeze({
+    id: typeof value.id === "string" && value.id.trim() ? value.id.trim().slice(0, 240) : `${query}:${value.searched_at}`,
+    query,
+    scope: "documents-ocr",
+    searched_at: new Date(searchedAt).toISOString(),
+    ...filters,
+  });
+}
+
+function normalizeSearchPreferenceList(values, { limit, retention = false } = {}) {
+  const cutoff = Date.now() - SEARCH_HISTORY_RETENTION_MS;
+  const seen = new Set();
+  return (Array.isArray(values) ? values : [])
+    .map(normalizeSearchPreferenceRecord)
+    .filter((item) => item && (!retention || Date.parse(item.searched_at) >= cutoff))
+    .filter((item) => {
+      const key = searchPreferenceKey(item);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, limit);
+}
+
+function serializeSearchPreferences(record, actorId) {
+  return Object.freeze({
+    owner_user_id: actorId,
+    recent: normalizeSearchPreferenceList(record?.recent, { limit: SEARCH_RECENT_LIMIT, retention: true }),
+    saved: normalizeSearchPreferenceList(record?.saved, { limit: SEARCH_SAVED_LIMIT }),
+    retention_days: 90,
+    result_payloads_persisted: false,
+  });
+}
+
+function appendSearchPreferenceAudit({ repository, context, query, operation, preferences } = {}) {
+  return repository.appendAudit({
+    event_id: `search_preferences_${randomUUID()}`,
+    tenant_id: query.tenant_id,
+    actor_id: context.principal.user_id,
+    action: `search.preferences.${operation}`,
+    object_type: "search_preferences",
+    object_id: searchPreferenceResourceId(context.principal.user_id),
+    decision: "allow",
+    reason: "search_preferences_updated_after_permission_gate",
+    occurred_at: new Date().toISOString(),
+    metadata: {
+      permission_ref: query.permission_ref,
+      audit_hint_ref: query.audit_hint_ref,
+      recent_count: preferences.recent.length,
+      saved_count: preferences.saved.length,
+      raw_query_included: false,
+      result_payload_included: false,
+    },
+  });
+}
+
+function searchPreferenceMutation(current, body, actorId) {
+  const operation = String(body?.operation ?? "");
+  if (!SEARCH_PREFERENCE_OPERATIONS.has(operation)) return null;
+  const preferences = serializeSearchPreferences(current, actorId);
+  if (operation === "clear_recent") return { operation, preferences: { ...preferences, recent: [] } };
+  if (operation === "delete_saved") {
+    const id = typeof body?.id === "string" ? body.id.trim().slice(0, 240) : "";
+    if (!id) return null;
+    return { operation, preferences: { ...preferences, saved: preferences.saved.filter((item) => item.id !== id) } };
+  }
+  const query = typeof body?.query === "string" ? body.query.trim().slice(0, SEARCH_QUERY_LIMIT) : "";
+  const filters = normalizeSearchPreferenceFilters(body);
+  if (!query || !filters) return null;
+  const searchedAt = new Date().toISOString();
+  const preference = { query, scope: "documents-ocr", searched_at: searchedAt, ...filters };
+  if (operation === "share_authorize") return { operation, preferences };
+  if (operation === "remember") {
+    return {
+      operation,
+      preferences: {
+        ...preferences,
+        recent: [
+          { id: `recent:${randomUUID()}`, ...preference },
+          ...preferences.recent.filter((item) => searchPreferenceKey(item) !== searchPreferenceKey(preference)),
+        ].slice(0, SEARCH_RECENT_LIMIT),
+      },
+    };
+  }
+  if (preferences.saved.some((item) => searchPreferenceKey(item) === searchPreferenceKey(preference))) return { operation, preferences };
+  return {
+    operation,
+    preferences: {
+      ...preferences,
+      saved: [
+        { id: `saved:${randomUUID()}`, ...preference },
+        ...preferences.saved,
+      ].slice(0, SEARCH_SAVED_LIMIT),
+    },
+  };
+}
+
+export function handleVaultSearchPreferences({ method, query, body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const requestQuery = { ...(body ?? {}), ...(query ?? {}) };
+  const actorId = context?.principal?.user_id;
+  if (!actorId) {
+    return errorResponse(403, requestId, [VAULT_DMS_API_ERROR_CODES.unauthorized_omission], {
+      audit_hint_ref: requestQuery.audit_hint_ref,
+      ui_state: "denied",
+    });
+  }
+  const resourceId = searchPreferenceResourceId(actorId);
+  const gated = routeGate({
+    context,
+    query: requestQuery,
+    requestId,
+    action: method === "POST" ? "dms:search:preferences:write" : "dms:search:preferences:read",
+    resource: { resource_type: "search_preferences", resource_id: resourceId },
+    repository: runtime.repository,
+  });
+  if (gated) return gated;
+
+  const current = runtime.repository.get({
+    tenant_id: requestQuery.tenant_id,
+    model_type: SEARCH_PREFERENCES_MODEL_TYPE,
+    resource_id: resourceId,
+  });
+  if (method === "GET") {
+    const preferences = serializeSearchPreferences(current, actorId);
+    if (current && (current.recent?.length ?? 0) !== preferences.recent.length) {
+      runtime.repository.upsert({ ...current, recent: preferences.recent });
+      appendSearchPreferenceAudit({
+        repository: runtime.repository,
+        context,
+        query: requestQuery,
+        operation: "retention_pruned",
+        preferences,
+      });
+    }
+    return {
+      status: 200,
+      body: {
+        request_id: requestId,
+        outcome: "passed",
+        item: preferences,
+        safe_error_codes: [],
+        audit_hint_ref: requestQuery.audit_hint_ref,
+        production_ready_claim: false,
+      },
+    };
+  }
+
+  const mutation = searchPreferenceMutation(current, body, actorId);
+  if (!mutation) {
+    return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: requestQuery.audit_hint_ref,
+    });
+  }
+  runtime.repository.transaction((repository) => {
+    const latest = repository.get({
+      tenant_id: requestQuery.tenant_id,
+      model_type: SEARCH_PREFERENCES_MODEL_TYPE,
+      resource_id: resourceId,
+    });
+    const next = searchPreferenceMutation(latest, body, actorId);
+    repository.upsert({
+      model_type: SEARCH_PREFERENCES_MODEL_TYPE,
+      resource_id: resourceId,
+      tenant_id: requestQuery.tenant_id,
+      owner_user_id: actorId,
+      recent: next.preferences.recent,
+      saved: next.preferences.saved,
+      retention_days: next.preferences.retention_days,
+      result_payloads_persisted: false,
+    });
+    appendSearchPreferenceAudit({ repository, context, query: requestQuery, operation: next.operation, preferences: next.preferences });
+    mutation.preferences = next.preferences;
+  });
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      item: mutation.preferences,
+      safe_error_codes: [],
+      audit_hint_ref: requestQuery.audit_hint_ref,
       production_ready_claim: false,
     },
   };
@@ -675,6 +922,9 @@ export async function handleVaultDmsApiRequest({
   }
   if (pathname === "/api/vault/search" && method === "GET") {
     return handleVaultSearch({ query, context, requestId, runtime });
+  }
+  if (pathname === "/api/vault/search/preferences" && ["GET", "POST"].includes(method)) {
+    return handleVaultSearchPreferences({ method, query, body, context, requestId, runtime });
   }
   if (pathname === "/api/vault/audit" && method === "GET") {
     return handleVaultAudit({ query, context, requestId, runtime });

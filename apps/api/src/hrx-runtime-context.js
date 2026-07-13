@@ -31,6 +31,14 @@ import { createHrxPeopleAnalyticsReadModel } from "../../../packages/hrx/src/ana
 import { createLeavePolicy } from "../../../packages/hrx/src/rules/leave-policy.js";
 import { createInMemoryLeaveBalanceLedger, createSqlLeaveBalanceLedger } from "../../../packages/hrx/src/leave/balance.js";
 import { createInMemoryLeaveRequestStore, createLeaveRequestService, createSqlLeaveRequestStore } from "../../../packages/hrx/src/leave/request-service.js";
+import { createDurableLeaveManagementService } from "../../../packages/hrx/src/leave/management-service.js";
+import { createLeavePolicyService } from "../../../packages/hrx/src/leave/policy-service.js";
+import { createLeaveApprovalDelegationService } from "../../../packages/hrx/src/leave/approval-delegation.js";
+import { createLeaveAccrualService } from "../../../packages/hrx/src/leave/accrual-service.js";
+import { createLeaveReportingService } from "../../../packages/hrx/src/leave/reporting-service.js";
+import { createLeaveTerminationService } from "../../../packages/hrx/src/leave/termination-service.js";
+import { createLeavePromotionService } from "../../../packages/hrx/src/leave/promotion-service.js";
+import { createInternalLeaveIntegrationProviders, createLeaveIntegrationService } from "../../../packages/hrx/src/leave/integration-service.js";
 import { closeOffboardingCase, createOffboardingCase } from "../../../packages/hrx/src/offboarding.js";
 import {
   createInMemoryOvertimeStore,
@@ -73,6 +81,7 @@ import {
   HRX_MEMBER_ROSTER_SOURCE_REF,
   listHrxMemberRosterRows,
 } from "./hrx-member-roster-registry.js";
+import { resolveLawosUserRoleAssignment } from "./lawos-role-registry.js";
 import { evaluateRouteDecision } from "./permission-gate.js";
 
 const SYNTHETIC_TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
@@ -230,6 +239,7 @@ function registeredEmployees(tenantId) {
       display_name: member.display_name,
       legal_name: member.legal_name || member.display_name,
       work_email: member.work_email ?? account?.email,
+      mobile_phone: member.mobile_phone || null,
       status: member.status ?? (account?.status === "active" ? "active" : "inactive"),
       source_ref: member.source_ref,
     };
@@ -348,6 +358,7 @@ function employeeRosterReadFields(employee, profile) {
     department,
     organization_group: member?.organization_group ?? orgUnit?.organization_group ?? department,
     country: member?.country ?? "대한민국",
+    mobile_phone: member?.mobile_phone || null,
     professional_profile: member?.professional_profile ?? null,
     source_ref: member?.source_ref ?? employee.source_ref,
     employment_profile_id: profile?.profile_id ?? null,
@@ -383,6 +394,21 @@ function currentEmploymentProfile(repository, tenantId, employeeId) {
   return repository
     .listEmploymentProfiles({ tenant_id: tenantId, employee_id: employeeId })
     .find((profile) => profile.status !== "terminated") ?? null;
+}
+
+function resolveLeaveApprover(repository, { tenant_id: tenantId, employee }) {
+  const profile = currentEmploymentProfile(repository, tenantId, employee.employee_id);
+  const managerEmployeeId = profile?.manager_employee_id;
+  if (!managerEmployeeId) return null;
+  const managerLinks = repository.listEmployeeUserLinks({ tenant_id: tenantId, employee_id: managerEmployeeId });
+  if (managerLinks.length !== 1) return null;
+  return Object.freeze({
+    actor_id: managerLinks[0].user_id,
+    organization_scope_id: profile.org_unit_id ?? null,
+    source_assignment_version: `${profile.profile_id}:${profile.updated_at ?? profile.source_ref}`,
+    valid_from: `${profile.effective_from}T00:00:00.000Z`,
+    valid_to: profile.effective_to ? `${profile.effective_to}T23:59:59.999Z` : null,
+  });
 }
 
 function safeHrxRuntimeError(status, safe_error_code, message) {
@@ -584,6 +610,319 @@ function employeeIdsForActor(repository, tenantId, actorId) {
       .map((link) => link.employee_id)
       .filter(Boolean),
   );
+}
+
+function requireSingleEmployeeForActor(context, actorContext) {
+  const employeeIds = [...employeeIdsForActor(context.repository, actorContext.tenant_id, actorContext.actor_id)];
+  const active = employeeIds.filter((employeeId) => context.repository.getEmployee({
+    tenant_id: actorContext.tenant_id,
+    employee_id: employeeId,
+  })?.status === "active");
+  if (active.length === 0) {
+    throw safeHrxRuntimeError(403, "HRX_SELF_SERVICE_EMPLOYEE_REQUIRED", "Signed actor has no active EmployeeUserLink");
+  }
+  if (active.length !== 1) {
+    throw safeHrxRuntimeError(409, "HRX_SELF_SERVICE_EMPLOYEE_AMBIGUOUS", "Signed actor has multiple active EmployeeUserLinks");
+  }
+  return active[0];
+}
+
+function applicantActorIds(context, tenantId, employeeId) {
+  return [
+    employeeId,
+    ...context.repository
+      .listEmployeeUserLinks({ tenant_id: tenantId, employee_id: employeeId })
+      .map((link) => link.user_id),
+  ];
+}
+
+function leaveRequestProposals(store, tenantId, requestId) {
+  return store
+    .query("select", { table: "hrx_leave_reschedule_proposals", where: { tenant_id: tenantId, request_id: requestId } })
+    .sort((left, right) => right.created_at.localeCompare(left.created_at));
+}
+
+function leaveRequestAttachments(context, request) {
+  return context.leaveManagementStore
+    .query("select", {
+      table: "hrx_leave_request_attachments",
+      where: { tenant_id: request.tenant_id, request_id: request.request_id },
+    })
+    .map((attachment) => {
+      const document = context.leaveManagementStore.query("selectOne", {
+        table: "hrx_documents",
+        where: { tenant_id: request.tenant_id, document_id: attachment.document_id },
+      });
+      return Object.freeze({
+        attachment_id: attachment.attachment_id,
+        document_id: attachment.document_id,
+        document_type: document?.document_type ?? null,
+        title: document?.title ?? "증빙 문서",
+        access_level: attachment.access_level,
+        verification_state: attachment.verification_state,
+      });
+    });
+}
+
+function leaveRequestView(context, request) {
+  const type = context.leaveManagementStore.query("selectOne", {
+    table: "hrx_leave_types",
+    where: { tenant_id: request.tenant_id, leave_type_id: request.leave_type_id },
+  });
+  const policy = context.leaveManagementStore.query("selectOne", {
+    table: "hrx_leave_policy_versions",
+    where: { tenant_id: request.tenant_id, policy_version_id: request.policy_version_id },
+  });
+  const employee = context.repository.getEmployee({ tenant_id: request.tenant_id, employee_id: request.employee_id });
+  return Object.freeze({
+    ...clone(request),
+    employee_display_name: employee?.display_name ?? null,
+    leave_type_display_name: type?.display_name ?? request.leave_type,
+    leave_type_code: type?.code ?? null,
+    group_id: type?.group_id ?? policy?.group_id ?? null,
+    statutory_annual: type?.code === "ANNUAL",
+    reschedule_proposals: leaveRequestProposals(context.leaveManagementStore, request.tenant_id, request.request_id),
+    attachments: leaveRequestAttachments(context, request),
+  });
+}
+
+function leaveApprovalQueueMetrics(context, request) {
+  const store = context.leaveManagementStore;
+  const view = leaveRequestView(context, request);
+  const profile = currentEmploymentProfile(context.repository, request.tenant_id, request.employee_id);
+  const teamEmployeeIds = new Set(
+    context.repository
+      .listEmploymentProfiles({ tenant_id: request.tenant_id })
+      .filter((candidate) => candidate.status !== "terminated" && candidate.org_unit_id === profile?.org_unit_id)
+      .map((candidate) => candidate.employee_id),
+  );
+  const simultaneousAbsenceCount = store
+    .query("select", { table: "hrx_leave_requests", where: { tenant_id: request.tenant_id } })
+    .filter((candidate) =>
+      candidate.request_id !== request.request_id &&
+      teamEmployeeIds.has(candidate.employee_id) &&
+      ["submitted", "approved", "reschedule_pending"].includes(candidate.state) &&
+      candidate.start_date <= request.end_date &&
+      candidate.end_date >= request.start_date)
+    .length;
+  const balance = view.group_id
+    ? createSqlLeaveBalanceLedger({ store }).balance({
+        tenant_id: request.tenant_id,
+        employee_id: request.employee_id,
+        group_id: view.group_id,
+      })
+    : null;
+  return Object.freeze({
+    ...view,
+    current_balance: balance,
+    team_simultaneous_absence_count: simultaneousAbsenceCount,
+  });
+}
+
+function registeredActorSummary(actorId) {
+  const account = REGISTERED_ACCOUNTS.find((candidate) => candidate.user_id === actorId);
+  return account
+    ? Object.freeze({ actor_id: account.user_id, display_name: account.display_name, source_title: account.source_title ?? null })
+    : Object.freeze({ actor_id: actorId, display_name: "등록 계정", source_title: null });
+}
+
+function leaveDelegationCandidates(actorContext) {
+  return Object.freeze(
+    REGISTERED_ACCOUNTS
+      .filter((account) =>
+        account.status === "active" &&
+        account.user_id !== actorContext.actor_id &&
+        account.tenant_ids.includes(actorContext.tenant_id))
+      .map((account) => ({ account, assignment: resolveLawosUserRoleAssignment(account, { tenantId: actorContext.tenant_id }) }))
+      .filter(({ assignment }) => assignment?.hrx_scopes?.includes("hrx.leave.approve"))
+      .map(({ account }) => registeredActorSummary(account.user_id))
+      .sort((left, right) => KOREAN_DISPLAY_NAME_COLLATOR.compare(left.display_name, right.display_name)),
+  );
+}
+
+function leaveAdjustmentApprovers(actorContext) {
+  return Object.freeze(
+    REGISTERED_ACCOUNTS
+      .filter((account) => account.status === "active" && account.user_id !== actorContext.actor_id && account.tenant_ids.includes(actorContext.tenant_id))
+      .map((account) => ({ account, assignment: resolveLawosUserRoleAssignment(account, { tenantId: actorContext.tenant_id }) }))
+      .filter(({ assignment }) => assignment?.hrx_scopes?.includes("hrx.leave.ledger.adjust"))
+      .map(({ account }) => registeredActorSummary(account.user_id))
+      .sort((left, right) => KOREAN_DISPLAY_NAME_COLLATOR.compare(left.display_name, right.display_name)),
+  );
+}
+
+function leaveTerminationApprovers(actorContext) {
+  return Object.freeze(
+    REGISTERED_ACCOUNTS
+      .filter((account) => account.status === "active" && account.user_id !== actorContext.actor_id && account.tenant_ids.includes(actorContext.tenant_id))
+      .map((account) => ({ account, assignment: resolveLawosUserRoleAssignment(account, { tenantId: actorContext.tenant_id }) }))
+      .filter(({ assignment }) => assignment?.hrx_scopes?.includes("hrx.leave.termination.settle"))
+      .map(({ account }) => registeredActorSummary(account.user_id))
+      .sort((left, right) => KOREAN_DISPLAY_NAME_COLLATOR.compare(left.display_name, right.display_name)),
+  );
+}
+
+function leaveReportAuthorizedEmployeeIds(context, actorContext) {
+  const tenantId = actorContext.tenant_id;
+  const selfEmployeeIds = employeeIdsForActor(context.repository, tenantId, actorContext.actor_id);
+  const profiles = context.repository.listEmploymentProfiles({ tenant_id: tenantId }).filter((profile) => profile.status !== "terminated");
+  const authorized = new Set(selfEmployeeIds);
+  const account = REGISTERED_ACCOUNTS.find((candidate) => candidate.user_id === actorContext.actor_id);
+  const assignment = account ? resolveLawosUserRoleAssignment(account, { tenantId }) : null;
+  const roleIds = new Set(assignment?.role_ids ?? []);
+  const groupIds = new Set(assignment?.group_ids ?? []);
+  const tenantWideApproved = roleIds.has("lawos_admin") || roleIds.has("security_admin") || groupIds.has("group_lawos_admins");
+  if (tenantWideApproved) {
+    for (const profile of profiles) authorized.add(profile.employee_id);
+    return Object.freeze([...authorized]);
+  }
+  if (actorContext.hrx_scopes.includes("hrx.leave.report.export") || actorContext.hrx_scopes.includes("hrx.leave.termination.settle") || actorContext.hrx_scopes.includes("hrx.leave.promotion.manage")) {
+    const approvedOrgUnits = new Set(profiles.filter((profile) => selfEmployeeIds.has(profile.employee_id)).map((profile) => profile.org_unit_id).filter(Boolean));
+    for (const profile of profiles) if (approvedOrgUnits.has(profile.org_unit_id)) authorized.add(profile.employee_id);
+  }
+  if (actorContext.hrx_scopes.includes("hrx.leave.team.read")) {
+    for (const profile of profiles) if (selfEmployeeIds.has(profile.manager_employee_id)) authorized.add(profile.employee_id);
+  }
+  return Object.freeze([...authorized]);
+}
+
+function leaveDelegationView(row) {
+  return Object.freeze({
+    ...clone(row),
+    delegator: registeredActorSummary(row.delegator_actor_id),
+    delegate: registeredActorSummary(row.delegate_actor_id),
+  });
+}
+
+function leaveSelfSnapshot(context, tenantId, employeeId) {
+  const store = context.leaveManagementStore;
+  const requests = store
+    .query("select", { table: "hrx_leave_requests", where: { tenant_id: tenantId, employee_id: employeeId } })
+    .filter((request) => Number.isInteger(request.requested_minutes))
+    .sort((left, right) => right.submitted_at.localeCompare(left.submitted_at))
+    .map((request) => leaveRequestView(context, request));
+  const groups = store.query("select", { table: "hrx_leave_groups", where: { tenant_id: tenantId, status: "active" } });
+  const balances = groups.map((group) => {
+    const entitlements = store
+      .query("select", { table: "hrx_leave_entitlements", where: { tenant_id: tenantId, employee_id: employeeId, group_id: group.group_id } })
+      .filter((entitlement) => !entitlement.expires_on || entitlement.expires_on >= new Date().toISOString().slice(0, 10));
+    return {
+      group,
+      balance: createSqlLeaveBalanceLedger({ store }).balance({ tenant_id: tenantId, employee_id: employeeId, group_id: group.group_id }),
+      earliest_expiry: entitlements.map((entitlement) => entitlement.expires_on).filter(Boolean).sort()[0] ?? null,
+    };
+  });
+  return Object.freeze({ employee_id: employeeId, balances: Object.freeze(balances), requests: Object.freeze(requests) });
+}
+
+function leaveTeamSnapshot(context, actorContext, { from, to }) {
+  const managerEmployeeIds = employeeIdsForActor(context.repository, actorContext.tenant_id, actorContext.actor_id);
+  const profiles = context.repository.listEmploymentProfiles({ tenant_id: actorContext.tenant_id });
+  const directReportIds = new Set(
+    profiles
+      .filter((profile) => profile.status !== "terminated" && managerEmployeeIds.has(profile.manager_employee_id))
+      .map((profile) => profile.employee_id),
+  );
+  const groups = context.leaveManagementStore.query("select", {
+    table: "hrx_leave_groups",
+    where: { tenant_id: actorContext.tenant_id, status: "active" },
+  });
+  const employees = [...directReportIds]
+    .map((employeeId) => context.repository.getEmployee({ tenant_id: actorContext.tenant_id, employee_id: employeeId }))
+    .filter(Boolean)
+    .map((employee) => ({
+      employee_id: employee.employee_id,
+      display_name: employee.display_name,
+      balances: groups.map((group) => ({
+        group_id: group.group_id,
+        display_name: group.display_name,
+        ...createSqlLeaveBalanceLedger({ store: context.leaveManagementStore }).balance({
+          tenant_id: actorContext.tenant_id,
+          employee_id: employee.employee_id,
+          group_id: group.group_id,
+        }),
+      })),
+    }))
+    .sort((left, right) => KOREAN_DISPLAY_NAME_COLLATOR.compare(left.display_name, right.display_name));
+  const employeeById = new Map(employees.map((employee) => [employee.employee_id, employee]));
+  const absences = context.leaveManagementStore
+    .query("select", { table: "hrx_leave_requests", where: { tenant_id: actorContext.tenant_id, state: "approved" } })
+    .filter((request) => directReportIds.has(request.employee_id) && request.start_date <= to && request.end_date >= from)
+    .map((request) => ({
+      employee_id: request.employee_id,
+      employee_display_name: employeeById.get(request.employee_id)?.display_name ?? "구성원",
+      start_date: request.start_date,
+      end_date: request.end_date,
+      absence_label: "휴가",
+    }))
+    .sort((left, right) => left.start_date.localeCompare(right.start_date) || KOREAN_DISPLAY_NAME_COLLATOR.compare(left.employee_display_name, right.employee_display_name));
+  return Object.freeze({
+    range: Object.freeze({ from, to }),
+    employees: Object.freeze(employees),
+    absences: Object.freeze(absences),
+    today_absence_count: absences.filter((absence) => absence.start_date <= from && absence.end_date >= from).length,
+    pending_approval_count: assignedLeaveApprovalQueue(context, actorContext).length,
+    privacy_boundary: "team_calendar_excludes_leave_type_reason_and_attachments",
+  });
+}
+
+function assignedLeaveApprovalQueue(context, actorContext) {
+  const store = context.leaveManagementStore;
+  const now = new Date().toISOString();
+  return store
+    .query("select", { table: "hrx_approval_requests", where: { tenant_id: actorContext.tenant_id } })
+    .filter((approval) => approval.object_type === "LeaveRequest" && approval.state === "pending")
+    .map((approval) => {
+      const step = store.query("selectOne", {
+        table: "hrx_approval_steps",
+        where: { tenant_id: actorContext.tenant_id, approval_id: approval.approval_id, step_order: approval.current_step },
+      });
+      const assignment = step && store.query("selectOne", {
+        table: "hrx_approval_assignments",
+        where: { tenant_id: actorContext.tenant_id, approval_step_id: step.approval_step_id },
+      });
+      const delegated = assignment && store.query("select", {
+        table: "hrx_approval_delegations",
+        where: {
+          tenant_id: actorContext.tenant_id,
+          delegator_actor_id: assignment.approver_actor_id,
+          delegate_actor_id: actorContext.actor_id,
+        },
+      }).some((row) =>
+        row.object_type === "LeaveRequest" &&
+        !row.revoked_at &&
+        !row.expired_at &&
+        row.valid_from <= now &&
+        row.valid_to >= now &&
+        (!row.organization_scope_id || row.organization_scope_id === assignment.organization_scope_id));
+      const escalation = step && store.query("select", {
+        table: "hrx_approval_escalations",
+        where: {
+          tenant_id: actorContext.tenant_id,
+          approval_step_id: step.approval_step_id,
+          substitute_actor_id: actorContext.actor_id,
+        },
+      }).find((row) => row.state === "active" && !row.resolved_at && row.due_at <= now);
+      const assignmentActive = assignment && assignment.valid_from <= now && (!assignment.valid_to || assignment.valid_to >= now);
+      const assigned = assignmentActive && (assignment.approver_actor_id === actorContext.actor_id || delegated);
+      if (!assignment || (!assigned && !escalation)) return null;
+      const request = store.query("selectOne", {
+        table: "hrx_leave_requests",
+        where: { tenant_id: actorContext.tenant_id, request_id: approval.object_id },
+      });
+      if (!request) return null;
+      return Object.freeze({
+        ...clone(approval),
+        step: clone(step),
+        assignment: clone(assignment),
+        delegated: Boolean(delegated),
+        escalated: Boolean(escalation),
+        escalation: escalation ? clone(escalation) : null,
+        leave_request: leaveApprovalQueueMetrics(context, request),
+      });
+    })
+    .filter(Boolean)
+    .sort((left, right) => right.created_at.localeCompare(left.created_at));
 }
 
 function selfServiceReadGuard({ repository, actorContext, targetEmployeeId, emptyBody = {} }) {
@@ -1011,6 +1350,7 @@ function offboardingSeed(tenantId) {
       offboarding_id: "off-001",
       employee_id: seedEmployeeId(tenantId, 0),
       separation_date: "2026-12-31",
+      leave_reconciliation_status: "approved_and_synced",
       access_revocations: [{ system_ref: "IdP:core", revoked: true, confirmation_ref: "LX-11:AccessRevocation:off-001:idp-core" }],
       document_returns: [{ document_ref: "DMS:laptop-001", returned: true }],
       legal_hold_checks: [{ hold_ref: "LegalHold:none", clear: true }],
@@ -1055,6 +1395,18 @@ function offboardingSeed(tenantId) {
           evidence_ref: "MatterHandover:off-002:access-review",
         },
       ],
+    }),
+    createOffboardingCase({
+      tenant_id: tenantId,
+      offboarding_id: "off-leave-synthetic-001",
+      employee_id: seedEmployeeId(tenantId, 9),
+      separation_date: "2026-12-31",
+      leave_reconciliation_status: "pending",
+      access_revocations: [{ system_ref: "IdP:core", revoked: true, confirmation_ref: "LX-11:AccessRevocation:off-leave-synthetic-001:idp-core" }],
+      document_returns: [{ document_ref: "DMS:laptop-leave-synthetic-001", returned: true }],
+      legal_hold_checks: [{ hold_ref: "LegalHold:none", clear: true }],
+      matter_reassignments: [],
+      handover_items: [],
     }),
   ];
 }
@@ -1455,6 +1807,8 @@ function requireTrustedRequestContext(requestContext = {}) {
     actor_role: typeof requestContext.actor_role === "string" && requestContext.actor_role.trim() ? requestContext.actor_role.trim() : "unknown",
     hrx_scopes: Object.freeze(Array.isArray(requestContext.hrx_scopes) ? requestContext.hrx_scopes : []),
     session_bound: requestContext.session_bound === true,
+    step_up_verified: requestContext.step_up_verified === true,
+    step_up_purpose: typeof requestContext.step_up_purpose === "string" ? requestContext.step_up_purpose : null,
   });
 }
 
@@ -1836,7 +2190,7 @@ export function seedHrxDurableRuntimeStore(store, options = {}) {
   });
 }
 
-export function createHrxRuntimeContext({ repository: providedRepository, store, matterTimeEntries, matterDeadlines, modelGateway } = {}) {
+export function createHrxRuntimeContext({ repository: providedRepository, store, matterTimeEntries, matterDeadlines, modelGateway, clock: runtimeClock, leaveIntegrationProviders } = {}) {
   const seedTenantIds = HRX_DEFAULT_SEED_TENANT_IDS;
   const repository = providedRepository ?? (store ? createSqlHrxRepository({ store }) : createInMemoryHrxRepository({
     employees: seedTenantIds.flatMap(seedEmployees),
@@ -1862,14 +2216,66 @@ export function createHrxRuntimeContext({ repository: providedRepository, store,
   const riskEvents = createInMemoryHrxRiskEventStore();
   const audit = store ? createDurableAuditStore({ store }) : createHrxAuditEventStore();
   const policies = seedTenantIds.flatMap(policySeed);
+  const leavePolicyService = store ? createLeavePolicyService({ store }) : null;
   const leaveService = createLeaveRequestService({
     store: leaveStore,
     balanceLedger: leaveLedger,
     audit,
+    transactionStore: store,
     policyResolver: ({ tenant_id, policy_id }) => policies.find((policy) => {
       return policy.tenant_id === tenant_id && policy.policy_id === policy_id;
     }),
   });
+  const leaveDelegationService = store ? createLeaveApprovalDelegationService({ store }) : null;
+  const leaveAccrualService = store
+    ? createLeaveAccrualService({
+        store,
+        approverAuthorizer: ({ tenant_id, actor_id, required_scope }) => {
+          const account = REGISTERED_ACCOUNTS.find((candidate) => candidate.user_id === actor_id);
+          if (!account || account.status !== "active" || !account.tenant_ids.includes(tenant_id)) return false;
+          return resolveLawosUserRoleAssignment(account, { tenantId: tenant_id })?.hrx_scopes?.includes(required_scope) === true;
+        },
+      })
+    : null;
+  const leaveReportingService = store
+    ? createLeaveReportingService({
+        store,
+        employeeDirectory: ({ tenant_id }) => employeeDirectoryRows(repository, tenant_id),
+      })
+    : null;
+  const leaveTerminationService = store
+    ? createLeaveTerminationService({
+        store,
+        approverAuthorizer: ({ tenant_id, actor_id, required_scope }) => {
+          const account = REGISTERED_ACCOUNTS.find((candidate) => candidate.user_id === actor_id);
+          if (!account || account.status !== "active" || !account.tenant_ids.includes(tenant_id)) return false;
+          return resolveLawosUserRoleAssignment(account, { tenantId: tenant_id })?.hrx_scopes?.includes(required_scope) === true;
+        },
+      })
+    : null;
+  const leavePromotionService = store
+    ? createLeavePromotionService({
+        store,
+        documents,
+        employeeDirectory: ({ tenant_id }) => employeeDirectoryRows(repository, tenant_id),
+        clock: runtimeClock,
+      })
+    : null;
+  const leaveIntegrationService = store
+    ? createLeaveIntegrationService({
+        store,
+        providers: leaveIntegrationProviders ?? createInternalLeaveIntegrationProviders(),
+        terminationDeliveryRecorder: (context, input) => leaveTerminationService.recordPayrollDelivery(context, input),
+        clock: runtimeClock,
+      })
+    : null;
+  const leaveManagementService = store
+    ? createDurableLeaveManagementService({
+        store,
+        approverResolver: (input) => resolveLeaveApprover(repository, input),
+        outboxDispatcher: (context) => leaveIntegrationService.process(context, { limit: 50, aggregate_types: ["LeaveRequest"] }),
+      })
+    : null;
   const durableCollections = createHrxDurableRuntimeCollections({ store, seedTenantIds });
 
   const approvals = seedTenantIds.flatMap(approvalSeed);
@@ -1926,6 +2332,14 @@ export function createHrxRuntimeContext({ repository: providedRepository, store,
     leaveLedger,
     leaveStore,
     leaveService,
+    leaveManagementService,
+    leaveDelegationService,
+    leaveAccrualService,
+    leaveReportingService,
+    leaveTerminationService,
+    leavePromotionService,
+    leaveIntegrationService,
+    leaveManagementStore: store ?? null,
     attendance,
     overtime,
     riskEvents,
@@ -1942,6 +2356,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store,
     statutoryTrainings,
     jobOpenings,
     policies,
+    leavePolicyService,
     aiSourceRegistry,
     aiSourceChunks,
     aiRetriever,
@@ -2708,6 +3123,457 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       return response(200, { outcome: decision === "approve" ? "approved" : "rejected", overtime });
     }
 
+    if (pathname.startsWith("/api/hrx/leave/") && ["GET", "POST", "PATCH"].includes(method)) {
+      const policyService = context.leavePolicyService;
+      const settingsPath = pathname.match(/^\/api\/hrx\/leave\/(configuration|groups|types|policies)$/);
+      const activeTypesPath = pathname === "/api/hrx/leave/types/active";
+      const groupUpdate = pathname.match(/^\/api\/hrx\/leave\/groups\/([^/]+)$/);
+      const typeUpdate = pathname.match(/^\/api\/hrx\/leave\/types\/([^/]+)$/);
+      const policyUpdate = pathname.match(/^\/api\/hrx\/leave\/policies\/([^/]+)$/);
+      const policyPublish = pathname.match(/^\/api\/hrx\/leave\/policies\/([^/]+)\/publish$/);
+      const policyVersion = pathname.match(/^\/api\/hrx\/leave\/policies\/([^/]+)\/versions$/);
+      const isSettingsRoute = settingsPath || activeTypesPath || groupUpdate || typeUpdate || policyUpdate || policyPublish || policyVersion;
+      if (isSettingsRoute) {
+        if (!policyService) {
+          return response(503, { outcome: "blocked", safe_error_code: "HRX_LEAVE_POLICY_STORE_REQUIRED" });
+        }
+        if (activeTypesPath && method === "GET") {
+          const onDate = query.on_date ?? new Date().toISOString().slice(0, 10);
+          const configuration = policyService.listConfiguration(actorContext);
+          return response(200, {
+            outcome: "ok",
+            groups: configuration.groups.filter((group) => group.status === "active"),
+            types: policyService.listActiveTypes(actorContext, { on_date: onDate }),
+            policies: configuration.policies.filter(
+              (policy) => policy.status === "active" && policy.effective_from <= onDate && (!policy.effective_to || policy.effective_to >= onDate),
+            ),
+          });
+        }
+        if (settingsPath && method === "GET") {
+          const configuration = policyService.listConfiguration(actorContext);
+          if (settingsPath[1] === "configuration") return response(200, { outcome: "ok", ...configuration });
+          return response(200, { outcome: "ok", [settingsPath[1]]: configuration[settingsPath[1]] });
+        }
+
+        let result;
+        let action;
+        if (pathname === "/api/hrx/leave/groups" && method === "POST") {
+          result = { group: policyService.createGroup(actorContext, body) };
+          action = "group.create";
+        } else if (groupUpdate && method === "PATCH") {
+          result = { group: policyService.updateGroup(actorContext, decodeURIComponent(groupUpdate[1]), body) };
+          action = "group.update";
+        } else if (pathname === "/api/hrx/leave/types" && method === "POST") {
+          result = { leave_type: policyService.createType(actorContext, body) };
+          action = "type.create";
+        } else if (typeUpdate && method === "PATCH") {
+          result = { leave_type: policyService.updateType(actorContext, decodeURIComponent(typeUpdate[1]), body) };
+          action = "type.update";
+        } else if (pathname === "/api/hrx/leave/policies" && method === "POST") {
+          result = { policy: policyService.createPolicyVersion(actorContext, body) };
+          action = "policy.create_draft";
+        } else if (policyUpdate && method === "PATCH") {
+          result = { policy: policyService.updatePolicyDraft(actorContext, decodeURIComponent(policyUpdate[1]), body) };
+          action = "policy.update_draft";
+        } else if (policyPublish && method === "POST") {
+          result = { policy: policyService.publishPolicyVersion(actorContext, decodeURIComponent(policyPublish[1])) };
+          action = "policy.publish";
+        } else if (policyVersion && method === "POST") {
+          result = { policy: policyService.createNextPolicyVersion(actorContext, decodeURIComponent(policyVersion[1]), body) };
+          action = "policy.create_version";
+        } else {
+          return response(405, { outcome: "blocked", safe_error_code: "METHOD_NOT_ALLOWED" });
+        }
+        const object = result.group ?? result.leave_type ?? result.policy;
+        appendRuntimeAudit(context.audit, {
+          ...actorContext,
+          action: `hrx.leave.${action}`,
+          object_type: result.group ? "LeaveGroup" : result.leave_type ? "LeaveType" : "LeavePolicyVersion",
+          object_id: object.group_id ?? object.leave_type_id ?? object.policy_version_id,
+          reason: `leave_${action.replaceAll(".", "_")}`,
+        });
+        const published = Boolean(policyPublish && method === "POST");
+        return response(published ? 200 : method === "POST" ? 201 : 200, {
+          outcome: published ? "published" : method === "POST" ? "created" : "updated",
+          ...result,
+        });
+      }
+    }
+
+    if (pathname.startsWith("/api/hrx/leave/accrual")) {
+      const service = context.leaveAccrualService;
+      const store = context.leaveManagementStore;
+      if (!service || !store) {
+        return response(503, { outcome: "blocked", safe_error_code: "HRX_LEAVE_ACCRUAL_STORE_REQUIRED" });
+      }
+      if (pathname === "/api/hrx/leave/accrual/rules" && method === "GET") {
+        return response(200, { outcome: "ok", rules: service.listRules(actorContext) });
+      }
+      if (pathname === "/api/hrx/leave/accrual/rules" && method === "POST") {
+        return response(201, { outcome: "created", rule: service.createRule(actorContext, body) });
+      }
+      if (pathname === "/api/hrx/leave/accrual/preview" && method === "POST") {
+        return response(200, { outcome: "previewed", run: service.preview(actorContext, body) });
+      }
+      if (pathname === "/api/hrx/leave/accrual/execute" && method === "POST") {
+        return response(200, { outcome: "executed", run: service.execute(actorContext, body) });
+      }
+      if (pathname === "/api/hrx/leave/accrual/runs" && method === "GET") {
+        const runs = store
+          .query("select", { table: "hrx_leave_accrual_runs", where: { tenant_id: tenantId } })
+          .sort((left, right) => right.created_at.localeCompare(left.created_at))
+          .slice(0, 50)
+          .map((run) => ({ ...run, result: JSON.parse(run.result_json ?? "{}"), result_json: undefined }));
+        return response(200, { outcome: "ok", runs });
+      }
+      if (pathname === "/api/hrx/leave/accrual/manual/approvers" && method === "GET") {
+        return response(200, { outcome: "ok", approvers: leaveAdjustmentApprovers(actorContext) });
+      }
+      if (pathname === "/api/hrx/leave/accrual/manual/evidence-documents" && method === "GET") {
+        const documents = store
+          .query("select", { table: "hrx_documents", where: { tenant_id: tenantId, source_status: "verified" } })
+          .map((document) => ({
+            document_id: document.document_id,
+            employee_id: document.employee_id,
+            employee_display_name: context.repository.getEmployee({ tenant_id: tenantId, employee_id: document.employee_id })?.display_name ?? "구성원",
+            document_type: document.document_type,
+            title: document.title ?? "조정 근거 문서",
+            source_status: document.source_status,
+          }));
+        return response(200, { outcome: "ok", documents });
+      }
+      if (pathname === "/api/hrx/leave/accrual/manual/preview" && method === "POST") {
+        return response(200, { outcome: "previewed", preview: service.previewManual(actorContext, body) });
+      }
+      if (pathname === "/api/hrx/leave/accrual/manual/execute" && method === "POST") {
+        return response(200, { outcome: "executed", result: service.executeManual(actorContext, body) });
+      }
+      return response(405, { outcome: "blocked", safe_error_code: "METHOD_NOT_ALLOWED" });
+    }
+
+    if (pathname.startsWith("/api/hrx/leave/ledger") || pathname === "/api/hrx/leave/reports/export") {
+      const service = context.leaveReportingService;
+      if (!service) return response(503, { outcome: "blocked", safe_error_code: "HRX_LEAVE_REPORT_STORE_REQUIRED" });
+      if (!["hrx.leave.self.read", "hrx.leave.team.read", "hrx.leave.report.export"].some((scope) => actorContext.hrx_scopes.includes(scope))) {
+        return response(403, { outcome: "blocked", safe_error_code: "HRX_LEAVE_REPORT_SCOPE_DENIED", count_leak_prevented: true, fail_closed: true });
+      }
+      const reportContext = Object.freeze({
+        ...actorContext,
+        authorized_employee_ids: leaveReportAuthorizedEmployeeIds(context, actorContext),
+      });
+      if (pathname === "/api/hrx/leave/ledger" && method === "GET") {
+        return response(200, { outcome: "ok", report: service.query(reportContext, query) });
+      }
+      if (pathname === "/api/hrx/leave/ledger/validate" && method === "GET") {
+        return response(200, { outcome: "ok", validation: service.validateBalances(reportContext, query) });
+      }
+      if (pathname === "/api/hrx/leave/ledger/snapshots" && method === "POST") {
+        if (!actorContext.hrx_scopes.includes("hrx.leave.report.export")) {
+          return response(403, { outcome: "blocked", safe_error_code: "HRX_LEAVE_REPORT_EXPORT_SCOPE_DENIED", count_leak_prevented: true, fail_closed: true });
+        }
+        return response(201, { outcome: "captured", snapshot: service.captureSnapshots(reportContext, body) });
+      }
+      if (pathname === "/api/hrx/leave/reports/export" && method === "GET") {
+        if (!actorContext.hrx_scopes.includes("hrx.leave.report.export")) {
+          return response(403, { outcome: "blocked", safe_error_code: "HRX_LEAVE_REPORT_EXPORT_SCOPE_DENIED", count_leak_prevented: true, fail_closed: true });
+        }
+        return response(200, { outcome: "exported", export: service.exportReport(reportContext, query) });
+      }
+      return response(405, { outcome: "blocked", safe_error_code: "METHOD_NOT_ALLOWED" });
+    }
+
+    if (pathname.startsWith("/api/hrx/leave/integrations")) {
+      const service = context.leaveIntegrationService;
+      if (!service) return response(503, { outcome: "blocked", safe_error_code: "HRX_LEAVE_INTEGRATION_STORE_REQUIRED" });
+      if (pathname === "/api/hrx/leave/integrations" && method === "GET") {
+        if (!actorContext.hrx_scopes.includes("hrx.leave.report.export")) {
+          return response(403, { outcome: "blocked", safe_error_code: "HRX_LEAVE_INTEGRATION_READ_DENIED", count_leak_prevented: true, fail_closed: true });
+        }
+        return response(200, { outcome: "ok", integration: service.list(actorContext, { limit: query.limit }) });
+      }
+      if (pathname === "/api/hrx/leave/integrations/process" && method === "POST") {
+        if (!actorContext.hrx_scopes.includes("hrx.leave.policy.write")) {
+          return response(403, { outcome: "blocked", safe_error_code: "HRX_LEAVE_INTEGRATION_PROCESS_DENIED", count_leak_prevented: true, fail_closed: true });
+        }
+        return service.process(actorContext, { limit: body.limit, event_ids: body.event_ids, force: true }).then((result) => response(200, { outcome: "processed", integration: result }));
+      }
+      return response(405, { outcome: "blocked", safe_error_code: "METHOD_NOT_ALLOWED" });
+    }
+
+    if (pathname.startsWith("/api/hrx/leave/termination-reconciliations")) {
+      const service = context.leaveTerminationService;
+      if (!service) return response(503, { outcome: "blocked", safe_error_code: "HRX_LEAVE_TERMINATION_STORE_REQUIRED" });
+      if (!actorContext.hrx_scopes.includes("hrx.leave.termination.settle")) {
+        return response(403, { outcome: "blocked", safe_error_code: "HRX_LEAVE_TERMINATION_SCOPE_DENIED", count_leak_prevented: true, fail_closed: true });
+      }
+      const terminationContext = Object.freeze({
+        ...actorContext,
+        authorized_employee_ids: leaveReportAuthorizedEmployeeIds(context, actorContext),
+      });
+      if (pathname === "/api/hrx/leave/termination-reconciliations" && method === "GET") {
+        return response(200, { outcome: "ok", reconciliations: service.list(terminationContext) });
+      }
+      if (pathname === "/api/hrx/leave/termination-reconciliations/candidates" && method === "GET") {
+        return response(200, { outcome: "ok", candidates: service.candidates(terminationContext) });
+      }
+      if (pathname === "/api/hrx/leave/termination-reconciliations/approvers" && method === "GET") {
+        return response(200, { outcome: "ok", approvers: leaveTerminationApprovers(actorContext) });
+      }
+      if (pathname === "/api/hrx/leave/termination-reconciliations/preview" && method === "POST") {
+        return response(200, { outcome: "previewed", reconciliation: service.preview(terminationContext, body) });
+      }
+      if (pathname === "/api/hrx/leave/termination-reconciliations/execute" && method === "POST") {
+        return response(200, { outcome: "executed", reconciliation: service.execute(terminationContext, body) });
+      }
+      return response(405, { outcome: "blocked", safe_error_code: "METHOD_NOT_ALLOWED" });
+    }
+
+    if (pathname.startsWith("/api/hrx/leave/promotion-campaigns") || pathname.startsWith("/api/hrx/leave/promotion-recipients")) {
+      const service = context.leavePromotionService;
+      if (!service) return response(503, { outcome: "blocked", safe_error_code: "HRX_LEAVE_PROMOTION_STORE_REQUIRED" });
+      if (!actorContext.hrx_scopes.includes("hrx.leave.promotion.manage")) {
+        return response(403, { outcome: "blocked", safe_error_code: "HRX_LEAVE_PROMOTION_SCOPE_DENIED", count_leak_prevented: true, fail_closed: true });
+      }
+      const promotionContext = Object.freeze({
+        ...actorContext,
+        authorized_employee_ids: leaveReportAuthorizedEmployeeIds(context, actorContext),
+      });
+      if (pathname === "/api/hrx/leave/promotion-campaigns" && method === "GET") {
+        const policies = context.leaveManagementStore
+          .query("select", { table: "hrx_leave_policy_versions", where: { tenant_id: tenantId, status: "active" } })
+          .map((policy) => ({ policy_version_id: policy.policy_version_id, policy_code: policy.policy_code, version: policy.version, effective_from: policy.effective_from }));
+        return response(200, { outcome: "ok", campaigns: service.list(promotionContext), schedule_profiles: service.scheduleProfiles(), policies });
+      }
+      if (pathname === "/api/hrx/leave/promotion-campaigns/preview" && method === "POST") {
+        return response(200, { outcome: "previewed", preview: service.preview(promotionContext, body) });
+      }
+      if (pathname === "/api/hrx/leave/promotion-campaigns" && method === "POST") {
+        return response(201, { outcome: "created", campaign: service.create(promotionContext, body) });
+      }
+      const recipientCommand = pathname.match(/^\/api\/hrx\/leave\/promotion-recipients\/([^/]+)\/(first-notice|second-notice|evidence|response)$/);
+      if (recipientCommand && method === "POST") {
+        const recipientId = decodeURIComponent(recipientCommand[1]);
+        const command = recipientCommand[2];
+        if (command === "first-notice") return response(200, { outcome: "document_created", recipient: service.issueFirstNotice(promotionContext, recipientId, body) });
+        if (command === "second-notice") return response(200, { outcome: "document_created", recipient: service.issueSecondNotice(promotionContext, recipientId, body) });
+        if (command === "evidence") return response(200, { outcome: "evidence_recorded", recipient: service.recordEvidence(promotionContext, recipientId, body) });
+        return response(200, { outcome: "response_recorded", recipient: service.recordResponse(promotionContext, recipientId, body) });
+      }
+      return response(405, { outcome: "blocked", safe_error_code: "METHOD_NOT_ALLOWED" });
+    }
+
+    if (pathname.startsWith("/api/hrx/leave/me") || pathname.startsWith("/api/hrx/leave/team") || pathname.startsWith("/api/hrx/leave/requests") || pathname.startsWith("/api/hrx/leave/delegations")) {
+      const service = context.leaveManagementService;
+      const store = context.leaveManagementStore;
+      if (!service || !store) {
+        return response(503, { outcome: "blocked", safe_error_code: "HRX_LEAVE_MANAGEMENT_STORE_REQUIRED" });
+      }
+
+      if (pathname === "/api/hrx/leave/me" && method === "GET") {
+        const employeeId = requireSingleEmployeeForActor(context, actorContext);
+        return response(200, { outcome: "ok", ...leaveSelfSnapshot(context, tenantId, employeeId) });
+      }
+
+      if (pathname === "/api/hrx/leave/team" && method === "GET") {
+        if (!actorContext.hrx_scopes.includes("hrx.leave.team.read")) {
+          return response(403, {
+            outcome: "blocked",
+            safe_error_code: "HRX_LEAVE_TEAM_SCOPE_DENIED",
+            count_leak_prevented: true,
+            fail_closed: true,
+          });
+        }
+        const from = typeof query.from === "string" && /^\d{4}-\d{2}-\d{2}$/.test(query.from) ? query.from : currentDateKey();
+        const defaultTo = new Date(`${from}T00:00:00.000Z`);
+        defaultTo.setUTCDate(defaultTo.getUTCDate() + 7);
+        const to = typeof query.to === "string" && /^\d{4}-\d{2}-\d{2}$/.test(query.to) ? query.to : defaultTo.toISOString().slice(0, 10);
+        if (to < from || (Date.parse(`${to}T00:00:00.000Z`) - Date.parse(`${from}T00:00:00.000Z`)) / 86400000 > 31) {
+          return response(400, { outcome: "blocked", safe_error_code: "HRX_LEAVE_TEAM_RANGE_INVALID" });
+        }
+        return response(200, { outcome: "ok", ...leaveTeamSnapshot(context, actorContext, { from, to }) });
+      }
+
+      if (pathname === "/api/hrx/leave/me/preview" && method === "POST") {
+        const employeeId = requireSingleEmployeeForActor(context, actorContext);
+        return service.preview(actorContext, { ...body, employee_id: employeeId }).then((preview) => response(200, {
+          outcome: "previewed",
+          preview: {
+            ...preview,
+            approval_plan: {
+              ...preview.approval_plan,
+              approver: registeredActorSummary(preview.approval_plan.approver_actor_id),
+            },
+          },
+        })).catch(safeError);
+      }
+
+      if (pathname === "/api/hrx/leave/me/evidence-documents" && method === "GET") {
+        const employeeId = requireSingleEmployeeForActor(context, actorContext);
+        return response(200, {
+          outcome: "ok",
+          documents: context.documents.list({ tenant_id: tenantId, employee_id: employeeId }).map((document) => ({
+            document_id: document.document_id,
+            document_type: document.document_type,
+            title: document.title ?? "증빙 문서",
+            source_status: document.source_status,
+          })),
+        });
+      }
+
+      if (pathname === "/api/hrx/leave/me/requests" && method === "POST") {
+        const employeeId = requireSingleEmployeeForActor(context, actorContext);
+        return service.submit(actorContext, { ...body, employee_id: employeeId }).then((result) =>
+          response(201, { outcome: "submitted", ...result }),
+        ).catch(safeError);
+      }
+
+      const selfRequestMatch = pathname.match(/^\/api\/hrx\/leave\/me\/requests\/([^/]+)$/);
+      if (selfRequestMatch && method === "PATCH") {
+        const employeeId = requireSingleEmployeeForActor(context, actorContext);
+        const requestId = decodeURIComponent(selfRequestMatch[1]);
+        return service.amendSubmitted(actorContext, {
+          ...body,
+          request_id: requestId,
+          applicant_actor_ids: applicantActorIds(context, tenantId, employeeId),
+        }).then((result) => response(200, { outcome: "amended", ...result })).catch(safeError);
+      }
+
+      const selfCommandMatch = pathname.match(/^\/api\/hrx\/leave\/me\/requests\/([^/]+)\/(cancel|reschedule-response|additional-information)$/);
+      if (selfCommandMatch && method === "POST") {
+        const employeeId = requireSingleEmployeeForActor(context, actorContext);
+        const requestId = decodeURIComponent(selfCommandMatch[1]);
+        const command = selfCommandMatch[2];
+        const applicantIds = applicantActorIds(context, tenantId, employeeId);
+        if (command === "cancel") {
+          return service.closeSubmitted(actorContext, {
+            ...body,
+            request_id: requestId,
+            state: "cancelled",
+            applicant_actor_ids: applicantIds,
+          }).then((result) => response(200, { outcome: "cancelled", ...result })).catch(safeError);
+        }
+        if (command === "additional-information") {
+          return service.provideAdditionalInformation(actorContext, {
+            ...body,
+            request_id: requestId,
+            applicant_actor_ids: applicantIds,
+          }).then((result) => response(200, { outcome: "information_provided", ...result })).catch(safeError);
+        }
+        return service.respondToReschedule(actorContext, {
+          ...body,
+          request_id: requestId,
+          applicant_actor_ids: applicantIds,
+        }).then((result) => response(200, { outcome: "responded", ...result })).catch(safeError);
+      }
+
+      if (pathname === "/api/hrx/leave/requests" && method === "GET") {
+        return response(200, { outcome: "ok", approvals: assignedLeaveApprovalQueue(context, actorContext) });
+      }
+
+      const managerCommandMatch = pathname.match(/^\/api\/hrx\/leave\/requests\/([^/]+)\/(approve|reject|reschedule|request-info)$/);
+      if (managerCommandMatch && method === "POST") {
+        const requestId = decodeURIComponent(managerCommandMatch[1]);
+        const request = store.query("selectOne", { table: "hrx_leave_requests", where: { tenant_id: tenantId, request_id: requestId } });
+        if (!request) return response(404, { outcome: "not_found", safe_error_code: "HRX_LEAVE_REQUEST_NOT_FOUND" });
+        const applicantIds = applicantActorIds(context, tenantId, request.employee_id);
+        const command = managerCommandMatch[2];
+        if (command === "approve") {
+          return service.approve(actorContext, {
+            ...body,
+            request_id: requestId,
+            applicant_actor_ids: applicantIds,
+          }).then((result) => response(200, { outcome: "approved", ...result })).catch(safeError);
+        }
+        if (command === "reject") {
+          return service.closeSubmitted(actorContext, {
+            ...body,
+            request_id: requestId,
+            state: "rejected",
+            applicant_actor_ids: applicantIds,
+          }).then((result) => response(200, { outcome: "rejected", ...result })).catch(safeError);
+        }
+        if (command === "request-info") {
+          return service.requestAdditionalInformation(actorContext, {
+            ...body,
+            request_id: requestId,
+            applicant_actor_ids: applicantIds,
+          }).then((result) => response(200, { outcome: "information_requested", ...result })).catch(safeError);
+        }
+        return service.proposeReschedule(actorContext, {
+          ...body,
+          request_id: requestId,
+          applicant_actor_ids: applicantIds,
+        }).then((result) => response(201, { outcome: "reschedule_proposed", ...result })).catch(safeError);
+      }
+
+      const escalationMatch = pathname.match(/^\/api\/hrx\/leave\/requests\/([^/]+)\/escalate$/);
+      if (escalationMatch && method === "POST") {
+        const requestId = decodeURIComponent(escalationMatch[1]);
+        const request = store.query("selectOne", {
+          table: "hrx_leave_requests",
+          where: { tenant_id: tenantId, request_id: requestId },
+        });
+        if (!request) return response(404, { outcome: "not_found", safe_error_code: "HRX_LEAVE_REQUEST_NOT_FOUND" });
+        const candidate = leaveDelegationCandidates(actorContext).find((entry) => entry.actor_id === body.substitute_actor_id);
+        if (!candidate) {
+          return response(400, { outcome: "blocked", safe_error_code: "HRX_LEAVE_ESCALATION_SUBSTITUTE_NOT_ELIGIBLE", fail_closed: true });
+        }
+        return service.escalateApproval(actorContext, {
+          ...body,
+          request_id: requestId,
+          applicant_actor_ids: applicantActorIds(context, tenantId, request.employee_id),
+        }).then((result) => response(201, { outcome: "escalated", ...result })).catch(safeError);
+      }
+
+      if (pathname === "/api/hrx/leave/delegations/candidates" && method === "GET") {
+        return response(200, { outcome: "ok", candidates: leaveDelegationCandidates(actorContext) });
+      }
+      if (pathname === "/api/hrx/leave/delegations" && method === "GET") {
+        return response(200, {
+          outcome: "ok",
+          delegations: context.leaveDelegationService.list(actorContext).map(leaveDelegationView),
+        });
+      }
+      if (pathname === "/api/hrx/leave/delegations" && method === "POST") {
+        const candidate = leaveDelegationCandidates(actorContext).find((entry) => entry.actor_id === body.delegate_actor_id);
+        if (!candidate) {
+          return response(400, {
+            outcome: "blocked",
+            safe_error_code: "HRX_LEAVE_DELEGATE_NOT_ELIGIBLE",
+            fail_closed: true,
+          });
+        }
+        const delegation = context.leaveDelegationService.create(actorContext, body);
+        appendRuntimeAudit(context.audit, {
+          ...actorContext,
+          action: "hrx.leave.delegation.create",
+          object_type: "LeaveApprovalDelegation",
+          object_id: delegation.delegation_id,
+          reason: "leave_approval_delegation_created",
+        });
+        return response(201, { outcome: "created", delegation: leaveDelegationView(delegation) });
+      }
+      const delegationCommandMatch = pathname.match(/^\/api\/hrx\/leave\/delegations\/([^/]+)\/(revoke|expire)$/);
+      if (delegationCommandMatch && method === "POST") {
+        const delegationId = decodeURIComponent(delegationCommandMatch[1]);
+        const canAdmin = actorContext.hrx_scopes.includes("hrx.leave.policy.write");
+        const delegation = delegationCommandMatch[2] === "revoke"
+          ? context.leaveDelegationService.revoke(actorContext, delegationId, { can_admin: canAdmin })
+          : context.leaveDelegationService.expire(actorContext, delegationId, { can_admin: canAdmin });
+        appendRuntimeAudit(context.audit, {
+          ...actorContext,
+          action: `hrx.leave.delegation.${delegationCommandMatch[2]}`,
+          object_type: "LeaveApprovalDelegation",
+          object_id: delegationId,
+          reason: `leave_approval_delegation_${delegationCommandMatch[2]}`,
+        });
+        return response(200, {
+          outcome: delegationCommandMatch[2] === "revoke" ? "revoked" : "expired",
+          delegation: leaveDelegationView(delegation),
+        });
+      }
+    }
+
     if (pathname === "/api/hrx/leave" && method === "GET") {
       const guarded = hrxReadGuardResponse({
         permissionContext,
@@ -3093,19 +3959,22 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
     }
 
     if (pathname === "/api/hrx/lifecycle/offboarding" && method === "GET") {
+      const offboarding = context.durableCollections?.offboardingCases?.list() ?? context.offboardingCases;
       return response(200, {
         outcome: "ok",
-        offboarding: context.offboardingCases.filter((item) => item.tenant_id === tenantId).map(clone),
+        offboarding: offboarding.filter((item) => item.tenant_id === tenantId).map(clone),
       });
     }
 
     const offboardingCloseMatch = pathname.match(/^\/api\/hrx\/lifecycle\/offboarding\/([^/]+)\/close$/);
     if (offboardingCloseMatch && method === "POST") {
       const offboardingId = decodeURIComponent(offboardingCloseMatch[1]);
+      const current = (context.durableCollections?.offboardingCases?.list() ?? context.offboardingCases)
+        .find((item) => item.tenant_id === tenantId && item.offboarding_id === offboardingId);
+      if (!current) return response(404, { outcome: "not_found", safe_error_code: "HRX_OFFBOARDING_CASE_NOT_FOUND" });
+      const next = closeOffboardingCase({ ...current, ...body });
       const index = context.offboardingCases.findIndex((item) => item.tenant_id === tenantId && item.offboarding_id === offboardingId);
-      if (index === -1) return response(404, { outcome: "not_found", safe_error_code: "HRX_OFFBOARDING_CASE_NOT_FOUND" });
-      const next = closeOffboardingCase({ ...context.offboardingCases[index], ...body });
-      context.offboardingCases[index] = next;
+      if (index >= 0) context.offboardingCases[index] = next;
       persistRuntimeUpdate(context, "offboardingCases", next);
       appendRuntimeAudit(context.audit, {
         ...actorContext,

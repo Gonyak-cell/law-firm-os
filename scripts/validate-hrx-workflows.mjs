@@ -587,11 +587,18 @@ const offboardingRouteResult = await lifecycleRoute.handle({
   },
 });
 assert(offboardingRouteResult.status === 201, "lifecycle route must create offboarding case");
-const offboardingCloseRouteResult = await lifecycleRoute.handle({
+const offboardingBlockedCloseRouteResult = await lifecycleRoute.handle({
   method: "POST",
   context: routeContext,
   params: { resource: "offboarding_close", offboarding_id: "offboarding-route-validator" },
   body: {},
+});
+assert(offboardingBlockedCloseRouteResult.status === 400, "lifecycle route must block offboarding before leave reconciliation is synced");
+const offboardingCloseRouteResult = await lifecycleRoute.handle({
+  method: "POST",
+  context: routeContext,
+  params: { resource: "offboarding_close", offboarding_id: "offboarding-route-validator" },
+  body: { leave_reconciliation_status: "approved_and_synced" },
 });
 assert(offboardingCloseRouteResult.status === 200, "lifecycle route must close only ready offboarding case");
 

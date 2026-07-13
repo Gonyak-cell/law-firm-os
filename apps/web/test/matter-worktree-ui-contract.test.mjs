@@ -22,9 +22,15 @@ test("WT-03-01 registers one Worktree route in the required work-management orde
   assert.match(mattersSource, /"matter-worktree"/);
 });
 
-test("WT-03-03 uses four equal-width practice-area controls", () => {
+test("WT-03-03 keeps the Worktree top-menu style as the Matter board style source", () => {
   for (const label of ["송무", "기업 자문", "분쟁", "트랜잭션"]) assert.match(worktreeSource, new RegExp(label));
-  assert.match(stylesSource, /\.matter-worktree-practice-areas\s*\{[\s\S]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(worktreeSource, /className="matter-worktree-practice-areas"/);
+  assert.doesNotMatch(worktreeSource, /className="matter-board-tabs matter-worktree-practice-areas"/);
+  assert.match(stylesSource, /\.matter-worktree-practice-areas\s*\{[^}]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(stylesSource, /\.matter-board-tabs button,\s*\.matter-worktree-practice-areas button\s*\{[^}]*min-height:\s*var\(--am-tab-height\);[^}]*border:\s*1px solid var\(--am-border\);[^}]*background:\s*var\(--am-surface\);/);
+  assert.match(stylesSource, /\.matter-board-tabs button\.active,\s*\.matter-worktree-practice-areas button\.active\s*\{[^}]*border-color:\s*var\(--am-success\);[^}]*background:\s*color-mix\(in srgb, var\(--am-success\) 10%, var\(--am-surface\)\);[^}]*font-weight:\s*700;/);
+  assert.match(worktreeSource, /className=\{practiceArea === area\.id \? "active" : ""\}[\s\S]*aria-pressed=\{practiceArea === area\.id\}[\s\S]*onClick=\{\(\) => selectPracticeArea\(area\.id\)\}/);
+  assert.match(stylesSource, /@media \(max-width: 768px\)[\s\S]*?\.matter-board-tabs,\s*\.matter-worktree-practice-areas,[\s\S]*?grid-template-columns:\s*1fr/);
 });
 
 test("WT-03-04 preserves practice area and Matter Code selection in URL state", () => {
@@ -127,5 +133,5 @@ test("Worktree node creation sends every required model field", () => {
 test("tablet and mobile product navigation keep every axis visible without a hidden horizontal continuation", () => {
   assert.match(stylesSource, /@media \(max-width: 820px\)[\s\S]*\.top-axis-nav\s*\{[\s\S]*grid-column:\s*1 \/ -1/);
   assert.match(stylesSource, /@media \(max-width: 480px\)[\s\S]*\.top-axis-item\s*\{[\s\S]*min-width:\s*0/);
-  assert.match(stylesSource, /@media \(max-width: 480px\)[\s\S]*\.sidebar-subnav\s*\{[\s\S]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(stylesSource, /@media \(max-width: 480px\)[\s\S]*\.sidebar-subnav\s*\{[\s\S]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
 });

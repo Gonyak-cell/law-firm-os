@@ -25,6 +25,7 @@ test("offboarding readiness checks access revokes, document returns, and legal h
   assert.equal(readiness.legal_hold_clear, false);
   assert.equal(readiness.matter_reassignment_clear, true);
   assert.equal(readiness.handover_clear, true);
+  assert.equal(readiness.leave_reconciliation_clear, false);
   assert.equal(readiness.ready, false);
 });
 
@@ -34,6 +35,7 @@ test("offboarding close is blocked until every check is clear", () => {
     ...offboarding,
     access_revocations: [{ system_ref: "DMS", revoked: true, confirmation_ref: "LX-11:AccessRevocation:001" }],
     legal_hold_checks: [{ hold_ref: "HoldCheck:001", clear: true }],
+    leave_reconciliation_status: "approved_and_synced",
   });
   assert.equal(closed.state, "closed");
 });
@@ -52,6 +54,7 @@ test("offboarding close requires matter reassignment and handover items when pre
   );
   const closed = closeOffboardingCase({
     ...offboarding,
+    leave_reconciliation_status: "approved_and_synced",
     access_revocations: [{ system_ref: "DMS", revoked: true, confirmation_ref: "LX-11:AccessRevocation:001" }],
     legal_hold_checks: [{ hold_ref: "HoldCheck:001", clear: true }],
     matter_reassignments: [

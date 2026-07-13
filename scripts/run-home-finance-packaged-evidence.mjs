@@ -414,7 +414,7 @@ try {
   }
 
   await verifyProductGroup("12-packaged-client-sidebar-accordion", "clients", "수임 전 업무", "client-opportunities", "Opportunity");
-  await verifyProductGroup("13-packaged-matter-sidebar-accordion", "matters", "업무 진행", "matter-board", "업무 보드");
+  await verifyProductGroup("13-packaged-matter-sidebar-accordion", "matters", "업무 관리", "matter-board", "업무 보드");
   await verifyProductGroup("14-packaged-people-sidebar-accordion", "people", "근무일정", "people-work-schedule", "근무표");
 } finally {
   await app.close();

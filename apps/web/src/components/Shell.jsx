@@ -2,7 +2,9 @@ import React from "react";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
+  ArrowRight,
   Bell,
+  CalendarClock,
   CalendarDays,
   ChevronDown,
   ClipboardList,
@@ -12,11 +14,13 @@ import {
   MessageCircle,
   Plus,
   RefreshCw,
+  Receipt,
   Search,
   Settings,
   Share2,
   ShieldCheck,
   Tags,
+  Umbrella,
   UserPlus,
   X
 } from "lucide-react";
@@ -28,7 +32,7 @@ import {
   isLegacyGlobalRoute,
   modeExceptionUtilityViewIds
 } from "../data/globalUtilities.js";
-import { fetchUserProfile, readDesktopMatterSessionStatus, readLawosApiSession, readLawosSessionEnvelope } from "../data/apiClient.js";
+import { fetchMatterRecentlyViewed, fetchMatterRecords, fetchUserProfile, readDesktopMatterSessionStatus, readLawosApiSession, readLawosSessionEnvelope } from "../data/apiClient.js";
 import { useSkin } from "../context/SkinContext.jsx";
 import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
@@ -36,6 +40,15 @@ import { peopleNavigationGroups } from "../people/peopleFeatureCatalog.js";
 import { memberPhotoFor } from "../people/memberPhotos.js";
 import { localHrxRosterDisplayNameForSession, localHrxRosterTitleForSession } from "../people/hrxLocalRoster.ts";
 import { canAccessHomeFinanceSection } from "../data/financeAccess.js";
+import {
+  canAdjustLeaveLedger as canAdjustLeaveLedgerForRecords,
+  canApproveLeave as canApproveLeaveForRecords,
+  canExecuteLeaveAccrual as canExecuteLeaveAccrualForRecords,
+  canExportLeaveReport as canExportLeaveReportForRecords,
+  canManageLeavePromotion as canManageLeavePromotionForRecords,
+  canSettleLeaveTermination as canSettleLeaveTerminationForRecords,
+  canManageLeavePolicy as canManageLeavePolicyForRecords
+} from "../data/hrxAccess.js";
 
 const peopleIconMap = {
   bell: Bell,
@@ -49,6 +62,8 @@ const peopleIconMap = {
 
 const peopleGlobalGroupLabels = new Set(["요청/전자결재", "리포트", "메시지", "전자계약", "회사 설정"]);
 const genericSessionDisplayNames = new Set(["사용자", "세션 사용자"]);
+const searchClockFormatter = new Intl.DateTimeFormat("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
+const searchDateFormatter = new Intl.DateTimeFormat("ko-KR", { month: "numeric", day: "numeric" });
 
 function shellLabel(labels, key, fallback) {
   return labels?.[key] ?? fallback;
@@ -98,15 +113,73 @@ function sidebarSessionProfile(profileUser) {
   return {
     name: name || userRef,
     role,
-    userRef
+    userRef,
+    canManageLeavePolicy: canManageLeavePolicyForRecords(records),
+    canApproveLeave: canApproveLeaveForRecords(records),
+    canExecuteLeaveAccrual: canExecuteLeaveAccrualForRecords(records),
+    canAdjustLeaveLedger: canAdjustLeaveLedgerForRecords(records),
+    canExportLeaveReport: canExportLeaveReportForRecords(records),
+    canSettleLeaveTermination: canSettleLeaveTerminationForRecords(records),
+    canManageLeavePromotion: canManageLeavePromotionForRecords(records)
   };
 }
 
-function peopleSidebarGroups() {
+function searchMatterTitle(item, index = 0) {
+  return item?.matter_code ?? item?.matter_number ?? item?.title ?? `Matter ${index + 1}`;
+}
+
+function searchHistoryItems(result, dateFields) {
+  if (result?.kind !== "data" || !Array.isArray(result.items)) return [];
+  return result.items
+    .filter((item) => item?.matter_id)
+    .sort((left, right) => {
+      const value = (item) => {
+        const raw = dateFields.map((field) => item?.[field]).find(Boolean);
+        const parsed = raw ? new Date(raw) : null;
+        return parsed && !Number.isNaN(parsed.getTime()) ? parsed.getTime() : 0;
+      };
+      return value(right) - value(left);
+    })
+    .slice(0, 5);
+}
+
+function searchHistoryResultStatus(result) {
+  if (result?.kind !== "data") return "error";
+  if (result.uiState && !["ready", "empty"].includes(result.uiState)) return "error";
+  if (result.outcome && result.outcome !== "passed") return "error";
+  return "ready";
+}
+
+function searchHistoryTime(value, relative = false) {
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) return "";
+  const now = new Date();
+  if (relative) {
+    const minutes = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 60000));
+    if (minutes < 60) return `${Math.max(1, minutes)}분 전`;
+    if (minutes < 24 * 60) return `${Math.floor(minutes / 60)}시간 전`;
+  }
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayDiff = Math.round((today.getTime() - target.getTime()) / 86400000);
+  if (dayDiff === 0) return `오늘 ${searchClockFormatter.format(date)}`;
+  if (dayDiff === 1) return `어제 ${searchClockFormatter.format(date)}`;
+  return searchDateFormatter.format(date);
+}
+
+function peopleSidebarGroups({ canManageLeavePolicy = false, canApproveLeave = false, canExecuteLeaveAccrual = false, canAdjustLeaveLedger = false, canSettleLeaveTermination = false, canManageLeavePromotion = false } = {}) {
   return peopleNavigationGroups.map((group) => {
-    if (peopleGlobalGroupLabels.has(group.label)) return null;
+    if (peopleGlobalGroupLabels.has(group.label) && group.label !== "요청/전자결재") return null;
     const GroupIcon = peopleIconMap[group.icon] ?? ClipboardList;
-    const children = group.children.filter((child) => !isLegacyGlobalRoute("people", child.section));
+    const children = group.children
+      .filter((child) => group.label !== "요청/전자결재" || ["people-leave-requests", "people-annual-leave-notices"].includes(child.section))
+      .filter((child) => !isLegacyGlobalRoute("people", child.section))
+      .filter((child) => child.requiredScope !== "hrx.leave.policy.read" || canManageLeavePolicy)
+      .filter((child) => child.requiredScope !== "hrx.leave.approve" || canApproveLeave)
+      .filter((child) => child.requiredScope !== "hrx.leave.accrual.execute" || canExecuteLeaveAccrual)
+      .filter((child) => child.requiredScope !== "hrx.leave.ledger.adjust" || canAdjustLeaveLedger)
+      .filter((child) => child.requiredScope !== "hrx.leave.termination.settle" || canSettleLeaveTermination)
+      .filter((child) => child.requiredScope !== "hrx.leave.promotion.manage" || canManageLeavePromotion);
     if (children.length === 0) return null;
     return {
       label: group.label,
@@ -149,7 +222,7 @@ export function LoadingSurface({ labels, locale, theme, skin, setLocale, setThem
 
 function ProductAxisNav({ axis = "home", setView, labels = {} }) {
   return (
-    <nav className="top-axis-nav" aria-label="Home Client Matter People Vault Portal" data-product-axis-nav="top-header">
+    <nav className="top-axis-nav" aria-label="Home Client Matter People Search Portal" data-product-axis-nav="top-header">
       {navItems.map(({ id, label }) => (
         <button
           key={id}
@@ -251,7 +324,8 @@ export function Topbar({
   onOpenUtilityDrawer,
   notificationUnreadCount: topbarNotificationCount = 0,
   homeApprovalCount = 0,
-  homeMessageCount = 0
+  homeMessageCount = 0,
+  liveCtx = "allow"
 }) {
   const skin = useSkin();
   const isForest = skin === "forest";
@@ -261,6 +335,76 @@ export function Topbar({
   const notificationCount = Number(topbarNotificationCount) || 0;
   const messageCount = Number(homeMessageCount) || 0;
   const approvalCount = Number(homeApprovalCount) || 0;
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchDraft, setSearchDraft] = useState(query ?? "");
+  const [searchHistory, setSearchHistory] = useState({ status: "idle", viewedStatus: "idle", modifiedStatus: "idle", viewed: [], modified: [] });
+  const searchRootRef = useRef(null);
+  const searchInputRef = useRef(null);
+  const searchHistoryRequestRef = useRef({ ctx: "", promise: null, loaded: false });
+  const topbarMountedRef = useRef(true);
+
+  useEffect(() => {
+    topbarMountedRef.current = true;
+    return () => { topbarMountedRef.current = false; };
+  }, []);
+
+  useEffect(() => {
+    setSearchDraft(query ?? "");
+  }, [query]);
+
+  useEffect(() => {
+    if (!searchOpen) return undefined;
+    const currentRequest = searchHistoryRequestRef.current;
+    if (currentRequest.ctx === liveCtx && (currentRequest.promise || currentRequest.loaded)) return undefined;
+    setSearchHistory((current) => ({ ...current, status: "loading", viewedStatus: "loading", modifiedStatus: "loading" }));
+    const request = Promise.all([
+      fetchMatterRecentlyViewed({ ctx: liveCtx, limit: 5 }),
+      fetchMatterRecords({ ctx: liveCtx, limit: 5, maxPages: 1 })
+    ]).then(([viewed, matters]) => {
+      if (!topbarMountedRef.current || searchHistoryRequestRef.current.promise !== request) return;
+      const viewedStatus = searchHistoryResultStatus(viewed);
+      const modifiedStatus = searchHistoryResultStatus(matters);
+      setSearchHistory({
+        status: viewedStatus === "error" && modifiedStatus === "error" ? "error" : "ready",
+        viewedStatus,
+        modifiedStatus,
+        viewed: searchHistoryItems(viewed, ["viewed_at", "updated_at", "created_at"]),
+        modified: searchHistoryItems(matters, ["updated_at", "created_at"])
+      });
+    }).catch(() => {
+      if (!topbarMountedRef.current || searchHistoryRequestRef.current.promise !== request) return;
+      setSearchHistory({ status: "error", viewedStatus: "error", modifiedStatus: "error", viewed: [], modified: [] });
+    }).finally(() => {
+      if (searchHistoryRequestRef.current.promise === request) {
+        searchHistoryRequestRef.current = { ctx: liveCtx, promise: null, loaded: true };
+      }
+    });
+    searchHistoryRequestRef.current = { ctx: liveCtx, promise: request, loaded: false };
+    return undefined;
+  }, [searchOpen, liveCtx]);
+
+  useEffect(() => {
+    const onPointerDown = (event) => {
+      if (searchOpen && !searchRootRef.current?.contains(event.target)) setSearchOpen(false);
+    };
+    const onKeyDown = (event) => {
+      if (event.key === "Escape" && searchOpen) {
+        setSearchOpen(false);
+        return;
+      }
+      if (event.key === "/" && !event.metaKey && !event.ctrlKey && !event.altKey && !["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)) {
+        event.preventDefault();
+        setSearchOpen(true);
+        searchInputRef.current?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [searchOpen]);
 
   return (
     <header className="topbar">
@@ -268,11 +412,44 @@ export function Topbar({
         {!isForest && <MatterLogo />}
       </div>
       <ProductAxisNav axis={axis} setView={setView} labels={labels} />
-      <label className="global-search">
-        <Search size={16} />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={labels.search} />
-        <kbd>/</kbd>
-      </label>
+      <div className="global-search-wrap" ref={searchRootRef}>
+        <label className="global-search">
+          <Search size={16} />
+          <input
+            ref={searchInputRef}
+            value={searchDraft}
+            onFocus={() => setSearchOpen(true)}
+            onChange={(event) => { setSearchDraft(event.target.value); setSearchOpen(true); }}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") setSearchOpen(false);
+              if (event.key === "Enter" && searchDraft.trim()) {
+                event.preventDefault();
+                const normalizedQuery = searchDraft.trim();
+                setQuery(normalizedQuery);
+                setView("vault", "vault-search-all", { query: normalizedQuery });
+                setSearchOpen(false);
+              }
+            }}
+            placeholder={labels.search}
+            aria-label={labels.search}
+            role="combobox"
+            aria-haspopup="dialog"
+            aria-expanded={searchOpen ? "true" : "false"}
+            aria-controls="global-search-popover"
+          />
+          <kbd>/</kbd>
+        </label>
+        {searchOpen && (
+          <GlobalSearch
+            labels={labels}
+            query={searchDraft}
+            setQuery={setSearchDraft}
+            setView={setView}
+            history={searchHistory}
+            onClose={() => setSearchOpen(false)}
+          />
+        )}
+      </div>
       <button className="primary-button" onClick={onCreate}>
         <Plus size={15} />
         {labels.create}
@@ -476,6 +653,16 @@ function homeSidebarMeta(labels = {}, financeAccessRecords = []) {
     actions: [
       { label: shellLabel(labels, "homeDashboardLabel", "대시보드"), view: "home", section: "home-dashboard", icon: LayoutDashboard, active: true },
       { label: shellLabel(labels, "homeTodoSidebarLabel", "할 일"), view: "home", section: "home-todo", icon: ClipboardList },
+      {
+        label: shellLabel(labels, "homeRequestsLabel", "승인 대기"),
+        icon: ShieldCheck,
+        groupId: "home-approvals",
+        children: [
+          { label: shellLabel(labels, "requestFilterLeave", "휴가"), view: "home", section: "home-requests-leave", icon: Umbrella },
+          { label: shellLabel(labels, "requestFilterExpenses", "비용처리"), view: "home", section: "home-requests-expenses", icon: Receipt }
+        ]
+      },
+      { label: shellLabel(labels, "homeMeetingRoomsLabel", "회의실 예약"), view: "home", section: "home-meeting-rooms", icon: CalendarClock },
       { label: shellLabel(labels, "homeFeedSidebarLabel", "피드"), view: "home", section: "home-feed", icon: Bell },
       { label: shellLabel(labels, "homeCalendarSidebarLabel", "캘린더"), view: "home", section: "home-calendar", icon: CalendarDays },
       { label: shellLabel(labels, "homeEsignLabel", "전자계약"), view: "home", section: "home-esign", icon: FileText },
@@ -517,7 +704,7 @@ const sidebarMeta = {
     ]
   },
   vault: {
-    title: "Vault",
+    title: "Search",
     utilities: []
   },
   portal: {
@@ -526,34 +713,39 @@ const sidebarMeta = {
   }
 };
 
-const hiddenClientLegacySections = new Set(["client-data", "client-settings"]);
-
 export function buildContextualNavigation({
   labels = {},
   financeAccessRecords = [],
   homeApprovalCount = 0,
   homeMessageCount = 0,
-  canViewCompanyStatus = false
+  canViewCompanyStatus = false,
+  canManageLeavePolicy = false,
+  canApproveLeave = false,
+  canExecuteLeaveAccrual = false,
+  canAdjustLeaveLedger = false,
+  canExportLeaveReport = false,
+  canSettleLeaveTermination = false,
+  canManageLeavePromotion = false
 } = {}) {
   const localizedHomeMeta = homeSidebarMeta(labels, financeAccessRecords);
   const homeItems = localizedHomeMeta.actions
     .filter((item) => item.groupId !== "home-finance" || item.children.length > 0)
     .filter((item) => canViewCompanyStatus || item.section !== "home-company")
     .map((item) => {
+      if (item.groupId === "home-approvals") {
+        return {
+          ...item,
+          count: Number(homeApprovalCount) > 0 ? Number(homeApprovalCount) : null,
+          homeCount: Number(homeApprovalCount) || 0,
+          homeCountKind: "approval"
+        };
+      }
       if (item.section === "home-messages") {
         return {
           ...item,
           count: Number(homeMessageCount) > 0 ? Number(homeMessageCount) : null,
           homeCount: Number(homeMessageCount) || 0,
           homeCountKind: "message"
-        };
-      }
-      if (item.section === "home-todo") {
-        return {
-          ...item,
-          count: Number(homeApprovalCount) > 0 ? Number(homeApprovalCount) : null,
-          homeCount: Number(homeApprovalCount) || 0,
-          homeCountKind: "approval"
         };
       }
       return item;
@@ -654,10 +846,7 @@ export function buildContextualNavigation({
           label: "소통",
           icon: Mail,
           children: [
-            { label: "메시지", view: "matters", section: "matter-channel", icon: Mail },
             { label: "회의 기록", view: "matters", section: "matter-meetings", icon: ClipboardList },
-            { label: "공지", view: "matters", section: "matter-announcements", icon: Bell },
-            { label: "팀", view: "matters", section: "matter-team", icon: UserPlus },
             { label: "의뢰인 요청", view: "matters", section: "matter-client-requests", icon: FileText }
           ]
         },
@@ -666,22 +855,32 @@ export function buildContextualNavigation({
           icon: Settings,
           children: [
             { label: "사건 리포트", view: "matters", section: "matter-analytics", icon: ClipboardList },
-            { label: "검색", view: "matters", section: "matter-search", icon: Search },
-            { label: "사건 위험", view: "matters", section: "matter-risk", icon: ShieldCheck },
-            { label: "감사 이력", view: "matters", section: "matter-audit", icon: FileText },
-            { label: "연동", view: "matters", section: "matter-integrations", icon: Bell },
-            { label: "사건 설정", view: "matters", section: "matter-settings", icon: Settings }
+            { label: "연동", view: "matters", section: "matter-integrations", icon: Bell }
           ]
         }
       ]
     },
-    people: { ...sidebarMeta.people, items: peopleSidebarGroups() },
+    people: { ...sidebarMeta.people, items: peopleSidebarGroups({ canManageLeavePolicy, canApproveLeave, canExecuteLeaveAccrual, canAdjustLeaveLedger, canExportLeaveReport, canSettleLeaveTermination, canManageLeavePromotion }) },
     vault: {
       ...sidebarMeta.vault,
       items: [
-        { label: "문서함", view: "vault", section: "vault-documents", icon: FileText },
-        { label: "문서 상세", view: "vault", section: "vault-detail", icon: ClipboardList },
-        { label: "메일 보관함", view: "vault", section: "vault-email", icon: FileText }
+        {
+          label: shellLabel(labels, "searchGroupLabel", "검색"),
+          icon: Search,
+          children: [
+            { label: shellLabel(labels, "searchDashboardLabel", "대시보드"), view: "vault", section: "vault-search-home", icon: LayoutDashboard, active: true },
+            { label: shellLabel(labels, "searchAllLabel", "전체 검색"), view: "vault", section: "vault-search-all", icon: Search },
+            { label: shellLabel(labels, "searchDocumentsLabel", "문서/OCR"), view: "vault", section: "vault-search-documents", icon: FileText }
+          ]
+        },
+        {
+          label: shellLabel(labels, "searchMyGroupLabel", "내 검색"),
+          icon: CalendarClock,
+          children: [
+            { label: shellLabel(labels, "searchRecentLabel", "최근 검색"), view: "vault", section: "vault-search-recent", icon: CalendarClock },
+            { label: shellLabel(labels, "searchSavedLabel", "저장한 검색"), view: "vault", section: "vault-search-saved", icon: Tags }
+          ]
+        }
       ]
     },
     portal: {
@@ -748,7 +947,14 @@ export function Sidebar({
     financeAccessRecords: [profileUser, readLawosApiSession(), readLawosSessionEnvelope()],
     homeApprovalCount,
     homeMessageCount,
-    canViewCompanyStatus
+    canViewCompanyStatus,
+    canManageLeavePolicy: sessionIdentity.canManageLeavePolicy,
+    canApproveLeave: sessionIdentity.canApproveLeave,
+    canExecuteLeaveAccrual: sessionIdentity.canExecuteLeaveAccrual,
+    canAdjustLeaveLedger: sessionIdentity.canAdjustLeaveLedger,
+    canExportLeaveReport: sessionIdentity.canExportLeaveReport,
+    canSettleLeaveTermination: sessionIdentity.canSettleLeaveTermination,
+    canManageLeavePromotion: sessionIdentity.canManageLeavePromotion
   });
   const meta = navigation[view] ?? { title: "matter", utilities: [], items: [] };
   const subnav = meta.items;
@@ -863,14 +1069,15 @@ export function Sidebar({
             const Icon = item.icon ?? ClipboardList;
             if (item.children) {
               const open = groupOpen(item);
+              const active = isGroupActive(item);
               const defaultItem = item.children[0];
               const stableGroupId = item.groupId ?? defaultItem?.section ?? `group-${index}`;
               const panelId = `sidebar-group-${axis}-${view}-${stableGroupId}`.replace(/[^a-zA-Z0-9_-]/g, "-");
               return (
-                <div key={stableGroupId} className={open ? "sidebar-group active" : "sidebar-group"} data-sidebar-group={stableGroupId}>
+                <div key={stableGroupId} className={active ? "sidebar-group active" : "sidebar-group"} data-sidebar-group={stableGroupId}>
                   <button
                     type="button"
-                    className={open ? "sidebar-item sidebar-group-toggle active" : "sidebar-item sidebar-group-toggle"}
+                    className={active ? "sidebar-item sidebar-group-toggle active" : "sidebar-item sidebar-group-toggle"}
                     aria-expanded={open}
                     aria-controls={panelId}
                     aria-label={`${item.label} 하위 메뉴 ${open ? "접기" : "펼치기"}`}
@@ -879,6 +1086,8 @@ export function Sidebar({
                   >
                     <span className="sidebar-icon"><Icon size={16} /></span>
                     <span className="sidebar-label">{item.label}</span>
+                    {item.homeCountKind === "approval" && <span className="sr-only" data-home-sidebar-approval-count={item.homeCount}>{item.homeCount}</span>}
+                    {item.count && <span className="sidebar-count">{item.count}</span>}
                     <ChevronDown size={15} className={open ? "sidebar-chevron open" : "sidebar-chevron"} />
                   </button>
                   {open && (
@@ -970,42 +1179,92 @@ export function Sidebar({
   );
 }
 
-export function GlobalSearch({ labels, query, setQuery, setView }) {
-  const results = navItems.map(({ id, icon }) => ({
+export function GlobalSearch({ labels, query, setQuery, setView, history = { status: "idle", viewed: [], modified: [] }, onClose = () => {} }) {
+  const results = navItems.filter(({ id }) => id !== "vault").map(({ id, label, icon }) => ({
     icon,
-    title: query.trim() ? `${labels[id]}에서 "${query.trim()}" 검색` : labels[id],
+    title: `${label} ${shellLabel(labels, "searchOpenSuffix", "열기")}`,
     view: id
   })).concat(
     globalUtilityItems.map(({ id, label, localLabel, icon, defaultSection }) => ({
       icon,
-      title: query.trim() ? `${label}에서 "${query.trim()}" 검색` : `${label}, ${localLabel}`,
+      title: `${label} ${shellLabel(labels, "searchOpenSuffix", "열기")}`,
       view: id,
       section: defaultSection
     }))
   );
 
+  const trimmedQuery = query.trim();
+  const openMatter = (item) => {
+    setView("matters", "matters-list", { matterId: item.matter_id });
+    setQuery("");
+    onClose();
+  };
+
   return (
-    <div className="search-popover">
-      <header>
-        <Search size={16} />
-        <strong>{labels.search}</strong>
-        <button className="icon-button" aria-label="검색 지우기" onClick={() => setQuery("")}>
-          <X size={15} />
-        </button>
-      </header>
-      {results.map(({ icon: Icon, title, view, section }) => (
-        <button
-          key={title}
-          className="search-result"
-          onClick={() => {
-            setView(view, section ?? "");
-            setQuery("");
-          }}
-        >
-          <Icon size={15} />
-          {title}
-        </button>
-      ))}
+    <div className="search-popover" id="global-search-popover" role="dialog" aria-label={trimmedQuery ? labels.search : shellLabel(labels, "searchRecentRecords", "최근 기록")}>
+      {trimmedQuery ? (
+        <>
+          <header>
+            <Search size={16} />
+            <strong>{labels.search}</strong>
+            <button className="icon-button" aria-label={shellLabel(labels, "searchClear", "검색 지우기")} onClick={() => setQuery("")}>
+              <X size={15} />
+            </button>
+          </header>
+          <button
+            type="button"
+            className="search-result search-result-primary"
+            onClick={() => {
+              setView("vault", "vault-search-all", { query: trimmedQuery });
+              onClose();
+            }}
+          >
+            <Search size={15} />
+            {`${shellLabel(labels, "searchInWorkspace", "Search에서 문서 검색")} “${trimmedQuery}”`}
+          </button>
+          {results.map(({ icon: Icon, title, view, section }) => (
+            <button
+              key={title}
+              className="search-result"
+              onClick={() => {
+                setView(view, section ?? "");
+                setQuery("");
+                onClose();
+              }}
+            >
+              <Icon size={15} />
+              {title}
+            </button>
+          ))}
+        </>
+      ) : (
+        <>
+          {[
+            { id: "viewed", title: shellLabel(labels, "searchRecentlyViewed", "최근 열람"), status: history.viewedStatus ?? history.status, rows: history.viewed, relative: true, fields: ["viewed_at", "updated_at", "created_at"] },
+            { id: "modified", title: shellLabel(labels, "searchRecentlyModified", "최근 수정"), status: history.modifiedStatus ?? history.status, rows: history.modified, relative: false, fields: ["updated_at", "created_at"] }
+          ].map((section) => (
+            <section className="search-history-section" key={section.id} data-search-history-section={section.id}>
+              <h2>{section.title}</h2>
+              {section.rows.map((item, index) => {
+                const timestamp = section.fields.map((field) => item?.[field]).find(Boolean);
+                return (
+                  <button type="button" className="search-history-row" key={`${section.id}:${item.matter_id}`} onClick={() => openMatter(item)}>
+                    <FileText size={15} />
+                    <strong>{searchMatterTitle(item, index)}</strong>
+                    <time dateTime={timestamp}>{searchHistoryTime(timestamp, section.relative)}</time>
+                  </button>
+                );
+              })}
+              {section.status === "loading" && section.rows.length === 0 && <span className="search-history-state">{shellLabel(labels, "searchHistoryLoading", "최근 기록을 불러오는 중입니다.")}</span>}
+              {section.status === "error" && section.rows.length === 0 && <span className="search-history-state">{shellLabel(labels, "searchHistoryError", "최근 기록을 불러오지 못했습니다.")}</span>}
+              {section.status === "ready" && section.rows.length === 0 && <span className="search-history-state">{shellLabel(labels, "searchHistoryEmpty", "표시할 기록이 없습니다.")}</span>}
+            </section>
+          ))}
+          <button type="button" className="search-history-footer" onClick={() => { setView("matters", "matters-list"); onClose(); }}>
+            {shellLabel(labels, "searchViewMatters", "Matter 목록 보기")} <ArrowRight size={14} />
+          </button>
+        </>
+      )}
     </div>
   );
 }

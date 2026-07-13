@@ -10,7 +10,7 @@ async function readWebFile(path: string) {
   return readFile(resolve(root, path), "utf8");
 }
 
-test("Matter Vault panel is routed, API-backed, and exposes hardened state surfaces", async () => {
+test("Search workspace preserves Vault API hardening and exposes the proven document/OCR scope", async () => {
   const vaultSurface = await readWebFile("src/components/VaultSurface.jsx");
   const vaultApiClient = await readWebFile("src/data/vaultApiClient.ts");
   const breadcrumb = await readWebFile("src/components/VaultBreadcrumb.jsx");
@@ -19,12 +19,14 @@ test("Matter Vault panel is routed, API-backed, and exposes hardened state surfa
   const badges = await readWebFile("src/components/VaultSecurityBadges.jsx");
   const runner = await readFile(resolve(root, "../../scripts/run-web-e2e.mjs"), "utf8");
 
-  assert.match(vaultSurface, /data-cmp-g5-vault-surface="true"/);
+  assert.match(vaultSurface, /data-search-scope="documents-ocr"/);
   assert.match(vaultSurface, /fetchVaultDocuments/);
   assert.match(vaultSurface, /fetchVaultSearch/);
-  assert.match(vaultSurface, /data-upl-e01-vault-search="true"/);
-  assert.match(vaultSurface, /aria-label="Vault 본문 검색"/);
-  assert.match(vaultSurface, /return "OCR"/);
+  assert.match(vaultSurface, /VAULT_PERMISSION_REF/);
+  assert.match(vaultSurface, /VAULT_AUDIT_HINT_REF/);
+  assert.match(vaultSurface, /aria-label="Search"/);
+  assert.match(vaultSurface, /문서\/OCR/);
+  assert.match(vaultSurface, /return \["OCR"\]/);
   assert.match(vaultApiClient, /fetchMatterVaultSummary/);
   assert.match(vaultApiClient, /fetchVaultSearch/);
   assert.match(vaultApiClient, /fetchMatterTimeline/);

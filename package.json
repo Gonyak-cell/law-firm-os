@@ -148,6 +148,7 @@
     "hrx:context:validate": "node scripts/validate-hrx-context-hardening.mjs",
     "hrx:core:validate": "node scripts/validate-hrx-core-domain.mjs",
     "hrx:workflows:validate": "node scripts/validate-hrx-workflows.mjs",
+    "hrx:leave:baseline:validate": "node scripts/validate-leave-management-baseline.mjs",
     "hrx:ui:validate": "node scripts/validate-hrx-ui-api-backed.mjs",
     "lcx:hrx-sft:catalog:validate": "node scripts/validate-lcx-hrx-sft-feature-catalog.mjs",
     "lcx:hrx-sft:roster:validate": "node scripts/validate-lcx-hrx-sft-roster-source.mjs",

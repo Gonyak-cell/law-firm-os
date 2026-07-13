@@ -23,7 +23,7 @@ assert(authzSource.includes("parseTenantContext(headers)"), "authz middleware mu
 assert(authzSource.includes("parseActorContext(headers)"), "authz middleware must derive actor from trusted headers");
 
 const serverSource = read("apps/api/src/server.js");
-assert(serverSource.includes("requestContext: hrxAuthz.context"), "server must pass trusted HRX context to runtime");
+assert(serverSource.includes("requestContext: {") && serverSource.includes("...hrxAuthz.context"), "server must pass trusted HRX context to runtime");
 assert(!serverSource.includes("trustedQuery"), "server must not synthesize trustedQuery with tenant/actor values");
 assert(!/tenant_id:\s*hrxAuthz\.context\.tenant_id/.test(serverSource), "server must not inject trusted tenant into query");
 assert(!/actor_id:\s*hrxAuthz\.context\.actor_id/.test(serverSource), "server must not inject trusted actor into query");
@@ -41,12 +41,12 @@ for (const forbidden of [
   "HRX_PERMISSION_CONTEXT",
   "TENANT_ID",
   "ACTOR_ID",
-  "tenant_id",
   "actor_id",
   "hrx_people_ui_allow",
 ]) {
   assert(!webSource.includes(forbidden), `HRX web client must not contain ${forbidden}`);
 }
+assert(!/withQuery\([^\n]+tenant_id|body:\s*JSON\.stringify\(\{[^}]*tenant_id/.test(webSource), "HRX web client must not put tenant_id in query or mutation bodies");
 assert(webSource.includes("credentials: \"same-origin\""), "HRX web client must rely on same-origin session transport");
 
 const allowed = authorizeHrxApiRequest({

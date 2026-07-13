@@ -202,6 +202,7 @@ function jsonHeaders(operatorToken) {
 
 function isDesktopMatterWriteRoute(method, path) {
   return (
+    (method === "POST" && path === "/api/vault/search/preferences") ||
     (method === "PATCH" && /^\/api\/matters\/[A-Za-z0-9_-]+\/profile$/.test(path)) ||
     (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/stakeholders$/.test(path)) ||
     (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree$/.test(path)) ||
@@ -211,6 +212,48 @@ function isDesktopMatterWriteRoute(method, path) {
     (method === "DELETE" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree\/nodes\/[A-Za-z0-9_-]+$/.test(path)) ||
     (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree\/tasks\/[A-Za-z0-9_-]+\/(complete|reopen|unblock)$/.test(path))
   );
+}
+
+function isDesktopHrxLeaveWriteRoute(method, path) {
+  if (method === "PATCH") {
+    return (
+      /^\/api\/hrx\/leave\/me\/requests\/[^/]+$/.test(path) ||
+      /^\/api\/hrx\/leave\/(groups|types|policies)\/[^/]+$/.test(path)
+    );
+  }
+  if (method !== "POST") return false;
+  return (
+    [
+      "/api/hrx/leave",
+      "/api/hrx/leave/me/preview",
+      "/api/hrx/leave/me/requests",
+      "/api/hrx/leave/delegations",
+      "/api/hrx/leave/accrual/rules",
+      "/api/hrx/leave/accrual/preview",
+      "/api/hrx/leave/accrual/execute",
+      "/api/hrx/leave/accrual/manual/preview",
+      "/api/hrx/leave/accrual/manual/execute",
+      "/api/hrx/leave/ledger/snapshots",
+      "/api/hrx/leave/promotion-campaigns",
+      "/api/hrx/leave/promotion-campaigns/preview",
+      "/api/hrx/leave/integrations/process",
+      "/api/hrx/leave/termination-reconciliations/preview",
+      "/api/hrx/leave/termination-reconciliations/execute",
+      "/api/hrx/leave/groups",
+      "/api/hrx/leave/types",
+      "/api/hrx/leave/policies",
+    ].includes(path) ||
+    /^\/api\/hrx\/leave\/me\/requests\/[^/]+\/(cancel|reschedule-response|additional-information)$/.test(path) ||
+    /^\/api\/hrx\/leave\/requests\/[^/]+\/(approve|reject|reschedule|request-info|escalate)$/.test(path) ||
+    /^\/api\/hrx\/leave\/delegations\/[^/]+\/(revoke|expire)$/.test(path) ||
+    /^\/api\/hrx\/leave\/promotion-recipients\/[^/]+\/(first-notice|second-notice|evidence|response)$/.test(path) ||
+    /^\/api\/hrx\/leave\/policies\/[^/]+\/(publish|versions)$/.test(path) ||
+    /^\/api\/hrx\/leave\/[^/]+\/(approve|reject)$/.test(path)
+  );
+}
+
+function isDesktopHrxStepUpRoute(method, path) {
+  return method === "POST" && path === "/api/auth/step-up";
 }
 
 function parseDesktopMatterWriteBody(body) {
@@ -296,8 +339,10 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
         token_material_returned: false
       };
     }
-    const allowedMatterWrite = isDesktopMatterWriteRoute(safeMethod, normalizedPathname);
-    if (safeMethod !== "GET" && !allowedMatterWrite) {
+    const allowedWrite = isDesktopMatterWriteRoute(safeMethod, normalizedPathname) ||
+      isDesktopHrxLeaveWriteRoute(safeMethod, normalizedPathname) ||
+      isDesktopHrxStepUpRoute(safeMethod, normalizedPathname);
+    if (safeMethod !== "GET" && !allowedWrite) {
       return {
         ok: false,
         reason: "desktop_runtime_read_bridge_get_only",
@@ -313,8 +358,8 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
         token_material_returned: false
       };
     }
-    const parsedBody = allowedMatterWrite ? parseDesktopMatterWriteBody(body) : body;
-    if (allowedMatterWrite && !parsedBody) {
+    const parsedBody = allowedWrite ? parseDesktopMatterWriteBody(body) : body;
+    if (allowedWrite && !parsedBody) {
       return {
         ok: false,
         reason: "desktop_runtime_write_body_invalid",
@@ -322,7 +367,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
         token_material_returned: false
       };
     }
-    if (normalizedPathname.startsWith("/api/auth/")) {
+    if (normalizedPathname.startsWith("/api/auth/") && !isDesktopHrxStepUpRoute(safeMethod, normalizedPathname)) {
       return {
         ok: false,
         reason: "desktop_runtime_read_bridge_auth_path_blocked",
@@ -336,7 +381,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       : [];
     for (const [name, value] of headerEntries) {
       const lowerName = String(name).toLowerCase();
-      if (lowerName === "content-type" || lowerName === "x-lawos-permission-context") {
+      if (["content-type", "x-lawos-permission-context", "x-lawos-hrx-step-up"].includes(lowerName)) {
         forwardedHeaders[name] = String(value);
       }
     }

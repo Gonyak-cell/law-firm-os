@@ -1,4 +1,5 @@
 import { createWeeklyOvertimeRiskReport } from "./overtime.js";
+import { calculateLeavePromotionBalances } from "./leave/promotion-balance.js";
 
 export const HRX_RISK_EVENT_CATEGORIES = Object.freeze([
   "harassment",
@@ -181,28 +182,29 @@ function hasAnnualLeaveNotice(documents = [], employeeId, asOf) {
   return documents.some((document) => {
     if (document.employee_id !== employeeId) return false;
     if (!["leave_notice", "annual_leave_notice", "annual_leave_promotion_notice"].includes(document.document_type)) return false;
+    if (document.source_status !== "verified" || document.source_metadata?.delivery_state !== "delivered") return false;
+    if (document.source_metadata?.view_state !== "viewed" && document.source_metadata?.response_state !== "received") return false;
     const evidenceDate = String(document.source_verified_at ?? document.signed_at ?? document.source_ref ?? "");
     return evidenceDate.includes(year) || !/\d{4}/.test(evidenceDate);
   });
 }
 
-function leaveBalanceDaysByEmployee({ tenantId, leaveBalanceEntries = [], leaveBalances = [], policyId = "pto-us" } = {}) {
+function leaveBalanceDaysByEmployee({ tenantId, asOf, leaveBalanceEntries = [], leaveBalances = [], policyId = "pto-us", standardDayMinutes = 480 } = {}) {
   const balances = new Map();
   for (const balance of leaveBalances) {
     if (balance.tenant_id !== tenantId || (balance.policy_id && balance.policy_id !== policyId)) continue;
     const days = Number(balance.available_days ?? balance.remaining_days ?? balance.available_balance_days);
     if (Number.isFinite(days)) balances.set(balance.employee_id, Math.max(balances.get(balance.employee_id) ?? 0, days));
   }
-  const entryTotals = new Map();
-  for (const entry of leaveBalanceEntries) {
-    if (entry.tenant_id !== tenantId || entry.policy_id !== policyId) continue;
-    const amount = Number(entry.amount ?? 0);
-    if (!Number.isFinite(amount)) continue;
-    const signedAmount = ["used", "reserved"].includes(entry.entry_type) ? -amount : amount;
-    entryTotals.set(entry.employee_id, (entryTotals.get(entry.employee_id) ?? 0) + signedAmount);
-  }
-  for (const [employeeId, hours] of entryTotals.entries()) {
-    if (!balances.has(employeeId)) balances.set(employeeId, Number((hours / 8).toFixed(2)));
+  const calculated = calculateLeavePromotionBalances({
+    tenant_id: tenantId,
+    as_of: asOf,
+    policy_id: policyId,
+    standard_day_minutes: standardDayMinutes,
+    entries: leaveBalanceEntries,
+  });
+  for (const row of calculated.rows) {
+    if (!balances.has(row.employee_id)) balances.set(row.employee_id, row.unused_days);
   }
   return balances;
 }
@@ -246,9 +248,11 @@ export function scanHrxLegalRiskEvents(input = {}) {
   const documents = (input.documents ?? []).filter((document) => document.tenant_id === tenantId);
   const leaveDays = leaveBalanceDaysByEmployee({
     tenantId,
+    asOf,
     leaveBalanceEntries: input.leave_balance_entries ?? [],
     leaveBalances: input.leave_balances ?? [],
     policyId: input.leave_policy_id ?? "pto-us",
+    standardDayMinutes: input.leave_standard_day_minutes ?? 480,
   });
   const risks = [];
 

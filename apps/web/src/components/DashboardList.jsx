@@ -7,17 +7,21 @@ export function DashboardListCard({
   section,
   children,
   onViewAll,
+  headerMeta = "",
   viewAllLabel = "전체 보기"
 }) {
   return (
     <section className={`home-dashboard-card operational-dashboard-card ${className}`} data-dashboard-section={section}>
       <header className="home-dashboard-card-header">
         <div><span>{title}</span></div>
-        {onViewAll && (
+        {(headerMeta || onViewAll) && (
           <div className="home-dashboard-card-actions">
-            <button type="button" className="home-widget-view-all" aria-label={`${title} ${viewAllLabel}`} onClick={onViewAll}>
-              <ArrowRight size={18} />
-            </button>
+            {headerMeta && <span className="home-dashboard-card-meta">{headerMeta}</span>}
+            {onViewAll && (
+              <button type="button" className="home-widget-view-all" aria-label={`${title} ${viewAllLabel}`} onClick={onViewAll}>
+                <ArrowRight size={18} />
+              </button>
+            )}
           </div>
         )}
       </header>

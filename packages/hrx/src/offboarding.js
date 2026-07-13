@@ -1,4 +1,11 @@
 export const HRX_OFFBOARDING_STATES = Object.freeze(["open", "ready_to_close", "closed", "blocked"]);
+export const HRX_LEAVE_RECONCILIATION_STATES = Object.freeze([
+  "pending",
+  "previewed",
+  "approved_pending_sync",
+  "approved_and_synced",
+  "sync_failed",
+]);
 export const HRX_OFFBOARDING_CLOSE_BLOCKED = "HRX_OFFBOARDING_CLOSE_BLOCKED";
 
 function requiredString(input, field) {
@@ -48,7 +55,7 @@ function normalizeHandoverItem(input = {}) {
 }
 
 function closeBlockedError(readiness) {
-  const error = new TypeError("Offboarding case cannot close until access, documents, legal hold, matter reassignment, and handover checks are clear");
+  const error = new TypeError("Offboarding case cannot close until access, documents, legal hold, matter reassignment, handover, and leave reconciliation checks are clear");
   error.safe_error_code = HRX_OFFBOARDING_CLOSE_BLOCKED;
   error.readiness = readiness;
   return error;
@@ -57,12 +64,17 @@ function closeBlockedError(readiness) {
 export function createOffboardingCase(input = {}) {
   const state = input.state ?? "open";
   if (!HRX_OFFBOARDING_STATES.includes(state)) throw new TypeError(`state must be one of ${HRX_OFFBOARDING_STATES.join(", ")}`);
+  const leaveReconciliationStatus = input.leave_reconciliation_status ?? "pending";
+  if (!HRX_LEAVE_RECONCILIATION_STATES.includes(leaveReconciliationStatus)) {
+    throw new TypeError(`leave_reconciliation_status must be one of ${HRX_LEAVE_RECONCILIATION_STATES.join(", ")}`);
+  }
   return Object.freeze({
     tenant_id: requiredString(input, "tenant_id"),
     offboarding_id: requiredString(input, "offboarding_id"),
     employee_id: requiredString(input, "employee_id"),
     separation_date: requiredString(input, "separation_date"),
     state,
+    leave_reconciliation_status: leaveReconciliationStatus,
     access_revocations: Object.freeze((input.access_revocations ?? []).map(normalizeAccessRevocation)),
     document_returns: Object.freeze((input.document_returns ?? []).map((item) => normalizeItem(item, "document_ref", "returned"))),
     legal_hold_checks: Object.freeze(
@@ -87,15 +99,18 @@ export function evaluateOffboardingReadiness(input = {}) {
     (item) => item.reassigned && Boolean(item.reassigned_to_employee_id),
   );
   const handoverClear = offboarding.handover_items.every((item) => item.completed);
+  const leaveReconciliationClear = offboarding.leave_reconciliation_status === "approved_and_synced";
   return Object.freeze({
     tenant_id: offboarding.tenant_id,
     offboarding_id: offboarding.offboarding_id,
-    ready: accessClear && documentsClear && legalHoldClear && matterReassignmentClear && handoverClear,
+    ready: accessClear && documentsClear && legalHoldClear && matterReassignmentClear && handoverClear && leaveReconciliationClear,
     access_clear: accessClear,
     documents_clear: documentsClear,
     legal_hold_clear: legalHoldClear,
     matter_reassignment_clear: matterReassignmentClear,
     handover_clear: handoverClear,
+    leave_reconciliation_clear: leaveReconciliationClear,
+    leave_reconciliation_status: offboarding.leave_reconciliation_status,
   });
 }
 

@@ -345,6 +345,105 @@ test("runtime client read API bridge blocks writes and auth routes", async () =>
   assert.equal(outside.http_status, 403);
 });
 
+test("desktop runtime permits only the exact Search preference mutation route", async () => {
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      calls.push({ url: url.toString(), init });
+      return jsonResponse(200, { outcome: "passed", item: { recent: [], saved: [] } });
+    }
+  });
+  const allowed = await client.api({
+    path: "/api/vault/search/preferences",
+    method: "POST",
+    body: JSON.stringify({ operation: "remember", query: "계약서" }),
+    sessionToken: "lawos_session_v1.secret"
+  });
+  const blocked = await Promise.all([
+    client.api({ path: "/api/vault/search", method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" }),
+    client.api({ path: "/api/vault/search/preferences/other", method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" }),
+    client.api({ path: "/api/vault/search/preferences", method: "PUT", body: "{}", sessionToken: "lawos_session_v1.secret" })
+  ]);
+
+  assert.equal(allowed.http_status, 200);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].init.method, "POST");
+  assert.deepEqual(JSON.parse(calls[0].init.body), { operation: "remember", query: "계약서" });
+  assert.deepEqual(blocked.map(({ http_status }) => http_status), [405, 405, 405]);
+});
+
+test("desktop runtime permits the explicit HRX leave mutations and signed step-up exchange", async () => {
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      calls.push({ url: url.toString(), init });
+      return jsonResponse(200, { outcome: "passed" });
+    }
+  });
+  const allowed = [
+    ["POST", "/api/auth/step-up"],
+    ["POST", "/api/hrx/leave"],
+    ["POST", "/api/hrx/leave/me/preview"],
+    ["POST", "/api/hrx/leave/me/requests"],
+    ["PATCH", "/api/hrx/leave/me/requests/request-001"],
+    ["POST", "/api/hrx/leave/me/requests/request-001/cancel"],
+    ["POST", "/api/hrx/leave/me/requests/request-001/reschedule-response"],
+    ["POST", "/api/hrx/leave/me/requests/request-001/additional-information"],
+    ["POST", "/api/hrx/leave/requests/request-001/approve"],
+    ["POST", "/api/hrx/leave/requests/request-001/escalate"],
+    ["POST", "/api/hrx/leave/delegations"],
+    ["POST", "/api/hrx/leave/delegations/delegation-001/revoke"],
+    ["POST", "/api/hrx/leave/accrual/rules"],
+    ["POST", "/api/hrx/leave/accrual/preview"],
+    ["POST", "/api/hrx/leave/accrual/execute"],
+    ["POST", "/api/hrx/leave/accrual/manual/preview"],
+    ["POST", "/api/hrx/leave/accrual/manual/execute"],
+    ["POST", "/api/hrx/leave/ledger/snapshots"],
+    ["POST", "/api/hrx/leave/promotion-campaigns"],
+    ["POST", "/api/hrx/leave/promotion-campaigns/preview"],
+    ["POST", "/api/hrx/leave/promotion-recipients/recipient-001/first-notice"],
+    ["POST", "/api/hrx/leave/integrations/process"],
+    ["POST", "/api/hrx/leave/termination-reconciliations/preview"],
+    ["POST", "/api/hrx/leave/termination-reconciliations/execute"],
+    ["POST", "/api/hrx/leave/groups"],
+    ["PATCH", "/api/hrx/leave/groups/group-001"],
+    ["POST", "/api/hrx/leave/types"],
+    ["PATCH", "/api/hrx/leave/types/type-001"],
+    ["POST", "/api/hrx/leave/policies"],
+    ["PATCH", "/api/hrx/leave/policies/policy-001"],
+    ["POST", "/api/hrx/leave/policies/policy-001/publish"],
+    ["POST", "/api/hrx/leave/policies/policy-001/versions"],
+    ["POST", "/api/hrx/leave/request-001/reject"]
+  ];
+  for (const [method, path] of allowed) {
+    const result = await client.api({
+      path,
+      method,
+      headers: {
+        authorization: "Bearer must-not-forward-from-renderer",
+        "x-lawos-hrx-step-up": "lawos_hrx_step_up_v1.signed"
+      },
+      body: JSON.stringify({ fixture: true }),
+      sessionToken: "lawos_session_v1.secret"
+    });
+    assert.equal(result.http_status, 200, `${method} ${path}`);
+  }
+  const blocked = await Promise.all([
+    client.api({ path: "/api/hrx/employees", method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" }),
+    client.api({ path: "/api/hrx/leave/me/requests/request-001/delete", method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" }),
+    client.api({ path: "/api/hrx/leave/groups/group-001", method: "PUT", body: "{}", sessionToken: "lawos_session_v1.secret" }),
+    client.api({ path: "/api/auth/login", method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" })
+  ]);
+
+  assert.equal(calls.length, allowed.length);
+  assert.equal(calls.every((call) => call.init.headers.authorization === "Bearer lawos_session_v1.secret"), true);
+  assert.equal(calls.every((call) => call.init.headers["x-lawos-hrx-step-up"] === "lawos_hrx_step_up_v1.signed"), true);
+  assert.equal(calls.every((call) => !call.init.headers.authorization.includes("must-not-forward")), true);
+  assert.deepEqual(blocked.map(({ http_status }) => http_status), [405, 405, 405, 405]);
+});
+
 test("runtime client permits only authenticated Matter profile and stakeholder writes", async () => {
   const calls = [];
   const client = createMatterVaultAwsRuntimeClient({

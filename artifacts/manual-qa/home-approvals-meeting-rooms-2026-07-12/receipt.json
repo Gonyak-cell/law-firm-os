@@ -1,0 +1,27 @@
+{
+  "verdict": "PASS",
+  "package": "/Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "dashboard": {
+    "rows": [
+      "휴가",
+      "비용처리"
+    ],
+    "visible": true,
+    "sidebar": [
+      "대시보드",
+      "할 일",
+      "승인 대기",
+      "회의실 예약",
+      "피드",
+      "캘린더",
+      "전자계약",
+      "매출/비용"
+    ],
+    "overflow": false
+  },
+  "compact": {
+    "heading": "회의실 예약",
+    "panel": true,
+    "overflow": false
+  }
+}
