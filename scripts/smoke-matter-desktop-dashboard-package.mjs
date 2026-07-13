@@ -135,7 +135,7 @@ const app = await electron.launch({
 });
 
 const expected = {
-  home: ["home", "recent-work", "today-todo", "calendar", "monthly-sales", "new-engagements", "feed"],
+  home: ["pending-approvals", "recent-work", "today-todo", "calendar", "monthly-sales", "new-engagements", "feed"],
   clients: ["new-clients", "prospects-contacts", "revenue-ranking", "client-meetings", "accounts-receivable"],
   matters: ["recent-work", "today-todo", "my-matters", "new-engagements", "closed-matters"],
   people: []
@@ -193,15 +193,19 @@ try {
         approval_widget_count: document.querySelectorAll('[data-widget-id="approval"]').length,
         people_dashboard_count: document.querySelectorAll('[data-people-dashboard="true"]').length,
         customer_dashboard_title_count: ["신규 고객", "잠재 고객/접촉", "매출 순위", "고객 미팅", "미수금"].filter((title) => surfaceText.includes(title)).length,
+        home_todo_fixture_visible: surfaceText.includes("오늘 계약서 검토"),
+        home_feed_fixture_visible: document.querySelector(".home-dashboard-feed")?.innerText?.includes("대시보드 QA 공지") === true,
+        home_feed_entry_count: document.querySelector("[data-home-feed-entry-count]")?.getAttribute("data-home-feed-entry-count") ?? null,
+        home_feed_text: document.querySelector(".home-dashboard-feed")?.innerText?.replace(/\s+/g, " ").slice(0, 300) ?? "",
         forbidden_visible_values: [...new Set(forbiddenPatterns.flatMap((pattern) => surfaceText.match(pattern) ?? []))],
         body_preview: surfaceText.replace(/\s+/g, " ").slice(0, 800)
       };
     }, { selector: rootSelector });
     assert.deepEqual([...snapshot.sections].sort(), [...sections].sort(), `${view} dashboard sections`);
     if (view === "home") {
-      assert.match(snapshot.body_preview, /오늘 계약서 검토/, "Home today To Do must render fixture data");
-      assert.match(snapshot.body_preview, /대시보드 QA 공지/, "Home feed must render fixture data");
-      for (const section of ["recent-work", "new-engagements", "monthly-sales"]) {
+      assert.equal(snapshot.home_todo_fixture_visible, true, "Home today To Do must render fixture data");
+      assert.equal(snapshot.home_feed_fixture_visible, true, `Home feed must render fixture data: ${JSON.stringify(snapshot)}`);
+      for (const section of ["pending-approvals", "recent-work", "new-engagements", "monthly-sales"]) {
         assert(snapshot.section_row_counts[section] >= 1, `Home ${section} must render its direct source: ${JSON.stringify(snapshot)}`);
       }
     } else if (view === "clients" || view === "matters") {
