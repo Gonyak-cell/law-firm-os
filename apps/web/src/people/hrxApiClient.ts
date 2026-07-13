@@ -3,14 +3,6 @@ import { readLawosApiSession } from "../data/apiClient.js";
 const HRX_ORG_REF = "tenant_amic_matter_vault";
 const LAWOS_SESSION_ENVELOPE_STORAGE_KEY = "lawos.session.envelope";
 const LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION = "law-firm-os.desktop-web-session-envelope.v0.1";
-const HRX_DEFAULT_SELF_SERVICE_USER_REF = "user_amic_yjlee";
-const HRX_DEFAULT_SELF_SERVICE_ROLE = "lawos_staff";
-const HRX_DEFAULT_SELF_SERVICE_SCOPES = [
-  "hrx.employee.read",
-  "hrx.document.read",
-  "hrx.leave.read",
-  "hrx.leave.write"
-];
 const HRX_PAYROLL_BOUNDARY_ACTIONS = ["hrx.payroll.preview", "hrx.payroll.export"];
 const SAFE_SESSION_STATES = new Set(["signed_in"]);
 const SAFE_REF_PATTERN = /^[A-Za-z0-9._:-]{1,160}$/;
@@ -253,13 +245,12 @@ function readHrxSessionEnvelope(): HrxSessionEnvelope | null {
 
 function sessionHrxRuntimeHeaders(): Record<string, string> {
   const envelope = readHrxSessionEnvelope();
-  const roleIds = envelope?.role_ids.length ? envelope.role_ids : [HRX_DEFAULT_SELF_SERVICE_ROLE];
-  const scopes = envelope?.scopes.length ? envelope.scopes : HRX_DEFAULT_SELF_SERVICE_SCOPES;
+  if (!envelope) return { "x-lawos-tenant-id": HRX_ORG_REF };
   return {
-    "x-lawos-tenant-id": envelope?.tenant_refs.hrx ?? envelope?.tenant_refs.vault ?? envelope?.tenant_refs.default ?? HRX_ORG_REF,
-    "x-lawos-actor-id": envelope?.actor_ref ?? HRX_DEFAULT_SELF_SERVICE_USER_REF,
-    "x-lawos-actor-role": roleIds.join(","),
-    "x-lawos-hrx-scopes": scopes.join(",")
+    "x-lawos-tenant-id": envelope.tenant_refs.hrx ?? envelope.tenant_refs.vault ?? envelope.tenant_refs.default ?? HRX_ORG_REF,
+    "x-lawos-actor-id": envelope.actor_ref,
+    "x-lawos-actor-role": envelope.role_ids.join(","),
+    "x-lawos-hrx-scopes": envelope.scopes.join(",")
   };
 }
 

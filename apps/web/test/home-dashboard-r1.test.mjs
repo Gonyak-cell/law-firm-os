@@ -1535,8 +1535,9 @@ test("profile keeps the main-process signed-in identity when its profile API rea
     const profile = page.locator('[data-user-profile-surface="my-profile"]');
     await profile.waitFor();
     await page.waitForFunction(() => document.querySelector('[data-user-profile-surface="my-profile"]')?.getAttribute("data-profile-api-state") === "error");
+    await page.waitForFunction(() => document.querySelector('[data-user-profile-surface="my-profile"]')?.getAttribute("data-profile-member") === "user_amic_jwsuh");
 
-    assert.equal(await profile.getAttribute("data-profile-member"), "emp_amic_jwsuh");
+    assert.equal(await profile.getAttribute("data-profile-member"), "user_amic_jwsuh");
     assert.equal(await profile.locator("h1").innerText(), "서지원");
     assert.doesNotMatch(await profile.innerText(), /김양태/);
   } finally {

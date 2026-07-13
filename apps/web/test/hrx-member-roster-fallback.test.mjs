@@ -45,27 +45,10 @@ test("HRX member roster fails closed when runtime read fails", async () => {
   }
 });
 
-test("app roster source encodes the current reporting lines", async () => {
-  await withWebModule("/src/people/hrxLocalRoster.ts", async ({ localHrxRosterEmployees, localHrxRosterOrgChart }) => {
-    const employees = localHrxRosterEmployees();
-    const byName = new Map(employees.map((employee) => [employee.display_name, employee]));
-    assert.equal(byName.get("조우상")?.manager_display_name, "김양태");
-    assert.equal(byName.get("박서영")?.manager_display_name, "김양태");
-    assert.equal(byName.get("이예진")?.manager_display_name, "윤태리");
-
-    const orgChart = localHrxRosterOrgChart();
-    const orgByName = new Map(orgChart.employees.map((employee) => [employee.display_name, employee]));
-    assert.equal(orgByName.get("조우상")?.direct_report_count, 0);
-    assert.equal(orgByName.get("박서영")?.manager_display_name, "김양태");
-    assert.equal(orgByName.get("윤태리")?.direct_report_count, 1);
-    assert.equal(orgByName.get("이예진")?.manager_display_name, "윤태리");
-  });
-});
-
-test("home greeting keeps lawyer honorific from app roster", async () => {
+test("home greeting uses authenticated profile fields without a bundled roster", async () => {
   await withWebModule("/src/components/HomeSurface.jsx", async ({ sessionGreeting }) => {
-    assert.equal(sessionGreeting({ email: "jwsuh@amic.kr", display_name: "서지원" }, null), "Welcome, 서지원 변호사님");
-    assert.equal(sessionGreeting({ user_id: "user_amic_jwsuh" }, null), "Welcome, 서지원 변호사님");
+    assert.equal(sessionGreeting({ display_name: "합성 사용자", title: "변호사" }, null), "Welcome, 합성 사용자 변호사님");
+    assert.equal(sessionGreeting({ user_id: "synthetic-user" }, null), "Welcome, 사용자님");
   });
 });
 

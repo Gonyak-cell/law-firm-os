@@ -72,7 +72,10 @@ test("runtime config keeps loopback desktop runtime override for local API even 
   const repoEnvPath = "/workspace/law-firm-os/.env.matter-vault-r4.local";
 
   const config = loadMatterVaultRuntimeConfig({
-    env: { MATTER_DESKTOP_RUNTIME_BASE_URL: "http://127.0.0.1:4812" },
+    env: {
+      MATTER_DESKTOP_RUNTIME_BASE_URL: "http://127.0.0.1:4812",
+      MATTER_DESKTOP_LOCAL_LOGIN_EMAIL: "local-qa@example.test"
+    },
     cwd: "/",
     moduleDirectory: "/workspace/law-firm-os/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/main",
     existsSyncImpl: (candidate) => candidate === repoEnvPath,
@@ -87,6 +90,8 @@ test("runtime config keeps loopback desktop runtime override for local API even 
   assert.equal(config.baseUrl, "http://127.0.0.1:4812");
   assert.equal(config.operatorToken, "");
   assert.equal(config.operatorRuntimeConfigured, false);
+  assert.equal(config.localLoginEmail, "local-qa@example.test");
+  assert.equal(createMatterVaultAwsRuntimeClient(config).runtimeStatus().localLoginEmail, "local-qa@example.test");
 });
 
 test("runtime config keeps a complete desktop auth override from app bundle ancestors", () => {
@@ -131,6 +136,7 @@ test("runtime config falls back to production auth URL without operator credenti
   assert.equal(config.baseUrl, "https://43whkpla74oln46xkmjar4jgae0ebzba.lambda-url.ap-northeast-2.on.aws");
   assert.equal(config.operatorToken, "");
   assert.equal(config.operatorRuntimeConfigured, false);
+  assert.equal(config.localLoginEmail, "");
   assert.equal(client.runtimeStatus().configured, true);
   assert.equal(client.runtimeStatus().mode, "production-auth-http");
   assert.equal(client.runtimeStatus().operatorRuntimeConfigured, false);

@@ -61,7 +61,6 @@ const vaultLegacySections = Object.freeze({
   "vault-email": "vault-search-home"
 });
 const defaultModeReturnTarget = Object.freeze({ view: "home", section: "home-dashboard" });
-const desktopLocalDefaultEmail = "jwsuh@amic.kr";
 const desktopLocalDefaultPassword = "local-loopback-desktop-session";
 
 function normalizeHomeRoute(route) {
@@ -175,6 +174,7 @@ export function App() {
   const [routeRevision, setRouteRevision] = useState(0);
   const readMessageIdsRef = useRef(new Set());
   const [desktopSessionChecked, setDesktopSessionChecked] = useState(() => !isDesktopRenderer());
+  const [desktopSessionIdentity, setDesktopSessionIdentity] = useState(null);
   const [modeReturnTarget, setModeReturnTarget] = useState(() =>
     modeExceptionUtilityViewIds.includes(initialView) || ["auth", "loading"].includes(initialView)
       ? defaultModeReturnTarget
@@ -417,13 +417,17 @@ export function App() {
       try {
         const status = await window.matterSession.status();
         if (status?.state === "signed_in") {
-          if (!cancelled) setDesktopSessionChecked(true);
+          if (!cancelled) {
+            setDesktopSessionIdentity(status);
+            setDesktopSessionChecked(true);
+          }
           return;
         }
         const runtime = typeof window.matterSession.runtime === "function" ? await window.matterSession.runtime() : null;
-        if (isLocalDesktopRuntime(runtime)) {
+        const localLoginEmail = typeof runtime?.localLoginEmail === "string" ? runtime.localLoginEmail.trim() : "";
+        if (isLocalDesktopRuntime(runtime) && localLoginEmail) {
           const result = await loginLawosApiSession({
-            email: desktopLocalDefaultEmail,
+            email: localLoginEmail,
             password: desktopLocalDefaultPassword
           });
           if (result?.ok) {
@@ -439,6 +443,7 @@ export function App() {
       setAuthStep("login");
       setView("auth");
       setActiveSection("");
+      setDesktopSessionIdentity(null);
       setDesktopSessionChecked(true);
     }
     verifyDesktopSession();
@@ -641,7 +646,7 @@ export function App() {
               />
             )}
             {view === "portal" && <PortalSurface labels={labels} liveCtx={liveCtx} refreshSignal={globalRefreshSignal} />}
-            {view === "profile" && <UserProfileSurface liveCtx={liveCtx} onNavigate={navigateToView} onReturnToWork={returnToWork} />}
+            {view === "profile" && <UserProfileSurface liveCtx={liveCtx} desktopSession={desktopSessionIdentity} onNavigate={navigateToView} onReturnToWork={returnToWork} />}
             {isGlobalUtilityView(view) && modeExceptionUtilityViewIds.includes(view) && (
               <GlobalUtilitySurface
                 view={view}

@@ -369,6 +369,8 @@ async function launchPackagedApp() {
       MATTER_DESKTOP_USER_DATA_PATH: userDataPath,
       MATTER_DESKTOP_RUNTIME_STORE_DIR: runtimeStoreDir,
       MATTER_DESKTOP_LOCAL_API_DISABLED: "0",
+      MATTER_DESKTOP_LOCAL_API_ENABLED: "1",
+      MATTER_DESKTOP_LOCAL_LOGIN_EMAIL: accounts.employee.email,
       MATTER_DESKTOP_ENV_FILE: path.join(userDataPath, "fixture-only.env"),
       MATTER_DESKTOP_OPERATOR_TOKEN: "",
       MATTER_VAULT_R4_OPERATOR_TOKEN: "",

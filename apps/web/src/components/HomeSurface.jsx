@@ -32,7 +32,6 @@ import {
 } from "../data/apiClient.js";
 import { emitHomeMetric, homeMetricNowMs } from "../data/homeTelemetry.js";
 import { fetchHrxPeopleOverview } from "../people/hrxApiClient.ts";
-import { localHrxRosterDisplayNameForSession, localHrxRosterProfessionalLabelForSession } from "../people/hrxLocalRoster.ts";
 import { useSkin } from "../context/SkinContext.jsx";
 import { FinanceSurface } from "./FinanceSurface.jsx";
 import { DashboardListCard, DashboardReadState, DashboardRecordList, DashboardRecordRow } from "./DashboardList.jsx";
@@ -206,8 +205,8 @@ export function sessionGreeting(profileUser, desktopStatus) {
     apiSession,
     sessionEnvelope
   ];
-  const name = sessionDisplayName(records) || localHrxRosterDisplayNameForSession(records) || "사용자";
-  const professionalLabel = sessionProfessionalLabel(records) || localHrxRosterProfessionalLabelForSession(records);
+  const name = sessionDisplayName(records) || "사용자";
+  const professionalLabel = sessionProfessionalLabel(records);
   if (name.endsWith("님")) return `Welcome, ${name}`;
   return `Welcome, ${[name, professionalLabel].filter(Boolean).join(" ")}님`;
 }

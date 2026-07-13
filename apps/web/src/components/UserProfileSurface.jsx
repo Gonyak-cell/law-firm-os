@@ -8,9 +8,8 @@ import {
   Pencil,
   ShieldCheck
 } from "lucide-react";
-import { fetchUserProfile, readDesktopMatterSessionStatus, readLawosApiSession, readLawosSessionEnvelope } from "../data/apiClient.js";
+import { fetchUserProfile, readDesktopMatterSessionStatus } from "../data/apiClient.js";
 import profileHeroBuilding from "../assets/profile-hero-building.jpg";
-import { localHrxRosterMemberForSession } from "../people/hrxLocalRoster.ts";
 import { memberPhotoFor } from "../people/memberPhotos.js";
 
 function profileState(result) {
@@ -205,9 +204,9 @@ function ProfileList({ title, items, icon: Icon, emptyText = "미등록", editin
   );
 }
 
-export function UserProfileSurface({ liveCtx = "allow", onNavigate = () => {}, onReturnToWork }) {
+export function UserProfileSurface({ liveCtx = "allow", desktopSession = null, onNavigate = () => {}, onReturnToWork }) {
   const [profileResult, setProfileResult] = useState(null);
-  const [desktopSession, setDesktopSession] = useState(null);
+  const [fallbackDesktopSession, setFallbackDesktopSession] = useState(null);
   const [profileOverride, setProfileOverride] = useState(null);
   const [profileDraft, setProfileDraft] = useState(profileDraftFromMember(null));
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -215,30 +214,17 @@ export function UserProfileSurface({ liveCtx = "allow", onNavigate = () => {}, o
   const currentState = profileState(profileResult);
   const statusCopy = profileStatusCopy(currentState);
   const profile = profileResult?.item ?? null;
-  const sessionMember = useMemo(() => {
-    const apiSession = readLawosApiSession() ?? {};
-    const sessionEnvelope = readLawosSessionEnvelope() ?? {};
-    return localHrxRosterMemberForSession([
-      profile,
-      desktopSession,
-      apiSession.session,
-      apiSession.account,
-      apiSession.user,
-      apiSession.principal,
-      apiSession,
-      sessionEnvelope
-    ]);
-  }, [desktopSession, profile]);
 
   useEffect(() => {
+    if (desktopSession) return undefined;
     let cancelled = false;
     readDesktopMatterSessionStatus().then((status) => {
-      if (!cancelled) setDesktopSession(status);
+      if (!cancelled) setFallbackDesktopSession(status);
     });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [desktopSession]);
 
   useEffect(() => {
     let cancelled = false;
@@ -251,8 +237,8 @@ export function UserProfileSurface({ liveCtx = "allow", onNavigate = () => {}, o
     };
   }, [liveCtx]);
 
-  const baseMember = sessionMember;
-  const employeeId = memberField(baseMember, "employee_id", "unknown");
+  const baseMember = profile ?? desktopSession ?? fallbackDesktopSession;
+  const employeeId = memberField(baseMember, "employee_id", memberField(baseMember, "user_id", "unknown"));
   const selectedMember = useMemo(() => mergeProfileOverride(baseMember, profileOverride), [baseMember, profileOverride]);
   const professionalProfile = objectValue(selectedMember?.professional_profile);
   const photo = memberPhotoFor(selectedMember?.display_name);
@@ -312,7 +298,7 @@ export function UserProfileSurface({ liveCtx = "allow", onNavigate = () => {}, o
       data-profile-api-backed="true"
       data-profile-api-state={currentState}
       data-profile-data-state={currentState}
-      data-profile-member={memberField(selectedMember, "employee_id", "unknown")}
+      data-profile-member={employeeId}
       data-profile-editing={isEditingProfile ? "true" : "false"}
     >
       <header className="matter-profile-cover" aria-label="내 프로필">

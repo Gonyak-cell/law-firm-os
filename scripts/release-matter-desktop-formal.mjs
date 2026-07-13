@@ -127,6 +127,11 @@ const macosSigning = {
   notarization_requested: receiptValue(macosBuildReceipt, "notarization requested"),
   notarization_credential_source: receiptValue(macosBuildReceipt, "notarization credential source"),
   notarization_state: receiptValue(macosBuildReceipt, "notarization state"),
+  dmg_codesign_verify: receiptValue(macosBuildReceipt, "DMG codesign verify"),
+  dmg_notarization_state: receiptValue(macosBuildReceipt, "DMG notarization state"),
+  dmg_stapler_validate: receiptValue(macosBuildReceipt, "DMG stapler validate"),
+  dmg_gatekeeper_assess: receiptValue(macosBuildReceipt, "DMG Gatekeeper assess"),
+  dmg_image_verify: receiptValue(macosBuildReceipt, "DMG image verify"),
 };
 
 const manifest = {
@@ -217,6 +222,11 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 | notarization requested | ${macosSigning.notarization_requested} |
 | notarization credential source | ${macosSigning.notarization_credential_source} |
 | notarization state | ${macosSigning.notarization_state} |
+| DMG codesign verify | ${macosSigning.dmg_codesign_verify} |
+| DMG notarization state | ${macosSigning.dmg_notarization_state} |
+| DMG stapler validate | ${macosSigning.dmg_stapler_validate} |
+| DMG Gatekeeper assess | ${macosSigning.dmg_gatekeeper_assess} |
+| DMG image verify | ${macosSigning.dmg_image_verify} |
 
 ## Windows State
 

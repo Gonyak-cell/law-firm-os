@@ -38,7 +38,6 @@ import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
 import { peopleNavigationGroups } from "../people/peopleFeatureCatalog.js";
 import { memberPhotoFor } from "../people/memberPhotos.js";
-import { localHrxRosterDisplayNameForSession, localHrxRosterTitleForSession } from "../people/hrxLocalRoster.ts";
 import { canAccessHomeFinanceSection } from "../data/financeAccess.js";
 import {
   canAdjustLeaveLedger as canAdjustLeaveLedgerForRecords,
@@ -107,9 +106,9 @@ function sidebarSessionProfile(profileUser) {
     apiSession,
     sessionEnvelope
   ];
-  const name = shellSessionDisplayName(records) || localHrxRosterDisplayNameForSession(records);
+  const name = shellSessionDisplayName(records);
   const userRef = shellSessionFirst(records, ["user_id", "actor_ref", "email"]);
-  const role = shellSessionFirst(records, ["title", "source_title", "primary_role_label", "role_label", "position", "job_title"]) || localHrxRosterTitleForSession(records);
+  const role = shellSessionFirst(records, ["title", "source_title", "primary_role_label", "role_label", "position", "job_title"]);
   return {
     name: name || userRef,
     role,

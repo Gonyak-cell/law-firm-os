@@ -135,6 +135,9 @@ export function loadMatterVaultRuntimeConfig({
     "MATTER_VAULT_R4_MIGRATION_WINDOW",
     "MATTER_DESKTOP_MIGRATION_WINDOW"
   ]);
+  const localLoginEmail = isLoopbackBaseUrl(baseUrl)
+    ? valueFrom(env, fileValues, ["MATTER_DESKTOP_LOCAL_LOGIN_EMAIL"])
+    : "";
 
   const missing = [];
   if (!baseUrl) missing.push("MATTER_VAULT_R4_PRODUCTION_BASE_URL");
@@ -153,12 +156,14 @@ export function loadMatterVaultRuntimeConfig({
     tenantId,
     operatorActor,
     migrationWindow,
+    localLoginEmail,
     envPath: absoluteEnvPath,
     envFilePresent: existsSyncImpl(absoluteEnvPath)
   });
 }
 
 export function publicRuntimeConfig(config = {}) {
+  const localLoginEmail = isLoopbackBaseUrl(config.baseUrl) ? String(config.localLoginEmail ?? "").trim() : "";
   return {
     configured: Boolean(config.baseUrl),
     mode: config.operatorToken ? "aws-temporary-execute-api" : "production-auth-http",
@@ -166,6 +171,7 @@ export function publicRuntimeConfig(config = {}) {
     tenantId: config.tenantId,
     operatorActor: config.operatorActor,
     migrationWindow: config.migrationWindow,
+    localLoginEmail,
     operatorRuntimeConfigured: Boolean(config.operatorToken),
     operatorTokenMaterialExposed: false
   };

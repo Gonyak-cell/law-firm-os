@@ -355,7 +355,7 @@ const MATTER_PRINCIPAL = {
 };
 
 const VAULT_PRINCIPAL = {
-  user_id: "user_amic_jwsuh",
+  user_id: "matter_vault_operator",
   tenant_id: VAULT_TENANT_ID,
   role_ids: ["system_super_admin", "tenant_owner", "managing_partner", "security_admin", "matter_vault_admin", "matter_vault_user", "dms_reader"]
 };

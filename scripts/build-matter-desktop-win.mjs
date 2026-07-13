@@ -29,6 +29,7 @@ const artifactPath = join(distRoot, `${artifactName}-win-installer-manifest.json
 const signaturePath = `${artifactPath}.sig`;
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md");
 const iconPath = join(desktopRoot, "build/icon.ico");
+const formalReleaseMarkerName = "matter-formal-release.json";
 const ignoredPackagePathPatterns = [
   /(^|\/)dist($|\/)/,
   /(^|\/)test($|\/)/,
@@ -90,6 +91,12 @@ try {
     ignore: shouldIgnorePackagedPath
   });
   await rename(generatedAppRoot, packageDir);
+  const markerPath = join(packageDir, "resources", formalReleaseMarkerName);
+  if (formalRelease) {
+    await writeFile(markerPath, `${JSON.stringify({ channel: "formal", local_api_default: "disabled" }, null, 2)}\n`);
+  } else {
+    await rm(markerPath, { force: true });
+  }
 } finally {
   await rm(packageOutRoot, { recursive: true, force: true });
 }
@@ -161,6 +168,7 @@ Channel: \`${releaseChannel}\`
 - unsigned package zip exists: ${existsSync(packageZipPath)}
 - install smoke result: package_candidate_created
 - Windows native install smoke: not_run_on_darwin
+- formal release local API default disabled: ${formalRelease && existsSync(join(packageDir, "resources", formalReleaseMarkerName))}
 
 ## Non-Claims
 
@@ -193,6 +201,7 @@ console.log(
       install_smoke_result: "package_candidate_created",
       windows_native_install_smoke: "not_run_on_darwin",
       windows_authenticode_signing: false,
+      formal_release_local_api_default_disabled: formalRelease && existsSync(join(packageDir, "resources", formalReleaseMarkerName)),
       public_release: false,
       owner_approval: false
     },

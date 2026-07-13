@@ -915,7 +915,7 @@ test("avatar profile opens a standalone personal profile surface without becomin
   assert.match(appSource, /const profileStandalone = view === "profile"/);
   assert.match(appSource, /data-sidebar-state=\{profileStandalone \? "none" : "contextual"\}/);
   assert.match(appSource, /!\profileStandalone && \(/);
-  assert.match(appSource, /<UserProfileSurface liveCtx=\{liveCtx\} onNavigate=\{navigateToView\} onReturnToWork=\{returnToWork\} \/>/);
+  assert.match(appSource, /<UserProfileSurface liveCtx=\{liveCtx\} desktopSession=\{desktopSessionIdentity\} onNavigate=\{navigateToView\} onReturnToWork=\{returnToWork\} \/>/);
   assert.match(appSource, /<Sidebar[\s\S]*onProfile=\{\(\) => navigateToView\("profile"\)\}[\s\S]*\/>/);
   assert.match(shellSource, /data-profile-trigger="true"/);
   assert.match(shellSource, /className="forest-sidebar-user"[\s\S]*data-profile-trigger="true"/);
@@ -1035,6 +1035,7 @@ test("command center groups all backend coverage into four product axes", async 
 
 test("Client Matter People Vault surfaces stay API-backed and fail closed", async () => {
   const shellSource = await readWebFile("src/components/Shell.jsx");
+  const homeSource = await readWebFile("src/components/HomeSurface.jsx");
   const globalUtilitySource = await readWebFile("src/data/globalUtilities.js");
   const clientsSource = await readWebFile("src/components/ClientsSurface.jsx");
   const mattersSource = await readWebFile("src/components/MattersSurface.jsx");
@@ -1052,7 +1053,6 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   const apiClientSource = await readWebFile("src/data/apiClient.js");
   const peopleSource = await readWebFile("src/people/PeopleHome.tsx");
   const peopleApiSource = await readWebFile("src/people/hrxApiClient.ts");
-  const peopleLocalRosterSource = await readWebFile("src/people/hrxLocalRoster.ts");
   const employeeProfileSource = await readWebFile("src/people/employees/EmployeeProfile.tsx");
   const i18nSource = await readWebFile("src/i18n.js");
   const stylesSource = await readWebFile("src/styles.css");
@@ -1599,7 +1599,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /bridgeToken/);
   assert.match(apiClientSource, /kind: "guarded"/);
   assert.match(apiClientSource, /tenant_amic_matter_vault/);
-  assert.match(apiClientSource, /user_amic_jwsuh/);
+  assert.match(apiClientSource, /matter_vault_operator/);
   assert.match(apiClientSource, /\/api\/crm\/leads/);
   assert.match(apiClientSource, /\/api\/crm\/accounts/);
   assert.match(apiClientSource, /createCrmAccount/);
@@ -1803,7 +1803,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(peopleApiSource, /professional_profile/);
   assert.doesNotMatch(peopleApiSource, /localHrxRosterEmployees|localHrxRosterOrgChart/);
   assert.match(peopleApiSource, /result\.kind !== "data" \|\| !Array\.isArray\(result\.body\.employees\)[\s\S]*kind: "error"/);
-  assert.match(peopleLocalRosterSource, /hrx-member-roster-source-of-truth\.json/);
+  assert.doesNotMatch(`${shellSource}\n${homeSource}\n${employeeProfileSource}`, /hrxLocalRoster|hrx-member-roster-source-of-truth\.json/);
   assert.match(employeeProfileSource, /<Property label="상사"/);
   const memberFailureCopy = new RegExp(["구성원 목록을", "불러오지 못했습니다"].join(".*"));
   const runtimeContextCopy = new RegExp(["로컬 런타임", "권한 컨텍스트"].join(".*"));
@@ -1951,8 +1951,8 @@ test("HRX audit UI preserves server-owned step-up and no local fallback", async 
   assert.match(peopleApiSource, /tenant_amic_matter_vault/);
   assert.match(peopleApiSource, /lawos\.session\.envelope/);
   assert.match(peopleApiSource, /sessionHrxRuntimeHeaders/);
-  assert.match(peopleApiSource, /user_amic_yjlee/);
-  assert.match(peopleApiSource, /lawos_staff/);
+  assert.match(peopleApiSource, /if \(!envelope\) return \{ "x-lawos-tenant-id": HRX_ORG_REF \}/);
+  assert.doesNotMatch(peopleApiSource, /HRX_DEFAULT_SELF_SERVICE_USER_REF|HRX_DEFAULT_SELF_SERVICE_ROLE|HRX_DEFAULT_SELF_SERVICE_SCOPES/);
   assert.doesNotMatch(peopleApiSource, /security_admin,hr_admin,people_ops/);
   assert.doesNotMatch(peopleApiSource, /const HRX_USER_REF = "user_amic_jwsuh"/);
   assert.match(peopleApiSource, /x-lawos-tenant-id/);

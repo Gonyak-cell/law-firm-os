@@ -58,6 +58,9 @@ jobs:
       - name: Web build
         run: npm --workspace apps/web run build
 
+      - name: Public renderer HRX roster PII guard
+        run: npm run public-renderer:pii:validate
+
       - name: HRX UI validator
         run: npm run hrx:ui:validate
 

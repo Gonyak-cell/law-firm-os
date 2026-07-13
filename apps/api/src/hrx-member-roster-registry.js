@@ -4,7 +4,9 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const packagedRosterPath = join(__dirname, "hrx-member-roster-source-of-truth.json");
+const configuredRosterSourcePath = String(process.env.LAWOS_HRX_MEMBER_ROSTER_SOURCE_PATH ?? "").trim();
 const configuredContactSourcePath = String(process.env.LAWOS_HRX_MEMBER_CONTACT_SOURCE_PATH ?? "").trim();
+const configuredRosterPath = configuredRosterSourcePath ? resolve(process.cwd(), configuredRosterSourcePath) : null;
 const contactSourcePath = configuredContactSourcePath ? resolve(process.cwd(), configuredContactSourcePath) : null;
 const repoRosterPath = resolve(
   __dirname,
@@ -12,7 +14,9 @@ const repoRosterPath = resolve(
 );
 
 export const HRX_MEMBER_ROSTER_SOURCE_REF = "hrx-member-roster-source-of-truth";
-export const HRX_MEMBER_ROSTER_SOURCE_PATH = existsSync(packagedRosterPath) ? packagedRosterPath : repoRosterPath;
+export const HRX_MEMBER_ROSTER_SOURCE_PATH = configuredRosterPath ?? (
+  existsSync(packagedRosterPath) ? packagedRosterPath : existsSync(repoRosterPath) ? repoRosterPath : null
+);
 export const HRX_MEMBER_CONTACT_SOURCE_PATH = contactSourcePath;
 
 function deepFreeze(value) {
@@ -24,7 +28,14 @@ function deepFreeze(value) {
 }
 
 export const HRX_MEMBER_ROSTER_SOURCE_OF_TRUTH = deepFreeze(
-  JSON.parse(readFileSync(HRX_MEMBER_ROSTER_SOURCE_PATH, "utf8")),
+  HRX_MEMBER_ROSTER_SOURCE_PATH
+    ? JSON.parse(readFileSync(HRX_MEMBER_ROSTER_SOURCE_PATH, "utf8"))
+    : {
+        schema_version: "law-firm-os.hrx-member-roster-source-of-truth.v0.1",
+        tenant_id: "",
+        source_ref: "private-runtime-source-not-configured",
+        members: [],
+      },
 );
 
 function stringField(record, key) {

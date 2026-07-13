@@ -65,6 +65,16 @@ assert.equal(receiptValue(macosReceipt, "public distribution approval"), "not cl
 assert.equal(receiptValue(macosReceipt, "notarization requested"), "true");
 assert.equal(receiptValue(macosReceipt, "notarization credential source"), "present");
 assert.equal(receiptValue(macosReceipt, "notarization state"), "submitted_and_accepted_by_notarytool");
+assert.equal(receiptValue(macosReceipt, "DMG codesign verify"), "pass");
+assert.equal(receiptValue(macosReceipt, "DMG notarization state"), "submitted_and_accepted_by_notarytool");
+assert.equal(receiptValue(macosReceipt, "DMG stapler validate"), "pass");
+assert.equal(receiptValue(macosReceipt, "DMG Gatekeeper assess"), "pass");
+assert.equal(receiptValue(macosReceipt, "DMG image verify"), "pass");
+assert.equal(manifest.macos_signing.dmg_codesign_verify, "pass");
+assert.equal(manifest.macos_signing.dmg_notarization_state, "submitted_and_accepted_by_notarytool");
+assert.equal(manifest.macos_signing.dmg_stapler_validate, "pass");
+assert.equal(manifest.macos_signing.dmg_gatekeeper_assess, "pass");
+assert.equal(manifest.macos_signing.dmg_image_verify, "pass");
 
 assert(macosReceipt.includes("App ID: `com.amic.matter.desktop`"), "macOS receipt must use formal app id");
 assert(macosReceipt.includes("Channel: `formal`"), "macOS receipt must record formal channel");
@@ -97,6 +107,11 @@ const requiredReceiptPhrases = [
   "Developer ID signing | applied",
   "notarization requested | true",
   "notarization state | submitted_and_accepted_by_notarytool",
+  "DMG codesign verify | pass",
+  "DMG notarization state | submitted_and_accepted_by_notarytool",
+  "DMG stapler validate | pass",
+  "DMG Gatekeeper assess | pass",
+  "DMG image verify | pass",
   "Windows Authenticode signing: false",
   "Public release: false",
   "Production go-live: false",

@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
@@ -13,6 +14,7 @@ import { registerSessionIpcHandlers } from "./session-ipc.js";
 import { createMainWindow } from "./window.js";
 
 const moduleDir = dirname(fileURLToPath(import.meta.url));
+const formalReleaseMarkerName = "matter-formal-release.json";
 
 export const desktopSkeletonStatus = Object.freeze({
   appName: "matter",
@@ -67,8 +69,17 @@ export function desktopUserDataPath(app, env = process.env) {
   return app.getPath("userData");
 }
 
-export function shouldStartDesktopLocalApi(env = process.env) {
-  return env.MATTER_DESKTOP_LOCAL_API_DISABLED !== "1";
+export function isFormalReleasePackage({
+  resourcesPath = process.resourcesPath,
+  existsSyncImpl = existsSync
+} = {}) {
+  return typeof resourcesPath === "string" && Boolean(resourcesPath) && existsSyncImpl(join(resourcesPath, formalReleaseMarkerName));
+}
+
+export function shouldStartDesktopLocalApi(env = process.env, { formalRelease = false } = {}) {
+  if (env.MATTER_DESKTOP_LOCAL_API_DISABLED === "1") return false;
+  if (formalRelease && env.MATTER_DESKTOP_LOCAL_API_ENABLED !== "1") return false;
+  return true;
 }
 
 export function runtimeClientFromEnv(env = process.env) {
@@ -160,7 +171,7 @@ export async function startElectronApp() {
   await app.whenReady();
   configureDesktopAppIcon(app);
   configureDesktopProtocol(app);
-  const localApi = shouldStartDesktopLocalApi(process.env)
+  const localApi = shouldStartDesktopLocalApi(process.env, { formalRelease: isFormalReleasePackage() })
     ? await startDesktopLocalApiServer({ userDataPath })
     : null;
   if (localApi?.baseUrl) {

@@ -94,8 +94,8 @@ assert(apiClient.includes("tenant_amic_matter_vault"), "HRX UI client must use t
 assert(apiClient.includes("lawos.session.envelope"), "HRX UI client must read the non-secret LawOS session envelope");
 assert(apiClient.includes("sessionHrxRuntimeHeaders"), "HRX UI client must derive HRX runtime headers from the signed-in session envelope");
 assert(apiClient.includes("function desktopReadBridge") && apiClient.includes("window.matterSession?.api"), "Desktop HRX UI client must use the main-process read bridge when no local API base URL is handed off");
-assert(apiClient.includes("user_amic_yjlee"), "HRX UI client must fall back to a self-service staff actor, not an admin actor");
-assert(apiClient.includes("lawos_staff"), "HRX UI client must fall back to the staff self-service role");
+assert(apiClient.includes('if (!envelope) return { "x-lawos-tenant-id": HRX_ORG_REF }'), "HRX UI client must fail closed without a signed session actor");
+assert(!/HRX_DEFAULT_SELF_SERVICE_(USER_REF|ROLE|SCOPES)/.test(apiClient), "HRX UI client must not bundle a default employee identity or scope set");
 assert(!apiClient.includes("security_admin,hr_admin,people_ops"), "HRX UI client must not hardcode all users as HR admins");
 assert(!apiClient.includes("const HRX_USER_REF = \"user_amic_jwsuh\""), "HRX UI client must not hardcode the system admin actor");
 assert(apiClient.includes('"x-lawos-tenant-id"'), "HRX UI client must pass tenant context to HRX API");

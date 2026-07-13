@@ -26,10 +26,16 @@ const packagedPrivateContactSourcePath = join(
   appSourceDir,
   "runtime/apps/api/src/hrx-member-contact-source-of-truth.json",
 );
+const packagedPrivateRosterSourcePath = join(
+  appSourceDir,
+  "runtime/apps/api/src/hrx-member-roster-source-of-truth.json",
+);
 const desktopRendererWebIndex = join(desktopRoot, "src/renderer/web/index.html");
 const iconPath = join(desktopRoot, "build/icon.icns");
 const packagedIconFile = "matter.icns";
 const packagedIconPath = join(resourcesDir, packagedIconFile);
+const formalReleaseMarkerName = "matter-formal-release.json";
+const formalReleaseMarkerPath = join(resourcesDir, formalReleaseMarkerName);
 const releaseChannel = process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal";
 if (!["internal", "formal"].includes(releaseChannel)) {
   throw new Error("MATTER_DESKTOP_RELEASE_CHANNEL must be internal or formal.");
@@ -167,13 +173,10 @@ async function copyDesktopLocalApiRuntime(targetAppBundle) {
   await mkdir(join(runtimeDir, "apps/api"), { recursive: true });
   await cp(join(repoRoot, "apps/api/src"), apiRuntimeSrcDir, { recursive: true });
   await rm(join(apiRuntimeSrcDir, "hrx-member-contact-source-of-truth.json"), { force: true });
+  await rm(join(apiRuntimeSrcDir, "hrx-member-roster-source-of-truth.json"), { force: true });
   await copyFile(
     join(repoRoot, "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json"),
     join(apiRuntimeSrcDir, "matter-vault-user-registration-seed.json"),
-  );
-  await copyFile(
-    join(repoRoot, "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json"),
-    join(apiRuntimeSrcDir, "hrx-member-roster-source-of-truth.json"),
   );
   await cp(join(repoRoot, "packages"), join(runtimeDir, "packages"), { recursive: true });
 }
@@ -231,6 +234,12 @@ try {
   const generatedAppBundle = join(generatedAppRoot, "matter.app");
   await applyMatterBundleIcon(generatedAppBundle);
   await copyDesktopLocalApiRuntime(generatedAppBundle);
+  const generatedMarkerPath = join(generatedAppBundle, "Contents", "Resources", formalReleaseMarkerName);
+  if (formalRelease) {
+    await writeFile(generatedMarkerPath, `${JSON.stringify({ channel: "formal", local_api_default: "disabled" }, null, 2)}\n`);
+  } else {
+    await rm(generatedMarkerPath, { force: true });
+  }
 
   if (osxSign) {
     await sign({
@@ -280,6 +289,34 @@ const executableSmoke = await packagedExecutableSmoke();
 await execFileAsync("/usr/bin/ditto", ["-c", "-k", "--sequesterRsrc", "--keepParent", appBundle, zipPath]);
 await execFileAsync("/usr/bin/hdiutil", ["create", "-volname", "matter", "-srcfolder", appBundle, "-ov", "-format", "UDZO", dmgPath]);
 
+let dmgCodesignVerify = "not_applied_internal_package";
+let dmgNotarizationState = "not_submitted_internal_only";
+let dmgStaplerValidate = "not_submitted_internal_only";
+let dmgGatekeeperAssess = "not_distribution_ready";
+let dmgImageVerify = "not_verified";
+if (osxSign) {
+  await execFileAsync("/usr/bin/codesign", ["--force", "--sign", osxSign.identity, "--timestamp", dmgPath]);
+  await execFileAsync("/usr/bin/codesign", ["--verify", "--verbose=2", dmgPath]);
+  dmgCodesignVerify = "pass";
+}
+if (osxNotarize) {
+  await notarize({ appPath: dmgPath, ...osxNotarize });
+  dmgNotarizationState = "submitted_and_accepted_by_notarytool";
+  await execFileAsync("/usr/bin/xcrun", ["stapler", "validate", dmgPath]);
+  dmgStaplerValidate = "pass";
+}
+await execFileAsync("/usr/bin/hdiutil", ["verify", dmgPath]);
+dmgImageVerify = "pass";
+try {
+  await execFileAsync("/usr/sbin/spctl", ["--assess", "--type", "install", "--verbose=4", dmgPath]);
+  dmgGatekeeperAssess = "pass";
+} catch (error) {
+  dmgGatekeeperAssess = `not_distribution_ready: ${firstLine(error.stderr ?? error.message) || "DMG spctl assess failed"}`;
+}
+if (formalRelease && [dmgCodesignVerify, dmgNotarizationState, dmgStaplerValidate, dmgGatekeeperAssess, dmgImageVerify].some((state) => !["pass", "submitted_and_accepted_by_notarytool"].includes(state))) {
+  throw new Error(`Formal DMG verification failed: ${JSON.stringify({ dmgCodesignVerify, dmgNotarizationState, dmgStaplerValidate, dmgGatekeeperAssess, dmgImageVerify })}`);
+}
+
 const receipt = `# macOS ${formalRelease ? "Formal Release Candidate" : "Internal"} Build Receipt
 
 Status: ${formalRelease ? "formal_release_candidate_electron_app_bundle_created" : "internal_electron_app_bundle_created"}
@@ -313,6 +350,11 @@ Channel: \`${releaseChannel}\`
 - notarization requested: ${notarizationRequested}
 - notarization credential source: ${osxNotarize ? "present" : "missing"}
 - notarization state: ${notarizationState}
+- DMG codesign verify: ${dmgCodesignVerify}
+- DMG notarization state: ${dmgNotarizationState}
+- DMG stapler validate: ${dmgStaplerValidate}
+- DMG Gatekeeper assess: ${dmgGatekeeperAssess}
+- DMG image verify: ${dmgImageVerify}
 
 ## Install Smoke
 
@@ -321,6 +363,8 @@ Channel: \`${releaseChannel}\`
 - packaged app icon exists: ${existsSync(packagedIconPath)}
 - packaged app source exists: ${existsSync(appSourceDir)}
 - private HRX contact source excluded: ${!existsSync(packagedPrivateContactSourcePath)}
+- private HRX roster source excluded: ${!existsSync(packagedPrivateRosterSourcePath)}
+- formal release marker: ${formalRelease ? existsSync(formalReleaseMarkerPath) : !existsSync(formalReleaseMarkerPath)}
 - web renderer prepare state: ${webRendererPrepareState}
 - packaged URL scheme metadata: matter
 - ZIP archive exists: ${existsSync(zipPath)}
@@ -358,9 +402,16 @@ console.log(
       notarization_requested: notarizationRequested,
       notarization_credential_source: osxNotarize ? "present" : "missing",
       notarization_state: notarizationState,
+      dmg_codesign_verify: dmgCodesignVerify,
+      dmg_notarization_state: dmgNotarizationState,
+      dmg_stapler_validate: dmgStaplerValidate,
+      dmg_gatekeeper_assess: dmgGatekeeperAssess,
+      dmg_image_verify: dmgImageVerify,
       install_smoke_result: "pass",
       packaged_app_icon: existsSync(packagedIconPath),
       private_hrx_contact_source_excluded: !existsSync(packagedPrivateContactSourcePath),
+      private_hrx_roster_source_excluded: !existsSync(packagedPrivateRosterSourcePath),
+      formal_release_local_api_default_disabled: formalRelease && existsSync(formalReleaseMarkerPath),
       electron_runtime_packaged: true,
       web_renderer_prepare_state: webRendererPrepareState,
       public_release: false,

@@ -19,16 +19,18 @@ const rosterPath = "docs/reorganization/client-matter-os/matter-vault-r4/launch/
 const registryPath = "apps/api/src/hrx-member-roster-registry.js";
 const runtimePath = "apps/api/src/hrx-runtime-context.js";
 const workforcePath = "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx";
-const localRosterPath = "apps/web/src/people/hrxLocalRoster.ts";
 const peopleHomePath = "apps/web/src/people/PeopleHome.tsx";
+const shellPath = "apps/web/src/components/Shell.jsx";
+const homePath = "apps/web/src/components/HomeSurface.jsx";
+const userProfilePath = "apps/web/src/components/UserProfileSurface.jsx";
 const taskLedgerPath = "docs/lazycodex/people-reflection/lcx-hrx-sft-task-ledger.json";
 
 const rosterJson = JSON.parse(read(rosterPath));
 const registry = read(registryPath);
 const runtime = read(runtimePath);
 const workforce = read(workforcePath);
-const localRoster = read(localRosterPath);
 const peopleHome = read(peopleHomePath);
+const publicWebSources = [read(shellPath), read(homePath), read(userProfilePath)].join("\n");
 const taskLedger = JSON.parse(read(taskLedgerPath));
 const rosterRows = listHrxMemberRosterRows();
 const membersByName = new Map(rosterRows.map((member) => [member.display_name, member]));
@@ -41,7 +43,8 @@ assert.equal(HRX_MEMBER_ROSTER_SOURCE_OF_TRUTH.source_ref, HRX_MEMBER_ROSTER_SOU
 assert.equal(HRX_MEMBER_CONTACT_SOURCE_PATH, null);
 assert.equal(HRX_MEMBER_CONTACT_SOURCE_OF_TRUTH.contacts.length, 0);
 assert.equal(rosterJson.members.some((member) => Object.hasOwn(member, "mobile_phone")), false);
-assert.equal(localRoster.includes("mobile_phone"), false);
+assert.equal(publicWebSources.includes("hrxLocalRoster"), false);
+assert.equal(publicWebSources.includes("hrx-member-roster-source-of-truth.json"), false);
 assert.ok(HRX_MEMBER_ROSTER_SOURCE_PATH.endsWith(rosterPath), `registry must resolve repo roster path, got ${HRX_MEMBER_ROSTER_SOURCE_PATH}`);
 assert.equal(rosterRows.length, 10);
 assert.ok(rosterRows.every((member) => member.source_ref === HRX_MEMBER_ROSTER_SOURCE_REF));

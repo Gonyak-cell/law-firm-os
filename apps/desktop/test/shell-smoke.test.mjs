@@ -12,6 +12,7 @@ import {
   desktopPreloadPath,
   desktopWindowIconPath,
   desktopUserDataPath,
+  isFormalReleasePackage,
   isMainEntryPoint,
   passwordResetDeepLinkIntent,
   packagedRendererUrl,
@@ -179,10 +180,18 @@ test("desktop userData can be isolated for packaged QA runs", () => {
   assert.equal(desktopUserDataPath(app, {}), "/default/user-data");
 });
 
-test("desktop local API starts by default and only the explicit disable flag turns it off", () => {
+test("desktop local API defaults off for formal packages and remains opt-in for isolated QA", () => {
+  assert.equal(isFormalReleasePackage({ resourcesPath: "/App/resources", existsSyncImpl: (path) => path.endsWith("matter-formal-release.json") }), true);
+  assert.equal(isFormalReleasePackage({ resourcesPath: "/App/resources", existsSyncImpl: () => false }), false);
   assert.equal(shouldStartDesktopLocalApi({}), true);
   assert.equal(shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_ENABLED: "0" }), true);
   assert.equal(shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_DISABLED: "1" }), false);
+  assert.equal(shouldStartDesktopLocalApi({}, { formalRelease: true }), false);
+  assert.equal(shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_ENABLED: "1" }, { formalRelease: true }), true);
+  assert.equal(
+    shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_ENABLED: "1", MATTER_DESKTOP_LOCAL_API_DISABLED: "1" }, { formalRelease: true }),
+    false
+  );
 });
 
 test("desktop uses volatile session storage for loopback local API to avoid Keychain prompts", async () => {
