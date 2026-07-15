@@ -184,7 +184,7 @@ RC-003에서 우선 검토할 root-only 항목:
 | MG-003 | DONE | 누락 기능은 `026+`로 이동 | 승인된 71개 계약만 `026~028` additive migration과 Forest canonical runtime adapter로 구현 | exact contract·filename/order/loader·forbidden schema·runtime wiring validator | 001~028 연속, `026=49`·`027=18`·`028=4`, 누락·예상 밖·정의 불일치·금지 계약·번호 충돌 0, 타깃 49/49·HRX 전체 563/563·web build PASS |
 | MG-004 | DONE | fresh DB 검증 | native `node:sqlite` 빈 DB에서 `001~028`을 순차 실행하고 exact schema·제약·seedless·integrity·determinism 증명 | fresh DB validator·migration tests·전체 HRX·web build | 28/28 실행, table/index/trigger `73/53/12`, required/forbidden column `7/7`, constraint probe 7/7, 빈 table 73/73, integrity `ok`, FK error 0, HRX 564/564, web build PASS |
 | MG-005 | DONE | upgrade 검증 | 실제 파일 SQLite를 `010`, `020`, `025`에 고정하고 synthetic golden row를 저장한 뒤 close/reopen, `028`까지 upgrade, 다시 read-only reopen하여 기존 row·column·schema·default/backfill을 검증 | durable checkpoint validator·schema/data golden·전체 HRX·web build | 3/3 checkpoint, 기존 32 table·32 row의 변경·손실·예상 밖 생성 0, backfill 30/30, final schema fresh DB 일치 3/3, durable reopen 3/3, integrity·FK error 0, HRX 565/565, web build PASS |
-| MG-006 | READY | 재실행·중간 실패·복구 | idempotency, transaction rollback, backup restore | migration safety suite | partial commit 0, restore PASS |
+| MG-006 | DONE | 재실행·중간 실패·복구 | canonical immutable migration receipt 재실행, 중간 실패 snapshot rollback, checksum backup restore, 실제 SQLite 025 file backup·026~028 재적용·transaction rollback 검증 | deterministic recovery validator·migration safety suite·전체 HRX·web build | 최초 28/28·재실행 0/28, canonical·SQLite partial commit 0, backup restore exact, rollback 전후·reopen schema/data hash 동일, integrity ok·FK error 0, HRX 566/566, web build PASS |
 
 명시적 충돌:
 
@@ -483,6 +483,7 @@ external_blockers
 | 2026-07-15 | MG-003 | DONE | `b6fd5b71` | `32222efe` | `workbook/forest-v0.1.17-integration-evidence/MG-003/` | 001~028 연속·loader 28/28; 승인 계약 71/71 (`026=49`, `027=18`, `028=4`); 금지 계약·runtime 누락·원본 변경 0; 타깃 49/49·HRX 563/563·web build PASS |
 | 2026-07-15 | MG-004 | DONE | `8d01be6f` | `229429fd` | `workbook/forest-v0.1.17-integration-evidence/MG-004/` | 실제 빈 SQLite 001~028 28/28; schema `73/53/12`; required/forbidden 7/7; 제약 7/7; seed 0·integrity ok·FK error 0; HRX 564/564·web build PASS |
 | 2026-07-15 | MG-005 | DONE | `f59b3289` | `9722f647` | `workbook/forest-v0.1.17-integration-evidence/MG-005/` | 실제 파일 SQLite 010·020·025 -> 028; synthetic golden 32 table·32 row 변경·손실·예상 밖 생성 0; backfill 30/30; final schema fresh DB 일치 3/3; durable reopen 3/3; integrity·FK error 0; HRX 565/565·web build PASS |
+| 2026-07-15 | MG-006 | DONE | `a79cb5f2` | `PENDING` | `workbook/forest-v0.1.17-integration-evidence/MG-006/` | canonical 최초 28/28·재실행 0/28; injected failure partial receipt 0; snapshot backup restore exact; SQLite 025 file restore·026~028 재적용 exact; failed transaction schema/row 잔존 0; integrity ok·FK error 0; HRX 566/566·web build PASS |
 
 ## 14. Goal Objective 원문
 

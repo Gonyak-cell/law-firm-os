@@ -1,0 +1,15 @@
+node --check migration recovery validator, evidence generator, and test: PASS
+validator and generator help/invalid-argument contracts: PASS
+canonical first migration application: 28/28 PASS
+canonical rerun: pending 0, applied 0, durable snapshot unchanged
+canonical injected failure: partial receipts 0, exact restore and reopen PASS
+canonical backup: exact restore/reopen and tamper rejection PASS
+SQLite checkpoint 025 backup/restore: exact file, schema, and data hashes PASS
+SQLite 026-028 re-upgrade after restore: exact final schema and data hashes PASS
+SQLite injected transaction failure: partial schema objects 0, exact row/schema rollback PASS
+targeted migration safety tests: 12/12 PASS
+complete HRX regression: 566/566 PASS
+web production build: PASS (1718 modules)
+integrity ok; foreign-key errors 0; external writes 0
+root working-tree mutations: 0
+deterministic rerun: PASS
