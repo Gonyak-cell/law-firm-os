@@ -1,0 +1,53 @@
+{
+  "schema_version": "law-firm-os.cp007-packaged-runtime-smoke.v1",
+  "generated_at": "2026-07-15T16:11:07.332Z",
+  "verdict": "PASS",
+  "exact_build_sha": "0e72dd1335c8e996388de16fbd8be441618330ed",
+  "package_channel": "internal",
+  "macos": {
+    "bundle": "apps/desktop/dist/mac/matter.app",
+    "executable": "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+    "executable_sha256": "c0bf182389ea930585e3b0bf5c4f16529461e02bf3be751cb364d0e25f2257e0",
+    "renderer_path": "apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html",
+    "native_runtime_smoke": "PASS"
+  },
+  "runtime": {
+    "endpoint_kind": "loopback_ephemeral",
+    "local_api_default_start": true,
+    "health_status": 200,
+    "runtime_configured": true,
+    "trusted_ipc_profile_status": 200,
+    "packaged_runtime_entry_present": true
+  },
+  "identity": {
+    "user_id": "user_amic_jwsuh",
+    "employee_id": "emp_amic_jwsuh",
+    "display_name": "서지원",
+    "canonical_tenant": "tenant_amic_matter_vault",
+    "mac_windows_seed_projection_equal": true
+  },
+  "handoff": {
+    "envelope_present": true,
+    "tenant_ref_count": 6,
+    "all_tenant_refs_canonical": true,
+    "canonical_tenant_fallback_count": 0,
+    "synthetic_tenant_ref_count": 0
+  },
+  "diagnostics": {
+    "page_error_count": 0,
+    "console_error_count": 0
+  },
+  "screenshot": {
+    "path": "output/playwright/cp007-packaged-runtime/signed-in-home.png",
+    "sha256": "610ced4610de24f571b74ed1fe9885ccd86b2a1becdc96478f824477c49f7e9d"
+  },
+  "boundaries": {
+    "synthetic_auth_fixture": true,
+    "synthetic_tenant_fallback": false,
+    "real_employee_write": false,
+    "formal_macos_release": false,
+    "native_windows_runtime": false,
+    "public_release": false,
+    "production_go_live": false
+  }
+}

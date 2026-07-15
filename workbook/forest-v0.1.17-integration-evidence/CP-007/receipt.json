@@ -1,0 +1,87 @@
+{
+  "schema_version": "law-firm-os.cp007.acceptance.v1",
+  "tuw": "CP-007",
+  "verdict": "PASS",
+  "entry_sha": "d1e84bff06eea94848b1372f13bb19be72923462",
+  "product_exit_sha": "0e72dd1335c8e996388de16fbd8be441618330ed",
+  "product_exit_tree": "6600db315c6b83d723d575fc7036cd61146156a1",
+  "build_sequence": [
+    {
+      "platform": "macos",
+      "channel": "internal",
+      "completed_at_kst": "2026-07-16T00:41:36+09:00",
+      "artifacts": ["app", "zip", "dmg"]
+    },
+    {
+      "platform": "windows",
+      "channel": "internal",
+      "completed_at_kst": "2026-07-16T00:42:51+09:00",
+      "artifacts": ["directory", "exe", "unsigned_zip"]
+    }
+  ],
+  "parity": {
+    "renderer_sha256": "ae037ad41c9b7c033819d33ee3325ab011fb77ad136d8472da54a2573a02043f",
+    "renderer_files_each": 27,
+    "runtime_sha256": "e915c26e99119bd15c112ad8012cb9e42732c325bf6d5e32f3cb67bcf3112483",
+    "runtime_files_each": 1071,
+    "mac_windows_renderer_equal": true,
+    "mac_windows_runtime_equal": true
+  },
+  "import_graph": {
+    "entry": "runtime/apps/api/src/server.js",
+    "visited_modules": 378,
+    "imports": 831,
+    "external_source_imports": 0,
+    "unresolved_imports": 0,
+    "nonliteral_dynamic_imports": 0
+  },
+  "runtime_smoke": {
+    "actual_macos_package": true,
+    "internal_default_local_api_start": true,
+    "loopback_health_status": 200,
+    "trusted_ipc_profile_status": 200,
+    "user_id": "user_amic_jwsuh",
+    "employee_id": "emp_amic_jwsuh",
+    "display_name": "서지원",
+    "canonical_tenant": "tenant_amic_matter_vault",
+    "tenant_ref_count": 6,
+    "canonical_tenant_fallback_count": 0,
+    "synthetic_tenant_ref_count": 0,
+    "page_errors": 0,
+    "console_errors": 0,
+    "screenshot_sha256": "610ced4610de24f571b74ed1fe9885ccd86b2a1becdc96478f824477c49f7e9d"
+  },
+  "regression": {
+    "desktop": {"total": 102, "pass": 102, "fail": 0, "skip": 0},
+    "desktop_security": {"verdict": "PASS", "checked_files": 2814, "findings": 0},
+    "desktop_packaging": "PASS",
+    "local_secret_validation": "PASS",
+    "public_renderer_pii": "PASS",
+    "ai_slop_review": "PASS"
+  },
+  "preserved_root_checkout": {
+    "head": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3",
+    "branch": "codex/profile-contact-regression-fix",
+    "tracked_count": 56,
+    "untracked_count": 21,
+    "fingerprint_sha256": "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3"
+  },
+  "evidence_sha256": {
+    "smoke_script": "0a834471ee151af053bfc1cd44910d2468c376d662d099aede3cc3a0b6fa1825",
+    "validator": "bccdd58aa943923f1013ca542e62a97379434624043f02b066a21e0da931ba65",
+    "smoke_receipt": "d9f881486df9ed942d8e9ef1705cab09df13c1162898b47973e1d4d2efae7be6",
+    "matrix": "26590928908f963c64c9d59da46c162b419abb0067b05504dbd37f31f329d9cc",
+    "windows_build_receipt": "4a3d527f1cf7caee8e4740b879b886ab4c4d76c0e3bd45e769b561c46d3af231"
+  },
+  "boundaries": {
+    "synthetic_auth_fixture": true,
+    "synthetic_tenant_fallback": false,
+    "real_employee_write": false,
+    "formal_macos_release": false,
+    "native_windows_runtime": false,
+    "windows_authenticode": false,
+    "public_release": false,
+    "production_go_live": false
+  },
+  "external_blockers": []
+}

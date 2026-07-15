@@ -1,0 +1,40 @@
+# Product/runtime boundary commit d1e84bff..0e72dd13
+apps/desktop/src/main/local-api.js
+apps/desktop/src/main/main.js
+apps/desktop/src/main/origin-policy.js
+apps/desktop/src/main/session-ipc.js
+apps/desktop/src/renderer/offline.html
+apps/desktop/test/origin-policy.test.mjs
+apps/desktop/test/runtime-package.test.mjs
+apps/desktop/test/session-ipc.test.mjs
+apps/desktop/test/shell-smoke.test.mjs
+apps/web/src/data/apiClient.js
+apps/web/test/hrx-member-roster-fallback.test.mjs
+apps/web/test/ui-regression.test.mjs
+docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0245-0246-0258-0271-desktop-native-residual-proof.json
+docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0245-0246-0258-0271-desktop-native-residual-proof.md
+scripts/build-matter-desktop-mac.mjs
+scripts/build-matter-desktop-win.mjs
+scripts/lib/matter-desktop-runtime.mjs
+scripts/run-lcx8-desktop-native-residual-proof.mjs
+
+# CP-007 evidence commit
+docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md
+scripts/run-cp007-packaged-runtime-smoke.mjs
+scripts/validate-cp007-packaged-runtime-boundary.mjs
+workbook/forest-v0.1.17-integration-evidence/CP-007/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/CP-007/commands.txt
+workbook/forest-v0.1.17-integration-evidence/CP-007/files.txt
+workbook/forest-v0.1.17-integration-evidence/CP-007/packaged-runtime-matrix.json
+workbook/forest-v0.1.17-integration-evidence/CP-007/packaged-runtime-smoke.json
+workbook/forest-v0.1.17-integration-evidence/CP-007/receipt.json
+workbook/forest-v0.1.17-integration-evidence/CP-007/tests.txt
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md
+
+# Exact generated artifacts, intentionally outside Git
+apps/desktop/dist/mac/matter.app
+apps/desktop/dist/mac/matter-internal-0.1.16-macos.zip
+apps/desktop/dist/mac/matter-internal-0.1.16-macos.dmg
+apps/desktop/dist/win/matter-internal-0.1.16-win32-x64
+apps/desktop/dist/win/matter-internal-0.1.16-win32-x64-unsigned.zip
+output/playwright/cp007-packaged-runtime/signed-in-home.png

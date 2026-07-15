@@ -22,9 +22,9 @@ Channel: `internal`
 ## Manifest Hash
 
 - manifest hash algorithm: sha256
-- manifest hash: `13c77bed10ceda9cb4f1df0ab0ec631129b66073562c5b07111376766736f1ee`
+- manifest hash: `cddeb2d9debbe9c093a37fad0137b9b9bf4670c1c193f7bbad118dd3a02dbc12`
 - executable hash: `b0b6e0cd22a7a135e5230118be27a4c2713a516340f0bbdfb446acb9b2dae31e`
-- unsigned package zip hash: `90504b6f14d937ab5acf4debb44500d0dfad78191a5f4b59f97952d5fa45567e`
+- unsigned package zip hash: `fb65981603f577fe7326d88d94c1303454178bd638b0868388b4bcdfb0dfcf78`
 
 ## Install Smoke
 

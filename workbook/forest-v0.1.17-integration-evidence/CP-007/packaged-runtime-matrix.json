@@ -1,0 +1,99 @@
+{
+  "schema_version": "law-firm-os.cp007-packaged-runtime-boundary.v1",
+  "verdict": "PASS",
+  "exact_build_sha": "0e72dd1335c8e996388de16fbd8be441618330ed",
+  "exact_build_tree": "6600db315c6b83d723d575fc7036cd61146156a1",
+  "package_version": "0.1.16",
+  "renderer": {
+    "macos": {
+      "sha256": "ae037ad41c9b7c033819d33ee3325ab011fb77ad136d8472da54a2573a02043f",
+      "algorithm": "sha256(sorted sha256 file manifest with ./ relative paths)",
+      "content_sha256": "b4ba29e44186694a393811658b19979d7116168fd7e33e42daf0c40022c166e0",
+      "file_count": 27
+    },
+    "windows": {
+      "sha256": "ae037ad41c9b7c033819d33ee3325ab011fb77ad136d8472da54a2573a02043f",
+      "algorithm": "sha256(sorted sha256 file manifest with ./ relative paths)",
+      "content_sha256": "b4ba29e44186694a393811658b19979d7116168fd7e33e42daf0c40022c166e0",
+      "file_count": 27
+    },
+    "parity": true
+  },
+  "runtime": {
+    "macos": {
+      "sha256": "e915c26e99119bd15c112ad8012cb9e42732c325bf6d5e32f3cb67bcf3112483",
+      "algorithm": "sha256(sorted sha256 file manifest with ./ relative paths)",
+      "content_sha256": "9f022de482dea59e0f567b43f45d80b74e12cf9b9744db63cdd09a6c56fe7d81",
+      "file_count": 1071
+    },
+    "windows": {
+      "sha256": "e915c26e99119bd15c112ad8012cb9e42732c325bf6d5e32f3cb67bcf3112483",
+      "algorithm": "sha256(sorted sha256 file manifest with ./ relative paths)",
+      "content_sha256": "9f022de482dea59e0f567b43f45d80b74e12cf9b9744db63cdd09a6c56fe7d81",
+      "file_count": 1071
+    },
+    "parity": true,
+    "import_graph": {
+      "entry": "apps/api/src/server.js",
+      "visited_module_count": 378,
+      "import_count": 831,
+      "builtin_imports": [
+        "node:crypto",
+        "node:fs",
+        "node:http",
+        "node:os",
+        "node:path",
+        "node:url",
+        "node:zlib"
+      ],
+      "external_source_import_count": 0,
+      "external_source_imports": [],
+      "unresolved_import_count": 0,
+      "unresolved_imports": [],
+      "nonliteral_dynamic_import_count": 0,
+      "nonliteral_dynamic_imports": []
+    },
+    "bundled_server_present": true,
+    "internal_default_start": true,
+    "formal_release_marker_absent": {
+      "macos": true,
+      "windows": true
+    }
+  },
+  "package_artifacts": {
+    "macos": {
+      "executable_sha256": "c0bf182389ea930585e3b0bf5c4f16529461e02bf3be751cb364d0e25f2257e0",
+      "zip_sha256": "b3725f603f900a03c622a8a3a46ad78c6b1d267d318e03cc4587872dcde55b4d",
+      "dmg_sha256": "007018ca11b57c48186bba763ccefd54a4fbf3bc0b6787ce1c6aa3bc841556e5",
+      "native_runtime_smoke": "PASS",
+      "developer_id_signed": false,
+      "notarized": false
+    },
+    "windows": {
+      "executable_sha256": "b0b6e0cd22a7a135e5230118be27a4c2713a516340f0bbdfb446acb9b2dae31e",
+      "zip_sha256": "fb65981603f577fe7326d88d94c1303454178bd638b0868388b4bcdfb0dfcf78",
+      "pe_header": "MZ",
+      "archive_test": "PASS",
+      "native_runtime_smoke": "NOT_RUN_ON_DARWIN",
+      "authenticode_signed": false
+    }
+  },
+  "runtime_smoke": {
+    "receipt": "workbook/forest-v0.1.17-integration-evidence/CP-007/packaged-runtime-smoke.json",
+    "loopback_health": "PASS",
+    "trusted_ipc": "PASS",
+    "canonical_tenant": "tenant_amic_matter_vault",
+    "canonical_tenant_fallback_count": 0,
+    "synthetic_tenant_ref_count": 0,
+    "identity": "user_amic_jwsuh/emp_amic_jwsuh/서지원"
+  },
+  "boundaries": {
+    "internal_package_only": true,
+    "synthetic_auth_fixture": true,
+    "synthetic_tenant_fallback": false,
+    "formal_macos_release": false,
+    "native_windows_runtime": false,
+    "public_release": false,
+    "production_go_live": false
+  }
+}

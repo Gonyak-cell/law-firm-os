@@ -1,0 +1,31 @@
+# CP-007 test results
+
+- exact product build SHA: `0e72dd1335c8e996388de16fbd8be441618330ed`
+- exact product tree: `6600db315c6b83d723d575fc7036cd61146156a1`
+- macOS internal build: PASS; app, ZIP, DMG created before Windows artifacts
+- Windows internal build: PASS; PE `MZ`, unsigned ZIP archive test PASS
+- packaged runtime smoke: PASS against the actual macOS executable
+  - internal default local API start: PASS
+  - loopback `/api/health`: 200
+  - trusted session IPC profile read: 200
+  - signed-in identity: `user_amic_jwsuh / emp_amic_jwsuh / 서지원`
+  - canonical tenant refs: 6/6
+  - synthetic tenant fallback: 0
+  - page errors: 0
+  - console errors: 0
+- Mac/Windows renderer parity: 27/27 files; `ae037ad41c9b7c033819d33ee3325ab011fb77ad136d8472da54a2573a02043f`
+- Mac/Windows runtime parity: 1071/1071 files; `e915c26e99119bd15c112ad8012cb9e42732c325bf6d5e32f3cb67bcf3112483`
+- bundled runtime graph: 378 modules, 831 imports, external source 0, unresolved 0, non-literal dynamic 0
+- internal formal marker: absent on Mac and Windows
+- Desktop smoke suite: 102/102 PASS, 0 fail, 0 skip
+- Desktop security validator: PASS, 2814 files, findings 0, negative probes 3/3 detected
+- Desktop packaging validator: PASS; internal app ID, current Forest/AMIC assets, retired paths absent, public publish false
+- Matter-Vault local secret validator: PASS; secret values printed false
+- public renderer roster PII validator: PASS; 54 files, protected values printed false
+- validator CLI help: exit 0
+- validator invalid argument: expected exit 2
+- changed-script syntax: PASS
+- `git diff --check`: PASS
+- AI sloplint: PASS, no auto-detectable signals in the changed scope
+- user root checkout: expected fingerprint match, tracked 56, untracked 21
+- not run/claimed: Windows native runtime/install/uninstall, Authenticode, macOS Developer ID/notary/staple/Gatekeeper, public release, production, go-live
