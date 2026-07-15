@@ -1,0 +1,22 @@
+✔ payroll item policies require dedicated scopes and payroll step-up actions (<duration>)
+✔ payroll item API creates, updates, audits, isolates tenants, and survives restart (<duration>)
+✔ payroll item API returns safe validation and missing-item errors (<duration>)
+✔ payroll profile API derives self from EmployeeUserLink and returns masked assignments (<duration>)
+✔ payroll profile API keeps admin reads tenant-scoped and self access fail-closed without a link (<duration>)
+✔ signed staff self and HR profile routes enforce distinct scopes and payroll step-up (<duration>)
+✔ payroll time API requires explicit attendance approval receipts and persists immutable source refs (<duration>)
+✔ payroll time routes require payroll step-up scopes (<duration>)
+✔ signed HTTP payroll time approval is challenged before runtime and accepts matching payroll step-up (<duration>)
+✔ HRX audit route requires fresh step-up context after authz allows scope (<duration>)
+✔ HRX audit route rejects unsigned or mismatched step-up tokens (<duration>)
+✔ HRX audit route rejects a stale signed step-up token (<duration>)
+✔ leave accrual and ledger mutations require matching signed step-up purposes (<duration>)
+✔ payroll item catalog requires payroll step-up and reaches durable runtime (<duration>)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms <duration>
