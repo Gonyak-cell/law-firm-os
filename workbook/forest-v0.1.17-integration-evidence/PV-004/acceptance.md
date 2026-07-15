@@ -1,0 +1,24 @@
+# PV-004 Acceptance
+
+- TUW: PV-004
+- status: DONE
+- entry_sha: `34d689f088a173aac7a98f54ff44b3b48bf57b9d`
+- product_exit_sha: `f5344fdeaf35b86e86049710e4bb5aa9a0d72f39` (the evidence commit is intentionally separate)
+- product_exit_tree: `ecee74386df8c2f0743672dee680f77b2ff2f932`
+- channel registry: one frozen source of truth defines `dev`, `internal`, `candidate`, and `formal`; the three package builders consume its app ID, artifact prefix, receipt label/status, signing-key selector, and formal flag
+- app identities: `com.amic.matter.desktop.dev`, `com.amic.matter.desktop.internal`, `com.amic.matter.desktop.candidate`, and `com.amic.matter.desktop`; collision count 0
+- artifact prefixes: `matter-dev`, `matter-internal`, `matter-candidate`, and `matter`; collision count 0
+- test-first proof: the new PV-004 contract initially failed because `DESKTOP_RELEASE_CHANNELS` was not exported; red stdout SHA-256 `e5854b05408525b1d0b5061ed4a1dc37f076f4f3c00a04996124e64216cad59a`
+- actual package proof: a clean detached worktree at the exact product SHA generated Mac and Windows package metadata for all four channels with `source_dirty=false`, exact SHA/tree, exact channel/app ID, packaged/external manifest equality, and collision-free artifact names
+- renderer parity: all eight platform/channel manifests record SHA-256 `f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445` and 28 files; distinct renderer hash count 1
+- actual builder fail-closed proof: invalid channel `preview` was rejected by both Mac and Windows builders with exit 1 before artifact mutation; mutation count 0
+- macOS result: dev/internal/candidate package builds exited 0; formal packaging produced the app, manifest, ZIP, and DMG diagnostic artifacts but correctly exited 1 at the independent unsigned/unnotarized DMG distribution gate
+- Windows result: dev/internal/candidate/formal unsigned package builds exited 0 and bind the expected app IDs; Authenticode remains false and no native Windows execution claim is made
+- manual_qa: inspected all eight external and packaged manifests, four Mac Info.plists, four Windows installer manifests, formal Mac gate output, archive existence/hash/size, and the invalid-channel before/after artifact digest
+- regression: PV-002/PV-003/PV-004 tests 13/13 PASS, Desktop smoke 102/102 PASS, file bridge 17/17 plus both validators PASS, PV-001~PV-004 source validation PASS, public renderer PII PASS, syntax/diff/secret-pattern/sloplint checks PASS
+- preserved user root checkout: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`, branch `codex/profile-contact-regression-fix`, tracked 56, untracked 21, status 77; no write performed
+- commands: see `commands.txt`
+- package matrix: see `package-matrix.json`
+- known_limits: bundle/app IDs and artifact prefixes are separated; the shared `matter` deep-link scheme and generic temporary `matter.app` build directory are not claimed as separate OS identities; SHA-scoped release paths are PV-005
+- external_blockers: none for PV-004; Developer ID/notary/staple/Gatekeeper, Windows native install/runtime/uninstall/AuthentiCode, public release, production, and go-live remain separate later gates and false
+- AI slop review: pass; no product UI or user-facing copy changed and sloplint reported no auto-detectable signals

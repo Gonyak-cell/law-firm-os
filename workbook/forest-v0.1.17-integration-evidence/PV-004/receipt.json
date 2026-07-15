@@ -1,0 +1,98 @@
+{
+  "schema_version": "law-firm-os.pv004.acceptance.v1",
+  "tuw": "PV-004",
+  "verdict": "PASS",
+  "entry_sha": "34d689f088a173aac7a98f54ff44b3b48bf57b9d",
+  "product_exit_sha": "f5344fdeaf35b86e86049710e4bb5aa9a0d72f39",
+  "product_exit_tree": "ecee74386df8c2f0743672dee680f77b2ff2f932",
+  "channel_contract": {
+    "channel_count": 4,
+    "app_identity_collision_count": 0,
+    "artifact_prefix_collision_count": 0,
+    "manifest_platform_contract_count": 8,
+    "protected_builder_count": 3,
+    "channel_registry_bypass_count": 0,
+    "unknown_channel_fails_closed": true,
+    "formal_clean_sha_gate_preserved": true
+  },
+  "package_proof": {
+    "detached_exact_sha": true,
+    "manifest_count": 8,
+    "source_dirty_false_count": 8,
+    "packaged_external_manifest_equal_count": 8,
+    "mac_plist_app_id_match_count": 4,
+    "windows_installer_app_id_match_count": 4,
+    "renderer_sha256": "f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445",
+    "renderer_file_count": 28,
+    "renderer_distinct_hash_count": 1,
+    "invalid_channel_artifact_mutation_count": 0
+  },
+  "tests": {
+    "pv002_pv003_pv004_unit": {
+      "total": 13,
+      "pass": 13,
+      "fail": 0
+    },
+    "pv004_unit": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0
+    },
+    "desktop_smoke": {
+      "total": 102,
+      "pass": 102,
+      "fail": 0
+    },
+    "file_bridge": {
+      "total": 17,
+      "pass": 17,
+      "fail": 0,
+      "validator_count": 2
+    },
+    "pv001_source": "PASS",
+    "pv002_source": "PASS",
+    "pv003_source": "PASS",
+    "pv004_source": "PASS",
+    "public_renderer_pii": "PASS",
+    "syntax": "PASS",
+    "diff_check": "PASS",
+    "secret_pattern_scan": "PASS",
+    "ai_slop_review": "PASS",
+    "manual_package_qa": "PASS"
+  },
+  "evidence_sha256": {
+    "provenance_helper": "77503fa103b803f575fe0eefaf15120d8e6b06356702760fa3b663a3d12f8980",
+    "mac_builder": "a285d87f5cea481a6d24e0ebfdae0766a9917840c6cdcb96e10b0ef212b2027f",
+    "windows_builder": "f60804fc44bebe65bb4c4618e599d55cf0b8824245fbe66cdf298a768d0e7d24",
+    "windows_installer_builder": "571e1bdf64c5d86bc149b71dde9f2a55e3e614567da047398641f5846e1d5119",
+    "channel_validator": "6aaa127feaf02ea5fd108333b16511045aad5dc267a554986605731d0940a24a",
+    "channel_unit_test": "2cf1b6b440da6ce80298a15d16c5be2f6466f9c47e7c7c9bf19cc99075f39eb8",
+    "red_test_stdout": "e5854b05408525b1d0b5061ed4a1dc37f076f4f3c00a04996124e64216cad59a",
+    "red_test_stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "preserved_root_checkout": {
+    "head": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3",
+    "branch": "codex/profile-contact-regression-fix",
+    "tracked_count": 56,
+    "untracked_count": 21,
+    "status_count": 77,
+    "status_porcelain_z_sha256": "02751feb70e89afbfb00acf1dac14092cdef0c071be736a55aa6c6982b60d93c",
+    "written": false
+  },
+  "boundaries": {
+    "bundle_app_id_separation": true,
+    "artifact_prefix_separation": true,
+    "url_scheme_separation_claim": false,
+    "sha_scoped_release_path_claim": false,
+    "accepted_macos_formal_package": false,
+    "macos_developer_id": false,
+    "macos_notarized": false,
+    "macos_stapled": false,
+    "macos_gatekeeper_distribution_ready": false,
+    "native_windows_runtime": false,
+    "windows_authenticode": false,
+    "public_release": false,
+    "production_go_live": false
+  },
+  "external_blockers": []
+}

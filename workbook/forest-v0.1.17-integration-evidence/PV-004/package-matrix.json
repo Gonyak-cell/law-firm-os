@@ -1,0 +1,131 @@
+{
+  "schema_version": "law-firm-os.pv004.package-matrix.v1",
+  "tuw": "PV-004",
+  "verdict": "PASS",
+  "source_sha": "f5344fdeaf35b86e86049710e4bb5aa9a0d72f39",
+  "source_tree": "ecee74386df8c2f0743672dee680f77b2ff2f932",
+  "source_dirty": false,
+  "renderer": {
+    "sha256": "f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445",
+    "file_count": 28,
+    "distinct_hash_count": 1
+  },
+  "records": [
+    {
+      "channel": "dev",
+      "app_id": "com.amic.matter.desktop.dev",
+      "artifact_prefix": "matter-dev",
+      "mac": {
+        "exit": 0,
+        "built_at": "2026-07-15T18:32:45.238Z",
+        "manifest_sha256": "c5c31a1196665abeefdc94ff45a6e035b358e2983c7efa17849443fa1a8f781d",
+        "zip_sha256": "bfc9d8cb175eca3b7f4bbef8abe8641175a99f97ad42353d01205d3ce5fd5919",
+        "zip_bytes": 132268791,
+        "dmg_sha256": "e842d252b3792de77ccc20cfd6874e6e7b8787c89085839c112cbf77785ef014",
+        "dmg_bytes": 156187227
+      },
+      "windows": {
+        "exit": 0,
+        "built_at": "2026-07-15T18:33:14.887Z",
+        "manifest_sha256": "0c4173b3e5e562195c6b093d9886790ded53ee7b9dc8f8b895a3922f352e46bc",
+        "installer_manifest_sha256": "b0c35a8d1f1962c25dd8df2f16d138ea295b8268064c3d0a412d83792f17eeb6",
+        "unsigned_zip_sha256": "605648f2cd352c1c94adcffb5d7b962533a6de6505b8f5609ebfa4ab4e45fc9f",
+        "unsigned_zip_bytes": 162204548,
+        "authenticode": false
+      }
+    },
+    {
+      "channel": "internal",
+      "app_id": "com.amic.matter.desktop.internal",
+      "artifact_prefix": "matter-internal",
+      "mac": {
+        "exit": 0,
+        "built_at": "2026-07-15T18:33:27.757Z",
+        "manifest_sha256": "817277544e3c9c5e3f35fdd9f3e181a9927a318a4369d13045956b168a40854e",
+        "zip_sha256": "8cfdc1e86f7ff85d527d126e6e59e2c28552aec67d21a1494921e12bdde64d10",
+        "zip_bytes": 132268807,
+        "dmg_sha256": "37c37d8ddc978dfd7c11b87098bc156b91016c17e5de32bd3ffb5f4421536b37",
+        "dmg_bytes": 156656245
+      },
+      "windows": {
+        "exit": 0,
+        "built_at": "2026-07-15T18:33:56.684Z",
+        "manifest_sha256": "4ed73a7f51d9c988f8a4f9b6b6ae107487264a85a4c3f3de57388e1b5b5ec5ee",
+        "installer_manifest_sha256": "3c4ea74b7ffa4fb5d0504df4564acfc505c8617ba7b00ab98841ee429eb26464",
+        "unsigned_zip_sha256": "fe0d46e7674e2c06e86145be7846e20e8b4a0d87965c305063269ae28857c778",
+        "unsigned_zip_bytes": 162233501,
+        "authenticode": false
+      }
+    },
+    {
+      "channel": "candidate",
+      "app_id": "com.amic.matter.desktop.candidate",
+      "artifact_prefix": "matter-candidate",
+      "mac": {
+        "exit": 0,
+        "built_at": "2026-07-15T18:34:09.214Z",
+        "manifest_sha256": "4da0eaa045243c85225de2e0124fd61047d744e1c9bd35261b627803fa2d2539",
+        "zip_sha256": "ed312406567ae41ee0fc5308b411f9fd661dc4a2410cb589f3cc96463b1b0017",
+        "zip_bytes": 132268812,
+        "dmg_sha256": "f48440b7e83c588a077aecae01700172b7329a75693c1861f09df0d45cc0da8f",
+        "dmg_bytes": 157838073
+      },
+      "windows": {
+        "exit": 0,
+        "built_at": "2026-07-15T18:34:37.801Z",
+        "manifest_sha256": "50086dc847b7d5d64331ccd688863205f16adc2bde814d4422b573fde5fa2a29",
+        "installer_manifest_sha256": "bbc47d1264b6e304391011d7c5c563f5f1a7589983460b24e95425ecdd26ccf0",
+        "unsigned_zip_sha256": "ce275607763528fa96aa9af36b09bbb5db8b642c8679b3b0d9dff719038c4ef2",
+        "unsigned_zip_bytes": 162239291,
+        "authenticode": false
+      }
+    },
+    {
+      "channel": "formal",
+      "app_id": "com.amic.matter.desktop",
+      "artifact_prefix": "matter",
+      "mac": {
+        "exit": 1,
+        "expected_distribution_gate_block": true,
+        "built_at": "2026-07-15T18:34:49.464Z",
+        "manifest_sha256": "fe4d84a1570d57b8254e1c51ccb35fd20f2be249b8cb9608f298cc8fcb1bb31d",
+        "zip_sha256": "e61152c308eacf1a3964915acf1a45443a458fd0f8c7d5d351f7025c411025e4",
+        "zip_bytes": 126966698,
+        "dmg_sha256": "3342dc3eb41cfa7829d5d3abda40130e6abb1c671241a29a769e2cb09e3b5703",
+        "dmg_bytes": 141164028,
+        "dmg_image_verify": "PASS",
+        "developer_id": false,
+        "notarized": false,
+        "stapled": false,
+        "gatekeeper_distribution_ready": false
+      },
+      "windows": {
+        "exit": 0,
+        "built_at": "2026-07-15T18:35:18.324Z",
+        "manifest_sha256": "3bcfff35b64e0a6663a44e4215e1ccd8fc39b661c9c30a9042afb6b1693f7681",
+        "installer_manifest_sha256": "79e8de6fb5de97b74cebea2858978467988d8bef3c1866b7ab3461957a8065fa",
+        "unsigned_zip_sha256": "10975fe0a38b108f8a24f30e83923906a908ed23bc31efe724b8c9c9096e6a88",
+        "unsigned_zip_bytes": 156858639,
+        "authenticode": false,
+        "native_execution": false
+      }
+    }
+  ],
+  "packaged_external_manifest_equal_count": 8,
+  "mac_plist_app_id_match_count": 4,
+  "windows_installer_app_id_match_count": 4,
+  "app_identity_collision_count": 0,
+  "artifact_prefix_collision_count": 0,
+  "invalid_channel": {
+    "mac_exit": 1,
+    "windows_exit": 1,
+    "artifact_mutation_count": 0
+  },
+  "boundaries": {
+    "accepted_formal_macos_distribution_package": false,
+    "windows_native_execution": false,
+    "windows_authenticode": false,
+    "public_release": false,
+    "production_go_live": false
+  }
+}
