@@ -247,7 +247,7 @@ RC-003에서 우선 검토할 root-only 항목:
 | ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
 |---|---|---|---|---|---|
 | MI-001 | READY | remote truth 갱신 | fetch prune/tags, origin/main·tags·deployed SHA 기록 | remote refs | stale local main 사용 0 |
-| MI-002 | READY | merge dry-run 보고서 | merge-base, merge-tree, conflict/path inventory | report validator | 충돌 파일·정책 전부 기록 |
+| MI-002 | DONE | merge dry-run 보고서 | merge-base, merge-tree, conflict/path inventory | report validator | 충돌 파일·정책 전부 기록 |
 | MI-003 | READY | 통합 방식 결정 | normal merge 또는 owner 승인 main-next cutover | decision receipt | 무근거 force push 0 |
 | MI-004 | READY | 전용 integration worktree | `integration/forest-v0.1.17` 생성 | worktree/branch check | 다른 쓰기 세션 0 |
 | MI-005 | READY | 파일별 충돌 해결 | UI=Forest, auth=엄격, migration=수동, ops=안전 우선 | conflict ledger | unresolved 0, blanket ours/theirs 0 |
@@ -521,6 +521,7 @@ external_blockers
 | 2026-07-16 | PV-005 | DONE | `ea9fd4f8` | `c0c46fae` | `workbook/forest-v0.1.17-integration-evidence/PV-005/` | `releases/0.1.17/<full-sha>/internal` 9 artifacts·hash 고정; exact clean SHA 순차 Mac/Windows renderer `f0a043de`·28 files 동일; generic mac/win 격리 중 validate→assemble→validate PASS, release truth 참조 0; formal/native/AuthentiCode 비주장 유지 |
 | 2026-07-16 | PV-006 | DONE | `a2d50e95` | `8e9165c0` | `workbook/forest-v0.1.17-integration-evidence/PV-006/` | source 191·retired path 21, Mac/Windows bundle 35+35; 금지 참조·legacy hash·offline entry 0; exact clean SHA renderer `f0a043de`·28 files 동일; Web 143+1 skip·Desktop 102/102; formal/native/AuthentiCode 비주장 유지 |
 | 2026-07-16 | PV-007 | DONE | `678aff03` | `ab7868eb` | `workbook/forest-v0.1.17-integration-evidence/PV-007/` | exact SHA Mac/Windows renderer `f0a043de`·28 files 동일; 다른 bundle exit 1·PID 보존, duplicate PID만 교체; manifest/index/path PASS, Forest package visual QA PASS; 최종 canonical PID `55090`; formal/native/AuthentiCode 비주장 유지 |
+| 2026-07-16 | MI-002 | DONE | `e0f52f5f` | `e0f52f5f` | `workbook/forest-v0.1.17-integration-evidence/MI-002/` | fetched `origin/main=fdd1e34a`; merge-base 동일; merge-tree exit 0·candidate tree `667e141f` 동일; 2,405 path·265 commit 전수 inventory, conflict·unresolved·blanket resolution 0; diff-check 공백 경고는 QA 부채로 분리; ref 이동 0 |
 
 ## 14. Goal Objective 원문
 

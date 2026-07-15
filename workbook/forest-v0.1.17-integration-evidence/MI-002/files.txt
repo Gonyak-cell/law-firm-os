@@ -1,0 +1,14 @@
+workbook/forest-v0.1.17-integration-evidence/MI-002/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/MI-002/commands.txt
+workbook/forest-v0.1.17-integration-evidence/MI-002/commit-inventory.tsv
+workbook/forest-v0.1.17-integration-evidence/MI-002/conflict-ledger.tsv
+workbook/forest-v0.1.17-integration-evidence/MI-002/dirstat.txt
+workbook/forest-v0.1.17-integration-evidence/MI-002/files.txt
+workbook/forest-v0.1.17-integration-evidence/MI-002/full-diff-check.txt
+workbook/forest-v0.1.17-integration-evidence/MI-002/merge-tree.stderr
+workbook/forest-v0.1.17-integration-evidence/MI-002/merge-tree.stdout
+workbook/forest-v0.1.17-integration-evidence/MI-002/path-inventory.tsv
+workbook/forest-v0.1.17-integration-evidence/MI-002/product-diff-check.txt
+workbook/forest-v0.1.17-integration-evidence/MI-002/receipt.json
+workbook/forest-v0.1.17-integration-evidence/MI-002/tests.txt
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md

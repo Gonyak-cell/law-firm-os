@@ -1,0 +1,42 @@
+docs/lazycodex/evidence/matter-desktop/artifacts/payroll-final-verification-2026-07-15.md:3: trailing whitespace.
+docs/lazycodex/evidence/matter-desktop/artifacts/payroll-final-verification-2026-07-15.md:4: trailing whitespace.
+packages/hrx/test/leave-type-economics.test.js:137: new blank line at EOF.
+workbook/forest-v0.1.17-integration-evidence/RC-005/port-crosswalk.json:637: new blank line at EOF.
+workbook/forest-v0.1.17-integration-evidence/RC-005/screenshots/manifest.md:13: new blank line at EOF.
+workbook/forest-v0.1.17-integration-evidence/RC-005/ui-profile-acceptance.md:61: new blank line at EOF.
+workbook/forest-v0.1.17-integration-evidence/RC-005/ui-profile-commands.txt:19: new blank line at EOF.
+workbook/forest-v0.1.17-integration-evidence/RC-005/ui-profile-files.txt:19: new blank line at EOF.
+workbook/forest-v0.1.17-integration-evidence/RC-005/ui-profile-receipt.json:31: new blank line at EOF.
+workbook/forest-v0.1.17-integration-evidence/RC-005/ui-profile-tests.txt:36: new blank line at EOF.
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md:3: trailing whitespace.
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md:4: trailing whitespace.
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md:5: trailing whitespace.
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md:6: trailing whitespace.
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md:7: trailing whitespace.
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md:8: trailing whitespace.
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md:137: trailing whitespace.
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md:138: trailing whitespace.
+workbook/hrx-leave-payroll-tuw-implementation-plan-2026-07-14.md:3: trailing whitespace.
+workbook/hrx-leave-payroll-tuw-implementation-plan-2026-07-14.md:4: trailing whitespace.
+workbook/hrx-leave-payroll-tuw-implementation-plan-2026-07-14.md:5: trailing whitespace.
+workbook/hrx-leave-payroll-tuw-implementation-plan-2026-07-14.md:6: trailing whitespace.
+workbook/matter-worktree-evidence/WT-01-10/commands.txt:11: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-01-10/tests.txt:9: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-01/commands.txt:8: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-01/tests.txt:7: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-02/commands.txt:9: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-02/tests.txt:7: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-03/commands.txt:7: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-03/tests.txt:6: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-04/commands.txt:7: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-04/tests.txt:6: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-05/commands.txt:7: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-05/tests.txt:6: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-06/commands.txt:9: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-06/tests.txt:5: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-07/commands.txt:8: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-07/tests.txt:5: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-08/commands.txt:8: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-08/tests.txt:6: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-09/commands.txt:5: new blank line at EOF.
+workbook/matter-worktree-evidence/WT-02-09/tests.txt:5: new blank line at EOF.

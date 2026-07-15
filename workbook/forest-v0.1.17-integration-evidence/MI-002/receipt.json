@@ -1,0 +1,80 @@
+{
+  "schema_version": "law-firm-os.mi002.merge-dry-run.v1",
+  "tuw": "MI-002",
+  "verdict": "PASS",
+  "recorded_at": "2026-07-16T05:33:32+09:00",
+  "entry_sha": "e0f52f5f1edbc61af9ae79d624a07dd65b603b6c",
+  "product_exit_sha": "e0f52f5f1edbc61af9ae79d624a07dd65b603b6c",
+  "origin_main_sha": "fdd1e34a42ee11ad1e5049647048471be772f381",
+  "merge_base_sha": "fdd1e34a42ee11ad1e5049647048471be772f381",
+  "candidate_tree_sha": "667e141f3d0889143a49cae33d05686145ad9c30",
+  "merged_tree_sha": "667e141f3d0889143a49cae33d05686145ad9c30",
+  "merge_tree_exit": 0,
+  "origin_main_is_candidate_ancestor": true,
+  "candidate_tree_equals_merged_tree": true,
+  "fast_forward_technically_possible": true,
+  "integration_decision_deferred_to": "MI-003",
+  "candidate_commit_count": 265,
+  "changed_path_count": 2405,
+  "path_status_counts": {
+    "added": 1898,
+    "modified": 345,
+    "deleted": 159,
+    "renamed_099": 2,
+    "copied_058": 1
+  },
+  "top_level_path_counts": {
+    "docs": 745,
+    "workbook": 501,
+    "apps": 317,
+    "scripts": 316,
+    "packages": 278,
+    "artifacts": 233,
+    "contracts": 7,
+    ".github": 2,
+    "other_root_files": 6
+  },
+  "conflict_count": 0,
+  "conflict_marker_count": 0,
+  "unresolved_path_count": 0,
+  "blanket_resolution_count": 0,
+  "resolution_policy": {
+    "ui": "current_forest",
+    "auth": "stricter_contract",
+    "migration": "forward_only_manual_adjudication",
+    "operations": "safer_contract"
+  },
+  "diff_check": {
+    "candidate_wide_exit": 2,
+    "candidate_wide_warning_line_count": 56,
+    "candidate_wide_normalized_message_count": 42,
+    "candidate_wide_warning_file_count": 31,
+    "outside_workbook_exit": 2,
+    "outside_workbook_warning_line_count": 5,
+    "outside_workbook_normalized_message_count": 3,
+    "outside_workbook_warning_file_count": 2,
+    "classified_as_merge_conflict": false,
+    "later_qa_debt": true
+  },
+  "evidence_sha256": {
+    "merge_tree_stdout": "6f27b8630b18b1b6beb1e0699fdf713b649c46031df2fe8ec98339a7eab0729f",
+    "merge_tree_stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "path_inventory": "166452df350b5f7db3f1e81acd259426354e423784d3b6a92187789aedb00bda",
+    "commit_inventory": "a23d309be2c8721026fface508febc70f9a95044240f5e29b88a7ca0d07757e4",
+    "dirstat": "5d4432e384064405f839dfcaa39c00b862e74087d68d0b6e33505ed698c5773e",
+    "raw_full_diff_check": "c774bec810e628ca8a2f0a11d2dcddc97301228efdb268556c6b80e90d79537c",
+    "normalized_full_diff_check": "2c281919ac4755871420a8fd4c905775826700897dde89b74ebbd0a0cc7e09b4",
+    "raw_product_diff_check": "65ee4b2c25c89ef7a8e2219e4dd4d9b1066ee12a3f5dc4df63d322ced607d78d",
+    "normalized_product_diff_check": "ed1f1bd5f6ee2733a177125868ca47ebf8689284c36f337bd7e56cb1c7fe9340"
+  },
+  "boundaries": {
+    "remote_ref_moved": false,
+    "main_updated": false,
+    "deployment_verified": false,
+    "formal_macos_release": false,
+    "native_windows_release": false,
+    "public_release": false,
+    "production_go_live": false
+  },
+  "external_blockers": []
+}

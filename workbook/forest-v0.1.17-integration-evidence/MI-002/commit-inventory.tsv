@@ -1,0 +1,265 @@
+b6eba0647bcd56620af97022b5236e522dc54747	2026-06-30T19:52:26+09:00	Ship desktop auth and LCX full release candidate
+7bd541dd44771cbb7d9152effb0c1ef93977d8d2	2026-06-30T21:47:10+09:00	Implement LCX openable operating-fit gates
+017b1078f05dc41dacd5ba2aba77d5b042ac9297	2026-06-30T22:17:42+09:00	Bump matter desktop release to v0.1.1
+36cbb976d85879ed0309ddd3ecca1d55ea4bb75c	2026-06-30T22:46:59+09:00	Release matter desktop v0.1.2 password reset email
+05bf2f112988654520010a74f6de2f355d973d2b	2026-07-01T16:41:04+09:00	Release matter desktop v0.1.3 internal packages
+24600c8447fe0c6e5f06d0be350204ad096b9eb8	2026-07-01T17:25:14+09:00	Release matter desktop v0.1.4 client corrections
+48dd2da5983203987bb3e065d17d25fbc94ee26f	2026-07-01T21:08:44+09:00	Release matter desktop v0.1.5 matter codes
+7e35bce1adea647604c4e95a411a2c004fade6f9	2026-07-01T22:58:47+09:00	Restore production bridge smoke for matter codes
+8bd6e30beb8a7759d5a2fe9c292c3ee97f7f2047	2026-07-01T23:00:31+09:00	Record production matter code verification
+e00104b15b7c78232ab51987cf70fc4137b5aeea	2026-07-01T23:03:42+09:00	Auto-resolve production bridge token for smoke
+22e66c4902c12d3e94dd99ae7d76a7c907ed824a	2026-07-01T23:04:20+09:00	Clarify AWS SSO login profile for bridge smoke
+48b8224bee4af62e66538ebd6b328f5534dfbc4a	2026-07-01T23:04:42+09:00	Refresh production bridge smoke receipt
+3d7d9da36288549cbb2f90ab4e88b6faa9cfa72c	2026-07-01T23:53:02+09:00	Allow production bridge upsert for deal target codes
+ee2184af2d1f9293d8d5249c8fa8d82ff5e4c78e	2026-07-01T23:59:17+09:00	Record production bridge write completion
+6985c394556cfd30dc8b24b346d5d5728ab0c12b	2026-07-02T00:05:39+09:00	Auto login AWS SSO for production bridge scripts
+05e3e8ddc43a406ea44c3d26fdb1edacd39a781e	2026-07-02T01:09:41+09:00	Finalize desktop reset safety motion release
+63865d1acc7e019b384fae18a43152f1dee8d1d5	2026-07-03T13:15:16+09:00	Close Wave-1 local proofs and desktop v0.1.7 candidate
+6c83a2d5c4eeb53476fc95389a79280972dde800	2026-07-03T19:28:03+09:00	Close Wave 1 remediation and release candidate
+ec1de094a52e580d1754c9364eb770f168d81189	2026-07-04T00:41:08+09:00	feat(web): add AMIC forest skin
+609d2b4b71baceceab262c045eb20b3415c26af6	2026-07-04T10:20:14+09:00	chore(desktop): record forest skin installer release
+0cf9b84523263d2015ba517c2b0373d34821e7c4	2026-07-04T18:49:20+09:00	fix(web): preserve permission context headers
+3f2f8524cbcfbd6eb3b5f0367b2ea3975c28a4f3	2026-07-04T18:50:38+09:00	feat(web): tighten forest skin layout
+81671fac252c7d818d9a7209475380c496a7124e	2026-07-04T18:53:39+09:00	feat(web): make forest the default skin
+999fad4c4051d26aaae06f3f59f7dbd2da599b43	2026-07-04T18:57:32+09:00	feat(web): formalize forest header takeover
+59f4da5e7b127452dba0527fe32386ca41d765b8	2026-07-04T18:59:03+09:00	docs(ui): record forest design system
+7bdc1ae721ef4742d1c80180121f70da22b8f7c6	2026-07-04T19:08:09+09:00	feat(web): add forest runtime status strip
+74e6170c75c441893425ec92c43c2b6b249508ae	2026-07-04T19:36:40+09:00	fix(web): tighten forest home layout
+842e39f79078dcfb185bf8db6f36235722ddfb69	2026-07-04T19:46:38+09:00	docs(desktop): record forest ui final installer release
+13c34142e315d3f480fd158f140b29dc9b56f246	2026-07-04T20:49:52+09:00	feat(web): add matter adverse party details
+d3b34e1b7ece7ed32726129d9f84c8a17e05a8d1	2026-07-04T20:54:32+09:00	feat(web): clarify conflict review gates
+a3203211ea2a93c6f02aef6ffbf72dce7361504e	2026-07-04T20:56:54+09:00	feat(web): show engagement approval readiness
+f849443b3db423a6c8b42691810da1fa1f912509	2026-07-04T21:08:42+09:00	feat(web): connect intake matter opening readback
+e6a14a6c24d7bb422990196575db83a00c5ca0b4	2026-07-04T21:24:21+09:00	feat(web): wire leave request approvals
+54e7e6431835c140de5802c3fbb3ff94e847e4d1	2026-07-04T21:38:36+09:00	feat(web): add admin security operations
+c231cb554a98ea71e09e985b6771eb945a2b7227	2026-07-04T21:49:32+09:00	feat(web): extend employment contract lifecycle
+ed7dd4b5405daeffe54dd74f2a4ce05bef8f6814	2026-07-04T21:53:17+09:00	feat(web): clarify recruiting conversion controls
+25a09956d1be7ae9d57ed025e980624091d49ac2	2026-07-04T22:02:39+09:00	feat(web): keep compensation references masked
+d39ed8a8d7f6463f330e4bc24370c4ce00027a07	2026-07-04T22:06:47+09:00	feat(web): tighten matter charge actions
+1b8bb676fe8a46a586a1271aed3deb4d9339e2cb	2026-07-04T22:26:54+09:00	chore(desktop): release final packages v0.1.8
+e5b74852a6576189d59308971697fac8714f2e6b	2026-07-04T22:28:40+09:00	docs(desktop): record v0.1.8 github release
+169484912f8139aba60d249303d6973879304810	2026-07-05T01:31:22+09:00	docs(audit): add enterprise audit workbook
+1ea25365b31385dcd07a3b1930677f1cbb1244a2	2026-07-05T16:59:41+09:00	fix(audit): implement enterprise remediation gates
+b61ce4b7c81e6f82891497a95e196c794e18de98	2026-07-05T17:05:03+09:00	docs(audit): refresh manual QA receipts
+45b5fa374b294477c66f80197a426625ff9ba847	2026-07-05T17:16:39+09:00	docs(aws): document matter SSO role chain
+2c446056e6d11c515becccd52da6ddc053bbc5cf	2026-07-05T17:27:06+09:00	docs(aws): record matter lambda redeploy
+7b8abc99cb213ce1b4daacc5330f344b27b2a9bd	2026-07-05T17:45:27+09:00	release(desktop): prepare v0.1.9 aligned candidate
+83eac1073522066df312d0e21618a7b7f954f777	2026-07-05T17:48:42+09:00	docs(aws): refresh v0.1.9 production smoke
+4cfea14cff26f542f21e3ccccff93bd2c448da17	2026-07-07T09:28:31+09:00	Checkpoint Matter desktop production runtime UI
+645e5dd497cfe8ef1ebecf1bc0800d6f30f4a287	2026-07-07T09:37:53+09:00	Fix Client list matter-code links
+e2e68411531acca1f7d469b1bad604fde585cdf3	2026-07-07T09:43:31+09:00	Fix Client matter-code empty state
+5cdbd4485413c74a6d2401ed1df108b56d0d0770	2026-07-08T01:46:22+09:00	feat(web): implement sidebar home dashboard IA
+9a6091dec6c0e8ec837b09fa092c60a04b558b75	2026-07-08T02:21:54+09:00	feat(web): close sidebar home dashboard stage 7
+1d78f4756c3683b1d443cc4e3566afe509f5ad62	2026-07-08T08:53:10+09:00	feat(desktop): package LCX-SHD-80 renderer candidate
+da103cb15554585abf87846e245e40aec8cfe4ae	2026-07-08T09:30:37+09:00	feat(home-dashboard): wire WP-1 runtime sources
+18fa89549dfe388b0b89218ec7a7ac3b67b2c846	2026-07-08T09:41:40+09:00	feat(web): restore Home redirected views
+1ec0e9df3262bb27ff2d9ff5de9e59560b277eba	2026-07-08T09:54:35+09:00	feat(web): wire Home message threads
+7dca3e1b30a996a48f267a9318d109814c2e8032	2026-07-08T10:01:21+09:00	feat(web): gate Home company status
+cdce6c266787a392c5b39feddf79bf366755ea34	2026-07-08T10:14:12+09:00	feat(web): complete Home widget rules
+22c5289b11579f39715e7eb0edb7be982006c0ba	2026-07-08T10:29:41+09:00	feat(web): apply WP-6 notification dot i18n
+ec05883b443abe2e1d9cd7a7341925f9c11a46d4	2026-07-08T10:38:58+09:00	feat(web): add WP-7 Home runtime telemetry gates
+2cd8eed8dbc68983a170735f58ed90aac1a375e2	2026-07-08T10:47:49+09:00	fix(web): apply WP-8 Home boundary rules
+4e5e2a498fd1b3c82e80871209dcff7e1d43a1d1	2026-07-08T10:48:55+09:00	docs(web): add R1 owner review packet
+51fd7f14fd0d5d28f12897c2a99f29486bb5ecc8	2026-07-08T11:01:17+09:00	docs(web): record R1 owner approval
+6a247455c1ccaa19829d96293c0a7b5a1adff5f7	2026-07-08T12:44:11+09:00	chore: snapshot current LawOS worktree
+5b212f8d230ffbc9ae33d72d1e8503e8d7c7467c	2026-07-08T12:44:57+09:00	chore: snapshot protected LawOS paths
+18c190e7a636bb7c62b7250640a14bbcb501e882	2026-07-08T13:01:39+09:00	fix: restore auth store after production probe
+c831452b51bf2df21e17032c5f7d94cbfaa02555	2026-07-08T13:14:24+09:00	fix: add browser password reset fallback
+365325a0213b015ecfccb3b8130786605a83de93	2026-07-08T16:23:12+09:00	fix: add direct auth reset recovery action
+a62b8db1fcd431db5b0e6fb05395cf5dd6e8465c	2026-07-08T16:42:45+09:00	chore: record current desktop release and aws deploy
+56f00b1368d6207dba4caa6a5d46944957ddd075	2026-07-08T16:56:09+09:00	fix: align desktop renderer logo with app icon
+5d2a375670ace0c7584283758da548dc67807edc	2026-07-08T17:21:32+09:00	fix: simplify home hero copy
+9e8c5df2a9dd9e087ecb2bd5b65b8eb2d9271264	2026-07-08T17:35:07+09:00	fix: remove axis hero subtitles
+a923c921a94d220c2f9d1f0c87c31d53a5ca2daa	2026-07-08T17:51:48+09:00	fix: harden desktop login bootstrap
+3a0520a49224425993e9f2347553b163ad6bffb4	2026-07-08T19:37:23+09:00	fix: persist desktop login session
+ded7caaa3dcbe4baca8195339eb6f1b5b8987f75	2026-07-08T20:06:24+09:00	fix: require approval for qa password resets
+60ac3032761b8e39a2c9fd1e3d2be80a88684ac4	2026-07-10T14:31:51+09:00	feat(home): add finance settlement navigation contract
+e8dac287ac941cbad05e408c628c71c0cd10f019	2026-07-10T14:46:31+09:00	feat(analytics): add reconciled finance read models
+ce2299a87f33f7bfe177e004e7fae6a4130da0e9	2026-07-10T15:00:59+09:00	feat(home): render reconciled finance dashboards
+c1b6f25ef97344cb78421743eee1b3a327447459	2026-07-10T15:18:51+09:00	feat(home): move finance operations into Home
+b08c7d94eb96f63960b002818f302b085db01d6a	2026-07-10T15:42:08+09:00	feat(home): enforce finance access and approvals
+c4a81f1c2fafe67f3c0e948b0880956ea7d28bcc	2026-07-10T15:45:52+09:00	refactor(matter): retire settlement sidebar entries
+e1d6330ef61beb0053319dca3f959ad88fd9fd19	2026-07-10T16:04:44+09:00	test(finance): capture web and packaged evidence
+a68b763248b8c55f9ee76f7ec1367bbe2d78383b	2026-07-10T18:16:47+09:00	test(finance): close latest internal package QA
+b34e889629364d0b17c99ac949cfe82e6a17075c	2026-07-10T18:30:18+09:00	fix(sidebar): allow accordion groups to collapse
+40d3ca940187c80cab71a79aa61fd781da99db59	2026-07-10T21:06:07+09:00	feat(runtime): add durable stores and matter profiles
+7c0f33003c7fd3f448c928f2ee057fbc8897d9f5	2026-07-10T21:09:03+09:00	feat(ui): ship current contextual workspace shell
+8347f2664ce460e0bef1bebfb15136623f3d1ab8	2026-07-10T21:09:40+09:00	test(ui): record current package and persistence evidence
+b4c94d7d1b5d88cf7425f4a188ba95f928544f1d	2026-07-10T21:11:47+09:00	test(desktop): isolate restart proof stores
+a01958e71e353bc17aa75e53a98a95ba5efaac93	2026-07-10T21:12:33+09:00	test(release): refresh full-suite evidence
+8c42a6a76acfd376148594ff1c5527e23b750eca	2026-07-10T21:16:32+09:00	chore(release): record v0.1.10 desktop candidate
+0a9ff8b58ee84ba51863916b3d5c672ac6920e35	2026-07-10T21:22:16+09:00	fix(persistence): honor runtime backup root
+d00f74f0d08d2ff0a7d7618cb2d5509849986c25	2026-07-10T21:22:56+09:00	test(release): verify lambda backup-root fix
+1502e6772f80fa7aa9d950da2122e9c6d1d64bc9	2026-07-10T21:26:52+09:00	fix(persistence): tolerate EFS stale handles
+f56ff2e5a551daf4a2f1ea2b8c9ec5d9bc3a8429	2026-07-10T21:35:35+09:00	chore(release): record aws deployment and final candidate
+ef73c3bc13ad81de4de0786d05d44c66f7cf88e2	2026-07-10T22:58:06+09:00	feat(web): replace dashboard KPIs with work lists
+df047360c8f3d97a423a35567cc346e9695e695b	2026-07-10T22:59:08+09:00	test(desktop): verify dashboard layouts in packaged app
+dcedab3fe9a3352aa11452fbfce4fc4b19541e65	2026-07-10T23:04:55+09:00	ci(desktop): add Windows dashboard package QA
+b9d74fdb434cece22024ec0ac583cd8ceb1a2cf1	2026-07-10T23:07:34+09:00	fix(desktop): resolve npx on Windows packaging
+54a8ced3285b0013924002fb3461ce772afd739b	2026-07-10T23:10:23+09:00	fix(desktop): launch npx through Windows command shell
+2a29b1020ef0541775b24807fd6a31b77dc9824e	2026-07-10T23:15:14+09:00	fix(ci): pin Electron for Windows native QA
+7a4b78637942c24197b6a5a2085b917d53b3deac	2026-07-10T23:19:40+09:00	fix(ci): reuse NSIS unpacked app for Windows QA
+6e35bbeed63a3818f5856a3709e76af69b78bc0d	2026-07-10T23:24:42+09:00	fix(ci): follow packaged login handoff in dashboard QA
+2c4ad2e80901f11425d15254fb45541b9a2f6d8b	2026-07-11T01:17:42+09:00	fix(dashboard): isolate reads and sanitize labels
+067c6c51876e6d041b300c97632e370cbaef63b1	2026-07-11T01:28:10+09:00	fix(dashboard): preserve errors and resolve labels
+de9e8a370c223679c0b9779f2ecd4653291ae779	2026-07-11T01:34:55+09:00	docs(deploy): record dashboard AWS rollout
+730c1b86e68bcabe7b9d4d1cf294cb9b34d2342c	2026-07-11T02:02:29+09:00	fix(web): move customer dashboard to Client
+4f76c672c9a704b27dfac80b4c7ef99ebc1976f8	2026-07-11T02:29:25+09:00	fix(web): move contextual menus into sidebar accordions
+5bfd546b895dcba4a5b0eaa93e82f42230bea344	2026-07-11T13:42:51+09:00	feat(ui): refine records and people hierarchy
+d1b880e308b44c0e090a1d5c9b199b940dc5458e	2026-07-11T13:43:58+09:00	chore(release): bump desktop to 0.1.11
+7988f2f205d7420adc7a37470515703d724b3e1c	2026-07-11T13:53:48+09:00	docs(release): record desktop 0.1.11 candidate
+068bdd041277bc45593de99a3bf6540b4e0f92aa	2026-07-11T14:24:16+09:00	fix(release): enforce portable checksums and error states
+2eb4e7ab6256034b749519e934d733f80716bdb9	2026-07-11T14:24:43+09:00	chore(release): bump desktop to 0.1.12
+19e47a8c419a313db3453bb26c2c8cf38ca2ae51	2026-07-11T14:29:48+09:00	docs(release): record desktop 0.1.12 candidate
+d04ce78e9ba71b0467690b5cb7d765863162aa13	2026-07-11T14:37:44+09:00	feat(hrx): add approved roster reconciliation
+2ff61a171154a50518e99101830baf90f6cc699b	2026-07-11T14:43:53+09:00	docs(deploy): record v0.1.12 AWS rollout
+ee2525f7dc8276c8f69fb3c48d40ea35d8017e49	2026-07-11T14:45:16+09:00	docs(release): record v0.1.12 publication
+36f5b685177c7e29a42293938395724909f61b56	2026-07-11T14:53:48+09:00	docs(deploy): record serialized HRX write boundary
+e0df8f50d82c4a38a9912764fc1aa7134bb77aa8	2026-07-11T15:02:37+09:00	fix(hrx): correct reporting lines
+e9a5b285f431bb5b86aa6b09c62af33192431ead	2026-07-11T15:05:56+09:00	chore(release): bump desktop to 0.1.13
+b2316e9b4382e51ff089078d8d9b387a3df14662	2026-07-11T15:10:37+09:00	docs(release): record desktop 0.1.13 candidate
+58cb8f3a269c0c89a08e8a3790e2dde22b110fe4	2026-07-11T15:16:14+09:00	docs(deploy): record corrected reporting lines
+ce4341fe2cbc3831883344001d7fca4498d392e4	2026-07-11T15:19:30+09:00	docs(deploy): clarify Windows QA scope
+4ad69ff3102c2df9b8cac05c3458d46821badc97	2026-07-11T15:20:19+09:00	docs(release): align prerelease provenance
+d2bf615ee2eda632dedf1518efc59e06f4dcd969	2026-07-11T15:27:53+09:00	fix(hrx): preserve manual profile edits
+c26aea2b91c055cdc98fbfc129702236731355e8	2026-07-11T15:28:01+09:00	docs(deploy): sanitize reporting-line evidence
+c30dfe525b652ca49bef496f160af38a98eaa1c5	2026-07-11T15:30:56+09:00	chore(release): bump desktop to 0.1.14
+66a75ebdc5f3b1aef0bc4758f84f7c50caede57d	2026-07-11T15:35:19+09:00	docs(release): record desktop 0.1.14 candidate
+546632cf4ffe2437132ff07244a470c76e2efda7	2026-07-11T15:37:57+09:00	docs(deploy): close out idempotent reporting lines
+94d230f09071ce9eebef38d2a94d71137590f54c	2026-07-11T15:41:58+09:00	docs(deploy): add v0.1.14 provenance
+5c8608141c6cf3728979b752d146f762396dda82	2026-07-11T17:27:54+09:00	feat(web): simplify home feed tabs
+2496700bcaa566591a11a59aa1aa0497690d8cd1	2026-07-11T17:37:55+09:00	feat(web): simplify client sidebar navigation
+fc16a6e712e091c5a192e3dafc0c5e5dd53f9404	2026-07-11T17:42:30+09:00	feat(web): trim matter operations menu
+b2f739ead6e843584c5e5293d0844c04627c13a5	2026-07-11T18:07:18+09:00	feat(client): expand customer management navigation
+73634d377db8fdd146c2ac6044fcff6a46fec085	2026-07-11T18:19:47+09:00	feat(home): unify tasks and approvals navigation
+6308abbc110c6e448cf8eeec1313fc0d3ed46533	2026-07-11T18:22:36+09:00	chore(release): bump desktop to 0.1.15
+7e8796db4dc8c7df40f8a40906d247fbdd1dada7	2026-07-11T18:23:16+09:00	test(web): align feed regression contract
+deb6fdfab40ae0b63122f9c06369359b59394b67	2026-07-11T18:37:19+09:00	docs(release): record desktop 0.1.15 artifacts
+969f667a9dea7ec9c229f67fd686c61160bd9054	2026-07-11T18:38:29+09:00	docs(deploy): record desktop 0.1.15 AWS release
+a9290bb693fc12fcc17b634e5cf20ac202c08902	2026-07-12T00:37:02+09:00	test(worktree): WT-00-01 define domain contract
+85fff3b4376f8527b782722e25461d53dd94fdb6	2026-07-12T00:37:03+09:00	test(worktree): WT-00-02 define practice-area contract
+f033ab99f1d5903d42f06200aca7b514a79e550d	2026-07-12T00:37:03+09:00	test(worktree): WT-00-03 define permission transition contract
+9bb32a4de4f5b41b1fcf13c5fa4cd96360083996	2026-07-12T00:37:03+09:00	test(worktree): WT-00-04 define QA fixture contract
+0f4427a030629a4cae0ca25a055babc931a444c6	2026-07-12T00:39:02+09:00	feat(worktree): WT-01-01 share practice-area classification
+c148ef139b2c6e1b45954ed52dd8d7e744b1843a	2026-07-12T00:39:03+09:00	feat(worktree): WT-01-02 add worktree models
+d5df34d378613868c60dd2aa58afed2af4c2570f	2026-07-12T00:39:03+09:00	feat(worktree): WT-01-03 validate template models
+90bc855beaa14042463e5cbc756f00d9c835d1f9	2026-07-12T00:39:24+09:00	feat(worktree): WT-01-04 persist worktree records
+cf46eee72a83fb6b25c758032838919c3593e42f	2026-07-12T00:39:24+09:00	feat(worktree): WT-01-05 validate tree structure
+18fc38cb6af7a1421470037ebbeeb44e9189e5c6	2026-07-12T00:39:24+09:00	feat(worktree): WT-01-06 enforce active tree versioning
+b0180c49e0f7a3dd9e9c7908c2d25f76f84c98a4	2026-07-12T00:39:25+09:00	feat(worktree): WT-01-07 snapshot approved templates
+73bc97d68644ed0a0b5b1aa6a374a78358b60e0b	2026-07-12T00:39:25+09:00	feat(worktree): WT-01-08 project progress and unclassified tasks
+cd963ee67f535d0e80b94a7cdfdb4e5b9708ce39	2026-07-12T00:39:25+09:00	feat(worktree): WT-01-10 add audit and idempotency
+72cfab26721a36e917ead305b271407501e74684	2026-07-12T00:39:26+09:00	feat(worktree): WT-01-09 enforce task complete and reopen rules
+aa23d8d9c59b3c7fe6b23f1b064680dd68112b28	2026-07-12T00:40:22+09:00	feat(worktree): WT-02-01 expose projected tree read API
+7d4982797983e816a1e8a96ac8abd360130d11b0	2026-07-12T00:40:22+09:00	feat(worktree): WT-02-02 create active trees and snapshots
+156c35243522037a09655f668285d82d82a228a3	2026-07-12T00:40:22+09:00	feat(worktree): WT-02-03 create and patch nodes
+815e0bfaf92a07bf77131850d933c7e637879e4f	2026-07-12T00:40:23+09:00	test(worktree): WT-02-04 verify move and archive semantics
+4cf9e25612bf55952004fbad8fb0261d925645f9	2026-07-12T00:40:23+09:00	feat(worktree): WT-02-05 expose task transition endpoints
+e5be7701b0a05da1b4df13502a0bc6d1af2bac85	2026-07-12T00:40:23+09:00	test(worktree): WT-02-06 enforce tenant and role isolation
+e4411abdbad9df0d2fa6691d3c626589983ebd55	2026-07-12T00:40:24+09:00	feat(worktree): WT-02-07 return ETag version conflicts
+786e1b9655b53e9d258e19bd8010aac72ccf536f	2026-07-12T00:40:24+09:00	test(worktree): WT-02-08 verify API audit idempotency
+a448da8c92c60ec1fe0a55ee63e7a6a9ef6a13c9	2026-07-12T00:40:24+09:00	feat(worktree): WT-02-09 allowlist desktop writes
+32a4cf847fbfff770fd52193bdb0a93272ba5a27	2026-07-12T00:48:29+09:00	feat(worktree): WT-03-02 add API client states
+ab25741d5f9f005ff492b8ce72e5a2dcd8bcd21d	2026-07-12T00:49:05+09:00	feat(worktree): WT-03-05 render collapsible tree
+33984352b9fb70f04b573b2ebc5148b716cb4645	2026-07-12T00:49:53+09:00	feat(worktree): WT-03-01 register Matter route
+18998dd71ce5009b571975e53fa0aeb0a59eda47	2026-07-12T00:50:06+09:00	test(worktree): WT-03-03 verify UI contract
+e3ef1ebb26c072c0fa82a5a78e850083a87aadb2	2026-07-12T00:50:07+09:00	test(worktree): WT-03-04 verify UI contract
+ab22960aa9fd703f6426b89df611b734feab5122	2026-07-12T00:50:07+09:00	test(worktree): WT-03-06 verify UI contract
+3b981ecb37d50e20b18866adc4e148597a34015b	2026-07-12T00:50:07+09:00	test(worktree): WT-03-07 verify UI contract
+06fec053dc5f2133983fdc6a363691042172d4fa	2026-07-12T00:50:07+09:00	test(worktree): WT-03-08 verify UI contract
+28fcf4213200557186fef0636fbbe22c7aa4f22c	2026-07-12T00:50:08+09:00	test(worktree): WT-03-09 verify UI contract
+41f694c9706cddfd38f20bd8eb1e5ee8f05969ab	2026-07-12T00:50:08+09:00	test(worktree): WT-03-10 verify UI contract
+65f9da867887bf47f07576ffc1c9079db526c242	2026-07-12T00:50:08+09:00	test(worktree): WT-03-11 verify UI contract
+d864833cbf10051a427351af43276f1fd8be2280	2026-07-12T00:50:09+09:00	test(worktree): WT-03-12 verify UI contract
+275b9f51efc4ce767f9d8c3e0e689813fd3e6f39	2026-07-12T00:50:31+09:00	test(worktree): WT-04-01 validate eight fixtures
+f4c66bf90bfeba6eb8ffa7a71cb2467b12d9b96d	2026-07-12T00:50:32+09:00	test(worktree): WT-04-02 verify API security E2E
+4b61b6f3c3ac8507ec86d8d101f28e6739752429	2026-07-12T00:50:43+09:00	test(worktree): WT-04-03 verify browser UI E2E
+826a0afd9db45d9048e1ffc17e30d57f914fc3c7	2026-07-12T00:50:57+09:00	test(worktree): WT-04-04 verify responsive access
+781cf8caa14144e9f0a8a200b4bf5be6c9a835c0	2026-07-12T00:51:08+09:00	test(worktree): WT-04-05 enforce render budget
+c6f9b5cbab0396a4612886f40933baece78071ac	2026-07-12T00:51:19+09:00	test(worktree): WT-04-06 verify restart persistence
+bfe995b3d83ca22f967a5ca13dc10412bbcc58d9	2026-07-12T00:51:45+09:00	test(worktree): WT-04-07 verify exact package
+986c5e079c0fb72955c49ec4dc24e413d7c3ecce	2026-07-12T00:53:24+09:00	docs(worktree): WT-04-08 close implementation boundaries
+cf1d56e620e1972176cbd9eaa35fa9289ab47961	2026-07-12T01:47:58+09:00	fix(worktree): harden atomic mutation invariants
+1ed667c6b486a5f72bd421462b8d3c1b172ee5eb	2026-07-12T01:48:11+09:00	fix(worktree): enforce API and desktop mutation boundaries
+99468422e8f52daa40ecbd7f965b99e024726b50	2026-07-12T01:52:10+09:00	fix(worktree): complete resilient editor interactions
+5135f050476f0e54bbd96a0ec9509be3dec05caa	2026-07-12T01:53:35+09:00	feat(web): align product workspaces and navigation
+fff654e6bb39753e5921af3f98bf27cb678dc9f4	2026-07-12T01:58:23+09:00	test(worktree): refresh browser and package evidence
+2ea2abe599fb5143f2109f21979e237e91b64428	2026-07-12T02:01:44+09:00	test(worktree): audit canonical TUW boundaries
+1fa9d757e21ec87080338c00032f79a78d62902a	2026-07-12T02:03:27+09:00	docs(worktree): synchronize gate closeout state
+d523c6087e7b6d247ee614cf3074967330f002c7	2026-07-12T02:05:09+09:00	docs(worktree): record final runtime audit
+bdbe295ad8fc978955e143d76e7d00db29dbae19	2026-07-12T02:16:14+09:00	fix(worktree): align practice tab typography
+488e878423901ab3f99e7748567f9f3bff578451	2026-07-12T09:56:50+09:00	docs(worktree): record latest typography package QA
+9a4584b4dda948960b1d16c87079a82073e1464d	2026-07-12T13:53:39+09:00	docs(worktree): record G0 responsible owners
+2b4a2fd4de0b57402b10f601eccba1ef92d2f0fd	2026-07-12T14:41:13+09:00	fix(worktree): enforce final runtime and UI boundaries
+66a4eb20e6a83f82f5ae0b8254b18d1844f40bec	2026-07-12T14:45:48+09:00	docs(worktree): reconcile owner and closeout truth
+5617706aa0041ca33bead25917e5c46ea805ef60	2026-07-13T18:24:50+09:00	Implement Search and leave management
+83788396a94a35799b3d5c4b888d84a86979d6c5	2026-07-13T18:28:07+09:00	Merge remote-tracking branch 'origin/main' into codex/leave-search-release-20260713
+ca59b3f23cbdd8a71bc66e9b119c333fd107caab	2026-07-13T18:32:36+09:00	Fix formal macOS release receipt
+1b020cf76b1d3700e53a33b29c2a9db67adac345	2026-07-13T19:00:27+09:00	Record desktop release and AWS deployment
+05c9ccde357ad489ff3e9a0360f35daf138accdc	2026-07-13T19:18:06+09:00	Fix desktop release identity and package QA
+83c1e93475fea8db16e77e0ccf2a3a957409ba72	2026-07-13T19:44:38+09:00	Harden desktop release identity boundaries
+63b8d6ba8e99491655488c6995aef687c19a76bd	2026-07-13T19:49:51+09:00	Align production smoke with authenticated HRX
+aa653bb12c7424fb5cda717817ba1ee1d2c454c3	2026-07-13T19:55:24+09:00	Keep packaged leave QA roster external
+137fa156cdb6bb30bb3af72bf3e928ad7e6e4959	2026-07-13T22:19:00+09:00	Retire legacy UI and restore Forest login
+453fc124015004ef414cf1b0ac494c38a249269f	2026-07-13T23:34:23+09:00	Fix Forest packaged QA gates
+5ab70b512fb6c542f2070b95d89f29002c4fc090	2026-07-13T23:39:06+09:00	Record v0.1.16 formal package evidence
+8d90d2261d3796587fe3d02470994e1a8d1efea9	2026-07-13T23:43:22+09:00	Record Forest v0.1.16 release and AWS deploy
+2b5e482fb47e1476e58b3c15f6ef3806e2cf38a1	2026-07-14T00:14:54+09:00	Allow HRX rollout validation to complete
+6e01fd90ff78424aecc3a33bbddd074d844e3cd5	2026-07-14T01:02:43+09:00	Install Chromium for HRX UI regression CI
+7717d5cee158fc97056510e8aebc9e0854d34196	2026-07-14T01:21:03+09:00	Align People UI validator with session scopes
+fbf7062398da1157ee1322d7440194c1b13f7e0f	2026-07-15T15:37:53+09:00	checkpoint Forest leave and payroll implementation
+411d07e9a3bd6f4ffdabc04de3741480e2a4e8da	2026-07-15T15:38:28+09:00	record Forest checkpoint provenance
+873ca9cc05c30f6df1475f3c9ffb9918e10fa667	2026-07-15T15:59:24+09:00	stabilize Forest checkpoint verification
+88156fb54540c1c9362ce66bf343542bbc61ad13	2026-07-15T16:00:41+09:00	record Forest freeze completion
+67b72f44ffb2e577b780ab6f5cad28e23496542e	2026-07-15T16:05:40+09:00	preserve current root worktree recovery evidence
+f68bb059e5b801dd26614379770b373b9089829c	2026-07-15T16:06:48+09:00	record current root recovery provenance
+f943b8be568fec9bdede9a3d1c1b73c910988e01	2026-07-15T16:20:55+09:00	document RC-002 common-file comparison
+65b742c5b103c357c527f6c40729140d02a2b6ef	2026-07-15T16:22:40+09:00	record RC-002 comparison provenance
+7133e0dfad6fa15a601325f6b2f5d50c75da57d6	2026-07-15T16:35:58+09:00	chore: classify root-only integration changes
+3a7335b6de78115de25640b22268ff59b3a3fd81	2026-07-15T16:38:02+09:00	docs: record RC-003 integration disposition
+0a92cb7e03d369b41d353bb90228348f101a9f87	2026-07-15T16:49:26+09:00	chore: classify upper-compatible integration matrix
+3842a67f1f9285bb9d9643b9b92055d299927722	2026-07-15T16:50:39+09:00	docs: record RC-004 capability provenance
+6b1c615b5e793cf467d5bea0e478b739c4994741	2026-07-15T16:59:52+09:00	chore: map migration conflict semantics
+000617f52fdc79721941c2705b27859af9b8372b	2026-07-15T17:01:59+09:00	docs: record MG-001 migration provenance
+b41d3f771b0e846d46af3e5eefc711cec8276a26	2026-07-15T17:13:10+09:00	test: enforce deprecated migration boundaries
+b6fd5b7142d6215093e658bd93b35d7de6366f82	2026-07-15T17:14:54+09:00	docs: record MG-002 deprecation provenance
+32222efe1e84cb74a32184db4734c0fa9dea45e0	2026-07-15T17:47:12+09:00	feat(hrx): add forward payroll and leave migrations
+8d01be6fe73614f227864d6514df8f4ccc47c574	2026-07-15T17:48:52+09:00	docs(hrx): record MG-003 provenance
+229429fd3b4f728552f553defa79bacb824a554b	2026-07-15T18:00:07+09:00	test(hrx): prove fresh database migrations
+f59b328927ee7c88a525bcb588938547a91ceb91	2026-07-15T18:01:24+09:00	docs(hrx): record MG-004 provenance
+9722f647f3328b0b14d4362c07c31ad5b9763a35	2026-07-15T18:15:02+09:00	test(hrx): prove checkpoint upgrades
+a79cb5f2743a03e012af01badcf86d1721750aab	2026-07-15T18:16:07+09:00	docs(hrx): record MG-005 provenance
+75a3851e06e2d2a6c91363b707b39ffec800a175	2026-07-15T18:37:21+09:00	test(hrx): prove migration recovery
+931ae4c42ae88f4c9551d4e6377df63fd73d4c82	2026-07-15T18:38:58+09:00	docs(hrx): record MG-006 provenance
+b053fd8ae967c75653dce8b883d40eda69e3d07d	2026-07-15T19:51:30+09:00	feat(hrx): integrate leave rule and payroll catalog contracts
+ee03b8c127f1be4d7a8ce4bb5b104f0ba27f110f	2026-07-15T19:51:59+09:00	docs(hrx): record RC-005 backend checkpoint
+ce201bde390da5847c6d41a2fcf3267338414585	2026-07-15T21:04:04+09:00	feat(hrx): complete compact leave action workflows
+75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c	2026-07-15T21:16:12+09:00	test(desktop): align packaged QA with compact Forest UI
+051344d96695855ec1546d6bb5e20b08d8d4e012	2026-07-15T22:12:36+09:00	docs(hrx): record RC-005 UI and profile package proof
+cc5f7f873a10662b60092087d615a07314f799e9	2026-07-15T22:37:37+09:00	test(integration): validate RC-005 port crosswalk
+c342cc56bcfc36f582610951b363b3ad737222cc	2026-07-15T22:42:00+09:00	docs(hrx): close RC-005 regression evidence
+b6853d529699ec155dfdbb59d2f4f976b58b6cb6	2026-07-15T22:53:34+09:00	docs(integration): fix CP-001 comparison baselines
+17700c5450cd9de9add0dce1ec44be77d3b49ad7	2026-07-15T23:08:09+09:00	test(integration): prove CP-002 product superset
+f3b38cbbe297f46fda0d5e64744bc081e9ed3d66	2026-07-15T23:21:03+09:00	test(integration): prove CP-003 leave compatibility
+55e6cfe111e5c56d8125b27570fca144bf6947dc	2026-07-15T23:36:28+09:00	test(integration): prove CP-004 payroll compatibility
+a656495f909d4350495c2c41326e2f4b6b51ab74	2026-07-15T23:51:36+09:00	test(integration): prove CP-005 profile linkage
+d1e84bff06eea94848b1372f13bb19be72923462	2026-07-16T00:13:54+09:00	test(integration): prove CP-006 UI copy regression
+0e72dd1335c8e996388de16fbd8be441618330ed	2026-07-16T00:40:40+09:00	fix(desktop): close packaged runtime boundary
+0854caef138acc9e8a4d41700812e1d33e6c9199	2026-07-16T01:17:53+09:00	test(integration): prove CP-007 packaged runtime boundary
+82dbcc30b52608f6b73d601d1fbc8dbaa9d563f1	2026-07-16T01:28:49+09:00	chore(release): align desktop version 0.1.17
+52807ba8d45149011393330268b51702bdd44296	2026-07-16T01:34:04+09:00	test(release): correct PV-001 native name check
+6a57157a799e50092963faac0b0860522a218914	2026-07-16T01:56:43+09:00	fix(auth): restore Forest login in packaged renderer
+1e3c2614c472a475444e7fc0acf1671104753623	2026-07-16T02:16:35+09:00	test(integration): prove PV-001 version provenance
+a38a63f8bcc0bedae5d038027cb2de7148cd6129	2026-07-16T02:28:23+09:00	feat(release): embed desktop build provenance
+039ddf41b69e227eff14507c33d7126b33033be5	2026-07-16T02:41:49+09:00	test(integration): prove PV-002 build provenance
+72d12902884c9eab47668748f012577c2e92820a	2026-07-16T02:49:45+09:00	feat(release): enforce formal clean-SHA build gate
+298bbb2b577ba07980b7ec1671c677902b546c85	2026-07-16T03:02:55+09:00	test(integration): prove PV-003 formal build gate
+34d689f088a173aac7a98f54ff44b3b48bf57b9d	2026-07-16T03:14:51+09:00	test(integration): record latest renderer parity
+f5344fdeaf35b86e86049710e4bb5aa9a0d72f39	2026-07-16T03:26:15+09:00	feat(release): separate desktop channel identities
+ea9fd4f81ff9beed02bb2bf3ca2fbdf024d27f89	2026-07-16T03:43:09+09:00	test(integration): prove PV-004 channel identities
+c0c46faed61d2a4011d506b43929cdb4c47cffa4	2026-07-16T03:59:15+09:00	feat(release): scope desktop artifacts by source SHA
+a2d50e95b204da433986ec94e5ce1d8ed04e3dbb	2026-07-16T04:12:06+09:00	test(integration): prove PV-005 SHA-scoped artifacts
+8e9165c0a8b412eafde454c8436e00cf434a9e37	2026-07-16T04:24:54+09:00	feat(release): reject legacy desktop assets
+678aff03abb47ad280a89de7f8070e01dfc91464	2026-07-16T04:43:43+09:00	test(integration): prove PV-006 legacy asset boundary
+ab7868ebad5948a1b7341fe5bcbc48d8c0181a47	2026-07-16T05:02:07+09:00	feat(release): add canonical desktop launcher
+e0f52f5f1edbc61af9ae79d624a07dd65b603b6c	2026-07-16T05:14:49+09:00	test(integration): prove PV-007 canonical launch boundary

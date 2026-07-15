@@ -1,0 +1,21 @@
+# MI-002 Acceptance
+
+- TUW: MI-002
+- status: DONE
+- entry_sha: `e0f52f5f1edbc61af9ae79d624a07dd65b603b6c`
+- product_exit_sha: `e0f52f5f1edbc61af9ae79d624a07dd65b603b6c` (evidence-only TUW)
+- remote_base: `origin/main` at `fdd1e34a42ee11ad1e5049647048471be772f381`
+- merge_base: `fdd1e34a42ee11ad1e5049647048471be772f381`; the remote base is the exact ancestor of the candidate
+- merge_tree: `git merge-tree --write-tree --messages origin/main HEAD` exited 0 and produced `667e141f3d0889143a49cae33d05686145ad9c30`, byte-identical to the candidate tree
+- conflict inventory: 0 conflict records, 0 conflict markers, empty stderr, and no unresolved path
+- path inventory: 2,405 paths (`A=1,898`, `M=345`, `D=159`, `R099=2`, `C058=1`) and 265 commits are recorded without truncation
+- integration observation: a fast-forward is technically possible because `origin/main` is the candidate ancestor; the actual integration method remains an MI-003 decision and no ref was moved here
+- policy gates retained for any later conflict: UI=current Forest, auth=stricter contract, migrations=forward-only manual adjudication, operations=safer contract; blanket ours/theirs remains forbidden
+- diff-check boundary: candidate-wide `git diff --check` exits 2 with 56 raw output lines, 42 normalized warning messages, and 31 files. Outside `workbook/`, five raw lines and three normalized messages remain across one evidence document and one HRX test. These are QA debt, not merge conflicts; the checked-in reports intentionally omit offending content bytes so the evidence creates no new whitespace defect
+- manual_qa: not applicable; MI-002 is a non-rendering Git graph and tree audit
+- preserved runtime: the already verified canonical packaged app was not restarted or replaced
+- commands: see `commands.txt`
+- tests: see `tests.txt`
+- known_limits: this TUW proves merge graph/tree compatibility only; it does not authorize integration, move `main`, prove remote deployment, or claim formal Mac/Windows release status
+- external_blockers: none for MI-002; MI-001 live AWS deployment truth remains a separate credentialed check
+- AI slop review: pass; no product UI or user-facing copy changed

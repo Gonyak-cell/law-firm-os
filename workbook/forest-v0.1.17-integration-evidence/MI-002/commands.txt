@@ -1,0 +1,14 @@
+git fetch origin --prune --tags
+git merge-base origin/main HEAD
+git rev-parse origin/main HEAD HEAD^{tree}
+git merge-tree --write-tree --messages origin/main HEAD
+git diff --name-status -M -C origin/main..HEAD
+git diff --numstat -M -C origin/main..HEAD
+git log --reverse --format='%H%x09%cI%x09%s' origin/main..HEAD
+git diff --dirstat=files,0 origin/main..HEAD
+git diff --check origin/main..HEAD
+git diff --check origin/main..HEAD -- ':!workbook/**'
+jq -e '.verdict == "PASS" and .origin_main_sha == .merge_base_sha and .candidate_tree_sha == .merged_tree_sha and .conflict_count == 0 and .unresolved_path_count == 0 and .blanket_resolution_count == 0 and .changed_path_count == 2405' workbook/forest-v0.1.17-integration-evidence/MI-002/receipt.json
+test "$(wc -l < workbook/forest-v0.1.17-integration-evidence/MI-002/path-inventory.tsv | tr -d ' ')" = 2405
+test "$(wc -l < workbook/forest-v0.1.17-integration-evidence/MI-002/commit-inventory.tsv | tr -d ' ')" = 265
+test "$(wc -l < workbook/forest-v0.1.17-integration-evidence/MI-002/conflict-ledger.tsv | tr -d ' ')" = 1
