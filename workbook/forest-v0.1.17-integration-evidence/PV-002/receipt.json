@@ -1,0 +1,84 @@
+{
+  "schema_version": "law-firm-os.pv002.acceptance.v1",
+  "tuw": "PV-002",
+  "verdict": "PASS",
+  "entry_sha": "1e3c2614c472a475444e7fc0acf1671104753623",
+  "product_exit_sha": "a38a63f8bcc0bedae5d038027cb2de7148cd6129",
+  "product_exit_tree": "3da21d6486a0577abb90a084988de3eb6888a189",
+  "manifest_contract": {
+    "schema_version": "law-firm-os.matter-desktop-build-provenance.v1",
+    "version": "0.1.17",
+    "channel": "internal",
+    "source_dirty": false,
+    "shared_field_mismatch_count": 0,
+    "package_receipt_mismatch_count": 0,
+    "public_release_claim": false,
+    "production_go_live_claim": false
+  },
+  "renderer": {
+    "sha256": "f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445",
+    "files_each": 28,
+    "algorithm": "sha256(sorted sha256 file manifest with ./ relative paths)",
+    "macos_windows_equal": true
+  },
+  "macos": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "built_at": "2026-07-15T17:30:11.276Z",
+    "manifest_sha256": "d42713cdf82b4ed33a6bb9116f13759c4156ba6b04baf4aea7444bccf1df61d1",
+    "packaged_external_bytes_equal": true,
+    "zip_sha256": "805184cc4fac9f6de9041381e41435e2a1ac79283b8222c878058eb35e9ccc62",
+    "dmg_sha256": "b7f8e4cc0d46cf392118439db934739aa07663c2f2aacf0fa8c997f3d68e5a84",
+    "build_receipt_sha256": "4a1deb89069cbd8cdf7c1073de6ebc24c529bf271e94fcdc62426cb97dcfcefe"
+  },
+  "windows": {
+    "platform": "win32",
+    "arch": "x64",
+    "built_at": "2026-07-15T17:32:20.289Z",
+    "manifest_sha256": "76fe2585593112456acc4ae529bad78b5da1a4ca4c147fd8b5ede8b0fbddb253",
+    "packaged_external_bytes_equal": true,
+    "installer_manifest_linked": true,
+    "installer_manifest_sha256": "743a6c63806efe073dc5935ba8d55191c868d031cf3331c0c80276c2447ea137",
+    "installer_manifest_signature_verified": true,
+    "executable_sha256": "2444ed1ed7d74bb305e2c7def43122a4633c6c3a412dddeb182f7b5b3641b043",
+    "unsigned_zip_sha256": "b5115154905477ea250da73bc58a2e3b627846151c405da4d16be147189549c0",
+    "build_receipt_sha256": "b425fed519efa6d00f9efa631c0fe3100e848ce202e2b5f7f269187348436e99"
+  },
+  "tests": {
+    "manifest_unit": {"total": 3, "pass": 3, "fail": 0},
+    "desktop_smoke": {"total": 102, "pass": 102, "fail": 0},
+    "version_validator": "PASS",
+    "public_renderer_pii": "PASS",
+    "syntax": "PASS",
+    "diff_check": "PASS",
+    "manual_package_qa": "PASS",
+    "ai_slop_review": "PASS"
+  },
+  "evidence_sha256": {
+    "package_validation": "461f6378e2038592ecb96e12ac15daaca01af6f855b568a0e8f8f6ae9a29f377",
+    "provenance_helper": "5564df8f993ccd07914a6ee1871a65ea115e13f93c24d9e6336b0367132d0c0d",
+    "package_validator": "69554de1205ce3bba9dec6f7282b5ddd92f0f5384520dde6031cad4f598c4457",
+    "manifest_unit_test": "cbeb2ea9179c2705f00771695241888ef9c9cab138bdf26e7a99a5e95048af31"
+  },
+  "preserved_root_checkout": {
+    "head": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3",
+    "branch": "codex/profile-contact-regression-fix",
+    "tracked_count": 56,
+    "untracked_count": 21,
+    "status_count": 77,
+    "fingerprint_sha256": "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3"
+  },
+  "boundaries": {
+    "pv003_formal_clean_sha_enforcement": false,
+    "internal_package": true,
+    "formal_macos_release": false,
+    "macos_developer_id": false,
+    "macos_notarized": false,
+    "macos_gatekeeper_distribution_ready": false,
+    "native_windows_runtime": false,
+    "windows_authenticode": false,
+    "public_release": false,
+    "production_go_live": false
+  },
+  "external_blockers": []
+}

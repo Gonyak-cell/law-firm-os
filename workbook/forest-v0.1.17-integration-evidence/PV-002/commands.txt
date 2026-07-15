@@ -1,0 +1,30 @@
+git rev-parse HEAD
+git rev-parse 'HEAD^{tree}'
+test -z "$(git status --porcelain)"
+node --test scripts/test/pv002-build-manifest.test.mjs
+node scripts/validate-pv002-build-manifest.mjs --source
+node scripts/validate-pv002-build-manifest.mjs --help
+node scripts/validate-pv002-build-manifest.mjs --bogus
+MATTER_DESKTOP_RELEASE_CHANNEL=internal MATTER_DESKTOP_SIGN=internal MATTER_DESKTOP_NOTARIZE=0 node scripts/build-matter-desktop-mac.mjs
+cmp apps/desktop/dist/mac/matter-internal-0.1.17-macos-build-manifest.json apps/desktop/dist/mac/matter.app/Contents/Resources/matter-build-manifest.json
+test "$(git rev-parse HEAD)" = "a38a63f8bcc0bedae5d038027cb2de7148cd6129"
+test -z "$(git status --porcelain)"
+MATTER_DESKTOP_RELEASE_CHANNEL=internal node scripts/build-matter-desktop-win.mjs
+cmp apps/desktop/dist/win/matter-internal-0.1.17-win-build-manifest.json apps/desktop/dist/win/matter-internal-0.1.17-win32-x64/resources/matter-build-manifest.json
+unzip -Z1 apps/desktop/dist/win/matter-internal-0.1.17-win32-x64-unsigned.zip
+npm run matter-desktop:provenance:validate
+npm run matter-desktop:version:validate
+npm --workspace apps/desktop run test:smoke
+npm run public-renderer:pii:validate
+git cat-file -e a38a63f8bcc0bedae5d038027cb2de7148cd6129^{commit}
+test "$(git rev-parse a38a63f8bcc0bedae5d038027cb2de7148cd6129^{tree})" = "3da21d6486a0577abb90a084988de3eb6888a189"
+shasum -a 256 apps/desktop/dist/mac/matter-internal-0.1.17-macos-build-manifest.json apps/desktop/dist/mac/matter.app/Contents/Resources/matter-build-manifest.json
+shasum -a 256 apps/desktop/dist/win/matter-internal-0.1.17-win-build-manifest.json apps/desktop/dist/win/matter-internal-0.1.17-win32-x64/resources/matter-build-manifest.json
+node --check scripts/lib/matter-desktop-provenance.mjs
+node --check scripts/build-matter-desktop-mac.mjs
+node --check scripts/build-matter-desktop-win.mjs
+node --check scripts/validate-pv002-build-manifest.mjs
+node --check scripts/test/pv002-build-manifest.test.mjs
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed
+git diff --check
+recompute RC-001 root checkout diff/status/path-manifest fingerprint without writing to the root checkout

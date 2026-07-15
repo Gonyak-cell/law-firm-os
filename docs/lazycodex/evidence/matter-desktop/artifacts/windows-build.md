@@ -12,6 +12,15 @@ App ID: `com.amic.matter.desktop.internal`
 Product name: `matter`
 Version: `0.1.17`
 Channel: `internal`
+Build manifest: `apps/desktop/dist/win/matter-internal-0.1.17-win-build-manifest.json`
+Packaged build manifest: `apps/desktop/dist/win/matter-internal-0.1.17-win32-x64/resources/matter-build-manifest.json`
+Build manifest SHA-256: `76fe2585593112456acc4ae529bad78b5da1a4ca4c147fd8b5ede8b0fbddb253`
+Source SHA: `a38a63f8bcc0bedae5d038027cb2de7148cd6129`
+Source tree: `3da21d6486a0577abb90a084988de3eb6888a189`
+Source dirty: `false`
+Renderer SHA-256: `f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445`
+Renderer files: `28`
+Built at: `2026-07-15T17:32:20.289Z`
 
 ## Signing
 
@@ -22,9 +31,9 @@ Channel: `internal`
 ## Manifest Hash
 
 - manifest hash algorithm: sha256
-- manifest hash: `687201132d2cf46b61f1f9b559882bd5ff1ebcb079f3a3529bebb6165c885dad`
+- manifest hash: `743a6c63806efe073dc5935ba8d55191c868d031cf3331c0c80276c2447ea137`
 - executable hash: `2444ed1ed7d74bb305e2c7def43122a4633c6c3a412dddeb182f7b5b3641b043`
-- unsigned package zip hash: `54aed659d9d683aa84a13d713b1b146e2d16139aa1bf042a22b43d4ccebb32da`
+- unsigned package zip hash: `b5115154905477ea250da73bc58a2e3b627846151c405da4d16be147189549c0`
 
 ## Install Smoke
 

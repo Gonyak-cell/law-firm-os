@@ -7,6 +7,15 @@ App ID: `com.amic.matter.desktop.internal`
 Product name: `matter`
 Version: `0.1.17`
 Channel: `internal`
+Build manifest: `apps/desktop/dist/mac/matter-internal-0.1.17-macos-build-manifest.json`
+Packaged build manifest: `apps/desktop/dist/mac/matter.app/Contents/Resources/matter-build-manifest.json`
+Build manifest SHA-256: `d42713cdf82b4ed33a6bb9116f13759c4156ba6b04baf4aea7444bccf1df61d1`
+Source SHA: `a38a63f8bcc0bedae5d038027cb2de7148cd6129`
+Source tree: `3da21d6486a0577abb90a084988de3eb6888a189`
+Source dirty: `false`
+Renderer SHA-256: `f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445`
+Renderer files: `28`
+Built at: `2026-07-15T17:30:11.276Z`
 
 ## Package Structure
 
