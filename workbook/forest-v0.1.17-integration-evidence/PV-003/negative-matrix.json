@@ -1,0 +1,29 @@
+{
+  "schema_version": "law-firm-os.pv003.negative-matrix.v1",
+  "product_sha": "72d12902884c9eab47668748f012577c2e92820a",
+  "dirty_worktree": {
+    "entrypoint_count": 4,
+    "blocked_count": 4,
+    "artifact_mutation_count": 0,
+    "status_fingerprint_unchanged": true
+  },
+  "unauthorized_branch": {
+    "branch": "codex/forest-v0.1.16-release-20260713",
+    "entrypoint_count": 4,
+    "blocked_count": 4,
+    "artifact_mutation_count": 0,
+    "worktree_clean_after": true
+  },
+  "sha_mismatch": {
+    "expected_sha": "039ddf41b69e227eff14507c33d7126b33033be5",
+    "actual_sha": "72d12902884c9eab47668748f012577c2e92820a",
+    "validator_exit_nonzero": true,
+    "actual_windows_build_exit_nonzero": true,
+    "artifact_created": false
+  },
+  "missing_and_abbreviated_sha": {
+    "unit_cases": 2,
+    "blocked_cases": 2
+  },
+  "formal_bypass_count": 0
+}

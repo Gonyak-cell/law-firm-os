@@ -1,0 +1,35 @@
+git rev-parse HEAD
+git rev-parse 'HEAD^{tree}'
+test -z "$(git status --porcelain --untracked-files=all)"
+node --test scripts/test/pv003-clean-sha-build-gate.test.mjs
+node --test scripts/test/pv002-build-manifest.test.mjs scripts/test/pv003-clean-sha-build-gate.test.mjs
+node scripts/validate-pv003-clean-sha-build-gate.mjs --source
+node scripts/validate-pv003-clean-sha-build-gate.mjs --help
+node scripts/validate-pv003-clean-sha-build-gate.mjs --bogus
+MATTER_DESKTOP_RELEASE_CHANNEL=formal MATTER_DESKTOP_EXPECTED_SOURCE_SHA="$HEAD" node scripts/validate-pv003-clean-sha-build-gate.mjs --current
+invoke all four protected formal entrypoints from the dirty implementation tree and assert dirty failure plus unchanged status hash
+invoke all four protected formal entrypoints from the clean codex branch and assert unauthorized-branch failure plus unchanged worktree
+git worktree add --detach /private/tmp/lawos-pv003-qa-72d12902 72d12902884c9eab47668748f012577c2e92820a
+link the existing node_modules only into the disposable QA worktree and exclude that generated dependency path for QA Git identity reads
+MATTER_DESKTOP_RELEASE_CHANNEL=formal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=039ddf41b69e227eff14507c33d7126b33033be5 node scripts/validate-pv003-clean-sha-build-gate.mjs --current
+MATTER_DESKTOP_RELEASE_CHANNEL=formal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=039ddf41b69e227eff14507c33d7126b33033be5 node scripts/build-matter-desktop-win.mjs
+MATTER_DESKTOP_RELEASE_CHANNEL=formal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=72d12902884c9eab47668748f012577c2e92820a node scripts/validate-pv003-clean-sha-build-gate.mjs --current
+MATTER_DESKTOP_RELEASE_CHANNEL=formal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=72d12902884c9eab47668748f012577c2e92820a node scripts/build-matter-desktop-win.mjs
+cmp apps/desktop/dist/win/matter-0.1.17-win-build-manifest.json apps/desktop/dist/win/matter-0.1.17-win32-x64/resources/matter-build-manifest.json
+MATTER_DESKTOP_RELEASE_CHANNEL=formal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=72d12902884c9eab47668748f012577c2e92820a MATTER_DESKTOP_SIGN=internal MATTER_DESKTOP_NOTARIZE=0 node scripts/build-matter-desktop-mac.mjs
+MATTER_DESKTOP_EXPECTED_SOURCE_SHA=72d12902884c9eab47668748f012577c2e92820a node scripts/release-matter-desktop-formal.mjs
+git worktree remove --force /private/tmp/lawos-pv003-qa-72d12902
+npm --workspace apps/desktop run test:smoke
+npm run matter-desktop:provenance:validate
+npm run matter-desktop:version:validate
+npm run public-renderer:pii:validate
+node --check scripts/lib/matter-desktop-provenance.mjs
+node --check scripts/build-matter-desktop-mac.mjs
+node --check scripts/build-matter-desktop-win.mjs
+node --check scripts/build-matter-desktop-win-installer.mjs
+node --check scripts/release-matter-desktop-formal.mjs
+node --check scripts/validate-pv003-clean-sha-build-gate.mjs
+node --check scripts/test/pv003-clean-sha-build-gate.test.mjs
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed
+git diff --check
+recompute RC-001 root checkout diff/status/path-manifest fingerprint without writing to the root checkout

@@ -1,0 +1,33 @@
+{
+  "verdict": "PASS",
+  "mode": "current",
+  "protected_entrypoints": [
+    "scripts/build-matter-desktop-mac.mjs",
+    "scripts/build-matter-desktop-win.mjs",
+    "scripts/build-matter-desktop-win-installer.mjs",
+    "scripts/release-matter-desktop-formal.mjs"
+  ],
+  "protected_entrypoint_count": 4,
+  "formal_bypass_count": 0,
+  "allowed_refs": [
+    "main",
+    "integration/forest-v<semver>",
+    "release/forest-v<semver>",
+    "DETACHED exact SHA"
+  ],
+  "gate": {
+    "enforced": true,
+    "verdict": "PASS",
+    "source_sha": "72d12902884c9eab47668748f012577c2e92820a",
+    "source_branch": "DETACHED",
+    "ignored_evidence_dirty_paths": []
+  },
+  "source_identity": {
+    "sha": "72d12902884c9eab47668748f012577c2e92820a",
+    "tree": "7af8367b926497e80b4e00d64addd8606f25f95d",
+    "branch": "DETACHED",
+    "dirty": false,
+    "dirty_paths": [],
+    "ignored_generated_evidence_paths": []
+  }
+}

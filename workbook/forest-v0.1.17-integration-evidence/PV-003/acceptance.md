@@ -1,0 +1,24 @@
+# PV-003 Acceptance
+
+- TUW: PV-003
+- status: DONE
+- entry_sha: `039ddf41b69e227eff14507c33d7126b33033be5`
+- product_exit_sha: `72d12902884c9eab47668748f012577c2e92820a` (the evidence commit is intentionally separate)
+- product_exit_tree: `7af8367b926497e80b4e00d64addd8606f25f95d`
+- gate contract: formal builds require a clean product source, a full `MATTER_DESKTOP_EXPECTED_SOURCE_SHA` equal to HEAD, and `main`, `integration/forest-v<semver>`, `release/forest-v<semver>`, or an exact-SHA detached worktree
+- protected entrypoints: macOS build, Windows package build, Windows installer build, and formal release assembly; protected count 4, source-level bypass count 0
+- fixed generated-evidence exception: only the tracked macOS and Windows build receipts are excluded from product-source dirtiness so sequential formal build steps remain usable; every other tracked or untracked source path remains fail-closed
+- test-first proof: the new gate test failed because `assertDesktopFormalBuildProvenance` did not exist, then passed 6/6 after the common helper was implemented
+- negative actual entrypoint proof: dirty worktree 4/4 blocked, unauthorized clean `codex/*` branch 4/4 blocked, detached SHA mismatch validator/build blocked, and mismatch artifact count 0
+- positive actual build proof: a clean detached worktree at the exact product SHA passed the gate and completed the formal Windows package build with app ID `com.amic.matter.desktop`, renderer SHA `f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445`, and source dirty false
+- sequential proof: after the Windows build changed only its generated receipt, the same exact-SHA detached gate passed again and recorded that one ignored generated-evidence path
+- macOS boundary proof: the exact-SHA detached macOS entrypoint passed the provenance gate and reached packaging, then correctly failed the separate formal DMG distribution gate because Developer ID, notarization, stapling, and Gatekeeper approval were absent
+- manual_qa: directly inspected both diagnostic build manifests, confirmed internal/external Windows manifest byte equality, checked the formal marker/app ID/source SHA/tree/channel/time/claims, and observed the post-gate release assembler fail on missing formal artifacts rather than provenance
+- regression: PV-002/PV-003 tests 9/9 PASS, Desktop smoke 102/102 PASS, PV-002 package provenance PASS, PV-001 version contract PASS, public renderer PII PASS, syntax/diff checks PASS
+- preserved user root checkout: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`, branch `codex/profile-contact-regression-fix`, tracked 56, untracked 21, status 77, fingerprint `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`; no write performed
+- commands: see `commands.txt`
+- test_result: missing/short/mismatched SHA, dirty source, unauthorized branch, allowed refs, detached exact SHA, generated receipt sequencing, four entrypoint wiring, actual Windows build, and macOS distribution-boundary separation PASS
+- evidence_hashes: see `receipt.json`
+- known_limits: the macOS diagnostic artifact is not accepted as a formal package because the independent Developer ID/notary/staple/Gatekeeper gate failed; Windows native install/runtime/uninstall and Authenticode were not run on Darwin; PV-004 channel/bundle-ID matrix remains next
+- external_blockers: none for PV-003; formal distribution, native Windows, public release, production, and go-live gates remain outside this TUW and false
+- AI slop review: pass; no product UI or user-facing copy changed and sloplint reported no auto-detectable signals

@@ -236,7 +236,7 @@ RC-003에서 우선 검토할 root-only 항목:
 |---|---|---|---|---|---|
 | PV-001 | DONE | `0.1.17` 고유 버전 | package/Info.plist/update metadata 정렬 | version validator | 동일 version·상이 hash 0 |
 | PV-002 | DONE | build manifest | version, full SHA, renderer hash, channel, time 포함 | manifest schema/hash | package 내부와 receipt 일치 |
-| PV-003 | READY | clean-SHA build gate | dirty tree·SHA 불일치·허용 외 branch formal build 차단 | positive/negative tests | formal bypass 0 |
+| PV-003 | DONE | clean-SHA build gate | dirty tree·SHA 불일치·허용 외 branch formal build 차단 | positive/negative tests | formal bypass 0 |
 | PV-004 | READY | 채널·bundle ID 분리 | dev/internal/candidate/formal 분리 | package metadata tests | OS 앱 식별 충돌 0 |
 | PV-005 | READY | SHA 기반 artifact 경로 | `dist/releases/<version>/<sha>/...` | path validator | generic path를 release truth로 사용 0 |
 | PV-006 | READY | legacy asset/reference validator | stale login, Parnas, Petrabridge, old mark, retired UI refs 검사 | source+bundle scan | 금지 참조 0 |
@@ -515,6 +515,7 @@ external_blockers
 | 2026-07-16 | CP-007 | DONE | `d1e84bff` | `0e72dd13` | `workbook/forest-v0.1.17-integration-evidence/CP-007/` | 동일 clean SHA 순차 Mac/Windows build; renderer `ae037ad4`·runtime `e915c26e` 동일; runtime 1071 files·reachable 378 modules·external/unresolved 0; actual Mac loopback API·trusted IPC·서지원 canonical tenant PASS; Windows native/formal 비주장 유지; 루트 지문 동일 |
 | 2026-07-16 | PV-001 | DONE | `0854caef` | `6a57157a` | `workbook/forest-v0.1.17-integration-evidence/PV-001/` | 0.1.17 owner·Info.plist·package·update metadata 정렬; source/Mac/Windows package JSON 동일; Mac/Windows renderer `f0a043de` 동일; 실제 Mac Forest 로그인 PASS; 내부 패키지 경계 유지 |
 | 2026-07-16 | PV-002 | DONE | `1e3c2614` | `a38a63f8` | `workbook/forest-v0.1.17-integration-evidence/PV-002/` | build manifest schema·tamper rejection; 동일 clean SHA 순차 Mac/Windows build; full SHA/tree·version·channel·time·renderer 기록; 내부/외부·receipt parity·installer linkage PASS; renderer `f0a043de` 동일; formal/native 경계 유지 |
+| 2026-07-16 | PV-003 | DONE | `039ddf41` | `72d12902` | `workbook/forest-v0.1.17-integration-evidence/PV-003/` | formal entrypoint 4/4 공통 fail-closed gate; dirty 4/4·비허용 branch 4/4·SHA mismatch 차단, artifact mutation 0; detached exact-SHA Windows 실제 build PASS; Mac distribution gate 분리; bypass 0 |
 
 ## 14. Goal Objective 원문
 

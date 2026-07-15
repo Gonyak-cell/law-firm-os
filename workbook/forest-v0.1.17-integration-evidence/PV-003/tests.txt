@@ -1,0 +1,35 @@
+# PV-003 Test Results
+
+- exact product SHA: `72d12902884c9eab47668748f012577c2e92820a`
+- exact product tree: `7af8367b926497e80b4e00d64addd8606f25f95d`
+- test-first negative proof: initial exit 1 because the common provenance module did not export `assertDesktopFormalBuildProvenance`
+- PV-003 gate tests: 6/6 PASS
+  - internal channel remains outside the formal-only gate
+  - main/integration/release/detached exact-SHA refs accepted
+  - dirty source rejected
+  - missing, abbreviated, and mismatched expected SHA rejected
+  - non-release branch rejected
+  - real Git identity reads clean/dirty/branch/detached and fixed receipt-only states correctly
+- combined PV-002/PV-003 tests: 9/9 PASS
+- source validator: 4 protected entrypoints, formal bypass count 0
+- CLI matching surface: help exit 0; bad input exit 2; clean current codex branch exit 1 with unauthorized-branch reason
+- dirty actual entrypoint matrix: macOS build, Windows build, Windows installer, and formal release assembly all exit 1 before mutation; status fingerprint unchanged
+- unauthorized-branch actual entrypoint matrix: all four exit 1 before mutation on clean `codex/forest-v0.1.16-release-20260713`; worktree remains clean
+- detached mismatch: validator and actual Windows build exit 1; formal artifact created false
+- detached exact SHA: validator PASS; actual formal Windows package build PASS
+  - source dirty false
+  - app ID `com.amic.matter.desktop`
+  - build manifest SHA-256 `4bb803c639c93c78521ea70b8e7ab0b69c88ae4ff2c3d6b2b971535092c3c18f`
+  - renderer SHA-256 `f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445`, 28 files
+  - packaged/external manifest bytes equal
+- sequential receipt state: post-build validator PASS with source dirty false and one ignored fixed Windows receipt path
+- macOS authorized path: provenance gate PASS, formal manifest emitted, then expected Formal DMG verification failure because distribution signing/notary/staple/Gatekeeper evidence was absent; no formal macOS package claim
+- formal release assembler authorized path: provenance gate PASS, then expected missing-artifact precondition failure; not a provenance failure
+- Desktop smoke: 102/102 PASS
+- PV-002 package provenance: PASS; existing internal package remains tied to `a38a63f8`
+- PV-001 version validator: PASS
+- public renderer PII scan: PASS; protected values printed false
+- changed scripts syntax and `git diff --check`: PASS
+- AI sloplint: exit 0; no auto-detectable signals
+- user root checkout: HEAD/status counts/fingerprint unchanged and no write performed
+- not run/claimed: accepted macOS formal distribution package, Windows native runtime/install/uninstall, Windows Authenticode, public release, production, go-live
