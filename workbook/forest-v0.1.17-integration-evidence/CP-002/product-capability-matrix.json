@@ -1,0 +1,818 @@
+{
+  "schema_version": "law-firm-os.cp002-product-capability-matrix.v1",
+  "comparison_target_count": 5,
+  "capability_axis_count": 10,
+  "inventories": [
+    {
+      "id": "origin_main",
+      "sha": "fdd1e34a42ee11ad1e5049647048471be772f381",
+      "nav_items": [
+        {
+          "id": "home",
+          "label": "Home"
+        },
+        {
+          "id": "clients",
+          "label": "Client"
+        },
+        {
+          "id": "matters",
+          "label": "Matter"
+        },
+        {
+          "id": "people",
+          "label": "People"
+        },
+        {
+          "id": "vault",
+          "label": "Vault"
+        }
+      ],
+      "nav_route_ids": [
+        "clients",
+        "home",
+        "matters",
+        "people",
+        "vault"
+      ],
+      "people_section_count": 71,
+      "leave_section_count": 6,
+      "payroll_section_count": 4,
+      "hrx_route_policy_count": 30,
+      "leave_route_policy_count": 2,
+      "payroll_route_policy_count": 3,
+      "employee_route_policy_count": 5,
+      "source_anchor_placement_count": 15,
+      "proof_anchor_placement_count": 9,
+      "preserved_path_count": 47,
+      "axes": [
+        {
+          "id": "HOME",
+          "source_anchors_present": 1,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 1,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 3,
+          "preserved_paths_total": 6
+        },
+        {
+          "id": "CLIENT",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 1,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 5,
+          "preserved_paths_total": 5
+        },
+        {
+          "id": "MATTER",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 1,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 2,
+          "preserved_paths_total": 2
+        },
+        {
+          "id": "PEOPLE",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 1,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 13,
+          "preserved_paths_total": 14
+        },
+        {
+          "id": "SEARCH",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 1,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 5,
+          "preserved_paths_total": 5
+        },
+        {
+          "id": "PORTAL",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 1,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 2,
+          "preserved_paths_total": 2
+        },
+        {
+          "id": "AUTH_PROFILE",
+          "source_anchors_present": 1,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 1,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 2,
+          "preserved_paths_total": 5
+        },
+        {
+          "id": "LEAVE",
+          "source_anchors_present": 0,
+          "source_anchors_total": 3,
+          "proof_anchors_present": 0,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 0,
+          "preserved_paths_total": 46
+        },
+        {
+          "id": "PAYROLL",
+          "source_anchors_present": 0,
+          "source_anchors_total": 3,
+          "proof_anchors_present": 0,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 3,
+          "preserved_paths_total": 56
+        },
+        {
+          "id": "PERSISTENCE_AUTHZ_PACKAGE",
+          "source_anchors_present": 3,
+          "source_anchors_total": 3,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 12,
+          "preserved_paths_total": 29
+        }
+      ]
+    },
+    {
+      "id": "current_root",
+      "sha": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3",
+      "nav_items": [
+        {
+          "id": "home",
+          "label": "Home"
+        },
+        {
+          "id": "clients",
+          "label": "Client"
+        },
+        {
+          "id": "matters",
+          "label": "Matter"
+        },
+        {
+          "id": "people",
+          "label": "People"
+        },
+        {
+          "id": "vault",
+          "label": "Search"
+        },
+        {
+          "id": "portal",
+          "label": "Portal"
+        }
+      ],
+      "nav_route_ids": [
+        "clients",
+        "home",
+        "matters",
+        "people",
+        "portal",
+        "vault"
+      ],
+      "people_section_count": 73,
+      "leave_section_count": 7,
+      "payroll_section_count": 4,
+      "hrx_route_policy_count": 104,
+      "leave_route_policy_count": 46,
+      "payroll_route_policy_count": 3,
+      "employee_route_policy_count": 9,
+      "source_anchor_placement_count": 16,
+      "proof_anchor_placement_count": 18,
+      "preserved_path_count": 64,
+      "axes": [
+        {
+          "id": "HOME",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 6,
+          "preserved_paths_total": 6
+        },
+        {
+          "id": "CLIENT",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 5,
+          "preserved_paths_total": 5
+        },
+        {
+          "id": "MATTER",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 2,
+          "preserved_paths_total": 2
+        },
+        {
+          "id": "PEOPLE",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 14,
+          "preserved_paths_total": 14
+        },
+        {
+          "id": "SEARCH",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 5,
+          "preserved_paths_total": 5
+        },
+        {
+          "id": "PORTAL",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 2,
+          "preserved_paths_total": 2
+        },
+        {
+          "id": "AUTH_PROFILE",
+          "source_anchors_present": 1,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 3,
+          "preserved_paths_total": 5
+        },
+        {
+          "id": "LEAVE",
+          "source_anchors_present": 0,
+          "source_anchors_total": 3,
+          "proof_anchors_present": 1,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 10,
+          "preserved_paths_total": 46
+        },
+        {
+          "id": "PAYROLL",
+          "source_anchors_present": 0,
+          "source_anchors_total": 3,
+          "proof_anchors_present": 0,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 4,
+          "preserved_paths_total": 56
+        },
+        {
+          "id": "PERSISTENCE_AUTHZ_PACKAGE",
+          "source_anchors_present": 3,
+          "source_anchors_total": 3,
+          "proof_anchors_present": 3,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 13,
+          "preserved_paths_total": 29
+        }
+      ]
+    },
+    {
+      "id": "release_baseline",
+      "sha": "137fa156cdb6bb30bb3af72bf3e928ad7e6e4959",
+      "nav_items": [
+        {
+          "id": "home",
+          "label": "Home"
+        },
+        {
+          "id": "clients",
+          "label": "Client"
+        },
+        {
+          "id": "matters",
+          "label": "Matter"
+        },
+        {
+          "id": "people",
+          "label": "People"
+        },
+        {
+          "id": "vault",
+          "label": "Search"
+        },
+        {
+          "id": "portal",
+          "label": "Portal"
+        }
+      ],
+      "nav_route_ids": [
+        "clients",
+        "home",
+        "matters",
+        "people",
+        "portal",
+        "vault"
+      ],
+      "people_section_count": 73,
+      "leave_section_count": 7,
+      "payroll_section_count": 4,
+      "hrx_route_policy_count": 104,
+      "leave_route_policy_count": 46,
+      "payroll_route_policy_count": 3,
+      "employee_route_policy_count": 9,
+      "source_anchor_placement_count": 16,
+      "proof_anchor_placement_count": 18,
+      "preserved_path_count": 64,
+      "axes": [
+        {
+          "id": "HOME",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 6,
+          "preserved_paths_total": 6
+        },
+        {
+          "id": "CLIENT",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 5,
+          "preserved_paths_total": 5
+        },
+        {
+          "id": "MATTER",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 2,
+          "preserved_paths_total": 2
+        },
+        {
+          "id": "PEOPLE",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 14,
+          "preserved_paths_total": 14
+        },
+        {
+          "id": "SEARCH",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 5,
+          "preserved_paths_total": 5
+        },
+        {
+          "id": "PORTAL",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 2,
+          "preserved_paths_total": 2
+        },
+        {
+          "id": "AUTH_PROFILE",
+          "source_anchors_present": 1,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 3,
+          "preserved_paths_total": 5
+        },
+        {
+          "id": "LEAVE",
+          "source_anchors_present": 0,
+          "source_anchors_total": 3,
+          "proof_anchors_present": 1,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 10,
+          "preserved_paths_total": 46
+        },
+        {
+          "id": "PAYROLL",
+          "source_anchors_present": 0,
+          "source_anchors_total": 3,
+          "proof_anchors_present": 0,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 4,
+          "preserved_paths_total": 56
+        },
+        {
+          "id": "PERSISTENCE_AUTHZ_PACKAGE",
+          "source_anchors_present": 3,
+          "source_anchors_total": 3,
+          "proof_anchors_present": 3,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 13,
+          "preserved_paths_total": 29
+        }
+      ]
+    },
+    {
+      "id": "forest_checkpoint",
+      "sha": "fbf7062398da1157ee1322d7440194c1b13f7e0f",
+      "nav_items": [
+        {
+          "id": "home",
+          "label": "Home"
+        },
+        {
+          "id": "clients",
+          "label": "Client"
+        },
+        {
+          "id": "matters",
+          "label": "Matter"
+        },
+        {
+          "id": "people",
+          "label": "People"
+        },
+        {
+          "id": "vault",
+          "label": "Search"
+        },
+        {
+          "id": "portal",
+          "label": "Portal"
+        }
+      ],
+      "nav_route_ids": [
+        "clients",
+        "home",
+        "matters",
+        "people",
+        "portal",
+        "vault"
+      ],
+      "people_section_count": 73,
+      "leave_section_count": 7,
+      "payroll_section_count": 4,
+      "hrx_route_policy_count": 143,
+      "leave_route_policy_count": 69,
+      "payroll_route_policy_count": 19,
+      "employee_route_policy_count": 9,
+      "source_anchor_placement_count": 23,
+      "proof_anchor_placement_count": 24,
+      "preserved_path_count": 170,
+      "axes": [
+        {
+          "id": "HOME",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 6,
+          "preserved_paths_total": 6
+        },
+        {
+          "id": "CLIENT",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 5,
+          "preserved_paths_total": 5
+        },
+        {
+          "id": "MATTER",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 2,
+          "preserved_paths_total": 2
+        },
+        {
+          "id": "PEOPLE",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 14,
+          "preserved_paths_total": 14
+        },
+        {
+          "id": "SEARCH",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 5,
+          "preserved_paths_total": 5
+        },
+        {
+          "id": "PORTAL",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 2,
+          "preserved_paths_total": 2
+        },
+        {
+          "id": "AUTH_PROFILE",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 3,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 5,
+          "preserved_paths_total": 5
+        },
+        {
+          "id": "LEAVE",
+          "source_anchors_present": 3,
+          "source_anchors_total": 3,
+          "proof_anchors_present": 3,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 46,
+          "preserved_paths_total": 46
+        },
+        {
+          "id": "PAYROLL",
+          "source_anchors_present": 3,
+          "source_anchors_total": 3,
+          "proof_anchors_present": 3,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 56,
+          "preserved_paths_total": 56
+        },
+        {
+          "id": "PERSISTENCE_AUTHZ_PACKAGE",
+          "source_anchors_present": 3,
+          "source_anchors_total": 3,
+          "proof_anchors_present": 3,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 29,
+          "preserved_paths_total": 29
+        }
+      ]
+    },
+    {
+      "id": "candidate",
+      "sha": "b6853d529699ec155dfdbb59d2f4f976b58b6cb6",
+      "nav_items": [
+        {
+          "id": "home",
+          "label": "Home"
+        },
+        {
+          "id": "clients",
+          "label": "Client"
+        },
+        {
+          "id": "matters",
+          "label": "Matter"
+        },
+        {
+          "id": "people",
+          "label": "People"
+        },
+        {
+          "id": "vault",
+          "label": "Search"
+        },
+        {
+          "id": "portal",
+          "label": "Portal"
+        }
+      ],
+      "nav_route_ids": [
+        "clients",
+        "home",
+        "matters",
+        "people",
+        "portal",
+        "vault"
+      ],
+      "people_section_count": 73,
+      "leave_section_count": 7,
+      "payroll_section_count": 4,
+      "hrx_route_policy_count": 153,
+      "leave_route_policy_count": 71,
+      "payroll_route_policy_count": 27,
+      "employee_route_policy_count": 9,
+      "source_anchor_placement_count": 23,
+      "proof_anchor_placement_count": 24,
+      "preserved_path_count": 170,
+      "axes": [
+        {
+          "id": "HOME",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 6,
+          "preserved_paths_total": 6
+        },
+        {
+          "id": "CLIENT",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 5,
+          "preserved_paths_total": 5
+        },
+        {
+          "id": "MATTER",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 2,
+          "preserved_paths_total": 2
+        },
+        {
+          "id": "PEOPLE",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 14,
+          "preserved_paths_total": 14
+        },
+        {
+          "id": "SEARCH",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 5,
+          "preserved_paths_total": 5
+        },
+        {
+          "id": "PORTAL",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 2,
+          "proof_anchors_total": 2,
+          "preserved_paths_present": 2,
+          "preserved_paths_total": 2
+        },
+        {
+          "id": "AUTH_PROFILE",
+          "source_anchors_present": 2,
+          "source_anchors_total": 2,
+          "proof_anchors_present": 3,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 5,
+          "preserved_paths_total": 5
+        },
+        {
+          "id": "LEAVE",
+          "source_anchors_present": 3,
+          "source_anchors_total": 3,
+          "proof_anchors_present": 3,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 46,
+          "preserved_paths_total": 46
+        },
+        {
+          "id": "PAYROLL",
+          "source_anchors_present": 3,
+          "source_anchors_total": 3,
+          "proof_anchors_present": 3,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 56,
+          "preserved_paths_total": 56
+        },
+        {
+          "id": "PERSISTENCE_AUTHZ_PACKAGE",
+          "source_anchors_present": 3,
+          "source_anchors_total": 3,
+          "proof_anchors_present": 3,
+          "proof_anchors_total": 3,
+          "preserved_paths_present": 29,
+          "preserved_paths_total": 29
+        }
+      ]
+    }
+  ],
+  "candidate_superset": {
+    "required_nav_count": 6,
+    "bad_required_nav_count": 0,
+    "prior_nav_route_missing_count": 0,
+    "prior_people_section_raw_missing_count": 1,
+    "approved_people_section_alias_count": 1,
+    "prior_people_section_missing_count": 0,
+    "prior_hrx_route_policy_missing_count": 0,
+    "candidate_missing_capability_axis_count": 0,
+    "candidate_source_anchor_placements": 23,
+    "candidate_proof_anchor_placements": 24,
+    "candidate_preserved_paths": 170,
+    "missing_from_candidate": {
+      "nav_route_ids": [],
+      "people_sections": [],
+      "hrx_route_policy_ids": []
+    },
+    "approved_people_section_aliases": [
+      {
+        "from": "people-company-leave",
+        "to": "people-leave-types",
+        "disposition": "approved_company_leave_settings_consolidation",
+        "redirect_verified": true
+      }
+    ],
+    "missing_capability_axes": [],
+    "approved_route_label_changes": [
+      {
+        "route_id": "vault",
+        "from": "Vault",
+        "to": "Search",
+        "disposition": "approved_product_rename"
+      }
+    ]
+  },
+  "forest_checkpoint_to_candidate": {
+    "compared_path_count": 170,
+    "byte_identical_count": 158,
+    "changed_count": 12,
+    "missing_count": 0,
+    "changed_paths": [
+      {
+        "axis": "AUTH_PROFILE",
+        "path": "apps/api/src/hrx-role-scope-matrix.js",
+        "checkpoint_sha256": "3a93ff39dc21e103e6c0e62b180d12c83ad75009a7a9455b709ea811d4e14c7f",
+        "candidate_sha256": "fa01fa211fb7de9d52f47f10811441184ecf04ae78513d35967abc0a4dfdfb1c"
+      },
+      {
+        "axis": "LEAVE",
+        "path": "docs/lazycodex/evidence/matter-desktop/artifacts/leave-management-package-qa.json",
+        "checkpoint_sha256": "2d4f01c5f855747bb9f3a506fccfe3f699cd6b7ad64d1d7df436081aef682458",
+        "candidate_sha256": "4b4d8a51acf4b7bcb8948f6c0f62f655165941ef2e4ffde910439e1e0ac72967"
+      },
+      {
+        "axis": "LEAVE",
+        "path": "packages/hrx/src/leave/occurrence-upload-batch-service.js",
+        "checkpoint_sha256": "c1e0ca4a47b82321b2ac41bf3636d2a878cbe7a859f84c82752ca103bd4af3a0",
+        "candidate_sha256": "f6ef44dca7a6b69ecc83e1da641e64f30c55102cd6760abc2315de1799fa37af"
+      },
+      {
+        "axis": "LEAVE",
+        "path": "packages/hrx/test/leave-occurrence-upload-batch-service.test.js",
+        "checkpoint_sha256": "304fb6bfce0df071286dc3fb77510323a28a1d8b94807dfb8ee5d5764a9c5826",
+        "candidate_sha256": "6edcd02c4140cfa9760e68229032f8b57f770ba581cb6f9e34f8a1bd0d0eeaae"
+      },
+      {
+        "axis": "LEAVE",
+        "path": "scripts/run-leave-management-packaged-qa.mjs",
+        "checkpoint_sha256": "f81dc85b9bdc680ab1a9d4a13cf4c9f54fb53cb58e307274680736ef59dd210f",
+        "candidate_sha256": "4a606eecf48dc1d10d777bb0d13d64c80fd4f7de53e9792d7a00065a8db8072c"
+      },
+      {
+        "axis": "PAYROLL",
+        "path": "apps/api/src/hrx-payroll-runtime.js",
+        "checkpoint_sha256": "e1bd01f0d1df0967ad1a99667280cabe19826bc1a59283418efb91b4aed3ab7d",
+        "candidate_sha256": "2cdff64dbec970f90b9e855b2b7820a2f7b273d5a76d811ecaf6af179f309b6c"
+      },
+      {
+        "axis": "PAYROLL",
+        "path": "apps/api/src/routes/hrx/payroll-runtime.js",
+        "checkpoint_sha256": "1e6193f62648dd17428a62ee8cbea3d7f5a2ac756b5bae474cb651604b42ee98",
+        "candidate_sha256": "d7b95b6de586e43e9b0e9ac0026ad5d6d97e25e5c3d67137767c1190e147581b"
+      },
+      {
+        "axis": "PAYROLL",
+        "path": "packages/hrx/src/payroll/input-snapshot-service.js",
+        "checkpoint_sha256": "4b3b02fa42cd72df0d36b75e54ad1fce769479937b366e586abb5f5f73a88bda",
+        "candidate_sha256": "a58d26bcfb7498841174ddfda5da43f2de0a458eca5cf7ebc30c70714a3e5094"
+      },
+      {
+        "axis": "PAYROLL",
+        "path": "packages/hrx/test/payroll-input-snapshot-service.test.js",
+        "checkpoint_sha256": "33737686b35cf7affca631c9bcc93ea5c3569e83e21dc1f93748769667904412",
+        "candidate_sha256": "24e382dfbf59d5d7c93905ae1895c3d9cac8294bc232dc39e4d4a4a05ea635ce"
+      },
+      {
+        "axis": "PAYROLL",
+        "path": "packages/hrx/test/payroll-repository.test.js",
+        "checkpoint_sha256": "964df6210da85bbee5cb1b83d6597791506608dfb6e0012105fb62f599b9d22c",
+        "candidate_sha256": "a4920b973d61e661843af2ba7e0333be8d3c29090b210e5ba715f77e5b512d52"
+      },
+      {
+        "axis": "PERSISTENCE_AUTHZ_PACKAGE",
+        "path": "apps/api/test/hrx-runtime-api.test.js",
+        "checkpoint_sha256": "365844a60a6ea0d84bb4d9462b9c1aafca7fbf39f761a146980d8e27c03a6abf",
+        "candidate_sha256": "aebdee4c555b3162d9889c2dd13198a7d288756e3caa8b59e2c31fe3106bb6c7"
+      },
+      {
+        "axis": "PERSISTENCE_AUTHZ_PACKAGE",
+        "path": "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md",
+        "checkpoint_sha256": "753184dec414822120f3a132ce44b6b59a7468a8b6e3772b5614d1d1550c9640",
+        "candidate_sha256": "8906e516187c559bc7cb3c09cc8620b056a36f65d031a94f9d7cacb9159a0486"
+      }
+    ]
+  },
+  "verdict": "PASS"
+}

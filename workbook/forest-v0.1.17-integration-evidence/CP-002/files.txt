@@ -1,0 +1,8 @@
+scripts/validate-cp002-product-capabilities.mjs
+workbook/forest-v0.1.17-integration-evidence/CP-002/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/CP-002/commands.txt
+workbook/forest-v0.1.17-integration-evidence/CP-002/files.txt
+workbook/forest-v0.1.17-integration-evidence/CP-002/product-capability-matrix.json
+workbook/forest-v0.1.17-integration-evidence/CP-002/receipt.json
+workbook/forest-v0.1.17-integration-evidence/CP-002/tests.txt
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md

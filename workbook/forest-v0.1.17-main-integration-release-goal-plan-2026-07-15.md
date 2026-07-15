@@ -223,7 +223,7 @@ RC-003에서 우선 검토할 root-only 항목:
 | ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
 |---|---|---|---|---|---|
 | CP-001 | DONE | 비교 대상 고정 | 공개 stable 부재를 확인하고 최신 검증 v0.1.16 formal-candidate prerelease, Forest checkpoint, current root, origin/main, candidate의 full SHA·tree·ref·시점을 기록 | remote ref 일치·commit ancestry 10쌍 | 5/5 SHA, 선형 계보, 누락 0 |
-| CP-002 | READY | 제품 기능 매트릭스 | Home, Client, Matter, People, Search, Portal, auth, profile, leave, payroll 비교 | route/menu/API inventory | 핵심 기능 누락 0 |
+| CP-002 | DONE | 제품 기능 매트릭스 | 5개 고정 SHA에서 Home, Client, Matter, People, Search, Portal, auth/profile, leave, payroll, persistence/authz/package의 route·menu·API·source·proof를 비교 | exact Git object matrix·Web 75/75·authz 159·API 23/23 | 10/10 축, 170/170 보존, route·section·policy 미해결 누락 0 |
 | CP-003 | READY | 휴가 상위 호환 검증 | 유형, 발생, lifecycle, usage, promotion, integrations, privacy | leave full suite | 0 fail |
 | CP-004 | READY | 급여 상위 호환 검증 | inputs, calc, deductions, run, docs, bank, tax, migration | payroll full suite | 0 fail |
 | CP-005 | READY | 서지원 계정·프로필 연결 검증 | `jwsuh@amic.kr -> 서지원` identity/profile/contact/career | profile API·packaged smoke | session user fallback 0 |
@@ -507,6 +507,7 @@ external_blockers
 | 2026-07-15 | RC-005-D/E | DONE | `ee03b8c1` | `75f10995` | `workbook/forest-v0.1.17-integration-evidence/RC-005/ui-profile-acceptance.md` | Web·LV03/04/05·Mac package·profile·public renderer PII PASS; Mac/Windows renderer 동일; formal/native 경계 분리 |
 | 2026-07-15 | RC-005-G | DONE | `051344d9` | `cc5f7f87` | `workbook/forest-v0.1.17-integration-evidence/RC-005/regression-acceptance.md` | port 31/31·대체 5·미구현 0; HRX 185/185, API/authz/profile 322/322, Web 142+1 skip, Desktop 97/97, migration 19/19, PII/security PASS; 루트 지문 동일 |
 | 2026-07-15 | CP-001 | DONE | `c342cc56` | `c342cc56` | `workbook/forest-v0.1.17-integration-evidence/CP-001/` | 원격 main·root·v0.1.16 기준선·Forest checkpoint·candidate 5/5 고정; published stable 0, formal-candidate prerelease 경계 보존; ancestry 10/10, candidate main 대비 +240/-0 |
+| 2026-07-15 | CP-002 | DONE | `b6853d52` | `b6853d52` | `workbook/forest-v0.1.17-integration-evidence/CP-002/` | 5개 SHA·10개 제품 축; 후보 nav 6, People section 73, HRX policy 정의 153/실효 159, Forest 170/170; prior route·section·policy 미해결 누락 0; Web 75/75·API 23/23 |
 
 ## 14. Goal Objective 원문
 
