@@ -1,0 +1,7 @@
+node --check scripts/generate-migration-semantic-crosswalk.mjs
+node scripts/generate-migration-semantic-crosswalk.mjs --help
+node scripts/generate-migration-semantic-crosswalk.mjs # expected usage failure
+node scripts/generate-migration-semantic-crosswalk.mjs "/Users/jws/Documents/Codex/Law Firm OS"
+git diff --check
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed
+rerun generator and compare MG-001 evidence directory SHA-256 manifest

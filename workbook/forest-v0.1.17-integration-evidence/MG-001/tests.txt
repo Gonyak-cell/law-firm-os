@@ -1,0 +1,14 @@
+node --check scripts/generate-migration-semantic-crosswalk.mjs: PASS
+CLI help contract: PASS
+missing root-source rejection: PASS
+root migration files 011-016: 6/6 inventoried
+root SQL contract units: 145/145 mapped
+dispositions: PORT_026_PLUS 71, FOREST_SUPERSEDED 71, FOREST_IDENTICAL 1, REJECT_CONFLICTING_MUTABILITY 2
+forward reservations: 026=49, 027=18, 028=4
+Forest 001-025 contract collisions: 0
+duplicate planned port contracts: 0
+occupied reserved filenames: 0
+destructive SQL statements: 0
+root working-tree mutations: 0
+deterministic rerun: PASS
+product runtime changes: 0

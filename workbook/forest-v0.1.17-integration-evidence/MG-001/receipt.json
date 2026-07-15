@@ -1,0 +1,42 @@
+{
+  "tuw": "MG-001",
+  "verdict": "PASS",
+  "candidate_entry_sha": "3842a67f1f9285bb9d9643b9b92055d299927722",
+  "evidence_commit_sha": "PENDING",
+  "root_source_head": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3",
+  "root_source_worktree_sha256": "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3",
+  "root_source_tracked_modified_count": 56,
+  "root_source_untracked_count": 21,
+  "forest_migration_count": 25,
+  "forest_lineage_first": "001_hrx_core.sql",
+  "forest_lineage_last": "025_hrx_payroll_year_end.sql",
+  "forest_contract_unit_count": 1353,
+  "root_collision_migration_count": 6,
+  "root_contract_unit_count": 145,
+  "mapped_contract_unit_count": 145,
+  "unclassified_contract_unit_count": 0,
+  "disposition_counts": {
+    "FOREST_IDENTICAL": 1,
+    "FOREST_SUPERSEDED": 71,
+    "PORT_026_PLUS": 71,
+    "REJECT_CONFLICTING_MUTABILITY": 2
+  },
+  "forward_migration_count": 3,
+  "forward_migration_contract_counts": {
+    "026_hrx_payroll_catalog_assignments.sql": 49,
+    "027_hrx_attendance_approval_receipts.sql": 18,
+    "028_hrx_leave_accrual_rule_versions.sql": 4
+  },
+  "planned_port_contract_count": 71,
+  "duplicate_planned_port_contract_count": 0,
+  "forest_port_collision_count": 0,
+  "occupied_reserved_filename_count": 0,
+  "root_checkout_mutation_count": 0,
+  "root_migration_manifest_sha256": "f354106abec5c7487c11d48cce994f58b84afae1bd2a8af27e32e28970d77b84",
+  "forest_schema_inventory_sha256": "5ce308288adad64e6445551cbe664399ac6ddd2e2bfd566e61aafeba64c3a704",
+  "crosswalk_sha256": "11eedbf0e0412c84030d617d6d83a40b50c89e8a9fd6fd85fe6bb1c93ae9992f",
+  "forward_plan_sha256": "024450fe58f563fac1058cb8aa33c063f908f6ab2e6d6d662e477f2f0acbed3e",
+  "collision_report_sha256": "895c077f38fa50ada20a41d4710a749f7f38df17ac1caa39cfaa3306ed8f63aa",
+  "product_runtime_changes": 0,
+  "external_blockers": []
+}
