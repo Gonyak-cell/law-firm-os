@@ -1,0 +1,15 @@
+node --check scripts/generate-upper-compatible-capability-matrix.mjs: PASS
+CLI help contract: PASS
+missing root-source rejection: PASS
+comparison universe counts 222/77/52/51/25/170: PASS
+Forest-only 170/170 preservation classification: PASS
+approved FZ-006 checkpoint stabilization 1/1: PASS
+unexpected checkpoint changes 0: PASS
+root contributions 76/76 disposition classification: PASS
+root dispositions PORT_REQUIRED 31, PORT_TEST_ONLY 17, SUPERSEDED 24, REJECTED 4: PASS
+PORT_REQUIRED grouped 31/31, orphan 0: PASS
+capability axes 10/10, missing 0: PASS
+anchor existence, missing 0: PASS
+root working-tree mutation 0: PASS
+deterministic rerun: PASS
+product runtime changes: 0

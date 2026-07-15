@@ -1,0 +1,27 @@
+# RC-004 Acceptance
+
+- TUW: RC-004
+- status: DONE
+- entry_sha: `3a7335b6de78115de25640b22268ff59b3a3fd81`
+- exit_sha: `PENDING`
+- changed_files: generator, RC-004 evidence set, Goal execution ledger only; product runtime 0
+- Forest checkpoint: `fbf7062398da1157ee1322d7440194c1b13f7e0f`
+- Forest verification commit: `873ca9cc05c30f6df1475f3c9ffb9918e10fa667`
+- root source HEAD: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`
+- root source working-tree SHA-256: `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`
+- product comparison universe: 246
+- common product paths: 51
+- root-only paths: 25
+- Forest-only paths preserved: 170/170
+- approved checkpoint stabilizations: 1
+- unexpected checkpoint changes: 0
+- root dispositions: PORT_REQUIRED 31, PORT_TEST_ONLY 17, SUPERSEDED 24, REJECTED 4
+- PORT_REQUIRED groups: 6; grouped paths 31/31; orphan 0
+- capability axes: 10; missing 0
+- commands: see `commands.txt`
+- test_result: all structural, preservation, disposition, grouping, anchor, and deterministic checks PASS
+- manual_qa: RC-002 common findings and RC-003 root-only findings were crosswalked to current Forest source/test anchors for Home, Client, Matter, People, Search, Portal, auth/profile, leave, payroll, and persistence/authz/package
+- evidence_hashes: preservation `56dea64b683168479da62e7c6faad17c0af58eeb5447e30ed0396ede77690185`, root dispositions `45eb34670892ca1a6c124ef5bd59d962abc594faaaaf2965372a9186f86a2cf2`, port groups `a0085fcbae0b1b8fa5db906a166e4c1c1d6b916498db5d111f0a5e5279d396db`, capability matrix `67e24f8ffde1cb879bad5cb8220d64d4b53d995a320e5678a8c29824705b418d`
+- known_limits: RC-004 is a selection/preservation gate; actual source ports, new 026+ migrations, rendered QA, and package QA remain assigned to RC-005 and later TUWs
+- external_blockers: none
+- AI slop review: pass; no product UI or user-facing runtime copy changed

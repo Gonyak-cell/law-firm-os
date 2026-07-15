@@ -1,0 +1,13 @@
+scripts/generate-upper-compatible-capability-matrix.mjs
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md
+workbook/forest-v0.1.17-integration-evidence/RC-004/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/RC-004/commands.txt
+workbook/forest-v0.1.17-integration-evidence/RC-004/files.txt
+workbook/forest-v0.1.17-integration-evidence/RC-004/tests.txt
+workbook/forest-v0.1.17-integration-evidence/RC-004/receipt.json
+workbook/forest-v0.1.17-integration-evidence/RC-004/forest-only-inventory.tsv
+workbook/forest-v0.1.17-integration-evidence/RC-004/forest-only-preservation.json
+workbook/forest-v0.1.17-integration-evidence/RC-004/root-disposition-matrix.json
+workbook/forest-v0.1.17-integration-evidence/RC-004/port-groups.json
+workbook/forest-v0.1.17-integration-evidence/RC-004/capability-matrix.json
+workbook/forest-v0.1.17-integration-evidence/RC-004/semantic-review.md

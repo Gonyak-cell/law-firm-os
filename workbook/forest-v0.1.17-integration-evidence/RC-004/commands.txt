@@ -1,0 +1,7 @@
+node --check scripts/generate-upper-compatible-capability-matrix.mjs
+node scripts/generate-upper-compatible-capability-matrix.mjs --help
+node scripts/generate-upper-compatible-capability-matrix.mjs # expected usage failure
+node scripts/generate-upper-compatible-capability-matrix.mjs "/Users/jws/Documents/Codex/Law Firm OS"
+git diff --check
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed
+rerun generator and compare evidence directory SHA-256 manifest
