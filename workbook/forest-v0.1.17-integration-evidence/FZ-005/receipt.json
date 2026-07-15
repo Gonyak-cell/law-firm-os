@@ -1,0 +1,14 @@
+{
+  "tuw": "FZ-005",
+  "verdict": "PASS",
+  "entry_sha": "7717d5cee158fc97056510e8aebc9e0854d34196",
+  "forest_content_checkpoint_sha": "fbf7062398da1157ee1322d7440194c1b13f7e0f",
+  "checkpoint_tree_oid": "ba90b1da33ed4abcdaeb7b51dd7f616bdf68c1a6",
+  "committed_file_count": 222,
+  "precommit_security_scan": "PASS",
+  "secret_or_unapproved_pii_findings": 0,
+  "archive_branch": "archive/forest-session-final-20260715",
+  "archive_branch_sha": "fbf7062398da1157ee1322d7440194c1b13f7e0f",
+  "recovery_patch_restore": "PASS",
+  "note": "The content checkpoint preserves the ended Forest working tree. FZ evidence metadata is committed separately to avoid a self-referential commit SHA."
+}
