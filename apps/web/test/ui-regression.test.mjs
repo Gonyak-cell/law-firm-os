@@ -1051,8 +1051,14 @@ test("login surfaces keep credentials bounded and desktop supports password setu
   assert.match(appSource, /onLogin=\{handleLogin\}/);
   assert.match(appSource, /auth-only-app/);
   assert.match(appSource, /view === "auth" && authStep === "login"/);
-  assert.match(authSource, /data-login-screen="current-auth"/);
-  assert.doesNotMatch(authSource, /brochure-cover\.jpg|data-login-screen="forest-split"|matter-login-photo-panel|AMIC Forest|jdoe@matter\.local/);
+  assert.match(authSource, /brochure-cover\.jpg/);
+  assert.match(authSource, /data-login-screen="forest-split"/);
+  assert.match(authSource, /matter-login-photo-panel/);
+  assert.match(authSource, /AMIC Forest/);
+  assert.match(authSource, /claimLogoIntro/);
+  assert.match(authSource, /data-login-intro=\{loginIntroState\}/);
+  assert.match(authSource, /--forest-login-logo-dx/);
+  assert.doesNotMatch(authSource, /data-login-screen="current-auth"|jdoe@matter\.local/);
   assert.doesNotMatch(authSource, /parnas|Parnas/);
   assert.match(authSource, /<MatterLogo \/>/);
   assert.match(authSource, /labels\.signupPreviewNotice/);
@@ -1061,7 +1067,10 @@ test("login surfaces keep credentials bounded and desktop supports password setu
   assert.match(authSource, /data-login-email/);
   assert.match(authSource, /data-login-password/);
   assert.match(stylesSource, /\.matter-login-stage/);
-  assert.match(stylesSource, /html\[data-skin="forest"\] \.matter-login-stage[\s\S]*grid-template-columns:\s*1fr/);
+  assert.match(stylesSource, /html\[data-skin="forest"\] \.matter-login-stage[\s\S]*grid-template-columns:\s*minmax\(520px, 52fr\) minmax\(420px, 48fr\)/);
+  assert.match(stylesSource, /@keyframes forestLoginPageIn/);
+  assert.match(stylesSource, /@keyframes forestLoginLogoHandoff/);
+  assert.match(stylesSource, /@keyframes forestLoginLogoTargetIn/);
   assert.match(stylesSource, /@keyframes post-login-logo-dock/);
   assert.equal(assetFiles.includes("parnas-tower-login.jpg"), false);
   assert.equal(assetFiles.includes("brochure-cover.jpg"), true);

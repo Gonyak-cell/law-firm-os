@@ -145,7 +145,13 @@ const sourceChecks = {
   search_named_search: vault.includes('<ForestHero title="Search"') && i18n.includes('vaultTitle: "Search"'),
   search_ocr_sidebar_absent: !/문서\/OCR|Document\/OCR|searchOcrSidecarNotice/.test(`${shell}\n${i18n}`),
   approval_categories_not_reintroduced: !home.includes("approvalCategoryRows") && !home.includes("leaveApprovalCount") && !home.includes("expenseApprovalCount"),
-  current_auth_surface_only: auth.includes('data-login-screen="current-auth"') && !/parnas|data-login-screen="forest-split"|matter-login-photo-panel/i.test(auth),
+  current_auth_surface_only: auth.includes('data-login-screen="forest-split"')
+    && auth.includes("brochure-cover.jpg")
+    && auth.includes("matter-login-photo-panel")
+    && auth.includes("claimLogoIntro")
+    && styles.includes("@keyframes forestLoginPageIn")
+    && styles.includes("@keyframes forestLoginLogoHandoff")
+    && !/parnas|data-login-screen="current-auth"/i.test(auth),
   desktop_forest_login_timeline: desktopLogin.includes('data-login-skin="forest"') && desktopLogin.includes("forestLoginPageIn") && desktopLogin.includes("amicLawLockupIntro"),
   global_regression_contract_present: uiRegression.includes("Forest operational UI keeps panel metadata inline and omits redundant helper copy") && uiRegression.includes("Forest startup branding excludes retired Matter and Petra assets")
 };

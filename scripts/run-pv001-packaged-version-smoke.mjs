@@ -71,6 +71,7 @@ try {
   });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.locator("[data-login-form='email-password']").waitFor({ state: "visible", timeout: 30_000 });
+  await page.locator("[data-login-screen='forest-split'][data-login-intro='complete']").waitFor({ state: "visible", timeout: 30_000 });
   const appMetadata = await app.evaluate(({ app: electronApp }) => ({
     version: electronApp.getVersion(),
     name: electronApp.getName(),
@@ -85,12 +86,21 @@ try {
   const ui = await page.evaluate(() => ({
     heading: document.querySelector("h1")?.textContent?.trim() ?? "",
     skin: document.documentElement.dataset.skin ?? "",
+    loginScreen: document.querySelector("[data-login-screen]")?.getAttribute("data-login-screen") ?? "",
+    loginIntroState: document.querySelector("[data-login-screen]")?.getAttribute("data-login-intro") ?? "",
     loginFormCount: document.querySelectorAll("[data-login-form='email-password']").length,
+    forestPhotoPanelCount: document.querySelectorAll(".matter-login-photo-panel").length,
+    loadedForestImageCount: [...document.querySelectorAll(".matter-login-photo-panel img")]
+      .filter((image) => image.complete && image.naturalWidth > 0).length,
     brokenImageCount: [...document.images].filter((image) => image.complete && image.naturalWidth === 0).length,
   }));
   assert.equal(ui.heading, "Log in to matter");
   assert.equal(ui.skin, "forest");
+  assert.equal(ui.loginScreen, "forest-split");
+  assert.equal(ui.loginIntroState, "complete");
   assert.equal(ui.loginFormCount, 1);
+  assert.equal(ui.forestPhotoPanelCount, 1);
+  assert.equal(ui.loadedForestImageCount, 1);
   assert.equal(ui.brokenImageCount, 0);
 
   await page.screenshot({ path: screenshotPath, fullPage: false, animations: "disabled", caret: "hide" });

@@ -7949,10 +7949,12 @@ html[data-theme="dark"] .public-preview {
 }
 
 .matter-login-stage {
+  --forest-login-motion-duration: 3200ms;
   height: 100vh;
   min-height: 720px;
+  position: relative;
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(680px, 68.25fr) minmax(420px, 31.75fr);
   overflow: hidden;
   background: #f0f1f4;
 }
@@ -14960,12 +14962,12 @@ html[data-skin="forest"] .forest-hero-stat strong {
 }
 
 html[data-skin="forest"] .matter-login-stage {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(520px, 52fr) minmax(420px, 48fr);
   background: #ffffff;
 }
 
 html[data-skin="forest"] .matter-login-copy {
-  grid-column: 1;
+  grid-column: 2;
   grid-row: 1;
   background: #ffffff;
   padding: 64px 72px;
@@ -14984,6 +14986,100 @@ html[data-skin="forest"] .matter-login-photo-panel {
 html[data-skin="forest"] .matter-login-photo-panel img {
   opacity: 1;
   object-position: center;
+}
+
+html[data-skin="forest"] .matter-login-intro {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+html[data-skin="forest"] .matter-login-stage[data-login-intro="pending"] > .matter-login-copy,
+html[data-skin="forest"] .matter-login-stage[data-login-intro="pending"] > .matter-login-photo-panel {
+  opacity: 0;
+}
+
+html[data-skin="forest"] .matter-login-stage[data-login-intro="pending"] .matter-login-intro {
+  opacity: 1;
+}
+
+html[data-skin="forest"] .matter-login-stage[data-login-intro="play"] > .matter-login-copy,
+html[data-skin="forest"] .matter-login-stage[data-login-intro="play"] > .matter-login-photo-panel {
+  opacity: 0;
+  animation: forestLoginPageIn var(--forest-login-motion-duration) linear both;
+}
+
+html[data-skin="forest"] .matter-login-stage[data-login-intro="play"] .matter-login-intro {
+  opacity: 1;
+  animation: forestLoginLogoHandoff var(--forest-login-motion-duration) linear both;
+}
+
+html[data-skin="forest"] .matter-login-stage[data-login-intro="pending"] .matter-login-logo-target,
+html[data-skin="forest"] .matter-login-stage[data-login-intro="play"] .matter-login-logo-target {
+  opacity: 0;
+}
+
+html[data-skin="forest"] .matter-login-stage[data-login-intro="play"] .matter-login-logo-target {
+  animation: forestLoginLogoTargetIn var(--forest-login-motion-duration) linear both;
+}
+
+html[data-skin="forest"] .matter-login-stage[data-login-intro="complete"] .matter-login-intro {
+  display: none;
+}
+
+@keyframes forestLoginPageIn {
+  0%,
+  82% {
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  87%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes forestLoginLogoHandoff {
+  0%,
+  82% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  87%,
+  99% {
+    opacity: 1;
+    transform: translate(
+      calc(-50% + var(--forest-login-logo-dx, 0px)),
+      calc(-50% + var(--forest-login-logo-dy, 0px))
+    ) scale(var(--forest-login-logo-scale, 1));
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(
+      calc(-50% + var(--forest-login-logo-dx, 0px)),
+      calc(-50% + var(--forest-login-logo-dy, 0px))
+    ) scale(var(--forest-login-logo-scale, 1));
+  }
+}
+
+@keyframes forestLoginLogoTargetIn {
+  0%,
+  86.99% {
+    opacity: 0;
+  }
+
+  87%,
+  100% {
+    opacity: 1;
+  }
 }
 
 html[data-skin="forest"] .matter-login-heading h1 {
