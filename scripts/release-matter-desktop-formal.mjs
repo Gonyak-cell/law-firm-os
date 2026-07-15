@@ -1,12 +1,14 @@
 #!/usr/bin/env node
-import { createHash } from "node:crypto";
-import { existsSync } from "node:fs";
-import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
   assertDesktopFormalBuildProvenance,
   readDesktopBuildSourceIdentity,
 } from "./lib/matter-desktop-provenance.mjs";
+import {
+  readDesktopReleaseArtifactStage,
+  requireDesktopReleaseArtifact,
+} from "./lib/matter-desktop-release-paths.mjs";
 
 const ROOT = process.cwd();
 const sourceIdentity = readDesktopBuildSourceIdentity(ROOT);
@@ -19,110 +21,41 @@ const desktopPackage = JSON.parse(await readFile(path.join(ROOT, "apps/desktop/p
 const version = desktopPackage.version;
 const defaultReleaseId = `matter-desktop-v${version}`;
 const releaseId = process.env.MATTER_DESKTOP_GITHUB_RELEASE_TAG ?? defaultReleaseId;
-const releaseRoot = path.join(ROOT, "apps/desktop/dist/release", releaseId);
+const releaseStage = readDesktopReleaseArtifactStage({
+  repoRoot: ROOT,
+  version,
+  sourceSha: sourceIdentity.sourceSha,
+  channel: "formal",
+});
+const releaseRoot = releaseStage.artifactRoot;
+const releaseRelativeRoot = releaseStage.relativeRoot;
 const manifestPath = path.join(releaseRoot, "release-manifest.json");
 const checksumPath = path.join(releaseRoot, "checksums.sha256");
 const receiptPath = path.join(ROOT, "docs/desktop/matter-desktop-formal-release-receipt.md");
-const macosBuildReceiptPath = path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
-const windowsBuildReceiptPath = path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md");
-
-const artifacts = [
-  {
-    id: "macos_app_bundle",
-    path: "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
-    display_path: "apps/desktop/dist/mac/matter.app",
-    platform: "darwin",
-    kind: "macos_electron_app_bundle",
-  },
-  {
-    id: "macos_zip_archive",
-    path: `apps/desktop/dist/mac/matter-${version}-macos.zip`,
-    display_path: `apps/desktop/dist/mac/matter-${version}-macos.zip`,
-    platform: "darwin",
-    kind: "formal_zip_archive",
-  },
-  {
-    id: "macos_dmg_image",
-    path: `apps/desktop/dist/mac/matter-${version}-macos.dmg`,
-    display_path: `apps/desktop/dist/mac/matter-${version}-macos.dmg`,
-    platform: "darwin",
-    kind: "formal_dmg_image",
-  },
-  {
-    id: "windows_manifest",
-    path: `apps/desktop/dist/win/matter-${version}-win-installer-manifest.json`,
-    display_path: `apps/desktop/dist/win/matter-${version}-win-installer-manifest.json`,
-    platform: "win32",
-    kind: "formal_manifest",
-  },
-  {
-    id: "windows_manifest_signature",
-    path: `apps/desktop/dist/win/matter-${version}-win-installer-manifest.json.sig`,
-    display_path: `apps/desktop/dist/win/matter-${version}-win-installer-manifest.json.sig`,
-    platform: "win32",
-    kind: "formal_detached_signature",
-  },
-  {
-    id: "windows_package_zip",
-    path: `apps/desktop/dist/win/matter-${version}-win32-x64-unsigned.zip`,
-    display_path: `apps/desktop/dist/win/matter-${version}-win32-x64-unsigned.zip`,
-    platform: "win32",
-    kind: "unsigned_windows_package_zip",
-  },
-  {
-    id: "windows_installer",
-    path: `apps/desktop/dist/matter-${version}-win-x64.exe`,
-    display_path: `apps/desktop/dist/matter-${version}-win-x64.exe`,
-    platform: "win32",
-    kind: "formal_nsis_installer",
-  },
-  {
-    id: "windows_installer_blockmap",
-    path: `apps/desktop/dist/matter-${version}-win-x64.exe.blockmap`,
-    display_path: `apps/desktop/dist/matter-${version}-win-x64.exe.blockmap`,
-    platform: "win32",
-    kind: "formal_nsis_installer_blockmap",
-  },
-  {
-    id: "macos_build_receipt",
-    path: "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
-    display_path: "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
-    platform: "darwin",
-    kind: "receipt",
-  },
-  {
-    id: "windows_build_receipt",
-    path: "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md",
-    display_path: "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md",
-    platform: "win32",
-    kind: "receipt",
-  },
-];
-
-function sha256(buffer) {
-  return createHash("sha256").update(buffer).digest("hex");
-}
+const artifactRecords = releaseStage.index.artifacts.map((artifact) => ({
+  ...artifact,
+  display_path: artifact.path,
+}));
+const macZip = requireDesktopReleaseArtifact(releaseStage.index, "macos_zip_archive");
+const macDmg = requireDesktopReleaseArtifact(releaseStage.index, "macos_dmg_image");
+const winManifest = requireDesktopReleaseArtifact(releaseStage.index, "windows_installer_manifest");
+const winZip = requireDesktopReleaseArtifact(releaseStage.index, "windows_package_zip");
+const winInstaller = requireDesktopReleaseArtifact(releaseStage.index, "windows_installer");
+const winBlockmap = requireDesktopReleaseArtifact(releaseStage.index, "windows_installer_blockmap");
+const macosBuildReceiptPath = path.join(
+  ROOT,
+  requireDesktopReleaseArtifact(releaseStage.index, "macos_build_receipt").path,
+);
+const windowsBuildReceiptPath = path.join(
+  ROOT,
+  requireDesktopReleaseArtifact(releaseStage.index, "windows_build_receipt").path,
+);
 
 function receiptValue(source, label) {
   const prefix = `- ${label}:`;
   const line = source.split(/\r?\n/).find((entry) => entry.startsWith(prefix));
   return line?.slice(prefix.length).trim() ?? "missing";
 }
-
-async function artifactRecord(artifact) {
-  const absolutePath = path.join(ROOT, artifact.path);
-  if (!existsSync(absolutePath)) throw new Error(`missing formal release artifact: ${artifact.path}`);
-  const body = await readFile(absolutePath);
-  const fileStat = await stat(absolutePath);
-  return {
-    ...artifact,
-    bytes: fileStat.size,
-    sha256: sha256(body),
-  };
-}
-
-const artifactRecords = [];
-for (const artifact of artifacts) artifactRecords.push(await artifactRecord(artifact));
 
 const macosBuildReceipt = await readFile(macosBuildReceiptPath, "utf8");
 const windowsBuildReceipt = await readFile(windowsBuildReceiptPath, "utf8");
@@ -152,6 +85,11 @@ const manifest = {
   product_name: "matter",
   package_name: desktopPackage.name,
   version,
+  source_sha: sourceIdentity.sourceSha,
+  source_tree: sourceIdentity.sourceTree,
+  source_dirty: false,
+  artifact_root: releaseRelativeRoot,
+  generic_build_paths_are_release_truth: false,
   app_id: "com.amic.matter.desktop",
   channel: "formal-candidate",
   custom_domain_required: false,
@@ -167,20 +105,11 @@ const manifest = {
   artifacts: artifactRecords,
 };
 
-await rm(releaseRoot, { recursive: true, force: true });
-await mkdir(releaseRoot, { recursive: true });
 await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 await writeFile(
   checksumPath,
   artifactRecords.map((artifact) => `${artifact.sha256}  ${artifact.path}`).join("\n") + "\n",
 );
-
-const macZip = artifactRecords.find((artifact) => artifact.id === "macos_zip_archive");
-const macDmg = artifactRecords.find((artifact) => artifact.id === "macos_dmg_image");
-const winManifest = artifactRecords.find((artifact) => artifact.id === "windows_manifest");
-const winZip = artifactRecords.find((artifact) => artifact.id === "windows_package_zip");
-const winInstaller = artifactRecords.find((artifact) => artifact.id === "windows_installer");
-const winBlockmap = artifactRecords.find((artifact) => artifact.id === "windows_installer_blockmap");
 
 const releaseReceipt = `# matter Desktop Formal Release Candidate Receipt
 
@@ -193,8 +122,10 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 | Field | Value |
 | --- | --- |
 | Release ID | \`${releaseId}\` |
-| Manifest | \`apps/desktop/dist/release/${releaseId}/release-manifest.json\` |
-| Checksums | \`apps/desktop/dist/release/${releaseId}/checksums.sha256\` |
+| Source SHA | \`${sourceIdentity.sourceSha}\` |
+| Artifact root | \`${releaseRelativeRoot}\` |
+| Manifest | \`${releaseRelativeRoot}/release-manifest.json\` |
+| Checksums | \`${releaseRelativeRoot}/checksums.sha256\` |
 | Channel | \`formal-candidate\` |
 | App ID | \`com.amic.matter.desktop\` |
 | GitHub tag candidate | \`${releaseId}\` |
@@ -204,18 +135,17 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 
 | Artifact | Result |
 | --- | --- |
-| macOS app bundle | \`apps/desktop/dist/mac/matter.app\` |
-| macOS ZIP archive | \`apps/desktop/dist/mac/matter-${version}-macos.zip\` |
+| macOS ZIP archive | \`${macZip.path}\` |
 | macOS ZIP SHA-256 | \`${macZip.sha256}\` |
-| macOS DMG image | \`apps/desktop/dist/mac/matter-${version}-macos.dmg\` |
+| macOS DMG image | \`${macDmg.path}\` |
 | macOS DMG SHA-256 | \`${macDmg.sha256}\` |
-| Windows formal manifest | \`apps/desktop/dist/win/matter-${version}-win-installer-manifest.json\` |
+| Windows formal manifest | \`${winManifest.path}\` |
 | Windows formal manifest SHA-256 | \`${winManifest.sha256}\` |
-| Windows unsigned package ZIP | \`apps/desktop/dist/win/matter-${version}-win32-x64-unsigned.zip\` |
+| Windows unsigned package ZIP | \`${winZip.path}\` |
 | Windows unsigned package ZIP SHA-256 | \`${winZip.sha256}\` |
-| Windows formal installer | \`apps/desktop/dist/matter-${version}-win-x64.exe\` |
+| Windows formal installer | \`${winInstaller.path}\` |
 | Windows formal installer SHA-256 | \`${winInstaller.sha256}\` |
-| Windows installer blockmap | \`apps/desktop/dist/matter-${version}-win-x64.exe.blockmap\` |
+| Windows installer blockmap | \`${winBlockmap.path}\` |
 | Windows installer blockmap SHA-256 | \`${winBlockmap.sha256}\` |
 
 ## macOS Signing and Notarization

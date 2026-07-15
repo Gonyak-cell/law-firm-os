@@ -57,6 +57,8 @@ const FORMAL_BUILD_BRANCH_PATTERNS = [
   /^release\/forest-v\d+\.\d+\.\d+$/,
 ];
 const GENERATED_BUILD_EVIDENCE_PATHS = new Set([
+  "docs/desktop/matter-desktop-formal-release-receipt.md",
+  "docs/desktop/matter-desktop-temporary-release-receipt.md",
   "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
   "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md",
 ]);

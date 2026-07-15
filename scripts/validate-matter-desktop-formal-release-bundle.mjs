@@ -1,23 +1,50 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import {
+  assertDesktopFormalBuildProvenance,
+  readDesktopBuildSourceIdentity,
+} from "./lib/matter-desktop-provenance.mjs";
+import {
+  readDesktopReleaseArtifactStage,
+  requireDesktopReleaseArtifact,
+} from "./lib/matter-desktop-release-paths.mjs";
 
 const ROOT = process.cwd();
+const sourceIdentity = readDesktopBuildSourceIdentity(ROOT);
+assertDesktopFormalBuildProvenance({
+  releaseChannel: "formal",
+  sourceIdentity,
+  expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
+});
 const desktopPackage = JSON.parse(readFileSync(path.join(ROOT, "apps/desktop/package.json"), "utf8"));
 const version = desktopPackage.version;
 const defaultReleaseId = `matter-desktop-v${version}`;
 const releaseId = process.env.MATTER_DESKTOP_GITHUB_RELEASE_TAG ?? defaultReleaseId;
-const manifestPath = path.join(ROOT, "apps/desktop/dist/release", releaseId, "release-manifest.json");
-const checksumPath = path.join(ROOT, "apps/desktop/dist/release", releaseId, "checksums.sha256");
+const releaseStage = readDesktopReleaseArtifactStage({
+  repoRoot: ROOT,
+  version,
+  sourceSha: sourceIdentity.sourceSha,
+  channel: "formal",
+});
+const manifestPath = path.join(releaseStage.artifactRoot, "release-manifest.json");
+const checksumPath = releaseStage.checksumsPath;
 const receiptPath = path.join(ROOT, "docs/desktop/matter-desktop-formal-release-receipt.md");
-const macosReceiptPath = path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
-const windowsReceiptPath = path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md");
-
-function sha256(filePath) {
-  return createHash("sha256").update(readFileSync(filePath)).digest("hex");
-}
+const macZip = requireDesktopReleaseArtifact(releaseStage.index, "macos_zip_archive");
+const macDmg = requireDesktopReleaseArtifact(releaseStage.index, "macos_dmg_image");
+const winManifest = requireDesktopReleaseArtifact(releaseStage.index, "windows_installer_manifest");
+const winZip = requireDesktopReleaseArtifact(releaseStage.index, "windows_package_zip");
+const winInstaller = requireDesktopReleaseArtifact(releaseStage.index, "windows_installer");
+const winBlockmap = requireDesktopReleaseArtifact(releaseStage.index, "windows_installer_blockmap");
+const macosReceiptPath = path.join(
+  ROOT,
+  requireDesktopReleaseArtifact(releaseStage.index, "macos_build_receipt").path,
+);
+const windowsReceiptPath = path.join(
+  ROOT,
+  requireDesktopReleaseArtifact(releaseStage.index, "windows_build_receipt").path,
+);
 
 function readRequired(filePath) {
   assert(existsSync(filePath), `missing file: ${path.relative(ROOT, filePath)}`);
@@ -43,6 +70,11 @@ assert.equal(manifest.status, "formal_release_candidate_generated");
 assert.equal(manifest.product_name, "matter");
 assert.equal(manifest.package_name, "@law-firm-os/desktop");
 assert.equal(manifest.version, version);
+assert.equal(manifest.source_sha, sourceIdentity.sourceSha);
+assert.equal(manifest.source_tree, sourceIdentity.sourceTree);
+assert.equal(manifest.source_dirty, false);
+assert.equal(manifest.artifact_root, releaseStage.relativeRoot);
+assert.equal(manifest.generic_build_paths_are_release_truth, false);
 assert.equal(manifest.app_id, "com.amic.matter.desktop");
 assert.equal(manifest.channel, "formal-candidate");
 assert.equal(manifest.github_release_tag, releaseId);
@@ -81,29 +113,33 @@ assert(macosReceipt.includes("Channel: `formal`"), "macOS receipt must record fo
 assert(windowsReceipt.includes("App ID: `com.amic.matter.desktop`"), "Windows receipt must use formal app id");
 assert(windowsReceipt.includes("Channel: `formal`"), "Windows receipt must record formal channel");
 assert(windowsReceipt.includes("Windows Authenticode signing: false"), "Windows formal candidate must not claim Authenticode signing");
-assert.equal(manifest.artifacts.length, 10);
+assert.equal(manifest.artifacts.length, releaseStage.index.artifacts.length);
 
-for (const artifact of manifest.artifacts) {
-  const artifactPath = path.join(ROOT, artifact.path);
-  assert(existsSync(artifactPath), `missing artifact in formal release manifest: ${artifact.path}`);
-  assert(statSync(artifactPath).isFile(), `formal release checksum target must be a file: ${artifact.path}`);
-  assert.equal(artifact.sha256, sha256(artifactPath), `sha256 mismatch for ${artifact.path}`);
+for (const stagedArtifact of releaseStage.index.artifacts) {
+  const artifact = manifest.artifacts.find((candidate) => candidate.id === stagedArtifact.id);
+  assert(artifact, `formal release manifest is missing staged artifact: ${stagedArtifact.id}`);
+  assert.equal(artifact.path, stagedArtifact.path);
+  assert.equal(artifact.bytes, stagedArtifact.bytes);
+  assert.equal(artifact.sha256, stagedArtifact.sha256);
+  assert.equal(artifact.display_path, stagedArtifact.path);
   assert(checksums.includes(`${artifact.sha256}  ${artifact.path}`), `checksum entry missing for ${artifact.path}`);
 }
 
 const requiredReceiptPhrases = [
   "Status: formal-release-candidate-generated",
   `Release ID | \`${releaseId}\``,
-  `Manifest | \`apps/desktop/dist/release/${releaseId}/release-manifest.json\``,
+  `Source SHA | \`${sourceIdentity.sourceSha}\``,
+  `Artifact root | \`${releaseStage.relativeRoot}\``,
+  `Manifest | \`${releaseStage.relativeRoot}/release-manifest.json\``,
   "Channel | `formal-candidate`",
   "App ID | `com.amic.matter.desktop`",
   `GitHub tag candidate | \`${releaseId}\``,
-  `macOS ZIP archive | \`apps/desktop/dist/mac/matter-${version}-macos.zip\``,
-  `macOS DMG image | \`apps/desktop/dist/mac/matter-${version}-macos.dmg\``,
-  `Windows formal manifest | \`apps/desktop/dist/win/matter-${version}-win-installer-manifest.json\``,
-  `Windows unsigned package ZIP | \`apps/desktop/dist/win/matter-${version}-win32-x64-unsigned.zip\``,
-  `Windows formal installer | \`apps/desktop/dist/matter-${version}-win-x64.exe\``,
-  `Windows installer blockmap | \`apps/desktop/dist/matter-${version}-win-x64.exe.blockmap\``,
+  `macOS ZIP archive | \`${macZip.path}\``,
+  `macOS DMG image | \`${macDmg.path}\``,
+  `Windows formal manifest | \`${winManifest.path}\``,
+  `Windows unsigned package ZIP | \`${winZip.path}\``,
+  `Windows formal installer | \`${winInstaller.path}\``,
+  `Windows installer blockmap | \`${winBlockmap.path}\``,
   "Developer ID signing | applied",
   "notarization requested | true",
   "notarization state | submitted_and_accepted_by_notarytool",
@@ -132,6 +168,8 @@ console.log(
       checksum_entries_verified: manifest.artifacts.length,
       app_id: manifest.app_id,
       channel: manifest.channel,
+      source_sha: manifest.source_sha,
+      artifact_root: manifest.artifact_root,
       public_release_claim: false,
       production_go_live_claim: false,
       owner_approval_claim: false,

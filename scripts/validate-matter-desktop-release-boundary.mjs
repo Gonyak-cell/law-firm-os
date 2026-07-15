@@ -2,12 +2,31 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { readDesktopBuildSourceIdentity } from "./lib/matter-desktop-provenance.mjs";
+import {
+  readDesktopReleaseArtifactStage,
+  requireDesktopReleaseArtifact,
+} from "./lib/matter-desktop-release-paths.mjs";
 
 const ROOT = process.cwd();
+const sourceIdentity = readDesktopBuildSourceIdentity(ROOT);
+assert.equal(sourceIdentity.sourceDirty, false, "release boundary validation requires a clean product source");
+if (process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA) {
+  assert.equal(sourceIdentity.sourceSha, process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA);
+}
 const desktopPackage = JSON.parse(readFileSync(path.join(ROOT, "apps/desktop/package.json"), "utf8"));
 const releaseId = `matter-desktop-internal-${desktopPackage.version}`;
-const manifestPath = path.join(ROOT, "apps/desktop/dist/release", releaseId, "release-manifest.json");
-const macosReceiptPath = path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
+const releaseStage = readDesktopReleaseArtifactStage({
+  repoRoot: ROOT,
+  version: desktopPackage.version,
+  sourceSha: sourceIdentity.sourceSha,
+  channel: "internal",
+});
+const manifestPath = path.join(releaseStage.artifactRoot, "release-manifest.json");
+const macosReceiptPath = path.join(
+  ROOT,
+  requireDesktopReleaseArtifact(releaseStage.index, "macos_build_receipt").path,
+);
 const releaseReceiptPath = path.join(ROOT, "docs/desktop/matter-desktop-temporary-release-receipt.md");
 const ownerPacketPath = path.join(ROOT, "docs/desktop/matter-desktop-owner-decision-packet.md");
 
@@ -42,6 +61,10 @@ const signing = {
 };
 
 assert.equal(manifest.release_id, releaseId, "release manifest id mismatch");
+assert.equal(manifest.source_sha, sourceIdentity.sourceSha, "release manifest source SHA mismatch");
+assert.equal(manifest.source_tree, sourceIdentity.sourceTree, "release manifest source tree mismatch");
+assert.equal(manifest.artifact_root, releaseStage.relativeRoot, "release artifact root mismatch");
+assert.equal(manifest.generic_build_paths_are_release_truth, false, "generic build paths must not be release truth");
 assert.equal(manifest.public_release_claim, false, "public release claim must remain false");
 assert.equal(manifest.production_go_live_claim, false, "production go-live claim must remain false");
 assert.equal(manifest.owner_approval_claim, false, "owner approval claim must remain false");
@@ -105,6 +128,8 @@ console.log(
     {
       verdict: "PASS",
       release_id: releaseId,
+      source_sha: sourceIdentity.sourceSha,
+      artifact_root: releaseStage.relativeRoot,
       developer_id_signing: signing.developerIdSigning,
       signing_identity: signing.resolvedSigningIdentity,
       codesign_verify: signing.codesignVerify,

@@ -1,19 +1,34 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { readDesktopBuildSourceIdentity } from "./lib/matter-desktop-provenance.mjs";
+import {
+  readDesktopReleaseArtifactStage,
+  requireDesktopReleaseArtifact,
+} from "./lib/matter-desktop-release-paths.mjs";
 
 const ROOT = process.cwd();
+const sourceIdentity = readDesktopBuildSourceIdentity(ROOT);
+assert.equal(sourceIdentity.sourceDirty, false, "temporary release validation requires a clean product source");
+if (process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA) {
+  assert.equal(sourceIdentity.sourceSha, process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA);
+}
 const desktopPackage = JSON.parse(readFileSync(path.join(ROOT, "apps/desktop/package.json"), "utf8"));
 const releaseId = `matter-desktop-internal-${desktopPackage.version}`;
-const manifestPath = path.join(ROOT, "apps/desktop/dist/release", releaseId, "release-manifest.json");
-const checksumPath = path.join(ROOT, "apps/desktop/dist/release", releaseId, "checksums.sha256");
+const releaseStage = readDesktopReleaseArtifactStage({
+  repoRoot: ROOT,
+  version: desktopPackage.version,
+  sourceSha: sourceIdentity.sourceSha,
+  channel: "internal",
+});
+const manifestPath = path.join(releaseStage.artifactRoot, "release-manifest.json");
+const checksumPath = releaseStage.checksumsPath;
 const receiptPath = path.join(ROOT, "docs/desktop/matter-desktop-temporary-release-receipt.md");
-
-function sha256(filePath) {
-  return createHash("sha256").update(readFileSync(filePath)).digest("hex");
-}
+const macZip = requireDesktopReleaseArtifact(releaseStage.index, "macos_zip_archive");
+const macDmg = requireDesktopReleaseArtifact(releaseStage.index, "macos_dmg_image");
+const winManifest = requireDesktopReleaseArtifact(releaseStage.index, "windows_installer_manifest");
+const winZip = requireDesktopReleaseArtifact(releaseStage.index, "windows_package_zip");
 
 assert(existsSync(manifestPath), `missing release manifest: ${path.relative(ROOT, manifestPath)}`);
 assert(existsSync(checksumPath), `missing checksums: ${path.relative(ROOT, checksumPath)}`);
@@ -28,6 +43,11 @@ assert.equal(manifest.release_id, releaseId);
 assert.equal(manifest.status, "internal_temporary_release_executed");
 assert.equal(manifest.product_name, "matter");
 assert.equal(manifest.package_name, "@law-firm-os/desktop");
+assert.equal(manifest.source_sha, sourceIdentity.sourceSha);
+assert.equal(manifest.source_tree, sourceIdentity.sourceTree);
+assert.equal(manifest.source_dirty, false);
+assert.equal(manifest.artifact_root, releaseStage.relativeRoot);
+assert.equal(manifest.generic_build_paths_are_release_truth, false);
 assert.equal(manifest.internal_app_id, "com.amic.matter.desktop.internal");
 assert.equal(manifest.channel, "internal");
 assert.equal(manifest.custom_domain_required, false);
@@ -54,29 +74,33 @@ assert.deepEqual(
   "manifest must record current Developer ID signed and notarized release boundary",
 );
 assert.match(manifest.macos_signing.resolved_signing_identity, /^Developer ID Application:/);
-assert.equal(manifest.artifacts.length, 8);
+assert.equal(manifest.artifacts.length, releaseStage.index.artifacts.length);
 
-for (const artifact of manifest.artifacts) {
-  const artifactPath = path.join(ROOT, artifact.path);
-  assert(existsSync(artifactPath), `missing artifact in release manifest: ${artifact.path}`);
-  assert.equal(artifact.sha256, sha256(artifactPath), `sha256 mismatch for ${artifact.path}`);
-  assert(checksums.includes(`${artifact.sha256}  ${artifact.display_path}`), `checksum entry missing for ${artifact.display_path}`);
+for (const stagedArtifact of releaseStage.index.artifacts) {
+  const artifact = manifest.artifacts.find((candidate) => candidate.id === stagedArtifact.id);
+  assert(artifact, `temporary release manifest is missing staged artifact: ${stagedArtifact.id}`);
+  assert.equal(artifact.path, stagedArtifact.path);
+  assert.equal(artifact.bytes, stagedArtifact.bytes);
+  assert.equal(artifact.sha256, stagedArtifact.sha256);
+  assert.equal(artifact.display_path, stagedArtifact.path);
+  assert(checksums.includes(`${artifact.sha256}  ${artifact.path}`), `checksum entry missing for ${artifact.path}`);
 }
 
 const requiredReceiptPhrases = [
   "Status: internal-temporary-release-executed-with-artifacts",
   `Release ID | \`${releaseId}\``,
-  `Manifest | \`apps/desktop/dist/release/${releaseId}/release-manifest.json\``,
+  `Source SHA | \`${sourceIdentity.sourceSha}\``,
+  `Artifact root | \`${releaseStage.relativeRoot}\``,
+  `Manifest | \`${releaseStage.relativeRoot}/release-manifest.json\``,
   "Custom domain requirement | false",
-  "macOS app bundle | `apps/desktop/dist/mac/matter.app`",
-  "macOS ZIP archive",
-  "macOS DMG image",
+  `macOS ZIP archive | \`${macZip.path}\``,
+  `macOS DMG image | \`${macDmg.path}\``,
   "Developer ID signing | applied",
   "notarization requested | true",
   "notarization credential source | present",
   "notarization state | submitted_and_accepted_by_notarytool",
-  "Windows internal manifest",
-  "Windows unsigned package ZIP",
+  `Windows internal manifest | \`${winManifest.path}\``,
+  `Windows unsigned package ZIP | \`${winZip.path}\``,
   "Public release: false",
   "Production go-live: false",
   "Owner approval: false",
@@ -93,6 +117,8 @@ console.log(
       release_id: releaseId,
       artifact_count: manifest.artifacts.length,
       checksum_entries_verified: manifest.artifacts.length,
+      source_sha: manifest.source_sha,
+      artifact_root: manifest.artifact_root,
       custom_domain_required: false,
       public_release_claim: false,
       production_go_live_claim: false,
