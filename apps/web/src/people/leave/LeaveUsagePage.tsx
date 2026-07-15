@@ -126,7 +126,7 @@ export function LeaveUsagePage({ canExport = false, canProcessIntegrations = fal
   const [manualPayload, setManualPayload] = useState<Row | null>(null);
   const [manualResult, setManualResult] = useState<Row | null>(null);
   const [manualKey, setManualKey] = useState("");
-  const [uploadText, setUploadText] = useState("");
+  const [uploadFile, setUploadFile] = useState({ file_name: "", csv_text: "", xlsx_content_base64: "" });
   const [uploadBatch, setUploadBatch] = useState<Row | null>(null);
   const [editForm, setEditForm] = useState({ entitlement_id: "", expected_version: 0, valid_from: "", expires_on: "", reason_code: "관리자 취소" });
   const [stepUpAction, setStepUpAction] = useState<StepUpAction>("");
@@ -194,6 +194,7 @@ export function LeaveUsagePage({ canExport = false, canProcessIntegrations = fal
   const manualCounts = manualVisible?.counts as Row | undefined;
   const uploadRows = Array.isArray(uploadBatch?.rows) ? uploadBatch.rows as Row[] : [];
   const uploadCounts = uploadBatch?.counts as Row | undefined;
+  const hasUploadFile = Boolean(uploadFile.csv_text || uploadFile.xlsx_content_base64);
 
   async function processIntegrations() {
     setBusy("integrations");
@@ -231,16 +232,28 @@ export function LeaveUsagePage({ canExport = false, canProcessIntegrations = fal
     downloadArtifact(result.export as Row);
   }
 
-  async function downloadTemplate() {
-    setBusy("template");
+  async function downloadTemplate(format: "csv" | "xlsx") {
+    setBusy(`template-${format}`);
     setError("");
-    const result = await fetchHrxLeaveOccurrenceTemplate();
+    const result = await fetchHrxLeaveOccurrenceTemplate(format);
     setBusy("");
     if (result.kind !== "data") {
       setError("업로드 양식을 만들지 못했습니다.");
       return;
     }
     downloadArtifact(result.template as Row);
+  }
+
+  async function importUploadFile(file: File) {
+    setUploadBatch(null);
+    if (file.name.toLowerCase().endsWith(".xlsx")) {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      let binary = "";
+      for (const byte of bytes) binary += String.fromCharCode(byte);
+      setUploadFile({ file_name: file.name, csv_text: "", xlsx_content_base64: window.btoa(binary) });
+      return;
+    }
+    setUploadFile({ file_name: file.name, csv_text: await file.text(), xlsx_content_base64: "" });
   }
 
   async function previewManual() {
@@ -283,7 +296,10 @@ export function LeaveUsagePage({ canExport = false, canProcessIntegrations = fal
     setBusy("upload-preview");
     setError("");
     setStepUpAction("");
-    const result = await previewHrxLeaveOccurrenceUpload({ csv_text: uploadText, schedule_only: true, as_of: today, idempotency_key: `leave-occurrence-upload:${Date.now()}` });
+    const filePayload = uploadFile.xlsx_content_base64
+      ? { xlsx_content_base64: uploadFile.xlsx_content_base64 }
+      : { csv_text: uploadFile.csv_text };
+    const result = await previewHrxLeaveOccurrenceUpload({ ...filePayload, schedule_only: true, as_of: today, idempotency_key: `leave-occurrence-upload:${Date.now()}` });
     setBusy("");
     if (result.kind !== "data") {
       setError("업로드 조정안을 만들지 못했습니다.");
@@ -431,7 +447,7 @@ export function LeaveUsagePage({ canExport = false, canProcessIntegrations = fal
         </div>
         <div className="leave-occurrence-actions">
           {canAdjust && <button className="secondary-button" type="button" onClick={() => { setStage(stage === "manual" ? "" : "manual"); setStepUpAction(""); }}><Plus size={14} />수동 발생</button>}
-          {canAdjust && <button className="secondary-button" type="button" onClick={() => { setStage(stage === "upload" ? "" : "upload"); setStepUpAction(""); }}><FileUp size={14} />CSV 업로드</button>}
+          {canAdjust && <button className="secondary-button" type="button" onClick={() => { setStage(stage === "upload" ? "" : "upload"); setStepUpAction(""); }}><FileUp size={14} />파일 업로드</button>}
           {canExport && <button className="secondary-button" type="button" disabled={busy === "csv"} onClick={() => void download("csv")}><Download size={14} />CSV</button>}
           {canExport && <button className="secondary-button" type="button" disabled={busy === "xlsx"} onClick={() => void download("xlsx")}><Download size={14} />XLSX</button>}
         </div>
@@ -453,9 +469,9 @@ export function LeaveUsagePage({ canExport = false, canProcessIntegrations = fal
         <div className="leave-occurrence-stage-actions"><label><span>승인 HR</span><select aria-label="수동 발생 승인 HR" required value={approvedBy} onChange={(event) => setApprovedBy(event.target.value)}><option value="">승인자 선택</option>{approvers.map((approver) => <option key={text(approver, "actor_id")} value={text(approver, "actor_id")}>{text(approver, "display_name")}</option>)}</select></label><button className="primary-button" type="button" disabled={!manualPayload || !approvedBy || number(manualPreview?.counts as Row, "ready") === 0 || busy === "manual-execute"} onClick={() => void executeManual()}>승인 후 반영</button></div>
       </section>}
 
-      {stage === "upload" && <section className="leave-occurrence-stage" aria-label="CSV 업로드 조정안">
-        <div className="leave-occurrence-stage-head"><strong>CSV 업로드 조정안</strong>{uploadBatch && <span>정상 {number(uploadCounts, "ready")} · 오류 {number(uploadCounts, "preview_errors")} · 중복 {number(uploadCounts, "duplicates")}</span>}</div>
-        <div className="leave-occurrence-upload-controls"><button className="secondary-button" type="button" disabled={busy === "template"} onClick={() => void downloadTemplate()}><Download size={14} />양식</button><label className="secondary-button leave-occurrence-file"><FileUp size={14} />파일 선택<input aria-label="CSV 파일" type="file" accept=".csv,text/csv" onChange={(event) => { const file = event.target.files?.[0]; if (file) void file.text().then((value) => { setUploadText(value); setUploadBatch(null); }); }} /></label><span>{uploadText ? "선택됨" : "파일 없음"}</span><button className="secondary-button" type="button" disabled={!uploadText || busy === "upload-preview"} onClick={() => void previewUpload()}>미리보기</button></div>
+      {stage === "upload" && <section className="leave-occurrence-stage" aria-label="파일 업로드 조정안">
+        <div className="leave-occurrence-stage-head"><strong>파일 업로드 조정안</strong>{uploadBatch && <span>정상 {number(uploadCounts, "ready")} · 오류 {number(uploadCounts, "preview_errors")} · 중복 {number(uploadCounts, "duplicates")}</span>}</div>
+        <div className="leave-occurrence-upload-controls"><button className="secondary-button" type="button" disabled={busy === "template-csv"} onClick={() => void downloadTemplate("csv")}><Download size={14} />CSV 양식</button><button className="secondary-button" type="button" disabled={busy === "template-xlsx"} onClick={() => void downloadTemplate("xlsx")}><Download size={14} />XLSX 양식</button><label className="secondary-button leave-occurrence-file"><FileUp size={14} />파일 선택<input aria-label="휴가 발생 파일" type="file" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importUploadFile(file); }} /></label>{uploadFile.file_name && <span>{uploadFile.file_name}</span>}<button className="secondary-button" type="button" disabled={!hasUploadFile || busy === "upload-preview"} onClick={() => void previewUpload()}>미리보기</button></div>
         {uploadRows.length > 0 && <div className="data-table-wrap leave-occurrence-upload-table"><table className="data-table"><thead><tr><th>행</th><th>구성원</th><th>상태</th><th>오류</th><th>시도</th></tr></thead><tbody>{uploadRows.map((row) => <tr key={`${number(row, "row_number")}:${text(row, "row_key")}`} data-compact-record="true"><td>{number(row, "row_number")}</td><td>{text(row, "employee_id") || "-"}</td><td>{text(row, "execution_status") === "completed" ? "완료" : text(row, "preview_status") === "ready" ? "반영 가능" : "확인 필요"}</td><td>{text(row, "error_message") || "-"}</td><td>{number(row, "attempt_count")}</td></tr>)}</tbody></table></div>}
         <div className="leave-occurrence-stage-actions"><label><span>승인 HR</span><select aria-label="업로드 승인 HR" required value={approvedBy} onChange={(event) => setApprovedBy(event.target.value)}><option value="">승인자 선택</option>{approvers.map((approver) => <option key={text(approver, "actor_id")} value={text(approver, "actor_id")}>{text(approver, "display_name")}</option>)}</select></label>{text(uploadBatch, "status") === "completed_with_errors" && <button className="secondary-button" type="button" disabled={busy === "upload-retry"} onClick={() => void retryUpload()}>실패 행 재시도</button>}<button className="primary-button" type="button" disabled={!text(uploadBatch, "upload_batch_id") || !approvedBy || number(uploadCounts, "ready") === 0 || number(uploadCounts, "preview_errors") > 0 || busy === "upload-execute"} onClick={() => void executeUpload()}>승인 후 반영</button></div>
       </section>}

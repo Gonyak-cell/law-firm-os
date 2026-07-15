@@ -155,7 +155,6 @@ export function LeaveApprovalQueue() {
       {loading && <div className="live-data-state live-data-loading">승인 요청을 불러오는 중입니다</div>}
       {error && <div className="live-data-state live-data-error" role="alert">{error}</div>}
 
-      {!loading && approvals.length === 0 && <div className="live-data-state live-data-empty">처리할 휴가 요청이 없습니다.</div>}
       {!loading && approvals.length > 0 && (
         <div className="leave-approval-list">
           {approvals.map((approval) => {
@@ -230,7 +229,7 @@ export function LeaveApprovalQueue() {
           <label><span>종료</span><input required type="datetime-local" value={delegationForm.valid_to} onChange={(event) => setDelegationForm({ ...delegationForm, valid_to: event.target.value })} /></label>
           <button className="secondary-button" disabled={!delegationForm.delegate_actor_id || Boolean(busy)}>위임 추가</button>
         </form>
-        {delegations.length === 0 ? <div className="live-data-state live-data-empty">승인 위임 내역이 없습니다.</div> : (
+        {delegations.length > 0 && (
           <div className="leave-delegation-list">
             {delegations.map((delegation) => {
               const delegate = record(delegation, "delegate");

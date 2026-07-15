@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Play, Upload } from "lucide-react";
+import { Download, Play, Upload } from "lucide-react";
 import { Panel } from "../../components/primitives.jsx";
 import { HrxStepUpChallenge } from "../security/HrxStepUpChallenge.tsx";
 import {
   executeHrxLeaveManualAdjustment,
   fetchHrxLeaveConfiguration,
+  fetchHrxLeaveOccurrenceTemplate,
   fetchHrxLeaveManualAdjustmentSupport,
   previewHrxLeaveManualAdjustment
 } from "../hrxApiClient.ts";
@@ -45,6 +46,8 @@ export function LeaveAccrualManualPage() {
   const [approvers, setApprovers] = useState<Row[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [csvText, setCsvText] = useState("");
+  const [xlsxContent, setXlsxContent] = useState("");
+  const [fileName, setFileName] = useState("");
   const [approvedBy, setApprovedBy] = useState("");
   const [preview, setPreview] = useState<Row | null>(null);
   const [previewPayload, setPreviewPayload] = useState<Row | null>(null);
@@ -72,7 +75,47 @@ export function LeaveAccrualManualPage() {
   }, []);
 
   function payload() {
+    if (xlsxContent) return { xlsx_content_base64: xlsxContent };
     return csvText.trim() ? { csv_text: csvText } : { rows: [{ ...form, amount_minutes: Number(form.amount_minutes) }] };
+  }
+
+  async function downloadTemplate(format: "csv" | "xlsx") {
+    setBusy(`template-${format}`);
+    setError("");
+    const response = await fetchHrxLeaveOccurrenceTemplate(format);
+    setBusy("");
+    if (response.kind !== "data") {
+      setError("양식을 내려받지 못했습니다.");
+      return;
+    }
+    const template = response.template as Row;
+    const binary = window.atob(text(template, "content_base64"));
+    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+    const url = URL.createObjectURL(new Blob([bytes], { type: text(template, "mime_type") }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = text(template, "file_name");
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function importFile(file: File) {
+    setCsvText("");
+    setXlsxContent("");
+    setFileName(file.name);
+    setPreview(null);
+    setResult(null);
+    setPreviewPayload(null);
+    if (file.name.toLowerCase().endsWith(".xlsx")) {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      let binary = "";
+      for (const byte of bytes) binary += String.fromCharCode(byte);
+      setXlsxContent(window.btoa(binary));
+      return;
+    }
+    setCsvText(await file.text());
   }
 
   async function runPreview() {
@@ -139,15 +182,18 @@ export function LeaveAccrualManualPage() {
         </form>
 
         <div className="leave-manual-csv">
-          <label className="secondary-button leave-manual-file"><Upload size={14} />CSV 불러오기<input type="file" accept=".csv,text/csv" onChange={(event) => { const file = event.target.files?.[0]; if (file) void file.text().then(setCsvText); }} /></label>
-          <textarea aria-label="수동 발생 CSV" rows={4} value={csvText} onChange={(event) => setCsvText(event.target.value)} placeholder="employee_id,group_id,policy_version_id,direction,amount_minutes,occurred_on,expires_on,reason,source_document_id" />
-          {csvText && <button className="secondary-button" type="button" onClick={() => setCsvText("")}>CSV 지우기</button>}
+          <button className="secondary-button" type="button" disabled={busy === "template-csv"} onClick={() => void downloadTemplate("csv")}><Download size={14} />CSV 양식</button>
+          <button className="secondary-button" type="button" disabled={busy === "template-xlsx"} onClick={() => void downloadTemplate("xlsx")}><Download size={14} />XLSX 양식</button>
+          <label className="secondary-button leave-manual-file"><Upload size={14} />파일 불러오기<input type="file" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importFile(file); }} /></label>
+          {fileName && <span>{fileName}</span>}
+          {!xlsxContent && <textarea aria-label="수동 발생 CSV" rows={4} value={csvText} onChange={(event) => { setCsvText(event.target.value); setFileName(""); }} placeholder="CSV 내용을 붙여넣을 수 있습니다" />}
+          {(csvText || xlsxContent) && <button className="secondary-button" type="button" onClick={() => { setCsvText(""); setXlsxContent(""); setFileName(""); }}>파일 지우기</button>}
         </div>
       </section>
 
       <section className="leave-accrual-section" aria-labelledby="leave-manual-result-heading">
-        <div className="leave-accrual-section-head"><h3 id="leave-manual-result-heading">검증 결과와 승인</h3>{visible && <span>정상 {number(counts, result ? "created" : "ready")} · 오류 {number(counts, "errors")}</span>}</div>
-        {visible && <div className="data-table-wrap"><table className="data-table"><thead><tr><th>행</th><th>구성원</th><th>결과</th><th>방향</th><th>조정량</th><th>확인 사항</th></tr></thead><tbody>{rows.map((row, index) => <tr key={`${number(row, "row_number")}:${index}`}><td>{number(row, "row_number")}</td><td>{text(row, "employee_id") || "확인 필요"}</td><td><span className={`record-state-badge ${text(row, "status")}`}>{text(row, "status") === "ready" ? "반영 가능" : text(row, "status") === "created" ? "반영 완료" : "오류"}</span></td><td>{text(row, "direction") === "debit" ? "차감" : text(row, "direction") === "credit" ? "추가" : "-"}</td><td>{number(row, "amount_minutes").toLocaleString("ko-KR")}분</td><td>{text(row, "error_message") || "검증 완료"}</td></tr>)}</tbody></table></div>}
+        <div className="leave-accrual-section-head"><h3 id="leave-manual-result-heading">검증 결과</h3>{visible && <span>정상 {number(counts, result ? "created" : "ready")} · 오류 {number(counts, "errors")}</span>}</div>
+        {visible && <div className="data-table-wrap"><table className="data-table"><thead><tr><th>행</th><th>구성원</th><th>결과</th><th>방향</th><th>조정량</th><th>확인 사항</th></tr></thead><tbody>{rows.map((row, index) => <tr key={`${number(row, "row_number")}:${index}`} data-compact-record="true"><td>{number(row, "row_number")}</td><td>{text(row, "employee_id") || "확인 필요"}</td><td><span className={`record-state-badge ${text(row, "status")}`}>{text(row, "status") === "ready" ? "반영 가능" : text(row, "status") === "created" ? "반영 완료" : "오류"}</span></td><td>{text(row, "direction") === "debit" ? "차감" : text(row, "direction") === "credit" ? "추가" : "-"}</td><td>{number(row, "amount_minutes").toLocaleString("ko-KR")}분</td><td>{text(row, "error_message") || "-"}</td></tr>)}</tbody></table></div>}
 
         <div className="leave-manual-approval">
           <label><span>승인 HR</span><select aria-label="승인 HR" required value={approvedBy} onChange={(event) => setApprovedBy(event.target.value)}><option value="">승인자 선택</option>{approvers.map((approver) => <option key={text(approver, "actor_id")} value={text(approver, "actor_id")}>{text(approver, "display_name")}</option>)}</select></label>

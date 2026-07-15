@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Download, Play, Plus, RefreshCw } from "lucide-react";
+import { Download, Pause, Play, Plus, RefreshCw } from "lucide-react";
 import { Panel } from "../../components/primitives.jsx";
 import { HrxStepUpChallenge } from "../security/HrxStepUpChallenge.tsx";
 import {
   createHrxLeaveAccrualRule,
+  deactivateHrxLeaveAccrualRule,
   executeHrxLeaveAccrual,
   executeHrxLeaveAccrualBatch,
   exportHrxLeaveAccrualBatch,
@@ -12,7 +13,8 @@ import {
   fetchHrxLeaveConfiguration,
   previewHrxLeaveAccrual,
   previewHrxLeaveAccrualBatch,
-  retryHrxLeaveAccrualBatch
+  retryHrxLeaveAccrualBatch,
+  updateHrxLeaveAccrualRule
 } from "../hrxApiClient.ts";
 
 type Row = Record<string, unknown>;
@@ -101,8 +103,17 @@ const emptyRule = {
   annual_date: "01-01",
   amount_minutes: "480",
   minutes_per_day: "480",
-  expiration_months: "12"
+  expiration_months: "12",
+  tenure_steps: "0-11:480,12-120:7200"
 };
+
+function tenureSteps(value: string) {
+  return value.split(",").map((item) => {
+    const match = /^(\d+)-(\d+):(\d+)$/.exec(item.trim());
+    if (!match) throw new TypeError("근속 구간은 시작월-종료월:분 형식이어야 합니다.");
+    return { from_month: Number(match[1]), to_month: Number(match[2]), amount_minutes: Number(match[3]) };
+  });
+}
 
 export function LeaveAccrualAutoPage({ canExport = false }: { canExport?: boolean }) {
   const [rules, setRules] = useState<Row[]>([]);
@@ -110,6 +121,8 @@ export function LeaveAccrualAutoPage({ canExport = false }: { canExport?: boolea
   const [runs, setRuns] = useState<Row[]>([]);
   const [ruleForm, setRuleForm] = useState(emptyRule);
   const [selectedRule, setSelectedRule] = useState("");
+  const [versionSource, setVersionSource] = useState("");
+  const [pendingRuleId, setPendingRuleId] = useState("");
   const [occurredOn, setOccurredOn] = useState(localDate());
   const [periodKey, setPeriodKey] = useState(String(new Date().getFullYear()));
   const [runMode, setRunMode] = useState<"single" | "batch">("batch");
@@ -119,7 +132,7 @@ export function LeaveAccrualAutoPage({ canExport = false }: { canExport?: boolea
   const [batch, setBatch] = useState<Row | null>(null);
   const [previewRun, setPreviewRun] = useState<Row | null>(null);
   const [executionRun, setExecutionRun] = useState<Row | null>(null);
-  const [stepUpAction, setStepUpAction] = useState<"" | "single" | "batch-execute" | "batch-retry">("");
+  const [stepUpAction, setStepUpAction] = useState<"" | "rule-save" | "rule-deactivate" | "single" | "batch-execute" | "batch-retry">("");
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
 
@@ -134,16 +147,17 @@ export function LeaveAccrualAutoPage({ canExport = false }: { canExport?: boolea
       return;
     }
     const activePolicies = configuration.policies.filter((policy: Row) => text(policy, "status") === "active");
-    setRules(ruleResult.rules as Row[]);
+    const loadedRules = ruleResult.rules as Row[];
+    setRules(loadedRules);
     setPolicies(activePolicies as Row[]);
     setRuns(runResult.runs as Row[]);
     setSelectedRule((current) => {
-      if (current) return current;
-      const firstRule = ruleResult.rules[0] as Row | undefined;
-      const range = batchRange(firstRule);
+      const nextRule = loadedRules.find((rule) => text(rule, "accrual_rule_id") === current && text(rule, "status") === "active")
+        ?? loadedRules.find((rule) => text(rule, "status") === "active");
+      const range = batchRange(nextRule);
       setBatchStart(range.start);
       setBatchEnd(range.end);
-      return text(firstRule, "accrual_rule_id");
+      return text(nextRule, "accrual_rule_id");
     });
     setRuleForm((current) => ({ ...current, policy_version_id: current.policy_version_id || text(activePolicies[0] as Row, "policy_version_id") }));
     setError("");
@@ -153,12 +167,19 @@ export function LeaveAccrualAutoPage({ canExport = false }: { canExport?: boolea
     void load();
   }, []);
 
-  async function createRule(event: { preventDefault(): void }) {
-    event.preventDefault();
+  async function saveRule() {
     setBusy("create-rule");
     setError("");
-    const result = await createHrxLeaveAccrualRule({
-      rule_code: ruleForm.rule_code,
+    let configuredTenureSteps: Row[] | undefined;
+    try {
+      configuredTenureSteps = ruleForm.basis === "tenure_table" ? tenureSteps(ruleForm.tenure_steps) : undefined;
+    } catch (cause) {
+      setBusy("");
+      setError(cause instanceof Error ? cause.message : "근속 구간을 확인하세요.");
+      return;
+    }
+    const payload = {
+      ...(versionSource ? {} : { rule_code: ruleForm.rule_code }),
       display_name: ruleForm.display_name,
       policy_version_id: ruleForm.policy_version_id,
       effective_from: occurredOn,
@@ -170,17 +191,78 @@ export function LeaveAccrualAutoPage({ canExport = false }: { canExport?: boolea
         amount_minutes: Number(ruleForm.amount_minutes),
         expiration_months: Number(ruleForm.expiration_months),
         attendance_source_required: true,
-        prorate_reduced_schedule: true
+        prorate_reduced_schedule: true,
+        tenure_steps: configuredTenureSteps
       }
-    });
+    };
+    const result = versionSource
+      ? await updateHrxLeaveAccrualRule(versionSource, payload)
+      : await createHrxLeaveAccrualRule(payload);
     setBusy("");
+    if (result.kind === "step_up_required") {
+      setStepUpAction("rule-save");
+      return;
+    }
     if (result.kind !== "data") {
       setError(typeof result.reason === "string" ? result.reason : "발생 규칙을 저장하지 못했습니다.");
       return;
     }
     setRuleForm((current) => ({ ...emptyRule, policy_version_id: current.policy_version_id }));
+    setVersionSource("");
+    setStepUpAction("");
     setSelectedRule(text(result.rule as Row, "accrual_rule_id"));
     await load();
+  }
+
+  function startNextVersion(rule: Row) {
+    const config = ruleConfig(rule);
+    const steps = Array.isArray(config.tenure_steps) ? config.tenure_steps as Row[] : [];
+    setVersionSource(text(rule, "accrual_rule_id"));
+    setOccurredOn(localDate());
+    setRuleForm({
+      rule_code: text(rule, "logical_rule_code") || text(rule, "rule_code"),
+      display_name: text(rule, "display_name"),
+      policy_version_id: text(rule, "policy_version_id"),
+      basis: text(config, "basis") || "korean_statutory_annual",
+      schedule: text(config, "schedule") || "fixed_annual_date",
+      annual_date: text(config, "annual_date") || "01-01",
+      amount_minutes: String(number(config, "amount_minutes") || 480),
+      minutes_per_day: String(number(config, "minutes_per_day") || 480),
+      expiration_months: String(number(config, "expiration_months") || 12),
+      tenure_steps: steps.map((step) => `${number(step, "from_month")}-${number(step, "to_month")}:${number(step, "amount_minutes")}`).join(",") || emptyRule.tenure_steps
+    });
+  }
+
+  async function deactivateRule(rule: Row) {
+    const ruleId = text(rule, "accrual_rule_id");
+    setPendingRuleId(ruleId);
+    setBusy(`deactivate:${ruleId}`);
+    setError("");
+    const result = await deactivateHrxLeaveAccrualRule(ruleId, { expected_version: number(rule, "state_version"), effective_to: localDate() });
+    setBusy("");
+    if (result.kind === "step_up_required") {
+      setStepUpAction("rule-deactivate");
+      return;
+    }
+    if (result.kind !== "data") {
+      setError("발생 규칙을 중지하지 못했습니다.");
+      return;
+    }
+    setPendingRuleId("");
+    setStepUpAction("");
+    await load();
+  }
+
+  function retryAfterStepUp() {
+    if (stepUpAction === "rule-save") return void saveRule();
+    if (stepUpAction === "rule-deactivate") {
+      const rule = rules.find((item) => text(item, "accrual_rule_id") === pendingRuleId);
+      if (rule) return void deactivateRule(rule);
+      return;
+    }
+    if (stepUpAction === "single") return void execute();
+    if (stepUpAction === "batch-retry") return void retryBatch();
+    if (stepUpAction === "batch-execute") return void executeBatch();
   }
 
   async function preview() {
@@ -324,44 +406,49 @@ export function LeaveAccrualAutoPage({ canExport = false }: { canExport?: boolea
   const batchTotals = batch?.totals as Row | undefined;
   const rangeError = batchRangeError(batchStart, batchEnd);
   const retryableBatch = batchPeriods.some((period) => ["pending", "running", "failed"].includes(text(period, "status")));
+  const activeRules = rules.filter((rule) => text(rule, "status") === "active");
 
   return (
-    <Panel id="people-leave-accrual-auto" className="people-panel span-2 leave-accrual-panel" title="휴가 자동 발생" meta="HR 전용">
+    <Panel id="people-leave-accrual-auto" className="people-panel span-2 leave-accrual-panel" title="휴가 자동 발생">
       {error && <div className="live-data-state live-data-error" role="alert">{error}</div>}
 
       <section className="leave-accrual-section" aria-labelledby="leave-accrual-rule-heading">
         <div className="leave-accrual-section-head"><h3 id="leave-accrual-rule-heading">발생 규칙</h3><span>{rules.length}개</span></div>
-        <form className="leave-accrual-form leave-accrual-rule-form" onSubmit={createRule}>
+        <form className="leave-accrual-form leave-accrual-rule-form" onSubmit={(event) => { event.preventDefault(); void saveRule(); }}>
           <label><span>규칙 이름</span><input required value={ruleForm.display_name} onChange={(event) => setRuleForm({ ...ruleForm, display_name: event.target.value })} /></label>
           <label><span>규칙 코드</span><input required value={ruleForm.rule_code} onChange={(event) => setRuleForm({ ...ruleForm, rule_code: event.target.value })} /></label>
           <label><span>정책 버전</span><select required value={ruleForm.policy_version_id} onChange={(event) => setRuleForm({ ...ruleForm, policy_version_id: event.target.value })}><option value="">정책 선택</option>{policies.map((policy) => <option key={text(policy, "policy_version_id")} value={text(policy, "policy_version_id")}>{text(policy, "policy_code")} v{number(policy, "version")}</option>)}</select></label>
-          <label><span>발생 기준</span><select value={ruleForm.basis} onChange={(event) => setRuleForm({ ...ruleForm, basis: event.target.value })}><option value="korean_statutory_annual">법정 연차</option><option value="fixed_amount">고정 분</option><option value="monthly_perfect_attendance">월 개근</option></select></label>
+          <label><span>발생 기준</span><select value={ruleForm.basis} onChange={(event) => setRuleForm({ ...ruleForm, basis: event.target.value })}><option value="korean_statutory_annual">법정 연차</option><option value="fixed_amount">고정 분</option><option value="monthly_perfect_attendance">월 개근</option><option value="tenure_table">근속 구간</option></select></label>
           <label><span>실행 주기</span><select value={ruleForm.schedule} onChange={(event) => setRuleForm({ ...ruleForm, schedule: event.target.value })}><option value="hire_anniversary">입사 기념일</option><option value="fiscal_year">회계연도</option><option value="fixed_annual_date">연 1회 지정일</option><option value="monthly_perfect_attendance">월 개근</option></select></label>
           <label><span>연간 실행일</span><input required pattern="[0-9]{2}-[0-9]{2}" value={ruleForm.annual_date} onChange={(event) => setRuleForm({ ...ruleForm, annual_date: event.target.value })} /></label>
           <label><span>1일 기준(분)</span><input required type="number" min="1" step="1" value={ruleForm.minutes_per_day} onChange={(event) => setRuleForm({ ...ruleForm, minutes_per_day: event.target.value })} /></label>
           <label><span>고정 발생량(분)</span><input required type="number" min="1" step="1" value={ruleForm.amount_minutes} onChange={(event) => setRuleForm({ ...ruleForm, amount_minutes: event.target.value })} /></label>
           <label><span>유효기간(개월)</span><input required type="number" min="1" step="1" value={ruleForm.expiration_months} onChange={(event) => setRuleForm({ ...ruleForm, expiration_months: event.target.value })} /></label>
-          <button className="secondary-button" disabled={!policies.length || busy === "create-rule"}><Plus size={14} />규칙 추가</button>
+          {ruleForm.basis === "tenure_table" && <label><span>근속 구간</span><input required value={ruleForm.tenure_steps} onChange={(event) => setRuleForm({ ...ruleForm, tenure_steps: event.target.value })} /></label>}
+          <button className="secondary-button" disabled={!policies.length || busy === "create-rule"}><Plus size={14} />{versionSource ? "새 버전 저장" : "규칙 추가"}</button>
+          {versionSource && <button className="secondary-button" type="button" onClick={() => { setVersionSource(""); setRuleForm((current) => ({ ...emptyRule, policy_version_id: current.policy_version_id })); }}>취소</button>}
         </form>
+        {rules.length > 0 && <div className="data-table-wrap leave-accrual-rule-table"><table className="data-table"><thead><tr><th>규칙</th><th>버전</th><th>시행일</th><th>상태</th><th>관리</th></tr></thead><tbody>{rules.map((rule) => <tr key={text(rule, "accrual_rule_id")} data-compact-record="true"><td>{text(rule, "display_name")}</td><td>v{number(rule, "version") || 1}</td><td>{text(rule, "effective_from")}</td><td>{text(rule, "status") === "active" ? "사용 중" : "중지"}</td><td><div className="approval-actions"><button className="table-inline-action" type="button" onClick={() => startNextVersion(rule)}>새 버전</button>{text(rule, "status") === "active" && <button className="table-inline-action" type="button" disabled={busy === `deactivate:${text(rule, "accrual_rule_id")}`} onClick={() => void deactivateRule(rule)}><Pause size={13} />규칙 중지</button>}</div></td></tr>)}</tbody></table></div>}
+        {["rule-save", "rule-deactivate"].includes(stepUpAction) && <HrxStepUpChallenge purpose="leave_accrual_execute" onVerified={retryAfterStepUp} />}
       </section>
 
       <section className="leave-accrual-section" aria-labelledby="leave-accrual-run-heading">
         <div className="leave-accrual-section-head"><h3 id="leave-accrual-run-heading">미리보기와 실행</h3><select aria-label="실행 방식" value={runMode} onChange={(event) => { setRunMode(event.target.value as "single" | "batch"); setError(""); setStepUpAction(""); }}><option value="single">단일 기간</option><option value="batch">기간 배치</option></select></div>
         {runMode === "single" ? <div className="leave-accrual-runbar">
-          <label><span>발생 규칙</span><select aria-label="발생 규칙" value={selectedRule} onChange={(event) => selectRule(event.target.value)}><option value="">규칙 선택</option>{rules.map((rule) => <option key={text(rule, "accrual_rule_id")} value={text(rule, "accrual_rule_id")}>{text(rule, "display_name")}</option>)}</select></label>
+          <label><span>발생 규칙</span><select aria-label="발생 규칙" value={selectedRule} onChange={(event) => selectRule(event.target.value)}><option value="">규칙 선택</option>{activeRules.map((rule) => <option key={text(rule, "accrual_rule_id")} value={text(rule, "accrual_rule_id")}>{text(rule, "display_name")}</option>)}</select></label>
           <label><span>기간 키</span><input aria-label="기간 키" value={periodKey} onChange={(event) => setPeriodKey(event.target.value)} /></label>
           <label><span>발생일</span><input aria-label="발생일" type="date" value={occurredOn} onChange={(event) => setOccurredOn(event.target.value)} /></label>
           <button className="secondary-button" type="button" disabled={!selectedRule || busy === "preview"} onClick={() => void preview()}><RefreshCw size={14} />미리보기</button>
           <button className="primary-button" type="button" disabled={!previewRun || busy === "execute"} onClick={() => void execute()}><Play size={14} />원장에 반영</button>
         </div> : <div className="leave-accrual-runbar leave-accrual-batch-runbar">
-          <label><span>발생 규칙</span><select aria-label="배치 발생 규칙" value={selectedRule} onChange={(event) => selectRule(event.target.value)}><option value="">규칙 선택</option>{rules.map((rule) => <option key={text(rule, "accrual_rule_id")} value={text(rule, "accrual_rule_id")}>{text(rule, "display_name")}</option>)}</select></label>
+          <label><span>발생 규칙</span><select aria-label="배치 발생 규칙" value={selectedRule} onChange={(event) => selectRule(event.target.value)}><option value="">규칙 선택</option>{activeRules.map((rule) => <option key={text(rule, "accrual_rule_id")} value={text(rule, "accrual_rule_id")}>{text(rule, "display_name")}</option>)}</select></label>
           <label><span>시작일</span><input aria-label="배치 시작일" type="date" value={batchStart} onChange={(event) => { setBatchStart(event.target.value); setBatch(null); }} /></label>
           <label><span>종료일</span><input aria-label="배치 종료일" type="date" min={batchStart || undefined} max={batchStart ? offsetDate(batchStart, 10, -1) : undefined} value={batchEnd} onChange={(event) => { setBatchEnd(event.target.value); setBatch(null); }} /></label>
           <button className="secondary-button" type="button" disabled={!selectedRule || Boolean(rangeError) || busy === "batch-preview"} onClick={() => void previewBatch()}><RefreshCw size={14} />배치 미리보기</button>
           <button className="primary-button" type="button" disabled={!batch || text(batch, "mode") !== "preview" || busy === "batch-execute"} onClick={() => void executeBatch()}><Play size={14} />원장에 반영</button>
         </div>}
         {runMode === "batch" && rangeError && <div className="leave-accrual-inline-error" role="status">{rangeError}</div>}
-        {stepUpAction && <HrxStepUpChallenge purpose="leave_accrual_execute" onVerified={() => void (stepUpAction === "single" ? execute() : stepUpAction === "batch-retry" ? retryBatch() : executeBatch())} />}
+        {["single", "batch-execute", "batch-retry"].includes(stepUpAction) && <HrxStepUpChallenge purpose="leave_accrual_execute" onVerified={retryAfterStepUp} />}
         {runMode === "single" && visibleRun && (
           <>
             <div className="leave-accrual-summary" data-leave-accrual-run={text(visibleRun, "mode")} data-source-version={text(visibleRun, "snapshot_hash")}>
@@ -369,7 +456,7 @@ export function LeaveAccrualAutoPage({ canExport = false }: { canExport?: boolea
               <span>중복 <strong>{number(counts, "duplicates")}</strong></span>
               <span>확인 필요 <strong>{number(counts, "errors")}</strong></span>
             </div>
-            <div className="data-table-wrap"><table className="data-table"><thead><tr><th>구성원</th><th>결과</th><th>발생량</th><th>근거</th><th>유효기간</th></tr></thead><tbody>{rows.map((row, index) => <tr key={`${text(row, "employee_id")}:${index}`}><td><strong>{text(row, "display_name")}</strong><small className="leave-settings-code">{text(row, "employee_id")}</small></td><td><span className={`record-state-badge ${text(row, "status")}`}>{statusLabel(text(row, "status"))}</span></td><td>{number(row, "amount_minutes").toLocaleString("ko-KR")}분</td><td>{reasonLabel(text(row, "reason_code"))}</td><td>{text(row, "valid_from") || "-"} ~ {text(row, "expires_on") || "-"}</td></tr>)}</tbody></table></div>
+            <div className="data-table-wrap"><table className="data-table"><thead><tr><th>구성원</th><th>결과</th><th>발생량</th><th>근거</th><th>유효기간</th></tr></thead><tbody>{rows.map((row, index) => <tr key={`${text(row, "employee_id")}:${index}`} data-compact-record="true"><td>{text(row, "display_name") || text(row, "employee_id")}</td><td><span className={`record-state-badge ${text(row, "status")}`}>{statusLabel(text(row, "status"))}</span></td><td>{number(row, "amount_minutes").toLocaleString("ko-KR")}분</td><td>{reasonLabel(text(row, "reason_code"))}</td><td>{text(row, "valid_from") || "-"} ~ {text(row, "expires_on") || "-"}</td></tr>)}</tbody></table></div>
           </>
         )}
         {runMode === "batch" && batch && <>

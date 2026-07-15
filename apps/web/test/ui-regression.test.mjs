@@ -975,6 +975,7 @@ test("avatar profile opens a standalone personal profile surface without becomin
   const navSource = await readWebFile("src/data/nav.js");
   const profileSource = await readWebFile("src/components/UserProfileSurface.jsx");
   const memberPhotosSource = await readWebFile("src/people/memberPhotos.js");
+  const { memberPhotoFor } = await import(pathToFileURL(resolve(webRoot, "src/people/memberPhotos.js")).href);
   const stylesSource = await readWebFile("src/styles.css");
   const topbarSource = shellSource.slice(
     shellSource.indexOf("export function Topbar"),
@@ -1012,8 +1013,15 @@ test("avatar profile opens a standalone personal profile surface without becomin
   assert.match(profileSource, /label="연락처"[\s\S]*profileDraft\.mobile_phone/);
   assert.match(profileSource, /memberField\(selectedMember, "mobile_phone"/);
   assert.match(memberPhotosSource, /member\?\.photo_url/);
-  assert.match(memberPhotosSource, /data:image/);
+  assert.match(memberPhotosSource, /\(png\|jpeg\|webp\);base64/);
+  assert.match(memberPhotosSource, /PROFILE_PHOTO_DATA_URL\.exec\(photoUrl\)/);
+  assert.match(memberPhotosSource, /imageSignatureMatches/);
+  assert.doesNotMatch(memberPhotosSource, /startsWith\("data:image\/"\)/);
   assert.doesNotMatch(memberPhotosSource, /assets\/members|seo-ji-won|서지원/);
+  const validPng = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/69a3GQAAAABJRU5ErkJggg==";
+  assert.equal(memberPhotoFor({ photo_url: validPng }), validPng);
+  assert.equal(memberPhotoFor({ photo_url: "data:image/png;base64,bm90LWltYWdl" }), undefined);
+  assert.equal(memberPhotoFor({ photo_url: "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=" }), undefined);
   assert.match(profileSource, /Edit/);
   assert.match(profileSource, /GENERIC_PROFILE_NAMES/);
   assert.match(profileSource, /resolvedProfileMember/);

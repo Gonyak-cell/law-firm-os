@@ -95,6 +95,7 @@ try {
 
   await page.goto(`${baseUrl}/?locale=ko&view=people&ctx=allow#people-leave-accrual-auto`, { waitUntil: "networkidle" });
   await page.locator("#people-leave-accrual-auto").waitFor({ state: "visible", timeout: 15_000 });
+  await page.getByLabel("실행 방식").selectOption("single");
   await page.locator('select[aria-label="발생 규칙"]').selectOption("lv04-fixed-rule");
   await page.getByLabel("기간 키").fill("2026");
   await page.getByLabel("발생일").fill("2026-07-13");
@@ -111,7 +112,7 @@ try {
   await page.getByLabel("6자리 확인 코드").fill(autoCode);
   const executeResponse = page.waitForResponse((response) => response.url().endsWith("/api/hrx/leave/accrual/execute") && response.status() === 200);
   await page.locator(".hrx-step-up-form").getByRole("button", { name: "확인" }).click();
-  await executeResponse;
+  const firstExecuteBody = await (await executeResponse).json();
   await page.getByText("발생 완료", { exact: true }).first().waitFor();
   const earnedAfterFirst = store.query("select", { table: "hrx_leave_balance_entries", where: { tenant_id: TENANT, entry_type: "earned" } }).filter((entry) => entry.source_ref.startsWith("LeaveAccrualRun:")).length;
   const rerunResponse = page.waitForResponse((response) => response.url().endsWith("/api/hrx/leave/accrual/execute") && response.status() === 200);
@@ -143,6 +144,29 @@ try {
   await page.getByText("반영 완료", { exact: true }).waitFor();
   await capture(page, "lv-04-manual-complete-720x900.png", 720, 900, "#people-leave-accrual-manual", screenshots, geometries);
 
+  await page.setViewportSize({ width: 1512, height: 900 });
+  await page.goto(`${baseUrl}/?locale=ko&view=people&ctx=allow#people-leave-accrual-auto`, { waitUntil: "networkidle" });
+  await page.locator("#people-leave-accrual-auto").waitFor({ state: "visible", timeout: 15_000 });
+  const originalRuleRow = page.locator(".leave-accrual-rule-table tbody tr").filter({ hasText: "LV04 합성 자동 발생" }).first();
+  await originalRuleRow.getByRole("button", { name: "새 버전", exact: true }).click();
+  await page.getByLabel("규칙 이름").fill("LV04 합성 자동 발생 v2");
+  const versionChallenge = page.waitForResponse((response) => response.url().endsWith("/api/hrx/leave/accrual/rules/lv04-fixed-rule") && response.request().method() === "PATCH" && response.status() === 403);
+  await page.getByRole("button", { name: "새 버전 저장", exact: true }).click();
+  await versionChallenge;
+  const versionCode = stepUpAuthority.generateTotp({ tenant_id: TENANT, actor_id: HR_ACTOR, purpose: "leave_accrual_execute" });
+  await page.getByLabel("6자리 확인 코드").fill(versionCode);
+  const versionResponse = page.waitForResponse((response) => response.url().endsWith("/api/hrx/leave/accrual/rules/lv04-fixed-rule") && response.request().method() === "PATCH" && response.status() === 201);
+  await page.locator(".hrx-step-up-form").getByRole("button", { name: "확인" }).click();
+  const versionBody = await (await versionResponse).json();
+  const versionRuleId = versionBody.rule.accrual_rule_id;
+  const versionRuleRow = page.locator(".leave-accrual-rule-table tbody tr").filter({ hasText: "LV04 합성 자동 발생 v2" });
+  await versionRuleRow.getByText("v2", { exact: true }).waitFor();
+  const deactivateResponse = page.waitForResponse((response) => response.url().endsWith(`/api/hrx/leave/accrual/rules/${versionRuleId}/deactivate`) && response.status() === 200);
+  await versionRuleRow.getByRole("button", { name: "규칙 중지", exact: true }).click();
+  await deactivateResponse;
+  await versionRuleRow.getByText("중지", { exact: true }).waitFor();
+  await capture(page, "lv-04-rule-version-deactivated-1512x900.png", 1512, 900, "#people-leave-accrual-auto", screenshots, geometries);
+
   const staffContext = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const staffPage = await staffContext.newPage();
   staffPage.on("pageerror", (error) => pageErrors.push(String(error)));
@@ -164,10 +188,12 @@ try {
     checks: {
       automatic_preview_visible: true,
       signed_step_up_execute: true,
-      first_new_entries: rerunBody.run.result.counts.duplicates,
+      first_new_entries: firstExecuteBody.run.result.counts.new_entries,
       rerun_new_entries: rerunBody.run.result.counts.new_entries,
       earned_entries_stable: earnedAfterFirst === 1 && earnedAfterRerun === 1,
       manual_dual_control_execute: commandReceipts === 1,
+      rule_version_created: Number(versionBody.rule.version) === 2,
+      rule_version_deactivated: store.query("selectOne", { table: "hrx_leave_accrual_rules", where: { tenant_id: TENANT, accrual_rule_id: versionRuleId } })?.status === "inactive",
       staff_auto_menu_hidden: staffAutoMenuCount === 0,
       staff_manual_menu_hidden: staffManualMenuCount === 0,
       staff_direct_route_denied: true,
@@ -184,7 +210,7 @@ try {
     go_live_claim: false,
   };
   writeFileSync(RECEIPT_PATH, `${JSON.stringify(receipt, null, 2)}\n`);
-  if (!receipt.checks.earned_entries_stable || receipt.checks.rerun_new_entries !== 0 || !receipt.checks.manual_dual_control_execute || !receipt.checks.staff_auto_menu_hidden || !receipt.checks.staff_manual_menu_hidden || pageErrors.length || leaveConsoleErrors.length) {
+  if (!receipt.checks.earned_entries_stable || receipt.checks.rerun_new_entries !== 0 || !receipt.checks.manual_dual_control_execute || !receipt.checks.rule_version_created || !receipt.checks.rule_version_deactivated || !receipt.checks.staff_auto_menu_hidden || !receipt.checks.staff_manual_menu_hidden || pageErrors.length || leaveConsoleErrors.length) {
     process.stdout.write(`${JSON.stringify({ leaveConsoleErrors, unrelatedConsoleErrors }, null, 2)}\n`);
     throw new Error(`LV04 browser QA failed: ${JSON.stringify(receipt.checks)}`);
   }

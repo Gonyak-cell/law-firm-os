@@ -60,7 +60,8 @@ test("LV-05 mounts API-backed reporting and termination surfaces without placeho
   assert.match(usage, /type OccurrenceView = "list" \| "month" \| "type"/);
   assert.match(usage, /\[\['list', '목록'\], \['month', '월별'\], \['type', '유형별'\]\]/);
   assert.match(usage, /수동 발생 조정안/);
-  assert.match(usage, /CSV 업로드 조정안/);
+  assert.match(usage, /파일 업로드 조정안/);
+  assert.match(usage, />파일 업로드<\/button>/);
   assert.match(usage, /setStage\(stage === "manual" \? "" : "manual"\); setStepUpAction\(""\);/);
   assert.match(usage, /setStage\(stage === "upload" \? "" : "upload"\); setStepUpAction\(""\);/);
   assert.match(usage, /예정 발생 조정안/);
@@ -68,6 +69,13 @@ test("LV-05 mounts API-backed reporting and termination surfaces without placeho
   assert.match(usage, /schedule_only: true/);
   assert.match(usage, /min=\{offsetDate\(today, 0, 1\)\}/);
   assert.match(usage, /fetchHrxLeaveOccurrenceTemplate/);
+  assert.match(usage, /fetchHrxLeaveOccurrenceTemplate\(format\)/);
+  assert.match(usage, /downloadTemplate\("csv"\)/);
+  assert.match(usage, /downloadTemplate\("xlsx"\)/);
+  assert.match(usage, /xlsx_content_base64/);
+  assert.match(usage, /accept="\.csv,text\/csv,\.xlsx,application\/vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet"/);
+  assert.doesNotMatch(usage, /CSV 업로드 조정안/);
+  assert.doesNotMatch(usage, />CSV 업로드<\/button>/);
   assert.match(usage, /previewHrxLeaveOccurrenceUpload/);
   assert.match(usage, /executeHrxLeaveOccurrenceUpload/);
   assert.match(usage, /retryHrxLeaveOccurrenceUpload/);

@@ -96,6 +96,24 @@ try {
   await page.getByText("1일", { exact: true }).first().waitFor();
   await capture(page, "lv-05-usage-1512x900.png", 1512, 900, "#people-leave-usage", screenshots, geometries);
 
+  await page.getByRole("button", { name: "파일 업로드", exact: true }).click();
+  const templateCsvDownloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "CSV 양식", exact: true }).click();
+  const templateCsvDownload = await templateCsvDownloadPromise;
+  const templateCsvPath = join(EVIDENCE_DIR, "lv-05-leave-occurrence-template.csv");
+  await templateCsvDownload.saveAs(templateCsvPath);
+  const templateCsvText = readFileSync(templateCsvPath, "utf8");
+  if (!templateCsvText.includes("employee_id") || !templateCsvText.includes("policy_version_id")) throw new Error("LV05 CSV occurrence template is invalid");
+
+  const templateXlsxDownloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "XLSX 양식", exact: true }).click();
+  const templateXlsxDownload = await templateXlsxDownloadPromise;
+  const templateXlsxPath = join(EVIDENCE_DIR, "lv-05-leave-occurrence-template.xlsx");
+  await templateXlsxDownload.saveAs(templateXlsxPath);
+  if (readFileSync(templateXlsxPath).subarray(0, 2).toString("ascii") !== "PK") throw new Error("LV05 XLSX occurrence template is invalid");
+  await capture(page, "lv-05-occurrence-upload-720x900.png", 720, 900, "#people-leave-usage", screenshots, geometries);
+  await page.getByRole("button", { name: "파일 업로드", exact: true }).click();
+
   const csvDownloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "CSV", exact: true }).click();
   const csvDownload = await csvDownloadPromise;
@@ -111,10 +129,7 @@ try {
   await xlsxDownload.saveAs(xlsxPath);
   if (readFileSync(xlsxPath).subarray(0, 2).toString("ascii") !== "PK") throw new Error("LV05 XLSX container is invalid");
 
-  const snapshotResponse = page.waitForResponse((response) => response.url().includes("/api/hrx/leave/ledger/snapshots") && response.status() === 201);
-  await page.getByRole("button", { name: "현재 잔액 스냅샷" }).click();
-  await snapshotResponse;
-  await page.getByText(/일치 1 · 불일치 0/).waitFor();
+  const balanceReconciliationCopyAbsent = (await page.getByText(/잔액 대조|불일치|기준 없음/).count()) === 0;
   await capture(page, "lv-05-usage-720x900.png", 720, 900, "#people-leave-usage", screenshots, geometries);
 
   await page.setViewportSize({ width: 1512, height: 900 });
@@ -135,7 +150,7 @@ try {
   await page.locator(".hrx-step-up-form").getByRole("button", { name: "확인" }).click();
   await executeResponse;
   await page.getByText("급여 동기화 대기", { exact: true }).first().waitFor();
-  await page.getByText("오프보딩 종료 차단 중", { exact: true }).waitFor();
+  await page.getByText("급여 전달 확인 대기", { exact: true }).waitFor();
   await capture(page, "lv-05-termination-pending-sync-720x900.png", 720, 900, "#people-leave-termination", screenshots, geometries);
 
   const staffContext = await browser.newContext({ viewport: { width: 1280, height: 800 } });
@@ -168,9 +183,11 @@ try {
     synthetic_only: true,
     checks: {
       usage_screen_totals_visible: true,
+      csv_occurrence_template_valid: true,
+      xlsx_occurrence_template_valid: true,
       csv_download_private_fields_excluded: true,
       xlsx_download_valid_container: true,
-      balance_snapshot_match_visible: true,
+      balance_reconciliation_copy_absent: balanceReconciliationCopyAbsent,
       termination_preview_execute_step_up: true,
       termination_dual_control: true,
       payroll_outbox_pending: outbox.length === 1 && outbox[0].state === "pending",
@@ -184,6 +201,8 @@ try {
       unrelated_console_errors: unrelatedConsoleErrors.length,
     },
     exports: [
+      { path: templateCsvPath.replace(`${ROOT}/`, ""), sha256: sha256(templateCsvPath) },
+      { path: templateXlsxPath.replace(`${ROOT}/`, ""), sha256: sha256(templateXlsxPath) },
       { path: csvPath.replace(`${ROOT}/`, ""), sha256: sha256(csvPath) },
       { path: xlsxPath.replace(`${ROOT}/`, ""), sha256: sha256(xlsxPath) },
     ],
