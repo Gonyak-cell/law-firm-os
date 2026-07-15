@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { createSqlHrxAuditEventStore } from "../../../audit/src/hrx-event-store-sql.js";
 import { planEarliestExpiryAllocations } from "./allocation.js";
 import { createSqlLeaveBalanceLedger } from "./balance.js";
+import { calculateLeaveTypeEconomics } from "./type-economics.js";
 import { createSqlWorkScheduleResolver } from "./work-schedule.js";
 
 function requiredString(input, field) {
@@ -150,7 +151,32 @@ function defaultIdFactory(prefix) {
   return `${prefix}_${randomUUID()}`;
 }
 
-function modernRequestRow({ tenantId, input, type, policy, schedule, evidence, now }) {
+function inferDurationMode(input, schedule) {
+  if (input.duration_mode) return input.duration_mode;
+  const totalScheduledMinutes = schedule.range_days.reduce((total, day) => total + day.scheduled_minutes, 0);
+  if (schedule.requested_minutes === totalScheduledMinutes) return "full_day";
+  if (schedule.segments.length === 1 && schedule.requested_minutes === Math.floor(totalScheduledMinutes / 2)) return "half_day";
+  if (schedule.segments.length === 1 && schedule.requested_minutes === Math.floor(totalScheduledMinutes / 4)) return "quarter_day";
+  return "hours";
+}
+
+function distributeMinutes(segments, totalMinutes) {
+  const requestedTotal = segments.reduce((total, segment) => total + segment.requested_minutes, 0);
+  let distributed = 0;
+  return segments.map((segment, index) => {
+    const amount = index === segments.length - 1
+      ? totalMinutes - distributed
+      : Math.floor((totalMinutes * segment.requested_minutes) / requestedTotal);
+    distributed += amount;
+    return amount;
+  });
+}
+
+function planBalanceAllocations(input) {
+  return input.requested_minutes === 0 ? Object.freeze([]) : planEarliestExpiryAllocations(input);
+}
+
+function modernRequestRow({ tenantId, input, type, policy, schedule, economics, policyRulesSnapshotHash, evidence, now }) {
   return {
     tenant_id: tenantId,
     request_id: requiredString(input, "request_id"),
@@ -161,6 +187,12 @@ function modernRequestRow({ tenantId, input, type, policy, schedule, evidence, n
     leave_type_id: type.leave_type_id,
     amount: input.requested_minutes / 60,
     requested_minutes: input.requested_minutes,
+    duration_mode: economics.duration_mode,
+    rounded_requested_minutes: economics.rounded_requested_minutes,
+    paid_minutes: economics.paid_minutes,
+    unpaid_minutes: economics.unpaid_minutes,
+    deduction_minutes: economics.deduction_minutes,
+    policy_rules_snapshot_hash: policyRulesSnapshotHash,
     start_date: requiredString(input, "start_date"),
     end_date: requiredString(input, "end_date"),
     timezone: schedule.timezone,
@@ -378,10 +410,10 @@ export function createDurableLeaveManagementService({
       table: "hrx_leave_balance_entries",
       where: { tenant_id: request.tenant_id, employee_id: request.employee_id, group_id: policy.group_id },
     });
-    const plan = planEarliestExpiryAllocations({
+    const plan = planBalanceAllocations({
       entitlements,
       ledger_entries: ledgerRows,
-      requested_minutes: request.requested_minutes,
+      requested_minutes: Number.isInteger(request.deduction_minutes) ? request.deduction_minutes : request.requested_minutes,
       on_date: onDate,
     });
     const existing = tx.query("select", {
@@ -497,7 +529,10 @@ export function createDurableLeaveManagementService({
         where: { tenant_id: request.tenant_id, segment_id: segment.segment_id },
       });
     }
-    for (const segment of schedule.segments) {
+    const hasEconomicsSnapshot = typeof request.policy_rules_snapshot_hash === "string";
+    const segmentPaidMinutes = hasEconomicsSnapshot ? distributeMinutes(schedule.segments, request.paid_minutes) : [];
+    const segmentDeductionMinutes = hasEconomicsSnapshot ? distributeMinutes(schedule.segments, request.deduction_minutes) : [];
+    for (const [index, segment] of schedule.segments.entries()) {
       tx.query("insert", {
         table: "hrx_leave_request_segments",
         row: {
@@ -507,6 +542,11 @@ export function createDurableLeaveManagementService({
           segment_date: segment.date,
           scheduled_minutes: segment.scheduled_minutes,
           requested_minutes: segment.requested_minutes,
+          ...(hasEconomicsSnapshot ? {
+            paid_minutes: segmentPaidMinutes[index],
+            deduction_minutes: segmentDeductionMinutes[index],
+            policy_rules_snapshot_hash: request.policy_rules_snapshot_hash,
+          } : {}),
           timezone: segment.timezone,
           schedule_profile_id: segment.schedule_profile_id,
           schedule_snapshot_hash: segment.schedule_snapshot_hash,
@@ -562,6 +602,13 @@ export function createDurableLeaveManagementService({
         duration_mode: input.duration_mode,
         requested_minutes: input.requested_minutes,
       });
+      const policyRules = JSON.parse(policy.rules_json ?? "{}");
+      const economics = calculateLeaveTypeEconomics({
+        rules: policyRules,
+        leave_type_id: type.leave_type_id,
+        duration_mode: schedule.duration_mode,
+        requested_minutes: schedule.requested_minutes,
+      });
       const entitlements = store
         .query("select", { table: "hrx_leave_entitlements", where: { tenant_id: tenantId, employee_id: employeeId } })
         .filter((entitlement) => entitlement.group_id === policy.group_id);
@@ -569,10 +616,10 @@ export function createDurableLeaveManagementService({
         table: "hrx_leave_balance_entries",
         where: { tenant_id: tenantId, employee_id: employeeId, group_id: policy.group_id },
       });
-      const allocations = planEarliestExpiryAllocations({
+      const allocations = planBalanceAllocations({
         entitlements,
         ledger_entries: ledgerRows,
-        requested_minutes: schedule.requested_minutes,
+        requested_minutes: economics.deduction_minutes,
         on_date: startDate,
       }).map((allocation) => {
         const entitlement = entitlements.find((candidate) => candidate.entitlement_id === allocation.entitlement_id);
@@ -593,11 +640,12 @@ export function createDurableLeaveManagementService({
       return Object.freeze({
         employee_id: employeeId,
         leave_type: clone(type),
-        policy: Object.freeze({ ...clone(policy), rules: JSON.parse(policy.rules_json ?? "{}") }),
+        policy: Object.freeze({ ...clone(policy), rules: policyRules }),
         schedule,
+        economics,
         allocations,
         balance,
-        available_after_minutes: balance.available_minutes - schedule.requested_minutes,
+        available_after_minutes: balance.available_minutes - economics.deduction_minutes,
         input_requirements: evidenceRule(type),
         approval_plan: Object.freeze({
           step_count: 1,
@@ -727,6 +775,14 @@ export function createDurableLeaveManagementService({
           if (schedule.requested_minutes !== input.requested_minutes) {
             throw guardedError("Requested minutes do not match the work schedule calculation", "HRX_LEAVE_DURATION_MISMATCH");
           }
+          const policyRules = JSON.parse(policy.rules_json ?? "{}");
+          const economics = calculateLeaveTypeEconomics({
+            rules: policyRules,
+            leave_type_id: type.leave_type_id,
+            duration_mode: inferDurationMode(input, schedule),
+            requested_minutes: schedule.requested_minutes,
+          });
+          const policyRulesSnapshotHash = hash(policyRules);
           const entitlements = tx
             .query("select", { table: "hrx_leave_entitlements", where: { tenant_id: tenantId, employee_id: employeeId } })
             .filter((entitlement) => entitlement.group_id === policy.group_id);
@@ -734,10 +790,10 @@ export function createDurableLeaveManagementService({
             table: "hrx_leave_balance_entries",
             where: { tenant_id: tenantId, employee_id: employeeId, group_id: policy.group_id },
           });
-          const allocationPlan = planEarliestExpiryAllocations({
+          const allocationPlan = planBalanceAllocations({
             entitlements,
             ledger_entries: ledgerRows,
-            requested_minutes: input.requested_minutes,
+            requested_minutes: economics.deduction_minutes,
             on_date: input.start_date,
           });
           const evidence = evidenceDocuments(tx, { tenantId, employeeId, type, input });
@@ -749,11 +805,23 @@ export function createDurableLeaveManagementService({
             throw guardedError("Applicant cannot be assigned as approver", "HRX_LEAVE_SELF_APPROVAL_FORBIDDEN", 403);
           }
 
-          const request = modernRequestRow({ tenantId, input, type, policy, schedule, evidence, now });
+          const request = modernRequestRow({
+            tenantId,
+            input,
+            type,
+            policy,
+            schedule,
+            economics,
+            policyRulesSnapshotHash,
+            evidence,
+            now,
+          });
           tx.query("insert", { table: "hrx_leave_requests", row: request });
           insertEvidenceAttachments({ tx, tenantId, requestId: request.request_id, documents: evidence.documents, now, idFactory });
           await inject(failureInjector, "submit.after_request", { request_id: request.request_id });
-          for (const segment of schedule.segments) {
+          const segmentPaidMinutes = distributeMinutes(schedule.segments, economics.paid_minutes);
+          const segmentDeductionMinutes = distributeMinutes(schedule.segments, economics.deduction_minutes);
+          for (const [index, segment] of schedule.segments.entries()) {
             tx.query("insert", {
               table: "hrx_leave_request_segments",
               row: {
@@ -763,6 +831,9 @@ export function createDurableLeaveManagementService({
                 segment_date: segment.date,
                 scheduled_minutes: segment.scheduled_minutes,
                 requested_minutes: segment.requested_minutes,
+                paid_minutes: segmentPaidMinutes[index],
+                deduction_minutes: segmentDeductionMinutes[index],
+                policy_rules_snapshot_hash: policyRulesSnapshotHash,
                 timezone: segment.timezone,
                 schedule_profile_id: segment.schedule_profile_id,
                 schedule_snapshot_hash: segment.schedule_snapshot_hash,

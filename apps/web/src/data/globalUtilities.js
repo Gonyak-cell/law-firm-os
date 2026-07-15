@@ -457,7 +457,7 @@ export const conditionalGlobalItems = [
       },
       {
         id: "policies-annual-leave",
-        label: "연차휴가 사용 촉진 문서",
+        label: "연차 사용 촉진",
         source: "Vault",
         icon: FileText,
         description: "문서 원문은 Vault에 보관하고 People의 촉진 캠페인에서는 참조와 전달 증거를 관리합니다.",

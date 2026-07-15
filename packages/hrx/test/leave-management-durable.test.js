@@ -247,18 +247,255 @@ test("leave preview derives full, half, quarter, and hourly minutes from the exp
   };
   const fullDay = await service.preview({ tenant_id: TENANT }, { ...base, duration_mode: "full_day" });
   assert.equal(fullDay.schedule.requested_minutes, 480);
+  assert.equal(fullDay.economics.paid_minutes, 480);
+  assert.equal(fullDay.economics.deduction_minutes, 480);
   assert.deepEqual(fullDay.schedule.segments[0].leave_periods, [
     { start: "09:00", end: "12:00", minutes: 180 },
     { start: "13:00", end: "18:00", minutes: 300 },
   ]);
   assert.equal(fullDay.approval_plan.approver_actor_id, "manager-001");
-  assert.equal((await service.preview({ tenant_id: TENANT }, { ...base, duration_mode: "half_day" })).schedule.requested_minutes, 240);
-  assert.equal((await service.preview({ tenant_id: TENANT }, { ...base, duration_mode: "quarter_day" })).schedule.requested_minutes, 120);
-  assert.equal((await service.preview({ tenant_id: TENANT }, { ...base, duration_mode: "hours", requested_minutes: 90 })).schedule.requested_minutes, 90);
+  const halfDay = await service.preview({ tenant_id: TENANT }, { ...base, duration_mode: "half_day" });
+  assert.equal(halfDay.schedule.requested_minutes, 240);
+  assert.equal(halfDay.economics.deduction_minutes, 240);
+  const quarterDay = await service.preview({ tenant_id: TENANT }, { ...base, duration_mode: "quarter_day" });
+  assert.equal(quarterDay.schedule.requested_minutes, 120);
+  assert.equal(quarterDay.economics.deduction_minutes, 120);
+  const hourly = await service.preview({ tenant_id: TENANT }, { ...base, duration_mode: "hours", requested_minutes: 90 });
+  assert.equal(hourly.schedule.requested_minutes, 90);
+  assert.equal(hourly.economics.deduction_minutes, 90);
   await assert.rejects(
     service.preview({ tenant_id: TENANT }, { ...base, end_date: "2026-07-15", duration_mode: "half_day" }),
     (error) => error.safe_error_code === "HRX_LEAVE_PARTIAL_DAY_SINGLE_DATE_REQUIRED",
   );
+  store.close();
+});
+
+test("leave preview applies type rounding and separates paid minutes from balance deduction", async () => {
+  const { store, service } = createHarness();
+  await grant(service, { minutes: 960 });
+  store.query("updateOne", {
+    table: "hrx_leave_policy_versions",
+    where: { tenant_id: TENANT, policy_version_id: "policy-2026-v1" },
+    patch: {
+      rules_json: JSON.stringify({
+        type_rules: {
+          "type-annual": {
+            usage_modes: ["hours"],
+            standard_day_minutes: 480,
+            paid_ratio_bps: 5_000,
+            deduction_ratio_bps: 7_500,
+            rounding_minutes: 60,
+            rounding_mode: "ceil",
+          },
+        },
+      }),
+    },
+  });
+  const base = {
+    employee_id: "emp-001",
+    leave_type_id: "type-annual",
+    policy_version_id: "policy-2026-v1",
+    start_date: "2026-07-14",
+    end_date: "2026-07-14",
+  };
+
+  const preview = await service.preview({ tenant_id: TENANT }, {
+    ...base,
+    duration_mode: "hours",
+    requested_minutes: 90,
+  });
+  assert.deepEqual(preview.economics, {
+    requested_minutes: 90,
+    rounded_requested_minutes: 120,
+    paid_minutes: 60,
+    unpaid_minutes: 60,
+    deduction_minutes: 90,
+    standard_day_minutes: 480,
+    duration_mode: "hours",
+  });
+  assert.equal(preview.allocations.reduce((total, allocation) => total + allocation.amount_minutes, 0), 90);
+  assert.equal(preview.available_after_minutes, 870);
+  await assert.rejects(
+    service.preview({ tenant_id: TENANT }, { ...base, duration_mode: "half_day" }),
+    /duration_mode is not allowed/,
+  );
+  store.close();
+});
+
+test("leave submission snapshots type economics on the request and schedule segments", async () => {
+  const { store, service } = createHarness();
+  await grant(service, { minutes: 960 });
+  store.query("updateOne", {
+    table: "hrx_leave_policy_versions",
+    where: { tenant_id: TENANT, policy_version_id: "policy-2026-v1" },
+    patch: {
+      rules_json: JSON.stringify({
+        type_rules: {
+          "type-annual": {
+            usage_modes: ["hours"],
+            standard_day_minutes: 480,
+            paid_ratio_bps: 5_000,
+            deduction_ratio_bps: 5_000,
+            rounding_minutes: 60,
+            rounding_mode: "ceil",
+          },
+        },
+      }),
+    },
+  });
+
+  const submitted = await service.submit(
+    { tenant_id: TENANT, actor_id: "user-001" },
+    submitInput({ requested_minutes: 90, duration_mode: "hours" }),
+  );
+  assert.equal(submitted.leave_request.duration_mode, "hours");
+  assert.equal(submitted.leave_request.rounded_requested_minutes, 120);
+  assert.equal(submitted.leave_request.paid_minutes, 60);
+  assert.equal(submitted.leave_request.unpaid_minutes, 60);
+  assert.equal(submitted.leave_request.deduction_minutes, 60);
+  assert.match(submitted.leave_request.policy_rules_snapshot_hash, /^[a-f0-9]{64}$/);
+
+  const segment = store.query("selectOne", {
+    table: "hrx_leave_request_segments",
+    where: { tenant_id: TENANT, request_id: "leave-001" },
+  });
+  assert.equal(segment.paid_minutes, 60);
+  assert.equal(segment.deduction_minutes, 60);
+  assert.equal(segment.policy_rules_snapshot_hash, submitted.leave_request.policy_rules_snapshot_hash);
+
+  store.query("insert", {
+    table: "hrx_leave_policy_versions",
+    row: {
+      tenant_id: TENANT,
+      policy_version_id: "policy-2026-v2",
+      group_id: "group-paid",
+      policy_code: "annual-kr",
+      version: 2,
+      effective_from: "2027-01-01",
+      effective_to: null,
+      status: "draft",
+      rules_json: JSON.stringify({ type_rules: { "type-annual": { paid_ratio_bps: 10_000 } } }),
+    },
+  });
+  const persisted = store.query("selectOne", {
+    table: "hrx_leave_requests",
+    where: { tenant_id: TENANT, request_id: "leave-001" },
+  });
+  assert.equal(persisted.policy_version_id, "policy-2026-v1");
+  assert.equal(persisted.paid_minutes, 60);
+  assert.equal(persisted.deduction_minutes, 60);
+  assert.equal(persisted.policy_rules_snapshot_hash, submitted.leave_request.policy_rules_snapshot_hash);
+  store.close();
+});
+
+test("leave reservation approval and cancellation use snapshotted deduction minutes", async () => {
+  const { store, service } = createHarness();
+  await grant(service, { minutes: 480 });
+  store.query("updateOne", {
+    table: "hrx_leave_policy_versions",
+    where: { tenant_id: TENANT, policy_version_id: "policy-2026-v1" },
+    patch: {
+      rules_json: JSON.stringify({
+        type_rules: {
+          "type-annual": {
+            usage_modes: ["hours"],
+            paid_ratio_bps: 5_000,
+            deduction_ratio_bps: 5_000,
+            rounding_minutes: 30,
+            rounding_mode: "ceil",
+          },
+        },
+      }),
+    },
+  });
+
+  const submitted = await service.submit(
+    { tenant_id: TENANT, actor_id: "user-001" },
+    submitInput({ requested_minutes: 120, duration_mode: "hours" }),
+  );
+  assert.equal(submitted.leave_request.deduction_minutes, 60);
+  let balance = createSqlLeaveBalanceLedger({ store }).balance({ tenant_id: TENANT, employee_id: "emp-001", group_id: "group-paid" });
+  assert.equal(balance.available_minutes, 420);
+  assert.equal(balance.reserved_minutes, 60);
+
+  const approved = await service.approve(
+    { tenant_id: TENANT, actor_id: "manager-001" },
+    {
+      idempotency_key: "approve-economics-001",
+      request_id: "leave-001",
+      applicant_actor_ids: ["emp-001", "user-001"],
+    },
+  );
+  assert.equal(approved.leave_request.state, "approved");
+  balance = createSqlLeaveBalanceLedger({ store }).balance({ tenant_id: TENANT, employee_id: "emp-001", group_id: "group-paid" });
+  assert.equal(balance.available_minutes, 420);
+  assert.equal(balance.reserved_minutes, 0);
+  assert.equal(balance.used_minutes, 60);
+
+  const cancelled = await service.closeSubmitted(
+    { tenant_id: TENANT, actor_id: "user-001" },
+    {
+      idempotency_key: "cancel-economics-001",
+      request_id: "leave-001",
+      state: "cancelled",
+      applicant_actor_ids: ["emp-001", "user-001"],
+    },
+  );
+  assert.equal(cancelled.leave_request.state, "cancelled_after_approval");
+  balance = createSqlLeaveBalanceLedger({ store }).balance({ tenant_id: TENANT, employee_id: "emp-001", group_id: "group-paid" });
+  assert.equal(balance.available_minutes, 480);
+  const lifecycleEntries = createSqlLeaveBalanceLedger({ store }).list({ tenant_id: TENANT, employee_id: "emp-001", group_id: "group-paid" })
+    .filter((entry) => entry.entry_type !== "earned");
+  const signedTotal = lifecycleEntries.reduce((total, entry) => {
+    if (entry.entry_type === "adjustment") return total + (entry.adjustment_direction === "credit" ? entry.amount_minutes : -entry.amount_minutes);
+    return total + (["released"].includes(entry.entry_type) ? entry.amount_minutes : -entry.amount_minutes);
+  }, 0);
+  assert.equal(signedTotal, 0);
+  store.close();
+});
+
+test("zero-deduction leave completes without balance allocations", async () => {
+  const { store, service } = createHarness();
+  await grant(service, { minutes: 480 });
+  store.query("updateOne", {
+    table: "hrx_leave_policy_versions",
+    where: { tenant_id: TENANT, policy_version_id: "policy-2026-v1" },
+    patch: {
+      rules_json: JSON.stringify({
+        type_rules: {
+          "type-annual": {
+            usage_modes: ["hours"],
+            paid_ratio_bps: 0,
+            deduction_ratio_bps: 0,
+          },
+        },
+      }),
+    },
+  });
+
+  const submitted = await service.submit(
+    { tenant_id: TENANT, actor_id: "user-001" },
+    submitInput({ requested_minutes: 60, duration_mode: "hours" }),
+  );
+  assert.equal(submitted.leave_request.deduction_minutes, 0);
+  assert.deepEqual(store.query("select", {
+    table: "hrx_leave_request_allocations",
+    where: { tenant_id: TENANT, request_id: "leave-001" },
+  }), []);
+  const approved = await service.approve(
+    { tenant_id: TENANT, actor_id: "manager-001" },
+    {
+      idempotency_key: "approve-zero-deduction-001",
+      request_id: "leave-001",
+      applicant_actor_ids: ["emp-001", "user-001"],
+    },
+  );
+  assert.equal(approved.leave_request.state, "approved");
+  assert.equal(createSqlLeaveBalanceLedger({ store }).balance({
+    tenant_id: TENANT,
+    employee_id: "emp-001",
+    group_id: "group-paid",
+  }).available_minutes, 480);
   store.close();
 });
 

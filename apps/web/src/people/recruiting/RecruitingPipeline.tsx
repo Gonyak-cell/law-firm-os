@@ -327,7 +327,7 @@ export function RecruitingPipeline() {
   }
 
   return (
-    <Panel id="people-recruiting" className="people-panel span-2" title="구성원 등록" meta="채용 연동">
+    <Panel id="people-recruiting" className="people-panel span-2" title="구성원 등록">
       {body}
     </Panel>
   );

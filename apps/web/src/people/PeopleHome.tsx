@@ -26,6 +26,7 @@ import { LifecycleBoard } from "./lifecycle/LifecycleBoard.tsx";
 import { HRAnalytics } from "./analytics/HRAnalytics.tsx";
 import { HRAIAssistant } from "./ai/HRAIAssistant.tsx";
 import { PayrollBoundaryPanel } from "./payroll/PayrollBoundaryPanel.tsx";
+import { PayrollStatementWorkspace } from "./payroll/PayrollStatementWorkspace.tsx";
 import { PermissionAdminPanel } from "./admin/PermissionAdminPanel.jsx";
 import { LegalPeopleWorkspace } from "./legal/LegalPeopleWorkspace.tsx";
 import { HrxRiskDashboard } from "./security/HrxRiskDashboard.tsx";
@@ -63,11 +64,10 @@ const HANDLED_PEOPLE_SECTIONS = new Set([
   "people-audit",
   "people-analytics",
   "people-risk",
-  "people-work-schedule",
-  "people-current-work-status",
   "people-attendance-records",
   "people-ai",
   "people-payroll",
+  "people-pay-statement",
   "people-admin"
 ]);
 
@@ -167,15 +167,22 @@ function peopleGuardState(liveCtx: string) {
   return null;
 }
 
-export function PeopleHome({ activeSection = "", liveCtx = "allow", canManageLeavePolicy = false, canApproveLeave = false, canExecuteLeaveAccrual = false, canAdjustLeaveLedger = false, canExportLeaveReport = false, canSettleLeaveTermination = false, canManageLeavePromotion = false }: { activeSection?: string; liveCtx?: string; canManageLeavePolicy?: boolean; canApproveLeave?: boolean; canExecuteLeaveAccrual?: boolean; canAdjustLeaveLedger?: boolean; canExportLeaveReport?: boolean; canSettleLeaveTermination?: boolean; canManageLeavePromotion?: boolean }) {
+export function PeopleHome({ activeSection = "", liveCtx = "allow", refreshSignal = 0, canManageLeavePolicy = false, canApproveLeave = false, canExecuteLeaveAccrual = false, canAdjustLeaveLedger = false, canExportLeaveReport = false, canSettleLeaveTermination = false, canManageLeavePromotion = false }: { activeSection?: string; liveCtx?: string; refreshSignal?: number; canManageLeavePolicy?: boolean; canApproveLeave?: boolean; canExecuteLeaveAccrual?: boolean; canAdjustLeaveLedger?: boolean; canExportLeaveReport?: boolean; canSettleLeaveTermination?: boolean; canManageLeavePromotion?: boolean }) {
   const [overview, setOverview] = useState<PeopleOverviewState | null>(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const refreshSignalRef = useRef(refreshSignal);
   const detailPanelRef = useRef<HTMLElement | null>(null);
   const detailCloseRef = useRef<HTMLButtonElement | null>(null);
   const currentSection = PEOPLE_SECTIONS.has(activeSection) ? activeSection : "people-members";
   const currentFeature = getPeopleFeatureBySection(currentSection);
   const guardedState = peopleGuardState(liveCtx);
+
+  useEffect(() => {
+    if (refreshSignalRef.current === refreshSignal) return;
+    refreshSignalRef.current = refreshSignal;
+    setRefreshKey((key) => key + 1);
+  }, [refreshSignal]);
 
   useEffect(() => {
     let cancelled = false;
@@ -187,13 +194,18 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow", canManageLea
         cancelled = true;
       };
     }
+    if (!WORKFORCE_SECTIONS.has(currentSection)) {
+      return () => {
+        cancelled = true;
+      };
+    }
     fetchHrxPeopleOverview().then((result) => {
       if (!cancelled) setOverview(result);
     });
     return () => {
       cancelled = true;
     };
-  }, [liveCtx, refreshKey]);
+  }, [currentSection, liveCtx, refreshKey]);
 
   useEffect(() => {
     if (!selectedEmployeeId) return undefined;
@@ -235,7 +247,7 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow", canManageLea
   return (
     <section id="people-home" className="surface stack people-surface" data-hrx-api-backed="true">
       <ForestHero title="People" image={heroPeopleArchitecture} imageOpacity={0.24} />
-      <div className="people-work-layer" data-people-work-layer="white">
+      <div key={refreshKey} className="people-work-layer" data-people-work-layer="white">
         {overview?.kind === "error" && !WORKFORCE_SECTIONS.has(currentSection) && (
           <div className="live-data-state live-data-error">
             <strong>구성원 현황을 불러오지 못했습니다</strong>
@@ -329,7 +341,7 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow", canManageLea
 
         {!guardedState && currentSection === "people-leave-accrual-auto" && canExecuteLeaveAccrual && (
           <div className="people-runtime-grid">
-            <LeaveAccrualAutoPage />
+            <LeaveAccrualAutoPage canExport={canExportLeaveReport} />
           </div>
         )}
 
@@ -355,7 +367,7 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow", canManageLea
 
         {!guardedState && currentSection === "people-leave-usage" && (
           <div className="people-runtime-grid">
-            <LeaveUsagePage canExport={canExportLeaveReport} canProcessIntegrations={canManageLeavePolicy} />
+            <LeaveUsagePage canExport={canExportLeaveReport} canProcessIntegrations={canManageLeavePolicy} canAdjust={canAdjustLeaveLedger} />
           </div>
         )}
 
@@ -429,14 +441,12 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow", canManageLea
           </div>
         )}
 
-        {!guardedState && ["people-work-schedule", "people-current-work-status", "people-attendance-records"].includes(currentSection) && (
+        {!guardedState && currentSection === "people-attendance-records" && (
           <div className="people-runtime-grid people-attendance-runtime-grid">
             <EmployeeList selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} refreshKey={refreshKey} />
             <AttendanceWorkspace
               employeeId={selectedEmployeeId}
               refreshKey={refreshKey}
-              onChanged={() => setRefreshKey((key) => key + 1)}
-              mode={currentSection === "people-work-schedule" ? "schedule" : currentSection === "people-current-work-status" ? "status" : "attendance"}
             />
           </div>
         )}
@@ -450,6 +460,12 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow", canManageLea
         {!guardedState && currentSection === "people-payroll" && (
           <div className="people-runtime-grid">
             <PayrollBoundaryPanel key={refreshKey} />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-pay-statement" && (
+          <div className="people-runtime-grid">
+            <PayrollStatementWorkspace key={refreshKey} />
           </div>
         )}
 

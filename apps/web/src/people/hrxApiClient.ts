@@ -681,7 +681,7 @@ export async function fetchHrxLeaveTeamState(from?: string, to?: string) {
   };
 }
 
-export async function fetchHrxActiveLeaveOptions(onDate?: string) {
+export async function fetchHrxActiveLeaveOptions(onDate = currentDateKey()) {
   const result = await requestJson(withQuery("/api/hrx/leave/types/active", { on_date: onDate }));
   if (result.kind !== "data" || !Array.isArray(result.body.groups) || !Array.isArray(result.body.types) || !Array.isArray(result.body.policies)) {
     return { kind: "error" as const, reason: result.reason ?? null };
@@ -848,6 +848,49 @@ export async function executeHrxLeaveAccrual(previewRunId: string) {
     : { kind: "error" as const, reason: result.reason ?? null };
 }
 
+export async function previewHrxLeaveAccrualBatch(form: HrxClientRecord) {
+  const result = await requestJson("/api/hrx/leave/accrual/batches/preview", { method: "POST", body: JSON.stringify(form) });
+  return result.kind === "data" && result.body.batch
+    ? { kind: "data" as const, batch: result.body.batch }
+    : { kind: "error" as const, reason: result.reason ?? null };
+}
+
+export async function fetchHrxLeaveAccrualBatch(batchId: string) {
+  const result = await requestJson(`/api/hrx/leave/accrual/batches/${encodeURIComponent(batchId)}`);
+  return result.kind === "data" && result.body.batch
+    ? { kind: "data" as const, batch: result.body.batch }
+    : { kind: "error" as const, reason: result.reason ?? null };
+}
+
+export async function executeHrxLeaveAccrualBatch(previewBatchId: string, form: HrxClientRecord) {
+  const result = await requestJson(`/api/hrx/leave/accrual/batches/${encodeURIComponent(previewBatchId)}/execute`, {
+    method: "POST",
+    body: JSON.stringify(form)
+  });
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  return result.kind === "data" && result.body.batch
+    ? { kind: "data" as const, batch: result.body.batch }
+    : { kind: "error" as const, reason: result.reason ?? null };
+}
+
+export async function retryHrxLeaveAccrualBatch(batchId: string) {
+  const result = await requestJson(`/api/hrx/leave/accrual/batches/${encodeURIComponent(batchId)}/retry`, {
+    method: "POST",
+    body: JSON.stringify({})
+  });
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  return result.kind === "data" && result.body.batch
+    ? { kind: "data" as const, batch: result.body.batch }
+    : { kind: "error" as const, reason: result.reason ?? null };
+}
+
+export async function exportHrxLeaveAccrualBatch(batchId: string, format: "csv" | "xlsx") {
+  const result = await requestJson(withQuery(`/api/hrx/leave/accrual/batches/${encodeURIComponent(batchId)}/export`, { format }));
+  return result.kind === "data" && result.body.export
+    ? { kind: "data" as const, export: result.body.export }
+    : { kind: "error" as const, reason: result.reason ?? null };
+}
+
 export async function fetchHrxLeaveAccrualRuns() {
   const result = await requestJson("/api/hrx/leave/accrual/runs");
   return result.kind === "data" && Array.isArray(result.body.runs)
@@ -878,6 +921,66 @@ export async function executeHrxLeaveManualAdjustment(form: HrxClientRecord) {
   if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
   return result.kind === "data" && result.body.result
     ? { kind: "data" as const, result: result.body.result }
+    : { kind: "error" as const, reason: result.reason ?? null };
+}
+
+export async function fetchHrxLeaveOccurrenceProjections(filters: HrxQueryParams = {}) {
+  const result = await requestJson(withQuery("/api/hrx/leave/occurrences/projections", filters));
+  return result.kind === "data" && result.body.projections
+    ? { kind: "data" as const, projections: result.body.projections }
+    : { kind: "error" as const, reason: result.reason ?? null, status: result.status };
+}
+
+export async function exportHrxLeaveOccurrences(format: "csv" | "xlsx", view: "list" | "month" | "type", filters: HrxQueryParams = {}) {
+  const result = await requestJson(withQuery("/api/hrx/leave/occurrences/export", { ...filters, format, view }));
+  return result.kind === "data" && result.body.export
+    ? { kind: "data" as const, export: result.body.export }
+    : { kind: "error" as const, reason: result.reason ?? null, status: result.status };
+}
+
+export async function updateHrxScheduledLeaveEntitlement(entitlementId: string, form: HrxClientRecord) {
+  const result = await requestJson(`/api/hrx/leave/entitlements/${encodeURIComponent(entitlementId)}`, { method: "PATCH", body: JSON.stringify(form) });
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  return result.kind === "data" && result.body.entitlement
+    ? { kind: "data" as const, entitlement: result.body.entitlement }
+    : { kind: "error" as const, reason: result.reason ?? null };
+}
+
+export async function cancelHrxScheduledLeaveEntitlement(entitlementId: string, form: HrxClientRecord) {
+  const result = await requestJson(`/api/hrx/leave/entitlements/${encodeURIComponent(entitlementId)}/cancel`, { method: "POST", body: JSON.stringify(form) });
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  return result.kind === "data" && result.body.entitlement
+    ? { kind: "data" as const, entitlement: result.body.entitlement }
+    : { kind: "error" as const, reason: result.reason ?? null };
+}
+
+export async function fetchHrxLeaveOccurrenceTemplate() {
+  const result = await requestJson("/api/hrx/leave/accrual/manual/template");
+  return result.kind === "data" && result.body.template
+    ? { kind: "data" as const, template: result.body.template }
+    : { kind: "error" as const, reason: result.reason ?? null };
+}
+
+export async function previewHrxLeaveOccurrenceUpload(form: HrxClientRecord) {
+  const result = await requestJson("/api/hrx/leave/accrual/manual/uploads/preview", { method: "POST", body: JSON.stringify(form) });
+  return result.kind === "data" && result.body.batch
+    ? { kind: "data" as const, batch: result.body.batch }
+    : { kind: "error" as const, reason: result.reason ?? null };
+}
+
+export async function executeHrxLeaveOccurrenceUpload(batchId: string, form: HrxClientRecord) {
+  const result = await requestJson(`/api/hrx/leave/accrual/manual/uploads/${encodeURIComponent(batchId)}/execute`, { method: "POST", body: JSON.stringify(form) });
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  return result.kind === "data" && result.body.batch
+    ? { kind: "data" as const, batch: result.body.batch }
+    : { kind: "error" as const, reason: result.reason ?? null };
+}
+
+export async function retryHrxLeaveOccurrenceUpload(batchId: string, form: HrxClientRecord) {
+  const result = await requestJson(`/api/hrx/leave/accrual/manual/uploads/${encodeURIComponent(batchId)}/retry`, { method: "POST", body: JSON.stringify(form) });
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  return result.kind === "data" && result.body.batch
+    ? { kind: "data" as const, batch: result.body.batch }
     : { kind: "error" as const, reason: result.reason ?? null };
 }
 
@@ -926,6 +1029,14 @@ export async function processHrxLeaveIntegrations() {
     : { kind: "error" as const, reason: result.reason ?? null, status: result.status };
 }
 
+export async function retryHrxLeaveIntegrationDeadLetter(deadLetterId: string) {
+  const result = await requestJson(`/api/hrx/leave/integrations/dead-letters/${encodeURIComponent(deadLetterId)}/retry`, { method: "POST", body: "{}" });
+  const integration = result.body.integration as HrxClientRecord | undefined;
+  return result.kind === "data" && integration && Array.isArray(integration.rows)
+    ? { kind: "data" as const, integration }
+    : { kind: "error" as const, reason: result.reason ?? null, status: result.status };
+}
+
 export async function fetchHrxLeavePromotionWorkspace() {
   const result = await requestJson("/api/hrx/leave/promotion-campaigns");
   if (result.kind !== "data" || !Array.isArray(result.body.campaigns) || !Array.isArray(result.body.schedule_profiles) || !Array.isArray(result.body.policies)) {
@@ -955,8 +1066,22 @@ export async function issueHrxLeavePromotionNotice(recipientId: string, stage: "
     : { kind: "error" as const, reason: result.reason ?? null, status: result.status };
 }
 
+export async function issueHrxLeavePromotionBatch(campaignId: string, form: HrxClientRecord) {
+  const result = await requestJson(`/api/hrx/leave/promotion-campaigns/${encodeURIComponent(campaignId)}/issue-batch`, { method: "POST", body: JSON.stringify(form) });
+  return result.kind === "data" && result.body.batch
+    ? { kind: "data" as const, batch: result.body.batch }
+    : { kind: "error" as const, reason: result.reason ?? null, status: result.status };
+}
+
 export async function recordHrxLeavePromotionEvidence(recipientId: string, form: HrxClientRecord) {
   const result = await requestJson(`/api/hrx/leave/promotion-recipients/${encodeURIComponent(recipientId)}/evidence`, { method: "POST", body: JSON.stringify(form) });
+  return result.kind === "data" && result.body.recipient
+    ? { kind: "data" as const, recipient: result.body.recipient }
+    : { kind: "error" as const, reason: result.reason ?? null, status: result.status };
+}
+
+export async function revokeHrxLeavePromotionEvidence(recipientId: string, receiptId: string, reasonCode: string) {
+  const result = await requestJson(`/api/hrx/leave/promotion-recipients/${encodeURIComponent(recipientId)}/evidence/${encodeURIComponent(receiptId)}/revoke`, { method: "POST", body: JSON.stringify({ reason_code: reasonCode }) });
   return result.kind === "data" && result.body.recipient
     ? { kind: "data" as const, recipient: result.body.recipient }
     : { kind: "error" as const, reason: result.reason ?? null, status: result.status };
@@ -1035,6 +1160,16 @@ export async function updateHrxLeaveType(leaveTypeId: string, form: HrxClientRec
 
 export async function createHrxLeavePolicy(form: HrxClientRecord) {
   const result = await requestJson("/api/hrx/leave/policies", { method: "POST", body: JSON.stringify(form) });
+  return result.kind === "data" && result.body.policy
+    ? { kind: "data" as const, policy: result.body.policy }
+    : { kind: "error" as const, reason: result.reason ?? null };
+}
+
+export async function updateHrxLeavePolicy(policyVersionId: string, form: HrxClientRecord) {
+  const result = await requestJson(`/api/hrx/leave/policies/${encodeURIComponent(policyVersionId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(form)
+  });
   return result.kind === "data" && result.body.policy
     ? { kind: "data" as const, policy: result.body.policy }
     : { kind: "error" as const, reason: result.reason ?? null };
@@ -1482,6 +1617,152 @@ export async function exportHrxPayrollArtifact(previewId: string, exportArtifact
   });
   if (result.kind !== "data" || !result.body.artifact) return { kind: "error" };
   return { kind: "data", artifact: result.body.artifact };
+}
+
+function payrollRuntimeResult(result: HrxApiResult, field: "workspace" | "bundle") {
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  if (result.kind !== "data" || !result.body[field]) {
+    return { kind: "error" as const, reason: result.reason ?? null, body: result.body ?? {}, status: result.status };
+  }
+  return { kind: "data" as const, [field]: result.body[field] };
+}
+
+export async function fetchHrxPayrollWorkspace() {
+  return payrollRuntimeResult(await requestJson("/api/hrx/payroll/periods"), "workspace");
+}
+
+export async function fetchHrxPayrollRun(runId: string) {
+  return payrollRuntimeResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}`), "bundle");
+}
+
+export async function captureHrxPayrollRun(runId: string) {
+  return payrollRuntimeResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/snapshot`, {
+    method: "POST",
+    body: JSON.stringify({})
+  }), "bundle");
+}
+
+export async function previewHrxPayrollRun(runId: string) {
+  return payrollRuntimeResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/preview`, {
+    method: "POST",
+    body: JSON.stringify({})
+  }), "bundle");
+}
+
+export async function resolveHrxPayrollIssue(issueId: string, expectedVersion: number) {
+  const result = await requestJson(`/api/hrx/payroll/issues/${encodeURIComponent(issueId)}/resolve`, {
+    method: "POST",
+    body: JSON.stringify({
+      expected_version: expectedVersion,
+      state: "resolved",
+      resolution_code: "REVIEWED_SOURCE_EVIDENCE"
+    })
+  });
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  if (result.kind !== "data" || !result.body.issue) {
+    return { kind: "error" as const, reason: result.reason ?? null, body: result.body ?? {}, status: result.status };
+  }
+  return { kind: "data" as const, issue: result.body.issue };
+}
+
+export async function approveHrxPayrollRun(runId: string) {
+  return payrollRuntimeResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/approve`, {
+    method: "POST",
+    body: JSON.stringify({})
+  }), "bundle");
+}
+
+export async function closeHrxPayrollRun(runId: string) {
+  return payrollRuntimeResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/close`, {
+    method: "POST",
+    body: JSON.stringify({})
+  }), "bundle");
+}
+
+function payrollOperationResult(result: HrxApiResult, field: string) {
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  if (result.kind !== "data" || !result.body[field]) return { kind: "error" as const, reason: result.reason ?? null, body: result.body ?? {}, status: result.status };
+  return { kind: "data" as const, [field]: result.body[field] };
+}
+
+export async function fetchHrxPayrollStatements(runId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/statements`), "statements");
+}
+
+export async function generateHrxPayrollStatements(runId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/statements/generate`, { method: "POST", body: "{}" }), "generated");
+}
+
+export async function deliverHrxPayrollStatements(runId: string, channel: "email" | "message" | "self_service") {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/statements/deliver`, { method: "POST", body: JSON.stringify({ channel }) }), "delivery");
+}
+
+export async function exportHrxPayrollRegister(runId: string, format: "csv" | "xlsx") {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/export?format=${format}`), "artifact");
+}
+
+export async function fetchHrxPayrollStatementsSelf() {
+  return payrollOperationResult(await requestJson("/api/hrx/payroll/statements/self"), "statements");
+}
+
+export async function readHrxPayrollStatement(statementId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/statements/${encodeURIComponent(statementId)}/download`), "artifact");
+}
+
+export async function revokeHrxPayrollStatement(statementId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/statements/${encodeURIComponent(statementId)}/revoke`, { method: "POST", body: "{}" }), "statement");
+}
+
+export async function prepareHrxPayrollPayment(runId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/payments/prepare`, { method: "POST", body: "{}" }), "payment");
+}
+
+export async function fetchHrxPayrollPayment(batchId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/payment-batches/${encodeURIComponent(batchId)}`), "payment");
+}
+
+export async function approveHrxPayrollPayment(batchId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/payment-batches/${encodeURIComponent(batchId)}/approve`, { method: "POST", body: "{}" }), "payment");
+}
+
+export async function exportHrxPayrollPayment(batchId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/payment-batches/${encodeURIComponent(batchId)}/export`, { method: "POST", body: "{}" }), "artifact");
+}
+
+export async function reconcileHrxPayrollPayment(batchId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/payment-batches/${encodeURIComponent(batchId)}/reconcile`, { method: "POST", body: "{}" }), "payment");
+}
+
+export async function fetchHrxPayrollFilings(runId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/filings`), "filings");
+}
+
+export async function createHrxPayrollFiling(runId: string, filingKind: "withholding" | "payment_statement" | "social_insurance" | "year_end") {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/filings`, { method: "POST", body: JSON.stringify({ filing_kind: filingKind }) }), "filing");
+}
+
+export async function validateHrxPayrollFiling(filingJobId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/filings/${encodeURIComponent(filingJobId)}/validate`, { method: "POST", body: "{}" }), "filing");
+}
+
+export async function submitHrxPayrollFiling(filingJobId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/filings/${encodeURIComponent(filingJobId)}/submit`, { method: "POST", body: "{}" }), "submission");
+}
+
+export async function correctHrxPayrollFiling(filingJobId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/filings/${encodeURIComponent(filingJobId)}/correct`, { method: "POST", body: "{}" }), "filing");
+}
+
+export async function collectHrxPayrollYearEnd(runId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/year-end/collect`, { method: "POST", body: "{}" }), "year_end");
+}
+
+export async function calculateHrxPayrollYearEnd(runId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/year-end/calculate`, { method: "POST", body: "{}" }), "year_end");
+}
+
+export async function reviewHrxPayrollYearEnd(runId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/year-end/review`, { method: "POST", body: "{}" }), "year_end");
 }
 
 export async function fetchHrxPeopleOverview(options = {}) {

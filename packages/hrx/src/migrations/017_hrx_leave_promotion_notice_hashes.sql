@@ -1,0 +1,2 @@
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN first_content_hash TEXT;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN second_content_hash TEXT;

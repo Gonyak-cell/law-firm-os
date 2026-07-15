@@ -227,10 +227,6 @@ export function PermissionAdminPanel() {
   return (
     <section className="people-admin-grid span-2" data-sf-b-w06-admin-setup="true">
       <Panel title="권한" meta={loading ? "불러오는 중" : `${permissionSets.length}개`} className="people-admin-panel">
-        <div className="people-panel-kicker">
-          <ShieldCheck size={14} />
-          조직관리자와 구성원 권한의 범위를 설정합니다.
-        </div>
         <DataTable
           columns={["이름", "규칙", "범위", "상태"]}
           rows={permissionSets.map((item) => [
@@ -310,11 +306,7 @@ export function PermissionAdminPanel() {
         </div>
       </Panel>
 
-      <Panel title="권한 범위" meta={`${ethicsPermissionLinks.length}개`} className="people-admin-panel">
-        <div className="people-panel-kicker" data-lcx-ppl-06-permission-linkage="true">
-          <ShieldCheck size={14} />
-          이해상충과 접근 제한 민감 항목의 권한 세트 연결을 확인합니다.
-        </div>
+      <Panel title="권한 범위" meta={`${ethicsPermissionLinks.length}개`} className="people-admin-panel" data-lcx-ppl-06-permission-linkage="true">
         <DataTable
           columns={["항목", "필요 역할", "권한 세트", "표시"]}
           rows={ethicsPermissionLinks.map((item) => [

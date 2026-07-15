@@ -258,6 +258,29 @@ function isDesktopHrxLeaveWriteRoute(method, path) {
   );
 }
 
+function isDesktopHrxPayrollWriteRoute(method, path) {
+  if (method !== "POST") return false;
+  return (
+    [
+      "/api/hrx/payroll",
+      "/api/hrx/payroll/preview",
+      "/api/hrx/payroll/approve",
+      "/api/hrx/payroll/export",
+      "/api/hrx/payroll/periods",
+      "/api/hrx/payroll/runs",
+    ].includes(path) ||
+    /^\/api\/hrx\/payroll\/runs\/[^/]+\/(snapshot|preview|approve|close)$/.test(path) ||
+    /^\/api\/hrx\/payroll\/runs\/[^/]+\/statements\/(generate|deliver)$/.test(path) ||
+    /^\/api\/hrx\/payroll\/statements\/[^/]+\/revoke$/.test(path) ||
+    /^\/api\/hrx\/payroll\/runs\/[^/]+\/payments\/prepare$/.test(path) ||
+    /^\/api\/hrx\/payroll\/payment-batches\/[^/]+\/(approve|export|reconcile)$/.test(path) ||
+    /^\/api\/hrx\/payroll\/runs\/[^/]+\/filings$/.test(path) ||
+    /^\/api\/hrx\/payroll\/filings\/[^/]+\/(validate|submit|correct)$/.test(path) ||
+    /^\/api\/hrx\/payroll\/runs\/[^/]+\/year-end\/(collect|calculate|review)$/.test(path) ||
+    /^\/api\/hrx\/payroll\/issues\/[^/]+\/resolve$/.test(path)
+  );
+}
+
 function isDesktopHrxStepUpRoute(method, path) {
   return method === "POST" && path === "/api/auth/step-up";
 }
@@ -347,6 +370,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
     }
     const allowedWrite = isDesktopMatterWriteRoute(safeMethod, normalizedPathname) ||
       isDesktopHrxLeaveWriteRoute(safeMethod, normalizedPathname) ||
+      isDesktopHrxPayrollWriteRoute(safeMethod, normalizedPathname) ||
       isDesktopHrxStepUpRoute(safeMethod, normalizedPathname);
     if (safeMethod !== "GET" && !allowedWrite) {
       return {

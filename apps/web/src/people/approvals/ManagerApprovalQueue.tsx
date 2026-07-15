@@ -99,7 +99,7 @@ export function ManagerApprovalQueue() {
   }
 
   return (
-    <Panel id="people-approvals" className="people-panel span-2" title="요청 관리" meta="전자결재">
+    <Panel id="people-approvals" className="people-panel span-2" title="요청 관리">
       {body}
       {audit?.kind === "data" && (
         <DataTable

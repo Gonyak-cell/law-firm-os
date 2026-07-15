@@ -5,7 +5,7 @@ import { requestHrxStepUpSession } from "../hrxApiClient.ts";
 type HrxStepUpChallengeProps = {
   onRetry?: () => void;
   onVerified?: () => void;
-  purpose?: "leave_accrual_execute" | "leave_ledger_adjustment" | "leave_termination_settlement";
+  purpose?: "leave_accrual_execute" | "leave_ledger_adjustment" | "leave_termination_settlement" | "payroll_export_review";
 };
 
 export function HrxStepUpChallenge({ onRetry, onVerified, purpose }: HrxStepUpChallengeProps) {
@@ -35,7 +35,7 @@ export function HrxStepUpChallenge({ onRetry, onVerified, purpose }: HrxStepUpCh
       </div>
       <div className="hrx-step-up-copy">
         <strong>추가 확인이 필요합니다</strong>
-        <span>{purpose ? "휴가 원장이나 퇴사 정산을 변경하려면 6자리 확인 코드를 입력하세요." : "인사기록을 보려면 다시 확인하세요."}</span>
+        <span>{purpose === "payroll_export_review" ? "급여 자료를 검토하려면 6자리 확인 코드를 입력하세요." : purpose ? "휴가 원장이나 퇴사 정산을 변경하려면 6자리 확인 코드를 입력하세요." : "인사기록을 보려면 다시 확인하세요."}</span>
         {error && <small role="alert">{error}</small>}
       </div>
       <div className="hrx-step-up-actions">

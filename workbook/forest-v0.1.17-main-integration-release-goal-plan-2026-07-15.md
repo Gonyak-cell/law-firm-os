@@ -1,0 +1,472 @@
+# Forest v0.1.17 Main 통합·릴리스 Goal 실행계획
+
+작성일: 2026-07-15  
+실행 정본 후보: `/private/tmp/lawos-forest-v016-release`  
+종료 세션: `019f5b4c-e652-78a1-8a19-9215b88d9e21`  
+기준 브랜치: `codex/forest-v0.1.16-release-20260713`  
+기준 HEAD: `7717d5cee158fc97056510e8aebc9e0854d34196`  
+목표 버전: `0.1.17`  
+상태: `READY_FOR_EXECUTION`  
+선행 계획: `workbook/hrx-leave-payroll-tuw-implementation-plan-2026-07-14.md`
+
+## 1. 목적
+
+종료된 Forest 세션의 미커밋 최종 작업물을 손실 없이 고정하고, 다른 체크아웃의 고유 기능과 최신 `origin/main`을 기능·데이터·UI·패키지 수준에서 대조한 다음, 현재 Forest UI와 완성된 휴가·급여 런타임을 보존하는 상위 호환 후보를 `main`에 통합한다.
+
+통합된 정확한 `main` SHA에서 버전과 출처가 식별되는 macOS·Windows 패키지를 새로 생성하고, 내부 검증·staging·formal release·production·go-live를 서로 다른 증거 단계로 유지한다. 실제 직원·계좌·정책·법률·세무 자료, 외부 provider write, 공개 릴리스 또는 production 전환은 필요한 owner 승인과 공급자 영수증이 확인되기 전에는 실행하지 않는다.
+
+## 2. 완료 정의
+
+이 Goal은 아래 조건이 모두 충족되어야 완료할 수 있다.
+
+1. 종료 세션의 tracked/untracked 작업이 repo-safe checkpoint 커밋으로 고정되고 원본 파일 manifest와 tree hash가 일치한다.
+2. 현재 루트 체크아웃의 고유 변경 25개와 공통·상이 파일 49개가 기능 단위로 `SUPERSEDED`, `PORT_TEST_ONLY`, `PORT_REQUIRED`, `REJECTED` 중 하나로 판정된다.
+3. migration `011~016` 번호 충돌이 제거되고 빈 DB, 기존 `010`, 종료 세션 `025` 기준 upgrade·재실행·실패복구 검사가 통과한다.
+4. Forest 후보가 기존 정상 릴리스, 종료 세션, 현재 세션, 최신 `origin/main`의 사용자 가치를 모두 대조한 기능 매트릭스에서 핵심 기능 손실 0건을 기록한다.
+5. 구 로그인, Parnas/Petrabridge 이미지, 구 Matter 컬러 마크, 폐기된 UI reference, stale `offline.html` 진입과 중복 앱 창 회귀가 소스·패키지·실행 화면에서 모두 0건이다.
+6. 후보 버전은 `0.1.17` 이상이며 동일 버전의 서로 다른 패키지가 생성되지 않는다.
+7. candidate와 formal 패키지에 version, full commit SHA, renderer SHA-256, channel, build time이 포함된 build manifest가 존재한다.
+8. `origin/main`과의 dry-run 및 실제 integration 브랜치 병합이 완료되고, 일괄 `ours`/`theirs` 충돌 해결 없이 파일별 근거가 기록된다.
+9. 휴가·급여·API·Web·Desktop·migration·authz·PII 전체 자동 검증이 0 fail이다.
+10. 6개 역할과 `1512/1280/1024/820/720px`에서 실제 브라우저 QA가 overflow, broken image, empty button, unlabeled control, dead action, unexpected console/page error 0을 기록한다.
+11. macOS 실제 패키지는 로그인부터 휴가·급여 핵심 흐름, 재시작 복원, Developer ID 서명·공증·staple·Gatekeeper 검사를 통과한다.
+12. Windows 실제 환경에서 설치·실행·로그인·휴가·급여·재시작·제거/재설치·Authenticode 검사를 통과한다.
+13. 검증된 integration SHA가 PR을 통해 `main`에 병합되고, 후보 브랜치 패키지가 아니라 병합된 정확한 `main` SHA에서 최종 패키지가 재생성된다.
+14. internal package, staging, formal package, production approval, go-live가 별도 상태와 영수증으로 기록된다.
+15. 실제 직원 migration, 실제 정책 적용, provider production write, 공개 릴리스 또는 go-live가 필요한 시점에는 owner 승인과 검증 가능한 receipt가 없으면 해당 TUW를 `BLOCKED`로 남기고 Goal 전체를 거짓 완료하지 않는다.
+
+## 3. 현재 검증된 사실
+
+### 3.1 종료 세션 작업물
+
+- Goal 상태: `complete`
+- 계획 상태: `REPO_IMPLEMENTATION_COMPLETE_EXTERNAL_BLOCKED`
+- 현재 HEAD: `7717d5ce`
+- tracked 수정 파일: 115개
+- untracked 파일 경로: 92개
+- `git status --short` 항목: 195개
+- tracked diff: `8,588 insertions / 1,797 deletions`
+- 앱 버전: `0.1.16`
+- renderer SHA-256: `ffd5dacef10d95ba000cf1b9c6937de6028a881eded91f79c642153757c27df4`
+- 중요한 사실: 핵심 구현은 HEAD가 아니라 dirty working tree에 있으므로 현재 HEAD를 병합하면 구현 대부분이 누락된다.
+
+### 3.2 종료 세션 검증 증거
+
+- 휴가 회귀: `340/340 PASS`
+- 급여 domain: `54/54 PASS`
+- 급여 API·역할 매트릭스: `7/7 PASS`
+- 급여 Web UI: `3/3 PASS`
+- Desktop bridge·renderer: `26/26 PASS`
+- 전역 UI 회귀: `31/31 PASS`
+- 브라우저: 6개 역할 × 5개 viewport PASS
+- macOS 내부 패키지 E2E·재시작 PASS
+- Windows renderer hash parity·PE·ZIP PASS
+- Windows native install/runtime smoke: 미수행
+- Developer ID·공증·Gatekeeper formal 검증: 미수행
+- Authenticode: 미수행
+- 실제 직원·계좌 migration과 외부 provider production write: 미수행
+
+### 3.3 현재 루트 체크아웃과의 관계
+
+- 현재 루트 dirty 항목: 76개
+- 종료 세션과 공통 dirty 경로: 51개
+- 공통 경로 중 동일 내용: 2개
+- 공통 경로 중 다른 내용: 49개
+- 현재 루트에만 존재하는 dirty 경로: 25개
+- 종료 세션에만 존재하는 dirty 경로: 144개
+- 현재 루트의 migration `011~016`은 종료 세션 migration `011~016`과 번호·목적이 충돌한다.
+
+## 4. 진실 상태와 금지되는 과장
+
+다음 상태를 서로 대체하여 표현하지 않는다.
+
+```text
+SOURCE_IMPLEMENTED
+TARGETED_TEST_PASS
+FULL_REGRESSION_PASS
+BROWSER_VERIFIED
+PACKAGE_VERIFIED
+SIGNED_NOTARIZED
+WINDOWS_NATIVE_VERIFIED
+STAGING_DEPLOYED
+PRODUCTION_APPROVED
+PRODUCTION_DEPLOYED
+GO_LIVE
+```
+
+- 내부 합성 adapter PASS는 provider sandbox receipt가 아니다.
+- provider sandbox receipt는 production write 성공이 아니다.
+- macOS 내부 bundle PASS는 서명·공증 formal release가 아니다.
+- Windows PE/ZIP PASS는 Windows native 실행 PASS가 아니다.
+- `main` 병합은 AWS production deploy나 go-live가 아니다.
+- Git HEAD만 최신이라고 해서 dirty working tree 기능이 포함된 것은 아니다.
+
+## 5. 전역 실행 원칙
+
+1. 종료 세션 worktree를 checkpoint하기 전 fetch, rebase, merge, reset, checkout, clean, prune을 실행하지 않는다.
+2. 사용자 변경과 생성 파일을 삭제하거나 되돌리지 않는다.
+3. 한 worktree에는 한 쓰기 세션만 연결한다.
+4. current root 브랜치를 Forest 후보에 통째로 merge 또는 cherry-pick하지 않는다.
+5. `dist`, cache, runtime store, secret, browser profile, 실제 PII는 커밋하지 않는다.
+6. migration은 forward-only이며 기존 데이터 덮어쓰기를 금지한다.
+7. UI 충돌은 현재 Forest 화면을 정본으로 삼고 동작만 선별 이식한다.
+8. API·인증 충돌은 더 엄격한 scope, tenant, actor, resource, audit 검증을 보존한다.
+9. 급여 금액은 정수 KRW, 비율은 정수 basis point, 시간은 정수 분을 유지한다.
+10. release build는 clean worktree와 승인된 exact SHA에서만 생성한다.
+11. 모든 패키지 검증은 실제 실행 프로세스의 절대경로와 bundle manifest를 확인한다.
+12. 외부 write, branch default 변경, force push, 실제 migration, 공개 릴리스는 명시적 승인 없이 실행하지 않는다.
+
+## 6. 의존성 그래프
+
+```text
+FZ checkpoint
+  -> RC current-session reconciliation
+    -> MG migration normalization
+      -> CP capability parity
+        -> PV provenance/version guard
+          -> MI origin/main integration
+            -> QA source/browser/package verification
+              -> MR main merge and exact-SHA rebuild
+                -> DP internal/staging/formal/production gates
+                  -> CL closeout and recurrence prevention
+```
+
+`FZ`, `RC`, `MG`, `CP`가 완료되기 전에는 `MI`를 시작할 수 없다.  
+`MI` 이후 전체 QA가 완료되기 전에는 `MR`을 시작할 수 없다.  
+`MR` 이후 exact-main-SHA 재빌드가 완료되기 전에는 어떤 release asset도 게시할 수 없다.
+
+## 7. Testable Units of Work
+
+각 TUW는 `READY`, `IN_PROGRESS`, `DONE`, `BLOCKED`만 사용한다. 완료 시 변경 파일, 명령, 결과, 증거 경로, commit SHA를 본 문서의 실행 원장에 기록한다.
+
+### 7.1 FZ: 종료 세션 checkpoint
+
+| ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
+|---|---|---|---|---|---|
+| FZ-001 | READY | 쓰기 세션 종료와 worktree 정지 증명 | 종료 세션 final 메시지·Goal complete·실행 프로세스·mtime 확인 | 동일 파일 hash를 2회 측정 | 두 측정 사이 변경 0, 쓰기 프로세스 0 |
+| FZ-002 | READY | tracked/untracked 전체 manifest | status v2, name-status, mode, size, SHA-256, ignore 분류 | manifest row count 대조 | tracked 115·untracked 92 기준 설명 가능한 차이만 존재 |
+| FZ-003 | READY | 비밀정보·PII·runtime artifact 제외 | secret scan, ignore audit, 로컬 store/token/browser profile 검사 | secret/PII validator | 커밋 후보 secret 0, 승인 없는 실제 PII 0 |
+| FZ-004 | READY | 원본 보존 patch와 archive branch | binary patch, untracked archive manifest, `archive/forest-session-final-20260715` | patch SHA·복원 dry-run | 별도 임시 worktree에 동일 tree 복원 가능 |
+| FZ-005 | READY | repo-safe checkpoint 커밋 | source, migrations, tests, scripts, plans, safe receipts 커밋 | pre/post tree hash | `FOREST_CHECKPOINT_SHA` 기록, worktree clean |
+| FZ-006 | READY | checkpoint 재현 검증 | 종료 세션 전체 테스트와 renderer build 재실행 | 종료 세션 PASS count와 대조 | 0 fail, renderer SHA 차이는 원인 설명 또는 동일 hash |
+
+### 7.2 RC: 현재 루트 세션 변경 대조
+
+| ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
+|---|---|---|---|---|---|
+| RC-001 | READY | current root 안전 보존 | 현재 루트 binary patch·file manifest·SHA 생성 | patch apply dry-run | 사용자 변경 손실 0 |
+| RC-002 | READY | 51개 공통 파일 비교 | AST/API contract/test assertion/UI selector 기준 비교 | file hash·exported symbol 비교 | 각 파일 판정 기록 |
+| RC-003 | READY | 25개 root-only 파일 기능 대조 | payroll item/profile/time input, manual adjustment, profile smoke/runbook 점검 | 종료 세션 관련 테스트와 교차 실행 | 각 기능이 4개 판정 중 하나를 가짐 |
+| RC-004 | READY | 상위 호환 기능 매트릭스 | `SUPERSEDED`, `PORT_TEST_ONLY`, `PORT_REQUIRED`, `REJECTED` 판정 | 누락 acceptance count | 미판정 0 |
+| RC-005 | READY | 필요한 기능만 Forest 후보에 이식 | UI 통째 복사 금지, 테스트 우선 이식, 필요한 코드 최소 구현 | 이식 전 failing·이식 후 passing | 기존 Forest 회귀 0 |
+
+RC-003에서 우선 검토할 root-only 항목:
+
+- `apps/api/src/routes/hrx/payroll.js`
+- payroll items/profile/time-input API와 tests
+- `packages/hrx/src/payroll-item-catalog.js`
+- `packages/hrx/src/payroll-profile-service.js`
+- `packages/hrx/src/payroll-time-input-snapshot.js`
+- `packages/hrx/src/leave/manual-adjustment-file.js`
+- `packages/hrx/src/leave/allocation.js`
+- profile contact runbook과 packaged smoke
+- LV009 UI 회귀 테스트와 화면 증거
+
+### 7.3 MG: migration 번호·계약 정규화
+
+| ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
+|---|---|---|---|---|---|
+| MG-001 | READY | migration 충돌 crosswalk | root `011~016`과 Forest `011~025` table/column/index/constraint 매핑 | schema diff | 모든 목적 매핑 |
+| MG-002 | READY | 중복 구현 제거 | Forest에 포함된 root migration은 폐기 판정 | migration plan validator | 중복 table/column/index 0 |
+| MG-003 | READY | 누락 기능은 `026+`로 이동 | 기존 번호 재사용 없이 additive migration 작성 | filename/order validator | 번호 충돌 0 |
+| MG-004 | READY | fresh DB 검증 | 빈 DB에서 `001~최종` 실행 | migration tests | 0 fail |
+| MG-005 | READY | upgrade 검증 | `010`, `020`, `025` 각각에서 최종 upgrade | schema/data golden | 데이터 손실 0 |
+| MG-006 | READY | 재실행·중간 실패·복구 | idempotency, transaction rollback, backup restore | migration safety suite | partial commit 0, restore PASS |
+
+명시적 충돌:
+
+| 번호 | 현재 루트 | 종료 Forest |
+|---|---|---|
+| 011 | payroll items | leave type economics |
+| 012 | payroll profiles | leave job outbox |
+| 013 | payroll time inputs | leave accrual batches |
+| 014 | leave usage units | leave occurrence metadata |
+| 015 | leave accrual rule versions | leave occurrence upload batches |
+| 016 | leave entitlement lifecycle | leave promotion exclusions |
+
+현재 루트의 `011~016` 파일을 그대로 cherry-pick하지 않는다.
+
+### 7.4 CP: 최신·상위 호환 기능 검증
+
+| ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
+|---|---|---|---|---|---|
+| CP-001 | READY | 비교 대상 고정 | last stable tag, Forest checkpoint, current root, origin/main SHA 기록 | commit ancestry | SHA 누락 0 |
+| CP-002 | READY | 제품 기능 매트릭스 | Home, Client, Matter, People, Search, Portal, auth, profile, leave, payroll 비교 | route/menu/API inventory | 핵심 기능 누락 0 |
+| CP-003 | READY | 휴가 상위 호환 검증 | 유형, 발생, lifecycle, usage, promotion, integrations, privacy | leave full suite | 0 fail |
+| CP-004 | READY | 급여 상위 호환 검증 | inputs, calc, deductions, run, docs, bank, tax, migration | payroll full suite | 0 fail |
+| CP-005 | READY | 서지원 계정·프로필 연결 검증 | `jwsuh@amic.kr -> 서지원` identity/profile/contact/career | profile API·packaged smoke | session user fallback 0 |
+| CP-006 | READY | UI·카피 회귀 검증 | 44px, 단일행, 중복 메뉴, 불필요 설명, legacy assets | UI regressions·sloplint | strong 0, 의도되지 않은 2줄 0 |
+| CP-007 | READY | 패키지 runtime 경계 검증 | local API, IPC session, canonical tenant, bundled runtime imports | packaged runtime smoke | 외부 source import 0, synthetic fallback 0 |
+
+### 7.5 PV: 버전·빌드 provenance
+
+| ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
+|---|---|---|---|---|---|
+| PV-001 | READY | `0.1.17` 고유 버전 | package/Info.plist/update metadata 정렬 | version validator | 동일 version·상이 hash 0 |
+| PV-002 | READY | build manifest | version, full SHA, renderer hash, channel, time 포함 | manifest schema/hash | package 내부와 receipt 일치 |
+| PV-003 | READY | clean-SHA build gate | dirty tree·SHA 불일치·허용 외 branch formal build 차단 | positive/negative tests | formal bypass 0 |
+| PV-004 | READY | 채널·bundle ID 분리 | dev/internal/candidate/formal 분리 | package metadata tests | OS 앱 식별 충돌 0 |
+| PV-005 | READY | SHA 기반 artifact 경로 | `dist/releases/<version>/<sha>/...` | path validator | generic path를 release truth로 사용 0 |
+| PV-006 | READY | legacy asset/reference validator | stale login, Parnas, Petrabridge, old mark, retired UI refs 검사 | source+bundle scan | 금지 참조 0 |
+| PV-007 | READY | canonical launch command | 중복 종료, exact path launch, PID/path/manifest 확인 | launcher tests | 다른 bundle 실행 시 fail closed |
+
+### 7.6 MI: `origin/main` 통합
+
+| ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
+|---|---|---|---|---|---|
+| MI-001 | READY | remote truth 갱신 | fetch prune/tags, origin/main·tags·deployed SHA 기록 | remote refs | stale local main 사용 0 |
+| MI-002 | READY | merge dry-run 보고서 | merge-base, merge-tree, conflict/path inventory | report validator | 충돌 파일·정책 전부 기록 |
+| MI-003 | READY | 통합 방식 결정 | normal merge 또는 owner 승인 main-next cutover | decision receipt | 무근거 force push 0 |
+| MI-004 | READY | 전용 integration worktree | `integration/forest-v0.1.17` 생성 | worktree/branch check | 다른 쓰기 세션 0 |
+| MI-005 | READY | 파일별 충돌 해결 | UI=Forest, auth=엄격, migration=수동, ops=안전 우선 | conflict ledger | unresolved 0, blanket ours/theirs 0 |
+| MI-006 | READY | main-only 필수 변경 보존 | security, infra, backup, AWS, release validators 대조 | main-only matrix | 필수 변경 누락 0 |
+| MI-007 | READY | candidate commit 고정 | integration tree commit·tag candidate | clean/hash check | `INTEGRATION_SHA` 기록 |
+
+MI-003 중단 조건:
+
+- 충돌 규모가 개별 검토 불가능한 경우
+- default branch 전환 또는 force update가 필요한 경우
+- main-only 운영 변경의 보존 여부가 불명확한 경우
+
+이 경우 owner 결정을 요청하고 `BLOCKED`로 둔다.
+
+### 7.7 QA: 통합 후보 전수 검증
+
+| ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
+|---|---|---|---|---|---|
+| QA-001 | READY | domain·API 전체 PASS | HRX leave/payroll/authz/API 전부 실행 | test runner | 0 fail |
+| QA-002 | READY | Web·Desktop 전체 PASS | typecheck, build, UI, desktop tests | npm/node tests | 0 fail, 기존 skip 문서화 |
+| QA-003 | READY | migration·privacy·security PASS | fresh/upgrade/reopen, tenant, PII, secret, public renderer | validators | 치명적 finding 0 |
+| QA-004 | READY | 브라우저 역할·viewport PASS | employee, manager, HR, preparer, approver, no-scope × 5 viewport | browser receipt | unexpected error·overflow·dead action 0 |
+| QA-005 | READY | macOS 실제 패키지 PASS | login, profile, leave, payroll, restart, sign/notarize/staple/Gatekeeper | package receipt | formal macOS PASS |
+| QA-006 | READY | Windows native PASS | install, launch, login, leave/payroll, restart, uninstall, Authenticode | Windows receipt | native PASS |
+| QA-007 | READY | renderer parity | Web/candidate/macOS/Windows renderer hashes 비교 | SHA-256 | 승인된 변형 외 불일치 0 |
+| QA-008 | READY | 회귀 screenshot manifest | 핵심 화면·각 역할·양끝 viewport 캡처 | manifest/hash | stale window 0 |
+| QA-009 | READY | 최종 QA 보고서 | commands, counts, hashes, limitations, blockers 정리 | evidence link check | 끊긴 증거 링크 0 |
+
+기준 명령은 실제 package scripts를 우선 사용하고 아래 묶음을 포함한다.
+
+```bash
+node --test --test-concurrency=1 packages/hrx/test/leave-*.test.js
+node --test --test-concurrency=1 packages/hrx/test/payroll-*.test.js
+node --test --test-concurrency=1 apps/api/test/hrx/leave-*.test.js
+node --test --test-concurrency=1 apps/api/test/hrx/payroll-*.test.js
+node --test --test-concurrency=1 apps/web/test/leave-*.test.mjs
+node --test --test-concurrency=1 apps/web/test/payroll-*.test.mjs
+npm --workspace apps/web run typecheck
+npm --workspace apps/web run test:ui
+npm --workspace apps/web run build
+npm --workspace apps/desktop run test:smoke
+npm --workspace apps/desktop run test:file-bridge
+npm run public-renderer:pii:validate
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed
+```
+
+### 7.8 MR: `main` 병합·exact-SHA 패키징
+
+| ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
+|---|---|---|---|---|---|
+| MR-001 | READY | 검토 가능한 PR | diff manifest, conflict ledger, QA links, blockers 포함 | PR/CI status | required checks green, review 승인 |
+| MR-002 | READY | `main` 병합 | 승인된 방식으로 merge | remote main ancestry | `MAIN_MERGE_SHA` 기록 |
+| MR-003 | READY | clean main release worktree | merge SHA detached 또는 release branch worktree 생성 | clean/HEAD check | HEAD 정확히 일치 |
+| MR-004 | READY | main SHA에서 재빌드 | candidate artifacts 재사용 금지 | build manifest | package SHA=`MAIN_MERGE_SHA` |
+| MR-005 | READY | release tag | `matter-desktop-v0.1.17-<shortsha>` | tag ancestry | tag가 main SHA 직접 가리킴 |
+| MR-006 | READY | 최종 artifact hash·SBOM | mac/win hashes, manifest, SBOM, signatures | receipt validator | artifact 누락 0 |
+
+### 7.9 DP: 배포·승인 경계
+
+| ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
+|---|---|---|---|---|---|
+| DP-001 | READY | 내부 Mac·Windows 배포 | 승인된 내부 채널에 artifact 게시 | install smoke | 내부 설치 PASS |
+| DP-002 | READY | AWS staging | approved profile로 API·migration staging 배포 | health/smoke/metrics | staging PASS |
+| DP-003 | BLOCKED | 실제 정책·자료 migration | owner manifest와 private-source approval 필요 | count/hash/reconciliation | 승인·영수증 전 write 0 |
+| DP-004 | BLOCKED | provider sandbox·production | email/calendar/bank/tax credentials와 receipt 필요 | provider receipt | receipt 전 success 0 |
+| DP-005 | BLOCKED | production AWS 전환 | deploy approval, rollback rehearsal, staging PASS 필요 | alias/version/health | 승인 전 prod 변경 0 |
+| DP-006 | BLOCKED | 공개 formal release·go-live | 법무·노무·세무·owner·서명·Windows 증거 필요 | release receipt | 모든 승인 전 public 0 |
+| DP-007 | READY | 배포 후 관찰 | error rate, latency, auth, critical flows 15분 이상 | monitoring receipt | rollback trigger 미발생 |
+
+### 7.10 CL: 종료·재발 방지
+
+| ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
+|---|---|---|---|---|---|
+| CL-001 | READY | canonical candidate registry | branch, SHA, version, artifact paths를 repo-safe JSON에 기록 | schema validator | 새 세션이 정본 식별 가능 |
+| CL-002 | READY | canonical launch runbook | exact path, PID, version, manifest, listener 확인 | runbook smoke | generic launch 지시 0 |
+| CL-003 | READY | release truth 문서 | implementation/package/deploy/go-live 상태 분리 | links/status check | 과장 claim 0 |
+| CL-004 | READY | old bundle inventory | `/Applications`, repo dist, temp worktrees 패키지 목록 | path/hash report | 어떤 bundle이 최신인지 모호함 0 |
+| CL-005 | BLOCKED | old worktree·bundle 정리 | owner 확인 후 archive/prune/delete | post-clean inventory | 승인 없는 삭제 0 |
+| CL-006 | READY | 최종 closeout | main SHA, tags, hashes, tests, receipts, blockers, rollback 기록 | closeout validator | 필수 증거 누락 0 |
+
+## 8. 브라우저·패키지 수동 QA 체크리스트
+
+### 8.1 역할
+
+- 일반 직원
+- 매니저
+- HR
+- 급여 작성자
+- 급여 승인자
+- 관련 scope 없음
+
+### 8.2 화면
+
+- Forest 로그인 애니메이션과 로그인 창
+- Home hero, 카드, 최근 작업, 캘린더
+- Client 목록·상세
+- Matter 목록·상세
+- People 구성원·서지원 프로필·사진·경력·연락처
+- 출근/퇴근 단순 기록
+- 휴가 유형·자동발생·발생 관리·사용내역·승인·촉진·퇴사정산
+- 급여 기간·입력·계산·문제·승인·마감·명세서·은행·신고·연말정산
+- Search
+- Portal
+- 알림·메시지·승인 대기 패널
+
+### 8.3 화면 기준
+
+- 문서 root overflow 0
+- 허용되지 않은 offscreen control 0
+- broken image 0
+- empty button 0
+- unlabeled control 0
+- dead action 0
+- unexpected HTTP error 0
+- console error 0
+- page error 0
+- 구 자산 0
+- `세션 사용자` fallback 0
+- 설명용 불필요한 2줄 텍스트 0
+- 반복 제목·메타 0
+- 표 기본 행 44px
+- 키보드 focus·Escape·opener return PASS
+
+## 9. 배포 전 체크리스트
+
+### Pre-Deploy
+
+- [ ] integration SHA와 main merge SHA 기록
+- [ ] CI 전체 green
+- [ ] critical bug 0
+- [ ] migration fresh/upgrade/recovery PASS
+- [ ] feature flag·runtime profile 확인
+- [ ] rollback artifact와 이전 Lambda version 보존
+- [ ] macOS 서명·공증·Gatekeeper PASS
+- [ ] Windows native·Authenticode PASS
+- [ ] owner·법무·노무·세무 승인 상태 기록
+- [ ] 실제 migration·provider 권한 receipt 확인
+
+### Deploy
+
+- [ ] 내부 패키지 설치 smoke
+- [ ] staging API·migration
+- [ ] 6-role staging smoke
+- [ ] health·error·latency 확인
+- [ ] production approval receipt 확인
+- [ ] canary 또는 Lambda alias 전환
+- [ ] formal assets 게시
+- [ ] 핵심 흐름 재검증
+
+### Post-Deploy
+
+- [ ] 최소 15분 모니터링
+- [ ] auth·profile·leave·payroll 오류 확인
+- [ ] artifact hash·deployment SHA 대조
+- [ ] release notes·closeout 갱신
+- [ ] 이해관계자 통지
+- [ ] rollback 필요 여부 판정
+
+## 10. 롤백 트리거
+
+다음 중 하나라도 발생하면 신규 배포를 중단하거나 이전 안정 버전으로 롤백한다.
+
+- 흰 화면, renderer crash, local API 기동 실패
+- Forest 이전 로그인·자산·레이아웃 재등장
+- 실행 프로세스 경로와 manifest SHA 불일치
+- `jwsuh@amic.kr`이 서지원이 아닌 fallback 사용자로 표시
+- Home·Client·Matter·People·Search·Portal 핵심 화면 누락
+- 휴가 잔액·발생·사용·급여 입력 대사 불일치
+- 급여 gross/deduction/net 또는 지급 대사 불일치
+- 권한 밖 PII·급여·휴가 사유 노출
+- migration partial commit, data loss, rerun duplication
+- provider receipt 전 success 표시
+- macOS/Windows 설치·서명 검증 실패
+- API 오류율 또는 지연이 승인된 baseline을 초과
+- package hash, renderer hash, deployed SHA 중 하나라도 불일치
+
+롤백 자산:
+
+- 마지막 검증된 `0.1.15` formal artifact
+- Forest checkpoint와 integration candidate tag
+- 이전 Lambda published version·alias
+- migration 전 backup/snapshot
+- 직전 renderer hash와 manifest
+- repo-safe 복구 runbook
+
+## 11. 사용자 결정 또는 외부 권한이 필요한 중단 조건
+
+다음은 자동으로 추정하지 않는다.
+
+1. `main` default branch 전환 또는 force update
+2. 사용자 worktree·branch·bundle 삭제
+3. 실제 직원·계좌·세금·휴가 원장 migration
+4. 실제 취업규칙·급여정책·세율·보험·퇴직 규칙 확정
+5. provider·bank·tax production credential 사용
+6. 공개 release asset 게시
+7. AWS production alias 또는 traffic 전환
+8. go-live 선언
+9. destructive migration 또는 rollback 불가능 변경
+10. CI required check 우회
+
+동일 blocker가 세 차례 연속 재확인되고 사용자 결정 없이는 진전할 수 없을 때만 Goal을 `blocked`로 표시한다. repo-safe 작업이 남아 있으면 계속 진행한다.
+
+## 12. 증거 디렉터리 계약
+
+각 TUW는 다음 위치에 증거를 남긴다.
+
+```text
+workbook/forest-v0.1.17-integration-evidence/<TUW-ID>/
+  acceptance.md
+  commands.txt
+  files.txt
+  tests.txt
+  receipt.json
+  screenshots/
+```
+
+`acceptance.md` 필수 필드:
+
+```text
+TUW
+status
+entry_sha
+exit_sha
+changed_files
+commands
+test_result
+manual_qa
+evidence_hashes
+known_limits
+external_blockers
+```
+
+실제 PII, credential, token, 계좌, 세금 원문은 증거 디렉터리에 저장하지 않는다. 저장소에는 count, hash, status, adjudication만 둔다.
+
+## 13. 실행 원장
+
+| 시각 | TUW | 상태 | Entry SHA | Exit SHA | 증거 | 비고 |
+|---|---|---|---|---|---|---|
+| 2026-07-15 | PLAN | DONE | `7717d5ce` | documentation-only | 본 문서 | Goal 생성 전 기준선 |
+
+## 14. Goal Objective 원문
+
+`workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md`를 단일 실행 정본으로 삼아, 종료 Forest 세션의 115개 tracked 수정과 92개 untracked 파일을 비밀정보·PII·generated artifact 없이 재현 가능한 checkpoint로 고정하고, 현재 루트 체크아웃의 25개 고유 변경과 49개 상이 공통 파일을 기능 단위로 전수 판정하며, 충돌하는 migration 011~016을 중복·데이터 손실 없이 Forest 011~025 및 필요한 026+ 계보로 정규화한다. 기존 정상 릴리스·Forest checkpoint·현재 루트·최신 origin/main을 Home, Client, Matter, People, Search, Portal, 인증, 서지원 프로필, 휴가, 급여, 저장·권한·패키지 기준으로 비교해 핵심 기능 손실 0인 상위 호환 Forest 후보만 0.1.17로 만들고 version/full SHA/renderer hash/channel/time manifest, clean-SHA build gate, 채널별 bundle ID, legacy asset 검사, canonical launcher를 구현한다. origin/main merge dry-run과 파일별 conflict ledger를 거쳐 전용 integration 브랜치에서 UI는 현재 Forest, 인증은 더 엄격한 권한, migration은 forward-only, 운영은 더 안전한 계약을 보존하여 통합하고, 휴가·급여·API·Web·Desktop·migration·authz·PII 전체 0 fail, 6개 역할×5 viewport 브라우저 error/overflow/dead-action 0, macOS signed/notarized/Gatekeeper 실제 패키지와 Windows native/AuthentiCode 실제 패키지 PASS를 증명한다. 검증된 integration SHA만 PR로 main에 병합하고 후보 패키지를 재사용하지 말고 exact main merge SHA에서 Mac·Windows artifacts, hashes, SBOM, tag와 release receipts를 재생성한다. 내부 배포와 AWS staging까지 repo-safe·승인 범위에서 수행하되 실제 직원·계좌·정책 migration, 외부 provider/bank/tax production write, AWS production traffic, 공개 release와 go-live는 owner·법무·노무·세무 승인 및 검증 가능한 receipt가 없으면 BLOCKED로 유지한다. 모든 TUW는 지정 evidence 디렉터리에 entry/exit SHA, files, commands, tests, manual QA, hashes, limits, blockers를 기록하고, stale/old app이 다시 정본으로 오인되지 않도록 canonical registry·launch runbook·old bundle inventory·rollback closeout까지 완료한다.`
+

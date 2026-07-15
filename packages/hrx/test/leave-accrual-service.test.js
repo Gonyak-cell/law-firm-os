@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createFileHrxStore } from "../src/store/file-store.js";
-import { createLeaveAccrualService, parseLeaveManualAdjustmentCsv } from "../src/leave/accrual-service.js";
+import {
+  createLeaveAccrualService,
+  createLeaveOccurrenceUploadTemplate,
+  LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION,
+  parseLeaveManualAdjustmentCsv,
+} from "../src/leave/accrual-service.js";
+import { createLeaveReportingService } from "../src/leave/reporting-service.js";
 
 const TENANT = "tenant_leave_accrual_synthetic";
 const OCCURRED_ON = "2026-07-13";
@@ -84,7 +90,11 @@ test("automatic accrual previews statutory boundaries and executes once", () => 
 test("automatic accrual rejects execution after source version changes", () => {
   const { service, context, rule, setSourceVersion } = createFixture();
   const preview = service.preview(context, { accrual_rule_id: rule.accrual_rule_id, period_key: "2026-stale", occurred_on: OCCURRED_ON });
+  assert.equal(service.validatePreview(context, { preview_run_id: preview.accrual_run_id }).is_current, true);
   setSourceVersion("source-v2");
+  const validation = service.validatePreview(context, { preview_run_id: preview.accrual_run_id });
+  assert.equal(validation.is_current, false);
+  assert.notEqual(validation.preview_snapshot_hash, validation.current_snapshot_hash);
   assert.throws(
     () => service.execute(context, { preview_run_id: preview.accrual_run_id }),
     (error) => error.safe_error_code === "HRX_LEAVE_ACCRUAL_PREVIEW_STALE",
@@ -107,7 +117,7 @@ test("manual adjustment keeps row errors visible and enforces dual control", () 
     { employee_id: "missing", group_id: "annual", policy_version_id: "annual-v1", direction: "credit", amount_minutes: 480, occurred_on: OCCURRED_ON, reason: "합성 오류", source_document_id: "manual-proof" },
   ];
   const preview = service.previewManual(context, { rows });
-  assert.deepEqual(preview.counts, { ready: 1, errors: 1 });
+  assert.deepEqual(preview.counts, { ready: 1, errors: 1, duplicates: 0 });
   assert.equal(Object.hasOwn(preview.rows[0], "reason"), false);
   assert.equal(Object.hasOwn(preview.rows[0], "source_document_id"), false);
 
@@ -130,4 +140,73 @@ test("manual adjustment CSV parser supports quoted reasons", () => {
   assert.equal(rows.length, 1);
   assert.equal(rows[0].amount_minutes, 480);
   assert.equal(rows[0].reason, "정정, 확인");
+});
+
+test("LV-OCC-005 versioned upload template has no example rows and roundtrips through the parser", () => {
+  const template = createLeaveOccurrenceUploadTemplate();
+  const csv = Buffer.from(template.content_base64, "base64").toString("utf8");
+  assert.equal(template.template_version, LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION);
+  assert.equal(template.row_count, 0);
+  assert.deepEqual(parseLeaveManualAdjustmentCsv(csv), []);
+  assert.equal(csv.replace(/^\uFEFF/, "").trim().split(/\r?\n/).length, 2);
+  assert.deepEqual(template.columns.find((column) => column.name === "direction").values, ["credit", "debit"]);
+  assert.equal(template.columns.find((column) => column.name === "amount_minutes").unit, "minute");
+
+  const populated = `${csv}under-one-year,annual,annual-v1,credit,480,2026-08-01,2027-07-31,"예정, 발생",manual-proof\r\n`;
+  const rows = parseLeaveManualAdjustmentCsv(populated);
+  assert.equal(rows[0].amount_minutes, 480);
+  assert.equal(rows[0].valid_from, "2026-08-01");
+  assert.equal(rows[0].memo, "예정, 발생");
+  assert.throws(
+    () => parseLeaveManualAdjustmentCsv(csv.replace(LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION, "unsupported-v2")),
+    (error) => error.safe_error_code === "HRX_LEAVE_OCCURRENCE_TEMPLATE_VERSION_UNSUPPORTED",
+  );
+});
+
+test("LV-OCC-006 upload preview hashes the file, rejects duplicate and invalid rows, and writes nothing", () => {
+  const { store, service, context } = createFixture();
+  const before = store.snapshot();
+  const template = Buffer.from(createLeaveOccurrenceUploadTemplate().content_base64, "base64").toString("utf8");
+  const csv = `${template}under-one-year,annual,annual-v1,credit,480,2026-08-01,2027-07-31,예약 발생,manual-proof\r\nunder-one-year,annual,annual-v1,credit,480,2026-08-01,2027-07-31,예약 발생,manual-proof\r\nmissing,annual,annual-v1,credit,60,2026-08-02,2027-08-01,대상 오류,manual-proof\r\n`;
+  const preview = service.previewManual(context, { csv_text: csv, schedule_only: true, as_of: "2026-07-13" });
+  assert.match(preview.file_hash, /^[a-f0-9]{64}$/);
+  assert.equal(preview.template_version, LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION);
+  assert.deepEqual(preview.counts, { ready: 1, errors: 2, duplicates: 1 });
+  assert.equal(preview.rows[1].error_code, "HRX_LEAVE_OCCURRENCE_DUPLICATE_ROW");
+  assert.equal(preview.rows[1].duplicate_of_row_number, 1);
+  assert.equal(preview.rows[2].error_code, "HRX_LEAVE_MANUAL_ROW_INVALID");
+  assert.equal(Object.hasOwn(preview.rows[0], "reason"), false);
+  assert.equal(Object.hasOwn(preview.rows[0], "source_document_id"), false);
+  assert.deepEqual(store.snapshot(), before);
+});
+
+test("LV-OCC-003 creates a dual-approved future occurrence without activating its balance", () => {
+  const { store, service, context } = createFixture();
+  const rows = [
+    { employee_id: "under-one-year", group_id: "annual", policy_version_id: "annual-v1", direction: "credit", amount_minutes: 480, valid_from: "2026-08-01", expires_on: "2027-07-31", memo: "승인된 예정 발생", source_document_id: "manual-proof" },
+    { employee_id: "under-one-year", group_id: "annual", policy_version_id: "annual-v1", direction: "credit", amount_minutes: 60, valid_from: "2026-07-13", memo: "과거 발생", source_document_id: "manual-proof" },
+    { employee_id: "under-one-year", group_id: "annual", policy_version_id: "annual-v1", direction: "debit", amount_minutes: 60, valid_from: "2026-08-01", memo: "잘못된 방향", source_document_id: "manual-proof" },
+  ];
+  const preview = service.previewManual(context, { rows, schedule_only: true, as_of: "2026-07-13" });
+  assert.deepEqual(preview.counts, { ready: 1, errors: 2, duplicates: 0 });
+  const result = service.executeManual(context, { rows, schedule_only: true, as_of: "2026-07-13", approved_by_actor_id: "hr-approver", idempotency_key: "scheduled-manual-1" });
+  assert.deepEqual(result.counts, { created: 1, errors: 2 });
+  assert.equal(result.rows[0].lifecycle_state, "scheduled");
+  assert.equal(result.rows[0].valid_from, "2026-08-01");
+
+  const entitlement = store.query("selectOne", { table: "hrx_leave_entitlements", where: { tenant_id: TENANT, entitlement_id: result.rows[0].entitlement_id } });
+  assert.equal(entitlement.memo, "승인된 예정 발생");
+  assert.equal(entitlement.source_document_id, "manual-proof");
+  assert.equal(entitlement.approved_by_actor_id, "hr-approver");
+  const occurrence = createLeaveReportingService({
+    store,
+    clock: () => "2026-07-13T01:00:00.000Z",
+    employeeDirectory: () => [{ employee_id: "under-one-year", display_name: "1년 미만", org_unit_id: "org-legal" }],
+  }).queryOccurrences({ tenant_id: TENANT, actor_id: "hr-operator", authorized_employee_ids: ["under-one-year"] }, { state: "scheduled", as_of: "2026-07-13" });
+  assert.equal(occurrence.totals.row_count, 1);
+  assert.equal(occurrence.totals.total_minutes, 480);
+  assert.equal(occurrence.totals.remaining_minutes, 0);
+  assert.equal(JSON.stringify(occurrence).includes("승인된 예정 발생"), false);
+  assert.deepEqual(service.executeManual(context, { rows, schedule_only: true, as_of: "2026-07-13", approved_by_actor_id: "hr-approver", idempotency_key: "scheduled-manual-1" }).counts, { created: 1, errors: 2 });
+  assert.equal(store.query("select", { table: "hrx_leave_entitlements", where: { tenant_id: TENANT, idempotency_key: "scheduled-manual-1:1:entitlement" } }).length, 1);
 });

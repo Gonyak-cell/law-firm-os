@@ -13,7 +13,6 @@ import {
   UserPlus
 } from "lucide-react";
 import { PRODUCT_BRAND } from "../brand/brand";
-import brochureCover from "../assets/brochure-cover.jpg";
 import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
 import { Field } from "./primitives.jsx";
@@ -75,7 +74,7 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep, authError =
   const Icon = current[2];
   if (authStep === "login") {
     return (
-      <section className="auth-stage step-login matter-login-stage" data-login-screen="forest-split">
+      <section className="auth-stage step-login matter-login-stage" data-login-screen="current-auth">
         <div className="matter-login-copy">
           <div className="matter-login-form-column">
             <MatterLogo />
@@ -91,9 +90,6 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep, authError =
             <AuthForm labels={labels} locale={locale} step={authStep} authError={authError} onLogin={onLogin} />
           </div>
         </div>
-        <aside className="matter-login-photo-panel" aria-label="AMIC Forest">
-          <img src={brochureCover} alt="AMIC Forest" />
-        </aside>
       </section>
     );
   }
@@ -211,7 +207,7 @@ export function AuthForm({ labels, locale, step, authError = "", onLogin = () =>
             onChange={(event) => setLoginEmail(event.target.value)}
             autoComplete="email"
             inputMode="email"
-            placeholder="jdoe@matter.local"
+            placeholder="업무 이메일"
             type="email"
             required
           />

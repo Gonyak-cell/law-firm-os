@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FileCheck2, Play, RefreshCw } from "lucide-react";
+import { Play } from "lucide-react";
 import { Panel } from "../../components/primitives.jsx";
 import { HrxStepUpChallenge } from "../security/HrxStepUpChallenge.tsx";
 import { executeHrxLeaveTermination, fetchHrxLeaveTerminationWorkspace, previewHrxLeaveTermination } from "../hrxApiClient.ts";
@@ -21,6 +21,10 @@ function minutes(value: number) {
   const remainder = Math.abs(value) % 480;
   const valueText = days && remainder ? `${days}일 ${remainder}분` : days ? `${days}일` : `${remainder}분`;
   return value < 0 ? `-${valueText}` : valueText;
+}
+
+function reconciliationStateLabel(state: string) {
+  return ({ approved_pending_sync: "급여 동기화 대기", approved_and_synced: "정산 완료", needs_review: "원장 검토 필요", previewed: "미리보기" } as Record<string, string>)[state] ?? state;
 }
 
 export function LeaveTerminationPage() {
@@ -96,12 +100,11 @@ export function LeaveTerminationPage() {
   }
 
   return (
-    <Panel id="people-leave-termination" className="people-panel span-2 leave-termination-panel" title="퇴사 휴가 정산" meta="이중 승인">
-      <div className="people-panel-kicker"><FileCheck2 size={15} />퇴사일까지의 최종 원장을 대사하고 급여 인계 완료 전 퇴사 종료를 차단합니다</div>
+    <Panel id="people-leave-termination" className="people-panel span-2 leave-termination-panel" title="퇴사 휴가 정산">
       {error && <div className="live-data-state live-data-error" role="alert">{error}</div>}
 
       <section className="leave-accrual-section">
-        <div className="leave-accrual-section-head"><div><h3>정산 대상</h3><p>승인된 조직 범위의 퇴사 예정자만 표시합니다.</p></div><button className="secondary-button" type="button" disabled={busy === "load"} onClick={() => void load()}><RefreshCw size={14} />새로고침</button></div>
+        <div className="leave-accrual-section-head"><h3>정산 대상</h3></div>
         <div className="leave-termination-controls">
           <label><span>퇴사 예정자</span><select value={selectedEmployee} onChange={(event) => { setSelectedEmployee(event.target.value); setPreview(null); setResult(null); }}><option value="">대상 선택</option>{candidates.map((row) => <option key={text(row, "offboarding_id")} value={text(row, "employee_id")}>{text(row, "employee_display_name")} · {text(row, "termination_date")}</option>)}</select></label>
           <label><span>다른 승인 HR</span><select value={approvedBy} onChange={(event) => setApprovedBy(event.target.value)}><option value="">승인자 선택</option>{approvers.map((row) => <option key={text(row, "actor_id")} value={text(row, "actor_id")}>{text(row, "display_name")}</option>)}</select></label>
@@ -112,7 +115,7 @@ export function LeaveTerminationPage() {
       </section>
 
       {visible ? <section className="leave-accrual-section">
-        <div className="leave-accrual-section-head"><div><h3>퇴사일 기준 대사</h3><p>금액은 계산하지 않고 급여에서 검토할 분 단위 경계만 전달합니다.</p></div><span><span className={`record-state-badge ${text(visible, "state")}`}>{text(visible, "state") === "approved_pending_sync" ? "급여 동기화 대기" : text(visible, "state") === "approved_and_synced" ? "정산 완료" : text(visible, "state") === "needs_review" ? "원장 검토 필요" : "미리보기"}</span></span></div>
+        <div className="leave-accrual-section-head"><h3>퇴사일 기준 대사</h3><span className={`record-state-badge ${text(visible, "state")}`}>{reconciliationStateLabel(text(visible, "state"))}</span></div>
         <div className="leave-report-summary leave-termination-summary">
           <span><small>최종 발생</small><strong>{minutes(number(totals, "final_accrued_minutes"))}</strong></span>
           <span><small>예약</small><strong>{minutes(number(totals, "reserved_minutes"))}</strong></span>
@@ -121,14 +124,14 @@ export function LeaveTerminationPage() {
           <span><small>음수 잔액</small><strong>{minutes(number(totals, "negative_minutes"))}</strong></span>
           <span><small>향후 요청 해제</small><strong>{minutes(number(totals, "future_request_reversal_minutes"))}</strong></span>
         </div>
-        {validationErrors.length > 0 && <div className="live-data-state live-data-error"><strong>이전 원장 검토가 필요합니다</strong>{validationErrors.length}개 원장 행을 현재 분 단위 원장으로 확인한 뒤 다시 미리보기 하세요.</div>}
+        {validationErrors.length > 0 && <div className="live-data-state live-data-error">원장 {validationErrors.length}건 검토 필요</div>}
         <div className="data-table-wrap"><table className="data-table"><thead><tr><th>휴가 그룹</th><th>발생</th><th>사용</th><th>예약</th><th>미사용</th><th>음수</th><th>급여 경계</th></tr></thead><tbody>{groups.map((group) => { const boundary = group.payroll_boundary as Row | undefined; return <tr key={text(group, "group_id")}><td><strong>{text(group, "group_display_name")}</strong></td><td>{minutes(number(group, "final_accrued_minutes"))}</td><td>{minutes(number(group, "used_minutes"))}</td><td>{minutes(number(group, "reserved_minutes"))}</td><td>{minutes(number(group, "unused_minutes"))}</td><td>{minutes(number(group, "negative_minutes"))}</td><td>{number(boundary, "requires_policy_review") ? "정책 검토" : "급여율 검토"}</td></tr>; })}</tbody></table></div>
-        {text(visible, "state") === "approved_pending_sync" && <div className="leave-termination-gate"><strong>오프보딩 종료 차단 중</strong><span>급여 시스템의 전달 확인이 기록되면 정산 완료 상태로 전환됩니다.</span></div>}
-      </section> : <div className="live-data-state live-data-empty">대상을 선택하고 미리보기를 실행하면 퇴사일 기준 대사 결과가 표시됩니다.</div>}
+        {text(visible, "state") === "approved_pending_sync" && <div className="leave-termination-gate"><strong>급여 전달 확인 대기</strong></div>}
+      </section> : null}
 
       <section className="leave-accrual-section">
-        <div className="leave-accrual-section-head"><div><h3>최근 정산</h3><p>미리보기와 실행, 급여 동기화 상태를 분리해 기록합니다.</p></div><span>{history.length}건</span></div>
-        {history.length > 0 ? <div className="data-table-wrap"><table className="data-table"><thead><tr><th>생성 시각</th><th>구성원</th><th>퇴사일</th><th>구분</th><th>상태</th></tr></thead><tbody>{history.slice(0, 10).map((row) => { const rowResult = row.result as Row | undefined; return <tr key={text(row, "reconciliation_id")}><td>{text(row, "created_at").replace("T", " ").slice(0, 16)}</td><td>{text(rowResult, "employee_display_name")}</td><td>{text(row, "termination_date")}</td><td>{text(row, "mode") === "execute" ? "실행" : "미리보기"}</td><td>{text(row, "state")}</td></tr>; })}</tbody></table></div> : <div className="live-data-state live-data-empty">아직 정산 이력이 없습니다.</div>}
+        <div className="leave-accrual-section-head"><h3>최근 정산</h3><span>{history.length}건</span></div>
+        {history.length > 0 && <div className="data-table-wrap"><table className="data-table"><thead><tr><th>생성 시각</th><th>구성원</th><th>퇴사일</th><th>구분</th><th>상태</th></tr></thead><tbody>{history.slice(0, 10).map((row) => { const rowResult = row.result as Row | undefined; return <tr key={text(row, "reconciliation_id")}><td>{text(row, "created_at").replace("T", " ").slice(0, 16)}</td><td>{text(rowResult, "employee_display_name")}</td><td>{text(row, "termination_date")}</td><td>{text(row, "mode") === "execute" ? "실행" : "미리보기"}</td><td>{reconciliationStateLabel(text(row, "state"))}</td></tr>; })}</tbody></table></div>}
       </section>
     </Panel>
   );

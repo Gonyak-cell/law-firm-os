@@ -93,6 +93,33 @@ async function availablePort() {
   });
 }
 
+async function compactRecordLayoutFailures(page) {
+  return page.locator('[data-compact-record="true"]').evaluateAll((rows) => rows.flatMap((row, index) => {
+    const primary = row.querySelector("strong");
+    const secondary = row.querySelector("small, time");
+    const rowBox = row.getBoundingClientRect();
+    if (!primary || !secondary || rowBox.width === 0 || rowBox.height === 0 || getComputedStyle(secondary).display === "none") return [];
+    const primaryBox = primary.getBoundingClientRect();
+    const secondaryBox = secondary.getBoundingClientRect();
+    const centerDelta = Math.abs((primaryBox.top + primaryBox.height / 2) - (secondaryBox.top + secondaryBox.height / 2));
+    const overflow = row.scrollWidth > row.clientWidth + 1;
+    return centerDelta < 2 && !overflow ? [] : [{ index, centerDelta, overflow, text: row.textContent?.trim() ?? "" }];
+  }));
+}
+
+async function panelHeaderLayoutFailures(page) {
+  return page.locator(".panel-head").evaluateAll((headers) => headers.flatMap((header, index) => {
+    const title = header.querySelector("h2");
+    const meta = header.querySelector(":scope > span");
+    if (!title || !meta || header.getBoundingClientRect().width === 0) return [];
+    const titleBox = title.getBoundingClientRect();
+    const metaBox = meta.getBoundingClientRect();
+    const centerDelta = Math.abs((titleBox.top + titleBox.height / 2) - (metaBox.top + metaBox.height / 2));
+    const overflow = header.scrollWidth > header.clientWidth + 1;
+    return centerDelta < 2 && !overflow ? [] : [{ index, centerDelta, overflow, text: header.textContent?.trim() ?? "" }];
+  }));
+}
+
 function wp3ApiBody(pathname) {
   if (pathname === "/api/matters") {
     return {
@@ -509,6 +536,45 @@ test("grouped sidebars render children in collapsible sidebar accordions", async
       assert.equal(await page.locator(".context-subnav").count(), 0, `${view} must not render duplicate top contextual navigation`);
     }
 
+    await page.goto(`http://127.0.0.1:${port}/?view=people&ctx=allow#people-members`, { waitUntil: "networkidle" });
+    const peopleSidebar = page.locator('[data-context-sidebar="people"] .sidebar-nav');
+    const peopleManagementToggle = peopleSidebar.locator('[data-sidebar-group="people-members"] .sidebar-group-toggle');
+    if (await peopleManagementToggle.getAttribute("aria-expanded") !== "true") await peopleManagementToggle.click();
+    assert.equal(await peopleSidebar.getByText("직무/역할", { exact: true }).count(), 0);
+    assert.equal(await peopleSidebar.getByText("근로정보", { exact: true }).count(), 0);
+    assert.equal(await peopleSidebar.getByText("근무일정", { exact: true }).count(), 0);
+    for (const hiddenScheduleItem of ["근무표", "근무유형", "현재 근무 상황 조회", "근무일정 확정"]) {
+      assert.equal(await peopleSidebar.getByText(hiddenScheduleItem, { exact: true }).count(), 0);
+    }
+    assert.equal(await peopleSidebar.getByText("구성원 등록", { exact: true }).count(), 1);
+    assert.equal(await peopleSidebar.getByText("입퇴사 관리", { exact: true }).count(), 1);
+    const attendanceItem = peopleSidebar.getByRole("button", { name: "출퇴근기록", exact: true });
+    assert.equal(await attendanceItem.count(), 1);
+    assert.equal(await attendanceItem.evaluate((element) => element.classList.contains("sidebar-group-toggle")), false);
+    assert.equal(await peopleSidebar.locator('[data-sidebar-group="people-attendance-records"]').count(), 0);
+    assert.equal(await peopleSidebar.getByText("출근/퇴근 기록", { exact: true }).count(), 0);
+    await attendanceItem.click();
+    await page.waitForFunction(() => window.location.hash === "#people-attendance-records");
+    assert.equal(await attendanceItem.getAttribute("aria-current"), "location");
+    for (const hiddenAttendanceItem of [
+      "무일정 근무 출퇴근",
+      "출퇴근기록 엑셀 업로드",
+      "휴게시간 기록",
+      "출퇴근 누락 알림",
+      "출퇴근기록 확정",
+      "출퇴근 인증 방식"
+    ]) {
+      assert.equal(await peopleSidebar.getByText(hiddenAttendanceItem, { exact: true }).count(), 0);
+    }
+
+    await page.goto(`http://127.0.0.1:${port}/?view=vault&ctx=allow#vault-search-home`, { waitUntil: "networkidle" });
+    const searchSidebar = page.locator('[data-context-sidebar="vault"] .sidebar-nav');
+    const searchGroupToggle = searchSidebar.locator('[data-sidebar-group="vault-search-home"] .sidebar-group-toggle');
+    if (await searchGroupToggle.getAttribute("aria-expanded") !== "true") await searchGroupToggle.click();
+    assert.equal(await searchSidebar.getByText("문서/OCR", { exact: true }).count(), 0);
+    assert.equal(await searchSidebar.getByText("대시보드", { exact: true }).count(), 1);
+    assert.equal(await searchSidebar.getByText("전체 검색", { exact: true }).count(), 1);
+
     for (const view of ["settings", "data-import"]) {
       await page.goto(`http://127.0.0.1:${port}/?view=${view}&ctx=allow`, { waitUntil: "networkidle" });
       const sidebar = page.locator('[data-mode-exception-sidebar="true"]');
@@ -527,13 +593,16 @@ test("grouped sidebars render children in collapsible sidebar accordions", async
       await page.locator('[data-context-sidebar="home"] .sidebar-nav > .sidebar-item > span:nth-child(2), [data-context-sidebar="home"] .sidebar-nav > .sidebar-group > .sidebar-group-toggle > span:nth-child(2)').allTextContents(),
       ["대시보드", "할 일", "승인 대기", "회의실 예약", "피드", "캘린더", "전자계약", "매출/비용"]
     );
-    const homeApprovalGroup = page.locator('[data-sidebar-group="home-approvals"]');
-    await homeApprovalGroup.locator(".sidebar-group-toggle").click();
-    assert.deepEqual(await homeApprovalGroup.locator(".sidebar-child").allTextContents(), ["휴가", "비용처리"]);
+    assert.equal(await page.locator('[data-sidebar-group="home-approvals"]').count(), 0);
+    const homeApprovalLink = page.locator('[data-context-sidebar="home"] .sidebar-item').filter({ hasText: "승인 대기" });
+    assert.equal(await homeApprovalLink.count(), 1);
+    await homeApprovalLink.click();
+    await page.waitForSelector('[data-home-section-screen="home-requests"]');
+    assert.equal(new URL(page.url()).hash, "#home-requests");
     await page.getByRole("button", { name: "회의실 예약", exact: true }).click();
     await page.waitForSelector('[data-home-section-screen="home-meeting-rooms"]');
     assert.equal(new URL(page.url()).hash, "#home-meeting-rooms");
-    assert.equal(await homeApprovalGroup.locator(".sidebar-group-toggle").evaluate((element) => element.classList.contains("active")), false);
+    assert.equal(await homeApprovalLink.getAttribute("aria-current"), null);
     assert.equal(await page.getByRole("button", { name: "회의실 예약", exact: true }).getAttribute("aria-current"), "location");
     await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
     const clientPrimaryToggle = page.locator('[data-sidebar-group="clients-home"] .sidebar-group-toggle');
@@ -573,6 +642,82 @@ test("grouped sidebars render children in collapsible sidebar accordions", async
     assert.ok(mobileLayout.sidebarHeight < mobileLayout.innerHeight, "Forest mobile sidebar must not consume a full viewport height");
     assert.ok(mobileLayout.canvasTop < mobileLayout.documentHeight, "Forest mobile page canvas must remain reachable below the sidebar");
     assert.equal(mobileLayout.horizontalOverflow, false, "Forest mobile layout must not overflow horizontally");
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
+test("attendance workspace records only clock-in and clock-out times", async () => {
+  const port = await availablePort();
+  const server = await createServer({
+    root: webRoot,
+    logLevel: "silent",
+    server: { host: "127.0.0.1", port, strictPort: true }
+  });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  const attendance = [];
+  let submitted = null;
+  const consoleErrors = [];
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    page.on("console", (message) => {
+      if (message.type() === "error") consoleErrors.push(message.text());
+    });
+    page.on("pageerror", (error) => consoleErrors.push(error.message));
+    await page.route("**/api/**", (route) => {
+      const request = route.request();
+      const url = new URL(request.url());
+      if (url.pathname === "/api/hrx/employees") {
+        return jsonResponse(route, {
+          outcome: "ok",
+          employees: [{ employee_id: "emp-attendance-001", display_name: "출퇴근 검수", status: "active", work_email: "" }]
+        });
+      }
+      if (url.pathname === "/api/hrx/attendance" && request.method() === "POST") {
+        submitted = request.postDataJSON();
+        attendance.push(submitted);
+        return jsonResponse(route, { outcome: "created", attendance: submitted }, 201);
+      }
+      if (url.pathname === "/api/hrx/attendance") {
+        return jsonResponse(route, { outcome: "ok", attendance, monthly_summary: null });
+      }
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, { decisionCalls: 0, newsCalls: 0 }));
+    });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=people&ctx=allow#people-attendance-records`, { waitUntil: "networkidle" });
+    const form = page.locator('[data-simple-attendance="true"]');
+    await form.waitFor();
+    assert.equal(await form.locator('input[type="time"]').count(), 2);
+    assert.equal(await form.locator('input:not([type="time"]), select').count(), 0);
+    assert.equal(await page.locator('[data-upl-d04-summary="true"], [data-upl-d06-schedule-calendar="true"], [data-upl-d06-risk-panel="true"]').count(), 0);
+
+    const clockIn = form.getByLabel("출근시간", { exact: true });
+    const clockOut = form.getByLabel("퇴근시간", { exact: true });
+    const submit = form.getByRole("button", { name: "기록 저장", exact: true });
+    assert.equal(await submit.isDisabled(), true);
+    await clockIn.fill("18:00");
+    await clockOut.fill("09:00");
+    await page.getByRole("alert").filter({ hasText: "퇴근시간은 출근시간보다 늦어야 합니다." }).waitFor();
+    assert.equal(await submit.isDisabled(), true);
+
+    await clockIn.fill("09:05");
+    await clockOut.fill("18:10");
+    assert.equal(await submit.isEnabled(), true);
+    await submit.click();
+    await page.getByRole("status").filter({ hasText: "출근시간과 퇴근시간을 저장했습니다." }).waitFor();
+    await page.locator('[data-attendance-history="true"]').waitFor();
+
+    assert.equal(submitted.employee_id, "emp-attendance-001");
+    assert.match(submitted.work_date, /^\d{4}-\d{2}-\d{2}$/);
+    assert.equal(submitted.status, "present");
+    assert.equal(submitted.source_kind, "manual");
+    assert.match(submitted.clock_in_at, /T09:05:00\+09:00$/);
+    assert.match(submitted.clock_out_at, /T18:10:00\+09:00$/);
+    assert.equal(Object.hasOwn(submitted, "recorded_hours"), false);
+    assert.deepEqual(await page.locator('[data-attendance-history="true"] th').allTextContents(), ["근무일", "출근시간", "퇴근시간"]);
+    assert.deepEqual(consoleErrors, []);
   } finally {
     await browser.close();
     await server.close();
@@ -885,7 +1030,7 @@ test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async ()
 
     assert.equal(await page.locator(".home-dashboard-hero").count(), 1);
     assert.equal(await page.locator('[data-dashboard-section="pending-approvals"]').count(), 1);
-    assert.deepEqual(await page.locator('[data-dashboard-section="pending-approvals"] .dashboard-record-copy strong').allTextContents(), ["휴가", "비용처리"]);
+    assert.deepEqual(await page.locator('[data-dashboard-section="pending-approvals"] .dashboard-record-copy strong').allTextContents(), ["가장 오래된 승인", "오늘 승인", "중간 승인", "내일 승인", "가장 늦은 승인"]);
     for (const section of ["recent-work", "today-todo", "monthly-sales", "new-engagements", "pending-approvals"]) {
       assert.equal(await page.locator(`[data-dashboard-section="${section}"]`).count(), 1);
     }
@@ -1015,26 +1160,50 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     });
 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
-    for (const title of ["최근 작업", "오늘 할 일", "승인 대기", "월별 매출", "신규 수임"]) {
+    for (const title of ["최근 작업", "오늘 할 일", "승인 대기", "월별 매출", "신규 수임", "캘린더"]) {
       assert.equal(await page.getByText(title, { exact: true }).count() > 0, true, `Home must show ${title}`);
     }
     assert.equal(await page.locator('.home-dashboard-hero').count(), 1);
     assert.equal(await page.locator('.home-dashboard-feed').isHidden(), true);
-    assert.equal(await page.locator('.home-dashboard-rail').isHidden(), true);
+    assert.equal(await page.locator('.home-dashboard-rail').isVisible(), true);
     assert.equal(await page.locator('[data-dashboard-section="pending-approvals"]').count(), 1);
     assert.equal(await page.locator('[data-dashboard-section="recent-work"] .dashboard-record-row').count() > 0, true);
     assert.equal(await page.locator('[data-dashboard-section="monthly-sales"] .dashboard-record-row').count() > 0, true);
+    assert.deepEqual(await compactRecordLayoutFailures(page), [], "Home compact records must keep primary and secondary text on one line");
+    assert.deepEqual(await panelHeaderLayoutFailures(page), [], "Home panel metadata must remain on the title line");
     const dashboardLayout = await page.evaluate(() => {
       const todo = document.querySelector('.home-dashboard-todo').getBoundingClientRect();
       const recent = document.querySelector('.home-dashboard-recent').getBoundingClientRect();
+      const intake = document.querySelector('.home-dashboard-intake').getBoundingClientRect();
+      const calendar = document.querySelector('.home-dashboard-calendar').getBoundingClientRect();
       const grid = getComputedStyle(document.querySelector('.home-dashboard-grid'));
-      return { columns: grid.gridTemplateColumns.split(' ').length, recentRight: recent.left > todo.right, recentTaller: recent.height > todo.height * 1.8 };
+      return {
+        columns: grid.gridTemplateColumns.split(' ').length,
+        recentRight: recent.left > todo.right,
+        recentAligned: Math.abs(recent.top - todo.top) < 2 && Math.abs(recent.height - todo.height) < 2,
+        calendarRight: calendar.left > intake.right,
+        calendarBelow: calendar.top > recent.bottom
+      };
     });
-    assert.deepEqual(dashboardLayout, { columns: 3, recentRight: true, recentTaller: true });
+    assert.deepEqual(dashboardLayout, { columns: 3, recentRight: true, recentAligned: true, calendarRight: true, calendarBelow: true });
+    const recentRowLayout = await page.locator('[data-dashboard-section="recent-work"] .dashboard-record-row').first().evaluate((row) => {
+      const title = row.querySelector("strong").getBoundingClientRect();
+      const status = row.querySelector("em").getBoundingClientRect();
+      const arrow = row.querySelector("svg").getBoundingClientRect();
+      return {
+        metaHidden: getComputedStyle(row.querySelector("small")).display === "none",
+        detailHidden: getComputedStyle(row.querySelector(".dashboard-record-detail")).display === "none",
+        ordered: title.right <= status.left && status.right <= arrow.left,
+        overflow: row.scrollWidth > row.clientWidth
+      };
+    });
+    assert.deepEqual(recentRowLayout, { metaHidden: true, detailHidden: true, ordered: true, overflow: false });
     await page.setViewportSize({ width: 1024, height: 768 });
     assert.equal((await page.locator('.home-dashboard-grid').evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(' ').length)), 2);
+    assert.equal(await page.locator('.home-dashboard-rail').isVisible(), true);
     await page.setViewportSize({ width: 821, height: 768 });
     assert.equal((await page.locator('.home-dashboard-grid').evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(' ').length)), 1);
+    assert.equal(await page.locator('.home-dashboard-rail').isVisible(), true);
     await page.setViewportSize({ width: 1366, height: 900 });
 
     const matterListCallsBeforeSearch = state.matterListCalls;
@@ -1045,6 +1214,7 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     assert.equal(await page.getByRole("button", { name: /최근 기록 모두 보기/ }).count(), 1);
     assert.equal(await page.locator('[data-search-history-section="viewed"] .search-history-row').count(), 1);
     assert.equal(await page.locator('[data-search-history-section="modified"] .search-history-row').count(), 3);
+    assert.deepEqual(await compactRecordLayoutFailures(page), [], "Search history records must remain one-line");
     assert.deepEqual(state.matterListLimits.slice(matterListCallsBeforeSearch), ["5"]);
     await page.keyboard.press('Tab');
     assert.equal(await page.locator(':focus').evaluate((node) => node.classList.contains('search-history-row')), true);
@@ -1088,6 +1258,8 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     assert.equal(matterRowLayout.copyDisplay, "contents");
     assert.ok(Math.abs(matterRowLayout.titleCenter - matterRowLayout.metaCenter) < 2, "Matter record fields must share one table row");
     assert.equal(matterRowLayout.overflow, false);
+    assert.deepEqual(await compactRecordLayoutFailures(page), [], "Matter compact records must remain one-line");
+    assert.deepEqual(await panelHeaderLayoutFailures(page), [], "Matter panel metadata must remain on the title line");
 
     await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-client-dashboard="true"]');
@@ -1103,6 +1275,8 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     const clientRow = page.locator('[data-dashboard-section="client-meetings"] .dashboard-record-row').first();
     assert.equal(await clientRow.evaluate((row) => row.scrollWidth > row.clientWidth), false);
     assert.equal(await clientRow.locator("em").evaluate((node) => getComputedStyle(node).whiteSpace), "nowrap");
+    assert.deepEqual(await compactRecordLayoutFailures(page), [], "Client compact records must remain one-line");
+    assert.deepEqual(await panelHeaderLayoutFailures(page), [], "Client panel metadata must remain on the title line");
     const clientDashboardText = await page.locator('[data-client-dashboard="true"]').innerText();
     assert.doesNotMatch(clientDashboardText, /@amic\.kr|party-dashboard-1|account-dashboard-1|api-fin-client|meeting-dashboard-1|550e8400-e29b-41d4-a716-446655440000/);
     assert.doesNotMatch(clientDashboardText, /\b(?:Client|qualified|active)\b/);
@@ -1147,6 +1321,8 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     }
     assert.equal(await workforceTools.getByRole("button", { name: "표 보기 옵션", exact: true }).count(), 1);
     assert.equal(await workforceTools.getByLabel("구성원 검색").count(), 1);
+    assert.deepEqual(await compactRecordLayoutFailures(page), [], "People compact records must remain one-line");
+    assert.deepEqual(await panelHeaderLayoutFailures(page), [], "People panel metadata must remain on the title line");
     for (const title of ["신규 고객", "잠재 고객/접촉", "매출 순위", "고객 미팅", "미수금"]) {
       assert.equal(await page.getByText(title, { exact: true }).count(), 0, `People must not show ${title}`);
     }
@@ -1347,8 +1523,13 @@ test("R1 WP-7 keeps approval counts aligned across the dashboard card, sidebar, 
     }));
     assert.deepEqual(dashboardCounts, { sidebar: "5", topbar: "5" });
     assert.equal(await page.locator("[data-home-widget-approval-count]").count(), 0);
-    assert.deepEqual(await page.locator('[data-dashboard-section="pending-approvals"] .dashboard-record-copy strong').allTextContents(), ["휴가", "비용처리"]);
-    assert.deepEqual(await page.locator('[data-dashboard-section="pending-approvals"] .dashboard-record-detail').allTextContents(), ["4건", "1건"]);
+    assert.deepEqual(await page.locator('[data-dashboard-section="pending-approvals"] .dashboard-record-copy strong').allTextContents(), ["가장 오래된 승인", "오늘 승인", "중간 승인", "내일 승인", "가장 늦은 승인"]);
+    assert.equal(await page.locator('[data-dashboard-section="pending-approvals"] .dashboard-record-detail').count(), 0);
+
+    await page.locator('[data-dashboard-section="pending-approvals"]').getByRole("button", { name: /가장 오래된 승인/ }).click();
+    await page.waitForSelector('[data-home-section-screen="home-requests"]');
+    assert.equal(new URL(page.url()).hash, "#home-requests");
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
 
     await page.locator('[data-home-widget-view-all="todo"]').click();
     await page.waitForFunction(() => window.location.hash === "#home-todo");
@@ -1538,6 +1719,65 @@ test("profile keeps the main-process signed-in identity when its profile API rea
     assert.equal(await profile.getAttribute("data-profile-member"), "user_amic_jwsuh");
     assert.equal(await profile.locator("h1").innerText(), "서지원");
     assert.doesNotMatch(await profile.innerText(), /김양태/);
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
+test("profile never lets a generic API fallback replace the signed-in display name", async () => {
+  const port = await availablePort();
+  const server = await createServer({
+    root: webRoot,
+    logLevel: "silent",
+    server: { host: "127.0.0.1", port, strictPort: true }
+  });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  const state = { decisionCalls: 0, newsCalls: 0 };
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    await page.addInitScript(() => {
+      window.matterSession = {
+        status: async () => ({
+          state: "signed_in",
+          user_id: "user_amic_jwsuh",
+          display_name: "서지원",
+          tenant_id: "tenant_amic_matter_vault"
+        })
+      };
+    });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname === "/api/profile/me") {
+        return jsonResponse(route, {
+          request_id: "profile-generic-fallback",
+          outcome: "passed",
+          item: {
+            profile_ref: "profile:user_amic_jwsuh",
+            actor_ref: "user_amic_jwsuh",
+            tenant_ref: "tenant_amic_matter_vault",
+            display_name: "세션 사용자",
+            primary_role_label: "role_unassigned",
+            role_count: 1
+          },
+          safe_error_codes: [],
+          audit_hint_ref: "ui_profile_me_probe",
+          ui_state: "populated",
+          count_leak_prevented: true,
+          production_ready_claim: false
+        });
+      }
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
+    });
+    await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow`, { waitUntil: "networkidle" });
+    await page.locator("[data-profile-trigger]").click();
+    const profile = page.locator('[data-user-profile-surface="my-profile"]');
+    await profile.waitFor();
+    await page.waitForFunction(() => document.querySelector('[data-user-profile-surface="my-profile"]')?.getAttribute("data-profile-api-state") === "populated");
+
+    assert.equal(await profile.locator("h1").innerText(), "서지원");
+    assert.doesNotMatch(await profile.innerText(), /세션 사용자|미등록/);
   } finally {
     await browser.close();
     await server.close();

@@ -1,6 +1,5 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { BadgeCheck } from "lucide-react";
 import { DataTable, Panel, Property } from "../components/primitives.jsx";
 import { fetchCandidatePortal } from "../people/hrxApiClient.ts";
 
@@ -75,11 +74,7 @@ export function CandidatePortal({ candidateId }) {
   }
 
   return (
-    <Panel id="people-candidate-portal" className="people-panel span-2" title="지원자 정보" meta="구성원 등록">
-      <div className="people-panel-kicker">
-        <BadgeCheck size={15} />
-        지원 내역과 문서 정보를 확인합니다
-      </div>
+    <Panel id="people-candidate-portal" className="people-panel span-2" title="지원자 정보">
       {body}
     </Panel>
   );

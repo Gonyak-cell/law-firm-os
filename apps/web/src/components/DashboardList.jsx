@@ -30,9 +30,9 @@ export function DashboardListCard({
   );
 }
 
-export function DashboardRecordList({ children, emptyText = "표시할 항목이 없습니다" }) {
+export function DashboardRecordList({ children }) {
   const rows = React.Children.toArray(children);
-  if (rows.length === 0) return <div className="home-widget-empty"><span>{emptyText}</span></div>;
+  if (rows.length === 0) return null;
   return <div className="dashboard-record-list">{rows}</div>;
 }
 
@@ -41,8 +41,12 @@ function uniqueDashboardMeta(title, meta) {
   const normalize = (value) => value.trim().replace(/\s+/g, " ").toLocaleLowerCase("ko-KR");
   const normalizedTitle = normalize(title);
   if (!normalizedTitle) return meta;
+  const normalizedTitleParts = new Set(title.split(/\s*(?:\/|·|\||—)\s*/).map(normalize).filter(Boolean));
   const parts = meta.split(/\s+(?:\/|·|\||—)\s+/).map((part) => part.trim()).filter(Boolean);
-  const uniqueParts = parts.filter((part) => normalize(part) !== normalizedTitle);
+  const uniqueParts = parts.filter((part) => {
+    const normalizedPart = normalize(part);
+    return normalizedPart !== normalizedTitle && !normalizedTitleParts.has(normalizedPart);
+  });
   return uniqueParts.length === parts.length ? meta : uniqueParts.join(" / ") || null;
 }
 
@@ -60,8 +64,8 @@ export function DashboardRecordRow(props) {
       {onOpen && <ArrowRight size={15} aria-hidden="true" />}
     </>
   );
-  if (!onOpen) return <div className="dashboard-record-row">{content}</div>;
-  return <button type="button" className="dashboard-record-row" onClick={onOpen}>{content}</button>;
+  if (!onOpen) return <div className="dashboard-record-row" data-compact-record="true">{content}</div>;
+  return <button type="button" className="dashboard-record-row" data-compact-record="true" onClick={onOpen}>{content}</button>;
 }
 
 export function DashboardReadState({ result, noun, children }) {

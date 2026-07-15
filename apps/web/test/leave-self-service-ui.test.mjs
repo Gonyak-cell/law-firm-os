@@ -56,11 +56,17 @@ test("LV-03 mounts self, team, approval, reschedule, and delegation surfaces wit
 
   assert.match(client, /requestJson\("\/api\/hrx\/leave\/me"\)/);
   assert.match(client, /withQuery\("\/api\/hrx\/leave\/team"/);
+  assert.match(client, /fetchHrxActiveLeaveOptions\(onDate = currentDateKey\(\)\)/);
   assert.match(client, /requestJson\("\/api\/hrx\/leave\/requests"\)/);
   assert.match(client, /requestJson\("\/api\/hrx\/leave\/delegations\/candidates"\)/);
   assert.match(selfPage, /차감 미리보기/);
+  assert.match(selfPage, /allowedDurationModes/);
+  assert.match(selfPage, /preview\.economics/);
+  assert.match(selfPage, /유급 \{formatMinutes/);
+  assert.match(selfPage, /무급 \{formatMinutes/);
+  assert.doesNotMatch(selfPage, /반반일/);
   assert.match(selfPage, /시기변경 협의 중/);
-  assert.match(selfPage, /유형과 사유는 공개하지 않습니다/);
+  assert.doesNotMatch(selfPage, /유형과 사유는 공개하지 않습니다|향후 7일 팀 휴가가 없습니다|absence_label/);
   assert.doesNotMatch(selfPage, /employeeId/);
   assert.doesNotMatch(selfPage, /<button[^>]*>\s*승인\s*<\/button>|<button[^>]*>\s*반려\s*<\/button>/);
 

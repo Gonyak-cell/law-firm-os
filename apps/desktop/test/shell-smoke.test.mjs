@@ -16,6 +16,7 @@ import {
   isMainEntryPoint,
   passwordResetDeepLinkIntent,
   packagedRendererUrl,
+  rendererTargetFromEnv,
   sendPasswordResetDeepLink,
   shouldStartDesktopLocalApi,
   shouldUseVolatileDesktopSessionStore,
@@ -81,8 +82,8 @@ test("desktop shell starts with packaged renderer target, preload, and hardened 
   assert.equal(target, packagedRendererUrl());
   assert.equal(window.loadedURL, packagedRendererUrl());
   const packagedUrl = new URL(packagedRendererUrl());
-  assert.equal(packagedUrl.pathname.endsWith("/renderer/offline.html"), true);
-  assert.equal(packagedUrl.search, "");
+  assert.equal(packagedUrl.pathname.endsWith("/renderer/web/index.html"), true);
+  assert.equal(packagedUrl.searchParams.get("desktop"), "1");
   assert.equal(window.options.webPreferences.nodeIntegration, false);
   assert.equal(window.options.webPreferences.contextIsolation, true);
   assert.equal(window.options.webPreferences.sandbox, true);
@@ -99,6 +100,22 @@ test("desktop shell starts with packaged renderer target, preload, and hardened 
   assert.match(preloadSource, /claimLogoIntro/);
   assert.match(preloadSource, /api: "session:api"/);
   assert.match(preloadSource, /api: \(payload\) => invokeAllowed\("api", payload\)/);
+});
+
+test("desktop startup cannot select the retired offline login renderers", () => {
+  assert.equal(rendererTargetFromEnv({}), packagedRendererUrl());
+  assert.equal(
+    rendererTargetFromEnv({ MATTER_DESKTOP_RENDERER_URL: "file:///Applications/matter.app/Contents/Resources/app/src/renderer/offline.html" }),
+    packagedRendererUrl()
+  );
+  assert.equal(
+    rendererTargetFromEnv({ MATTER_DESKTOP_RENDERER_URL: "file:///Applications/matter.app/Contents/Resources/app/src/renderer/offline.matter.html" }),
+    packagedRendererUrl()
+  );
+  assert.equal(
+    rendererTargetFromEnv({ MATTER_DESKTOP_RENDERER_URL: APPROVED_DEV_RENDERER_URL }),
+    APPROVED_DEV_RENDERER_URL
+  );
 });
 
 test("desktop shell can resolve bundled or repo-local API server for web renderer data", () => {

@@ -1,0 +1,93 @@
+{
+  "schema_version": "law-firm-os.hrx.leave-payroll-golden.v0.1",
+  "fixture_id": "hrx-leave-payroll-boundaries-2026-07",
+  "environment": "synthetic",
+  "timezone": "Asia/Seoul",
+  "period": { "start": "2026-07-01", "end": "2026-07-31" },
+  "employees": [
+    {
+      "employee_id": "golden-full-month",
+      "work_email": "golden-full-month@example.test",
+      "source_ref": "Synthetic:golden-full-month",
+      "employment_start": "2025-01-01",
+      "employment_end": null,
+      "employment_type": "full_time",
+      "payroll_profile": { "pay_basis": "monthly", "currency": "KRW", "rate_krw": 4000000 },
+      "leave": { "paid_minutes": 0, "unpaid_minutes": 0, "unused_minutes": 0 },
+      "approved_time": { "regular_overtime_minutes": 0, "night_minutes": 0, "holiday_minutes": 0 },
+      "dependent_count": 0
+    },
+    {
+      "employee_id": "golden-mid-month-hire",
+      "work_email": "golden-mid-month-hire@example.test",
+      "source_ref": "Synthetic:golden-mid-month-hire",
+      "employment_start": "2026-07-15",
+      "employment_end": null,
+      "employment_type": "full_time",
+      "payroll_profile": { "pay_basis": "monthly", "currency": "KRW", "rate_krw": 3000000 },
+      "leave": { "paid_minutes": 0, "unpaid_minutes": 0, "unused_minutes": 0 },
+      "approved_time": { "regular_overtime_minutes": 0, "night_minutes": 0, "holiday_minutes": 0 },
+      "dependent_count": 0
+    },
+    {
+      "employee_id": "golden-mid-month-termination",
+      "work_email": "golden-mid-month-termination@example.test",
+      "source_ref": "Synthetic:golden-mid-month-termination",
+      "employment_start": "2024-03-01",
+      "employment_end": "2026-07-20",
+      "employment_type": "full_time",
+      "payroll_profile": { "pay_basis": "monthly", "currency": "KRW", "rate_krw": 5000000 },
+      "leave": { "paid_minutes": 0, "unpaid_minutes": 0, "unused_minutes": 960 },
+      "approved_time": { "regular_overtime_minutes": 0, "night_minutes": 0, "holiday_minutes": 0 },
+      "dependent_count": 0
+    },
+    {
+      "employee_id": "golden-hourly-overtime",
+      "work_email": "golden-hourly-overtime@example.test",
+      "source_ref": "Synthetic:golden-hourly-overtime",
+      "employment_start": "2025-05-01",
+      "employment_end": null,
+      "employment_type": "part_time",
+      "payroll_profile": { "pay_basis": "hourly", "currency": "KRW", "rate_krw": 25000 },
+      "leave": { "paid_minutes": 0, "unpaid_minutes": 0, "unused_minutes": 0 },
+      "approved_time": { "regular_overtime_minutes": 120, "night_minutes": 60, "holiday_minutes": 0 },
+      "dependent_count": 0
+    },
+    {
+      "employee_id": "golden-contractor-holiday",
+      "work_email": "golden-contractor-holiday@example.test",
+      "source_ref": "Synthetic:golden-contractor-holiday",
+      "employment_start": "2026-01-01",
+      "employment_end": null,
+      "employment_type": "contractor",
+      "payroll_profile": { "pay_basis": "freelancer", "currency": "KRW", "rate_krw": 300000 },
+      "leave": { "paid_minutes": 0, "unpaid_minutes": 0, "unused_minutes": 0 },
+      "approved_time": { "regular_overtime_minutes": 0, "night_minutes": 0, "holiday_minutes": 480 },
+      "dependent_count": 0
+    },
+    {
+      "employee_id": "golden-leave-dependent-boundary",
+      "work_email": "golden-leave-dependent-boundary@example.test",
+      "source_ref": "Synthetic:golden-leave-dependent-boundary",
+      "employment_start": "2025-09-01",
+      "employment_end": null,
+      "employment_type": "intern",
+      "payroll_profile": { "pay_basis": "daily", "currency": "KRW", "rate_krw": 150000 },
+      "leave": { "paid_minutes": 240, "unpaid_minutes": 120, "unused_minutes": 0 },
+      "approved_time": { "regular_overtime_minutes": 0, "night_minutes": 0, "holiday_minutes": 0 },
+      "dependent_count": 3
+    }
+  ],
+  "expected_totals": {
+    "employee_count": 6,
+    "hire_boundary_count": 1,
+    "termination_boundary_count": 1,
+    "paid_leave_minutes": 240,
+    "unpaid_leave_minutes": 120,
+    "unused_leave_minutes": 960,
+    "regular_overtime_minutes": 120,
+    "night_minutes": 60,
+    "holiday_minutes": 480,
+    "dependent_count": 3
+  }
+}

@@ -422,19 +422,15 @@ function legalPeopleItems(result) {
 function LegalMatterPeopleBacklinkPanel({ result }) {
   const people = legalPeopleItems(result);
   return (
-    <Panel id="matter-people-backlinks" className="record-list-panel" title="Matter 인물 연결" meta="연락처">
+    <Panel id="matter-people-backlinks" className="record-list-panel" title="Matter 인물 연결">
       <div className="legal-people-backlink-panel" data-lcx-ppl-matter-backlink="true">
-        <div className="people-panel-kicker">
-          <Link2 size={15} />
-          Matter 참여자와 관련 인물 기록을 함께 확인합니다.
-        </div>
         {result === null && <div className="live-data-state live-data-loading">Matter 연결 인물을 불러오는 중입니다</div>}
         {result?.kind === "error" && <div className="live-data-state live-data-error">Matter 연결 인물을 불러오지 못했습니다.</div>}
         {result?.kind === "data" && people.length === 0 && <div className="live-data-state live-data-empty">연결된 인물 기록이 없습니다.</div>}
         {people.length > 0 && (
           <div className="legal-people-backlink-list" aria-label="Matter 연결 인물">
             {people.slice(0, 6).map((person) => (
-              <span key={person.person_id} className="legal-people-backlink-row">
+              <span key={person.person_id} className="legal-people-backlink-row" data-compact-record="true">
                 <Link2 size={13} />
                 <strong>{matterTitleLabel(person.display_name, 0)}</strong>
                 <small>{person.korean_label ?? person.type_id}</small>
@@ -456,10 +452,6 @@ function ConnectedMatterSection({ sectionId, config, children }) {
       data-lcx-vltui-06-route-backed="true"
       data-lcx-vltui-06-claim-state="bounded"
     >
-      <div className="matter-review-strip" data-lcx-vltui-06-boundary-state="connected-or-blocked">
-        <ShieldCheck size={15} />
-        <span>현재 Matter의 연결 상태를 확인합니다.</span>
-      </div>
       <DataTable
         columns={["항목", "연결 기준", "상태"]}
         rows={config.rows}
@@ -1025,14 +1017,14 @@ function MatterDashboardPanel({
     <div className="operational-dashboard-grid matter-dashboard-layout" data-matter-dashboard="true">
       <DashboardListCard className="matter-dashboard-recent" title="최근 작업" section="recent-work" onViewAll={() => onNavigateSection("matters-list")}>
         <DashboardReadState result={recentResult ?? result} noun="최근 작업">
-          <DashboardRecordList emptyText="최근 작업이 없습니다">
+          <DashboardRecordList>
             {recentRows.map((item, index) => <DashboardRecordRow key={`recent:${item.matter_id ?? index}`} title={matterCodeLabel(item, index)} meta={`${matterClientLabel(item)} / ${matterTitleLabel(item.title, index)}`} detail={viewedAtLabel(item.viewed_at ?? item.updated_at ?? item.created_at)} status={matterStatus(item.status)} onOpen={() => openSection("matters-list", item)} />)}
           </DashboardRecordList>
         </DashboardReadState>
       </DashboardListCard>
       <DashboardListCard className="matter-dashboard-todo" title="오늘의 To Do" section="today-todo" onViewAll={() => onNavigateSection("matter-tasks")}>
         <DashboardReadState result={taskResult} noun="오늘의 To Do">
-          <DashboardRecordList emptyText="오늘 마감 업무가 없습니다">
+          <DashboardRecordList>
             {todayTasks.map((item, index) => {
               const linkedMatter = mattersById.get(item.matter_ref);
               return <DashboardRecordRow key={`task:${item.id ?? index}`} title={item.title ?? `업무 ${index + 1}`} meta={linkedMatter ? matterCodeLabel(linkedMatter) : item.matter_ref ? "매터 연결" : "매터 미지정"} detail={viewedAtLabel(item.due_at)} status={matterTaskStatus(item.status)} onOpen={() => onNavigateSection("matter-tasks")} />;
@@ -1042,21 +1034,21 @@ function MatterDashboardPanel({
       </DashboardListCard>
       <DashboardListCard className="matter-dashboard-mine" title="나의 매터(담당 지정)" section="my-matters" onViewAll={() => onNavigateSection("matters-list")}>
         <DashboardReadState result={result} noun="나의 매터">
-          <DashboardRecordList emptyText="담당 지정된 Matter가 없습니다">
+          <DashboardRecordList>
             {myMatters.map((item, index) => <DashboardRecordRow key={`mine:${item.matter_id ?? index}`} title={matterCodeLabel(item, index)} meta={`${matterClientLabel(item)} / ${matterTitleLabel(item.title, index)}`} detail={matterDueLabel(item)} status={matterStatus(item.status)} onOpen={() => openSection("matters-list", item)} />)}
           </DashboardRecordList>
         </DashboardReadState>
       </DashboardListCard>
       <DashboardListCard className="matter-dashboard-intake" title="신규 수임" section="new-engagements" onViewAll={() => onNavigateSection("matter-intake")}>
         <DashboardReadState result={result} noun="신규 수임">
-          <DashboardRecordList emptyText="신규 수임이 없습니다">
+          <DashboardRecordList>
             {newMatters.map((item, index) => <DashboardRecordRow key={`opening:${item.matter_id ?? index}`} title={matterCodeLabel(item, index)} meta={`${matterClientLabel(item)} / ${matterTitleLabel(item.title, index)}`} detail={viewedAtLabel(item.opened_at ?? item.created_at)} status="개시 중" onOpen={() => openSection("matter-intake", item)} />)}
           </DashboardRecordList>
         </DashboardReadState>
       </DashboardListCard>
       <DashboardListCard className="matter-dashboard-closed" title="종결 매터" section="closed-matters" onViewAll={() => onNavigateSection("matters-list")}>
         <DashboardReadState result={result} noun="종결 매터">
-          <DashboardRecordList emptyText="종결된 Matter가 없습니다">
+          <DashboardRecordList>
             {closedMatters.map((item, index) => <DashboardRecordRow key={`closed:${item.matter_id ?? index}`} title={matterCodeLabel(item, index)} meta={`${matterClientLabel(item)} / ${matterTitleLabel(item.title, index)}`} detail={viewedAtLabel(item.closed_at ?? item.updated_at)} status="종결" onOpen={() => openSection("matters-list", item)} />)}
           </DashboardRecordList>
         </DashboardReadState>
@@ -1677,7 +1669,6 @@ function ActivityWorkspacePanel({
         <div className="record-action-strip">
           <div>
             <strong>{actionLabel}</strong>
-            <span>{targetActivity ? activityStatusLabel(targetActivity.status) : `새 ${actionLabel}`}</span>
             <ActionNotice
               pending={createPending}
               result={createResult}
@@ -1697,8 +1688,7 @@ function ActivityWorkspacePanel({
         </div>
         <div className="record-action-strip">
           <div>
-            <strong>상태</strong>
-            <span>{targetActivity ? activityStatusLabel(targetActivity.status) : "작업 선택"}</span>
+            <strong>{targetActivity ? activityStatusLabel(targetActivity.status) : "상태"}</strong>
             <ActionNotice
               pending={patchPending}
               result={patchResult}
@@ -3896,7 +3886,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
         data-salesforce-matter-workspace="list-detail-overlay"
       >
         {currentSection === "matter-home" && (
-          <Panel id="matter-home" className="record-list-panel" title="대시보드" meta="사건 운영" hideHeader>
+          <Panel id="matter-home" className="record-list-panel" title="대시보드" hideHeader>
             <MatterDashboardPanel
               result={result}
               matters={matters}
@@ -3923,7 +3913,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {["matter-intake", "matter-command"].includes(currentSection) && (
-          <Panel id={currentSection} className="record-list-panel" title="수임 진행" meta="진행 관리" hideHeader>
+          <Panel id={currentSection} className="record-list-panel" title="수임 진행" hideHeader>
             {matterAccessState ?? (
               <>
                 <CommandPanel
@@ -4004,7 +3994,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "matter-calendar" && (
-          <Panel id="matter-calendar" className="record-list-panel" title="일정" meta="일정 관리" hideHeader>
+          <Panel id="matter-calendar" className="record-list-panel" title="일정" hideHeader>
             <CalendarWorkspacePanel
               calendarResult={calendarResult}
               deadlineResult={deadlineResult}
@@ -4031,7 +4021,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "matter-channel" && (
-          <Panel id="matter-channel" className="record-list-panel" title="메시지" meta="소통" hideHeader>
+          <Panel id="matter-channel" className="record-list-panel" title="메시지" hideHeader>
             <ChannelWorkspacePanel
               channelResult={channelResult}
               messageResult={channelMessageResult}
@@ -4115,7 +4105,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "matter-analytics" && (
-          <Panel id="matter-analytics" className="record-list-panel" title="사건 리포트" meta="리포트">
+          <Panel id="matter-analytics" className="record-list-panel" title="사건 리포트">
             <AnalyticsPanel
               result={analyticsResult}
               profitabilityResult={profitabilityResult}

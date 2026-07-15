@@ -298,7 +298,7 @@ export const PEOPLE_FEATURE_GROUPS = [
         capabilities: ["지정 승인", "시기변경 협의", "승인 위임"]
       },
       {
-        label: "연차휴가 사용 촉진 문서",
+        label: "연차 사용 촉진",
         section: "people-annual-leave-notices",
         icon: "file",
         state: "active",
@@ -410,9 +410,9 @@ export const PEOPLE_FEATURE_GROUPS = [
         label: "급여명세서",
         section: "people-pay-statement",
         icon: "file",
-        state: "integration_required",
-        summary: "급여명세서 전송과 보관은 외부 급여 서비스 연동 후 사용합니다.",
-        capabilities: ["급여명세서", "메시지 전송", "외부 급여 서비스"]
+        state: "active",
+        summary: "급여명세서를 생성하고 전달합니다.",
+        capabilities: ["급여명세서 생성", "보관함 전달", "급여대장 내보내기"]
       },
       {
         label: "수당/최저임금",

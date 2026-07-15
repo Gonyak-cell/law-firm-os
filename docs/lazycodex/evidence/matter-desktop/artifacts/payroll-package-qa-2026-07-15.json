@@ -1,0 +1,266 @@
+{
+  "schema_version": "law-firm-os.payroll.package-qa.v0.1",
+  "generated_at": "2026-07-15T05:57:23.932Z",
+  "verdict": "PASS",
+  "synthetic_only": true,
+  "source": {
+    "revision": "7717d5cee158fc97056510e8aebc9e0854d34196",
+    "renderer_sha256": "ffd5dacef10d95ba000cf1b9c6937de6028a881eded91f79c642153757c27df4"
+  },
+  "macos": {
+    "bundle": "apps/desktop/dist/mac/matter.app",
+    "executable": "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+    "executable_sha256": "c0bf182389ea930585e3b0bf5c4f16529461e02bf3be751cb364d0e25f2257e0",
+    "renderer_sha256": "ffd5dacef10d95ba000cf1b9c6937de6028a881eded91f79c642153757c27df4",
+    "native_runtime_smoke": "pass",
+    "release_channel": "internal",
+    "signed_for_distribution": false,
+    "notarized": false
+  },
+  "windows": {
+    "package_directory": "apps/desktop/dist/win/matter-internal-0.1.16-win32-x64",
+    "executable": "apps/desktop/dist/win/matter-internal-0.1.16-win32-x64/matter.exe",
+    "executable_sha256": "b0b6e0cd22a7a135e5230118be27a4c2713a516340f0bbdfb446acb9b2dae31e",
+    "unsigned_zip": "apps/desktop/dist/win/matter-internal-0.1.16-win32-x64-unsigned.zip",
+    "unsigned_zip_sha256": "7ed30ee15a0f84d28d9f5bdf8c121185c61cceb3e4b6d0d0277f664c71ba431d",
+    "renderer_sha256": "ffd5dacef10d95ba000cf1b9c6937de6028a881eded91f79c642153757c27df4",
+    "renderer_matches_macos": true,
+    "pe_header": "MZ",
+    "archive_test": "pass",
+    "native_runtime_smoke": "not_run_on_darwin",
+    "authenticode_signed": false
+  },
+  "runtime": {
+    "profile": "local-dev",
+    "endpoint_kind": "loopback_ephemeral",
+    "first_endpoint": "http://127.0.0.1:50505",
+    "second_endpoint": "http://127.0.0.1:50528",
+    "migration_version": "025_hrx_payroll_year_end",
+    "session_restoration": "tokenless_loopback_session_restored"
+  },
+  "workflow": {
+    "before_restart": {
+      "run_status": "closed",
+      "employee_count": 10,
+      "totals": {
+        "gross_krw": 40725806,
+        "deduction_krw": 5324483,
+        "net_krw": 35401323,
+        "issue_count": 0
+      },
+      "statement_states": [
+        "delivered",
+        "delivered",
+        "delivered",
+        "delivered",
+        "delivered",
+        "delivered",
+        "delivered",
+        "delivered",
+        "delivered",
+        "delivered"
+      ],
+      "payment_states": [
+        "reconciled"
+      ],
+      "filing_states": [
+        "payment_statement:accepted",
+        "social_insurance:accepted",
+        "withholding:accepted",
+        "year_end:accepted"
+      ],
+      "year_end_state": "reviewed"
+    },
+    "after_restart": {
+      "run_status": "closed",
+      "employee_count": 10,
+      "totals": {
+        "gross_krw": 40725806,
+        "deduction_krw": 5324483,
+        "net_krw": 35401323,
+        "issue_count": 0
+      },
+      "statement_states": [
+        "delivered",
+        "delivered",
+        "delivered",
+        "delivered",
+        "delivered",
+        "delivered",
+        "delivered",
+        "delivered",
+        "delivered",
+        "delivered"
+      ],
+      "payment_states": [
+        "reconciled"
+      ],
+      "filing_states": [
+        "payment_statement:accepted",
+        "social_insurance:accepted",
+        "withholding:accepted",
+        "year_end:accepted"
+      ],
+      "year_end_state": "reviewed"
+    },
+    "scenarios": {
+      "closed_run": true,
+      "statements_generated_and_delivered": true,
+      "payment_reconciled": true,
+      "four_filings_accepted": true,
+      "detail_initial_focus": true,
+      "detail_focus_restored": true,
+      "preparer_statement_management": true,
+      "employee_self_statement": true,
+      "restart_persistence": true
+    }
+  },
+  "screenshots": [
+    {
+      "name": "payroll-workspace-1280x820",
+      "path": "output/playwright/payroll-package/payroll-workspace-1280x820.png",
+      "sha256": "4ce01c019ef3e710a59d5abb030625aa2b106a165b57690020895341118c7edf",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      }
+    },
+    {
+      "name": "payroll-workspace-720x800",
+      "path": "output/playwright/payroll-package/payroll-workspace-720x800.png",
+      "sha256": "cc1e659bc6d70631e955f3ef84108d226d6f75f75d8a9b7ed5f871189f43745a",
+      "viewport": {
+        "width": 720,
+        "height": 800
+      }
+    },
+    {
+      "name": "payroll-statements-1280x820",
+      "path": "output/playwright/payroll-package/payroll-statements-1280x820.png",
+      "sha256": "b5392e9977f64d72f7e41fb282cf81a723deb9f11217f57b3cc5d1d5b228ff65",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      }
+    },
+    {
+      "name": "payroll-self-statement-720x800",
+      "path": "output/playwright/payroll-package/payroll-self-statement-720x800.png",
+      "sha256": "87ace413ffa1587779ecc030e4c5e102841bbbafe20e5efd7e9b72b543f95fe4",
+      "viewport": {
+        "width": 720,
+        "height": 800
+      }
+    },
+    {
+      "name": "payroll-restart-restored-1280x820",
+      "path": "output/playwright/payroll-package/payroll-restart-restored-1280x820.png",
+      "sha256": "4ce01c019ef3e710a59d5abb030625aa2b106a165b57690020895341118c7edf",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      }
+    }
+  ],
+  "geometry": [
+    {
+      "name": "payroll-workspace-1280x820",
+      "target_visible": true,
+      "client_width": 1280,
+      "scroll_width": 1280,
+      "row_heights": [
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "broken_images": 0
+    },
+    {
+      "name": "payroll-workspace-720x800",
+      "target_visible": true,
+      "client_width": 705,
+      "scroll_width": 705,
+      "row_heights": [
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "broken_images": 0
+    },
+    {
+      "name": "payroll-statements-1280x820",
+      "target_visible": true,
+      "client_width": 1280,
+      "scroll_width": 1280,
+      "row_heights": [
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "broken_images": 0
+    },
+    {
+      "name": "payroll-self-statement-720x800",
+      "target_visible": true,
+      "client_width": 705,
+      "scroll_width": 705,
+      "row_heights": [
+        44
+      ],
+      "broken_images": 0
+    },
+    {
+      "name": "payroll-restart-restored-1280x820",
+      "target_visible": true,
+      "client_width": 1280,
+      "scroll_width": 1280,
+      "row_heights": [
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "broken_images": 0
+    }
+  ],
+  "diagnostics": {
+    "page_error_count": 0,
+    "console_error_count": 0
+  },
+  "boundaries": {
+    "real_employee_data_used": false,
+    "external_provider_write_claim": false,
+    "policy_approval_claim": false,
+    "legal_tax_approval_claim": false,
+    "production_ready_claim": false,
+    "public_release_claim": false,
+    "go_live_claim": false
+  }
+}

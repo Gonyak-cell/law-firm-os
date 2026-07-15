@@ -454,7 +454,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
     const childRows = (orgChildrenByManager.get(employee.employeeId) ?? []).filter((child) => child.orgUnitId === employee.orgUnitId);
     const photo = memberPhotoFor(employee.name);
     return [
-        <div key={`${employee.key}-self`} className="hr-org-person" style={{ paddingLeft: `${8 + depth * 16}px` }}>
+        <div key={`${employee.key}-self`} className="hr-org-person" data-compact-record="true" style={{ paddingLeft: `${8 + depth * 16}px` }}>
           <span className="hr-roster-avatar">{photo ? <img src={photo} alt="" /> : initials(employee.name)}</span>
           <div>
             <strong>{employee.name}</strong>
@@ -574,7 +574,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                     return (
                       <tr key={row.key} className={[row.muted ? "muted" : "", isSelected ? "selected" : ""].filter(Boolean).join(" ")}>
                         <td>
-                          <button type="button" className="hr-roster-person" aria-pressed={isSelected ? "true" : "false"} onClick={() => handleRowSelect(row)}>
+                          <button type="button" className="hr-roster-person" data-compact-record="true" aria-pressed={isSelected ? "true" : "false"} onClick={() => handleRowSelect(row)}>
                             <FileText className="hr-roster-page-icon" size={17} />
                             <span>
                               <strong>{row.name}</strong>
@@ -600,11 +600,6 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
         </div>
       ) : (
         <div className="hr-org-chart" data-hr-org-chart="true">
-          <div className="hr-org-root">
-            <GitBranch size={18} />
-            <strong>조직</strong>
-            <span>근로정보 기준 리포팅 라인</span>
-          </div>
           {orgStatus ? (
             <div className={`live-data-state ${orgStatus.kind === "loading" ? "live-data-loading" : "live-data-error"}`}>
               <strong>{orgStatus.message}</strong>
@@ -654,7 +649,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                     const roots = rows.filter((row) => !row.managerEmployeeId || !rows.some((candidate) => candidate.employeeId === row.managerEmployeeId));
                     return (
                       <article key={unit.id} className="hr-org-group">
-                        <header>
+                        <header data-compact-record="true">
                           <span>
                             <strong>{unit.label}</strong>
                             <small>{unit.department}</small>

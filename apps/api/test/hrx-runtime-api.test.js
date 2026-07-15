@@ -55,6 +55,7 @@ const HRX_AUTH_HEADERS = Object.freeze({
     "hrx.audit.read",
     "hrx.compensation.read",
     "hrx.payroll.preview",
+    "hrx.payroll.approve",
     "hrx.payroll.export",
   ].join(","),
 });

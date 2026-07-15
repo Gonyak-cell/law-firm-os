@@ -68,7 +68,7 @@ function operationMode(section) {
   return "billing";
 }
 
-export function HomeFinanceOperations({ liveCtx = "allow", activeSection }) {
+export function HomeFinanceOperations({ liveCtx = "allow", activeSection, refreshSignal = 0 }) {
   const canExportAccounting = canAccessFinanceScope(
     [readLawosApiSession(), readLawosSessionEnvelope()],
     ["finance.export"],
@@ -95,14 +95,13 @@ export function HomeFinanceOperations({ liveCtx = "allow", activeSection }) {
   const [timeTimerStartedAt, setTimeTimerStartedAt] = useState(null);
   const [timeTimerSeconds, setTimeTimerSeconds] = useState(0);
   const [pending, setPending] = useState({});
-  const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     setMatterResult(null);
     fetchMatterRecords({ ctx: liveCtx }).then((result) => { if (!cancelled) setMatterResult(result); });
     return () => { cancelled = true; };
-  }, [liveCtx, refreshToken]);
+  }, [liveCtx, refreshSignal]);
 
   const matters = items(matterResult);
   const selectedMatter = useMemo(() => matters.find((matter) => matter.matter_id === matterId) ?? null, [matters, matterId]);
@@ -133,7 +132,7 @@ export function HomeFinanceOperations({ liveCtx = "allow", activeSection }) {
       setFinanceAuditResult(audit);
     });
     return () => { cancelled = true; };
-  }, [matterId, liveCtx, refreshToken]);
+  }, [matterId, liveCtx, refreshSignal]);
 
   useEffect(() => {
     setTimeEntryResult(null);
@@ -285,7 +284,6 @@ export function HomeFinanceOperations({ liveCtx = "allow", activeSection }) {
             {matters.map((matter, index) => <option key={matter.matter_id} value={matter.matter_id}>{matterLabel(matter, index)}</option>)}
           </select>
         </label>
-        <button className="secondary-button" type="button" onClick={() => setRefreshToken((value) => value + 1)}>새로고침</button>
       </header>
       {!selectedMatter ? (
         <div className="live-data-state live-data-empty" data-home-finance-matter-required="true"><strong>먼저 Matter를 선택하세요</strong><span>선택한 Matter는 URL에 유지됩니다.</span></div>

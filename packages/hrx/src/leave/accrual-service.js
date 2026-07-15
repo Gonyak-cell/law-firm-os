@@ -7,6 +7,18 @@ import { createSqlLeaveBalanceLedger } from "./balance.js";
 const RULE_BASES = new Set(["korean_statutory_annual", "fixed_amount", "monthly_perfect_attendance"]);
 const RULE_SCHEDULES = new Set(["hire_anniversary", "fiscal_year", "monthly_perfect_attendance", "fixed_annual_date"]);
 const MANUAL_DIRECTIONS = new Set(["credit", "debit"]);
+export const LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION = "hrx-leave-occurrence-v1";
+export const LEAVE_OCCURRENCE_UPLOAD_COLUMNS = Object.freeze([
+  Object.freeze({ name: "employee_id", required: true, type: "string" }),
+  Object.freeze({ name: "group_id", required: true, type: "string" }),
+  Object.freeze({ name: "policy_version_id", required: true, type: "string" }),
+  Object.freeze({ name: "direction", required: true, type: "enum", values: Object.freeze([...MANUAL_DIRECTIONS]) }),
+  Object.freeze({ name: "amount_minutes", required: true, type: "integer", unit: "minute", minimum: 1 }),
+  Object.freeze({ name: "valid_from", required: true, type: "date", format: "YYYY-MM-DD" }),
+  Object.freeze({ name: "expires_on", required: false, type: "date", format: "YYYY-MM-DD" }),
+  Object.freeze({ name: "memo", required: false, type: "string" }),
+  Object.freeze({ name: "source_document_id", required: true, type: "string" }),
+]);
 
 function requiredString(input, field) {
   const value = input?.[field];
@@ -36,6 +48,10 @@ function stableStringify(value) {
 
 function hash(value) {
   return createHash("sha256").update(stableStringify(value)).digest("hex");
+}
+
+function contentHash(value) {
+  return createHash("sha256").update(value, "utf8").digest("hex");
 }
 
 function clone(value) {
@@ -307,9 +323,44 @@ function csvCells(line) {
   return cells;
 }
 
+export function createLeaveOccurrenceUploadTemplate() {
+  const headers = LEAVE_OCCURRENCE_UPLOAD_COLUMNS.map((column) => column.name);
+  const csvText = `\ufefftemplate_version,${LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION}\r\n${headers.join(",")}\r\n`;
+  return Object.freeze({
+    template_version: LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION,
+    file_name: `leave-occurrence-upload-${LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION}.csv`,
+    mime_type: "text/csv;charset=utf-8",
+    columns: LEAVE_OCCURRENCE_UPLOAD_COLUMNS,
+    row_count: 0,
+    content_base64: Buffer.from(csvText, "utf8").toString("base64"),
+  });
+}
+
+function parseVersionedLeaveOccurrenceCsv(lines) {
+  const metadata = csvCells(lines.shift());
+  if (metadata.length !== 2 || metadata[0] !== "template_version") {
+    throw new TypeError("CSV template_version metadata is required");
+  }
+  if (metadata[1] !== LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION) {
+    throw guardedError("CSV template version is not supported", "HRX_LEAVE_OCCURRENCE_TEMPLATE_VERSION_UNSUPPORTED", 400);
+  }
+  if (lines.length === 0) throw new TypeError("CSV header row is required");
+  const headers = csvCells(lines.shift()).map((header) => header.trim());
+  const expected = LEAVE_OCCURRENCE_UPLOAD_COLUMNS.map((column) => column.name);
+  if (new Set(headers).size !== headers.length) throw new TypeError("CSV headers must be unique");
+  for (const header of expected) if (!headers.includes(header)) throw new TypeError(`CSV header is required: ${header}`);
+  for (const header of headers) if (!expected.includes(header)) throw new TypeError(`CSV header is not supported: ${header}`);
+  return Object.freeze(lines.map((line) => {
+    const values = csvCells(line);
+    if (values.length !== headers.length) throw new TypeError("CSV row column count does not match the template");
+    return Object.freeze(Object.fromEntries(headers.map((header, index) => [header, header === "amount_minutes" ? Number(values[index]) : values[index] ?? ""])));
+  }));
+}
+
 export function parseLeaveManualAdjustmentCsv(text) {
   if (typeof text !== "string" || text.trim() === "") throw new TypeError("CSV text is required");
   const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/).filter((line) => line.trim());
+  if (csvCells(lines[0])[0] === "template_version") return parseVersionedLeaveOccurrenceCsv(lines);
   const headers = csvCells(lines.shift()).map((header) => header.trim());
   const required = ["employee_id", "group_id", "policy_version_id", "direction", "amount_minutes", "occurred_on", "reason", "source_document_id"];
   for (const header of required) if (!headers.includes(header)) throw new TypeError(`CSV header is required: ${header}`);
@@ -319,7 +370,7 @@ export function parseLeaveManualAdjustmentCsv(text) {
   }));
 }
 
-function validateManualRow(store, tenantId, row, index) {
+function validateManualRow(store, tenantId, row, index, { scheduleOnly = false, asOf } = {}) {
   const output = { row_number: index + 1, employee_id: row.employee_id ?? null, status: "ready" };
   try {
     const employeeId = requiredString(row, "employee_id");
@@ -327,11 +378,15 @@ function validateManualRow(store, tenantId, row, index) {
     const policyVersionId = requiredString(row, "policy_version_id");
     const direction = requiredString(row, "direction");
     const amountMinutes = Number(row.amount_minutes);
-    const occurredOn = isoDate(row.occurred_on, "occurred_on");
-    const reason = requiredString(row, "reason");
+    const occurredOn = isoDate(row.valid_from ?? row.occurred_on, scheduleOnly ? "valid_from" : "occurred_on");
+    const reason = requiredString({ reason: row.memo ?? row.reason }, "reason");
     const sourceDocumentId = requiredString(row, "source_document_id");
     if (!MANUAL_DIRECTIONS.has(direction)) throw new TypeError("direction must be credit or debit");
+    if (scheduleOnly && direction !== "credit") throw new TypeError("scheduled occurrence direction must be credit");
+    if (scheduleOnly && occurredOn <= asOf) throw new TypeError("scheduled occurrence valid_from must be in the future");
     if (!Number.isInteger(amountMinutes) || amountMinutes <= 0) throw new TypeError("amount_minutes must be a positive integer");
+    const expiresOn = optionalString(row, "expires_on") ? isoDate(row.expires_on, "expires_on") : null;
+    if (expiresOn && expiresOn < occurredOn) throw new TypeError("expires_on must be on or after valid_from");
     const employee = store.query("selectOne", { table: "hrx_employees", where: { tenant_id: tenantId, employee_id: employeeId } });
     const group = store.query("selectOne", { table: "hrx_leave_groups", where: { tenant_id: tenantId, group_id: groupId } });
     const policy = store.query("selectOne", { table: "hrx_leave_policy_versions", where: { tenant_id: tenantId, policy_version_id: policyVersionId } });
@@ -340,10 +395,49 @@ function validateManualRow(store, tenantId, row, index) {
     if (!group || group.status !== "active") throw new TypeError("leave group is not active");
     if (!policy || policy.group_id !== groupId || policy.status !== "active") throw new TypeError("policy version is not active for the group");
     if (!document || document.employee_id !== employeeId || document.source_status !== "verified") throw new TypeError("verified employee source document is required");
-    return Object.freeze({ ...output, employee_id: employeeId, group_id: groupId, policy_version_id: policyVersionId, policy_code: policy.policy_code, direction, amount_minutes: amountMinutes, occurred_on: occurredOn, expires_on: optionalString(row, "expires_on"), reason, source_document_id: sourceDocumentId });
+    return Object.freeze({ ...output, employee_id: employeeId, group_id: groupId, policy_version_id: policyVersionId, policy_code: policy.policy_code, direction, amount_minutes: amountMinutes, occurred_on: occurredOn, expires_on: expiresOn, reason, source_document_id: sourceDocumentId });
   } catch (error) {
     return Object.freeze({ ...output, status: "error", error_code: "HRX_LEAVE_MANUAL_ROW_INVALID", error_message: error.message });
   }
+}
+
+function validateManualRows(store, tenantId, rows, options) {
+  const seen = new Map();
+  return Object.freeze(rows.map((row, index) => {
+    const validated = validateManualRow(store, tenantId, row, index, options);
+    if (validated.status !== "ready") return validated;
+    const rowKey = hash({
+      employee_id: validated.employee_id,
+      group_id: validated.group_id,
+      policy_version_id: validated.policy_version_id,
+      direction: validated.direction,
+      amount_minutes: validated.amount_minutes,
+      occurred_on: validated.occurred_on,
+      expires_on: validated.expires_on,
+      reason: validated.reason,
+      source_document_id: validated.source_document_id,
+    });
+    const duplicateOf = seen.get(rowKey);
+    if (duplicateOf) {
+      return Object.freeze({
+        row_number: validated.row_number,
+        employee_id: validated.employee_id,
+        status: "error",
+        error_code: "HRX_LEAVE_OCCURRENCE_DUPLICATE_ROW",
+        error_message: `duplicate of row ${duplicateOf}`,
+        duplicate_of_row_number: duplicateOf,
+        row_key: rowKey,
+      });
+    }
+    seen.set(rowKey, validated.row_number);
+    return Object.freeze({ ...validated, row_key: rowKey });
+  }));
+}
+
+function csvTemplateVersion(text) {
+  if (typeof text !== "string") return null;
+  const metadata = csvCells(text.replace(/^\uFEFF/, "").split(/\r?\n/, 1)[0]);
+  return metadata[0] === "template_version" ? metadata[1] ?? null : null;
 }
 
 export function createLeaveAccrualService({ store, clock = () => new Date().toISOString(), idFactory = (prefix) => `${prefix}_${randomUUID()}`, sourceProvider, approverAuthorizer = () => false } = {}) {
@@ -425,6 +519,33 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
     return runView(store.query("insert", { table: "hrx_leave_accrual_runs", row }));
   }
 
+  function currentPreviewState(tenantId, previewRun) {
+    const rule = store.query("selectOne", { table: "hrx_leave_accrual_rules", where: { tenant_id: tenantId, accrual_rule_id: previewRun.accrual_rule_id } });
+    const policy = rule && store.query("selectOne", { table: "hrx_leave_policy_versions", where: { tenant_id: tenantId, policy_version_id: rule.policy_version_id } });
+    if (!rule || !policy) throw guardedError("Accrual source rule no longer exists", "HRX_LEAVE_ACCRUAL_SOURCE_CHANGED");
+    const source = sources.snapshot({ tenant_id: tenantId, occurred_on: previewRun.occurred_on, period_key: previewRun.period_key });
+    const current = runResult({ rule, policy, source, periodKey: previewRun.period_key, occurredOn: previewRun.occurred_on });
+    const currentHash = hash({ rule, policy, source_version: source.source_version, result: current });
+    return Object.freeze({ rule, policy, source, current, current_hash: currentHash, is_current: source.source_version === previewRun.source_version && currentHash === previewRun.snapshot_hash });
+  }
+
+  function validatePreview(context, input) {
+    const tenantId = requiredString(context, "tenant_id");
+    const previewRunId = requiredString(input, "preview_run_id");
+    const previewRun = store.query("selectOne", { table: "hrx_leave_accrual_runs", where: { tenant_id: tenantId, accrual_run_id: previewRunId } });
+    if (!previewRun || previewRun.mode !== "preview") throw guardedError("Accrual preview not found", "HRX_LEAVE_ACCRUAL_PREVIEW_NOT_FOUND", 404);
+    const state = currentPreviewState(tenantId, previewRun);
+    return Object.freeze({
+      preview_run_id: previewRunId,
+      period_key: previewRun.period_key,
+      is_current: state.is_current,
+      preview_source_version: previewRun.source_version,
+      current_source_version: state.source.source_version,
+      preview_snapshot_hash: previewRun.snapshot_hash,
+      current_snapshot_hash: state.current_hash,
+    });
+  }
+
   function execute(context, input) {
     requireStepUp(context);
     const tenantId = requiredString(context, "tenant_id");
@@ -435,15 +556,11 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
     const replayKey = `accrual-execute:${previewRunId}`;
     const replay = store.query("selectOne", { table: "hrx_leave_accrual_runs", where: { tenant_id: tenantId, idempotency_key: replayKey } });
     if (replay) return rerunView(replay);
-    const rule = store.query("selectOne", { table: "hrx_leave_accrual_rules", where: { tenant_id: tenantId, accrual_rule_id: previewRun.accrual_rule_id } });
-    const policy = rule && store.query("selectOne", { table: "hrx_leave_policy_versions", where: { tenant_id: tenantId, policy_version_id: rule.policy_version_id } });
-    if (!rule || !policy) throw guardedError("Accrual source rule no longer exists", "HRX_LEAVE_ACCRUAL_SOURCE_CHANGED");
-    const source = sources.snapshot({ tenant_id: tenantId, occurred_on: previewRun.occurred_on, period_key: previewRun.period_key });
-    const current = runResult({ rule, policy, source, periodKey: previewRun.period_key, occurredOn: previewRun.occurred_on });
-    const currentHash = hash({ rule, policy, source_version: source.source_version, result: current });
-    if (source.source_version !== previewRun.source_version || currentHash !== previewRun.snapshot_hash) {
+    const state = currentPreviewState(tenantId, previewRun);
+    if (!state.is_current) {
       throw guardedError("Accrual source changed after preview", "HRX_LEAVE_ACCRUAL_PREVIEW_STALE");
     }
+    const { rule, policy, source, current } = state;
     const now = clock();
     return store.transaction((tx) => {
       const rows = current.rows.map((row) => {
@@ -463,25 +580,59 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
     });
   }
 
-  function previewManual(context, input) {
+  function prepareManualUpload(context, input) {
     const tenantId = requiredString(context, "tenant_id");
-    const rows = (input.csv_text ? parseLeaveManualAdjustmentCsv(input.csv_text) : input.rows ?? []).map((row, index) => validateManualRow(store, tenantId, row, index));
-    return Object.freeze({ snapshot_hash: hash(rows), rows: Object.freeze(rows.map(({ reason, source_document_id, ...row }) => Object.freeze(row))), counts: Object.freeze({ ready: rows.filter((row) => row.status === "ready").length, errors: rows.filter((row) => row.status === "error").length }) });
+    const scheduleOnly = input.schedule_only === true;
+    const asOf = input.as_of ? isoDate(input.as_of, "as_of") : clock().slice(0, 10);
+    const csvText = input.csv_text ?? null;
+    const sourceRows = csvText ? parseLeaveManualAdjustmentCsv(csvText) : input.rows ?? [];
+    const rows = validateManualRows(store, tenantId, sourceRows, { scheduleOnly, asOf });
+    return Object.freeze({
+      snapshot_hash: hash(rows),
+      file_hash: csvText ? contentHash(csvText) : null,
+      template_version: csvText ? csvTemplateVersion(csvText) : null,
+      schedule_only: scheduleOnly,
+      as_of: asOf,
+      rows,
+      counts: Object.freeze({
+        ready: rows.filter((row) => row.status === "ready").length,
+        errors: rows.filter((row) => row.status === "error").length,
+        duplicates: rows.filter((row) => row.error_code === "HRX_LEAVE_OCCURRENCE_DUPLICATE_ROW").length,
+      }),
+    });
   }
 
-  function executeManual(context, input) {
+  function previewManual(context, input) {
+    const prepared = prepareManualUpload(context, input);
+    return Object.freeze({
+      ...prepared,
+      rows: Object.freeze(prepared.rows.map(({ reason, source_document_id, ...row }) => Object.freeze(row))),
+    });
+  }
+
+  function assertManualApproval(context, approverActorId) {
     requireStepUp(context);
     const tenantId = requiredString(context, "tenant_id");
     const actorId = requiredString(context, "actor_id");
-    const approverActorId = requiredString(input, "approved_by_actor_id");
-    const idempotencyKey = requiredString(input, "idempotency_key");
-    if (approverActorId === actorId) throw guardedError("Manual adjustment requires a different approver", "HRX_LEAVE_MANUAL_DUAL_CONTROL_REQUIRED", 403);
-    if (!approverAuthorizer({ tenant_id: tenantId, actor_id: approverActorId, required_scope: "hrx.leave.ledger.adjust" })) {
+    const approvedByActorId = requiredString({ approved_by_actor_id: approverActorId }, "approved_by_actor_id");
+    if (approvedByActorId === actorId) throw guardedError("Manual adjustment requires a different approver", "HRX_LEAVE_MANUAL_DUAL_CONTROL_REQUIRED", 403);
+    if (!approverAuthorizer({ tenant_id: tenantId, actor_id: approvedByActorId, required_scope: "hrx.leave.ledger.adjust" })) {
       throw guardedError("Manual adjustment approver is not authorized", "HRX_LEAVE_MANUAL_APPROVER_DENIED", 403);
     }
+    return Object.freeze({ tenant_id: tenantId, actor_id: actorId, approved_by_actor_id: approvedByActorId });
+  }
+
+  function executeManual(context, input) {
+    const approval = assertManualApproval(context, input.approved_by_actor_id);
+    const tenantId = approval.tenant_id;
+    const actorId = approval.actor_id;
+    const approverActorId = approval.approved_by_actor_id;
+    const idempotencyKey = requiredString(input, "idempotency_key");
     const sourceRows = input.csv_text ? parseLeaveManualAdjustmentCsv(input.csv_text) : input.rows ?? [];
-    const validated = sourceRows.map((row, index) => validateManualRow(store, tenantId, row, index));
-    const inputHash = hash({ approved_by_actor_id: approverActorId, rows: validated });
+    const scheduleOnly = input.schedule_only === true;
+    const asOf = input.as_of ? isoDate(input.as_of, "as_of") : clock().slice(0, 10);
+    const validated = validateManualRows(store, tenantId, sourceRows, { scheduleOnly, asOf });
+    const inputHash = hash({ approved_by_actor_id: approverActorId, rows: validated, ...(scheduleOnly ? { schedule_only: true } : {}) });
     const replay = store.query("selectOne", { table: "hrx_leave_command_receipts", where: { tenant_id: tenantId, idempotency_key: idempotencyKey } });
     if (replay) {
       if (replay.input_hash !== inputHash) throw guardedError("Idempotency key was reused with different input", "HRX_LEAVE_IDEMPOTENCY_KEY_REUSED");
@@ -495,8 +646,9 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
         try {
           if (row.direction === "credit") {
             const entitlementId = idFactory("leave_entitlement_adjustment");
-            tx.query("insert", { table: "hrx_leave_entitlements", row: { tenant_id: tenantId, entitlement_id: entitlementId, employee_id: row.employee_id, group_id: row.group_id, policy_version_id: row.policy_version_id, granted_minutes: row.amount_minutes, valid_from: row.occurred_on, expires_on: row.expires_on, source_ref: `HRDocument:${row.source_document_id}`, idempotency_key: `${idempotencyKey}:${row.row_number}:entitlement`, state_version: 1, created_at: now } });
+            tx.query("insert", { table: "hrx_leave_entitlements", row: { tenant_id: tenantId, entitlement_id: entitlementId, employee_id: row.employee_id, group_id: row.group_id, policy_version_id: row.policy_version_id, granted_minutes: row.amount_minutes, valid_from: row.occurred_on, expires_on: row.expires_on, memo: row.reason, source_document_id: row.source_document_id, approved_by_actor_id: approverActorId, source_ref: `HRDocument:${row.source_document_id}`, idempotency_key: `${idempotencyKey}:${row.row_number}:entitlement`, state_version: 1, created_at: now } });
             ledger.append({ tenant_id: tenantId, entry_id: idFactory("leave_ledger_adjustment"), employee_id: row.employee_id, policy_id: row.policy_code, group_id: row.group_id, policy_version_id: row.policy_version_id, entitlement_id: entitlementId, idempotency_key: `${idempotencyKey}:${row.row_number}:credit`, entry_type: "adjustment", adjustment_direction: "credit", amount_minutes: row.amount_minutes, occurred_on: row.occurred_on, source_ref: `HRDocument:${row.source_document_id}`, metadata: { approved_by_actor_id: approverActorId, reason_code: "documented_manual_adjustment" } });
+            return Object.freeze({ row_number: row.row_number, employee_id: row.employee_id, status: "created", direction: row.direction, amount_minutes: row.amount_minutes, entitlement_id: entitlementId, valid_from: row.occurred_on, expires_on: row.expires_on, lifecycle_state: row.occurred_on > asOf ? "scheduled" : "active" });
           } else {
             const entitlements = tx.query("select", { table: "hrx_leave_entitlements", where: { tenant_id: tenantId, employee_id: row.employee_id, group_id: row.group_id } });
             const allocations = planEarliestExpiryAllocations({ entitlements, ledger_entries: ledger.list({ tenant_id: tenantId, employee_id: row.employee_id, group_id: row.group_id }), requested_minutes: row.amount_minutes, on_date: row.occurred_on });
@@ -514,5 +666,5 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
     });
   }
 
-  return Object.freeze({ listRules, createRule, preview, execute, previewManual, executeManual });
+  return Object.freeze({ listRules, createRule, preview, validatePreview, execute, manualTemplate: createLeaveOccurrenceUploadTemplate, prepareManualUpload, assertManualApproval, previewManual, executeManual });
 }

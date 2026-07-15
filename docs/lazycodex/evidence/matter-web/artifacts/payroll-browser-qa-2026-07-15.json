@@ -1,0 +1,1365 @@
+{
+  "schema_version": "law-firm-os.payroll.browser-qa.v0.1",
+  "generated_at": "2026-07-15T05:54:29.150Z",
+  "runtime": {
+    "web_base_url": "http://127.0.0.1:4173",
+    "endpoint_kind": "current_running_loopback",
+    "api_base_url": "http://127.0.0.1:4180"
+  },
+  "checks": {
+    "six_role_matrix_complete": true,
+    "five_viewports_each_complete": true,
+    "role_surface_contracts_passed": true,
+    "row_density_contracts_passed": true,
+    "root_overflow_count": 0,
+    "main_overflow_count": 0,
+    "broken_image_count": 0,
+    "empty_button_count": 0,
+    "unlabeled_control_count": 0,
+    "unexpected_http_error_count": 0,
+    "unexpected_console_error_count": 0,
+    "page_error_count": 0,
+    "detail_drawer_accessibility_passed": true,
+    "payment_and_filing_views_passed": true,
+    "employee_self_statement_passed": true,
+    "preparer_statement_management_passed": true
+  },
+  "detail_drawer": {
+    "close_button_initial_focus": true,
+    "escape_closed_dialog": true,
+    "opener_focus_restored": true,
+    "payment_reconciled_visible": true,
+    "filing_kinds_visible": true,
+    "filing_accepted_visible": true,
+    "filing_row_heights": [
+      44,
+      44,
+      44,
+      44
+    ]
+  },
+  "employee_statement": {
+    "self_statement_rows": 1,
+    "management_toolbar_hidden": true,
+    "metrics": {
+      "panel_visible": true,
+      "root_client_width": 1280,
+      "root_scroll_width": 1280,
+      "main_client_width": 1066,
+      "main_scroll_width": 1066,
+      "broken_images": 0,
+      "empty_buttons": 0,
+      "unlabeled_controls": 0,
+      "row_heights": [
+        44
+      ],
+      "non_44px_rows": 0,
+      "employee_rows": 0,
+      "filing_rows": 0
+    },
+    "unexpected_http_errors": [],
+    "unexpected_console_errors": [],
+    "page_errors": []
+  },
+  "preparer_statements": {
+    "statement_rows": 10,
+    "management_toolbar_visible": true,
+    "export_buttons_visible": true,
+    "metrics": {
+      "panel_visible": true,
+      "root_client_width": 1280,
+      "root_scroll_width": 1280,
+      "main_client_width": 1066,
+      "main_scroll_width": 1066,
+      "broken_images": 0,
+      "empty_buttons": 0,
+      "unlabeled_controls": 0,
+      "row_heights": [
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "non_44px_rows": 0,
+      "employee_rows": 0,
+      "filing_rows": 0
+    },
+    "unexpected_http_errors": [],
+    "unexpected_console_errors": [],
+    "page_errors": []
+  },
+  "roles": [
+    {
+      "role": "employee",
+      "policy_role": "lawos_staff",
+      "actor_id": "user_amic_jwsuh",
+      "payroll_allowed": false,
+      "scopes": [
+        "hrx.employee.read",
+        "hrx.document.read",
+        "hrx.leave.read",
+        "hrx.leave.write",
+        "hrx.leave.self.read",
+        "hrx.leave.self.write",
+        "hrx.payroll.statement.self.read"
+      ],
+      "viewports": [
+        {
+          "viewport": {
+            "width": 1512,
+            "height": 864
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1512,
+            "root_scroll_width": 1512,
+            "main_client_width": 1298,
+            "main_scroll_width": 1298,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1280,
+            "height": 820
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1280,
+            "root_scroll_width": 1280,
+            "main_client_width": 1066,
+            "main_scroll_width": 1066,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1024,
+            "root_scroll_width": 1024,
+            "main_client_width": 843,
+            "main_scroll_width": 843,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 820,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 820,
+            "root_scroll_width": 820,
+            "main_client_width": 820,
+            "main_scroll_width": 820,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 720,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 720,
+            "root_scroll_width": 720,
+            "main_client_width": 720,
+            "main_scroll_width": 720,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        }
+      ]
+    },
+    {
+      "role": "manager",
+      "policy_role": "lawos_attorney",
+      "actor_id": "user_amic_tryoon",
+      "payroll_allowed": false,
+      "scopes": [
+        "hrx.employee.read",
+        "hrx.document.read",
+        "hrx.leave.read",
+        "hrx.leave.write",
+        "hrx.leave.self.read",
+        "hrx.leave.self.write",
+        "hrx.payroll.statement.self.read",
+        "hrx.approval.read",
+        "hrx.approval.write",
+        "hrx.leave.team.read",
+        "hrx.leave.approve",
+        "hrx.legal_people.read",
+        "hrx.analytics.read",
+        "hrx.ai.assistant",
+        "hrx.ai.review.read"
+      ],
+      "viewports": [
+        {
+          "viewport": {
+            "width": 1512,
+            "height": 864
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1512,
+            "root_scroll_width": 1512,
+            "main_client_width": 1298,
+            "main_scroll_width": 1298,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1280,
+            "height": 820
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1280,
+            "root_scroll_width": 1280,
+            "main_client_width": 1066,
+            "main_scroll_width": 1066,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1024,
+            "root_scroll_width": 1024,
+            "main_client_width": 843,
+            "main_scroll_width": 843,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 820,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 820,
+            "root_scroll_width": 820,
+            "main_client_width": 820,
+            "main_scroll_width": 820,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 720,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 720,
+            "root_scroll_width": 720,
+            "main_client_width": 720,
+            "main_scroll_width": 720,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        }
+      ]
+    },
+    {
+      "role": "hr",
+      "policy_role": "lawos_hr",
+      "actor_id": "user_amic_ytkim",
+      "payroll_allowed": false,
+      "scopes": [
+        "hrx.employee.read",
+        "hrx.document.read",
+        "hrx.leave.read",
+        "hrx.leave.write",
+        "hrx.leave.self.read",
+        "hrx.leave.self.write",
+        "hrx.payroll.statement.self.read",
+        "hrx.approval.read",
+        "hrx.approval.write",
+        "hrx.leave.team.read",
+        "hrx.leave.approve",
+        "hrx.legal_people.read",
+        "hrx.analytics.read",
+        "hrx.ai.assistant",
+        "hrx.ai.review.read",
+        "hrx.employee.write",
+        "hrx.document.write",
+        "hrx.attendance.read",
+        "hrx.attendance.write",
+        "hrx.overtime.read",
+        "hrx.overtime.write",
+        "hrx.risk.read",
+        "hrx.risk.write",
+        "hrx.candidate.read",
+        "hrx.candidate.write",
+        "hrx.lifecycle.read",
+        "hrx.lifecycle.write",
+        "hrx.policy.read",
+        "hrx.policy.write",
+        "hrx.leave.policy.read",
+        "hrx.leave.policy.write",
+        "hrx.leave.accrual.execute",
+        "hrx.leave.ledger.adjust",
+        "hrx.leave.promotion.manage",
+        "hrx.leave.report.export",
+        "hrx.leave.termination.settle"
+      ],
+      "viewports": [
+        {
+          "viewport": {
+            "width": 1512,
+            "height": 864
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1512,
+            "root_scroll_width": 1512,
+            "main_client_width": 1298,
+            "main_scroll_width": 1298,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1280,
+            "height": 820
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1280,
+            "root_scroll_width": 1280,
+            "main_client_width": 1066,
+            "main_scroll_width": 1066,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1024,
+            "root_scroll_width": 1024,
+            "main_client_width": 843,
+            "main_scroll_width": 843,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 820,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 820,
+            "root_scroll_width": 820,
+            "main_client_width": 820,
+            "main_scroll_width": 820,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 720,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 720,
+            "root_scroll_width": 720,
+            "main_client_width": 720,
+            "main_scroll_width": 720,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        }
+      ]
+    },
+    {
+      "role": "payroll_preparer",
+      "policy_role": "lawos_staff",
+      "actor_id": "user_amic_jwsuh",
+      "payroll_allowed": true,
+      "scopes": [
+        "hrx.compensation.read",
+        "hrx.payroll.preview",
+        "hrx.payroll.export",
+        "hrx.payroll.statement.manage",
+        "hrx.payroll.payment.prepare",
+        "hrx.payroll.filing.prepare"
+      ],
+      "viewports": [
+        {
+          "viewport": {
+            "width": 1512,
+            "height": 864
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1512,
+            "root_scroll_width": 1512,
+            "main_client_width": 1298,
+            "main_scroll_width": 1298,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1280,
+            "height": 820
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1280,
+            "root_scroll_width": 1280,
+            "main_client_width": 1066,
+            "main_scroll_width": 1066,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1024,
+            "root_scroll_width": 1024,
+            "main_client_width": 843,
+            "main_scroll_width": 843,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 820,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 820,
+            "root_scroll_width": 820,
+            "main_client_width": 820,
+            "main_scroll_width": 820,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 720,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 720,
+            "root_scroll_width": 720,
+            "main_client_width": 720,
+            "main_scroll_width": 720,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        }
+      ]
+    },
+    {
+      "role": "payroll_approver",
+      "policy_role": "lawos_partner",
+      "actor_id": "user_amic_tryoon",
+      "payroll_allowed": true,
+      "scopes": [
+        "hrx.payroll.preview",
+        "hrx.payroll.approve",
+        "hrx.payroll.payment.approve",
+        "hrx.payroll.filing.submit"
+      ],
+      "viewports": [
+        {
+          "viewport": {
+            "width": 1512,
+            "height": 864
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1512,
+            "root_scroll_width": 1512,
+            "main_client_width": 1298,
+            "main_scroll_width": 1298,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1280,
+            "height": 820
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1280,
+            "root_scroll_width": 1280,
+            "main_client_width": 1066,
+            "main_scroll_width": 1066,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1024,
+            "root_scroll_width": 1024,
+            "main_client_width": 843,
+            "main_scroll_width": 843,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 820,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 820,
+            "root_scroll_width": 820,
+            "main_client_width": 820,
+            "main_scroll_width": 820,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 720,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 720,
+            "root_scroll_width": 720,
+            "main_client_width": 720,
+            "main_scroll_width": 720,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        }
+      ]
+    },
+    {
+      "role": "auditor",
+      "policy_role": "lawos_staff",
+      "actor_id": "user_amic_jwsuh",
+      "payroll_allowed": false,
+      "scopes": [
+        "hrx.audit.read"
+      ],
+      "viewports": [
+        {
+          "viewport": {
+            "width": 1512,
+            "height": 864
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1512,
+            "root_scroll_width": 1512,
+            "main_client_width": 1298,
+            "main_scroll_width": 1298,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1280,
+            "height": 820
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1280,
+            "root_scroll_width": 1280,
+            "main_client_width": 1066,
+            "main_scroll_width": 1066,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1024,
+            "root_scroll_width": 1024,
+            "main_client_width": 843,
+            "main_scroll_width": 843,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 820,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 820,
+            "root_scroll_width": 820,
+            "main_client_width": 820,
+            "main_scroll_width": 820,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 720,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 720,
+            "root_scroll_width": 720,
+            "main_client_width": 720,
+            "main_scroll_width": 720,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4173/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "docs/lazycodex/evidence/matter-web/payroll-browser-qa-2026-07-15/employee-1280x820.png",
+      "sha256": "25fde26dfe6411a76e1d8105b431a8be2262ca713cd8c3a15652c1a678079976",
+      "role": "employee",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      }
+    },
+    {
+      "path": "docs/lazycodex/evidence/matter-web/payroll-browser-qa-2026-07-15/employee-720x800.png",
+      "sha256": "8e0cc1ea15d7ec2dbf361b0878741376d19689fde36520f8f33e196ad1f730a5",
+      "role": "employee",
+      "viewport": {
+        "width": 720,
+        "height": 800
+      }
+    },
+    {
+      "path": "docs/lazycodex/evidence/matter-web/payroll-browser-qa-2026-07-15/manager-1280x820.png",
+      "sha256": "eae173d47b50d1247edd20e6955eb7ad1a8f90aed27cb41bfd782b2e515514d3",
+      "role": "manager",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      }
+    },
+    {
+      "path": "docs/lazycodex/evidence/matter-web/payroll-browser-qa-2026-07-15/manager-720x800.png",
+      "sha256": "580c14c0850849f6c860d863927a9db85ec48542b766e3c471a7a404aa45a593",
+      "role": "manager",
+      "viewport": {
+        "width": 720,
+        "height": 800
+      }
+    },
+    {
+      "path": "docs/lazycodex/evidence/matter-web/payroll-browser-qa-2026-07-15/hr-1280x820.png",
+      "sha256": "eae173d47b50d1247edd20e6955eb7ad1a8f90aed27cb41bfd782b2e515514d3",
+      "role": "hr",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      }
+    },
+    {
+      "path": "docs/lazycodex/evidence/matter-web/payroll-browser-qa-2026-07-15/hr-720x800.png",
+      "sha256": "580c14c0850849f6c860d863927a9db85ec48542b766e3c471a7a404aa45a593",
+      "role": "hr",
+      "viewport": {
+        "width": 720,
+        "height": 800
+      }
+    },
+    {
+      "path": "docs/lazycodex/evidence/matter-web/payroll-browser-qa-2026-07-15/payroll_preparer-1280x820.png",
+      "sha256": "e40e310f6ad57287e30d1c49c09cf8fd6bfdf04fd6c6074fd2355b20f38f0c32",
+      "role": "payroll_preparer",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      }
+    },
+    {
+      "path": "docs/lazycodex/evidence/matter-web/payroll-browser-qa-2026-07-15/payroll_preparer-720x800.png",
+      "sha256": "85b00a71e65579e624cbed6ee34676ef35fe05d615c2b482c8df3384811e6617",
+      "role": "payroll_preparer",
+      "viewport": {
+        "width": 720,
+        "height": 800
+      }
+    },
+    {
+      "path": "docs/lazycodex/evidence/matter-web/payroll-browser-qa-2026-07-15/payroll_approver-1280x820.png",
+      "sha256": "7d8a38a9590afc6cdb8ef7ac205c961de0e9fe02066107074e957ea7ec10dbc9",
+      "role": "payroll_approver",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      }
+    },
+    {
+      "path": "docs/lazycodex/evidence/matter-web/payroll-browser-qa-2026-07-15/payroll_approver-720x800.png",
+      "sha256": "9d99879225ab8f3a3f5f1a67c79405b62042fbb06a50d657526a80e221ee8e18",
+      "role": "payroll_approver",
+      "viewport": {
+        "width": 720,
+        "height": 800
+      }
+    },
+    {
+      "path": "docs/lazycodex/evidence/matter-web/payroll-browser-qa-2026-07-15/auditor-1280x820.png",
+      "sha256": "25fde26dfe6411a76e1d8105b431a8be2262ca713cd8c3a15652c1a678079976",
+      "role": "auditor",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      }
+    },
+    {
+      "path": "docs/lazycodex/evidence/matter-web/payroll-browser-qa-2026-07-15/auditor-720x800.png",
+      "sha256": "8e0cc1ea15d7ec2dbf361b0878741376d19689fde36520f8f33e196ad1f730a5",
+      "role": "auditor",
+      "viewport": {
+        "width": 720,
+        "height": 800
+      }
+    }
+  ],
+  "boundary": {
+    "synthetic_runtime_only": true,
+    "external_provider_write_claim": false,
+    "production_approved_claim": false,
+    "public_release_claim": false,
+    "go_live_claim": false
+  }
+}

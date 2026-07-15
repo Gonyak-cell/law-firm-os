@@ -1,0 +1,39 @@
+{
+  "schema_version": "law-firm-os.hrx.company-time-payroll-policy.v0.1",
+  "manifest_id": "company_time_payroll_policy_synthetic_2026_07",
+  "tenant_id": "tenant_leave_synthetic",
+  "environment": "synthetic",
+  "status": "draft",
+  "effective_from": "2026-07-14",
+  "source_document_hash": null,
+  "standard_work": {
+    "timezone": "Asia/Seoul",
+    "daily_minutes": 480,
+    "rounding_minutes": 1,
+    "rounding_mode": "none"
+  },
+  "leave": {
+    "default_expiration_months": 12,
+    "allocation_order": "earliest_expiry_then_earned_at"
+  },
+  "payroll": {
+    "frequency": "monthly",
+    "cutoff_day": null,
+    "pay_day": null,
+    "non_business_day_rule": null
+  },
+  "employment_types": ["full_time", "part_time", "contractor", "intern"],
+  "provider_ids": {
+    "document_delivery": null,
+    "bank_transfer": null,
+    "tax_filing": null,
+    "calendar": null
+  },
+  "decisions": [
+    { "decision_id": "COMPANY_STANDARD_WORKDAY", "status": "pending_owner", "source_ref": null },
+    { "decision_id": "LEAVE_EXPIRATION", "status": "pending_owner", "source_ref": null },
+    { "decision_id": "PAYROLL_CALENDAR", "status": "pending_owner", "source_ref": null },
+    { "decision_id": "EMPLOYMENT_TYPES", "status": "pending_owner", "source_ref": null },
+    { "decision_id": "PROVIDER_IDENTIFIERS", "status": "pending_owner", "source_ref": null }
+  ]
+}

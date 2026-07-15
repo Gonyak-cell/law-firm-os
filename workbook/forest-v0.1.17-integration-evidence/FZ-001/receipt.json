@@ -1,0 +1,10 @@
+{
+  "tuw": "FZ-001",
+  "verdict": "PASS",
+  "entry_sha": "7717d5cee158fc97056510e8aebc9e0854d34196",
+  "first_working_tree_sha256": "4b9ca8f817c8fd3631a782b50dfee69d333318eef05a9e9c60d630f01ceeeca6",
+  "second_working_tree_sha256": "4b9ca8f817c8fd3631a782b50dfee69d333318eef05a9e9c60d630f01ceeeca6",
+  "interval_ms": 2000,
+  "changed_between_measurements": false,
+  "writer_process_count": 0
+}

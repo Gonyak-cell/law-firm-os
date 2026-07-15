@@ -1,6 +1,5 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { BarChart3 } from "lucide-react";
 import { DataTable, Panel } from "../../components/primitives.jsx";
 import { fetchHrxAnalytics } from "../hrxApiClient.ts";
 
@@ -47,11 +46,7 @@ export function HRAnalytics() {
   }
 
   return (
-    <Panel id="people-analytics" className="people-panel span-2" title="리포트" meta="실시간 리포트">
-      <div className="people-panel-kicker">
-        <BarChart3 size={15} />
-        구성원, 입퇴사 관리, 구성원 등록 현황을 요약합니다.
-      </div>
+    <Panel id="people-analytics" className="people-panel span-2" title="리포트">
       {body}
     </Panel>
   );

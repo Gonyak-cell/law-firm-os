@@ -52,6 +52,7 @@ export function EmployeeList({ selectedEmployeeId, onSelectEmployee, refreshKey 
             <button
               key={employee.employee_id ?? employee.display_name}
               className={selectedEmployeeId === employee.employee_id ? "people-row active" : "people-row"}
+              data-compact-record="true"
               onClick={() => employee.employee_id && onSelectEmployee(employee.employee_id)}
             >
               <span className="people-row-avatar">{photo ? <img src={photo} alt="" /> : employee.display_name?.slice(0, 1) ?? "E"}</span>

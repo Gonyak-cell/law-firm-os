@@ -34,6 +34,8 @@ const ignoredPackagePathPatterns = [
   /(^|\/)dist($|\/)/,
   /(^|\/)test($|\/)/,
   /(^|\/)\.env($|\.|\/)/,
+  /(^|\/)build\/forest-login\.jpg$/,
+  /(^|\/)src\/renderer\/offline(?:\.matter)?\.html$/,
   /\.test\.mjs$/
 ];
 

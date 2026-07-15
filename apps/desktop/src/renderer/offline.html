@@ -46,6 +46,7 @@
       --ease-brand-shift: cubic-bezier(0.22, 0.9, 0.2, 1);
       --ease-brand-reveal: cubic-bezier(0.18, 0.82, 0.24, 1);
       --ease-brand-dock: cubic-bezier(0.16, 1, 0.3, 1);
+      --motion-brand-intro: 3200ms;
       --ease: var(--ease-standard);
       --spring: cubic-bezier(0.16, 1.18, 0.32, 1);
       --motion-press: 70ms;
@@ -371,7 +372,7 @@
       display: grid;
       place-items: center;
       overflow: hidden;
-      background: #ffffff;
+      background: transparent;
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
@@ -384,7 +385,7 @@
     }
 
     body[data-logo-intro="play"] .brand-intro {
-      animation: amicLawIntroLayer 3200ms linear both;
+      animation: amicLawIntroLayer var(--motion-brand-intro) linear both;
     }
 
     .brand-intro-stage {
@@ -430,15 +431,15 @@
     }
 
     body[data-logo-intro="play"] .brand-intro-logo {
-      animation: amicLawLockupIntro 3200ms linear both;
+      animation: amicLawLockupIntro var(--motion-brand-intro) linear both;
     }
 
     body[data-logo-intro="play"] .brand-intro-a {
-      animation: amicLawAIntro 3200ms linear both;
+      animation: amicLawAIntro var(--motion-brand-intro) linear both;
     }
 
     body[data-logo-intro="play"] .brand-intro-mic {
-      animation: amicLawMicIntro 3200ms linear both;
+      animation: amicLawMicIntro var(--motion-brand-intro) linear both;
     }
 
     .brand-lockup {
@@ -612,26 +613,25 @@
     }
 
     .eye-icon {
-      position: absolute;
-      left: 50%;
-      top: 50%;
       width: 22px;
-      height: 14px;
-      border: 2px solid currentColor;
-      border-radius: 50% / 62%;
-      transform: translate(-50%, -50%);
+      height: 22px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
-    .eye-icon::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: currentColor;
-      transform: translate(-50%, -50%);
+    .eye-icon .eye-off {
+      display: none;
+    }
+
+    .password-toggle[data-visible="true"] .eye-open {
+      display: none;
+    }
+
+    .password-toggle[data-visible="true"] .eye-off {
+      display: inline;
     }
 
     .login-actions,
@@ -939,47 +939,15 @@
       transform: none;
     }
 
-    body[data-login-skin="forest"][data-logo-intro="play"] .matter-login-photo-panel {
+    body[data-login-skin="forest"][data-logo-intro="play"] .auth-stage {
       opacity: 0;
-      transform: scale(1.016);
-      transform-origin: center;
-      animation: forestPhotoIn 520ms var(--ease-brand-dock) 2780ms both;
-    }
-
-    body[data-login-skin="forest"][data-logo-intro="play"] .matter-login-heading,
-    body[data-login-skin="forest"][data-logo-intro="play"] .matter-login-field,
-    body[data-login-skin="forest"][data-logo-intro="play"] .matter-login-options,
-    body[data-login-skin="forest"][data-logo-intro="play"] .login-actions,
-    body[data-login-skin="forest"][data-logo-intro="play"] .login-result {
-      opacity: 0;
-      transform: translateY(10px);
-      animation: forestLoginItemIn 360ms var(--ease-brand-dock) both;
+      animation: forestLoginPageIn var(--motion-brand-intro) linear both;
     }
 
     body[data-login-skin="forest"][data-logo-intro="play"] .matter-login-form-column .matter-logo {
-      opacity: 1;
+      opacity: 0;
       transform: none;
-      animation: none;
-    }
-
-    body[data-login-skin="forest"][data-logo-intro="play"] .matter-login-heading {
-      animation-delay: 2780ms;
-    }
-
-    body[data-login-skin="forest"][data-logo-intro="play"] .matter-login-field:nth-of-type(1) {
-      animation-delay: 2780ms;
-    }
-
-    body[data-login-skin="forest"][data-logo-intro="play"] .matter-login-field:nth-of-type(2) {
-      animation-delay: 2780ms;
-    }
-
-    body[data-login-skin="forest"][data-logo-intro="play"] .matter-login-options {
-      animation-delay: 2780ms;
-    }
-
-    body[data-login-skin="forest"][data-logo-intro="play"] .login-actions {
-      animation-delay: 2780ms;
+      animation: forestLoginLogoTargetIn var(--motion-brand-intro) linear both;
     }
 
     body[data-login-skin="forest"] .matter-login-heading {
@@ -1076,22 +1044,12 @@
 
     body[data-login-skin="forest"] .field-icon {
       width: 22px;
-      height: 17px;
-      border: 2px solid currentColor;
-      border-radius: 3px;
-    }
-
-    body[data-login-skin="forest"] .field-icon::before {
-      content: "";
-      position: absolute;
-      left: 3px;
-      right: 3px;
-      top: 3px;
-      height: 8px;
-      border-left: 2px solid currentColor;
-      border-bottom: 2px solid currentColor;
-      transform: rotate(-45deg);
-      transform-origin: center;
+      height: 22px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     body[data-login-skin="forest"] .matter-login-options {
@@ -1104,29 +1062,66 @@
     }
 
     body[data-login-skin="forest"] .matter-login-remember {
+      position: relative;
       display: inline-flex;
       align-items: center;
       gap: 16px;
       color: var(--am-text-muted);
       font-size: 20px;
+      cursor: pointer;
     }
 
     body[data-login-skin="forest"] .matter-login-remember input {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      z-index: 1;
       width: 26px;
       height: 26px;
-      flex: 0 0 auto;
-      appearance: none;
+      margin: 0;
+      opacity: 0;
+      cursor: pointer;
+      transform: translateY(-50%);
+    }
+
+    body[data-login-skin="forest"] .matter-login-checkmark {
+      display: grid;
+      width: 26px;
+      height: 26px;
+      flex: 0 0 26px;
+      place-items: center;
       border: 2px solid #8b98a6;
       border-radius: 6px;
       background: #ffffff;
+      color: #ffffff;
+      transition: border-color var(--motion-hover) var(--ease-standard), background var(--motion-hover) var(--ease-standard), box-shadow var(--motion-hover) var(--ease-standard);
     }
 
-    body[data-login-skin="forest"] .matter-login-remember input:checked {
+    body[data-login-skin="forest"] .matter-login-checkmark svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0;
+      transform: scale(0.72);
+      transition: opacity var(--motion-hover) var(--ease-standard), transform var(--motion-hover) var(--ease-standard);
+    }
+
+    body[data-login-skin="forest"] .matter-login-remember input:checked + .matter-login-checkmark {
       border-color: var(--forest-accent);
-      background:
-        linear-gradient(135deg, transparent 52%, #ffffff 53% 58%, transparent 59%),
-        linear-gradient(45deg, transparent 42%, #ffffff 43% 49%, transparent 50%),
-        var(--forest-accent);
+      background: var(--forest-accent);
+    }
+
+    body[data-login-skin="forest"] .matter-login-remember input:checked + .matter-login-checkmark svg {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    body[data-login-skin="forest"] .matter-login-remember input:focus-visible + .matter-login-checkmark {
+      box-shadow: 0 0 0 3px rgba(38, 194, 96, 0.2);
     }
 
     body[data-login-skin="forest"] .matter-login-forgot {
@@ -1459,17 +1454,28 @@
       }
     }
 
-    @keyframes forestPhotoIn {
-      to {
+    @keyframes forestLoginPageIn {
+      0%,
+      82% {
+        opacity: 0;
+        animation-timing-function: var(--ease-brand-dock);
+      }
+
+      87%,
+      100% {
         opacity: 1;
-        transform: scale(1);
       }
     }
 
-    @keyframes forestLoginItemIn {
-      to {
+    @keyframes forestLoginLogoTargetIn {
+      0%,
+      86.99% {
+        opacity: 0;
+      }
+
+      87%,
+      100% {
         opacity: 1;
-        transform: translateY(0);
       }
     }
 
@@ -1756,8 +1762,8 @@
       .login-actions,
       .login-result {
         animation: none !important;
-        opacity: 1;
-        transform: none;
+        opacity: 1 !important;
+        transform: none !important;
       }
 
     }
@@ -1813,18 +1819,35 @@
                 <label class="field matter-login-field">
                   <span>Email</span>
                   <input data-login-email aria-label="이메일 로그인" autocomplete="email" inputmode="email" type="email" />
-                  <span class="field-icon mail-icon" aria-hidden="true"></span>
+                  <svg class="field-icon mail-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                    <path d="m3 7 9 6 9-6"></path>
+                  </svg>
                 </label>
                 <label class="field password-field matter-login-field">
                   <span>Password</span>
                   <input data-login-password aria-label="비밀번호" autocomplete="current-password" type="password" />
                   <button type="button" class="password-toggle matter-login-password-toggle" data-password-toggle data-password-toggle-target="login-password" aria-label="비밀번호 보기">
-                    <span class="eye-icon" aria-hidden="true"></span>
+                    <svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <g class="eye-open">
+                        <path d="M2.1 12s3.5-7 9.9-7 9.9 7 9.9 7-3.5 7-9.9 7-9.9-7-9.9-7Z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </g>
+                      <g class="eye-off">
+                        <path d="M10.6 5.1A10.7 10.7 0 0 1 12 5c6.4 0 9.9 7 9.9 7a15.8 15.8 0 0 1-2.1 3.1"></path>
+                        <path d="M6.6 6.6A15.7 15.7 0 0 0 2.1 12s3.5 7 9.9 7a10.8 10.8 0 0 0 5.4-1.4"></path>
+                        <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path>
+                        <path d="m3 3 18 18"></path>
+                      </g>
+                    </svg>
                   </button>
                 </label>
                 <div class="matter-login-options">
                   <label class="matter-login-remember">
                     <input type="checkbox" data-login-remember />
+                    <span class="matter-login-checkmark" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4 10-10"></path></svg>
+                    </span>
                     <span>Remember me</span>
                   </label>
                   <button class="matter-login-forgot" type="button" data-forgot-password>Forgot<br />password?</button>
@@ -1856,14 +1879,36 @@
                   <span class="sr-only">새 비밀번호</span>
                   <input data-reset-new-password aria-label="새 비밀번호" autocomplete="new-password" type="password" placeholder="새 비밀번호" />
                   <button type="button" class="password-toggle" data-password-toggle data-password-toggle-target="reset-new-password" aria-label="새 비밀번호 보기">
-                    <span class="eye-icon" aria-hidden="true"></span>
+                    <svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <g class="eye-open">
+                        <path d="M2.1 12s3.5-7 9.9-7 9.9 7 9.9 7-3.5 7-9.9 7-9.9-7-9.9-7Z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </g>
+                      <g class="eye-off">
+                        <path d="M10.6 5.1A10.7 10.7 0 0 1 12 5c6.4 0 9.9 7 9.9 7a15.8 15.8 0 0 1-2.1 3.1"></path>
+                        <path d="M6.6 6.6A15.7 15.7 0 0 0 2.1 12s3.5 7 9.9 7a10.8 10.8 0 0 0 5.4-1.4"></path>
+                        <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path>
+                        <path d="m3 3 18 18"></path>
+                      </g>
+                    </svg>
                   </button>
                 </label>
                 <label class="field password-field">
                   <span class="sr-only">새 비밀번호 확인</span>
                   <input data-reset-confirm-password aria-label="새 비밀번호 확인" autocomplete="new-password" type="password" placeholder="새 비밀번호 확인" />
                   <button type="button" class="password-toggle" data-password-toggle data-password-toggle-target="reset-confirm-password" aria-label="새 비밀번호 확인 보기">
-                    <span class="eye-icon" aria-hidden="true"></span>
+                    <svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <g class="eye-open">
+                        <path d="M2.1 12s3.5-7 9.9-7 9.9 7 9.9 7-3.5 7-9.9 7-9.9-7-9.9-7Z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </g>
+                      <g class="eye-off">
+                        <path d="M10.6 5.1A10.7 10.7 0 0 1 12 5c6.4 0 9.9 7 9.9 7a15.8 15.8 0 0 1-2.1 3.1"></path>
+                        <path d="M6.6 6.6A15.7 15.7 0 0 0 2.1 12s3.5 7 9.9 7a10.8 10.8 0 0 0 5.4-1.4"></path>
+                        <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path>
+                        <path d="m3 3 18 18"></path>
+                      </g>
+                    </svg>
                   </button>
                 </label>
                 <p class="reset-detail">비밀번호는 12자 이상이어야 합니다.</p>
@@ -2340,7 +2385,7 @@
 
     function safeHandoffRefList(values) {
       if (!Array.isArray(values)) return [];
-      return values.map((value) => safeHandoffRef(value)).filter(Boolean).slice(0, 24);
+      return values.map((value) => safeHandoffRef(value)).filter(Boolean).slice(0, 96);
     }
 
     function desktopSessionEnvelope(session) {

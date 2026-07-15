@@ -1,66 +1,12 @@
 import { MATTER_VAULT_REGISTERED_TENANT_ID } from "./matter-vault-account-registry.js";
+import { hrxScopesForRoleProfile } from "./hrx-role-scope-matrix.js";
 
 export const LAWOS_ROLE_REGISTRY_SOURCE = "workbook/wave1-internal-uplift-tuw-backlog-2026-07-02.md#UPL-A-03";
 
-const HRX_SELF_SERVICE_SCOPES = Object.freeze([
-  "hrx.employee.read",
-  "hrx.document.read",
-  "hrx.leave.read",
-  "hrx.leave.write",
-  "hrx.leave.self.read",
-  "hrx.leave.self.write",
-]);
-
-const HRX_ATTORNEY_SCOPES = Object.freeze([
-  ...HRX_SELF_SERVICE_SCOPES,
-  "hrx.approval.read",
-  "hrx.approval.write",
-  "hrx.leave.team.read",
-  "hrx.leave.approve",
-  "hrx.legal_people.read",
-  "hrx.analytics.read",
-  "hrx.ai.assistant",
-  "hrx.ai.review.read",
-]);
-
-const HRX_HR_SCOPES = Object.freeze([
-  ...HRX_ATTORNEY_SCOPES,
-  "hrx.employee.write",
-  "hrx.document.write",
-  "hrx.attendance.read",
-  "hrx.attendance.write",
-  "hrx.overtime.read",
-  "hrx.overtime.write",
-  "hrx.risk.read",
-  "hrx.risk.write",
-  "hrx.candidate.read",
-  "hrx.candidate.write",
-  "hrx.lifecycle.read",
-  "hrx.lifecycle.write",
-  "hrx.policy.read",
-  "hrx.policy.write",
-  "hrx.leave.policy.read",
-  "hrx.leave.policy.write",
-  "hrx.leave.accrual.execute",
-  "hrx.leave.ledger.adjust",
-  "hrx.leave.promotion.manage",
-  "hrx.leave.report.export",
-  "hrx.leave.termination.settle",
-  "hrx.payroll.preview",
-]);
-
-const HRX_ADMIN_SCOPES = Object.freeze([
-  ...HRX_HR_SCOPES,
-  "hrx.analytics.export",
-  "hrx.audit.read",
-  "hrx.audit.append",
-  "hrx.compensation.read",
-  "hrx.compensation.write",
-  "hrx.evaluation.read",
-  "hrx.evaluation.review",
-  "hrx.evaluation.write",
-  "hrx.payroll.export",
-]);
+const HRX_SELF_SERVICE_SCOPES = hrxScopesForRoleProfile("employee");
+const HRX_ATTORNEY_SCOPES = hrxScopesForRoleProfile("manager");
+const HRX_HR_SCOPES = hrxScopesForRoleProfile("hr");
+const HRX_ADMIN_SCOPES = hrxScopesForRoleProfile("admin");
 
 export const LAWOS_FINANCE_SCOPES = Object.freeze([
   "analytics.finance.read",

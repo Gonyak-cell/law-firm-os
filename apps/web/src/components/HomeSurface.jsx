@@ -692,6 +692,7 @@ function DashboardRow({
       data-home-action-type={type}
       data-home-action-row={route}
       data-home-deadline-bucket={deadlineBucket ?? undefined}
+      data-compact-record="true"
     >
       <button
         type="button"
@@ -749,14 +750,6 @@ function DashboardRow({
   );
 }
 
-function EmptyWidgetState({ children }) {
-  return (
-    <div className="home-widget-empty">
-      <span>{children}</span>
-    </div>
-  );
-}
-
 function HomeTabList({ label, tabs, activeTab, onSelect, dataPrefix = "home-tab", variant = "" }) {
   const className = variant ? `home-section-tabs ${variant}` : "home-section-tabs";
   return (
@@ -789,7 +782,8 @@ function HomeSectionPanel({ section, title, children }) {
   );
 }
 
-function HomeStatusList({ title, count, children, empty, showTitle = true }) {
+function HomeStatusList({ title, count, children, showTitle = true }) {
+  if (count <= 0) return null;
   return (
     <section className={showTitle ? "home-status-list" : "home-status-list no-title"} aria-label={title}>
       {showTitle && (
@@ -798,7 +792,7 @@ function HomeStatusList({ title, count, children, empty, showTitle = true }) {
         </header>
       )}
       <div className="home-status-list-body">
-        {count > 0 ? children : <EmptyWidgetState>{empty}</EmptyWidgetState>}
+        {children}
       </div>
     </section>
   );
@@ -1039,8 +1033,7 @@ export function HomeSurface({
   const guardedApprovalRows = filteredApprovalRows.filter((row) => row.status === "review" || row.status === "guarded");
   const readyApprovalRows = filteredApprovalRows.filter((row) => row.status === "live");
   const blockedApprovalRows = filteredApprovalRows.filter((row) => row.status === "denied" || row.status === "unavailable");
-  const leaveApprovalCount = filterRequestItems(approvalItems, "leave").length;
-  const expenseApprovalCount = filterRequestItems(approvalItems, "expenses").length;
+  const approvalTotalCount = actionInbox.counts.approval ?? approvalItems.length;
   const calendarCells = useMemo(() => buildMonthCells(selectedCalendarDate), [selectedCalendarDate]);
   const selectedCalendarKey = dateKey(selectedCalendarDate);
   const agendaEvents = Array.isArray(agendaResult.events) ? agendaResult.events : [];
@@ -1093,7 +1086,10 @@ export function HomeSurface({
       target_view: targetView,
       ...detail
     });
-    setView(targetView, route, detail.matterId ? { matterId: detail.matterId } : {});
+    setView(targetView, route, {
+      ...(detail.matterId ? { matterId: detail.matterId } : {}),
+      ...(detail.filter ? { filter: detail.filter } : {})
+    });
   }
 
   function selectFeedEntry(entryId) {
@@ -1213,7 +1209,7 @@ export function HomeSurface({
         <HomeTabList label={homeCopy(labels, "homeMessagesLabel", "메시지")} tabs={localizedMessageTabs} activeTab={messageTab} onSelect={setMessageTab} dataPrefix="messages" />
         <div className="home-section-content" role="tabpanel" data-home-message-tab={messageTab}>
           <div className="home-message-layout">
-            <HomeStatusList title={currentTab.label} count={tabMessages.length} empty={homeCopy(labels, "homeMessagesEmpty", "표시할 메시지가 없습니다.")} showTitle={false}>
+            <HomeStatusList title={currentTab.label} count={tabMessages.length} showTitle={false}>
               <div className="home-message-thread-list">
                 {tabMessages.map((item) => {
                   const unread = unreadIds.has(item.id);
@@ -1289,18 +1285,18 @@ export function HomeSurface({
           </div>
         </div>
         {activeRequestTab === "sent" ? (
-          <HomeStatusList title={homeCopy(labels, "homeRequestsSentTitle", "보낸 요청")} count={sentRequestRows.length} empty={homeCopy(labels, "homeRequestsSentEmpty", "진행 중인 보낸 요청이 없습니다.")} showTitle={false}>
+          <HomeStatusList title={homeCopy(labels, "homeRequestsSentTitle", "보낸 요청")} count={sentRequestRows.length} showTitle={false}>
             {sentRequestRows.map(renderRequestRow)}
           </HomeStatusList>
         ) : (
           <div className="home-status-grid">
-            <HomeStatusList title={homeCopy(labels, "homeRequestsReady", "처리 대기")} count={readyRows.length} empty={homeCopy(labels, "homeRequestsReadyEmpty", "처리할 승인이 없습니다.")}>
+            <HomeStatusList title={homeCopy(labels, "homeRequestsReady", "처리 대기")} count={readyRows.length}>
               {readyRows.map(renderRequestRow)}
             </HomeStatusList>
-            <HomeStatusList title={homeCopy(labels, "homeRequestsReview", "검토 필요")} count={reviewRows.length} empty={homeCopy(labels, "homeRequestsReviewEmpty", "검토가 필요한 요청이 없습니다.")}>
+            <HomeStatusList title={homeCopy(labels, "homeRequestsReview", "검토 필요")} count={reviewRows.length}>
               {reviewRows.map(renderRequestRow)}
             </HomeStatusList>
-            <HomeStatusList title={homeCopy(labels, "homeRequestsBlocked", "제한됨")} count={blockedRows.length} empty={homeCopy(labels, "homeRequestsBlockedEmpty", "제한된 요청이 없습니다.")}>
+            <HomeStatusList title={homeCopy(labels, "homeRequestsBlocked", "제한됨")} count={blockedRows.length}>
               {blockedRows.map(renderRequestRow)}
             </HomeStatusList>
           </div>
@@ -1312,7 +1308,7 @@ export function HomeSurface({
   function renderTodoScreen() {
     return (
       <HomeSectionPanel section={activeHomeSection} title={homeCopy(labels, "homeTodoSidebarLabel", "할 일")}>
-        <HomeStatusList title={homeCopy(labels, "homeWorkTodoTab", "오늘 할 일")} count={todoRows.length} empty={homeCopy(labels, "homeTodoEmpty", "오늘 마감 업무가 없습니다")} showTitle={false}>
+        <HomeStatusList title={homeCopy(labels, "homeWorkTodoTab", "오늘 할 일")} count={todoRows.length} showTitle={false}>
           <div className="home-widget-list" data-home-work-todo-list="true">
             {todoRows.map((row) => (
               <DashboardRow
@@ -1347,7 +1343,7 @@ export function HomeSurface({
           onViewAll={() => openHomeRoute("matter-calendar", "matters", { source: "meeting_room_reservations" })}
           viewAllLabel={homeCopy(labels, "homeCalendarOpen", "캘린더 열기")}
         >
-          <DashboardRecordList emptyText="예약된 회의실이 없습니다">
+          <DashboardRecordList>
             {meetingRoomEvents.map((event, index) => (
               <DashboardRecordRow
                 key={`meeting-room:${event.id ?? event.event_id ?? index}`}
@@ -1370,7 +1366,7 @@ export function HomeSurface({
       <HomeSectionPanel section="home-esign" title={homeCopy(labels, "homeEsignLabel", "전자계약")}>
         <HomeTabList label={homeCopy(labels, "homeEsignLabel", "전자계약")} tabs={localizedEsignTabs} activeTab={esignTab} onSelect={setEsignTab} dataPrefix="esign" />
         <div className="home-section-content" role="tabpanel" data-home-esign-tab={esignTab}>
-          <HomeStatusList title={currentTab.label} count={0} empty={homeCopy(labels, "homeEsignEmpty", "표시할 전자계약 항목이 없습니다.")} showTitle={false}>
+          <HomeStatusList title={currentTab.label} count={0} showTitle={false}>
             {null}
           </HomeStatusList>
         </div>
@@ -1451,7 +1447,7 @@ export function HomeSurface({
       return (
         <HomeSectionPanel section={activeHomeSection} title={currentHomeSectionMeta.title}>
           <div data-home-finance-route-contract={activeHomeSection}>
-            <FinanceSurface liveCtx={liveCtx} activeSection={activeHomeSection} />
+            <FinanceSurface liveCtx={liveCtx} activeSection={activeHomeSection} refreshSignal={refreshToken} />
           </div>
         </HomeSectionPanel>
       );
@@ -1469,7 +1465,7 @@ export function HomeSurface({
         </div>
       );
     }
-    return <EmptyWidgetState>{homeCopy(labels, "homeTodoEmpty", "오늘 마감 업무가 없습니다")}</EmptyWidgetState>;
+    return null;
   }
 
   function renderDashboardGrid() {
@@ -1508,21 +1504,19 @@ export function HomeSurface({
           className="home-dashboard-approvals"
           title={homeCopy(labels, "homeRequestsLabel", "승인 대기")}
           section="pending-approvals"
-          onViewAll={() => openHomeRoute("home-requests-leave", "home", { source: "approval_widget_view_all" })}
-          headerMeta={`${leaveApprovalCount + expenseApprovalCount}${homeCopy(labels, "countSuffix", "건")}`}
+          onViewAll={() => openHomeRoute("requests-inbox", "requests", { source: "approval_widget_view_all" })}
+          headerMeta={`${approvalTotalCount}${homeCopy(labels, "countSuffix", "건")}`}
           viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
         >
-          <DashboardRecordList emptyText={homeCopy(labels, "homeRequestsReadyEmpty", "처리할 승인이 없습니다.")}>
-            <DashboardRecordRow
-              title={homeCopy(labels, "requestFilterLeave", "휴가")}
-              detail={`${leaveApprovalCount}${homeCopy(labels, "countSuffix", "건")}`}
-              onOpen={() => openHomeRoute("home-requests-leave", "home", { source: "approval_widget_leave" })}
-            />
-            <DashboardRecordRow
-              title={homeCopy(labels, "requestFilterExpenses", "비용처리")}
-              detail={`${expenseApprovalCount}${homeCopy(labels, "countSuffix", "건")}`}
-              onOpen={() => openHomeRoute("home-requests-expenses", "home", { source: "approval_widget_expenses" })}
-            />
+          <DashboardRecordList>
+            {approvalRows.map((row) => (
+              <DashboardRecordRow
+                key={row.id}
+                title={row.title}
+                meta={row.meta}
+                onOpen={() => openHomeRoute(row.route, row.route === "home-requests" ? "home" : "matters", { item_id: row.id, action_type: row.type, source: "approval_widget_item" })}
+              />
+            ))}
           </DashboardRecordList>
         </DashboardListCard>
         <DashboardListCard
@@ -1534,7 +1528,7 @@ export function HomeSurface({
           viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
         >
           <DashboardReadState result={dashboardResults.intake} noun="신규 수임">
-            <DashboardRecordList emptyText="신규 수임이 없습니다">
+            <DashboardRecordList>
               {intakeDashboardRows.map((item, index) => (
                 <DashboardRecordRow
                   key={`intake:${item.intake_request_id ?? index}`}
@@ -1557,7 +1551,7 @@ export function HomeSurface({
           viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
         >
           <DashboardReadState result={dashboardResults.monthly} noun="월별 매출">
-            <DashboardRecordList emptyText="표시할 월별 매출이 없습니다">
+            <DashboardRecordList>
               {monthlyDashboardRows.map((item) => (
                 <DashboardRecordRow
                   key={`monthly:${item.month}:${item.currency ?? "KRW"}`}
@@ -1579,13 +1573,13 @@ export function HomeSurface({
           viewAllLabel={homeCopy(labels, "homeWidgetViewAll", "전체 보기")}
         >
           <DashboardReadState result={dashboardResults.matters} noun="최근 작업">
-            <DashboardRecordList emptyText="최근 작업이 없습니다">
+            <DashboardRecordList>
               {matterDashboardRows.map((item, index) => (
                 <DashboardRecordRow
                   key={`recent:${item.matter_id ?? index}`}
                   title={dashboardMatterTitle(item, index)}
                   meta={dashboardClientTitle(item)}
-                  detail={formatDateTime(item.updated_at ?? item.created_at)}
+                  detail={item.updated_at || item.created_at ? formatDateTime(item.updated_at ?? item.created_at) : null}
                   status={dashboardRecordStatusLabel(item.status)}
                   onOpen={() => openHomeRoute("matters-list", "matters", { item_id: item.matter_id, matterId: item.matter_id, source: "recent_work" })}
                 />
@@ -1629,7 +1623,7 @@ export function HomeSurface({
               </button>
               <div className="home-feed-list">
                 {feedEntries.slice(1, 4).map((entry) => (
-                  <button type="button" key={entry.id} data-home-feed-entry={entry.id} onClick={() => selectFeedEntry(entry.id)}>
+                  <button type="button" key={entry.id} data-home-feed-entry={entry.id} data-compact-record="true" onClick={() => selectFeedEntry(entry.id)}>
                     <span>{entry.source}</span>
                     <strong>{entry.title}</strong>
                     <small>{formatDateTime(entry.published_at)}</small>

@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { RefreshCw, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import {
   fetchAnalyticsFinanceClients,
   fetchAnalyticsFinanceMonthly,
@@ -94,7 +94,7 @@ function FinanceReadState({ result, children }) {
   );
 }
 
-function FinanceFilters({ filters, clients, onChange, onRefresh }) {
+function FinanceFilters({ filters, clients, onChange }) {
   const clientOptions = useMemo(() => {
     const unique = new Map();
     for (const row of clients) {
@@ -134,10 +134,6 @@ function FinanceFilters({ filters, clients, onChange, onRefresh }) {
           <option value="collected">수납 기준</option>
         </select>
       </label>
-      <button className="secondary-button home-finance-refresh" type="button" onClick={onRefresh}>
-        <RefreshCw size={15} />
-        새로고침
-      </button>
       {filters.matterId && <span className="home-finance-context-note">선택 Matter 적용 중</span>}
     </div>
   );
@@ -216,13 +212,12 @@ function ReconciliationNotice({ totals, partial }) {
   );
 }
 
-function FinanceAggregateSurface({ liveCtx = "allow", activeSection = "home-finance-overview" }) {
+function FinanceAggregateSurface({ liveCtx = "allow", activeSection = "home-finance-overview", refreshSignal = 0 }) {
   const section = aggregateSections.has(activeSection) ? activeSection : "home-finance-overview";
   const [filters, setFilters] = useState(() => defaultFinanceFilters());
   const [overview, setOverview] = useState(null);
   const [monthly, setMonthly] = useState(null);
   const [clients, setClients] = useState(null);
-  const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -246,7 +241,7 @@ function FinanceAggregateSurface({ liveCtx = "allow", activeSection = "home-fina
       setClients(nextClients);
     });
     return () => { cancelled = true; };
-  }, [liveCtx, filters.from, filters.to, filters.currency, filters.clientGroupId, filters.matterId, filters.recognitionBasis, refreshToken]);
+  }, [liveCtx, filters.from, filters.to, filters.currency, filters.clientGroupId, filters.matterId, filters.recognitionBasis, refreshSignal]);
 
   const totals = overview?.item?.totals ?? [];
   const monthlyRows = monthly?.items ?? [];
@@ -263,7 +258,7 @@ function FinanceAggregateSurface({ liveCtx = "allow", activeSection = "home-fina
 
   return (
     <section className="home-finance-surface" data-home-finance-surface="true" data-home-finance-section={section}>
-      <FinanceFilters filters={filters} clients={clientRows} onChange={updateFilter} onRefresh={() => setRefreshToken((value) => value + 1)} />
+      <FinanceFilters filters={filters} clients={clientRows} onChange={updateFilter} />
       <p className="home-finance-scope-note">Matter 기반 청구, 수납, 사건비용 집계입니다. 급여와 일반 관리비는 포함하지 않습니다.</p>
       <FinanceReadState result={activeResult}>
         <ReconciliationNotice totals={totals} partial={[overview, monthly, clients].some((result) => result?.outcome === "partial")} />
@@ -281,7 +276,7 @@ function FinanceAggregateSurface({ liveCtx = "allow", activeSection = "home-fina
   );
 }
 
-export function FinanceSurface({ liveCtx = "allow", activeSection = "home-finance-overview" }) {
-  if (!aggregateSections.has(activeSection)) return <HomeFinanceOperations liveCtx={liveCtx} activeSection={activeSection} />;
-  return <FinanceAggregateSurface liveCtx={liveCtx} activeSection={activeSection} />;
+export function FinanceSurface({ liveCtx = "allow", activeSection = "home-finance-overview", refreshSignal = 0 }) {
+  if (!aggregateSections.has(activeSection)) return <HomeFinanceOperations liveCtx={liveCtx} activeSection={activeSection} refreshSignal={refreshSignal} />;
+  return <FinanceAggregateSurface liveCtx={liveCtx} activeSection={activeSection} refreshSignal={refreshSignal} />;
 }

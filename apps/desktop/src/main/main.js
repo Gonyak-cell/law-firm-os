@@ -32,7 +32,9 @@ export function describeDesktopSkeleton() {
 }
 
 export function packagedRendererUrl() {
-  return pathToFileURL(join(moduleDir, "../renderer/offline.html")).toString();
+  const url = pathToFileURL(join(moduleDir, "../renderer/web/index.html"));
+  url.searchParams.set("desktop", "1");
+  return url.toString();
 }
 
 export function desktopPreloadPath() {
@@ -54,7 +56,15 @@ export function configureDesktopProtocol(app) {
 }
 
 export function rendererTargetFromEnv(env = process.env) {
-  return env.MATTER_DESKTOP_RENDERER_URL ?? packagedRendererUrl();
+  const configuredTarget = env.MATTER_DESKTOP_RENDERER_URL;
+  if (!configuredTarget) return packagedRendererUrl();
+  try {
+    const pathname = decodeURIComponent(new URL(configuredTarget).pathname);
+    if (/\/offline(?:\.matter)?\.html$/i.test(pathname)) return packagedRendererUrl();
+  } catch {
+    return configuredTarget;
+  }
+  return configuredTarget;
 }
 
 export function desktopUserDataPath(app, env = process.env) {

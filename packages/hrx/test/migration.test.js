@@ -38,6 +38,8 @@ test("HRX migrations create required tables idempotently", () => {
     "hrx_leave_entitlements",
     "hrx_leave_accrual_rules",
     "hrx_leave_accrual_runs",
+    "hrx_leave_accrual_batches",
+    "hrx_leave_accrual_batch_periods",
     "hrx_approval_requests",
     "hrx_approval_steps",
     "hrx_approval_assignments",
@@ -51,9 +53,28 @@ test("HRX migrations create required tables idempotently", () => {
     "hrx_leave_termination_reconciliations",
     "hrx_leave_promotion_campaigns",
     "hrx_leave_promotion_recipients",
+    "hrx_leave_promotion_evidence_receipts",
     "hrx_leave_sync_outbox",
     "hrx_leave_integration_deliveries",
+    "hrx_leave_integration_dead_letters",
     "hrx_leave_balance_snapshots",
+    "hrx_leave_job_outbox",
+    "hrx_leave_occurrence_upload_batches",
+    "hrx_leave_occurrence_upload_rows",
+    "hrx_payroll_periods",
+    "hrx_payroll_runs",
+    "hrx_payroll_profiles",
+    "hrx_payroll_input_snapshots",
+    "hrx_payroll_issues",
+    "hrx_payroll_employee_results",
+    "hrx_payroll_line_items",
+    "hrx_payroll_rule_versions",
+    "hrx_payroll_statement_templates",
+    "hrx_payroll_statements",
+    "hrx_payroll_delivery_receipts",
+    "hrx_payroll_payment_batches",
+    "hrx_payroll_payment_items",
+    "hrx_payroll_filing_jobs",
   ]) {
     assert.match(sql, new RegExp(`CREATE TABLE IF NOT EXISTS ${table}`));
   }
@@ -67,6 +88,31 @@ test("HRX migrations create required tables idempotently", () => {
   assert.match(sql, /ALTER TABLE hrx_leave_promotion_campaigns ADD COLUMN schedule_profile_id/);
   assert.match(sql, /ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN first_delivery_state/);
   assert.match(sql, /ALTER TABLE hrx_leave_sync_outbox ADD COLUMN last_error_code/);
+  assert.match(sql, /CREATE INDEX IF NOT EXISTS idx_hrx_leave_job_outbox_state/);
+  assert.match(sql, /CREATE INDEX IF NOT EXISTS idx_hrx_leave_accrual_batches_status/);
+  assert.match(sql, /CREATE INDEX IF NOT EXISTS idx_hrx_leave_accrual_batch_periods_batch/);
+  assert.match(sql, /ALTER TABLE hrx_leave_entitlements ADD COLUMN memo/);
+  assert.match(sql, /ALTER TABLE hrx_leave_entitlements ADD COLUMN source_document_id/);
+  assert.match(sql, /ALTER TABLE hrx_leave_entitlements ADD COLUMN approved_by_actor_id/);
+  assert.match(sql, /CREATE INDEX IF NOT EXISTS idx_hrx_leave_entitlements_source_document/);
+  assert.match(sql, /CREATE INDEX IF NOT EXISTS idx_hrx_leave_occurrence_upload_batches_status/);
+  assert.match(sql, /CREATE INDEX IF NOT EXISTS idx_hrx_leave_occurrence_upload_rows_batch/);
+  assert.match(sql, /ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN first_content_hash/);
+  assert.match(sql, /ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN second_content_hash/);
+  assert.match(sql, /CREATE INDEX IF NOT EXISTS idx_hrx_leave_promotion_evidence_recipient/);
+  assert.match(sql, /CREATE INDEX IF NOT EXISTS idx_hrx_leave_integration_dead_letters_state/);
+  assert.match(sql, /ALTER TABLE hrx_leave_entitlements ADD COLUMN policy_rules_snapshot_hash/);
+  assert.match(sql, /CREATE INDEX IF NOT EXISTS idx_hrx_leave_entitlement_rule_snapshot/);
+  assert.match(sql, /CREATE INDEX IF NOT EXISTS idx_hrx_payroll_periods_status/);
+  assert.match(sql, /CREATE INDEX IF NOT EXISTS idx_hrx_payroll_rules_effective/);
+  assert.match(sql, /ALTER TABLE hrx_payroll_input_snapshots ADD COLUMN input_json/);
+  assert.match(sql, /ALTER TABLE hrx_overtime_requests ADD COLUMN payroll_segment_kind/);
+  assert.match(sql, /CREATE INDEX IF NOT EXISTS idx_hrx_payroll_issues_run/);
+  assert.match(sql, /CREATE TRIGGER IF NOT EXISTS trg_hrx_compensation_records_immutable_update/);
+  assert.match(sql, /CREATE TRIGGER IF NOT EXISTS trg_hrx_compensation_records_immutable_delete/);
+  assert.match(sql, /ALTER TABLE hrx_payroll_profiles ADD COLUMN compensation_unit/);
+  assert.match(sql, /ALTER TABLE hrx_payroll_profiles ADD COLUMN compensation_quantity/);
+  assert.match(sql, /ALTER TABLE hrx_payroll_profiles ADD COLUMN withholding_category/);
 });
 
 test("HRX core migration is non-destructive", () => {
@@ -100,5 +146,5 @@ test("HRX migration loader rejects destructive SQL", () => {
     /unsafe SQL pattern/,
   );
   assert.equal(loadHrxCoreMigrations()[0].id, "001_hrx_core");
-  assert.equal(loadHrxCoreMigrations().at(-1).id, "010_hrx_leave_integrations");
+  assert.equal(loadHrxCoreMigrations().at(-1).id, "025_hrx_payroll_year_end");
 });

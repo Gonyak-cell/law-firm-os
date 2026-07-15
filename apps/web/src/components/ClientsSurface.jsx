@@ -594,35 +594,35 @@ function ClientDashboardPanel({ results, onNavigate }) {
     <div className="operational-dashboard-grid client-dashboard-layout" data-client-dashboard="true">
       <DashboardListCard className="client-dashboard-new-clients" title="신규 고객" section="new-clients" onViewAll={() => onNavigate("clients", "clients-list")}>
         <DashboardReadState result={results.accounts} noun="신규 고객">
-          <DashboardRecordList emptyText="신규 고객이 없습니다">
+          <DashboardRecordList>
             {newClients.map((item, index) => <DashboardRecordRow key={`client:${item.account_id ?? index}`} title={clientDashboardRecordLabel(item.display_name, item.account_id, `고객 ${index + 1}`)} meta={clientDashboardCategoryLabel(item.account_type ?? item.status, "고객")} detail={clientDashboardDateLabel(item.created_at ?? item.updated_at)} status={clientDashboardRecordLabel(item.owner_display_name, item.owner_user_id, "담당 미지정")} onOpen={() => onNavigate("clients", "clients-list")} />)}
           </DashboardRecordList>
         </DashboardReadState>
       </DashboardListCard>
       <DashboardListCard className="client-dashboard-prospects" title="잠재 고객/접촉" section="prospects-contacts" onViewAll={() => onNavigate("clients", "client-opportunities")}>
         <DashboardReadState result={prospectResult} noun="잠재 고객과 접촉">
-          <DashboardRecordList emptyText="잠재 고객 또는 접촉 기록이 없습니다">
+          <DashboardRecordList>
             {prospects.map((item, index) => <DashboardRecordRow key={`prospect:${item.lead_id ?? item.opportunity_id ?? item.contact_id ?? index}`} title={clientDashboardRecordLabel(item.display_name ?? item.subject, item.lead_id ?? item.opportunity_id ?? item.contact_id, `접촉 ${index + 1}`)} meta={clientDashboardCategoryLabel(item.stage ?? item.status, "접촉")} detail={clientDashboardDateLabel(item.updated_at ?? item.created_at)} status={clientDashboardRecordLabel(item.owner_display_name, item.owner_user_id, "담당 미지정")} onOpen={() => onNavigate("clients", item.contact_id ? "client-contacts" : item.lead_id ? "client-leads" : "client-opportunities")} />)}
           </DashboardRecordList>
         </DashboardReadState>
       </DashboardListCard>
       <DashboardListCard className="client-dashboard-revenue" title="매출 순위" section="revenue-ranking" onViewAll={() => onNavigate("home", "home-finance-clients")}>
         <DashboardReadState result={results.financeClients} noun="고객별 매출">
-          <DashboardRecordList emptyText="표시할 고객별 매출이 없습니다">
+          <DashboardRecordList>
             {revenueRows.map((item, index) => <DashboardRecordRow key={`revenue:${item.client_group_id ?? index}:${item.currency ?? "KRW"}`} title={`${index + 1}. ${clientDashboardRecordLabel(item.client_group_label, item.client_group_id, "고객명 미확인")}`} meta={`청구 ${clientDashboardMoneyLabel(item.billed_amount, item.currency)}`} detail={`수납 ${clientDashboardMoneyLabel(item.collected_amount, item.currency)}`} onOpen={() => onNavigate("home", "home-finance-clients")} />)}
           </DashboardRecordList>
         </DashboardReadState>
       </DashboardListCard>
       <DashboardListCard className="client-dashboard-meetings" title="고객 미팅" section="client-meetings" onViewAll={() => onNavigate("clients", "client-activities")}>
         <DashboardReadState result={results.activities} noun="고객 미팅">
-          <DashboardRecordList emptyText="고객 미팅이 없습니다">
+          <DashboardRecordList>
             {meetings.map((item, index) => <DashboardRecordRow key={`meeting:${item.crm_activity_id ?? index}`} title={clientDashboardRecordLabel(item.subject, item.crm_activity_id, `고객 미팅 ${index + 1}`)} meta={clientDashboardRecordLabel(item.party_display_name ?? item.display_name, item.party_id, "고객 미지정")} detail={clientDashboardDateLabel(item.scheduled_at ?? item.occurred_at ?? item.created_at ?? item.updated_at)} status={clientDashboardRecordLabel(item.owner_display_name, item.owner_user_id, "담당 미지정")} onOpen={() => onNavigate("clients", "client-activities")} />)}
           </DashboardRecordList>
         </DashboardReadState>
       </DashboardListCard>
       <DashboardListCard className="client-dashboard-ar" title="미수금" section="accounts-receivable" onViewAll={() => onNavigate("home", "home-finance-ar")}>
         <DashboardReadState result={results.financeClients} noun="고객별 미수금">
-          <DashboardRecordList emptyText="표시할 미수금이 없습니다">
+          <DashboardRecordList>
             {arRows.map((item, index) => <DashboardRecordRow key={`ar:${item.client_group_id ?? index}:${item.currency ?? "KRW"}`} title={clientDashboardRecordLabel(item.client_group_label, item.client_group_id, "고객명 미확인")} meta={`미수 ${clientDashboardMoneyLabel(item.ar_balance, item.currency)}`} detail={item.month ?? "현재 잔액"} status={Number(item.ar_balance ?? 0) > 0 ? "회수 확인" : "정상"} onOpen={() => onNavigate("home", "home-finance-ar")} />)}
           </DashboardRecordList>
         </DashboardReadState>
@@ -1342,14 +1342,14 @@ function ContactsTable({
         </div>
         <div className="legal-people-backlink-list" aria-label="Client 연결 인물">
           {legalPeople.slice(0, 4).map((person) => (
-            <span key={person.person_id} className="legal-people-backlink-row">
+            <span key={person.person_id} className="legal-people-backlink-row" data-compact-record="true">
               <Link2 size={13} />
               <strong>{businessLabel(person.display_name, "인물")}</strong>
               <small>{person.korean_label ?? person.type_id}</small>
             </span>
           ))}
           {legalPeople.length === 0 && legalPeopleResult?.kind === "data" && (
-            <span className="legal-people-backlink-row muted">
+            <span className="legal-people-backlink-row muted" data-compact-record="true">
               <Link2 size={13} />
               <strong>연결 없음</strong>
               <small>로컬 fixture 기준</small>
@@ -2671,12 +2671,12 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "client-leads" && (
-          <Panel id="client-leads" className="record-list-panel" title="잠재 고객" meta="수임 전">
+          <Panel id="client-leads" className="record-list-panel" title="잠재 고객">
             <LeadsTable result={leadsResult} />
           </Panel>
         )}
         {currentSection === "client-opportunities" && (
-          <Panel id="client-opportunities" className="record-list-panel" title="Pipeline" meta="수임 전 기회" hideHeader>
+          <Panel id="client-opportunities" className="record-list-panel" title="Pipeline" hideHeader>
             <OpportunitiesTable
               result={opportunitiesResult}
               pending={handoffPending}
@@ -2686,7 +2686,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "client-intake" && (
-          <Panel id="client-intake" className="record-list-panel" title="인테이크" meta="수임 전 검토">
+          <Panel id="client-intake" className="record-list-panel" title="인테이크">
             <ClientIntakePipelineSurface
               result={intakeResult}
               auditResult={intakeAuditResult}
@@ -2717,7 +2717,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
         )}
         {currentSection === "client-consultation-proposals" && (
           <>
-            <Panel id="client-consultation-proposals-intake" className="record-list-panel" title="상담 기록" meta="수임 전 검토">
+            <Panel id="client-consultation-proposals-intake" className="record-list-panel" title="상담 기록">
               <ClientIntakePipelineSurface
                 result={intakeResult}
                 auditResult={intakeAuditResult}
@@ -2745,7 +2745,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
                 onMatterOpening={handleMatterOpening}
               />
             </Panel>
-            <Panel id="client-consultation-proposals-contracts" className="record-list-panel" title="수임 제안" meta="Vault/e-sign 경계">
+            <Panel id="client-consultation-proposals-contracts" className="record-list-panel" title="수임 제안">
               <ClientContractsPanel
                 result={proposalsResult}
                 createResult={proposalCreateResult}
@@ -2759,7 +2759,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
           </>
         )}
         {currentSection === "client-accounts" && (
-          <Panel id="client-accounts" className="record-list-panel" title="계정 정보" meta="관리" hideHeader>
+          <Panel id="client-accounts" className="record-list-panel" title="계정 정보" hideHeader>
             <AccountsTable
               result={accountsResult}
               relationshipResult={accountContactsResult}
@@ -2776,7 +2776,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "client-contacts" && (
-          <Panel id="client-contacts" className="record-list-panel" title="담당자" meta="연락 창구" hideHeader>
+          <Panel id="client-contacts" className="record-list-panel" title="담당자" hideHeader>
             <ContactsTable
               result={contactsResult}
               legalPeopleResult={legalPeopleClientResult}
@@ -2800,7 +2800,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "client-activities" && (
-          <Panel id="client-activities" className="record-list-panel" title="접촉 이력" meta="CRM 활동" hideHeader>
+          <Panel id="client-activities" className="record-list-panel" title="접촉 이력" hideHeader>
             <ClientActivitiesPanel
               result={activitiesResult}
               createResult={activityCreateResult}
@@ -2813,7 +2813,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "client-contracts" && (
-          <Panel id="client-contracts" className="record-list-panel" title="제안" meta="Vault/e-sign 경계" hideHeader>
+          <Panel id="client-contracts" className="record-list-panel" title="제안" hideHeader>
             <ClientContractsPanel
               result={proposalsResult}
               createResult={proposalCreateResult}
@@ -2826,7 +2826,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "client-relationships" && (
-          <Panel id="client-relationships" className="record-list-panel" title="관계" meta="병합 검토" hideHeader>
+          <Panel id="client-relationships" className="record-list-panel" title="관계" hideHeader>
             <ClientRelationshipsPanel
               relationshipResult={accountContactsResult}
               mergeResult={mergeProposalsResult}
@@ -2840,7 +2840,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "client-conflict" && (
-          <Panel id="client-conflict" className="record-list-panel" title="이해상충 확인" meta="검토 큐" hideHeader>
+          <Panel id="client-conflict" className="record-list-panel" title="이해상충 확인" hideHeader>
             <ClientConflictPanel
               result={intakeResult}
               auditResult={intakeAuditResult}
@@ -2867,7 +2867,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "client-billing" && (
-          <Panel id="client-billing" className="record-list-panel" title="청구" meta="Finance 연결" hideHeader>
+          <Panel id="client-billing" className="record-list-panel" title="청구" hideHeader>
             <ClientChargePanel
               invoicesResult={financeInvoicesResult}
               arAgingResult={financeArAgingResult}
@@ -2889,7 +2889,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
           <ImportDataMappingPanel ctx={liveCtx} surface="client" />
         )}
         {currentSection === "client-settings" && (
-          <Panel id="client-settings" className="record-list-panel" title="설정" meta="정책 레지스트리" hideHeader>
+          <Panel id="client-settings" className="record-list-panel" title="설정" hideHeader>
             <ClientSettingsPanel
               result={clientSettingsResult}
               patchResult={clientSettingPatchResult}

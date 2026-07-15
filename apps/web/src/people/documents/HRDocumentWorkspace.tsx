@@ -32,8 +32,6 @@ type DocumentModeKey = "regulations" | "certificates" | "contracts";
 type DocumentModeConfig = {
   panelId: string;
   title: string;
-  meta: string;
-  kicker: string;
   loadingText: string;
   errorText: string;
   emptyText: string;
@@ -48,8 +46,6 @@ const DOCUMENT_MODE: Record<DocumentModeKey, DocumentModeConfig> = {
   regulations: {
     panelId: "people-documents",
     title: "회사방침",
-    meta: "회사 설정 - 일반",
-    kicker: "회사 방침에 대한 설정은 회사 설정 - 일반에서 할 수 있습니다.",
     loadingText: "회사방침 목록을 불러오는 중입니다",
     errorText: "회사방침 목록을 불러오지 못했습니다.",
     emptyText: "표시할 회사방침이 없습니다.",
@@ -62,8 +58,6 @@ const DOCUMENT_MODE: Record<DocumentModeKey, DocumentModeConfig> = {
   certificates: {
     panelId: "people-certificates",
     title: "증명서 발급 요청",
-    meta: "증명서",
-    kicker: "재직증명서와 경력증명서의 증명서 발급 요청을 확인합니다.",
     loadingText: "증명서 발급 요청 목록을 불러오는 중입니다",
     errorText: "증명서 발급 요청 목록을 불러오지 못했습니다.",
     emptyText: "표시할 증명서 발급 요청이 없습니다.",
@@ -76,8 +70,6 @@ const DOCUMENT_MODE: Record<DocumentModeKey, DocumentModeConfig> = {
   contracts: {
     panelId: "people-employment-contracts",
     title: "근로계약서",
-    meta: "계약 수명주기",
-    kicker: "원본은 Vault에 두고 계약 상태와 서명본 참조만 관리합니다.",
     loadingText: "근로계약서 목록을 불러오는 중입니다",
     errorText: "근로계약서 목록을 불러오지 못했습니다.",
     emptyText: "표시할 근로계약서가 없습니다.",
@@ -334,11 +326,7 @@ export function HRDocumentWorkspace({ employeeId, refreshKey, mode = "regulation
   }
 
   return (
-    <Panel id={config.panelId} className="people-panel span-2" title={config.title} meta={config.meta}>
-      <div className="people-panel-kicker">
-        <FileText size={15} />
-        {config.kicker}
-      </div>
+    <Panel id={config.panelId} className="people-panel span-2" title={config.title}>
       {body}
     </Panel>
   );

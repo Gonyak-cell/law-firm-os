@@ -46,13 +46,13 @@ function uniqueStrings(values) {
   return [...new Set(values.map(stringValue).filter(Boolean))];
 }
 
-function memberField(member, key, fallback = "미등록") {
+function memberField(member, key, fallback = "") {
   return stringValue(member?.[key]) || fallback;
 }
 
 function dateLabel(value) {
   const text = stringValue(value);
-  if (!text) return "미등록";
+  if (!text) return "";
   return text.replaceAll("-", ". ");
 }
 
@@ -64,7 +64,23 @@ function infoRows(member) {
     ["조직", memberField(member, "organization_group")],
     ["입사일", dateLabel(member?.start_date)],
     ["위치", memberField(member, "country")]
-  ];
+  ].filter(([, value]) => Boolean(value));
+}
+
+const GENERIC_PROFILE_NAMES = new Set(["사용자", "세션 사용자"]);
+
+function resolvedProfileMember(profile, desktopSession, fallbackDesktopSession) {
+  const members = [profile, desktopSession, fallbackDesktopSession].filter(Boolean);
+  if (members.length === 0) return null;
+  const displayName = members
+    .map((member) => memberField(member, "display_name"))
+    .find((name) => name && !GENERIC_PROFILE_NAMES.has(name)) ?? "";
+  return {
+    ...fallbackDesktopSession,
+    ...desktopSession,
+    ...profile,
+    display_name: displayName
+  };
 }
 
 const PROFILE_OVERRIDE_KEY_PREFIX = "lawos.profile.override.";
@@ -134,6 +150,7 @@ function profileDraftFromMember(member) {
     start_date: stringValue(member?.start_date),
     country: memberField(member, "country", ""),
     work_email: memberField(member, "work_email", ""),
+    mobile_phone: memberField(member, "mobile_phone", ""),
     experience: listToText(professionalProfile.experience),
     education: listToText(professionalProfile.education),
     qualifications: listToText(professionalProfile.qualifications),
@@ -151,6 +168,7 @@ function profilePatchFromDraft(draft, member) {
     start_date: draft.start_date.trim(),
     country: draft.country.trim(),
     work_email: draft.work_email.trim(),
+    mobile_phone: draft.mobile_phone.trim(),
     professional_profile: {
       ...objectValue(member?.professional_profile),
       experience: textToList(draft.experience),
@@ -173,13 +191,13 @@ function EditableFieldRow({ label, value, editing, onChange, type = "text" }) {
   return (
     <div className="matter-profile-field-row">
       <span>{label}</span>
-      <strong>{value || "미등록"}</strong>
+      <strong>{value}</strong>
     </div>
   );
 }
 
-function ProfileList({ title, items, icon: Icon, emptyText = "미등록", editing = false, editValue = "", onEditChange = () => {} }) {
-  const visibleItems = items.length > 0 ? items : [emptyText];
+function ProfileList({ title, items, icon: Icon, editing = false, editValue = "", onEditChange = () => {} }) {
+  if (!editing && items.length === 0) return null;
   return (
     <article className="matter-profile-card panel">
       <div className="matter-profile-card-title">
@@ -194,8 +212,8 @@ function ProfileList({ title, items, icon: Icon, emptyText = "미등록", editin
           rows={Math.max(4, textToList(editValue).length + 1)}
         />
       ) : (
-        <ul className={items.length > 0 ? "matter-profile-timeline" : "matter-profile-timeline is-empty"}>
-          {visibleItems.map((item, index) => (
+        <ul className="matter-profile-timeline">
+          {items.map((item, index) => (
             <li key={`${title}-${index}-${item}`}>{item}</li>
           ))}
         </ul>
@@ -237,11 +255,11 @@ export function UserProfileSurface({ liveCtx = "allow", desktopSession = null, o
     };
   }, [liveCtx]);
 
-  const baseMember = profile ?? desktopSession ?? fallbackDesktopSession;
+  const baseMember = resolvedProfileMember(profile, desktopSession, fallbackDesktopSession);
   const employeeId = memberField(baseMember, "employee_id", memberField(baseMember, "user_id", "unknown"));
   const selectedMember = useMemo(() => mergeProfileOverride(baseMember, profileOverride), [baseMember, profileOverride]);
   const professionalProfile = objectValue(selectedMember?.professional_profile);
-  const photo = memberPhotoFor(selectedMember?.display_name);
+  const photo = memberPhotoFor(selectedMember);
   const initial = memberField(selectedMember, "display_name", "구성원").slice(0, 1);
   const practiceAreas = stringList(professionalProfile.practice_areas);
   const careerItems = stringList(professionalProfile.experience);
@@ -252,6 +270,16 @@ export function UserProfileSurface({ liveCtx = "allow", desktopSession = null, o
     memberField(selectedMember, "department", ""),
     memberField(selectedMember, "organization_group", "")
   ]);
+  const profileRows = infoRows(selectedMember);
+  const contactItems = uniqueStrings([
+    memberField(selectedMember, "work_email", ""),
+    memberField(selectedMember, "mobile_phone", ""),
+    memberField(selectedMember, "country", "")
+  ]);
+  const roleLine = uniqueStrings([
+    memberField(selectedMember, "title", ""),
+    memberField(selectedMember, "affiliation", "")
+  ]).join(" / ");
 
   useEffect(() => {
     const override = readProfileOverride(employeeId);
@@ -315,7 +343,7 @@ export function UserProfileSurface({ liveCtx = "allow", desktopSession = null, o
         </button>
       </header>
 
-      {statusCopy.title && (
+      {statusCopy.title && !selectedMember && (
         <div className={`live-data-state ${statusCopy.className}`} role="status" data-profile-api-notice="true">
           <strong>{statusCopy.title}</strong>
         </div>
@@ -335,7 +363,7 @@ export function UserProfileSurface({ liveCtx = "allow", desktopSession = null, o
                 aria-label="이름"
               />
             ) : (
-              <h1>{memberField(selectedMember, "display_name", "구성원")}</h1>
+              <h1>{memberField(selectedMember, "display_name", "프로필")}</h1>
             )}
             <div className="matter-profile-role-line">
               {isEditingProfile ? (
@@ -352,7 +380,7 @@ export function UserProfileSurface({ liveCtx = "allow", desktopSession = null, o
                   />
                 </div>
               ) : (
-                <p>{memberField(selectedMember, "title")} / {memberField(selectedMember, "affiliation")}</p>
+                roleLine ? <p>{roleLine}</p> : null
               )}
               <button
                 className="secondary-button matter-profile-edit-button"
@@ -367,7 +395,7 @@ export function UserProfileSurface({ liveCtx = "allow", desktopSession = null, o
             {saveState && <span className="matter-profile-save-state">{saveState}</span>}
           </div>
 
-          <article className="matter-profile-card panel">
+          {(isEditingProfile || profileRows.length > 0) && <article className="matter-profile-card panel">
             <div className="matter-profile-card-title">
               <IdCard size={18} />
               <h2>기본 정보</h2>
@@ -383,13 +411,13 @@ export function UserProfileSurface({ liveCtx = "allow", desktopSession = null, o
                   <EditableFieldRow label="위치" value={profileDraft.country} editing onChange={(value) => updateProfileDraft("country", value)} />
                 </>
               ) : (
-                infoRows(selectedMember).map(([label, value]) => (
+                profileRows.map(([label, value]) => (
                   <EditableFieldRow key={label} label={label} value={value} editing={false} />
                 ))
               )}
             </div>
-          </article>
-          <article className="matter-profile-card panel">
+          </article>}
+          {(isEditingProfile || contactItems.length > 0) && <article className="matter-profile-card panel">
             <div className="matter-profile-card-title">
               <MapPin size={18} />
               <h2>연락처</h2>
@@ -397,21 +425,21 @@ export function UserProfileSurface({ liveCtx = "allow", desktopSession = null, o
             {isEditingProfile ? (
               <div className="matter-profile-field-list">
                 <EditableFieldRow label="이메일" value={profileDraft.work_email} editing type="email" onChange={(value) => updateProfileDraft("work_email", value)} />
+                <EditableFieldRow label="연락처" value={profileDraft.mobile_phone} editing type="tel" onChange={(value) => updateProfileDraft("mobile_phone", value)} />
                 <EditableFieldRow label="위치" value={profileDraft.country} editing onChange={(value) => updateProfileDraft("country", value)} />
               </div>
             ) : (
               <div className="matter-profile-contact-row matter-profile-contact-column">
-                <span>{memberField(selectedMember, "work_email")}</span>
-                <span>{memberField(selectedMember, "country")}</span>
+                {contactItems.map((item) => <span key={item}>{item}</span>)}
               </div>
             )}
-          </article>
+          </article>}
         </aside>
 
         <div className="matter-profile-main-stack">
-          <ProfileList title="경력" items={careerItems} icon={ClipboardList} emptyText="경력 미등록" editing={isEditingProfile} editValue={profileDraft.experience} onEditChange={(value) => updateProfileDraft("experience", value)} />
-          <ProfileList title="학력" items={educationItems} icon={GraduationCap} emptyText="학력 미등록" editing={isEditingProfile} editValue={profileDraft.education} onEditChange={(value) => updateProfileDraft("education", value)} />
-          <ProfileList title="자격" items={qualificationItems} icon={ShieldCheck} emptyText="자격 미등록" editing={isEditingProfile} editValue={profileDraft.qualifications} onEditChange={(value) => updateProfileDraft("qualifications", value)} />
+          <ProfileList title="경력" items={careerItems} icon={ClipboardList} editing={isEditingProfile} editValue={profileDraft.experience} onEditChange={(value) => updateProfileDraft("experience", value)} />
+          <ProfileList title="학력" items={educationItems} icon={GraduationCap} editing={isEditingProfile} editValue={profileDraft.education} onEditChange={(value) => updateProfileDraft("education", value)} />
+          <ProfileList title="자격" items={qualificationItems} icon={ShieldCheck} editing={isEditingProfile} editValue={profileDraft.qualifications} onEditChange={(value) => updateProfileDraft("qualifications", value)} />
 
           {(practiceAreas.length > 0 || isEditingProfile) && (
             <article className="matter-profile-card panel">
@@ -434,7 +462,7 @@ export function UserProfileSurface({ liveCtx = "allow", desktopSession = null, o
             </article>
           )}
 
-          <article className="matter-profile-card panel">
+          {workPlaces.length > 0 && <article className="matter-profile-card panel">
             <div className="matter-profile-card-title">
               <IdCard size={18} />
               <h2>소속</h2>
@@ -442,7 +470,7 @@ export function UserProfileSurface({ liveCtx = "allow", desktopSession = null, o
             <div className="matter-profile-contact-row">
               {workPlaces.map((item) => <span key={item}>{item}</span>)}
             </div>
-          </article>
+          </article>}
         </div>
       </div>
     </section>

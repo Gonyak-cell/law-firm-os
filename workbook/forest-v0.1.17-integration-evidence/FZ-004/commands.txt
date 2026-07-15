@@ -1,0 +1,7 @@
+git diff --binary --full-index --output=<recovery>/tracked.patch HEAD --
+git ls-files --others --exclude-standard -z
+tar --null -T <untracked-list> -cf <recovery>/untracked.tar
+git worktree add --detach <restore-worktree> <entry-sha>
+git apply --binary <recovery>/tracked.patch
+tar -xf <recovery>/untracked.tar
+git write-tree

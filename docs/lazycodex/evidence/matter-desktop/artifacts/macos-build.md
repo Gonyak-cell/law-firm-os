@@ -1,12 +1,12 @@
-# macOS Formal Release Candidate Build Receipt
+# macOS Internal Build Receipt
 
-Status: formal_release_candidate_electron_app_bundle_created
+Status: internal_electron_app_bundle_created
 Source TUW: MDT-P6-W01-T03
 App bundle: `apps/desktop/dist/mac/matter.app`
-App ID: `com.amic.matter.desktop`
+App ID: `com.amic.matter.desktop.internal`
 Product name: `matter`
 Version: `0.1.16`
-Channel: `formal`
+Channel: `internal`
 
 ## Package Structure
 
@@ -15,26 +15,26 @@ Channel: `formal`
 - packaged app icon: `apps/desktop/dist/mac/matter.app/Contents/Resources/matter.icns`
 - packaged app source: `apps/desktop/dist/mac/matter.app/Contents/Resources/app`
 - executable: `apps/desktop/dist/mac/matter.app/Contents/MacOS/matter`
-- archive: `apps/desktop/dist/mac/matter-0.1.16-macos.zip`
-- disk image: `apps/desktop/dist/mac/matter-0.1.16-macos.dmg`
+- archive: `apps/desktop/dist/mac/matter-internal-0.1.16-macos.zip`
+- disk image: `apps/desktop/dist/mac/matter-internal-0.1.16-macos.dmg`
 
 ## Signing
 
-- Developer ID signing: applied
-- requested signing mode: developer-id
-- resolved signing identity: Developer ID Application: Jiwon Suh (LHDXU66NX3)
-- Developer ID signature: pass
-- codesign verify: pass
-- strict codesign verify: pass
-- gatekeeper assess: pass
+- Developer ID signing: not_applied_internal_package
+- requested signing mode: internal
+- resolved signing identity: not_applied_internal_package
+- Developer ID signature: not_distribution_ready: Developer ID authority missing; TeamIdentifier=not set
+- codesign verify: not_distribution_ready: /private/tmp/lawos-forest-v016-release/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
+- strict codesign verify: not_distribution_ready: /private/tmp/lawos-forest-v016-release/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
+- gatekeeper assess: not_distribution_ready: /private/tmp/lawos-forest-v016-release/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
 - public distribution approval: not claimed
-- notarization requested: true
-- notarization credential source: present
-- notarization state: submitted_and_accepted_by_notarytool
-- DMG codesign verify: pass
-- DMG notarization state: submitted_and_accepted_by_notarytool
-- DMG stapler validate: pass
-- DMG Gatekeeper assess: pass
+- notarization requested: false
+- notarization credential source: missing
+- notarization state: not_submitted_internal_only
+- DMG codesign verify: not_applied_internal_package
+- DMG notarization state: not_submitted_internal_only
+- DMG stapler validate: not_submitted_internal_only
+- DMG Gatekeeper assess: not_distribution_ready: /private/tmp/lawos-forest-v016-release/apps/desktop/dist/mac/matter-internal-0.1.16-macos.dmg: rejected
 - DMG image verify: pass
 
 ## Install Smoke
@@ -44,7 +44,9 @@ Channel: `formal`
 - packaged app icon exists: true
 - packaged app source exists: true
 - private HRX contact source excluded: true
-- private HRX roster source excluded: true
+- private HRX roster source excluded: false
+- private HRX photo source excluded: false
+- public HRX professional profile catalog included: true
 - formal release marker: true
 - web renderer prepare state: rebuilt_from_apps_web
 - packaged URL scheme metadata: matter

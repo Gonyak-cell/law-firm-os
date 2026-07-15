@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { CalendarClock, Check, UserRoundCog } from "lucide-react";
+import { Check, UserRoundCog } from "lucide-react";
 import { Panel } from "../../components/primitives.jsx";
 import {
   closeHrxLeaveDelegation,
@@ -152,7 +152,6 @@ export function LeaveApprovalQueue() {
 
   return (
     <Panel id="people-leave-requests" className="people-panel span-2 leave-approval-panel" title="휴가 요청" meta={`${approvals.length}건`}>
-      <div className="people-panel-kicker"><CalendarClock size={15} />내 결재 차례인 요청만 표시됩니다</div>
       {loading && <div className="live-data-state live-data-loading">승인 요청을 불러오는 중입니다</div>}
       {error && <div className="live-data-state live-data-error" role="alert">{error}</div>}
 

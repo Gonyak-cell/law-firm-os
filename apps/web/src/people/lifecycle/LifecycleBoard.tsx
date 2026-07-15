@@ -1,7 +1,7 @@
 /// <reference path="../../react-jsx.d.ts" />
 import React from "react";
 import { useEffect, useState } from "react";
-import { ClipboardCheck, Power, RefreshCw } from "lucide-react";
+import { ClipboardCheck, Power } from "lucide-react";
 import { DataTable, Panel } from "../../components/primitives.jsx";
 import { closeHrxOffboardingCase, fetchHrxLifecycleBoard, updateHrxOnboardingTask } from "../hrxApiClient.ts";
 
@@ -182,11 +182,7 @@ export function LifecycleBoard() {
   }
 
   return (
-    <Panel id="people-lifecycle" className="people-panel span-2" title="입퇴사 관리" meta="입사 준비 / 퇴사 정리">
-      <div className="people-panel-kicker">
-        <RefreshCw size={13} />
-        {actionStatus ?? "입퇴사 관리 업무를 확인합니다"}
-      </div>
+    <Panel id="people-lifecycle" className="people-panel span-2" title="입퇴사 관리" meta={actionStatus}>
       {body}
     </Panel>
   );

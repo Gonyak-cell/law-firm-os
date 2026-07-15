@@ -450,6 +450,65 @@ test("desktop runtime permits the explicit HRX leave mutations and signed step-u
   assert.deepEqual(blocked.map(({ http_status }) => http_status), [405, 405, 405, 405]);
 });
 
+test("desktop runtime permits only the explicit HRX payroll mutations", async () => {
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      calls.push({ url: url.toString(), init });
+      return jsonResponse(200, { outcome: "passed" });
+    }
+  });
+  const allowed = [
+    "/api/hrx/payroll",
+    "/api/hrx/payroll/preview",
+    "/api/hrx/payroll/approve",
+    "/api/hrx/payroll/export",
+    "/api/hrx/payroll/periods",
+    "/api/hrx/payroll/runs",
+    "/api/hrx/payroll/runs/run-001/snapshot",
+    "/api/hrx/payroll/runs/run-001/preview",
+    "/api/hrx/payroll/runs/run-001/approve",
+    "/api/hrx/payroll/runs/run-001/close",
+    "/api/hrx/payroll/runs/run-001/statements/generate",
+    "/api/hrx/payroll/runs/run-001/statements/deliver",
+    "/api/hrx/payroll/statements/statement-001/revoke",
+    "/api/hrx/payroll/runs/run-001/payments/prepare",
+    "/api/hrx/payroll/payment-batches/batch-001/approve",
+    "/api/hrx/payroll/payment-batches/batch-001/export",
+    "/api/hrx/payroll/payment-batches/batch-001/reconcile",
+    "/api/hrx/payroll/runs/run-001/filings",
+    "/api/hrx/payroll/filings/filing-001/validate",
+    "/api/hrx/payroll/filings/filing-001/submit",
+    "/api/hrx/payroll/filings/filing-001/correct",
+    "/api/hrx/payroll/runs/run-001/year-end/collect",
+    "/api/hrx/payroll/runs/run-001/year-end/calculate",
+    "/api/hrx/payroll/runs/run-001/year-end/review",
+    "/api/hrx/payroll/issues/issue-001/resolve"
+  ];
+  for (const path of allowed) {
+    const result = await client.api({
+      path,
+      method: "POST",
+      headers: { "x-lawos-hrx-step-up": "lawos_hrx_step_up_v1.signed" },
+      body: JSON.stringify({ fixture: true }),
+      sessionToken: "lawos_session_v1.secret"
+    });
+    assert.equal(result.http_status, 200, path);
+  }
+  const blocked = await Promise.all([
+    client.api({ path: "/api/hrx/payroll/runs/run-001/delete", method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" }),
+    client.api({ path: "/api/hrx/payroll/payment-batches/batch-001/cancel", method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" }),
+    client.api({ path: "/api/hrx/payroll/filings/filing-001/delete", method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" }),
+    client.api({ path: "/api/hrx/payroll/runs/run-001", method: "PATCH", body: "{}", sessionToken: "lawos_session_v1.secret" })
+  ]);
+
+  assert.equal(calls.length, allowed.length);
+  assert.equal(calls.every((call) => call.init.headers.authorization === "Bearer lawos_session_v1.secret"), true);
+  assert.equal(calls.every((call) => call.init.headers["x-lawos-hrx-step-up"] === "lawos_hrx_step_up_v1.signed"), true);
+  assert.deepEqual(blocked.map(({ http_status }) => http_status), [405, 405, 405, 405]);
+});
+
 test("runtime client permits only authenticated Matter profile and stakeholder writes", async () => {
   const calls = [];
   const client = createMatterVaultAwsRuntimeClient({

@@ -676,7 +676,7 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
   }
 
   return (
-    <Panel id="matter-vault" className="record-list-panel matter-runtime-panel" title="Matter Vault" meta="문서 연결">
+    <Panel id="matter-vault" className="record-list-panel matter-runtime-panel" title="Matter Vault">
       <div
         className="matter-vault-panel"
         data-mv-matter-vault-panel="true"

@@ -1,0 +1,449 @@
+{
+  "tuw": "FZ-003",
+  "verdict": "PASS",
+  "scanned_files": 209,
+  "secret_or_unapproved_pii_findings": 0,
+  "approved_match_count": 63,
+  "approved_matches": [
+    {
+      "path": "apps/api/src/hrx-runtime-context.js",
+      "line": 120,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "apps/api/src/hrx-runtime-context.js",
+      "line": 129,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "apps/api/src/hrx-runtime-context.js",
+      "line": 1398,
+      "rule": "email",
+      "domain": "example.com",
+      "classification": "synthetic"
+    },
+    {
+      "path": "apps/api/test/hrx-runtime-api.test.js",
+      "line": 149,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/api/test/hrx-runtime-api.test.js",
+      "line": 170,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "apps/api/test/hrx-runtime-api.test.js",
+      "line": 174,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "apps/api/test/hrx-runtime-api.test.js",
+      "line": 200,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/api/test/hrx-runtime-api.test.js",
+      "line": 225,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/api/test/hrx-runtime-api.test.js",
+      "line": 442,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "apps/api/test/hrx-runtime-api.test.js",
+      "line": 501,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "apps/api/test/hrx-runtime-api.test.js",
+      "line": 622,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "apps/api/test/hrx-runtime-api.test.js",
+      "line": 685,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "apps/api/test/hrx-runtime-api.test.js",
+      "line": 736,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "apps/api/test/hrx-runtime-api.test.js",
+      "line": 1102,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "apps/api/test/hrx/route-authz.test.js",
+      "line": 52,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/api/test/hrx/route-authz.test.js",
+      "line": 53,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/api/test/hrx/route-authz.test.js",
+      "line": 54,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/api/test/profile-api.test.js",
+      "line": 80,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/api/test/profile-api.test.js",
+      "line": 108,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/api/test/profile-api.test.js",
+      "line": 139,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 24,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 77,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 93,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 94,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 155,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 183,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 184,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 186,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 186,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 191,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 208,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 214,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 219,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 220,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 232,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 236,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 237,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 239,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 289,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/desktop/test/aws-runtime-client.test.mjs",
+      "line": 293,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/web/src/people/recruiting/RecruitingPipeline.tsx",
+      "line": 43,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "apps/web/test/home-dashboard-r1.test.mjs",
+      "line": 239,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/web/test/home-dashboard-r1.test.mjs",
+      "line": 240,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/web/test/home-dashboard-r1.test.mjs",
+      "line": 251,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/web/test/home-dashboard-r1.test.mjs",
+      "line": 254,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/web/test/home-dashboard-r1.test.mjs",
+      "line": 254,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/web/test/home-dashboard-r1.test.mjs",
+      "line": 257,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "apps/web/test/home-dashboard-r1.test.mjs",
+      "line": 263,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "docs/lazycodex/evidence/matter-desktop/artifacts/leave-management-package-qa.json",
+      "line": 48,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "docs/lazycodex/evidence/matter-desktop/artifacts/leave-management-package-qa.json",
+      "line": 59,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "packages/hrx/fixtures/leave-payroll-golden.synthetic.json",
+      "line": 10,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "packages/hrx/fixtures/leave-payroll-golden.synthetic.json",
+      "line": 22,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "packages/hrx/fixtures/leave-payroll-golden.synthetic.json",
+      "line": 34,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "packages/hrx/fixtures/leave-payroll-golden.synthetic.json",
+      "line": 46,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "packages/hrx/fixtures/leave-payroll-golden.synthetic.json",
+      "line": 58,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "packages/hrx/fixtures/leave-payroll-golden.synthetic.json",
+      "line": 70,
+      "rule": "email",
+      "domain": "example.test",
+      "classification": "synthetic"
+    },
+    {
+      "path": "packages/hrx/test/golden-fixture.test.js",
+      "line": 28,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "packages/hrx/test/payroll-payment-service.test.js",
+      "line": 39,
+      "rule": "literal-bank-account",
+      "classification": "synthetic-bank-test-fixture"
+    },
+    {
+      "path": "packages/hrx/test/payroll-payment-service.test.js",
+      "line": 40,
+      "rule": "literal-bank-account",
+      "classification": "synthetic-bank-test-fixture"
+    },
+    {
+      "path": "packages/hrx/test/payroll-payment-service.test.js",
+      "line": 86,
+      "rule": "literal-bank-account",
+      "classification": "synthetic-bank-test-fixture"
+    },
+    {
+      "path": "packages/hrx/test/payroll-repository.test.js",
+      "line": 179,
+      "rule": "email",
+      "domain": "example.com",
+      "classification": "synthetic"
+    },
+    {
+      "path": "workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md",
+      "line": 207,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    },
+    {
+      "path": "workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md",
+      "line": 394,
+      "rule": "email",
+      "domain": "amic.kr",
+      "classification": "user-approved-identity-contract"
+    }
+  ],
+  "binary_files": [],
+  "note": "Findings record path, rule, line, and domain only; matched values are never copied into evidence."
+}

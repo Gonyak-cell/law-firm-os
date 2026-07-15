@@ -1,7 +1,7 @@
 /// <reference path="../../react-jsx.d.ts" />
 import React from "react";
 import { useEffect, useState } from "react";
-import { Bot, ClipboardCheck, Send } from "lucide-react";
+import { ClipboardCheck, Send } from "lucide-react";
 import { DataTable, Panel } from "../../components/primitives.jsx";
 import { askHrxAiAssistant, fetchHrxAiReviews } from "../hrxApiClient.ts";
 
@@ -100,10 +100,6 @@ export function HRAIAssistant() {
 
   return (
     <Panel id="people-ai-assistant" className="people-panel span-2" title="인사 문의" meta="담당자 검토">
-      <div className="people-panel-kicker">
-        <Bot size={15} />
-        민감한 결정은 담당자 검토 후 처리합니다.
-      </div>
       <div className="approval-actions hrx-ai-actions">
         <button className="secondary-button" onClick={askAdvisory}>
           <Send size={14} />

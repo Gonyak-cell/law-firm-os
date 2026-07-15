@@ -35,6 +35,9 @@ function request(context, pathname, method = "GET", body = {}, requestContext = 
 
 test("LV-05 route policies bind read, export, snapshot, and termination to granular scopes", () => {
   const expectations = [
+    ["GET", "/api/hrx/leave/occurrences", "hrx.leave.self.read", "hrx.leave.occurrence.read"],
+    ["GET", "/api/hrx/leave/occurrences/projections", "hrx.leave.self.read", "hrx.leave.occurrence.project"],
+    ["GET", "/api/hrx/leave/occurrences/export", "hrx.leave.report.export", "hrx.leave.occurrence.export"],
     ["GET", "/api/hrx/leave/ledger", "hrx.leave.self.read", "hrx.leave.ledger.read"],
     ["GET", "/api/hrx/leave/ledger/validate", "hrx.leave.self.read", "hrx.leave.ledger.validate"],
     ["POST", "/api/hrx/leave/ledger/snapshots", "hrx.leave.report.export", "hrx.leave.report.snapshot"],
@@ -69,6 +72,47 @@ test("LV-05 API filters ledger rows before counts and exports the same totals wi
 
   const xlsx = request(context, "/api/hrx/leave/reports/export", "GET", {}, hrActor(), { format: "xlsx", employee_id: EMPLOYEE });
   assert.equal(Buffer.from(xlsx.body.export.content_base64, "base64").subarray(0, 2).toString("ascii"), "PK");
+});
+
+test("LV-OCC-001 and LV-OCC-002 APIs expose scoped occurrence rows and matching projections", () => {
+  const { context } = setup();
+  const occurrences = request(context, "/api/hrx/leave/occurrences", "GET", {}, staffActor(), { as_of: "2026-07-13" });
+  assert.equal(occurrences.status, 200, JSON.stringify(occurrences.body));
+  assert.equal(occurrences.body.occurrences.totals.row_count, 1);
+  assert.equal(occurrences.body.occurrences.totals.total_minutes, 480);
+  assert.equal(occurrences.body.occurrences.totals.remaining_minutes, 480);
+  assert.equal(JSON.stringify(occurrences.body).includes("private-proof"), false);
+
+  const projections = request(context, "/api/hrx/leave/occurrences/projections", "GET", {}, staffActor(), { as_of: "2026-07-13" });
+  assert.equal(projections.status, 200, JSON.stringify(projections.body));
+  assert.deepEqual(projections.body.projections.list.totals, projections.body.projections.totals);
+  assert.equal(projections.body.projections.source_version, occurrences.body.occurrences.source_version);
+  assert.equal(projections.body.projections.by_month[0].key, "2026-01");
+  assert.equal(projections.body.projections.by_type[0].label, "연차");
+});
+
+test("LV-OCC-008 API exports the filtered occurrence views and denies self-only access", () => {
+  const { context } = setup();
+  const filters = { as_of: "2026-07-13", employee_id: EMPLOYEE };
+  const queried = request(context, "/api/hrx/leave/occurrences", "GET", {}, hrActor(), filters);
+  const csv = request(context, "/api/hrx/leave/occurrences/export", "GET", {}, hrActor(), { ...filters, format: "csv", view: "list" });
+  assert.equal(csv.status, 200, JSON.stringify(csv.body));
+  assert.deepEqual(csv.body.export.totals, queried.body.occurrences.totals);
+  assert.equal(csv.body.export.source_version, queried.body.occurrences.source_version);
+  assert.equal(csv.body.export.row_count, queried.body.occurrences.totals.row_count);
+  const csvText = Buffer.from(csv.body.export.content_base64, "base64").toString("utf8");
+  assert.match(csvText, /연차/);
+  assert.doesNotMatch(csvText, /비공개 사유|private-proof|LeaveAccrualRun:LV05/);
+
+  const xlsx = request(context, "/api/hrx/leave/occurrences/export", "GET", {}, hrActor(), { ...filters, format: "xlsx", view: "month" });
+  assert.equal(xlsx.status, 200, JSON.stringify(xlsx.body));
+  assert.equal(Buffer.from(xlsx.body.export.content_base64, "base64").subarray(0, 2).toString("ascii"), "PK");
+  assert.deepEqual(xlsx.body.export.totals, queried.body.occurrences.totals);
+
+  const denied = request(context, "/api/hrx/leave/occurrences/export", "GET", {}, staffActor(), { ...filters, format: "csv" });
+  assert.equal(denied.status, 403);
+  assert.equal(denied.body.safe_error_code, "HRX_LEAVE_REPORT_EXPORT_SCOPE_DENIED");
+  assert.equal(denied.body.count_leak_prevented, true);
 });
 
 test("LV-05 termination API scopes candidates, rejects missing step-up, and leaves payroll outbox pending", () => {

@@ -23,7 +23,7 @@ export function ProfilesSurface({
   if (!activeMatter || !activeEvent || !Array.isArray(filteredMatters)) {
     return (
       <section className="surface stack">
-        <PageHeader title={labels.profileTitle} subtitle="Matter 또는 People 화면에서 관련 기록을 확인합니다." />
+        <PageHeader title={labels.profileTitle} />
         <Panel title="프로필 정보" meta="선택 전">
           <div className="live-data-state live-data-empty">
             <strong>선택된 프로필이 없습니다</strong>
@@ -38,7 +38,6 @@ export function ProfilesSurface({
     <section className="surface stack">
       <PageHeader
         title={labels.profileTitle}
-        subtitle="주요 정보, 활동 내역, Matter 연결 정보를 확인합니다."
         actions={
           <>
             <button className="secondary-button">
@@ -72,7 +71,7 @@ export function ProfilesSurface({
             ))}
           </div>
         </Panel>
-        <Panel className="event-stream-panel" title={labels.eventStream} meta="최근 활동">
+        <Panel className="event-stream-panel" title={labels.eventStream}>
           <div className="event-list">
             {filteredMatters.slice(0, 0).map((event, index) => (
               <button key={`${event.time}-${event.name}`} className={activeEventIndex === index ? "event-row active" : "event-row"} onClick={() => setActiveEventIndex(index)}>
@@ -84,7 +83,7 @@ export function ProfilesSurface({
             ))}
           </div>
         </Panel>
-        <Panel className="raw-panel" title={labels.rawEvent} meta="최근 활동">
+        <Panel className="raw-panel" title={labels.rawEvent}>
           <div className="property-grid">
             <Property label="시간" value={activeEvent.time} />
             <Property label="활동" value={activeEvent.name} />
@@ -168,7 +167,6 @@ function UserProfilesListLiveSurface({ labels, liveCtx }) {
     <section className="surface stack">
       <PageHeader
         title={labels.profileTitle}
-        subtitle="작업공간에서 확인 가능한 프로필 기록입니다."
         actions={
           <>
             <button className="secondary-button">
@@ -183,7 +181,7 @@ function UserProfilesListLiveSurface({ labels, liveCtx }) {
         }
       />
       <div className="profiles-list-layout">
-        <Panel className="span-2" title="프로필 목록" meta="작업공간">
+        <Panel className="span-2" title="프로필 목록">
           {body}
         </Panel>
       </div>

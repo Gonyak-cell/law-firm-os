@@ -42,7 +42,9 @@ test("LV-06 route policies bind every campaign and recipient command to promotio
     ["GET", "/api/hrx/leave/promotion-campaigns", "hrx.leave.promotion.read"],
     ["POST", "/api/hrx/leave/promotion-campaigns/preview", "hrx.leave.promotion.preview"],
     ["POST", "/api/hrx/leave/promotion-campaigns", "hrx.leave.promotion.manage"],
+    ["POST", "/api/hrx/leave/promotion-campaigns/campaign-1/issue-batch", "hrx.leave.promotion.manage"],
     ["POST", "/api/hrx/leave/promotion-recipients/recipient-1/evidence", "hrx.leave.promotion.manage"],
+    ["POST", "/api/hrx/leave/promotion-recipients/recipient-1/evidence/receipt-1/revoke", "hrx.leave.promotion.manage"],
   ]) {
     const policy = resolveHrxRoutePolicy({ method, pathname });
     assert.equal(policy?.required_scope, "hrx.leave.promotion.manage");
@@ -61,7 +63,16 @@ test("LV-06 API creates reproducible targets and separates first response from s
   assert.equal(created.status, 201, JSON.stringify(created.body));
   const [first, second] = created.body.campaign.recipients;
 
-  request(context, `/api/hrx/leave/promotion-recipients/${first.recipient_id}/first-notice`, "POST", { document_version: "notice-v1" });
+  const firstIssued = request(context, `/api/hrx/leave/promotion-recipients/${first.recipient_id}/first-notice`, "POST", { document_version: "notice-v1" });
+  assert.equal(firstIssued.status, 200, JSON.stringify(firstIssued.body));
+  assert.match(firstIssued.body.recipient.first_content_hash, /^[a-f0-9]{64}$/);
+  assert.equal(firstIssued.body.recipient.first_document_version, "notice-v1");
+  const firstReplayed = request(context, `/api/hrx/leave/promotion-recipients/${first.recipient_id}/first-notice`, "POST", { document_version: "notice-v1" });
+  assert.equal(firstReplayed.body.recipient.first_content_hash, firstIssued.body.recipient.first_content_hash);
+  assert.equal(firstReplayed.body.recipient.document_id, firstIssued.body.recipient.document_id);
+  const versionConflict = request(context, `/api/hrx/leave/promotion-recipients/${first.recipient_id}/first-notice`, "POST", { document_version: "notice-v2" });
+  assert.equal(versionConflict.status, 409);
+  assert.equal(versionConflict.body.safe_error_code, "HRX_LEAVE_PROMOTION_DOCUMENT_VERSION_CONFLICT");
   const firstDelivered = request(context, `/api/hrx/leave/promotion-recipients/${first.recipient_id}/evidence`, "POST", { stage: "first", event_type: "delivered", evidence_hash: "a".repeat(64), provider_receipt_ref: "receipt-api-1", occurred_at: "2026-07-05T01:00:00.000Z" });
   assert.equal(firstDelivered.body.recipient.state, "awaiting_employee_response");
   const responded = request(context, `/api/hrx/leave/promotion-recipients/${first.recipient_id}/response`, "POST", { selected_dates: ["2026-09-14"], responded_at: "2026-07-08T01:00:00.000Z" });
@@ -86,5 +97,41 @@ test("LV-06 API denies staff without leaking campaign or recipient counts", () =
   assert.equal(denied.status, 403);
   assert.equal(denied.body.count_leak_prevented, true);
   assert.equal("campaigns" in denied.body, false);
+  store.close();
+});
+
+test("LV-PROM-004 API batches notices, records provider receipts, and revokes dependent view evidence", async () => {
+  const { store, context } = setup();
+  const input = { policy_version_id: "promotion-policy-v1", entitlement_period_end: "2026-12-31", schedule_profile_id: "kr_lsa61_standard_v2025_10_23", idempotency_key: "promotion-api-batch" };
+  const created = request(context, "/api/hrx/leave/promotion-campaigns", "POST", input);
+  const campaign = created.body.campaign;
+  const recipientIds = campaign.recipients.map((recipient) => recipient.recipient_id);
+  const batch = request(context, `/api/hrx/leave/promotion-campaigns/${campaign.campaign_id}/issue-batch`, "POST", {
+    stage: "first",
+    document_version: "notice-v1",
+    recipient_ids: recipientIds,
+    idempotency_key: "promotion-api-batch-issue",
+  });
+  assert.equal(batch.status, 200, JSON.stringify(batch.body));
+  assert.equal(batch.body.batch.issued_count, 2);
+  const noticeEvents = store.query("select", { table: "hrx_leave_sync_outbox", where: { tenant_id: TENANT, event_type: "leave.promotion.first_notice_issued" } });
+  await context.leaveIntegrationService.process({ tenant_id: TENANT, actor_id: "integration-worker" }, { event_ids: noticeEvents.map((event) => event.outbox_event_id) });
+
+  const listed = request(context, "/api/hrx/leave/promotion-campaigns");
+  const deliveredRecipient = listed.body.campaigns[0].recipients[0];
+  assert.equal(deliveredRecipient.first_delivery_state, "delivered");
+  assert.equal(deliveredRecipient.evidence_receipts.length, 1);
+  const viewed = request(context, `/api/hrx/leave/promotion-recipients/${deliveredRecipient.recipient_id}/evidence`, "POST", {
+    stage: "first",
+    event_type: "viewed",
+    evidence_hash: "9".repeat(64),
+    idempotency_key: "promotion-api-viewed",
+  });
+  assert.equal(viewed.body.recipient.evidence_receipts.length, 2);
+  const deliveryReceipt = viewed.body.recipient.evidence_receipts.find((receipt) => receipt.event_type === "delivered");
+  const revoked = request(context, `/api/hrx/leave/promotion-recipients/${deliveredRecipient.recipient_id}/evidence/${deliveryReceipt.receipt_id}/revoke`, "POST", { reason_code: "PROVIDER_RETRACTED" });
+  assert.equal(revoked.status, 200, JSON.stringify(revoked.body));
+  assert.equal(revoked.body.recipient.first_delivery_state, "pending");
+  assert.equal(revoked.body.recipient.evidence_receipts.filter((receipt) => receipt.state === "revoked").length, 2);
   store.close();
 });

@@ -43,6 +43,11 @@ function externalSessionState(result, session) {
   return "blocked";
 }
 
+function hasBlockingLiveState(result) {
+  if (result === null) return true;
+  return result.kind === "error" || result.uiState === "denied" || result.uiState === "review_required" || result.outcome === "review_required";
+}
+
 export function PortalSurface({ labels, liveCtx = "allow", refreshSignal = 0 }) {
   const [inviteToken] = useState(() => portalQueryValue("portal_invite"));
   const [inviteNow] = useState(() => portalQueryValue("portal_invite_now") || undefined);
@@ -104,7 +109,10 @@ export function PortalSurface({ labels, liveCtx = "allow", refreshSignal = 0 }) 
   const dashboardItems = dashboard?.kind === "data" ? dashboard.items : [];
   const rfiItems = rfi?.kind === "data" ? rfi.items : [];
   const projectionItems = dataRoom?.kind === "data" ? dataRoom.items : [];
-  const blocking = inviteToken ? null : <LiveState result={dashboard ?? rfi ?? dataRoom} label="공유 포털" />;
+  const blockingResult = dashboard ?? rfi ?? dataRoom;
+  const blocking = !inviteToken && hasBlockingLiveState(blockingResult)
+    ? <LiveState result={blockingResult} label="공유 포털" />
+    : null;
   const externalState = externalSessionState(externalInviteResult, externalSession);
   const externalLinkDeniedExpired = externalLinkResult?.safeErrorCodes?.includes("PORTAL_SECURE_LINK_EXPIRED") === true;
   const externalLinkDeniedRevoked = externalLinkResult?.safeErrorCodes?.includes("PORTAL_SECURE_LINK_REVOKED") === true;
@@ -175,7 +183,7 @@ export function PortalSurface({ labels, liveCtx = "allow", refreshSignal = 0 }) 
               </div>
             )}
           </Panel>
-          <Panel title="요청 응답" meta="메타데이터 업로드">
+          <Panel title="요청 응답">
             <div className="matter-boundary-card" data-c13-rfi-response-panel="true">
               <FileText size={20} />
               <strong>{externalRfiState === "metadata-only" ? "응답 접수됨" : "응답 대기"}</strong>
@@ -201,38 +209,24 @@ export function PortalSurface({ labels, liveCtx = "allow", refreshSignal = 0 }) 
       )}
       {!inviteToken && (
       <div className="portal-runtime-grid">
-        <Panel className="span-2 portal-panel" title="공유 범위">
-          {blocking ?? (
-            <div className="portal-safe-strip">
-              <ShieldCheck size={15} />
-              <span>문서 본문과 민감 정보는 권한이 허용된 항목만 공유됩니다.</span>
-            </div>
-          )}
-        </Panel>
-        <Panel title="Client 화면" meta="공유 요약">
+        {blocking && <Panel className="span-2 portal-panel" title="공유 범위">{blocking}</Panel>}
+        <Panel title="Client 화면">
           <CompactTable
             columns={["공유 항목", "Client", "Matter", "요청"]}
             rows={dashboardItems.map((item, index) => [`공유 ${index + 1}`, "Client", item.matter_count ? "공유됨" : "확인 필요", item.open_rfi_count ? "요청 있음" : "요청 없음"])}
           />
         </Panel>
-        <Panel title="요청 목록" meta="의뢰인 요청">
+        <Panel title="요청 목록">
           <CompactTable
             columns={["요청", "Matter", "상태", "요청자"]}
             rows={rfiItems.map((item, index) => [`요청 ${index + 1}`, "Matter", requestStatusLabel(item.status), "의뢰인 담당자"])}
           />
         </Panel>
-        <Panel title="문서 공유함" meta="보호된 문서">
+        <Panel title="문서 공유함">
           <CompactTable
             columns={["공유 항목", "공유함", "상태", "본문"]}
             rows={projectionItems.map((item, index) => [`문서 ${index + 1}`, `공유함 ${index + 1}`, requestStatusLabel(item.status), item.document_bytes_included ? "공유" : "비공개"])}
           />
-        </Panel>
-        <Panel title="공유 링크" meta="담당자 확인">
-          <div className="matter-boundary-card">
-            <Share2 size={20} />
-            <strong>문서 본문은 기본적으로 비공개입니다</strong>
-            <span>담당자가 공유 범위를 확인한 뒤 링크를 발송합니다.</span>
-          </div>
         </Panel>
       </div>
       )}

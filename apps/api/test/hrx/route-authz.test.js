@@ -16,7 +16,7 @@ const ALLOW_HEADERS = Object.freeze({
   "x-lawos-tenant-id": "tenant-a",
   "x-lawos-actor-id": "hrx-authz-user",
   "x-lawos-actor-role": "people_ops",
-  "x-lawos-hrx-scopes": "hrx.employee.read,hrx.employee.write,hrx.document.read,hrx.document.write,hrx.compensation.read,hrx.attendance.read,hrx.attendance.write,hrx.overtime.read,hrx.overtime.write,hrx.risk.read,hrx.risk.write,hrx.leave.read,hrx.legal_people.read,hrx.payroll.preview,hrx.payroll.export",
+  "x-lawos-hrx-scopes": "hrx.employee.read,hrx.employee.write,hrx.document.read,hrx.document.write,hrx.compensation.read,hrx.attendance.read,hrx.attendance.write,hrx.overtime.read,hrx.overtime.write,hrx.risk.read,hrx.risk.write,hrx.leave.read,hrx.legal_people.read,hrx.payroll.preview,hrx.payroll.approve,hrx.payroll.export",
 });
 
 const PERMISSION_PRINCIPAL = Object.freeze({
@@ -103,8 +103,23 @@ test("HRX route policy map resolves implemented server routes and denies unknown
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/recruiting/offers/offer-001/stage" }).required_scope, "hrx.candidate.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/recruiting/applications/app-001/convert-to-employee" }).required_scope, "hrx.employee.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/preview" }).required_scope, "hrx.payroll.preview");
-  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/approve" }).required_scope, "hrx.payroll.export");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/approve" }).required_scope, "hrx.payroll.approve");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/export" }).required_scope, "hrx.payroll.export");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/periods" }).required_scope, "hrx.payroll.preview");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/runs/run-001" }).required_scope, "hrx.payroll.preview");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/periods" }).required_scope, "hrx.payroll.preview");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/runs" }).required_scope, "hrx.payroll.preview");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/runs/run-001/snapshot" }).required_scope, "hrx.payroll.preview");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/issues/issue-001/resolve" }).required_scope, "hrx.payroll.approve");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/runs/run-001/close" }).required_scope, "hrx.payroll.approve");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/statements/self" }).required_scope, "hrx.payroll.statement.self.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/statements/statement-001/download" }).required_scope, "hrx.payroll.statement.self.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/runs/run-001/statements/generate" }).required_scope, "hrx.payroll.statement.manage");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/runs/run-001/export" }).required_scope, "hrx.payroll.export");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/runs/run-001/payments/prepare" }).required_scope, "hrx.payroll.payment.prepare");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/payment-batches/batch-001/approve" }).required_scope, "hrx.payroll.payment.approve");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/runs/run-001/filings" }).required_scope, "hrx.payroll.filing.prepare");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/filings/filing-001/submit" }).required_scope, "hrx.payroll.filing.submit");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/not-mapped" }), null);
 });
 
@@ -386,4 +401,58 @@ test("HRX payroll export route requires payroll export scope before runtime", as
   assert.equal(status, 403);
   assert.equal(body.safe_error_code, "HRX_AUTHZ_DENIED");
   assert.equal(body.required_scope, "hrx.payroll.export");
+});
+
+test("HRX payroll runtime routes enforce preview and approval scopes before runtime", async () => {
+  const read = await json("/api/hrx/payroll/periods?limit=5", {
+    headers: staffHeaders,
+  });
+  assert.equal(read.status, 403);
+  assert.equal(read.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(read.body.required_scope, "hrx.payroll.preview");
+
+  const snapshot = await json("/api/hrx/payroll/runs/payroll-authz-denied/snapshot", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({ expected_state_version: 1 }),
+  });
+  assert.equal(snapshot.status, 403);
+  assert.equal(snapshot.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(snapshot.body.required_scope, "hrx.payroll.preview");
+
+  const resolve = await json("/api/hrx/payroll/issues/payroll-issue-authz-denied/resolve", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({ expected_state_version: 1, resolution_code: "reviewed" }),
+  });
+  assert.equal(resolve.status, 403);
+  assert.equal(resolve.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(resolve.body.required_scope, "hrx.payroll.approve");
+
+  const close = await json("/api/hrx/payroll/runs/payroll-authz-denied/close", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({ expected_state_version: 1 }),
+  });
+  assert.equal(close.status, 403);
+  assert.equal(close.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(close.body.required_scope, "hrx.payroll.approve");
+});
+
+test("HRX payroll statement, payment, and filing routes enforce separated scopes", async () => {
+  const cases = [
+    ["GET", "/api/hrx/payroll/runs/run-authz-denied/statements", "hrx.payroll.statement.manage"],
+    ["POST", "/api/hrx/payroll/runs/run-authz-denied/statements/generate", "hrx.payroll.statement.manage"],
+    ["GET", "/api/hrx/payroll/runs/run-authz-denied/export?format=csv", "hrx.payroll.export"],
+    ["POST", "/api/hrx/payroll/runs/run-authz-denied/payments/prepare", "hrx.payroll.payment.prepare"],
+    ["POST", "/api/hrx/payroll/payment-batches/batch-authz-denied/approve", "hrx.payroll.payment.approve"],
+    ["GET", "/api/hrx/payroll/runs/run-authz-denied/filings", "hrx.payroll.filing.prepare"],
+    ["POST", "/api/hrx/payroll/filings/filing-authz-denied/submit", "hrx.payroll.filing.submit"],
+  ];
+  for (const [method, path, scope] of cases) {
+    const result = await json(path, { method, headers: staffHeaders, body: method === "POST" ? "{}" : undefined });
+    assert.equal(result.status, 403, `${method} ${path}`);
+    assert.equal(result.body.safe_error_code, "HRX_AUTHZ_DENIED", `${method} ${path}`);
+    assert.equal(result.body.required_scope, scope, `${method} ${path}`);
+  }
 });

@@ -90,7 +90,7 @@ function AnalyticsRuntimePanel({ liveCtx = "allow" }) {
   }
 
   return (
-    <Panel title="보고서 검토" meta="업무 보드" className="analytics-runtime-panel" data-cmp-g8-analytics-runtime="true">
+    <Panel title="보고서 검토" className="analytics-runtime-panel" data-cmp-g8-analytics-runtime="true">
       <div className="analytics-runtime-actions">
         <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
           <RefreshCw size={15} />

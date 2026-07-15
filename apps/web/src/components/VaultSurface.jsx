@@ -120,7 +120,7 @@ function SearchCard({ title, section, count, labels, className = "", children })
 function matchLabel(fields = [], localizedLabels) {
   const matches = fields.flatMap((field) => {
     if (field === "body_text") return [searchLabel(localizedLabels, "searchMatchBody", "본문")];
-    if (field === "ocr_text") return ["OCR"];
+    if (field === "ocr_text") return ["본문"];
     if (field === "title") return [searchLabel(localizedLabels, "searchMatchTitle", "제목")];
     if (field === "matter_id") return ["Matter"];
     if (field === "version_id") return [searchLabel(localizedLabels, "searchMatchVersion", "버전")];
@@ -178,17 +178,17 @@ function SearchPreferenceState({ state, labels, children }) {
   return <div className="amic-search-empty">{searchLabel(labels, "searchHistoryPreferenceError", "검색 기록을 불러오지 못했습니다")}</div>;
 }
 
-function SearchHistoryRows({ items, emptyText, labels, onRun, onDelete, deleteDisabled = false }) {
-  if (items.length === 0) return <div className="amic-search-empty">{emptyText}</div>;
+function SearchHistoryRows({ items, labels, onRun, onDelete, deleteDisabled = false }) {
+  if (items.length === 0) return null;
   return (
     <div className="search-query-list">
       {items.map((item) => (
         <div className="search-query-row" key={item.id}>
-          <button type="button" className="search-query-open" onClick={() => onRun(item)}>
+          <button type="button" className="search-query-open" data-compact-record="true" onClick={() => onRun(item)}>
             <Search size={16} aria-hidden="true" />
             <span>
               <strong>{item.query}</strong>
-              <small>{searchLabel(labels, "searchDocumentsLabel", "문서/OCR")} / {new Date(item.searched_at).toLocaleDateString(labels?.language === "English" ? "en-US" : "ko-KR")}</small>
+              <time dateTime={item.searched_at}>{new Date(item.searched_at).toLocaleDateString(labels?.language === "English" ? "en-US" : "ko-KR")}</time>
             </span>
           </button>
           {onDelete && (
@@ -428,7 +428,7 @@ export function VaultSurface({ labels = {}, liveCtx = "allow", activeSection = "
       <ForestHero title="Search" image={heroVaultArchitecture} imageOpacity={0.24} />
 
       <div className="amic-search-grid">
-        <SearchCard title={searchLabel(labels, "searchFormTitle", "문서/OCR 검색")} section="search" labels={labels} className="amic-search-query-card">
+        <SearchCard title={searchLabel(labels, "searchFormTitle", "전체 검색")} section="search" labels={labels} className="amic-search-query-card">
           <form
             className="amic-search-form"
             onSubmit={(event) => {
@@ -445,7 +445,7 @@ export function VaultSurface({ labels = {}, liveCtx = "allow", activeSection = "
             />
             <button type="submit" disabled={!query.trim() || searchPending || invalidDateRange}>{searchLabel(labels, "searchSubmit", "검색")}</button>
           </form>
-          <div className="amic-search-filters" aria-label={searchLabel(labels, "searchDocumentsLabel", "문서/OCR")}>
+          <div className="amic-search-filters" aria-label={searchLabel(labels, "searchDocumentsLabel", "문서")}>
             <span className="amic-search-version-filter">{searchLabel(labels, "searchCurrentVersionOnly", "현재 버전만")}</span>
             <label>
               <span>{searchLabel(labels, "searchDateFrom", "시작일")}</span>
@@ -463,17 +463,17 @@ export function VaultSurface({ labels = {}, liveCtx = "allow", activeSection = "
         {showDashboard && (
           <>
             <SearchCard title={searchLabel(labels, "searchRecentLabel", "최근 검색")} section="vault-search-recent" count={preferenceAccess === "ready" ? preferences.recent.length : null} labels={labels}>
-              <SearchPreferenceState state={preferenceAccess} labels={labels}><SearchHistoryRows items={preferences.recent.slice(0, 5)} emptyText={searchLabel(labels, "searchRecentEmpty", "최근 검색이 없습니다")} labels={labels} onRun={runSearch} /></SearchPreferenceState>
+              <SearchPreferenceState state={preferenceAccess} labels={labels}><SearchHistoryRows items={preferences.recent.slice(0, 5)} labels={labels} onRun={runSearch} /></SearchPreferenceState>
             </SearchCard>
             <SearchCard title={searchLabel(labels, "searchSavedLabel", "저장한 검색")} section="vault-search-saved" count={preferenceAccess === "ready" ? preferences.saved.length : null} labels={labels}>
-              <SearchPreferenceState state={preferenceAccess} labels={labels}><SearchHistoryRows items={preferences.saved.slice(0, 5)} emptyText={searchLabel(labels, "searchSavedEmpty", "저장한 검색이 없습니다")} labels={labels} onRun={runSearch} /></SearchPreferenceState>
+              <SearchPreferenceState state={preferenceAccess} labels={labels}><SearchHistoryRows items={preferences.saved.slice(0, 5)} labels={labels} onRun={runSearch} /></SearchPreferenceState>
             </SearchCard>
           </>
         )}
 
         {showRecent && (
           <SearchCard title={searchLabel(labels, "searchRecentLabel", "최근 검색")} section="vault-search-recent" count={preferenceAccess === "ready" ? preferences.recent.length : null} labels={labels} className="amic-search-results-card">
-            <SearchPreferenceState state={preferenceAccess} labels={labels}><SearchHistoryRows items={preferences.recent} emptyText={searchLabel(labels, "searchRecentEmpty", "최근 검색이 없습니다")} labels={labels} onRun={runSearch} /></SearchPreferenceState>
+            <SearchPreferenceState state={preferenceAccess} labels={labels}><SearchHistoryRows items={preferences.recent} labels={labels} onRun={runSearch} /></SearchPreferenceState>
             {preferences.recent.length > 0 && (
               <button type="button" className="text-button search-list-action" disabled={preferenceWriteCount > 0} onClick={() => {
                 if (window.confirm(searchLabel(labels, "searchClearConfirm", "최근 검색 기록을 모두 비울까요?"))) {
@@ -486,14 +486,14 @@ export function VaultSurface({ labels = {}, liveCtx = "allow", activeSection = "
 
         {showSaved && (
           <SearchCard title={searchLabel(labels, "searchSavedLabel", "저장한 검색")} section="vault-search-saved" count={preferenceAccess === "ready" ? preferences.saved.length : null} labels={labels} className="amic-search-results-card">
-            <SearchPreferenceState state={preferenceAccess} labels={labels}><SearchHistoryRows items={preferences.saved} emptyText={searchLabel(labels, "searchSavedEmpty", "저장한 검색이 없습니다")} labels={labels} onRun={runSearch} onDelete={(id) => commitSearchPreferences(removeSavedSearch(preferences, id), "delete_saved", { id })} deleteDisabled={preferenceWriteCount > 0} /></SearchPreferenceState>
+            <SearchPreferenceState state={preferenceAccess} labels={labels}><SearchHistoryRows items={preferences.saved} labels={labels} onRun={runSearch} onDelete={(id) => commitSearchPreferences(removeSavedSearch(preferences, id), "delete_saved", { id })} deleteDisabled={preferenceWriteCount > 0} /></SearchPreferenceState>
           </SearchCard>
         )}
 
         {!showDashboard && !showRecent && !showSaved && (
           <SearchCard title={searchLabel(labels, "searchResultsTitle", "검색 결과")} section="results" count={submittedQuery && searchReadable ? searchItems.length : null} labels={labels} className="amic-search-results-card">
             <div className="search-results-toolbar">
-              <span>{searchLabel(labels, "searchDocumentsLabel", "문서/OCR")}</span>
+              <span>{searchLabel(labels, "searchDocumentsLabel", "문서")}</span>
               <button type="button" className="text-button" disabled={!submittedQuery || searchStateDirty || preferenceWriteCount > 0} onClick={copySearchLink}>
                 <Share2 size={15} />
                 {linkCopyState === "copied" ? searchLabel(labels, "searchCopySuccess", "링크 복사됨") : linkCopyState === "failed" ? searchLabel(labels, "searchCopyFailed", "복사 실패") : searchLabel(labels, "searchCopyLink", "검색 링크 복사")}
@@ -508,7 +508,6 @@ export function VaultSurface({ labels = {}, liveCtx = "allow", activeSection = "
                 {isSaved ? searchLabel(labels, "searchSavedState", "저장됨") : searchLabel(labels, "searchSave", "검색 저장")}
               </button>
             </div>
-            <p className="amic-search-ocr-notice">{searchLabel(labels, "searchOcrSidecarNotice", "OCR은 업로드 시 제공된 사이드카 텍스트를 검색하며, 이 화면에서 OCR을 실행하지 않습니다.")}</p>
             <SearchResults result={searchResult} pending={searchPending} submittedQuery={submittedQuery} labels={labels} onOpen={openDocument} />
           </SearchCard>
         )}

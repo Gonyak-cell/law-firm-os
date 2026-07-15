@@ -593,7 +593,7 @@ export function App() {
             )}
             {view === "clients" && <ClientsSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} refreshSignal={globalRefreshSignal} onNavigate={navigateToView} />}
             {view === "matters" && <MattersSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} requestedMatterId={requestedMatterId} requestedMatterRevision={routeRevision} refreshSignal={globalRefreshSignal} onNavigateSection={(section) => navigateToView("matters", section)} />}
-            {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} liveCtx={liveCtx} canManageLeavePolicy={leavePolicyAccess} canApproveLeave={leaveApprovalAccess} canExecuteLeaveAccrual={leaveAccrualAccess} canAdjustLeaveLedger={leaveLedgerAccess} canExportLeaveReport={leaveReportExportAccess} canSettleLeaveTermination={leaveTerminationAccess} canManageLeavePromotion={leavePromotionAccess} />}
+            {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} liveCtx={liveCtx} refreshSignal={globalRefreshSignal} canManageLeavePolicy={leavePolicyAccess} canApproveLeave={leaveApprovalAccess} canExecuteLeaveAccrual={leaveAccrualAccess} canAdjustLeaveLedger={leaveLedgerAccess} canExportLeaveReport={leaveReportExportAccess} canSettleLeaveTermination={leaveTerminationAccess} canManageLeavePromotion={leavePromotionAccess} />}
             {view === "vault" && (
               <VaultSurface
                 labels={labels}

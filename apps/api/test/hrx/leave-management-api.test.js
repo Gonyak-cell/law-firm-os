@@ -77,8 +77,8 @@ function actor(actorId, scopes) {
   return { tenant_id: TENANT, actor_id: actorId, actor_role: "synthetic_test", hrx_scopes: scopes, session_bound: true };
 }
 
-async function request(context, pathname, method, body, requestContext) {
-  return handleHrxApiRequest({ pathname, method, body: body ?? {}, query: {}, context, requestContext });
+async function request(context, pathname, method, body, requestContext, query = {}) {
+  return handleHrxApiRequest({ pathname, method, body: body ?? {}, query, context, requestContext });
 }
 
 test("signed /me workflow ignores forged employee ids, reserves balance, and exposes only assigned manager approval", async () => {
@@ -110,6 +110,15 @@ test("signed /me workflow ignores forged employee ids, reserves balance, and exp
   assert.equal(preview.status, 200);
   assert.equal(preview.body.preview.employee_id, EMPLOYEE_ID);
   assert.equal(preview.body.preview.schedule.requested_minutes, 480);
+  assert.deepEqual(preview.body.preview.economics, {
+    requested_minutes: 480,
+    rounded_requested_minutes: 480,
+    paid_minutes: 480,
+    unpaid_minutes: 0,
+    deduction_minutes: 480,
+    standard_day_minutes: 480,
+    duration_mode: "full_day",
+  });
   assert.equal(preview.body.preview.approval_plan.approver.display_name, "윤태리");
   const evidenceDocuments = await request(context, "/api/hrx/leave/me/evidence-documents", "GET", {}, staff);
   assert.equal(evidenceDocuments.status, 200);
@@ -126,6 +135,7 @@ test("signed /me workflow ignores forged employee ids, reserves balance, and exp
     duration_mode: "full_day",
     start_date: "2026-07-14",
     end_date: "2026-07-14",
+    document_ids: ["doc-yjlee-leave-evidence"],
   }, staff);
   assert.equal(submitted.status, 201);
   assert.equal(submitted.body.leave_request.employee_id, EMPLOYEE_ID);
@@ -138,6 +148,30 @@ test("signed /me workflow ignores forged employee ids, reserves balance, and exp
   assert.equal(queue.body.approvals[0].assignment.approver_actor_id, MANAGER_ACTOR);
   const unrelated = await request(context, "/api/hrx/leave/requests", "GET", {}, actor("user_amic_jwsuh", ["hrx.leave.team.read", "hrx.leave.approve"]));
   assert.deepEqual(unrelated.body.approvals, []);
+  const attachmentId = queue.body.approvals[0].leave_request.attachments[0].attachment_id;
+  const selfDownload = await request(context, `/api/hrx/leave/requests/leave-api-001/attachments/${attachmentId}/download`, "GET", {}, staff);
+  assert.equal(selfDownload.status, 200);
+  assert.equal(selfDownload.body.authorization.access_level, "self");
+  assert.equal(selfDownload.body.authorization.download_authorized, true);
+  assert.equal(selfDownload.body.authorization.document_body_included, false);
+  assert.equal(selfDownload.body.authorization.source_reference_included, false);
+  assert.doesNotMatch(JSON.stringify(selfDownload.body), /synthetic-yjlee|"source_ref"|"source_metadata"/);
+  const managerDownload = await request(context, `/api/hrx/leave/requests/leave-api-001/attachments/${attachmentId}/download`, "GET", {}, manager);
+  assert.equal(managerDownload.status, 200);
+  assert.equal(managerDownload.body.authorization.access_level, "assigned_approver");
+  const hrDownload = await request(context, `/api/hrx/leave/requests/leave-api-001/attachments/${attachmentId}/download`, "GET", {}, actor("user_amic_jwsuh", ["hrx.leave.policy.read"]));
+  assert.equal(hrDownload.status, 200);
+  assert.equal(hrDownload.body.authorization.access_level, "hr");
+  const teamOnly = actor("user_amic_jwsuh", ["hrx.leave.team.read", "hrx.leave.approve"]);
+  const hiddenExisting = await request(context, `/api/hrx/leave/requests/leave-api-001/attachments/${attachmentId}/download`, "GET", {}, teamOnly);
+  const hiddenMissing = await request(context, "/api/hrx/leave/requests/missing/attachments/missing/download", "GET", {}, teamOnly);
+  assert.equal(hiddenExisting.status, 404);
+  assert.deepEqual(hiddenExisting.body, hiddenMissing.body);
+  assert.equal(hiddenExisting.body.count_leak_prevented, true);
+  const hiddenCommand = await request(context, "/api/hrx/leave/requests/leave-api-001/approve", "POST", { idempotency_key: "hidden-existing" }, teamOnly);
+  const missingCommand = await request(context, "/api/hrx/leave/requests/missing/approve", "POST", { idempotency_key: "hidden-missing" }, teamOnly);
+  assert.equal(hiddenCommand.status, 404);
+  assert.deepEqual(hiddenCommand.body, missingCommand.body);
 
   const escalated = await request(context, "/api/hrx/leave/requests/leave-api-001/escalate", "POST", {
     idempotency_key: "escalate-api-001",
@@ -157,18 +191,24 @@ test("signed /me workflow ignores forged employee ids, reserves balance, and exp
   const approvedSnapshot = await request(context, "/api/hrx/leave/me", "GET", {}, staff);
   assert.equal(approvedSnapshot.body.balances[0].balance.used_minutes, 480);
   assert.equal(approvedSnapshot.body.balances[0].balance.reserved_minutes, 0);
-  const team = await request(context, "/api/hrx/leave/team", "GET", {}, manager);
+  const team = await request(context, "/api/hrx/leave/team", "GET", {}, manager, { from: "2026-07-14", to: "2026-07-14" });
   assert.equal(team.status, 200);
   assert.deepEqual(team.body.absences[0], {
     employee_id: EMPLOYEE_ID,
     employee_display_name: "이예진",
     start_date: "2026-07-14",
     end_date: "2026-07-14",
-    absence_label: "휴가",
   });
+  for (const privateField of ["leave_type_id", "leave_type", "reason_text", "document_ids", "handover_note", "absence_label"]) {
+    assert.equal(Object.hasOwn(team.body.absences[0], privateField), false, `${privateField} must not cross the team calendar boundary`);
+  }
   assert.equal(team.body.privacy_boundary, "team_calendar_excludes_leave_type_reason_and_attachments");
   const deniedTeam = await request(context, "/api/hrx/leave/team", "GET", {}, staff);
   assert.equal(deniedTeam.status, 403);
+  assert.equal(deniedTeam.body.count_leak_prevented, true);
+  assert.equal(Object.hasOwn(deniedTeam.body, "employees"), false);
+  assert.equal(Object.hasOwn(deniedTeam.body, "absences"), false);
+  assert.equal(Object.hasOwn(deniedTeam.body, "pending_approval_count"), false);
   store.close();
 });
 
@@ -180,6 +220,7 @@ test("granular leave routes bind self, team approval, and delegation scopes", ()
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/leave/requests/leave-1/approve" }).required_scope, "hrx.leave.approve");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/leave/requests/leave-1/request-info" }).required_scope, "hrx.leave.approve");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/leave/team" }).required_scope, "hrx.leave.team.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/leave/requests/leave-1/attachments/attachment-1/download" }).required_scope, "hrx.leave.self.read");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/leave/requests/leave-1/escalate" }).required_scope, "hrx.leave.policy.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/leave/delegations" }).required_scope, "hrx.leave.approve");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/leave/delegations/candidates" }).required_scope, "hrx.leave.approve");

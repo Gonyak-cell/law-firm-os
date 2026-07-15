@@ -184,7 +184,7 @@ export function ReportBuilderPanel({ ctx = "allow", selectedClient }) {
 
   return (
     <div className="clients-live-stack span-2" data-report-builder="route-backed">
-      <Panel id="client-report-builder" className="record-list-panel span-2" title="보고서" meta="Client">
+      <Panel id="client-report-builder" className="record-list-panel span-2" title="보고서">
         <div className="record-action-grid">
           <div className="record-action-strip" data-sf-b-w08-report-list="true">
             <div>
@@ -231,7 +231,7 @@ export function ReportBuilderPanel({ ctx = "allow", selectedClient }) {
         )}
       </Panel>
 
-      <Panel id="client-profitability" className="record-list-panel" title="Client 손익" meta="집계">
+      <Panel id="client-profitability" className="record-list-panel" title="Client 손익">
         <div className="record-action-strip" data-client-profitability="route-backed">
           <div>
             <strong>수익성 새로고침</strong>

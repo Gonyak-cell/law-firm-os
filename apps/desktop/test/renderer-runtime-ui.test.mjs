@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { resolveLawosUserRoleAssignment } from "../../api/src/lawos-role-registry.js";
 
 test("packaged renderer presents user-facing connection login and feature checks", async () => {
   const source = await readFile(new URL("../src/renderer/offline.html", import.meta.url), "utf8");
@@ -71,10 +72,14 @@ test("packaged renderer presents user-facing connection login and feature checks
   assert.match(source, /17% \{[\s\S]*clip-path: inset\(0 0 0 0\)/);
   assert.match(source, /amicLawMicIntro/);
   assert.doesNotMatch(source, /amicLawWordmarkIntro/);
-  assert.match(source, /amicLawIntroLayer 3200ms linear/);
-  assert.match(source, /forestPhotoIn 520ms var\(--ease-brand-dock\) 2780ms/);
-  assert.match(source, /forestLoginItemIn 360ms var\(--ease-brand-dock\)/);
-  assert.match(source, /body\[data-login-skin="forest"\]\[data-logo-intro="play"\] \.matter-login-form-column \.matter-logo \{[\s\S]*opacity: 1;[\s\S]*transform: none;[\s\S]*animation: none;/);
+  assert.match(source, /--motion-brand-intro:\s*3200ms/);
+  assert.match(source, /\.brand-intro \{[\s\S]*background: transparent;/);
+  assert.match(source, /amicLawIntroLayer var\(--motion-brand-intro\) linear/);
+  assert.match(source, /body\[data-login-skin="forest"\]\[data-logo-intro="play"\] \.auth-stage \{[\s\S]*opacity: 0;[\s\S]*animation: forestLoginPageIn var\(--motion-brand-intro\) linear both;/);
+  assert.match(source, /@keyframes forestLoginPageIn \{[\s\S]*0%,[\s\S]*82% \{[\s\S]*opacity: 0;[\s\S]*animation-timing-function: var\(--ease-brand-dock\);[\s\S]*87%,[\s\S]*100% \{[\s\S]*opacity: 1;/);
+  assert.doesNotMatch(source, /forestPhotoIn|forestLoginItemIn|animation-delay: 2780ms/);
+  assert.match(source, /body\[data-login-skin="forest"\]\[data-logo-intro="play"\] \.matter-login-form-column \.matter-logo \{[\s\S]*opacity: 0;[\s\S]*transform: none;[\s\S]*animation: forestLoginLogoTargetIn var\(--motion-brand-intro\) linear both;/);
+  assert.match(source, /@keyframes forestLoginLogoTargetIn \{[\s\S]*0%,[\s\S]*86\.99% \{[\s\S]*opacity: 0;[\s\S]*87%,[\s\S]*100% \{[\s\S]*opacity: 1;/);
   assert.doesNotMatch(source, /body\[data-login-skin="forest"\]\[data-logo-intro="play"\] \.matter-login-form-column \.matter-logo,\n\s*body\[data-login-skin="forest"\]\[data-logo-intro="play"\] \.matter-login-heading/);
   assert.match(source, /0%,\n\s*42% \{[\s\S]*translateX\(var\(--intro-a-origin-shift\)\)[\s\S]*animation-timing-function: var\(--ease-brand-shift\)/);
   assert.match(source, /47% \{[\s\S]*translate\(-50%, -50%\) translateX\(-3px\)/);
@@ -82,11 +87,6 @@ test("packaged renderer presents user-facing connection login and feature checks
   assert.match(source, /87%,\n\s*100% \{[\s\S]*--intro-logo-dx/);
   assert.match(source, /42% \{[\s\S]*clip-path: inset\(0 100% 0 0\)[\s\S]*animation-timing-function: var\(--ease-brand-reveal\)/);
   assert.match(source, /46% \{[\s\S]*opacity: 0\.86;[\s\S]*clip-path: inset\(0 24% 0 0\)/);
-  assert.match(source, /body\[data-login-skin="forest"\]\[data-logo-intro="play"\] \.matter-login-heading \{[\s\S]*animation-delay: 2780ms/);
-  assert.match(source, /body\[data-login-skin="forest"\]\[data-logo-intro="play"\] \.matter-login-field:nth-of-type\(1\) \{[\s\S]*animation-delay: 2780ms/);
-  assert.match(source, /body\[data-login-skin="forest"\]\[data-logo-intro="play"\] \.matter-login-field:nth-of-type\(2\) \{[\s\S]*animation-delay: 2780ms/);
-  assert.match(source, /body\[data-login-skin="forest"\]\[data-logo-intro="play"\] \.matter-login-options \{[\s\S]*animation-delay: 2780ms/);
-  assert.match(source, /body\[data-login-skin="forest"\]\[data-logo-intro="play"\] \.login-actions \{[\s\S]*animation-delay: 2780ms/);
   assert.doesNotMatch(source, /translate\(30vw, -36\.5vh\)/);
   assert.match(source, /document\.body\.dataset\.logoIntro = "complete"/);
   assert.match(source, /--motion-press:\s*70ms/);
@@ -99,6 +99,7 @@ test("packaged renderer presents user-facing connection login and feature checks
   assert.match(source, /button:focus-visible/);
   assert.match(source, /authPanelIn var\(--motion-content\) var\(--ease-out\) both/);
   assert.match(source, /prefers-reduced-motion: reduce/);
+  assert.match(source, /\.brand-lockup,[\s\S]*animation: none !important;[\s\S]*opacity: 1 !important;[\s\S]*transform: none !important;/);
   assert.match(source, /transform: none !important/);
   assert.match(source, /logoIntroMotionQuery\?\.matches/);
   assert.doesNotMatch(source, /body:not\(\[data-login-skin="forest"\]\)/);
@@ -163,7 +164,16 @@ test("packaged renderer presents user-facing connection login and feature checks
   assert.doesNotMatch(source, /placeholder="jdoe@matter\.local"/);
   assert.doesNotMatch(source, /placeholder="••••••••••••"/);
   assert.match(source, /data-login-remember/);
+  assert.match(source, /class="matter-login-checkmark"/);
+  assert.match(source, /<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4 10-10"><\/path><\/svg>/);
+  assert.match(source, /input:checked \+ \.matter-login-checkmark/);
+  assert.doesNotMatch(source, /linear-gradient\(135deg, transparent 52%/);
   assert.match(source, /Remember me/);
+  assert.match(source, /<svg class="field-icon mail-icon" viewBox="0 0 24 24"/);
+  assert.match(source, /<svg class="eye-icon" viewBox="0 0 24 24"/);
+  assert.match(source, /class="eye-off"/);
+  assert.doesNotMatch(source, /<span class="eye-icon"/);
+  assert.doesNotMatch(source, /\.field-icon::before|\.eye-icon::after/);
   assert.match(source, /matter-login-forgot/);
   assert.match(source, /Forgot<br \/>password\?/);
   assert.match(source, /matter-login-submit/);
@@ -178,6 +188,19 @@ test("packaged renderer presents user-facing connection login and feature checks
   assert.doesNotMatch(source, /latestResetEmail/);
   assert.doesNotMatch(source, /reset_url|email_message|reset_token\s*[:=]/);
   assert.doesNotMatch(source, /localStorage|sessionStorage|indexedDB/);
+});
+
+test("desktop handoff keeps privileged leave scopes beyond the former 24-item cutoff", async () => {
+  const source = await readFile(new URL("../src/renderer/offline.html", import.meta.url), "utf8");
+  const admin = resolveLawosUserRoleAssignment(
+    { user_id: "user_amic_jwsuh" },
+    { tenantId: "tenant_amic_matter_vault" }
+  );
+
+  assert.ok(admin.scopes.length > 24);
+  assert.ok(admin.scopes.indexOf("hrx.leave.accrual.execute") >= 24);
+  assert.match(source, /function safeHandoffRefList\(values\)[\s\S]*slice\(0, 96\)/);
+  assert.doesNotMatch(source, /safeHandoffRefList\(values\)[\s\S]{0,180}slice\(0, 24\)/);
 });
 
 test("desktop web renderer uses restrained SaaS motion tokens", async () => {

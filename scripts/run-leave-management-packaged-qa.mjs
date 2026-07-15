@@ -35,6 +35,10 @@ const APP_BUNDLE = path.join(ROOT, "apps/desktop/dist/mac/matter.app");
 const EXECUTABLE = path.join(APP_BUNDLE, "Contents/MacOS/matter");
 const PACKAGED_APP_ROOT = path.join(APP_BUNDLE, "Contents/Resources/app");
 const RENDERER_INDEX = path.join(PACKAGED_APP_ROOT, "src/renderer/web/index.html");
+const desktopPackage = JSON.parse(readFileSync(path.join(ROOT, "apps/desktop/package.json"), "utf8"));
+const WINDOWS_PACKAGE_ROOT = path.join(ROOT, `apps/desktop/dist/win/matter-internal-${desktopPackage.version}-win32-x64`);
+const WINDOWS_EXECUTABLE = path.join(WINDOWS_PACKAGE_ROOT, "matter.exe");
+const WINDOWS_ZIP = path.join(ROOT, `apps/desktop/dist/win/matter-internal-${desktopPackage.version}-win32-x64-unsigned.zip`);
 const PRIVATE_ROSTER_SOURCE = path.join(ROOT, "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json");
 const ARTIFACT_DIR = path.resolve(process.env.MATTER_LEAVE_PACKAGE_QA_ARTIFACT_DIR || path.join(ROOT, "output/playwright/leave-management-package"));
 const DOC_RECEIPT = path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/leave-management-package-qa.json");
@@ -239,6 +243,8 @@ function seedPackagedLeaveStore() {
     source_version: "pkg-overdue-source-v1",
     calculation_snapshot_hash: "pkg-overdue-snapshot-v1",
     target_count: 1,
+    excluded_count: 0,
+    exclusions_json: "[]",
     idempotency_key: "pkg-overdue-campaign",
     created_at: "2026-06-01T00:00:00.000Z",
     updated_at: "2026-06-01T00:00:00.000Z",
@@ -683,6 +689,7 @@ try {
     });
     throw new Error(`HR accrual page did not become ready: ${JSON.stringify(diagnostics)}`, { cause: error });
   }
+  await page.getByLabel("실행 방식").selectOption("single");
   await page.locator('select[aria-label="발생 규칙"]').selectOption("pkg-fixed-rule");
   await page.getByLabel("기간 키").fill("2026");
   await page.getByLabel("발생일").fill("2026-07-13");
@@ -740,16 +747,17 @@ try {
   await page.locator("[data-promotion-recipient-id]").nth(1).waitFor({ timeout: 20_000 });
   const recipients = page.locator("[data-promotion-recipient-id]");
   const firstRecipient = recipients.nth(0);
-  await firstRecipient.getByRole("button", { name: "1차 문서 참조" }).click();
-  await firstRecipient.getByRole("button", { name: "1차 증거" }).click();
+  await firstRecipient.getByRole("button", { name: "1차", exact: true }).click();
+  await firstRecipient.getByRole("button", { name: "처리", exact: true }).click();
   await recordPromotionEvidence(page, { stage: "first", eventType: "delivered", receipt: "pkg-first-delivered", digest: "1".repeat(64) });
-  await firstRecipient.locator("input[type='date']").fill("2026-09-14");
-  await firstRecipient.getByRole("button", { name: "응답 기록" }).click();
+  const promotionProcessing = page.locator("[data-leave-promotion-evidence='true']");
+  await promotionProcessing.locator("input[type='date']").fill("2026-09-14");
+  await promotionProcessing.getByRole("button", { name: "응답 기록" }).click();
   await page.getByLabel("캠페인").selectOption("pkg-overdue-campaign");
   const secondRecipient = page.locator('[data-promotion-recipient-id="pkg-overdue-recipient"]');
   await secondRecipient.waitFor();
-  await secondRecipient.getByRole("button", { name: "2차 문서 참조" }).click();
-  await secondRecipient.getByRole("button", { name: "2차 증거" }).click();
+  await secondRecipient.getByRole("button", { name: "2차", exact: true }).click();
+  await secondRecipient.getByRole("button", { name: "처리", exact: true }).click();
   await recordPromotionEvidence(page, { stage: "second", eventType: "delivered", receipt: "pkg-second-delivered", digest: "3".repeat(64) });
   const promotionSnapshot = durableSnapshot();
   scenarios.promotion_evidence_flow = promotionSnapshot.promotion_campaign_count >= 2 && promotionSnapshot.promotion_recipient_states.some((state) => state === "employee_responded") && promotionSnapshot.promotion_recipient_states.some((state) => state.startsWith("second_notice"));
@@ -766,13 +774,14 @@ try {
   await page.getByRole("button", { name: "정산 실행" }).click();
   await completeStepUp(page, HR_ACTOR, "leave_termination_settlement");
   await page.getByText("급여 동기화 대기", { exact: true }).first().waitFor();
-  await page.getByText("오프보딩 종료 차단 중", { exact: true }).waitFor();
+  await page.getByText("급여 전달 확인 대기", { exact: true }).waitFor();
   const pendingTermination = durableSnapshot();
   assert.ok(pendingTermination.termination_states.includes("approved_pending_sync"));
   await capture(page, "04-hr-termination-pending-720x900", { width: 720, height: 900, selector: "#people-leave-termination", role: "hr_admin", route: "people-leave-termination", screenshots, geometries });
   await page.setViewportSize({ width: 1512, height: 900 });
   await navigate(page, "people-leave-usage");
   await page.locator("#people-leave-usage").waitFor({ state: "visible", timeout: 20_000 });
+  await page.locator(".leave-integration-status > summary").click();
   await page.getByRole("button", { name: "대기 항목 처리" }).click();
   await page.getByText("급여 · 연결됨", { exact: true }).last().waitFor();
   const reconciledTermination = durableSnapshot();
@@ -831,11 +840,12 @@ try {
   await app.close();
   app = null;
 
-  // 10. Relaunch the exact app, prove it starts signed out, then re-authenticate and verify durable-store restoration.
+  // 10. Relaunch the exact app, restore the tokenless desktop session, and verify durable-store restoration.
   ({ app, page } = await launchPackagedApp());
   attachDiagnostics(page);
   const restoredSession = await page.evaluate(() => window.matterSession?.status?.());
-  assert.equal(restoredSession?.state, "signed_out");
+  assert.equal(restoredSession?.state, "signed_in");
+  assert.equal(restoredSession?.user_id, HR_ACTOR);
   secondRuntime = await page.evaluate(async () => ({
     endpoint: window.matterSession?.desktopApiBaseUrl ?? null,
     status: await window.matterSession?.runtime?.(),
@@ -843,7 +853,6 @@ try {
   assert.match(secondRuntime.endpoint, /^http:\/\/127\.0\.0\.1:\d+$/);
   const secondHealth = await fetch(`${secondRuntime.endpoint}/api/health`).then(async (response) => ({ status: response.status, body: await response.json() }));
   assert.equal(secondHealth.status, 200);
-  await login(page, accounts.hr_admin);
   await navigate(page, "people-leave-usage");
   await page.locator("#people-leave-usage").waitFor({ state: "visible", timeout: 20_000 });
   await page.getByText("업무 시스템 연동", { exact: true }).waitFor();
@@ -861,6 +870,10 @@ try {
   assert.ok(Object.values(scenarios).every(Boolean));
 
   const rendererSha = sha256Directory(path.join(PACKAGED_APP_ROOT, "src/renderer/web"));
+  const windowsRendererSha = sha256Directory(path.join(WINDOWS_PACKAGE_ROOT, "resources/app/src/renderer/web"));
+  assert.equal(windowsRendererSha, rendererSha, "macOS and Windows packages must contain the same Forest renderer");
+  assert.equal(readFileSync(WINDOWS_EXECUTABLE).subarray(0, 2).toString("ascii"), "MZ", "Windows executable must have a PE MZ header");
+  execFileSync("/usr/bin/unzip", ["-tqq", WINDOWS_ZIP]);
   const packagedSourceSha = sha256Directory(PACKAGED_APP_ROOT);
   const appBundleSha = sha256Bytes(Buffer.concat([
     readFileSync(EXECUTABLE),
@@ -888,6 +901,20 @@ try {
       signed: null,
       notarized: null,
     },
+    windows_package: {
+      package_directory: path.relative(ROOT, WINDOWS_PACKAGE_ROOT),
+      executable: path.relative(ROOT, WINDOWS_EXECUTABLE),
+      executable_sha256: sha256File(WINDOWS_EXECUTABLE),
+      unsigned_zip: path.relative(ROOT, WINDOWS_ZIP),
+      unsigned_zip_sha256: sha256File(WINDOWS_ZIP),
+      renderer_sha256: windowsRendererSha,
+      renderer_matches_macos: windowsRendererSha === rendererSha,
+      pe_header: "MZ",
+      archive_test: "pass",
+      native_runtime_smoke: "not_run_on_darwin",
+      verification_scope: "package_structure_and_renderer_parity",
+      authenticode_signed: false,
+    },
     runtime: {
       profile: "local-dev",
       endpoint_kind: "loopback_ephemeral",
@@ -906,7 +933,7 @@ try {
     scenarios,
     role_checks: roleChecks,
     restart: {
-      session_restoration_mode: "signed_out_then_explicit_loopback_qa_login",
+      session_restoration_mode: "tokenless_loopback_session_restored",
       secure_session_restoration_claim: false,
       before: beforeRestart,
       after: afterRestart,

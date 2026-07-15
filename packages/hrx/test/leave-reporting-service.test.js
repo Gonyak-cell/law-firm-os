@@ -26,8 +26,8 @@ function fixture() {
     clock: () => NOW,
     idFactory: (prefix) => `${prefix}-${++sequence}`,
     employeeDirectory: () => [
-      { employee_id: "emp-001", display_name: "김하늘" },
-      { employee_id: "emp-002", display_name: "이바다" },
+      { employee_id: "emp-001", display_name: "김하늘", org_unit_id: "org-legal", org_unit_label: "법률" },
+      { employee_id: "emp-002", display_name: "이바다", org_unit_id: "org-finance", org_unit_label: "재무" },
     ],
   });
   return { store, service, ledger };
@@ -78,4 +78,117 @@ test("balance snapshot validator distinguishes match, mismatch, and missing", ()
   const mismatch = service.validateBalances(scoped, { as_of: "2026-07-13" });
   assert.deepEqual(mismatch.counts, { match: 0, mismatch: 1, missing: 0 });
   assert.equal(mismatch.rows[0].delta_minutes, 60);
+});
+
+test("LV-OCC-001 queries lifecycle occurrences with org filters, totals, pagination, and tenant isolation", () => {
+  const { service, store, ledger } = fixture();
+  ledger.append({
+    tenant_id: TENANT,
+    entry_id: "used-emp-001",
+    employee_id: "emp-001",
+    policy_id: "ANNUAL-2026",
+    group_id: "annual",
+    policy_version_id: "annual-v1",
+    entitlement_id: "entitlement-emp-001",
+    idempotency_key: "used-emp-001",
+    entry_type: "used",
+    amount_minutes: 120,
+    occurred_on: "2026-06-01",
+    source_ref: "LeaveRequest:synthetic",
+  });
+  store.query("insert", { table: "hrx_leave_entitlements", row: {
+    tenant_id: TENANT,
+    entitlement_id: "entitlement-future",
+    employee_id: "emp-001",
+    group_id: "annual",
+    policy_version_id: "annual-v1",
+    granted_minutes: 240,
+    valid_from: "2026-08-01",
+    expires_on: "2026-12-31",
+    source_ref: "HRDocument:private-source",
+    idempotency_key: "entitlement-future",
+    state_version: 1,
+  } });
+  ledger.append({
+    tenant_id: TENANT,
+    entry_id: "earned-future",
+    employee_id: "emp-001",
+    policy_id: "ANNUAL-2026",
+    group_id: "annual",
+    policy_version_id: "annual-v1",
+    entitlement_id: "entitlement-future",
+    idempotency_key: "earned-future",
+    entry_type: "earned",
+    amount_minutes: 240,
+    occurred_on: "2026-08-01",
+    source_ref: "HRDocument:private-source",
+    metadata: { reason: "비공개", attachment_id: "secret" },
+  });
+
+  const first = service.queryOccurrences(context(), { as_of: "2026-07-13", limit: 1 });
+  assert.equal(first.rows.length, 1);
+  assert.equal(first.totals.row_count, 3);
+  assert.equal(first.totals.total_minutes, 2160);
+  assert.equal(first.totals.used_minutes, 120);
+  assert.equal(first.totals.remaining_minutes, 1800);
+  assert.ok(first.next_cursor);
+  const second = service.queryOccurrences(context(), { as_of: "2026-07-13", limit: 1, cursor: first.next_cursor });
+  assert.notEqual(second.rows[0].entitlement_id, first.rows[0].entitlement_id);
+
+  const scheduled = service.queryOccurrences(context(), { as_of: "2026-07-13", state: "scheduled" });
+  assert.equal(scheduled.rows.length, 1);
+  assert.equal(scheduled.rows[0].total_minutes, 240);
+  assert.equal(scheduled.rows[0].remaining_minutes, 0);
+  assert.equal(JSON.stringify(scheduled).includes("private-source"), false);
+  assert.equal(JSON.stringify(scheduled).includes("비공개"), false);
+
+  const legal = service.queryOccurrences(context(), { as_of: "2026-07-13", org_unit_id: "org-legal" });
+  assert.deepEqual(legal.rows.map((row) => row.employee_id), ["emp-001", "emp-001"]);
+  const unauthorized = service.queryOccurrences(context(["emp-001"]), { employee_id: "emp-002" });
+  assert.equal(unauthorized.totals.row_count, 0);
+  assert.throws(() => service.queryOccurrences(context(), { state: "unknown" }), /state must be one of/);
+});
+
+test("LV-OCC-002 derives list, month, and type projections from one occurrence source", () => {
+  const { service } = fixture();
+  const projections = service.occurrenceProjections(context(), { as_of: "2026-07-13" });
+  assert.deepEqual(projections.list.totals, projections.totals);
+  assert.equal(projections.by_month.reduce((sum, row) => sum + row.totals.total_minutes, 0), projections.totals.total_minutes);
+  assert.equal(projections.by_type.reduce((sum, row) => sum + row.totals.total_minutes, 0), projections.totals.total_minutes);
+  assert.equal(projections.source_version, service.queryOccurrences(context(), { as_of: "2026-07-13" }).source_version);
+  assert.deepEqual(projections.by_month.map((row) => row.key), ["2026-01"]);
+  assert.deepEqual(projections.by_type.map((row) => row.label), ["연차"]);
+});
+
+test("LV-OCC-008 exports filtered list, month, and type views from the occurrence query source", () => {
+  const { service } = fixture();
+  const filters = { as_of: "2026-07-13", limit: 1 };
+  const queried = service.queryOccurrences(context(), filters);
+
+  const listCsv = service.exportOccurrences(context(), { ...filters, format: "csv", view: "list" });
+  const listText = Buffer.from(listCsv.content_base64, "base64").toString("utf8");
+  const listLines = listText.trim().split(/\r?\n/);
+  const listValues = listLines.slice(1).map((line) => line.split(",").map((value) => value.replace(/^\ufeff/, "")));
+  assert.equal(queried.rows.length, 1);
+  assert.equal(listCsv.row_count, queried.totals.row_count);
+  assert.deepEqual(listCsv.totals, queried.totals);
+  assert.equal(listCsv.source_version, queried.source_version);
+  assert.equal(listValues.reduce((sum, row) => sum + Number(row[8]), 0), queried.totals.total_minutes);
+  assert.equal(listValues.reduce((sum, row) => sum + Number(row[12]), 0), queried.totals.remaining_minutes);
+  assert.doesNotMatch(listText, /내보내면 안 되는 사유|secret-doc|source_ref|원천 참조/);
+
+  for (const view of ["month", "type"]) {
+    const exported = service.exportOccurrences(context(), { ...filters, format: "csv", view });
+    assert.deepEqual(exported.totals, queried.totals);
+    assert.equal(exported.source_version, queried.source_version);
+    assert.equal(exported.occurrence_count, queried.totals.row_count);
+  }
+
+  const xlsx = service.exportOccurrences(context(), { ...filters, format: "xlsx", view: "type" });
+  const xlsxBuffer = Buffer.from(xlsx.content_base64, "base64");
+  assert.equal(xlsxBuffer.subarray(0, 2).toString("ascii"), "PK");
+  assert.equal(xlsxBuffer.includes(Buffer.from("휴가 발생 내역")), true);
+  assert.deepEqual(xlsx.totals, queried.totals);
+  assert.throws(() => service.exportOccurrences(context(), { format: "json" }), /format must be csv or xlsx/);
+  assert.throws(() => service.exportOccurrences(context(), { view: "calendar" }), /view must be list, month, or type/);
 });

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Plus, Settings2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Panel } from "../../components/primitives.jsx";
 import {
   createHrxLeaveGroup,
@@ -9,12 +9,38 @@ import {
   fetchHrxLeaveConfiguration,
   publishHrxLeavePolicy,
   updateHrxLeaveGroup,
+  updateHrxLeavePolicy,
   updateHrxLeaveType
 } from "../hrxApiClient.ts";
 
 type Row = Record<string, unknown>;
 type Tab = "groups" | "types" | "policies";
 type Configuration = { groups: Row[]; types: Row[]; policies: Row[] };
+type UsageMode = "full_day" | "half_day" | "quarter_day" | "hours";
+type RuleDraft = {
+  leave_type_id: string;
+  usage_modes: UsageMode[];
+  standard_day_minutes: number;
+  paid_ratio_percent: number;
+  deduction_ratio_percent: number;
+  rounding_minutes: number;
+  rounding_mode: "none" | "ceil" | "floor" | "nearest";
+};
+
+const usageModes: { value: UsageMode; label: string }[] = [
+  { value: "full_day", label: "종일" },
+  { value: "half_day", label: "반일" },
+  { value: "quarter_day", label: "1/4일" },
+  { value: "hours", label: "시간" }
+];
+const defaultTypeRule = {
+  usage_modes: usageModes.map(({ value }) => value),
+  standard_day_minutes: 480,
+  paid_ratio_bps: 10_000,
+  deduction_ratio_bps: 10_000,
+  rounding_minutes: 1,
+  rounding_mode: "none"
+};
 
 const emptyGroup = { code: "", display_name: "" };
 const emptyType = {
@@ -67,6 +93,54 @@ function evidenceLabel(row: Row) {
   return labels.length ? `${labels.join("·")} 필수` : "추가 입력 없음";
 }
 
+function record(value: unknown): Row {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Row : {};
+}
+
+function policyRules(row: Row | undefined): Row {
+  const direct = record(row?.rules);
+  if (Object.keys(direct).length) return direct;
+  try {
+    return record(JSON.parse(text(row ?? {}, "rules_json") || "{}"));
+  } catch {
+    return {};
+  }
+}
+
+function typeRule(policy: Row | undefined, leaveTypeId: string): Row {
+  return { ...defaultTypeRule, ...record(record(policyRules(policy).type_rules)[leaveTypeId]) };
+}
+
+function ruleDraft(policy: Row | undefined, leaveTypeId: string): RuleDraft {
+  const rule = typeRule(policy, leaveTypeId);
+  const configuredModes = Array.isArray(rule.usage_modes) ? rule.usage_modes : defaultTypeRule.usage_modes;
+  return {
+    leave_type_id: leaveTypeId,
+    usage_modes: usageModes.map(({ value }) => value).filter((mode) => configuredModes.includes(mode)),
+    standard_day_minutes: Number(rule.standard_day_minutes) || 480,
+    paid_ratio_percent: (Number(rule.paid_ratio_bps) || 0) / 100,
+    deduction_ratio_percent: (Number(rule.deduction_ratio_bps) || 0) / 100,
+    rounding_minutes: Number(rule.rounding_minutes) || 1,
+    rounding_mode: (["none", "ceil", "floor", "nearest"].includes(String(rule.rounding_mode)) ? rule.rounding_mode : "none") as RuleDraft["rounding_mode"]
+  };
+}
+
+function usageModeSummary(rule: Row) {
+  const configured = Array.isArray(rule.usage_modes) ? rule.usage_modes : defaultTypeRule.usage_modes;
+  return usageModes.filter(({ value }) => configured.includes(value)).map(({ label }) => label).join("·");
+}
+
+function percentage(value: unknown) {
+  const percent = Number(value) / 100;
+  return `${Number.isInteger(percent) ? percent : percent.toFixed(2).replace(/0+$/, "").replace(/\.$/, "")}%`;
+}
+
+function roundingSummary(rule: Row) {
+  if (rule.rounding_mode === "none") return "없음";
+  const labels = { ceil: "올림", floor: "내림", nearest: "반올림" } as const;
+  return `${Number(rule.rounding_minutes) || 1}분 ${labels[rule.rounding_mode as keyof typeof labels] ?? "반올림"}`;
+}
+
 export function LeaveTypeSettingsPage() {
   const [tab, setTab] = useState<Tab>("groups");
   const [configuration, setConfiguration] = useState<Configuration | null>(null);
@@ -75,6 +149,8 @@ export function LeaveTypeSettingsPage() {
   const [policyForm, setPolicyForm] = useState(emptyPolicy);
   const [nextVersionSource, setNextVersionSource] = useState("");
   const [nextEffectiveFrom, setNextEffectiveFrom] = useState("");
+  const [selectedRulePolicyId, setSelectedRulePolicyId] = useState("");
+  const [editingRule, setEditingRule] = useState<RuleDraft | null>(null);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
 
@@ -89,6 +165,11 @@ export function LeaveTypeSettingsPage() {
     setError("");
     setTypeForm((current) => ({ ...current, group_id: current.group_id || text(result.groups[0] ?? {}, "group_id") }));
     setPolicyForm((current) => ({ ...current, group_id: current.group_id || text(result.groups[0] ?? {}, "group_id") }));
+    setSelectedRulePolicyId((current) => {
+      if (result.policies.some((policy) => text(policy, "policy_version_id") === current)) return current;
+      const preferred = result.policies.find((policy) => text(policy, "status") === "draft") ?? result.policies[0];
+      return text(preferred ?? {}, "policy_version_id");
+    });
   }
 
   useEffect(() => {
@@ -169,16 +250,43 @@ export function LeaveTypeSettingsPage() {
     }
   }
 
+  async function saveTypeRule(event: { preventDefault(): void }) {
+    event.preventDefault();
+    const policy = configuration?.policies.find((row) => text(row, "policy_version_id") === selectedRulePolicyId);
+    if (!policy || text(policy, "status") !== "draft" || !editingRule?.usage_modes.length) return;
+    const currentRules = policyRules(policy);
+    const currentTypeRules = record(currentRules.type_rules);
+    const roundingMode = editingRule.rounding_mode;
+    const saved = await run(`policy:rule:${editingRule.leave_type_id}`, () => updateHrxLeavePolicy(selectedRulePolicyId, {
+      rules: {
+        ...currentRules,
+        type_rules: {
+          ...currentTypeRules,
+          [editingRule.leave_type_id]: {
+            usage_modes: editingRule.usage_modes,
+            standard_day_minutes: Math.round(editingRule.standard_day_minutes),
+            paid_ratio_bps: Math.round(editingRule.paid_ratio_percent * 100),
+            deduction_ratio_bps: Math.round(editingRule.deduction_ratio_percent * 100),
+            rounding_minutes: roundingMode === "none" ? 1 : Math.round(editingRule.rounding_minutes),
+            rounding_mode: roundingMode
+          }
+        }
+      }
+    }));
+    if (saved) setEditingRule(null);
+  }
+
   const groups = configuration?.groups ?? [];
   const types = configuration?.types ?? [];
   const policies = configuration?.policies ?? [];
+  const selectedRulePolicy = policies.find((policy) => text(policy, "policy_version_id") === selectedRulePolicyId);
+  const selectedRulePolicyIsDraft = text(selectedRulePolicy ?? {}, "status") === "draft";
+  const visibleRuleTypes = selectedRulePolicy
+    ? types.filter((type) => text(type, "group_id") === text(selectedRulePolicy, "group_id"))
+    : types;
 
   return (
-    <Panel id="people-leave-types" className="people-panel span-2 leave-settings-panel" title="휴가 그룹/유형" meta="회사 설정">
-      <div className="people-panel-kicker">
-        <Settings2 size={15} />
-        휴가를 함께 차감할 그룹, 신청 유형, 시행일별 정책을 관리합니다
-      </div>
+    <Panel id="people-leave-types" className="people-panel span-2 leave-settings-panel" title="휴가 그룹/유형">
       <div className="leave-settings-tabs" role="tablist" aria-label="휴가 설정 구분">
         {([
           ["groups", "휴가 그룹"],
@@ -232,15 +340,28 @@ export function LeaveTypeSettingsPage() {
             <label className="leave-settings-check"><input type="checkbox" checked={typeForm.attachment_required} onChange={(event) => setTypeForm({ ...typeForm, attachment_required: event.target.checked })} /><span>증빙 필수</span></label>
             <button className="primary-button" disabled={!groups.length || busy === "type:create"}><Plus size={14} />유형 추가</button>
           </form>
-          <div className="data-table-wrap"><table className="data-table"><thead><tr><th>유형</th><th>그룹</th><th>단위</th><th>입력 조건</th><th>상태</th><th>관리</th></tr></thead><tbody>
-            {types.map((type) => {
+          <div className="leave-type-rule-toolbar">
+            <label><span>규칙 정책</span><select value={selectedRulePolicyId} onChange={(event) => { setSelectedRulePolicyId(event.target.value); setEditingRule(null); }}>{policies.map((policy) => <option key={text(policy, "policy_version_id")} value={text(policy, "policy_version_id")}>{text(policy, "policy_code")} v{number(policy, "version")} · {statusLabel(text(policy, "status"))}</option>)}</select></label>
+            {selectedRulePolicy && <span className="record-state-badge" data-state={selectedRulePolicyIsDraft ? "review" : "live"}>{selectedRulePolicyIsDraft ? "편집 가능" : "읽기 전용"}</span>}
+            {selectedRulePolicy && !selectedRulePolicyIsDraft && <button className="secondary-button" type="button" onClick={() => { setNextVersionSource(selectedRulePolicyId); setTab("policies"); }}>새 버전</button>}
+          </div>
+          <div className="data-table-wrap leave-type-rule-table"><table className="data-table"><thead><tr><th>유형</th><th>신청 방식</th><th>유급</th><th>차감</th><th>반올림</th><th>입력 조건</th><th>상태</th><th>관리</th></tr></thead><tbody>
+            {visibleRuleTypes.map((type) => {
               const id = text(type, "leave_type_id");
-              const group = groups.find((row) => text(row, "group_id") === text(type, "group_id"));
               const active = text(type, "status") === "active";
-              return <tr key={id}><td><strong>{text(type, "display_name")}</strong><small className="leave-settings-code">{text(type, "code")}</small></td><td>{group ? text(group, "display_name") : "그룹 확인 필요"}</td><td>{text(type, "request_unit")}</td><td>{evidenceLabel(type)}</td><td>{statusLabel(text(type, "status"))}</td><td><button className="secondary-button" type="button" disabled={busy === `type:${id}`} onClick={() => void run(`type:${id}`, () => updateHrxLeaveType(id, { status: active ? "inactive" : "active" }))}>{active ? "사용 중지" : "다시 사용"}</button></td></tr>;
+              const rule = typeRule(selectedRulePolicy, id);
+              const isEditing = editingRule?.leave_type_id === id;
+              return [<tr key={`${id}:row`}><td><strong>{text(type, "display_name")}</strong><small className="leave-settings-code">{text(type, "code")}</small></td><td>{usageModeSummary(rule)}</td><td>{percentage(rule.paid_ratio_bps)}</td><td>{percentage(rule.deduction_ratio_bps)}</td><td>{roundingSummary(rule)}</td><td>{evidenceLabel(type)}</td><td>{statusLabel(text(type, "status"))}</td><td><div className="approval-actions">{selectedRulePolicyIsDraft && <button className="secondary-button" type="button" onClick={() => setEditingRule(ruleDraft(selectedRulePolicy, id))}>규칙 편집</button>}<button className="secondary-button" type="button" disabled={busy === `type:${id}`} onClick={() => void run(`type:${id}`, () => updateHrxLeaveType(id, { status: active ? "inactive" : "active" }))}>{active ? "사용 중지" : "다시 사용"}</button></div></td></tr>, isEditing && <tr key={`${id}:edit`} className="leave-type-rule-edit-row"><td colSpan={8}><form onSubmit={saveTypeRule}>
+                <fieldset><legend>신청 방식</legend><div className="leave-type-rule-modes">{usageModes.map(({ value, label }) => <label key={value}><input type="checkbox" checked={editingRule.usage_modes.includes(value)} onChange={(event) => setEditingRule({ ...editingRule, usage_modes: event.target.checked ? [...editingRule.usage_modes, value] : editingRule.usage_modes.filter((mode) => mode !== value) })} />{label}</label>)}</div></fieldset>
+                <label><span>1일(분)</span><input className="leave-type-rule-input" type="number" min="1" max="1440" step="1" required value={editingRule.standard_day_minutes} onChange={(event) => setEditingRule({ ...editingRule, standard_day_minutes: Number(event.target.value) })} /></label>
+                <label><span>유급(%)</span><input className="leave-type-rule-input" type="number" min="0" max="100" step="0.01" required value={editingRule.paid_ratio_percent} onChange={(event) => setEditingRule({ ...editingRule, paid_ratio_percent: Number(event.target.value) })} /></label>
+                <label><span>차감(%)</span><input className="leave-type-rule-input" type="number" min="0" max="100" step="0.01" required value={editingRule.deduction_ratio_percent} onChange={(event) => setEditingRule({ ...editingRule, deduction_ratio_percent: Number(event.target.value) })} /></label>
+                <label><span>시간 반올림</span><span className="leave-type-rule-rounding"><select value={editingRule.rounding_mode} onChange={(event) => setEditingRule({ ...editingRule, rounding_mode: event.target.value as RuleDraft["rounding_mode"] })}><option value="none">없음</option><option value="ceil">올림</option><option value="floor">내림</option><option value="nearest">반올림</option></select>{editingRule.rounding_mode !== "none" && <input aria-label="반올림 분" type="number" min="1" max={editingRule.standard_day_minutes} step="1" required value={editingRule.rounding_minutes} onChange={(event) => setEditingRule({ ...editingRule, rounding_minutes: Number(event.target.value) })} />}</span></label>
+                <div className="approval-actions"><button className="secondary-button" type="button" onClick={() => setEditingRule(null)}>취소</button><button className="primary-button" disabled={!editingRule.usage_modes.length || busy === `policy:rule:${id}`}>저장</button></div>
+              </form></td></tr>];
             })}
           </tbody></table></div>
-          {types.length === 0 && <div className="live-data-state live-data-empty">등록된 휴가 유형이 없습니다.</div>}
+          {visibleRuleTypes.length === 0 && <div className="live-data-state live-data-empty">등록된 휴가 유형이 없습니다.</div>}
         </div>
       )}
 

@@ -35,10 +35,15 @@ import { createDurableLeaveManagementService } from "../../../packages/hrx/src/l
 import { createLeavePolicyService } from "../../../packages/hrx/src/leave/policy-service.js";
 import { createLeaveApprovalDelegationService } from "../../../packages/hrx/src/leave/approval-delegation.js";
 import { createLeaveAccrualService } from "../../../packages/hrx/src/leave/accrual-service.js";
+import { createLeaveAccrualBatchService } from "../../../packages/hrx/src/leave/accrual-batch-service.js";
+import { createLeaveOccurrenceUploadBatchService } from "../../../packages/hrx/src/leave/occurrence-upload-batch-service.js";
 import { createLeaveReportingService } from "../../../packages/hrx/src/leave/reporting-service.js";
 import { createLeaveTerminationService } from "../../../packages/hrx/src/leave/termination-service.js";
 import { createLeavePromotionService } from "../../../packages/hrx/src/leave/promotion-service.js";
 import { createInternalLeaveIntegrationProviders, createLeaveIntegrationService } from "../../../packages/hrx/src/leave/integration-service.js";
+import { createLeaveEntitlementCommandService } from "../../../packages/hrx/src/leave/entitlement-command-service.js";
+import { createLeaveEntitlementReadService } from "../../../packages/hrx/src/leave/entitlement-read-service.js";
+import { createLeaveExpirationService } from "../../../packages/hrx/src/leave/expiration-service.js";
 import { closeOffboardingCase, createOffboardingCase } from "../../../packages/hrx/src/offboarding.js";
 import {
   createInMemoryOvertimeStore,
@@ -72,6 +77,8 @@ import { createHrxMatterWorkloadProjection } from "../../../packages/matter/src/
 import { transitionEmployee } from "../../../packages/hrx/src/employee-lifecycle.js";
 import { createHrxAiRoute } from "./routes/hrx/ai.js";
 import { createHrxPayrollRoute } from "./routes/hrx/payroll.js";
+import { createHrxPayrollRuntimeRoute } from "./routes/hrx/payroll-runtime.js";
+import { createHrxPayrollRuntime, seedSyntheticPayrollRuntimeStore } from "./hrx-payroll-runtime.js";
 import {
   MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
   MATTER_VAULT_REGISTERED_TENANT_ID,
@@ -79,6 +86,7 @@ import {
 } from "./matter-vault-account-registry.js";
 import {
   HRX_MEMBER_ROSTER_SOURCE_REF,
+  findHrxPublicProfessionalProfileByEmployeeId,
   listHrxMemberRosterRows,
 } from "./hrx-member-roster-registry.js";
 import { resolveLawosUserRoleAssignment } from "./lawos-role-registry.js";
@@ -349,6 +357,7 @@ function departmentForDirectoryRow(employee, profile, member) {
 
 function employeeRosterReadFields(employee, profile) {
   const member = memberRosterForEmployee(employee);
+  const publicProfile = findHrxPublicProfessionalProfileByEmployeeId(employee.employee_id);
   const orgUnit = orgUnitForProfile(profile);
   const department = departmentForDirectoryRow(employee, profile, member);
   return {
@@ -359,8 +368,8 @@ function employeeRosterReadFields(employee, profile) {
     organization_group: member?.organization_group ?? orgUnit?.organization_group ?? department,
     country: member?.country ?? "대한민국",
     mobile_phone: member?.mobile_phone || null,
-    professional_profile: member?.professional_profile ?? null,
-    source_ref: member?.source_ref ?? employee.source_ref,
+    professional_profile: member?.professional_profile ?? publicProfile?.professional_profile ?? null,
+    source_ref: member?.source_ref ?? publicProfile?.source_ref ?? employee.source_ref,
     employment_profile_id: profile?.profile_id ?? null,
     org_unit_id: profile?.org_unit_id ?? member?.org_unit_id ?? null,
     org_unit_label: orgUnit?.label ?? member?.organization_group ?? department,
@@ -394,6 +403,25 @@ function currentEmploymentProfile(repository, tenantId, employeeId) {
   return repository
     .listEmploymentProfiles({ tenant_id: tenantId, employee_id: employeeId })
     .find((profile) => profile.status !== "terminated") ?? null;
+}
+
+export function resolveHrxEmployeeProfileByUserId(context, { tenant_id: tenantId, user_id: userId } = {}) {
+  const repository = context?.repository;
+  if (!repository || !tenantId || !userId) return null;
+  const links = repository.listEmployeeUserLinks({ tenant_id: tenantId, user_id: userId });
+  if (links.length !== 1) return null;
+  const employee = repository.getEmployee({ tenant_id: tenantId, employee_id: links[0].employee_id });
+  if (!employee) return null;
+  const employmentProfile = currentEmploymentProfile(repository, tenantId, employee.employee_id);
+  const rosterFields = employeeRosterReadFields(employee, employmentProfile);
+  const rosterMember = memberRosterForEmployee(employee);
+  return Object.freeze({
+    ...employee,
+    ...rosterFields,
+    title: rosterFields.title ?? employmentProfile?.title ?? "",
+    start_date: rosterMember?.start_date ?? "",
+    employment_profile: employmentProfile,
+  });
 }
 
 function resolveLeaveApprover(repository, { tenant_id: tenantId, employee }) {
@@ -686,6 +714,61 @@ function leaveRequestView(context, request) {
   });
 }
 
+const HR_LEAVE_REQUEST_READ_SCOPES = Object.freeze([
+  "hrx.leave.policy.read",
+  "hrx.leave.policy.write",
+  "hrx.leave.accrual.execute",
+  "hrx.leave.ledger.adjust",
+  "hrx.leave.promotion.manage",
+  "hrx.leave.report.export",
+  "hrx.leave.termination.settle",
+]);
+
+function leaveRequestAccessLevel(context, actorContext, request) {
+  if (!request) return null;
+  if (employeeIdsForActor(context.repository, actorContext.tenant_id, actorContext.actor_id).has(request.employee_id)) return "self";
+  if (HR_LEAVE_REQUEST_READ_SCOPES.some((scope) => actorContext.hrx_scopes.includes(scope))) return "hr";
+  if (assignedLeaveApprovalQueue(context, actorContext).some((approval) => approval.object_id === request.request_id)) return "assigned_approver";
+  return null;
+}
+
+function hiddenLeaveResourceResponse() {
+  return response(404, {
+    outcome: "not_found",
+    safe_error_code: "HRX_LEAVE_RESOURCE_NOT_FOUND",
+    count_leak_prevented: true,
+    fail_closed: true,
+  });
+}
+
+function leaveAttachmentDownloadAuthorization(context, actorContext, requestId, attachmentId) {
+  const request = context.leaveManagementStore.query("selectOne", {
+    table: "hrx_leave_requests",
+    where: { tenant_id: actorContext.tenant_id, request_id: requestId },
+  });
+  const accessLevel = leaveRequestAccessLevel(context, actorContext, request);
+  if (!accessLevel) return null;
+  const attachment = context.leaveManagementStore.query("selectOne", {
+    table: "hrx_leave_request_attachments",
+    where: { tenant_id: actorContext.tenant_id, request_id: requestId, attachment_id: attachmentId },
+  });
+  if (!attachment) return null;
+  const document = context.documents.get({ tenant_id: actorContext.tenant_id, document_id: attachment.document_id });
+  if (!document || document.employee_id !== request.employee_id) return null;
+  return Object.freeze({
+    request_id: requestId,
+    attachment_id: attachment.attachment_id,
+    document_id: attachment.document_id,
+    document_type: document.document_type,
+    title: document.title ?? "증빙 문서",
+    verification_state: attachment.verification_state,
+    access_level: accessLevel,
+    download_authorized: true,
+    document_body_included: false,
+    source_reference_included: false,
+  });
+}
+
 function leaveApprovalQueueMetrics(context, request) {
   const store = context.leaveManagementStore;
   const view = leaveRequestView(context, request);
@@ -786,6 +869,42 @@ function leaveReportAuthorizedEmployeeIds(context, actorContext) {
   return Object.freeze([...authorized]);
 }
 
+function leaveEntitlementAuthorizedEmployeeIds(context, actorContext) {
+  const tenantId = actorContext.tenant_id;
+  const selfEmployeeIds = employeeIdsForActor(context.repository, tenantId, actorContext.actor_id);
+  const authorized = new Set(selfEmployeeIds);
+  const adminScopes = [
+    "hrx.leave.policy.read",
+    "hrx.leave.policy.write",
+    "hrx.leave.accrual.execute",
+    "hrx.leave.ledger.adjust",
+    "hrx.leave.report.export",
+  ];
+  if (adminScopes.some((scope) => actorContext.hrx_scopes.includes(scope))) {
+    for (const entitlement of context.leaveManagementStore.query("select", {
+      table: "hrx_leave_entitlements",
+      where: { tenant_id: tenantId },
+    })) {
+      authorized.add(entitlement.employee_id);
+    }
+    return Object.freeze([...authorized]);
+  }
+  if (actorContext.hrx_scopes.includes("hrx.leave.team.read")) {
+    for (const profile of context.repository.listEmploymentProfiles({ tenant_id: tenantId })) {
+      if (profile.status !== "terminated" && selfEmployeeIds.has(profile.manager_employee_id)) authorized.add(profile.employee_id);
+    }
+  }
+  return Object.freeze([...authorized]);
+}
+
+function leaveEntitlementApiView(context, tenantId, row) {
+  const employee = context.repository.getEmployee({
+    tenant_id: tenantId,
+    employee_id: row.employee_id,
+  });
+  return Object.freeze({ ...row, employee_display_name: employee?.display_name ?? null });
+}
+
 function leaveDelegationView(row) {
   return Object.freeze({
     ...clone(row),
@@ -853,7 +972,6 @@ function leaveTeamSnapshot(context, actorContext, { from, to }) {
       employee_display_name: employeeById.get(request.employee_id)?.display_name ?? "구성원",
       start_date: request.start_date,
       end_date: request.end_date,
-      absence_label: "휴가",
     }))
     .sort((left, right) => left.start_date.localeCompare(right.start_date) || KOREAN_DISPLAY_NAME_COLLATOR.compare(left.employee_display_name, right.employee_display_name));
   return Object.freeze({
@@ -2190,7 +2308,7 @@ export function seedHrxDurableRuntimeStore(store, options = {}) {
   });
 }
 
-export function createHrxRuntimeContext({ repository: providedRepository, store, matterTimeEntries, matterDeadlines, modelGateway, clock: runtimeClock, leaveIntegrationProviders } = {}) {
+export function createHrxRuntimeContext({ repository: providedRepository, store, matterTimeEntries, matterDeadlines, modelGateway, clock: runtimeClock, leaveIntegrationProviders, seedPayrollRuntime = false } = {}) {
   const seedTenantIds = HRX_DEFAULT_SEED_TENANT_IDS;
   const repository = providedRepository ?? (store ? createSqlHrxRepository({ store }) : createInMemoryHrxRepository({
     employees: seedTenantIds.flatMap(seedEmployees),
@@ -2237,6 +2355,20 @@ export function createHrxRuntimeContext({ repository: providedRepository, store,
         },
       })
     : null;
+  const leaveAccrualBatchService = store && leaveAccrualService
+    ? createLeaveAccrualBatchService({
+        store,
+        accrualService: leaveAccrualService,
+        ...(runtimeClock ? { clock: runtimeClock } : {}),
+      })
+    : null;
+  const leaveOccurrenceUploadBatchService = store && leaveAccrualService
+    ? createLeaveOccurrenceUploadBatchService({
+        store,
+        manualService: leaveAccrualService,
+        ...(runtimeClock ? { clock: runtimeClock } : {}),
+      })
+    : null;
   const leaveReportingService = store
     ? createLeaveReportingService({
         store,
@@ -2266,8 +2398,22 @@ export function createHrxRuntimeContext({ repository: providedRepository, store,
         store,
         providers: leaveIntegrationProviders ?? createInternalLeaveIntegrationProviders(),
         terminationDeliveryRecorder: (context, input) => leaveTerminationService.recordPayrollDelivery(context, input),
+        promotionDeliveryRecorder: (context, input) => {
+          const recipient = store.query("selectOne", { table: "hrx_leave_promotion_recipients", where: { tenant_id: context.tenant_id, recipient_id: input.recipient_id } });
+          if (!recipient) throw new TypeError("Leave promotion recipient not found");
+          return leavePromotionService.recordEvidence({ ...context, authorized_employee_ids: [recipient.employee_id] }, input.recipient_id, input);
+        },
         clock: runtimeClock,
       })
+    : null;
+  const leaveEntitlementReadService = store
+    ? createLeaveEntitlementReadService({ store, ...(runtimeClock ? { clock: runtimeClock } : {}) })
+    : null;
+  const leaveEntitlementCommandService = store
+    ? createLeaveEntitlementCommandService({ store, ...(runtimeClock ? { clock: runtimeClock } : {}) })
+    : null;
+  const leaveExpirationService = store
+    ? createLeaveExpirationService({ store, ...(runtimeClock ? { clock: runtimeClock } : {}) })
     : null;
   const leaveManagementService = store
     ? createDurableLeaveManagementService({
@@ -2294,7 +2440,10 @@ export function createHrxRuntimeContext({ repository: providedRepository, store,
   const aiReviewQueue = store ? createSqlHrxAiReviewQueue({ store }) : createInMemoryHrxAiReviewQueue();
   const resolvedModelGateway = modelGateway ?? createHrxModelGatewayFromEnv();
   const aiRoute = createHrxAiRoute({ retriever: aiRetriever, reviewQueue: aiReviewQueue, audit, modelGateway: resolvedModelGateway });
+  if (store && seedPayrollRuntime) seedSyntheticPayrollRuntimeStore(store, seedTenantIds, { ...(runtimeClock ? { clock: runtimeClock } : {}) });
+  const payrollRuntime = createHrxPayrollRuntime({ store, ...(runtimeClock ? { clock: runtimeClock } : {}) });
   const payrollRoute = createHrxPayrollRoute({ audit });
+  const payrollRuntimeRoute = createHrxPayrollRuntimeRoute({ runtime: payrollRuntime, store, ...(runtimeClock ? { clock: runtimeClock } : {}) });
   const matterAssignments = Object.freeze(seedTenantIds.flatMap(matterAssignmentSeed));
   const matterTimeEntryRows = Object.freeze(matterTimeEntries ?? seedTenantIds.flatMap(matterTimeEntrySeed));
   const matterDeadlineRows = Object.freeze(matterDeadlines ?? seedTenantIds.flatMap(matterDeadlineSeed));
@@ -2335,10 +2484,15 @@ export function createHrxRuntimeContext({ repository: providedRepository, store,
     leaveManagementService,
     leaveDelegationService,
     leaveAccrualService,
+    leaveAccrualBatchService,
+    leaveOccurrenceUploadBatchService,
     leaveReportingService,
     leaveTerminationService,
     leavePromotionService,
     leaveIntegrationService,
+    leaveEntitlementCommandService,
+    leaveEntitlementReadService,
+    leaveExpirationService,
     leaveManagementStore: store ?? null,
     attendance,
     overtime,
@@ -2364,6 +2518,8 @@ export function createHrxRuntimeContext({ repository: providedRepository, store,
     modelGateway: resolvedModelGateway,
     aiRoute,
     payrollRoute,
+    payrollRuntime,
+    payrollRuntimeRoute,
     matterAssignments,
     matterTimeEntries: matterTimeEntryRows,
     matterDeadlines: matterDeadlineRows,
@@ -3200,11 +3356,168 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       }
     }
 
+    if (pathname.startsWith("/api/hrx/leave/entitlements")) {
+      const readService = context.leaveEntitlementReadService;
+      const commandService = context.leaveEntitlementCommandService;
+      const expirationService = context.leaveExpirationService;
+      if (!readService || !commandService || !expirationService || !context.leaveManagementStore) {
+        return response(503, { outcome: "blocked", safe_error_code: "HRX_LEAVE_ENTITLEMENT_STORE_REQUIRED" });
+      }
+      const readScopes = [
+        "hrx.leave.self.read",
+        "hrx.leave.team.read",
+        "hrx.leave.policy.read",
+        "hrx.leave.policy.write",
+        "hrx.leave.ledger.adjust",
+        "hrx.leave.report.export",
+      ];
+      const entitlementContext = Object.freeze({
+        ...actorContext,
+        authorized_employee_ids: leaveEntitlementAuthorizedEmployeeIds(context, actorContext),
+      });
+      if (pathname === "/api/hrx/leave/entitlements" && method === "GET") {
+        if (!readScopes.some((scope) => actorContext.hrx_scopes.includes(scope))) {
+          return response(403, { outcome: "blocked", safe_error_code: "HRX_LEAVE_ENTITLEMENT_READ_DENIED", count_leak_prevented: true, fail_closed: true });
+        }
+        const result = readService.list(entitlementContext, query);
+        appendRuntimeAudit(context.audit, {
+          ...actorContext,
+          action: "hrx.leave.entitlement.list",
+          object_type: "LeaveEntitlement",
+          object_id: "entitlements",
+          reason: "leave_entitlements_listed",
+          metadata: { result_count: result.rows.length, lifecycle_state: query.state ?? null },
+        });
+        return response(200, {
+          outcome: "ok",
+          entitlements: result.rows.map((row) => leaveEntitlementApiView(context, tenantId, row)),
+          pagination: { total: result.total, limit: result.limit, next_cursor: result.next_cursor },
+        });
+      }
+      const entitlementDetail = pathname.match(/^\/api\/hrx\/leave\/entitlements\/([^/]+)$/);
+      if (entitlementDetail && method === "GET") {
+        if (!readScopes.some((scope) => actorContext.hrx_scopes.includes(scope))) {
+          return response(403, { outcome: "blocked", safe_error_code: "HRX_LEAVE_ENTITLEMENT_READ_DENIED", count_leak_prevented: true, fail_closed: true });
+        }
+        const entitlementId = decodeURIComponent(entitlementDetail[1]);
+        const row = readService.detail(entitlementContext, entitlementId, query);
+        if (!row) return response(404, { outcome: "not_found", safe_error_code: "HRX_LEAVE_ENTITLEMENT_NOT_FOUND", count_leak_prevented: true });
+        appendRuntimeAudit(context.audit, {
+          ...actorContext,
+          action: "hrx.leave.entitlement.read",
+          object_type: "LeaveEntitlement",
+          object_id: entitlementId,
+          reason: "leave_entitlement_read",
+        });
+        return response(200, { outcome: "ok", entitlement: leaveEntitlementApiView(context, tenantId, row) });
+      }
+      if (!actorContext.hrx_scopes.includes("hrx.leave.ledger.adjust")) {
+        return response(403, { outcome: "blocked", safe_error_code: "HRX_LEAVE_ENTITLEMENT_WRITE_DENIED", count_leak_prevented: true, fail_closed: true });
+      }
+      const scheduledPatch = pathname.match(/^\/api\/hrx\/leave\/entitlements\/([^/]+)$/);
+      if (scheduledPatch && method === "PATCH") {
+        if (actorContext.step_up_verified !== true) {
+          return response(403, { outcome: "blocked", safe_error_code: "HRX_STEP_UP_REQUIRED", step_up_required: true, required_purpose: "leave_ledger_adjustment", fail_closed: true });
+        }
+        return response(200, { outcome: "updated", entitlement: commandService.patchScheduled(actorContext, { ...body, entitlement_id: decodeURIComponent(scheduledPatch[1]) }) });
+      }
+      const entitlementCommand = pathname.match(/^\/api\/hrx\/leave\/entitlements\/([^/]+)\/(cancel|adjust)$/);
+      if (entitlementCommand && method === "POST") {
+        if (actorContext.step_up_verified !== true) {
+          return response(403, { outcome: "blocked", safe_error_code: "HRX_STEP_UP_REQUIRED", step_up_required: true, required_purpose: "leave_ledger_adjustment", fail_closed: true });
+        }
+        const input = { ...body, entitlement_id: decodeURIComponent(entitlementCommand[1]) };
+        return response(200, {
+          outcome: entitlementCommand[2] === "cancel" ? "cancelled" : "adjusted",
+          entitlement: entitlementCommand[2] === "cancel"
+            ? commandService.cancelScheduled(actorContext, input)
+            : commandService.adjustActive(actorContext, input),
+        });
+      }
+      if (pathname === "/api/hrx/leave/entitlements/expiration-preview" && method === "POST") {
+        return response(200, { outcome: "previewed", preview: expirationService.preview(actorContext, body) });
+      }
+      if (pathname === "/api/hrx/leave/entitlements/expiration-execute" && method === "POST") {
+        if (actorContext.step_up_verified !== true) {
+          return response(403, { outcome: "blocked", safe_error_code: "HRX_STEP_UP_REQUIRED", step_up_required: true, required_purpose: "leave_ledger_adjustment", fail_closed: true });
+        }
+        return response(200, { outcome: "executed", execution: expirationService.execute(actorContext, body) });
+      }
+      return response(405, { outcome: "blocked", safe_error_code: "METHOD_NOT_ALLOWED" });
+    }
+
     if (pathname.startsWith("/api/hrx/leave/accrual")) {
       const service = context.leaveAccrualService;
+      const batchService = context.leaveAccrualBatchService;
+      const uploadService = context.leaveOccurrenceUploadBatchService;
       const store = context.leaveManagementStore;
       if (!service || !store) {
         return response(503, { outcome: "blocked", safe_error_code: "HRX_LEAVE_ACCRUAL_STORE_REQUIRED" });
+      }
+      if (pathname.startsWith("/api/hrx/leave/accrual/batches")) {
+        if (!batchService) return response(503, { outcome: "blocked", safe_error_code: "HRX_LEAVE_ACCRUAL_BATCH_STORE_REQUIRED" });
+        const batchExport = pathname.match(/^\/api\/hrx\/leave\/accrual\/batches\/([^/]+)\/export$/);
+        const requiredScope = batchExport ? "hrx.leave.report.export" : "hrx.leave.accrual.execute";
+        if (!actorContext.hrx_scopes.includes(requiredScope)) {
+          return response(403, { outcome: "blocked", safe_error_code: "HRX_LEAVE_ACCRUAL_BATCH_SCOPE_DENIED", count_leak_prevented: true, fail_closed: true });
+        }
+        if (batchExport && method === "GET") {
+          const batchId = decodeURIComponent(batchExport[1]);
+          const exported = batchService.exportReceipt(actorContext, { accrual_batch_id: batchId, format: query.format });
+          appendRuntimeAudit(context.audit, {
+            ...actorContext,
+            action: "hrx.leave.accrual.batch.export",
+            object_type: "LeaveAccrualBatch",
+            object_id: batchId,
+            reason: "leave_accrual_batch_exported",
+            metadata: { format: exported.format, row_count: exported.export_totals.row_count, snapshot_hash: exported.snapshot_hash },
+          });
+          return response(200, { outcome: "exported", export: exported });
+        }
+        if (pathname === "/api/hrx/leave/accrual/batches/preview" && method === "POST") {
+          const batch = batchService.preview(actorContext, body);
+          appendRuntimeAudit(context.audit, {
+            ...actorContext,
+            action: "hrx.leave.accrual.batch.preview",
+            object_type: "LeaveAccrualBatch",
+            object_id: batch.accrual_batch_id,
+            reason: "leave_accrual_batch_previewed",
+            metadata: { period_count: batch.period_count, status: batch.status },
+          });
+          return response(200, { outcome: "previewed", batch });
+        }
+        const batchCommand = pathname.match(/^\/api\/hrx\/leave\/accrual\/batches\/([^/]+)\/(execute|retry)$/);
+        if (batchCommand && method === "POST") {
+          if (actorContext.step_up_verified !== true) {
+            return response(403, {
+              outcome: "blocked",
+              safe_error_code: "HRX_STEP_UP_REQUIRED",
+              step_up_required: true,
+              required_purpose: "leave_accrual_execute",
+              fail_closed: true,
+            });
+          }
+          const batchId = decodeURIComponent(batchCommand[1]);
+          const command = batchCommand[2];
+          const batch = command === "execute"
+            ? batchService.execute(actorContext, { ...body, preview_batch_id: batchId })
+            : batchService.resume(actorContext, { ...body, accrual_batch_id: batchId });
+          appendRuntimeAudit(context.audit, {
+            ...actorContext,
+            action: `hrx.leave.accrual.batch.${command}`,
+            object_type: "LeaveAccrualBatch",
+            object_id: batch.accrual_batch_id,
+            reason: command === "retry" ? "leave_accrual_batch_retried" : "leave_accrual_batch_executed",
+            metadata: { period_count: batch.period_count, status: batch.status, replayed: batch.replayed === true },
+          });
+          return response(200, { outcome: command === "execute" ? "executed" : "resumed", batch });
+        }
+        const batchDetail = pathname.match(/^\/api\/hrx\/leave\/accrual\/batches\/([^/]+)$/);
+        if (batchDetail && method === "GET") {
+          const batchId = decodeURIComponent(batchDetail[1]);
+          return response(200, { outcome: "ok", batch: batchService.read(actorContext, { accrual_batch_id: batchId }) });
+        }
+        return response(405, { outcome: "blocked", safe_error_code: "METHOD_NOT_ALLOWED" });
       }
       if (pathname === "/api/hrx/leave/accrual/rules" && method === "GET") {
         return response(200, { outcome: "ok", rules: service.listRules(actorContext) });
@@ -3242,16 +3555,59 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
           }));
         return response(200, { outcome: "ok", documents });
       }
+      if (pathname === "/api/hrx/leave/accrual/manual/template" && method === "GET") {
+        return response(200, { outcome: "ok", template: service.manualTemplate() });
+      }
+      if (pathname === "/api/hrx/leave/accrual/manual/uploads/preview" && method === "POST") {
+        if (!uploadService) return response(503, { outcome: "blocked", safe_error_code: "HRX_LEAVE_OCCURRENCE_UPLOAD_STORE_REQUIRED" });
+        const batch = uploadService.preview(actorContext, body);
+        appendRuntimeAudit(context.audit, {
+          ...actorContext,
+          action: "hrx.leave.occurrence.upload.preview",
+          object_type: "LeaveOccurrenceUploadBatch",
+          object_id: batch.upload_batch_id,
+          reason: "leave_occurrence_upload_previewed",
+          metadata: { row_count: batch.row_count, preview_error_count: batch.counts.preview_errors },
+        });
+        return response(200, { outcome: "previewed", batch });
+      }
+      const uploadCommand = pathname.match(/^\/api\/hrx\/leave\/accrual\/manual\/uploads\/([^/]+)\/(execute|retry)$/);
+      if (uploadCommand && method === "POST") {
+        if (!uploadService) return response(503, { outcome: "blocked", safe_error_code: "HRX_LEAVE_OCCURRENCE_UPLOAD_STORE_REQUIRED" });
+        if (actorContext.step_up_verified !== true) return response(403, { outcome: "blocked", safe_error_code: "HRX_STEP_UP_REQUIRED", step_up_required: true, required_purpose: "leave_ledger_adjustment", fail_closed: true });
+        const batchId = decodeURIComponent(uploadCommand[1]);
+        const command = uploadCommand[2];
+        const batch = command === "execute"
+          ? uploadService.execute(actorContext, { ...body, upload_batch_id: batchId })
+          : uploadService.resume(actorContext, { ...body, upload_batch_id: batchId });
+        appendRuntimeAudit(context.audit, {
+          ...actorContext,
+          action: `hrx.leave.occurrence.upload.${command}`,
+          object_type: "LeaveOccurrenceUploadBatch",
+          object_id: batch.upload_batch_id,
+          reason: command === "execute" ? "leave_occurrence_upload_executed" : "leave_occurrence_upload_resumed",
+          metadata: { status: batch.status, completed_count: batch.counts.completed, failed_count: batch.counts.failed, new_entries: batch.counts.new_entries },
+        });
+        return response(200, { outcome: command === "execute" ? "executed" : "resumed", batch });
+      }
+      const uploadDetail = pathname.match(/^\/api\/hrx\/leave\/accrual\/manual\/uploads\/([^/]+)$/);
+      if (uploadDetail && method === "GET") {
+        if (!uploadService) return response(503, { outcome: "blocked", safe_error_code: "HRX_LEAVE_OCCURRENCE_UPLOAD_STORE_REQUIRED" });
+        return response(200, { outcome: "ok", batch: uploadService.read(actorContext, { upload_batch_id: decodeURIComponent(uploadDetail[1]) }) });
+      }
       if (pathname === "/api/hrx/leave/accrual/manual/preview" && method === "POST") {
         return response(200, { outcome: "previewed", preview: service.previewManual(actorContext, body) });
       }
       if (pathname === "/api/hrx/leave/accrual/manual/execute" && method === "POST") {
+        if (actorContext.step_up_verified !== true) {
+          return response(403, { outcome: "blocked", safe_error_code: "HRX_STEP_UP_REQUIRED", step_up_required: true, required_purpose: "leave_ledger_adjustment", fail_closed: true });
+        }
         return response(200, { outcome: "executed", result: service.executeManual(actorContext, body) });
       }
       return response(405, { outcome: "blocked", safe_error_code: "METHOD_NOT_ALLOWED" });
     }
 
-    if (pathname.startsWith("/api/hrx/leave/ledger") || pathname === "/api/hrx/leave/reports/export") {
+    if (pathname.startsWith("/api/hrx/leave/ledger") || pathname.startsWith("/api/hrx/leave/occurrences") || pathname === "/api/hrx/leave/reports/export") {
       const service = context.leaveReportingService;
       if (!service) return response(503, { outcome: "blocked", safe_error_code: "HRX_LEAVE_REPORT_STORE_REQUIRED" });
       if (!["hrx.leave.self.read", "hrx.leave.team.read", "hrx.leave.report.export"].some((scope) => actorContext.hrx_scopes.includes(scope))) {
@@ -3261,6 +3617,18 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         ...actorContext,
         authorized_employee_ids: leaveReportAuthorizedEmployeeIds(context, actorContext),
       });
+      if (pathname === "/api/hrx/leave/occurrences" && method === "GET") {
+        return response(200, { outcome: "ok", occurrences: service.queryOccurrences(reportContext, query) });
+      }
+      if (pathname === "/api/hrx/leave/occurrences/projections" && method === "GET") {
+        return response(200, { outcome: "ok", projections: service.occurrenceProjections(reportContext, query) });
+      }
+      if (pathname === "/api/hrx/leave/occurrences/export" && method === "GET") {
+        if (!actorContext.hrx_scopes.includes("hrx.leave.report.export")) {
+          return response(403, { outcome: "blocked", safe_error_code: "HRX_LEAVE_REPORT_EXPORT_SCOPE_DENIED", count_leak_prevented: true, fail_closed: true });
+        }
+        return response(200, { outcome: "exported", export: service.exportOccurrences(reportContext, query) });
+      }
       if (pathname === "/api/hrx/leave/ledger" && method === "GET") {
         return response(200, { outcome: "ok", report: service.query(reportContext, query) });
       }
@@ -3296,6 +3664,18 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
           return response(403, { outcome: "blocked", safe_error_code: "HRX_LEAVE_INTEGRATION_PROCESS_DENIED", count_leak_prevented: true, fail_closed: true });
         }
         return service.process(actorContext, { limit: body.limit, event_ids: body.event_ids, force: true }).then((result) => response(200, { outcome: "processed", integration: result }));
+      }
+      const deadLetterRetryMatch = pathname.match(/^\/api\/hrx\/leave\/integrations\/dead-letters\/([^/]+)\/retry$/);
+      if (deadLetterRetryMatch && method === "POST") {
+        if (!actorContext.hrx_scopes.includes("hrx.leave.policy.write")) {
+          return response(403, { outcome: "blocked", safe_error_code: "HRX_LEAVE_INTEGRATION_RETRY_DENIED", count_leak_prevented: true, fail_closed: true });
+        }
+        try {
+          const deadLetter = service.retryDeadLetter(actorContext, decodeURIComponent(deadLetterRetryMatch[1]));
+          return response(200, { outcome: "requeued", dead_letter: deadLetter, integration: service.list(actorContext) });
+        } catch (error) {
+          return safeError(error);
+        }
       }
       return response(405, { outcome: "blocked", safe_error_code: "METHOD_NOT_ALLOWED" });
     }
@@ -3349,6 +3729,17 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       }
       if (pathname === "/api/hrx/leave/promotion-campaigns" && method === "POST") {
         return response(201, { outcome: "created", campaign: service.create(promotionContext, body) });
+      }
+      const batchCommand = pathname.match(/^\/api\/hrx\/leave\/promotion-campaigns\/([^/]+)\/issue-batch$/);
+      if (batchCommand && method === "POST") {
+        const campaignId = decodeURIComponent(batchCommand[1]);
+        return response(200, { outcome: "queued", batch: service.issueBatch(promotionContext, { ...body, campaign_id: campaignId }) });
+      }
+      const evidenceRevocation = pathname.match(/^\/api\/hrx\/leave\/promotion-recipients\/([^/]+)\/evidence\/([^/]+)\/revoke$/);
+      if (evidenceRevocation && method === "POST") {
+        const recipientId = decodeURIComponent(evidenceRevocation[1]);
+        const receiptId = decodeURIComponent(evidenceRevocation[2]);
+        return response(200, { outcome: "evidence_revoked", recipient: service.revokeEvidence(promotionContext, recipientId, receiptId, body) });
       }
       const recipientCommand = pathname.match(/^\/api\/hrx\/leave\/promotion-recipients\/([^/]+)\/(first-notice|second-notice|evidence|response)$/);
       if (recipientCommand && method === "POST") {
@@ -3431,6 +3822,8 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       if (selfRequestMatch && method === "PATCH") {
         const employeeId = requireSingleEmployeeForActor(context, actorContext);
         const requestId = decodeURIComponent(selfRequestMatch[1]);
+        const request = store.query("selectOne", { table: "hrx_leave_requests", where: { tenant_id: tenantId, request_id: requestId } });
+        if (!request || request.employee_id !== employeeId) return hiddenLeaveResourceResponse();
         return service.amendSubmitted(actorContext, {
           ...body,
           request_id: requestId,
@@ -3442,6 +3835,8 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       if (selfCommandMatch && method === "POST") {
         const employeeId = requireSingleEmployeeForActor(context, actorContext);
         const requestId = decodeURIComponent(selfCommandMatch[1]);
+        const request = store.query("selectOne", { table: "hrx_leave_requests", where: { tenant_id: tenantId, request_id: requestId } });
+        if (!request || request.employee_id !== employeeId) return hiddenLeaveResourceResponse();
         const command = selfCommandMatch[2];
         const applicantIds = applicantActorIds(context, tenantId, employeeId);
         if (command === "cancel") {
@@ -3470,11 +3865,31 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         return response(200, { outcome: "ok", approvals: assignedLeaveApprovalQueue(context, actorContext) });
       }
 
+      const attachmentDownloadMatch = pathname.match(/^\/api\/hrx\/leave\/requests\/([^/]+)\/attachments\/([^/]+)\/download$/);
+      if (attachmentDownloadMatch && method === "GET") {
+        const requestId = decodeURIComponent(attachmentDownloadMatch[1]);
+        const attachmentId = decodeURIComponent(attachmentDownloadMatch[2]);
+        const authorization = leaveAttachmentDownloadAuthorization(context, actorContext, requestId, attachmentId);
+        if (!authorization) return hiddenLeaveResourceResponse();
+        appendRuntimeAudit(context.audit, {
+          ...actorContext,
+          action: "hrx.leave.attachment.download.authorize",
+          object_type: "LeaveRequestAttachment",
+          object_id: attachmentId,
+          reason: "leave_attachment_download_authorized",
+          metadata: { request_id: requestId, access_level: authorization.access_level, document_body_included: false },
+        });
+        return response(200, { outcome: "authorized", authorization });
+      }
+
       const managerCommandMatch = pathname.match(/^\/api\/hrx\/leave\/requests\/([^/]+)\/(approve|reject|reschedule|request-info)$/);
       if (managerCommandMatch && method === "POST") {
         const requestId = decodeURIComponent(managerCommandMatch[1]);
+        if (!assignedLeaveApprovalQueue(context, actorContext).some((approval) => approval.object_id === requestId)) {
+          return hiddenLeaveResourceResponse();
+        }
         const request = store.query("selectOne", { table: "hrx_leave_requests", where: { tenant_id: tenantId, request_id: requestId } });
-        if (!request) return response(404, { outcome: "not_found", safe_error_code: "HRX_LEAVE_REQUEST_NOT_FOUND" });
+        if (!request) return hiddenLeaveResourceResponse();
         const applicantIds = applicantActorIds(context, tenantId, request.employee_id);
         const command = managerCommandMatch[2];
         if (command === "approve") {
@@ -4071,6 +4486,73 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         query,
         body,
       });
+    }
+
+    if (pathname === "/api/hrx/payroll/periods" && method === "GET" && context.payrollRuntimeRoute) {
+      return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action: "list" }, query, body });
+    }
+    if (pathname === "/api/hrx/payroll/periods" && method === "POST" && context.payrollRuntimeRoute) {
+      return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action: "period-create" }, query, body });
+    }
+    if (pathname === "/api/hrx/payroll/runs" && method === "POST" && context.payrollRuntimeRoute) {
+      return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action: "run-create" }, query, body });
+    }
+    if (pathname === "/api/hrx/payroll/statements/self" && method === "GET" && context.payrollRuntimeRoute) {
+      return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action: "statements-self" }, query, body });
+    }
+    const payrollStatementMatch = pathname.match(/^\/api\/hrx\/payroll\/statements\/([^/]+)\/(download|revoke)$/);
+    if (payrollStatementMatch && context.payrollRuntimeRoute && ((method === "GET" && payrollStatementMatch[2] === "download") || (method === "POST" && payrollStatementMatch[2] === "revoke"))) {
+      return context.payrollRuntimeRoute.handle({
+        method,
+        context: actorContext,
+        params: { action: payrollStatementMatch[2] === "download" ? "statement-read" : "statement-revoke", statement_id: decodeURIComponent(payrollStatementMatch[1]) },
+        query,
+        body,
+      });
+    }
+    const payrollRunDocumentMatch = pathname.match(/^\/api\/hrx\/payroll\/runs\/([^/]+)\/(statements|export)(?:\/(generate|deliver))?$/);
+    if (payrollRunDocumentMatch && context.payrollRuntimeRoute && (method === "GET" || method === "POST")) {
+      const [, runId, resource, operation] = payrollRunDocumentMatch;
+      const action = resource === "export" ? "statement-export" : operation === "generate" ? "statements-generate" : operation === "deliver" ? "statements-deliver" : "statements-list";
+      return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action, run_id: decodeURIComponent(runId) }, query, body });
+    }
+    const payrollRunOperationsMatch = pathname.match(/^\/api\/hrx\/payroll\/runs\/([^/]+)\/(payments|filings)(?:\/(prepare))?$/);
+    if (payrollRunOperationsMatch && context.payrollRuntimeRoute && (method === "GET" || method === "POST")) {
+      const [, runId, resource, operation] = payrollRunOperationsMatch;
+      const action = resource === "payments" ? "payment-prepare" : method === "POST" ? "filing-create" : "filing-list";
+      return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action, run_id: decodeURIComponent(runId) }, query, body });
+    }
+    const payrollYearEndMatch = pathname.match(/^\/api\/hrx\/payroll\/runs\/([^/]+)\/year-end\/(collect|calculate|review)$/);
+    if (payrollYearEndMatch && method === "POST" && context.payrollRuntimeRoute) {
+      return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action: `year-end-${payrollYearEndMatch[2]}`, run_id: decodeURIComponent(payrollYearEndMatch[1]) }, query, body });
+    }
+    const payrollPaymentMatch = pathname.match(/^\/api\/hrx\/payroll\/payment-batches\/([^/]+)(?:\/(approve|export|reconcile))?$/);
+    if (payrollPaymentMatch && context.payrollRuntimeRoute && (method === "GET" || method === "POST")) {
+      return context.payrollRuntimeRoute.handle({
+        method,
+        context: actorContext,
+        params: { action: payrollPaymentMatch[2] ? `payment-${payrollPaymentMatch[2]}` : "payment-bundle", payment_batch_id: decodeURIComponent(payrollPaymentMatch[1]) },
+        query,
+        body,
+      });
+    }
+    const payrollFilingMatch = pathname.match(/^\/api\/hrx\/payroll\/filings\/([^/]+)\/(validate|submit|correct)$/);
+    if (payrollFilingMatch && method === "POST" && context.payrollRuntimeRoute) {
+      return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action: `filing-${payrollFilingMatch[2]}`, filing_job_id: decodeURIComponent(payrollFilingMatch[1]) }, query, body });
+    }
+    const payrollRunMatch = pathname.match(/^\/api\/hrx\/payroll\/runs\/([^/]+)(?:\/(snapshot|preview|approve|close))?$/);
+    if (payrollRunMatch && context.payrollRuntimeRoute && (method === "GET" || method === "POST")) {
+      return context.payrollRuntimeRoute.handle({
+        method,
+        context: actorContext,
+        params: { action: payrollRunMatch[2] ?? "bundle", run_id: decodeURIComponent(payrollRunMatch[1]) },
+        query,
+        body,
+      });
+    }
+    const payrollIssueMatch = pathname.match(/^\/api\/hrx\/payroll\/issues\/([^/]+)\/resolve$/);
+    if (payrollIssueMatch && method === "POST" && context.payrollRuntimeRoute) {
+      return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action: "issue-resolve", issue_id: decodeURIComponent(payrollIssueMatch[1]) }, query, body });
     }
 
     const payrollMatch = pathname.match(/^\/api\/hrx\/payroll(?:\/(preview|approve|export))?$/);

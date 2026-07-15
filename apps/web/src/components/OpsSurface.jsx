@@ -64,7 +64,6 @@ export function OpsSurface({ labels, liveCtx = "allow" }) {
       <PageHeader
         eyebrow="운영"
         title={labels.opsTitle}
-        subtitle="접근, 보안, 장애 대응, Client 지원에 필요한 운영 항목을 확인합니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />
@@ -73,13 +72,13 @@ export function OpsSurface({ labels, liveCtx = "allow" }) {
         }
       />
       <div className="readiness-grid">
-        <Panel className="span-2" title="운영 확인" meta="담당자 확인">
+        <Panel className="span-2" title="운영 확인">
           <div className="portal-safe-strip">
             <ShieldCheck size={15} />
             <span>담당자가 필요한 항목을 확인한 뒤 실제 업무에 반영합니다.</span>
           </div>
         </Panel>
-        <Panel className="span-2" title="확인 항목" meta="업무 목록">
+        <Panel className="span-2" title="확인 항목">
           {body}
         </Panel>
         <Panel title="담당자 결정" meta="확인 대기">

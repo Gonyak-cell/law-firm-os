@@ -14,13 +14,11 @@ import {
   MessageCircle,
   Plus,
   RefreshCw,
-  Receipt,
   Search,
   Settings,
   Share2,
   ShieldCheck,
   Tags,
-  Umbrella,
   UserPlus,
   X
 } from "lucide-react";
@@ -58,6 +56,19 @@ const peopleIconMap = {
 };
 
 const peopleGlobalGroupLabels = new Set(["요청/전자결재", "리포트", "메시지", "전자계약", "회사 설정"]);
+const hiddenPeopleSidebarGroupLabels = new Set(["근무일정"]);
+const hiddenPeopleSidebarSections = new Set([
+  "people-role",
+  "people-work-profile",
+  "people-pay-work-profile",
+  "people-unscheduled-attendance",
+  "people-attendance-upload",
+  "people-leave-accrual-manual",
+  "people-break-records",
+  "people-attendance-missing-alerts",
+  "people-attendance-lock",
+  "people-attendance-verification"
+]);
 const genericSessionDisplayNames = new Set(["사용자", "세션 사용자"]);
 const searchClockFormatter = new Intl.DateTimeFormat("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
 const searchDateFormatter = new Intl.DateTimeFormat("ko-KR", { month: "numeric", day: "numeric" });
@@ -166,9 +177,11 @@ function searchHistoryTime(value, relative = false) {
 
 function peopleSidebarGroups({ canManageLeavePolicy = false, canApproveLeave = false, canExecuteLeaveAccrual = false, canAdjustLeaveLedger = false, canSettleLeaveTermination = false, canManageLeavePromotion = false } = {}) {
   return peopleNavigationGroups.map((group) => {
+    if (hiddenPeopleSidebarGroupLabels.has(group.label)) return null;
     if (peopleGlobalGroupLabels.has(group.label) && group.label !== "요청/전자결재") return null;
     const GroupIcon = peopleIconMap[group.icon] ?? ClipboardList;
     const children = group.children
+      .filter((child) => !hiddenPeopleSidebarSections.has(child.section))
       .filter((child) => group.label !== "요청/전자결재" || ["people-leave-requests", "people-annual-leave-notices"].includes(child.section))
       .filter((child) => !isLegacyGlobalRoute("people", child.section))
       .filter((child) => child.requiredScope !== "hrx.leave.policy.read" || canManageLeavePolicy)
@@ -178,6 +191,17 @@ function peopleSidebarGroups({ canManageLeavePolicy = false, canApproveLeave = f
       .filter((child) => child.requiredScope !== "hrx.leave.termination.settle" || canSettleLeaveTermination)
       .filter((child) => child.requiredScope !== "hrx.leave.promotion.manage" || canManageLeavePromotion);
     if (children.length === 0) return null;
+    if (children.length === 1 && children[0].section === "people-attendance-records") {
+      const child = children[0];
+      return {
+        label: group.label,
+        view: "people",
+        section: child.section,
+        icon: GroupIcon,
+        count: typeof child.badge === "number" ? child.badge : null,
+        active: child.active
+      };
+    }
     return {
       label: group.label,
       icon: GroupIcon,
@@ -188,7 +212,7 @@ function peopleSidebarGroups({ canManageLeavePolicy = false, canApproveLeave = f
           view: "people",
           section: child.section,
           icon: ChildIcon,
-          count: child.badge,
+          count: typeof child.badge === "number" ? child.badge : null,
           active: child.active
         };
       })
@@ -266,21 +290,15 @@ function utilityDrawerConfigFor(labels = {}) {
   return {
     notifications: {
       title: shellLabel(labels, "utilityNotificationsTitle", "알림"),
-      subtitle: shellLabel(labels, "utilityNotificationsSubtitle", "작업 알림과 검토 신호"),
-      section: "home-dashboard",
-      empty: shellLabel(labels, "utilityNotificationsEmpty", "새 알림이 없습니다.")
+      section: "home-dashboard"
     },
     messages: {
       title: shellLabel(labels, "utilityMessagesTitle", "메시지"),
-      subtitle: shellLabel(labels, "utilityMessagesSubtitle", "Matter 대화와 공지 메시지"),
-      section: "home-messages",
-      empty: shellLabel(labels, "utilityMessagesEmpty", "읽지 않은 메시지가 없습니다.")
+      section: "home-messages"
     },
     approvals: {
       title: shellLabel(labels, "utilityApprovalsTitle", "승인 대기"),
-      subtitle: shellLabel(labels, "utilityApprovalsSubtitle", "내 결재 차례인 요청"),
-      section: "home-requests",
-      empty: shellLabel(labels, "utilityApprovalsEmpty", "처리할 승인이 없습니다.")
+      section: "home-requests"
     }
   };
 }
@@ -579,7 +597,6 @@ export function UtilityDrawer({
         <header className="notification-drawer-header">
           <div>
             <h2 id={`${type}-utility-drawer-title`}>{config.title} <span>{count}</span></h2>
-            <p>{config.subtitle}</p>
           </div>
           <button type="button" className="icon-button" aria-label={`${config.title} ${shellLabel(labels, "closeLabel", "닫기")}`} onClick={onClose}>
             <X size={18} />
@@ -592,7 +609,6 @@ export function UtilityDrawer({
           </div>
         )}
         <div className="notification-stack">
-          {visibleItems.length === 0 && <p className="utility-empty-state">{config.empty}</p>}
           {visibleItems.map((item) => (
             <article className="notification-card" key={item.id} data-notification-card="stacked" data-notification-card-id={item.id} data-utility-drawer-card={type} data-home-message-drawer-item={type === "messages" ? item.id : undefined}>
               <div className="notification-avatar" aria-hidden="true">{item.initials}</div>
@@ -645,15 +661,7 @@ function homeSidebarMeta(labels = {}, financeAccessRecords = []) {
     actions: [
       { label: shellLabel(labels, "homeDashboardLabel", "대시보드"), view: "home", section: "home-dashboard", icon: LayoutDashboard, active: true },
       { label: shellLabel(labels, "homeTodoSidebarLabel", "할 일"), view: "home", section: "home-todo", icon: ClipboardList },
-      {
-        label: shellLabel(labels, "homeRequestsLabel", "승인 대기"),
-        icon: ShieldCheck,
-        groupId: "home-approvals",
-        children: [
-          { label: shellLabel(labels, "requestFilterLeave", "휴가"), view: "home", section: "home-requests-leave", icon: Umbrella },
-          { label: shellLabel(labels, "requestFilterExpenses", "비용처리"), view: "home", section: "home-requests-expenses", icon: Receipt }
-        ]
-      },
+      { label: shellLabel(labels, "homeRequestsLabel", "승인 대기"), view: "home", section: "home-requests", icon: ShieldCheck },
       { label: shellLabel(labels, "homeMeetingRoomsLabel", "회의실 예약"), view: "home", section: "home-meeting-rooms", icon: CalendarClock },
       { label: shellLabel(labels, "homeFeedSidebarLabel", "피드"), view: "home", section: "home-feed", icon: Bell },
       { label: shellLabel(labels, "homeCalendarSidebarLabel", "캘린더"), view: "home", section: "home-calendar", icon: CalendarDays },
@@ -724,7 +732,7 @@ export function buildContextualNavigation({
     .filter((item) => item.groupId !== "home-finance" || item.children.length > 0)
     .filter((item) => canViewCompanyStatus || item.section !== "home-company")
     .map((item) => {
-      if (item.groupId === "home-approvals") {
+      if (item.section === "home-requests") {
         return {
           ...item,
           count: Number(homeApprovalCount) > 0 ? Number(homeApprovalCount) : null,
@@ -861,8 +869,7 @@ export function buildContextualNavigation({
           icon: Search,
           children: [
             { label: shellLabel(labels, "searchDashboardLabel", "대시보드"), view: "vault", section: "vault-search-home", icon: LayoutDashboard, active: true },
-            { label: shellLabel(labels, "searchAllLabel", "전체 검색"), view: "vault", section: "vault-search-all", icon: Search },
-            { label: shellLabel(labels, "searchDocumentsLabel", "문서/OCR"), view: "vault", section: "vault-search-documents", icon: FileText }
+            { label: shellLabel(labels, "searchAllLabel", "전체 검색"), view: "vault", section: "vault-search-all", icon: Search }
           ]
         },
         {
@@ -920,10 +927,9 @@ export function Sidebar({
       if (cancelled) return;
       const desktopStatus = results[0]?.status === "fulfilled" ? results[0].value : null;
       const profileResult = results[1]?.status === "fulfilled" ? results[1].value : null;
-      if (desktopStatus) {
-        setProfileUser(desktopStatus);
-      } else if (profileResult?.kind === "data" && profileResult.item) {
-        setProfileUser(profileResult.item);
+      const profileItem = profileResult?.kind === "data" && profileResult.item ? profileResult.item : null;
+      if (desktopStatus || profileItem) {
+        setProfileUser({ ...(desktopStatus ?? {}), ...(profileItem ?? {}) });
       }
     });
     return () => {
@@ -1233,7 +1239,7 @@ export function GlobalSearch({ labels, query, setQuery, setView, history = { sta
               {section.rows.map((item, index) => {
                 const timestamp = section.fields.map((field) => item?.[field]).find(Boolean);
                 return (
-                  <button type="button" className="search-history-row" key={`${section.id}:${item.matter_id}`} onClick={() => openMatter(item)}>
+                  <button type="button" className="search-history-row" data-compact-record="true" key={`${section.id}:${item.matter_id}`} onClick={() => openMatter(item)}>
                     <FileText size={15} />
                     <strong>{searchMatterTitle(item, index)}</strong>
                     <time dateTime={timestamp}>{searchHistoryTime(timestamp, section.relative)}</time>

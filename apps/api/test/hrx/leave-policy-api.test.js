@@ -63,6 +63,99 @@ test("leave policy API creates tenant-scoped group, type, and published policy c
   store.close();
 });
 
+test("leave policy API normalizes, versions, reads, and freezes leave type economics", async () => {
+  const { store, context } = setup();
+  await request(context, "/api/hrx/leave/groups", "POST", {
+    group_id: "group-economics",
+    code: "ECONOMICS",
+    display_name: "차감 규칙",
+  });
+  await request(context, "/api/hrx/leave/types", "POST", {
+    leave_type_id: "type-economics",
+    group_id: "group-economics",
+    code: "ECONOMICS",
+    display_name: "시간 규칙",
+    request_unit: "minutes",
+  });
+
+  const created = await request(context, "/api/hrx/leave/policies", "POST", {
+    policy_version_id: "policy-economics-v1",
+    group_id: "group-economics",
+    policy_code: "economics-kr",
+    version: 1,
+    effective_from: "2026-01-01",
+    rules: {
+      type_rules: {
+        "type-economics": {
+          usage_modes: ["full_day", "half_day", "quarter_day", "hours"],
+          paid_ratio_bps: 10_000,
+          deduction_ratio_bps: 10_000,
+        },
+      },
+    },
+  });
+  assert.equal(created.status, 201);
+  assert.deepEqual(created.body.policy.rules.type_rules["type-economics"], {
+    usage_modes: ["full_day", "half_day", "quarter_day", "hours"],
+    standard_day_minutes: 480,
+    paid_ratio_bps: 10_000,
+    deduction_ratio_bps: 10_000,
+    rounding_minutes: 1,
+    rounding_mode: "none",
+  });
+
+  const updated = await request(context, "/api/hrx/leave/policies/policy-economics-v1", "PATCH", {
+    rules: {
+      type_rules: {
+        "type-economics": {
+          usage_modes: ["hours"],
+          standard_day_minutes: 480,
+          paid_ratio_bps: 5_000,
+          deduction_ratio_bps: 7_500,
+          rounding_minutes: 15,
+          rounding_mode: "ceil",
+        },
+      },
+    },
+  });
+  assert.equal(updated.status, 200);
+  assert.equal(updated.body.policy.rules.type_rules["type-economics"].paid_ratio_bps, 5_000);
+
+  const configuration = await request(context, "/api/hrx/leave/configuration");
+  assert.deepEqual(configuration.body.policies[0].rules.type_rules, updated.body.policy.rules.type_rules);
+
+  const published = await request(context, "/api/hrx/leave/policies/policy-economics-v1/publish", "POST");
+  assert.equal(published.status, 200);
+  const immutable = await request(context, "/api/hrx/leave/policies/policy-economics-v1", "PATCH", {
+    rules: { type_rules: {} },
+  });
+  assert.equal(immutable.status, 409);
+  assert.equal(immutable.body.safe_error_code, "HRX_LEAVE_POLICY_VERSION_IMMUTABLE");
+
+  const nextVersion = await request(context, "/api/hrx/leave/policies/policy-economics-v1/versions", "POST", {
+    policy_version_id: "policy-economics-v2",
+    effective_from: "2027-01-01",
+  });
+  assert.equal(nextVersion.status, 201);
+  assert.equal(nextVersion.body.policy.version, 2);
+  assert.deepEqual(nextVersion.body.policy.rules.type_rules, updated.body.policy.rules.type_rules);
+
+  const invalid = await request(context, "/api/hrx/leave/policies", "POST", {
+    policy_version_id: "policy-economics-invalid",
+    group_id: "group-economics",
+    policy_code: "economics-invalid",
+    version: 1,
+    effective_from: "2026-01-01",
+    rules: { type_rules: { "type-economics": { paid_ratio_bps: 10_001 } } },
+  });
+  assert.equal(invalid.status, 400);
+  assert.equal(invalid.body.safe_error_code, "HRX_API_VALIDATION_ERROR");
+
+  const otherTenant = await request(context, "/api/hrx/leave/configuration", "GET", {}, "tenant-policy-b");
+  assert.deepEqual(otherTenant.body.policies, []);
+  store.close();
+});
+
 test("leave policy routes require granular policy scopes and active type lookup uses self read", () => {
   assert.equal(
     resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/leave/configuration" }).required_scope,

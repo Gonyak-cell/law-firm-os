@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { CalendarCheck, Pencil, RotateCcw, Send, Users } from "lucide-react";
+import { Pencil, RotateCcw, Send, Users } from "lucide-react";
 import { Panel } from "../../components/primitives.jsx";
 import {
   amendHrxLeaveSelfRequest,
@@ -65,6 +65,23 @@ function evidenceRule(row: Row | null | undefined) {
   }
 }
 
+function policyRules(row: Row | null | undefined) {
+  const direct = row?.rules;
+  if (direct && typeof direct === "object" && !Array.isArray(direct)) return direct as Row;
+  try {
+    return JSON.parse(text(row, "rules_json") || "{}") as Row;
+  } catch {
+    return {};
+  }
+}
+
+const durationModes = [
+  ["full_day", "종일"],
+  ["half_day", "반일"],
+  ["quarter_day", "1/4일"],
+  ["hours", "시간"]
+] as const;
+
 function commandKey(prefix: string) {
   const value = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   return `${prefix}:${value}`;
@@ -73,6 +90,7 @@ function commandKey(prefix: string) {
 function formatMinutes(value: unknown) {
   const minutes = Number(value);
   if (!Number.isFinite(minutes)) return "확인 필요";
+  if (minutes < 60) return `${minutes}분`;
   if (minutes % 60 === 0) return `${minutes / 60}시간`;
   return `${Math.floor(minutes / 60)}시간 ${minutes % 60}분`;
 }
@@ -175,11 +193,28 @@ export function LeaveRequestPage({ canViewTeam = false }: { canViewTeam?: boolea
     () => availableTypes.find((row) => text(row, "leave_type_id") === form.leave_type_id) ?? null,
     [availableTypes, form.leave_type_id]
   );
+  const selectedPolicy = useMemo(
+    () => availablePolicies.find((row) => text(row, "policy_version_id") === form.policy_version_id) ?? null,
+    [availablePolicies, form.policy_version_id]
+  );
+  const allowedDurationModes = useMemo(() => {
+    const typeRules = policyRules(selectedPolicy).type_rules as Row | undefined;
+    const configured = typeRules?.[form.leave_type_id] as Row | undefined;
+    const modes = Array.isArray(configured?.usage_modes) ? configured.usage_modes : durationModes.map(([value]) => value);
+    return durationModes.map(([value]) => value).filter((value) => modes.includes(value));
+  }, [selectedPolicy, form.leave_type_id]);
   const selectedEvidenceRule = evidenceRule(selectedType);
   const reasonRequired = selectedEvidenceRule.reason_required === true && text(selectedType, "code") !== "ANNUAL";
   const attachmentRequired = selectedEvidenceRule.attachment_required === true;
   const selectedBalance = state?.balances.find((row) => text(row.group as Row, "group_id") === form.group_id) ?? state?.balances[0];
   const pendingCount = state?.requests.filter((request) => request.state === "submitted").length ?? 0;
+
+  useEffect(() => {
+    if (allowedDurationModes.length && !allowedDurationModes.includes(form.duration_mode)) {
+      setPreview(null);
+      setForm((current) => ({ ...current, duration_mode: allowedDurationModes[0] }));
+    }
+  }, [allowedDurationModes.join("|"), form.duration_mode]);
 
   function updateForm(patch: Partial<LeaveForm>) {
     setPreview(null);
@@ -253,15 +288,14 @@ export function LeaveRequestPage({ canViewTeam = false }: { canViewTeam?: boolea
     form.policy_version_id &&
     form.start_date &&
     form.end_date &&
+    allowedDurationModes.includes(form.duration_mode) &&
     (form.duration_mode !== "hours" || Number(form.hours) > 0) &&
     (!reasonRequired || form.reason_text.trim()) &&
     (!attachmentRequired || form.document_id)
   );
 
   return (
-    <Panel id="people-leave" className="people-panel span-2 leave-self-panel" title="휴가관리" meta="내 휴가">
-      <div className="people-panel-kicker"><CalendarCheck size={15} />잔여 휴가를 확인하고 근무일정에 맞춰 신청합니다</div>
-
+    <Panel id="people-leave" className="people-panel span-2 leave-self-panel" title="휴가관리">
       {state === null && <div className="live-data-state live-data-loading">휴가 정보를 불러오는 중입니다</div>}
       {error && <div className="live-data-state live-data-error" role="alert">{error}</div>}
 
@@ -276,14 +310,14 @@ export function LeaveRequestPage({ canViewTeam = false }: { canViewTeam?: boolea
 
           {canViewTeam && team && (
             <section className="leave-team-section" aria-labelledby="leave-team-title">
-              <div className="leave-form-section-title"><Users size={15} /><strong id="leave-team-title">팀 휴가</strong><span>유형과 사유는 공개하지 않습니다</span></div>
+              <div className="leave-form-section-title"><Users size={15} /><strong id="leave-team-title">팀 휴가</strong></div>
               <div className="leave-team-metrics">
                 <div><strong>{team.today_absence_count}명</strong><span>오늘 부재</span></div>
                 <div><strong>{team.absences.length}건</strong><span>향후 7일</span></div>
                 <div><strong>{team.pending_approval_count}건</strong><span>내 승인 대기</span></div>
               </div>
               <div className="leave-team-list">
-                {team.absences.length === 0 ? <span>향후 7일 팀 휴가가 없습니다.</span> : team.absences.map((absence, index) => <div key={`${text(absence, "employee_id")}:${text(absence, "start_date")}:${index}`}><strong>{text(absence, "employee_display_name")}</strong><span>{text(absence, "absence_label")} · {period(absence)}</span></div>)}
+                {team.absences.map((absence, index) => <div key={`${text(absence, "employee_id")}:${text(absence, "start_date")}:${index}`}><strong>{text(absence, "employee_display_name")}</strong><span>{period(absence)}</span></div>)}
                 {team.employees.map((employee) => {
                   const balance = rows(employee, "balances")[0];
                   return <div key={`balance:${text(employee, "employee_id")}`}><strong>{text(employee, "display_name")}</strong><span>사용 가능 {formatMinutes(number(balance, "available_minutes"))}</span></div>;
@@ -299,11 +333,11 @@ export function LeaveRequestPage({ canViewTeam = false }: { canViewTeam?: boolea
               <label><span>휴가 유형</span><select required value={form.leave_type_id} onChange={(event) => updateForm({ leave_type_id: event.target.value })}>{availableTypes.map((type) => <option key={text(type, "leave_type_id")} value={text(type, "leave_type_id")}>{text(type, "display_name")}</option>)}</select></label>
               <label><span>시작일</span><input required type="date" value={form.start_date} onChange={(event) => updateForm({ start_date: event.target.value })} /></label>
               <label><span>종료일</span><input required type="date" value={form.end_date} onChange={(event) => updateForm({ end_date: event.target.value })} /></label>
-              <label><span>사용 단위</span><select value={form.duration_mode} onChange={(event) => updateForm({ duration_mode: event.target.value as LeaveForm["duration_mode"] })}><option value="full_day">종일</option><option value="half_day">반일</option><option value="quarter_day">반반일</option><option value="hours">시간</option></select></label>
+              <label><span>사용 단위</span><select value={form.duration_mode} onChange={(event) => updateForm({ duration_mode: event.target.value as LeaveForm["duration_mode"] })}>{durationModes.filter(([value]) => allowedDurationModes.includes(value)).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               {form.duration_mode === "hours" && <label><span>시간</span><input required type="number" min="0.5" step="0.5" value={form.hours} onChange={(event) => updateForm({ hours: event.target.value })} /></label>}
               <label className="leave-request-wide"><span>대체 업무·인계 메모 <small>선택</small></span><textarea rows={2} maxLength={2000} value={form.handover_note} onChange={(event) => updateForm({ handover_note: event.target.value })} /></label>
               {reasonRequired && <label className="leave-request-wide"><span>신청 사유</span><textarea required rows={2} maxLength={2000} value={form.reason_text} onChange={(event) => updateForm({ reason_text: event.target.value })} /></label>}
-              {attachmentRequired && <label className="leave-request-wide"><span>증빙 문서</span><select required value={form.document_id} onChange={(event) => updateForm({ document_id: event.target.value })}><option value="">본인 HR 문서 선택</option>{evidenceDocuments.map((document) => <option key={text(document, "document_id")} value={text(document, "document_id")}>{text(document, "title")} · {text(document, "document_type")}</option>)}</select><small>문서 원문은 이 화면에 표시하지 않습니다.</small></label>}
+              {attachmentRequired && <label className="leave-request-wide"><span>증빙 문서</span><select required value={form.document_id} onChange={(event) => updateForm({ document_id: event.target.value })}><option value="">본인 HR 문서 선택</option>{evidenceDocuments.map((document) => <option key={text(document, "document_id")} value={text(document, "document_id")}>{text(document, "title")} · {text(document, "document_type")}</option>)}</select></label>}
             </div>
             <div className="leave-form-actions">
               <button className="secondary-button" disabled={!canPreview || busy === "preview"}>{busy === "preview" ? "계산 중" : "차감 미리보기"}</button>
@@ -313,7 +347,7 @@ export function LeaveRequestPage({ canViewTeam = false }: { canViewTeam?: boolea
 
           {preview && (
             <div className="leave-preview-line" data-leave-preview="ready">
-              <div><strong>{formatMinutes(number(preview.schedule as Row, "requested_minutes"))} 차감</strong><span>신청 후 {formatMinutes(number(preview, "available_after_minutes"))} 사용 가능</span></div>
+              <div><strong>{formatMinutes(number(preview.economics as Row, "deduction_minutes"))} 차감</strong><span>유급 {formatMinutes(number(preview.economics as Row, "paid_minutes"))} · 무급 {formatMinutes(number(preview.economics as Row, "unpaid_minutes"))} · 신청 후 {formatMinutes(number(preview, "available_after_minutes"))}</span></div>
               <div><strong>{text((preview.approval_plan as Row)?.approver as Row, "display_name") || "지정 승인자"}</strong><span>{number(preview.approval_plan as Row, "step_count")}단계 승인 · 제출 즉시 예약</span></div>
               <div><strong>{rows(preview.schedule as Row, "included_dates").length || rows(preview.schedule as Row, "segments").length}일 반영</strong><span>{rows(preview.schedule as Row, "non_working_dates").length ? `비근무일 ${rows(preview.schedule as Row, "non_working_dates").map((day) => text(day, "date")).join(", ")} 제외` : "선택 기간에 제외된 비근무일 없음"}</span></div>
               <div><strong>{rows(preview, "allocations").length}개 발생분 사용</strong><span>{rows(preview, "allocations").map((allocation) => `${text(allocation, "expires_on") || "만료 없음"} ${formatMinutes(number(allocation, "amount_minutes"))}`).join(" · ")}</span></div>
@@ -322,7 +356,7 @@ export function LeaveRequestPage({ canViewTeam = false }: { canViewTeam?: boolea
           )}
 
           <div className="leave-form-section-title"><RotateCcw size={15} /><strong>신청 내역</strong></div>
-          {state.requests.length === 0 ? <div className="live-data-state live-data-empty">신청 내역이 없습니다.</div> : (
+          {state.requests.length === 0 ? <div className="live-data-state live-data-empty">신청 내역 없음</div> : (
             <div className="leave-request-list">
               {state.requests.map((request, index) => {
                 const requestId = text(request, "request_id");

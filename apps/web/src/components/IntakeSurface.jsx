@@ -121,7 +121,6 @@ export function IntakeSurface({ labels, liveCtx = "allow" }) {
       <PageHeader
         eyebrow="접수"
         title={labels.intakeTitle}
-        subtitle="상담 건은 이해상충 확인과 담당자 검토를 거쳐 Matter로 전환됩니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />

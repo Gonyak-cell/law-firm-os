@@ -49,6 +49,11 @@ function buildPdf(lines) {
   return Buffer.from(pdf, "utf8");
 }
 
+export function renderSimpleTextPdf(lines = []) {
+  if (!Array.isArray(lines) || lines.length === 0) throw new TypeError("PDF lines are required");
+  return buildPdf(lines);
+}
+
 export function renderInvoicePdf({ invoice = {}, invoice_lines = [], generated_at = new Date().toISOString() } = {}) {
   const invoiceId = requiredString(invoice, "invoice_id");
   const invoiceNumber = invoice.invoice_number ?? invoiceId;

@@ -67,7 +67,6 @@ export function ReadinessSurface({ labels, liveCtx = "allow" }) {
       <PageHeader
         eyebrow="화면 상태"
         title={labels.readinessTitle}
-        subtitle="화면 이동, 접근 권한, 오류 상태, 모바일 표시 상태를 함께 확인합니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />
@@ -76,13 +75,13 @@ export function ReadinessSurface({ labels, liveCtx = "allow" }) {
         }
       />
       <div className="readiness-grid">
-        <Panel className="span-2" title="화면 접근" meta="확인 항목">
+        <Panel className="span-2" title="화면 접근">
           <div className="portal-safe-strip">
             <ShieldCheck size={15} />
             <span>접근 제한, 검토 상태, 언어 표시, 반응형 화면을 함께 확인합니다.</span>
           </div>
         </Panel>
-        <Panel className="span-2" title="확인 항목" meta="화면 목록">
+        <Panel className="span-2" title="확인 항목">
           {body}
         </Panel>
         <Panel title="담당자 확인" meta="확인 대기">

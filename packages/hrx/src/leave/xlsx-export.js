@@ -102,7 +102,7 @@ function zipStore(files) {
   return Buffer.concat([...localParts, centralDirectory, end]);
 }
 
-export function createXlsxBuffer({ headers = [], rows = [] } = {}) {
+export function createXlsxBuffer({ headers = [], rows = [], sheetName = "휴가 사용 내역" } = {}) {
   if (!Array.isArray(headers) || headers.length === 0) throw new TypeError("XLSX headers are required");
   if (!Array.isArray(rows)) throw new TypeError("XLSX rows must be an array");
   const files = [
@@ -116,7 +116,7 @@ export function createXlsxBuffer({ headers = [], rows = [] } = {}) {
     },
     {
       name: "xl/workbook.xml",
-      contents: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="휴가 사용 내역" sheetId="1" r:id="rId1"/></sheets></workbook>',
+      contents: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${escapeXml(sheetName)}" sheetId="1" r:id="rId1"/></sheets></workbook>`,
     },
     {
       name: "xl/_rels/workbook.xml.rels",

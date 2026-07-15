@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { Building2, Link2, LockKeyhole, Network, Scale, Search, ShieldAlert, UsersRound } from "lucide-react";
+import { Building2, LockKeyhole, Network, Scale, Search, ShieldAlert, UsersRound } from "lucide-react";
 import { Panel, Property } from "../../components/primitives.jsx";
 import { fetchLegalPeopleEthics, fetchLegalPeopleRelationships, fetchLegalPeopleSearch, fetchLegalPersonDetail } from "../hrxApiClient.ts";
 import { memberPhotoFor } from "../memberPhotos.js";
@@ -17,18 +17,15 @@ const TYPE_FILTERS = [
 const MODE_META = {
   directory: {
     title: "Matter 참여자 확인",
-    meta: "관련 기록",
-    kicker: "권한 범위 안에서 Matter 참여자와 이해상충 검토 상태를 확인합니다."
+    meta: "관련 기록"
   },
   relationships: {
     title: "관련 기록",
-    meta: "관련 기록",
-    kicker: "선택한 참여자의 Client, Matter, 조직 관련 기록을 권한 범위 안에서 봅니다."
+    meta: "관련 기록"
   },
   conflicts: {
     title: "이해상충 검토",
-    meta: "검토 필요",
-    kicker: "이해상충과 접근 제한은 최종 판단이 아니라 검토 상태로만 표시됩니다."
+    meta: "검토 필요"
   }
 };
 
@@ -168,10 +165,6 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
   return (
     <div className="legal-people-runtime-grid span-2" data-lcx-ppl-05-ui="true">
       <Panel id="people-directory" className="people-panel legal-people-directory" title={config.title} meta={config.meta}>
-        <div className="people-panel-kicker">
-          <Network size={15} />
-          {config.kicker}
-        </div>
         <label className="legal-people-search">
           <Search size={15} />
           <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="이름, 역할, 조직 검색" />
@@ -196,6 +189,7 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
                   key={person.person_id}
                   type="button"
                   className={selectedPersonId === person.person_id ? "people-row legal-people-row active" : "people-row legal-people-row"}
+                  data-compact-record="true"
                   onClick={() => setSelectedPersonId(person.person_id)}
                 >
                   <span className="people-row-avatar">{photo ? <img src={photo} alt="" /> : person.display_name?.slice(0, 1) ?? "P"}</span>
@@ -212,10 +206,6 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
       </Panel>
 
       <Panel id="people-detail-workspace" className="people-panel legal-people-detail" title="참여자 상세" meta={selectedPersonId ? "선택됨" : "미선택"}>
-        <div className="people-panel-kicker">
-          <LockKeyhole size={15} />
-          민감한 관계 정보는 권한에 따라 축약됩니다.
-        </div>
         {!selectedPersonId && <div className="live-data-state live-data-empty">참여자 기록을 선택하세요.</div>}
         {selectedPersonId && detailResult === null && <div className="live-data-state live-data-loading">참여자 상세를 불러오는 중입니다</div>}
         {detailResult?.kind === "error" && <div className="live-data-state live-data-error">참여자 상세를 불러오지 못했습니다.</div>}
@@ -262,17 +252,12 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
       </Panel>
 
       <Panel id="people-relationship-panel" className="people-panel legal-people-relationships" title="관련 기록" meta={`${relationships.length}개`}>
-        <div className="people-panel-kicker">
-          <Link2 size={15} />
-          Client, Matter, 조직 관련 기록과 권한 상태를 함께 보여줍니다.
-        </div>
         {relationshipResult === null && <div className="live-data-state live-data-loading">관련 기록을 불러오는 중입니다</div>}
         {relationshipResult?.kind === "error" && <div className="live-data-state live-data-error">관련 기록을 불러오지 못했습니다.</div>}
-        {relationships.length === 0 && relationshipResult?.kind === "data" && <div className="live-data-state live-data-empty">표시할 관련 기록이 없습니다.</div>}
         {relationships.length > 0 && (
           <div className="legal-relationship-list">
             {relationships.map((relationship) => (
-              <div key={relationship.relationship_id} className={relationship.access_state === "restricted" ? "legal-relationship-row restricted" : "legal-relationship-row"}>
+              <div key={relationship.relationship_id} className={relationship.access_state === "restricted" ? "legal-relationship-row restricted" : "legal-relationship-row"} data-compact-record="true">
                 <div>
                   <strong>{relationshipLabel(relationship.relationship_type)}</strong>
                   <small>{targetLabel(relationship)}</small>
@@ -287,16 +272,12 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
 
       {mode === "conflicts" && (
         <Panel id="people-conflict-review-queue" className="people-panel legal-people-conflicts" title="이해상충 검토" meta={`${reviewQueue.length}건`}>
-          <div className="people-panel-kicker" data-lcx-ppl-06-conflict-review-queue="true">
-            <ShieldAlert size={15} />
-            자동 신호는 참고 상태로만 보관됩니다.
-          </div>
           {ethicsResult === null && <div className="live-data-state live-data-loading">이해상충 검토 목록을 불러오는 중입니다</div>}
           {ethicsResult?.kind === "error" && <div className="live-data-state live-data-error">이해상충 검토 목록을 불러오지 못했습니다.</div>}
           {reviewQueue.length > 0 && (
-            <div className="legal-relationship-list">
+            <div className="legal-relationship-list" data-lcx-ppl-06-conflict-review-queue="true">
               {reviewQueue.map((item) => (
-                <div key={item.review_item_id} className={`legal-ethics-row ${item.state}`}>
+                <div key={item.review_item_id} className={`legal-ethics-row ${item.state}`} data-compact-record="true">
                   <div>
                     <strong>{reviewTypeLabel(item.review_type)}, {reviewStateLabel(item.state)}</strong>
                     <small>{item.related_ref}, {item.reviewer_role_required}</small>
@@ -312,15 +293,10 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
 
       {mode === "conflicts" && (
         <Panel id="people-ethical-wall-surface" className="people-panel legal-people-walls" title="접근 제한" meta={`${ethicalWalls.length}건`}>
-          <div className="people-panel-kicker" data-lcx-ppl-06-ethical-wall-ui="true">
-            <LockKeyhole size={15} />
-            제한 상태는 사유와 검토 기록으로 표시합니다.
-          </div>
-          {ethicalWalls.length === 0 && ethicsResult?.kind === "data" && <div className="live-data-state live-data-empty">표시할 접근 제한이 없습니다.</div>}
           {ethicalWalls.length > 0 && (
-            <div className="legal-relationship-list">
+            <div className="legal-relationship-list" data-lcx-ppl-06-ethical-wall-ui="true">
               {ethicalWalls.map((wall) => (
-                <div key={wall.wall_ref_id} className={`legal-ethics-row ${wall.wall_status}`}>
+                <div key={wall.wall_ref_id} className={`legal-ethics-row ${wall.wall_status}`} data-compact-record="true">
                   <div>
                     <strong>{reviewStateLabel(wall.wall_status)}</strong>
                     <small>{wall.matter_id}, {wall.reason_code}</small>
@@ -336,15 +312,10 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
 
       {mode === "conflicts" && (
         <Panel id="people-reviewer-receipts" className="people-panel legal-people-receipts" title="검토 기록" meta={`${reviewerReceipts.length}건`}>
-          <div className="people-panel-kicker" data-lcx-ppl-06-reviewer-receipts="true">
-            <Scale size={15} />
-            결정, 메모, 되돌림 기준은 권한 경계에 따라 표시됩니다.
-          </div>
-          {reviewerReceipts.length === 0 && ethicsResult?.kind === "data" && <div className="live-data-state live-data-empty">표시할 검토 기록이 없습니다.</div>}
           {reviewerReceipts.length > 0 && (
-            <div className="legal-relationship-list">
+            <div className="legal-relationship-list" data-lcx-ppl-06-reviewer-receipts="true">
               {reviewerReceipts.map((receipt) => (
-                <div key={receipt.receipt_id} className={receipt.access_state === "restricted" ? "legal-ethics-row restricted" : "legal-ethics-row"}>
+                <div key={receipt.receipt_id} className={receipt.access_state === "restricted" ? "legal-ethics-row restricted" : "legal-ethics-row"} data-compact-record="true">
                   <div>
                     <strong>{receipt.decision}</strong>
                     <small>{receipt.reviewer_role}, {receipt.review_item_id}</small>

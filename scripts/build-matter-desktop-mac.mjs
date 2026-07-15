@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
-import { copyFile, cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { copyFile, cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { packager } from "@electron/packager";
 import { sign } from "@electron/osx-sign";
@@ -30,6 +30,25 @@ const packagedPrivateRosterSourcePath = join(
   appSourceDir,
   "runtime/apps/api/src/hrx-member-roster-source-of-truth.json",
 );
+const packagedPrivatePhotoSourcePath = join(
+  appSourceDir,
+  "runtime/apps/api/src/hrx-member-photos",
+);
+const packagedPublicProfessionalProfileCatalogPath = join(
+  appSourceDir,
+  "runtime/apps/api/src/hrx-public-professional-profile-catalog.json",
+);
+const internalRosterSourcePath = resolve(
+  repoRoot,
+  process.env.LAWOS_HRX_MEMBER_ROSTER_SOURCE_PATH
+    || "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json",
+);
+const configuredContactSourcePath = String(process.env.LAWOS_HRX_MEMBER_CONTACT_SOURCE_PATH ?? "").trim();
+const internalContactSourcePath = configuredContactSourcePath ? resolve(repoRoot, configuredContactSourcePath) : null;
+const internalPhotoSourcePath = resolve(
+  repoRoot,
+  process.env.LAWOS_HRX_MEMBER_PHOTO_SOURCE_PATH || "apps/web/src/assets/members",
+);
 const desktopRendererWebIndex = join(desktopRoot, "src/renderer/web/index.html");
 const iconPath = join(desktopRoot, "build/icon.icns");
 const packagedIconFile = "matter.icns";
@@ -54,6 +73,8 @@ const ignoredPackagePathPatterns = [
   /(^|\/)dist($|\/)/,
   /(^|\/)test($|\/)/,
   /(^|\/)\.env($|\.|\/)/,
+  /(^|\/)build\/forest-login\.jpg$/,
+  /(^|\/)src\/renderer\/offline(?:\.matter)?\.html$/,
   /\.test\.mjs$/
 ];
 
@@ -172,8 +193,57 @@ async function copyDesktopLocalApiRuntime(targetAppBundle) {
   await rm(runtimeDir, { recursive: true, force: true });
   await mkdir(join(runtimeDir, "apps/api"), { recursive: true });
   await cp(join(repoRoot, "apps/api/src"), apiRuntimeSrcDir, { recursive: true });
+  const runtimeRosterSourcePath = join(apiRuntimeSrcDir, "hrx-member-roster-source-of-truth.json");
+  if (!existsSync(internalRosterSourcePath)) throw new Error("HRX member roster source does not exist");
+  const privateRoster = JSON.parse(await readFile(
+    internalRosterSourcePath,
+    "utf8",
+  ));
+  const publicProfessionalProfiles = (privateRoster.members ?? [])
+    .filter((member) => member?.employee_id && member?.professional_profile)
+    .map((member) => ({
+      employee_id: member.employee_id,
+      professional_profile: Object.fromEntries([
+        "schema_version",
+        "profile_kind",
+        "public_role_labels",
+        "practice_areas",
+        "experience",
+        "education",
+        "qualifications",
+      ].flatMap((key) => member.professional_profile[key] === undefined ? [] : [[key, member.professional_profile[key]]])),
+    }));
+  if (publicProfessionalProfiles.length === 0) {
+    throw new Error("HRX public professional profile catalog cannot be empty");
+  }
+  await writeFile(
+    join(apiRuntimeSrcDir, "hrx-public-professional-profile-catalog.json"),
+    `${JSON.stringify({
+      schema_version: "law-firm-os.hrx-public-professional-profile-catalog.v0.1",
+      source_ref: "hrx-public-professional-profile-catalog",
+      profiles: publicProfessionalProfiles,
+    }, null, 2)}\n`,
+  );
   await rm(join(apiRuntimeSrcDir, "hrx-member-contact-source-of-truth.json"), { force: true });
-  await rm(join(apiRuntimeSrcDir, "hrx-member-roster-source-of-truth.json"), { force: true });
+  await rm(runtimeRosterSourcePath, { force: true });
+  await rm(join(apiRuntimeSrcDir, "hrx-member-photos"), { recursive: true, force: true });
+  if (!formalRelease) {
+    if (!existsSync(internalPhotoSourcePath)) throw new Error("Internal HRX member photo source does not exist");
+    if (internalContactSourcePath && !existsSync(internalContactSourcePath)) {
+      throw new Error("Configured internal HRX member contact source does not exist");
+    }
+    await copyFile(internalRosterSourcePath, runtimeRosterSourcePath);
+    if (internalContactSourcePath) {
+      await copyFile(internalContactSourcePath, join(apiRuntimeSrcDir, "hrx-member-contact-source-of-truth.json"));
+    }
+    const photoTargetPath = join(apiRuntimeSrcDir, "hrx-member-photos");
+    await mkdir(photoTargetPath, { recursive: true });
+    for (const fileName of await readdir(internalPhotoSourcePath)) {
+      if (fileName.toLowerCase().endsWith(".png")) {
+        await copyFile(join(internalPhotoSourcePath, fileName), join(photoTargetPath, fileName));
+      }
+    }
+  }
   await copyFile(
     join(repoRoot, "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json"),
     join(apiRuntimeSrcDir, "matter-vault-user-registration-seed.json"),
@@ -364,6 +434,8 @@ Channel: \`${releaseChannel}\`
 - packaged app source exists: ${existsSync(appSourceDir)}
 - private HRX contact source excluded: ${!existsSync(packagedPrivateContactSourcePath)}
 - private HRX roster source excluded: ${!existsSync(packagedPrivateRosterSourcePath)}
+- private HRX photo source excluded: ${!existsSync(packagedPrivatePhotoSourcePath)}
+- public HRX professional profile catalog included: ${existsSync(packagedPublicProfessionalProfileCatalogPath)}
 - formal release marker: ${formalRelease ? existsSync(formalReleaseMarkerPath) : !existsSync(formalReleaseMarkerPath)}
 - web renderer prepare state: ${webRendererPrepareState}
 - packaged URL scheme metadata: matter
@@ -411,6 +483,8 @@ console.log(
       packaged_app_icon: existsSync(packagedIconPath),
       private_hrx_contact_source_excluded: !existsSync(packagedPrivateContactSourcePath),
       private_hrx_roster_source_excluded: !existsSync(packagedPrivateRosterSourcePath),
+      private_hrx_photo_source_excluded: !existsSync(packagedPrivatePhotoSourcePath),
+      public_hrx_professional_profile_catalog_included: existsSync(packagedPublicProfessionalProfileCatalogPath),
       formal_release_local_api_default_disabled: formalRelease && existsSync(formalReleaseMarkerPath),
       electron_runtime_packaged: true,
       web_renderer_prepare_state: webRendererPrepareState,

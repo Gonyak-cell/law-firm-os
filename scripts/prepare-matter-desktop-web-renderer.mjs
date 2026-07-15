@@ -43,7 +43,7 @@ The canonical \`apps/web\` build was copied into the desktop auth shell handoff 
 ## Boundary
 
 - UI source of truth: \`apps/web\`
-- Desktop \`offline.html\`: auth/password reset gate only
+- Desktop \`offline*.html\`: retired and excluded from packages
 - production go-live: false
 - public release: false
 - owner approval: false

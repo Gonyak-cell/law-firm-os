@@ -38,8 +38,14 @@ import { HRX_SESSION_BOUND_HEADER, authorizeHrxApiRequest } from "./middleware/h
 import { appendHrxRouteAudit } from "./middleware/hrx-audit-write.js";
 import { authorizeHrxStepUpRequest } from "./middleware/hrx-step-up-context.js";
 import { PERMISSION_CONTEXT_HEADER, PERMISSION_DECISION_ORDER, evaluateRouteDecision, parsePermissionContext } from "./permission-gate.js";
-import { createHrxRuntimeContext, handleHrxApiRequest, seedHrxDurableRuntimeStore } from "./hrx-runtime-context.js";
-import { findHrxMemberRosterByUserId } from "./hrx-member-roster-registry.js";
+import {
+  createHrxRuntimeContext,
+  handleHrxApiRequest,
+  resolveHrxEmployeeProfileByUserId,
+  seedHrxDurableRuntimeStore,
+} from "./hrx-runtime-context.js";
+import { findHrxMemberRosterByUserId, memberPhotoDataUrlForEmployeeId } from "./hrx-member-roster-registry.js";
+import { findRegisteredAccountByUserId } from "./matter-vault-account-registry.js";
 import {
   MATTER_BOUNDED_CONTEXT,
   MATTER_VAULT_BRIDGE_ROUTES,
@@ -245,7 +251,11 @@ export function createDefaultHrxRuntime({
     requiredTables: [...HRX_DURABLE_CORE_TABLES, ...HRX_DURABLE_WORKFLOW_TABLES],
   });
   if (runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational) seedHrxDurableRuntimeStore(hrxStore);
-  return createHrxRuntimeContext({ store: hrxStore, modelGateway });
+  return createHrxRuntimeContext({
+    store: hrxStore,
+    modelGateway,
+    seedPayrollRuntime: runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational,
+  });
 }
 
 export function createDefaultMasterDataRuntime({
@@ -423,7 +433,12 @@ export const PROFILE_BOUNDED_CONTEXT = Object.freeze({
   contract_ref: "contracts/profile-read-contract.json",
   contract_schema_version: "law-firm-os.profile-read-contract.v0.1",
   endpoints: Object.freeze(["GET /api/profile/me"]),
-  data_source: "session_permission_context",
+  data_source: "authenticated_hrx_member_projection",
+  contact_policy: Object.freeze({
+    visibility: "authenticated_internal",
+    allowed_fields: Object.freeze(["work_email", "mobile_phone"]),
+    public_renderer_literals_allowed: false,
+  }),
   runtime_persistence: "read_only_session_projection",
   runtime_write_ready: false,
   production_ready_claim: false,
@@ -790,7 +805,7 @@ async function appendHrxDeniedRouteAudit({ runtime, context, route, policy, deci
   });
 }
 
-function handleProfileApiRequest({ pathname, method, query, context, requestId } = {}) {
+function handleProfileApiRequest({ pathname, method, query, context, requestId, runtime } = {}) {
   if (pathname !== "/api/profile/me") {
     return {
       status: 404,
@@ -868,8 +883,21 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId }
 
   const roleIds = Array.isArray(context?.principal?.role_ids) ? context.principal.role_ids : [];
   const rosterMember = findHrxMemberRosterByUserId(actorRef);
-  const displayName = rosterMember?.display_name ?? "세션 사용자";
-  const primaryRoleLabel = rosterMember?.title || roleIds[0] || "role_unassigned";
+  const registeredAccount = findRegisteredAccountByUserId(actorRef);
+  const linkedEmployee = resolveHrxEmployeeProfileByUserId(runtime, {
+    tenant_id: tenantId,
+    user_id: actorRef,
+  });
+  const profileMember = {
+    ...rosterMember,
+    ...linkedEmployee,
+    professional_profile: linkedEmployee?.professional_profile ?? rosterMember?.professional_profile ?? null,
+  };
+  const displayName = profileMember.display_name || registeredAccount?.display_name || "";
+  const primaryRoleLabel = profileMember.title || registeredAccount?.source_title || roleIds[0] || "";
+  const workEmail = profileMember.work_email || registeredAccount?.email || "";
+  const mobilePhone = rosterMember?.mobile_phone ?? profileMember.mobile_phone ?? "";
+  const photoUrl = memberPhotoDataUrlForEmployeeId(rosterMember?.employee_id ?? profileMember.employee_id);
   return {
     status: 200,
     body: {
@@ -881,19 +909,33 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId }
         tenant_ref: tenantId,
         display_name: displayName,
         primary_role_label: primaryRoleLabel,
+        employee_id: profileMember.employee_id ?? null,
+        work_email: workEmail,
+        mobile_phone: mobilePhone,
+        title: profileMember.title || registeredAccount?.source_title || "",
+        department: profileMember.department ?? "",
+        affiliation: profileMember.affiliation ?? "",
+        organization_group: profileMember.organization_group ?? "",
+        start_date: profileMember.start_date ?? "",
+        country: profileMember.country ?? "",
+        professional_profile: profileMember.professional_profile,
+        photo_url: photoUrl,
         role_count: roleIds.length,
         contract_summary: {
           state: "connected",
           visible_contract_count: 0,
-          source_ref: rosterMember?.source_ref ?? "session_profile_projection",
+          source_ref: profileMember.source_ref ?? "session_profile_projection",
         },
         account_summary: {
           state: "connected",
           session_principal_source: context?.principal?.session_principal_source ?? "permission_context",
           session_source_ref: context?.principal?.session_source_ref ?? null,
+          employee_user_link_resolved: Boolean(linkedEmployee),
         },
+        contact_policy: PROFILE_BOUNDED_CONTEXT.contact_policy,
         secret_material_included: false,
-        direct_identifier_included: false,
+        direct_identifier_included: Boolean(workEmail || mobilePhone),
+        photo_included: Boolean(photoUrl),
         production_ready_claim: false,
       },
       safe_error_codes: [],
@@ -1121,7 +1163,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
 
   if (isProfilePath) {
     const context = requestPermissionContext();
-    const result = handleProfileApiRequest({ pathname, method: req.method, query, context, requestId });
+    const result = handleProfileApiRequest({ pathname, method: req.method, query, context, requestId, runtime: hrxRuntime });
     sendJson(req, res, result.status, result.body);
     return;
   }

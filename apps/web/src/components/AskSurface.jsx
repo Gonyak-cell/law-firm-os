@@ -103,10 +103,10 @@ export function AskSurface({ labels, variant, liveCtx = "allow" }) {
         </button>
       </label>
       <div className="cohort-replay-grid">
-        <Panel title="그룹" meta="저장된 대상">
+        <Panel title="그룹">
           <CompactTable columns={["그룹", "사용자", "상태"]} rows={[]} />
         </Panel>
-        <Panel title="활동 기록" meta="최근 업무">
+        <Panel title="활동 기록">
           <div className="live-data-state live-data-empty">
             <strong>표시할 활동 기록이 없습니다</strong>
           </div>

@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { CalendarClock, CheckCircle2, RotateCw, ShieldAlert } from "lucide-react";
+import { CalendarClock, CheckCircle2, RotateCw } from "lucide-react";
 import { Panel } from "../../components/primitives.jsx";
 import { fetchHrxRiskEvents, scanHrxRiskEvents, transitionHrxRiskEvent } from "../hrxApiClient.ts";
 
@@ -196,11 +196,7 @@ export function HrxRiskDashboard() {
   }
 
   return (
-    <Panel id="people-risk" className="people-panel span-2" title="HR 리스크" meta="법적 5종">
-      <div className="people-panel-kicker">
-        <ShieldAlert size={15} />
-        근로계약, 연차촉진, 법정교육, 초과근로, 퇴사자 권한 회수를 점검합니다.
-      </div>
+    <Panel id="people-risk" className="people-panel span-2" title="HR 리스크" meta={`${riskEvents.length}건`}>
       <div className="hrx-risk-toolbar" data-hrx-risk-dashboard="true">
         <button type="button" className="primary-button" onClick={runScan} disabled={busy} data-hrx-risk-scan="true">
           <RotateCw size={15} />

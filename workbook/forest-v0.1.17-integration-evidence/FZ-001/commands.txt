@@ -1,0 +1,5 @@
+node scripts/generate-forest-checkpoint-evidence.mjs
+git status --porcelain=v2 --untracked-files=all -z
+git diff --binary --no-ext-diff HEAD --
+git ls-files --others --exclude-standard -z
+ps ax -o pid=,ppid=,etime=,command=

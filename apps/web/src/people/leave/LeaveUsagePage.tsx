@@ -1,16 +1,29 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { CalendarSync, Database, Download, RefreshCw, ShieldCheck } from "lucide-react";
+import { CalendarSync, Download, FileUp, Pencil, Plus, RefreshCw } from "lucide-react";
 import { Panel } from "../../components/primitives.jsx";
+import { HrxStepUpChallenge } from "../security/HrxStepUpChallenge.tsx";
 import {
-  captureHrxLeaveBalanceSnapshot,
-  exportHrxLeaveUsage,
+  cancelHrxScheduledLeaveEntitlement,
+  executeHrxLeaveManualAdjustment,
+  executeHrxLeaveOccurrenceUpload,
+  exportHrxLeaveOccurrences,
+  fetchHrxLeaveConfiguration,
   fetchHrxLeaveIntegrations,
-  fetchHrxLeaveUsage,
+  fetchHrxLeaveManualAdjustmentSupport,
+  fetchHrxLeaveOccurrenceProjections,
+  fetchHrxLeaveOccurrenceTemplate,
+  previewHrxLeaveManualAdjustment,
+  previewHrxLeaveOccurrenceUpload,
   processHrxLeaveIntegrations,
-  validateHrxLeaveBalances
+  retryHrxLeaveIntegrationDeadLetter,
+  retryHrxLeaveOccurrenceUpload,
+  updateHrxScheduledLeaveEntitlement
 } from "../hrxApiClient.ts";
 
 type Row = Record<string, unknown>;
+type OccurrenceView = "list" | "month" | "type";
+type Stage = "" | "manual" | "upload" | "edit";
+type StepUpAction = "" | "manual" | "upload" | "upload-retry" | "edit" | "cancel";
 
 function text(row: Row | null | undefined, field: string) {
   const value = row?.[field];
@@ -27,6 +40,13 @@ function localDate() {
   return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
 }
 
+function offsetDate(value: string, years: number, days: number) {
+  const date = new Date(`${value}T00:00:00Z`);
+  date.setUTCFullYear(date.getUTCFullYear() + years);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
 function minutes(value: number) {
   const sign = value < 0 ? "-" : "";
   const absolute = Math.abs(value);
@@ -37,14 +57,24 @@ function minutes(value: number) {
   return `${sign}${remainder}분`;
 }
 
-const ENTRY_LABELS: Record<string, string> = {
-  earned: "발생",
-  carryover: "이월",
-  reserved: "예약",
-  released: "예약 해제",
-  used: "사용",
-  adjustment: "조정",
-  expired: "소멸"
+function downloadArtifact(artifact: Row) {
+  const binary = window.atob(text(artifact, "content_base64"));
+  const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+  const url = URL.createObjectURL(new Blob([bytes], { type: text(artifact, "mime_type") }));
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = text(artifact, "file_name");
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+const STATE_LABELS: Record<string, string> = {
+  scheduled: "예정",
+  active: "활성",
+  expired: "만료",
+  cancelled: "취소"
 };
 
 const PROVIDER_LABELS: Record<string, string> = {
@@ -64,44 +94,106 @@ function eventLabel(value: string) {
   return "휴가 상태 안내";
 }
 
-export function LeaveUsagePage({ canExport = false, canProcessIntegrations = false }: { canExport?: boolean; canProcessIntegrations?: boolean }) {
+const initialManualForm = () => {
+  const tomorrow = offsetDate(localDate(), 0, 1);
+  return {
+    employee_id: "",
+    group_id: "",
+    policy_version_id: "",
+    direction: "credit",
+    amount_minutes: "480",
+    occurred_on: tomorrow,
+    expires_on: offsetDate(tomorrow, 1, -1),
+    reason: "",
+    source_document_id: ""
+  };
+};
+
+export function LeaveUsagePage({ canExport = false, canProcessIntegrations = false, canAdjust = false }: { canExport?: boolean; canProcessIntegrations?: boolean; canAdjust?: boolean }) {
   const today = localDate();
-  const [filters, setFilters] = useState({ from: `${today.slice(0, 4)}-01-01`, to: today, employee_id: "", group_id: "", entry_type: "", state: "", expiry_from: "", expiry_to: "" });
-  const [report, setReport] = useState<Row | null>(null);
-  const [validation, setValidation] = useState<Row | null>(null);
+  const [filters, setFilters] = useState({ from: `${today.slice(0, 4)}-01-01`, to: offsetDate(today, 1, 0), as_of: today, employee_id: "", group_id: "", state: "" });
+  const [view, setView] = useState<OccurrenceView>("list");
+  const [projections, setProjections] = useState<Row | null>(null);
   const [integration, setIntegration] = useState<Row | null>(null);
+  const [groups, setGroups] = useState<Row[]>([]);
+  const [policies, setPolicies] = useState<Row[]>([]);
+  const [documents, setDocuments] = useState<Row[]>([]);
+  const [approvers, setApprovers] = useState<Row[]>([]);
+  const [approvedBy, setApprovedBy] = useState("");
+  const [stage, setStage] = useState<Stage>("");
+  const [manualForm, setManualForm] = useState(initialManualForm);
+  const [manualPreview, setManualPreview] = useState<Row | null>(null);
+  const [manualPayload, setManualPayload] = useState<Row | null>(null);
+  const [manualResult, setManualResult] = useState<Row | null>(null);
+  const [manualKey, setManualKey] = useState("");
+  const [uploadText, setUploadText] = useState("");
+  const [uploadBatch, setUploadBatch] = useState<Row | null>(null);
+  const [editForm, setEditForm] = useState({ entitlement_id: "", expected_version: 0, valid_from: "", expires_on: "", reason_code: "관리자 취소" });
+  const [stepUpAction, setStepUpAction] = useState<StepUpAction>("");
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
 
   async function load(nextFilters = filters) {
     setBusy("load");
     setError("");
-    const [usage, balances] = await Promise.all([fetchHrxLeaveUsage(nextFilters), validateHrxLeaveBalances(nextFilters.to)]);
+    const [occurrences, sync] = await Promise.all([
+      fetchHrxLeaveOccurrenceProjections(nextFilters),
+      canExport ? fetchHrxLeaveIntegrations() : Promise.resolve(null)
+    ]);
     setBusy("");
-    if (usage.kind !== "data") {
-      setError("휴가 원장 내역을 불러오지 못했습니다.");
+    if (occurrences.kind !== "data") {
+      setError("휴가 발생 내역을 불러오지 못했습니다.");
       return;
     }
-    setReport(usage.report as Row);
-    if (balances.kind === "data") setValidation(balances.validation as Row);
-    if (canExport) {
-      const sync = await fetchHrxLeaveIntegrations();
-      if (sync.kind === "data") setIntegration(sync.integration as Row);
-    }
+    setProjections(occurrences.projections as Row);
+    if (sync?.kind === "data") setIntegration(sync.integration as Row);
   }
 
   useEffect(() => { void load(); }, []);
 
-  const rows = Array.isArray(report?.rows) ? report.rows as Row[] : [];
-  const balances = Array.isArray(report?.current_balances) ? report.current_balances as Row[] : [];
-  const totals = report?.totals as Row | undefined;
-  const validationRows = Array.isArray(validation?.rows) ? validation.rows as Row[] : [];
-  const validationCounts = validation?.counts as Row | undefined;
-  const employees = useMemo(() => [...new Map(balances.map((row) => [text(row, "employee_id"), { id: text(row, "employee_id"), name: text(row, "employee_display_name") }] as const)).values()], [balances]);
-  const groups = useMemo(() => [...new Map(balances.map((row) => [text(row, "group_id"), { id: text(row, "group_id"), name: text(row, "group_display_name") }] as const).filter(([id]) => id)).values()], [balances]);
-  const currentAvailable = balances.reduce((sum, row) => sum + number(row, "available_minutes"), 0);
+  useEffect(() => {
+    if (!canAdjust) return;
+    void Promise.all([fetchHrxLeaveConfiguration(), fetchHrxLeaveManualAdjustmentSupport()]).then(([configuration, support]) => {
+      if (configuration.kind !== "data" || support.kind !== "data") {
+        setError("발생 관리 기준을 불러오지 못했습니다.");
+        return;
+      }
+      const activeGroups = configuration.groups.filter((row: Row) => text(row, "status") === "active") as Row[];
+      const activePolicies = configuration.policies.filter((row: Row) => text(row, "status") === "active") as Row[];
+      const supportDocuments = support.documents as Row[];
+      const supportApprovers = support.approvers as Row[];
+      setGroups(activeGroups);
+      setPolicies(activePolicies);
+      setDocuments(supportDocuments);
+      setApprovers(supportApprovers);
+      setApprovedBy(text(supportApprovers[0], "actor_id"));
+      setManualForm((current) => ({
+        ...current,
+        employee_id: text(supportDocuments[0], "employee_id"),
+        source_document_id: text(supportDocuments[0], "document_id"),
+        group_id: text(activeGroups[0], "group_id"),
+        policy_version_id: text(activePolicies[0], "policy_version_id")
+      }));
+    });
+  }, [canAdjust]);
+
+  const listProjection = projections?.list as Row | undefined;
+  const occurrenceRows = Array.isArray(listProjection?.rows) ? listProjection.rows as Row[] : [];
+  const monthRows = Array.isArray(projections?.by_month) ? projections.by_month as Row[] : [];
+  const typeRows = Array.isArray(projections?.by_type) ? projections.by_type as Row[] : [];
+  const totals = projections?.totals as Row | undefined;
+  const employees = useMemo(() => [...new Map(occurrenceRows.map((row) => [text(row, "employee_id"), { id: text(row, "employee_id"), name: text(row, "employee_display_name") }] as const)).values()], [occurrenceRows]);
+  const occurrenceGroups = useMemo(() => groups.length ? groups.map((row) => ({ id: text(row, "group_id"), name: text(row, "display_name") })) : [...new Map(occurrenceRows.map((row) => [text(row, "group_id"), { id: text(row, "group_id"), name: text(row, "group_display_name") }] as const)).values()], [groups, occurrenceRows]);
   const integrationRows = Array.isArray(integration?.rows) ? integration.rows as Row[] : [];
   const integrationSummary = integration?.summary as Row | undefined;
+  const visibleIntegrationRows = integrationRows.slice(0, 8);
+  const hasIntegrationActivity = integrationRows.length > 0 || ["pending_sync", "delivered", "failed_deliveries", "not_configured", "dead_lettered"].some((field) => number(integrationSummary, field) > 0);
+  const groupPolicies = policies.filter((policy) => text(policy, "group_id") === manualForm.group_id);
+  const manualVisible = manualResult ?? manualPreview;
+  const manualRows = Array.isArray(manualVisible?.rows) ? manualVisible.rows as Row[] : [];
+  const manualCounts = manualVisible?.counts as Row | undefined;
+  const uploadRows = Array.isArray(uploadBatch?.rows) ? uploadBatch.rows as Row[] : [];
+  const uploadCounts = uploadBatch?.counts as Row | undefined;
 
   async function processIntegrations() {
     setBusy("integrations");
@@ -109,7 +201,19 @@ export function LeaveUsagePage({ canExport = false, canProcessIntegrations = fal
     const result = await processHrxLeaveIntegrations();
     setBusy("");
     if (result.kind !== "data") {
-      setError("대기 중인 휴가 연동을 처리하지 못했습니다. 원장 상태는 변경되지 않았습니다.");
+      setError("대기 중인 연동을 처리하지 못했습니다.");
+      return;
+    }
+    setIntegration(result.integration as Row);
+  }
+
+  async function retryDeadLetter(deadLetterId: string) {
+    setBusy(`retry:${deadLetterId}`);
+    setError("");
+    const result = await retryHrxLeaveIntegrationDeadLetter(deadLetterId);
+    setBusy("");
+    if (result.kind !== "data") {
+      setError("격리된 연동을 재처리 대기로 바꾸지 못했습니다.");
       return;
     }
     setIntegration(result.integration as Row);
@@ -118,94 +222,258 @@ export function LeaveUsagePage({ canExport = false, canProcessIntegrations = fal
   async function download(format: "csv" | "xlsx") {
     setBusy(format);
     setError("");
-    const result = await exportHrxLeaveUsage(format, filters);
+    const result = await exportHrxLeaveOccurrences(format, view, filters);
     setBusy("");
     if (result.kind !== "data") {
-      setError("현재 필터의 내보내기 파일을 만들지 못했습니다.");
+      setError("현재 보기의 파일을 만들지 못했습니다.");
       return;
     }
-    const artifact = result.export as Row;
-    const binary = window.atob(text(artifact, "content_base64"));
-    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
-    const url = URL.createObjectURL(new Blob([bytes], { type: text(artifact, "mime_type") }));
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = text(artifact, "file_name");
-    document.body.append(anchor);
-    anchor.click();
-    anchor.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    downloadArtifact(result.export as Row);
   }
 
-  async function captureSnapshot() {
-    setBusy("snapshot");
-    const result = await captureHrxLeaveBalanceSnapshot(filters.to);
+  async function downloadTemplate() {
+    setBusy("template");
+    setError("");
+    const result = await fetchHrxLeaveOccurrenceTemplate();
     setBusy("");
     if (result.kind !== "data") {
-      setError("잔액 스냅샷을 저장하지 못했습니다.");
+      setError("업로드 양식을 만들지 못했습니다.");
       return;
     }
-    const next = await validateHrxLeaveBalances(filters.to);
-    if (next.kind === "data") setValidation(next.validation as Row);
+    downloadArtifact(result.template as Row);
+  }
+
+  async function previewManual() {
+    const payload = { rows: [{ ...manualForm, amount_minutes: Number(manualForm.amount_minutes) }], schedule_only: true, as_of: today };
+    setBusy("manual-preview");
+    setError("");
+    setManualResult(null);
+    setStepUpAction("");
+    const result = await previewHrxLeaveManualAdjustment(payload);
+    setBusy("");
+    if (result.kind !== "data") {
+      setError("조정안을 만들지 못했습니다.");
+      return;
+    }
+    setManualPayload(payload);
+    setManualPreview(result.preview as Row);
+    setManualKey(`leave-occurrence-manual:${Date.now()}`);
+  }
+
+  async function executeManual() {
+    if (!manualPayload) return;
+    setBusy("manual-execute");
+    setError("");
+    const result = await executeHrxLeaveManualAdjustment({ ...manualPayload, approved_by_actor_id: approvedBy, idempotency_key: manualKey });
+    setBusy("");
+    if (result.kind === "step_up_required") {
+      setStepUpAction("manual");
+      return;
+    }
+    if (result.kind !== "data") {
+      setError("수동 발생을 반영하지 못했습니다.");
+      return;
+    }
+    setStepUpAction("");
+    setManualResult(result.result as Row);
+    await load();
+  }
+
+  async function previewUpload() {
+    setBusy("upload-preview");
+    setError("");
+    setStepUpAction("");
+    const result = await previewHrxLeaveOccurrenceUpload({ csv_text: uploadText, schedule_only: true, as_of: today, idempotency_key: `leave-occurrence-upload:${Date.now()}` });
+    setBusy("");
+    if (result.kind !== "data") {
+      setError("업로드 조정안을 만들지 못했습니다.");
+      return;
+    }
+    setUploadBatch(result.batch as Row);
+  }
+
+  async function executeUpload() {
+    const batchId = text(uploadBatch, "upload_batch_id");
+    if (!batchId) return;
+    setBusy("upload-execute");
+    setError("");
+    const result = await executeHrxLeaveOccurrenceUpload(batchId, { preview_hash: text(uploadBatch, "preview_hash"), approved_by_actor_id: approvedBy, idempotency_key: `leave-occurrence-upload-execute:${batchId}` });
+    setBusy("");
+    if (result.kind === "step_up_required") {
+      setStepUpAction("upload");
+      return;
+    }
+    if (result.kind !== "data") {
+      setError("업로드 조정안을 반영하지 못했습니다.");
+      return;
+    }
+    setStepUpAction("");
+    setUploadBatch(result.batch as Row);
+    await load();
+  }
+
+  async function retryUpload() {
+    const batchId = text(uploadBatch, "upload_batch_id");
+    if (!batchId) return;
+    setBusy("upload-retry");
+    setError("");
+    const result = await retryHrxLeaveOccurrenceUpload(batchId, { preview_hash: text(uploadBatch, "preview_hash") });
+    setBusy("");
+    if (result.kind === "step_up_required") {
+      setStepUpAction("upload-retry");
+      return;
+    }
+    if (result.kind !== "data") {
+      setError("실패 행을 재시도하지 못했습니다.");
+      return;
+    }
+    setStepUpAction("");
+    setUploadBatch(result.batch as Row);
+    await load();
+  }
+
+  function editOccurrence(row: Row) {
+    setStage("edit");
+    setStepUpAction("");
+    setEditForm({
+      entitlement_id: text(row, "entitlement_id"),
+      expected_version: number(row, "state_version"),
+      valid_from: text(row, "valid_from"),
+      expires_on: text(row, "expires_on"),
+      reason_code: "관리자 취소"
+    });
+  }
+
+  async function saveScheduled() {
+    setBusy("edit-save");
+    setError("");
+    const result = await updateHrxScheduledLeaveEntitlement(editForm.entitlement_id, {
+      expected_version: editForm.expected_version,
+      valid_from: editForm.valid_from,
+      expires_on: editForm.expires_on || null,
+      idempotency_key: `leave-occurrence-edit:${editForm.entitlement_id}:${editForm.expected_version}`,
+      as_of: today,
+      timezone: "Asia/Seoul"
+    });
+    setBusy("");
+    if (result.kind === "step_up_required") {
+      setStepUpAction("edit");
+      return;
+    }
+    if (result.kind !== "data") {
+      setError("예정 발생을 변경하지 못했습니다.");
+      return;
+    }
+    setStepUpAction("");
+    setStage("");
+    await load();
+  }
+
+  async function cancelScheduled() {
+    setBusy("edit-cancel");
+    setError("");
+    const result = await cancelHrxScheduledLeaveEntitlement(editForm.entitlement_id, {
+      expected_version: editForm.expected_version,
+      reason_code: editForm.reason_code,
+      idempotency_key: `leave-occurrence-cancel:${editForm.entitlement_id}:${editForm.expected_version}`,
+      as_of: today,
+      timezone: "Asia/Seoul"
+    });
+    setBusy("");
+    if (result.kind === "step_up_required") {
+      setStepUpAction("cancel");
+      return;
+    }
+    if (result.kind !== "data") {
+      setError("예정 발생을 취소하지 못했습니다.");
+      return;
+    }
+    setStepUpAction("");
+    setStage("");
+    await load();
+  }
+
+  function retryAfterStepUp() {
+    const action = stepUpAction;
+    setStepUpAction("");
+    if (action === "manual") void executeManual();
+    if (action === "upload") void executeUpload();
+    if (action === "upload-retry") void retryUpload();
+    if (action === "edit") void saveScheduled();
+    if (action === "cancel") void cancelScheduled();
   }
 
   return (
-    <Panel id="people-leave-usage" className="people-panel span-2 leave-report-panel" title="휴가 사용 내역" meta={`${number(totals, "row_count")}건`}>
-      <div className="people-panel-kicker"><Database size={15} />원장 기록을 현재 권한과 필터 범위에서 다시 계산합니다</div>
+    <Panel id="people-leave-usage" className="people-panel span-2 leave-report-panel leave-occurrence-panel" title="휴가 사용 내역" meta={`${number(totals, "row_count")}건`}>
       {error && <div className="live-data-state live-data-error" role="alert">{error}</div>}
 
-      <form className="leave-report-filters" onSubmit={(event) => { event.preventDefault(); void load(); }}>
-        <label><span>시작일</span><input type="date" value={filters.from} onChange={(event) => setFilters({ ...filters, from: event.target.value })} /></label>
-        <label><span>종료일</span><input type="date" value={filters.to} onChange={(event) => setFilters({ ...filters, to: event.target.value })} /></label>
-        {employees.length > 1 && <label><span>구성원</span><select value={filters.employee_id} onChange={(event) => setFilters({ ...filters, employee_id: event.target.value })}><option value="">전체</option>{employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}</select></label>}
-        <label><span>휴가 그룹</span><select value={filters.group_id} onChange={(event) => setFilters({ ...filters, group_id: event.target.value })}><option value="">전체</option>{groups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}</select></label>
-        <label><span>원장 종류</span><select value={filters.entry_type} onChange={(event) => setFilters({ ...filters, entry_type: event.target.value })}><option value="">전체</option>{Object.entries(ENTRY_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-        <label><span>요청 상태</span><select value={filters.state} onChange={(event) => setFilters({ ...filters, state: event.target.value })}><option value="">전체</option><option value="submitted">승인 대기</option><option value="approved">승인</option><option value="rejected">반려</option><option value="cancelled">취소</option></select></label>
+      <form className="leave-report-filters leave-occurrence-filters" onSubmit={(event) => { event.preventDefault(); void load(); }}>
+        <label><span>시작일</span><input aria-label="시작일" type="date" value={filters.from} onChange={(event) => setFilters({ ...filters, from: event.target.value })} /></label>
+        <label><span>종료일</span><input aria-label="종료일" type="date" min={filters.from} value={filters.to} onChange={(event) => setFilters({ ...filters, to: event.target.value })} /></label>
+        {employees.length > 1 && <label><span>구성원</span><select aria-label="구성원" value={filters.employee_id} onChange={(event) => setFilters({ ...filters, employee_id: event.target.value })}><option value="">전체</option>{employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}</select></label>}
+        <label><span>휴가 유형</span><select aria-label="휴가 유형" value={filters.group_id} onChange={(event) => setFilters({ ...filters, group_id: event.target.value })}><option value="">전체</option>{occurrenceGroups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}</select></label>
+        <label><span>상태</span><select aria-label="상태" value={filters.state} onChange={(event) => setFilters({ ...filters, state: event.target.value })}><option value="">전체</option>{Object.entries(STATE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         <button className="secondary-button" disabled={busy === "load"}><RefreshCw size={14} />조회</button>
       </form>
 
-      <div className="leave-report-summary" aria-label="휴가 원장 합계">
-        <span><small>현재 잔액</small><strong>{minutes(currentAvailable)}</strong></span>
-        <span><small>필터 내 발생</small><strong>{minutes(number(totals, "earned") + number(totals, "carryover"))}</strong></span>
-        <span><small>예약</small><strong>{minutes(number(totals, "reserved") - number(totals, "released"))}</strong></span>
-        <span><small>사용</small><strong>{minutes(number(totals, "used"))}</strong></span>
-        <span><small>조정</small><strong>{minutes(number(totals, "adjustment"))}</strong></span>
-        <span><small>소멸</small><strong>{minutes(number(totals, "expired"))}</strong></span>
+      <div className="leave-report-summary leave-occurrence-summary" aria-label="휴가 발생 합계">
+        <span><small>발생 건</small><strong>{number(totals, "row_count")}건</strong></span>
+        <span><small>발생</small><strong>{minutes(number(totals, "total_minutes"))}</strong></span>
+        <span><small>사용</small><strong>{minutes(number(totals, "used_minutes"))}</strong></span>
+        <span><small>예약</small><strong>{minutes(number(totals, "reserved_minutes"))}</strong></span>
+        <span><small>소멸</small><strong>{minutes(number(totals, "expired_minutes"))}</strong></span>
+        <span><small>잔여</small><strong>{minutes(number(totals, "remaining_minutes"))}</strong></span>
       </div>
 
-      <div className={`leave-balance-validation ${number(validationCounts, "mismatch") > 0 ? "is-mismatch" : ""}`}>
-        <div><ShieldCheck size={16} /><span>잔액 대조</span><strong>일치 {number(validationCounts, "match")} · 불일치 {number(validationCounts, "mismatch")} · 기준 없음 {number(validationCounts, "missing")}</strong></div>
-        {canExport && <button className="secondary-button" type="button" disabled={busy === "snapshot"} onClick={() => void captureSnapshot()}>현재 잔액 스냅샷</button>}
+      <div className="leave-report-toolbar leave-occurrence-toolbar">
+        <div className="leave-occurrence-view-tabs" role="group" aria-label="발생 보기">
+          {([['list', '목록'], ['month', '월별'], ['type', '유형별']] as [OccurrenceView, string][]).map(([value, label]) => <button key={value} className={view === value ? "secondary-button active" : "secondary-button"} type="button" onClick={() => setView(value)}>{label}</button>)}
+        </div>
+        <div className="leave-occurrence-actions">
+          {canAdjust && <button className="secondary-button" type="button" onClick={() => { setStage(stage === "manual" ? "" : "manual"); setStepUpAction(""); }}><Plus size={14} />수동 발생</button>}
+          {canAdjust && <button className="secondary-button" type="button" onClick={() => { setStage(stage === "upload" ? "" : "upload"); setStepUpAction(""); }}><FileUp size={14} />CSV 업로드</button>}
+          {canExport && <button className="secondary-button" type="button" disabled={busy === "csv"} onClick={() => void download("csv")}><Download size={14} />CSV</button>}
+          {canExport && <button className="secondary-button" type="button" disabled={busy === "xlsx"} onClick={() => void download("xlsx")}><Download size={14} />XLSX</button>}
+        </div>
       </div>
-      {validationRows.some((row) => text(row, "state") === "mismatch") && <div className="leave-balance-mismatch-list">{validationRows.filter((row) => text(row, "state") === "mismatch").map((row) => <span key={`${text(row, "employee_id")}:${text(row, "group_id")}`}>{text(row, "employee_display_name")} · {text(row, "group_display_name")} {minutes(number(row, "delta_minutes"))}</span>)}</div>}
 
-      {canExport && <section className="leave-integration-status" data-leave-integration-status="true">
-        <div className="leave-integration-head">
-          <div><CalendarSync size={16} /><span><strong>업무 시스템 연동</strong><small>일정·출퇴근·급여·알림의 전달 확인 상태를 분리해 표시합니다.</small></span></div>
-          {canProcessIntegrations && <button className="secondary-button" type="button" disabled={busy === "integrations"} onClick={() => void processIntegrations()}><RefreshCw size={14} />대기 항목 처리</button>}
-        </div>
-        <div className="leave-integration-summary">
-          <span><small>동기화 대기</small><strong>{number(integrationSummary, "pending_sync")}</strong></span>
-          <span><small>전달 완료</small><strong>{number(integrationSummary, "delivered")}</strong></span>
-          <span><small>전달 실패</small><strong>{number(integrationSummary, "failed_deliveries")}</strong></span>
-          <span><small>공급자 미설정</small><strong>{number(integrationSummary, "not_configured")}</strong></span>
-        </div>
-        {integrationRows.length > 0 ? <div className="leave-integration-list">{integrationRows.slice(0, 8).map((row) => {
-          const deliveries = Array.isArray(row.deliveries) ? row.deliveries as Row[] : [];
-          return <div className="leave-integration-row" key={text(row, "outbox_event_id")}>
-            <span><strong>{eventLabel(text(row, "event_type"))}</strong><small>{text(row, "state") === "delivered" ? "전달 완료" : "동기화 대기"}</small></span>
-            <div>{deliveries.length > 0 ? deliveries.map((delivery) => <span className="record-state-badge" data-state={text(delivery, "state") === "delivered" ? "live" : "review"} key={text(delivery, "delivery_id")}>{PROVIDER_LABELS[text(delivery, "provider_kind")] ?? text(delivery, "provider_kind")} · {text(delivery, "state") === "delivered" ? text(delivery, "provider_mode") === "internal_projection" ? "연결됨" : "전달" : text(delivery, "state") === "not_configured" ? "미설정" : "대기"}</span>) : <span className="record-state-badge" data-state="review">처리 대기</span>}</div>
-          </div>;
-        })}</div> : <div className="live-data-state live-data-empty">아직 처리할 휴가 연동 이벤트가 없습니다.</div>}
-        <p>외부 공급자는 전달 확인값이 기록되기 전까지 완료로 표시하지 않으며, 실패해도 휴가 원장 승인은 유지됩니다.</p>
+      {stage === "manual" && <section className="leave-occurrence-stage" aria-label="수동 발생 조정안">
+        <div className="leave-occurrence-stage-head"><strong>수동 발생 조정안</strong>{manualVisible && <span>정상 {number(manualCounts, manualResult ? "created" : "ready")} · 오류 {number(manualCounts, "errors")}</span>}</div>
+        <form className="leave-occurrence-stage-form" onSubmit={(event) => { event.preventDefault(); void previewManual(); }}>
+          <label><span>근거 문서</span><select required aria-label="근거 문서" value={manualForm.source_document_id} onChange={(event) => { const document = documents.find((row) => text(row, "document_id") === event.target.value); setManualForm({ ...manualForm, source_document_id: event.target.value, employee_id: text(document, "employee_id") }); }}><option value="">문서 선택</option>{documents.map((document) => <option key={text(document, "document_id")} value={text(document, "document_id")}>{text(document, "employee_display_name")} · {text(document, "title")}</option>)}</select></label>
+          <label><span>휴가 유형</span><select required aria-label="수동 발생 휴가 유형" value={manualForm.group_id} onChange={(event) => { const groupId = event.target.value; const policy = policies.find((row) => text(row, "group_id") === groupId); setManualForm({ ...manualForm, group_id: groupId, policy_version_id: text(policy, "policy_version_id") }); }}><option value="">유형 선택</option>{groups.map((group) => <option key={text(group, "group_id")} value={text(group, "group_id")}>{text(group, "display_name")}</option>)}</select></label>
+          <label><span>정책</span><select required aria-label="수동 발생 정책" value={manualForm.policy_version_id} onChange={(event) => setManualForm({ ...manualForm, policy_version_id: event.target.value })}><option value="">정책 선택</option>{groupPolicies.map((policy) => <option key={text(policy, "policy_version_id")} value={text(policy, "policy_version_id")}>{text(policy, "policy_code")} v{number(policy, "version")}</option>)}</select></label>
+          <label><span>시작일</span><input required aria-label="수동 발생 시작일" type="date" min={offsetDate(today, 0, 1)} value={manualForm.occurred_on} onChange={(event) => setManualForm({ ...manualForm, occurred_on: event.target.value })} /></label>
+          <label><span>만료일</span><input aria-label="수동 발생 만료일" type="date" min={manualForm.occurred_on} value={manualForm.expires_on} onChange={(event) => setManualForm({ ...manualForm, expires_on: event.target.value })} /></label>
+          <label><span>발생량(분)</span><input required aria-label="수동 발생량" type="number" min="1" step="1" value={manualForm.amount_minutes} onChange={(event) => setManualForm({ ...manualForm, amount_minutes: event.target.value })} /></label>
+          <label><span>사유</span><input required aria-label="수동 발생 사유" value={manualForm.reason} onChange={(event) => setManualForm({ ...manualForm, reason: event.target.value })} /></label>
+          <button className="secondary-button" disabled={busy === "manual-preview"}>미리보기</button>
+        </form>
+        {manualRows.length > 0 && <div className="leave-occurrence-stage-result" data-compact-record="true"><span>{text(manualRows[0], "employee_id") || "확인 필요"}</span><span>{number(manualRows[0], "amount_minutes").toLocaleString("ko-KR")}분</span><span className="record-state-badge" data-state={text(manualRows[0], "status") === "error" ? "error" : "review"}>{text(manualRows[0], "error_message") || (manualResult ? "반영 완료" : "승인 대기")}</span></div>}
+        <div className="leave-occurrence-stage-actions"><label><span>승인 HR</span><select aria-label="수동 발생 승인 HR" required value={approvedBy} onChange={(event) => setApprovedBy(event.target.value)}><option value="">승인자 선택</option>{approvers.map((approver) => <option key={text(approver, "actor_id")} value={text(approver, "actor_id")}>{text(approver, "display_name")}</option>)}</select></label><button className="primary-button" type="button" disabled={!manualPayload || !approvedBy || number(manualPreview?.counts as Row, "ready") === 0 || busy === "manual-execute"} onClick={() => void executeManual()}>승인 후 반영</button></div>
       </section>}
 
-      <div className="leave-report-toolbar">
-        <span>사유와 첨부는 기본 내보내기에서 제외됩니다.</span>
-        {canExport && <div><button className="secondary-button" type="button" disabled={busy === "csv"} onClick={() => void download("csv")}><Download size={14} />CSV</button><button className="secondary-button" type="button" disabled={busy === "xlsx"} onClick={() => void download("xlsx")}><Download size={14} />XLSX</button></div>}
-      </div>
+      {stage === "upload" && <section className="leave-occurrence-stage" aria-label="CSV 업로드 조정안">
+        <div className="leave-occurrence-stage-head"><strong>CSV 업로드 조정안</strong>{uploadBatch && <span>정상 {number(uploadCounts, "ready")} · 오류 {number(uploadCounts, "preview_errors")} · 중복 {number(uploadCounts, "duplicates")}</span>}</div>
+        <div className="leave-occurrence-upload-controls"><button className="secondary-button" type="button" disabled={busy === "template"} onClick={() => void downloadTemplate()}><Download size={14} />양식</button><label className="secondary-button leave-occurrence-file"><FileUp size={14} />파일 선택<input aria-label="CSV 파일" type="file" accept=".csv,text/csv" onChange={(event) => { const file = event.target.files?.[0]; if (file) void file.text().then((value) => { setUploadText(value); setUploadBatch(null); }); }} /></label><span>{uploadText ? "선택됨" : "파일 없음"}</span><button className="secondary-button" type="button" disabled={!uploadText || busy === "upload-preview"} onClick={() => void previewUpload()}>미리보기</button></div>
+        {uploadRows.length > 0 && <div className="data-table-wrap leave-occurrence-upload-table"><table className="data-table"><thead><tr><th>행</th><th>구성원</th><th>상태</th><th>오류</th><th>시도</th></tr></thead><tbody>{uploadRows.map((row) => <tr key={`${number(row, "row_number")}:${text(row, "row_key")}`} data-compact-record="true"><td>{number(row, "row_number")}</td><td>{text(row, "employee_id") || "-"}</td><td>{text(row, "execution_status") === "completed" ? "완료" : text(row, "preview_status") === "ready" ? "반영 가능" : "확인 필요"}</td><td>{text(row, "error_message") || "-"}</td><td>{number(row, "attempt_count")}</td></tr>)}</tbody></table></div>}
+        <div className="leave-occurrence-stage-actions"><label><span>승인 HR</span><select aria-label="업로드 승인 HR" required value={approvedBy} onChange={(event) => setApprovedBy(event.target.value)}><option value="">승인자 선택</option>{approvers.map((approver) => <option key={text(approver, "actor_id")} value={text(approver, "actor_id")}>{text(approver, "display_name")}</option>)}</select></label>{text(uploadBatch, "status") === "completed_with_errors" && <button className="secondary-button" type="button" disabled={busy === "upload-retry"} onClick={() => void retryUpload()}>실패 행 재시도</button>}<button className="primary-button" type="button" disabled={!text(uploadBatch, "upload_batch_id") || !approvedBy || number(uploadCounts, "ready") === 0 || number(uploadCounts, "preview_errors") > 0 || busy === "upload-execute"} onClick={() => void executeUpload()}>승인 후 반영</button></div>
+      </section>}
 
-      {rows.length > 0 ? <div className="data-table-wrap"><table className="data-table"><thead><tr><th>발생일</th><th>구성원</th><th>그룹</th><th>구분</th><th>분</th><th>잔액 영향</th><th>만료일</th><th>요청 상태</th></tr></thead><tbody>{rows.map((row) => <tr key={text(row, "entry_id")}><td>{text(row, "occurred_on")}</td><td><strong>{text(row, "employee_display_name")}</strong></td><td>{text(row, "group_display_name")}</td><td><span className={`record-state-badge ${text(row, "entry_type")}`}>{ENTRY_LABELS[text(row, "entry_type")] ?? text(row, "entry_type")}</span></td><td>{number(row, "amount_minutes").toLocaleString("ko-KR")}분</td><td>{minutes(number(row, "balance_effect_minutes"))}</td><td>{text(row, "expires_on") || "-"}</td><td>{text(row, "request_state") || "-"}</td></tr>)}</tbody></table></div> : <div className="live-data-state live-data-empty">현재 권한과 필터에 해당하는 원장 내역이 없습니다.</div>}
+      {stage === "edit" && <section className="leave-occurrence-stage" aria-label="예정 발생 조정안">
+        <div className="leave-occurrence-stage-head"><strong>예정 발생 조정안</strong><span>{editForm.entitlement_id}</span></div>
+        <div className="leave-occurrence-edit-form"><label><span>시작일</span><input aria-label="예정 발생 시작일" type="date" min={offsetDate(today, 0, 1)} value={editForm.valid_from} onChange={(event) => setEditForm({ ...editForm, valid_from: event.target.value })} /></label><label><span>만료일</span><input aria-label="예정 발생 만료일" type="date" min={editForm.valid_from} value={editForm.expires_on} onChange={(event) => setEditForm({ ...editForm, expires_on: event.target.value })} /></label><label><span>취소 코드</span><input aria-label="예정 발생 취소 코드" value={editForm.reason_code} onChange={(event) => setEditForm({ ...editForm, reason_code: event.target.value })} /></label><button className="secondary-button" type="button" disabled={busy === "edit-save"} onClick={() => void saveScheduled()}>변경 반영</button><button className="secondary-button danger" type="button" disabled={!editForm.reason_code || busy === "edit-cancel"} onClick={() => void cancelScheduled()}>발생 취소</button></div>
+      </section>}
+
+      {stepUpAction && <HrxStepUpChallenge purpose="leave_ledger_adjustment" onVerified={retryAfterStepUp} />}
+
+      {view === "list" ? occurrenceRows.length > 0 ? <div className="data-table-wrap leave-occurrence-table"><table className="data-table"><thead><tr><th>구성원</th><th>휴가 유형</th><th>시작일</th><th>만료일</th><th>상태</th><th>발생</th><th>사용</th><th>예약</th><th>잔여</th>{canAdjust && <th>관리</th>}</tr></thead><tbody>{occurrenceRows.map((row) => <tr key={text(row, "entitlement_id")} data-compact-record="true"><td><strong>{text(row, "employee_display_name")}</strong></td><td>{text(row, "group_display_name")}</td><td>{text(row, "valid_from")}</td><td>{text(row, "expires_on") || "-"}</td><td><span className="record-state-badge" data-state={text(row, "lifecycle_state") === "active" ? "live" : text(row, "lifecycle_state") === "cancelled" ? "error" : "review"}>{STATE_LABELS[text(row, "lifecycle_state")] ?? text(row, "lifecycle_state")}</span></td><td>{minutes(number(row, "total_minutes"))}</td><td>{minutes(number(row, "used_minutes"))}</td><td>{minutes(number(row, "reserved_minutes"))}</td><td>{minutes(number(row, "remaining_minutes"))}</td>{canAdjust && <td>{text(row, "lifecycle_state") === "scheduled" ? <button className="table-inline-action" type="button" onClick={() => editOccurrence(row)}><Pencil size={13} />관리</button> : "-"}</td>}</tr>)}</tbody></table></div> : <div className="live-data-state live-data-empty">내역 없음</div> : <div className="data-table-wrap leave-occurrence-table"><table className="data-table"><thead><tr><th>{view === "month" ? "월" : "휴가 유형"}</th><th>발생 건</th><th>발생</th><th>사용</th><th>예약</th><th>소멸</th><th>잔여</th></tr></thead><tbody>{(view === "month" ? monthRows : typeRows).map((row) => { const rowTotals = row.totals as Row; return <tr key={text(row, "key")} data-compact-record="true"><td><strong>{text(row, "label")}</strong></td><td>{number(rowTotals, "row_count")}건</td><td>{minutes(number(rowTotals, "total_minutes"))}</td><td>{minutes(number(rowTotals, "used_minutes"))}</td><td>{minutes(number(rowTotals, "reserved_minutes"))}</td><td>{minutes(number(rowTotals, "expired_minutes"))}</td><td>{minutes(number(rowTotals, "remaining_minutes"))}</td></tr>; })}</tbody></table></div>}
+
+      {canExport && hasIntegrationActivity && <div data-leave-integration-status="true"><details className="leave-integration-status">
+        <summary><CalendarSync size={16} /><strong>업무 시스템 연동</strong><span>대기 {number(integrationSummary, "pending_sync")} · 실패 {number(integrationSummary, "failed_deliveries")} · 격리 {number(integrationSummary, "dead_lettered")}{number(integrationSummary, "not_configured") > 0 && <> · 공급자 미설정 {number(integrationSummary, "not_configured")}</>}</span></summary>
+        <div className="leave-integration-head">{canProcessIntegrations && <button className="secondary-button" type="button" disabled={busy === "integrations"} onClick={() => void processIntegrations()}><RefreshCw size={14} />대기 항목 처리</button>}</div>
+        <div className="leave-integration-list">{visibleIntegrationRows.map((row) => { const deliveries = Array.isArray(row.deliveries) ? row.deliveries as Row[] : []; return <div className="leave-integration-row" data-compact-record="true" key={text(row, "outbox_event_id")}><span><strong>{eventLabel(text(row, "event_type"))}</strong></span><div>{deliveries.length ? deliveries.map((delivery) => { const deadLetter = delivery.dead_letter as Row | null; const deadLetterId = text(deadLetter, "dead_letter_id"); return <span className="leave-integration-delivery" key={text(delivery, "delivery_id")}><span className="record-state-badge" data-state={text(delivery, "state") === "delivered" ? "live" : "review"}>{PROVIDER_LABELS[text(delivery, "provider_kind")] ?? text(delivery, "provider_kind")} · {deadLetterId && text(delivery.dead_letter as Row | null, "state") === "open" ? `${number(deadLetter, "fail_count")}회 실패` : text(delivery, "state") === "delivered" ? "연결됨" : "대기"}</span>{deadLetterId && text(delivery.dead_letter as Row | null, "state") === "open" && canProcessIntegrations && <button className="leave-integration-retry" type="button" disabled={busy === `retry:${deadLetterId}`} onClick={() => void retryDeadLetter(deadLetterId)}>재시도</button>}</span>; }) : <span className="record-state-badge" data-state="review">처리 대기</span>}</div></div>; })}</div>
+      </details></div>}
     </Panel>
   );
 }

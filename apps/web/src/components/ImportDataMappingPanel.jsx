@@ -159,7 +159,7 @@ export function ImportDataMappingPanel({ ctx = "allow", surface = "client" }) {
   }
 
   return (
-    <Panel id={`${surface}-import`} className="record-list-panel" title="가져오기" meta="필드 매핑">
+    <Panel id={`${surface}-import`} className="record-list-panel" title="가져오기">
       <div
         className="matter-live-stack"
         data-sf-b-w05-import-wizard="true"

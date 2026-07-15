@@ -53,7 +53,7 @@ const peopleLeaveSidebarMarkup = `
           <div class="sidebar-group active">
             <button class="sidebar-item sidebar-group-toggle active"><span class="sidebar-icon"></span><span>휴가</span></button>
             <div class="sidebar-subnav">
-              ${["휴가관리", "휴가 그룹/유형", "휴가 자동 발생", "휴가 수동 발생", "휴가 사용 내역"]
+              ${["휴가관리", "휴가 그룹/유형", "휴가 자동 발생", "휴가 사용 내역"]
                 .map((label) => `<button class="sidebar-item sidebar-child"><span class="sidebar-icon"></span><span>${label}</span></button>`)
                 .join("")}
             </div>
@@ -146,7 +146,7 @@ for (const width of [720, 480]) {
 
       assert.ok(geometry.documentWidth <= geometry.viewportWidth, JSON.stringify(geometry));
       assert.ok(geometry.navScrollWidth <= geometry.navClientWidth + 0.5, JSON.stringify(geometry));
-      assert.ok(geometry.rows >= 3, JSON.stringify(geometry));
+      assert.equal(geometry.rows, 2, JSON.stringify(geometry));
       for (const child of geometry.children) {
         assert.ok(child.left >= 0 && child.right <= geometry.viewportWidth + 0.5, JSON.stringify(geometry));
         assert.ok(child.width > 0, JSON.stringify(geometry));

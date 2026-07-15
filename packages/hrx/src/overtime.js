@@ -1,5 +1,6 @@
 export const HRX_OVERTIME_STATES = Object.freeze(["submitted", "approved", "rejected", "cancelled", "exported"]);
 export const HRX_OVERTIME_RISK_TYPES = Object.freeze(["weekly_limit_exceeded", "unapproved_overtime_detected"]);
+export const HRX_PAYROLL_OVERTIME_SEGMENT_KINDS = Object.freeze(["overtime", "night", "holiday"]);
 
 const OVERTIME_TRANSITIONS = Object.freeze({
   submitted: Object.freeze(["approved", "rejected", "cancelled"]),
@@ -50,6 +51,10 @@ export function createOvertimeRequest(input = {}) {
   if (!HRX_OVERTIME_STATES.includes(state)) throw new TypeError(`state must be one of ${HRX_OVERTIME_STATES.join(", ")}`);
   if (state === "approved" && !input.approver_id) throw new TypeError("approver_id is required for approved overtime");
   if (state === "exported" && !input.export_ref) throw new TypeError("export_ref is required for exported overtime");
+  const payrollSegmentKind = input.payroll_segment_kind ?? "overtime";
+  if (!HRX_PAYROLL_OVERTIME_SEGMENT_KINDS.includes(payrollSegmentKind)) {
+    throw new TypeError(`payroll_segment_kind must be one of ${HRX_PAYROLL_OVERTIME_SEGMENT_KINDS.join(", ")}`);
+  }
   return Object.freeze({
     tenant_id: requiredString(input, "tenant_id"),
     overtime_id: requiredString(input, "overtime_id"),
@@ -63,6 +68,7 @@ export function createOvertimeRequest(input = {}) {
     decided_at: input.decided_at ?? null,
     export_ref: input.export_ref ?? null,
     source_ref: input.source_ref ?? `OvertimeRequest:${requiredString(input, "overtime_id")}`,
+    payroll_segment_kind: payrollSegmentKind,
   });
 }
 

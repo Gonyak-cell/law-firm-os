@@ -1,3 +1,5 @@
+import { normalizeLeavePolicyRules } from "./type-economics.js";
+
 function requiredString(input, field) {
   const value = input?.[field];
   if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${field} is required`);
@@ -16,8 +18,7 @@ function clone(value) {
 }
 
 function stringifyRules(value) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new TypeError("rules must be an object");
-  return JSON.stringify(value);
+  return JSON.stringify(normalizeLeavePolicyRules(value));
 }
 
 function parseRules(row) {

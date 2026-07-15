@@ -51,6 +51,7 @@ test("product typography uses bundled Pretendard and SUITE without mono or macOS
   assert.match(stylesSource, /\.dashboard-record-row \{[\s\S]{0,260}grid-template-columns:[\s\S]{0,180}18px;/);
   assert.match(stylesSource, /\.dashboard-record-copy \{[\s\S]{0,80}display: contents;/);
   assert.match(dashboardListSource, /function uniqueDashboardMeta\(title, meta\)/);
+  assert.match(dashboardListSource, /const normalizedTitleParts = new Set\(title\.split/);
   assert.match(dashboardListSource, /uniqueParts\.join\(" \/ "\) \|\| null/);
   assert.match(stylesSource, /font-synthesis:\s*none/);
   assert.match(stylesSource, /\.property strong \{[\s\S]{0,140}font-weight: 400;/);
@@ -59,6 +60,37 @@ test("product typography uses bundled Pretendard and SUITE without mono or macOS
   assert.doesNotMatch(indexSource, /fonts\.googleapis|fonts\.gstatic|Comfortaa/);
   assert.match(logoSource, /amic-law\.svg/);
   assert.doesNotMatch(logoSource, /matter-mark\.svg|AMIC_n_PETRA/);
+});
+
+test("compact record rows keep low-value metadata on the primary line across product surfaces", async () => {
+  const stylesSource = await readWebFile("src/styles.css");
+  const sources = await Promise.all([
+    "src/components/DashboardList.jsx",
+    "src/components/HomeSurface.jsx",
+    "src/components/Shell.jsx",
+    "src/components/VaultSurface.jsx",
+    "src/components/ClientsSurface.jsx",
+    "src/components/MattersSurface.jsx",
+    "src/people/employees/EmployeeList.tsx",
+    "src/people/employees/PeopleWorkforceDirectory.tsx",
+    "src/people/legal/LegalPeopleWorkspace.tsx",
+    "src/people/leave/LeaveUsagePage.tsx"
+  ].map(readWebFile));
+  const compactSource = sources.join("\n");
+
+  assert.ok([...compactSource.matchAll(/data-compact-record="true"/g)].length >= 16);
+  assert.doesNotMatch(stylesSource, /\.home-dashboard-recent \.dashboard-record-row\s*\{[\s\S]{0,220}grid-template-rows/);
+  assert.match(stylesSource, /\.home-dashboard-row-main > span\s*\{[\s\S]{0,180}grid-template-columns:/);
+  assert.match(stylesSource, /\.people-row > span:not\(\.people-row-avatar\)\s*\{[\s\S]{0,180}grid-template-columns:/);
+  assert.match(stylesSource, /\.hr-roster-person > span:last-child\s*\{[\s\S]{0,140}display: flex;/);
+  assert.match(stylesSource, /\.hr-org-person > div\s*\{[\s\S]{0,180}grid-template-columns:/);
+  assert.match(stylesSource, /\.legal-relationship-row > div:first-child,[\s\S]{0,260}grid-template-columns:/);
+  assert.match(stylesSource, /\.search-query-open > span\s*\{[\s\S]{0,180}grid-template-columns:/);
+  assert.match(stylesSource, /\.leave-settings-code\s*\{[\s\S]{0,80}display: inline;/);
+  assert.match(stylesSource, /\.leave-integration-row > span\s*\{[\s\S]{0,100}display: inline-flex;/);
+  assert.match(sources[1], /detail=\{item\.updated_at \|\| item\.created_at \? formatDateTime/);
+  assert.doesNotMatch(sources[1], /detail=\{formatDateTime\(item\.updated_at \?\? item\.created_at\)\}/);
+  assert.doesNotMatch(sources[3], /searchDocumentsLabel[\s\S]{0,100}item\.searched_at/);
 });
 
 test("post-login product UI shows Home, Client, Matter, People, Search, and Portal", async () => {
@@ -74,6 +106,8 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
   const userProfileSource = await readWebFile("src/components/UserProfileSurface.jsx");
   const employeeProfileSource = await readWebFile("src/people/employees/EmployeeProfile.tsx");
   const peopleCatalogSource = await readWebFile("src/people/peopleFeatureCatalog.js");
+  const peopleHomeSource = await readWebFile("src/people/PeopleHome.tsx");
+  const attendanceSource = await readWebFile("src/people/attendance/AttendanceWorkspace.tsx");
   const i18nSource = await readWebFile("src/i18n.js");
   const peopleNavigationSource = `${shellSource}\n${peopleCatalogSource}`;
   const productAxisStart = shellSource.indexOf("function ProductAxisNav");
@@ -157,10 +191,8 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
   }
   assert.match(homeSidebarSource, /homeTodoSidebarLabel", "할 일"/);
   assert.match(homeSidebarSource, /homeEsignLabel", "전자계약"/);
-  assert.match(homeSidebarSource, /groupId: "home-approvals"/);
-  assert.match(homeSidebarSource, /homeRequestsLabel", "승인 대기"/);
-  assert.match(homeSidebarSource, /requestFilterLeave", "휴가"[\s\S]*section: "home-requests-leave"/);
-  assert.match(homeSidebarSource, /requestFilterExpenses", "비용처리"[\s\S]*section: "home-requests-expenses"/);
+  assert.match(homeSidebarSource, /homeRequestsLabel", "승인 대기"[\s\S]*section: "home-requests"/);
+  assert.doesNotMatch(homeSidebarSource, /groupId: "home-approvals"|section: "home-requests-leave"|section: "home-requests-expenses"/);
   assert.match(homeSidebarSource, /homeMeetingRoomsLabel", "회의실 예약"[\s\S]*section: "home-meeting-rooms"/);
   assert.doesNotMatch(homeSidebarSource, /최근작업|notifications-center|label: "알림"/);
   assert.match(homeSidebarSource, /view: "home", section: "home-dashboard"/);
@@ -171,7 +203,7 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
   for (const hiddenHomeSection of ["home-messages", "home-company"]) {
     assert.doesNotMatch(homeSidebarSource, new RegExp(`view: "home", section: "${hiddenHomeSection}"`));
   }
-  assert.match(homeSidebarSource, /home-dashboard[\s\S]*home-todo[\s\S]*home-approvals[\s\S]*home-meeting-rooms[\s\S]*home-feed[\s\S]*home-calendar[\s\S]*home-esign[\s\S]*homeFinanceLabel/);
+  assert.match(homeSidebarSource, /home-dashboard[\s\S]*home-todo[\s\S]*home-requests[\s\S]*home-meeting-rooms[\s\S]*home-feed[\s\S]*home-calendar[\s\S]*home-esign[\s\S]*homeFinanceLabel/);
   assert.match(homeSidebarSource, /view: "data-import", section: "data-import-client"/);
   assert.match(appSource, /globalUtilityViewIds/);
   assert.match(globalUtilitySource, /modeExceptionUtilityViewIds = \["settings", "data-import", "profile"\]/);
@@ -223,10 +255,36 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
   assert.doesNotMatch(`${shellSource}\n${globalUtilitySource}\n${homeSource}\n${clientsSource}\n${mattersSource}\n${userProfileSource}\n${employeeProfileSource}\n${i18nSource}`, /·/);
   assert.match(shellSource, /peopleNavigationGroups/);
   assert.match(shellSource, /peopleSidebarGroups/);
+  assert.match(shellSource, /children\.length === 1 && children\[0\]\.section === "people-attendance-records"/);
+  assert.match(shellSource, /label: group\.label,[\s\S]{0,120}view: "people",[\s\S]{0,120}section: child\.section/);
+  assert.match(shellSource, /hiddenPeopleSidebarGroupLabels = new Set\(\["근무일정"\]\)/);
+  assert.match(shellSource, /hiddenPeopleSidebarGroupLabels\.has\(group\.label\)/);
+  for (const hiddenPeopleSection of [
+    "people-role",
+    "people-work-profile",
+    "people-pay-work-profile",
+    "people-unscheduled-attendance",
+    "people-attendance-upload",
+    "people-break-records",
+    "people-attendance-missing-alerts",
+    "people-attendance-lock",
+    "people-attendance-verification"
+  ]) {
+    assert.match(shellSource, new RegExp(`hiddenPeopleSidebarSections[\\s\\S]{0,500}"${hiddenPeopleSection}"`));
+  }
+  assert.match(shellSource, /count: typeof child\.badge === "number" \? child\.badge : null/);
+  assert.match(peopleHomeSource, /currentSection === "people-attendance-records"/);
+  assert.doesNotMatch(peopleHomeSource, /\["people-work-schedule", "people-current-work-status", "people-attendance-records"\]/);
+  assert.match(attendanceSource, /data-simple-attendance="true"/);
+  assert.match(attendanceSource, /data-attendance-clock-in="true"/);
+  assert.match(attendanceSource, /data-attendance-clock-out="true"/);
+  assert.match(attendanceSource, /columns=\{\["근무일", "출근시간", "퇴근시간"\]\}/);
+  assert.doesNotMatch(attendanceSource, /fetchHrxOvertimeRisk|data-upl-d04-month-input|recorded_hours:|<select|type="date"|attendance-calendar|attendance-risk/);
   assert.match(shellSource, /fetchUserProfile/);
   assert.match(shellSource, /readLawosSessionEnvelope/);
   assert.match(shellSource, /sidebarSessionProfile/);
   assert.match(shellSource, /readDesktopMatterSessionStatus/);
+  assert.match(shellSource, /setProfileUser\(\{ \.\.\.\(desktopStatus \?\? \{\}\), \.\.\.\(profileItem \?\? \{\}\) \}\)/);
   assert.match(shellSource, /genericSessionDisplayNames/);
   assert.match(shellSource, /shellSessionDisplayName/);
   assert.doesNotMatch(shellSource, /forestUserInitial = forestUserName\.trim\(\)\.slice\(0, 1\) \|\| "서"/);
@@ -269,7 +327,6 @@ test("Search workspace keeps vault compatibility while adding dashboard, grouped
     assert.deepEqual(searchNavigation.items.flatMap((item) => item.children.map((child) => child.section)), [
       "vault-search-home",
       "vault-search-all",
-      "vault-search-documents",
       "vault-search-recent",
       "vault-search-saved"
     ]);
@@ -282,7 +339,7 @@ test("Search workspace keeps vault compatibility while adding dashboard, grouped
   assert.match(vaultSource, /<ForestHero title="Search" image=\{heroVaultArchitecture\} imageOpacity=\{0\.24\} \/>/);
   assert.match(vaultSource, /data-search-scope="documents-ocr"/);
   assert.match(vaultSource, /searchCurrentVersionOnly/);
-  assert.match(vaultSource, /searchOcrSidecarNotice/);
+  assert.doesNotMatch(vaultSource, /searchOcrSidecarNotice|문서\/OCR|Document\/OCR/);
   assert.match(vaultSource, /operation: "share_authorize"/);
   assert.match(vaultSource, /vault-search-recent/);
   assert.match(vaultSource, /vault-search-saved/);
@@ -513,11 +570,12 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(desktopSource, /data-logo-intro="pending"/);
   assert.match(desktopSource, /claimLogoIntro/);
   assert.match(desktopSource, /\.auth-stage[\s\S]*display:\s*flex[\s\S]*align-items:\s*center[\s\S]*justify-content:\s*center/);
-  assert.match(desktopSource, /body\[data-logo-intro="play"\] \.brand-intro[\s\S]*amicLawIntroLayer 3200ms linear/);
-  assert.match(desktopSource, /body\[data-logo-intro="play"\] \.brand-intro-logo[\s\S]*amicLawLockupIntro 3200ms linear/);
-  assert.match(desktopSource, /body\[data-logo-intro="play"\] \.brand-intro-a[\s\S]*amicLawAIntro 3200ms linear/);
-  assert.match(desktopSource, /body\[data-logo-intro="play"\] \.brand-intro-mic[\s\S]*amicLawMicIntro 3200ms linear/);
-  assert.match(desktopSource, /body\[data-login-skin="forest"\]\[data-logo-intro="play"\] \.matter-login-photo-panel[\s\S]*forestPhotoIn 520ms var\(--ease-brand-dock\) 2780ms/);
+  assert.match(desktopSource, /body\[data-logo-intro="play"\] \.brand-intro[\s\S]*amicLawIntroLayer var\(--motion-brand-intro\) linear/);
+  assert.match(desktopSource, /body\[data-logo-intro="play"\] \.brand-intro-logo[\s\S]*amicLawLockupIntro var\(--motion-brand-intro\) linear/);
+  assert.match(desktopSource, /body\[data-logo-intro="play"\] \.brand-intro-a[\s\S]*amicLawAIntro var\(--motion-brand-intro\) linear/);
+  assert.match(desktopSource, /body\[data-logo-intro="play"\] \.brand-intro-mic[\s\S]*amicLawMicIntro var\(--motion-brand-intro\) linear/);
+  assert.match(desktopSource, /body\[data-login-skin="forest"\]\[data-logo-intro="play"\] \.auth-stage[\s\S]*forestLoginPageIn var\(--motion-brand-intro\) linear both/);
+  assert.doesNotMatch(desktopSource, /forestPhotoIn|forestLoginItemIn|animation-delay: 2780ms/);
   assert.doesNotMatch(desktopSource, /body:not\(\[data-login-skin="forest"\]\)|brandLoginIntro/);
   assert.match(desktopSource, /productUiTarget\(session, \{ splash: false \}\)/);
   assert.doesNotMatch(desktopSource, /setMatterWordTarget|matterWordLoginReveal|matter-word-wrap/);
@@ -559,6 +617,9 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(homeSource, /data-home-dashboard-grid="true"/);
   assert.match(homeSource, /data-active-home-section=\{activeHomeSection\}/);
   assert.match(homeSource, /section="pending-approvals"/);
+  assert.doesNotMatch(homeSource, /const approvalCategoryRows/);
+  assert.match(homeSource, /approvalRows\.map\(\(row\) =>[\s\S]*title=\{row\.title\}[\s\S]*meta=\{row\.meta\}/);
+  assert.doesNotMatch(homeSource, /const leaveApprovalCount|const expenseApprovalCount/);
   assert.match(homeSource, /home-requests-leave/);
   assert.match(homeSource, /home-requests-expenses/);
   assert.match(homeSource, /widgetId="todo"/);
@@ -584,13 +645,14 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(homeSource, /id: "notice", labelKey: "homeFeedNotice", label: "공지사항"/);
   assert.match(homeSource, /id: "newsletter", labelKey: "homeFeedNewsletter", label: "뉴스레터"/);
   assert.doesNotMatch(homeSource, /id: "news"/);
-  assert.match(stylesSource, /home-dashboard-surface\[data-active-home-section="home-dashboard"\] \.home-dashboard-grid\s*\{[^}]*grid-template-areas:\s*"todo approvals recent"\s*"intake monthly recent"/);
+  assert.match(stylesSource, /home-dashboard-surface\[data-active-home-section="home-dashboard"\] \.home-dashboard-grid\s*\{[^}]*grid-template-areas:\s*"todo approvals recent"\s*"intake monthly rail"/);
   for (const section of ["recent-work", "today-todo", "pending-approvals", "monthly-sales", "new-engagements", "feed", "calendar"]) {
     assert.match(homeSource, new RegExp(`section="${section}"`));
   }
   assert.match(stylesSource, /\.home-dashboard-rail\s*\{[\s\S]*display:\s*flex[\s\S]*flex-direction:\s*column/);
   assert.match(stylesSource, /\.home-dashboard-rail > \.home-dashboard-card:first-child\s*\{[\s\S]*flex:\s*1/);
-  assert.match(stylesSource, /home-dashboard-surface\[data-active-home-section="home-dashboard"\][\s\S]*\.home-dashboard-grid > \.home-dashboard-feed,[\s\S]*\.home-dashboard-grid > \.home-dashboard-rail\s*\{[^}]*display:\s*none/);
+  assert.match(stylesSource, /home-dashboard-surface\[data-active-home-section="home-dashboard"\] \.home-dashboard-grid > \.home-dashboard-feed\s*\{[^}]*display:\s*none/);
+  assert.doesNotMatch(stylesSource, /home-dashboard-surface\[data-active-home-section="home-dashboard"\][^}]*\.home-dashboard-grid > \.home-dashboard-rail\s*\{[^}]*display:\s*none/);
   assert.match(dashboardListSource, /className="home-dashboard-card-body">\{children\}/);
   assert.match(homeSource, /function DashboardCard[\s\S]*className="home-dashboard-card-body">\{children\}/);
   assert.match(stylesSource, /\.home-dashboard-card\s*\{[^}]*gap:\s*0;[^}]*padding:\s*0;[^}]*overflow:\s*hidden;[^}]*border:\s*1px solid var\(--am-border\);[^}]*border-radius:\s*var\(--am-radius-sm\);[^}]*background:\s*var\(--am-surface\);/);
@@ -762,6 +824,8 @@ test("topbar utilities open right drawers with global dim and stacked alerts", a
   assert.match(shellSource, /className="notification-scrim"/);
   assert.match(shellSource, /data-notification-card="stacked"/);
   assert.match(shellSource, /\{config\.title\} <span>\{count\}<\/span>/);
+  assert.doesNotMatch(shellSource, /config\.subtitle|config\.empty|utility-empty-state/);
+  assert.doesNotMatch(shellSource, /작업 알림과 검토 신호|Matter 대화와 공지 메시지|내 결재 차례인 요청|새 알림이 없습니다|읽지 않은 메시지가 없습니다|처리할 승인이 없습니다/);
   assert.match(shellSource, /utilityMarkAllRead/);
   assert.match(shellSource, /utilityNotificationSettings/);
   assert.match(shellSource, /data-home-message-read=\{item\.id\}/);
@@ -777,7 +841,7 @@ test("topbar utilities open right drawers with global dim and stacked alerts", a
   assert.match(stylesSource, /\.utility-drawer[\s\S]*width:\s*min\(440px, 100vw\)/);
   assert.match(stylesSource, /\.notification-stack[\s\S]*overflow:\s*auto/);
   assert.match(stylesSource, /\.notification-card[\s\S]*grid-template-columns:\s*42px minmax\(0, 1fr\)/);
-  assert.match(stylesSource, /\.utility-empty-state/);
+  assert.doesNotMatch(stylesSource, /\.utility-empty-state/);
   assert.match(stylesSource, /\.utility-drawer-footer\.single/);
   assert.match(stylesSource, /@keyframes notification-drawer-in/);
   assert.match(stylesSource, /html\[data-skin="forest"\] \.notification-drawer,\s*[\r\n]+html\[data-skin="forest"\] \.people-detail-panel\s*\{[\s\S]*animation:\s*notification-drawer-in 240ms/);
@@ -910,6 +974,7 @@ test("avatar profile opens a standalone personal profile surface without becomin
   const globalUtilitySource = await readWebFile("src/data/globalUtilities.js");
   const navSource = await readWebFile("src/data/nav.js");
   const profileSource = await readWebFile("src/components/UserProfileSurface.jsx");
+  const memberPhotosSource = await readWebFile("src/people/memberPhotos.js");
   const stylesSource = await readWebFile("src/styles.css");
   const topbarSource = shellSource.slice(
     shellSource.indexOf("export function Topbar"),
@@ -943,7 +1008,17 @@ test("avatar profile opens a standalone personal profile surface without becomin
   assert.match(profileSource, /경력/);
   assert.match(profileSource, /학력/);
   assert.match(profileSource, /자격/);
+  assert.match(profileSource, /memberPhotoFor\(selectedMember\)/);
+  assert.match(profileSource, /label="연락처"[\s\S]*profileDraft\.mobile_phone/);
+  assert.match(profileSource, /memberField\(selectedMember, "mobile_phone"/);
+  assert.match(memberPhotosSource, /member\?\.photo_url/);
+  assert.match(memberPhotosSource, /data:image/);
+  assert.doesNotMatch(memberPhotosSource, /assets\/members|seo-ji-won|서지원/);
   assert.match(profileSource, /Edit/);
+  assert.match(profileSource, /GENERIC_PROFILE_NAMES/);
+  assert.match(profileSource, /resolvedProfileMember/);
+  assert.match(profileSource, /if \(!editing && items\.length === 0\) return null/);
+  assert.doesNotMatch(profileSource, /미등록/);
   assert.doesNotMatch(profileSource, /profileSidebarItems|data-profile-local-state|setLocalAction|data-profile-help-feedback|data-profile-contract-create/);
   assert.doesNotMatch(profileSource, /서지원|jws@matter\.local|법무 운영 매니저|외부 협업자|월 정액 자문|2024년 4월 15일|월 \$30\.00|계정 정리 중|진행 중|>80%<\/strong>|Contracts \/ Agreements|Expenses and claims overview|Personal Information|Time off|My Onboarding|Your Profile|Help & Feedback|계약 \/ 약정|비용 및 청구 현황|오프보딩|유연 지급|출금 방법|MessageCircle/);
   assert.doesNotMatch(profileSource, /deel-/);
@@ -967,10 +1042,8 @@ test("login surfaces keep credentials bounded and desktop supports password setu
   assert.match(appSource, /onLogin=\{handleLogin\}/);
   assert.match(appSource, /auth-only-app/);
   assert.match(appSource, /view === "auth" && authStep === "login"/);
-  assert.match(authSource, /brochure-cover\.jpg/);
-  assert.match(authSource, /data-login-screen="forest-split"/);
-  assert.match(authSource, /matter-login-photo-panel/);
-  assert.match(authSource, /AMIC Forest/);
+  assert.match(authSource, /data-login-screen="current-auth"/);
+  assert.doesNotMatch(authSource, /brochure-cover\.jpg|data-login-screen="forest-split"|matter-login-photo-panel|AMIC Forest|jdoe@matter\.local/);
   assert.doesNotMatch(authSource, /parnas|Parnas/);
   assert.match(authSource, /<MatterLogo \/>/);
   assert.match(authSource, /labels\.signupPreviewNotice/);
@@ -979,7 +1052,7 @@ test("login surfaces keep credentials bounded and desktop supports password setu
   assert.match(authSource, /data-login-email/);
   assert.match(authSource, /data-login-password/);
   assert.match(stylesSource, /\.matter-login-stage/);
-  assert.match(stylesSource, /\.matter-login-photo-panel img[\s\S]*object-fit:\s*cover/);
+  assert.match(stylesSource, /html\[data-skin="forest"\] \.matter-login-stage[\s\S]*grid-template-columns:\s*1fr/);
   assert.match(stylesSource, /@keyframes post-login-logo-dock/);
   assert.equal(assetFiles.includes("parnas-tower-login.jpg"), false);
   assert.equal(assetFiles.includes("brochure-cover.jpg"), true);
@@ -1203,7 +1276,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(dataCloudSource, /data-unified-profile="route-backed"/);
   assert.match(dataCloudSource, /data-segment-activation="provider-blocked"/);
   assert.match(dataCloudSource, /data-sf-b-w07-audit="true"/);
-  assert.match(dataCloudSource, /meta="Client"/);
+  assert.doesNotMatch(dataCloudSource, /meta="Client"/);
   assert.match(apiClientSource, /fetchDataCloudProviders/);
   assert.match(apiClientSource, /createDataCloudProvider/);
   assert.match(apiClientSource, /createDataCloudConsentRecord/);
@@ -1570,7 +1643,8 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.doesNotMatch(`${vaultSource}\n${shellSource}\n${i18nSource}`, /AMIC Search/);
   assert.match(vaultSource, /aria-label="Search"/);
   assert.match(vaultSource, /문서 제목, 본문, Matter 검색/);
-  assert.match(vaultSource, /문서\/OCR/);
+  assert.match(vaultSource, /searchFormTitle", "전체 검색/);
+  assert.doesNotMatch(vaultSource, /문서\/OCR|Document\/OCR|searchOcrSidecarNotice/);
   assert.match(vaultSource, /data-amic-search-section=\{section\}/);
   assert.doesNotMatch(vaultSource, /item\?\.document_id \?\?/);
   assert.doesNotMatch(vaultSource, /Matter 연결 상태|문서 작업 기준|권한 필터|확인 필요/);
@@ -1751,6 +1825,8 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(workforceDirectorySource, /퇴사예정/);
   assert.doesNotMatch(workforceDirectorySource, /data-hr-workforce-more|data-hr-workforce-add(?:-menu)?/);
   assert.doesNotMatch(workforceDirectorySource, /className="primary-button"[\s\S]{0,240}구성원 추가/);
+  assert.doesNotMatch(workforceDirectorySource, /hr-org-root|근로정보 기준 리포팅 라인/);
+  assert.doesNotMatch(stylesSource, /\.hr-org-root/);
   assert.match(workforceDirectorySource, /data-hr-workforce-table-options="true"/);
   assert.match(stylesSource, /\.hr-roster-table-wrap \{[\s\S]{0,140}overflow-x: hidden;/);
   assert.match(stylesSource, /\.hr-roster-table \{[\s\S]{0,140}min-width: 0;[\s\S]{0,80}max-width: 100%;/);
@@ -2014,4 +2090,33 @@ test("HRX risk dashboard runs legal-five scan through HRX APIs", async () => {
   assert.match(riskSource, /data-hrx-risk-event-list="true"/);
   assert.match(riskSource, /acknowledged/);
   assert.doesNotMatch(riskSource, /mockData|staticRisk|sampleRisk|faker|hardcodedEvents/);
+});
+
+test("Forest operational UI keeps panel metadata inline and omits redundant helper copy", async () => {
+  const files = [
+    ...(await listWebSourceFiles("src/components")),
+    ...(await listWebSourceFiles("src/people")),
+    ...(await listWebSourceFiles("src/admin")),
+    ...(await listWebSourceFiles("src/candidate"))
+  ];
+  const source = (await Promise.all(files.map((file) => readWebFile(file)))).join("\n");
+  const primitives = await readWebFile("src/components/primitives.jsx");
+  const dashboardList = await readWebFile("src/components/DashboardList.jsx");
+  const home = await readWebFile("src/components/HomeSurface.jsx");
+  const portal = await readWebFile("src/components/PortalSurface.jsx");
+  const i18n = await readWebFile("src/i18n.js");
+  const styles = await readWebFile("src/styles.css");
+
+  assert.doesNotMatch(source, /people-panel-kicker|subtitle=/);
+  assert.doesNotMatch(source, /내 휴가|잔여 휴가를 확인하고 근무일정에 맞춰 신청합니다|유형과 사유는 공개하지 않습니다|향후 7일 팀 휴가가 없습니다|선택한 구성원의 출근시간과 퇴근시간만 기록합니다|문서 원문은 이 화면에 표시하지 않습니다|미리보기 이후 원천 버전이 바뀌면 실행을 차단합니다|규칙과 기간을 선택한 뒤 미리보기를 실행하세요|입력 행을 검증하면 결과가 여기에 표시됩니다|일정·출퇴근·급여·알림의 전달 확인 상태를 분리해 표시합니다|외부 공급자는 전달 확인값이 기록되기 전까지 완료로 표시하지 않으며|사유와 첨부는 기본 내보내기에서 제외됩니다|대상을 선택하고 미리보기를 실행하면 퇴사일 기준 대사 결과가 표시됩니다|아직 정산 이력이 없습니다|문서 본문은 HR 문서 모듈에 두고 이 화면에는 참조와 증거 해시만 저장합니다|저장된 대상자가 없습니다\. 대상 미리보기부터 진행하세요|Asia\/Seoul 현지 날짜 기준/);
+  assert.doesNotMatch(source, /현재 Matter의 연결 상태를 확인합니다|잔액 대조|meta="이중 승인"|작업 알림과 검토 신호|Matter 대화와 공지 메시지|내 결재 차례인 요청|새 알림이 없습니다|읽지 않은 메시지가 없습니다|처리할 승인이 없습니다/);
+  assert.doesNotMatch(home, /EmptyWidgetState|오늘 마감 업무가 없습니다|표시할 메시지가 없습니다|진행 중인 보낸 요청이 없습니다/);
+  assert.doesNotMatch(portal, /문서 본문은 기본적으로 비공개입니다/);
+  assert.match(portal, /hasBlockingLiveState\(blockingResult\)/);
+  assert.doesNotMatch(i18n, /문서\/OCR|Document\/OCR|searchOcrSidecarNotice|오늘 마감 업무가 없습니다|작업 알림과 검토 신호|Matter 대화와 공지 메시지|내 결재 차례인 요청|새 알림이 없습니다|읽지 않은 메시지가 없습니다|처리할 승인이 없습니다/);
+  assert.match(primitives, /<header className="panel-head">\s*\{title && <h2>\{title\}<\/h2>}\s*\{meta && <span>\{meta\}<\/span>}\s*<\/header>/);
+  assert.doesNotMatch(primitives, /<header className="panel-head">\s*<div>/);
+  assert.match(dashboardList, /if \(rows\.length === 0\) return null;/);
+  assert.match(styles, /\.live-data-empty\s*\{[^}]*min-height:\s*44px;[^}]*border:\s*0;[^}]*background:\s*transparent;/s);
+  assert.match(styles, /\.leave-report-summary > span\s*\{[^}]*display:\s*flex;[^}]*align-items:\s*center;[^}]*justify-content:\s*space-between;/s);
 });
