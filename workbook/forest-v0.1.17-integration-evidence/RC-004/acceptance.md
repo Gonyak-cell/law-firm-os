@@ -3,7 +3,7 @@
 - TUW: RC-004
 - status: DONE
 - entry_sha: `3a7335b6de78115de25640b22268ff59b3a3fd81`
-- exit_sha: `PENDING`
+- exit_sha: `0a92cb7e03d369b41d353bb90228348f101a9f87`
 - changed_files: generator, RC-004 evidence set, Goal execution ledger only; product runtime 0
 - Forest checkpoint: `fbf7062398da1157ee1322d7440194c1b13f7e0f`
 - Forest verification commit: `873ca9cc05c30f6df1475f3c9ffb9918e10fa667`

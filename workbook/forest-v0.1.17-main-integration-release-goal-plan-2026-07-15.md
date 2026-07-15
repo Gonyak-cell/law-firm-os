@@ -160,7 +160,7 @@ FZ checkpoint
 | RC-001 | DONE | current root 안전 보존 | 현재 루트 binary patch·file manifest·SHA 생성 | patch apply dry-run | 사용자 변경 손실 0 |
 | RC-002 | DONE | 51개 제품 공통 파일 비교 | SHA·라인 delta·AST/API contract·test assertion·UI selector·의미 검토 | 재현 CLI, root fingerprint 전후 대조 | 51/51 판정, 동일 2·상이 49·미분류 0 |
 | RC-003 | DONE | 25개 root-only 파일 기능 대조 | payroll item/profile/time input, manual adjustment, profile smoke/runbook 점검 | 종료 세션 관련 테스트와 교차 실행 | 25/25 판정, 관련 테스트 38/38 PASS, 루트 무변경 |
-| RC-004 | READY | 상위 호환 기능 매트릭스 | `SUPERSEDED`, `PORT_TEST_ONLY`, `PORT_REQUIRED`, `REJECTED` 판정 | 누락 acceptance count | 미판정 0 |
+| RC-004 | DONE | 상위 호환 기능 매트릭스 | Forest-only 170개 보존, root 기여 76개 4종 판정, `PORT_REQUIRED` 31개를 6개 이식군으로 고정, 10개 기능 축 anchor 대조 | 재현 CLI, checkpoint hash, root fingerprint, 누락 acceptance count | Forest 170/170·root 76/76·port 31/31·기능 축 10/10, 미판정·고아·예상 밖 변경 0 |
 | RC-005 | READY | 필요한 기능만 Forest 후보에 이식 | UI 통째 복사 금지, 테스트 우선 이식, 필요한 코드 최소 구현 | 이식 전 failing·이식 후 passing | 기존 Forest 회귀 0 |
 
 RC-003에서 우선 검토할 root-only 항목:
@@ -477,6 +477,7 @@ external_blockers
 | 2026-07-15 | RC-001 | DONE | `88156fb5` | `67b72f44` | `workbook/forest-v0.1.17-integration-evidence/RC-001/` | root 77개, patch·archive·detached restore·원본 무변경 PASS |
 | 2026-07-15 | RC-002 | DONE | `f68bb059` | `f943b8be` | `workbook/forest-v0.1.17-integration-evidence/RC-002/` | 전체 common 52, metadata 1 제외, 제품 51/51 의미 검토, 미분류·parse error 0 |
 | 2026-07-15 | RC-003 | DONE | `65b742c5` | `7133e0df` | `workbook/forest-v0.1.17-integration-evidence/RC-003/` | root-only 25/25 판정: PORT_REQUIRED 10, PORT_TEST_ONLY 9, SUPERSEDED 5, REJECTED 1; 교차 테스트 38/38; 루트 지문 동일 |
+| 2026-07-15 | RC-004 | DONE | `3a7335b6` | `0a92cb7e` | `workbook/forest-v0.1.17-integration-evidence/RC-004/` | 제품 비교 246개, Forest-only 170/170 보존, root 기여 76/76 판정, port 31/31 그룹 배치, 기능 축 10/10, 예상 밖 변경·미분류·고아 0 |
 
 ## 14. Goal Objective 원문
 

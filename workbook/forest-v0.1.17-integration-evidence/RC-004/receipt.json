@@ -2,7 +2,7 @@
   "tuw": "RC-004",
   "verdict": "PASS",
   "candidate_entry_sha": "3a7335b6de78115de25640b22268ff59b3a3fd81",
-  "evidence_commit_sha": "PENDING",
+  "evidence_commit_sha": "0a92cb7e03d369b41d353bb90228348f101a9f87",
   "forest_comparison_base": "7717d5cee158fc97056510e8aebc9e0854d34196",
   "forest_content_checkpoint": "fbf7062398da1157ee1322d7440194c1b13f7e0f",
   "forest_verification_commit": "873ca9cc05c30f6df1475f3c9ffb9918e10fa667",
