@@ -1,0 +1,18 @@
+git rev-parse forest-v0.1.17-integration-candidate-4c81d861^{commit}
+git diff --name-only forest-v0.1.17-integration-candidate-4c81d861..HEAD
+ln -s /private/tmp/lawos-forest-v016-release/node_modules node_modules
+npm --workspace apps/web run test:ui
+node --test --test-force-exit --test-timeout=30000 --test-concurrency=1 apps/web/test/*.test.mjs
+npm --workspace apps/web run typecheck
+npm --workspace apps/web run build
+npm --workspace apps/desktop run test:smoke
+npm --workspace apps/desktop run test:file-bridge
+npm --workspace apps/desktop run test:session
+npm --workspace apps/desktop run test:update
+find apps/web/dist -type f -print0 | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+unlink node_modules
+python3 -m json.tool workbook/forest-v0.1.17-integration-evidence/QA-002/receipt.json
+python3 -m json.tool workbook/forest-v0.1.17-integration-evidence/QA-002/tests.json
+shasum -a 256 -c workbook/forest-v0.1.17-integration-evidence/QA-002/hashes.sha256
+git diff --check
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed

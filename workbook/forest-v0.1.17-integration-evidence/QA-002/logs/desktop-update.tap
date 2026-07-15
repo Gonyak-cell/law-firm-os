@@ -1,0 +1,15 @@
+
+> @law-firm-os/desktop@0.1.17 test:update
+> node --test test/update-rollback.test.mjs
+
+✔ signed update applies only after signature check (1.585583ms)
+✔ signed rollback returns to last verified internal version (0.1195ms)
+✔ public update channel is disabled (0.065291ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 67.330375

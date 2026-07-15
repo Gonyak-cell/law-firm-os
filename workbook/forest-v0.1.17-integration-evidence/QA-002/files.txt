@@ -1,0 +1,15 @@
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md
+workbook/forest-v0.1.17-integration-evidence/QA-002/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/QA-002/commands.txt
+workbook/forest-v0.1.17-integration-evidence/QA-002/files.txt
+workbook/forest-v0.1.17-integration-evidence/QA-002/hashes.sha256
+workbook/forest-v0.1.17-integration-evidence/QA-002/receipt.json
+workbook/forest-v0.1.17-integration-evidence/QA-002/tests.json
+workbook/forest-v0.1.17-integration-evidence/QA-002/web-ui-package-entrypoint-summary.txt
+workbook/forest-v0.1.17-integration-evidence/QA-002/logs/desktop-file-bridge.tap
+workbook/forest-v0.1.17-integration-evidence/QA-002/logs/desktop-session.tap
+workbook/forest-v0.1.17-integration-evidence/QA-002/logs/desktop-smoke.tap
+workbook/forest-v0.1.17-integration-evidence/QA-002/logs/desktop-update.tap
+workbook/forest-v0.1.17-integration-evidence/QA-002/logs/web-build.txt
+workbook/forest-v0.1.17-integration-evidence/QA-002/logs/web-typecheck.txt
+workbook/forest-v0.1.17-integration-evidence/QA-002/logs/web-ui-serial.tap
