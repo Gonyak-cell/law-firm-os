@@ -1,0 +1,15 @@
+{
+  "migration_file_count": 25,
+  "loaded_migration_count": 25,
+  "parsed_contract_unit_count": 1353,
+  "duplicate_table_column_index_trigger_count": 0,
+  "duplicate_contracts": [],
+  "reused_root_filename_count": 0,
+  "reused_root_hash_count": 0,
+  "denied_contract_count": 73,
+  "enforcement_counts": {
+    "ABSENT": 61,
+    "FOREST_CANONICAL_REPLACEMENT": 12
+  },
+  "verdict": "PASS"
+}

@@ -1,0 +1,14 @@
+scripts/generate-migration-deprecation-evidence.mjs
+packages/hrx/test/payroll-repository.test.js
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md
+workbook/forest-v0.1.17-integration-evidence/MG-002/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/MG-002/candidate-schema-scan.json
+workbook/forest-v0.1.17-integration-evidence/MG-002/canonical-anchors.json
+workbook/forest-v0.1.17-integration-evidence/MG-002/commands.txt
+workbook/forest-v0.1.17-integration-evidence/MG-002/deprecation-plan.json
+workbook/forest-v0.1.17-integration-evidence/MG-002/files.txt
+workbook/forest-v0.1.17-integration-evidence/MG-002/receipt.json
+workbook/forest-v0.1.17-integration-evidence/MG-002/root-migration-inventory.json
+workbook/forest-v0.1.17-integration-evidence/MG-002/runtime-scan.json
+workbook/forest-v0.1.17-integration-evidence/MG-002/semantic-review.md
+workbook/forest-v0.1.17-integration-evidence/MG-002/tests.txt

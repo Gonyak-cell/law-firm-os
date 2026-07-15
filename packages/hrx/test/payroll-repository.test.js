@@ -111,6 +111,38 @@ test("PY-DATA-001/002/006 persists a tenant-scoped payroll run, immutable inputs
   reopened.close();
 });
 
+test("MG-002 keeps payroll profiles mutable through audited optimistic CAS", () => {
+  const store = createFileHrxStore();
+  seedEmployee(store);
+  const repository = payroll(store);
+  const profile = repository.createProfile(HR, {
+    payroll_profile_id: "profile-mutable",
+    employee_id: "emp-001",
+    employment_type: "monthly",
+    pay_group_code: "KR-MONTHLY",
+    compensation_ref: "compensation:encrypted/emp-001/v1",
+    effective_from: "2026-01-01",
+  });
+
+  const updated = repository.updateProfile(HR, {
+    payroll_profile_id: profile.payroll_profile_id,
+    pay_group_code: "KR-MONTHLY-UPDATED",
+    expected_version: 1,
+  });
+  assert.equal(updated.pay_group_code, "KR-MONTHLY-UPDATED");
+  assert.equal(updated.state_version, 2);
+  assert.throws(
+    () => repository.updateProfile(HR, {
+      payroll_profile_id: profile.payroll_profile_id,
+      pay_group_code: "STALE-WRITE",
+      expected_version: 1,
+    }),
+    (error) => error.safe_error_code === "HRX_STATE_VERSION_CONFLICT",
+  );
+  assert.equal(repository.listAuditEvents(HR, { object_id: profile.payroll_profile_id }).at(-1).action, "hrx.payroll.profile.update");
+  store.close();
+});
+
 test("PY-DATA-003 publishes contiguous four-eye rule versions and makes published history immutable", () => {
   const store = createFileHrxStore();
   const repository = payroll(store);

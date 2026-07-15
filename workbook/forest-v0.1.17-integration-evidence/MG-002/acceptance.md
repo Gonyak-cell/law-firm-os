@@ -1,0 +1,22 @@
+# MG-002 Acceptance
+
+- TUW: MG-002
+- status: DONE
+- entry_sha: `000617f52fdc79721941c2705b27859af9b8372b`
+- exit_sha: `PENDING`
+- changed_files: deprecation validator, payroll profile CAS regression, MG-002 evidence set, Goal execution ledger
+- root source HEAD: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`
+- root source working-tree SHA-256: `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`
+- denied contracts enforced: 73/73
+- enforcement: ABSENT 61, FOREST_CANONICAL_REPLACEMENT 12
+- duplicates: 0
+- copied root filename/hash: 0/0
+- deprecated runtime symbol hits: 0
+- canonical anchors byte-preserved: 7/7
+- commands: see `commands.txt`
+- test_result: CLI boundary, 73-contract deprecation plan, schema duplicate scan, root copy rejection, runtime anchor scan, profile optimistic CAS, migration/type economics/lifecycle regressions, root fingerprint, deterministic rerun PASS
+- manual_qa: candidate loader/disk migrations, Forest 021 profile schema, payroll repository update path, input snapshot path, leave economics, and derived lifecycle were inspected against the MG-001 crosswalk
+- evidence_hashes: deprecation plan `ec21d660558c2bc3149b29cb15fec27fb972d86c9b4f96c25181f59daec9f083`, schema scan `e7a4ef52f4f4745b43b782e671d2e5419b925b57d1c4aad7f3b7938e2b7396c9`, runtime scan `7b49f9761d8c24703456f189b8a0d405f912129806be71599471fa50acb4078b`
+- known_limits: MG-002 proves removal/deprecation only; MG-003 still must implement approved 026-028 additive contracts
+- external_blockers: none
+- AI slop review: pass; no product UI or user-facing runtime copy changed

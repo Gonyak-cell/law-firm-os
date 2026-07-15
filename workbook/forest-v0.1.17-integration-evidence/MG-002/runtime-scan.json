@@ -1,0 +1,14 @@
+{
+  "scanned_runtime_file_count": 115,
+  "forbidden_symbol_count": 12,
+  "forbidden_symbol_hit_count": 0,
+  "forbidden_symbol_hits": [],
+  "required_contract_token_count": 14,
+  "missing_required_contract_token_count": 0,
+  "missing_required_contract_tokens": [],
+  "payroll_profile_mutability_contract": "optimistic_state_version_update",
+  "leave_type_economics_contract": "immutable_policy_rule_snapshot",
+  "leave_lifecycle_contract": "derived_dates_plus_reversal_ledger",
+  "payroll_input_contract": "canonical_input_json_plus_source_refs",
+  "verdict": "PASS"
+}

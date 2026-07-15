@@ -1,0 +1,44 @@
+[
+  {
+    "path": "packages/hrx/src/leave/entitlement-lifecycle.js",
+    "checkpoint_sha256": "3e4f29688c3c7997f8cc623cd80a7480fce8fe9a0ebdb7810f597c8486dd96a0",
+    "current_sha256": "3e4f29688c3c7997f8cc623cd80a7480fce8fe9a0ebdb7810f597c8486dd96a0",
+    "relation": "BYTE_IDENTICAL"
+  },
+  {
+    "path": "packages/hrx/src/leave/type-economics.js",
+    "checkpoint_sha256": "119dfc0fec8db4594e9b393159eb72d5ad8ec6f75bb581b612a71b9d920bea31",
+    "current_sha256": "119dfc0fec8db4594e9b393159eb72d5ad8ec6f75bb581b612a71b9d920bea31",
+    "relation": "BYTE_IDENTICAL"
+  },
+  {
+    "path": "packages/hrx/src/migrations/011_hrx_leave_type_economics.sql",
+    "checkpoint_sha256": "1da83c66efe87da337d148e8449ee7524c6e49b0f587bdd8c8ce5a7dee9f5445",
+    "current_sha256": "1da83c66efe87da337d148e8449ee7524c6e49b0f587bdd8c8ce5a7dee9f5445",
+    "relation": "BYTE_IDENTICAL"
+  },
+  {
+    "path": "packages/hrx/src/migrations/020_hrx_leave_rule_snapshots.sql",
+    "checkpoint_sha256": "f6248684c210547b833b9beebe260837e7b460bd894987b5759f7a80f533c9b4",
+    "current_sha256": "f6248684c210547b833b9beebe260837e7b460bd894987b5759f7a80f533c9b4",
+    "relation": "BYTE_IDENTICAL"
+  },
+  {
+    "path": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "checkpoint_sha256": "4e5c833fe19a4c5720892f7d17f8058e56585ae6df88b912b5eb30894b9341c6",
+    "current_sha256": "4e5c833fe19a4c5720892f7d17f8058e56585ae6df88b912b5eb30894b9341c6",
+    "relation": "BYTE_IDENTICAL"
+  },
+  {
+    "path": "packages/hrx/src/payroll/input-snapshot-service.js",
+    "checkpoint_sha256": "4b3b02fa42cd72df0d36b75e54ad1fce769479937b366e586abb5f5f73a88bda",
+    "current_sha256": "4b3b02fa42cd72df0d36b75e54ad1fce769479937b366e586abb5f5f73a88bda",
+    "relation": "BYTE_IDENTICAL"
+  },
+  {
+    "path": "packages/hrx/src/payroll/repository.js",
+    "checkpoint_sha256": "2f87182d213c63f30d4aa7139b39d6b837535936165f814fbb1ed8f5069ee022",
+    "current_sha256": "2f87182d213c63f30d4aa7139b39d6b837535936165f814fbb1ed8f5069ee022",
+    "relation": "BYTE_IDENTICAL"
+  }
+]

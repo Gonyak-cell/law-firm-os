@@ -1,0 +1,8 @@
+node --check scripts/generate-migration-deprecation-evidence.mjs
+node scripts/generate-migration-deprecation-evidence.mjs --help
+node scripts/generate-migration-deprecation-evidence.mjs # expected usage failure
+node scripts/generate-migration-deprecation-evidence.mjs "/Users/jws/Documents/Codex/Law Firm OS"
+node --test packages/hrx/test/payroll-repository.test.js packages/hrx/test/migration.test.js packages/hrx/test/leave-type-economics.test.js packages/hrx/test/leave-entitlement-lifecycle.test.js
+git diff --check
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed
+rerun generator and compare MG-002 evidence directory SHA-256 manifest

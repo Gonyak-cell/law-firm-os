@@ -1,0 +1,32 @@
+[
+  {
+    "filename": "011_hrx_payroll_items.sql",
+    "sha256": "2c4b48dc4a3e7dc889b72e90f893798a90f1c7eae04ac2df341364a9014645e6",
+    "size": 1014
+  },
+  {
+    "filename": "012_hrx_payroll_profiles.sql",
+    "sha256": "d91498554aa6ec2fce9c0243cb881ade182302e9ca463596129baa8e60412160",
+    "size": 3341
+  },
+  {
+    "filename": "013_hrx_payroll_time_inputs.sql",
+    "sha256": "06f6807413e69c76ddbe2bbc9285b0323af871fa27ac05661826c68c41657e00",
+    "size": 3901
+  },
+  {
+    "filename": "014_hrx_leave_usage_units.sql",
+    "sha256": "f276eb1fdccedf8c8768a3d1af865462008083ad9255b7b422943f458fcb0741",
+    "size": 618
+  },
+  {
+    "filename": "015_hrx_leave_accrual_rule_versions.sql",
+    "sha256": "2632792fa515581efae4bf486db14b66d710f86c67581d955de25f1bc81ab387",
+    "size": 289
+  },
+  {
+    "filename": "016_hrx_leave_entitlement_lifecycle.sql",
+    "sha256": "82d40c46fa6fe51e6f0a1902b66e494a427bbd462b55a2f969ddf29c16c22880",
+    "size": 361
+  }
+]
