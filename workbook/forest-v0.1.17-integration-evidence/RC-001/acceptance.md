@@ -2,6 +2,7 @@
 
 - status: DONE
 - candidate_entry_sha: `88156fb54540c1c9362ce66bf343542bbc61ad13`
+- evidence_commit_sha: `67b72f44ffb2e577b780ab6f5cad28e23496542e`
 - source branch and HEAD: `codex/profile-contact-regression-fix` at `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`
 - tracked modified: 56
 - untracked: 21
