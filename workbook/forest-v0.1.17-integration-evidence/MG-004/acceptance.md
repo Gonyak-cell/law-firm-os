@@ -3,7 +3,7 @@
 - TUW: MG-004
 - status: DONE
 - entry_sha: `8d01be6fe73614f227864d6514df8f4ccc47c574`
-- exit_sha: `PENDING`
+- exit_sha: `229429fd3b4f728552f553defa79bacb824a554b`
 - changed_files: native SQLite fresh-database validator, regression test, deterministic evidence generator, MG-004 evidence set, Goal execution ledger
 - root source HEAD: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`
 - root source working-tree SHA-256: `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`
