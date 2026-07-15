@@ -1,0 +1,1 @@
+{"status":"pass","schema_version":"law-firm-os.hrx.leave-management-baseline.v0.1","decision_count":10,"legal_version_count":2,"canonical_settings_section":"people-leave-types","real_employee_data_allowed":false,"deployment_requires_company_decisions":true}

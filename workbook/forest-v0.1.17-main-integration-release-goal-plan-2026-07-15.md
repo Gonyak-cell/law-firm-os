@@ -266,7 +266,7 @@ MI-003 중단 조건:
 
 | ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
 |---|---|---|---|---|---|
-| QA-001 | READY | domain·API 전체 PASS | HRX leave/payroll/authz/API 전부 실행 | test runner | 0 fail |
+| QA-001 | DONE | domain·API 전체 PASS | HRX leave/payroll/authz/API 전부 실행 | 228 files·1,161 tests·8 validators | 0 fail·0 skip |
 | QA-002 | READY | Web·Desktop 전체 PASS | typecheck, build, UI, desktop tests | npm/node tests | 0 fail, 기존 skip 문서화 |
 | QA-003 | READY | migration·privacy·security PASS | fresh/upgrade/reopen, tenant, PII, secret, public renderer | validators | 치명적 finding 0 |
 | QA-004 | READY | 브라우저 역할·viewport PASS | employee, manager, HR, preparer, approver, no-scope × 5 viewport | browser receipt | unexpected error·overflow·dead action 0 |
@@ -527,6 +527,7 @@ external_blockers
 | 2026-07-16 | MI-005 | DONE | `77c500e2` | `77c500e2` | `workbook/forest-v0.1.17-integration-evidence/MI-005/` | refreshed `origin/main=fdd1e34a`; merge-base 동일·merge-tree exit 0·current tree `1a4aa9f9` 동일; conflict·resolution·unresolved·blanket ours/theirs 0, 제품·외부 mutation 0 |
 | 2026-07-16 | MI-006 | DONE | `cc2db0b2` | `cc2db0b2` | `workbook/forest-v0.1.17-integration-evidence/MI-006/` | refreshed `origin/main=fdd1e34a`; critical path 155개 중 Git object 동일 121·변경 검토 34·삭제/누락 0; authz/API/Desktop/backup/release 268/268, source/PII/security/typecheck/DR drill PASS; public header smoke는 signed-session 경계로 안전하게 대체, live AWS는 MI-001 READY 유지; 사용자 루트·PID 55090 무변경 |
 | 2026-07-16 | MI-007 | DONE | `4c81d861` | `4c81d861` | `workbook/forest-v0.1.17-integration-evidence/MI-007/` | `INTEGRATION_SHA=4c81d861693472af48a680e5757b352bb9945b9b`, tree `628b370a`; 로컬 annotated QA anchor `forest-v0.1.17-integration-candidate-4c81d861`; 제품 트리 `ab7868eb`와 digest 동일·제품 diff 0·Git fsck PASS; 원격 tag·upstream·PR·main mutation 0, 사용자 루트·PID 55090 무변경 |
+| 2026-07-16 | QA-001 | DONE | `443e833c` | `443e833c` | `workbook/forest-v0.1.17-integration-evidence/QA-001/` | MI-007 tag `4c81d861` 결속; HRX domain 111 files·571/571, authz/runtime-auth 15 files·159/159, 공식 API 88 files·389/389, 중첩 API 14 files·42/42; 총 228 files·1,161 PASS·fail/skip 0; validator 8/8, route policy 159·leave 49/49·payroll 61/61·port 미구현 0; 제품 diff 0·사용자 루트·PID 55090 무변경 |
 
 ## 14. Goal Objective 원문
 

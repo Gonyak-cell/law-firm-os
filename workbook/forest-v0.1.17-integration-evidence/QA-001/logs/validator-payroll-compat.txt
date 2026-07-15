@@ -1,0 +1,12 @@
+{
+  "verdict": "PASS",
+  "entry_sha": "f3b38cbbe297f46fda0d5e64744bc081e9ed3d66",
+  "payroll_tuws": "61/61",
+  "implementation_axes": "8/8",
+  "test_files": 23,
+  "package_scenarios": 9,
+  "package_screenshots": 5,
+  "renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96",
+  "external_gate": "BLOCKED",
+  "historical_browser_current_source_proof": false
+}

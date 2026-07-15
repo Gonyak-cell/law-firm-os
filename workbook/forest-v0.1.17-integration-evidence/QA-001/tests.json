@@ -1,0 +1,18 @@
+{
+  "schema_version": "lawos.forest.integration.qa001.tests.v1",
+  "tuw_id": "QA-001",
+  "verdict": "PASS",
+  "candidate_binding": {
+    "ref": "forest-v0.1.17-integration-candidate-4c81d861",
+    "commit": "4c81d861693472af48a680e5757b352bb9945b9b",
+    "non_workbook_diff_count": 0
+  },
+  "test_suites": { "files": 228, "passed": 1161, "failed": 0, "skipped": 0 },
+  "validator_suites": { "passed": 8, "failed": 0 },
+  "raw_log_sha256": {
+    "hrx-domain.tap": "94ac74646beec74c8c59189453e10a8d11beed3c2990883510cc56a4b1b4f2c6",
+    "authz-runtime-auth.tap": "62e6dbab42d8231d94e04575ef0c7174908c5b528ab3d5bb70c711f3e36c2342",
+    "api.tap": "bf8a992e40d1d6a57b13df02c7913de0bb5ded8966c075cd65bee0c86cc206dd",
+    "api-nested.tap": "7a8118db16457bdf133298f92dd11a9962f9e2852c9a59bc50baa934cc26f163"
+  }
+}
