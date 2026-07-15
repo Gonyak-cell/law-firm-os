@@ -1,0 +1,19 @@
+node_modules/.bin/tsc -p apps/web/tsconfig.json --noEmit --pretty false
+node --test apps/web/test/leave-accrual-ui.test.mjs
+node --test apps/web/test/leave-reporting-ui.test.mjs
+node --test apps/web/test/leave-self-service-ui.test.mjs
+node --test apps/web/test/ui-regression.test.mjs
+node --test apps/api/test/profile-api.test.js
+node --test --test-name-pattern='profile keeps|profile never' apps/web/test/home-dashboard-r1.test.mjs
+node scripts/validate-lcx-hrx-sft-roster-source.mjs
+node scripts/validate-public-renderer-no-hrx-roster-pii.mjs
+node scripts/run-leave-lv03-browser-qa.mjs
+node scripts/run-leave-lv04-browser-qa.mjs
+node scripts/run-leave-lv05-browser-qa.mjs
+npm --workspace apps/web run build
+npm --workspace apps/desktop run build:mac
+npm --workspace apps/desktop run build:win
+node scripts/run-leave-management-packaged-qa.mjs
+node scripts/smoke-matter-profile-packaged.mjs
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed
+

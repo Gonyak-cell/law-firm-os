@@ -1,0 +1,36 @@
+FAIL-FIRST
+- immutable rule version/deactivate UI assertions: FAIL before implementation
+- CSV/XLSX leave occurrence assertions: FAIL before implementation
+- empty approval helper copy absence: FAIL before implementation
+- fake PNG and SVG data URL rejection: FAIL before implementation
+- packaged profile smoke: stale text selector timeout before stable data-selector correction
+- packaged leave QA: stale empty-copy expectation failed before absence assertion
+- package parity: stale Windows renderer hash mismatch before same-SHA rebuild
+
+PASS
+- apps/web TypeScript: PASS
+- leave-accrual-ui: 2 PASS, 0 FAIL
+- leave-reporting-ui: 2 PASS, 0 FAIL
+- leave-self-service-ui: 2 PASS, 0 FAIL
+- ui-regression: 31 PASS, 0 FAIL
+- profile-api: 5 PASS, 0 FAIL
+- signed profile identity regression: 2 PASS, 0 FAIL
+- LV-03 browser QA: PASS; page error 0, leave console error 0
+- LV-04 browser QA: PASS; version create/deactivate, step-up, idempotency, dual control
+- LV-05 browser QA: PASS; CSV/XLSX, privacy, termination, outbox, staff isolation
+- web production build: PASS; 1,718 modules transformed
+- public renderer PII validator: PASS; 2 roots, 54 files, protected values printed 0
+- macOS internal package build: PASS; install smoke PASS
+- Windows internal package build: PASS; PE candidate and zip integrity PASS
+- Mac/Windows renderer parity: PASS; SHA-256 b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96
+- packaged leave QA: 10/10 scenarios PASS, 11 screenshots, console errors 0
+- packaged profile smoke: PASS; signed session and rendered profile both 서지원
+- root worktree fingerprint: PASS; 7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3
+
+AI SLOP
+- sloplint weak findings 3: all are false positives on the standard browser `Blob` download API, not visual blob/aurora backgrounds.
+- UI/copy finding requiring product change: 0
+
+KNOWN TEST HARNESS NOISE
+- isolated source tests can print Vite dependency-scan shutdown warnings after their assertions pass; exit code and test counts remain PASS.
+

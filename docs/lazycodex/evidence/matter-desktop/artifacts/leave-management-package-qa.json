@@ -1,18 +1,18 @@
 {
   "schema_version": "law-firm-os.leave-management.package-qa.v1",
-  "generated_at": "2026-07-14T21:58:34.498Z",
+  "generated_at": "2026-07-15T13:08:00.977Z",
   "verdict": "PASS",
   "synthetic_only": true,
   "source": {
-    "revision": "7717d5cee158fc97056510e8aebc9e0854d34196",
-    "tree_sha256": "b0d6a0d4fa083f6bc6b657c5e2c143a93e07dbf5420b565b08f12b8b8b1acbba",
-    "build_renderer_sha256": "d0c2d662dac5a451858c86dabfb034232ba653f9482523d870ba2a57c42db727",
-    "packaged_source_sha256": "fe7f72fa7590486f7210594a4f57c1e8480673b6ce5f20c52e3d05791dfdbbfc"
+    "revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c",
+    "tree_sha256": "265d6c4ce2b6c3f97046c16c3212e2c384b9c9bb25b346740d91c29cf86d527f",
+    "build_renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96",
+    "packaged_source_sha256": "dada88aa630af0f65374bf6a4e20e71d6b7c1b86f6beafa0ebfb1d656ff34546"
   },
   "app": {
     "bundle": "apps/desktop/dist/mac/matter.app",
     "executable": "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
-    "app_bundle_sha256": "429e6e874328b069cb888c0539bf6bb2e2d96fec24f5434041c78f90143ff9b0",
+    "app_bundle_sha256": "c8f34ccc3e6ba1840bb33244806b6fb86ecc361e7972c9308930fbfc7e0e5514",
     "executable_sha256": "c0bf182389ea930585e3b0bf5c4f16529461e02bf3be751cb364d0e25f2257e0",
     "verification_scope": "functional_only",
     "release_channel": "not_attested_by_functional_qa",
@@ -24,8 +24,8 @@
     "executable": "apps/desktop/dist/win/matter-internal-0.1.16-win32-x64/matter.exe",
     "executable_sha256": "b0b6e0cd22a7a135e5230118be27a4c2713a516340f0bbdfb446acb9b2dae31e",
     "unsigned_zip": "apps/desktop/dist/win/matter-internal-0.1.16-win32-x64-unsigned.zip",
-    "unsigned_zip_sha256": "6fdada3855f4ba3785ca44c56c6529be4bac3b9dc16afd5e37fc01551dea1862",
-    "renderer_sha256": "d0c2d662dac5a451858c86dabfb034232ba653f9482523d870ba2a57c42db727",
+    "unsigned_zip_sha256": "90504b6f14d937ab5acf4debb44500d0dfad78191a5f4b59f97952d5fa45567e",
+    "renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96",
     "renderer_matches_macos": true,
     "pe_header": "MZ",
     "archive_test": "pass",
@@ -36,12 +36,12 @@
   "runtime": {
     "profile": "local-dev",
     "endpoint_kind": "loopback_ephemeral",
-    "first_endpoint": "http://127.0.0.1:59492",
-    "second_endpoint": "http://127.0.0.1:59525",
+    "first_endpoint": "http://127.0.0.1:63545",
+    "second_endpoint": "http://127.0.0.1:63585",
     "first_status": {
       "configured": true,
       "mode": "production-auth-http",
-      "baseUrl": "http://127.0.0.1:59492",
+      "baseUrl": "http://127.0.0.1:63545",
       "tenantId": "",
       "operatorActor": "",
       "migrationWindow": "",
@@ -52,7 +52,7 @@
     "second_status": {
       "configured": true,
       "mode": "production-auth-http",
-      "baseUrl": "http://127.0.0.1:59525",
+      "baseUrl": "http://127.0.0.1:63585",
       "tenantId": "",
       "operatorActor": "",
       "migrationWindow": "",
@@ -60,9 +60,9 @@
       "operatorRuntimeConfigured": false,
       "operatorTokenMaterialExposed": false
     },
-    "user_data_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-leave-package-qa-Cw5VAh",
-    "runtime_store_dir": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-leave-package-qa-Cw5VAh/runtime-stores",
-    "migration_version": "020_hrx_leave_rule_snapshots"
+    "user_data_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-leave-package-qa-ZAN8V5",
+    "runtime_store_dir": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-leave-package-qa-ZAN8V5/runtime-stores",
+    "migration_version": "029_hrx_leave_accrual_rule_version_index"
   },
   "roles": {
     "employee": {
@@ -131,24 +131,24 @@
         "reserved_minutes": 0,
         "expired_minutes": 9840,
         "entry_ids": [
-          "leave_ledger_adjustment_1b537e86-00f8-4edb-becc-6a66c06044b0",
-          "leave_ledger_earned_3e66764c-5ff6-450d-9c91-1352e8b91cdf",
-          "leave_released_1eedd757-0e84-4800-866e-fb5dbc7d97af",
-          "leave_released_95621a45-e6e5-4803-9cf1-ffbbfecd65a4",
-          "leave_released_c7837360-8fcb-4f71-a290-78373f2781dc",
-          "leave_reserved_99decf51-4282-4fa2-a086-b7d62bbecc78",
-          "leave_reserved_b770fc9b-0fa3-490b-ac77-cc8c3c8289c6",
-          "leave_reserved_f47cd5a4-069c-4a14-aa7f-73bb916483d3",
-          "leave_termination_expired_546650a7-451c-42c4-99c8-9ac874760971",
-          "leave_termination_expired_f427bf6e-d3c1-44f8-b3d2-24632ba1c3c1",
-          "leave_termination_expired_fcf3b2e2-afdf-40d5-b425-76866df66ff1",
-          "leave_used_1417334a-2b94-407e-b459-244ea8649b8a",
+          "leave_ledger_adjustment_3da2cf61-bf6a-4831-8b9b-feabd4ae2aa7",
+          "leave_ledger_earned_31cfb3c4-7b1a-4c73-b563-103f3ce33dbd",
+          "leave_released_2f05fd1d-c04c-4518-ac47-99379ab3df26",
+          "leave_released_7d481d8c-a95d-48d1-8d07-377109c61419",
+          "leave_released_897e1365-3e83-4529-bfbd-daeaf08298a5",
+          "leave_reserved_210f68e3-b997-4f70-b8dc-4aade6e3a784",
+          "leave_reserved_74d0e8a9-5014-4d98-8ff7-8cc795ea1dd4",
+          "leave_reserved_e707a192-705b-41fc-aef9-d1d81670ff60",
+          "leave_termination_expired_78ab71d6-eb15-4671-95b3-66977fab3494",
+          "leave_termination_expired_8a88b705-f267-46f4-a1c5-b20acdab0ff5",
+          "leave_termination_expired_fe7550e0-53ea-43e8-a5b2-aa4d23eb49c4",
+          "leave_used_f2c689ff-789c-4c0f-858c-80f6f92c2516",
           "pkg-earned-emp_amic_yjlee"
         ]
       },
       "approved_requests": [
         {
-          "request_id": "leave-request:7e446e33-deaf-46e4-b70a-ae631600fa0f",
+          "request_id": "leave-request:fd3dadda-ea54-4067-8b83-b3b03316dd69",
           "state": "approved",
           "start_date": "2026-07-16",
           "end_date": "2026-07-16",
@@ -202,24 +202,24 @@
         "reserved_minutes": 0,
         "expired_minutes": 9840,
         "entry_ids": [
-          "leave_ledger_adjustment_1b537e86-00f8-4edb-becc-6a66c06044b0",
-          "leave_ledger_earned_3e66764c-5ff6-450d-9c91-1352e8b91cdf",
-          "leave_released_1eedd757-0e84-4800-866e-fb5dbc7d97af",
-          "leave_released_95621a45-e6e5-4803-9cf1-ffbbfecd65a4",
-          "leave_released_c7837360-8fcb-4f71-a290-78373f2781dc",
-          "leave_reserved_99decf51-4282-4fa2-a086-b7d62bbecc78",
-          "leave_reserved_b770fc9b-0fa3-490b-ac77-cc8c3c8289c6",
-          "leave_reserved_f47cd5a4-069c-4a14-aa7f-73bb916483d3",
-          "leave_termination_expired_546650a7-451c-42c4-99c8-9ac874760971",
-          "leave_termination_expired_f427bf6e-d3c1-44f8-b3d2-24632ba1c3c1",
-          "leave_termination_expired_fcf3b2e2-afdf-40d5-b425-76866df66ff1",
-          "leave_used_1417334a-2b94-407e-b459-244ea8649b8a",
+          "leave_ledger_adjustment_3da2cf61-bf6a-4831-8b9b-feabd4ae2aa7",
+          "leave_ledger_earned_31cfb3c4-7b1a-4c73-b563-103f3ce33dbd",
+          "leave_released_2f05fd1d-c04c-4518-ac47-99379ab3df26",
+          "leave_released_7d481d8c-a95d-48d1-8d07-377109c61419",
+          "leave_released_897e1365-3e83-4529-bfbd-daeaf08298a5",
+          "leave_reserved_210f68e3-b997-4f70-b8dc-4aade6e3a784",
+          "leave_reserved_74d0e8a9-5014-4d98-8ff7-8cc795ea1dd4",
+          "leave_reserved_e707a192-705b-41fc-aef9-d1d81670ff60",
+          "leave_termination_expired_78ab71d6-eb15-4671-95b3-66977fab3494",
+          "leave_termination_expired_8a88b705-f267-46f4-a1c5-b20acdab0ff5",
+          "leave_termination_expired_fe7550e0-53ea-43e8-a5b2-aa4d23eb49c4",
+          "leave_used_f2c689ff-789c-4c0f-858c-80f6f92c2516",
           "pkg-earned-emp_amic_yjlee"
         ]
       },
       "approved_requests": [
         {
-          "request_id": "leave-request:7e446e33-deaf-46e4-b70a-ae631600fa0f",
+          "request_id": "leave-request:fd3dadda-ea54-4067-8b83-b3b03316dd69",
           "state": "approved",
           "start_date": "2026-07-16",
           "end_date": "2026-07-16",
@@ -257,17 +257,17 @@
       "manual_adjustment_count": 1
     },
     "identical": true,
-    "domain_snapshot_sha256_before": "8a4d65d2929003ec46c5e263e667c417c306bfb1c4aa52ec991d33b65a88864d",
-    "domain_snapshot_sha256_after": "8a4d65d2929003ec46c5e263e667c417c306bfb1c4aa52ec991d33b65a88864d",
-    "store_file_sha256_before": "68cbe5d860ff61309ac324d6281f0cbd99b589bc17f4365ca6ad935f2053f581",
-    "store_file_sha256_after": "83e2e712cfa5431a3ce83b25e1139ed3dfde5658ab78fd590b2da4f761d168c7",
+    "domain_snapshot_sha256_before": "7dd8d9d652f791d3420146db624a4ae84eb167547afafc302eb97f22858f6775",
+    "domain_snapshot_sha256_after": "7dd8d9d652f791d3420146db624a4ae84eb167547afafc302eb97f22858f6775",
+    "store_file_sha256_before": "58385370ad0876b4ecc71dcdee75ee32940dcbcaa618e521f92145608daedc2a",
+    "store_file_sha256_after": "576f4f7e1cfaea22f79d429a88529f8729a3bad2f0310970af635b145dc65c6d",
     "store_file_hash_expected_to_change_with_audit_events": true
   },
   "viewport_manifest": [
     {
       "name": "viewport-1512x900",
       "path": "output/playwright/leave-management-package/viewport-1512x900.png",
-      "sha256": "58059330565ae59b0ba3774a7ceb7988d36e3f41b982f818bbf87d2458bca460",
+      "sha256": "db0bb78b84c688c77d969f1d81830ef7082a7a996440b009486803c0f7c8bb16",
       "viewport": {
         "width": 1512,
         "height": 900
@@ -275,12 +275,12 @@
       "route": "people-leave-usage",
       "role": "hr_admin",
       "runtime_profile": "local-dev",
-      "source_revision": "7717d5cee158fc97056510e8aebc9e0854d34196"
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
     },
     {
       "name": "viewport-1280x820",
       "path": "output/playwright/leave-management-package/viewport-1280x820.png",
-      "sha256": "2002147ed5b77a9c7591caff6b8ec25e5452b818bf1c504d1aa9bf14d54dae62",
+      "sha256": "3e24f527fd35393ca28fe6b2d9c2efbf3e33538bb6574cac3095070215e70cc7",
       "viewport": {
         "width": 1280,
         "height": 820
@@ -288,12 +288,12 @@
       "route": "people-leave-usage",
       "role": "hr_admin",
       "runtime_profile": "local-dev",
-      "source_revision": "7717d5cee158fc97056510e8aebc9e0854d34196"
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
     },
     {
       "name": "viewport-1024x800",
       "path": "output/playwright/leave-management-package/viewport-1024x800.png",
-      "sha256": "3da2c7d8b0f9d8877d9d51ab0093e306c947d6a47f596d8f4c73e1e9d33b5049",
+      "sha256": "6b1e800bce2091b8106b4472356327dbbe3a809f8cf1171fa4b28f069fd2b985",
       "viewport": {
         "width": 1024,
         "height": 800
@@ -301,12 +301,12 @@
       "route": "people-leave-usage",
       "role": "hr_admin",
       "runtime_profile": "local-dev",
-      "source_revision": "7717d5cee158fc97056510e8aebc9e0854d34196"
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
     },
     {
       "name": "viewport-820x900",
       "path": "output/playwright/leave-management-package/viewport-820x900.png",
-      "sha256": "19bec0d1eb2f266197860299fe333f8a8c3e8c7b4afc2856b3672b2623e3d811",
+      "sha256": "2b89d0cb732117e4c45cc4004b45438932cf25342d13ff01ab93494bdfe7a469",
       "viewport": {
         "width": 820,
         "height": 900
@@ -314,12 +314,12 @@
       "route": "people-leave-usage",
       "role": "hr_admin",
       "runtime_profile": "local-dev",
-      "source_revision": "7717d5cee158fc97056510e8aebc9e0854d34196"
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
     },
     {
       "name": "viewport-720x900",
       "path": "output/playwright/leave-management-package/viewport-720x900.png",
-      "sha256": "47ed880f0211631a39aedf9a7a37e8b7f1964b458eb9a8d6840a38ed94d49897",
+      "sha256": "9960a638726ef47d2642eb7e98921945400e7dfe3ce70efa6a7763f36df32994",
       "viewport": {
         "width": 720,
         "height": 900
@@ -327,14 +327,14 @@
       "route": "people-leave-usage",
       "role": "hr_admin",
       "runtime_profile": "local-dev",
-      "source_revision": "7717d5cee158fc97056510e8aebc9e0854d34196"
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
     }
   ],
   "screenshots": [
     {
       "name": "01-employee-half-day-cancel-720x900",
       "path": "output/playwright/leave-management-package/01-employee-half-day-cancel-720x900.png",
-      "sha256": "f3a223c353f6ff3fd36adfb6664cfae1a80cb2551264c222c528a6fa6cf7fcbb",
+      "sha256": "64220860198d3c0f4acd2b5c6c224281217e4c831b603c162a82772d649d7118",
       "viewport": {
         "width": 720,
         "height": 900
@@ -342,12 +342,12 @@
       "route": "people-leave",
       "role": "employee",
       "runtime_profile": "local-dev",
-      "source_revision": "7717d5cee158fc97056510e8aebc9e0854d34196"
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
     },
     {
       "name": "02-manager-reschedule-1024x900",
       "path": "output/playwright/leave-management-package/02-manager-reschedule-1024x900.png",
-      "sha256": "774ce8900a9de17ec5fa07afbaf7159181dc141fa42c4ede04eebdb8c948659c",
+      "sha256": "3e71df82851380e876d391abb9aceb144bd8e2759bd4a1bb95b9b9b36d8250c8",
       "viewport": {
         "width": 1024,
         "height": 900
@@ -355,12 +355,12 @@
       "route": "people-leave-requests",
       "role": "manager",
       "runtime_profile": "local-dev",
-      "source_revision": "7717d5cee158fc97056510e8aebc9e0854d34196"
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
     },
     {
       "name": "03-hr-promotion-1512x900",
       "path": "output/playwright/leave-management-package/03-hr-promotion-1512x900.png",
-      "sha256": "c78abeceeda5c743d7af719a3eb45ea22696664b7fd3b80774a1739c216e59d5",
+      "sha256": "6cc6d1e09cdb6410afbb4c1505a07b417236bac57587cc6984f1dfbfacf8ba38",
       "viewport": {
         "width": 1512,
         "height": 900
@@ -368,12 +368,12 @@
       "route": "people-annual-leave-notices",
       "role": "hr_admin",
       "runtime_profile": "local-dev",
-      "source_revision": "7717d5cee158fc97056510e8aebc9e0854d34196"
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
     },
     {
       "name": "04-hr-termination-pending-720x900",
       "path": "output/playwright/leave-management-package/04-hr-termination-pending-720x900.png",
-      "sha256": "34403537550f5edee92c4d8402f64059e5e79a4aa6e88a675a03ce6737786ab6",
+      "sha256": "d4fb5c9238871b6af4036558de2cdd5b4118464225e8c6342b6065058448df07",
       "viewport": {
         "width": 720,
         "height": 900
@@ -381,12 +381,12 @@
       "route": "people-leave-termination",
       "role": "hr_admin",
       "runtime_profile": "local-dev",
-      "source_revision": "7717d5cee158fc97056510e8aebc9e0854d34196"
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
     },
     {
       "name": "05-other-tenant-denied-720x900",
       "path": "output/playwright/leave-management-package/05-other-tenant-denied-720x900.png",
-      "sha256": "55ce86498fb4b3249a54f340007f3b2c6c70c1cd5d83f6c6c94530bc5843e5ac",
+      "sha256": "398deef93e7efe294d39791424adfb157ff73577d43d56043daf962ae02ec125",
       "viewport": {
         "width": 720,
         "height": 900
@@ -394,12 +394,12 @@
       "route": "people-leave",
       "role": "other_tenant",
       "runtime_profile": "local-dev",
-      "source_revision": "7717d5cee158fc97056510e8aebc9e0854d34196"
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
     },
     {
       "name": "viewport-1512x900",
       "path": "output/playwright/leave-management-package/viewport-1512x900.png",
-      "sha256": "58059330565ae59b0ba3774a7ceb7988d36e3f41b982f818bbf87d2458bca460",
+      "sha256": "db0bb78b84c688c77d969f1d81830ef7082a7a996440b009486803c0f7c8bb16",
       "viewport": {
         "width": 1512,
         "height": 900
@@ -407,12 +407,12 @@
       "route": "people-leave-usage",
       "role": "hr_admin",
       "runtime_profile": "local-dev",
-      "source_revision": "7717d5cee158fc97056510e8aebc9e0854d34196"
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
     },
     {
       "name": "viewport-1280x820",
       "path": "output/playwright/leave-management-package/viewport-1280x820.png",
-      "sha256": "2002147ed5b77a9c7591caff6b8ec25e5452b818bf1c504d1aa9bf14d54dae62",
+      "sha256": "3e24f527fd35393ca28fe6b2d9c2efbf3e33538bb6574cac3095070215e70cc7",
       "viewport": {
         "width": 1280,
         "height": 820
@@ -420,12 +420,12 @@
       "route": "people-leave-usage",
       "role": "hr_admin",
       "runtime_profile": "local-dev",
-      "source_revision": "7717d5cee158fc97056510e8aebc9e0854d34196"
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
     },
     {
       "name": "viewport-1024x800",
       "path": "output/playwright/leave-management-package/viewport-1024x800.png",
-      "sha256": "3da2c7d8b0f9d8877d9d51ab0093e306c947d6a47f596d8f4c73e1e9d33b5049",
+      "sha256": "6b1e800bce2091b8106b4472356327dbbe3a809f8cf1171fa4b28f069fd2b985",
       "viewport": {
         "width": 1024,
         "height": 800
@@ -433,12 +433,12 @@
       "route": "people-leave-usage",
       "role": "hr_admin",
       "runtime_profile": "local-dev",
-      "source_revision": "7717d5cee158fc97056510e8aebc9e0854d34196"
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
     },
     {
       "name": "viewport-820x900",
       "path": "output/playwright/leave-management-package/viewport-820x900.png",
-      "sha256": "19bec0d1eb2f266197860299fe333f8a8c3e8c7b4afc2856b3672b2623e3d811",
+      "sha256": "2b89d0cb732117e4c45cc4004b45438932cf25342d13ff01ab93494bdfe7a469",
       "viewport": {
         "width": 820,
         "height": 900
@@ -446,12 +446,12 @@
       "route": "people-leave-usage",
       "role": "hr_admin",
       "runtime_profile": "local-dev",
-      "source_revision": "7717d5cee158fc97056510e8aebc9e0854d34196"
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
     },
     {
       "name": "viewport-720x900",
       "path": "output/playwright/leave-management-package/viewport-720x900.png",
-      "sha256": "47ed880f0211631a39aedf9a7a37e8b7f1964b458eb9a8d6840a38ed94d49897",
+      "sha256": "9960a638726ef47d2642eb7e98921945400e7dfe3ce70efa6a7763f36df32994",
       "viewport": {
         "width": 720,
         "height": 900
@@ -459,12 +459,12 @@
       "route": "people-leave-usage",
       "role": "hr_admin",
       "runtime_profile": "local-dev",
-      "source_revision": "7717d5cee158fc97056510e8aebc9e0854d34196"
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
     },
     {
       "name": "06-restart-restored-1280x820",
       "path": "output/playwright/leave-management-package/06-restart-restored-1280x820.png",
-      "sha256": "2002147ed5b77a9c7591caff6b8ec25e5452b818bf1c504d1aa9bf14d54dae62",
+      "sha256": "3e24f527fd35393ca28fe6b2d9c2efbf3e33538bb6574cac3095070215e70cc7",
       "viewport": {
         "width": 1280,
         "height": 820
@@ -472,7 +472,7 @@
       "route": "people-leave-usage",
       "role": "hr_admin_restored",
       "runtime_profile": "local-dev",
-      "source_revision": "7717d5cee158fc97056510e8aebc9e0854d34196"
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
     }
   ],
   "geometry": [
@@ -482,8 +482,8 @@
         "width": 720,
         "height": 900
       },
-      "client_width": 720,
-      "scroll_width": 720,
+      "client_width": 705,
+      "scroll_width": 705,
       "target_visible": true
     },
     {
@@ -512,8 +512,8 @@
         "width": 720,
         "height": 900
       },
-      "client_width": 720,
-      "scroll_width": 720,
+      "client_width": 705,
+      "scroll_width": 705,
       "target_visible": true
     },
     {
@@ -522,8 +522,8 @@
         "width": 720,
         "height": 900
       },
-      "client_width": 720,
-      "scroll_width": 720,
+      "client_width": 705,
+      "scroll_width": 705,
       "target_visible": true
     },
     {
@@ -562,8 +562,8 @@
         "width": 820,
         "height": 900
       },
-      "client_width": 820,
-      "scroll_width": 820,
+      "client_width": 805,
+      "scroll_width": 805,
       "target_visible": true
     },
     {
@@ -572,8 +572,8 @@
         "width": 720,
         "height": 900
       },
-      "client_width": 720,
-      "scroll_width": 720,
+      "client_width": 705,
+      "scroll_width": 705,
       "target_visible": true
     },
     {
