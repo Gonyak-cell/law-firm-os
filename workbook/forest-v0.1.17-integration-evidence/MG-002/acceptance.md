@@ -3,7 +3,7 @@
 - TUW: MG-002
 - status: DONE
 - entry_sha: `000617f52fdc79721941c2705b27859af9b8372b`
-- exit_sha: `PENDING`
+- exit_sha: `b41d3f771b0e846d46af3e5eefc711cec8276a26`
 - changed_files: deprecation validator, payroll profile CAS regression, MG-002 evidence set, Goal execution ledger
 - root source HEAD: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`
 - root source working-tree SHA-256: `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`
