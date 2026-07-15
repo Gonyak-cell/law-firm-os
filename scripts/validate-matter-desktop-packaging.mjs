@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
+import { APPROVED_DESKTOP_ASSET_HASHES, RETIRED_UI_PATHS } from "./lib/matter-desktop-legacy-assets.mjs";
 
 const configPath = "apps/desktop/electron-builder.yml";
 const macBuildScriptPath = "scripts/build-matter-desktop-mac.mjs";
@@ -10,7 +11,7 @@ const winInstallerScriptPath = "scripts/build-matter-desktop-win-installer.mjs";
 const desktopRendererPath = "apps/desktop/src/renderer/offline.html";
 const forestLoginPath = "apps/desktop/build/forest-login.jpg";
 const webBrochureCoverPath = "apps/web/src/assets/brochure-cover.jpg";
-const expectedForestHash = "5ff1776144df2fff44977494ea3eecdcf1f2d5c96dfc30deba3411bf320ee3bf";
+const expectedForestHash = APPROVED_DESKTOP_ASSET_HASHES.brochure_cover;
 const amicLawLogoPath = "apps/desktop/build/amic-law-logo-accent.svg";
 const webAmicLawLogoPath = "apps/web/src/assets/amic-law.svg";
 const webIconPath = "apps/web/public/amic-law-icon.png";
@@ -18,33 +19,11 @@ const pngIconPath = "apps/desktop/build/icon.png";
 const macIconPath = "apps/desktop/build/icon.icns";
 const winIconPath = "apps/desktop/build/icon.ico";
 const expectedIconHashes = Object.freeze({
-  [pngIconPath]: "19722c977aa783616b75769a87f4186416d64f2969c4669e9e15303606dd3916",
-  [macIconPath]: "8fff8b262560a05b723bbaed39d56f6c277cae9cea312772cdff20b17ea1ef96",
-  [winIconPath]: "70f741af2564838b4d7d45789af5b8fa970bfc8f9ff190d987f445295a26f075"
+  [pngIconPath]: APPROVED_DESKTOP_ASSET_HASHES.icon_png,
+  [macIconPath]: APPROVED_DESKTOP_ASSET_HASHES.icon_icns,
+  [winIconPath]: APPROVED_DESKTOP_ASSET_HASHES.icon_ico
 });
-const retiredPaths = [
-  "docs/ui-reference",
-  "apps/web/src/assets/matter-mark.svg",
-  "apps/web/public/matter-mark.svg",
-  "apps/web/src/assets/matter-logo.svg",
-  "apps/web/src/assets/parnas-tower-login.jpg",
-  "apps/web/src/assets/logos/AMIC_n_PETRA_Main_Simple.svg",
-  "apps/web/src/assets/logos/AMIC_n_PETRA_Main_Simple_White.svg",
-  "apps/web/src/context/SkinContext.jsx",
-  "apps/desktop/build/icon-source-mark.png",
-  "apps/desktop/build/icon.svg",
-  "apps/desktop/build/amic-petra-main.svg",
-  "apps/desktop/src/renderer/offline.matter.html",
-  "scripts/generate-matter-desktop-icon.mjs",
-  "scripts/generate-amplitude-ui-reference.mjs",
-  "scripts/extract-amplitude-visual-tokens.mjs",
-  "scripts/generate-matter-amplitude-screenshot-state-registry.mjs",
-  "scripts/verify-matter-amplitude-screenshot-states.mjs",
-  "scripts/generate-matter-amplitude-coverage-ledger.mjs",
-  "scripts/capture-matter-amplitude-parity.mjs",
-  "scripts/audit-matter-amplitude-pixel-parity.mjs",
-  "scripts/test/ui-tooling-smoke.test.mjs"
-];
+const retiredPaths = RETIRED_UI_PATHS;
 const source = readFileSync(configPath, "utf8");
 const macBuildSource = readFileSync(macBuildScriptPath, "utf8");
 const winBuildSource = readFileSync(winBuildScriptPath, "utf8");
