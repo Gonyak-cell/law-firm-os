@@ -1,0 +1,434 @@
+{
+  "verdict": "PASS",
+  "engine": "SQLite",
+  "sqlite_version": "3.53.2",
+  "final_migration_count": 28,
+  "final_migration": "028_hrx_leave_accrual_rule_versions.sql",
+  "fresh_schema_sha256": "c0756d870967adf0ab79e4b6716a947ea4fb2a921a3418195a489cee9e8798b6",
+  "checkpoint_count": 3,
+  "total_seeded_table_count": 32,
+  "total_seeded_row_count": 32,
+  "total_changed_existing_row_count": 0,
+  "total_lost_existing_row_count": 0,
+  "total_unexpected_new_row_count": 0,
+  "total_backfill_check_count": 30,
+  "checkpoints": [
+    {
+      "checkpoint": 10,
+      "checkpoint_migration_count": 10,
+      "checkpoint_last_migration": "010_hrx_leave_integrations.sql",
+      "upgrade_migration_count": 18,
+      "upgrade_first_migration": "011_hrx_leave_type_economics.sql",
+      "upgrade_last_migration": "028_hrx_leave_accrual_rule_versions.sql",
+      "seeded_table_count": 11,
+      "seeded_row_count": 11,
+      "seeded_tables": [
+        {
+          "table": "hrx_employees",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_accrual_rules",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_accrual_runs",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_entitlements",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_groups",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_policy_versions",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_promotion_campaigns",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_promotion_recipients",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_request_segments",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_requests",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_work_schedule_profiles",
+          "row_count": 1
+        }
+      ],
+      "checkpoint_schema_sha256": "6d2d23da05e4aa292ab9e9de60d115e5513bebd07a57af64bbe7aa93e1e8b80c",
+      "final_schema_sha256": "c0756d870967adf0ab79e4b6716a947ea4fb2a921a3418195a489cee9e8798b6",
+      "data_snapshot_sha256_before": "32c785b048da602da8450a372272e1f1175b240ede718b30a851b7a42273bdfc",
+      "data_snapshot_sha256_after": "32c785b048da602da8450a372272e1f1175b240ede718b30a851b7a42273bdfc",
+      "data_snapshot_sha256_reopened": "32c785b048da602da8450a372272e1f1175b240ede718b30a851b7a42273bdfc",
+      "changed_existing_row_count": 0,
+      "lost_existing_row_count": 0,
+      "unexpected_new_row_count": 0,
+      "backfill_checks": [
+        {
+          "field": "hrx_leave_accrual_rules.version",
+          "actual": 1,
+          "expected": 1,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_accrual_rules.logical_rule_code",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_accrual_rules.supersedes_rule_id",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_accrual_runs.as_of_date",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_requests.duration_mode",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_requests.rounded_requested_minutes",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_requests.paid_minutes",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_requests.unpaid_minutes",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_requests.deduction_minutes",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_requests.policy_rules_snapshot_hash",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_request_segments.paid_minutes",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_request_segments.deduction_minutes",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_request_segments.policy_rules_snapshot_hash",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_entitlements.memo",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_entitlements.source_document_id",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_entitlements.approved_by_actor_id",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_entitlements.policy_rules_snapshot_hash",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_promotion_campaigns.excluded_count",
+          "actual": 0,
+          "expected": 0,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_promotion_campaigns.exclusions_json",
+          "actual": "[]",
+          "expected": "[]",
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_promotion_recipients.first_content_hash",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_promotion_recipients.second_content_hash",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        }
+      ],
+      "checkpoint_validation": {
+        "integrity_check": "ok",
+        "foreign_key_error_count": 0
+      },
+      "upgraded_validation": {
+        "integrity_check": "ok",
+        "foreign_key_error_count": 0
+      },
+      "reopened_validation": {
+        "integrity_check": "ok",
+        "foreign_key_error_count": 0
+      },
+      "durable_reopen": true,
+      "verdict": "PASS"
+    },
+    {
+      "checkpoint": 20,
+      "checkpoint_migration_count": 20,
+      "checkpoint_last_migration": "020_hrx_leave_rule_snapshots.sql",
+      "upgrade_migration_count": 8,
+      "upgrade_first_migration": "021_hrx_payroll_runtime.sql",
+      "upgrade_last_migration": "028_hrx_leave_accrual_rule_versions.sql",
+      "seeded_table_count": 8,
+      "seeded_row_count": 8,
+      "seeded_tables": [
+        {
+          "table": "hrx_compensation_records",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_employees",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_accrual_rules",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_accrual_runs",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_entitlements",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_groups",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_policy_versions",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_overtime_requests",
+          "row_count": 1
+        }
+      ],
+      "checkpoint_schema_sha256": "6c1263f4735de022fa76ca77a4d94a9e30876c1619a78163a87dedf67e636823",
+      "final_schema_sha256": "c0756d870967adf0ab79e4b6716a947ea4fb2a921a3418195a489cee9e8798b6",
+      "data_snapshot_sha256_before": "1b59b8720ee2a44feb923033121e6ecdf83b9657c1c28b73e49c2a44a296754e",
+      "data_snapshot_sha256_after": "1b59b8720ee2a44feb923033121e6ecdf83b9657c1c28b73e49c2a44a296754e",
+      "data_snapshot_sha256_reopened": "1b59b8720ee2a44feb923033121e6ecdf83b9657c1c28b73e49c2a44a296754e",
+      "changed_existing_row_count": 0,
+      "lost_existing_row_count": 0,
+      "unexpected_new_row_count": 0,
+      "backfill_checks": [
+        {
+          "field": "hrx_leave_accrual_rules.version",
+          "actual": 1,
+          "expected": 1,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_accrual_rules.logical_rule_code",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_accrual_rules.supersedes_rule_id",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_accrual_runs.as_of_date",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_overtime_requests.payroll_segment_kind",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        }
+      ],
+      "checkpoint_validation": {
+        "integrity_check": "ok",
+        "foreign_key_error_count": 0
+      },
+      "upgraded_validation": {
+        "integrity_check": "ok",
+        "foreign_key_error_count": 0
+      },
+      "reopened_validation": {
+        "integrity_check": "ok",
+        "foreign_key_error_count": 0
+      },
+      "durable_reopen": true,
+      "verdict": "PASS"
+    },
+    {
+      "checkpoint": 25,
+      "checkpoint_migration_count": 25,
+      "checkpoint_last_migration": "025_hrx_payroll_year_end.sql",
+      "upgrade_migration_count": 3,
+      "upgrade_first_migration": "026_hrx_payroll_catalog_assignments.sql",
+      "upgrade_last_migration": "028_hrx_leave_accrual_rule_versions.sql",
+      "seeded_table_count": 13,
+      "seeded_row_count": 13,
+      "seeded_tables": [
+        {
+          "table": "hrx_attendance_records",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_employees",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_accrual_rules",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_accrual_runs",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_groups",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_leave_policy_versions",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_payroll_employee_results",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_payroll_input_snapshots",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_payroll_line_items",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_payroll_periods",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_payroll_profiles",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_payroll_runs",
+          "row_count": 1
+        },
+        {
+          "table": "hrx_payroll_year_end_cases",
+          "row_count": 1
+        }
+      ],
+      "checkpoint_schema_sha256": "4a1328b20ca8f520c7ef1e34d31aeacf7b778375eb7d6a8c9ec6330951492520",
+      "final_schema_sha256": "c0756d870967adf0ab79e4b6716a947ea4fb2a921a3418195a489cee9e8798b6",
+      "data_snapshot_sha256_before": "e88f3aaf43c7c4121b244bf5f070fd2169130356e250eacc4511cfb1e8267e46",
+      "data_snapshot_sha256_after": "e88f3aaf43c7c4121b244bf5f070fd2169130356e250eacc4511cfb1e8267e46",
+      "data_snapshot_sha256_reopened": "e88f3aaf43c7c4121b244bf5f070fd2169130356e250eacc4511cfb1e8267e46",
+      "changed_existing_row_count": 0,
+      "lost_existing_row_count": 0,
+      "unexpected_new_row_count": 0,
+      "backfill_checks": [
+        {
+          "field": "hrx_leave_accrual_rules.version",
+          "actual": 1,
+          "expected": 1,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_accrual_rules.logical_rule_code",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_accrual_rules.supersedes_rule_id",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        },
+        {
+          "field": "hrx_leave_accrual_runs.as_of_date",
+          "actual": null,
+          "expected": null,
+          "verdict": "PASS"
+        }
+      ],
+      "checkpoint_validation": {
+        "integrity_check": "ok",
+        "foreign_key_error_count": 0
+      },
+      "upgraded_validation": {
+        "integrity_check": "ok",
+        "foreign_key_error_count": 0
+      },
+      "reopened_validation": {
+        "integrity_check": "ok",
+        "foreign_key_error_count": 0
+      },
+      "durable_reopen": true,
+      "verdict": "PASS"
+    }
+  ],
+  "report_sha256": "9f7517271290415a6237a03c26802084857d53b69e05c01564ce10b9fa1cb407"
+}

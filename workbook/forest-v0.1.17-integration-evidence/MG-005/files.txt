@@ -1,0 +1,12 @@
+packages/hrx/test/migration-upgrade.test.js
+scripts/generate-checkpoint-upgrade-evidence.mjs
+scripts/validate-hrx-checkpoint-upgrades.mjs
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md
+workbook/forest-v0.1.17-integration-evidence/MG-005/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/MG-005/checkpoint-matrix.json
+workbook/forest-v0.1.17-integration-evidence/MG-005/checkpoint-upgrade-report.json
+workbook/forest-v0.1.17-integration-evidence/MG-005/commands.txt
+workbook/forest-v0.1.17-integration-evidence/MG-005/files.txt
+workbook/forest-v0.1.17-integration-evidence/MG-005/receipt.json
+workbook/forest-v0.1.17-integration-evidence/MG-005/semantic-review.md
+workbook/forest-v0.1.17-integration-evidence/MG-005/tests.txt

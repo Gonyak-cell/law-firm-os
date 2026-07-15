@@ -1,0 +1,15 @@
+node --check checkpoint upgrade validator, evidence generator, and test: PASS
+validator and generator help/invalid-argument contracts: PASS
+checkpoint 010 -> 028: 18/18 migrations PASS
+checkpoint 020 -> 028: 8/8 migrations PASS
+checkpoint 025 -> 028: 3/3 migrations PASS
+targeted migration tests: 7/7 PASS
+complete HRX regression: 565/565 PASS
+web production build: PASS (1718 modules)
+synthetic golden rows: 32/32 byte-stable before/after/reopen
+backfill checks: 30/30 PASS
+changed/lost/unexpected rows: 0/0/0
+final schema equals fresh schema: 3/3
+integrity and foreign-key errors: 0
+root working-tree mutations: 0
+deterministic rerun: PASS
