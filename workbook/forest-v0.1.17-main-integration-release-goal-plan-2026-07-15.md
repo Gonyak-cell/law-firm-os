@@ -70,12 +70,13 @@
 ### 3.3 현재 루트 체크아웃과의 관계
 
 - RC-001 현재 루트 dirty 항목: 77개 (`tracked 56`, `untracked 21`)
-- 기존 76개에서 Goal 문서 자체가 untracked로 추가되어 1개 증가
-- 종료 세션과 공통 dirty 경로: 51개
-- 공통 경로 중 동일 내용: 2개
-- 공통 경로 중 다른 내용: 49개
+- 종료 세션과 전체 공통 dirty 경로: 52개
+- 통합 Goal metadata: 1개(제품 비교에서 제외)
+- 제품 공통 dirty 경로: 51개
+- 제품 공통 경로 중 동일 내용: 2개
+- 제품 공통 경로 중 다른 내용: 49개
 - 현재 루트에만 존재하는 dirty 경로: 25개
-- 종료 세션에만 존재하는 dirty 경로: 144개
+- 종료 Forest content checkpoint에만 존재하는 경로: 170개
 - 현재 루트의 migration `011~016`은 종료 세션 migration `011~016`과 번호·목적이 충돌한다.
 
 ## 4. 진실 상태와 금지되는 과장
@@ -157,7 +158,7 @@ FZ checkpoint
 | ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
 |---|---|---|---|---|---|
 | RC-001 | DONE | current root 안전 보존 | 현재 루트 binary patch·file manifest·SHA 생성 | patch apply dry-run | 사용자 변경 손실 0 |
-| RC-002 | READY | 51개 공통 파일 비교 | AST/API contract/test assertion/UI selector 기준 비교 | file hash·exported symbol 비교 | 각 파일 판정 기록 |
+| RC-002 | DONE | 51개 제품 공통 파일 비교 | SHA·라인 delta·AST/API contract·test assertion·UI selector·의미 검토 | 재현 CLI, root fingerprint 전후 대조 | 51/51 판정, 동일 2·상이 49·미분류 0 |
 | RC-003 | READY | 25개 root-only 파일 기능 대조 | payroll item/profile/time input, manual adjustment, profile smoke/runbook 점검 | 종료 세션 관련 테스트와 교차 실행 | 각 기능이 4개 판정 중 하나를 가짐 |
 | RC-004 | READY | 상위 호환 기능 매트릭스 | `SUPERSEDED`, `PORT_TEST_ONLY`, `PORT_REQUIRED`, `REJECTED` 판정 | 누락 acceptance count | 미판정 0 |
 | RC-005 | READY | 필요한 기능만 Forest 후보에 이식 | UI 통째 복사 금지, 테스트 우선 이식, 필요한 코드 최소 구현 | 이식 전 failing·이식 후 passing | 기존 Forest 회귀 0 |
@@ -474,6 +475,7 @@ external_blockers
 | 2026-07-15 | FZ-005 | DONE | `7717d5ce` | `fbf70623` | `workbook/forest-v0.1.17-integration-evidence/FZ-005/` | content tree `ba90b1da`, archive branch 고정 |
 | 2026-07-15 | FZ-006 | DONE | `411d07e9` | `873ca9cc` | `workbook/forest-v0.1.17-integration-evidence/FZ-006/` | 고유 220/220, renderer byte-identical, PII PASS |
 | 2026-07-15 | RC-001 | DONE | `88156fb5` | `67b72f44` | `workbook/forest-v0.1.17-integration-evidence/RC-001/` | root 77개, patch·archive·detached restore·원본 무변경 PASS |
+| 2026-07-15 | RC-002 | DONE | `f68bb059` | `f943b8be` | `workbook/forest-v0.1.17-integration-evidence/RC-002/` | 전체 common 52, metadata 1 제외, 제품 51/51 의미 검토, 미분류·parse error 0 |
 
 ## 14. Goal Objective 원문
 

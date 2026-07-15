@@ -2,6 +2,7 @@
   "tuw": "RC-002",
   "verdict": "PASS",
   "candidate_entry_sha": "f68bb059e5b801dd26614379770b373b9089829c",
+  "evidence_commit_sha": "f943b8be568fec9bdede9a3d1c1b73c910988e01",
   "forest_comparison_base": "7717d5cee158fc97056510e8aebc9e0854d34196",
   "forest_content_checkpoint": "fbf7062398da1157ee1322d7440194c1b13f7e0f",
   "root_source_head": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3",

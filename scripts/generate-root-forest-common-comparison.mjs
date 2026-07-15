@@ -19,7 +19,9 @@ const forestCheckpoint = "fbf7062398da1157ee1322d7440194c1b13f7e0f";
 const metadataPath = "workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md";
 const evidenceDir = path.join(forestRoot, "workbook/forest-v0.1.17-integration-evidence/RC-002");
 const semanticReviewPath = path.join(evidenceDir, "semantic-review.md");
+const candidateEntrySha = "f68bb059e5b801dd26614379770b373b9089829c";
 const expectedRootWorktreeSha256 = "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3";
+const evidenceCommitSha = "f943b8be568fec9bdede9a3d1c1b73c910988e01";
 const maxBuffer = 256 * 1024 * 1024;
 
 if (!rootSource || process.argv.length !== 3) {
@@ -299,10 +301,14 @@ const rootFingerprintAfter = rootWorktreeFingerprint(rootSource);
 if (rootFingerprintAfter.sha256 !== rootFingerprintBefore.sha256) {
   throw new Error(`root worktree changed during comparison: ${rootFingerprintBefore.sha256} != ${rootFingerprintAfter.sha256}`);
 }
+if (spawnSync("git", ["merge-base", "--is-ancestor", candidateEntrySha, "HEAD"], { cwd: forestRoot }).status !== 0) {
+  throw new Error(`candidate entry SHA is not an ancestor of HEAD: ${candidateEntrySha}`);
+}
 const receipt = {
   tuw: "RC-002",
   verdict: "PASS",
-  candidate_entry_sha: git(forestRoot, ["rev-parse", "HEAD"]).trim(),
+  candidate_entry_sha: candidateEntrySha,
+  evidence_commit_sha: evidenceCommitSha,
   forest_comparison_base: forestBase,
   forest_content_checkpoint: forestCheckpoint,
   root_source_head: git(rootSource, ["rev-parse", "HEAD"]).trim(),
@@ -347,6 +353,7 @@ writeEvidence("acceptance.md", [
   "",
   "- status: DONE",
   `- candidate entry SHA: \`${receipt.candidate_entry_sha}\``,
+  `- evidence commit SHA: \`${receipt.evidence_commit_sha}\``,
   `- Forest content checkpoint: \`${forestCheckpoint}\``,
   `- root source HEAD: \`${receipt.root_source_head}\``,
   `- root source dirty paths: ${receipt.root_source_tracked_modified_count + receipt.root_source_untracked_count} (${receipt.root_source_tracked_modified_count} tracked + ${receipt.root_source_untracked_count} untracked)`,

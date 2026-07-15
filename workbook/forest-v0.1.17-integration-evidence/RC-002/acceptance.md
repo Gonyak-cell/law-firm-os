@@ -2,6 +2,7 @@
 
 - status: DONE
 - candidate entry SHA: `f68bb059e5b801dd26614379770b373b9089829c`
+- evidence commit SHA: `f943b8be568fec9bdede9a3d1c1b73c910988e01`
 - Forest content checkpoint: `fbf7062398da1157ee1322d7440194c1b13f7e0f`
 - root source HEAD: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`
 - root source dirty paths: 77 (56 tracked + 21 untracked)
