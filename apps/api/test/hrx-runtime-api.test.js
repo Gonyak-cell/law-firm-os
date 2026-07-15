@@ -21,6 +21,7 @@ import { signedStepUpHeader } from "./hrx-step-up-test-helper.js";
 let server;
 let baseUrl;
 let sessionHeaders;
+let testStore;
 
 const HRX_AUTH_HEADERS = Object.freeze({
   "x-lawos-tenant-id": "tenant_amic_matter_vault",
@@ -106,13 +107,17 @@ async function json(path, options = {}) {
 }
 
 test.before(async () => {
-  const started = await startApiServer({ port: 0 });
+  testStore = createFileHrxStore({ filePath: join(mkdtempSync(join(tmpdir(), "hrx-runtime-api-")), "store.json") });
+  const started = await startApiServer({ port: 0, hrxStore: testStore });
   server = started.server;
   baseUrl = `http://${started.host}:${started.port}`;
   sessionHeaders = await sessionHeadersForActor(baseUrl);
 });
 
-test.after(() => new Promise((resolve) => server.close(resolve)));
+test.after(async () => {
+  await new Promise((resolve) => server.close(resolve));
+  testStore.close();
+});
 
 test("HRX member roster source of truth preserves the registered AMIC and PETRA roster", () => {
   const roster = listHrxMemberRosterRows();
@@ -427,7 +432,12 @@ test("GET /api/hrx/compensation requires step-up and returns masked ref-only rec
 
   const elevated = await json("/api/hrx/compensation?employee_id=emp_amic_ytkim");
   assert.equal(elevated.status, 200);
-  assert.equal(elevated.body.compensation_records.length, 1);
+  assert.deepEqual(
+    elevated.body.compensation_records.map((record) => record.compensation_id),
+    ["comp-001", "payroll-synthetic-comp-emp_amic_ytkim"],
+  );
+  assert.ok(elevated.body.compensation_records.every((record) => record.raw_amount_included === false));
+  assert.ok(elevated.body.compensation_records.every((record) => !Object.hasOwn(record, "encrypted_amount_ref")));
   const audit = await json("/api/hrx/audit");
   assert.ok(audit.body.events.some((event) => event.action === "hrx.compensation.read" && event.object_id === "emp_amic_ytkim"));
 });

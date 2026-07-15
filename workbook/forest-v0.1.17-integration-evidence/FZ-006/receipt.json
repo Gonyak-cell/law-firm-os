@@ -1,0 +1,38 @@
+{
+  "tuw": "FZ-006",
+  "verdict": "PASS",
+  "entry_sha": "411d07e9a3bd6f4ffdabc04de3741480e2a4e8da",
+  "verification_commit_sha": "PENDING_PROVENANCE_COMMIT",
+  "forest_content_checkpoint_sha": "fbf7062398da1157ee1322d7440194c1b13f7e0f",
+  "tested_patch_sha256": "f09e58bb6671ae91fcd75d3e39fa1cd717a1452457a2a2c9ed0491c0e0a2a181",
+  "tests": {
+    "leave_migration_route_authz_web": { "pass": 193, "fail": 0 },
+    "hrx_runtime_api_isolated": { "pass": 27, "fail": 0 },
+    "unique_leave_runtime_total": { "pass": 220, "fail": 0 },
+    "payroll_domain": { "pass": 54, "fail": 0 },
+    "payroll_api_role_matrix": { "pass": 7, "fail": 0 },
+    "payroll_web": { "pass": 3, "fail": 0 },
+    "desktop_runtime": { "pass": 26, "fail": 0 },
+    "desktop_shell_smoke_additional": { "pass": 18, "fail": 0 },
+    "ui_regression": { "pass": 31, "fail": 0 }
+  },
+  "typecheck_web": "PASS",
+  "renderer_build": "PASS",
+  "public_renderer_pii": {
+    "verdict": "PASS",
+    "scanned_files": 54,
+    "protected_value_count": 30,
+    "protected_photo_count": 5,
+    "protected_values_printed": false
+  },
+  "renderer_sha256": "ffd5dacef10d95ba000cf1b9c6937de6028a881eded91f79c642153757c27df4",
+  "historical_renderer_sha256": "ffd5dacef10d95ba000cf1b9c6937de6028a881eded91f79c642153757c27df4",
+  "renderer_parity": true,
+  "ai_slop_review": "PASS",
+  "manual_qa": "No renderer source changed and the renderer is byte-identical to the ended-session packaged proof. Full role and viewport QA remains assigned to QA TUWs.",
+  "known_limits": [
+    "Historical 340/340 cannot be reproduced as one unique command manifest and is replaced by the auditable 220/220 unique scope.",
+    "Windows native execution, formal signing, notarization, Authenticode, and external provider writes are outside FZ-006."
+  ],
+  "external_blockers": []
+}
