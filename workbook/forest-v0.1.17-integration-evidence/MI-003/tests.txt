@@ -1,0 +1,10 @@
+PASS repository default branch is main
+PASS normal merge commit is repository-supported
+PASS main protection strict/up-to-date is true
+PASS main protection admin enforcement is true
+PASS required status context is HRX rollout validation
+PASS legacy PR #168 base is not main
+PASS legacy PR #168 remote head differs from accepted candidate lineage
+PASS selected branch follows codex/ prefix policy
+PASS force/squash/rebase/default-branch replacement/main-next cutover prohibited
+PASS no local or remote ref, PR, main, release, AWS, or app process mutation

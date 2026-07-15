@@ -1,0 +1,9 @@
+workbook/forest-v0.1.17-integration-evidence/MI-003/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/MI-003/commands.txt
+workbook/forest-v0.1.17-integration-evidence/MI-003/decision.json
+workbook/forest-v0.1.17-integration-evidence/MI-003/files.txt
+workbook/forest-v0.1.17-integration-evidence/MI-003/legacy-pr-168.json
+workbook/forest-v0.1.17-integration-evidence/MI-003/main-protection.json
+workbook/forest-v0.1.17-integration-evidence/MI-003/repository-merge-policy.json
+workbook/forest-v0.1.17-integration-evidence/MI-003/tests.txt
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md

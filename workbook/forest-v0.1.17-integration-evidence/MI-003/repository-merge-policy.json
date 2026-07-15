@@ -1,0 +1,9 @@
+{
+  "defaultBranchRef": {
+    "name": "main"
+  },
+  "deleteBranchOnMerge": true,
+  "mergeCommitAllowed": true,
+  "rebaseMergeAllowed": true,
+  "squashMergeAllowed": true
+}

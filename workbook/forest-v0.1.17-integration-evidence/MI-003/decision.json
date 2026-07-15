@@ -1,0 +1,68 @@
+{
+  "schema_version": "law-firm-os.mi003.integration-method.v1",
+  "tuw": "MI-003",
+  "verdict": "PASS",
+  "recorded_at": "2026-07-16T05:46:42+09:00",
+  "entry_sha": "903835f762502b32539a891532d26a842157f078",
+  "product_exit_sha": "903835f762502b32539a891532d26a842157f078",
+  "origin_main_sha_at_decision": "fdd1e34a42ee11ad1e5049647048471be772f381",
+  "selected_method": "dedicated_integration_branch_new_main_pr_merge_commit",
+  "integration_branch": "codex/integration/forest-v0.1.17",
+  "target_branch": "main",
+  "merge_strategy": "merge_commit",
+  "legacy_pr": {
+    "number": 168,
+    "reuse": false,
+    "reason": "base_is_not_main_and_remote_head_is_stale",
+    "base": "codex/leave-search-release-20260713",
+    "remote_head_sha": "7717d5cee158fc97056510e8aebc9e0854d34196"
+  },
+  "prohibited": {
+    "force_push": true,
+    "squash_merge": true,
+    "rebase_merge": true,
+    "default_branch_replacement": true,
+    "main_next_cutover": true,
+    "blanket_ours_theirs": true
+  },
+  "required_before_pr": [
+    "MI-004",
+    "MI-005",
+    "MI-006",
+    "MI-007",
+    "QA gates bound to INTEGRATION_SHA"
+  ],
+  "required_before_merge": [
+    "branch contains latest origin/main",
+    "HRX rollout validation success",
+    "review of exact PR head SHA",
+    "no unresolved conflict or required main-only omission"
+  ],
+  "main_advance_policy": "merge_new_origin_main_into_integration_branch_then_rerun_impacted_mi_and_qa_without_history_rewrite",
+  "evidence": {
+    "mi002_conflict_count": 0,
+    "mi002_origin_main_is_candidate_ancestor": true,
+    "main_protection_strict": true,
+    "main_required_check": "HRX rollout validation",
+    "merge_commit_allowed": true,
+    "legacy_pr_base_is_main": false
+  },
+  "evidence_sha256": {
+    "repository_merge_policy": "4007a769a4b9bbeb460b856239bba739dafe361dcf602c2650e33380c7736d20",
+    "main_protection": "3d73be65c073938e4069d4c9479921339c83257981d47461d295416d270f5e9f",
+    "legacy_pr_168": "40ba6eca1cbed50f78d1152e32f880ed033f55975c79d7bda566ff960167da16"
+  },
+  "mutations": {
+    "local_branch_created": false,
+    "remote_ref_updated": false,
+    "pull_request_created": false,
+    "main_updated": false,
+    "release_updated": false,
+    "aws_updated": false
+  },
+  "boundaries": {
+    "merge_authorized": false,
+    "public_release": false,
+    "production_go_live": false
+  }
+}

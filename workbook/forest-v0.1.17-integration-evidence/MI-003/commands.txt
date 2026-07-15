@@ -1,0 +1,4 @@
+gh pr view 168 --repo Gonyak-cell/law-firm-os --json number,title,state,isDraft,headRefName,headRefOid,baseRefName,mergeable,mergeStateStatus,reviewDecision,statusCheckRollup,url,createdAt,updatedAt
+gh repo view Gonyak-cell/law-firm-os --json defaultBranchRef,mergeCommitAllowed,rebaseMergeAllowed,squashMergeAllowed,deleteBranchOnMerge
+gh api repos/Gonyak-cell/law-firm-os/branches/main/protection
+jq -e '.verdict == "PASS" and .selected_method == "dedicated_integration_branch_new_main_pr_merge_commit" and .integration_branch == "codex/integration/forest-v0.1.17" and .target_branch == "main" and .merge_strategy == "merge_commit" and (.prohibited | to_entries | all(.value == true)) and .mutations.remote_ref_updated == false and .mutations.main_updated == false' workbook/forest-v0.1.17-integration-evidence/MI-003/decision.json
