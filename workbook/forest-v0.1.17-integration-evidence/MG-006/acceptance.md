@@ -3,7 +3,7 @@
 - TUW: MG-006
 - status: DONE
 - entry_sha: `a79cb5f2743a03e012af01badcf86d1721750aab`
-- exit_sha: `PENDING`
+- exit_sha: `75a3851e06e2d2a6c91363b707b39ffec800a175`
 - changed_files: deterministic recovery validator, regression test, evidence generator, MG-006 evidence set, Goal execution ledger
 - root source HEAD: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`
 - root source working-tree SHA-256: `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`

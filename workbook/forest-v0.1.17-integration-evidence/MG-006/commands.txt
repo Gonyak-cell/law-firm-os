@@ -8,7 +8,7 @@ node scripts/validate-hrx-migration-recovery.mjs
 node --test packages/hrx/test/migration-recovery.test.js packages/hrx/test/migration-safety.test.js packages/hrx/test/migration-upgrade.test.js packages/hrx/test/migration-fresh-db.test.js packages/hrx/test/migration.test.js
 node scripts/generate-migration-recovery-evidence.mjs --help
 node scripts/generate-migration-recovery-evidence.mjs # expected usage failure
-node scripts/generate-migration-recovery-evidence.mjs "/Users/jws/Documents/Codex/Law Firm OS" --evidence-commit-sha=PENDING
+node scripts/generate-migration-recovery-evidence.mjs "/Users/jws/Documents/Codex/Law Firm OS" --evidence-commit-sha=75a3851e06e2d2a6c91363b707b39ffec800a175
 node --test packages/hrx/test/*.test.js
 npm run build
 git diff --check
