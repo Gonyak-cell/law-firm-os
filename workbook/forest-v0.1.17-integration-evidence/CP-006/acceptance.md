@@ -1,0 +1,26 @@
+# CP-006 Acceptance
+
+- TUW: CP-006
+- status: DONE
+- entry_sha: `a656495f909d4350495c2c41326e2f4b6b51ab74`
+- exit_sha: `a656495f909d4350495c2c41326e2f4b6b51ab74` (validator and evidence changes only; product runtime tree unchanged)
+- governing UI: current Forest package, 44px operational rows, one-line metadata, compact single-level panel headers
+- source contracts: 20/20 PASS across density, row deduplication, empty-state omission, menu flattening, Search naming, OCR-sidebar removal, current auth, and retired-copy exclusion
+- package contracts: 19/19 PASS across leave 10/10, payroll 9/9, profile 9/9, 17 current screenshots, receipt hashes, geometry, diagnostics, and Mac/Windows renderer parity
+- legacy contracts: 4/4 PASS; retired UI/brand paths absent, obsolete July 7 profile screenshots not restored, approved current brochure cover and AMIC assets retained
+- Lazyweb supporting evidence: 3/3 PASS using report `2c6e81b4-0875-4423-bc23-c7465b6e5b68` and current-state screenshot hash `8be6d49c91abdee8ccd8e5dfae95ac09b681846c85e3093d457feae4163afdb8`
+- Lazyweb boundary: a new report was not generated because the connector was unavailable in this session; the prior report is supporting evidence only and does not override the current rendered Forest package
+- web regression: 143 total, 142 PASS, 0 fail, 1 existing skip
+- desktop focused regression: 21/21 PASS
+- web typecheck and production renderer build: PASS; 1718 modules transformed
+- professional-profile validator: PASS with historical screenshots treated as metadata-only and current package proof required
+- desktop packaging validator: PASS; approved `brochure-cover.jpg` and current icon hashes preserved, retired paths absent
+- manual QA: inspected current leave 1280 package, payroll 1280 package, packaged Seo Jiwon profile, and packaged Home dashboard at original detail; unintended two-line metadata, duplicate approval categories, stale session fallback, broken images, and horizontal overflow observed 0
+- exact package build source: `75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c`; product runtime changed 0 files to CP-006 entry
+- renderer: `b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96`
+- preserved user root checkout: tracked 56, untracked 21, fingerprint `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`
+- commands: see `commands.txt`
+- evidence hashes: validator `963cba7f0068c32f203acc2ccfabff469e1dd3f029a3a0d6f64b30981f5ae43f`, profile validator `7fbffcd70183d83e02e3d4dea21ff8b80a5b9ee47d6424d9986dee8db8c41c2b`, matrix `827840984f4d1df3ae99238e92c53fc7aec417e8d8b6939763e9a209a84c8977`, leave receipt `4b4d8a51acf4b7bcb8948f6c0f62f655165941ef2e4ffde910439e1e0ac72967`, payroll receipt `7ee2524e916d027dceda8c801c19696102121eed7dca5d6e345c79a40df3b6da`, profile receipt `0edd69608f3261c118b436ae20d8880ff01082bbe854f7adc07bd11ae7065c02`
+- known limits: current Mac evidence is internal functional package proof, not formal signing/notarization/stapling/Gatekeeper; Windows evidence proves PE/ZIP renderer parity, not native install/runtime/AuthentiCode; the Vite suite emitted non-failing port-24678-in-use noise and the build retained its existing chunk-size warning
+- external blockers: none for CP-006; formal/native/public/production/go-live claims remain false
+- AI slop review: pass

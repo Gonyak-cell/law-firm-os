@@ -1,0 +1,73 @@
+{
+  "tuw": "CP-006",
+  "verdict": "PASS",
+  "entry_sha": "a656495f909d4350495c2c41326e2f4b6b51ab74",
+  "exit_sha": "a656495f909d4350495c2c41326e2f4b6b51ab74",
+  "product_runtime_changed": false,
+  "governing_standard": "current Forest package, 44px operational rows, one-line metadata, compact single-level panel headers",
+  "contracts": {
+    "source": { "checks": 20, "pass": 20, "fail": 0 },
+    "package": { "checks": 19, "pass": 19, "fail": 0 },
+    "legacy_assets": { "checks": 4, "pass": 4, "fail": 0 },
+    "lazyweb_supporting_evidence": { "checks": 3, "pass": 3, "fail": 0 },
+    "package_screenshots": { "checks": 17, "pass": 17, "fail": 0 }
+  },
+  "tests": {
+    "web_ui": { "total": 143, "pass": 142, "fail": 0, "skip": 1 },
+    "desktop_focused": { "total": 21, "pass": 21, "fail": 0 },
+    "web_typecheck": "PASS",
+    "web_build": "PASS",
+    "web_build_modules": 1718,
+    "professional_profile_validator": "PASS",
+    "desktop_packaging_validator": "PASS",
+    "ai_slop_review": "PASS"
+  },
+  "package_qa": {
+    "exact_build_sha": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c",
+    "product_runtime_unchanged_since_exact_build": true,
+    "renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96",
+    "leave_scenarios": { "checks": 10, "pass": 10, "fail": 0 },
+    "payroll_scenarios": { "checks": 9, "pass": 9, "fail": 0 },
+    "profile_contract": { "checks": 9, "pass": 9, "fail": 0 },
+    "formal_macos_package": false,
+    "native_windows_package": false
+  },
+  "manual_qa": [
+    "output/playwright/leave-management-package/viewport-1280x820.png",
+    "output/playwright/payroll-package/payroll-workspace-1280x820.png",
+    "docs/lazycodex/evidence/matter-profile/2026-07-10/profile-api-packaged.png",
+    ".lazyweb/lazyweb-design/global-copy-density-audit-2026-07-14/qa/packaged-home-home-dashboard-1512x900.png"
+  ],
+  "lazyweb": {
+    "report_id": "2c6e81b4-0875-4423-bc23-c7465b6e5b68",
+    "new_report_generated": false,
+    "connector_available_in_current_session": false,
+    "role": "supporting evidence only"
+  },
+  "preserved_root_checkout": {
+    "head": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3",
+    "branch": "codex/profile-contact-regression-fix",
+    "tracked_count": 56,
+    "untracked_count": 21,
+    "fingerprint_sha256": "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3"
+  },
+  "evidence_sha256": {
+    "validator": "963cba7f0068c32f203acc2ccfabff469e1dd3f029a3a0d6f64b30981f5ae43f",
+    "professional_profile_validator": "7fbffcd70183d83e02e3d4dea21ff8b80a5b9ee47d6424d9986dee8db8c41c2b",
+    "matrix": "827840984f4d1df3ae99238e92c53fc7aec417e8d8b6939763e9a209a84c8977",
+    "leave_receipt": "4b4d8a51acf4b7bcb8948f6c0f62f655165941ef2e4ffde910439e1e0ac72967",
+    "payroll_receipt": "7ee2524e916d027dceda8c801c19696102121eed7dca5d6e345c79a40df3b6da",
+    "profile_receipt": "0edd69608f3261c118b436ae20d8880ff01082bbe854f7adc07bd11ae7065c02",
+    "profile_screenshot": "6c6c66bef8a1095517a2c6b362d4f1f2d45035df9aa4c191108e13e9595667ff",
+    "lazyweb_current_state": "8be6d49c91abdee8ccd8e5dfae95ac09b681846c85e3093d457feae4163afdb8"
+  },
+  "known_limits": [
+    "The current macOS evidence is internal functional package proof, not formal signing, notarization, stapling, or Gatekeeper proof.",
+    "Windows evidence proves PE/ZIP renderer parity, not native install/runtime or Authenticode.",
+    "The Lazyweb connector was unavailable, so the prior report remains supporting evidence and no new report is claimed.",
+    "The UI suite emitted non-failing Vite port noise and the build retained its existing chunk-size warning."
+  ],
+  "external_blockers": [],
+  "public_release": false,
+  "production_go_live": false
+}

@@ -1,0 +1,107 @@
+{
+  "schema_version": "law-firm-os.cp006-ui-copy-regression.v1",
+  "entry_sha": "a656495f909d4350495c2c41326e2f4b6b51ab74",
+  "exact_build_sha": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c",
+  "renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96",
+  "product_runtime_unchanged_since_exact_build": true,
+  "product_runtime_worktree_clean": true,
+  "source_contracts": {
+    "checks": {
+      "density_tokens_44px": true,
+      "compact_rows_use_shared_height": true,
+      "compact_record_contract": true,
+      "redundant_record_meta_removed": true,
+      "empty_dashboard_rows_omitted": true,
+      "panel_header_single_level": true,
+      "page_subtitle_call_sites_absent": true,
+      "people_panel_kicker_absent": true,
+      "forbidden_helper_copy_absent": true,
+      "internal_reconciliation_copy_absent": true,
+      "work_schedule_group_hidden": true,
+      "role_and_work_profile_hidden": true,
+      "attendance_menu_flattened": true,
+      "attendance_is_clock_only": true,
+      "search_named_search": true,
+      "search_ocr_sidebar_absent": true,
+      "approval_categories_not_reintroduced": true,
+      "current_auth_surface_only": true,
+      "desktop_forest_login_timeline": true,
+      "global_regression_contract_present": true
+    },
+    "failed_checks": [],
+    "product_ui_file_count": 75,
+    "forbidden_copy_matches": []
+  },
+  "package_contracts": {
+    "checks": {
+      "leave_receipt_pass": true,
+      "leave_source_exact": true,
+      "leave_scenarios_10_of_10": true,
+      "leave_screenshots_11": true,
+      "leave_geometry_clean": true,
+      "leave_diagnostics_clean": true,
+      "payroll_receipt_pass": true,
+      "payroll_renderer_exact": true,
+      "payroll_scenarios_9_of_9": true,
+      "payroll_screenshots_5": true,
+      "payroll_rows_44px": true,
+      "payroll_geometry_clean": true,
+      "payroll_diagnostics_clean": true,
+      "mac_windows_renderer_parity": true,
+      "profile_receipt_pass": true,
+      "profile_contract_9_of_9": true,
+      "package_screenshots_17_present": true,
+      "receipt_screenshot_hashes_match": true,
+      "formal_claims_remain_false": true
+    },
+    "failed_checks": [],
+    "screenshot_count": 17,
+    "leave_receipt": "docs/lazycodex/evidence/matter-desktop/artifacts/leave-management-package-qa.json",
+    "payroll_receipt": "docs/lazycodex/evidence/matter-desktop/artifacts/payroll-package-qa-2026-07-15.json",
+    "profile_receipt": "docs/lazycodex/evidence/matter-profile/2026-07-10/packaged-desktop-smoke.json"
+  },
+  "legacy_asset_contracts": {
+    "checks": {
+      "retired_paths_absent": true,
+      "historical_profile_screenshots_unretained": true,
+      "approved_brochure_cover_retained": true,
+      "current_amic_assets_present": true
+    },
+    "failed_checks": [],
+    "retired_paths_checked": [
+      "docs/ui-reference",
+      "apps/web/src/assets/matter-mark.svg",
+      "apps/web/public/matter-mark.svg",
+      "apps/web/src/assets/matter-logo.svg",
+      "apps/web/src/assets/parnas-tower-login.jpg",
+      "apps/web/src/assets/logos/AMIC_n_PETRA_Main_Simple.svg",
+      "apps/web/src/assets/logos/AMIC_n_PETRA_Main_Simple_White.svg",
+      "apps/desktop/build/icon-source-mark.png",
+      "apps/desktop/build/amic-petra-main.svg",
+      "apps/desktop/src/renderer/offline.matter.html"
+    ],
+    "retained_retired_paths": [],
+    "historical_profile_screenshots_checked": 6,
+    "retained_historical_profile_screenshots": []
+  },
+  "lazyweb_supporting_evidence": {
+    "report_id": "2c6e81b4-0875-4423-bc23-c7465b6e5b68",
+    "screenshot_path": ".lazyweb/lazyweb-design/forest-leave-payroll-2026-07-15/references/current-state.png",
+    "checks": {
+      "prior_report_id_recorded": true,
+      "current_state_screenshot_present": true,
+      "current_state_screenshot_hash": true
+    },
+    "failed_checks": [],
+    "governing_standard": "current Forest package, 44px density, single-line operational metadata"
+  },
+  "claim_boundary": {
+    "lazyweb_new_report_generated": false,
+    "lazyweb_connector_available_in_current_session": false,
+    "formal_macos_package": false,
+    "native_windows_package": false,
+    "public_release": false,
+    "production_go_live": false
+  },
+  "verdict": "PASS"
+}
