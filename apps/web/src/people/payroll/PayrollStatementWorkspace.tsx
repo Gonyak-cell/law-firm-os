@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Download, RefreshCw } from "lucide-react";
 import { Panel } from "../../components/primitives.jsx";
+import { HrxStepUpChallenge } from "../security/HrxStepUpChallenge.tsx";
 import {
   deliverHrxPayrollStatements,
   exportHrxPayrollRegister,
@@ -46,6 +47,7 @@ export function PayrollStatementWorkspace() {
   const [deliveryChannel, setDeliveryChannel] = useState<"email" | "message" | "self_service">("self_service");
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
+  const [stepUp, setStepUp] = useState(false);
 
   const runs = useMemo(() => periods.flatMap((period) => records(period.runs).map((run) => ({ ...run, period_code: text(period, "period_code") }))).filter((run) => text(run, "status") === "closed"), [periods]);
   const currentRun = runs.find((run) => text(run, "run_id") === runId) ?? runs[0] ?? null;
@@ -53,9 +55,18 @@ export function PayrollStatementWorkspace() {
 
   async function load(preferredRunId = runId) {
     setError("");
+    setStepUp(false);
     const workspaceResult = await fetchHrxPayrollWorkspace();
+    if (workspaceResult.kind === "step_up_required") {
+      setStepUp(true);
+      return;
+    }
     if (workspaceResult.kind !== "data") {
       const selfResult = await fetchHrxPayrollStatementsSelf();
+      if (selfResult.kind === "step_up_required") {
+        setStepUp(true);
+        return;
+      }
       if (selfResult.kind !== "data") {
         setError("급여명세서를 불러오지 못했습니다.");
         return;
@@ -126,6 +137,7 @@ export function PayrollStatementWorkspace() {
 
   return (
     <Panel id="people-pay-statement" className="people-panel span-2 payroll-statement-workspace" title="급여명세서" meta={`${statements.length}건`}>
+      {stepUp && <HrxStepUpChallenge purpose="payroll_export_review" onVerified={() => void load(runId)} />}
       {!selfOnly && (
         <div className="payroll-toolbar payroll-statement-toolbar">
           <label><span>급여기간</span><select value={runId} onChange={(event) => void load(event.target.value)}>{runs.map((run) => <option key={text(run, "run_id")} value={text(run, "run_id")}>{text(run, "period_code")}</option>)}</select></label>
@@ -146,7 +158,7 @@ export function PayrollStatementWorkspace() {
             <tbody>{statements.map((statement) => <tr key={text(statement, "statement_id")}><td>{names.get(text(statement, "employee_id")) || (selfOnly ? "내 명세서" : text(statement, "employee_id"))}</td><td>{statementStatus(text(statement, "state"))}</td><td>{text(statement, "generated_at").slice(0, 10)}</td><td>{text(statement, "delivered_at").slice(0, 10) || "-"}</td><td>{text(statement, "viewed_at").slice(0, 10) || "-"}</td><td><button className="icon-button" type="button" aria-label="급여명세서 다운로드" onClick={() => void download(statement)} disabled={busy === text(statement, "statement_id")}><Download size={16} /></button></td></tr>)}</tbody>
           </table>
         </div>
-      ) : <div className="live-data-state live-data-empty">{currentRun ? "생성된 명세서가 없습니다." : "마감된 급여가 없습니다."}</div>}
+      ) : <div className="live-data-state live-data-empty">{selfOnly ? "급여명세서가 없습니다." : currentRun ? "생성된 명세서가 없습니다." : "마감된 급여가 없습니다."}</div>}
     </Panel>
   );
 }

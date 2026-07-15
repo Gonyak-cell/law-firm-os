@@ -88,5 +88,10 @@ test("PY-DOC-001/003/004 exposes one compact statement workspace for generate, e
   assert.match(workspace, /value="self_service"/);
   assert.match(workspace, /fetchHrxPayrollStatementsSelf/);
   assert.match(workspace, /readHrxPayrollStatement/);
+  assert.match(workspace, /HrxStepUpChallenge/);
+  assert.match(workspace, /workspaceResult\.kind === "step_up_required"/);
+  assert.match(workspace, /selfResult\.kind === "step_up_required"/);
+  assert.match(workspace, /purpose="payroll_export_review"/);
+  assert.match(workspace, /selfOnly \? "급여명세서가 없습니다\."/);
   for (const route of ["statements", "deliver", "export", "download"]) assert.match(client, new RegExp(`/api/hrx/payroll/[\\s\\S]{0,300}${route}`));
 });
