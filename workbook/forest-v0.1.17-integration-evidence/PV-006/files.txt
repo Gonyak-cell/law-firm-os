@@ -1,0 +1,20 @@
+Product files:
+package.json
+scripts/lib/matter-desktop-legacy-assets.mjs
+scripts/test/pv006-legacy-assets.test.mjs
+scripts/validate-matter-desktop-packaging.mjs
+scripts/validate-pv006-legacy-assets.mjs
+
+Evidence files:
+workbook/forest-v0.1.17-integration-evidence/PV-006/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/PV-006/commands.txt
+workbook/forest-v0.1.17-integration-evidence/PV-006/files.txt
+workbook/forest-v0.1.17-integration-evidence/PV-006/package-matrix.json
+workbook/forest-v0.1.17-integration-evidence/PV-006/receipt.json
+workbook/forest-v0.1.17-integration-evidence/PV-006/tests.txt
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md
+
+Accepted package root:
+apps/desktop/dist/releases/0.1.17/8e9165c0a8b412eafde454c8436e00cf434a9e37/internal
+
+The accepted package root is generated and ignored. Its immutable path, artifact hashes, legacy-scan results, and acceptance boundaries are preserved in package-matrix.json and receipt.json.

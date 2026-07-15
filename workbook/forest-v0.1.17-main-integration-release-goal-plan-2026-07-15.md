@@ -239,7 +239,7 @@ RC-003에서 우선 검토할 root-only 항목:
 | PV-003 | DONE | clean-SHA build gate | dirty tree·SHA 불일치·허용 외 branch formal build 차단 | positive/negative tests | formal bypass 0 |
 | PV-004 | DONE | 채널·bundle ID 분리 | dev/internal/candidate/formal 분리 | package metadata tests | OS 앱 식별 충돌 0 |
 | PV-005 | DONE | SHA 기반 artifact 경로 | `dist/releases/<version>/<sha>/...` | path validator | generic path를 release truth로 사용 0 |
-| PV-006 | READY | legacy asset/reference validator | stale login, Parnas, Petrabridge, old mark, retired UI refs 검사 | source+bundle scan | 금지 참조 0 |
+| PV-006 | DONE | legacy asset/reference validator | stale login, Parnas, Petrabridge, old mark, retired UI refs 검사 | source 191 files·retired 21; Mac/Windows 35+35; unit 4/4 | 금지 참조·legacy hash·offline entry 0 |
 | PV-007 | READY | canonical launch command | 중복 종료, exact path launch, PID/path/manifest 확인 | launcher tests | 다른 bundle 실행 시 fail closed |
 
 ### 7.6 MI: `origin/main` 통합
@@ -519,6 +519,7 @@ external_blockers
 | 2026-07-16 | PV-003-QA | DONE | `298bbb2b` | `298bbb2b` | `workbook/forest-v0.1.17-integration-evidence/PV-003/same-sha-renderer-parity.json` | 동일 clean detached SHA 순차 Mac/Windows internal 재빌드; Web·Mac·Windows renderer `f0a043de`·28 files 동일, byte diff 0; PV-001/PV-002·public renderer PII PASS; formal/native 비주장 유지 |
 | 2026-07-16 | PV-004 | DONE | `34d689f0` | `f5344fde` | `workbook/forest-v0.1.17-integration-evidence/PV-004/` | 단일 registry로 dev/internal/candidate/formal app ID·artifact prefix 분리, 충돌 0; exact clean detached SHA Mac/Windows 8 manifest·renderer `f0a043de`·28 files 동일; invalid channel artifact mutation 0; formal Mac distribution·Windows native/AuthentiCode 비주장 유지 |
 | 2026-07-16 | PV-005 | DONE | `ea9fd4f8` | `c0c46fae` | `workbook/forest-v0.1.17-integration-evidence/PV-005/` | `releases/0.1.17/<full-sha>/internal` 9 artifacts·hash 고정; exact clean SHA 순차 Mac/Windows renderer `f0a043de`·28 files 동일; generic mac/win 격리 중 validate→assemble→validate PASS, release truth 참조 0; formal/native/AuthentiCode 비주장 유지 |
+| 2026-07-16 | PV-006 | DONE | `a2d50e95` | `8e9165c0` | `workbook/forest-v0.1.17-integration-evidence/PV-006/` | source 191·retired path 21, Mac/Windows bundle 35+35; 금지 참조·legacy hash·offline entry 0; exact clean SHA renderer `f0a043de`·28 files 동일; Web 143+1 skip·Desktop 102/102; formal/native/AuthentiCode 비주장 유지 |
 
 ## 14. Goal Objective 원문
 

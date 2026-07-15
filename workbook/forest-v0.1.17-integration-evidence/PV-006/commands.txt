@@ -1,0 +1,30 @@
+git diff --check
+node --check scripts/lib/matter-desktop-legacy-assets.mjs
+node --check scripts/validate-pv006-legacy-assets.mjs
+node scripts/validate-pv006-legacy-assets.mjs --help
+node scripts/validate-pv006-legacy-assets.mjs --bogus # exit 2, usage on stderr
+node --test scripts/test/pv006-legacy-assets.test.mjs # initial red: helper module absent
+node --test scripts/test/pv001-desktop-version.test.mjs scripts/test/pv002-build-manifest.test.mjs scripts/test/pv003-clean-sha-build-gate.test.mjs scripts/test/pv004-desktop-channel.test.mjs scripts/test/pv005-release-artifact-path.test.mjs scripts/test/pv006-legacy-assets.test.mjs
+node scripts/validate-pv001-desktop-version.mjs --source
+node scripts/validate-pv001-desktop-version.mjs --package
+node scripts/validate-pv002-build-manifest.mjs --source
+MATTER_DESKTOP_RELEASE_CHANNEL=internal node scripts/validate-pv002-build-manifest.mjs --package
+node scripts/validate-pv003-clean-sha-build-gate.mjs --source
+node scripts/validate-pv004-desktop-channels.mjs --source
+node scripts/validate-pv005-release-artifact-paths.mjs --source
+node scripts/validate-pv006-legacy-assets.mjs --source
+MATTER_DESKTOP_RELEASE_CHANNEL=internal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=8e9165c0a8b412eafde454c8436e00cf434a9e37 npm --workspace apps/desktop run build:mac
+MATTER_DESKTOP_RELEASE_CHANNEL=internal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=8e9165c0a8b412eafde454c8436e00cf434a9e37 npm --workspace apps/desktop run build:win
+MATTER_DESKTOP_RELEASE_CHANNEL=internal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=8e9165c0a8b412eafde454c8436e00cf434a9e37 node scripts/validate-pv006-legacy-assets.mjs --bundle
+MATTER_DESKTOP_RELEASE_CHANNEL=internal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=8e9165c0a8b412eafde454c8436e00cf434a9e37 node scripts/stage-matter-desktop-release-artifacts.mjs
+MATTER_DESKTOP_RELEASE_CHANNEL=internal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=8e9165c0a8b412eafde454c8436e00cf434a9e37 node scripts/validate-pv005-release-artifact-paths.mjs --package
+npm --workspace apps/desktop run test:smoke
+npm --workspace apps/desktop run test:file-bridge
+npm --workspace apps/web run test:ui
+npm --workspace apps/web run typecheck
+npm --workspace apps/web run build
+node scripts/validate-matter-desktop-packaging.mjs
+node scripts/validate-cp006-ui-copy-regression.mjs --check
+npm run public-renderer:pii:validate
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed
+git diff a2d50e95b204da433986ec94e5ce1d8ed04e3dbb..8e9165c0a8b412eafde454c8436e00cf434a9e37 # credential-form secret-pattern scan
