@@ -5,7 +5,7 @@ Source TUW: MDT-P6-W01-T03
 App bundle: `apps/desktop/dist/mac/matter.app`
 App ID: `com.amic.matter.desktop.internal`
 Product name: `matter`
-Version: `0.1.16`
+Version: `0.1.17`
 Channel: `internal`
 
 ## Package Structure
@@ -15,8 +15,8 @@ Channel: `internal`
 - packaged app icon: `apps/desktop/dist/mac/matter.app/Contents/Resources/matter.icns`
 - packaged app source: `apps/desktop/dist/mac/matter.app/Contents/Resources/app`
 - executable: `apps/desktop/dist/mac/matter.app/Contents/MacOS/matter`
-- archive: `apps/desktop/dist/mac/matter-internal-0.1.16-macos.zip`
-- disk image: `apps/desktop/dist/mac/matter-internal-0.1.16-macos.dmg`
+- archive: `apps/desktop/dist/mac/matter-internal-0.1.17-macos.zip`
+- disk image: `apps/desktop/dist/mac/matter-internal-0.1.17-macos.dmg`
 
 ## Signing
 
@@ -34,7 +34,7 @@ Channel: `internal`
 - DMG codesign verify: not_applied_internal_package
 - DMG notarization state: not_submitted_internal_only
 - DMG stapler validate: not_submitted_internal_only
-- DMG Gatekeeper assess: not_distribution_ready: /private/tmp/lawos-forest-v016-release/apps/desktop/dist/mac/matter-internal-0.1.16-macos.dmg: rejected
+- DMG Gatekeeper assess: not_distribution_ready: /private/tmp/lawos-forest-v016-release/apps/desktop/dist/mac/matter-internal-0.1.17-macos.dmg: rejected
 - DMG image verify: pass
 
 ## Install Smoke

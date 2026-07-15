@@ -1,0 +1,22 @@
+# PV-001 Acceptance
+
+- TUW: PV-001
+- status: DONE
+- entry_sha: `0854caef138acc9e8a4d41700812e1d33e6c9199`
+- product_exit_sha: `6a57157a799e50092963faac0b0860522a218914` (the evidence commit is intentionally separate)
+- product_exit_tree: `45401ab2cf0871d61897ef4217918790f4f0bace`
+- version owners: root package, root lock entries, desktop package, and desktop lock entry are all `0.1.17`; mismatch count 0
+- package metadata: macOS Info.plist short/build version, macOS packaged package, Windows packaged package, Windows update metadata, and both build receipts are all `0.1.17`; mismatch count 0
+- package JSON parity: source, macOS, and Windows SHA-256 are all `bcf4356c3a894dbd1166ba44072cf8b5596e378dbe4679c91e37b4f9428773a4`
+- renderer parity: macOS and Windows each contain 28 renderer files and share SHA-256 `f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445`; mismatch count 0
+- build order: the internal macOS ZIP/DMG completed at 2026-07-16 01:59 KST, then the internal Windows directory/unsigned ZIP manifest completed at 02:02 KST, both from the exact clean product SHA
+- Windows internal update metadata: manifest signature verified, artifact hash mismatch count 0
+- actual package smoke: the exact macOS `matter.app` reported version `0.1.17`, loaded the actual React renderer, reached `data-login-screen="forest-split"` with intro state `complete`, rendered one loaded Forest photo panel and one login form, and reported 0 broken images, page errors, and console errors
+- manual_qa: inspected `screenshots/macos-login-version-0.1.17.png`; the accepted Forest/PETRABRIDGE cover is on the left and the AMIC Law login is on the right, with the logo in its final position and no broken or legacy Parnas asset
+- regression: Web typecheck PASS, Web build PASS, Web UI 143/144 PASS with 1 existing skip, relevant Desktop 27/27 PASS, CP-006 source/package/legacy/Lazyweb contracts 46/46 PASS
+- preserved user root checkout: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`, tracked 56, untracked 21, fingerprint `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`; no write performed
+- commands: see `commands.txt`
+- test_result: unique version, generated package metadata, source/package JSON parity, Mac/Windows renderer parity, signed Windows internal manifest, exact packaged login, syntax, diff, and visual checks PASS
+- known_limits: macOS artifacts are unsigned internal packages without Developer ID, notarization, stapling, or Gatekeeper distribution approval; Windows native install/runtime/uninstall and Authenticode were not run on Darwin
+- external_blockers: none for PV-001; formal/native/public/production/go-live gates remain outside this TUW and false
+- AI slop review: pass; no strong findings, 51 weak full-file stylesheet matches reviewed, and the approved One Timeline Fade is a purpose-bound login handoff rather than generic decorative motion

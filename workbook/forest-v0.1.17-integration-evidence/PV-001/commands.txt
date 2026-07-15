@@ -1,0 +1,24 @@
+git rev-parse HEAD
+git rev-parse 'HEAD^{tree}'
+test -z "$(git status --porcelain)"
+npm --workspace apps/web run typecheck
+npm --workspace apps/web run build
+npm --workspace apps/web run test:ui
+node scripts/validate-cp006-ui-copy-regression.mjs
+MATTER_DESKTOP_RELEASE_CHANNEL=internal MATTER_DESKTOP_SIGN=internal MATTER_DESKTOP_NOTARIZE=0 node scripts/build-matter-desktop-mac.mjs
+test "$(git rev-parse HEAD)" = "6a57157a799e50092963faac0b0860522a218914"
+test -z "$(git status --porcelain)"
+MATTER_DESKTOP_RELEASE_CHANNEL=internal node scripts/build-matter-desktop-win.mjs
+node scripts/run-pv001-packaged-version-smoke.mjs
+npm run matter-desktop:version:validate
+/usr/libexec/PlistBuddy -c 'Print:CFBundleIdentifier' apps/desktop/dist/mac/matter.app/Contents/Info.plist
+/usr/libexec/PlistBuddy -c 'Print:CFBundleName' apps/desktop/dist/mac/matter.app/Contents/Info.plist
+/usr/libexec/PlistBuddy -c 'Print:CFBundleShortVersionString' apps/desktop/dist/mac/matter.app/Contents/Info.plist
+/usr/libexec/PlistBuddy -c 'Print:CFBundleVersion' apps/desktop/dist/mac/matter.app/Contents/Info.plist
+shasum -a 256 apps/desktop/dist/mac/matter.app/Contents/Resources/app/package.json apps/desktop/dist/win/matter-internal-0.1.17-win32-x64/resources/app/package.json
+shasum -a 256 apps/desktop/dist/win/matter-internal-0.1.17-win-installer-manifest.json apps/desktop/dist/win/matter-internal-0.1.17-win32-x64/matter.exe apps/desktop/dist/win/matter-internal-0.1.17-win32-x64-unsigned.zip
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed
+node --check scripts/run-pv001-packaged-version-smoke.mjs
+node --check scripts/validate-pv001-desktop-version.mjs
+git diff --check
+recompute RC-001 root checkout diff/status/path-manifest fingerprint without writing to the root checkout

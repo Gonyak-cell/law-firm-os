@@ -1,0 +1,41 @@
+# PV-001 Test Results
+
+- exact product build SHA: `6a57157a799e50092963faac0b0860522a218914`
+- exact product tree: `45401ab2cf0871d61897ef4217918790f4f0bace`
+- implementation sequence: `82dbcc30` version/validators, `52807ba8` native name contract correction, `6a57157a` actual packaged Forest renderer restoration
+- implementation-first negative proof: the targeted login regression failed while `brochure-cover.jpg` was absent from the actual React auth surface, then passed after the shared auth surface used the accepted Forest asset
+- macOS internal build: PASS; app, ZIP, and DMG created from the clean product SHA
+- Windows internal build: PASS; directory, PE executable, signed internal manifest, and unsigned ZIP created from the same clean product SHA
+- version validator package mode: PASS
+  - owner version mismatch: 0
+  - generated package version mismatch: 0
+  - package JSON hash mismatch: 0
+  - renderer hash mismatch: 0
+  - Windows manifest artifact hash mismatch: 0
+  - Windows internal manifest signature: verified
+- source/macOS/Windows package JSON SHA-256: `bcf4356c3a894dbd1166ba44072cf8b5596e378dbe4679c91e37b4f9428773a4`
+- macOS/Windows renderer SHA-256: `f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445`, 28 files each
+- macOS Info.plist: `com.amic.matter.desktop.internal / matter / 0.1.17 / 0.1.17`
+- Windows manifest SHA-256: `687201132d2cf46b61f1f9b559882bd5ff1ebcb079f3a3529bebb6165c885dad`
+- Windows executable SHA-256: `2444ed1ed7d74bb305e2c7def43122a4633c6c3a412dddeb182f7b5b3641b043`
+- Windows unsigned ZIP SHA-256: `54aed659d9d683aa84a13d713b1b146e2d16139aa1bf042a22b43d4ccebb32da`
+- macOS ZIP SHA-256: `e6a48d3e4a469a5a82da096582c0f7b4a48e745dc92d3b96999aae35890db859`
+- macOS DMG SHA-256: `d57241f369833c31d16b95ad40666065ecd1e615830b893af23af2a84f5c9606`
+- exact packaged version/login smoke: PASS
+  - app version: `0.1.17`
+  - React renderer: loaded
+  - Forest split: 1
+  - login form: 1
+  - Forest image loaded: 1
+  - broken images: 0
+  - page/console errors: 0/0
+- Web typecheck: PASS
+- Web production build: PASS, 1719 modules
+- Web UI: 144 total, 143 pass, 1 existing skip, 0 fail
+- relevant Desktop tests: 27/27 PASS
+- CP-006 contract: source 20/20, package 19/19, legacy 4/4, accepted Lazyweb evidence 3/3 PASS
+- changed scripts syntax: PASS
+- `git diff --check`: PASS
+- AI sloplint: exit 0; strong findings 0; 51 weak full-file matches manually reviewed
+- user root checkout: HEAD/status counts/fingerprint unchanged and no write performed
+- not run/claimed: Windows native runtime/install/uninstall, Windows Authenticode, macOS Developer ID/notary/staple/Gatekeeper distribution, public release, production, go-live
