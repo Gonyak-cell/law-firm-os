@@ -8,6 +8,12 @@ import { packager } from "@electron/packager";
 import { basename, dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import {
+  createDesktopBuildManifest,
+  directoryDigest,
+  readDesktopBuildSourceIdentity,
+  writeDesktopBuildManifest,
+} from "./lib/matter-desktop-provenance.mjs";
 import { copyDesktopLocalApiRuntime } from "./lib/matter-desktop-runtime.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -15,6 +21,7 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, "..");
 const desktopRoot = join(repoRoot, "apps/desktop");
 const packageJson = JSON.parse(await import("node:fs/promises").then((fs) => fs.readFile(join(desktopRoot, "package.json"), "utf8")));
+const sourceIdentity = readDesktopBuildSourceIdentity(repoRoot);
 const distRoot = join(desktopRoot, "dist/win");
 const releaseChannel = process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal";
 if (!["internal", "formal"].includes(releaseChannel)) {
@@ -28,6 +35,7 @@ const packageZipPath = join(distRoot, `${artifactName}-win32-x64-unsigned.zip`);
 const executablePath = join(packageDir, "matter.exe");
 const artifactPath = join(distRoot, `${artifactName}-win-installer-manifest.json`);
 const signaturePath = `${artifactPath}.sig`;
+const externalBuildManifestPath = join(distRoot, `${artifactName}-win-build-manifest.json`);
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md");
 const iconPath = join(desktopRoot, "build/icon.ico");
 const formalReleaseMarkerName = "matter-formal-release.json";
@@ -76,6 +84,8 @@ await rm(distRoot, { recursive: true, force: true });
 await mkdir(distRoot, { recursive: true });
 await mkdir(dirname(receiptPath), { recursive: true });
 const packageOutRoot = await mkdtemp(join(tmpdir(), "matter-desktop-win-packager-"));
+let buildManifest;
+let buildManifestHash;
 
 try {
   const [generatedAppRoot] = await packager({
@@ -105,6 +115,20 @@ try {
   } else {
     await rm(markerPath, { force: true });
   }
+  buildManifest = createDesktopBuildManifest({
+    version: packageJson.version,
+    ...sourceIdentity,
+    renderer: directoryDigest(join(packageDir, "resources", "app", "src", "renderer", "web")),
+    channel: releaseChannel,
+    platform: "win32",
+    arch: "x64",
+    appId,
+  });
+  ({ sha256: buildManifestHash } = await writeDesktopBuildManifest({
+    manifest: buildManifest,
+    internalPath: join(packageDir, "resources", "matter-build-manifest.json"),
+    externalPath: externalBuildManifestPath,
+  }));
 } finally {
   await rm(packageOutRoot, { recursive: true, force: true });
 }
@@ -121,6 +145,14 @@ const artifact = {
   platform: "win32",
   arch: "x64",
   channel: releaseChannel,
+  buildManifest: `apps/desktop/dist/win/${artifactName}-win-build-manifest.json`,
+  buildManifestSha256: buildManifestHash,
+  sourceSha: buildManifest.source_sha,
+  sourceTree: buildManifest.source_tree,
+  sourceDirty: buildManifest.source_dirty,
+  rendererSha256: buildManifest.renderer.sha256,
+  rendererFiles: buildManifest.renderer.file_count,
+  builtAt: buildManifest.built_at,
   icon: "build/icon.ico",
   iconSha256: iconHash,
   packageDirectory: `apps/desktop/dist/win/${artifactName}-win32-x64`,
@@ -155,6 +187,15 @@ App ID: \`${appId}\`
 Product name: \`matter\`
 Version: \`${packageJson.version}\`
 Channel: \`${releaseChannel}\`
+Build manifest: \`apps/desktop/dist/win/${artifactName}-win-build-manifest.json\`
+Packaged build manifest: \`apps/desktop/dist/win/${artifactName}-win32-x64/resources/matter-build-manifest.json\`
+Build manifest SHA-256: \`${buildManifestHash}\`
+Source SHA: \`${buildManifest.source_sha}\`
+Source tree: \`${buildManifest.source_tree}\`
+Source dirty: \`${buildManifest.source_dirty}\`
+Renderer SHA-256: \`${buildManifest.renderer.sha256}\`
+Renderer files: \`${buildManifest.renderer.file_count}\`
+Built at: \`${buildManifest.built_at}\`
 
 ## Signing
 
@@ -200,6 +241,15 @@ console.log(
       receipt: "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md",
       release_channel: releaseChannel,
       app_id: appId,
+      build_manifest: `apps/desktop/dist/win/${artifactName}-win-build-manifest.json`,
+      packaged_build_manifest: `apps/desktop/dist/win/${artifactName}-win32-x64/resources/matter-build-manifest.json`,
+      build_manifest_sha256: buildManifestHash,
+      source_sha: buildManifest.source_sha,
+      source_tree: buildManifest.source_tree,
+      source_dirty: buildManifest.source_dirty,
+      renderer_sha256: buildManifest.renderer.sha256,
+      renderer_files: buildManifest.renderer.file_count,
+      built_at: buildManifest.built_at,
       signing_identity: signatureKey,
       manifest_hash: manifestHash,
       executable_hash: executableHash,

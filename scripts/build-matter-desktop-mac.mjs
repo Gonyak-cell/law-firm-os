@@ -9,6 +9,12 @@ import { notarize } from "@electron/notarize";
 import { dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import {
+  createDesktopBuildManifest,
+  directoryDigest,
+  readDesktopBuildSourceIdentity,
+  writeDesktopBuildManifest,
+} from "./lib/matter-desktop-provenance.mjs";
 import { copyDesktopLocalApiRuntime } from "./lib/matter-desktop-runtime.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -16,6 +22,7 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, "..");
 const desktopRoot = join(repoRoot, "apps/desktop");
 const packageJson = JSON.parse(await import("node:fs/promises").then((fs) => fs.readFile(join(desktopRoot, "package.json"), "utf8")));
+const sourceIdentity = readDesktopBuildSourceIdentity(repoRoot);
 const distRoot = join(desktopRoot, "dist/mac");
 const appBundle = join(distRoot, "matter.app");
 const contentsDir = join(appBundle, "Contents");
@@ -54,6 +61,7 @@ const appBundleId = formalRelease ? "com.amic.matter.desktop" : "com.amic.matter
 const artifactName = formalRelease ? `matter-${packageJson.version}` : `matter-internal-${packageJson.version}`;
 const zipPath = join(distRoot, `${artifactName}-macos.zip`);
 const dmgPath = join(distRoot, `${artifactName}-macos.dmg`);
+const externalBuildManifestPath = join(distRoot, `${artifactName}-macos-build-manifest.json`);
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
 const arch = process.env.MATTER_DESKTOP_MAC_ARCH ?? (process.arch === "arm64" ? "arm64" : "x64");
 const signingMode = process.env.MATTER_DESKTOP_SIGN ?? "internal";
@@ -200,6 +208,8 @@ if (notarizationRequested && !osxNotarize) {
   throw new Error("Notarization requested but no notarization credential source was found. Set MATTER_NOTARY_KEYCHAIN_PROFILE, Apple ID app-specific password env, or App Store Connect API key env.");
 }
 const notarizationState = osxNotarize ? "submitted_and_accepted_by_notarytool" : "not_submitted_internal_only";
+let buildManifest;
+let buildManifestHash;
 
 await rm(distRoot, { recursive: true, force: true });
 await mkdir(distRoot, { recursive: true });
@@ -239,6 +249,21 @@ try {
   } else {
     await rm(generatedMarkerPath, { force: true });
   }
+
+  buildManifest = createDesktopBuildManifest({
+    version: packageJson.version,
+    ...sourceIdentity,
+    renderer: directoryDigest(join(generatedAppBundle, "Contents", "Resources", "app", "src", "renderer", "web")),
+    channel: releaseChannel,
+    platform: "darwin",
+    arch,
+    appId: appBundleId,
+  });
+  ({ sha256: buildManifestHash } = await writeDesktopBuildManifest({
+    manifest: buildManifest,
+    internalPath: join(generatedAppBundle, "Contents", "Resources", "matter-build-manifest.json"),
+    externalPath: externalBuildManifestPath,
+  }));
 
   if (osxSign) {
     await sign({
@@ -325,6 +350,15 @@ App ID: \`${appBundleId}\`
 Product name: \`matter\`
 Version: \`${packageJson.version}\`
 Channel: \`${releaseChannel}\`
+Build manifest: \`apps/desktop/dist/mac/${artifactName}-macos-build-manifest.json\`
+Packaged build manifest: \`apps/desktop/dist/mac/matter.app/Contents/Resources/matter-build-manifest.json\`
+Build manifest SHA-256: \`${buildManifestHash}\`
+Source SHA: \`${buildManifest.source_sha}\`
+Source tree: \`${buildManifest.source_tree}\`
+Source dirty: \`${buildManifest.source_dirty}\`
+Renderer SHA-256: \`${buildManifest.renderer.sha256}\`
+Renderer files: \`${buildManifest.renderer.file_count}\`
+Built at: \`${buildManifest.built_at}\`
 
 ## Package Structure
 
@@ -394,6 +428,15 @@ console.log(
       receipt: "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
       release_channel: releaseChannel,
       app_id: appBundleId,
+      build_manifest: `apps/desktop/dist/mac/${artifactName}-macos-build-manifest.json`,
+      packaged_build_manifest: "apps/desktop/dist/mac/matter.app/Contents/Resources/matter-build-manifest.json",
+      build_manifest_sha256: buildManifestHash,
+      source_sha: buildManifest.source_sha,
+      source_tree: buildManifest.source_tree,
+      source_dirty: buildManifest.source_dirty,
+      renderer_sha256: buildManifest.renderer.sha256,
+      renderer_files: buildManifest.renderer.file_count,
+      built_at: buildManifest.built_at,
       signing_mode: signingMode,
       signing_identity: osxSign?.identity ?? "not_applied_internal_package",
       developer_id_signature: developerIdSignature,
