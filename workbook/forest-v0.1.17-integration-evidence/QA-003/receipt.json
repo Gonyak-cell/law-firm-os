@@ -1,0 +1,122 @@
+{
+  "schema_version": "lawos.forest.integration.qa003.v1",
+  "tuw_id": "QA-003",
+  "generated_at": "2026-07-15T22:35:26Z",
+  "verdict": "PASS",
+  "candidate_ref": "forest-v0.1.17-integration-candidate-4c81d861",
+  "integration_sha": "4c81d861693472af48a680e5757b352bb9945b9b",
+  "execution_entry_sha": "d1fa5bbee7ba0969615b671b4df0bb450ef282f7",
+  "execution_exit_sha": "d1fa5bbee7ba0969615b671b4df0bb450ef282f7",
+  "execution_tree": "1bd0e7341aa50446c2ad773aef2aede2e91e1f03",
+  "candidate_product_diff_count": 0,
+  "targeted_tests": {
+    "migration": { "files": 7, "passed": 19, "failed": 0, "skipped": 0 },
+    "security": { "files": 11, "passed": 40, "failed": 0, "skipped": 0 },
+    "total": { "files": 18, "passed": 59, "failed": 0, "skipped": 0 }
+  },
+  "migration": {
+    "fresh": {
+      "verdict": "PASS",
+      "sqlite_version": "3.53.2",
+      "migration_count": 29,
+      "tables": 73,
+      "indexes": 54,
+      "triggers": 12,
+      "missing_or_unexpected_objects": 0,
+      "forbidden_tables": 0,
+      "integrity_check": "ok",
+      "foreign_key_errors": 0
+    },
+    "upgrade": {
+      "verdict": "PASS",
+      "checkpoints": [10, 20, 25],
+      "seeded_tables": 32,
+      "seeded_rows": 32,
+      "changed_existing_rows": 0,
+      "lost_existing_rows": 0,
+      "unexpected_new_rows": 0,
+      "backfill_checks": 30,
+      "durable_reopen": true
+    },
+    "recovery": {
+      "verdict": "PASS",
+      "rerun_pending": 0,
+      "partial_commits": 0,
+      "backup_restore_exact": true,
+      "transaction_rollback_exact": true,
+      "integrity_check": "ok",
+      "foreign_key_errors": 0,
+      "external_writes": 0
+    }
+  },
+  "privacy_and_security": {
+    "validators": { "applicable": 10, "passed": 10, "failed": 0 },
+    "security_negative_test_files": 8,
+    "public_renderer": {
+      "verdict": "PASS",
+      "scanned_files": 28,
+      "protected_values": 30,
+      "protected_photos": 5,
+      "protected_values_printed": false
+    },
+    "desktop_security": { "verdict": "PASS", "checked_files": 50, "findings": 0 },
+    "hrx_context_hardening": "PASS",
+    "roster_source": { "verdict": "PASS", "roster_count": 10 },
+    "public_release_claim": { "verdict": "PASS", "checked_files": 98, "findings": 0 },
+    "tracked_secret_scan": {
+      "verdict": "PASS",
+      "repository_visible_files": 19128,
+      "scanned_text_files": 18897,
+      "skipped_binary_files": 231,
+      "rules": 8,
+      "findings": 0,
+      "secret_values_printed": false
+    },
+    "forest_checkpoint_scan": {
+      "source": "FZ-005/precommit-security-scan.json",
+      "scanned_files": 222,
+      "secret_or_unapproved_pii_findings": 0
+    },
+    "critical_findings": 0
+  },
+  "operator_local_production_secret_preflight": {
+    "status": "BLOCKED_PREREQUISITE",
+    "exit_code": 1,
+    "reason": ".env.matter-vault-r4.local is intentionally absent",
+    "classification": "production operator readiness, not source secret leakage",
+    "secret_file_created": false,
+    "secret_values_printed": false,
+    "qa003_impact": "none"
+  },
+  "dependency_link_removed": true,
+  "user_root_preservation": {
+    "head": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3",
+    "branch": "codex/profile-contact-regression-fix",
+    "baseline_manifest_entries": 77,
+    "changed_manifest_entries": 0,
+    "content_preserved": true,
+    "previous_status_fingerprint": "02751feb70e89afbfb00acf1dac14092cdef0c071be736a55aa6c6982b60d93c",
+    "observed_status_fingerprint": "5f3bfad7efba53b6bddb5e8c86dbf10f218ba2bf6401f0187d48cbdf3e5a397e",
+    "note": "The status serialization fingerprint changed outside this worktree, but all 77 RC-001 file paths, modes, sizes, and SHA-256 values remain exact and no matching writer was observed."
+  },
+  "canonical_pid": 55090,
+  "external_mutations": {
+    "production_write": false,
+    "production_traffic_change": false,
+    "secret_file_write": false,
+    "tag_push": false,
+    "main_update": false,
+    "deployment": false,
+    "release_publish": false,
+    "go_live": false
+  },
+  "boundaries": {
+    "browser_role_viewport_tuw": "QA-004",
+    "macos_package_tuw": "QA-005",
+    "windows_native_tuw": "QA-006",
+    "renderer_parity_tuw": "QA-007",
+    "production_operator_secret_readiness_verified": false,
+    "macos_formal_distribution_verified": false,
+    "windows_native_authenticode_verified": false
+  }
+}

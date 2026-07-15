@@ -1,0 +1,2 @@
+HRX security negative-test validation passed.
+negative_test_files: 8

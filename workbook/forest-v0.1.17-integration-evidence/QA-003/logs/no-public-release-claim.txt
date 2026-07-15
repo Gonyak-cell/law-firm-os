@@ -1,0 +1,13 @@
+{
+  "verdict": "PASS",
+  "checked_files": 98,
+  "findings": [],
+  "probes": {
+    "public_release_claim": "detected",
+    "production_go_live_claim": "detected",
+    "owner_approval_claim": "detected"
+  },
+  "public_release_claim": false,
+  "production_go_live_claim": false,
+  "owner_approval_claim": false
+}

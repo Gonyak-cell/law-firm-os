@@ -1,0 +1,23 @@
+git rev-parse forest-v0.1.17-integration-candidate-4c81d861^{commit}
+git diff --name-only forest-v0.1.17-integration-candidate-4c81d861..HEAD -- ':!workbook/**'
+ln -s /private/tmp/lawos-forest-v016-release/node_modules node_modules
+node --test --test-force-exit --test-timeout=30000 --test-concurrency=1 packages/hrx/test/leave-migration-reconciliation-service.test.js packages/hrx/test/migration-fresh-db.test.js packages/hrx/test/migration-recovery.test.js packages/hrx/test/migration-safety.test.js packages/hrx/test/migration-upgrade.test.js packages/hrx/test/migration.test.js packages/hrx/test/payroll-migration-service.test.js
+node --test --test-force-exit --test-timeout=30000 --test-concurrency=1 apps/api/test/admin-security-api.test.js apps/api/test/e2e/vault-storage-security.test.js apps/api/test/hrx/secret-exposure.test.js apps/api/test/hrx/security-regression.test.js apps/api/test/hrx/tenant-isolation.test.js apps/api/test/lambda-session-secret.test.js apps/api/test/matter-vault-hardening.test.js apps/api/test/security/matter-vault-ethical-wall.test.js apps/api/test/security/matter-vault-legal-hold.test.js apps/api/test/security/matter-vault-security.test.js apps/api/test/security/matter-vault-tenant-leak.test.js
+node scripts/validate-hrx-fresh-db.mjs
+node scripts/validate-hrx-checkpoint-upgrades.mjs
+node scripts/validate-hrx-migration-recovery.mjs
+node scripts/validate-hrx-security-negative-tests.mjs
+node scripts/validate-public-renderer-no-hrx-roster-pii.mjs
+node scripts/validate-matter-desktop-security.mjs
+node scripts/validate-hrx-context-hardening.mjs
+node scripts/validate-lcx-hrx-sft-roster-source.mjs
+node scripts/validate-matter-desktop-no-public-release-claim.mjs
+node scripts/validate-matter-vault-r4-local-secrets.mjs
+node --input-type=module < redacted tracked-file scanner derived from scripts/generate-forest-checkpoint-evidence.mjs scanCandidate; input: git ls-files; output: path/line/rule only
+node --input-type=module < RC-001 manifest verifier; compare 77 path/mode/size/SHA-256 tuples against the user-owned root checkout
+unlink node_modules
+python3 -m json.tool workbook/forest-v0.1.17-integration-evidence/QA-003/receipt.json
+python3 -m json.tool workbook/forest-v0.1.17-integration-evidence/QA-003/tests.json
+shasum -a 256 -c workbook/forest-v0.1.17-integration-evidence/QA-003/hashes.sha256
+git diff --check
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed

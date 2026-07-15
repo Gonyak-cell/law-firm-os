@@ -1,0 +1,17 @@
+{
+  "verdict": "PASS",
+  "source_ref": "hrx-member-roster-source-of-truth",
+  "roster_path": "/private/tmp/lawos-forest-v017-integration/docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json",
+  "roster_count": 10,
+  "organization_groups": {
+    "AMIC Law": 5,
+    "PETRA BRIDGE PARTNERS": 3,
+    "Staff": 2
+  },
+  "kim_yang_tae": {
+    "title": "대표이사",
+    "affiliation": "PETRA BRIDGE PARTNERS",
+    "department": "Finance",
+    "organization_group": "PETRA BRIDGE PARTNERS"
+  }
+}

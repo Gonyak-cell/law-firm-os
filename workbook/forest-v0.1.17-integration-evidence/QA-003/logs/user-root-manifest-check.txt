@@ -1,0 +1,8 @@
+{
+  "verdict": "PASS",
+  "baseline": "RC-001/manifest.tsv",
+  "baseline_entries": 77,
+  "changed_entries": 0,
+  "changes": [],
+  "content_values_printed": false
+}

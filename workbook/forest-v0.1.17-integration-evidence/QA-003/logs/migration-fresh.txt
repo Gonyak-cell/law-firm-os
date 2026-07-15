@@ -1,0 +1,390 @@
+{
+  "verdict": "PASS",
+  "engine": "SQLite",
+  "sqlite_version": "3.53.2",
+  "migration_count": 29,
+  "migration_first": "001_hrx_core.sql",
+  "migration_last": "029_hrx_leave_accrual_rule_version_index.sql",
+  "migration_receipts": [
+    {
+      "id": "001_hrx_core",
+      "filename": "001_hrx_core.sql",
+      "sql_sha256": "8b9d8ee1f3cd2e4f0d98bbfe086da661404c472088ac661f88c72197a6b403db",
+      "schema_object_count_before": 0,
+      "schema_object_count_after": 6
+    },
+    {
+      "id": "002_hrx_documents_leave_audit",
+      "filename": "002_hrx_documents_leave_audit.sql",
+      "sql_sha256": "3fcb1cff2f1bd005c89ff5c37584589d73e343c28bf89dc4b780bb41746b876d",
+      "schema_object_count_before": 6,
+      "schema_object_count_after": 17
+    },
+    {
+      "id": "003_hrx_ai_analytics",
+      "filename": "003_hrx_ai_analytics.sql",
+      "sql_sha256": "04cd2e7601bd3d7ba6be960b8e064ef404323cce8fcde9429c4009a1db78236d",
+      "schema_object_count_before": 17,
+      "schema_object_count_after": 24
+    },
+    {
+      "id": "004_hrx_attendance",
+      "filename": "004_hrx_attendance.sql",
+      "sql_sha256": "f6ee9b3229ab5e43b32e36bfade6a9537df3c4fde778a67347269e0bd293f507",
+      "schema_object_count_before": 24,
+      "schema_object_count_after": 27
+    },
+    {
+      "id": "005_hrx_overtime",
+      "filename": "005_hrx_overtime.sql",
+      "sql_sha256": "f65359909803e277c6dd77b7848b3de5e6886b060fa0de0d6eea9589ab59cf50",
+      "schema_object_count_before": 27,
+      "schema_object_count_after": 29
+    },
+    {
+      "id": "006_hrx_recruiting_lifecycle",
+      "filename": "006_hrx_recruiting_lifecycle.sql",
+      "sql_sha256": "36d349f3de1cebacda1a3f42e25488fcbe131c72277c1b66e4053ae8de828a85",
+      "schema_object_count_before": 29,
+      "schema_object_count_after": 37
+    },
+    {
+      "id": "007_hrx_leave_management",
+      "filename": "007_hrx_leave_management.sql",
+      "sql_sha256": "dbd3e7388b77a471b8a1fbb5e73cb218a0b1b22983a2f6464774e1b3d16d96a4",
+      "schema_object_count_before": 37,
+      "schema_object_count_after": 67
+    },
+    {
+      "id": "008_hrx_leave_reporting",
+      "filename": "008_hrx_leave_reporting.sql",
+      "sql_sha256": "88551b34a124410f508b2cec43ead935ce5364005456cf2b494cb80513e03001",
+      "schema_object_count_before": 67,
+      "schema_object_count_after": 70
+    },
+    {
+      "id": "009_hrx_leave_promotion",
+      "filename": "009_hrx_leave_promotion.sql",
+      "sql_sha256": "b68f81ad11f84eb7df5f706e17739c67c1db0de7f2972400319a1c2545855e2a",
+      "schema_object_count_before": 70,
+      "schema_object_count_after": 71
+    },
+    {
+      "id": "010_hrx_leave_integrations",
+      "filename": "010_hrx_leave_integrations.sql",
+      "sql_sha256": "28f77b3774c3a4244f5afebe72d3734e34b92fe7f199a6e10f8af624142aeb81",
+      "schema_object_count_before": 71,
+      "schema_object_count_after": 73
+    },
+    {
+      "id": "011_hrx_leave_type_economics",
+      "filename": "011_hrx_leave_type_economics.sql",
+      "sql_sha256": "1da83c66efe87da337d148e8449ee7524c6e49b0f587bdd8c8ce5a7dee9f5445",
+      "schema_object_count_before": 73,
+      "schema_object_count_after": 73
+    },
+    {
+      "id": "012_hrx_leave_job_outbox",
+      "filename": "012_hrx_leave_job_outbox.sql",
+      "sql_sha256": "a31a6b9bb5204e60de2b34e7d91e698fb9a554d70981afdacc2f26f40024d6a0",
+      "schema_object_count_before": 73,
+      "schema_object_count_after": 75
+    },
+    {
+      "id": "013_hrx_leave_accrual_batches",
+      "filename": "013_hrx_leave_accrual_batches.sql",
+      "sql_sha256": "1dd878f2ddd1f6eaae1a60562e07c6323aca816fd73df90089b1e7adbf5380a9",
+      "schema_object_count_before": 75,
+      "schema_object_count_after": 80
+    },
+    {
+      "id": "014_hrx_leave_occurrence_metadata",
+      "filename": "014_hrx_leave_occurrence_metadata.sql",
+      "sql_sha256": "7c6991f83713af354aa79b82d12861afc2f998bc692a0ea0afb1cd094cf69cea",
+      "schema_object_count_before": 80,
+      "schema_object_count_after": 81
+    },
+    {
+      "id": "015_hrx_leave_occurrence_upload_batches",
+      "filename": "015_hrx_leave_occurrence_upload_batches.sql",
+      "sql_sha256": "b11f5dc404824f5b6134cd38576d3fc24e47a4e00bd2397804ec7910a5dc7861",
+      "schema_object_count_before": 81,
+      "schema_object_count_after": 86
+    },
+    {
+      "id": "016_hrx_leave_promotion_exclusions",
+      "filename": "016_hrx_leave_promotion_exclusions.sql",
+      "sql_sha256": "d49fdcc43254cb5a0788214e0b9ae152acecaa347ba304e17aa36c0b87224df0",
+      "schema_object_count_before": 86,
+      "schema_object_count_after": 86
+    },
+    {
+      "id": "017_hrx_leave_promotion_notice_hashes",
+      "filename": "017_hrx_leave_promotion_notice_hashes.sql",
+      "sql_sha256": "4220418fe5afc779a9aa4a9e09c269c67f2105bcb7a6b12c193aa44c8c55bf4d",
+      "schema_object_count_before": 86,
+      "schema_object_count_after": 86
+    },
+    {
+      "id": "018_hrx_leave_promotion_evidence_receipts",
+      "filename": "018_hrx_leave_promotion_evidence_receipts.sql",
+      "sql_sha256": "188e691a112b628acf28f4bdd6ed87f77eb600449ec7cf1dc8555f2f0fc1ce8e",
+      "schema_object_count_before": 86,
+      "schema_object_count_after": 88
+    },
+    {
+      "id": "019_hrx_leave_integration_dead_letters",
+      "filename": "019_hrx_leave_integration_dead_letters.sql",
+      "sql_sha256": "0dfe398a331ceb193b2d62399b9076da61456b77defc9ad96e8005e2b22d189a",
+      "schema_object_count_before": 88,
+      "schema_object_count_after": 90
+    },
+    {
+      "id": "020_hrx_leave_rule_snapshots",
+      "filename": "020_hrx_leave_rule_snapshots.sql",
+      "sql_sha256": "f6248684c210547b833b9beebe260837e7b460bd894987b5759f7a80f533c9b4",
+      "schema_object_count_before": 90,
+      "schema_object_count_after": 91
+    },
+    {
+      "id": "021_hrx_payroll_runtime",
+      "filename": "021_hrx_payroll_runtime.sql",
+      "sql_sha256": "4e5c833fe19a4c5720892f7d17f8058e56585ae6df88b912b5eb30894b9341c6",
+      "schema_object_count_before": 91,
+      "schema_object_count_after": 115
+    },
+    {
+      "id": "022_hrx_payroll_inputs",
+      "filename": "022_hrx_payroll_inputs.sql",
+      "sql_sha256": "06d3735b18432370ba98d01cb9819bfb7ff67e3fa2cb074f93c72b69d06d3fc0",
+      "schema_object_count_before": 115,
+      "schema_object_count_after": 119
+    },
+    {
+      "id": "023_hrx_payroll_profile_units",
+      "filename": "023_hrx_payroll_profile_units.sql",
+      "sql_sha256": "2dbacacae466213862e7deb7bc1d30cf45c0736bceef5dcebed12cb7bd875b66",
+      "schema_object_count_before": 119,
+      "schema_object_count_after": 119
+    },
+    {
+      "id": "024_hrx_payroll_run_controls",
+      "filename": "024_hrx_payroll_run_controls.sql",
+      "sql_sha256": "c50d595dfc4a81a1eea7ac385a3a41cfeceafc348c67011be02d1a7f167919ae",
+      "schema_object_count_before": 119,
+      "schema_object_count_after": 127
+    },
+    {
+      "id": "025_hrx_payroll_year_end",
+      "filename": "025_hrx_payroll_year_end.sql",
+      "sql_sha256": "4444239ab1cebfb5395528c34a4d1f2fe7595da294c09e498ef05e40ecf080d4",
+      "schema_object_count_before": 127,
+      "schema_object_count_after": 129
+    },
+    {
+      "id": "026_hrx_payroll_catalog_assignments",
+      "filename": "026_hrx_payroll_catalog_assignments.sql",
+      "sql_sha256": "10981d030aa7b83d6669e2dbcfb8f6201cc14be4d0e5771e10ae4eaae70caf00",
+      "schema_object_count_before": 129,
+      "schema_object_count_after": 134
+    },
+    {
+      "id": "027_hrx_attendance_approval_receipts",
+      "filename": "027_hrx_attendance_approval_receipts.sql",
+      "sql_sha256": "d5176c1589fe5ffeeabd511e6931a49c716950178e306a97d8d7e10bb97b2f93",
+      "schema_object_count_before": 134,
+      "schema_object_count_after": 138
+    },
+    {
+      "id": "028_hrx_leave_accrual_rule_versions",
+      "filename": "028_hrx_leave_accrual_rule_versions.sql",
+      "sql_sha256": "2632792fa515581efae4bf486db14b66d710f86c67581d955de25f1bc81ab387",
+      "schema_object_count_before": 138,
+      "schema_object_count_after": 138
+    },
+    {
+      "id": "029_hrx_leave_accrual_rule_version_index",
+      "filename": "029_hrx_leave_accrual_rule_version_index.sql",
+      "sql_sha256": "ee82ef53758fc80d7dffd2969afa782217cd6f84b61cb0372671bb4ebaeb107b",
+      "schema_object_count_before": 138,
+      "schema_object_count_after": 139
+    }
+  ],
+  "expected_object_counts": {
+    "tables": 73,
+    "indexes": 54,
+    "triggers": 12
+  },
+  "actual_object_counts": {
+    "tables": 73,
+    "indexes": 54,
+    "triggers": 12
+  },
+  "object_set_checks": {
+    "tables": {
+      "missing_count": 0,
+      "unexpected_count": 0
+    },
+    "indexes": {
+      "missing_count": 0,
+      "unexpected_count": 0
+    },
+    "triggers": {
+      "missing_count": 0,
+      "unexpected_count": 0
+    }
+  },
+  "required_column_checks": [
+    {
+      "table": "hrx_payroll_items",
+      "column": "state_version",
+      "cid": 11,
+      "name": "state_version",
+      "type": "INTEGER",
+      "notnull": 1,
+      "default_value": "1",
+      "primary_key_position": 0
+    },
+    {
+      "table": "hrx_payroll_item_assignments",
+      "column": "raw_amount_included",
+      "cid": 12,
+      "name": "raw_amount_included",
+      "type": "INTEGER",
+      "notnull": 1,
+      "default_value": "0",
+      "primary_key_position": 0
+    },
+    {
+      "table": "hrx_attendance_approval_receipts",
+      "column": "attendance_source_ref",
+      "cid": 6,
+      "name": "attendance_source_ref",
+      "type": "TEXT",
+      "notnull": 1,
+      "default_value": null,
+      "primary_key_position": 0
+    },
+    {
+      "table": "hrx_leave_accrual_rules",
+      "column": "logical_rule_code",
+      "cid": 12,
+      "name": "logical_rule_code",
+      "type": "TEXT",
+      "notnull": 0,
+      "default_value": null,
+      "primary_key_position": 0
+    },
+    {
+      "table": "hrx_leave_accrual_rules",
+      "column": "version",
+      "cid": 13,
+      "name": "version",
+      "type": "INTEGER",
+      "notnull": 1,
+      "default_value": "1",
+      "primary_key_position": 0
+    },
+    {
+      "table": "hrx_leave_accrual_rules",
+      "column": "supersedes_rule_id",
+      "cid": 14,
+      "name": "supersedes_rule_id",
+      "type": "TEXT",
+      "notnull": 0,
+      "default_value": null,
+      "primary_key_position": 0
+    },
+    {
+      "table": "hrx_leave_accrual_runs",
+      "column": "as_of_date",
+      "cid": 16,
+      "name": "as_of_date",
+      "type": "TEXT",
+      "notnull": 0,
+      "default_value": null,
+      "primary_key_position": 0
+    }
+  ],
+  "forbidden_column_checks": [
+    {
+      "table": "hrx_payroll_profiles",
+      "column": "pay_frequency",
+      "absent": true
+    },
+    {
+      "table": "hrx_leave_groups",
+      "column": "balance_managed",
+      "absent": true
+    },
+    {
+      "table": "hrx_leave_groups",
+      "column": "balance_unit",
+      "absent": true
+    },
+    {
+      "table": "hrx_leave_types",
+      "column": "allowed_usage_units_json",
+      "absent": true
+    },
+    {
+      "table": "hrx_leave_requests",
+      "column": "applied_deduct_minutes",
+      "absent": true
+    },
+    {
+      "table": "hrx_leave_requests",
+      "column": "applied_paid_minutes",
+      "absent": true
+    },
+    {
+      "table": "hrx_leave_entitlements",
+      "column": "cancellation_entry_id",
+      "absent": true
+    }
+  ],
+  "forbidden_table_count": 0,
+  "constraint_probes": [
+    {
+      "label": "canonical_payroll_profile_mutable",
+      "verdict": "PASS"
+    },
+    {
+      "label": "payroll_assignment_update_blocked",
+      "verdict": "PASS",
+      "error_class": "append-only"
+    },
+    {
+      "label": "payroll_assignment_delete_blocked",
+      "verdict": "PASS",
+      "error_class": "append-only"
+    },
+    {
+      "label": "attendance_receipt_update_blocked",
+      "verdict": "PASS",
+      "error_class": "append-only"
+    },
+    {
+      "label": "attendance_receipt_delete_blocked",
+      "verdict": "PASS",
+      "error_class": "append-only"
+    },
+    {
+      "label": "payroll_assignment_foreign_key_enforced",
+      "verdict": "PASS",
+      "error_class": "FOREIGN KEY constraint failed"
+    },
+    {
+      "label": "payroll_assignment_raw_amount_flag_blocked",
+      "verdict": "PASS",
+      "error_class": "CHECK constraint failed"
+    }
+  ],
+  "empty_table_count": 73,
+  "nonempty_table_count": 0,
+  "integrity_check": "ok",
+  "foreign_key_error_count": 0,
+  "migration_manifest_sha256": "3379f633c3fab0e58e66650d7d15165348094c57b206cd2415a49aa0ae3b722f",
+  "schema_manifest_sha256": "71a117aa143c0eec2ba8f4e0e3a2aeb5ede8227afa8dbcd0b9736d589d0cec42",
+  "row_count_manifest_sha256": "25b3b79f274366ca086f11aecb106f8da3501fd551439f066260df2b0c3ca0d7"
+}
