@@ -234,6 +234,8 @@
     "matter-desktop:release-artifacts:stage": "node scripts/stage-matter-desktop-release-artifacts.mjs",
     "matter-desktop:release-paths:validate": "node scripts/validate-pv005-release-artifact-paths.mjs --source",
     "matter-desktop:legacy-assets:validate": "node scripts/validate-pv006-legacy-assets.mjs --source",
+    "matter-desktop:launch": "node scripts/launch-matter-desktop-canonical.mjs",
+    "matter-desktop:launch:validate": "node scripts/validate-pv007-canonical-launch.mjs --source",
     "matter-desktop:aws-runtime:smoke": "node scripts/smoke-matter-desktop-aws-runtime.mjs",
     "matter-desktop:screen-qa": "node scripts/smoke-matter-desktop-screen-qa.mjs",
     "matter-desktop:dashboard-package-qa": "node scripts/smoke-matter-desktop-dashboard-package.mjs",
