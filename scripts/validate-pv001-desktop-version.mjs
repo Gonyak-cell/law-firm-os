@@ -162,6 +162,8 @@ const packageVersions = {
 };
 const versionMismatches = Object.entries(packageVersions).filter(([, value]) => value !== version);
 assert.deepEqual(versionMismatches, [], `generated package version mismatch: ${JSON.stringify(versionMismatches)}`);
+assert.equal(plistString(plist, "CFBundleName"), "matter");
+assert.equal(plistString(plist, "CFBundleIdentifier"), "com.amic.matter.desktop.internal");
 
 const packageJsonHashes = {
   source: sha256File(desktopPackagePath),

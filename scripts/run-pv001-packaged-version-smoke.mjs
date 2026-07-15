@@ -13,6 +13,7 @@ const EXPECTED_VERSION = "0.1.17";
 const appBundle = path.join(ROOT, "apps/desktop/dist/mac/matter.app");
 const executable = path.join(appBundle, "Contents/MacOS/matter");
 const packagedAppRoot = path.join(appBundle, "Contents/Resources/app");
+const packagedDesktopPackage = JSON.parse(readFileSync(path.join(packagedAppRoot, "package.json"), "utf8"));
 const rendererIndex = path.join(packagedAppRoot, "src/renderer/web/index.html");
 const evidenceDir = path.join(ROOT, "workbook/forest-v0.1.17-integration-evidence/PV-001");
 const screenshotDir = path.join(evidenceDir, "screenshots");
@@ -76,7 +77,7 @@ try {
     appPath: electronApp.getAppPath(),
   }));
   assert.equal(appMetadata.version, EXPECTED_VERSION);
-  assert.equal(appMetadata.name, "matter");
+  assert.equal(appMetadata.name, packagedDesktopPackage.productName ?? packagedDesktopPackage.name);
   assert.equal(path.resolve(appMetadata.appPath), path.resolve(packagedAppRoot));
 
   const initialUrl = new URL(page.url());
