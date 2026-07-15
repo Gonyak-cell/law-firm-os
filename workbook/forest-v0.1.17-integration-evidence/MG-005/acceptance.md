@@ -3,7 +3,7 @@
 - TUW: MG-005
 - status: DONE
 - entry_sha: `f59b328927ee7c88a525bcb588938547a91ceb91`
-- exit_sha: `PENDING`
+- exit_sha: `9722f647f3328b0b14d4362c07c31ad5b9763a35`
 - changed_files: durable SQLite checkpoint-upgrade validator, synthetic golden fixtures, regression test, deterministic evidence generator, MG-005 evidence set, Goal execution ledger
 - root source HEAD: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`
 - root source working-tree SHA-256: `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`

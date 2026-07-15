@@ -482,7 +482,7 @@ external_blockers
 | 2026-07-15 | MG-002 | DONE | `000617f5` | `b41d3f77` | `workbook/forest-v0.1.17-integration-evidence/MG-002/` | 폐기·거부 73/73: 부재 61, Forest 021 단일 소유 12; schema 중복·root 파일명/해시 복사·폐기 runtime hit 0; anchor 7/7, 회귀 21/21 PASS |
 | 2026-07-15 | MG-003 | DONE | `b6fd5b71` | `32222efe` | `workbook/forest-v0.1.17-integration-evidence/MG-003/` | 001~028 연속·loader 28/28; 승인 계약 71/71 (`026=49`, `027=18`, `028=4`); 금지 계약·runtime 누락·원본 변경 0; 타깃 49/49·HRX 563/563·web build PASS |
 | 2026-07-15 | MG-004 | DONE | `8d01be6f` | `229429fd` | `workbook/forest-v0.1.17-integration-evidence/MG-004/` | 실제 빈 SQLite 001~028 28/28; schema `73/53/12`; required/forbidden 7/7; 제약 7/7; seed 0·integrity ok·FK error 0; HRX 564/564·web build PASS |
-| 2026-07-15 | MG-005 | DONE | `f59b3289` | `PENDING` | `workbook/forest-v0.1.17-integration-evidence/MG-005/` | 실제 파일 SQLite 010·020·025 -> 028; synthetic golden 32 table·32 row 변경·손실·예상 밖 생성 0; backfill 30/30; final schema fresh DB 일치 3/3; durable reopen 3/3; integrity·FK error 0; HRX 565/565·web build PASS |
+| 2026-07-15 | MG-005 | DONE | `f59b3289` | `9722f647` | `workbook/forest-v0.1.17-integration-evidence/MG-005/` | 실제 파일 SQLite 010·020·025 -> 028; synthetic golden 32 table·32 row 변경·손실·예상 밖 생성 0; backfill 30/30; final schema fresh DB 일치 3/3; durable reopen 3/3; integrity·FK error 0; HRX 565/565·web build PASS |
 
 ## 14. Goal Objective 원문
 

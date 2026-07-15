@@ -8,7 +8,7 @@ node scripts/validate-hrx-checkpoint-upgrades.mjs
 node --test packages/hrx/test/migration-upgrade.test.js packages/hrx/test/migration-fresh-db.test.js packages/hrx/test/migration.test.js
 node scripts/generate-checkpoint-upgrade-evidence.mjs --help
 node scripts/generate-checkpoint-upgrade-evidence.mjs # expected usage failure
-node scripts/generate-checkpoint-upgrade-evidence.mjs "/Users/jws/Documents/Codex/Law Firm OS" --evidence-commit-sha=PENDING
+node scripts/generate-checkpoint-upgrade-evidence.mjs "/Users/jws/Documents/Codex/Law Firm OS" --evidence-commit-sha=9722f647f3328b0b14d4362c07c31ad5b9763a35
 node --test packages/hrx/test/*.test.js
 npm run build
 git diff --check
