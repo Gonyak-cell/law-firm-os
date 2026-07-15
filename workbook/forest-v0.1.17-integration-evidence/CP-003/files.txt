@@ -1,0 +1,8 @@
+scripts/validate-cp003-leave-upper-compatibility.mjs
+workbook/forest-v0.1.17-integration-evidence/CP-003/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/CP-003/commands.txt
+workbook/forest-v0.1.17-integration-evidence/CP-003/files.txt
+workbook/forest-v0.1.17-integration-evidence/CP-003/leave-upper-compatibility-matrix.json
+workbook/forest-v0.1.17-integration-evidence/CP-003/receipt.json
+workbook/forest-v0.1.17-integration-evidence/CP-003/tests.txt
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md

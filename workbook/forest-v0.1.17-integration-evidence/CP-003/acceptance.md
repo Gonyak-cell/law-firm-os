@@ -1,0 +1,25 @@
+# CP-003 Acceptance
+
+- TUW: CP-003
+- status: DONE
+- entry_sha: `17700c5450cd9de9add0dce1ec44be77d3b49ad7`
+- exit_sha: `17700c5450cd9de9add0dce1ec44be77d3b49ad7` (validator and evidence only; product runtime tree unchanged)
+- leave plan TUWs: 49/49 DONE
+- implementation axes: type economics, automatic accrual, entitlement lifecycle, occurrence/usage, promotion, provider integrations, security/privacy/migration 7/7
+- leave test files: package 25, API 9, Web 6, total 40/40 present
+- fresh leave regression: package domain 120/120, API 42/42, Web 11/11, total 173/173
+- authorization: canonical HRX route policies 159, validator PASS
+- public renderer PII: 54 files, 30 protected values, 5 protected photos, printed 0, PASS
+- preserved user root checkout: tracked 56, untracked 21, fingerprint `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`
+- exact package QA source: `75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c`
+- package applicability: package QA source is an ancestor and product runtime source changed 0 files from that SHA to CP-003 entry
+- package scenarios: 10/10; role checks 7/7; screenshots 11; viewports 720/820/1024/1280/1512; geometry and console errors 0
+- restart persistence: before/after domain snapshot hashes identical
+- renderer parity: macOS and Windows `b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96`
+- claim boundaries: synthetic-only; external provider write, production-ready, public release, go-live, labor approval claims all false
+- commands: see `commands.txt`
+- evidence_hashes: validator `4e60fc62faaca5cf53de91d600de771d57ace36eac454c7f51f9c2a99bafa631`, leave matrix `5f7e031ae4b5ecd9dc461d2713277466d0a7146747908053b65ce09fff5dd5d8`, package QA receipt `4b4d8a51acf4b7bcb8948f6c0f62f655165941ef2e4ffde910439e1e0ac72967`
+- manual_qa: ran validator help, invalid argument, emit, and checked-in matrix modes; inspected exact package QA source/renderer/restart/viewport/claim boundaries, compared post-package product runtime paths, and re-fingerprinted the untouched user root checkout
+- known_limits: macOS package evidence is functional-only and does not attest Developer ID signing, notarization, staple, or Gatekeeper; Windows evidence is PE/ZIP and renderer parity only, with native runtime and Authenticode not verified on Darwin
+- external_blockers: none for CP-003; formal macOS and native Windows package proofs remain later QA units
+- AI slop review: pass; no product UI or user-facing copy changed

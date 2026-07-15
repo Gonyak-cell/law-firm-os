@@ -1,0 +1,52 @@
+{
+  "tuw": "CP-003",
+  "verdict": "PASS",
+  "entry_sha": "17700c5450cd9de9add0dce1ec44be77d3b49ad7",
+  "exit_sha": "17700c5450cd9de9add0dce1ec44be77d3b49ad7",
+  "product_runtime_changed": false,
+  "preserved_root_checkout": {
+    "tracked_count": 56,
+    "untracked_count": 21,
+    "fingerprint_sha256": "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3"
+  },
+  "leave_tuws": { "expected": 49, "done": 49, "failed": 0 },
+  "implementation_axes": { "expected": 7, "pass": 7, "failed": 0 },
+  "test_inventory": { "package": 25, "api": 9, "web": 6, "total": 40, "missing": 0 },
+  "tests": {
+    "package_domain": { "tests": 120, "pass": 120, "fail": 0 },
+    "api": { "tests": 42, "pass": 42, "fail": 0 },
+    "web": { "tests": 11, "pass": 11, "fail": 0 },
+    "combined": { "tests": 173, "pass": 173, "fail": 0 },
+    "route_authz": { "verdict": "PASS", "policy_count": 159 },
+    "public_renderer_pii": { "verdict": "PASS", "scanned_files": 54, "protected_value_count": 30, "protected_photo_count": 5, "protected_values_printed": false }
+  },
+  "package_qa": {
+    "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c",
+    "source_is_ancestor": true,
+    "product_runtime_unchanged_since_source": true,
+    "synthetic_only": true,
+    "scenario_count": 10,
+    "role_check_count": 7,
+    "screenshot_count": 11,
+    "viewport_widths": [720, 820, 1024, 1280, 1512],
+    "console_error_count": 0,
+    "page_error_count": 0,
+    "restart_domain_snapshot_identical": true,
+    "renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96",
+    "windows_renderer_matches_macos": true,
+    "mac_verification_scope": "functional_only",
+    "windows_native_runtime_smoke": "not_run_on_darwin",
+    "windows_authenticode_signed": false
+  },
+  "evidence_sha256": {
+    "validator": "4e60fc62faaca5cf53de91d600de771d57ace36eac454c7f51f9c2a99bafa631",
+    "leave_upper_compatibility_matrix": "5f7e031ae4b5ecd9dc461d2713277466d0a7146747908053b65ce09fff5dd5d8",
+    "leave_management_package_qa": "4b4d8a51acf4b7bcb8948f6c0f62f655165941ef2e4ffde910439e1e0ac72967"
+  },
+  "known_limits": [
+    "The macOS package receipt is functional-only and does not attest Developer ID signing, notarization, staple, or Gatekeeper.",
+    "The Windows package receipt proves PE and ZIP integrity plus renderer parity; native install/runtime and Authenticode remain unverified on Darwin.",
+    "No external provider write, production deployment, public release, or go-live is claimed by CP-003."
+  ],
+  "external_blockers": []
+}
