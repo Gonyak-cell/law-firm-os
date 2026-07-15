@@ -11,6 +11,15 @@ export const DESKTOP_RENDERER_DIGEST_ALGORITHM = "sha256(sorted sha256 file mani
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
 const GIT_OBJECT_PATTERN = /^[0-9a-f]{40}$/;
 const VERSION_PATTERN = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
+const FORMAL_BUILD_BRANCH_PATTERNS = [
+  /^main$/,
+  /^integration\/forest-v\d+\.\d+\.\d+$/,
+  /^release\/forest-v\d+\.\d+\.\d+$/,
+];
+const GENERATED_BUILD_EVIDENCE_PATHS = new Set([
+  "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
+  "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md",
+]);
 const MANIFEST_KEYS = [
   "schema_version",
   "product_name",
@@ -60,10 +69,60 @@ export function directoryDigest(directoryPath) {
 
 export function readDesktopBuildSourceIdentity(repoRoot) {
   const git = (args) => execFileSync("git", args, { cwd: repoRoot, encoding: "utf8" }).trim();
+  const gitPaths = (args) => execFileSync("git", args, { cwd: repoRoot })
+    .toString("utf8")
+    .split("\0")
+    .filter(Boolean);
+  const dirtyPaths = [...new Set([
+    ...gitPaths(["diff", "--name-only", "-z", "HEAD", "--"]),
+    ...gitPaths(["ls-files", "--others", "--exclude-standard", "-z"]),
+  ])].sort();
+  const sourceDirtyPaths = dirtyPaths.filter((filePath) => !GENERATED_BUILD_EVIDENCE_PATHS.has(filePath));
+  const ignoredEvidenceDirtyPaths = dirtyPaths.filter((filePath) => GENERATED_BUILD_EVIDENCE_PATHS.has(filePath));
   return {
     sourceSha: git(["rev-parse", "HEAD"]),
     sourceTree: git(["rev-parse", "HEAD^{tree}"]),
-    sourceDirty: git(["status", "--porcelain", "--untracked-files=all"]) !== "",
+    sourceDirty: sourceDirtyPaths.length > 0,
+    sourceBranch: git(["branch", "--show-current"]),
+    sourceDirtyPaths,
+    ignoredEvidenceDirtyPaths,
+  };
+}
+
+export function assertDesktopFormalBuildProvenance({
+  releaseChannel,
+  sourceIdentity,
+  expectedSourceSha,
+}) {
+  assert.ok(["internal", "formal"].includes(releaseChannel), "releaseChannel must be internal or formal");
+  if (releaseChannel !== "formal") {
+    return { enforced: false, verdict: "NOT_APPLICABLE" };
+  }
+
+  assert.ok(sourceIdentity && typeof sourceIdentity === "object", "sourceIdentity is required");
+  if (sourceIdentity.sourceDirty) {
+    throw new Error(`formal build blocked: Git worktree is dirty (${sourceIdentity.sourceDirtyPaths?.join(", ") || "unknown paths"})`);
+  }
+  if (typeof expectedSourceSha !== "string" || !GIT_OBJECT_PATTERN.test(expectedSourceSha)) {
+    throw new Error("MATTER_DESKTOP_EXPECTED_SOURCE_SHA must be a full 40-character Git SHA");
+  }
+  if (sourceIdentity.sourceSha !== expectedSourceSha) {
+    throw new Error(`formal build blocked: HEAD ${sourceIdentity.sourceSha} does not match expected source SHA ${expectedSourceSha}`);
+  }
+
+  const sourceBranch = sourceIdentity.sourceBranch ?? "";
+  const branchAllowed = sourceBranch === ""
+    || FORMAL_BUILD_BRANCH_PATTERNS.some((pattern) => pattern.test(sourceBranch));
+  if (!branchAllowed) {
+    throw new Error(`formal build blocked: branch ${sourceBranch} is not release-authorized`);
+  }
+
+  return {
+    enforced: true,
+    verdict: "PASS",
+    source_sha: sourceIdentity.sourceSha,
+    source_branch: sourceBranch || "DETACHED",
+    ignored_evidence_dirty_paths: sourceIdentity.ignoredEvidenceDirtyPaths ?? [],
   };
 }
 

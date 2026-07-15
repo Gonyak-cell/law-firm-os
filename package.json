@@ -229,6 +229,7 @@
     "matter-desktop:temporary-release:validate": "node scripts/validate-matter-desktop-temporary-release-plan.mjs",
     "matter-desktop:version:validate": "node scripts/validate-pv001-desktop-version.mjs --package",
     "matter-desktop:provenance:validate": "node scripts/validate-pv002-build-manifest.mjs --package",
+    "matter-desktop:formal-build-gate:validate": "node scripts/validate-pv003-clean-sha-build-gate.mjs --source",
     "matter-desktop:aws-runtime:smoke": "node scripts/smoke-matter-desktop-aws-runtime.mjs",
     "matter-desktop:screen-qa": "node scripts/smoke-matter-desktop-screen-qa.mjs",
     "matter-desktop:dashboard-package-qa": "node scripts/smoke-matter-desktop-dashboard-package.mjs",

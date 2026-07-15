@@ -9,6 +9,7 @@ import { basename, dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import {
+  assertDesktopFormalBuildProvenance,
   createDesktopBuildManifest,
   directoryDigest,
   readDesktopBuildSourceIdentity,
@@ -28,6 +29,11 @@ if (!["internal", "formal"].includes(releaseChannel)) {
   throw new Error("MATTER_DESKTOP_RELEASE_CHANNEL must be internal or formal.");
 }
 const formalRelease = releaseChannel === "formal";
+assertDesktopFormalBuildProvenance({
+  releaseChannel,
+  sourceIdentity,
+  expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
+});
 const appId = formalRelease ? "com.amic.matter.desktop" : "com.amic.matter.desktop.internal";
 const artifactName = formalRelease ? `matter-${packageJson.version}` : `matter-internal-${packageJson.version}`;
 const packageDir = join(distRoot, `${artifactName}-win32-x64`);

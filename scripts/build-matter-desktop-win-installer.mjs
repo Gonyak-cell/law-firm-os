@@ -7,6 +7,10 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import {
+  assertDesktopFormalBuildProvenance,
+  readDesktopBuildSourceIdentity,
+} from "./lib/matter-desktop-provenance.mjs";
 
 const execFileAsync = promisify(execFile);
 const npxExecutable = process.platform === "win32" ? (process.env.ComSpec ?? "cmd.exe") : "npx";
@@ -14,6 +18,7 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, "..");
 const desktopRoot = join(repoRoot, "apps/desktop");
 const packageJson = JSON.parse(await readFile(join(desktopRoot, "package.json"), "utf8"));
+const sourceIdentity = readDesktopBuildSourceIdentity(repoRoot);
 const builderConfigPath = join(desktopRoot, "electron-builder.yml");
 const releaseChannel = process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal";
 if (!["internal", "formal"].includes(releaseChannel)) {
@@ -21,6 +26,11 @@ if (!["internal", "formal"].includes(releaseChannel)) {
 }
 
 const formalRelease = releaseChannel === "formal";
+assertDesktopFormalBuildProvenance({
+  releaseChannel,
+  sourceIdentity,
+  expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
+});
 const appId = formalRelease ? "com.amic.matter.desktop" : "com.amic.matter.desktop.internal";
 const artifactName = formalRelease ? `matter-${packageJson.version}` : `matter-internal-${packageJson.version}`;
 const installerPath = join(desktopRoot, "dist", `${artifactName}-win-x64.exe`);

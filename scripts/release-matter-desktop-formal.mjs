@@ -3,8 +3,18 @@ import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
+import {
+  assertDesktopFormalBuildProvenance,
+  readDesktopBuildSourceIdentity,
+} from "./lib/matter-desktop-provenance.mjs";
 
 const ROOT = process.cwd();
+const sourceIdentity = readDesktopBuildSourceIdentity(ROOT);
+assertDesktopFormalBuildProvenance({
+  releaseChannel: "formal",
+  sourceIdentity,
+  expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
+});
 const desktopPackage = JSON.parse(await readFile(path.join(ROOT, "apps/desktop/package.json"), "utf8"));
 const version = desktopPackage.version;
 const defaultReleaseId = `matter-desktop-v${version}`;
