@@ -14,13 +14,13 @@ Version: `0.1.17`
 Channel: `internal`
 Build manifest: `apps/desktop/dist/win/matter-internal-0.1.17-win-build-manifest.json`
 Packaged build manifest: `apps/desktop/dist/win/matter-internal-0.1.17-win32-x64/resources/matter-build-manifest.json`
-Build manifest SHA-256: `76fe2585593112456acc4ae529bad78b5da1a4ca4c147fd8b5ede8b0fbddb253`
-Source SHA: `a38a63f8bcc0bedae5d038027cb2de7148cd6129`
-Source tree: `3da21d6486a0577abb90a084988de3eb6888a189`
+Build manifest SHA-256: `134e2a4478f74c965cab2836ee4760a276f1c656938a9653476587f1b35ea548`
+Source SHA: `298bbb2b577ba07980b7ec1671c677902b546c85`
+Source tree: `f0b88838d5ed300069e10ef4be811729e7098c1b`
 Source dirty: `false`
 Renderer SHA-256: `f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445`
 Renderer files: `28`
-Built at: `2026-07-15T17:32:20.289Z`
+Built at: `2026-07-15T18:06:36.663Z`
 
 ## Signing
 
@@ -31,9 +31,9 @@ Built at: `2026-07-15T17:32:20.289Z`
 ## Manifest Hash
 
 - manifest hash algorithm: sha256
-- manifest hash: `743a6c63806efe073dc5935ba8d55191c868d031cf3331c0c80276c2447ea137`
+- manifest hash: `060aba8ea655d1460af04a87637d4dd40ffdf5268b47c12c547873dde3941167`
 - executable hash: `2444ed1ed7d74bb305e2c7def43122a4633c6c3a412dddeb182f7b5b3641b043`
-- unsigned package zip hash: `b5115154905477ea250da73bc58a2e3b627846151c405da4d16be147189549c0`
+- unsigned package zip hash: `5517de97f84c47623ced6a57b69ca3d5538db8d76ba2ab5e7f27fa68661b9b99`
 
 ## Install Smoke
 

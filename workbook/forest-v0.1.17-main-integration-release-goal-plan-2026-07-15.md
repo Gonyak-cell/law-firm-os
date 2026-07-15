@@ -516,6 +516,7 @@ external_blockers
 | 2026-07-16 | PV-001 | DONE | `0854caef` | `6a57157a` | `workbook/forest-v0.1.17-integration-evidence/PV-001/` | 0.1.17 owner·Info.plist·package·update metadata 정렬; source/Mac/Windows package JSON 동일; Mac/Windows renderer `f0a043de` 동일; 실제 Mac Forest 로그인 PASS; 내부 패키지 경계 유지 |
 | 2026-07-16 | PV-002 | DONE | `1e3c2614` | `a38a63f8` | `workbook/forest-v0.1.17-integration-evidence/PV-002/` | build manifest schema·tamper rejection; 동일 clean SHA 순차 Mac/Windows build; full SHA/tree·version·channel·time·renderer 기록; 내부/외부·receipt parity·installer linkage PASS; renderer `f0a043de` 동일; formal/native 경계 유지 |
 | 2026-07-16 | PV-003 | DONE | `039ddf41` | `72d12902` | `workbook/forest-v0.1.17-integration-evidence/PV-003/` | formal entrypoint 4/4 공통 fail-closed gate; dirty 4/4·비허용 branch 4/4·SHA mismatch 차단, artifact mutation 0; detached exact-SHA Windows 실제 build PASS; Mac distribution gate 분리; bypass 0 |
+| 2026-07-16 | PV-003-QA | DONE | `298bbb2b` | `298bbb2b` | `workbook/forest-v0.1.17-integration-evidence/PV-003/same-sha-renderer-parity.json` | 동일 clean detached SHA 순차 Mac/Windows internal 재빌드; Web·Mac·Windows renderer `f0a043de`·28 files 동일, byte diff 0; PV-001/PV-002·public renderer PII PASS; formal/native 비주장 유지 |
 
 ## 14. Goal Objective 원문
 
