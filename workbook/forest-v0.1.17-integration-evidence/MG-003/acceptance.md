@@ -3,7 +3,7 @@
 - TUW: MG-003
 - status: DONE
 - entry_sha: `b6fd5b7142d6215093e658bd93b35d7de6366f82`
-- exit_sha: `PENDING`
+- exit_sha: `32222efe1e84cb74a32184db4734c0fa9dea45e0`
 - changed_files: forward migrations 026-028, store/port/runtime adapters, targeted tests, deterministic evidence generator, MG-003 evidence set, Goal execution ledger
 - root source HEAD: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`
 - root source working-tree SHA-256: `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`

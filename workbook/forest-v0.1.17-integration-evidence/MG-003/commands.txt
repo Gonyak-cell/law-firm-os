@@ -3,7 +3,7 @@ node --check changed HRX JavaScript and test files
 node --test packages/hrx/test/migration.test.js packages/hrx/test/payroll-item-catalog.test.js packages/hrx/test/payroll-profile-service.test.js packages/hrx/test/payroll-time-input-snapshot.test.js packages/hrx/test/payroll-input-snapshot-service.test.js packages/hrx/test/payroll-repository.test.js packages/hrx/test/leave-accrual-service.test.js packages/hrx/test/leave-accrual-batch-service.test.js packages/hrx/test/leave-accrual-batch-repository.test.js
 node scripts/generate-forward-migration-evidence.mjs --help
 node scripts/generate-forward-migration-evidence.mjs # expected usage failure
-node scripts/generate-forward-migration-evidence.mjs "/Users/jws/Documents/Codex/Law Firm OS" --evidence-commit-sha=PENDING
+node scripts/generate-forward-migration-evidence.mjs "/Users/jws/Documents/Codex/Law Firm OS" --evidence-commit-sha=32222efe1e84cb74a32184db4734c0fa9dea45e0
 node --test packages/hrx/test/*.test.js
 npm run build
 git diff --check

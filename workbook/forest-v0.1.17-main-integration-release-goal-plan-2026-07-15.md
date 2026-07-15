@@ -480,7 +480,7 @@ external_blockers
 | 2026-07-15 | RC-004 | DONE | `3a7335b6` | `0a92cb7e` | `workbook/forest-v0.1.17-integration-evidence/RC-004/` | 제품 비교 246개, Forest-only 170/170 보존, root 기여 76/76 판정, port 31/31 그룹 배치, 기능 축 10/10, 예상 밖 변경·미분류·고아 0 |
 | 2026-07-15 | MG-001 | DONE | `3842a67f` | `6b1c615b` | `workbook/forest-v0.1.17-integration-evidence/MG-001/` | root SQL 계약 145/145: 이식 71·상위호환 71·동일 1·충돌 거부 2; `026=49`, `027=18`, `028=4`; 중복·충돌·미분류 0, 원본 지문 동일 |
 | 2026-07-15 | MG-002 | DONE | `000617f5` | `b41d3f77` | `workbook/forest-v0.1.17-integration-evidence/MG-002/` | 폐기·거부 73/73: 부재 61, Forest 021 단일 소유 12; schema 중복·root 파일명/해시 복사·폐기 runtime hit 0; anchor 7/7, 회귀 21/21 PASS |
-| 2026-07-15 | MG-003 | DONE | `b6fd5b71` | `PENDING` | `workbook/forest-v0.1.17-integration-evidence/MG-003/` | 001~028 연속·loader 28/28; 승인 계약 71/71 (`026=49`, `027=18`, `028=4`); 금지 계약·runtime 누락·원본 변경 0; 타깃 49/49·HRX 563/563·web build PASS |
+| 2026-07-15 | MG-003 | DONE | `b6fd5b71` | `32222efe` | `workbook/forest-v0.1.17-integration-evidence/MG-003/` | 001~028 연속·loader 28/28; 승인 계약 71/71 (`026=49`, `027=18`, `028=4`); 금지 계약·runtime 누락·원본 변경 0; 타깃 49/49·HRX 563/563·web build PASS |
 
 ## 14. Goal Objective 원문
 
