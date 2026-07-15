@@ -9,6 +9,7 @@ import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import {
   assertDesktopFormalBuildProvenance,
+  desktopReleaseChannelConfig,
   readDesktopBuildSourceIdentity,
 } from "./lib/matter-desktop-provenance.mjs";
 
@@ -20,19 +21,15 @@ const desktopRoot = join(repoRoot, "apps/desktop");
 const packageJson = JSON.parse(await readFile(join(desktopRoot, "package.json"), "utf8"));
 const sourceIdentity = readDesktopBuildSourceIdentity(repoRoot);
 const builderConfigPath = join(desktopRoot, "electron-builder.yml");
-const releaseChannel = process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal";
-if (!["internal", "formal"].includes(releaseChannel)) {
-  throw new Error("MATTER_DESKTOP_RELEASE_CHANNEL must be internal or formal.");
-}
-
-const formalRelease = releaseChannel === "formal";
+const channelConfig = desktopReleaseChannelConfig(process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal");
+const releaseChannel = channelConfig.channel;
 assertDesktopFormalBuildProvenance({
   releaseChannel,
   sourceIdentity,
   expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
 });
-const appId = formalRelease ? "com.amic.matter.desktop" : "com.amic.matter.desktop.internal";
-const artifactName = formalRelease ? `matter-${packageJson.version}` : `matter-internal-${packageJson.version}`;
+const appId = channelConfig.appId;
+const artifactName = `${channelConfig.artifactPrefix}-${packageJson.version}`;
 const installerPath = join(desktopRoot, "dist", `${artifactName}-win-x64.exe`);
 const blockmapPath = `${installerPath}.blockmap`;
 const unpackedPath = join(desktopRoot, "dist", "win-unpacked");

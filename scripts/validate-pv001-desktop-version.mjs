@@ -94,8 +94,10 @@ function validateSource() {
     assert.match(buildSource, /appVersion:\s*packageJson\.version/);
     assert.match(buildSource, /buildVersion:\s*packageJson\.version/);
   }
-  assert.match(macBuild, /const artifactName = formalRelease \? `matter-\$\{packageJson\.version\}` : `matter-internal-\$\{packageJson\.version\}`/);
-  assert.match(windowsBuild, /const artifactName = formalRelease \? `matter-\$\{packageJson\.version\}` : `matter-internal-\$\{packageJson\.version\}`/);
+  for (const buildSource of [macBuild, windowsBuild]) {
+    assert.match(buildSource, /desktopReleaseChannelConfig/);
+    assert.match(buildSource, /const artifactName = `\$\{channelConfig\.artifactPrefix\}-\$\{packageJson\.version\}`/);
+  }
   assert.match(updateController, /activeVersion = metadata\.version/);
   assert.doesNotMatch(updateController, /\b0\.1\.\d+\b/, "update controller must consume metadata.version instead of hard-coding a release version");
 

@@ -12,6 +12,7 @@ import { fileURLToPath } from "node:url";
 import {
   assertDesktopFormalBuildProvenance,
   createDesktopBuildManifest,
+  desktopReleaseChannelConfig,
   directoryDigest,
   readDesktopBuildSourceIdentity,
   writeDesktopBuildManifest,
@@ -53,18 +54,16 @@ const packagedIconFile = "matter.icns";
 const packagedIconPath = join(resourcesDir, packagedIconFile);
 const formalReleaseMarkerName = "matter-formal-release.json";
 const formalReleaseMarkerPath = join(resourcesDir, formalReleaseMarkerName);
-const releaseChannel = process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal";
-if (!["internal", "formal"].includes(releaseChannel)) {
-  throw new Error("MATTER_DESKTOP_RELEASE_CHANNEL must be internal or formal.");
-}
-const formalRelease = releaseChannel === "formal";
+const channelConfig = desktopReleaseChannelConfig(process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal");
+const releaseChannel = channelConfig.channel;
+const formalRelease = channelConfig.formal;
 assertDesktopFormalBuildProvenance({
   releaseChannel,
   sourceIdentity,
   expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
 });
-const appBundleId = formalRelease ? "com.amic.matter.desktop" : "com.amic.matter.desktop.internal";
-const artifactName = formalRelease ? `matter-${packageJson.version}` : `matter-internal-${packageJson.version}`;
+const appBundleId = channelConfig.appId;
+const artifactName = `${channelConfig.artifactPrefix}-${packageJson.version}`;
 const zipPath = join(distRoot, `${artifactName}-macos.zip`);
 const dmgPath = join(distRoot, `${artifactName}-macos.dmg`);
 const externalBuildManifestPath = join(distRoot, `${artifactName}-macos-build-manifest.json`);
@@ -347,9 +346,9 @@ if (formalRelease && [dmgCodesignVerify, dmgNotarizationState, dmgStaplerValidat
   throw new Error(`Formal DMG verification failed: ${JSON.stringify({ dmgCodesignVerify, dmgNotarizationState, dmgStaplerValidate, dmgGatekeeperAssess, dmgImageVerify })}`);
 }
 
-const receipt = `# macOS ${formalRelease ? "Formal Release Candidate" : "Internal"} Build Receipt
+const receipt = `# macOS ${channelConfig.receiptLabel} Build Receipt
 
-Status: ${formalRelease ? "formal_release_candidate_electron_app_bundle_created" : "internal_electron_app_bundle_created"}
+Status: ${channelConfig.receiptStatusPrefix}_electron_app_bundle_created
 Source TUW: MDT-P6-W01-T03
 App bundle: \`apps/desktop/dist/mac/matter.app\`
 App ID: \`${appBundleId}\`

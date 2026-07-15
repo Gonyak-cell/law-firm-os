@@ -7,6 +7,46 @@ import path from "node:path";
 
 export const DESKTOP_BUILD_MANIFEST_SCHEMA = "law-firm-os.matter-desktop-build-provenance.v1";
 export const DESKTOP_RENDERER_DIGEST_ALGORITHM = "sha256(sorted sha256 file manifest with ./ relative paths)";
+export const DESKTOP_RELEASE_CHANNELS = Object.freeze(["dev", "internal", "candidate", "formal"]);
+
+const DESKTOP_RELEASE_CHANNEL_CONFIG = Object.freeze({
+  dev: Object.freeze({
+    channel: "dev",
+    appId: "com.amic.matter.desktop.dev",
+    artifactPrefix: "matter-dev",
+    receiptLabel: "Development",
+    receiptStatusPrefix: "dev",
+    receiptSigningKey: "matter-dev-nonproduction-signing-key",
+    formal: false,
+  }),
+  internal: Object.freeze({
+    channel: "internal",
+    appId: "com.amic.matter.desktop.internal",
+    artifactPrefix: "matter-internal",
+    receiptLabel: "Internal",
+    receiptStatusPrefix: "internal",
+    receiptSigningKey: "matter-internal-nonproduction-signing-key",
+    formal: false,
+  }),
+  candidate: Object.freeze({
+    channel: "candidate",
+    appId: "com.amic.matter.desktop.candidate",
+    artifactPrefix: "matter-candidate",
+    receiptLabel: "Candidate",
+    receiptStatusPrefix: "candidate",
+    receiptSigningKey: "matter-candidate-nonproduction-signing-key",
+    formal: false,
+  }),
+  formal: Object.freeze({
+    channel: "formal",
+    appId: "com.amic.matter.desktop",
+    artifactPrefix: "matter",
+    receiptLabel: "Formal Release Candidate",
+    receiptStatusPrefix: "formal_release_candidate",
+    receiptSigningKey: "matter-formal-candidate-nonproduction-signing-key",
+    formal: true,
+  }),
+});
 
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
 const GIT_OBJECT_PATTERN = /^[0-9a-f]{40}$/;
@@ -40,6 +80,14 @@ const MANIFEST_KEYS = [
 
 function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+export function desktopReleaseChannelConfig(channel = "internal") {
+  assert.ok(
+    DESKTOP_RELEASE_CHANNELS.includes(channel),
+    `release channel must be one of: ${DESKTOP_RELEASE_CHANNELS.join(", ")}`,
+  );
+  return DESKTOP_RELEASE_CHANNEL_CONFIG[channel];
 }
 
 export function sha256File(filePath) {
@@ -94,8 +142,8 @@ export function assertDesktopFormalBuildProvenance({
   sourceIdentity,
   expectedSourceSha,
 }) {
-  assert.ok(["internal", "formal"].includes(releaseChannel), "releaseChannel must be internal or formal");
-  if (releaseChannel !== "formal") {
+  const channelConfig = desktopReleaseChannelConfig(releaseChannel);
+  if (!channelConfig.formal) {
     return { enforced: false, verdict: "NOT_APPLICABLE" };
   }
 
@@ -140,13 +188,10 @@ export function validateDesktopBuildManifest(manifest) {
   assert.match(manifest.renderer.sha256, SHA256_PATTERN);
   assert.ok(Number.isInteger(manifest.renderer.file_count) && manifest.renderer.file_count > 0);
   assert.equal(manifest.renderer.algorithm, DESKTOP_RENDERER_DIGEST_ALGORITHM);
-  assert.ok(["internal", "formal"].includes(manifest.channel));
+  const channelConfig = desktopReleaseChannelConfig(manifest.channel);
   assert.ok(["darwin", "win32"].includes(manifest.platform));
   assert.ok(manifest.platform === "darwin" ? ["arm64", "x64"].includes(manifest.arch) : manifest.arch === "x64");
-  assert.equal(
-    manifest.app_id,
-    manifest.channel === "formal" ? "com.amic.matter.desktop" : "com.amic.matter.desktop.internal",
-  );
+  assert.equal(manifest.app_id, channelConfig.appId, "app_id must match release channel");
   assert.equal(new Date(manifest.built_at).toISOString(), manifest.built_at, "built_at must be a canonical ISO timestamp");
   assert.equal(manifest.public_release_claim, false);
   assert.equal(manifest.production_go_live_claim, false);

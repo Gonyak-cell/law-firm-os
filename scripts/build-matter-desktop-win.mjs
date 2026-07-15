@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 import {
   assertDesktopFormalBuildProvenance,
   createDesktopBuildManifest,
+  desktopReleaseChannelConfig,
   directoryDigest,
   readDesktopBuildSourceIdentity,
   writeDesktopBuildManifest,
@@ -24,18 +25,16 @@ const desktopRoot = join(repoRoot, "apps/desktop");
 const packageJson = JSON.parse(await import("node:fs/promises").then((fs) => fs.readFile(join(desktopRoot, "package.json"), "utf8")));
 const sourceIdentity = readDesktopBuildSourceIdentity(repoRoot);
 const distRoot = join(desktopRoot, "dist/win");
-const releaseChannel = process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal";
-if (!["internal", "formal"].includes(releaseChannel)) {
-  throw new Error("MATTER_DESKTOP_RELEASE_CHANNEL must be internal or formal.");
-}
-const formalRelease = releaseChannel === "formal";
+const channelConfig = desktopReleaseChannelConfig(process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal");
+const releaseChannel = channelConfig.channel;
+const formalRelease = channelConfig.formal;
 assertDesktopFormalBuildProvenance({
   releaseChannel,
   sourceIdentity,
   expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
 });
-const appId = formalRelease ? "com.amic.matter.desktop" : "com.amic.matter.desktop.internal";
-const artifactName = formalRelease ? `matter-${packageJson.version}` : `matter-internal-${packageJson.version}`;
+const appId = channelConfig.appId;
+const artifactName = `${channelConfig.artifactPrefix}-${packageJson.version}`;
 const packageDir = join(distRoot, `${artifactName}-win32-x64`);
 const packageZipPath = join(distRoot, `${artifactName}-win32-x64-unsigned.zip`);
 const executablePath = join(packageDir, "matter.exe");
@@ -173,15 +172,15 @@ const artifact = {
 };
 const artifactBody = `${JSON.stringify(artifact, null, 2)}\n`;
 const manifestHash = sha256(Buffer.from(artifactBody));
-const signatureKey = formalRelease ? "matter-formal-candidate-nonproduction-signing-key" : "matter-internal-nonproduction-signing-key";
+const signatureKey = channelConfig.receiptSigningKey;
 const signature = createHmac("sha256", signatureKey).update(manifestHash).digest("hex");
 
 await writeFile(artifactPath, artifactBody);
 await writeFile(signaturePath, `${signature}\n`);
 
-const receipt = `# Windows ${formalRelease ? "Formal Release Candidate" : "Internal"} Build Receipt
+const receipt = `# Windows ${channelConfig.receiptLabel} Build Receipt
 
-Status: ${formalRelease ? "formal_release_candidate_windows_manifest_created" : "internal_windows_build_manifest_created"}
+Status: ${channelConfig.receiptStatusPrefix}_windows_build_manifest_created
 Source TUW: MDT-P6-W01-T04
 Installer manifest: \`apps/desktop/dist/win/${artifactName}-win-installer-manifest.json\`
 Windows package directory: \`apps/desktop/dist/win/${artifactName}-win32-x64\`
