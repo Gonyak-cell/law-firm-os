@@ -1,0 +1,21 @@
+PASS HRX leave/payroll: 185 tests, 185 pass, 0 fail, 0 skip
+PASS API/authz/profile: 322 tests, 322 pass, 0 fail, 0 skip
+PASS Web UI: 143 tests, 142 pass, 0 fail, 1 pre-existing explicit skip
+PASS Web TypeScript: 0 diagnostics
+PASS Web production build: 1718 modules transformed
+PASS Desktop smoke: 97 tests, 97 pass, 0 fail
+PASS Desktop session: 36 tests, 36 pass, 0 fail
+PASS Desktop update: 3 tests, 3 pass, 0 fail
+PASS Desktop file bridge: 17 tests, 17 pass, 0 fail; both bridge validators PASS
+PASS migrations: 19 tests, 19 pass, 0 fail
+PASS fresh DB: 001-029, 73 empty tables, integrity ok, foreign-key errors 0
+PASS checkpoint upgrades: 010/020/025 durable reopen and integrity checks
+PASS recovery: partial commits 0, external writes 0, backup restore exact, transaction rollback exact
+PASS HRX route authz: 159 policies
+PASS HRX context hardening
+PASS HRX security negative-test inventory: 8 files
+PASS public renderer PII: 2 roots, 54 files, 30 protected values, 5 protected photos, printed false
+PASS Desktop security: 1742 checked files, findings 0
+PASS RC-005 port crosswalk: 31/31, canonical replacements 5, unimplemented 0
+PASS RC-005 crosswalk CLI: help, bad input exit 2, happy path
+PASS root preservation: two fingerprints equal the RC-001 baseline

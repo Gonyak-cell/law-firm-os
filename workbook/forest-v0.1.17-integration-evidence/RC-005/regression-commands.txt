@@ -1,0 +1,27 @@
+node --test --test-concurrency=1 packages/hrx/test/leave-*.test.js packages/hrx/test/payroll-*.test.js
+node --test --test-force-exit --test-timeout=30000 --test-concurrency=1 apps/api/test/hrx/*.test.js apps/api/test/hrx-*.test.js apps/api/test/profile-api.test.js apps/api/test/matter-profile-api.test.js apps/api/test/session-auth-api.test.js packages/authz/test/*.test.js
+node --test --test-force-exit --test-timeout=30000 --test-concurrency=1 apps/web/test/*.test.mjs
+npm --workspace apps/web run typecheck
+npm --workspace apps/web run build
+npm --workspace apps/desktop run test:smoke
+npm --workspace apps/desktop run test:session
+npm --workspace apps/desktop run test:update
+npm --workspace apps/desktop run test:file-bridge
+node --test --test-force-exit --test-timeout=30000 --test-concurrency=1 packages/hrx/test/migration*.test.js packages/hrx/test/*migration*.test.js
+node scripts/validate-hrx-fresh-db.mjs
+node scripts/validate-hrx-checkpoint-upgrades.mjs
+node scripts/validate-hrx-migration-recovery.mjs
+node scripts/validate-hrx-route-authz.mjs
+node scripts/validate-hrx-context-hardening.mjs
+node scripts/validate-hrx-security-negative-tests.mjs
+node scripts/validate-lcx-hrx-sft-roster-source.mjs
+node scripts/validate-public-renderer-no-hrx-roster-pii.mjs
+node scripts/validate-matter-desktop-security.mjs
+node scripts/validate-matter-vault-r4-local-secrets.mjs
+node scripts/validate-rc005-port-crosswalk.mjs --help
+node scripts/validate-rc005-port-crosswalk.mjs --unknown
+node scripts/validate-rc005-port-crosswalk.mjs
+git diff --name-only 75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c..cc5f7f873a10662b60092087d615a07314f799e9 -- apps packages scripts
+read-only duplicate source-root diff/status/file-manifest SHA-256 calculation using the RC-001 algorithm
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed
+git diff --check

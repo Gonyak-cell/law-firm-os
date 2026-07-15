@@ -1,0 +1,65 @@
+{
+  "tuw": "RC-005-G",
+  "verdict": "PASS",
+  "entry_sha": "051344d96695855ec1546d6bb5e20b08d8d4e012",
+  "exit_sha": "cc5f7f873a10662b60092087d615a07314f799e9",
+  "product_package_source_sha": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c",
+  "runtime_source_changes_after_package_proof": [
+    "scripts/validate-rc005-port-crosswalk.mjs"
+  ],
+  "port_crosswalk": {
+    "group_count": 6,
+    "required_count": 31,
+    "unique_count": 31,
+    "selective_port_in_place_count": 26,
+    "canonical_replacement_count": 5,
+    "unimplemented_count": 0,
+    "crosswalk_sha256": "52b546dc68e9151333c43561d4089eb116f35c9d6b7da9edb17716523ba7a46e"
+  },
+  "tests": {
+    "hrx_leave_payroll": { "tests": 185, "pass": 185, "fail": 0, "skip": 0, "output_sha256": "5bac4e0eed13707917cb3e388dcb1f9599c3166e6c7d88c9dd15373593038ad3" },
+    "api_authz_profile": { "tests": 322, "pass": 322, "fail": 0, "skip": 0, "output_sha256": "e5ddda2fb9fdc125db69c35f337c7341b04f061d281fb1a8375b0224621b367d" },
+    "web_ui": { "tests": 143, "pass": 142, "fail": 0, "skip": 1, "output_sha256": "e4772063e73b45fd98d5743191692609a3da1c609fc606f62dc7aa657ce245ce" },
+    "web_typecheck": { "verdict": "PASS", "output_sha256": "c3efe9b49da7a0f7f6eaaa4b4221a040873d1cd53b661a070d3eb96e7b20afcc" },
+    "web_build": { "verdict": "PASS", "module_count": 1718, "output_sha256": "f44d4e2d78105335c4c24a199a8847104289ed868df2b98572775c639dffba28" },
+    "desktop_smoke": { "tests": 97, "pass": 97, "fail": 0, "output_sha256": "a11397e7be63d06dff3978212ad9a3fb8a2cc11825e4e0c1159a35209b77d029" },
+    "desktop_session": { "tests": 36, "pass": 36, "fail": 0, "output_sha256": "947fc2d3454d822846989d4fc78ef5a38ea58bcbae3d49d8b9b42e1192821abe" },
+    "desktop_update": { "tests": 3, "pass": 3, "fail": 0, "output_sha256": "2ac0343b09025bebcaaa184bad7a243ded6a57959e269856abb69518a94c4a6d" },
+    "desktop_file_bridge": { "tests": 17, "pass": 17, "fail": 0, "output_sha256": "10878fc0b0c0bfdd4abf9cbd13d0087f1abced3227686f98696029fb42335c62" },
+    "migration": { "tests": 19, "pass": 19, "fail": 0, "output_sha256": "520c7c580d0354670762dd6e6812fd39bfbc07acb4d4aa6a5afe831c6d2cc9ff" }
+  },
+  "validators": {
+    "fresh_db": "PASS",
+    "checkpoint_upgrade": "PASS",
+    "recovery": "PASS",
+    "route_authz_policy_count": 159,
+    "context_hardening": "PASS",
+    "security_negative_test_file_count": 8,
+    "public_renderer_pii": { "verdict": "PASS", "renderer_roots": 2, "scanned_files": 54, "protected_values": 30, "protected_photos": 5, "protected_values_printed": false },
+    "desktop_security": { "verdict": "PASS", "checked_files": 1742, "finding_count": 0 },
+    "ai_slop": "PASS"
+  },
+  "root_preservation": {
+    "verdict": "PASS",
+    "head": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3",
+    "branch": "codex/profile-contact-regression-fix",
+    "tracked_modified_count": 56,
+    "untracked_count": 21,
+    "status_entry_count": 77,
+    "first_working_tree_sha256": "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3",
+    "second_working_tree_sha256": "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3"
+  },
+  "package_proof": {
+    "renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96",
+    "mac_windows_renderer_equal": true,
+    "leave_receipt_sha256": "4b4d8a51acf4b7bcb8948f6c0f62f655165941ef2e4ffde910439e1e0ac72967",
+    "profile_receipt_sha256": "6347252b5a78f5009cb0465d58d05dcc3db522e90ef1ed2c8914683de80182c5"
+  },
+  "known_limits": [
+    "One existing explicit Web profile-contract test remains skipped.",
+    "Formal macOS signing/notarization/Gatekeeper and Windows native/AuthentiCode are later QA gates.",
+    "Six-role by five-viewport final browser matrix is a later QA gate.",
+    "This receipt does not claim production provider, bank, tax, AWS traffic, public release, or go-live."
+  ],
+  "external_blockers": []
+}

@@ -1,0 +1,637 @@
+{
+  "tuw": "RC-005-G",
+  "verdict": "PASS",
+  "entry_sha": "cc5f7f873a10662b60092087d615a07314f799e9",
+  "port_group_count": 6,
+  "port_required_count": 31,
+  "unique_source_count": 31,
+  "selective_port_in_place_count": 26,
+  "canonical_replacement_count": 5,
+  "unimplemented_count": 0,
+  "crosswalk_sha256": "52b546dc68e9151333c43561d4089eb116f35c9d6b7da9edb17716523ba7a46e",
+  "rows": [
+    {
+      "source_path": "apps/api/src/hrx-runtime-context.js",
+      "group_id": "RUNTIME_AUTHZ_UNION",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "apps/api/src/hrx-runtime-context.js"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-role-scope-matrix.js",
+        "apps/api/src/hrx-payroll-runtime.js",
+        "apps/api/src/routes/hrx/payroll-runtime.js",
+        "packages/hrx/src/store/port.js"
+      ],
+      "test_anchors": [
+        "apps/api/test/hrx/hrx-role-scope-matrix.test.js",
+        "apps/api/test/hrx-runtime-api.test.js",
+        "apps/api/test/hrx/route-authz.test.js",
+        "packages/hrx/test/migration.test.js"
+      ]
+    },
+    {
+      "source_path": "apps/api/src/middleware/hrx-step-up.js",
+      "group_id": "RUNTIME_AUTHZ_UNION",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "apps/api/src/middleware/hrx-step-up.js"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-role-scope-matrix.js",
+        "apps/api/src/hrx-payroll-runtime.js",
+        "apps/api/src/routes/hrx/payroll-runtime.js",
+        "packages/hrx/src/store/port.js"
+      ],
+      "test_anchors": [
+        "apps/api/test/hrx/hrx-role-scope-matrix.test.js",
+        "apps/api/test/hrx-runtime-api.test.js",
+        "apps/api/test/hrx/route-authz.test.js",
+        "packages/hrx/test/migration.test.js"
+      ]
+    },
+    {
+      "source_path": "apps/api/src/routes/hrx/route-policy-map.js",
+      "group_id": "RUNTIME_AUTHZ_UNION",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "apps/api/src/routes/hrx/route-policy-map.js"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-role-scope-matrix.js",
+        "apps/api/src/hrx-payroll-runtime.js",
+        "apps/api/src/routes/hrx/payroll-runtime.js",
+        "packages/hrx/src/store/port.js"
+      ],
+      "test_anchors": [
+        "apps/api/test/hrx/hrx-role-scope-matrix.test.js",
+        "apps/api/test/hrx-runtime-api.test.js",
+        "apps/api/test/hrx/route-authz.test.js",
+        "packages/hrx/test/migration.test.js"
+      ]
+    },
+    {
+      "source_path": "apps/api/src/server.js",
+      "group_id": "RUNTIME_AUTHZ_UNION",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "apps/api/src/server.js"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-role-scope-matrix.js",
+        "apps/api/src/hrx-payroll-runtime.js",
+        "apps/api/src/routes/hrx/payroll-runtime.js",
+        "packages/hrx/src/store/port.js"
+      ],
+      "test_anchors": [
+        "apps/api/test/hrx/hrx-role-scope-matrix.test.js",
+        "apps/api/test/hrx-runtime-api.test.js",
+        "apps/api/test/hrx/route-authz.test.js",
+        "packages/hrx/test/migration.test.js"
+      ]
+    },
+    {
+      "source_path": "apps/web/src/people/hrxApiClient.ts",
+      "group_id": "RUNTIME_AUTHZ_UNION",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "apps/web/src/people/hrxApiClient.ts"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-role-scope-matrix.js",
+        "apps/api/src/hrx-payroll-runtime.js",
+        "apps/api/src/routes/hrx/payroll-runtime.js",
+        "packages/hrx/src/store/port.js"
+      ],
+      "test_anchors": [
+        "apps/api/test/hrx/hrx-role-scope-matrix.test.js",
+        "apps/api/test/hrx-runtime-api.test.js",
+        "apps/api/test/hrx/route-authz.test.js",
+        "packages/hrx/test/migration.test.js"
+      ]
+    },
+    {
+      "source_path": "packages/authz/src/hrx-sensitive-scopes.js",
+      "group_id": "RUNTIME_AUTHZ_UNION",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "packages/authz/src/hrx-sensitive-scopes.js"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-role-scope-matrix.js",
+        "apps/api/src/hrx-payroll-runtime.js",
+        "apps/api/src/routes/hrx/payroll-runtime.js",
+        "packages/hrx/src/store/port.js"
+      ],
+      "test_anchors": [
+        "apps/api/test/hrx/hrx-role-scope-matrix.test.js",
+        "apps/api/test/hrx-runtime-api.test.js",
+        "apps/api/test/hrx/route-authz.test.js",
+        "packages/hrx/test/migration.test.js"
+      ]
+    },
+    {
+      "source_path": "packages/hrx/src/index.js",
+      "group_id": "RUNTIME_AUTHZ_UNION",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "packages/hrx/src/index.js"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-role-scope-matrix.js",
+        "apps/api/src/hrx-payroll-runtime.js",
+        "apps/api/src/routes/hrx/payroll-runtime.js",
+        "packages/hrx/src/store/port.js"
+      ],
+      "test_anchors": [
+        "apps/api/test/hrx/hrx-role-scope-matrix.test.js",
+        "apps/api/test/hrx-runtime-api.test.js",
+        "apps/api/test/hrx/route-authz.test.js",
+        "packages/hrx/test/migration.test.js"
+      ]
+    },
+    {
+      "source_path": "packages/hrx/src/migrations/index.js",
+      "group_id": "RUNTIME_AUTHZ_UNION",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "packages/hrx/src/migrations/index.js"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-role-scope-matrix.js",
+        "apps/api/src/hrx-payroll-runtime.js",
+        "apps/api/src/routes/hrx/payroll-runtime.js",
+        "packages/hrx/src/store/port.js"
+      ],
+      "test_anchors": [
+        "apps/api/test/hrx/hrx-role-scope-matrix.test.js",
+        "apps/api/test/hrx-runtime-api.test.js",
+        "apps/api/test/hrx/route-authz.test.js",
+        "packages/hrx/test/migration.test.js"
+      ]
+    },
+    {
+      "source_path": "packages/hrx/src/store/file-store.js",
+      "group_id": "RUNTIME_AUTHZ_UNION",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "packages/hrx/src/store/file-store.js"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-role-scope-matrix.js",
+        "apps/api/src/hrx-payroll-runtime.js",
+        "apps/api/src/routes/hrx/payroll-runtime.js",
+        "packages/hrx/src/store/port.js"
+      ],
+      "test_anchors": [
+        "apps/api/test/hrx/hrx-role-scope-matrix.test.js",
+        "apps/api/test/hrx-runtime-api.test.js",
+        "apps/api/test/hrx/route-authz.test.js",
+        "packages/hrx/test/migration.test.js"
+      ]
+    },
+    {
+      "source_path": "packages/hrx/src/store/port.js",
+      "group_id": "RUNTIME_AUTHZ_UNION",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "packages/hrx/src/store/port.js"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-role-scope-matrix.js",
+        "apps/api/src/hrx-payroll-runtime.js",
+        "apps/api/src/routes/hrx/payroll-runtime.js",
+        "packages/hrx/src/store/port.js"
+      ],
+      "test_anchors": [
+        "apps/api/test/hrx/hrx-role-scope-matrix.test.js",
+        "apps/api/test/hrx-runtime-api.test.js",
+        "apps/api/test/hrx/route-authz.test.js",
+        "packages/hrx/test/migration.test.js"
+      ]
+    },
+    {
+      "source_path": "apps/web/src/people/leave/LeaveAccrualAutoPage.tsx",
+      "group_id": "LEAVE_RULE_LEDGER",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "apps/web/src/people/leave/LeaveAccrualAutoPage.tsx"
+      ],
+      "destination_anchors": [
+        "packages/hrx/src/leave/entitlement-command-service.js",
+        "packages/hrx/src/leave/entitlement-lifecycle.js",
+        "packages/hrx/src/leave/type-economics.js",
+        "packages/hrx/src/migrations/020_hrx_leave_rule_snapshots.sql"
+      ],
+      "test_anchors": [
+        "packages/hrx/test/leave-entitlement-command-service.test.js",
+        "packages/hrx/test/leave-entitlement-lifecycle.test.js",
+        "packages/hrx/test/leave-type-economics.test.js",
+        "apps/api/test/hrx/leave-entitlement-lifecycle-api.test.js"
+      ]
+    },
+    {
+      "source_path": "apps/web/src/people/leave/LeaveTypeSettingsPage.tsx",
+      "group_id": "LEAVE_RULE_LEDGER",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "apps/web/src/people/leave/LeaveTypeSettingsPage.tsx"
+      ],
+      "destination_anchors": [
+        "packages/hrx/src/leave/entitlement-command-service.js",
+        "packages/hrx/src/leave/entitlement-lifecycle.js",
+        "packages/hrx/src/leave/type-economics.js",
+        "packages/hrx/src/migrations/020_hrx_leave_rule_snapshots.sql"
+      ],
+      "test_anchors": [
+        "packages/hrx/test/leave-entitlement-command-service.test.js",
+        "packages/hrx/test/leave-entitlement-lifecycle.test.js",
+        "packages/hrx/test/leave-type-economics.test.js",
+        "apps/api/test/hrx/leave-entitlement-lifecycle-api.test.js"
+      ]
+    },
+    {
+      "source_path": "packages/hrx/src/leave/accrual-service.js",
+      "group_id": "LEAVE_RULE_LEDGER",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "packages/hrx/src/leave/accrual-service.js"
+      ],
+      "destination_anchors": [
+        "packages/hrx/src/leave/entitlement-command-service.js",
+        "packages/hrx/src/leave/entitlement-lifecycle.js",
+        "packages/hrx/src/leave/type-economics.js",
+        "packages/hrx/src/migrations/020_hrx_leave_rule_snapshots.sql"
+      ],
+      "test_anchors": [
+        "packages/hrx/test/leave-entitlement-command-service.test.js",
+        "packages/hrx/test/leave-entitlement-lifecycle.test.js",
+        "packages/hrx/test/leave-type-economics.test.js",
+        "apps/api/test/hrx/leave-entitlement-lifecycle-api.test.js"
+      ]
+    },
+    {
+      "source_path": "packages/hrx/src/leave/management-service.js",
+      "group_id": "LEAVE_RULE_LEDGER",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "packages/hrx/src/leave/management-service.js"
+      ],
+      "destination_anchors": [
+        "packages/hrx/src/leave/entitlement-command-service.js",
+        "packages/hrx/src/leave/entitlement-lifecycle.js",
+        "packages/hrx/src/leave/type-economics.js",
+        "packages/hrx/src/migrations/020_hrx_leave_rule_snapshots.sql"
+      ],
+      "test_anchors": [
+        "packages/hrx/test/leave-entitlement-command-service.test.js",
+        "packages/hrx/test/leave-entitlement-lifecycle.test.js",
+        "packages/hrx/test/leave-type-economics.test.js",
+        "apps/api/test/hrx/leave-entitlement-lifecycle-api.test.js"
+      ]
+    },
+    {
+      "source_path": "packages/hrx/src/leave/policy-service.js",
+      "group_id": "LEAVE_RULE_LEDGER",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "packages/hrx/src/leave/policy-service.js"
+      ],
+      "destination_anchors": [
+        "packages/hrx/src/leave/entitlement-command-service.js",
+        "packages/hrx/src/leave/entitlement-lifecycle.js",
+        "packages/hrx/src/leave/type-economics.js",
+        "packages/hrx/src/migrations/020_hrx_leave_rule_snapshots.sql"
+      ],
+      "test_anchors": [
+        "packages/hrx/test/leave-entitlement-command-service.test.js",
+        "packages/hrx/test/leave-entitlement-lifecycle.test.js",
+        "packages/hrx/test/leave-type-economics.test.js",
+        "apps/api/test/hrx/leave-entitlement-lifecycle-api.test.js"
+      ]
+    },
+    {
+      "source_path": "packages/hrx/src/leave/allocation.js",
+      "group_id": "LEAVE_RULE_LEDGER",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "packages/hrx/src/leave/allocation.js"
+      ],
+      "destination_anchors": [
+        "packages/hrx/src/leave/entitlement-command-service.js",
+        "packages/hrx/src/leave/entitlement-lifecycle.js",
+        "packages/hrx/src/leave/type-economics.js",
+        "packages/hrx/src/migrations/020_hrx_leave_rule_snapshots.sql"
+      ],
+      "test_anchors": [
+        "packages/hrx/test/leave-entitlement-command-service.test.js",
+        "packages/hrx/test/leave-entitlement-lifecycle.test.js",
+        "packages/hrx/test/leave-type-economics.test.js",
+        "apps/api/test/hrx/leave-entitlement-lifecycle-api.test.js"
+      ]
+    },
+    {
+      "source_path": "packages/hrx/src/migrations/015_hrx_leave_accrual_rule_versions.sql",
+      "group_id": "LEAVE_RULE_LEDGER",
+      "treatment": "CANONICAL_REPLACEMENT",
+      "implementation_anchors": [
+        "packages/hrx/src/migrations/028_hrx_leave_accrual_rule_versions.sql",
+        "packages/hrx/src/migrations/029_hrx_leave_accrual_rule_version_index.sql"
+      ],
+      "destination_anchors": [
+        "packages/hrx/src/leave/entitlement-command-service.js",
+        "packages/hrx/src/leave/entitlement-lifecycle.js",
+        "packages/hrx/src/leave/type-economics.js",
+        "packages/hrx/src/migrations/020_hrx_leave_rule_snapshots.sql"
+      ],
+      "test_anchors": [
+        "packages/hrx/test/leave-entitlement-command-service.test.js",
+        "packages/hrx/test/leave-entitlement-lifecycle.test.js",
+        "packages/hrx/test/leave-type-economics.test.js",
+        "apps/api/test/hrx/leave-entitlement-lifecycle-api.test.js"
+      ]
+    },
+    {
+      "source_path": "apps/web/src/people/leave/LeaveAccrualManualPage.tsx",
+      "group_id": "LEAVE_FILE_IMPORT",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "apps/web/src/people/leave/LeaveAccrualManualPage.tsx"
+      ],
+      "destination_anchors": [
+        "packages/hrx/src/leave/occurrence-upload-batch-service.js",
+        "apps/web/src/people/leave/LeaveAccrualManualPage.tsx"
+      ],
+      "test_anchors": [
+        "packages/hrx/test/leave-occurrence-upload-batch-service.test.js",
+        "packages/hrx/test/leave-accrual-batch-service.test.js",
+        "apps/web/test/leave-accrual-ui.test.mjs"
+      ]
+    },
+    {
+      "source_path": "packages/hrx/src/leave/xlsx-export.js",
+      "group_id": "LEAVE_FILE_IMPORT",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "packages/hrx/src/leave/xlsx-export.js"
+      ],
+      "destination_anchors": [
+        "packages/hrx/src/leave/occurrence-upload-batch-service.js",
+        "apps/web/src/people/leave/LeaveAccrualManualPage.tsx"
+      ],
+      "test_anchors": [
+        "packages/hrx/test/leave-occurrence-upload-batch-service.test.js",
+        "packages/hrx/test/leave-accrual-batch-service.test.js",
+        "apps/web/test/leave-accrual-ui.test.mjs"
+      ]
+    },
+    {
+      "source_path": "packages/hrx/src/leave/manual-adjustment-file.js",
+      "group_id": "LEAVE_FILE_IMPORT",
+      "treatment": "CANONICAL_REPLACEMENT",
+      "implementation_anchors": [
+        "packages/hrx/src/leave/accrual-service.js",
+        "packages/hrx/src/leave/occurrence-upload-batch-service.js",
+        "packages/hrx/src/leave/xlsx-export.js"
+      ],
+      "destination_anchors": [
+        "packages/hrx/src/leave/occurrence-upload-batch-service.js",
+        "apps/web/src/people/leave/LeaveAccrualManualPage.tsx"
+      ],
+      "test_anchors": [
+        "packages/hrx/test/leave-occurrence-upload-batch-service.test.js",
+        "packages/hrx/test/leave-accrual-batch-service.test.js",
+        "apps/web/test/leave-accrual-ui.test.mjs"
+      ]
+    },
+    {
+      "source_path": "apps/web/src/people/leave/LeaveApprovalQueue.tsx",
+      "group_id": "LEAVE_COMPACT_ACTIONS",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "apps/web/src/people/leave/LeaveApprovalQueue.tsx"
+      ],
+      "destination_anchors": [
+        "apps/web/src/people/leave/LeaveApprovalQueue.tsx",
+        "apps/web/src/people/leave/LeaveTerminationPage.tsx"
+      ],
+      "test_anchors": [
+        "apps/web/test/leave-self-service-ui.test.mjs",
+        "apps/web/test/ui-regression.test.mjs",
+        "packages/hrx/test/payroll-readiness-contract.test.js"
+      ]
+    },
+    {
+      "source_path": "apps/web/src/people/leave/LeaveTerminationPage.tsx",
+      "group_id": "LEAVE_COMPACT_ACTIONS",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "apps/web/src/people/leave/LeaveTerminationPage.tsx"
+      ],
+      "destination_anchors": [
+        "apps/web/src/people/leave/LeaveApprovalQueue.tsx",
+        "apps/web/src/people/leave/LeaveTerminationPage.tsx"
+      ],
+      "test_anchors": [
+        "apps/web/test/leave-self-service-ui.test.mjs",
+        "apps/web/test/ui-regression.test.mjs",
+        "packages/hrx/test/payroll-readiness-contract.test.js"
+      ]
+    },
+    {
+      "source_path": "apps/web/src/people/memberPhotos.js",
+      "group_id": "PROFILE_HARDENING",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "apps/web/src/people/memberPhotos.js"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-member-roster-registry.js",
+        "apps/web/src/components/UserProfileSurface.jsx",
+        "scripts/validate-public-renderer-no-hrx-roster-pii.mjs"
+      ],
+      "test_anchors": [
+        "apps/api/test/profile-api.test.js",
+        "apps/web/test/ui-regression.test.mjs",
+        "scripts/validate-public-renderer-no-hrx-roster-pii.mjs"
+      ]
+    },
+    {
+      "source_path": "scripts/build-matter-desktop-mac.mjs",
+      "group_id": "PROFILE_HARDENING",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "scripts/build-matter-desktop-mac.mjs"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-member-roster-registry.js",
+        "apps/web/src/components/UserProfileSurface.jsx",
+        "scripts/validate-public-renderer-no-hrx-roster-pii.mjs"
+      ],
+      "test_anchors": [
+        "apps/api/test/profile-api.test.js",
+        "apps/web/test/ui-regression.test.mjs",
+        "scripts/validate-public-renderer-no-hrx-roster-pii.mjs"
+      ]
+    },
+    {
+      "source_path": "apps/api/src/routes/hrx/payroll.js",
+      "group_id": "PAYROLL_CATALOG_ASSIGNMENT_TIME",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "apps/api/src/routes/hrx/payroll.js"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-payroll-runtime.js",
+        "packages/hrx/src/payroll/input-snapshot-service.js",
+        "packages/hrx/src/payroll/repository.js",
+        "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+        "packages/hrx/src/migrations/025_hrx_payroll_year_end.sql"
+      ],
+      "test_anchors": [
+        "packages/hrx/test/payroll-input-snapshot-service.test.js",
+        "packages/hrx/test/payroll-run-service.test.js",
+        "packages/hrx/test/payroll-calculation-engine.test.js",
+        "apps/api/test/hrx/payroll-runtime.test.js",
+        "apps/web/test/payroll-workspace-ui.test.mjs"
+      ]
+    },
+    {
+      "source_path": "packages/hrx/src/migrations/011_hrx_payroll_items.sql",
+      "group_id": "PAYROLL_CATALOG_ASSIGNMENT_TIME",
+      "treatment": "CANONICAL_REPLACEMENT",
+      "implementation_anchors": [
+        "packages/hrx/src/migrations/026_hrx_payroll_catalog_assignments.sql"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-payroll-runtime.js",
+        "packages/hrx/src/payroll/input-snapshot-service.js",
+        "packages/hrx/src/payroll/repository.js",
+        "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+        "packages/hrx/src/migrations/025_hrx_payroll_year_end.sql"
+      ],
+      "test_anchors": [
+        "packages/hrx/test/payroll-input-snapshot-service.test.js",
+        "packages/hrx/test/payroll-run-service.test.js",
+        "packages/hrx/test/payroll-calculation-engine.test.js",
+        "apps/api/test/hrx/payroll-runtime.test.js",
+        "apps/web/test/payroll-workspace-ui.test.mjs"
+      ]
+    },
+    {
+      "source_path": "packages/hrx/src/migrations/012_hrx_payroll_profiles.sql",
+      "group_id": "PAYROLL_CATALOG_ASSIGNMENT_TIME",
+      "treatment": "CANONICAL_REPLACEMENT",
+      "implementation_anchors": [
+        "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+        "packages/hrx/src/migrations/023_hrx_payroll_profile_units.sql",
+        "packages/hrx/src/migrations/026_hrx_payroll_catalog_assignments.sql"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-payroll-runtime.js",
+        "packages/hrx/src/payroll/input-snapshot-service.js",
+        "packages/hrx/src/payroll/repository.js",
+        "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+        "packages/hrx/src/migrations/025_hrx_payroll_year_end.sql"
+      ],
+      "test_anchors": [
+        "packages/hrx/test/payroll-input-snapshot-service.test.js",
+        "packages/hrx/test/payroll-run-service.test.js",
+        "packages/hrx/test/payroll-calculation-engine.test.js",
+        "apps/api/test/hrx/payroll-runtime.test.js",
+        "apps/web/test/payroll-workspace-ui.test.mjs"
+      ]
+    },
+    {
+      "source_path": "packages/hrx/src/migrations/013_hrx_payroll_time_inputs.sql",
+      "group_id": "PAYROLL_CATALOG_ASSIGNMENT_TIME",
+      "treatment": "CANONICAL_REPLACEMENT",
+      "implementation_anchors": [
+        "packages/hrx/src/migrations/027_hrx_attendance_approval_receipts.sql",
+        "packages/hrx/src/payroll/input-snapshot-service.js"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-payroll-runtime.js",
+        "packages/hrx/src/payroll/input-snapshot-service.js",
+        "packages/hrx/src/payroll/repository.js",
+        "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+        "packages/hrx/src/migrations/025_hrx_payroll_year_end.sql"
+      ],
+      "test_anchors": [
+        "packages/hrx/test/payroll-input-snapshot-service.test.js",
+        "packages/hrx/test/payroll-run-service.test.js",
+        "packages/hrx/test/payroll-calculation-engine.test.js",
+        "apps/api/test/hrx/payroll-runtime.test.js",
+        "apps/web/test/payroll-workspace-ui.test.mjs"
+      ]
+    },
+    {
+      "source_path": "packages/hrx/src/payroll-item-catalog.js",
+      "group_id": "PAYROLL_CATALOG_ASSIGNMENT_TIME",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "packages/hrx/src/payroll-item-catalog.js"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-payroll-runtime.js",
+        "packages/hrx/src/payroll/input-snapshot-service.js",
+        "packages/hrx/src/payroll/repository.js",
+        "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+        "packages/hrx/src/migrations/025_hrx_payroll_year_end.sql"
+      ],
+      "test_anchors": [
+        "packages/hrx/test/payroll-input-snapshot-service.test.js",
+        "packages/hrx/test/payroll-run-service.test.js",
+        "packages/hrx/test/payroll-calculation-engine.test.js",
+        "apps/api/test/hrx/payroll-runtime.test.js",
+        "apps/web/test/payroll-workspace-ui.test.mjs"
+      ]
+    },
+    {
+      "source_path": "packages/hrx/src/payroll-profile-service.js",
+      "group_id": "PAYROLL_CATALOG_ASSIGNMENT_TIME",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "packages/hrx/src/payroll-profile-service.js"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-payroll-runtime.js",
+        "packages/hrx/src/payroll/input-snapshot-service.js",
+        "packages/hrx/src/payroll/repository.js",
+        "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+        "packages/hrx/src/migrations/025_hrx_payroll_year_end.sql"
+      ],
+      "test_anchors": [
+        "packages/hrx/test/payroll-input-snapshot-service.test.js",
+        "packages/hrx/test/payroll-run-service.test.js",
+        "packages/hrx/test/payroll-calculation-engine.test.js",
+        "apps/api/test/hrx/payroll-runtime.test.js",
+        "apps/web/test/payroll-workspace-ui.test.mjs"
+      ]
+    },
+    {
+      "source_path": "packages/hrx/src/payroll-time-input-snapshot.js",
+      "group_id": "PAYROLL_CATALOG_ASSIGNMENT_TIME",
+      "treatment": "SELECTIVE_PORT_IN_PLACE",
+      "implementation_anchors": [
+        "packages/hrx/src/payroll-time-input-snapshot.js"
+      ],
+      "destination_anchors": [
+        "apps/api/src/hrx-payroll-runtime.js",
+        "packages/hrx/src/payroll/input-snapshot-service.js",
+        "packages/hrx/src/payroll/repository.js",
+        "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+        "packages/hrx/src/migrations/025_hrx_payroll_year_end.sql"
+      ],
+      "test_anchors": [
+        "packages/hrx/test/payroll-input-snapshot-service.test.js",
+        "packages/hrx/test/payroll-run-service.test.js",
+        "packages/hrx/test/payroll-calculation-engine.test.js",
+        "apps/api/test/hrx/payroll-runtime.test.js",
+        "apps/web/test/payroll-workspace-ui.test.mjs"
+      ]
+    }
+  ],
+  "errors": []
+}
+

@@ -161,7 +161,7 @@ FZ checkpoint
 | RC-002 | DONE | 51개 제품 공통 파일 비교 | SHA·라인 delta·AST/API contract·test assertion·UI selector·의미 검토 | 재현 CLI, root fingerprint 전후 대조 | 51/51 판정, 동일 2·상이 49·미분류 0 |
 | RC-003 | DONE | 25개 root-only 파일 기능 대조 | payroll item/profile/time input, manual adjustment, profile smoke/runbook 점검 | 종료 세션 관련 테스트와 교차 실행 | 25/25 판정, 관련 테스트 38/38 PASS, 루트 무변경 |
 | RC-004 | DONE | 상위 호환 기능 매트릭스 | Forest-only 170개 보존, root 기여 76개 4종 판정, `PORT_REQUIRED` 31개를 6개 이식군으로 고정, 10개 기능 축 anchor 대조 | 재현 CLI, checkpoint hash, root fingerprint, 누락 acceptance count | Forest 170/170·root 76/76·port 31/31·기능 축 10/10, 미판정·고아·예상 밖 변경 0 |
-| RC-005 | IN_PROGRESS | 필요한 기능만 Forest 후보에 이식 | 아래 RC-005-A~G를 순서대로 수행하고 UI 통째 복사 금지, 테스트 우선 이식, 필요한 코드 최소 구현 | 이식 전 failing·이식 후 passing | A~G 전부 DONE, 기존 Forest 회귀 0 |
+| RC-005 | DONE | 필요한 기능만 Forest 후보에 이식 | 아래 RC-005-A~G를 순서대로 수행하고 UI 통째 복사 금지, 테스트 우선 이식, 필요한 코드 최소 구현 | 이식 전 failing·이식 후 passing | A~G 전부 DONE, 기존 Forest 회귀 0 |
 
 #### RC-005 세부 Testable Units
 
@@ -173,7 +173,7 @@ FZ checkpoint
 | RC-005-D | DONE | Forest 휴가 compact action UI | 규칙 버전·중지, CSV/XLSX 발생, 승인 대기·팀 목록·사용 내역을 현재 Forest 44px 단일 행·단일 action 기준으로 정리하고 Web·브라우저·패키지에서 검증했다. | 새 version/deactivate·CSV/XLSX·empty-copy 부재 assertion의 구현 전 실패와 stale QA 계약 실패를 기록 | 상위 분류 반복, 이중 승인 문구, 무의미한 empty copy, 검증용 대사 문구 0; 관련 dead action 0; packaged leave 10/10 PASS |
 | RC-005-E | DONE | 서지원 프로필·사진·패키지 경계 | `jwsuh@amic.kr -> 서지원` 결합, 이미지 magic-byte 검사, public renderer roster PII 차단, 동일 SHA Mac·Windows renderer를 검증했다. | fake PNG·SVG·generic fallback·PII fixture negative test와 stale package hash 차단을 기록 | `세션 사용자` fallback 0, 이름·부서·직위·연락처 정합, invalid image 0, public renderer PII 0, packaged profile PASS |
 | RC-005-F | DONE | 급여 catalog·assignment·approved time 상위 호환 | item CRUD, masked profile assignment, attendance approval receipt를 canonical payroll input snapshot에 연결했고 별도 payroll time snapshot 계보는 도입하지 않았다. | 신규 runtime 테스트 0/3 실패를 기록 | tenant isolation, optimistic version, append-only assignment, raw amount 노출 0, 승인 receipt 기반 근태, 기존 run/payment/filing/year-end 회귀 0 |
-| RC-005-G | IN_PROGRESS | 전체 증거·회귀·원본 보존 | 31개 PORT_REQUIRED source를 6개 그룹의 실제 Forest anchor/test로 crosswalk하고 전체 HRX/API/Web/Desktop/PII/AI-slop 검사를 실행한다. | A~F 전 entry SHA와 failing test receipt 수집 | port 31/31 설명, 미구현 0, HRX/API/Web/Desktop 0 fail, root fingerprint 동일, RC-005 evidence와 exit SHA 기록 |
+| RC-005-G | DONE | 전체 증거·회귀·원본 보존 | 31개 PORT_REQUIRED source를 6개 그룹의 실제 Forest anchor/test로 crosswalk하고 전체 HRX/API/Web/Desktop/PII/AI-slop 검사를 실행했다. | A~F 전 entry SHA와 failing test receipt 수집 | port 31/31, 미구현 0, HRX 185/185, API/authz/profile 322/322, Web 0 fail, Desktop 0 fail, root fingerprint 동일, exit `cc5f7f87` |
 
 RC-005의 공통 중단 조건:
 
@@ -505,6 +505,7 @@ external_blockers
 | 2026-07-15 | MG-006 | DONE | `a79cb5f2` | `75a3851e` | `workbook/forest-v0.1.17-integration-evidence/MG-006/` | canonical 최초 28/28·재실행 0/28; injected failure partial receipt 0; snapshot backup restore exact; SQLite 025 file restore·026~028 재적용 exact; failed transaction schema/row 잔존 0; integrity ok·FK error 0; HRX 566/566·web build PASS |
 | 2026-07-15 | RC-005-A/B/C/F | DONE | `931ae4c4` | `ee03b8c1` | `workbook/forest-v0.1.17-integration-evidence/RC-005/backend-acceptance.md` | runtime·authz·leave rule/XLSX·payroll catalog 102/102, migration 8/8, web typecheck PASS |
 | 2026-07-15 | RC-005-D/E | DONE | `ee03b8c1` | `75f10995` | `workbook/forest-v0.1.17-integration-evidence/RC-005/ui-profile-acceptance.md` | Web·LV03/04/05·Mac package·profile·public renderer PII PASS; Mac/Windows renderer 동일; formal/native 경계 분리 |
+| 2026-07-15 | RC-005-G | DONE | `051344d9` | `cc5f7f87` | `workbook/forest-v0.1.17-integration-evidence/RC-005/regression-acceptance.md` | port 31/31·대체 5·미구현 0; HRX 185/185, API/authz/profile 322/322, Web 142+1 skip, Desktop 97/97, migration 19/19, PII/security PASS; 루트 지문 동일 |
 
 ## 14. Goal Objective 원문
 
