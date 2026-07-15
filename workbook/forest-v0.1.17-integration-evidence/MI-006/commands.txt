@@ -1,0 +1,36 @@
+git fetch origin --prune --tags
+git merge-base --is-ancestor origin/main HEAD
+git diff --name-only origin/main..HEAD
+git diff --numstat origin/main..HEAD -- <critical-paths>
+git rev-parse origin/main:<path>
+git rev-parse HEAD:<path>
+node --test packages/authz/test/*.test.js packages/runtime-auth/test/*.test.js packages/hrx/test/ai-rag-authz.test.js
+node --test --test-concurrency=1 apps/api/test/hrx/route-authz.test.js
+node --test --test-concurrency=1 apps/api/test/hrx/secret-exposure.test.js
+node --test --test-concurrency=1 apps/api/test/hrx/security-regression.test.js
+node --test --test-concurrency=1 apps/api/test/hrx/step-up-route.test.js
+node --test --test-concurrency=1 apps/api/test/security/matter-vault-security.test.js
+node --test --test-concurrency=1 apps/api/test/admin-security-api.test.js
+node --test --test-concurrency=1 apps/api/test/admin-security-durable-audit.test.js
+node --test --test-concurrency=1 apps/api/test/matter-temp-desktop-runtime-lambda.test.js
+node --test apps/desktop/test/auth-coordinator.test.mjs apps/desktop/test/aws-runtime-client.test.mjs
+node --test scripts/test/matter-vault-backup-restore.test.mjs packages/persistence/test/residency-backup.test.js
+node --test scripts/test/pv002-build-manifest.test.mjs scripts/test/pv003-clean-sha-build-gate.test.mjs scripts/test/pv004-desktop-channel.test.mjs scripts/test/pv005-release-artifact-path.test.mjs scripts/test/pv006-legacy-assets.test.mjs scripts/test/pv007-canonical-launch.test.mjs
+node scripts/validate-pv001-desktop-version.mjs --source
+node scripts/validate-pv002-build-manifest.mjs --source
+node scripts/validate-pv003-clean-sha-build-gate.mjs --source
+node scripts/validate-pv004-desktop-channels.mjs --source
+node scripts/validate-pv005-release-artifact-paths.mjs --source
+node scripts/validate-pv006-legacy-assets.mjs --source
+node scripts/validate-pv007-canonical-launch.mjs --source
+node scripts/validate-hrx-route-authz.mjs
+node scripts/validate-hrx-security-negative-tests.mjs
+node scripts/validate-public-renderer-no-hrx-roster-pii.mjs
+node scripts/validate-matter-desktop-security.mjs
+node scripts/validate-lcx-hrx-sft-production-rollout.mjs
+node scripts/validate-matter-desktop-no-public-release-claim.mjs
+node scripts/drill-matter-vault-backup-restore.mjs drill --backup-root <temp> --restore-dir <temp> --receipt-path <temp>
+npm --workspace apps/web run typecheck
+ruby -e <parse hrx-production-rollout.yml>
+node -e <parse package.json>
+git diff --check

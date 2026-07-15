@@ -1,0 +1,35 @@
+{
+  "schema_version": "lawos.forest.integration.mi006.v1",
+  "tuw_id": "MI-006",
+  "generated_at": "2026-07-15T21:11:11Z",
+  "verdict": "PASS",
+  "entry_sha": "cc2db0b29200c50c2499c99a049b12f62c4a5177",
+  "entry_tree": "ba5dd8ce5fb4e9142ffb1ae27834d661b3389688",
+  "origin_main_sha": "fdd1e34a42ee11ad1e5049647048471be772f381",
+  "origin_main_tree": "1804e75a642f789027cac146ce25453e8970835e",
+  "origin_main_is_ancestor": true,
+  "critical_path_count": 155,
+  "byte_identical_count": 121,
+  "modified_reviewed_count": 34,
+  "missing_or_deleted_count": 0,
+  "required_omission_count": 0,
+  "targeted_tests": { "passed": 268, "failed": 0 },
+  "main_only_matrix_sha256": "797f7a8e583e00661ac3fa6de5132cfc1912005678c39436f346159c10ccae4a",
+  "synthetic_backup_drill_source_sha256": "09131b3b76471b43232283a6512bbfb713e8f82b451a2d080c8b0a43922e80a9",
+  "root_checkout_fingerprint": "02751feb70e89afbfb00acf1dac14092cdef0c071be736a55aa6c6982b60d93c",
+  "canonical_pid": 55090,
+  "canonical_app_path": "/private/tmp/lawos-forest-v016-release/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "external_mutations": {
+    "production_write": false,
+    "production_traffic_change": false,
+    "tag_or_release_publish": false,
+    "main_update": false
+  },
+  "boundaries": {
+    "aws_live_lambda_state_verified": false,
+    "aws_boundary_tuw": "MI-001",
+    "authenticated_production_roster_verified": false,
+    "macos_formal_distribution_verified": false,
+    "windows_native_authenticode_verified": false
+  }
+}

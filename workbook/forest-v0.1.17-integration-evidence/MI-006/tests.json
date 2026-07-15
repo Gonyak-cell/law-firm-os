@@ -1,0 +1,47 @@
+{
+  "schema_version": "lawos.forest.integration.mi006.tests.v1",
+  "entry_sha": "cc2db0b29200c50c2499c99a049b12f62c4a5177",
+  "origin_main_sha": "fdd1e34a42ee11ad1e5049647048471be772f381",
+  "targeted_tests": {
+    "tests": 268,
+    "passed": 268,
+    "failed": 0,
+    "groups": [
+      { "id": "authz_runtime_auth", "passed": 162, "failed": 0 },
+      { "id": "api_security", "passed": 44, "failed": 0 },
+      { "id": "desktop_auth_runtime", "passed": 31, "failed": 0 },
+      { "id": "backup_restore", "passed": 6, "failed": 0 },
+      { "id": "pv_release_unit", "passed": 25, "failed": 0 }
+    ]
+  },
+  "validators": {
+    "pv_source": { "passed": 7, "failed": 0 },
+    "hrx_route_policy_count": 159,
+    "hrx_security_negative_files": 8,
+    "public_renderer_pii": { "final_verdict": "PASS", "scanned_files": 28, "protected_value_count": 30, "protected_photo_count": 5, "findings": 0 },
+    "desktop_security": { "verdict": "PASS", "checked_files": 50, "findings": 0 },
+    "no_public_release": { "verdict": "PASS", "checked_files": 98, "findings": 0 },
+    "modified_js_syntax": { "verdict": "PASS", "files": 29 },
+    "web_typecheck": "PASS",
+    "workflow_yaml_parse": "PASS",
+    "package_json_parse": "PASS"
+  },
+  "backup_drill": {
+    "outcome": "passed",
+    "synthetic_only": true,
+    "real_client_data_used": false,
+    "production_restore_executed": false,
+    "backup_file_count": 6,
+    "restored_file_count": 6,
+    "checksum_mismatch_count": 0
+  },
+  "precondition_events": [
+    {
+      "command": "node scripts/validate-public-renderer-no-hrx-roster-pii.mjs",
+      "initial_exit": 1,
+      "classification": "missing_generated_renderer_precondition",
+      "resolution": "rerun against PV-007 exact product renderer after proving zero non-workbook changes",
+      "final_exit": 0
+    }
+  ]
+}
