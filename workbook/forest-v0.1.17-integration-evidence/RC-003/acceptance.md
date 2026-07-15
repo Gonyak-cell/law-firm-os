@@ -2,7 +2,7 @@
 
 - status: DONE
 - candidate entry SHA: `65b742c5b103c357c527f6c40729140d02a2b6ef`
-- evidence commit SHA: `PENDING`
+- evidence commit SHA: `7133e0dfad6fa15a601325f6b2f5d50c75da57d6`
 - root source HEAD: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`
 - root source working-tree SHA-256: `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`
 - root-only paths: 25
