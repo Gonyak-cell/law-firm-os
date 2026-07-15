@@ -1,0 +1,43 @@
+{
+  "schema_version": "law-firm-os.mi005.conflict-resolution.v1",
+  "tuw": "MI-005",
+  "verdict": "PASS",
+  "recorded_at": "2026-07-16T05:52:31+09:00",
+  "entry_sha": "77c500e298640a5583f534db632a66f79b902727",
+  "product_exit_sha": "77c500e298640a5583f534db632a66f79b902727",
+  "origin_main_sha": "fdd1e34a42ee11ad1e5049647048471be772f381",
+  "merge_base_sha": "fdd1e34a42ee11ad1e5049647048471be772f381",
+  "current_tree_sha": "1a4aa9f9bd491e67e03d732135d22a9cffcc17b9",
+  "merged_tree_sha": "1a4aa9f9bd491e67e03d732135d22a9cffcc17b9",
+  "merge_tree_exit": 0,
+  "merge_tree_stderr_bytes": 0,
+  "conflict_file_count": 0,
+  "conflict_marker_count": 0,
+  "resolution_row_count": 0,
+  "unresolved_count": 0,
+  "blanket_resolution_count": 0,
+  "policies": {
+    "ui": {"rule": "current_forest", "exercised": false},
+    "auth": {"rule": "stricter_contract", "exercised": false},
+    "migration": {"rule": "forward_only_manual_adjudication", "exercised": false},
+    "operations": {"rule": "safer_contract", "exercised": false}
+  },
+  "evidence_sha256": {
+    "normalized_merged_tree": "e264f3a367d5f008d0185b5cafca854f75e0e6be8407df0525d11e95be5f46ce",
+    "raw_merge_tree_stdout": "25f0b6de944236facc5d57f349096ea0fbba9f55460ee5b9b15d038d6c6f4734",
+    "raw_merge_tree_stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "mutations": {
+    "product_file_count": 0,
+    "migration_file_count": 0,
+    "auth_contract_count": 0,
+    "operations_contract_count": 0,
+    "remote_ref_updated": false,
+    "pull_request_created": false,
+    "main_updated": false,
+    "release_updated": false,
+    "aws_updated": false,
+    "app_restarted": false
+  },
+  "external_blockers": []
+}

@@ -250,7 +250,7 @@ RC-003에서 우선 검토할 root-only 항목:
 | MI-002 | DONE | merge dry-run 보고서 | merge-base, merge-tree, conflict/path inventory | report validator | 충돌 파일·정책 전부 기록 |
 | MI-003 | DONE | 통합 방식 결정 | normal merge 또는 owner 승인 main-next cutover | decision receipt | 무근거 force push 0 |
 | MI-004 | DONE | 전용 integration worktree | `integration/forest-v0.1.17` 생성 | worktree/branch check | 다른 쓰기 세션 0 |
-| MI-005 | READY | 파일별 충돌 해결 | UI=Forest, auth=엄격, migration=수동, ops=안전 우선 | conflict ledger | unresolved 0, blanket ours/theirs 0 |
+| MI-005 | DONE | 파일별 충돌 해결 | UI=Forest, auth=엄격, migration=수동, ops=안전 우선 | conflict ledger | unresolved 0, blanket ours/theirs 0 |
 | MI-006 | READY | main-only 필수 변경 보존 | security, infra, backup, AWS, release validators 대조 | main-only matrix | 필수 변경 누락 0 |
 | MI-007 | READY | candidate commit 고정 | integration tree commit·tag candidate | clean/hash check | `INTEGRATION_SHA` 기록 |
 
@@ -524,6 +524,7 @@ external_blockers
 | 2026-07-16 | MI-002 | DONE | `e0f52f5f` | `e0f52f5f` | `workbook/forest-v0.1.17-integration-evidence/MI-002/` | fetched `origin/main=fdd1e34a`; merge-base 동일; merge-tree exit 0·candidate tree `667e141f` 동일; 2,405 path·265 commit 전수 inventory, conflict·unresolved·blanket resolution 0; diff-check 공백 경고는 QA 부채로 분리; ref 이동 0 |
 | 2026-07-16 | MI-003 | DONE | `903835f7` | `903835f7` | `workbook/forest-v0.1.17-integration-evidence/MI-003/` | 기존 PR #168은 non-main base·stale head라 미사용; 새 `codex/integration/forest-v0.1.17` -> `main` merge-commit PR 선택; strict main·HRX check 준수; squash/rebase/force/cutover 0, ref·PR·main mutation 0 |
 | 2026-07-16 | MI-004 | DONE | `4d59c9b7` | `4d59c9b7` | `workbook/forest-v0.1.17-integration-evidence/MI-004/` | 전용 `/private/tmp/lawos-forest-v017-integration`·`codex/integration/forest-v0.1.17` 생성; exact SHA·clean·upstream 없음; active writer 1, parallel writer 0; 후보·사용자 루트·PID 55090 무변경 |
+| 2026-07-16 | MI-005 | DONE | `77c500e2` | `77c500e2` | `workbook/forest-v0.1.17-integration-evidence/MI-005/` | refreshed `origin/main=fdd1e34a`; merge-base 동일·merge-tree exit 0·current tree `1a4aa9f9` 동일; conflict·resolution·unresolved·blanket ours/theirs 0, 제품·외부 mutation 0 |
 
 ## 14. Goal Objective 원문
 

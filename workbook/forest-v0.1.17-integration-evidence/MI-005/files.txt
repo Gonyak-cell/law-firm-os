@@ -1,0 +1,8 @@
+workbook/forest-v0.1.17-integration-evidence/MI-005/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/MI-005/commands.txt
+workbook/forest-v0.1.17-integration-evidence/MI-005/conflict-resolution-ledger.tsv
+workbook/forest-v0.1.17-integration-evidence/MI-005/files.txt
+workbook/forest-v0.1.17-integration-evidence/MI-005/merged-tree.txt
+workbook/forest-v0.1.17-integration-evidence/MI-005/receipt.json
+workbook/forest-v0.1.17-integration-evidence/MI-005/tests.txt
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md

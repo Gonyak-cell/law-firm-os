@@ -1,0 +1,11 @@
+PASS refreshed origin/main unchanged
+PASS merge-base equals exact origin/main
+PASS merge-tree exit 0
+PASS merge-tree stderr empty
+PASS merged tree equals current HEAD tree
+PASS conflict files 0
+PASS conflict markers 0
+PASS resolution data rows 0
+PASS unresolved rows 0
+PASS blanket ours/theirs rows 0
+PASS product and external mutations 0
