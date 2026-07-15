@@ -226,7 +226,7 @@ RC-003에서 우선 검토할 root-only 항목:
 | CP-002 | DONE | 제품 기능 매트릭스 | 5개 고정 SHA에서 Home, Client, Matter, People, Search, Portal, auth/profile, leave, payroll, persistence/authz/package의 route·menu·API·source·proof를 비교 | exact Git object matrix·Web 75/75·authz 159·API 23/23 | 10/10 축, 170/170 보존, route·section·policy 미해결 누락 0 |
 | CP-003 | DONE | 휴가 상위 호환 검증 | 유형, 발생, lifecycle, usage, promotion, integrations, privacy | leave 173/173·TUW 49/49·기능 축 7/7·패키지 시나리오 10/10 | 0 fail, package QA 이후 제품 runtime 변경 0 |
 | CP-004 | DONE | 급여 상위 호환 검증 | inputs, calc, deductions, run, docs, bank, tax, migration | payroll 76/76·TUW 61/61·기능 축 8/8·패키지 시나리오 9/9 | 0 fail, GATE-002 승인 경계 유지 |
-| CP-005 | READY | 서지원 계정·프로필 연결 검증 | `jwsuh@amic.kr -> 서지원` identity/profile/contact/career | profile API·packaged smoke | session user fallback 0 |
+| CP-005 | DONE | 서지원 계정·프로필 연결 검증 | `jwsuh@amic.kr -> 서지원` identity/profile/contact/career | 관련 회귀 43/43·identity 19/19·source 5/5·package 11/11 | session user fallback 0, public renderer PII 0 |
 | CP-006 | READY | UI·카피 회귀 검증 | 44px, 단일행, 중복 메뉴, 불필요 설명, legacy assets | UI regressions·sloplint | strong 0, 의도되지 않은 2줄 0 |
 | CP-007 | READY | 패키지 runtime 경계 검증 | local API, IPC session, canonical tenant, bundled runtime imports | packaged runtime smoke | 외부 source import 0, synthetic fallback 0 |
 
@@ -510,6 +510,7 @@ external_blockers
 | 2026-07-15 | CP-002 | DONE | `b6853d52` | `b6853d52` | `workbook/forest-v0.1.17-integration-evidence/CP-002/` | 5개 SHA·10개 제품 축; 후보 nav 6, People section 73, HRX policy 정의 153/실효 159, Forest 170/170; prior route·section·policy 미해결 누락 0; Web 75/75·API 23/23 |
 | 2026-07-15 | CP-003 | DONE | `17700c54` | `17700c54` | `workbook/forest-v0.1.17-integration-evidence/CP-003/` | 휴가 TUW 49/49·기능 축 7/7·테스트 파일 40/40; domain 120/120·API 42/42·Web 11/11; authz 159·public renderer PII PASS; exact package 10/10·role check 7/7·11 screenshots·5 viewport·재시작 hash 동일·renderer parity PASS; Mac formal/Windows native 경계 유지 |
 | 2026-07-15 | CP-004 | DONE | `f3b38cbb` | `f3b38cbb` | `workbook/forest-v0.1.17-integration-evidence/CP-004/` | 급여 TUW 61/61·기능 축 8/8·테스트 파일 23/23; domain 65/65·API 8/8·Web 3/3; authz 159·public renderer PII PASS; internal package 9/9·5 screenshots·재시작 snapshot 동일·renderer parity PASS; browser receipt는 source SHA 부재로 보조 증거만 인정; GATE-002 BLOCKED 유지 |
+| 2026-07-15 | CP-005 | DONE | `55e6cfe1` | `55e6cfe1` | `workbook/forest-v0.1.17-integration-evidence/CP-005/` | `jwsuh@amic.kr -> user_amic_jwsuh -> emp_amic_jwsuh -> 서지원`; identity 19/19·source 5/5·photo 3/3·관련 회귀 43/43·package 11/11·Matter fixture 5/5; 연락처·경력·학력·자격·사진 확인, `세션 사용자` 0, public renderer PII PASS; July 7 미보존 screenshot validator는 CP-006/QA-009 부채로 기록 |
 
 ## 14. Goal Objective 원문
 

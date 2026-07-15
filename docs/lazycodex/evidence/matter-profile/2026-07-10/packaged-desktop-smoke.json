@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-profile.packaged-desktop.v1",
-  "generated_at": "2026-07-15T13:08:36.025Z",
+  "generated_at": "2026-07-15T14:42:18.347Z",
   "status": "passed",
   "launch_target": "apps/desktop/dist/mac/matter.app",
   "runtime_profile": "isolated_local_qa",
@@ -15,6 +15,17 @@
       "member_id": "emp_amic_jwsuh",
       "display_name": "서지원"
     }
+  },
+  "profile_contract": {
+    "identity_and_role": true,
+    "organization": true,
+    "authenticated_contact": true,
+    "career": true,
+    "education": true,
+    "qualification": true,
+    "practice_area": true,
+    "photo_decoded": true,
+    "generic_session_fallback_absent": true
   },
   "fixtures": [
     "civil",

@@ -1,0 +1,22 @@
+PASS package smoke script syntax
+PASS current internal macOS package profile smoke
+PASS validator syntax
+PASS validator --help
+PASS validator unknown argument exit 2
+PASS validator --emit
+PASS validator --check exact checked-in matrix
+PASS identity contract 19/19
+PASS source contracts 5/5
+PASS photo contract 3/3
+PASS package profile contract 9/9
+PASS package receipt checks 11/11
+PASS package Matter fixtures 5/5
+PASS profile API and related source regression 43/43
+PASS public renderer PII validator, scanned files 54, protected values printed 0
+PASS user root checkout preservation fingerprint exact
+PASS product runtime source changed 0 files from exact package build SHA to CP-005 entry
+PASS packaged profile screenshot visual inspection
+PASS JSON parse
+PASS diff check
+PASS AI slop changed scan
+NOT ACCEPTED AS CURRENT PROOF legacy people:professional-profile validator: missing retained July 7 screenshots; current package smoke supersedes CP-005 only

@@ -1,0 +1,14 @@
+node --check scripts/smoke-matter-profile-packaged.mjs
+node scripts/smoke-matter-profile-packaged.mjs
+node --check scripts/validate-cp005-seo-jiwon-profile-link.mjs
+node scripts/validate-cp005-seo-jiwon-profile-link.mjs --help
+node scripts/validate-cp005-seo-jiwon-profile-link.mjs --unknown # expected exit 2
+node scripts/validate-cp005-seo-jiwon-profile-link.mjs --emit
+node scripts/validate-cp005-seo-jiwon-profile-link.mjs --check
+node --test --test-force-exit --test-timeout=30000 --test-concurrency=1 apps/api/test/profile-api.test.js apps/api/test/hrx-runtime-api.test.js apps/web/test/hrx-member-roster-fallback.test.mjs apps/web/test/people-roster-contact.test.mjs packages/hrx/test/identity-link.test.js packages/runtime-auth/test/matter-vault-user-registration-seed.test.js
+node scripts/validate-public-renderer-no-hrx-roster-pii.mjs
+node scripts/validate-people-professional-profile.mjs # expected stale historical evidence failure; not accepted as CP-005 proof
+git diff --name-only 75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c..55e6cfe111e5c56d8125b27570fca144bf6947dc -- apps/api/src apps/web/src apps/desktop/src packages/hrx/src packages/shared/src
+node -e "JSON.parse(require('fs').readFileSync('workbook/forest-v0.1.17-integration-evidence/CP-005/seo-jiwon-profile-link-matrix.json','utf8'))"
+git diff --check
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed

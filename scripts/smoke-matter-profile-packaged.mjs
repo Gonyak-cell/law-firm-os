@@ -98,6 +98,29 @@ async function main() {
       member_id: "emp_amic_jwsuh",
       display_name: "서지원"
     }, "packaged profile must render the signed-in 서지원 identity");
+    const profileText = await userProfile.innerText();
+    for (const expectedText of [
+      "대표변호사 / AMIC Law",
+      "Legal",
+      "대한민국",
+      "jwsuh@amic.kr",
+      "법무법인 아믹 대표변호사 (2025~현재)",
+      "서울대학교 교육학과 학사",
+      "대한민국 변호사",
+      "M&A"
+    ]) {
+      assert.match(profileText, new RegExp(expectedText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `packaged profile must render ${expectedText}`);
+    }
+    assert.doesNotMatch(profileText, /세션 사용자/, "packaged profile must not render the generic session fallback");
+    const profilePhoto = await userProfile.locator(".matter-profile-photo-large img").evaluate((image) => ({
+      complete: image.complete,
+      natural_width: image.naturalWidth,
+      natural_height: image.naturalHeight,
+      is_supported_data_image: /^data:image\/(?:png|jpeg|webp);base64,/.test(image.getAttribute("src") ?? "")
+    }));
+    assert.equal(profilePhoto.complete, true, "packaged profile photo must finish loading");
+    assert.ok(profilePhoto.natural_width > 0 && profilePhoto.natural_height > 0, "packaged profile photo must decode");
+    assert.equal(profilePhoto.is_supported_data_image, true, "packaged profile photo must use an allowed data-image MIME");
     await userProfile.screenshot({ path: path.join(evidenceDir, "profile-api-packaged.png") });
     await page.locator("[data-profile-return-to-work='true']").click({ timeout: 15_000 });
     await page.waitForSelector("[data-product-axis-nav='top-header']", { timeout: 15_000 });
@@ -170,6 +193,17 @@ async function main() {
       profile_identity: {
         session: sessionIdentity,
         rendered: renderedProfileIdentity
+      },
+      profile_contract: {
+        identity_and_role: true,
+        organization: true,
+        authenticated_contact: true,
+        career: true,
+        education: true,
+        qualification: true,
+        practice_area: true,
+        photo_decoded: true,
+        generic_session_fallback_absent: true
       },
       fixtures: passedFixtures,
       public_release: false,
