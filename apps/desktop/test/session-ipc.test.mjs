@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { MainProcessAuthCoordinator } from "../src/main/auth.js";
+import { APPROVED_DEV_RENDERER_URL } from "../src/main/origin-policy.js";
 import { registerSessionIpcHandlers, SESSION_CHANNELS } from "../src/main/session-ipc.js";
+
+const trustedSender = (event) => event?.senderFrame?.url === APPROVED_DEV_RENDERER_URL;
 
 class FakeIpcMain {
   handlers = new Map();
@@ -14,10 +17,10 @@ class FakeIpcMain {
     this.handlers.delete(channel);
   }
 
-  invoke(channel, payload) {
+  invoke(channel, payload, event = { senderFrame: { url: APPROVED_DEV_RENDERER_URL } }) {
     const handler = this.handlers.get(channel);
     if (!handler) throw new Error(`missing handler: ${channel}`);
-    return handler({}, payload);
+    return handler(event, payload);
   }
 }
 
@@ -95,7 +98,7 @@ function fakeRuntimeClient() {
 test("session IPC exposes account login and smoke without renderer token material", async () => {
   const ipcMain = new FakeIpcMain();
   const coordinator = new MainProcessAuthCoordinator({ runtimeClient: fakeRuntimeClient() });
-  const registration = registerSessionIpcHandlers({ ipcMain, coordinator });
+  const registration = registerSessionIpcHandlers({ ipcMain, coordinator, isTrustedSender: trustedSender });
 
   assert.deepEqual(registration.channels.sort(), Object.values(SESSION_CHANNELS).sort());
   assert.equal((await ipcMain.invoke(SESSION_CHANNELS.runtime)).configured, true);
@@ -146,7 +149,7 @@ test("session IPC preserves login lockout state without signing the renderer in"
       })
     }
   });
-  const registration = registerSessionIpcHandlers({ ipcMain, coordinator });
+  const registration = registerSessionIpcHandlers({ ipcMain, coordinator, isTrustedSender: trustedSender });
 
   const locked = await ipcMain.invoke(SESSION_CHANNELS.login, { email: "jwsuh@amic.kr", password: "bad-password" });
   assert.equal(locked.ok, false);
@@ -157,5 +160,29 @@ test("session IPC preserves login lockout state without signing the renderer in"
   assert.equal(locked.token_material_returned, false);
   assert.equal(JSON.stringify(locked).includes("bad-password"), false);
 
+  registration.dispose();
+});
+
+test("session IPC rejects an untrusted sender before coordinator access", async () => {
+  const ipcMain = new FakeIpcMain();
+  let calls = 0;
+  const registration = registerSessionIpcHandlers({
+    ipcMain,
+    coordinator: {
+      sessionStatus() {
+        calls += 1;
+        return { state: "signed_in" };
+      }
+    },
+    isTrustedSender: trustedSender
+  });
+
+  await assert.rejects(
+    () => ipcMain.invoke(SESSION_CHANNELS.status, undefined, { senderFrame: { url: "file:///tmp/untrusted.html" } }),
+    (error) => error?.code === "UNTRUSTED_RENDERER_IPC_SENDER"
+  );
+  assert.equal(calls, 0);
+  assert.equal((await ipcMain.invoke(SESSION_CHANNELS.status)).state, "signed_in");
+  assert.equal(calls, 1);
   registration.dispose();
 });

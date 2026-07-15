@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
-import { copyFile, cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { packager } from "@electron/packager";
 import { sign } from "@electron/osx-sign";
@@ -9,6 +9,7 @@ import { notarize } from "@electron/notarize";
 import { dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import { copyDesktopLocalApiRuntime } from "./lib/matter-desktop-runtime.mjs";
 
 const execFileAsync = promisify(execFile);
 const scriptDir = dirname(fileURLToPath(import.meta.url));
@@ -37,17 +38,6 @@ const packagedPrivatePhotoSourcePath = join(
 const packagedPublicProfessionalProfileCatalogPath = join(
   appSourceDir,
   "runtime/apps/api/src/hrx-public-professional-profile-catalog.json",
-);
-const internalRosterSourcePath = resolve(
-  repoRoot,
-  process.env.LAWOS_HRX_MEMBER_ROSTER_SOURCE_PATH
-    || "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json",
-);
-const configuredContactSourcePath = String(process.env.LAWOS_HRX_MEMBER_CONTACT_SOURCE_PATH ?? "").trim();
-const internalContactSourcePath = configuredContactSourcePath ? resolve(repoRoot, configuredContactSourcePath) : null;
-const internalPhotoSourcePath = resolve(
-  repoRoot,
-  process.env.LAWOS_HRX_MEMBER_PHOTO_SOURCE_PATH || "apps/web/src/assets/members",
 );
 const desktopRendererWebIndex = join(desktopRoot, "src/renderer/web/index.html");
 const iconPath = join(desktopRoot, "build/icon.icns");
@@ -186,71 +176,6 @@ async function applyMatterBundleIcon(targetAppBundle) {
   await execFileAsync("/usr/libexec/PlistBuddy", ["-c", "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string matter", targetInfoPlist]);
 }
 
-async function copyDesktopLocalApiRuntime(targetAppBundle) {
-  const targetAppSourceDir = join(targetAppBundle, "Contents", "Resources", "app");
-  const runtimeDir = join(targetAppSourceDir, "runtime");
-  const apiRuntimeSrcDir = join(runtimeDir, "apps/api/src");
-  await rm(runtimeDir, { recursive: true, force: true });
-  await mkdir(join(runtimeDir, "apps/api"), { recursive: true });
-  await cp(join(repoRoot, "apps/api/src"), apiRuntimeSrcDir, { recursive: true });
-  const runtimeRosterSourcePath = join(apiRuntimeSrcDir, "hrx-member-roster-source-of-truth.json");
-  if (!existsSync(internalRosterSourcePath)) throw new Error("HRX member roster source does not exist");
-  const privateRoster = JSON.parse(await readFile(
-    internalRosterSourcePath,
-    "utf8",
-  ));
-  const publicProfessionalProfiles = (privateRoster.members ?? [])
-    .filter((member) => member?.employee_id && member?.professional_profile)
-    .map((member) => ({
-      employee_id: member.employee_id,
-      professional_profile: Object.fromEntries([
-        "schema_version",
-        "profile_kind",
-        "public_role_labels",
-        "practice_areas",
-        "experience",
-        "education",
-        "qualifications",
-      ].flatMap((key) => member.professional_profile[key] === undefined ? [] : [[key, member.professional_profile[key]]])),
-    }));
-  if (publicProfessionalProfiles.length === 0) {
-    throw new Error("HRX public professional profile catalog cannot be empty");
-  }
-  await writeFile(
-    join(apiRuntimeSrcDir, "hrx-public-professional-profile-catalog.json"),
-    `${JSON.stringify({
-      schema_version: "law-firm-os.hrx-public-professional-profile-catalog.v0.1",
-      source_ref: "hrx-public-professional-profile-catalog",
-      profiles: publicProfessionalProfiles,
-    }, null, 2)}\n`,
-  );
-  await rm(join(apiRuntimeSrcDir, "hrx-member-contact-source-of-truth.json"), { force: true });
-  await rm(runtimeRosterSourcePath, { force: true });
-  await rm(join(apiRuntimeSrcDir, "hrx-member-photos"), { recursive: true, force: true });
-  if (!formalRelease) {
-    if (!existsSync(internalPhotoSourcePath)) throw new Error("Internal HRX member photo source does not exist");
-    if (internalContactSourcePath && !existsSync(internalContactSourcePath)) {
-      throw new Error("Configured internal HRX member contact source does not exist");
-    }
-    await copyFile(internalRosterSourcePath, runtimeRosterSourcePath);
-    if (internalContactSourcePath) {
-      await copyFile(internalContactSourcePath, join(apiRuntimeSrcDir, "hrx-member-contact-source-of-truth.json"));
-    }
-    const photoTargetPath = join(apiRuntimeSrcDir, "hrx-member-photos");
-    await mkdir(photoTargetPath, { recursive: true });
-    for (const fileName of await readdir(internalPhotoSourcePath)) {
-      if (fileName.toLowerCase().endsWith(".png")) {
-        await copyFile(join(internalPhotoSourcePath, fileName), join(photoTargetPath, fileName));
-      }
-    }
-  }
-  await copyFile(
-    join(repoRoot, "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json"),
-    join(apiRuntimeSrcDir, "matter-vault-user-registration-seed.json"),
-  );
-  await cp(join(repoRoot, "packages"), join(runtimeDir, "packages"), { recursive: true });
-}
-
 if (!existsSync(join(repoRoot, "node_modules/electron/dist/Electron.app"))) {
   throw new Error("Electron runtime is missing. Run `npm install --workspace apps/desktop` first.");
 }
@@ -303,7 +228,11 @@ try {
   });
   const generatedAppBundle = join(generatedAppRoot, "matter.app");
   await applyMatterBundleIcon(generatedAppBundle);
-  await copyDesktopLocalApiRuntime(generatedAppBundle);
+  await copyDesktopLocalApiRuntime({
+    targetAppSourceDir: join(generatedAppBundle, "Contents", "Resources", "app"),
+    repoRoot,
+    formalRelease
+  });
   const generatedMarkerPath = join(generatedAppBundle, "Contents", "Resources", formalReleaseMarkerName);
   if (formalRelease) {
     await writeFile(generatedMarkerPath, `${JSON.stringify({ channel: "formal", local_api_default: "disabled" }, null, 2)}\n`);

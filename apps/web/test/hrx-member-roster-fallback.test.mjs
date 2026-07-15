@@ -101,8 +101,23 @@ test("desktop web login uses the main-process session bridge without storing ren
     const envelope = readLawosSessionEnvelope(source);
     assert.equal(envelope.actor_ref, "user_amic_jwsuh");
     assert.equal(envelope.tenant_refs.default, "tenant_amic_matter_vault");
+    assert.deepEqual(new Set(Object.values(envelope.tenant_refs)), new Set(["tenant_amic_matter_vault"]));
     assert.ok(envelope.scopes.includes("tenant.admin"));
     assert.ok(envelope.scopes.includes("hrx.leave.accrual.execute"));
+  });
+});
+
+test("desktop URL handoff keeps every product tenant reference canonical", async () => {
+  await withWebModule("/src/data/apiClient.js", async ({ readLawosSessionEnvelope }) => {
+    const envelope = readLawosSessionEnvelope({
+      location: {
+        search: "?desktop=1&desktop_actor_ref=user_amic_jwsuh&desktop_tenant_ref=tenant_amic_matter_vault"
+      },
+      sessionStorage: { getItem: () => null }
+    });
+
+    assert.equal(envelope.actor_ref, "user_amic_jwsuh");
+    assert.deepEqual(new Set(Object.values(envelope.tenant_refs)), new Set(["tenant_amic_matter_vault"]));
   });
 });
 

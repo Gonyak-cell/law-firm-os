@@ -539,7 +539,7 @@ function readUrlSessionEnvelope(source) {
         client: tenantRef,
         matter: tenantRef,
         vault: tenantRef,
-        crm: CRM_INTAKE_TENANT_ID
+        crm: tenantRef
       },
       role_ids: params.getAll("desktop_role_ref"),
       scopes: params.getAll("desktop_scope_ref"),

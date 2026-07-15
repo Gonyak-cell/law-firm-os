@@ -2,10 +2,10 @@
 
 - Result: PASS for proof execution
 - Status decision: native residual rows retain guarded/blocked final classification
-- Generated: 2026-06-28T07:40:20.819Z
+- Generated: 2026-07-15T15:36:48.086Z
 
 ## Commands
-- npm --workspace apps/desktop run test:smoke: PASS 59/59, fail 0
+- npm --workspace apps/desktop run test:smoke: PASS 102/102, fail 0
 - npm --workspace apps/desktop run test:file-bridge: PASS 17/17, fail 0
 - npm --workspace apps/desktop run test:update: PASS 3/3, fail 0
 

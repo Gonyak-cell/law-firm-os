@@ -45,16 +45,14 @@ function ancestorApiServerEntries(start = moduleDir) {
   return entries;
 }
 
-export function desktopApiServerEntryCandidates({ start = moduleDir } = {}) {
-  return [
-    join(start, "../../runtime/apps/api/src/server.js"),
-    join(start, "../../../api/src/server.js"),
-    ...ancestorApiServerEntries(start)
-  ];
+export function desktopApiServerEntryCandidates({ start = moduleDir, packaged = false } = {}) {
+  const bundledEntry = join(start, "../../runtime/apps/api/src/server.js");
+  if (packaged) return [bundledEntry];
+  return [bundledEntry, join(start, "../../../api/src/server.js"), ...ancestorApiServerEntries(start)];
 }
 
-export function resolveDesktopApiServerEntry({ start = moduleDir, existsSyncImpl = existsSync } = {}) {
-  return desktopApiServerEntryCandidates({ start }).find((candidate) => existsSyncImpl(candidate)) ?? null;
+export function resolveDesktopApiServerEntry({ start = moduleDir, packaged = false, existsSyncImpl = existsSync } = {}) {
+  return desktopApiServerEntryCandidates({ start, packaged }).find((candidate) => existsSyncImpl(candidate)) ?? null;
 }
 
 export function desktopRuntimeStorePaths({
@@ -80,13 +78,17 @@ export async function startDesktopLocalApiServer({
   env = process.env,
   existsSyncImpl = existsSync,
   mkdirSyncImpl = mkdirSync,
+  packaged = false,
   startApiServerImpl,
   userDataPath,
   start = moduleDir
 } = {}) {
   if (env.MATTER_DESKTOP_LOCAL_API_DISABLED === "1") return null;
-  const entry = resolveDesktopApiServerEntry({ start, existsSyncImpl });
-  if (!entry) return null;
+  const entry = resolveDesktopApiServerEntry({ start, packaged, existsSyncImpl });
+  if (!entry) {
+    if (packaged) throw new Error("Packaged desktop local API runtime is missing");
+    return null;
+  }
   const startApiServer =
     startApiServerImpl ?? (await import(pathToFileURL(entry).toString())).startApiServer;
   const storePaths = desktopRuntimeStorePaths({ env, mkdirSyncImpl, userDataPath });

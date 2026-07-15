@@ -8,6 +8,7 @@ import { packager } from "@electron/packager";
 import { basename, dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import { copyDesktopLocalApiRuntime } from "./lib/matter-desktop-runtime.mjs";
 
 const execFileAsync = promisify(execFile);
 const scriptDir = dirname(fileURLToPath(import.meta.url));
@@ -93,6 +94,11 @@ try {
     ignore: shouldIgnorePackagedPath
   });
   await rename(generatedAppRoot, packageDir);
+  await copyDesktopLocalApiRuntime({
+    targetAppSourceDir: join(packageDir, "resources", "app"),
+    repoRoot,
+    formalRelease
+  });
   const markerPath = join(packageDir, "resources", formalReleaseMarkerName);
   if (formalRelease) {
     await writeFile(markerPath, `${JSON.stringify({ channel: "formal", local_api_default: "disabled" }, null, 2)}\n`);

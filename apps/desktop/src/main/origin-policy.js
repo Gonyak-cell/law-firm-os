@@ -17,8 +17,16 @@ export function isApprovedRendererUrl(candidate, options = {}) {
     return false;
   }
 
-  if (url.protocol === "file:") return true;
-  return url.origin === origins.dev;
+  if (url.protocol === "file:") {
+    if (!options.packagedRendererUrl) return false;
+    try {
+      const expected = new URL(options.packagedRendererUrl);
+      return expected.protocol === "file:" && url.host === expected.host && url.pathname === expected.pathname;
+    } catch {
+      return false;
+    }
+  }
+  return options.allowDevRenderer !== false && url.origin === origins.dev;
 }
 
 export function assertApprovedRendererUrl(candidate, options = {}) {

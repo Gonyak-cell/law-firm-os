@@ -561,6 +561,7 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(desktopSource, /function desktopSessionEnvelope/);
   assert.match(desktopSource, /actor_ref: actorRef/);
   assert.match(desktopSource, /tenant_refs: \{[\s\S]*default: tenantRef[\s\S]*client: tenantRef[\s\S]*matter: tenantRef[\s\S]*vault: tenantRef/);
+  assert.doesNotMatch(desktopSource, /tenant_refs: \{[\s\S]{0,240}tenant_cmp_g6_synthetic/);
   assert.match(desktopSource, /desktop_session_ref/);
   assert.match(desktopSource, /desktop_actor_ref/);
   assert.match(desktopSource, /desktop_tenant_ref/);

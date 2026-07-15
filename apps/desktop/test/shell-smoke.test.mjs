@@ -118,16 +118,34 @@ test("desktop startup cannot select the retired offline login renderers", () => 
   );
 });
 
-test("desktop shell can resolve bundled or repo-local API server for web renderer data", () => {
+test("packaged desktop resolves only its bundled API server", () => {
   const packagedStart = "/App/Contents/Resources/app/src/main";
   const packagedEntry = "/App/Contents/Resources/app/runtime/apps/api/src/server.js";
-  assert.equal(desktopApiServerEntryCandidates({ start: packagedStart })[0], packagedEntry);
+  assert.deepEqual(desktopApiServerEntryCandidates({ start: packagedStart, packaged: true }), [packagedEntry]);
   assert.equal(
     resolveDesktopApiServerEntry({
       start: packagedStart,
+      packaged: true,
       existsSyncImpl: (candidate) => candidate === packagedEntry
     }),
     packagedEntry
+  );
+  assert.equal(
+    resolveDesktopApiServerEntry({
+      start: packagedStart,
+      packaged: true,
+      existsSyncImpl: (candidate) => candidate.endsWith("/apps/api/src/server.js") && candidate !== packagedEntry
+    }),
+    null
+  );
+});
+
+test("development desktop retains the repo-local API server fallback", () => {
+  const start = "/repo/apps/desktop/src/main";
+  const repoEntry = "/repo/apps/api/src/server.js";
+  assert.equal(
+    resolveDesktopApiServerEntry({ start, existsSyncImpl: (candidate) => candidate === repoEntry }),
+    repoEntry
   );
 });
 
@@ -254,6 +272,7 @@ test("desktop local API starts bundled API with durable LawFirmOS stores", async
   let apiOptions = null;
   const localApi = await startDesktopLocalApiServer({
     env: {},
+    packaged: true,
     start: packagedStart,
     userDataPath,
     existsSyncImpl: (candidate) => candidate === packagedEntry,
@@ -274,6 +293,18 @@ test("desktop local API starts bundled API with durable LawFirmOS stores", async
   assert.equal(localApi.entry, packagedEntry);
   assert.equal(localApi.baseUrl, "http://127.0.0.1:4812");
   assert.equal(localApi.storePaths.matterStorePath, apiOptions.matterStorePath);
+});
+
+test("packaged desktop fails closed when its bundled local API runtime is missing", async () => {
+  await assert.rejects(
+    () => startDesktopLocalApiServer({
+      env: {},
+      packaged: true,
+      start: "/App/Contents/Resources/app/src/main",
+      existsSyncImpl: () => false
+    }),
+    /Packaged desktop local API runtime is missing/
+  );
 });
 
 test("desktop shell hands password reset deep link intent to renderer without exposing it in return value", async () => {
@@ -323,6 +354,17 @@ test("desktop shell can still target the approved local dev renderer when explic
 
   assert.equal(target, APPROVED_DEV_RENDERER_URL);
   assert.equal(window.loadedURL, APPROVED_DEV_RENDERER_URL);
+});
+
+test("packaged desktop cannot target or trust the development renderer", async () => {
+  await assert.rejects(
+    () => startDesktopShell({
+      BrowserWindowConstructor: FakeBrowserWindow,
+      rendererUrl: APPROVED_DEV_RENDERER_URL,
+      packaged: true
+    }),
+    /Blocked unapproved desktop renderer origin/
+  );
 });
 
 test("desktop app configures the macOS Dock icon from the packaged application icon", () => {

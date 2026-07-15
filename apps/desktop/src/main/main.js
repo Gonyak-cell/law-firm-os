@@ -9,7 +9,7 @@ import {
 import { MainProcessAuthCoordinator, encryptedFileSecureStore, memorySecureStore } from "./auth.js";
 import { parseMatterDeepLink, redactDeepLinkIntent } from "./deepLinks.js";
 import { startDesktopLocalApiServer, stopDesktopLocalApiServer } from "./local-api.js";
-import { assertApprovedRendererUrl, installNavigationGuards } from "./origin-policy.js";
+import { assertApprovedRendererUrl, installNavigationGuards, isApprovedRendererUrl } from "./origin-policy.js";
 import { registerSessionIpcHandlers } from "./session-ipc.js";
 import { createMainWindow } from "./window.js";
 
@@ -155,12 +155,21 @@ export async function startDesktopShell({
   windowOptions,
   ipcMain,
   coordinator,
+  packaged = false,
   initialDeepLinkUrl
 } = {}) {
-  const target = assertApprovedRendererUrl(rendererUrl);
-  const sessionIpc = ipcMain && coordinator ? registerSessionIpcHandlers({ ipcMain, coordinator }) : null;
+  const packagedTarget = packagedRendererUrl();
+  const originOptions = { packagedRendererUrl: packagedTarget, allowDevRenderer: !packaged };
+  const target = assertApprovedRendererUrl(rendererUrl, originOptions);
+  const isTrustedSender = (event) => isApprovedRendererUrl(
+    event?.senderFrame?.url ?? event?.sender?.getURL?.(),
+    originOptions
+  );
+  const sessionIpc = ipcMain && coordinator
+    ? registerSessionIpcHandlers({ ipcMain, coordinator, isTrustedSender })
+    : null;
   const window = await createMainWindow({ BrowserWindowConstructor, options: windowOptionsWithPreload(windowOptions) });
-  installNavigationGuards(window);
+  installNavigationGuards(window, originOptions);
   await window.loadURL(target);
   const initialDeepLink = sendPasswordResetDeepLink(window, initialDeepLinkUrl);
   return { window, target, sessionIpc, initialDeepLink };
@@ -180,7 +189,7 @@ export async function startElectronApp() {
   configureDesktopAppIcon(app);
   configureDesktopProtocol(app);
   const localApi = shouldStartDesktopLocalApi(process.env, { formalRelease: isFormalReleasePackage() })
-    ? await startDesktopLocalApiServer({ userDataPath })
+    ? await startDesktopLocalApiServer({ userDataPath, packaged: app.isPackaged === true })
     : null;
   if (localApi?.baseUrl) {
     process.env.MATTER_DESKTOP_API_BASE_URL = localApi.baseUrl;
@@ -199,6 +208,7 @@ export async function startElectronApp() {
     BrowserWindowConstructor: BrowserWindow,
     ipcMain,
     coordinator,
+    packaged: app.isPackaged === true,
     initialDeepLinkUrl: pendingDeepLinks.shift()
   });
   activeWindow = shell.window;
