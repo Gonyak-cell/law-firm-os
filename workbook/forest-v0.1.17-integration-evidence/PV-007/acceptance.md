@@ -1,0 +1,27 @@
+# PV-007 Acceptance
+
+- TUW: PV-007
+- status: DONE
+- entry_sha: `678aff03abb47ad280a89de7f8070e01dfc91464`
+- product_exit_sha: `ab7868ebad5948a1b7341fe5bcbc48d8c0181a47` (the evidence commit is intentionally separate)
+- product_exit_tree: `ca5ba5a6c2c187d5ca5bfb5ed1223dc6ce931d0e`
+- canonical command: `npm run matter-desktop:launch -- --expected-sha <full-40-char-sha>`; the launcher accepts one absolute, normalized, non-symlink `matter.app` path and has no `open -a`, `/Applications/matter.app`, `pkill`, or `killall` fallback
+- package binding: the app internal build manifest, Info.plist ID/version/executable, actual renderer digest, SHA-scoped artifact index/checksums, and staged Mac manifest bytes must all agree before process mutation
+- process binding: `ps` only supplies candidate PIDs; `lsof -d txt` supplies the actual executable. Exact-path duplicates may be terminated and replaced; a different actual `matter.app/Contents/MacOS/matter` path blocks the launch and is not killed
+- platform boundary: the command fails closed outside macOS; `--help` remains inspectable without mutation
+- test-first proof: the PV-007 unit contract initially failed because `scripts/lib/matter-desktop-canonical-launch.mjs` did not exist; red stdout SHA-256 `ad9bfd3d7a4c6323ae9393c229c7c9fb71d96c3ec0b8d63d356bd9a6a82a831a`
+- exact package proof: clean product SHA `ab7868eb` built Mac first and Windows second with `source_dirty=false`; both record renderer SHA-256 `f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445` and 28 files
+- release truth: 9 artifacts were staged under `apps/desktop/dist/releases/0.1.17/ab7868ebad5948a1b7341fe5bcbc48d8c0181a47/internal`; generic build paths are explicitly not release truth
+- actual conflict proof: an independently compiled executable at another temporary `matter.app` path remained alive while the launcher exited 1 with `different matter bundle already running`; mutation of that PID was 0
+- actual duplicate proof: the first canonical process PID `53888` was the only exact-path process; the second launch terminated only PID `53888` and left PID `53932` at the same executable path with staged-manifest equality true
+- final running app: after packaged visual QA, the same command left PID `55090` at `/private/tmp/lawos-forest-v016-release/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter`; the non-mutating package validator saw exact duplicate count 1 and conflicting bundle count 0
+- rendered QA: the exact product package was opened through Playwright and showed completed Forest split login, one login form, one loaded Forest photo panel, broken image 0, console error 0, and page error 0; screenshot `screenshots/macos-canonical-package-login-0.1.17.png`
+- rejected screen capture: macOS `screencapture` returned an all-black 3024x1964 frame twice with SHA-256 `66a8cfead5e40b58454f7835944f0a8cbe2bd682d0376ce6ba05a700bac3d73c`; it is not accepted as rendered evidence
+- regression: PV-001~PV-007 unit tests 25/25 PASS, PV-007 4/4 PASS, all source validators PASS, accepted package validators PASS, Desktop smoke 102/102 PASS, file bridge 17/17 plus two validators PASS, Web UI 143 PASS + 1 existing skip, Web typecheck/build PASS, packaging/CP-006/public renderer PII/diff/secret-pattern/sloplint PASS
+- phase boundary: package/receipt parity was proven while the generated Mac/Windows build receipts were present; those tracked receipts were then restored to the product commit before clean-source regression. A later PV-002 package rerun after restoration correctly rejected the stale receipt hash and is not accepted evidence
+- preserved user root checkout: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`, branch `codex/profile-contact-regression-fix`, tracked 56, untracked 21, status 77, fingerprint `02751feb70e89afbfb00acf1dac14092cdef0c071be736a55aa6c6982b60d93c`; no write performed
+- commands: see `commands.txt`
+- launch and package matrix: see `launch-matrix.json`
+- known_limits: the accepted Mac bundle is internal and unsigned/not notarized/not stapled; Windows was assembled and hash-checked on Darwin but native install/restart/uninstall and Authenticode were not proven; public release and production go-live remain false
+- external_blockers: none for PV-007 canonical local launch integrity; formal macOS distribution, Windows native/AuthentiCode, public release, production, and go-live remain separate later gates
+- AI slop review: pass; the new user-facing surface is a bounded CLI, no product UI changed, and sloplint reported no auto-detectable signals

@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.pv007.launch-matrix.v1",
+  "version": "0.1.17",
+  "source_sha": "ab7868ebad5948a1b7341fe5bcbc48d8c0181a47",
+  "source_tree": "ca5ba5a6c2c187d5ca5bfb5ed1223dc6ce931d0e",
+  "source_dirty": false,
+  "channel": "internal",
+  "app_id": "com.amic.matter.desktop.internal",
+  "artifact_root": "apps/desktop/dist/releases/0.1.17/ab7868ebad5948a1b7341fe5bcbc48d8c0181a47/internal",
+  "artifact_index_sha256": "887ac46b9c1000219cc118abeb32343e87bc185104d0ae1449a979884cb57ebc",
+  "checksums_sha256": "5d6ffa38249cf30c1d604d8eae757e601a3d990c0cfc025ee2b9b8bb3d7c0b15",
+  "renderer": {
+    "macos_sha256": "f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445",
+    "windows_sha256": "f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445",
+    "file_count": 28,
+    "mismatch_count": 0
+  },
+  "build_manifests": {
+    "macos_built_at": "2026-07-15T20:02:30.673Z",
+    "macos_sha256": "69409350a67dd9f4a7d667a0543302a9640cfd1422ee84bbce0ee7c8e151740a",
+    "windows_built_at": "2026-07-15T20:03:01.054Z",
+    "windows_sha256": "b66e1d60491389f994145adfd8ef9de4075bf40a265b0154199efb7c54d097c2",
+    "source_dirty_false_count": 2,
+    "packaged_external_equal_count": 2
+  },
+  "canonical_path": {
+    "app_bundle": "/private/tmp/lawos-forest-v016-release/apps/desktop/dist/mac/matter.app",
+    "executable": "/private/tmp/lawos-forest-v016-release/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+    "manifest": "/private/tmp/lawos-forest-v016-release/apps/desktop/dist/mac/matter.app/Contents/Resources/matter-build-manifest.json",
+    "normalized": true,
+    "real_path": true,
+    "symlink": false,
+    "staged_manifest_equal": true
+  },
+  "process_proof": {
+    "first_launch_pid": 53888,
+    "duplicate_terminated_pids": [53888],
+    "relaunch_pid": 53932,
+    "final_running_pid": 55090,
+    "final_exact_path_match": true,
+    "final_exact_process_count": 1,
+    "final_conflicting_process_count": 0,
+    "different_bundle_exit": 1,
+    "different_bundle_process_preserved": true,
+    "broad_process_kill": false
+  },
+  "rendered_qa": {
+    "screenshot": "workbook/forest-v0.1.17-integration-evidence/PV-007/screenshots/macos-canonical-package-login-0.1.17.png",
+    "screenshot_sha256": "bc33472da385d32c05819a969251b948e1564e9144b6f4df85c2505dd605cb49",
+    "skin": "forest",
+    "login_screen": "forest-split",
+    "login_intro_state": "complete",
+    "login_form_count": 1,
+    "forest_photo_panel_count": 1,
+    "loaded_forest_image_count": 1,
+    "broken_image_count": 0,
+    "page_error_count": 0,
+    "console_error_count": 0,
+    "rejected_os_capture_sha256": "66a8cfead5e40b58454f7835944f0a8cbe2bd682d0376ce6ba05a700bac3d73c"
+  },
+  "artifacts": [
+    { "id": "macos_zip_archive", "bytes": 132268806, "sha256": "86af8a248b2fc9f54f0cab1f23757b4c421766b6ca0e1845f7eb9c18823a7e99" },
+    { "id": "macos_dmg_image", "bytes": 156662893, "sha256": "640ebf41b0d00c6c05d2427e2547823604cabc11b46abe53cb078c3cbad4b206" },
+    { "id": "macos_build_manifest", "bytes": 743, "sha256": "69409350a67dd9f4a7d667a0543302a9640cfd1422ee84bbce0ee7c8e151740a" },
+    { "id": "windows_package_zip", "bytes": 162233499, "sha256": "acd0eca475c651fc38c22630880c0224cd084994a40e758b3ccfc7e8a907db45" },
+    { "id": "windows_installer_manifest", "bytes": 1350, "sha256": "f59a479ac5289f2a47103405cc8163c7394f5da79df425993628cf0839a474bb" },
+    { "id": "windows_manifest_signature", "bytes": 65, "sha256": "5e8c2de0a597492fdb96c8248e9a6e8d12f7204a1b47ee5efb52c0fe079438a6" },
+    { "id": "windows_build_manifest", "bytes": 740, "sha256": "b66e1d60491389f994145adfd8ef9de4075bf40a265b0154199efb7c54d097c2" },
+    { "id": "macos_build_receipt", "bytes": 3381, "sha256": "63e1d5f1834877a021aa24b142c5938965c36b7c069d59148fce7492c883968a" },
+    { "id": "windows_build_receipt", "bytes": 2290, "sha256": "3511e2e05075acaea958df8c6b3ef21cc89c8374f4e5b349254984ed6d7ddb92" }
+  ],
+  "artifact_count": 9,
+  "generic_build_paths_are_release_truth": false,
+  "public_release_claim": false,
+  "production_go_live_claim": false
+}

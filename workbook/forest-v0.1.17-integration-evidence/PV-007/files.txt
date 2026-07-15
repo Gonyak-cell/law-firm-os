@@ -1,0 +1,21 @@
+Product files:
+package.json
+scripts/launch-matter-desktop-canonical.mjs
+scripts/lib/matter-desktop-canonical-launch.mjs
+scripts/test/pv007-canonical-launch.test.mjs
+scripts/validate-pv007-canonical-launch.mjs
+
+Evidence files:
+workbook/forest-v0.1.17-integration-evidence/PV-007/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/PV-007/commands.txt
+workbook/forest-v0.1.17-integration-evidence/PV-007/files.txt
+workbook/forest-v0.1.17-integration-evidence/PV-007/launch-matrix.json
+workbook/forest-v0.1.17-integration-evidence/PV-007/receipt.json
+workbook/forest-v0.1.17-integration-evidence/PV-007/tests.txt
+workbook/forest-v0.1.17-integration-evidence/PV-007/screenshots/macos-canonical-package-login-0.1.17.png
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md
+
+Accepted package root:
+apps/desktop/dist/releases/0.1.17/ab7868ebad5948a1b7341fe5bcbc48d8c0181a47/internal
+
+The package root is generated and ignored. Its exact SHA-scoped paths, artifact hashes, build manifest linkage, renderer parity, process observations, and acceptance boundaries are preserved in launch-matrix.json and receipt.json.

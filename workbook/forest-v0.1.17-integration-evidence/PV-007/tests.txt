@@ -1,0 +1,84 @@
+PV-007 test-first red proof:
+- exit: 1
+- cause: requested module scripts/lib/matter-desktop-canonical-launch.mjs was absent
+- stdout sha256: ad9bfd3d7a4c6323ae9393c229c7c9fb71d96c3ec0b8d63d356bd9a6a82a831a
+- stderr sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+CLI contract:
+- help: PASS, exit 0
+- unknown argument: PASS, exit 2 with usage on stderr
+- bad-input stdout sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+- bad-input stderr sha256: c9719d4e9b3f414787fd1bfe57f5deb3f75e26af6b928a30dc0dafd6a14e4859
+- wrong package SHA: PASS, exit 1 before process mutation
+- wrong-SHA stderr sha256: 217feff5b488df92f9677918a19bb7f8489554e76f2e8ae03a5c80c60cadba8f
+- macOS platform gate: PASS
+
+Unit and source contracts:
+- PV-001 through PV-007: 25/25 PASS
+- PV-007: 4/4 PASS
+- PV-001 through PV-007 source validators: 7/7 PASS
+- paths containing spaces parse correctly
+- wrong SHA, tampered renderer, symlink app alias: rejected
+- shell/helper processes containing app-path text: ignored after actual executable resolution
+- exact duplicate process: replaceable
+- different actual bundle process: fail closed
+
+Actual exact-SHA package proof:
+- product SHA: ab7868ebad5948a1b7341fe5bcbc48d8c0181a47
+- product tree: ca5ba5a6c2c187d5ca5bfb5ed1223dc6ce931d0e
+- source_dirty: Mac false, Windows false
+- sequential build order: Mac then Windows
+- renderer distinct hash count: 1
+- renderer sha256: f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445
+- renderer file count: 28
+- staged artifact count: 9
+- artifact index, checksums, package version, manifest parity, legacy scan, canonical package validator: PASS
+
+Actual process proof:
+- dry run: PASS, mutation false
+- independently compiled different bundle: exit 1, process remained alive, launcher mutation 0
+- first launch PID: 53888
+- duplicate replacement: terminated 53888, launched 53932
+- final running PID after visual QA: 55090
+- final executable path: /private/tmp/lawos-forest-v016-release/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter
+- exact root process count: 1
+- conflicting bundle count: 0
+- packaged/staged manifest byte equality: true
+
+Rendered package QA:
+- version 0.1.17, product SHA ab7868ebad5948a1b7341fe5bcbc48d8c0181a47
+- Forest split login: PASS
+- intro state complete: PASS
+- login form 1, Forest photo panel 1, loaded image 1
+- broken image 0, console error 0, page error 0
+- screenshot sha256: bc33472da385d32c05819a969251b948e1564e9144b6f4df85c2505dd605cb49
+- native macOS screencapture produced a black frame twice and was rejected; Playwright captured the exact package renderer instead
+
+Regression:
+- Desktop smoke: 102/102 PASS
+- Desktop file bridge: 17/17 PASS
+- Desktop file bridge validators: 2/2 PASS
+- Web UI: 144 total, 143 PASS, 1 existing skip, 0 fail
+- Web typecheck: PASS
+- Web build: PASS, 1719 modules
+- CP-006 source/package/legacy/Lazyweb support: 20/20, 19/19, 4/4, 3/3 PASS
+- public renderer PII: PASS; 56 files, 30 protected values, 5 photos, printed false
+- packaging: PASS
+- syntax: PASS
+- git diff --check: PASS
+- changed-file credential-form scan: PASS; 676 added lines, findings 0
+- AI slop review: PASS
+
+Rejected QA attempts and phase notes:
+- Parsing `ps command` alone was discarded because a shell argument can contain the app path without being the app executable.
+- Parsing macOS `ps comm` was discarded because the executable name is truncated and cannot establish an exact path.
+- Copying `/bin/sleep` into a temporary app fixture did not remain a valid exact executable and was discarded; the accepted negative proof uses an independently compiled fixture.
+- Native `screencapture` returned an all-black frame and was discarded; exact-package Playwright capture is the accepted rendered proof.
+- After generated build receipts were restored for clean-source regression, a PV-002 package rerun rejected the intentionally stale receipt hash. Accepted package parity is the earlier clean product-SHA build phase with generated receipts present; the later clean-source suite excludes that package/receipt rerun.
+
+Boundaries:
+- accepted signed/notarized/stapled/Gatekeeper-ready formal Mac package: false
+- Windows native runtime/install/restart/uninstall proof: false
+- Windows Authenticode: false
+- public release: false
+- production go-live: false
