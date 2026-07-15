@@ -1,0 +1,55 @@
+{
+  "tuw": "CP-001",
+  "verdict": "PASS",
+  "recorded_at_utc": "2026-07-15T13:47:23Z",
+  "recorded_at_kst": "2026-07-15T22:47:23+09:00",
+  "entry_sha": "c342cc56bcfc36f582610951b363b3ad737222cc",
+  "exit_sha": "c342cc56bcfc36f582610951b363b3ad737222cc",
+  "product_tree_changed": false,
+  "target_count": 5,
+  "missing_sha_count": 0,
+  "target_ids": [
+    "origin_main",
+    "current_root",
+    "release_baseline",
+    "forest_checkpoint",
+    "candidate"
+  ],
+  "linear_order_verified": true,
+  "ancestry_pair_count": 10,
+  "failed_ancestry_count": 0,
+  "candidate_ahead_of_origin_main": 240,
+  "candidate_behind_origin_main": 0,
+  "remote_origin_main_match": true,
+  "release_tag_remote_match": true,
+  "stable_public_release_available": false,
+  "selected_release_baseline": {
+    "tag": "matter-desktop-v0.1.16-20260713-137fa156c",
+    "sha": "137fa156cdb6bb30bb3af72bf3e928ad7e6e4959",
+    "published": true,
+    "draft": false,
+    "prerelease": true,
+    "channel": "formal-candidate",
+    "macos_formal_verification": "PASS",
+    "windows_authenticode": false,
+    "windows_exact_published_installer_native_install_smoke": "not_run"
+  },
+  "root_preservation": {
+    "head": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3",
+    "branch": "codex/profile-contact-regression-fix",
+    "status_entry_count": 77,
+    "working_tree_sha256": "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3",
+    "mutation_count": 0
+  },
+  "evidence_sha256": {
+    "comparison_targets": "5d5349a5a4288c7eba34165fbde51e57b5a50d963d72d389c2e19bc3f94007b9",
+    "ancestry_matrix": "8b0d418c65925e3ec3b080266bc91847fd0b3897303c8d66e2f687cfeba5d526"
+  },
+  "known_limits": [
+    "CP-001 proves exact comparison identity and ancestry only; CP-002 through CP-007 prove feature superiority and compatibility.",
+    "The selected v0.1.16 baseline is a published formal-candidate prerelease, not a stable public release.",
+    "Windows Authenticode and exact published-installer native install were not proven for the v0.1.16 baseline.",
+    "No production write, public release, or go-live action is performed by CP-001."
+  ],
+  "external_blockers": []
+}

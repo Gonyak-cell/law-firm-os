@@ -1,0 +1,18 @@
+PASS target JSON parses
+PASS ancestry JSON parses
+PASS exact target count 5/5
+PASS missing SHA count 0
+PASS all five commit objects exist
+PASS all five recorded tree hashes match Git
+PASS origin/main local SHA equals remote SHA
+PASS release tag local SHA equals remote SHA
+PASS Forest archive ref equals checkpoint SHA
+PASS integration branch ref equals candidate entry SHA
+PASS GitHub v0.1.16 release is published, non-draft, and prerelease
+PASS inspected published stable release count is 0
+PASS release baseline claim does not promote prerelease to stable
+PASS ancestry pairs 10/10
+PASS linear adjacent ancestry edges 4/4
+PASS candidate ahead/behind origin/main is 240/0
+PASS root checkout remains read-only with HEAD aa653bb1 and 77 status entries
+PASS AI slop changed scan

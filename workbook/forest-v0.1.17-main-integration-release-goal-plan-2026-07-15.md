@@ -222,7 +222,7 @@ RC-003에서 우선 검토할 root-only 항목:
 
 | ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
 |---|---|---|---|---|---|
-| CP-001 | READY | 비교 대상 고정 | last stable tag, Forest checkpoint, current root, origin/main SHA 기록 | commit ancestry | SHA 누락 0 |
+| CP-001 | DONE | 비교 대상 고정 | 공개 stable 부재를 확인하고 최신 검증 v0.1.16 formal-candidate prerelease, Forest checkpoint, current root, origin/main, candidate의 full SHA·tree·ref·시점을 기록 | remote ref 일치·commit ancestry 10쌍 | 5/5 SHA, 선형 계보, 누락 0 |
 | CP-002 | READY | 제품 기능 매트릭스 | Home, Client, Matter, People, Search, Portal, auth, profile, leave, payroll 비교 | route/menu/API inventory | 핵심 기능 누락 0 |
 | CP-003 | READY | 휴가 상위 호환 검증 | 유형, 발생, lifecycle, usage, promotion, integrations, privacy | leave full suite | 0 fail |
 | CP-004 | READY | 급여 상위 호환 검증 | inputs, calc, deductions, run, docs, bank, tax, migration | payroll full suite | 0 fail |
@@ -506,6 +506,7 @@ external_blockers
 | 2026-07-15 | RC-005-A/B/C/F | DONE | `931ae4c4` | `ee03b8c1` | `workbook/forest-v0.1.17-integration-evidence/RC-005/backend-acceptance.md` | runtime·authz·leave rule/XLSX·payroll catalog 102/102, migration 8/8, web typecheck PASS |
 | 2026-07-15 | RC-005-D/E | DONE | `ee03b8c1` | `75f10995` | `workbook/forest-v0.1.17-integration-evidence/RC-005/ui-profile-acceptance.md` | Web·LV03/04/05·Mac package·profile·public renderer PII PASS; Mac/Windows renderer 동일; formal/native 경계 분리 |
 | 2026-07-15 | RC-005-G | DONE | `051344d9` | `cc5f7f87` | `workbook/forest-v0.1.17-integration-evidence/RC-005/regression-acceptance.md` | port 31/31·대체 5·미구현 0; HRX 185/185, API/authz/profile 322/322, Web 142+1 skip, Desktop 97/97, migration 19/19, PII/security PASS; 루트 지문 동일 |
+| 2026-07-15 | CP-001 | DONE | `c342cc56` | `c342cc56` | `workbook/forest-v0.1.17-integration-evidence/CP-001/` | 원격 main·root·v0.1.16 기준선·Forest checkpoint·candidate 5/5 고정; published stable 0, formal-candidate prerelease 경계 보존; ancestry 10/10, candidate main 대비 +240/-0 |
 
 ## 14. Goal Objective 원문
 
