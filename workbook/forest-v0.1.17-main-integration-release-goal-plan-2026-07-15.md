@@ -252,7 +252,7 @@ RC-003에서 우선 검토할 root-only 항목:
 | MI-004 | DONE | 전용 integration worktree | `integration/forest-v0.1.17` 생성 | worktree/branch check | 다른 쓰기 세션 0 |
 | MI-005 | DONE | 파일별 충돌 해결 | UI=Forest, auth=엄격, migration=수동, ops=안전 우선 | conflict ledger | unresolved 0, blanket ours/theirs 0 |
 | MI-006 | DONE | main-only 필수 변경 보존 | security, infra, backup, AWS, release validators 대조 | 155-path main-only matrix·268 targeted tests·source validators | 필수 변경 누락 0 |
-| MI-007 | READY | candidate commit 고정 | integration tree commit·tag candidate | clean/hash check | `INTEGRATION_SHA` 기록 |
+| MI-007 | DONE | candidate commit 고정 | integration tree commit·tag candidate | clean/hash check | `INTEGRATION_SHA=4c81d861693472af48a680e5757b352bb9945b9b` 기록 |
 
 MI-003 중단 조건:
 
@@ -526,6 +526,7 @@ external_blockers
 | 2026-07-16 | MI-004 | DONE | `4d59c9b7` | `4d59c9b7` | `workbook/forest-v0.1.17-integration-evidence/MI-004/` | 전용 `/private/tmp/lawos-forest-v017-integration`·`codex/integration/forest-v0.1.17` 생성; exact SHA·clean·upstream 없음; active writer 1, parallel writer 0; 후보·사용자 루트·PID 55090 무변경 |
 | 2026-07-16 | MI-005 | DONE | `77c500e2` | `77c500e2` | `workbook/forest-v0.1.17-integration-evidence/MI-005/` | refreshed `origin/main=fdd1e34a`; merge-base 동일·merge-tree exit 0·current tree `1a4aa9f9` 동일; conflict·resolution·unresolved·blanket ours/theirs 0, 제품·외부 mutation 0 |
 | 2026-07-16 | MI-006 | DONE | `cc2db0b2` | `cc2db0b2` | `workbook/forest-v0.1.17-integration-evidence/MI-006/` | refreshed `origin/main=fdd1e34a`; critical path 155개 중 Git object 동일 121·변경 검토 34·삭제/누락 0; authz/API/Desktop/backup/release 268/268, source/PII/security/typecheck/DR drill PASS; public header smoke는 signed-session 경계로 안전하게 대체, live AWS는 MI-001 READY 유지; 사용자 루트·PID 55090 무변경 |
+| 2026-07-16 | MI-007 | DONE | `4c81d861` | `4c81d861` | `workbook/forest-v0.1.17-integration-evidence/MI-007/` | `INTEGRATION_SHA=4c81d861693472af48a680e5757b352bb9945b9b`, tree `628b370a`; 로컬 annotated QA anchor `forest-v0.1.17-integration-candidate-4c81d861`; 제품 트리 `ab7868eb`와 digest 동일·제품 diff 0·Git fsck PASS; 원격 tag·upstream·PR·main mutation 0, 사용자 루트·PID 55090 무변경 |
 
 ## 14. Goal Objective 원문
 

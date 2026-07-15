@@ -1,0 +1,26 @@
+{
+  "schema_version": "lawos.forest.integration.mi007.tests.v1",
+  "tuw_id": "MI-007",
+  "verdict": "PASS",
+  "checks": {
+    "clean_before_tag": true,
+    "head_exact": true,
+    "tree_exact": true,
+    "origin_main_refreshed": true,
+    "origin_main_is_merge_base": true,
+    "origin_main_is_ancestor": true,
+    "non_workbook_diff_count": 0,
+    "product_digest_matches": true,
+    "git_fsck_no_dangling": true,
+    "annotated_tag": true,
+    "tag_commit_matches": true,
+    "tag_tree_matches": true,
+    "remote_tag_absent": true,
+    "branch_upstream_absent": true,
+    "formal_release_namespace_used": false,
+    "root_checkout_unchanged": true,
+    "canonical_pid_unchanged": true
+  },
+  "passed": 17,
+  "failed": 0
+}
