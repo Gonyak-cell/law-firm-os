@@ -179,7 +179,7 @@ RC-003에서 우선 검토할 root-only 항목:
 
 | ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
 |---|---|---|---|---|---|
-| MG-001 | READY | migration 충돌 crosswalk | root `011~016`과 Forest `011~025` table/column/index/constraint 매핑 | schema diff | 모든 목적 매핑 |
+| MG-001 | DONE | migration 충돌 crosswalk | root `011~016`의 145개 SQL 계약 단위를 Forest `001~025`와 대조하고 `026~028` forward-only 목적지로 분류 | 재현 가능한 schema parser·crosswalk·collision/root fingerprint 검증 | 145/145 매핑, 이식 71·상위호환 71·동일 1·충돌 거부 2, 미분류·중복·Forest 충돌 0 |
 | MG-002 | READY | 중복 구현 제거 | Forest에 포함된 root migration은 폐기 판정 | migration plan validator | 중복 table/column/index 0 |
 | MG-003 | READY | 누락 기능은 `026+`로 이동 | 기존 번호 재사용 없이 additive migration 작성 | filename/order validator | 번호 충돌 0 |
 | MG-004 | READY | fresh DB 검증 | 빈 DB에서 `001~최종` 실행 | migration tests | 0 fail |
@@ -478,6 +478,7 @@ external_blockers
 | 2026-07-15 | RC-002 | DONE | `f68bb059` | `f943b8be` | `workbook/forest-v0.1.17-integration-evidence/RC-002/` | 전체 common 52, metadata 1 제외, 제품 51/51 의미 검토, 미분류·parse error 0 |
 | 2026-07-15 | RC-003 | DONE | `65b742c5` | `7133e0df` | `workbook/forest-v0.1.17-integration-evidence/RC-003/` | root-only 25/25 판정: PORT_REQUIRED 10, PORT_TEST_ONLY 9, SUPERSEDED 5, REJECTED 1; 교차 테스트 38/38; 루트 지문 동일 |
 | 2026-07-15 | RC-004 | DONE | `3a7335b6` | `0a92cb7e` | `workbook/forest-v0.1.17-integration-evidence/RC-004/` | 제품 비교 246개, Forest-only 170/170 보존, root 기여 76/76 판정, port 31/31 그룹 배치, 기능 축 10/10, 예상 밖 변경·미분류·고아 0 |
+| 2026-07-15 | MG-001 | DONE | `3842a67f` | `6b1c615b` | `workbook/forest-v0.1.17-integration-evidence/MG-001/` | root SQL 계약 145/145: 이식 71·상위호환 71·동일 1·충돌 거부 2; `026=49`, `027=18`, `028=4`; 중복·충돌·미분류 0, 원본 지문 동일 |
 
 ## 14. Goal Objective 원문
 

@@ -3,7 +3,7 @@
 - TUW: MG-001
 - status: DONE
 - entry_sha: `3842a67f1f9285bb9d9643b9b92055d299927722`
-- exit_sha: `PENDING`
+- exit_sha: `6b1c615b5e793cf467d5bea0e478b739c4994741`
 - changed_files: generator, MG-001 evidence set, Goal execution ledger only; product runtime 0
 - root source HEAD: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`
 - root source working-tree SHA-256: `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`

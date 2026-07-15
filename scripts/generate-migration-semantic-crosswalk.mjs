@@ -14,7 +14,7 @@ if (!rootSourceArgument || process.argv.length !== 3) throw new Error(usage);
 
 const rootSource = path.resolve(rootSourceArgument);
 const candidateEntrySha = "3842a67f1f9285bb9d9643b9b92055d299927722";
-const evidenceCommitSha = "PENDING";
+const evidenceCommitSha = "6b1c615b5e793cf467d5bea0e478b739c4994741";
 const expectedRootWorktreeSha256 = "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3";
 const evidenceDir = path.join(forestRoot, "workbook/forest-v0.1.17-integration-evidence/MG-001");
 const forestMigrationDir = path.join(forestRoot, "packages/hrx/src/migrations");
