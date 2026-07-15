@@ -1,17 +1,17 @@
 {
   "schema_version": "law-firm-os.payroll.package-qa.v0.1",
-  "generated_at": "2026-07-15T05:57:23.932Z",
+  "generated_at": "2026-07-15T14:24:46.174Z",
   "verdict": "PASS",
   "synthetic_only": true,
   "source": {
-    "revision": "7717d5cee158fc97056510e8aebc9e0854d34196",
-    "renderer_sha256": "ffd5dacef10d95ba000cf1b9c6937de6028a881eded91f79c642153757c27df4"
+    "revision": "f3b38cbbe297f46fda0d5e64744bc081e9ed3d66",
+    "renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96"
   },
   "macos": {
     "bundle": "apps/desktop/dist/mac/matter.app",
     "executable": "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
     "executable_sha256": "c0bf182389ea930585e3b0bf5c4f16529461e02bf3be751cb364d0e25f2257e0",
-    "renderer_sha256": "ffd5dacef10d95ba000cf1b9c6937de6028a881eded91f79c642153757c27df4",
+    "renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96",
     "native_runtime_smoke": "pass",
     "release_channel": "internal",
     "signed_for_distribution": false,
@@ -22,8 +22,8 @@
     "executable": "apps/desktop/dist/win/matter-internal-0.1.16-win32-x64/matter.exe",
     "executable_sha256": "b0b6e0cd22a7a135e5230118be27a4c2713a516340f0bbdfb446acb9b2dae31e",
     "unsigned_zip": "apps/desktop/dist/win/matter-internal-0.1.16-win32-x64-unsigned.zip",
-    "unsigned_zip_sha256": "7ed30ee15a0f84d28d9f5bdf8c121185c61cceb3e4b6d0d0277f664c71ba431d",
-    "renderer_sha256": "ffd5dacef10d95ba000cf1b9c6937de6028a881eded91f79c642153757c27df4",
+    "unsigned_zip_sha256": "90504b6f14d937ab5acf4debb44500d0dfad78191a5f4b59f97952d5fa45567e",
+    "renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96",
     "renderer_matches_macos": true,
     "pe_header": "MZ",
     "archive_test": "pass",
@@ -33,9 +33,9 @@
   "runtime": {
     "profile": "local-dev",
     "endpoint_kind": "loopback_ephemeral",
-    "first_endpoint": "http://127.0.0.1:50505",
-    "second_endpoint": "http://127.0.0.1:50528",
-    "migration_version": "025_hrx_payroll_year_end",
+    "first_endpoint": "http://127.0.0.1:49808",
+    "second_endpoint": "http://127.0.0.1:49833",
+    "migration_version": "029_hrx_leave_accrual_rule_version_index",
     "session_restoration": "tokenless_loopback_session_restored"
   },
   "workflow": {
@@ -128,7 +128,7 @@
     {
       "name": "payroll-workspace-720x800",
       "path": "output/playwright/payroll-package/payroll-workspace-720x800.png",
-      "sha256": "cc1e659bc6d70631e955f3ef84108d226d6f75f75d8a9b7ed5f871189f43745a",
+      "sha256": "cc88da723d9c9cec97d497e433375f9bd3a4e87522d1fa5257bca01b3ac742d5",
       "viewport": {
         "width": 720,
         "height": 800
@@ -137,7 +137,7 @@
     {
       "name": "payroll-statements-1280x820",
       "path": "output/playwright/payroll-package/payroll-statements-1280x820.png",
-      "sha256": "b5392e9977f64d72f7e41fb282cf81a723deb9f11217f57b3cc5d1d5b228ff65",
+      "sha256": "f0a66fcecbc9ecfb947a0900b8c35f64edf036ea88c029d7b68a8a5b2de62453",
       "viewport": {
         "width": 1280,
         "height": 820

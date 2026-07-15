@@ -1,0 +1,129 @@
+{
+  "schema_version": "law-firm-os.cp004-payroll-upper-compatibility.v1",
+  "entry_sha": "f3b38cbbe297f46fda0d5e64744bc081e9ed3d66",
+  "plan": {
+    "path": "workbook/hrx-leave-payroll-tuw-implementation-plan-2026-07-14.md",
+    "expected_done_tuw_count": 61,
+    "done_tuw_count": 61,
+    "failed_tuws": [],
+    "external_gate": {
+      "id": "GATE-002",
+      "status": "BLOCKED",
+      "intentionally_out_of_scope": true
+    }
+  },
+  "implementation": {
+    "axis_count": 8,
+    "passing_axis_count": 8,
+    "axes": [
+      {
+        "id": "inputs_and_data",
+        "source_file_count": 5,
+        "proof_file_count": 5,
+        "required_files_present": true,
+        "contract_needles_present": true
+      },
+      {
+        "id": "calculation",
+        "source_file_count": 2,
+        "proof_file_count": 2,
+        "required_files_present": true,
+        "contract_needles_present": true
+      },
+      {
+        "id": "deductions",
+        "source_file_count": 2,
+        "proof_file_count": 2,
+        "required_files_present": true,
+        "contract_needles_present": true
+      },
+      {
+        "id": "run_lifecycle",
+        "source_file_count": 2,
+        "proof_file_count": 3,
+        "required_files_present": true,
+        "contract_needles_present": true
+      },
+      {
+        "id": "documents_and_reports",
+        "source_file_count": 2,
+        "proof_file_count": 3,
+        "required_files_present": true,
+        "contract_needles_present": true
+      },
+      {
+        "id": "bank_and_payment",
+        "source_file_count": 2,
+        "proof_file_count": 2,
+        "required_files_present": true,
+        "contract_needles_present": true
+      },
+      {
+        "id": "tax_filing_and_year_end",
+        "source_file_count": 2,
+        "proof_file_count": 2,
+        "required_files_present": true,
+        "contract_needles_present": true
+      },
+      {
+        "id": "migration_and_readiness",
+        "source_file_count": 3,
+        "proof_file_count": 3,
+        "required_files_present": true,
+        "contract_needles_present": true
+      }
+    ],
+    "failed_axes": []
+  },
+  "test_inventory": {
+    "package_file_count": 19,
+    "api_file_count": 3,
+    "web_file_count": 1,
+    "total_file_count": 23,
+    "missing_files": []
+  },
+  "current_internal_package_qa": {
+    "path": "docs/lazycodex/evidence/matter-desktop/artifacts/payroll-package-qa-2026-07-15.json",
+    "sha256": "7ee2524e916d027dceda8c801c19696102121eed7dca5d6e345c79a40df3b6da",
+    "source_revision": "f3b38cbbe297f46fda0d5e64744bc081e9ed3d66",
+    "exact_build_sha": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c",
+    "renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96",
+    "scenario_count": 9,
+    "screenshot_count": 5,
+    "checks": {
+      "verdict_pass": true,
+      "synthetic_only": true,
+      "source_revision_matches_entry": true,
+      "product_runtime_unchanged_since_exact_build": true,
+      "renderer_matches_exact": true,
+      "nine_scenarios_pass": true,
+      "restart_snapshot_identical": true,
+      "five_screenshots_clean": true,
+      "diagnostics_clean": true,
+      "mac_internal_boundary_exact": true,
+      "windows_boundary_exact": true,
+      "claim_boundaries_false": true
+    },
+    "failed_checks": [],
+    "verification_scope": "mac_internal_functional_and_windows_structure_renderer_parity"
+  },
+  "historical_browser_qa": {
+    "path": "docs/lazycodex/evidence/matter-web/artifacts/payroll-browser-qa-2026-07-15.json",
+    "sha256": "04ff52bad00e3846a46f45a5d43f3c932b9a7d15b1dcb2daf7be3a5e9dd5dbae",
+    "role_count": 6,
+    "role_viewport_count": 30,
+    "checks": {
+      "six_roles": true,
+      "thirty_role_viewports": true,
+      "five_widths": true,
+      "all_recorded_checks_pass": true,
+      "unexpected_errors_zero": true,
+      "source_revision_attested": false,
+      "accepted_as_current_source_proof": false
+    },
+    "failed_recorded_checks": [],
+    "verification_scope": "historical_supporting_receipt_without_source_revision",
+    "current_source_proof": false
+  },
+  "verdict": "PASS"
+}
