@@ -1,0 +1,11 @@
+git status --short
+node --check changed HRX JavaScript and test files
+node --test packages/hrx/test/migration.test.js packages/hrx/test/payroll-item-catalog.test.js packages/hrx/test/payroll-profile-service.test.js packages/hrx/test/payroll-time-input-snapshot.test.js packages/hrx/test/payroll-input-snapshot-service.test.js packages/hrx/test/payroll-repository.test.js packages/hrx/test/leave-accrual-service.test.js packages/hrx/test/leave-accrual-batch-service.test.js packages/hrx/test/leave-accrual-batch-repository.test.js
+node scripts/generate-forward-migration-evidence.mjs --help
+node scripts/generate-forward-migration-evidence.mjs # expected usage failure
+node scripts/generate-forward-migration-evidence.mjs "/Users/jws/Documents/Codex/Law Firm OS" --evidence-commit-sha=PENDING
+node --test packages/hrx/test/*.test.js
+npm run build
+git diff --check
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed
+rerun generator and compare MG-003 evidence directory SHA-256 manifest

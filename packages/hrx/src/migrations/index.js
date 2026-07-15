@@ -106,6 +106,18 @@ export const HRX_CORE_MIGRATIONS = Object.freeze([
     id: "025_hrx_payroll_year_end",
     filename: "025_hrx_payroll_year_end.sql",
   }),
+  Object.freeze({
+    id: "026_hrx_payroll_catalog_assignments",
+    filename: "026_hrx_payroll_catalog_assignments.sql",
+  }),
+  Object.freeze({
+    id: "027_hrx_attendance_approval_receipts",
+    filename: "027_hrx_attendance_approval_receipts.sql",
+  }),
+  Object.freeze({
+    id: "028_hrx_leave_accrual_rule_versions",
+    filename: "028_hrx_leave_accrual_rule_versions.sql",
+  }),
 ]);
 
 const UNSAFE_SQL_PATTERNS = Object.freeze([

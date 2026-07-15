@@ -64,6 +64,9 @@ test("HRX migrations create required tables idempotently", () => {
     "hrx_payroll_periods",
     "hrx_payroll_runs",
     "hrx_payroll_profiles",
+    "hrx_payroll_items",
+    "hrx_payroll_item_assignments",
+    "hrx_attendance_approval_receipts",
     "hrx_payroll_input_snapshots",
     "hrx_payroll_issues",
     "hrx_payroll_employee_results",
@@ -113,6 +116,12 @@ test("HRX migrations create required tables idempotently", () => {
   assert.match(sql, /ALTER TABLE hrx_payroll_profiles ADD COLUMN compensation_unit/);
   assert.match(sql, /ALTER TABLE hrx_payroll_profiles ADD COLUMN compensation_quantity/);
   assert.match(sql, /ALTER TABLE hrx_payroll_profiles ADD COLUMN withholding_category/);
+  assert.match(sql, /CREATE TRIGGER IF NOT EXISTS trg_hrx_payroll_item_assignments_immutable_update/);
+  assert.match(sql, /CREATE TRIGGER IF NOT EXISTS trg_hrx_attendance_approval_receipts_immutable_update/);
+  assert.match(sql, /ALTER TABLE hrx_leave_accrual_rules ADD COLUMN logical_rule_code/);
+  assert.match(sql, /ALTER TABLE hrx_leave_accrual_rules ADD COLUMN version INTEGER NOT NULL DEFAULT 1/);
+  assert.match(sql, /ALTER TABLE hrx_leave_accrual_rules ADD COLUMN supersedes_rule_id/);
+  assert.match(sql, /ALTER TABLE hrx_leave_accrual_runs ADD COLUMN as_of_date/);
 });
 
 test("HRX core migration is non-destructive", () => {
@@ -146,5 +155,5 @@ test("HRX migration loader rejects destructive SQL", () => {
     /unsafe SQL pattern/,
   );
   assert.equal(loadHrxCoreMigrations()[0].id, "001_hrx_core");
-  assert.equal(loadHrxCoreMigrations().at(-1).id, "025_hrx_payroll_year_end");
+  assert.equal(loadHrxCoreMigrations().at(-1).id, "028_hrx_leave_accrual_rule_versions");
 });

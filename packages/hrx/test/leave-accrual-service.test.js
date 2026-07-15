@@ -87,6 +87,50 @@ test("automatic accrual previews statutory boundaries and executes once", () => 
   assert.equal(store.query("select", { table: "hrx_leave_balance_entries", where: { tenant_id: TENANT, entry_type: "earned" } }).length, 5);
 });
 
+test("accrual rule versions preserve logical lineage and run as-of date", () => {
+  const { store, service, context, rule } = createFixture();
+  const next = service.createRule(context, {
+    accrual_rule_id: "annual-rule-v2",
+    rule_code: "ANNUAL_STATUTORY_V2",
+    logical_rule_code: rule.logical_rule_code,
+    version: 2,
+    supersedes_rule_id: rule.accrual_rule_id,
+    display_name: "법정 연차 v2",
+    policy_version_id: "annual-v1",
+    effective_from: "2027-01-01",
+    rule: { basis: "korean_statutory_annual", schedule: "fixed_annual_date", annual_date: "07-13", minutes_per_day: 480, expiration_months: 12 },
+  });
+  assert.deepEqual(
+    [rule.logical_rule_code, rule.version, next.logical_rule_code, next.version, next.supersedes_rule_id],
+    ["ANNUAL_STATUTORY", 1, "ANNUAL_STATUTORY", 2, "annual-rule"],
+  );
+  const preview = service.preview(context, {
+    accrual_rule_id: rule.accrual_rule_id,
+    period_key: "2026-as-of",
+    occurred_on: OCCURRED_ON,
+    as_of_date: "2026-07-12",
+  });
+  assert.equal(store.query("selectOne", {
+    table: "hrx_leave_accrual_runs",
+    where: { tenant_id: TENANT, accrual_run_id: preview.accrual_run_id },
+  }).as_of_date, "2026-07-12");
+  assert.throws(
+    () => service.createRule(context, {
+      accrual_rule_id: "annual-rule-v4",
+      rule_code: "ANNUAL_STATUTORY_V4",
+      logical_rule_code: rule.logical_rule_code,
+      version: 4,
+      supersedes_rule_id: rule.accrual_rule_id,
+      display_name: "잘못된 버전",
+      policy_version_id: "annual-v1",
+      effective_from: "2028-01-01",
+      rule: { basis: "fixed_amount", schedule: "fixed_annual_date", annual_date: "07-13", amount_minutes: 480 },
+    }),
+    (error) => error.safe_error_code === "HRX_LEAVE_ACCRUAL_RULE_VERSION_INVALID",
+  );
+  store.close();
+});
+
 test("automatic accrual rejects execution after source version changes", () => {
   const { service, context, rule, setSourceVersion } = createFixture();
   const preview = service.preview(context, { accrual_rule_id: rule.accrual_rule_id, period_key: "2026-stale", occurred_on: OCCURRED_ON });

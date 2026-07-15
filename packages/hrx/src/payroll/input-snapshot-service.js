@@ -3,6 +3,7 @@ import { createCompanyTimePayrollPolicyManifest } from "../company-policy-manife
 import { decryptCompensationAmountRef } from "../compensation.js";
 import { assertHrxStorePort } from "../store/port.js";
 import { createPayrollDataHash } from "./repository.js";
+import { selectApprovedAttendance } from "../payroll-time-input-snapshot.js";
 
 const PAYROLL_TYPES = new Set(["monthly", "hourly", "daily", "freelancer"]);
 const OVERTIME_SEGMENTS = new Set(["overtime", "night", "holiday"]);
@@ -136,14 +137,31 @@ function captureAttendance(store, tenantId, employeeId, period, manifest) {
     .filter((row) => row.work_date >= period.period_start && row.work_date <= period.period_end)
     .filter((row) => atOrBefore(row.created_at, period.cutoff_at));
   const effective = effectiveAttendance(all);
+  const receipts = store.query("select", {
+    table: "hrx_attendance_approval_receipts",
+    where: { tenant_id: tenantId, employee_id: employeeId },
+  });
+  const approved = selectApprovedAttendance({
+    attendance_records: all,
+    approval_receipts: receipts,
+    tenant_id: tenantId,
+    period_start: period.period_start,
+    period_end: period.period_end,
+    as_of: period.cutoff_at,
+  });
   const totals = { present_days: 0, remote_days: 0, absent_days: 0, leave_days: 0, holiday_days: 0, payable_minutes: 0 };
-  for (const row of effective.rows) {
+  for (const row of approved) {
     totals[`${row.status}_days`] = (totals[`${row.status}_days`] ?? 0) + 1;
     totals.payable_minutes += attendanceMinutes(row, manifest.standard_work);
   }
+  const approvedIds = new Set(approved.map((row) => row.attendance_id));
+  const approvalRows = receipts.filter((row) => approvedIds.has(row.attendance_id));
   return {
-    data: Object.freeze({ ...totals, source_count: effective.rows.length }),
-    refs: sourceRows(effective.rows, "attendance", "attendance_id", ["attendance_id", "work_date", "status", "recorded_hours", "clock_in_at", "clock_out_at", "correction_of_attendance_id"]),
+    data: Object.freeze({ ...totals, source_count: approved.length }),
+    refs: [
+      ...sourceRows(approved, "attendance", "attendance_id", ["attendance_id", "work_date", "status", "recorded_hours", "clock_in_at", "clock_out_at", "correction_of_attendance_id"]),
+      ...sourceRows(approvalRows, "attendance-approval", "approval_receipt_id", ["approval_receipt_id", "attendance_id", "approved_by_actor_id", "approved_at", "attendance_source_ref"]),
+    ],
     warnings: effective.duplicate_dates.length ? [{ code: "PAYROLL_ATTENDANCE_DUPLICATE_DATE", details: { duplicate_date_count: effective.duplicate_dates.length } }] : [],
   };
 }

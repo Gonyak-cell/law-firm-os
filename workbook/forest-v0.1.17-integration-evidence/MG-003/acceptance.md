@@ -1,0 +1,22 @@
+# MG-003 Acceptance
+
+- TUW: MG-003
+- status: DONE
+- entry_sha: `b6fd5b7142d6215093e658bd93b35d7de6366f82`
+- exit_sha: `PENDING`
+- changed_files: forward migrations 026-028, store/port/runtime adapters, targeted tests, deterministic evidence generator, MG-003 evidence set, Goal execution ledger
+- root source HEAD: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`
+- root source working-tree SHA-256: `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`
+- migration lineage: 001_hrx_core.sql through 028_hrx_leave_accrual_rule_versions.sql (28/28)
+- approved forward contracts: 71/71
+- forward counts: 026=49, 027=18, 028=4
+- contract differences: missing 0, unexpected 0, definition mismatch 0
+- forbidden contract hits: 0
+- runtime wiring missing tokens: 0
+- commands: see `commands.txt`
+- test_result: syntax, 49 targeted migration/payroll/leave tests, 563 complete HRX tests, web production build, exact 71-contract mapping, filename/order/loader, forbidden-schema, runtime wiring, root fingerprint, and deterministic checks PASS
+- manual_qa: Forest payroll profile ownership, assignment encryption/masking, approved attendance projection, correction replacement, exact night/holiday minutes, leave rule lineage, and run as-of behavior inspected
+- evidence_hashes: contract `1e8cc9947ec8b066851103ddbe9dbbf2743fd6f6d934d068e481472133100b7b`, forbidden scan `b3105d2cb88300f756c606e274b21f51d2ba4af478ad009025b0fd93c7704e1c`, runtime wiring `9c6058794899e9bedde4ca82e9795425c4f4a198976a2c58b9de2f2078645e74`
+- known_limits: MG-003 implements and unit-tests the additive contracts; fresh install, upgrade, rollback, and restore remain MG-004 through MG-006
+- external_blockers: none
+- AI slop review: pass; no product UI or user-facing copy changed

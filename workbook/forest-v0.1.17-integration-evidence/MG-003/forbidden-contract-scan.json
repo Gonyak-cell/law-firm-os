@@ -1,0 +1,21 @@
+{
+  "scanned_migrations": [
+    "026_hrx_payroll_catalog_assignments.sql",
+    "027_hrx_attendance_approval_receipts.sql",
+    "028_hrx_leave_accrual_rule_versions.sql"
+  ],
+  "forbidden_contracts": [
+    "duplicate_payroll_profiles",
+    "immutable_payroll_profile_update",
+    "immutable_payroll_profile_delete",
+    "parallel_time_snapshots",
+    "parallel_time_snapshot_sources",
+    "root_pay_frequency",
+    "root_usage_units",
+    "root_entitlement_status",
+    "root_entitlement_cancellation"
+  ],
+  "hit_count": 0,
+  "hits": [],
+  "verdict": "PASS"
+}

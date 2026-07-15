@@ -60,6 +60,9 @@ const PRIMARY_KEYS = Object.freeze({
   hrx_payroll_periods: ["tenant_id", "period_id"],
   hrx_payroll_runs: ["tenant_id", "run_id"],
   hrx_payroll_profiles: ["tenant_id", "payroll_profile_id"],
+  hrx_payroll_items: ["tenant_id", "item_id"],
+  hrx_payroll_item_assignments: ["tenant_id", "assignment_id"],
+  hrx_attendance_approval_receipts: ["tenant_id", "approval_receipt_id"],
   hrx_payroll_input_snapshots: ["tenant_id", "snapshot_id"],
   hrx_payroll_employee_results: ["tenant_id", "result_id"],
   hrx_payroll_line_items: ["tenant_id", "line_item_id"],
@@ -92,6 +95,7 @@ const CAS_TABLES = new Set([
   "hrx_payroll_periods",
   "hrx_payroll_runs",
   "hrx_payroll_profiles",
+  "hrx_payroll_items",
   "hrx_payroll_rule_versions",
   "hrx_payroll_statement_templates",
   "hrx_payroll_statements",
@@ -108,6 +112,8 @@ const APPEND_ONLY_TABLES = new Set([
   "hrx_compensation_records",
   "hrx_leave_balance_entries",
   "hrx_payroll_input_snapshots",
+  "hrx_payroll_item_assignments",
+  "hrx_attendance_approval_receipts",
   "hrx_payroll_employee_results",
   "hrx_payroll_line_items",
   "hrx_payroll_adjustments",
@@ -165,6 +171,12 @@ const UNIQUE_CONSTRAINTS = Object.freeze({
   hrx_payroll_periods: [["tenant_id", "period_code"]],
   hrx_payroll_runs: [["tenant_id", "period_id", "run_type", "previous_run_id"]],
   hrx_payroll_profiles: [["tenant_id", "employee_id", "effective_from"]],
+  hrx_payroll_items: [["tenant_id", "code"]],
+  hrx_payroll_item_assignments: [["tenant_id", "employee_id", "item_id", "version"]],
+  hrx_attendance_approval_receipts: [
+    ["tenant_id", "attendance_id"],
+    ["tenant_id", "idempotency_key"],
+  ],
   hrx_payroll_input_snapshots: [["tenant_id", "run_id", "employee_id"]],
   hrx_payroll_employee_results: [["tenant_id", "run_id", "employee_id"]],
   hrx_payroll_line_items: [["tenant_id", "result_id", "item_code"]],
@@ -423,6 +435,15 @@ function assertPayrollReferences(state, table, row) {
   const refs = {
     hrx_payroll_runs: [["hrx_payroll_periods", ["tenant_id", "period_id"]]],
     hrx_payroll_profiles: [["hrx_employees", ["tenant_id", "employee_id"]]],
+    hrx_payroll_item_assignments: [
+      ["hrx_payroll_profiles", ["tenant_id", "payroll_profile_id"]],
+      ["hrx_employees", ["tenant_id", "employee_id"]],
+      ["hrx_payroll_items", ["tenant_id", "item_id"]],
+    ],
+    hrx_attendance_approval_receipts: [
+      ["hrx_attendance_records", ["tenant_id", "attendance_id"]],
+      ["hrx_employees", ["tenant_id", "employee_id"]],
+    ],
     hrx_payroll_input_snapshots: [
       ["hrx_payroll_runs", ["tenant_id", "run_id"]],
       ["hrx_employees", ["tenant_id", "employee_id"]],
@@ -507,6 +528,39 @@ function assertPayrollConstraints(state, table, row) {
     for (const blocked of ["amount", "salary", "hourly_rate", "daily_rate", "bank_account", "account_number"]) {
       if (Object.hasOwn(row, blocked)) throw new TypeError(`payroll profile must not include raw ${blocked}`);
     }
+  }
+  if (table === "hrx_payroll_items") {
+    for (const field of ["code", "display_name", "kind", "tax_treatment", "value_mode", "effective_from", "status"]) {
+      if (typeof row[field] !== "string" || !row[field].trim()) throw new TypeError(`payroll item ${field} is required`);
+    }
+    if (!["earning", "deduction"].includes(row.kind)) throw new TypeError("payroll item kind is invalid");
+    if (!["taxable", "non_taxable"].includes(row.tax_treatment)) throw new TypeError("payroll item tax_treatment is invalid");
+    if (!["fixed", "variable"].includes(row.value_mode)) throw new TypeError("payroll item value_mode is invalid");
+    if (!["active", "inactive"].includes(row.status)) throw new TypeError("payroll item status is invalid");
+    if (!Number.isInteger(row.calculation_order) || row.calculation_order < 0) throw new TypeError("payroll item calculation_order is invalid");
+    assertIsoDate(row.effective_from, "payroll item effective_from");
+    if (isPresent(row.effective_to)) assertIsoDate(row.effective_to, "payroll item effective_to");
+    if (isPresent(row.effective_to) && row.effective_from > row.effective_to) throw new TypeError("payroll item effective range is invalid");
+  }
+  if (table === "hrx_payroll_item_assignments") {
+    if (!Number.isInteger(row.version) || row.version < 1) throw new TypeError("payroll assignment version is invalid");
+    if (!["active", "inactive"].includes(row.status)) throw new TypeError("payroll assignment status is invalid");
+    if (row.raw_amount_included !== false && row.raw_amount_included !== 0) throw new TypeError("payroll assignment raw amount is forbidden");
+    if (typeof row.encrypted_amount_ref !== "string" || !row.encrypted_amount_ref.startsWith("lawos-comp-v1.")) {
+      throw new TypeError("payroll assignment encrypted_amount_ref is invalid");
+    }
+    for (const field of ["currency_ref", "source_ref"]) {
+      if (typeof row[field] !== "string" || !row[field].trim()) throw new TypeError(`payroll assignment ${field} is required`);
+    }
+    assertIsoDate(row.effective_from, "payroll assignment effective_from");
+    if (isPresent(row.effective_to)) assertIsoDate(row.effective_to, "payroll assignment effective_to");
+    if (isPresent(row.effective_to) && row.effective_from > row.effective_to) throw new TypeError("payroll assignment effective range is invalid");
+  }
+  if (table === "hrx_attendance_approval_receipts") {
+    for (const field of ["approved_by_actor_id", "approved_at", "attendance_source_ref", "idempotency_key"]) {
+      if (typeof row[field] !== "string" || !row[field].trim()) throw new TypeError(`attendance approval receipt ${field} is required`);
+    }
+    if (Number.isNaN(Date.parse(row.approved_at))) throw new TypeError("attendance approval receipt approved_at is invalid");
   }
   if (table === "hrx_payroll_input_snapshots") {
     assertSha256(row.source_hash, "payroll input source_hash");
@@ -725,6 +779,18 @@ function assertCoreConstraints(state, table, row) {
       }
     }
     if (!["active", "inactive"].includes(row.status)) throw new TypeError("leave accrual rule status must be active or inactive");
+    if (isPresent(row.logical_rule_code) && (typeof row.logical_rule_code !== "string" || !row.logical_rule_code.trim())) {
+      throw new TypeError("leave accrual rule logical_rule_code is invalid");
+    }
+    if (isPresent(row.version) && (!Number.isInteger(row.version) || row.version < 1)) {
+      throw new TypeError("leave accrual rule version must be a positive integer");
+    }
+    if (isPresent(row.supersedes_rule_id)) {
+      const previous = state.tables.hrx_leave_accrual_rules.find(
+        (candidate) => candidate.tenant_id === row.tenant_id && candidate.accrual_rule_id === row.supersedes_rule_id,
+      );
+      if (!previous) throw new ReferenceError(`leave accrual superseded rule not found: ${row.supersedes_rule_id}`);
+    }
   }
   if (table === "hrx_leave_accrual_runs") {
     for (const field of ["period_key", "occurred_on", "source_version", "input_hash", "snapshot_hash", "idempotency_key", "result_json"]) {
@@ -733,6 +799,7 @@ function assertCoreConstraints(state, table, row) {
       }
     }
     if (!["preview", "execute"].includes(row.mode)) throw new TypeError("leave accrual run mode must be preview or execute");
+    if (isPresent(row.as_of_date)) assertIsoDate(row.as_of_date, "leave accrual run as_of_date");
   }
   if (table === "hrx_leave_accrual_batches") {
     for (const field of ["period_start", "period_end", "input_hash", "idempotency_key", "executed_by"]) {

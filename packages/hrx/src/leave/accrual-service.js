@@ -457,10 +457,30 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
     const policyVersionId = requiredString(input, "policy_version_id");
     const policy = store.query("selectOne", { table: "hrx_leave_policy_versions", where: { tenant_id: tenantId, policy_version_id: policyVersionId } });
     if (!policy || policy.status !== "active") throw guardedError("Active policy version not found", "HRX_LEAVE_POLICY_NOT_ACTIVE");
+    const ruleCode = requiredString(input, "rule_code");
+    const logicalRuleCode = input.logical_rule_code ? requiredString(input, "logical_rule_code") : ruleCode;
+    const version = input.version ?? 1;
+    if (!Number.isInteger(version) || version < 1) throw new TypeError("version must be a positive integer");
+    const supersedesRuleId = input.supersedes_rule_id ? requiredString(input, "supersedes_rule_id") : null;
+    if (supersedesRuleId) {
+      const previous = store.query("selectOne", {
+        table: "hrx_leave_accrual_rules",
+        where: { tenant_id: tenantId, accrual_rule_id: supersedesRuleId },
+      });
+      if (!previous) throw guardedError("Superseded accrual rule not found", "HRX_LEAVE_ACCRUAL_SUPERSEDED_RULE_NOT_FOUND", 404);
+      if ((previous.logical_rule_code ?? previous.rule_code) !== logicalRuleCode || (previous.version ?? 1) + 1 !== version) {
+        throw guardedError("Accrual rule version lineage is invalid", "HRX_LEAVE_ACCRUAL_RULE_VERSION_INVALID");
+      }
+    } else if (version !== 1) {
+      throw guardedError("Accrual rule version requires a predecessor", "HRX_LEAVE_ACCRUAL_RULE_VERSION_INVALID");
+    }
     const row = {
       tenant_id: tenantId,
       accrual_rule_id: input.accrual_rule_id ?? idFactory("leave_accrual_rule"),
-      rule_code: requiredString(input, "rule_code"),
+      rule_code: ruleCode,
+      logical_rule_code: logicalRuleCode,
+      version,
+      supersedes_rule_id: supersedesRuleId,
       display_name: requiredString(input, "display_name"),
       policy_version_id: policyVersionId,
       rule_json: JSON.stringify(parseRule({ rule_json: JSON.stringify(input.rule ?? {}) })),
@@ -473,7 +493,7 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
     };
     return store.transaction((tx) => {
       const created = tx.query("insert", { table: "hrx_leave_accrual_rules", row });
-      createSqlHrxAuditEventStore({ store: tx }).append({ event_id: idFactory("leave_audit_accrual_rule"), tenant_id: tenantId, actor_id: actorId, action: "hrx.leave.accrual.rule.create", object_type: "LeaveAccrualRule", object_id: created.accrual_rule_id, decision: "allow", reason: "leave_accrual_rule_created", occurred_at: clock(), metadata: { policy_version_id: policyVersionId } });
+      createSqlHrxAuditEventStore({ store: tx }).append({ event_id: idFactory("leave_audit_accrual_rule"), tenant_id: tenantId, actor_id: actorId, action: "hrx.leave.accrual.rule.create", object_type: "LeaveAccrualRule", object_id: created.accrual_rule_id, decision: "allow", reason: "leave_accrual_rule_created", occurred_at: clock(), metadata: { policy_version_id: policyVersionId, logical_rule_code: logicalRuleCode, version, supersedes_rule_id: supersedesRuleId } });
       return Object.freeze(clone(created));
     });
   }
@@ -484,6 +504,7 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
     const ruleId = requiredString(input, "accrual_rule_id");
     const periodKey = requiredString(input, "period_key");
     const occurredOn = isoDate(input.occurred_on, "occurred_on");
+    const asOfDate = input.as_of_date ? isoDate(input.as_of_date, "as_of_date") : occurredOn;
     const rule = store.query("selectOne", { table: "hrx_leave_accrual_rules", where: { tenant_id: tenantId, accrual_rule_id: ruleId } });
     if (!rule || rule.status !== "active" || rule.effective_from > occurredOn || rule.effective_to && rule.effective_to < occurredOn) {
       throw guardedError("Active accrual rule not found for date", "HRX_LEAVE_ACCRUAL_RULE_NOT_ACTIVE", 404);
@@ -505,6 +526,7 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
       mode: "preview",
       period_key: periodKey,
       occurred_on: occurredOn,
+      as_of_date: asOfDate,
       source_version: source.source_version,
       input_hash: inputHash,
       snapshot_hash: snapshotHash,
@@ -574,7 +596,7 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
         return Object.freeze({ ...row, status: "created", reason_code: "accrued", entitlement_id: entitlementId });
       });
       const result = Object.freeze({ ...current, rows: Object.freeze(rows), counts: Object.freeze({ created: rows.filter((row) => row.status === "created").length, duplicates: rows.filter((row) => row.status === "duplicate").length, skipped: rows.filter((row) => row.status === "skipped").length, errors: rows.filter((row) => row.status === "error").length, new_entries: rows.filter((row) => row.status === "created").length }) });
-      const run = tx.query("insert", { table: "hrx_leave_accrual_runs", row: { tenant_id: tenantId, accrual_run_id: idFactory("leave_accrual_execute"), accrual_rule_id: rule.accrual_rule_id, mode: "execute", period_key: previewRun.period_key, occurred_on: previewRun.occurred_on, source_version: source.source_version, input_hash: previewRun.input_hash, snapshot_hash: previewRun.snapshot_hash, preview_run_id: previewRunId, idempotency_key: replayKey, status: result.counts.errors > 0 ? "completed_with_errors" : "completed", result_json: JSON.stringify(result), executed_by: actorId, created_at: now, completed_at: now } });
+      const run = tx.query("insert", { table: "hrx_leave_accrual_runs", row: { tenant_id: tenantId, accrual_run_id: idFactory("leave_accrual_execute"), accrual_rule_id: rule.accrual_rule_id, mode: "execute", period_key: previewRun.period_key, occurred_on: previewRun.occurred_on, as_of_date: previewRun.as_of_date ?? previewRun.occurred_on, source_version: source.source_version, input_hash: previewRun.input_hash, snapshot_hash: previewRun.snapshot_hash, preview_run_id: previewRunId, idempotency_key: replayKey, status: result.counts.errors > 0 ? "completed_with_errors" : "completed", result_json: JSON.stringify(result), executed_by: actorId, created_at: now, completed_at: now } });
       createSqlHrxAuditEventStore({ store: tx }).append({ event_id: idFactory("leave_audit_accrual_execute"), tenant_id: tenantId, actor_id: actorId, action: "hrx.leave.accrual.execute", object_type: "LeaveAccrualRun", object_id: run.accrual_run_id, decision: "allow", reason: "leave_accrual_executed_from_matching_preview", occurred_at: now, metadata: { preview_run_id: previewRunId, created_count: result.counts.created, duplicate_count: result.counts.duplicates, error_count: result.counts.errors } });
       return runView(run);
     });

@@ -1,0 +1,54 @@
+{
+  "files": [
+    {
+      "path": "packages/hrx/src/index.js",
+      "sha256": "d20f94975458eb251a6bea21efe4f50cce49aa390f4b4154c6a98a850c5af1e1",
+      "required_token_count": 3
+    },
+    {
+      "path": "packages/hrx/src/store/port.js",
+      "sha256": "462a03dc77be3d2d05636d693f40e1b10c82e04c3815c5cb524a963f31405290",
+      "required_token_count": 3
+    },
+    {
+      "path": "packages/hrx/src/store/file-store.js",
+      "sha256": "03e989c86d1b5101e567452d1a68a576930f45b6e31e175ab2549f5f0e6d36cc",
+      "required_token_count": 5
+    },
+    {
+      "path": "packages/hrx/src/payroll-item-catalog.js",
+      "sha256": "5e4bdd641af1fb292384ec2b4d6ce3a1f8cda051a2e8c895e6de2a6bb9be63bc",
+      "required_token_count": 3
+    },
+    {
+      "path": "packages/hrx/src/payroll-profile-service.js",
+      "sha256": "efb85fe1c737db5e12071f7060243e9e2d75f134e34226ee35b937c1847c9055",
+      "required_token_count": 5
+    },
+    {
+      "path": "packages/hrx/src/payroll-time-input-snapshot.js",
+      "sha256": "4eb9a2ce7346bbfc8b2a43106f7537ef6915393fc2747cbea0ef7fa1cfcd0275",
+      "required_token_count": 5
+    },
+    {
+      "path": "packages/hrx/src/payroll/input-snapshot-service.js",
+      "sha256": "a58d26bcfb7498841174ddfda5da43f2de0a458eca5cf7ebc30c70714a3e5094",
+      "required_token_count": 4
+    },
+    {
+      "path": "packages/hrx/src/leave/accrual-service.js",
+      "sha256": "5ced8f0f2ab1a3e703573c1ecc5ea35ea68b13a374379b4f900e270de7b80652",
+      "required_token_count": 3
+    },
+    {
+      "path": "packages/hrx/src/payroll/repository.js",
+      "sha256": "2f87182d213c63f30d4aa7139b39d6b837535936165f814fbb1ed8f5069ee022",
+      "required_token_count": 4
+    }
+  ],
+  "missing_token_count": 0,
+  "profile_mutability_owner": "packages/hrx/src/payroll/repository.js",
+  "attendance_projection_owner": "packages/hrx/src/payroll/input-snapshot-service.js",
+  "parallel_snapshot_tables": 0,
+  "verdict": "PASS"
+}

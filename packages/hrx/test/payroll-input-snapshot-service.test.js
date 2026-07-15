@@ -5,6 +5,7 @@ import { createSqlLeaveBalanceLedger } from "../src/leave/balance.js";
 import { runHrxMigrations } from "../src/migrations/index.js";
 import { createPayrollInputSnapshotService, createServerCompensationResolver } from "../src/payroll/input-snapshot-service.js";
 import { createPayrollRepository } from "../src/payroll/repository.js";
+import { createSqlPayrollTimeInputService } from "../src/payroll-time-input-snapshot.js";
 import { createSqlHrxRepository } from "../src/repository-sql.js";
 import { createFileHrxStore } from "../src/store/file-store.js";
 
@@ -199,6 +200,10 @@ test("PY-IN-003 freezes the effective attendance correction at capture cutoff", 
   seedPerson(value, { employee_id: "emp-attendance" });
   insertAttendance(value.store, value.context.tenant_id, { attendance_id: "att-original", employee_id: "emp-attendance", work_date: "2026-07-10", recorded_hours: 8, created_at: "2026-07-10T09:00:00.000Z" });
   insertAttendance(value.store, value.context.tenant_id, { attendance_id: "att-correction", employee_id: "emp-attendance", work_date: "2026-07-10", recorded_hours: 7, correction_of_attendance_id: "att-original", correction_reason: "synthetic correction", created_at: "2026-07-20T09:00:00.000Z" });
+  createSqlPayrollTimeInputService({ store: value.store, clock: () => NOW }).recordAttendanceApproval(
+    value.context,
+    { attendance_id: "att-correction", approval_receipt_id: "approval-correction", approved_at: "2026-07-20T10:00:00.000Z", idempotency_key: "approve:att-correction:v1" },
+  );
   const first = value.service.capture(value.context, { run_id: value.run.run_id });
   assert.equal(first.snapshots[0].payable_minutes, 420);
 
