@@ -238,7 +238,7 @@ RC-003에서 우선 검토할 root-only 항목:
 | PV-002 | DONE | build manifest | version, full SHA, renderer hash, channel, time 포함 | manifest schema/hash | package 내부와 receipt 일치 |
 | PV-003 | DONE | clean-SHA build gate | dirty tree·SHA 불일치·허용 외 branch formal build 차단 | positive/negative tests | formal bypass 0 |
 | PV-004 | DONE | 채널·bundle ID 분리 | dev/internal/candidate/formal 분리 | package metadata tests | OS 앱 식별 충돌 0 |
-| PV-005 | READY | SHA 기반 artifact 경로 | `dist/releases/<version>/<sha>/...` | path validator | generic path를 release truth로 사용 0 |
+| PV-005 | DONE | SHA 기반 artifact 경로 | `dist/releases/<version>/<sha>/...` | path validator | generic path를 release truth로 사용 0 |
 | PV-006 | READY | legacy asset/reference validator | stale login, Parnas, Petrabridge, old mark, retired UI refs 검사 | source+bundle scan | 금지 참조 0 |
 | PV-007 | READY | canonical launch command | 중복 종료, exact path launch, PID/path/manifest 확인 | launcher tests | 다른 bundle 실행 시 fail closed |
 
@@ -518,6 +518,7 @@ external_blockers
 | 2026-07-16 | PV-003 | DONE | `039ddf41` | `72d12902` | `workbook/forest-v0.1.17-integration-evidence/PV-003/` | formal entrypoint 4/4 공통 fail-closed gate; dirty 4/4·비허용 branch 4/4·SHA mismatch 차단, artifact mutation 0; detached exact-SHA Windows 실제 build PASS; Mac distribution gate 분리; bypass 0 |
 | 2026-07-16 | PV-003-QA | DONE | `298bbb2b` | `298bbb2b` | `workbook/forest-v0.1.17-integration-evidence/PV-003/same-sha-renderer-parity.json` | 동일 clean detached SHA 순차 Mac/Windows internal 재빌드; Web·Mac·Windows renderer `f0a043de`·28 files 동일, byte diff 0; PV-001/PV-002·public renderer PII PASS; formal/native 비주장 유지 |
 | 2026-07-16 | PV-004 | DONE | `34d689f0` | `f5344fde` | `workbook/forest-v0.1.17-integration-evidence/PV-004/` | 단일 registry로 dev/internal/candidate/formal app ID·artifact prefix 분리, 충돌 0; exact clean detached SHA Mac/Windows 8 manifest·renderer `f0a043de`·28 files 동일; invalid channel artifact mutation 0; formal Mac distribution·Windows native/AuthentiCode 비주장 유지 |
+| 2026-07-16 | PV-005 | DONE | `ea9fd4f8` | `c0c46fae` | `workbook/forest-v0.1.17-integration-evidence/PV-005/` | `releases/0.1.17/<full-sha>/internal` 9 artifacts·hash 고정; exact clean SHA 순차 Mac/Windows renderer `f0a043de`·28 files 동일; generic mac/win 격리 중 validate→assemble→validate PASS, release truth 참조 0; formal/native/AuthentiCode 비주장 유지 |
 
 ## 14. Goal Objective 원문
 

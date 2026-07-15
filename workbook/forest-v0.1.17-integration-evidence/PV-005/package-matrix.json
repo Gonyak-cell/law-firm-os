@@ -1,0 +1,48 @@
+{
+  "schema_version": "law-firm-os.pv005.package-matrix.v1",
+  "version": "0.1.17",
+  "source_sha": "c0c46faed61d2a4011d506b43929cdb4c47cffa4",
+  "source_tree": "8c4d354fb6a563176b0a1c80ae30bb21fd6e4d7d",
+  "source_dirty": false,
+  "channel": "internal",
+  "app_id": "com.amic.matter.desktop.internal",
+  "artifact_root": "apps/desktop/dist/releases/0.1.17/c0c46faed61d2a4011d506b43929cdb4c47cffa4/internal",
+  "artifact_index_sha256": "32ee5adfbc45b4fffcc35577ff2ecbc4208b2c079801c26b0125c2a91e247859",
+  "checksums_sha256": "3d36a18261e966129fffe64357ad08cecf3c9bba8103d0e11b245445a2e4cade",
+  "renderer": {
+    "macos_sha256": "f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445",
+    "windows_sha256": "f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445",
+    "file_count": 28,
+    "mismatch_count": 0
+  },
+  "build_manifests": {
+    "macos_built_at": "2026-07-15T19:05:29.456Z",
+    "macos_sha256": "f68c69da77c77d7f468c7c7b6f6ff4e1f4d381e5296d1de78604479983e0b1f2",
+    "windows_built_at": "2026-07-15T19:05:59.156Z",
+    "windows_sha256": "e30f9f6c5441d7108745055ab74823fbb6470b7e1bb54edb53b3f87493b24768",
+    "packaged_external_equal_count": 2
+  },
+  "artifacts": [
+    { "id": "macos_zip_archive", "bytes": 132268809, "sha256": "e116da4714caace57ec7c170a2a39c9e509f838a537094b3e13932322763bb77" },
+    { "id": "macos_dmg_image", "bytes": 156662905, "sha256": "a4f640ab05ad72a00e2614acceb3bec0ab8aa30f1e08799f8810c7b8d7e5b64d" },
+    { "id": "macos_build_manifest", "bytes": 743, "sha256": "f68c69da77c77d7f468c7c7b6f6ff4e1f4d381e5296d1de78604479983e0b1f2" },
+    { "id": "windows_package_zip", "bytes": 162233502, "sha256": "288ad3a1e8c3d37fd7fcced15b09210b7fcbe75513bfd60e9fbfa98a2792d035" },
+    { "id": "windows_installer_manifest", "bytes": 1350, "sha256": "888f416c9aad9382eb494fdbbaa1f0523616a272799a9f08b46a5d43e2643137" },
+    { "id": "windows_manifest_signature", "bytes": 65, "sha256": "501888cb8de0b1b0be16710e44c5b4c26e92d9c5da74631f1eacbb56a2cf34be" },
+    { "id": "windows_build_manifest", "bytes": 740, "sha256": "e30f9f6c5441d7108745055ab74823fbb6470b7e1bb54edb53b3f87493b24768" },
+    { "id": "macos_build_receipt", "bytes": 3381, "sha256": "ec3685f23ac0814ded76bc42069eb64b4ec41f44a2e2e174982eabb031096f9e" },
+    { "id": "windows_build_receipt", "bytes": 2290, "sha256": "980a3b8aa6c0f46fc34e3c98f6be5f765f51b873eb19e9f7b40a625d5f06638e" }
+  ],
+  "artifact_count": 9,
+  "generic_path_isolation": {
+    "mac_root_absent_during_validation": true,
+    "windows_root_absent_during_validation": true,
+    "package_validation_before_release_assembly": "PASS",
+    "internal_release_assembly": "PASS",
+    "package_validation_after_release_assembly": "PASS",
+    "generic_build_artifact_dependencies": 0
+  },
+  "generic_build_paths_are_release_truth": false,
+  "public_release_claim": false,
+  "production_go_live_claim": false
+}

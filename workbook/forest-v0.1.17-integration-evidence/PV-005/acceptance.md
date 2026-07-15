@@ -1,0 +1,23 @@
+# PV-005 Acceptance
+
+- TUW: PV-005
+- status: DONE
+- entry_sha: `ea9fd4f81ff9beed02bb2bf3ca2fbdf024d27f89`
+- product_exit_sha: `c0c46faed61d2a4011d506b43929cdb4c47cffa4` (the evidence commit is intentionally separate)
+- product_exit_tree: `8c4d354fb6a563176b0a1c80ae30bb21fd6e4d7d`
+- canonical release root: `apps/desktop/dist/releases/0.1.17/c0c46faed61d2a4011d506b43929cdb4c47cffa4/internal`
+- path contract: version, full 40-character source SHA, and channel are mandatory; traversal, abbreviated SHA, unknown channel, and generic `dist/mac`, `dist/win`, or `dist/release` paths fail closed
+- test-first proof: the new PV-005 contract initially failed because `scripts/lib/matter-desktop-release-paths.mjs` did not exist; red stdout SHA-256 `c931d07cfb77952846dadbcc5ce557f3501c99d0ed7fb09446cf1d140a18d9f9`
+- actual package proof: the exact clean product SHA sequentially generated internal Mac and Windows bundles with `source_dirty=false`, the same source tree, packaged/external manifest equality, and matching receipts
+- renderer parity: Mac and Windows both record SHA-256 `f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445` and 28 files; mismatch count 0
+- artifact stage: 9 shipping artifacts and receipts were copied into the exact SHA root; `artifact-index.json` and `checksums.sha256` bind every path, size, and SHA-256; generic build paths are explicitly false as release truth
+- generic-path independence: `apps/desktop/dist/mac` and `apps/desktop/dist/win` were moved out of the repository during QA; package validation passed before and after actual internal release assembly, all 9 manifest paths remained inside the SHA root, and generic dependency count remained 0
+- release wiring: internal and formal pipelines stage and validate exact-SHA artifacts before release assembly; both assemblers and all three active bundle/boundary validators consume the shared staged index rather than generic build paths
+- manual_qa: invoked the staging CLI help, invalid input, source validation, package validation, exact-SHA Mac/Windows builders, generic-path isolation, and internal release assembler; inspected the staged index, checksums, renderer fields, release manifest paths, and generic-path absence
+- regression: PV-001/PV-002 source+package PASS, PV-003/PV-004/PV-005 source PASS, PV-005 package PASS, PV-001~PV-005 unit tests 17/17 PASS, Desktop smoke 102/102 PASS, file bridge 17/17 plus both validators PASS, public renderer PII PASS, syntax/diff/secret-pattern/sloplint checks PASS
+- preserved user root checkout: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`, branch `codex/profile-contact-regression-fix`, tracked 56, untracked 21, status 77, fingerprint `02751feb70e89afbfb00acf1dac14092cdef0c071be736a55aa6c6982b60d93c`; no write performed
+- commands: see `commands.txt`
+- package matrix: see `package-matrix.json`
+- known_limits: generic build directories remain permitted as disposable builder scratch only; staged internal Mac is not Developer ID signed/notarized/stapled, Windows is not Authenticode signed, and native Windows execution was not run on Darwin
+- external_blockers: none for PV-005 path integrity; formal macOS distribution, Windows native/AuthentiCode, public release, production, and go-live remain separate later gates and false
+- AI slop review: pass; no product UI or user-facing copy changed and sloplint reported no auto-detectable signals

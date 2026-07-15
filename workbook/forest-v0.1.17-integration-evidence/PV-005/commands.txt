@@ -1,0 +1,37 @@
+git diff --check
+node --check scripts/lib/matter-desktop-release-paths.mjs
+node --check scripts/stage-matter-desktop-release-artifacts.mjs
+node --check scripts/release-matter-desktop-formal.mjs
+node --check scripts/release-matter-desktop-temporary.mjs
+node --check scripts/validate-matter-desktop-formal-release-bundle.mjs
+node --check scripts/validate-matter-desktop-temporary-release-bundle.mjs
+node --check scripts/validate-matter-desktop-release-boundary.mjs
+node --check scripts/validate-pv005-release-artifact-paths.mjs
+node scripts/stage-matter-desktop-release-artifacts.mjs --help
+node scripts/validate-pv005-release-artifact-paths.mjs --help
+node scripts/validate-pv005-release-artifact-paths.mjs --bogus # exit 2, usage on stderr
+node scripts/validate-pv001-desktop-version.mjs --source
+node scripts/validate-pv001-desktop-version.mjs --package
+node scripts/validate-pv002-build-manifest.mjs --source
+MATTER_DESKTOP_RELEASE_CHANNEL=internal node scripts/validate-pv002-build-manifest.mjs --package
+node scripts/validate-pv003-clean-sha-build-gate.mjs --source
+node scripts/validate-pv004-desktop-channels.mjs --source
+node scripts/validate-pv005-release-artifact-paths.mjs --source
+node --test scripts/test/pv001-desktop-version.test.mjs scripts/test/pv002-build-manifest.test.mjs scripts/test/pv003-clean-sha-build-gate.test.mjs scripts/test/pv004-desktop-channel.test.mjs scripts/test/pv005-release-artifact-path.test.mjs
+MATTER_DESKTOP_RELEASE_CHANNEL=internal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=c0c46faed61d2a4011d506b43929cdb4c47cffa4 npm --workspace apps/desktop run build:mac
+MATTER_DESKTOP_RELEASE_CHANNEL=internal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=c0c46faed61d2a4011d506b43929cdb4c47cffa4 npm --workspace apps/desktop run build:win
+MATTER_DESKTOP_RELEASE_CHANNEL=internal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=c0c46faed61d2a4011d506b43929cdb4c47cffa4 node scripts/stage-matter-desktop-release-artifacts.mjs
+MATTER_DESKTOP_RELEASE_CHANNEL=internal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=c0c46faed61d2a4011d506b43929cdb4c47cffa4 node scripts/validate-pv005-release-artifact-paths.mjs --package
+mv apps/desktop/dist/mac /private/tmp/pv005-c0c46fae-generic-mac
+mv apps/desktop/dist/win /private/tmp/pv005-c0c46fae-generic-win
+MATTER_DESKTOP_RELEASE_CHANNEL=internal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=c0c46faed61d2a4011d506b43929cdb4c47cffa4 node scripts/validate-pv005-release-artifact-paths.mjs --package
+MATTER_DESKTOP_EXPECTED_SOURCE_SHA=c0c46faed61d2a4011d506b43929cdb4c47cffa4 node scripts/release-matter-desktop-temporary.mjs
+MATTER_DESKTOP_RELEASE_CHANNEL=internal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=c0c46faed61d2a4011d506b43929cdb4c47cffa4 node scripts/validate-pv005-release-artifact-paths.mjs --package
+node --eval # assert 9 release-manifest artifact paths stay inside exact SHA root while generic roots are absent
+mv /private/tmp/pv005-c0c46fae-generic-mac apps/desktop/dist/mac
+mv /private/tmp/pv005-c0c46fae-generic-win apps/desktop/dist/win
+npm --workspace apps/desktop run test:smoke
+npm --workspace apps/desktop run test:file-bridge
+npm run public-renderer:pii:validate
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed
+git diff ea9fd4f81ff9beed02bb2bf3ca2fbdf024d27f89 c0c46faed61d2a4011d506b43929cdb4c47cffa4 # changed-file secret-pattern scan
