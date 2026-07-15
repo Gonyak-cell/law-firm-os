@@ -11,7 +11,7 @@
 - HTTP acceptance: leave rule write and payroll catalog reject missing or mismatched signed step-up and accept matching purpose/tenant/actor
 - privacy acceptance: raw payroll amount and encrypted amount reference absent from API/audit output; upload memo and source document absent from batch view
 - lineage acceptance: no root `011~016` restoration and no standalone payroll time snapshot table
-- exit SHA: recorded after the backend checkpoint commit
+- backend checkpoint SHA: `b053fd8ae967c75653dce8b883d40eda69e3d07d`
 
 ## Boundaries
 
