@@ -1,0 +1,9 @@
+node --check scripts/generate-root-forest-common-comparison.mjs
+node scripts/generate-root-forest-common-comparison.mjs --help
+node scripts/generate-root-forest-common-comparison.mjs # expected usage failure
+node scripts/generate-root-forest-common-comparison.mjs "/Users/jws/Documents/Codex/Law Firm OS"
+git diff --name-only 7717d5cee158fc97056510e8aebc9e0854d34196..fbf7062398da1157ee1322d7440194c1b13f7e0f
+git diff --name-only HEAD --
+git ls-files --others --exclude-standard
+git diff --no-index --numstat <forest-file> <root-file>
+parse JS/JSX/TS/TSX with @babel/parser and compare imports, exports, routes, test titles, and selectors

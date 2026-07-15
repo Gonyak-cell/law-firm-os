@@ -1,0 +1,22 @@
+# RC-002 Acceptance
+
+- status: DONE
+- candidate entry SHA: `f68bb059e5b801dd26614379770b373b9089829c`
+- Forest content checkpoint: `fbf7062398da1157ee1322d7440194c1b13f7e0f`
+- root source HEAD: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`
+- root source dirty paths: 77 (56 tracked + 21 untracked)
+- root source working-tree SHA-256: `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`
+- all common paths: 52
+- integration metadata excluded: 1 (`workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md`)
+- product common paths: 51
+- semantic reviews: 51
+- identical: 2
+- different: 49
+- root-only paths reserved for RC-003: 25
+- AST parse errors: 0
+- unclassified paths: 0
+- comparison manifest SHA-256: `760757a4f0575e65b65cc0401640a7c28fee2605323c1cfc0f8f70a3e0f559bb`
+- semantic review SHA-256: `9a322adf92cb0339a122ba73f7fbb6bc2d867ec9f62086cfc37b76a27626c63b`
+- manual QA: every common product path was opened from both actual worktrees and compared by content hash, line delta, imports/exports, API paths, test titles, and UI selectors
+- known limit: extracted contracts are comparison evidence, not the final port/reject decision; RC-003 and RC-004 own semantic disposition
+- external blockers: none
