@@ -33,8 +33,14 @@ function createUserDataPath() {
   return mkdtempSync(path.join(tmpdir(), "matter-profile-packaged-qa-"));
 }
 
-async function clickSidebarChild(page, label) {
-  await page.locator(".sidebar-child", { hasText: label }).filter({ hasText: new RegExp(`^\\s*${label}\\s*$`) }).first().click({ timeout: 15_000 });
+async function clickSidebarSection(page, section, group) {
+  const sidebar = page.locator("[data-context-sidebar='matters']");
+  await sidebar.waitFor({ timeout: 15_000 });
+  const child = sidebar.locator(`[data-sidebar-section='${section}']`);
+  if (await child.count() === 0) {
+    await sidebar.locator(`[data-sidebar-group='${group}'] .sidebar-group-toggle`).click({ timeout: 15_000 });
+  }
+  await child.click({ timeout: 15_000 });
 }
 
 async function main() {
@@ -96,7 +102,7 @@ async function main() {
     await page.locator("[data-profile-return-to-work='true']").click({ timeout: 15_000 });
     await page.waitForSelector("[data-product-axis-nav='top-header']", { timeout: 15_000 });
     await page.locator("[data-product-axis='matters']").click({ timeout: 15_000 });
-    await clickSidebarChild(page, "사건 목록");
+    await clickSidebarSection(page, "matters-list", "matter-home");
     await page.locator("[data-matter-select-row='true']").first().waitFor({ timeout: 30_000 });
 
     const passedFixtures = [];

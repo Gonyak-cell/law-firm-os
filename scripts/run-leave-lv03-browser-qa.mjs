@@ -228,7 +228,10 @@ try {
   const approveResponse = managerPage.waitForResponse((response) => /\/api\/hrx\/leave\/requests\/[^/]+\/approve$/.test(response.url()));
   await readyApproval.getByRole("button", { name: "승인", exact: true }).click();
   if ((await approveResponse).status() !== 200) throw new Error("Manager leave approval failed");
-  await managerPage.getByText("처리할 휴가 요청이 없습니다.", { exact: true }).waitFor();
+  await readyApproval.waitFor({ state: "hidden" });
+  if (await managerPage.getByText("처리할 휴가 요청이 없습니다.", { exact: true }).count()) {
+    throw new Error("Empty approval helper copy must stay absent");
+  }
 
   await staffPage.reload({ waitUntil: "networkidle" });
   await staffPage.getByText("승인", { exact: true }).waitFor();
@@ -236,7 +239,9 @@ try {
 
   await managerPage.goto(`${webBaseUrl}/?locale=ko&view=people&ctx=allow#people-leave`, { waitUntil: "networkidle" });
   await managerPage.locator(".leave-team-section").waitFor({ state: "visible" });
-  await managerPage.locator(".leave-team-list").getByText("휴가 · 2026-07-16", { exact: true }).waitFor();
+  const teamList = managerPage.locator(".leave-team-list");
+  await teamList.locator("span").getByText("2026-07-16", { exact: true }).waitFor();
+  if (await teamList.getByText(/휴가 ·/).count()) throw new Error("Team leave rows must not repeat the leave category");
   await capture(managerPage, "lv-03-manager-team-1512x900.png", { width: 1512, height: 900 }, "#people-leave");
 
   const runtimeConsoleErrors = [...staffRuntimeConsoleErrors, ...consoleErrors];

@@ -647,7 +647,8 @@ try {
   const readyApproval = page.locator(".leave-approval-row").filter({ hasText: "이예진" }).first();
   await readyApproval.waitFor();
   await readyApproval.getByRole("button", { name: "승인", exact: true }).click();
-  await page.getByText("처리할 휴가 요청이 없습니다.", { exact: true }).waitFor();
+  await readyApproval.waitFor({ state: "hidden" });
+  assert.equal(await page.getByText("처리할 휴가 요청이 없습니다.", { exact: true }).count(), 0, "empty approval helper copy must stay absent");
   const approvedSnapshot = durableSnapshot();
   scenarios.full_day_approved_and_projected = approvedSnapshot.approved_requests.some((row) => row.start_date === "2026-07-16" && row.requested_minutes === 480) && approvedSnapshot.delivered_boundary_count >= 4;
   scenarios.reschedule_response_reapproval = approvedSnapshot.approved_requests.some((row) => row.start_date === "2026-07-16");

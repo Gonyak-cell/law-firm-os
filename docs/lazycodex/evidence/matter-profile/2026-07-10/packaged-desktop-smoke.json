@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-profile.packaged-desktop.v1",
-  "generated_at": "2026-07-10T02:41:20.076Z",
+  "generated_at": "2026-07-15T12:09:26.408Z",
   "status": "passed",
   "launch_target": "apps/desktop/dist/mac/matter.app",
   "runtime_profile": "isolated_local_qa",
