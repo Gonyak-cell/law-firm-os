@@ -1,0 +1,12 @@
+PASS integration branch did not exist locally or remotely before creation
+PASS dedicated worktree created from exact MI-003 SHA
+PASS integration branch name exact
+PASS integration worktree initial status clean
+PASS integration branch upstream absent
+PASS candidate worktree status clean and frozen
+PASS active collaboration writer count 1 and parallel child writer count 0
+PASS all 10 worktrees inventoried and lock count 0
+PASS seven unrelated worktrees untouched
+PASS user root HEAD, branch, dirty counts, and fingerprint unchanged
+PASS canonical app PID and exact executable unchanged
+PASS remote ref, PR, main, release, and AWS mutation 0

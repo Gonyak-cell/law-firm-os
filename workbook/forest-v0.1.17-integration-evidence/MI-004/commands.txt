@@ -1,0 +1,13 @@
+git branch --list codex/integration/forest-v0.1.17
+git branch -r --list origin/codex/integration/forest-v0.1.17
+git worktree add -b codex/integration/forest-v0.1.17 /private/tmp/lawos-forest-v017-integration 4d59c9b7dfba16b68aa5c85e362dd2b87ec5e6bc
+git worktree list --porcelain
+git -C /private/tmp/lawos-forest-v017-integration status --porcelain=v1
+git -C /private/tmp/lawos-forest-v017-integration rev-parse HEAD
+git -C /private/tmp/lawos-forest-v017-integration branch --show-current
+git -C /private/tmp/lawos-forest-v017-integration rev-parse --abbrev-ref --symbolic-full-name '@{u}' # expected absent
+git -C /private/tmp/lawos-forest-v016-release status --porcelain=v1
+git -C '/Users/jws/Documents/Codex/Law Firm OS' status --porcelain=v1 -z | shasum -a 256
+ps -p 55090 -o pid=,ppid=,stat=,command=
+lsof -a -p 55090 -d txt -Fn
+jq -e '.verdict == "PASS" and .integration.branch == "codex/integration/forest-v0.1.17" and .integration.initial_status_count == 0 and .integration.upstream_present == false and .candidate.status_count == 0 and .writer_boundary.parallel_writer_count == 0 and .preserved_user_root.written == false and .boundaries.remote_ref_updated == false' workbook/forest-v0.1.17-integration-evidence/MI-004/receipt.json

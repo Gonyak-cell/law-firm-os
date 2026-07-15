@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.mi004.integration-worktree.v1",
+  "tuw": "MI-004",
+  "verdict": "PASS",
+  "recorded_at": "2026-07-16T05:49:52+09:00",
+  "entry_sha": "4d59c9b7dfba16b68aa5c85e362dd2b87ec5e6bc",
+  "product_exit_sha": "4d59c9b7dfba16b68aa5c85e362dd2b87ec5e6bc",
+  "integration": {
+    "branch": "codex/integration/forest-v0.1.17",
+    "worktree": "/private/tmp/lawos-forest-v017-integration",
+    "initial_sha": "4d59c9b7dfba16b68aa5c85e362dd2b87ec5e6bc",
+    "initial_status_count": 0,
+    "upstream_present": false,
+    "local_branch_created": true,
+    "remote_branch_created": false
+  },
+  "candidate": {
+    "branch": "codex/forest-v0.1.16-release-20260713",
+    "worktree": "/private/tmp/lawos-forest-v016-release",
+    "sha": "4d59c9b7dfba16b68aa5c85e362dd2b87ec5e6bc",
+    "status_count": 0,
+    "frozen_for_comparison": true
+  },
+  "writer_boundary": {
+    "active_collaboration_agent_count": 1,
+    "active_agent": "/root",
+    "active_child_agent_count": 0,
+    "parallel_writer_count": 0,
+    "all_subsequent_writes_use_integration_worktree": true
+  },
+  "worktree_inventory": {
+    "total": 10,
+    "locked": 0,
+    "unrelated_preexisting": 7,
+    "unrelated_modified": 5,
+    "unrelated_written_by_this_tuw": 0
+  },
+  "preserved_user_root": {
+    "head": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3",
+    "branch": "codex/profile-contact-regression-fix",
+    "tracked_count": 56,
+    "untracked_count": 21,
+    "status_count": 77,
+    "status_porcelain_z_sha256": "02751feb70e89afbfb00acf1dac14092cdef0c071be736a55aa6c6982b60d93c",
+    "written": false
+  },
+  "preserved_runtime": {
+    "pid": 55090,
+    "ppid": 1,
+    "actual_executable": "/private/tmp/lawos-forest-v016-release/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+    "restarted": false,
+    "replaced": false
+  },
+  "evidence_sha256": {
+    "raw_worktree_list": "37f1135b0fcc944740866341b8b2e81901cde5cf1f1a5d6de63258bce75188ef",
+    "raw_worktree_status": "037403a8accd321858d820c56995dc6b76f3fcb6d5518d58b590152ffd5b5db3"
+  },
+  "boundaries": {
+    "remote_ref_updated": false,
+    "pull_request_created": false,
+    "main_updated": false,
+    "release_updated": false,
+    "aws_updated": false
+  },
+  "external_blockers": []
+}
