@@ -6,7 +6,7 @@
 기준 브랜치: `codex/forest-v0.1.16-release-20260713`  
 기준 HEAD: `7717d5cee158fc97056510e8aebc9e0854d34196`  
 목표 버전: `0.1.17`  
-상태: `READY_FOR_EXECUTION`  
+상태: `IN_PROGRESS`
 선행 계획: `workbook/hrx-leave-payroll-tuw-implementation-plan-2026-07-14.md`
 
 ## 1. 목적
@@ -52,7 +52,8 @@
 
 ### 3.2 종료 세션 검증 증거
 
-- 휴가 회귀: `340/340 PASS`
+- 종료 세션 휴가 회귀 보고: `340/340 PASS`였으나 단일 명령 manifest가 보존되지 않음
+- FZ-006 재현 가능 고유 휴가·migration·runtime 범위: `220/220 PASS`
 - 급여 domain: `54/54 PASS`
 - 급여 API·역할 매트릭스: `7/7 PASS`
 - 급여 Web UI: `3/3 PASS`
@@ -143,12 +144,12 @@ FZ checkpoint
 
 | ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
 |---|---|---|---|---|---|
-| FZ-001 | READY | 쓰기 세션 종료와 worktree 정지 증명 | 종료 세션 final 메시지·Goal complete·실행 프로세스·mtime 확인 | 동일 파일 hash를 2회 측정 | 두 측정 사이 변경 0, 쓰기 프로세스 0 |
-| FZ-002 | READY | tracked/untracked 전체 manifest | status v2, name-status, mode, size, SHA-256, ignore 분류 | manifest row count 대조 | tracked 115·untracked 92 기준 설명 가능한 차이만 존재 |
-| FZ-003 | READY | 비밀정보·PII·runtime artifact 제외 | secret scan, ignore audit, 로컬 store/token/browser profile 검사 | secret/PII validator | 커밋 후보 secret 0, 승인 없는 실제 PII 0 |
-| FZ-004 | READY | 원본 보존 patch와 archive branch | binary patch, untracked archive manifest, `archive/forest-session-final-20260715` | patch SHA·복원 dry-run | 별도 임시 worktree에 동일 tree 복원 가능 |
-| FZ-005 | READY | repo-safe checkpoint 커밋 | source, migrations, tests, scripts, plans, safe receipts 커밋 | pre/post tree hash | `FOREST_CHECKPOINT_SHA` 기록, worktree clean |
-| FZ-006 | READY | checkpoint 재현 검증 | 종료 세션 전체 테스트와 renderer build 재실행 | 종료 세션 PASS count와 대조 | 0 fail, renderer SHA 차이는 원인 설명 또는 동일 hash |
+| FZ-001 | DONE | 쓰기 세션 종료와 worktree 정지 증명 | 종료 세션 final 메시지·Goal complete·실행 프로세스·mtime 확인 | 동일 파일 hash를 2회 측정 | 두 측정 사이 변경 0, 쓰기 프로세스 0 |
+| FZ-002 | DONE | tracked/untracked 전체 manifest | status v2, name-status, mode, size, SHA-256, ignore 분류 | manifest row count 대조 | tracked 115·untracked 92 기준 설명 가능한 차이만 존재 |
+| FZ-003 | DONE | 비밀정보·PII·runtime artifact 제외 | secret scan, ignore audit, 로컬 store/token/browser profile 검사 | secret/PII validator | 커밋 후보 secret 0, 승인 없는 실제 PII 0 |
+| FZ-004 | DONE | 원본 보존 patch와 archive branch | binary patch, untracked archive manifest, `archive/forest-session-final-20260715` | patch SHA·복원 dry-run | 별도 임시 worktree에 동일 tree 복원 가능 |
+| FZ-005 | DONE | repo-safe checkpoint 커밋 | source, migrations, tests, scripts, plans, safe receipts 커밋 | pre/post tree hash | `FOREST_CHECKPOINT_SHA` 기록, worktree clean |
+| FZ-006 | DONE | checkpoint 재현 검증 | 종료 세션 전체 테스트와 renderer build 재실행 | 종료 세션 PASS count와 대조 | 0 fail, renderer SHA 차이는 원인 설명 또는 동일 hash |
 
 ### 7.2 RC: 현재 루트 세션 변경 대조
 
@@ -465,8 +466,13 @@ external_blockers
 | 시각 | TUW | 상태 | Entry SHA | Exit SHA | 증거 | 비고 |
 |---|---|---|---|---|---|---|
 | 2026-07-15 | PLAN | DONE | `7717d5ce` | documentation-only | 본 문서 | Goal 생성 전 기준선 |
+| 2026-07-15 | FZ-001 | DONE | `7717d5ce` | `fbf70623` | `workbook/forest-v0.1.17-integration-evidence/FZ-001/` | 단일 writer, 두 fingerprint 동일, stale Vite 종료 |
+| 2026-07-15 | FZ-002 | DONE | `7717d5ce` | `fbf70623` | `workbook/forest-v0.1.17-integration-evidence/FZ-002/` | tracked 115, untracked 94 설명·hash manifest 고정 |
+| 2026-07-15 | FZ-003 | DONE | `7717d5ce` | `fbf70623` | `workbook/forest-v0.1.17-integration-evidence/FZ-003/` | secret·승인 없는 PII·금지 binary 0 |
+| 2026-07-15 | FZ-004 | DONE | `7717d5ce` | `fbf70623` | `workbook/forest-v0.1.17-integration-evidence/FZ-004/` | patch·untracked archive·분리 worktree 복원 PASS |
+| 2026-07-15 | FZ-005 | DONE | `7717d5ce` | `fbf70623` | `workbook/forest-v0.1.17-integration-evidence/FZ-005/` | content tree `ba90b1da`, archive branch 고정 |
+| 2026-07-15 | FZ-006 | DONE | `411d07e9` | `873ca9cc` | `workbook/forest-v0.1.17-integration-evidence/FZ-006/` | 고유 220/220, renderer byte-identical, PII PASS |
 
 ## 14. Goal Objective 원문
 
 `workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md`를 단일 실행 정본으로 삼아, 종료 Forest 세션의 115개 tracked 수정과 92개 untracked 파일을 비밀정보·PII·generated artifact 없이 재현 가능한 checkpoint로 고정하고, 현재 루트 체크아웃의 25개 고유 변경과 49개 상이 공통 파일을 기능 단위로 전수 판정하며, 충돌하는 migration 011~016을 중복·데이터 손실 없이 Forest 011~025 및 필요한 026+ 계보로 정규화한다. 기존 정상 릴리스·Forest checkpoint·현재 루트·최신 origin/main을 Home, Client, Matter, People, Search, Portal, 인증, 서지원 프로필, 휴가, 급여, 저장·권한·패키지 기준으로 비교해 핵심 기능 손실 0인 상위 호환 Forest 후보만 0.1.17로 만들고 version/full SHA/renderer hash/channel/time manifest, clean-SHA build gate, 채널별 bundle ID, legacy asset 검사, canonical launcher를 구현한다. origin/main merge dry-run과 파일별 conflict ledger를 거쳐 전용 integration 브랜치에서 UI는 현재 Forest, 인증은 더 엄격한 권한, migration은 forward-only, 운영은 더 안전한 계약을 보존하여 통합하고, 휴가·급여·API·Web·Desktop·migration·authz·PII 전체 0 fail, 6개 역할×5 viewport 브라우저 error/overflow/dead-action 0, macOS signed/notarized/Gatekeeper 실제 패키지와 Windows native/AuthentiCode 실제 패키지 PASS를 증명한다. 검증된 integration SHA만 PR로 main에 병합하고 후보 패키지를 재사용하지 말고 exact main merge SHA에서 Mac·Windows artifacts, hashes, SBOM, tag와 release receipts를 재생성한다. 내부 배포와 AWS staging까지 repo-safe·승인 범위에서 수행하되 실제 직원·계좌·정책 migration, 외부 provider/bank/tax production write, AWS production traffic, 공개 release와 go-live는 owner·법무·노무·세무 승인 및 검증 가능한 receipt가 없으면 BLOCKED로 유지한다. 모든 TUW는 지정 evidence 디렉터리에 entry/exit SHA, files, commands, tests, manual QA, hashes, limits, blockers를 기록하고, stale/old app이 다시 정본으로 오인되지 않도록 canonical registry·launch runbook·old bundle inventory·rollback closeout까지 완료한다.`
-

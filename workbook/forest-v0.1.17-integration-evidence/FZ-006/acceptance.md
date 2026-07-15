@@ -2,6 +2,7 @@
 
 - status: DONE
 - entry_sha: `411d07e9a3bd6f4ffdabc04de3741480e2a4e8da`
+- verification_commit_sha: `873ca9cc05c30f6df1475f3c9ffb9918e10fa667`
 - Forest content checkpoint: `fbf7062398da1157ee1322d7440194c1b13f7e0f`
 - tested patch SHA-256: `f09e58bb6671ae91fcd75d3e39fa1cd717a1452457a2a2c9ed0491c0e0a2a181`
 - reproducible leave, migration, and route-authz suite: `193/193 PASS`
