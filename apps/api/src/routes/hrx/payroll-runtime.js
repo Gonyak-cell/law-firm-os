@@ -146,13 +146,66 @@ function workspace(runtime, store, context) {
   return Object.freeze({ periods: Object.freeze(periods), production_ready_claim: false });
 }
 
-export function createHrxPayrollRuntimeRoute({ runtime, store, clock = () => new Date().toISOString() } = {}) {
+export function createHrxPayrollRuntimeRoute({ runtime, store, audit, clock = () => new Date().toISOString() } = {}) {
   if (!runtime || !store) return null;
+  function appendProfileReadAudit(context, action, objectId, resultCount) {
+    audit?.append?.({
+      event_id: `hrx_payroll_profile_read_evt_${randomUUID()}`,
+      tenant_id: context.tenant_id,
+      actor_id: context.actor_id,
+      action,
+      object_type: "PayrollProfile",
+      object_id: objectId,
+      decision: "allow",
+      reason: action === "hrx.payroll.self.read" ? "payroll_self_profile_read" : "payroll_profile_read",
+      metadata: { result_count: resultCount, amount_included: false, encrypted_amount_ref_included: false },
+    });
+  }
   return Object.freeze({
     async handle(request = {}) {
       try {
         const context = request.context;
         const action = request.params?.action;
+        if (action === "items") {
+          if (request.method === "GET") return response(200, { outcome: "ok", items: runtime.itemCatalog.list(context, { include_inactive: request.query?.include_inactive === "true" }) });
+          if (request.method === "POST") return response(201, { outcome: "created", item: runtime.itemCatalog.create(context, request.body) });
+          if (request.method === "PATCH") return response(200, { outcome: "updated", item: runtime.itemCatalog.update(context, requiredString(request.params, "item_id"), request.body) });
+        }
+        if (action === "profile-self" || action === "profiles") {
+          const employeeId = requiredString(request.params, "employee_id");
+          const listed = runtime.profileService.listProfiles(context, {
+            employee_id: employeeId,
+            on_date: request.query?.on_date,
+            include_history: request.query?.include_history === "true",
+          });
+          const profiles = listed.map((profile) => runtime.profileService.getProfile(context, profile.payroll_profile_id, {
+            on_date: request.query?.on_date,
+            include_history: request.query?.include_history === "true",
+          }));
+          appendProfileReadAudit(context, action === "profile-self" ? "hrx.payroll.self.read" : "hrx.payroll.profiles.read", employeeId, profiles.length);
+          return response(200, { outcome: "ok", profiles });
+        }
+        if (request.method === "POST" && action === "profile-create") {
+          return response(201, { outcome: "created", profile: runtime.profileService.createProfile(context, request.body) });
+        }
+        if (request.method === "POST" && action === "assignment-create") {
+          return response(201, { outcome: "created", assignment: runtime.profileService.createAssignment(context, requiredString(request.params, "payroll_profile_id"), request.body) });
+        }
+        if (request.method === "POST" && action === "attendance-approve") {
+          const approvalReceipt = runtime.timeInputService.recordAttendanceApproval(context, request.body);
+          audit?.append?.({
+            event_id: `hrx_payroll_time_evt_${randomUUID()}`,
+            tenant_id: context.tenant_id,
+            actor_id: context.actor_id,
+            action: "hrx.payroll.attendance.approve",
+            object_type: "AttendanceRecord",
+            object_id: approvalReceipt.attendance_id,
+            decision: "allow",
+            reason: "attendance_approved_for_payroll",
+            metadata: { payroll_calculation_runtime: false, disbursement_instruction_included: false },
+          });
+          return response(201, { outcome: "approved", approval_receipt: approvalReceipt });
+        }
         if (request.method === "GET" && action === "list") return response(200, { outcome: "ok", workspace: workspace(runtime, store, context) });
         if (request.method === "GET" && action === "bundle") {
           return response(200, { outcome: "ok", bundle: runBundle(runtime, store, context, requiredString(request.params, "run_id")) });

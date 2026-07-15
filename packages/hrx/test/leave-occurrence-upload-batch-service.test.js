@@ -3,6 +3,7 @@ import test from "node:test";
 import { createLeaveAccrualService } from "../src/leave/accrual-service.js";
 import { createLeaveOccurrenceUploadBatchService } from "../src/leave/occurrence-upload-batch-service.js";
 import { createFileHrxStore } from "../src/store/file-store.js";
+import { createXlsxBuffer } from "../src/leave/xlsx-export.js";
 
 const TENANT = "tenant-occurrence-upload";
 const NOW = "2026-07-14T08:00:00.000Z";
@@ -29,6 +30,28 @@ function csv(manualService) {
     + "emp-001,annual,annual-v1,credit,480,2026-08-01,2027-07-31,예약 발생 1,proof-emp-001\r\n"
     + "emp-002,annual,annual-v1,credit,240,2026-08-02,2027-08-01,예약 발생 2,proof-emp-002\r\n";
 }
+
+test("RC-005-C previews an XLSX occurrence upload with the durable batch contract", () => {
+  const { store, manualService } = fixture();
+  const service = createLeaveOccurrenceUploadBatchService({ store, manualService, clock: () => NOW });
+  const workbook = createXlsxBuffer({
+    headers: ["template_version", "hrx-leave-occurrence-v1"],
+    rows: [
+      ["employee_id", "group_id", "policy_version_id", "direction", "amount_minutes", "valid_from", "expires_on", "memo", "source_document_id"],
+      ["emp-001", "annual", "annual-v1", "credit", 480, "2026-08-01", "2027-07-31", "XLSX 발생", "proof-emp-001"],
+    ],
+  });
+  const preview = service.preview(CONTEXT, {
+    xlsx_content_base64: workbook.toString("base64"),
+    schedule_only: true,
+    as_of: "2026-07-14",
+    idempotency_key: "xlsx-upload-preview-1",
+  });
+  assert.equal(preview.status, "previewed");
+  assert.deepEqual(preview.counts, { ready: 1, preview_errors: 0, duplicates: 0, completed: 0, failed: 0, pending: 1, new_entries: 0 });
+  assert.doesNotMatch(JSON.stringify(preview), /XLSX 발생|proof-emp-001/);
+  store.close();
+});
 
 test("LV-OCC-007 executes an approved upload exactly once from its matching preview", () => {
   const { store, manualService } = fixture();

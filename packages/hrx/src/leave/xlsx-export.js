@@ -130,3 +130,100 @@ export function createXlsxBuffer({ headers = [], rows = [], sheetName = "휴가 
   ];
   return zipStore(files);
 }
+
+function decodeXml(value) {
+  return String(value ?? "")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&apos;", "'")
+    .replaceAll("&amp;", "&");
+}
+
+function zipEntries(buffer) {
+  if (!Buffer.isBuffer(buffer) || buffer.length < 22) throw new TypeError("XLSX ZIP directory is missing");
+  const endSignature = 0x06054b50;
+  let endOffset = -1;
+  for (let offset = Math.max(0, buffer.length - 65_557); offset <= buffer.length - 22; offset += 1) {
+    if (buffer.readUInt32LE(offset) === endSignature) endOffset = offset;
+  }
+  if (endOffset < 0) throw new TypeError("XLSX ZIP directory is missing");
+  const count = buffer.readUInt16LE(endOffset + 10);
+  if (count <= 0 || count > MAX_XLSX_ENTRIES) throw new TypeError("XLSX ZIP entry count is invalid");
+  let offset = buffer.readUInt32LE(endOffset + 16);
+  if (offset < 0 || offset >= endOffset) throw new TypeError("XLSX ZIP directory offset is invalid");
+  const entries = new Map();
+  let totalBytes = 0;
+  for (let index = 0; index < count; index += 1) {
+    if (offset + 46 > endOffset || buffer.readUInt32LE(offset) !== 0x02014b50) throw new TypeError("XLSX ZIP entry is invalid");
+    const method = buffer.readUInt16LE(offset + 10);
+    const compressedSize = buffer.readUInt32LE(offset + 20);
+    const uncompressedSize = buffer.readUInt32LE(offset + 24);
+    const nameLength = buffer.readUInt16LE(offset + 28);
+    const extraLength = buffer.readUInt16LE(offset + 30);
+    const commentLength = buffer.readUInt16LE(offset + 32);
+    const localOffset = buffer.readUInt32LE(offset + 42);
+    const nextOffset = offset + 46 + nameLength + extraLength + commentLength;
+    if (nextOffset > endOffset || localOffset + 30 > buffer.length || buffer.readUInt32LE(localOffset) !== 0x04034b50) throw new TypeError("XLSX ZIP local entry is invalid");
+    const name = buffer.subarray(offset + 46, offset + 46 + nameLength).toString("utf8");
+    if (!name || name.includes("\\") || name.startsWith("/") || name.split("/").includes("..") || entries.has(name)) throw new TypeError("XLSX ZIP entry name is invalid");
+    if (uncompressedSize > MAX_XLSX_ENTRY_BYTES || totalBytes + uncompressedSize > MAX_XLSX_TOTAL_BYTES) throw new TypeError("XLSX ZIP expanded size is invalid");
+    if (compressedSize > 0 && uncompressedSize / compressedSize > MAX_XLSX_COMPRESSION_RATIO) throw new TypeError("XLSX ZIP compression ratio is invalid");
+    const localNameLength = buffer.readUInt16LE(localOffset + 26);
+    const localExtraLength = buffer.readUInt16LE(localOffset + 28);
+    const dataOffset = localOffset + 30 + localNameLength + localExtraLength;
+    if (dataOffset + compressedSize > buffer.length) throw new TypeError("XLSX ZIP entry data is invalid");
+    const compressed = buffer.subarray(dataOffset, dataOffset + compressedSize);
+    let data;
+    try {
+      data = method === 0 ? compressed : method === 8 ? inflateRawSync(compressed, { maxOutputLength: MAX_XLSX_ENTRY_BYTES + 1 }) : null;
+    } catch {
+      throw new TypeError("XLSX ZIP entry could not be expanded safely");
+    }
+    if (!data) throw new TypeError(`XLSX compression method is not supported: ${method}`);
+    if (data.length !== uncompressedSize || data.length > MAX_XLSX_ENTRY_BYTES || totalBytes + data.length > MAX_XLSX_TOTAL_BYTES) throw new TypeError("XLSX ZIP expanded size is invalid");
+    totalBytes += data.length;
+    entries.set(name, data.toString("utf8"));
+    offset = nextOffset;
+  }
+  return entries;
+}
+
+function columnIndex(reference) {
+  const letters = /^[A-Z]+/.exec(reference)?.[0];
+  if (!letters) return 0;
+  return [...letters].reduce((value, letter) => value * 26 + letter.charCodeAt(0) - 64, 0) - 1;
+}
+
+function xmlText(fragment) {
+  return decodeXml([...String(fragment).matchAll(/<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/g)].map((match) => match[1]).join(""));
+}
+
+export function parseXlsxBuffer(input) {
+  const buffer = Buffer.isBuffer(input) ? input : Buffer.from(input ?? []);
+  if (buffer.subarray(0, 2).toString("ascii") !== "PK") throw new TypeError("XLSX content must be a ZIP workbook");
+  const entries = zipEntries(buffer);
+  const sheet = entries.get("xl/worksheets/sheet1.xml");
+  if (!sheet) throw new TypeError("XLSX first worksheet is missing");
+  if (/<f(?:\s|>)/i.test(sheet)) throw new TypeError("XLSX formula cells are not allowed");
+  const shared = entries.get("xl/sharedStrings.xml");
+  const sharedStrings = shared ? [...shared.matchAll(/<si(?:\s[^>]*)?>([\s\S]*?)<\/si>/g)].map((match) => xmlText(match[1])) : [];
+  return Object.freeze([...sheet.matchAll(/<row(?:\s[^>]*)?>([\s\S]*?)<\/row>/g)].map((rowMatch) => {
+    const row = [];
+    for (const cellMatch of rowMatch[1].matchAll(/<c\s([^>]*)>([\s\S]*?)<\/c>/g)) {
+      const attributes = cellMatch[1];
+      const reference = /\br="([A-Z]+\d+)"/.exec(attributes)?.[1] ?? "A1";
+      const type = /\bt="([^"]+)"/.exec(attributes)?.[1] ?? null;
+      const raw = /<v>([\s\S]*?)<\/v>/.exec(cellMatch[2])?.[1] ?? "";
+      const value = type === "inlineStr" ? xmlText(cellMatch[2]) : type === "s" ? sharedStrings[Number(raw)] ?? "" : decodeXml(raw);
+      row[columnIndex(reference)] = value;
+    }
+    return Object.freeze(row.map((value) => value ?? ""));
+  }));
+}
+import { inflateRawSync } from "node:zlib";
+
+const MAX_XLSX_ENTRIES = 64;
+const MAX_XLSX_ENTRY_BYTES = 8 * 1024 * 1024;
+const MAX_XLSX_TOTAL_BYTES = 16 * 1024 * 1024;
+const MAX_XLSX_COMPRESSION_RATIO = 100;

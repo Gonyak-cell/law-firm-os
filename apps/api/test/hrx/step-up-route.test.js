@@ -61,6 +61,13 @@ const LEAVE_TERMINATION_STEP_UP_HEADER = signedStepUpHeader({
   authority: stepUpAuthority,
 });
 
+const PAYROLL_STEP_UP_HEADER = signedStepUpHeader({
+  tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+  actor_id: SESSION_ACCOUNT.user_id,
+  purpose: "payroll_export_review",
+  authority: stepUpAuthority,
+});
+
 async function json(path, options = {}) {
   const response = await fetch(`${baseUrl}${path}`, options);
   return { status: response.status, body: await response.json() };
@@ -152,6 +159,22 @@ test("leave accrual and ledger mutations require matching signed step-up purpose
   assert.equal(accrualReachedRuntime.status, 400);
   assert.equal(accrualReachedRuntime.body.safe_error_code, "HRX_API_VALIDATION_ERROR");
 
+  const ruleChallenge = await json("/api/hrx/leave/accrual/rules", options);
+  assert.equal(ruleChallenge.status, 403);
+  assert.equal(ruleChallenge.body.safe_error_code, "HRX_STEP_UP_REQUIRED");
+  const rulePurposeMismatch = await json("/api/hrx/leave/accrual/rules", {
+    ...options,
+    headers: { ...options.headers, "x-lawos-hrx-step-up": LEAVE_LEDGER_STEP_UP_HEADER },
+  });
+  assert.equal(rulePurposeMismatch.status, 403);
+  assert.equal(rulePurposeMismatch.body.reason, "hrx_step_up_purpose_mismatch");
+  const ruleReachedRuntime = await json("/api/hrx/leave/accrual/rules", {
+    ...options,
+    headers: { ...options.headers, "x-lawos-hrx-step-up": LEAVE_ACCRUAL_STEP_UP_HEADER },
+  });
+  assert.equal(ruleReachedRuntime.status, 400);
+  assert.equal(ruleReachedRuntime.body.safe_error_code, "HRX_API_VALIDATION_ERROR");
+
   const ledgerChallenge = await json("/api/hrx/leave/accrual/manual/execute", options);
   assert.equal(ledgerChallenge.status, 403);
   const ledgerReachedRuntime = await json("/api/hrx/leave/accrual/manual/execute", {
@@ -176,4 +199,23 @@ test("leave accrual and ledger mutations require matching signed step-up purpose
   });
   assert.equal(terminationReachedRuntime.status, 400);
   assert.equal(terminationReachedRuntime.body.safe_error_code, "HRX_API_VALIDATION_ERROR");
+});
+
+test("payroll catalog requires a matching signed payroll step-up token", async () => {
+  const challenged = await json("/api/hrx/payroll/items", { headers: baseHeaders });
+  assert.equal(challenged.status, 403);
+  assert.equal(challenged.body.safe_error_code, "HRX_STEP_UP_REQUIRED");
+
+  const mismatched = await json("/api/hrx/payroll/items", {
+    headers: { ...baseHeaders, "x-lawos-hrx-step-up": LEAVE_ACCRUAL_STEP_UP_HEADER },
+  });
+  assert.equal(mismatched.status, 403);
+  assert.equal(mismatched.body.reason, "hrx_step_up_purpose_mismatch");
+
+  const allowed = await json("/api/hrx/payroll/items", {
+    headers: { ...baseHeaders, "x-lawos-hrx-step-up": PAYROLL_STEP_UP_HEADER },
+  });
+  assert.equal(allowed.status, 200);
+  assert.equal(allowed.body.outcome, "ok");
+  assert.ok(Array.isArray(allowed.body.items));
 });

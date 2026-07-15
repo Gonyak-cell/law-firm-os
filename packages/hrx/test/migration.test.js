@@ -122,6 +122,7 @@ test("HRX migrations create required tables idempotently", () => {
   assert.match(sql, /ALTER TABLE hrx_leave_accrual_rules ADD COLUMN version INTEGER NOT NULL DEFAULT 1/);
   assert.match(sql, /ALTER TABLE hrx_leave_accrual_rules ADD COLUMN supersedes_rule_id/);
   assert.match(sql, /ALTER TABLE hrx_leave_accrual_runs ADD COLUMN as_of_date/);
+  assert.match(sql, /CREATE UNIQUE INDEX IF NOT EXISTS idx_hrx_leave_accrual_rules_logical_version/);
 });
 
 test("HRX core migration is non-destructive", () => {
@@ -155,5 +156,5 @@ test("HRX migration loader rejects destructive SQL", () => {
     /unsafe SQL pattern/,
   );
   assert.equal(loadHrxCoreMigrations()[0].id, "001_hrx_core");
-  assert.equal(loadHrxCoreMigrations().at(-1).id, "028_hrx_leave_accrual_rule_versions");
+  assert.equal(loadHrxCoreMigrations().at(-1).id, "029_hrx_leave_accrual_rule_version_index");
 });

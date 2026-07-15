@@ -131,6 +131,78 @@ test("accrual rule versions preserve logical lineage and run as-of date", () => 
   store.close();
 });
 
+test("RC-005-B tenure rules cover monthly and annual service bands through ten years", () => {
+  const { store, service, context, rule } = createFixture();
+  const next = service.updateRule(context, rule.accrual_rule_id, {
+    accrual_rule_id: "annual-rule-v2",
+    rule_code: "ANNUAL_STATUTORY_V2",
+    display_name: "근속 구간 연차",
+    effective_from: "2026-01-01",
+    rule: {
+      basis: "tenure_table",
+      schedule: "fixed_annual_date",
+      annual_date: "07-13",
+      validity_months: 18,
+      tenure_steps: [
+        { from_month: 0, to_month: 11, amount_minutes: 480 },
+        { from_month: 12, to_month: 119, amount_minutes: 7_200 },
+        { from_month: 120, to_month: 120, amount_minutes: 7_680 },
+      ],
+      monthly_schedule: [{ service_month: 10, amount_minutes: 960 }],
+      annual_schedule: [{ service_year: 6, amount_minutes: 8_160 }, { service_year: 10, amount_minutes: 8_640 }],
+    },
+  });
+  assert.equal(next.version, 2);
+  assert.equal(next.supersedes_rule_id, rule.accrual_rule_id);
+
+  const preview = service.preview(context, {
+    accrual_rule_id: next.accrual_rule_id,
+    period_key: "2027-tenure",
+    occurred_on: OCCURRED_ON,
+    as_of_date: "2026-07-13",
+  });
+  const byEmployee = Object.fromEntries(preview.result.rows.map((row) => [row.employee_id, row]));
+  assert.equal(byEmployee["under-one-year"].amount_minutes, 960);
+  assert.equal(byEmployee.seniority.amount_minutes, 8_160);
+  assert.equal(byEmployee["under-one-year"].expires_on, "2028-01-13");
+  assert.equal(service.preview(context, {
+    accrual_rule_id: next.accrual_rule_id,
+    period_key: "2027-tenure",
+    occurred_on: OCCURRED_ON,
+    as_of_date: "2026-07-13",
+  }).accrual_run_id, preview.accrual_run_id);
+  assert.notEqual(service.preview(context, {
+    accrual_rule_id: next.accrual_rule_id,
+    period_key: "2027-tenure",
+    occurred_on: OCCURRED_ON,
+    as_of_date: "2026-07-14",
+  }).accrual_run_id, preview.accrual_run_id);
+
+  assert.throws(
+    () => service.createRule(context, {
+      accrual_rule_id: "annual-rule-v2-duplicate",
+      rule_code: "ANNUAL_STATUTORY_DUPLICATE",
+      logical_rule_code: rule.logical_rule_code,
+      version: 2,
+      supersedes_rule_id: rule.accrual_rule_id,
+      display_name: "중복 버전",
+      policy_version_id: "annual-v1",
+      effective_from: "2027-01-01",
+      rule: { basis: "fixed_amount", schedule: "fixed_annual_date", annual_date: "07-13", amount_minutes: 480 },
+    }),
+    (error) => error.safe_error_code === "HRX_LEAVE_ACCRUAL_RULE_VERSION_EXISTS",
+  );
+
+  const deactivated = service.deactivateRule(context, next.accrual_rule_id, {
+    expected_version: next.state_version,
+    effective_to: "2027-12-31",
+  });
+  assert.equal(deactivated.status, "inactive");
+  assert.equal(deactivated.state_version, 2);
+  assert.equal(store.query("selectOne", { table: "hrx_leave_accrual_rules", where: { tenant_id: TENANT, accrual_rule_id: rule.accrual_rule_id } }).status, "active");
+  store.close();
+});
+
 test("automatic accrual rejects execution after source version changes", () => {
   const { service, context, rule, setSourceVersion } = createFixture();
   const preview = service.preview(context, { accrual_rule_id: rule.accrual_rule_id, period_key: "2026-stale", occurred_on: OCCURRED_ON });

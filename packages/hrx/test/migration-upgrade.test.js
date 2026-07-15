@@ -5,10 +5,10 @@ import { auditHrxCheckpointUpgrades } from "../../../scripts/validate-hrx-checkp
 test("MG-005 upgrades 010, 020, and 025 file databases without data loss", () => {
   const report = auditHrxCheckpointUpgrades();
   assert.equal(report.verdict, "PASS");
-  assert.equal(report.final_migration_count, 28);
-  assert.equal(report.final_migration, "028_hrx_leave_accrual_rule_versions.sql");
+  assert.equal(report.final_migration_count, 29);
+  assert.equal(report.final_migration, "029_hrx_leave_accrual_rule_version_index.sql");
   assert.deepEqual(report.checkpoints.map(({ checkpoint }) => checkpoint), [10, 20, 25]);
-  assert.deepEqual(report.checkpoints.map(({ upgrade_migration_count }) => upgrade_migration_count), [18, 8, 3]);
+  assert.deepEqual(report.checkpoints.map(({ upgrade_migration_count }) => upgrade_migration_count), [19, 9, 4]);
   assert.equal(report.checkpoint_count, 3);
   assert.equal(report.total_seeded_table_count, 32);
   assert.equal(report.total_seeded_row_count, 32);

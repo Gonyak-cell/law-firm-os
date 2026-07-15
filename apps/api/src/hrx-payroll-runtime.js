@@ -7,6 +7,9 @@ import {
   createPayrollDocumentService,
 } from "../../../packages/hrx/src/payroll/document-service.js";
 import { createPayrollFilingService } from "../../../packages/hrx/src/payroll/filing-service.js";
+import { createSqlPayrollItemCatalog } from "../../../packages/hrx/src/payroll-item-catalog.js";
+import { createSqlPayrollProfileService } from "../../../packages/hrx/src/payroll-profile-service.js";
+import { createSqlPayrollTimeInputService } from "../../../packages/hrx/src/payroll-time-input-snapshot.js";
 import { createPayrollInputSnapshotService, createServerCompensationResolver } from "../../../packages/hrx/src/payroll/input-snapshot-service.js";
 import { createPayrollPaymentService } from "../../../packages/hrx/src/payroll/payment-service.js";
 import { createPayrollRepository } from "../../../packages/hrx/src/payroll/repository.js";
@@ -229,8 +232,11 @@ export function seedSyntheticPayrollRuntimeStore(store, tenantIds, options = {})
   }
 }
 
-export function createHrxPayrollRuntime({ store, clock } = {}) {
+export function createHrxPayrollRuntime({ store, clock, audit } = {}) {
   if (!store) return null;
+  const itemCatalog = createSqlPayrollItemCatalog({ store, audit, ...(clock ? { clock } : {}) });
+  const profileService = createSqlPayrollProfileService({ store, ...(clock ? { clock } : {}) });
+  const timeInputService = createSqlPayrollTimeInputService({ store, ...(clock ? { clock } : {}) });
   const payrollRepository = createPayrollRepository({ store, ...(clock ? { clock } : {}) });
   const inputSnapshotService = createPayrollInputSnapshotService({
     store,
@@ -277,5 +283,5 @@ export function createHrxPayrollRuntime({ store, clock } = {}) {
     ...(clock ? { clock } : {}),
   });
   const yearEndService = createPayrollYearEndService({ repository: payrollRepository });
-  return Object.freeze({ payrollRepository, inputSnapshotService, runService, documentService, paymentService, filingService, yearEndService, artifactVault });
+  return Object.freeze({ itemCatalog, profileService, timeInputService, payrollRepository, inputSnapshotService, runService, documentService, paymentService, filingService, yearEndService, artifactVault });
 }

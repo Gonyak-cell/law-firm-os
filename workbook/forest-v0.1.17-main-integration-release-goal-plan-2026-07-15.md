@@ -161,7 +161,26 @@ FZ checkpoint
 | RC-002 | DONE | 51개 제품 공통 파일 비교 | SHA·라인 delta·AST/API contract·test assertion·UI selector·의미 검토 | 재현 CLI, root fingerprint 전후 대조 | 51/51 판정, 동일 2·상이 49·미분류 0 |
 | RC-003 | DONE | 25개 root-only 파일 기능 대조 | payroll item/profile/time input, manual adjustment, profile smoke/runbook 점검 | 종료 세션 관련 테스트와 교차 실행 | 25/25 판정, 관련 테스트 38/38 PASS, 루트 무변경 |
 | RC-004 | DONE | 상위 호환 기능 매트릭스 | Forest-only 170개 보존, root 기여 76개 4종 판정, `PORT_REQUIRED` 31개를 6개 이식군으로 고정, 10개 기능 축 anchor 대조 | 재현 CLI, checkpoint hash, root fingerprint, 누락 acceptance count | Forest 170/170·root 76/76·port 31/31·기능 축 10/10, 미판정·고아·예상 밖 변경 0 |
-| RC-005 | READY | 필요한 기능만 Forest 후보에 이식 | UI 통째 복사 금지, 테스트 우선 이식, 필요한 코드 최소 구현 | 이식 전 failing·이식 후 passing | 기존 Forest 회귀 0 |
+| RC-005 | IN_PROGRESS | 필요한 기능만 Forest 후보에 이식 | 아래 RC-005-A~G를 순서대로 수행하고 UI 통째 복사 금지, 테스트 우선 이식, 필요한 코드 최소 구현 | 이식 전 failing·이식 후 passing | A~G 전부 DONE, 기존 Forest 회귀 0 |
+
+#### RC-005 세부 Testable Units
+
+| ID | 상태 | 기능 계약 | 구현 작업 | 선행 실패 증거 | 완료 조건 |
+|---|---|---|---|---|---|
+| RC-005-A | DONE | HRX runtime·authz 합집합 | payroll item/profile/attendance 승인 route policy와 scope를 현재 6-role matrix에 추가하고, 신규 서비스를 `hrx-payroll-runtime`과 `payroll-runtime` route에 연결한다. 기존 leave/payroll route와 tenant/session/step-up 검증은 유지한다. | payroll 정책 404/미해결 2건과 신규 runtime 테스트 0/3을 기록 | 정책·6-role 최소 scope·canonical runtime·signed purpose/tenant/actor 검증 및 관련 회귀 102/102 PASS |
+| RC-005-B | DONE | 휴가 규칙 버전·원장 단일 소유 | logical lineage/version/as-of, 월·연·근속 120개월 table, immutable update, deactivate, 029 logical-version unique index를 Forest entitlement 원장에 연결했다. | `updateRule` 부재로 신규 계약 실패를 기록 | preview 전 write 0, idempotency 중복 0, 규칙 version/deactivate/as-of/receipt와 fresh·upgrade·recovery migration PASS |
+| RC-005-C | DONE | CSV/XLSX 휴가 발생 파일 | 동일 versioned contract를 CSV/XLSX template·typed parser·occurrence upload batch에 연결하고 ZIP/크기/행/헤더/수식 경계를 fail-closed로 구현했다. | XLSX parser export 부재와 신규 XLSX 계약 실패를 기록 | malformed/archive/formula/5,000행 초과 차단, preview partial write 0, CSV/XLSX 동일 batch contract 및 관련 회귀 PASS |
+| RC-005-D | IN_PROGRESS | Forest 휴가 compact action UI | 승인 대기·퇴사 정산 화면을 실제 Forest 44px 단일 행·단일 action 기준으로 검증하고 필요한 경우에만 최소 수정한다. | rendered selector/height/copy regression의 현재 결과 기록 | 휴가·비용처리 분류, 이중 승인 문구, 무의미한 empty copy, 2줄 metadata 0; 관련 dead action 0 |
+| RC-005-E | READY | 서지원 프로필·사진·패키지 경계 | `jwsuh@amic.kr -> 서지원` 연결, 비이미지 data URL 거부, public renderer roster PII 금지와 macOS renderer 포함 경계를 검증한다. | 잘못된 actor fallback·invalid image·PII fixture negative test | `세션 사용자` fallback 0, 이름·부서·직위·연락처 정합, invalid image 0, bundle roster PII 0 |
+| RC-005-F | DONE | 급여 catalog·assignment·approved time 상위 호환 | item CRUD, masked profile assignment, attendance approval receipt를 canonical payroll input snapshot에 연결했고 별도 payroll time snapshot 계보는 도입하지 않았다. | 신규 runtime 테스트 0/3 실패를 기록 | tenant isolation, optimistic version, append-only assignment, raw amount 노출 0, 승인 receipt 기반 근태, 기존 run/payment/filing/year-end 회귀 0 |
+| RC-005-G | READY | 전체 증거·회귀·원본 보존 | 31개 PORT_REQUIRED source를 6개 그룹의 실제 Forest anchor/test로 crosswalk하고 전체 HRX/API/Web/Desktop/PII/AI-slop 검사를 실행한다. | A~F 전 entry SHA와 failing test receipt 수집 | port 31/31 설명, 미구현 0, HRX/API/Web/Desktop 0 fail, root fingerprint 동일, RC-005 evidence와 exit SHA 기록 |
+
+RC-005의 공통 중단 조건:
+
+- root 파일이나 UI를 통째로 복사해야만 통과하는 경우에는 구현을 중단하고 Forest anchor 기준으로 재설계한다.
+- `011~016` root migration 파일 또는 병렬 payroll profile/time snapshot table을 다시 도입하지 않는다.
+- 승인 전 write, 원장 직접 수정, raw 급여 금액·계좌·휴가 사유 노출, tenant/actor/resource 검증 누락은 fail-closed로 처리한다.
+- UI 변경이 필요한 RC-005-D/E는 Lazyweb 보고서를 증거로 사용하되 현재 Forest 렌더링·44px 밀도·단일 행 규칙을 최종 기준으로 한다.
 
 RC-003에서 우선 검토할 root-only 항목:
 

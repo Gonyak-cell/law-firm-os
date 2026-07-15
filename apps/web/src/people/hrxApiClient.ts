@@ -825,6 +825,23 @@ export async function fetchHrxLeaveAccrualRules() {
 
 export async function createHrxLeaveAccrualRule(form: HrxClientRecord) {
   const result = await requestJson("/api/hrx/leave/accrual/rules", { method: "POST", body: JSON.stringify(form) });
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  return result.kind === "data" && result.body.rule
+    ? { kind: "data" as const, rule: result.body.rule }
+    : { kind: "error" as const, reason: result.reason ?? null };
+}
+
+export async function updateHrxLeaveAccrualRule(ruleId: string, form: HrxClientRecord) {
+  const result = await requestJson(`/api/hrx/leave/accrual/rules/${encodeURIComponent(ruleId)}`, { method: "PATCH", body: JSON.stringify(form) });
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  return result.kind === "data" && result.body.rule
+    ? { kind: "data" as const, rule: result.body.rule }
+    : { kind: "error" as const, reason: result.reason ?? null };
+}
+
+export async function deactivateHrxLeaveAccrualRule(ruleId: string, form: HrxClientRecord) {
+  const result = await requestJson(`/api/hrx/leave/accrual/rules/${encodeURIComponent(ruleId)}/deactivate`, { method: "POST", body: JSON.stringify(form) });
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
   return result.kind === "data" && result.body.rule
     ? { kind: "data" as const, rule: result.body.rule }
     : { kind: "error" as const, reason: result.reason ?? null };
@@ -954,8 +971,8 @@ export async function cancelHrxScheduledLeaveEntitlement(entitlementId: string, 
     : { kind: "error" as const, reason: result.reason ?? null };
 }
 
-export async function fetchHrxLeaveOccurrenceTemplate() {
-  const result = await requestJson("/api/hrx/leave/accrual/manual/template");
+export async function fetchHrxLeaveOccurrenceTemplate(format: "csv" | "xlsx" = "csv") {
+  const result = await requestJson(withQuery("/api/hrx/leave/accrual/manual/template", { format }));
   return result.kind === "data" && result.body.template
     ? { kind: "data" as const, template: result.body.template }
     : { kind: "error" as const, reason: result.reason ?? null };
@@ -1625,6 +1642,44 @@ function payrollRuntimeResult(result: HrxApiResult, field: "workspace" | "bundle
     return { kind: "error" as const, reason: result.reason ?? null, body: result.body ?? {}, status: result.status };
   }
   return { kind: "data" as const, [field]: result.body[field] };
+}
+
+function payrollCatalogResult(result: HrxApiResult, field: "items" | "item" | "profiles" | "profile" | "assignment" | "approval_receipt") {
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  if (result.kind !== "data" || !result.body[field]) return { kind: "error" as const, reason: result.reason ?? null, status: result.status };
+  return { kind: "data" as const, [field]: result.body[field] };
+}
+
+export async function fetchHrxPayrollItems(includeInactive = false) {
+  return payrollCatalogResult(await requestJson(withQuery("/api/hrx/payroll/items", { include_inactive: includeInactive })), "items");
+}
+
+export async function createHrxPayrollItem(form: HrxClientRecord) {
+  return payrollCatalogResult(await requestJson("/api/hrx/payroll/items", { method: "POST", body: JSON.stringify(form) }), "item");
+}
+
+export async function updateHrxPayrollItem(itemId: string, form: HrxClientRecord) {
+  return payrollCatalogResult(await requestJson(`/api/hrx/payroll/items/${encodeURIComponent(itemId)}`, { method: "PATCH", body: JSON.stringify(form) }), "item");
+}
+
+export async function fetchHrxPayrollSelfProfile() {
+  return payrollCatalogResult(await requestJson("/api/hrx/payroll/me/profile"), "profiles");
+}
+
+export async function fetchHrxPayrollProfile(employeeId: string, onDate?: string) {
+  return payrollCatalogResult(await requestJson(withQuery(`/api/hrx/payroll/profiles/${encodeURIComponent(employeeId)}`, { on_date: onDate })), "profiles");
+}
+
+export async function createHrxPayrollProfile(form: HrxClientRecord) {
+  return payrollCatalogResult(await requestJson("/api/hrx/payroll/profiles", { method: "POST", body: JSON.stringify(form) }), "profile");
+}
+
+export async function assignHrxPayrollItem(profileId: string, form: HrxClientRecord) {
+  return payrollCatalogResult(await requestJson(`/api/hrx/payroll/profiles/${encodeURIComponent(profileId)}/assignments`, { method: "POST", body: JSON.stringify(form) }), "assignment");
+}
+
+export async function approveHrxPayrollAttendance(form: HrxClientRecord) {
+  return payrollCatalogResult(await requestJson("/api/hrx/payroll/attendance-approvals", { method: "POST", body: JSON.stringify(form) }), "approval_receipt");
 }
 
 export async function fetchHrxPayrollWorkspace() {

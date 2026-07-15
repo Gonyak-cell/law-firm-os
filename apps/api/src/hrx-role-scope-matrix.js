@@ -5,6 +5,7 @@ const EMPLOYEE_SCOPES = Object.freeze([
   "hrx.leave.write",
   "hrx.leave.self.read",
   "hrx.leave.self.write",
+  "hrx.payroll.self.read",
   "hrx.payroll.statement.self.read",
 ]);
 
@@ -38,15 +39,27 @@ const HR_SCOPES = Object.freeze([
   "hrx.policy.write",
   "hrx.leave.policy.read",
   "hrx.leave.policy.write",
+  "hrx.leave.accrual.read",
+  "hrx.leave.accrual.write",
+  "hrx.leave.accrual.preview",
   "hrx.leave.accrual.execute",
   "hrx.leave.ledger.adjust",
   "hrx.leave.promotion.manage",
   "hrx.leave.report.export",
   "hrx.leave.termination.settle",
+  "hrx.payroll.items.read",
+  "hrx.payroll.items.write",
+  "hrx.payroll.profiles.read",
+  "hrx.payroll.profiles.write",
+  "hrx.payroll.time-inputs.read",
+  "hrx.payroll.time-inputs.write",
 ]);
 
 const PAYROLL_PREPARER_SCOPES = Object.freeze([
   "hrx.compensation.read",
+  "hrx.payroll.items.read",
+  "hrx.payroll.profiles.read",
+  "hrx.payroll.time-inputs.read",
   "hrx.payroll.preview",
   "hrx.payroll.export",
   "hrx.payroll.statement.manage",
@@ -55,6 +68,9 @@ const PAYROLL_PREPARER_SCOPES = Object.freeze([
 ]);
 
 const PAYROLL_APPROVER_SCOPES = Object.freeze([
+  "hrx.payroll.items.read",
+  "hrx.payroll.profiles.read",
+  "hrx.payroll.time-inputs.read",
   "hrx.payroll.preview",
   "hrx.payroll.approve",
   "hrx.payroll.payment.approve",

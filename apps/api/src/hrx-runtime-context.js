@@ -2441,9 +2441,9 @@ export function createHrxRuntimeContext({ repository: providedRepository, store,
   const resolvedModelGateway = modelGateway ?? createHrxModelGatewayFromEnv();
   const aiRoute = createHrxAiRoute({ retriever: aiRetriever, reviewQueue: aiReviewQueue, audit, modelGateway: resolvedModelGateway });
   if (store && seedPayrollRuntime) seedSyntheticPayrollRuntimeStore(store, seedTenantIds, { ...(runtimeClock ? { clock: runtimeClock } : {}) });
-  const payrollRuntime = createHrxPayrollRuntime({ store, ...(runtimeClock ? { clock: runtimeClock } : {}) });
+  const payrollRuntime = createHrxPayrollRuntime({ store, audit, ...(runtimeClock ? { clock: runtimeClock } : {}) });
   const payrollRoute = createHrxPayrollRoute({ audit });
-  const payrollRuntimeRoute = createHrxPayrollRuntimeRoute({ runtime: payrollRuntime, store, ...(runtimeClock ? { clock: runtimeClock } : {}) });
+  const payrollRuntimeRoute = createHrxPayrollRuntimeRoute({ runtime: payrollRuntime, store, audit, ...(runtimeClock ? { clock: runtimeClock } : {}) });
   const matterAssignments = Object.freeze(seedTenantIds.flatMap(matterAssignmentSeed));
   const matterTimeEntryRows = Object.freeze(matterTimeEntries ?? seedTenantIds.flatMap(matterTimeEntrySeed));
   const matterDeadlineRows = Object.freeze(matterDeadlines ?? seedTenantIds.flatMap(matterDeadlineSeed));
@@ -3523,7 +3523,24 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         return response(200, { outcome: "ok", rules: service.listRules(actorContext) });
       }
       if (pathname === "/api/hrx/leave/accrual/rules" && method === "POST") {
+        if (actorContext.step_up_verified !== true) {
+          return response(403, { outcome: "blocked", safe_error_code: "HRX_STEP_UP_REQUIRED", step_up_required: true, required_purpose: "leave_accrual_execute", fail_closed: true });
+        }
         return response(201, { outcome: "created", rule: service.createRule(actorContext, body) });
+      }
+      const accrualRuleUpdate = pathname.match(/^\/api\/hrx\/leave\/accrual\/rules\/([^/]+)$/);
+      const accrualRuleDeactivate = pathname.match(/^\/api\/hrx\/leave\/accrual\/rules\/([^/]+)\/deactivate$/);
+      if (accrualRuleUpdate && method === "PATCH") {
+        if (actorContext.step_up_verified !== true) {
+          return response(403, { outcome: "blocked", safe_error_code: "HRX_STEP_UP_REQUIRED", step_up_required: true, required_purpose: "leave_accrual_execute", fail_closed: true });
+        }
+        return response(201, { outcome: "version_created", rule: service.updateRule(actorContext, decodeURIComponent(accrualRuleUpdate[1]), body) });
+      }
+      if (accrualRuleDeactivate && method === "POST") {
+        if (actorContext.step_up_verified !== true) {
+          return response(403, { outcome: "blocked", safe_error_code: "HRX_STEP_UP_REQUIRED", step_up_required: true, required_purpose: "leave_accrual_execute", fail_closed: true });
+        }
+        return response(200, { outcome: "deactivated", rule: service.deactivateRule(actorContext, decodeURIComponent(accrualRuleDeactivate[1]), body) });
       }
       if (pathname === "/api/hrx/leave/accrual/preview" && method === "POST") {
         return response(200, { outcome: "previewed", run: service.preview(actorContext, body) });
@@ -3556,7 +3573,7 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         return response(200, { outcome: "ok", documents });
       }
       if (pathname === "/api/hrx/leave/accrual/manual/template" && method === "GET") {
-        return response(200, { outcome: "ok", template: service.manualTemplate() });
+        return response(200, { outcome: "ok", template: service.manualTemplate(query.format ?? "csv") });
       }
       if (pathname === "/api/hrx/leave/accrual/manual/uploads/preview" && method === "POST") {
         if (!uploadService) return response(503, { outcome: "blocked", safe_error_code: "HRX_LEAVE_OCCURRENCE_UPLOAD_STORE_REQUIRED" });
@@ -4488,6 +4505,28 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       });
     }
 
+    const payrollItemMatch = pathname.match(/^\/api\/hrx\/payroll\/items(?:\/([^/]+))?$/);
+    if (payrollItemMatch && context.payrollRuntimeRoute && ["GET", "POST", "PATCH"].includes(method)) {
+      return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action: "items", item_id: payrollItemMatch[1] ? decodeURIComponent(payrollItemMatch[1]) : null }, query, body });
+    }
+    if (pathname === "/api/hrx/payroll/me/profile" && method === "GET" && context.payrollRuntimeRoute) {
+      const employeeId = requireSingleEmployeeForActor(context, actorContext);
+      return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action: "profile-self", employee_id: employeeId }, query, body });
+    }
+    if (pathname === "/api/hrx/payroll/profiles" && method === "POST" && context.payrollRuntimeRoute) {
+      return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action: "profile-create" }, query, body });
+    }
+    const payrollProfileAssignmentMatch = pathname.match(/^\/api\/hrx\/payroll\/profiles\/([^/]+)\/assignments$/);
+    if (payrollProfileAssignmentMatch && method === "POST" && context.payrollRuntimeRoute) {
+      return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action: "assignment-create", payroll_profile_id: decodeURIComponent(payrollProfileAssignmentMatch[1]) }, query, body });
+    }
+    const payrollProfileMatch = pathname.match(/^\/api\/hrx\/payroll\/profiles\/([^/]+)$/);
+    if (payrollProfileMatch && method === "GET" && context.payrollRuntimeRoute) {
+      return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action: "profiles", employee_id: decodeURIComponent(payrollProfileMatch[1]) }, query, body });
+    }
+    if (pathname === "/api/hrx/payroll/attendance-approvals" && method === "POST" && context.payrollRuntimeRoute) {
+      return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action: "attendance-approve" }, query, body });
+    }
     if (pathname === "/api/hrx/payroll/periods" && method === "GET" && context.payrollRuntimeRoute) {
       return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action: "list" }, query, body });
     }

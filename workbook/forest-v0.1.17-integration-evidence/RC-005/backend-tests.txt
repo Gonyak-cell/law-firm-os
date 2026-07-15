@@ -1,0 +1,11 @@
+FAIL-FIRST
+apps/api/test/hrx/payroll-catalog-runtime.test.js: 0/3 PASS before implementation
+packages/hrx/test/leave-accrual-service.test.js + packages/hrx/test/leave-occurrence-xlsx.test.js: 9 PASS, 2 FAIL before implementation
+
+PASS
+node --test --test-concurrency=1 apps/api/test/hrx/hrx-role-scope-matrix.test.js apps/api/test/hrx/route-authz.test.js apps/api/test/hrx/payroll-catalog-runtime.test.js apps/api/test/hrx/payroll-runtime.test.js apps/api/test/hrx/leave-accrual-api.test.js apps/api/test/hrx/step-up-route.test.js packages/authz/test/hrx-scopes.test.js packages/authz/test/hrx-policy-engine.test.js packages/hrx/test/payroll-item-catalog.test.js packages/hrx/test/payroll-profile-service.test.js packages/hrx/test/payroll-time-input-snapshot.test.js packages/hrx/test/leave-accrual-batch-repository.test.js packages/hrx/test/leave-accrual-batch-service.test.js packages/hrx/test/leave-accrual-period-generator.test.js packages/hrx/test/leave-accrual-service.test.js packages/hrx/test/leave-occurrence-upload-batch-service.test.js packages/hrx/test/leave-occurrence-xlsx.test.js packages/hrx/test/migration.test.js packages/hrx/test/migration-fresh-db.test.js packages/hrx/test/migration-upgrade.test.js packages/hrx/test/migration-recovery.test.js
+RESULT: 102 PASS, 0 FAIL
+
+apps/web TypeScript:
+node_modules/.bin/tsc -p apps/web/tsconfig.json --noEmit --pretty false
+RESULT: PASS

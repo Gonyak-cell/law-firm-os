@@ -5,6 +5,7 @@ import { MATTER_VAULT_REGISTERED_TENANT_ID } from "../../src/matter-vault-accoun
 import { resolveHrxRoutePolicy } from "../../src/routes/hrx/route-policy-map.js";
 import { runHrxMigrations } from "../../../../packages/hrx/src/migrations/index.js";
 import { createFileHrxStore } from "../../../../packages/hrx/src/store/file-store.js";
+import { createXlsxBuffer } from "../../../../packages/hrx/src/leave/xlsx-export.js";
 
 const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
 const EMPLOYEE = "emp_amic_yjlee";
@@ -23,7 +24,7 @@ function setup() {
 }
 
 function actor(stepUp = false) {
-  return { tenant_id: TENANT, actor_id: "user_amic_tryoon", actor_role: "lawos_hr", hrx_scopes: ["hrx.leave.policy.write", "hrx.leave.accrual.execute", "hrx.leave.ledger.adjust", "hrx.leave.report.export"], session_bound: true, step_up_verified: stepUp };
+  return { tenant_id: TENANT, actor_id: "user_amic_tryoon", actor_role: "lawos_hr", hrx_scopes: ["hrx.leave.accrual.read", "hrx.leave.accrual.write", "hrx.leave.accrual.preview", "hrx.leave.accrual.execute", "hrx.leave.ledger.adjust", "hrx.leave.report.export"], session_bound: true, step_up_verified: stepUp };
 }
 
 function request(context, pathname, method, body = {}, requestContext = actor(), query = {}) {
@@ -32,8 +33,11 @@ function request(context, pathname, method, body = {}, requestContext = actor(),
 
 test("LV-04 accrual routes use granular HR scopes and step-up actions", () => {
   const expectations = [
-    ["GET", "/api/hrx/leave/accrual/rules", "hrx.leave.accrual.execute", "hrx.leave.accrual.read"],
-    ["POST", "/api/hrx/leave/accrual/preview", "hrx.leave.accrual.execute", "hrx.leave.accrual.preview"],
+    ["GET", "/api/hrx/leave/accrual/rules", "hrx.leave.accrual.read", "hrx.leave.accrual.read"],
+    ["POST", "/api/hrx/leave/accrual/rules", "hrx.leave.accrual.write", "hrx.leave.accrual.rule.write"],
+    ["PATCH", "/api/hrx/leave/accrual/rules/rule-001", "hrx.leave.accrual.write", "hrx.leave.accrual.rule.write"],
+    ["POST", "/api/hrx/leave/accrual/rules/rule-001/deactivate", "hrx.leave.accrual.write", "hrx.leave.accrual.rule.write"],
+    ["POST", "/api/hrx/leave/accrual/preview", "hrx.leave.accrual.preview", "hrx.leave.accrual.preview"],
     ["POST", "/api/hrx/leave/accrual/execute", "hrx.leave.accrual.execute", "hrx.leave.accrual.execute"],
     ["POST", "/api/hrx/leave/accrual/batches/preview", "hrx.leave.accrual.execute", "hrx.leave.accrual.preview.batch"],
     ["GET", "/api/hrx/leave/accrual/batches/batch-001", "hrx.leave.accrual.execute", "hrx.leave.accrual.read.batch"],
@@ -65,6 +69,64 @@ test("LV-OCC-005 API returns an example-free, versioned leave occurrence CSV tem
   assert.equal(csv.replace(/^\uFEFF/, "").trim().split(/\r?\n/).length, 2);
   assert.match(csv, /^\uFEFFtemplate_version,hrx-leave-occurrence-v1/);
   assert.equal(csv.includes("emp_amic_"), false);
+  const xlsxResult = request(context, "/api/hrx/leave/accrual/manual/template", "GET", {}, actor(), { format: "xlsx" });
+  assert.equal(xlsxResult.status, 200, JSON.stringify(xlsxResult.body));
+  assert.equal(xlsxResult.body.template.format, "xlsx");
+  assert.equal(Buffer.from(xlsxResult.body.template.content_base64, "base64").subarray(0, 2).toString("ascii"), "PK");
+  store.close();
+});
+
+test("RC-005-B API versions and deactivates accrual rules behind step-up", () => {
+  const { store, context } = setup();
+  const created = request(context, "/api/hrx/leave/accrual/rules", "POST", {
+    accrual_rule_id: "versioned-rule-v1",
+    rule_code: "VERSIONED_RULE_V1",
+    display_name: "근속 연차",
+    policy_version_id: "accrual-policy-v1",
+    effective_from: "2026-01-01",
+    rule: { basis: "tenure_table", schedule: "fixed_annual_date", annual_date: "07-13", tenure_steps: [{ from_month: 0, to_month: 120, amount_minutes: 7_200 }] },
+  }, actor(true));
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  const challenged = request(context, "/api/hrx/leave/accrual/rules/versioned-rule-v1", "PATCH", {
+    accrual_rule_id: "versioned-rule-v2",
+    effective_from: "2027-01-01",
+  });
+  assert.equal(challenged.status, 403);
+  assert.equal(challenged.body.safe_error_code, "HRX_STEP_UP_REQUIRED");
+  const versioned = request(context, "/api/hrx/leave/accrual/rules/versioned-rule-v1", "PATCH", {
+    accrual_rule_id: "versioned-rule-v2",
+    effective_from: "2027-01-01",
+  }, actor(true));
+  assert.equal(versioned.status, 201, JSON.stringify(versioned.body));
+  assert.equal(versioned.body.outcome, "version_created");
+  assert.equal(versioned.body.rule.version, 2);
+  assert.equal(versioned.body.rule.supersedes_rule_id, "versioned-rule-v1");
+  const deactivated = request(context, "/api/hrx/leave/accrual/rules/versioned-rule-v1/deactivate", "POST", { expected_version: 1 }, actor(true));
+  assert.equal(deactivated.status, 200, JSON.stringify(deactivated.body));
+  assert.equal(deactivated.body.rule.status, "inactive");
+  store.close();
+});
+
+test("RC-005-C XLSX uploads use the same durable preview batch", () => {
+  const { store, context } = setup();
+  const workbook = createXlsxBuffer({
+    headers: ["template_version", "hrx-leave-occurrence-v1"],
+    rows: [
+      ["employee_id", "group_id", "policy_version_id", "direction", "amount_minutes", "valid_from", "expires_on", "memo", "source_document_id"],
+      [EMPLOYEE, "accrual-group", "accrual-policy-v1", "credit", 480, "2026-08-01", "2027-07-31", "XLSX 발생", "accrual-manual-proof"],
+    ],
+  });
+  const previewed = request(context, "/api/hrx/leave/accrual/manual/uploads/preview", "POST", {
+    upload_batch_id: "xlsx-upload-api-001",
+    xlsx_content_base64: workbook.toString("base64"),
+    schedule_only: true,
+    as_of: "2026-07-14",
+    idempotency_key: "xlsx-upload-api-preview-001",
+  });
+  assert.equal(previewed.status, 200, JSON.stringify(previewed.body));
+  assert.equal(previewed.body.batch.status, "previewed");
+  assert.deepEqual(previewed.body.batch.counts, { ready: 1, preview_errors: 0, duplicates: 0, completed: 0, failed: 0, pending: 1, new_entries: 0 });
+  assert.equal(JSON.stringify(previewed.body).includes("XLSX 발생"), false);
   store.close();
 });
 
@@ -147,7 +209,7 @@ test("LV-BATCH-006 batch API blocks self service and preserves preview, execute,
     policy_version_id: "accrual-policy-v1",
     effective_from: "2026-01-01",
     rule: { basis: "fixed_amount", schedule: "fixed_annual_date", annual_date: "07-13", amount_minutes: 480, minutes_per_day: 480, expiration_months: 12, attendance_source_required: true },
-  });
+  }, actor(true));
   assert.equal(created.status, 201, JSON.stringify(created.body));
 
   const selfService = {
@@ -232,7 +294,7 @@ test("LV-04 API previews, executes once, and rejects stale source snapshots", ()
     policy_version_id: "accrual-policy-v1",
     effective_from: "2026-01-01",
     rule: { basis: "fixed_amount", schedule: "fixed_annual_date", annual_date: "07-13", amount_minutes: 480, minutes_per_day: 480, expiration_months: 12, attendance_source_required: true },
-  });
+  }, actor(true));
   assert.equal(created.status, 201, JSON.stringify(created.body));
 
   const preview = request(context, "/api/hrx/leave/accrual/preview", "POST", { accrual_rule_id: "accrual-rule", period_key: "2026", occurred_on: "2026-07-13" });

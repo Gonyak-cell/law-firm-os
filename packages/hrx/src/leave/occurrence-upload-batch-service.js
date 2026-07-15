@@ -122,7 +122,9 @@ export function createLeaveOccurrenceUploadBatchService({
     const tenantId = requiredString(context, "tenant_id");
     const actorId = requiredString(context, "actor_id");
     const idempotencyKey = requiredString(input, "idempotency_key");
-    requiredString(input, "csv_text");
+    if (!input.csv_text && !input.xlsx_content_base64 && !(input.format === "xlsx" && input.content_base64)) {
+      throw new TypeError("csv_text or xlsx_content_base64 is required");
+    }
     const prepared = manualService.prepareManualUpload(context, input);
     if (!prepared.template_version) {
       throw guardedError("A versioned occurrence upload template is required", "HRX_LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_REQUIRED", 400);

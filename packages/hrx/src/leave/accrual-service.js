@@ -3,10 +3,13 @@ import { createSqlHrxAuditEventStore } from "../../../audit/src/hrx-event-store-
 import { calculateKoreanAnnualPaidLeaveEntitlement } from "../rules/leave-policy.js";
 import { planEarliestExpiryAllocations } from "./allocation.js";
 import { createSqlLeaveBalanceLedger } from "./balance.js";
+import { createXlsxBuffer, parseXlsxBuffer } from "./xlsx-export.js";
 
-const RULE_BASES = new Set(["korean_statutory_annual", "fixed_amount", "monthly_perfect_attendance"]);
+const RULE_BASES = new Set(["korean_statutory_annual", "fixed_amount", "monthly_perfect_attendance", "tenure_table"]);
 const RULE_SCHEDULES = new Set(["hire_anniversary", "fiscal_year", "monthly_perfect_attendance", "fixed_annual_date"]);
 const MANUAL_DIRECTIONS = new Set(["credit", "debit"]);
+const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
+const MAX_IMPORT_ROWS = 5_000;
 export const LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION = "hrx-leave-occurrence-v1";
 export const LEAVE_OCCURRENCE_UPLOAD_COLUMNS = Object.freeze([
   Object.freeze({ name: "employee_id", required: true, type: "string" }),
@@ -51,7 +54,7 @@ function hash(value) {
 }
 
 function contentHash(value) {
-  return createHash("sha256").update(value, "utf8").digest("hex");
+  return createHash("sha256").update(value).digest("hex");
 }
 
 function clone(value) {
@@ -192,7 +195,39 @@ function parseRule(row) {
   if (!Number.isInteger(minutesPerDay) || minutesPerDay <= 0) {
     throw guardedError("Accrual rule minutes_per_day is invalid", "HRX_LEAVE_ACCRUAL_RULE_INVALID");
   }
-  return Object.freeze({ ...config, minutes_per_day: minutesPerDay });
+  const validityMonths = Number(config.validity_months ?? config.expiration_months ?? 12);
+  if (!Number.isInteger(validityMonths) || validityMonths <= 0 || validityMonths > 120) {
+    throw guardedError("Accrual rule validity_months is invalid", "HRX_LEAVE_ACCRUAL_RULE_INVALID");
+  }
+  for (const field of ["tenure_steps", "monthly_schedule", "annual_schedule"]) {
+    if (config[field] !== undefined && !Array.isArray(config[field])) throw guardedError(`Accrual rule ${field} is invalid`, "HRX_LEAVE_ACCRUAL_RULE_INVALID");
+  }
+  let previousEnd = -1;
+  for (const step of config.tenure_steps ?? []) {
+    if (!Number.isInteger(step.from_month) || !Number.isInteger(step.to_month) || step.from_month < 0 || step.to_month < step.from_month || step.to_month > 120 || step.from_month <= previousEnd || !Number.isInteger(step.amount_minutes) || step.amount_minutes < 0) {
+      throw guardedError("Accrual rule tenure_steps must be ordered, non-overlapping ranges through 120 months", "HRX_LEAVE_ACCRUAL_RULE_INVALID");
+    }
+    previousEnd = step.to_month;
+  }
+  for (const item of config.monthly_schedule ?? []) {
+    if (!Number.isInteger(item.service_month) || item.service_month < 1 || item.service_month > 120 || !Number.isInteger(item.amount_minutes) || item.amount_minutes < 0) throw guardedError("Accrual rule monthly_schedule is invalid", "HRX_LEAVE_ACCRUAL_RULE_INVALID");
+  }
+  for (const item of config.annual_schedule ?? []) {
+    if (!Number.isInteger(item.service_year) || item.service_year < 1 || item.service_year > 10 || !Number.isInteger(item.amount_minutes) || item.amount_minutes < 0) throw guardedError("Accrual rule annual_schedule is invalid", "HRX_LEAVE_ACCRUAL_RULE_INVALID");
+  }
+  if (config.basis === "tenure_table" && !(config.tenure_steps?.length || config.monthly_schedule?.length || config.annual_schedule?.length)) {
+    throw guardedError("Tenure table rule requires at least one schedule row", "HRX_LEAVE_ACCRUAL_RULE_INVALID");
+  }
+  return Object.freeze({ ...config, minutes_per_day: minutesPerDay, validity_months: validityMonths });
+}
+
+function tenureTableMinutes(config, serviceMonths) {
+  const monthly = (config.monthly_schedule ?? []).find((item) => item.service_month === serviceMonths);
+  if (monthly) return monthly.amount_minutes;
+  const serviceYear = Math.floor(serviceMonths / 12);
+  const annual = (config.annual_schedule ?? []).find((item) => item.service_year === serviceYear);
+  if (annual) return annual.amount_minutes;
+  return (config.tenure_steps ?? []).find((item) => serviceMonths >= item.from_month && serviceMonths <= item.to_month)?.amount_minutes ?? 0;
 }
 
 function scheduleMatches(config, employee, periodKey, occurredOn) {
@@ -233,6 +268,8 @@ function previewEmployee({ employee, config, policy, periodKey, occurredOn }) {
     amountMinutes = Math.round(days * config.minutes_per_day * ratio);
   } else if (config.basis === "monthly_perfect_attendance") {
     amountMinutes = employee.perfect_attendance_periods?.includes(periodKey) ? Math.round(Number(config.amount_minutes ?? config.minutes_per_day) * ratio) : 0;
+  } else if (config.basis === "tenure_table") {
+    amountMinutes = Math.round(tenureTableMinutes(config, employee.service_months) * ratio);
   } else {
     amountMinutes = Math.round(Number(config.amount_minutes ?? 0) * ratio);
   }
@@ -247,7 +284,7 @@ function previewEmployee({ employee, config, policy, periodKey, occurredOn }) {
     group_id: policy.group_id,
     policy_version_id: policy.policy_version_id,
     valid_from: occurredOn,
-    expires_on: addMonths(occurredOn, Number(config.expiration_months ?? 12)),
+    expires_on: addMonths(occurredOn, config.validity_months),
   });
 }
 
@@ -323,16 +360,22 @@ function csvCells(line) {
   return cells;
 }
 
-export function createLeaveOccurrenceUploadTemplate() {
+export function createLeaveOccurrenceUploadTemplate(format = "csv") {
+  const normalizedFormat = String(format).toLowerCase();
+  if (!new Set(["csv", "xlsx"]).has(normalizedFormat)) throw new TypeError("format must be csv or xlsx");
   const headers = LEAVE_OCCURRENCE_UPLOAD_COLUMNS.map((column) => column.name);
   const csvText = `\ufefftemplate_version,${LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION}\r\n${headers.join(",")}\r\n`;
+  const buffer = normalizedFormat === "xlsx"
+    ? createXlsxBuffer({ headers: ["template_version", LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION], rows: [headers], sheetName: "휴가 발생" })
+    : Buffer.from(csvText, "utf8");
   return Object.freeze({
     template_version: LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION,
-    file_name: `leave-occurrence-upload-${LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION}.csv`,
-    mime_type: "text/csv;charset=utf-8",
+    format: normalizedFormat,
+    file_name: `leave-occurrence-upload-${LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION}.${normalizedFormat}`,
+    mime_type: normalizedFormat === "xlsx" ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "text/csv;charset=utf-8",
     columns: LEAVE_OCCURRENCE_UPLOAD_COLUMNS,
     row_count: 0,
-    content_base64: Buffer.from(csvText, "utf8").toString("base64"),
+    content_base64: buffer.toString("base64"),
   });
 }
 
@@ -350,6 +393,7 @@ function parseVersionedLeaveOccurrenceCsv(lines) {
   if (new Set(headers).size !== headers.length) throw new TypeError("CSV headers must be unique");
   for (const header of expected) if (!headers.includes(header)) throw new TypeError(`CSV header is required: ${header}`);
   for (const header of headers) if (!expected.includes(header)) throw new TypeError(`CSV header is not supported: ${header}`);
+  if (lines.length > MAX_IMPORT_ROWS) throw new TypeError(`CSV import exceeds ${MAX_IMPORT_ROWS} rows`);
   return Object.freeze(lines.map((line) => {
     const values = csvCells(line);
     if (values.length !== headers.length) throw new TypeError("CSV row column count does not match the template");
@@ -359,14 +403,49 @@ function parseVersionedLeaveOccurrenceCsv(lines) {
 
 export function parseLeaveManualAdjustmentCsv(text) {
   if (typeof text !== "string" || text.trim() === "") throw new TypeError("CSV text is required");
+  if (Buffer.byteLength(text, "utf8") > MAX_IMPORT_BYTES) throw new TypeError("CSV import size is invalid");
   const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/).filter((line) => line.trim());
   if (csvCells(lines[0])[0] === "template_version") return parseVersionedLeaveOccurrenceCsv(lines);
   const headers = csvCells(lines.shift()).map((header) => header.trim());
   const required = ["employee_id", "group_id", "policy_version_id", "direction", "amount_minutes", "occurred_on", "reason", "source_document_id"];
   for (const header of required) if (!headers.includes(header)) throw new TypeError(`CSV header is required: ${header}`);
+  if (lines.length > MAX_IMPORT_ROWS) throw new TypeError(`CSV import exceeds ${MAX_IMPORT_ROWS} rows`);
   return Object.freeze(lines.map((line) => {
     const values = csvCells(line);
     return Object.freeze(Object.fromEntries(headers.map((header, index) => [header, header === "amount_minutes" ? Number(values[index]) : values[index] ?? ""])));
+  }));
+}
+
+function strictBase64Buffer(value) {
+  if (typeof value !== "string" || value.trim() === "") throw new TypeError("XLSX content_base64 is required");
+  const normalized = value.replace(/\s+/g, "");
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(normalized) || normalized.length % 4 !== 0) throw new TypeError("XLSX content_base64 is invalid");
+  const buffer = Buffer.from(normalized, "base64");
+  if (buffer.length === 0 || buffer.length > MAX_IMPORT_BYTES) throw new TypeError("XLSX import size is invalid");
+  if (buffer.toString("base64").replace(/=+$/, "") !== normalized.replace(/=+$/, "")) throw new TypeError("XLSX content_base64 is invalid");
+  return buffer;
+}
+
+function formulaBearing(value) {
+  return typeof value === "string" && /^[=+@]/.test(value.trimStart());
+}
+
+export function parseLeaveManualAdjustmentXlsx(contentBase64) {
+  const rows = parseXlsxBuffer(strictBase64Buffer(contentBase64));
+  if (rows.length < 2) throw new TypeError("XLSX template_version and header rows are required");
+  if (rows.length - 2 > MAX_IMPORT_ROWS) throw new TypeError(`XLSX import exceeds ${MAX_IMPORT_ROWS} rows`);
+  const [metadata, headers, ...dataRows] = rows;
+  if (metadata.length < 2 || metadata[0] !== "template_version" || metadata[1] !== LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION) {
+    throw guardedError("XLSX template version is not supported", "HRX_LEAVE_OCCURRENCE_TEMPLATE_VERSION_UNSUPPORTED", 400);
+  }
+  const expected = LEAVE_OCCURRENCE_UPLOAD_COLUMNS.map((column) => column.name);
+  if (new Set(headers).size !== headers.length) throw new TypeError("XLSX headers must be unique");
+  for (const header of expected) if (!headers.includes(header)) throw new TypeError(`XLSX header is required: ${header}`);
+  for (const header of headers) if (!expected.includes(header)) throw new TypeError(`XLSX header is not supported: ${header}`);
+  return Object.freeze(dataRows.filter((row) => row.some((value) => String(value ?? "").trim())).map((values) => {
+    if (values.some(formulaBearing)) throw new TypeError("XLSX formula-like values are not allowed");
+    if (values.length > headers.length) throw new TypeError("XLSX row column count does not match the template");
+    return Object.freeze(Object.fromEntries(headers.map((header, index) => [header, header === "amount_minutes" ? Number(values[index]) : String(values[index] ?? "").trim()])));
   }));
 }
 
@@ -474,6 +553,9 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
     } else if (version !== 1) {
       throw guardedError("Accrual rule version requires a predecessor", "HRX_LEAVE_ACCRUAL_RULE_VERSION_INVALID");
     }
+    const duplicateVersion = store.query("select", { table: "hrx_leave_accrual_rules", where: { tenant_id: tenantId } })
+      .some((item) => (item.logical_rule_code ?? item.rule_code) === logicalRuleCode && Number(item.version ?? 1) === version);
+    if (duplicateVersion) throw guardedError("Accrual rule version already exists", "HRX_LEAVE_ACCRUAL_RULE_VERSION_EXISTS");
     const row = {
       tenant_id: tenantId,
       accrual_rule_id: input.accrual_rule_id ?? idFactory("leave_accrual_rule"),
@@ -498,6 +580,66 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
     });
   }
 
+  function updateRule(context, accrualRuleId, input = {}) {
+    const tenantId = requiredString(context, "tenant_id");
+    const current = store.query("selectOne", {
+      table: "hrx_leave_accrual_rules",
+      where: { tenant_id: tenantId, accrual_rule_id: requiredString({ accrual_rule_id: accrualRuleId }, "accrual_rule_id") },
+    });
+    if (!current) throw guardedError("Accrual rule not found", "HRX_LEAVE_ACCRUAL_RULE_NOT_FOUND", 404);
+    return createRule(context, {
+      accrual_rule_id: input.accrual_rule_id,
+      rule_code: input.rule_code ?? `${current.logical_rule_code ?? current.rule_code}_V${Number(current.version ?? 1) + 1}`,
+      logical_rule_code: current.logical_rule_code ?? current.rule_code,
+      version: Number(current.version ?? 1) + 1,
+      supersedes_rule_id: current.accrual_rule_id,
+      display_name: input.display_name ?? current.display_name,
+      policy_version_id: input.policy_version_id ?? current.policy_version_id,
+      effective_from: input.effective_from,
+      effective_to: input.effective_to ?? null,
+      rule: input.rule ?? JSON.parse(current.rule_json),
+      status: input.status ?? "active",
+    });
+  }
+
+  function deactivateRule(context, accrualRuleId, input = {}) {
+    const tenantId = requiredString(context, "tenant_id");
+    const actorId = requiredString(context, "actor_id");
+    const current = store.query("selectOne", {
+      table: "hrx_leave_accrual_rules",
+      where: { tenant_id: tenantId, accrual_rule_id: requiredString({ accrual_rule_id: accrualRuleId }, "accrual_rule_id") },
+    });
+    if (!current) throw guardedError("Accrual rule not found", "HRX_LEAVE_ACCRUAL_RULE_NOT_FOUND", 404);
+    if (current.status === "inactive") return Object.freeze(clone(current));
+    const expectedVersion = input.expected_version ?? current.state_version;
+    return store.transaction((tx) => {
+      const deactivated = tx.query("updateOne", {
+        table: "hrx_leave_accrual_rules",
+        where: { tenant_id: tenantId, accrual_rule_id: current.accrual_rule_id },
+        expected_version: expectedVersion,
+        patch: {
+          status: "inactive",
+          effective_to: input.effective_to ? isoDate(input.effective_to, "effective_to") : current.effective_to,
+          state_version: current.state_version + 1,
+          updated_at: clock(),
+        },
+      });
+      createSqlHrxAuditEventStore({ store: tx }).append({
+        event_id: idFactory("leave_audit_accrual_rule"),
+        tenant_id: tenantId,
+        actor_id: actorId,
+        action: "hrx.leave.accrual.rule.deactivate",
+        object_type: "LeaveAccrualRule",
+        object_id: current.accrual_rule_id,
+        decision: "allow",
+        reason: "leave_accrual_rule_deactivated",
+        occurred_at: clock(),
+        metadata: { logical_rule_code: current.logical_rule_code ?? current.rule_code, version: current.version ?? 1 },
+      });
+      return Object.freeze(clone(deactivated));
+    });
+  }
+
   function preview(context, input) {
     const tenantId = requiredString(context, "tenant_id");
     const actorId = requiredString(context, "actor_id");
@@ -511,11 +653,11 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
     }
     const policy = store.query("selectOne", { table: "hrx_leave_policy_versions", where: { tenant_id: tenantId, policy_version_id: rule.policy_version_id } });
     if (!policy) throw guardedError("Accrual policy not found", "HRX_LEAVE_POLICY_NOT_FOUND", 404);
-    const source = sources.snapshot({ tenant_id: tenantId, occurred_on: occurredOn, period_key: periodKey });
+    const source = sources.snapshot({ tenant_id: tenantId, occurred_on: asOfDate, period_key: periodKey });
     const result = runResult({ rule, policy, source, periodKey, occurredOn });
-    const snapshotHash = hash({ rule, policy, source_version: source.source_version, result });
-    const inputHash = hash({ rule_id: ruleId, period_key: periodKey, occurred_on: occurredOn });
-    const idempotencyKey = `accrual-preview:${ruleId}:${periodKey}:${source.source_version}`;
+    const snapshotHash = hash({ rule, policy, source_version: source.source_version, as_of_date: asOfDate, result });
+    const inputHash = hash({ rule_id: ruleId, period_key: periodKey, occurred_on: occurredOn, as_of_date: asOfDate });
+    const idempotencyKey = `accrual-preview:${ruleId}:${periodKey}:${asOfDate}:${source.source_version}`;
     const existing = store.query("selectOne", { table: "hrx_leave_accrual_runs", where: { tenant_id: tenantId, idempotency_key: idempotencyKey } });
     if (existing) return runView(existing);
     const now = clock();
@@ -545,9 +687,10 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
     const rule = store.query("selectOne", { table: "hrx_leave_accrual_rules", where: { tenant_id: tenantId, accrual_rule_id: previewRun.accrual_rule_id } });
     const policy = rule && store.query("selectOne", { table: "hrx_leave_policy_versions", where: { tenant_id: tenantId, policy_version_id: rule.policy_version_id } });
     if (!rule || !policy) throw guardedError("Accrual source rule no longer exists", "HRX_LEAVE_ACCRUAL_SOURCE_CHANGED");
-    const source = sources.snapshot({ tenant_id: tenantId, occurred_on: previewRun.occurred_on, period_key: previewRun.period_key });
+    const asOfDate = previewRun.as_of_date ?? previewRun.occurred_on;
+    const source = sources.snapshot({ tenant_id: tenantId, occurred_on: asOfDate, period_key: previewRun.period_key });
     const current = runResult({ rule, policy, source, periodKey: previewRun.period_key, occurredOn: previewRun.occurred_on });
-    const currentHash = hash({ rule, policy, source_version: source.source_version, result: current });
+    const currentHash = hash({ rule, policy, source_version: source.source_version, as_of_date: asOfDate, result: current });
     return Object.freeze({ rule, policy, source, current, current_hash: currentHash, is_current: source.source_version === previewRun.source_version && currentHash === previewRun.snapshot_hash });
   }
 
@@ -607,12 +750,14 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
     const scheduleOnly = input.schedule_only === true;
     const asOf = input.as_of ? isoDate(input.as_of, "as_of") : clock().slice(0, 10);
     const csvText = input.csv_text ?? null;
-    const sourceRows = csvText ? parseLeaveManualAdjustmentCsv(csvText) : input.rows ?? [];
+    const xlsxContentBase64 = input.xlsx_content_base64 ?? (input.format === "xlsx" ? input.content_base64 : null);
+    const xlsxBuffer = xlsxContentBase64 ? strictBase64Buffer(xlsxContentBase64) : null;
+    const sourceRows = csvText ? parseLeaveManualAdjustmentCsv(csvText) : xlsxContentBase64 ? parseLeaveManualAdjustmentXlsx(xlsxContentBase64) : input.rows ?? [];
     const rows = validateManualRows(store, tenantId, sourceRows, { scheduleOnly, asOf });
     return Object.freeze({
       snapshot_hash: hash(rows),
-      file_hash: csvText ? contentHash(csvText) : null,
-      template_version: csvText ? csvTemplateVersion(csvText) : null,
+      file_hash: csvText ? contentHash(csvText) : xlsxBuffer ? contentHash(xlsxBuffer) : null,
+      template_version: csvText ? csvTemplateVersion(csvText) : xlsxBuffer ? LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION : null,
       schedule_only: scheduleOnly,
       as_of: asOf,
       rows,
@@ -650,7 +795,8 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
     const actorId = approval.actor_id;
     const approverActorId = approval.approved_by_actor_id;
     const idempotencyKey = requiredString(input, "idempotency_key");
-    const sourceRows = input.csv_text ? parseLeaveManualAdjustmentCsv(input.csv_text) : input.rows ?? [];
+    const xlsxContentBase64 = input.xlsx_content_base64 ?? (input.format === "xlsx" ? input.content_base64 : null);
+    const sourceRows = input.csv_text ? parseLeaveManualAdjustmentCsv(input.csv_text) : xlsxContentBase64 ? parseLeaveManualAdjustmentXlsx(xlsxContentBase64) : input.rows ?? [];
     const scheduleOnly = input.schedule_only === true;
     const asOf = input.as_of ? isoDate(input.as_of, "as_of") : clock().slice(0, 10);
     const validated = validateManualRows(store, tenantId, sourceRows, { scheduleOnly, asOf });
@@ -688,5 +834,5 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
     });
   }
 
-  return Object.freeze({ listRules, createRule, preview, validatePreview, execute, manualTemplate: createLeaveOccurrenceUploadTemplate, prepareManualUpload, assertManualApproval, previewManual, executeManual });
+  return Object.freeze({ listRules, createRule, updateRule, deactivateRule, preview, validatePreview, execute, manualTemplate: createLeaveOccurrenceUploadTemplate, prepareManualUpload, assertManualApproval, previewManual, executeManual });
 }

@@ -5,6 +5,7 @@ export const HRX_STEP_UP_REQUIRED_ACTION_PREFIXES = Object.freeze([
   "hrx.audit.",
   "hrx.ai.final_decision",
   "hrx.leave.accrual.execute",
+  "hrx.leave.accrual.rule.",
   "hrx.leave.expiration.execute",
   "hrx.leave.ledger.adjust",
   "hrx.leave.termination.settle",
@@ -39,6 +40,7 @@ export function requiredPurposeForAction(action) {
   if (value.startsWith("hrx.audit.")) return HRX_STEP_UP_PURPOSES.audit;
   if (value.startsWith("hrx.ai.final_decision")) return HRX_STEP_UP_PURPOSES.aiFinalDecision;
   if (value.startsWith("hrx.leave.accrual.execute")) return HRX_STEP_UP_PURPOSES.leaveAccrual;
+  if (value.startsWith("hrx.leave.accrual.rule.")) return HRX_STEP_UP_PURPOSES.leaveAccrual;
   if (value.startsWith("hrx.leave.expiration.execute")) return HRX_STEP_UP_PURPOSES.leaveLedger;
   if (value.startsWith("hrx.leave.ledger.adjust")) return HRX_STEP_UP_PURPOSES.leaveLedger;
   if (value.startsWith("hrx.leave.termination.settle")) return HRX_STEP_UP_PURPOSES.leaveTermination;
