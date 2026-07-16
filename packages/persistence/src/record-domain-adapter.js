@@ -369,8 +369,8 @@ async function flushSnapshotToScopedDomainLedger({
     ) {
       await tx.write({ ...record, expected_version: current.state_version });
     }
-    await tx.addReferences(record);
   }
+  for (const record of source.records) await tx.addReferences(record);
   if (currentRecords.some((record) => !source.records.some((candidate) =>
     candidate.record_type === record.record_type && candidate.record_id === record.record_id))) {
     throw Object.assign(new Error("domain unit of work cannot silently delete records"), {

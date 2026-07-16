@@ -1,6 +1,6 @@
 import { createDurableJsonStateController } from "../../persistence/src/durable-file.js";
 
-const PRIMARY_ID_FIELDS = Object.freeze({
+export const PORTAL_PRIMARY_ID_FIELDS = Object.freeze({
   ExternalUser: "external_user_id",
   ExternalAcl: "external_acl_id",
   PortalProjection: "portal_projection_id",
@@ -13,12 +13,30 @@ const PRIMARY_ID_FIELDS = Object.freeze({
   DataRoomProjection: "data_room_projection_id",
 });
 
+export const PORTAL_NON_PERSISTENT_FIELDS = Object.freeze([
+  "credential_material",
+  "document_bytes",
+  "one_time_url",
+  "raw_payload",
+  "secret_token",
+  "source_payload",
+  "storage_pointer",
+  "storage_pointer_ref",
+  "token",
+]);
+
 function clone(value) {
   return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 }
 
+function safeRecordInput(input) {
+  const safe = clone(input);
+  for (const field of PORTAL_NON_PERSISTENT_FIELDS) delete safe[field];
+  return safe;
+}
+
 function primaryIdOf(record) {
-  const field = PRIMARY_ID_FIELDS[record.model_type];
+  const field = PORTAL_PRIMARY_ID_FIELDS[record.model_type];
   return field ? record[field] : record.resource_id ?? record.id;
 }
 
@@ -31,9 +49,10 @@ function normalizeRecord(input = {}) {
   assertTenant(input.tenant_id);
   const resourceId = primaryIdOf(input);
   if (typeof resourceId !== "string" || resourceId.trim() === "") throw new TypeError(`${input.model_type} resource id is required`);
+  const safeInput = safeRecordInput(input);
   const now = new Date().toISOString();
   return Object.freeze({
-    ...clone(input),
+    ...safeInput,
     resource_id: resourceId,
     owner_module: input.owner_module ?? "client-portal",
     created_at: input.created_at ?? now,
@@ -61,7 +80,7 @@ function recordKey(record) {
 }
 
 function refKey(ref = {}) {
-  const field = PRIMARY_ID_FIELDS[ref.model_type];
+  const field = PORTAL_PRIMARY_ID_FIELDS[ref.model_type];
   const id = ref.id ?? ref.resource_id ?? (field ? ref[field] : undefined);
   return `${ref.tenant_id}:${ref.model_type}:${id}`;
 }
@@ -75,7 +94,11 @@ function normalizeState(input) {
   return { ...emptyState(), ...parsed, records: parsed.records ?? [], idempotency: parsed.idempotency ?? [], audit_events: parsed.audit_events ?? [] };
 }
 
-export function createClientPortalRepository({ filePath, seedRecords = [] } = {}) {
+export function createClientPortalRepository({
+  filePath,
+  seedRecords = [],
+  preserveSeedRecords = false,
+} = {}) {
   let closed = false;
   let transactionDepth = 0;
   const stateController = createDurableJsonStateController({ filePath, defaultValue: emptyState(), normalizeValue: normalizeState });
@@ -124,7 +147,13 @@ export function createClientPortalRepository({ filePath, seedRecords = [] } = {}
   hydrate(state);
   for (const record of seedRecords) {
     const normalized = normalizeRecord(record);
-    if (!records.has(recordKey(normalized))) put(record, { overwrite: true });
+    if (!records.has(recordKey(normalized))) {
+      if (preserveSeedRecords) {
+        records.set(recordKey(normalized), clone({ ...record, resource_id: normalized.resource_id }));
+      } else {
+        put(record, { overwrite: true });
+      }
+    }
   }
 
   const repository = {
@@ -212,6 +241,14 @@ export function createClientPortalRepository({ filePath, seedRecords = [] } = {}
       } finally {
         transactionDepth = entryDepth;
       }
+    },
+    snapshot() {
+      assertOpen();
+      return Object.freeze({
+        records: Object.freeze([...records.values()].map((record) => Object.freeze(clone(record)))),
+        idempotency: Object.freeze([...idempotency.values()].map((entry) => Object.freeze(clone(entry)))),
+        audit_events: Object.freeze([...auditEvents.values()].map((event) => Object.freeze(clone(event)))),
+      });
     },
     close() {
       closed = true;

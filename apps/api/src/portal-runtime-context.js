@@ -1,4 +1,5 @@
 import { createClientPortalRepository } from "../../../packages/client-portal/src/runtime-repository.js";
+import { runPortalPostgresCommand } from "../../../packages/client-portal/src/central-ledger.js";
 import { createExternalUser } from "../../../packages/client-portal/src/external-user-service.js";
 import { createExternalAcl, createPortalDashboardProjection, createPortalProjection } from "../../../packages/client-portal/src/portal-projection-service.js";
 import { createRfiRequest, createRfiResponse } from "../../../packages/client-portal/src/rfi-service.js";
@@ -517,4 +518,41 @@ export async function handlePortalApiRequest({ pathname, method, query, body, co
   if (pathname === "/api/data-room/projections" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "data_room:projection:write", resourceType: "data_room_projection", tenantId: body?.data_room_projection?.tenant_id ?? body?.tenant_id, itemKey: "data_room_projection", fn: () => syncDataRoomProjection({ repository: runtime.repository, data_room_projection: body.data_room_projection, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
 
   return errorResponse(404, requestId, [PORTAL_API_ERROR_CODES.not_found], { audit_hint_ref: query?.audit_hint_ref });
+}
+
+function portalRequestTenantId(query, body) {
+  if (query?.tenant_id) return query.tenant_id;
+  if (body?.tenant_id) return body.tenant_id;
+  for (const value of Object.values(body ?? {})) {
+    if (value && typeof value === "object" && !Array.isArray(value) && value.tenant_id) return value.tenant_id;
+  }
+  throw new TypeError("tenant_id is required for the Portal PostgreSQL adapter");
+}
+
+export async function handlePortalPostgresApiRequest({ ledger, pathname, method, query, body, context, requestId } = {}) {
+  const tenantId = portalRequestTenantId(query, body);
+  const command = await runPortalPostgresCommand({
+    ledger,
+    tenant_id: tenantId,
+    command(repository) {
+      return handlePortalApiRequest({
+        pathname,
+        method,
+        query,
+        body,
+        context,
+        requestId,
+        runtime: createPortalRuntimeContext({ repository }),
+      });
+    },
+  });
+  return Object.freeze({
+    response: command.result,
+    persistence: Object.freeze({
+      adapter: "portal-postgres-domain-ledger",
+      tenant_id: tenantId,
+      shadow_equal: command.flush.comparison.equal,
+      production_migrated: false,
+    }),
+  });
 }

@@ -1,4 +1,5 @@
 import { createAiGovernanceRepository } from "../../../packages/ai-governance/src/runtime-repository.js";
+import { runAiGovernancePostgresCommand } from "../../../packages/ai-governance/src/central-ledger.js";
 import { createAiPolicy } from "../../../packages/ai-governance/src/policy-service.js";
 import { assertPermissionBeforeAi, createRetrievalRequest } from "../../../packages/ai-governance/src/retrieval-service.js";
 import { createPromptLog } from "../../../packages/ai-governance/src/prompt-log-service.js";
@@ -218,4 +219,41 @@ export async function handleAiApiRequest({ pathname, method, query, body, contex
   if (pathname === "/api/ai/exports" && method === "POST") return handleAiExportCreate({ body, context, requestId, runtime });
   if (pathname === "/api/ai/audit" && method === "GET") return handleAiAudit({ query, context, requestId, runtime });
   return errorResponse(404, requestId, [AI_API_ERROR_CODES.not_found], { audit_hint_ref: query.audit_hint_ref });
+}
+
+function aiRequestTenantId(query, body) {
+  if (query?.tenant_id) return query.tenant_id;
+  if (body?.tenant_id) return body.tenant_id;
+  for (const value of Object.values(body ?? {})) {
+    if (value && typeof value === "object" && !Array.isArray(value) && value.tenant_id) return value.tenant_id;
+  }
+  throw new TypeError("tenant_id is required for the AI governance PostgreSQL adapter");
+}
+
+export async function handleAiPostgresApiRequest({ ledger, pathname, method, query, body, context, requestId } = {}) {
+  const tenantId = aiRequestTenantId(query, body);
+  const command = await runAiGovernancePostgresCommand({
+    ledger,
+    tenant_id: tenantId,
+    command(repository) {
+      return handleAiApiRequest({
+        pathname,
+        method,
+        query,
+        body,
+        context,
+        requestId,
+        runtime: createAiRuntimeContext({ repository }),
+      });
+    },
+  });
+  return Object.freeze({
+    response: command.result,
+    persistence: Object.freeze({
+      adapter: "ai-governance-postgres-domain-ledger",
+      tenant_id: tenantId,
+      shadow_equal: command.flush.comparison.equal,
+      production_migrated: false,
+    }),
+  });
 }

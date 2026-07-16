@@ -3,6 +3,7 @@ export * from "./service.js";
 export * from "./validators.js";
 export * from "./client-matter-g6.js";
 export * from "./runtime-repository.js";
+export * from "./central-ledger.js";
 export * from "./audit.js";
 export * from "./policy-service.js";
 export * from "./retrieval-service.js";

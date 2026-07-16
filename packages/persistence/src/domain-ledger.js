@@ -11,6 +11,7 @@ export const DOMAIN_IDS = Object.freeze([
   "finance",
   "client-portal",
   "ai-governance",
+  "dms",
 ]);
 
 const HASH_PATTERN = /^[a-f0-9]{64}$/u;
