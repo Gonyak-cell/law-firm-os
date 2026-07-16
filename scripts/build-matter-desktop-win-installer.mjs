@@ -1,15 +1,18 @@
 #!/usr/bin/env node
+import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import {
   assertDesktopFormalBuildProvenance,
+  createDesktopBuildManifest,
   desktopReleaseChannelConfig,
+  directoryDigest,
   readDesktopBuildSourceIdentity,
 } from "./lib/matter-desktop-provenance.mjs";
 
@@ -23,6 +26,7 @@ const sourceIdentity = readDesktopBuildSourceIdentity(repoRoot);
 const builderConfigPath = join(desktopRoot, "electron-builder.yml");
 const channelConfig = desktopReleaseChannelConfig(process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal");
 const releaseChannel = channelConfig.channel;
+const formalRelease = channelConfig.formal;
 assertDesktopFormalBuildProvenance({
   releaseChannel,
   sourceIdentity,
@@ -34,6 +38,18 @@ const installerPath = join(desktopRoot, "dist", `${artifactName}-win-x64.exe`);
 const blockmapPath = `${installerPath}.blockmap`;
 const unpackedPath = join(desktopRoot, "dist", "win-unpacked");
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md");
+const buildManifestName = "matter-build-manifest.json";
+const formalReleaseMarkerName = "matter-formal-release.json";
+const rendererRoot = join(desktopRoot, "src", "renderer", "web");
+const installerBuildManifest = createDesktopBuildManifest({
+  version: packageJson.version,
+  ...sourceIdentity,
+  renderer: directoryDigest(rendererRoot),
+  channel: releaseChannel,
+  platform: "win32",
+  arch: "x64",
+  appId,
+});
 const runtimeAssetPaths = [
   "build/amic-law-a-lockup-accent.svg",
   "build/amic-law-mic-accent.svg",
@@ -71,6 +87,18 @@ try {
   await mkdir(stagingProjectRoot, { recursive: true });
   await cp(join(desktopRoot, "src"), join(stagingProjectRoot, "src"), { recursive: true });
   await cp(join(desktopRoot, "build"), join(stagingProjectRoot, "build"), { recursive: true });
+  const provenanceRoot = join(stagingProjectRoot, ".release-provenance");
+  await mkdir(provenanceRoot, { recursive: true });
+  await writeFile(
+    join(provenanceRoot, buildManifestName),
+    `${JSON.stringify(installerBuildManifest, null, 2)}\n`,
+  );
+  if (formalRelease) {
+    await writeFile(
+      join(provenanceRoot, formalReleaseMarkerName),
+      `${JSON.stringify({ channel: "formal", local_api_default: "disabled" }, null, 2)}\n`,
+    );
+  }
   await writeFile(
     join(stagingProjectRoot, "package.json"),
     `${JSON.stringify(
@@ -86,7 +114,23 @@ try {
       2
     )}\n`,
   );
-  await writeFile(join(stagingProjectRoot, "electron-builder.yml"), await readFile(builderConfigPath, "utf8"));
+  const provenanceResources = [
+    "",
+    "extraResources:",
+    `  - from: .release-provenance/${buildManifestName}`,
+    `    to: ${buildManifestName}`,
+    ...(formalRelease
+      ? [
+          `  - from: .release-provenance/${formalReleaseMarkerName}`,
+          `    to: ${formalReleaseMarkerName}`,
+        ]
+      : []),
+    "",
+  ].join("\n");
+  await writeFile(
+    join(stagingProjectRoot, "electron-builder.yml"),
+    `${(await readFile(builderConfigPath, "utf8")).trimEnd()}${provenanceResources}`,
+  );
 
   const npxArgs = [
     "-y",
@@ -110,6 +154,25 @@ try {
     },
   );
 
+  const packagedResources = join(stagingUnpackedPath, "resources");
+  const packagedBuildManifestPath = join(packagedResources, buildManifestName);
+  assert.equal(existsSync(packagedBuildManifestPath), true, "Windows installer must embed the build manifest");
+  assert.deepEqual(
+    JSON.parse(await readFile(packagedBuildManifestPath, "utf8")),
+    installerBuildManifest,
+    "Windows installer build manifest must match the exact source identity",
+  );
+  assert.deepEqual(
+    directoryDigest(join(packagedResources, "app", "src", "renderer", "web")),
+    installerBuildManifest.renderer,
+    "Windows installer renderer must match its build manifest",
+  );
+  assert.equal(
+    existsSync(join(packagedResources, formalReleaseMarkerName)),
+    formalRelease,
+    "Windows installer formal marker must match the release channel",
+  );
+
   await mkdir(dirname(installerPath), { recursive: true });
   await cp(stagingInstallerPath, installerPath);
   await cp(stagingBlockmapPath, blockmapPath);
@@ -130,10 +193,13 @@ for (const assetPath of runtimeAssetPaths) {
 
 const installer = await fileRecord(installerPath);
 const blockmap = await fileRecord(blockmapPath);
+const packagedBuildManifestPath = join(unpackedPath, "resources", buildManifestName);
+const packagedFormalMarkerPath = join(unpackedPath, "resources", formalReleaseMarkerName);
+const nativeInstallSmoke = `not_run_on_${process.platform}`;
 const relativeInstallerPath = "apps/desktop/dist/" + `${artifactName}-win-x64.exe`;
 const relativeBlockmapPath = `${relativeInstallerPath}.blockmap`;
 const priorReceipt = existsSync(receiptPath) ? await readFile(receiptPath, "utf8") : "";
-const receiptSection = `\n## Installer Package\n\n- Windows installer: \`${relativeInstallerPath}\`\n- Windows installer sha256: \`${installer.sha256}\`\n- Windows installer bytes: ${installer.bytes}\n- Windows installer blockmap: \`${relativeBlockmapPath}\`\n- Windows installer blockmap sha256: \`${blockmap.sha256}\`\n- Windows installer blockmap bytes: ${blockmap.bytes}\n- Windows installer packaging: nsis-x64\n- Windows renderer runtime assets: verified (${runtimeAssetPaths.length})\n- Windows native install smoke: not_run_on_darwin\n- Windows Authenticode signing: false\n`;
+const receiptSection = `\n## Installer Package\n\n- Windows installer: \`${relativeInstallerPath}\`\n- Windows installer sha256: \`${installer.sha256}\`\n- Windows installer bytes: ${installer.bytes}\n- Windows installer blockmap: \`${relativeBlockmapPath}\`\n- Windows installer blockmap sha256: \`${blockmap.sha256}\`\n- Windows installer blockmap bytes: ${blockmap.bytes}\n- Windows installer packaging: nsis-x64\n- Windows renderer runtime assets: verified (${runtimeAssetPaths.length})\n- Windows installer build manifest: verified (${installerBuildManifest.source_sha})\n- Windows installer renderer sha256: \`${installerBuildManifest.renderer.sha256}\`\n- Windows installer formal marker: ${formalRelease ? "verified" : "not_applicable"}\n- Windows native install smoke: ${nativeInstallSmoke}\n- Windows Authenticode signing: false\n`;
 
 await mkdir(dirname(receiptPath), { recursive: true });
 await writeFile(receiptPath, `${priorReceipt.trimEnd()}${receiptSection}`);
@@ -151,7 +217,11 @@ console.log(
       release_channel: releaseChannel,
       app_id: appId,
       runtime_asset_sha256: runtimeAssetSha256,
-      windows_native_install_smoke: "not_run_on_darwin",
+      installer_build_manifest: relative(repoRoot, packagedBuildManifestPath),
+      installer_source_sha: installerBuildManifest.source_sha,
+      installer_renderer_sha256: installerBuildManifest.renderer.sha256,
+      installer_formal_marker: formalRelease && existsSync(packagedFormalMarkerPath),
+      windows_native_install_smoke: nativeInstallSmoke,
       windows_authenticode_signing: false,
     },
     null,

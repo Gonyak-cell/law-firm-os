@@ -1,0 +1,81 @@
+name: Windows Formal Package QA
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Full clean source SHA to build and test
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  windows-formal-package-qa:
+    name: Windows formal install and runtime QA
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact source SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+
+      - name: Verify source input
+        shell: pwsh
+        run: |
+          if ("${{ inputs.source_sha }}" -notmatch '^[0-9a-f]{40}$') { throw "source_sha must be a full SHA" }
+          if ((git rev-parse HEAD).Trim() -ne "${{ inputs.source_sha }}") { throw "exact source checkout failed" }
+          if (git status --porcelain) { throw "source checkout is dirty" }
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build exact-source formal Windows package and NSIS
+        env:
+          MATTER_DESKTOP_RELEASE_CHANNEL: formal
+          MATTER_DESKTOP_EXPECTED_SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          npm --workspace apps/desktop run prepare:web-renderer
+          npm --workspace apps/desktop run build:win
+          npm --workspace apps/desktop run build:win:installer
+
+      - name: Run native install, login, leave, payroll, restart, and uninstall QA
+        env:
+          MATTER_DESKTOP_EXPECTED_SOURCE_SHA: ${{ inputs.source_sha }}
+          MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR: ${{ github.workspace }}\artifacts\QA-006
+        run: node scripts/run-formal-windows-package-qa.mjs
+
+      - name: Verify native result and preserve signing boundary
+        shell: pwsh
+        run: |
+          $receipt = Get-Content -Raw "artifacts\QA-006\formal-windows-package-qa.json" | ConvertFrom-Json
+          if ($receipt.native_verdict -ne "PASS") { throw "Windows native QA did not pass" }
+          if ($receipt.scenarios.PSObject.Properties.Value -contains $false) { throw "A Windows native scenario failed" }
+          if ($receipt.authenticode.valid -eq $false -and $receipt.verdict -ne "BLOCKED_AUTHENTICODE") { throw "Unsigned artifact boundary is inconsistent" }
+
+      - name: Copy build provenance
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force "artifacts\QA-006\build" | Out-Null
+          Copy-Item "apps\desktop\dist\win\matter-0.1.17-win-build-manifest.json" "artifacts\QA-006\build\" -ErrorAction SilentlyContinue
+          Copy-Item "apps\desktop\dist\win\matter-0.1.17-win-installer-manifest.json" "artifacts\QA-006\build\" -ErrorAction SilentlyContinue
+          Copy-Item "docs\lazycodex\evidence\matter-desktop\artifacts\windows-build.md" "artifacts\QA-006\build\" -ErrorAction SilentlyContinue
+
+      - name: Upload Windows QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-formal-package-qa-${{ inputs.source_sha }}
+          path: artifacts/QA-006/
+          if-no-files-found: error

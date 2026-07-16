@@ -62,6 +62,9 @@ assert.match(macBuildSource, /packagedIconFile\s*=\s*"matter\.icns"/, "mac build
 assert.match(winBuildSource, /files:\s*\["src\/\*\*\/\*",\s*"build\/\*\*\/\*",\s*"package\.json"\]/, "Windows manifest must include runtime assets");
 assert.match(winInstallerSource, /const runtimeAssetPaths = \[/, "Windows installer must verify renderer runtime assets");
 assert.match(winInstallerSource, /Windows runtime asset hash mismatch/, "Windows installer must fail on runtime asset drift");
+assert.match(winInstallerSource, /Windows installer must embed the build manifest/, "Windows installer must embed exact-source provenance");
+assert.match(winInstallerSource, /Windows installer formal marker must match the release channel/, "Windows installer must enforce the formal local-API boundary");
+assert.match(winInstallerSource, /Windows installer renderer must match its build manifest/, "Windows installer must verify renderer provenance");
 assert.match(macBuildSource, /Set :CFBundleIconFile\s+\$\{packagedIconFile\}/, "mac bundle icon metadata must point at the matter icon file");
 assert.match(macBuildSource, /rm\(join\(targetResourcesDir,\s*"electron\.icns"\)/, "mac build must remove inherited Electron icon");
 assert.doesNotMatch(macBuildSource, /packagedIconPath\s*=\s*join\(resourcesDir,\s*"electron\.icns"\)/, "mac packaged icon path must not point at inherited Electron icon");
