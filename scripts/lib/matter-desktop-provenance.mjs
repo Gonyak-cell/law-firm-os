@@ -106,9 +106,10 @@ export function directoryDigest(directoryPath) {
     }
   }
   visit(directoryPath);
-  files.sort((left, right) => path.relative(directoryPath, left).localeCompare(path.relative(directoryPath, right)));
+  const portableRelativePath = (filePath) => path.relative(directoryPath, filePath).split(path.sep).join("/");
+  files.sort((left, right) => portableRelativePath(left).localeCompare(portableRelativePath(right)));
   const fileManifest = files.map((filePath) => (
-    `${sha256File(filePath)}  ./${path.relative(directoryPath, filePath)}\n`
+    `${sha256File(filePath)}  ./${portableRelativePath(filePath)}\n`
   )).join("");
   return {
     sha256: sha256(fileManifest),

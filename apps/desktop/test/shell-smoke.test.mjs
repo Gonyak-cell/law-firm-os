@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { APPROVED_DEV_RENDERER_URL } from "../src/main/origin-policy.js";
@@ -262,6 +263,28 @@ test("desktop uses volatile session storage for loopback local API to avoid Keyc
   });
   await localStore.set("session_token", "local-session-token");
   assert.deepEqual(localStore.snapshot(), { session_token: "local-session-token" });
+
+  const formalStoreRoot = mkdtempSync(join(tmpdir(), "matter-formal-session-store-"));
+  try {
+    const filePath = join(formalStoreRoot, "secure-session-store.json");
+    const formalStore = desktopSecureStoreForRuntime({
+      runtimeClient: localRuntimeClient,
+      filePath,
+      safeStorage,
+      formalRelease: true
+    });
+    await formalStore.set("session_token", "formal-session-token");
+
+    const reopenedFormalStore = desktopSecureStoreForRuntime({
+      runtimeClient: localRuntimeClient,
+      filePath,
+      safeStorage,
+      formalRelease: true
+    });
+    assert.equal(await reopenedFormalStore.get("session_token"), "formal-session-token");
+  } finally {
+    rmSync(formalStoreRoot, { recursive: true, force: true });
+  }
 });
 
 test("desktop local API starts bundled API with durable LawFirmOS stores", async () => {

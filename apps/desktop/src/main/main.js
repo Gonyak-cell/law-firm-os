@@ -108,8 +108,8 @@ export function shouldUseVolatileDesktopSessionStore(runtimeClient) {
   }
 }
 
-export function desktopSecureStoreForRuntime({ runtimeClient, filePath, safeStorage } = {}) {
-  if (shouldUseVolatileDesktopSessionStore(runtimeClient)) return memorySecureStore();
+export function desktopSecureStoreForRuntime({ runtimeClient, filePath, safeStorage, formalRelease = false } = {}) {
+  if (!formalRelease && shouldUseVolatileDesktopSessionStore(runtimeClient)) return memorySecureStore();
   return encryptedFileSecureStore({ filePath, safeStorage });
 }
 
@@ -188,7 +188,8 @@ export async function startElectronApp() {
   await app.whenReady();
   configureDesktopAppIcon(app);
   configureDesktopProtocol(app);
-  const localApi = shouldStartDesktopLocalApi(process.env, { formalRelease: isFormalReleasePackage() })
+  const formalRelease = isFormalReleasePackage();
+  const localApi = shouldStartDesktopLocalApi(process.env, { formalRelease })
     ? await startDesktopLocalApiServer({ userDataPath, packaged: app.isPackaged === true })
     : null;
   if (localApi?.baseUrl) {
@@ -200,7 +201,8 @@ export async function startElectronApp() {
   const secureStore = desktopSecureStoreForRuntime({
     runtimeClient,
     filePath: join(userDataPath, "secure-session-store.json"),
-    safeStorage
+    safeStorage,
+    formalRelease
   });
   const coordinator = new MainProcessAuthCoordinator({ runtimeClient, secureStore });
   await coordinator.restoreSession();

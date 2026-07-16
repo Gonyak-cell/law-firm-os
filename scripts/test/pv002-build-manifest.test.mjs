@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -86,8 +87,16 @@ test("PV-002 renderer digest is stable across filesystem creation order", () => 
     writeFileSync(path.join(right, "assets", "app.js"), "export const app = 'matter';\n");
     writeFileSync(path.join(right, "index.html"), "<main>matter</main>\n");
 
-    assert.deepEqual(directoryDigest(left), directoryDigest(right));
-    assert.deepEqual(directoryDigest(left).file_count, 2);
+    const digest = directoryDigest(left);
+    const sha256 = (value) => createHash("sha256").update(value).digest("hex");
+    const portableManifest = [
+      `${sha256("export const app = 'matter';\n")}  ./assets/app.js\n`,
+      `${sha256("<main>matter</main>\n")}  ./index.html\n`,
+    ].join("");
+
+    assert.deepEqual(digest, directoryDigest(right));
+    assert.deepEqual(digest.file_count, 2);
+    assert.equal(digest.sha256, sha256(portableManifest));
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
