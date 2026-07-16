@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
+import { runFinancePostgresCommand } from "../../../packages/billing/src/central-ledger.js";
 import { approveTimeEntryForWip, createTimeEntry } from "../../../packages/time-expense/src/time-entry-service.js";
 import { createFeeArrangement, findFeeArrangementForMatter } from "../../../packages/time-expense/src/fee-arrangement-service.js";
 import { createExpense } from "../../../packages/time-expense/src/expense-service.js";
@@ -975,4 +976,41 @@ export async function handleFinanceApiRequest({ pathname, method, query, body, c
   if (pathname === "/api/finance/trust-refunds" && method === "POST") return handleFinanceTrustRefundCreate({ body, context, requestId, runtime });
   if (pathname === "/api/finance/audit" && method === "GET") return handleFinanceAudit({ query, context, requestId, runtime });
   return errorResponse(404, requestId, [FINANCE_API_ERROR_CODES.not_found], { audit_hint_ref: query.audit_hint_ref });
+}
+
+function financeRequestTenantId(query, body) {
+  if (query?.tenant_id) return query.tenant_id;
+  if (body?.tenant_id) return body.tenant_id;
+  for (const value of Object.values(body ?? {})) {
+    if (value && typeof value === "object" && !Array.isArray(value) && value.tenant_id) return value.tenant_id;
+  }
+  throw new TypeError("tenant_id is required for the Finance PostgreSQL adapter");
+}
+
+export async function handleFinancePostgresApiRequest({ ledger, pathname, method, query, body, context, requestId } = {}) {
+  const tenantId = financeRequestTenantId(query, body);
+  const command = await runFinancePostgresCommand({
+    ledger,
+    tenant_id: tenantId,
+    command(repository) {
+      return handleFinanceApiRequest({
+        pathname,
+        method,
+        query,
+        body,
+        context,
+        requestId,
+        runtime: createFinanceRuntimeContext({ repository }),
+      });
+    },
+  });
+  return Object.freeze({
+    response: command.result,
+    persistence: Object.freeze({
+      adapter: "finance-postgres-domain-ledger",
+      tenant_id: tenantId,
+      shadow_equal: command.flush.comparison.equal,
+      production_migrated: false,
+    }),
+  });
 }

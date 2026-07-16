@@ -1,6 +1,6 @@
 import { createDurableJsonStateController } from "../../persistence/src/durable-file.js";
 
-const PRIMARY_ID_FIELDS = Object.freeze({
+export const FINANCE_PRIMARY_ID_FIELDS = Object.freeze({
   TimeEntry: "time_entry_id",
   RateCard: "rate_card_id",
   FeeArrangement: "fee_arrangement_id",
@@ -36,7 +36,7 @@ function assertTenant(tenantId) {
 }
 
 function primaryIdOf(record) {
-  const field = PRIMARY_ID_FIELDS[record.model_type];
+  const field = FINANCE_PRIMARY_ID_FIELDS[record.model_type];
   return field ? record[field] : record.resource_id ?? record.id;
 }
 
@@ -75,7 +75,7 @@ function recordKey(record) {
 }
 
 function refKey(ref = {}) {
-  const field = PRIMARY_ID_FIELDS[ref.model_type];
+  const field = FINANCE_PRIMARY_ID_FIELDS[ref.model_type];
   const id = ref.id ?? ref.resource_id ?? (field ? ref[field] : undefined);
   return `${ref.tenant_id}:${ref.model_type}:${id}`;
 }
@@ -95,7 +95,11 @@ function normalizeState(input) {
   };
 }
 
-export function createFinanceRepository({ filePath, seedRecords = [] } = {}) {
+export function createFinanceRepository({
+  filePath,
+  seedRecords = [],
+  preserveSeedRecords = false,
+} = {}) {
   let closed = false;
   let transactionDepth = 0;
   const stateController = createDurableJsonStateController({ filePath, defaultValue: emptyState(), normalizeValue: normalizeState });
@@ -149,7 +153,13 @@ export function createFinanceRepository({ filePath, seedRecords = [] } = {}) {
   hydrate(state);
   for (const record of seedRecords) {
     const normalized = normalizeRecord(record);
-    if (!records.has(recordKey(normalized))) put(record, { overwrite: true });
+    if (!records.has(recordKey(normalized))) {
+      if (preserveSeedRecords) {
+        records.set(recordKey(normalized), clone({ ...record, resource_id: normalized.resource_id }));
+      } else {
+        put(record, { overwrite: true });
+      }
+    }
   }
 
   const repository = {

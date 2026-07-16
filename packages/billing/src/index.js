@@ -3,6 +3,7 @@ export * from "./service.js";
 export * from "./validators.js";
 export * from "./client-matter-g5.js";
 export * from "./finance-repository.js";
+export * from "./central-ledger.js";
 export * from "./finance-audit.js";
 export * from "./wip-service.js";
 export * from "./prebill-service.js";
