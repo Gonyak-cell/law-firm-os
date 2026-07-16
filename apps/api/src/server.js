@@ -141,6 +141,7 @@ import {
   LAWOS_RUNTIME_PROFILES,
   resolveRuntimeProfile,
   resolveSessionSecret,
+  runtimePreflightError,
 } from "./runtime-profile.js";
 import {
   assertStorePathPreflight,
@@ -155,6 +156,11 @@ import {
   OUTLOOK_ADDIN_BOUNDED_CONTEXT,
   handleOutlookAddinApiRequest,
 } from "./outlook-addin-runtime-context.js";
+import { dispatchApiHandler, mapApiHandlerError } from "./api-handler-dispatcher.js";
+import {
+  LAWOS_PERSISTENCE_AUTHORITIES,
+  preparePersistenceAuthority,
+} from "./persistence-authority.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
@@ -951,11 +957,12 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
   const requestId = query.request_id || `req_${randomUUID()}`;
+  req.lawosRequestId = requestId;
 
   if (req.method === "OPTIONS") {
     sendOptions(req, res);
@@ -1023,6 +1030,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       time: new Date().toISOString(),
       runtime_profile: runtimeProfile,
       synthetic_login_enabled: runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational,
+      persistence_authority: persistenceAuthority,
       ...SERVICE_DESCRIPTOR,
     });
     return;
@@ -1447,6 +1455,7 @@ export function createApiServer({
   }),
   enterpriseReadinessRuntime = createDefaultEnterpriseReadinessRuntime(),
   runtimeProfile = resolveRuntimeProfile(),
+  persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent,
   stepUpAuthority,
   sessionAuth,
 } = {}) {
@@ -1461,16 +1470,20 @@ export function createApiServer({
         matterRuntime?.clearanceRepository || !crmIntakeRuntime?.intakeRepository
           ? matterRuntime
           : Object.freeze({ ...matterRuntime, clearanceRepository: crmIntakeRuntime.intakeRepository });
-      await handle(req, res, { hrxRuntime, hrxRuntimeUnavailable, masterDataRuntime, matterRuntime: matterRuntimeWithClearanceLedger, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth: resolvedSessionAuth, stepUpAuthority: resolvedStepUpAuthority, runtimeProfile });
+      await dispatchApiHandler(handle, req, res, { hrxRuntime, hrxRuntimeUnavailable, masterDataRuntime, matterRuntime: matterRuntimeWithClearanceLedger, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth: resolvedSessionAuth, stepUpAuthority: resolvedStepUpAuthority, runtimeProfile, persistenceAuthority });
     } catch (error) {
-      sendJson(req, res, 500, { outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "internal_error", message: error.message });
+      const mapped = mapApiHandlerError(error, { requestId: req.lawosRequestId ?? req.headers["x-request-id"] ?? null });
+      sendJson(req, res, mapped.status, mapped.body);
     }
   });
 }
 
-export function startApiServer({
+export async function startApiServer({
   port = DEFAULT_PORT,
   runtimeProfile,
+  persistenceAuthority,
+  persistenceAuthorityEnv = process.env,
+  persistenceConnectPostgres,
   sessionSecret,
   hrxRuntime,
   hrxStore,
@@ -1522,6 +1535,15 @@ export function startApiServer({
   hrxStepUpTotpSecret,
 } = {}) {
   const resolvedRuntimeProfile = normalizeRuntimeProfileOption(runtimeProfile);
+  const persistenceAuthorityState = await preparePersistenceAuthority({
+    value: persistenceAuthority,
+    env: persistenceAuthorityEnv,
+    connectPostgres: persistenceConnectPostgres,
+  });
+  if (persistenceAuthorityState.authority === LAWOS_PERSISTENCE_AUTHORITIES.postgresV2) {
+    await persistenceAuthorityState.close?.();
+    throw runtimePreflightError("postgres-v2 domain adapters are incomplete; JSON fallback is disabled");
+  }
   const storePreflight = assertStorePathPreflight({
     profile: resolvedRuntimeProfile,
     providedStorePaths: startupStorePathOptions({
@@ -1695,6 +1717,7 @@ export function startApiServer({
     stepUpAuthority: resolvedStepUpAuthority,
     sessionAuth: resolvedSessionAuth,
     runtimeProfile: resolvedRuntimeProfile,
+    persistenceAuthority: persistenceAuthorityState.authority,
     hrxRuntimeUnavailable,
   });
   return new Promise((resolve, reject) => {

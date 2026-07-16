@@ -14,3 +14,5 @@ export * from "./durable-append.js";
 export * from "./s3-backup-queue.js";
 export * from "./migration-runner.js";
 export * from "./migrations/index.js";
+export * from "./repository-port-v2.js";
+export * from "./postgres/index.js";
