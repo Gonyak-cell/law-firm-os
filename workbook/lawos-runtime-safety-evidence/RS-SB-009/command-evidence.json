@@ -1,0 +1,54 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-SB-009",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "b323b4bc2fc554f1df3fa9f400056c754aac3876",
+  "tree": "7d643b7d6ac8554862f382645d137594d8fc26b9",
+  "profile": "source-and-internal-package-local",
+  "recorded_at": "2026-07-16T09:20:03Z",
+  "dependency_verification": {
+    "previous_version": "42.4.1",
+    "selected_version": "42.7.0",
+    "installed_version": "42.7.0",
+    "latest_supported_42_x_observed": "42.7.0",
+    "release_published_at": "2026-07-15",
+    "electron_42_eol": "2026-10-20",
+    "official_sources": [
+      "https://github.com/electron/electron/releases/tag/v42.7.0",
+      "https://releases.electronjs.org/",
+      "https://releases.electronjs.org/schedule",
+      "https://www.electronjs.org/docs/latest/tutorial/electron-timelines"
+    ]
+  },
+  "verification": {
+    "desktop_smoke_command": "npm --workspace apps/desktop run test:smoke",
+    "desktop_smoke_result": "110/110 PASS",
+    "package_command": "MATTER_DESKTOP_RELEASE_CHANNEL=internal MATTER_DESKTOP_SIGN=internal MATTER_DESKTOP_NOTARIZE=0 MATTER_DESKTOP_EXPECTED_SOURCE_SHA=b323b4bc2fc554f1df3fa9f400056c754aac3876 node scripts/build-matter-desktop-mac.mjs",
+    "package_result": "PASS",
+    "package_worktree": "/private/tmp/lawos-rs-sb-build-20260716",
+    "package_source_dirty": false,
+    "package_source_sha": "b323b4bc2fc554f1df3fa9f400056c754aac3876",
+    "package_source_tree": "7d643b7d6ac8554862f382645d137594d8fc26b9",
+    "package_electron_version": "42.7.0",
+    "package_install_smoke": "pass",
+    "dmg_image_verify": "pass",
+    "developer_id_signing_applied": false,
+    "notarization_requested": false,
+    "public_release": false
+  },
+  "artifacts": [
+    "apps/desktop/package.json",
+    "package-lock.json"
+  ],
+  "claims": {
+    "latest_supported_42_x_rechecked": true,
+    "minimum_patch_upgrade_verified": true,
+    "internal_package_verified": true,
+    "distribution_ready": false,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

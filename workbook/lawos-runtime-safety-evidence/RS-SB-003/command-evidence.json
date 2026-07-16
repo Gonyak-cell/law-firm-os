@@ -1,0 +1,30 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-SB-003",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "source_sha": "b323b4bc2fc554f1df3fa9f400056c754aac3876",
+  "tree": "7d643b7d6ac8554862f382645d137594d8fc26b9",
+  "profile": "source-local",
+  "recorded_at": "2026-07-16T09:20:03Z",
+  "command": "exercise canonical packaged-root resolver against traversal, encoding and symlink attacks",
+  "exit_code": 0,
+  "safe_counts": {
+    "allowed_regular_file_cases": 2,
+    "rejected_path_cases": 10,
+    "path_disclosing_error_bodies": 0
+  },
+  "artifacts": [
+    "apps/desktop/src/main/app-protocol.js",
+    "apps/desktop/test/app-protocol.test.mjs"
+  ],
+  "claims": {
+    "canonical_regular_file_boundary_verified": true,
+    "symlink_escape_rejected": true,
+    "encoded_traversal_rejected": true,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

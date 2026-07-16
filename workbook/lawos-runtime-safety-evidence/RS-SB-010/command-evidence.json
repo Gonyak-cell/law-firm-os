@@ -1,0 +1,80 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-SB-010",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "b323b4bc2fc554f1df3fa9f400056c754aac3876",
+  "tree": "7d643b7d6ac8554862f382645d137594d8fc26b9",
+  "profile": "source-and-internal-package-local",
+  "recorded_at": "2026-07-16T09:20:03Z",
+  "command": "run RS-SB terminal source, native Electron and internal package gates at the exact source SHA",
+  "exit_code": 0,
+  "commands": [
+    {
+      "command": "node --test apps/desktop/test/app-protocol.test.mjs apps/desktop/test/csp.test.mjs apps/desktop/test/origin-policy.test.mjs apps/desktop/test/session-ipc.test.mjs",
+      "exit_code": 0,
+      "summary": "12/12 PASS"
+    },
+    {
+      "command": "node --test apps/api/test/cors-negative.test.js apps/api/test/master-data-api.test.js",
+      "exit_code": 0,
+      "summary": "21/21 PASS"
+    },
+    {
+      "command": "npm --workspace apps/desktop run test:smoke",
+      "exit_code": 0,
+      "summary": "110/110 PASS"
+    },
+    {
+      "command": "node scripts/validate-matter-desktop-security.mjs",
+      "exit_code": 0,
+      "summary": "PASS; 56 files; findings 0; custom protocol and CSP boundaries checked"
+    },
+    {
+      "command": "node scripts/validate-hrx-security-negative-tests.mjs",
+      "exit_code": 0,
+      "summary": "PASS; 9 negative-test files"
+    },
+    {
+      "command": "node scripts/validate-runtime-safety-governance.mjs",
+      "exit_code": 0,
+      "summary": "PASS; 147 TUWs, 13 workstreams, 13 terminals"
+    },
+    {
+      "command": "internal unsigned and unnotarized macOS package build in detached exact-SHA worktree",
+      "exit_code": 0,
+      "summary": "PASS; bundle, zip and DMG built; install smoke and DMG image verify passed; no release action"
+    }
+  ],
+  "safe_counts": {
+    "rs_sb_test_count": 12,
+    "rs_sb_test_pass_count": 12,
+    "cors_test_count": 21,
+    "cors_test_pass_count": 21,
+    "desktop_smoke_test_count": 110,
+    "desktop_smoke_test_pass_count": 110,
+    "desktop_security_checked_file_count": 56,
+    "hrx_negative_test_file_count": 9,
+    "internal_package_build_count": 1,
+    "developer_id_signing_count": 0,
+    "notarization_submission_count": 0,
+    "public_release_action_count": 0,
+    "root_worktree_mutation_count": 0,
+    "aws_mutation_count": 0
+  },
+  "artifacts": [
+    "workbook/lawos-runtime-safety-evidence/RS-SB-010/terminal-validation.json",
+    "workbook/lawos-runtime-safety-evidence/RS-SB-010/manual-qa.json",
+    "workbook/lawos-runtime-safety-evidence/RS-SB-010/acceptance.md"
+  ],
+  "claims": {
+    "g2_sb_local_verified": true,
+    "trust_boundary_b_local_verified": true,
+    "next_source_workstream_unblocked": true,
+    "distribution_ready": false,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

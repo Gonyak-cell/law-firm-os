@@ -1,0 +1,29 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-SB-002",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "source_sha": "b323b4bc2fc554f1df3fa9f400056c754aac3876",
+  "tree": "7d643b7d6ac8554862f382645d137594d8fc26b9",
+  "profile": "source-local",
+  "recorded_at": "2026-07-16T09:20:03Z",
+  "command": "verify matter-app scheme registration order and privileges",
+  "exit_code": 0,
+  "safe_counts": {
+    "registered_custom_schemes": 1,
+    "registration_before_app_ready": 1,
+    "handler_installations_after_app_ready": 1
+  },
+  "artifacts": [
+    "apps/desktop/src/main/app-protocol.js",
+    "apps/desktop/src/main/main.js",
+    "apps/desktop/test/app-protocol.test.mjs"
+  ],
+  "claims": {
+    "standard_secure_fetch_capable_scheme_verified": true,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

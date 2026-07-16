@@ -1,0 +1,43 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.manual-qa.v0.1",
+  "tuw_id": "RS-SB-010",
+  "source_sha": "b323b4bc2fc554f1df3fa9f400056c754aac3876",
+  "recorded_at": "2026-07-16T09:20:03Z",
+  "native_electron": {
+    "runtime": "Electron 42.7.0",
+    "renderer_url": "matter-app://app/index.html?desktop=1",
+    "observed_request_origin": "matter-app://app",
+    "forest_skin": true,
+    "renderer_root_rendered": true,
+    "csp_present": true,
+    "unsafe_eval": false,
+    "csp_violation_count": 0,
+    "temporary_profiles_removed": true
+  },
+  "internal_package": {
+    "source_sha": "b323b4bc2fc554f1df3fa9f400056c754aac3876",
+    "source_tree": "7d643b7d6ac8554862f382645d137594d8fc26b9",
+    "source_dirty": false,
+    "channel": "internal",
+    "electron_runtime_packaged": true,
+    "install_smoke_result": "pass",
+    "dmg_image_verify": "pass",
+    "developer_id_signing_applied": false,
+    "notarization_requested": false,
+    "external_upload_executed": false,
+    "public_release": false
+  },
+  "residual_observations": [
+    "Vite reported the existing minified chunk-size warning; it did not block the trust-boundary verification and no bundle-splitting change was introduced in RS-SB.",
+    "The internal package is intentionally not Developer ID signed, notarized, Gatekeeper-ready or distribution-ready."
+  ],
+  "claims": {
+    "manual_qa_passed": true,
+    "real_client_data_migration_executed": false,
+    "external_data_transfer_executed": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}
