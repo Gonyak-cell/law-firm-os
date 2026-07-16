@@ -1,5 +1,4 @@
-import { existsSync } from "node:fs";
-import { readFileSyncWithStaleRetry, writeJsonFileDurably } from "../../persistence/src/durable-file.js";
+import { createDurableJsonStateController } from "../../persistence/src/durable-file.js";
 import { createMasterDataRecord } from "./model.js";
 
 export const MASTER_DATA_REPOSITORY_SCHEMA_VERSION = "law-firm-os.master-data-repository.v0.1";
@@ -70,21 +69,31 @@ function matchesQuery(record, query = {}) {
 }
 
 export function createMasterDataRepository({ filePath, seedRecords = [] } = {}) {
-  let state = normalizeState(filePath && existsSync(filePath) ? JSON.parse(readFileSyncWithStaleRetry(filePath)) : undefined);
+  const stateController = createDurableJsonStateController({
+    filePath,
+    defaultValue: emptyState(),
+    normalizeValue: normalizeState,
+  });
+  let state = stateController.value;
   let closed = false;
+  let transactionDepth = 0;
 
   function ensureOpen() {
     if (closed) throw new Error("Master Data repository is closed");
   }
 
-  function flush({ createBackup = true } = {}) {
-    if (!filePath) return;
-    writeJsonFileDurably({
-      filePath,
-      value: state,
-      previousState: filePath && existsSync(filePath) ? JSON.parse(readFileSyncWithStaleRetry(filePath)) : undefined,
-      createBackup,
-    });
+  function flush({ createBackup = true, force = false } = {}) {
+    if (!filePath || (transactionDepth > 0 && !force)) return;
+    try {
+      stateController.commit(state, { createBackup });
+      state = stateController.value;
+    } catch (error) {
+      try {
+        state = stateController.reload().value;
+        error.durable_store_reloaded = true;
+      } catch {}
+      throw error;
+    }
   }
 
   function upsert(input) {
@@ -167,15 +176,20 @@ export function createMasterDataRepository({ filePath, seedRecords = [] } = {}) 
     transaction(callback) {
       ensureOpen();
       if (typeof callback !== "function") throw new TypeError("transaction callback is required");
+      const entryDepth = transactionDepth;
       const original = clone(state);
+      transactionDepth = entryDepth + 1;
       try {
         const result = callback(repository);
-        flush();
+        transactionDepth = entryDepth;
+        flush({ force: entryDepth === 0 });
         return result;
       } catch (error) {
-        state = normalizeState(original);
-        flush();
+        if (!error?.durable_store_reloaded) state = normalizeState(original);
+        transactionDepth = entryDepth;
         throw error;
+      } finally {
+        transactionDepth = entryDepth;
       }
     },
 

@@ -1,6 +1,5 @@
-import { createHash, randomUUID } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
+import { createHash } from "node:crypto";
+import { createDurableJsonStateController, isDurableStoreConflict } from "../../../persistence/src/durable-file.js";
 import { HRX_DURABLE_CORE_TABLES, HRX_DURABLE_WORKFLOW_TABLES, HRX_STORE_PORT_VERSION } from "./port.js";
 
 const PRIMARY_KEYS = Object.freeze({
@@ -1216,20 +1215,17 @@ function executeQuery(state, operation, params = {}) {
 }
 
 export function createFileHrxStore({ filePath, initialState } = {}) {
-  let state = normalizeState(filePath && existsSync(filePath) ? JSON.parse(readFileSync(filePath, "utf8")) : initialState);
+  const stateController = createDurableJsonStateController({
+    filePath,
+    defaultValue: initialState ?? emptyState(),
+    normalizeValue: normalizeState,
+  });
+  let state = stateController.value;
   let revision = 0;
   let closed = false;
 
   function ensureOpen() {
     if (closed) throw new Error("HRX store is closed");
-  }
-
-  function flush() {
-    if (!filePath) return;
-    mkdirSync(dirname(filePath), { recursive: true });
-    const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
-    writeFileSync(tempPath, `${JSON.stringify(state, null, 2)}\n`);
-    renameSync(tempPath, filePath);
   }
 
   function transactionConflict() {
@@ -1245,10 +1241,20 @@ export function createFileHrxStore({ filePath, initialState } = {}) {
     state = normalizeState(draft);
     try {
       assertLeaveStateInvariants(state);
-      flush();
+      stateController.commit(state);
+      state = stateController.value;
       revision += 1;
     } catch (error) {
-      state = previous;
+      try {
+        state = stateController.reload().value;
+        error.durable_store_reloaded = true;
+      } catch {
+        state = previous;
+      }
+      if (isDurableStoreConflict(error)) {
+        error.safe_error_code = "HRX_TRANSACTION_CONFLICT";
+        error.status = 409;
+      }
       throw error;
     }
   }
@@ -1330,6 +1336,11 @@ export function createFileHrxStore({ filePath, initialState } = {}) {
       return clone(state);
     },
 
+    durableGeneration() {
+      ensureOpen();
+      return stateController.generation;
+    },
+
     restoreSnapshot(snapshot) {
       ensureOpen();
       if (!snapshot || typeof snapshot !== "object") throw new TypeError("HRX store snapshot is required");
@@ -1338,7 +1349,6 @@ export function createFileHrxStore({ filePath, initialState } = {}) {
     },
 
     close() {
-      if (!closed) flush();
       closed = true;
     },
   };
