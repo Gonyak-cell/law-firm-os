@@ -15,6 +15,15 @@
 
 통합된 정확한 `main` SHA에서 버전과 출처가 식별되는 macOS·Windows 패키지를 새로 생성하고, 내부 검증·staging·formal release·production·go-live를 서로 다른 증거 단계로 유지한다. 실제 직원·계좌·정책·법률·세무 자료, 외부 provider write, 공개 릴리스 또는 production 전환은 필요한 owner 승인과 공급자 영수증이 확인되기 전에는 실행하지 않는다.
 
+### 1.1 2026-07-16 owner gate split
+
+Owner 지시에 따라 소스 병합 승인과 패키지 서명·릴리스·배포 승인을 분리한다.
+
+- `MR-001` PR 생성과 `MR-002` `main` 소스 병합은 QA-001~005·007~009, Windows native runtime PASS, 필수 CI green을 근거로 진행할 수 있다.
+- `QA-006`은 installer와 executable이 `NotSigned`이므로 계속 `BLOCKED_AUTHENTICODE`다. 이 상태는 소스 병합을 막지 않지만 Windows 배포·formal release·public release를 막는다.
+- `MR-003~006` exact-main 패키징·tag·release receipt와 `DP-001~007` 내부 배포·staging·production·go-live는 이번 승인 범위가 아니며 별도 owner 승인 전 `BLOCKED`다.
+- `main` 병합 성공을 release, deployment, production 또는 go-live 성공으로 표현하지 않는다.
+
 ## 2. 완료 정의
 
 이 Goal은 아래 조건이 모두 충족되어야 완료할 수 있다.
@@ -34,6 +43,8 @@
 13. 검증된 integration SHA가 PR을 통해 `main`에 병합되고, 후보 브랜치 패키지가 아니라 병합된 정확한 `main` SHA에서 최종 패키지가 재생성된다.
 14. internal package, staging, formal package, production approval, go-live가 별도 상태와 영수증으로 기록된다.
 15. 실제 직원 migration, 실제 정책 적용, provider production write, 공개 릴리스 또는 go-live가 필요한 시점에는 owner 승인과 검증 가능한 receipt가 없으면 해당 TUW를 `BLOCKED`로 남기고 Goal 전체를 거짓 완료하지 않는다.
+
+항목 12의 Authenticode PASS는 전체 릴리스 Goal의 완료 조건이며, 위 owner gate split에 따른 항목 13의 소스 병합 선행조건은 아니다. 이번 실행 범위는 항목 13 중 PR과 `main` 소스 병합까지로 제한한다.
 
 ## 3. 현재 검증된 사실
 
@@ -102,6 +113,7 @@ GO_LIVE
 - macOS 내부 bundle PASS는 서명·공증 formal release가 아니다.
 - Windows PE/ZIP PASS는 Windows native 실행 PASS가 아니다.
 - `main` 병합은 AWS production deploy나 go-live가 아니다.
+- 소스 병합 승인은 패키지 서명·릴리스·배포 승인이 아니다.
 - Git HEAD만 최신이라고 해서 dirty working tree 기능이 포함된 것은 아니다.
 
 ## 5. 전역 실행 원칙
@@ -118,6 +130,7 @@ GO_LIVE
 10. release build는 clean worktree와 승인된 exact SHA에서만 생성한다.
 11. 모든 패키지 검증은 실제 실행 프로세스의 절대경로와 bundle manifest를 확인한다.
 12. 외부 write, branch default 변경, force push, 실제 migration, 공개 릴리스는 명시적 승인 없이 실행하지 않는다.
+13. `MR-001/002` 소스 병합과 `MR-003+` release 작업은 별도 승인·상태·영수증으로 관리한다.
 
 ## 6. 의존성 그래프
 
@@ -128,15 +141,18 @@ FZ checkpoint
       -> CP capability parity
         -> PV provenance/version guard
           -> MI origin/main integration
-            -> QA source/browser/package verification
-              -> MR main merge and exact-SHA rebuild
-                -> DP internal/staging/formal/production gates
-                  -> CL closeout and recurrence prevention
+            -> QA source/browser/native verification
+              -> MR-001/002 source merge
+                -> QA-006 Authenticode approval
+                  -> MR-003~006 exact-main release packaging
+                    -> DP internal/staging/formal/production gates
+                      -> CL closeout and recurrence prevention
 ```
 
 `FZ`, `RC`, `MG`, `CP`가 완료되기 전에는 `MI`를 시작할 수 없다.  
-`MI` 이후 전체 QA가 완료되기 전에는 `MR`을 시작할 수 없다.  
-`MR` 이후 exact-main-SHA 재빌드가 완료되기 전에는 어떤 release asset도 게시할 수 없다.
+`MI` 이후 source/runtime QA가 완료되기 전에는 `MR-001/002`를 시작할 수 없다.
+`QA-006` Authenticode와 별도 release 승인이 완료되기 전에는 `MR-003+`를 시작할 수 없다.
+`MR-004` exact-main-SHA 재빌드가 완료되기 전에는 어떤 release asset도 게시할 수 없다.
 
 ## 7. Testable Units of Work
 
@@ -271,10 +287,10 @@ MI-003 중단 조건:
 | QA-003 | DONE | migration·privacy·security PASS | fresh/upgrade/reopen, tenant, PII, secret, public renderer | 18 files·59 tests·10 validators | 치명적 finding 0 |
 | QA-004 | DONE | 브라우저 역할·viewport PASS | employee, manager, HR, preparer, approver, no-scope × 5 viewport | browser receipt | unexpected error·overflow·dead action 0 |
 | QA-005 | DONE | macOS 실제 패키지 PASS | login, profile, leave, payroll, restart, sign/notarize/staple/Gatekeeper | package receipt | formal macOS PASS |
-| QA-006 | BLOCKED | Windows native PASS / Authenticode BLOCKED | install, launch, login, leave/payroll, restart, uninstall, Authenticode | Windows receipt | native PASS, installer·executable `Valid` 서명 필요 |
+| QA-006 | BLOCKED | Windows native PASS / release Authenticode BLOCKED | install, launch, login, leave/payroll, restart, uninstall, Authenticode | Windows receipt | source merge에는 native PASS 사용; Windows release에는 installer·executable `Valid` 서명 필요 |
 | QA-007 | DONE | renderer parity | Web/candidate/macOS/Windows renderer hashes 비교 | SHA-256 | 승인된 변형 외 불일치 0 |
 | QA-008 | DONE | 회귀 screenshot manifest | 핵심 화면·각 역할·양끝 viewport 캡처 | manifest/hash | stale window 0 |
-| QA-009 | DONE | 최종 QA 보고서 | commands, counts, hashes, limitations, blockers 정리 | evidence link check | 18/18, 끊긴 증거 링크 0 |
+| QA-009 | DONE | 최종 QA 보고서 | commands, counts, hashes, limitations, blockers 정리 | evidence link check | 20/20, 끊긴 증거 링크 0 |
 
 기준 명령은 실제 package scripts를 우선 사용하고 아래 묶음을 포함한다.
 
@@ -298,24 +314,24 @@ python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PW
 
 | ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
 |---|---|---|---|---|---|
-| MR-001 | READY | 검토 가능한 PR | diff manifest, conflict ledger, QA links, blockers 포함 | PR/CI status | required checks green, review 승인 |
-| MR-002 | READY | `main` 병합 | 승인된 방식으로 merge | remote main ancestry | `MAIN_MERGE_SHA` 기록 |
-| MR-003 | READY | clean main release worktree | merge SHA detached 또는 release branch worktree 생성 | clean/HEAD check | HEAD 정확히 일치 |
-| MR-004 | READY | main SHA에서 재빌드 | candidate artifacts 재사용 금지 | build manifest | package SHA=`MAIN_MERGE_SHA` |
-| MR-005 | READY | release tag | `matter-desktop-v0.1.17-<shortsha>` | tag ancestry | tag가 main SHA 직접 가리킴 |
-| MR-006 | READY | 최종 artifact hash·SBOM | mac/win hashes, manifest, SBOM, signatures | receipt validator | artifact 누락 0 |
+| MR-001 | READY | 검토 가능한 소스 PR | diff manifest, conflict ledger, QA links, Authenticode release blocker 포함 | PR/CI status | required checks green, source merge 승인 |
+| MR-002 | READY | `main` 소스 병합 | merge commit 방식으로 merge; release/deploy claim 금지 | remote main ancestry | `MAIN_MERGE_SHA` 기록 |
+| MR-003 | BLOCKED | clean main release worktree | 별도 release 승인 후 merge SHA detached 또는 release branch worktree 생성 | clean/HEAD check | release 승인 전 실행 0 |
+| MR-004 | BLOCKED | main SHA에서 재빌드 | QA-006 Authenticode 및 release 승인 후 실행; candidate artifacts 재사용 금지 | build manifest | package SHA=`MAIN_MERGE_SHA` |
+| MR-005 | BLOCKED | release tag | 별도 release 승인 후 `matter-desktop-v0.1.17-<shortsha>` | tag ancestry | 승인 전 tag 생성 0 |
+| MR-006 | BLOCKED | 최종 artifact hash·SBOM | 별도 release 승인 후 mac/win hashes, manifest, SBOM, signatures | receipt validator | 승인 전 release receipt 생성 0 |
 
 ### 7.9 DP: 배포·승인 경계
 
 | ID | 상태 | 결과 | 작업 | 자동 검증 | 완료 조건 |
 |---|---|---|---|---|---|
-| DP-001 | READY | 내부 Mac·Windows 배포 | 승인된 내부 채널에 artifact 게시 | install smoke | 내부 설치 PASS |
-| DP-002 | READY | AWS staging | approved profile로 API·migration staging 배포 | health/smoke/metrics | staging PASS |
+| DP-001 | BLOCKED | 내부 Mac·Windows 배포 | 별도 배포 승인과 Windows Authenticode PASS 후 artifact 게시 | install smoke | 승인 전 게시 0 |
+| DP-002 | BLOCKED | AWS staging | 별도 배포 승인 후 approved profile로 API·migration staging 배포 | health/smoke/metrics | 승인 전 AWS write 0 |
 | DP-003 | BLOCKED | 실제 정책·자료 migration | owner manifest와 private-source approval 필요 | count/hash/reconciliation | 승인·영수증 전 write 0 |
 | DP-004 | BLOCKED | provider sandbox·production | email/calendar/bank/tax credentials와 receipt 필요 | provider receipt | receipt 전 success 0 |
 | DP-005 | BLOCKED | production AWS 전환 | deploy approval, rollback rehearsal, staging PASS 필요 | alias/version/health | 승인 전 prod 변경 0 |
 | DP-006 | BLOCKED | 공개 formal release·go-live | 법무·노무·세무·owner·서명·Windows 증거 필요 | release receipt | 모든 승인 전 public 0 |
-| DP-007 | READY | 배포 후 관찰 | error rate, latency, auth, critical flows 15분 이상 | monitoring receipt | rollback trigger 미발생 |
+| DP-007 | BLOCKED | 배포 후 관찰 | 승인된 배포가 발생한 뒤 error rate, latency, auth, critical flows 15분 이상 | monitoring receipt | 선행 배포 전 실행 0 |
 
 ### 7.10 CL: 종료·재발 방지
 
@@ -532,11 +548,12 @@ external_blockers
 | 2026-07-16 | QA-003 | DONE | `d1fa5bbe` | `d1fa5bbe` | `workbook/forest-v0.1.17-integration-evidence/QA-003/` | migration 7 files·19/19, privacy/security 11 files·40/40, 적용 validator 10/10; fresh 001~029·upgrade 010/020/025·reopen/rollback/restore PASS, QA 증거 포함 repository-visible 19,128 files secret finding 0·critical 0; 운영자 production secret `.env`는 미생성·BLOCKED_PREREQUISITE, 제품 diff 0·사용자 루트 content 77/77·PID 55090 보존 |
 | 2026-07-16 | QA-004 | DONE | `35cd17f8` | `e19a17dd` | `workbook/forest-v0.1.17-integration-evidence/QA-004/` | signed session 6역할×5 viewport 30/30·unexpected error/overflow/dead action 0; internal package 9/9·LV02~LV07 PASS; 동일 clean SHA Web/Mac/Windows renderer `efc12338`·28 files·byte diff 0; receipt 8개·screenshot 39개·증거 61개 hash PASS; formal Mac·Windows native는 QA-005/006 경계 유지, 사용자 루트 content 77/77·PID 55090 보존 |
 | 2026-07-16 | QA-005 | DONE | `39ed9571` | `39ed9571` | `workbook/forest-v0.1.17-integration-evidence/QA-005/` | exact clean SHA formal macOS app·ZIP·DMG 재생성; Developer ID/codesign strict/notary/staple/Gatekeeper/DMG image PASS; signed formal app login·서지원 profile·leave·payroll·restart PASS, page/console error 0, screenshot 5/5; renderer `efc12338`·28 files; ZIP `2e2af3ef`·DMG `66d00e14`; formal bundle local API 미포함·isolated exact-source synthetic loopback 사용; public release·production/AWS write 비주장, PID 55090·27104~27106 보존 |
-| 2026-07-16 | QA-006 | BLOCKED | `39ed9571` | `39ed9571` | `workbook/forest-v0.1.17-integration-evidence/QA-006/` | Windows native CI run `29466863451`: NSIS install·Forest login·서지원·leave·payroll·restart restore·uninstall PASS, page/console error 0, screenshot 4/4; CI installer `53e2b694`·exe `9772e31f`; installer와 executable 모두 `NotSigned`, 승인된 Authenticode provider/cert 부재로 main-merge/release gate BLOCKED |
+| 2026-07-16 | QA-006 | BLOCKED | `39ed9571` | `39ed9571` | `workbook/forest-v0.1.17-integration-evidence/QA-006/` | Windows native CI run `29466863451`: NSIS install·Forest login·서지원·leave·payroll·restart restore·uninstall PASS, page/console error 0, screenshot 4/4; CI installer `53e2b694`·exe `9772e31f`; installer와 executable 모두 `NotSigned`, 승인된 Authenticode provider/cert 부재로 Windows distribution·release gate BLOCKED |
 | 2026-07-16 | QA-007 | DONE | `39ed9571` | `39ed9571` | `workbook/forest-v0.1.17-integration-evidence/QA-007/` | QA-004 candidate·formal Mac local·formal Windows local·Windows native CI renderer 모두 `efc12338`·28 files; candidate/final `apps/web` tree `9d16072e` 동일; recursive mismatch·승인 변형·unexpected mismatch 0 |
 | 2026-07-16 | QA-008 | DONE | `39ed9571` | `39ed9571` | `workbook/forest-v0.1.17-integration-evidence/QA-008/` | QA-004 39·final Mac 5·final Windows 4 = screenshot 48개 hash manifest; final 9개 수동검수, broken image·overflow·legacy regression·stale window 0 |
-| 2026-07-16 | QA-009 | DONE | `39ed9571` | `39ed9571` | `workbook/forest-v0.1.17-integration-evidence/QA-009/` | QA-001~008 counts·commands·artifact hashes·limits·blocker 통합; evidence link 18/18·missing 0; 최종 report `BLOCKED_AUTHENTICODE`, PR·main merge·public release·production/AWS write·go-live 0; 사용자 루트 content 77/77·PID 55090·27104~27106 보존 |
+| 2026-07-16 | QA-009 | DONE | `39ed9571` | `39ed9571` | `workbook/forest-v0.1.17-integration-evidence/QA-009/` | QA-001~008 counts·commands·artifact hashes·limits·blocker 통합; evidence link 20/20·missing 0; 최종 report `SOURCE_MERGE_ELIGIBLE_RELEASE_BLOCKED`, report 갱신 시점 public release·production/AWS write·go-live 0; 사용자 루트 content 77/77·PID 55090·27104~27106 보존 |
+| 2026-07-16 | MR-000 | DONE | `9b40b843` | documentation-only | `workbook/forest-v0.1.17-integration-evidence/MR-000/` | owner 지시로 source merge와 release/deploy 승인 분리; MR-001/002 허용, MR-003~006·DP-001~007 및 Windows distribution은 별도 승인 전 BLOCKED |
 
 ## 14. Goal Objective 원문
 
-`workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md`를 단일 실행 정본으로 삼아, 종료 Forest 세션의 115개 tracked 수정과 92개 untracked 파일을 비밀정보·PII·generated artifact 없이 재현 가능한 checkpoint로 고정하고, 현재 루트 체크아웃의 25개 고유 변경과 49개 상이 공통 파일을 기능 단위로 전수 판정하며, 충돌하는 migration 011~016을 중복·데이터 손실 없이 Forest 011~025 및 필요한 026+ 계보로 정규화한다. 기존 정상 릴리스·Forest checkpoint·현재 루트·최신 origin/main을 Home, Client, Matter, People, Search, Portal, 인증, 서지원 프로필, 휴가, 급여, 저장·권한·패키지 기준으로 비교해 핵심 기능 손실 0인 상위 호환 Forest 후보만 0.1.17로 만들고 version/full SHA/renderer hash/channel/time manifest, clean-SHA build gate, 채널별 bundle ID, legacy asset 검사, canonical launcher를 구현한다. origin/main merge dry-run과 파일별 conflict ledger를 거쳐 전용 integration 브랜치에서 UI는 현재 Forest, 인증은 더 엄격한 권한, migration은 forward-only, 운영은 더 안전한 계약을 보존하여 통합하고, 휴가·급여·API·Web·Desktop·migration·authz·PII 전체 0 fail, 6개 역할×5 viewport 브라우저 error/overflow/dead-action 0, macOS signed/notarized/Gatekeeper 실제 패키지와 Windows native/AuthentiCode 실제 패키지 PASS를 증명한다. 검증된 integration SHA만 PR로 main에 병합하고 후보 패키지를 재사용하지 말고 exact main merge SHA에서 Mac·Windows artifacts, hashes, SBOM, tag와 release receipts를 재생성한다. 내부 배포와 AWS staging까지 repo-safe·승인 범위에서 수행하되 실제 직원·계좌·정책 migration, 외부 provider/bank/tax production write, AWS production traffic, 공개 release와 go-live는 owner·법무·노무·세무 승인 및 검증 가능한 receipt가 없으면 BLOCKED로 유지한다. 모든 TUW는 지정 evidence 디렉터리에 entry/exit SHA, files, commands, tests, manual QA, hashes, limits, blockers를 기록하고, stale/old app이 다시 정본으로 오인되지 않도록 canonical registry·launch runbook·old bundle inventory·rollback closeout까지 완료한다.`
+`workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md`를 단일 실행 정본으로 삼아, 종료 Forest 세션의 115개 tracked 수정과 92개 untracked 파일을 비밀정보·PII·generated artifact 없이 재현 가능한 checkpoint로 고정하고, 현재 루트 체크아웃의 25개 고유 변경과 49개 상이 공통 파일을 기능 단위로 전수 판정하며, 충돌하는 migration 011~016을 중복·데이터 손실 없이 Forest 011~025 및 필요한 026+ 계보로 정규화한다. 기존 정상 릴리스·Forest checkpoint·현재 루트·최신 origin/main을 Home, Client, Matter, People, Search, Portal, 인증, 서지원 프로필, 휴가, 급여, 저장·권한·패키지 기준으로 비교해 핵심 기능 손실 0인 상위 호환 Forest 후보만 0.1.17로 만들고 version/full SHA/renderer hash/channel/time manifest, clean-SHA build gate, 채널별 bundle ID, legacy asset 검사, canonical launcher를 구현한다. origin/main merge dry-run과 파일별 conflict ledger를 거쳐 전용 integration 브랜치에서 UI는 현재 Forest, 인증은 더 엄격한 권한, migration은 forward-only, 운영은 더 안전한 계약을 보존하여 통합하고, 휴가·급여·API·Web·Desktop·migration·authz·PII 전체 0 fail, 6개 역할×5 viewport 브라우저 error/overflow/dead-action 0, macOS signed/notarized/Gatekeeper 실제 패키지와 Windows native 실제 패키지 PASS를 증명한다. 검증된 integration SHA만 PR로 main에 병합하되, Windows Authenticode PASS와 별도 release/deployment 승인이 있기 전에는 exact-main release packaging, tag, artifact publication, 내부/staging/production 배포와 go-live를 BLOCKED로 유지한다. 승인 후에는 후보 패키지를 재사용하지 말고 exact main merge SHA에서 Mac·Windows artifacts, hashes, SBOM, tag와 release receipts를 재생성한다. 실제 직원·계좌·정책 migration, 외부 provider/bank/tax production write, AWS production traffic, 공개 release와 go-live는 owner·법무·노무·세무 승인 및 검증 가능한 receipt가 없으면 BLOCKED로 유지한다. 모든 TUW는 지정 evidence 디렉터리에 entry/exit SHA, files, commands, tests, manual QA, hashes, limits, blockers를 기록하고, stale/old app이 다시 정본으로 오인되지 않도록 canonical registry·launch runbook·old bundle inventory·rollback closeout까지 완료한다.`

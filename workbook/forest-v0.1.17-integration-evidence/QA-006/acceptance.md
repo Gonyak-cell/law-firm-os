@@ -49,7 +49,7 @@ NSIS and archive bytes are host/build-time dependent, so the macOS-hosted local 
 - Authenticode claim: `false`
 - Blocker: no approved Authenticode certificate or provider is configured
 
-Native behavior is complete and PASS, but QA-006 and the main-merge/release gate remain `BLOCKED_AUTHENTICODE`. A self-signed certificate is not accepted as release evidence.
+Native behavior is complete and PASS, but QA-006 and the Windows distribution/formal release gate remain `BLOCKED_AUTHENTICODE`. The owner-approved source-merge gate is tracked separately and may use this native PASS without claiming a signed Windows release. A self-signed certificate is not accepted as release evidence.
 
 ## Runtime and data boundaries
 

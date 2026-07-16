@@ -1,9 +1,9 @@
 {
   "schema_version": "law-firm-os.qa-009-final-report.v1",
-  "generated_at": "2026-07-16T03:03:17.000Z",
+  "generated_at": "2026-07-16T04:33:04.000Z",
   "tuw_id": "QA-009",
   "status": "DONE",
-  "report_verdict": "BLOCKED_AUTHENTICODE",
+  "report_verdict": "SOURCE_MERGE_ELIGIBLE_RELEASE_BLOCKED",
   "source": {
     "revision": "39ed9571b0e841e1a6480e6875fe7b6658f83465",
     "tree": "42bb94f745b329053cc14325ef1251fc7d8475cd",
@@ -36,8 +36,8 @@
     "windows_ci_executable_sha256": "9772e31fcaa6c7e4005392238aa096b55522f6572d01b2f27753c186fbf4a3f8"
   },
   "evidence_link_check": {
-    "listed": 18,
-    "existing": 18,
+    "listed": 20,
+    "existing": 20,
     "missing": 0
   },
   "final_validation": {
@@ -47,8 +47,8 @@
     "legacy_source": "PASS",
     "legacy_formal_bundles": "PASS",
     "no_public_release_claim": "PASS",
-    "hash_ledgers_passed": 5,
-    "json_documents_parsed": 7,
+    "hash_ledgers_passed": 6,
+    "json_documents_parsed": 8,
     "git_diff_check": "PASS",
     "ai_slop_review": "PASS"
   },
@@ -60,6 +60,7 @@
     "preserved_pids": [55090, 27104, 27105, 27106]
   },
   "boundaries": {
+    "source_merge_authorized": true,
     "main_merge_performed": false,
     "pull_request_created": false,
     "public_release_published": false,
@@ -71,7 +72,9 @@
   "blocker": {
     "code": "AUTHENTICODE_NOT_SIGNED",
     "reason": "No approved Authenticode certificate or provider is configured",
-    "main_merge_allowed": false,
+    "main_merge_allowed": true,
+    "windows_distribution_allowed": false,
+    "release_or_deployment_allowed": false,
     "self_signed_certificate_accepted": false
   }
 }

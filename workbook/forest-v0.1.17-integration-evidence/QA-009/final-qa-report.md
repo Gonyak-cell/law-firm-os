@@ -2,11 +2,11 @@
 
 ## Decision
 
-**Release gate: `BLOCKED_AUTHENTICODE`.**
+**Source merge gate: `ELIGIBLE`. Release gate: `BLOCKED_AUTHENTICODE`.**
 
-The final product source is exact SHA `39ed9571b0e841e1a6480e6875fe7b6658f83465`, tree `42bb94f745b329053cc14325ef1251fc7d8475cd`. The formal macOS package is signed, notarized, stapled, and accepted by Gatekeeper. The exact-SHA Windows package passes native install, launch, Forest login, canonical `서지원` identity, leave, payroll, restart-session restore, and uninstall. It cannot satisfy the canonical main-merge/release gate because both the NSIS installer and unpacked executable report `NotSigned` and no approved Authenticode certificate or provider is configured.
+The final product source is exact SHA `39ed9571b0e841e1a6480e6875fe7b6658f83465`, tree `42bb94f745b329053cc14325ef1251fc7d8475cd`. The formal macOS package is signed, notarized, stapled, and accepted by Gatekeeper. The exact-SHA Windows package passes native install, launch, Forest login, canonical `서지원` identity, leave, payroll, restart-session restore, and uninstall. On 2026-07-16 the owner separated source-merge approval from package signing and deployment approval, so these functional and security results make the branch eligible for a PR and `main` source merge. Both Windows binaries remain `NotSigned`, therefore Windows distribution and every release/deployment claim remain blocked until an approved Authenticode certificate or provider is configured.
 
-No pull request, `main` merge, public release, production AWS traffic change, production data migration, provider write, or go-live is claimed or authorized by this report.
+This report authorizes only the owner-approved source-merge gate. It does not authorize package publication, release tags, internal/staging/production deployment, production AWS traffic change, production data migration, provider write, or go-live.
 
 ## Exact-source binding
 
@@ -102,9 +102,9 @@ QA-008 binds 39 QA-004 role/viewport and leave images, 5 final macOS images, and
 - legacy source assets: `191` files scanned, forbidden references `0`
 - formal Mac/Windows bundle legacy scan: `35+35` files, forbidden references and offline entries `0`
 - public release/go-live claim validator: `98` files, findings `0`
-- QA-005~009 hash ledgers: `5/5 PASS`
-- evidence JSON parse: `7/7 PASS`
-- evidence links: `18/18`, missing `0`
+- QA-005~009 plus MR-000 hash ledgers: `6/6 PASS`
+- evidence JSON parse: `8/8 PASS`
+- evidence links: `20/20`, missing `0`
 - `git diff --check`: PASS
 - AI slop review: PASS
 
@@ -132,12 +132,12 @@ Native Windows execution was performed by `.github/workflows/formal-windows-pack
 - The existing v0.1.16 package process PID `55090` remains at `/private/tmp/lawos-forest-v016-release/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter`.
 - User root worker PIDs `27104`, `27105`, and `27106` remain alive and were not interrupted.
 
-## Blockers and next admissible action
+## Next admissible action and retained blockers
 
-1. Configure an owner-approved Authenticode certificate/provider in the formal Windows workflow without exposing credentials in repository evidence.
-2. Rebuild the Windows installer and executable from the exact accepted product SHA (or restart the full exact-SHA gate if product code changes).
-3. Require `Get-AuthenticodeSignature` status `Valid` plus non-empty approved signer subject and thumbprint for both files.
-4. Rerun QA-006 and refresh QA-007~009 hashes.
-5. Only after QA-006 becomes PASS may MR-001 open a reviewable PR. `main` merge, exact-main-SHA rebuild, tag/release, staging/production, and go-live remain later and separately approved gates.
+1. MR-001 may open a `main` PR with the Authenticode blocker stated explicitly; the required `HRX rollout validation` check must pass.
+2. MR-002 may merge source through that PR and must record the exact remote `main` merge SHA.
+3. MR-003~006 and DP-001~007 remain blocked pending separate release/deployment approval.
+4. Before any Windows distribution or release, configure an owner-approved Authenticode certificate/provider without exposing credentials in repository evidence.
+5. Rebuild from the exact accepted `main` SHA, require `Get-AuthenticodeSignature` status `Valid` plus non-empty approved signer subject and thumbprint for installer and executable, rerun QA-006, and refresh downstream hashes.
 
 A self-signed certificate, source-only signature configuration, or a successful native runtime smoke cannot substitute for approved Authenticode evidence.
