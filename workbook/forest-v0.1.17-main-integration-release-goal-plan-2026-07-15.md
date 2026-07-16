@@ -270,7 +270,7 @@ MI-003 중단 조건:
 | QA-002 | DONE | Web·Desktop 전체 PASS | typecheck, build, UI, desktop tests | unique 246 cases·245 pass·1 browser-gated skip; entrypoint 57/57; build PASS | 0 fail, 기존 skip 문서화 |
 | QA-003 | DONE | migration·privacy·security PASS | fresh/upgrade/reopen, tenant, PII, secret, public renderer | 18 files·59 tests·10 validators | 치명적 finding 0 |
 | QA-004 | DONE | 브라우저 역할·viewport PASS | employee, manager, HR, preparer, approver, no-scope × 5 viewport | browser receipt | unexpected error·overflow·dead action 0 |
-| QA-005 | READY | macOS 실제 패키지 PASS | login, profile, leave, payroll, restart, sign/notarize/staple/Gatekeeper | package receipt | formal macOS PASS |
+| QA-005 | DONE | macOS 실제 패키지 PASS | login, profile, leave, payroll, restart, sign/notarize/staple/Gatekeeper | package receipt | formal macOS PASS |
 | QA-006 | READY | Windows native PASS | install, launch, login, leave/payroll, restart, uninstall, Authenticode | Windows receipt | native PASS |
 | QA-007 | READY | renderer parity | Web/candidate/macOS/Windows renderer hashes 비교 | SHA-256 | 승인된 변형 외 불일치 0 |
 | QA-008 | READY | 회귀 screenshot manifest | 핵심 화면·각 역할·양끝 viewport 캡처 | manifest/hash | stale window 0 |
@@ -531,6 +531,7 @@ external_blockers
 | 2026-07-16 | QA-002 | DONE | `11fe96ab` | `11fe96ab` | `workbook/forest-v0.1.17-integration-evidence/QA-002/` | MI-007 tag `4c81d861` 결속; Web UI 직렬 143 PASS·1 QA-004 browser-gated skip·오류 노이즈 0, typecheck·1719-module build PASS; Desktop smoke 102/102, file bridge 17/17+validator 2, session 37/37, update 3/3; production renderer 28 files; 기존 1.13MB chunk warning 비차단; 제품 diff 0·사용자 루트·PID 55090 무변경 |
 | 2026-07-16 | QA-003 | DONE | `d1fa5bbe` | `d1fa5bbe` | `workbook/forest-v0.1.17-integration-evidence/QA-003/` | migration 7 files·19/19, privacy/security 11 files·40/40, 적용 validator 10/10; fresh 001~029·upgrade 010/020/025·reopen/rollback/restore PASS, QA 증거 포함 repository-visible 19,128 files secret finding 0·critical 0; 운영자 production secret `.env`는 미생성·BLOCKED_PREREQUISITE, 제품 diff 0·사용자 루트 content 77/77·PID 55090 보존 |
 | 2026-07-16 | QA-004 | DONE | `35cd17f8` | `e19a17dd` | `workbook/forest-v0.1.17-integration-evidence/QA-004/` | signed session 6역할×5 viewport 30/30·unexpected error/overflow/dead action 0; internal package 9/9·LV02~LV07 PASS; 동일 clean SHA Web/Mac/Windows renderer `efc12338`·28 files·byte diff 0; receipt 8개·screenshot 39개·증거 61개 hash PASS; formal Mac·Windows native는 QA-005/006 경계 유지, 사용자 루트 content 77/77·PID 55090 보존 |
+| 2026-07-16 | QA-005 | DONE | `53854dca` | `53854dca` | `workbook/forest-v0.1.17-integration-evidence/QA-005/` | exact clean SHA formal macOS app·ZIP·DMG 생성; Developer ID/codesign strict/notary/staple/Gatekeeper/DMG image PASS; signed formal app login·서지원 profile·leave·payroll·restart PASS, page/console error 0, screenshot 5/5; Mac·Windows renderer `efc12338`·28 files·byte identical; formal bundle local API 미포함·isolated exact-source synthetic loopback 사용; Windows native/AuthentiCode·public release·production/AWS write 비주장, PID 55090·27104~27106 보존 |
 
 ## 14. Goal Objective 원문
 

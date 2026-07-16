@@ -1,21 +1,21 @@
-# macOS Internal Build Receipt
+# macOS Formal Release Candidate Build Receipt
 
-Status: internal_electron_app_bundle_created
+Status: formal_release_candidate_electron_app_bundle_created
 Source TUW: MDT-P6-W01-T03
 App bundle: `apps/desktop/dist/mac/matter.app`
-App ID: `com.amic.matter.desktop.internal`
+App ID: `com.amic.matter.desktop`
 Product name: `matter`
 Version: `0.1.17`
-Channel: `internal`
-Build manifest: `apps/desktop/dist/mac/matter-internal-0.1.17-macos-build-manifest.json`
+Channel: `formal`
+Build manifest: `apps/desktop/dist/mac/matter-0.1.17-macos-build-manifest.json`
 Packaged build manifest: `apps/desktop/dist/mac/matter.app/Contents/Resources/matter-build-manifest.json`
-Build manifest SHA-256: `31b077795990eaa5ff46edbde980195a84977b8dcac3b32bcd947fae99f0aedc`
-Source SHA: `e19a17dd48edf131cada90cf0b2c9b6891002d8d`
-Source tree: `d954dafbf67ba9dca47fd44effbc6109a4e056af`
+Build manifest SHA-256: `3bda631f71cbf10d2bfdfd4a67697b2b06e3fffd2941938f75061e8eee8d46ae`
+Source SHA: `53854dca55c8b4c0730b57998980755bf141de58`
+Source tree: `d99621ca5bf6a93130c26ab7ba08cd4836b234d3`
 Source dirty: `false`
 Renderer SHA-256: `efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599`
 Renderer files: `28`
-Built at: `2026-07-15T23:30:35.689Z`
+Built at: `2026-07-16T00:36:14.959Z`
 
 ## Package Structure
 
@@ -24,26 +24,26 @@ Built at: `2026-07-15T23:30:35.689Z`
 - packaged app icon: `apps/desktop/dist/mac/matter.app/Contents/Resources/matter.icns`
 - packaged app source: `apps/desktop/dist/mac/matter.app/Contents/Resources/app`
 - executable: `apps/desktop/dist/mac/matter.app/Contents/MacOS/matter`
-- archive: `apps/desktop/dist/mac/matter-internal-0.1.17-macos.zip`
-- disk image: `apps/desktop/dist/mac/matter-internal-0.1.17-macos.dmg`
+- archive: `apps/desktop/dist/mac/matter-0.1.17-macos.zip`
+- disk image: `apps/desktop/dist/mac/matter-0.1.17-macos.dmg`
 
 ## Signing
 
-- Developer ID signing: not_applied_internal_package
-- requested signing mode: internal
-- resolved signing identity: not_applied_internal_package
-- Developer ID signature: not_distribution_ready: Developer ID authority missing; TeamIdentifier=not set
-- codesign verify: not_distribution_ready: /private/tmp/lawos-forest-v017-integration/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
-- strict codesign verify: not_distribution_ready: /private/tmp/lawos-forest-v017-integration/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
-- gatekeeper assess: not_distribution_ready: /private/tmp/lawos-forest-v017-integration/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
+- Developer ID signing: applied
+- requested signing mode: developer-id
+- resolved signing identity: Developer ID Application: Jiwon Suh (LHDXU66NX3)
+- Developer ID signature: pass
+- codesign verify: pass
+- strict codesign verify: pass
+- gatekeeper assess: pass
 - public distribution approval: not claimed
-- notarization requested: false
-- notarization credential source: missing
-- notarization state: not_submitted_internal_only
-- DMG codesign verify: not_applied_internal_package
-- DMG notarization state: not_submitted_internal_only
-- DMG stapler validate: not_submitted_internal_only
-- DMG Gatekeeper assess: not_distribution_ready: /private/tmp/lawos-forest-v017-integration/apps/desktop/dist/mac/matter-internal-0.1.17-macos.dmg: rejected
+- notarization requested: true
+- notarization credential source: present
+- notarization state: submitted_and_accepted_by_notarytool
+- DMG codesign verify: pass
+- DMG notarization state: submitted_and_accepted_by_notarytool
+- DMG stapler validate: pass
+- DMG Gatekeeper assess: pass
 - DMG image verify: pass
 
 ## Install Smoke
@@ -53,9 +53,9 @@ Built at: `2026-07-15T23:30:35.689Z`
 - packaged app icon exists: true
 - packaged app source exists: true
 - private HRX contact source excluded: true
-- private HRX roster source excluded: false
-- private HRX photo source excluded: false
-- public HRX professional profile catalog included: true
+- private HRX roster source excluded: true
+- private HRX photo source excluded: true
+- public HRX professional profile catalog included: false
 - formal release marker: true
 - web renderer prepare state: rebuilt_from_apps_web
 - packaged URL scheme metadata: matter
