@@ -486,7 +486,11 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
   uses_real_client_data: true,
 });
 
-const DEFAULT_CORS_ALLOWED_ORIGINS = Object.freeze(["null", "http://127.0.0.1:5173", "http://127.0.0.1:5186"]);
+const DEFAULT_CORS_ALLOWED_ORIGINS = Object.freeze([
+  "matter-app://app",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5186",
+]);
 const CORS_BASE_HEADERS = Object.freeze({
   "access-control-allow-methods": "GET, POST, PATCH, DELETE, OPTIONS",
   "access-control-allow-headers": [
@@ -506,7 +510,7 @@ export function configuredCorsAllowedOrigins({ env = process.env } = {}) {
   const configured = (env.LAWOS_API_ALLOWED_ORIGINS ?? "")
     .split(",")
     .map((origin) => origin.trim())
-    .filter(Boolean);
+    .filter((origin) => origin && origin.toLowerCase() !== "null" && origin !== "*");
   return Object.freeze([...new Set([...DEFAULT_CORS_ALLOWED_ORIGINS, ...configured])]);
 }
 

@@ -1,12 +1,13 @@
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import {
   createDisabledMatterVaultRuntimeClient,
   createMatterVaultAwsRuntimeClient,
   loadMatterVaultRuntimeConfig
 } from "./aws-runtime.js";
 import { MainProcessAuthCoordinator, encryptedFileSecureStore, memorySecureStore } from "./auth.js";
+import { installMatterAppProtocol, matterAppRendererUrl, registerMatterAppScheme } from "./app-protocol.js";
 import { parseMatterDeepLink, redactDeepLinkIntent } from "./deepLinks.js";
 import { startDesktopLocalApiServer, stopDesktopLocalApiServer } from "./local-api.js";
 import { assertApprovedRendererUrl, installNavigationGuards, isApprovedRendererUrl } from "./origin-policy.js";
@@ -32,9 +33,7 @@ export function describeDesktopSkeleton() {
 }
 
 export function packagedRendererUrl() {
-  const url = pathToFileURL(join(moduleDir, "../renderer/web/index.html"));
-  url.searchParams.set("desktop", "1");
-  return url.toString();
+  return matterAppRendererUrl();
 }
 
 export function desktopPreloadPath() {
@@ -226,8 +225,7 @@ export async function startDesktopShell({
   packaged = false,
   initialDeepLinkUrl
 } = {}) {
-  const packagedTarget = packagedRendererUrl();
-  const originOptions = { packagedRendererUrl: packagedTarget, allowDevRenderer: !packaged };
+  const originOptions = { allowDevRenderer: !packaged };
   const target = assertApprovedRendererUrl(rendererUrl, originOptions);
   const isTrustedSender = (event) => isApprovedRendererUrl(
     event?.senderFrame?.url ?? event?.sender?.getURL?.(),
@@ -244,11 +242,13 @@ export async function startDesktopShell({
 }
 
 export async function startElectronApp() {
-  const { app, BrowserWindow, ipcMain, safeStorage } = await import("electron");
+  const { app, BrowserWindow, ipcMain, net, protocol, safeStorage } = await import("electron");
   if (!acquireDesktopSingleInstance(app)) return { primaryInstance: false };
+  registerMatterAppScheme(protocol);
   const instanceCoordinator = createDesktopInstanceCoordinator({ app, argv: process.argv });
   const userDataPath = desktopUserDataPath(app);
   await app.whenReady();
+  installMatterAppProtocol({ protocol, net });
   configureDesktopAppIcon(app);
   configureDesktopProtocol(app);
   const formalRelease = isFormalReleasePackage();

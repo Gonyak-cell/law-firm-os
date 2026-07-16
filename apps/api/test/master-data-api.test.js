@@ -53,23 +53,23 @@ test("GET /api/health returns the service descriptor without permission context"
   assert.equal(body.bounded_contexts[0].contract_schema_version, "law-firm-os.master-data-contract.v0.21");
 });
 
-test("desktop file-origin API calls receive CORS headers and preflight success", async () => {
+test("desktop custom-origin API calls receive CORS headers and preflight success", async () => {
   const options = await fetch(`${baseUrl}/master-data/records?${BASE_QUERY}`, {
     method: "OPTIONS",
     headers: {
-      origin: "null",
+      origin: "matter-app://app",
       "access-control-request-method": "GET",
       "access-control-request-headers": PERMISSION_CONTEXT_HEADER
     }
   });
   assert.equal(options.status, 204);
-  assert.equal(options.headers.get("access-control-allow-origin"), "null");
+  assert.equal(options.headers.get("access-control-allow-origin"), "matter-app://app");
   assert.equal(options.headers.get("vary"), "origin");
   assert.match(options.headers.get("access-control-allow-headers") ?? "", new RegExp(PERMISSION_CONTEXT_HEADER));
 
-  const response = await fetch(`${baseUrl}/api/health`, { headers: { origin: "null" } });
+  const response = await fetch(`${baseUrl}/api/health`, { headers: { origin: "matter-app://app" } });
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get("access-control-allow-origin"), "null");
+  assert.equal(response.headers.get("access-control-allow-origin"), "matter-app://app");
 });
 
 test("API CORS allowlist permits approved desktop dev origin and ignores arbitrary origins", async () => {

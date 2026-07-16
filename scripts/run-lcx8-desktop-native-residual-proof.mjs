@@ -121,16 +121,17 @@ function fakeWindowForNavigationGuards() {
 
 async function buildRowProofs() {
   const rowProofs = [];
-  const packagedRendererUrl = "file:///matter/renderer/offline.html";
-  const originOptions = { packagedRendererUrl };
+  const packagedRendererUrl = "matter-app://app/index.html?desktop=1";
+  const originOptions = {};
 
   assertApprovedRendererUrl("http://127.0.0.1:5173");
-  assert(isApprovedRendererUrl(packagedRendererUrl, originOptions), "exact packaged file renderer should be approved");
+  assert(isApprovedRendererUrl(packagedRendererUrl, originOptions), "exact packaged custom origin should be approved");
+  assert(!isApprovedRendererUrl("file:///matter/renderer/index.html", originOptions), "file renderer should be denied");
   rowProofs.push({
     id: "LCX8-ACTION-0245",
     status_decision: "GUARDED final / source guard confirmed",
     proof_type: "origin_policy",
-    observed: "Approved local dev renderer target and packaged file renderer are allowlisted.",
+    observed: "Approved local dev renderer and packaged matter-app origin are allowlisted while file renderers are denied.",
     missing_runtime_receipt: null
   });
 
@@ -401,7 +402,7 @@ const proof = {
     failed: 0
   },
   source_observations: {
-    origin_policy: "apps/desktop/src/main/origin-policy.js allowlists the exact packaged renderer path and development origin only outside packaged mode, then denies unapproved navigation/window-open",
+    origin_policy: "apps/desktop/src/main/origin-policy.js allowlists the exact packaged matter-app origin and development origin only outside packaged mode, denies file renderers and unapproved navigation, and defaults every window-open to deny",
     file_bridge: "apps/desktop/src/main/fileBridge.js requires trusted gesture, rejects renderer bytes, permission-prechecks, and audits denied prechecks",
     temp_preview: "apps/desktop/src/main/tempPreview.js scopes temp previews and clears cache on logout/tenant switch/app quit",
     deep_links: "apps/desktop/src/main/deepLinks.js route-only parser denies action execution, invalid identifiers, and unknown query parameters",
