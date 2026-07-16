@@ -127,15 +127,17 @@ test("legacy JSON is generation zero and preserves unknown fields", (t) => {
 test("generation CAS rejects a stale writer without changing the current file", (t) => {
   const root = fixtureRoot(t);
   const filePath = join(root, "store.json");
+  const backupRoot = join(root, "conflict-backups");
   writeDurableJsonFile({ filePath, value: { writer: "first" }, expectedGeneration: 0, createBackup: false, env: {} });
 
   assert.throws(
-    () => writeDurableJsonFile({ filePath, value: { writer: "stale" }, expectedGeneration: 0, createBackup: false, env: {} }),
+    () => writeDurableJsonFile({ filePath, value: { writer: "stale" }, expectedGeneration: 0, backupRoot, env: {} }),
     (error) => error?.code === "LAWOS_STORE_CONFLICT"
       && error.expected_generation === 0
       && error.current_generation === 1,
   );
   assert.deepEqual(readDurableJsonFile({ filePath }).value, { writer: "first" });
+  assert.equal(existsSync(backupRoot), false);
 });
 
 test("exclusive lock recovers only an old dead same-host owner", (t) => {
