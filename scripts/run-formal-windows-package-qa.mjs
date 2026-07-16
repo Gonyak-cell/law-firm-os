@@ -99,7 +99,7 @@ function authenticode(filePath) {
     "  thumbprint = if ($signature.SignerCertificate) { $signature.SignerCertificate.Thumbprint } else { $null }",
     "} | ConvertTo-Json -Compress",
   ].join("\n");
-  return JSON.parse(execFileSync("powershell.exe", [
+  return JSON.parse(execFileSync("pwsh.exe", [
     "-NoProfile",
     "-NonInteractive",
     "-Command",
