@@ -1,0 +1,14 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-STO-001",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "3cdbd3db10d22b02aac5c718324702e0d96520ac",
+  "tree": "fec4f3473a0817a59710f0f0fa42f14bf714872d",
+  "recorded_at": "2026-07-16T10:28:02Z",
+  "command": "node scripts/validate-runtime-store-writer-coverage.mjs",
+  "exit_code": 0,
+  "summary": "PASS; 16/16 manifest paths, derived DMS bytes covered, 6/6 remaining direct-writer files classified, 0 unclassified and 0 operational direct-authority writes",
+  "artifacts": ["scripts/validate-runtime-store-writer-coverage.mjs", "workbook/lawos-runtime-safety-evidence/RS-GOV-003/writer-inventory.json"],
+  "claims": {"out_of_manifest_writer_classification_complete": true, "production_ready": false, "release_executed": false, "aws_mutation_executed": false, "go_live": false}
+}

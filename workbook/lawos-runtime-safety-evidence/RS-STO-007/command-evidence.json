@@ -1,0 +1,16 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-STO-007",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "3cdbd3db10d22b02aac5c718324702e0d96520ac",
+  "tree": "fec4f3473a0817a59710f0f0fa42f14bf714872d",
+  "recorded_at": "2026-07-16T10:28:02Z",
+  "commands": [
+    {"command": "node --test packages/billing/test/*.test.js", "exit_code": 0, "summary": "107/107 current Finance package regression PASS"},
+    {"command": "node --test packages/persistence/test/store-adapter-cas.test.js", "exit_code": 0, "summary": "Finance stale-generation conflict and winner reload PASS"},
+    {"command": "node scripts/validate-runtime-store-writer-coverage.mjs", "exit_code": 0, "summary": "Finance operational direct-authority write count 0"}
+  ],
+  "artifacts": ["packages/billing/src/finance-repository.js", "packages/persistence/test/store-adapter-cas.test.js"],
+  "claims": {"finance_file_authority_cas_verified": true, "future_postgres_finance_contract_verified": false, "production_ready": false, "go_live": false}
+}

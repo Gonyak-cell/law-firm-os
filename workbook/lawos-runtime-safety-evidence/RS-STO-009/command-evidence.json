@@ -1,0 +1,15 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-STO-009",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "3cdbd3db10d22b02aac5c718324702e0d96520ac",
+  "tree": "fec4f3473a0817a59710f0f0fa42f14bf714872d",
+  "recorded_at": "2026-07-16T10:28:02Z",
+  "commands": [
+    {"command": "node --test packages/client-portal/test/*.test.js packages/ai-governance/test/*.test.js", "exit_code": 0, "summary": "222/222 PASS"},
+    {"command": "node --test packages/persistence/test/store-adapter-cas.test.js", "exit_code": 0, "summary": "AI governance stale-generation conflict and winner reload PASS"}
+  ],
+  "artifacts": ["packages/ai-governance/src/runtime-repository.js", "packages/persistence/test/store-adapter-cas.test.js"],
+  "claims": {"ai_governance_file_authority_cas_verified": true, "production_ready": false, "go_live": false}
+}

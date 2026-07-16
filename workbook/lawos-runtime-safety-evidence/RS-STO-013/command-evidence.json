@@ -1,0 +1,16 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-STO-013",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "3cdbd3db10d22b02aac5c718324702e0d96520ac",
+  "tree": "fec4f3473a0817a59710f0f0fa42f14bf714872d",
+  "recorded_at": "2026-07-16T10:28:02Z",
+  "commands": [
+    {"command": "node --test apps/api/test/session-auth-api.test.js apps/api/test/auth-restart-revocation.test.js apps/api/test/auth-concurrency.test.js", "exit_code": 0, "summary": "21/21 PASS"},
+    {"command": "node --test packages/persistence/test/store-adapter-cas.test.js", "exit_code": 0, "summary": "Credential and reset stale-generation conflicts reload the winner without secret fields"},
+    {"command": "node scripts/validate-runtime-store-writer-coverage.mjs", "exit_code": 0, "summary": "Credential and reset operational direct-authority write count 0"}
+  ],
+  "artifacts": ["apps/api/src/auth-credential-store.js", "apps/api/src/auth-password-reset-store.js", "apps/api/test/auth-restart-revocation.test.js", "apps/api/test/auth-concurrency.test.js"],
+  "claims": {"credential_and_reset_file_cas_verified": true, "cross_process_credential_revision_observed": true, "secret_material_logged": false, "production_ready": false, "go_live": false}
+}

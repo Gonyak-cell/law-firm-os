@@ -1,0 +1,15 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-STO-002",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "3cdbd3db10d22b02aac5c718324702e0d96520ac",
+  "tree": "fec4f3473a0817a59710f0f0fa42f14bf714872d",
+  "recorded_at": "2026-07-16T10:28:02Z",
+  "commands": [
+    {"command": "node --test packages/matter/test/*.test.js apps/api/test/matter-worktree-*.test.js apps/api/test/matter-vault-persistence.test.js", "exit_code": 0, "summary": "220/220 PASS"},
+    {"command": "node --test packages/persistence/test/store-adapter-cas.test.js", "exit_code": 0, "summary": "Matter stale-generation conflict and winner reload PASS within 14/14 adapter cases"}
+  ],
+  "artifacts": ["packages/matter/src/repository.js", "packages/persistence/test/store-adapter-cas.test.js"],
+  "claims": {"matter_file_authority_cas_verified": true, "database_authority_selected": false, "production_ready": false, "go_live": false}
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-STO-015",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "3cdbd3db10d22b02aac5c718324702e0d96520ac",
+  "tree": "fec4f3473a0817a59710f0f0fa42f14bf714872d",
+  "recorded_at": "2026-07-16T10:28:02Z",
+  "command": "run RS-STO terminal contracts at the exact source SHA",
+  "exit_code": 0,
+  "commands": [
+    {"command": "node scripts/validate-runtime-store-writer-coverage.mjs", "exit_code": 0, "summary": "PASS; 16/16 manifest paths, DMS bytes covered, unclassified 0, operational direct-authority writes 0"},
+    {"command": "node --test packages/persistence/test/durable-file.test.js packages/persistence/test/multi-process-generation.test.js packages/persistence/test/store-fault-injection.test.js packages/persistence/test/store-permissions.test.js", "exit_code": 0, "summary": "17/17 PASS"},
+    {"command": "node --test packages/persistence/test/store-adapter-cas.test.js", "exit_code": 0, "summary": "14/14 PASS"},
+    {"command": "node scripts/validate-store-path-preflight.mjs", "exit_code": 0, "summary": "isolated rerun 5/5 scenarios PASS; production_ready_claim=false"},
+    {"command": "node scripts/validate-matter-desktop-security.mjs; node scripts/validate-hrx-security-negative-tests.mjs", "exit_code": 0, "summary": "both PASS"},
+    {"command": "node scripts/validate-runtime-safety-governance.mjs", "exit_code": 0, "summary": "PASS; 147 TUWs, 13 workstreams, 16+1 paths and 11 external dependencies"}
+  ],
+  "safe_counts": {"manifest_paths": 16, "manifest_paths_covered": 16, "derived_dms_paths_covered": 1, "unclassified_direct_writer_files": 0, "operational_direct_authority_writes": 0, "durable_contract_tests": 17, "adapter_cas_tests": 14, "root_worktree_mutation_count": 0, "release_action_count": 0, "aws_api_call_count": 0},
+  "artifacts": ["workbook/lawos-runtime-safety-evidence/RS-STO-015/terminal-validation.json", "workbook/lawos-runtime-safety-evidence/RS-STO-015/manual-qa.json", "workbook/lawos-runtime-safety-evidence/RS-STO-015/acceptance.md"],
+  "claims": {"g4_sto_verified": true, "file_authority_transition_safe": true, "all_future_domain_postgres_contracts_verified": false, "production_ready": false, "release_executed": false, "aws_mutation_executed": false, "go_live": false}
+}

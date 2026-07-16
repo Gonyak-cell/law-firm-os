@@ -1,0 +1,16 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-STO-011",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "3cdbd3db10d22b02aac5c718324702e0d96520ac",
+  "tree": "fec4f3473a0817a59710f0f0fa42f14bf714872d",
+  "recorded_at": "2026-07-16T10:28:02Z",
+  "commands": [
+    {"command": "node --test packages/dms/test/*.test.js apps/api/test/vault*.test.js", "exit_code": 0, "summary": "150/150 current DMS and Vault regression PASS"},
+    {"command": "node --test packages/persistence/test/store-adapter-cas.test.js", "exit_code": 0, "summary": "DMS metadata stale-generation conflict and winner reload PASS"},
+    {"command": "node --test packages/persistence/test/durable-file.test.js packages/persistence/test/multi-process-generation.test.js packages/persistence/test/store-fault-injection.test.js packages/persistence/test/store-permissions.test.js", "exit_code": 0, "summary": "17/17 PASS including binary digest, sidecar and compensation"}
+  ],
+  "artifacts": ["packages/dms/src/repository.js", "packages/dms/src/storage/file-storage-adapter.js"],
+  "claims": {"dms_metadata_file_authority_cas_verified": true, "dms_binary_durable_write_verified": true, "future_upload_session_reconciler_verified": false, "provider_roundtrip_executed": false, "production_ready": false, "go_live": false}
+}

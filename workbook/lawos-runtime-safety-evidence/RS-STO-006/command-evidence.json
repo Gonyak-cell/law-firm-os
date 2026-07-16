@@ -1,0 +1,15 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-STO-006",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "3cdbd3db10d22b02aac5c718324702e0d96520ac",
+  "tree": "fec4f3473a0817a59710f0f0fa42f14bf714872d",
+  "recorded_at": "2026-07-16T10:28:02Z",
+  "commands": [
+    {"command": "node --test packages/hrx/test/*.test.js apps/api/test/hrx/*.test.js", "exit_code": 0, "summary": "687/687 PASS"},
+    {"command": "node --test packages/persistence/test/store-adapter-cas.test.js", "exit_code": 0, "summary": "HRX stale transaction conflict, winner reload and retry PASS"}
+  ],
+  "artifacts": ["packages/hrx/src/store/file-store.js", "packages/persistence/test/store-adapter-cas.test.js"],
+  "claims": {"hrx_file_store_disk_generation_verified": true, "hrx_full_regression_passed": true, "production_ready": false, "go_live": false}
+}
