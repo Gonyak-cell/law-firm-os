@@ -17,6 +17,10 @@ import {
 } from "../apps/desktop/src/main/local-api.js";
 
 const OPERATIONAL_SECRET = "store-path-preflight-operational-secret-32";
+const OPERATIONAL_STEP_UP_OPTIONS = Object.freeze({
+  hrxStepUpSecret: "store-path-preflight-step-up-secret-32-bytes",
+  hrxStepUpTotpSecret: "store-path-preflight-step-up-totp-secret-32-bytes",
+});
 
 function runtimeTmpdirEntries() {
   return new Set(
@@ -82,6 +86,7 @@ async function scenarioOperationalStorePaths() {
       port: 0,
       runtimeProfile: "operational",
       sessionSecret: OPERATIONAL_SECRET,
+      ...OPERATIONAL_STEP_UP_OPTIONS,
       ...paths,
     });
     const firstHealth = await fetchJson(`http://${first.host}:${first.port}/api/health`);
@@ -95,6 +100,7 @@ async function scenarioOperationalStorePaths() {
       port: 0,
       runtimeProfile: "operational",
       sessionSecret: OPERATIONAL_SECRET,
+      ...OPERATIONAL_STEP_UP_OPTIONS,
       ...paths,
     });
     const secondHealth = await fetchJson(`http://${second.host}:${second.port}/api/health`);

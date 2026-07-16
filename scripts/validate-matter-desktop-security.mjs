@@ -5,6 +5,7 @@ import { join } from "node:path";
 
 const WINDOW_PATH = "apps/desktop/src/main/window.js";
 const ORIGIN_POLICY_PATH = "apps/desktop/src/main/origin-policy.js";
+const MAIN_PATH = "apps/desktop/src/main/main.js";
 const DESKTOP_ROOT = "apps/desktop";
 
 function read(path) {
@@ -59,29 +60,48 @@ function originPolicyFindings(source) {
   return findings;
 }
 
+function singleInstanceFindings(source) {
+  const findings = [];
+  const lockIndex = source.indexOf("acquireDesktopSingleInstance(app)");
+  const userDataIndex = source.indexOf("desktopUserDataPath(app)", lockIndex);
+  const localApiIndex = source.indexOf("await startDesktopLocalApiServer", lockIndex);
+  if (!/requestSingleInstanceLock\(\)/.test(source)) findings.push("single_instance_lock_missing");
+  if (!/app\.on\("second-instance"/.test(source)) findings.push("second_instance_handler_missing");
+  if (!/app\.on\("open-url"/.test(source)) findings.push("open_url_handler_missing");
+  if (!/redactDeepLinkIntent\(intent\)/.test(source)) findings.push("deep_link_redaction_missing");
+  if (lockIndex < 0 || userDataIndex < 0 || lockIndex > userDataIndex) findings.push("single_instance_lock_after_user_data");
+  if (lockIndex < 0 || localApiIndex < 0 || lockIndex > localApiIndex) findings.push("single_instance_lock_after_local_api");
+  return findings;
+}
+
 assert(existsSync(WINDOW_PATH), `${WINDOW_PATH} is missing`);
 assert(existsSync(ORIGIN_POLICY_PATH), `${ORIGIN_POLICY_PATH} is missing`);
+assert(existsSync(MAIN_PATH), `${MAIN_PATH} is missing`);
 
 const desktopFiles = listFiles(DESKTOP_ROOT);
 const windowSource = read(WINDOW_PATH);
 const originPolicySource = read(ORIGIN_POLICY_PATH);
+const mainSource = read(MAIN_PATH);
 const preloadFiles = desktopFiles.filter((path) => /preload/i.test(path) && /\.(cjs|js)$/.test(path));
 
 const findings = [
   ...windowSecurityFindings(windowSource),
   ...originPolicyFindings(originPolicySource),
+  ...singleInstanceFindings(mainSource),
   ...preloadFiles.flatMap((path) => preloadFindings(path, read(path)))
 ];
 
 const probeFindings = {
   insecure_browser_window: windowSecurityFindings("webPreferences: { nodeIntegration: true, sandbox: false }"),
   missing_preload_allowlist: preloadFindings("probe-preload.js", "contextBridge.exposeInMainWorld('matter', { send: ipcRenderer.send })"),
-  non_allowlisted_navigation: originPolicyFindings("export function isApprovedRendererUrl() { return true; }")
+  non_allowlisted_navigation: originPolicyFindings("export function isApprovedRendererUrl() { return true; }"),
+  missing_single_instance_boundary: singleInstanceFindings("export async function startElectronApp() {}")
 };
 
 assert(probeFindings.insecure_browser_window.length > 0, "insecure BrowserWindow probe was not detected");
 assert(probeFindings.missing_preload_allowlist.length > 0, "missing preload allowlist probe was not detected");
 assert(probeFindings.non_allowlisted_navigation.length > 0, "non-allowlisted navigation probe was not detected");
+assert(probeFindings.missing_single_instance_boundary.length > 0, "missing single-instance boundary probe was not detected");
 assert.deepEqual(findings, [], "desktop security findings present");
 
 console.log(
@@ -90,11 +110,13 @@ console.log(
       verdict: "PASS",
       checked_files: desktopFiles.length,
       preload_policy: preloadFiles.length === 0 ? "no_preload_surface_present" : "preload_allowlist_checked",
+      single_instance_trust_boundary: "checked",
       findings,
       probes: {
         insecure_browser_window: "detected",
         missing_preload_allowlist: "detected",
-        non_allowlisted_navigation: "detected"
+        non_allowlisted_navigation: "detected",
+        missing_single_instance_boundary: "detected"
       }
     },
     null,

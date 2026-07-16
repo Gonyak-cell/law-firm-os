@@ -1,11 +1,16 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { createHrxStepUpSession } from "../../../packages/authz/src/hrx-step-up-session.js";
+import {
+  LAWOS_RUNTIME_PROFILES,
+  resolveRuntimeProfile,
+  runtimePreflightError,
+} from "./runtime-profile.js";
 
 export const HRX_STEP_UP_TOKEN_PREFIX = "lawos_hrx_step_up_v1";
 export const HRX_STEP_UP_TOKEN_CONTRACT_REF = "workbook/wave1-internal-uplift-tuw-backlog-2026-07-02.md#UPL-A-04";
 
-const DEFAULT_SECRET = "lawos-local-wave1-hrx-step-up-secret";
-const DEFAULT_TOTP_SECRET = "lawos-local-wave1-hrx-step-up-totp-secret";
+export const HRX_STEP_UP_DEFAULT_SECRET = "lawos-local-wave1-hrx-step-up-secret";
+export const HRX_STEP_UP_DEFAULT_TOTP_SECRET = "lawos-local-wave1-hrx-step-up-totp-secret";
 const DEFAULT_TTL_MS = 5 * 60 * 1000;
 const DEFAULT_TOTP_STEP_MS = 30 * 1000;
 
@@ -43,6 +48,47 @@ function clean(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function assertOperationalStepUpSecret(value, { envName, knownDefault }) {
+  const secret = clean(value);
+  if (!secret) {
+    throw runtimePreflightError(`${envName} is required for operational runtime profile`);
+  }
+  if (secret === knownDefault) {
+    throw runtimePreflightError(`${envName} must not use the local default for operational runtime profile`);
+  }
+  if (secret.length < 32) {
+    throw runtimePreflightError(`${envName} must be at least 32 characters for operational runtime profile`);
+  }
+  return secret;
+}
+
+export function resolveHrxStepUpConfig({
+  env = process.env,
+  profile = resolveRuntimeProfile(env),
+  secret,
+  totpSecret,
+} = {}) {
+  const resolvedProfile = resolveRuntimeProfile({ ...env, LAWOS_RUNTIME_PROFILE: profile });
+  const configuredSecret = secret === undefined ? env.LAWOS_HRX_STEP_UP_SECRET : secret;
+  const configuredTotpSecret = totpSecret === undefined ? env.LAWOS_HRX_STEP_UP_TOTP_SECRET : totpSecret;
+  if (resolvedProfile === LAWOS_RUNTIME_PROFILES.operational) {
+    return Object.freeze({
+      secret: assertOperationalStepUpSecret(configuredSecret, {
+        envName: "LAWOS_HRX_STEP_UP_SECRET",
+        knownDefault: HRX_STEP_UP_DEFAULT_SECRET,
+      }),
+      totpSecret: assertOperationalStepUpSecret(configuredTotpSecret, {
+        envName: "LAWOS_HRX_STEP_UP_TOTP_SECRET",
+        knownDefault: HRX_STEP_UP_DEFAULT_TOTP_SECRET,
+      }),
+    });
+  }
+  return Object.freeze({
+    secret: clean(configuredSecret) || HRX_STEP_UP_DEFAULT_SECRET,
+    totpSecret: clean(configuredTotpSecret) || HRX_STEP_UP_DEFAULT_TOTP_SECRET,
+  });
+}
+
 function normalizePrincipal(principal = {}) {
   const tenantId = clean(principal.tenant_id ?? principal.tenantId);
   const actorId = clean(principal.user_id ?? principal.actor_id ?? principal.actorId);
@@ -72,12 +118,17 @@ function totpInput({ tenant_id, tenantId, actor_id, actorId, purpose } = {}, win
 }
 
 export function createHrxStepUpAuthority({
-  secret = process.env.LAWOS_HRX_STEP_UP_SECRET || DEFAULT_SECRET,
-  totpSecret = process.env.LAWOS_HRX_STEP_UP_TOTP_SECRET || DEFAULT_TOTP_SECRET,
+  secret,
+  totpSecret,
+  profile,
+  env = process.env,
   ttlMs = Number(process.env.LAWOS_HRX_STEP_UP_TTL_MS || DEFAULT_TTL_MS),
   totpStepMs = DEFAULT_TOTP_STEP_MS,
   now = () => Date.now(),
 } = {}) {
+  const config = resolveHrxStepUpConfig({ env, profile, secret, totpSecret });
+  secret = config.secret;
+  totpSecret = config.totpSecret;
   const nowMs = () => currentMs(now);
   const nowIso = () => new Date(nowMs()).toISOString();
 

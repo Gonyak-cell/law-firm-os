@@ -1442,17 +1442,22 @@ export function createApiServer({
     sourceCollectors: createHomeDashboardSourceCollectors({ hrxRuntime, matterRuntime, dmsRuntime, aiRuntime }),
   }),
   enterpriseReadinessRuntime = createDefaultEnterpriseReadinessRuntime(),
-  stepUpAuthority = createHrxStepUpAuthority(),
   runtimeProfile = resolveRuntimeProfile(),
-  sessionAuth = createApiSessionAuth({ stepUpAuthority, profile: runtimeProfile }),
+  stepUpAuthority,
+  sessionAuth,
 } = {}) {
+  const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority({ profile: runtimeProfile });
+  const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
+    stepUpAuthority: resolvedStepUpAuthority,
+    profile: runtimeProfile,
+  });
   return http.createServer(async (req, res) => {
     try {
       const matterRuntimeWithClearanceLedger =
         matterRuntime?.clearanceRepository || !crmIntakeRuntime?.intakeRepository
           ? matterRuntime
           : Object.freeze({ ...matterRuntime, clearanceRepository: crmIntakeRuntime.intakeRepository });
-      await handle(req, res, { hrxRuntime, hrxRuntimeUnavailable, masterDataRuntime, matterRuntime: matterRuntimeWithClearanceLedger, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile });
+      await handle(req, res, { hrxRuntime, hrxRuntimeUnavailable, masterDataRuntime, matterRuntime: matterRuntimeWithClearanceLedger, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth: resolvedSessionAuth, stepUpAuthority: resolvedStepUpAuthority, runtimeProfile });
     } catch (error) {
       sendJson(req, res, 500, { outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "internal_error", message: error.message });
     }
@@ -1509,6 +1514,8 @@ export function startApiServer({
   passwordResetEmailDelivery,
   sessionAuth,
   stepUpAuthority,
+  hrxStepUpSecret,
+  hrxStepUpTotpSecret,
 } = {}) {
   const resolvedRuntimeProfile = normalizeRuntimeProfileOption(runtimeProfile);
   const storePreflight = assertStorePathPreflight({
@@ -1536,6 +1543,11 @@ export function startApiServer({
   const resolvedSessionSecret = resolveSessionSecret({
     profile: resolvedRuntimeProfile,
     explicitSecret: sessionSecret,
+  });
+  const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority({
+    profile: resolvedRuntimeProfile,
+    secret: hrxStepUpSecret,
+    totpSecret: hrxStepUpTotpSecret,
   });
   const resolvedStorePaths = storePreflight.storePaths;
   let hrxRuntimeUnavailable = null;
@@ -1653,7 +1665,6 @@ export function startApiServer({
       repository: enterpriseReadinessRepository,
       storePath: enterpriseReadinessStorePath ?? resolvedStorePaths.enterpriseReadinessStorePath,
     });
-  const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority();
   const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
     profile: resolvedRuntimeProfile,
     secret: resolvedSessionSecret,

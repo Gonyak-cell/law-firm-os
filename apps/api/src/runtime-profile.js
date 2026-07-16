@@ -15,7 +15,7 @@ export function resolveRuntimeProfile(env = process.env) {
   throw new Error(`Unsupported ${LAWOS_RUNTIME_PROFILE_ENV}: ${value}`);
 }
 
-function runtimePreflightError(message) {
+export function runtimePreflightError(message) {
   const error = new Error(message);
   error.code = "LAWOS_RUNTIME_PREFLIGHT_FAILED";
   error.exitCode = 78;

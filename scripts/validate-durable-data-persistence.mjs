@@ -10,6 +10,10 @@ import { createMatterRepository } from "../packages/matter/src/repository.js";
 import { writeJsonFileDurably } from "../packages/persistence/src/durable-file.js";
 
 const SESSION_SECRET = "durable-data-persistence-local-secret-32";
+const OPERATIONAL_STEP_UP_OPTIONS = Object.freeze({
+  hrxStepUpSecret: "durable-data-persistence-step-up-secret-32-bytes",
+  hrxStepUpTotpSecret: "durable-data-persistence-step-up-totp-secret-32-bytes",
+});
 
 async function closeServer(started) {
   await new Promise((resolveClose) => started.server.close(resolveClose));
@@ -44,6 +48,7 @@ async function validateOperationalRestartPreservesStores(root) {
     port: 0,
     runtimeProfile: "operational",
     sessionSecret: SESSION_SECRET,
+    ...OPERATIONAL_STEP_UP_OPTIONS,
     ...paths,
   });
   try {
@@ -59,6 +64,7 @@ async function validateOperationalRestartPreservesStores(root) {
     port: 0,
     runtimeProfile: "operational",
     sessionSecret: SESSION_SECRET,
+    ...OPERATIONAL_STEP_UP_OPTIONS,
     ...paths,
   });
   try {
