@@ -1,0 +1,39 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.manual-qa.v0.1",
+  "tuw_id": "RS-SA-008",
+  "source_sha": "6429851bc161007984c78d36bc7ea04b1aeaf03d",
+  "recorded_at": "2026-07-16T08:54:58Z",
+  "http_api": {
+    "profile": "operational",
+    "store_surface": "synthetic isolated local stores",
+    "health_status": 200,
+    "health_runtime_profile": "operational",
+    "synthetic_login_enabled": false,
+    "unauthenticated_step_up_status": 401,
+    "unauthenticated_step_up_reason": "auth_session_required",
+    "token_material_returned": false
+  },
+  "native_electron": {
+    "runtime": "Electron 42.4.1",
+    "primary_instance_lock_acquired": true,
+    "secondary_instance_lock_acquired": false,
+    "secondary_exit_code": 0,
+    "primary_actions": [
+      "deep_link_delivered",
+      "restore",
+      "show",
+      "focus"
+    ],
+    "deep_link_token_evidence": "[redacted]",
+    "temporary_profile_removed": true,
+    "temporary_driver_removed": true
+  },
+  "claims": {
+    "manual_qa_passed": true,
+    "real_client_data_used": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

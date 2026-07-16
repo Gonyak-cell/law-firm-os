@@ -1,0 +1,67 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-SA-008",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "source_sha": "6429851bc161007984c78d36bc7ea04b1aeaf03d",
+  "tree": "f6a0e54352434f252e7e432253a0343b684c1f60",
+  "profile": "source-local",
+  "recorded_at": "2026-07-16T08:54:58Z",
+  "command": "run RS-SA terminal test, security, preflight and native manual QA gates at the exact source SHA",
+  "exit_code": 0,
+  "commands": [
+    {
+      "command": "node --test apps/desktop/test/single-instance.test.mjs apps/api/test/operational-step-up-preflight.test.js",
+      "exit_code": 0,
+      "summary": "5/5 PASS"
+    },
+    {
+      "command": "node --test apps/desktop/test/origin-policy.test.mjs apps/desktop/test/session-ipc.test.mjs apps/desktop/test/runtime-package.test.mjs",
+      "exit_code": 0,
+      "summary": "7/7 PASS"
+    },
+    {
+      "command": "node scripts/validate-matter-desktop-security.mjs",
+      "exit_code": 0,
+      "summary": "PASS; 51 files; findings 0; single-instance boundary checked"
+    },
+    {
+      "command": "node scripts/validate-hrx-security-negative-tests.mjs",
+      "exit_code": 0,
+      "summary": "PASS; 9 negative-test files"
+    },
+    {
+      "command": "node scripts/validate-store-path-preflight.mjs",
+      "exit_code": 0,
+      "summary": "5 scenarios PASS; production_ready_claim=false"
+    }
+  ],
+  "safe_counts": {
+    "test_count": 12,
+    "test_pass_count": 12,
+    "test_fail_count": 0,
+    "preflight_scenario_count": 5,
+    "desktop_security_checked_file_count": 51,
+    "hrx_negative_test_file_count": 9,
+    "native_electron_primary_instance_count": 1,
+    "native_electron_secondary_instance_count": 1,
+    "raw_token_evidence_count": 0,
+    "root_worktree_mutation_count": 0,
+    "release_action_count": 0,
+    "aws_mutation_count": 0
+  },
+  "artifacts": [
+    "workbook/lawos-runtime-safety-evidence/RS-SA-008/terminal-validation.json",
+    "workbook/lawos-runtime-safety-evidence/RS-SA-008/manual-qa.json",
+    "workbook/lawos-runtime-safety-evidence/RS-SA-008/acceptance.md"
+  ],
+  "claims": {
+    "g1_sa_source_verified": true,
+    "trust_boundary_a_source_verified": true,
+    "next_source_workstream_unblocked": true,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

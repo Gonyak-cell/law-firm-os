@@ -1,0 +1,30 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-SA-003",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "source_sha": "6429851bc161007984c78d36bc7ea04b1aeaf03d",
+  "tree": "f6a0e54352434f252e7e432253a0343b684c1f60",
+  "profile": "source-local",
+  "recorded_at": "2026-07-16T08:54:58Z",
+  "command": "exercise second-instance restore, show and focus behavior in tests and native Electron",
+  "exit_code": 0,
+  "safe_counts": {
+    "secondary_instance_window_creations": 0,
+    "primary_window_restore_calls": 1,
+    "primary_window_show_calls": 1,
+    "primary_window_focus_calls": 1
+  },
+  "artifacts": [
+    "apps/desktop/src/main/main.js",
+    "apps/desktop/test/single-instance.test.mjs",
+    "workbook/lawos-runtime-safety-evidence/RS-SA-008/manual-qa.json"
+  ],
+  "claims": {
+    "second_instance_focus_verified": true,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}
