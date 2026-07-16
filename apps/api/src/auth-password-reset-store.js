@@ -1,6 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
+import { createDurableJsonStateController } from "../../../packages/persistence/src/durable-file.js";
 
 export const LAWOS_AUTH_PASSWORD_RESET_STORE_ENV = "LAWOS_AUTH_PASSWORD_RESET_STORE_PATH";
 export const LAWOS_AUTH_PASSWORD_RESET_STORE_SCHEMA_VERSION = "law-firm-os.auth-password-reset-store.v0.1";
@@ -22,31 +21,15 @@ function normalizeRecord(record = {}) {
   });
 }
 
-function readStoreRecords(filePath) {
-  if (!filePath || !existsSync(filePath)) return [];
-  const parsed = JSON.parse(readFileSync(filePath, "utf8"));
-  if (parsed.schema_version !== LAWOS_AUTH_PASSWORD_RESET_STORE_SCHEMA_VERSION) {
-    throw new Error(`Unsupported auth password reset store schema: ${parsed.schema_version ?? "missing"}`);
+function normalizeStoreState(input = {}) {
+  if (input.schema_version && input.schema_version !== LAWOS_AUTH_PASSWORD_RESET_STORE_SCHEMA_VERSION) {
+    throw new Error(`Unsupported auth password reset store schema: ${input.schema_version}`);
   }
-  return Array.isArray(parsed.records) ? parsed.records : [];
-}
-
-function persistStoreRecords({ filePath, records, now }) {
-  if (!filePath) return;
-  mkdirSync(dirname(filePath), { recursive: true });
-  writeFileSync(
-    filePath,
-    `${JSON.stringify(
-      {
-        schema_version: LAWOS_AUTH_PASSWORD_RESET_STORE_SCHEMA_VERSION,
-        updated_at: new Date(now()).toISOString(),
-        records,
-      },
-      null,
-      2,
-    )}\n`,
-    "utf8",
-  );
+  return {
+    ...input,
+    schema_version: LAWOS_AUTH_PASSWORD_RESET_STORE_SCHEMA_VERSION,
+    records: (Array.isArray(input.records) ? input.records : []).map(normalizeRecord),
+  };
 }
 
 export function createAuthPasswordResetStore({
@@ -54,10 +37,37 @@ export function createAuthPasswordResetStore({
   records,
   now = () => Date.now(),
 } = {}) {
-  const byTokenHash = new Map((records ?? readStoreRecords(filePath)).map(normalizeRecord).map((record) => [record.token_hash, record]));
+  const stateController = createDurableJsonStateController({
+    filePath,
+    defaultValue: normalizeStoreState(),
+    normalizeValue: normalizeStoreState,
+  });
+  const byTokenHash = new Map((records ?? stateController.value.records).map(normalizeRecord).map((record) => [record.token_hash, record]));
+
+  function hydrate(state) {
+    byTokenHash.clear();
+    for (const record of state.records.map(normalizeRecord)) byTokenHash.set(record.token_hash, record);
+  }
+
+  function refresh() {
+    if (filePath) hydrate(stateController.reload().value);
+  }
 
   function persist() {
-    persistStoreRecords({ filePath, records: [...byTokenHash.values()], now });
+    if (!filePath) return;
+    try {
+      stateController.commit({
+        ...stateController.value,
+        updated_at: new Date(now()).toISOString(),
+        records: [...byTokenHash.values()],
+      });
+    } catch (error) {
+      try {
+        hydrate(stateController.reload().value);
+        error.durable_store_reloaded = true;
+      } catch {}
+      throw error;
+    }
   }
 
   function revokeOutstandingForUser(userId) {
@@ -90,6 +100,7 @@ export function createAuthPasswordResetStore({
   }
 
   function consume({ token } = {}) {
+    refresh();
     const tokenHash = hashPasswordResetToken(token);
     const record = byTokenHash.get(tokenHash);
     if (!record) return Object.freeze({ ok: false, reason: "invalid_reset_token", safe_error_code: "AUTH_PASSWORD_RESET_TOKEN_INVALID", status: 401 });
@@ -105,6 +116,7 @@ export function createAuthPasswordResetStore({
   }
 
   function revokeForUser({ userId, reason = "reset_delivery_failed" } = {}) {
+    refresh();
     const normalizedUserId = String(userId ?? "");
     const revokedAt = new Date(now()).toISOString();
     let revokedCount = 0;
@@ -122,7 +134,9 @@ export function createAuthPasswordResetStore({
     schema_version: LAWOS_AUTH_PASSWORD_RESET_STORE_SCHEMA_VERSION,
     source: filePath ? "file" : "in_memory_fixture",
     filePath: filePath ?? null,
-    count: byTokenHash.size,
+    get count() {
+      return byTokenHash.size;
+    },
     create,
     consume,
     revokeForUser,

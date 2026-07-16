@@ -1,6 +1,6 @@
 import { createHash, createHmac, randomBytes, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { appendFile, copyFile, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, extname, isAbsolute, join, relative, resolve } from "node:path";
 import {
@@ -35,6 +35,12 @@ import { createCanonicalRecord } from "../../../packages/runtime-model/src/valid
 import { createMasterDataRepository } from "../../../packages/master-data/src/repository.js";
 import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
+import {
+  readDurableJsonFile,
+  removeDurableJsonFile,
+  writeDurableJsonFile,
+} from "../../../packages/persistence/src/durable-file.js";
+import { appendNdjsonDurably } from "../../../packages/persistence/src/durable-append.js";
 
 let serverPromise;
 let sessionSecretPromise;
@@ -1224,7 +1230,15 @@ async function writeI18ProbeCredential({ env = process.env, generatedAt = new Da
     if (error?.code === "ENOENT") return null;
     throw error;
   });
-  const parsed = await readOptionalJson(resolvedPath);
+  const beforeState = readDurableJsonFile({
+    filePath: resolvedPath,
+    defaultValue: {
+      schema_version: LAWOS_AUTH_CREDENTIAL_STORE_SCHEMA_VERSION,
+      provider_id: LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
+      records: [],
+    },
+  });
+  const parsed = beforeState.exists ? beforeState.value : null;
   if (parsed?.schema_version && parsed.schema_version !== LAWOS_AUTH_CREDENTIAL_STORE_SCHEMA_VERSION) {
     return {
       ok: false,
@@ -1264,8 +1278,11 @@ async function writeI18ProbeCredential({ env = process.env, generatedAt = new Da
     records: nextRecords,
   };
 
-  await mkdir(dirname(resolvedPath), { recursive: true });
-  await writeFile(resolvedPath, `${JSON.stringify(nextStore, null, 2)}\n`, "utf8");
+  const writeReceipt = writeDurableJsonFile({
+    filePath: resolvedPath,
+    value: nextStore,
+    expectedGeneration: beforeState.generation,
+  });
   const afterBytes = await readFile(resolvedPath);
 
   return {
@@ -1274,9 +1291,13 @@ async function writeI18ProbeCredential({ env = process.env, generatedAt = new Da
     user,
     restoreCredentialStore: async () => {
       if (beforeBytes === null) {
-        await rm(resolvedPath, { force: true });
+        removeDurableJsonFile({ filePath: resolvedPath, expectedGeneration: writeReceipt.generation });
       } else {
-        await writeFile(resolvedPath, beforeBytes);
+        writeDurableJsonFile({
+          filePath: resolvedPath,
+          value: beforeState.value,
+          expectedGeneration: writeReceipt.generation,
+        });
       }
       const restoredBytes = beforeBytes === null ? null : await readFile(resolvedPath);
       return {
@@ -2011,7 +2032,15 @@ async function writeCutoverCredentialStore({ credentialRecords = [], env = proce
     if (error?.code === "ENOENT") return null;
     throw error;
   });
-  const parsed = await readOptionalJson(resolvedPath);
+  const beforeState = readDurableJsonFile({
+    filePath: resolvedPath,
+    defaultValue: {
+      schema_version: LAWOS_AUTH_CREDENTIAL_STORE_SCHEMA_VERSION,
+      provider_id: LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
+      records: [],
+    },
+  });
+  const parsed = beforeState.exists ? beforeState.value : null;
   if (parsed?.schema_version && parsed.schema_version !== LAWOS_AUTH_CREDENTIAL_STORE_SCHEMA_VERSION) {
     throw new Error("Unsupported auth credential store schema for CUTOVER");
   }
@@ -2055,8 +2084,11 @@ async function writeCutoverCredentialStore({ credentialRecords = [], env = proce
     records: nextRecords,
   };
 
-  await mkdir(dirname(resolvedPath), { recursive: true });
-  await writeFile(resolvedPath, `${JSON.stringify(nextStore, null, 2)}\n`, "utf8");
+  writeDurableJsonFile({
+    filePath: resolvedPath,
+    value: nextStore,
+    expectedGeneration: beforeState.generation,
+  });
   const afterBytes = await readFile(resolvedPath);
   return {
     credential_store_env: LAWOS_AUTH_CREDENTIAL_STORE_ENV,
@@ -2232,20 +2264,13 @@ async function executeS5MatterStaffingAndStatus({ env = process.env, generatedAt
     if (error?.code === "ENOENT") return null;
     throw error;
   });
-  let parsedBefore = null;
-  let matterStoreRepairExecuted = false;
-  let matterStoreRepairReason = null;
-  if (beforeBytes && beforeBytes.length > 0) {
-    try {
-      parsedBefore = JSON.parse(beforeBytes.toString("utf8"));
-    } catch {
-      matterStoreRepairExecuted = true;
-      matterStoreRepairReason = "matter_store_json_parse_failed";
-    }
-  } else {
-    matterStoreRepairExecuted = true;
-    matterStoreRepairReason = "matter_store_empty_or_missing";
-  }
+  const beforeState = readDurableJsonFile({
+    filePath: resolvedPath,
+    defaultValue: { records: [], idempotency: [], audit_events: [] },
+  });
+  const parsedBefore = beforeState.exists ? beforeState.value : null;
+  const matterStoreRepairExecuted = !beforeState.exists;
+  const matterStoreRepairReason = beforeState.exists ? null : "matter_store_empty_or_missing";
   const repository = createMatterRepository({
     seedRecords: Array.isArray(parsedBefore?.records) ? parsedBefore.records : [],
   });
@@ -2337,13 +2362,16 @@ async function executeS5MatterStaffingAndStatus({ env = process.env, generatedAt
   }
 
   const after = repository.snapshot();
-  await mkdir(dirname(resolvedPath), { recursive: true });
-  await writeFile(resolvedPath, `${JSON.stringify({
+  writeDurableJsonFile({
+    filePath: resolvedPath,
+    expectedGeneration: beforeState.generation,
+    value: {
     ...(parsedBefore?.migrations ? { migrations: parsedBefore.migrations } : {}),
     records: after.records,
     idempotency: after.idempotency,
     audit_events: after.audit_events,
-  }, null, 2)}\n`, "utf8");
+    },
+  });
   const relevantMembers = after.records.filter((record) => (
     record.tenant_id === MATTER_VAULT_REGISTERED_TENANT_ID &&
     record.model_type === "MatterMember" &&
@@ -2628,11 +2656,19 @@ async function executeS5FinanceAnalyticsReferences({ env = process.env, generate
     if (error?.code === "ENOENT") return null;
     throw error;
   });
-  const financeState = s5JsonStoreStateFromBytes(financeBeforeBytes, {
+  const financeDurable = readDurableJsonFile({
+    filePath: finance.resolvedPath,
+    defaultValue: { migrations: ["finance-runtime-001-file-store"], records: [], idempotency: [], audit_events: [] },
+  });
+  const analyticsDurable = readDurableJsonFile({
+    filePath: analytics.resolvedPath,
+    defaultValue: { migrations: ["analytics-runtime-001-file-store"], records: [], idempotency: [], audit_events: [] },
+  });
+  const financeState = s5JsonStoreStateFromBytes(Buffer.from(JSON.stringify(financeDurable.value)), {
     fallbackMigrations: ["finance-runtime-001-file-store"],
     label: "finance",
   });
-  const analyticsState = s5JsonStoreStateFromBytes(analyticsBeforeBytes, {
+  const analyticsState = s5JsonStoreStateFromBytes(Buffer.from(JSON.stringify(analyticsDurable.value)), {
     fallbackMigrations: ["analytics-runtime-001-file-store"],
     label: "analytics",
   });
@@ -2671,16 +2707,29 @@ async function executeS5FinanceAnalyticsReferences({ env = process.env, generate
       updated_at: generatedAt,
     });
   }
-  await mkdir(dirname(finance.resolvedPath), { recursive: true });
-  await mkdir(dirname(analytics.resolvedPath), { recursive: true });
-  await writeFile(finance.resolvedPath, `${JSON.stringify({
-    ...financeState,
-    records: financeStoreRecords,
-  }, null, 2)}\n`, "utf8");
-  await writeFile(analytics.resolvedPath, `${JSON.stringify({
-    ...analyticsState,
-    records: analyticsStoreRecords,
-  }, null, 2)}\n`, "utf8");
+  const financeWrite = writeDurableJsonFile({
+    filePath: finance.resolvedPath,
+    expectedGeneration: financeDurable.generation,
+    value: { ...financeState, records: financeStoreRecords },
+  });
+  try {
+    writeDurableJsonFile({
+      filePath: analytics.resolvedPath,
+      expectedGeneration: analyticsDurable.generation,
+      value: { ...analyticsState, records: analyticsStoreRecords },
+    });
+  } catch (error) {
+    if (financeDurable.exists) {
+      writeDurableJsonFile({
+        filePath: finance.resolvedPath,
+        expectedGeneration: financeWrite.generation,
+        value: financeDurable.value,
+      });
+    } else {
+      removeDurableJsonFile({ filePath: finance.resolvedPath, expectedGeneration: financeWrite.generation });
+    }
+    throw error;
+  }
   const financeRecords = financeStoreRecords.filter((record) => (
     record.tenant_id === MATTER_VAULT_REGISTERED_TENANT_ID &&
     record.model_type === "MatterFinanceReference" &&
@@ -2746,8 +2795,7 @@ async function appendS5SecurityAuditEvent({ env = process.env, generatedAt, rece
     },
     event_hash: sha256Hex(stableJson(receiptCore)),
   };
-  await mkdir(dirname(resolvedPath), { recursive: true });
-  await appendFile(resolvedPath, `${JSON.stringify(event)}\n`, "utf8");
+  appendNdjsonDurably({ filePath: resolvedPath, value: event });
   return {
     audit_store_relative_path: safeRelativePath(allowedRoot, resolvedPath),
     audit_store_path_hash: hashRef(resolvedPath),
@@ -2971,8 +3019,7 @@ async function appendCutoverSecurityAuditEvent({
     },
     event_hash: sha256Hex(stableJson(receiptCore)),
   };
-  await mkdir(dirname(resolvedPath), { recursive: true });
-  await appendFile(resolvedPath, `${JSON.stringify(event)}\n`, "utf8");
+  appendNdjsonDurably({ filePath: resolvedPath, value: event });
   return {
     audit_store_relative_path: safeRelativePath(allowedRoot, resolvedPath),
     audit_store_path_hash: hashRef(resolvedPath),
@@ -3316,12 +3363,14 @@ export async function buildHrxRosterReconcileReceipt({ env = process.env, now = 
     if (error?.code === "ENOENT") return null;
     throw error;
   });
+  const beforeState = readDurableJsonFile({ filePath: resolvedPath, defaultValue: { records: [] } });
   const timestamp = now().toISOString().replace(/[:.]/g, "-");
   const backupPath = `${resolvedPath}.pre-roster-reconcile-${timestamp}.bak`;
   if (beforeBytes !== null) await copyFile(resolvedPath, backupPath);
 
+  let store = null;
   try {
-    const store = createFileHrxStore({ filePath: resolvedPath });
+    store = createFileHrxStore({ filePath: resolvedPath });
     runHrxMigrations(store);
     const reconciliation = reconcileHrxMemberRosterStore(store, {
       tenant_ids: [MATTER_VAULT_REGISTERED_TENANT_ID],
@@ -3345,8 +3394,20 @@ export async function buildHrxRosterReconcileReceipt({ env = process.env, now = 
       go_live_claim: false,
     };
   } catch (error) {
-    if (beforeBytes === null) await rm(resolvedPath, { force: true });
-    else await writeFile(resolvedPath, beforeBytes);
+    if (store) {
+      const currentGeneration = store.durableGeneration();
+      if (currentGeneration !== beforeState.generation) {
+        if (beforeState.exists) {
+          writeDurableJsonFile({
+            filePath: resolvedPath,
+            value: beforeState.value,
+            expectedGeneration: currentGeneration,
+          });
+        } else {
+          removeDurableJsonFile({ filePath: resolvedPath, expectedGeneration: currentGeneration });
+        }
+      }
+    }
     throw error;
   }
 }
@@ -4020,7 +4081,8 @@ async function buildClientDisplayNameRepairReceipt({ event = {}, env = process.e
     throw new Error("Client display name repair store path is outside allowed root");
   }
   const beforeBytes = await readFile(resolvedPath);
-  const parsed = JSON.parse(beforeBytes.toString("utf8"));
+  const beforeState = readDurableJsonFile({ filePath: resolvedPath });
+  const parsed = beforeState.value;
   const records = Array.isArray(parsed.records) ? parsed.records : [];
   const beforeAllowedOccurrenceCount = countAllowedClientDisplayNameOccurrences(records);
   const stats = {
@@ -4030,8 +4092,13 @@ async function buildClientDisplayNameRepairReceipt({ event = {}, env = process.e
   const nextRecords = records.map((record) => repairClientDisplayNameValue(record, stats));
   const modifiedRecordCount = records.filter((record, index) => stableJson(record) !== stableJson(nextRecords[index])).length;
   const nextStore = { ...parsed, records: nextRecords };
-  const nextBytes = Buffer.from(`${JSON.stringify(nextStore, null, 2)}\n`, "utf8");
-  if (!dryRun && modifiedRecordCount > 0) await writeFile(resolvedPath, nextBytes, "utf8");
+  if (!dryRun && modifiedRecordCount > 0) {
+    writeDurableJsonFile({
+      filePath: resolvedPath,
+      value: nextStore,
+      expectedGeneration: beforeState.generation,
+    });
+  }
   const afterBytes = dryRun ? beforeBytes : await readFile(resolvedPath);
   const afterParsed = JSON.parse(afterBytes.toString("utf8"));
   const afterRecords = Array.isArray(afterParsed.records) ? afterParsed.records : [];

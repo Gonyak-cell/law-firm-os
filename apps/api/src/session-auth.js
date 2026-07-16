@@ -1,6 +1,6 @@
 import { createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
-import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
-import { dirname } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { appendNdjsonDurably } from "../../../packages/persistence/src/durable-append.js";
 import { createLocalDevAuthProvider, deriveServerPrincipal } from "../../../packages/runtime-auth/src/index.js";
 import {
   MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
@@ -225,7 +225,9 @@ function createPasswordResetToken() {
 function parseSecurityAuditEvent(line) {
   try {
     const value = JSON.parse(line);
-    return value && typeof value === "object" ? Object.freeze(value) : null;
+    if (!value || typeof value !== "object") return null;
+    const { __lawos_append: _metadata, ...event } = value;
+    return Object.freeze(event);
   } catch {
     return null;
   }
@@ -252,8 +254,7 @@ function createSecurityAuditEventStore({ filePath } = {}) {
       memoryEvents.unshift(event);
       return event;
     }
-    mkdirSync(dirname(filePath), { recursive: true });
-    appendFileSync(filePath, `${JSON.stringify(event)}\n`, "utf8");
+    appendNdjsonDurably({ filePath, value: event });
     return event;
   }
 

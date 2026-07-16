@@ -59,6 +59,11 @@ function sameSet(left, right) {
   return JSON.stringify([...new Set(left)].sort()) === JSON.stringify([...new Set(right)].sort());
 }
 
+function isSubset(candidate, baseline) {
+  const allowed = new Set(baseline);
+  return [...new Set(candidate)].every((entry) => allowed.has(entry));
+}
+
 function sourceFilesUnder(path) {
   const output = [];
   const visit = (current) => {
@@ -157,17 +162,19 @@ function parsePlan(plan) {
 
 function validateWriterInventory() {
   const inventory = readJson(`${EVIDENCE_ROOT}/RS-GOV-003/writer-inventory.json`);
+  const currentDirectFsWriters = discoverDirectFsWriters();
+  const currentDurableWriterUsers = discoverDurableWriterUsers();
   assert.equal(inventory.source_sha, APPROVED_PLAN_SHA);
   assert.equal(inventory.required_manifest_path_count, STORE_PATH_MANIFEST.length);
   assert.equal(inventory.derived_path_count, DERIVED_STORE_PATH_MANIFEST.length);
   assert.equal(sameSet(inventory.paths.map((entry) => entry.key), STORE_PATH_MANIFEST.map((entry) => entry.key)), true, "manifest writer coverage drifted");
   assert.equal(sameSet(inventory.derived_paths.map((entry) => entry.key), DERIVED_STORE_PATH_MANIFEST.map((entry) => entry.key)), true, "derived writer coverage drifted");
-  assert.equal(sameSet(inventory.direct_fs_writer_files, discoverDirectFsWriters()), true, "direct filesystem writer inventory drifted");
-  assert.equal(sameSet(inventory.durable_writer_users, discoverDurableWriterUsers()), true, "durable writer user inventory drifted");
+  assert.equal(isSubset(currentDirectFsWriters, inventory.direct_fs_writer_files), true, "new direct filesystem writer escaped the frozen baseline");
+  assert.equal(isSubset(currentDurableWriterUsers, inventory.durable_writer_users), true, "new legacy durable writer consumer escaped the frozen baseline");
   for (const entry of [...inventory.paths, ...inventory.derived_paths, ...inventory.out_of_manifest_writers]) {
     for (const sourcePath of entry.source_paths ?? []) assert.equal(existsSync(absolute(sourcePath)), true, `missing writer source ${sourcePath}`);
   }
-  return inventory;
+  return { ...inventory, currentDirectFsWriters, currentDurableWriterUsers };
 }
 
 function validateGovernanceArtifacts() {
@@ -224,7 +231,10 @@ function main() {
     final_terminal_count: Object.values(plan.workstreams).filter((entry) => entry.terminals.length === 1).length,
     required_manifest_path_count: inventory.paths.length,
     derived_path_count: inventory.derived_paths.length,
-    direct_fs_writer_file_count: inventory.direct_fs_writer_files.length,
+    baseline_direct_fs_writer_file_count: inventory.direct_fs_writer_files.length,
+    current_direct_fs_writer_file_count: inventory.currentDirectFsWriters.length,
+    baseline_legacy_durable_writer_user_count: inventory.durable_writer_users.length,
+    current_legacy_durable_writer_user_count: inventory.currentDurableWriterUsers.length,
     repository_call_graph_node_count: artifacts.callGraph.nodes.length,
     external_dependency_count: artifacts.dependencies.dependencies.length,
     source_implementation_approved: true,

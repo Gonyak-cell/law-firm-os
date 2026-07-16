@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { writeBinaryFileDurably } from "../../../persistence/src/durable-file.js";
 import { createStorageReceipt, sha256Hex } from "./storage-adapter.js";
 
 function requireString(value, field) {
@@ -48,9 +49,15 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath }
       const buffer = Buffer.isBuffer(bytes) ? Buffer.from(bytes) : Buffer.from(String(bytes ?? ""));
       const receipt = createStorageReceipt({ adapter_id, object_id: safeObjectId, bytes: buffer, content_type });
       const paths = filesFor(resolvedRootPath, safeObjectId);
-      mkdirSync(resolvedRootPath, { recursive: true });
-      writeFileSync(paths.bytesPath, buffer);
-      writeFileSync(paths.metadataPath, `${JSON.stringify({ object_id: safeObjectId, receipt }, null, 2)}\n`);
+      writeBinaryFileDurably({
+        filePath: paths.bytesPath,
+        bytes: buffer,
+        expectedSha256: receipt.sha256,
+        sidecar: { filePath: paths.metadataPath, value: { object_id: safeObjectId, receipt } },
+        compensationHook({ error, compensated }) {
+          if (!compensated) error.safe_error_code = "DMS_BINARY_COMPENSATION_FAILED";
+        },
+      });
       return receipt;
     },
     getObject({ object_id } = {}) {
