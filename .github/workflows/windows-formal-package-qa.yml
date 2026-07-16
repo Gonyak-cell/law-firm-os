@@ -1,6 +1,20 @@
 name: Windows Formal Package QA
 
 on:
+  push:
+    branches:
+      - codex/integration/forest-v0.1.17
+    paths:
+      - .github/workflows/windows-formal-package-qa.yml
+      - apps/desktop/**
+      - apps/web/**
+      - package.json
+      - package-lock.json
+      - scripts/build-matter-desktop-win-installer.mjs
+      - scripts/build-matter-desktop-win.mjs
+      - scripts/prepare-matter-desktop-web-renderer.mjs
+      - scripts/run-formal-windows-package-qa.mjs
+      - scripts/lib/matter-desktop-provenance.mjs
   workflow_dispatch:
     inputs:
       source_sha:
@@ -11,6 +25,9 @@ on:
 permissions:
   contents: read
 
+env:
+  QA_SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
+
 jobs:
   windows-formal-package-qa:
     name: Windows formal install and runtime QA
@@ -20,14 +37,14 @@ jobs:
       - name: Checkout exact source SHA
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.source_sha }}
+          ref: ${{ env.QA_SOURCE_SHA }}
           fetch-depth: 0
 
       - name: Verify source input
         shell: pwsh
         run: |
-          if ("${{ inputs.source_sha }}" -notmatch '^[0-9a-f]{40}$') { throw "source_sha must be a full SHA" }
-          if ((git rev-parse HEAD).Trim() -ne "${{ inputs.source_sha }}") { throw "exact source checkout failed" }
+          if ("${{ env.QA_SOURCE_SHA }}" -notmatch '^[0-9a-f]{40}$') { throw "source_sha must be a full SHA" }
+          if ((git rev-parse HEAD).Trim() -ne "${{ env.QA_SOURCE_SHA }}") { throw "exact source checkout failed" }
           if (git status --porcelain) { throw "source checkout is dirty" }
 
       - name: Setup Node
@@ -43,7 +60,7 @@ jobs:
       - name: Build exact-source formal Windows package and NSIS
         env:
           MATTER_DESKTOP_RELEASE_CHANNEL: formal
-          MATTER_DESKTOP_EXPECTED_SOURCE_SHA: ${{ inputs.source_sha }}
+          MATTER_DESKTOP_EXPECTED_SOURCE_SHA: ${{ env.QA_SOURCE_SHA }}
         run: |
           npm --workspace apps/desktop run prepare:web-renderer
           npm --workspace apps/desktop run build:win
@@ -51,7 +68,7 @@ jobs:
 
       - name: Run native install, login, leave, payroll, restart, and uninstall QA
         env:
-          MATTER_DESKTOP_EXPECTED_SOURCE_SHA: ${{ inputs.source_sha }}
+          MATTER_DESKTOP_EXPECTED_SOURCE_SHA: ${{ env.QA_SOURCE_SHA }}
           MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR: ${{ github.workspace }}\artifacts\QA-006
         run: node scripts/run-formal-windows-package-qa.mjs
 
@@ -76,6 +93,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: windows-formal-package-qa-${{ inputs.source_sha }}
+          name: windows-formal-package-qa-${{ env.QA_SOURCE_SHA }}
           path: artifacts/QA-006/
           if-no-files-found: error
