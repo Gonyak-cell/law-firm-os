@@ -10,6 +10,7 @@ import {
 } from "./durable-file.js";
 
 export const LAWOS_DURABLE_APPEND_SCHEMA_VERSION = "law-firm-os.durable-append.v0.1";
+export const LAWOS_DURABLE_APPEND_LEGACY_PREFIX_VERSION = "law-firm-os.durable-append.legacy-prefix.v0.1";
 
 function codedError(message, code, fields = {}) {
   const error = new Error(message);
@@ -46,11 +47,15 @@ function entryHash({ sequence, previousSha256, writer, value }) {
 
 export function verifyDurableNdjsonFile({ filePath } = {}) {
   if (!filePath) throw new TypeError("durable append filePath is required");
-  if (!existsSync(filePath)) return { sequence: 0, lastSha256: null, entries: [] };
+  if (!existsSync(filePath)) {
+    return { sequence: 0, lastSha256: null, entries: [], legacyPrefixCount: 0, durableEntryCount: 0 };
+  }
   const body = readFileSync(filePath, "utf8");
   const lines = body.split("\n").filter((line) => line.length > 0);
   const entries = [];
   let previousSha256 = null;
+  let legacyPrefixCount = 0;
+  let durableEntryCount = 0;
   for (const [index, line] of lines.entries()) {
     let parsed;
     try {
@@ -58,8 +63,23 @@ export function verifyDurableNdjsonFile({ filePath } = {}) {
     } catch (error) {
       throw codedError("durable append line is not valid JSON", "LAWOS_APPEND_PARSE_FAILED", { line: index + 1, cause: error });
     }
-    const { metadata, value } = payloadFromEntry(parsed);
     const expectedSequence = index + 1;
+    if (!Object.hasOwn(parsed, "__lawos_append")) {
+      if (durableEntryCount > 0) {
+        throw codedError("legacy durable append entry follows the protected chain", "LAWOS_APPEND_CONTINUITY_FAILED", {
+          line: expectedSequence,
+        });
+      }
+      previousSha256 = hashDurableValue({
+        schema_version: LAWOS_DURABLE_APPEND_LEGACY_PREFIX_VERSION,
+        sequence: expectedSequence,
+        value: parsed,
+      });
+      entries.push(parsed);
+      legacyPrefixCount += 1;
+      continue;
+    }
+    const { metadata, value } = payloadFromEntry(parsed);
     if (metadata.sequence !== expectedSequence || metadata.previous_sha256 !== previousSha256) {
       throw codedError("durable append sequence or previous hash is discontinuous", "LAWOS_APPEND_CONTINUITY_FAILED", {
         line: expectedSequence,
@@ -78,8 +98,9 @@ export function verifyDurableNdjsonFile({ filePath } = {}) {
     }
     entries.push(parsed);
     previousSha256 = metadata.entry_sha256;
+    durableEntryCount += 1;
   }
-  return { sequence: entries.length, lastSha256: previousSha256, entries };
+  return { sequence: entries.length, lastSha256: previousSha256, entries, legacyPrefixCount, durableEntryCount };
 }
 
 export function appendNdjsonDurably({

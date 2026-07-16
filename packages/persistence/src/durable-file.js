@@ -16,7 +16,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { homedir, hostname } from "node:os";
-import { basename, dirname, join } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { queueRuntimeStoreBackupUpload } from "./s3-backup-queue.js";
 
 export const LAWOS_LOCAL_BACKUP_ROOT = join(homedir(), "lawos-backups", "data");
@@ -123,7 +123,10 @@ export function hashDurableValue(value) {
 }
 
 function safeStoreName(filePath) {
-  return basename(filePath || "store.json").replace(/[^A-Za-z0-9._-]/gu, "_");
+  const resolvedPath = resolve(filePath || "store.json");
+  const pathDigest = createHash("sha256").update(resolvedPath).digest("hex").slice(0, 16);
+  const baseName = basename(resolvedPath).replace(/[^A-Za-z0-9._-]/gu, "_");
+  return `${baseName}-${pathDigest}`;
 }
 
 function timestampSlug(date = new Date()) {
@@ -348,6 +351,80 @@ export function readDurableJsonFile({ filePath, defaultValue } = {}) {
     ...parsed,
     payloadSha256: hashDurableValue(parsed.value),
   };
+}
+
+export function isDurableStoreConflict(error) {
+  return error?.code === "LAWOS_STORE_CONFLICT";
+}
+
+export function createDurableJsonStateController({
+  filePath,
+  defaultValue,
+  normalizeValue = (value) => value,
+  readState = readDurableJsonFile,
+  writeState = writeDurableJsonFile,
+} = {}) {
+  if (typeof normalizeValue !== "function") throw new TypeError("durable state normalizeValue must be a function");
+  if (typeof readState !== "function") throw new TypeError("durable state readState must be a function");
+  if (typeof writeState !== "function") throw new TypeError("durable state writeState must be a function");
+
+  let current = filePath
+    ? readState({ filePath, defaultValue })
+    : { exists: false, value: defaultValue, generation: 0, metadata: null, legacy: false };
+  let value = normalizeValue(current.value === undefined ? defaultValue : current.value);
+  let generation = current.generation ?? 0;
+
+  function snapshot() {
+    return Object.freeze({
+      exists: Boolean(current.exists),
+      value,
+      generation,
+      metadata: current.metadata ?? null,
+      legacy: Boolean(current.legacy),
+    });
+  }
+
+  return Object.freeze({
+    get value() {
+      return value;
+    },
+    get generation() {
+      return generation;
+    },
+    snapshot,
+    commit(nextValue, options = {}) {
+      const normalized = normalizeValue(nextValue);
+      if (!filePath) {
+        value = normalized;
+        current = { exists: false, value, generation, metadata: null, legacy: false };
+        return null;
+      }
+      const receipt = writeState({
+        ...options,
+        filePath,
+        value: normalized,
+        previousState: value,
+        expectedGeneration: generation,
+      });
+      generation = Number.isSafeInteger(receipt?.generation) ? receipt.generation : generation + 1;
+      value = normalized;
+      current = {
+        exists: true,
+        value,
+        generation,
+        metadata: receipt?.writer ? { writer: receipt.writer } : null,
+        legacy: false,
+      };
+      return receipt;
+    },
+    reload() {
+      if (!filePath) return snapshot();
+      current = readState({ filePath, defaultValue });
+      value = normalizeValue(current.value === undefined ? defaultValue : current.value);
+      generation = current.generation ?? 0;
+      return snapshot();
+    },
+  });
 }
 
 function parseLockOwner(lockPath) {
@@ -619,6 +696,43 @@ export function writeDurableJsonFile({
   }
 }
 
+export function removeDurableJsonFile({
+  filePath,
+  expectedGeneration,
+  createBackup = true,
+  backupRoot,
+  env = process.env,
+  keep = DEFAULT_LOCAL_GENERATION_LIMIT,
+  now = new Date(),
+  lockWaitTimeoutMs = DEFAULT_LOCK_WAIT_TIMEOUT_MS,
+} = {}) {
+  if (!filePath) throw new TypeError("durable remover filePath is required");
+  if (!Number.isSafeInteger(expectedGeneration) || expectedGeneration < 0) {
+    throw new TypeError("durable remover expectedGeneration is required");
+  }
+  const removedAt = currentDate(now);
+  const lock = acquireExclusiveFileLock({ resourcePath: filePath, waitTimeoutMs: lockWaitTimeoutMs, now: removedAt });
+  try {
+    const current = readDurableJsonFile({ filePath });
+    if (current.generation !== expectedGeneration) {
+      throw codedError("durable store generation conflict", "LAWOS_STORE_CONFLICT", {
+        expected_generation: expectedGeneration,
+        current_generation: current.generation,
+      });
+    }
+    if (!current.exists) return { filePath, removed: false, generation: current.generation, backupPath: null, queuePath: null };
+    const backupPath = createBackup
+      ? backupExistingStoreGeneration({ filePath, backupRoot, env, now: removedAt, keep, generation: current.generation })
+      : null;
+    unlinkSync(filePath);
+    fsyncDirectory(dirname(filePath));
+    const queuePath = queueRuntimeStoreBackupUpload({ reasonFilePath: filePath, env, now: removedAt });
+    return { filePath, removed: true, generation: current.generation, backupPath, queuePath };
+  } finally {
+    releaseExclusiveFileLock(lock);
+  }
+}
+
 export function writeJsonFileDurably({
   filePath,
   value,
@@ -659,8 +773,18 @@ export function writeBinaryFileDurably({
       actual_sha256: sha256,
     });
   }
+  let sidecarPath = null;
+  if (sidecar) {
+    if (!sidecar.filePath || !sidecar.value || typeof sidecar.value !== "object" || Array.isArray(sidecar.value)) {
+      throw new TypeError("binary sidecar requires filePath and object value");
+    }
+    sidecarPath = sidecar.filePath;
+  }
   const lock = acquireExclusiveFileLock({ resourcePath: filePath, waitTimeoutMs: lockWaitTimeoutMs });
+  const previousBytes = existsSync(filePath) ? readFileSync(filePath) : null;
+  const previousSidecar = sidecarPath && existsSync(sidecarPath) ? readFileSync(sidecarPath) : null;
   let renamed = false;
+  let sidecarAttempted = false;
   const trackedFaultInjector = (point, context) => {
     if (point === "after_rename") renamed = true;
     faultInjector?.(point, context);
@@ -675,12 +799,8 @@ export function writeBinaryFileDurably({
         actual_sha256: readbackSha256,
       });
     }
-    let sidecarPath = null;
     if (sidecar) {
-      if (!sidecar.filePath || !sidecar.value || typeof sidecar.value !== "object" || Array.isArray(sidecar.value)) {
-        throw new TypeError("binary sidecar requires filePath and object value");
-      }
-      sidecarPath = sidecar.filePath;
+      sidecarAttempted = true;
       atomicReplaceFile({
         filePath: sidecarPath,
         data: `${JSON.stringify({ ...sidecar.value, content_sha256: sha256 }, null, 2)}\n`,
@@ -688,8 +808,38 @@ export function writeBinaryFileDurably({
     }
     return { filePath, size: buffer.length, sha256, readbackSha256, sidecarPath };
   } catch (error) {
+    let compensationError = null;
+    try {
+      if (renamed) {
+        if (previousBytes === null) {
+          if (existsSync(filePath)) unlinkSync(filePath);
+          fsyncDirectory(dirname(filePath));
+        } else {
+          atomicReplaceFile({ filePath, data: previousBytes });
+        }
+      }
+      if (sidecarAttempted && sidecarPath) {
+        if (previousSidecar === null) {
+          if (existsSync(sidecarPath)) unlinkSync(sidecarPath);
+          fsyncDirectory(dirname(sidecarPath));
+        } else {
+          atomicReplaceFile({ filePath: sidecarPath, data: previousSidecar });
+        }
+      }
+    } catch (compensationFailure) {
+      compensationError = compensationFailure;
+      error.compensation_failed = true;
+      error.compensation_error_code = compensationFailure?.code ?? "LAWOS_BINARY_COMPENSATION_FAILED";
+    }
     if (renamed && typeof compensationHook === "function") {
-      compensationHook({ filePath, sha256, size: buffer.length, error });
+      compensationHook({
+        filePath,
+        sha256,
+        size: buffer.length,
+        error,
+        compensated: compensationError === null,
+        compensation_error_code: compensationError?.code ?? null,
+      });
     }
     throw error;
   } finally {

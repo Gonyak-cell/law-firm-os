@@ -15,9 +15,12 @@ import {
   LAWOS_DURABLE_LOCK_SCHEMA_VERSION,
   LAWOS_DURABLE_STORE_SCHEMA_VERSION,
   acquireExclusiveFileLock,
+  createDurableJsonStateController,
+  isDurableStoreConflict,
   readDurableJsonFile,
   readFileSyncWithStaleRetry,
   releaseExclusiveFileLock,
+  removeDurableJsonFile,
   resolveLocalBackupRoot,
   withStoreWriteLock,
   writeDurableJsonFile,
@@ -138,6 +141,62 @@ test("generation CAS rejects a stale writer without changing the current file", 
   );
   assert.deepEqual(readDurableJsonFile({ filePath }).value, { writer: "first" });
   assert.equal(existsSync(backupRoot), false);
+});
+
+test("durable state controllers retain generation and reload the winner after a conflict", (t) => {
+  const root = fixtureRoot(t);
+  const filePath = join(root, "controller-store.json");
+  const defaultValue = { records: [] };
+  const first = createDurableJsonStateController({ filePath, defaultValue });
+  const stale = createDurableJsonStateController({ filePath, defaultValue });
+
+  first.commit({ records: [{ id: "winner" }] }, { createBackup: false, env: {} });
+  assert.equal(first.generation, 1);
+  assert.throws(
+    () => stale.commit({ records: [{ id: "stale" }] }, { createBackup: false, env: {} }),
+    (error) => isDurableStoreConflict(error)
+      && error.expected_generation === 0
+      && error.current_generation === 1,
+  );
+
+  const reloaded = stale.reload();
+  assert.equal(reloaded.generation, 1);
+  assert.deepEqual(reloaded.value, { records: [{ id: "winner" }] });
+  stale.commit({ records: [{ id: "winner" }, { id: "next" }] }, { createBackup: false, env: {} });
+  assert.equal(stale.generation, 2);
+  assert.deepEqual(readDurableJsonFile({ filePath }).value.records.map(({ id }) => id), ["winner", "next"]);
+});
+
+test("durable state controllers preserve injected writer compatibility without a receipt", () => {
+  const writes = [];
+  const controller = createDurableJsonStateController({
+    filePath: "/virtual/store.json",
+    defaultValue: { records: [] },
+    readState: ({ defaultValue }) => ({ exists: false, value: defaultValue, generation: 0 }),
+    writeState(options) {
+      writes.push(options);
+    },
+  });
+
+  controller.commit({ records: [{ id: "one" }] }, { createBackup: false });
+  assert.equal(controller.generation, 1);
+  assert.equal(writes[0].expectedGeneration, 0);
+  assert.deepEqual(writes[0].previousState, { records: [] });
+});
+
+test("durable removal requires the exact current generation", (t) => {
+  const root = fixtureRoot(t);
+  const filePath = join(root, "removable-store.json");
+  writeDurableJsonFile({ filePath, value: { records: [] }, expectedGeneration: 0, createBackup: false, env: {} });
+
+  assert.throws(
+    () => removeDurableJsonFile({ filePath, expectedGeneration: 0, createBackup: false, env: {} }),
+    { code: "LAWOS_STORE_CONFLICT" },
+  );
+  assert.equal(existsSync(filePath), true);
+  const receipt = removeDurableJsonFile({ filePath, expectedGeneration: 1, createBackup: false, env: {} });
+  assert.equal(receipt.removed, true);
+  assert.equal(existsSync(filePath), false);
 });
 
 test("exclusive lock recovers only an old dead same-host owner", (t) => {

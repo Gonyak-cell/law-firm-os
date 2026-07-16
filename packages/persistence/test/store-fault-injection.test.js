@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import {
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   readdirSync,
@@ -9,7 +10,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import {
@@ -138,7 +139,22 @@ test("exclusive NDJSON append maintains sequence and hash continuity", (t) => {
   assert.throws(() => verifyDurableNdjsonFile({ filePath }), { code: "LAWOS_APPEND_HASH_MISMATCH" });
 });
 
-test("binary writer verifies digest, writes a sidecar and invokes compensation after rename failure", (t) => {
+test("durable NDJSON append continues after an unchanged legacy prefix", (t) => {
+  const root = fixtureRoot(t);
+  const filePath = join(root, "audit", "legacy.ndjson");
+  mkdirSync(dirname(filePath), { recursive: true });
+  writeFileSync(filePath, `${JSON.stringify({ event_id: "legacy-1" })}\n`, { mode: 0o600 });
+
+  const receipt = appendNdjsonDurably({ filePath, value: { event_id: "durable-2" } });
+  assert.equal(receipt.sequence, 2);
+  const verified = verifyDurableNdjsonFile({ filePath });
+  assert.equal(verified.legacyPrefixCount, 1);
+  assert.equal(verified.durableEntryCount, 1);
+  assert.equal(verified.entries[0].event_id, "legacy-1");
+  assert.equal(verified.entries[1].event_id, "durable-2");
+});
+
+test("binary writer verifies digest, writes a sidecar and compensates after rename failure", (t) => {
   const root = fixtureRoot(t);
   const filePath = join(root, "objects", "document.bin");
   const sidecarPath = `${filePath}.json`;
@@ -160,8 +176,9 @@ test("binary writer verifies digest, writes a sidecar and invokes compensation a
     }),
     { code: "LAWOS_TEST_BINARY_POST_RENAME" },
   );
-  assert.equal(readFileSync(filePath, "utf8"), "document-v2");
+  assert.equal(readFileSync(filePath, "utf8"), "document-v1");
   assert.equal(compensations.length, 1);
   assert.equal(compensations[0].filePath, filePath);
+  assert.equal(compensations[0].compensated, true);
   assert.match(compensations[0].sha256, /^[a-f0-9]{64}$/u);
 });
