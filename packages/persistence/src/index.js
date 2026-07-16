@@ -16,4 +16,5 @@ export * from "./migration-runner.js";
 export * from "./migrations/index.js";
 export * from "./repository-port-v2.js";
 export * from "./domain-ledger.js";
+export * from "./record-domain-adapter.js";
 export * from "./postgres/index.js";

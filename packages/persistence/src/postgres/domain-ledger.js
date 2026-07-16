@@ -129,17 +129,15 @@ function createScopedDomainLedger(client, tenantId, domainId, clock) {
       values.push(requiredText(input.record_type, "record_type"));
       recordFilter = " AND record_type = $3";
     }
-    const [recordsResult, references] = await Promise.all([
-      client.query(
-        `SELECT tenant_id, domain_id, record_type, record_id, state_version,
-                unique_key, payload, payload_hash, append_only, created_at, updated_at
-           FROM lawos_domain.records
-          WHERE tenant_id = $1 AND domain_id = $2${recordFilter}
-          ORDER BY record_type, record_id`,
-        values,
-      ),
-      listReferences(),
-    ]);
+    const recordsResult = await client.query(
+      `SELECT tenant_id, domain_id, record_type, record_id, state_version,
+              unique_key, payload, payload_hash, append_only, created_at, updated_at
+         FROM lawos_domain.records
+        WHERE tenant_id = $1 AND domain_id = $2${recordFilter}
+        ORDER BY record_type, record_id`,
+      values,
+    );
+    const references = await listReferences();
     return Object.freeze(recordsResult.rows.map((row) => Object.freeze(rowToRecord(
       row,
       references
@@ -460,6 +458,20 @@ export function createPostgresDomainLedger({ pool, clock = () => new Date(), tra
       callback(createScopedDomainLedger(client, tenantId, domainId, clock)));
   }
 
+  function transactionMany(input = {}, callback) {
+    const tenantId = requiredText(input.tenant_id, "tenant_id");
+    const domainIds = [...new Set((input.domain_ids ?? []).map(requireDomainId))];
+    if (!domainIds.length) throw new TypeError("at least one domain_id is required");
+    if (typeof callback !== "function") throw new TypeError("transaction callback is required");
+    return withPostgresTransaction(pool, { ...transactionOptions, tenant_id: tenantId }, (client) => {
+      const domains = Object.freeze(Object.fromEntries(domainIds.map((domainId) => [
+        domainId,
+        createScopedDomainLedger(client, tenantId, domainId, clock),
+      ])));
+      return callback(domains);
+    });
+  }
+
   async function importSnapshot(input = {}) {
     const snapshot = createDomainSnapshot(input);
     return transaction(snapshot, async (tx) => {
@@ -590,9 +602,11 @@ export function createPostgresDomainLedger({ pool, clock = () => new Date(), tra
     list: (input) => scoped(input, "list"),
     write: (input) => scoped(input, "write"),
     claimIdempotency: (input) => scoped(input, "claimIdempotency"),
+    listIdempotency: (input) => scoped(input, "listIdempotency"),
     appendAudit: (input) => scoped(input, "appendAudit"),
     listAudit: (input) => scoped(input, "listAudit"),
     transaction,
+    transactionMany,
     importSnapshot,
     compareSnapshot,
     recordRehearsal,

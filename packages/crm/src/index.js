@@ -4,6 +4,7 @@ export * from "./validators.js";
 export * from "./model.js";
 export * from "./client-matter-g3.js";
 export * from "./runtime-repository.js";
+export * from "./central-ledger.js";
 export * from "./audit.js";
 export * from "./lead-service.js";
 export * from "./opportunity-service.js";

@@ -78,7 +78,11 @@ function normalizeState(input) {
   };
 }
 
-export function createCrmRuntimeRepository({ filePath, seedRecords = [] } = {}) {
+export function createCrmRuntimeRepository({
+  filePath,
+  seedRecords = [],
+  preserveSeedRecords = false,
+} = {}) {
   let closed = false;
   let transactionDepth = 0;
   const stateController = createDurableJsonStateController({
@@ -141,7 +145,14 @@ export function createCrmRuntimeRepository({ filePath, seedRecords = [] } = {}) 
   hydrate(state);
   for (const record of seedRecords) {
     const normalized = normalizeRecord(record);
-    if (!records.has(recordKey(normalized))) put(record, { overwrite: true, createBackup: false });
+    if (!records.has(recordKey(normalized))) {
+      if (preserveSeedRecords) {
+        records.set(recordKey(normalized), clone({ ...record, resource_id: normalized.resource_id }));
+        persist({ createBackup: false });
+      } else {
+        put(record, { overwrite: true, createBackup: false });
+      }
+    }
   }
 
   const repository = {
