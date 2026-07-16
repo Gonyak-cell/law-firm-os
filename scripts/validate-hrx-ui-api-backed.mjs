@@ -83,10 +83,18 @@ assert(apiClient.includes("/api/hrx/documents/expiring"), "HRX UI client must fe
 assert(apiClient.includes("signHrxEmploymentContractDocument") && apiClient.includes("/sign"), "HRX UI client must sign employment contract documents through API");
 assert(apiClient.includes("expireHrxEmploymentContractDocument") && apiClient.includes("/expire"), "HRX UI client must expire employment contract documents through API");
 assert(apiClient.includes('options.scope !== "all"'), "HRX documents client must support company-wide regulation reads without employee selection");
-assert(apiClient.includes("/api/hrx/payroll/preview"), "HRX UI client must call payroll preview API");
-assert(apiClient.includes("/api/hrx/payroll/approve"), "HRX UI client must call payroll approval API");
-assert(apiClient.includes("/api/hrx/payroll/export"), "HRX UI client must call payroll export API");
-assert(apiClient.includes("내보내기-파일") && !apiClient.includes("아티팩트"), "HRX payroll export fallback must use Korean user-facing export file copy");
+assert(
+  ["fetchHrxPayrollWorkspace", "fetchHrxPayrollRun", "captureHrxPayrollRun", "previewHrxPayrollRun", "approveHrxPayrollRun", "closeHrxPayrollRun"].every((name) => apiClient.includes(name)),
+  "HRX UI client must expose the payroll run lifecycle APIs"
+);
+assert(
+  ["prepareHrxPayrollPayment", "approveHrxPayrollPayment", "exportHrxPayrollPayment", "reconcileHrxPayrollPayment"].every((name) => apiClient.includes(name)),
+  "HRX UI client must expose separated payroll payment APIs"
+);
+assert(
+  ["createHrxPayrollFiling", "validateHrxPayrollFiling", "submitHrxPayrollFiling", "correctHrxPayrollFiling", "collectHrxPayrollYearEnd", "calculateHrxPayrollYearEnd", "reviewHrxPayrollYearEnd"].every((name) => apiClient.includes(name)),
+  "HRX UI client must expose payroll filing and year-end APIs"
+);
 assert(apiClient.includes("/api/hrx/compensation"), "HRX UI client must call compensation record API");
 assert(apiClient.includes("lawos_hrx_step_up_token"), "HRX UI client must read only signed session step-up tokens");
 assert(apiClient.includes('kind: "step_up_required"'), "HRX UI client must preserve server step-up-required state");
@@ -126,7 +134,7 @@ assert(!employeeProfile.includes('title="출처"') && !employeeProfile.includes(
 assert(!/salary|base_pay|bonus_amount/.test(employeeProfile), "Employee profile must not render raw compensation fields");
 
 const documents = read("apps/web/src/people/documents/HRDocumentWorkspace.tsx");
-assert(documents.includes("document.source_ref") && documents.includes("회사 방침에 대한 설정은 회사 설정 - 일반에서 할 수 있습니다"), "HR documents UI must render source refs and omit bodies");
+assert(documents.includes("vaultReferenceLink(document.source_ref)") && !/document\.body|document_body|content_text/.test(documents), "HR documents UI must render source refs and omit bodies");
 assert(documents.includes("회사방침") && documents.includes("policy_ack") && documents.includes("leave_notice"), "HR documents UI must use Shiftee company policy copy");
 assert(documents.includes("증명서 발급 요청") && documents.includes("재직증명서") && documents.includes("경력증명서"), "HR documents UI must use Shiftee certificate request copy");
 assert(documents.includes("createHrxEmploymentContractDocument") && documents.includes("signHrxEmploymentContractDocument") && documents.includes("expireHrxEmploymentContractDocument"), "HR documents UI must wire employment contract lifecycle actions");
@@ -150,7 +158,7 @@ const approvals = read("apps/web/src/people/approvals/ManagerApprovalQueue.tsx")
 assert(approvals.includes("resolveHrxApproval") && approvals.includes("fetchHrxAuditEvents"), "Manager approvals must resolve through API and show audit evidence");
 
 const candidate = read("apps/web/src/candidate/CandidatePortal.tsx");
-assert(candidate.includes("fetchCandidatePortal") && candidate.includes("지원 내역"), "Candidate portal must be candidate-scoped");
+assert(candidate.includes("fetchCandidatePortal(candidateId)") && candidate.includes("if (!candidateId)") && candidate.includes("[candidateId]"), "Candidate portal must be candidate-scoped");
 assert(candidate.includes("합격자") && candidate.includes("합격자 문서") && !candidate.includes("오퍼"), "Candidate portal must use Shiftee employee-registration copy");
 assert(candidate.includes("권한 필요") && !/resume_body|interview_feedback/.test(candidate), "Candidate portal must omit sensitive document bodies");
 
@@ -174,7 +182,7 @@ assert(lifecycle.includes("fetchHrxLifecycleBoard"), "Lifecycle UI must read onb
 assert(lifecycle.includes("updateHrxOnboardingTask"), "Lifecycle UI must update onboarding tasks through API");
 assert(lifecycle.includes("closeHrxOffboardingCase"), "Lifecycle UI must close offboarding cases through API");
 assert(lifecycle.includes("입퇴사 관리 업무를 불러오지 못했습니다"), "Lifecycle UI must fail closed without local fallback");
-assert(lifecycle.includes("입퇴사 관리 업무를 확인합니다") && !lifecycle.includes("온보딩과 오프보딩 업무를 관리합니다"), "Lifecycle UI must use Shiftee entry/exit copy");
+assert(lifecycle.includes('title="입퇴사 관리"') && lifecycle.includes("입사 준비 업무") && lifecycle.includes("퇴사 정리 업무") && !lifecycle.includes("온보딩과 오프보딩 업무를 관리합니다"), "Lifecycle UI must use concise entry/exit copy");
 
 const riskDashboard = read("apps/web/src/people/security/HrxRiskDashboard.tsx");
 assert(peopleHome.includes("HrxRiskDashboard") && peopleHome.includes("people-risk"), "People home must expose HR risk dashboard");
@@ -187,13 +195,13 @@ assert(!STATIC_UI_FALLBACK_PATTERN.test(riskDashboard), "HR risk dashboard must 
 
 const policy = read("apps/web/src/admin/hrx/HRXPolicyConsole.tsx");
 assert(policy.includes("fetchHrxPolicies") && policy.includes("createHrxPolicyVersion"), "Policy console must read and create policy versions through API");
-assert(policy.includes("승인 규칙") && policy.includes("회사 설정 - 요청") && policy.includes("규칙 이름") && !policy.includes("People 정책"), "Policy console must use Shiftee approval-rule copy");
+assert(policy.includes('title="승인 규칙"') && policy.includes("규칙 이름") && policy.includes("규칙 버전 생성") && !policy.includes("People 정책"), "Policy console must use concise approval-rule copy");
 assert(!policy.includes("인사 정책") && !policy.includes("정책 이름"), "Policy console must avoid vague HR policy copy");
 
 const audit = read("apps/web/src/admin/hrx/HRXAuditViewer.tsx");
 assert(audit.includes("fetchHrxAuditEvents") && audit.includes("HrxStepUpChallenge"), "Audit viewer must fetch audit API and render step-up challenge");
 assert(audit.includes("step_up_required"), "Audit viewer must branch on server step-up-required state");
-assert(audit.includes("인사기록") && audit.includes("조직 변경 이력"), "Audit viewer must use Shiftee personnel-record copy");
+assert(audit.includes('title="인사기록"') && audit.includes('columns={["기록", "사용자", "작업", "대상"]}'), "Audit viewer must use concise personnel-record copy");
 assert(!/활동 기록|인사 변경 이력|title="변경 이력"/.test(audit), "Audit viewer must avoid vague activity-log copy");
 
 assert(peopleHome.includes("HRAnalytics") && peopleHome.includes("people-analytics"), "People home must expose API-backed People analytics");
@@ -216,7 +224,7 @@ assert(!/문서 증명서|인사 문서|인사 정책|인사규정|활동 기록
 
 const analytics = read("apps/web/src/people/analytics/HRAnalytics.tsx");
 assert(analytics.includes("fetchHrxAnalytics") && analytics.includes("row_level_details_included"), "People analytics must fetch API and show privacy grain");
-assert(analytics.includes("리포트") && analytics.includes("실시간 리포트"), "People analytics must use Shiftee report panel copy");
+assert(analytics.includes('title="리포트"') && analytics.includes("workload_projection") && analytics.includes("workload_conflicts"), "People analytics must use the concise API-backed report panel");
 assert(!/People 현황|People 업무 요약|People 정보를|인사 현황|구성원 인사이트|인력 현황/.test(analytics), "People analytics must not expose English People or vague HR status copy");
 assert(!STATIC_UI_FALLBACK_PATTERN.test(analytics), "People analytics must not fallback to static data");
 
@@ -230,11 +238,21 @@ assert(!STATIC_UI_FALLBACK_PATTERN.test(ai), "People AI assistant must not fallb
 
 const payroll = read("apps/web/src/people/payroll/PayrollBoundaryPanel.tsx");
 assert(peopleHome.includes("PayrollBoundaryPanel") && peopleHome.includes("people-payroll"), "People home must expose payroll boundary panel");
-assert(payroll.includes("createHrxPayrollPreview") && payroll.includes("approveHrxPayrollPreview") && payroll.includes("exportHrxPayrollArtifact"), "Payroll UI must use payroll boundary APIs");
-assert(payroll.includes("calculation_runtime") && payroll.includes("disbursement_instruction_included"), "Payroll UI must preserve calculation and disbursement boundary fields");
-assert(payroll.includes("급여정산") && payroll.includes("내보내기 전용"), "Payroll UI must use Korean HR SaaS payroll settlement copy");
-assert(payroll.includes("계산과 지급 실행은 아직 제공하지 않습니다"), "Payroll UI must show unavailable payroll execution state");
-assert(payroll.includes("정산 처리") && payroll.includes("지급 지시는 아직 구현되지 않았습니다"), "Payroll UI must translate payroll execution gaps for users");
+assert(
+  ["fetchHrxPayrollWorkspace", "fetchHrxPayrollRun", "captureHrxPayrollRun", "previewHrxPayrollRun", "approveHrxPayrollRun", "closeHrxPayrollRun"].every((name) => payroll.includes(name)),
+  "Payroll UI must use the payroll run lifecycle APIs"
+);
+assert(
+  ["prepareHrxPayrollPayment", "approveHrxPayrollPayment", "exportHrxPayrollPayment", "reconcileHrxPayrollPayment"].every((name) => payroll.includes(name)),
+  "Payroll UI must keep payroll approval separate from payment approval"
+);
+assert(
+  ["gross_krw", "deduction_krw", "net_krw", "line_items", "source_refs", "payment_batches", "approved_by"].every((field) => payroll.includes(field)),
+  "Payroll UI must preserve calculation sources and payment approval evidence"
+);
+assert(payroll.includes('title="급여정산"') && payroll.includes("정산") && payroll.includes("지급") && payroll.includes("신고"), "Payroll UI must use concise Korean payroll workflow copy");
+assert(payroll.includes('data-payroll-runtime="true"') && payroll.includes("actionForStatus") && payroll.includes("paymentAction"), "Payroll UI must expose the live settlement and payment state machines");
+assert(payroll.includes("HRX_PAYROLL_SELF_APPROVAL") && payroll.includes("작성자는 승인할 수 없습니다.") && payroll.includes("HRX_PAYROLL_PAYMENT_APPROVER_SEPARATION") && payroll.includes("급여 승인자와 다른 지급 승인자가 필요합니다."), "Payroll UI must translate payroll separation-of-duties failures for users");
 assert(!/calculation_runtime=false|disbursement_instruction_included=false|문서 ref|external-preview-only/.test(payroll), "Payroll UI must not expose raw internal payroll boundary strings");
 assert(
   !/net_pay|gross_pay|tax_withholding|["']disbursement_instruction["']|disbursement_instruction\s*:/.test(payroll),

@@ -122,7 +122,10 @@ for (const marker of [
   "참여자 상세",
   "관련 기록",
   "이해상충 검토",
-  "권한에 따라 축약"
+  "permission_summary",
+  "sensitive_fields_visible",
+  "제한 보기",
+  "access_state"
 ]) {
   requireText(legalPeopleWorkspacePath, marker);
 }
@@ -151,7 +154,8 @@ for (const marker of [
   "fetchLegalPeopleSearch",
   "matter_id: \"matter_lcx_001\"",
   "data-lcx-ppl-matter-backlink",
-  "Matter 참여자와 관련 인물"
+  "Matter 인물 연결",
+  "Matter 연결 인물"
 ]) {
   requireText(mattersSurfacePath, marker);
 }
