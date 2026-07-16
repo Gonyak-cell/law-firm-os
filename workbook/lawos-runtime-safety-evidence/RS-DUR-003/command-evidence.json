@@ -1,0 +1,31 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DUR-003",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "90e241bf4f06004974e7a97592f07309873f0131",
+  "tree": "03523aab761d3df40ac4f515052a66543a5227ee",
+  "profile": "source-local",
+  "recorded_at": "2026-07-16T09:36:20Z",
+  "command": "exercise withStoreWriteLock atomic acquisition, bounded wait and token-matched release",
+  "exit_code": 0,
+  "safe_counts": {
+    "lock_mode": 384,
+    "live_owner_recoveries": 0,
+    "bounded_wait_timeout_errors": 1,
+    "lock_files_after_release": 0
+  },
+  "artifacts": [
+    "packages/persistence/src/durable-file.js",
+    "packages/persistence/test/durable-file.test.js"
+  ],
+  "claims": {
+    "atomic_exclusive_lock_verified": true,
+    "bounded_wait_verified": true,
+    "token_matched_release_verified": true,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

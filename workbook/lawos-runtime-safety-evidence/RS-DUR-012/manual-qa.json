@@ -1,0 +1,50 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.manual-qa.v0.1",
+  "tuw_id": "RS-DUR-012",
+  "source_sha": "90e241bf4f06004974e7a97592f07309873f0131",
+  "recorded_at": "2026-07-16T09:36:20Z",
+  "native_process_race": {
+    "process_roles": [
+      "matter",
+      "hrx"
+    ],
+    "shared_expected_generation": 0,
+    "successful_writers": 1,
+    "conflicts": 1,
+    "lost_writes": 0,
+    "final_generation": 1,
+    "final_payload_hash_valid": true
+  },
+  "killed_owner": {
+    "real_child_process_started": true,
+    "signal": "SIGKILL",
+    "same_host_dead_owner_recovered": true,
+    "remote_owner_recovered": false,
+    "unknown_owner_recovered": false
+  },
+  "fault_surface": {
+    "kill_before_write": "PASS",
+    "mid_temp": "PASS",
+    "post_rename": "PASS",
+    "disk_full_enospc": "PASS",
+    "stale_lock": "PASS",
+    "ndjson_tamper_detection": "PASS",
+    "binary_compensation_hook": "PASS"
+  },
+  "local_validator": {
+    "isolated_runtime_root_used": true,
+    "matter_records_before": 800,
+    "matter_records_after": 800,
+    "production_ready_claim": false
+  },
+  "claims": {
+    "manual_qa_passed": true,
+    "all_operational_stores_migrated": false,
+    "real_client_data_migration_executed": false,
+    "external_data_transfer_executed": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

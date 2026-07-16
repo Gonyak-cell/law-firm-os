@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DUR-008",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "90e241bf4f06004974e7a97592f07309873f0131",
+  "tree": "03523aab761d3df40ac4f515052a66543a5227ee",
+  "profile": "synthetic-queue-local",
+  "recorded_at": "2026-07-16T09:36:20Z",
+  "command": "atomically create two same-timestamp synthetic backup queue events",
+  "exit_code": 0,
+  "safe_counts": {
+    "queue_events_created": 2,
+    "queue_event_collisions": 0,
+    "queue_directory_mode": 448,
+    "queue_file_mode": 384,
+    "aws_api_calls": 0
+  },
+  "artifacts": [
+    "packages/persistence/src/s3-backup-queue.js",
+    "packages/persistence/test/store-permissions.test.js"
+  ],
+  "claims": {
+    "atomic_uuid_queue_create_verified": true,
+    "queue_fsync_verified": true,
+    "aws_backup_activated": false,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

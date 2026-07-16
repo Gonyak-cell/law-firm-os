@@ -1,0 +1,74 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DUR-012",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "90e241bf4f06004974e7a97592f07309873f0131",
+  "tree": "03523aab761d3df40ac4f515052a66543a5227ee",
+  "profile": "source-and-native-process-local",
+  "recorded_at": "2026-07-16T09:36:20Z",
+  "command": "run RS-DUR terminal contracts at the exact source SHA",
+  "exit_code": 0,
+  "commands": [
+    {
+      "command": "node --test packages/persistence/test/durable-file.test.js packages/persistence/test/multi-process-generation.test.js packages/persistence/test/store-fault-injection.test.js packages/persistence/test/store-permissions.test.js",
+      "exit_code": 0,
+      "summary": "13/13 PASS"
+    },
+    {
+      "command": "npm --workspace packages/persistence test",
+      "exit_code": 0,
+      "summary": "33/33 PASS"
+    },
+    {
+      "command": "run Matter, CRM, Intake and Master Data package regression suites",
+      "exit_code": 0,
+      "summary": "454/454 PASS"
+    },
+    {
+      "command": "node scripts/validate-durable-data-persistence.mjs",
+      "exit_code": 0,
+      "summary": "PASS; isolated local validator preserved 800/800 Matter records; production_ready_claim=false"
+    },
+    {
+      "command": "node scripts/validate-store-path-preflight.mjs",
+      "exit_code": 0,
+      "summary": "5/5 scenarios PASS; production_ready_claim=false"
+    },
+    {
+      "command": "node scripts/validate-runtime-safety-governance.mjs",
+      "exit_code": 0,
+      "summary": "PASS; 147 TUWs, 13 workstreams, direct-writer baseline intact"
+    }
+  ],
+  "safe_counts": {
+    "vc_dur_test_count": 13,
+    "vc_dur_test_pass_count": 13,
+    "persistence_test_count": 33,
+    "persistence_test_pass_count": 33,
+    "legacy_domain_regression_test_count": 454,
+    "legacy_domain_regression_pass_count": 454,
+    "multi_process_successful_writers": 1,
+    "multi_process_conflicts": 1,
+    "multi_process_lost_writes": 0,
+    "final_generation": 1,
+    "root_worktree_mutation_count": 0,
+    "release_action_count": 0,
+    "aws_api_call_count": 0
+  },
+  "artifacts": [
+    "workbook/lawos-runtime-safety-evidence/RS-DUR-012/terminal-validation.json",
+    "workbook/lawos-runtime-safety-evidence/RS-DUR-012/manual-qa.json",
+    "workbook/lawos-runtime-safety-evidence/RS-DUR-012/acceptance.md"
+  ],
+  "claims": {
+    "g3_dur_verified": true,
+    "durable_writer_primitive_verified": true,
+    "next_source_workstream_unblocked": true,
+    "all_stores_migrated": false,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

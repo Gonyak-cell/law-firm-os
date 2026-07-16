@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.terminal-validation.v0.1",
+  "terminal_tuw_id": "RS-DUR-012",
+  "gate_id": "G3-DUR",
+  "verdict": "PASS",
+  "allowed_claim": "DURABLE_WRITER_PRIMITIVE_VERIFIED",
+  "source_sha": "90e241bf4f06004974e7a97592f07309873f0131",
+  "tree": "03523aab761d3df40ac4f515052a66543a5227ee",
+  "recorded_at": "2026-07-16T09:36:20Z",
+  "verification_contracts": {
+    "VC-DUR-001": "PASS",
+    "persistence_full_regression": "PASS",
+    "legacy_file_repository_regression": "PASS",
+    "VC-PREFLIGHT-001": "PASS",
+    "VC-DOC-001": "PASS",
+    "manual_native_process_race": "PASS",
+    "manual_killed_owner_recovery": "PASS"
+  },
+  "observations": {
+    "origin_main_sha": "b46a686f719875c6980ecba9bc213a605f58fa45",
+    "required_merge_sha_is_origin_main_ancestor": true,
+    "dedicated_worktree": "/private/tmp/lawos-rs-dur-20260716",
+    "branch": "codex/rs-dur-20260716",
+    "source_worktree_clean_before_evidence": true,
+    "protected_root_head": "b46a686f719875c6980ecba9bc213a605f58fa45",
+    "protected_root_branch": "codex/root-main-sync-20260716",
+    "protected_root_mutated": false
+  },
+  "remaining_boundaries": {
+    "all_operational_stores_migrated": false,
+    "backup_processor_activated": false,
+    "aws_backup_approved": false,
+    "release_approved": false,
+    "tag_approved": false,
+    "aws_mutation_approved": false,
+    "staging_execution_approved": false,
+    "real_data_migration_approved": false,
+    "production_migration_approved": false,
+    "go_live_approved": false
+  }
+}

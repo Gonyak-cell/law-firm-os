@@ -1,0 +1,35 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DUR-006",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "90e241bf4f06004974e7a97592f07309873f0131",
+  "tree": "03523aab761d3df40ac4f515052a66543a5227ee",
+  "profile": "filesystem-local",
+  "recorded_at": "2026-07-16T09:36:20Z",
+  "command": "inspect local directory and file modes after temp, fsync, rename and directory-fsync writes",
+  "exit_code": 0,
+  "observations": {
+    "directory_mode_octal": "0700",
+    "file_mode_octal": "0600",
+    "temp_file_count_after_commit": 0,
+    "write_sequence": [
+      "exclusive_temp_create",
+      "file_fsync",
+      "atomic_rename",
+      "directory_fsync"
+    ]
+  },
+  "artifacts": [
+    "packages/persistence/src/durable-file.js",
+    "packages/persistence/test/store-permissions.test.js"
+  ],
+  "claims": {
+    "atomic_replace_sequence_verified": true,
+    "private_modes_verified": true,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

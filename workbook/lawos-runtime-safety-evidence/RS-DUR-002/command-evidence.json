@@ -1,0 +1,29 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DUR-002",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "source_sha": "90e241bf4f06004974e7a97592f07309873f0131",
+  "tree": "03523aab761d3df40ac4f515052a66543a5227ee",
+  "profile": "source-local",
+  "recorded_at": "2026-07-16T09:36:20Z",
+  "command": "read a legacy JSON object, migrate it through the durable writer and compare unknown fields",
+  "exit_code": 0,
+  "safe_counts": {
+    "legacy_generation": 0,
+    "migrated_generation": 1,
+    "unknown_fields_lost": 0
+  },
+  "artifacts": [
+    "packages/persistence/src/durable-file.js",
+    "packages/persistence/test/durable-file.test.js"
+  ],
+  "claims": {
+    "legacy_reader_verified": true,
+    "unknown_field_preservation_verified": true,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}
