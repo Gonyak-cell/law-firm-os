@@ -1,0 +1,26 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-IDN-004",
+  "implementation_state": "VERIFIED",
+  "execution_state": "DISPOSABLE_LOCAL_ONLY",
+  "source_sha": "81593387661b40046fcdd91482397d74dbd6c3df",
+  "tree": "6e59014bfa25e7112d7b349ce76d5b034203aa06",
+  "recorded_at": "2026-07-16T16:03:48Z",
+  "command": "node --test apps/api/test/session-auth-api.test.js apps/api/test/admin-security-api.test.js; node scripts/validate-matter-desktop-security.mjs",
+  "exit_code": 0,
+  "summary": "Break-glass request, approval and revocation are durable, state-checked and audit-bound; restart observation retained the approved state and the security validator passed 56 files",
+  "artifacts": [
+    "packages/runtime-auth/src/postgres-identity-ledger.js",
+    "apps/api/src/session-auth.js",
+    "apps/api/test/admin-security-api.test.js",
+    "apps/api/test/session-auth-api.test.js"
+  ],
+  "claims": {
+    "break_glass_request_durable": true,
+    "break_glass_transitions_audited": true,
+    "unaudited_transition_allowed": false,
+    "raw_operator_reason_exposed_in_audit": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

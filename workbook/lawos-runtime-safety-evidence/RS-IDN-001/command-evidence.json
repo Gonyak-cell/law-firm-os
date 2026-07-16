@@ -1,0 +1,27 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-IDN-001",
+  "implementation_state": "VERIFIED",
+  "execution_state": "DISPOSABLE_LOCAL_ONLY",
+  "source_sha": "81593387661b40046fcdd91482397d74dbd6c3df",
+  "tree": "6e59014bfa25e7112d7b349ce76d5b034203aa06",
+  "recorded_at": "2026-07-16T16:03:48Z",
+  "command": "node --test packages/persistence/test/postgres-transaction.test.js packages/persistence/test/postgres-repository-contract.test.js; node --test apps/api/test/session-auth-api.test.js apps/api/test/auth-restart-revocation.test.js apps/api/test/auth-concurrency.test.js",
+  "exit_code": 0,
+  "summary": "Disposable PostgreSQL migration and identity contracts PASS; tenant account, session JTI, expiring challenge, break-glass and append-only security-audit tables are protected by forced RLS",
+  "artifacts": [
+    "packages/persistence/src/postgres/migrations/002_identity_ledger.sql",
+    "packages/persistence/src/postgres/migration-catalog.js",
+    "packages/persistence/test/helpers/disposable-postgres.js"
+  ],
+  "claims": {
+    "identity_schema_applied": true,
+    "tenant_rls_forced": true,
+    "active_session_jti_persisted": true,
+    "reset_and_step_up_state_hashed": true,
+    "security_audit_append_only": true,
+    "production_database_used": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

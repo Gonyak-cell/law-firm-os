@@ -1,0 +1,82 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.manual-qa.v0.1",
+  "tuw_id": "RS-IDN-010",
+  "source_sha": "81593387661b40046fcdd91482397d74dbd6c3df",
+  "tree": "6e59014bfa25e7112d7b349ce76d5b034203aa06",
+  "recorded_at": "2026-07-16T16:03:48Z",
+  "drivers": [
+    "inline ESM live HTTP driver using a disposable local PostgreSQL cluster",
+    "Playwright 1.60 source-browser driver against apps/desktop/src/renderer/offline.html"
+  ],
+  "observed_flows": {
+    "live_postgresql_http": {
+      "verdict": "PASS",
+      "database": "disposable local PostgreSQL",
+      "login_status": 200,
+      "session_before_logout_status": 200,
+      "step_up_status": 200,
+      "privileged_before_challenge_revocation_status": 200,
+      "privileged_after_challenge_revocation_status": 403,
+      "revoked_challenge_safe_error": "HRX_STEP_UP_CHALLENGE_INVALID",
+      "logout_status": 200,
+      "logout_replayed": false,
+      "logout_replay_status": 200,
+      "logout_replay_replayed": true,
+      "session_after_logout_status": 401,
+      "session_after_logout_safe_errors": [
+        "AUTH_SESSION_REVOKED"
+      ],
+      "tenant_audit_event_count": 6,
+      "tenant_audit_actions": [
+        "auth.challenge.revoked",
+        "auth.credential.updated",
+        "auth.login.succeeded",
+        "auth.logout",
+        "auth.step_up.failed",
+        "auth.step_up.succeeded"
+      ],
+      "secret_material_absent_from_audit": true,
+      "cluster_stopped_after_qa": true
+    },
+    "desktop_logout_renderer": {
+      "verdict": "PASS",
+      "viewports": [
+        "1440x900",
+        "1024x768"
+      ],
+      "server_revoke_unconfirmed": {
+        "text": "이 기기에서는 로그아웃되었습니다. 서버 로그아웃은 확인하지 못했습니다.",
+        "tone": "warning",
+        "visible": true,
+        "horizontal_overflow": false
+      },
+      "local_wipe_incomplete": {
+        "text": "로그아웃 정보를 모두 지우지 못했습니다. 앱을 종료하고 관리자에게 문의하세요.",
+        "tone": "warning",
+        "visible": true,
+        "horizontal_overflow": false
+      },
+      "computed_text_color": "rgb(81, 91, 102)",
+      "application_logic_console_errors": 0,
+      "static_source_server_observation": "Two expected 404 requests per viewport for packaged font paths; SVG and login-image assets loaded successfully and the tested logout behavior was unaffected.",
+      "packaged_app_QA": false
+    },
+    "design_evidence_routing": {
+      "lazyweb_health_and_reference_lookup": "COMPLETED",
+      "lazyweb_generate_report": "TIMEOUT_AFTER_300_SECONDS",
+      "fabricated_report_used": false,
+      "manual_rendered_QA_used_instead": true
+    }
+  },
+  "claims": {
+    "manual_qa_passed": true,
+    "identity_ledger_source_verified": true,
+    "production_connection_opened": false,
+    "provider_mutation_executed": false,
+    "real_client_data_used": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}
