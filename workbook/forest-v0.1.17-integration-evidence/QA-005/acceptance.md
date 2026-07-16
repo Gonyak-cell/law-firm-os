@@ -1,8 +1,8 @@
 # QA-005 macOS formal package acceptance
 
 - Status: `DONE`
-- Artifact source SHA: `53854dca55c8b4c0730b57998980755bf141de58`
-- Artifact source tree: `d99621ca5bf6a93130c26ab7ba08cd4836b234d3`
+- Artifact source SHA: `39ed9571b0e841e1a6480e6875fe7b6658f83465`
+- Artifact source tree: `42bb94f745b329053cc14325ef1251fc7d8475cd`
 - Artifact source dirty: `false`
 - Renderer SHA-256: `efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599`
 - Renderer files: `28`
@@ -12,8 +12,8 @@
 ## Distribution verification
 
 - App ID: `com.amic.matter.desktop`
-- macOS ZIP SHA-256: `1388a8361b7d42cbf4c95b2a0b9b3172368fb106136d557fd9fbb30732c2b1f4`
-- macOS DMG SHA-256: `5bbf397750206b7e1ea27195f6a0b82023e7692da9002507d1e4bb038cd483a1`
+- macOS ZIP SHA-256: `2e2af3ef0a7da78ffaa6ed3d2c6500d59daf0eb70abde617d0a4272f39a38e5c`
+- macOS DMG SHA-256: `66d00e1422eacddfed3a57403f9ecbacc9ae4b3ff6c2683dcf43e4ef8ad36043`
 - Developer ID signature: PASS
 - App strict codesign verification: PASS
 - App Gatekeeper assessment: PASS (`Notarized Developer ID`)
@@ -22,8 +22,8 @@
 - DMG Gatekeeper assessment: PASS
 - DMG stapler validation: PASS
 - DMG image verification: PASS
-- App notary submission: `c35385d4-bf49-4c2d-bcf9-953322fec25d` (`Accepted`)
-- DMG notary submission: `36ad0282-260c-4015-b08a-0405379efb27` (`Accepted`)
+- App notary submission: `80dd3d70-2f21-4798-b5e5-3476a9880e0f` (`Accepted`)
+- DMG notary submission: `0bd9eaf9-8111-4ee7-bfe3-cc5786ca49d6` (`Accepted`)
 
 ## Runtime and rendered QA
 
@@ -58,6 +58,5 @@ The formal macOS and formal Windows package manifests both report renderer SHA-2
 - Existing v0.1.16 app PID `55090` remained running from `/private/tmp/lawos-forest-v016-release`.
 - User root worker PIDs `27104`, `27105`, and `27106` remained running.
 - Product source directories were asserted unchanged during the formal QA run.
-- The formal Windows package was generated on macOS, but native Windows install, launch, restart, uninstall, and Authenticode verification are not claimed here; those remain QA-006.
+- Windows native install, launch, login, leave, payroll, restart, and uninstall are proven separately in QA-006. Authenticode remains blocked because both native signatures are `NotSigned` and no approved certificate/provider is configured.
 - No public release, production deployment, production go-live, or owner approval is claimed.
-- The AWS device login expired and produced no deployment or external mutation.

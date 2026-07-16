@@ -1,0 +1,77 @@
+{
+  "schema_version": "law-firm-os.qa-009-final-report.v1",
+  "generated_at": "2026-07-16T03:03:17.000Z",
+  "tuw_id": "QA-009",
+  "status": "DONE",
+  "report_verdict": "BLOCKED_AUTHENTICODE",
+  "source": {
+    "revision": "39ed9571b0e841e1a6480e6875fe7b6658f83465",
+    "tree": "42bb94f745b329053cc14325ef1251fc7d8475cd",
+    "dirty_at_formal_build": false,
+    "branch": "codex/integration/forest-v0.1.17",
+    "artifact_source_branch_revision_at_build": "39ed9571b0e841e1a6480e6875fe7b6658f83465",
+    "origin_main_revision": "fdd1e34a42ee11ad1e5049647048471be772f381"
+  },
+  "renderer": {
+    "sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+    "file_count": 28,
+    "surface_count": 4,
+    "unexpected_mismatch_count": 0
+  },
+  "qa": {
+    "qa_001": { "status": "PASS", "files": 228, "passed": 1161, "failed": 0, "skipped": 0, "validators_passed": 8 },
+    "qa_002": { "status": "PASS", "unique_cases": 246, "passed": 245, "failed": 0, "skipped": 1, "desktop_smoke_passed": 102 },
+    "qa_003": { "status": "PASS", "files": 18, "passed": 59, "failed": 0, "skipped": 0, "validators_passed": 10, "critical_findings": 0 },
+    "qa_004": { "status": "PASS", "role_viewport_combinations": 30, "passed": 30, "unexpected_error_count": 0, "screenshot_count": 39 },
+    "qa_005": { "status": "PASS", "macos_screenshot_count": 5, "codesign": "PASS", "notarization": "PASS", "staple": "PASS", "gatekeeper": "PASS" },
+    "qa_006": { "status": "BLOCKED", "native_verdict": "PASS", "windows_screenshot_count": 4, "authenticode_installer": "NotSigned", "authenticode_executable": "NotSigned", "run_id": 29466863451 },
+    "qa_007": { "status": "PASS", "renderer_surfaces": 4, "file_count": 28, "unexpected_mismatch_count": 0 },
+    "qa_008": { "status": "PASS", "screenshot_count": 48, "stale_window_count": 0, "broken_image_count": 0, "overflow_count": 0 }
+  },
+  "artifacts": {
+    "macos_zip_sha256": "2e2af3ef0a7da78ffaa6ed3d2c6500d59daf0eb70abde617d0a4272f39a38e5c",
+    "macos_dmg_sha256": "66d00e1422eacddfed3a57403f9ecbacc9ae4b3ff6c2683dcf43e4ef8ad36043",
+    "windows_ci_installer_sha256": "53e2b694e28ba29a068feaa313d862edbeca976912be7204d0e7968b69ab44b3",
+    "windows_ci_blockmap_sha256": "03f05e5093edc1278c8600c1ba01d5e8e84f3391b524750fcf1d30b8aa08739e",
+    "windows_ci_executable_sha256": "9772e31fcaa6c7e4005392238aa096b55522f6572d01b2f27753c186fbf4a3f8"
+  },
+  "evidence_link_check": {
+    "listed": 18,
+    "existing": 18,
+    "missing": 0
+  },
+  "final_validation": {
+    "desktop_smoke_passed": 102,
+    "pv002_passed": 3,
+    "public_renderer_pii": "PASS",
+    "legacy_source": "PASS",
+    "legacy_formal_bundles": "PASS",
+    "no_public_release_claim": "PASS",
+    "hash_ledgers_passed": 5,
+    "json_documents_parsed": 7,
+    "git_diff_check": "PASS",
+    "ai_slop_review": "PASS"
+  },
+  "preservation": {
+    "root_manifest_entries": 77,
+    "root_manifest_sha256": "aff7d43b18ea4750b06ee3a94d40c45d9edc09a33d316d48588d1e75f8f012aa",
+    "root_working_tree_sha256": "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3",
+    "root_changed_manifest_entries": 0,
+    "preserved_pids": [55090, 27104, 27105, 27106]
+  },
+  "boundaries": {
+    "main_merge_performed": false,
+    "pull_request_created": false,
+    "public_release_published": false,
+    "aws_production_write": false,
+    "production_data_migration": false,
+    "provider_bank_tax_write": false,
+    "go_live": false
+  },
+  "blocker": {
+    "code": "AUTHENTICODE_NOT_SIGNED",
+    "reason": "No approved Authenticode certificate or provider is configured",
+    "main_merge_allowed": false,
+    "self_signed_certificate_accepted": false
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "productName": "matter",
+  "appId": "com.amic.matter.desktop",
+  "version": "0.1.17",
+  "platform": "win32",
+  "arch": "x64",
+  "channel": "formal",
+  "buildManifest": "apps/desktop/dist/win/matter-0.1.17-win-build-manifest.json",
+  "buildManifestSha256": "a1237c12f27d0f29a76d9d3a0c99ca9353093568d310b9021f0d350b3ff365b4",
+  "sourceSha": "39ed9571b0e841e1a6480e6875fe7b6658f83465",
+  "sourceTree": "42bb94f745b329053cc14325ef1251fc7d8475cd",
+  "sourceDirty": false,
+  "rendererSha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+  "rendererFiles": 28,
+  "builtAt": "2026-07-16T02:34:43.858Z",
+  "icon": "build/icon.ico",
+  "iconSha256": "70f741af2564838b4d7d45789af5b8fa970bfc8f9ff190d987f445295a26f075",
+  "packageDirectory": "apps/desktop/dist/win/matter-0.1.17-win32-x64",
+  "executable": "apps/desktop/dist/win/matter-0.1.17-win32-x64/matter.exe",
+  "executableSha256": "2444ed1ed7d74bb305e2c7def43122a4633c6c3a412dddeb182f7b5b3641b043",
+  "packageZip": "apps/desktop/dist/win/matter-0.1.17-win32-x64-unsigned.zip",
+  "packageZipSha256": "46d84c94ae5ac5dc3d2a07c0621f4842f934e08bbe423f81825f596e4056df2e",
+  "files": [
+    "src/**/*",
+    "build/**/*",
+    "package.json"
+  ],
+  "publicRelease": false,
+  "ownerApproval": false,
+  "windowsAuthenticodeSigning": false
+}

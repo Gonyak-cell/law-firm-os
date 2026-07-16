@@ -9,13 +9,13 @@ Version: `0.1.17`
 Channel: `formal`
 Build manifest: `apps/desktop/dist/mac/matter-0.1.17-macos-build-manifest.json`
 Packaged build manifest: `apps/desktop/dist/mac/matter.app/Contents/Resources/matter-build-manifest.json`
-Build manifest SHA-256: `3bda631f71cbf10d2bfdfd4a67697b2b06e3fffd2941938f75061e8eee8d46ae`
-Source SHA: `53854dca55c8b4c0730b57998980755bf141de58`
-Source tree: `d99621ca5bf6a93130c26ab7ba08cd4836b234d3`
+Build manifest SHA-256: `6509ade4cc8db6120790b334d1a5b330857d02ec26dba1730d0cd34bbd243fc9`
+Source SHA: `39ed9571b0e841e1a6480e6875fe7b6658f83465`
+Source tree: `42bb94f745b329053cc14325ef1251fc7d8475cd`
 Source dirty: `false`
 Renderer SHA-256: `efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599`
 Renderer files: `28`
-Built at: `2026-07-16T00:36:14.959Z`
+Built at: `2026-07-16T02:42:39.352Z`
 
 ## Package Structure
 

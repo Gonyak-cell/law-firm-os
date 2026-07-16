@@ -14,13 +14,13 @@ Version: `0.1.17`
 Channel: `formal`
 Build manifest: `apps/desktop/dist/win/matter-0.1.17-win-build-manifest.json`
 Packaged build manifest: `apps/desktop/dist/win/matter-0.1.17-win32-x64/resources/matter-build-manifest.json`
-Build manifest SHA-256: `772a89f73894fb48578095964e46b5f98890cf298b20893cca563ba385820c93`
+Build manifest SHA-256: `a1237c12f27d0f29a76d9d3a0c99ca9353093568d310b9021f0d350b3ff365b4`
 Source SHA: `39ed9571b0e841e1a6480e6875fe7b6658f83465`
 Source tree: `42bb94f745b329053cc14325ef1251fc7d8475cd`
 Source dirty: `false`
 Renderer SHA-256: `efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599`
 Renderer files: `28`
-Built at: `2026-07-16T02:47:31.726Z`
+Built at: `2026-07-16T02:34:43.858Z`
 
 ## Signing
 
@@ -31,9 +31,9 @@ Built at: `2026-07-16T02:47:31.726Z`
 ## Manifest Hash
 
 - manifest hash algorithm: sha256
-- manifest hash: `3b42fb755bd32d4bb7a6ccb53e8b00beccbfaa04b4bde620eb0bb904cac391ea`
+- manifest hash: `40480c6c36534ec230ce194811e7aebb36c30fa057b886c3827821c7d6062745`
 - executable hash: `2444ed1ed7d74bb305e2c7def43122a4633c6c3a412dddeb182f7b5b3641b043`
-- unsigned package zip hash: `3d7564934fcb0d91e89b41a34cea671f8d57fbcf11c41ac881086a264cb5baab`
+- unsigned package zip hash: `46d84c94ae5ac5dc3d2a07c0621f4842f934e08bbe423f81825f596e4056df2e`
 
 ## Install Smoke
 
@@ -41,7 +41,7 @@ Built at: `2026-07-16T02:47:31.726Z`
 - executable exists: true
 - unsigned package zip exists: true
 - install smoke result: package_candidate_created
-- Windows native install smoke: not_run_on_darwin
+- Windows native install smoke: not_run_on_win32
 - formal release local API default disabled: true
 
 ## Non-Claims
@@ -54,15 +54,15 @@ Built at: `2026-07-16T02:47:31.726Z`
 ## Installer Package
 
 - Windows installer: `apps/desktop/dist/matter-0.1.17-win-x64.exe`
-- Windows installer sha256: `cab98371cd6acbec6adce59b27aadc231eaeb88ea736b6c7f9cc01aab3972e61`
-- Windows installer bytes: 109466379
+- Windows installer sha256: `53e2b694e28ba29a068feaa313d862edbeca976912be7204d0e7968b69ab44b3`
+- Windows installer bytes: 109466368
 - Windows installer blockmap: `apps/desktop/dist/matter-0.1.17-win-x64.exe.blockmap`
-- Windows installer blockmap sha256: `4b5092232b35c435208f5f458af725803dd72f6bb1ff82d44743fc206e0f1a5e`
-- Windows installer blockmap bytes: 116974
+- Windows installer blockmap sha256: `03f05e5093edc1278c8600c1ba01d5e8e84f3391b524750fcf1d30b8aa08739e`
+- Windows installer blockmap bytes: 116500
 - Windows installer packaging: nsis-x64
 - Windows renderer runtime assets: verified (5)
 - Windows installer build manifest: verified (39ed9571b0e841e1a6480e6875fe7b6658f83465)
 - Windows installer renderer sha256: `efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599`
 - Windows installer formal marker: verified
-- Windows native install smoke: not_run_on_darwin
+- Windows native install smoke: not_run_on_win32
 - Windows Authenticode signing: false

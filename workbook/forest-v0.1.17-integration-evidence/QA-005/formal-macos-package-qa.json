@@ -1,10 +1,10 @@
 {
   "schema_version": "law-firm-os.formal-macos-package-qa.v1",
-  "generated_at": "2026-07-16T01:01:54.011Z",
+  "generated_at": "2026-07-16T02:49:49.005Z",
   "verdict": "PASS",
   "source": {
-    "revision": "53854dca55c8b4c0730b57998980755bf141de58",
-    "source_tree": "d99621ca5bf6a93130c26ab7ba08cd4836b234d3",
+    "revision": "39ed9571b0e841e1a6480e6875fe7b6658f83465",
+    "source_tree": "42bb94f745b329053cc14325ef1251fc7d8475cd",
     "source_dirty": false,
     "renderer": {
       "sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
@@ -18,11 +18,11 @@
     "bundle": "apps/desktop/dist/mac/matter.app",
     "zip": {
       "path": "apps/desktop/dist/mac/matter-0.1.17-macos.zip",
-      "sha256": "1388a8361b7d42cbf4c95b2a0b9b3172368fb106136d557fd9fbb30732c2b1f4"
+      "sha256": "2e2af3ef0a7da78ffaa6ed3d2c6500d59daf0eb70abde617d0a4272f39a38e5c"
     },
     "dmg": {
       "path": "apps/desktop/dist/mac/matter-0.1.17-macos.dmg",
-      "sha256": "5bbf397750206b7e1ea27195f6a0b82023e7692da9002507d1e4bb038cd483a1"
+      "sha256": "66d00e1422eacddfed3a57403f9ecbacc9ae4b3ff6c2683dcf43e4ef8ad36043"
     },
     "bundled_local_api_present": false,
     "formal_local_api_default_disabled": true,

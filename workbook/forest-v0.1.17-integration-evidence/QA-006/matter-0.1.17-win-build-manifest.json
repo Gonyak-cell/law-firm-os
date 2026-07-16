@@ -1,0 +1,21 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-build-provenance.v1",
+  "product_name": "matter",
+  "package_name": "@law-firm-os/desktop",
+  "version": "0.1.17",
+  "source_sha": "39ed9571b0e841e1a6480e6875fe7b6658f83465",
+  "source_tree": "42bb94f745b329053cc14325ef1251fc7d8475cd",
+  "source_dirty": false,
+  "renderer": {
+    "sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+    "file_count": 28,
+    "algorithm": "sha256(sorted sha256 file manifest with ./ relative paths)"
+  },
+  "channel": "formal",
+  "platform": "win32",
+  "arch": "x64",
+  "app_id": "com.amic.matter.desktop",
+  "built_at": "2026-07-16T02:34:43.858Z",
+  "public_release_claim": false,
+  "production_go_live_claim": false
+}

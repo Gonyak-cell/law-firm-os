@@ -1,0 +1,19 @@
+git ls-remote origin refs/heads/main refs/heads/codex/integration/forest-v0.1.17
+git rev-parse 39ed9571b0e841e1a6480e6875fe7b6658f83465^{tree}
+npm --workspace apps/desktop run test:smoke
+node --test scripts/test/pv002-build-manifest.test.mjs
+npm --workspace apps/desktop run build:mac
+npm --workspace apps/desktop run build:win
+npm --workspace apps/desktop run build:win:installer
+node scripts/run-formal-macos-package-qa.mjs
+node scripts/run-formal-windows-package-qa.mjs
+codesign --verify --deep --strict --verbose=2 apps/desktop/dist/mac/matter.app
+spctl --assess --type execute --verbose=2 apps/desktop/dist/mac/matter.app
+xcrun stapler validate apps/desktop/dist/mac/matter.app
+xcrun stapler validate apps/desktop/dist/mac/matter-0.1.17-macos.dmg
+hdiutil verify apps/desktop/dist/mac/matter-0.1.17-macos.dmg
+npm run public-renderer:pii:validate
+npm run matter-desktop:legacy-assets:validate
+MATTER_DESKTOP_RELEASE_CHANNEL=formal node scripts/validate-pv006-legacy-assets.mjs --bundle
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed
+git diff --check
