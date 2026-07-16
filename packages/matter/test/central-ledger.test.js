@@ -7,6 +7,7 @@ import {
 } from "../../persistence/src/record-domain-adapter.js";
 import { createPostgresDomainLedger } from "../../persistence/src/postgres/domain-ledger.js";
 import { createMigratedPostgresFixture } from "../../persistence/test/helpers/disposable-postgres.js";
+import { reportDomainReceiptEvidence } from "../../persistence/test/helpers/domain-receipt-evidence.js";
 import { MATTER_DOMAIN_DESCRIPTOR } from "../src/central-ledger.js";
 import { createMatterRepository } from "../src/repository.js";
 
@@ -51,6 +52,9 @@ test("Matter PostgreSQL import, idempotency, audit and async update rehearsal pr
   repository.close();
 
   const imported = await ledger.importSnapshot(source);
+  assert.equal(imported.replayed, false);
+  const secondImport = await ledger.importSnapshot(source);
+  assert.equal(secondImport.replayed, true);
   const shadow = await ledger.compareSnapshot(source);
   assert.equal(shadow.comparison.equal, true);
   const matter = source.records.find((record) => record.record_type === "Matter");
@@ -103,4 +107,5 @@ test("Matter PostgreSQL import, idempotency, audit and async update rehearsal pr
   });
   assert.equal(rehearsal.status, "source_ready");
   assert.equal(rehearsal.production_migrated, false);
+  reportDomainReceiptEvidence({ source, imported, secondImport, shadow, rehearsal });
 });

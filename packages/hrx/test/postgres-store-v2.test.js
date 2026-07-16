@@ -4,6 +4,7 @@ import { seedHrxDurableRuntimeStore } from "../../../apps/api/src/hrx-runtime-co
 import { seedSyntheticPayrollRuntimeStore } from "../../../apps/api/src/hrx-payroll-runtime.js";
 import { createPostgresDomainLedger } from "../../persistence/src/postgres/domain-ledger.js";
 import { createMigratedPostgresFixture } from "../../persistence/test/helpers/disposable-postgres.js";
+import { reportDomainReceiptEvidence } from "../../persistence/test/helpers/domain-receipt-evidence.js";
 import { runHrxMigrations } from "../src/migrations/index.js";
 import {
   createHrxDomainSnapshot,
@@ -82,7 +83,8 @@ test("HRX PostgreSQL import, async store port, legacy service command, CAS and a
 
   const imported = await ledger.importSnapshot(source.snapshot);
   assert.equal(imported.replayed, false);
-  assert.equal((await ledger.importSnapshot(source.snapshot)).replayed, true);
+  const secondImport = await ledger.importSnapshot(source.snapshot);
+  assert.equal(secondImport.replayed, true);
   const shadow = await ledger.compareSnapshot(source.snapshot);
   assert.equal(shadow.comparison.equal, true);
 
@@ -196,5 +198,6 @@ test("HRX PostgreSQL import, async store port, legacy service command, CAS and a
   });
   assert.equal(rehearsal.status, "source_ready");
   assert.equal(rehearsal.production_migrated, false);
+  reportDomainReceiptEvidence({ source: source.snapshot, imported, secondImport, shadow, rehearsal });
   port.close();
 });

@@ -14,6 +14,7 @@ import {
 } from "../../persistence/src/record-domain-adapter.js";
 import { createPostgresDomainLedger } from "../../persistence/src/postgres/domain-ledger.js";
 import { createMigratedPostgresFixture } from "../../persistence/test/helpers/disposable-postgres.js";
+import { reportDomainReceiptEvidence } from "../../persistence/test/helpers/domain-receipt-evidence.js";
 import { CRM_DOMAIN_DESCRIPTOR } from "../src/central-ledger.js";
 import { handoffOpportunityToIntake } from "../src/intake-handoff-service.js";
 import { createOpportunity } from "../src/opportunity-service.js";
@@ -73,6 +74,10 @@ test("CRM/Intake PostgreSQL imports, async ports and handoff rehearsal preserve 
 
   const crmImport = await ledger.importSnapshot(crmSource);
   const intakeImport = await ledger.importSnapshot(intakeSource);
+  const crmSecondImport = await ledger.importSnapshot(crmSource);
+  const intakeSecondImport = await ledger.importSnapshot(intakeSource);
+  assert.equal(crmSecondImport.replayed, true);
+  assert.equal(intakeSecondImport.replayed, true);
   const crmShadow = await ledger.compareSnapshot(crmSource);
   const intakeShadow = await ledger.compareSnapshot(intakeSource);
   assert.equal(crmShadow.comparison.equal, true);
@@ -187,10 +192,11 @@ test("CRM/Intake PostgreSQL imports, async ports and handoff rehearsal preserve 
   }), undefined);
 
   for (const receipt of [
-    ["crm", crmImport, crmShadow, crmFlush],
-    ["intake", intakeImport, intakeShadow, intakeFlush],
+    [crmSource, crmImport, crmSecondImport, crmShadow, crmFlush],
+    [intakeSource, intakeImport, intakeSecondImport, intakeShadow, intakeFlush],
   ]) {
-    const [domain_id, imported, shadow, flush] = receipt;
+    const [source, imported, secondImport, shadow, flush] = receipt;
+    const { domain_id } = source;
     const rehearsal = await ledger.recordRehearsal({
       tenant_id: TENANT,
       domain_id,
@@ -205,5 +211,6 @@ test("CRM/Intake PostgreSQL imports, async ports and handoff rehearsal preserve 
     });
     assert.equal(rehearsal.status, "source_ready");
     assert.equal(rehearsal.production_migrated, false);
+    reportDomainReceiptEvidence({ source, imported, secondImport, shadow, rehearsal });
   }
 });

@@ -8,6 +8,7 @@ import {
 } from "../../persistence/src/record-domain-adapter.js";
 import { createPostgresDomainLedger } from "../../persistence/src/postgres/domain-ledger.js";
 import { createMigratedPostgresFixture } from "../../persistence/test/helpers/disposable-postgres.js";
+import { reportDomainReceiptEvidence } from "../../persistence/test/helpers/domain-receipt-evidence.js";
 import { MASTER_DATA_DOMAIN_DESCRIPTOR } from "../src/central-ledger.js";
 import { createMasterDataRepository } from "../src/repository.js";
 
@@ -84,7 +85,8 @@ test("Master Data PostgreSQL import, replay, shadow and async command rehearsal 
   const imported = await ledger.importSnapshot(source);
   assert.equal(imported.replayed, false);
   assert.equal(imported.receipt.rejected_count, 0);
-  assert.equal((await ledger.importSnapshot(source)).replayed, true);
+  const secondImport = await ledger.importSnapshot(source);
+  assert.equal(secondImport.replayed, true);
   const shadow = await ledger.compareSnapshot(source);
   assert.equal(shadow.comparison.equal, true);
 
@@ -118,4 +120,5 @@ test("Master Data PostgreSQL import, replay, shadow and async command rehearsal 
   });
   assert.equal(rehearsal.status, "source_ready");
   assert.equal(rehearsal.production_migrated, false);
+  reportDomainReceiptEvidence({ source, imported, secondImport, shadow, rehearsal });
 });

@@ -20,6 +20,7 @@ import {
 } from "../src/index.js";
 import { createPostgresDomainLedger } from "../../persistence/src/postgres/domain-ledger.js";
 import { createMigratedPostgresFixture } from "../../persistence/test/helpers/disposable-postgres.js";
+import { reportDomainReceiptEvidence } from "../../persistence/test/helpers/domain-receipt-evidence.js";
 
 const TENANT = "tenant-rs-dom-portal";
 const MATTER = "matter-rs-dom-portal";
@@ -232,7 +233,8 @@ test("Portal PostgreSQL import, async API, append-only guard, shadow, and rehear
   const imported = await ledger.importSnapshot(source.snapshot);
   assert.equal(imported.replayed, false);
   assert.equal(imported.receipt.rejected_count, 0);
-  assert.equal((await ledger.importSnapshot(source.snapshot)).replayed, true);
+  const secondImport = await ledger.importSnapshot(source.snapshot);
+  assert.equal(secondImport.replayed, true);
   const shadow = await ledger.compareSnapshot(source.snapshot);
   assert.equal(shadow.comparison.equal, true);
 
@@ -361,4 +363,5 @@ test("Portal PostgreSQL import, async API, append-only guard, shadow, and rehear
   });
   assert.equal(rehearsal.status, "source_ready");
   assert.equal(rehearsal.production_migrated, false);
+  reportDomainReceiptEvidence({ source: source.snapshot, imported, secondImport, shadow, rehearsal });
 });
