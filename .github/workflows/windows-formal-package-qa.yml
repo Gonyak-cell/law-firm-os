@@ -61,10 +61,14 @@ jobs:
         env:
           MATTER_DESKTOP_RELEASE_CHANNEL: formal
           MATTER_DESKTOP_EXPECTED_SOURCE_SHA: ${{ env.QA_SOURCE_SHA }}
+        shell: pwsh
         run: |
           npm --workspace apps/desktop run prepare:web-renderer
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm --workspace apps/desktop run build:win
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm --workspace apps/desktop run build:win:installer
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Run native install, login, leave, payroll, restart, and uninstall QA
         env:

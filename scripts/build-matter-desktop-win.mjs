@@ -2,7 +2,7 @@
 import { execFile } from "node:child_process";
 import { createHash, createHmac } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, mkdtemp, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { packager } from "@electron/packager";
 import { basename, dirname, join, resolve } from "node:path";
@@ -108,7 +108,7 @@ try {
     prune: true,
     ignore: shouldIgnorePackagedPath
   });
-  await rename(generatedAppRoot, packageDir);
+  await cp(generatedAppRoot, packageDir, { recursive: true });
   await copyDesktopLocalApiRuntime({
     targetAppSourceDir: join(packageDir, "resources", "app"),
     repoRoot,
