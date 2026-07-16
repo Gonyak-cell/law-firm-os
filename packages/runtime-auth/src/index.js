@@ -8,3 +8,6 @@ export * from "./policy-hooks.js";
 export * from "./principal.js";
 export * from "./provider.js";
 export * from "./session.js";
+export * from "./identity-ledger.js";
+export * from "./postgres-identity-ledger.js";
+export * from "./step-up-provider.js";

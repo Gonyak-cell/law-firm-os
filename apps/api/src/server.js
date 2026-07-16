@@ -36,7 +36,7 @@ import {
 } from "./master-data-context.js";
 import { HRX_SESSION_BOUND_HEADER, authorizeHrxApiRequest } from "./middleware/hrx-authz.js";
 import { appendHrxRouteAudit } from "./middleware/hrx-audit-write.js";
-import { authorizeHrxStepUpRequest } from "./middleware/hrx-step-up-context.js";
+import { HRX_STEP_UP_CONTEXT_HEADER, authorizeHrxStepUpRequest } from "./middleware/hrx-step-up-context.js";
 import { PERMISSION_CONTEXT_HEADER, PERMISSION_DECISION_ORDER, evaluateRouteDecision, parsePermissionContext } from "./permission-gate.js";
 import {
   createHrxRuntimeContext,
@@ -1084,7 +1084,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     return;
   }
 
-  const sessionContext = sessionAuth.resolvePermissionContextFromHeaders(req.headers, { requestId, requireSessionToken: true });
+  const sessionContext = await sessionAuth.resolvePermissionContextFromHeaders(req.headers, { requestId, requireSessionToken: true });
   if (!sessionContext.ok) {
     sendJson(req, res, sessionContext.status ?? 401, sessionContext.body ?? {
       request_id: requestId,
@@ -1152,6 +1152,35 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       });
       sendJson(req, res, hrxStepUp.status, { request_id: requestId, ...hrxStepUp.body });
       return;
+    }
+    if (hrxStepUp.decision?.step_up_required === true && typeof sessionAuth.validateStepUpChallenge === "function") {
+      const stepUpHeader = Array.isArray(req.headers[HRX_STEP_UP_CONTEXT_HEADER])
+        ? req.headers[HRX_STEP_UP_CONTEXT_HEADER][0]
+        : req.headers[HRX_STEP_UP_CONTEXT_HEADER];
+      const challenge = await sessionAuth.validateStepUpChallenge({
+        token: stepUpHeader,
+        principal: sessionContext.principal,
+        purpose: hrxStepUp.decision.purpose,
+      });
+      if (!challenge.ok) {
+        await appendHrxDeniedRouteAudit({
+          runtime: hrxRuntime,
+          context: hrxAuthz.context,
+          route: pathname,
+          policy: hrxAuthz.policy,
+          decision: { effect: "deny", reason: challenge.reason, action: hrxAuthz.policy.action },
+        });
+        sendJson(req, res, challenge.status ?? 403, {
+          request_id: requestId,
+          outcome: "blocked",
+          ok: false,
+          reason: challenge.reason,
+          safe_error_code: challenge.safe_error_code ?? "HRX_STEP_UP_CHALLENGE_INVALID",
+          step_up_required: true,
+          fail_closed: true,
+        });
+        return;
+      }
     }
     const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const permissionContext = requestPermissionContext();
@@ -1265,7 +1294,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     const context = requestPermissionContext();
     const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     if (pathname.startsWith("/api/admin/security")) {
-      const result = sessionAuth.handleSecurityAdminApiRequest({
+      const result = await sessionAuth.handleSecurityAdminApiRequest({
         pathname,
         method: req.method,
         body,

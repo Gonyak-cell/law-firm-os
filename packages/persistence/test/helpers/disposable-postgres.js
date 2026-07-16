@@ -99,6 +99,12 @@ export async function createMigratedPostgresFixture(t) {
     await adminPool.query("GRANT SELECT, INSERT ON lawos_runtime.idempotency_keys TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT ON lawos_runtime.audit_events TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_runtime.outbox_events TO lawos_app");
+    await adminPool.query("GRANT USAGE ON SCHEMA lawos_identity TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.accounts TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.sessions TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.challenges TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.break_glass_requests TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT ON lawos_identity.security_audit_events TO lawos_app");
     const appUrl = new URL(instance.connection_string);
     appUrl.username = "lawos_app";
     appPool = createPostgresPool({

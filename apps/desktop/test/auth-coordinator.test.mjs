@@ -79,7 +79,17 @@ test("auth coordinator rejects state mismatch and clears session on logout", asy
     /state mismatch/
   );
 
-  assert.deepEqual(await coordinator.logout(), { state: "signed_out" });
+  assert.deepEqual(await coordinator.logout(), {
+    state: "signed_out",
+    server_revoke: {
+      attempted: false,
+      ok: false,
+      reason: "signed_session_not_available",
+      http_status: 0
+    },
+    local_cache_cleared: true,
+    token_material_returned: false
+  });
   assert.deepEqual(secureStore.snapshot(), {});
 });
 

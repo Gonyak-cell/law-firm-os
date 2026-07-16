@@ -87,6 +87,14 @@ test("admin security operations disable login, reactivate accounts, and audit br
   assert.equal(restoredLogin.status, 200);
   assert.match(restoredLogin.body.session_token, /^lawos_session_v1\./);
 
+  const missingReason = await json("/api/admin/security/break-glass", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ requester_user_id: target.user_id, reason: "   " }),
+  });
+  assert.equal(missingReason.status, 400);
+  assert.deepEqual(missingReason.body.safe_error_codes, ["ADMIN_SECURITY_BREAK_GLASS_REASON_REQUIRED"]);
+
   const requested = await json("/api/admin/security/break-glass", {
     method: "POST",
     headers: { "content-type": "application/json" },

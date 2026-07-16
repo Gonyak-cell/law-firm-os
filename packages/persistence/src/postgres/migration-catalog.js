@@ -17,6 +17,7 @@ function loadMigration(id, fileName) {
 
 export const POSTGRES_FOUNDATION_MIGRATIONS = Object.freeze([
   loadMigration("001_repository_port_v2", "001_repository_port_v2.sql"),
+  loadMigration("002_identity_ledger", "002_identity_ledger.sql"),
 ]);
 
 export function listPostgresFoundationMigrations() {

@@ -1,7 +1,12 @@
-import { createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { appendNdjsonDurably } from "../../../packages/persistence/src/durable-append.js";
-import { createLocalDevAuthProvider, deriveServerPrincipal } from "../../../packages/runtime-auth/src/index.js";
+import {
+  assertIdentityLedger,
+  createLocalDevAuthProvider,
+  deriveServerPrincipal,
+  hashIdentityToken,
+} from "../../../packages/runtime-auth/src/index.js";
 import {
   MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
   MATTER_VAULT_REGISTERED_TENANT_ID,
@@ -27,6 +32,8 @@ import {
   LAWOS_AUTH_CREDENTIAL_STORE_ENV,
   LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
   createAuthCredentialStore,
+  createScryptPasswordHash,
+  verifyScryptPasswordHash,
 } from "./auth-credential-store.js";
 import {
   DEFAULT_PASSWORD_RESET_TTL_MS,
@@ -42,6 +49,7 @@ export const API_AUTH_BOUNDED_CONTEXT = Object.freeze({
   endpoints: Object.freeze([
     "POST /api/auth/login",
     "GET /api/auth/session",
+    "POST /api/auth/logout",
     "POST /api/auth/step-up",
     "GET /api/auth/password-reset/open",
     "POST /api/auth/password-reset/request",
@@ -218,8 +226,20 @@ function normalizeLoginKey(email) {
   return String(email ?? "").trim().toLowerCase();
 }
 
-function createPasswordResetToken() {
-  return randomBytes(32).toString("base64url");
+function createPasswordResetToken(tenantId = null) {
+  const material = randomBytes(32).toString("base64url");
+  return tenantId ? `${base64UrlEncode(tenantId)}.${material}` : material;
+}
+
+function passwordResetTokenTenantId(token, fallbackTenantId) {
+  const [encodedTenant, material] = String(token ?? "").split(".");
+  if (!encodedTenant || !material) return fallbackTenantId;
+  try {
+    const tenantId = Buffer.from(encodedTenant, "base64url").toString("utf8").trim();
+    return tenantId || fallbackTenantId;
+  } catch {
+    return fallbackTenantId;
+  }
 }
 
 function parseSecurityAuditEvent(line) {
@@ -301,7 +321,9 @@ export function createApiSessionAuth({
   passwordResetTtlMs = Number(process.env.LAWOS_AUTH_PASSWORD_RESET_TTL_MS || DEFAULT_PASSWORD_RESET_TTL_MS),
   passwordResetMinLength = Number(process.env.LAWOS_AUTH_PASSWORD_RESET_MIN_LENGTH || DEFAULT_PASSWORD_RESET_MIN_LENGTH),
   now = () => Date.now(),
-  stepUpAuthority = createHrxStepUpAuthority(),
+  stepUpAuthority = null,
+  stepUpProvider = null,
+  identityRepository = null,
 } = {}) {
   const runtimeProfile = resolveRuntimeProfile({ LAWOS_RUNTIME_PROFILE: profile });
   const sessionSecret = resolveSessionSecret({ profile: runtimeProfile, explicitSecret: secret });
@@ -309,37 +331,64 @@ export function createApiSessionAuth({
   const provider = syntheticLoginEnabled
     ? createLocalDevAuthProvider({ subjects: subjectsFromSeed(seed, { trustedTenantId }) })
     : null;
-  if (!syntheticLoginEnabled && !credentialStore && !credentialStorePath) {
+  const centralIdentityRepository = identityRepository ? assertIdentityLedger(identityRepository) : null;
+  if (!syntheticLoginEnabled && !centralIdentityRepository && !credentialStore && !credentialStorePath) {
     const error = new Error(`${LAWOS_AUTH_CREDENTIAL_STORE_ENV} is required for operational runtime profile`);
     error.code = "LAWOS_AUTH_CREDENTIAL_STORE_REQUIRED";
     error.exitCode = 78;
     throw error;
   }
-  if (!syntheticLoginEnabled && !passwordResetTokenStore && !passwordResetTokenStorePath) {
+  if (!syntheticLoginEnabled && !centralIdentityRepository && !passwordResetTokenStore && !passwordResetTokenStorePath) {
     const error = new Error(`${LAWOS_AUTH_PASSWORD_RESET_STORE_ENV} is required for operational runtime profile`);
     error.code = "LAWOS_AUTH_PASSWORD_RESET_STORE_REQUIRED";
     error.exitCode = 78;
     throw error;
   }
-  const operationalCredentialStore = credentialStore ?? createAuthCredentialStore({ filePath: credentialStorePath, now });
-  const operationalPasswordResetStore = passwordResetTokenStore ?? createAuthPasswordResetStore({ filePath: passwordResetTokenStorePath, now });
+  if (centralIdentityRepository && syntheticLoginEnabled) {
+    throw new TypeError("central identity repository requires the operational runtime profile");
+  }
+  let resolvedStepUpAuthority = stepUpAuthority;
+  function stepUpTokenAuthority() {
+    resolvedStepUpAuthority ??= createHrxStepUpAuthority({ profile: runtimeProfile });
+    return resolvedStepUpAuthority;
+  }
+  const operationalCredentialStore = centralIdentityRepository ? null : credentialStore ?? createAuthCredentialStore({ filePath: credentialStorePath, now });
+  const operationalPasswordResetStore = centralIdentityRepository ? null : passwordResetTokenStore ?? createAuthPasswordResetStore({ filePath: passwordResetTokenStorePath, now });
   const failedLogins = new Map();
   const accountStatusByUserId = new Map(seed.users.map((user) => [
     user.user_id,
     user.status === "disabled" || (!syntheticLoginEnabled && user.production_status === "disabled") ? "disabled" : "active",
   ]));
   const breakGlassRequests = new Map();
+  const revokedSessionJtis = new Set();
   const securityAuditStore = createSecurityAuditEventStore({ filePath: securityAuditStorePath });
 
-  function accountStatus(userOrUserId) {
-    const userId = typeof userOrUserId === "string" ? userOrUserId : userOrUserId?.user_id;
+  function identitySeed(user = {}) {
+    const disabled = user.status === "disabled" || (!syntheticLoginEnabled && user.production_status === "disabled");
+    return Object.freeze({
+      user_id: user.user_id,
+      email: user.email,
+      status: disabled ? "disabled" : "active",
+      account_status: disabled ? "disabled" : "active",
+    });
+  }
+
+  async function centralAccount(user) {
+    if (!centralIdentityRepository) return null;
+    return centralIdentityRepository.ensureAccount({ tenant_id: homeTenantIdForUser(user, trustedTenantId), user: identitySeed(user) });
+  }
+
+  async function accountStatus(userOrUserId) {
+    const user = typeof userOrUserId === "string" ? findRegisteredAccountByUserId(userOrUserId, seed) : userOrUserId;
+    const userId = typeof userOrUserId === "string" ? userOrUserId : user?.user_id;
+    if (centralIdentityRepository && user) return (await centralAccount(user))?.account_status ?? "active";
     return accountStatusByUserId.get(userId) ?? "active";
   }
 
-  function disabledAccountBody(requestId, user) {
+  async function disabledAccountBody(requestId, user) {
     return Object.freeze({
       ...errorBody(requestId, "AUTH_ACCOUNT_DISABLED", "auth_account_disabled"),
-      account_status: accountStatus(user),
+      account_status: await accountStatus(user),
       user_id: user?.user_id ?? null,
     });
   }
@@ -355,7 +404,16 @@ export function createApiSessionAuth({
     return context?.principal?.user_id ?? "api_security_admin";
   }
 
-  function appendSecurityAudit({ action, object_id, context, details = {} }) {
+  async function appendSecurityAudit({ action, object_id, context, details = {} }) {
+    if (centralIdentityRepository) {
+      return centralIdentityRepository.appendSecurityAudit({
+        tenant_id: context?.principal?.tenant_id ?? trustedTenantId,
+        action,
+        object_id,
+        actor_id: securityActorId(context),
+        details,
+      });
+    }
     const event = Object.freeze({
       audit_event_id: `security_audit_${randomUUID()}`,
       action,
@@ -370,20 +428,24 @@ export function createApiSessionAuth({
     return event;
   }
 
-  function publicSecurityUser(user) {
+  async function publicSecurityUser(user) {
     const roleAssignment = resolveLawosUserRoleAssignment(user, { tenantId: trustedTenantId });
+    const centralAccountState = centralIdentityRepository ? await centralAccount(user) : null;
+    const status = centralAccountState?.account_status ?? accountStatusByUserId.get(user.user_id) ?? "active";
+    const credentialStatus = centralAccountState?.credential_status ?? null;
     return Object.freeze({
       user_id: user.user_id,
       email: user.email,
       display_name: user.display_name,
       source_title: user.source_title,
-      status: accountStatus(user),
+      status,
+      credential_status: credentialStatus,
       highest_privilege: user.highest_privilege === true,
       role_profile_id: roleAssignment?.role_profile_id ?? null,
       role_ids: Object.freeze([...(roleAssignment?.role_ids ?? user.role_ids ?? [])]),
       group_ids: Object.freeze([...(roleAssignment?.group_ids ?? user.group_ids ?? [])]),
       scopes: Object.freeze([...(roleAssignment?.scopes ?? user.scopes ?? [])]),
-      login_allowed: accountStatus(user) === "active",
+      login_allowed: status === "active" && (!credentialStatus || ["active", "must_change"].includes(credentialStatus)),
       token_material_returned: false,
       production_ready_claim: false,
     });
@@ -393,25 +455,103 @@ export function createApiSessionAuth({
     return Object.freeze({ ...request, token_material_returned: false, production_ready_claim: false });
   }
 
-  function failedLoginState(email) {
+  async function failedLoginState(email, user = findRegisteredAccountByEmail(email, seed)) {
     const key = normalizeLoginKey(email);
+    if (centralIdentityRepository && user) {
+      const account = await centralAccount(user);
+      const lockedUntil = account?.locked_until ? Date.parse(account.locked_until) : 0;
+      return Object.freeze({ key, locked: lockedUntil > now(), locked_until: lockedUntil || 0 });
+    }
     const current = failedLogins.get(key);
     if (current?.locked_until > now()) return Object.freeze({ key, locked: true, locked_until: current.locked_until });
     if (current?.locked_until > 0 && current.locked_until <= now()) failedLogins.delete(key);
     return Object.freeze({ key, locked: false });
   }
 
-  function recordFailedLogin(email) {
+  async function recordFailedLogin(email, user = findRegisteredAccountByEmail(email, seed)) {
     const key = normalizeLoginKey(email);
+    if (centralIdentityRepository && user) {
+      return centralIdentityRepository.recordLoginFailure({
+        tenant_id: homeTenantIdForUser(user, trustedTenantId),
+        user: identitySeed(user),
+        max_failed_logins: maxFailedLogins,
+        lock_ms: loginLockMs,
+      });
+    }
     const current = failedLogins.get(key);
     const count = (current?.count ?? 0) + 1;
     const lockedUntil = count >= maxFailedLogins ? now() + loginLockMs : 0;
     failedLogins.set(key, { count, locked_until: lockedUntil });
+    await appendSecurityAudit({
+      action: lockedUntil ? "auth.login.locked" : "auth.login.failed",
+      object_id: user?.user_id ?? `unknown_${createHash("sha256").update(key).digest("hex")}`,
+      context: { principal: { tenant_id: homeTenantIdForUser(user, trustedTenantId), user_id: user?.user_id ?? "unknown_login_subject" } },
+      details: { failed_login_count: count, locked: lockedUntil > 0 },
+    });
     return Object.freeze({ count, locked: lockedUntil > 0, locked_until: lockedUntil });
   }
 
-  function clearFailedLogin(email) {
+  async function clearFailedLogin(email) {
+    if (centralIdentityRepository) return;
     failedLogins.delete(normalizeLoginKey(email));
+  }
+
+  async function verifyOperationalPassword(user, password) {
+    if (!centralIdentityRepository) return operationalCredentialStore.verifyPassword({ user, password });
+    const record = await centralAccount(user);
+    if (!record) return Object.freeze({ ok: false, reason: "credential_missing", safe_error_code: "AUTH_CREDENTIAL_MISSING" });
+    if (record.account_status === "disabled" || record.credential_status === "disabled") {
+      return Object.freeze({ ok: false, reason: "credential_disabled", safe_error_code: "AUTH_CREDENTIAL_DISABLED", status: 403 });
+    }
+    if (record.credential_status === "reset_required") {
+      return Object.freeze({ ok: false, reason: "password_reset_required", safe_error_code: "AUTH_PASSWORD_RESET_REQUIRED", status: 403 });
+    }
+    if (record.credential_status === "locked" && (!record.locked_until || Date.parse(record.locked_until) > now())) {
+      return Object.freeze({ ok: false, reason: "credential_locked", safe_error_code: "AUTH_CREDENTIAL_LOCKED", status: 423 });
+    }
+    if (!verifyScryptPasswordHash(record.password_hash, password)) {
+      return Object.freeze({ ok: false, reason: "credential_invalid", safe_error_code: "AUTH_CREDENTIAL_INVALID", status: 401 });
+    }
+    return Object.freeze({
+      ok: true,
+      credential_rev: record.credential_rev,
+      credential_status: record.credential_status,
+      must_change_password: record.credential_status === "must_change",
+    });
+  }
+
+  async function validateOperationalSession(user, credentialRev) {
+    if (!centralIdentityRepository) return operationalCredentialStore.validateSessionCredential({ user, credentialRev });
+    const record = await centralAccount(user);
+    if (!record || Number(credentialRev) !== record.credential_rev) {
+      return Object.freeze({ ok: false, reason: "credential_revision_mismatch", safe_error_code: "AUTH_CREDENTIAL_REVOKED", status: 401 });
+    }
+    if (record.account_status !== "active" || ["disabled", "reset_required", "locked"].includes(record.credential_status)) {
+      return Object.freeze({ ok: false, reason: "credential_inactive", safe_error_code: "AUTH_CREDENTIAL_REVOKED", status: 401 });
+    }
+    return Object.freeze({ ok: true, credential_rev: record.credential_rev, credential_status: record.credential_status, must_change_password: record.credential_status === "must_change" });
+  }
+
+  async function requireOperationalPasswordReset(user) {
+    if (!centralIdentityRepository) return operationalCredentialStore.requirePasswordReset({ user });
+    return centralIdentityRepository.requirePasswordReset({
+      tenant_id: homeTenantIdForUser(user, trustedTenantId),
+      user: identitySeed(user),
+      actor_id: user.user_id,
+    });
+  }
+
+  async function setOperationalPassword(user, password, { status = "active", auditAction = "auth.password_reset.confirmed" } = {}) {
+    if (!centralIdentityRepository) return operationalCredentialStore.setPassword({ user, password, status });
+    return centralIdentityRepository.setCredential({
+      tenant_id: homeTenantIdForUser(user, trustedTenantId),
+      user: identitySeed(user),
+      provider_id: LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
+      password_hash: createScryptPasswordHash(password),
+      status,
+      actor_id: user.user_id,
+      audit_action: auditAction,
+    });
   }
 
   function passwordResetDeliveryConfigured() {
@@ -455,8 +595,8 @@ export function createApiSessionAuth({
         }),
       });
     }
-    if (accountStatus(user) !== "active") {
-      return Object.freeze({ status: 403, body: disabledAccountBody(requestId, user) });
+    if (await accountStatus(user) !== "active") {
+      return Object.freeze({ status: 403, body: await disabledAccountBody(requestId, user) });
     }
     if (!passwordResetDeliveryConfigured()) {
       return Object.freeze({
@@ -464,8 +604,26 @@ export function createApiSessionAuth({
         body: errorBody(requestId, "AUTH_PASSWORD_RESET_EMAIL_NOT_CONFIGURED", "password_reset_email_not_configured"),
       });
     }
-    const token = createPasswordResetToken();
-    const resetRecord = operationalPasswordResetStore.create({ user, token, ttlMs: passwordResetTtlMs });
+    const token = createPasswordResetToken(centralIdentityRepository ? homeTenantIdForUser(user, trustedTenantId) : null);
+    const resetRecord = centralIdentityRepository
+      ? await centralIdentityRepository.createChallenge({
+          tenant_id: homeTenantIdForUser(user, trustedTenantId),
+          user: identitySeed(user),
+          challenge_type: "password_reset",
+          challenge_hash: hashIdentityToken(token),
+          requested_at: now(),
+          expires_at: now() + passwordResetTtlMs,
+          actor_id: user.user_id,
+        })
+      : operationalPasswordResetStore.create({ user, token, ttlMs: passwordResetTtlMs });
+    if (!centralIdentityRepository) {
+      await appendSecurityAudit({
+        action: "auth.password_reset.requested",
+        object_id: user.user_id,
+        context: { principal: { tenant_id: homeTenantIdForUser(user, trustedTenantId), user_id: user.user_id } },
+        details: { expires_at: resetRecord.expires_at },
+      });
+    }
     let delivery;
     try {
       delivery = await passwordResetEmailDelivery({
@@ -487,9 +645,19 @@ export function createApiSessionAuth({
       });
     }
     if (delivery?.status === "failed") {
-      operationalPasswordResetStore.revokeForUser({ userId: user.user_id, reason: "reset_delivery_failed" });
+      if (centralIdentityRepository) {
+        await centralIdentityRepository.revokeChallengesForUser({
+          tenant_id: homeTenantIdForUser(user, trustedTenantId),
+          user_id: user.user_id,
+          challenge_type: "password_reset",
+          reason: "reset_delivery_failed",
+          actor_id: user.user_id,
+        });
+      } else {
+        operationalPasswordResetStore.revokeForUser({ userId: user.user_id, reason: "reset_delivery_failed" });
+      }
     } else {
-      operationalCredentialStore.requirePasswordReset({ user });
+      await requireOperationalPasswordReset(user);
     }
     return Object.freeze({
       status: delivery?.status === "failed" ? 502 : 200,
@@ -505,7 +673,7 @@ export function createApiSessionAuth({
     });
   }
 
-  function confirmPasswordReset(body = {}, { requestId = "req_unset" } = {}) {
+  async function confirmPasswordReset(body = {}, { requestId = "req_unset" } = {}) {
     if (syntheticLoginEnabled) {
       return Object.freeze({
         status: 403,
@@ -524,25 +692,36 @@ export function createApiSessionAuth({
         }),
       });
     }
-    const consumed = operationalPasswordResetStore.consume({ token });
+    const consumed = centralIdentityRepository
+      ? await centralIdentityRepository.consumeChallenge({
+          tenant_id: passwordResetTokenTenantId(token, trustedTenantId),
+          challenge_type: "password_reset",
+          challenge_hash: hashIdentityToken(token),
+        })
+      : operationalPasswordResetStore.consume({ token });
     if (!consumed.ok) {
-      return Object.freeze({ status: consumed.status ?? 401, body: errorBody(requestId, consumed.safe_error_code, consumed.reason) });
+      const safeErrorCode = centralIdentityRepository
+        ? ({ AUTH_CHALLENGE_USED: "AUTH_PASSWORD_RESET_TOKEN_USED", AUTH_CHALLENGE_EXPIRED: "AUTH_PASSWORD_RESET_TOKEN_EXPIRED" }[consumed.safe_error_code] ?? "AUTH_PASSWORD_RESET_TOKEN_INVALID")
+        : consumed.safe_error_code;
+      return Object.freeze({ status: consumed.status ?? 401, body: errorBody(requestId, safeErrorCode, consumed.reason) });
     }
     const user = findRegisteredAccountByUserId(consumed.record.user_id, seed);
     if (!user || normalizeLoginKey(user.email) !== consumed.record.email) {
       return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_PASSWORD_RESET_TOKEN_INVALID", "invalid_reset_token") });
     }
-    if (accountStatus(user) !== "active") {
-      return Object.freeze({ status: 403, body: disabledAccountBody(requestId, user) });
+    if (await accountStatus(user) !== "active") {
+      return Object.freeze({ status: 403, body: await disabledAccountBody(requestId, user) });
     }
-    const credential = operationalCredentialStore.setPassword({ user, password, status: "active" });
-    clearFailedLogin(user.email);
-    appendSecurityAudit({
-      action: "auth.password_reset.confirmed",
-      object_id: user.user_id,
-      context: { principal: { user_id: user.user_id } },
-      details: { credential_rev: credential.credential_rev },
-    });
+    const credential = await setOperationalPassword(user, password);
+    await clearFailedLogin(user.email);
+    if (!centralIdentityRepository) {
+      await appendSecurityAudit({
+        action: "auth.password_reset.confirmed",
+        object_id: user.user_id,
+        context: { principal: { tenant_id: homeTenantIdForUser(user, trustedTenantId), user_id: user.user_id } },
+        details: { credential_rev: credential.credential_rev },
+      });
+    }
     return Object.freeze({
       status: 200,
       body: Object.freeze({
@@ -576,6 +755,7 @@ export function createApiSessionAuth({
     return Object.freeze({
       token: `${TOKEN_PREFIX}.${payloadPart}.${signature}`,
       expires_at: new Date(expiresAtMs).toISOString(),
+      payload: Object.freeze({ ...payload }),
       session: publicSession({
         user,
         principal,
@@ -585,7 +765,7 @@ export function createApiSessionAuth({
     });
   }
 
-  function verifyToken(token, { requestId = "req_unset" } = {}) {
+  async function verifyToken(token, { requestId = "req_unset" } = {}) {
     const parts = String(token ?? "").split(".");
     if (parts.length !== 3 || parts[0] !== TOKEN_PREFIX) {
       return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", "auth_session_invalid") });
@@ -605,6 +785,9 @@ export function createApiSessionAuth({
     if (payload.typ !== TOKEN_PREFIX || payload.exp <= now()) {
       return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_EXPIRED", "auth_session_expired") });
     }
+    if (!centralIdentityRepository && revokedSessionJtis.has(payload.jti)) {
+      return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_REVOKED", "auth_session_revoked") });
+    }
     const user = findRegisteredAccountByUserId(payload.user_id, seed);
     if (!user) {
       return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_UNKNOWN_USER", "auth_session_unknown_user") });
@@ -613,12 +796,12 @@ export function createApiSessionAuth({
     if (payload.tenant_id !== homeTenantId) {
       return Object.freeze({ ok: false, status: 403, body: errorBody(requestId, "AUTH_SESSION_TENANT_DENIED", "auth_session_tenant_denied") });
     }
-    if (accountStatus(user) !== "active") {
-      return Object.freeze({ ok: false, status: 403, body: disabledAccountBody(requestId, user) });
+    if (await accountStatus(user) !== "active") {
+      return Object.freeze({ ok: false, status: 403, body: await disabledAccountBody(requestId, user) });
     }
     const credential = syntheticLoginEnabled
       ? null
-      : operationalCredentialStore.validateSessionCredential({ user, credentialRev: payload.credential_rev });
+      : await validateOperationalSession(user, payload.credential_rev);
     if (credential && !credential.ok) {
       return Object.freeze({ ok: false, status: credential.status ?? 401, body: errorBody(requestId, credential.safe_error_code, credential.reason) });
     }
@@ -631,9 +814,20 @@ export function createApiSessionAuth({
         })
       : principalFromSignedSession({ user, payload, trustedTenantId: homeTenantId, requestId, credential });
     if (!principal.ok) return Object.freeze({ ok: false, status: principal.status_code ?? 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", principal.reason) });
+    if (centralIdentityRepository) {
+      const active = await centralIdentityRepository.validateSession({
+        tenant_id: homeTenantId,
+        session_jti: payload.jti,
+        user_id: user.user_id,
+      });
+      if (!active.ok) {
+        return Object.freeze({ ok: false, status: active.status ?? 401, body: errorBody(requestId, active.safe_error_code ?? "AUTH_SESSION_REVOKED", active.reason ?? "auth_session_revoked") });
+      }
+    }
     return Object.freeze({
       ok: true,
       principal,
+      token_payload: Object.freeze({ jti: payload.jti, user_id: payload.user_id, tenant_id: payload.tenant_id, exp: payload.exp }),
       context: permissionContextFromPrincipal(principal),
       session: publicSession({
         user,
@@ -644,7 +838,7 @@ export function createApiSessionAuth({
     });
   }
 
-  function login(body = {}, { requestId = "req_unset" } = {}) {
+  async function login(body = {}, { requestId = "req_unset" } = {}) {
     const email = String(body.email ?? "").trim();
     const credential = String(body.password ?? body.credential ?? body.local_dev_token ?? "").trim();
     if (!email || !credential) {
@@ -653,7 +847,8 @@ export function createApiSessionAuth({
         body: errorBody(requestId, "AUTH_EMAIL_CREDENTIAL_REQUIRED", "email_credential_required"),
       });
     }
-    const lock = failedLoginState(email);
+    const user = findRegisteredAccountByEmail(email, seed);
+    const lock = await failedLoginState(email, user);
     if (lock.locked) {
       return Object.freeze({
         status: 423,
@@ -664,13 +859,12 @@ export function createApiSessionAuth({
       });
     }
 
-    const user = findRegisteredAccountByEmail(email, seed);
     if (!user) {
-      recordFailedLogin(email);
+      await recordFailedLogin(email, null);
       return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_CREDENTIAL_INVALID", "auth_credential_invalid") });
     }
-    if (accountStatus(user) !== "active") {
-      return Object.freeze({ status: 403, body: disabledAccountBody(requestId, user) });
+    if (await accountStatus(user) !== "active") {
+      return Object.freeze({ status: 403, body: await disabledAccountBody(requestId, user) });
     }
     const homeTenantId = homeTenantIdForUser(user, trustedTenantId);
     let principal;
@@ -684,14 +878,15 @@ export function createApiSessionAuth({
       });
     } else {
       if (safeEqual(credential, user.local_dev?.synthetic_token ?? "")) {
+        await recordFailedLogin(email, user);
         return Object.freeze({
           status: 403,
           body: errorBody(requestId, "AUTH_SYNTHETIC_LOGIN_DISABLED", "auth_synthetic_login_disabled"),
         });
       }
-      credentialResult = operationalCredentialStore.verifyPassword({ user, password: credential });
+      credentialResult = await verifyOperationalPassword(user, credential);
       if (!credentialResult.ok) {
-        recordFailedLogin(email);
+        await recordFailedLogin(email, user);
         return Object.freeze({
           status: credentialResult.status ?? 401,
           body: errorBody(requestId, credentialResult.safe_error_code ?? "AUTH_CREDENTIAL_INVALID", credentialResult.reason ?? "auth_credential_invalid"),
@@ -706,12 +901,39 @@ export function createApiSessionAuth({
       });
     }
     if (!principal.ok || principal.user_id !== user.user_id) {
-      recordFailedLogin(email);
+      await recordFailedLogin(email, user);
       return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_CREDENTIAL_INVALID", "auth_credential_invalid") });
     }
 
-    clearFailedLogin(email);
     const session = createToken({ principal, user });
+    if (centralIdentityRepository) {
+      const committed = await centralIdentityRepository.completeLogin({
+        tenant_id: homeTenantId,
+        user: identitySeed(user),
+        session_jti: session.payload.jti,
+        session_id: session.payload.sid,
+        credential_rev: session.payload.credential_rev ?? null,
+        issued_at: session.payload.iat,
+        expires_at: session.payload.exp,
+      });
+      if (!committed.ok) {
+        return Object.freeze({
+          status: committed.status ?? 401,
+          body: Object.freeze({
+            ...errorBody(requestId, committed.safe_error_code ?? "AUTH_CREDENTIAL_INVALID", committed.reason ?? "auth_credential_invalid"),
+            ...(committed.locked_until ? { locked_until: committed.locked_until } : {}),
+          }),
+        });
+      }
+    } else {
+      await clearFailedLogin(email);
+      await appendSecurityAudit({
+        action: "auth.login.succeeded",
+        object_id: user.user_id,
+        context: { principal: { tenant_id: homeTenantId, user_id: user.user_id } },
+        details: { session_registered: false, authority: "file-current" },
+      });
+    }
     return Object.freeze({
       status: 200,
       body: Object.freeze({
@@ -731,7 +953,7 @@ export function createApiSessionAuth({
     });
   }
 
-  function resolvePermissionContextFromHeaders(headers = {}, { requestId = "req_unset", requireSessionToken = false } = {}) {
+  async function resolvePermissionContextFromHeaders(headers = {}, { requestId = "req_unset", requireSessionToken = false } = {}) {
     const token = bearerToken(headers);
     if (!token) return Object.freeze({ ok: false, authorization_present: false, reason: "missing_authorization" });
     if (!token.startsWith(`${TOKEN_PREFIX}.`)) {
@@ -743,7 +965,7 @@ export function createApiSessionAuth({
         body: errorBody(requestId, "AUTH_SESSION_INVALID", "auth_session_invalid"),
       });
     }
-    const verified = verifyToken(token, { requestId });
+    const verified = await verifyToken(token, { requestId });
     if (!verified.ok) return Object.freeze({ ...verified, authorization_present: true });
     return Object.freeze({ ...verified, authorization_present: true });
   }
@@ -759,7 +981,7 @@ export function createApiSessionAuth({
       if (method !== "GET") {
         return Object.freeze({ status: 405, body: errorBody(requestId, "AUTH_METHOD_NOT_ALLOWED", "auth_method_not_allowed") });
       }
-      const resolved = resolvePermissionContextFromHeaders(headers, { requestId, requireSessionToken: true });
+      const resolved = await resolvePermissionContextFromHeaders(headers, { requestId, requireSessionToken: true });
       if (!resolved.ok) {
         return Object.freeze({
           status: resolved.status ?? 401,
@@ -777,23 +999,137 @@ export function createApiSessionAuth({
         }),
       });
     }
+    if (pathname === "/api/auth/logout") {
+      if (method !== "POST") {
+        return Object.freeze({ status: 405, body: errorBody(requestId, "AUTH_METHOD_NOT_ALLOWED", "auth_method_not_allowed") });
+      }
+      const token = bearerToken(headers);
+      if (!token) return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_SESSION_REQUIRED", "auth_session_required") });
+      const parts = String(token).split(".");
+      if (parts.length !== 3 || parts[0] !== TOKEN_PREFIX || !safeEqual(parts[2], sign(sessionSecret, parts[1]))) {
+        return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", "auth_session_invalid") });
+      }
+      let payload;
+      try {
+        payload = decodeBase64UrlJson(parts[1]);
+      } catch {
+        return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", "auth_session_invalid") });
+      }
+      const user = findRegisteredAccountByUserId(payload.user_id, seed);
+      const tenantId = user ? homeTenantIdForUser(user, trustedTenantId) : null;
+      if (payload.typ !== TOKEN_PREFIX || !user || payload.tenant_id !== tenantId || !payload.jti) {
+        return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", "auth_session_invalid") });
+      }
+      let revocation;
+      if (centralIdentityRepository) {
+        revocation = await centralIdentityRepository.revokeSession({
+          tenant_id: tenantId,
+          session_jti: payload.jti,
+          actor_id: user.user_id,
+          reason: "logout",
+        });
+      } else {
+        const replayed = revokedSessionJtis.has(payload.jti);
+        revokedSessionJtis.add(payload.jti);
+        if (!replayed) {
+          await appendSecurityAudit({
+            action: "auth.logout",
+            object_id: user.user_id,
+            context: { principal: { tenant_id: tenantId, user_id: user.user_id } },
+            details: { session_revoked: true, authority: "file-current" },
+          });
+        }
+        revocation = Object.freeze({ ok: true, replayed });
+      }
+      return Object.freeze({
+        status: 200,
+        body: Object.freeze({
+          request_id: requestId,
+          outcome: "signed_out",
+          ok: true,
+          revoked: true,
+          replayed: revocation.replayed === true,
+          token_material_returned: false,
+          production_ready_claim: false,
+        }),
+      });
+    }
     if (pathname === "/api/auth/step-up") {
       if (method !== "POST") {
         return Object.freeze({ status: 405, body: errorBody(requestId, "AUTH_METHOD_NOT_ALLOWED", "auth_method_not_allowed") });
       }
-      const resolved = resolvePermissionContextFromHeaders(headers, { requestId, requireSessionToken: true });
+      const resolved = await resolvePermissionContextFromHeaders(headers, { requestId, requireSessionToken: true });
       if (!resolved.ok) {
         return Object.freeze({
           status: resolved.status ?? 401,
           body: resolved.body ?? errorBody(requestId, "AUTH_SESSION_REQUIRED", "auth_session_required"),
         });
       }
-      return stepUpAuthority.issue({
-        principal: resolved.principal,
-        purpose: body.purpose,
-        totp_code: body.totp_code ?? body.mfa_totp ?? body.code,
-        requestId,
-      });
+      const proof = body.totp_code ?? body.mfa_totp ?? body.code ?? body.proof;
+      let verification = null;
+      let issued;
+      if (stepUpProvider) {
+        verification = await stepUpProvider.verify({
+          principal: resolved.principal,
+          purpose: body.purpose,
+          factor: body.factor ?? "totp",
+          proof,
+        });
+        if (!verification.ok) {
+          await appendSecurityAudit({
+            action: "auth.step_up.failed",
+            object_id: resolved.principal.user_id,
+            context: resolved.context,
+            details: { provider_id: verification.provider_id, factor: verification.factor, purpose: body.purpose ?? null, reason: verification.reason },
+          });
+          return Object.freeze({ status: 403, body: errorBody(requestId, "HRX_STEP_UP_PROVIDER_INVALID", verification.reason) });
+        }
+        issued = stepUpTokenAuthority().issueVerified({
+          principal: resolved.principal,
+          purpose: body.purpose,
+          provider_verification: verification,
+          requestId,
+        });
+      } else {
+        issued = stepUpTokenAuthority().issue({
+          principal: resolved.principal,
+          purpose: body.purpose,
+          totp_code: proof,
+          requestId,
+        });
+      }
+      if (issued.status !== 200) {
+        await appendSecurityAudit({
+          action: "auth.step_up.failed",
+          object_id: resolved.principal.user_id,
+          context: resolved.context,
+          details: { provider_id: verification?.provider_id ?? "internal-totp", factor: verification?.factor ?? "totp", purpose: body.purpose ?? null, reason: issued.body?.reason ?? "step_up_failed" },
+        });
+        return issued;
+      }
+      const stepUpUser = findRegisteredAccountByUserId(resolved.principal.user_id, seed);
+      if (centralIdentityRepository && stepUpUser) {
+        await centralIdentityRepository.createChallenge({
+          tenant_id: resolved.principal.tenant_id,
+          user: identitySeed(stepUpUser),
+          challenge_type: "step_up",
+          challenge_hash: hashIdentityToken(issued.body.step_up_token),
+          purpose: body.purpose,
+          provider_id: verification?.provider_id ?? "internal-totp",
+          requested_at: now(),
+          expires_at: issued.body.expires_at,
+          actor_id: resolved.principal.user_id,
+          metadata: { factor: verification?.factor ?? "totp" },
+        });
+      } else {
+        await appendSecurityAudit({
+          action: "auth.step_up.succeeded",
+          object_id: resolved.principal.user_id,
+          context: resolved.context,
+          details: { provider_id: verification?.provider_id ?? "internal-totp", factor: verification?.factor ?? "totp", purpose: body.purpose ?? null },
+        });
+      }
+      return issued;
     }
     if (pathname === "/api/auth/password-reset/request") {
       if (method !== "POST") {
@@ -810,7 +1146,31 @@ export function createApiSessionAuth({
     return Object.freeze({ status: 404, body: errorBody(requestId, "AUTH_ROUTE_NOT_FOUND", "auth_route_not_found") });
   }
 
-  function handleSecurityAdminApiRequest({ pathname, method, body = {}, context = {}, requestId = "req_unset" } = {}) {
+  async function validateStepUpChallenge({ token, principal = {}, purpose } = {}) {
+    if (!centralIdentityRepository) return Object.freeze({ ok: true, authority: "signed-token-only" });
+    const validation = await centralIdentityRepository.validateChallenge({
+      tenant_id: principal.tenant_id,
+      challenge_type: "step_up",
+      challenge_hash: hashIdentityToken(token),
+      user_id: principal.user_id,
+      purpose,
+    });
+    if (validation.ok) return Object.freeze({ ok: true, authority: "postgres-v2" });
+    await appendSecurityAudit({
+      action: "auth.step_up.failed",
+      object_id: principal.user_id,
+      context: { principal },
+      details: { reason: "challenge_inactive", purpose: purpose ?? null },
+    });
+    return Object.freeze({
+      ok: false,
+      status: 403,
+      reason: "hrx_step_up_challenge_inactive",
+      safe_error_code: "HRX_STEP_UP_CHALLENGE_INVALID",
+    });
+  }
+
+  async function handleSecurityAdminApiRequest({ pathname, method, body = {}, context = {}, requestId = "req_unset" } = {}) {
     if (!hasSecurityAdminScope(context)) return securityAdminDenied(requestId);
 
     if (pathname === "/api/admin/security/users" && method === "GET") {
@@ -819,7 +1179,7 @@ export function createApiSessionAuth({
         body: Object.freeze({
           request_id: requestId,
           outcome: "passed",
-          items: Object.freeze(seed.users.map(publicSecurityUser)),
+          items: Object.freeze(await Promise.all(seed.users.map(publicSecurityUser))),
           safe_error_codes: Object.freeze([]),
           production_ready_claim: false,
         }),
@@ -839,19 +1199,29 @@ export function createApiSessionAuth({
         return Object.freeze({ status: 400, body: errorBody(requestId, "ADMIN_SECURITY_DISABLE_CONFIRMATION_REQUIRED", "admin_security_disable_confirmation_required") });
       }
       const nextStatus = action === "disable" ? "disabled" : "active";
-      accountStatusByUserId.set(target.user_id, nextStatus);
-      appendSecurityAudit({
-        action: action === "disable" ? "admin.security.user.disabled" : "admin.security.user.reactivated",
-        object_id: target.user_id,
-        context,
-        details: { reason: body.reason ?? null, status: nextStatus },
-      });
+      if (centralIdentityRepository) {
+        await centralIdentityRepository.setAccountStatus({
+          tenant_id: homeTenantIdForUser(target, trustedTenantId),
+          user: identitySeed(target),
+          status: nextStatus,
+          actor_id: securityActorId(context),
+          reason: body.reason ?? null,
+        });
+      } else {
+        accountStatusByUserId.set(target.user_id, nextStatus);
+        await appendSecurityAudit({
+          action: action === "disable" ? "admin.security.user.disabled" : "admin.security.user.reactivated",
+          object_id: target.user_id,
+          context,
+          details: { reason_present: Boolean(String(body.reason ?? "").trim()), status: nextStatus },
+        });
+      }
       return Object.freeze({
         status: 200,
         body: Object.freeze({
           request_id: requestId,
           outcome: action === "disable" ? "disabled" : "reactivated",
-          item: publicSecurityUser(target),
+          item: await publicSecurityUser(target),
           safe_error_codes: Object.freeze([]),
           production_ready_claim: false,
         }),
@@ -859,12 +1229,15 @@ export function createApiSessionAuth({
     }
 
     if (pathname === "/api/admin/security/break-glass" && method === "GET") {
+      const requests = centralIdentityRepository
+        ? await centralIdentityRepository.listBreakGlassRequests({ tenant_id: context.principal.tenant_id })
+        : [...breakGlassRequests.values()];
       return Object.freeze({
         status: 200,
         body: Object.freeze({
           request_id: requestId,
           outcome: "passed",
-          items: Object.freeze([...breakGlassRequests.values()].map(publicBreakGlassRequest)),
+          items: Object.freeze(requests.map(publicBreakGlassRequest)),
           safe_error_codes: Object.freeze([]),
           production_ready_claim: false,
         }),
@@ -875,23 +1248,37 @@ export function createApiSessionAuth({
       const requesterUserId = String(body.requester_user_id ?? "").trim();
       const requester = findRegisteredAccountByUserId(requesterUserId, seed);
       if (!requester) return Object.freeze({ status: 400, body: errorBody(requestId, "ADMIN_SECURITY_BREAK_GLASS_REQUESTER_REQUIRED", "admin_security_break_glass_requester_required") });
-      const request = Object.freeze({
+      const reason = String(body.reason ?? "").trim();
+      if (!reason) return Object.freeze({ status: 400, body: errorBody(requestId, "ADMIN_SECURITY_BREAK_GLASS_REASON_REQUIRED", "admin_security_break_glass_reason_required") });
+      let request = Object.freeze({
         break_glass_request_id: `break_glass_${randomUUID()}`,
         requester_user_id: requester.user_id,
         requester_label: requester.display_name,
-        reason: String(body.reason ?? "운영 접근 요청").trim(),
+        reason,
         state: "pending",
         requested_at: new Date(now()).toISOString(),
         decided_by: null,
         decided_at: null,
       });
-      breakGlassRequests.set(request.break_glass_request_id, request);
-      appendSecurityAudit({
-        action: "admin.security.break_glass.requested",
-        object_id: request.break_glass_request_id,
-        context,
-        details: { requester_user_id: requester.user_id },
-      });
+      if (centralIdentityRepository) {
+        request = await centralIdentityRepository.createBreakGlassRequest({
+          tenant_id: context.principal.tenant_id,
+          requester: identitySeed(requester),
+          requester_label: requester.display_name,
+          break_glass_request_id: request.break_glass_request_id,
+          reason: request.reason,
+          requested_at: request.requested_at,
+          actor_id: securityActorId(context),
+        });
+      } else {
+        breakGlassRequests.set(request.break_glass_request_id, request);
+        await appendSecurityAudit({
+          action: "admin.security.break_glass.requested",
+          object_id: request.break_glass_request_id,
+          context,
+          details: { requester_user_id: requester.user_id },
+        });
+      }
       return Object.freeze({
         status: 201,
         body: Object.freeze({
@@ -908,22 +1295,35 @@ export function createApiSessionAuth({
     if (breakGlassTransitionMatch && method === "POST") {
       const breakGlassRequestId = decodeURIComponent(breakGlassTransitionMatch[1]);
       const action = breakGlassTransitionMatch[2];
-      const current = breakGlassRequests.get(breakGlassRequestId);
-      if (!current) return Object.freeze({ status: 404, body: errorBody(requestId, "ADMIN_SECURITY_BREAK_GLASS_NOT_FOUND", "admin_security_break_glass_not_found") });
       const nextState = action === "approve" ? "approved" : "revoked";
-      const next = Object.freeze({
-        ...current,
-        state: nextState,
-        decided_by: securityActorId(context),
-        decided_at: new Date(now()).toISOString(),
-      });
-      breakGlassRequests.set(breakGlassRequestId, next);
-      appendSecurityAudit({
-        action: action === "approve" ? "admin.security.break_glass.approved" : "admin.security.break_glass.revoked",
-        object_id: breakGlassRequestId,
-        context,
-        details: { state: nextState },
-      });
+      let next;
+      if (centralIdentityRepository) {
+        const transition = await centralIdentityRepository.transitionBreakGlassRequest({
+          tenant_id: context.principal.tenant_id,
+          break_glass_request_id: breakGlassRequestId,
+          state: nextState,
+          actor_id: securityActorId(context),
+          decided_at: now(),
+        });
+        if (!transition.ok) return Object.freeze({ status: transition.status ?? 409, body: errorBody(requestId, transition.safe_error_code, transition.reason) });
+        next = transition.record;
+      } else {
+        const current = breakGlassRequests.get(breakGlassRequestId);
+        if (!current) return Object.freeze({ status: 404, body: errorBody(requestId, "ADMIN_SECURITY_BREAK_GLASS_NOT_FOUND", "admin_security_break_glass_not_found") });
+        next = Object.freeze({
+          ...current,
+          state: nextState,
+          decided_by: securityActorId(context),
+          decided_at: new Date(now()).toISOString(),
+        });
+        breakGlassRequests.set(breakGlassRequestId, next);
+        await appendSecurityAudit({
+          action: action === "approve" ? "admin.security.break_glass.approved" : "admin.security.break_glass.revoked",
+          object_id: breakGlassRequestId,
+          context,
+          details: { state: nextState },
+        });
+      }
       return Object.freeze({
         status: 200,
         body: Object.freeze({
@@ -937,12 +1337,15 @@ export function createApiSessionAuth({
     }
 
     if (pathname === "/api/admin/security/audit" && method === "GET") {
+      const auditItems = centralIdentityRepository
+        ? await centralIdentityRepository.listSecurityAudit({ tenant_id: context.principal.tenant_id })
+        : securityAuditStore.readEvents();
       return Object.freeze({
         status: 200,
         body: Object.freeze({
           request_id: requestId,
           outcome: "passed",
-          items: securityAuditStore.readEvents(),
+          items: auditItems,
           safe_error_codes: Object.freeze([]),
           production_ready_claim: false,
         }),
@@ -959,6 +1362,7 @@ export function createApiSessionAuth({
     verifyToken,
     resolvePermissionContextFromHeaders,
     handleAuthApiRequest,
+    validateStepUpChallenge,
     handleSecurityAdminApiRequest,
   });
 }

@@ -45,9 +45,9 @@ test("SQL migration runner is forward-only, checksum-bound and idempotent", asyn
   });
   const first = await runPostgresMigrations(pool, { appliedBy: "first-test-run" });
   const second = await runPostgresMigrations(pool, { appliedBy: "second-test-run" });
-  assert.equal(first.length, 1);
-  assert.equal(first[0].applied, true);
-  assert.equal(second[0].applied, false);
+  assert.equal(first.length, listPostgresFoundationMigrations().length);
+  assert.equal(first.every((migration) => migration.applied), true);
+  assert.equal(second.every((migration) => !migration.applied), true);
   const [migration] = listPostgresFoundationMigrations();
   await assert.rejects(
     runPostgresMigrations(pool, {

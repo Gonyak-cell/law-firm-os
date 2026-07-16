@@ -156,14 +156,33 @@ export function encryptedFileSecureStore({
 }
 
 export async function wipeSessionCaches({ secureStore, cacheStores = [] } = {}) {
-  await secureStore?.clear?.();
+  let secureStoreCleared = !secureStore;
+  let cacheStoresCleared = 0;
+  let failureCount = 0;
+  if (secureStore) {
+    try {
+      if (typeof secureStore.clear !== "function") throw new TypeError("secure store clear is required");
+      await secureStore.clear();
+      secureStoreCleared = true;
+    } catch {
+      failureCount += 1;
+    }
+  }
   for (const cache of cacheStores) {
-    if (typeof cache.clear === "function") await cache.clear();
-    else if (typeof cache.delete === "function") await cache.delete();
+    try {
+      if (typeof cache?.clear === "function") await cache.clear();
+      else if (typeof cache?.delete === "function") await cache.delete();
+      else throw new TypeError("cache clear is required");
+      cacheStoresCleared += 1;
+    } catch {
+      failureCount += 1;
+    }
   }
   return {
-    secureStoreCleared: Boolean(secureStore),
-    cacheStoresCleared: cacheStores.length
+    ok: secureStoreCleared && cacheStoresCleared === cacheStores.length && failureCount === 0,
+    secureStoreCleared,
+    cacheStoresCleared,
+    failureCount
   };
 }
 
@@ -445,9 +464,44 @@ export class MainProcessAuthCoordinator {
   }
 
   async logout() {
-    await wipeSessionCaches({ secureStore: this.#secureStore, cacheStores: this.#cacheStores });
-    this.#pending = null;
-    this.#session = { state: "signed_out" };
-    return this.sessionStatus();
+    let serverRevoke = {
+      attempted: false,
+      ok: false,
+      reason: "signed_session_not_available",
+      http_status: 0
+    };
+    let localCleanup;
+    try {
+      const sessionToken = await this.#secureStore.get("session_token");
+      if (sessionToken) {
+        serverRevoke = { attempted: true, ok: false, reason: "server_session_revoke_unavailable", http_status: 0 };
+        if (typeof this.#runtimeClient?.logout === "function") {
+          const response = sanitizeRendererPayload(await this.#runtimeClient.logout({ sessionToken }));
+          serverRevoke = {
+            attempted: true,
+            ok: response?.ok === true,
+            reason: response?.ok === true ? null : "server_session_revoke_failed",
+            http_status: Number(response?.http_status ?? 0)
+          };
+        }
+      }
+    } catch {
+      serverRevoke = {
+        attempted: true,
+        ok: false,
+        reason: "server_session_revoke_failed",
+        http_status: 0
+      };
+    } finally {
+      localCleanup = await wipeSessionCaches({ secureStore: this.#secureStore, cacheStores: this.#cacheStores });
+      this.#pending = null;
+      this.#session = { state: "signed_out" };
+    }
+    return {
+      ...this.sessionStatus(),
+      server_revoke: serverRevoke,
+      local_cache_cleared: localCleanup.ok,
+      token_material_returned: false
+    };
   }
 }
