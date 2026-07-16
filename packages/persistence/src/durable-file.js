@@ -681,7 +681,14 @@ export function writeDurableJsonFile({
       data: `${JSON.stringify(prepared.document, null, 2)}\n`,
       faultInjector,
     });
-    const queuePath = queueRuntimeStoreBackupUpload({ reasonFilePath: filePath, env, now: writtenAt });
+    const queuePath = queueRuntimeStoreBackupUpload({
+      reasonFilePath: filePath,
+      generation,
+      payloadSha256: prepared.payloadSha256,
+      reason: "store_write",
+      env,
+      now: writtenAt,
+    });
     return {
       filePath,
       generation,
@@ -726,7 +733,13 @@ export function removeDurableJsonFile({
       : null;
     unlinkSync(filePath);
     fsyncDirectory(dirname(filePath));
-    const queuePath = queueRuntimeStoreBackupUpload({ reasonFilePath: filePath, env, now: removedAt });
+    const queuePath = queueRuntimeStoreBackupUpload({
+      reasonFilePath: filePath,
+      generation: current.generation,
+      reason: "store_delete",
+      env,
+      now: removedAt,
+    });
     return { filePath, removed: true, generation: current.generation, backupPath, queuePath };
   } finally {
     releaseExclusiveFileLock(lock);

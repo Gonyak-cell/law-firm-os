@@ -1,6 +1,6 @@
 # Backup And DR Runbook
 
-Status: draft_approved_rpo_rto_pending_backup_automation_and_restore_rehearsal
+Status: local_source_controls_verified_external_backup_and_retention_approval_pending
 Work package: LT-L3-W05
 TUW: LT-L3-W05-T04
 Prepared at: 2026-06-18
@@ -143,3 +143,34 @@ Any execution of this runbook that relaxes approved RPO/RTO values, bypasses
 audit-chain verification, skips permission-trimmed search smoke checks, or
 changes document-original ownership requires owner approval and non-weakening
 rationale before G4 evidence can pass.
+
+## RS-BKP Local Operating Contract (2026-07-16)
+
+The following commands are source-complete local controls. They do not authorize
+or prove an AWS upload, production restore, retention decision, release, deploy,
+or go-live.
+
+| Command | Default behavior | External or destructive gate |
+| --- | --- | --- |
+| `npm run data:durable:s3-backup` | Creates a private local snapshot and receipt; performs no AWS read or write. | `--execute --approval-ref <ref>` is required to upload. Bucket creation or policy mutation additionally requires `--ensure-bucket --infrastructure-approval-ref <ref>`. |
+| `npm run data:durable:s3-backup-queue` | Counts pending events only; performs no AWS read or write and does not remove queue entries. | `--execute --approval-ref <ref> --bucket <approved-bucket>` is required to process uploads. |
+| `npm run data:durable:s3-restore` | Prints and records an isolated restore plan; performs no AWS read or write. | `--local-backup-dir <dir>` performs a local isolated restore. S3 download requires `--download --approval-ref <ref>`. Current authority overwrite is refused. |
+| `npm run data:durable:backup-permissions -- --target <dir>` | Scans for directory/file modes other than `0700`/`0600`; makes no changes. | `--apply` requires approval, retention-decision, and legal-hold-review references. It never deletes files. |
+
+Queue events carry only pseudonymous device/store/root/bucket references,
+generation, content hash, reason, region, and profile. Absolute paths, hostnames,
+bucket names, record bodies, tokens, and user identifiers are excluded. A
+processor receipt is keyed by the queue event ID; an existing receipt makes a
+replayed event a no-upload success. Failed events use bounded exponential
+backoff and reach `dead-letter/` without blocking later events.
+
+Each snapshot contains a 16-row manifest inventory plus DMS object-file count,
+byte count, aggregate hash, per-file hash, and safe record count. Restore first
+validates schema, checksum, JSON/NDJSON parse state, durable envelope/append
+continuity, record counts, and object sidecars. It materializes files only after
+all validations pass, into a new or empty directory with private modes.
+
+Permission changes to any existing real backup remain blocked until
+`workbook/lawos-runtime-backup-retention-legal-hold-decision-packet-2026-07-16.md`
+contains the named approval receipts. The local test applies permission repair
+only to disposable synthetic fixtures.
