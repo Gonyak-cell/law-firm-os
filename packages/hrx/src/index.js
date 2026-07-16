@@ -7,6 +7,8 @@ export * from "./store/port.js";
 export * from "./store/file-store.js";
 export * from "./migrations/index.js";
 export * from "./migrations/safety.js";
+export * from "./postgres-migrations.js";
+export * from "./postgres-store-v2.js";
 export * from "./identity-link.js";
 export * from "./service.js";
 export * from "./field-masker.js";

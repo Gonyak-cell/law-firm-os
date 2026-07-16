@@ -1,0 +1,116 @@
+import { listPostgresFoundationMigrations } from "../../persistence/src/postgres/migration-catalog.js";
+import { runPostgresMigrations } from "../../persistence/src/postgres/migration-runner.js";
+import {
+  HRX_APPEND_ONLY_TABLES,
+  HRX_STORE_TABLES,
+} from "./store/file-store.js";
+import { loadHrxCoreMigrations } from "./migrations/index.js";
+
+export const HRX_POSTGRES_SCHEMA = "lawos_hrx";
+export const HRX_POSTGRES_MIGRATION_VERSION = "law-firm-os.hrx-postgres-migrations.v0.1";
+
+const SQLITE_ABORT_TRIGGER = /CREATE\s+TRIGGER\s+IF\s+NOT\s+EXISTS\s+([a-z0-9_]+)\s+BEFORE\s+(UPDATE|DELETE)\s+ON\s+([a-z0-9_]+)\s+BEGIN\s+SELECT\s+RAISE\s*\(\s*ABORT\s*,\s*'[^']*'\s*\)\s*;\s*END\s*;/giu;
+
+function quoteIdentifier(value) {
+  const identifier = String(value ?? "");
+  if (!/^[a-z_][a-z0-9_]*$/u.test(identifier)) throw new TypeError(`unsafe PostgreSQL identifier: ${identifier}`);
+  return `"${identifier}"`;
+}
+
+export function translateHrxMigrationToPostgres(sql) {
+  const translatedTriggers = String(sql).replace(
+    SQLITE_ABORT_TRIGGER,
+    (_match, triggerName, operation, tableName) => [
+      `DROP TRIGGER IF EXISTS ${quoteIdentifier(triggerName)} ON ${quoteIdentifier(tableName)};`,
+      `CREATE TRIGGER ${quoteIdentifier(triggerName)}`,
+      `BEFORE ${operation.toUpperCase()} ON ${quoteIdentifier(tableName)}`,
+      "FOR EACH ROW EXECUTE FUNCTION lawos_runtime.reject_hrx_append_only();",
+    ].join("\n"),
+  );
+  if (/\bRAISE\s*\(\s*ABORT\b/iu.test(translatedTriggers)) {
+    throw new Error("untranslated SQLite RAISE trigger remains in HRX migration");
+  }
+  return [
+    `SET LOCAL search_path TO ${quoteIdentifier(HRX_POSTGRES_SCHEMA)}, public;`,
+    translatedTriggers,
+  ].join("\n");
+}
+
+function bootstrapSql() {
+  return `
+CREATE SCHEMA IF NOT EXISTS ${quoteIdentifier(HRX_POSTGRES_SCHEMA)};
+
+CREATE OR REPLACE FUNCTION lawos_runtime.reject_hrx_append_only()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RAISE EXCEPTION 'HRX append-only row cannot be changed' USING ERRCODE = '23514';
+END;
+$$;
+`;
+}
+
+function hardeningSql() {
+  const policies = HRX_STORE_TABLES.flatMap((table) => {
+    const qualified = `${quoteIdentifier(HRX_POSTGRES_SCHEMA)}.${quoteIdentifier(table)}`;
+    return [
+      `ALTER TABLE ${qualified} ENABLE ROW LEVEL SECURITY;`,
+      `ALTER TABLE ${qualified} FORCE ROW LEVEL SECURITY;`,
+      `DROP POLICY IF EXISTS tenant_isolation ON ${qualified};`,
+      `CREATE POLICY tenant_isolation ON ${qualified}`,
+      "  USING (tenant_id = nullif(current_setting('app.current_tenant_id', true), ''))",
+      "  WITH CHECK (tenant_id = nullif(current_setting('app.current_tenant_id', true), ''));",
+    ].join("\n");
+  });
+  return policies.join("\n\n");
+}
+
+export function listHrxPostgresMigrations() {
+  const translated = loadHrxCoreMigrations().map((migration, index) => Object.freeze({
+    id: `${String(index + 101).padStart(3, "0")}_hrx_${migration.id}`,
+    file_name: migration.filename,
+    source_migration_id: migration.id,
+    sql: translateHrxMigrationToPostgres(migration.sql),
+  }));
+  return Object.freeze([
+    Object.freeze({ id: "100_hrx_schema", file_name: null, sql: bootstrapSql() }),
+    ...translated,
+    Object.freeze({ id: "130_hrx_rls", file_name: null, sql: hardeningSql() }),
+  ]);
+}
+
+export function classifyHrxPostgresMigrationGaps() {
+  const migrations = loadHrxCoreMigrations();
+  const rows = migrations.map((migration) => {
+    const sqliteTriggerCount = [...migration.sql.matchAll(new RegExp(SQLITE_ABORT_TRIGGER.source, "giu"))].length;
+    return Object.freeze({
+      migration_id: migration.id,
+      filename: migration.filename,
+      classification: sqliteTriggerCount > 0 ? "TRANSLATE_SQLITE_TRIGGER" : "POSTGRES_DDL_COMPATIBLE",
+      sqlite_trigger_count: sqliteTriggerCount,
+      destructive_statement_count: 0,
+      translated_sql_ready: true,
+    });
+  });
+  return Object.freeze({
+    contract_version: HRX_POSTGRES_MIGRATION_VERSION,
+    migration_count: rows.length,
+    compatible_count: rows.filter((row) => row.classification === "POSTGRES_DDL_COMPATIBLE").length,
+    translated_trigger_migration_count: rows.filter((row) => row.classification === "TRANSLATE_SQLITE_TRIGGER").length,
+    translated_trigger_count: rows.reduce((total, row) => total + row.sqlite_trigger_count, 0),
+    table_count: HRX_STORE_TABLES.length,
+    append_only_table_count: HRX_APPEND_ONLY_TABLES.length,
+    rows: Object.freeze(rows),
+  });
+}
+
+export async function runHrxPostgresMigrations(pool, options = {}) {
+  return runPostgresMigrations(pool, {
+    ...options,
+    migrations: [
+      ...listPostgresFoundationMigrations(),
+      ...listHrxPostgresMigrations(),
+    ],
+  });
+}

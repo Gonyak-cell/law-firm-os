@@ -81,6 +81,14 @@ test("domain snapshot contract fixes hashes, uniqueness, references and PII-safe
   assert.equal(source.invariant_summary.idempotency_count, 1);
   assert.equal(source.invariant_summary.audit_event_count, 1);
   assert.equal(compareDomainSnapshots(source, same).equal, true);
+  assert.equal(compareDomainSnapshots(source, createDomainSnapshot({
+    ...source,
+    idempotency_entries: [],
+  })).equal, false);
+  assert.equal(compareDomainSnapshots(source, createDomainSnapshot({
+    ...source,
+    audit_events: [],
+  })).equal, false);
 
   assert.throws(
     () => createDomainSnapshot({

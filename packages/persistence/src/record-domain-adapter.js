@@ -15,6 +15,8 @@ function clone(value) {
   return value === undefined ? undefined : structuredClone(value);
 }
 
+const materializedBaselines = new WeakMap();
+
 function recordIdentity(domainId, recordType, recordId) {
   return `${domainId}:${recordType}:${recordId}`;
 }
@@ -290,6 +292,13 @@ export async function materializeRecordRepositoryFromDomainLedger({
       created_at: event.created_at,
     });
   }
+  materializedBaselines.set(repository, createDomainSnapshot({
+    tenant_id,
+    domain_id: descriptor.domain_id,
+    records,
+    idempotency_entries: idempotency,
+    audit_events: auditEvents,
+  }));
   return repository;
 }
 
@@ -304,12 +313,14 @@ export async function flushRecordRepositoryToDomainLedger({
     repositories: [{ source_id: "materialized-postgres-unit-of-work", repository }],
     tenant_id,
   }).snapshot;
+  const expectedBaseline = materializedBaselines.get(repository);
   const scope = { tenant_id, domain_id: descriptor.domain_id };
   await ledger.transaction(scope, (tx) => flushSnapshotToScopedDomainLedger({
     tx,
     descriptor,
     source,
     tenant_id,
+    expected_baseline: expectedBaseline,
   }));
   const comparison = await compareLedgerReadback({ ledger, descriptor, source, tenant_id });
   return Object.freeze({ snapshot: source, comparison });
@@ -320,10 +331,30 @@ async function flushSnapshotToScopedDomainLedger({
   descriptor,
   source,
   tenant_id,
+  expected_baseline,
 } = {}) {
   const currentRecords = await tx.list();
   const currentIdempotency = await tx.listIdempotency();
   const currentAudit = await tx.listAudit();
+  if (expected_baseline) {
+    const currentSnapshot = createDomainSnapshot({
+      tenant_id,
+      domain_id: descriptor.domain_id,
+      records: currentRecords,
+      idempotency_entries: currentIdempotency,
+      audit_events: currentAudit,
+    });
+    const baselineComparison = compareDomainSnapshots(expected_baseline, currentSnapshot);
+    if (!baselineComparison.equal) {
+      throw Object.assign(new Error("domain unit-of-work baseline changed before commit"), {
+        code: "LAWOS_DOMAIN_BASELINE_CONFLICT",
+        safe_error_code: "DOMAIN_BASELINE_CONFLICT",
+        status: 409,
+        difference_count: baselineComparison.difference_count,
+        difference_fingerprint: baselineComparison.difference_fingerprint,
+      });
+    }
+  }
   const recordMap = new Map(currentRecords.map((record) => [
     recordIdentity(descriptor.domain_id, record.record_type, record.record_id),
     record,
@@ -492,6 +523,10 @@ export async function runRecordRepositoryMultiDomainCommand({
         tenant_id,
       }).snapshot,
     ]));
+    const baselines = Object.fromEntries(definitions.map((domain) => [
+      domain.descriptor.domain_id,
+      materializedBaselines.get(repositories[domain.key]),
+    ]));
     await ledger.transactionMany({
       tenant_id,
       domain_ids: definitions.map((domain) => domain.descriptor.domain_id),
@@ -502,6 +537,7 @@ export async function runRecordRepositoryMultiDomainCommand({
           descriptor: domain.descriptor,
           source: sources[domain.descriptor.domain_id],
           tenant_id,
+          expected_baseline: baselines[domain.descriptor.domain_id],
         });
       }
     });

@@ -280,8 +280,28 @@ export function compareDomainSnapshots(source, target) {
   if (left.tenant_id !== right.tenant_id || left.domain_id !== right.domain_id) {
     throw new TypeError("domain snapshots must have the same tenant and domain");
   }
-  const leftMap = new Map(left.records.map((record) => [recordKey(record), hashDomainValue(recordFingerprint(record))]));
-  const rightMap = new Map(right.records.map((record) => [recordKey(record), hashDomainValue(recordFingerprint(record))]));
+  const entries = (snapshot) => [
+    ...snapshot.records.map((record) => [
+      `record:${recordKey(record)}`,
+      hashDomainValue(recordFingerprint(record)),
+    ]),
+    ...snapshot.idempotency_entries.map((entry) => [
+      `idempotency:${entry.tenant_id}:${entry.domain_id}:${entry.key}`,
+      hashDomainValue({ request_hash: entry.request_hash, response_hash: entry.response_hash }),
+    ]),
+    ...snapshot.audit_events.map((event) => [
+      `audit:${event.tenant_id}:${event.domain_id}:${event.event_id}`,
+      hashDomainValue({
+        event_type: event.event_type,
+        actor_id: event.actor_id,
+        object_type: event.object_type,
+        object_id: event.object_id,
+        payload_hash: event.payload_hash,
+      }),
+    ]),
+  ];
+  const leftMap = new Map(entries(left));
+  const rightMap = new Map(entries(right));
   const differingKeys = [...new Set([...leftMap.keys(), ...rightMap.keys()])]
     .filter((key) => leftMap.get(key) !== rightMap.get(key))
     .sort();
