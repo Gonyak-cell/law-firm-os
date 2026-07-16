@@ -119,7 +119,7 @@
 | VC | 상태 | 검증 명령 또는 절차 | PASS 기준 |
 |---|---|---|---|
 | `VC-BASE-001` | 현재 | `git fetch origin main`; `git rev-parse`; `git merge-base --is-ancestor`; `git status --porcelain=v1` | ancestor exit 0, 전용 worktree clean |
-| `VC-DOC-001` | 현재 | 이 문서 15절의 Node 기반 TUW ID·dependency·terminal·path·gate 무결성 검사 | 누락·중복·순환·미존재 path 0 |
+| `VC-DOC-001` | 현재 | `node scripts/validate-runtime-safety-governance.mjs` | TUW·dependency·terminal·path·writer·approval evidence 누락·중복·순환 0 |
 | `VC-DESK-BASE` | 현재 | `node --test apps/desktop/test/origin-policy.test.mjs apps/desktop/test/session-ipc.test.mjs apps/desktop/test/runtime-package.test.mjs` | 7/7 PASS |
 | `VC-DESK-SA` | 신설 | `node --test apps/desktop/test/single-instance.test.mjs apps/api/test/operational-step-up-preflight.test.js` | 두 번째 instance 무초기화, operational default secret 전건 거부 |
 | `VC-DESK-SB` | 신설 | `node --test apps/desktop/test/app-protocol.test.mjs apps/desktop/test/csp.test.mjs apps/desktop/test/origin-policy.test.mjs apps/desktop/test/session-ipc.test.mjs` | traversal·file URL·새 창·untrusted IPC 전건 거부 |

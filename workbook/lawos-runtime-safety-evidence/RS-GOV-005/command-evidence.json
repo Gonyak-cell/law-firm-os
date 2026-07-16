@@ -1,0 +1,30 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-GOV-005",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "source_sha": "1d2df30e235d3080aaa877bb6e01b0a43be8e5c5",
+  "tree": "c7c0db4ca9e554aceaa22cfce804ecea8be95c36",
+  "profile": "source-local",
+  "command": "classify 16 manifest paths, derived DMS bytes and non-file operational state by authority, projection, artifact, data class and retention gate",
+  "exit_code": 0,
+  "started_at": "2026-07-16T08:30:00Z",
+  "finished_at": "2026-07-16T08:32:20Z",
+  "safe_counts": {
+    "required_path_classification_count": 16,
+    "derived_path_classification_count": 1,
+    "non_file_operational_state_count": 2,
+    "unresolved_policy_count": 0
+  },
+  "artifacts": [
+    "workbook/lawos-runtime-safety-evidence/RS-GOV-005/store-authority-classification.json"
+  ],
+  "claims": {
+    "authority_policy_complete": true,
+    "migration_complete": false,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

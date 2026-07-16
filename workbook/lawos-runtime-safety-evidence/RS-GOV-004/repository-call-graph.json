@@ -1,0 +1,159 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.repository-call-graph.v0.1",
+  "tuw_id": "RS-GOV-004",
+  "recorded_at": "2026-07-16T08:27:08Z",
+  "source_sha": "1d2df30e235d3080aaa877bb6e01b0a43be8e5c5",
+  "server_entrypoint": "apps/api/src/server.js",
+  "current_dispatch_contract": "route handlers and repositories are predominantly synchronous even though startApiServer returns a listen Promise",
+  "target_dispatch_contract": "RepositoryPortV2 Promise methods with awaited transaction, idempotency, audit and outbox boundaries",
+  "nodes": [
+    {
+      "store_key": "hrxStorePath",
+      "runtime_factory": "createDefaultHrxRuntime",
+      "repository_or_store": "createSqlHrxRepository over createFileHrxStore",
+      "call_style": "synchronous repository over store port with async transaction callback support",
+      "source_paths": ["apps/api/src/hrx-runtime-context.js", "packages/hrx/src/repository-sql.js", "packages/hrx/src/store/file-store.js"],
+      "async_transition_tuws": ["RS-DBF-001", "RS-DOM-017", "RS-DOM-021"]
+    },
+    {
+      "store_key": "masterDataStorePath",
+      "runtime_factory": "createDefaultMasterDataRuntime",
+      "repository_or_store": "createMasterDataRepository",
+      "call_style": "synchronous",
+      "source_paths": ["apps/api/src/server.js", "packages/master-data/src/repository.js"],
+      "async_transition_tuws": ["RS-DBF-003", "RS-DOM-004", "RS-DOM-005"]
+    },
+    {
+      "store_key": "matterStorePath",
+      "runtime_factory": "createDefaultMatterRuntime",
+      "repository_or_store": "createMatterRepository",
+      "call_style": "synchronous; Lambda PostgreSQL path is a read overlay and is not the write authority",
+      "source_paths": ["apps/api/src/matter-runtime-context.js", "packages/matter/src/repository.js", "apps/api/src/lambda.js"],
+      "async_transition_tuws": ["RS-DBF-002", "RS-DBF-003", "RS-DOM-008", "RS-DOM-010"]
+    },
+    {
+      "store_key": "dmsStorePath",
+      "runtime_factory": "createDefaultDmsRuntime",
+      "repository_or_store": "createDmsRepository plus file storage adapter",
+      "call_style": "synchronous metadata transaction and synchronous bytes write",
+      "source_paths": ["apps/api/src/vault-dms-runtime-context.js", "packages/dms/src/repository.js", "packages/dms/src/document-service.js"],
+      "async_transition_tuws": ["RS-DBF-003", "RS-DMS-002", "RS-DMS-009"]
+    },
+    {
+      "store_key": "crmStorePath",
+      "runtime_factory": "createDefaultCrmIntakeRuntime",
+      "repository_or_store": "createCrmRuntimeRepository",
+      "call_style": "synchronous",
+      "source_paths": ["apps/api/src/crm-intake-runtime-context.js", "packages/crm/src/runtime-repository.js"],
+      "async_transition_tuws": ["RS-DBF-003", "RS-DOM-012", "RS-DOM-015"]
+    },
+    {
+      "store_key": "intakeStorePath",
+      "runtime_factory": "createDefaultCrmIntakeRuntime",
+      "repository_or_store": "createIntakeRuntimeRepository",
+      "call_style": "synchronous",
+      "source_paths": ["apps/api/src/crm-intake-runtime-context.js", "packages/intake/src/runtime-repository.js"],
+      "async_transition_tuws": ["RS-DBF-003", "RS-DOM-013", "RS-DOM-015"]
+    },
+    {
+      "store_key": "crmMasterDataStorePath",
+      "runtime_factory": "createDefaultCrmIntakeRuntime",
+      "repository_or_store": "second createMasterDataRepository instance",
+      "call_style": "synchronous and currently a second authority surface",
+      "source_paths": ["apps/api/src/crm-intake-runtime-context.js", "packages/master-data/src/repository.js"],
+      "async_transition_tuws": ["RS-DOM-002", "RS-DOM-004", "RS-DOM-005"]
+    },
+    {
+      "store_key": "financeStorePath",
+      "runtime_factory": "createDefaultFinanceRuntime",
+      "repository_or_store": "createFinanceRepository",
+      "call_style": "synchronous",
+      "source_paths": ["apps/api/src/finance-runtime-context.js", "packages/billing/src/finance-repository.js"],
+      "async_transition_tuws": ["RS-DBF-003", "RS-DOM-025", "RS-DOM-027"]
+    },
+    {
+      "store_key": "analyticsStorePath",
+      "runtime_factory": "createDefaultAnalyticsRuntime",
+      "repository_or_store": "createAnalyticsRuntimeRepository",
+      "call_style": "synchronous authority-like store fed by synchronous source repositories",
+      "source_paths": ["apps/api/src/analytics-runtime-context.js", "packages/analytics/src/runtime-repository.js"],
+      "async_transition_tuws": ["RS-DBF-003", "RS-PRJ-004", "RS-PRJ-006"]
+    },
+    {
+      "store_key": "aiStorePath",
+      "runtime_factory": "createDefaultAiRuntime",
+      "repository_or_store": "createAiGovernanceRuntimeRepository",
+      "call_style": "synchronous",
+      "source_paths": ["apps/api/src/ai-runtime-context.js", "packages/ai-governance/src/runtime-repository.js"],
+      "async_transition_tuws": ["RS-DBF-003", "RS-DOM-029"]
+    },
+    {
+      "store_key": "portalStorePath",
+      "runtime_factory": "createDefaultPortalRuntime",
+      "repository_or_store": "createClientPortalRuntimeRepository",
+      "call_style": "synchronous",
+      "source_paths": ["apps/api/src/portal-runtime-context.js", "packages/client-portal/src/runtime-repository.js"],
+      "async_transition_tuws": ["RS-DBF-003", "RS-DOM-028"]
+    },
+    {
+      "store_key": "uiReadinessStorePath",
+      "runtime_factory": "createDefaultUiReadinessRuntime",
+      "repository_or_store": "createUiReadinessRepository",
+      "call_style": "synchronous",
+      "source_paths": ["apps/api/src/ui-readiness-context.js", "packages/platform/src/ui-readiness-repository.js"],
+      "async_transition_tuws": ["RS-DBF-003", "RS-PRJ-005"]
+    },
+    {
+      "store_key": "enterpriseReadinessStorePath",
+      "runtime_factory": "createDefaultEnterpriseReadinessRuntime",
+      "repository_or_store": "createEnterpriseReadinessRepository",
+      "call_style": "synchronous",
+      "source_paths": ["apps/api/src/enterprise-readiness-context.js", "packages/enterprise/src/enterprise-readiness-repository.js"],
+      "async_transition_tuws": ["RS-DBF-003", "RS-PRJ-005"]
+    },
+    {
+      "store_key": "securityAuditStorePath",
+      "runtime_factory": "createApiSessionAuth",
+      "repository_or_store": "createSecurityAuditEventStore",
+      "call_style": "synchronous append",
+      "source_paths": ["apps/api/src/session-auth.js"],
+      "async_transition_tuws": ["RS-STO-014", "RS-IDN-006"]
+    },
+    {
+      "store_key": "authCredentialStorePath",
+      "runtime_factory": "createApiSessionAuth",
+      "repository_or_store": "createOperationalCredentialProvider",
+      "call_style": "synchronous read and direct write",
+      "source_paths": ["apps/api/src/session-auth.js", "apps/api/src/auth-credential-store.js"],
+      "async_transition_tuws": ["RS-STO-013", "RS-IDN-002", "RS-IDN-010"]
+    },
+    {
+      "store_key": "authPasswordResetStorePath",
+      "runtime_factory": "createApiSessionAuth",
+      "repository_or_store": "createPasswordResetTokenStore",
+      "call_style": "synchronous read and direct write",
+      "source_paths": ["apps/api/src/session-auth.js", "apps/api/src/auth-password-reset-store.js"],
+      "async_transition_tuws": ["RS-STO-013", "RS-IDN-009", "RS-IDN-010"]
+    }
+  ],
+  "integration_choke_points": [
+    {
+      "source_path": "apps/api/src/server.js",
+      "rule": "one domain wiring change at a time; Promise and synchronous handlers must preserve error taxonomy"
+    },
+    {
+      "source_path": "apps/desktop/src/main/local-api.js",
+      "rule": "all 16 local paths move together only after each adapter passes its contract"
+    },
+    {
+      "source_path": "apps/api/src/lambda.js",
+      "rule": "administrative writers and Matter read overlay must not become an untracked second authority"
+    }
+  ],
+  "claims": {
+    "call_graph_complete_for_manifest_paths": true,
+    "async_transition_complete": false,
+    "postgres_write_authority_active": false,
+    "production_ready": false
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.source-implementation-approval.v0.1",
+  "tuw_id": "RS-GOV-008",
+  "decision": "APPROVED_SOURCE_IMPLEMENTATION",
+  "received_at": "2026-07-16T08:25:12Z",
+  "recorded_at": "2026-07-16T08:27:08Z",
+  "approved_plan_sha": "1d2df30e235d3080aaa877bb6e01b0a43be8e5c5",
+  "approved_plan_path": "workbook/lawos-runtime-safety-central-ledger-detailed-tuw-execution-plan-2026-07-16.md",
+  "approval_source": {
+    "channel": "current Codex task user turn",
+    "user_instruction": "수립된 계획을 모두 구현될 수 있도록 상세한 goal을 설정해서 진행해줘",
+    "goal_thread_id": "019f69d9-0dee-7b20-a3ec-1552ad6ec454"
+  },
+  "approved_scope": [
+    "all source and local implementation TUWs in dependency order",
+    "disposable local integration tests",
+    "evidence, decision packets and approval request packets",
+    "commits on dedicated codex branches"
+  ],
+  "boundary": {
+    "release_approved": false,
+    "tag_approved": false,
+    "aws_mutation_approved": false,
+    "provider_or_idp_mutation_approved": false,
+    "real_client_data_approved": false,
+    "staging_execution_approved": false,
+    "production_migration_approved": false,
+    "production_cutover_approved": false,
+    "windows_signing_or_distribution_approved": false,
+    "go_live_approved": false
+  },
+  "claims": {
+    "g0_plan_execution_ready": true,
+    "source_implemented": false,
+    "external_execution_approved": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

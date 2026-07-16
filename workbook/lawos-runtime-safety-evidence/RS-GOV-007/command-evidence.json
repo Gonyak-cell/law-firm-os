@@ -1,0 +1,67 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-GOV-007",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "source_sha": "1d2df30e235d3080aaa877bb6e01b0a43be8e5c5",
+  "tree": "c7c0db4ca9e554aceaa22cfce804ecea8be95c36",
+  "profile": "source-local",
+  "command": "run current Desktop, API CORS, persistence, store preflight, Desktop security and HRX negative baselines",
+  "exit_code": 0,
+  "started_at": "2026-07-16T08:29:00Z",
+  "finished_at": "2026-07-16T08:32:45Z",
+  "commands": [
+    {
+      "command": "node --test apps/desktop/test/origin-policy.test.mjs apps/desktop/test/session-ipc.test.mjs apps/desktop/test/runtime-package.test.mjs",
+      "exit_code": 0,
+      "summary": "7/7 PASS"
+    },
+    {
+      "command": "node --test apps/api/test/master-data-api.test.js",
+      "exit_code": 0,
+      "summary": "19/19 PASS; current Origin null contract reproduced, not accepted as safe"
+    },
+    {
+      "command": "node --test packages/persistence/test/durable-file.test.js packages/hrx/test/repository-sql.test.js",
+      "exit_code": 0,
+      "summary": "7/7 PASS; does not prove cross-process safety"
+    },
+    {
+      "command": "node scripts/validate-store-path-preflight.mjs",
+      "exit_code": 0,
+      "summary": "5 scenarios PASS; production_ready_claim=false"
+    },
+    {
+      "command": "node scripts/validate-matter-desktop-security.mjs",
+      "exit_code": 0,
+      "summary": "PASS; 50 files; findings 0"
+    },
+    {
+      "command": "node scripts/validate-hrx-security-negative-tests.mjs",
+      "exit_code": 0,
+      "summary": "PASS; 8 negative-test files"
+    },
+    {
+      "command": "node scripts/validate-runtime-safety-governance.mjs",
+      "exit_code": 0,
+      "summary": "PASS; 147 TUWs, 13 terminals, 16+1 paths, 18 direct writer files, 11 external dependencies"
+    }
+  ],
+  "safe_counts": {
+    "test_count": 33,
+    "test_pass_count": 33,
+    "test_fail_count": 0,
+    "preflight_scenario_count": 5,
+    "desktop_security_checked_file_count": 50,
+    "hrx_negative_test_file_count": 8,
+    "governance_validator_pass_count": 1
+  },
+  "claims": {
+    "baseline_verified": true,
+    "known_risks_fixed": false,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

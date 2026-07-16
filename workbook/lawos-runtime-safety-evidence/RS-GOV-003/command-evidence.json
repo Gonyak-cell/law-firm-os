@@ -1,0 +1,31 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-GOV-003",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "source_sha": "1d2df30e235d3080aaa877bb6e01b0a43be8e5c5",
+  "tree": "c7c0db4ca9e554aceaa22cfce804ecea8be95c36",
+  "profile": "source-local",
+  "command": "scan node:fs writers and writeJsonFileDurably users under apps/api/src and packages; compare with STORE_PATH_MANIFEST",
+  "exit_code": 0,
+  "started_at": "2026-07-16T08:27:20Z",
+  "finished_at": "2026-07-16T08:31:00Z",
+  "safe_counts": {
+    "required_manifest_path_count": 16,
+    "derived_path_count": 1,
+    "direct_fs_writer_file_count": 18,
+    "durable_writer_consumer_count": 4,
+    "unclassified_writer_count": 0
+  },
+  "artifacts": [
+    "workbook/lawos-runtime-safety-evidence/RS-GOV-003/writer-inventory.json"
+  ],
+  "claims": {
+    "writer_inventory_complete_for_current_scan": true,
+    "all_writers_safe": false,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}
