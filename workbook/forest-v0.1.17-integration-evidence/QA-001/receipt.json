@@ -1,0 +1,56 @@
+{
+  "schema_version": "lawos.forest.integration.qa001.v1",
+  "tuw_id": "QA-001",
+  "generated_at": "2026-07-15T22:13:14Z",
+  "verdict": "PASS",
+  "candidate_ref": "forest-v0.1.17-integration-candidate-4c81d861",
+  "integration_sha": "4c81d861693472af48a680e5757b352bb9945b9b",
+  "execution_entry_sha": "443e833c90432b3d6414ef730240c83b31c90715",
+  "execution_exit_sha": "443e833c90432b3d6414ef730240c83b31c90715",
+  "execution_tree": "c3f912cc4882f4491510af1b0726b86505c02b9a",
+  "candidate_product_diff_count": 0,
+  "node_version": "v26.0.0",
+  "npm_version": "11.12.1",
+  "package_lock_sha256": "17822d16955ad81780e489795791d5252cfefeb56bf16120fc7c8865ec938972",
+  "dependency_source": "/private/tmp/lawos-forest-v016-release/node_modules",
+  "dependency_link_removed": true,
+  "suites": [
+    { "id": "hrx-domain", "files": 111, "passed": 571, "failed": 0, "skipped": 0, "duration_ms": 7545.776583 },
+    { "id": "authz-runtime-auth", "files": 15, "passed": 159, "failed": 0, "skipped": 0, "duration_ms": 1957.044292 },
+    { "id": "api-package-defined", "files": 88, "passed": 389, "failed": 0, "skipped": 0, "duration_ms": 2222842.843125 },
+    { "id": "api-nested", "files": 14, "passed": 42, "failed": 0, "skipped": 0, "duration_ms": 894.366584 }
+  ],
+  "totals": { "files": 228, "passed": 1161, "failed": 0, "skipped": 0 },
+  "validators": {
+    "passed": 8,
+    "failed": 0,
+    "route_policy_count": 159,
+    "leave_tuws": "49/49",
+    "leave_axes": "7/7",
+    "payroll_tuws": "61/61",
+    "payroll_axes": "8/8",
+    "port_required": 31,
+    "port_retained": 26,
+    "port_canonical_replacements": 5,
+    "port_unimplemented": 0
+  },
+  "root_checkout_fingerprint": "02751feb70e89afbfb00acf1dac14092cdef0c071be736a55aa6c6982b60d93c",
+  "canonical_pid": 55090,
+  "external_mutations": {
+    "production_write": false,
+    "provider_bank_tax_write": false,
+    "production_traffic_change": false,
+    "tag_push": false,
+    "main_update": false,
+    "deployment": false,
+    "go_live": false
+  },
+  "boundaries": {
+    "aws_live_lambda_state_verified": false,
+    "aws_boundary_tuw": "MI-001",
+    "external_payroll_gate": "BLOCKED",
+    "browser_verified": false,
+    "macos_formal_distribution_verified": false,
+    "windows_native_authenticode_verified": false
+  }
+}

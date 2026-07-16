@@ -1,0 +1,400 @@
+{
+  "schema_version": "lawos.upl_e07.matter_people_document_graph_proof.v2",
+  "generated_at": "2026-07-03T09:21:07.742Z",
+  "tuw_ids": [
+    "UPL-E-07"
+  ],
+  "pass": true,
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "route": "/api/hrx/legal-people/matter-graph/traverse?matter_id=matter-001&depth=2",
+  "redaction_route": "/api/hrx/legal-people/matter-graph/traverse?matter_id=matter_lcx_001&depth=2",
+  "server_base_url": "http://127.0.0.1:59727",
+  "privileged_readback": {
+    "status": 200,
+    "table_source": "runtime_repository_plus_fixture",
+    "node_counts": {
+      "document": 2,
+      "matter": 1,
+      "person": 1
+    },
+    "relationship_types": [
+      "matter_document",
+      "matter_person",
+      "person_document"
+    ],
+    "runtime_relationship_count": 5,
+    "path_count": 10,
+    "audit_summary": {
+      "node_count": 4,
+      "relationship_count": 5,
+      "path_count": 10,
+      "raw_document_text_included": false,
+      "provider_payload_included": false,
+      "relationship_table_source": "runtime_repository_plus_fixture",
+      "production_ready_claim": false
+    },
+    "claim_boundary": {
+      "matter_people_document_relationship_table_complete": true,
+      "traversal_api_complete": true,
+      "raw_document_text_included": false,
+      "provider_payload_included": false,
+      "production_ready": false,
+      "go_live_approved": false,
+      "enterprise_trust_approved": false
+    }
+  },
+  "restricted_readback": {
+    "status": 200,
+    "restricted_relationship_count": 3,
+    "serialized_contains_expert_document_id": false,
+    "serialized_contains_raw_document_body": false
+  },
+  "checks": [
+    {
+      "id": "e07-unsigned-forged-hrx-headers-blocked",
+      "passed": true,
+      "evidence": {
+        "status": 401,
+        "safe_error_codes": [
+          "AUTH_SESSION_REQUIRED"
+        ]
+      }
+    },
+    {
+      "id": "e07-api-route-200",
+      "passed": true,
+      "evidence": {
+        "runtimeRoute": "/api/hrx/legal-people/matter-graph/traverse?matter_id=matter-001&depth=2",
+        "fixtureRoute": "/api/hrx/legal-people/matter-graph/traverse?matter_id=matter_lcx_001&depth=2"
+      }
+    },
+    {
+      "id": "e07-relationship-table-kind",
+      "passed": true,
+      "evidence": "matter_people_document_relationship_table"
+    },
+    {
+      "id": "e07-runtime-repository-source",
+      "passed": true,
+      "evidence": "runtime_repository_plus_fixture"
+    },
+    {
+      "id": "e07-matter-people-document-nodes",
+      "passed": true,
+      "evidence": {
+        "document": 2,
+        "matter": 1,
+        "person": 1
+      }
+    },
+    {
+      "id": "e07-required-relationship-types",
+      "passed": true,
+      "evidence": [
+        "matter_document",
+        "matter_person",
+        "person_document"
+      ]
+    },
+    {
+      "id": "e07-runtime-relationship-source-refs",
+      "passed": true,
+      "evidence": [
+        {
+          "schema_version": "lawos.upl_e07.matter_people_document_relationship.v1",
+          "tenant_id": "tenant_amic_matter_vault",
+          "relationship_id": "mpd_rt_matter_document_matter-001_doc-001",
+          "relationship_type": "matter_document",
+          "from_type": "matter",
+          "from_id": "matter-001",
+          "to_type": "document",
+          "to_id": "doc-001",
+          "status": "active",
+          "source_refs": [
+            "HrxMatterAssignment:matter-001:emp_amic_ytkim",
+            "HrxDocument:doc-001"
+          ],
+          "permission_scope": "hrx_document_metadata",
+          "review_required": false,
+          "audit_ref": "audit_mpd_runtime_matter_document_matter-001_doc-001",
+          "access_state": "visible",
+          "redacted_fields": [],
+          "raw_document_text_included": false,
+          "provider_payload_included": false
+        },
+        {
+          "schema_version": "lawos.upl_e07.matter_people_document_relationship.v1",
+          "tenant_id": "tenant_amic_matter_vault",
+          "relationship_id": "mpd_rt_matter_document_matter-001_doc-003",
+          "relationship_type": "matter_document",
+          "from_type": "matter",
+          "from_id": "matter-001",
+          "to_type": "document",
+          "to_id": "doc-003",
+          "status": "active",
+          "source_refs": [
+            "HrxMatterAssignment:matter-001:emp_amic_ytkim",
+            "HrxDocument:doc-003"
+          ],
+          "permission_scope": "hrx_document_metadata",
+          "review_required": false,
+          "audit_ref": "audit_mpd_runtime_matter_document_matter-001_doc-003",
+          "access_state": "visible",
+          "redacted_fields": [],
+          "raw_document_text_included": false,
+          "provider_payload_included": false
+        },
+        {
+          "schema_version": "lawos.upl_e07.matter_people_document_relationship.v1",
+          "tenant_id": "tenant_amic_matter_vault",
+          "relationship_id": "mpd_rt_matter_person_matter-001_emp_amic_ytkim",
+          "relationship_type": "matter_person",
+          "from_type": "matter",
+          "from_id": "matter-001",
+          "to_type": "person",
+          "to_id": "emp_amic_ytkim",
+          "status": "active",
+          "source_refs": [
+            "HrxMatterAssignment:matter-001:emp_amic_ytkim"
+          ],
+          "permission_scope": "matter_assignment_reference",
+          "review_required": false,
+          "audit_ref": "audit_mpd_runtime_assignment_matter-001_emp_amic_ytkim",
+          "access_state": "visible",
+          "redacted_fields": [],
+          "raw_document_text_included": false,
+          "provider_payload_included": false
+        },
+        {
+          "schema_version": "lawos.upl_e07.matter_people_document_relationship.v1",
+          "tenant_id": "tenant_amic_matter_vault",
+          "relationship_id": "mpd_rt_person_document_emp_amic_ytkim_doc-001",
+          "relationship_type": "person_document",
+          "from_type": "person",
+          "from_id": "emp_amic_ytkim",
+          "to_type": "document",
+          "to_id": "doc-001",
+          "status": "active",
+          "source_refs": [
+            "HrxDocument:doc-001"
+          ],
+          "permission_scope": "hrx_document_metadata",
+          "review_required": false,
+          "audit_ref": "audit_mpd_runtime_document_doc-001",
+          "access_state": "visible",
+          "redacted_fields": [],
+          "raw_document_text_included": false,
+          "provider_payload_included": false
+        },
+        {
+          "schema_version": "lawos.upl_e07.matter_people_document_relationship.v1",
+          "tenant_id": "tenant_amic_matter_vault",
+          "relationship_id": "mpd_rt_person_document_emp_amic_ytkim_doc-003",
+          "relationship_type": "person_document",
+          "from_type": "person",
+          "from_id": "emp_amic_ytkim",
+          "to_type": "document",
+          "to_id": "doc-003",
+          "status": "active",
+          "source_refs": [
+            "HrxDocument:doc-003"
+          ],
+          "permission_scope": "hrx_document_metadata",
+          "review_required": false,
+          "audit_ref": "audit_mpd_runtime_document_doc-003",
+          "access_state": "visible",
+          "redacted_fields": [],
+          "raw_document_text_included": false,
+          "provider_payload_included": false
+        }
+      ]
+    },
+    {
+      "id": "e07-runtime-matter-person-document-path",
+      "passed": true,
+      "evidence": [
+        {
+          "from": {
+            "node_type": "matter",
+            "node_id": "matter-001"
+          },
+          "to": {
+            "node_type": "document",
+            "node_id": "doc-001"
+          },
+          "depth": 1,
+          "relationship_ids": [
+            "mpd_rt_matter_document_matter-001_doc-001"
+          ]
+        },
+        {
+          "from": {
+            "node_type": "matter",
+            "node_id": "matter-001"
+          },
+          "to": {
+            "node_type": "document",
+            "node_id": "doc-003"
+          },
+          "depth": 1,
+          "relationship_ids": [
+            "mpd_rt_matter_document_matter-001_doc-003"
+          ]
+        },
+        {
+          "from": {
+            "node_type": "matter",
+            "node_id": "matter-001"
+          },
+          "to": {
+            "node_type": "person",
+            "node_id": "emp_amic_ytkim"
+          },
+          "depth": 1,
+          "relationship_ids": [
+            "mpd_rt_matter_person_matter-001_emp_amic_ytkim"
+          ]
+        },
+        {
+          "from": {
+            "node_type": "matter",
+            "node_id": "matter-001"
+          },
+          "to": {
+            "node_type": "matter",
+            "node_id": "matter-001"
+          },
+          "depth": 2,
+          "relationship_ids": [
+            "mpd_rt_matter_document_matter-001_doc-001",
+            "mpd_rt_matter_document_matter-001_doc-001"
+          ]
+        },
+        {
+          "from": {
+            "node_type": "matter",
+            "node_id": "matter-001"
+          },
+          "to": {
+            "node_type": "person",
+            "node_id": "emp_amic_ytkim"
+          },
+          "depth": 2,
+          "relationship_ids": [
+            "mpd_rt_matter_document_matter-001_doc-001",
+            "mpd_rt_person_document_emp_amic_ytkim_doc-001"
+          ]
+        },
+        {
+          "from": {
+            "node_type": "matter",
+            "node_id": "matter-001"
+          },
+          "to": {
+            "node_type": "matter",
+            "node_id": "matter-001"
+          },
+          "depth": 2,
+          "relationship_ids": [
+            "mpd_rt_matter_document_matter-001_doc-003",
+            "mpd_rt_matter_document_matter-001_doc-003"
+          ]
+        },
+        {
+          "from": {
+            "node_type": "matter",
+            "node_id": "matter-001"
+          },
+          "to": {
+            "node_type": "person",
+            "node_id": "emp_amic_ytkim"
+          },
+          "depth": 2,
+          "relationship_ids": [
+            "mpd_rt_matter_document_matter-001_doc-003",
+            "mpd_rt_person_document_emp_amic_ytkim_doc-003"
+          ]
+        },
+        {
+          "from": {
+            "node_type": "matter",
+            "node_id": "matter-001"
+          },
+          "to": {
+            "node_type": "matter",
+            "node_id": "matter-001"
+          },
+          "depth": 2,
+          "relationship_ids": [
+            "mpd_rt_matter_person_matter-001_emp_amic_ytkim",
+            "mpd_rt_matter_person_matter-001_emp_amic_ytkim"
+          ]
+        },
+        {
+          "from": {
+            "node_type": "matter",
+            "node_id": "matter-001"
+          },
+          "to": {
+            "node_type": "document",
+            "node_id": "doc-001"
+          },
+          "depth": 2,
+          "relationship_ids": [
+            "mpd_rt_matter_person_matter-001_emp_amic_ytkim",
+            "mpd_rt_person_document_emp_amic_ytkim_doc-001"
+          ]
+        },
+        {
+          "from": {
+            "node_type": "matter",
+            "node_id": "matter-001"
+          },
+          "to": {
+            "node_type": "document",
+            "node_id": "doc-003"
+          },
+          "depth": 2,
+          "relationship_ids": [
+            "mpd_rt_matter_person_matter-001_emp_amic_ytkim",
+            "mpd_rt_person_document_emp_amic_ytkim_doc-003"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e07-restricted-redaction",
+      "passed": true,
+      "evidence": {
+        "restricted_edge_count": 3
+      }
+    },
+    {
+      "id": "e07-no-raw-document-body",
+      "passed": true,
+      "evidence": {
+        "node_count": 4,
+        "relationship_count": 5,
+        "path_count": 10,
+        "raw_document_text_included": false,
+        "provider_payload_included": false,
+        "relationship_table_source": "runtime_repository_plus_fixture",
+        "production_ready_claim": false
+      }
+    },
+    {
+      "id": "e07-no-production-claim",
+      "passed": true,
+      "evidence": {
+        "matter_people_document_relationship_table_complete": true,
+        "traversal_api_complete": true,
+        "raw_document_text_included": false,
+        "provider_payload_included": false,
+        "production_ready": false,
+        "go_live_approved": false,
+        "enterprise_trust_approved": false
+      }
+    }
+  ]
+}

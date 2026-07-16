@@ -1,0 +1,45 @@
+{
+  "schema_version": "law-firm-os.client-matter-dashboard-r1.v1",
+  "generated_at": "2026-07-09T04:45:44.472Z",
+  "verdict": "PASS",
+  "app_bundle": "apps/desktop/dist/mac/matter.app",
+  "desktop_user_data_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-dashboard-r1-qa-v13uBW",
+  "selected_rows": {
+    "client": "귀한사람들사용 중미지정없음귀한사람들/Advisory/retainer",
+    "matter": "귀한사람들/Advisory/retainer귀한사람들귀한사람들/Advisory/retainer개시 중시작 전"
+  },
+  "dashboards": {
+    "client": {
+      "kind": "client",
+      "root_present": true,
+      "kpis_present": true,
+      "queue_present": true,
+      "table_present": true,
+      "visible_text": "HOME CLIENT MATTER PEOPLE VAULT PORTAL / 새로 만들기 Client 관리 대시보드 목록 계정 정보 담당자 수임 전 업무 운영 서지원 대표변호사 Client 대시보드 활성 Client 99 2개 계정 / 2명 담당자 수임 전 기회 1 잠재 계정 1건 검토 대기 100 인테이크와 담당자 확인 청구/미수 위험 1 연결 Matter 148건 우선 확인 건수 대표 항목 이동 메뉴 담당자 미지정 99 귀한사람들 목록 Matter 연결 없음 1 NEPA 목록 수임 전 기회 1 Opportunity Opportunity 인테이크 대기 1 상담 상담 청구/미수 확인 1 invoice_cmp_g7_seed 청구 최근 접촉 유형 상태 표시 활동 1 미팅 사용 중 표시 가능 구분 건수 상태 Client 99 운영 중 Opportunity 1 확인 필요 상담 1 검토 중 송장 1 청구 확인 미수금 0 정상 Client 진행 상태 대표 당사자 구성원 연결된 Matter 귀한사람들 사용 중 미지정 없음 귀한사람들/Advisory/retainer 그래비티랩스 사용 중 미지정 없음 그래비티랩스/LIT/CIV/특허권침해금지, 그래비티랩스/Advisory/유권해석 그로브 사용 중 미지정 없음 그로브/LIT/CIV/제소전화해 금홍 사용 중 미지정 없음 금홍/LIT/CIV/가압류, 금홍/LIT/CIV/가압류이의 김정 사용 중 미지정 없음 김정/LIT/CIV/중개보수청구 김지은 사용 중 미지정 없음 김지은/LIT/CIV/대여금등반환청구 동림산업 사용 중 미지정 없음 동림산업/LIT/CIV/건물철거청구 동문시장 사용 중 미지정 없음 동문시장/Dispute/임대차계약갱신및차임분쟁 라이트팜텍 사용 중 미지정 없음 라이트팜텍/LIT/CIV/용역대금청구 매크로머신 사용 중 미지정 없음 매크로머신/LIT/CIV/주주총회결의취소, 매크로머신/LIT/CIV/상환금청구 외 5건",
+      "visible_text_chars": 939,
+      "text_sample": "HOME CLIENT MATTER PEOPLE VAULT PORTAL / 새로 만들기 Client 관리 대시보드 목록 계정 정보 담당자 수임 전 업무 운영 서지원 대표변호사 Client 대시보드 활성 Client 99 2개 계정 / 2명 담당자 수임 전 기회 1 잠재 계정 1건 검토 대기 100 인테이크와 담당자 확인 청구/미수 위험 1 연결 Matter 148건 우선 확인 건수 대표 항목 이동 메뉴 담당자 미지정 99 귀한사람들 목록 Matter 연결 없음 1 NEPA 목록 수임 전 기회 1 Opportunity Opportunity 인테이크 대기 1 상담 상담 청구/미수 확인 1 invoice_cmp_g7_seed 청구 최근 접촉 유형 상태 표시 활동 1 미팅 사용 중 표시 가능 구분 건수 상태 Client 99 운영 중 Opportunity 1 확인 필요 상담 1 검토 중 송장 1 청구 확인 미수금 0 정상 Client 진행 상태 대표 당사자 구성원 연결된 Matter 귀한사람들 사용 중 미지정 없음 귀한사람들/Advisory/retainer 그래비티랩스 사용 중 미지정 없음 그래비티랩스/LIT/CIV/특허권침해금지, 그래비티랩스/Advisory/유권해석 그로브 사용 중 미지정 없음 그로브/LIT/CIV/제소전화해 금홍 사용 중 미지정 없음 금홍/LIT/CIV/가압류, 금홍/LIT/CIV/가압류이의 김정 사용 중 미지정 없음 김",
+      "old_client_overview_present": false,
+      "matter_command_loading_visible": false,
+      "horizontal_overflow": false
+    },
+    "matter": {
+      "kind": "matter",
+      "root_present": true,
+      "kpis_present": true,
+      "queue_present": true,
+      "table_present": true,
+      "visible_text": "HOME CLIENT MATTER PEOPLE VAULT PORTAL / 새로 만들기 Matter 사건 운영 대시보드 사건 목록 신규 사건 수임 진행 종결 처리 보관 사건 업무 진행 문서 소통 정산 리포트 서지원 대표변호사 Matter 대시보드 사건 목록 업무 보드 일정 외부 일정 사건 문서 대시보드 사건 운영 진행 중 Matter 148 전체 148건 7일 내 기한 0 오늘 0건 담당자 미지정 148 팀 확인 필요 청구/WIP 확인 0 위험 표시 0건 우선 확인 건수 대표 Matter 이동 메뉴 오늘 기한 0 없음 일정 7일 내 기한 0 없음 일정 담당자 미지정 148 귀한사람들/Advisory/retainer 팀 청구/WIP 확인 0 없음 청구 Vault 미연결 148 귀한사람들/Advisory/retainer 사건 문서 위험 표시 0 없음 사건 위험 상태 건수 업무 개시 중 108 수임 진행 진행 중 40 업무 진행 검토 필요 0 위험 확인 종료 0 종결 처리 Matter Client 기한 위험 귀한사람들/Advisory/retainer 귀한사람들 기한 없음 표준 그래비티랩스/LIT/CIV/특허권침해금지 그래비티랩스 기한 없음 표준 그로브/LIT/CIV/제소전화해 그로브 기한 없음 표준 금홍/LIT/CIV/가압류 금홍 기한 없음 표준 김정/LIT/CIV/중개보수청구 김정 기한 없음 표준 Matter Client 제목 진행 상태 청구 상태 귀한사람들/Advisory/retainer 귀한사람들 귀한사람들/Advisory/retainer 개시 중 시작 전 그래비티랩스/LIT/CIV/특허권침해금지 그래비티랩스 그래비티랩스/LIT/CIV/특허권침해금지 개시 중 시작 전 그로브/LIT/CIV/제소전화해 그로브 그로브/LIT/CIV/제소전화해 개시 중 시작 전 금홍/LIT/CIV/가압류 금홍 금홍/LIT/CIV/가압류 개시 중 시작 전 김정/LIT/CIV/중개보수청구 김정 김정/LIT/CIV/중개보수청구 개시 중 시작 전 김지은/LIT/CIV/대여금등반환청구 김지은 김지은/LIT/CIV/대여금등반환청구 개시 중 시작 전 동림산업/LIT/CIV/건물철거청구 동림산업 동림산업/LIT/CIV/건물철거청구 개시 중 시작 전 동문시장/Dispute/임대차계약갱신및차임분쟁 동문시장 동문시장/Dispute/임대차계약갱신및차임분쟁 개시 중 시작 전",
+      "visible_text_chars": 1152,
+      "text_sample": "HOME CLIENT MATTER PEOPLE VAULT PORTAL / 새로 만들기 Matter 사건 운영 대시보드 사건 목록 신규 사건 수임 진행 종결 처리 보관 사건 업무 진행 문서 소통 정산 리포트 서지원 대표변호사 Matter 대시보드 사건 목록 업무 보드 일정 외부 일정 사건 문서 대시보드 사건 운영 진행 중 Matter 148 전체 148건 7일 내 기한 0 오늘 0건 담당자 미지정 148 팀 확인 필요 청구/WIP 확인 0 위험 표시 0건 우선 확인 건수 대표 Matter 이동 메뉴 오늘 기한 0 없음 일정 7일 내 기한 0 없음 일정 담당자 미지정 148 귀한사람들/Advisory/retainer 팀 청구/WIP 확인 0 없음 청구 Vault 미연결 148 귀한사람들/Advisory/retainer 사건 문서 위험 표시 0 없음 사건 위험 상태 건수 업무 개시 중 108 수임 진행 진행 중 40 업무 진행 검토 필요 0 위험 확인 종료 0 종결 처리 Matter Client 기한 위험 귀한사람들/Advisory/retainer 귀한사람들 기한 없음 표준 그래비티랩스/LIT/CIV/특허권침해금지 그래비티랩스 기한 없음 표준 그로브/LIT/CIV/제소전화해 그로브 기한 없음 표준 금홍/LIT/CIV/가압류 금홍 기한 없음 표준 김정/LIT/CIV/중개보수청구 김정 기한 없음 표준 Matter Client 제목 진행 상태 ",
+      "old_client_overview_present": false,
+      "matter_command_loading_visible": false,
+      "horizontal_overflow": false
+    }
+  },
+  "screenshots": {
+    "client_dashboard": "artifacts/manual-qa/client-matter-dashboard-r1-2026-07-09/client-dashboard.png",
+    "client_overlay": "artifacts/manual-qa/client-matter-dashboard-r1-2026-07-09/client-overlay.png",
+    "matter_dashboard": "artifacts/manual-qa/client-matter-dashboard-r1-2026-07-09/matter-dashboard.png",
+    "matter_overlay": "artifacts/manual-qa/client-matter-dashboard-r1-2026-07-09/matter-overlay.png"
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "schema_version": "law-firm-os.manual-qa.upl-e04-smart-alerts.local_receipt.v0.1",
+  "generated_at": "2026-07-03T09:59:39.009Z",
+  "tuw_id": "UPL-E-04",
+  "scope": "Local signed-session taskpane and API proof for warning-only Smart Alerts. External Outlook web/new desktop runtime is not claimed.",
+  "screenshot_path": "artifacts/manual-qa/screenshots/upl-e04-smart-alerts-local-proof-2026-07-03.png",
+  "external_receipt_boundary": {
+    "entra_admin_consent_receipt_present": false,
+    "outlook_web_smoke_receipt_present": false,
+    "outlook_new_desktop_smoke_receipt_present": false,
+    "provider_runtime_executed": false,
+    "production_write_claim": false,
+    "owner_external_receipt_required_for_c09": true
+  },
+  "browser_request_observation": [
+    {
+      "method": "POST",
+      "url_path": "/api/outlook/smart-alerts/evaluate",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "post_data_sha256": "8ee96590fc2bd904864aaabe045e16e0b14609b399f959f40c3ef4726a7a12ac"
+    },
+    {
+      "method": "POST",
+      "url_path": "/api/outlook/smart-alerts/evaluate",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "post_data_sha256": "d21b981974164b7368ab60779f76ec023fd535111826c567e5d5825d61663d40"
+    }
+  ],
+  "direct_api_evaluations": {
+    "confidential_external": {
+      "outcome": "evaluated",
+      "warning_count": 1,
+      "warning_ids": [
+        "external-recipient-confidential-attachment"
+      ],
+      "send_blocked": false,
+      "provider_runtime_executed": false,
+      "production_ready_claim": false,
+      "raw_body_included": false,
+      "attachment_bytes_included": false,
+      "credential_material_included": false,
+      "message_hashes": {
+        "body_preview_sha256": "a1a5510fd7abf7ddf41e9b07b106ad9cee9b0a67065153bde57964d20b2fb63a",
+        "recipients_sha256": "cead93be8c0acb939633781813a05579614ff8ec10b5ed7edd12e3c95e6d36e6",
+        "attachment_metadata_sha256": "e5e5eb8643442cae7d8bdf444c05a9e225802148d1b9841d2d81854bc8f2479c"
+      }
+    },
+    "missing_attachment": {
+      "outcome": "evaluated",
+      "warning_count": 1,
+      "warning_ids": [
+        "missing-mentioned-attachment"
+      ],
+      "send_blocked": false,
+      "provider_runtime_executed": false,
+      "production_ready_claim": false,
+      "raw_body_included": false,
+      "attachment_bytes_included": false,
+      "credential_material_included": false,
+      "message_hashes": {
+        "body_preview_sha256": "ca49957003e01c9a280012a1e487106035dc85696100d05af3f33e869d623e68",
+        "recipients_sha256": "cbdeed21a9d9d1e744ef2a7d414d3a4ba60fe425722099ef87cd832dd73f0a8a",
+        "attachment_metadata_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    "clean_message": {
+      "outcome": "evaluated",
+      "warning_count": 0,
+      "warning_ids": [],
+      "send_blocked": false,
+      "provider_runtime_executed": false,
+      "production_ready_claim": false,
+      "raw_body_included": false,
+      "attachment_bytes_included": false,
+      "credential_material_included": false,
+      "message_hashes": {
+        "body_preview_sha256": "c05a422f60195eaf403d8f92740ac8bf8ffc4e306ff190d6f89eaae89f619bcc",
+        "recipients_sha256": "cbdeed21a9d9d1e744ef2a7d414d3a4ba60fe425722099ef87cd832dd73f0a8a",
+        "attachment_metadata_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    "forged_legacy_header": {
+      "status": 401,
+      "safe_error_codes": [
+        "AUTH_SESSION_REQUIRED"
+      ],
+      "request_hash": "c1fde2b8a2b905d27a7a62e1a7958ba69aed7a2590d709cbee6f8dbcb388c609",
+      "response_hash": "adf07967ade4b955b9a4c6a4b95b0d17c7c1c236f5e92cb6da91c068d6fef2d8"
+    }
+  },
+  "request_response_hashes": {
+    "confidential_external_request": "edfc69975aac2cf1092fd68146edd3650cfe8229058b8543eb690a2036534ebe",
+    "confidential_external_response": "7f55a6060a279cfdef3be62311398a25f2ba71db2c94d71e9d4160a8f17ccb15",
+    "missing_attachment_request": "bda1d454bd418da9ac45a4f5d920087f85348387c31c26d5cd0580d10f01a20f",
+    "missing_attachment_response": "50e0bd77adf031aafe9115a33e5160e723e21686ba5187c508b5a99d5ab34d53",
+    "clean_message_request": "eb316fd71a60838971e3342864f3713d0ca768dce219275cdd2faca33b87cf23",
+    "clean_message_response": "108471566293a74a6f8dce2701f292e03672e96a988e0a60afe8e0ad1571c3b0"
+  },
+  "secret_material_included": false,
+  "raw_body_included": false,
+  "attachment_bytes_included": false,
+  "production_ready_claim": false,
+  "checks": [
+    {
+      "id": "e04-taskpane-warning-visible",
+      "passed": true
+    },
+    {
+      "id": "e04-signed-session-authorization-observed",
+      "passed": true
+    },
+    {
+      "id": "e04-legacy-permission-context-not-sent",
+      "passed": true
+    },
+    {
+      "id": "e04-confidential-external-warning-only",
+      "passed": true
+    },
+    {
+      "id": "e04-missing-attachment-warning-only",
+      "passed": true
+    },
+    {
+      "id": "e04-clean-message-no-warning",
+      "passed": true
+    },
+    {
+      "id": "e04-forged-legacy-header-blocked",
+      "passed": true
+    },
+    {
+      "id": "e04-no-raw-body-or-attachment-bytes-in-receipt",
+      "passed": true
+    }
+  ],
+  "pass": true
+}

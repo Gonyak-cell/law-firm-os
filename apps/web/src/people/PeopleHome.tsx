@@ -1,12 +1,22 @@
 import React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import heroPeopleArchitecture from "../assets/heroes/hero-people-architecture.jpg";
+import { ForestHero } from "../components/ForestHero.jsx";
 import { fetchHrxPeopleOverview } from "./hrxApiClient.ts";
 import { EmployeeList } from "./employees/EmployeeList.tsx";
 import { EmployeeProfile } from "./employees/EmployeeProfile.tsx";
 import { PeopleWorkforceDirectory } from "./employees/PeopleWorkforceDirectory.tsx";
 import { HRDocumentWorkspace } from "./documents/HRDocumentWorkspace.tsx";
 import { LeaveRequestPage } from "./leave/LeaveRequestPage.tsx";
+import { LeaveApprovalQueue } from "./leave/LeaveApprovalQueue.tsx";
+import { LeaveTypeSettingsPage } from "./leave/LeaveTypeSettingsPage.tsx";
+import { LeaveAccrualAutoPage } from "./leave/LeaveAccrualAutoPage.tsx";
+import { LeaveAccrualManualPage } from "./leave/LeaveAccrualManualPage.tsx";
+import { LeaveUsagePage } from "./leave/LeaveUsagePage.tsx";
+import { LeaveTerminationPage } from "./leave/LeaveTerminationPage.tsx";
+import { LeavePromotionPage } from "./leave/LeavePromotionPage.tsx";
 import { ManagerApprovalQueue } from "./approvals/ManagerApprovalQueue.tsx";
 import { RecruitingPipeline } from "./recruiting/RecruitingPipeline.tsx";
 import { CandidatePortal } from "../candidate/CandidatePortal.tsx";
@@ -16,8 +26,11 @@ import { LifecycleBoard } from "./lifecycle/LifecycleBoard.tsx";
 import { HRAnalytics } from "./analytics/HRAnalytics.tsx";
 import { HRAIAssistant } from "./ai/HRAIAssistant.tsx";
 import { PayrollBoundaryPanel } from "./payroll/PayrollBoundaryPanel.tsx";
+import { PayrollStatementWorkspace } from "./payroll/PayrollStatementWorkspace.tsx";
 import { PermissionAdminPanel } from "./admin/PermissionAdminPanel.jsx";
 import { LegalPeopleWorkspace } from "./legal/LegalPeopleWorkspace.tsx";
+import { HrxRiskDashboard } from "./security/HrxRiskDashboard.tsx";
+import { AttendanceWorkspace } from "./attendance/AttendanceWorkspace.tsx";
 import { PEOPLE_SECTION_IDS, getPeopleFeatureBySection } from "./peopleFeatureCatalog.js";
 
 const LEGACY_LEGAL_PEOPLE_SECTIONS = [
@@ -37,14 +50,24 @@ const HANDLED_PEOPLE_SECTIONS = new Set([
   "people-documents",
   "people-certificates",
   "people-leave",
+  "people-leave-requests",
+  "people-leave-types",
+  "people-leave-accrual-auto",
+  "people-leave-accrual-manual",
+  "people-leave-usage",
+  "people-leave-termination",
+  "people-annual-leave-notices",
   "people-approvals",
   "people-recruiting",
   "people-lifecycle",
   "people-policy",
   "people-audit",
   "people-analytics",
+  "people-risk",
+  "people-attendance-records",
   "people-ai",
   "people-payroll",
+  "people-pay-statement",
   "people-admin"
 ]);
 
@@ -58,7 +81,26 @@ const EXTERNAL_SCHEDULE_TYPES = [
   { place: "관청", work: "인허가, 민원, 자료 제출", fields: "기관명, 업무 유형, 접수번호" }
 ];
 
-function PeopleFeatureStatePanel({ feature }) {
+type PeopleFeature = {
+  section: string;
+  groupLabel: string;
+  label: string;
+  summary: string;
+  state: string;
+  stateMeta: {
+    label: string;
+    description: string;
+  };
+  capabilities: string[];
+};
+
+type PeopleOverviewState = {
+  kind?: string;
+  metrics?: Record<string, unknown>;
+  [key: string]: unknown;
+};
+
+function PeopleFeatureStatePanel({ feature }: { feature: PeopleFeature }) {
   const stateMeta = feature.stateMeta;
   const isExternalSchedule = feature.section === "people-work-schedule-external";
 
@@ -77,7 +119,7 @@ function PeopleFeatureStatePanel({ feature }) {
         <div className="people-feature-section">
           <h3>반영할 기능</h3>
           <ul>
-            {feature.capabilities.map((capability) => (
+            {feature.capabilities.map((capability: string) => (
               <li key={capability}>{capability}</li>
             ))}
           </ul>
@@ -85,7 +127,7 @@ function PeopleFeatureStatePanel({ feature }) {
         <div className="people-feature-section">
           <h3>구현 상태</h3>
           <p>{stateMeta.description}</p>
-          <p>운영 기준, 권한, API 영수증이 준비되면 이 항목을 실제 화면으로 전환합니다.</p>
+          <p>담당자 확인 후 실제 화면으로 전환합니다.</p>
         </div>
       </div>
 
@@ -107,31 +149,40 @@ function PeopleFeatureStatePanel({ feature }) {
   );
 }
 
-function peopleGuardState(liveCtx) {
+function peopleGuardState(liveCtx: string) {
   if (liveCtx === "denied") {
     return {
       className: "live-data-denied",
       title: "접근 권한이 없습니다",
-      body: "권한이 있는 구성원 정보만 표시합니다."
+      body: "담당자에게 접근을 요청하세요."
     };
   }
   if (liveCtx === "review") {
     return {
       className: "live-data-review",
       title: "검토가 필요합니다",
-      body: "검토가 끝나면 구성원 정보를 확인할 수 있습니다."
+      body: "담당자 확인 후 구성원 정보를 볼 수 있습니다."
     };
   }
   return null;
 }
 
-export function PeopleHome({ activeSection = "", liveCtx = "allow" }) {
-  const [overview, setOverview] = useState(null);
+export function PeopleHome({ activeSection = "", liveCtx = "allow", refreshSignal = 0, canManageLeavePolicy = false, canApproveLeave = false, canExecuteLeaveAccrual = false, canAdjustLeaveLedger = false, canExportLeaveReport = false, canSettleLeaveTermination = false, canManageLeavePromotion = false }: { activeSection?: string; liveCtx?: string; refreshSignal?: number; canManageLeavePolicy?: boolean; canApproveLeave?: boolean; canExecuteLeaveAccrual?: boolean; canAdjustLeaveLedger?: boolean; canExportLeaveReport?: boolean; canSettleLeaveTermination?: boolean; canManageLeavePromotion?: boolean }) {
+  const [overview, setOverview] = useState<PeopleOverviewState | null>(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const refreshSignalRef = useRef(refreshSignal);
+  const detailPanelRef = useRef<HTMLElement | null>(null);
+  const detailCloseRef = useRef<HTMLButtonElement | null>(null);
   const currentSection = PEOPLE_SECTIONS.has(activeSection) ? activeSection : "people-members";
   const currentFeature = getPeopleFeatureBySection(currentSection);
   const guardedState = peopleGuardState(liveCtx);
+
+  useEffect(() => {
+    if (refreshSignalRef.current === refreshSignal) return;
+    refreshSignalRef.current = refreshSignal;
+    setRefreshKey((key) => key + 1);
+  }, [refreshSignal]);
 
   useEffect(() => {
     let cancelled = false;
@@ -143,26 +194,60 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }) {
         cancelled = true;
       };
     }
+    if (!WORKFORCE_SECTIONS.has(currentSection)) {
+      return () => {
+        cancelled = true;
+      };
+    }
     fetchHrxPeopleOverview().then((result) => {
       if (!cancelled) setOverview(result);
     });
     return () => {
       cancelled = true;
     };
-  }, [liveCtx, refreshKey]);
+  }, [currentSection, liveCtx, refreshKey]);
 
   useEffect(() => {
     if (!selectedEmployeeId) return undefined;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusFrame = window.requestAnimationFrame(() => detailCloseRef.current?.focus());
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSelectedEmployeeId(null);
+      if (event.key === "Escape") {
+        setSelectedEmployeeId(null);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(
+        detailPanelRef.current?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) ?? []
+      );
+      if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      window.removeEventListener("keydown", handleKeyDown);
+      previousFocus?.focus();
+    };
   }, [selectedEmployeeId]);
 
   return (
     <section id="people-home" className="surface stack people-surface" data-hrx-api-backed="true">
-      <div className="people-work-layer" data-people-work-layer="white">
+      <ForestHero title="People" image={heroPeopleArchitecture} imageOpacity={0.24} />
+      <div key={refreshKey} className="people-work-layer" data-people-work-layer="white">
         {overview?.kind === "error" && !WORKFORCE_SECTIONS.has(currentSection) && (
           <div className="live-data-state live-data-error">
             <strong>구성원 현황을 불러오지 못했습니다</strong>
@@ -189,15 +274,18 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }) {
               <PeopleWorkforceDirectory initialTab="active" refreshKey={refreshKey} selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} />
             </div>
             {selectedEmployeeId && (
-              <div className="people-detail-overlay" data-people-detail-overlay="open">
-                <button type="button" className="people-detail-backdrop" aria-label="구성원 상세 닫기" onClick={() => setSelectedEmployeeId(null)} />
-                <aside className="people-detail-panel" data-people-detail-panel="open" role="dialog" aria-modal="true" aria-label="구성원 상세">
-                  <button type="button" className="icon-button people-detail-close" aria-label="상세 패널 닫기" onClick={() => setSelectedEmployeeId(null)}>
-                    <X size={18} />
-                  </button>
-                  <EmployeeProfile employeeId={selectedEmployeeId} refreshKey={refreshKey} />
-                </aside>
-              </div>
+              createPortal(
+                <div className="people-detail-overlay" data-people-detail-overlay="open">
+                  <button type="button" className="people-detail-backdrop" aria-label="구성원 상세 닫기" onClick={() => setSelectedEmployeeId(null)} />
+                  <aside ref={detailPanelRef} className="people-detail-panel" data-people-detail-panel="open" role="dialog" aria-modal="true" aria-label="구성원 상세">
+                    <button ref={detailCloseRef} type="button" className="icon-button people-detail-close" aria-label="상세 패널 닫기" onClick={() => setSelectedEmployeeId(null)}>
+                      <X size={18} />
+                    </button>
+                    <EmployeeProfile employeeId={selectedEmployeeId} refreshKey={refreshKey} />
+                  </aside>
+                </div>,
+                document.body
+              )
             )}
           </>
         )}
@@ -221,8 +309,91 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }) {
 
         {!guardedState && currentSection === "people-leave" && (
           <div className="people-runtime-grid">
-            <EmployeeList selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} refreshKey={refreshKey} />
-            <LeaveRequestPage employeeId={selectedEmployeeId} refreshKey={refreshKey} onSubmitted={() => setRefreshKey((key) => key + 1)} />
+            <LeaveRequestPage canViewTeam={canApproveLeave} />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-requests" && canApproveLeave && (
+          <div className="people-runtime-grid">
+            <LeaveApprovalQueue />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-requests" && !canApproveLeave && (
+          <div className="live-data-state live-data-denied" data-leave-approval-access="denied">
+            <strong>휴가 승인 권한이 없습니다</strong>
+            지정 승인자 또는 인사 담당자에게 접근을 요청하세요.
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-types" && canManageLeavePolicy && (
+          <div className="people-runtime-grid">
+            <LeaveTypeSettingsPage />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-types" && !canManageLeavePolicy && (
+          <div className="live-data-state live-data-denied" data-leave-policy-access="denied">
+            <strong>휴가 설정 권한이 없습니다</strong>
+            인사 담당자에게 접근을 요청하세요.
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-accrual-auto" && canExecuteLeaveAccrual && (
+          <div className="people-runtime-grid">
+            <LeaveAccrualAutoPage canExport={canExportLeaveReport} />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-accrual-auto" && !canExecuteLeaveAccrual && (
+          <div className="live-data-state live-data-denied" data-leave-accrual-access="denied">
+            <strong>자동 발생 권한이 없습니다</strong>
+            인사 담당자에게 접근을 요청하세요.
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-accrual-manual" && canAdjustLeaveLedger && (
+          <div className="people-runtime-grid">
+            <LeaveAccrualManualPage />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-accrual-manual" && !canAdjustLeaveLedger && (
+          <div className="live-data-state live-data-denied" data-leave-ledger-access="denied">
+            <strong>수동 발생 권한이 없습니다</strong>
+            인사 담당자에게 접근을 요청하세요.
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-usage" && (
+          <div className="people-runtime-grid">
+            <LeaveUsagePage canExport={canExportLeaveReport} canProcessIntegrations={canManageLeavePolicy} canAdjust={canAdjustLeaveLedger} />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-termination" && canSettleLeaveTermination && (
+          <div className="people-runtime-grid">
+            <LeaveTerminationPage />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-leave-termination" && !canSettleLeaveTermination && (
+          <div className="live-data-state live-data-denied" data-leave-termination-access="denied">
+            <strong>퇴사 휴가 정산 권한이 없습니다</strong>
+            승인된 인사 운영 범위와 정산 권한을 확인하세요.
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-annual-leave-notices" && canManageLeavePromotion && (
+          <div className="people-runtime-grid">
+            <LeavePromotionPage />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-annual-leave-notices" && !canManageLeavePromotion && (
+          <div className="live-data-state live-data-denied" data-leave-promotion-access="denied">
+            <strong>연차 사용 촉진 관리 권한이 없습니다</strong>
+            승인된 인사 운영 범위와 촉진 관리 권한을 확인하세요.
           </div>
         )}
 
@@ -235,7 +406,7 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }) {
         {!guardedState && currentSection === "people-recruiting" && (
           <div className="people-runtime-grid">
             <RecruitingPipeline key={`recruiting-${refreshKey}`} />
-            <CandidatePortal key={`candidate-${refreshKey}`} />
+            <CandidatePortal candidateId={null} />
           </div>
         )}
 
@@ -264,6 +435,22 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }) {
           </div>
         )}
 
+        {!guardedState && currentSection === "people-risk" && (
+          <div className="people-runtime-grid">
+            <HrxRiskDashboard />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-attendance-records" && (
+          <div className="people-runtime-grid people-attendance-runtime-grid">
+            <EmployeeList selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} refreshKey={refreshKey} />
+            <AttendanceWorkspace
+              employeeId={selectedEmployeeId}
+              refreshKey={refreshKey}
+            />
+          </div>
+        )}
+
         {!guardedState && currentSection === "people-ai" && (
           <div className="people-runtime-grid">
             <HRAIAssistant key={refreshKey} />
@@ -273,6 +460,12 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }) {
         {!guardedState && currentSection === "people-payroll" && (
           <div className="people-runtime-grid">
             <PayrollBoundaryPanel key={refreshKey} />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-pay-statement" && (
+          <div className="people-runtime-grid">
+            <PayrollStatementWorkspace key={refreshKey} />
           </div>
         )}
 

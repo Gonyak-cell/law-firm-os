@@ -1,0 +1,17 @@
+{
+  "tuw": "FZ-002",
+  "verdict": "PASS",
+  "entry_sha": "7717d5cee158fc97056510e8aebc9e0854d34196",
+  "tracked_modified": 115,
+  "original_untracked_files": 92,
+  "intentional_additions": [
+    "scripts/generate-forest-checkpoint-evidence.mjs",
+    "workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md"
+  ],
+  "observed_untracked_files": 94,
+  "total_manifest_rows": 209,
+  "status_sha256": "c079231aa6dbb36b60deb02df7442ccd45a6dd982d48ab0503920a385ea18efd",
+  "diff_sha256": "4dd68a1413cb6d2bda2528924b801a40941cda191dac940c5da3503e945d842c",
+  "manifest_sha256": "bf8bc4570ce5ee97d564704c40a36038f7fe5181da90a74b4c4a77ea140edd96",
+  "working_tree_sha256": "4b9ca8f817c8fd3631a782b50dfee69d333318eef05a9e9c60d630f01ceeeca6"
+}

@@ -1,0 +1,250 @@
+{
+  "generated_at": "2026-07-07T17:15:45.319Z",
+  "source_commit": "5cdbd4485",
+  "route": "/?view=home&ctx=allow#home-dashboard",
+  "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/sidebar-stage7-web-accessibility-2026-07-08.png",
+  "checks": [
+    {
+      "name": "home dashboard shell is mounted",
+      "pass": true,
+      "location": "?view=home&ctx=allow#home-dashboard",
+      "topAxisActiveCount": 1,
+      "topAxisCurrentCount": 1,
+      "homeAxisCurrent": "page",
+      "sidebarContext": "home",
+      "sidebarCurrentCount": 1,
+      "sidebarCurrentValues": [
+        "location"
+      ],
+      "dashboardShell": true,
+      "dashboardGrid": true,
+      "feedTablist": "홈 피드",
+      "selectedFeedTab": "home-feed-tab-notice",
+      "selectedFeedTabControls": "home-feed-panel-notice",
+      "feedPanel": "home-feed-panel-notice",
+      "feedPanelLabelledBy": "home-feed-tab-notice",
+      "calendarSelectedCount": 1,
+      "calendarButtonsMissingLabels": 0,
+      "inlineActionMissingContext": 0,
+      "navScrollOverflow": 0,
+      "portalFullyVisible": true,
+      "portalText": "Portal",
+      "searchClearNamed": true,
+      "searchClearLabel": "검색 지우기"
+    },
+    {
+      "name": "exactly one product axis active",
+      "pass": true,
+      "count": 1
+    },
+    {
+      "name": "exactly one product axis has aria-current page",
+      "pass": true,
+      "count": 1
+    },
+    {
+      "name": "Home product axis is current",
+      "pass": true,
+      "value": "page"
+    },
+    {
+      "name": "top product axis shows Portal without clipping at desktop width",
+      "pass": true,
+      "location": "?view=home&ctx=allow#home-dashboard",
+      "topAxisActiveCount": 1,
+      "topAxisCurrentCount": 1,
+      "homeAxisCurrent": "page",
+      "sidebarContext": "home",
+      "sidebarCurrentCount": 1,
+      "sidebarCurrentValues": [
+        "location"
+      ],
+      "dashboardShell": true,
+      "dashboardGrid": true,
+      "feedTablist": "홈 피드",
+      "selectedFeedTab": "home-feed-tab-notice",
+      "selectedFeedTabControls": "home-feed-panel-notice",
+      "feedPanel": "home-feed-panel-notice",
+      "feedPanelLabelledBy": "home-feed-tab-notice",
+      "calendarSelectedCount": 1,
+      "calendarButtonsMissingLabels": 0,
+      "inlineActionMissingContext": 0,
+      "navScrollOverflow": 0,
+      "portalFullyVisible": true,
+      "portalText": "Portal",
+      "searchClearNamed": true,
+      "searchClearLabel": "검색 지우기"
+    },
+    {
+      "name": "sidebar remains Home context",
+      "pass": true,
+      "value": "home"
+    },
+    {
+      "name": "sidebar exposes one current location",
+      "pass": true,
+      "count": 1,
+      "values": [
+        "location"
+      ]
+    },
+    {
+      "name": "feed tablist is named in Korean",
+      "pass": true,
+      "location": "?view=home&ctx=allow#home-dashboard",
+      "topAxisActiveCount": 1,
+      "topAxisCurrentCount": 1,
+      "homeAxisCurrent": "page",
+      "sidebarContext": "home",
+      "sidebarCurrentCount": 1,
+      "sidebarCurrentValues": [
+        "location"
+      ],
+      "dashboardShell": true,
+      "dashboardGrid": true,
+      "feedTablist": "홈 피드",
+      "selectedFeedTab": "home-feed-tab-notice",
+      "selectedFeedTabControls": "home-feed-panel-notice",
+      "feedPanel": "home-feed-panel-notice",
+      "feedPanelLabelledBy": "home-feed-tab-notice",
+      "calendarSelectedCount": 1,
+      "calendarButtonsMissingLabels": 0,
+      "inlineActionMissingContext": 0,
+      "navScrollOverflow": 0,
+      "portalFullyVisible": true,
+      "portalText": "Portal",
+      "searchClearNamed": true,
+      "searchClearLabel": "검색 지우기"
+    },
+    {
+      "name": "selected feed tab controls active panel",
+      "pass": true,
+      "location": "?view=home&ctx=allow#home-dashboard",
+      "topAxisActiveCount": 1,
+      "topAxisCurrentCount": 1,
+      "homeAxisCurrent": "page",
+      "sidebarContext": "home",
+      "sidebarCurrentCount": 1,
+      "sidebarCurrentValues": [
+        "location"
+      ],
+      "dashboardShell": true,
+      "dashboardGrid": true,
+      "feedTablist": "홈 피드",
+      "selectedFeedTab": "home-feed-tab-notice",
+      "selectedFeedTabControls": "home-feed-panel-notice",
+      "feedPanel": "home-feed-panel-notice",
+      "feedPanelLabelledBy": "home-feed-tab-notice",
+      "calendarSelectedCount": 1,
+      "calendarButtonsMissingLabels": 0,
+      "inlineActionMissingContext": 0,
+      "navScrollOverflow": 0,
+      "portalFullyVisible": true,
+      "portalText": "Portal",
+      "searchClearNamed": true,
+      "searchClearLabel": "검색 지우기"
+    },
+    {
+      "name": "calendar selected day is labelled",
+      "pass": true,
+      "count": 1
+    },
+    {
+      "name": "calendar buttons all have aria-label",
+      "pass": true,
+      "count": 0
+    },
+    {
+      "name": "inline action labels include context when present",
+      "pass": true,
+      "count": 0
+    },
+    {
+      "name": "search popover clear button is named",
+      "pass": true,
+      "clearLabel": "검색 지우기"
+    },
+    {
+      "name": "message drawer trigger expands with aria state",
+      "pass": true,
+      "triggerExpanded": "true",
+      "drawerRole": "dialog",
+      "drawerModal": "true",
+      "drawerLabelledBy": "messages-utility-drawer-title",
+      "sidebarContext": "home"
+    },
+    {
+      "name": "message drawer is modal dialog",
+      "pass": true,
+      "triggerExpanded": "true",
+      "drawerRole": "dialog",
+      "drawerModal": "true",
+      "drawerLabelledBy": "messages-utility-drawer-title",
+      "sidebarContext": "home"
+    },
+    {
+      "name": "message drawer keeps Home sidebar context",
+      "pass": true,
+      "triggerExpanded": "true",
+      "drawerRole": "dialog",
+      "drawerModal": "true",
+      "drawerLabelledBy": "messages-utility-drawer-title",
+      "sidebarContext": "home"
+    },
+    {
+      "name": "settings mode keeps one top axis active",
+      "pass": true,
+      "topAxisCurrentCount": 1,
+      "sidebarContext": "home",
+      "modeException": "true",
+      "modeDepth": "deep",
+      "returnLabel": "업무로 돌아가기",
+      "returnView": "home",
+      "returnSection": "home-dashboard"
+    },
+    {
+      "name": "settings mode uses Home context sidebar with deep marker",
+      "pass": true,
+      "topAxisCurrentCount": 1,
+      "sidebarContext": "home",
+      "modeException": "true",
+      "modeDepth": "deep",
+      "returnLabel": "업무로 돌아가기",
+      "returnView": "home",
+      "returnSection": "home-dashboard"
+    },
+    {
+      "name": "settings return anchor is named and points to prior Home dashboard",
+      "pass": true,
+      "topAxisCurrentCount": 1,
+      "sidebarContext": "home",
+      "modeException": "true",
+      "modeDepth": "deep",
+      "returnLabel": "업무로 돌아가기",
+      "returnView": "home",
+      "returnSection": "home-dashboard"
+    },
+    {
+      "name": "return anchor returns to Home dashboard",
+      "pass": true,
+      "url": "http://127.0.0.1:5194/?view=home&ctx=allow#home-dashboard"
+    },
+    {
+      "name": "keyboard tab reaches a named or text-labelled control",
+      "pass": true,
+      "activeTag": "BUTTON",
+      "activeText": "Home",
+      "activeAriaLabel": null,
+      "activeClass": "workspace-card"
+    }
+  ],
+  "summary": {
+    "pass": true,
+    "failure_count": 0,
+    "failures": [],
+    "production_ready_claim": false,
+    "owner_final_approval": false,
+    "public_release": false,
+    "production_go_live": false
+  }
+}

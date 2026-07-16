@@ -1,0 +1,47 @@
+{
+  "schema_version": "law-firm-os.upl-e10.hrx-source-hygiene.browser-proof.v0.1",
+  "generated_at": "2026-07-02T19:36:23.977Z",
+  "verdict": "PASS",
+  "web_url": "http://127.0.0.1:5176",
+  "route": "?view=people&ctx=allow#people-members",
+  "snapshot": {
+    "workforceTablePresent": true,
+    "groupRowCount": 1,
+    "groupRows": [
+      "Staff1명"
+    ],
+    "tableRows": 2,
+    "hasDmsText": false,
+    "hasBillingText": false,
+    "hasMetricGridText": false,
+    "sectionHeading": "구성원",
+    "pageErrors": []
+  },
+  "checks": [
+    {
+      "id": "workforce-table-rendered",
+      "passed": true
+    },
+    {
+      "id": "organization-groups-rendered",
+      "passed": true
+    },
+    {
+      "id": "source-marker-dms-hidden",
+      "passed": true
+    },
+    {
+      "id": "source-marker-billing-hidden",
+      "passed": true
+    },
+    {
+      "id": "kpi-pill-markers-hidden",
+      "passed": true
+    },
+    {
+      "id": "no-page-errors",
+      "passed": true
+    }
+  ],
+  "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/artifacts/manual-qa/e10-hrx-source-hygiene-browser-2026-07-03.png"
+}

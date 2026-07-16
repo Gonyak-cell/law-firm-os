@@ -1,0 +1,36 @@
+{
+  "schema_version": "law-firm-os.cti.owner-approval-receipt.v0.1",
+  "approval_id": "I25",
+  "approval_signature_ref": "I25-CTI-PASSWORD-RESET-SES-API-VPCE-JWSUH-LIVE-SEND-OWNER-APPROVAL-2026-07-06",
+  "recorded_at": "2026-07-06T12:09:25.826Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "goal_id": "cti-password-reset-jwsuh-live-send-retry",
+  "approved_scope": {
+    "aws_account": "770880870480",
+    "region": "ap-northeast-2",
+    "vpc_endpoint_service_name": "com.amazonaws.ap-northeast-2.email",
+    "vpc_id": "vpc-038f70d924a774bea",
+    "subnet_ids": [
+      "subnet-0a718a221e621715f",
+      "subnet-0af415c198603de77"
+    ],
+    "endpoint_security_group_name": "matter-lawos-prod-ses-api-vpce-sg",
+    "endpoint_security_group_inbound": "TCP 443 from sg-0f555cc1f1708fc22 only",
+    "private_dns_enabled": true,
+    "lambda_function_name": "matter-lawos-api-prod",
+    "live_send_target_count": 1,
+    "live_send_target_email_hash": "4443b93fddf0b956b9c0788da3e9e07ea69999cac2246a2b835f5f5cd48cc38e",
+    "live_send_target_domain": "amic.kr"
+  },
+  "explicit_non_approval": {
+    "other_user_reset_email_send": false,
+    "other_user_credential_mutation": false,
+    "password_distribution": false,
+    "s5_enrichment": false,
+    "s6_seal": false,
+    "oidc_implementation": false,
+    "db_conversion": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

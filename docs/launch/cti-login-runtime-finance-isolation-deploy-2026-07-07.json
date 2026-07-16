@@ -1,0 +1,18 @@
+{
+  "schema_version": "law-firm-os.cti.login-runtime-finance-isolation-deploy.v0.1",
+  "recorded_at": "2026-07-07T05:57:17.970Z",
+  "approval_signature_ref": "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06",
+  "lambda": {
+    "function_name": "matter-lawos-api-prod",
+    "region": "ap-northeast-2",
+    "before_revision_id": "ca664a02-f8f8-4df7-b5e1-0af0f1e10981",
+    "after_revision_id": "d4df5374-ea3b-4a48-a149-d02584e7ebeb",
+    "code_sha256": "4B7p7uON0GybPwaKbIl2vmTksu4xSlyyBLgAHT8GPWc=",
+    "package_sha256": "sha256:e01ee9eee38dd06c9b3f068a6c8976be64e4b2ee314a5cb204b8001d3f063d67",
+    "last_update_status": "Successful"
+  },
+  "purpose": "keep auth/client/matter HTTP runtime available when finance store JSON is corrupt",
+  "secret_or_token_material_recorded": false,
+  "production_ready_claim": false,
+  "verdict": "PASS"
+}

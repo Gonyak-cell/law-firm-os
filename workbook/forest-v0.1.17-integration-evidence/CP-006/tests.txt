@@ -1,0 +1,27 @@
+PASS validator syntax, help, emit, and checked-in matrix equality
+PASS source contracts 20/20
+PASS package contracts 19/19
+PASS legacy asset contracts 4/4
+PASS Lazyweb supporting-evidence contracts 3/3
+PASS package screenshots 17/17 present; receipt-declared screenshot hashes exact
+PASS leave package scenarios 10/10; screenshots 11; geometry and diagnostics clean
+PASS payroll package scenarios 9/9; screenshots 5; all measured rows 44px; geometry and diagnostics clean
+PASS packaged profile contract 9/9; generic session fallback absent
+PASS Web UI regression 142/142 executed tests; 0 fail; 1 existing skip; 143 total
+PASS Web typecheck
+PASS Web build, 1718 modules transformed
+PASS Desktop renderer/runtime and shell smoke 21/21
+PASS desktop packaging validator; approved brochure and current icon hashes exact; retired paths absent
+PASS professional-profile validator; current package proof required and obsolete screenshots unretained
+PASS product runtime source changed 0 files from exact build SHA to CP-006 entry and in the worktree
+PASS user root checkout preservation fingerprint exact
+PASS JSON parse and diff check
+PASS AI slop changed scan, strong/default signals 0
+MANUAL PASS leave 1280: hidden work schedule, flattened attendance, compact one-line leave rows, no helper-copy noise
+MANUAL PASS payroll 1280: 44px rows, compact metadata, no broken images or overflow
+MANUAL PASS packaged Seo Jiwon profile: identity, photo, organization, contact, career, education, qualification present; session fallback absent
+MANUAL PASS packaged Home: compact recent-work rows, approval categories not duplicated, empty helper prose absent
+NON-BLOCKING test noise: Vite WebSocket port 24678 already in use; suite exit 0
+NON-BLOCKING existing build warning: renderer chunk exceeds 500 kB
+BOUNDARY internal macOS functional package only; formal signing/notarization/staple/Gatekeeper not claimed
+BOUNDARY Windows PE/ZIP renderer parity only; native install/runtime/AuthentiCode not claimed

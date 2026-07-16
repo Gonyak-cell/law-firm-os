@@ -1,3 +1,5 @@
+import { assertOnboardingMatterAssignmentAllowed } from "./onboarding.js";
+
 function requiredString(input, field) {
   const value = input?.[field];
   if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${field} is required`);
@@ -19,5 +21,19 @@ export function createHrxAssignment(input = {}) {
     capacity_pct: capacityPct,
     effective_from: requiredString(input, "effective_from"),
     effective_to: input.effective_to ?? null,
+  });
+}
+
+export function createHrxMatterAssignment(input = {}, gateContext = {}) {
+  const assignment = createHrxAssignment(input);
+  const gateDecision = assertOnboardingMatterAssignmentAllowed({
+    employee_id: assignment.employee_id,
+    onboarding_plans: gateContext.onboarding_plans ?? [],
+    waiver_ref: gateContext.waiver_ref,
+  });
+  return Object.freeze({
+    ...assignment,
+    matter_id: requiredString(input, "matter_id"),
+    onboarding_gate_decision: gateDecision,
   });
 }

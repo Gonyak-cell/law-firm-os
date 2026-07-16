@@ -1,0 +1,156 @@
+{
+  "schema_version": "law-firm-os.lcx-dprui.button-matrix.v0.1",
+  "generated_at": "2026-06-30T10:21:45Z",
+  "status": "closed",
+  "tuw": "LCX-DPRUI-00",
+  "packaged_screen_qa_receipt": "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-dprui-06-screen-qa-result.json",
+  "packaged_screen_qa_status": "passed",
+  "packaged_screen_qa_button_clicks": 20,
+  "covered_states": [
+    "sign_in",
+    "reset_requested",
+    "reset_confirm_empty",
+    "reset_confirm_deeplink",
+    "reset_success",
+    "sign_in_after_success",
+    "sign_in_success_after_reset"
+  ],
+  "visible_login_reset_buttons": [
+    {
+      "state": "sign_in",
+      "selector": "[data-matter-login]",
+      "label": "계속",
+      "action": "password_login",
+      "verified_paths": [
+        "invalid_login_validation",
+        "valid_login_after_password_reset"
+      ],
+      "secret_material_logged": false
+    },
+    {
+      "state": "sign_in",
+      "selector": "[data-password-toggle-target='login-password']",
+      "label": "비밀번호 보기",
+      "action": "toggle_login_password_visibility",
+      "secret_material_logged": false
+    },
+    {
+      "state": "sign_in",
+      "selector": "[data-forgot-password]",
+      "label": "비밀번호를 잊으셨나요?",
+      "action": "request_password_reset_or_prompt_email",
+      "secret_material_logged": false
+    },
+    {
+      "state": "reset_requested",
+      "selector": "[data-open-reset-confirm]",
+      "label": "비밀번호 설정",
+      "action": "open_reset_confirm_state",
+      "secret_material_logged": false
+    },
+    {
+      "state": "reset_requested",
+      "selector": "[data-resend-password-reset]",
+      "label": "다시 보내기",
+      "action": "request_password_reset",
+      "secret_material_logged": false
+    },
+    {
+      "state": "reset_requested",
+      "selector": "[data-return-to-signin]",
+      "label": "로그인으로 돌아가기",
+      "action": "return_to_sign_in_and_clear_transient_reset_fields",
+      "secret_material_logged": false
+    },
+    {
+      "state": "reset_confirm",
+      "selector": "[data-password-toggle-target='reset-new-password']",
+      "label": "새 비밀번호 보기",
+      "action": "toggle_new_password_visibility",
+      "secret_material_logged": false
+    },
+    {
+      "state": "reset_confirm",
+      "selector": "[data-password-toggle-target='reset-confirm-password']",
+      "label": "새 비밀번호 확인 보기",
+      "action": "toggle_confirm_password_visibility",
+      "secret_material_logged": false
+    },
+    {
+      "state": "reset_confirm",
+      "selector": "[data-reset-confirm-submit]",
+      "label": "비밀번호 설정",
+      "action": "confirm_password_reset",
+      "verified_paths": [
+        "missing_token_validation",
+        "valid_token_success"
+      ],
+      "secret_material_logged": false
+    },
+    {
+      "state": "reset_confirm",
+      "selector": "[data-return-to-signin]",
+      "label": "로그인으로 돌아가기",
+      "action": "return_to_sign_in_and_clear_transient_reset_fields",
+      "secret_material_logged": false
+    },
+    {
+      "state": "reset_success",
+      "selector": "[data-return-to-signin]",
+      "label": "로그인으로 돌아가기",
+      "action": "return_to_sign_in",
+      "secret_material_logged": false
+    }
+  ],
+  "visible_help_policy_buttons": [
+    {
+      "selector": "[data-account-help]",
+      "label": "접근 권한 요청",
+      "action": "show_account_help_copy"
+    },
+    {
+      "selector": "[data-signin-help]",
+      "label": "지원 문의",
+      "action": "show_sign_in_help_copy"
+    },
+    {
+      "selector": "[data-legal-help='security']",
+      "label": "Security",
+      "action": "show_security_copy"
+    },
+    {
+      "selector": "[data-legal-help='legal']",
+      "label": "Legal",
+      "action": "show_legal_copy"
+    },
+    {
+      "selector": "[data-legal-help='privacy']",
+      "label": "Privacy",
+      "action": "show_privacy_copy"
+    }
+  ],
+  "hidden_post_login_buttons": [
+    {
+      "selector": "[data-matter-logout]",
+      "label": "로그아웃",
+      "action": "logout_and_clear_reset_fields"
+    },
+    {
+      "selector": "[data-check-dashboard]",
+      "label": "업무 보드 확인",
+      "action": "dashboard_permission_smoke"
+    },
+    {
+      "selector": "[data-check-admin]",
+      "label": "관리 기능 확인",
+      "action": "admin_permission_smoke"
+    }
+  ],
+  "claim_boundary": {
+    "latest_reset_email_visible_ui_allowed": false,
+    "secret_material_logged": false,
+    "production_go_live": false,
+    "public_release": false,
+    "owner_final_approval": false
+  }
+}

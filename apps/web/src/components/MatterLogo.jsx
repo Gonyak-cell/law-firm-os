@@ -1,14 +1,10 @@
 import React from "react";
-import matterMark from "../assets/matter-mark.svg";
-import { PRODUCT_BRAND, UI_BRAND } from "../brand/brand";
+import amicLawLogo from "../assets/amic-law.svg";
 
 export function MatterLogo({ compact = false }) {
   return (
-    <div className={compact ? "matter-logo compact" : "matter-logo"} aria-label={UI_BRAND}>
-      <span className="matter-mark" aria-hidden="true">
-        <img src={matterMark} alt={UI_BRAND} />
-      </span>
-      <span className="matter-word">{PRODUCT_BRAND}</span>
+    <div className={compact ? "matter-logo compact" : "matter-logo"} aria-label="AMIC Law">
+      <img className="amic-law-logo" src={amicLawLogo} alt="AMIC Law" width="175" height="28" />
     </div>
   );
 }

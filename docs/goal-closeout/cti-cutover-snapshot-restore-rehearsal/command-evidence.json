@@ -1,0 +1,93 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.command-evidence.v0.1",
+  "goal_id": "cti-cutover-snapshot-restore-rehearsal",
+  "recorded_at": "2026-07-06T06:57:21.444Z",
+  "commands": [
+    {
+      "command": "aws sts get-caller-identity --profile matter-prod-deploy-admin",
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Resolved assumed role matter-prod-deploy-admin in account 770880870480; ARN/session ID hashed or masked."
+    },
+    {
+      "command": "aws lambda get-function-configuration --function-name matter-lawos-api-prod",
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Lambda Active/Successful; EFS local mount /mnt/lawos; 15 STORE_PATH env keys observed; secret values not recorded."
+    },
+    {
+      "command": "aws efs describe-file-systems / describe-access-points / describe-backup-policy",
+      "exit_code": 0,
+      "status": "PASS_METADATA_ONLY",
+      "summary": "EFS fs-01e9f68b22b23e9f3 available, access point fsap-0be58113c42e109fe, backup policy ENABLED, current AWS Backup recovery points 0."
+    },
+    {
+      "command": "aws lambda invoke /api/health",
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "HTTP 200; runtime_profile=operational; synthetic_login_enabled=false."
+    },
+    {
+      "command": "aws lambda invoke /api/matters without session",
+      "exit_code": 0,
+      "status": "PASS_BLOCKED_EXPECTED",
+      "summary": "HTTP 401; safe_error_codes=AUTH_SESSION_REQUIRED; confirms product readback requires authenticated production session."
+    },
+    {
+      "command": "current EFS file hash/count snapshot",
+      "exit_code": null,
+      "status": "NOT_RUN_BLOCKED",
+      "summary": "No approved read-only EFS file read/enumeration surface exists; running a custom Lambda/debug endpoint or production restore/mount path would exceed this goal authority."
+    },
+    {
+      "command": "snapshot-bound isolated restore rehearsal",
+      "exit_code": null,
+      "status": "NOT_RUN_BLOCKED",
+      "summary": "Depends on current snapshot hash/count receipt, which was not created."
+    },
+    {
+      "command": "node --check scripts/validate-cti-cutover-snapshot-restore-rehearsal.mjs",
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Snapshot/restore rehearsal validator parses successfully."
+    },
+    {
+      "command": "node scripts/validate-cti-cutover-snapshot-restore-rehearsal.mjs",
+      "exit_code": 0,
+      "status": "PASS_BLOCKED_CLOSEOUT",
+      "summary": "verdict=PASS; closeout_decision=BLOCKED_NO_APPROVED_EFS_FILE_READ_SURFACE; snapshot_created=false; restore_rehearsal_executed=false."
+    },
+    {
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "TUW total=392; work packages=81; PRE=62; violations=0."
+    },
+    {
+      "command": "node scripts/validate-cti-cutover-preflight-go-no-go.mjs",
+      "exit_code": 0,
+      "status": "PASS_NO_GO_BLOCKED",
+      "summary": "Existing CUTOVER preflight remains NO_GO_BLOCKED; no CUTOVER progression created by this blocked snapshot/restore closeout."
+    }
+  ],
+  "private_evidence": {
+    "local_path": "/Users/jws/.codex/local-evidence/cti-cutover-snapshot-restore-rehearsal/cti-cutover-snapshot-read-surface-evidence-2026-07-06.json",
+    "sha256": "7adb725fdeca9fefb757aeeae994a4cca654ce4fcb3618582fbcb386b453bbb0"
+  },
+  "boundary": {
+    "production_write_executed": false,
+    "production_restore_executed": false,
+    "restore_execution_against_production": false,
+    "tenant_migration_executed": false,
+    "account_permission_injection_executed": false,
+    "operational_profile_switch_executed": false,
+    "bridge_token_rotation_executed": false,
+    "password_distribution_executed": false,
+    "cutover_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "secret_value_recorded": false,
+    "plaintext_pii_recorded": false
+  },
+  "closeout_decision": "BLOCKED_NO_APPROVED_EFS_FILE_READ_SURFACE"
+}

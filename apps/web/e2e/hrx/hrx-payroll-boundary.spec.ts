@@ -6,7 +6,7 @@ import test from "node:test";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
-async function readWebFile(path) {
+async function readWebFile(path: string) {
   return readFile(resolve(root, path), "utf8");
 }
 
@@ -25,10 +25,11 @@ test("People payroll boundary uses API preview/export routes without payment exe
   assert.match(component, /calculation_runtime/);
   assert.match(component, /disbursement_instruction_included/);
   assert.match(component, /급여정산/);
-  assert.match(component, /미리보기·내보내기 전용/);
-  assert.match(component, /계산·세금·지급 실행은 아직 제공하지 않습니다/);
+  assert.match(component, /meta="내보내기 전용"/);
+  assert.match(component, /정산 미리보기, 검토 승인, 내보내기만 제공합니다/);
+  assert.match(component, /계산과 지급 실행은 아직 제공하지 않습니다/);
   assert.match(component, /정산 처리/);
-  assert.match(component, /송금·지급 지시는 아직 구현되지 않았습니다/);
+  assert.match(component, /지급 지시는 아직 구현되지 않았습니다/);
   assert.match(api, /\/api\/hrx\/payroll\/preview/);
   assert.match(api, /\/api\/hrx\/payroll\/approve/);
   assert.match(api, /\/api\/hrx\/payroll\/export/);

@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.cti.ses-production-access-request-receipt.v0.1",
+  "goal_id": "cti-ses-production-access-request",
+  "recorded_at": "2026-07-06T11:54:04Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "approval_signature_ref": "I24-CTI-SES-PRODUCTION-ACCESS-REQUEST-OWNER-APPROVAL-2026-07-06",
+  "aws_account": "770880870480",
+  "region": "ap-northeast-2",
+  "caller_arn": "arn:aws:sts::770880870480:assumed-role/matter-prod-deploy-admin/botocore-session-1783338272",
+  "request": {
+    "service": "sesv2",
+    "action": "put-account-details",
+    "mail_type": "TRANSACTIONAL",
+    "production_access_enabled_requested": true,
+    "website_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+    "contact_language": "EN",
+    "additional_contact_email_addresses": [
+      "jwsuh@amic.kr"
+    ],
+    "use_case_description_summary": "AMIC internal Matter OS transactional password reset emails for existing internal staff accounts only; initial 9 internal users; future low-volume internal account recovery; one-time reset links only; no marketing or plaintext passwords."
+  },
+  "submission": {
+    "command": "aws sesv2 put-account-details",
+    "exit_code": 0,
+    "response_body": "none"
+  },
+  "post_request_ses_account": {
+    "production_access_enabled": false,
+    "sending_enabled": true,
+    "enforcement_status": "HEALTHY",
+    "review_status": "PENDING",
+    "max_24_hour_send": 200,
+    "max_send_rate": 1,
+    "sent_last_24_hours": 0
+  },
+  "sender_identity": {
+    "email_identity": "jwsuh@amic.kr",
+    "verified_for_sending_status": true,
+    "verification_status": "SUCCESS"
+  },
+  "boundary": {
+    "lambda_code_deployed": false,
+    "lambda_env_mutated": false,
+    "lambda_iam_mutated": false,
+    "production_credential_mutated": false,
+    "reset_email_sent": false,
+    "secret_token_password_value_recorded": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "next_gate": {
+    "required_before_password_reset_execute": "SES ProductionAccessEnabled=true or all 9 target recipients verified as SES identities.",
+    "current_status": "PENDING_EXTERNAL_AWS_REVIEW"
+  }
+}

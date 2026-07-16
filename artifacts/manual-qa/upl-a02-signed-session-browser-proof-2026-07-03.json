@@ -1,0 +1,17 @@
+{
+  "schema_version": "lawos.wave1.upl-a02.signed-session-browser-proof.v0.1",
+  "generated_at": "2026-07-03T07:17:59.886Z",
+  "status": "PASS",
+  "route": "?locale=ko&view=auth&authStep=login -> ?locale=ko&view=profile",
+  "api_base_url_hash": "http://127.0.0.1:<ephemeral>",
+  "checks": {
+    "login_form_submitted": true,
+    "profile_api_state": "populated",
+    "token_stored": true,
+    "token_material_rendered": false,
+    "profile_request_has_authorization": true,
+    "profile_request_has_permission_context": false
+  },
+  "production_ready_claim": false,
+  "token_material_returned_in_artifact": false
+}

@@ -1,7 +1,7 @@
 import { appendCrmAuditEvent } from "./audit.js";
 
 const ALLOWED_STAGE_TRANSITIONS = Object.freeze({
-  new: Object.freeze(["qualified", "closed_lost"]),
+  new: Object.freeze(["qualified", "intake_requested", "closed_lost"]),
   qualified: Object.freeze(["intake_requested", "closed_lost"]),
   intake_requested: Object.freeze(["intake_opened", "closed_lost"]),
   intake_opened: Object.freeze(["closed_won", "closed_lost"]),

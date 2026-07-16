@@ -7,9 +7,18 @@ import { startApiServer } from "../src/server.js";
 
 const TENANT = "tenant_vault_bridge";
 const TOKEN = "test-vault-bridge-token";
+const SERVICE_ACTOR = "vault-bridge-service-test";
 
-async function withServer(callback) {
-  const previousToken = process.env.LAWOS_VAULT_BRIDGE_TOKEN;
+async function withServer(callback, envOverrides = {}) {
+  const previousEnv = {
+    LAWOS_VAULT_BRIDGE_TOKEN: process.env.LAWOS_VAULT_BRIDGE_TOKEN,
+    LAWOS_VAULT_BRIDGE_ENABLED: process.env.LAWOS_VAULT_BRIDGE_ENABLED,
+    LAWOS_VAULT_BRIDGE_ALLOWED_TENANT_IDS: process.env.LAWOS_VAULT_BRIDGE_ALLOWED_TENANT_IDS,
+    LAWOS_VAULT_BRIDGE_SERVICE_ACTOR_ID: process.env.LAWOS_VAULT_BRIDGE_SERVICE_ACTOR_ID,
+  };
+  process.env.LAWOS_VAULT_BRIDGE_ENABLED = envOverrides.LAWOS_VAULT_BRIDGE_ENABLED ?? "true";
+  process.env.LAWOS_VAULT_BRIDGE_ALLOWED_TENANT_IDS = envOverrides.LAWOS_VAULT_BRIDGE_ALLOWED_TENANT_IDS ?? TENANT;
+  process.env.LAWOS_VAULT_BRIDGE_SERVICE_ACTOR_ID = envOverrides.LAWOS_VAULT_BRIDGE_SERVICE_ACTOR_ID ?? SERVICE_ACTOR;
   const base = mkdtempSync(join(tmpdir(), "lawos-vault-bridge-api-"));
   const started = await startApiServer({
     port: 0,
@@ -18,8 +27,10 @@ async function withServer(callback) {
   try {
     return await callback(`http://${started.host}:${started.port}`);
   } finally {
-    if (previousToken === undefined) delete process.env.LAWOS_VAULT_BRIDGE_TOKEN;
-    else process.env.LAWOS_VAULT_BRIDGE_TOKEN = previousToken;
+    for (const [key, value] of Object.entries(previousEnv)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
     await new Promise((resolve) => started.server.close(resolve));
   }
 }
@@ -32,8 +43,8 @@ async function json(baseUrl, path, options = {}) {
   return { status: response.status, body };
 }
 
-function authHeaders(token = TOKEN) {
-  return { authorization: `Bearer ${token}` };
+function bridgeHeaders(token = TOKEN) {
+  return { "x-lawos-vault-bridge-token": token };
 }
 
 function permissionContextHeaders(tenant = TENANT) {
@@ -68,7 +79,7 @@ function preflightRequest(matterId = "matter_alpha", overrides = {}) {
     action: "upload_preflight",
     selected_matter_ref: `matter:${matterId}`,
     matter_id: matterId,
-    matter_code: "Alpha/Civil/계약분쟁",
+    matter_code: "Alpha/LIT/CIV/계약분쟁",
     source_mode: "matter_app_api",
     runtime_write_ready: true,
     repository_durable: true,
@@ -100,10 +111,13 @@ function matterRequest(client, overrides = {}) {
     clientId: client.clientId,
     clientDisplayName: client.clientDisplayName,
     clientShortName: client.clientShortName,
-    matterCode: "Alpha/Civil/계약분쟁",
-    matterName: "Alpha/Civil/계약분쟁",
-    matterTypeEnglish: "Civil",
+    matterCode: "Alpha/LIT/CIV/계약분쟁",
+    matterName: "Alpha/LIT/CIV/계약분쟁",
+    matterTypeEnglish: "LIT",
+    matterLitigationAxis: "CIV",
     matterDetailTypeKorean: "계약분쟁",
+    clientCaseRole: "피고",
+    clientCaseRoleConfidence: "vault_bridge_test",
     approvalRef: "approval-ref-alpha",
     migrationApprovalRef: "approval-ref-alpha",
     supportingEvidenceRefs: ["evidence-ref-alpha"],
@@ -122,7 +136,7 @@ test("Vault bridge endpoints fail closed unless the bridge token is configured",
   });
 });
 
-test("Vault bridge rejects missing bearer auth and invalid canonical upsert payloads", async () => {
+test("Vault bridge rejects missing bridge headers and invalid canonical upsert payloads", async () => {
   process.env.LAWOS_VAULT_BRIDGE_TOKEN = TOKEN;
   await withServer(async (baseUrl) => {
     const status = await json(baseUrl, "/api/matters/vault-bridge/status");
@@ -132,7 +146,7 @@ test("Vault bridge rejects missing bearer auth and invalid canonical upsert payl
 
     const invalidClient = await json(baseUrl, "/api/matters/vault-bridge/clients/upsert", {
       method: "POST",
-      headers: authHeaders(),
+      headers: bridgeHeaders(),
       body: JSON.stringify(clientRequest({ migrationApprovalRef: "", sourceRevision: "" })),
     });
     assert.equal(invalidClient.status, 400);
@@ -140,15 +154,15 @@ test("Vault bridge rejects missing bearer auth and invalid canonical upsert payl
 
     const client = await json(baseUrl, "/api/matters/vault-bridge/clients/upsert", {
       method: "POST",
-      headers: authHeaders(),
+      headers: bridgeHeaders(),
       body: JSON.stringify(clientRequest()),
     });
     assert.equal(client.status, 201);
 
     const invalidMatter = await json(baseUrl, "/api/matters/vault-bridge/matters/upsert", {
       method: "POST",
-      headers: authHeaders(),
-      body: JSON.stringify(matterRequest(client.body, { matterCode: "Alpha/Civil/불일치" })),
+      headers: bridgeHeaders(),
+      body: JSON.stringify(matterRequest(client.body, { matterCode: "Alpha/LIT/CIV/불일치" })),
     });
     assert.equal(invalidMatter.status, 400);
     assert.deepEqual(invalidMatter.body.safe_error_codes, ["MATTER_API_VALIDATION_ERROR"]);
@@ -157,39 +171,81 @@ test("Vault bridge rejects missing bearer auth and invalid canonical upsert payl
   });
 });
 
+test("Vault bridge stays blocked unless the approved code-only control window is explicit", async () => {
+  process.env.LAWOS_VAULT_BRIDGE_TOKEN = TOKEN;
+  await withServer(async (baseUrl) => {
+    const disabled = await json(baseUrl, "/api/matters/vault-bridge/status", {
+      headers: bridgeHeaders(),
+    });
+    assert.equal(disabled.status, 403);
+    assert.deepEqual(disabled.body.safe_error_codes, ["MATTER_VAULT_BRIDGE_BLOCKED"]);
+  }, { LAWOS_VAULT_BRIDGE_ENABLED: "false" });
+
+  await withServer(async (baseUrl) => {
+    const rejectedTenant = await json(baseUrl, "/api/matters/vault-bridge/clients/upsert", {
+      method: "POST",
+      headers: bridgeHeaders(),
+      body: JSON.stringify(clientRequest()),
+    });
+    assert.equal(rejectedTenant.status, 403);
+    assert.deepEqual(rejectedTenant.body.safe_error_codes, ["MATTER_VAULT_BRIDGE_BLOCKED"]);
+    assert.equal(rejectedTenant.body.production_ready_claim, false);
+  }, { LAWOS_VAULT_BRIDGE_ALLOWED_TENANT_IDS: "tenant_other" });
+});
+
+test("Vault bridge rejects Authorization-only session or bearer tokens", async () => {
+  process.env.LAWOS_VAULT_BRIDGE_TOKEN = TOKEN;
+  await withServer(async (baseUrl) => {
+    const authorizationOnly = await json(baseUrl, "/api/matters/vault-bridge/status", {
+      headers: { authorization: `Bearer ${TOKEN}` },
+    });
+    assert.equal(authorizationOnly.status, 403);
+    assert.deepEqual(authorizationOnly.body.safe_error_codes, ["MATTER_VAULT_BRIDGE_BLOCKED"]);
+  });
+});
+
 test("Vault bridge upserts Matter app client and matter with idempotent replay", async () => {
   process.env.LAWOS_VAULT_BRIDGE_TOKEN = TOKEN;
   await withServer(async (baseUrl) => {
     const status = await json(baseUrl, "/api/matters/vault-bridge/status", {
-      headers: authHeaders(),
+      headers: bridgeHeaders(),
     });
     assert.equal(status.status, 200);
     assert.equal(status.body.item.source_mode, "matter_app_api");
     assert.equal(status.body.item.runtime_write_ready, true);
+    assert.equal(status.body.item.bridge_enabled, true);
+    assert.equal(status.body.item.allowed_tenant_count, 1);
+    assert.equal(status.body.item.service_actor_id, SERVICE_ACTOR);
+    assert.equal(status.body.item.token_rotation_receipt_required, true);
+    assert.equal(status.body.item.window_control_required, true);
 
     const client = await json(baseUrl, "/api/matters/vault-bridge/clients/upsert", {
       method: "POST",
-      headers: authHeaders(),
+      headers: bridgeHeaders(),
       body: JSON.stringify(clientRequest()),
     });
     assert.equal(client.status, 201);
     assert.equal(client.body.clientShortName, "Alpha");
     assert.equal(client.body.sourceRevision, "approval-ref-alpha");
+    assert.equal(client.body.bridge_service_identity_ref, SERVICE_ACTOR);
     assert.equal(client.body.production_ready_claim, false);
 
     const matter = await json(baseUrl, "/api/matters/vault-bridge/matters/upsert", {
       method: "POST",
-      headers: authHeaders(),
+      headers: bridgeHeaders(),
       body: JSON.stringify(matterRequest(client.body)),
     });
     assert.equal(matter.status, 201);
-    assert.equal(matter.body.matterCode, "Alpha/Civil/계약분쟁");
+    assert.equal(matter.body.matterCode, "Alpha/LIT/CIV/계약분쟁");
     assert.equal(matter.body.clientId, client.body.clientId);
+    assert.equal(matter.body.clientCaseRole, "피고");
+    assert.equal(matter.body.clientCaseRoleConfidence, "vault_bridge_test");
     assert.equal(matter.body.sourceRevision, "approval-ref-alpha");
+    assert.equal(matter.body.bridge_service_identity_ref, SERVICE_ACTOR);
 
     const replay = await json(baseUrl, "/api/matters/vault-bridge/matters/upsert", {
       method: "POST",
-      headers: authHeaders(),
+      headers: bridgeHeaders(),
       body: JSON.stringify(matterRequest(client.body)),
     });
     assert.equal(replay.status, 200);
@@ -201,16 +257,16 @@ test("Vault bridge upserts Matter app client and matter with idempotent replay",
 test("Vault bridge matter lookup is permission-scoped and rejects UUID-shaped normal input", async () => {
   process.env.LAWOS_VAULT_BRIDGE_TOKEN = TOKEN;
   await withServer(async (baseUrl) => {
-    const missingBearer = await json(baseUrl, lookupPath(), {
+    const missingBridgeHeader = await json(baseUrl, lookupPath(), {
       headers: permissionContextHeaders(),
     });
-    assert.equal(missingBearer.status, 403);
-    assert.deepEqual(missingBearer.body.safe_error_codes, ["MATTER_VAULT_BRIDGE_BLOCKED"]);
-    assert.deepEqual(missingBearer.body.items, []);
-    assert.equal(missingBearer.body.count_leak_prevented, true);
+    assert.equal(missingBridgeHeader.status, 403);
+    assert.deepEqual(missingBridgeHeader.body.safe_error_codes, ["MATTER_VAULT_BRIDGE_BLOCKED"]);
+    assert.deepEqual(missingBridgeHeader.body.items, []);
+    assert.equal(missingBridgeHeader.body.count_leak_prevented, true);
 
     const uuidInput = await json(baseUrl, lookupPath("9f13f7c6-3a9d-4d6d-9412-88db09548c11"), {
-      headers: { ...authHeaders(), ...permissionContextHeaders() },
+      headers: { ...bridgeHeaders(), ...permissionContextHeaders() },
     });
     assert.equal(uuidInput.status, 400);
     assert.deepEqual(uuidInput.body.safe_error_codes, ["MATTER_API_VALIDATION_ERROR"]);
@@ -219,24 +275,24 @@ test("Vault bridge matter lookup is permission-scoped and rejects UUID-shaped no
 
     const client = await json(baseUrl, "/api/matters/vault-bridge/clients/upsert", {
       method: "POST",
-      headers: authHeaders(),
+      headers: bridgeHeaders(),
       body: JSON.stringify(clientRequest()),
     });
     assert.equal(client.status, 201);
     const matter = await json(baseUrl, "/api/matters/vault-bridge/matters/upsert", {
       method: "POST",
-      headers: authHeaders(),
+      headers: bridgeHeaders(),
       body: JSON.stringify(matterRequest(client.body)),
     });
     assert.equal(matter.status, 201);
 
-    const lookup = await json(baseUrl, lookupPath("Alpha/Civil"), {
-      headers: { ...authHeaders(), ...permissionContextHeaders() },
+    const lookup = await json(baseUrl, lookupPath("Alpha/LIT"), {
+      headers: { ...bridgeHeaders(), ...permissionContextHeaders() },
     });
     assert.equal(lookup.status, 200);
     assert.equal(lookup.body.outcome, "passed");
     assert.equal(lookup.body.items.length, 1);
-    assert.equal(lookup.body.items[0].matter_code, "Alpha/Civil/계약분쟁");
+    assert.equal(lookup.body.items[0].matter_code, "Alpha/LIT/CIV/계약분쟁");
     assert.equal(lookup.body.items[0].client_display_name, "Alpha Client");
     assert.equal(lookup.body.items[0].selected_ref, `matter:${matter.body.matterAppMatterId}`);
     assert.equal("document_bytes" in lookup.body.items[0], false);
@@ -249,19 +305,19 @@ test("Vault bridge matter lookup is permission-scoped and rejects UUID-shaped no
 test("Vault bridge upload preflight is guarded and returns reference-only permission check refs", async () => {
   process.env.LAWOS_VAULT_BRIDGE_TOKEN = TOKEN;
   await withServer(async (baseUrl) => {
-    const missingBearer = await json(baseUrl, "/api/matters/vault-bridge/upload-preflight", {
+    const missingBridgeHeader = await json(baseUrl, "/api/matters/vault-bridge/upload-preflight", {
       method: "POST",
       headers: permissionContextHeaders(),
       body: JSON.stringify(preflightRequest()),
     });
-    assert.equal(missingBearer.status, 403);
-    assert.deepEqual(missingBearer.body.safe_error_codes, ["MATTER_VAULT_BRIDGE_BLOCKED"]);
-    assert.equal(missingBearer.body.item, null);
-    assert.equal(missingBearer.body.vault_document_write_enabled, false);
+    assert.equal(missingBridgeHeader.status, 403);
+    assert.deepEqual(missingBridgeHeader.body.safe_error_codes, ["MATTER_VAULT_BRIDGE_BLOCKED"]);
+    assert.equal(missingBridgeHeader.body.item, null);
+    assert.equal(missingBridgeHeader.body.vault_document_write_enabled, false);
 
     const projectionOnly = await json(baseUrl, "/api/matters/vault-bridge/upload-preflight", {
       method: "POST",
-      headers: { ...authHeaders(), ...permissionContextHeaders() },
+      headers: { ...bridgeHeaders(), ...permissionContextHeaders() },
       body: JSON.stringify(preflightRequest("matter_projection_only", {
         source_mode: "vault_projection_only",
         runtime_write_ready: false,
@@ -274,20 +330,20 @@ test("Vault bridge upload preflight is guarded and returns reference-only permis
 
     const client = await json(baseUrl, "/api/matters/vault-bridge/clients/upsert", {
       method: "POST",
-      headers: authHeaders(),
+      headers: bridgeHeaders(),
       body: JSON.stringify(clientRequest()),
     });
     assert.equal(client.status, 201);
     const matter = await json(baseUrl, "/api/matters/vault-bridge/matters/upsert", {
       method: "POST",
-      headers: authHeaders(),
+      headers: bridgeHeaders(),
       body: JSON.stringify(matterRequest(client.body)),
     });
     assert.equal(matter.status, 201);
 
     const preflight = await json(baseUrl, "/api/matters/vault-bridge/upload-preflight", {
       method: "POST",
-      headers: { ...authHeaders(), ...permissionContextHeaders() },
+      headers: { ...bridgeHeaders(), ...permissionContextHeaders() },
       body: JSON.stringify(preflightRequest(matter.body.matterAppMatterId)),
     });
     assert.equal(preflight.status, 200);
@@ -308,11 +364,11 @@ test("Vault bridge upload preflight is guarded and returns reference-only permis
   });
 });
 
-test("Vault bridge rejects invalid bearer tokens", async () => {
+test("Vault bridge rejects invalid dedicated header tokens", async () => {
   process.env.LAWOS_VAULT_BRIDGE_TOKEN = TOKEN;
   await withServer(async (baseUrl) => {
     const response = await json(baseUrl, "/api/matters/vault-bridge/status", {
-      headers: authHeaders("wrong-token"),
+      headers: bridgeHeaders("wrong-token"),
     });
     assert.equal(response.status, 403);
     assert.deepEqual(response.body.safe_error_codes, ["MATTER_VAULT_BRIDGE_BLOCKED"]);

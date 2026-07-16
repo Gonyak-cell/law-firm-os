@@ -1,0 +1,12 @@
+PASS merge-base equals exact fetched origin/main SHA
+PASS merge-tree exit 0 with empty stderr
+PASS merged tree equals candidate tree
+PASS conflict markers 0
+PASS conflict ledger data rows 0
+PASS unresolved paths 0
+PASS blanket ours/theirs resolutions 0
+PASS full path inventory 2405/2405
+PASS candidate commit inventory 265/265
+PASS status totals 2405/2405
+PASS diff-check warnings classified separately from merge conflicts
+PASS no remote ref, main, application process, deployment, or release mutation

@@ -1,0 +1,7 @@
+contracts/matter-worktree-practice-area-contract.json
+packages/matter/fixtures/matter-worktree-practice-area-contract.fixture.json
+packages/matter/test/worktree-practice-area-contract.test.js
+workbook/matter-worktree-evidence/WT-00-02/acceptance.md
+workbook/matter-worktree-evidence/WT-00-02/commands.txt
+workbook/matter-worktree-evidence/WT-00-02/tests.txt
+workbook/matter-worktree-evidence/WT-00-02/files.txt

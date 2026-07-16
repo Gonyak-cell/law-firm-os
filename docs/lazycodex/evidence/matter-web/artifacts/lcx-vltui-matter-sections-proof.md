@@ -10,7 +10,11 @@ Verdict: PASS
 | vault-evidence-template-shortcut | PASS |
 | seal-approval-owner-provider-blocked | PASS |
 | meeting-announcement-calendar-channel | PASS |
+| adverse-party-retroactive-registration-visible | PASS |
 | expense-finance-boundary-audited | PASS |
+| expense-disbursement-inputs-feed-wip | PASS |
+| accounting-export-period-csv-balanced | PASS |
+| analytics-kpi-cards-show-seeded-realization-utilization | PASS |
 | search-risk-permission-scoped | PASS |
 | integration-settings-no-credentials | PASS |
 | import-dry-run-guarded-execute | PASS |

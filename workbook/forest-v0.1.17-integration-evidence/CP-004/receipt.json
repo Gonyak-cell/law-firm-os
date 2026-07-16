@@ -1,0 +1,67 @@
+{
+  "tuw": "CP-004",
+  "verdict": "PASS",
+  "entry_sha": "f3b38cbbe297f46fda0d5e64744bc081e9ed3d66",
+  "exit_sha": "f3b38cbbe297f46fda0d5e64744bc081e9ed3d66",
+  "product_runtime_changed": false,
+  "preserved_root_checkout": {
+    "tracked_count": 56,
+    "untracked_count": 21,
+    "fingerprint_sha256": "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3"
+  },
+  "payroll_tuws": { "expected": 61, "done": 61, "failed": 0 },
+  "implementation_axes": { "expected": 8, "pass": 8, "failed": 0 },
+  "test_inventory": { "package": 19, "api": 3, "web": 1, "total": 23, "missing": 0 },
+  "tests": {
+    "package_domain": { "tests": 65, "pass": 65, "fail": 0 },
+    "api": { "tests": 8, "pass": 8, "fail": 0 },
+    "web": { "tests": 3, "pass": 3, "fail": 0 },
+    "combined": { "tests": 76, "pass": 76, "fail": 0 },
+    "route_authz": { "verdict": "PASS", "policy_count": 159 },
+    "public_renderer_pii": { "verdict": "PASS", "scanned_files": 54, "protected_value_count": 30, "protected_photo_count": 5, "protected_values_printed": false }
+  },
+  "package_qa": {
+    "source_revision": "f3b38cbbe297f46fda0d5e64744bc081e9ed3d66",
+    "exact_build_sha": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c",
+    "product_runtime_unchanged_since_exact_build": true,
+    "synthetic_only": true,
+    "scenario_count": 9,
+    "screenshot_count": 5,
+    "console_error_count": 0,
+    "page_error_count": 0,
+    "restart_domain_snapshot_identical": true,
+    "renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96",
+    "windows_renderer_matches_macos": true,
+    "mac_verification_scope": "internal_functional_only",
+    "windows_native_runtime_smoke": "not_run_on_darwin",
+    "windows_authenticode_signed": false
+  },
+  "historical_browser_qa": {
+    "role_count": 6,
+    "role_viewport_count": 30,
+    "viewport_widths": [720, 820, 1024, 1280, 1512],
+    "recorded_unexpected_errors": 0,
+    "source_revision_attested": false,
+    "current_source_proof": false
+  },
+  "external_gate": {
+    "id": "GATE-002",
+    "status": "BLOCKED",
+    "intentionally_out_of_scope": true
+  },
+  "evidence_sha256": {
+    "validator": "53c95561d74319385571a3418a3e7ff6c9da18473e5d84172425730418047eea",
+    "payroll_upper_compatibility_matrix": "c9710291746819202c8021f16111a878fbb4914b4cff4a007d63d4bdf9b10ae8",
+    "payroll_package_qa": "7ee2524e916d027dceda8c801c19696102121eed7dca5d6e345c79a40df3b6da",
+    "historical_payroll_browser_qa": "04ff52bad00e3846a46f45a5d43f3c932b9a7d15b1dcb2daf7be3a5e9dd5dbae"
+  },
+  "known_limits": [
+    "The macOS package receipt is internal functional-only and does not attest Developer ID signing, notarization, staple, or Gatekeeper.",
+    "The Windows package receipt proves PE and ZIP integrity plus renderer parity; native install/runtime and Authenticode remain unverified on Darwin.",
+    "The browser receipt is historical supporting evidence only because it does not attest a source revision.",
+    "No external provider, bank, or tax production write, public release, or go-live is claimed by CP-004."
+  ],
+  "external_blockers": [
+    "GATE-002 requires owner, legal, labor, tax, and external provider approval and verifiable receipts."
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": "law-firm-os.cti.s0-receipt.v0.1",
+  "generated_at": "2026-07-06T02:05:06Z",
+  "goal_id": "cti-g0-s0",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "cti_item": "S0-T06",
+  "launch_tuw": "LT-PRE-W08-T03",
+  "status": "pii_safe_template_complete_plaintext_blocked_pending_i4",
+  "pii_boundary": {
+    "plaintext_client_or_matter_names_written": false,
+    "phone_or_email_pii_written": false,
+    "credential_material_written": false
+  },
+  "execution_boundary": {
+    "production_credentials_used": false,
+    "real_data_contact_performed": false,
+    "product_state_write_performed": false,
+    "migration_executed": false,
+    "cutover_executed": false
+  },
+  "template_csv": "workbook/cti-i1-lead-lawyer-mapping-template-2026-07-06.csv",
+  "template_json": "workbook/cti-i1-lead-lawyer-mapping-template-2026-07-06.json",
+  "row_count": 148,
+  "owner_fields": [
+    "owner_primary_attorney_email",
+    "owner_secondary_attorney_email",
+    "owner_matter_status",
+    "owner_notes"
+  ],
+  "plaintext_workbook_boundary": "Plaintext matter-code workbook is blocked until I4 because the production-data-policy contract is unratified."
+}

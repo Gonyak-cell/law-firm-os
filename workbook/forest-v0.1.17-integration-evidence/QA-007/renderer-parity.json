@@ -1,0 +1,52 @@
+{
+  "schema_version": "law-firm-os.qa-007-renderer-parity.v1",
+  "generated_at": "2026-07-16T02:50:00.000Z",
+  "exact_source": {
+    "revision": "39ed9571b0e841e1a6480e6875fe7b6658f83465",
+    "tree": "42bb94f745b329053cc14325ef1251fc7d8475cd",
+    "dirty": false
+  },
+  "renderer": {
+    "sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+    "file_count": 28,
+    "algorithm": "sha256(sorted sha256 file manifest with ./ relative paths)"
+  },
+  "surfaces": [
+    {
+      "name": "qa-004-browser-candidate",
+      "source_revision": "e19a17dd48edf131cada90cf0b2c9b6891002d8d",
+      "apps_web_tree": "9d16072e1aa20dc23750543483c74f64b6a79c76",
+      "sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+      "file_count": 28
+    },
+    {
+      "name": "formal-macos-local",
+      "source_revision": "39ed9571b0e841e1a6480e6875fe7b6658f83465",
+      "path": "apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web",
+      "sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+      "file_count": 28
+    },
+    {
+      "name": "formal-windows-local",
+      "source_revision": "39ed9571b0e841e1a6480e6875fe7b6658f83465",
+      "path": "apps/desktop/dist/win/matter-0.1.17-win32-x64/resources/app/src/renderer/web",
+      "sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+      "file_count": 28
+    },
+    {
+      "name": "formal-windows-native-ci",
+      "source_revision": "39ed9571b0e841e1a6480e6875fe7b6658f83465",
+      "run_id": 29466863451,
+      "sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+      "file_count": 28
+    }
+  ],
+  "comparisons": {
+    "macos_vs_windows_local_mismatch_count": 0,
+    "macos_vs_windows_ci_mismatch_count": 0,
+    "candidate_apps_web_tree_equals_final": true,
+    "approved_variant_count": 0,
+    "unexpected_mismatch_count": 0
+  },
+  "verdict": "PASS"
+}

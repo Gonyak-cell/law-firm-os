@@ -1,0 +1,45 @@
+{
+  "schema_version": "law-firm-os.pv004.channel-matrix.v1",
+  "tuw": "PV-004",
+  "verdict": "PASS",
+  "channels": [
+    {
+      "channel": "dev",
+      "app_id": "com.amic.matter.desktop.dev",
+      "artifact_prefix": "matter-dev",
+      "formal": false
+    },
+    {
+      "channel": "internal",
+      "app_id": "com.amic.matter.desktop.internal",
+      "artifact_prefix": "matter-internal",
+      "formal": false
+    },
+    {
+      "channel": "candidate",
+      "app_id": "com.amic.matter.desktop.candidate",
+      "artifact_prefix": "matter-candidate",
+      "formal": false
+    },
+    {
+      "channel": "formal",
+      "app_id": "com.amic.matter.desktop",
+      "artifact_prefix": "matter",
+      "formal": true
+    }
+  ],
+  "channel_count": 4,
+  "unique_app_id_count": 4,
+  "app_identity_collision_count": 0,
+  "unique_artifact_prefix_count": 4,
+  "artifact_prefix_collision_count": 0,
+  "manifest_platform_contract_count": 8,
+  "protected_builders": [
+    "scripts/build-matter-desktop-mac.mjs",
+    "scripts/build-matter-desktop-win.mjs",
+    "scripts/build-matter-desktop-win-installer.mjs"
+  ],
+  "channel_registry_bypass_count": 0,
+  "unknown_channel_fails_closed": true,
+  "formal_clean_sha_gate_preserved": true
+}

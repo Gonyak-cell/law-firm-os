@@ -1,0 +1,2 @@
+node --test apps/api/test/matter-worktree-restart.test.js apps/desktop/test/aws-runtime-client.test.mjs
+node scripts/run-matter-worktree-packaged-restart-qa.mjs

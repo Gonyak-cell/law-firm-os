@@ -1,0 +1,3 @@
+apps/web/src/components/MatterWorktreeSurface.jsx
+apps/web/src/styles.css
+output/playwright/matter-worktree-render-qa.mjs

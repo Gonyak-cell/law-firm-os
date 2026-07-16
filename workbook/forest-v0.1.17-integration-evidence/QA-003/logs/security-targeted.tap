@@ -1,0 +1,48 @@
+✔ admin security operations disable login, reactivate accounts, and audit break-glass transitions (32.968417ms)
+✔ admin security audit events persist to LAWOS_AUDIT_STORE_PATH across server restarts (23411.115458ms)
+✔ Matter-Vault hardening keeps opening idempotent and projection safe (2.728ms)
+✔ Matter-Vault hardening blocks held exports and permissionless search/AI (0.234666ms)
+✔ Matter-Vault portal projection remains projection-only (0.080209ms)
+✔ HRX API responses omit secret and raw sensitive payload fields (39.620792ms)
+✔ HRX security regression fails closed on missing tenant actor context (20.01825ms)
+✔ HRX security regression denies missing scope before runtime (2.689125ms)
+✔ HRX security regression blocks query-supplied tenant actor context (0.878375ms)
+✔ HRX security regression requires step-up for audit route (2.1475ms)
+✔ HRX security regression denies unmapped HRX routes (1.004083ms)
+✔ tenant isolation keeps trusted tenant-b from seeing tenant-a fixture rows (30.927292ms)
+✔ tenant isolation fails closed when tenant actor context is supplied by query (0.944417ms)
+✔ Lambda bootstrap fetches LAWOS_API_SESSION_SECRET from Secrets Manager secret id (2.779041ms)
+✔ Lambda password reset email delivery signs SESv2 without returning token material (1.423708ms)
+✔ Lambda password reset email delivery remains unconfigured without an approved mail surface (0.049ms)
+✔ operational auth stays available when the HRX store is unreadable (11621.9545ms)
+✔ operational auth stays available when the finance store is unreadable (11676.08925ms)
+✔ I14 read-only EFS snapshot direct invoke returns only hash/count evidence (8.19975ms)
+✔ I14 read-only EFS snapshot surface is not reachable as an HTTP event (0.113625ms)
+✔ I26 DB connection proof surface is direct-invoke only and approval gated (0.105ms)
+✔ I18 S1-G authenticated production probe restores credential store and returns only safe evidence (11670.721916ms)
+✔ I18 S1-G authenticated production probe verifies the current reporting lines (11605.058875ms)
+✔ I18 S1-G authenticated production probe surface is direct-invoke only (0.18875ms)
+✔ approved HRX roster reconciliation creates the current members and reporting lines with backup-safe evidence (12.833833ms)
+✔ HRX roster reconciliation surface is direct-invoke only and approval gated (0.190209ms)
+✔ LCX-AUTH reset recovery creates one target reset URL without setting a password (11645.322667ms)
+✔ LCX-AUTH reset recovery surface rejects HTTP and missing approval (0.185834ms)
+✔ Matter-Vault hardening keeps opening idempotent and projection safe (2.77775ms)
+✔ Matter-Vault hardening blocks held exports and permissionless search/AI (0.223083ms)
+✔ Matter-Vault portal projection remains projection-only (0.073792ms)
+✔ Matter-Vault hardening keeps opening idempotent and projection safe (2.794875ms)
+✔ Matter-Vault hardening blocks held exports and permissionless search/AI (0.212375ms)
+✔ Matter-Vault portal projection remains projection-only (0.08925ms)
+✔ Matter-Vault hardening keeps opening idempotent and projection safe (2.867625ms)
+✔ Matter-Vault hardening blocks held exports and permissionless search/AI (0.230458ms)
+✔ Matter-Vault portal projection remains projection-only (0.07775ms)
+✔ Matter-Vault hardening keeps opening idempotent and projection safe (2.886208ms)
+✔ Matter-Vault hardening blocks held exports and permissionless search/AI (0.221166ms)
+✔ Matter-Vault portal projection remains projection-only (0.077083ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 129285.611209

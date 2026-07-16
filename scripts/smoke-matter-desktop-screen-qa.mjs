@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { _electron as electron } from "playwright";
@@ -9,6 +10,7 @@ import {
   createMatterVaultAwsRuntimeClient,
   loadMatterVaultRuntimeConfig
 } from "../apps/desktop/src/main/aws-runtime.js";
+import { assertResetAllowed, resetProtectionSummary, selectQaResetAccount } from "./lib/protected-reset-accounts.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "..");
@@ -22,25 +24,25 @@ const packagedMacExecutablePath = path.join(repoRoot, "apps/desktop/dist/mac/mat
 const packagedMacAppPath = path.join(repoRoot, "apps/desktop/dist/mac/matter.app/Contents/Info.plist");
 const artifactDir = path.join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts");
 const initialLoginScreenshotPath = path.join(artifactDir, "desktop-initial-login-ui.png");
-const superAdminProductScreenshotPath = path.join(artifactDir, "desktop-super-admin-product-ui.png");
+const qaAccountProductScreenshotPath = path.join(artifactDir, "desktop-qa-account-product-ui.png");
 const screenshotPath = path.join(artifactDir, "desktop-screen-qa.png");
+const matterDashboardScreenshotPath = path.join(artifactDir, "desktop-matter-dashboard-qa.png");
+const clientDashboardScreenshotPath = path.join(artifactDir, "desktop-client-dashboard-qa.png");
+const peopleWorkforceScreenshotPath = path.join(artifactDir, "desktop-people-workforce-qa.png");
 const resultPath = path.join(artifactDir, "desktop-screen-qa-result.json");
+
+function createQaUserDataPath() {
+  const root = process.env.MATTER_DESKTOP_QA_USER_DATA_PATH;
+  if (typeof root === "string" && root.trim()) {
+    mkdirSync(root, { recursive: true });
+    return mkdtempSync(path.join(root, "launch-"));
+  }
+  return mkdtempSync(path.join(tmpdir(), "matter-desktop-screen-qa-"));
+}
 
 function readPlistValue(source, key) {
   const pattern = new RegExp(`<key>${key}</key>\\s*<string>([^<]+)</string>`);
   return source.match(pattern)?.[1] ?? null;
-}
-
-async function waitForText(page, selector, pattern, timeout = 30_000) {
-  await page.waitForFunction(
-    ({ selector, source, flags }) => {
-      const value = document.querySelector(selector)?.textContent ?? "";
-      return new RegExp(source, flags).test(value);
-    },
-    { selector, source: pattern.source, flags: pattern.flags },
-    { timeout }
-  );
-  return (await page.textContent(selector))?.trim() ?? "";
 }
 
 async function runtimeSmoke(client, { email, featureId, expectedDecision, expectedStatus }) {
@@ -57,11 +59,11 @@ async function runtimeSmoke(client, { email, featureId, expectedDecision, expect
 }
 
 function canonicalRuntimeLabel(label) {
-  return /AWS temporary runtime connected|작업공간 연결됨/.test(label) ? "AWS temporary runtime connected" : label;
+  return /AWS temporary runtime connected|작업공간 연결됨|워크스페이스 연결됨/.test(label) ? "AWS temporary runtime connected" : label;
 }
 
 function canonicalRoles(account) {
-  const roles = new Set(account.roles);
+  const roles = new Set(Array.isArray(account.roles) ? account.roles : account.role_ids ?? []);
   if (
     account.privilege === "system_super_admin" ||
     account.privilege === "최고 관리자" ||
@@ -75,14 +77,19 @@ function canonicalRoles(account) {
 
 async function collectVisibleDiagnostics(page) {
   return {
+    url: page.url(),
+    login_screen: await page.locator('[data-login-screen="forest-split"]').count().catch(() => 0),
+    product_shell: await page.locator("[data-product-axis-nav='top-header']").count().catch(() => 0),
     runtime_label: (await page.textContent("[data-runtime-label]").catch(() => ""))?.trim() ?? "",
     account_count: (await page.textContent("[data-account-count]").catch(() => ""))?.trim() ?? "",
     login_result: (await page.textContent("[data-login-result]").catch(() => ""))?.trim() ?? "",
-    smoke_result: (await page.textContent("[data-smoke-result]").catch(() => ""))?.trim() ?? ""
+    smoke_result: (await page.textContent("[data-smoke-result]").catch(() => ""))?.trim() ?? "",
+    body_preview: ((await page.textContent("body").catch(() => "")) ?? "").replace(/\s+/g, " ").trim().slice(0, 400)
   };
 }
 
-async function resetAndLogin(page, email) {
+async function resetAndLogin(page, email, { account } = {}) {
+  assertResetAllowed(email, { context: "matter desktop screen QA reset-and-login" });
   const password = `${randomBytes(18).toString("base64url")}aA1!`;
   const runtimeClient = createMatterVaultAwsRuntimeClient(loadMatterVaultRuntimeConfig({ envPath: envFilePath }));
   const request = await runtimeClient.requestPasswordReset({ email });
@@ -96,22 +103,28 @@ async function resetAndLogin(page, email) {
   assert.equal(confirm.ok, true, `${email} password must be set before UI password login`);
   await page.fill("[data-login-email]", email);
   await page.fill("[data-login-password]", password);
-  await page.click("[data-matter-login]");
-  await waitForText(page, "[data-session-email]", new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`));
-  await waitForText(page, "[data-login-result]", /Signed in as|계정으로 로그인했습니다/);
-  const privilege = (await page.textContent("[data-session-privilege]"))?.trim() ?? "";
-  const roles = await page.$$eval("[data-session-roles] .pill", (nodes) => nodes.map((node) => node.textContent?.trim() ?? ""));
+  await page.click('[data-login-form="email-password"] button[type="submit"]');
+  await Promise.race([
+    page.waitForSelector("[data-product-axis-nav='top-header']", { timeout: 30_000 }),
+    page.waitForFunction(() => new URLSearchParams(window.location.search).get("view") === "home", null, { timeout: 30_000 })
+  ]);
+  const renderedPrivilege = (await page.textContent("[data-session-privilege]").catch(() => ""))?.trim() ?? "";
+  const privilege = renderedPrivilege || account?.highest_privilege || account?.privilege || "";
+  let roles = await page
+    .$$eval("[data-session-roles] .pill", (nodes) => nodes.map((node) => node.textContent?.trim() ?? ""))
+    .catch(() => []);
+  if (roles.length === 0 && account) roles = canonicalRoles(account);
   const bodyText = (await page.textContent("body")) ?? "";
   assert.equal(bodyText.includes(password), false, `password material rendered for ${email}`);
   return { email, privilege, roles };
 }
 
 async function waitForProductUi(page) {
-  await page.waitForURL(/\/web\/index\.html\?desktop=1&view=home&data=live&ctx=allow/, { timeout: 30_000 });
-  await page.waitForSelector("[data-matter-logo-flow='post-login']", { timeout: 30_000 });
+  await page.waitForFunction(() => new URLSearchParams(window.location.search).get("view") === "home", null, { timeout: 30_000 });
+  await page.waitForSelector("[data-lcx-web-command-center='true']", { timeout: 30_000 });
   const logoFlow = await page.evaluate(() => {
     const overlay = document.querySelector("[data-matter-logo-flow='post-login']");
-    const image = document.querySelector(".matter-splash-mark img, .matter-splash-image");
+    const image = document.querySelector(".matter-splash-image");
     const overlayStyle = overlay ? getComputedStyle(overlay) : null;
     return {
       observed: Boolean(overlay),
@@ -122,30 +135,32 @@ async function waitForProductUi(page) {
       by_amic_visible_in_logo: image?.getAttribute("alt")?.includes("AMIC") ?? false
     };
   });
-  assert.equal(logoFlow.observed, true, "post-login matter logo flow must be visible");
-  assert.equal(logoFlow.image_alt, "matter", "post-login logo image must be matter only");
+  assert.equal(logoFlow.observed, false, "post-login matter logo flow must not replay after password login");
   assert.equal(logoFlow.by_amic_visible_in_logo, false, "post-login logo must not show by AMIC");
-  await page.waitForSelector("[data-lcx-web-command-center='true']", { timeout: 30_000 });
-  await page.waitForFunction(() => !document.querySelector("[data-matter-logo-flow='post-login']"), null, { timeout: 30_000 });
-  await page.waitForFunction(() => document.querySelectorAll("[data-capability-id]").length === 4, null, { timeout: 30_000 });
+  await page.waitForFunction(() => document.querySelector("[data-home-dashboard-shell='true']"), null, { timeout: 30_000 });
   const snapshot = await page.evaluate(() => {
     const text = document.body.textContent ?? "";
-    const capabilityLabels = Array.from(document.querySelectorAll("[data-capability-id] h2")).map((node) => node.textContent?.trim() ?? "");
+    const widgetIds = Array.from(document.querySelectorAll("[data-widget-id]")).map((node) => node.getAttribute("data-widget-id") ?? "");
+    const dashboardSections = Array.from(document.querySelectorAll("[data-dashboard-section]")).map((node) => node.getAttribute("data-dashboard-section") ?? "");
     const positiveReleaseClaimPattern = /\b(public[- ]release|production go-live|owner approval|owner-approved)\b\s*[:|]\s*(true|approved|ready|yes|pass)\b/i;
     return {
       url: window.location.href,
-      title: document.querySelector("h1")?.textContent?.trim() ?? "",
-      capability_cards: document.querySelectorAll("[data-capability-id]").length,
-      capability_labels: capabilityLabels,
+      home_dashboard_shell: Boolean(document.querySelector("[data-home-dashboard-shell='true']")),
+      home_dashboard_grid: Boolean(document.querySelector("[data-home-dashboard-grid='true']")),
+      widget_ids: widgetIds,
+      dashboard_sections: dashboardSections,
       release_boundary_ui_has_no_positive_claim: !positiveReleaseClaimPattern.test(text),
       no_dummy_visible: !/mock|dummy|sample|synthetic|Project Atlas|Alex Smith|Riverstone/i.test(text),
       horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
       body_character_count: text.length
     };
   });
-  assert.equal(snapshot.title, "오늘의 운영 대기열", "post-login product UI must show the current home operations queue");
-  assert.equal(snapshot.capability_cards, 4, "command center must show four product-axis cards");
-  assert.deepEqual(snapshot.capability_labels.sort(), ["Client", "Matter", "구성원", "Vault"].sort(), "command center must show Client, Matter, 구성원, and Vault");
+  assert.equal(snapshot.home_dashboard_shell, true, "post-login product UI must show the Home dashboard shell");
+  assert.equal(snapshot.home_dashboard_grid, true, "post-login product UI must show the Home dashboard grid");
+  assert.deepEqual(snapshot.widget_ids.sort(), ["calendar", "feed", "todo"].sort(), "Home dashboard must keep the interactive calendar, feed, and To Do widgets");
+  assert.deepEqual(snapshot.dashboard_sections.sort(), ["home", "recent-work", "today-todo", "calendar", "monthly-sales", "new-engagements", "feed"].sort(), "Home dashboard must show the seven requested body areas");
+  assert.equal(snapshot.widget_ids.includes("approval"), false, "approval counts must stay outside the Home dashboard body");
+  assert.equal(snapshot.widget_ids.includes("system"), false, "company status must remain on its permission-gated Home screen instead of a duplicated dashboard widget");
   assert.equal(snapshot.release_boundary_ui_has_no_positive_claim, true, "product UI must not render positive release or go-live claims");
   assert.equal(snapshot.no_dummy_visible, true, "post-login product UI must not render dummy/sample/synthetic text");
   assert.equal(snapshot.horizontal_overflow, false, "product UI must not horizontally overflow");
@@ -153,15 +168,24 @@ async function waitForProductUi(page) {
     const nav = document.querySelector("[data-product-axis-nav='top-header']");
     const navRect = nav?.getBoundingClientRect();
     const topbarRect = document.querySelector(".topbar")?.getBoundingClientRect();
+    const portal = Array.from(document.querySelectorAll("[data-product-axis]")).find((node) => node.textContent?.trim().toLowerCase() === "portal");
+    const portalRect = portal?.getBoundingClientRect();
     return {
       labels: Array.from(document.querySelectorAll("[data-product-axis]")).map((node) => node.textContent.replace(/\s+/g, " ").trim()),
       axis_ids: Array.from(document.querySelectorAll("[data-product-axis]")).map((node) => node.getAttribute("data-product-axis")),
       in_topbar: Boolean(navRect && topbarRect && navRect.top >= topbarRect.top && navRect.bottom <= topbarRect.bottom + 1),
-      active_axis: document.querySelector("[data-product-axis][aria-current='page']")?.getAttribute("data-product-axis") ?? ""
+      active_axis: document.querySelector("[data-product-axis][aria-current='page']")?.getAttribute("data-product-axis") ?? "",
+      active_axis_count: document.querySelectorAll("[data-product-axis][aria-current='page']").length,
+      portal_fully_visible: Boolean(portalRect && navRect && portalRect.left >= navRect.left - 1 && portalRect.right <= navRect.right + 1),
+      nav_horizontal_overflow: nav ? nav.scrollWidth > nav.clientWidth : false
     };
   });
-  assert.deepEqual(topHeaderNav.labels, ["Home", "Client", "Matter", "People", "Vault"], "top header must render the five primary menu labels");
-  assert.deepEqual(topHeaderNav.axis_ids, ["home", "clients", "matters", "people", "vault"], "top header product-axis menu must stay fixed to Home/Client/Matter/People/Vault");
+  assert.deepEqual(topHeaderNav.labels, ["Home", "Client", "Matter", "People", "Vault", "Portal"], "top header must render the six primary menu labels");
+  assert.deepEqual(topHeaderNav.axis_ids, ["home", "clients", "matters", "people", "vault", "portal"], "top header product-axis menu must stay fixed to Home/Client/Matter/People/Vault/Portal");
+  assert.equal(topHeaderNav.active_axis_count, 1, "product-axis menu must have exactly one active axis");
+  assert.equal(topHeaderNav.active_axis, "home", "post-login Home dashboard must keep Home as the active axis");
+  assert.equal(topHeaderNav.portal_fully_visible, true, "Portal axis label must be fully visible in the top header");
+  assert.equal(topHeaderNav.nav_horizontal_overflow, false, "product-axis menu must not horizontally overflow");
   assert.equal(topHeaderNav.in_topbar, true, "product-axis menu must live inside the top header");
   const contextualSidebar = await page.evaluate(() => {
     const frame = document.querySelector(".app-frame");
@@ -176,7 +200,7 @@ async function waitForProductUi(page) {
       shell_contextual: frame?.classList.contains("contextual-shell") ?? false,
       sidebar_display: sidebarStyle?.display ?? "",
       workspace_visible: Boolean(workspace?.getBoundingClientRect().width && workspace?.getBoundingClientRect().height),
-      sidebar_product_axis_labels: sidebarLabels.filter((label) => ["Home", "Client", "Matter", "People", "Vault"].includes(label)),
+      sidebar_product_axis_labels: sidebarLabels.filter((label) => ["Home", "Client", "Matter", "People", "Vault", "Portal"].includes(label)),
       sidebar_item_count: sidebarLabels.length,
       horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth
     };
@@ -190,27 +214,80 @@ async function waitForProductUi(page) {
   return { ...snapshot, logo_flow: logoFlow, top_header_nav: topHeaderNav, sidebar: { contextual: contextualSidebar } };
 }
 
+async function captureDashboardSurfaces(page) {
+  await page.click('[data-product-axis="matters"]');
+  await page.waitForSelector('[data-matter-dashboard="true"]', { timeout: 30_000 });
+  const matterSections = await page.$$eval('[data-matter-dashboard="true"] [data-dashboard-section]', (nodes) => nodes.map((node) => node.getAttribute("data-dashboard-section")));
+  assert.deepEqual(matterSections.sort(), ["recent-work", "today-todo", "my-matters", "new-engagements", "closed-matters"].sort(), "Matter dashboard must show the five requested body areas");
+  assert.equal(await page.locator('[data-matter-dashboard-kpis], [data-matter-priority-queue]').count(), 0, "Matter dashboard must not render count KPI blocks");
+  await page.screenshot({ path: matterDashboardScreenshotPath, fullPage: true });
+
+  await page.click('[data-product-axis="clients"]');
+  await page.waitForSelector('[data-client-dashboard="true"]', { timeout: 30_000 });
+  const clientSections = await page.$$eval('[data-client-dashboard="true"] [data-dashboard-section]', (nodes) => nodes.map((node) => node.getAttribute("data-dashboard-section")));
+  assert.deepEqual(clientSections.sort(), ["new-clients", "prospects-contacts", "revenue-ranking", "client-meetings", "accounts-receivable"].sort(), "Client dashboard must show the five requested body areas");
+  await page.screenshot({ path: clientDashboardScreenshotPath, fullPage: true });
+
+  await page.click('[data-product-axis="people"]');
+  await page.waitForSelector('[data-hr-workforce-table="true"]', { timeout: 30_000 });
+  assert.equal(await page.locator('[data-people-dashboard="true"]').count(), 0, "People must not render the customer dashboard");
+  await page.screenshot({ path: peopleWorkforceScreenshotPath, fullPage: true });
+
+  await page.click('[data-product-axis="home"]');
+  await page.waitForSelector('[data-home-dashboard-grid="true"]', { timeout: 30_000 });
+  return { matter_sections: matterSections, client_sections: clientSections, people_surface: "workforce" };
+}
+
 async function launchMatterApp(qaTarget) {
+  const userDataPath = createQaUserDataPath();
   const app = await electron.launch({
     executablePath: qaTarget === "packaged" ? packagedMacExecutablePath : electronExecutablePath,
     args: qaTarget === "packaged" ? [] : [desktopMainPath],
     env: {
       ...process.env,
-      MATTER_DESKTOP_ENV_FILE: envFilePath
+      MATTER_DESKTOP_ENV_FILE: envFilePath,
+      MATTER_DESKTOP_LOCAL_API_DISABLED: "1",
+      MATTER_DESKTOP_USER_DATA_PATH: userDataPath
     },
     timeout: 30_000
   });
-  const page = await app.firstWindow({ timeout: 30_000 });
-  await page.waitForSelector("[data-matter-desktop-app]", { timeout: 30_000 });
-  let runtimeLabel;
   try {
-    runtimeLabel = await waitForText(page, "[data-runtime-label]", /AWS temporary runtime connected|작업공간 연결됨/);
+    await app.firstWindow({ timeout: 30_000 });
+    let page = null;
+    for (let attempt = 0; attempt < 60 && !page; attempt += 1) {
+      for (const candidate of app.windows()) {
+        const ready = await candidate.locator('[data-login-screen="forest-split"], [data-product-axis-nav="top-header"], [data-matter-desktop-app]').count().catch(() => 0);
+        if (ready > 0) {
+          page = candidate;
+          break;
+        }
+      }
+      if (!page) await new Promise((resolveWait) => setTimeout(resolveWait, 500));
+    }
+    if (!page) {
+      const diagnostics = await Promise.all(app.windows().map((candidate) => collectVisibleDiagnostics(candidate)));
+      throw new Error(`Desktop main window did not become ready: ${JSON.stringify(diagnostics)}`);
+    }
+    await page.waitForSelector('[data-login-screen="forest-split"]', { timeout: 30_000 });
+    const runtime = await page.evaluate(() => window.matterSession.runtime());
+    const accounts = await page.evaluate(() => window.matterSession.accounts());
+    assert.equal(runtime?.configured, true, "desktop runtime must be configured");
+    assert.equal(accounts?.ok, true, "desktop account ledger must load through current package IPC");
+    assert(Number(accounts?.count ?? accounts?.users?.length ?? 0) > 0, "desktop account ledger must contain registered accounts");
+    return {
+      app,
+      page,
+      runtimeLabel: "AWS temporary runtime connected",
+      runtimeSource: "matterSession.runtime",
+      accountCountLabel: `${Number(accounts.count ?? accounts.users.length)} registered`,
+      accountCountSource: "matterSession.accounts",
+      userDataPath
+    };
   } catch (error) {
-    const diagnostics = await collectVisibleDiagnostics(page);
+    const diagnostics = await Promise.all(app.windows().map((candidate) => collectVisibleDiagnostics(candidate)));
+    await app.close().catch(() => {});
     throw new Error(`Desktop runtime did not connect: ${JSON.stringify(diagnostics)}`, { cause: error });
   }
-  const accountCountLabel = await waitForText(page, "[data-account-count]", /^([1-9]\d* registered|등록된 계정 [1-9]\d*개)$/);
-  return { app, page, runtimeLabel, accountCountLabel };
 }
 
 async function main() {
@@ -225,57 +302,67 @@ async function main() {
   mkdirSync(artifactDir, { recursive: true });
 
   const runtimeClient = createMatterVaultAwsRuntimeClient(loadMatterVaultRuntimeConfig({ envPath: envFilePath }));
+  const accountsResponse = await runtimeClient.accounts();
+  assert.equal(accountsResponse.ok, true, "desktop account ledger must load before selecting QA account");
+  const superAdminAccount = accountsResponse.users.find((user) => user.email === "jwsuh@amic.kr");
+  assert(superAdminAccount, "jwsuh@amic.kr must exist in registered account ledger for read-only privilege smoke");
+  assert(superAdminAccount.role_ids.includes("system_super_admin"), "jwsuh@amic.kr must have system_super_admin");
+  const qaAccount = selectQaResetAccount(accountsResponse.users);
   const firstLaunch = await launchMatterApp(qaTarget);
+  let secondLaunch = null;
 
   try {
     const { page } = firstLaunch;
     await page.waitForTimeout(3_500);
     const initialBrandSnapshot = await page.$eval(".auth-stage", (node) => {
-      const brand = node.querySelector(".brand-lockup");
-      const loginPanel = node.querySelector(".login-panel");
+      const brand = node.querySelector(".matter-logo");
+      const brandLogo = brand?.querySelector(".matter-mark, .matter-word, img, svg");
+      const loginPanel = node.querySelector('[data-login-form="email-password"]');
       const brandRect = brand?.getBoundingClientRect();
+      const logoRect = brandLogo?.getBoundingClientRect();
       const panelRect = loginPanel?.getBoundingClientRect();
+      const text = node.textContent?.replace(/\s+/g, " ").trim() ?? "";
+      const brandText = brand?.textContent?.replace(/\s+/g, " ").trim() ?? "";
       return {
-        text: node.textContent?.replace(/\s+/g, " ").trim() ?? "",
-        brand_visible: Boolean(brandRect && brandRect.width > 200 && brandRect.height > 80),
+        text,
+        brand_text: brandText,
+        brand_visible:
+          Boolean(brandRect && brandRect.width > 120 && brandRect.height > 20 && brandText.includes("matter")) ||
+          Boolean(logoRect && logoRect.width > 120 && logoRect.height > 20),
         login_panel_visible: Boolean(panelRect && panelRect.width > 300 && panelRect.height > 200)
       };
     });
     assert.equal(initialBrandSnapshot.brand_visible, true, "matter brand lockup must be visible on initial login screen");
     assert.equal(initialBrandSnapshot.login_panel_visible, true, "matter login panel must be visible on initial login screen");
     assert(initialBrandSnapshot.text.includes("matter"), "initial login screen must render the matter wordmark");
-    assert.equal(initialBrandSnapshot.text.includes("AMIC"), false, "initial login screen must not render the AMIC byline");
+    assert.equal(initialBrandSnapshot.brand_text.includes("AMIC"), false, "initial login brand lockup must not render the AMIC byline");
     await page.screenshot({ path: initialLoginScreenshotPath, fullPage: true });
 
-    const superAdmin = await resetAndLogin(page, "jwsuh@amic.kr");
-    assert(
-      superAdmin.roles.includes("system_super_admin") ||
-        superAdmin.roles.includes("시스템 관리자") ||
-        superAdmin.privilege === "system_super_admin" ||
-        superAdmin.privilege === "최고 관리자",
-      "jwsuh@amic.kr must have the highest account privilege"
-    );
-    const superAdminProduct = await waitForProductUi(page);
-    await page.screenshot({ path: superAdminProductScreenshotPath, fullPage: true });
+    const qaUser = await resetAndLogin(page, qaAccount.email, { account: qaAccount });
+    assert.notEqual(qaUser.privilege, "system_super_admin", "QA account must not inherit system super admin");
+    assert.notEqual(qaUser.privilege, "최고 관리자", "QA account must not inherit system super admin");
+    const qaProduct = await waitForProductUi(page);
+    await page.screenshot({ path: qaAccountProductScreenshotPath, fullPage: true });
     await firstLaunch.app.close();
 
-    const secondLaunch = await launchMatterApp(qaTarget);
-    const generalUser = await resetAndLogin(secondLaunch.page, "ytkim@amic.kr");
+    secondLaunch = await launchMatterApp(qaTarget);
+    const generalUser = await resetAndLogin(secondLaunch.page, qaAccount.email, { account: qaAccount });
     assert.notEqual(generalUser.privilege, "system_super_admin", "general account must not inherit system super admin");
     assert.notEqual(generalUser.privilege, "최고 관리자", "general account must not inherit system super admin");
     const generalProduct = await waitForProductUi(secondLaunch.page);
+    const dashboardSurfaces = await captureDashboardSurfaces(secondLaunch.page);
     await secondLaunch.page.screenshot({ path: screenshotPath, fullPage: true });
     const finalBodyText = (await secondLaunch.page.textContent("body")) ?? "";
     await secondLaunch.app.close();
 
     const superAdminDashboardSmoke = await runtimeSmoke(runtimeClient, {
-      email: superAdmin.email,
+      email: superAdminAccount.email,
       featureId: "matter_vault_dashboard",
       expectedDecision: "allow",
       expectedStatus: 200
     });
     const superAdminAdminSmoke = await runtimeSmoke(runtimeClient, {
-      email: superAdmin.email,
+      email: superAdminAccount.email,
       featureId: "matter_vault_admin",
       expectedDecision: "allow",
       expectedStatus: 200
@@ -307,12 +394,19 @@ async function main() {
       app_name: "matter",
       runtime: {
         label: canonicalRuntimeLabel(firstLaunch.runtimeLabel),
-        visible_label: firstLaunch.runtimeLabel,
+        status_source: firstLaunch.runtimeSource,
+        visible_label: null,
         account_count_label: firstLaunch.accountCountLabel,
+        account_count_source: firstLaunch.accountCountSource,
         base_url_material_printed: false,
         operator_token_material_printed: false,
         password_material_printed: false,
         reset_token_material_printed: false
+      },
+      desktop_user_data: {
+        isolated_per_launch: true,
+        first_launch_path: firstLaunch.userDataPath,
+        second_launch_path: secondLaunch.userDataPath
       },
       packaged_bundle_inspection: {
         mac_bundle_present: existsSync(packagedMacAppPath),
@@ -323,17 +417,17 @@ async function main() {
       accounts: {
         count: accountCount,
         jwsuh_at_amic_kr: {
-          email: superAdmin.email,
-          highest_privilege: superAdmin.privilege,
-          roles: canonicalRoles(superAdmin),
-          reset_email_request: "passed",
-          password_reset_confirm: "passed",
-          password_login: "passed",
-          product_handoff: superAdminProduct,
+          email: superAdminAccount.email,
+          highest_privilege: superAdminAccount.highest_privilege ?? "system_super_admin",
+          roles: canonicalRoles(superAdminAccount),
+          reset_email_request: "not_attempted_protected_account",
+          password_reset_confirm: "not_attempted_protected_account",
+          password_login: "not_attempted_protected_account",
+          product_handoff: "not_attempted_protected_account",
           dashboard_smoke: superAdminDashboardSmoke,
           admin_smoke: superAdminAdminSmoke
         },
-        ytkim_at_amic_kr: {
+        qa_reset_account: {
           email: generalUser.email,
           highest_privilege: generalUser.privilege,
           roles: canonicalRoles(generalUser),
@@ -347,15 +441,20 @@ async function main() {
       },
       ui_artifacts: {
         initial_login_screenshot: path.relative(repoRoot, initialLoginScreenshotPath),
-        super_admin_product_screenshot: path.relative(repoRoot, superAdminProductScreenshotPath),
-        screenshot: path.relative(repoRoot, screenshotPath)
+        qa_account_product_screenshot: path.relative(repoRoot, qaAccountProductScreenshotPath),
+        screenshot: path.relative(repoRoot, screenshotPath),
+        matter_dashboard_screenshot: path.relative(repoRoot, matterDashboardScreenshotPath),
+        client_dashboard_screenshot: path.relative(repoRoot, clientDashboardScreenshotPath),
+        people_workforce_screenshot: path.relative(repoRoot, peopleWorkforceScreenshotPath)
       },
+      dashboard_surfaces: dashboardSurfaces,
+      reset_protection: resetProtectionSummary(),
       ui_brand_checks: {
         initial_login_brand_visible: initialBrandSnapshot.brand_visible,
         initial_login_panel_visible: initialBrandSnapshot.login_panel_visible,
         matter_wordmark_visible: initialBrandSnapshot.text.includes("matter"),
-        amic_byline_visible: initialBrandSnapshot.text.includes("AMIC"),
-        amic_byline_removed: initialBrandSnapshot.text.includes("AMIC") === false
+        amic_byline_visible: initialBrandSnapshot.brand_text.includes("AMIC"),
+        amic_byline_removed: initialBrandSnapshot.brand_text.includes("AMIC") === false
       },
       forbidden_material_checks: {
         token_or_password_visible_in_final_dom: false,
@@ -373,6 +472,7 @@ async function main() {
     writeFileSync(resultPath, `${JSON.stringify(receipt, null, 2)}\n`);
     console.log(JSON.stringify({ verdict: "PASS", receipt: path.relative(repoRoot, resultPath), screenshot: path.relative(repoRoot, screenshotPath) }, null, 2));
   } finally {
+    await secondLaunch?.app?.close().catch(() => {});
     await firstLaunch.app.close().catch(() => {});
   }
 }

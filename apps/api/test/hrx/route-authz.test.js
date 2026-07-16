@@ -1,17 +1,22 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { authorizeHrxApiRequest } from "../../src/middleware/hrx-authz.js";
+import { findRegisteredAccountByEmail } from "../../src/matter-vault-account-registry.js";
 import { resolveHrxRoutePolicy } from "../../src/routes/hrx/route-policy-map.js";
 import { startApiServer } from "../../src/server.js";
+import { apiSessionHeaders } from "../helpers/session.js";
 
 let server;
 let baseUrl;
+let adminHeaders;
+let staffHeaders;
+let noHrxHeaders;
 
 const ALLOW_HEADERS = Object.freeze({
   "x-lawos-tenant-id": "tenant-a",
   "x-lawos-actor-id": "hrx-authz-user",
   "x-lawos-actor-role": "people_ops",
-  "x-lawos-hrx-scopes": "hrx.employee.read,hrx.employee.write,hrx.document.read,hrx.leave.read,hrx.legal_people.read,hrx.payroll.preview,hrx.payroll.export",
+  "x-lawos-hrx-scopes": "hrx.employee.read,hrx.employee.write,hrx.document.read,hrx.document.write,hrx.compensation.read,hrx.attendance.read,hrx.attendance.write,hrx.overtime.read,hrx.overtime.write,hrx.risk.read,hrx.risk.write,hrx.leave.read,hrx.legal_people.read,hrx.payroll.preview,hrx.payroll.approve,hrx.payroll.export",
 });
 
 const PERMISSION_PRINCIPAL = Object.freeze({
@@ -34,30 +39,87 @@ async function json(path, options = {}) {
   return { status: response.status, body: await response.json() };
 }
 
+function account(email) {
+  const found = findRegisteredAccountByEmail(email);
+  assert.ok(found, `registered account ${email} should exist`);
+  return found;
+}
+
 test.before(async () => {
   const started = await startApiServer({ port: 0 });
   server = started.server;
   baseUrl = `http://${started.host}:${started.port}`;
+  adminHeaders = await apiSessionHeaders(baseUrl, account("jwsuh@amic.kr"));
+  staffHeaders = await apiSessionHeaders(baseUrl, account("yjlee@amic.kr"));
+  noHrxHeaders = await apiSessionHeaders(baseUrl, account("matter.desktop.qa@amic.kr"));
 });
 
 test.after(() => new Promise((resolve) => server.close(resolve)));
 
 test("HRX route policy map resolves implemented server routes and denies unknown routes", () => {
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/employees" }).required_scope, "hrx.employee.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/employees" }).required_scope, "hrx.employee.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "PATCH", pathname: "/api/hrx/employees/emp-001" }).required_scope, "hrx.employee.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/org-chart" }).required_scope, "hrx.employee.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "PATCH", pathname: "/api/hrx/org-chart/employees/emp-001" }).required_scope, "hrx.employee.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/employee-user-links" }).required_scope, "hrx.employee.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/employee-user-links/link-001/revoke" }).required_scope, "hrx.employee.write");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/documents" }).required_scope, "hrx.document.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/documents/expiring" }).required_scope, "hrx.document.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/documents" }).required_scope, "hrx.document.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/documents/doc-001/sign" }).required_scope, "hrx.document.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/documents/doc-001/expire" }).required_scope, "hrx.document.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/documents/doc-001/renew" }).required_scope, "hrx.document.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/documents/doc-001/terminate" }).required_scope, "hrx.document.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/compensation" }).required_scope, "hrx.compensation.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/compensation" }).action, "hrx.compensation.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/compensation/comp-001/decrypt" }).required_scope, "hrx.compensation.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/compensation/comp-001/decrypt" }).action, "hrx.compensation.decrypt");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/attendance" }).required_scope, "hrx.attendance.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/attendance" }).required_scope, "hrx.attendance.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/attendance/att-001/correct" }).required_scope, "hrx.attendance.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/overtime" }).required_scope, "hrx.overtime.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/overtime" }).required_scope, "hrx.overtime.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/overtime/risks" }).required_scope, "hrx.overtime.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/risks" }).required_scope, "hrx.risk.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/risks/scan" }).required_scope, "hrx.risk.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/risks/hrx-risk:employment_contract_missing:emp-001:current/transition" }).required_scope, "hrx.risk.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/overtime/ot-001/approve" }).required_scope, "hrx.overtime.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/leave/leave-001/approve" }).required_scope, "hrx.leave.write");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/legal-people/search" }).required_scope, "hrx.legal_people.read");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/legal-people/person_client_contact_001" }).required_scope, "hrx.legal_people.read");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/legal-people/relationships" }).required_scope, "hrx.legal_people.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/legal-people/matter-graph/traverse" }).required_scope, "hrx.legal_people.read");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/legal-people/ethics" }).required_scope, "hrx.legal_people.read");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/lifecycle/onboarding" }).required_scope, "hrx.lifecycle.read");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/lifecycle/onboarding/onb-001/tasks/task-001" }).required_scope, "hrx.lifecycle.write");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/lifecycle/offboarding" }).required_scope, "hrx.lifecycle.read");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/lifecycle/offboarding/off-001/close" }).required_scope, "hrx.lifecycle.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/recruiting/job-openings" }).required_scope, "hrx.candidate.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/recruiting/candidates" }).required_scope, "hrx.candidate.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/recruiting/applications" }).required_scope, "hrx.candidate.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/recruiting/interviews" }).required_scope, "hrx.candidate.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/recruiting/offers" }).required_scope, "hrx.candidate.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/recruiting/offers/offer-001/stage" }).required_scope, "hrx.candidate.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/recruiting/applications/app-001/convert-to-employee" }).required_scope, "hrx.employee.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/preview" }).required_scope, "hrx.payroll.preview");
-  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/approve" }).required_scope, "hrx.payroll.export");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/approve" }).required_scope, "hrx.payroll.approve");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/export" }).required_scope, "hrx.payroll.export");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/periods" }).required_scope, "hrx.payroll.preview");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/runs/run-001" }).required_scope, "hrx.payroll.preview");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/periods" }).required_scope, "hrx.payroll.preview");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/runs" }).required_scope, "hrx.payroll.preview");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/runs/run-001/snapshot" }).required_scope, "hrx.payroll.preview");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/issues/issue-001/resolve" }).required_scope, "hrx.payroll.approve");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/runs/run-001/close" }).required_scope, "hrx.payroll.approve");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/statements/self" }).required_scope, "hrx.payroll.statement.self.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/statements/statement-001/download" }).required_scope, "hrx.payroll.statement.self.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/runs/run-001/statements/generate" }).required_scope, "hrx.payroll.statement.manage");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/runs/run-001/export" }).required_scope, "hrx.payroll.export");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/runs/run-001/payments/prepare" }).required_scope, "hrx.payroll.payment.prepare");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/payment-batches/batch-001/approve" }).required_scope, "hrx.payroll.payment.approve");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/runs/run-001/filings" }).required_scope, "hrx.payroll.filing.prepare");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/filings/filing-001/submit" }).required_scope, "hrx.payroll.filing.submit");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/not-mapped" }), null);
 });
 
@@ -71,7 +133,7 @@ test("HRX authz middleware fails closed without trusted tenant actor context", (
 
 test("HRX API denies route access before runtime when scope is missing", async () => {
   const { status, body } = await json("/api/hrx/documents?employee_id=emp-001", {
-    headers: { ...ALLOW_HEADERS, "x-lawos-hrx-scopes": "hrx.employee.read" },
+    headers: noHrxHeaders,
   });
   assert.equal(status, 403);
   assert.equal(body.outcome, "blocked");
@@ -79,75 +141,185 @@ test("HRX API denies route access before runtime when scope is missing", async (
   assert.equal(body.required_scope, "hrx.document.read");
 });
 
+test("HRX compensation route requires compensation read scope before step-up runtime", async () => {
+  const { status, body } = await json("/api/hrx/compensation?employee_id=emp-001", {
+    headers: staffHeaders,
+  });
+  assert.equal(status, 403);
+  assert.equal(body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(body.required_scope, "hrx.compensation.read");
+});
+
+test("HRX attendance write route requires attendance write scope before runtime", async () => {
+  const { status, body } = await json("/api/hrx/attendance", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({
+      attendance_id: "att-authz-denied",
+      employee_id: "emp-001",
+      work_date: "2026-07-02",
+      status: "present",
+      source_ref: "TimeClock:authz-denied",
+    }),
+  });
+  assert.equal(status, 403);
+  assert.equal(body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(body.required_scope, "hrx.attendance.write");
+});
+
+test("HRX document lifecycle write routes require document write scope before runtime", async () => {
+  const create = await json("/api/hrx/documents", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({
+      document_id: "doc-authz-denied",
+      employee_id: "emp-001",
+      expires_on: "2026-07-20",
+    }),
+  });
+  assert.equal(create.status, 403);
+  assert.equal(create.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(create.body.required_scope, "hrx.document.write");
+
+  const sign = await json("/api/hrx/documents/doc-authz-denied/sign", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({ signature_ref: "signature:denied" }),
+  });
+  assert.equal(sign.status, 403);
+  assert.equal(sign.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(sign.body.required_scope, "hrx.document.write");
+
+  const renew = await json("/api/hrx/documents/doc-authz-denied/renew", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({ expires_on: "2026-08-20" }),
+  });
+  assert.equal(renew.status, 403);
+  assert.equal(renew.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(renew.body.required_scope, "hrx.document.write");
+
+  const terminate = await json("/api/hrx/documents/doc-authz-denied/terminate", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({}),
+  });
+  assert.equal(terminate.status, 403);
+  assert.equal(terminate.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(terminate.body.required_scope, "hrx.document.write");
+});
+
+test("HRX overtime write route requires overtime write scope before runtime", async () => {
+  const { status, body } = await json("/api/hrx/overtime", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({
+      overtime_id: "ot-authz-denied",
+      employee_id: "emp-001",
+      work_date: "2026-07-02",
+      hours: 2,
+      reason: "authz denied",
+    }),
+  });
+  assert.equal(status, 403);
+  assert.equal(body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(body.required_scope, "hrx.overtime.write");
+});
+
+test("HRX risk scan and transition routes require risk write scope before runtime", async () => {
+  const scan = await json("/api/hrx/risks/scan", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({ as_of: "2026-07-03" }),
+  });
+  assert.equal(scan.status, 403);
+  assert.equal(scan.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(scan.body.required_scope, "hrx.risk.write");
+
+  const transition = await json("/api/hrx/risks/hrx-risk:employment_contract_missing:emp-001:current/transition", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({ status: "acknowledged" }),
+  });
+  assert.equal(transition.status, 403);
+  assert.equal(transition.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(transition.body.required_scope, "hrx.risk.write");
+});
+
 test("HRX API allows scoped trusted context and rejects unmapped HRX routes", async () => {
-  const allowed = await json("/api/hrx/employees", { headers: ALLOW_HEADERS });
+  const allowed = await json("/api/hrx/employees", { headers: adminHeaders });
   assert.equal(allowed.status, 200);
   assert.equal(allowed.body.outcome, "ok");
 
-  const unmapped = await json("/api/hrx/not-mapped", { headers: ALLOW_HEADERS });
+  const unmapped = await json("/api/hrx/not-mapped", { headers: adminHeaders });
   assert.equal(unmapped.status, 403);
   assert.equal(unmapped.body.safe_error_code, "HRX_ROUTE_POLICY_REQUIRED");
 });
 
-test("HRX employees read route honors permission-context deny and review decisions", async () => {
+test("HRX employees read route ignores forged permission-context deny and review decisions", async () => {
   const denied = await json("/api/hrx/employees", {
-    headers: { ...ALLOW_HEADERS, "x-lawos-permission-context": permissionContext("deny") },
+    headers: { ...adminHeaders, "x-lawos-permission-context": permissionContext("deny") },
   });
-  assert.equal(denied.status, 403);
-  assert.equal(denied.body.ui_state, "denied");
-  assert.equal(denied.body.count_leak_prevented, true);
-  assert.deepEqual(denied.body.employees, []);
+  assert.equal(denied.status, 200);
+  assert.equal(denied.body.outcome, "ok");
+  assert.ok(denied.body.employees.length > 0);
 
   const review = await json("/api/hrx/employees", {
-    headers: { ...ALLOW_HEADERS, "x-lawos-permission-context": permissionContext("review_required") },
+    headers: { ...adminHeaders, "x-lawos-permission-context": permissionContext("review_required") },
   });
   assert.equal(review.status, 200);
-  assert.equal(review.body.ui_state, "review_required");
-  assert.equal(review.body.review_required, true);
-  assert.equal(review.body.count_leak_prevented, true);
-  assert.deepEqual(review.body.employees, []);
+  assert.equal(review.body.outcome, "ok");
+  assert.ok(review.body.employees.length > 0);
 });
 
-test("HRX document and leave read routes honor permission-context deny and review decisions", async () => {
+test("HRX document attendance and leave read routes ignore forged permission-context deny and review decisions", async () => {
   const deniedDocuments = await json("/api/hrx/documents?employee_id=emp-001", {
-    headers: { ...ALLOW_HEADERS, "x-lawos-permission-context": permissionContext("deny") },
+    headers: { ...adminHeaders, "x-lawos-permission-context": permissionContext("deny") },
   });
-  assert.equal(deniedDocuments.status, 403);
-  assert.equal(deniedDocuments.body.ui_state, "denied");
-  assert.equal(deniedDocuments.body.count_leak_prevented, true);
+  assert.equal(deniedDocuments.status, 200);
+  assert.equal(deniedDocuments.body.outcome, "ok");
   assert.deepEqual(deniedDocuments.body.documents, []);
 
   const reviewDocuments = await json("/api/hrx/documents?employee_id=emp-001", {
-    headers: { ...ALLOW_HEADERS, "x-lawos-permission-context": permissionContext("review_required") },
+    headers: { ...adminHeaders, "x-lawos-permission-context": permissionContext("review_required") },
   });
   assert.equal(reviewDocuments.status, 200);
-  assert.equal(reviewDocuments.body.ui_state, "review_required");
-  assert.equal(reviewDocuments.body.review_required, true);
-  assert.equal(reviewDocuments.body.count_leak_prevented, true);
+  assert.equal(reviewDocuments.body.outcome, "ok");
   assert.deepEqual(reviewDocuments.body.documents, []);
 
-  const deniedLeave = await json("/api/hrx/leave?employee_id=emp-001&policy_id=pto-us", {
-    headers: { ...ALLOW_HEADERS, "x-lawos-permission-context": permissionContext("deny") },
+  const deniedAttendance = await json("/api/hrx/attendance?employee_id=emp-001", {
+    headers: { ...adminHeaders, "x-lawos-permission-context": permissionContext("deny") },
   });
-  assert.equal(deniedLeave.status, 403);
-  assert.equal(deniedLeave.body.ui_state, "denied");
-  assert.equal(deniedLeave.body.count_leak_prevented, true);
-  assert.equal(deniedLeave.body.balance, null);
+  assert.equal(deniedAttendance.status, 200);
+  assert.equal(deniedAttendance.body.outcome, "ok");
+  assert.deepEqual(deniedAttendance.body.attendance, []);
+
+  const reviewAttendance = await json("/api/hrx/attendance?employee_id=emp-001", {
+    headers: { ...adminHeaders, "x-lawos-permission-context": permissionContext("review_required") },
+  });
+  assert.equal(reviewAttendance.status, 200);
+  assert.equal(reviewAttendance.body.outcome, "ok");
+  assert.deepEqual(reviewAttendance.body.attendance, []);
+
+  const deniedLeave = await json("/api/hrx/leave?employee_id=emp-001&policy_id=pto-us", {
+    headers: { ...adminHeaders, "x-lawos-permission-context": permissionContext("deny") },
+  });
+  assert.equal(deniedLeave.status, 200);
+  assert.equal(deniedLeave.body.outcome, "ok");
+  assert.equal(deniedLeave.body.balance.employee_id, "emp-001");
   assert.deepEqual(deniedLeave.body.requests, []);
 
   const reviewLeave = await json("/api/hrx/leave?employee_id=emp-001&policy_id=pto-us", {
-    headers: { ...ALLOW_HEADERS, "x-lawos-permission-context": permissionContext("review_required") },
+    headers: { ...adminHeaders, "x-lawos-permission-context": permissionContext("review_required") },
   });
   assert.equal(reviewLeave.status, 200);
-  assert.equal(reviewLeave.body.ui_state, "review_required");
-  assert.equal(reviewLeave.body.review_required, true);
-  assert.equal(reviewLeave.body.count_leak_prevented, true);
-  assert.equal(reviewLeave.body.balance, null);
+  assert.equal(reviewLeave.body.outcome, "ok");
+  assert.equal(reviewLeave.body.balance.employee_id, "emp-001");
   assert.deepEqual(reviewLeave.body.requests, []);
 });
 
 test("HRX API rejects query tenant actor context before runtime", async () => {
-  const { status, body } = await json("/api/hrx/employees?tenant_id=tenant-a&actor_id=query-user", { headers: ALLOW_HEADERS });
+  const { status, body } = await json("/api/hrx/employees?tenant_id=tenant-a&actor_id=query-user", { headers: adminHeaders });
   assert.equal(status, 400);
   assert.equal(body.safe_error_code, "HRX_QUERY_CONTEXT_FORBIDDEN");
   assert.deepEqual(body.forbidden_query_keys, ["tenant_id", "actor_id"]);
@@ -156,7 +328,7 @@ test("HRX API rejects query tenant actor context before runtime", async () => {
 test("HRX employee user-link write route requires write scope before runtime", async () => {
   const { status, body } = await json("/api/hrx/employee-user-links", {
     method: "POST",
-    headers: { ...ALLOW_HEADERS, "x-lawos-hrx-scopes": "hrx.employee.read" },
+    headers: staffHeaders,
     body: JSON.stringify({
       link_id: "link-authz-denied",
       employee_id: "emp-001",
@@ -168,9 +340,38 @@ test("HRX employee user-link write route requires write scope before runtime", a
   assert.equal(body.required_scope, "hrx.employee.write");
 });
 
+test("HRX employee registration and status update routes require write scope before runtime", async () => {
+  const create = await json("/api/hrx/employees", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({ employee_id: "emp-authz-denied", display_name: "Denied Employee" }),
+  });
+  assert.equal(create.status, 403);
+  assert.equal(create.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(create.body.required_scope, "hrx.employee.write");
+
+  const update = await json("/api/hrx/employees/emp-001", {
+    method: "PATCH",
+    headers: staffHeaders,
+    body: JSON.stringify({ status: "notice" }),
+  });
+  assert.equal(update.status, 403);
+  assert.equal(update.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(update.body.required_scope, "hrx.employee.write");
+
+  const orgUpdate = await json("/api/hrx/org-chart/employees/emp-001", {
+    method: "PATCH",
+    headers: staffHeaders,
+    body: JSON.stringify({ manager_employee_id: null }),
+  });
+  assert.equal(orgUpdate.status, 403);
+  assert.equal(orgUpdate.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(orgUpdate.body.required_scope, "hrx.employee.write");
+});
+
 test("HRX legal People route requires legal People read scope before runtime", async () => {
   const { status, body } = await json("/api/hrx/legal-people/ethics", {
-    headers: { ...ALLOW_HEADERS, "x-lawos-hrx-scopes": "hrx.employee.read" },
+    headers: staffHeaders,
   });
   assert.equal(status, 403);
   assert.equal(body.safe_error_code, "HRX_AUTHZ_DENIED");
@@ -180,7 +381,7 @@ test("HRX legal People route requires legal People read scope before runtime", a
 test("HRX lifecycle write route requires lifecycle write scope before runtime", async () => {
   const { status, body } = await json("/api/hrx/lifecycle/offboarding/off-001/close", {
     method: "POST",
-    headers: { ...ALLOW_HEADERS, "x-lawos-hrx-scopes": "hrx.lifecycle.read" },
+    headers: staffHeaders,
     body: JSON.stringify({}),
   });
   assert.equal(status, 403);
@@ -191,7 +392,7 @@ test("HRX lifecycle write route requires lifecycle write scope before runtime", 
 test("HRX payroll export route requires payroll export scope before runtime", async () => {
   const { status, body } = await json("/api/hrx/payroll/export", {
     method: "POST",
-    headers: { ...ALLOW_HEADERS, "x-lawos-hrx-scopes": "hrx.payroll.preview" },
+    headers: staffHeaders,
     body: JSON.stringify({
       preview_id: "payroll-authz-denied",
       export_artifact_ref: "DMS:payroll-authz-denied",
@@ -200,4 +401,58 @@ test("HRX payroll export route requires payroll export scope before runtime", as
   assert.equal(status, 403);
   assert.equal(body.safe_error_code, "HRX_AUTHZ_DENIED");
   assert.equal(body.required_scope, "hrx.payroll.export");
+});
+
+test("HRX payroll runtime routes enforce preview and approval scopes before runtime", async () => {
+  const read = await json("/api/hrx/payroll/periods?limit=5", {
+    headers: staffHeaders,
+  });
+  assert.equal(read.status, 403);
+  assert.equal(read.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(read.body.required_scope, "hrx.payroll.preview");
+
+  const snapshot = await json("/api/hrx/payroll/runs/payroll-authz-denied/snapshot", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({ expected_state_version: 1 }),
+  });
+  assert.equal(snapshot.status, 403);
+  assert.equal(snapshot.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(snapshot.body.required_scope, "hrx.payroll.preview");
+
+  const resolve = await json("/api/hrx/payroll/issues/payroll-issue-authz-denied/resolve", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({ expected_state_version: 1, resolution_code: "reviewed" }),
+  });
+  assert.equal(resolve.status, 403);
+  assert.equal(resolve.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(resolve.body.required_scope, "hrx.payroll.approve");
+
+  const close = await json("/api/hrx/payroll/runs/payroll-authz-denied/close", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({ expected_state_version: 1 }),
+  });
+  assert.equal(close.status, 403);
+  assert.equal(close.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(close.body.required_scope, "hrx.payroll.approve");
+});
+
+test("HRX payroll statement, payment, and filing routes enforce separated scopes", async () => {
+  const cases = [
+    ["GET", "/api/hrx/payroll/runs/run-authz-denied/statements", "hrx.payroll.statement.manage"],
+    ["POST", "/api/hrx/payroll/runs/run-authz-denied/statements/generate", "hrx.payroll.statement.manage"],
+    ["GET", "/api/hrx/payroll/runs/run-authz-denied/export?format=csv", "hrx.payroll.export"],
+    ["POST", "/api/hrx/payroll/runs/run-authz-denied/payments/prepare", "hrx.payroll.payment.prepare"],
+    ["POST", "/api/hrx/payroll/payment-batches/batch-authz-denied/approve", "hrx.payroll.payment.approve"],
+    ["GET", "/api/hrx/payroll/runs/run-authz-denied/filings", "hrx.payroll.filing.prepare"],
+    ["POST", "/api/hrx/payroll/filings/filing-authz-denied/submit", "hrx.payroll.filing.submit"],
+  ];
+  for (const [method, path, scope] of cases) {
+    const result = await json(path, { method, headers: staffHeaders, body: method === "POST" ? "{}" : undefined });
+    assert.equal(result.status, 403, `${method} ${path}`);
+    assert.equal(result.body.safe_error_code, "HRX_AUTHZ_DENIED", `${method} ${path}`);
+    assert.equal(result.body.required_scope, scope, `${method} ${path}`);
+  }
 });

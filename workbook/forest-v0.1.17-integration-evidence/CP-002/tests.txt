@@ -1,0 +1,21 @@
+PASS validator syntax
+PASS validator --help
+PASS validator unknown argument exit 2
+PASS validator --emit
+PASS validator --check exact checked-in matrix
+PASS comparison targets 5/5
+PASS product axes 10/10
+PASS required top navigation 6/6
+PASS candidate source anchor placements 23/23
+PASS candidate proof anchor placements 24/24
+PASS candidate Forest preservation paths 170/170
+PASS prior nav routes missing from candidate 0
+PASS raw prior People sections missing 1, approved redirects 1, unresolved 0
+PASS prior HRX route policy IDs missing from candidate 0
+PASS Forest checkpoint paths compared 170, identical 158, changed 12, missing 0
+PASS Web route/menu/UI regression 75/75
+PASS HRX route authz validator, route_policy_count 159
+PASS API route/authz matrix 23/23
+PASS JSON parse
+PASS diff check
+PASS AI slop changed scan

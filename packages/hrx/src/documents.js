@@ -1,3 +1,4 @@
+import { createEmploymentContract, transitionEmploymentContract } from "./contracts.js";
 import { HRX_DOCUMENT_SOURCE_STATUSES, assertNoHrxDocumentSourceLeak } from "./documents/source-adapter.js";
 
 const BLOCKED_BODY_FIELDS = Object.freeze(["body", "content", "text", "document_body"]);
@@ -23,10 +24,64 @@ function optionalIso(input, field) {
   return date.toISOString();
 }
 
+function optionalDate(input, field) {
+  const value = optionalString(input, field);
+  if (!value) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(new Date(`${value}T00:00:00.000Z`).getTime())) {
+    throw new TypeError(`${field} must be a valid date`);
+  }
+  return value;
+}
+
 function sourceStatus(input) {
   const status = optionalString(input, "source_status") ?? "unverified";
   if (![...HRX_DOCUMENT_SOURCE_STATUSES, "unverified"].includes(status)) throw new TypeError(`Unsupported HR document source status: ${status}`);
   return status;
+}
+
+function isEmploymentContractType(input = {}) {
+  return input.document_type === "employment_contract";
+}
+
+function contractDocumentProjection(input = {}) {
+  return createEmploymentContract({
+    tenant_id: input.tenant_id,
+    contract_id: input.contract_id ?? input.document_id,
+    employee_id: input.employee_id,
+    profile_id: input.profile_id ?? `profile:${input.employee_id}`,
+    state: input.contract_state ?? "draft",
+    document_ref: input.document_ref ?? input.source_ref,
+    signature_ref: input.signature_ref ?? null,
+    renewal_of_contract_id: input.renewal_of_contract_id ?? null,
+  });
+}
+
+function contractFields(input = {}) {
+  if (!isEmploymentContractType(input)) {
+    return Object.freeze({
+      contract_id: optionalString(input, "contract_id"),
+      profile_id: optionalString(input, "profile_id"),
+      contract_state: optionalString(input, "contract_state"),
+      document_ref: optionalString(input, "document_ref"),
+      signature_ref: optionalString(input, "signature_ref"),
+      signed_at: optionalIso(input, "signed_at"),
+      expires_on: optionalDate(input, "expires_on"),
+      expired_at: optionalIso(input, "expired_at"),
+      renewal_of_contract_id: optionalString(input, "renewal_of_contract_id"),
+    });
+  }
+  const contract = contractDocumentProjection(input);
+  return Object.freeze({
+    contract_id: contract.contract_id,
+    profile_id: contract.profile_id,
+    contract_state: contract.state,
+    document_ref: contract.document_ref,
+    signature_ref: contract.signature_ref,
+    signed_at: optionalIso(input, "signed_at"),
+    expires_on: optionalDate(input, "expires_on"),
+    expired_at: optionalIso(input, "expired_at"),
+    renewal_of_contract_id: contract.renewal_of_contract_id,
+  });
 }
 
 function serializeDocumentMetadata(metadata) {
@@ -64,7 +119,45 @@ export function createHrxDocumentMetadata(input = {}) {
     source_metadata: Object.freeze({ ...(input.source_metadata ?? {}) }),
     title: input.title ?? null,
     document_body_included: false,
+    ...contractFields(input),
   });
+}
+
+export function transitionHrxEmploymentContractDocument(document = {}, change = {}) {
+  if (!isEmploymentContractType(document)) throw new TypeError("HR document is not an employment contract");
+  const current = contractDocumentProjection(document);
+  const signedChange = change.state === "signed" && current.state === "draft"
+    ? transitionEmploymentContract(transitionEmploymentContract(current, { state: "approved" }), change)
+    : transitionEmploymentContract(current, change);
+  return createHrxDocumentMetadata({
+    ...document,
+    contract_id: signedChange.contract_id,
+    profile_id: signedChange.profile_id,
+    contract_state: signedChange.state,
+    document_ref: signedChange.document_ref,
+    signature_ref: signedChange.signature_ref,
+    renewal_of_contract_id: signedChange.renewal_of_contract_id,
+    signed_at: change.state === "signed" ? change.signed_at : document.signed_at,
+    expired_at: change.state === "expired" ? change.expired_at : document.expired_at,
+    expires_on: change.expires_on ?? document.expires_on,
+  });
+}
+
+export function findHrxDocumentsExpiringWithin(documents = [], { as_of, days = 30 } = {}) {
+  const asOf = as_of ? new Date(`${as_of}T00:00:00.000Z`) : new Date();
+  if (Number.isNaN(asOf.getTime())) throw new TypeError("as_of must be a valid date");
+  const horizon = new Date(asOf.getTime() + Number(days) * 24 * 60 * 60 * 1000);
+  return Object.freeze(
+    documents
+      .filter((document) => isEmploymentContractType(document))
+      .filter((document) => ["signed", "renewed"].includes(document.contract_state))
+      .filter((document) => document.expires_on)
+      .filter((document) => {
+        const expiresOn = new Date(`${document.expires_on}T00:00:00.000Z`);
+        return expiresOn >= asOf && expiresOn <= horizon;
+      })
+      .map((document) => Object.freeze({ ...document })),
+  );
 }
 
 export function createInMemoryHrxDocumentStore(seed = []) {
@@ -88,6 +181,23 @@ export function createInMemoryHrxDocumentStore(seed = []) {
           .filter((document) => !query.employee_id || document.employee_id === query.employee_id)
           .map((document) => Object.freeze({ ...document })),
       );
+    },
+    update(ref = {}, patch = {}) {
+      const current = store.get(ref);
+      if (!current) return undefined;
+      const next = createHrxDocumentMetadata({ ...current, ...patch });
+      documents.set(key(next.tenant_id, next.document_id), next);
+      return Object.freeze({ ...next });
+    },
+    transitionContract(ref = {}, change = {}) {
+      const current = store.get(ref);
+      if (!current) return undefined;
+      const next = transitionHrxEmploymentContractDocument(current, change);
+      documents.set(key(next.tenant_id, next.document_id), next);
+      return Object.freeze({ ...next });
+    },
+    listExpiring(query = {}) {
+      return findHrxDocumentsExpiringWithin(store.list(query), query);
     },
   };
 
@@ -126,6 +236,33 @@ export function createSqlHrxDocumentStore({ store } = {}) {
           .sort((left, right) => left.document_id.localeCompare(right.document_id))
           .map(deserializeDocumentMetadata),
       );
+    },
+    update(ref = {}, patch = {}) {
+      const current = this.get(ref);
+      if (!current) return undefined;
+      const next = createHrxDocumentMetadata({ ...current, ...patch });
+      return deserializeDocumentMetadata(
+        store.query("updateOne", {
+          table: "hrx_documents",
+          where: { tenant_id: ref.tenant_id, document_id: ref.document_id },
+          patch: { ...serializeDocumentMetadata(next), updated_at: new Date().toISOString() },
+        }),
+      );
+    },
+    transitionContract(ref = {}, change = {}) {
+      const current = this.get(ref);
+      if (!current) return undefined;
+      const next = transitionHrxEmploymentContractDocument(current, change);
+      return deserializeDocumentMetadata(
+        store.query("updateOne", {
+          table: "hrx_documents",
+          where: { tenant_id: ref.tenant_id, document_id: ref.document_id },
+          patch: { ...serializeDocumentMetadata(next), updated_at: new Date().toISOString() },
+        }),
+      );
+    },
+    listExpiring(query = {}) {
+      return findHrxDocumentsExpiringWithin(this.list(query), query);
     },
   });
 }

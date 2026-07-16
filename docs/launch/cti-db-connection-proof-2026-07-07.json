@@ -1,0 +1,2004 @@
+{
+  "artifact_id": "cti-db-connection-proof-2026-07-07",
+  "started_at": "2026-07-07T05:23:07.910Z",
+  "completed_at": "2026-07-07T05:23:21.301Z",
+  "approval_signature_ref": "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06",
+  "lambda": {
+    "function_name": "matter-lawos-api-prod",
+    "code_update_sha256": "/RN2aPtahhKlcsIYhqqQudbHWZ+1ShPvwCYTTF7WelQ=",
+    "code_update_revision_id": "d38d559b-8b27-44f8-a910-f6ca239b4230",
+    "package_sha256": "sha256:fd137668fb5a8612a572c21886aa90b9d6c7599fb54a13efc026134c5ed67a54",
+    "pg_deps_included": [
+      "node_modules/pg",
+      "node_modules/pg-cloudflare",
+      "node_modules/pg-connection-string",
+      "node_modules/pg-int8",
+      "node_modules/pg-pool",
+      "node_modules/pg-protocol",
+      "node_modules/pg-types",
+      "node_modules/pgpass",
+      "node_modules/postgres-array",
+      "node_modules/postgres-bytea",
+      "node_modules/postgres-date",
+      "node_modules/postgres-interval",
+      "node_modules/split2",
+      "node_modules/xtend"
+    ]
+  },
+  "invoke": {
+    "status_code": 200,
+    "function_error": null,
+    "response_status_code": 200
+  },
+  "db_proof": {
+    "ok": true,
+    "schema_version": "law-firm-os.cti.db-connection-proof.v0.1",
+    "maintenance_action": "cti_db_connection_proof",
+    "approval_signature_ref": "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06",
+    "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+    "database_target": {
+      "protocol": "postgres",
+      "host": "amic-vault-prod-postgres.ctawsgoy2p9y.ap-northeast-2.rds.amazonaws.com",
+      "port": "5432",
+      "database": "amic_vault",
+      "username_present": true,
+      "password_present": true
+    },
+    "database_identity": {
+      "database_name": "amic_vault",
+      "schema_name": "public"
+    },
+    "tenant_inventory": [
+      {
+        "tenant_id": "39019d92-fa08-4011-93cb-5a8d09b90bc9",
+        "slug": "alpha-firm",
+        "status": "active",
+        "region": "kr"
+      },
+      {
+        "tenant_id": "7bbcdadf-33f4-484c-ad5c-82db4cfdb76c",
+        "slug": "amic",
+        "status": "active",
+        "region": "kr"
+      },
+      {
+        "tenant_id": "11111111-1111-4111-8111-111111111111",
+        "slug": "tenant-alpha",
+        "status": "active",
+        "region": "kr"
+      },
+      {
+        "tenant_id": "22222222-2222-4222-8222-222222222222",
+        "slug": "tenant-beta",
+        "status": "active",
+        "region": "kr"
+      }
+    ],
+    "tenant_visibility_counts": [
+      {
+        "tenant_id": "39019d92-fa08-4011-93cb-5a8d09b90bc9",
+        "slug": "alpha-firm",
+        "status": "active",
+        "region": "kr",
+        "key_table_counts": {
+          "clients": 18,
+          "matters": 17,
+          "documents": 12,
+          "document_versions": 12,
+          "file_objects": 12,
+          "canonical_documents": 12,
+          "document_search_index": 12,
+          "audit_events": 284,
+          "users": 18,
+          "organizations": null
+        }
+      },
+      {
+        "tenant_id": "7bbcdadf-33f4-484c-ad5c-82db4cfdb76c",
+        "slug": "amic",
+        "status": "active",
+        "region": "kr",
+        "key_table_counts": {
+          "clients": 80,
+          "matters": 123,
+          "documents": 22286,
+          "document_versions": 22286,
+          "file_objects": 22286,
+          "canonical_documents": 22286,
+          "document_search_index": 22286,
+          "audit_events": 152813,
+          "users": 11,
+          "organizations": null
+        }
+      },
+      {
+        "tenant_id": "11111111-1111-4111-8111-111111111111",
+        "slug": "tenant-alpha",
+        "status": "active",
+        "region": "kr",
+        "key_table_counts": {
+          "clients": 21,
+          "matters": 15,
+          "documents": 8,
+          "document_versions": 8,
+          "file_objects": 8,
+          "canonical_documents": 8,
+          "document_search_index": 3,
+          "audit_events": 568,
+          "users": 4,
+          "organizations": null
+        }
+      },
+      {
+        "tenant_id": "22222222-2222-4222-8222-222222222222",
+        "slug": "tenant-beta",
+        "status": "active",
+        "region": "kr",
+        "key_table_counts": {
+          "clients": 0,
+          "matters": 0,
+          "documents": 0,
+          "document_versions": 0,
+          "file_objects": 0,
+          "canonical_documents": 0,
+          "document_search_index": 0,
+          "audit_events": 37,
+          "users": 1,
+          "organizations": null
+        }
+      }
+    ],
+    "table_count": 96,
+    "table_inventory_estimates": [
+      {
+        "table_schema": "pgboss",
+        "table_name": "bam",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "pgboss",
+        "table_name": "job",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "pgboss",
+        "table_name": "job_common",
+        "estimated_row_count": 44571
+      },
+      {
+        "table_schema": "pgboss",
+        "table_name": "queue",
+        "estimated_row_count": 7
+      },
+      {
+        "table_schema": "pgboss",
+        "table_name": "schedule",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "pgboss",
+        "table_name": "subscription",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "pgboss",
+        "table_name": "version",
+        "estimated_row_count": 1
+      },
+      {
+        "table_schema": "pgboss",
+        "table_name": "warning",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "ai_model_access_policies",
+        "estimated_row_count": 4
+      },
+      {
+        "table_schema": "public",
+        "table_name": "ai_policies",
+        "estimated_row_count": 5
+      },
+      {
+        "table_schema": "public",
+        "table_name": "ai_prep_artifacts",
+        "estimated_row_count": 89232
+      },
+      {
+        "table_schema": "public",
+        "table_name": "ai_prep_feedback_items",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "ai_session_chunks",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "ai_sessions",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "estimated_row_count": 153738
+      },
+      {
+        "table_schema": "public",
+        "table_name": "break_glass_approvals",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "break_glass_requests",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "canonical_documents",
+        "estimated_row_count": 22306
+      },
+      {
+        "table_schema": "public",
+        "table_name": "clients",
+        "estimated_row_count": 119
+      },
+      {
+        "table_schema": "public",
+        "table_name": "contract_classifications",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "contract_clause_chunks",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "contract_clauses",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "contract_defined_terms",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "contract_redline_changes",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "dd_data_room_mappings",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "dd_issues",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "dd_rfis",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "dd_risks",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "disposal_certificates",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "disposal_requests",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "dlp_findings",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_chunk_embeddings",
+        "estimated_row_count": 22289
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_chunks",
+        "estimated_row_count": 44586
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_preview_artifacts",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "estimated_row_count": 22294
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_versions",
+        "estimated_row_count": 22307
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "estimated_row_count": 22306
+      },
+      {
+        "table_schema": "public",
+        "table_name": "email_document_links",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "email_matter_filings",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "email_messages",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "email_participants",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "enterprise_backup_snapshots",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "enterprise_compliance_evidence",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "enterprise_key_references",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "enterprise_siem_exports",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "enterprise_sso_providers",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "ethical_wall_memberships",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "ethical_walls",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "evaluation_cases",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "external_nda_acceptances",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "external_qa_messages",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "external_secure_links",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "external_users",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "external_workspace_members",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "external_workspaces",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "feedback_items",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "file_objects",
+        "estimated_row_count": 22277
+      },
+      {
+        "table_schema": "public",
+        "table_name": "graph_edges",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "graph_nodes",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "graph_sync_runs",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "group_members",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "groups",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "legal_holds",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "litigation_evidence_items",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "litigation_facts",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "litigation_issue_nodes",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "litigation_pleadings",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matter_members",
+        "estimated_row_count": 155
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "estimated_row_count": 155
+      },
+      {
+        "table_schema": "public",
+        "table_name": "onedrive_source_cutovers",
+        "estimated_row_count": 1
+      },
+      {
+        "table_schema": "public",
+        "table_name": "outlook_addin_sessions",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "outlook_autofile_jobs",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "outlook_document_insertions",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "outlook_filing_request_attachments",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "outlook_filing_requests",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "outlook_folder_mappings",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "outlook_graph_attachment_acquisitions",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "outlook_mailbox_bindings",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "parties",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "password_reset_tokens",
+        "estimated_row_count": 2
+      },
+      {
+        "table_schema": "public",
+        "table_name": "permission_policy_attributes",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "permissions",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "playbook_rules",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "records_archives",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "retention_policies",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "scale_ai_gate_reviews",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "scale_cost_snapshots",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "scale_eval_runs",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "scale_learning_events",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "scale_migration_drills",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "scale_performance_runs",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "sessions",
+        "estimated_row_count": 148
+      },
+      {
+        "table_schema": "public",
+        "table_name": "sharing_policy_definitions",
+        "estimated_row_count": 0
+      },
+      {
+        "table_schema": "public",
+        "table_name": "tenants",
+        "estimated_row_count": 4
+      },
+      {
+        "table_schema": "public",
+        "table_name": "users",
+        "estimated_row_count": 34
+      },
+      {
+        "table_schema": "public",
+        "table_name": "workspaces",
+        "estimated_row_count": 3
+      }
+    ],
+    "non_empty_table_estimate_count": 23,
+    "key_table_security": [
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "row_security_enabled": true,
+        "force_row_security": true
+      },
+      {
+        "table_schema": "public",
+        "table_name": "canonical_documents",
+        "row_security_enabled": true,
+        "force_row_security": true
+      },
+      {
+        "table_schema": "public",
+        "table_name": "clients",
+        "row_security_enabled": true,
+        "force_row_security": true
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "row_security_enabled": true,
+        "force_row_security": true
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_versions",
+        "row_security_enabled": true,
+        "force_row_security": true
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "row_security_enabled": true,
+        "force_row_security": true
+      },
+      {
+        "table_schema": "public",
+        "table_name": "file_objects",
+        "row_security_enabled": true,
+        "force_row_security": true
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "row_security_enabled": true,
+        "force_row_security": true
+      },
+      {
+        "table_schema": "public",
+        "table_name": "tenants",
+        "row_security_enabled": false,
+        "force_row_security": false
+      },
+      {
+        "table_schema": "public",
+        "table_name": "users",
+        "row_security_enabled": true,
+        "force_row_security": true
+      }
+    ],
+    "key_table_policies": [
+      {
+        "schemaname": "public",
+        "tablename": "audit_events",
+        "policyname": "rls_audit_events_tenant_insert",
+        "roles": "{public}",
+        "cmd": "INSERT",
+        "qual": null,
+        "with_check": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)"
+      },
+      {
+        "schemaname": "public",
+        "tablename": "audit_events",
+        "policyname": "rls_audit_events_tenant_select",
+        "roles": "{public}",
+        "cmd": "SELECT",
+        "qual": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)",
+        "with_check": null
+      },
+      {
+        "schemaname": "public",
+        "tablename": "canonical_documents",
+        "policyname": "rls_canonical_documents_tenant",
+        "roles": "{public}",
+        "cmd": "ALL",
+        "qual": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)",
+        "with_check": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)"
+      },
+      {
+        "schemaname": "public",
+        "tablename": "clients",
+        "policyname": "rls_clients_tenant",
+        "roles": "{public}",
+        "cmd": "ALL",
+        "qual": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)",
+        "with_check": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)"
+      },
+      {
+        "schemaname": "public",
+        "tablename": "document_search_index",
+        "policyname": "rls_document_search_index_tenant",
+        "roles": "{public}",
+        "cmd": "ALL",
+        "qual": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)",
+        "with_check": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)"
+      },
+      {
+        "schemaname": "public",
+        "tablename": "document_versions",
+        "policyname": "rls_document_versions_tenant",
+        "roles": "{public}",
+        "cmd": "ALL",
+        "qual": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)",
+        "with_check": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)"
+      },
+      {
+        "schemaname": "public",
+        "tablename": "documents",
+        "policyname": "rls_documents_tenant",
+        "roles": "{public}",
+        "cmd": "ALL",
+        "qual": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)",
+        "with_check": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)"
+      },
+      {
+        "schemaname": "public",
+        "tablename": "file_objects",
+        "policyname": "rls_file_objects_tenant",
+        "roles": "{public}",
+        "cmd": "ALL",
+        "qual": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)",
+        "with_check": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)"
+      },
+      {
+        "schemaname": "public",
+        "tablename": "matters",
+        "policyname": "rls_matters_tenant",
+        "roles": "{public}",
+        "cmd": "ALL",
+        "qual": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)",
+        "with_check": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)"
+      },
+      {
+        "schemaname": "public",
+        "tablename": "users",
+        "policyname": "rls_users_tenant",
+        "roles": "{public}",
+        "cmd": "ALL",
+        "qual": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)",
+        "with_check": "(tenant_id = (NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text))::uuid)"
+      }
+    ],
+    "key_table_columns": [
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "column_name": "event_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "column_name": "seq",
+        "data_type": "bigint",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "column_name": "tenant_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "column_name": "actor_type",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "column_name": "actor_id",
+        "data_type": "uuid",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "column_name": "session_id",
+        "data_type": "uuid",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "column_name": "action",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "column_name": "target_type",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "column_name": "target_id",
+        "data_type": "uuid",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "column_name": "matter_id",
+        "data_type": "uuid",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "column_name": "result",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "column_name": "metadata_json",
+        "data_type": "jsonb",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "column_name": "ip_address",
+        "data_type": "inet",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "column_name": "correlation_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "audit_events",
+        "column_name": "retention_label",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "canonical_documents",
+        "column_name": "canonical_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "canonical_documents",
+        "column_name": "tenant_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "canonical_documents",
+        "column_name": "version_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "canonical_documents",
+        "column_name": "body_text",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "canonical_documents",
+        "column_name": "extraction_status",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "canonical_documents",
+        "column_name": "extraction_method",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "canonical_documents",
+        "column_name": "confidence",
+        "data_type": "numeric",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "canonical_documents",
+        "column_name": "failure_reason_code",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "canonical_documents",
+        "column_name": "extracted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "canonical_documents",
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "canonical_documents",
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "clients",
+        "column_name": "client_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "clients",
+        "column_name": "tenant_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "clients",
+        "column_name": "name",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "clients",
+        "column_name": "client_type",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "clients",
+        "column_name": "confidentiality_level",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "clients",
+        "column_name": "status",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "clients",
+        "column_name": "metadata_json",
+        "data_type": "jsonb",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "clients",
+        "column_name": "created_by",
+        "data_type": "uuid",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "clients",
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "clients",
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "index_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "tenant_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "document_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "version_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "matter_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "client_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "document_type",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "document_status",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "version_status",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "title",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "content_text",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "title_tsv",
+        "data_type": "tsvector",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "content_tsv",
+        "data_type": "tsvector",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "fts_config",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "source_text_hash",
+        "data_type": "character",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "indexed_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_search_index",
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_versions",
+        "column_name": "version_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_versions",
+        "column_name": "tenant_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_versions",
+        "column_name": "document_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_versions",
+        "column_name": "version_no",
+        "data_type": "integer",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_versions",
+        "column_name": "version_status",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_versions",
+        "column_name": "file_object_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_versions",
+        "column_name": "file_hash",
+        "data_type": "character",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_versions",
+        "column_name": "created_by",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_versions",
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "document_versions",
+        "column_name": "supersedes_version_id",
+        "data_type": "uuid",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "document_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "tenant_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "matter_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "document_family_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "title",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "status",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "created_by",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "document_type",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "subtype",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "confidentiality_level",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "privilege_status",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "legal_hold",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "deleted_by",
+        "data_type": "uuid",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "deleted_previous_status",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "documents",
+        "column_name": "ai_allowed",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "file_objects",
+        "column_name": "file_object_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "file_objects",
+        "column_name": "tenant_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "file_objects",
+        "column_name": "storage_uri",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "file_objects",
+        "column_name": "original_filename",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "file_objects",
+        "column_name": "normalized_filename",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "file_objects",
+        "column_name": "mime_type",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "file_objects",
+        "column_name": "size_bytes",
+        "data_type": "bigint",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "file_objects",
+        "column_name": "encryption_key_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "file_objects",
+        "column_name": "source_system",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "file_objects",
+        "column_name": "created_by",
+        "data_type": "uuid",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "file_objects",
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "file_objects",
+        "column_name": "sha256",
+        "data_type": "character",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "column_name": "matter_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "column_name": "tenant_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "column_name": "client_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "column_name": "matter_code",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "column_name": "matter_name",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "column_name": "matter_type",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "column_name": "status",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "column_name": "opened_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "column_name": "closed_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "column_name": "lead_lawyer_id",
+        "data_type": "uuid",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "column_name": "practice_group",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "column_name": "metadata_json",
+        "data_type": "jsonb",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "column_name": "created_by",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "column_name": "legal_hold",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "matters",
+        "column_name": "ai_policy_id",
+        "data_type": "uuid",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "tenants",
+        "column_name": "tenant_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "tenants",
+        "column_name": "name",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "tenants",
+        "column_name": "slug",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "tenants",
+        "column_name": "region",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "tenants",
+        "column_name": "data_residency",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "tenants",
+        "column_name": "status",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "tenants",
+        "column_name": "settings_json",
+        "data_type": "jsonb",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "tenants",
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "tenants",
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "users",
+        "column_name": "user_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "users",
+        "column_name": "tenant_id",
+        "data_type": "uuid",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "users",
+        "column_name": "email",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "users",
+        "column_name": "name",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "users",
+        "column_name": "role",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "users",
+        "column_name": "practice_group",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "users",
+        "column_name": "status",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "users",
+        "column_name": "password_hash",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "users",
+        "column_name": "mfa_enabled",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "users",
+        "column_name": "last_login_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "users",
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "table_schema": "public",
+        "table_name": "users",
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      }
+    ],
+    "key_table_counts": {
+      "tenants": 4,
+      "clients": 0,
+      "matters": 0,
+      "documents": 0,
+      "document_versions": 0,
+      "file_objects": 0,
+      "canonical_documents": 0,
+      "document_search_index": 0,
+      "audit_events": 0,
+      "users": 0,
+      "organizations": null
+    },
+    "pii_safe": true,
+    "secret_value_returned": false,
+    "credential_material_returned": false,
+    "token_or_password_returned": false,
+    "production_write_executed": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "non_empty_table_estimates_preview": [
+    {
+      "table_schema": "pgboss",
+      "table_name": "job_common",
+      "estimated_row_count": 44571
+    },
+    {
+      "table_schema": "pgboss",
+      "table_name": "queue",
+      "estimated_row_count": 7
+    },
+    {
+      "table_schema": "pgboss",
+      "table_name": "version",
+      "estimated_row_count": 1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "ai_model_access_policies",
+      "estimated_row_count": 4
+    },
+    {
+      "table_schema": "public",
+      "table_name": "ai_policies",
+      "estimated_row_count": 5
+    },
+    {
+      "table_schema": "public",
+      "table_name": "ai_prep_artifacts",
+      "estimated_row_count": 89232
+    },
+    {
+      "table_schema": "public",
+      "table_name": "audit_events",
+      "estimated_row_count": 153738
+    },
+    {
+      "table_schema": "public",
+      "table_name": "canonical_documents",
+      "estimated_row_count": 22306
+    },
+    {
+      "table_schema": "public",
+      "table_name": "clients",
+      "estimated_row_count": 119
+    },
+    {
+      "table_schema": "public",
+      "table_name": "document_chunk_embeddings",
+      "estimated_row_count": 22289
+    },
+    {
+      "table_schema": "public",
+      "table_name": "document_chunks",
+      "estimated_row_count": 44586
+    },
+    {
+      "table_schema": "public",
+      "table_name": "document_search_index",
+      "estimated_row_count": 22294
+    },
+    {
+      "table_schema": "public",
+      "table_name": "document_versions",
+      "estimated_row_count": 22307
+    },
+    {
+      "table_schema": "public",
+      "table_name": "documents",
+      "estimated_row_count": 22306
+    },
+    {
+      "table_schema": "public",
+      "table_name": "file_objects",
+      "estimated_row_count": 22277
+    },
+    {
+      "table_schema": "public",
+      "table_name": "matter_members",
+      "estimated_row_count": 155
+    },
+    {
+      "table_schema": "public",
+      "table_name": "matters",
+      "estimated_row_count": 155
+    },
+    {
+      "table_schema": "public",
+      "table_name": "onedrive_source_cutovers",
+      "estimated_row_count": 1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "password_reset_tokens",
+      "estimated_row_count": 2
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "estimated_row_count": 148
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tenants",
+      "estimated_row_count": 4
+    },
+    {
+      "table_schema": "public",
+      "table_name": "users",
+      "estimated_row_count": 34
+    },
+    {
+      "table_schema": "public",
+      "table_name": "workspaces",
+      "estimated_row_count": 3
+    }
+  ],
+  "key_table_security_summary": [
+    {
+      "table_schema": "public",
+      "table_name": "audit_events",
+      "row_security_enabled": true,
+      "force_row_security": true
+    },
+    {
+      "table_schema": "public",
+      "table_name": "canonical_documents",
+      "row_security_enabled": true,
+      "force_row_security": true
+    },
+    {
+      "table_schema": "public",
+      "table_name": "clients",
+      "row_security_enabled": true,
+      "force_row_security": true
+    },
+    {
+      "table_schema": "public",
+      "table_name": "document_search_index",
+      "row_security_enabled": true,
+      "force_row_security": true
+    },
+    {
+      "table_schema": "public",
+      "table_name": "document_versions",
+      "row_security_enabled": true,
+      "force_row_security": true
+    },
+    {
+      "table_schema": "public",
+      "table_name": "documents",
+      "row_security_enabled": true,
+      "force_row_security": true
+    },
+    {
+      "table_schema": "public",
+      "table_name": "file_objects",
+      "row_security_enabled": true,
+      "force_row_security": true
+    },
+    {
+      "table_schema": "public",
+      "table_name": "matters",
+      "row_security_enabled": true,
+      "force_row_security": true
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tenants",
+      "row_security_enabled": false,
+      "force_row_security": false
+    },
+    {
+      "table_schema": "public",
+      "table_name": "users",
+      "row_security_enabled": true,
+      "force_row_security": true
+    }
+  ],
+  "key_table_policy_count": 10,
+  "tenant_visibility_counts": [
+    {
+      "tenant_id": "39019d92-fa08-4011-93cb-5a8d09b90bc9",
+      "slug": "alpha-firm",
+      "status": "active",
+      "region": "kr",
+      "key_table_counts": {
+        "clients": 18,
+        "matters": 17,
+        "documents": 12,
+        "document_versions": 12,
+        "file_objects": 12,
+        "canonical_documents": 12,
+        "document_search_index": 12,
+        "audit_events": 284,
+        "users": 18,
+        "organizations": null
+      }
+    },
+    {
+      "tenant_id": "7bbcdadf-33f4-484c-ad5c-82db4cfdb76c",
+      "slug": "amic",
+      "status": "active",
+      "region": "kr",
+      "key_table_counts": {
+        "clients": 80,
+        "matters": 123,
+        "documents": 22286,
+        "document_versions": 22286,
+        "file_objects": 22286,
+        "canonical_documents": 22286,
+        "document_search_index": 22286,
+        "audit_events": 152813,
+        "users": 11,
+        "organizations": null
+      }
+    },
+    {
+      "tenant_id": "11111111-1111-4111-8111-111111111111",
+      "slug": "tenant-alpha",
+      "status": "active",
+      "region": "kr",
+      "key_table_counts": {
+        "clients": 21,
+        "matters": 15,
+        "documents": 8,
+        "document_versions": 8,
+        "file_objects": 8,
+        "canonical_documents": 8,
+        "document_search_index": 3,
+        "audit_events": 568,
+        "users": 4,
+        "organizations": null
+      }
+    },
+    {
+      "tenant_id": "22222222-2222-4222-8222-222222222222",
+      "slug": "tenant-beta",
+      "status": "active",
+      "region": "kr",
+      "key_table_counts": {
+        "clients": 0,
+        "matters": 0,
+        "documents": 0,
+        "document_versions": 0,
+        "file_objects": 0,
+        "canonical_documents": 0,
+        "document_search_index": 0,
+        "audit_events": 37,
+        "users": 1,
+        "organizations": null
+      }
+    }
+  ],
+  "verdict": "PASS",
+  "pii_safe": true,
+  "secret_value_returned": false,
+  "token_or_password_returned": false,
+  "production_write_executed": false,
+  "production_ready_claim": false
+}

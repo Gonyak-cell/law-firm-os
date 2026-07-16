@@ -14,7 +14,12 @@ const webDist = join(webRoot, "dist");
 const desktopRendererWeb = join(repoRoot, "apps/desktop/src/renderer/web");
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-web/desktop-web-renderer-asset.md");
 
-await execFileAsync("npm", ["--workspace", "apps/web", "run", "build"], { cwd: repoRoot });
+try {
+  await execFileAsync("npm", ["--workspace", "apps/web", "run", "build"], { cwd: repoRoot });
+} catch (error) {
+  if (error?.code !== "ENOENT") throw error;
+  await execFileAsync(process.execPath, [join(repoRoot, "node_modules/vite/bin/vite.js"), "build"], { cwd: webRoot });
+}
 
 if (!existsSync(join(webDist, "index.html"))) {
   throw new Error("apps/web build did not produce dist/index.html");
@@ -38,7 +43,7 @@ The canonical \`apps/web\` build was copied into the desktop auth shell handoff 
 ## Boundary
 
 - UI source of truth: \`apps/web\`
-- Desktop \`offline.html\`: auth/password reset gate only
+- Desktop \`offline*.html\`: retired and excluded from packages
 - production go-live: false
 - public release: false
 - owner approval: false

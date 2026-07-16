@@ -13,7 +13,7 @@
     "LCX-VLTUI-06.10",
     "LCX-VLTUI-06.11"
   ],
-  "generated_at": "2026-06-29T14:28:59.127Z",
+  "generated_at": "2026-07-02T23:14:19.114Z",
   "verdict": "PASS",
   "boundary": {
     "synthetic_route_interception_only": true,
@@ -57,7 +57,23 @@
           "passed": true
         },
         {
+          "id": "adverse-party-retroactive-registration-visible",
+          "passed": true
+        },
+        {
           "id": "expense-finance-boundary-audited",
+          "passed": true
+        },
+        {
+          "id": "expense-disbursement-inputs-feed-wip",
+          "passed": true
+        },
+        {
+          "id": "accounting-export-period-csv-balanced",
+          "passed": true
+        },
+        {
+          "id": "analytics-kpi-cards-show-seeded-realization-utilization",
           "passed": true
         },
         {
@@ -169,6 +185,36 @@
         }
       ],
       "writes": [
+        {
+          "kind": "matter_adverse_party",
+          "path": "/api/matters/matter_lcx_vltui_06_alpha/parties",
+          "payload": {
+            "actor_id": "user_lcx_vltui_session",
+            "audit_hint_ref": "ui_upl_c01_matter_party_write_probe",
+            "matter_party": {
+              "tenant_id": "tenant_rp05_synthetic",
+              "matter_id": "matter_lcx_vltui_06_alpha",
+              "display_name": "상대방 주식회사",
+              "party_role": "adverse_party",
+              "retroactive_entry": true
+            }
+          },
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_upl_c01_matter_party_write_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
         {
           "kind": "lifecycle_closeout",
           "path": "/api/matters/matter_lcx_vltui_06_alpha/status-transitions",
@@ -373,6 +419,32 @@
           "actor_id": "user_lcx_vltui_session"
         },
         {
+          "kind": "finance_expense",
+          "path": "/api/finance/expenses",
+          "principal": {
+            "user_id": "matter_finance_operator",
+            "tenant_id": "tenant_cmp_g7_synthetic",
+            "role_ids": [
+              "finance_user"
+            ]
+          },
+          "audit_hint_ref": "ui_cmp_g7_finance_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "finance_disbursement",
+          "path": "/api/finance/disbursements",
+          "principal": {
+            "user_id": "matter_finance_operator",
+            "tenant_id": "tenant_cmp_g7_synthetic",
+            "role_ids": [
+              "finance_user"
+            ]
+          },
+          "audit_hint_ref": "ui_cmp_g7_finance_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
           "kind": "finance_wip",
           "path": "/api/finance/wip",
           "principal": {
@@ -396,6 +468,47 @@
             ]
           },
           "audit_hint_ref": "ui_cmp_g7_finance_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "finance_accounting_export",
+          "path": "/api/finance/accounting-export.csv",
+          "query": {
+            "tenant_id": "tenant_cmp_g7_synthetic",
+            "permission_ref": "ui_cmp_g7_finance_live",
+            "audit_hint_ref": "ui_cmp_g7_finance_probe",
+            "from_date": "2026-07-01",
+            "to_date": "2026-07-31",
+            "idempotency_key": "ui-accounting-export:2026-07-01:2026-07-31",
+            "accounting_export_id": "accounting_export_ui_2026_07_01_2026_07_31"
+          },
+          "principal": {
+            "user_id": "matter_finance_operator",
+            "tenant_id": "tenant_cmp_g7_synthetic",
+            "role_ids": [
+              "finance_user"
+            ]
+          },
+          "audit_hint_ref": null,
+          "actor_id": null
+        },
+        {
+          "kind": "analytics_refresh",
+          "path": "/api/analytics/refresh",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_cmp_g8_analytics_probe",
           "actor_id": "user_lcx_vltui_session"
         },
         {
@@ -551,8 +664,15 @@
           "actor_id": "user_lcx_vltui_session"
         }
       ],
+      "analytics_kpi_cards": {
+        "realization": "87.5%\n실현율\n1건 기준",
+        "utilization": "75%\n가동률\n1건 기준"
+      },
+      "adverse_party_text": "상대방\t역할\t상태\n상대방 주식회사\t상대방\t소급",
       "page_errors": [],
-      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-06-matter-sections-proof.png"
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-06-matter-sections-proof.png",
+      "adverse_party_screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-06-adverse-party-proof.png",
+      "accounting_export_screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-06-accounting-export-proof.png"
     }
   ]
 }

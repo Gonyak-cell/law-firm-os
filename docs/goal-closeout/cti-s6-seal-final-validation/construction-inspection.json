@@ -1,0 +1,14 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.construction-inspection.v0.1",
+  "goal_id": "cti-s6-seal-final-validation",
+  "required_artifacts_present": true,
+  "s6_g_pass": false,
+  "blocked_tasks": [
+    "S6-T01",
+    "S6-T05",
+    "S6-T06"
+  ],
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "human_acceptance_or_explicit_next_goal_boundary": "Provide 9/9 real-user-session surface proof and two consecutive cold-start smoke proofs before retrying S6."
+}

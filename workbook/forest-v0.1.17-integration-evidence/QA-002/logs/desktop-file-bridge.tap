@@ -1,0 +1,56 @@
+
+> @law-firm-os/desktop@0.1.17 test:file-bridge
+> node --test test/file-bridge.test.mjs test/file-picker-gesture.test.mjs test/file-upload-bridge.test.mjs test/file-save-as.test.mjs test/temp-preview-cleanup.test.mjs && cd ../.. && node scripts/validate-desktop-file-bridge-contract.mjs && node scripts/validate-matter-desktop-file-bridge.mjs
+
+✔ file bridge suite keeps contract actions and audit map aligned (3.248584ms)
+✔ file bridge suite script includes happy denied no silent scan and cache wipe coverage (0.548083ms)
+✔ file picker is blocked without a user gesture (0.777292ms)
+✔ file picker opens only after a scoped gesture token (0.722833ms)
+✔ preload file bridge exposes only allowlisted trusted gesture command (2.689833ms)
+✔ renderer byte policy blocks file bytes and keeps only allowlisted bridge fields (0.192959ms)
+✔ save-document-as fetches bytes in main process before writing user-selected path (1.358041ms)
+✔ save-document-as rejects renderer-supplied bytes before precheck dialog or write (0.2625ms)
+✔ save-document-as denied precheck does not open save dialog or write default path (0.086458ms)
+✔ save-document-as cancelled dialog does not write default path silently (0.069958ms)
+✔ choose-file-for-upload returns backend metadata only after permission precheck and user selection (1.313125ms)
+✔ choose-file-for-upload denied precheck does not open picker or return metadata (0.210416ms)
+✔ choose-file-for-upload rejects renderer-supplied bytes before precheck or picker (0.128458ms)
+✔ temp preview files are scoped and time bounded (1.250667ms)
+✔ temp preview denied precheck does not create scoped file (0.210459ms)
+✔ temp preview cache is removed on logout tenant switch and app quit (0.160542ms)
+✔ temp preview rejects renderer-supplied bytes before permission precheck creates a file (0.134292ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 78.194625
+{
+  "verdict": "PASS",
+  "contract": "contracts/desktop-file-bridge-contract.json",
+  "allowed_actions": [
+    "choose_file_for_upload",
+    "save_document_as",
+    "open_temp_preview",
+    "clear_temp_cache"
+  ],
+  "exact_allowlist": true,
+  "forbidden_actions_checked": 8,
+  "renderer_raw_path_visible": false,
+  "implementation_complete_claim": false
+}
+{
+  "verdict": "PASS",
+  "checked_files": 18,
+  "findings": [],
+  "probes": {
+    "directory_watch": "detected",
+    "recursive_scan": "detected",
+    "arbitrary_path_read": "detected",
+    "arbitrary_path_write": "detected",
+    "renderer_file_bytes": "detected",
+    "path_retention": "detected"
+  }
+}

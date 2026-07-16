@@ -1,0 +1,10 @@
+node scripts/generate-current-root-recovery-evidence.mjs "/Users/jws/Documents/Codex/Law Firm OS"
+git status --porcelain=v2 --untracked-files=all -z
+git diff --binary --full-index HEAD --
+git ls-files --others --exclude-standard -z
+tar --null -T <untracked-paths.zlist> -cf <untracked.tar>
+git worktree add --detach <restore-worktree> <source-head>
+git apply --binary <tracked.patch>
+tar -xf <untracked.tar> -C <restore-worktree>
+compare source and restored status, diff, and path manifest SHA-256
+git worktree remove --force <restore-worktree>

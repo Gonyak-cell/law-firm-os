@@ -1,0 +1,7 @@
+apps/api/test/matter-worktree-restart.test.js
+apps/desktop/src/main/aws-runtime.js
+apps/desktop/test/aws-runtime-client.test.mjs
+scripts/run-matter-worktree-packaged-restart-qa.mjs
+workbook/matter-worktree-evidence/WT-04-07/packaged-restart-receipt.json
+workbook/matter-worktree-evidence/WT-04-07/packaged-before-restart.png
+workbook/matter-worktree-evidence/WT-04-07/packaged-after-restart.png

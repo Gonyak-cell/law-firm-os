@@ -1,0 +1,33 @@
+{
+  "verdict": "PASS",
+  "checked_at": "2026-07-09T04:03:56.085Z",
+  "app_bundle": "apps/desktop/dist/mac/matter.app",
+  "user_data_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-people-petra-nowrap-bhK2uS",
+  "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/artifacts/manual-qa/desktop-people-petra-nowrap-2026-07-09.png",
+  "metrics": {
+    "href": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=people&ctx=allow",
+    "viewport": {
+      "width": 1024,
+      "height": 831
+    },
+    "petra_owner_count": 3,
+    "owner_text": "PPETRA BRIDGE PARTNERS",
+    "owner_rect": {
+      "width": 195,
+      "height": 22
+    },
+    "cell_rect": {
+      "width": 250,
+      "height": 44
+    },
+    "owner_white_space": "nowrap",
+    "owner_line_height": "19.6px",
+    "owner_scroll_width": 195,
+    "owner_client_width": 195,
+    "cell_padding_left": "6px",
+    "cell_padding_right": "6px",
+    "table_min_width": "1040px",
+    "col_affiliation_width": "249.594px",
+    "row_height": 44
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": "law-firm-os.cti.owner-approval-receipt.v0.1",
+  "approval_id": "I21",
+  "approval_signature_ref": "I21-CTI-CUTOVER-CURRENT-PARTIAL-RESUME-BOUNDARY-OWNER-APPROVAL-2026-07-06",
+  "recorded_at": "2026-07-06T09:26:41.000Z",
+  "goal_id": "cti-cutover-execute",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "approval_type": "current_partial_resume_boundary",
+  "current_snapshot_hash": "4b694462d60b1483f6c2740707860ff9a69007e1b82712f309b9c9ecbfeee9d6",
+  "current_readable_store_file_count": 15,
+  "current_matter_store_record_count": 503,
+  "current_auth_credential_store_record_count": 1,
+  "approved_scope": [
+    "Lambda code patch/deploy",
+    "Use the current post-I20 partial snapshot as the CUTOVER resume boundary",
+    "Regenerate hash credential records from the existing private handoff file without printing, logging, or committing plaintext passwords",
+    "Inject 9 production credentials",
+    "Apply 2 QA disabled credential records",
+    "Reconfirm bridge token rotation/control",
+    "Run first-login validation",
+    "Run CUT-G validation",
+    "Generate PII-safe hash/count evidence and closeout"
+  ],
+  "conditions": [
+    "Plaintext passwords must not be printed, logged, or committed",
+    "Secret, token, and password values must not be queried for output, printed, or committed",
+    "Production restore is not approved",
+    "No production_ready or go-live claim before CUT-G PASS"
+  ],
+  "explicit_non_approval": [
+    "production restore",
+    "OIDC implementation",
+    "DB conversion",
+    "S5 enrichment",
+    "S6 seal",
+    "production_ready claim when validation failed"
+  ]
+}

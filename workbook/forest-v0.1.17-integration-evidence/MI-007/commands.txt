@@ -1,0 +1,22 @@
+git status --short --branch
+git rev-parse HEAD
+git rev-parse HEAD^{tree}
+git rev-parse origin/main
+git merge-base HEAD origin/main
+git merge-base --is-ancestor origin/main HEAD
+git diff --name-only ab7868ebad5948a1b7341fe5bcbc48d8c0181a47..HEAD
+git ls-tree -r HEAD | awk 'index($4, "workbook/") != 1 {print $3 " " $4}' | shasum -a 256
+git ls-tree -r ab7868ebad5948a1b7341fe5bcbc48d8c0181a47 | awk 'index($4, "workbook/") != 1 {print $3 " " $4}' | shasum -a 256
+git fsck --no-dangling
+git tag -a forest-v0.1.17-integration-candidate-4c81d861 4c81d861693472af48a680e5757b352bb9945b9b -m '<local QA anchor boundary>'
+git cat-file -t forest-v0.1.17-integration-candidate-4c81d861
+git rev-parse forest-v0.1.17-integration-candidate-4c81d861^{commit}
+git rev-parse forest-v0.1.17-integration-candidate-4c81d861^{tree}
+git ls-remote --tags origin refs/tags/forest-v0.1.17-integration-candidate-4c81d861
+git rev-parse --abbrev-ref --symbolic-full-name @{upstream}
+git -C '/Users/jws/Documents/Codex/Law Firm OS' status --porcelain=v1 -z | shasum -a 256
+ps -p 55090 -o pid=,ppid=,command=
+python3 -m json.tool workbook/forest-v0.1.17-integration-evidence/MI-007/receipt.json
+python3 -m json.tool workbook/forest-v0.1.17-integration-evidence/MI-007/candidate-ref.json
+python3 -m json.tool workbook/forest-v0.1.17-integration-evidence/MI-007/tests.json
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed

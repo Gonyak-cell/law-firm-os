@@ -1,0 +1,53 @@
+PV-004 test-first red proof:
+- exit: 1
+- cause: requested export DESKTOP_RELEASE_CHANNELS was absent
+- stdout sha256: e5854b05408525b1d0b5061ed4a1dc37f076f4f3c00a04996124e64216cad59a
+- stderr sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+Unit and source contracts:
+- PV-002 + PV-003 + PV-004: 13/13 PASS
+- PV-004: 4/4 PASS
+- PV-001 source validator: PASS
+- PV-002 source validator: PASS
+- PV-003 source validator: PASS; protected entrypoints 4, bypass 0
+- PV-004 source validator: PASS; channels 4, unique app IDs 4, unique prefixes 4, manifest contracts 8, builder bypass 0
+- PV-004 CLI help: PASS
+- PV-004 CLI bad input: PASS, exit 2, usage on stderr
+
+Actual exact-SHA package matrix:
+- source SHA: f5344fdeaf35b86e86049710e4bb5aa9a0d72f39
+- source tree: ecee74386df8c2f0743672dee680f77b2ff2f932
+- accepted manifest source_dirty values: 8/8 false
+- Mac build exit 0: dev, internal, candidate
+- Mac formal distribution gate: expected exit 1 after manifest/app/ZIP/DMG creation; DMG image verify PASS; Developer ID/notary/staple/Gatekeeper absent
+- Windows unsigned package exit 0: dev, internal, candidate, formal
+- packaged/external manifest equality: 8/8 PASS
+- Mac Info.plist app ID equality: 4/4 PASS
+- Windows installer manifest app ID equality: 4/4 PASS
+- app ID collision count: 0
+- artifact prefix collision count: 0
+- renderer distinct hash count: 1
+- renderer sha256: f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445
+- renderer file count: 28
+- invalid actual builder channel: Mac/Windows 2/2 rejected, exit 1, artifact mutation 0
+
+Regression:
+- Desktop smoke: 102/102 PASS
+- Desktop file bridge: 17/17 PASS
+- Desktop file bridge validators: 2/2 PASS
+- public renderer PII: PASS; 56 files, protected values not printed
+- syntax: PASS
+- git diff --check: PASS
+- changed-file secret-pattern scan: PASS
+- AI slop review: PASS
+
+Rejected QA attempt:
+- The first formal Mac diagnostic was blocked before packaging because the disposable node_modules symlink was not excluded in child-process Git config.
+- That attempt was discarded. The complete accepted matrix was rebuilt from scratch after exporting core.excludesFile, and all eight accepted manifests record source_dirty=false.
+
+Boundaries:
+- accepted signed/notarized/stapled/Gatekeeper-ready formal Mac package: false
+- Windows native runtime/install/restart/uninstall proof: false
+- Windows Authenticode: false
+- public release: false
+- production go-live: false

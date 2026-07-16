@@ -1,0 +1,98 @@
+{
+  "schema_version": "law-firm-os.cp001-ancestry-matrix.v1",
+  "semantics": "left_only and right_only are git rev-list --left-right --count FROM...TO; every recorded FROM is an ancestor of TO.",
+  "linear_order": [
+    "origin_main",
+    "current_root",
+    "release_baseline",
+    "forest_checkpoint",
+    "candidate"
+  ],
+  "linear_order_verified": true,
+  "pairs": [
+    {
+      "from": "origin_main",
+      "to": "current_root",
+      "ancestor": true,
+      "left_only": 0,
+      "right_only": 202,
+      "merge_base": "fdd1e34a42ee11ad1e5049647048471be772f381"
+    },
+    {
+      "from": "origin_main",
+      "to": "release_baseline",
+      "ancestor": true,
+      "left_only": 0,
+      "right_only": 203,
+      "merge_base": "fdd1e34a42ee11ad1e5049647048471be772f381"
+    },
+    {
+      "from": "origin_main",
+      "to": "forest_checkpoint",
+      "ancestor": true,
+      "left_only": 0,
+      "right_only": 210,
+      "merge_base": "fdd1e34a42ee11ad1e5049647048471be772f381"
+    },
+    {
+      "from": "origin_main",
+      "to": "candidate",
+      "ancestor": true,
+      "left_only": 0,
+      "right_only": 240,
+      "merge_base": "fdd1e34a42ee11ad1e5049647048471be772f381"
+    },
+    {
+      "from": "current_root",
+      "to": "release_baseline",
+      "ancestor": true,
+      "left_only": 0,
+      "right_only": 1,
+      "merge_base": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3"
+    },
+    {
+      "from": "current_root",
+      "to": "forest_checkpoint",
+      "ancestor": true,
+      "left_only": 0,
+      "right_only": 8,
+      "merge_base": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3"
+    },
+    {
+      "from": "current_root",
+      "to": "candidate",
+      "ancestor": true,
+      "left_only": 0,
+      "right_only": 38,
+      "merge_base": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3"
+    },
+    {
+      "from": "release_baseline",
+      "to": "forest_checkpoint",
+      "ancestor": true,
+      "left_only": 0,
+      "right_only": 7,
+      "merge_base": "137fa156cdb6bb30bb3af72bf3e928ad7e6e4959"
+    },
+    {
+      "from": "release_baseline",
+      "to": "candidate",
+      "ancestor": true,
+      "left_only": 0,
+      "right_only": 37,
+      "merge_base": "137fa156cdb6bb30bb3af72bf3e928ad7e6e4959"
+    },
+    {
+      "from": "forest_checkpoint",
+      "to": "candidate",
+      "ancestor": true,
+      "left_only": 0,
+      "right_only": 30,
+      "merge_base": "fbf7062398da1157ee1322d7440194c1b13f7e0f"
+    }
+  ],
+  "pair_count": 10,
+  "failed_ancestry_count": 0,
+  "candidate_ahead_of_origin_main": 240,
+  "candidate_behind_origin_main": 0
+}

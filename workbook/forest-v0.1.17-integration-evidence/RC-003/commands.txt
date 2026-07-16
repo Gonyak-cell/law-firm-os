@@ -1,0 +1,7 @@
+node --check scripts/generate-root-only-classification-evidence.mjs
+node scripts/generate-root-only-classification-evidence.mjs --help
+node scripts/generate-root-only-classification-evidence.mjs # expected usage failure
+node scripts/generate-root-only-classification-evidence.mjs "/Users/jws/Documents/Codex/Law Firm OS"
+node --test packages/hrx/test/leave-manual-adjustment-file.test.js packages/hrx/test/leave-policy-service.test.js packages/hrx/test/payroll-item-catalog.test.js packages/hrx/test/payroll-profile-service.test.js packages/hrx/test/payroll-time-input-snapshot.test.js
+node --test apps/api/test/hrx/payroll-items-api.test.js apps/api/test/hrx/payroll-profile-api.test.js apps/api/test/hrx/payroll-time-input-api.test.js apps/api/test/hrx/step-up-route.test.js
+node scripts/generate-root-forest-common-comparison.mjs <root-source> # root fingerprint recheck

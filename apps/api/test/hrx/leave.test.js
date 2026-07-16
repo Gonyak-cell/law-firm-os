@@ -8,13 +8,26 @@ import {
 } from "../../../../packages/hrx/src/leave/request-service.js";
 import { createHrxLeaveRoute } from "../../src/routes/hrx/leave.js";
 
-function createRouteHarness() {
+function createRouteHarness({ earned = 16, policyResolver } = {}) {
   const audit = createHrxAuditEventStore();
   const balanceLedger = createInMemoryLeaveBalanceLedger();
+  if (earned > 0) {
+    balanceLedger.append({
+      tenant_id: "tenant-a",
+      entry_id: "earned-route-001",
+      employee_id: "emp-001",
+      policy_id: "pto-us",
+      entry_type: "earned",
+      amount: earned,
+      occurred_on: "2026-06-30",
+      source_ref: "PolicyAccrual:route-test",
+    });
+  }
   const service = createLeaveRequestService({
     store: createInMemoryLeaveRequestStore(),
     balanceLedger,
     audit,
+    policyResolver,
   });
   const route = createHrxLeaveRoute({ service });
   return { audit, balanceLedger, route };
@@ -74,6 +87,93 @@ test("leave route audits rejection and blocks terminal re-approval", async () =>
   assert.equal(approveResponse.status, 400);
   assert.match(approveResponse.body.reason, /must be submitted/);
   assert.equal(audit.list({ tenant_id: "tenant-a" }).length, 2);
+});
+
+test("leave route blocks self approval and insufficient balance without ledger debits", async () => {
+  const self = createRouteHarness();
+  await self.route.handle({ method: "POST", context, body: { ...leaveBody, request_id: "leave-self-001" } });
+  const selfApproval = await self.route.handle({
+    method: "POST",
+    context: { tenant_id: "tenant-a", actor_id: "emp-001" },
+    params: { action: "approve", request_id: "leave-self-001" },
+    body: { approver_id: "emp-001" },
+  });
+  assert.equal(selfApproval.status, 403);
+  assert.equal(selfApproval.body.safe_error_code, "HRX_LEAVE_SELF_APPROVAL_FORBIDDEN");
+  assert.equal(
+    self.balanceLedger.balance({ tenant_id: "tenant-a", employee_id: "emp-001", policy_id: "pto-us" }).used_balance,
+    0,
+  );
+
+  const overdraw = createRouteHarness({ earned: 4 });
+  await overdraw.route.handle({
+    method: "POST",
+    context,
+    body: { ...leaveBody, request_id: "leave-overdraw-001", amount: 8 },
+  });
+  const overdrawApproval = await overdraw.route.handle({
+    method: "POST",
+    context,
+    params: { action: "approve", request_id: "leave-overdraw-001" },
+    body: { approver_id: "manager-001" },
+  });
+  assert.equal(overdrawApproval.status, 409);
+  assert.equal(overdrawApproval.body.safe_error_code, "HRX_LEAVE_BALANCE_INSUFFICIENT");
+  assert.equal(
+    overdraw.balanceLedger.balance({ tenant_id: "tenant-a", employee_id: "emp-001", policy_id: "pto-us" }).used_balance,
+    0,
+  );
+});
+
+test("leave route evaluates policy negative-balance limits before approval ledger debit", async () => {
+  const flexiblePolicy = Object.freeze({
+    tenant_id: "tenant-a",
+    policy_id: "pto-us",
+    policy_version: "2026.1",
+    leave_type: "pto",
+    accrual_rate_per_month: 1,
+    annual_entitlement: 15,
+    carryover_limit: 5,
+    negative_balance_allowed: true,
+    max_negative_balance: 4,
+    effective_from: "2026-01-01",
+  });
+  const flex = createRouteHarness({ earned: 4, policyResolver: () => flexiblePolicy });
+  await flex.route.handle({
+    method: "POST",
+    context,
+    body: { ...leaveBody, request_id: "leave-flex-001", amount: 8 },
+  });
+  const flexApproval = await flex.route.handle({
+    method: "POST",
+    context,
+    params: { action: "approve", request_id: "leave-flex-001" },
+    body: { approver_id: "manager-001" },
+  });
+  assert.equal(flexApproval.status, 200);
+  assert.equal(
+    flex.balanceLedger.balance({ tenant_id: "tenant-a", employee_id: "emp-001", policy_id: "pto-us" }).available_balance,
+    -4,
+  );
+
+  const overLimit = createRouteHarness({ earned: 3, policyResolver: () => flexiblePolicy });
+  await overLimit.route.handle({
+    method: "POST",
+    context,
+    body: { ...leaveBody, request_id: "leave-flex-over-001", amount: 8 },
+  });
+  const overLimitApproval = await overLimit.route.handle({
+    method: "POST",
+    context,
+    params: { action: "approve", request_id: "leave-flex-over-001" },
+    body: { approver_id: "manager-001" },
+  });
+  assert.equal(overLimitApproval.status, 409);
+  assert.equal(overLimitApproval.body.safe_error_code, "HRX_LEAVE_BALANCE_INSUFFICIENT");
+  assert.equal(
+    overLimit.balanceLedger.balance({ tenant_id: "tenant-a", employee_id: "emp-001", policy_id: "pto-us" }).used_balance,
+    0,
+  );
 });
 
 test("leave route cancels only submitted requests", async () => {

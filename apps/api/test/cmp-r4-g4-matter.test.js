@@ -1,12 +1,21 @@
 import assert from "node:assert/strict";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
-import { startApiServer } from "../src/server.js";
+import { createDefaultHrxRuntime, startApiServer } from "../src/server.js";
+import { apiSessionHeaders } from "./helpers/session.js";
+import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
+import {
+  AMIC_CURRENT_MATTER_CLIENTS,
+  AMIC_CURRENT_MATTER_CODE_CANDIDATES,
+  createMatterRepository,
+} from "../../../packages/matter/src/index.js";
+import { createOnboardingPlan, updateOnboardingTask } from "../../../packages/hrx/src/onboarding.js";
 
 const TENANT = "tenant_rp05_synthetic";
+const AUTH_ACTOR_ID = "user_amic_jwsuh";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_rp05_read&audit_hint_ref=audit_hint_rp05_read`;
 
 function permissionContext(effect = "allow") {
@@ -15,6 +24,13 @@ function permissionContext(effect = "allow") {
     rules: [{ id: `rule_matter_${effect}`, effect, action: "*" }],
     object_acl: [],
   });
+}
+
+const sessionHeaderCache = new Map();
+
+async function signedHeaders(baseUrl) {
+  if (!sessionHeaderCache.has(baseUrl)) sessionHeaderCache.set(baseUrl, await apiSessionHeaders(baseUrl));
+  return sessionHeaderCache.get(baseUrl);
 }
 
 async function withServer(callback, options = {}) {
@@ -28,13 +44,33 @@ async function withServer(callback, options = {}) {
 
 async function json(baseUrl, path, options = {}) {
   const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
+    ...(options.noAuth ? {} : await signedHeaders(baseUrl)),
     ...(options.headers ?? {}),
   };
+  for (const [key, value] of Object.entries(headers)) {
+    if (value === undefined) delete headers[key];
+  }
   if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
   const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
   const body = await response.json();
   return { status: response.status, body };
+}
+
+async function collectPagedMatterItems(baseUrl, path, options = {}) {
+  const items = [];
+  let cursor = null;
+  for (let page = 0; page < 10; page += 1) {
+    const separator = path.includes("?") ? "&" : "?";
+    const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : "";
+    const result = await json(baseUrl, `${path}${separator}limit=100${cursorParam}`, options);
+    assert.equal(result.status, 200);
+    assert.equal(result.body.outcome, "passed");
+    items.push(...result.body.items);
+    cursor = result.body.page_info?.next_cursor ?? null;
+    if (!cursor) break;
+  }
+  assert.equal(cursor, null, "paged Matter API readback should finish within test page budget");
+  return items;
 }
 
 function openingPayload(overrides = {}) {
@@ -56,8 +92,11 @@ function openingPayload(overrides = {}) {
       client_id: "client_rp04_amic",
       legal_client_party_id: "party_rp04_amic",
       billing_client_party_id: "party_rp04_amic",
-      matter_type_english: "litigation",
+      matter_type_english: "LIT",
+      matter_litigation_axis: "CIV",
       matter_detail_type_korean: "계약분쟁",
+      client_case_role: "원고",
+      client_case_role_confidence: "api_opening_test",
       source_revision: "api-opening-test-revision",
       title: "API opened matter",
       status: "opening",
@@ -81,6 +120,24 @@ function openingPayload(overrides = {}) {
   };
 }
 
+function issuedClearanceRecord(token = openingPayload().clearance_token) {
+  return {
+    ...token,
+    model_type: "ClearanceToken",
+    token_state: "active",
+    status: "active",
+    outcome: "cleared",
+    blocked_claims: [],
+    conflict_review_satisfied: true,
+  };
+}
+
+function intakeRepositoryWithClearances(tokens = [openingPayload().clearance_token]) {
+  return createIntakeRuntimeRepository({
+    seedRecords: tokens.map((token) => issuedClearanceRecord(token)),
+  });
+}
+
 function statusTransitionPayload(overrides = {}) {
   return {
     tenant_id: TENANT,
@@ -100,7 +157,7 @@ function recentlyViewedPayload(overrides = {}) {
     tenant_id: TENANT,
     permission_ref: "perm_ref_rp05_recent",
     audit_hint_ref: "audit_hint_rp05_recent",
-    actor_id: "user_rp05_owner",
+    actor_id: AUTH_ACTOR_ID,
     viewed_at: "2026-06-20T13:00:00.000Z",
     ...overrides,
   };
@@ -111,7 +168,7 @@ function listViewPayload(overrides = {}) {
     tenant_id: TENANT,
     permission_ref: "perm_ref_rp05_list_view",
     audit_hint_ref: "audit_hint_rp05_list_view",
-    actor_id: "user_rp05_owner",
+    actor_id: AUTH_ACTOR_ID,
     list_view_id: "matter_view_api_opening",
     label: "Opening matters",
     filter: { status: "opening" },
@@ -152,6 +209,27 @@ function ownerChangePayload(overrides = {}) {
   };
 }
 
+function adversePartyPayload(overrides = {}) {
+  return {
+    tenant_id: TENANT,
+    permission_ref: "perm_ref_rp05_party",
+    audit_hint_ref: "audit_hint_rp05_party",
+    actor_id: "user_rp05_owner",
+    idempotency_key: "matter-api-adverse-party-c01",
+    matter_party: {
+      tenant_id: TENANT,
+      matter_id: "matter_rp05_synthetic_opening",
+      matter_party_id: "matter_party_api_c01_adverse",
+      party_id: "party_api_c01_adverse",
+      display_name: "상대방 주식회사",
+      party_kind: "organization",
+      party_role: "adverse_party",
+      retroactive_entry: true,
+    },
+    ...overrides,
+  };
+}
+
 function inlinePatchPayload(overrides = {}) {
   return {
     tenant_id: TENANT,
@@ -179,13 +257,57 @@ test("G4 Matter API health descriptor exposes matter-core runtime without produc
   });
 });
 
+test("G4 Matter current clients and matter codes rehydrate from an empty durable store", async () => {
+  const storePath = join(mkdtempSync(join(tmpdir(), "lawos-matter-current-store-")), "matter-store.json");
+  writeFileSync(storePath, "{\"records\":[],\"idempotency\":[],\"audit_events\":[]}\n", "utf8");
+
+  await withServer(async (baseUrl) => {
+    const query = `tenant_id=${TENANT}&permission_ref=perm_ref_current_read&audit_hint_ref=audit_hint_current_read`;
+    const options = { headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext() } };
+    const clients = await collectPagedMatterItems(baseUrl, `/api/matters/clients?${query}`, options);
+    const matters = await collectPagedMatterItems(baseUrl, `/api/matters?${query}`, options);
+    const currentClientIds = new Set(
+      clients
+        .filter((item) => item.source_revision === "amic_current_onedrive_matter_code_inventory_2026_07_01")
+        .map((item) => item.client_id),
+    );
+    const currentMatterCodes = new Set(
+      matters
+        .filter((item) => item.source_revision === "amic_current_onedrive_matter_code_inventory_2026_07_01")
+        .map((item) => item.matter_code),
+    );
+    const currentMatterByCode = new Map(
+      matters
+        .filter((item) => item.source_revision === "amic_current_onedrive_matter_code_inventory_2026_07_01")
+        .map((item) => [item.matter_code, item]),
+    );
+
+    assert.equal(currentClientIds.size, AMIC_CURRENT_MATTER_CLIENTS.length);
+    assert.equal(currentMatterCodes.size, AMIC_CURRENT_MATTER_CODE_CANDIDATES.length);
+    assert.deepEqual(
+      AMIC_CURRENT_MATTER_CLIENTS.filter((client) => !currentClientIds.has(client.client_id)),
+      [],
+    );
+    assert.deepEqual(
+      AMIC_CURRENT_MATTER_CODE_CANDIDATES.filter((matter) => !currentMatterCodes.has(matter.matter_code)),
+      [],
+    );
+    for (const matter of AMIC_CURRENT_MATTER_CODE_CANDIDATES) {
+      assert.equal(currentMatterByCode.get(matter.matter_code)?.client_display_name, matter.client_display_name);
+      assert.equal(currentMatterByCode.get(matter.matter_code)?.client_name, matter.client_display_name);
+    }
+  }, { matterStorePath: storePath });
+});
+
 test("G4 Matter list is repository-backed, permission-trimmed, and count-leak safe", async () => {
   await withServer(async (baseUrl) => {
     const { status, body } = await json(baseUrl, `/api/matters?${BASE_QUERY}`);
     assert.equal(status, 200);
     assert.equal(body.outcome, "passed");
-    assert.equal(body.items.length, 1);
+    assert.equal(body.items.length, 25);
     assert.equal(body.items[0].matter_id, "matter_rp05_synthetic_opening");
+    assert.ok(body.items.some((item) => item.matter_code === "귀한사람들/Advisory/retainer"));
+    assert.equal(body.page_info.next_cursor, "25");
     assert.equal(body.page_info.omitted_matter_count, null);
     assert.equal(body.count_leak_prevented, true);
     assert.equal(body.production_ready_claim, false);
@@ -193,21 +315,21 @@ test("G4 Matter list is repository-backed, permission-trimmed, and count-leak sa
   });
 });
 
-test("G4 Matter permission gate fails closed and routes review-required without leaking rows", async () => {
+test("G4 Matter auth gate fails closed and ignores forged permission-context headers", async () => {
   await withServer(async (baseUrl) => {
     const denied = await json(baseUrl, `/api/matters?${BASE_QUERY}`, {
-      headers: { [PERMISSION_CONTEXT_HEADER]: undefined },
+      noAuth: true,
     });
-    assert.equal(denied.status, 403);
-    assert.equal(denied.body.items.length, 0);
-    assert.equal(denied.body.count_leak_prevented, true);
+    assert.equal(denied.status, 401);
+    assert.deepEqual(denied.body.safe_error_codes, ["AUTH_SESSION_REQUIRED"]);
 
     const review = await json(baseUrl, `/api/matters?${BASE_QUERY}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("review_required") },
     });
     assert.equal(review.status, 200);
-    assert.equal(review.body.outcome, "review_required");
-    assert.equal(review.body.items.length, 0);
+    assert.equal(review.body.outcome, "passed");
+    assert.equal(review.body.items.length, 25);
+    assert.equal(review.body.count_leak_prevented, true);
   });
 });
 
@@ -221,9 +343,11 @@ test("G4 Matter opening write persists, audits, and replays idempotently across 
     assert.equal(created.status, 201);
     assert.equal(created.body.outcome, "created");
     assert.equal(created.body.item.matter_id, "matter_api_open_001");
-    assert.equal(created.body.item.matter_code, "AMIC API/litigation/계약분쟁");
+    assert.equal(created.body.item.matter_code, "AMIC API/LIT/CIV/계약분쟁");
     assert.equal(created.body.item.matter_number, "M-TENANT-RP05-API-OPEN-001");
     assert.equal(created.body.item.client_id, "client_rp04_amic");
+    assert.equal(created.body.item.client_case_role, "원고");
+    assert.equal(created.body.item.client_case_role_confidence, "api_opening_test");
     assert.equal(created.body.state_idempotent, true);
     assert.equal(created.body.audit_event.action, "matter.open");
 
@@ -234,13 +358,15 @@ test("G4 Matter opening write persists, audits, and replays idempotently across 
     assert.equal(replay.status, 200);
     assert.equal(replay.body.outcome, "idempotent_replay");
     assert.equal(replay.body.idempotent_replay, true);
-  }, { matterStorePath: storePath });
+  }, { matterStorePath: storePath, intakeRepository: intakeRepositoryWithClearances() });
 
   await withServer(async (baseUrl) => {
     const detail = await json(baseUrl, `/api/matters/matter_api_open_001?${BASE_QUERY}`);
     assert.equal(detail.status, 200);
-    assert.equal(detail.body.item.matter_code, "AMIC API/litigation/계약분쟁");
+    assert.equal(detail.body.item.matter_code, "AMIC API/LIT/CIV/계약분쟁");
     assert.equal(detail.body.item.matter_id, "matter_api_open_001");
+    assert.equal(detail.body.item.client_case_role, "원고");
+    assert.equal(detail.body.item.client_case_role_confidence, "api_opening_test");
     assert.equal(detail.body.client_report.unauthorized_count_leaked, false);
   }, { matterStorePath: storePath });
 });
@@ -319,6 +445,154 @@ test("G4 Matter team write requires employee-backed staffing and records audit",
     assert.equal(detail.status, 200);
     assert.equal(detail.body.item.owner_employee_id, "emp-001");
     assert.equal(detail.body.item.owner_user_id, "user_rp05_owner");
+  });
+});
+
+test("G4 Matter team write blocks onboarding employees until HRX security tasks are complete", async () => {
+  const hrxRuntime = createDefaultHrxRuntime();
+  hrxRuntime.repository.createEmployee({
+    tenant_id: TENANT,
+    employee_id: "emp_api_d13_onboarding",
+    display_name: "D13 온보딩 구성원",
+    work_email: "d13.onboarding@example.test",
+    status: "onboarding",
+    source_ref: "UPL-D-13",
+  });
+  const onboardingPlan = createOnboardingPlan({
+    tenant_id: TENANT,
+    onboarding_id: "onb-api-d13",
+    employee_id: "emp_api_d13_onboarding",
+    start_date: "2026-07-03",
+    tasks: [
+      {
+        task_id: "default-security-training",
+        title: "Security training",
+        owner_role: "people_ops",
+        status: "completed",
+      },
+      {
+        task_id: "default-confidentiality-pledge",
+        title: "Confidentiality pledge",
+        owner_role: "people_ops",
+        status: "pending",
+      },
+    ],
+  });
+  hrxRuntime.onboardingPlans.push(onboardingPlan);
+  const matterRepository = createMatterRepository({
+    seedRecords: [
+      {
+        model_type: "Matter",
+        matter_id: "matter_api_d13_onboarding_gate",
+        tenant_id: TENANT,
+        client_id: "client_api_d13",
+        legal_client_party_id: "party_api_d13",
+        title: "D13 onboarding gated matter",
+        status: "open",
+        created_by: "user_rp05_owner",
+        created_at: "2026-07-03T00:00:00.000Z",
+        permission_envelope_id: "perm_api_d13",
+        audit_trace_id: "audit_api_d13",
+      },
+    ],
+  });
+
+  await withServer(async (baseUrl) => {
+    const payload = {
+      tenant_id: TENANT,
+      permission_ref: "perm_ref_rp05_team",
+      audit_hint_ref: "audit_hint_rp05_team",
+      actor_id: "user_rp05_owner",
+      member: {
+        member_id: "member_api_d13_onboarding",
+        tenant_id: TENANT,
+        employee_id: "emp_api_d13_onboarding",
+        user_id: "user_api_d13_onboarding",
+        role: "associate",
+        status: "active",
+      },
+    };
+
+    const blocked = await json(baseUrl, "/api/matters/matter_api_d13_onboarding_gate/team-members", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    assert.equal(blocked.status, 409);
+    assert.deepEqual(blocked.body.safe_error_codes, ["MATTER_ONBOARDING_GATE_REQUIRED"]);
+    assert.equal(blocked.body.ui_state, "onboarding_blocked");
+    assert.deepEqual(blocked.body.onboarding_gate.missing_task_ids, ["default-confidentiality-pledge"]);
+
+    const planIndex = hrxRuntime.onboardingPlans.findIndex((plan) => plan.onboarding_id === "onb-api-d13");
+    assert.notEqual(planIndex, -1);
+    hrxRuntime.onboardingPlans[planIndex] = updateOnboardingTask(
+      hrxRuntime.onboardingPlans[planIndex],
+      "default-confidentiality-pledge",
+      { status: "completed" },
+    );
+    assert.equal(
+      hrxRuntime.onboardingPlans[planIndex].tasks.find((task) => task.task_id === "default-confidentiality-pledge")
+        .status,
+      "completed",
+    );
+
+    const created = await json(baseUrl, "/api/matters/matter_api_d13_onboarding_gate/team-members", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    assert.equal(created.status, 201);
+    assert.equal(created.body.item.employee_id, "emp_api_d13_onboarding");
+  }, { hrxRuntime, matterRepository });
+});
+
+test("G4 Matter adverse party registration is idempotent and visible on detail", async () => {
+  await withServer(async (baseUrl) => {
+    const created = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/parties", {
+      method: "POST",
+      body: JSON.stringify(adversePartyPayload()),
+    });
+    assert.equal(created.status, 201);
+    assert.equal(created.body.outcome, "created");
+    assert.equal(created.body.item.matter_party_id, "matter_party_api_c01_adverse");
+    assert.equal(created.body.item.party_kind, "organization");
+    assert.equal(created.body.item.party_role, "adverse_party");
+    assert.equal(created.body.item.created_by, "user_rp05_owner");
+    assert.equal(created.body.item.conflict_subject, true);
+    assert.equal(created.body.item.retroactive_entry, true);
+    assert.equal(created.body.item.raw_contact_values_included, false);
+    assert.equal(created.body.item.production_ready_claim, false);
+    assert.equal(created.body.matter.adverse_party_count, 1);
+    assert.equal(created.body.audit_event.action, "matter.party.registered");
+    assert.equal(created.body.state_idempotent, true);
+
+    const replay = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/parties", {
+      method: "POST",
+      body: JSON.stringify(adversePartyPayload()),
+    });
+    assert.equal(replay.status, 200);
+    assert.equal(replay.body.outcome, "idempotent_replay");
+    assert.equal(replay.body.idempotent_replay, true);
+
+    const parties = await json(baseUrl, `/api/matters/matter_rp05_synthetic_opening/parties?${BASE_QUERY}&party_role=adverse_party`);
+    assert.equal(parties.status, 200);
+    assert.equal(parties.body.items.length, 1);
+    assert.equal(parties.body.items[0].display_name, "상대방 주식회사");
+    assert.equal(parties.body.items[0].party_kind, "organization");
+    assert.equal(parties.body.items[0].created_by, "user_rp05_owner");
+    assert.equal(parties.body.adverse_parties.length, 1);
+
+    const detail = await json(baseUrl, `/api/matters/matter_rp05_synthetic_opening?${BASE_QUERY}`);
+    assert.equal(detail.status, 200);
+    assert.equal(detail.body.item.adverse_party_count, 1);
+    assert.equal(detail.body.matter_parties.length, 1);
+    assert.equal(detail.body.adverse_parties[0].matter_party_id, "matter_party_api_c01_adverse");
+
+    const command = await json(baseUrl, `/api/matters/matter_rp05_synthetic_opening/command-center?${BASE_QUERY}`);
+    assert.equal(command.status, 200);
+    assert.equal(command.body.adverse_parties[0].display_name, "상대방 주식회사");
+
+    const audit = await json(baseUrl, `/api/matters/audit?${BASE_QUERY}`);
+    assert.equal(audit.status, 200);
+    assert.ok(audit.body.items.some((event) => event.action === "matter.party.registered"));
   });
 });
 
@@ -427,7 +701,7 @@ test("G4 Matter recently viewed is viewer scoped, audited, and persisted", async
     assert.equal(marked.body.item.production_ready_claim, false);
     assert.equal(marked.body.audit_event.action, "matter.recently_viewed.mark");
     assert.equal(JSON.stringify(marked.body.item).includes("viewer_user_id"), false);
-    assert.equal(JSON.stringify(marked.body.item).includes("user_rp05_owner"), false);
+    assert.equal(JSON.stringify(marked.body.item).includes(AUTH_ACTOR_ID), false);
 
     const recent = await json(baseUrl, `/api/matters/recently-viewed?${BASE_QUERY}`);
     assert.equal(recent.status, 200);
@@ -471,7 +745,7 @@ test("G4 Matter saved list views are owner scoped, audited, and persisted", asyn
     assert.equal(saved.body.item.production_ready_claim, false);
     assert.equal(saved.body.audit_event.action, "matter.list_view.saved");
     assert.equal(JSON.stringify(saved.body.item).includes("owner_user_id"), false);
-    assert.equal(JSON.stringify(saved.body.item).includes("user_rp05_owner"), false);
+    assert.equal(JSON.stringify(saved.body.item).includes(AUTH_ACTOR_ID), false);
 
     const listed = await json(baseUrl, `/api/matters/list-views?${BASE_QUERY}`);
     assert.equal(listed.status, 200);
@@ -491,29 +765,30 @@ test("G4 Matter saved list views are owner scoped, audited, and persisted", asyn
 
 test("G4 Matter bulk status transition is permission gated, audited, and persisted", async () => {
   const storePath = join(mkdtempSync(join(tmpdir(), "lawos-matter-bulk-status-g4-")), "matter-store.json");
+  const bulkOpeningPayload = openingPayload({
+    idempotency_key: "matter-api-bulk-open-001",
+    matter_number_seed: "API-BULK-001",
+    matter: {
+      ...openingPayload().matter,
+      matter_id: "matter_api_bulk_open_001",
+      title: "API bulk opened matter",
+      matter_number: "M-TENANT-RP05-API-BULK-001",
+      permission_envelope_id: "perm_matter_api_bulk_open_001",
+      audit_trace_id: "audit_matter_api_bulk_open_001",
+    },
+    clearance_token: {
+      ...openingPayload().clearance_token,
+      clearance_token_id: "clearance_api_bulk_open_001",
+      intake_request_id: "intake_api_bulk_open_001",
+      conflict_check_id: "conflict_api_bulk_open_001",
+      engagement_id: "engagement_api_bulk_open_001",
+      snapshot_hash: "sha256:clearance-api-bulk-open-001",
+    },
+  });
   await withServer(async (baseUrl) => {
     const created = await json(baseUrl, "/api/matters/openings", {
       method: "POST",
-      body: JSON.stringify(openingPayload({
-        idempotency_key: "matter-api-bulk-open-001",
-        matter_number_seed: "API-BULK-001",
-        matter: {
-          ...openingPayload().matter,
-          matter_id: "matter_api_bulk_open_001",
-          title: "API bulk opened matter",
-          matter_number: "M-TENANT-RP05-API-BULK-001",
-          permission_envelope_id: "perm_matter_api_bulk_open_001",
-          audit_trace_id: "audit_matter_api_bulk_open_001",
-        },
-        clearance_token: {
-          ...openingPayload().clearance_token,
-          clearance_token_id: "clearance_api_bulk_open_001",
-          intake_request_id: "intake_api_bulk_open_001",
-          conflict_check_id: "conflict_api_bulk_open_001",
-          engagement_id: "engagement_api_bulk_open_001",
-          snapshot_hash: "sha256:clearance-api-bulk-open-001",
-        },
-      })),
+      body: JSON.stringify(bulkOpeningPayload),
     });
     assert.equal(created.status, 201);
 
@@ -544,7 +819,7 @@ test("G4 Matter bulk status transition is permission gated, audited, and persist
     assert.equal(audit.status, 200);
     assert.ok(audit.body.items.some((event) => event.action === "matter.bulk.status_transition"));
     assert.ok(audit.body.items.some((event) => event.action === "matter.status.bulk_transitioned"));
-  }, { matterStorePath: storePath });
+  }, { matterStorePath: storePath, intakeRepository: intakeRepositoryWithClearances([bulkOpeningPayload.clearance_token]) });
 
   await withServer(async (baseUrl) => {
     const detail = await json(baseUrl, `/api/matters/matter_api_bulk_open_001?${BASE_QUERY}`);

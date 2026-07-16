@@ -1,0 +1,53 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.command-evidence.v0.1",
+  "goal_id": "cti-s6-seal-final-validation",
+  "commands": [
+    {
+      "command": "node scripts/validate-cti-cutover-execute.mjs",
+      "exit_code": 0,
+      "expected_failure": false,
+      "passed": true,
+      "stdout_hash": "sha256:52adce5fcd91568b38d27cd1e20d7d77f1039eee515208b4ed502ef3fddb2ee4",
+      "stderr_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": "PASS"
+    },
+    {
+      "command": "node scripts/validate-cti-s5-enrichment-execute.mjs",
+      "exit_code": 0,
+      "expected_failure": false,
+      "passed": true,
+      "stdout_hash": "sha256:fe987051e91ad138f9e825c0a5ddbaf01f4c8d3e93dd89697379bf1f3db67977",
+      "stderr_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": "PASS"
+    },
+    {
+      "command": "npm run runtime-spine:launch-crosswalk:validate",
+      "exit_code": 0,
+      "expected_failure": false,
+      "passed": true,
+      "stdout_hash": "sha256:2afc72f504bca493515b6ce34ba5737a447071f6f8c9cc76c9e4eb4a6f848c50",
+      "stderr_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": "PASS"
+    },
+    {
+      "command": "node scripts/validate-goal-closeout-protocol.mjs",
+      "exit_code": 0,
+      "expected_failure": false,
+      "passed": true,
+      "stdout_hash": "sha256:ca226eb65c22f38da02935798414114e76deadeb3147b14571fbe96bfd9c87a2",
+      "stderr_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": "PASS"
+    },
+    {
+      "command": "node scripts/validate-canonical-tenant-production-ready.mjs",
+      "exit_code": 1,
+      "expected_failure": true,
+      "passed": true,
+      "stdout_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_hash": "sha256:0420aa6b24cbb6e276f1016b5c9884f0ae24551e7c20a4c14217c5aa5ffbe9a4",
+      "summary": "NONZERO_EXIT"
+    }
+  ],
+  "snapshot_hash": "65c5017537cfecbca65ee616b5b4007fc18647e8703898204f93a9a7fe5eb807",
+  "pii_safe": true
+}

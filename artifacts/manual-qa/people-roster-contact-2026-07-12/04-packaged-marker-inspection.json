@@ -1,0 +1,21 @@
+{
+  "surface": "packaged Electron app bundle",
+  "bundle_path": "apps/desktop/dist/mac/matter.app",
+  "version": "0.1.15",
+  "files_scanned_under_packaged_app_source": 1014,
+  "marker_matches": {
+    "연락처": 2,
+    "hr-roster-col-contact": 2,
+    "mobile_phone": 5,
+    "manager_employee_id": 13,
+    "상사": 2
+  },
+  "expected_interpretation": {
+    "contact_markers_present_in_renderer_and_runtime": true,
+    "manager_markers_preserved_in_org_chart_or_runtime": true,
+    "old_manager_table_column_is_not_expected_in_renderer_main_table": true
+  },
+  "codesign_verify": "PASS: valid on disk and satisfies designated requirement",
+  "dmg": "not tested in this review; prior receipt records sandbox hdiutil restriction",
+  "verdict": "PASS"
+}

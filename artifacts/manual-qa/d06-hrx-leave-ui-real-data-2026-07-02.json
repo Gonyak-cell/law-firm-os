@@ -1,0 +1,168 @@
+{
+  "tranche": "UPL-D-06",
+  "generated_at": "2026-07-02T14:07:17.257Z",
+  "web_url": "http://127.0.0.1:5175/?locale=ko&view=people&data=live&ctx=allow#people-leave",
+  "api_url": "http://127.0.0.1:4192/api/hrx/leave?employee_id=emp_amic_ytkim",
+  "employee_id": "emp_amic_ytkim",
+  "before_api": {
+    "balance": {
+      "tenant_id": "tenant_amic_matter_vault",
+      "employee_id": "emp_amic_ytkim",
+      "policy_id": "pto-us",
+      "earned_balance": 80,
+      "used_balance": 0,
+      "available_balance": 80,
+      "reserved_balance": 0,
+      "entry_ids": [
+        "pto-earned-001"
+      ]
+    },
+    "request_ids": [
+      "leave-003",
+      "leave-004"
+    ]
+  },
+  "created_request": {
+    "tenant_id": "tenant_amic_matter_vault",
+    "request_id": "leave-emp_amic_ytkim-1783001237161",
+    "employee_id": "emp_amic_ytkim",
+    "policy_id": "pto-us",
+    "leave_type": "pto",
+    "amount": 2.5,
+    "start_date": "2026-08-23",
+    "end_date": "2026-08-23",
+    "state": "submitted",
+    "submitted_at": "2026-07-02T14:07:17.164Z",
+    "approver_id": null,
+    "decided_at": null,
+    "decision_reason": null,
+    "source_ref": "LeaveRequest:leave-emp_amic_ytkim-1783001237161",
+    "created_at": "2026-07-02T14:07:17.164Z",
+    "updated_at": "2026-07-02T14:07:17.164Z"
+  },
+  "after_api": {
+    "balance": {
+      "tenant_id": "tenant_amic_matter_vault",
+      "employee_id": "emp_amic_ytkim",
+      "policy_id": "pto-us",
+      "earned_balance": 80,
+      "used_balance": 0,
+      "available_balance": 80,
+      "reserved_balance": 0,
+      "entry_ids": [
+        "pto-earned-001"
+      ]
+    },
+    "request_ids": [
+      "leave-003",
+      "leave-004",
+      "leave-emp_amic_ytkim-1783001237161"
+    ]
+  },
+  "observed_text_before": "휴가관리 휴가 현황 휴가를 신청하고 잔여 휴가를 확인합니다 시간 휴가 유형 정책 ID 시작일 종료일 신청 pto-us 정책 80시간 사용 가능 0시간 사용 80시간 발생 0시간 예약 요청 ID 정책 유형 기간 시간 상태 leave-003 pto-us 연차 (pto) 2026-07-08 8시간 제출 leave-004 pto-us 연차 (pto) 2026-07-15 4시간 제출",
+  "observed_text_after": "휴가관리 휴가 현황 휴가를 신청하고 잔여 휴가를 확인합니다 시간 휴가 유형 정책 ID 시작일 종료일 신청 pto-us 정책 80시간 사용 가능 0시간 사용 80시간 발생 0시간 예약 요청 ID 정책 유형 기간 시간 상태 leave-003 pto-us 연차 (pto) 2026-07-08 8시간 제출 leave-004 pto-us 연차 (pto) 2026-07-15 4시간 제출 leave-emp_amic_ytkim-1783001237161 pto-us 연차 (pto) 2026-08-23 2.5시간 제출",
+  "screenshot": "artifacts/manual-qa/d06-hrx-leave-ui-after-2026-07-02.png",
+  "checks": [
+    {
+      "label": "balance policy id",
+      "value": "pto-us",
+      "pass": true
+    },
+    {
+      "label": "available balance",
+      "value": "80시간",
+      "pass": true
+    },
+    {
+      "label": "used balance",
+      "value": "0시간",
+      "pass": true
+    },
+    {
+      "label": "earned balance",
+      "value": "80시간",
+      "pass": true
+    },
+    {
+      "label": "reserved balance",
+      "value": "0시간",
+      "pass": true
+    },
+    {
+      "label": "request leave-003 id",
+      "value": "leave-003",
+      "pass": true
+    },
+    {
+      "label": "request leave-003 policy",
+      "value": "pto-us",
+      "pass": true
+    },
+    {
+      "label": "request leave-003 start",
+      "value": "2026-07-08",
+      "pass": true
+    },
+    {
+      "label": "request leave-003 amount",
+      "value": "8시간",
+      "pass": true
+    },
+    {
+      "label": "request leave-004 id",
+      "value": "leave-004",
+      "pass": true
+    },
+    {
+      "label": "request leave-004 policy",
+      "value": "pto-us",
+      "pass": true
+    },
+    {
+      "label": "request leave-004 start",
+      "value": "2026-07-15",
+      "pass": true
+    },
+    {
+      "label": "request leave-004 amount",
+      "value": "4시간",
+      "pass": true
+    },
+    {
+      "label": "placeholder labels removed",
+      "value": "요청 1 / 신청됨",
+      "pass": true
+    },
+    {
+      "label": "created request id",
+      "value": "leave-emp_amic_ytkim-1783001237161",
+      "pass": true
+    },
+    {
+      "label": "created request policy",
+      "value": "pto-us",
+      "pass": true
+    },
+    {
+      "label": "created request leave type",
+      "value": "연차 (pto)",
+      "pass": true
+    },
+    {
+      "label": "created request start date",
+      "value": "2026-08-23",
+      "pass": true
+    },
+    {
+      "label": "created request amount",
+      "value": "2.5시간",
+      "pass": true
+    }
+  ],
+  "lazyweb_report": {
+    "id": "f204112a-7955-4158-a457-4ffa5617f514",
+    "url": "https://www.lazyweb.com/report/lazyweb/f204112a-7955-4158-a457-4ffa5617f514/?source=create",
+    "degraded": false,
+    "failures": []
+  }
+}

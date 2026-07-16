@@ -1,0 +1,32 @@
+✔ manual adjustment CSV and XLSX templates expose the same import contract (<duration>)
+✔ edited XLSX template round-trips into typed manual adjustment rows (<duration>)
+✔ leave group, type, and policy configuration is tenant isolated with tenant-scoped codes (<duration>)
+✔ leave types persist flexible usage units and integer minute semantics (<duration>)
+✔ published policy is immutable and controlled publication closes its predecessor (<duration>)
+✔ policy publication rejects a version that begins before an active version (<duration>)
+✔ inactive leave type is excluded from new requests but remains available to historical rows (<duration>)
+✔ payroll item validates and normalizes catalog fields (<duration>)
+✔ payroll item catalog rejects duplicate tenant codes and isolates tenants (<duration>)
+✔ payroll item catalog sorts active items and hides inactive items by default (<duration>)
+✔ SQL payroll item catalog persists updates across store restart (<duration>)
+✔ payroll profiles and assignments preserve append-only temporal versions (<duration>)
+✔ payroll service rejects inclusive period overlaps and invalid boundaries (<duration>)
+✔ payroll assignment responses are masked and durable storage contains ciphertext only (<duration>)
+✔ payroll profile reads and writes are tenant isolated (<duration>)
+✔ payroll assignment validates employee, profile, item, currency and profile period (<duration>)
+✔ approved attendance and overtime project into immutable minute inputs (<duration>)
+✔ unapproved and post-as-of rows are excluded (<duration>)
+✔ night and holiday dimensions cross local midnight exactly (<duration>)
+✔ approved overtime cannot borrow attendance minutes from another work date (<duration>)
+✔ attendance corrections replace originals before projection (<duration>)
+✔ snapshot service is tenant-scoped and idempotent for the exact source version (<duration>)
+✔ projection rejects partial minutes, invalid periods and cross-tenant source rows (<duration>)
+✔ SQL snapshot service trusts immutable attendance approval receipts and survives restart (<duration>)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms <duration>

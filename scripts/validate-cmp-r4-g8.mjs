@@ -44,14 +44,15 @@ function rejectPatterns(file, patterns) {
 
 requirePatterns("packages/analytics/src/runtime-repository.js", [/filePath/, /recordIdempotency/, /appendAudit/, /mutates_source_object: false/]);
 requirePatterns("packages/analytics/src/event-contract.js", [/recordAnalyticsEvent/, /source_refs are required/, /cannot mutate source/]);
-requirePatterns("packages/analytics/src/metrics-service.js", [/createMatterProfitability/, /createClientProfitability/, /createEmployeeUtilization/, /createRealizationMetric/]);
-requirePatterns("packages/analytics/src/dashboard-service.js", [/createArAgingDashboard/, /createClientHealthDashboard/, /createPracticePnlDashboard/]);
+requirePatterns("packages/analytics/src/metrics-service.js", [/createMatterProfitability/, /createClientProfitability/, /createEmployeeUtilization/, /createRealizationMetric/, /client_group_id: resolvedClientGroupId/, /matter_profitability\.client_group_id/]);
+requirePatterns("packages/analytics/src/dashboard-service.js", [/createArAgingDashboard/, /createClientHealthDashboard/, /createPracticePnlDashboard/, /createRealizationDashboard/, /createEmployeeUtilizationDashboard/]);
 requirePatterns("packages/analytics/src/export-control-service.js", [/createAnalyticsExport/, /permission_ref/, /credential_material_included: false/]);
-requirePatterns("packages/analytics/src/refresh-job-service.js", [/refreshAnalyticsReadModels/, /ReadModelRefreshRun/]);
-requirePatterns("apps/api/src/analytics-runtime-context.js", [/ANALYTICS_BOUNDED_CONTEXT/, /runtime_write_ready: true/, /production_ready_claim: false/, /handleAnalyticsRefresh/]);
-requirePatterns("apps/web/src/components/AnalyticsSurface.jsx", [/data-cmp-g8-analytics-runtime/, /fetchAnalyticsDashboards/, /raw matter detail remain omitted/]);
-requirePatterns("packages/analytics/test/runtime-services.test.js", [/blocks source mutation/, /refreshAnalyticsReadModels/, /createAnalyticsExport/]);
-requirePatterns("apps/api/test/cmp-r4-g8-analytics.test.js", [/refresh and profitability writes persist across restart/, /export control requires permission/]);
+requirePatterns("packages/analytics/src/refresh-job-service.js", [/refreshAnalyticsReadModels/, /ReadModelRefreshRun/, /selectFinanceRowsForEmployeeUtilization/, /computeKpiDashboardMetrics/]);
+requirePatterns("apps/api/src/analytics-runtime-context.js", [/ANALYTICS_BOUNDED_CONTEXT/, /runtime_write_ready: true/, /production_ready_claim: false/, /handleAnalyticsRefresh/, /selectFinanceRowsForMatter/, /handleRealizationCreate/, /handleEmployeeUtilizationCreate/, /client_group_id: body\.client_group_id \?\? financeRows\.client_group_id/, /model_type: "MatterProfitability", client_group_id: body\.client_group_id/]);
+requirePatterns("apps/web/src/components/AnalyticsSurface.jsx", [/data-cmp-g8-analytics-runtime/, /fetchAnalyticsDashboards/, /matter_detail_omitted/, /민감한 Matter 상세 내용은 목록에서 숨깁니다/]);
+requirePatterns("packages/analytics/test/runtime-services.test.js", [/blocks source mutation/, /refreshAnalyticsReadModels/, /createAnalyticsExport/, /aggregates only matching client group matter rows/]);
+requirePatterns("apps/api/test/cmp-r4-g8-analytics.test.js", [/refresh and profitability writes persist across restart/, /export control requires permission/, /api-profit-g8-bodyless/, /api-refresh-g8-b15-kpi/, /different aggregates for different client groups/]);
+rejectPatterns("packages/analytics/src/refresh-job-service.js", [/metric_value:\s*(400000|87|32)\b/]);
 rejectPatterns("apps/web/src/components/AnalyticsSurface.jsx", [/mockData|from "\.\.\/data\/mockData/]);
 
 if (failures.length > 0) {

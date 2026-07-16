@@ -1,0 +1,81 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.command-evidence.v0.1",
+  "goal_id": "cti-s2-authentication-execute",
+  "recorded_at": "2026-07-06T06:20:00Z",
+  "secret_values_recorded": false,
+  "plaintext_passwords_recorded": false,
+  "token_material_recorded": false,
+  "commands_run": [
+    {
+      "command": "node --check apps/api/src/auth-credential-store.js && node --check apps/api/src/session-auth.js && node --check apps/api/src/server.js && node --check apps/api/src/matter-temp-desktop-runtime-lambda.mjs && node --check apps/desktop/src/main/auth.js",
+      "exit_code": 0,
+      "summary": "PASS. Changed auth provider, session-auth, server, desktop runtime, and desktop main auth files parse."
+    },
+    {
+      "command": "node --test apps/api/test/session-auth-api.test.js",
+      "exit_code": 0,
+      "summary": "PASS. 12 tests passed, including operational credential-store login, synthetic token rejection, fixed-secret cold-start verify, credential_rev revocation, and protected route signed-session principal."
+    },
+    {
+      "command": "node --test apps/api/test/matter-temp-desktop-runtime-lambda.test.js",
+      "exit_code": 0,
+      "summary": "PASS. 9 tests passed, including desktop password reset/login, scrypt provider metadata, and no password echo."
+    },
+    {
+      "command": "node --test apps/desktop/test/session-ipc.test.mjs apps/desktop/test/auth-coordinator.test.mjs apps/desktop/test/aws-runtime-client.test.mjs apps/desktop/test/renderer-runtime-ui.test.mjs",
+      "exit_code": 0,
+      "summary": "PASS. 16 tests passed, including renderer-safe token/password boundary and desktop password-flow surfaces."
+    },
+    {
+      "command": "node scripts/validate-store-path-preflight.mjs",
+      "exit_code": 0,
+      "summary": "PASS. Operational store-path preflight includes required durable store paths and LAWOS_AUTH_CREDENTIAL_STORE_PATH catalog alignment."
+    },
+    {
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "PASS. launch-TUW ledger reports 376 TUWs, 78 WPs, PRE-EXIT coverage 46, violations 0."
+    }
+  ],
+  "commands_not_run": [
+    {
+      "command": "production auth code deployment / Lambda config mutation",
+      "reason": "Not required for local/staging/synthetic S2-G code pass and would cross production mutation boundary without a separate deploy/probe goal."
+    },
+    {
+      "command": "production credential store write",
+      "reason": "No approved production credential/principal write in this goal; I8 probe remains blocked."
+    },
+    {
+      "command": "actual user password generation, issuance, or distribution",
+      "reason": "Explicitly out of scope for S2 execute; remains CUTOVER/I3-bound."
+    },
+    {
+      "command": "I8 S1-G authenticated production marker/audit/readback probe",
+      "reason": "Conditions unmet: no production deployment record, no production credential store write, no approved production probe principal/session, no password issuance boundary crossing."
+    },
+    {
+      "command": "S3 tenant migration, S4 production account/permission injection, CUTOVER, OIDC, DB conversion, S5/S6",
+      "reason": "Explicitly out of scope."
+    }
+  ],
+  "validation_results": {
+    "s2_g_code_and_local_staging_synthetic_fixtures": "PASS",
+    "i8_s1_g_authenticated_probe": "BLOCKED_CONDITIONS_UNMET",
+    "launch_tuw_ledger": "PASS"
+  },
+  "non_execution_summary": {
+    "production_auth_code_deployed": false,
+    "lambda_configuration_mutated": false,
+    "production_credential_store_write_executed": false,
+    "password_issuance_distribution_executed": false,
+    "s1_g_authenticated_production_probe_executed": false,
+    "s3_tenant_migration_executed": false,
+    "s4_production_account_permission_injection_executed": false,
+    "cutover_executed": false,
+    "oidc_implementation_executed": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-approval-evidence.v0.1",
+  "release_id": "matter-desktop-v0.1.15-approved-ui-20260712",
+  "recorded_at": "2026-07-12T21:37:23+09:00",
+  "source_head": "66a4eb20e6a83f82f5ae0b8254b18d1844f40bec",
+  "source_reproducible_from_head": false,
+  "notarization": {
+    "submission_id": "472a8d29-c7f9-43b8-8eb5-de2c3fa7b1b0",
+    "state": "accepted",
+    "stapler_validation": "pass",
+    "gatekeeper_assessment": "pass",
+    "strict_codesign_verification_after_runtime_qa": "pass"
+  },
+  "evidence": [
+    {
+      "path": "artifacts/manual-qa/formal-release-approved-ui-2026-07-12/approval-execution-receipt.md",
+      "sha256": "881d3de8d03a2d79a2fa596dd3751ce413f0809cc488113104c2fd0dbfde51bb",
+      "classification": "internal_release_evidence"
+    },
+    {
+      "path": "artifacts/manual-qa/formal-release-approved-ui-2026-07-12/02-formal-worktree-1024x700.png",
+      "sha256": "495ace132991c093b58c74a9d4f35681ad2f58d64638aecc08f7d82f9a6636c1",
+      "classification": "local_private_visual_evidence"
+    },
+    {
+      "path": "artifacts/manual-qa/formal-release-approved-ui-2026-07-12/parent-host-runtime-verification.md",
+      "sha256": "18fbafdb47306e5e327248f0a86eaca422794c1b15e8e3494033b82c78230c99",
+      "classification": "parent_host_runtime_evidence"
+    },
+    {
+      "path": "apps/desktop/dist/release/matter-desktop-v0.1.15-approved-ui-20260712/release-manifest.json",
+      "sha256": "e665ab7605c8aa2fecc2079f965fda9f39125d40c4b30b74d1e19dafd007db3d",
+      "classification": "formal_candidate_manifest"
+    },
+    {
+      "path": "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
+      "sha256": "84cd4a98868a896b9398bbb3946a568f5f5f78a6c91b181fb494a0e6ce211a61",
+      "classification": "build_receipt"
+    },
+    {
+      "path": "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md",
+      "sha256": "36b56a04f80b756d96712e49f4f5c30371d96539265a5ab8fdd2dcfdcf684206",
+      "classification": "build_receipt"
+    }
+  ],
+  "publication": {
+    "github_release_created": false,
+    "public_release_claim": false,
+    "production_go_live_claim": false,
+    "blocker": "dirty_worktree_source_provenance"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "tuw": "MG-003",
+  "verdict": "PASS",
+  "candidate_entry_sha": "b6fd5b7142d6215093e658bd93b35d7de6366f82",
+  "evidence_commit_sha": "32222efe1e84cb74a32184db4734c0fa9dea45e0",
+  "root_source_head": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3",
+  "root_source_worktree_sha256": "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3",
+  "root_source_tracked_modified_count": 56,
+  "root_source_untracked_count": 21,
+  "migration_count": 28,
+  "migration_lineage_first": "001_hrx_core.sql",
+  "migration_lineage_last": "028_hrx_leave_accrual_rule_versions.sql",
+  "loaded_migration_count": 28,
+  "forward_migration_count": 3,
+  "expected_forward_contract_count": 71,
+  "implemented_forward_contract_count": 71,
+  "forward_migration_contract_counts": {
+    "026_hrx_payroll_catalog_assignments.sql": 49,
+    "027_hrx_attendance_approval_receipts.sql": 18,
+    "028_hrx_leave_accrual_rule_versions.sql": 4
+  },
+  "missing_forward_contract_count": 0,
+  "unexpected_forward_contract_count": 0,
+  "definition_mismatch_count": 0,
+  "forbidden_contract_hit_count": 0,
+  "runtime_missing_token_count": 0,
+  "root_checkout_mutation_count": 0,
+  "contract_validation_sha256": "1e8cc9947ec8b066851103ddbe9dbbf2743fd6f6d934d068e481472133100b7b",
+  "forbidden_scan_sha256": "b3105d2cb88300f756c606e274b21f51d2ba4af478ad009025b0fd93c7704e1c",
+  "runtime_wiring_sha256": "9c6058794899e9bedde4ca82e9795425c4f4a198976a2c58b9de2f2078645e74",
+  "external_blockers": []
+}

@@ -1,0 +1,63 @@
+{
+  "tuw": "CP-002",
+  "verdict": "PASS",
+  "entry_sha": "b6853d529699ec155dfdbb59d2f4f976b58b6cb6",
+  "exit_sha": "b6853d529699ec155dfdbb59d2f4f976b58b6cb6",
+  "product_tree_changed": false,
+  "comparison_target_count": 5,
+  "capability_axis_count": 10,
+  "candidate": {
+    "top_navigation_count": 6,
+    "people_section_count": 73,
+    "hrx_route_policy_definition_count": 153,
+    "live_hrx_route_policy_count": 159,
+    "source_anchor_placement_count": 23,
+    "proof_anchor_placement_count": 24,
+    "preserved_path_count": 170
+  },
+  "target_hrx_route_policy_definition_counts": {
+    "origin_main": 30,
+    "current_root": 104,
+    "release_baseline": 104,
+    "forest_checkpoint": 143,
+    "candidate": 153
+  },
+  "zero_loss": {
+    "prior_nav_route_missing_count": 0,
+    "prior_people_section_raw_missing_count": 1,
+    "approved_people_section_alias_count": 1,
+    "prior_people_section_unresolved_missing_count": 0,
+    "prior_hrx_route_policy_missing_count": 0,
+    "candidate_missing_capability_axis_count": 0,
+    "candidate_missing_preservation_path_count": 0,
+    "approved_people_section_alias": "people-company-leave -> people-leave-types",
+    "approved_route_label_change": "vault: Vault -> Search"
+  },
+  "forest_checkpoint_to_candidate": {
+    "compared_path_count": 170,
+    "byte_identical_count": 158,
+    "changed_count": 12,
+    "missing_count": 0,
+    "changed_path_classification": {
+      "product_runtime": 5,
+      "regression_tests": 4,
+      "qa_tool": 1,
+      "evidence_receipts": 2
+    }
+  },
+  "tests": {
+    "web_route_menu_ui": { "tests": 75, "pass": 75, "fail": 0 },
+    "route_authz_validator": { "verdict": "PASS", "policy_count": 159 },
+    "api_route_authz_matrix": { "tests": 23, "pass": 23, "fail": 0 }
+  },
+  "evidence_sha256": {
+    "validator": "68794aaa86d1e63ec16e6a8b4144180239d31179f6cd7ac9070985bc9e68f0e8",
+    "product_capability_matrix": "52056aebc84fc36a9317fb00762ad99583270bd8597c5659ebbb6ba9e7051e44"
+  },
+  "known_limits": [
+    "CP-002 proves product-axis inventory and zero route, menu, API policy, anchor, and preservation-path loss; CP-003 through CP-007 prove domain depth and runtime behavior.",
+    "The route-policy definition count is a source extraction count; the canonical live validator expands and verifies 159 effective policies.",
+    "No production write, public release, or go-live action is performed by CP-002."
+  ],
+  "external_blockers": []
+}

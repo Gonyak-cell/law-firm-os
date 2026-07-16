@@ -1,0 +1,24 @@
+RED
+command: node --test packages/matter/test/worktree-model.test.js
+exit: 1
+result: 0 passed, 4 failed
+cause: registry omitted both Worktree models and createMatterCoreRecord rejected both as unknown model types
+
+GREEN
+command: node --test packages/matter/test/worktree-model.test.js
+exit: 0
+result: 5 passed, 0 failed
+
+MATTER PACKAGE REGRESSION
+command: LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+exit: 0
+result: 145 passed, 0 failed
+
+MANUAL LIBRARY QA
+exit: 0
+result: immutable MatterWorktree and branch MatterWorktreeNode created through package index; invalid persisted root rejected with TypeError
+output: {"worktree":"MatterWorktree","node":"MatterWorktreeNode","frozen":true,"invalid_root_rejected":true}
+
+STATIC CHECKS
+git diff --check: passed
+secret-pattern scan: no matches

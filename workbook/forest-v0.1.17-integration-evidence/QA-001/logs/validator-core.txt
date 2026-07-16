@@ -1,0 +1,2 @@
+HRX core domain validation passed.
+scope: core_hris_domain

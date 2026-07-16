@@ -1,0 +1,22 @@
+# MG-005 Acceptance
+
+- TUW: MG-005
+- status: DONE
+- entry_sha: `f59b328927ee7c88a525bcb588938547a91ceb91`
+- exit_sha: `9722f647f3328b0b14d4362c07c31ad5b9763a35`
+- changed_files: durable SQLite checkpoint-upgrade validator, synthetic golden fixtures, regression test, deterministic evidence generator, MG-005 evidence set, Goal execution ledger
+- root source HEAD: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`
+- root source working-tree SHA-256: `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`
+- checkpoints: 10, 20, 25 -> 028_hrx_leave_accrual_rule_versions.sql
+- synthetic golden coverage: 32 tables / 32 rows
+- data result: changed 0, lost 0, unexpected new 0
+- backfill checks: 30/30
+- durable reopen: 3/3; integrity failures 0; FK errors 0
+- final schema SHA-256: `c0756d870967adf0ab79e4b6716a947ea4fb2a921a3418195a489cee9e8798b6`
+- commands: see `commands.txt`
+- test_result: syntax, CLI contracts, three durable checkpoint upgrades, 7 targeted migration tests, 565 complete HRX tests, web production build, row/value hashes, 30 backfills, schema golden, integrity, root fingerprint, and deterministic checks PASS
+- manual_qa: inspected close/reopen boundaries, per-checkpoint migration spans, seeded tables, pre-existing value hashes, new-column defaults, final schema equality, and cleanup of temporary SQLite files
+- evidence_hashes: report `40a0d80ee82d94a145a69e649111d993fe3454d025dd877125960e5b6e490847`, checkpoint matrix `3510a670a825667f7188938a1ceb0b05350faeef6eb5b45ed52574d094c6f175`
+- known_limits: repository-safe synthetic file databases only; failure injection, idempotency, rollback, backup, and restore remain MG-006
+- external_blockers: none
+- AI slop review: pass; no product UI or user-facing copy changed

@@ -1,0 +1,110 @@
+{
+  "verdict": "PASS",
+  "objective": "LCX-SHD-80",
+  "generated_at": "2026-07-08T14:28:12.218Z",
+  "packaged_app": {
+    "root": "apps/desktop/dist/mac/matter.app",
+    "executable": {
+      "path": "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+      "bytes": 33968,
+      "sha256": "c0bf182389ea930585e3b0bf5c4f16529461e02bf3be751cb364d0e25f2257e0"
+    },
+    "renderer": {
+      "path": "apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html",
+      "bytes": 1357,
+      "sha256": "b1043d78230237b267f8aded9bace007b8db2ab6f6563a1752853d178ded7d6f"
+    }
+  },
+  "renderer_url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=0#home-dashboard",
+  "screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-shd-80-packaged-renderer-smoke-2026-07-08.png",
+  "snapshot": {
+    "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=0#home-dashboard",
+    "home_dashboard_shell": true,
+    "home_dashboard_grid": true,
+    "home_dashboard_rail": true,
+    "widget_ids": [
+      "approval",
+      "calendar",
+      "feed",
+      "todo"
+    ],
+    "topbar_refresh_trigger_count": 1,
+    "visible_refresh_button_texts": [],
+    "legacy_hero_refresh_class_count": 0,
+    "top_header_nav": {
+      "labels": [
+        "Home",
+        "Client",
+        "Matter",
+        "People",
+        "Vault",
+        "Portal"
+      ],
+      "axis_ids": [
+        "home",
+        "clients",
+        "matters",
+        "people",
+        "vault",
+        "portal"
+      ],
+      "active_axis": "home",
+      "active_axis_count": 1,
+      "portal_fully_visible": true,
+      "nav_horizontal_overflow": false
+    },
+    "sidebar": {
+      "state": "contextual",
+      "duplicated_product_axis_labels": []
+    },
+    "matter_session_bridge_present": true,
+    "matter_session_status_state": "signed_in",
+    "release_boundary_ui_has_no_positive_claim": true,
+    "no_dummy_visible": true,
+    "horizontal_overflow": false,
+    "viewport": {
+      "width": 1280,
+      "height": 788
+    },
+    "body_character_count": 319
+  },
+  "console_events": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    }
+  ],
+  "non_claims": {
+    "public_release": false,
+    "production_go_live": false,
+    "owner_approval": false
+  }
+}

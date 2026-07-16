@@ -1,0 +1,12 @@
+node --check fresh database validator, evidence generator, and test: PASS
+validator help and invalid-argument contracts: PASS
+fresh SQLite migration execution 001-028: 28/28 PASS
+targeted migration tests: 6/6 PASS
+complete HRX regression: 564/564 PASS
+web production build: PASS (1718 modules)
+schema inventory: 73 tables, 53 indexes, 12 triggers; missing/unexpected 0
+required/forbidden column checks: 7/7 PASS; forbidden tables 0
+constraint probes: 7/7 PASS
+post-probe empty tables: 73/73; integrity ok; foreign-key errors 0
+root working-tree mutations: 0
+deterministic rerun: PASS

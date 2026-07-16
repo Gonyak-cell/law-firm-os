@@ -1,0 +1,22 @@
+# PV-002 Acceptance
+
+- TUW: PV-002
+- status: DONE
+- entry_sha: `1e3c2614c472a475444e7fc0acf1671104753623`
+- product_exit_sha: `a38a63f8bcc0bedae5d038027cb2de7148cd6129` (the evidence commit is intentionally separate)
+- product_exit_tree: `3da21d6486a0577abb90a084988de3eb6888a189`
+- manifest schema: `law-firm-os.matter-desktop-build-provenance.v1`; both platform manifests record version `0.1.17`, the full product SHA/tree, `source_dirty=false`, renderer SHA/file count/algorithm, internal channel, platform, architecture, app ID, UTC build time, and false public/production claims
+- build order: the internal macOS app/ZIP/DMG completed at `2026-07-15T17:30:11.276Z`, then the internal Windows directory/executable/unsigned ZIP completed at `2026-07-15T17:32:20.289Z`, both from the exact clean product SHA
+- renderer parity: macOS and Windows each contain 28 renderer files and share SHA-256 `f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445`; shared-field mismatch count 0
+- macOS manifest: external and packaged bytes are equal; SHA-256 `d42713cdf82b4ed33a6bb9116f13759c4156ba6b04baf4aea7444bccf1df61d1`
+- Windows manifest: external and packaged bytes are equal; SHA-256 `76fe2585593112456acc4ae529bad78b5da1a4ca4c147fd8b5ede8b0fbddb253`; the signed internal installer manifest links the same provenance fields
+- receipt parity: macOS and Windows canonical build receipts match their packaged manifests; mismatch count 0
+- manual_qa: opened both generated JSON manifests, confirmed the full SHA/tree/channel/time/claims, verified the source commit and tree objects, compared internal and external files byte-for-byte, and listed the embedded Windows ZIP manifest
+- regression: manifest unit tests 3/3 PASS, Desktop smoke 102/102 PASS, PV-001 package version contract PASS, public renderer PII scan PASS, syntax/diff checks PASS
+- preserved user root checkout: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`, branch `codex/profile-contact-regression-fix`, tracked 56, untracked 21, status 77, fingerprint `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`; no write performed
+- commands: see `commands.txt`
+- test_result: manifest schema, tamper rejection, clean product identity recording, package embedding, receipt parity, renderer parity, installer linkage, CLI help/error behavior, PII, and desktop regressions PASS
+- evidence_hashes: see `receipt.json`
+- known_limits: PV-002 records and verifies clean provenance but does not yet provide the PV-003 formal build fail-closed gate; macOS artifacts remain internal without Developer ID/notary/staple/Gatekeeper distribution approval; Windows native install/runtime/uninstall and Authenticode were not run on Darwin
+- external_blockers: none for PV-002; formal/native/public/production/go-live gates remain outside this TUW and false
+- AI slop review: pass; no product UI or user-facing copy changed and sloplint reported no auto-detectable signals

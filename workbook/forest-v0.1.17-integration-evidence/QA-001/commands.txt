@@ -1,0 +1,22 @@
+git rev-parse forest-v0.1.17-integration-candidate-4c81d861^{commit}
+git diff --name-only forest-v0.1.17-integration-candidate-4c81d861..HEAD
+shasum -a 256 package-lock.json /private/tmp/lawos-forest-v016-release/package-lock.json
+ln -s /private/tmp/lawos-forest-v016-release/node_modules node_modules
+node --test --test-force-exit --test-timeout=30000 --test-concurrency=1 packages/hrx/test/*.test.js
+node --test --test-force-exit --test-timeout=30000 --test-concurrency=1 packages/authz/test/*.test.js packages/runtime-auth/test/*.test.js
+npm --workspace apps/api run test
+node --test --test-force-exit --test-timeout=30000 --test-concurrency=1 $(find apps/api/test -mindepth 2 -name '*.test.js' ! -path 'apps/api/test/hrx/*' -print | sort)
+node scripts/validate-hrx-core-domain.mjs
+node scripts/validate-hrx-route-authz.mjs
+node scripts/validate-hrx-context-hardening.mjs
+node scripts/validate-hrx-workflows.mjs
+node scripts/validate-leave-management-baseline.mjs
+node scripts/validate-cp003-leave-upper-compatibility.mjs --check
+node scripts/validate-cp004-payroll-upper-compatibility.mjs --check
+node scripts/validate-rc005-port-crosswalk.mjs
+unlink node_modules
+python3 -m json.tool workbook/forest-v0.1.17-integration-evidence/QA-001/receipt.json
+python3 -m json.tool workbook/forest-v0.1.17-integration-evidence/QA-001/tests.json
+shasum -a 256 -c workbook/forest-v0.1.17-integration-evidence/QA-001/hashes.sha256
+git diff --check
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed

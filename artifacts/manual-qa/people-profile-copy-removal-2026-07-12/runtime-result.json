@@ -1,0 +1,24 @@
+{
+  "schema_version": "law-firm-os.people-profile-copy-removal.v1",
+  "generated_at": "2026-07-12T17:33:00+09:00",
+  "verdict": "PASS",
+  "renderer": "apps/web/dist/index.html",
+  "checked_profiles": 10,
+  "profile_kinds": [
+    "attorney",
+    "cpa",
+    "deal_advisor"
+  ],
+  "payload_profiles_with_source_refs": 10,
+  "payload_profiles_with_source_notes": 10,
+  "forbidden_copy": [
+    "출처",
+    "비고",
+    "권한이 없는 정보는 숨깁니다."
+  ],
+  "forbidden_match_count": 0,
+  "screenshot": "artifacts/manual-qa/people-profile-copy-removal-2026-07-12/all-members-profile.png",
+  "synthetic_data": true,
+  "production_write": false,
+  "public_release_claim": false
+}

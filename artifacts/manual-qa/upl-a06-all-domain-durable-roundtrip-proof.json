@@ -1,0 +1,398 @@
+{
+  "schema_version": "lawos.wave1.upl-a06.all-domain-durable-roundtrip-proof.v1",
+  "generated_at": "2026-07-12T05:26:13.605Z",
+  "row_id": "UPL-A-06",
+  "status": "PASS",
+  "owner_db_decision_boundary": {
+    "local_wave1_owner_boundary_closed": true,
+    "selected_local_runtime_boundary": "per-domain file-backed durable stores with schema or migration metadata",
+    "external_production_database_decision_claim": false,
+    "production_ready_claim": false,
+    "all_domain_roundtrip_locally_possible": true
+  },
+  "domain_count": 13,
+  "expected_domains": [
+    "hrx",
+    "master_data",
+    "matter",
+    "dms",
+    "crm",
+    "intake",
+    "crm_master_data",
+    "finance",
+    "analytics",
+    "ai_governance",
+    "client_portal",
+    "ui_readiness",
+    "enterprise_readiness"
+  ],
+  "domains": [
+    {
+      "domain": "hrx",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/hrx-store.json",
+      "durable": true,
+      "model_type": "hrx_employees",
+      "id": "emp_upl_a06_durable_001",
+      "first_read_present": true,
+      "second_read_present": true,
+      "first_hash": "4a5487c5036ebf12e07e86388cbdf96582eea036e104d23e655748e5b1023c9d",
+      "second_hash": "4a5487c5036ebf12e07e86388cbdf96582eea036e104d23e655748e5b1023c9d",
+      "hash_stable_after_reopen": true,
+      "schema": {
+        "schema_version": "law-firm-os.hrx-file-store.v0.1",
+        "migration_count": 6,
+        "first_migration_results": [
+          {
+            "id": "001_hrx_core",
+            "applied": true,
+            "hash": "8b9d8ee1f3cd2e4f0d98bbfe086da661404c472088ac661f88c72197a6b403db"
+          },
+          {
+            "id": "002_hrx_documents_leave_audit",
+            "applied": true,
+            "hash": "3fcb1cff2f1bd005c89ff5c37584589d73e343c28bf89dc4b780bb41746b876d"
+          },
+          {
+            "id": "003_hrx_ai_analytics",
+            "applied": true,
+            "hash": "04cd2e7601bd3d7ba6be960b8e064ef404323cce8fcde9429c4009a1db78236d"
+          },
+          {
+            "id": "004_hrx_attendance",
+            "applied": true,
+            "hash": "f6ee9b3229ab5e43b32e36bfade6a9537df3c4fde778a67347269e0bd293f507"
+          },
+          {
+            "id": "005_hrx_overtime",
+            "applied": true,
+            "hash": "f65359909803e277c6dd77b7848b3de5e6886b060fa0de0d6eea9589ab59cf50"
+          },
+          {
+            "id": "006_hrx_recruiting_lifecycle",
+            "applied": true,
+            "hash": "36d349f3de1cebacda1a3f42e25488fcbe131c72277c1b66e4053ae8de828a85"
+          }
+        ],
+        "second_migration_results": [
+          {
+            "id": "001_hrx_core",
+            "applied": false
+          },
+          {
+            "id": "002_hrx_documents_leave_audit",
+            "applied": false
+          },
+          {
+            "id": "003_hrx_ai_analytics",
+            "applied": false
+          },
+          {
+            "id": "004_hrx_attendance",
+            "applied": false
+          },
+          {
+            "id": "005_hrx_overtime",
+            "applied": false
+          },
+          {
+            "id": "006_hrx_recruiting_lifecycle",
+            "applied": false
+          }
+        ]
+      },
+      "store_file": {
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/hrx-store.json",
+        "exists": true,
+        "bytes": 2074,
+        "sha256": "06010ba2283beaf131f94fabfcbceddab4155e277a784c90e2bc123450cf7172"
+      }
+    },
+    {
+      "domain": "master_data",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/master-data-store.json",
+      "durable": true,
+      "model_type": "Entity",
+      "id": "entity_upl_a06_master_001",
+      "first_read_present": true,
+      "second_read_present": true,
+      "first_hash": "9e833dd4cf061a6857e73b8890f54de28bd05845ff9d5391799bbe217b1c5b53",
+      "second_hash": "9e833dd4cf061a6857e73b8890f54de28bd05845ff9d5391799bbe217b1c5b53",
+      "hash_stable_after_reopen": true,
+      "schema": {
+        "schema_version": "law-firm-os.master-data-repository.v0.1"
+      },
+      "store_file": {
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/master-data-store.json",
+        "exists": true,
+        "bytes": 1076,
+        "sha256": "ecfe609983b188bd7bea47b50a84b2e9484c61c1b1d299f01234b6028ae4f29f"
+      }
+    },
+    {
+      "domain": "matter",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/matter-store.json",
+      "durable": true,
+      "model_type": "Matter",
+      "id": "matter_upl_a06_durable_001",
+      "first_read_present": true,
+      "second_read_present": true,
+      "first_hash": "ad008fb94c9ceac49860f665d2fecd95ee3936472f0d3b56d35860ddb4a07be1",
+      "second_hash": "ad008fb94c9ceac49860f665d2fecd95ee3936472f0d3b56d35860ddb4a07be1",
+      "hash_stable_after_reopen": true,
+      "schema": {
+        "migrations": [
+          {
+            "id": "001_matter_core",
+            "filename": "001_matter_core.sql",
+            "checksum": "matter-core-r4-001-canonical-identity",
+            "description": "Matter Core tenant-scoped runtime tables with canonical client and matter code identity"
+          },
+          {
+            "id": "002_matter_worktree",
+            "filename": "002_matter_worktree.sql",
+            "checksum": "matter-worktree-v1-model-storage",
+            "description": "Matter Worktree and template storage keyed by tenant and canonical model identifiers"
+          }
+        ]
+      },
+      "store_file": {
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/matter-store.json",
+        "exists": true,
+        "bytes": 2296,
+        "sha256": "16455b569e95ec189441981ff2d4c0f7ae7d2ec321a61e48fc658e0fce905b7e"
+      }
+    },
+    {
+      "domain": "dms",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/dms-store.json",
+      "durable": true,
+      "model_type": "DmsWorkspace",
+      "id": "workspace_upl_a06_durable_001",
+      "first_read_present": true,
+      "second_read_present": true,
+      "first_hash": "1c78c48716d8193b2ceebdd4980e2edbd6d1e5630fbe0e9f11f36c600c722a43",
+      "second_hash": "1c78c48716d8193b2ceebdd4980e2edbd6d1e5630fbe0e9f11f36c600c722a43",
+      "hash_stable_after_reopen": true,
+      "schema": {
+        "migrations": [
+          {
+            "id": "001_dms_vault_runtime",
+            "description": "Create Vault/DMS runtime metadata, idempotency, and audit tables.",
+            "sql_ref": "packages/dms/src/migrations/001_dms_vault_runtime.sql"
+          }
+        ]
+      },
+      "store_file": {
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/dms-store.json",
+        "exists": true,
+        "bytes": 1369,
+        "sha256": "dc4cc0426df3650745c2c263d43a0c9e0a099b9048e3eb8f8946d2eb1784ee95"
+      }
+    },
+    {
+      "domain": "crm",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/crm-store.json",
+      "durable": true,
+      "model_type": "Lead",
+      "id": "lead_upl_a06_durable_001",
+      "first_read_present": true,
+      "second_read_present": true,
+      "first_hash": "1789c9ee480ce491c9bf668619ce47aba82dc0c8ef6bb8c5360aaa177bf6e688",
+      "second_hash": "1789c9ee480ce491c9bf668619ce47aba82dc0c8ef6bb8c5360aaa177bf6e688",
+      "hash_stable_after_reopen": true,
+      "schema": {
+        "migrations": [
+          "crm-runtime-001-file-store"
+        ]
+      },
+      "store_file": {
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/crm-store.json",
+        "exists": true,
+        "bytes": 1380,
+        "sha256": "e48288c2aebfa0aae727fba62388ec4864ca939bba253bbdbb9d235c0c4d930a"
+      }
+    },
+    {
+      "domain": "intake",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/intake-store.json",
+      "durable": true,
+      "model_type": "IntakeRequest",
+      "id": "intake_upl_a06_durable_001",
+      "first_read_present": true,
+      "second_read_present": true,
+      "first_hash": "1a5daf383be2c2821fb09125e6a6b62395a9788f973104a961e15660fdd2383c",
+      "second_hash": "1a5daf383be2c2821fb09125e6a6b62395a9788f973104a961e15660fdd2383c",
+      "hash_stable_after_reopen": true,
+      "schema": {
+        "migrations": [
+          "intake-runtime-001-file-store"
+        ]
+      },
+      "store_file": {
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/intake-store.json",
+        "exists": true,
+        "bytes": 1489,
+        "sha256": "77a43522f75374fce3fcd709b17b21d1334a8ea6478f166c983bb11b8277a93a"
+      }
+    },
+    {
+      "domain": "crm_master_data",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/crm-master-data-store.json",
+      "durable": true,
+      "model_type": "Entity",
+      "id": "entity_upl_a06_crm_master_001",
+      "first_read_present": true,
+      "second_read_present": true,
+      "first_hash": "a682faade79938ca23b684952482baf52602e81280023ee328b4e8d9a14f847a",
+      "second_hash": "a682faade79938ca23b684952482baf52602e81280023ee328b4e8d9a14f847a",
+      "hash_stable_after_reopen": true,
+      "schema": {
+        "schema_version": "law-firm-os.master-data-repository.v0.1"
+      },
+      "store_file": {
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/crm-master-data-store.json",
+        "exists": true,
+        "bytes": 1092,
+        "sha256": "af4aa5b3bf62e10dcafe261f7194a0ae60df1952f49f9bf97d782a517708d203"
+      }
+    },
+    {
+      "domain": "finance",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/finance-store.json",
+      "durable": true,
+      "model_type": "Invoice",
+      "id": "invoice_upl_a06_durable_001",
+      "first_read_present": true,
+      "second_read_present": true,
+      "first_hash": "4fb4751729bd6dbb604490c5a282aebd1ab069057da2a3a820fb5685b7fd56b9",
+      "second_hash": "4fb4751729bd6dbb604490c5a282aebd1ab069057da2a3a820fb5685b7fd56b9",
+      "hash_stable_after_reopen": true,
+      "schema": {
+        "migrations": [
+          "finance-runtime-001-file-store"
+        ]
+      },
+      "store_file": {
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/finance-store.json",
+        "exists": true,
+        "bytes": 984,
+        "sha256": "5de35a9ca633177d405016332dcefcdfff6d66caf6d9d2e87031c40499d7fce3"
+      }
+    },
+    {
+      "domain": "analytics",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/analytics-store.json",
+      "durable": true,
+      "model_type": "AnalyticsDashboard",
+      "id": "dashboard_upl_a06_durable_001",
+      "first_read_present": true,
+      "second_read_present": true,
+      "first_hash": "23298783f7cb7f86560d90c6a4c7e63c2d0ac04049bc0a6e84e420489d11c3c2",
+      "second_hash": "23298783f7cb7f86560d90c6a4c7e63c2d0ac04049bc0a6e84e420489d11c3c2",
+      "hash_stable_after_reopen": true,
+      "schema": {
+        "migrations": [
+          "analytics-runtime-001-file-store"
+        ]
+      },
+      "store_file": {
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/analytics-store.json",
+        "exists": true,
+        "bytes": 1091,
+        "sha256": "15377d3775547fac262fe5375c61c91e7edd085ac6c62cb7c58391b481d1a1fe"
+      }
+    },
+    {
+      "domain": "ai_governance",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/ai-store.json",
+      "durable": true,
+      "model_type": "AiPolicy",
+      "id": "ai_policy_upl_a06_durable_001",
+      "first_read_present": true,
+      "second_read_present": true,
+      "first_hash": "023e0cf9c1c71a7604e04208deca2a3c2d3824c95f17b27f3c6c1df9d3ebd21a",
+      "second_hash": "023e0cf9c1c71a7604e04208deca2a3c2d3824c95f17b27f3c6c1df9d3ebd21a",
+      "hash_stable_after_reopen": true,
+      "schema": {
+        "migrations": [
+          "ai-governance-runtime-001-file-store"
+        ]
+      },
+      "store_file": {
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/ai-store.json",
+        "exists": true,
+        "bytes": 992,
+        "sha256": "034c172eedbd50a503c59402f9d730a3563bd5f11f508266faea4eaa41f6139f"
+      }
+    },
+    {
+      "domain": "client_portal",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/portal-store.json",
+      "durable": true,
+      "model_type": "ExternalUser",
+      "id": "external_user_upl_a06_durable_001",
+      "first_read_present": true,
+      "second_read_present": true,
+      "first_hash": "8f1350e0cdd86c10b0b4cff97c259ad42376bbc960189663e730db1b23167996",
+      "second_hash": "8f1350e0cdd86c10b0b4cff97c259ad42376bbc960189663e730db1b23167996",
+      "hash_stable_after_reopen": true,
+      "schema": {
+        "migrations": [
+          "client-portal-runtime-001-file-store"
+        ]
+      },
+      "store_file": {
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/portal-store.json",
+        "exists": true,
+        "bytes": 1173,
+        "sha256": "795a9156429f272f528cca80a8c23b8309afdd298791e26e786b5b922cde9127"
+      }
+    },
+    {
+      "domain": "ui_readiness",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/ui-readiness-store.json",
+      "durable": true,
+      "model_type": "UiReadinessCheck",
+      "id": "ui_check_upl_a06_durable_001",
+      "first_read_present": true,
+      "second_read_present": true,
+      "first_hash": "45d93aa5b06a78a2681fe35ed237b664f7119ff613189ff713969d28330da4c4",
+      "second_hash": "45d93aa5b06a78a2681fe35ed237b664f7119ff613189ff713969d28330da4c4",
+      "hash_stable_after_reopen": true,
+      "schema": {
+        "migrations": [
+          "ui-readiness-runtime-001-file-store"
+        ]
+      },
+      "store_file": {
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/ui-readiness-store.json",
+        "exists": true,
+        "bytes": 1127,
+        "sha256": "a61a0a581df474cbf0c4dec17f5b23adbf267a1c446cb20283ebfbca1385697d"
+      }
+    },
+    {
+      "domain": "enterprise_readiness",
+      "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/enterprise-readiness-store.json",
+      "durable": true,
+      "model_type": "EnterpriseReadinessItem",
+      "id": "enterprise_item_upl_a06_durable_001",
+      "first_read_present": true,
+      "second_read_present": true,
+      "first_hash": "f69d2ff69b36952323ccec64b1d01a656f80074bcef01362ab0889b102425e11",
+      "second_hash": "f69d2ff69b36952323ccec64b1d01a656f80074bcef01362ab0889b102425e11",
+      "hash_stable_after_reopen": true,
+      "schema": {
+        "migrations": [
+          "enterprise-readiness-runtime-001-file-store"
+        ]
+      },
+      "store_file": {
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-upl-a06-durable-PH8UKN/enterprise-readiness-store.json",
+        "exists": true,
+        "bytes": 1103,
+        "sha256": "8c5682d0cc052608d2a7f0fd3eeaf9cfdda4f84e875990bcaeaa3fca90bd164c"
+      }
+    }
+  ]
+}

@@ -1,4 +1,7 @@
 import { randomUUID } from "node:crypto";
+import { createSqlHrxAuditEventStore } from "../../../audit/src/hrx-event-store-sql.js";
+import { evaluateLeaveUsage } from "../rules/leave-policy.js";
+import { createSqlLeaveBalanceLedger } from "./balance.js";
 
 export const HRX_LEAVE_REQUEST_STATES = Object.freeze(["submitted", "approved", "rejected", "cancelled"]);
 
@@ -36,6 +39,33 @@ function requireSubmitted(request, action) {
   if (request.state !== "submitted") {
     throw new TypeError(`LeaveRequest must be submitted before ${action}`);
   }
+}
+
+function guardedError(message, safeErrorCode, status = 400) {
+  const error = new TypeError(message);
+  error.safe_error_code = safeErrorCode;
+  error.status = status;
+  return error;
+}
+
+async function resolveLeavePolicy(policyResolver, context, request) {
+  if (typeof policyResolver !== "function") return null;
+  return (await policyResolver({
+    tenant_id: context.tenant_id,
+    actor_id: context.actor_id,
+    request,
+    policy_id: request.policy_id,
+    leave_type: request.leave_type,
+    employee_id: request.employee_id,
+  })) ?? null;
+}
+
+function approverIdsForGuard(existing, ref, context) {
+  return new Set(
+    [existing.employee_id, ...(Array.isArray(ref.applicant_actor_ids) ? ref.applicant_actor_ids : [])]
+      .map((value) => (typeof value === "string" ? value.trim() : ""))
+      .filter(Boolean),
+  );
 }
 
 async function appendAudit(audit, context, event) {
@@ -189,87 +219,154 @@ export function createSqlLeaveRequestStore({ store } = {}) {
   });
 }
 
-export function createLeaveRequestService({ store = createInMemoryLeaveRequestStore(), balanceLedger, audit } = {}) {
+export function createLeaveRequestService({
+  store = createInMemoryLeaveRequestStore(),
+  balanceLedger,
+  audit,
+  policyResolver,
+  transactionStore,
+  durableService,
+  failureInjector = () => undefined,
+} = {}) {
+  function withPorts(callback) {
+    if (!transactionStore) return callback({ requestStore: store, ledger: balanceLedger, auditStore: audit });
+    return transactionStore.transaction((tx) => callback({
+      requestStore: createSqlLeaveRequestStore({ store: tx }),
+      ledger: createSqlLeaveBalanceLedger({ store: tx }),
+      auditStore: createSqlHrxAuditEventStore({ store: tx }),
+    }));
+  }
+
   return Object.freeze({
     async submit(context, input = {}) {
       requireContext(context);
-      const request = store.create({ ...input, tenant_id: context.tenant_id, state: "submitted" });
-      await appendAudit(audit, context, {
-        action: "hrx.leave.submit",
-        object_id: request.request_id,
-        decision: "approval_required",
-        reason: "leave_request_submitted",
-        metadata: { employee_id: request.employee_id, policy_id: request.policy_id },
+      if (durableService && Number.isInteger(input.requested_minutes)) {
+        return (await durableService.submit(context, input)).leave_request;
+      }
+      return withPorts(async ({ requestStore, auditStore }) => {
+        const request = requestStore.create({ ...input, tenant_id: context.tenant_id, state: "submitted" });
+        await failureInjector("legacy.submit.after_request", { request_id: request.request_id });
+        await appendAudit(auditStore, context, {
+          action: "hrx.leave.submit",
+          object_id: request.request_id,
+          decision: "approval_required",
+          reason: "leave_request_submitted",
+          metadata: { employee_id: request.employee_id, policy_id: request.policy_id },
+        });
+        return request;
       });
-      return request;
     },
 
     async approve(context, ref = {}) {
       requireContext(context);
-      const existing = store.get({ tenant_id: context.tenant_id, request_id: ref.request_id });
-      if (!existing) throw new Error(`Leave request not found: ${ref.request_id}`);
-      requireSubmitted(existing, "approve");
-      const request = store.update(
-        { tenant_id: context.tenant_id, request_id: ref.request_id },
-        {
-          state: "approved",
-          approver_id: ref.approver_id ?? context.actor_id,
-          decision_reason: ref.decision_reason ?? null,
-        },
-      );
-      balanceLedger?.append?.({
-        tenant_id: request.tenant_id,
-        entry_id: ref.ledger_entry_id ?? `leave_used_${request.request_id}`,
-        employee_id: request.employee_id,
-        policy_id: request.policy_id,
-        entry_type: "used",
-        amount: request.amount,
-        occurred_on: request.decided_at.slice(0, 10),
-        source_ref: request.source_ref,
+      const current = store.get({ tenant_id: context.tenant_id, request_id: ref.request_id });
+      if (durableService && Number.isInteger(current?.requested_minutes)) {
+        return (await durableService.approve(context, ref)).leave_request;
+      }
+      return withPorts(async ({ requestStore, ledger, auditStore }) => {
+        const existing = requestStore.get({ tenant_id: context.tenant_id, request_id: ref.request_id });
+        if (!existing) throw new Error(`Leave request not found: ${ref.request_id}`);
+        requireSubmitted(existing, "approve");
+        const approver_id = ref.approver_id ?? context.actor_id;
+        if (approverIdsForGuard(existing, ref, context).has(approver_id)) {
+          throw guardedError("Leave request cannot be approved by its applicant", "HRX_LEAVE_SELF_APPROVAL_FORBIDDEN", 403);
+        }
+        if (ledger && typeof ledger.balance === "function") {
+          const balance = ledger.balance({
+            tenant_id: context.tenant_id,
+            employee_id: existing.employee_id,
+            policy_id: existing.policy_id,
+          });
+          const policy = await resolveLeavePolicy(policyResolver, context, existing);
+          const usage = policy
+            ? evaluateLeaveUsage(policy, balance.available_balance, existing.amount)
+            : Object.freeze({
+                allowed: balance.available_balance >= existing.amount,
+                available_after: balance.available_balance - existing.amount,
+                reason: balance.available_balance >= existing.amount ? "within_balance" : "negative_balance_not_allowed",
+              });
+          if (!usage.allowed) {
+            throw guardedError("Leave request amount exceeds available leave balance", "HRX_LEAVE_BALANCE_INSUFFICIENT", 409);
+          }
+        }
+        const request = requestStore.update(
+          { tenant_id: context.tenant_id, request_id: ref.request_id },
+          {
+            state: "approved",
+            approver_id,
+            decision_reason: ref.decision_reason ?? null,
+          },
+        );
+        await failureInjector("legacy.approve.after_state", { request_id: request.request_id });
+        ledger?.append?.({
+          tenant_id: request.tenant_id,
+          entry_id: ref.ledger_entry_id ?? `leave_used_${request.request_id}`,
+          employee_id: request.employee_id,
+          policy_id: request.policy_id,
+          entry_type: "used",
+          amount: request.amount,
+          occurred_on: request.decided_at.slice(0, 10),
+          source_ref: request.source_ref,
+        });
+        await failureInjector("legacy.approve.after_ledger", { request_id: request.request_id });
+        await appendAudit(auditStore, context, {
+          action: "hrx.leave.approve",
+          object_id: request.request_id,
+          reason: "leave_request_approved",
+          metadata: { employee_id: request.employee_id, policy_id: request.policy_id },
+        });
+        return request;
       });
-      await appendAudit(audit, context, {
-        action: "hrx.leave.approve",
-        object_id: request.request_id,
-        reason: "leave_request_approved",
-        metadata: { employee_id: request.employee_id, policy_id: request.policy_id },
-      });
-      return request;
     },
 
     async reject(context, ref = {}) {
       requireContext(context);
-      const existing = store.get({ tenant_id: context.tenant_id, request_id: ref.request_id });
-      if (!existing) throw new Error(`Leave request not found: ${ref.request_id}`);
-      requireSubmitted(existing, "reject");
-      const request = store.update(
-        { tenant_id: context.tenant_id, request_id: ref.request_id },
-        { state: "rejected", decision_reason: ref.decision_reason ?? "rejected" },
-      );
-      await appendAudit(audit, context, {
-        action: "hrx.leave.reject",
-        object_id: request.request_id,
-        reason: "leave_request_rejected",
-        metadata: { employee_id: request.employee_id, policy_id: request.policy_id },
+      const current = store.get({ tenant_id: context.tenant_id, request_id: ref.request_id });
+      if (durableService && Number.isInteger(current?.requested_minutes)) {
+        return (await durableService.closeSubmitted(context, { ...ref, state: "rejected" })).leave_request;
+      }
+      return withPorts(async ({ requestStore, auditStore }) => {
+        const existing = requestStore.get({ tenant_id: context.tenant_id, request_id: ref.request_id });
+        if (!existing) throw new Error(`Leave request not found: ${ref.request_id}`);
+        requireSubmitted(existing, "reject");
+        const request = requestStore.update(
+          { tenant_id: context.tenant_id, request_id: ref.request_id },
+          { state: "rejected", decision_reason: ref.decision_reason ?? "rejected" },
+        );
+        await failureInjector("legacy.reject.after_state", { request_id: request.request_id });
+        await appendAudit(auditStore, context, {
+          action: "hrx.leave.reject",
+          object_id: request.request_id,
+          reason: "leave_request_rejected",
+          metadata: { employee_id: request.employee_id, policy_id: request.policy_id },
+        });
+        return request;
       });
-      return request;
     },
 
     async cancel(context, ref = {}) {
       requireContext(context);
-      const existing = store.get({ tenant_id: context.tenant_id, request_id: ref.request_id });
-      if (!existing) throw new Error(`Leave request not found: ${ref.request_id}`);
-      requireSubmitted(existing, "cancel");
-      const request = store.update(
-        { tenant_id: context.tenant_id, request_id: ref.request_id },
-        { state: "cancelled", decision_reason: ref.decision_reason ?? "cancelled" },
-      );
-      await appendAudit(audit, context, {
-        action: "hrx.leave.cancel",
-        object_id: request.request_id,
-        reason: "leave_request_cancelled",
-        metadata: { employee_id: request.employee_id, policy_id: request.policy_id },
+      const current = store.get({ tenant_id: context.tenant_id, request_id: ref.request_id });
+      if (durableService && Number.isInteger(current?.requested_minutes)) {
+        return (await durableService.closeSubmitted(context, { ...ref, state: "cancelled" })).leave_request;
+      }
+      return withPorts(async ({ requestStore, auditStore }) => {
+        const existing = requestStore.get({ tenant_id: context.tenant_id, request_id: ref.request_id });
+        if (!existing) throw new Error(`Leave request not found: ${ref.request_id}`);
+        requireSubmitted(existing, "cancel");
+        const request = requestStore.update(
+          { tenant_id: context.tenant_id, request_id: ref.request_id },
+          { state: "cancelled", decision_reason: ref.decision_reason ?? "cancelled" },
+        );
+        await failureInjector("legacy.cancel.after_state", { request_id: request.request_id });
+        await appendAudit(auditStore, context, {
+          action: "hrx.leave.cancel",
+          object_id: request.request_id,
+          reason: "leave_request_cancelled",
+          metadata: { employee_id: request.employee_id, policy_id: request.policy_id },
+        });
+        return request;
       });
-      return request;
     },
   });
 }

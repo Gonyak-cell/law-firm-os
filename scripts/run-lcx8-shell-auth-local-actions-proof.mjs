@@ -69,7 +69,7 @@ const rows = [
     action: "click",
     selector: "[data-workspace-menu-trigger]",
     expectSelector: "[data-sidebar-utility-panel]",
-    expectedText: /Home 작업공간/,
+    expectedText: /워크스페이스/,
     screenshot: `${SCREENSHOT_DIR}/lcx8-action-0034-workspace-menu-proof.png`,
     classification: "ui_state_only"
   },
@@ -97,9 +97,9 @@ const rows = [
     id: "LCX8-ACTION-0112",
     url: `${WEB}/?view=clients&ctx=allow`,
     action: "click",
-    selector: "[data-sidebar-utility='Client 설정']",
+    selector: "[data-sidebar-utility='설정']",
     expectSelector: "[data-sidebar-utility-panel]",
-    expectedText: /Client 설정/,
+    expectedText: /설정/,
     screenshot: `${SCREENSHOT_DIR}/lcx8-action-0112-client-settings-proof.png`,
     classification: "ui_state_only"
   },

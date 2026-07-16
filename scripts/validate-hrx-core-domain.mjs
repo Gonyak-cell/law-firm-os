@@ -6,7 +6,7 @@ import { createHrxEmployeeUserLinksRoute } from "../apps/api/src/routes/hrx/empl
 import { createInMemoryHrxRepository } from "../packages/hrx/src/repository.js";
 import { createHrxM365DocumentSourceAdapter } from "../packages/integrations-core/src/hrx-m365-doc-source.js";
 import { createHrxAssignment } from "../packages/hrx/src/assignment.js";
-import { createCompensationRecordMetadata } from "../packages/hrx/src/compensation.js";
+import { createCompensationRecordMetadata, encryptCompensationAmount, isCompensationAmountRefEncrypted } from "../packages/hrx/src/compensation.js";
 import { createEmploymentContract, transitionEmploymentContract } from "../packages/hrx/src/contracts.js";
 import { createHrxDocumentSourceVerification } from "../packages/hrx/src/documents/source-adapter.js";
 import { canMutateHrxObjectUnderLegalHold, createHrxLegalHold } from "../packages/hrx/src/legal-hold.js";
@@ -19,6 +19,13 @@ import { canPurgeHrxRecord, createHrxRetentionPolicy } from "../packages/hrx/src
 
 const root = process.cwd();
 const errors = [];
+const compensationValidatorRef = encryptCompensationAmount({
+  tenant_id: "tenant-a",
+  compensation_id: "comp-validator",
+  employee_id: "emp-001",
+  amount_minor: 12345678,
+  currency_ref: "Currency:KRW",
+});
 
 function assert(condition, message) {
   if (!condition) errors.push(message);
@@ -247,9 +254,11 @@ try {
     tenant_id: "tenant-a",
     compensation_id: "comp-validator",
     employee_id: "emp-001",
-    encrypted_amount_ref: "vault://comp-validator",
+    encrypted_amount_ref: compensationValidatorRef,
     source_ref: "hris://comp-validator",
     effective_from: "2026-01-01",
+    employment_contract_id: "contract-validator",
+    contract_document_ref: "dms://contract-validator",
     amount: 100,
   });
   errors.push("compensation metadata must reject raw amounts");
@@ -260,11 +269,15 @@ const compensation = createCompensationRecordMetadata({
   tenant_id: "tenant-a",
   compensation_id: "comp-validator",
   employee_id: "emp-001",
-  encrypted_amount_ref: "vault://comp-validator",
+  encrypted_amount_ref: compensationValidatorRef,
   source_ref: "hris://comp-validator",
   effective_from: "2026-01-01",
+  employment_contract_id: "contract-validator",
+  contract_document_ref: "dms://contract-validator",
 });
 assert(compensation.raw_amount_included === false, "compensation metadata must store encrypted/masked refs only");
+assert(isCompensationAmountRefEncrypted(compensation.encrypted_amount_ref) === true, "compensation metadata must store a real encryption envelope");
+assert(compensation.contract_document_ref === "dms://contract-validator", "compensation metadata must preserve contract document linkage");
 
 try {
   createPayrollExportPreview({

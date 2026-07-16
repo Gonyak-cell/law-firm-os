@@ -1,0 +1,91 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.global_decisions_browser_proof.v0.1",
+  "generated_at": "2026-06-30T09:57:59.032Z",
+  "tuw_id": "LCX-FULL-17.06",
+  "verdict": "PASS",
+  "snapshot": {
+    "calendar": {
+      "surface": "calendar",
+      "conditional": "true",
+      "decision_required": true,
+      "audit_required": false,
+      "legacy_routes": "people#people-work-schedule-external",
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\n일정\n사건 일정\nPeople 외부일정\n부재 일정\n일정\n\n전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.\n\n결정 게이트\n사건 일정\nPeople 외부일정\n부재 일정\n사건 일정\n전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.\nMatter\nPeople 외부일정\n전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.\nPeople\n부재 일정\n전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.\nProfile\nPeople 외부일정\n결정 필요\n일정\n\n전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.\n\n소스\nPeople\n상태\n결정 필요\n연결\n1개\npeople#people-work-schedule-external\n조건부 전역화 항목입니다.\n전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-17-screenshots/calendar-people-external.png"
+    },
+    "finance": {
+      "surface": "finance",
+      "conditional": "true",
+      "decision_required": true,
+      "audit_required": false,
+      "legacy_routes": "profile#matters",
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\n청구·재무\n사건 청구\n비용 관리\n정산 내역\n지급 설정\n입금 계좌\n청구·재무\n\n재무 축을 만들 때 Matter 청구와 개인 비용/정산을 전역화합니다.\n\n결정 게이트\n사건 청구\n비용 관리\n정산 내역\n지급 설정\n입금 계좌\n사건 청구\n재무 축을 만들 때 Matter 청구와 개인 비용/정산을 전역화합니다.\nMatter\n비용 관리\n재무 축을 만들 때 Matter 청구와 개인 비용/정산을 전역화합니다.\nProfile\n정산 내역\n재무 축을 만들 때 Matter 청구와 개인 비용/정산을 전역화합니다.\nProfile\n지급 설정\n재무 축을 만들 때 Matter 청구와 개인 비용/정산을 전역화합니다.\nProfile\n입금 계좌\n재무 축을 만들 때 Matter 청구와 개인 비용/정산을 전역화합니다.\nProfile\n사건 청구\n결정 필요\n청구·재무\n\n재무 축을 만들 때 Matter 청구와 개인 비용/정산을 전역화합니다.\n\n소스\nMatter\n상태\n결정 필요\n연결\n1개\nprofile#matters\n조건부 전역화 항목입니다.\n재무 축을 만들 때 Matter 청구와 개인 비용/정산을 전역화합니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-17-screenshots/finance-matter-billing.png"
+    },
+    "dataImport": {
+      "surface": "data-import",
+      "conditional": "true",
+      "decision_required": true,
+      "audit_required": false,
+      "legacy_routes": "",
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\n데이터 가져오기\nClient 데이터 관리\nClient 데이터 가져오기\n사건 자료 가져오기\nPeople 출퇴근 엑셀 업로드\n데이터 가져오기\n\n공유 검증, 감사, 롤백 큐가 확정될 때 전역 가져오기 허브로 승격합니다.\n\n결정 게이트\nClient 데이터 관리\nClient 데이터 가져오기\n사건 자료 가져오기\nPeople 출퇴근 엑셀 업로드\nClient 데이터 관리\n공유 검증, 감사, 롤백 큐가 확정될 때 전역 가져오기 허브로 승격합니다.\nClient\nClient 데이터 가져오기\n공유 검증, 감사, 롤백 큐가 확정될 때 전역 가져오기 허브로 승격합니다.\nClient\n사건 자료 가져오기\n공유 검증, 감사, 롤백 큐가 확정될 때 전역 가져오기 허브로 승격합니다.\nMatter\nPeople 출퇴근 엑셀 업로드\n공유 검증, 감사, 롤백 큐가 확정될 때 전역 가져오기 허브로 승격합니다.\nPeople\nClient 데이터 가져오기\n결정 필요\n데이터 가져오기\n\n공유 검증, 감사, 롤백 큐가 확정될 때 전역 가져오기 허브로 승격합니다.\n\n소스\nClient\n상태\n결정 필요\n연결\n직접\n조건부 전역화 항목입니다.\n공유 검증, 감사, 롤백 큐가 확정될 때 전역 가져오기 허브로 승격합니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-17-screenshots/data-import-client.png"
+    },
+    "policies": {
+      "surface": "policies",
+      "conditional": "true",
+      "decision_required": true,
+      "audit_required": false,
+      "legacy_routes": "people#people-documents",
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\n문서·방침\n회사방침\n근로계약서\n연차휴가 사용 촉진 문서\n문서·방침\n\n문서 원장은 Vault에 두고 People에는 HR 문서 바로가기를 남깁니다.\n\n결정 게이트\n회사방침\n근로계약서\n연차휴가 사용 촉진 문서\n회사방침\n문서 원장은 Vault에 두고 People에는 HR 문서 바로가기를 남깁니다.\nVault\n근로계약서\n문서 원장은 Vault에 두고 People에는 HR 문서 바로가기를 남깁니다.\nVault\n연차휴가 사용 촉진 문서\n문서 원장은 Vault에 두고 People에는 HR 문서 바로가기를 남깁니다.\nVault\n회사방침\n결정 필요\n문서·방침\n\n문서 원장은 Vault에 두고 People에는 HR 문서 바로가기를 남깁니다.\n\n소스\nVault\n상태\n결정 필요\n연결\n1개\npeople#people-documents\n조건부 전역화 항목입니다.\n문서 원장은 Vault에 두고 People에는 HR 문서 바로가기를 남깁니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-17-screenshots/policies-documents.png"
+    },
+    "settingsAdvanced": {
+      "surface": "settings",
+      "conditional": "false",
+      "decision_required": false,
+      "audit_required": true,
+      "legacy_routes": "people#people-company-advanced",
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\n설정\n회사 설정\n권한\n보안\n연동\n결제\n지원\n고급 옵션\n태그 관리\n설정\n\n회사 설정, 권한, 보안, 연동, 결제, 지원, 고급 옵션, 태그 관리를 전역 설정으로 이동합니다.\n\n전역 메뉴\n회사 설정\n권한\n보안\n연동\n결제\n지원\n고급 옵션\n태그 관리\n회사 설정\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n권한\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n보안\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n연동\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n결제\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n지원\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n고급 옵션\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n태그 관리\n전역 메뉴에서 직접 여는 항목입니다.\nWorkspace\n고급 옵션\n감사 필요\n설정\n\npeople 메뉴에서 이 전역 항목으로 연결합니다.\n\n소스\nPeople\n상태\n감사 필요\n연결\n1개\npeople#people-company-advanced\n감사 대상 작업입니다.\n강제 승인/거절 또는 고급 옵션은 권한과 사유 기록이 필요합니다.\n일정\n조건부\n청구·재무\n조건부\n데이터 가져오기\n조건부\n문서·방침\n조건부",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-17-screenshots/settings-advanced.png"
+    },
+    "page_errors": []
+  },
+  "checks": [
+    {
+      "id": "calendar-decision-visible",
+      "passed": true
+    },
+    {
+      "id": "finance-decision-visible",
+      "passed": true
+    },
+    {
+      "id": "data-import-decision-visible",
+      "passed": true
+    },
+    {
+      "id": "policies-decision-visible",
+      "passed": true
+    },
+    {
+      "id": "settings-audit-required-visible",
+      "passed": true
+    },
+    {
+      "id": "no-page-errors",
+      "passed": true
+    },
+    {
+      "id": "no-forbidden-text",
+      "passed": true
+    }
+  ],
+  "boundary": {
+    "browser_observation_only": true,
+    "permanent_global_promotion_claim": false,
+    "go_live_approved": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

@@ -1,0 +1,226 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.packet.v0.1",
+  "goal_id": "cti-s1-foundation-execute",
+  "status": "blocked_s1_g_authenticated_probe_requires_s2_or_approved_probe_principal",
+  "recorded_at": "2026-07-06T03:56:44Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "source_plan_section": "Stage 1 S1 FOUNDATION",
+  "unblock_packet": "docs/launch/cti-s1-foundation-unblock-packet-2026-07-06.md",
+  "approval_signature_refs": [
+    "I5-CTI-S1-FOUNDATION-UNBLOCK-PACKET-OWNER-APPROVAL-2026-07-06",
+    "I6-CTI-S1-SECRETSMANAGER-VPCE-IAM-OWNER-APPROVAL-2026-07-06"
+  ],
+  "i5_approval_status": "approved",
+  "i6_approval_status": "approved",
+  "closeout_verdict": "BLOCKED_S1_G_AUTHENTICATED_PROBE_REQUIRES_S2_OR_APPROVED_PROBE_PRINCIPAL",
+  "stop_condition": {
+    "triggered": true,
+    "trigger": "authenticated_production_marker_and_audit_probe_unavailable_before_s2",
+    "reason": "I6 unblocked and S1 infrastructure/runtime configuration is applied, but S2 authentication is explicitly out of scope. Operational profile disables synthetic login, and secret value fetch or debug/probe endpoint creation is not approved. Therefore S1-G authenticated production marker/audit write/readback cannot be completed in this goal.",
+    "followup_s2_s3_allowed": false,
+    "migration_or_restore_allowed": false
+  },
+  "s0_inputs": {
+    "s0_t01_efs_count": 0,
+    "s0_t01_store_path_env_count": 0,
+    "s0_t03_cold_start_persistence_verdict": "marker_lost_after_cold_start",
+    "s0_t04_snapshot_sha256": "c98b45752806109a644b82fbb958912821bfae5aaab58aaff36b138908b209ea",
+    "s0_t04_receipt_sha256": "38664f2769a614e50fb1ef04a330817b33d49bf768a2ab8770446d6702c1a26d"
+  },
+  "local_foundation_evidence": {
+    "store_path_manifest_core_store_paths": 13,
+    "store_path_manifest_total_entries_including_audit": 14,
+    "lawos_audit_store_path_manifested": true,
+    "lawos_audit_store_path_preflight_passed": true,
+    "durable_security_audit_restart_test_passed": true,
+    "runtime_session_secret_secret_id_bootstrap_test_passed": true,
+    "fixed_session_secret_cold_start_test_passed": true,
+    "matter_reseed_guard_test_passed": true,
+    "backup_restore_v0_2_isolated_rehearsal_test_passed": true,
+    "secret_value_fetched": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "aws_resource_evidence": {
+    "lambda_function_name": "matter-lawos-api-prod",
+    "lambda_runtime": "nodejs22.x",
+    "lambda_handler": "apps/api/src/lambda.handler",
+    "lambda_last_modified": "2026-07-06T03:45:32.000+0000",
+    "lambda_revision_id": "961f65d5-7a7c-4c56-997a-ec304b035b06",
+    "lambda_code_sha256": "ESTSdyTDZuGldldTzguf67hhvD9tmlYmnhqPvuD2cF4=",
+    "deployment_ref": "83eac1073522066df312d0e21618a7b7f954f777-dirty-cti-s1-20260706",
+    "deployment_zip_sha256": "1124d27724c366e1a5765753ce0b9febb861bc3f6d9a56269e1a8fbee0f6705e",
+    "efs": {
+      "file_system_id": "fs-01e9f68b22b23e9f3",
+      "name": "matter-lawos-prod-cti-s1-efs",
+      "lifecycle_state": "available",
+      "encrypted": true,
+      "backup_policy": "ENABLED",
+      "access_point_id": "fsap-0be58113c42e109fe",
+      "access_point_arn": "arn:aws:elasticfilesystem:ap-northeast-2:770880870480:access-point/fsap-0be58113c42e109fe",
+      "access_point_name": "matter-lawos-prod-runtime-ap",
+      "root_directory": "/lawos-runtime",
+      "posix_uid": 1000,
+      "posix_gid": 1000,
+      "permissions": "0750",
+      "mount_path": "/mnt/lawos",
+      "mount_targets": [
+        {
+          "mount_target_id": "fsmt-0cfc394447fd63884",
+          "subnet_id": "subnet-0a718a221e621715f",
+          "lifecycle_state": "available",
+          "security_groups": [
+            "sg-027ca875653ea68ff"
+          ]
+        },
+        {
+          "mount_target_id": "fsmt-08edb5969d2925555",
+          "subnet_id": "subnet-0af415c198603de77",
+          "lifecycle_state": "available",
+          "security_groups": [
+            "sg-027ca875653ea68ff"
+          ]
+        }
+      ]
+    },
+    "network": {
+      "vpc_id": "vpc-038f70d924a774bea",
+      "subnet_ids": [
+        "subnet-0a718a221e621715f",
+        "subnet-0af415c198603de77"
+      ],
+      "lambda_sg": "sg-0f555cc1f1708fc22",
+      "efs_sg": "sg-027ca875653ea68ff",
+      "secretsmanager_vpce_sg": "sg-09686a354faa5f019",
+      "secretsmanager_vpce_id": "vpce-0e91b4dc91f85e4a5",
+      "secretsmanager_vpce_state": "available",
+      "secretsmanager_private_dns_enabled": true,
+      "sg_rules_summary": [
+        "lambda sg has no inbound",
+        "lambda sg egress tcp/443 to secretsmanager vpce sg only",
+        "lambda sg egress tcp/2049 to efs sg only",
+        "efs sg inbound tcp/2049 from lambda sg only",
+        "secretsmanager vpce sg inbound tcp/443 from lambda sg only",
+        "efs sg and secretsmanager vpce sg have no egress rules recorded"
+      ]
+    },
+    "lambda_environment_keys_observed": [
+      "LAWOS_DMS_OBJECT_STORE_PATH",
+      "LAWOS_DEPLOYMENT_COMMIT",
+      "LAWOS_ENTERPRISE_READINESS_STORE_PATH",
+      "LAWOS_AUDIT_STORE_PATH",
+      "LAWOS_RUNTIME_PROFILE",
+      "LAWOS_HRX_STORE_PATH",
+      "LAWOS_CRM_MASTER_DATA_STORE_PATH",
+      "LAWOS_CRM_STORE_PATH",
+      "LAWOS_API_SESSION_SECRET_SECRET_ID",
+      "LAWOS_INTAKE_STORE_PATH",
+      "LAWOS_UI_READINESS_STORE_PATH",
+      "MATTER_VAULT_BACKUP_ROOT",
+      "LAWOS_VAULT_BRIDGE_TOKEN",
+      "LAWOS_AI_STORE_PATH",
+      "LAWOS_DEPLOYMENT_MODE",
+      "LAWOS_ANALYTICS_STORE_PATH",
+      "LAWOS_DMS_STORE_PATH",
+      "LAWOS_MATTER_STORE_PATH",
+      "LAWOS_PORTAL_STORE_PATH",
+      "LAWOS_FINANCE_STORE_PATH",
+      "LAWOS_MASTER_DATA_STORE_PATH"
+    ],
+    "lambda_role_attached_policies": [
+      "AWSLambdaVPCAccessExecutionRole",
+      "AWSLambdaBasicExecutionRole"
+    ],
+    "lambda_role_inline_policies": [
+      "matter-lawos-prod-cti-s1-efs-client",
+      "matter-lawos-prod-cti-s1-session-secret-read"
+    ]
+  },
+  "production_runtime_probe": {
+    "health_status": 200,
+    "health_service": "@law-firm-os/api",
+    "health_runtime_profile": "operational",
+    "health_synthetic_login_enabled": false,
+    "synthetic_login_probe_status": 403,
+    "synthetic_login_probe_safe_error_codes": [
+      "AUTH_SYNTHETIC_LOGIN_DISABLED"
+    ],
+    "audit_without_session_status": 401,
+    "audit_without_session_safe_error_codes": [
+      "AUTH_SESSION_REQUIRED"
+    ],
+    "evidence_interpretation": "Lambda reached operational health after VPC/EFS mount and LAWOS_API_SESSION_SECRET_SECRET_ID bootstrap. Authenticated marker/audit proof remains unavailable because S2 login/provider is explicitly out of scope and secret value fetch is prohibited.",
+    "secret_values_recorded": false
+  },
+  "production_mutation_boundary": {
+    "production_infrastructure_mutation_executed": true,
+    "efs_created": true,
+    "efs_access_point_created": true,
+    "efs_mount_target_created": true,
+    "security_groups_created": true,
+    "secretsmanager_vpc_endpoint_created": true,
+    "lambda_role_mutated": true,
+    "lambda_code_deployed": true,
+    "lambda_configuration_mutated": true,
+    "store_path_env_applied": true,
+    "lawos_audit_store_path_applied": true,
+    "lawos_api_session_secret_secret_id_applied": true,
+    "secret_value_fetched": false,
+    "authenticated_production_marker_probe_executed": false,
+    "production_store_migration_executed": false,
+    "restore_execution_performed": false,
+    "password_issuance_performed": false,
+    "cutover_executed": false,
+    "s2_authentication_implemented": false,
+    "s3_tenant_migration_executed": false,
+    "oidc_implemented": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "s1_task_status": {
+    "S1-T01a": "PASS_EFS_SG_AP_MOUNT_TARGETS_CREATED_AVAILABLE",
+    "S1-T01b": "PASS_LAMBDA_VPC_EFS_MOUNT_AND_STORE_PATH_ENV_APPLIED",
+    "S1-T02": "PASS_LOCAL_DURABLE_AUDIT_MANIFEST_PREFLIGHT_BLOCKED_LIVE_AUTHENTICATED_AUDIT_WRITE_BEFORE_S2",
+    "S1-T03": "PASS_SESSION_SECRET_SECRET_ID_BOOTSTRAP_HEALTH_200_SECRET_VALUE_NOT_FETCHED",
+    "S1-T04": "PASS_LOCAL_RESEED_GUARD_BLOCKED_LIVE_READBACK_HASH_BEFORE_S2",
+    "S1-T05": "PASS_LOCAL_BACKUP_RESTORE_V0_2_ISOLATED_REHEARSAL_PRODUCTION_RESTORE_NOT_RUN"
+  },
+  "s1_g_status": {
+    "cold_start_marker_survives": "blocked_authenticated_marker_probe_requires_s2_or_approved_probe_principal",
+    "audit_event_survives": "blocked_authenticated_audit_probe_requires_s2_or_approved_probe_principal",
+    "fixed_session_secret": "PASS_PRODUCTION_HEALTH_200_AFTER_SECRET_ID_BOOTSTRAP_AND_LOCAL_COLD_START_TEST",
+    "restore_rehearsal_passed": "PASS_LOCAL_ISOLATED_V0_2_REHEARSAL_PRODUCTION_RESTORE_NOT_RUN"
+  },
+  "s0_to_s1_readback_comparison": {
+    "s0_t04_snapshot_sha256": "c98b45752806109a644b82fbb958912821bfae5aaab58aaff36b138908b209ea",
+    "post_s1_readback_sha256": null,
+    "comparison_status": "blocked_authenticated_readback_requires_s2_or_approved_probe_principal"
+  },
+  "artifact_sha256": {
+    "apps_api_src_lambda_js": "5bd5ec52e455c83e863b3ec5c1110c6865c14f6bee83f880d2f53236a9be214f",
+    "apps_api_src_server_js": "de044fefdceb8bcfec584df0de96ac4e9f3dd9ef574d949b86cfcf4c7cf3b294",
+    "apps_api_src_session_auth_js": "9d69892ec2e8ee665da18efa14532c0d2d37f061299a86fffa189144b462ab7a",
+    "apps_api_src_store_path_manifest_js": "846a62312c3fbe02a5d6574747eab46ea2d9a5a49fa214bd11585b0393666bdc",
+    "scripts_drill_matter_vault_backup_restore_mjs": "f5246dd23403473cc4e2434093d8f8d9b2fe3e71ee8dfa530d6e4484d6c2757f",
+    "docs_runbooks_store_env_catalog_md": "db43d88a6369afdb87b650a912c4a689a71ae2b37ff6708a77ab2ef91c6d1cd0",
+    "unblock_packet_md": "de5e9dd79fda896bb7785a1729c37fa31e8afbae97b3f7a19551f675667fce9e",
+    "unblock_packet_closeout_json": "7a276f257edfe02e4d0ec42c442d919e46c0cc8896c73830d52ad84a7216da7b"
+  },
+  "non_claims": [
+    "s1_g_authenticated_marker_audit_complete",
+    "production_store_migration",
+    "restore_execution",
+    "secret_value_fetch_or_disclosure",
+    "s2_authentication_implemented",
+    "s3_tenant_migration",
+    "s4_account_permission_injection",
+    "desktop_v0_1_10",
+    "cutover",
+    "password_issuance",
+    "oidc",
+    "db_conversion",
+    "production_ready",
+    "go_live"
+  ]
+}

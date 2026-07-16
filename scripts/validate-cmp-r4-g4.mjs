@@ -12,6 +12,7 @@ const REQUIRED_FILES = [
   "packages/matter/src/numbering-service.js",
   "packages/matter/src/opening-service.js",
   "packages/matter/src/staffing-service.js",
+  "packages/matter/src/matter-party-service.js",
   "packages/matter/src/role-policy.js",
   "packages/matter/src/task-service.js",
   "packages/matter/src/calendar-service.js",
@@ -90,6 +91,12 @@ requirePatterns("packages/matter/src/staffing-service.js", [
   /Offboarded employee cannot be staffed/,
   /matter:team:write/,
 ]);
+requirePatterns("packages/matter/src/matter-party-service.js", [
+  /registerMatterParty/,
+  /listMatterParties/,
+  /adverse_party/,
+  /raw_contact_values_included: false/,
+]);
 requirePatterns("packages/matter/src/audit.js", [
   /createMatterAuditEvent/,
   /event_hash/,
@@ -106,6 +113,8 @@ requirePatterns("apps/api/src/matter-runtime-context.js", [
   /production_ready_claim: false/,
   /handleMatterOpening/,
   /handleMatterTeamMemberCreate/,
+  /handleMatterPartyRegister/,
+  /GET \/api\/matters\/:matter_id\/parties/,
   /document_count/,
   /team_member_count/,
   /wip_status/,
@@ -115,16 +124,19 @@ requirePatterns("apps/api/src/matter-runtime-context.js", [
 requirePatterns("apps/api/test/cmp-r4-g4-matter.test.js", [
   /opening write persists, audits, and replays idempotently/,
   /team write requires employee-backed staffing/,
+  /adverse party registration is idempotent and visible on detail/,
   /permission gate fails closed/,
 ]);
 requirePatterns("apps/web/src/components/MattersSurface.jsx", [
   /data-cmp-g4-live-matters="true"/,
   /fetchMatterRecords/,
-  /"Docs"/,
-  /"Team"/,
-  /"WIP"/,
-  /"Risk"/,
-  /production-ready claim remains gated/i,
+  /label="문서"/,
+  /label="팀"/,
+  /청구 준비 상태/,
+  /label="위험도"/,
+  /data-matter-adverse-party-form="true"/,
+  /registerMatterParty/,
+  /production_ready_claim === true/,
 ]);
 requirePatterns("apps/web/src/components/MatterOpeningWizard.jsx", [
   /data-cmp-g4-opening-wizard="true"/,

@@ -1,0 +1,43 @@
+{
+  "schema_version": "law-firm-os.qa-008-screenshot-manifest.v1",
+  "generated_at": "2026-07-16T02:50:00.000Z",
+  "final_source_revision": "39ed9571b0e841e1a6480e6875fe7b6658f83465",
+  "renderer_sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+  "sets": [
+    {
+      "name": "qa-004-browser-role-and-viewport",
+      "glob": "workbook/forest-v0.1.17-integration-evidence/QA-004/**/*.png",
+      "hash_ledger": "workbook/forest-v0.1.17-integration-evidence/QA-004/hashes.sha256",
+      "image_count": 39,
+      "source_revision": "e19a17dd48edf131cada90cf0b2c9b6891002d8d",
+      "apps_web_tree_equals_final": true,
+      "roles": 6,
+      "viewport_widths": [1512, 1280, 1024, 820, 720]
+    },
+    {
+      "name": "qa-005-formal-macos",
+      "glob": "workbook/forest-v0.1.17-integration-evidence/QA-005/*.png",
+      "hash_ledger": "workbook/forest-v0.1.17-integration-evidence/QA-005/hashes.sha256",
+      "image_count": 5,
+      "source_revision": "39ed9571b0e841e1a6480e6875fe7b6658f83465"
+    },
+    {
+      "name": "qa-006-formal-windows-native",
+      "glob": "workbook/forest-v0.1.17-integration-evidence/QA-006/*.png",
+      "hash_ledger": "workbook/forest-v0.1.17-integration-evidence/QA-006/hashes.sha256",
+      "image_count": 4,
+      "source_revision": "39ed9571b0e841e1a6480e6875fe7b6658f83465",
+      "run_id": 29466863451
+    }
+  ],
+  "total_images": 48,
+  "manual_visual_qa": {
+    "final_macos_images_inspected": 5,
+    "final_windows_images_inspected": 4,
+    "broken_image_count": 0,
+    "overflow_count": 0,
+    "legacy_ui_regression_count": 0,
+    "stale_window_count": 0
+  },
+  "verdict": "PASS"
+}

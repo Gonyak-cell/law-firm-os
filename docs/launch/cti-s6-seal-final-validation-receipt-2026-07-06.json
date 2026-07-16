@@ -1,0 +1,265 @@
+{
+  "schema_version": "law-firm-os.cti.s6-seal-final-validation.receipt.v0.1",
+  "goal_id": "cti-s6-seal-final-validation",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "recorded_at": "2026-07-06T00:00:00.000Z",
+  "approval_signature_refs": [
+    "I13-CTI-S6-SEAL-FINAL-VALIDATION-OWNER-APPROVAL-2026-07-06",
+    "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06"
+  ],
+  "preconditions": {
+    "approvals": [
+      {
+        "path": "docs/launch/cti-i13-owner-approval-receipt-2026-07-06.json",
+        "approval_signature_ref": "I13-CTI-S6-SEAL-FINAL-VALIDATION-OWNER-APPROVAL-2026-07-06",
+        "status": "PASS"
+      },
+      {
+        "path": "docs/launch/cti-i26-owner-approval-receipt-2026-07-06.json",
+        "approval_signature_ref": "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06",
+        "status": "PASS"
+      }
+    ],
+    "cut_g_pass": true,
+    "s5_g_pass": true,
+    "command_validator_pass": true,
+    "canonical_validator_fail_closed_before_s6_pass": true
+  },
+  "snapshot": {
+    "status": "PASS",
+    "snapshot_hash": "65c5017537cfecbca65ee616b5b4007fc18647e8703898204f93a9a7fe5eb807",
+    "readable_store_file_count": 16,
+    "parse_pass_count": 16,
+    "parse_fail_count": 0,
+    "store_counts": [
+      {
+        "key": "hrxStorePath",
+        "parse_status": "pass",
+        "record_count": 6,
+        "sha256": "2a674f615fba69a66406185b5b5d103b6fd0c01782f74183a53e8758b83c7dde"
+      },
+      {
+        "key": "masterDataStorePath",
+        "parse_status": "pass",
+        "record_count": 602,
+        "sha256": "f50692908d5b8f992b6858112ec9ef7a2b65fa0b80431e3aa8b8c98c4085edd8"
+      },
+      {
+        "key": "matterStorePath",
+        "parse_status": "pass",
+        "record_count": 1849,
+        "sha256": "9a13cfb11aab94c0c03e955e7c5d135a50a82960dea3fdac2a45c6462e0ca7db"
+      },
+      {
+        "key": "dmsStorePath",
+        "parse_status": "pass",
+        "record_count": 5,
+        "sha256": "9f5594b8b36c2a3e2da23138e20751f2056638ee81a3d03d8018a93fa2b26845"
+      },
+      {
+        "key": "crmStorePath",
+        "parse_status": "pass",
+        "record_count": 15,
+        "sha256": "c862f563a55fd336d2d8cf23f6d7645e974ec7732b0f814edd55b46bb616e0e4"
+      },
+      {
+        "key": "intakeStorePath",
+        "parse_status": "pass",
+        "record_count": 102,
+        "sha256": "d8a2e8c4a2a1d4a08312f62fc72f3fdbbf255cb6d79ec8089493516da4111b7f"
+      },
+      {
+        "key": "crmMasterDataStorePath",
+        "parse_status": "pass",
+        "record_count": 10,
+        "sha256": "87857019686e6bed10b21d00b2af9c007bb3064eadad6ab930a650bfa01a3043"
+      },
+      {
+        "key": "financeStorePath",
+        "parse_status": "pass",
+        "record_count": 153,
+        "sha256": "6c7ca0783233cf610750d3d81cd7c4980ec0ccefb0eea8fa7bc6aa0a1892cc43"
+      },
+      {
+        "key": "analyticsStorePath",
+        "parse_status": "pass",
+        "record_count": 152,
+        "sha256": "73946f67770ee3ad5d7d5bcaa24e8643cc3e6df6e71c7da236dd923b7804098d"
+      },
+      {
+        "key": "aiStorePath",
+        "parse_status": "pass",
+        "record_count": 3,
+        "sha256": "c47c63c3441af6e6bb169cc236587306b8e4c0e4d48b5299a71a5354b2cd1fcf"
+      },
+      {
+        "key": "portalStorePath",
+        "parse_status": "pass",
+        "record_count": 8,
+        "sha256": "886389cfb63dce93c220d641fe97050aa38c99164028a1725ee0679802018563"
+      },
+      {
+        "key": "uiReadinessStorePath",
+        "parse_status": "pass",
+        "record_count": 49,
+        "sha256": "cd8827cd51fa64ac440f2feeed1717c46b8fbb760a1fd3526b6352d7af9fcc95"
+      },
+      {
+        "key": "enterpriseReadinessStorePath",
+        "parse_status": "pass",
+        "record_count": 29,
+        "sha256": "1d2752c49a823ebec9c7edfae31cffd2b7e78c55a12f0163e94a95f2d334620e"
+      },
+      {
+        "key": "securityAuditStorePath",
+        "parse_status": "pass",
+        "record_count": 4,
+        "sha256": "85a1db58919a5cfddfa0991b7cf9ff2ddbcc6542bc71b5b7ac948b01c4d4fea7"
+      },
+      {
+        "key": "authCredentialStorePath",
+        "parse_status": "pass",
+        "record_count": 11,
+        "sha256": "87cf0811eac0985fe5b49b1c27a072644a8a56fd240dcb2878402cbb0482d466"
+      },
+      {
+        "key": "authPasswordResetStorePath",
+        "parse_status": "pass",
+        "record_count": 3,
+        "sha256": "224222112d0f94df6fa181ca5eca9e816fea6e331fc411f292f1fbd52d6e9085"
+      }
+    ]
+  },
+  "tasks": {
+    "S6-T01": {
+      "status": "BLOCKED",
+      "evidence": {
+        "status": "BLOCKED",
+        "proof_path": "docs/launch/cti-s6-surface-proof-2026-07-06.json",
+        "required_surface_count": 9,
+        "passed_surface_count": 0,
+        "missing_surfaces": [
+          "Matters",
+          "Vault",
+          "Clients",
+          "CRM",
+          "People",
+          "Finance",
+          "Analytics",
+          "Intake",
+          "Admin"
+        ],
+        "reason": "real_user_session_surface_proof_missing"
+      }
+    },
+    "S6-T02": {
+      "status": "PASS",
+      "evidence": {
+        "additive_validator_script": "scripts/validate-canonical-tenant-production-ready.mjs",
+        "package_script": "canonical-tenant:production-ready",
+        "existing_gate_weakened": false,
+        "fail_closed_until_s6_pass": true
+      }
+    },
+    "S6-T03": {
+      "status": "PASS",
+      "evidence": {
+        "status": "PASS",
+        "checked_file_count": 4,
+        "findings": [],
+        "plaintext_pii_credential_token_committed": false
+      }
+    },
+    "S6-T04": {
+      "status": "PASS",
+      "evidence": {
+        "backfill_manifest_mode": "append_only",
+        "retroactive_2026_07_01_entry_required_for_future_non_blocking_catalog": true,
+        "current_cti_final_validation_receipt_records_current_execution": true
+      }
+    },
+    "S6-T05": {
+      "status": "BLOCKED",
+      "evidence": {
+        "status": "BLOCKED",
+        "proof_path": "docs/launch/cti-s6-coldstart-smoke-2026-07-06.json",
+        "consecutive_pass_count": 0,
+        "required_consecutive_pass_count": 2,
+        "reason": "two_consecutive_coldstart_smokes_missing"
+      }
+    },
+    "S6-T06": {
+      "status": "BLOCKED",
+      "evidence": {
+        "real_client_data_used_transition_executed": false,
+        "existing_closed_receipts_modified": false,
+        "additive_transition_allowed_after_surface_and_coldstart_pass": true
+      }
+    }
+  },
+  "s6_g_validation": {
+    "pass": false,
+    "blocked_tasks": [
+      "S6-T01",
+      "S6-T05",
+      "S6-T06"
+    ],
+    "production_ready_claim_allowed": false,
+    "go_live_claim_allowed": false
+  },
+  "boundary": {
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "existing_safety_gate_weakened": false,
+    "plaintext_pii_committed": false,
+    "token_password_secret_value_committed": false
+  },
+  "commands": [
+    {
+      "command": "node scripts/validate-cti-cutover-execute.mjs",
+      "exit_code": 0,
+      "expected_failure": false,
+      "passed": true,
+      "stdout_hash": "sha256:52adce5fcd91568b38d27cd1e20d7d77f1039eee515208b4ed502ef3fddb2ee4",
+      "stderr_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": "PASS"
+    },
+    {
+      "command": "node scripts/validate-cti-s5-enrichment-execute.mjs",
+      "exit_code": 0,
+      "expected_failure": false,
+      "passed": true,
+      "stdout_hash": "sha256:fe987051e91ad138f9e825c0a5ddbaf01f4c8d3e93dd89697379bf1f3db67977",
+      "stderr_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": "PASS"
+    },
+    {
+      "command": "npm run runtime-spine:launch-crosswalk:validate",
+      "exit_code": 0,
+      "expected_failure": false,
+      "passed": true,
+      "stdout_hash": "sha256:2afc72f504bca493515b6ce34ba5737a447071f6f8c9cc76c9e4eb4a6f848c50",
+      "stderr_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": "PASS"
+    },
+    {
+      "command": "node scripts/validate-goal-closeout-protocol.mjs",
+      "exit_code": 0,
+      "expected_failure": false,
+      "passed": true,
+      "stdout_hash": "sha256:ca226eb65c22f38da02935798414114e76deadeb3147b14571fbe96bfd9c87a2",
+      "stderr_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": "PASS"
+    },
+    {
+      "command": "node scripts/validate-canonical-tenant-production-ready.mjs",
+      "exit_code": 1,
+      "expected_failure": true,
+      "passed": true,
+      "stdout_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_hash": "sha256:0420aa6b24cbb6e276f1016b5c9884f0ae24551e7c20a4c14217c5aa5ffbe9a4",
+      "summary": "NONZERO_EXIT"
+    }
+  ],
+  "status": "BLOCKED_S6_FINAL_VALIDATION_REQUIRES_SURFACE_AND_COLDSTART_PROOF"
+}

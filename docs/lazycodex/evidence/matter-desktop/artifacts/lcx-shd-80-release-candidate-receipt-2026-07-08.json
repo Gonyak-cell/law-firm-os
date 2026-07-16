@@ -1,0 +1,186 @@
+{
+  "schema_version": "law-firm-os.lcx-shd-80.desktop-packaged-renderer-release-candidate.v0.1",
+  "objective": "LCX-SHD-80 Desktop packaged renderer release candidate",
+  "status": "owner_release_receipt_ready",
+  "owner_confirmation": "waiting",
+  "source_commit": "9a6091dec",
+  "source_commit_subject": "feat(web): close sidebar home dashboard stage 7",
+  "release_boundary": {
+    "public_release": false,
+    "production_go_live": false,
+    "owner_approval": false,
+    "actual_launch_go_live_completed": false,
+    "app_store_distribution": false,
+    "microsoft_store_distribution": false,
+    "windows_authenticode_signing": false,
+    "developer_id_distribution_readiness": false
+  },
+  "artifacts": {
+    "desktop_web_renderer_receipt": "docs/lazycodex/evidence/matter-web/desktop-web-renderer-asset.md",
+    "macos_receipt": "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
+    "windows_receipt": "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md",
+    "owner_receipt": "docs/desktop/matter-desktop-lcx-shd-80-release-candidate-receipt-2026-07-08.md",
+    "packaged_renderer_smoke_json": "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-shd-80-packaged-renderer-smoke-2026-07-08.json",
+    "packaged_renderer_smoke_screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-shd-80-packaged-renderer-smoke-2026-07-08.png",
+    "macos_app_bundle": "apps/desktop/dist/mac/matter.app",
+    "macos_zip": "apps/desktop/dist/mac/matter-0.1.10-macos.zip",
+    "macos_dmg": "apps/desktop/dist/mac/matter-0.1.10-macos.dmg",
+    "windows_manifest": "apps/desktop/dist/win/matter-0.1.10-win-installer-manifest.json",
+    "windows_manifest_signature": "apps/desktop/dist/win/matter-0.1.10-win-installer-manifest.json.sig",
+    "windows_installer": "apps/desktop/dist/matter-0.1.10-win-x64.exe",
+    "windows_installer_blockmap": "apps/desktop/dist/matter-0.1.10-win-x64.exe.blockmap"
+  },
+  "packaged_renderer_smoke": {
+    "verdict": "PASS",
+    "loaded_from_packaged_app_bundle": true,
+    "home_dashboard_shell": true,
+    "home_dashboard_grid": true,
+    "home_dashboard_rail": true,
+    "widget_ids": ["approval", "calendar", "feed", "system", "todo"],
+    "top_header_labels": ["Home", "Client", "Matter", "People", "Vault", "Portal"],
+    "top_header_axis_ids": ["home", "clients", "matters", "people", "vault", "portal"],
+    "active_axis": "home",
+    "active_axis_count": 1,
+    "portal_fully_visible": true,
+    "nav_horizontal_overflow": false,
+    "sidebar_duplicated_product_axis_labels": [],
+    "matter_session_bridge_present": true,
+    "release_boundary_ui_has_no_positive_claim": true,
+    "no_dummy_visible": true,
+    "horizontal_overflow": false
+  },
+  "builds": {
+    "macos": {
+      "verdict": "PASS",
+      "channel": "formal",
+      "app_id": "com.amic.matter.desktop",
+      "install_smoke_result": "pass",
+      "executable_smoke": "bundle_rpath_smoke_pass",
+      "developer_id_signing": "not_applied_internal_package",
+      "notarization_requested": false,
+      "notarization_state": "not_submitted_internal_only",
+      "public_distribution_approval": "not claimed"
+    },
+    "windows": {
+      "verdict": "PASS",
+      "channel": "formal",
+      "app_id": "com.amic.matter.desktop",
+      "install_smoke_result": "manifest_smoke_pass",
+      "windows_native_install_smoke": "not_run_on_darwin",
+      "windows_authenticode_signing": false,
+      "installer_sha256": "38ad31095a25ac309865d1fd4e0b3c18f5be19434164aa4c96119837a3db3389",
+      "blockmap_sha256": "5e2ce36b80c6c84c320e4d005a7c847a142325a20856ebf4e2ff169bd346ebb6"
+    }
+  },
+  "direct_verification": [
+    {
+      "command": "node --check scripts/smoke-lcx-shd-80-packaged-renderer.mjs",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "command": "node --check scripts/smoke-matter-desktop-screen-qa.mjs",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "command": "MATTER_DESKTOP_RELEASE_CHANNEL=formal npm --workspace apps/desktop run build:mac",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "command": "MATTER_DESKTOP_RELEASE_CHANNEL=formal npm --workspace apps/desktop run build:win",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "command": "MATTER_DESKTOP_RELEASE_CHANNEL=formal npm --workspace apps/desktop run build:win:installer",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "command": "node scripts/smoke-lcx-shd-80-packaged-renderer.mjs",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "command": "npm --workspace apps/desktop run test:smoke",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "command": "node scripts/validate-matter-desktop-packaging.mjs",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "command": "node scripts/validate-matter-desktop-no-public-release-claim.mjs",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "command": "node --test apps/web/test/ui-regression.test.mjs",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "result": "PASS",
+      "test_count": 4157
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+      "exit_code": 0,
+      "result": "PASS_EXIT_WITH_OUT_OF_SCOPE_FINDINGS"
+    },
+    {
+      "command": "JSON parse for LCX-SHD-80 receipt and packaged renderer smoke",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check for LCX-SHD-80 pathspecs",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "command": "targeted LCX-SHD-80 secret scan",
+      "exit_code": 0,
+      "result": "PASS"
+    }
+  ],
+  "blocked_or_not_claimed": [
+    {
+      "item": "MATTER_DESKTOP_SCREEN_QA_TARGET=packaged npm run matter-desktop:screen-qa",
+      "state": "BLOCKED",
+      "exit_code": 1,
+      "reason": "Runtime accounts response returned ok true with users empty, so the jwsuh@amic.kr read-only privilege precondition was unavailable before UI assertions."
+    },
+    {
+      "item": "npm run matter-desktop:formal-release:validate",
+      "state": "NOT_CLAIMED",
+      "reason": "Formal validator requires Developer ID signing, accepted notarization, release manifest, and final release receipt. LCX-SHD-80 does not claim those."
+    },
+    {
+      "item": "macOS Developer ID distribution readiness",
+      "state": "NOT_CLAIMED",
+      "reason": "Build receipt records signing and notarization not applied."
+    },
+    {
+      "item": "Windows native install smoke",
+      "state": "NOT_CLAIMED",
+      "reason": "Built and hashed on Darwin; Windows native install was not executed."
+    },
+    {
+      "item": "sloplint findings",
+      "state": "OUT_OF_SCOPE",
+      "reason": "sloplint --changed reported existing shared-worktree findings in apps/api/src/lambda.js, apps/desktop/src/renderer/offline.html, and workbook files. LCX-SHD-80 staged receipt and smoke paths had clean targeted diff and secret checks."
+    }
+  ]
+}

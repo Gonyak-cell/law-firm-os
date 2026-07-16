@@ -25,31 +25,72 @@ function sanitizeSourceForPrompt(source = {}) {
   });
 }
 
-export function buildHrxRagPromptContext(sources = []) {
+function sanitizeChunkForPrompt(chunk = {}) {
+  return Object.freeze({
+    source_ref: chunk.source_ref,
+    chunk_id: chunk.chunk_id,
+    chunk_hash: chunk.chunk_hash,
+    matched_terms: Object.freeze([...(chunk.matched_terms ?? [])]),
+    score: chunk.score ?? 0,
+    raw_payload_present: false,
+  });
+}
+
+export function buildHrxRagPromptContext(sources = [], chunks = []) {
   return Object.freeze({
     source_refs: Object.freeze(sources.map((source) => source.source_ref)),
     sources: Object.freeze(sources.map(sanitizeSourceForPrompt)),
+    matched_chunks: Object.freeze(chunks.map(sanitizeChunkForPrompt)),
     source_count: sources.length,
     context_payload_policy: "metadata_only",
   });
 }
 
-export function createHrxPermissionAwareRetriever({ registry, authz } = {}) {
+function uniqueSourcesByRef(sources = []) {
+  const byRef = new Map();
+  for (const source of sources) {
+    if (!byRef.has(source.source_ref)) byRef.set(source.source_ref, source);
+  }
+  return [...byRef.values()];
+}
+
+export function createHrxPermissionAwareRetriever({ registry, authz, chunkIndex = null } = {}) {
   requirePort(registry, "source registry", ["search"]);
   requirePort(authz, "authz", ["evaluate"]);
+  if (chunkIndex) requirePort(chunkIndex, "source chunk index", ["search"]);
 
   return Object.freeze({
     async retrieve(context = {}, query = {}) {
       const tenantId = requiredString(context, "tenant_id");
       const actorId = requiredString(context, "actor_id");
       const question = requiredString(query, "query");
-      const candidates = registry.search({
-        tenant_id: tenantId,
-        query: question,
-        source_types: query.source_types,
-        tags: query.tags,
-        limit: query.limit,
-      });
+      const chunkMatches = chunkIndex
+        ? chunkIndex.search({
+            tenant_id: tenantId,
+            query: question,
+            limit: query.limit,
+          })
+        : [];
+      const chunkSourceRefs = [...new Set(chunkMatches.map((chunk) => chunk.source_ref))];
+      const candidates = uniqueSourcesByRef([
+        ...registry.search({
+          tenant_id: tenantId,
+          query: question,
+          source_types: query.source_types,
+          tags: query.tags,
+          limit: query.limit,
+        }),
+        ...(
+          chunkSourceRefs.length > 0
+            ? registry.search({
+                tenant_id: tenantId,
+                source_refs: chunkSourceRefs,
+                source_types: query.source_types,
+                limit: chunkSourceRefs.length,
+              })
+            : []
+        ),
+      ]).slice(0, Number.isInteger(query.limit) && query.limit > 0 ? query.limit : 10);
       const allowedSources = [];
       const deniedSourceRefs = [];
       const decisions = [];
@@ -59,6 +100,7 @@ export function createHrxPermissionAwareRetriever({ registry, authz } = {}) {
           tenant_id: tenantId,
           actor_id: actorId,
           actor_role: context.actor_role ?? null,
+          actor_scopes: Object.freeze([...(context.hrx_scopes ?? [])]),
           action: "hrx.ai.source.retrieve",
           purpose: query.purpose ?? "ai_assistance",
           resource: {
@@ -88,7 +130,11 @@ export function createHrxPermissionAwareRetriever({ registry, authz } = {}) {
         allowed_sources: Object.freeze(allowedSources.map((source) => Object.freeze(clone(source)))),
         denied_source_refs: Object.freeze(deniedSourceRefs),
         decisions: Object.freeze(decisions),
-        prompt_context: buildHrxRagPromptContext(allowedSources),
+        matched_chunks: Object.freeze(chunkMatches.filter((chunk) => allowedSources.some((source) => source.source_ref === chunk.source_ref))),
+        prompt_context: buildHrxRagPromptContext(
+          allowedSources,
+          chunkMatches.filter((chunk) => allowedSources.some((source) => source.source_ref === chunk.source_ref)),
+        ),
       });
     },
   });

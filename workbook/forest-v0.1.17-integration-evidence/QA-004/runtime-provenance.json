@@ -1,0 +1,46 @@
+{
+  "schema_version": "law-firm-os.forest-v0.1.17.qa004-runtime-provenance.v1",
+  "recorded_at": "2026-07-16T09:17:54+09:00",
+  "candidate": {
+    "source_sha": "e19a17dd48edf131cada90cf0b2c9b6891002d8d",
+    "source_tree": "d954dafbf67ba9dca47fd44effbc6109a4e056af",
+    "worktree": "/private/tmp/lawos-forest-v017-integration"
+  },
+  "browser_ui": {
+    "pid_at_recording": 7828,
+    "base_url": "http://127.0.0.1:4174",
+    "cwd": "/private/tmp/lawos-forest-v017-integration/apps/web",
+    "source_sha": "e19a17dd48edf131cada90cf0b2c9b6891002d8d",
+    "apps_web_tree": "9d16072e1aa20dc23750543483c74f64b6a79c76",
+    "tracked_product_paths_clean": true
+  },
+  "browser_api": {
+    "pid_at_recording": 5558,
+    "base_url": "http://127.0.0.1:4180",
+    "cwd": "/private/tmp/lawos-qa004-runtime/apps/api",
+    "source_sha": "35cd17f827e46e81832e92c459071414523e341d",
+    "relation_to_candidate": "direct_parent",
+    "apps_api_tree": "4aab7ca25b2485cf978f3656760159662eefc811",
+    "packages_hrx_tree": "ffc045bd23641495b11b2db6d4c75a9d58d57525"
+  },
+  "candidate_backend": {
+    "apps_api_tree": "4aab7ca25b2485cf978f3656760159662eefc811",
+    "packages_hrx_tree": "ffc045bd23641495b11b2db6d4c75a9d58d57525"
+  },
+  "comparison": {
+    "apps_api_identical": true,
+    "packages_hrx_identical": true,
+    "candidate_web_change_exercised_by_candidate_ui_server": true,
+    "candidate_only_related_paths": [
+      "apps/web/src/people/payroll/PayrollStatementWorkspace.tsx",
+      "apps/web/test/payroll-workspace-ui.test.mjs"
+    ]
+  },
+  "boundary": {
+    "browser_receipt_embeds_source_sha": false,
+    "provenance_proved_by_process_cwd_and_git_object_trees": true,
+    "production_runtime_claim": false,
+    "public_release_claim": false,
+    "go_live_claim": false
+  }
+}

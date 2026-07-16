@@ -1,0 +1,12 @@
+{
+  "verdict": "PASS",
+  "url": "https://d2mthcc8vp3cr2.cloudfront.net/?locale=ko&view=home&ctx=allow&skin=forest",
+  "http_status": 200,
+  "title": "matter",
+  "body_contains_join_code_send": false,
+  "buttons_containing_join_code_send": [],
+  "create_button_present": true,
+  "notification_button_count": 1,
+  "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-web/artifacts/home-topbar-no-join-code-cloudfront-2026-07-07.png",
+  "checked_at": "2026-07-07T09:48:16.500Z"
+}

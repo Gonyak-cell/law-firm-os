@@ -14,19 +14,47 @@ function requiredString(input, field) {
   return value.trim();
 }
 
-function validateClearance(clearance = {}, tenantId) {
-  for (const field of ["clearance_token_id", "intake_request_id", "conflict_check_id", "engagement_id", "snapshot_hash"]) {
-    requiredString(clearance, field);
+function ledgerClearanceToken({ clearance, tenantId, clearance_repository } = {}) {
+  if (!clearance_repository) return clearance;
+  if (typeof clearance_repository.get !== "function") throw new TypeError("clearance_repository get port is required");
+  requiredString(clearance, "clearance_token_id");
+  const clearanceTenantId = clearance.tenant_id ?? tenantId;
+  const issued = clearance_repository.get({
+    tenant_id: clearanceTenantId,
+    model_type: "ClearanceToken",
+    clearance_token_id: clearance.clearance_token_id,
+  });
+  if (!issued) throw new Error("Matter opening clearance token was not issued by Intake ledger");
+  for (const field of ["tenant_id", "intake_request_id", "conflict_check_id", "engagement_id", "snapshot_hash"]) {
+    if (clearance[field] && clearance[field] !== issued[field]) {
+      throw new Error(`Matter opening clearance ledger mismatch: ${field}`);
+    }
   }
-  if (clearance.tenant_id !== tenantId) throw new Error("Matter opening clearance tenant mismatch");
-  if (clearance.token_state === "expired" || clearance.token_state === "stale") throw new Error("Matter opening clearance token is stale");
-  if (clearance.outcome === "blocked" || clearance.blocked_claims?.length > 0) throw new Error("Matter opening clearance has blocked claims");
+  if (issued.conflict_review_satisfied !== true) {
+    throw new Error("Matter opening clearance requires conflict review ledger proof");
+  }
+  return issued;
+}
+
+function validateClearance(clearance = {}, tenantId, clearance_repository) {
+  const issuedClearance = ledgerClearanceToken({ clearance, tenantId, clearance_repository });
+  for (const field of ["clearance_token_id", "intake_request_id", "conflict_check_id", "engagement_id", "snapshot_hash"]) {
+    requiredString(issuedClearance, field);
+  }
+  if (issuedClearance.tenant_id !== tenantId && issuedClearance.owner_module !== "intake") {
+    throw new Error("Matter opening clearance tenant mismatch");
+  }
+  if (issuedClearance.token_state === "expired" || issuedClearance.token_state === "stale") throw new Error("Matter opening clearance token is stale");
+  if (clearance_repository && issuedClearance.token_state !== "active") throw new Error("Matter opening clearance token is not active in Intake ledger");
+  if (issuedClearance.outcome === "blocked" || issuedClearance.blocked_claims?.length > 0) throw new Error("Matter opening clearance has blocked claims");
+  return issuedClearance;
 }
 
 export function openMatterTransaction({
   repository,
   matter,
   clearance_token,
+  clearance_repository,
   matter_number_seed,
   idempotency_key,
   client,
@@ -37,11 +65,11 @@ export function openMatterTransaction({
 } = {}) {
   requiredString({ actor_id }, "actor_id");
   requiredString({ idempotency_key }, "idempotency_key");
-  validateClearance(clearance_token, matter?.tenant_id);
+  const verifiedClearanceToken = validateClearance(clearance_token, matter?.tenant_id, clearance_repository);
   assertMatterOpeningIntakeDependency({
     ...matter,
-    intake_request_id: clearance_token.intake_request_id,
-    clearance_token_id: clearance_token.clearance_token_id,
+    intake_request_id: verifiedClearanceToken.intake_request_id,
+    clearance_token_id: verifiedClearanceToken.clearance_token_id,
   });
   const replay = repository.getIdempotency({ tenant_id: matter.tenant_id, idempotency_key });
   if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
@@ -79,6 +107,7 @@ export function openMatterTransaction({
           matter_code: matter.matter_code,
           client_short_name: canonicalClient?.client_short_name ?? matter.client_short_name,
           matter_type_english: matter.matter_type_english,
+          matter_litigation_axis: matter.matter_litigation_axis,
           matter_detail_type_korean: matter.matter_detail_type_korean,
           idempotency_key: `${idempotency_key}:matter-code`,
         })
@@ -104,16 +133,19 @@ export function openMatterTransaction({
       matter_code: codeReservation?.matter_code ?? record.matter_code ?? null,
       client_display_name: canonicalClient?.client_display_name ?? record.client_display_name ?? null,
       matter_type_english: matter.matter_type_english ?? record.matter_type_english ?? null,
+      matter_litigation_axis: matter.matter_litigation_axis ?? record.matter_litigation_axis ?? null,
       matter_detail_type_korean: matter.matter_detail_type_korean ?? record.matter_detail_type_korean ?? null,
+      client_case_role: matter.client_case_role ?? record.client_case_role ?? null,
+      client_case_role_confidence: matter.client_case_role_confidence ?? record.client_case_role_confidence ?? null,
       source_revision: matter.source_revision ?? record.source_revision ?? null,
       matter_number: numberReservation.matter_number,
       legal_client_party_id: matter.legal_client_party_id ?? record.client_id,
       billing_client_party_id: matter.billing_client_party_id ?? matter.legal_client_party_id ?? record.client_id,
-      clearance_token_id: clearance_token.clearance_token_id,
-      intake_request_id: clearance_token.intake_request_id,
-      engagement_id: clearance_token.engagement_id,
-      conflict_check_id: clearance_token.conflict_check_id,
-      clearance_snapshot_hash: clearance_token.snapshot_hash,
+      clearance_token_id: verifiedClearanceToken.clearance_token_id,
+      intake_request_id: verifiedClearanceToken.intake_request_id,
+      engagement_id: verifiedClearanceToken.engagement_id,
+      conflict_check_id: verifiedClearanceToken.conflict_check_id,
+      clearance_snapshot_hash: verifiedClearanceToken.snapshot_hash,
     });
     const dmsWorkspace = dms?.createWorkspace?.({ tenant_id: persisted.tenant_id, matter_id: persisted.matter_id });
     const billingProfile = billing?.createMatterLedger?.({ tenant_id: persisted.tenant_id, matter_id: persisted.matter_id });

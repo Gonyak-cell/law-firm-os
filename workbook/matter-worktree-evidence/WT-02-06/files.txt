@@ -1,0 +1,9 @@
+apps/api/src/matter-worktree-authorization.js
+apps/api/src/matter-worktree-read-api.js
+apps/api/src/matter-worktree-write-api.js
+apps/api/src/matter-worktree-task-api.js
+apps/api/test/matter-worktree-authorization.test.js
+workbook/matter-worktree-evidence/WT-02-06/acceptance.md
+workbook/matter-worktree-evidence/WT-02-06/commands.txt
+workbook/matter-worktree-evidence/WT-02-06/tests.txt
+workbook/matter-worktree-evidence/WT-02-06/files.txt

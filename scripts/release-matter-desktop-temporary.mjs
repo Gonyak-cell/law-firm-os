@@ -1,83 +1,49 @@
 #!/usr/bin/env node
-import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { readDesktopBuildSourceIdentity } from "./lib/matter-desktop-provenance.mjs";
+import {
+  readDesktopReleaseArtifactStage,
+  requireDesktopReleaseArtifact,
+} from "./lib/matter-desktop-release-paths.mjs";
 
 const ROOT = process.cwd();
+const sourceIdentity = readDesktopBuildSourceIdentity(ROOT);
+if (sourceIdentity.sourceDirty) throw new Error("temporary release assembly requires a clean product source");
+if (process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA) {
+  if (sourceIdentity.sourceSha !== process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA) {
+    throw new Error("temporary release assembly source SHA mismatch");
+  }
+}
 const desktopPackage = JSON.parse(await readFile(path.join(ROOT, "apps/desktop/package.json"), "utf8"));
 const version = desktopPackage.version;
 const releaseId = `matter-desktop-internal-${version}`;
-const releaseRoot = path.join(ROOT, "apps/desktop/dist/release", releaseId);
-const legacyReleaseRoot = path.join(ROOT, "apps/desktop/dist/release", `mater-desktop-internal-${version}`);
+const releaseStage = readDesktopReleaseArtifactStage({
+  repoRoot: ROOT,
+  version,
+  sourceSha: sourceIdentity.sourceSha,
+  channel: "internal",
+});
+const releaseRoot = releaseStage.artifactRoot;
+const releaseRelativeRoot = releaseStage.relativeRoot;
 const manifestPath = path.join(releaseRoot, "release-manifest.json");
 const checksumPath = path.join(releaseRoot, "checksums.sha256");
 const receiptPath = path.join(ROOT, "docs/desktop/matter-desktop-temporary-release-receipt.md");
-const macosBuildReceiptPath = path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
 const localSecretPath = path.join(ROOT, ".env.matter-vault-r4.local");
-
-const artifacts = [
-  {
-    id: "macos_app_bundle",
-    path: "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
-    display_path: "apps/desktop/dist/mac/matter.app",
-    platform: "darwin",
-    kind: "macos_electron_app_bundle",
-  },
-  {
-    id: "macos_zip_archive",
-    path: `apps/desktop/dist/mac/matter-internal-${version}-macos.zip`,
-    display_path: `apps/desktop/dist/mac/matter-internal-${version}-macos.zip`,
-    platform: "darwin",
-    kind: "internal_zip_archive",
-  },
-  {
-    id: "macos_dmg_image",
-    path: `apps/desktop/dist/mac/matter-internal-${version}-macos.dmg`,
-    display_path: `apps/desktop/dist/mac/matter-internal-${version}-macos.dmg`,
-    platform: "darwin",
-    kind: "internal_dmg_image",
-  },
-  {
-    id: "windows_internal_manifest",
-    path: `apps/desktop/dist/win/matter-internal-${version}-win-installer-manifest.json`,
-    display_path: `apps/desktop/dist/win/matter-internal-${version}-win-installer-manifest.json`,
-    platform: "win32",
-    kind: "internal_manifest",
-  },
-  {
-    id: "windows_internal_signature",
-    path: `apps/desktop/dist/win/matter-internal-${version}-win-installer-manifest.json.sig`,
-    display_path: `apps/desktop/dist/win/matter-internal-${version}-win-installer-manifest.json.sig`,
-    platform: "win32",
-    kind: "internal_detached_signature",
-  },
-  {
-    id: "windows_internal_package_zip",
-    path: `apps/desktop/dist/win/matter-internal-${version}-win32-x64-unsigned.zip`,
-    display_path: `apps/desktop/dist/win/matter-internal-${version}-win32-x64-unsigned.zip`,
-    platform: "win32",
-    kind: "unsigned_windows_package_zip",
-  },
-  {
-    id: "macos_build_receipt",
-    path: "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
-    display_path: "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
-    platform: "darwin",
-    kind: "receipt",
-  },
-  {
-    id: "windows_build_receipt",
-    path: "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md",
-    display_path: "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md",
-    platform: "win32",
-    kind: "receipt",
-  },
-];
-
-function sha256(buffer) {
-  return createHash("sha256").update(buffer).digest("hex");
-}
+const artifactRecords = releaseStage.index.artifacts.map((artifact) => ({
+  ...artifact,
+  display_path: artifact.path,
+}));
+const macZip = requireDesktopReleaseArtifact(releaseStage.index, "macos_zip_archive");
+const macDmg = requireDesktopReleaseArtifact(releaseStage.index, "macos_dmg_image");
+const winManifest = requireDesktopReleaseArtifact(releaseStage.index, "windows_installer_manifest");
+const winSignature = requireDesktopReleaseArtifact(releaseStage.index, "windows_manifest_signature");
+const winZip = requireDesktopReleaseArtifact(releaseStage.index, "windows_package_zip");
+const macosBuildReceiptPath = path.join(
+  ROOT,
+  requireDesktopReleaseArtifact(releaseStage.index, "macos_build_receipt").path,
+);
 
 function parseEnvText(source = "") {
   const values = {};
@@ -97,20 +63,6 @@ function receiptValue(source, label) {
   return line?.slice(prefix.length).trim() ?? "missing";
 }
 
-async function artifactRecord(artifact) {
-  const absolutePath = path.join(ROOT, artifact.path);
-  if (!existsSync(absolutePath)) throw new Error(`missing release artifact: ${artifact.path}`);
-  const body = await readFile(absolutePath);
-  const fileStat = await stat(absolutePath);
-  return {
-    ...artifact,
-    bytes: fileStat.size,
-    sha256: sha256(body),
-  };
-}
-
-const artifactRecords = [];
-for (const artifact of artifacts) artifactRecords.push(await artifactRecord(artifact));
 const macosBuildReceipt = await readFile(macosBuildReceiptPath, "utf8");
 const macosSigning = {
   developer_id_signing: receiptValue(macosBuildReceipt, "Developer ID signing"),
@@ -142,6 +94,11 @@ const manifest = {
   product_name: "matter",
   package_name: desktopPackage.name,
   version,
+  source_sha: sourceIdentity.sourceSha,
+  source_tree: sourceIdentity.sourceTree,
+  source_dirty: false,
+  artifact_root: releaseRelativeRoot,
+  generic_build_paths_are_release_truth: false,
   internal_app_id: "com.amic.matter.desktop.internal",
   channel: "internal",
   custom_domain_required: false,
@@ -155,13 +112,10 @@ const manifest = {
   artifacts: artifactRecords,
 };
 
-await rm(legacyReleaseRoot, { recursive: true, force: true });
-await rm(releaseRoot, { recursive: true, force: true });
-await mkdir(releaseRoot, { recursive: true });
 await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 await writeFile(
   checksumPath,
-  artifactRecords.map((artifact) => `${artifact.sha256}  ${artifact.display_path}`).join("\n") + "\n",
+  artifactRecords.map((artifact) => `${artifact.sha256}  ${artifact.path}`).join("\n") + "\n",
 );
 
 const releaseReceipt = `# matter Desktop Temporary Release Receipt
@@ -176,8 +130,10 @@ This receipt records the current desktop-first temporary release execution. It d
 | Field | Value |
 | --- | --- |
 | Release ID | \`${releaseId}\` |
-| Manifest | \`apps/desktop/dist/release/${releaseId}/release-manifest.json\` |
-| Checksums | \`apps/desktop/dist/release/${releaseId}/checksums.sha256\` |
+| Source SHA | \`${sourceIdentity.sourceSha}\` |
+| Artifact root | \`${releaseRelativeRoot}\` |
+| Manifest | \`${releaseRelativeRoot}/release-manifest.json\` |
+| Checksums | \`${releaseRelativeRoot}/checksums.sha256\` |
 | Channel | \`internal\` |
 | Custom domain requirement | false |
 
@@ -231,15 +187,14 @@ No domain was registered.
 
 | Artifact | Result |
 | --- | --- |
-| macOS app bundle | \`apps/desktop/dist/mac/matter.app\` |
-| macOS executable SHA-256 | \`${artifactRecords.find((artifact) => artifact.id === "macos_app_bundle").sha256}\` |
-| macOS ZIP archive | \`apps/desktop/dist/mac/matter-internal-${version}-macos.zip\` |
-| macOS DMG image | \`apps/desktop/dist/mac/matter-internal-${version}-macos.dmg\` |
-| Windows internal manifest | \`apps/desktop/dist/win/matter-internal-${version}-win-installer-manifest.json\` |
-| Windows manifest SHA-256 | \`${artifactRecords.find((artifact) => artifact.id === "windows_internal_manifest").sha256}\` |
-| Windows detached signature | \`apps/desktop/dist/win/matter-internal-${version}-win-installer-manifest.json.sig\` |
-| Windows unsigned package ZIP | \`apps/desktop/dist/win/matter-internal-${version}-win32-x64-unsigned.zip\` |
-| Windows unsigned package ZIP SHA-256 | \`${artifactRecords.find((artifact) => artifact.id === "windows_internal_package_zip").sha256}\` |
+| macOS ZIP archive | \`${macZip.path}\` |
+| macOS ZIP SHA-256 | \`${macZip.sha256}\` |
+| macOS DMG image | \`${macDmg.path}\` |
+| Windows internal manifest | \`${winManifest.path}\` |
+| Windows manifest SHA-256 | \`${winManifest.sha256}\` |
+| Windows detached signature | \`${winSignature.path}\` |
+| Windows unsigned package ZIP | \`${winZip.path}\` |
+| Windows unsigned package ZIP SHA-256 | \`${winZip.sha256}\` |
 
 ## macOS Signing and Notarization
 
@@ -263,8 +218,8 @@ No domain was registered.
 | \`npm --workspace apps/desktop run test:smoke\` | PASS |
 | \`npm --workspace apps/desktop run test:file-bridge\` | PASS, bridge validators included |
 | \`npm run matter-desktop:aws-runtime:smoke\` | PASS, password reset confirmed for \`jwsuh@amic.kr\`, system-super-admin password login allowed, and general account admin smoke denied |
-| \`MATTER_NOTARY_KEYCHAIN_PROFILE=matter-notary MATTER_DESKTOP_SIGN=developer-id MATTER_DESKTOP_NOTARIZE=1 npm --workspace apps/desktop run build:mac\` | PASS, \`apps/desktop/dist/mac/matter.app\` |
-| \`npm --workspace apps/desktop run build:win\` | PASS, internal Windows manifest hash \`${artifactRecords.find((artifact) => artifact.id === "windows_internal_manifest").sha256}\` |
+| \`MATTER_NOTARY_KEYCHAIN_PROFILE=matter-notary MATTER_DESKTOP_SIGN=developer-id MATTER_DESKTOP_NOTARIZE=1 npm --workspace apps/desktop run build:mac\` | PASS, SHA-scoped macOS artifacts staged |
+| \`npm --workspace apps/desktop run build:win\` | PASS, internal Windows manifest hash \`${winManifest.sha256}\` |
 | \`node scripts/validate-matter-desktop-security.mjs\` | PASS |
 | \`node scripts/validate-matter-desktop-no-public-release-claim.mjs\` | PASS |
 | \`node scripts/validate-matter-desktop-release-boundary.mjs\` | PASS |

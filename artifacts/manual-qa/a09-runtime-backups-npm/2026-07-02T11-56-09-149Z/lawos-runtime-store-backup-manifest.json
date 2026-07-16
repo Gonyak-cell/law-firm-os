@@ -1,0 +1,116 @@
+{
+  "schema_version": "law-firm-os.matter-vault-runtime-backup.v0.1",
+  "receipt_type": "matter_vault_runtime_store_backup",
+  "contract_ref": "UPL-A-09",
+  "daily_backup_job_contract_ref": "workbook/wave1-internal-uplift-tuw-backlog-2026-07-02.md#UPL-A-09",
+  "outcome": "passed",
+  "synthetic_only": true,
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "production_restore_executed": false,
+  "real_client_data_used": false,
+  "backup_created": true,
+  "generated_at": "2026-07-02T11:56:09.149Z",
+  "store_dir": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-matter-vault-backup-drill-az1G0w/runtime-stores",
+  "backup_dir": "/Users/jws/Documents/Codex/Law Firm OS/artifacts/manual-qa/a09-runtime-backups-npm/2026-07-02T11-56-09-149Z",
+  "manifest_path": "/Users/jws/Documents/Codex/Law Firm OS/artifacts/manual-qa/a09-runtime-backups-npm/2026-07-02T11-56-09-149Z/lawos-runtime-store-backup-manifest.json",
+  "known_store_file_count": 13,
+  "backup_file_count": 3,
+  "backup_total_bytes": 1221,
+  "rpo_seconds_measured": 0,
+  "backup_duration_seconds": 0.002782,
+  "missing_store_files": [
+    {
+      "key": "hrxStorePath",
+      "bounded_context": "hrx",
+      "file_name": "hrx-store.json",
+      "source_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-matter-vault-backup-drill-az1G0w/runtime-stores/hrx-store.json"
+    },
+    {
+      "key": "masterDataStorePath",
+      "bounded_context": "master-data",
+      "file_name": "master-data-store.json",
+      "source_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-matter-vault-backup-drill-az1G0w/runtime-stores/master-data-store.json"
+    },
+    {
+      "key": "crmStorePath",
+      "bounded_context": "crm",
+      "file_name": "crm-store.json",
+      "source_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-matter-vault-backup-drill-az1G0w/runtime-stores/crm-store.json"
+    },
+    {
+      "key": "intakeStorePath",
+      "bounded_context": "intake",
+      "file_name": "intake-store.json",
+      "source_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-matter-vault-backup-drill-az1G0w/runtime-stores/intake-store.json"
+    },
+    {
+      "key": "crmMasterDataStorePath",
+      "bounded_context": "crm-master-data",
+      "file_name": "crm-master-data-store.json",
+      "source_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-matter-vault-backup-drill-az1G0w/runtime-stores/crm-master-data-store.json"
+    },
+    {
+      "key": "analyticsStorePath",
+      "bounded_context": "analytics",
+      "file_name": "analytics-store.json",
+      "source_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-matter-vault-backup-drill-az1G0w/runtime-stores/analytics-store.json"
+    },
+    {
+      "key": "aiStorePath",
+      "bounded_context": "ai-governance",
+      "file_name": "ai-store.json",
+      "source_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-matter-vault-backup-drill-az1G0w/runtime-stores/ai-store.json"
+    },
+    {
+      "key": "portalStorePath",
+      "bounded_context": "client-portal",
+      "file_name": "portal-store.json",
+      "source_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-matter-vault-backup-drill-az1G0w/runtime-stores/portal-store.json"
+    },
+    {
+      "key": "uiReadinessStorePath",
+      "bounded_context": "ui-readiness",
+      "file_name": "ui-readiness-store.json",
+      "source_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-matter-vault-backup-drill-az1G0w/runtime-stores/ui-readiness-store.json"
+    },
+    {
+      "key": "enterpriseReadinessStorePath",
+      "bounded_context": "enterprise-readiness",
+      "file_name": "enterprise-readiness-store.json",
+      "source_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-matter-vault-backup-drill-az1G0w/runtime-stores/enterprise-readiness-store.json"
+    }
+  ],
+  "files": [
+    {
+      "key": "matterStorePath",
+      "bounded_context": "matter",
+      "file_name": "matter-store.json",
+      "source_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-matter-vault-backup-drill-az1G0w/runtime-stores/matter-store.json",
+      "backup_relative_path": "stores/matter-store.json",
+      "byte_length": 400,
+      "sha256": "edc750d442af3f17e63b1340c6c28736d0e37002c4bbeb9947e59289f76800fd",
+      "source_mtime": "2026-07-02T11:56:09.149Z"
+    },
+    {
+      "key": "dmsStorePath",
+      "bounded_context": "dms",
+      "file_name": "dms-store.json",
+      "source_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-matter-vault-backup-drill-az1G0w/runtime-stores/dms-store.json",
+      "backup_relative_path": "stores/dms-store.json",
+      "byte_length": 409,
+      "sha256": "0bd22da0867259c91ebb01d13be6ee4895a75a52694af47434010620b4a1decb",
+      "source_mtime": "2026-07-02T11:56:09.149Z"
+    },
+    {
+      "key": "financeStorePath",
+      "bounded_context": "finance",
+      "file_name": "finance-store.json",
+      "source_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-matter-vault-backup-drill-az1G0w/runtime-stores/finance-store.json",
+      "backup_relative_path": "stores/finance-store.json",
+      "byte_length": 412,
+      "sha256": "1c23428125685af7ec1205cea2c25a53fca7706db14b318a6b1f69ee61a0afd7",
+      "source_mtime": "2026-07-02T11:56:09.149Z"
+    }
+  ]
+}

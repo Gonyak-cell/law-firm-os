@@ -1,0 +1,31 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.packet.v0.1",
+  "goal_id": "cti-password-reset-jwsuh-live-send-retry",
+  "status": "BLOCKED_JWSUH_LIVE_SEND_RETRY",
+  "recorded_at": "2026-07-06T12:09:25.826Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "approval_signature_refs": [
+    "I25-CTI-PASSWORD-RESET-SES-API-VPCE-JWSUH-LIVE-SEND-OWNER-APPROVAL-2026-07-06",
+    "I23-CTI-PASSWORD-RESET-EMAIL-DELIVERY-STORE-OWNER-APPROVAL-2026-07-06"
+  ],
+  "closeout_verdict": "BLOCKED",
+  "summary": "SES API VPC endpoint was created or confirmed, but jwsuh@amic.kr one-recipient password reset live-send did not pass.",
+  "evidence_refs": [
+    "docs/launch/cti-i25-owner-approval-receipt-2026-07-06.json",
+    "docs/launch/cti-password-reset-jwsuh-live-send-retry-receipt-2026-07-06.json",
+    "docs/launch/cti-password-reset-jwsuh-live-send-retry-egress-blocker-2026-07-06.json"
+  ],
+  "boundary": {
+    "live_send_target_count": 1,
+    "non_live_send_user_count": 8,
+    "other_user_reset_email_sent": false,
+    "other_user_credential_mutated": false,
+    "token_value_recorded": false,
+    "reset_url_recorded": false,
+    "password_value_recorded": false,
+    "secret_value_recorded": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "next_required_action": "Obtain I26 approval for Lambda SG egress TCP 443 to SES API VPCE SG sg-00d32ddc8de3a5a30, then rerun the jwsuh@amic.kr one-recipient live-send lane; do not send reset emails to other users."
+}

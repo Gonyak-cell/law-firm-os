@@ -1,0 +1,2 @@
+RED: WT-03-09 contract absent.
+GREEN: Worktree UI contract, UI regression, typecheck, and production build passed.

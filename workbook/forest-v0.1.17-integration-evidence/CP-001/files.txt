@@ -1,0 +1,8 @@
+workbook/forest-v0.1.17-integration-evidence/CP-001/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/CP-001/ancestry-matrix.json
+workbook/forest-v0.1.17-integration-evidence/CP-001/commands.txt
+workbook/forest-v0.1.17-integration-evidence/CP-001/comparison-targets.json
+workbook/forest-v0.1.17-integration-evidence/CP-001/files.txt
+workbook/forest-v0.1.17-integration-evidence/CP-001/receipt.json
+workbook/forest-v0.1.17-integration-evidence/CP-001/tests.txt
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md

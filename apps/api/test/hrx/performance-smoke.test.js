@@ -1,15 +1,22 @@
 import assert from "node:assert/strict";
 import { performance } from "node:perf_hooks";
 import test from "node:test";
+import {
+  MATTER_VAULT_REGISTERED_TENANT_ID,
+  highestPrivilegeRegisteredAccount,
+} from "../../src/matter-vault-account-registry.js";
 import { startApiServer } from "../../src/server.js";
+import { signedHeaders } from "../helpers/session.js";
+import { signedStepUpHeader } from "../hrx-step-up-test-helper.js";
 
 let server;
 let baseUrl;
 
+const SESSION_ACCOUNT = highestPrivilegeRegisteredAccount();
 const HRX_AUTH_HEADERS = Object.freeze({
-  "x-lawos-tenant-id": "tenant-a",
-  "x-lawos-actor-id": "hrx-performance-user",
-  "x-lawos-actor-role": "people_ops",
+  "x-lawos-tenant-id": MATTER_VAULT_REGISTERED_TENANT_ID,
+  "x-lawos-actor-id": SESSION_ACCOUNT.user_id,
+  "x-lawos-actor-role": SESSION_ACCOUNT.role_ids.join(","),
   "x-lawos-hrx-scopes": [
     "hrx.employee.read",
     "hrx.document.read",
@@ -21,18 +28,17 @@ const HRX_AUTH_HEADERS = Object.freeze({
     "hrx.analytics.read",
     "hrx.audit.read",
   ].join(","),
-  "x-lawos-hrx-step-up": JSON.stringify({
-    tenant_id: "tenant-a",
-    actor_id: "hrx-performance-user",
-    mfa: true,
-    assurance_level: 2,
-    expires_at: "2999-01-01T00:00:00.000Z",
+  "x-lawos-hrx-step-up": signedStepUpHeader({
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+    actor_id: SESSION_ACCOUNT.user_id,
   }),
 });
 
 async function timedJson(path) {
   const startedAt = performance.now();
-  const response = await fetch(`${baseUrl}${path}`, { headers: HRX_AUTH_HEADERS });
+  const response = await fetch(`${baseUrl}${path}`, {
+    headers: { ...(await signedHeaders(baseUrl, SESSION_ACCOUNT)), ...HRX_AUTH_HEADERS },
+  });
   const body = await response.json();
   return {
     path,
@@ -59,9 +65,9 @@ test.after(() => new Promise((resolve) => server.close(resolve)));
 test("HRX API baseline performance smoke stays under local p95 threshold", async () => {
   const routes = [
     "/api/hrx/employees",
-    "/api/hrx/employees/emp-001",
-    "/api/hrx/documents?employee_id=emp-001",
-    "/api/hrx/leave?employee_id=emp-001&policy_id=pto-us",
+    "/api/hrx/employees/emp_amic_jwsuh",
+    "/api/hrx/documents?employee_id=emp_amic_jwsuh",
+    "/api/hrx/leave?employee_id=emp_amic_jwsuh&policy_id=pto-us",
     "/api/hrx/approvals",
     "/api/hrx/candidate/portal?candidate_id=cand-001",
     "/api/hrx/recruiting/pipeline",

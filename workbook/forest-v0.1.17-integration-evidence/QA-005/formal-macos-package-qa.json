@@ -1,0 +1,107 @@
+{
+  "schema_version": "law-firm-os.formal-macos-package-qa.v1",
+  "generated_at": "2026-07-16T02:49:49.005Z",
+  "verdict": "PASS",
+  "source": {
+    "revision": "39ed9571b0e841e1a6480e6875fe7b6658f83465",
+    "source_tree": "42bb94f745b329053cc14325ef1251fc7d8475cd",
+    "source_dirty": false,
+    "renderer": {
+      "sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+      "file_count": 28,
+      "algorithm": "sha256(sorted sha256 file manifest with ./ relative paths)"
+    }
+  },
+  "package": {
+    "channel": "formal",
+    "app_id": "com.amic.matter.desktop",
+    "bundle": "apps/desktop/dist/mac/matter.app",
+    "zip": {
+      "path": "apps/desktop/dist/mac/matter-0.1.17-macos.zip",
+      "sha256": "2e2af3ef0a7da78ffaa6ed3d2c6500d59daf0eb70abde617d0a4272f39a38e5c"
+    },
+    "dmg": {
+      "path": "apps/desktop/dist/mac/matter-0.1.17-macos.dmg",
+      "sha256": "66d00e1422eacddfed3a57403f9ecbacc9ae4b3ff6c2683dcf43e4ef8ad36043"
+    },
+    "bundled_local_api_present": false,
+    "formal_local_api_default_disabled": true,
+    "distribution": {
+      "app_codesign": "pass",
+      "app_gatekeeper": "pass",
+      "app_stapler": "pass",
+      "dmg_codesign": "pass",
+      "dmg_gatekeeper": "pass",
+      "dmg_stapler": "pass",
+      "dmg_image": "pass"
+    }
+  },
+  "runtime": {
+    "topology": "signed_formal_app_with_external_exact_source_api",
+    "base_url_kind": "isolated_loopback_nonpackaged",
+    "profile": "local-dev",
+    "operator_token_used": false,
+    "synthetic_fixture_only": true,
+    "health_status": 200
+  },
+  "identity": {
+    "email": "jwsuh@amic.kr",
+    "user_id": "user_amic_jwsuh",
+    "display_name": "서지원",
+    "employee_id": "emp_amic_jwsuh",
+    "generic_session_fallback_absent": true
+  },
+  "scenarios": {
+    "forest_login_rendered": true,
+    "signed_in": true,
+    "seo_jiwon_profile_populated": true,
+    "leave_rendered": true,
+    "payroll_rendered": true,
+    "restart_session_restored": true
+  },
+  "parity": {
+    "macos_renderer_sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+    "windows_renderer_sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+    "renderer_file_count": 28,
+    "byte_identical": true
+  },
+  "screenshots": [
+    {
+      "name": "01-formal-login",
+      "path": "workbook/forest-v0.1.17-integration-evidence/QA-005/01-formal-login.png",
+      "sha256": "bc33472da385d32c05819a969251b948e1564e9144b6f4df85c2505dd605cb49"
+    },
+    {
+      "name": "02-formal-profile-seo-jiwon",
+      "path": "workbook/forest-v0.1.17-integration-evidence/QA-005/02-formal-profile-seo-jiwon.png",
+      "sha256": "802c6b810099838f541e2f021f1dca54805ed19bcc849ced64415afaeb5d05ea"
+    },
+    {
+      "name": "03-formal-leave",
+      "path": "workbook/forest-v0.1.17-integration-evidence/QA-005/03-formal-leave.png",
+      "sha256": "bafb4b59def730f9332ac0fd24be132683cf12853c037e15a2c7fbc862bb7c9e"
+    },
+    {
+      "name": "04-formal-payroll",
+      "path": "workbook/forest-v0.1.17-integration-evidence/QA-005/04-formal-payroll.png",
+      "sha256": "24734d9f39757a7ac45cb66cd5c811a0ec67620495a2ef246d5dcd526e18b41a"
+    },
+    {
+      "name": "05-formal-restart-payroll",
+      "path": "workbook/forest-v0.1.17-integration-evidence/QA-005/05-formal-restart-payroll.png",
+      "sha256": "a65e733c062aba70733ef2e0a5cf3be3571772649813f759afc3decdc40b9f60"
+    }
+  ],
+  "diagnostics": {
+    "page_error_count": 0,
+    "console_error_count": 0
+  },
+  "boundaries": {
+    "real_employee_write": false,
+    "production_runtime_used": false,
+    "aws_write": false,
+    "public_release_claim": false,
+    "production_go_live_claim": false,
+    "windows_native_claim": false
+  }
+}

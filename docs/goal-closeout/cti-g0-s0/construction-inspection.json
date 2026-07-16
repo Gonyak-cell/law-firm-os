@@ -1,0 +1,44 @@
+{
+  "goal_id": "cti-g0-s0",
+  "status": "completed_i4_ratified_s0_probes_executed",
+  "inspected_at": "2026-07-06T02:31:07.212Z",
+  "approval_signature_ref": "I4-CTI-G0-S0-OWNER-RATIFICATION-2026-07-06",
+  "checks": [
+    {
+      "id": "i4_ratification_recorded",
+      "result": "PASS",
+      "detail": "Owner supplied the scoped I4 approval_signature_ref."
+    },
+    {
+      "id": "s0_t04_before_s0_t03",
+      "result": "PASS",
+      "detail": "Store readback snapshot was written before the cold-start marker probe."
+    },
+    {
+      "id": "production_probe_execution",
+      "result": "PASS",
+      "detail": "S0-T01, S0-T04, and S0-T03 receipts were generated with masked/PII-safe evidence."
+    },
+    {
+      "id": "i1_mapping_template",
+      "result": "PASS",
+      "detail": "PII-safe 148-row I1 lead-lawyer mapping template remains present."
+    },
+    {
+      "id": "d07_disposition",
+      "result": "PASS",
+      "detail": "D-07 state: production_149th_row_identified_as_runtime_seed_exclude_from_cti_migration."
+    },
+    {
+      "id": "s1_branch",
+      "result": "PASS",
+      "detail": "S1 branch assessment: efs_and_store_path_absent_s1_durable_foundation_required."
+    },
+    {
+      "id": "out_of_scope_preserved",
+      "result": "PASS",
+      "detail": "No S1-S6, CUTOVER, password distribution, migration, production_ready, go-live, OIDC, or DB conversion work was performed."
+    }
+  ],
+  "final_verdict": "COMPLETE_G0_S0_ONLY"
+}

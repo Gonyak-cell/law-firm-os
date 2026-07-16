@@ -1,0 +1,45 @@
+{
+  "schema_version": "law-firm-os.matter-desktop.v0.1.5.electron-matter-codes-qa.v0.1",
+  "generated_at": "2026-07-01T12:05:22.308Z",
+  "executable": "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "renderer_target": "apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html",
+  "screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/matter-desktop-v0.1.5-electron-matter-codes-qa.png",
+  "ui_snapshot": {
+    "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=matters&data=live&ctx=allow&splash=0&desktop_api_base_url=http%3A%2F%2F127.0.0.1%3A51929#matters-list",
+    "title": "Matter",
+    "panel_title": "사건 목록",
+    "rendered_rows": 149,
+    "first_rows": [
+      "AMIC/LIT/CIV/합성개시Matter 1개시 중청구 준비 가능",
+      "귀한사람들/Advisory/retainer귀한사람들/Advisory/retainer개시 중시작 전",
+      "그래비티랩스/LIT/CIV/특허권침해금지그래비티랩스/LIT/CIV/특허권침해금지개시 중시작 전",
+      "그래비티랩스/Advisory/유권해석그래비티랩스/Advisory/유권해석진행 중시작 전",
+      "그로브/LIT/CIV/제소전화해그로브/LIT/CIV/제소전화해개시 중시작 전",
+      "금홍/LIT/CIV/가압류금홍/LIT/CIV/가압류개시 중시작 전",
+      "금홍/LIT/CIV/가압류이의금홍/LIT/CIV/가압류이의개시 중시작 전",
+      "김정/LIT/CIV/중개보수청구김정/LIT/CIV/중개보수청구개시 중시작 전"
+    ],
+    "has_horizontal_overflow": false,
+    "body_has_short_axes": false
+  },
+  "api_snapshot": {
+    "total_items": 149,
+    "missing": [],
+    "short_axis_count": 0,
+    "bare_deal_code_count": 0,
+    "sample_codes": [
+      "귀한사람들/Advisory/retainer",
+      "동문시장/Dispute/임대차계약갱신및차임분쟁",
+      "제이에스테크/DEAL/Project Jade",
+      "성일하이텍/DEAL/Project S",
+      "엠피닉스/DEAL/Project Phoenix",
+      "새빗켐/DEAL/Project Tempus",
+      "위즈코어/DEAL/Project Wiz",
+      "포이스/DEAL/Project Fausta",
+      "성진종합전기/DEAL/Project Switch",
+      "타이탄컴퍼니/DEAL/Project Titan",
+      "유진이엔티/DEAL/Project Horizon"
+    ]
+  },
+  "verdict": "PASS"
+}

@@ -1,0 +1,62 @@
+PV-006 test-first red proof:
+- exit: 1
+- cause: requested module scripts/lib/matter-desktop-legacy-assets.mjs was absent
+- stdout sha256: 464c2d078fe28052b8a9a3029d1cd05057515af50b730378cadeb3519db9ab77
+- stderr sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+CLI contract:
+- PV-006 validator help: PASS
+- PV-006 validator bad input: PASS, exit 2, usage on stderr
+- bad-input stdout sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+- bad-input stderr sha256: 0fad018b5004edde3a10657e8b1c50255f800b69dfd73664120ed4b3d509f27f
+
+Unit and source contracts:
+- PV-001 through PV-006: 21/21 PASS
+- PV-006: 4/4 PASS
+- PV-001 source/package: PASS
+- PV-002 source/package: PASS
+- PV-003 source: PASS
+- PV-004 source: PASS
+- PV-005 source/package: PASS
+- PV-006 source: PASS; retired paths 21, active files 191, forbidden references 0
+- PV-006 bundle: PASS; Mac 35 files, Windows 35 files, legacy violations 0, offline entries 0
+
+Actual exact-SHA package proof:
+- product SHA: 8e9165c0a8b412eafde454c8436e00cf434a9e37
+- product tree: 7f36de9062dffd049128f4a262837fc9abb48b83
+- source_dirty: Mac false, Windows false
+- sequential build order: Mac then Windows
+- renderer distinct hash count: 1
+- renderer sha256: f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445
+- renderer file count: 28
+- staged artifact count: 9
+- current packaged entry: apps/desktop/src/renderer/web/index.html?desktop=1
+- generic build paths are release truth: false
+
+Regression:
+- Desktop smoke: 102/102 PASS
+- Desktop file bridge: 17/17 PASS
+- Desktop file bridge validators: 2/2 PASS
+- Web UI: 144 total, 143 PASS, 1 existing skip, 0 fail
+- Web typecheck: PASS
+- Web build: PASS, 1719 modules
+- CP-006 source/package/legacy/Lazyweb support: 20/20, 19/19, 4/4, 3/3 PASS
+- public renderer PII: PASS; 56 files, 30 protected values, 5 photos, printed false
+- packaging: PASS
+- syntax: PASS
+- git diff --check: PASS
+- changed-file credential-form scan: PASS; 443 added lines, findings 0
+- AI slop review: PASS
+
+Rejected QA attempts:
+- Candidate ba68799b was discarded after the forbidden-reference policy was broadened. All accepted bundles were rebuilt at 8e9165c0.
+- `npm --workspace apps/web test` failed because the workspace intentionally exposes `test:ui`; the correct command passed 143 + 1 existing skip.
+- An attempted expansion of CP-006 historical path counts was reverted because it changed closed evidence. The current CP-006 contract passed unchanged.
+- A bundle validator rerun after adding this evidence exited at the clean-source gate because the evidence files made the worktree dirty. This is the required fail-closed result; the accepted bundle PASS was captured before evidence creation at clean product SHA 8e9165c0.
+
+Boundaries:
+- accepted signed/notarized/stapled/Gatekeeper-ready formal Mac package: false
+- Windows native runtime/install/restart/uninstall proof: false
+- Windows Authenticode: false
+- public release: false
+- production go-live: false

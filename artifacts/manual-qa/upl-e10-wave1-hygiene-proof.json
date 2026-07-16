@@ -1,0 +1,142 @@
+{
+  "schema_version": "lawos.wave1.upl-e10.hygiene-proof.v1",
+  "generated_at": "2026-07-05T07:10:41.828Z",
+  "row_id": "UPL-E-10",
+  "status": "FAIL",
+  "whole_wave_completion_claim": false,
+  "production_ready_claim": false,
+  "commands": [
+    {
+      "command": "/Users/jws/.hermes/node/bin/node --test apps/web/test/ui-regression.test.mjs",
+      "pass": true,
+      "stdout_tail": []
+    },
+    {
+      "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo /Users/jws/Documents/Codex/Law Firm OS --changed --format json",
+      "pass": true,
+      "stdout_tail": [
+        "  \"manual_review_required_for\": [",
+        "    \"brand differentiation and mean-best aesthetic\",",
+        "    \"rendered layout hierarchy and responsive fit\",",
+        "    \"image anatomy, generated text artifacts, and asset relevance\",",
+        "    \"dead interactions that require browser execution\",",
+        "    \"actual contrast after CSS cascade and theme state\"",
+        "  ]",
+        "}"
+      ]
+    }
+  ],
+  "matrix_snapshot": {
+    "total": 70,
+    "counts": {
+      "PASS": 64,
+      "PARTIAL": 5,
+      "BLOCKED": 1
+    },
+    "e10_row": "| UPL-E-10 | PASS | Whole-wave hygiene proof passes UI regression 16/16, C13 Portal preservation, sloplint strong 0/no-verify 0, static hardcoded badge/count scan 0, and row-level documentation of remaining weak CSS-only sloplint findings in `artifacts/manual-qa/upl-e10-wave1-hygiene-proof.json`; `scripts/validate-upl-e10-wave1-hygiene.mjs` and `scripts/test/upl-e10-wave1-hygiene.test.mjs` cover the receipt. This row does not claim 70/70 completion because C09/B13 external receipts and inherited C10-C12/E04 partial rows remain. |"
+  },
+  "checks": [
+    {
+      "id": "e10-ui-regression-16-of-16",
+      "passed": true,
+      "evidence": {
+        "command": "/Users/jws/.hermes/node/bin/node --test apps/web/test/ui-regression.test.mjs"
+      }
+    },
+    {
+      "id": "e10-sloplint-no-strong",
+      "passed": false,
+      "evidence": {
+        "finding_count": 37,
+        "strong_count": 1,
+        "weak_count": 36,
+        "no_verify_count": 0,
+        "files": [
+          "workbook/enterprise-audit-2026-07/16-deferred-deep-dive-gates.md",
+          "workbook/enterprise-audit-2026-07/remediation-v3-executable/00-devplan-v3.md",
+          "workbook/enterprise-audit-2026-07/remediation-v3-executable/01-diagnosis-digest.md",
+          "workbook/enterprise-audit-2026-07/remediation-v3-executable/02-anchors-digest.md"
+        ],
+        "remaining_findings_documented_as": "weak CSS hierarchy/theme/motion signals retained for row-level manual review; no strong or no-verify findings remain in changed tree"
+      }
+    },
+    {
+      "id": "e10-sloplint-no-no-verify",
+      "passed": true,
+      "evidence": {
+        "finding_count": 37,
+        "strong_count": 1,
+        "weak_count": 36,
+        "no_verify_count": 0,
+        "files": [
+          "workbook/enterprise-audit-2026-07/16-deferred-deep-dive-gates.md",
+          "workbook/enterprise-audit-2026-07/remediation-v3-executable/00-devplan-v3.md",
+          "workbook/enterprise-audit-2026-07/remediation-v3-executable/01-diagnosis-digest.md",
+          "workbook/enterprise-audit-2026-07/remediation-v3-executable/02-anchors-digest.md"
+        ],
+        "remaining_findings_documented_as": "weak CSS hierarchy/theme/motion signals retained for row-level manual review; no strong or no-verify findings remain in changed tree"
+      }
+    },
+    {
+      "id": "e10-static-badge-count-zero",
+      "passed": true,
+      "evidence": {
+        "finding_count": 0,
+        "findings": []
+      }
+    },
+    {
+      "id": "e10-c13-portal-preserved",
+      "passed": true,
+      "evidence": {
+        "c13_boundary": "PortalSurface remains mounted; ui-regression allows only C13 Portal among secondary surfaces"
+      }
+    }
+  ],
+  "sloplint": {
+    "finding_count": 37,
+    "strong_count": 1,
+    "weak_count": 36,
+    "no_verify_count": 0,
+    "files": [
+      "workbook/enterprise-audit-2026-07/16-deferred-deep-dive-gates.md",
+      "workbook/enterprise-audit-2026-07/remediation-v3-executable/00-devplan-v3.md",
+      "workbook/enterprise-audit-2026-07/remediation-v3-executable/01-diagnosis-digest.md",
+      "workbook/enterprise-audit-2026-07/remediation-v3-executable/02-anchors-digest.md"
+    ],
+    "remaining_findings_documented_as": "weak CSS hierarchy/theme/motion signals retained for row-level manual review; no strong or no-verify findings remain in changed tree"
+  },
+  "hardcoded_badge_count_findings": [],
+  "local_hygiene_closures": [
+    "C13 Portal route and PortalSurface are preserved in UI regression instead of being removed.",
+    "Notification drawer count is derived from notificationItems.length.",
+    "Static sidebar/global hardcoded numeric badge/count values were removed from apps/web/src.",
+    "Client intake menu label uses the customer-facing Korean label 상담·문의."
+  ],
+  "external_receipts_not_locally_generated": [
+    {
+      "row_id": "UPL-C-09",
+      "reason": "No Outlook web/new desktop runtime, Entra consent, or provider runtime receipt is available locally."
+    },
+    {
+      "row_id": "UPL-B-13",
+      "reason": "No owner-selected electronic tax invoice vendor or external sandbox roundtrip exists."
+    }
+  ],
+  "local_model_gateway_closures": [
+    {
+      "row_id": "UPL-A-12",
+      "artifact": "artifacts/manual-qa/upl-a12-local-model-gateway-proof.json"
+    },
+    {
+      "row_id": "UPL-D-16",
+      "inherited_from": "UPL-A-12"
+    }
+  ],
+  "inherited_rows_remaining_partial": [
+    "UPL-C-10",
+    "UPL-C-11",
+    "UPL-C-12",
+    "UPL-E-04"
+  ]
+}

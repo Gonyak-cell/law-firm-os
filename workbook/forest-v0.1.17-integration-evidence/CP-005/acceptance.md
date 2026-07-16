@@ -1,0 +1,23 @@
+# CP-005 Acceptance
+
+- TUW: CP-005
+- status: DONE
+- entry_sha: `55e6cfe111e5c56d8125b27570fca144bf6947dc`
+- exit_sha: `55e6cfe111e5c56d8125b27570fca144bf6947dc` (QA script, current package receipt, screenshots, validator, and evidence only; product runtime tree unchanged)
+- identity contract: `jwsuh@amic.kr -> user_amic_jwsuh -> emp_amic_jwsuh -> 서지원`, 19/19 checks PASS
+- profile contract: 대표변호사, Legal, AMIC Law, 대한민국, authenticated work email, attorney profile, career, education, qualification, and practice area PASS
+- generic fallback suppression: UserProfileSurface, Shell, and Home source contracts 5/5; packaged `세션 사용자` visible occurrences 0
+- photo: `seo-ji-won.png` PNG magic bytes and decode PASS; public renderer PII validator PASS
+- fresh source/API regression: 43/43 across profile API, HRX runtime, session bridge/fallback, roster contact, identity link, and account seed
+- current internal package QA: isolated local API, populated profile, signed-in session and rendered employee join, full profile contract 9/9, five Matter fixture interactions PASS
+- package screenshot: visually inspected at 1872x1248; photo, identity, organization, contact, career, education, qualification, and practice-area hierarchy rendered without generic fallback
+- exact package build source: `75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c`; product runtime changed 0 files to CP-005 entry
+- renderer: `b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96`
+- preserved user root checkout: tracked 56, untracked 21, fingerprint `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`
+- commands: see `commands.txt`
+- evidence_hashes: validator `932bd3a785d9b85d99a9e95ad4ede4580557886cb8e9983240d180ac373038de`, matrix `e39f89f8adce53542fcb03a8d934017578aaae3058f92a08932af1cb325eb3c3`, package smoke script `3f38dfdfb379f0aa1a103dbfe207df3ec78c42f03e1ed6050ef81d89e7521274`, package receipt `0edd69608f3261c118b436ae20d8880ff01082bbe854f7adc07bd11ae7065c02`, profile screenshot `6c6c66bef8a1095517a2c6b362d4f1f2d45035df9aa4c191108e13e9595667ff`
+- manual_qa: launched the exact internal macOS package through Playwright Electron, used the profile trigger, observed the authenticated profile, exercised five Matter fixtures, inspected the resulting profile screenshot, and verified the current checked-in matrix through its CLI
+- known_limits: internal package proof does not attest formal macOS signing/notarization/staple/Gatekeeper or native Windows install/runtime/AuthentiCode; the private mobile-phone source is not configured, so the authenticated contact card intentionally shows work email and country only
+- stale_evidence_debt: `people:professional-profile:validate` still requires six July 7 historical screenshots that are not retained; it failed on `박병준 screenshot missing`, is not used as CP-005 proof, and must be reconciled in CP-006/QA-009 without restoring obsolete UI assets
+- external_blockers: none for CP-005; production, public release, and go-live claims remain false
+- AI slop review: pass; no product UI or user-facing copy changed

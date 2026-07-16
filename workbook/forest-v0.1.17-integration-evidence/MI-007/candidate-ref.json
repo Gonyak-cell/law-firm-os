@@ -1,0 +1,17 @@
+{
+  "schema_version": "lawos.forest.integration.candidate-ref.v1",
+  "candidate_ref": "forest-v0.1.17-integration-candidate-4c81d861",
+  "scope": "local-integration-qa-anchor",
+  "integration_sha": "4c81d861693472af48a680e5757b352bb9945b9b",
+  "integration_tree": "628b370a9b09859250e91d3295a6cf4dabc05dd4",
+  "tag_object": "55da09da4ea27342c44863f6633511c5df9b5e9f",
+  "tag_type": "annotated",
+  "tagged_at": "2026-07-16T06:23:23+09:00",
+  "product_sha": "ab7868ebad5948a1b7341fe5bcbc48d8c0181a47",
+  "product_tree_digest_sha256": "ba5985c402f244cf717262818a8bdded65f9ad25eb0f051e0b00c03c3ab1b1f9",
+  "origin_main_sha": "fdd1e34a42ee11ad1e5049647048471be772f381",
+  "remote_present": false,
+  "formal_release_tag": false,
+  "qa_binding": "QA-001..QA-009",
+  "invalidate_on": "any non-workbook product change"
+}

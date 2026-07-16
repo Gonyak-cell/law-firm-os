@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.hrx.payroll-statutory-rules.v0.1",
+  "package_id": "synthetic-payroll-statutory-2026-h2",
+  "version_code": "SYNTHETIC-2026-H2",
+  "effective_from": "2026-07-01",
+  "effective_to": "2026-12-31",
+  "currency": "KRW",
+  "fixture_only": true,
+  "source_document_ref": "artifact:synthetic/payroll-statutory-2026-h2",
+  "source_document_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "rounding_mode": "nearest",
+  "income_tax": {
+    "local_income_tax_rate_bps": 1000,
+    "dependent_overflow": "highest_available",
+    "brackets": [
+      { "dependent_count": 0, "minimum_taxable_krw": 0, "maximum_taxable_krw": 999999, "tax_krw": 0 },
+      { "dependent_count": 0, "minimum_taxable_krw": 1000000, "maximum_taxable_krw": 1999999, "tax_krw": 50000 },
+      { "dependent_count": 0, "minimum_taxable_krw": 2000000, "maximum_taxable_krw": null, "tax_krw": 150000 },
+      { "dependent_count": 3, "minimum_taxable_krw": 0, "maximum_taxable_krw": 999999, "tax_krw": 0 },
+      { "dependent_count": 3, "minimum_taxable_krw": 1000000, "maximum_taxable_krw": 1999999, "tax_krw": 20000 },
+      { "dependent_count": 3, "minimum_taxable_krw": 2000000, "maximum_taxable_krw": null, "tax_krw": 100000 }
+    ],
+    "withholding_categories": [
+      { "code": "SYNTHETIC_SERVICE", "rate_bps": 300 }
+    ]
+  },
+  "pension": { "employee_rate_bps": 500, "minimum_base_krw": 1000000, "maximum_base_krw": 3000000 },
+  "health": { "employee_rate_bps": 400, "minimum_base_krw": 1000000, "maximum_base_krw": 5000000 },
+  "long_term_care": { "rate_bps_of_health": 1000 },
+  "employment_insurance": { "employee_rate_bps": 100 },
+  "custom_deduction_net_floor_krw": 100000
+}

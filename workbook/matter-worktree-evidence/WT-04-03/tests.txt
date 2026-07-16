@@ -1,0 +1,9 @@
+RED: canonical parent had no browser E2E runner or rendered evidence for the required interactions.
+node output/playwright/matter-worktree-render-qa.mjs
+Exit: 0
+Viewport overflow: 0px at 375/768/1024/1280.
+Keyboard scenarios: 8/8.
+Recovery states: denied/conflict/error 3/3.
+Structure mutations: add/rename/archive/template 1 call each.
+Current source commit: 5135f0504.
+GREEN: Chromium interaction, recovery, responsive, and keyboard assertions all passed.

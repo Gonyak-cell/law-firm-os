@@ -1,0 +1,145 @@
+{
+  "schema_version": "lawos.leave_management.browser_qa.v0.1",
+  "work_package": "LV-03",
+  "generated_at": "2026-07-15T23:36:24.783Z",
+  "runtime": {
+    "profile": "local-dev",
+    "endpoint_kind": "loopback_ephemeral",
+    "persistent_store_kind": "isolated_temporary_file"
+  },
+  "roles": {
+    "staff": "user_amic_yjlee",
+    "assigned_manager": "user_amic_tryoon"
+  },
+  "checks": {
+    "signed_self_service_used": true,
+    "employee_selector_absent": true,
+    "half_day_preview_minutes": 240,
+    "cancellation_released_reservation": true,
+    "manager_queue_assignment_filtered": true,
+    "statutory_annual_reject_hidden": true,
+    "reschedule_proposed_and_accepted": true,
+    "manager_approved_revised_request": true,
+    "delegation_created_with_registered_candidate": true,
+    "team_calendar_privacy_copy_verified": true,
+    "staff_approval_sidebar_hidden": true,
+    "staff_direct_approval_route_denied": true,
+    "responsive_geometry_passed": true,
+    "durable_command_receipt_count": 7,
+    "ledger_entry_count": 8,
+    "page_error_count": 0,
+    "console_error_count": 0,
+    "unrelated_existing_console_error_count": 2,
+    "expected_denied_console_error_count": 0
+  },
+  "geometry": [
+    {
+      "name": "lv-03-staff-self-service-1512x900.png",
+      "viewport": {
+        "width": 1512,
+        "height": 900
+      },
+      "client_width": 1512,
+      "scroll_width": 1512,
+      "target_visible": true
+    },
+    {
+      "name": "lv-03-staff-self-service-720x800.png",
+      "viewport": {
+        "width": 720,
+        "height": 800
+      },
+      "client_width": 720,
+      "scroll_width": 720,
+      "target_visible": true
+    },
+    {
+      "name": "lv-03-manager-reschedule-720x900.png",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      },
+      "client_width": 720,
+      "scroll_width": 720,
+      "target_visible": true
+    },
+    {
+      "name": "lv-03-staff-approved-1512x900.png",
+      "viewport": {
+        "width": 1512,
+        "height": 900
+      },
+      "client_width": 1512,
+      "scroll_width": 1512,
+      "target_visible": true
+    },
+    {
+      "name": "lv-03-manager-team-1512x900.png",
+      "viewport": {
+        "width": 1512,
+        "height": 900
+      },
+      "client_width": 1512,
+      "scroll_width": 1512,
+      "target_visible": true
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-03-staff-self-service-1512x900.png",
+      "sha256": "fdcb7b818648b45f440b4565641bd67dff8bbfc18427c985430d83f3e680c8d3",
+      "viewport": {
+        "width": 1512,
+        "height": 900
+      }
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-03-staff-self-service-720x800.png",
+      "sha256": "a2a8f7c7cf3733ded324c0514be41accce22163de9b356383f4c831c4d7a47df",
+      "viewport": {
+        "width": 720,
+        "height": 800
+      }
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-03-manager-reschedule-720x900.png",
+      "sha256": "81f9f48e0de59f0bb41cf8d58b1e3bd2b05c93be0e78ed280fdc1e1b479273b9",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      }
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-03-staff-approved-1512x900.png",
+      "sha256": "c5f3a273c44ba41207ac23f074197bc4994ba8cf4145d4d755f8c1a82187f609",
+      "viewport": {
+        "width": 1512,
+        "height": 900
+      }
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-03-manager-team-1512x900.png",
+      "sha256": "ee1337bd7fc27d6be2d1cb5f74c5fb57ddbc619de3bdbce72795eb65c2ac75ae",
+      "viewport": {
+        "width": 1512,
+        "height": 900
+      }
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-03-staff-approval-denied-1280x820.png",
+      "sha256": "a6c24b80144bb892bd440d18c514efea0b0c8dfc409109e693a536d17e2c0c4f",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      }
+    }
+  ],
+  "boundary": {
+    "production_store_used": false,
+    "real_employee_data_used": false,
+    "external_delivery_used": false,
+    "credential_material_recorded": false,
+    "public_release_claim": false,
+    "go_live_claim": false
+  }
+}

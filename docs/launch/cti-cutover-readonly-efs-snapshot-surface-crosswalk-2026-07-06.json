@@ -1,0 +1,47 @@
+{
+  "schema_version": "law-firm-os.cti-launch-tuw-crosswalk.v0.1",
+  "goal_id": "cti-cutover-readonly-efs-snapshot-surface",
+  "recorded_at": "2026-07-06T07:10:00Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "approval_signature_refs": [
+    "I14-CTI-CUTOVER-READONLY-EFS-SNAPSHOT-SURFACE-OWNER-APPROVAL-2026-07-06"
+  ],
+  "work_package": "LT-PRE-W17",
+  "work_package_title": "canonical tenant injection CUTOVER read-only EFS snapshot surface",
+  "i14_to_tuw": {
+    "I14 approval and boundary": [
+      "LT-PRE-W17-T01"
+    ],
+    "direct-invoke read-only Lambda surface": [
+      "LT-PRE-W17-T02"
+    ],
+    "Lambda code deployment": [
+      "LT-PRE-W17-T03"
+    ],
+    "current production snapshot and isolated restore rehearsal": [
+      "LT-PRE-W17-T04"
+    ],
+    "CUTOVER preflight reassessment": [
+      "LT-PRE-W17-T05"
+    ],
+    "closeout and validator": [
+      "LT-PRE-W17-T06"
+    ]
+  },
+  "decision": "PASS_READONLY_EFS_SNAPSHOT_SURFACE",
+  "snapshot_hash": "2ce798915fccf16aff5c25746e8db4478dc5f160b7ebe7ca430833ce7735cffb",
+  "restore_rehearsal_status": "PASS",
+  "non_execution_boundary": {
+    "cutover_executed": false,
+    "production_write_executed": false,
+    "production_restore_executed": false,
+    "tenant_migration_executed": false,
+    "account_permission_injection_executed": false,
+    "operational_profile_switch_executed": false,
+    "bridge_token_rotation_executed": false,
+    "password_issuance_distribution_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "validator": "scripts/validate-cti-cutover-readonly-efs-snapshot-surface.mjs"
+}

@@ -1,0 +1,213 @@
+{
+  "schema_version": "lawos.upl_e09.wave1_five_flow_playwright_suite.v1",
+  "generated_at": "2026-07-03T03:24:16.934Z",
+  "tuw_ids": [
+    "UPL-E-09"
+  ],
+  "pass": true,
+  "playwright_suite": true,
+  "command": "node scripts/run-web-e2e.mjs wave1-five-flow",
+  "flows": [
+    {
+      "id": "opening",
+      "label": "opening",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/upl-c08-intake-completion-browser-proof.json",
+      "command": "node scripts/run-upl-c08-intake-completion-browser-proof.mjs",
+      "pass": true,
+      "checks": 8,
+      "stdout_tail": [
+        "  \"proof\": \"docs/lazycodex/evidence/matter-web/artifacts/upl-c08-intake-completion-browser-proof.json\",",
+        "  \"screenshot\": \"/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-web/artifacts/upl-c08-screenshots/upl-c08-intake-completion.png\"",
+        "}"
+      ]
+    },
+    {
+      "id": "time-to-billing",
+      "label": "time-to-billing",
+      "artifact": "artifacts/manual-qa/upl-b01-time-entry-browser-proof.json",
+      "command": "node scripts/run-upl-b01-time-entry-browser-proof.mjs",
+      "pass": true,
+      "checks": 8,
+      "stdout_tail": [
+        "  \"checks\": 8,",
+        "  \"artifact\": \"artifacts/manual-qa/upl-b01-time-entry-browser-proof.json\"",
+        "}"
+      ]
+    },
+    {
+      "id": "leave",
+      "label": "leave",
+      "pass": true,
+      "route": "http://127.0.0.1:49787/?locale=ko&view=people&data=live&ctx=allow#people-leave",
+      "screenshot": "artifacts/manual-qa/screenshots/upl-e09-leave-flow.png",
+      "checks": [
+        {
+          "id": "e09-leave-panel-mounted",
+          "passed": true,
+          "evidence": {}
+        },
+        {
+          "id": "e09-leave-post-created",
+          "passed": true,
+          "evidence": {
+            "status": 201,
+            "request_id": "leave-emp_amic_yjlee-1783049047868"
+          }
+        },
+        {
+          "id": "e09-leave-readback-renders-request",
+          "passed": true,
+          "evidence": {}
+        },
+        {
+          "id": "e09-leave-api-readback",
+          "passed": true,
+          "evidence": {
+            "status": 200,
+            "returned_count": 1
+          }
+        },
+        {
+          "id": "e09-leave-browser-no-page-errors",
+          "passed": true,
+          "evidence": []
+        }
+      ],
+      "observed": {
+        "leave_post_seen": true,
+        "api_4xx_5xx_count": 0
+      },
+      "request_id": "leave-emp_amic_yjlee-1783049047868"
+    },
+    {
+      "id": "document",
+      "label": "document",
+      "pass": true,
+      "route": "http://127.0.0.1:49787/?locale=ko&view=vault&ctx=allow#vault-documents",
+      "screenshot": "artifacts/manual-qa/screenshots/upl-e09-document-flow.png",
+      "checks": [
+        {
+          "id": "e09-document-upload-indexed",
+          "passed": true,
+          "evidence": {
+            "status": 201,
+            "document_id": "doc_upl_e09_document_1783049041293"
+          }
+        },
+        {
+          "id": "e09-document-browser-search-hit",
+          "passed": true,
+          "evidence": {
+            "marker_present": true,
+            "state": "data",
+            "query": "E09문서검색",
+            "result_count": 1,
+            "raw_text_included": "false",
+            "title_visible": true,
+            "hidden_term_visible": false,
+            "body_match_label_visible": true
+          }
+        },
+        {
+          "id": "e09-document-raw-body-hidden",
+          "passed": true,
+          "evidence": {
+            "marker_present": true,
+            "state": "data",
+            "query": "E09문서검색",
+            "result_count": 1,
+            "raw_text_included": "false",
+            "title_visible": true,
+            "hidden_term_visible": false,
+            "body_match_label_visible": true
+          }
+        },
+        {
+          "id": "e09-document-browser-no-page-errors",
+          "passed": true,
+          "evidence": []
+        }
+      ],
+      "upload": {
+        "status": 201,
+        "document_id": "doc_upl_e09_document_1783049041293",
+        "outcome": "created"
+      },
+      "observed": {
+        "search_request_seen": true,
+        "api_4xx_5xx_count": 2
+      }
+    },
+    {
+      "id": "portal",
+      "label": "portal",
+      "artifact": "artifacts/manual-qa/upl-c13-client-portal-browser-proof.json",
+      "command": "node scripts/run-upl-c13-client-portal-browser-proof.mjs",
+      "pass": true,
+      "checks": 10,
+      "stdout_tail": [
+        "  \"checks\": 10,",
+        "  \"artifact\": \"artifacts/manual-qa/upl-c13-client-portal-browser-proof.json\"",
+        "}"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": "e09-five-required-flows-present",
+      "passed": true,
+      "evidence": [
+        "opening",
+        "time-to-billing",
+        "leave",
+        "document",
+        "portal"
+      ]
+    },
+    {
+      "id": "e09-all-flows-pass",
+      "passed": true,
+      "evidence": [
+        {
+          "id": "opening",
+          "pass": true
+        },
+        {
+          "id": "time-to-billing",
+          "pass": true
+        },
+        {
+          "id": "leave",
+          "pass": true
+        },
+        {
+          "id": "document",
+          "pass": true
+        },
+        {
+          "id": "portal",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "e09-suite-runs-playwright-browser",
+      "passed": true,
+      "evidence": {
+        "browser": "chromium",
+        "proof_scripts": [
+          "node scripts/run-upl-c08-intake-completion-browser-proof.mjs",
+          "node scripts/run-upl-b01-time-entry-browser-proof.mjs",
+          "node scripts/run-upl-c13-client-portal-browser-proof.mjs"
+        ],
+        "native_browser_legs": [
+          "leave",
+          "document"
+        ]
+      }
+    }
+  ],
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "external_provider_claim": false
+}

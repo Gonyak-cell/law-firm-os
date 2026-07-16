@@ -28,7 +28,7 @@ function timelineRows(entries = []) {
     `활동 ${index + 1}`,
     timelineTypeLabel(entry.type),
     timelineTitleLabel(entry.title, index),
-    entry.source_ref ? "권한 기준 적용" : "일반"
+    entry.source_ref ? "연결됨" : "일반"
   ]);
 }
 
@@ -164,12 +164,12 @@ function workspaceBridgeState(result) {
 }
 
 function workspaceBridgeLabel(result) {
-  if (result === null) return "Matter/Vault 원천 확인 중";
+  if (result === null) return "Matter/Vault 연결 확인 중";
   if (result.kind === "data" && result.runtimeWriteReady && result.repositoryDurable && !result.productionReadyClaim) {
-    return "Matter/Vault 원천 확인";
+    return "Matter/Vault 연결됨";
   }
-  if (result.kind === "data") return "Matter/Vault 원천 보류";
-  return "Matter/Vault 원천 차단";
+  if (result.kind === "data") return "Matter/Vault 확인 필요";
+  return "Matter/Vault 연결 필요";
 }
 
 function workspacePreflightState(result) {
@@ -180,10 +180,10 @@ function workspacePreflightState(result) {
 }
 
 function workspacePreflightLabel(result) {
-  if (result === null) return "사전검사 전";
-  if (result.kind === "data" && result.outcome === "preflight_passed" && !result.productionReadyClaim) return "권한 확인만 완료";
-  if (result.kind === "guarded") return "권한 확인 보류";
-  return "사전검사 차단";
+  if (result === null) return "확인 전";
+  if (result.kind === "data" && result.outcome === "preflight_passed" && !result.productionReadyClaim) return "준비 완료";
+  if (result.kind === "guarded") return "확인 필요";
+  return "다시 확인 필요";
 }
 
 function builderMessage(result) {
@@ -199,7 +199,7 @@ function builderMessage(result) {
 function emailMessage(result) {
   if (!result) return null;
   if (result.kind === "error") return "이메일 초안 작업을 완료하지 못했습니다.";
-  if (result.statusOutcome === "provider_blocked" || result.uiState === "provider_blocked") return "외부 발송 연결이 필요해 대기 상태입니다.";
+  if (result.statusOutcome === "provider_blocked" || result.uiState === "provider_blocked") return "외부 발송 준비가 필요합니다.";
   if (result.statusOutcome === "created") return "이메일 초안이 생성되었습니다.";
   if (result.statusOutcome === "updated") return "이메일 초안이 갱신되었습니다.";
   return "이메일 초안 상태가 갱신되었습니다.";
@@ -410,14 +410,14 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
     body = (
       <div className="live-data-state live-data-denied">
         <strong>접근 권한이 없습니다</strong>
-        권한이 있는 Matter Vault 정보만 표시됩니다.
+        담당자에게 접근을 요청하세요.
       </div>
     );
   } else if (!matterId && liveCtx === "review") {
     body = (
       <div className="live-data-state live-data-review">
         <strong>검토가 필요합니다</strong>
-        검토가 끝나면 Matter Vault 정보를 확인할 수 있습니다.
+        담당자 확인 후 Matter Vault 정보를 볼 수 있습니다.
       </div>
     );
   } else if (!matterId || summary === null || timeline === null) {
@@ -437,14 +437,14 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
     body = (
       <div className="live-data-state live-data-denied">
         <strong>접근 권한이 없습니다</strong>
-        권한이 있는 Vault 정보만 표시됩니다.
+        담당자에게 접근을 요청하세요.
       </div>
     );
   } else if (summary.uiState === "review_required") {
     body = (
       <div className="live-data-state live-data-review">
         <strong>검토가 필요합니다</strong>
-        검토가 끝나면 Vault 정보를 확인할 수 있습니다.
+        담당자 확인 후 Vault 정보를 볼 수 있습니다.
       </div>
     );
   } else if (!item && !hasVaultCollectionPreview) {
@@ -456,10 +456,6 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
   } else {
     body = (
       <div className="vault-live-stack">
-        <div className="vault-safe-strip">
-          <ShieldCheck size={15} />
-          <span>문서 내용은 권한이 있을 때만 표시됩니다.</span>
-        </div>
         <div
           className={`vault-action-boundary ${workspacePreflightPassed ? "ready" : workspaceBridgeResult?.kind === "data" ? "blocked" : "error"}`}
           data-lcx-vltui-03-document-workspace-boundary="true"
@@ -474,7 +470,7 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
         >
           <div className="vault-action-boundary-strip">
             <ShieldCheck size={15} />
-            <span>문서 작업 사전검사</span>
+            <span>문서 작업 준비</span>
             <button
               className="secondary-button vault-action-boundary-action"
               data-lcx-vltui-03-preflight-action="true"
@@ -482,60 +478,60 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
               onClick={handleWorkspacePreflight}
             >
               <Eye size={15} />
-              {workspacePreflightPending ? "사전검사 중" : "문서 사전검사"}
+              {workspacePreflightPending ? "확인 중" : "준비 확인"}
             </button>
           </div>
           <div className="vault-action-boundary-list">
             <div className="vault-action-boundary-row" data-lcx-vltui-03-source-row="true">
               <div className="vault-action-boundary-main">
-                <strong>Matter app 원천</strong>
+                <strong>Matter 연결</strong>
                 <span>{workspaceBridgeLabel(workspaceBridgeResult)}</span>
               </div>
               <div className="vault-action-boundary-meta">
-                <span>{workspaceBridgeResult?.kind === "data" ? "bridge status read" : "fail-closed"}</span>
+                <span>{workspaceBridgeResult?.kind === "data" ? "확인됨" : "확인 필요"}</span>
               </div>
             </div>
             <div className="vault-action-boundary-row" data-lcx-vltui-03-preflight-row="true">
               <div className="vault-action-boundary-main">
-                <strong>권한 확인</strong>
+                <strong>작업 준비</strong>
                 <span>{workspacePreflightLabel(workspacePreflightResult)}</span>
               </div>
               <div className="vault-action-boundary-meta">
-                <span>{workspacePreflightResult?.preflightRef ?? "reference-only"}</span>
+                <span>{workspacePreflightResult?.kind === "data" ? "확인됨" : "대기"}</span>
               </div>
             </div>
             <div className="vault-action-boundary-row" data-lcx-vltui-03-publish-boundary="true">
               <div className="vault-action-boundary-main">
                 <strong>Vault 게시</strong>
-                <span>{workspacePublishState === "owner-blocked" ? "게시 요청만 가능, 쓰기 차단" : "초안과 사전검사 필요"}</span>
+                <span>{workspacePublishState === "owner-blocked" ? "게시 요청 준비됨" : "초안과 준비 확인 필요"}</span>
               </div>
               <div className="vault-action-boundary-meta">
-                <span>write=false</span>
+                <span>{workspacePublishState === "owner-blocked" ? "대기" : "준비 필요"}</span>
               </div>
             </div>
             <div className="vault-action-boundary-row" data-lcx-vltui-03-import-boundary="true">
               <div className="vault-action-boundary-main">
                 <strong>문서 가져오기</strong>
-                <span>{workspaceImportDryRunState === "dry-run-ready" ? "Dry-run만 열림, 실행은 차단" : "사전검사 전 실행 차단"}</span>
+                <span>{workspaceImportDryRunState === "dry-run-ready" ? "가져오기 준비됨" : "준비 확인 필요"}</span>
               </div>
               <div className="vault-action-boundary-meta">
-                <span>{workspaceImportExecuteState}</span>
+                <span>{workspaceImportDryRunState === "dry-run-ready" ? "대기" : "준비 필요"}</span>
               </div>
             </div>
             <div className="vault-action-boundary-row" data-lcx-vltui-03-email-send-boundary="true">
               <div className="vault-action-boundary-main">
                 <strong>외부 발송</strong>
-                <span>{workspaceEmailSendState === "provider-blocked" ? "초안 후 provider-blocked" : "초안 필요"}</span>
+                <span>{workspaceEmailSendState === "provider-blocked" ? "발송 준비 필요" : "초안 필요"}</span>
               </div>
               <div className="vault-action-boundary-meta">
-                <span>outlook_graph=false</span>
+                <span>{workspaceEmailSendState === "provider-blocked" ? "대기" : "준비 필요"}</span>
               </div>
             </div>
           </div>
           {workspacePreflightResult && (
             <div className="live-data-state live-data-review" data-lcx-vltui-03-preflight-result="true">
               <strong>{workspacePreflightLabel(workspacePreflightResult)}</strong>
-              <span>문서 바이트, 원본 저장 경로, 운영 준비 주장은 표시하지 않습니다.</span>
+              <span>문서 작업 준비 상태가 업데이트되었습니다.</span>
             </div>
           )}
         </div>
@@ -601,13 +597,13 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
           {builderDraftResult && (
             <div className="live-data-state live-data-review" data-sf-b-w04-builder-draft-result="true">
               <strong>{builderMessage(builderDraftResult)}</strong>
-              <span>본문과 병합 값은 숨깁니다.</span>
+              <span>초안이 준비되었습니다.</span>
             </div>
           )}
           {builderPatchResult && (
             <div className="live-data-state live-data-review" data-sf-b-w04-builder-patch-result="true">
               <strong>{builderMessage(builderPatchResult)}</strong>
-              <span>검토 상태와 감사 기록만 표시됩니다.</span>
+              <span>검토 준비가 업데이트되었습니다.</span>
             </div>
           )}
           {builderPreview?.kind === "data" && (
@@ -619,13 +615,13 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
           {builderApprovalResult && (
             <div className="live-data-state live-data-review" data-sf-b-w04-builder-approval-result="true">
               <strong>{builderMessage(builderApprovalResult)}</strong>
-              <span>승인자 식별값은 숨깁니다.</span>
+              <span>승인 요청이 준비되었습니다.</span>
             </div>
           )}
           {builderPublishResult && (
             <div className="live-data-state live-data-denied" data-sf-b-w04-builder-publish-blocked-result="true">
               <strong>{builderMessage(builderPublishResult)}</strong>
-              <span>Vault 문서 쓰기는 승인과 실행 증거 전까지 차단됩니다.</span>
+              <span>담당자 확인 후 Vault 등록이 진행됩니다.</span>
             </div>
           )}
           <VaultCollectionTable
@@ -642,7 +638,7 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
             <span>이메일 초안</span>
           </div>
           <div className="record-action-strip">
-            <span>{emailDraftId ? "이메일 초안 준비됨" : "초안 작성 후 발송 경계를 확인할 수 있습니다"}</span>
+            <span>{emailDraftId ? "이메일 초안 준비됨" : "초안 작성 후 발송 요청을 준비할 수 있습니다"}</span>
             <button className="secondary-button" disabled={emailPending} onClick={handleCreateEmailDraft} data-sf-b-w04-email-draft-action="true">
               <FilePlus2 size={15} />
               {emailPending ? "처리 중" : "초안 생성"}
@@ -659,19 +655,19 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
           {emailDraftResult && (
             <div className="live-data-state live-data-review" data-sf-b-w04-email-draft-result="true">
               <strong>{emailMessage(emailDraftResult)}</strong>
-              <span>수신자와 본문 원문은 숨깁니다.</span>
+              <span>이메일 초안이 준비되었습니다.</span>
             </div>
           )}
           {emailPatchResult && (
             <div className="live-data-state live-data-review" data-sf-b-w04-email-patch-result="true">
               <strong>{emailMessage(emailPatchResult)}</strong>
-              <span>초안 메타데이터만 갱신됩니다.</span>
+              <span>이메일 초안이 업데이트되었습니다.</span>
             </div>
           )}
           {emailSendResult && (
             <div className="live-data-state live-data-denied" data-sf-b-w04-email-send-provider-blocked="true">
               <strong>{emailMessage(emailSendResult)}</strong>
-              <span>발송 성공 상태로 처리하지 않습니다.</span>
+              <span>발송 요청이 준비되었습니다.</span>
             </div>
           )}
         </div>
@@ -680,7 +676,7 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
   }
 
   return (
-    <Panel id="matter-vault" className="record-list-panel matter-runtime-panel" title="Matter Vault" meta="문서 연결">
+    <Panel id="matter-vault" className="record-list-panel matter-runtime-panel" title="Matter Vault">
       <div
         className="matter-vault-panel"
         data-mv-matter-vault-panel="true"
@@ -716,7 +712,7 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
         {documentMessage && (
           <div className="live-data-state live-data-review" data-matter-document-facade-result="true">
             <strong>{documentMessage}</strong>
-            <span>문서 내용과 원본 저장 경로는 숨깁니다.</span>
+            <span>문서 연결 상태가 업데이트되었습니다.</span>
           </div>
         )}
         {body}

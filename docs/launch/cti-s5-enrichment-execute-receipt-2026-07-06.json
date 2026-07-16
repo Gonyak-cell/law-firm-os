@@ -1,0 +1,234 @@
+{
+  "schema_version": "law-firm-os.cti.s5-enrichment-execute.receipt.v0.1",
+  "goal_id": "cti-s5-enrichment-execute",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "recorded_at": "2026-07-06T12:39:59.132Z",
+  "approval_signature_refs": [
+    "I12-CTI-S5-ENRICHMENT-OWNER-APPROVAL-2026-07-06",
+    "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06"
+  ],
+  "i1_workbook": {
+    "path_hash": "sha256:15d9e261df93e165ec9f22eb73cba030fbc195680f365b30d935f8f88f620d46",
+    "sha256": "52382ee35d4ba7e0133ed2d9ddad8a1c53ee64c9ab42a0ca89fba5dc177106d4",
+    "byte_length": 27972,
+    "mapping_row_count": 148,
+    "attorney_user_count": 4,
+    "accountant_assignment_row_count": 5,
+    "accountant_rows_deal_count": 5,
+    "raw_principal_names_committed": false,
+    "raw_principal_emails_committed": false
+  },
+  "lambda_deploy": {
+    "function_name": "matter-lawos-api-prod",
+    "code_sha256": "qjvRqCQAIGrRLuLdBzU/xyg5YRobSbk2w55yNJjYAb8=",
+    "revision_id": "d199f4a3-084d-4da0-ae31-079c0efd75d6",
+    "package_sha256": "sha256:aa3bd1a82400206ad12ee2dd07353fc72839611a1b49b936c39e723498d801bf",
+    "timeout": {
+      "function_name": "matter-lawos-api-prod",
+      "changed": false,
+      "timeout_before_seconds": 120,
+      "timeout_after_seconds": 120,
+      "revision_id": "f3f053b7-969b-4545-8373-88773a0645d3"
+    }
+  },
+  "lambda_invoke": {
+    "status_code": 200,
+    "function_error": null,
+    "executed_version": "$LATEST"
+  },
+  "lambda_receipt": {
+    "ok": true,
+    "schema_version": "law-firm-os.cti.s5-enrichment-execute.v0.1",
+    "goal_id": "cti-s5-enrichment-execute",
+    "maintenance_action": "cti_s5_enrichment_execute",
+    "request_id": "cti-s5-enrichment-execute",
+    "generated_at": "2026-07-06T12:40:09.144Z",
+    "lambda_function_name": "matter-lawos-api-prod",
+    "runtime_profile": "operational",
+    "tenant_id": "tenant_amic_matter_vault",
+    "approval_signature_refs": [
+      "I12-CTI-S5-ENRICHMENT-OWNER-APPROVAL-2026-07-06",
+      "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06"
+    ],
+    "status": "PASS",
+    "input_summary": {
+      "i1_workbook_sha256": "52382ee35d4ba7e0133ed2d9ddad8a1c53ee64c9ab42a0ca89fba5dc177106d4",
+      "mapping_row_count": 148,
+      "attorney_assignment_count": 1588,
+      "accounting_assignment_count": 5,
+      "raw_mapping_values_returned": false
+    },
+    "pre_snapshot": {
+      "snapshot_hash": "0635d714c8735bef6a5096bc28c168f281912680e3e8c89cdc0f1f81276bea89",
+      "readable_store_file_count": 16,
+      "restore_rehearsal_status": "PASS",
+      "read_error_count": 0,
+      "blocked_path_count": 0
+    },
+    "staffing": {
+      "matter_store_relative_path": "stores/matter-store.json",
+      "matter_store_path_hash": "sha256:5f98cea290526114154a6a7a3ee6a04fe9018ebf26a3d2cc95c1095aad79c225",
+      "matter_store_repair_executed": false,
+      "matter_store_repair_reason": null,
+      "before_sha256": "f5bb3a5604f2a7012dec704a1e5496d6cb98df4bfff73acd3559b18c90e1fcad",
+      "after_sha256": "9a13cfb11aab94c0c03e955e7c5d135a50a82960dea3fdac2a45c6462e0ca7db",
+      "removed_synthetic_residue_record_count": 1593,
+      "mapping_row_count": 148,
+      "canonical_matter_count": 148,
+      "status_updated_count": 0,
+      "status_blank_preserved_count": 1,
+      "party_ref_updated_matter_count": 148,
+      "attorney_member_upsert_count": 1588,
+      "accounting_support_member_upsert_count": 5,
+      "accounting_support_readback_count": 5,
+      "kyt_accountant_not_attorney": true,
+      "kyt_scope_skipped_count": 0,
+      "responsible_attorney_matter_count": 148,
+      "readback_100_percent": true,
+      "plaintext_pii_recorded_in_receipt": false
+    },
+    "party": {
+      "master_data_store_relative_path": "stores/master-data-store.json",
+      "master_data_store_path_hash": "sha256:f8ca92d2f11459a272249690562dfed7894848213888acd5a4ebdd353afc55e2",
+      "before_sha256": "f50692908d5b8f992b6858112ec9ef7a2b65fa0b80431e3aa8b8c98c4085edd8",
+      "after_sha256": "f50692908d5b8f992b6858112ec9ef7a2b65fa0b80431e3aa8b8c98c4085edd8",
+      "client_expected_count": 99,
+      "party_readback_count": 99,
+      "entity_readback_count": 99,
+      "person_or_organization_readback_count": 99,
+      "missing_party_reference_count": 0,
+      "readback_100_percent": true,
+      "plaintext_pii_recorded_in_receipt": false
+    },
+    "contacts": {
+      "crm_store_relative_path": "stores/crm-store.json",
+      "crm_store_path_hash": "sha256:edab9b579efebde5cbb730ee3af432e6d217861277670e2cd68ffacc7bf301c8",
+      "before_sha256": "8ec12bb451c3c3c532bfec5c6ffea95f00085fb01bde46f96f2f5e8c358d1a8d",
+      "after_sha256": "c862f563a55fd336d2d8cf23f6d7645e974ec7732b0f814edd55b46bb616e0e4",
+      "internal_user_contact_expected_count": 9,
+      "internal_user_email_contact_readback_count": 9,
+      "phone_contact_source_available": false,
+      "phone_contact_source_unavailable_count": 9,
+      "client_contact_source_available_count": 0,
+      "raw_contact_value_returned_in_receipt": false,
+      "readback_100_percent": true,
+      "plaintext_pii_recorded_in_receipt": false
+    },
+    "conflict_index": {
+      "intake_store_relative_path": "stores/intake-store.json",
+      "intake_store_path_hash": "sha256:12133e77c1c74ef1fddbb7a5b1f45eccc19b2d234ce348707262b70698b37509",
+      "before_sha256": "042d6df809b83cf041054afe039becdd073ced4cae419cbf738a0fea6a2a60ba",
+      "after_sha256": "d8a2e8c4a2a1d4a08312f62fc72f3fdbbf255cb6d79ec8089493516da4111b7f",
+      "client_conflict_index_expected_count": 99,
+      "client_conflict_index_readback_count": 99,
+      "source_ref_counterparty_count": 0,
+      "source_ref_counterparty_source_available": false,
+      "raw_search_values_returned_in_receipt": false,
+      "readback_100_percent": true,
+      "plaintext_pii_recorded_in_receipt": false
+    },
+    "finance_analytics": {
+      "finance_store_relative_path": "stores/finance-store.json",
+      "analytics_store_relative_path": "stores/analytics-store.json",
+      "finance_store_path_hash": "sha256:70316e25d003e71621e967aba7a1f807dad2d81770f4d5efa599616f32887e04",
+      "analytics_store_path_hash": "sha256:3131a2db04bd1be3cbc6e91a623d666a7e250e4b57bf0e7c8cbf47c80ae921c7",
+      "finance_before_sha256": "45b21f05b20f1a4043f468e08cb71857d79f33ffba176291195a1037a27a6899",
+      "finance_after_sha256": "6c7ca0783233cf610750d3d81cd7c4980ec0ccefb0eea8fa7bc6aa0a1892cc43",
+      "analytics_before_sha256": "f92f6de352137cf463e9e138a9935f287c71e6714ce4e0b364bdada2dcc1d4bb",
+      "analytics_after_sha256": "73946f67770ee3ad5d7d5bcaa24e8643cc3e6df6e71c7da236dd923b7804098d",
+      "finance_reference_expected_count": 148,
+      "finance_reference_readback_count": 148,
+      "analytics_reference_expected_count": 148,
+      "analytics_reference_readback_count": 148,
+      "reference_integrity_error_count": 0,
+      "readback_100_percent": true,
+      "plaintext_pii_recorded_in_receipt": false
+    },
+    "audit": {
+      "audit_store_relative_path": "audit/security-audit-events.ndjson",
+      "audit_store_path_hash": "sha256:221a2a27f04bf658fe9d0793312c7237a93a4734fb8b7889c974b0efb68d8102",
+      "event_hash": "7b4f0702290ab2f6a89f1ee4382f57278ccbd0bedff5eba261db7bb09c05b31e",
+      "plaintext_pii_recorded": false,
+      "credential_material_recorded": false,
+      "token_material_recorded": false
+    },
+    "post_snapshot": {
+      "snapshot_hash": "65c5017537cfecbca65ee616b5b4007fc18647e8703898204f93a9a7fe5eb807",
+      "readable_store_file_count": 16,
+      "restore_rehearsal_status": "PASS",
+      "read_error_count": 0,
+      "blocked_path_count": 0
+    },
+    "s5_g_validation": {
+      "readback_100_percent": true,
+      "attorney_staffing_all_matters": true,
+      "kyt_accountant_not_attorney": true,
+      "integrity_error_count": 0,
+      "pii_plaintext_evidence": false,
+      "manifest_batches": [
+        "S5-T01",
+        "S5-T02",
+        "S5-T03",
+        "S5-T04",
+        "S5-T05",
+        "S5-T06"
+      ],
+      "phone_contact_source_unavailable_documented": true,
+      "pass": true
+    },
+    "boundary": {
+      "direct_invoke_only": true,
+      "public_http_endpoint": false,
+      "production_write_executed": true,
+      "production_restore_executed": false,
+      "s5_enrichment_executed": true,
+      "s6_final_seal_executed": false,
+      "oidc_implementation_executed": false,
+      "db_conversion_executed": false,
+      "production_ready_claim": false,
+      "go_live_claim": false,
+      "plaintext_pii_recorded": false,
+      "credential_material_recorded": false,
+      "token_material_recorded": false
+    }
+  },
+  "status": "s5_enrichment_execute_pass",
+  "boundary": {
+    "public_http_endpoint": false,
+    "direct_invoke_only": true,
+    "production_restore_executed": false,
+    "password_distribution_executed": false,
+    "reset_email_sent_to_non_jwsuh": false,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "plaintext_pii_committed": false,
+    "token_password_secret_value_committed": false
+  },
+  "commands": [
+    {
+      "command": "aws sts get-caller-identity",
+      "exit_code": 0,
+      "summary": "AWS caller verified for account 770880870480."
+    },
+    {
+      "command": "private I1 workbook parse",
+      "exit_code": 0,
+      "summary": "Parsed 148 rows; raw principal values not persisted."
+    },
+    {
+      "command": "aws lambda update-function-code",
+      "exit_code": 0,
+      "summary": "Deployed matter-lawos-api-prod for S5 maintenance action."
+    },
+    {
+      "command": "aws lambda update-function-configuration --timeout",
+      "exit_code": 0,
+      "summary": "matter-lawos-api-prod timeout already 120s."
+    },
+    {
+      "command": "aws lambda invoke cti_s5_enrichment_execute",
+      "exit_code": 0,
+      "summary": "Lambda maintenance action returned PASS."
+    }
+  ]
+}

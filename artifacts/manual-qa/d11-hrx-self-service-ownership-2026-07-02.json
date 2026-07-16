@@ -1,0 +1,52 @@
+{
+  "generated_at": "2026-07-02T12:14:16.281Z",
+  "scope": "UPL-D-11 HRX self-service ownership guard",
+  "result": "pass",
+  "surface": "HTTP /api/hrx employees documents leave reads",
+  "actor_id": "user_amic_ytkim",
+  "actor_role": "lawos_staff",
+  "observations": {
+    "list": {
+      "status": 200,
+      "employee_ids": [
+        "emp_amic_ytkim"
+      ],
+      "self_service_filtered": true
+    },
+    "own_employee": {
+      "status": 200,
+      "employee_id": "emp_amic_ytkim"
+    },
+    "other_employee": {
+      "status": 403,
+      "safe_error_code": "HRX_SELF_SERVICE_SCOPE_DENIED",
+      "employee": null
+    },
+    "own_documents": {
+      "status": 200,
+      "document_count": 1
+    },
+    "other_documents": {
+      "status": 403,
+      "safe_error_code": "HRX_SELF_SERVICE_SCOPE_DENIED",
+      "document_count": 0
+    },
+    "own_leave": {
+      "status": 200,
+      "employee_id": "emp_amic_ytkim",
+      "request_count": 2
+    },
+    "other_leave": {
+      "status": 403,
+      "safe_error_code": "HRX_SELF_SERVICE_SCOPE_DENIED",
+      "balance": null,
+      "request_count": 0
+    }
+  },
+  "verification": [
+    "node --check apps/api/src/hrx-runtime-context.js && node --check apps/api/test/hrx-runtime-api.test.js",
+    "node --test apps/api/test/hrx-runtime-api.test.js apps/api/test/hrx/route-authz.test.js",
+    "node scripts/validate-hrx-route-authz.mjs",
+    "node scripts/validate-hrx-runtime-readiness.mjs"
+  ]
+}

@@ -1,0 +1,30 @@
+# PV-002 Test Results
+
+- exact product build SHA: `a38a63f8bcc0bedae5d038027cb2de7148cd6129`
+- exact product tree: `3da21d6486a0577abb90a084988de3eb6888a189`
+- test-first negative proof: the targeted test initially failed with `ERR_MODULE_NOT_FOUND` for the missing common provenance helper; package validation then failed on the missing macOS manifest before either package was rebuilt
+- manifest unit tests: 3/3 PASS
+  - required version/full SHA/tree/renderer/channel/time fields accepted
+  - short or forged SHA/tree, wrong dirty type, invalid renderer, channel, platform, and time rejected
+  - renderer digest stable across filesystem creation order
+- source contract validator: PASS; Mac and Windows build path count 2
+- CLI matching surface: `--help` exit 0; invalid `--bogus` exit 2 with usage
+- macOS internal build: PASS; app, ZIP, and DMG created from the exact clean product SHA
+- Windows internal build: PASS; directory, PE executable, linked internal manifest, and unsigned ZIP created from the same exact clean product SHA
+- package provenance validator: PASS
+  - shared-field mismatch count: 0
+  - package receipt mismatch count: 0
+  - external/packaged manifest byte equality: true on both platforms
+  - Windows installer manifest linked: true
+- macOS/Windows renderer SHA-256: `f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445`, 28 files each
+- macOS build manifest SHA-256: `d42713cdf82b4ed33a6bb9116f13759c4156ba6b04baf4aea7444bccf1df61d1`
+- Windows build manifest SHA-256: `76fe2585593112456acc4ae529bad78b5da1a4ca4c147fd8b5ede8b0fbddb253`
+- Windows signed internal installer manifest: linked and signature verified; artifact hash mismatch count 0
+- PV-001 package version validator: PASS; source/package version mismatch 0, renderer mismatch 0
+- Desktop smoke: 102/102 PASS
+- public renderer PII scan: PASS; 56 files scanned, protected values printed false
+- changed scripts syntax: PASS
+- `git diff --check`: PASS
+- AI sloplint: exit 0; no auto-detectable signals
+- user root checkout: HEAD/status counts/fingerprint unchanged and no write performed
+- not run/claimed: PV-003 formal build fail-closed enforcement, Windows native runtime/install/uninstall, Windows Authenticode, macOS Developer ID/notary/staple/Gatekeeper distribution, public release, production, go-live

@@ -1,4 +1,5 @@
 import { createMatter, createMatterChecklist, createMatterMember } from "./model.js";
+import { MATTER_TASK_TRANSITIONS } from "./task-service.js";
 import { validateMatterCoreRecord } from "./validators.js";
 
 export const MATTER_G4A_MEMBER_ROLES = Object.freeze([
@@ -19,13 +20,7 @@ export const MATTER_G4A_REQUIRED_CLEARANCE_FIELDS = Object.freeze([
   "snapshot_hash",
 ]);
 
-export const MATTER_G4B_TASK_STATUS_TRANSITIONS = Object.freeze({
-  todo: Object.freeze(["in_progress", "blocked", "cancelled"]),
-  in_progress: Object.freeze(["blocked", "done", "cancelled"]),
-  blocked: Object.freeze(["in_progress", "cancelled"]),
-  done: Object.freeze([]),
-  cancelled: Object.freeze([]),
-});
+export const MATTER_G4B_TASK_STATUS_TRANSITIONS = MATTER_TASK_TRANSITIONS;
 
 export const MATTER_G4B_CLIENT_REPORT_HIDDEN_FIELDS = Object.freeze([
   "conflict_memo",
@@ -157,6 +152,8 @@ export function createMatterG4OpeningRecord(input = {}) {
     status: input.status ?? "opening",
     matter_type_english: input.matter_type_english,
     matter_detail_type_korean: input.matter_detail_type_korean,
+    client_case_role: input.client_case_role ?? null,
+    client_case_role_confidence: input.client_case_role_confidence ?? null,
     source_revision: input.source_revision,
     created_by: input.created_by,
     created_at: input.created_at,

@@ -1,0 +1,20 @@
+{
+  "schema_version": "law-firm-os.matter-worktree.canonical-commit-audit.v1",
+  "status": "passed",
+  "expected_tuw_count": 43,
+  "canonical_commit_count": 43,
+  "unique_tuw_count": 43,
+  "required_evidence": [
+    "acceptance.md",
+    "commands.txt",
+    "tests.txt",
+    "files.txt"
+  ],
+  "foreign_tuw_evidence_commits": 0,
+  "missing_red_conditions": 0,
+  "missing_green_results": 0,
+  "command": "node scripts/validate-matter-worktree-commit-boundaries.mjs",
+  "public_release": false,
+  "aws_deployment": false,
+  "production_go_live": false
+}

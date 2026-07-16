@@ -1,9 +1,9 @@
 import React from "react";
 
-export function PageHeader({ eyebrow, title, subtitle, actions }) {
+export function PageHeader({ eyebrow, title, subtitle, actions, heroTakeover = false }) {
   return (
     <div className="page-header">
-      <div>
+      <div hidden={heroTakeover}>
         {eyebrow && <span className="eyebrow">{eyebrow}</span>}
         <h1>{title}</h1>
         {subtitle && <p>{subtitle}</p>}
@@ -13,15 +13,16 @@ export function PageHeader({ eyebrow, title, subtitle, actions }) {
   );
 }
 
-export function Panel({ id, title, meta, children, className = "" }) {
+export function Panel({ id, title, meta = null, children, className = "", hideHeader = false, ...props }) {
+  const shouldShowHeader = !hideHeader && (title || meta);
   return (
-    <section id={id} className={`panel ${className}`}>
-      <header className="panel-head">
-        <div>
-          <h2>{title}</h2>
+    <section id={id} className={`panel ${hideHeader ? "panel--headerless" : ""} ${className}`} aria-label={hideHeader && title ? title : undefined} {...props}>
+      {shouldShowHeader && (
+        <header className="panel-head">
+          {title && <h2>{title}</h2>}
           {meta && <span>{meta}</span>}
-        </div>
-      </header>
+        </header>
+      )}
       <div className="panel-body">{children}</div>
     </section>
   );

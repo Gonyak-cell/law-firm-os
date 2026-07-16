@@ -1,0 +1,495 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.guarded_ui_browser_proof.v0.1",
+  "generated_at": "2026-06-30T09:22:10.600Z",
+  "tuw_ids": [
+    "LCX-FULL-02.03",
+    "LCX-FULL-02.04",
+    "LCX-FULL-02.05"
+  ],
+  "verdict": "PASS",
+  "web_url": "http://127.0.0.1:5173",
+  "routes": [
+    {
+      "id": "matter-vault",
+      "path": "?view=matters#matter-vault",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-02-screenshots/matter-vault.png",
+      "url": "http://127.0.0.1:5173/?view=matters#matter-vault",
+      "attr_count": 11,
+      "attrs": [
+        {
+          "tag": "div",
+          "text": "Matter사건 운영홈사건 목록18신규 사건수임 진행종결 처리보관 사건업무 진행문서·자료사건 문서증거·자료양식·템플릿인장·날인소통·참여결재·청구리포트·관리Matter사건 상태, 담당자·참여자, 문서, 일정, 결재·청구 흐름을 확인합니다.새로고침홈사건 ",
+          "attrs": {
+            "data-sidebar-state": "contextual"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "문서 작업 사전검사문서 사전검사Matter app 원천Matter/Vault 원천 차단fail-closed권한 확인사전검사 전reference-onlyVault 게시초안과 사전검사 필요write=false문서 가져오기사전검사 전 실행 차단preflig",
+          "attrs": {
+            "data-lcx-vltui-03-vault-source-state": "source-blocked",
+            "data-lcx-vltui-03-preflight-state": "not-run",
+            "data-lcx-vltui-03-publish-state": "draft-required",
+            "data-lcx-vltui-03-publish-write-enabled": "false",
+            "data-lcx-vltui-03-import-dry-run-state": "preflight-required",
+            "data-lcx-vltui-03-import-execute-state": "preflight-required",
+            "data-lcx-vltui-03-email-send-state": "draft-required",
+            "data-lcx-vltui-03-preflight-ref": ""
+          }
+        },
+        {
+          "tag": "button",
+          "text": "문서 사전검사",
+          "attrs": {
+            "data-lcx-vltui-03-preflight-action": "true"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "권한 확인사전검사 전reference-only",
+          "attrs": {
+            "data-lcx-vltui-03-preflight-row": "true"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "표시할 감사 정보가 없습니다",
+          "attrs": {
+            "data-vault-preview": "matter-vault-audit"
+          }
+        },
+        {
+          "tag": "button",
+          "text": "Vault 등록 요청",
+          "attrs": {
+            "data-lcx-vltui-03-publish-action-state": "draft-required"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "이메일 초안초안 작성 후 발송 경계를 확인할 수 있습니다초안 생성내용 정리발송 요청",
+          "attrs": {
+            "data-matter-email-composer": "provider-blocked"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "책임자미지정변경",
+          "attrs": {
+            "data-matter-record-owner-change-action": "true"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "책임자 일괄 변경승인 조건 확인승인 확인",
+          "attrs": {
+            "data-sf-b-w02-matter-owner-blocked-action": "true"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "최근 작업 0건",
+          "attrs": {
+            "data-sf-b-w02-matter-action-audit-feed": "true"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "외부 연동 승인 대기",
+          "attrs": {
+            "data-sf-b-w03-channel-provider-state": "true"
+          }
+        }
+      ],
+      "disabled_count": 7,
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\nMatter\n사건 운영\n홈\n사건 목록\n18\n신규 사건\n수임 진행\n종결 처리\n보관 사건\n업무 진행\n문서·자료\n사건 문서\n증거·자료\n양식·템플릿\n인장·날인\n소통·참여\n결재·청구\n리포트·관리\nMatter\n\n사건 상태, 담당자·참여자, 문서, 일정, 결재·청구 흐름을 확인합니다.\n\n새로고침\n홈\n사건 목록\n업무 보드\n일정\n외부 일정\n사건 문서\nMatter Vault\n문서 연결\nVault 미리보기\n등록 Vault 저장소\n새로고침\n문서 연결\n문서 내용은 권한이 있을 때만 표시됩니다.\n문서 작업 사전검사\n문서 사전검사\nMatter app 원천\nMatter/Vault 원천 차단\nfail-closed\n권한 확인\n사전검사 전\nreference-only\nVault 게시\n초안과 사전검사 필요\nwrite=false\n문서 가져오기\n사전검사 전 실행 차단\npreflight-required\n외부 발송\n초안 필요\noutlook_graph=false\n활동\t유형\t제목\t표시 범위\n문서\t상태\t계정\t보호\nSynthetic engagement letter\t사용 중\tjwsuh@amic.kr\t보호됨\n문서\t버전\t색인\t보안\ndoc_rp07_synthetic_001\tversion_doc_rp07_synthetic_001_1\ttitle, matter_id, version_id\t보호됨\n표시할 감사 정보가 없습니다\n문서 초안\n템플릿\t유형\t필드\t승인\n위임계약서\t문서\t3개\t승인 필요\n진행상황 안내 메일\t이메일\t3개\t승인 필요\n템플릿 선택 후 초안을 만들 수 있습니다\n초안 생성\n검토 준비\n승인 요청\nVault 등록 요청\n표시할 승인 요청 정보가 없습니다\n이메일 초안\n초안 작성 후 발송 경계를 확인할 수 있습니다\n초안 생성\n내용 정리\n발송 요청\n레코드\nMatter 1\n상태\n개시 중\n청구\n청구 준비 가능\n책임자\n미지정\n팀\n1\n문서\n0\n활동\n0\n기한\n0\n대화\n0\n청구\n2\n분석\n2\n청구 상태\n청구 준비 가능\n저장\n책",
+      "console_unexpected_errors": [],
+      "http_failures": [
+        {
+          "status": 403,
+          "url": "http://127.0.0.1:5173/api/matters/vault-bridge/status",
+          "type": "fetch",
+          "expected": true
+        }
+      ],
+      "unexpected_http_failures": [],
+      "page_errors": [],
+      "forbidden_text_detected": false
+    },
+    {
+      "id": "vault-documents",
+      "path": "?view=vault#vault-documents",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-02-screenshots/vault-documents.png",
+      "url": "http://127.0.0.1:5173/?view=vault#vault-documents",
+      "attr_count": 9,
+      "attrs": [
+        {
+          "tag": "div",
+          "text": "Vault문서함24문서 상세메일 보관함VaultVault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다.새로고침Vault 문서함권한 기준 적용문서 본문은 권한이 있을 때만 표시합니다.Matter 선택됨 / Vault / 작업공간 준비됨보",
+          "attrs": {
+            "data-sidebar-state": "contextual"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "Matter 선택 전",
+          "attrs": {
+            "data-vault-selected-matter-state": "empty"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "먼저 Matter를 선택하세요.상태Matter 선택 전MatterMatter 선택 전다음 단계대기Vault 쓰기차단사전검사 실행",
+          "attrs": {
+            "data-lcx-vltui-02-upload-preflight": "true",
+            "data-vault-upload-preflight-state": "no-matter",
+            "data-vault-upload-write-enabled": "false",
+            "data-vault-upload-preflight-ref": ""
+          }
+        },
+        {
+          "tag": "div",
+          "text": "Matter를 선택해야 문서 작업 경계를 확인할 수 있습니다.새 버전 등록Matter를 선택해야 문서 작업 경계를 확인할 수 있습니다.VaultMatter 선택 필요버전 등록 차단메타데이터 변경Matter를 선택해야 문서 작업 경계를 확인할 수 있습니",
+          "attrs": {
+            "data-vault-boundary-base-state": "matter-required",
+            "data-vault-boundary-write-enabled": "false",
+            "data-vault-boundary-preflight-ref": "",
+            "data-vault-version-upload-state": "matter-required",
+            "data-vault-metadata-mutation-state": "matter-required",
+            "data-vault-legal-hold-state": "matter-required",
+            "data-vault-retention-state": "matter-required",
+            "data-vault-document-action-state": "matter-required"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "새 버전 등록Matter를 선택해야 문서 작업 경계를 확인할 수 있습니다.VaultMatter 선택 필요버전 등록 차단",
+          "attrs": {
+            "data-vault-boundary-state": "matter-required",
+            "data-vault-boundary-owner": "Vault",
+            "data-vault-boundary-write-enabled": "false"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "메타데이터 변경Matter를 선택해야 문서 작업 경계를 확인할 수 있습니다.Matter appMatter 선택 필요변경 차단",
+          "attrs": {
+            "data-vault-boundary-state": "matter-required",
+            "data-vault-boundary-owner": "Matter app",
+            "data-vault-boundary-write-enabled": "false"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "법적 보존Matter를 선택해야 문서 작업 경계를 확인할 수 있습니다.Owner 결정 필요Matter 선택 필요보존 변경 차단",
+          "attrs": {
+            "data-vault-boundary-state": "matter-required",
+            "data-vault-boundary-owner": "Owner 결정 필요",
+            "data-vault-boundary-write-enabled": "false"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "보존 정책Matter를 선택해야 문서 작업 경계를 확인할 수 있습니다.Vault RecordsMatter 선택 필요정책 변경 차단",
+          "attrs": {
+            "data-vault-boundary-state": "matter-required",
+            "data-vault-boundary-owner": "Vault Records",
+            "data-vault-boundary-write-enabled": "false"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "문서 작업Matter를 선택해야 문서 작업 경계를 확인할 수 있습니다.Matter app + VaultMatter 선택 필요작업 차단",
+          "attrs": {
+            "data-vault-boundary-state": "matter-required",
+            "data-vault-boundary-owner": "Matter app + Vault",
+            "data-vault-boundary-write-enabled": "false"
+          }
+        }
+      ],
+      "disabled_count": 6,
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\nVault\n문서함\n24\n문서 상세\n메일 보관함\nVault\n\nVault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다.\n\n새로고침\nVault 문서함\n권한 기준 적용\n문서 본문은 권한이 있을 때만 표시합니다.\nMatter 선택됨 / Vault / 작업공간 준비됨\n보존 설정 없음 / 권한 기준 적용\n문서\t제목\t등록 계정\t상태\t버전\t권한\t보존\n문서 1\tSynthetic engagement letter\t서지원\t사용 중\t현재 버전\t기본\t없음\nMatter 연결 상태\n차단됨\n토큰 값은 화면에 표시하지 않습니다.\n상태\n브리지 인증 차단\n소스\nfail-closed\n경계\n건수 비노출\n요청\nreq_1d92f05e-79af-4f95-a0db-00da81546b36\n브리지 인증 차단\nMatter 선택\n문서 작업 기준\nMatter 검색\nMatter lookup 차단됨\nMATTER_NOT_FOUND\nMatter 선택 전\n업로드 사전검사\n문서 전송 없음\n먼저 Matter를 선택하세요.\n상태\nMatter 선택 전\nMatter\nMatter 선택 전\n다음 단계\n대기\nVault 쓰기\n차단\n사전검사 실행\n문서 작업 경계\n쓰기 차단\nMatter를 선택해야 문서 작업 경계를 확인할 수 있습니다.\n새 버전 등록\nMatter를 선택해야 문서 작업 경계를 확인할 수 있습니다.\nVault\nMatter 선택 필요\n버전 등록 차단\n메타데이터 변경\nMatter를 선택해야 문서 작업 경계를 확인할 수 있습니다.\nMatter app\nMatter 선택 필요\n변경 차단\n법적 보존\nMatter를 선택해야 문서 작업 경계를 확인할 수 있습니다.\nOwner 결정 필요\nMatter 선택 필요\n보존 변경 차단\n보존 정책\nMatter를 선택해야 문서 작업 경계를 확인할 수 있습니다.\nVault Records\nMatter 선택 필요\n정책 변경 차단\n문서 작업\nMatter를 선택해야 문서 작업 경계를 확인할 ",
+      "console_unexpected_errors": [],
+      "http_failures": [
+        {
+          "status": 403,
+          "url": "http://127.0.0.1:5173/api/matters/vault-bridge/status",
+          "type": "fetch",
+          "expected": true
+        },
+        {
+          "status": 404,
+          "url": "http://127.0.0.1:5173/api/matters/vault-bridge/matter-lookup?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe&q=AMIC",
+          "type": "fetch",
+          "expected": true
+        }
+      ],
+      "unexpected_http_failures": [],
+      "page_errors": [],
+      "forbidden_text_detected": false
+    },
+    {
+      "id": "client-data",
+      "path": "?view=clients#client-data",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-02-screenshots/client-data.png",
+      "url": "http://127.0.0.1:5173/?view=clients#client-data",
+      "attr_count": 11,
+      "attrs": [
+        {
+          "tag": "div",
+          "text": "ClientClient 관리Client 홈Client 목록12법인·개인 Client담당자수임 전 업무운영청구·수금Client 리포트Client 데이터Client 데이터 가져오기Client 설정ClientClient, 담당자, Opportunity, 상",
+          "attrs": {
+            "data-sidebar-state": "contextual"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "외부 연동2개 확인연동 요청",
+          "attrs": {
+            "data-enrichment-provider-admin": "provider-blocked",
+            "data-sf-b-w07-provider-list": "true"
+          }
+        },
+        {
+          "tag": "button",
+          "text": "연동 요청",
+          "attrs": {
+            "data-sf-b-w07-provider-register-action": "true"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "외부 연동 등록아직 실행 전",
+          "attrs": {
+            "data-sf-b-w07-provider-register-result": "true"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "실행 요청외부 영수증 없이는 실행되지 않습니다.실행 확인",
+          "attrs": {
+            "data-sf-b-w07-enrichment-execute-provider-blocked-action": "true"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "실행 상태아직 실행 전",
+          "attrs": {
+            "data-sf-b-w07-enrichment-execute-provider-blocked-result": "true"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "대상 그룹 활성화외부 연동 확인과 되돌리기 계획이 필요합니다.활성화 확인",
+          "attrs": {
+            "data-segment-activation": "provider-blocked",
+            "data-sf-b-w07-segment-activation-provider-blocked-action": "true"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "대상 그룹 상태아직 실행 전",
+          "attrs": {
+            "data-sf-b-w07-segment-activation-provider-blocked-result": "true"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "외부 응답 원문, 원문 식별자, 토큰, 연락값은 숨깁니다.",
+          "attrs": {
+            "data-sf-b-w07-audit": "true"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "담당자 일괄 변경승인 조건 확인승인 확인",
+          "attrs": {
+            "data-sf-b-w02-owner-blocked-action": "true"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "최근 작업 0건",
+          "attrs": {
+            "data-sf-b-w02-action-audit-feed": "true"
+          }
+        }
+      ],
+      "disabled_count": 1,
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\nClient\nClient 관리\nClient 홈\nClient 목록\n12\n법인·개인 Client\n담당자\n수임 전 업무\n운영\n청구·수금\nClient 리포트\nClient 데이터\nClient 데이터 가져오기\nClient 설정\nClient\n\nClient, 담당자, Opportunity, 상담 이력을 한 화면에서 확인합니다.\n\n새로고침\n데이터 보강\nClient\n외부 연동\n2개 확인\n연동 요청\n동의와 보존\n보강 범위는 담당자 승인 후 적용됩니다.\n승인 확인\n외부 연동 등록\n아직 실행 전\n동의 상태\n아직 실행 전\n외부 연동\t상태\t범위\t외부 연결\nSalesforce Data Cloud\t외부 확인 대기\t기업 정보 / 관계 / Matter 맥락\t아니오\nFullContact 데이터 보강\t외부 확인 대기\t기업 정보 / 연락처 품질\t아니오\n보강 미리보기\n안전 출력\n작업 생성\n보강 작업 대기\n미리보기\n작업 상태\n아직 실행 전\n대상\n대기\n동의\n대기\n신뢰도\n대기\n외부 연결\n대기\n실행 요청\n외부 영수증 없이는 실행되지 않습니다.\n실행 확인\n실행 상태\n아직 실행 전\n결과와 통합 프로필\n읽기\n결과\t상태\t신뢰도\t원문\n프로필\nClient unified profile\n연결\n3\n동의\n승인 대기\n직접 식별자\n아니오\n매칭과 대상 그룹\n승인 관리\n식별자 매칭\n자동 병합 없이 검토 후보만 만듭니다.\n후보 생성\n매칭 상태\n아직 실행 전\n대상 그룹 활성화\n외부 연동 확인과 되돌리기 계획이 필요합니다.\n활성화 확인\n대상 그룹 상태\n아직 실행 전\n감사 경계\n0건\n작업\t대상\t보안\n외부 응답 원문, 원문 식별자, 토큰, 연락값은 숨깁니다.\nCLIENT 정보\nClient 1\n상태\n검토 필요\n대표 당사자\n미지정\n구성원\n2\n연결 Matter\n미지정\n잠재 Client\n1\nOpportunity\n1\n상담·문의\n1\nClient\n1\n담당자\n1\n권한 기준에 맞춰 표시됩니다.\n병합 검토 0건 / 실행 가능 0건\n데이터 보강 상",
+      "console_unexpected_errors": [],
+      "http_failures": [
+        {
+          "status": 404,
+          "url": "http://127.0.0.1:5173/api/crm/activities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_activity_read&audit_hint_ref=ui_lcx_vltui_05_activity_read_probe",
+          "type": "fetch",
+          "expected": true
+        },
+        {
+          "status": 404,
+          "url": "http://127.0.0.1:5173/api/crm/proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_proposal_read&audit_hint_ref=ui_lcx_vltui_05_proposal_read_probe",
+          "type": "fetch",
+          "expected": true
+        },
+        {
+          "status": 404,
+          "url": "http://127.0.0.1:5173/api/crm/client-settings?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_client_settings_read&audit_hint_ref=ui_lcx_vltui_05_client_settings_read_probe",
+          "type": "fetch",
+          "expected": true
+        }
+      ],
+      "unexpected_http_failures": [],
+      "page_errors": [],
+      "forbidden_text_detected": false
+    },
+    {
+      "id": "people-work-schedule",
+      "path": "?view=people#people-work-schedule",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-02-screenshots/people-work-schedule.png",
+      "url": "http://127.0.0.1:5173/?view=people#people-work-schedule",
+      "attr_count": 2,
+      "attrs": [
+        {
+          "tag": "div",
+          "text": "구성원관리구성원9조직직무/역할설정근로정보설정구성원 등록입퇴사 관리근무일정근무표설정근무유형설정현재 근무 상황 조회설정근무일정 확정검토출퇴근기록휴가마감 및 급여근무일정근무표구성원별 근무일정을 생성하고 변경합니다.설정 필요반영할 기능근무일정 생성근무일정 수",
+          "attrs": {
+            "data-sidebar-state": "contextual"
+          }
+        },
+        {
+          "tag": "section",
+          "text": "근무일정근무표구성원별 근무일정을 생성하고 변경합니다.설정 필요반영할 기능근무일정 생성근무일정 수정근무일정 삭제스케줄구현 상태운영 기준과 기본값을 정한 뒤 사용할 기능입니다.운영 기준, 권한, API 영수증이 준비되면 이 항목을 실제 화면으로 전환합니다",
+          "attrs": {
+            "data-people-feature-state": "people-work-schedule",
+            "data-people-feature-status": "setup_required"
+          }
+        }
+      ],
+      "disabled_count": 0,
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\n구성원\n관리\n구성원\n9\n조직\n직무/역할\n설정\n근로정보\n설정\n구성원 등록\n입퇴사 관리\n근무일정\n근무표\n설정\n근무유형\n설정\n현재 근무 상황 조회\n설정\n근무일정 확정\n검토\n출퇴근기록\n휴가\n마감 및 급여\n근무일정\n근무표\n\n구성원별 근무일정을 생성하고 변경합니다.\n\n설정 필요\n반영할 기능\n근무일정 생성\n근무일정 수정\n근무일정 삭제\n스케줄\n구현 상태\n\n운영 기준과 기본값을 정한 뒤 사용할 기능입니다.\n\n운영 기준, 권한, API 영수증이 준비되면 이 항목을 실제 화면으로 전환합니다.",
+      "console_unexpected_errors": [],
+      "http_failures": [],
+      "unexpected_http_failures": [],
+      "page_errors": [],
+      "forbidden_text_detected": false
+    },
+    {
+      "id": "calendar-decision",
+      "path": "?view=calendar#calendar-decision",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-02-screenshots/calendar-decision.png",
+      "url": "http://127.0.0.1:5173/?view=calendar#calendar-decision",
+      "attr_count": 3,
+      "attrs": [
+        {
+          "tag": "div",
+          "text": "일정사건 일정People 외부일정부재 일정일정전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.결정 게이트사건 일정People 외부일정부재 일정사건 일정전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.MatterPeople 외부일정전역 캘린더를 만들",
+          "attrs": {
+            "data-sidebar-state": "contextual"
+          }
+        },
+        {
+          "tag": "section",
+          "text": "일정전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.결정 게이트사건 일정People 외부일정부재 일정사건 일정전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.MatterPeople 외부일정전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.Peopl",
+          "attrs": {
+            "data-global-conditional": "true"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "조건부 전역화 항목입니다.전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.",
+          "attrs": {
+            "data-lcx-full-guarded-state": "owner_blocked",
+            "data-lcx-full-write-enabled": "false",
+            "data-global-decision-required": "true"
+          }
+        }
+      ],
+      "disabled_count": 0,
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\n일정\n사건 일정\nPeople 외부일정\n부재 일정\n일정\n\n전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.\n\n결정 게이트\n사건 일정\nPeople 외부일정\n부재 일정\n사건 일정\n전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.\nMatter\nPeople 외부일정\n전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.\nPeople\n부재 일정\n전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.\nProfile\n사건 일정\n결정 필요\n일정\n\n전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.\n\n소스\nMatter\n상태\n결정 필요\n연결\n직접\n조건부 전역화 항목입니다.\n전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.",
+      "console_unexpected_errors": [],
+      "http_failures": [],
+      "unexpected_http_failures": [],
+      "page_errors": [],
+      "forbidden_text_detected": false
+    },
+    {
+      "id": "settings-advanced",
+      "path": "?view=settings#settings-advanced",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-02-screenshots/settings-advanced.png",
+      "url": "http://127.0.0.1:5173/?view=settings#settings-advanced",
+      "attr_count": 4,
+      "attrs": [
+        {
+          "tag": "div",
+          "text": "설정회사 설정권한보안연동결제지원고급 옵션태그 관리설정회사 설정, 권한, 보안, 연동, 결제, 지원, 고급 옵션, 태그 관리를 전역 설정으로 이동합니다.전역 메뉴회사 설정권한보안연동결제지원고급 옵션태그 관리회사 설정people 메뉴에서 이 전역 항목으로",
+          "attrs": {
+            "data-sidebar-state": "contextual"
+          }
+        },
+        {
+          "tag": "section",
+          "text": "설정회사 설정, 권한, 보안, 연동, 결제, 지원, 고급 옵션, 태그 관리를 전역 설정으로 이동합니다.전역 메뉴회사 설정권한보안연동결제지원고급 옵션태그 관리회사 설정people 메뉴에서 이 전역 항목으로 연결합니다.People권한people 메뉴에서 ",
+          "attrs": {
+            "data-global-conditional": "false"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "감사 대상 작업입니다.강제 승인/거절 또는 고급 옵션은 권한과 사유 기록이 필요합니다.",
+          "attrs": {
+            "data-lcx-full-guarded-state": "audit_required",
+            "data-lcx-full-write-enabled": "false",
+            "data-global-audit-required": "true"
+          }
+        },
+        {
+          "tag": "div",
+          "text": "일정조건부청구·재무조건부데이터 가져오기조건부문서·방침조건부",
+          "attrs": {
+            "data-global-conditional-preview": "true"
+          }
+        }
+      ],
+      "disabled_count": 0,
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\n설정\n회사 설정\n권한\n보안\n연동\n결제\n지원\n고급 옵션\n태그 관리\n설정\n\n회사 설정, 권한, 보안, 연동, 결제, 지원, 고급 옵션, 태그 관리를 전역 설정으로 이동합니다.\n\n전역 메뉴\n회사 설정\n권한\n보안\n연동\n결제\n지원\n고급 옵션\n태그 관리\n회사 설정\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n권한\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n보안\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n연동\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n결제\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n지원\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n고급 옵션\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n태그 관리\n전역 메뉴에서 직접 여는 항목입니다.\nWorkspace\n고급 옵션\n감사 필요\n설정\n\npeople 메뉴에서 이 전역 항목으로 연결합니다.\n\n소스\nPeople\n상태\n감사 필요\n연결\n1개\npeople#people-company-advanced\n감사 대상 작업입니다.\n강제 승인/거절 또는 고급 옵션은 권한과 사유 기록이 필요합니다.\n일정\n조건부\n청구·재무\n조건부\n데이터 가져오기\n조건부\n문서·방침\n조건부",
+      "console_unexpected_errors": [],
+      "http_failures": [],
+      "unexpected_http_failures": [],
+      "page_errors": [],
+      "forbidden_text_detected": false
+    }
+  ],
+  "checks": [
+    {
+      "route": "matter-vault",
+      "passed": true
+    },
+    {
+      "route": "vault-documents",
+      "passed": true
+    },
+    {
+      "route": "client-data",
+      "passed": true
+    },
+    {
+      "route": "people-work-schedule",
+      "passed": true
+    },
+    {
+      "route": "calendar-decision",
+      "passed": true
+    },
+    {
+      "route": "settings-advanced",
+      "passed": true
+    }
+  ],
+  "boundary": {
+    "browser_observation_only": true,
+    "writes_enabled_by_this_proof": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false,
+    "owner_approval_claim": false
+  }
+}

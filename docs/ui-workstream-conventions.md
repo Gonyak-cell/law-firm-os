@@ -13,10 +13,9 @@ safely. Established 2026-06-10 during the root cleanup (commits `bfa4fe73`,
 | App code | `apps/web/src/` |
 | App-imported images (bundled by Vite) | `apps/web/src/assets/` |
 | App-served binaries (fonts, favicons) | `apps/web/public/` |
-| Generated UI reference packs | `docs/ui-reference/<pack>/` (generated only — change the generator, never the output) |
-| Hand-written HTML prototypes | `docs/ui-reference/prototypes/` — never the repo root; iterate via git history, never Finder "복사본" copies |
-| Own-brand images | `docs/ui-reference/brand/` (committable via the `!docs/ui-reference/brand/*.png` negation) |
-| UI tooling scripts | `scripts/` with an `ui:*` npm alias in `package.json` |
+| Current UI reference | The running Forest UI and its packaged renderer; archived UI packs and prototype branches are not kept in-repo |
+| Own-brand images | Current AMIC Law and Forest assets under `apps/web/src/assets/` and `apps/desktop/build/` |
+| UI verification scripts | `scripts/` with an active verification alias in `package.json` |
 | Local dashboards/tools | `tools/<name>/` — generated runtime snapshots (e.g. `live-data.js`) stay gitignored |
 | Bulk third-party reference corpora | **outside git** — `Law Firm OS UI/` is gitignored wholesale; set `LAWOS_UI_ARCHIVE_DIR` if it moves off-repo |
 
@@ -46,6 +45,8 @@ safely. Established 2026-06-10 during the root cleanup (commits `bfa4fe73`,
    `Close CP00-xxx` prefix is reserved for the CP system.
 10. Deletions are backup-gated: a file may be removed only after it is verified
     present in an off-repo backup (tar/bundle under `~/lawos-backups/`).
+11. Retired UI references and prototypes must not be restored as product design
+    sources. Use the current packaged Forest surface as the visual source of truth.
 
 ## Licensing
 

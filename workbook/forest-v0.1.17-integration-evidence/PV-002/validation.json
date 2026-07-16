@@ -1,0 +1,31 @@
+{
+  "verdict": "PASS",
+  "mode": "package",
+  "version": "0.1.17",
+  "build_paths": [
+    "scripts/build-matter-desktop-mac.mjs",
+    "scripts/build-matter-desktop-win.mjs"
+  ],
+  "source_contract_count": 2,
+  "product_sha": "a38a63f8bcc0bedae5d038027cb2de7148cd6129",
+  "product_tree": "3da21d6486a0577abb90a084988de3eb6888a189",
+  "channel": "internal",
+  "shared_field_mismatch_count": 0,
+  "renderer": {
+    "sha256": "f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445",
+    "file_count": 28,
+    "algorithm": "sha256(sorted sha256 file manifest with ./ relative paths)"
+  },
+  "macos": {
+    "built_at": "2026-07-15T17:30:11.276Z",
+    "manifest_sha256": "d42713cdf82b4ed33a6bb9116f13759c4156ba6b04baf4aea7444bccf1df61d1",
+    "packaged_external_bytes_equal": true
+  },
+  "windows": {
+    "built_at": "2026-07-15T17:32:20.289Z",
+    "manifest_sha256": "76fe2585593112456acc4ae529bad78b5da1a4ca4c147fd8b5ede8b0fbddb253",
+    "packaged_external_bytes_equal": true,
+    "installer_manifest_linked": true
+  },
+  "package_receipt_mismatch_count": 0
+}

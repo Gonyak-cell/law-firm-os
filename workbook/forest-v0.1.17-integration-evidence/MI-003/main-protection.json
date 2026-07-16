@@ -1,0 +1,22 @@
+{
+  "enforce_admins": true,
+  "required_pull_request_reviews": {
+    "dismiss_stale_reviews": true,
+    "require_code_owner_reviews": false,
+    "require_last_push_approval": false,
+    "required_approving_review_count": 0
+  },
+  "required_status_checks": {
+    "checks": [
+      {
+        "app_id": 15368,
+        "context": "HRX rollout validation"
+      }
+    ],
+    "contexts": [
+      "HRX rollout validation"
+    ],
+    "strict": true
+  },
+  "restrictions": null
+}

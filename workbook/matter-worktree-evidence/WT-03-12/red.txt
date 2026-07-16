@@ -1,0 +1,2 @@
+Exit: 1
+Failure: distinct denied/error/conflict recovery states were absent.

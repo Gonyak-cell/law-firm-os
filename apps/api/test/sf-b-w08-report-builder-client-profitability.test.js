@@ -1,22 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
+import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
+import { authedJson } from "./helpers/session.js";
 import { startApiServer } from "../src/server.js";
 
 const TENANT = "tenant_cmp_g8_synthetic";
 const ACTOR_ID = "report_builder_operator";
 const REPORT_ID = "report_sf_b_w08_client_profitability";
 
-function permissionContext(effect = "allow") {
-  return JSON.stringify({
-    principal: { user_id: ACTOR_ID, tenant_id: TENANT, role_ids: ["report_builder"] },
-    rules: [{ id: `rule_sf_b_w08_${effect}`, effect, action: "*" }],
-    object_acl: [],
-  });
-}
-
-async function withServer(callback) {
-  const started = await startApiServer({ port: 0 });
+async function withServer(callback, options = {}) {
+  const started = await startApiServer({ port: 0, ...options });
   try {
     return await callback(`http://${started.host}:${started.port}`);
   } finally {
@@ -24,18 +17,8 @@ async function withServer(callback) {
   }
 }
 
-async function json(baseUrl, path, { method = "GET", body, headers = {} } = {}) {
-  const requestHeaders = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
-    ...headers,
-  };
-  if (body !== undefined) requestHeaders["content-type"] = "application/json";
-  const response = await fetch(`${baseUrl}${path}`, {
-    method,
-    headers: requestHeaders,
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  return { status: response.status, body: await response.json() };
+async function json(baseUrl, path, { method = "GET", body, headers = {}, noAuth = false } = {}) {
+  return authedJson(baseUrl, path, { method, body, headers, noAuth });
 }
 
 function query(permission = "read") {
@@ -68,6 +51,17 @@ async function createReport(baseUrl) {
       filter_manifest: [{ field: "period", operator: "current", value_label: "현재" }],
       grouping_manifest: ["client_group"],
       chart_manifest: { type: "bar", metric: "profitability_amount" },
+    }),
+  });
+}
+
+async function refreshMatterProfitability(baseUrl) {
+  return json(baseUrl, "/api/analytics/matter-profitability", {
+    method: "POST",
+    body: reportBody({
+      idempotency_key: "sf-b-w08-matter-profitability-refresh",
+      matter_id: "matter_sf_b_w08",
+      client_group_id: "client_group_sf_b_w08",
     }),
   });
 }
@@ -137,8 +131,61 @@ test("SF-B-W08R report definition routes are mounted, allowlisted, idempotent, a
 });
 
 test("SF-B-W08R client profitability refresh/read and report run return bounded aggregate results", async () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      {
+        model_type: "RateCard",
+        rate_card_id: "rate-sf-b-w08-client-profitability",
+        tenant_id: TENANT,
+        currency: "KRW",
+        effective_from: "2026-07-01",
+        role_rates: [{ role_id: "partner", hourly_rate: 200000 }],
+        status: "active",
+      },
+      {
+        model_type: "TimeEntry",
+        time_entry_id: "time-sf-b-w08-client-profitability",
+        tenant_id: TENANT,
+        matter_id: "matter_sf_b_w08",
+        client_group_id: "client_group_sf_b_w08",
+        actor_id: ACTOR_ID,
+        role_id: "partner",
+        duration_minutes: 60,
+        billable: true,
+        status: "approved",
+      },
+      {
+        model_type: "Invoice",
+        invoice_id: "invoice-sf-b-w08-client-profitability",
+        tenant_id: TENANT,
+        matter_id: "matter_sf_b_w08",
+        client_group_id: "client_group_sf_b_w08",
+        amount_due: 325000,
+        amount_paid: 0,
+        currency: "KRW",
+        status: "issued",
+      },
+      {
+        model_type: "Payment",
+        payment_id: "payment-sf-b-w08-client-profitability",
+        tenant_id: TENANT,
+        matter_id: "matter_sf_b_w08",
+        client_group_id: "client_group_sf_b_w08",
+        invoice_id: "invoice-sf-b-w08-client-profitability",
+        amount: 325000,
+        currency: "KRW",
+        status: "matched",
+      },
+    ],
+  });
+
   await withServer(async (baseUrl) => {
     await createReport(baseUrl);
+    const matterRefresh = await refreshMatterProfitability(baseUrl);
+    assert.equal(matterRefresh.status, 201);
+    assert.equal(matterRefresh.body.outcome, "created");
+    assert.equal(matterRefresh.body.item.source_payload_included, false);
+
     const refreshed = await refreshClientProfitability(baseUrl);
     assert.equal(refreshed.status, 201);
     assert.equal(refreshed.body.outcome, "created");
@@ -164,7 +211,7 @@ test("SF-B-W08R client profitability refresh/read and report run return bounded 
     assert.equal(run.body.item.row_level_billing_payload_included, false);
     assert.equal(run.body.item.source_object_mutated, false);
     assert.equal(run.body.item.table_rows.length > 0, true);
-  });
+  }, { financeRepository });
 });
 
 test("SF-B-W08R report sharing is owner-blocked and audit/denied envelopes stay safe", async () => {
@@ -191,9 +238,9 @@ test("SF-B-W08R report sharing is owner-blocked and audit/denied envelopes stay 
     assert.equal(audit.body.items.some((item) => item.raw_query_payload_included === true), false);
 
     const denied = await json(baseUrl, `/api/reports?${query("denied")}`, {
-      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("deny") },
+      noAuth: true,
     });
-    assert.equal(denied.status, 403);
-    assert.equal(denied.body.count_leak_prevented, true);
+    assert.equal(denied.status, 401);
+    assert.deepEqual(denied.body.safe_error_codes, ["AUTH_SESSION_REQUIRED"]);
   });
 });

@@ -1,0 +1,22 @@
+# CP-001 Acceptance
+
+- TUW: CP-001
+- status: DONE
+- entry_sha: `c342cc56bcfc36f582610951b363b3ad737222cc`
+- exit_sha: `c342cc56bcfc36f582610951b363b3ad737222cc` (evidence-only; product tree unchanged)
+- comparison targets: 5/5 exact full SHAs recorded
+- ancestry: `origin/main -> current root -> v0.1.16 release baseline -> Forest checkpoint -> candidate`
+- candidate relation to fetched `origin/main`: ahead 240, behind 0
+- remote freshness: `git fetch origin --prune --tags` completed; local and remote `origin/main` SHAs match
+- release classification: latest published v0.1.16 baseline is a `formal-candidate` prerelease, not a stable public release
+- published stable discovery: 0 within the inspected latest 20 GitHub releases
+- macOS baseline proof: Developer ID, strict codesign, notarization, stapler, and Gatekeeper PASS
+- Windows baseline boundary: package generated; Authenticode false; exact published installer native install smoke not run
+- root source: read-only; HEAD/status counts/fingerprint unchanged from RC-005
+- commands: see `commands.txt`
+- test_result: target existence 5/5, SHA/ref equality 5/5, remote equality 2/2, ancestry pairs 10/10, linear order 4/4, release claim boundary 7/7 PASS
+- manual_qa: inspected the formal release receipt, AWS release receipt, GitHub release state, all target commit subjects, trees, refs, and ancestry counts
+- evidence_hashes: comparison targets `5d5349a5a4288c7eba34165fbde51e57b5a50d963d72d389c2e19bc3f94007b9`, ancestry matrix `8b0d418c65925e3ec3b080266bc91847fd0b3897303c8d66e2f687cfeba5d526`
+- known_limits: CP-001 identifies comparison baselines only; feature superiority is decided by CP-002 through CP-007
+- external_blockers: none
+- AI slop review: pass; no product UI or user-facing copy changed

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { readFile } from "node:fs/promises";
 import {
+  AMIC_CURRENT_CLIENT_CANDIDATES,
   MASTER_DATA_CP156_HIDDEN_SOURCE_FIELDS,
   MASTER_DATA_CP156_NO_WRITE_ATTESTATION,
   MASTER_DATA_CP156_PACK_BINDING,
@@ -1083,9 +1084,9 @@ const tailBoundary = validateMasterDataCp158TailBoundary();
 requireTrue(tailBoundary.valid, "cp158 tail_boundary.valid");
 
 const fixture = createMasterDataSyntheticFixture();
-requireEqual(fixture.synthetic_only, true, "fixture.synthetic_only");
-requireEqual(fixture.uses_real_client_data, false, "fixture.uses_real_client_data");
-requireEqual(fixture.records.length, 8, "fixture.records.length");
+requireEqual(fixture.synthetic_only, false, "fixture.synthetic_only");
+requireEqual(fixture.uses_real_client_data, true, "fixture.uses_real_client_data");
+requireEqual(fixture.records.length, AMIC_CURRENT_CLIENT_CANDIDATES.length * 3 + 8, "fixture.records.length");
 
 const duplicate = validateMasterDataRecord(
   "Entity",

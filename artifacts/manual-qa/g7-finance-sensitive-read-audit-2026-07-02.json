@@ -1,0 +1,107 @@
+{
+  "generated_at": "2026-07-02T11:46:20.987Z",
+  "scope": "UPL-A-13 G7 finance sensitive read audit restart QA",
+  "finance_store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-g7-finance-sensitive-read-dwPE3v/finance.json",
+  "routes_driven": [
+    {
+      "path": "/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=perm_ref_cmp_g7_manual_read&audit_hint_ref=audit_hint_cmp_g7_manual_read",
+      "status": 200,
+      "outcome": "passed",
+      "returned_count": 1
+    },
+    {
+      "path": "/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=perm_ref_cmp_g7_manual_read&audit_hint_ref=audit_hint_cmp_g7_manual_read",
+      "status": 200,
+      "outcome": "passed",
+      "returned_count": 1
+    },
+    {
+      "path": "/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=perm_ref_cmp_g7_manual_read&audit_hint_ref=audit_hint_cmp_g7_manual_read&as_of_date=2026-07-15",
+      "status": 200,
+      "outcome": "passed",
+      "returned_count": 1
+    },
+    {
+      "path": "/api/finance/trust-balances?tenant_id=tenant_cmp_g7_synthetic&permission_ref=perm_ref_cmp_g7_manual_read&audit_hint_ref=audit_hint_cmp_g7_manual_read&matter_id=matter_cmp_g7_manual_read&currency=KRW",
+      "status": 200,
+      "outcome": "passed",
+      "returned_count": 0
+    },
+    {
+      "path": "/api/finance/accounting-export.csv?tenant_id=tenant_cmp_g7_synthetic&permission_ref=perm_ref_cmp_g7_manual_read&audit_hint_ref=audit_hint_cmp_g7_manual_read&from_date=2026-07-01&to_date=2026-07-31&idempotency_key=manual-g7-finance-sensitive-read-audit",
+      "status": 201,
+      "outcome": "created",
+      "returned_count": 1
+    }
+  ],
+  "restart_verified": true,
+  "audit_event_count": 7,
+  "audit_checks": [
+    {
+      "action": "finance:time:read",
+      "object_type": "time_entry",
+      "decision": "allow",
+      "reason": "finance_sensitive_read_allowed_after_permission_gate",
+      "returned_count": 1,
+      "sensitive_read_audit_required": true,
+      "raw_payload_included": false,
+      "credential_material_included": false,
+      "bank_reference_included": false,
+      "journal_lines_included": false,
+      "export_content_included_in_audit": null
+    },
+    {
+      "action": "finance:invoice:read",
+      "object_type": "invoice",
+      "decision": "allow",
+      "reason": "finance_sensitive_read_allowed_after_permission_gate",
+      "returned_count": 1,
+      "sensitive_read_audit_required": true,
+      "raw_payload_included": false,
+      "credential_material_included": false,
+      "bank_reference_included": false,
+      "journal_lines_included": false,
+      "export_content_included_in_audit": null
+    },
+    {
+      "action": "finance:ar:read",
+      "object_type": "ar_aging",
+      "decision": "allow",
+      "reason": "finance_sensitive_read_allowed_after_permission_gate",
+      "returned_count": 1,
+      "sensitive_read_audit_required": true,
+      "raw_payload_included": false,
+      "credential_material_included": false,
+      "bank_reference_included": false,
+      "journal_lines_included": false,
+      "export_content_included_in_audit": null
+    },
+    {
+      "action": "finance:trust_ledger:read",
+      "object_type": "trust_balance",
+      "decision": "allow",
+      "reason": "finance_sensitive_read_allowed_after_permission_gate",
+      "returned_count": 0,
+      "sensitive_read_audit_required": true,
+      "raw_payload_included": false,
+      "credential_material_included": false,
+      "bank_reference_included": false,
+      "journal_lines_included": false,
+      "export_content_included_in_audit": null
+    },
+    {
+      "action": "finance:accounting_export:read",
+      "object_type": "accounting_export",
+      "decision": "allow",
+      "reason": "finance_sensitive_read_allowed_after_permission_gate",
+      "returned_count": 1,
+      "sensitive_read_audit_required": true,
+      "raw_payload_included": false,
+      "credential_material_included": false,
+      "bank_reference_included": false,
+      "journal_lines_included": false,
+      "export_content_included_in_audit": false
+    }
+  ],
+  "production_ready_claim": false
+}

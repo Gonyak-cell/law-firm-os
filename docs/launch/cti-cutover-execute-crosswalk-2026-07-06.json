@@ -1,0 +1,54 @@
+{
+  "schema_version": "law-firm-os.cti-launch-tuw-crosswalk.v0.1",
+  "goal_id": "cti-cutover-execute",
+  "recorded_at": "2026-07-06T09:36:08.376Z",
+  "work_package": "LT-PRE-W18",
+  "decision": "PASS",
+  "approval_signature_refs": [
+    "I11-CTI-CUTOVER-EXECUTE-OWNER-APPROVAL-2026-07-06",
+    "I18-CTI-S2-PRODUCTION-AUTH-PROBE-PRINCIPAL-OWNER-APPROVAL-2026-07-06",
+    "I19-CTI-CUTOVER-POST-I18-SNAPSHOT-REBIND-OWNER-APPROVAL-2026-07-06",
+    "I22-CTI-CUTOVER-POST-I21-PARTIAL-RESUME-BOUNDARY-OWNER-APPROVAL-2026-07-06"
+  ],
+  "cti_to_tuw": {
+    "CUTOVER precheck": [
+      "LT-PRE-W18-T01"
+    ],
+    "S3-T02/S3-T03/S3-T04": [
+      "LT-PRE-W18-T02"
+    ],
+    "S4-T01/S4-T03/S4-T04b": [
+      "LT-PRE-W18-T02"
+    ],
+    "S3-T08": [
+      "LT-PRE-W18-T03"
+    ],
+    "S2-T03/CUT-G": [
+      "LT-PRE-W18-T04"
+    ]
+  },
+  "evidence": {
+    "receipt": "docs/launch/cti-cutover-execute-retry-receipt-2026-07-06.json",
+    "closeout_dir": "docs/goal-closeout/cti-cutover-execute/",
+    "snapshot_hash": "6b66029c055ece6c3cfa6a7cd559c8eb387a958261e92f006aa67f3f48767ddd",
+    "original_post_i18_snapshot_hash": "b4139c730895d173cf964a92fa6ba375c93cefcb13687b0f82732c4c0531da49",
+    "i20_resume_snapshot_hash": "8b53d5148f69a939e8e38f9f0813befe0675f4de59c9f54dad81d5451ab53d8a",
+    "current_partial_resume_snapshot_hash": null,
+    "post_i21_partial_resume_snapshot_hash": "6b66029c055ece6c3cfa6a7cd559c8eb387a958261e92f006aa67f3f48767ddd",
+    "resume_from_partial_state": false,
+    "resume_from_current_partial_state": false,
+    "resume_from_post_i21_partial_state": true,
+    "canonical_client_count": 99,
+    "canonical_matter_count": 148,
+    "production_login_pass_count": 9,
+    "qa_rejected_count": 2
+  },
+  "non_execution_boundary": {
+    "oidc_implementation_executed": false,
+    "db_conversion_executed": false,
+    "s5_enrichment_executed": false,
+    "s6_final_seal_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

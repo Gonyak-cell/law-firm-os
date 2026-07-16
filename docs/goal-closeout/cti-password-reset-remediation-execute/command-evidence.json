@@ -1,0 +1,49 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.command-evidence.v0.1",
+  "goal_id": "cti-password-reset-remediation-execute",
+  "recorded_at": "2026-07-06T11:48:46Z",
+  "decision": "BLOCKED",
+  "commands": [
+    {
+      "command": "aws sts get-caller-identity",
+      "exit_code": 0,
+      "summary": "matter-prod-deploy-admin role chain verified for account 770880870480."
+    },
+    {
+      "command": "aws lambda get-function-configuration --query keys only",
+      "exit_code": 0,
+      "summary": "matter-lawos-api-prod revision/env key preflight captured without printing env values."
+    },
+    {
+      "command": "aws sesv2 get-account",
+      "exit_code": 0,
+      "summary": "SES account is healthy but ProductionAccessEnabled=false."
+    },
+    {
+      "command": "aws sesv2 get-email-identity for target recipients",
+      "exit_code": 0,
+      "summary": "Approved sender is verified; only 1/9 target recipients is SES-verified."
+    },
+    {
+      "command": "node --check apps/api/src/session-auth.js && node --check apps/api/src/auth-password-reset-store.js && node --test apps/api/test/session-auth-api.test.js",
+      "exit_code": 0,
+      "summary": "Operational auth reset tests PASS including delivery-failure lockout prevention."
+    },
+    {
+      "command": "node --test apps/api/test/lambda-session-secret.test.js apps/desktop/test/aws-runtime-client.test.mjs",
+      "exit_code": 0,
+      "summary": "Lambda SES adapter and desktop runtime reset tests PASS."
+    }
+  ],
+  "boundary": {
+    "production_code_deployed": false,
+    "lambda_env_mutated": false,
+    "lambda_iam_mutated": false,
+    "production_credential_mutated": false,
+    "password_reset_email_sent": false,
+    "token_material_recorded": false,
+    "credential_material_recorded": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

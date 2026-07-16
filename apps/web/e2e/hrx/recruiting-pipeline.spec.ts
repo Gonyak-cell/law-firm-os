@@ -6,7 +6,7 @@ import test from "node:test";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
-async function readWebFile(path) {
+async function readWebFile(path: string) {
   return readFile(resolve(root, path), "utf8");
 }
 
@@ -17,12 +17,20 @@ test("Recruiting pipeline reads pipeline data and updates stages through API", a
 
   assert.match(home, /RecruitingPipeline/);
   assert.match(component, /fetchRecruitingPipeline/);
+  assert.match(component, /createHrxRecruitingPipeline/);
   assert.match(component, /updateHrxApplicationStage/);
+  assert.match(component, /updateHrxOfferStage/);
+  assert.match(component, /convertHrxApplicationToEmployee/);
   assert.match(component, /면접/);
   assert.match(component, /구성원 등록/);
   assert.match(component, /합격자/);
   assert.match(api, /offers: result\.body\.offers \?\? \[\]/);
   assert.match(api, /\/api\/hrx\/recruiting\/pipeline/);
+  assert.match(api, /\/api\/hrx\/recruiting\/job-openings/);
+  assert.match(api, /\/api\/hrx\/recruiting\/candidates/);
+  assert.match(api, /\/api\/hrx\/recruiting\/interviews/);
+  assert.match(api, /\/api\/hrx\/recruiting\/offers/);
   assert.match(api, /\/api\/hrx\/recruiting\/applications\/\$\{encodeURIComponent\(applicationId\)\}\/stage/);
+  assert.match(api, /convert-to-employee/);
   assert.doesNotMatch(component, /mockData|profileRows|matters/);
 });

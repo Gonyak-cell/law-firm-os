@@ -1,0 +1,135 @@
+{
+  "schema_version": "lawos.manual_qa.d12_recruiting_pipeline.v0.1",
+  "captured_at": "2026-07-02T16:08:02.078Z",
+  "surface": "apps/web/src/people/recruiting/RecruitingPipeline.tsx#people-recruiting",
+  "browser_url": "http://127.0.0.1:5174/?view=people&ctx=allow#people-recruiting",
+  "candidate_name": "D12 브라우저 지원자 20260702160800",
+  "job_title": "D12 채용 실서버 20260702160800",
+  "responses": [
+    {
+      "path": "/api/hrx/recruiting/job-openings",
+      "status": 201,
+      "outcome": "created",
+      "safe_error_code": null
+    },
+    {
+      "path": "/api/hrx/recruiting/candidates",
+      "status": 201,
+      "outcome": "created",
+      "safe_error_code": null
+    },
+    {
+      "path": "/api/hrx/recruiting/applications",
+      "status": 201,
+      "outcome": "created",
+      "safe_error_code": null
+    },
+    {
+      "path": "/api/hrx/recruiting/interviews",
+      "status": 201,
+      "outcome": "created",
+      "safe_error_code": null
+    },
+    {
+      "path": "/api/hrx/recruiting/offers",
+      "status": 201,
+      "outcome": "created",
+      "safe_error_code": null
+    },
+    {
+      "path": "/api/hrx/recruiting/applications/app_ui_20260702160800/stage",
+      "status": 200,
+      "outcome": "updated",
+      "safe_error_code": null
+    },
+    {
+      "path": "/api/hrx/recruiting/applications/app_ui_20260702160800/stage",
+      "status": 200,
+      "outcome": "updated",
+      "safe_error_code": null
+    },
+    {
+      "path": "/api/hrx/recruiting/applications/app_ui_20260702160800/stage",
+      "status": 200,
+      "outcome": "updated",
+      "safe_error_code": null
+    },
+    {
+      "path": "/api/hrx/recruiting/applications/app_ui_20260702160800/stage",
+      "status": 200,
+      "outcome": "updated",
+      "safe_error_code": null
+    },
+    {
+      "path": "/api/hrx/recruiting/offers/offer_ui_20260702160800/stage",
+      "status": 200,
+      "outcome": "updated",
+      "safe_error_code": null
+    },
+    {
+      "path": "/api/hrx/recruiting/applications/app_ui_20260702160800/convert-to-employee",
+      "status": 201,
+      "outcome": "converted",
+      "safe_error_code": null
+    }
+  ],
+  "conversion": {
+    "request_id": "req_9f8a9b21-c38b-42a9-82ff-671923be123e",
+    "outcome": "converted",
+    "conversion": {
+      "tenant_id": "tenant_amic_matter_vault",
+      "candidate_id": "cand_ui_20260702160800",
+      "application_id": "app_ui_20260702160800",
+      "offer_id": "offer_ui_20260702160800",
+      "approval_ref": "Approval:employee-conversion:20260702160800",
+      "employee": {
+        "schema_version": "law-firm-os.hrx-core-schema.v0.1",
+        "tenant_id": "tenant_amic_matter_vault",
+        "employee_id": "emp_ui_20260702160800",
+        "display_name": "D12 브라우저 지원자 20260702160800",
+        "legal_name": "D12 브라우저 지원자 20260702160800",
+        "work_email": "d12.browser.20260702160800@example.test",
+        "status": "active",
+        "source_ref": "Candidate:cand_ui_20260702160800",
+        "created_at": "2026-07-02T16:08:01.688Z",
+        "updated_at": "2026-07-02T16:08:01.688Z"
+      },
+      "employment_profile": {
+        "schema_version": "law-firm-os.hrx-core-schema.v0.1",
+        "tenant_id": "tenant_amic_matter_vault",
+        "profile_id": "profile_ui_20260702160800",
+        "employee_id": "emp_ui_20260702160800",
+        "employment_type": "full_time",
+        "status": "active",
+        "title": "소송팀 어소시에이트",
+        "org_unit_id": "org_legal",
+        "manager_employee_id": "emp_amic_jwsuh",
+        "effective_from": "2026-07-03",
+        "effective_to": null,
+        "source_ref": "Offer:offer_ui_20260702160800",
+        "created_at": "2026-07-02T16:08:01.689Z",
+        "updated_at": "2026-07-02T16:08:01.689Z"
+      },
+      "crm_party_linked": false,
+      "explicit_approval_required": true
+    }
+  },
+  "read_back": {
+    "employee": {
+      "status": 200,
+      "employee_id": "emp_ui_20260702160800",
+      "profile_id": "profile_ui_20260702160800",
+      "source_ref": "Candidate:cand_ui_20260702160800"
+    },
+    "pipeline": {
+      "status": 200,
+      "application_hired": true,
+      "offer_accepted": true
+    }
+  },
+  "page_errors": [],
+  "console_errors": [],
+  "panel_text": "구성원 등록\n채용 연동\n공고명\n지원자명\n이메일\n면접일\n면접시간\n합격자 문서\n보상 참조\n전환 직무\n적용일\n구성원 등록 완료\n파이프라인 생성\n공고\t제목\t상태\t모집\n공고 1\tSenior Litigation Associate\t진행 중\t모집 중\n공고 2\tD12 채용 실서버 20260702160800\t진행 중\t모집 중\n면접\t지원\t상태\t일정\n면접 1\t지원 1\t예정\t등록됨\n면접 2\t지원 2\t예정\t등록됨\n합격자\t지원\t상태\t문서\n합격자 1\t지원 1\t발송\t준비됨\n합격자 2\t지원 2\t수락\t준비됨\nCandidate One\nSenior Litigation Associate\n면접\n다음 단계\n합격자 수락\n구성원 등록\nD12 브라우저 지원자 20260702160800\nD12 채용 실서버 20260702160800\n구성원 등록\n다음 단계\n합격자 수락\n구성원 등록",
+  "screenshot": "artifacts/manual-qa/d12-recruiting-pipeline-web-2026-07-03.png",
+  "passed": true
+}

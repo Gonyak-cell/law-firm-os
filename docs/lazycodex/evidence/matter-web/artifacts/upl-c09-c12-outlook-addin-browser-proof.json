@@ -1,0 +1,352 @@
+{
+  "schema_version": "law-firm-os.manual-qa.upl-c09-c12-outlook-addin.v1",
+  "generated_at": "2026-07-03T09:59:39.010Z",
+  "tuw_ids": [
+    "UPL-C-09",
+    "UPL-C-10",
+    "UPL-C-11",
+    "UPL-C-12",
+    "UPL-E-04"
+  ],
+  "scope": "Outlook add-in task pane local browser proof with noninteractive MSAL bridge initialization, real API routes, DMS file storage, matter timeline readback, OnMessageSend handler completion, and warning-only Smart Alerts.",
+  "api_base": "http://127.0.0.1:64378",
+  "taskpane_url": "http://127.0.0.1:64379/?apiBase=http%3A%2F%2F127.0.0.1%3A64378&tenantId=tenant_upl_c09_c12_outlook&matterId=matter_upl_c09_c12_outlook&entraClientId=00000000-0000-0000-0000-000000000000&entraTenantId=organizations&msalScope=User.Read&msalScope=Mail.Read",
+  "e04_local_receipt": "artifacts/manual-qa/upl-e04-smart-alerts-local-proof-2026-07-03.json",
+  "screenshot_path": "docs/lazycodex/evidence/matter-web/artifacts/upl-c09-c12-screenshots/taskpane-proof.png",
+  "external_receipt_boundary": {
+    "entra_admin_consent_receipt_present": false,
+    "outlook_web_smoke_receipt_present": false,
+    "outlook_new_desktop_smoke_receipt_present": false,
+    "provider_runtime_executed": false,
+    "production_write_claim": false,
+    "owner_external_receipt_required": true
+  },
+  "msal_bridge_probe": {
+    "configured": true,
+    "initialized": true,
+    "account_count": 0,
+    "scopes": [
+      "User.Read",
+      "Mail.Read"
+    ],
+    "provider_runtime_executed": false,
+    "graph_request_executed": false,
+    "token_material_returned": false,
+    "production_write_claim": false
+  },
+  "snapshot": {
+    "email_threads": [
+      {
+        "model_type": "DmsEmailThread",
+        "tenant_id": "tenant_upl_c09_c12_outlook",
+        "matter_id": "matter_upl_c09_c12_outlook",
+        "email_thread_id": "thread:conversation-proof-outlook",
+        "email_id": "email:graph-proof-outlook-001",
+        "graph_message_id": "graph-proof-outlook-001",
+        "internet_message_id": "<proof-outlook-001@amic.law>",
+        "conversation_id": "conversation-proof-outlook",
+        "subject": "계약 검토 의견 및 첨부",
+        "from": {
+          "display_name": "상대방 담당자",
+          "address_ref": "counsel@example.com",
+          "external": true
+        },
+        "to": [
+          {
+            "display_name": "AMIC 변호사",
+            "address_ref": "lawyer@amic.law",
+            "external": false
+          }
+        ],
+        "cc": [
+          {
+            "display_name": "고객 담당자",
+            "address_ref": "client@example.com",
+            "external": true
+          }
+        ],
+        "bcc": [],
+        "body_ref": "sha256:d4ead8b03a5f7ada0e08dd1625dc269b10606f4af91fb36c7f6f6188c3cc6bff",
+        "sent_at": "2026-07-03T09:59:38.278Z",
+        "received_at": "2026-07-03T09:59:38.278Z",
+        "mailbox_ref": "mailbox:proof",
+        "account_ref": "account:outlook-proof",
+        "attachment_metadata": [
+          {
+            "attachment_id": "att-proof-contract",
+            "name": "계약검토의견.txt",
+            "content_type": "text/plain",
+            "size": 37,
+            "confidentiality": "confidential",
+            "sha256": "b3a8d4cb003c9a162d8dd7cb684d004652bfa6b7cfd9ef9b4b6579e2a50d3330",
+            "bytes_included": false
+          },
+          {
+            "attachment_id": "att-proof-reference",
+            "name": "참고자료.txt",
+            "content_type": "text/plain",
+            "size": 29,
+            "confidentiality": "internal",
+            "sha256": "d54ee5be3f4424852e3518198a67d2ccd73e06cfd69807266795e75e277b007d",
+            "bytes_included": false
+          }
+        ],
+        "filing_user": "user_amic_jwsuh",
+        "filing_time": "2026-07-03T09:59:38.852Z",
+        "filing_mode": "manual",
+        "confidentiality": "internal",
+        "privilege": "undetermined",
+        "ai_processed": false,
+        "raw_body_included": false,
+        "provider_payload_included": false,
+        "field_contract": [
+          "email_id",
+          "graph_message_id",
+          "internet_message_id",
+          "conversation_id",
+          "matter_id",
+          "from",
+          "to",
+          "cc",
+          "bcc",
+          "subject",
+          "body_ref",
+          "body_preview",
+          "sent_at",
+          "received_at",
+          "mailbox_ref",
+          "account_ref",
+          "attachment_metadata",
+          "filing_user"
+        ],
+        "field_contract_count": 18,
+        "status": "active",
+        "message_ids": [
+          "graph-proof-outlook-001",
+          "<proof-outlook-001@amic.law>"
+        ],
+        "filed_document_ids": [],
+        "permission_envelope_id": "perm:email-dms",
+        "audit_trace_id": "audit:email-dms",
+        "credential_material_included": false,
+        "owner_module": "legal-workspace-dms",
+        "synthetic_only": true,
+        "writes_product_state": true,
+        "evaluates_runtime_permission": false,
+        "writes_audit_event": false,
+        "creates_database_rows": false,
+        "reads_object_storage": false,
+        "writes_object_storage": false,
+        "exposes_document_bytes": false,
+        "exposes_extracted_text": false,
+        "email_runtime_executed": false,
+        "reserved_for_rp08": true,
+        "resource_id": "thread:conversation-proof-outlook",
+        "created_at": "2026-07-03T09:59:38.852Z",
+        "updated_at": "2026-07-03T09:59:38.852Z",
+        "body_preview_sha256": "d4ead8b03a5f7ada0e08dd1625dc269b10606f4af91fb36c7f6f6188c3cc6bff"
+      }
+    ],
+    "documents": [
+      {
+        "document_id": "doc:thread:conversation-proof-outlook:att-proof-contract",
+        "matter_id": "matter_upl_c09_c12_outlook",
+        "title": "계약검토의견.txt",
+        "folder_id": "folder:matter_upl_c09_c12_outlook:00_Email",
+        "current_version_id": "version:doc:thread:conversation-proof-outlook:att-proof-contract:1",
+        "latest_sha256": "b3a8d4cb003c9a162d8dd7cb684d004652bfa6b7cfd9ef9b4b6579e2a50d3330",
+        "source_email_thread_id": "thread:conversation-proof-outlook",
+        "source_attachment_id": "att-proof-contract",
+        "document_bytes_included": false,
+        "storage_pointer_ref_included": false,
+        "production_ready_claim": false
+      },
+      {
+        "document_id": "doc:thread:conversation-proof-outlook:att-proof-reference",
+        "matter_id": "matter_upl_c09_c12_outlook",
+        "title": "참고자료.txt",
+        "folder_id": "folder:matter_upl_c09_c12_outlook:00_Email",
+        "current_version_id": "version:doc:thread:conversation-proof-outlook:att-proof-reference:1",
+        "latest_sha256": "d54ee5be3f4424852e3518198a67d2ccd73e06cfd69807266795e75e277b007d",
+        "source_email_thread_id": "thread:conversation-proof-outlook",
+        "source_attachment_id": "att-proof-reference",
+        "document_bytes_included": false,
+        "storage_pointer_ref_included": false,
+        "production_ready_claim": false
+      }
+    ],
+    "timeline": [
+      {
+        "event_id": "outlook.email.filed:tenant_upl_c09_c12_outlook:matter_upl_c09_c12_outlook:thread:conversation-proof-outlook",
+        "tenant_id": "tenant_upl_c09_c12_outlook",
+        "matter_id": "matter_upl_c09_c12_outlook",
+        "occurred_at": "2026-07-03T09:59:38.852Z",
+        "type": "outlook.email.filed",
+        "title": "계약 검토 의견 및 첨부",
+        "source_ref": "thread:conversation-proof-outlook"
+      },
+      {
+        "event_id": "outlook.attachment.saved:tenant_upl_c09_c12_outlook:matter_upl_c09_c12_outlook:doc:thread:conversation-proof-outlook:att-proof-contract",
+        "tenant_id": "tenant_upl_c09_c12_outlook",
+        "matter_id": "matter_upl_c09_c12_outlook",
+        "occurred_at": "2026-07-03T09:59:38.901Z",
+        "type": "outlook.attachment.saved",
+        "title": "계약검토의견.txt",
+        "source_ref": "doc:thread:conversation-proof-outlook:att-proof-contract"
+      },
+      {
+        "event_id": "outlook.attachment.saved:tenant_upl_c09_c12_outlook:matter_upl_c09_c12_outlook:doc:thread:conversation-proof-outlook:att-proof-reference",
+        "tenant_id": "tenant_upl_c09_c12_outlook",
+        "matter_id": "matter_upl_c09_c12_outlook",
+        "occurred_at": "2026-07-03T09:59:38.901Z",
+        "type": "outlook.attachment.saved",
+        "title": "참고자료.txt",
+        "source_ref": "doc:thread:conversation-proof-outlook:att-proof-reference"
+      },
+      {
+        "event_id": "matter.timeline.activity:tenant_upl_c09_c12_outlook:matter_upl_c09_c12_outlook:task_thread_conversation-proof-outlook",
+        "tenant_id": "tenant_upl_c09_c12_outlook",
+        "matter_id": "matter_upl_c09_c12_outlook",
+        "occurred_at": "2026-07-03T09:59:38.934Z",
+        "type": "matter.activity.task",
+        "title": "메일 검토 후 후속 조치",
+        "source_ref": "task_thread_conversation-proof-outlook"
+      }
+    ],
+    "folder_structure": [
+      "00_Email",
+      "10_Pleadings",
+      "20_Evidence",
+      "30_Contracts",
+      "40_WorkProduct",
+      "90_Admin",
+      "99_Archive"
+    ],
+    "email_object_field_contract": [
+      "email_id",
+      "graph_message_id",
+      "internet_message_id",
+      "conversation_id",
+      "matter_id",
+      "from",
+      "to",
+      "cc",
+      "bcc",
+      "subject",
+      "body_ref",
+      "body_preview",
+      "sent_at",
+      "received_at",
+      "mailbox_ref",
+      "account_ref",
+      "attachment_metadata",
+      "filing_user"
+    ]
+  },
+  "handler_probe": {
+    "associated_actions": [
+      "onMessageSendHandler"
+    ],
+    "handler_available": true,
+    "completed_payload": {
+      "allowEvent": true
+    },
+    "probe": {
+      "msal_bridge": {
+        "configured": true,
+        "initialized": true,
+        "account_count": 0,
+        "scopes": [
+          "User.Read",
+          "Mail.Read"
+        ],
+        "provider_runtime_executed": false,
+        "graph_request_executed": false,
+        "token_material_returned": false,
+        "production_write_claim": false
+      },
+      "last_completion": {
+        "allowEvent": true,
+        "completed_at": "2026-07-03T09:59:38.973Z"
+      },
+      "last_send_handler_result": {
+        "outcome": "evaluated",
+        "warning_count": 0,
+        "send_blocked": false,
+        "provider_runtime_executed": false,
+        "allowEvent": true,
+        "raw_body_written": false,
+        "attachment_bytes_written": false
+      }
+    }
+  },
+  "checks": [
+    {
+      "id": "c09-taskpane-browser-load",
+      "passed": true
+    },
+    {
+      "id": "c09-auth-shell-provider-gated-visible",
+      "passed": true
+    },
+    {
+      "id": "c09-msal-bridge-initialized",
+      "passed": true
+    },
+    {
+      "id": "c09-msal-bridge-noninteractive",
+      "passed": true
+    },
+    {
+      "id": "c09-signed-session-authorization-observed",
+      "passed": true
+    },
+    {
+      "id": "c09-legacy-permission-context-not-sent",
+      "passed": true
+    },
+    {
+      "id": "c10-email-thread-created",
+      "passed": true,
+      "email_threads": 1
+    },
+    {
+      "id": "c10-email-object-18-fields",
+      "passed": true,
+      "field_count": 18
+    },
+    {
+      "id": "c10-timeline-email-visible",
+      "passed": true
+    },
+    {
+      "id": "c11-attachment-document-visible",
+      "passed": true
+    },
+    {
+      "id": "c11-folder-structure-00-99",
+      "passed": true
+    },
+    {
+      "id": "c12-manual-task-visible",
+      "passed": true
+    },
+    {
+      "id": "c12-smart-alert-warning-not-block",
+      "passed": true
+    },
+    {
+      "id": "c12-on-message-send-handler-associated",
+      "passed": true
+    },
+    {
+      "id": "c12-on-message-send-handler-completes-allow-event",
+      "passed": true
+    },
+    {
+      "id": "c12-on-message-send-handler-warning-only",
+      "passed": true
+    }
+  ],
+  "pass": true
+}

@@ -1,0 +1,186 @@
+{
+  "schema_version": "law-firm-os.lazycodex.people-professional-profile-source-map.v0.1",
+  "generated_at": "2026-07-07T00:00:00+09:00",
+  "goal_id": "people-professional-profile-public-bio",
+  "verdict": "PASS_SOURCE_LOCK",
+  "source_urls": [
+    "https://amic-law.vercel.app/",
+    "https://petrabridge.vercel.app/"
+  ],
+  "source_priority_rule": {
+    "amic_attorney_profiles": "https://amic-law.vercel.app/ People sections are primary for AMIC attorney biographies.",
+    "petra_finance_profiles": "https://petrabridge.vercel.app/ Team sections are primary for PetraBridge finance/advisory biographies.",
+    "firm_level_experience": "Firm-level case or transaction sections are not mapped to individual profiles unless the source names the individual."
+  },
+  "profiles": [
+    {
+      "employee_id": "emp_amic_bj_park",
+      "display_name": "박병준",
+      "profile_kind": "attorney",
+      "source_refs": [
+        {
+          "source_url": "https://amic-law.vercel.app/",
+          "source_section": "People / 박병준",
+          "confidence": "high"
+        }
+      ],
+      "field_mapping": {
+        "practice_areas": "AMIC People Practices",
+        "experience": "AMIC People Experience",
+        "education": "AMIC People Education",
+        "qualifications": "AMIC People Admissions & Qualifications"
+      },
+      "excluded_claim_refs": ["petrabridge.alongside-amic-date-variant", "amic-law.case-selected-2025"]
+    },
+    {
+      "employee_id": "emp_amic_yhlim",
+      "display_name": "임영훈",
+      "profile_kind": "attorney",
+      "source_refs": [
+        {
+          "source_url": "https://amic-law.vercel.app/",
+          "source_section": "People / 임영훈",
+          "confidence": "high"
+        }
+      ],
+      "field_mapping": {
+        "practice_areas": "AMIC People Practices",
+        "experience": "AMIC People Experience",
+        "education": "AMIC People Education",
+        "qualifications": "AMIC People Admissions & Qualifications"
+      },
+      "excluded_claim_refs": ["petrabridge.alongside-amic-date-variant", "amic-law.case-selected-2025"]
+    },
+    {
+      "employee_id": "emp_amic_jwsuh",
+      "display_name": "서지원",
+      "profile_kind": "attorney",
+      "source_refs": [
+        {
+          "source_url": "https://amic-law.vercel.app/",
+          "source_section": "People / 서지원",
+          "confidence": "high"
+        }
+      ],
+      "field_mapping": {
+        "practice_areas": "AMIC People Practices",
+        "experience": "AMIC People Experience",
+        "education": "AMIC People Education",
+        "qualifications": "AMIC People Admissions & Qualifications"
+      },
+      "excluded_claim_refs": ["petrabridge.alongside-amic-date-variant", "amic-law.case-selected-2025"]
+    },
+    {
+      "employee_id": "emp_amic_smcho",
+      "display_name": "조성민",
+      "profile_kind": "attorney",
+      "source_refs": [
+        {
+          "source_url": "https://amic-law.vercel.app/",
+          "source_section": "People / 조성민",
+          "confidence": "high"
+        },
+        {
+          "source_url": "https://petrabridge.vercel.app/",
+          "source_section": "Alongside AMIC Law / 조성민",
+          "confidence": "supporting"
+        }
+      ],
+      "field_mapping": {
+        "practice_areas": "AMIC People Practices",
+        "experience": "AMIC People Experience",
+        "education": "AMIC People Education",
+        "qualifications": "AMIC People Admissions & Qualifications"
+      },
+      "excluded_claim_refs": ["amic-law.case-selected-2025", "petrabridge.successful-transactions"]
+    },
+    {
+      "employee_id": "emp_amic_ytkim",
+      "display_name": "김양태",
+      "profile_kind": "cpa",
+      "source_refs": [
+        {
+          "source_url": "https://petrabridge.vercel.app/",
+          "source_section": "Team / 김양태",
+          "confidence": "high"
+        },
+        {
+          "source_url": "https://amic-law.vercel.app/",
+          "source_section": "People / 김양태",
+          "confidence": "supporting"
+        }
+      ],
+      "field_mapping": {
+        "practice_areas": "PetraBridge Team role plus AMIC People Practices",
+        "experience": "PetraBridge Team Experience plus AMIC People Experience when individually named",
+        "education": "PetraBridge Team Education and AMIC People Education",
+        "qualifications": "PetraBridge Team Qualifications and AMIC People Admissions & Qualifications"
+      },
+      "excluded_claim_refs": ["amic-law.case-selected-2025", "petrabridge.successful-transactions"],
+      "must_not_render_as": ["attorney", "변호사"]
+    },
+    {
+      "employee_id": "emp_amic_wsjo",
+      "display_name": "조우상",
+      "profile_kind": "deal_advisor",
+      "source_refs": [
+        {
+          "source_url": "https://petrabridge.vercel.app/",
+          "source_section": "Team / 조우상",
+          "confidence": "high"
+        },
+        {
+          "source_url": "https://amic-law.vercel.app/",
+          "source_section": "People / 조우상",
+          "confidence": "supporting"
+        }
+      ],
+      "field_mapping": {
+        "practice_areas": "PetraBridge Team role plus AMIC People Practices",
+        "experience": "PetraBridge Team Experience and AMIC People Experience",
+        "education": "PetraBridge Team Education and AMIC People Education",
+        "qualifications": "No public qualification source found"
+      },
+      "excluded_claim_refs": ["amic-law.case-selected-2025", "petrabridge.successful-transactions"],
+      "must_not_render_as": ["attorney", "변호사", "공인회계사"]
+    },
+    {
+      "employee_id": "emp_amic_sypark",
+      "display_name": "박서영",
+      "profile_kind": "cpa",
+      "source_refs": [
+        {
+          "source_url": "https://petrabridge.vercel.app/",
+          "source_section": "Team / 박서영",
+          "confidence": "high"
+        }
+      ],
+      "field_mapping": {
+        "practice_areas": "PetraBridge Team role",
+        "experience": "PetraBridge Team Experience",
+        "education": "PetraBridge Team Education",
+        "qualifications": "PetraBridge Team Qualifications"
+      },
+      "excluded_claim_refs": ["petrabridge.successful-transactions"],
+      "not_in_browser_proof_scope": true
+    }
+  ],
+  "proof_subject_employee_ids": [
+    "emp_amic_bj_park",
+    "emp_amic_yhlim",
+    "emp_amic_jwsuh",
+    "emp_amic_smcho",
+    "emp_amic_ytkim",
+    "emp_amic_wsjo"
+  ],
+  "claim_boundary": {
+    "runtime_web_scraping": false,
+    "production_write": false,
+    "private_unapproved_career_data": false,
+    "firm_level_experience_as_individual_claim": false,
+    "oidc": false,
+    "db_conversion": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

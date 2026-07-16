@@ -1,0 +1,26 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.cti-s6-seal-final-validation.v0.1",
+  "goal_id": "cti-s6-seal-final-validation",
+  "status": "BLOCKED_S6_FINAL_VALIDATION_REQUIRES_SURFACE_AND_COLDSTART_PROOF",
+  "verdict": "BLOCKED",
+  "approval_signature_refs": [
+    "I13-CTI-S6-SEAL-FINAL-VALIDATION-OWNER-APPROVAL-2026-07-06",
+    "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06"
+  ],
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "launch_receipt": "docs/launch/cti-s6-seal-final-validation-receipt-2026-07-06.json",
+  "s6_g_validation": {
+    "pass": false,
+    "blocked_tasks": [
+      "S6-T01",
+      "S6-T05",
+      "S6-T06"
+    ],
+    "production_ready_claim_allowed": false,
+    "go_live_claim_allowed": false
+  },
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "pii_safe_evidence": true,
+  "next": "Provide 9/9 real-user-session surface proof and two consecutive cold-start smoke proofs before retrying S6."
+}

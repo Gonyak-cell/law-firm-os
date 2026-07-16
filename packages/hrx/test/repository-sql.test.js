@@ -106,3 +106,57 @@ test("SQL HRX repository rolls back failed transaction", () => {
   assert.equal(repository.listEmployees({ tenant_id: "tenant-a" }).length, 0);
   store.close();
 });
+
+test("file HRX store waits for async transaction resolution and rolls back rejection", async () => {
+  const { store } = createDurableRepo();
+  let release;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  const transaction = store.transaction(async (tx) => {
+    tx.query("insert", { table: "hrx_employees", row: employeeInput });
+    await gate;
+    throw new Error("synthetic-async-failure");
+  });
+
+  assert.equal(store.query("select", { table: "hrx_employees", where: { tenant_id: "tenant-a" } }).length, 0);
+  release();
+  await assert.rejects(transaction, /synthetic-async-failure/);
+  assert.equal(store.query("select", { table: "hrx_employees", where: { tenant_id: "tenant-a" } }).length, 0);
+  store.close();
+});
+
+test("file HRX store rejects stale concurrent async transaction instead of overwriting", async () => {
+  const { store } = createDurableRepo();
+  let releaseFirst;
+  let releaseSecond;
+  const firstGate = new Promise((resolve) => {
+    releaseFirst = resolve;
+  });
+  const secondGate = new Promise((resolve) => {
+    releaseSecond = resolve;
+  });
+  const first = store.transaction(async (tx) => {
+    tx.query("insert", { table: "hrx_employees", row: employeeInput });
+    await firstGate;
+    return "first";
+  });
+  const second = store.transaction(async (tx) => {
+    tx.query("insert", {
+      table: "hrx_employees",
+      row: { ...employeeInput, employee_id: "emp-002", display_name: "Bo Kim" },
+    });
+    await secondGate;
+    return "second";
+  });
+
+  releaseFirst();
+  assert.equal(await first, "first");
+  releaseSecond();
+  await assert.rejects(second, (error) => error.safe_error_code === "HRX_TRANSACTION_CONFLICT" && error.status === 409);
+  assert.deepEqual(
+    store.query("select", { table: "hrx_employees", where: { tenant_id: "tenant-a" } }).map((row) => row.employee_id),
+    ["emp-001"],
+  );
+  store.close();
+});

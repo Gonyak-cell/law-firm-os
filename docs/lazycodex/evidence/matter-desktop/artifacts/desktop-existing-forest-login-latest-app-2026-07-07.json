@@ -1,0 +1,46 @@
+{
+  "verdict": "PASS",
+  "generated_at": "2026-07-07T07:10:02.412Z",
+  "executablePath": "/Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "userDataDir": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-existing-forest-login-aQvqwW",
+  "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-existing-forest-login-latest-app-2026-07-07.png",
+  "narrowScreenshot": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-existing-forest-login-narrow-latest-app-2026-07-07.png",
+  "snapshot": {
+    "title": "Log in to matter",
+    "subtitle": "Don't have a matter account yet? 가입 미리보기",
+    "bodyLoginSkin": "forest",
+    "loginScreen": "parnas-split",
+    "stageGrid": "665.594px 614.406px",
+    "copyPadding": "64px 72px",
+    "columnGap": "40px",
+    "columnWidth": 460,
+    "fieldHeight": 74,
+    "submitBackground": "rgb(38, 194, 96)",
+    "submitBoxShadow": "rgba(38, 194, 96, 0.26) 0px 8px 18px 0px",
+    "photoPanelHeight": 768,
+    "photoImageHeight": 768,
+    "forestImageLoaded": true,
+    "logoImageLoaded": true,
+    "emailValue": "",
+    "passwordValue": "",
+    "selectors": {
+      "email": true,
+      "password": true,
+      "login": true,
+      "remember": true,
+      "forgot": true,
+      "resetNewPassword": true,
+      "resetConfirmPassword": true
+    },
+    "overflowX": false
+  },
+  "narrow": {
+    "stageGrid": "1024px",
+    "photoDisplay": "none",
+    "title": "Log in to matter",
+    "submitVisible": true,
+    "overflowX": false
+  },
+  "screenshot_mode": "viewport",
+  "boundary": "No login was submitted and login/password input values remained empty; this run only verified the packaged forest login UI."
+}

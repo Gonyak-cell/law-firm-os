@@ -1,0 +1,8 @@
+scripts/build-matter-desktop-mac.mjs
+scripts/run-matter-worktree-packaged-restart-qa.mjs
+apps/desktop/dist/mac/matter.app
+apps/desktop/dist/mac/matter-internal-0.1.15-macos.zip
+apps/desktop/dist/mac/matter-internal-0.1.15-macos.dmg
+workbook/matter-worktree-evidence/WT-04-07/packaged-restart-receipt.json
+workbook/matter-worktree-evidence/WT-04-07/packaged-before-restart.png
+workbook/matter-worktree-evidence/WT-04-07/packaged-after-restart.png

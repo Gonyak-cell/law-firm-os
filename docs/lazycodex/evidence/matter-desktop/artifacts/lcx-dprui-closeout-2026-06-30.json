@@ -1,0 +1,111 @@
+{
+  "schema_version": "law-firm-os.lcx-dprui.closeout.v0.1",
+  "generated_at": "2026-06-30T10:21:45Z",
+  "status": "desktop_runtime_ui_ready",
+  "goal_id": "LCX-DPRUI-COMPLETE",
+  "scope": "packaged desktop login/reset UI only",
+  "implemented_tuws": [
+    "LCX-DPRUI-00",
+    "LCX-DPRUI-01",
+    "LCX-DPRUI-02",
+    "LCX-DPRUI-03",
+    "LCX-DPRUI-04",
+    "LCX-DPRUI-05",
+    "LCX-DPRUI-06",
+    "LCX-DPRUI-07"
+  ],
+  "changed_surface": {
+    "renderer": [
+      "apps/desktop/src/renderer/offline.html"
+    ],
+    "main_preload_deep_link": [
+      "apps/desktop/src/main/deepLinks.js",
+      "apps/desktop/src/main/main.js",
+      "apps/desktop/src/preload/session.js",
+      "apps/desktop/src/preload/session.cjs"
+    ],
+    "tests": [
+      "apps/desktop/test/deep-link-deny.test.mjs",
+      "apps/desktop/test/deep-link-open-audit.test.mjs",
+      "apps/desktop/test/deep-link-parser.test.mjs",
+      "apps/desktop/test/renderer-runtime-ui.test.mjs",
+      "apps/desktop/test/shell-smoke.test.mjs"
+    ],
+    "scripts": [
+      "scripts/build-matter-desktop-mac.mjs",
+      "scripts/run-lcx-dprui-packaged-screen-qa.mjs"
+    ],
+    "lazycodex_evidence": [
+      "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-dprui-00-source-trace.json",
+      "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-dprui-00-button-matrix.json",
+      "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-dprui-05-secret-material-grep.json",
+      "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-dprui-06-screen-qa-result.json",
+      "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-dprui-closeout-2026-06-30.json",
+      "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-dprui-closeout-2026-06-30.md"
+    ]
+  },
+  "ui_states": [
+    "sign_in",
+    "reset_requested",
+    "reset_confirm_empty",
+    "reset_confirm_deeplink",
+    "reset_success",
+    "sign_in_after_success",
+    "sign_in_success_after_reset"
+  ],
+  "screenshots": [
+    "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-dprui-06-sign-in.png",
+    "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-dprui-06-reset-requested.png",
+    "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-dprui-06-reset-confirm-empty.png",
+    "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-dprui-06-reset-confirm-deeplink.png",
+    "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-dprui-06-reset-success.png",
+    "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-dprui-06-sign-in-after-success.png"
+  ],
+  "verification": [
+    {
+      "command": "npm --workspace apps/desktop run test:smoke",
+      "status": "passed",
+      "tests": "62/62"
+    },
+    {
+      "command": "npm --workspace apps/desktop run build:mac",
+      "status": "passed",
+      "release_channel": "internal",
+      "web_renderer_prepare_state": "rebuilt_from_apps_web",
+      "reason": "internal macOS package rebuilt from the current desktop and embedded web renderer sources"
+    },
+    {
+      "command": "node scripts/run-lcx-dprui-packaged-screen-qa.mjs",
+      "status": "passed",
+      "button_clicks": 20,
+      "receipt": "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-dprui-06-screen-qa-result.json"
+    },
+    {
+      "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+      "status": "passed"
+    },
+    {
+      "command": "secret-material grep over LCX-DPRUI artifacts",
+      "status": "passed",
+      "receipt": "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-dprui-05-secret-material-grep.json"
+    }
+  ],
+  "security_boundary": {
+    "latest_reset_email_visible_ui_allowed": false,
+    "reset_token_rendered_or_logged": false,
+    "reset_url_rendered_or_logged": false,
+    "password_rendered_or_logged": false,
+    "operator_token_rendered_or_logged": false,
+    "bearer_token_rendered_or_logged": false,
+    "cookie_rendered_or_logged": false,
+    "browser_storage_used_for_reset_material": false
+  },
+  "residual_gates": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_final_approval": false,
+    "real_email_delivery": false,
+    "os_protocol_runtime_receipt": false,
+    "distribution_signing_or_notarization_approval": false
+  }
+}

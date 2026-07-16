@@ -9,12 +9,22 @@ import { notarize } from "@electron/notarize";
 import { dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import {
+  assertDesktopFormalBuildProvenance,
+  createDesktopBuildManifest,
+  desktopReleaseChannelConfig,
+  directoryDigest,
+  readDesktopBuildSourceIdentity,
+  writeDesktopBuildManifest,
+} from "./lib/matter-desktop-provenance.mjs";
+import { copyDesktopLocalApiRuntime } from "./lib/matter-desktop-runtime.mjs";
 
 const execFileAsync = promisify(execFile);
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, "..");
 const desktopRoot = join(repoRoot, "apps/desktop");
 const packageJson = JSON.parse(await import("node:fs/promises").then((fs) => fs.readFile(join(desktopRoot, "package.json"), "utf8")));
+const sourceIdentity = readDesktopBuildSourceIdentity(repoRoot);
 const distRoot = join(desktopRoot, "dist/mac");
 const appBundle = join(distRoot, "matter.app");
 const contentsDir = join(appBundle, "Contents");
@@ -22,18 +32,41 @@ const macosDir = join(contentsDir, "MacOS");
 const resourcesDir = join(contentsDir, "Resources");
 const executablePath = join(macosDir, "matter");
 const appSourceDir = join(resourcesDir, "app");
+const packagedPrivateContactSourcePath = join(
+  appSourceDir,
+  "runtime/apps/api/src/hrx-member-contact-source-of-truth.json",
+);
+const packagedPrivateRosterSourcePath = join(
+  appSourceDir,
+  "runtime/apps/api/src/hrx-member-roster-source-of-truth.json",
+);
+const packagedPrivatePhotoSourcePath = join(
+  appSourceDir,
+  "runtime/apps/api/src/hrx-member-photos",
+);
+const packagedPublicProfessionalProfileCatalogPath = join(
+  appSourceDir,
+  "runtime/apps/api/src/hrx-public-professional-profile-catalog.json",
+);
+const desktopRendererWebIndex = join(desktopRoot, "src/renderer/web/index.html");
 const iconPath = join(desktopRoot, "build/icon.icns");
 const packagedIconFile = "matter.icns";
 const packagedIconPath = join(resourcesDir, packagedIconFile);
-const releaseChannel = process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal";
-if (!["internal", "formal"].includes(releaseChannel)) {
-  throw new Error("MATTER_DESKTOP_RELEASE_CHANNEL must be internal or formal.");
-}
-const formalRelease = releaseChannel === "formal";
-const appBundleId = formalRelease ? "com.amic.matter.desktop" : "com.amic.matter.desktop.internal";
-const artifactName = formalRelease ? `matter-${packageJson.version}` : `matter-internal-${packageJson.version}`;
+const formalReleaseMarkerName = "matter-formal-release.json";
+const formalReleaseMarkerPath = join(resourcesDir, formalReleaseMarkerName);
+const channelConfig = desktopReleaseChannelConfig(process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal");
+const releaseChannel = channelConfig.channel;
+const formalRelease = channelConfig.formal;
+assertDesktopFormalBuildProvenance({
+  releaseChannel,
+  sourceIdentity,
+  expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
+});
+const appBundleId = channelConfig.appId;
+const artifactName = `${channelConfig.artifactPrefix}-${packageJson.version}`;
 const zipPath = join(distRoot, `${artifactName}-macos.zip`);
 const dmgPath = join(distRoot, `${artifactName}-macos.dmg`);
+const externalBuildManifestPath = join(distRoot, `${artifactName}-macos-build-manifest.json`);
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
 const arch = process.env.MATTER_DESKTOP_MAC_ARCH ?? (process.arch === "arm64" ? "arm64" : "x64");
 const signingMode = process.env.MATTER_DESKTOP_SIGN ?? "internal";
@@ -43,6 +76,8 @@ const ignoredPackagePathPatterns = [
   /(^|\/)dist($|\/)/,
   /(^|\/)test($|\/)/,
   /(^|\/)\.env($|\.|\/)/,
+  /(^|\/)build\/forest-login\.jpg$/,
+  /(^|\/)src\/renderer\/offline(?:\.matter)?\.html$/,
   /\.test\.mjs$/
 ];
 
@@ -115,6 +150,21 @@ async function developerIdSignatureState(targetPath) {
   }
 }
 
+async function packagedExecutableSmoke() {
+  const frameworkExecutable = join(contentsDir, "Frameworks", "Electron Framework.framework", "Electron Framework");
+  if (!existsSync(frameworkExecutable)) {
+    throw new Error("Packaged Electron Framework is missing from the app bundle.");
+  }
+  const { stdout } = await execFileAsync("/usr/bin/otool", ["-l", executablePath]);
+  if (!stdout.includes("@executable_path/../Frameworks")) {
+    throw new Error("Packaged executable is missing the Electron Framework rpath.");
+  }
+  if (!stdout.includes("@rpath/Electron Framework.framework/Electron Framework")) {
+    throw new Error("Packaged executable is missing the Electron Framework load command.");
+  }
+  return "bundle_rpath_smoke_pass";
+}
+
 async function applyMatterBundleIcon(targetAppBundle) {
   const targetContentsDir = join(targetAppBundle, "Contents");
   const targetResourcesDir = join(targetContentsDir, "Resources");
@@ -127,6 +177,16 @@ async function applyMatterBundleIcon(targetAppBundle) {
     `Set :CFBundleIconFile ${packagedIconFile}`,
     targetInfoPlist
   ]);
+  await execFileAsync("/usr/libexec/PlistBuddy", ["-c", "Delete :CFBundleURLTypes", targetInfoPlist]).catch(() => {});
+  await execFileAsync("/usr/libexec/PlistBuddy", ["-c", "Add :CFBundleURLTypes array", targetInfoPlist]);
+  await execFileAsync("/usr/libexec/PlistBuddy", ["-c", "Add :CFBundleURLTypes:0 dict", targetInfoPlist]);
+  await execFileAsync("/usr/libexec/PlistBuddy", [
+    "-c",
+    `Add :CFBundleURLTypes:0:CFBundleURLName string ${appBundleId}`,
+    targetInfoPlist
+  ]);
+  await execFileAsync("/usr/libexec/PlistBuddy", ["-c", "Add :CFBundleURLTypes:0:CFBundleURLSchemes array", targetInfoPlist]);
+  await execFileAsync("/usr/libexec/PlistBuddy", ["-c", "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string matter", targetInfoPlist]);
 }
 
 if (!existsSync(join(repoRoot, "node_modules/electron/dist/Electron.app"))) {
@@ -136,9 +196,16 @@ if (!existsSync(iconPath)) {
   throw new Error("Matter desktop app icon is missing. Generate apps/desktop/build/icon.icns first.");
 }
 
-await execFileAsync(process.execPath, [join(scriptDir, "prepare-matter-desktop-web-renderer.mjs")], {
-  cwd: repoRoot
-});
+let webRendererPrepareState = "rebuilt_from_apps_web";
+try {
+  await execFileAsync(process.execPath, [join(scriptDir, "prepare-matter-desktop-web-renderer.mjs")], {
+    cwd: repoRoot
+  });
+} catch (error) {
+  if (formalRelease || !existsSync(desktopRendererWebIndex)) throw error;
+  webRendererPrepareState = "reused_existing_desktop_renderer_internal_only";
+  console.warn(`Desktop web renderer prepare failed; reusing existing desktop renderer for internal build only: ${firstLine(error.stderr ?? error.message)}`);
+}
 
 const osxSign = await signingOptions();
 const osxNotarize = notarizationOptions();
@@ -146,6 +213,8 @@ if (notarizationRequested && !osxNotarize) {
   throw new Error("Notarization requested but no notarization credential source was found. Set MATTER_NOTARY_KEYCHAIN_PROFILE, Apple ID app-specific password env, or App Store Connect API key env.");
 }
 const notarizationState = osxNotarize ? "submitted_and_accepted_by_notarytool" : "not_submitted_internal_only";
+let buildManifest;
+let buildManifestHash;
 
 await rm(distRoot, { recursive: true, force: true });
 await mkdir(distRoot, { recursive: true });
@@ -169,10 +238,37 @@ try {
     asar: false,
     prune: true,
     ignore: shouldIgnorePackagedPath,
-    osxSign: false
+    osxSign: false,
+    ...(process.env.MATTER_ELECTRON_ZIP_DIR ? { electronZipDir: process.env.MATTER_ELECTRON_ZIP_DIR } : {})
   });
   const generatedAppBundle = join(generatedAppRoot, "matter.app");
   await applyMatterBundleIcon(generatedAppBundle);
+  await copyDesktopLocalApiRuntime({
+    targetAppSourceDir: join(generatedAppBundle, "Contents", "Resources", "app"),
+    repoRoot,
+    formalRelease
+  });
+  const generatedMarkerPath = join(generatedAppBundle, "Contents", "Resources", formalReleaseMarkerName);
+  if (formalRelease) {
+    await writeFile(generatedMarkerPath, `${JSON.stringify({ channel: "formal", local_api_default: "disabled" }, null, 2)}\n`);
+  } else {
+    await rm(generatedMarkerPath, { force: true });
+  }
+
+  buildManifest = createDesktopBuildManifest({
+    version: packageJson.version,
+    ...sourceIdentity,
+    renderer: directoryDigest(join(generatedAppBundle, "Contents", "Resources", "app", "src", "renderer", "web")),
+    channel: releaseChannel,
+    platform: "darwin",
+    arch,
+    appId: appBundleId,
+  });
+  ({ sha256: buildManifestHash } = await writeDesktopBuildManifest({
+    manifest: buildManifest,
+    internalPath: join(generatedAppBundle, "Contents", "Resources", "matter-build-manifest.json"),
+    externalPath: externalBuildManifestPath,
+  }));
 
   if (osxSign) {
     await sign({
@@ -218,24 +314,56 @@ const developerIdSignature = await developerIdSignatureState(appBundle);
 if (osxSign && developerIdSignature !== "pass") {
   throw new Error(`Developer ID signature verification failed: ${developerIdSignature}`);
 }
-const smoke = await execFileAsync(executablePath, ["-e", "process.stdout.write(process.versions.electron)"], {
-  env: {
-    ...process.env,
-    ELECTRON_RUN_AS_NODE: "1"
-  }
-});
+const executableSmoke = await packagedExecutableSmoke();
 await execFileAsync("/usr/bin/ditto", ["-c", "-k", "--sequesterRsrc", "--keepParent", appBundle, zipPath]);
 await execFileAsync("/usr/bin/hdiutil", ["create", "-volname", "matter", "-srcfolder", appBundle, "-ov", "-format", "UDZO", dmgPath]);
 
-const receipt = `# macOS ${formalRelease ? "Formal Release Candidate" : "Internal"} Build Receipt
+let dmgCodesignVerify = "not_applied_internal_package";
+let dmgNotarizationState = "not_submitted_internal_only";
+let dmgStaplerValidate = "not_submitted_internal_only";
+let dmgGatekeeperAssess = "not_distribution_ready";
+let dmgImageVerify = "not_verified";
+if (osxSign) {
+  await execFileAsync("/usr/bin/codesign", ["--force", "--sign", osxSign.identity, "--timestamp", dmgPath]);
+  await execFileAsync("/usr/bin/codesign", ["--verify", "--verbose=2", dmgPath]);
+  dmgCodesignVerify = "pass";
+}
+if (osxNotarize) {
+  await notarize({ appPath: dmgPath, ...osxNotarize });
+  dmgNotarizationState = "submitted_and_accepted_by_notarytool";
+  await execFileAsync("/usr/bin/xcrun", ["stapler", "validate", dmgPath]);
+  dmgStaplerValidate = "pass";
+}
+await execFileAsync("/usr/bin/hdiutil", ["verify", dmgPath]);
+dmgImageVerify = "pass";
+try {
+  await execFileAsync("/usr/sbin/spctl", ["--assess", "--type", "install", "--verbose=4", dmgPath]);
+  dmgGatekeeperAssess = "pass";
+} catch (error) {
+  dmgGatekeeperAssess = `not_distribution_ready: ${firstLine(error.stderr ?? error.message) || "DMG spctl assess failed"}`;
+}
+if (formalRelease && [dmgCodesignVerify, dmgNotarizationState, dmgStaplerValidate, dmgGatekeeperAssess, dmgImageVerify].some((state) => !["pass", "submitted_and_accepted_by_notarytool"].includes(state))) {
+  throw new Error(`Formal DMG verification failed: ${JSON.stringify({ dmgCodesignVerify, dmgNotarizationState, dmgStaplerValidate, dmgGatekeeperAssess, dmgImageVerify })}`);
+}
 
-Status: ${formalRelease ? "formal_release_candidate_electron_app_bundle_created" : "internal_electron_app_bundle_created"}
+const receipt = `# macOS ${channelConfig.receiptLabel} Build Receipt
+
+Status: ${channelConfig.receiptStatusPrefix}_electron_app_bundle_created
 Source TUW: MDT-P6-W01-T03
 App bundle: \`apps/desktop/dist/mac/matter.app\`
 App ID: \`${appBundleId}\`
 Product name: \`matter\`
 Version: \`${packageJson.version}\`
 Channel: \`${releaseChannel}\`
+Build manifest: \`apps/desktop/dist/mac/${artifactName}-macos-build-manifest.json\`
+Packaged build manifest: \`apps/desktop/dist/mac/matter.app/Contents/Resources/matter-build-manifest.json\`
+Build manifest SHA-256: \`${buildManifestHash}\`
+Source SHA: \`${buildManifest.source_sha}\`
+Source tree: \`${buildManifest.source_tree}\`
+Source dirty: \`${buildManifest.source_dirty}\`
+Renderer SHA-256: \`${buildManifest.renderer.sha256}\`
+Renderer files: \`${buildManifest.renderer.file_count}\`
+Built at: \`${buildManifest.built_at}\`
 
 ## Package Structure
 
@@ -260,6 +388,11 @@ Channel: \`${releaseChannel}\`
 - notarization requested: ${notarizationRequested}
 - notarization credential source: ${osxNotarize ? "present" : "missing"}
 - notarization state: ${notarizationState}
+- DMG codesign verify: ${dmgCodesignVerify}
+- DMG notarization state: ${dmgNotarizationState}
+- DMG stapler validate: ${dmgStaplerValidate}
+- DMG Gatekeeper assess: ${dmgGatekeeperAssess}
+- DMG image verify: ${dmgImageVerify}
 
 ## Install Smoke
 
@@ -267,10 +400,17 @@ Channel: \`${releaseChannel}\`
 - executable exists: ${existsSync(executablePath)}
 - packaged app icon exists: ${existsSync(packagedIconPath)}
 - packaged app source exists: ${existsSync(appSourceDir)}
+- private HRX contact source excluded: ${!existsSync(packagedPrivateContactSourcePath)}
+- private HRX roster source excluded: ${!existsSync(packagedPrivateRosterSourcePath)}
+- private HRX photo source excluded: ${!existsSync(packagedPrivatePhotoSourcePath)}
+- public HRX professional profile catalog included: ${existsSync(packagedPublicProfessionalProfileCatalogPath)}
+- formal release marker: ${formalRelease ? existsSync(formalReleaseMarkerPath) : !existsSync(formalReleaseMarkerPath)}
+- web renderer prepare state: ${webRendererPrepareState}
+- packaged URL scheme metadata: matter
 - ZIP archive exists: ${existsSync(zipPath)}
 - DMG image exists: ${existsSync(dmgPath)}
 - install smoke result: pass
-- executable smoke: \`${smoke.stdout.trim()}\`
+- executable smoke: \`${executableSmoke}\`
 
 ## Non-Claims
 
@@ -293,6 +433,15 @@ console.log(
       receipt: "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
       release_channel: releaseChannel,
       app_id: appBundleId,
+      build_manifest: `apps/desktop/dist/mac/${artifactName}-macos-build-manifest.json`,
+      packaged_build_manifest: "apps/desktop/dist/mac/matter.app/Contents/Resources/matter-build-manifest.json",
+      build_manifest_sha256: buildManifestHash,
+      source_sha: buildManifest.source_sha,
+      source_tree: buildManifest.source_tree,
+      source_dirty: buildManifest.source_dirty,
+      renderer_sha256: buildManifest.renderer.sha256,
+      renderer_files: buildManifest.renderer.file_count,
+      built_at: buildManifest.built_at,
       signing_mode: signingMode,
       signing_identity: osxSign?.identity ?? "not_applied_internal_package",
       developer_id_signature: developerIdSignature,
@@ -302,9 +451,20 @@ console.log(
       notarization_requested: notarizationRequested,
       notarization_credential_source: osxNotarize ? "present" : "missing",
       notarization_state: notarizationState,
+      dmg_codesign_verify: dmgCodesignVerify,
+      dmg_notarization_state: dmgNotarizationState,
+      dmg_stapler_validate: dmgStaplerValidate,
+      dmg_gatekeeper_assess: dmgGatekeeperAssess,
+      dmg_image_verify: dmgImageVerify,
       install_smoke_result: "pass",
       packaged_app_icon: existsSync(packagedIconPath),
+      private_hrx_contact_source_excluded: !existsSync(packagedPrivateContactSourcePath),
+      private_hrx_roster_source_excluded: !existsSync(packagedPrivateRosterSourcePath),
+      private_hrx_photo_source_excluded: !existsSync(packagedPrivatePhotoSourcePath),
+      public_hrx_professional_profile_catalog_included: existsSync(packagedPublicProfessionalProfileCatalogPath),
+      formal_release_local_api_default_disabled: formalRelease && existsSync(formalReleaseMarkerPath),
       electron_runtime_packaged: true,
+      web_renderer_prepare_state: webRendererPrepareState,
       public_release: false,
       owner_approval: false
     },

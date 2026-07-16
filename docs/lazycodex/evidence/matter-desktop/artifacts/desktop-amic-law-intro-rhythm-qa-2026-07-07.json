@@ -1,0 +1,456 @@
+{
+  "schema_version": "lawos.desktop_amic_law_intro_rhythm_qa.v1",
+  "generated_at": "2026-07-07T08:45:33.294Z",
+  "verdict": "PASS",
+  "executablePath": "/Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "screenshots": {
+    "birth": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-rhythm-birth-2026-07-07.png",
+    "hold": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-rhythm-hold-2026-07-07.png",
+    "mic": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-rhythm-mic-reveal-2026-07-07.png",
+    "dock": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-rhythm-dock-2026-07-07.png",
+    "final": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-rhythm-final-2026-07-07.png"
+  },
+  "checks": {
+    "aBirthIsPartial": true,
+    "aHoldIsComplete": true,
+    "aHoldVisualCenterIsStable": true,
+    "micRevealTrailsA": true,
+    "dockMatchesTarget": true,
+    "finalLogoComplete": true,
+    "emptyLoginFields": true,
+    "noDummyPlaceholders": true
+  },
+  "samples": {
+    "birth": {
+      "elapsedMs": 190,
+      "viewport": {
+        "width": 1280,
+        "height": 768
+      },
+      "bodyLogoIntro": "play",
+      "introLayer": {
+        "opacity": 1,
+        "clipPath": "none",
+        "transform": "none",
+        "visibility": "visible"
+      },
+      "logo": {
+        "rect": {
+          "left": 625,
+          "top": 366,
+          "width": 220,
+          "height": 36,
+          "centerX": 735,
+          "centerY": 384
+        },
+        "style": {
+          "opacity": 1,
+          "clipPath": "none",
+          "transform": "matrix(1, 0, 0, 1, -15, -18)",
+          "visibility": "visible"
+        },
+        "visualACenterX": 640,
+        "originShift": 95
+      },
+      "a": {
+        "rect": {
+          "left": 630.6521606445312,
+          "top": 370.737060546875,
+          "width": 208.69573974609375,
+          "height": 33.386871337890625,
+          "centerX": 735.0000305175781,
+          "centerY": 387.4304962158203
+        },
+        "style": {
+          "opacity": 0.513951,
+          "clipPath": "inset(66.6627% 13.6657% 0px)",
+          "transform": "matrix(0.948617, 0, 0, 0.948617, 0, 3.83283)",
+          "visibility": "visible"
+        }
+      },
+      "mic": {
+        "rect": {
+          "left": 603,
+          "top": 366,
+          "width": 220,
+          "height": 35.1953125,
+          "centerX": 713,
+          "centerY": 383.59765625
+        },
+        "style": {
+          "opacity": 0,
+          "clipPath": "inset(0px 100% 0px 0px)",
+          "transform": "matrix(1, 0, 0, 1, -22, 0)",
+          "visibility": "visible"
+        }
+      },
+      "target": {
+        "rect": {
+          "left": 885.296875,
+          "top": 119.8515625,
+          "width": 175,
+          "height": 28,
+          "centerX": 972.796875,
+          "centerY": 133.8515625
+        },
+        "style": {
+          "opacity": 1,
+          "clipPath": "none",
+          "transform": "none",
+          "visibility": "visible"
+        }
+      },
+      "login": {
+        "emailValue": "",
+        "passwordValue": "",
+        "emailPlaceholder": null,
+        "passwordPlaceholder": null
+      }
+    },
+    "hold": {
+      "elapsedMs": 720,
+      "viewport": {
+        "width": 1280,
+        "height": 768
+      },
+      "bodyLogoIntro": "play",
+      "introLayer": {
+        "opacity": 1,
+        "clipPath": "none",
+        "transform": "none",
+        "visibility": "visible"
+      },
+      "logo": {
+        "rect": {
+          "left": 625,
+          "top": 366,
+          "width": 220,
+          "height": 36,
+          "centerX": 735,
+          "centerY": 384
+        },
+        "style": {
+          "opacity": 1,
+          "clipPath": "none",
+          "transform": "matrix(1, 0, 0, 1, -15, -18)",
+          "visibility": "visible"
+        },
+        "visualACenterX": 640,
+        "originShift": 95
+      },
+      "a": {
+        "rect": {
+          "left": 625,
+          "top": 366,
+          "width": 220,
+          "height": 35.1953125,
+          "centerX": 735,
+          "centerY": 383.59765625
+        },
+        "style": {
+          "opacity": 1,
+          "clipPath": "inset(0px)",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "visibility": "visible"
+        }
+      },
+      "mic": {
+        "rect": {
+          "left": 603,
+          "top": 366,
+          "width": 220,
+          "height": 35.1953125,
+          "centerX": 713,
+          "centerY": 383.59765625
+        },
+        "style": {
+          "opacity": 0,
+          "clipPath": "inset(0px 100% 0px 0px)",
+          "transform": "matrix(1, 0, 0, 1, -22, 0)",
+          "visibility": "visible"
+        }
+      },
+      "target": {
+        "rect": {
+          "left": 885.296875,
+          "top": 119.8515625,
+          "width": 175,
+          "height": 28,
+          "centerX": 972.796875,
+          "centerY": 133.8515625
+        },
+        "style": {
+          "opacity": 1,
+          "clipPath": "none",
+          "transform": "none",
+          "visibility": "visible"
+        }
+      },
+      "login": {
+        "emailValue": "",
+        "passwordValue": "",
+        "emailPlaceholder": null,
+        "passwordPlaceholder": null
+      }
+    },
+    "mic": {
+      "elapsedMs": 1280,
+      "viewport": {
+        "width": 1280,
+        "height": 768
+      },
+      "bodyLogoIntro": "play",
+      "introLayer": {
+        "opacity": 1,
+        "clipPath": "none",
+        "transform": "none",
+        "visibility": "visible"
+      },
+      "logo": {
+        "rect": {
+          "left": 527.3745727539062,
+          "top": 366,
+          "width": 220,
+          "height": 36,
+          "centerX": 637.3745727539062,
+          "centerY": 384
+        },
+        "style": {
+          "opacity": 1,
+          "clipPath": "none",
+          "transform": "matrix(1, 0, 0, 1, -112.625, -18)",
+          "visibility": "visible"
+        },
+        "visualACenterX": 542.3745727539062,
+        "originShift": 95
+      },
+      "a": {
+        "rect": {
+          "left": 527.3745727539062,
+          "top": 366,
+          "width": 220,
+          "height": 35.1953125,
+          "centerX": 637.3745727539062,
+          "centerY": 383.59765625
+        },
+        "style": {
+          "opacity": 1,
+          "clipPath": "inset(0px)",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "visibility": "visible"
+        }
+      },
+      "mic": {
+        "rect": {
+          "left": 523.3463134765625,
+          "top": 366,
+          "width": 220,
+          "height": 35.1953125,
+          "centerX": 633.3463134765625,
+          "centerY": 383.59765625
+        },
+        "style": {
+          "opacity": 0.887209,
+          "clipPath": "inset(0px 19.3356% 0px 0px)",
+          "transform": "matrix(1, 0, 0, 1, -4.02825, 0)",
+          "visibility": "visible"
+        }
+      },
+      "target": {
+        "rect": {
+          "left": 885.296875,
+          "top": 119.8515625,
+          "width": 175,
+          "height": 28,
+          "centerX": 972.796875,
+          "centerY": 133.8515625
+        },
+        "style": {
+          "opacity": 1,
+          "clipPath": "none",
+          "transform": "none",
+          "visibility": "visible"
+        }
+      },
+      "login": {
+        "emailValue": "",
+        "passwordValue": "",
+        "emailPlaceholder": null,
+        "passwordPlaceholder": null
+      }
+    },
+    "dock": {
+      "elapsedMs": 2550,
+      "viewport": {
+        "width": 1280,
+        "height": 768
+      },
+      "bodyLogoIntro": "play",
+      "introLayer": {
+        "opacity": 0.154505,
+        "clipPath": "none",
+        "transform": "none",
+        "visibility": "visible"
+      },
+      "logo": {
+        "rect": {
+          "left": 885.2919921875,
+          "top": 119.53302001953125,
+          "width": 175.010009765625,
+          "height": 28.63800048828125,
+          "centerX": 972.7969970703125,
+          "centerY": 133.85202026367188
+        },
+        "style": {
+          "opacity": 1,
+          "clipPath": "none",
+          "transform": "matrix(0.7955, 0, 0, 0.7955, 222.797, -268.148)",
+          "visibility": "visible"
+        },
+        "visualACenterX": 877.7969970703125,
+        "originShift": 95
+      },
+      "a": {
+        "rect": {
+          "left": 885.2919921875,
+          "top": 119.53302001953125,
+          "width": 175.010009765625,
+          "height": 27.99786376953125,
+          "centerX": 972.7969970703125,
+          "centerY": 133.53195190429688
+        },
+        "style": {
+          "opacity": 1,
+          "clipPath": "inset(0px)",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "visibility": "visible"
+        }
+      },
+      "mic": {
+        "rect": {
+          "left": 885.2919921875,
+          "top": 119.53302001953125,
+          "width": 175.010009765625,
+          "height": 27.99786376953125,
+          "centerX": 972.7969970703125,
+          "centerY": 133.53195190429688
+        },
+        "style": {
+          "opacity": 1,
+          "clipPath": "inset(0px)",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "visibility": "visible"
+        }
+      },
+      "target": {
+        "rect": {
+          "left": 885.296875,
+          "top": 119.8515625,
+          "width": 175,
+          "height": 28,
+          "centerX": 972.796875,
+          "centerY": 133.8515625
+        },
+        "style": {
+          "opacity": 1,
+          "clipPath": "none",
+          "transform": "none",
+          "visibility": "visible"
+        }
+      },
+      "login": {
+        "emailValue": "",
+        "passwordValue": "",
+        "emailPlaceholder": null,
+        "passwordPlaceholder": null
+      }
+    },
+    "final": {
+      "elapsedMs": 2920,
+      "viewport": {
+        "width": 1280,
+        "height": 768
+      },
+      "bodyLogoIntro": "complete",
+      "introLayer": {
+        "opacity": 0,
+        "clipPath": "none",
+        "transform": "none",
+        "visibility": "hidden"
+      },
+      "logo": {
+        "rect": {
+          "left": 625,
+          "top": 366,
+          "width": 220,
+          "height": 36,
+          "centerX": 735,
+          "centerY": 384
+        },
+        "style": {
+          "opacity": 1,
+          "clipPath": "none",
+          "transform": "matrix(1, 0, 0, 1, -15, -18)",
+          "visibility": "hidden"
+        },
+        "visualACenterX": 640,
+        "originShift": 95
+      },
+      "a": {
+        "rect": {
+          "left": 636,
+          "top": 375.759765625,
+          "width": 198,
+          "height": 31.67578125,
+          "centerX": 735,
+          "centerY": 391.59765625
+        },
+        "style": {
+          "opacity": 0,
+          "clipPath": "inset(100% 22% 0px)",
+          "transform": "matrix(0.9, 0, 0, 0.9, 0, 8)",
+          "visibility": "hidden"
+        }
+      },
+      "mic": {
+        "rect": {
+          "left": 603,
+          "top": 366,
+          "width": 220,
+          "height": 35.1953125,
+          "centerX": 713,
+          "centerY": 383.59765625
+        },
+        "style": {
+          "opacity": 0,
+          "clipPath": "inset(0px 100% 0px 0px)",
+          "transform": "matrix(1, 0, 0, 1, -22, 0)",
+          "visibility": "hidden"
+        }
+      },
+      "target": {
+        "rect": {
+          "left": 885.296875,
+          "top": 119.8515625,
+          "width": 175,
+          "height": 28,
+          "centerX": 972.796875,
+          "centerY": 133.8515625
+        },
+        "style": {
+          "opacity": 1,
+          "clipPath": "none",
+          "transform": "none",
+          "visibility": "visible"
+        }
+      },
+      "login": {
+        "emailValue": "",
+        "passwordValue": "",
+        "emailPlaceholder": null,
+        "passwordPlaceholder": null
+      }
+    }
+  },
+  "login_was_not_submitted": true
+}

@@ -2,7 +2,6 @@ import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
   Building2,
-  ChevronDown,
   CircleDollarSign,
   CircleUserRound,
   FileText,
@@ -10,13 +9,14 @@ import {
   GitBranch,
   LockKeyhole,
   Mail,
+  Phone,
   Scale,
   Search,
   SlidersHorizontal,
-  UserPlus,
   UsersRound
 } from "lucide-react";
-import { fetchHrxEmployees, fetchHrxLifecycleBoard } from "../hrxApiClient.ts";
+import { fetchHrxEmployees, fetchHrxLifecycleBoard, fetchHrxOrgChart, updateHrxReportingLine } from "../hrxApiClient.ts";
+import { memberPhotoFor } from "../memberPhotos.js";
 
 const STATUS_TABS = [
   { id: "active", label: "현재 재직" },
@@ -29,6 +29,10 @@ const STATUS_TABS = [
 type HrxRecord = Record<string, unknown>;
 type EmployeeResult = { kind: "data"; employees: HrxRecord[] } | { kind: "error" } | null;
 type LifecycleResult = { kind: "data"; onboarding: HrxRecord[]; offboarding: HrxRecord[] } | { kind: "error" } | null;
+type OrgChartResult =
+  | { kind: "data"; org_units: HrxRecord[]; employees: HrxRecord[]; reporting_lines: HrxRecord[]; change_events: HrxRecord[]; claim_boundary?: HrxRecord | null }
+  | { kind: "error" }
+  | null;
 type ViewMode = "table" | "org";
 type WorkforceRow = {
   key: string;
@@ -39,6 +43,7 @@ type WorkforceRow = {
   country: string;
   affiliation: string;
   organizationGroup: string;
+  contact: string;
   email: string;
   employeeId?: string;
   muted?: boolean;
@@ -55,11 +60,51 @@ type LocalAction = {
   title: string;
   body: string;
 };
+type IconComponent = (props: { size?: number }) => unknown;
+type FormSubmitEvent = { preventDefault(): void };
+type SelectChangeEvent = { target: { value: string } };
+type OrgUnit = {
+  id: string;
+  label: string;
+  department: string;
+  parentOrgUnitId: string;
+  memberCount: number;
+};
+type OrgEmployee = {
+  key: string;
+  employeeId: string;
+  name: string;
+  title: string;
+  orgUnitId: string;
+  orgUnitLabel: string;
+  department: string;
+  managerEmployeeId: string;
+  managerName: string;
+  directReportCount: number;
+};
+
+function recordField(value: unknown): HrxRecord | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as HrxRecord : null;
+}
+
+function recordList(value: unknown): HrxRecord[] {
+  return Array.isArray(value) ? value.filter((item): item is HrxRecord => Boolean(recordField(item))) : [];
+}
 
 function stringField(record: HrxRecord, key: string) {
   const value = record[key];
   if (typeof value === "string" || typeof value === "number") return String(value);
   return "";
+}
+
+function numberField(record: HrxRecord, key: string) {
+  const value = record[key];
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return 0;
 }
 
 function roleLabel(value: unknown) {
@@ -139,7 +184,7 @@ function sourceIcon(source: string) {
   return source === "미등록" || source === "확인 필요" ? <LockKeyhole size={15} /> : <Building2 size={15} />;
 }
 
-function HeaderCell({ icon: Icon, children }: { icon: React.ComponentType<{ size?: number }>; children: React.ReactNode }) {
+function HeaderCell({ icon: Icon, children }: { icon: IconComponent; children: unknown }) {
   return (
     <span className="hr-roster-header-cell">
       <Icon size={15} />
@@ -148,7 +193,7 @@ function HeaderCell({ icon: Icon, children }: { icon: React.ComponentType<{ size
   );
 }
 
-function rowsForTab(activeTab: string, employeeResult: EmployeeResult, lifecycleResult: LifecycleResult): WorkforceRow[] {
+export function rowsForTab(activeTab: string, employeeResult: EmployeeResult, lifecycleResult: LifecycleResult): WorkforceRow[] {
   const employees = employeeResult?.kind === "data" ? employeeResult.employees : [];
   if (activeTab === "onboarding") {
     const plans = lifecycleResult?.kind === "data" ? lifecycleResult.onboarding : [];
@@ -161,6 +206,7 @@ function rowsForTab(activeTab: string, employeeResult: EmployeeResult, lifecycle
       country: "확인 필요",
       affiliation: "AMIC Law",
       organizationGroup: "인사",
+      contact: "확인 필요",
       email: "확인 필요",
       muted: true
     }));
@@ -176,6 +222,7 @@ function rowsForTab(activeTab: string, employeeResult: EmployeeResult, lifecycle
       country: "확인 필요",
       affiliation: "AMIC Law",
       organizationGroup: "인사",
+      contact: "확인 필요",
       email: "확인 필요",
       muted: true
     }));
@@ -194,6 +241,7 @@ function rowsForTab(activeTab: string, employeeResult: EmployeeResult, lifecycle
         country: countryLabel(stringField(employee, "country") || stringField(employee, "country_label")),
         affiliation: affiliationLabel(employee),
         organizationGroup: stringField(employee, "organization_group") || organizationGroupLabel(department),
+        contact: stringField(employee, "mobile_phone") || "미등록",
         email: stringField(employee, "work_email") || stringField(employee, "email") || "확인 필요",
         employeeId: stringField(employee, "employee_id") || undefined
       };
@@ -207,26 +255,16 @@ function statusForTab(activeTab: string, employeeResult: EmployeeResult, lifecyc
   if (employeeResult?.kind === "error") {
     return {
       kind: "error",
-      message: "구성원 목록을 불러오지 못했습니다.",
-      detail: "로컬 런타임 또는 권한 컨텍스트를 확인하세요."
+      message: "구성원 정보를 확인할 수 없습니다."
     };
   }
   if (["onboarding", "offboarding"].includes(activeTab) && lifecycleResult?.kind === "error") {
     return {
       kind: "error",
-      message: "입퇴사 관리 업무를 불러오지 못했습니다.",
-      detail: "로컬 런타임 또는 권한 컨텍스트를 확인하세요."
+      message: "입퇴사 정보를 확인할 수 없습니다."
     };
   }
   return null;
-}
-
-function groupByOrganization(rows: WorkforceRow[]) {
-  return rows.reduce((groups, row) => {
-    const key = row.organizationGroup || row.department || "미등록";
-    groups.set(key, [...(groups.get(key) ?? []), row]);
-    return groups;
-  }, new Map<string, WorkforceRow[]>());
 }
 
 function organizationGroupLabel(department: string) {
@@ -238,10 +276,15 @@ function organizationGroupLabel(department: string) {
 export function PeopleWorkforceDirectory({ initialTab = "active", initialView = "table", refreshKey = 0, selectedEmployeeId = null, onSelectEmployee, compact = false }: WorkforceDirectoryProps) {
   const [employeeResult, setEmployeeResult] = useState<EmployeeResult>(null);
   const [lifecycleResult, setLifecycleResult] = useState<LifecycleResult>(null);
+  const [orgChartResult, setOrgChartResult] = useState<OrgChartResult>(null);
   const [activeTab, setActiveTab] = useState(initialTab);
   const [viewMode, setViewMode] = useState<ViewMode>(initialView);
   const [query, setQuery] = useState("");
   const [localAction, setLocalAction] = useState<LocalAction | null>(null);
+  const [orgEditEmployeeId, setOrgEditEmployeeId] = useState("");
+  const [orgEditManagerId, setOrgEditManagerId] = useState("");
+  const [orgEditOrgUnitId, setOrgEditOrgUnitId] = useState("");
+  const [orgSaving, setOrgSaving] = useState(false);
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -273,19 +316,86 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
     };
   }, [refreshKey]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setOrgChartResult(null);
+    fetchHrxOrgChart().then((next) => {
+      if (!cancelled) setOrgChartResult(next as OrgChartResult);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshKey]);
+
   const allRows = useMemo(() => rowsForTab(activeTab, employeeResult, lifecycleResult), [activeTab, employeeResult, lifecycleResult]);
   const visibleRows = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     if (!normalizedQuery) return allRows;
     return allRows.filter((row) =>
-      [row.name, row.department, row.jobTitle, row.workerType, row.country, row.affiliation, row.email].some((value) =>
+      [row.name, row.department, row.jobTitle, row.workerType, row.country, row.affiliation, row.organizationGroup, row.contact, row.email].some((value) =>
         String(value ?? "").toLowerCase().includes(normalizedQuery)
       )
     );
   }, [allRows, query]);
   const status = statusForTab(activeTab, employeeResult, lifecycleResult);
-  const orgStatus = statusForTab("active", employeeResult, lifecycleResult);
-  const orgGroups = groupByOrganization(rowsForTab("active", employeeResult, lifecycleResult));
+  const orgStatus =
+    orgChartResult === null
+      ? { kind: "loading", message: "조직 정보를 불러오는 중입니다" }
+      : orgChartResult.kind === "error"
+        ? { kind: "error", message: "조직 정보를 확인할 수 없습니다." }
+        : null;
+  const orgUnits = useMemo<OrgUnit[]>(() => {
+    const units = orgChartResult?.kind === "data" ? orgChartResult.org_units : [];
+    return units.map((unit) => ({
+      id: stringField(unit, "org_unit_id"),
+      label: stringField(unit, "label") || "미등록",
+      department: stringField(unit, "department") || "미등록",
+      parentOrgUnitId: stringField(unit, "parent_org_unit_id"),
+      memberCount: numberField(unit, "member_count")
+    }));
+  }, [orgChartResult]);
+  const orgEmployees = useMemo<OrgEmployee[]>(() => {
+    const employees = orgChartResult?.kind === "data" ? orgChartResult.employees : [];
+    return employees.map((employee, index) => ({
+      key: stringField(employee, "employee_id") || `org-employee-${index}`,
+      employeeId: stringField(employee, "employee_id"),
+      name: stringField(employee, "display_name") || `구성원 ${index + 1}`,
+      title: roleLabel(stringField(employee, "title")),
+      orgUnitId: stringField(employee, "org_unit_id") || "unassigned",
+      orgUnitLabel: stringField(employee, "org_unit_label") || "미등록",
+      department: stringField(employee, "department") || "미등록",
+      managerEmployeeId: stringField(employee, "manager_employee_id"),
+      managerName: stringField(employee, "manager_display_name"),
+      directReportCount: numberField(employee, "direct_report_count")
+    }));
+  }, [orgChartResult]);
+  const orgVisibleEmployees = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) return orgEmployees;
+    return orgEmployees.filter((employee) =>
+      [employee.name, employee.title, employee.orgUnitLabel, employee.department, employee.managerName].some((value) =>
+        value.toLowerCase().includes(normalizedQuery)
+      )
+    );
+  }, [orgEmployees, query]);
+  const orgEmployeesByUnit = useMemo(() => {
+    return orgVisibleEmployees.reduce((groups, employee) => {
+      const key = employee.orgUnitId || "unassigned";
+      groups.set(key, [...(groups.get(key) ?? []), employee]);
+      return groups;
+    }, new Map<string, OrgEmployee[]>());
+  }, [orgVisibleEmployees]);
+  const orgUnitLabelById = useMemo(() => new Map(orgUnits.map((unit) => [unit.id, unit.label])), [orgUnits]);
+  const orgEmployeeById = useMemo(() => new Map(orgVisibleEmployees.map((employee) => [employee.employeeId, employee])), [orgVisibleEmployees]);
+  const orgChildrenByManager = useMemo(() => {
+    return orgVisibleEmployees.reduce((groups, employee) => {
+      if (!employee.managerEmployeeId || !orgEmployeeById.has(employee.managerEmployeeId)) return groups;
+      groups.set(employee.managerEmployeeId, [...(groups.get(employee.managerEmployeeId) ?? []), employee]);
+      return groups;
+    }, new Map<string, OrgEmployee[]>());
+  }, [orgEmployeeById, orgVisibleEmployees]);
+  const orgChangeEvents = orgChartResult?.kind === "data" ? orgChartResult.change_events : [];
+  const selectedOrgEmployee = orgEmployees.find((employee) => employee.employeeId === orgEditEmployeeId) ?? null;
   const showLocalAction = (title: string, body: string) => setLocalAction({ title, body });
   const handleRowSelect = (row: WorkforceRow) => {
     if (row.employeeId) {
@@ -295,53 +405,79 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
     }
     showLocalAction(`${row.name} 선택됨`, `${row.jobTitle} 항목은 아래 입퇴사 관리 보드에서 확인합니다.`);
   };
+  useEffect(() => {
+    if (orgEmployees.length === 0) {
+      setOrgEditEmployeeId("");
+      return;
+    }
+    if (!orgEmployees.some((employee) => employee.employeeId === orgEditEmployeeId)) {
+      setOrgEditEmployeeId(orgEmployees[0].employeeId);
+    }
+  }, [orgEditEmployeeId, orgEmployees]);
+
+  useEffect(() => {
+    if (!selectedOrgEmployee) {
+      setOrgEditManagerId("");
+      setOrgEditOrgUnitId("");
+      return;
+    }
+    setOrgEditManagerId(selectedOrgEmployee.managerEmployeeId);
+    setOrgEditOrgUnitId(selectedOrgEmployee.orgUnitId === "unassigned" ? "" : selectedOrgEmployee.orgUnitId);
+  }, [selectedOrgEmployee]);
+
+  const handleOrgAssignmentSubmit = async (event: FormSubmitEvent) => {
+    event.preventDefault();
+    if (!orgEditEmployeeId) return;
+    setOrgSaving(true);
+    const result = await updateHrxReportingLine(orgEditEmployeeId, {
+      org_unit_id: orgEditOrgUnitId || null,
+      manager_employee_id: orgEditManagerId || null
+    });
+    setOrgSaving(false);
+    const orgChart = result.kind === "data" ? recordField(result.org_chart) : null;
+    if (orgChart) {
+      setOrgChartResult({
+        kind: "data",
+        org_units: recordList(orgChart.org_units),
+        employees: recordList(orgChart.employees),
+        reporting_lines: recordList(orgChart.reporting_lines),
+        change_events: recordList(orgChart.change_events),
+        claim_boundary: recordField(orgChart.claim_boundary)
+      });
+      showLocalAction("조직 변경", "변경 이력이 기록되었습니다.");
+      return;
+    }
+    showLocalAction("조직 변경 실패", "저장 권한과 리포팅 라인을 확인하세요.");
+  };
+
+  const renderOrgEmployee = (employee: OrgEmployee, depth = 0): unknown => {
+    const childRows = (orgChildrenByManager.get(employee.employeeId) ?? []).filter((child) => child.orgUnitId === employee.orgUnitId);
+    const photo = memberPhotoFor(employee.name);
+    return [
+        <div key={`${employee.key}-self`} className="hr-org-person" data-compact-record="true" style={{ paddingLeft: `${8 + depth * 16}px` }}>
+          <span className="hr-roster-avatar">{photo ? <img src={photo} alt="" /> : initials(employee.name)}</span>
+          <div>
+            <strong>{employee.name}</strong>
+            <small>
+              {employee.title}
+              {employee.managerName ? ` / 상사 ${employee.managerName}` : ""}
+              {employee.directReportCount > 0 ? ` / 직속 ${employee.directReportCount}명` : ""}
+            </small>
+          </div>
+        </div>,
+      ...childRows.map((child) => renderOrgEmployee(child, depth + 1))
+    ];
+  };
 
   return (
     <section className="hr-roster-surface" data-hr-workforce-table="true" data-hr-workforce-density={compact ? "compact" : "standard"}>
-      <header className="hr-roster-header">
-        <div>
-          <h2>{compact ? "입퇴사 대상" : "구성원"}</h2>
-        </div>
-        <div className="hr-roster-actions">
-          {!compact && (
-            <button
-              type="button"
-              className="text-button"
-              data-hr-workforce-more="true"
-              onClick={() => showLocalAction("추가 작업", `현재 ${visibleRows.length}개 항목에 적용할 수 있는 목록 작업을 확인했습니다.`)}
-            >
-              더보기
-              <ChevronDown size={14} />
-            </button>
-          )}
-          <button type="button" className={viewMode === "org" ? "secondary-button active" : "secondary-button"} onClick={() => setViewMode(viewMode === "org" ? "table" : "org")}>
-            <GitBranch size={15} />
-            조직
-          </button>
-          {!compact && (
-            <>
-              <button
-                type="button"
-                className="primary-button"
-                data-hr-workforce-add="true"
-                onClick={() => showLocalAction("구성원 추가", "HRX 구성원 등록 준비 상태를 열었습니다. 저장은 권한 확인 후 등록 화면에서 처리합니다.")}
-              >
-                <UserPlus size={15} />
-                구성원 추가
-              </button>
-              <button
-                type="button"
-                className="primary-button icon-only"
-                aria-label="추가 메뉴"
-                data-hr-workforce-add-menu="true"
-                onClick={() => showLocalAction("추가 메뉴", "구성원 등록, 목록 내보내기, 보기 설정 작업을 확인했습니다.")}
-              >
-                <ChevronDown size={15} />
-              </button>
-            </>
-          )}
-        </div>
-      </header>
+      {compact && (
+        <header className="hr-roster-header">
+          <div>
+            <h2>입퇴사 대상</h2>
+          </div>
+        </header>
+      )}
 
       <div className="hr-roster-library-bar">
         <nav className="hr-roster-tabs" aria-label="구성원 상태">
@@ -375,7 +511,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
           )}
           <label className="hr-roster-search">
             <Search size={16} />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="검색" aria-label="구성원 검색" />
+            <input value={query} onChange={(event: SelectChangeEvent) => setQuery(event.target.value)} placeholder="검색" aria-label="구성원 검색" />
           </label>
           {!compact && (
             <button
@@ -383,7 +519,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
               className="icon-button"
               aria-label="속성 조정"
               data-hr-workforce-property-options="true"
-              onClick={() => showLocalAction("속성 조정", "직위, 구성원, 소속, 부서, 이메일 열을 기준으로 목록 속성을 확인했습니다.")}
+              onClick={() => showLocalAction("속성 조정", "구성원, 직위, 부서, 연락처, 이메일 열을 기준으로 목록 속성을 확인했습니다.")}
             >
               <SlidersHorizontal size={16} />
             </button>
@@ -405,16 +541,16 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
               <colgroup>
                 <col className="hr-roster-col-member" />
                 <col className="hr-roster-col-title" />
-                <col className="hr-roster-col-affiliation" />
                 <col className="hr-roster-col-department" />
+                <col className="hr-roster-col-contact" />
                 <col className="hr-roster-col-email" />
               </colgroup>
               <thead>
                 <tr>
                   <th><HeaderCell icon={FileText}>구성원</HeaderCell></th>
                   <th><HeaderCell icon={CircleUserRound}>직위</HeaderCell></th>
-                  <th><HeaderCell icon={CircleUserRound}>소속</HeaderCell></th>
                   <th><HeaderCell icon={Building2}>부서</HeaderCell></th>
+                  <th><HeaderCell icon={Phone}>연락처</HeaderCell></th>
                   <th><HeaderCell icon={Mail}>이메일</HeaderCell></th>
                 </tr>
               </thead>
@@ -423,7 +559,6 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                   <tr className={`hr-roster-state ${status.kind}`}>
                     <td colSpan={5}>
                       <strong>{status.message}</strong>
-                      {status.detail && <span>{status.detail}</span>}
                     </td>
                   </tr>
                 )}
@@ -435,34 +570,29 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                   </tr>
                 )}
                 {!status && visibleRows.map((row) => {
-                  const isSelected = Boolean(row.employeeId && row.employeeId === selectedEmployeeId);
-                  return (
-                    <tr key={row.key} className={[row.muted ? "muted" : "", isSelected ? "selected" : ""].filter(Boolean).join(" ")}>
-                      <td>
-                        <button type="button" className="hr-roster-person" aria-pressed={isSelected ? "true" : "false"} onClick={() => handleRowSelect(row)}>
-                          <FileText className="hr-roster-page-icon" size={17} />
-                          <span>
-                            <strong>{row.name}</strong>
-                            {compact && <small>{row.workerType} / {row.affiliation}</small>}
+                    const isSelected = Boolean(row.employeeId && row.employeeId === selectedEmployeeId);
+                    return (
+                      <tr key={row.key} className={[row.muted ? "muted" : "", isSelected ? "selected" : ""].filter(Boolean).join(" ")}>
+                        <td>
+                          <button type="button" className="hr-roster-person" data-compact-record="true" aria-pressed={isSelected ? "true" : "false"} onClick={() => handleRowSelect(row)}>
+                            <FileText className="hr-roster-page-icon" size={17} />
+                            <span>
+                              <strong>{row.name}</strong>
+                              {compact && <small>{row.workerType} / {row.affiliation}</small>}
+                            </span>
+                          </button>
+                        </td>
+                        <td>{row.jobTitle}</td>
+                        <td>
+                          <span className="hr-roster-source">
+                            {sourceIcon(row.department)}
+                            {row.department}
                           </span>
-                        </button>
-                      </td>
-                      <td>{row.jobTitle}</td>
-                      <td>
-                        <span className="hr-roster-owner">
-                          <span className="hr-roster-avatar">{initials(row.affiliation)}</span>
-                          {row.affiliation}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="hr-roster-source">
-                          {sourceIcon(row.department)}
-                          {row.department}
-                        </span>
-                      </td>
-                      <td>{row.email}</td>
-                    </tr>
-                  );
+                        </td>
+                        <td>{row.contact}</td>
+                        <td>{row.email}</td>
+                      </tr>
+                    );
                 })}
               </tbody>
             </table>
@@ -470,41 +600,105 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
         </div>
       ) : (
         <div className="hr-org-chart" data-hr-org-chart="true">
-          <div className="hr-org-root">
-            <GitBranch size={18} />
-            <strong>조직</strong>
-            <span>재직 구성원을 소속 기준으로 표시합니다.</span>
-          </div>
           {orgStatus ? (
-            <div className={`live-data-state ${orgStatus.kind === "error" ? "live-data-error" : "live-data-loading"}`}>
+            <div className={`live-data-state ${orgStatus.kind === "loading" ? "live-data-loading" : "live-data-error"}`}>
               <strong>{orgStatus.message}</strong>
-              {orgStatus.detail && <span>{orgStatus.detail}</span>}
             </div>
           ) : (
-            <div className="hr-org-grid">
-              {[...orgGroups.entries()].map(([organization, rows]) => (
-                <article key={organization} className="hr-org-group">
-                  <header>
-                    <strong>{organization}</strong>
-                    <span>{rows.length}명</span>
-                  </header>
-                  {rows.map((row) => (
-                    <div key={row.key} className="hr-org-person">
-                      <span className="hr-roster-avatar">{initials(row.name)}</span>
-                      <div>
-                        <strong>{row.name}</strong>
-                        <small>{row.jobTitle}</small>
-                      </div>
-                    </div>
-                  ))}
-                </article>
-              ))}
-              {orgGroups.size === 0 && (
-                <div className="live-data-state live-data-empty">
-                  <strong>조직에 표시할 구성원이 없습니다.</strong>
-                </div>
+            <>
+              {!compact && orgEmployees.length > 0 && (
+                <form className="hr-org-editor" data-hr-org-editor="true" onSubmit={handleOrgAssignmentSubmit}>
+                  <label>
+                    <span>구성원</span>
+                    <select value={orgEditEmployeeId} onChange={(event: SelectChangeEvent) => setOrgEditEmployeeId(event.target.value)}>
+                      {orgEmployees.map((employee) => (
+                        <option key={employee.employeeId} value={employee.employeeId}>{employee.name}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>보고 대상</span>
+                    <select value={orgEditManagerId} onChange={(event: SelectChangeEvent) => setOrgEditManagerId(event.target.value)}>
+                      <option value="">없음</option>
+                      {orgEmployees
+                        .filter((employee) => employee.employeeId !== orgEditEmployeeId)
+                        .map((employee) => (
+                          <option key={employee.employeeId} value={employee.employeeId}>{employee.name}</option>
+                        ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>조직</span>
+                    <select value={orgEditOrgUnitId} onChange={(event: SelectChangeEvent) => setOrgEditOrgUnitId(event.target.value)}>
+                      {orgUnits.map((unit) => (
+                        <option key={unit.id} value={unit.id}>{unit.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <button type="submit" className="primary-button" disabled={orgSaving || !orgEditEmployeeId || !orgEditOrgUnitId}>
+                    <GitBranch size={15} />
+                    {orgSaving ? "저장 중" : "저장"}
+                  </button>
+                </form>
               )}
-            </div>
+              <div className="hr-org-grid">
+                {orgUnits
+                  .filter((unit) => (orgEmployeesByUnit.get(unit.id) ?? []).length > 0)
+                  .map((unit) => {
+                    const rows = orgEmployeesByUnit.get(unit.id) ?? [];
+                    const roots = rows.filter((row) => !row.managerEmployeeId || !rows.some((candidate) => candidate.employeeId === row.managerEmployeeId));
+                    return (
+                      <article key={unit.id} className="hr-org-group">
+                        <header data-compact-record="true">
+                          <span>
+                            <strong>{unit.label}</strong>
+                            <small>{unit.department}</small>
+                          </span>
+                          <span>{rows.length}명</span>
+                        </header>
+                        {roots.map((employee) => renderOrgEmployee(employee))}
+                      </article>
+                    );
+                  })}
+                {orgVisibleEmployees.length === 0 && (
+                  <div className="live-data-state live-data-empty">
+                    <strong>조직에 표시할 구성원이 없습니다.</strong>
+                  </div>
+                )}
+              </div>
+              <div className="hr-org-history" data-hr-org-change-history="true">
+                <header>
+                  <strong>조직 변경 이력</strong>
+                  <span>{orgChangeEvents.length}건</span>
+                </header>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>대상</th>
+                      <th>조직</th>
+                      <th>보고 대상</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orgChangeEvents.slice(0, 5).map((event) => {
+                      const metadata = (event.metadata && typeof event.metadata === "object" ? event.metadata : {}) as HrxRecord;
+                      return (
+                        <tr key={stringField(event, "event_id")}>
+                          <td>{orgEmployeeById.get(stringField(metadata, "employee_id"))?.name ?? stringField(metadata, "employee_id") ?? stringField(event, "object_id")}</td>
+                          <td>{orgUnitLabelById.get(stringField(metadata, "to_org_unit_id")) ?? stringField(metadata, "to_org_unit_id") ?? "미등록"}</td>
+                          <td>{orgEmployeeById.get(stringField(metadata, "to_manager_employee_id"))?.name ?? "없음"}</td>
+                        </tr>
+                      );
+                    })}
+                    {orgChangeEvents.length === 0 && (
+                      <tr>
+                        <td colSpan={3}>기록 없음</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       )}

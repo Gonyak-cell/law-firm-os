@@ -30,19 +30,20 @@ test("Matter-Vault user registration seed authenticates every listed AMIC accoun
   const provider = createLocalDevAuthProvider({ subjects: subjectsFromSeed() });
 
   for (const user of seed.users) {
+    const homeTenantId = user.tenant_memberships[0].tenant_id;
     const principal = deriveServerPrincipal({
       provider,
-      trustedTenantId: seed.tenant_id,
+      trustedTenantId: homeTenantId,
       request_id: `req-${user.user_id}`,
       request: { headers: { authorization: `Bearer ${user.local_dev.synthetic_token}` } },
     });
 
     assert.equal(principal.ok, true, `${user.email} should authenticate`);
     assert.equal(principal.user_id, user.user_id);
-    assert.equal(principal.tenant_id, seed.tenant_id);
-    assert.deepEqual(principal.role_ids, user.role_ids);
-    assert.deepEqual(principal.group_ids, user.group_ids);
-    assert.deepEqual(principal.scopes, user.scopes);
+    assert.equal(principal.tenant_id, homeTenantId);
+    assert.deepEqual(principal.role_ids, user.tenant_memberships[0].role_ids);
+    assert.deepEqual(principal.group_ids, user.tenant_memberships[0].group_ids);
+    assert.deepEqual(principal.scopes, user.tenant_memberships[0].scopes);
   }
 });
 

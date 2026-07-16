@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.matter-worktree-practice-area-contract.v1",
+  "tuw_id": "WT-00-02",
+  "source_fields": [
+    "matter_type_english",
+    "matter_axis",
+    "matter_profile_kind",
+    "profile_kind"
+  ],
+  "normalization": {
+    "trim": true,
+    "case_insensitive": true,
+    "separator_equivalence": [
+      "space",
+      "underscore",
+      "hyphen"
+    ]
+  },
+  "practice_areas": [
+    {
+      "id": "litigation",
+      "code": "LIT",
+      "label": "송무",
+      "aliases": [
+        "LIT",
+        "Litigation",
+        "송무"
+      ]
+    },
+    {
+      "id": "corporate-advisory",
+      "code": "ADV",
+      "label": "기업 자문",
+      "aliases": [
+        "ADV",
+        "Advisory",
+        "Corporate Advisory",
+        "기업 자문"
+      ]
+    },
+    {
+      "id": "dispute",
+      "code": "Dispute",
+      "label": "분쟁",
+      "aliases": [
+        "Dispute",
+        "분쟁"
+      ]
+    },
+    {
+      "id": "transaction",
+      "code": "DEAL",
+      "label": "트랜잭션",
+      "aliases": [
+        "DEAL",
+        "Transaction",
+        "트랜잭션"
+      ]
+    }
+  ],
+  "unclassified": {
+    "id": "unclassified",
+    "label": "미분류",
+    "persisted": false,
+    "classification_outcome": "unclassified"
+  },
+  "compatibility": {
+    "existing_matter_board_ids": [
+      "litigation",
+      "corporate-advisory",
+      "dispute",
+      "transaction"
+    ],
+    "existing_results_must_not_change": true
+  }
+}

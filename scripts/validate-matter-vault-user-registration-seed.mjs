@@ -21,9 +21,16 @@ const expectedEmails = [
   "yhlim@amic.kr",
   "jwsuh@amic.kr",
   "smcho@amic.kr",
+  "jh731@amic.kr",
   "tryoon@amic.kr",
   "yjlee@amic.kr",
+  "matter.desktop.qa@amic.kr",
+  "qa.tenant-b@amic.kr",
 ];
+const qaSyntheticOnlyEmails = new Set([
+  "matter.desktop.qa@amic.kr",
+  "qa.tenant-b@amic.kr",
+]);
 
 const errors = [];
 
@@ -51,7 +58,7 @@ if (errors.length === 0) {
   assert(seed.schema_version === "law-firm-os.matter-vault-user-registration-seed.v0.1", "seed schema mismatch");
   assert(seed.status === "registered-local-seed", "seed status must be registered-local-seed");
   assert(seed.tenant_id === "tenant_amic_matter_vault", "tenant id mismatch");
-  assert(seed.source?.account_count === 9, "source account count must be 9");
+  assert(seed.source?.account_count === 11, "source account count must be 11");
   assert(seed.source?.phone_numbers_imported === false, "phone numbers must not be imported");
   assert(seed.registration_boundary?.production_idp_account_creation === false, "production IDP creation must remain false");
   assert(seed.registration_boundary?.m365_graph_user_write === false, "M365/Graph user write must remain false");
@@ -78,12 +85,20 @@ if (errors.length === 0) {
   for (const user of users) {
     assert(user.status === "active", `${user.email}: status must be active`);
     assert(user.registration_state === "registered_seed", `${user.email}: registration state mismatch`);
+    if (qaSyntheticOnlyEmails.has(user.email)) {
+      assert(user.production_status === "disabled", `${user.email}: QA production_status must be disabled`);
+      assert(user.qa_tenant_scope === "synthetic_only", `${user.email}: QA tenant scope must be synthetic_only`);
+    } else {
+      assert(user.production_status !== "disabled", `${user.email}: non-QA account must not be production-disabled by QA guard`);
+      assert(user.qa_tenant_scope === undefined, `${user.email}: non-QA account must not declare QA tenant scope`);
+    }
     assert(user.mfa_required === true, `${user.email}: mfa_required must be true`);
     assert(user.assurance_level === "mfa", `${user.email}: assurance level must be mfa`);
     assert(user.local_dev?.synthetic_only === true, `${user.email}: local synthetic token boundary missing`);
     assert(user.local_dev?.synthetic_token === `local-dev-only:${user.email}`, `${user.email}: local synthetic token mismatch`);
     assert(user.tenant_memberships?.length === 1, `${user.email}: one tenant membership required`);
-    assert(user.tenant_memberships?.[0]?.tenant_id === seed.tenant_id, `${user.email}: tenant membership mismatch`);
+    const expectedTenantId = user.email === "qa.tenant-b@amic.kr" ? "tenant_b_qa_synthetic" : seed.tenant_id;
+    assert(user.tenant_memberships?.[0]?.tenant_id === expectedTenantId, `${user.email}: tenant membership mismatch`);
     assert(user.tenant_memberships?.[0]?.role_ids?.join("|") === user.role_ids?.join("|"), `${user.email}: membership roles must mirror user roles`);
     assert(user.tenant_memberships?.[0]?.group_ids?.join("|") === user.group_ids?.join("|"), `${user.email}: membership groups must mirror user groups`);
     assert(user.tenant_memberships?.[0]?.scopes?.join("|") === user.scopes?.join("|"), `${user.email}: membership scopes must mirror user scopes`);
@@ -100,7 +115,7 @@ if (errors.length === 0) {
 
   const requiredReceiptPhrases = [
     "Status: registered-local-seed",
-    "Registered account count: 9",
+    "Registered account count: 12",
     "jwsuh@amic.kr",
     "system_super_admin",
     "production IDP account creation: false",
@@ -128,6 +143,6 @@ if (errors.length > 0) {
 }
 
 console.log("Matter-Vault user registration seed validation passed.");
-console.log("registered_account_count: 9");
+console.log("registered_account_count: 12");
 console.log("highest_privilege_account: jwsuh@amic.kr");
 console.log("production_idp_account_creation: false");

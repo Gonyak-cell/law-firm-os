@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import path from "node:path";
+import { existsSync } from "node:fs";
+import { readFileSyncWithStaleRetry, writeJsonFileDurably } from "../../persistence/src/durable-file.js";
 import { createIntakeCoreRecord } from "./model.js";
 
 const CORE_MODELS = Object.freeze(["IntakeRequest", "ConflictCheck", "ConflictHit"]);
@@ -12,6 +12,8 @@ const PRIMARY_ID_FIELDS = Object.freeze({
   ConflictDecision: "conflict_decision_id",
   Waiver: "waiver_id",
   Engagement: "engagement_id",
+  EngagementTemplateDocument: "template_document_id",
+  EngagementSignedDocumentUpload: "signed_document_upload_id",
   FeeTerms: "fee_terms_id",
   RiskApproval: "risk_approval_id",
   ClearanceToken: "clearance_token_id",
@@ -79,7 +81,7 @@ function emptyState() {
 
 function loadState(filePath) {
   if (!filePath || !existsSync(filePath)) return emptyState();
-  const parsed = JSON.parse(readFileSync(filePath, "utf8"));
+  const parsed = JSON.parse(readFileSyncWithStaleRetry(filePath));
   return {
     ...emptyState(),
     ...parsed,
@@ -91,7 +93,7 @@ function loadState(filePath) {
 
 export function createIntakeRuntimeRepository({ filePath, seedRecords = [] } = {}) {
   let closed = false;
-  const state = loadState(filePath);
+  let state = loadState(filePath);
   const records = new Map();
   const idempotency = new Map();
   const auditEvents = new Map();
@@ -100,30 +102,33 @@ export function createIntakeRuntimeRepository({ filePath, seedRecords = [] } = {
     if (closed) throw new Error("Intake runtime repository is closed");
   }
 
-  function persist() {
-    if (!filePath) return;
-    mkdirSync(path.dirname(filePath), { recursive: true });
-    writeFileSync(
-      filePath,
-      `${JSON.stringify(
-        {
-          migrations: state.migrations,
-          records: [...records.values()],
-          idempotency: [...idempotency.values()],
-          audit_events: [...auditEvents.values()],
-        },
-        null,
-        2,
-      )}\n`,
-    );
+  function currentState() {
+    return {
+      migrations: state.migrations,
+      records: [...records.values()],
+      idempotency: [...idempotency.values()],
+      audit_events: [...auditEvents.values()],
+    };
   }
 
-  function put(record, { overwrite = false } = {}) {
+  function persist({ createBackup = true } = {}) {
+    if (!filePath) return;
+    const nextState = currentState();
+    writeJsonFileDurably({
+      filePath,
+      value: nextState,
+      previousState: state,
+      createBackup,
+    });
+    state = nextState;
+  }
+
+  function put(record, { overwrite = false, createBackup = true } = {}) {
     const normalized = normalizeRecord(record);
     const key = recordKey(normalized);
     if (!overwrite && records.has(key)) throw new Error(`${normalized.model_type} already exists: ${primaryIdOf(normalized)}`);
     records.set(key, clone(normalized));
-    persist();
+    persist({ createBackup });
     return Object.freeze(clone(normalized));
   }
 
@@ -132,7 +137,7 @@ export function createIntakeRuntimeRepository({ filePath, seedRecords = [] } = {
   for (const event of state.audit_events) auditEvents.set(`${event.tenant_id}:${event.event_id}`, clone(event));
   for (const record of seedRecords) {
     const normalized = normalizeRecord(record);
-    if (!records.has(recordKey(normalized))) put(record, { overwrite: true });
+    if (!records.has(recordKey(normalized))) put(record, { overwrite: true, createBackup: false });
   }
 
   const repository = {

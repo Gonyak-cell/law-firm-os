@@ -1,0 +1,102 @@
+{
+  "schema_version": "law-firm-os.matter-worktree-domain-contract.v1",
+  "tuw_id": "WT-00-01",
+  "scope": "internal_matter_worktree_v1",
+  "models": {
+    "MatterWorktree": {
+      "required_fields": [
+        "worktree_id",
+        "tenant_id",
+        "matter_id",
+        "status",
+        "version",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "statuses": [
+        "active",
+        "archived"
+      ],
+      "version_rule": "positive_integer_incremented_on_every_structure_write"
+    },
+    "MatterWorktreeNode": {
+      "required_fields": [
+        "node_id",
+        "worktree_id",
+        "tenant_id",
+        "matter_id",
+        "node_type",
+        "parent_node_id",
+        "title",
+        "sort_order",
+        "status",
+        "task_id"
+      ],
+      "node_types": [
+        "branch",
+        "task"
+      ],
+      "statuses": [
+        "active",
+        "archived"
+      ],
+      "task_link_rule": "task_nodes_require_task_id_and_branch_nodes_require_null_task_id"
+    }
+  },
+  "root_projection": {
+    "persisted": false,
+    "source": "MatterWorktree+Matter",
+    "node_type": "root",
+    "depth": 0,
+    "id_pattern": "worktree-root:{worktree_id}",
+    "title_source": "Matter.title"
+  },
+  "deletion_semantics": {
+    "node_action": "archive_placement",
+    "matter_task_action": "retain",
+    "active_descendant_rule": "reject_archive_while_active_descendants_exist"
+  },
+  "structure": {
+    "max_depth": 4,
+    "top_level_depth": 1,
+    "depth_persisted": false,
+    "progress_persisted": false,
+    "cycle_policy": "reject",
+    "orphan_parent_policy": "reject"
+  },
+  "active_worktree_rule": {
+    "max_active_per_matter": 1,
+    "uniqueness_key": [
+      "tenant_id",
+      "matter_id"
+    ],
+    "conflict_outcome": "conflict"
+  },
+  "task_state_source": {
+    "model": "MatterTask",
+    "field": "status",
+    "duplicate_completion_state_allowed": false
+  },
+  "virtual_branches": {
+    "unclassified_tasks": {
+      "persisted": false,
+      "computed_at_read_time": true,
+      "label": "미분류 업무"
+    }
+  },
+  "fixture_schema": {
+    "type": "object",
+    "required": [
+      "schema_version",
+      "models",
+      "expected_projection",
+      "expected_deletion"
+    ],
+    "required_models": [
+      "MatterWorktree",
+      "MatterWorktreeNode"
+    ]
+  }
+}

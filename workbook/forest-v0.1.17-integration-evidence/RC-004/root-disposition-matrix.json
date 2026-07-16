@@ -1,0 +1,661 @@
+[
+  {
+    "index": 1,
+    "path": "apps/api/src/hrx-member-roster-registry.js",
+    "relation": "FOREST_EXTENDS_EXTRACTED_CONTRACT",
+    "gate": "KEEP_FOREST",
+    "finding": "Preserve the sanitized public professional-profile catalog and employee lookup used by packaged profile resolution; prove no private roster fields enter the public renderer.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "index": 2,
+    "path": "apps/api/src/hrx-runtime-context.js",
+    "relation": "BIDIRECTIONAL_CONTRACT_DELTA",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Port root payroll item/profile/time-snapshot services and compatible leave lifecycle routes; retain Forest accrual batches, occurrence uploads, expiration preview/execute, payroll runtime, and `resolveHrxEmployeeProfileByUserId`.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "index": 3,
+    "path": "apps/api/src/lawos-role-registry.js",
+    "relation": "FOREST_EXTENDS_EXTRACTED_CONTRACT",
+    "gate": "KEEP_FOREST",
+    "finding": "Keep the canonical `hrx-role-scope-matrix` import; add new scopes only through that matrix, never an inline divergent role table.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "index": 4,
+    "path": "apps/api/src/middleware/hrx-step-up.js",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Union root accrual-rule and entitlement action prefixes with Forest expiration execution; verify every mutation maps to the correct step-up purpose.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "path": "apps/api/src/routes/hrx/payroll.js",
+    "origin": "root-only",
+    "classification": "PORT_REQUIRED",
+    "gate": "PORT_REQUIRED",
+    "relation": "api-runtime",
+    "finding": "Union item-catalog, masked self/admin profile, assignment, attendance-approval, and time-snapshot actions into the richer Forest payroll runtime. Preserve Forest run, statement, payment, filing, issue, export, strict tenant resolution, safe errors, and audit behavior. Do not replace the route wholesale."
+  },
+  {
+    "index": 5,
+    "path": "apps/api/src/routes/hrx/route-policy-map.js",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Union exact routes and retain Forest attachment, entitlement, batch, upload, and full payroll policies; root read/write/preview scopes require least-privilege authz tests.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "index": 6,
+    "path": "apps/api/src/server.js",
+    "relation": "FOREST_EXTENDS_EXTRACTED_CONTRACT",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Preserve Matter account registry and HRX profile joining; wire selected root services without weakening session, tenant, public-profile, or local-package boundaries.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "index": 7,
+    "path": "apps/api/test/hrx/leave-accrual-api.test.js",
+    "relation": "BIDIRECTIONAL_CONTRACT_DELTA",
+    "gate": "MERGE_TESTS",
+    "finding": "Add immutable rule-version, deactivation, CSV/XLSX template, and entitlement lifecycle cases while retaining Forest batch and occurrence upload/execute/retry cases.",
+    "origin": "common",
+    "classification": "PORT_TEST_ONLY"
+  },
+  {
+    "index": 8,
+    "path": "apps/api/test/hrx/leave-management-api.test.js",
+    "relation": "FOREST_EXTENDS_EXTRACTED_CONTRACT",
+    "gate": "KEEP_FOREST",
+    "finding": "Retain attachment download authorization and missing-resource behavior; root supplies no stronger extracted coverage.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "index": 9,
+    "path": "apps/api/test/hrx/leave-policy-api.test.js",
+    "relation": "FOREST_EXTENDS_EXTRACTED_CONTRACT",
+    "gate": "KEEP_FOREST",
+    "finding": "Retain versioned type-economics normalization, read, publish, and immutability assertions.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "path": "apps/api/test/hrx/payroll-items-api.test.js",
+    "origin": "root-only",
+    "classification": "PORT_TEST_ONLY",
+    "gate": "PORT_TEST_ONLY",
+    "relation": "api-test",
+    "finding": "Port catalog CRUD, tenant isolation, restart durability, safe validation, scope, and step-up assertions after the `026+` catalog schema exists. Keep Forest payroll route coverage in the same suite."
+  },
+  {
+    "path": "apps/api/test/hrx/payroll-profile-api.test.js",
+    "origin": "root-only",
+    "classification": "PORT_TEST_ONLY",
+    "gate": "PORT_TEST_ONLY",
+    "relation": "api-test",
+    "finding": "Port fail-closed `EmployeeUserLink` self resolution, masked assignment, tenant-admin read, and distinct self/admin scopes. Adapt fixtures to the Forest payroll-profile schema and keep private amounts and real employee data out of receipts."
+  },
+  {
+    "path": "apps/api/test/hrx/payroll-time-input-api.test.js",
+    "origin": "root-only",
+    "classification": "PORT_TEST_ONLY",
+    "gate": "PORT_TEST_ONLY",
+    "relation": "api-test",
+    "finding": "Port explicit approval-receipt, immutable source-reference, restart, idempotency, and signed step-up assertions into the Forest input-snapshot runtime."
+  },
+  {
+    "index": 10,
+    "path": "apps/api/test/hrx/route-authz.test.js",
+    "relation": "BIDIRECTIONAL_CONTRACT_DELTA",
+    "gate": "MERGE_TESTS",
+    "finding": "Add payroll item/profile/time-snapshot scope cases; retain Forest payroll preview, approve, statement, payment, filing, issue, and export separation.",
+    "origin": "common",
+    "classification": "PORT_TEST_ONLY"
+  },
+  {
+    "path": "apps/api/test/hrx/step-up-route.test.js",
+    "origin": "root-only",
+    "classification": "PORT_TEST_ONLY",
+    "gate": "PORT_TEST_ONLY",
+    "relation": "api-test",
+    "finding": "Merge the additional leave-rule, entitlement, XLSX-template, and payroll-catalog step-up vectors with Forest expiration, batch, upload, provider, and full-payroll action coverage."
+  },
+  {
+    "index": 11,
+    "path": "apps/api/test/profile-api.test.js",
+    "relation": "FOREST_EXTENDS_EXTRACTED_CONTRACT",
+    "gate": "KEEP_FOREST",
+    "finding": "Preserve durable account-to-employee and sanitized catalog tests; add a dedicated known-account mapping invariant while keeping private values out of receipts.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "index": 12,
+    "path": "apps/desktop/src/main/main.js",
+    "relation": "IDENTICAL",
+    "gate": "KEEP_IDENTICAL",
+    "finding": "Byte-identical; no integration action.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "index": 13,
+    "path": "apps/desktop/test/shell-smoke.test.mjs",
+    "relation": "BIDIRECTIONAL_CONTRACT_DELTA",
+    "gate": "KEEP_FOREST",
+    "finding": "Root expects the retired Matter mark; keep Forest packaged application-icon expectation and add an old-asset negative assertion if not already covered.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "index": 14,
+    "path": "apps/web/src/components/AuthSurface.jsx",
+    "relation": "ROOT_EXTENDS_EXTRACTED_CONTRACT",
+    "gate": "REJECT_ROOT_VISUAL",
+    "finding": "Root restores Parnas Tower and its aria label; exclude both and retain current Forest login animation, imagery, and brand source.",
+    "origin": "common",
+    "classification": "REJECTED"
+  },
+  {
+    "index": 15,
+    "path": "apps/web/src/components/UserProfileSurface.jsx",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "KEEP_FOREST",
+    "finding": "Root removes multi-source identity resolution and renders `미등록`/empty cards; retain Forest’s resolved person, compact omission, and non-generic display-name behavior.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "index": 16,
+    "path": "apps/web/src/people/hrxApiClient.ts",
+    "relation": "BIDIRECTIONAL_CONTRACT_DELTA",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Add rule update/deactivate, template, entitlement list/cancel/expire calls; retain all Forest batch, occurrence, promotion, provider retry, policy, and payroll client contracts.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "index": 17,
+    "path": "apps/web/src/people/leave/LeaveAccrualAutoPage.tsx",
+    "relation": "FOREST_EXTENDS_EXTRACTED_CONTRACT",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Integrate root rule-version/lifecycle actions into the Forest page without removing multi-period preview/execute/export/retry, status, or 44px-density behavior.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "index": 18,
+    "path": "apps/web/src/people/leave/LeaveAccrualManualPage.tsx",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Port CSV/XLSX template download and XLSX import plus the concise `-` success cell; retain preview-before-write, approval, retry, and error receipts.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "index": 19,
+    "path": "apps/web/src/people/leave/LeaveApprovalQueue.tsx",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Keep root removal of non-actionable empty copy; retain Forest’s concrete approval items and single-line rows.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "index": 20,
+    "path": "apps/web/src/people/leave/LeavePromotionPage.tsx",
+    "relation": "FOREST_EXTENDS_EXTRACTED_CONTRACT",
+    "gate": "KEEP_FOREST",
+    "finding": "Preserve Forest batch issue, select-all, evidence receipt, revoke, failed-delivery retry, and tabular density; root’s older timeline is not a superset.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "index": 21,
+    "path": "apps/web/src/people/leave/LeaveRequestPage.tsx",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "KEEP_FOREST",
+    "finding": "Preserve policy-derived allowed duration modes and paid/unpaid preview; only independently proven empty-copy deletion may be ported.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "index": 22,
+    "path": "apps/web/src/people/leave/LeaveTerminationPage.tsx",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "SELECTIVE_PORT",
+    "finding": "A refresh action may be ported; exclude root’s verbose instructional/empty copy and retain Forest’s payroll-boundary status semantics.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "index": 23,
+    "path": "apps/web/src/people/leave/LeaveTypeSettingsPage.tsx",
+    "relation": "FOREST_EXTENDS_EXTRACTED_CONTRACT",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Preserve Forest type economics and rounding controls; map root usage units into the existing model only after schema and golden-vector proof.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "index": 24,
+    "path": "apps/web/src/people/leave/LeaveUsagePage.tsx",
+    "relation": "BIDIRECTIONAL_CONTRACT_DELTA",
+    "gate": "KEEP_FOREST",
+    "finding": "Root reintroduces balance reconciliation/noise previously rejected by the user; retain Forest occurrence views, step-up, manual/scheduled changes, upload, provider state, and privacy exclusions.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "index": 25,
+    "path": "apps/web/src/people/memberPhotos.js",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Port root’s stricter photo data-URL validation if it accepts all current fixtures; reject invalid or non-image payloads in tests.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "index": 26,
+    "path": "apps/web/test/leave-accrual-ui.test.mjs",
+    "relation": "BIDIRECTIONAL_CONTRACT_DELTA",
+    "gate": "MERGE_TESTS",
+    "finding": "Merge root LV-09 single-line/non-actionable-copy regression and compatible scope checks with Forest’s advanced automatic/manual navigation and batch tests.",
+    "origin": "common",
+    "classification": "PORT_TEST_ONLY"
+  },
+  {
+    "index": 27,
+    "path": "apps/web/test/leave-integration-ui.test.mjs",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "KEEP_FOREST",
+    "finding": "Retain dead-letter visibility, selected retry, state separation, and helper-copy exclusions; root only proves a simpler delivered state.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "index": 28,
+    "path": "apps/web/test/leave-promotion-ui.test.mjs",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "KEEP_FOREST",
+    "finding": "Retain Forest batch/revoke/retry/evidence/table assertions; root’s timeline assertions target the superseded surface.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "index": 29,
+    "path": "apps/web/test/leave-reporting-ui.test.mjs",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "KEEP_FOREST",
+    "finding": "Retain occurrence projections/views/exports and absence of reconciliation noise; root’s older usage report is not the accepted UI.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "index": 30,
+    "path": "apps/web/test/leave-self-service-ui.test.mjs",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "MERGE_TESTS",
+    "finding": "Keep Forest duration/economics/privacy coverage and add any stricter root negative checks for reason, type, documents, and attachments.",
+    "origin": "common",
+    "classification": "PORT_TEST_ONLY"
+  },
+  {
+    "index": 31,
+    "path": "apps/web/test/ui-regression.test.mjs",
+    "relation": "BIDIRECTIONAL_CONTRACT_DELTA",
+    "gate": "KEEP_FOREST",
+    "finding": "Preserve retired-asset exclusions, inline metadata, and compact-row rules; root shared-brand assertion is admissible only if it points to current Forest constants and assets.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "path": "docs/lazycodex/evidence/matter-desktop/artifacts/lv009-forest-leave-auto-packaged-2026-07-15.png",
+    "origin": "root-only",
+    "classification": "REJECTED",
+    "gate": "REJECTED",
+    "relation": "documentation-evidence",
+    "finding": "Generated screenshot shows the retired `근무일정` navigation and is not tied to the final integration SHA. Regenerate admissible screenshots only from the final exact-path package."
+  },
+  {
+    "index": 32,
+    "path": "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "REGENERATE",
+    "finding": "Generated build evidence; recreate from the exact final integration/main SHA instead of merging stale session text.",
+    "origin": "common",
+    "classification": "REJECTED"
+  },
+  {
+    "index": 33,
+    "path": "docs/lazycodex/evidence/matter-web/desktop-web-renderer-asset.md",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "REGENERATE",
+    "finding": "Generated renderer evidence; recreate with final renderer hash and canonical launch path.",
+    "origin": "common",
+    "classification": "REJECTED"
+  },
+  {
+    "path": "docs/runbooks/hrx-member-contact-visibility.md",
+    "origin": "root-only",
+    "classification": "SUPERSEDED",
+    "gate": "SUPERSEDED",
+    "relation": "documentation-evidence",
+    "finding": "Forest already enforces internal contact visibility, public-renderer PII exclusion, and signed-account profile joining in code and validators. The runbook's visible `미등록` guidance conflicts with the accepted compact omission rule."
+  },
+  {
+    "index": 34,
+    "path": "packages/authz/src/hrx-sensitive-scopes.js",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Union root accrual read/write/preview and payroll self/item/profile/time scopes with Forest approve/statement/payment/filing scopes; preserve least privilege and role-matrix completeness.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "index": 35,
+    "path": "packages/hrx/src/index.js",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Export selected root payroll catalog/profile/time and manual-adjustment services while retaining Forest migration safety, provider, lifecycle, batch, type-economics, and full payroll runtime exports.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "index": 36,
+    "path": "packages/hrx/src/leave/accrual-service.js",
+    "relation": "BIDIRECTIONAL_CONTRACT_DELTA",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Port manual-adjustment parser and compatible versioned tenure/lifecycle logic; preserve occurrence templates, future scheduling, batches, idempotency, and no-partial-write guarantees.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "path": "packages/hrx/src/leave/allocation.js",
+    "origin": "root-only",
+    "classification": "PORT_REQUIRED",
+    "gate": "PORT_REQUIRED",
+    "relation": "leave-domain",
+    "finding": "Port a single canonical entitlement-ledger state calculation and use it in earliest-expiry allocation, but derive lifecycle from Forest ledger/command receipts rather than adding mutable status columns. Cross-test earned, carryover, reserve/release, use reversal, expiration, and credit/debit adjustment math."
+  },
+  {
+    "index": 37,
+    "path": "packages/hrx/src/leave/integration-service.js",
+    "relation": "FOREST_EXTENDS_EXTRACTED_CONTRACT",
+    "gate": "KEEP_FOREST",
+    "finding": "Preserve provider adapters, delivery receipts, poison isolation, and dead-letter retry; root payroll-boundary assertions may be merged at test level only after equivalence proof.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "index": 38,
+    "path": "packages/hrx/src/leave/management-service.js",
+    "relation": "FOREST_EXTENDS_EXTRACTED_CONTRACT",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Preserve snapshotted Forest type economics; crosswalk root usage-unit/fixed-deduction inputs rather than replacing paid/unpaid and balance-deduction calculations.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "path": "packages/hrx/src/leave/manual-adjustment-file.js",
+    "origin": "root-only",
+    "classification": "PORT_REQUIRED",
+    "gate": "PORT_REQUIRED",
+    "relation": "leave-domain",
+    "finding": "Port the shared CSV/XLSX template and typed XLSX-row parser using Forest occurrence/manual-adjustment validation. Add archive-size, row-count, malformed workbook, formula, type, and header limits before accepting upload input."
+  },
+  {
+    "index": 39,
+    "path": "packages/hrx/src/leave/policy-service.js",
+    "relation": "BIDIRECTIONAL_CONTRACT_DELTA",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Add `HRX_LEAVE_USAGE_UNITS` only as a validated facet of Forest type economics and immutable policy versions.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "index": 40,
+    "path": "packages/hrx/src/leave/xlsx-export.js",
+    "relation": "ROOT_EXTENDS_EXTRACTED_CONTRACT",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Port `parseXlsxBuffer` and `node:zlib` support with archive-size, row-count, type, malformed-file, and formula-safe limits.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "path": "packages/hrx/src/migrations/011_hrx_payroll_items.sql",
+    "origin": "root-only",
+    "classification": "PORT_REQUIRED",
+    "gate": "PORT_REQUIRED",
+    "relation": "migration",
+    "finding": "The payroll item catalog table is absent from Forest. Recreate its tenant key, unique code, constrained kind/tax/value mode, effective dates, status, and version as an additive `026+` migration; never reuse migration 011."
+  },
+  {
+    "path": "packages/hrx/src/migrations/012_hrx_payroll_profiles.sql",
+    "origin": "root-only",
+    "classification": "PORT_REQUIRED",
+    "gate": "PORT_REQUIRED",
+    "relation": "migration",
+    "finding": "Forest migration 021 already owns an incompatible, richer `hrx_payroll_profiles` table. Port only the item-assignment capability and required indexes/immutability into a `026+` schema that references the Forest profile and catalog keys. Do not create or replace the root profile table."
+  },
+  {
+    "path": "packages/hrx/src/migrations/013_hrx_payroll_time_inputs.sql",
+    "origin": "root-only",
+    "classification": "PORT_REQUIRED",
+    "gate": "PORT_REQUIRED",
+    "relation": "migration",
+    "finding": "Add explicit immutable attendance-approval receipts and any source lineage not already represented by Forest payroll input snapshots. Reuse Forest snapshot/run tables where equivalent and avoid a parallel snapshot truth."
+  },
+  {
+    "path": "packages/hrx/src/migrations/014_hrx_leave_usage_units.sql",
+    "origin": "root-only",
+    "classification": "SUPERSEDED",
+    "gate": "SUPERSEDED",
+    "relation": "migration",
+    "finding": "Forest policy snapshots, type-economics normalization, duration modes, paid/unpaid/deduction minutes, rounding, and request snapshots already provide a richer immutable model. Adding mutable duplicate columns would create two policy truths."
+  },
+  {
+    "path": "packages/hrx/src/migrations/015_hrx_leave_accrual_rule_versions.sql",
+    "origin": "root-only",
+    "classification": "PORT_REQUIRED",
+    "gate": "PORT_REQUIRED",
+    "relation": "migration",
+    "finding": "Forest accrual rules are not yet append-only logical versions. Crosswalk logical rule code, version, supersession, and run as-of lineage into an additive `026+` migration with uniqueness and upgrade checks."
+  },
+  {
+    "path": "packages/hrx/src/migrations/016_hrx_leave_entitlement_lifecycle.sql",
+    "origin": "root-only",
+    "classification": "SUPERSEDED",
+    "gate": "SUPERSEDED",
+    "relation": "migration",
+    "finding": "Forest derives lifecycle from dated entitlements plus immutable ledger entries and records cancel/adjust/expire actions in command receipts and audit events. Mutable status/cancellation columns would duplicate and potentially contradict that truth."
+  },
+  {
+    "index": 41,
+    "path": "packages/hrx/src/migrations/index.js",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "RENUMBER_026_PLUS",
+    "finding": "Keep Forest 011-025 unchanged; crosswalk root 011-016 payroll/usage/rule/lifecycle schemas and introduce only non-duplicate forward migrations numbered 026+.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "path": "packages/hrx/src/payroll-item-catalog.js",
+    "origin": "root-only",
+    "classification": "PORT_REQUIRED",
+    "gate": "PORT_REQUIRED",
+    "relation": "payroll-domain",
+    "finding": "Port tenant-scoped durable catalog CRUD, normalized constrained fields, optimistic version update, inactive filtering, and audit events into the Forest repository/runtime."
+  },
+  {
+    "path": "packages/hrx/src/payroll-profile-service.js",
+    "origin": "root-only",
+    "classification": "PORT_REQUIRED",
+    "gate": "PORT_REQUIRED",
+    "relation": "payroll-domain",
+    "finding": "Port masked item assignments, effective-period validation, ciphertext-only amount storage, fail-closed self reads, and audit metadata. Reuse Forest profile creation/update/list logic and compensation references; do not import the incompatible root profile row shape."
+  },
+  {
+    "path": "packages/hrx/src/payroll-time-input-snapshot.js",
+    "origin": "root-only",
+    "classification": "PORT_REQUIRED",
+    "gate": "PORT_REQUIRED",
+    "relation": "payroll-domain",
+    "finding": "Port explicit approval receipts, correction replacement, as-of filtering, exact minute/night/holiday projection, immutable lineage, and idempotency into Forest's richer profile/attendance/leave/overtime snapshot service. Do not create a second payroll calculation runtime."
+  },
+  {
+    "index": 42,
+    "path": "packages/hrx/src/store/file-store.js",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Add required root tables, keys, and references after migration crosswalk; retain Forest append-only, tokenized-reference, PII, batch, provider, and payroll runtime validations.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "index": 43,
+    "path": "packages/hrx/src/store/port.js",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Extend the canonical table contract with approved 026+ tables while retaining every Forest table and mutation guard.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "index": 44,
+    "path": "packages/hrx/test/leave-accrual-service.test.js",
+    "relation": "BIDIRECTIONAL_CONTRACT_DELTA",
+    "gate": "MERGE_TESTS",
+    "finding": "Add tenure 0-10, immutable rule version, lifecycle, cancellation, and bulk-grant vectors; retain occurrence template/scheduling/upload and batch guarantees.",
+    "origin": "common",
+    "classification": "PORT_TEST_ONLY"
+  },
+  {
+    "index": 45,
+    "path": "packages/hrx/test/leave-integration-service.test.js",
+    "relation": "BIDIRECTIONAL_CONTRACT_DELTA",
+    "gate": "MERGE_TESTS",
+    "finding": "Add non-calculating payroll-boundary and immutable submitted-snapshot vectors; retain Forest provider, promotion, dead-letter, and type-economics privacy cases.",
+    "origin": "common",
+    "classification": "PORT_TEST_ONLY"
+  },
+  {
+    "index": 46,
+    "path": "packages/hrx/test/leave-management-durable.test.js",
+    "relation": "BIDIRECTIONAL_CONTRACT_DELTA",
+    "gate": "MERGE_TESTS",
+    "finding": "Cross-test root usage-unit/fixed-deduction behavior against Forest rounding, paid/unpaid, reservation, cancellation, scheduling, and zero-deduction invariants.",
+    "origin": "common",
+    "classification": "PORT_TEST_ONLY"
+  },
+  {
+    "path": "packages/hrx/test/leave-manual-adjustment-file.test.js",
+    "origin": "root-only",
+    "classification": "PORT_TEST_ONLY",
+    "gate": "PORT_TEST_ONLY",
+    "relation": "hrx-test",
+    "finding": "Port CSV/XLSX contract parity and edited-workbook round-trip tests, then extend them with malformed/oversized/formula-safe negative cases required by the Forest trust boundary."
+  },
+  {
+    "path": "packages/hrx/test/leave-policy-service.test.js",
+    "origin": "root-only",
+    "classification": "SUPERSEDED",
+    "gate": "SUPERSEDED",
+    "relation": "hrx-test",
+    "finding": "The root-only usage-unit test is already covered more strongly by Forest type-economics, durable-management, policy snapshot, rounding, paid/unpaid, fixed deduction, and zero-deduction tests. Keep Forest tests as canonical."
+  },
+  {
+    "index": 47,
+    "path": "packages/hrx/test/migration.test.js",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "REWRITE_FOR_026_PLUS",
+    "finding": "Retain Forest 001-025 order and safety tests; add uniqueness, upgrade, rollback-boundary, and data-preservation proof for approved 026+ migrations.",
+    "origin": "common",
+    "classification": "PORT_TEST_ONLY"
+  },
+  {
+    "path": "packages/hrx/test/payroll-item-catalog.test.js",
+    "origin": "root-only",
+    "classification": "PORT_TEST_ONLY",
+    "gate": "PORT_TEST_ONLY",
+    "relation": "hrx-test",
+    "finding": "Port normalization, duplicate-code, tenant isolation, active sorting, update versioning, and restart durability tests against the Forest repository and new `026+` catalog table."
+  },
+  {
+    "path": "packages/hrx/test/payroll-profile-service.test.js",
+    "origin": "root-only",
+    "classification": "PORT_TEST_ONLY",
+    "gate": "PORT_TEST_ONLY",
+    "relation": "hrx-test",
+    "finding": "Port append-only assignment periods, overlap rejection, encryption-at-rest, response masking, tenant isolation, and profile/item/currency boundary tests using Forest profile fixtures."
+  },
+  {
+    "path": "packages/hrx/test/payroll-time-input-snapshot.test.js",
+    "origin": "root-only",
+    "classification": "PORT_TEST_ONLY",
+    "gate": "PORT_TEST_ONLY",
+    "relation": "hrx-test",
+    "finding": "Port approved/unapproved/as-of/correction/cross-midnight/holiday/overtime/idempotency/restart vectors into Forest's canonical input-snapshot tests."
+  },
+  {
+    "index": 48,
+    "path": "scripts/build-matter-desktop-mac.mjs",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "SELECTIVE_PORT",
+    "finding": "Preserve the sanitized professional-profile catalog needed for packaged identity unless a stronger private-data boundary replaces it with equivalent runtime truth; keep PII scans and record the exact data scope.",
+    "origin": "common",
+    "classification": "PORT_REQUIRED"
+  },
+  {
+    "index": 49,
+    "path": "scripts/build-matter-desktop-win.mjs",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "KEEP_FOREST_PENDING_INVENTORY",
+    "finding": "Root drops `build/**/*`; retain Forest inclusion until icon/resource inventory proves no required current asset is omitted, then minimize deterministically.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "index": 50,
+    "path": "scripts/prepare-matter-desktop-web-renderer.mjs",
+    "relation": "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT",
+    "gate": "KEEP_FOREST",
+    "finding": "Difference is boundary wording only; retain canonical `apps/web` handoff and regenerate evidence from the final renderer.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "path": "scripts/smoke-matter-profile-packaged.mjs",
+    "origin": "root-only",
+    "classification": "PORT_TEST_ONLY",
+    "gate": "PORT_TEST_ONLY",
+    "relation": "packaged-test",
+    "finding": "Port normal-launch and user-profile-only coverage as sanitized fixture-driven assertions. Remove hardcoded real account/career values, write only SHA-scoped evidence, and preserve Forest's canonical executable-path and no-synthetic-fallback checks."
+  },
+  {
+    "index": 51,
+    "path": "scripts/validate-public-renderer-no-hrx-roster-pii.mjs",
+    "relation": "IDENTICAL",
+    "gate": "KEEP_IDENTICAL",
+    "finding": "Byte-identical PII validator; run unchanged at every build/release gate.",
+    "origin": "common",
+    "classification": "SUPERSEDED"
+  },
+  {
+    "path": "workbook/hrx-payroll-leave-tuw-execution-plan-2026-07-14.md",
+    "origin": "root-only",
+    "classification": "SUPERSEDED",
+    "gate": "SUPERSEDED",
+    "relation": "execution-plan",
+    "finding": "This older plan and its stale counts/screenshots are subsumed by the current Forest v0.1.17 Goal plan. Keep it only in the user root checkout; do not make it a second execution authority."
+  }
+]

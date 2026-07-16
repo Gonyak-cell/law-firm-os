@@ -1,0 +1,13 @@
+node --test packages/hrx/test/leave-*.test.js packages/hrx/test/migration*.test.js apps/api/test/hrx/leave*.test.js apps/api/test/hrx/route-authz.test.js apps/web/test/leave-*.test.mjs
+node --test apps/api/test/hrx-runtime-api.test.js
+node --test packages/hrx/test/payroll-*.test.js
+node --test apps/api/test/hrx/hrx-role-scope-matrix.test.js apps/api/test/hrx/payroll-runtime.test.js
+node --test apps/web/test/payroll-workspace-ui.test.mjs
+node --test apps/desktop/test/aws-runtime-client.test.mjs apps/desktop/test/renderer-runtime-ui.test.mjs
+node --test apps/desktop/test/shell-smoke.test.mjs
+node --test apps/web/test/ui-regression.test.mjs
+npm run typecheck:web
+node scripts/prepare-matter-desktop-web-renderer.mjs
+npm run public-renderer:pii:validate
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed
+node -e 'const fs=require("fs"),path=require("path"),crypto=require("crypto"),root="apps/desktop/src/renderer/web",h=crypto.createHash("sha256");(function walk(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name))){const p=path.join(dir,e.name);if(e.isDirectory())walk(p);else{h.update(path.relative(root,p));h.update(fs.readFileSync(p));}}})(root);console.log(h.digest("hex"));'

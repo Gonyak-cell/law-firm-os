@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.forest-v0.1.17.qa004-tests.v1",
+  "candidate_source_sha": "e19a17dd48edf131cada90cf0b2c9b6891002d8d",
+  "verdict": "PASS",
+  "required_gate": {
+    "suite": "payroll_browser_role_viewport_matrix",
+    "roles": 6,
+    "viewports_per_role": 5,
+    "role_viewport_cases": 30,
+    "passed_cases": 30,
+    "failed_cases": 0,
+    "signed_session_cases": 30,
+    "unexpected_http_errors": 0,
+    "unexpected_console_errors": 0,
+    "page_errors": 0,
+    "root_overflows": 0,
+    "main_overflows": 0,
+    "dead_or_empty_actions": 0,
+    "broken_images": 0,
+    "unlabeled_controls": 0,
+    "row_density_violations": 0,
+    "screenshots": 12
+  },
+  "package_support": {
+    "suite": "payroll_package_qa",
+    "scenarios": 9,
+    "passed_scenarios": 9,
+    "failed_scenarios": 0,
+    "screenshots": 5,
+    "restart_persistence": true,
+    "verdict": "PASS_INTERNAL_PACKAGE"
+  },
+  "leave_compatibility_support": {
+    "suites": 6,
+    "suite_ids": ["LV02", "LV03", "LV04", "LV05", "LV06", "LV07"],
+    "failed_suites": 0,
+    "leave_page_errors": 0,
+    "leave_console_errors": 0,
+    "screenshots": 22,
+    "export_files": 4,
+    "verdict": "PASS_SYNTHETIC_LOCAL"
+  },
+  "total_evidence_screenshots": 39,
+  "total_evidence_files_after_closeout": 61,
+  "non_claims": [
+    "macOS formal distribution readiness",
+    "Windows native runtime readiness",
+    "Windows Authenticode",
+    "external provider writes",
+    "real employee migration",
+    "bank or tax production submission",
+    "public release",
+    "production go-live"
+  ]
+}

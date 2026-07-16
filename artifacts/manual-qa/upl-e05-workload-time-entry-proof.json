@@ -1,0 +1,121 @@
+{
+  "schema_version": "lawos.upl_e05.workload_time_entry_proof.v1",
+  "generated_at": "2026-07-03T09:21:07.195Z",
+  "tuw_ids": [
+    "UPL-E-05"
+  ],
+  "pass": true,
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "api_readback": {
+    "forged_status": 401,
+    "status": 200,
+    "workload_row_count": 2,
+    "workload_conflict_count": 1,
+    "analytics_workload": {
+      "employee_count": 2,
+      "total_hours": 6.75,
+      "average_capacity_pct": 8.44
+    }
+  },
+  "projection_change_readback": {
+    "before": {
+      "tenant_id": "tenant_amic_matter_vault",
+      "employee_id": "emp_amic_ytkim",
+      "workload_source": "time_entry_aggregation",
+      "time_entry_count": 1,
+      "matter_count": 1,
+      "total_hours": 1,
+      "billable_hours": 1,
+      "non_billable_hours": 0,
+      "capacity_pct": 2.5,
+      "leave_deadline_conflict_count": 1,
+      "leave_deadline_conflicts": [
+        {
+          "conflict_id": "deadline-proof-001:leave-proof-001",
+          "deadline_id": "deadline-proof-001",
+          "leave_request_id": "leave-proof-001",
+          "conflict_date": "2026-07-15",
+          "conflict_type": "leave_deadline_overlap",
+          "warning_only": true
+        }
+      ]
+    },
+    "after": {
+      "tenant_id": "tenant_amic_matter_vault",
+      "employee_id": "emp_amic_ytkim",
+      "workload_source": "time_entry_aggregation",
+      "time_entry_count": 2,
+      "matter_count": 2,
+      "total_hours": 1.75,
+      "billable_hours": 1,
+      "non_billable_hours": 0.75,
+      "capacity_pct": 4.38,
+      "leave_deadline_conflict_count": 1,
+      "leave_deadline_conflicts": [
+        {
+          "conflict_id": "deadline-proof-001:leave-proof-001",
+          "deadline_id": "deadline-proof-001",
+          "leave_request_id": "leave-proof-001",
+          "conflict_date": "2026-07-15",
+          "conflict_type": "leave_deadline_overlap",
+          "warning_only": true
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "e05-unsigned-forged-hrx-headers-blocked",
+      "passed": true,
+      "evidence": {
+        "status": 401,
+        "safe_error_codes": [
+          "AUTH_SESSION_REQUIRED"
+        ]
+      }
+    },
+    {
+      "id": "e05-api-analytics-200",
+      "passed": true,
+      "evidence": "/api/hrx/analytics"
+    },
+    {
+      "id": "e05-workload-source-time-entry",
+      "passed": true,
+      "evidence": {
+        "source_count": 2,
+        "row_count": 2
+      }
+    },
+    {
+      "id": "e05-time-entry-change-reflected",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "time_entry_count": 1,
+          "total_hours": 1
+        },
+        "after": {
+          "time_entry_count": 2,
+          "total_hours": 1.75
+        }
+      }
+    },
+    {
+      "id": "e05-leave-deadline-conflict",
+      "passed": true,
+      "evidence": {
+        "api_conflicts": 1,
+        "projection_conflicts": 1
+      }
+    },
+    {
+      "id": "e05-no-client-or-matter-detail-leak",
+      "passed": true,
+      "evidence": {
+        "matter_ids_rendered": false
+      }
+    }
+  ]
+}

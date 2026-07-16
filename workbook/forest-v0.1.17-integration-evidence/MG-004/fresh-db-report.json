@@ -1,0 +1,185 @@
+{
+  "verdict": "PASS",
+  "engine": "SQLite",
+  "sqlite_version": "3.53.2",
+  "migration_count": 28,
+  "migration_first": "001_hrx_core.sql",
+  "migration_last": "028_hrx_leave_accrual_rule_versions.sql",
+  "expected_object_counts": {
+    "tables": 73,
+    "indexes": 53,
+    "triggers": 12
+  },
+  "actual_object_counts": {
+    "tables": 73,
+    "indexes": 53,
+    "triggers": 12
+  },
+  "object_set_checks": {
+    "tables": {
+      "missing_count": 0,
+      "unexpected_count": 0
+    },
+    "indexes": {
+      "missing_count": 0,
+      "unexpected_count": 0
+    },
+    "triggers": {
+      "missing_count": 0,
+      "unexpected_count": 0
+    }
+  },
+  "required_column_checks": [
+    {
+      "table": "hrx_payroll_items",
+      "column": "state_version",
+      "cid": 11,
+      "name": "state_version",
+      "type": "INTEGER",
+      "notnull": 1,
+      "default_value": "1",
+      "primary_key_position": 0
+    },
+    {
+      "table": "hrx_payroll_item_assignments",
+      "column": "raw_amount_included",
+      "cid": 12,
+      "name": "raw_amount_included",
+      "type": "INTEGER",
+      "notnull": 1,
+      "default_value": "0",
+      "primary_key_position": 0
+    },
+    {
+      "table": "hrx_attendance_approval_receipts",
+      "column": "attendance_source_ref",
+      "cid": 6,
+      "name": "attendance_source_ref",
+      "type": "TEXT",
+      "notnull": 1,
+      "default_value": null,
+      "primary_key_position": 0
+    },
+    {
+      "table": "hrx_leave_accrual_rules",
+      "column": "logical_rule_code",
+      "cid": 12,
+      "name": "logical_rule_code",
+      "type": "TEXT",
+      "notnull": 0,
+      "default_value": null,
+      "primary_key_position": 0
+    },
+    {
+      "table": "hrx_leave_accrual_rules",
+      "column": "version",
+      "cid": 13,
+      "name": "version",
+      "type": "INTEGER",
+      "notnull": 1,
+      "default_value": "1",
+      "primary_key_position": 0
+    },
+    {
+      "table": "hrx_leave_accrual_rules",
+      "column": "supersedes_rule_id",
+      "cid": 14,
+      "name": "supersedes_rule_id",
+      "type": "TEXT",
+      "notnull": 0,
+      "default_value": null,
+      "primary_key_position": 0
+    },
+    {
+      "table": "hrx_leave_accrual_runs",
+      "column": "as_of_date",
+      "cid": 16,
+      "name": "as_of_date",
+      "type": "TEXT",
+      "notnull": 0,
+      "default_value": null,
+      "primary_key_position": 0
+    }
+  ],
+  "forbidden_column_checks": [
+    {
+      "table": "hrx_payroll_profiles",
+      "column": "pay_frequency",
+      "absent": true
+    },
+    {
+      "table": "hrx_leave_groups",
+      "column": "balance_managed",
+      "absent": true
+    },
+    {
+      "table": "hrx_leave_groups",
+      "column": "balance_unit",
+      "absent": true
+    },
+    {
+      "table": "hrx_leave_types",
+      "column": "allowed_usage_units_json",
+      "absent": true
+    },
+    {
+      "table": "hrx_leave_requests",
+      "column": "applied_deduct_minutes",
+      "absent": true
+    },
+    {
+      "table": "hrx_leave_requests",
+      "column": "applied_paid_minutes",
+      "absent": true
+    },
+    {
+      "table": "hrx_leave_entitlements",
+      "column": "cancellation_entry_id",
+      "absent": true
+    }
+  ],
+  "forbidden_table_count": 0,
+  "constraint_probes": [
+    {
+      "label": "canonical_payroll_profile_mutable",
+      "verdict": "PASS"
+    },
+    {
+      "label": "payroll_assignment_update_blocked",
+      "verdict": "PASS",
+      "error_class": "append-only"
+    },
+    {
+      "label": "payroll_assignment_delete_blocked",
+      "verdict": "PASS",
+      "error_class": "append-only"
+    },
+    {
+      "label": "attendance_receipt_update_blocked",
+      "verdict": "PASS",
+      "error_class": "append-only"
+    },
+    {
+      "label": "attendance_receipt_delete_blocked",
+      "verdict": "PASS",
+      "error_class": "append-only"
+    },
+    {
+      "label": "payroll_assignment_foreign_key_enforced",
+      "verdict": "PASS",
+      "error_class": "FOREIGN KEY constraint failed"
+    },
+    {
+      "label": "payroll_assignment_raw_amount_flag_blocked",
+      "verdict": "PASS",
+      "error_class": "CHECK constraint failed"
+    }
+  ],
+  "empty_table_count": 73,
+  "nonempty_table_count": 0,
+  "integrity_check": "ok",
+  "foreign_key_error_count": 0,
+  "migration_manifest_sha256": "82b17a9d27e36c7941d8dbb1251256aed8c75091c7630d2935a80655ca136960",
+  "schema_manifest_sha256": "c0756d870967adf0ab79e4b6716a947ea4fb2a921a3418195a489cee9e8798b6",
+  "row_count_manifest_sha256": "25b3b79f274366ca086f11aecb106f8da3501fd551439f066260df2b0c3ca0d7"
+}

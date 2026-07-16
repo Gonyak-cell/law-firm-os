@@ -4,10 +4,25 @@ import {
   createMatterCoreSyntheticFixture,
   createMatterDocumentEmailBuilderService,
   createMatterRepository,
+  AMIC_CURRENT_MATTER_CLIENTS,
+  AMIC_CURRENT_MATTER_CODE_CANDIDATES,
+  getMatterProfile,
+  listMatterParties,
+  listMatterStakeholders,
+  matterProfileSeedForMatter,
+  profileKindForMatter,
+  registerMatterParty,
+  registerMatterStakeholder,
+  serializeMatterProfile,
+  updateMatterProfile,
   upsertMatterAppClientFromVaultContract,
   upsertMatterAppMatterFromVaultContract,
 } from "../../../packages/matter/src/index.js";
-import { addMatterTeamMember } from "../../../packages/matter/src/staffing-service.js";
+import {
+  MATTER_ONBOARDING_GATE_ERROR_CODE,
+  addMatterTeamMember,
+  evaluateMatterAssignmentOnboardingReadiness,
+} from "../../../packages/matter/src/staffing-service.js";
 import { appendMatterAuditEvent } from "../../../packages/matter/src/audit.js";
 import { openMatterTransaction } from "../../../packages/matter/src/opening-service.js";
 import { openMatterWithVault } from "../../../packages/matter/src/matter-opening-orchestrator.js";
@@ -18,12 +33,17 @@ import { createMatterClientReportProjection } from "../../../packages/matter/src
 import { uploadDocument } from "../../../packages/dms/src/document-service.js";
 import { serializeFileObjectSafe } from "../../../packages/dms/src/file-object-service.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
+import { handleMatterWorktreeRead, handleMatterWorktreeTemplateList } from "./matter-worktree-read-api.js";
+import { handleMatterWorktreeCreate, handleMatterWorktreeNodeArchive, handleMatterWorktreeNodeCreate, handleMatterWorktreeNodePatch, handleMatterWorktreeTemplateApply } from "./matter-worktree-write-api.js";
+import { handleMatterWorktreeTaskComplete, handleMatterWorktreeTaskReopen, handleMatterWorktreeTaskUnblock } from "./matter-worktree-task-api.js";
+import { MATTER_VAULT_REGISTERED_TENANT_ID } from "./matter-vault-account-registry.js";
 
 export const MATTER_API_ERROR_CODES = Object.freeze({
   tenant_required: "MATTER_TENANT_REQUIRED",
   permission_required: "MATTER_PERMISSION_REQUIRED",
   audit_hint_required: "MATTER_AUDIT_HINT_REQUIRED",
   validation_error: "MATTER_API_VALIDATION_ERROR",
+  onboarding_gate_required: MATTER_ONBOARDING_GATE_ERROR_CODE,
   unauthorized_omission: "MATTER_UNAUTHORIZED_OMISSION",
   review_required: "MATTER_REVIEW_REQUIRED",
   approval_required: "MATTER_APPROVAL_REQUIRED",
@@ -34,15 +54,43 @@ export const MATTER_API_ERROR_CODES = Object.freeze({
   vault_upload_preflight_matter_required: "MATTER_VAULT_UPLOAD_PREFLIGHT_MATTER_REQUIRED",
   vault_upload_preflight_source_blocked: "MATTER_VAULT_UPLOAD_PREFLIGHT_SOURCE_BLOCKED",
   vault_upload_preflight_lifecycle_blocked: "MATTER_VAULT_UPLOAD_PREFLIGHT_LIFECYCLE_BLOCKED",
+  clearance_token_not_issued: "MATTER_CLEARANCE_TOKEN_NOT_ISSUED",
+  clearance_token_id_required: "MATTER_CLEARANCE_TOKEN_ID_REQUIRED",
+  clearance_ledger_mismatch: "MATTER_CLEARANCE_LEDGER_MISMATCH",
 });
+
+export const VAULT_BRIDGE_TOKEN_HEADER = "x-lawos-vault-bridge-token";
+export const MATTER_VAULT_BRIDGE_ROUTES = Object.freeze(new Set([
+  "GET /api/matters/vault-bridge/status",
+  "GET /api/matters/vault-bridge/matter-lookup",
+  "POST /api/matters/vault-bridge/upload-preflight",
+  "POST /api/matters/vault-bridge/clients/upsert",
+  "POST /api/matters/vault-bridge/matters/upsert",
+]));
 
 export const MATTER_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "matter-core",
   contract_ref: "contracts/matter-core-contract.json",
   contract_schema_version: "law-firm-os.matter-core-contract.v0.1",
   endpoints: Object.freeze([
+    "GET /api/matters/clients",
     "GET /api/matters",
     "GET /api/matters/:matter_id",
+    "GET /api/matters/:matter_id/profile",
+    "GET /api/matters/:matter_id/worktree",
+    "GET /api/matters/:matter_id/worktree/templates",
+    "POST /api/matters/:matter_id/worktree",
+    "POST /api/matters/:matter_id/worktree/template-applications",
+    "POST /api/matters/:matter_id/worktree/nodes",
+    "PATCH /api/matters/:matter_id/worktree/nodes/:node_id",
+    "DELETE /api/matters/:matter_id/worktree/nodes/:node_id",
+    "POST /api/matters/:matter_id/worktree/tasks/:task_id/complete",
+    "POST /api/matters/:matter_id/worktree/tasks/:task_id/reopen",
+    "POST /api/matters/:matter_id/worktree/tasks/:task_id/unblock",
+    "PATCH /api/matters/:matter_id/profile",
+    "GET /api/matters/:matter_id/stakeholders",
+    "POST /api/matters/:matter_id/stakeholders",
+    "GET /api/matters/:matter_id/parties",
     "GET /api/matters/:matter_id/command-center",
     "GET /api/matters/:matter_id/vault-summary",
     "GET /api/matters/:matter_id/timeline",
@@ -80,6 +128,7 @@ export const MATTER_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/matters/bulk/status-transitions",
     "POST /api/matters/:matter_id/documents",
     "POST /api/matters/:matter_id/owner-change",
+    "POST /api/matters/:matter_id/parties",
     "POST /api/matters/:matter_id/team-members",
     "POST /api/matters/:matter_id/status-transitions",
     "POST /api/matters/:matter_id/recently-viewed",
@@ -96,7 +145,14 @@ export const MATTER_BOUNDED_CONTEXT = Object.freeze({
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 100;
 const MAX_BULK_MATTERS = 25;
-const DEFAULT_TENANT = "tenant_rp05_synthetic";
+const AMIC_CURRENT_MATTER_CODE_SOURCE_REVISION = "amic_current_onedrive_matter_code_inventory_2026_07_01";
+export const MATTER_RUNTIME_SYNTHETIC_TENANT_ID = "tenant_rp05_synthetic";
+export const MATTER_RUNTIME_CANONICAL_TENANT_ID = MATTER_VAULT_REGISTERED_TENANT_ID;
+export const LAWOS_CURRENT_MATTER_CODE_SEED_TENANT_ENV = "LAWOS_CURRENT_MATTER_CODE_SEED_TENANT";
+export const LAWOS_CURRENT_MATTER_CODE_SEED_ENABLED_ENV = "LAWOS_CURRENT_MATTER_CODE_SEED_ENABLED";
+export const LAWOS_VAULT_BRIDGE_ENABLED_ENV = "LAWOS_VAULT_BRIDGE_ENABLED";
+export const LAWOS_VAULT_BRIDGE_ALLOWED_TENANTS_ENV = "LAWOS_VAULT_BRIDGE_ALLOWED_TENANT_IDS";
+export const LAWOS_VAULT_BRIDGE_SERVICE_ACTOR_ENV = "LAWOS_VAULT_BRIDGE_SERVICE_ACTOR_ID";
 const ALLOWED_MATTER_STATUS_TRANSITIONS = new Set(["opening", "open", "closed"]);
 const ALLOWED_MATTER_LIST_VIEW_STATUSES = new Set(["all", "opening", "open", "closed", "review_required"]);
 const ALLOWED_MATTER_INLINE_WIP_STATUSES = new Set(["not_started", "opening_wip_clear", "review_required", "completed"]);
@@ -111,16 +167,41 @@ function clone(value) {
   return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 }
 
-function configuredVaultBridgeToken() {
-  const value = process.env.LAWOS_VAULT_BRIDGE_TOKEN;
+function isCurrentMatterInventoryRecord(record = {}) {
+  return record.source_revision === AMIC_CURRENT_MATTER_CODE_SOURCE_REVISION;
+}
+
+function configuredVaultBridgeToken(env = process.env) {
+  const value = env.LAWOS_VAULT_BRIDGE_TOKEN;
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-function bearerToken(headers = {}) {
-  const raw = headers.authorization ?? headers.Authorization;
-  if (typeof raw !== "string") return null;
-  const match = raw.match(/^Bearer\s+(.+)$/i);
-  return match ? match[1].trim() : null;
+function bridgeControls(env = process.env) {
+  const allowedTenantIds = String(env[LAWOS_VAULT_BRIDGE_ALLOWED_TENANTS_ENV] ?? "")
+    .split(",")
+    .map((tenant) => tenant.trim())
+    .filter(Boolean);
+  const serviceActorId = String(env[LAWOS_VAULT_BRIDGE_SERVICE_ACTOR_ENV] ?? "lawos-vault-bridge-service").trim();
+  return Object.freeze({
+    enabled: env[LAWOS_VAULT_BRIDGE_ENABLED_ENV] === "true",
+    allowedTenantIds: Object.freeze(allowedTenantIds),
+    serviceActorId,
+    tokenRotationReceiptRequired: true,
+    windowControlRequired: true,
+  });
+}
+
+function tenantAllowedByVaultBridge(controls, tenantId) {
+  if (!tenantId) return true;
+  return controls.allowedTenantIds.includes(tenantId);
+}
+
+function vaultBridgeHeaderToken(headers = {}) {
+  const raw =
+    headers[VAULT_BRIDGE_TOKEN_HEADER] ??
+    headers[VAULT_BRIDGE_TOKEN_HEADER.toUpperCase()] ??
+    headers["X-Lawos-Vault-Bridge-Token"];
+  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
 }
 
 function tokenDigest(value) {
@@ -134,18 +215,31 @@ function tokenMatches(expected, actual) {
   return timingSafeEqual(expectedDigest, actualDigest);
 }
 
-function createMatterRuntimeSeed() {
+function currentMatterCodeSeedTenantId(env = process.env) {
+  const value = env[LAWOS_CURRENT_MATTER_CODE_SEED_TENANT_ENV];
+  return typeof value === "string" && value.trim() ? value.trim() : MATTER_RUNTIME_CANONICAL_TENANT_ID;
+}
+
+export function createMatterRuntimeSeed({
+  syntheticTenantId = MATTER_RUNTIME_SYNTHETIC_TENANT_ID,
+  currentMatterTenantId = currentMatterCodeSeedTenantId(),
+  includeCurrentMatterCodes = process.env[LAWOS_CURRENT_MATTER_CODE_SEED_ENABLED_ENV] !== "false",
+} = {}) {
   const fixture = createMatterCoreSyntheticFixture();
   const records = fixture.records.map((record) => {
+    const tenantScopedRecord = { ...record, tenant_id: syntheticTenantId };
     if (record.model_type === "Matter") {
       return {
-        ...record,
-        matter_code: "AMIC/general/합성개시",
+        ...tenantScopedRecord,
+        matter_code: "AMIC/LIT/CIV/합성개시",
         matter_name: record.title,
         matter_number: "M-TENANT-RP05-0001",
         client_display_name: "AMIC synthetic client",
-        matter_type_english: "general",
+        matter_type_english: "LIT",
+        matter_litigation_axis: "CIV",
         matter_detail_type_korean: "합성개시",
+        client_case_role: "원고",
+        client_case_role_confidence: "runtime_seed",
         source_revision: "runtime-seed-rp05",
         legal_client_party_id: "party_rp04_amic",
         billing_client_party_id: "party_rp04_amic",
@@ -159,15 +253,15 @@ function createMatterRuntimeSeed() {
     }
     if (record.model_type === "MatterMember") {
       return {
-        ...record,
+        ...tenantScopedRecord,
         employee_id: "emp-001",
       };
     }
-    return record;
+    return tenantScopedRecord;
   });
   records.push({
     model_type: "MatterClient",
-    tenant_id: fixture.tenant_id,
+    tenant_id: syntheticTenantId,
     client_id: "client_rp05_amic",
     client_display_name: "AMIC synthetic client",
     client_short_name: "AMIC",
@@ -181,13 +275,16 @@ function createMatterRuntimeSeed() {
   records.push({
     model_type: "Matter",
     matter_id: "matter_rp05_silent_wall",
-    tenant_id: fixture.tenant_id,
+    tenant_id: syntheticTenantId,
     client_id: "client_rp05_silent",
-    matter_code: "Silent/general/윤리장벽",
+    matter_code: "Silent/LIT/CIV/윤리장벽",
     matter_name: "Silent ethical wall matter",
     client_display_name: "Silent synthetic client",
-    matter_type_english: "general",
+    matter_type_english: "LIT",
+    matter_litigation_axis: "CIV",
     matter_detail_type_korean: "윤리장벽",
+    client_case_role: "원고",
+    client_case_role_confidence: "runtime_seed",
     source_revision: "runtime-seed-rp05",
     legal_client_party_id: "party_rp05_silent",
     billing_client_party_id: "party_rp05_silent",
@@ -203,11 +300,67 @@ function createMatterRuntimeSeed() {
     risk_level: "restricted",
     silent: true,
   });
+  if (includeCurrentMatterCodes && currentMatterTenantId) {
+    const currentMatterSeedTenantIds = [...new Set([syntheticTenantId, currentMatterTenantId].filter(Boolean))];
+    for (const tenantId of currentMatterSeedTenantIds) {
+      for (const client of AMIC_CURRENT_MATTER_CLIENTS) {
+        records.push({
+          model_type: "MatterClient",
+          tenant_id: tenantId,
+          client_id: client.client_id,
+          client_display_name: client.client_display_name,
+          client_short_name: client.client_short_name,
+          status: "active",
+          source_revision: client.source_revision,
+          synthetic_only: false,
+          created_by: "amic_current_onedrive_import",
+          created_at: "2026-07-01T00:00:00.000+09:00",
+          updated_by: "amic_current_onedrive_import",
+          updated_at: "2026-07-01T00:00:00.000+09:00",
+        });
+      }
+      for (const matter of AMIC_CURRENT_MATTER_CODE_CANDIDATES) {
+        records.push({
+          model_type: "Matter",
+          matter_id: matter.matter_id,
+          tenant_id: tenantId,
+          client_id: matter.client_id,
+          matter_code: matter.matter_code,
+          matter_name: matter.matter_name,
+          client_display_name: matter.client_display_name,
+          matter_type_english: matter.matter_type_english,
+          matter_litigation_axis: matter.matter_litigation_axis ?? null,
+          matter_detail_type_korean: matter.matter_detail_type_korean,
+          client_case_role: matter.client_case_role ?? null,
+          client_case_role_confidence: matter.client_case_role_confidence ?? null,
+          practice_group: matter.matter_axis,
+          source_revision: matter.source_revision,
+          source_ref: matter.source_ref ?? null,
+          confidence: matter.confidence ?? null,
+          review_required: matter.review_required === true,
+          synthetic_only: false,
+          legal_client_party_id: matter.client_id,
+          billing_client_party_id: matter.client_id,
+          title: matter.title,
+          status: matter.status,
+          created_by: "amic_current_onedrive_import",
+          created_at: "2026-07-01T00:00:00.000+09:00",
+          matter_number: matter.matter_number,
+          permission_envelope_id: `perm:${tenantId}:${matter.matter_id}`,
+          audit_trace_id: `audit:${tenantId}:${matter.matter_id}`,
+          document_count: 0,
+          wip_status: matter.review_required ? "review_required" : "not_started",
+          risk_level: matter.review_required ? "elevated" : "standard",
+          opened_at: "2026-07-01T00:00:00.000+09:00",
+        });
+      }
+    }
+  }
   for (const view of DEFAULT_MATTER_LIST_VIEWS) {
     records.push({
       model_type: "MatterListView",
       resource_id: view.list_view_id,
-      tenant_id: fixture.tenant_id,
+      tenant_id: syntheticTenantId,
       list_view_id: view.list_view_id,
       label: view.label,
       filter: view.filter,
@@ -218,8 +371,33 @@ function createMatterRuntimeSeed() {
       updated_at: "2026-06-20T00:00:00.000Z",
     });
   }
+  for (const matter of records.filter((record) => record.model_type === "Matter")) {
+    const seed = matterProfileSeedForMatter(matter);
+    const profileId = `matter_profile_${matter.matter_id}`;
+    records.push({
+      model_type: "MatterProfile",
+      resource_id: profileId,
+      profile_id: profileId,
+      tenant_id: matter.tenant_id,
+      matter_id: matter.matter_id,
+      profile_kind: seed.profile_kind,
+      schema_version: "lawos.matter_profile.v1",
+      data: seed.data,
+      evidence: seed.evidence,
+      status: "active",
+      created_by: "matter_profile_seed",
+      created_at: matter.created_at ?? "2026-07-01T00:00:00.000+09:00",
+      updated_by: "matter_profile_seed",
+      updated_at: matter.created_at ?? "2026-07-01T00:00:00.000+09:00",
+      raw_contact_values_included: false,
+      production_ready_claim: false,
+    });
+  }
   return Object.freeze({
     ...fixture,
+    tenant_id: syntheticTenantId,
+    current_matter_code_tenant_id: currentMatterTenantId,
+    current_matter_code_seed_enabled: includeCurrentMatterCodes,
     records: Object.freeze(records),
   });
 }
@@ -228,7 +406,7 @@ export const MATTER_RUNTIME_SEED = createMatterRuntimeSeed();
 
 export const MATTER_EMPLOYEE_DIRECTORY_SEED = Object.freeze([
   Object.freeze({
-    tenant_id: DEFAULT_TENANT,
+    tenant_id: MATTER_RUNTIME_SYNTHETIC_TENANT_ID,
     employee_id: "emp-001",
     user_id: "user_rp05_owner",
     display_name: "Synthetic Responsible Attorney",
@@ -236,7 +414,7 @@ export const MATTER_EMPLOYEE_DIRECTORY_SEED = Object.freeze([
     availability: "available",
   }),
   Object.freeze({
-    tenant_id: DEFAULT_TENANT,
+    tenant_id: MATTER_RUNTIME_SYNTHETIC_TENANT_ID,
     employee_id: "emp-002",
     user_id: "user_rp05_associate",
     display_name: "Synthetic Associate",
@@ -244,7 +422,7 @@ export const MATTER_EMPLOYEE_DIRECTORY_SEED = Object.freeze([
     availability: "available",
   }),
   Object.freeze({
-    tenant_id: DEFAULT_TENANT,
+    tenant_id: MATTER_RUNTIME_SYNTHETIC_TENANT_ID,
     employee_id: "emp-offboarded",
     user_id: "user_rp05_offboarded",
     display_name: "Offboarded Employee",
@@ -253,10 +431,63 @@ export const MATTER_EMPLOYEE_DIRECTORY_SEED = Object.freeze([
   }),
 ]);
 
+export function repairCurrentMatterInventoryClassification(repository) {
+  if (!repository?.list || !repository?.update) return Object.freeze({ repaired_client_count: 0, repaired_matter_count: 0 });
+  const tenantIds = new Set(
+    repository
+      .list()
+      .filter((record) => isCurrentMatterInventoryRecord(record))
+      .map((record) => record.tenant_id)
+      .filter(Boolean),
+  );
+  let repairedClientCount = 0;
+  let repairedMatterCount = 0;
+  for (const tenantId of tenantIds) {
+    for (const client of repository.list({ tenant_id: tenantId, model_type: "MatterClient" })) {
+      if (!isCurrentMatterInventoryRecord(client) || client.synthetic_only !== true) continue;
+      repository.update(
+        { tenant_id: tenantId, model_type: "MatterClient", client_id: client.client_id },
+        { synthetic_only: false },
+      );
+      repairedClientCount += 1;
+    }
+    for (const matter of repository.list({ tenant_id: tenantId, model_type: "Matter" })) {
+      if (!isCurrentMatterInventoryRecord(matter) || matter.synthetic_only !== true) continue;
+      repository.update(
+        { tenant_id: tenantId, model_type: "Matter", matter_id: matter.matter_id },
+        { synthetic_only: false },
+      );
+      repairedMatterCount += 1;
+    }
+  }
+  return Object.freeze({ repaired_client_count: repairedClientCount, repaired_matter_count: repairedMatterCount });
+}
+
 function defaultEmployeeDirectory(seed = MATTER_EMPLOYEE_DIRECTORY_SEED) {
   return Object.freeze({
     get({ tenant_id, employee_id } = {}) {
       return seed.find((employee) => employee.tenant_id === tenant_id && employee.employee_id === employee_id) ?? null;
+    },
+  });
+}
+
+function createHrxEmployeeDirectory(hrxRuntime, fallbackDirectory = defaultEmployeeDirectory()) {
+  return Object.freeze({
+    get({ tenant_id, employee_id } = {}) {
+      const employee = hrxRuntime?.repository?.getEmployee?.({ tenant_id, employee_id });
+      if (employee) return { ...employee, availability: employee.availability ?? "available" };
+      return fallbackDirectory?.get?.({ tenant_id, employee_id }) ?? null;
+    },
+  });
+}
+
+function createHrxOnboardingGate(hrxRuntime) {
+  return Object.freeze({
+    getMatterAssignmentReadiness({ tenant_id, employee_id } = {}) {
+      const plan = hrxRuntime?.onboardingPlans?.find?.(
+        (candidate) => candidate.tenant_id === tenant_id && candidate.employee_id === employee_id,
+      );
+      return evaluateMatterAssignmentOnboardingReadiness({ plan });
     },
   });
 }
@@ -274,17 +505,22 @@ function createSideEffectAdapter(prefix) {
 
 export function createMatterRuntimeContext({
   repository = createMatterRepository({ seedRecords: MATTER_RUNTIME_SEED.records }),
-  employeeDirectory = defaultEmployeeDirectory(),
+  hrxRuntime = null,
+  employeeDirectory = hrxRuntime ? createHrxEmployeeDirectory(hrxRuntime) : defaultEmployeeDirectory(),
+  onboardingGate = hrxRuntime ? createHrxOnboardingGate(hrxRuntime) : null,
   dms = createSideEffectAdapter("matter_dms"),
   dmsRuntime = null,
   billing = createSideEffectAdapter("matter_billing"),
+  clearanceRepository = null,
 } = {}) {
   return Object.freeze({
     repository,
     employeeDirectory,
+    onboardingGate,
     dms,
     dmsRuntime,
     billing,
+    clearanceRepository,
     seed_ref: MATTER_RUNTIME_SEED.fixture_id,
   });
 }
@@ -303,7 +539,35 @@ function errorResponse(status, requestId, codes, extra = {}) {
       ui_state: extra.ui_state ?? null,
       count_leak_prevented: true,
       production_ready_claim: false,
+      ...(extra.safe_message ? { message: extra.safe_message } : {}),
+      ...(extra.onboarding_gate ? { onboarding_gate: extra.onboarding_gate } : {}),
     },
+  };
+}
+
+function matterOpeningClearanceError(error) {
+  const message = String(error?.message ?? "");
+  if (/clearance_token_id is required|requires clearance_token_id/.test(message)) {
+    return {
+      code: MATTER_API_ERROR_CODES.clearance_token_id_required,
+      safe_message: "Matter opening requires an issued clearance token.",
+    };
+  }
+  if (/not issued by Intake ledger/.test(message)) {
+    return {
+      code: MATTER_API_ERROR_CODES.clearance_token_not_issued,
+      safe_message: "Matter opening clearance token was not issued by Intake.",
+    };
+  }
+  if (/clearance ledger mismatch/.test(message)) {
+    return {
+      code: MATTER_API_ERROR_CODES.clearance_ledger_mismatch,
+      safe_message: "Matter opening clearance ledger does not match the issued token.",
+    };
+  }
+  return {
+    code: MATTER_API_ERROR_CODES.validation_error,
+    safe_message: "Matter opening validation failed.",
   };
 }
 
@@ -357,12 +621,16 @@ function vaultBridgePreflightError(status, requestId, codes, extra = {}) {
   };
 }
 
-function validateVaultBridgeAuth({ headers, requestId } = {}) {
+function validateVaultBridgeAuth({ headers, requestId, tenantId } = {}) {
   const expected = configuredVaultBridgeToken();
   if (!expected) {
     return vaultBridgeError(503, requestId, MATTER_API_ERROR_CODES.vault_bridge_required);
   }
-  if (!tokenMatches(expected, bearerToken(headers))) {
+  const controls = bridgeControls();
+  if (!controls.enabled || !tenantAllowedByVaultBridge(controls, tenantId)) {
+    return vaultBridgeError(403, requestId, MATTER_API_ERROR_CODES.vault_bridge_blocked);
+  }
+  if (!tokenMatches(expected, vaultBridgeHeaderToken(headers))) {
     return vaultBridgeError(403, requestId, MATTER_API_ERROR_CODES.vault_bridge_blocked);
   }
   return null;
@@ -378,6 +646,7 @@ function safeVaultBridgeAuditMetadata(input = {}) {
 }
 
 function handleVaultBridgeStatus({ headers, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const controls = bridgeControls();
   const authError = validateVaultBridgeAuth({ headers, requestId });
   if (authError) return authError;
   return {
@@ -391,6 +660,11 @@ function handleVaultBridgeStatus({ headers, requestId, runtime = DEFAULT_MATTER_
         matter_upsert_path: "/api/matters/vault-bridge/matters/upsert",
         runtime_write_ready: true,
         repository_durable: runtime.repository?.durable === true,
+        bridge_enabled: controls.enabled === true,
+        allowed_tenant_count: controls.allowedTenantIds.length,
+        service_actor_id: controls.serviceActorId,
+        token_rotation_receipt_required: controls.tokenRotationReceiptRequired,
+        window_control_required: controls.windowControlRequired,
       },
       safe_error_codes: [],
       state_idempotent: true,
@@ -420,7 +694,7 @@ function serializeVaultBridgeMatterLookupItem(record, runtime) {
 }
 
 function handleVaultBridgeMatterLookup({ query, headers, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
-  const authError = validateVaultBridgeAuth({ headers, requestId });
+  const authError = validateVaultBridgeAuth({ headers, requestId, tenantId: query?.tenant_id });
   if (authError) {
     return vaultBridgeLookupError(authError.status, requestId, authError.body.safe_error_codes, {
       audit_hint_ref: query?.audit_hint_ref,
@@ -521,7 +795,7 @@ function vaultUploadPreflightGate({ context, query, matterId, requestId }) {
 
 function handleVaultBridgeUploadPreflight({ body, headers, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
   const query = queryFromVaultBridgeBody(body);
-  const authError = validateVaultBridgeAuth({ headers, requestId });
+  const authError = validateVaultBridgeAuth({ headers, requestId, tenantId: query.tenant_id });
   if (authError) {
     return vaultBridgePreflightError(authError.status, requestId, authError.body.safe_error_codes, {
       audit_hint_ref: query.audit_hint_ref,
@@ -610,19 +884,20 @@ function handleVaultBridgeUploadPreflight({ body, headers, context, requestId, r
 }
 
 function handleVaultBridgeClientUpsert({ body, headers, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
-  const authError = validateVaultBridgeAuth({ headers, requestId });
+  const controls = bridgeControls();
+  const authError = validateVaultBridgeAuth({ headers, requestId, tenantId: body?.tenantRef ?? body?.tenant_id });
   if (authError) return authError;
   try {
     const result = upsertMatterAppClientFromVaultContract({
       repository: runtime.repository,
       request: body,
-      actor_id: body?.migrationOperatorRef ?? "vault-bridge",
+      actor_id: controls.serviceActorId,
     });
     if (!result.idempotent_replay) {
       appendAudit(runtime, {
         event_id: `matter.vault_bridge.client_upsert:${body.tenantRef}:${result.clientId}:${body.idempotencyKeyHash}`,
         tenant_id: body.tenantRef,
-        actor_id: body.migrationOperatorRef ?? "vault-bridge",
+        actor_id: controls.serviceActorId,
         action: "matter.vault_bridge.client_upsert",
         object_type: "MatterClient",
         object_id: result.clientId,
@@ -640,6 +915,7 @@ function handleVaultBridgeClientUpsert({ body, headers, requestId, runtime = DEF
         clientShortName: result.clientShortName,
         sourceRevision: result.sourceRevision,
         action: result.action,
+        bridge_service_identity_ref: controls.serviceActorId,
         idempotent_replay: result.idempotent_replay === true,
         safe_error_codes: [],
         state_idempotent: true,
@@ -652,19 +928,20 @@ function handleVaultBridgeClientUpsert({ body, headers, requestId, runtime = DEF
 }
 
 function handleVaultBridgeMatterUpsert({ body, headers, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
-  const authError = validateVaultBridgeAuth({ headers, requestId });
+  const controls = bridgeControls();
+  const authError = validateVaultBridgeAuth({ headers, requestId, tenantId: body?.tenantRef ?? body?.tenant_id });
   if (authError) return authError;
   try {
     const result = upsertMatterAppMatterFromVaultContract({
       repository: runtime.repository,
       request: body,
-      actor_id: body?.migrationOperatorRef ?? "vault-bridge",
+      actor_id: controls.serviceActorId,
     });
     if (!result.idempotent_replay) {
       appendAudit(runtime, {
         event_id: `matter.vault_bridge.matter_upsert:${body.tenantRef}:${result.matterAppMatterId}:${body.idempotencyKeyHash}`,
         tenant_id: body.tenantRef,
-        actor_id: body.migrationOperatorRef ?? "vault-bridge",
+        actor_id: controls.serviceActorId,
         action: "matter.vault_bridge.matter_upsert",
         object_type: "Matter",
         object_id: result.matterAppMatterId,
@@ -680,8 +957,11 @@ function handleVaultBridgeMatterUpsert({ body, headers, requestId, runtime = DEF
         matterAppMatterId: result.matterAppMatterId,
         matterCode: result.matterCode,
         clientId: result.clientId,
+        clientCaseRole: result.matter.client_case_role ?? null,
+        clientCaseRoleConfidence: result.matter.client_case_role_confidence ?? null,
         sourceRevision: result.sourceRevision,
         action: result.action,
+        bridge_service_identity_ref: controls.serviceActorId,
         idempotent_replay: result.idempotent_replay === true,
         safe_error_codes: [],
         state_idempotent: true,
@@ -759,12 +1039,30 @@ function gateDecisionResponse(decision, requestId, auditHintRef) {
 }
 
 function serializeMatter(record, runtime) {
+  const clientId = record.client_id ?? record.legal_client_party_id ?? null;
+  const clientRecord = clientId && runtime?.repository?.get
+    ? runtime.repository.get({ tenant_id: record.tenant_id, model_type: "MatterClient", client_id: clientId })
+    : null;
+  const clientDisplayName =
+    record.client_display_name ??
+    record.client_name ??
+    clientRecord?.display_name ??
+    clientRecord?.client_display_name ??
+    clientRecord?.client_name ??
+    null;
   const teamMemberCount =
     runtime?.repository
       ?.list({ tenant_id: record.tenant_id, model_type: "MatterMember", matter_id: record.matter_id })
       ?.length ?? record.team_member_count ?? 0;
+  const matterParties = runtime?.repository
+    ? listMatterParties({ repository: runtime.repository, tenant_id: record.tenant_id, matter_id: record.matter_id })
+    : [];
+  const adversePartyCount = matterParties.filter((party) => party.party_role === "adverse_party").length;
   const link = runtime?.repository
     ? getMatterVaultLink({ repository: runtime.repository, tenant_id: record.tenant_id, matter_id: record.matter_id })
+    : null;
+  const profile = runtime?.repository
+    ? getMatterProfile({ repository: runtime.repository, tenant_id: record.tenant_id, matter_id: record.matter_id })
     : null;
   return Object.freeze({
     tenant_id: record.tenant_id,
@@ -775,12 +1073,18 @@ function serializeMatter(record, runtime) {
     matter_name: record.matter_name ?? record.title,
     title: record.title,
     status: record.status,
-    client_id: record.client_id ?? record.legal_client_party_id ?? null,
-    client_display_name: record.client_display_name ?? null,
+    client_id: clientId,
+    client_display_name: clientDisplayName,
+    client_name: clientDisplayName,
     legal_client_party_id: record.legal_client_party_id ?? record.client_id ?? null,
     billing_client_party_id: record.billing_client_party_id ?? record.legal_client_party_id ?? record.client_id ?? null,
     matter_type_english: record.matter_type_english ?? null,
+    matter_litigation_axis: record.matter_litigation_axis ?? null,
     matter_detail_type_korean: record.matter_detail_type_korean ?? null,
+    matter_profile_kind: profile?.profile_kind ?? profileKindForMatter(record),
+    matter_profile_review_status: profile?.evidence?.review_status ?? "not_available",
+    client_case_role: record.client_case_role ?? null,
+    client_case_role_confidence: record.client_case_role_confidence ?? null,
     source_revision: record.source_revision ?? null,
     owner_module: record.owner_module,
     owner_employee_id: record.owner_employee_id ?? null,
@@ -792,12 +1096,33 @@ function serializeMatter(record, runtime) {
     vault_workspace_id: link?.vault_workspace_id ?? record.dms_workspace_id ?? null,
     matter_vault_linked: Boolean(link),
     team_member_count: teamMemberCount,
+    matter_party_count: matterParties.length,
+    adverse_party_count: adversePartyCount,
     wip_status: record.wip_status ?? "not_started",
     risk_level: record.risk_level ?? "standard",
     opened_at: record.opened_at ?? null,
     closed_at: record.closed_at ?? null,
     runtime_write_ready: true,
     r5_r6_owner_decision_ready: true,
+    production_ready_claim: false,
+  });
+}
+
+function serializeMatterRuntimeClient(record) {
+  return Object.freeze({
+    tenant_id: record.tenant_id,
+    resource_id: record.client_id ?? record.resource_id ?? null,
+    model_type: "Client",
+    client_id: record.client_id ?? record.resource_id ?? null,
+    party_id: record.party_id ?? null,
+    display_name: record.display_name ?? record.client_display_name ?? record.client_name ?? null,
+    client_display_name: record.display_name ?? record.client_display_name ?? record.client_name ?? null,
+    status: record.status ?? "active",
+    client_type: record.client_type ?? null,
+    confidentiality_level: record.confidentiality_level ?? null,
+    source_revision: record.source_revision ?? null,
+    synthetic_only: record.synthetic_only === true && !isCurrentMatterInventoryRecord(record),
+    runtime_write_ready: true,
     production_ready_claim: false,
   });
 }
@@ -830,6 +1155,7 @@ function serializeRecentMatterView(record, runtime) {
     matter_id: record.matter_id,
     object_type: "Matter",
     title: safeMatter.title,
+    matter_code: safeMatter.matter_code,
     matter_number: safeMatter.matter_number,
     status: safeMatter.status,
     viewed_at: record.viewed_at,
@@ -1090,6 +1416,54 @@ export function handleMatterList({ query, context, requestId, runtime = DEFAULT_
   };
 }
 
+export function handleMatterClientList({ query, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:read",
+    resource: { resource_type: "client" },
+  });
+  if (gated) return gated;
+  const { limit, error: limitError } = parseLimit(query.limit, requestId);
+  if (limitError) return limitError;
+  const { offset, error: cursorError } = parseCursor(query.cursor, requestId);
+  if (cursorError) return cursorError;
+  const records = runtime.repository
+    .list({ tenant_id: query.tenant_id })
+    .filter((record) => record.model_type === "MatterClient" || record.model_type === "Client" || record.object_type === "Client")
+    .filter((record) => record.synthetic_only !== true || isCurrentMatterInventoryRecord(record));
+  const serialized = records.map(serializeMatterRuntimeClient);
+  const { allowed } = trimItemsByPermission({
+    context,
+    items: serialized,
+    action: "matter:read",
+    resourceType: "client",
+  });
+  const page = allowed.slice(offset, offset + limit);
+  const nextOffset = offset + limit;
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      items: page,
+      page_info: {
+        limit,
+        cursor: query.cursor ?? null,
+        next_cursor: nextOffset < allowed.length ? String(nextOffset) : null,
+        returned_count: page.length,
+        omitted_client_count: null,
+      },
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: page.length === 0 ? "empty" : null,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
 export function handleMatterDetail({ matterId, query, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
   const gated = routeGate({
     context,
@@ -1121,6 +1495,27 @@ export function handleMatterDetail({ matterId, query, context, requestId, runtim
   const team = runtime.repository
     .list({ tenant_id: query.tenant_id, model_type: "MatterMember", matter_id: matterId })
     .map(serializeMember);
+  const matterParties = listMatterParties({ repository: runtime.repository, tenant_id: query.tenant_id, matter_id: matterId });
+  const { allowed: allowedMatterParties } = trimItemsByPermission({
+    context,
+    items: matterParties,
+    action: "matter:party:read",
+    resourceType: "matter_party",
+  });
+  const profile = matterProfileReadModel(record, runtime);
+  const { allowed: allowedProfiles } = trimItemsByPermission({
+    context,
+    items: profile ? [profile] : [],
+    action: "matter:profile:read",
+    resourceType: "matter_profile",
+  });
+  const stakeholders = listMatterStakeholders({ repository: runtime.repository, tenant_id: query.tenant_id, matter_id: matterId });
+  const { allowed: allowedStakeholders } = trimItemsByPermission({
+    context,
+    items: stakeholders,
+    action: "matter:stakeholder:read",
+    resourceType: "matter_stakeholder",
+  });
   const report = createMatterClientReportProjection({
     tenant_id: query.tenant_id,
     matter_id: matterId,
@@ -1137,6 +1532,10 @@ export function handleMatterDetail({ matterId, query, context, requestId, runtim
       outcome: "passed",
       item: allowed[0],
       team,
+      matter_profile: allowedProfiles[0] ?? null,
+      matter_stakeholders: allowedStakeholders,
+      matter_parties: allowedMatterParties,
+      adverse_parties: allowedMatterParties.filter((party) => party.party_role === "adverse_party"),
       client_report: report,
       safe_error_codes: [],
       audit_hint_ref: query.audit_hint_ref,
@@ -1145,6 +1544,233 @@ export function handleMatterDetail({ matterId, query, context, requestId, runtim
       production_ready_claim: false,
     },
   };
+}
+
+function matterProfileReadModel(matter, runtime) {
+  const current = getMatterProfile({
+    repository: runtime.repository,
+    tenant_id: matter.tenant_id,
+    matter_id: matter.matter_id,
+  });
+  if (current) return current;
+  const seed = matterProfileSeedForMatter(matter);
+  return serializeMatterProfile({
+    resource_id: `matter_profile_${matter.matter_id}`,
+    profile_id: `matter_profile_${matter.matter_id}`,
+    tenant_id: matter.tenant_id,
+    matter_id: matter.matter_id,
+    profile_kind: seed.profile_kind,
+    data: seed.data,
+    evidence: seed.evidence,
+    status: "not_started",
+  });
+}
+
+function readableMatterStakeholders({ context, runtime, tenantId, matterId } = {}) {
+  const items = listMatterStakeholders({ repository: runtime.repository, tenant_id: tenantId, matter_id: matterId });
+  return trimItemsByPermission({
+    context,
+    items,
+    action: "matter:stakeholder:read",
+    resourceType: "matter_stakeholder",
+  }).allowed;
+}
+
+function redactStakeholderContactReferences(stakeholder) {
+  return {
+    ...stakeholder,
+    contact_id: null,
+    contact_point_id: null,
+  };
+}
+
+function profileMatterOrNotFound({ matterId, query, requestId, runtime }) {
+  const matter = runtime.repository.get({ tenant_id: query.tenant_id, model_type: "Matter", matter_id: matterId });
+  if (!matter || matter.silent === true || matter.hidden_from_actor === true) {
+    return {
+      error: errorResponse(404, requestId, [MATTER_API_ERROR_CODES.not_found], {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: "empty",
+      }),
+    };
+  }
+  return { matter };
+}
+
+export function handleMatterProfileRead({ matterId, query, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:profile:read",
+    resource: { resource_type: "matter_profile", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const result = profileMatterOrNotFound({ matterId, query, requestId, runtime });
+  if (result.error) return result.error;
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      item: matterProfileReadModel(result.matter, runtime),
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: null,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
+export function handleMatterProfilePatch({ matterId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:profile:write",
+    resource: { resource_type: "matter_profile", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const result = profileMatterOrNotFound({ matterId, query, requestId, runtime });
+  if (result.error) return result.error;
+  const actorId = context?.principal?.user_id;
+  if (typeof actorId !== "string" || actorId.trim() === "") {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+  const idempotencyKey = `matter-profile:${matterId}:${actorId}:${body?.idempotency_key ?? "default"}`;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
+  if (replay) return replay;
+  try {
+    const item = updateMatterProfile({
+      repository: runtime.repository,
+      matter: result.matter,
+      actor_id: actorId,
+      patch: body?.profile ?? {},
+      audit: {
+        append: (event) =>
+          appendAudit(runtime, {
+            ...event,
+            event_id: `matter.profile.updated:${query.tenant_id}:${matterId}:${idempotencyKey}`,
+            metadata: { ...(event.metadata ?? {}), permission_ref: query.permission_ref },
+          }),
+      },
+    });
+    const response = {
+      request_id: requestId,
+      outcome: "updated",
+      item,
+      matter: serializeMatter(result.matter, runtime),
+      matter_stakeholders: readableMatterStakeholders({ context, runtime, tenantId: query.tenant_id, matterId }),
+      idempotent_replay: false,
+      state_idempotent: true,
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    };
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_profile_patch", response);
+    return { status: 200, body: response };
+  } catch (error) {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+      message: error.message,
+    });
+  }
+}
+
+export function handleMatterStakeholderList({ matterId, query, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:stakeholder:read",
+    resource: { resource_type: "matter_stakeholder", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const result = profileMatterOrNotFound({ matterId, query, requestId, runtime });
+  if (result.error) return result.error;
+  const allowed = readableMatterStakeholders({ context, runtime, tenantId: query.tenant_id, matterId });
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      items: allowed,
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: allowed.length === 0 ? "empty" : null,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
+export function handleMatterStakeholderRegister({ matterId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:stakeholder:write",
+    resource: { resource_type: "matter_stakeholder", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const result = profileMatterOrNotFound({ matterId, query, requestId, runtime });
+  if (result.error) return result.error;
+  const actorId = context?.principal?.user_id;
+  if (typeof actorId !== "string" || actorId.trim() === "") {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+  const idempotencyKey = `matter-stakeholder:${matterId}:${actorId}:${body?.idempotency_key ?? body?.stakeholder?.display_name ?? "stakeholder"}`;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
+  if (replay) return replay;
+  try {
+    const item = registerMatterStakeholder({
+      repository: runtime.repository,
+      matter: result.matter,
+      actor_id: actorId,
+      stakeholder: body?.stakeholder ?? {},
+      audit: {
+        append: (event) =>
+          appendAudit(runtime, {
+            ...event,
+            event_id: `matter.stakeholder.registered:${query.tenant_id}:${matterId}:${idempotencyKey}`,
+            metadata: { ...(event.metadata ?? {}), permission_ref: query.permission_ref },
+          }),
+      },
+    });
+    const response = {
+      request_id: requestId,
+      outcome: "created",
+      item: readableMatterStakeholders({ context, runtime, tenantId: query.tenant_id, matterId }).some((candidate) => candidate.stakeholder_id === item.stakeholder_id)
+        ? item
+        : redactStakeholderContactReferences(item),
+      matter_stakeholders: readableMatterStakeholders({ context, runtime, tenantId: query.tenant_id, matterId }),
+      idempotent_replay: false,
+      state_idempotent: true,
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    };
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_stakeholder_register", response);
+    return { status: 201, body: response };
+  } catch (error) {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+      message: error.message,
+    });
+  }
 }
 
 export function handleMatterVaultSummary({ matterId, query, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
@@ -1247,6 +1873,7 @@ export function handleMatterOpening({ body, context, requestId, runtime = DEFAUL
           dmsRepository: runtime.dmsRuntime.repository,
           matter: body.matter,
           clearance_token: body.clearance_token,
+          clearance_repository: runtime.clearanceRepository,
           matter_number_seed: body.matter_number_seed,
           idempotency_key: body.idempotency_key,
           client: body.client,
@@ -1258,6 +1885,7 @@ export function handleMatterOpening({ body, context, requestId, runtime = DEFAUL
           repository: runtime.repository,
           matter: body.matter,
           clearance_token: body.clearance_token,
+          clearance_repository: runtime.clearanceRepository,
           matter_number_seed: body.matter_number_seed,
           idempotency_key: body.idempotency_key,
           client: body.client,
@@ -1286,10 +1914,11 @@ export function handleMatterOpening({ body, context, requestId, runtime = DEFAUL
       },
     };
   } catch (error) {
-    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+    const safeError = matterOpeningClearanceError(error);
+    return errorResponse(400, requestId, [safeError.code], {
       audit_hint_ref: query.audit_hint_ref,
       ui_state: "blocked",
-      message: error.message,
+      safe_message: safeError.safe_message,
     });
   }
 }
@@ -2062,6 +2691,7 @@ export function handleMatterTeamMemberCreate({ matterId, body, context, requestI
     const persisted = addMatterTeamMember({
       repository: runtime.repository,
       employeeDirectory: runtime.employeeDirectory,
+      onboardingGate: runtime.onboardingGate,
       matter,
       member: { ...body.member, matter_id: matterId },
       actor_id: body.actor_id ?? context.principal.user_id,
@@ -2122,6 +2752,153 @@ export function handleMatterTeamMemberCreate({ matterId, body, context, requestI
         production_ready_claim: false,
       },
     };
+  } catch (error) {
+    const onboardingBlocked = error?.code === MATTER_ONBOARDING_GATE_ERROR_CODE;
+    return errorResponse(onboardingBlocked ? 409 : 400, requestId, [onboardingBlocked ? MATTER_API_ERROR_CODES.onboarding_gate_required : MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: onboardingBlocked ? "onboarding_blocked" : "blocked",
+      safe_message: onboardingBlocked ? error.message : null,
+      onboarding_gate: onboardingBlocked ? error.readiness : null,
+    });
+  }
+}
+
+export function handleMatterPartyList({ matterId, query, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:party:read",
+    resource: { resource_type: "matter_party", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const matter = runtime.repository.get({ tenant_id: query.tenant_id, model_type: "Matter", matter_id: matterId });
+  if (!matter || matter.silent === true || matter.hidden_from_actor === true) {
+    return errorResponse(404, requestId, [MATTER_API_ERROR_CODES.not_found], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "empty",
+    });
+  }
+  try {
+    const items = listMatterParties({
+      repository: runtime.repository,
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      party_role: query.party_role,
+    });
+    const { allowed } = trimItemsByPermission({
+      context,
+      items,
+      action: "matter:party:read",
+      resourceType: "matter_party",
+    });
+    return {
+      status: 200,
+      body: {
+        request_id: requestId,
+        outcome: "passed",
+        items: allowed,
+        adverse_parties: allowed.filter((party) => party.party_role === "adverse_party"),
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: allowed.length === 0 ? "empty" : null,
+        count_leak_prevented: true,
+        production_ready_claim: false,
+      },
+    };
+  } catch (error) {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+      message: error.message,
+    });
+  }
+}
+
+export function handleMatterPartyRegister({ matterId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const party = body?.matter_party ?? body?.party ?? {};
+  const query = {
+    tenant_id: party?.tenant_id ?? body?.tenant_id,
+    permission_ref: body?.permission_ref,
+    audit_hint_ref: body?.audit_hint_ref,
+  };
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:party:write",
+    resource: { resource_type: "matter_party", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const matter = runtime.repository.get({ tenant_id: query.tenant_id, model_type: "Matter", matter_id: matterId });
+  if (!matter || matter.silent === true || matter.hidden_from_actor === true) {
+    return errorResponse(404, requestId, [MATTER_API_ERROR_CODES.not_found], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "empty",
+    });
+  }
+  const actorId = body?.actor_id ?? context?.principal?.user_id;
+  if (typeof actorId !== "string" || actorId.trim() === "") {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+  const idempotencyKey = body?.idempotency_key ?? party?.idempotency_key ?? `matter-party:${matterId}:${party?.display_name ?? party?.name ?? "party"}`;
+  const replay = runtime.repository.getIdempotency({ tenant_id: query.tenant_id, idempotency_key: idempotencyKey });
+  if (replay?.response) {
+    return {
+      status: 200,
+      body: {
+        ...replay.response,
+        request_id: requestId,
+        outcome: "idempotent_replay",
+        idempotent_replay: true,
+        audit_hint_ref: query.audit_hint_ref,
+        production_ready_claim: false,
+      },
+    };
+  }
+  try {
+    let auditEvent = null;
+    const audit = {
+      append: (event) => {
+        auditEvent = appendAudit(runtime, {
+          ...event,
+          event_id: `matter.party.registered:${query.tenant_id}:${matterId}:${event.object_id}`,
+          metadata: {
+            ...(event.metadata ?? {}),
+            permission_ref: query.permission_ref,
+          },
+        });
+        return auditEvent;
+      },
+    };
+    const item = registerMatterParty({
+      repository: runtime.repository,
+      matter,
+      party: { ...party, tenant_id: query.tenant_id, matter_id: matterId },
+      actor_id: actorId,
+      audit,
+    });
+    const matterParties = listMatterParties({ repository: runtime.repository, tenant_id: query.tenant_id, matter_id: matterId });
+    const response = {
+      request_id: requestId,
+      outcome: "created",
+      item,
+      matter: serializeMatter(matter, runtime),
+      matter_parties: matterParties,
+      adverse_parties: matterParties.filter((entry) => entry.party_role === "adverse_party"),
+      audit_event: auditEvent,
+      idempotent_replay: false,
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      state_idempotent: true,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    };
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_party_register", response);
+    return { status: 201, body: response };
   } catch (error) {
     return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
       audit_hint_ref: query.audit_hint_ref,
@@ -2975,6 +3752,9 @@ export async function handleMatterApiRequest({
   if (pathname === "/api/matters/vault-bridge/matters/upsert" && method === "POST") {
     return handleVaultBridgeMatterUpsert({ body, headers, requestId, runtime });
   }
+  if (pathname === "/api/matters/clients" && method === "GET") {
+    return handleMatterClientList({ query, context, requestId, runtime });
+  }
   if (pathname === "/api/matters" && method === "GET") {
     return handleMatterList({ query, context, requestId, runtime });
   }
@@ -3247,6 +4027,102 @@ export async function handleMatterApiRequest({
   if (documentFacadeMatch && method === "POST") {
     return handleMatterDocumentFacade({
       matterId: decodeURIComponent(documentFacadeMatch[1]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const matterProfileMatch = pathname.match(/^\/api\/matters\/([^/]+)\/profile$/);
+  if (matterProfileMatch && method === "GET") {
+    return handleMatterProfileRead({
+      matterId: decodeURIComponent(matterProfileMatch[1]),
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  if (matterProfileMatch && method === "PATCH") {
+    return handleMatterProfilePatch({
+      matterId: decodeURIComponent(matterProfileMatch[1]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const matterWorktreeMatch = pathname.match(/^\/api\/matters\/([^/]+)\/worktree$/);
+  if (matterWorktreeMatch && method === "GET") {
+    return handleMatterWorktreeRead({
+      matterId: decodeURIComponent(matterWorktreeMatch[1]),
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  if (matterWorktreeMatch && method === "POST") {
+    return handleMatterWorktreeCreate({ matterId: decodeURIComponent(matterWorktreeMatch[1]), body, context, requestId, runtime });
+  }
+  const matterWorktreeTemplateMatch = pathname.match(/^\/api\/matters\/([^/]+)\/worktree\/template-applications$/);
+  if (matterWorktreeTemplateMatch && method === "POST") {
+    return handleMatterWorktreeTemplateApply({ matterId: decodeURIComponent(matterWorktreeTemplateMatch[1]), body, context, requestId, runtime });
+  }
+  const matterWorktreeTemplatesMatch = pathname.match(/^\/api\/matters\/([^/]+)\/worktree\/templates$/);
+  if (matterWorktreeTemplatesMatch && method === "GET") {
+    return handleMatterWorktreeTemplateList({ matterId: decodeURIComponent(matterWorktreeTemplatesMatch[1]), query, context, requestId, runtime });
+  }
+  const matterWorktreeNodesMatch = pathname.match(/^\/api\/matters\/([^/]+)\/worktree\/nodes$/);
+  if (matterWorktreeNodesMatch && method === "POST") {
+    return handleMatterWorktreeNodeCreate({ matterId: decodeURIComponent(matterWorktreeNodesMatch[1]), body, context, requestId, runtime });
+  }
+  const matterWorktreeNodeMatch = pathname.match(/^\/api\/matters\/([^/]+)\/worktree\/nodes\/([^/]+)$/);
+  if (matterWorktreeNodeMatch && method === "PATCH") {
+    return handleMatterWorktreeNodePatch({ matterId: decodeURIComponent(matterWorktreeNodeMatch[1]), nodeId: decodeURIComponent(matterWorktreeNodeMatch[2]), body, context, requestId, runtime });
+  }
+  if (matterWorktreeNodeMatch && method === "DELETE") {
+    return handleMatterWorktreeNodeArchive({ matterId: decodeURIComponent(matterWorktreeNodeMatch[1]), nodeId: decodeURIComponent(matterWorktreeNodeMatch[2]), body, context, requestId, runtime });
+  }
+  const matterWorktreeTaskMatch = pathname.match(/^\/api\/matters\/([^/]+)\/worktree\/tasks\/([^/]+)\/(complete|reopen|unblock)$/);
+  if (matterWorktreeTaskMatch && method === "POST") {
+    const options = { matterId: decodeURIComponent(matterWorktreeTaskMatch[1]), taskId: decodeURIComponent(matterWorktreeTaskMatch[2]), body, context, requestId, runtime };
+    if (matterWorktreeTaskMatch[3] === "complete") return handleMatterWorktreeTaskComplete(options);
+    if (matterWorktreeTaskMatch[3] === "reopen") return handleMatterWorktreeTaskReopen(options);
+    return handleMatterWorktreeTaskUnblock(options);
+  }
+  const matterStakeholdersMatch = pathname.match(/^\/api\/matters\/([^/]+)\/stakeholders$/);
+  if (matterStakeholdersMatch && method === "GET") {
+    return handleMatterStakeholderList({
+      matterId: decodeURIComponent(matterStakeholdersMatch[1]),
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  if (matterStakeholdersMatch && method === "POST") {
+    return handleMatterStakeholderRegister({
+      matterId: decodeURIComponent(matterStakeholdersMatch[1]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const matterPartiesMatch = pathname.match(/^\/api\/matters\/([^/]+)\/parties$/);
+  if (matterPartiesMatch && method === "GET") {
+    return handleMatterPartyList({
+      matterId: decodeURIComponent(matterPartiesMatch[1]),
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  if (matterPartiesMatch && method === "POST") {
+    return handleMatterPartyRegister({
+      matterId: decodeURIComponent(matterPartiesMatch[1]),
       body,
       context,
       requestId,

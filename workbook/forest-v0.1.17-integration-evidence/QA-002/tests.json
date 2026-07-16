@@ -1,0 +1,22 @@
+{
+  "schema_version": "lawos.forest.integration.qa002.tests.v1",
+  "tuw_id": "QA-002",
+  "verdict": "PASS",
+  "candidate_binding": {
+    "ref": "forest-v0.1.17-integration-candidate-4c81d861",
+    "commit": "4c81d861693472af48a680e5757b352bb9945b9b",
+    "non_workbook_diff_count": 0
+  },
+  "unique": { "cases": 246, "passed": 245, "failed": 0, "skipped": 1 },
+  "entrypoints": { "desktop_duplicate_passed": 57, "desktop_failed": 0, "validators_passed": 2 },
+  "builds": { "web_typecheck": "PASS", "web_production": "PASS" },
+  "raw_log_sha256": {
+    "web-ui-serial.tap": "14e1474f43d26fc6b8cbee9b02e0a6f8521449d3d186131aa50126c5333ce172",
+    "web-typecheck.txt": "c3efe9b49da7a0f7f6eaaa4b4221a040873d1cd53b661a070d3eb96e7b20afcc",
+    "web-build.txt": "fed1f9e90b86cafa2409360300de5f07f175ac67045500384aa02bd35e01f03a",
+    "desktop-smoke.tap": "1933560aac5af50fc3242885a48568cb3ebf416822d567531b503b427631fbad",
+    "desktop-file-bridge.tap": "62c78b3a93fb7479afa20a84840e3c36cf55363f1690e936d969b18ca1dab3a2",
+    "desktop-session.tap": "a980568d768c1730751d3e4a9458acb04d41575792b159c8a29136df769f61e7",
+    "desktop-update.tap": "2f19f80f758ca1aa441428b5f094a41921b0080bda9ac1298c413432faa970c1"
+  }
+}

@@ -31,7 +31,6 @@ export const PEOPLE_FEATURE_GROUPS = [
         section: "people-members",
         icon: "users",
         state: "active",
-        count: "9",
         active: true,
         summary: "구성원 명단과 재직 상태를 확인합니다.",
         capabilities: ["구성원 명단", "재직 상태", "직위", "소속", "부서", "이메일"]
@@ -86,9 +85,9 @@ export const PEOPLE_FEATURE_GROUPS = [
         label: "근무표",
         section: "people-work-schedule",
         icon: "clipboard",
-        state: "setup_required",
+        state: "active",
         summary: "구성원별 근무일정을 생성하고 변경합니다.",
-        capabilities: ["근무일정 생성", "근무일정 수정", "근무일정 삭제", "스케줄"]
+        capabilities: ["월별 근무표", "구성원별 근태 기록", "초과근로 점검", "스케줄"]
       },
       {
         label: "외부일정",
@@ -110,9 +109,9 @@ export const PEOPLE_FEATURE_GROUPS = [
         label: "현재 근무 상황 조회",
         section: "people-current-work-status",
         icon: "clipboard",
-        state: "setup_required",
+        state: "active",
         summary: "현재 근무 중인 구성원과 외부일정 수행 상태를 확인합니다.",
-        capabilities: ["현재 근무 상황 조회", "조직 필터", "근무지 상태"]
+        capabilities: ["현재 근무 상황 조회", "월별 근태 집계", "근무지 상태"]
       },
       {
         label: "근무일정 확정",
@@ -132,9 +131,9 @@ export const PEOPLE_FEATURE_GROUPS = [
         label: "출근/퇴근 기록",
         section: "people-attendance-records",
         icon: "clipboard",
-        state: "setup_required",
+        state: "active",
         summary: "출근과 퇴근 기록을 조회합니다.",
-        capabilities: ["출근 기록", "퇴근 기록", "출퇴근기록 관리", "출퇴근기록 엑셀 다운로드"]
+        capabilities: ["출근 기록", "퇴근 기록", "출퇴근기록 관리", "월별 집계"]
       },
       {
         label: "무일정 근무 출퇴근",
@@ -202,7 +201,8 @@ export const PEOPLE_FEATURE_GROUPS = [
         label: "휴가 그룹/유형",
         section: "people-leave-types",
         icon: "settings",
-        state: "setup_required",
+        state: "active",
+        requiredScope: "hrx.leave.policy.read",
         summary: "휴가 그룹과 유형을 설정합니다.",
         capabilities: ["휴가 그룹", "휴가 유형", "조직별 휴가 기준"]
       },
@@ -210,7 +210,8 @@ export const PEOPLE_FEATURE_GROUPS = [
         label: "휴가 자동 발생",
         section: "people-leave-accrual-auto",
         icon: "settings",
-        state: "setup_required",
+        state: "active",
+        requiredScope: "hrx.leave.accrual.execute",
         summary: "규칙 기반으로 휴가를 자동 발생시킵니다.",
         capabilities: ["규칙 기반 휴가 자동 발생", "휴가 일자 자동 지정", "월별 조회"]
       },
@@ -218,7 +219,8 @@ export const PEOPLE_FEATURE_GROUPS = [
         label: "휴가 수동 발생",
         section: "people-leave-accrual-manual",
         icon: "file",
-        state: "setup_required",
+        state: "active",
+        requiredScope: "hrx.leave.ledger.adjust",
         summary: "관리자가 휴가를 직접 발생시킵니다.",
         capabilities: ["휴가 수동 발생", "휴가 추가", "보상휴가 발생"]
       },
@@ -226,9 +228,19 @@ export const PEOPLE_FEATURE_GROUPS = [
         label: "휴가 사용 내역",
         section: "people-leave-usage",
         icon: "clipboard",
-        state: "setup_required",
+        state: "active",
+        requiredScope: "hrx.leave.self.read",
         summary: "휴가 사용 내역을 목록, 유형, 월별로 조회합니다.",
-        capabilities: ["휴가 사용 내역 목록", "유형별 조회", "월별 조회", "휴가 엑셀 다운로드"]
+        capabilities: ["휴가 사용 내역 목록", "유형별 조회", "월별 조회", "권한 범위 내보내기"]
+      },
+      {
+        label: "퇴사 휴가 정산",
+        section: "people-leave-termination",
+        icon: "file",
+        state: "active",
+        requiredScope: "hrx.leave.termination.settle",
+        summary: "퇴사일 기준 휴가 원장과 급여 인계 경계를 대사합니다.",
+        capabilities: ["퇴사 기준 잔액 대사", "이중 승인", "급여 인계 상태", "오프보딩 종료 차단"]
       }
     ]
   },
@@ -241,7 +253,6 @@ export const PEOPLE_FEATURE_GROUPS = [
         section: "people-approvals",
         icon: "shield",
         state: "active",
-        count: "5",
         summary: "구성원 요청과 관리자 결재를 처리합니다.",
         capabilities: ["요청 관리", "단일 승인", "순차 승인", "상황별 상세 승인"]
       },
@@ -282,8 +293,18 @@ export const PEOPLE_FEATURE_GROUPS = [
         section: "people-leave-requests",
         icon: "clipboard",
         state: "active",
-        summary: "휴가 생성, 수정, 삭제 요청을 처리합니다.",
-        capabilities: ["휴가 생성 요청", "휴가 수정 요청", "휴가 삭제 요청"]
+        requiredScope: "hrx.leave.approve",
+        summary: "내 결재 차례인 휴가 요청과 승인 위임을 처리합니다.",
+        capabilities: ["지정 승인", "시기변경 협의", "승인 위임"]
+      },
+      {
+        label: "연차 사용 촉진",
+        section: "people-annual-leave-notices",
+        icon: "file",
+        state: "active",
+        requiredScope: "hrx.leave.promotion.manage",
+        summary: "법정 일정에 따라 대상, 문서 참조, 전달·열람·응답 증거를 관리합니다.",
+        capabilities: ["분 원장 대상 산정", "1차 촉구", "직원 응답", "2차 지정 통보", "전달·열람 증거"]
       },
       {
         label: "증명서 발급 요청",
@@ -322,6 +343,22 @@ export const PEOPLE_FEATURE_GROUPS = [
         state: "active",
         summary: "근무, 휴가, 요청 데이터를 리포트로 확인합니다.",
         capabilities: ["실시간 리포트", "조직 필터", "조회 기간별 근무 데이터"]
+      },
+      {
+        label: "HR 리스크",
+        section: "people-risk",
+        icon: "shield",
+        state: "active",
+        summary: "근로계약, 연차촉진, 법정교육, 초과근로, 퇴사자 권한 회수를 점검합니다.",
+        capabilities: ["법적 5종 감지", "일일 스캔", "리스크 이벤트 상태"]
+      },
+      {
+        label: "인사 문의",
+        section: "people-ai",
+        icon: "clipboard",
+        state: "active",
+        summary: "사규와 취업규칙 근거를 권한 범위 안에서 조회합니다.",
+        capabilities: ["사규 근거 조회", "권한 범위 필터", "담당자 검토"]
       },
       {
         label: "리포트 스냅샷",
@@ -373,9 +410,9 @@ export const PEOPLE_FEATURE_GROUPS = [
         label: "급여명세서",
         section: "people-pay-statement",
         icon: "file",
-        state: "integration_required",
-        summary: "급여명세서 전송과 보관은 외부 급여 서비스 연동 후 사용합니다.",
-        capabilities: ["급여명세서", "메시지 전송", "외부 급여 서비스"]
+        state: "active",
+        summary: "급여명세서를 생성하고 전달합니다.",
+        capabilities: ["급여명세서 생성", "보관함 전달", "급여대장 내보내기"]
       },
       {
         label: "수당/최저임금",
@@ -468,14 +505,6 @@ export const PEOPLE_FEATURE_GROUPS = [
         state: "integration_required",
         summary: "근로계약서 전송과 서명 완료본을 관리합니다.",
         capabilities: ["근로계약서", "글로싸인/모두싸인 연동", "완료본 보관"]
-      },
-      {
-        label: "연차휴가 사용 촉진 문서",
-        section: "people-annual-leave-notices",
-        icon: "file",
-        state: "audit_required",
-        summary: "연차휴가 사용 촉진 문서를 생성하고 발송합니다.",
-        capabilities: ["연차휴가 사용 촉진 문서", "대상자", "발송 이력"]
       }
     ]
   },
@@ -512,8 +541,8 @@ export const PEOPLE_FEATURE_GROUPS = [
         section: "people-company-organization",
         icon: "clipboard",
         state: "setup_required",
-        summary: "조직 코드와 상위 조직을 설정합니다. 지점은 기본 비활성 상태로 둡니다.",
-        capabilities: ["조직 코드", "상위 조직", "지점 비활성", "조직관리자"]
+        summary: "조직 코드와 연결 조직을 설정합니다. 지점은 기본 비활성 상태로 둡니다.",
+        capabilities: ["조직 코드", "연결 조직", "지점 비활성", "조직관리자"]
       },
       {
         label: "구성원",
@@ -546,14 +575,6 @@ export const PEOPLE_FEATURE_GROUPS = [
         state: "setup_required",
         summary: "휴게시간 기준과 자동 적용 여부를 설정합니다.",
         capabilities: ["휴게시간", "자동 휴게", "휴게시간 기록"]
-      },
-      {
-        label: "휴가",
-        section: "people-company-leave",
-        icon: "settings",
-        state: "setup_required",
-        summary: "휴가 발생과 사용 기준을 설정합니다.",
-        capabilities: ["휴가", "휴가 그룹", "휴가 유형", "자동 발생"]
       },
       {
         label: "요청",

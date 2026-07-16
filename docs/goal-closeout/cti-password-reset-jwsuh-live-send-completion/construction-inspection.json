@@ -1,0 +1,31 @@
+{
+  "schema_version": "law-firm-os.construction-inspection.v0.1",
+  "goal_id": "cti-password-reset-jwsuh-live-send-completion",
+  "recorded_at": "2026-07-06T12:16:21Z",
+  "required_files": [
+    "docs/goal-closeout/cti-password-reset-jwsuh-live-send-completion/packet.json",
+    "docs/goal-closeout/cti-password-reset-jwsuh-live-send-completion/command-evidence.json",
+    "docs/goal-closeout/cti-password-reset-jwsuh-live-send-completion/claude-review-result.json",
+    "docs/goal-closeout/cti-password-reset-jwsuh-live-send-completion/construction-inspection.json",
+    "docs/goal-closeout/cti-password-reset-jwsuh-live-send-completion/adjudication.md",
+    "docs/launch/cti-i26-owner-approval-receipt-2026-07-06.json",
+    "docs/launch/cti-password-reset-jwsuh-live-send-completion-receipt-2026-07-06.json"
+  ],
+  "inspection": {
+    "i26_approval_recorded": true,
+    "lambda_sg_egress_to_ses_api_vpce_sg": true,
+    "ses_api_vpce_available": true,
+    "one_recipient_live_send_target": true,
+    "live_send_status": "sent",
+    "other_users_not_sent": true,
+    "other_users_not_credential_mutated": true,
+    "token_or_reset_url_recorded": false,
+    "password_or_secret_recorded": false,
+    "s5_executed": false,
+    "s6_executed": false,
+    "oidc_executed": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

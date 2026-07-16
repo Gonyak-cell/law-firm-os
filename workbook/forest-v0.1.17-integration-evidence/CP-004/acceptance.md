@@ -1,0 +1,27 @@
+# CP-004 Acceptance
+
+- TUW: CP-004
+- status: DONE
+- entry_sha: `f3b38cbbe297f46fda0d5e64744bc081e9ed3d66`
+- exit_sha: `f3b38cbbe297f46fda0d5e64744bc081e9ed3d66` (validator, package receipt, and evidence only; product runtime tree unchanged)
+- payroll plan TUWs: 61/61 DONE
+- implementation axes: inputs/data, calculation, deductions, run lifecycle, documents/reports, bank/payment, tax/year-end, migration/readiness 8/8
+- payroll test files: package 19, API 3, Web 1, total 23/23 present
+- fresh payroll regression: package domain 65/65, API 8/8, Web 3/3, total 76/76
+- authorization: canonical HRX route policies 159, validator PASS
+- public renderer PII: 54 files, 30 protected values, 5 protected photos, printed 0, PASS
+- preserved user root checkout: tracked 56, untracked 21, fingerprint `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`
+- exact package build source: `75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c`
+- package QA source: `f3b38cbbe297f46fda0d5e64744bc081e9ed3d66`; product runtime source changed 0 files from the exact build SHA
+- package scenarios: 9/9; screenshots 5; 720/1280 widths; all target rows 44px; overflow, broken images, page errors, and console errors 0
+- restart persistence: before/after run status, 10 employees, totals, 10 statement states, payment state, four filing states, and year-end state identical
+- renderer parity: macOS and Windows `b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96`
+- historical browser receipt: 6 roles x 5 widths = 30 recorded views and recorded checks PASS, but source revision is absent and it is not accepted as current-source proof
+- external gate: `GATE-002` remains intentionally `BLOCKED` for owner, legal, labor, tax, and provider approval
+- claim boundaries: synthetic-only; real employee data, external provider writes, policy/legal-tax approval, production-ready, public release, and go-live claims all false
+- commands: see `commands.txt`
+- evidence_hashes: validator `53c95561d74319385571a3418a3e7ff6c9da18473e5d84172425730418047eea`, payroll matrix `c9710291746819202c8021f16111a878fbb4914b4cff4a007d63d4bdf9b10ae8`, package QA receipt `7ee2524e916d027dceda8c801c19696102121eed7dca5d6e345c79a40df3b6da`, historical browser receipt `04ff52bad00e3846a46f45a5d43f3c932b9a7d15b1dcb2daf7be3a5e9dd5dbae`
+- manual_qa: ran validator help, invalid argument, emit, and checked-in matrix modes; inspected current internal package source/renderer/restart/geometry/claim boundaries; compared exact-build-to-entry product runtime paths; and re-fingerprinted the untouched user root checkout
+- known_limits: macOS package evidence is internal functional-only and does not attest Developer ID signing, notarization, staple, or Gatekeeper; Windows evidence is PE/ZIP and renderer parity only, with native runtime and Authenticode not verified on Darwin; the historical browser receipt has no source SHA and is supporting evidence only
+- external_blockers: formal macOS and native Windows package proofs remain later QA units; external provider/bank/tax production transition remains `GATE-002 BLOCKED`
+- AI slop review: pass; no product UI or user-facing copy changed

@@ -1,0 +1,74 @@
+{
+  "schema_version": "law-firm-os.lcx-dprui.source-trace.v0.1",
+  "generated_at": "2026-06-30T00:00:00.000Z",
+  "status": "closed",
+  "tuw": "LCX-DPRUI-00",
+  "scope": "desktop login/reset surface plus required main/preload/deep-link bridges",
+  "backend_routes": [
+    {
+      "capability": "password login",
+      "desktop_bridge": "window.matterSession.login({ email, password })",
+      "ipc_channel": "session:login",
+      "runtime_route": "POST /api/desktop/login",
+      "visible_ui_allowed": true,
+      "secret_material_returned_to_renderer": false
+    },
+    {
+      "capability": "password reset request",
+      "desktop_bridge": "window.matterSession.requestPasswordReset({ email })",
+      "ipc_channel": "session:password-reset:request",
+      "runtime_route": "POST /api/desktop/password-reset/request",
+      "visible_ui_allowed": true,
+      "account_enumeration_allowed": false,
+      "secret_material_returned_to_renderer": false
+    },
+    {
+      "capability": "synthetic reset email lookup",
+      "desktop_bridge": "window.matterSession.latestResetEmail({ email })",
+      "ipc_channel": "session:password-reset:latest-email",
+      "runtime_route": "POST /api/desktop/password-reset/latest-email",
+      "visible_ui_allowed": false,
+      "qa_harness_only": true,
+      "reason": "synthetic outbox exposes reset delivery material for internal smoke only"
+    },
+    {
+      "capability": "password reset confirm",
+      "desktop_bridge": "window.matterSession.confirmPasswordReset({ token, password })",
+      "ipc_channel": "session:password-reset:confirm",
+      "runtime_route": "POST /api/desktop/password-reset/confirm",
+      "visible_ui_allowed": true,
+      "secret_material_returned_to_renderer": false
+    },
+    {
+      "capability": "password reset deep link",
+      "desktop_bridge": "window.matterSession.onPasswordResetDeepLink(handler)",
+      "ipc_event": "desktop:password-reset:confirm",
+      "route_shape": "matter://password-reset/confirm",
+      "visible_ui_allowed": true,
+      "token_logging_allowed": false
+    }
+  ],
+  "source_anchors": [
+    "apps/api/src/matter-temp-desktop-runtime-lambda.mjs",
+    "apps/desktop/src/main/auth.js",
+    "apps/desktop/src/main/aws-runtime.js",
+    "apps/desktop/src/main/deepLinks.js",
+    "apps/desktop/src/main/main.js",
+    "apps/desktop/src/main/session-ipc.js",
+    "apps/desktop/src/preload/session.js",
+    "apps/desktop/src/preload/session.cjs",
+    "apps/desktop/src/renderer/offline.html"
+  ],
+  "claim_boundary": {
+    "latest_reset_email_visible_ui_allowed": false,
+    "reset_token_material_may_render_or_log": false,
+    "password_material_may_render_or_log": false,
+    "operator_token_material_may_render_or_log": false,
+    "bearer_token_material_may_render_or_log": false,
+    "cookie_material_may_render_or_log": false,
+    "production_go_live": false,
+    "public_release": false,
+    "owner_final_approval": false,
+    "real_email_delivery": false
+  }
+}

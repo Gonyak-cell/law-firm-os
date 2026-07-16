@@ -1,0 +1,857 @@
+[
+  {
+    "index": 1,
+    "path": "apps/api/src/routes/hrx/payroll.js",
+    "classification": "PORT_REQUIRED",
+    "rationale": "Union item-catalog, masked self/admin profile, assignment, attendance-approval, and time-snapshot actions into the richer Forest payroll runtime. Preserve Forest run, statement, payment, filing, issue, export, strict tenant resolution, safe errors, and audit behavior. Do not replace the route wholesale.",
+    "area": "api-runtime",
+    "root_status": "tracked_modified",
+    "mode": "644",
+    "size": 8144,
+    "sha256": "5572ddbbf364fc1dba4a8dd070121f0f43d80d73557e13c3c521575d15320c9f",
+    "line_count": 145,
+    "parse_status": "PASS",
+    "imports": [
+      "../../../../../packages/hrx/src/payroll-export-service.js",
+      "node:crypto"
+    ],
+    "exports": [
+      "createHrxPayrollRoute"
+    ],
+    "routes": [],
+    "tests": [],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 2,
+    "path": "apps/api/test/hrx/payroll-items-api.test.js",
+    "classification": "PORT_TEST_ONLY",
+    "rationale": "Port catalog CRUD, tenant isolation, restart durability, safe validation, scope, and step-up assertions after the `026+` catalog schema exists. Keep Forest payroll route coverage in the same suite.",
+    "area": "api-test",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 4304,
+    "sha256": "73f80479eb219742f541060782c229b4beedc51e94635e3c2206842cc80d2150",
+    "line_count": 86,
+    "parse_status": "PASS",
+    "imports": [
+      "../../../../packages/hrx/src/migrations/index.js",
+      "../../../../packages/hrx/src/store/file-store.js",
+      "../../src/hrx-runtime-context.js",
+      "../../src/routes/hrx/route-policy-map.js",
+      "node:assert/strict",
+      "node:fs",
+      "node:os",
+      "node:path",
+      "node:test"
+    ],
+    "exports": [],
+    "routes": [
+      "/api/hrx/payroll/items",
+      "/api/hrx/payroll/items/base-salary",
+      "/api/hrx/payroll/items/missing"
+    ],
+    "tests": [
+      "payroll item API creates, updates, audits, isolates tenants, and survives restart",
+      "payroll item API returns safe validation and missing-item errors",
+      "payroll item policies require dedicated scopes and payroll step-up actions"
+    ],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 3,
+    "path": "apps/api/test/hrx/payroll-profile-api.test.js",
+    "classification": "PORT_TEST_ONLY",
+    "rationale": "Port fail-closed `EmployeeUserLink` self resolution, masked assignment, tenant-admin read, and distinct self/admin scopes. Adapt fixtures to the Forest payroll-profile schema and keep private amounts and real employee data out of receipts.",
+    "area": "api-test",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 9051,
+    "sha256": "684391e6b5ff3580e0cd84cfc555e566a3558d2ac8a426385f1ee20a7a3594a4",
+    "line_count": 217,
+    "parse_status": "PASS",
+    "imports": [
+      "../../../../packages/hrx/src/migrations/index.js",
+      "../../../../packages/hrx/src/store/file-store.js",
+      "../../src/hrx-runtime-context.js",
+      "../../src/hrx-step-up-token.js",
+      "../../src/matter-vault-account-registry.js",
+      "../../src/server.js",
+      "../helpers/session.js",
+      "../hrx-step-up-test-helper.js",
+      "node:assert/strict",
+      "node:test"
+    ],
+    "exports": [],
+    "routes": [
+      "/api/hrx/payroll/items",
+      "/api/hrx/payroll/me/profile",
+      "/api/hrx/payroll/profiles",
+      "/api/hrx/payroll/profiles/emp-profile-self",
+      "/api/hrx/payroll/profiles/profile-self-2026/assignments"
+    ],
+    "tests": [
+      "payroll profile API derives self from EmployeeUserLink and returns masked assignments",
+      "payroll profile API keeps admin reads tenant-scoped and self access fail-closed without a link",
+      "signed staff self and HR profile routes enforce distinct scopes and payroll step-up"
+    ],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 4,
+    "path": "apps/api/test/hrx/payroll-time-input-api.test.js",
+    "classification": "PORT_TEST_ONLY",
+    "rationale": "Port explicit approval-receipt, immutable source-reference, restart, idempotency, and signed step-up assertions into the Forest input-snapshot runtime.",
+    "area": "api-test",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 7582,
+    "sha256": "299cd73b48f8db32d537bd096c40ec2f94bcbe6c63ed2a857a37feeb887b8fef",
+    "line_count": 167,
+    "parse_status": "PASS",
+    "imports": [
+      "../../../../packages/hrx/src/migrations/index.js",
+      "../../../../packages/hrx/src/store/file-store.js",
+      "../../src/hrx-runtime-context.js",
+      "../../src/hrx-step-up-token.js",
+      "../../src/matter-vault-account-registry.js",
+      "../../src/routes/hrx/route-policy-map.js",
+      "../../src/server.js",
+      "../helpers/session.js",
+      "../hrx-step-up-test-helper.js",
+      "node:assert/strict",
+      "node:test"
+    ],
+    "exports": [],
+    "routes": [
+      "/api/hrx/payroll/attendance-approvals",
+      "/api/hrx/payroll/time-snapshots",
+      "/api/hrx/payroll/time-snapshots/snapshot-1"
+    ],
+    "tests": [
+      "payroll time API requires explicit attendance approval receipts and persists immutable source refs",
+      "payroll time routes require payroll step-up scopes",
+      "signed HTTP payroll time approval is challenged before runtime and accepts matching payroll step-up"
+    ],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 5,
+    "path": "apps/api/test/hrx/step-up-route.test.js",
+    "classification": "PORT_TEST_ONLY",
+    "rationale": "Merge the additional leave-rule, entitlement, XLSX-template, and payroll-catalog step-up vectors with Forest expiration, batch, upload, provider, and full-payroll action coverage.",
+    "area": "api-test",
+    "root_status": "tracked_modified",
+    "mode": "644",
+    "size": 9646,
+    "sha256": "b7c6df108e8dfe6d66f289efb571bcea9848b9c5ea7ccc3a48119a0bb767b1d2",
+    "line_count": 232,
+    "parse_status": "PASS",
+    "imports": [
+      "../../src/hrx-step-up-token.js",
+      "../../src/matter-vault-account-registry.js",
+      "../../src/server.js",
+      "../helpers/session.js",
+      "../hrx-step-up-test-helper.js",
+      "node:assert/strict",
+      "node:test"
+    ],
+    "exports": [],
+    "routes": [
+      "/api/hrx/audit",
+      "/api/hrx/leave/accrual/execute",
+      "/api/hrx/leave/accrual/manual/execute",
+      "/api/hrx/leave/accrual/manual/template?format=xlsx",
+      "/api/hrx/leave/accrual/rules",
+      "/api/hrx/leave/entitlements/ent-1/cancel",
+      "/api/hrx/leave/termination-reconciliations/execute",
+      "/api/hrx/payroll/items"
+    ],
+    "tests": [
+      "HRX audit route rejects a stale signed step-up token",
+      "HRX audit route rejects unsigned or mismatched step-up tokens",
+      "HRX audit route requires fresh step-up context after authz allows scope",
+      "leave accrual and ledger mutations require matching signed step-up purposes",
+      "payroll item catalog requires payroll step-up and reaches durable runtime"
+    ],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 6,
+    "path": "docs/lazycodex/evidence/matter-desktop/artifacts/lv009-forest-leave-auto-packaged-2026-07-15.png",
+    "classification": "REJECTED",
+    "rationale": "Generated screenshot shows the retired `근무일정` navigation and is not tied to the final integration SHA. Regenerate admissible screenshots only from the final exact-path package.",
+    "area": "documentation-evidence",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 1812085,
+    "sha256": "fcd4c5faa63807a5ecc0a21b59b9ad88c8138506e6baff618988147db28a8824",
+    "line_count": null,
+    "parse_status": "NOT_CODE",
+    "imports": [],
+    "exports": [],
+    "routes": [],
+    "tests": [],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": {
+      "width": 3024,
+      "height": 1964
+    }
+  },
+  {
+    "index": 7,
+    "path": "docs/runbooks/hrx-member-contact-visibility.md",
+    "classification": "SUPERSEDED",
+    "rationale": "Forest already enforces internal contact visibility, public-renderer PII exclusion, and signed-account profile joining in code and validators. The runbook's visible `미등록` guidance conflicts with the accepted compact omission rule.",
+    "area": "documentation-evidence",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 1338,
+    "sha256": "8c382b9241013ea438430a81e8433bc81d6ca39cbe8be9f20a024aed03ed1c60",
+    "line_count": 23,
+    "parse_status": "NOT_CODE",
+    "imports": [],
+    "exports": [],
+    "routes": [],
+    "tests": [],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 8,
+    "path": "packages/hrx/src/leave/allocation.js",
+    "classification": "PORT_REQUIRED",
+    "rationale": "Port a single canonical entitlement-ledger state calculation and use it in earliest-expiry allocation, but derive lifecycle from Forest ledger/command receipts rather than adding mutable status columns. Cross-test earned, carryover, reserve/release, use reversal, expiration, and credit/debit adjustment math.",
+    "area": "leave-domain",
+    "root_status": "tracked_modified",
+    "mode": "644",
+    "size": 3102,
+    "sha256": "9a31c38c07226cdb70b20036c9a7e474f6ef0847db8d38680b85edfdb904f3c8",
+    "line_count": 66,
+    "parse_status": "PASS",
+    "imports": [],
+    "exports": [
+      "calculateEntitlementLedgerState",
+      "planEarliestExpiryAllocations"
+    ],
+    "routes": [],
+    "tests": [],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 9,
+    "path": "packages/hrx/src/leave/manual-adjustment-file.js",
+    "classification": "PORT_REQUIRED",
+    "rationale": "Port the shared CSV/XLSX template and typed XLSX-row parser using Forest occurrence/manual-adjustment validation. Add archive-size, row-count, malformed workbook, formula, type, and header limits before accepting upload input.",
+    "area": "leave-domain",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 2327,
+    "sha256": "1028e7e47289c7c4d2c785a35630533316fbe381d4f664b47349c71666a90116",
+    "line_count": 56,
+    "parse_status": "PASS",
+    "imports": [
+      "./xlsx-export.js"
+    ],
+    "exports": [
+      "LEAVE_MANUAL_ADJUSTMENT_HEADERS",
+      "createLeaveManualAdjustmentTemplate",
+      "rowsFromLeaveManualAdjustmentXlsx"
+    ],
+    "routes": [],
+    "tests": [],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 10,
+    "path": "packages/hrx/src/migrations/011_hrx_payroll_items.sql",
+    "classification": "PORT_REQUIRED",
+    "rationale": "The payroll item catalog table is absent from Forest. Recreate its tenant key, unique code, constrained kind/tax/value mode, effective dates, status, and version as an additive `026+` migration; never reuse migration 011.",
+    "area": "migration",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 1014,
+    "sha256": "2c4b48dc4a3e7dc889b72e90f893798a90f1c7eae04ac2df341364a9014645e6",
+    "line_count": 24,
+    "parse_status": "NOT_CODE",
+    "imports": [],
+    "exports": [],
+    "routes": [],
+    "tests": [],
+    "sql": {
+      "creates": [
+        "hrx_payroll_items"
+      ],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 11,
+    "path": "packages/hrx/src/migrations/012_hrx_payroll_profiles.sql",
+    "classification": "PORT_REQUIRED",
+    "rationale": "Forest migration 021 already owns an incompatible, richer `hrx_payroll_profiles` table. Port only the item-assignment capability and required indexes/immutability into a `026+` schema that references the Forest profile and catalog keys. Do not create or replace the root profile table.",
+    "area": "migration",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 3341,
+    "sha256": "d91498554aa6ec2fce9c0243cb881ade182302e9ca463596129baa8e60412160",
+    "line_count": 77,
+    "parse_status": "NOT_CODE",
+    "imports": [],
+    "exports": [],
+    "routes": [],
+    "tests": [],
+    "sql": {
+      "creates": [
+        "hrx_payroll_item_assignments",
+        "hrx_payroll_profiles"
+      ],
+      "alters": [],
+      "triggers": [
+        "trg_hrx_payroll_item_assignments_immutable_delete",
+        "trg_hrx_payroll_item_assignments_immutable_update",
+        "trg_hrx_payroll_profiles_immutable_delete",
+        "trg_hrx_payroll_profiles_immutable_update"
+      ],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 12,
+    "path": "packages/hrx/src/migrations/013_hrx_payroll_time_inputs.sql",
+    "classification": "PORT_REQUIRED",
+    "rationale": "Add explicit immutable attendance-approval receipts and any source lineage not already represented by Forest payroll input snapshots. Reuse Forest snapshot/run tables where equivalent and avoid a parallel snapshot truth.",
+    "area": "migration",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 3901,
+    "sha256": "06f6807413e69c76ddbe2bbc9285b0323af871fa27ac05661826c68c41657e00",
+    "line_count": 42,
+    "parse_status": "NOT_CODE",
+    "imports": [],
+    "exports": [],
+    "routes": [],
+    "tests": [],
+    "sql": {
+      "creates": [
+        "hrx_attendance_approval_receipts",
+        "hrx_payroll_time_snapshot_sources",
+        "hrx_payroll_time_snapshots"
+      ],
+      "alters": [],
+      "triggers": [
+        "trg_hrx_attendance_approval_receipts_immutable_delete",
+        "trg_hrx_attendance_approval_receipts_immutable_update",
+        "trg_hrx_payroll_time_snapshot_sources_immutable_delete",
+        "trg_hrx_payroll_time_snapshot_sources_immutable_update",
+        "trg_hrx_payroll_time_snapshots_immutable_delete",
+        "trg_hrx_payroll_time_snapshots_immutable_update"
+      ],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 13,
+    "path": "packages/hrx/src/migrations/014_hrx_leave_usage_units.sql",
+    "classification": "SUPERSEDED",
+    "rationale": "Forest policy snapshots, type-economics normalization, duration modes, paid/unpaid/deduction minutes, rounding, and request snapshots already provide a richer immutable model. Adding mutable duplicate columns would create two policy truths.",
+    "area": "migration",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 618,
+    "sha256": "f276eb1fdccedf8c8768a3d1af865462008083ad9255b7b422943f458fcb0741",
+    "line_count": 10,
+    "parse_status": "NOT_CODE",
+    "imports": [],
+    "exports": [],
+    "routes": [],
+    "tests": [],
+    "sql": {
+      "creates": [],
+      "alters": [
+        "hrx_leave_groups",
+        "hrx_leave_groups",
+        "hrx_leave_requests",
+        "hrx_leave_requests",
+        "hrx_leave_types",
+        "hrx_leave_types",
+        "hrx_leave_types"
+      ],
+      "triggers": [],
+      "columns": [
+        "allowed_usage_units_json",
+        "applied_deduct_minutes",
+        "applied_paid_minutes",
+        "balance_managed",
+        "balance_unit",
+        "deduct_minutes",
+        "paid_minutes"
+      ]
+    },
+    "png": null
+  },
+  {
+    "index": 14,
+    "path": "packages/hrx/src/migrations/015_hrx_leave_accrual_rule_versions.sql",
+    "classification": "PORT_REQUIRED",
+    "rationale": "Forest accrual rules are not yet append-only logical versions. Crosswalk logical rule code, version, supersession, and run as-of lineage into an additive `026+` migration with uniqueness and upgrade checks.",
+    "area": "migration",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 289,
+    "sha256": "2632792fa515581efae4bf486db14b66d710f86c67581d955de25f1bc81ab387",
+    "line_count": 5,
+    "parse_status": "NOT_CODE",
+    "imports": [],
+    "exports": [],
+    "routes": [],
+    "tests": [],
+    "sql": {
+      "creates": [],
+      "alters": [
+        "hrx_leave_accrual_rules",
+        "hrx_leave_accrual_rules",
+        "hrx_leave_accrual_rules",
+        "hrx_leave_accrual_runs"
+      ],
+      "triggers": [],
+      "columns": [
+        "as_of_date",
+        "logical_rule_code",
+        "supersedes_rule_id",
+        "version"
+      ]
+    },
+    "png": null
+  },
+  {
+    "index": 15,
+    "path": "packages/hrx/src/migrations/016_hrx_leave_entitlement_lifecycle.sql",
+    "classification": "SUPERSEDED",
+    "rationale": "Forest derives lifecycle from dated entitlements plus immutable ledger entries and records cancel/adjust/expire actions in command receipts and audit events. Mutable status/cancellation columns would duplicate and potentially contradict that truth.",
+    "area": "migration",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 361,
+    "sha256": "82d40c46fa6fe51e6f0a1902b66e494a427bbd462b55a2f969ddf29c16c22880",
+    "line_count": 6,
+    "parse_status": "NOT_CODE",
+    "imports": [],
+    "exports": [],
+    "routes": [],
+    "tests": [],
+    "sql": {
+      "creates": [],
+      "alters": [
+        "hrx_leave_entitlements",
+        "hrx_leave_entitlements",
+        "hrx_leave_entitlements",
+        "hrx_leave_entitlements",
+        "hrx_leave_entitlements"
+      ],
+      "triggers": [],
+      "columns": [
+        "cancellation_entry_id",
+        "cancellation_reason",
+        "cancelled_at",
+        "cancelled_by",
+        "status"
+      ]
+    },
+    "png": null
+  },
+  {
+    "index": 16,
+    "path": "packages/hrx/src/payroll-item-catalog.js",
+    "classification": "PORT_REQUIRED",
+    "rationale": "Port tenant-scoped durable catalog CRUD, normalized constrained fields, optimistic version update, inactive filtering, and audit events into the Forest repository/runtime.",
+    "area": "payroll-domain",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 7186,
+    "sha256": "ca84381ba8b6e822308eb7c5510998976ef2ad9a91a6c7f7ecf9e8d229a6b57d",
+    "line_count": 179,
+    "parse_status": "PASS",
+    "imports": [
+      "node:crypto"
+    ],
+    "exports": [
+      "createInMemoryPayrollItemCatalog",
+      "createPayrollItem",
+      "createSqlPayrollItemCatalog"
+    ],
+    "routes": [],
+    "tests": [],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 17,
+    "path": "packages/hrx/src/payroll-profile-service.js",
+    "classification": "PORT_REQUIRED",
+    "rationale": "Port masked item assignments, effective-period validation, ciphertext-only amount storage, fail-closed self reads, and audit metadata. Reuse Forest profile creation/update/list logic and compensation references; do not import the incompatible root profile row shape.",
+    "area": "payroll-domain",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 12011,
+    "sha256": "fa187b00932d82d483b0fa3d9ea0b9ef0257973e4d36b6f086d66c5e524e6bc3",
+    "line_count": 259,
+    "parse_status": "PASS",
+    "imports": [
+      "./compensation.js",
+      "node:crypto"
+    ],
+    "exports": [
+      "createSqlPayrollProfileService"
+    ],
+    "routes": [],
+    "tests": [],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 18,
+    "path": "packages/hrx/src/payroll-time-input-snapshot.js",
+    "classification": "PORT_REQUIRED",
+    "rationale": "Port explicit approval receipts, correction replacement, as-of filtering, exact minute/night/holiday projection, immutable lineage, and idempotency into Forest's richer profile/attendance/leave/overtime snapshot service. Do not create a second payroll calculation runtime.",
+    "area": "payroll-domain",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 18421,
+    "sha256": "c59f538bc7b18b5855730d7891f479c3d0c3e9e3f357553fab33027d7b321953",
+    "line_count": 440,
+    "parse_status": "PASS",
+    "imports": [
+      "node:crypto"
+    ],
+    "exports": [
+      "createInMemoryPayrollTimeSnapshotService",
+      "createSqlPayrollTimeSnapshotService",
+      "projectApprovedPayrollTimeInput"
+    ],
+    "routes": [],
+    "tests": [],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 19,
+    "path": "packages/hrx/test/leave-manual-adjustment-file.test.js",
+    "classification": "PORT_TEST_ONLY",
+    "rationale": "Port CSV/XLSX contract parity and edited-workbook round-trip tests, then extend them with malformed/oversized/formula-safe negative cases required by the Forest trust boundary.",
+    "area": "hrx-test",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 1414,
+    "sha256": "e42da04b017abef0ef8d55b2812e5f343a29d52dbeb17f6159fcc20a534d01ed",
+    "line_count": 34,
+    "parse_status": "PASS",
+    "imports": [
+      "../src/leave/manual-adjustment-file.js",
+      "../src/leave/xlsx-export.js",
+      "node:assert/strict",
+      "node:test"
+    ],
+    "exports": [],
+    "routes": [],
+    "tests": [
+      "edited XLSX template round-trips into typed manual adjustment rows",
+      "manual adjustment CSV and XLSX templates expose the same import contract"
+    ],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 20,
+    "path": "packages/hrx/test/leave-policy-service.test.js",
+    "classification": "SUPERSEDED",
+    "rationale": "The root-only usage-unit test is already covered more strongly by Forest type-economics, durable-management, policy snapshot, rounding, paid/unpaid, fixed deduction, and zero-deduction tests. Keep Forest tests as canonical.",
+    "area": "hrx-test",
+    "root_status": "tracked_modified",
+    "mode": "644",
+    "size": 7174,
+    "sha256": "baf7331d0e565d49fdb27955faf49ad2df70aeb15cea2329de10321b36ea11ef",
+    "line_count": 170,
+    "parse_status": "PASS",
+    "imports": [
+      "../src/leave/policy-service.js",
+      "../src/migrations/index.js",
+      "../src/repository-sql.js",
+      "../src/store/file-store.js",
+      "node:assert/strict",
+      "node:test"
+    ],
+    "exports": [],
+    "routes": [],
+    "tests": [
+      "inactive leave type is excluded from new requests but remains available to historical rows",
+      "leave group, type, and policy configuration is tenant isolated with tenant-scoped codes",
+      "leave types persist flexible usage units and integer minute semantics",
+      "policy publication rejects a version that begins before an active version",
+      "published policy is immutable and controlled publication closes its predecessor"
+    ],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 21,
+    "path": "packages/hrx/test/payroll-item-catalog.test.js",
+    "classification": "PORT_TEST_ONLY",
+    "rationale": "Port normalization, duplicate-code, tenant isolation, active sorting, update versioning, and restart durability tests against the Forest repository and new `026+` catalog table.",
+    "area": "hrx-test",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 4534,
+    "sha256": "1a41889dfc6ebb2544bcbee65aaca963b781f61fbca05e5fdfaf696523e99907",
+    "line_count": 113,
+    "parse_status": "PASS",
+    "imports": [
+      "../src/migrations/index.js",
+      "../src/payroll-item-catalog.js",
+      "../src/store/file-store.js",
+      "node:assert/strict",
+      "node:fs",
+      "node:os",
+      "node:path",
+      "node:test"
+    ],
+    "exports": [],
+    "routes": [],
+    "tests": [
+      "SQL payroll item catalog persists updates across store restart",
+      "payroll item catalog rejects duplicate tenant codes and isolates tenants",
+      "payroll item catalog sorts active items and hides inactive items by default",
+      "payroll item validates and normalizes catalog fields"
+    ],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 22,
+    "path": "packages/hrx/test/payroll-profile-service.test.js",
+    "classification": "PORT_TEST_ONLY",
+    "rationale": "Port append-only assignment periods, overlap rejection, encryption-at-rest, response masking, tenant isolation, and profile/item/currency boundary tests using Forest profile fixtures.",
+    "area": "hrx-test",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 8778,
+    "sha256": "5f4de74198164d38bd27a0a0f4cc5f7e8a2239bf7139312c3bede4739fedb308",
+    "line_count": 169,
+    "parse_status": "PASS",
+    "imports": [
+      "../src/migrations/index.js",
+      "../src/payroll-item-catalog.js",
+      "../src/payroll-profile-service.js",
+      "../src/repository-sql.js",
+      "../src/store/file-store.js",
+      "node:assert/strict",
+      "node:fs",
+      "node:os",
+      "node:path",
+      "node:test"
+    ],
+    "exports": [],
+    "routes": [],
+    "tests": [
+      "payroll assignment responses are masked and durable storage contains ciphertext only",
+      "payroll assignment validates employee, profile, item, currency and profile period",
+      "payroll profile reads and writes are tenant isolated",
+      "payroll profiles and assignments preserve append-only temporal versions",
+      "payroll service rejects inclusive period overlaps and invalid boundaries"
+    ],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 23,
+    "path": "packages/hrx/test/payroll-time-input-snapshot.test.js",
+    "classification": "PORT_TEST_ONLY",
+    "rationale": "Port approved/unapproved/as-of/correction/cross-midnight/holiday/overtime/idempotency/restart vectors into Forest's canonical input-snapshot tests.",
+    "area": "hrx-test",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 9971,
+    "sha256": "271a6519d04a48ec3935d7903c2a482ac15eeedd957a3641a377a91300c06d91",
+    "line_count": 207,
+    "parse_status": "PASS",
+    "imports": [
+      "../src/attendance.js",
+      "../src/migrations/index.js",
+      "../src/overtime.js",
+      "../src/payroll-time-input-snapshot.js",
+      "../src/repository-sql.js",
+      "../src/store/file-store.js",
+      "node:assert/strict",
+      "node:fs",
+      "node:os",
+      "node:path",
+      "node:test"
+    ],
+    "exports": [],
+    "routes": [],
+    "tests": [
+      "SQL snapshot service trusts immutable attendance approval receipts and survives restart",
+      "approved attendance and overtime project into immutable minute inputs",
+      "approved overtime cannot borrow attendance minutes from another work date",
+      "attendance corrections replace originals before projection",
+      "night and holiday dimensions cross local midnight exactly",
+      "projection rejects partial minutes, invalid periods and cross-tenant source rows",
+      "snapshot service is tenant-scoped and idempotent for the exact source version",
+      "unapproved and post-as-of rows are excluded"
+    ],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 24,
+    "path": "scripts/smoke-matter-profile-packaged.mjs",
+    "classification": "PORT_TEST_ONLY",
+    "rationale": "Port normal-launch and user-profile-only coverage as sanitized fixture-driven assertions. Remove hardcoded real account/career values, write only SHA-scoped evidence, and preserve Forest's canonical executable-path and no-synthetic-fallback checks.",
+    "area": "packaged-test",
+    "root_status": "tracked_modified",
+    "mode": "644",
+    "size": 19799,
+    "sha256": "58d2799f7e194dc626c235c5493820c91340fe9f46bc4ff812b7f91b46148cd9",
+    "line_count": 338,
+    "parse_status": "PASS",
+    "imports": [
+      "node:assert/strict",
+      "node:fs",
+      "node:os",
+      "node:path",
+      "node:url",
+      "playwright"
+    ],
+    "exports": [],
+    "routes": [],
+    "tests": [],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  },
+  {
+    "index": 25,
+    "path": "workbook/hrx-payroll-leave-tuw-execution-plan-2026-07-14.md",
+    "classification": "SUPERSEDED",
+    "rationale": "This older plan and its stale counts/screenshots are subsumed by the current Forest v0.1.17 Goal plan. Keep it only in the user root checkout; do not make it a second execution authority.",
+    "area": "execution-plan",
+    "root_status": "untracked",
+    "mode": "644",
+    "size": 24294,
+    "sha256": "aa409f495117a3c2d25f35f8553193f19324382d71f864f64418d64f3d21fe95",
+    "line_count": 299,
+    "parse_status": "NOT_CODE",
+    "imports": [],
+    "exports": [],
+    "routes": [],
+    "tests": [],
+    "sql": {
+      "creates": [],
+      "alters": [],
+      "triggers": [],
+      "columns": []
+    },
+    "png": null
+  }
+]

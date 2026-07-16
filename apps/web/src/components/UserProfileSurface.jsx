@@ -1,41 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
-  CalendarDays,
-  ChevronRight,
-  CircleHelp,
-  CirclePlus,
+  ArrowLeft,
   ClipboardList,
-  FileCheck2,
+  GraduationCap,
   IdCard,
-  ReceiptText,
-  UserRound
+  MapPin,
+  Pencil,
+  ShieldCheck
 } from "lucide-react";
-import { fetchUserProfile } from "../data/apiClient.js";
-
-const actionCards = [
-  { label: "비용·정산 내역", icon: ReceiptText, view: "finance", section: "finance-expenses" },
-  { label: "개인정보 관리", icon: IdCard, view: "people", section: "people-members" },
-  { label: "부재 일정", icon: CalendarDays, view: "people", section: "people-leave" }
-];
-
-const profileSections = {
-  expenses: {
-    title: "비용 관리",
-    body: "비용 관리 화면으로 이동할 수 있습니다. 프로필 데이터는 세션 프로필 API 상태를 기준으로 표시합니다."
-  },
-  transactions: {
-    title: "정산 내역",
-    body: "정산 내역 화면으로 이동할 수 있습니다. 실제 지급 상태는 연결된 업무 화면에서 확인합니다."
-  },
-  payments: {
-    title: "지급 설정",
-    body: "지급 설정 화면으로 이동할 수 있습니다. 변경 처리는 연결된 업무 화면에서 진행합니다."
-  },
-  withdrawal: {
-    title: "입금 계좌",
-    body: "입금 계좌 화면으로 이동할 수 있습니다. 계좌 정보는 이 화면에 직접 표시하지 않습니다."
-  }
-};
+import { fetchUserProfile, readDesktopMatterSessionStatus } from "../data/apiClient.js";
+import profileHeroBuilding from "../assets/profile-hero-building.jpg";
+import { memberPhotoFor } from "../people/memberPhotos.js";
 
 function profileState(result) {
   if (result === null) return "loading";
@@ -47,21 +22,227 @@ function profileState(result) {
 }
 
 function profileStatusCopy(state) {
-  if (state === "loading") return { title: "프로필 불러오는 중", body: "세션 프로필 상태를 확인하고 있습니다.", status: "확인 중", className: "live-data-loading" };
-  if (state === "error") return { title: "프로필 연결 오류", body: "프로필 API 응답을 확인하지 못했습니다.", status: "오류", className: "live-data-error" };
-  if (state === "denied") return { title: "프로필 접근 제한", body: "현재 권한으로는 프로필 정보를 볼 수 없습니다.", status: "접근 제한", className: "live-data-denied" };
-  if (state === "review") return { title: "프로필 검토 필요", body: "담당자 검토 후 프로필 정보를 표시할 수 있습니다.", status: "검토 필요", className: "live-data-review" };
-  if (state === "empty") return { title: "프로필 데이터 없음", body: "세션은 확인됐지만 표시할 프로필 항목이 없습니다.", status: "데이터 없음", className: "live-data-empty" };
-  return { title: "세션 프로필", body: "인증된 세션 기준으로 프로필 상태를 표시합니다.", status: "연결됨", className: "" };
+  if (state === "loading") return { title: "프로필을 불러오는 중입니다.", className: "live-data-loading" };
+  if (state === "error") return { title: "프로필 API 응답을 확인하지 못했습니다.", className: "live-data-error" };
+  if (state === "denied") return { title: "현재 권한으로는 프로필 정보를 볼 수 없습니다.", className: "live-data-denied" };
+  if (state === "review") return { title: "담당자 검토 후 프로필 정보를 표시할 수 있습니다.", className: "live-data-review" };
+  if (state === "empty") return { title: "표시할 프로필 항목이 없습니다.", className: "live-data-empty" };
+  return { title: "", className: "" };
 }
 
-export function UserProfileSurface({ liveCtx = "allow", onNavigate = () => {} }) {
+function objectValue(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function stringValue(value) {
+  return typeof value === "string" || typeof value === "number" ? String(value).trim() : "";
+}
+
+function stringList(value) {
+  return Array.isArray(value) ? value.map(stringValue).filter(Boolean) : [];
+}
+
+function uniqueStrings(values) {
+  return [...new Set(values.map(stringValue).filter(Boolean))];
+}
+
+function memberField(member, key, fallback = "") {
+  return stringValue(member?.[key]) || fallback;
+}
+
+function dateLabel(value) {
+  const text = stringValue(value);
+  if (!text) return "";
+  return text.replaceAll("-", ". ");
+}
+
+function infoRows(member) {
+  return [
+    ["직위", memberField(member, "title")],
+    ["부서", memberField(member, "department")],
+    ["소속", memberField(member, "affiliation")],
+    ["조직", memberField(member, "organization_group")],
+    ["입사일", dateLabel(member?.start_date)],
+    ["위치", memberField(member, "country")]
+  ].filter(([, value]) => Boolean(value));
+}
+
+const GENERIC_PROFILE_NAMES = new Set(["사용자", "세션 사용자"]);
+
+function resolvedProfileMember(profile, desktopSession, fallbackDesktopSession) {
+  const members = [profile, desktopSession, fallbackDesktopSession].filter(Boolean);
+  if (members.length === 0) return null;
+  const displayName = members
+    .map((member) => memberField(member, "display_name"))
+    .find((name) => name && !GENERIC_PROFILE_NAMES.has(name)) ?? "";
+  return {
+    ...fallbackDesktopSession,
+    ...desktopSession,
+    ...profile,
+    display_name: displayName
+  };
+}
+
+const PROFILE_OVERRIDE_KEY_PREFIX = "lawos.profile.override.";
+
+function profileOverrideKey(employeeId) {
+  return `${PROFILE_OVERRIDE_KEY_PREFIX}${employeeId || "unknown"}`;
+}
+
+function readProfileOverride(employeeId) {
+  try {
+    const value = window.localStorage.getItem(profileOverrideKey(employeeId));
+    const parsed = value ? JSON.parse(value) : null;
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeProfileOverride(employeeId, patch) {
+  try {
+    window.localStorage.setItem(profileOverrideKey(employeeId), JSON.stringify({
+      ...patch,
+      profile_override_version: 1,
+      updated_at: new Date().toISOString()
+    }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function mergeProfileOverride(member, override) {
+  if (!member || !override) return member;
+  const nextOverride = { ...override };
+  if (nextOverride.profile_override_version !== 1 && !stringValue(member.start_date) && nextOverride.start_date === "2025-12-30") {
+    nextOverride.start_date = "";
+  }
+  return {
+    ...member,
+    ...nextOverride,
+    professional_profile: {
+      ...objectValue(member.professional_profile),
+      ...objectValue(nextOverride.professional_profile)
+    }
+  };
+}
+
+function listToText(values) {
+  return stringList(values).join("\n");
+}
+
+function textToList(value) {
+  return String(value ?? "")
+    .split("\n")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function profileDraftFromMember(member) {
+  const professionalProfile = objectValue(member?.professional_profile);
+  return {
+    display_name: memberField(member, "display_name", ""),
+    title: memberField(member, "title", ""),
+    department: memberField(member, "department", ""),
+    affiliation: memberField(member, "affiliation", ""),
+    organization_group: memberField(member, "organization_group", ""),
+    start_date: stringValue(member?.start_date),
+    country: memberField(member, "country", ""),
+    work_email: memberField(member, "work_email", ""),
+    mobile_phone: memberField(member, "mobile_phone", ""),
+    experience: listToText(professionalProfile.experience),
+    education: listToText(professionalProfile.education),
+    qualifications: listToText(professionalProfile.qualifications),
+    practice_areas: listToText(professionalProfile.practice_areas)
+  };
+}
+
+function profilePatchFromDraft(draft, member) {
+  return {
+    display_name: draft.display_name.trim() || memberField(member, "display_name", ""),
+    title: draft.title.trim(),
+    department: draft.department.trim(),
+    affiliation: draft.affiliation.trim(),
+    organization_group: draft.organization_group.trim(),
+    start_date: draft.start_date.trim(),
+    country: draft.country.trim(),
+    work_email: draft.work_email.trim(),
+    mobile_phone: draft.mobile_phone.trim(),
+    professional_profile: {
+      ...objectValue(member?.professional_profile),
+      experience: textToList(draft.experience),
+      education: textToList(draft.education),
+      qualifications: textToList(draft.qualifications),
+      practice_areas: textToList(draft.practice_areas)
+    }
+  };
+}
+
+function EditableFieldRow({ label, value, editing, onChange, type = "text" }) {
+  if (editing) {
+    return (
+      <label className="matter-profile-field-row matter-profile-field-row-edit">
+        <span>{label}</span>
+        <input type={type} value={value} onChange={(event) => onChange(event.target.value)} />
+      </label>
+    );
+  }
+  return (
+    <div className="matter-profile-field-row">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function ProfileList({ title, items, icon: Icon, editing = false, editValue = "", onEditChange = () => {} }) {
+  if (!editing && items.length === 0) return null;
+  return (
+    <article className="matter-profile-card panel">
+      <div className="matter-profile-card-title">
+        <Icon size={18} />
+        <h2>{title}</h2>
+      </div>
+      {editing ? (
+        <textarea
+          className="matter-profile-list-editor"
+          value={editValue}
+          onChange={(event) => onEditChange(event.target.value)}
+          rows={Math.max(4, textToList(editValue).length + 1)}
+        />
+      ) : (
+        <ul className="matter-profile-timeline">
+          {items.map((item, index) => (
+            <li key={`${title}-${index}-${item}`}>{item}</li>
+          ))}
+        </ul>
+      )}
+    </article>
+  );
+}
+
+export function UserProfileSurface({ liveCtx = "allow", desktopSession = null, onNavigate = () => {}, onReturnToWork }) {
   const [profileResult, setProfileResult] = useState(null);
-  const activeSection = typeof window === "undefined" ? "" : decodeURIComponent(window.location.hash.replace(/^#/, ""));
-  const sectionState = profileSections[activeSection] ?? null;
+  const [fallbackDesktopSession, setFallbackDesktopSession] = useState(null);
+  const [profileOverride, setProfileOverride] = useState(null);
+  const [profileDraft, setProfileDraft] = useState(profileDraftFromMember(null));
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [saveState, setSaveState] = useState("");
   const currentState = profileState(profileResult);
   const statusCopy = profileStatusCopy(currentState);
   const profile = profileResult?.item ?? null;
+
+  useEffect(() => {
+    if (desktopSession) return undefined;
+    let cancelled = false;
+    readDesktopMatterSessionStatus().then((status) => {
+      if (!cancelled) setFallbackDesktopSession(status);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [desktopSession]);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,151 +255,224 @@ export function UserProfileSurface({ liveCtx = "allow", onNavigate = () => {} })
     };
   }, [liveCtx]);
 
-  function navigate(view, section = "") {
-    onNavigate(view, section);
+  const baseMember = resolvedProfileMember(profile, desktopSession, fallbackDesktopSession);
+  const employeeId = memberField(baseMember, "employee_id", memberField(baseMember, "user_id", "unknown"));
+  const selectedMember = useMemo(() => mergeProfileOverride(baseMember, profileOverride), [baseMember, profileOverride]);
+  const professionalProfile = objectValue(selectedMember?.professional_profile);
+  const photo = memberPhotoFor(selectedMember);
+  const initial = memberField(selectedMember, "display_name", "구성원").slice(0, 1);
+  const practiceAreas = stringList(professionalProfile.practice_areas);
+  const careerItems = stringList(professionalProfile.experience);
+  const educationItems = stringList(professionalProfile.education);
+  const qualificationItems = stringList(professionalProfile.qualifications);
+  const workPlaces = uniqueStrings([
+    memberField(selectedMember, "affiliation", ""),
+    memberField(selectedMember, "department", ""),
+    memberField(selectedMember, "organization_group", "")
+  ]);
+  const profileRows = infoRows(selectedMember);
+  const contactItems = uniqueStrings([
+    memberField(selectedMember, "work_email", ""),
+    memberField(selectedMember, "mobile_phone", ""),
+    memberField(selectedMember, "country", "")
+  ]);
+  const roleLine = uniqueStrings([
+    memberField(selectedMember, "title", ""),
+    memberField(selectedMember, "affiliation", "")
+  ]).join(" / ");
+
+  useEffect(() => {
+    const override = readProfileOverride(employeeId);
+    setProfileOverride(override);
+    setIsEditingProfile(false);
+    setSaveState("");
+  }, [employeeId]);
+
+  useEffect(() => {
+    if (!isEditingProfile) setProfileDraft(profileDraftFromMember(selectedMember));
+  }, [isEditingProfile, selectedMember]);
+
+  function updateProfileDraft(key, value) {
+    setProfileDraft((current) => ({ ...current, [key]: value }));
+    setSaveState("");
+  }
+
+  function handleProfileEditToggle() {
+    if (!isEditingProfile) {
+      setProfileDraft(profileDraftFromMember(selectedMember));
+      setIsEditingProfile(true);
+      setSaveState("");
+      return;
+    }
+    const patch = profilePatchFromDraft(profileDraft, selectedMember);
+    const saved = writeProfileOverride(employeeId, patch);
+    setProfileOverride(patch);
+    setIsEditingProfile(false);
+    setSaveState(saved ? "저장됨" : "저장 실패");
+  }
+
+  function handleReturnToWork() {
+    if (typeof onReturnToWork === "function") {
+      onReturnToWork();
+      return;
+    }
+    onNavigate("home", "home-dashboard");
   }
 
   return (
     <section
       className="matter-profile-surface surface"
-      data-user-profile-surface="matter-consistent"
+      data-user-profile-surface="my-profile"
       data-profile-api-backed="true"
       data-profile-api-state={currentState}
       data-profile-data-state={currentState}
+      data-profile-member={employeeId}
+      data-profile-editing={isEditingProfile ? "true" : "false"}
     >
-      <div className="matter-profile-topline">
-        <div className="matter-profile-title">
-          <h1>내 프로필</h1>
-          <p>세션, 계약, 정산 연결 상태를 확인합니다.</p>
-        </div>
-        <div className="matter-profile-top-actions">
-          <button
-            type="button"
-            className="ghost-button matter-profile-help-link"
-            data-profile-help-route="settings-support"
-            onClick={() => navigate("settings", "settings-support")}
-          >
-            <CircleHelp size={17} />
-            도움말 및 피드백
-          </button>
-          <button
-            type="button"
-            className="secondary-button matter-profile-contract-button"
-            data-profile-contract-route="matters:matter-opening"
-            onClick={() => navigate("matters", "matter-opening")}
-          >
-            <CirclePlus size={18} />
-            계약 생성
-          </button>
-        </div>
-      </div>
+      <header className="matter-profile-cover" aria-label="내 프로필">
+        <img className="matter-profile-hero-image" src={profileHeroBuilding} alt="" />
+        <div className="matter-profile-hero-shade" />
+        <button
+          type="button"
+          className="matter-profile-return-button"
+          onClick={handleReturnToWork}
+          data-profile-return-to-work="true"
+        >
+          <ArrowLeft size={15} />
+          <span>업무로 돌아가기</span>
+        </button>
+      </header>
 
-      {sectionState && (
-        <div className="live-data-state live-data-review" role="status" data-profile-route-state="true" data-profile-section-state={activeSection}>
-          <strong>{sectionState.title}</strong>
-          {sectionState.body}
+      {statusCopy.title && !selectedMember && (
+        <div className={`live-data-state ${statusCopy.className}`} role="status" data-profile-api-notice="true">
+          <strong>{statusCopy.title}</strong>
         </div>
       )}
 
-      <header className="matter-profile-hero panel">
-        <div className="matter-profile-photo" aria-hidden="true">
-          <UserRound size={28} />
-        </div>
-        <div className="matter-profile-hero-copy">
-          <h1>{profile?.display_name ?? statusCopy.title}</h1>
-          <p>{statusCopy.body}</p>
-          <div className="matter-profile-meta">
-            <span className="matter-profile-status">{statusCopy.status}</span>
+      <div className="matter-profile-layout">
+        <aside className="matter-profile-sidebar" aria-label="내 프로필 정보">
+          <div className="matter-profile-identity">
+            <div className="matter-profile-photo matter-profile-photo-large" aria-hidden="true">
+              {photo ? <img src={photo} alt="" /> : <span>{initial}</span>}
+            </div>
+            {isEditingProfile ? (
+              <input
+                className="matter-profile-name-input"
+                value={profileDraft.display_name}
+                onChange={(event) => updateProfileDraft("display_name", event.target.value)}
+                aria-label="이름"
+              />
+            ) : (
+              <h1>{memberField(selectedMember, "display_name", "프로필")}</h1>
+            )}
+            <div className="matter-profile-role-line">
+              {isEditingProfile ? (
+                <div className="matter-profile-role-edit">
+                  <input
+                    value={profileDraft.title}
+                    onChange={(event) => updateProfileDraft("title", event.target.value)}
+                    aria-label="직위"
+                  />
+                  <input
+                    value={profileDraft.affiliation}
+                    onChange={(event) => updateProfileDraft("affiliation", event.target.value)}
+                    aria-label="소속"
+                  />
+                </div>
+              ) : (
+                roleLine ? <p>{roleLine}</p> : null
+              )}
+              <button
+                className="secondary-button matter-profile-edit-button"
+                type="button"
+                onClick={handleProfileEditToggle}
+                disabled={isEditingProfile && !profileDraft.display_name.trim()}
+              >
+                <Pencil size={15} />
+                {isEditingProfile ? "Save" : "Edit"}
+              </button>
+            </div>
+            {saveState && <span className="matter-profile-save-state">{saveState}</span>}
           </div>
-        </div>
-      </header>
 
-      <div className="matter-profile-grid">
-        <div className="matter-profile-main-stack">
-          <article className="matter-profile-card panel" data-profile-contract-card="true">
-            <div className="panel-head matter-profile-card-head">
-              <div>
-                <h2>계약 정보</h2>
-                <span>협업 방식과 정산 기준</span>
-              </div>
+          {(isEditingProfile || profileRows.length > 0) && <article className="matter-profile-card panel">
+            <div className="matter-profile-card-title">
+              <IdCard size={18} />
+              <h2>기본 정보</h2>
             </div>
-            <div className="panel-body matter-profile-card-body">
-              <div className={`live-data-state ${statusCopy.className}`} data-profile-contract-state={currentState}>
-                <strong>{currentState === "populated" ? "계약 연결 상태" : "계약 정보를 표시할 수 없습니다."}</strong>
-                <span>
-                  {currentState === "populated"
-                    ? `프로필 API가 계약 연결 상태를 ${profile.contract_summary?.state === "connected" ? "확인했습니다" : "확인 중입니다"}.`
-                    : "권한이 확인되기 전까지 더미 계약 값을 표시하지 않습니다."}
-                </span>
-              </div>
+            <div className="matter-profile-field-list">
+              {isEditingProfile ? (
+                <>
+                  <EditableFieldRow label="직위" value={profileDraft.title} editing onChange={(value) => updateProfileDraft("title", value)} />
+                  <EditableFieldRow label="부서" value={profileDraft.department} editing onChange={(value) => updateProfileDraft("department", value)} />
+                  <EditableFieldRow label="소속" value={profileDraft.affiliation} editing onChange={(value) => updateProfileDraft("affiliation", value)} />
+                  <EditableFieldRow label="조직" value={profileDraft.organization_group} editing onChange={(value) => updateProfileDraft("organization_group", value)} />
+                  <EditableFieldRow label="입사일" value={profileDraft.start_date} editing onChange={(value) => updateProfileDraft("start_date", value)} />
+                  <EditableFieldRow label="위치" value={profileDraft.country} editing onChange={(value) => updateProfileDraft("country", value)} />
+                </>
+              ) : (
+                profileRows.map(([label, value]) => (
+                  <EditableFieldRow key={label} label={label} value={value} editing={false} />
+                ))
+              )}
             </div>
-          </article>
-
-          <article className="matter-profile-card panel" data-profile-general-card="true">
-            <div className="panel-head matter-profile-card-head">
-              <div>
-                <h2>계정 정보</h2>
-                <span>워크스페이스 접근 정보</span>
-              </div>
+          </article>}
+          {(isEditingProfile || contactItems.length > 0) && <article className="matter-profile-card panel">
+            <div className="matter-profile-card-title">
+              <MapPin size={18} />
+              <h2>연락처</h2>
             </div>
-            <div className="panel-body matter-profile-card-body">
-              <div className={`live-data-state ${statusCopy.className}`} data-profile-account-state={currentState}>
-                <strong>{currentState === "populated" ? "계정 접근 상태" : "계정 정보를 표시할 수 없습니다."}</strong>
-                <span>
-                  {currentState === "populated"
-                    ? `${profile.role_count ?? 0}개 권한 그룹이 세션 기준으로 확인되었습니다.`
-                    : "프로필 API 또는 세션 컨텍스트를 확인해야 합니다."}
-                </span>
+            {isEditingProfile ? (
+              <div className="matter-profile-field-list">
+                <EditableFieldRow label="이메일" value={profileDraft.work_email} editing type="email" onChange={(value) => updateProfileDraft("work_email", value)} />
+                <EditableFieldRow label="연락처" value={profileDraft.mobile_phone} editing type="tel" onChange={(value) => updateProfileDraft("mobile_phone", value)} />
+                <EditableFieldRow label="위치" value={profileDraft.country} editing onChange={(value) => updateProfileDraft("country", value)} />
               </div>
-            </div>
-          </article>
-        </div>
-
-        <aside className="matter-profile-side-stack" aria-label="프로필 작업">
-          {actionCards.map(({ label, badge, icon: Icon, view, section }) => (
-            <button
-              type="button"
-              className="matter-profile-action-card"
-              key={label}
-              data-profile-action-card={label}
-              data-profile-action-route={`${view}:${section}`}
-              onClick={() => navigate(view, section)}
-            >
-              <span className="matter-profile-action-icon"><Icon size={22} /></span>
-              <strong>{label}</strong>
-              {badge && <span className="matter-profile-new-tag">{badge}</span>}
-              <ChevronRight size={20} />
-            </button>
-          ))}
-          <div className="matter-profile-progress-card panel" data-profile-data-state={currentState}>
-            <div className="panel-head">
-              <div>
-                <h2>프로필 연결 상태</h2>
-                <span>{statusCopy.status}</span>
+            ) : (
+              <div className="matter-profile-contact-row matter-profile-contact-column">
+                {contactItems.map((item) => <span key={item}>{item}</span>)}
               </div>
-            </div>
-            <div className="panel-body">
-              <div className={`live-data-state ${statusCopy.className}`}>
-                <strong>{statusCopy.title}</strong>
-                <span>임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다.</span>
-              </div>
-            </div>
-          </div>
+            )}
+          </article>}
         </aside>
+
+        <div className="matter-profile-main-stack">
+          <ProfileList title="경력" items={careerItems} icon={ClipboardList} editing={isEditingProfile} editValue={profileDraft.experience} onEditChange={(value) => updateProfileDraft("experience", value)} />
+          <ProfileList title="학력" items={educationItems} icon={GraduationCap} editing={isEditingProfile} editValue={profileDraft.education} onEditChange={(value) => updateProfileDraft("education", value)} />
+          <ProfileList title="자격" items={qualificationItems} icon={ShieldCheck} editing={isEditingProfile} editValue={profileDraft.qualifications} onEditChange={(value) => updateProfileDraft("qualifications", value)} />
+
+          {(practiceAreas.length > 0 || isEditingProfile) && (
+            <article className="matter-profile-card panel">
+              <div className="matter-profile-card-title">
+                <ShieldCheck size={18} />
+                <h2>전문 분야</h2>
+              </div>
+              {isEditingProfile ? (
+                <textarea
+                  className="matter-profile-list-editor"
+                  value={profileDraft.practice_areas}
+                  onChange={(event) => updateProfileDraft("practice_areas", event.target.value)}
+                  rows={Math.max(3, textToList(profileDraft.practice_areas).length + 1)}
+                />
+              ) : (
+                <div className="matter-profile-practice-list">
+                  {practiceAreas.map((item) => <span key={item}>{item}</span>)}
+                </div>
+              )}
+            </article>
+          )}
+
+          {workPlaces.length > 0 && <article className="matter-profile-card panel">
+            <div className="matter-profile-card-title">
+              <IdCard size={18} />
+              <h2>소속</h2>
+            </div>
+            <div className="matter-profile-contact-row">
+              {workPlaces.map((item) => <span key={item}>{item}</span>)}
+            </div>
+          </article>}
+        </div>
       </div>
     </section>
   );
 }
-
-export const profileSidebarItems = [
-  { label: "홈", view: "home", icon: UserRound },
-  { label: "새 계약 만들기", view: "matters", section: "matter-opening", icon: CirclePlus },
-  { label: "계약 관리", view: "matters", section: "matters-list", icon: FileCheck2 },
-  { label: "내 프로필", view: "profile", icon: UserRound, active: true },
-  { label: "문서", view: "vault", section: "vault-documents", icon: ClipboardList },
-  { label: "청구 관리", view: "finance", section: "finance-matter-billing", icon: ReceiptText },
-  { label: "비용 관리", view: "finance", section: "finance-expenses", icon: ReceiptText },
-  { label: "정산 내역", view: "finance", section: "finance-transactions", icon: ClipboardList },
-  { label: "지급 설정", view: "finance", section: "finance-payments", icon: ReceiptText },
-  { label: "입금 계좌", view: "finance", section: "finance-withdrawal", icon: IdCard }
-];

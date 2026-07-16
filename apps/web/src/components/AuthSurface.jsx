@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   CheckCircle2,
   ChevronDown,
@@ -13,13 +13,75 @@ import {
   UserPlus
 } from "lucide-react";
 import { PRODUCT_BRAND } from "../brand/brand";
-import parnasTower from "../assets/parnas-tower-login.jpg";
+import brochureCover from "../assets/brochure-cover.jpg";
 import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
 import { Field } from "./primitives.jsx";
 import { HomeSurface } from "./HomeSurface.jsx";
 
-export function AuthSurface({ labels, locale, authStep, setAuthStep, onLogin = () => {} }) {
+export function AuthSurface({ labels, locale, authStep, setAuthStep, authError = "", onLogin = () => {} }) {
+  const [loginIntroState, setLoginIntroState] = useState("pending");
+  const loginStageRef = useRef(null);
+  const loginIntroLogoRef = useRef(null);
+  const loginTargetLogoRef = useRef(null);
+
+  useEffect(() => {
+    if (authStep !== "login") return undefined;
+    let cancelled = false;
+    let frame = 0;
+    let timer = 0;
+
+    setLoginIntroState("pending");
+    async function prepareLoginIntro() {
+      const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+      let playIntro = true;
+      if (typeof window.matterSession?.claimLogoIntro === "function") {
+        try {
+          const claim = await window.matterSession.claimLogoIntro();
+          playIntro = claim?.play_logo_animation === true;
+        } catch {
+          playIntro = true;
+        }
+      } else {
+        try {
+          const key = "matter.login.intro.played.v1";
+          playIntro = window.sessionStorage.getItem(key) !== "1";
+          if (playIntro) window.sessionStorage.setItem(key, "1");
+        } catch {
+          playIntro = true;
+        }
+      }
+      if (cancelled) return;
+      if (reducedMotion || !playIntro) {
+        setLoginIntroState("complete");
+        return;
+      }
+
+      frame = window.requestAnimationFrame(() => {
+        const stage = loginStageRef.current;
+        const source = loginIntroLogoRef.current?.querySelector(".amic-law-logo")?.getBoundingClientRect();
+        const target = loginTargetLogoRef.current?.querySelector(".amic-law-logo")?.getBoundingClientRect();
+        if (!stage || !source?.width || !target?.width) {
+          setLoginIntroState("complete");
+          return;
+        }
+        const dx = target.left + target.width / 2 - window.innerWidth / 2;
+        const dy = target.top + target.height / 2 - window.innerHeight / 2;
+        stage.style.setProperty("--forest-login-logo-dx", `${dx.toFixed(3)}px`);
+        stage.style.setProperty("--forest-login-logo-dy", `${dy.toFixed(3)}px`);
+        stage.style.setProperty("--forest-login-logo-scale", (target.width / source.width).toFixed(4));
+        setLoginIntroState("play");
+        timer = window.setTimeout(() => setLoginIntroState("complete"), 3300);
+      });
+    }
+    prepareLoginIntro();
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
+  }, [authStep]);
+
   if (authStep === "signupModal") {
     return (
       <section className="auth-app-preview">
@@ -73,27 +135,36 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep, onLogin = (
   ];
   const current = steps.find(([id]) => id === authStep) ?? steps[0];
   const Icon = current[2];
-
   if (authStep === "login") {
     return (
-      <section className="auth-stage step-login matter-login-stage" data-login-screen="parnas-split">
+      <section
+        ref={loginStageRef}
+        className="auth-stage step-login matter-login-stage"
+        data-login-screen="forest-split"
+        data-login-intro={loginIntroState}
+      >
+        <div ref={loginIntroLogoRef} className="matter-login-intro" aria-hidden="true">
+          <MatterLogo />
+        </div>
         <div className="matter-login-copy">
           <div className="matter-login-form-column">
-            <MatterLogo />
+            <div ref={loginTargetLogoRef} className="matter-login-logo-target">
+              <MatterLogo />
+            </div>
             <div className="matter-login-heading">
               <h1>{`Log in to ${PRODUCT_BRAND}`}</h1>
               <p>
                 {`Don't have a ${PRODUCT_BRAND} account yet? `}
                 <button type="button" onClick={() => setAuthStep("signup")}>
-                  Sign up now
+                  {labels.signupPreviewNotice}
                 </button>
               </p>
             </div>
-            <AuthForm labels={labels} locale={locale} step={authStep} onLogin={onLogin} />
+            <AuthForm labels={labels} locale={locale} step={authStep} authError={authError} onLogin={onLogin} />
           </div>
         </div>
-        <aside className="matter-login-photo-panel" aria-label="Samseong-dong Parnas Tower">
-          <img src={parnasTower} alt="Samseong-dong Parnas Tower" />
+        <aside className="matter-login-photo-panel" aria-label="AMIC Forest">
+          <img src={brochureCover} alt="AMIC Forest" />
         </aside>
       </section>
     );
@@ -148,7 +219,7 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep, onLogin = (
           ) : authStep === "verify" || authStep === "sent" ? (
             <VerificationCard labels={labels} sent={authStep === "sent"} />
           ) : (
-            <AuthForm labels={labels} locale={locale} step={authStep} onLogin={onLogin} />
+            <AuthForm labels={labels} locale={locale} step={authStep} authError={authError} onLogin={onLogin} />
           )}
         </div>
       </aside>
@@ -181,21 +252,27 @@ export function OnboardingCard({ labels, locale }) {
   );
 }
 
-export function AuthForm({ labels, locale, step, onLogin = () => {} }) {
+export function AuthForm({ labels, locale, step, authError = "", onLogin = () => {} }) {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [rememberLogin, setRememberLogin] = useState(false);
   const [recoveryRequested, setRecoveryRequested] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   if (step === "login") {
     return (
       <form
         className="form-stack matter-login-form"
         data-login-form="email-password"
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault();
-          if (!loginEmail.trim() || !loginPassword) return;
-          onLogin({ email: loginEmail.trim(), password: loginPassword, remember: rememberLogin });
+          if (submitting || !loginEmail.trim() || !loginPassword) return;
+          setSubmitting(true);
+          try {
+            await onLogin({ email: loginEmail.trim(), password: loginPassword, remember: rememberLogin });
+          } finally {
+            setSubmitting(false);
+          }
         }}
       >
         <label className="matter-login-field">
@@ -206,7 +283,7 @@ export function AuthForm({ labels, locale, step, onLogin = () => {} }) {
             onChange={(event) => setLoginEmail(event.target.value)}
             autoComplete="email"
             inputMode="email"
-            placeholder="jdoe@matter.local"
+            placeholder="업무 이메일"
             type="email"
             required
           />
@@ -245,14 +322,15 @@ export function AuthForm({ labels, locale, step, onLogin = () => {} }) {
             password?
           </button>
         </div>
-        {(rememberLogin || recoveryRequested) && (
+        {(rememberLogin || recoveryRequested || authError) && (
           <div className="login-local-state" data-login-local-state="true">
             {rememberLogin && <span data-login-remember-state="true">이 기기에서 로그인 이메일을 기억합니다.</span>}
             {recoveryRequested && <span data-login-recovery-state="true">비밀번호 재설정 안내를 보낼 계정을 확인합니다.</span>}
+            {authError && <span data-login-error="true">{authError}</span>}
           </div>
         )}
-        <button className="matter-login-submit" type="submit">
-          Log in
+        <button className="matter-login-submit" type="submit" disabled={submitting}>
+          {submitting ? "Signing in" : "Log in"}
         </button>
       </form>
     );

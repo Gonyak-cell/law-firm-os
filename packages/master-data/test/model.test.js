@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import {
+  AMIC_CURRENT_CLIENT_CANDIDATES,
   MASTER_DATA_CP156_HIDDEN_SOURCE_FIELDS,
   MASTER_DATA_CP156_PACK_BINDING,
   MASTER_DATA_CP156_NO_WRITE_ATTESTATION,
@@ -1041,9 +1042,86 @@ test("CP00-156 coverage, Hermes packet, Claude packet, and handoff remain produc
   assert.equal(coverage.summary.by_deliverable.claude_review, 3);
 
   const fixture = createMasterDataSyntheticFixture();
-  assert.equal(fixture.synthetic_only, true);
-  assert.equal(fixture.uses_real_client_data, false);
-  assert.equal(fixture.records.length, 8);
+  assert.equal(fixture.synthetic_only, false);
+  assert.equal(fixture.uses_real_client_data, true);
+  assert.equal(fixture.records.length, AMIC_CURRENT_CLIENT_CANDIDATES.length * 3 + 8);
+  assert.equal(AMIC_CURRENT_CLIENT_CANDIDATES.length, 99);
+  const currentClientEntities = fixture.records.filter(
+    (record) => record.model_type === "Entity" && record.client_source_ref === "amic_current_onedrive_folder_inventory_2026_07_01",
+  );
+  const currentClientGroups = fixture.records.filter(
+    (record) => record.model_type === "ClientGroup" && record.client_source_ref === "amic_current_onedrive_folder_inventory_2026_07_01",
+  );
+  assert.equal(currentClientEntities.length, 99);
+  assert.equal(currentClientGroups.length, 99);
+  assert.equal(currentClientGroups.filter((record) => record.synthetic_only === false).length, 99);
+  assert.equal(new Set(currentClientGroups.map((record) => record.canonical_client_crosswalk_ref)).size, 99);
+  for (const clientGroup of currentClientGroups) {
+    const entity = currentClientEntities.find((record) => record.entity_id === clientGroup.rp04_entity_id);
+    assert.ok(entity, `missing Entity for ${clientGroup.client_group_id}`);
+    assert.equal(entity.canonical_client_group_id, clientGroup.client_group_id);
+    assert.equal(entity.rp05_client_ref, clientGroup.rp05_client_ref);
+    assert.equal(entity.canonical_client_crosswalk_ref, clientGroup.canonical_client_crosswalk_ref);
+    assert.equal(entity.single_tenant_migration_state, "canonical_crosswalk_ready");
+    assert.deepEqual(clientGroup.member_entity_ids, [entity.entity_id]);
+  }
+  assert.equal(AMIC_CURRENT_CLIENT_CANDIDATES.some((candidate) => candidate.source_lanes.some((lane) => lane.startsWith("999_"))), false);
+  const candidateNames = AMIC_CURRENT_CLIENT_CANDIDATES.map((candidate) => candidate.display_name);
+  assert.equal(candidateNames.some((name) => /선생님|원장님|회장님|교수님|작가|강제집행면탈|조세범|^Pjt\.|^Project\b/.test(name)), false);
+  for (const expectedName of ["송수연", "한승민", "허유지", "장정도", "강영권", "임인홍", "황진수"]) {
+    assert.ok(candidateNames.includes(expectedName));
+  }
+  for (const expectedName of [
+    "한흥수 외 3명",
+    "최재헌 외 2명",
+    "이강명 외 1명",
+    "강상도",
+    "박민규 외 5명",
+    "권도균 외 11명",
+    "펜타스톤-오라이언-온앤업 신기술투자조합",
+    "봉경환 외 4명",
+    "박태오",
+    "K Enter Holdings Inc.",
+    "롯데에너지머티리얼즈",
+    "김정환",
+    "오윤록 외 2명",
+    "유진이엔티",
+    "ATU Partners",
+    "B&M Holdings",
+    "바이포엠스튜디오",
+  ]) {
+    assert.ok(candidateNames.includes(expectedName));
+  }
+  for (const removedProjectSellerName of [
+    "코오롱글로텍",
+    "Katelynn Yun-Yu Owyang",
+    "SMEJ Holdings, INC.",
+    "에스엠스튜디오스",
+    "고구려푸드",
+    "고기깡패",
+    "부산광역시",
+    "아론",
+    "ATU",
+    "K-PLUS",
+    "TAKE Foundation",
+    "Titan",
+    "오윤록 외 1명",
+    "에이치엘엘중앙",
+    "SMEJ Holdings, INC. 외 1명",
+    "한흥수 외 6명",
+    "강상도 외 16명",
+  ]) {
+    assert.equal(candidateNames.includes(removedProjectSellerName), false);
+  }
+  const guihan = fixture.records.find((record) => record.model_type === "ClientGroup" && record.display_name === "귀한사람들");
+  assert.equal(guihan?.canonical_display_name, "귀한사람들");
+  assert.equal(guihan?.legal_form, null);
+  const lotteEnergyMaterials = fixture.records.find((record) => record.model_type === "ClientGroup" && record.display_name === "롯데에너지머티리얼즈");
+  assert.equal(lotteEnergyMaterials?.canonical_display_name, "롯데에너지머티리얼즈 주식회사");
+  assert.equal(lotteEnergyMaterials?.legal_form, "주식회사");
+  const yujinEnt = fixture.records.find((record) => record.model_type === "ClientGroup" && record.display_name === "유진이엔티");
+  assert.equal(yujinEnt?.canonical_display_name, "유진이엔티");
+  assert.equal(yujinEnt?.legal_form, null);
 
   const hermes = createMasterDataCp156HermesEvidencePacket(cp156PlanPack);
   const claude = createMasterDataCp156ClaudeReviewPacket(cp156PlanPack);

@@ -1,0 +1,30 @@
+# Product commits 0854caef..6a57157a
+apps/desktop/package.json
+apps/web/src/components/AuthSurface.jsx
+apps/web/src/styles.css
+apps/web/test/ui-regression.test.mjs
+package-lock.json
+package.json
+scripts/run-pv001-packaged-version-smoke.mjs
+scripts/validate-cp006-ui-copy-regression.mjs
+scripts/validate-pv001-desktop-version.mjs
+
+# PV-001 evidence commit
+docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md
+docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md
+workbook/forest-v0.1.17-integration-evidence/PV-001/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/PV-001/commands.txt
+workbook/forest-v0.1.17-integration-evidence/PV-001/files.txt
+workbook/forest-v0.1.17-integration-evidence/PV-001/packaged-version-smoke.json
+workbook/forest-v0.1.17-integration-evidence/PV-001/receipt.json
+workbook/forest-v0.1.17-integration-evidence/PV-001/screenshots/macos-login-version-0.1.17.png
+workbook/forest-v0.1.17-integration-evidence/PV-001/tests.txt
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md
+
+# Exact generated artifacts, intentionally outside Git
+apps/desktop/dist/mac/matter.app
+apps/desktop/dist/mac/matter-internal-0.1.17-macos.zip
+apps/desktop/dist/mac/matter-internal-0.1.17-macos.dmg
+apps/desktop/dist/win/matter-internal-0.1.17-win-installer-manifest.json
+apps/desktop/dist/win/matter-internal-0.1.17-win32-x64
+apps/desktop/dist/win/matter-internal-0.1.17-win32-x64-unsigned.zip

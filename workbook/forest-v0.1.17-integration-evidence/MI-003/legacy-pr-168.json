@@ -1,0 +1,27 @@
+{
+  "baseRefName": "codex/leave-search-release-20260713",
+  "checks": [
+    {
+      "conclusion": "SUCCESS",
+      "name": "HRX rollout validation",
+      "status": "COMPLETED",
+      "workflowName": "HRX Production Rollout"
+    },
+    {
+      "conclusion": "SUCCESS",
+      "name": "Production HRX smoke",
+      "status": "COMPLETED",
+      "workflowName": "Production Smoke"
+    }
+  ],
+  "headRefName": "codex/forest-v0.1.16-release-20260713",
+  "headRefOid": "7717d5cee158fc97056510e8aebc9e0854d34196",
+  "isDraft": true,
+  "mergeStateStatus": "CLEAN",
+  "mergeable": "MERGEABLE",
+  "number": 168,
+  "reviewDecision": "",
+  "state": "OPEN",
+  "title": "Restore Forest-only v0.1.16 release assets",
+  "url": "https://github.com/Gonyak-cell/law-firm-os/pull/168"
+}

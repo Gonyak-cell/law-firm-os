@@ -1,9 +1,12 @@
+import { randomUUID } from "node:crypto";
 import { createDmsRepository } from "../../../packages/dms/src/repository.js";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
 import { uploadDocument } from "../../../packages/dms/src/document-service.js";
+import { downloadFileObjectWithAudit } from "../../../packages/dms/src/storage/download-service.js";
 import { serializeFileObjectSafe } from "../../../packages/dms/src/file-object-service.js";
 import { createSearchIndexEnvelope } from "../../../packages/dms/src/search/indexer.js";
-import { filterSearchResultsByAcl } from "../../../packages/dms/src/search/acl-filter.js";
+import { upsertVaultSearchIndex } from "../../../packages/dms/src/search/index-repository.js";
+import { searchMatterVault } from "../../../packages/dms/src/search/search-service.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
 import {
   MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
@@ -23,7 +26,10 @@ export const VAULT_DMS_BOUNDED_CONTEXT = Object.freeze({
   endpoints: Object.freeze([
     "GET /api/vault/documents",
     "POST /api/vault/documents",
+    "GET /api/vault/documents/:document_id/download",
     "GET /api/vault/search",
+    "GET /api/vault/search/preferences",
+    "POST /api/vault/search/preferences",
     "GET /api/vault/audit",
   ]),
   data_source: "vault_dms_runtime_repository",
@@ -113,6 +119,12 @@ export function createVaultDmsRuntimeContext({
 }
 
 const DEFAULT_RUNTIME = createVaultDmsRuntimeContext();
+const SEARCH_PREFERENCES_MODEL_TYPE = "VaultSearchPreferences";
+const SEARCH_QUERY_LIMIT = 200;
+const SEARCH_RECENT_LIMIT = 20;
+const SEARCH_SAVED_LIMIT = 50;
+const SEARCH_HISTORY_RETENTION_MS = 90 * 24 * 60 * 60 * 1000;
+const SEARCH_PREFERENCE_OPERATIONS = new Set(["remember", "save", "delete_saved", "clear_recent", "share_authorize"]);
 
 function errorResponse(status, requestId, codes, extra = {}) {
   return {
@@ -132,11 +144,6 @@ function errorResponse(status, requestId, codes, extra = {}) {
 
 function validateCommonQuery(query, requestId) {
   if (!query.tenant_id) return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.tenant_required]);
-  if (query.tenant_id !== MATTER_VAULT_REGISTERED_TENANT_ID) {
-    return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
-      ui_state: "blocked",
-    });
-  }
   if (!query.permission_ref) return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.permission_required]);
   if (!query.audit_hint_ref) return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.audit_hint_required]);
   return null;
@@ -169,7 +176,58 @@ function gateDecisionResponse(decision, requestId, auditHintRef) {
   });
 }
 
-function routeGate({ context, query, requestId, action, resource }) {
+function appendVaultRouteAudit({ repository, context, query, action, resource, decision } = {}) {
+  if (!repository || typeof repository.appendAudit !== "function") return null;
+  if (!query?.tenant_id || decision?.effect === "allow") return null;
+  return repository.appendAudit({
+    event_id: `vault_route_${randomUUID()}`,
+    tenant_id: query.tenant_id,
+    actor_id: context?.principal?.user_id ?? context?.principal?.actor_id ?? "unknown_actor",
+    action,
+    object_type: resource?.resource_type ?? "vault_route",
+    object_id: resource?.resource_id ?? resource?.matter_id ?? resource?.resource_type ?? "vault_route",
+    decision: ["review_required", "approval_required"].includes(decision?.effect) ? decision.effect : "deny",
+    reason: decision?.reason ?? "vault_route_denied",
+    occurred_at: new Date().toISOString(),
+    metadata: {
+      permission_ref: query.permission_ref ?? null,
+      audit_hint_ref: query.audit_hint_ref ?? null,
+      matter_id: resource?.matter_id ?? null,
+      fail_closed: Boolean(decision?.fail_closed),
+      denied_route_audit: true,
+      raw_payload_included: false,
+      document_bytes_included: false,
+      storage_pointer_ref_included: false,
+    },
+  });
+}
+
+function appendVaultSensitiveReadAudit({ repository, context, query, action, resource, returnedCount = null } = {}) {
+  if (!repository || typeof repository.appendAudit !== "function" || !query?.tenant_id) return null;
+  return repository.appendAudit({
+    event_id: `vault_sensitive_read_${randomUUID()}`,
+    tenant_id: query.tenant_id,
+    actor_id: context?.principal?.user_id ?? context?.principal?.actor_id ?? "unknown_actor",
+    action,
+    object_type: resource?.resource_type ?? "vault_sensitive_read",
+    object_id: resource?.resource_id ?? resource?.resource_type ?? "vault_sensitive_read",
+    decision: "allow",
+    reason: "vault_sensitive_read_allowed_after_permission_gate",
+    occurred_at: new Date().toISOString(),
+    metadata: {
+      permission_ref: query.permission_ref ?? null,
+      audit_hint_ref: query.audit_hint_ref ?? null,
+      returned_count: returnedCount,
+      sensitive_read_audit_required: true,
+      raw_payload_included: false,
+      raw_text_included: false,
+      document_bytes_included: false,
+      storage_pointer_ref_included: false,
+    },
+  });
+}
+
+function routeGate({ context, query, requestId, action, resource, repository }) {
   const invalid = validateCommonQuery(query, requestId);
   if (invalid) return invalid;
   const decision = evaluateRouteDecision({
@@ -182,7 +240,9 @@ function routeGate({ context, query, requestId, action, resource }) {
     },
     action,
   });
-  return gateDecisionResponse(decision, requestId, query.audit_hint_ref);
+  const response = gateDecisionResponse(decision, requestId, query.audit_hint_ref);
+  if (response) appendVaultRouteAudit({ repository, context, query, action, resource, decision });
+  return response;
 }
 
 function accountForRecord(record) {
@@ -227,6 +287,88 @@ function serializeDocument(record) {
   });
 }
 
+function currentFileObjectForDocument({ repository, tenant_id, document_id } = {}) {
+  const document = repository.get({ tenant_id, model_type: "DmsDocument", document_id });
+  if (!document) return null;
+  const version = repository.get({
+    tenant_id,
+    model_type: "DmsDocumentVersion",
+    version_id: document.current_version_id,
+  });
+  if (!version) return null;
+  const fileObject = repository.get({
+    tenant_id,
+    model_type: "DmsFileObject",
+    file_object_id: version.file_object_id,
+  });
+  if (!fileObject) return null;
+  return Object.freeze({ document, version, fileObject });
+}
+
+function parseObjectField(value) {
+  if (!value) return {};
+  if (typeof value === "object" && !Array.isArray(value)) return value;
+  if (typeof value !== "string") return {};
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function uploadFileFromBody(body = {}) {
+  return body.file ?? body.files?.file ?? body.files?.document ?? body.files?.upload ?? null;
+}
+
+function safeIdentifierSegment(value, fallback = "document") {
+  const normalized = String(value ?? fallback)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 48);
+  return normalized || fallback;
+}
+
+function normalizeUploadDocumentBody(body = {}) {
+  const file = uploadFileFromBody(body);
+  const document = parseObjectField(body.document);
+  const fileName = file?.filename || body.filename || body.title || document.title || "uploaded-document";
+  const documentId = document.document_id ?? body.document_id ?? `doc_${safeIdentifierSegment(fileName)}_${randomUUID().slice(0, 8)}`;
+  const versionId = document.current_version_id ?? body.current_version_id ?? `version_${safeIdentifierSegment(documentId)}_1`;
+  const mimeType = document.mime_type ?? body.mime_type ?? file?.mime_type ?? "application/octet-stream";
+  const contentBase64 = body.content_base64 ?? file?.content_base64 ?? null;
+  return {
+    ...body,
+    content_base64: contentBase64,
+    content_text: contentBase64 ? undefined : body.content_text,
+    mime_type: mimeType,
+    idempotency_key: body.idempotency_key ?? `vault-upload:${documentId}:${randomUUID()}`,
+    document: {
+      ...document,
+      document_id: documentId,
+      tenant_id: document.tenant_id ?? body.tenant_id ?? MATTER_VAULT_REGISTERED_TENANT_ID,
+      matter_id: document.matter_id ?? body.matter_id ?? "matter_rp05_synthetic_opening",
+      workspace_id: document.workspace_id ?? body.workspace_id ?? "workspace_rp07_synthetic",
+      title: document.title ?? body.title ?? fileName,
+      status: document.status ?? body.status ?? "active",
+      current_version_id: versionId,
+      permission_envelope_id: document.permission_envelope_id ?? body.permission_envelope_id ?? "perm_rp07_vault",
+      audit_trace_id: document.audit_trace_id ?? body.audit_trace_id ?? "audit_rp07_vault",
+      mime_type: mimeType,
+      filename: fileName,
+    },
+    upload_file: file
+      ? {
+          filename: fileName,
+          mime_type: file.mime_type ?? mimeType,
+          byte_size: file.byte_size ?? null,
+          content_base64_included: Boolean(file.content_base64),
+        }
+      : null,
+  };
+}
+
 export function handleVaultDocumentList({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const gated = routeGate({
     context,
@@ -234,6 +376,7 @@ export function handleVaultDocumentList({ query, context, requestId, runtime = D
     requestId,
     action: "dms:document:read",
     resource: { resource_type: "vault_document" },
+    repository: runtime.repository,
   });
   if (gated) return gated;
   const serialized = runtime.repository
@@ -244,6 +387,14 @@ export function handleVaultDocumentList({ query, context, requestId, runtime = D
     items: serialized,
     action: "dms:document:read",
     resourceType: "vault_document",
+  });
+  appendVaultSensitiveReadAudit({
+    repository: runtime.repository,
+    context,
+    query,
+    action: "dms:document:read",
+    resource: { resource_type: "vault_document" },
+    returnedCount: allowed.length,
   });
   return {
     status: 200,
@@ -266,22 +417,24 @@ export function handleVaultDocumentList({ query, context, requestId, runtime = D
 }
 
 export function handleVaultDocumentUpload({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const normalizedBody = normalizeUploadDocumentBody(body);
   const query = {
-    tenant_id: body?.document?.tenant_id ?? body?.tenant_id,
-    permission_ref: body?.permission_ref,
-    audit_hint_ref: body?.audit_hint_ref,
+    tenant_id: normalizedBody.document?.tenant_id ?? normalizedBody.tenant_id,
+    permission_ref: normalizedBody.permission_ref,
+    audit_hint_ref: normalizedBody.audit_hint_ref,
   };
   const gated = routeGate({
     context,
     query,
     requestId,
     action: "dms:document:write",
-    resource: { resource_type: "vault_document", matter_id: body?.document?.matter_id },
+    resource: { resource_type: "vault_document", matter_id: normalizedBody.document?.matter_id },
+    repository: runtime.repository,
   });
   if (gated) return gated;
   const actorAccount = resolveRegisteredAccount({
-    user_id: body?.actor_id ?? body?.document?.owner_user_id ?? context?.principal?.user_id,
-    email: body?.actor_email ?? body?.document?.registered_account_email ?? context?.principal?.email,
+    user_id: normalizedBody.actor_id ?? normalizedBody.document?.owner_user_id ?? context?.principal?.user_id,
+    email: normalizedBody.actor_email ?? normalizedBody.document?.registered_account_email ?? context?.principal?.email,
   });
   if (!actorAccount) {
     return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
@@ -291,19 +444,33 @@ export function handleVaultDocumentUpload({ body, context, requestId, runtime = 
   }
   const linkedAccount = registeredAccountPublicRef(actorAccount);
   try {
+    const uploadBytes = normalizedBody.content_base64
+      ? Buffer.from(String(normalizedBody.content_base64), "base64")
+      : normalizedBody.content_text ?? "";
     const result = uploadDocument({
       repository: runtime.repository,
       storage: runtime.storage,
       document: {
-        ...body.document,
+        ...normalizedBody.document,
+        mime_type: normalizedBody.document?.mime_type ?? normalizedBody.mime_type,
         tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
         owner_user_id: linkedAccount.user_id,
         registered_account_email: linkedAccount.email,
         registered_account: linkedAccount,
       },
-      bytes: body.content_text ?? "",
+      bytes: uploadBytes,
       actor_id: linkedAccount.user_id,
-      idempotency_key: body.idempotency_key,
+      idempotency_key: normalizedBody.idempotency_key,
+    });
+    const searchIndex = upsertVaultSearchIndex({
+      repository: runtime.repository,
+      index_row: createSearchIndexEnvelope({
+        document: result.document,
+        version: result.version,
+        file_object: result.file_object,
+        bytes: uploadBytes,
+        ocr_text: normalizedBody.ocr_text ?? normalizedBody.ocr?.text ?? normalizedBody.ocr?.pages ?? null,
+      }),
     });
     return {
       status: result.idempotent_replay ? 200 : 201,
@@ -313,8 +480,84 @@ export function handleVaultDocumentUpload({ body, context, requestId, runtime = 
         item: serializeDocument(result.document),
         version: result.version,
         file_object: serializeFileObjectSafe(result.file_object),
+        search_index: {
+          index_id: searchIndex.index_id,
+          body_text_indexed: searchIndex.body_text_indexed === true,
+          ocr_text_indexed: searchIndex.ocr_text_indexed === true,
+          ocr_runtime_executed: searchIndex.ocr_runtime_executed === true,
+          ocr_provider: searchIndex.ocr_provider ?? null,
+          search_backend: searchIndex.search_backend,
+          raw_text_included: false,
+          storage_pointer_ref_included: false,
+        },
         audit_event: result.audit_event,
         idempotent_replay: result.idempotent_replay,
+        upload_file: normalizedBody.upload_file,
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        production_ready_claim: false,
+      },
+    };
+  } catch {
+    return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+}
+
+export function handleVaultDocumentDownload({ documentId, query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "dms:document:download",
+    resource: { resource_type: "vault_document", resource_id: documentId },
+    repository: runtime.repository,
+  });
+  if (gated) return gated;
+  const current = currentFileObjectForDocument({
+    repository: runtime.repository,
+    tenant_id: query.tenant_id,
+    document_id: documentId,
+  });
+  if (!current) {
+    return errorResponse(404, requestId, [VAULT_DMS_API_ERROR_CODES.not_found], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "empty",
+    });
+  }
+  try {
+    const download = downloadFileObjectWithAudit({
+      repository: runtime.repository,
+      storage: runtime.storage,
+      tenant_id: query.tenant_id,
+      file_object_id: current.fileObject.file_object_id,
+      actor_id: context?.principal?.user_id ?? context?.principal?.actor_id ?? "unknown_actor",
+      permission_decision_id: requestId,
+    });
+    return {
+      status: 200,
+      body: {
+        request_id: requestId,
+        outcome: "passed",
+        item: serializeDocument(current.document),
+        version: current.version,
+        file_object: download.file_object,
+        download: {
+          encoding: "base64",
+          content_base64: download.bytes.toString("base64"),
+          content_sha256: download.sha256,
+          sha256: download.sha256,
+          byte_size: download.byte_size,
+          mime_type: download.mime_type,
+          raw_path_exposed: false,
+          storage_pointer_ref_included: false,
+        },
+        audit_event: download.audit_event,
+        document_bytes_included: true,
+        raw_path_exposed: false,
+        storage_pointer_ref_included: false,
         safe_error_codes: [],
         audit_hint_ref: query.audit_hint_ref,
         production_ready_claim: false,
@@ -335,25 +578,292 @@ export function handleVaultSearch({ query, context, requestId, runtime = DEFAULT
     requestId,
     action: "dms:search",
     resource: { resource_type: "vault_search" },
+    repository: runtime.repository,
   });
   if (gated) return gated;
   const documents = runtime.repository.list({ tenant_id: query.tenant_id, model_type: "DmsDocument" });
-  const envelopes = documents.map((document) => createSearchIndexEnvelope({ document }));
-  const filtered = filterSearchResultsByAcl({
-    results: envelopes,
-    principal: context.principal,
-    object_acl: context.object_acl,
+  const serialized = documents.map(serializeDocument);
+  const { allowed } = trimItemsByPermission({
+    context,
+    items: serialized,
+    action: "dms:document:read",
+    resourceType: "vault_document",
+  });
+  const allowedDocumentIds = allowed.map((item) => item.document_id);
+  const storedRows = runtime.repository.list({ tenant_id: query.tenant_id, model_type: "DmsSearchIndex" });
+  const storedByDocumentId = new Map(storedRows.map((row) => [row.document_id, row]));
+  const indexRows = documents.map((document) => storedByDocumentId.get(document.document_id) ?? createSearchIndexEnvelope({ document }));
+  const searchQuery = typeof query.q === "string" ? query.q : query.query ?? "";
+  const filtered = searchMatterVault({
+    permission_decision_id: requestId,
+    query: searchQuery,
+    index_rows: indexRows,
+    allowed_document_ids: allowedDocumentIds,
+  });
+  if (query.current_version && query.current_version !== "current") {
+    return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+  const currentVersionOnly = true;
+  const dateFrom = typeof query.date_from === "string" && /^\d{4}-\d{2}-\d{2}$/.test(query.date_from) ? query.date_from : "";
+  const dateTo = typeof query.date_to === "string" && /^\d{4}-\d{2}-\d{2}$/.test(query.date_to) ? query.date_to : "";
+  if ((query.date_from && !dateFrom) || (query.date_to && !dateTo) || (dateFrom && dateTo && dateFrom > dateTo)) {
+    return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+  const currentVersionByDocument = new Map(documents.map((document) => [document.document_id, document.current_version_id]));
+  const results = filtered.results.filter((item) => {
+    if (currentVersionOnly && currentVersionByDocument.get(item.document_id) !== item.version_id) return false;
+    const indexedDate = typeof item.indexed_at === "string" ? item.indexed_at.slice(0, 10) : "";
+    if (dateFrom && (!indexedDate || indexedDate < dateFrom)) return false;
+    if (dateTo && (!indexedDate || indexedDate > dateTo)) return false;
+    return true;
+  });
+  appendVaultSensitiveReadAudit({
+    repository: runtime.repository,
+    context,
+    query,
+    action: "dms:search",
+    resource: { resource_type: "vault_search" },
+    returnedCount: results.length,
   });
   return {
     status: 200,
     body: {
       request_id: requestId,
       outcome: "passed",
-      items: filtered.results,
+      items: results,
+      page_info: {
+        query: searchQuery,
+        returned_count: results.length,
+        omitted_result_count: filtered.omitted_result_count,
+        current_version_only: currentVersionOnly,
+        date_from: dateFrom || null,
+        date_to: dateTo || null,
+        search_backend: "json_substring_search",
+        body_text_indexed: results.some((item) => item.body_text_indexed === true),
+        ocr_index_mode: "caller_supplied_sidecar",
+        ocr_runtime_executed: false,
+      },
       safe_error_codes: [],
       audit_hint_ref: query.audit_hint_ref,
-      ui_state: filtered.results.length === 0 ? "empty" : null,
+      ui_state: results.length === 0 ? "empty" : null,
       count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
+function searchPreferenceResourceId(actorId) {
+  return `vault_search_preferences:${actorId}`;
+}
+
+function normalizeSearchPreferenceFilters(value = {}) {
+  const dateFrom = typeof value.date_from === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.date_from) ? value.date_from : null;
+  const dateTo = typeof value.date_to === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.date_to) ? value.date_to : null;
+  if (dateFrom && dateTo && dateFrom > dateTo) return null;
+  return Object.freeze({
+    current_version_only: true,
+    date_from: dateFrom,
+    date_to: dateTo,
+  });
+}
+
+function searchPreferenceKey(value) {
+  return JSON.stringify([value.query, value.current_version_only, value.date_from, value.date_to]);
+}
+
+function normalizeSearchPreferenceRecord(value) {
+  if (!value || typeof value.query !== "string" || typeof value.searched_at !== "string") return null;
+  const query = value.query.trim().slice(0, SEARCH_QUERY_LIMIT);
+  const searchedAt = Date.parse(value.searched_at);
+  const filters = normalizeSearchPreferenceFilters(value);
+  if (!query || !Number.isFinite(searchedAt) || !filters) return null;
+  return Object.freeze({
+    id: typeof value.id === "string" && value.id.trim() ? value.id.trim().slice(0, 240) : `${query}:${value.searched_at}`,
+    query,
+    scope: "documents-ocr",
+    searched_at: new Date(searchedAt).toISOString(),
+    ...filters,
+  });
+}
+
+function normalizeSearchPreferenceList(values, { limit, retention = false } = {}) {
+  const cutoff = Date.now() - SEARCH_HISTORY_RETENTION_MS;
+  const seen = new Set();
+  return (Array.isArray(values) ? values : [])
+    .map(normalizeSearchPreferenceRecord)
+    .filter((item) => item && (!retention || Date.parse(item.searched_at) >= cutoff))
+    .filter((item) => {
+      const key = searchPreferenceKey(item);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, limit);
+}
+
+function serializeSearchPreferences(record, actorId) {
+  return Object.freeze({
+    owner_user_id: actorId,
+    recent: normalizeSearchPreferenceList(record?.recent, { limit: SEARCH_RECENT_LIMIT, retention: true }),
+    saved: normalizeSearchPreferenceList(record?.saved, { limit: SEARCH_SAVED_LIMIT }),
+    retention_days: 90,
+    result_payloads_persisted: false,
+  });
+}
+
+function appendSearchPreferenceAudit({ repository, context, query, operation, preferences } = {}) {
+  return repository.appendAudit({
+    event_id: `search_preferences_${randomUUID()}`,
+    tenant_id: query.tenant_id,
+    actor_id: context.principal.user_id,
+    action: `search.preferences.${operation}`,
+    object_type: "search_preferences",
+    object_id: searchPreferenceResourceId(context.principal.user_id),
+    decision: "allow",
+    reason: "search_preferences_updated_after_permission_gate",
+    occurred_at: new Date().toISOString(),
+    metadata: {
+      permission_ref: query.permission_ref,
+      audit_hint_ref: query.audit_hint_ref,
+      recent_count: preferences.recent.length,
+      saved_count: preferences.saved.length,
+      raw_query_included: false,
+      result_payload_included: false,
+    },
+  });
+}
+
+function searchPreferenceMutation(current, body, actorId) {
+  const operation = String(body?.operation ?? "");
+  if (!SEARCH_PREFERENCE_OPERATIONS.has(operation)) return null;
+  const preferences = serializeSearchPreferences(current, actorId);
+  if (operation === "clear_recent") return { operation, preferences: { ...preferences, recent: [] } };
+  if (operation === "delete_saved") {
+    const id = typeof body?.id === "string" ? body.id.trim().slice(0, 240) : "";
+    if (!id) return null;
+    return { operation, preferences: { ...preferences, saved: preferences.saved.filter((item) => item.id !== id) } };
+  }
+  const query = typeof body?.query === "string" ? body.query.trim().slice(0, SEARCH_QUERY_LIMIT) : "";
+  const filters = normalizeSearchPreferenceFilters(body);
+  if (!query || !filters) return null;
+  const searchedAt = new Date().toISOString();
+  const preference = { query, scope: "documents-ocr", searched_at: searchedAt, ...filters };
+  if (operation === "share_authorize") return { operation, preferences };
+  if (operation === "remember") {
+    return {
+      operation,
+      preferences: {
+        ...preferences,
+        recent: [
+          { id: `recent:${randomUUID()}`, ...preference },
+          ...preferences.recent.filter((item) => searchPreferenceKey(item) !== searchPreferenceKey(preference)),
+        ].slice(0, SEARCH_RECENT_LIMIT),
+      },
+    };
+  }
+  if (preferences.saved.some((item) => searchPreferenceKey(item) === searchPreferenceKey(preference))) return { operation, preferences };
+  return {
+    operation,
+    preferences: {
+      ...preferences,
+      saved: [
+        { id: `saved:${randomUUID()}`, ...preference },
+        ...preferences.saved,
+      ].slice(0, SEARCH_SAVED_LIMIT),
+    },
+  };
+}
+
+export function handleVaultSearchPreferences({ method, query, body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const requestQuery = { ...(body ?? {}), ...(query ?? {}) };
+  const actorId = context?.principal?.user_id;
+  if (!actorId) {
+    return errorResponse(403, requestId, [VAULT_DMS_API_ERROR_CODES.unauthorized_omission], {
+      audit_hint_ref: requestQuery.audit_hint_ref,
+      ui_state: "denied",
+    });
+  }
+  const resourceId = searchPreferenceResourceId(actorId);
+  const gated = routeGate({
+    context,
+    query: requestQuery,
+    requestId,
+    action: method === "POST" ? "dms:search:preferences:write" : "dms:search:preferences:read",
+    resource: { resource_type: "search_preferences", resource_id: resourceId },
+    repository: runtime.repository,
+  });
+  if (gated) return gated;
+
+  const current = runtime.repository.get({
+    tenant_id: requestQuery.tenant_id,
+    model_type: SEARCH_PREFERENCES_MODEL_TYPE,
+    resource_id: resourceId,
+  });
+  if (method === "GET") {
+    const preferences = serializeSearchPreferences(current, actorId);
+    if (current && (current.recent?.length ?? 0) !== preferences.recent.length) {
+      runtime.repository.upsert({ ...current, recent: preferences.recent });
+      appendSearchPreferenceAudit({
+        repository: runtime.repository,
+        context,
+        query: requestQuery,
+        operation: "retention_pruned",
+        preferences,
+      });
+    }
+    return {
+      status: 200,
+      body: {
+        request_id: requestId,
+        outcome: "passed",
+        item: preferences,
+        safe_error_codes: [],
+        audit_hint_ref: requestQuery.audit_hint_ref,
+        production_ready_claim: false,
+      },
+    };
+  }
+
+  const mutation = searchPreferenceMutation(current, body, actorId);
+  if (!mutation) {
+    return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: requestQuery.audit_hint_ref,
+    });
+  }
+  runtime.repository.transaction((repository) => {
+    const latest = repository.get({
+      tenant_id: requestQuery.tenant_id,
+      model_type: SEARCH_PREFERENCES_MODEL_TYPE,
+      resource_id: resourceId,
+    });
+    const next = searchPreferenceMutation(latest, body, actorId);
+    repository.upsert({
+      model_type: SEARCH_PREFERENCES_MODEL_TYPE,
+      resource_id: resourceId,
+      tenant_id: requestQuery.tenant_id,
+      owner_user_id: actorId,
+      recent: next.preferences.recent,
+      saved: next.preferences.saved,
+      retention_days: next.preferences.retention_days,
+      result_payloads_persisted: false,
+    });
+    appendSearchPreferenceAudit({ repository, context, query: requestQuery, operation: next.operation, preferences: next.preferences });
+    mutation.preferences = next.preferences;
+  });
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      item: mutation.preferences,
+      safe_error_codes: [],
+      audit_hint_ref: requestQuery.audit_hint_ref,
       production_ready_claim: false,
     },
   };
@@ -366,6 +876,7 @@ export function handleVaultAudit({ query, context, requestId, runtime = DEFAULT_
     requestId,
     action: "dms:audit:read",
     resource: { resource_type: "vault_audit" },
+    repository: runtime.repository,
   });
   if (gated) return gated;
   return {
@@ -390,14 +901,30 @@ export async function handleVaultDmsApiRequest({
   requestId,
   runtime = DEFAULT_RUNTIME,
 } = {}) {
+  const downloadMatch = pathname.match(/^\/api\/vault\/documents\/([^/]+)\/download$/);
+  if (downloadMatch && method === "GET") {
+    return handleVaultDocumentDownload({
+      documentId: decodeURIComponent(downloadMatch[1]),
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
   if (pathname === "/api/vault/documents" && method === "GET") {
     return handleVaultDocumentList({ query, context, requestId, runtime });
   }
   if (pathname === "/api/vault/documents" && method === "POST") {
     return handleVaultDocumentUpload({ body, context, requestId, runtime });
   }
+  if (pathname === "/api/vault/documents/upload" && method === "POST") {
+    return handleVaultDocumentUpload({ body, context, requestId, runtime });
+  }
   if (pathname === "/api/vault/search" && method === "GET") {
     return handleVaultSearch({ query, context, requestId, runtime });
+  }
+  if (pathname === "/api/vault/search/preferences" && ["GET", "POST"].includes(method)) {
+    return handleVaultSearchPreferences({ method, query, body, context, requestId, runtime });
   }
   if (pathname === "/api/vault/audit" && method === "GET") {
     return handleVaultAudit({ query, context, requestId, runtime });

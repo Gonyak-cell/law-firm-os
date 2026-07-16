@@ -1,0 +1,72 @@
+{
+  "schema_version": "law-firm-os.cti-s1-launch-tuw-crosswalk.v0.1",
+  "created_at": "2026-07-06T02:40:01Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "launch_tuw_work_package": "LT-PRE-W09",
+  "goal_id": "cti-s1-foundation",
+  "approval_signature_ref": "I4-CTI-G0-S0-OWNER-RATIFICATION-2026-07-06",
+  "authority_boundary": {
+    "s1_foundation_write_attempted": false,
+    "production_credentials_used_for_read_only_inventory": true,
+    "infrastructure_write_performed": false,
+    "lambda_configuration_write_performed": false,
+    "product_state_write_performed": false,
+    "migration_executed": false,
+    "restore_executed": false,
+    "cutover_executed": false,
+    "password_distribution_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "mappings": [
+    {
+      "cti_item": "S0 input gate",
+      "launch_tuw": "LT-PRE-W09-T01",
+      "status": "completed",
+      "artifact": "docs/goal-closeout/cti-s1-foundation/packet.json"
+    },
+    {
+      "cti_item": "S1-T01a",
+      "launch_tuw": "LT-PRE-W09-T02",
+      "status": "blocked_no_efs_or_lambda_vpc_target",
+      "artifact": "docs/launch/cti-s1-foundation-aws-inventory-2026-07-06.json"
+    },
+    {
+      "cti_item": "S1-T01b",
+      "launch_tuw": "LT-PRE-W09-T02",
+      "status": "blocked_no_store_path_env_or_durable_mount",
+      "artifact": "docs/launch/cti-s1-foundation-aws-inventory-2026-07-06.json"
+    },
+    {
+      "cti_item": "S1-T02",
+      "launch_tuw": "LT-PRE-W09-T03",
+      "status": "blocked_no_durable_audit_store_path",
+      "artifact": "docs/launch/cti-s1-foundation-blocker-register-2026-07-06.md"
+    },
+    {
+      "cti_item": "S1-T03",
+      "launch_tuw": "LT-PRE-W09-T03",
+      "status": "blocked_session_secret_not_wired_to_runtime",
+      "artifact": "docs/launch/cti-s1-foundation-aws-inventory-2026-07-06.json"
+    },
+    {
+      "cti_item": "S1-T04",
+      "launch_tuw": "LT-PRE-W09-T04",
+      "status": "not_started_until_foundation_unblocked",
+      "artifact": "docs/goal-closeout/cti-s1-foundation/construction-inspection.json"
+    },
+    {
+      "cti_item": "S1-T05",
+      "launch_tuw": "LT-PRE-W09-T03",
+      "status": "blocked_restore_drill_schema_synthetic_only",
+      "artifact": "docs/launch/cti-s1-foundation-blocker-register-2026-07-06.md"
+    },
+    {
+      "cti_item": "S1-G",
+      "launch_tuw": "LT-PRE-W09-T05",
+      "status": "blocked_s1_stop_condition",
+      "artifact": "docs/goal-closeout/cti-s1-foundation/"
+    }
+  ],
+  "next_unblocker": "Owner-approved S1 durable target packet with EFS/access point or equivalent durable store, audit store path, session secret injection path, and real-data-safe restore rehearsal boundary."
+}

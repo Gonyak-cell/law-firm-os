@@ -1,0 +1,62 @@
+{
+  "schema_version": "law-firm-os.cti-launch-tuw-crosswalk.v0.1",
+  "crosswalk_id": "cti-s2-authentication-execute-crosswalk-2026-07-06",
+  "goal_id": "cti-s2-authentication-execute",
+  "launch_tuw_work_package": "LT-PRE-W13",
+  "status": "blocked_i8_s1_g_probe_conditions_unmet_after_s2_g_code_pass",
+  "approval_signature_refs": [
+    "I7-CTI-S2-AUTHENTICATION-UNBLOCK-PACKET-OWNER-APPROVAL-2026-07-06",
+    "I8-CTI-S2-S1G-AUTHENTICATED-PROBE-OWNER-APPROVAL-2026-07-06",
+    "I9-CTI-S2-AUTHENTICATION-EXECUTE-OWNER-APPROVAL-2026-07-06"
+  ],
+  "closeout_dir": "docs/goal-closeout/cti-s2-authentication-execute",
+  "validator": "scripts/validate-cti-s2-authentication-execute-closeout.mjs",
+  "mappings": [
+    {
+      "cti_item": "S2-T01",
+      "launch_tuw": "LT-PRE-W13-T01",
+      "status": "PASS_CODE_AND_TESTS",
+      "evidence": "credential-store provider implemented; operational login fixture test PASS."
+    },
+    {
+      "cti_item": "S2-T02",
+      "launch_tuw": "LT-PRE-W13-T02",
+      "status": "PASS_CODE_AND_TESTS",
+      "evidence": "verifyToken credential_rev/status test PASS."
+    },
+    {
+      "cti_item": "S2-T04",
+      "launch_tuw": "LT-PRE-W13-T03",
+      "status": "PASS_SOURCE_AND_TESTS",
+      "evidence": "desktop v0.1.10 source metadata and password-flow tests PASS; build/release not executed."
+    },
+    {
+      "cti_item": "S2-T06",
+      "launch_tuw": "LT-PRE-W13-T06",
+      "status": "PASS_VALIDATORS",
+      "evidence": "S2 execute validator and launch-TUW validator PASS."
+    },
+    {
+      "cti_item": "S1-G authenticated probe",
+      "launch_tuw": "LT-PRE-W13-T05",
+      "status": "BLOCKED_CONDITIONS_UNMET",
+      "evidence": "No production deployment, credential store write, approved production probe principal/session, or password issuance boundary."
+    }
+  ],
+  "authority_boundary": {
+    "s2_code_implemented": true,
+    "local_staging_synthetic_tests_executed": true,
+    "production_auth_code_deployed": false,
+    "lambda_configuration_mutated": false,
+    "production_credential_store_write_executed": false,
+    "actual_user_password_generation_issuance_distribution_executed": false,
+    "s1_g_authenticated_production_probe_executed": false,
+    "s3_tenant_migration_executed": false,
+    "s4_production_account_permission_injection_executed": false,
+    "cutover_executed": false,
+    "oidc_implementation_executed": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

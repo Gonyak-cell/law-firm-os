@@ -56,6 +56,10 @@ for (const domain of ["hire", "fire", "pay", "evaluation", "discipline", "termin
 const rag = read("packages/hrx/src/ai/rag.js");
 assert(rag.includes("authz.evaluate"), "RAG retriever must evaluate authz for every candidate source");
 assert(rag.includes("metadata_only"), "RAG prompt context must stay metadata_only");
+assert(rag.includes("chunkIndex") && rag.includes("matched_chunks"), "RAG retriever must use indexed full-text chunk matches");
+
+const sourceIngestion = read("packages/hrx/src/ai/source-ingestion.js");
+assert(sourceIngestion.includes("search_terms") && sourceIngestion.includes("search(query"), "source ingestion must build searchable chunk terms");
 
 const audit = read("packages/hrx/src/ai/audit.js");
 assert(audit.includes("prompt_hash") && audit.includes("output_hash"), "AI audit must hash prompt and output");
@@ -63,6 +67,10 @@ assert(audit.includes('payload_policy: "metadata_only"'), "AI audit must keep me
 
 const aiUi = read("apps/web/src/people/ai/HRAIAssistant.tsx");
 assert(aiUi.includes("참고 자료") && aiUi.includes("검토 상태"), "AI assistant UI must show reviewed citation and state labels");
+assert(aiUi.includes("data-hrx-ai-source-scope"), "AI assistant UI must show RAG source-scope state");
+
+const aiRoute = read("apps/api/src/routes/hrx/ai.js");
+assert(!aiRoute.includes("Grounded HRX advisory response"), "AI assistant route must not carry a hardcoded advisory answer");
 
 const analyticsUi = read("apps/web/src/people/analytics/HRAnalytics.tsx");
 assert(analyticsUi.includes("개별 상세") && analyticsUi.includes("row_level_details_included"), "Analytics UI must show aggregate-only privacy state");

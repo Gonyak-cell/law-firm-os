@@ -1,0 +1,51 @@
+{
+  "schema_version": "lawos.forest.integration.qa002.v1",
+  "tuw_id": "QA-002",
+  "generated_at": "2026-07-15T22:22:39Z",
+  "verdict": "PASS",
+  "candidate_ref": "forest-v0.1.17-integration-candidate-4c81d861",
+  "integration_sha": "4c81d861693472af48a680e5757b352bb9945b9b",
+  "execution_entry_sha": "11fe96abe19a99fdf7ac5b79276c7bed7f52b8bb",
+  "execution_exit_sha": "11fe96abe19a99fdf7ac5b79276c7bed7f52b8bb",
+  "execution_tree": "0a0f043a12a6851719ecaff85746b08e3712a8a2",
+  "candidate_product_diff_count": 0,
+  "web": {
+    "ui": { "files": 32, "passed": 143, "failed": 0, "skipped": 1, "duration_ms": 47681.115958, "serial_error_noise_count": 0 },
+    "typecheck": "PASS",
+    "build": "PASS",
+    "modules_transformed": 1719,
+    "output_files": 28,
+    "output_size": "14M",
+    "file_set_digest_sha256": "79eab1e4615c82a65ba1e4cebbb58069530f710cff21ee6579260e401a22e7a1",
+    "chunk_size_warning": true,
+    "largest_js_chunk_kb": 1133.54
+  },
+  "desktop": {
+    "smoke": { "files": 20, "passed": 102, "failed": 0, "skipped": 0 },
+    "file_bridge_entrypoint": { "passed": 17, "failed": 0, "validators_passed": 2 },
+    "session_entrypoint": { "passed": 37, "failed": 0 },
+    "update_entrypoint": { "passed": 3, "failed": 0 }
+  },
+  "unique_tests": { "cases": 246, "passed": 245, "failed": 0, "skipped": 1 },
+  "duplicate_entrypoint_executions": { "passed": 57, "failed": 0 },
+  "dependency_link_removed": true,
+  "root_checkout_fingerprint": "02751feb70e89afbfb00acf1dac14092cdef0c071be736a55aa6c6982b60d93c",
+  "canonical_pid": 55090,
+  "external_mutations": {
+    "production_write": false,
+    "production_traffic_change": false,
+    "tag_push": false,
+    "main_update": false,
+    "deployment": false,
+    "release_publish": false,
+    "go_live": false
+  },
+  "boundaries": {
+    "browser_profile_test_tuw": "QA-004",
+    "macos_package_tuw": "QA-005",
+    "windows_native_tuw": "QA-006",
+    "renderer_parity_tuw": "QA-007",
+    "macos_formal_distribution_verified": false,
+    "windows_native_authenticode_verified": false
+  }
+}

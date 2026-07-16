@@ -1,0 +1,20 @@
+{
+  "schema_version": "law-firm-os.desktop-people-no-roster-heading.v1",
+  "generated_at": "2026-07-09T03:46:06.160Z",
+  "status": "passed",
+  "app_bundle": "apps/desktop/dist/mac/matter.app",
+  "screenshot": "artifacts/manual-qa/desktop-people-no-roster-heading-2026-07-09.png",
+  "snapshot": {
+    "surface_text_sample": "현재 재직입사예정퇴사예정퇴사계약직더보기조직구성원 추가구성원직위소속부서이메일PETRA BRIDGE PARTNERS3명김양태대표이사PPETRA BRIDGE PARTNERSFinanceytkim@amic.kr박서영차장PPETRA BRIDGE PARTNERSFinancesypark@amic.kr조우상이사PPETRA BRIDGE PARTNERSFinancewsjo@amic.krAMIC Law4명박병준대표변호사AAMIC LawLegalbj.park@amic.kr서지원대표변호사AAMIC LawLegaljwsuh@amic.kr임영훈대표변호사AAMIC LawLegalyhlim@amic.kr조성민대표변호사AAMIC LawLegalsmcho@amic.krStaff2명윤태리실장AAMIC LawStafftryoon@amic.kr이예진대리AAMIC LawStaffyjlee@amic.kr",
+    "standard_header_count": 0,
+    "large_member_heading_count": 0,
+    "tabs_top": 203,
+    "table_top": 260,
+    "hero_bottom": 178,
+    "tabs_distance_from_hero": 25,
+    "table_distance_from_hero": 82,
+    "workforce_more_present": 1,
+    "workforce_add_present": 1,
+    "horizontal_overflow": false
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "schema_version": "law-firm-os.construction-inspection.v0.1",
+  "goal_id": "cti-password-reset-jwsuh-live-send",
+  "recorded_at": "2026-07-06T12:01:58.810Z",
+  "required_files": [
+    "docs/goal-closeout/cti-password-reset-jwsuh-live-send/packet.json",
+    "docs/goal-closeout/cti-password-reset-jwsuh-live-send/command-evidence.json",
+    "docs/goal-closeout/cti-password-reset-jwsuh-live-send/claude-review-result.json",
+    "docs/goal-closeout/cti-password-reset-jwsuh-live-send/construction-inspection.json",
+    "docs/goal-closeout/cti-password-reset-jwsuh-live-send/adjudication.md",
+    "docs/launch/cti-password-reset-jwsuh-live-send-owner-direction-2026-07-06.json",
+    "docs/launch/cti-password-reset-jwsuh-live-send-receipt-2026-07-06.json"
+  ],
+  "inspection": {
+    "owner_direction_recorded": true,
+    "one_recipient_live_send_target": true,
+    "live_send_status": "failed",
+    "other_users_not_sent": true,
+    "token_or_reset_url_recorded": false,
+    "password_or_secret_recorded": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

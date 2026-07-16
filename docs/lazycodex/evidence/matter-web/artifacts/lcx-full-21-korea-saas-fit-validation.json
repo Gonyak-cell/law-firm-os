@@ -1,0 +1,247 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.korea_saas_fit_validation.v0.1",
+  "generated_at": "2026-06-30T12:46:46.056Z",
+  "verdict": "PASS",
+  "source_refs": [
+    "docs/lazycodex/lcx-korea-saas-operating-fit-research-matrix-2026-06-30.md",
+    "docs/lazycodex/lcx-korea-saas-operating-fit-implementation-plan-2026-06-30.md",
+    "docs/lazycodex/lcx-openable-implementation-tuw-plan-2026-06-30.md",
+    "docs/lazycodex/lcx-openable-implementation-tuw-traceability-2026-06-30.md",
+    "docs/lazycodex/lcx-no-unimplemented-implementation-plan-2026-06-30.md"
+  ],
+  "axis_b_korea_saas_operating_fit": {
+    "official_source_ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10",
+      "S11",
+      "S12",
+      "S13",
+      "S14",
+      "S15",
+      "S16",
+      "S17",
+      "S18",
+      "S19",
+      "S20",
+      "S21",
+      "S22"
+    ],
+    "official_source_count": 22,
+    "matrix_row_count": 21,
+    "common_gate_count": 8,
+    "failure_status": "korea_saas_fit_missing"
+  },
+  "matrix_summary": [
+    {
+      "ui": "`?view=home`",
+      "source_ids": [
+        "S07",
+        "S08",
+        "S21"
+      ],
+      "exit_state": "`repo_implemented_home_queue`; no global action is decorative."
+    },
+    {
+      "ui": "Client-Matter-People operating spine",
+      "source_ids": [
+        "S07",
+        "S08",
+        "S13",
+        "S14",
+        "S15",
+        "S19",
+        "S20"
+      ],
+      "exit_state": "`repo_implemented_law_firm_spine`; no Matter action is completed from a detached Client or People context."
+    },
+    {
+      "ui": "`?view=matters#matter-vault`",
+      "source_ids": [
+        "S04",
+        "S05",
+        "S06",
+        "S07"
+      ],
+      "exit_state": "`repo_implemented_document_workspace`; external Vault write remains `external_dependency_required`."
+    },
+    {
+      "ui": "`?view=vault#vault-documents`",
+      "source_ids": [
+        "S04",
+        "S05",
+        "S06"
+      ],
+      "exit_state": "`repo_implemented_vault_documents`; storage mutation remains gated."
+    },
+    {
+      "ui": "`?view=matters#matter-import`",
+      "source_ids": [
+        "S09"
+      ],
+      "exit_state": "`repo_implemented_matter_import`; production migration remains blocked without approved runtime target."
+    },
+    {
+      "ui": "`?view=clients#client-import`",
+      "source_ids": [
+        "S09",
+        "S13"
+      ],
+      "exit_state": "`repo_implemented_client_import`; real migration remains `external_dependency_required`."
+    },
+    {
+      "ui": "`?view=clients#client-data`",
+      "source_ids": [
+        "S13",
+        "S14",
+        "S15",
+        "S22"
+      ],
+      "exit_state": "`repo_implemented_client_data`; enrichment/provider activation remains gated."
+    },
+    {
+      "ui": "`client-contracts`",
+      "source_ids": [
+        "S16",
+        "S17",
+        "S18"
+      ],
+      "exit_state": "`repo_implemented_contract_request`; e-sign envelope send remains provider-gated."
+    },
+    {
+      "ui": "`?view=clients#client-billing`",
+      "source_ids": [
+        "S10",
+        "S11",
+        "S12",
+        "S19",
+        "S20"
+      ],
+      "exit_state": "`repo_implemented_billing_request`; money movement and tax issue remain provider-gated."
+    },
+    {
+      "ui": "`matter-comms`",
+      "source_ids": [
+        "S21",
+        "S22"
+      ],
+      "exit_state": "`repo_implemented_comms_request`; external message send remains provider-gated."
+    },
+    {
+      "ui": "People setup rows: role, work profile, work schedule, work type, company org/settings",
+      "source_ids": [
+        "S01",
+        "S02"
+      ],
+      "exit_state": "`configured_or_config_request`; not static `setup_required`."
+    },
+    {
+      "ui": "People attendance rows: current status, records, upload, breaks, missing alerts, verification",
+      "source_ids": [
+        "S01",
+        "S02",
+        "S03"
+      ],
+      "exit_state": "`repo_implemented_attendance_ops`; live device feed/payroll close remain gated."
+    },
+    {
+      "ui": "People leave rows: leave types, accrual auto/manual, usage, annual leave notices",
+      "source_ids": [
+        "S01",
+        "S02",
+        "S03"
+      ],
+      "exit_state": "`repo_implemented_leave_ops`; legal/payroll finality remains blocked."
+    },
+    {
+      "ui": "People request/governance rows: custom requests, schedule requests, attendance requests, locks, force approval, close",
+      "source_ids": [
+        "S02",
+        "S03",
+        "S07",
+        "S08"
+      ],
+      "exit_state": "`repo_implemented_people_governance`; final approval/close remains owner-gated."
+    },
+    {
+      "ui": "People reports/pay rows: report snapshots/items, pay work profile, pay statement, pay rules, payroll provider",
+      "source_ids": [
+        "S03",
+        "S11"
+      ],
+      "exit_state": "`repo_implemented_payroll_request`; payroll calculation/disbursement remains false."
+    },
+    {
+      "ui": "People messages/notices",
+      "source_ids": [
+        "S01",
+        "S02"
+      ],
+      "exit_state": "`repo_implemented_people_message_request`; external send remains gated."
+    },
+    {
+      "ui": "People e-contract/employment contracts",
+      "source_ids": [
+        "S01",
+        "S02",
+        "S16",
+        "S17",
+        "S18"
+      ],
+      "exit_state": "`repo_implemented_employment_contract_request`; envelope send remains provider-gated."
+    },
+    {
+      "ui": "Global decisions: `calendar`, `finance`, `data-import`, `policies`",
+      "source_ids": [
+        "S07",
+        "S08",
+        "S10"
+      ],
+      "exit_state": "`repo_implemented_global_decision`; permanent top-level promotion remains owner-gated."
+    },
+    {
+      "ui": "`?view=settings#settings-advanced`",
+      "source_ids": [
+        "S05",
+        "S07",
+        "S08"
+      ],
+      "exit_state": "`repo_implemented_advanced_request`; risky option execution remains gated."
+    },
+    {
+      "ui": "Audit ledger/reconciliation",
+      "source_ids": [
+        "S06",
+        "S18",
+        "S19",
+        "S20"
+      ],
+      "exit_state": "`repo_implemented_audit_reconciliation`; compliance certification remains separate."
+    },
+    {
+      "ui": "Desktop/release proof",
+      "source_ids": [
+        "S19",
+        "S20"
+      ],
+      "exit_state": "`implemented_openable_truth_pack`; public release/go-live remains false."
+    }
+  ],
+  "boundary": {
+    "provider_schema_current_claim": false,
+    "provider_production_connection_claim": false,
+    "external_send_claim": false,
+    "payment_movement_claim": false,
+    "tax_invoice_issue_claim": false,
+    "payroll_disbursement_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

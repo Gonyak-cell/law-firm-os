@@ -1,0 +1,92 @@
+{
+  "schema_version": "law-firm-os.cp001-comparison-targets.v1",
+  "recorded_at_utc": "2026-07-15T13:47:23Z",
+  "recorded_at_kst": "2026-07-15T22:47:23+09:00",
+  "remote": {
+    "url": "https://github.com/Gonyak-cell/law-firm-os.git",
+    "fetch_refspec": "+refs/heads/*:refs/remotes/origin/*",
+    "fetch_prune_tags_completed": true,
+    "origin_main_local_sha": "fdd1e34a42ee11ad1e5049647048471be772f381",
+    "origin_main_remote_sha": "fdd1e34a42ee11ad1e5049647048471be772f381",
+    "origin_main_remote_match": true
+  },
+  "release_discovery": {
+    "github_release_list_limit": 20,
+    "published_stable_release_count": 0,
+    "stable_public_release_available": false,
+    "selected_baseline_reason": "No published stable release exists in the inspected release inventory; use the latest published and repository-verified v0.1.16 formal-candidate prerelease without promoting its claim boundary.",
+    "selected_tag": "matter-desktop-v0.1.16-20260713-137fa156c",
+    "selected_tag_remote_sha": "137fa156cdb6bb30bb3af72bf3e928ad7e6e4959",
+    "selected_release_name": "matter Desktop v0.1.16 Forest Formal Candidate",
+    "selected_release_published_at": "2026-07-13T13:58:24Z",
+    "selected_release_is_draft": false,
+    "selected_release_is_prerelease": true,
+    "selected_release_channel": "formal-candidate",
+    "selected_release_url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.16-20260713-137fa156c",
+    "macos_developer_id_codesign_notarization_stapler_gatekeeper": "PASS",
+    "windows_package_generated": true,
+    "windows_authenticode": false,
+    "windows_exact_published_installer_native_install_smoke": "not_run",
+    "stable_public_release_claimed": false
+  },
+  "targets": [
+    {
+      "order": 1,
+      "id": "origin_main",
+      "role": "latest_fetched_main",
+      "ref": "refs/remotes/origin/main",
+      "sha": "fdd1e34a42ee11ad1e5049647048471be772f381",
+      "tree": "1804e75a642f789027cac146ce25453e8970835e",
+      "committed_at": "2026-06-30T16:24:10+09:00",
+      "subject": "Merge pull request #166 from Gonyak-cell/codex/company-wide-rollout-gate"
+    },
+    {
+      "order": 2,
+      "id": "current_root",
+      "role": "user_owned_root_source_snapshot",
+      "ref": "codex/profile-contact-regression-fix",
+      "sha": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3",
+      "tree": "d1ad8ff46f03be395ad47c1a09163fd27f1c57f8",
+      "committed_at": "2026-07-13T19:55:24+09:00",
+      "subject": "Keep packaged leave QA roster external",
+      "working_tree_status_entries": 77,
+      "working_tree_tracked_entries": 56,
+      "working_tree_untracked_entries": 21,
+      "working_tree_sha256": "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3",
+      "mutation_policy": "read_only"
+    },
+    {
+      "order": 3,
+      "id": "release_baseline",
+      "role": "latest_verified_v0_1_16_release_baseline",
+      "ref": "refs/tags/matter-desktop-v0.1.16-20260713-137fa156c",
+      "sha": "137fa156cdb6bb30bb3af72bf3e928ad7e6e4959",
+      "tree": "0201c50f92309cab2bbbaeb89503486eb69ce75f",
+      "committed_at": "2026-07-13T22:41:15+09:00",
+      "subject": "Retire legacy UI and restore Forest login",
+      "claim_boundary": "published formal-candidate prerelease; not a stable public release"
+    },
+    {
+      "order": 4,
+      "id": "forest_checkpoint",
+      "role": "closed_forest_session_content_checkpoint",
+      "ref": "refs/heads/archive/forest-session-final-20260715",
+      "sha": "fbf7062398da1157ee1322d7440194c1b13f7e0f",
+      "tree": "ba90b1da33ed4abcdaeb7b51dd7f616bdf68c1a6",
+      "committed_at": "2026-07-15T15:37:53+09:00",
+      "subject": "checkpoint Forest leave and payroll implementation"
+    },
+    {
+      "order": 5,
+      "id": "candidate",
+      "role": "current_integration_candidate_entry",
+      "ref": "refs/heads/codex/forest-v0.1.16-release-20260713",
+      "sha": "c342cc56bcfc36f582610951b363b3ad737222cc",
+      "tree": "91684370f0b7e8cf5db591e72239ab1fea624e60",
+      "committed_at": "2026-07-15T22:42:00+09:00",
+      "subject": "docs(hrx): close RC-005 regression evidence"
+    }
+  ],
+  "target_count": 5,
+  "missing_sha_count": 0
+}

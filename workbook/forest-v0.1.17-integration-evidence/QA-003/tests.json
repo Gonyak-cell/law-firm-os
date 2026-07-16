@@ -1,0 +1,44 @@
+{
+  "schema_version": "lawos.forest.integration.qa003.tests.v1",
+  "tuw_id": "QA-003",
+  "verdict": "PASS",
+  "candidate_binding": {
+    "ref": "forest-v0.1.17-integration-candidate-4c81d861",
+    "commit": "4c81d861693472af48a680e5757b352bb9945b9b",
+    "non_workbook_diff_count": 0
+  },
+  "targeted": {
+    "files": 18,
+    "passed": 59,
+    "failed": 0,
+    "skipped": 0
+  },
+  "validators": {
+    "applicable": 10,
+    "passed": 10,
+    "failed": 0,
+    "critical_findings": 0
+  },
+  "non_acceptance_preflight": {
+    "name": "Matter-Vault R4 operator-local production secret readiness",
+    "status": "BLOCKED_PREREQUISITE",
+    "exit_code": 1,
+    "reason": "operator-local production .env intentionally absent"
+  },
+  "raw_log_sha256": {
+    "desktop-security.txt": "09cc560b0a114fcec32ab573198a09ab3620bddfcdcd39ece6e20d1444c25c8f",
+    "hrx-context-hardening.txt": "b210dbed73749b20166c2c518c15829d67e6574bf372eb7000c3f9014d4942cf",
+    "hrx-roster-source.txt": "82af59482c6e9df0d9dba901ee84227969df5be909e737c00ccd798117bc6b15",
+    "local-production-secret-preflight.txt": "770c8b3924a019e33a2a09b88669a9836a6cdc4ef2d2206fa00c0e5a74812540",
+    "migration-fresh.txt": "e3d2ec1ae4649430c51fba9a4374e9ccb24849d8b801bd181bb4960ac05fd5aa",
+    "migration-recovery.txt": "ca0a0c4dd79c87257ce82f94429c7919be664489edff0df8aca25ade96b72388",
+    "migration-targeted.tap": "403a5a4146831b3bc6472f2b71a1b50ed54a4efc7c3c6a1bfb1aaf1361cac6d7",
+    "migration-upgrade.txt": "800f2355f2e11aae03c9b7d4218fbbb1f0af0c532c9f316340c76ae811d891dd",
+    "no-public-release-claim.txt": "ae3db3a1837d68f343c00921c8522ed6202f6a2fdb0e31507d72b22376232553",
+    "public-renderer-pii.txt": "6f45859aa9e523d88abf9afa6ed79b8813217330dc8ca4526b6bafea1037f4f3",
+    "security-negative.txt": "f2bb3b9859bdc21beb99a6383d7b9791562e32f7b10765a2b36f6d561fb0fdeb",
+    "security-targeted.tap": "f3cc568d0c53ac0ce28b141ddaaa6c06196c79fc1c25d44b68e8bc27b15ea534",
+    "tracked-secret-scan.txt": "f26eafdd250760e1884452bd5cdfba7c600603f8ba4349fd052a4226af43111a",
+    "user-root-manifest-check.txt": "fe6a2056e6bc1341e854530049f2f3a019298cf391d73549024bcca258197481"
+  }
+}

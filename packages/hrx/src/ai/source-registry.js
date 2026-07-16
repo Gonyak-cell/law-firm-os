@@ -97,10 +97,12 @@ export function createHrxAiSourceRegistry(seed = []) {
     },
     list(query = {}) {
       const tags = Array.isArray(query.tags) ? query.tags : [];
+      const sourceRefs = Array.isArray(query.source_refs) ? new Set(query.source_refs) : null;
       return Object.freeze(
         [...sources.values()]
           .filter((source) => !query.tenant_id || source.tenant_id === query.tenant_id)
           .filter((source) => !query.source_type || source.source_type === query.source_type)
+          .filter((source) => !sourceRefs || sourceRefs.has(source.source_ref))
           .filter((source) => !query.sensitivity || source.sensitivity === query.sensitivity)
           .filter((source) => tags.every((tag) => source.tags.includes(tag)))
           .map((source) => Object.freeze(clone(source))),

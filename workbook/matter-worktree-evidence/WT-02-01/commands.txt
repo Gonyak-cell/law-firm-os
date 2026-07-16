@@ -1,0 +1,8 @@
+node --test apps/api/test/matter-worktree-api.test.js
+node --test apps/api/test/matter-profile-api.test.js apps/api/test/matter-worktree-api.test.js
+node --input-type=module -  # manual API handler driver, allowed member and denied outsider
+node --check apps/api/src/matter-worktree-read-api.js
+node --check apps/api/src/matter-runtime-context.js
+wc -l apps/api/src/matter-worktree-read-api.js
+git diff --check
+

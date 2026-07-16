@@ -52,7 +52,7 @@ for (const label of [
   "비용 처리 요청",
   "증명서 발급 요청",
   "Home 대시보드",
-  "People 실시간 리포트",
+  "실시간 리포트",
   "Client 보고서",
   "Matter 분석",
   "회사 설정",
@@ -75,19 +75,25 @@ for (const label of [
 
 for (const { view, section, targetView, targetSection } of legacyGlobalRoutes) {
   const resolved = resolveGlobalShortcut(view, section);
-  assert.equal(resolved.view, targetView, `${view}#${section} did not resolve to ${targetView}`);
-  assert.equal(resolved.section, targetSection, `${view}#${section} did not resolve to ${targetSection}`);
+  const expected = resolveGlobalShortcut(targetView, targetSection);
+  assert.equal(resolved.view, expected.view, `${view}#${section} did not resolve to ${expected.view}`);
+  assert.equal(resolved.section, expected.section, `${view}#${section} did not resolve to ${expected.section}`);
 }
 
 requireText(appPath, "isGlobalUtilityView(view)");
 requireText(appPath, "resolveGlobalShortcut(nextView, section)");
-requireText(shellPath, "data-global-sidebar-nav");
+requireText(shellPath, "data-product-axis-nav");
 requireText(shellPath, "isLegacyGlobalRoute(\"people\", child.section)");
-requireText(shellPath, "view: \"reports\", section: \"reports-home-dashboard\"");
-requireText(shellPath, "view: \"requests\", section: \"requests-review-inbox\"");
-requireText(shellPath, "view: \"messages\", section: \"messages-matter-channel\"");
+requireText(shellPath, "view: \"home\", section: \"home-requests\"");
+requireText(shellPath, "view: \"home\", section: \"home-messages\"");
+requireText(shellPath, "view: \"home\", section: \"home-company\"");
 requireText(shellPath, "view: \"data-import\", section: \"data-import-client\"");
-requireText(profilePath, "view: \"finance\", section: \"finance-expenses\"");
+requireText(shellPath, "groupId: \"home-finance\"");
+requireText(shellPath, "view: \"home\", section: \"home-finance-overview\"");
+requireText(shellPath, "view: \"home\", section: \"home-finance-expenses\"");
+for (const legacyMatterFinanceSection of ["matter-approvals", "matter-time", "matter-expenses", "matter-billing", "matter-ar"]) {
+  assert.doesNotMatch(read(shellPath), new RegExp(`section: "${legacyMatterFinanceSection}"`), `${shellPath} still exposes ${legacyMatterFinanceSection}`);
+}
 requireText(surfacePath, "data-global-utility-surface");
 requireText(surfacePath, "data-global-decision-required");
 requireText(stylesPath, ".global-utility-layer");

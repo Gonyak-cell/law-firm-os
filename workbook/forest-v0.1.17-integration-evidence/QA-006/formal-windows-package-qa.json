@@ -1,0 +1,116 @@
+{
+  "schema_version": "law-firm-os.formal-windows-package-qa.v1",
+  "generated_at": "2026-07-16T02:39:13.857Z",
+  "verdict": "BLOCKED_AUTHENTICODE",
+  "native_verdict": "PASS",
+  "source": {
+    "revision": "39ed9571b0e841e1a6480e6875fe7b6658f83465",
+    "source_tree": "42bb94f745b329053cc14325ef1251fc7d8475cd",
+    "source_dirty": false,
+    "renderer": {
+      "sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+      "file_count": 28,
+      "algorithm": "sha256(sorted sha256 file manifest with ./ relative paths)"
+    }
+  },
+  "package": {
+    "channel": "formal",
+    "app_id": "com.amic.matter.desktop",
+    "installer": {
+      "path": "apps\\desktop\\dist\\matter-0.1.17-win-x64.exe",
+      "sha256": "53e2b694e28ba29a068feaa313d862edbeca976912be7204d0e7968b69ab44b3"
+    },
+    "blockmap": {
+      "path": "apps\\desktop\\dist\\matter-0.1.17-win-x64.exe.blockmap",
+      "sha256": "03f05e5093edc1278c8600c1ba01d5e8e84f3391b524750fcf1d30b8aa08739e"
+    },
+    "unpacked_executable": {
+      "path": "apps\\desktop\\dist\\win-unpacked\\matter.exe",
+      "sha256": "9772e31fcaa6c7e4005392238aa096b55522f6572d01b2f27753c186fbf4a3f8"
+    },
+    "build_manifest_embedded": true,
+    "formal_marker_embedded": true,
+    "bundled_local_api_present": false,
+    "formal_local_api_default_disabled": true
+  },
+  "runtime": {
+    "topology": "installed_formal_app_with_external_exact_source_api",
+    "base_url_kind": "isolated_loopback_nonpackaged",
+    "profile": "local-dev",
+    "operator_token_used": false,
+    "synthetic_fixture_only": true,
+    "health_status": 200
+  },
+  "identity": {
+    "email": "jwsuh@amic.kr",
+    "user_id": "user_amic_jwsuh",
+    "display_name": "서지원",
+    "employee_id": "emp_amic_jwsuh",
+    "generic_session_fallback_absent": true
+  },
+  "scenarios": {
+    "nsis_install_completed": true,
+    "forest_login_rendered": true,
+    "signed_in": true,
+    "leave_rendered": true,
+    "payroll_rendered": true,
+    "restart_session_restored": true,
+    "nsis_uninstall_completed": true
+  },
+  "parity": {
+    "package_renderer_sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+    "installer_renderer_sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+    "renderer_file_count": 28,
+    "byte_identical": true
+  },
+  "authenticode": {
+    "installer": {
+      "status": "NotSigned",
+      "status_message": "The file D:\\a\\law-firm-os\\law-firm-os\\apps\\desktop\\dist\\matter-0.1.17-win-x64.exe is not digitally signed. You cannot run this script on the current system. For more information about running scripts and setting execution policy, see about_Execution_Policies at https://go.microsoft.com/fwlink/?LinkID=135170",
+      "signer_subject": null,
+      "thumbprint": null
+    },
+    "unpacked_executable": {
+      "status": "NotSigned",
+      "status_message": "The file D:\\a\\law-firm-os\\law-firm-os\\apps\\desktop\\dist\\win-unpacked\\matter.exe is not digitally signed. You cannot run this script on the current system. For more information about running scripts and setting execution policy, see about_Execution_Policies at https://go.microsoft.com/fwlink/?LinkID=135170",
+      "signer_subject": null,
+      "thumbprint": null
+    },
+    "valid": false,
+    "blocker": "No approved Authenticode provider or certificate is configured"
+  },
+  "screenshots": [
+    {
+      "name": "01-windows-formal-login",
+      "path": "artifacts\\QA-006\\01-windows-formal-login.png",
+      "sha256": "731f73414cd53cbc39f71ff20f844984bc98aa52b959eaaab36474b13d76f717"
+    },
+    {
+      "name": "02-windows-formal-leave",
+      "path": "artifacts\\QA-006\\02-windows-formal-leave.png",
+      "sha256": "bd2fcb22181d1036a01130b1d4c1d9a9af88fc17fae0ff81a9ef194a8861441a"
+    },
+    {
+      "name": "03-windows-formal-payroll",
+      "path": "artifacts\\QA-006\\03-windows-formal-payroll.png",
+      "sha256": "433ec2e50a88b725e47364309352425b9052f325a758dbb7b892adf105e62dc9"
+    },
+    {
+      "name": "04-windows-formal-restart-payroll",
+      "path": "artifacts\\QA-006\\04-windows-formal-restart-payroll.png",
+      "sha256": "08f66f04659dd13a2c6f147f0fbd0a9568cff7bc61a743f724423b61c2b4a1c3"
+    }
+  ],
+  "diagnostics": {
+    "page_error_count": 0,
+    "console_error_count": 0
+  },
+  "boundaries": {
+    "real_employee_write": false,
+    "production_runtime_used": false,
+    "aws_write": false,
+    "public_release_claim": false,
+    "production_go_live_claim": false,
+    "authenticode_claim": false
+  }
+}

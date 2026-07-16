@@ -1,0 +1,88 @@
+{
+  "schema_version": "law-firm-os.cp005-seo-jiwon-profile-link.v1",
+  "entry_sha": "55e6cfe111e5c56d8125b27570fca144bf6947dc",
+  "identity_contract": {
+    "account_email": "jwsuh@amic.kr",
+    "user_id": "user_amic_jwsuh",
+    "employee_id": "emp_amic_jwsuh",
+    "display_name": "서지원",
+    "checks": {
+      "account_exists": true,
+      "account_user_id": true,
+      "account_display_name": true,
+      "account_mfa_required": true,
+      "account_tenant": true,
+      "member_exists": true,
+      "member_user_join": true,
+      "member_employee_id": true,
+      "member_display_name": true,
+      "member_title": true,
+      "member_department": true,
+      "member_affiliation": true,
+      "member_organization": true,
+      "member_country": true,
+      "professional_kind": true,
+      "professional_experience": true,
+      "professional_education": true,
+      "professional_qualification": true,
+      "professional_practice_area": true
+    },
+    "failed_checks": []
+  },
+  "source_contracts": {
+    "checks": {
+      "profile_api_join": true,
+      "roster_registry": true,
+      "profile_surface": true,
+      "shell_generic_suppression": true,
+      "home_generic_suppression": true
+    },
+    "failed_checks": []
+  },
+  "photo_contract": {
+    "path": "apps/web/src/assets/members/seo-ji-won.png",
+    "sha256": "eba788dbe275a94873a87a08e35e74103f167c6e89e37d5faca9eb1173d7e09e",
+    "checks": {
+      "file_exists": true,
+      "png_magic": true,
+      "non_empty": true
+    },
+    "failed_checks": []
+  },
+  "test_inventory": {
+    "file_count": 6,
+    "missing_files": []
+  },
+  "current_internal_package_qa": {
+    "path": "docs/lazycodex/evidence/matter-profile/2026-07-10/packaged-desktop-smoke.json",
+    "sha256": "0edd69608f3261c118b436ae20d8880ff01082bbe854f7adc07bd11ae7065c02",
+    "screenshot_path": "docs/lazycodex/evidence/matter-profile/2026-07-10/profile-api-packaged.png",
+    "screenshot_sha256": "6c6c66bef8a1095517a2c6b362d4f1f2d45035df9aa4c191108e13e9595667ff",
+    "exact_build_sha": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c",
+    "renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96",
+    "product_runtime_unchanged_since_exact_build": true,
+    "checks": {
+      "passed": true,
+      "isolated_local_qa": true,
+      "profile_api_populated": true,
+      "signed_in": true,
+      "session_user_id": true,
+      "session_display_name": true,
+      "rendered_member_id": true,
+      "rendered_display_name": true,
+      "full_profile_contract": true,
+      "five_matter_fixtures": true,
+      "claim_boundaries_false": true
+    },
+    "failed_checks": [],
+    "verification_scope": "mac_internal_isolated_profile_and_matter_fixture_smoke"
+  },
+  "claim_boundary": {
+    "public_renderer_pii_requires_separate_validator": true,
+    "public_release": false,
+    "production_go_live": false,
+    "formal_macos_package": false,
+    "native_windows_package": false
+  },
+  "verdict": "PASS"
+}

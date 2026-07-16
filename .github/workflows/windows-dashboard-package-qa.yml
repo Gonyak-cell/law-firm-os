@@ -1,0 +1,54 @@
+name: Windows Dashboard Package QA
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "codex/**"
+    paths:
+      - ".github/workflows/windows-dashboard-package-qa.yml"
+      - "apps/desktop/**"
+      - "apps/web/**"
+      - "package.json"
+      - "package-lock.json"
+      - "scripts/prepare-matter-desktop-web-renderer.mjs"
+      - "scripts/build-matter-desktop-win-installer.mjs"
+      - "scripts/smoke-matter-desktop-dashboard-package.mjs"
+
+permissions:
+  contents: read
+
+jobs:
+  windows-dashboard-package-qa:
+    name: Windows packaged dashboard screen QA
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Prepare packaged renderer
+        run: npm --workspace apps/desktop run prepare:web-renderer
+
+      - name: Build Windows NSIS installer
+        run: npm --workspace apps/desktop run build:win:installer
+
+      - name: Run native packaged dashboard screen QA
+        run: npm run matter-desktop:dashboard-package-qa
+
+      - name: Upload Windows QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-dashboard-package-qa
+          path: artifacts/manual-qa/dashboard-package/win32/
+          if-no-files-found: error

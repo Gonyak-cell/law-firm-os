@@ -1,0 +1,9 @@
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md
+workbook/forest-v0.1.17-integration-evidence/MI-006/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/MI-006/commands.txt
+workbook/forest-v0.1.17-integration-evidence/MI-006/files.txt
+workbook/forest-v0.1.17-integration-evidence/MI-006/hashes.sha256
+workbook/forest-v0.1.17-integration-evidence/MI-006/main-only-matrix.tsv
+workbook/forest-v0.1.17-integration-evidence/MI-006/receipt.json
+workbook/forest-v0.1.17-integration-evidence/MI-006/semantic-review.md
+workbook/forest-v0.1.17-integration-evidence/MI-006/tests.json

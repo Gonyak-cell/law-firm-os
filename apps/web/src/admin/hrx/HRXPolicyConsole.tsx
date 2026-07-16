@@ -1,6 +1,5 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { SlidersHorizontal } from "lucide-react";
 import { DataTable, Panel } from "../../components/primitives.jsx";
 import { createHrxPolicyVersion, fetchHrxPolicies } from "../../people/hrxApiClient.ts";
 
@@ -63,11 +62,7 @@ export function HRXPolicyConsole() {
   }
 
   return (
-    <Panel id="people-policy" className="people-panel span-2" title="승인 규칙" meta="회사 설정 - 요청">
-      <div className="people-panel-kicker">
-        <SlidersHorizontal size={15} />
-        요청에 대한 승인 설정을 관리합니다
-      </div>
+    <Panel id="people-policy" className="people-panel span-2" title="승인 규칙">
       <form className="leave-request-form" onSubmit={submit}>
         <label>
           <span>규칙 이름</span>

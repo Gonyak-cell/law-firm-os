@@ -1,0 +1,29 @@
+# Product commit 039ddf41..72d12902
+package.json
+scripts/build-matter-desktop-mac.mjs
+scripts/build-matter-desktop-win.mjs
+scripts/build-matter-desktop-win-installer.mjs
+scripts/lib/matter-desktop-provenance.mjs
+scripts/release-matter-desktop-formal.mjs
+scripts/test/pv003-clean-sha-build-gate.test.mjs
+scripts/validate-pv003-clean-sha-build-gate.mjs
+
+# PV-003 evidence commit
+workbook/forest-v0.1.17-integration-evidence/PV-003/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/PV-003/commands.txt
+workbook/forest-v0.1.17-integration-evidence/PV-003/detached-positive-validation.json
+workbook/forest-v0.1.17-integration-evidence/PV-003/files.txt
+workbook/forest-v0.1.17-integration-evidence/PV-003/formal-windows-build-manifest.json
+workbook/forest-v0.1.17-integration-evidence/PV-003/macos-gate-pass-diagnostic-manifest.json
+workbook/forest-v0.1.17-integration-evidence/PV-003/negative-matrix.json
+workbook/forest-v0.1.17-integration-evidence/PV-003/post-build-validation.json
+workbook/forest-v0.1.17-integration-evidence/PV-003/receipt.json
+workbook/forest-v0.1.17-integration-evidence/PV-003/source-validation.json
+workbook/forest-v0.1.17-integration-evidence/PV-003/tests.txt
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md
+
+# Disposable matching-surface artifacts, intentionally outside Git and removed after QA
+/private/tmp/lawos-pv003-qa-72d12902/apps/desktop/dist/mac/matter-0.1.17-macos-build-manifest.json
+/private/tmp/lawos-pv003-qa-72d12902/apps/desktop/dist/win/matter-0.1.17-win-build-manifest.json
+/private/tmp/lawos-pv003-qa-72d12902/apps/desktop/dist/win/matter-0.1.17-win32-x64
+/private/tmp/lawos-pv003-qa-72d12902/apps/desktop/dist/win/matter-0.1.17-win32-x64-unsigned.zip

@@ -3,15 +3,20 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
+import { findRegisteredAccountByUserId } from "../src/matter-vault-account-registry.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
+import { apiSessionHeaders } from "./helpers/session.js";
 
 const TENANT = "tenant_cmp_g7_synthetic";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_cmp_g7_read&audit_hint_ref=audit_hint_cmp_g7_read`;
+const NON_PARTNER_ACCOUNT = findRegisteredAccountByUserId("user_amic_sypark");
+assert.ok(NON_PARTNER_ACCOUNT, "non-partner registered account fixture must exist");
 
-function permissionContext(effect = "allow") {
+function permissionContext(effect = "allow", roleIds = ["finance_user"]) {
   return JSON.stringify({
-    principal: { user_id: "user_cmp_g7_finance", tenant_id: TENANT, role_ids: ["finance_user"] },
+    principal: { user_id: "user_cmp_g7_finance", tenant_id: TENANT, role_ids: roleIds },
     rules: [{ id: `rule_finance_${effect}`, effect, action: "*" }],
     object_acl: [],
   });
@@ -26,11 +31,22 @@ async function withServer(callback, options = {}) {
   }
 }
 
+const sessionHeaderCache = new Map();
+
+async function signedHeaders(baseUrl, account = null) {
+  const cacheKey = `${baseUrl}:${account?.user_id ?? "default"}`;
+  if (!sessionHeaderCache.has(cacheKey)) sessionHeaderCache.set(cacheKey, await apiSessionHeaders(baseUrl, account ?? undefined));
+  return sessionHeaderCache.get(cacheKey);
+}
+
 async function json(baseUrl, path, options = {}) {
   const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
+    ...(options.noAuth ? {} : await signedHeaders(baseUrl, options.account)),
     ...(options.headers ?? {}),
   };
+  for (const [key, value] of Object.entries(headers)) {
+    if (value === undefined) delete headers[key];
+  }
   if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
   const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
   const body = await response.json();
@@ -60,11 +76,92 @@ test("G7 Finance list routes are permission gated and hide finance secrets", asy
     assert.equal(invoices.body.items[0].credential_material_included, false);
 
     const denied = await json(baseUrl, `/api/finance/invoices?${BASE_QUERY}`, {
-      headers: { [PERMISSION_CONTEXT_HEADER]: undefined },
+      noAuth: true,
+      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext() },
     });
-    assert.equal(denied.status, 403);
-    assert.equal(denied.body.count_leak_prevented, true);
+    assert.equal(denied.status, 401);
+    assert.ok(denied.body.safe_error_codes.includes("AUTH_SESSION_REQUIRED"));
   });
+});
+
+test("WP-FIN-5 signed staff sessions cannot read finance data and denial is audited", async () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [{ model_type: "Invoice", invoice_id: "invoice-wp-fin-5", tenant_id: TENANT, matter_id: "matter-wp-fin-5", amount_due: 100, currency: "KRW", status: "issued" }],
+  });
+  await withServer(async (baseUrl) => {
+    const denied = await json(baseUrl, `/api/finance/invoices?${BASE_QUERY}`, { account: NON_PARTNER_ACCOUNT });
+    assert.equal(denied.status, 403);
+    assert.deepEqual(denied.body.items, []);
+    assert.equal(denied.body.count_leak_prevented, true);
+    const audit = financeRepository.listAudit({ tenant_id: TENANT });
+    assert.equal(audit.at(-1).decision, "deny");
+    assert.equal(audit.at(-1).reason, "finance_scope_required:finance.billing.write");
+    assert.equal(audit.at(-1).metadata.raw_payload_included, false);
+  }, { financeRepository });
+});
+
+test("WP-FIN-2 exposes sanitized Payment and PaymentMatch read routes", async () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      { model_type: "Payment", payment_id: "payment-wp-fin-2", tenant_id: TENANT, matter_id: "matter-wp-fin-2", amount: 500, currency: "KRW", received_at: "2026-07-01", bank_reference: "secret-bank-ref", status: "received" },
+      { model_type: "PaymentMatch", payment_match_id: "match-wp-fin-2", tenant_id: TENANT, payment_id: "payment-wp-fin-2", invoice_id: "invoice-wp-fin-2", matched_amount: 300, currency: "KRW", matched_at: "2026-07-02", status: "matched" },
+    ],
+  });
+  await withServer(async (baseUrl) => {
+    const payments = await json(baseUrl, `/api/finance/payments?${BASE_QUERY}`);
+    const matches = await json(baseUrl, `/api/finance/payment-matches?${BASE_QUERY}`);
+    assert.equal(payments.status, 200);
+    assert.equal(matches.status, 200);
+    assert.equal(payments.body.items[0].amount, 500);
+    assert.equal(payments.body.items[0].bank_reference, undefined);
+    assert.equal(payments.body.items[0].bank_reference_included, false);
+    assert.equal(matches.body.items[0].matched_amount, 300);
+    assert.equal(matches.body.items[0].credential_material_included, false);
+  }, { financeRepository });
+});
+
+test("G7 Finance sensitive reads write durable allow audits without leaking payload metadata", async () => {
+  const financeStorePath = join(mkdtempSync(join(tmpdir(), "finance-api-g7-read-audit-")), "finance.json");
+  await withServer(async (baseUrl) => {
+    const time = await json(baseUrl, `/api/finance/time-entries?${BASE_QUERY}`);
+    assert.equal(time.status, 200);
+
+    const invoices = await json(baseUrl, `/api/finance/invoices?${BASE_QUERY}`);
+    assert.equal(invoices.status, 200);
+
+    const aging = await json(baseUrl, `/api/finance/ar-aging?${BASE_QUERY}&as_of_date=2026-07-15`);
+    assert.equal(aging.status, 200);
+
+    const balances = await json(baseUrl, `/api/finance/trust-balances?${BASE_QUERY}&matter_id=matter_cmp_g7_read_audit&currency=KRW`);
+    assert.equal(balances.status, 200);
+  }, { financeStorePath });
+
+  await withServer(async (baseUrl) => {
+    const audit = await json(baseUrl, `/api/finance/audit?${BASE_QUERY}`);
+    const requiredEvents = [
+      ["finance:time:read", "time_entry"],
+      ["finance:invoice:read", "invoice"],
+      ["finance:ar:read", "ar_aging"],
+      ["finance:trust_ledger:read", "trust_balance"],
+    ];
+
+    for (const [action, objectType] of requiredEvents) {
+      const event = audit.body.items.find(
+        (candidate) => candidate.action === action && candidate.object_type === objectType && candidate.decision === "allow",
+      );
+      assert.ok(event, `missing sensitive read audit for ${action}`);
+      assert.equal(event.reason, "finance_sensitive_read_allowed_after_permission_gate");
+      assert.equal(event.metadata.sensitive_read_audit_required, true);
+      assert.equal(event.metadata.raw_payload_included, false);
+      assert.equal(event.metadata.credential_material_included, false);
+      assert.equal(event.metadata.bank_reference_included, false);
+      assert.equal(event.metadata.journal_lines_included, false);
+      assert.equal("raw_payload" in event.metadata, false);
+      assert.equal("credential_material" in event.metadata, false);
+      assert.equal("bank_reference" in event.metadata, false);
+      assert.equal("journal_lines" in event.metadata, false);
+    }
+  }, { financeStorePath });
 });
 
 test("G7 Finance write routes persist time/payment state across restart", async () => {
@@ -164,8 +261,978 @@ test("G7 Finance WIP and AR aging routes stay safe-source", async () => {
     assert.equal(wip.body.items.length, 1);
     assert.equal(wip.body.items[0].production_ready_claim, false);
 
-    const aging = await json(baseUrl, `/api/finance/ar-aging?${BASE_QUERY}`);
+    const aging = await json(baseUrl, `/api/finance/ar-aging?${BASE_QUERY}&as_of_date=2026-07-15`);
     assert.equal(aging.status, 200);
     assert.equal(aging.body.items[0].production_ready_claim, false);
+    assert.equal(aging.body.items[0].bucket_61_90, 400000);
+    assert.equal(aging.body.items[0].bucket_31_60, 0);
+    assert.equal(aging.body.items[0].bucket_source, "due_date");
   });
+});
+
+test("G7 fee arrangement API drives fixed-fee billing calculation through invoice", async () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      {
+        model_type: "RateCard",
+        rate_card_id: "rate_api_g7_b11",
+        tenant_id: TENANT,
+        currency: "KRW",
+        effective_from: "2026-07-01",
+        role_rates: [{ role_id: "partner", hourly_rate: 100000 }],
+        status: "active",
+      },
+    ],
+  });
+
+  await withServer(async (baseUrl) => {
+    const arrangement = await json(baseUrl, "/api/finance/fee-arrangements", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-fee-arrangement-g7-b11",
+        fee_arrangement: {
+          fee_arrangement_id: "fee_arrangement_api_g7_b11",
+          tenant_id: TENANT,
+          matter_id: "matter_api_g7_b11",
+          billing_profile_id: "billing_profile_api_g7_b11",
+          rate_card_id: "rate_api_g7_b11",
+          type: "fixed",
+          fixed_fee_amount: 275000,
+        },
+      }),
+    });
+    assert.equal(arrangement.status, 201);
+    assert.equal(arrangement.body.item.type, "fixed");
+    assert.equal(arrangement.body.item.fixed_fee_amount, 275000);
+
+    const createdTime = await json(baseUrl, "/api/finance/time-entries", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-time-g7-b11",
+        time_entry: {
+          time_entry_id: "time_api_g7_b11",
+          tenant_id: TENANT,
+          matter_id: "matter_api_g7_b11",
+          role_id: "partner",
+          work_date: "2026-07-02",
+          narrative: "B11 fixed fee source",
+          duration_minutes: 60,
+          billable: true,
+        },
+      }),
+    });
+    assert.equal(createdTime.status, 201);
+
+    const approvedTime = await json(baseUrl, "/api/finance/time-entries/approve", {
+      method: "POST",
+      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("allow", ["partner"]) },
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_partner",
+        idempotency_key: "api-time-g7-b11-approve",
+        time_entry_id: "time_api_g7_b11",
+      }),
+    });
+    assert.equal(approvedTime.status, 200);
+
+    const wip = await json(baseUrl, "/api/finance/wip", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-wip-g7-b11",
+        matter_id: "matter_api_g7_b11",
+        rate_card_id: "rate_api_g7_b11",
+        fee_arrangement_id: "fee_arrangement_api_g7_b11",
+      }),
+    });
+    assert.equal(wip.status, 201);
+    assert.equal(wip.body.items[0].fee_arrangement_type, "fixed");
+    assert.equal(wip.body.items[0].billing_calculation_source, "fee_arrangement.fixed");
+    assert.equal(wip.body.items[0].amount, 275000);
+
+    const snapshot = await json(baseUrl, "/api/finance/wip-snapshots", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-wip-snapshot-g7-b11",
+        matter_id: "matter_api_g7_b11",
+        wip_snapshot_id: "wip_snapshot_api_g7_b11",
+        wip_item_ids: wip.body.items.map((item) => item.wip_item_id),
+      }),
+    });
+    assert.equal(snapshot.status, 201);
+    assert.equal(snapshot.body.item.total_amount, 275000);
+    assert.equal(snapshot.body.item.fee_arrangement_type, "fixed");
+
+    const prebill = await json(baseUrl, "/api/finance/prebills", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-prebill-g7-b11",
+        prebill: {
+          prebill_id: "prebill_api_g7_b11",
+          tenant_id: TENANT,
+          matter_id: "matter_api_g7_b11",
+          wip_snapshot_id: "wip_snapshot_api_g7_b11",
+          partner_reviewer_id: "user_cmp_g7_partner",
+          currency: "KRW",
+        },
+      }),
+    });
+    assert.equal(prebill.status, 201);
+    assert.equal(prebill.body.item.total_amount, 275000);
+    assert.equal(prebill.body.item.fee_arrangement_type, "fixed");
+
+    const approvedPrebill = await json(baseUrl, "/api/finance/prebills/approve", {
+      method: "POST",
+      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("allow", ["partner"]) },
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_partner",
+        idempotency_key: "api-prebill-g7-b11-approve",
+        prebill_id: "prebill_api_g7_b11",
+      }),
+    });
+    assert.equal(approvedPrebill.status, 200);
+
+    const invoice = await json(baseUrl, "/api/finance/invoices", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-invoice-g7-b11",
+        invoice: {
+          invoice_id: "invoice_api_g7_b11",
+          tenant_id: TENANT,
+          matter_id: "matter_api_g7_b11",
+          prebill_id: "prebill_api_g7_b11",
+          billing_client_party_id: "party_cmp_g7_api_b11",
+          currency: "KRW",
+          issued_at: "2026-07-02T00:00:00.000Z",
+        },
+      }),
+    });
+    assert.equal(invoice.status, 201);
+    assert.equal(invoice.body.item.amount_due, 275000);
+    assert.equal(invoice.body.item.fee_arrangement_type, "fixed");
+
+    const listed = await json(baseUrl, `/api/finance/fee-arrangements?${BASE_QUERY}`);
+    assert.equal(listed.status, 200);
+    assert.equal(listed.body.items.some((item) => item.fee_arrangement_id === "fee_arrangement_api_g7_b11"), true);
+  }, { financeRepository });
+});
+
+test("G7 fee arrangement API drives success-fee and retainer billing branches through invoice", async () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      {
+        model_type: "RateCard",
+        rate_card_id: "rate_api_g7_b11_variants",
+        tenant_id: TENANT,
+        currency: "KRW",
+        effective_from: "2026-07-01",
+        role_rates: [{ role_id: "partner", hourly_rate: 120000 }],
+        status: "active",
+      },
+    ],
+  });
+
+  await withServer(async (baseUrl) => {
+    async function driveFeeArrangementBranch({
+      suffix,
+      feeArrangement,
+      expectedWipAmount,
+      expectedStandardAmount,
+      expectedRetainerDrawdown = 0,
+      expectedSuccessFeeApplied = false,
+      expectedBillingSource,
+    }) {
+      const matterId = `matter_api_g7_b11_${suffix}`;
+      const feeArrangementId = `fee_arrangement_api_g7_b11_${suffix}`;
+      const timeEntryId = `time_api_g7_b11_${suffix}`;
+      const snapshotId = `wip_snapshot_api_g7_b11_${suffix}`;
+      const prebillId = `prebill_api_g7_b11_${suffix}`;
+      const invoiceId = `invoice_api_g7_b11_${suffix}`;
+
+      const arrangement = await json(baseUrl, "/api/finance/fee-arrangements", {
+        method: "POST",
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          permission_ref: "perm_ref_cmp_g7_write",
+          audit_hint_ref: "audit_hint_cmp_g7_write",
+          actor_id: "user_cmp_g7_finance",
+          idempotency_key: `api-fee-arrangement-g7-b11-${suffix}`,
+          fee_arrangement: {
+            fee_arrangement_id: feeArrangementId,
+            tenant_id: TENANT,
+            matter_id: matterId,
+            billing_profile_id: `billing_profile_api_g7_b11_${suffix}`,
+            rate_card_id: "rate_api_g7_b11_variants",
+            ...feeArrangement,
+          },
+        }),
+      });
+      assert.equal(arrangement.status, 201);
+      assert.equal(arrangement.body.item.type, feeArrangement.type);
+
+      const createdTime = await json(baseUrl, "/api/finance/time-entries", {
+        method: "POST",
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          permission_ref: "perm_ref_cmp_g7_write",
+          audit_hint_ref: "audit_hint_cmp_g7_write",
+          actor_id: "user_cmp_g7_finance",
+          idempotency_key: `api-time-g7-b11-${suffix}`,
+          time_entry: {
+            time_entry_id: timeEntryId,
+            tenant_id: TENANT,
+            matter_id: matterId,
+            role_id: "partner",
+            work_date: "2026-07-02",
+            narrative: `B11 ${suffix} source`,
+            duration_minutes: 60,
+            billable: true,
+          },
+        }),
+      });
+      assert.equal(createdTime.status, 201);
+
+      const approvedTime = await json(baseUrl, "/api/finance/time-entries/approve", {
+        method: "POST",
+        headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("allow", ["partner"]) },
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          permission_ref: "perm_ref_cmp_g7_write",
+          audit_hint_ref: "audit_hint_cmp_g7_write",
+          actor_id: "user_cmp_g7_partner",
+          idempotency_key: `api-time-g7-b11-${suffix}-approve`,
+          time_entry_id: timeEntryId,
+        }),
+      });
+      assert.equal(approvedTime.status, 200);
+
+      const wip = await json(baseUrl, "/api/finance/wip", {
+        method: "POST",
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          permission_ref: "perm_ref_cmp_g7_write",
+          audit_hint_ref: "audit_hint_cmp_g7_write",
+          actor_id: "user_cmp_g7_finance",
+          idempotency_key: `api-wip-g7-b11-${suffix}`,
+          matter_id: matterId,
+          rate_card_id: "rate_api_g7_b11_variants",
+          fee_arrangement_id: feeArrangementId,
+        }),
+      });
+      assert.equal(wip.status, 201);
+      assert.equal(wip.body.items[0].fee_arrangement_type, feeArrangement.type);
+      assert.equal(wip.body.items[0].billing_calculation_source, expectedBillingSource);
+      assert.equal(wip.body.items[0].amount, expectedWipAmount);
+      assert.equal(wip.body.items[0].standard_amount, expectedStandardAmount);
+      assert.equal(wip.body.items[0].retainer_drawdown_amount, expectedRetainerDrawdown);
+      assert.equal(wip.body.items[0].success_fee_applied, expectedSuccessFeeApplied);
+
+      const snapshot = await json(baseUrl, "/api/finance/wip-snapshots", {
+        method: "POST",
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          permission_ref: "perm_ref_cmp_g7_write",
+          audit_hint_ref: "audit_hint_cmp_g7_write",
+          actor_id: "user_cmp_g7_finance",
+          idempotency_key: `api-wip-snapshot-g7-b11-${suffix}`,
+          matter_id: matterId,
+          wip_snapshot_id: snapshotId,
+          wip_item_ids: wip.body.items.map((item) => item.wip_item_id),
+        }),
+      });
+      assert.equal(snapshot.status, 201);
+      assert.equal(snapshot.body.item.total_amount, expectedWipAmount);
+      assert.equal(snapshot.body.item.standard_amount, expectedStandardAmount);
+      assert.equal(snapshot.body.item.retainer_drawdown_total, expectedRetainerDrawdown);
+      assert.equal(snapshot.body.item.success_fee_applied, expectedSuccessFeeApplied);
+      assert.equal(snapshot.body.item.fee_arrangement_type, feeArrangement.type);
+
+      const prebill = await json(baseUrl, "/api/finance/prebills", {
+        method: "POST",
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          permission_ref: "perm_ref_cmp_g7_write",
+          audit_hint_ref: "audit_hint_cmp_g7_write",
+          actor_id: "user_cmp_g7_finance",
+          idempotency_key: `api-prebill-g7-b11-${suffix}`,
+          prebill: {
+            prebill_id: prebillId,
+            tenant_id: TENANT,
+            matter_id: matterId,
+            wip_snapshot_id: snapshotId,
+            partner_reviewer_id: "user_cmp_g7_partner",
+            currency: "KRW",
+          },
+        }),
+      });
+      assert.equal(prebill.status, 201);
+      assert.equal(prebill.body.item.total_amount, expectedWipAmount);
+      assert.equal(prebill.body.item.standard_amount, expectedStandardAmount);
+      assert.equal(prebill.body.item.retainer_drawdown_total, expectedRetainerDrawdown);
+      assert.equal(prebill.body.item.success_fee_applied, expectedSuccessFeeApplied);
+      assert.equal(prebill.body.item.fee_arrangement_type, feeArrangement.type);
+
+      const approvedPrebill = await json(baseUrl, "/api/finance/prebills/approve", {
+        method: "POST",
+        headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("allow", ["partner"]) },
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          permission_ref: "perm_ref_cmp_g7_write",
+          audit_hint_ref: "audit_hint_cmp_g7_write",
+          actor_id: "user_cmp_g7_partner",
+          idempotency_key: `api-prebill-g7-b11-${suffix}-approve`,
+          prebill_id: prebillId,
+        }),
+      });
+      assert.equal(approvedPrebill.status, 200);
+
+      const invoice = await json(baseUrl, "/api/finance/invoices", {
+        method: "POST",
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          permission_ref: "perm_ref_cmp_g7_write",
+          audit_hint_ref: "audit_hint_cmp_g7_write",
+          actor_id: "user_cmp_g7_finance",
+          idempotency_key: `api-invoice-g7-b11-${suffix}`,
+          invoice: {
+            invoice_id: invoiceId,
+            tenant_id: TENANT,
+            matter_id: matterId,
+            prebill_id: prebillId,
+            billing_client_party_id: `party_cmp_g7_api_b11_${suffix}`,
+            currency: "KRW",
+            issued_at: "2026-07-02T00:00:00.000Z",
+          },
+        }),
+      });
+      assert.equal(invoice.status, 201);
+      assert.equal(invoice.body.item.amount_due, expectedWipAmount);
+      assert.equal(invoice.body.item.standard_amount, expectedStandardAmount);
+      assert.equal(invoice.body.item.retainer_drawdown_total, expectedRetainerDrawdown);
+      assert.equal(invoice.body.item.success_fee_applied, expectedSuccessFeeApplied);
+      assert.equal(invoice.body.item.fee_arrangement_type, feeArrangement.type);
+      assert.equal(invoice.body.invoice_lines[0].amount, expectedWipAmount);
+      assert.equal(invoice.body.invoice_lines[0].retainer_drawdown_amount, expectedRetainerDrawdown);
+      assert.equal(invoice.body.invoice_lines[0].success_fee_applied, expectedSuccessFeeApplied);
+    }
+
+    await driveFeeArrangementBranch({
+      suffix: "success_met",
+      feeArrangement: {
+        type: "success_fee",
+        upfront_fee_amount: 50000,
+        success_fee_amount: 200000,
+        success_condition_met: true,
+      },
+      expectedWipAmount: 250000,
+      expectedStandardAmount: 120000,
+      expectedSuccessFeeApplied: true,
+      expectedBillingSource: "fee_arrangement.success_fee",
+    });
+
+    await driveFeeArrangementBranch({
+      suffix: "success_unmet",
+      feeArrangement: {
+        type: "success_fee",
+        upfront_fee_amount: 50000,
+        success_fee_amount: 200000,
+        success_condition_met: false,
+      },
+      expectedWipAmount: 50000,
+      expectedStandardAmount: 120000,
+      expectedSuccessFeeApplied: false,
+      expectedBillingSource: "fee_arrangement.success_fee",
+    });
+
+    await driveFeeArrangementBranch({
+      suffix: "retainer",
+      feeArrangement: {
+        type: "retainer",
+        retainer_amount: 80000,
+      },
+      expectedWipAmount: 40000,
+      expectedStandardAmount: 120000,
+      expectedRetainerDrawdown: 80000,
+      expectedSuccessFeeApplied: false,
+      expectedBillingSource: "fee_arrangement.retainer_drawdown",
+    });
+  }, { financeRepository });
+});
+
+test("G7 trust ledger API drives deposit drawdown refund balance report", async () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      {
+        model_type: "Invoice",
+        invoice_id: "invoice_api_g7_b12",
+        tenant_id: TENANT,
+        matter_id: "matter_api_g7_b12",
+        billing_client_party_id: "party_cmp_g7_api_b12",
+        amount_due: 250000,
+        amount_paid: 0,
+        currency: "KRW",
+        status: "issued",
+      },
+      {
+        model_type: "Invoice",
+        invoice_id: "invoice_api_g7_b12_negative",
+        tenant_id: TENANT,
+        matter_id: "matter_api_g7_b12",
+        billing_client_party_id: "party_cmp_g7_api_b12",
+        amount_due: 100000,
+        amount_paid: 0,
+        currency: "KRW",
+        status: "issued",
+      },
+    ],
+  });
+
+  await withServer(async (baseUrl) => {
+    const deposit = await json(baseUrl, "/api/finance/trust-deposits", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-trust-ledger-g7-b12-deposit",
+        deposit: {
+          trust_ledger_entry_id: "trust_ledger_api_g7_b12_deposit",
+          tenant_id: TENANT,
+          matter_id: "matter_api_g7_b12",
+          client_group_id: "client_group_api_g7_b12",
+          amount: 400000,
+          currency: "KRW",
+        },
+      }),
+    });
+    assert.equal(deposit.status, 201);
+    assert.equal(deposit.body.item.entry_type, "deposit");
+    assert.equal(deposit.body.item.segregated_client_funds, true);
+    assert.equal(deposit.body.trust_balance.available_balance, 400000);
+
+    const drawdown = await json(baseUrl, "/api/finance/trust-drawdowns", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-trust-ledger-g7-b12-drawdown",
+        drawdown: {
+          trust_ledger_entry_id: "trust_ledger_api_g7_b12_drawdown",
+          tenant_id: TENANT,
+          matter_id: "matter_api_g7_b12",
+          invoice_id: "invoice_api_g7_b12",
+          amount: 250000,
+          currency: "KRW",
+        },
+      }),
+    });
+    assert.equal(drawdown.status, 201);
+    assert.equal(drawdown.body.item.entry_type, "drawdown");
+    assert.equal(drawdown.body.invoice.status, "paid");
+    assert.equal(drawdown.body.invoice.trust_drawdown_amount, 250000);
+    assert.equal(drawdown.body.trust_balance.available_balance, 150000);
+
+    const refund = await json(baseUrl, "/api/finance/trust-refunds", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-trust-ledger-g7-b12-refund",
+        refund: {
+          trust_ledger_entry_id: "trust_ledger_api_g7_b12_refund",
+          tenant_id: TENANT,
+          matter_id: "matter_api_g7_b12",
+          amount: 150000,
+          currency: "KRW",
+        },
+      }),
+    });
+    assert.equal(refund.status, 201);
+    assert.equal(refund.body.item.entry_type, "refund_liability");
+    assert.equal(refund.body.trust_balance.available_balance, 0);
+    assert.equal(refund.body.trust_balance.refund_total, 150000);
+
+    const balances = await json(baseUrl, `/api/finance/trust-balances?${BASE_QUERY}&matter_id=matter_api_g7_b12&currency=KRW`);
+    assert.equal(balances.status, 200);
+    assert.equal(balances.body.items.length, 1);
+    assert.equal(balances.body.summary.deposit_total, 400000);
+    assert.equal(balances.body.summary.drawdown_total, 250000);
+    assert.equal(balances.body.summary.refund_total, 150000);
+    assert.equal(balances.body.summary.available_balance, 0);
+    assert.equal(balances.body.summary.negative_trust_balance_blocked, true);
+
+    const negative = await json(baseUrl, "/api/finance/trust-drawdowns", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-trust-ledger-g7-b12-negative",
+        drawdown: {
+          trust_ledger_entry_id: "trust_ledger_api_g7_b12_negative",
+          tenant_id: TENANT,
+          matter_id: "matter_api_g7_b12",
+          invoice_id: "invoice_api_g7_b12_negative",
+          amount: 1,
+          currency: "KRW",
+        },
+      }),
+    });
+    assert.equal(negative.status, 400);
+    assert.equal(negative.body.count_leak_prevented, true);
+
+    const audit = await json(baseUrl, `/api/finance/audit?${BASE_QUERY}`);
+    assert.ok(audit.body.items.some((event) => event.action === "trust_ledger.deposit.receive"));
+    assert.ok(audit.body.items.some((event) => event.action === "trust_ledger.drawdown.invoice"));
+    assert.ok(audit.body.items.some((event) => event.action === "trust_ledger.refund_liability.record"));
+  }, { financeRepository });
+});
+
+test("G7 approval expense disbursement and WIP lock routes feed WIP sources", async () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      {
+        model_type: "RateCard",
+        rate_card_id: "rate_api_g7_b14",
+        tenant_id: TENANT,
+        currency: "KRW",
+        effective_from: "2026-07-01",
+        role_rates: [{ role_id: "partner", hourly_rate: 100000 }],
+        status: "active",
+      },
+    ],
+  });
+
+  await withServer(async (baseUrl) => {
+    const createdTime = await json(baseUrl, "/api/finance/time-entries", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-time-g7-b14-1",
+        time_entry: {
+          time_entry_id: "time_api_g7_b14",
+          tenant_id: TENANT,
+          matter_id: "matter_api_g7_b14",
+          role_id: "partner",
+          work_date: "2026-07-02",
+          narrative: "B14 time source",
+          duration_minutes: 60,
+          billable: true,
+        },
+      }),
+    });
+    assert.equal(createdTime.status, 201);
+
+    const nonPartnerApproval = await json(baseUrl, "/api/finance/time-entries/approve", {
+      method: "POST",
+      account: NON_PARTNER_ACCOUNT,
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-time-g7-b14-nonpartner",
+        time_entry_id: "time_api_g7_b14",
+      }),
+    });
+    assert.equal(nonPartnerApproval.status, 403);
+    assert.equal(nonPartnerApproval.body.count_leak_prevented, true);
+
+    const approved = await json(baseUrl, "/api/finance/time-entries/approve", {
+      method: "POST",
+      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("allow", ["partner"]) },
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_partner",
+        idempotency_key: "api-time-g7-b14-approve",
+        time_entry_id: "time_api_g7_b14",
+      }),
+    });
+    assert.equal(approved.status, 200);
+    assert.equal(approved.body.item.status, "approved");
+    assert.equal(approved.body.item.approved_for_wip, true);
+
+    const expense = await json(baseUrl, "/api/finance/expenses", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-expense-g7-b14",
+        expense: {
+          expense_id: "expense_api_g7_b14",
+          tenant_id: TENANT,
+          matter_id: "matter_api_g7_b14",
+          expense_date: "2026-07-08",
+          receipt_document_id: "receipt_api_g7_b14",
+          amount: 25000,
+          currency: "KRW",
+          billable: true,
+          status: "approved",
+        },
+      }),
+    });
+    assert.equal(expense.status, 201);
+    assert.equal(expense.body.item.approved_for_wip, true);
+    assert.equal(expense.body.item.expense_date, "2026-07-08");
+    assert.equal(expense.body.item.production_ready_claim, false);
+
+    const disbursement = await json(baseUrl, "/api/finance/disbursements", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-disbursement-g7-b14",
+        disbursement: {
+          disbursement_id: "disbursement_api_g7_b14",
+          tenant_id: TENANT,
+          matter_id: "matter_api_g7_b14",
+          disbursed_at: "2026-07-09",
+          vendor_ref: "vendor_api_g7_b14",
+          amount: 15000,
+          currency: "KRW",
+          billable: true,
+        },
+      }),
+    });
+    assert.equal(disbursement.status, 201);
+    assert.equal(disbursement.body.item.recoverable, true);
+    assert.equal(disbursement.body.item.disbursed_at, "2026-07-09");
+
+    const wip = await json(baseUrl, "/api/finance/wip", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-wip-g7-b14",
+        matter_id: "matter_api_g7_b14",
+        rate_card_id: "rate_api_g7_b14",
+      }),
+    });
+    assert.equal(wip.status, 201);
+    const sourceTypes = new Set(wip.body.items.map((item) => item.source_model_type));
+    assert.deepEqual(sourceTypes, new Set(["TimeEntry", "Expense", "Disbursement"]));
+    assert.equal(wip.body.items.reduce((total, item) => total + item.amount, 0), 140000);
+
+    const snapshot = await json(baseUrl, "/api/finance/wip-snapshots", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-wip-snapshot-g7-b14",
+        matter_id: "matter_api_g7_b14",
+        wip_snapshot_id: "wip_snapshot_api_g7_b14",
+        wip_item_ids: wip.body.items.map((item) => item.wip_item_id),
+      }),
+    });
+    assert.equal(snapshot.status, 201);
+    assert.equal(snapshot.body.item.total_amount, 140000);
+    assert.equal(snapshot.body.item.immutable_snapshot, true);
+
+    const prebill = await json(baseUrl, "/api/finance/prebills", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-prebill-g7-b04",
+        prebill: {
+          prebill_id: "prebill_api_g7_b04",
+          tenant_id: TENANT,
+          matter_id: "matter_api_g7_b14",
+          wip_snapshot_id: snapshot.body.item.wip_snapshot_id,
+          partner_reviewer_id: "user_cmp_g7_partner",
+          currency: "KRW",
+        },
+      }),
+    });
+    assert.equal(prebill.status, 201);
+    assert.equal(prebill.body.item.status, "partner_review_required");
+
+    const nonPartnerPrebillApproval = await json(baseUrl, "/api/finance/prebills/approve", {
+      method: "POST",
+      account: NON_PARTNER_ACCOUNT,
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-prebill-g7-b04-nonpartner",
+        prebill_id: "prebill_api_g7_b04",
+      }),
+    });
+    assert.equal(nonPartnerPrebillApproval.status, 403);
+    assert.equal(nonPartnerPrebillApproval.body.count_leak_prevented, true);
+
+    const approvedPrebill = await json(baseUrl, "/api/finance/prebills/approve", {
+      method: "POST",
+      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("allow", ["partner"]) },
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_partner",
+        idempotency_key: "api-prebill-g7-b04-approve",
+        prebill_id: "prebill_api_g7_b04",
+      }),
+    });
+    assert.equal(approvedPrebill.status, 200);
+    assert.equal(approvedPrebill.body.item.status, "partner_approved");
+    assert.equal(approvedPrebill.body.item.approved_without_adjustment, true);
+    assert.equal(financeRepository.list({ tenant_id: TENANT, model_type: "BillingAdjustment" }).length, 0);
+
+    const rejectedPrebillSeed = await json(baseUrl, "/api/finance/prebills", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-prebill-g7-b04-reject-seed",
+        prebill: {
+          prebill_id: "prebill_api_g7_b04_reject",
+          tenant_id: TENANT,
+          matter_id: "matter_api_g7_b14",
+          wip_snapshot_id: snapshot.body.item.wip_snapshot_id,
+          partner_reviewer_id: "user_cmp_g7_partner",
+          currency: "KRW",
+        },
+      }),
+    });
+    assert.equal(rejectedPrebillSeed.status, 201);
+
+    const rejectedPrebill = await json(baseUrl, "/api/finance/prebills/reject", {
+      method: "POST",
+      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("allow", ["partner"]) },
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_partner",
+        idempotency_key: "api-prebill-g7-b04-reject",
+        prebill_id: "prebill_api_g7_b04_reject",
+        reason_code: "narrative_revision_required",
+      }),
+    });
+    assert.equal(rejectedPrebill.status, 200);
+    assert.equal(rejectedPrebill.body.item.status, "rejected");
+
+    const invoice = await json(baseUrl, "/api/finance/invoices", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-invoice-g7-b05",
+        invoice: {
+          invoice_id: "invoice_api_g7_b05",
+          tenant_id: TENANT,
+          matter_id: "matter_api_g7_b14",
+          prebill_id: "prebill_api_g7_b04",
+          billing_client_party_id: "party_cmp_g7_api_b05",
+          currency: "KRW",
+          issued_at: "2026-07-02T00:00:00.000Z",
+        },
+      }),
+    });
+    assert.equal(invoice.status, 201);
+    assert.equal(invoice.body.item.invoice_number, "INV-2026-000001");
+    assert.equal(invoice.body.item.mutates_issued_invoice, false);
+    assert.equal(invoice.body.item.amount_due, 140000);
+
+    const overpayment = await json(baseUrl, "/api/finance/payments", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-payment-g7-b06",
+        payment: {
+          payment_id: "payment_api_g7_b06",
+          tenant_id: TENANT,
+          bank_reference: "bank-overpayment-hidden",
+          amount: 160000,
+          currency: "KRW",
+        },
+      }),
+    });
+    assert.equal(overpayment.status, 201);
+
+    const partialMatch = await json(baseUrl, "/api/finance/payment-matches", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-payment-match-g7-b06-partial",
+        match: {
+          payment_match_id: "payment_match_api_g7_b06_partial",
+          tenant_id: TENANT,
+          payment_id: "payment_api_g7_b06",
+          invoice_id: "invoice_api_g7_b05",
+          amount: 70000,
+        },
+      }),
+    });
+    assert.equal(partialMatch.status, 201);
+    assert.equal(partialMatch.body.invoice.status, "partially_paid");
+    assert.equal(partialMatch.body.invoice.amount_paid, 70000);
+    assert.equal(partialMatch.body.payment.status, "partially_matched");
+    assert.equal(partialMatch.body.payment.unapplied_amount, 90000);
+
+    const finalMatch = await json(baseUrl, "/api/finance/payment-matches", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g7_write",
+        audit_hint_ref: "audit_hint_cmp_g7_write",
+        actor_id: "user_cmp_g7_finance",
+        idempotency_key: "api-payment-match-g7-b06-final",
+        match: {
+          payment_match_id: "payment_match_api_g7_b06_final",
+          tenant_id: TENANT,
+          payment_id: "payment_api_g7_b06",
+          invoice_id: "invoice_api_g7_b05",
+          amount: 70000,
+        },
+      }),
+    });
+    assert.equal(finalMatch.status, 201);
+    assert.equal(finalMatch.body.invoice.status, "paid");
+    assert.equal(finalMatch.body.payment.status, "partially_matched");
+    assert.equal(finalMatch.body.payment.unapplied_amount, 20000);
+
+    const audit = await json(baseUrl, `/api/finance/audit?${BASE_QUERY}`);
+    assert.ok(audit.body.items.some((event) => event.action === "time.entry.approve_for_wip"));
+    assert.ok(audit.body.items.some((event) => event.action === "expense.create"));
+    assert.ok(audit.body.items.some((event) => event.action === "disbursement.create"));
+    assert.ok(audit.body.items.some((event) => event.action === "wip.snapshot.lock"));
+    assert.ok(audit.body.items.some((event) => event.action === "prebill.approve_without_adjustment"));
+    assert.ok(audit.body.items.some((event) => event.action === "prebill.reject"));
+    assert.ok(audit.body.items.some((event) => event.action === "invoice.issue"));
+    assert.ok(audit.body.items.some((event) => event.action === "payment.match"));
+    assert.ok(audit.body.items.some((event) => event.reason === "finance_scope_required:finance.approve"));
+  }, { financeRepository });
+});
+
+test("G7 accounting CSV export filters period and balances journal rows", async () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      {
+        model_type: "JournalEntry",
+        journal_entry_id: "journal_api_g7_july",
+        tenant_id: TENANT,
+        matter_id: "matter_rp05_synthetic_opening",
+        source_ref: "invoice_api_g7_july",
+        currency: "KRW",
+        posted_at: "2026-07-05T00:00:00.000Z",
+        lines: [
+          { account: "ar", debit: 100000, credit: 0 },
+          { account: "revenue", debit: 0, credit: 100000 },
+        ],
+      },
+      {
+        model_type: "JournalEntry",
+        journal_entry_id: "journal_api_g7_june",
+        tenant_id: TENANT,
+        matter_id: "matter_rp05_synthetic_opening",
+        source_ref: "invoice_api_g7_june",
+        currency: "KRW",
+        posted_at: "2026-06-20T00:00:00.000Z",
+        lines: [
+          { account: "ar", debit: 50000, credit: 0 },
+          { account: "revenue", debit: 0, credit: 50000 },
+        ],
+      },
+    ],
+  });
+
+  await withServer(async (baseUrl) => {
+    const exported = await json(
+      baseUrl,
+      `/api/finance/accounting-export.csv?${BASE_QUERY}&from_date=2026-07-01&to_date=2026-07-31&idempotency_key=api-accounting-export-g7-b17`,
+    );
+    assert.equal(exported.status, 201);
+    assert.equal(exported.body.item.row_count, 2);
+    assert.equal(exported.body.item.debit_total, 100000);
+    assert.equal(exported.body.item.credit_total, 100000);
+    assert.equal(exported.body.item.balanced, true);
+    assert.equal(exported.body.item.bank_reference_included, false);
+    assert.equal(exported.body.item.credential_material_included, false);
+    assert.equal(exported.body.item.raw_journal_payload_included, false);
+    assert.match(exported.body.item.csv_text, /^journal_entry_id,posting_date,source_ref,matter_id,account,debit,credit,currency/);
+    assert.match(exported.body.item.csv_text, /journal_api_g7_july/);
+    assert.doesNotMatch(exported.body.item.csv_text, /journal_api_g7_june/);
+
+    const replay = await json(
+      baseUrl,
+      `/api/finance/accounting-export.csv?${BASE_QUERY}&from_date=2026-07-01&to_date=2026-07-31&idempotency_key=api-accounting-export-g7-b17`,
+    );
+    assert.equal(replay.status, 200);
+    assert.equal(replay.body.outcome, "idempotent_replay");
+
+    const audit = await json(baseUrl, `/api/finance/audit?${BASE_QUERY}`);
+    assert.ok(audit.body.items.some((event) => event.action === "accounting.export.csv.create"));
+    const readAudit = audit.body.items.find(
+      (event) =>
+        event.action === "finance:accounting_export:read" &&
+        event.object_type === "accounting_export" &&
+        event.decision === "allow",
+    );
+    assert.ok(readAudit);
+    assert.equal(readAudit.metadata.sensitive_read_audit_required, true);
+    assert.equal(readAudit.metadata.export_content_included_in_audit, false);
+    assert.equal(readAudit.metadata.raw_payload_included, false);
+    assert.equal(readAudit.metadata.credential_material_included, false);
+  }, { financeRepository });
 });

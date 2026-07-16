@@ -1,0 +1,12 @@
+{
+  "surface": "checked-in HRX roster source-of-truth JSON",
+  "invocation": "node --input-type=module; parse roster JSON and count stable identifiers/contact/manager fields",
+  "roster_count": 10,
+  "unique_display_name_count": 10,
+  "unique_work_email_count": 10,
+  "duplicate_display_name_count": 0,
+  "duplicate_work_email_count": 0,
+  "blank_mobile_phone_count": 1,
+  "manager_assignment_count": 3,
+  "verdict": "PASS for source structural integrity; workbook cross-match remains separately blocked"
+}

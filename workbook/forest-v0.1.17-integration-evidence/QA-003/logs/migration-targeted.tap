@@ -1,0 +1,27 @@
+✔ LV-MIG-001 previews count/hash without raw source refs and blocks unapproved writes (18.402167ms)
+✔ LV-MIG-001 executes an approved durable backfill, preserves source refs, and reruns with zero actions (9.818417ms)
+✔ LV-MIG-001 invalidates approval after an owner source change and blocks unresolved policies (9.427834ms)
+✔ LV-MIG-002 reconciles current vs recomputed balances and isolates missing and unexplained variance (12.271792ms)
+✔ MG-004 executes migrations 001-029 on a fresh SQLite database (41.581416ms)
+✔ MG-006 reruns, rolls back, and restores migrations without partial commits (452.736333ms)
+✔ GOV-004 migrates an empty durable store and records a verifiable preflight backup (47.816833ms)
+✔ GOV-004 preserves existing rows and rejects changed SQL under an applied migration id (53.339333ms)
+✔ GOV-004 restores the exact durable snapshot after a mid-sequence migration failure (8.192208ms)
+✔ GOV-004 refuses a tampered backup before restore (0.547708ms)
+✔ MG-005 upgrades 010, 020, and 025 file databases without data loss (567.681ms)
+✔ HRX migrations create required tables idempotently (1.239375ms)
+✔ HRX core migration is non-destructive (0.15575ms)
+✔ HRX core migration preserves Employee/User separation (0.058167ms)
+✔ HRX migration runner applies core migration idempotently (3.956417ms)
+✔ HRX migration loader rejects destructive SQL (0.932083ms)
+✔ PY-MIG-001 keeps dry-run receipts repo-safe and requires an exact owner manifest (5.795125ms)
+✔ PY-MIG-001 executes once, reconciles leave balances, and restores the exact backup (2.90725ms)
+✔ PY-MIG-001 blocks missing employees, conflicting profiles, and unexplained leave variance (6.461583ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1695.656375

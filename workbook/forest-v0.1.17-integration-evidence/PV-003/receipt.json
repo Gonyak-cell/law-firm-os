@@ -1,0 +1,93 @@
+{
+  "schema_version": "law-firm-os.pv003.acceptance.v1",
+  "tuw": "PV-003",
+  "verdict": "PASS",
+  "entry_sha": "039ddf41b69e227eff14507c33d7126b33033be5",
+  "product_exit_sha": "72d12902884c9eab47668748f012577c2e92820a",
+  "product_exit_tree": "7af8367b926497e80b4e00d64addd8606f25f95d",
+  "gate": {
+    "formal_only": true,
+    "expected_full_sha_required": true,
+    "head_must_equal_expected_sha": true,
+    "source_must_be_clean": true,
+    "protected_entrypoint_count": 4,
+    "formal_bypass_count": 0,
+    "allowed_refs": [
+      "main",
+      "integration/forest-v<semver>",
+      "release/forest-v<semver>",
+      "DETACHED exact SHA"
+    ],
+    "fixed_generated_evidence_exceptions": [
+      "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
+      "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md"
+    ]
+  },
+  "negative_matrix": {
+    "dirty_entrypoints": {"total": 4, "blocked": 4, "artifact_mutations": 0},
+    "unauthorized_branch_entrypoints": {"total": 4, "blocked": 4, "artifact_mutations": 0},
+    "sha_mismatch_validator_blocked": true,
+    "sha_mismatch_actual_build_blocked": true,
+    "sha_mismatch_artifact_created": false,
+    "missing_sha_blocked": true,
+    "abbreviated_sha_blocked": true
+  },
+  "actual_positive": {
+    "worktree": "disposable detached exact-SHA worktree",
+    "gate_verdict": "PASS",
+    "windows_build_verdict": "PASS",
+    "windows_build_manifest_sha256": "4bb803c639c93c78521ea70b8e7ab0b69c88ae4ff2c3d6b2b971535092c3c18f",
+    "windows_installer_manifest_sha256": "df06867bce9a15393b29cd0fea8eb79f43fd6561174792d01e61e06f6ec15d4b",
+    "windows_unsigned_zip_sha256": "e867d8268c6f0fc4d8db5f9c38fc68906e698617bf1c45f40951903183fe03b4",
+    "renderer_sha256": "f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445",
+    "renderer_files": 28,
+    "packaged_external_manifest_equal": true,
+    "post_build_receipt_only_gate_verdict": "PASS",
+    "macos_provenance_gate_verdict": "PASS",
+    "macos_distribution_gate_verdict": "BLOCKED_EXPECTED",
+    "macos_diagnostic_manifest_sha256": "b8836ec004952dd73bfe74f2755ec31e32c8089b7b87dc939db22214b1f0096d",
+    "formal_release_assembler_gate_verdict": "PASS",
+    "formal_release_artifact_precondition": "BLOCKED_EXPECTED"
+  },
+  "tests": {
+    "pv002_pv003_unit": {"total": 9, "pass": 9, "fail": 0},
+    "pv003_unit": {"total": 6, "pass": 6, "fail": 0},
+    "desktop_smoke": {"total": 102, "pass": 102, "fail": 0},
+    "pv002_package_provenance": "PASS",
+    "pv001_package_version": "PASS",
+    "public_renderer_pii": "PASS",
+    "syntax": "PASS",
+    "diff_check": "PASS",
+    "manual_build_qa": "PASS",
+    "ai_slop_review": "PASS"
+  },
+  "evidence_sha256": {
+    "provenance_helper": "6f725e03a5ebeb74f546e3e597dc9404b2c0ee72ffb6c020d3f82e68b7b4c8a7",
+    "gate_validator": "8bbec09305ff302a36d35e36884113352a4ffd2340c1b55c672ae8bdcfca330a",
+    "gate_unit_test": "ba37571d0333d7b3e812b5eab0ad87f793a5b426647043c445b261ebfc4f962b",
+    "source_validation": "aae069ae46f97d3247f6c74cf19b6ce3c344398643e82be879195c43d922c71e",
+    "detached_positive_validation": "82e6f730053667b78e14a27dafdab67401fd534afabc69f0e4ec33fdca22c413",
+    "post_build_validation": "7d1ddf359c3a8b2d1cf84721d5dd4cb6a44f5b7a7981c4f0f919a3ba82859ae5",
+    "red_test_output": "c76bacb742483a4b87ba70f95aac2d40f5debc9dd1277bcafcdb98e8a8eef4d5"
+  },
+  "preserved_root_checkout": {
+    "head": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3",
+    "branch": "codex/profile-contact-regression-fix",
+    "tracked_count": 56,
+    "untracked_count": 21,
+    "status_count": 77,
+    "fingerprint_sha256": "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3"
+  },
+  "boundaries": {
+    "accepted_macos_formal_package": false,
+    "macos_developer_id": false,
+    "macos_notarized": false,
+    "macos_stapled": false,
+    "macos_gatekeeper_distribution_ready": false,
+    "native_windows_runtime": false,
+    "windows_authenticode": false,
+    "public_release": false,
+    "production_go_live": false
+  },
+  "external_blockers": []
+}

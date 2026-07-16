@@ -1,0 +1,2 @@
+Exit: 1
+Failure: tree keyboard navigation and focus-visible rules were absent.

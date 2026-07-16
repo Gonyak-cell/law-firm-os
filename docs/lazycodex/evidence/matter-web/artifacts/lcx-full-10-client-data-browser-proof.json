@@ -1,0 +1,92 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.client_data_browser_proof.v0.1",
+  "generated_at": "2026-06-30T09:36:02.005Z",
+  "tuw_id": "LCX-FULL-10.06",
+  "verdict": "PASS",
+  "snapshot": {
+    "attrs": [
+      {
+        "name": "data-data-cloud-enrichment",
+        "value": "route-backed",
+        "text": "데이터 보강Client외부 연동2개 확인연동 요청동의와 보존보강 범위는 담당자 승인 후 적용됩니다.승인 확인외부 연동 등록아직 실행 전동의 상태아직 실행 전외부 연동상태범위외부 연결Salesforce Data Cloud외부 확인 대기기업 정보 / 관계 / Matter 맥락아니오FullContact 데이터 보강외부 확인 대"
+      },
+      {
+        "name": "data-enrichment-provider-admin",
+        "value": "provider-blocked",
+        "text": "외부 연동2개 확인연동 요청"
+      },
+      {
+        "name": "data-sf-b-w07-enrichment-job-action",
+        "value": "true",
+        "text": "작업 생성보강 작업 대기미리보기"
+      },
+      {
+        "name": "data-sf-b-w07-enrichment-preview",
+        "value": "true",
+        "text": "대상대기동의대기신뢰도대기외부 연결대기"
+      },
+      {
+        "name": "data-sf-b-w07-enrichment-execute-provider-blocked-action",
+        "value": "true",
+        "text": "실행 요청외부 영수증 없이는 실행되지 않습니다.실행 확인"
+      },
+      {
+        "name": "data-identity-resolution",
+        "value": "route-backed",
+        "text": "식별자 매칭자동 병합 없이 검토 후보만 만듭니다.후보 생성"
+      },
+      {
+        "name": "data-segment-activation",
+        "value": "provider-blocked",
+        "text": "대상 그룹 활성화외부 연동 확인과 되돌리기 계획이 필요합니다.활성화 확인"
+      },
+      {
+        "name": "data-sf-b-w07-audit",
+        "value": "true",
+        "text": "외부 응답 원문, 원문 식별자, 토큰, 연락값은 숨깁니다."
+      }
+    ],
+    "disabled_count": 1,
+    "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\nClient\nClient 관리\nClient 홈\nClient 목록\n12\n법인·개인 Client\n담당자\n수임 전 업무\n운영\n청구·수금\nClient 리포트\nClient 데이터\nClient 데이터 가져오기\nClient 설정\nClient\n\nClient, 담당자, Opportunity, 상담 이력을 한 화면에서 확인합니다.\n\n새로고침\n데이터 보강\nClient\n외부 연동\n2개 확인\n연동 요청\n동의와 보존\n보강 범위는 담당자 승인 후 적용됩니다.\n승인 확인\n외부 연동 등록\n아직 실행 전\n동의 상태\n아직 실행 전\n외부 연동\t상태\t범위\t외부 연결\nSalesforce Data Cloud\t외부 확인 대기\t기업 정보 / 관계 / Matter 맥락\t아니오\nFullContact 데이터 보강\t외부 확인 대기\t기업 정보 / 연락처 품질\t아니오\n보강 미리보기\n안전 출력\n작업 생성\n보강 작업 대기\n미리보기\n작업 상태\n아직 실행 전\n대상\n대기\n동의\n대기\n신뢰도\n대기\n외부 연결\n대기\n실행 요청\n외부 영수증 없이는 실행되지 않습니다.\n실행 확인\n실행 상태\n아직 실행 전\n결과와 통합 프로필\n읽기\n결과\t상태\t신뢰도\t원문\n프로필\nClient unified profile\n연결\n3\n동의\n승인 대기\n직접 식별자\n아니오\n매칭과 대상 그룹\n승인 관리\n식별자 매칭\n자동 병합 없이 검토 후보만 만듭니다.\n후보 생성\n매칭 상태\n아직 실행 전\n대상 그룹 활성화\n외부 연동 확인과 되돌리기 계획이 필요합니다.\n활성화 확인\n대상 그룹 상태\n아직 실행 전\n감사 경계\n0건\n작업\t대상\t보안\n외부 응답 원문, 원문 식별자, 토큰, 연락값은 숨깁니다.\nCLIENT 정보\nClient 1\n상태\n검토 필요\n대표 당사자\n미지정\n구성원\n2\n연결 Matter\n미지정\n잠재 Client\n1\nOpportunity\n1\n상담·문의\n1\nClient\n1\n담당자\n1\n권한 기준에 맞춰 표시됩니다.\n병합 검토 0건 / 실행 가능 0건\n데이터 보강 상태는 Client 데이터에서 확인합니다.\n보고서와 손익은 Client 리포트에서 확인합니다.\n레코드 작업\nClient name / Client status\n필드 업데이트\n담당자 일괄 변경\n승인 조건 확인\n승인 확인\n최근 작업 0건",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-10-screenshots/client-data.png"
+  },
+  "checks": [
+    {
+      "id": "workspace-mounted",
+      "passed": true
+    },
+    {
+      "id": "provider-blocked",
+      "passed": true
+    },
+    {
+      "id": "job-action-visible",
+      "passed": true
+    },
+    {
+      "id": "execute-provider-blocked",
+      "passed": true
+    },
+    {
+      "id": "identity-review-visible",
+      "passed": true
+    },
+    {
+      "id": "segment-provider-blocked",
+      "passed": true
+    },
+    {
+      "id": "audit-redaction-visible",
+      "passed": true
+    },
+    {
+      "id": "no-forbidden-text",
+      "passed": true
+    }
+  ],
+  "boundary": {
+    "browser_observation_only": true,
+    "provider_enrichment_live_claim": false,
+    "provider_receipt_claim": false
+  }
+}

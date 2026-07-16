@@ -1,0 +1,24 @@
+# CP-007 Acceptance
+
+- TUW: CP-007
+- status: DONE
+- entry_sha: `d1e84bff06eea94848b1372f13bb19be72923462`
+- exit_sha: `0e72dd1335c8e996388de16fbd8be441618330ed` (product/runtime build SHA; the evidence commit is intentionally separate)
+- exact build tree: `6600db315c6b83d723d575fc7036cd61146156a1`
+- changed_files: 18 product/runtime/test files in `0e72dd13`, plus CP-007 smoke/validator/evidence and refreshed Windows build receipt; see `files.txt`
+- build order: macOS internal ZIP/DMG completed at 2026-07-16 00:41 KST, then Windows internal directory/unsigned ZIP at 00:42 KST, both from the exact clean product SHA
+- renderer parity: Mac and Windows 27/27 files, manifest SHA-256 `ae037ad41c9b7c033819d33ee3325ab011fb77ad136d8472da54a2573a02043f`
+- runtime parity: Mac and Windows 1071/1071 files, manifest SHA-256 `e915c26e99119bd15c112ad8012cb9e42732c325bf6d5e32f3cb67bcf3112483`
+- runtime import graph: bundled `runtime/apps/api/src/server.js` reaches 378 modules and 831 imports; external source, unresolved import, and non-literal dynamic import counts are all 0
+- runtime boundary: internal packages contain the bundled API runtime and no formal marker; formal staging excludes the local runtime, roster, photos, and registration seed by source contract
+- actual package smoke: exact `matter.app` started its loopback API by internal default, `/api/health` returned 200, trusted `matterSession.api` returned the signed-in profile, and page/console errors were 0
+- canonical identity: `user_amic_jwsuh -> emp_amic_jwsuh -> 서지원 -> tenant_amic_matter_vault`; all six handoff tenant refs were canonical and synthetic tenant fallback count was 0
+- manual_qa: inspected the completed post-login Home screen at `output/playwright/cp007-packaged-runtime/signed-in-home.png`; current Forest shell, six product axes, `서지원 변호사님`, compact single-line records, and calendar rendered without a blocking overlay
+- screenshot handling: the image stays in ignored local output because its Home data is not repository-safe; only its path and SHA-256 `610ced4610de24f571b74ed1fe9885ccd86b2a1becdc96478f824477c49f7e9d` are recorded
+- test_result: Desktop 102/102, desktop security validator PASS over 2814 files, packaging validator PASS, packaged runtime validator PASS, local secret validator PASS, public renderer PII validator PASS, syntax/diff checks PASS
+- preserved user root checkout: tracked 56, untracked 21, fingerprint `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`
+- commands: see `commands.txt`
+- evidence_hashes: smoke script `0a834471ee151af053bfc1cd44910d2468c376d662d099aede3cc3a0b6fa1825`, validator `bccdd58aa943923f1013ca542e62a97379434624043f02b066a21e0da931ba65`, smoke receipt `d9f881486df9ed942d8e9ef1705cab09df13c1162898b47973e1d4d2efae7be6`, matrix `26590928908f963c64c9d59da46c162b419abb0067b05504dbd37f31f329d9cc`
+- known_limits: macOS proof is an unsigned internal functional package, not Developer ID signing/notarization/stapling/Gatekeeper; Windows proof is PE/ZIP structure and byte parity on Darwin, not native install/runtime/uninstall or Authenticode
+- external_blockers: none for CP-007; formal/native/public/production/go-live gates remain outside this TUW and false
+- AI slop review: pass; no UI or user-facing copy was added by CP-007

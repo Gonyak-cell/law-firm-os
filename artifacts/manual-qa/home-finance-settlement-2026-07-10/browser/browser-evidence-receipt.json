@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.home-finance-browser-evidence.v0.1",
+  "generated_at": "2026-07-10T09:00:27.707Z",
+  "status": "passed",
+  "evidence": [
+    {
+      "name": "01-overview-sidebar",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/browser/01-overview-sidebar.png",
+      "url": "http://127.0.0.1:5173/?view=home&ctx=allow&matter_id=matter-evidence-001#home-finance-overview",
+      "selector": "[data-home-finance-summary=\"true\"]"
+    },
+    {
+      "name": "02-monthly",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/browser/02-monthly.png",
+      "url": "http://127.0.0.1:5173/?view=home&ctx=allow&matter_id=matter-evidence-001#home-finance-monthly",
+      "selector": "[data-home-finance-monthly-table=\"true\"]"
+    },
+    {
+      "name": "03-clients-unlinked",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/browser/03-clients-unlinked.png",
+      "url": "http://127.0.0.1:5173/?view=home&ctx=allow&matter_id=matter-evidence-001#home-finance-clients",
+      "selector": "[data-home-finance-unlinked-client=\"true\"]"
+    },
+    {
+      "name": "04-time",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/browser/04-time.png",
+      "url": "http://127.0.0.1:5173/?view=home&ctx=allow&matter_id=matter-evidence-001#home-finance-time",
+      "selector": "[data-home-finance-operation=\"time\"]"
+    },
+    {
+      "name": "05-expenses",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/browser/05-expenses.png",
+      "url": "http://127.0.0.1:5173/?view=home&ctx=allow&matter_id=matter-evidence-001#home-finance-expenses",
+      "selector": "[data-home-finance-operation=\"expenses\"]"
+    },
+    {
+      "name": "06-billing",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/browser/06-billing.png",
+      "url": "http://127.0.0.1:5173/?view=home&ctx=allow&matter_id=matter-evidence-001#home-finance-billing",
+      "selector": "[data-home-finance-operation=\"billing\"]"
+    },
+    {
+      "name": "07-ar",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/browser/07-ar.png",
+      "url": "http://127.0.0.1:5173/?view=home&ctx=allow&matter_id=matter-evidence-001#home-finance-ar",
+      "selector": "[data-home-finance-operation=\"ar\"]"
+    },
+    {
+      "name": "08-matter-context-redirect",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/browser/08-matter-context-redirect.png",
+      "url": "http://127.0.0.1:5173/?view=home&ctx=allow&matter_id=matter-evidence-001#home-finance-billing",
+      "selector": "[data-home-finance-operation=\"billing\"]"
+    },
+    {
+      "name": "09-denied",
+      "path": "artifacts/manual-qa/home-finance-settlement-2026-07-10/browser/09-denied.png",
+      "url": "http://127.0.0.1:5173/?view=home&ctx=denied#home-finance-overview",
+      "selector": "[data-home-finance-state=\"denied\"]"
+    }
+  ],
+  "fixture_mode": "browser_mocked_api_contract",
+  "packaged_app_claim": false,
+  "production_ready_claim": false,
+  "public_release_claim": false,
+  "go_live_claim": false
+}

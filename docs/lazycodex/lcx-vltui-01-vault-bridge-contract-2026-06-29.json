@@ -24,6 +24,9 @@
     "required_runtime_secret_names": [
       "LAWOS_VAULT_BRIDGE_TOKEN"
     ],
+    "required_runtime_header_names": [
+      "x-lawos-vault-bridge-token"
+    ],
     "secret_values_recorded": false
   },
   "vault_app_contract": {
@@ -155,7 +158,7 @@
       "write_capable_state": false
     },
     {
-      "id": "law_bridge_bearer_missing_or_wrong",
+      "id": "law_bridge_header_missing_or_wrong",
       "surface": "Law Firm OS",
       "expected_http_status": 403,
       "safe_error_code": "MATTER_VAULT_BRIDGE_BLOCKED",

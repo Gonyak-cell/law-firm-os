@@ -1,3 +1,5 @@
+import { validateMatterCode } from "../../matter/src/canonical-identity-service.js";
+
 const OBJECT_ALIASES = Object.freeze({
   client: "client",
   clients: "client",
@@ -34,6 +36,7 @@ const FIELD_DEFINITIONS = Object.freeze({
   ]),
   matter: Object.freeze([
     Object.freeze({ field: "title", label: "Matter title", input_type: "text", max_length: 120 }),
+    Object.freeze({ field: "matter_code", label: "Matter code", input_type: "text", max_length: 120, validator: "matter_code" }),
     Object.freeze({ field: "wip_status", label: "WIP status", input_type: "select", options: FIELD_OPTIONS.matter_wip_status }),
     Object.freeze({ field: "risk_level", label: "Risk level", input_type: "select", options: FIELD_OPTIONS.matter_risk_level }),
   ]),
@@ -127,6 +130,15 @@ function validateText(value, maxLength = 120) {
   return text;
 }
 
+function validateFieldText(definition, value) {
+  if (definition.validator === "matter_code") {
+    const validation = validateMatterCode(value);
+    if (!validation.valid) throw new TypeError(`invalid matter_code: ${validation.errors.join(",")}`);
+    return validation.matter_code;
+  }
+  return validateText(value, definition.max_length);
+}
+
 function normalizeAllowedPatch(objectName, fieldUpdates = {}) {
   const allowed = new Map(FIELD_DEFINITIONS[objectName].map((field) => [field.field, field]));
   const patch = {};
@@ -134,7 +146,7 @@ function normalizeAllowedPatch(objectName, fieldUpdates = {}) {
   for (const [field, value] of Object.entries(fieldUpdates ?? {})) {
     const definition = allowed.get(field);
     if (!definition) throw new TypeError(`Unsupported field ${field}`);
-    if (definition.input_type === "text") patch[field] = validateText(value, definition.max_length);
+    if (definition.input_type === "text") patch[field] = validateFieldText(definition, value);
     else if (definition.input_type === "select") {
       if (!definition.options.includes(value)) throw new TypeError(`Unsupported option for ${field}`);
       patch[field] = value;
@@ -189,6 +201,7 @@ function safeRecord(config, record = {}) {
     return Object.freeze({
       ...common,
       title: record.title ?? null,
+      matter_code: record.matter_code ?? null,
       wip_status: record.wip_status ?? null,
       risk_level: record.risk_level ?? null,
       owner_display_name: record.owner_display_name ?? null,

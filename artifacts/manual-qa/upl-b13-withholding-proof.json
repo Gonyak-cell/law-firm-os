@@ -1,0 +1,95 @@
+{
+  "schema_version": "lawos.wave1.upl-b13.withholding-proof.v1",
+  "generated_at": "2026-07-12T05:26:13.429Z",
+  "row_id": "UPL-B-13",
+  "status": "LOCAL_WITHHOLDING_PASS_VENDOR_BLOCKED",
+  "scope": "local Korean 3.3 percent withholding proof for tax invoice model",
+  "strict_boundary": {
+    "local_3_3_withholding_model_passed": true,
+    "external_tax_invoice_vendor_selected": false,
+    "external_vendor_sandbox_roundtrip": false,
+    "production_ready_claim": false
+  },
+  "withholding": {
+    "gross_amount": 1000000,
+    "income_tax_rate": 0.03,
+    "local_income_tax_rate": 0.003,
+    "withholding_rate": 0.033,
+    "income_tax_amount": 30000,
+    "local_income_tax_amount": 3000,
+    "total_withholding_amount": 33000,
+    "net_payable_amount": 967000,
+    "withholding_profile": "kr_3_3_business_income",
+    "external_vendor_sandbox_claim": false,
+    "production_ready_claim": false
+  },
+  "tax_invoice": {
+    "tax_invoice_id": "tax_invoice_upl_b13_withholding_001",
+    "tenant_id": "tenant_upl_b13",
+    "invoice_id": "invoice_upl_b13_withholding_001",
+    "tax_registration_ref": "local-tax-registration-ref-upl-b13",
+    "withholding_profile": "kr_3_3_business_income",
+    "model_type": "TaxInvoice",
+    "matter_id": "matter_upl_b13",
+    "status": "issued",
+    "taxable_amount": 1000000,
+    "tax_amount": 100000,
+    "withholding": {
+      "gross_amount": 1000000,
+      "income_tax_rate": 0.03,
+      "local_income_tax_rate": 0.003,
+      "withholding_rate": 0.033,
+      "income_tax_amount": 30000,
+      "local_income_tax_amount": 3000,
+      "total_withholding_amount": 33000,
+      "net_payable_amount": 967000,
+      "withholding_profile": "kr_3_3_business_income",
+      "external_vendor_sandbox_claim": false,
+      "production_ready_claim": false
+    },
+    "withholding_amount": 33000,
+    "net_payable_amount": 967000,
+    "issued_at": "2026-07-12T05:26:13.429Z",
+    "resource_id": "tax_invoice_upl_b13_withholding_001",
+    "owner_module": "finance",
+    "created_at": "2026-07-12T05:26:13.429Z",
+    "updated_at": "2026-07-12T05:26:13.429Z",
+    "writes_product_state": true,
+    "creates_database_rows": true,
+    "updates_database_rows": false,
+    "deletes_database_rows": false,
+    "evaluates_runtime_permission": true,
+    "writes_audit_event": true,
+    "dispatches_finance_runtime": true,
+    "executes_api_handler": false,
+    "posts_gl_entries": false,
+    "g7_runtime_readiness_claim": "runtime_write_ready",
+    "production_ready_claim": false
+  },
+  "checks": [
+    {
+      "id": "withholding-rate-3-3",
+      "passed": true
+    },
+    {
+      "id": "income-tax-3-percent",
+      "passed": true
+    },
+    {
+      "id": "local-income-tax-0-3-percent",
+      "passed": true
+    },
+    {
+      "id": "net-payable-after-withholding",
+      "passed": true
+    },
+    {
+      "id": "tax-invoice-carries-withholding",
+      "passed": true
+    },
+    {
+      "id": "no-external-vendor-sandbox-claim",
+      "passed": true
+    }
+  ]
+}

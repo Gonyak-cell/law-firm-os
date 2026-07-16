@@ -1,0 +1,34 @@
+{
+  "schema_version": "law-firm-os.pv001-packaged-version-smoke.v1",
+  "generated_at": "2026-07-15T17:05:13.496Z",
+  "verdict": "PASS",
+  "product_build_sha": "6a57157a799e50092963faac0b0860522a218914",
+  "expected_version": "0.1.17",
+  "actual_app_version": "0.1.17",
+  "app_name": "@law-firm-os/desktop",
+  "app_path": "apps/desktop/dist/mac/matter.app/Contents/Resources/app",
+  "renderer_path": "apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html",
+  "ui": {
+    "heading": "Log in to matter",
+    "skin": "forest",
+    "loginScreen": "forest-split",
+    "loginIntroState": "complete",
+    "loginFormCount": 1,
+    "forestPhotoPanelCount": 1,
+    "loadedForestImageCount": 1,
+    "brokenImageCount": 0
+  },
+  "page_error_count": 0,
+  "console_error_count": 0,
+  "screenshot": {
+    "path": "workbook/forest-v0.1.17-integration-evidence/PV-001/screenshots/macos-login-version-0.1.17.png",
+    "sha256": "bc33472da385d32c05819a969251b948e1564e9144b6f4df85c2505dd605cb49"
+  },
+  "boundaries": {
+    "internal_package": true,
+    "signed_or_notarized_release_claim": false,
+    "windows_native_claim": false,
+    "public_release_claim": false,
+    "production_go_live_claim": false
+  }
+}

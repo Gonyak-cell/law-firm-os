@@ -20,10 +20,11 @@ test("HRX employees route POST GET PATCH persists and audits", async () => {
   const created = await route.handle({
     method: "POST",
     context,
-    body: { employee_id: "emp-001", display_name: "Ari Kim", status: "active" },
+    body: { employee_id: "emp-001", display_name: "Ari Kim" },
   });
   assert.equal(created.status, 201);
   assert.equal(created.body.employee.employee_id, "emp-001");
+  assert.equal(created.body.employee.status, "onboarding");
 
   const read = await route.handle({ method: "GET", context, params: { employee_id: "emp-001" } });
   assert.equal(read.status, 200);
@@ -33,11 +34,20 @@ test("HRX employees route POST GET PATCH persists and audits", async () => {
     method: "PATCH",
     context,
     params: { employee_id: "emp-001" },
-    body: { display_name: "Ari K.", status: "on_leave" },
+    body: { display_name: "Ari K.", status: "probation" },
   });
   assert.equal(patched.status, 200);
-  assert.equal(patched.body.employee.status, "on_leave");
+  assert.equal(patched.body.employee.status, "probation");
   assert.equal(audit.list({ tenant_id: "tenant-a" }).length, 3);
+
+  const invalid = await route.handle({
+    method: "PATCH",
+    context,
+    params: { employee_id: "emp-001" },
+    body: { status: "onboarding" },
+  });
+  assert.equal(invalid.status, 400);
+  assert.match(invalid.body.reason, /cannot transition from probation to onboarding/);
 });
 
 test("HRX employees route maps authz deny to safe 403", async () => {

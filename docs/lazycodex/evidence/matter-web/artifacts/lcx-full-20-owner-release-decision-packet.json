@@ -1,0 +1,236 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.owner_release_decision_packet.v0.1",
+  "generated_at": "2026-06-30T10:51:21.889Z",
+  "tuw_parent": "LCX-FULL-20",
+  "verdict": "PASS",
+  "status": "owner_release_decision_packet_recorded_pending_cutover",
+  "child_tuws": [
+    {
+      "tuw_id": "LCX-FULL-20.01",
+      "label": "final implementation evidence index",
+      "claim_status": "PASS",
+      "evidence_ref": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-20-owner-release-decision-packet.json",
+      "allowed_claim": "all LCX-FULL parent evidence artifacts are indexed"
+    },
+    {
+      "tuw_id": "LCX-FULL-20.02",
+      "label": "external receipt ledger",
+      "command": "npm run launch:external-receipts:validate",
+      "exit_code": 0,
+      "claim_status": "PASS",
+      "evidence_ref": "docs/launch/launch-external-receipt-ledger-validation.json",
+      "allowed_claim": "external receipt ledger is complete; it does not approve production cutover",
+      "blocked_reason": null,
+      "parsed_summary": {
+        "external_receipt_lane_count": 8,
+        "real_external_receipt_count": 8,
+        "pending_external_receipt_count": 0
+      },
+      "output_tail": "> law-firm-os@0.1.0 launch:external-receipts:validate > node scripts/validate-launch-external-receipt-ledger.mjs { \"report_json\": \"docs/launch/launch-external-receipt-ledger-validation.json\", \"report_markdown\": \"docs/launch/launch-external-receipt-ledger-validation.md\", \"verdict\": \"PASS\", \"external_receipt_lane_count\": 8, \"real_external_receipt_count\": 8, \"pending_external_receipt_count\": 0, \"finding_count\": 0, \"p0_count\": 0, \"p1_count\": 0 }"
+    },
+    {
+      "tuw_id": "LCX-FULL-20.03",
+      "label": "go/no-go decision packet",
+      "command": "npm run launch:final-go-live-decision:validate",
+      "exit_code": 0,
+      "claim_status": "PASS_RECORDED_PENDING_CUTOVER",
+      "evidence_ref": "docs/launch/final-go-live-decision-validation.json",
+      "allowed_claim": "final go-live approval is recorded, while actual launch/go-live remains false",
+      "blocked_reason": null,
+      "parsed_summary": {
+        "final_go_live_approval_recorded": true,
+        "actual_launch_go_live_claim": false,
+        "real_external_receipt_count": 8,
+        "pending_external_receipt_count": 0
+      },
+      "output_tail": "> law-firm-os@0.1.0 launch:final-go-live-decision:validate > node scripts/validate-final-go-live-decision.mjs { \"report_json\": \"docs/launch/final-go-live-decision-validation.json\", \"report_markdown\": \"docs/launch/final-go-live-decision-validation.md\", \"verdict\": \"PASS\", \"final_go_live_approval_recorded\": true, \"actual_launch_go_live_claim\": false, \"real_external_receipt_count\": 8, \"pending_external_receipt_count\": 0, \"finding_count\": 0, \"p0_count\": 0, \"p1_count\": 0 }"
+    },
+    {
+      "tuw_id": "LCX-FULL-20.04",
+      "label": "residual risk and premature-claim guard",
+      "command": "npm run lcx:full:no-premature-claim:validate",
+      "exit_code": 0,
+      "claim_status": "PASS",
+      "evidence_ref": null,
+      "allowed_claim": "residual risk register has no premature public/go-live/provider-production claims",
+      "blocked_reason": null,
+      "parsed_summary": {
+        "checked_files": 510,
+        "finding_count": 0,
+        "public_release_claim": false,
+        "production_go_live_claim": false,
+        "owner_approval_claim": false,
+        "provider_production_write_claim": false
+      },
+      "output_tail": "> law-firm-os@0.1.0 lcx:full:no-premature-claim:validate > node scripts/validate-lcx-full-no-premature-claim.mjs { \"verdict\": \"PASS\", \"checked_files\": 510, \"findings\": [], \"public_release_claim\": false, \"production_go_live_claim\": false, \"owner_approval_claim\": false, \"provider_production_write_claim\": false }"
+    },
+    {
+      "tuw_id": "LCX-FULL-20.05",
+      "label": "owner response intake",
+      "claim_status": "PASS_RECORDED_PENDING_CUTOVER",
+      "evidence_ref": "docs/launch/final-go-live-decision-validation.json",
+      "allowed_claim": "human final go-live approval is recorded only as a pre-cutover decision; agent cannot close public release",
+      "blocked_reason": null
+    }
+  ],
+  "evidence_index": {
+    "artifact_dir": "docs/lazycodex/evidence/matter-web/artifacts",
+    "artifact_count": 42,
+    "parent_coverage": [
+      {
+        "parent": "LCX-FULL-00",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-01",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-02",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-03",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-04",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-05",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-06",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-07",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-08",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-09",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-10",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-11",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-12",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-13",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-14",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-15",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-16",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-17",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-18",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-19",
+        "covered": true
+      },
+      {
+        "parent": "LCX-FULL-20",
+        "covered": true
+      }
+    ],
+    "missing_parents": [],
+    "artifact_refs": [
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-00-baseline-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-00-current-gap-inventory.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-01-redaction-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-01-state-model-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-02-guarded-ui-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-02-guarded-ui-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-03-approval-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-03-approval-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-04-provider-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-04-provider-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-05-run-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-06-matter-vault-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-06-matter-vault-email-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-06-matter-vault-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-07-vault-doc-action-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-07-vault-docs-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-07-vault-records-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-08-matter-import-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-08-matter-import-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-09-client-import-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-09-client-import-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-10-client-data-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-10-client-data-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-11-contracts-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-11-contracts-esign-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-12-billing-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-12-billing-provider-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-13-matter-comms-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-13-matter-comms-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-14-people-setup-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-14-people-setup-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-15-people-governance-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-15-people-governance-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-16-people-integrations-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-16-people-integrations-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-17-global-decisions-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-17-global-decisions-receipt.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-18-audit-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-18-audit-receipts-reconciliation.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-19-release-preflight-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-20-final-release-packet-validation.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-20-owner-release-decision-packet.json"
+    ]
+  },
+  "source_validations": {
+    "release_preflight_ref": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-19-release-preflight-proof.json",
+    "release_preflight_status": "preflight_recorded_with_blocked_gates",
+    "release_preflight_blocked_gates": [
+      "LCX-FULL-19.03"
+    ],
+    "external_receipts_validation": "PASS",
+    "final_go_live_decision_validation": "PASS"
+  },
+  "boundary": {
+    "final_go_live_approval_recorded": true,
+    "actual_launch_go_live_claim": false,
+    "production_cutover_executed_by_this_packet": false,
+    "company_wide_go_live_executed_by_this_packet": false,
+    "public_release_claim": false,
+    "app_store_or_public_distribution_claim": false,
+    "agent_closed_owner_review": false,
+    "external_receipts_count_as_production_cutover": false,
+    "blocked_release_gates_promoted_to_pass": false
+  },
+  "evidence_index_proof": {
+    "command": "rg -n LCX-FULL-00|LCX-FULL-20 docs/lazycodex/evidence",
+    "exit_code": 0,
+    "output_tail": "/artifacts/lcx-full-00-current-gap-inventory.json:39: \"LCX-FULL-20\": 5 docs/lazycodex/evidence/matter-web/artifacts/lcx-full-20-final-release-packet-validation.md:14:| LCX-FULL-20.01 | PASS | docs/lazycodex/evidence/matter-web/artifacts/lcx-full-20-owner-release-decision-packet.json | all LCX-FULL parent evidence artifacts are indexed | docs/lazycodex/evidence/matter-web/artifacts/lcx-full-20-final-release-packet-validation.md:15:| LCX-FULL-20.02 | PASS | docs/launch/launch-external-receipt-ledger-validation.json | external receipt ledger is complete; it does not approve production cutover | docs/lazycodex/evidence/matter-web/artifacts/lcx-full-20-final-release-packet-validation.md:16:| LCX-FULL-20.03 | PASS_RECORDED_PENDING_CUTOVER | docs/launch/final-go-live-decision-validation.json | final go-live approval is recorded, while actual launch/go-live remains false | docs/lazycodex/evidence/matter-web/artifacts/lcx-full-20-final-release-packet-validation.md:17:| LCX-FULL-20.04 | PASS | docs/lazycodex/evidence/matter-web/artifacts/lcx-full-20-owner-release-decision-packet.json | residual risk register has no premature public/go-live/provider-production claims | docs/lazycodex/evidence/matter-web/artifacts/lcx-full-20-final-release-packet-validation.md:18:| LCX-FULL-20.05 | PASS_RECORDED_PENDING_CUTOVER | docs/launch/final-go-live-decision-validation.json | human final go-live approval is recorded only as a pre-cutover decision; agent cannot close public release | docs/lazycodex/evidence/matter-web/artifacts/lcx-full-00-baseline-browser-proof.json:4: \"tuw_id\": \"LCX-FULL-00.05\","
+  }
+}

@@ -1,0 +1,692 @@
+{
+  "schema_version": "law-firm-os.upl-c05.browser-proof.v0.2",
+  "generated_at": "2026-07-03T09:34:36.945Z",
+  "verdict": "PASS",
+  "contract_ref": "UPL-C-05",
+  "api_runtime": "startApiServer+seeded-intake-master-matter-dms-repositories",
+  "url": "http://127.0.0.1:5205/?locale=ko&view=clients&data=live&ctx=allow#client-conflict",
+  "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-web/artifacts/upl-c05-screenshots/upl-c05-engagement-documents.png",
+  "checks": [
+    {
+      "id": "ui-drives-engagement-and-clearance-routes",
+      "passed": true,
+      "evidence": {
+        "write_kinds": [
+          "conflict_check",
+          "decision",
+          "waiver",
+          "engagement",
+          "clearance"
+        ]
+      }
+    },
+    {
+      "id": "engagement-payload-includes-template-document",
+      "passed": true,
+      "evidence": {
+        "template_document_id": "template_doc:engagement_ui_mr4qlmhy_mo1inn"
+      }
+    },
+    {
+      "id": "engagement-payload-includes-lx06-signed-upload",
+      "passed": true,
+      "evidence": {
+        "signed_document_upload_id": "signed_upload:engagement_ui_mr4qlmhy_mo1inn",
+        "expected_sha256": "fcd3cf8ecefd324d0ef0772f3a86057241458e797a5d5373712041d3933b96ba"
+      }
+    },
+    {
+      "id": "server-stores-signed-bytes-through-dms",
+      "passed": true,
+      "evidence": {
+        "dms_document_id": "signed_doc:engagement_ui_mr4qlmhy_mo1inn",
+        "file_object_id": "file:version:signed_doc:engagement_ui_mr4qlmhy_mo1inn:1"
+      }
+    },
+    {
+      "id": "downloaded-dms-object-hash-matches-signed-pdf",
+      "passed": true,
+      "evidence": {
+        "downloaded_sha256": "fcd3cf8ecefd324d0ef0772f3a86057241458e797a5d5373712041d3933b96ba"
+      }
+    },
+    {
+      "id": "clearance-uses-approved-engagement-document",
+      "passed": true,
+      "evidence": {
+        "engagement_id": "engagement_ui_mr4qlmhy_mo1inn"
+      }
+    },
+    {
+      "id": "engagement-document-success-rendered",
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "id": "browser-uses-signed-session-without-legacy-permission-context",
+      "passed": true,
+      "evidence": {
+        "api_request_count": 71
+      }
+    },
+    {
+      "id": "browser-proof-clean",
+      "passed": true,
+      "evidence": {
+        "console_events": 0,
+        "failed_requests": 0,
+        "page_errors": 0
+      }
+    },
+    {
+      "id": "no-session-token-or-raw-bytes-rendered",
+      "passed": true,
+      "evidence": {}
+    }
+  ],
+  "observed": {
+    "writes": [
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5205/api/intake/conflict-checks",
+        "has_authorization": true,
+        "has_permission_context": false,
+        "kind": "conflict_check",
+        "payload": {
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "permission_ref": "ui_cmp_g6_crm_intake_live",
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+          "actor_id": "user_amic_jwsuh",
+          "idempotency_key": "conflict:conflict_ui_mr4qlmer_qj62fp",
+          "conflict_check": {
+            "conflict_check_id": "conflict_ui_mr4qlmer_qj62fp",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "intake_request_id": "intake_upl_c05_new_client",
+            "party_snapshot": {
+              "party_ids": [
+                "party_upl_c05_new_client"
+              ]
+            },
+            "status": "snapshot_recorded",
+            "owner_user_id": "user_amic_jwsuh"
+          }
+        }
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5205/api/intake/conflict-decisions",
+        "has_authorization": true,
+        "has_permission_context": false,
+        "kind": "decision",
+        "payload": {
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "permission_ref": "ui_cmp_g6_crm_intake_live",
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+          "actor_id": "user_amic_jwsuh",
+          "idempotency_key": "decision:decision_ui_mr4qlmgl_pwcqlg",
+          "conflict_decision": {
+            "conflict_decision_id": "decision_ui_mr4qlmgl_pwcqlg",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "conflict_check_id": "conflict_ui_mr4qlmer_qj62fp",
+            "conflict_hit_ids": [
+              "hit_search_conflict_ui_mr4qlmer_qj62fp_MatterParty_party_upl_c05_adverse_0"
+            ],
+            "reviewer_id": "user_amic_jwsuh",
+            "decision": "clear",
+            "rationale": "ui_conflict_review"
+          }
+        }
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5205/api/intake/waivers",
+        "has_authorization": true,
+        "has_permission_context": false,
+        "kind": "waiver",
+        "payload": {
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "permission_ref": "ui_cmp_g6_crm_intake_live",
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+          "actor_id": "user_amic_jwsuh",
+          "idempotency_key": "waiver:waiver_ui_mr4qlmha_832n3x",
+          "waiver": {
+            "waiver_id": "waiver_ui_mr4qlmha_832n3x",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "intake_request_id": "intake_upl_c05_new_client",
+            "conflict_check_id": "conflict_ui_mr4qlmer_qj62fp",
+            "conflict_hit_ids": [
+              "hit_search_conflict_ui_mr4qlmer_qj62fp_MatterParty_party_upl_c05_adverse_0"
+            ],
+            "consent_document_id": "consent:waiver_ui_mr4qlmha_832n3x",
+            "approver_id": "user_amic_jwsuh",
+            "approval_reason": "ui_conflict_waiver"
+          }
+        }
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5205/api/intake/engagements",
+        "has_authorization": true,
+        "has_permission_context": false,
+        "kind": "engagement",
+        "payload": {
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "permission_ref": "ui_cmp_g6_crm_intake_live",
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+          "actor_id": "user_amic_jwsuh",
+          "idempotency_key": "engagement:engagement_ui_mr4qlmhy_mo1inn",
+          "engagement": {
+            "engagement_id": "engagement_ui_mr4qlmhy_mo1inn",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "intake_request_id": "intake_upl_c05_new_client",
+            "template_id": "matter_engagement_letter",
+            "signed_document_id": "signed_doc:engagement_ui_mr4qlmhy_mo1inn",
+            "signature_ref": "signature:signed_doc:engagement_ui_mr4qlmhy_mo1inn",
+            "template_document": {
+              "template_document_id": "template_doc:engagement_ui_mr4qlmhy_mo1inn",
+              "template_id": "matter_engagement_letter",
+              "document_title": "위임계약서",
+              "generation_state": "generated",
+              "merge_field_count": 3,
+              "document_payload_included": false,
+              "template_payload_included": false
+            },
+            "signed_document_upload": {
+              "signed_document_upload_id": "signed_upload:engagement_ui_mr4qlmhy_mo1inn",
+              "document_id": "signed_doc:engagement_ui_mr4qlmhy_mo1inn",
+              "signed_document_id": "signed_doc:engagement_ui_mr4qlmhy_mo1inn",
+              "template_document_id": "template_doc:engagement_ui_mr4qlmhy_mo1inn",
+              "signature_ref": "signature:signed_doc:engagement_ui_mr4qlmhy_mo1inn",
+              "content_sha256": "fcd3cf8ecefd324d0ef0772f3a86057241458e797a5d5373712041d3933b96ba",
+              "bytes_base64": "[redacted]",
+              "byte_size": 59,
+              "mime_type": "application/pdf",
+              "upload_state": "uploaded",
+              "lx_registry_ref": "LX-06",
+              "bytes_included": false,
+              "storage_pointer_ref_included": false
+            },
+            "approver_id": "user_amic_jwsuh"
+          }
+        }
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5205/api/intake/clearance-tokens",
+        "has_authorization": true,
+        "has_permission_context": false,
+        "kind": "clearance",
+        "payload": {
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "permission_ref": "ui_cmp_g6_crm_intake_live",
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+          "actor_id": "user_amic_jwsuh",
+          "idempotency_key": "clearance:clearance_ui_mr4qlmio_xi8shv",
+          "now": "2026-06-20T00:00:00.000Z",
+          "token": {
+            "clearance_token_id": "clearance_ui_mr4qlmio_xi8shv",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "intake_request_id": "intake_upl_c05_new_client",
+            "conflict_check_id": "conflict_ui_mr4qlmer_qj62fp",
+            "engagement_id": "engagement_ui_mr4qlmhy_mo1inn",
+            "snapshot_hash": "4e1acb7b13159e164333d11667eed83063b0ceb365d3082780cba5acab4d37e8",
+            "expires_at": "2026-06-27T00:00:00.000Z"
+          }
+        }
+      }
+    ],
+    "panel_text": "상담·문의 1\nHit 1건\n이해상충 검색 결과가 기록되었습니다.\n이해상충 검토\nWaiver 승인\n승인자 기록 필요\n검토 결정이 기록되었습니다.\nWaiver 승인 기록이 남았습니다.\n검토 결정\nWaiver 승인\n통과\n결정·수임 원장 확인됨\n수임 승인 완료.\n통과 처리되었습니다.\n수임 승인\n통과 처리\nMatter 개설\n통과 기록으로 개설 가능\nMatter 개설\nHit\t출처\t심각도\t상태\n신규 고객 주식회사\t과거 Matter\t높음\tcleared",
+    "api_requests": [
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5205/api/auth/login",
+        "has_authorization": false,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/portal/dashboard?tenant_id=tenant_cmp_g10_synthetic&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/portal/rfi?tenant_id=tenant_cmp_g10_synthetic&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=100",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/ai/review-queue?tenant_id=matter-runtime-tenant&permission_ref=ui_cmp_g9_ai_live&audit_hint_ref=ui_cmp_g9_ai_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/hrx/employees",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/data-room/projections?tenant_id=tenant_cmp_g10_synthetic&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/hrx/legal-people/search?client_id=client_lcx_001",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_upl_c07_contact_value_read&audit_hint_ref=ui_upl_c07_contact_value_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/activities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_activity_read&audit_hint_ref=ui_lcx_vltui_05_activity_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_proposal_read&audit_hint_ref=ui_lcx_vltui_05_proposal_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/client-settings?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_client_settings_read&audit_hint_ref=ui_lcx_vltui_05_client_settings_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/record-actions/client/client_group_rp04_amic_client_001/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_upl_c07_contact_value_read&audit_hint_ref=ui_upl_c07_contact_value_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5205/api/intake/conflict-checks",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/hrx/legal-people/search?client_id=client_lcx_001",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_upl_c07_contact_value_read&audit_hint_ref=ui_upl_c07_contact_value_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/activities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_activity_read&audit_hint_ref=ui_lcx_vltui_05_activity_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_proposal_read&audit_hint_ref=ui_lcx_vltui_05_proposal_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/client-settings?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_client_settings_read&audit_hint_ref=ui_lcx_vltui_05_client_settings_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/record-actions/client/client_group_rp04_amic_client_001/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/record-actions/client/client_group_rp04_amic_client_001/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_upl_c07_contact_value_read&audit_hint_ref=ui_upl_c07_contact_value_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5205/api/intake/conflict-decisions",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5205/api/intake/waivers",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5205/api/intake/engagements",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5205/api/intake/clearance-tokens",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/hrx/legal-people/search?client_id=client_lcx_001",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_upl_c07_contact_value_read&audit_hint_ref=ui_upl_c07_contact_value_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/activities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_activity_read&audit_hint_ref=ui_lcx_vltui_05_activity_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_proposal_read&audit_hint_ref=ui_lcx_vltui_05_proposal_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/client-settings?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_client_settings_read&audit_hint_ref=ui_lcx_vltui_05_client_settings_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/record-actions/client/client_group_rp04_amic_client_001/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/record-actions/client/client_group_rp04_amic_client_001/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5205/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_upl_c07_contact_value_read&audit_hint_ref=ui_upl_c07_contact_value_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      }
+    ],
+    "dms_readback": {
+      "document_id": "signed_doc:engagement_ui_mr4qlmhy_mo1inn",
+      "latest_sha256": "fcd3cf8ecefd324d0ef0772f3a86057241458e797a5d5373712041d3933b96ba",
+      "file_object_id": "file:version:signed_doc:engagement_ui_mr4qlmhy_mo1inn:1",
+      "file_object_sha256": "fcd3cf8ecefd324d0ef0772f3a86057241458e797a5d5373712041d3933b96ba",
+      "downloaded_sha256": "fcd3cf8ecefd324d0ef0772f3a86057241458e797a5d5373712041d3933b96ba",
+      "downloaded_byte_size": 59,
+      "raw_path_exposed": false,
+      "storage_pointer_ref_included": false,
+      "bytes_written_to_artifact": false
+    },
+    "stored_upload": {
+      "signed_document_upload_id": "signed_upload:engagement_ui_mr4qlmhy_mo1inn",
+      "content_sha256": "fcd3cf8ecefd324d0ef0772f3a86057241458e797a5d5373712041d3933b96ba",
+      "byte_size": 59,
+      "dms_document_id": "signed_doc:engagement_ui_mr4qlmhy_mo1inn",
+      "dms_file_object_id": "file:version:signed_doc:engagement_ui_mr4qlmhy_mo1inn:1",
+      "server_hash_recomputed": true,
+      "bytes_included": false,
+      "storage_pointer_ref_included": false
+    },
+    "console_events": [],
+    "failed_requests": [],
+    "page_errors": []
+  }
+}

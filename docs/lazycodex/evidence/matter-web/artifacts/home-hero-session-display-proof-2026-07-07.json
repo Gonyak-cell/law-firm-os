@@ -1,0 +1,33 @@
+{
+  "artifact_id": "home-hero-session-display-proof-2026-07-07",
+  "captured_at": "2026-07-07T02:31:20.220Z",
+  "verdict": "PASS",
+  "expected": "Home hero displays the current user as 이름 + 직책 + 님, not an internal user id.",
+  "observed": {
+    "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=0&desktop_session_ref=desktop%3Auser_amic_jwsuh%3A0&desktop_source_ref=desktop_offline_login&desktop_actor_ref=user_amic_jwsuh&desktop_tenant_ref=tenant_amic_matter_vault&desktop_expires_at=2026-07-07T02%3A20%3A28.359Z&desktop_role_ref=lawos_admin&desktop_role_ref=lawos_partner&desktop_role_ref=lawos_attorney&desktop_role_ref=security_admin&desktop_scope_ref=tenant.admin&desktop_scope_ref=user.admin&desktop_scope_ref=security.admin&desktop_scope_ref=cutover.execute&desktop_scope_ref=matter.read&desktop_scope_ref=matter.write&desktop_scope_ref=vault.read&desktop_scope_ref=vault.write&desktop_scope_ref=audit.read&desktop_scope_ref=audit.export&desktop_scope_ref=hrx.employee.read&desktop_scope_ref=hrx.document.read&desktop_scope_ref=hrx.leave.read&desktop_scope_ref=hrx.leave.write&desktop_scope_ref=hrx.approval.read&desktop_scope_ref=hrx.approval.write&desktop_scope_ref=hrx.legal_people.read&desktop_scope_ref=hrx.analytics.read&desktop_scope_ref=hrx.ai.assistant&desktop_scope_ref=hrx.ai.review.read&desktop_scope_ref=hrx.employee.write&desktop_scope_ref=hrx.document.write&desktop_scope_ref=hrx.attendance.read&desktop_scope_ref=hrx.attendance.write",
+    "title": "matter",
+    "heroTexts": [
+      "Welcome, 서지원 변호사님2026년 7월 7일 화요일오늘 처리할 Matter0Matter 상태를 확인하는 중입니다.승인 대기0현재 검토 대기 신호가 없습니다.",
+      "Welcome, 서지원 변호사님2026년 7월 7일 화요일오늘 처리할 Matter0Matter 상태를 확인하는 중입니다.승인 대기0현재 검토 대기 신호가 없습니다.",
+      "Welcome, 서지원 변호사님2026년 7월 7일 화요일",
+      "Welcome, 서지원 변호사님",
+      "오늘 처리할 Matter0Matter 상태를 확인하는 중입니다.승인 대기0현재 검토 대기 신호가 없습니다.",
+      "오늘 처리할 Matter0Matter 상태를 확인하는 중입니다.",
+      "승인 대기0현재 검토 대기 신호가 없습니다.",
+      "오늘의 운영 대기열"
+    ],
+    "matchedHeroText": "Welcome, 서지원 변호사님2026년 7월 7일 화요일오늘 처리할 Matter0Matter 상태를 확인하는 중입니다.승인 대기0현재 검토 대기 신호가 없습니다.",
+    "internalIdVisible": false,
+    "sessionState": "signed_in",
+    "sessionDisplayName": "서지원",
+    "sessionRoleIds": [
+      "lawos_admin",
+      "lawos_partner",
+      "lawos_attorney",
+      "security_admin"
+    ]
+  },
+  "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/home-hero-session-display-screenshots-2026-07-07/home-hero-session-display.png",
+  "pii_safe": true,
+  "secret_material_included": false
+}

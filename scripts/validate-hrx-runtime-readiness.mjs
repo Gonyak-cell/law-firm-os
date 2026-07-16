@@ -84,11 +84,16 @@ const runtimeEvidence = [
   ["sql_repository", "packages/hrx/src/repository-sql.js"],
   ["migration_runner", "packages/hrx/src/migrations/index.js"],
   ["documents_leave_audit_migration", "packages/hrx/src/migrations/002_hrx_documents_leave_audit.sql"],
+  ["attendance_migration", "packages/hrx/src/migrations/004_hrx_attendance.sql"],
+  ["overtime_migration", "packages/hrx/src/migrations/005_hrx_overtime.sql"],
   ["employee_user_link", "packages/hrx/src/identity-link.js"],
   ["tenant_actor_api_context", "apps/api/src/middleware/tenant-context.js"],
   ["actor_api_context", "apps/api/src/middleware/actor-context.js"],
   ["hrx_api_route", "apps/api/src/routes/hrx/employees.js"],
   ["hrx_route_policy_map", "apps/api/src/routes/hrx/route-policy-map.js"],
+  ["attendance_runtime_store", "packages/hrx/src/attendance.js"],
+  ["compensation_record_store", "packages/hrx/src/compensation.js"],
+  ["overtime_runtime_store", "packages/hrx/src/overtime.js"],
   ["hrx_route_authz_middleware", "apps/api/src/middleware/hrx-authz.js"],
   ["authz_scope", "packages/authz/src/hrx-sensitive-scopes.js"],
   ["durable_audit_event_store", "packages/audit/src/hrx-event-store-sql.js"],
@@ -97,6 +102,9 @@ const runtimeEvidence = [
   ["step_up_session_store", "packages/authz/src/hrx-step-up-session.js"],
   ["api_backed_people_ui", "apps/web/src/people/PeopleHome.tsx"],
   ["hrx_e2e_receipt", "apps/web/e2e/hrx/people-home.spec.ts"],
+  ["hrx_attendance_api_receipt", "apps/api/test/hrx-runtime-api.test.js"],
+  ["hrx_compensation_api_receipt", "packages/hrx/test/compensation.test.js"],
+  ["hrx_compensation_manual_qa", "artifacts/manual-qa/upl-d10-hrx-compensation-encryption-proof-2026-07-03.json"],
 ];
 
 const missingRuntimeEvidence = [];

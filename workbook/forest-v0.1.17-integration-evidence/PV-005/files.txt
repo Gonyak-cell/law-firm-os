@@ -1,0 +1,26 @@
+Product files:
+package.json
+scripts/lib/matter-desktop-provenance.mjs
+scripts/lib/matter-desktop-release-paths.mjs
+scripts/release-matter-desktop-formal.mjs
+scripts/release-matter-desktop-temporary.mjs
+scripts/stage-matter-desktop-release-artifacts.mjs
+scripts/test/pv005-release-artifact-path.test.mjs
+scripts/validate-matter-desktop-formal-release-bundle.mjs
+scripts/validate-matter-desktop-release-boundary.mjs
+scripts/validate-matter-desktop-temporary-release-bundle.mjs
+scripts/validate-pv005-release-artifact-paths.mjs
+
+Evidence files:
+workbook/forest-v0.1.17-integration-evidence/PV-005/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/PV-005/commands.txt
+workbook/forest-v0.1.17-integration-evidence/PV-005/files.txt
+workbook/forest-v0.1.17-integration-evidence/PV-005/package-matrix.json
+workbook/forest-v0.1.17-integration-evidence/PV-005/receipt.json
+workbook/forest-v0.1.17-integration-evidence/PV-005/tests.txt
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md
+
+Accepted package root:
+apps/desktop/dist/releases/0.1.17/c0c46faed61d2a4011d506b43929cdb4c47cffa4/internal
+
+The accepted package root is generated and ignored; its immutable path, artifact hashes, and acceptance boundaries are preserved in package-matrix.json and receipt.json.

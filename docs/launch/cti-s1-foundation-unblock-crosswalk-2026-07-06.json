@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.cti-s1-unblock-crosswalk.v0.1",
+  "created_at": "2026-07-06T02:50:59Z",
+  "goal_id": "cti-s1-foundation-unblock-packet",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "launch_tuw_work_package": "LT-PRE-W10",
+  "required_approval_ref": "I5-CTI-S1-FOUNDATION-UNBLOCK-PACKET-OWNER-APPROVAL-2026-07-06",
+  "approval_signature_ref": "I5-CTI-S1-FOUNDATION-UNBLOCK-PACKET-OWNER-APPROVAL-2026-07-06",
+  "approval_status": "approved",
+  "authority_boundary": {
+    "efs_creation_executed": false,
+    "lambda_configuration_mutation_executed": false,
+    "secret_value_fetched": false,
+    "production_store_migration_executed": false,
+    "restore_execution_performed": false,
+    "s1_execute_authorized": true,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "mappings": [
+    {
+      "cti_item": "S1-T01a",
+      "launch_tuw": "LT-PRE-W10-T01",
+      "status": "choice_owner_approved_for_s1_execute",
+      "artifact": "docs/launch/cti-s1-foundation-unblock-packet-2026-07-06.md"
+    },
+    {
+      "cti_item": "S1-T01b",
+      "launch_tuw": "LT-PRE-W10-T01",
+      "status": "store_path_mapping_owner_approved_for_s1_execute",
+      "artifact": "docs/launch/cti-s1-foundation-unblock-packet-2026-07-06.md"
+    },
+    {
+      "cti_item": "S1-T02",
+      "launch_tuw": "LT-PRE-W10-T02",
+      "status": "audit_design_owner_approved_for_s1_execute",
+      "artifact": "docs/launch/cti-s1-foundation-unblock-packet-2026-07-06.md"
+    },
+    {
+      "cti_item": "S1-T03",
+      "launch_tuw": "LT-PRE-W10-T02",
+      "status": "session_secret_injection_owner_approved_for_s1_execute",
+      "artifact": "docs/launch/cti-s1-foundation-unblock-packet-2026-07-06.md"
+    },
+    {
+      "cti_item": "S1-T05",
+      "launch_tuw": "LT-PRE-W10-T03",
+      "status": "backup_restore_v0_2_boundary_owner_approved_for_s1_execute",
+      "artifact": "docs/launch/cti-s1-foundation-unblock-packet-2026-07-06.md"
+    },
+    {
+      "cti_item": "S1 execute boundary",
+      "launch_tuw": "LT-PRE-W10-T04",
+      "status": "authorized_by_i5_with_stop_conditions",
+      "artifact": "docs/goal-closeout/cti-s1-foundation-unblock-packet/construction-inspection.json"
+    },
+    {
+      "cti_item": "goal-closeout and validation",
+      "launch_tuw": "LT-PRE-W10-T05",
+      "status": "owner_approved_for_s1_execute",
+      "artifact": "docs/goal-closeout/cti-s1-foundation-unblock-packet/"
+    }
+  ]
+}

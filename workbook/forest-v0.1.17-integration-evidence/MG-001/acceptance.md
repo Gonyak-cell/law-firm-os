@@ -1,0 +1,24 @@
+# MG-001 Acceptance
+
+- TUW: MG-001
+- status: DONE
+- entry_sha: `3842a67f1f9285bb9d9643b9b92055d299927722`
+- exit_sha: `6b1c615b5e793cf467d5bea0e478b739c4994741`
+- changed_files: generator, MG-001 evidence set, Goal execution ledger only; product runtime 0
+- root source HEAD: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`
+- root source working-tree SHA-256: `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`
+- Forest migration lineage: 001_hrx_core.sql through 025_hrx_payroll_year_end.sql (25)
+- root collision migrations: 6
+- root SQL contract units mapped: 145/145
+- dispositions: PORT_026_PLUS 71, FOREST_SUPERSEDED 71, FOREST_IDENTICAL 1, REJECT_CONFLICTING_MUTABILITY 2
+- forward plan: 026_hrx_payroll_catalog_assignments.sql=49, 027_hrx_attendance_approval_receipts.sql=18, 028_hrx_leave_accrual_rule_versions.sql=4
+- Forest 001-025 collisions: 0
+- duplicate planned port contracts: 0
+- unclassified contracts: 0
+- commands: see `commands.txt`
+- test_result: schema parser, contract coverage, exact identical-index proof, forward ordinal availability, collision, destructive SQL, root fingerprint, and deterministic checks PASS
+- manual_qa: root 011-016 SQL and selected services were compared to Forest 004/007/011/020-025, payroll repository/input snapshot, leave type economics, lifecycle, and ledger contracts
+- evidence_hashes: crosswalk `11eedbf0e0412c84030d617d6d83a40b50c89e8a9fd6fd85fe6bb1c93ae9992f`, forward plan `024450fe58f563fac1058cb8aa33c063f908f6ab2e6d6d662e477f2f0acbed3e`, collision report `895c077f38fa50ada20a41d4710a749f7f38df17ac1caa39cfaa3306ed8f63aa`
+- known_limits: MG-001 reserves and proves the semantic plan only; MG-002 removes duplicate implementation paths, MG-003 writes 026-028, and MG-004 through MG-006 execute database safety proofs
+- external_blockers: none
+- AI slop review: pass; no product UI or user-facing runtime copy changed

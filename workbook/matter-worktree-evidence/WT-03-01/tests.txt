@@ -1,0 +1,2 @@
+RED: contract missing Worktree route.
+GREEN: UI contract passed.

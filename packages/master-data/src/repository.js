@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
+import { existsSync } from "node:fs";
+import { readFileSyncWithStaleRetry, writeJsonFileDurably } from "../../persistence/src/durable-file.js";
 import { createMasterDataRecord } from "./model.js";
 
 export const MASTER_DATA_REPOSITORY_SCHEMA_VERSION = "law-firm-os.master-data-repository.v0.1";
@@ -70,19 +70,21 @@ function matchesQuery(record, query = {}) {
 }
 
 export function createMasterDataRepository({ filePath, seedRecords = [] } = {}) {
-  let state = normalizeState(filePath && existsSync(filePath) ? JSON.parse(readFileSync(filePath, "utf8")) : undefined);
+  let state = normalizeState(filePath && existsSync(filePath) ? JSON.parse(readFileSyncWithStaleRetry(filePath)) : undefined);
   let closed = false;
 
   function ensureOpen() {
     if (closed) throw new Error("Master Data repository is closed");
   }
 
-  function flush() {
+  function flush({ createBackup = true } = {}) {
     if (!filePath) return;
-    mkdirSync(dirname(filePath), { recursive: true });
-    const tempPath = `${filePath}.tmp`;
-    writeFileSync(tempPath, `${JSON.stringify(state, null, 2)}\n`);
-    renameSync(tempPath, filePath);
+    writeJsonFileDurably({
+      filePath,
+      value: state,
+      previousState: filePath && existsSync(filePath) ? JSON.parse(readFileSyncWithStaleRetry(filePath)) : undefined,
+      createBackup,
+    });
   }
 
   function upsert(input) {
@@ -100,7 +102,7 @@ export function createMasterDataRepository({ filePath, seedRecords = [] } = {}) 
     const record = normalizeRecord(input);
     if (!state.records.some((current) => sameIdentity(current, record))) {
       state.records.push(record);
-      flush();
+      flush({ createBackup: false });
     }
     return Object.freeze(clone(record));
   }

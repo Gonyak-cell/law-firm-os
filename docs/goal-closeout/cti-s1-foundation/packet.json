@@ -1,0 +1,96 @@
+{
+  "goal_id": "cti-s1-foundation",
+  "title": "Canonical Tenant Injection S1 FOUNDATION",
+  "created_at": "2026-07-06T02:40:01Z",
+  "status": "blocked_s1_stop_condition",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "source_plan_sha256": "92b0d9197bc075ce3a61135414458d89a80173ace43ddfb7c57cd70a69e9f197",
+  "contract_ref": "contracts/production-data-policy-contract.json",
+  "contract_sha256": "3a7af805ca00b42d6bb42e02d1e6121b57b0a7d44d732aec39fcbacba248d874",
+  "approval_signature_ref": "I4-CTI-G0-S0-OWNER-RATIFICATION-2026-07-06",
+  "launch_tuw_work_package": "LT-PRE-W09",
+  "cti_scope": "S1 FOUNDATION only, prewrite readiness and stop-condition closeout",
+  "s0_inputs": {
+    "g0_s0_packet_sha256": "2e5db82a4c0041d0d598005c81c60719cff7bf867390d9a9a1aad4fdcf5b85ce",
+    "s0_t01_lambda_config_sha256": "b0e3eb8948a9b5a7a782b21eea767b1b20cc1161c35a1ea14973e5b1a2fb1b11",
+    "s0_t03_coldstart_probe_sha256": "de7a783732655509bffa4f9baf005758b413e5971bc82255eccfddbbc0638b1c",
+    "s0_t04_store_readback_receipt_sha256": "38664f2769a614e50fb1ef04a330817b33d49bf768a2ab8770446d6702c1a26d",
+    "s0_t04_non_git_snapshot_sha256": "c98b45752806109a644b82fbb958912821bfae5aaab58aaff36b138908b209ea",
+    "efs_file_system_config_count": 0,
+    "store_path_env_key_count": 0,
+    "cold_start_persistence_verdict": "marker_lost_after_cold_start"
+  },
+  "s1_items": [
+    {
+      "cti_item": "S1-T01a",
+      "required": "EFS provisioning plus Lambda mount access point",
+      "verdict": "BLOCKED",
+      "reason": "AWS read-only inventory found no EFS file system, no EFS access point, no Lambda file system config, and no Lambda VPC config."
+    },
+    {
+      "cti_item": "S1-T01b",
+      "required": "Move 13 STORE_PATH values to durable EFS paths after verified snapshot and restore rehearsal",
+      "verdict": "BLOCKED",
+      "reason": "Lambda exposes zero required STORE_PATH env keys and no approved durable mount target exists."
+    },
+    {
+      "cti_item": "S1-T02",
+      "required": "Create LAWOS_AUDIT_STORE_PATH and replace securityAuditEvents with durable append-only audit storage",
+      "verdict": "BLOCKED",
+      "reason": "Current code has no LAWOS_AUDIT_STORE_PATH manifest entry and keeps securityAuditEvents in memory."
+    },
+    {
+      "cti_item": "S1-T03",
+      "required": "Wire fixed LAWOS_API_SESSION_SECRET from Secrets Manager or SSM with rotation runbook",
+      "verdict": "BLOCKED",
+      "reason": "Session signing secret exists in Secrets Manager, but Lambda has no LAWOS_API_SESSION_SECRET env and runtime code does not fetch Secrets Manager."
+    },
+    {
+      "cti_item": "S1-T04",
+      "required": "Add reseed guard and approval_ref carve-out for later S4 merge backfill",
+      "verdict": "NOT_STARTED",
+      "reason": "Deferred until durable store and audit foundation are unblocked."
+    },
+    {
+      "cti_item": "S1-T05",
+      "required": "Extend backup and restore drill to EFS stores with real-data-safe receipt schema",
+      "verdict": "BLOCKED",
+      "reason": "Current backup/restore drill is v0.1 synthetic-only and refuses non-synthetic backup claims."
+    }
+  ],
+  "stop_condition": {
+    "i4_signature_present": true,
+    "s0_g_receipts_present": true,
+    "production_credential_access_present": true,
+    "durable_store_target_present": false,
+    "durable_audit_path_present": false,
+    "rollback_restore_path_present": false,
+    "triggered": true
+  },
+  "out_of_scope": [
+    "S2 implementation",
+    "S3 migration",
+    "S4 account injection",
+    "desktop v0.1.10",
+    "CUTOVER",
+    "account password generation or distribution",
+    "S5/S6",
+    "Entra ID/OIDC",
+    "DB conversion",
+    "production_ready claim",
+    "go-live claim"
+  ],
+  "non_claims": [
+    "s1_foundation_complete",
+    "s1_g_passed",
+    "durable_store_applied",
+    "audit_event_survives_cold_start",
+    "fixed_session_secret_live",
+    "restore_rehearsal_passed",
+    "migration_executed",
+    "cutover_executed",
+    "production_ready"
+  ],
+  "closeout_verdict": "BLOCKED_S1_STOP_CONDITION",
+  "next_goal_required": "cti-s1-foundation-unblock-targets"
+}

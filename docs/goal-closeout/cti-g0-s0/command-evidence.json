@@ -1,0 +1,121 @@
+{
+  "goal_id": "cti-g0-s0",
+  "created_at": "2026-07-06T02:05:06Z",
+  "status": "completed_i4_ratified_s0_probes_executed",
+  "commands": [
+    {
+      "id": "contract-and-plan-sha256",
+      "command": "shasum -a 256 contracts/production-data-policy-contract.json workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md workbook/launch-tuw/launch-tuw-ledger.json workbook/launch-tuw/10_PRE.md",
+      "exit_code": 0,
+      "summary": "Captured SHA256 anchors for the governing production-data-policy contract, CTI v2.1 plan, and pre-edit launch-TUW surfaces."
+    },
+    {
+      "id": "contract-status-read",
+      "command": "sed -n '1,220p' contracts/production-data-policy-contract.json",
+      "exit_code": 0,
+      "summary": "Confirmed status=draft_pending_human_ratification and unratified contract effect permits_real_data_contact=false, permits_production_credentials=false, permits_product_state_writes=false."
+    },
+    {
+      "id": "real-client-data-used-narrow-inventory",
+      "command": "rg -n \"real_client_data_used\" scripts apps packages docs workbook contracts",
+      "exit_code": 0,
+      "summary": "Seeded S0-T07 inventory. Broad receipt/doc hits exist; actionable code hard-assert/value sites are summarized in docs/launch/cti-s0-probe-boundary-register-2026-07-06.md."
+    },
+    {
+      "id": "launch-tuw-ledger-validate",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "PASS. TUW total 349, WP total 73, PRE phase total 19, violations 0."
+    },
+    {
+      "id": "cti-json-parse-check",
+      "command": "jq empty docs/goal-closeout/cti-g0-s0/packet.json docs/goal-closeout/cti-g0-s0/command-evidence.json docs/goal-closeout/cti-g0-s0/construction-inspection.json docs/goal-closeout/cti-g0-s0/claude-review-result.json docs/launch/cti-tuw-crosswalk-2026-07-06.json",
+      "exit_code": 0,
+      "summary": "All newly added CTI JSON artifacts parse successfully."
+    },
+    {
+      "id": "goal-closeout-file-presence",
+      "command": "ls docs/goal-closeout/cti-g0-s0/packet.json docs/goal-closeout/cti-g0-s0/claude-review-result.json docs/goal-closeout/cti-g0-s0/adjudication.md docs/goal-closeout/cti-g0-s0/construction-inspection.json docs/goal-closeout/cti-g0-s0/command-evidence.json",
+      "exit_code": 0,
+      "summary": "Goal closeout folder contains the five expected closeout files."
+    },
+    {
+      "id": "cti-g0-s0-evidence-generate",
+      "command": "node scripts/generate-cti-g0-s0-evidence.mjs",
+      "exit_code": 0,
+      "summary": "Generated S0-T01 through S0-T07 receipts, PII-safe I1 mapping template, D-07 register, S1 branch assessment, artifact index, and evidence manifest. candidate_matter_count=148, candidate_client_count=99, real_client_data_used_inventory_sites=9."
+    },
+    {
+      "id": "cti-generator-syntax-check",
+      "command": "node --check scripts/generate-cti-g0-s0-evidence.mjs",
+      "exit_code": 0,
+      "summary": "Generator syntax check passed."
+    },
+    {
+      "id": "aws-sts-after-i4",
+      "command": "aws sts get-caller-identity --profile matter-prod-deploy-admin --no-cli-pager",
+      "exit_code": 0,
+      "summary": "PASS after AWS SSO refresh. Account 770880870480 assumed role matter-prod-deploy-admin; no credential or token material recorded."
+    },
+    {
+      "id": "aws-lambda-config-masked-after-i4",
+      "command": "aws lambda get-function-configuration --function-name matter-lawos-api-prod --profile matter-prod-deploy-admin --region ap-northeast-2 --query '{FunctionName:FunctionName,Runtime:Runtime,Handler:Handler,LastModified:LastModified,CodeSha256:CodeSha256,Version:Version,State:State,LastUpdateStatus:LastUpdateStatus,RevisionId:RevisionId,Timeout:Timeout,MemorySize:MemorySize,EnvironmentKeys:keys(Environment.Variables),FileSystemConfigs:FileSystemConfigs,VpcConfig:VpcConfig}' --output json --no-cli-pager",
+      "exit_code": 0,
+      "summary": "PASS. Handler apps/api/src/lambda.handler, runtime nodejs22.x, env keys count 3, EFS configs null, VPC config null; env values and token material not printed."
+    },
+    {
+      "id": "cti-probe-runner-syntax-check",
+      "command": "node --check scripts/run-cti-g0-s0-production-probes.mjs",
+      "exit_code": 0,
+      "summary": "Production probe runner syntax check passed."
+    },
+    {
+      "id": "cti-g0-s0-production-probes",
+      "command": "node scripts/run-cti-g0-s0-production-probes.mjs",
+      "exit_code": 0,
+      "summary": "PASS. Wrote S0-T01/T04/T03 receipts in required T04-before-T03 order. rp05 visible matters=149, CTI candidates=148, unmatched runtime seed=1, EFS/STORE_PATH=0, cold-start marker lost."
+    },
+    {
+      "id": "cti-full-json-parse-check",
+      "command": "jq empty docs/launch/cti-s0-artifact-index-2026-07-06.json docs/launch/cti-s0-t01-lambda-config-receipt-2026-07-06.json docs/launch/cti-s0-t02-persistence-census-2026-07-06.json docs/launch/cti-s0-t03-coldstart-probe-receipt-2026-07-06.json docs/launch/cti-s0-t04-store-readback-snapshot-receipt-2026-07-06.json docs/launch/cti-s0-t05-desktop-seed-drift-diff-2026-07-06.json docs/launch/cti-s0-t06-lead-lawyer-mapping-workbook-receipt-2026-07-06.json docs/launch/cti-s0-t07-real-client-data-used-inventory-2026-07-06.json docs/launch/cti-d07-disposition-register-2026-07-06.json docs/launch/cti-s1-branch-assessment-2026-07-06.json workbook/cti-i1-lead-lawyer-mapping-template-2026-07-06.json docs/lazycodex/evidence/matter-web/artifacts/cti-g0-s0-evidence-manifest-2026-07-06.json docs/goal-closeout/cti-g0-s0/packet.json docs/goal-closeout/cti-g0-s0/command-evidence.json docs/goal-closeout/cti-g0-s0/construction-inspection.json docs/goal-closeout/cti-g0-s0/claude-review-result.json",
+      "exit_code": 0,
+      "summary": "All CTI G0/S0 JSON artifacts parse successfully."
+    },
+    {
+      "id": "cti-requirement-count-check",
+      "command": "node -e 'import fs from \"node:fs\"; const idx=JSON.parse(fs.readFileSync(\"docs/launch/cti-s0-artifact-index-2026-07-06.json\",\"utf8\")); const map=JSON.parse(fs.readFileSync(\"workbook/cti-i1-lead-lawyer-mapping-template-2026-07-06.json\",\"utf8\")); const inv=JSON.parse(fs.readFileSync(\"docs/launch/cti-s0-t07-real-client-data-used-inventory-2026-07-06.json\",\"utf8\")); const d07=JSON.parse(fs.readFileSync(\"docs/launch/cti-d07-disposition-register-2026-07-06.json\",\"utf8\")); console.log(JSON.stringify({s0_artifacts:Object.keys(idx.s0_g_artifacts).length,mapping_rows:map.row_count,plaintext_matter_code:map.pii_boundary.plaintext_matter_code_included,plaintext_client_name:map.pii_boundary.plaintext_client_name_included,real_client_inventory_sites:inv.inventory_site_count,d07_local_matter_count:d07.local_candidate_matter_count,d07_state:d07.production_149th_row_state,blockers:idx.blockers.length},null,2));'",
+      "exit_code": 0,
+      "summary": "Requirement counts passed: s0_artifacts=8, mapping_rows=148, plaintext matter/client names false, real_client_inventory_sites=9, d07_local_matter_count=148, d07_state=production_149th_row_identified_as_runtime_seed_exclude_from_cti_migration."
+    },
+    {
+      "id": "cti-i1-template-korean-plaintext-scan",
+      "command": "rg -n \"[가-힣]\" workbook/cti-i1-lead-lawyer-mapping-template-2026-07-06.csv workbook/cti-i1-lead-lawyer-mapping-template-2026-07-06.json",
+      "exit_code": 1,
+      "summary": "No Korean plaintext names found in the PII-safe I1 mapping template outputs."
+    },
+    {
+      "id": "cti-g0-s0-closeout-validate",
+      "command": "node scripts/validate-cti-g0-s0-closeout.mjs",
+      "exit_code": 0,
+      "summary": "PASS. s0_artifacts=8, i1_mapping_rows=148, real_client_data_used_inventory_sites>=7, closeout_status=completed_i4_ratified_s0_probes_executed, S1 branch requires durable foundation."
+    }
+  ],
+  "out_of_scope_commands_not_run": [
+    {
+      "cti_item": "S1-S6",
+      "reason": "Not authorized by I4 G0/S0 approval; requires a separate goal and approval_ref."
+    },
+    {
+      "cti_item": "CUTOVER",
+      "reason": "Explicitly not approved by I4 G0/S0 approval."
+    },
+    {
+      "cti_item": "production migration",
+      "reason": "Explicitly not approved by I4 G0/S0 approval."
+    },
+    {
+      "cti_item": "account password generation or distribution",
+      "reason": "Explicitly not approved by I4 G0/S0 approval."
+    }
+  ]
+}

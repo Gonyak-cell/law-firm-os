@@ -22,7 +22,7 @@ export const globalUtilityItems = [
   {
     id: "messages",
     label: "메시지",
-    localLabel: "전송·자동화",
+    localLabel: "전송",
     icon: Mail,
     defaultSection: "messages-send",
     description: "도메인별 메시지, 공지, 자동화, 템플릿을 한 곳에서 관리합니다.",
@@ -57,17 +57,16 @@ export const globalUtilityItems = [
       },
       {
         id: "messages-matter-channel",
-        label: "사건 이메일·메시지",
+        label: "Matter 대화",
         source: "Matter",
-        icon: FileText,
-        badge: "2"
+        icon: FileText
       }
     ]
   },
   {
     id: "notifications",
     label: "알림",
-    localLabel: "센터·설정",
+    localLabel: "센터",
     icon: Bell,
     defaultSection: "notifications-center",
     description: "상단 알림 드로어, 근태 알림, 회사 알림 설정을 전역 알림 센터로 묶습니다.",
@@ -76,8 +75,7 @@ export const globalUtilityItems = [
         id: "notifications-center",
         label: "알림 센터",
         source: "Topbar",
-        icon: Bell,
-        badge: "3"
+        icon: Bell
       },
       {
         id: "notifications-attendance-missing",
@@ -98,7 +96,7 @@ export const globalUtilityItems = [
   {
     id: "requests",
     label: "요청함",
-    localLabel: "승인·증명서",
+    localLabel: "승인",
     icon: ShieldCheck,
     defaultSection: "requests-inbox",
     description: "승인 대기, 비용, 증명서, 강제 승인/거절을 하나의 요청함으로 모읍니다.",
@@ -108,7 +106,6 @@ export const globalUtilityItems = [
         label: "요청 관리",
         source: "People",
         icon: ShieldCheck,
-        badge: "5",
         legacyRoutes: [legacy("people", "people-approvals")]
       },
       {
@@ -116,7 +113,6 @@ export const globalUtilityItems = [
         label: "승인 대기함",
         source: "Home",
         icon: ClipboardList,
-        badge: "3",
         legacyRoutes: [legacy("home", "home-review")]
       },
       {
@@ -146,7 +142,7 @@ export const globalUtilityItems = [
         label: "휴가 요청",
         source: "People",
         icon: ClipboardList,
-        legacyRoutes: [legacy("people", "people-leave-requests")]
+        legacyRoutes: []
       },
       {
         id: "requests-attendance",
@@ -167,7 +163,7 @@ export const globalUtilityItems = [
   {
     id: "reports",
     label: "보고서",
-    localLabel: "분석·스냅샷",
+    localLabel: "분석",
     icon: LayoutDashboard,
     defaultSection: "reports-home-dashboard",
     description: "Home, People, Client, Matter의 분석과 보고서를 전역 리포트 허브에서 확인합니다.",
@@ -181,7 +177,7 @@ export const globalUtilityItems = [
       },
       {
         id: "reports-people-live",
-        label: "People 실시간 리포트",
+        label: "실시간 리포트",
         source: "People",
         icon: ClipboardList,
         legacyRoutes: [legacy("people", "people-analytics")]
@@ -209,13 +205,13 @@ export const globalUtilityItems = [
       },
       {
         id: "reports-client",
-        label: "Client 리포트",
+        label: "Client 보고서",
         source: "Client",
         icon: FileText
       },
       {
         id: "reports-matter-analytics",
-        label: "사건 리포트",
+        label: "Matter 분석",
         source: "Matter",
         icon: LayoutDashboard
       }
@@ -224,7 +220,7 @@ export const globalUtilityItems = [
   {
     id: "settings",
     label: "설정",
-    localLabel: "권한·보안",
+    localLabel: "권한",
     icon: Settings,
     defaultSection: "settings-company",
     description: "회사 설정, 권한, 보안, 연동, 결제, 지원, 고급 옵션, 태그 관리를 전역 설정으로 이동합니다.",
@@ -290,7 +286,7 @@ export const globalUtilityItems = [
   {
     id: "esign",
     label: "전자계약",
-    localLabel: "전송·서명",
+    localLabel: "서명",
     icon: FileCheck2,
     defaultSection: "esign-send",
     description: "전자계약 전송, 템플릿, 서명 진행 상태를 여러 도메인에서 함께 다룹니다.",
@@ -360,12 +356,12 @@ export const conditionalGlobalItems = [
   },
   {
     id: "finance",
-    label: "청구·재무",
-    localLabel: "정산·입금",
+    label: "매출/비용",
+    localLabel: "Home",
     icon: ReceiptText,
-    defaultSection: "finance-decision",
-    status: "decision-required",
-    decision: "재무 축을 만들 때 Matter 청구와 개인 비용/정산을 전역화합니다.",
+    defaultSection: "finance-matter-billing",
+    status: "integrated-home",
+    decision: "전사 집계와 정산 실행은 Home 매출/비용 메뉴에서 관리합니다.",
     sections: [
       {
         id: "finance-matter-billing",
@@ -407,7 +403,7 @@ export const conditionalGlobalItems = [
   {
     id: "data-import",
     label: "데이터 가져오기",
-    localLabel: "검증·롤백",
+    localLabel: "검증",
     icon: Database,
     defaultSection: "data-import-decision",
     status: "decision-required",
@@ -415,20 +411,14 @@ export const conditionalGlobalItems = [
     sections: [
       {
         id: "data-import-client-data",
-        label: "Client 데이터 관리",
+        label: "데이터 관리",
         source: "Client",
         icon: Database
       },
       {
         id: "data-import-client",
-        label: "Client 데이터 가져오기",
+        label: "데이터 가져오기",
         source: "Client",
-        icon: Plus
-      },
-      {
-        id: "data-import-matter",
-        label: "사건 자료 가져오기",
-        source: "Matter",
         icon: Plus
       },
       {
@@ -442,7 +432,7 @@ export const conditionalGlobalItems = [
   },
   {
     id: "policies",
-    label: "문서·방침",
+    label: "문서",
     localLabel: "Vault 원장",
     icon: FolderOpen,
     defaultSection: "policies-decision",
@@ -461,14 +451,17 @@ export const conditionalGlobalItems = [
         label: "근로계약서",
         source: "Vault",
         icon: FileText,
+        state: "active",
+        description: "Vault 원본과 HRX 계약 상태를 함께 확인합니다.",
         legacyRoutes: [legacy("people", "people-employment-contracts")]
       },
       {
         id: "policies-annual-leave",
-        label: "연차휴가 사용 촉진 문서",
+        label: "연차 사용 촉진",
         source: "Vault",
         icon: FileText,
-        legacyRoutes: [legacy("people", "people-annual-leave-notices")]
+        description: "문서 원문은 Vault에 보관하고 People의 촉진 캠페인에서는 참조와 전달 증거를 관리합니다.",
+        legacyRoutes: []
       }
     ]
   }
@@ -477,6 +470,7 @@ export const conditionalGlobalItems = [
 export const globalUtilityCatalog = [...globalUtilityItems, ...conditionalGlobalItems];
 
 export const globalUtilityViewIds = globalUtilityCatalog.map((item) => item.id);
+export const modeExceptionUtilityViewIds = ["settings", "data-import", "profile"];
 
 export const legacyGlobalRoutes = globalUtilityCatalog.flatMap((utility) =>
   utility.sections.flatMap((section) =>
@@ -492,6 +486,47 @@ export const legacyGlobalRoutes = globalUtilityCatalog.flatMap((utility) =>
 
 const legacyGlobalRouteMap = new Map(legacyGlobalRoutes.map((route) => [`${route.view}:${route.section}`, route]));
 
+const route = (view, section, extra = {}) => ({ view, section, ...extra });
+
+const directRouteMap = new Map([
+  ["home:", route("home", "home-dashboard")],
+  ["home:home-recent", route("home", "home-dashboard")],
+  ["home:home-dashboard", route("home", "home-dashboard")],
+  ["people:people-dashboard", route("clients", "clients-home", { redirectedFrom: { view: "people", section: "people-dashboard" } })],
+  ["reports:reports-home-dashboard", route("home", "home-dashboard")],
+  ["calendar:calendar-matter", route("matters", "matter-calendar")],
+  ["calendar:calendar-people-external", route("people", "people-work-schedule-external")],
+  ["calendar:calendar-absence", route("people", "people-leave")],
+  ["people:people-company-leave", route("people", "people-leave-types", { redirectedFrom: { view: "people", section: "people-company-leave" } })],
+  ["finance:finance-matter-billing", route("home", "home-finance-billing", { redirectedFrom: { view: "finance", section: "finance-matter-billing" } })],
+  ["finance:finance-expenses", route("home", "home-finance-expenses", { redirectedFrom: { view: "finance", section: "finance-expenses" } })],
+  ["finance:finance-transactions", route("home", "home-finance-billing", { redirectedFrom: { view: "finance", section: "finance-transactions" } })],
+  ["finance:finance-payments", route("home", "home-finance-billing", { redirectedFrom: { view: "finance", section: "finance-payments" } })],
+  ["finance:finance-withdrawal", route("home", "home-finance-billing", { redirectedFrom: { view: "finance", section: "finance-withdrawal" } })],
+  ["matters:matter-approvals", route("home", "home-requests", { redirectedFrom: { view: "matters", section: "matter-approvals", filter: "finance" }, filter: "finance" })],
+  ["matters:matter-time", route("home", "home-finance-time", { redirectedFrom: { view: "matters", section: "matter-time" } })],
+  ["matters:matter-expenses", route("home", "home-finance-expenses", { redirectedFrom: { view: "matters", section: "matter-expenses" } })],
+  ["matters:matter-billing", route("home", "home-finance-billing", { redirectedFrom: { view: "matters", section: "matter-billing" } })],
+  ["matters:matter-ar", route("home", "home-finance-ar", { redirectedFrom: { view: "matters", section: "matter-ar" } })],
+  ["matters:matter-external-schedule", route("matters", "matter-calendar", { redirectedFrom: { view: "matters", section: "matter-external-schedule" } })],
+  ["matters:matter-notes", route("matters", "matter-board", { redirectedFrom: { view: "matters", section: "matter-notes" } })],
+  ["policies:policies-company", route("vault", "vault-documents")],
+  ["policies:policies-employment-contracts", route("home", "home-esign")],
+  ["policies:policies-annual-leave", route("vault", "vault-documents")]
+]);
+
+function resolveFinalUtilityRoute(view, section = "") {
+  const direct = directRouteMap.get(`${view}:${section}`);
+  if (direct) return direct;
+  if (modeExceptionUtilityViewIds.includes(view) && view !== "profile") return route(view, section);
+  if (view === "messages") return route("home", "home-messages", { redirectedFrom: { view, section } });
+  if (view === "requests") return route("home", "home-requests", { redirectedFrom: { view, section } });
+  if (view === "esign") return route("home", "home-esign", { redirectedFrom: { view, section } });
+  if (view === "reports") return route("home", "home-company", { redirectedFrom: { view, section } });
+  if (view === "notifications") return route("home", "home-dashboard", { redirectedFrom: { view, section }, openNotifications: true });
+  return null;
+}
+
 export function isGlobalUtilityView(view) {
   return globalUtilityViewIds.includes(view);
 }
@@ -505,7 +540,12 @@ export function isLegacyGlobalRoute(view, section) {
 }
 
 export function resolveGlobalShortcut(view, section = "") {
-  const route = legacyGlobalRouteMap.get(`${view}:${section}`);
-  if (!route) return { view, section };
-  return { view: route.targetView, section: route.targetSection, legacy: route };
+  if (view === "matters" && !section) return { view, section: "matter-board" };
+  const direct = resolveFinalUtilityRoute(view, section);
+  if (direct) return direct;
+  const legacyRoute = legacyGlobalRouteMap.get(`${view}:${section}`);
+  if (!legacyRoute) return { view, section };
+  const resolved = resolveFinalUtilityRoute(legacyRoute.targetView, legacyRoute.targetSection);
+  if (resolved) return { ...resolved, legacy: legacyRoute };
+  return { view: legacyRoute.targetView, section: legacyRoute.targetSection, legacy: legacyRoute };
 }

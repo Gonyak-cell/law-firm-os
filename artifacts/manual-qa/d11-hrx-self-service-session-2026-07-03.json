@@ -1,0 +1,260 @@
+{
+  "schema_version": "law-firm-os.manual-qa.hrx-self-service.v0.1",
+  "generated_at": "2026-07-02T15:51:03.097Z",
+  "tuw": "UPL-D-11",
+  "contract_ref": "workbook/wave1-internal-uplift-tuw-backlog-2026-07-02.md#UPL-D-11",
+  "api_base_url": "http://127.0.0.1:4181",
+  "web_url": "http://127.0.0.1:5173/?locale=ko&view=people&data=live&ctx=allow#people-members",
+  "signed_staff_actor": {
+    "user_id": "user_amic_yjlee",
+    "employee_id": "emp_amic_yjlee",
+    "role_ids": [
+      "lawos_staff"
+    ],
+    "hrx_scopes": [
+      "hrx.employee.read",
+      "hrx.document.read",
+      "hrx.leave.read",
+      "hrx.leave.write"
+    ]
+  },
+  "api_results": {
+    "employees": {
+      "path": "/api/hrx/employees",
+      "status": 200,
+      "outcome": "ok",
+      "safe_error_code": null,
+      "reason": null,
+      "required_scope": null,
+      "employee_ids": [
+        "emp_amic_yjlee"
+      ],
+      "balance_employee_id": null
+    },
+    "ownEmployee": {
+      "path": "/api/hrx/employees/emp_amic_yjlee",
+      "status": 200,
+      "outcome": "ok",
+      "safe_error_code": null,
+      "reason": null,
+      "required_scope": null,
+      "balance_employee_id": null
+    },
+    "otherEmployee": {
+      "path": "/api/hrx/employees/emp_amic_ytkim",
+      "status": 403,
+      "outcome": "blocked",
+      "safe_error_code": "HRX_SELF_SERVICE_SCOPE_DENIED",
+      "reason": "hrx_self_service_target_not_owned",
+      "required_scope": null,
+      "balance_employee_id": null
+    },
+    "ownDocuments": {
+      "path": "/api/hrx/documents?employee_id=emp_amic_yjlee",
+      "status": 200,
+      "outcome": "ok",
+      "safe_error_code": null,
+      "reason": null,
+      "required_scope": null,
+      "document_count": 0,
+      "balance_employee_id": null
+    },
+    "otherDocuments": {
+      "path": "/api/hrx/documents?employee_id=emp_amic_ytkim",
+      "status": 403,
+      "outcome": "blocked",
+      "safe_error_code": "HRX_SELF_SERVICE_SCOPE_DENIED",
+      "reason": "hrx_self_service_target_not_owned",
+      "required_scope": null,
+      "document_count": 0,
+      "balance_employee_id": null
+    },
+    "ownLeave": {
+      "path": "/api/hrx/leave?employee_id=emp_amic_yjlee&policy_id=pto-us",
+      "status": 200,
+      "outcome": "ok",
+      "safe_error_code": null,
+      "reason": null,
+      "required_scope": null,
+      "balance_employee_id": "emp_amic_yjlee"
+    },
+    "otherLeave": {
+      "path": "/api/hrx/leave?employee_id=emp_amic_ytkim&policy_id=pto-us",
+      "status": 403,
+      "outcome": "blocked",
+      "safe_error_code": "HRX_SELF_SERVICE_SCOPE_DENIED",
+      "reason": "hrx_self_service_target_not_owned",
+      "required_scope": null,
+      "balance_employee_id": null
+    },
+    "compensation": {
+      "path": "/api/hrx/compensation?employee_id=emp_amic_yjlee",
+      "status": 403,
+      "outcome": "blocked",
+      "safe_error_code": "HRX_AUTHZ_DENIED",
+      "reason": "hrx_scope_required",
+      "required_scope": "hrx.compensation.read",
+      "balance_employee_id": null
+    },
+    "payroll": {
+      "path": "/api/hrx/payroll/preview",
+      "status": 403,
+      "outcome": "blocked",
+      "safe_error_code": "HRX_AUTHZ_DENIED",
+      "reason": "hrx_scope_required",
+      "required_scope": "hrx.payroll.preview",
+      "balance_employee_id": null
+    },
+    "audit": {
+      "path": "/api/hrx/audit",
+      "status": 403,
+      "outcome": "blocked",
+      "safe_error_code": "HRX_AUTHZ_DENIED",
+      "reason": "hrx_scope_required",
+      "required_scope": "hrx.audit.read",
+      "balance_employee_id": null
+    }
+  },
+  "web_results": {
+    "screenshot": "artifacts/manual-qa/d11-hrx-self-service-web-2026-07-03.png",
+    "employee_response_status": 200,
+    "employee_ids": [
+      "emp_amic_yjlee"
+    ],
+    "row_texts": [
+      "이예진대리AAMIC LawStaffyjlee@amic.kr"
+    ],
+    "first_employee_request": {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/hrx/employees",
+      "actor_id": "user_amic_yjlee",
+      "actor_role": "lawos_staff",
+      "scopes": "hrx.employee.read,hrx.document.read,hrx.leave.read,hrx.leave.write",
+      "has_authorization": false
+    },
+    "hrx_requests": [
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/hrx/employees",
+        "actor_id": "user_amic_yjlee",
+        "actor_role": "lawos_staff",
+        "scopes": "hrx.employee.read,hrx.document.read,hrx.leave.read,hrx.leave.write",
+        "has_authorization": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/hrx/lifecycle/onboarding",
+        "actor_id": "user_amic_yjlee",
+        "actor_role": "lawos_staff",
+        "scopes": "hrx.employee.read,hrx.document.read,hrx.leave.read,hrx.leave.write",
+        "has_authorization": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/hrx/lifecycle/offboarding",
+        "actor_id": "user_amic_yjlee",
+        "actor_role": "lawos_staff",
+        "scopes": "hrx.employee.read,hrx.document.read,hrx.leave.read,hrx.leave.write",
+        "has_authorization": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/hrx/org-chart",
+        "actor_id": "user_amic_yjlee",
+        "actor_role": "lawos_staff",
+        "scopes": "hrx.employee.read,hrx.document.read,hrx.leave.read,hrx.leave.write",
+        "has_authorization": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/hrx/employees",
+        "actor_id": "user_amic_yjlee",
+        "actor_role": "lawos_staff",
+        "scopes": "hrx.employee.read,hrx.document.read,hrx.leave.read,hrx.leave.write",
+        "has_authorization": false
+      }
+    ],
+    "hrx_responses": [
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/hrx/employees"
+      },
+      {
+        "status": 403,
+        "url": "http://127.0.0.1:5173/api/hrx/lifecycle/onboarding"
+      },
+      {
+        "status": 403,
+        "url": "http://127.0.0.1:5173/api/hrx/lifecycle/offboarding"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/hrx/org-chart"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/hrx/employees"
+      }
+    ],
+    "console_messages": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      }
+    ],
+    "page_errors": []
+  },
+  "checks": [
+    {
+      "id": "api_signed_staff_employee_list_self_only",
+      "passed": true
+    },
+    {
+      "id": "api_signed_staff_own_profile_success",
+      "passed": true
+    },
+    {
+      "id": "api_signed_staff_other_profile_403",
+      "passed": true
+    },
+    {
+      "id": "api_signed_staff_own_documents_success",
+      "passed": true
+    },
+    {
+      "id": "api_signed_staff_other_documents_403",
+      "passed": true
+    },
+    {
+      "id": "api_signed_staff_own_leave_success",
+      "passed": true
+    },
+    {
+      "id": "api_signed_staff_other_leave_403",
+      "passed": true
+    },
+    {
+      "id": "api_signed_staff_sensitive_scopes_denied",
+      "passed": true
+    },
+    {
+      "id": "web_hrx_headers_staff_self_service",
+      "passed": true
+    },
+    {
+      "id": "web_hrx_visible_roster_self_only",
+      "passed": true
+    }
+  ],
+  "verdict": "PASS",
+  "production_ready_claim": false,
+  "non_claims": [
+    "local manual QA only",
+    "no production go-live claim",
+    "no bearer token persisted in web session envelope"
+  ]
+}

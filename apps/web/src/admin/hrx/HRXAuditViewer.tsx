@@ -1,6 +1,5 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { ClipboardList } from "lucide-react";
 import { DataTable, Panel } from "../../components/primitives.jsx";
 import { fetchHrxAuditEvents } from "../../people/hrxApiClient.ts";
 import { HrxStepUpChallenge } from "../../people/security/HrxStepUpChallenge.tsx";
@@ -58,11 +57,7 @@ export function HRXAuditViewer() {
   }
 
   return (
-    <Panel id="people-audit" className="people-panel span-2" title="인사기록" meta="조직 변경 이력">
-      <div className="people-panel-kicker">
-        <ClipboardList size={15} />
-        구성원 정보, 조직 변경 이력, 승진 기록 등을 확인합니다.
-      </div>
+    <Panel id="people-audit" className="people-panel span-2" title="인사기록">
       {body}
     </Panel>
   );

@@ -1,0 +1,95 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.vault_docs_browser_proof.v0.1",
+  "generated_at": "2026-06-30T09:31:11.432Z",
+  "tuw_id": "LCX-FULL-07.06",
+  "verdict": "PASS",
+  "snapshot": {
+    "base_state": "matter-required",
+    "base_write_enabled": "false",
+    "rows": [
+      {
+        "action": "version-upload",
+        "state": "matter-required",
+        "owner": "Vault",
+        "write_enabled": "false",
+        "disabled_buttons": [
+          "버전 등록 차단"
+        ]
+      },
+      {
+        "action": "metadata-mutation",
+        "state": "matter-required",
+        "owner": "Matter app",
+        "write_enabled": "false",
+        "disabled_buttons": [
+          "변경 차단"
+        ]
+      },
+      {
+        "action": "legal-hold",
+        "state": "matter-required",
+        "owner": "Owner 결정 필요",
+        "write_enabled": "false",
+        "disabled_buttons": [
+          "보존 변경 차단"
+        ]
+      },
+      {
+        "action": "retention",
+        "state": "matter-required",
+        "owner": "Vault Records",
+        "write_enabled": "false",
+        "disabled_buttons": [
+          "정책 변경 차단"
+        ]
+      },
+      {
+        "action": "document-action",
+        "state": "matter-required",
+        "owner": "Matter app + Vault",
+        "write_enabled": "false",
+        "disabled_buttons": [
+          "작업 차단"
+        ]
+      }
+    ],
+    "missing_actions": [],
+    "disabled_count": 6,
+    "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\nVault\n문서함\n24\n문서 상세\n메일 보관함\nVault\n\nVault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다.\n\n새로고침\nVault 문서함\n권한 기준 적용\n문서 본문은 권한이 있을 때만 표시합니다.\nMatter 선택됨 / Vault / 작업공간 준비됨\n보존 설정 없음 / 권한 기준 적용\n문서\t제목\t등록 계정\t상태\t버전\t권한\t보존\n문서 1\tSynthetic engagement letter\t서지원\t사용 중\t현재 버전\t기본\t없음\nMatter 연결 상태\n차단됨\n토큰 값은 화면에 표시하지 않습니다.\n상태\n브리지 인증 차단\n소스\nfail-closed\n경계\n건수 비노출\n요청\nreq_ef8d0883-4db7-403d-b62f-e50b449c52de\n브리지 인증 차단\nMatter 선택\n문서 작업 기준\nMatter 검색\nMatter lookup 차단됨\nMATTER_NOT_FOUND\nMatter 선택 전\n업로드 사전검사\n문서 전송 없음\n먼저 Matter를 선택하세요.\n상태\nMatter 선택 전\nMatter\nMatter 선택 전\n다음 단계\n대기\nVault 쓰기\n차단\n사전검사 실행\n문서 작업 경계\n쓰기 차단\nMatter를 선택해야 문서 작업 경계를 확인할 수 있습니다.\n새 버전 등록\nMatter를 선택해야 문서 작업 경계를 확인할 수 있습니다.\nVault\nMatter 선택 필요\n버전 등록 차단\n메타데이터 변경\nMatter를 선택해야 문서 작업 경계를 확인할 수 있습니다.\nMatter app\nMatter 선택 필요\n변경 차단\n법적 보존\nMatter를 선택해야 문서 작업 경계를 확인할 수 있습니다.\nOwner 결정 필요\nMatter 선택 필요\n보존 변경 차단\n보존 정책\nMatter를 선택해야 문서 작업 경계를 확인할 수 있습니다.\nVault Records\nMatter 선택 필요\n정책 변경 차단\n문서 작업\nMatter를 선택해야 문서 작업 경계를 확인할 ",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-07-screenshots/vault-documents.png"
+  },
+  "checks": [
+    {
+      "id": "five-action-rows",
+      "passed": true
+    },
+    {
+      "id": "base-write-disabled",
+      "passed": true
+    },
+    {
+      "id": "rows-write-disabled",
+      "passed": true
+    },
+    {
+      "id": "legal-hold-owner-gated",
+      "passed": true
+    },
+    {
+      "id": "retention-records-gated",
+      "passed": true
+    },
+    {
+      "id": "no-forbidden-text",
+      "passed": true
+    }
+  ],
+  "boundary": {
+    "browser_observation_only": true,
+    "document_mutation_complete_claim": false,
+    "owner_decision_claim": false,
+    "records_policy_receipt_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

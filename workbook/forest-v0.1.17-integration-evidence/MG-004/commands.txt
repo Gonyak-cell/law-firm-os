@@ -1,0 +1,16 @@
+git status --short
+node --check scripts/validate-hrx-fresh-db.mjs
+node --check scripts/generate-fresh-db-migration-evidence.mjs
+node --check packages/hrx/test/migration-fresh-db.test.js
+node scripts/validate-hrx-fresh-db.mjs --help
+node scripts/validate-hrx-fresh-db.mjs unexpected # expected failure
+node scripts/validate-hrx-fresh-db.mjs
+node --test packages/hrx/test/migration-fresh-db.test.js packages/hrx/test/migration.test.js
+node scripts/generate-fresh-db-migration-evidence.mjs --help
+node scripts/generate-fresh-db-migration-evidence.mjs # expected usage failure
+node scripts/generate-fresh-db-migration-evidence.mjs "/Users/jws/Documents/Codex/Law Firm OS" --evidence-commit-sha=229429fd3b4f728552f553defa79bacb824a554b
+node --test packages/hrx/test/*.test.js
+npm run build
+git diff --check
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed
+rerun generator and compare MG-004 evidence directory SHA-256 manifest

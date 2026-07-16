@@ -74,7 +74,7 @@ export const MASTER_DATA_BOUNDED_CONTEXT = Object.freeze({
   endpoints: MASTER_DATA_API_REFERENCE_SURFACE.endpoints,
   data_source: "master_data_runtime_repository",
   runtime_persistence: "file_backed_repository",
-  uses_real_client_data: false,
+  uses_real_client_data: true,
   fail_closed: true,
 });
 

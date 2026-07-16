@@ -1,0 +1,102 @@
+{
+  "schema_version": "law-firm-os.pv001.acceptance.v1",
+  "tuw": "PV-001",
+  "verdict": "PASS",
+  "entry_sha": "0854caef138acc9e8a4d41700812e1d33e6c9199",
+  "product_exit_sha": "6a57157a799e50092963faac0b0860522a218914",
+  "product_exit_tree": "45401ab2cf0871d61897ef4217918790f4f0bace",
+  "version": {
+    "expected": "0.1.17",
+    "owner_mismatch_count": 0,
+    "generated_package_mismatch_count": 0,
+    "dynamic_build_metadata": true,
+    "dynamic_update_metadata": true,
+    "macos_info_short": "0.1.17",
+    "macos_info_build": "0.1.17",
+    "macos_package": "0.1.17",
+    "windows_package": "0.1.17",
+    "windows_update_metadata": "0.1.17",
+    "macos_receipt": "0.1.17",
+    "windows_receipt": "0.1.17"
+  },
+  "build_sequence": [
+    {
+      "platform": "macos",
+      "channel": "internal",
+      "completed_at_kst": "2026-07-16T01:59:19+09:00",
+      "artifacts": ["app", "zip", "dmg"]
+    },
+    {
+      "platform": "windows",
+      "channel": "internal",
+      "completed_at_kst": "2026-07-16T02:02:07+09:00",
+      "artifacts": ["directory", "exe", "internal_manifest", "unsigned_zip"]
+    }
+  ],
+  "parity": {
+    "package_json_sha256": "bcf4356c3a894dbd1166ba44072cf8b5596e378dbe4679c91e37b4f9428773a4",
+    "source_macos_windows_package_json_equal": true,
+    "renderer_sha256": "f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445",
+    "renderer_files_each": 28,
+    "macos_windows_renderer_equal": true
+  },
+  "artifacts": {
+    "macos_zip_sha256": "e6a48d3e4a469a5a82da096582c0f7b4a48e745dc92d3b96999aae35890db859",
+    "macos_dmg_sha256": "d57241f369833c31d16b95ad40666065ecd1e615830b893af23af2a84f5c9606",
+    "windows_manifest_sha256": "687201132d2cf46b61f1f9b559882bd5ff1ebcb079f3a3529bebb6165c885dad",
+    "windows_manifest_signature_verified": true,
+    "windows_executable_sha256": "2444ed1ed7d74bb305e2c7def43122a4633c6c3a412dddeb182f7b5b3641b043",
+    "windows_unsigned_zip_sha256": "54aed659d9d683aa84a13d713b1b146e2d16139aa1bf042a22b43d4ccebb32da",
+    "artifact_hash_mismatch_count": 0
+  },
+  "packaged_smoke": {
+    "actual_macos_package": true,
+    "app_version": "0.1.17",
+    "actual_react_renderer": true,
+    "login_screen": "forest-split",
+    "intro_state": "complete",
+    "login_form_count": 1,
+    "forest_photo_panel_count": 1,
+    "loaded_forest_image_count": 1,
+    "broken_image_count": 0,
+    "page_error_count": 0,
+    "console_error_count": 0,
+    "screenshot_sha256": "bc33472da385d32c05819a969251b948e1564e9144b6f4df85c2505dd605cb49"
+  },
+  "regression": {
+    "web_ui": {"total": 144, "pass": 143, "fail": 0, "skip": 1},
+    "desktop_targeted": {"total": 27, "pass": 27, "fail": 0, "skip": 0},
+    "cp006_contract": {"total": 46, "pass": 46, "fail": 0},
+    "web_typecheck": "PASS",
+    "web_build": "PASS",
+    "ai_slop_review": "PASS"
+  },
+  "preserved_root_checkout": {
+    "head": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3",
+    "branch": "codex/profile-contact-regression-fix",
+    "tracked_count": 56,
+    "untracked_count": 21,
+    "status_count": 77,
+    "fingerprint_sha256": "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3"
+  },
+  "evidence_sha256": {
+    "version_validator": "3fd8aa454fcc4ea91b44d33c490ffc064562fa77628ede572e2c0549860bf274",
+    "packaged_smoke_script": "d2d4ed637ede31add1adf9e54be54266b6d91595aed105073d188e77c2b15a37",
+    "packaged_smoke_receipt": "f81d69c8356b942599d9223647b79600403feac93519277687617910cfca6620",
+    "macos_build_receipt": "38ee204cd1ddb17600f596f2cc59a912d77a882ba63402d4530b653b9ab78a37",
+    "windows_build_receipt": "507dcbad210d24eb486bab4c056ebcd30597d7ce1c88b384792bf7abfe347fb5",
+    "forest_asset": "5ff1776144df2fff44977494ea3eecdcf1f2d5c96dfc30deba3411bf320ee3bf"
+  },
+  "boundaries": {
+    "internal_package": true,
+    "formal_macos_release": false,
+    "macos_developer_id": false,
+    "macos_notarized": false,
+    "macos_gatekeeper_distribution_ready": false,
+    "native_windows_runtime": false,
+    "windows_authenticode": false,
+    "public_release": false,
+    "production_go_live": false
+  },
+  "external_blockers": []
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": "law-firm-os.closeout-review-result.v0.1",
+  "goal_id": "cti-password-reset-jwsuh-live-send-retry",
+  "reviewed_at": "2026-07-06T12:09:25.826Z",
+  "review_result": "BLOCKED",
+  "findings": [
+    {
+      "severity": "P1",
+      "summary": "jwsuh@amic.kr one-recipient live-send retry did not reach sent status."
+    }
+  ],
+  "recommendation": "Do not send reset emails to other users; retry only after resolving the jwsuh-only blocker."
+}

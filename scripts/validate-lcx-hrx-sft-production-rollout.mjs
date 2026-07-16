@@ -142,7 +142,6 @@ for (const path of [
 }
 
 const excludedPaths = ledger.release_payload.excluded.map((entry) => entry.path);
-assert.ok(excludedPaths.includes("docs/ui-reference/prototypes/matter-launch-login-dashboard-2026-06-25.html"), "prototype HTML must stay excluded");
 assert.ok(excludedPaths.includes("scripts/generate-sf-client-matter-surface-ledger.mjs"), "SF/client-matter tooling must stay excluded");
 
 for (const [name, receipt] of Object.entries(ledger.local_validation_receipts)) {

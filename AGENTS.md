@@ -37,3 +37,39 @@ Minimum workflow for UI/copy changes:
 
 This block complements Lazyweb, Ponytail, and local project instructions. It must not weaken stricter repo-specific gates, accessibility rules, security checks, legal review requirements, or launch evidence requirements.
 <!-- AI-SLOP:ROUTER:END -->
+
+## AWS SSO And Matter Role Chain
+
+Do not assume this repo has never used AWS SSO just because the default AWS
+profile has no credentials. The Matter AWS profiles are role-chain profiles in
+`~/.aws/config`, and the default profile may intentionally be empty.
+
+Known local chain for this repo:
+
+- `amic-vault-staging-admin`: SSO source profile, account `770880870480`,
+  role `AdministratorAccess`, region `ap-northeast-2`.
+- `matter-staging-admin`: assumes
+  `arn:aws:iam::770880870480:role/matter-staging-admin` from
+  `amic-vault-staging-admin`.
+- `matter-prod-deploy-admin`: assumes
+  `arn:aws:iam::770880870480:role/matter-prod-deploy-admin` from
+  `matter-staging-admin`.
+- `matter-cutover-operator`: assumes
+  `arn:aws:iam::770880870480:role/matter-cutover-operator` from
+  `matter-staging-admin`.
+- `matter-readonly-auditor`: assumes
+  `arn:aws:iam::770880870480:role/matter-readonly-auditor` from
+  `matter-staging-admin`.
+
+When AWS credentials are needed, first run:
+
+```bash
+aws sso login --profile amic-vault-staging-admin
+aws sts get-caller-identity --profile matter-prod-deploy-admin --no-cli-pager
+```
+
+Use `matter-prod-deploy-admin` with region `ap-northeast-2` for the production
+Matter API Lambda `matter-lawos-api-prod`. If a command says `NoCredentials`
+without `--profile`, that only means the default profile is empty. It is not
+evidence that Matter AWS SSO is unavailable. See
+`docs/runbooks/aws-sso-role-chain.md` before changing AWS profile setup.

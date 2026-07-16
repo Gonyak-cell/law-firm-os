@@ -1,0 +1,9 @@
+node --test apps/api/test/matter-worktree-create-api.test.js
+node --test apps/api/test/matter-worktree-create-api.test.js apps/api/test/matter-worktree-api.test.js
+node --input-type=module -  # manual create then duplicate API-handler driver
+node --check apps/api/src/matter-worktree-write-api.js
+node --check apps/api/src/matter-runtime-context.js
+wc -l apps/api/src/matter-worktree-write-api.js
+git diff --check
+LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+

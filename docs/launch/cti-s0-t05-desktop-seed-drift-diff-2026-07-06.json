@@ -1,0 +1,31 @@
+{
+  "schema_version": "law-firm-os.cti.s0-receipt.v0.1",
+  "generated_at": "2026-07-06T02:05:06Z",
+  "goal_id": "cti-g0-s0",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "cti_item": "S0-T05",
+  "launch_tuw": "LT-PRE-W08-T03",
+  "status": "local_static_complete",
+  "pii_boundary": {
+    "plaintext_client_or_matter_names_written": false,
+    "phone_or_email_pii_written": false,
+    "credential_material_written": false
+  },
+  "execution_boundary": {
+    "production_credentials_used": false,
+    "real_data_contact_performed": false,
+    "product_state_write_performed": false,
+    "migration_executed": false,
+    "cutover_executed": false
+  },
+  "source_candidates_file": "packages/matter/src/amic-matter-code-candidates.js",
+  "source_candidates_sha256": "d48efff3f464c7a260a96b41cb38218ccb84c2ec830c24db6da4ea577c45b42b",
+  "desktop_candidates_file": "apps/desktop/dist/mac/matter.app/Contents/Resources/app/runtime/packages/matter/src/amic-matter-code-candidates.js",
+  "desktop_candidates_exists": true,
+  "desktop_candidates_sha256": "d48efff3f464c7a260a96b41cb38218ccb84c2ec830c24db6da4ea577c45b42b",
+  "drift_diff_zero": true,
+  "candidate_counts": {
+    "clients": 99,
+    "matter_codes": 148
+  }
+}

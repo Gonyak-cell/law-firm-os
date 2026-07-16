@@ -1,0 +1,119 @@
+{
+  "schema_version": "lawos.upl_e03.filed_email_ai_review_proof.v1",
+  "generated_at": "2026-07-03T09:21:06.750Z",
+  "tuw_ids": [
+    "UPL-E-03"
+  ],
+  "pass": true,
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "external_model_claim": false,
+  "analysis_mode": "rule_based_triage",
+  "source_trace": {
+    "email_filing": "packages/email-dms/src/email-filing-service.js#fileEmailThreadToMatter",
+    "rule_based_review_service": "packages/matter/src/email-ai-matter-review-service.js#createFiledEmailAiMatterReviewService",
+    "matter_model": "packages/matter/src/model.js#createMatter/createMatterTask/createMatterCalendarEvent"
+  },
+  "filed_email": {
+    "outcome": "created",
+    "email_thread_id": "email-thread-e03-proof-001",
+    "body_ref": "body-ref:email-thread-e03-proof-001",
+    "raw_body_included": false,
+    "provider_payload_included": false
+  },
+  "review_queue": {
+    "review_id": "email_ai_review_email-thread-e03-proof-001",
+    "status": "pending_lawyer_approval",
+    "ai_summary": "Filed email from legal@example.com: New advisory request for supply agreement. Please prepare a review task and note the response deadline 2026-07-21.",
+    "task_candidate_count": 1,
+    "deadline_candidate_count": 1
+  },
+  "before_approval": {
+    "review_status": "pending_lawyer_approval",
+    "matter_count": 0,
+    "task_count": 0,
+    "deadline_count": 0,
+    "auto_create_matter_count": 0
+  },
+  "after_approval": {
+    "review_status": "approved",
+    "matter_count": 1,
+    "task_count": 1,
+    "deadline_count": 1,
+    "matter_id": "matter-e03-approved-from-email",
+    "approval_ref": "lawyer_approval:email_ai_review_email-thread-e03-proof-001:lawyer-e03-001"
+  },
+  "checks": [
+    {
+      "id": "e03-filed-email-record-created",
+      "passed": true,
+      "evidence": {
+        "email_thread_id": "email-thread-e03-proof-001",
+        "audit_actions": [
+          "dms.email.thread.file"
+        ]
+      }
+    },
+    {
+      "id": "e03-ai-summary-and-candidates-created",
+      "passed": true,
+      "evidence": {
+        "review_id": "email_ai_review_email-thread-e03-proof-001",
+        "deadline": "2026-07-21"
+      }
+    },
+    {
+      "id": "e03-review-queue-requires-lawyer-approval",
+      "passed": true,
+      "evidence": {
+        "status": "pending_lawyer_approval"
+      }
+    },
+    {
+      "id": "e03-no-approval-zero-auto-create",
+      "passed": true,
+      "evidence": {
+        "review_status": "pending_lawyer_approval",
+        "matter_count": 0,
+        "task_count": 0,
+        "deadline_count": 0,
+        "auto_create_matter_count": 0
+      }
+    },
+    {
+      "id": "e03-lawyer-approval-creates-matter-task-deadline",
+      "passed": true,
+      "evidence": {
+        "review_status": "approved",
+        "matter_count": 1,
+        "task_count": 1,
+        "deadline_count": 1,
+        "matter_id": "matter-e03-approved-from-email",
+        "approval_ref": "lawyer_approval:email_ai_review_email-thread-e03-proof-001:lawyer-e03-001"
+      }
+    },
+    {
+      "id": "e03-approval-ref-bound-to-lawyer",
+      "passed": true,
+      "evidence": {
+        "approval_ref": "lawyer_approval:email_ai_review_email-thread-e03-proof-001:lawyer-e03-001"
+      }
+    },
+    {
+      "id": "e03-regression-unapproved-second-review-zero-matter",
+      "passed": true,
+      "evidence": {
+        "review_id": "email_ai_review_email-thread-e03-proof-001",
+        "matter_count": 0
+      }
+    },
+    {
+      "id": "e03-no-raw-email-body-or-provider-payload",
+      "passed": true,
+      "evidence": {
+        "raw_email_body_stored": false,
+        "provider_payload_stored": false
+      }
+    }
+  ]
+}

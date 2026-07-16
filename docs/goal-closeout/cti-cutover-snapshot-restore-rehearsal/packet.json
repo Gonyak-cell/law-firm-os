@@ -1,0 +1,77 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.packet.v0.1",
+  "goal_id": "cti-cutover-snapshot-restore-rehearsal",
+  "status": "blocked_no_approved_efs_file_read_surface",
+  "recorded_at": "2026-07-06T06:53:24.756Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "approval_signature_refs": [
+    "I1-CTI-LAWYER-ROLE-MAPPING-OWNER-CONFIRMATION-2026-07-06",
+    "I2-CTI-KYT-ACCESS-SCOPE-OWNER-APPROVAL-2026-07-06",
+    "I3-CTI-INITIAL-PASSWORD-DISTRIBUTION-CHANNEL-OWNER-APPROVAL-2026-07-06",
+    "I4-CTI-G0-S0-OWNER-RATIFICATION-2026-07-06",
+    "I5-CTI-S1-FOUNDATION-UNBLOCK-PACKET-OWNER-APPROVAL-2026-07-06",
+    "I6-CTI-S1-SECRETSMANAGER-VPCE-IAM-OWNER-APPROVAL-2026-07-06",
+    "I7-CTI-S2-AUTHENTICATION-UNBLOCK-PACKET-OWNER-APPROVAL-2026-07-06",
+    "I8-CTI-S2-S1G-AUTHENTICATED-PROBE-OWNER-APPROVAL-2026-07-06",
+    "I9-CTI-S2-AUTHENTICATION-EXECUTE-OWNER-APPROVAL-2026-07-06",
+    "I10-CTI-BUILD-S3-S4-CODE-PREP-OWNER-APPROVAL-2026-07-06",
+    "I11-CTI-CUTOVER-EXECUTE-OWNER-APPROVAL-2026-07-06"
+  ],
+  "closeout_verdict": "BLOCKED_NO_APPROVED_EFS_FILE_READ_SURFACE",
+  "stop_condition": {
+    "triggered": true,
+    "trigger": "current_snapshot_creation_failed",
+    "reason": "No approved read-only path can enumerate and hash EFS runtime store files from outside the Lambda runtime. Product API readback requires an authenticated production session, which remains blocked by S1-G/I8 conditions.",
+    "cutover_execute_allowed": false,
+    "restore_rehearsal_allowed_without_snapshot": false
+  },
+  "prerequisites": {
+    "i1_owner_mapping_confirmation_recorded": true,
+    "build_g_pass": true,
+    "aws_credential_read_access": true,
+    "lambda_health_read_access": true,
+    "efs_metadata_read_access": true,
+    "approved_efs_file_read_surface_available": false
+  },
+  "current_snapshot": {
+    "current_snapshot_hash_count_receipt_created": false,
+    "snapshot_hash": null,
+    "snapshot_record_count": null,
+    "snapshot_scope": "approved_current_production_runtime_store_files_under_/mnt/lawos",
+    "reason": "No approved read-only path can enumerate and hash EFS runtime store files from outside the Lambda runtime. Product API readback requires an authenticated production session, which remains blocked by S1-G/I8 conditions."
+  },
+  "restore_rehearsal": {
+    "snapshot_bound_restore_rehearsal_executed": false,
+    "outcome": "BLOCKED_DEPENDS_ON_CURRENT_SNAPSHOT_HASH_COUNT_RECEIPT",
+    "production_restore_executed": false
+  },
+  "blocking_conditions": [
+    "current production snapshot hash/count receipt blocked: no approved EFS file read surface",
+    "snapshot-bound restore rehearsal blocked: current snapshot hash/count receipt is missing"
+  ],
+  "evidence_refs": {
+    "snapshot_attempt_receipt": "docs/launch/cti-cutover-current-snapshot-attempt-receipt-2026-07-06.json",
+    "private_read_surface_evidence_sha256": "7adb725fdeca9fefb757aeeae994a4cca654ce4fcb3618582fbcb386b453bbb0",
+    "private_read_surface_evidence_path": "/Users/jws/.codex/local-evidence/cti-cutover-snapshot-restore-rehearsal/cti-cutover-snapshot-read-surface-evidence-2026-07-06.json"
+  },
+  "authority_boundary": {
+    "production_write_executed": false,
+    "production_restore_executed": false,
+    "restore_execution_against_production": false,
+    "tenant_migration_executed": false,
+    "account_permission_injection_executed": false,
+    "operational_profile_switch_executed": false,
+    "bridge_token_rotation_executed": false,
+    "password_distribution_executed": false,
+    "cutover_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "secret_value_recorded": false,
+    "plaintext_pii_recorded": false
+  },
+  "next_allowed_goal": {
+    "cutover_execute_allowed": false,
+    "allowed_next_goal_type": "approve and implement a read-only EFS snapshot surface, or create an approved isolated AWS restore/mount path that can produce PII-safe hash/count evidence",
+    "cutover_must_not_start_from_this_packet": true
+  }
+}

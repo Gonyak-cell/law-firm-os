@@ -1,0 +1,30 @@
+{
+  "schema_version": "lawos.sidebar_session_display_current_desktop_proof.v1",
+  "generated_at": "2026-07-07T02:25:57.233Z",
+  "verdict": "PASS",
+  "observed_surface": "apps/desktop/dist/mac/matter.app via Chromium CDP 9223 after reload",
+  "assertions": [
+    {
+      "id": "current-packaged-sidebar-name",
+      "passed": true,
+      "observed": "서지원"
+    },
+    {
+      "id": "generic-user-fallback-not-visible",
+      "passed": true,
+      "observed": false
+    },
+    {
+      "id": "desktop-session-url-envelope-expired-but-main-process-status-used",
+      "passed": true
+    }
+  ],
+  "snapshot": {
+    "sidebar_name": "서지원",
+    "sidebar_role": null,
+    "fallback_visible": false,
+    "skin": "forest"
+  },
+  "secret_material_included": false,
+  "production_ready_claim": false
+}

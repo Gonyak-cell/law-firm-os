@@ -1,0 +1,117 @@
+{
+  "schema_version": "law-firm-os.cp003-leave-upper-compatibility.v1",
+  "entry_sha": "17700c5450cd9de9add0dce1ec44be77d3b49ad7",
+  "plan": {
+    "path": "workbook/hrx-leave-payroll-tuw-implementation-plan-2026-07-14.md",
+    "expected_tuw_count": 49,
+    "done_tuw_count": 49,
+    "failed_tuws": []
+  },
+  "implementation": {
+    "axis_count": 7,
+    "passing_axis_count": 7,
+    "axes": [
+      {
+        "id": "type_economics",
+        "source_file_count": 3,
+        "proof_file_count": 5,
+        "required_files_present": true,
+        "contract_needles_present": true
+      },
+      {
+        "id": "automatic_accrual",
+        "source_file_count": 4,
+        "proof_file_count": 6,
+        "required_files_present": true,
+        "contract_needles_present": true
+      },
+      {
+        "id": "entitlement_lifecycle",
+        "source_file_count": 4,
+        "proof_file_count": 5,
+        "required_files_present": true,
+        "contract_needles_present": true
+      },
+      {
+        "id": "occurrence_usage",
+        "source_file_count": 4,
+        "proof_file_count": 5,
+        "required_files_present": true,
+        "contract_needles_present": true
+      },
+      {
+        "id": "promotion",
+        "source_file_count": 2,
+        "proof_file_count": 3,
+        "required_files_present": true,
+        "contract_needles_present": true
+      },
+      {
+        "id": "provider_integrations",
+        "source_file_count": 2,
+        "proof_file_count": 4,
+        "required_files_present": true,
+        "contract_needles_present": true
+      },
+      {
+        "id": "security_privacy_migration",
+        "source_file_count": 4,
+        "proof_file_count": 6,
+        "required_files_present": true,
+        "contract_needles_present": true
+      }
+    ],
+    "failed_axes": []
+  },
+  "test_inventory": {
+    "package_file_count": 25,
+    "api_file_count": 9,
+    "web_file_count": 6,
+    "total_file_count": 40,
+    "missing_files": []
+  },
+  "package_qa": {
+    "path": "docs/lazycodex/evidence/matter-desktop/artifacts/leave-management-package-qa.json",
+    "sha256": "4b4d8a51acf4b7bcb8948f6c0f62f655165941ef2e4ffde910439e1e0ac72967",
+    "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c",
+    "renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96",
+    "scenario_count": 10,
+    "role_check_count": 7,
+    "viewport_widths": [
+      720,
+      820,
+      1024,
+      1280,
+      1512
+    ],
+    "screenshot_count": 11,
+    "false_claim_boundaries": [
+      "external_provider_write_claim",
+      "go_live_claim",
+      "legal_labor_approval_claim",
+      "production_ready_claim",
+      "public_release_claim",
+      "real_employee_data_used"
+    ],
+    "checks": {
+      "verdict_pass": true,
+      "synthetic_only": true,
+      "source_revision_matches": true,
+      "package_source_is_ancestor": true,
+      "product_runtime_unchanged_since_package_qa": true,
+      "renderer_matches_exact": true,
+      "mac_functional_boundary_exact": true,
+      "windows_boundary_exact": true,
+      "ten_scenarios_pass": true,
+      "seven_role_checks_pass": true,
+      "restart_domain_identical": true,
+      "five_viewports_exact": true,
+      "eleven_screenshots": true,
+      "geometry_clean": true,
+      "console_clean": true,
+      "claim_boundaries_false": true
+    },
+    "failed_checks": []
+  },
+  "verdict": "PASS"
+}

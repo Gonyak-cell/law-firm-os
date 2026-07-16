@@ -1,0 +1,12 @@
+command: npm --workspace apps/web run test:ui
+exit_code: 0
+tests: 144
+pass: 143
+fail: 0
+skip: 1
+raw_transient_log_sha256: 760b89d48224a3880d4ad8a97b29e265fff9b8f40b6bb09af6cce169a6917a70
+raw_transient_log_bytes: 829710
+port_24678_messages: 9
+dependency_scan_close_messages: 276
+acceptance_rerun: node --test --test-force-exit --test-timeout=30000 --test-concurrency=1 apps/web/test/*.test.mjs
+acceptance_rerun_error_noise: 0

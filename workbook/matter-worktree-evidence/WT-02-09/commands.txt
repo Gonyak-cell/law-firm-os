@@ -1,0 +1,5 @@
+node --test apps/desktop/test/aws-runtime-client.test.mjs
+node --input-type=module -  # manual allowed DELETE and blocked unknown POST runtime-client driver
+node --check apps/desktop/src/main/aws-runtime.js
+git diff --check
+

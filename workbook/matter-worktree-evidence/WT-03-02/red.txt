@@ -1,0 +1,3 @@
+Command: node --test apps/web/test/matter-worktree-ui-contract.test.mjs
+Exit: 1
+Failure: fetchMatterWorktree and the Worktree mutation clients were absent.

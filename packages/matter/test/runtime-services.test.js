@@ -16,8 +16,10 @@ import {
   createMatterStatusHistoryStore,
   deriveMatterCode,
   filterVisibleMatters,
+  listMatterParties,
   matterOpeningDependencyDecision,
   openMatterTransaction,
+  registerMatterParty,
   upsertCanonicalMatterIdentity,
   upsertMatterAppClientFromVaultContract,
   upsertMatterAppMatterFromVaultContract,
@@ -25,6 +27,7 @@ import {
   reserveMatterNumber,
   transitionMatterTask,
 } from "../src/index.js";
+import { MATTER_ONBOARDING_GATE_ERROR_CODE } from "../src/staffing-service.js";
 
 const tenant_id = "tenant-g4-runtime";
 const actor_id = "user-g4-owner";
@@ -76,6 +79,24 @@ test("Matter repository persists tenant-scoped records across reopen", () => {
   assert.equal(reopened.list({ tenant_id: "tenant-other", model_type: "Matter" }).length, 0);
 });
 
+test("Matter repository seed guard preserves existing durable records during runtime restart", () => {
+  const storePath = filePath("matter-reseed-guard-");
+  const repository = createMatterRepository({ filePath: storePath });
+  repository.create(matterInput({ title: "Existing production readback marker" }));
+  repository.close();
+
+  const reopened = createMatterRepository({
+    filePath: storePath,
+    seedRecords: [
+      matterInput({ title: "Synthetic seed must not overwrite existing record" }),
+      matterInput({ matter_id: "matter-g4-seed-carveout", title: "Synthetic seed carve-out" }),
+    ],
+  });
+  const existing = reopened.get({ tenant_id, model_type: "Matter", matter_id: "matter-g4" });
+  assert.equal(existing.title, "Existing production readback marker");
+  assert.equal(reopened.get({ tenant_id, model_type: "Matter", matter_id: "matter-g4-seed-carveout" }).title, "Synthetic seed carve-out");
+});
+
 test("Matter numbering blocks duplicate matter numbers and supports idempotent replay", () => {
   const repository = createMatterRepository();
   const first = reserveMatterNumber({
@@ -109,12 +130,25 @@ test("Matter numbering blocks duplicate matter numbers and supports idempotent r
 
 test("Matter canonical identity upsert stores client and tenant-unique matter code idempotently", () => {
   const repository = createMatterRepository();
-  assert.equal(validateMatterCode("AMIC/litigation/계약분쟁").valid, true);
+  assert.equal(validateMatterCode("AMIC/LIT/CIV/계약분쟁").valid, true);
+  assert.equal(validateMatterCode("AMIC/Civil/계약분쟁").matter_code, "AMIC/LIT/CIV/계약분쟁");
+  assert.equal(validateMatterCode("AMIC/LIT/계약분쟁").valid, false);
+  assert.equal(validateMatterCode("AMIC/DISP/내용증명").matter_code, "AMIC/Dispute/내용증명");
+  assert.equal(validateMatterCode("AMIC/Dispute/내용증명").valid, true);
+  assert.equal(
+    deriveMatterCode({
+      client_short_name: "AMIC",
+      matter_type_english: "Dispute",
+      matter_detail_type_korean: "내용증명",
+    }),
+    "AMIC/Dispute/내용증명",
+  );
   assert.throws(
     () =>
       deriveMatterCode({
-        client_short_name: "A".repeat(110),
-        matter_type_english: "litigation",
+        client_short_name: "A".repeat(112),
+        matter_type_english: "LIT",
+        matter_litigation_axis: "CIV",
         matter_detail_type_korean: "계약분쟁",
       }),
     /120 characters/,
@@ -135,7 +169,8 @@ test("Matter canonical identity upsert stores client and tenant-unique matter co
       status: "opening",
       created_by: actor_id,
       created_at: "2026-06-20T00:00:00.000Z",
-      matter_type_english: "litigation",
+      matter_type_english: "LIT",
+      matter_litigation_axis: "CIV",
       matter_detail_type_korean: "계약분쟁",
       permission_envelope_id: "perm-canonical",
       audit_trace_id: "audit-canonical",
@@ -143,7 +178,7 @@ test("Matter canonical identity upsert stores client and tenant-unique matter co
     },
   });
   assert.equal(first.client.client_short_name, "AMIC");
-  assert.equal(first.matter.matter_code, "AMIC/litigation/계약분쟁");
+  assert.equal(first.matter.matter_code, "AMIC/LIT/CIV/계약분쟁");
   assert.equal(first.matter.client_id, "client-amic");
   assert.equal(repository.list({ tenant_id, model_type: "MatterClient" }).length, 1);
   assert.equal(repository.list({ tenant_id, model_type: "Matter" }).length, 1);
@@ -163,7 +198,8 @@ test("Matter canonical identity upsert stores client and tenant-unique matter co
       status: "opening",
       created_by: actor_id,
       created_at: "2026-06-20T00:00:00.000Z",
-      matter_type_english: "litigation",
+      matter_type_english: "LIT",
+      matter_litigation_axis: "CIV",
       matter_detail_type_korean: "계약분쟁",
       permission_envelope_id: "perm-canonical",
       audit_trace_id: "audit-canonical",
@@ -190,7 +226,8 @@ test("Matter canonical identity upsert stores client and tenant-unique matter co
           status: "opening",
           created_by: actor_id,
           created_at: "2026-06-20T00:00:00.000Z",
-          matter_type_english: "litigation",
+          matter_type_english: "LIT",
+          matter_litigation_axis: "CIV",
           matter_detail_type_korean: "계약분쟁",
           permission_envelope_id: "perm-canonical",
           audit_trace_id: "audit-canonical",
@@ -243,10 +280,13 @@ test("Vault approved write contract maps client and matter code into Matter app 
     idempotencyKeyHash: "hash:vault-matter-1",
     clientId: client.clientId,
     clientDisplayName: client.clientDisplayName,
-    matterCode: "Vault 반영/Civil/계약분쟁",
+    matterCode: "Vault 반영/LIT/CIV/계약분쟁",
     matterName: "Vault reflected approved matter",
-    matterTypeEnglish: "Civil",
+    matterTypeEnglish: "LIT",
+    matterLitigationAxis: "CIV",
     matterDetailTypeKorean: "계약분쟁",
+    clientCaseRole: "피고",
+    clientCaseRoleConfidence: "test_contract",
     practiceGroup: "litigation",
     responsibleLawyer: "lawyer-ref-1",
     openedAt: "2026-06-24T00:00:00.000Z",
@@ -259,13 +299,15 @@ test("Vault approved write contract maps client and matter code into Matter app 
     request: matterRequest,
     actor_id,
   });
-  assert.equal(matter.matterCode, "Vault 반영/Civil/계약분쟁");
+  assert.equal(matter.matterCode, "Vault 반영/LIT/CIV/계약분쟁");
   assert.equal(matter.clientId, client.clientId);
   assert.equal(matter.sourceRevision, "approval-rev-2");
   assert.equal(matter.action, "created");
   assert.equal(matter.matter.practice_group, "litigation");
   assert.equal(matter.matter.responsible_lawyer, "lawyer-ref-1");
   assert.equal(matter.matter.source_updated_at, "2026-06-24T00:00:00.000Z");
+  assert.equal(matter.matter.client_case_role, "피고");
+  assert.equal(matter.matter.client_case_role_confidence, "test_contract");
 
   const replay = upsertMatterAppMatterFromVaultContract({
     repository,
@@ -276,6 +318,26 @@ test("Vault approved write contract maps client and matter code into Matter app 
   assert.equal(replay.action, "skipped_idempotent");
   assert.equal(repository.list({ tenant_id, model_type: "MatterClient" }).length, 1);
   assert.equal(repository.list({ tenant_id, model_type: "Matter" }).length, 1);
+
+  const dealMatter = upsertMatterAppMatterFromVaultContract({
+    repository,
+    request: {
+      ...matterRequest,
+      idempotencyKeyHash: "hash:vault-matter-deal-target-prefix",
+      matterAppMatterId: "matter-vault-deal-target-prefix",
+      matterCode: "대상회사/DEAL/Project Jade",
+      matterName: "대상회사/DEAL/Project Jade",
+      matterTypeEnglish: "DEAL",
+      matterLitigationAxis: null,
+      matterDetailTypeKorean: "Project Jade",
+      matterCodeClientShortName: "대상회사",
+    },
+    actor_id,
+  });
+  assert.equal(dealMatter.matterCode, "대상회사/DEAL/Project Jade");
+  assert.equal(dealMatter.clientId, client.clientId);
+  assert.equal(dealMatter.matter.client_display_name, client.clientDisplayName);
+  assert.equal(dealMatter.matter.matter_code_client_short_name, "대상회사");
 
   assert.throws(
     () =>
@@ -297,7 +359,7 @@ test("Vault approved write contract maps client and matter code into Matter app 
         request: {
           ...matterRequest,
           idempotencyKeyHash: "hash:vault-matter-bad-code",
-          matterCode: "Wrong/Civil/계약분쟁",
+          matterCode: "Wrong/LIT/CIV/계약분쟁",
         },
         actor_id,
       }),
@@ -332,7 +394,8 @@ test("Matter opening transaction rolls back when DMS or Billing side effects fai
     require_canonical_matter_code: true,
     matter: matterInput({
       matter_id: "matter-g4-opened",
-      matter_type_english: "litigation",
+      matter_type_english: "LIT",
+      matter_litigation_axis: "CIV",
       matter_detail_type_korean: "개시",
       source_revision: "approval-rev-opening",
     }),
@@ -344,7 +407,7 @@ test("Matter opening transaction rolls back when DMS or Billing side effects fai
     billing: { createMatterLedger: ({ matter_id }) => ({ ledger_id: `ledger-${matter_id}` }) },
   });
   assert.equal(result.outcome, "created");
-  assert.equal(result.matter.matter_code, "G4 Client/litigation/개시");
+  assert.equal(result.matter.matter_code, "G4 Client/LIT/CIV/개시");
   assert.equal(repository.list({ tenant_id, model_type: "MatterClient" }).length, 1);
   assert.equal(repository.listAudit({ tenant_id, object_id: "matter-g4-opened" }).length, 1);
 });
@@ -411,6 +474,103 @@ test("MatterTeam runtime blocks user_id-only and unavailable employees", () => {
     },
   });
   assert.equal(member.employee_id, "emp-active");
+});
+
+test("MatterTeam runtime blocks matter staffing until onboarding security tasks are complete", () => {
+  const repository = createMatterRepository({ seedRecords: [matterInput()] });
+  const employees = [{ tenant_id, employee_id: "emp-onboarding", status: "onboarding", availability: "available" }];
+  const onboardingPlan = {
+    tenant_id,
+    employee_id: "emp-onboarding",
+    onboarding_id: "onb-matter-gate",
+    tasks: [
+      { task_id: "security-training", title: "Security training", status: "completed" },
+      { task_id: "security-pledge", title: "Security pledge", status: "pending" },
+    ],
+  };
+  const onboardingGate = {
+    getMatterAssignmentReadiness: () => ({
+      outcome: "blocked",
+      reason: "onboarding_gate_incomplete",
+      onboarding_id: onboardingPlan.onboarding_id,
+      employee_id: onboardingPlan.employee_id,
+      missing_task_ids: ["security-pledge"],
+    }),
+  };
+
+  assert.throws(
+    () =>
+      addMatterTeamMember({
+        repository,
+        employeeDirectory: employees,
+        onboardingGate,
+        matter: matterInput(),
+        actor_id,
+        member: {
+          model_type: "MatterMember",
+          tenant_id,
+          matter_id: "matter-g4",
+          member_id: "member-onboarding-blocked",
+          employee_id: "emp-onboarding",
+          user_id: "user-onboarding",
+          role: "associate",
+          status: "active",
+        },
+      }),
+    (error) => error.code === MATTER_ONBOARDING_GATE_ERROR_CODE,
+  );
+
+  const completedGate = {
+    getMatterAssignmentReadiness: () => ({ outcome: "allow", reason: "onboarding_gate_completed" }),
+  };
+  const member = addMatterTeamMember({
+    repository,
+    employeeDirectory: employees,
+    onboardingGate: completedGate,
+    matter: matterInput(),
+    actor_id,
+    member: {
+      model_type: "MatterMember",
+      tenant_id,
+      matter_id: "matter-g4",
+      member_id: "member-onboarding-cleared",
+      employee_id: "emp-onboarding",
+      user_id: "user-onboarding",
+      role: "associate",
+      status: "active",
+    },
+  });
+  assert.equal(member.employee_id, "emp-onboarding");
+});
+
+test("MatterParty runtime stores adverse parties with model_type filter visibility", () => {
+  const repository = createMatterRepository({ seedRecords: [matterInput({ status: "closed" })] });
+  const audit = { append: (event) => repository.appendAudit({ ...event, event_id: `${event.action}:${event.object_id}` }) };
+
+  const party = registerMatterParty({
+    repository,
+    matter: matterInput({ status: "closed" }),
+    actor_id,
+    audit,
+    party: {
+      tenant_id,
+      matter_id: "matter-g4",
+      matter_party_id: "matter-party-adverse-g4",
+      party_id: "party-adverse-g4",
+      display_name: "상대방 주식회사",
+      party_role: "adverse",
+      retroactive_entry: true,
+    },
+  });
+
+  assert.equal(party.party_role, "adverse_party");
+  assert.equal(party.conflict_subject, true);
+  assert.equal(party.retroactive_entry, true);
+  assert.equal(party.raw_contact_values_included, false);
+  assert.equal(party.production_ready_claim, false);
+  assert.equal(repository.list({ tenant_id, model_type: "MatterParty", matter_id: "matter-g4" }).length, 1);
+  assert.equal(listMatterParties({ repository, tenant_id, matter_id: "matter-g4", party_role: "adverse_party" }).length, 1);
+  assert.equal(repository.listAudit({ tenant_id, object_id: "matter-party-adverse-g4" }).length, 1);
 });
 
 test("Matter task, deadline, status history, report, close, and visibility runtime guards hold", () => {

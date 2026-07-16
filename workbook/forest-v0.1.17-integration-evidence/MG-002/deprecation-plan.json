@@ -1,0 +1,659 @@
+[
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|TABLE|hrx_payroll_profiles|hrx_payroll_profiles",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "FOREST_CANONICAL_REPLACEMENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": "021_hrx_payroll_runtime.sql",
+    "root_definition_sha256": "7391f61457c4723a3a56ece3cf04932dc462913e3896709c25606f2857d9f606",
+    "candidate_definition_sha256": "0acdd5fff6f10999626599afaaf6ccbf0aecc3f9510b97f24e9ebb8fa93efc26"
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|COLUMN|hrx_payroll_profiles|tenant_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "FOREST_CANONICAL_REPLACEMENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": "021_hrx_payroll_runtime.sql",
+    "root_definition_sha256": "313d3a6c5a8d3b04d7b41711e84cf6b41eb94a0d1731b1ef275a95a4675cc2bd",
+    "candidate_definition_sha256": "313d3a6c5a8d3b04d7b41711e84cf6b41eb94a0d1731b1ef275a95a4675cc2bd"
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|COLUMN|hrx_payroll_profiles|payroll_profile_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "FOREST_CANONICAL_REPLACEMENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": "021_hrx_payroll_runtime.sql",
+    "root_definition_sha256": "c139276cc4b07fbfeb6af531bd8ffebdf850f66dd451a889a1aef95bf0397b21",
+    "candidate_definition_sha256": "c139276cc4b07fbfeb6af531bd8ffebdf850f66dd451a889a1aef95bf0397b21"
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|COLUMN|hrx_payroll_profiles|employee_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "FOREST_CANONICAL_REPLACEMENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": "021_hrx_payroll_runtime.sql",
+    "root_definition_sha256": "32d5d1dc788266b55d68486672f39145ae04b4df3c34eb04960710ec3e75eaed",
+    "candidate_definition_sha256": "32d5d1dc788266b55d68486672f39145ae04b4df3c34eb04960710ec3e75eaed"
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|COLUMN|hrx_payroll_profiles|version",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "fa60f7027a26b19273eec01a129887a9c072d680a88a7d02549f907273f02734",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|COLUMN|hrx_payroll_profiles|currency_ref",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "84885b08b1e1f69fd6b936ee92e979d7acf25091e5f2e0b365ed96e0317f6108",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|COLUMN|hrx_payroll_profiles|pay_frequency",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "81418e16e8332303771020afc7b50b4f252fd82583fa52100788419e94bb055e",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|COLUMN|hrx_payroll_profiles|effective_from",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "FOREST_CANONICAL_REPLACEMENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": "021_hrx_payroll_runtime.sql",
+    "root_definition_sha256": "bb565452ca6166ebb089d4c940907464b4240b42b30981f6c13a128aab8d3430",
+    "candidate_definition_sha256": "bb565452ca6166ebb089d4c940907464b4240b42b30981f6c13a128aab8d3430"
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|COLUMN|hrx_payroll_profiles|effective_to",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "FOREST_CANONICAL_REPLACEMENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": "021_hrx_payroll_runtime.sql",
+    "root_definition_sha256": "4cc757708c479ba62f148219f484b5b0fc477b118cd6f01cd9a57baccd0b614a",
+    "candidate_definition_sha256": "4cc757708c479ba62f148219f484b5b0fc477b118cd6f01cd9a57baccd0b614a"
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|COLUMN|hrx_payroll_profiles|status",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "FOREST_CANONICAL_REPLACEMENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": "021_hrx_payroll_runtime.sql",
+    "root_definition_sha256": "19191c90e234ddeb00cfd9df5eabe881b39b370d8a5ea5bc054b9899b888599d",
+    "candidate_definition_sha256": "19191c90e234ddeb00cfd9df5eabe881b39b370d8a5ea5bc054b9899b888599d"
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|COLUMN|hrx_payroll_profiles|source_ref",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "389645c98053651e505a8bf6396a8434bca0f514cb2bd9e1382a4edcd43fa85e",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|COLUMN|hrx_payroll_profiles|created_at",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "FOREST_CANONICAL_REPLACEMENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": "021_hrx_payroll_runtime.sql",
+    "root_definition_sha256": "59e0b04a623e194d85b604d4d0ce462c610117180a630dcc41a768ac0a16cee1",
+    "candidate_definition_sha256": "59e0b04a623e194d85b604d4d0ce462c610117180a630dcc41a768ac0a16cee1"
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|PRIMARY_KEY|hrx_payroll_profiles|tenant_id,payroll_profile_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "FOREST_CANONICAL_REPLACEMENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": "021_hrx_payroll_runtime.sql",
+    "root_definition_sha256": "9c7fbedb1f1e353b13bc884cd6aa512b25edd2bd7592918294b109b3caea4815",
+    "candidate_definition_sha256": "9c7fbedb1f1e353b13bc884cd6aa512b25edd2bd7592918294b109b3caea4815"
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|UNIQUE|hrx_payroll_profiles|tenant_id,employee_id,version",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "9c3c820e33a486b7be1031bc595408d7f7239add62b9fdbed4ac6c104d701c6f",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|FOREIGN_KEY|hrx_payroll_profiles|tenant_id,employee_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "FOREST_CANONICAL_REPLACEMENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": "021_hrx_payroll_runtime.sql",
+    "root_definition_sha256": "b748a6227c5a0ef5b624e5bb291acefaa948043fccc2291cba1d8f4792bdc922",
+    "candidate_definition_sha256": "b748a6227c5a0ef5b624e5bb291acefaa948043fccc2291cba1d8f4792bdc922"
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|CONSTRAINT|hrx_payroll_profiles|hrx_payroll_profiles_version_check",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "FOREST_CANONICAL_REPLACEMENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": "021_hrx_payroll_runtime.sql",
+    "root_definition_sha256": "0cadcfb8932d27bcd615ae3fdca516fbe7c1cd1e4780351737def6da65c2b313",
+    "candidate_definition_sha256": "cbbcc1a7c15cd104ab5d5aa4dd5ead239fd596536b71bc5689fbab5197b9d71b"
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|CONSTRAINT|hrx_payroll_profiles|hrx_payroll_profiles_frequency_check",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "18c7080bb7cd09ddfd92dac7de7dd608d1a653bd596c44c0ad2929d5af1e8b1c",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|CONSTRAINT|hrx_payroll_profiles|hrx_payroll_profiles_status_check",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "FOREST_CANONICAL_REPLACEMENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": "021_hrx_payroll_runtime.sql",
+    "root_definition_sha256": "dd49cac927034709c82eb19c46c50fe8541f31e8e3941496662ecd74ff90b279",
+    "candidate_definition_sha256": "dd49cac927034709c82eb19c46c50fe8541f31e8e3941496662ecd74ff90b279"
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|CONSTRAINT|hrx_payroll_profiles|hrx_payroll_profiles_dates_check",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "fdeaea4388c3f784474085c9d3c3ede9b24f36676b571ed06471bb15247eed88",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|TRIGGER|hrx_payroll_profiles|trg_hrx_payroll_profiles_immutable_update",
+    "disposition": "REJECT_CONFLICTING_MUTABILITY",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/payroll/repository.js",
+    "candidate_owner": null,
+    "root_definition_sha256": "559f34ae313514f7cefc2b38dd34546e3b445479078a086b5522adf73811d9ec",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "012_hrx_payroll_profiles.sql|TRIGGER|hrx_payroll_profiles|trg_hrx_payroll_profiles_immutable_delete",
+    "disposition": "REJECT_CONFLICTING_MUTABILITY",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/payroll/repository.js",
+    "candidate_owner": null,
+    "root_definition_sha256": "0385ca8210a57dbbdd45bd1e54ef7896f9a2c0c164faf7c5ac3ee50d2f3718bc",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|TABLE|hrx_payroll_time_snapshots|hrx_payroll_time_snapshots",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "766d26d9c4dd83b64bce6892e8b66cdf277d43fd8838772ed81f0183f9f474c0",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshots|tenant_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "313d3a6c5a8d3b04d7b41711e84cf6b41eb94a0d1731b1ef275a95a4675cc2bd",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshots|snapshot_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "c2abb33fcb0d8c92b732f7e157d8e4854b100413a133bb090276fd2a74279452",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshots|idempotency_key",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "f209fa05cdd5c7731df60c8151da3c93705c94972fcd1aa217380b4bc911fc6a",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshots|input_hash",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "c21e51beee771373dd21a79b9cbcdb5c6523147f0680e6b09674dfb730344ef5",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshots|period_start",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "10cd9aa0273bc9d928827ee8680d17450718429c80dcf2563654de795c41efc2",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshots|period_end",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "37e3e4ebc76da8e08eb2f1802517828eff322d6e8fb861ffe6aa48823bfd84cf",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshots|as_of",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "b5454c630c296bf88c0199547e75ae2887b51ddc38f2e5919f32806ed2fabf61",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshots|source_version",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "f31556e70192bff0c35ec083d63a06593d29110b2fb639124b7de8ae9cc81563",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshots|timezone",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "b4ae1193db8a2ee03d5f7a0ce3823a414f4f2605e2639187e61704aa8d91ff0a",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshots|projection_json",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "5d60584817f9bf7c05665d7ffd4e30c3f45ad449fe7250b402721791eac5e214",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshots|created_by_actor_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "2ce4fff14d93325e00a4519803f946c8d5240cb8b83102d8cc36ac8954ed5317",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshots|created_at",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "59e0b04a623e194d85b604d4d0ce462c610117180a630dcc41a768ac0a16cee1",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshots|payroll_calculation_runtime",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "87ee9b383a51e45f916dde3c4f19766881eb25c3f8adeeb6a876151ff986ecd8",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshots|disbursement_instruction_included",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "aa74b7be4cf86daab59991c9ca56ad0204d4f24a1189fd0dcb0f6a3f2895cb6f",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|PRIMARY_KEY|hrx_payroll_time_snapshots|tenant_id,snapshot_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "a0feeb405f9f749061a15ec2f405108f13ef3c416c61302f1b1b472b43c79cc5",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|UNIQUE|hrx_payroll_time_snapshots|tenant_id,idempotency_key",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "393964d6c306d91b582a88ead31ee48c0e1aeb555d1a897f84c11ce71c794ad5",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|CONSTRAINT|hrx_payroll_time_snapshots|hrx_payroll_time_snapshot_period_check",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "53e4e27f7feb0dbad9ea4c62887dd70c9683967537994e047213739d803e6e40",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|CONSTRAINT|hrx_payroll_time_snapshots|hrx_payroll_time_snapshot_calculation_blocked",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "03d1d7dcad4489d712b3369740adff32cb9850ba890f129666b246aff5282258",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|CONSTRAINT|hrx_payroll_time_snapshots|hrx_payroll_time_snapshot_disbursement_blocked",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "98698069c9e53498f9c36a6f1cf389383239eb089fa0b1edb6eca5a9a8c8539e",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|TABLE|hrx_payroll_time_snapshot_sources|hrx_payroll_time_snapshot_sources",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "96f0c95347183fc5cd95f9ba1d1e47df8dbf7c408454a2f4e330efefdb2bc935",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshot_sources|tenant_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "313d3a6c5a8d3b04d7b41711e84cf6b41eb94a0d1731b1ef275a95a4675cc2bd",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshot_sources|snapshot_source_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "29f2ec25b21bf1f0cbab9e11005e715b056c15bf611287e19f2f88d655bbf848",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshot_sources|snapshot_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "c2abb33fcb0d8c92b732f7e157d8e4854b100413a133bb090276fd2a74279452",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshot_sources|employee_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "32d5d1dc788266b55d68486672f39145ae04b4df3c34eb04960710ec3e75eaed",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshot_sources|object_type",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "22d7f63cd7d4643cd710d592fc788686dfbdeb54f409857d421413ef2196c6f0",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshot_sources|object_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "4ab6835ed0d523dd4d095b380b7ceb05479f097437c13a8ce2950d1ae990de7a",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshot_sources|source_ref",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "389645c98053651e505a8bf6396a8434bca0f514cb2bd9e1382a4edcd43fa85e",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshot_sources|source_state",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "b9296ae9c9e1f617c9290f673c7e7ab4cc2f07218bccff6c9d047b7539f30dc6",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|COLUMN|hrx_payroll_time_snapshot_sources|created_at",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "59e0b04a623e194d85b604d4d0ce462c610117180a630dcc41a768ac0a16cee1",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|PRIMARY_KEY|hrx_payroll_time_snapshot_sources|tenant_id,snapshot_source_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "4886bac5e44c29dbbd7bd8b007ae6763f8049fcd53e4bff49075217fa3adf595",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|UNIQUE|hrx_payroll_time_snapshot_sources|tenant_id,snapshot_id,object_type,object_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "c983608946f07be7ec814c54de7102b11bbb9aa3ede578317750a90904b991ab",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|FOREIGN_KEY|hrx_payroll_time_snapshot_sources|tenant_id,snapshot_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "f5218fcb4d6de79f5937389d841c851b513a818697f61f31633e7eb941696f94",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|FOREIGN_KEY|hrx_payroll_time_snapshot_sources|tenant_id,employee_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "b748a6227c5a0ef5b624e5bb291acefaa948043fccc2291cba1d8f4792bdc922",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|CONSTRAINT|hrx_payroll_time_snapshot_sources|hrx_payroll_time_snapshot_source_type_check",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "a4aa823d3bd5b4d8a0c64be1eeb401afccd2ff6bde08d5188f06dd3d0f578936",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|INDEX|hrx_payroll_time_snapshots|idx_hrx_payroll_time_snapshots_period",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "1a9203492732f65ec4631ab0056c348958f124927863887b0404ef552caa828f",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|TRIGGER|hrx_payroll_time_snapshots|trg_hrx_payroll_time_snapshots_immutable_update",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "abc99c92b800381aac4de6290df777d75581cdc482f5bc5cdbe803c2f50f3526",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|TRIGGER|hrx_payroll_time_snapshots|trg_hrx_payroll_time_snapshots_immutable_delete",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "55fb6bb193eea33ae0168ca20b99d41e96e9688476215f9221f8099b658a6348",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|TRIGGER|hrx_payroll_time_snapshot_sources|trg_hrx_payroll_time_snapshot_sources_immutable_update",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "e03e0e9a385f41c91f812c3c195462bc85a99ece43c2bda24328f41206304e8b",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "013_hrx_payroll_time_inputs.sql|TRIGGER|hrx_payroll_time_snapshot_sources|trg_hrx_payroll_time_snapshot_sources_immutable_delete",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+    "candidate_owner": null,
+    "root_definition_sha256": "0e8b0ad6c344979da3d9ac5a9afc13636c339b7465437f1adacf5d39a00fe952",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "014_hrx_leave_usage_units.sql|ALTER_COLUMN|hrx_leave_groups|balance_managed",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/leave/type-economics.js",
+    "candidate_owner": null,
+    "root_definition_sha256": "afe12191fecd849fa1439f0f6b2e011f6592e41385bd8b0331836d0b5f1f1aa9",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "014_hrx_leave_usage_units.sql|ALTER_COLUMN|hrx_leave_groups|balance_unit",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/leave/type-economics.js",
+    "candidate_owner": null,
+    "root_definition_sha256": "1c184f3d4916d43cd26ab23b7928643b9c9e5e3cf350b455152de7dba11b7512",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "014_hrx_leave_usage_units.sql|ALTER_COLUMN|hrx_leave_types|allowed_usage_units_json",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/leave/type-economics.js",
+    "candidate_owner": null,
+    "root_definition_sha256": "2296c4dbf3411305166e3ed75a92cb235c742db8a3f57ae14ea55876fb6dfe69",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "014_hrx_leave_usage_units.sql|ALTER_COLUMN|hrx_leave_types|deduct_minutes",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/leave/type-economics.js",
+    "candidate_owner": null,
+    "root_definition_sha256": "c998291c281118b48b974c44d9381257c6827caf01b47e01eaec8764e2934437",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "014_hrx_leave_usage_units.sql|ALTER_COLUMN|hrx_leave_types|paid_minutes",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/leave/type-economics.js",
+    "candidate_owner": null,
+    "root_definition_sha256": "94c24a0b567026271f0a4fc077e9bdffde9373b49d296e3705258ab11274cf52",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "014_hrx_leave_usage_units.sql|ALTER_COLUMN|hrx_leave_requests|applied_deduct_minutes",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/leave/type-economics.js",
+    "candidate_owner": null,
+    "root_definition_sha256": "b4bb3b8de44f7262c0a4faacb24447f8b6849e2734d9d28f7470b0f70a6a8b9c",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "014_hrx_leave_usage_units.sql|ALTER_COLUMN|hrx_leave_requests|applied_paid_minutes",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/leave/type-economics.js",
+    "candidate_owner": null,
+    "root_definition_sha256": "afa21c0d08cd39ac5a25d1c4eb66c91bc847b7b1a723597fc4917ee5255667ee",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "016_hrx_leave_entitlement_lifecycle.sql|ALTER_COLUMN|hrx_leave_entitlements|status",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/leave/entitlement-lifecycle.js",
+    "candidate_owner": null,
+    "root_definition_sha256": "11d3c0121de90718b943df49b75372115b80fc91cfef9e6c8b0f6cd0d4d5955f",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "016_hrx_leave_entitlement_lifecycle.sql|ALTER_COLUMN|hrx_leave_entitlements|cancelled_at",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/leave/entitlement-lifecycle.js",
+    "candidate_owner": null,
+    "root_definition_sha256": "a53b25f74b5dc871f1dea8a7635d202aad261f664bfb6b39a7119f82bd3ae0b8",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "016_hrx_leave_entitlement_lifecycle.sql|ALTER_COLUMN|hrx_leave_entitlements|cancelled_by",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/leave/entitlement-lifecycle.js",
+    "candidate_owner": null,
+    "root_definition_sha256": "b6d05d49084f5126da32dfde914a8a96bf4d1d7d9925d1bc64b059323bad5b8a",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "016_hrx_leave_entitlement_lifecycle.sql|ALTER_COLUMN|hrx_leave_entitlements|cancellation_reason",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/leave/entitlement-lifecycle.js",
+    "candidate_owner": null,
+    "root_definition_sha256": "d2b92fda0fe811946fd6d1c74a0c69263ffe34125f68546569dc2ce19218bf0e",
+    "candidate_definition_sha256": null
+  },
+  {
+    "unit_id": "016_hrx_leave_entitlement_lifecycle.sql|ALTER_COLUMN|hrx_leave_entitlements|cancellation_entry_id",
+    "disposition": "FOREST_SUPERSEDED",
+    "enforcement": "ABSENT",
+    "forest_anchor": "packages/hrx/src/leave/entitlement-lifecycle.js",
+    "candidate_owner": null,
+    "root_definition_sha256": "0990cb81f7fd11ccd8150cff33c028306920dc15887904153b23bdb78e9ebd3b",
+    "candidate_definition_sha256": null
+  }
+]

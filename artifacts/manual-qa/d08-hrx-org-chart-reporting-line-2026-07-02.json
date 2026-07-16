@@ -1,0 +1,50 @@
+{
+  "tranche": "UPL-D-08",
+  "url": "http://127.0.0.1:5176/?view=people&ctx=allow#people-org-chart",
+  "screenshot_path": "/Users/jws/Documents/Codex/Law Firm OS/artifacts/manual-qa/d08-hrx-org-chart-after-2026-07-02.png",
+  "checks": {
+    "org_chart_selector_visible": true,
+    "api_before_status": 200,
+    "api_after_status": 200,
+    "api_before_employee_count": 9,
+    "api_after_employee_count": 9,
+    "api_source_of_truth": "EmploymentProfile.org_unit_id + EmploymentProfile.manager_employee_id",
+    "string_heuristics_used": false,
+    "org_cards": [
+      "AMIC Law",
+      "PETRA BRIDGE PARTNERS",
+      "Staff"
+    ],
+    "yjlee_after": {
+      "employee_id": "emp_amic_yjlee",
+      "display_name": "이예진",
+      "title": "대리",
+      "status": "active",
+      "work_email": "yjlee@amic.kr",
+      "employment_profile_id": "profile_amic_yjlee",
+      "org_unit_id": "org_legal",
+      "org_unit_label": "AMIC Law",
+      "department": "Staff",
+      "organization_group": "Staff",
+      "manager_employee_id": "emp_amic_jwsuh",
+      "manager_display_name": "서지원",
+      "direct_report_count": 0,
+      "reporting_line_state": "assigned",
+      "source_ref": "hrx-member-roster-source-of-truth"
+    },
+    "change_history_count": 1,
+    "change_history_mentions_yjlee": true,
+    "history_uses_display_labels": true,
+    "console_messages": [],
+    "page_errors": []
+  },
+  "lazyweb_report_url": "https://www.lazyweb.com/report/lazyweb/b2695abd-75c8-4da8-9c4b-3497d0b15be7/?source=create",
+  "validation": {
+    "api_workspace_tests": "npm --workspace apps/api test -> pass 238/238",
+    "root_tests": "npm test -> pass 4107/4107",
+    "web_build": "npm --workspace apps/web run build -> pass",
+    "hrx_ui_validate": "npm run hrx:ui:validate -> pass",
+    "sloplint": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed -> 37 existing findings",
+    "browser_manual_qa": "People > 조직 화면 saved emp_amic_yjlee -> emp_amic_jwsuh / org_legal; API and UI history verified"
+  }
+}

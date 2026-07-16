@@ -1,0 +1,25 @@
+{
+  "schema_version": "law-firm-os.construction-inspection.v0.1",
+  "goal_id": "cti-ses-production-access-request",
+  "recorded_at": "2026-07-06T11:54:04Z",
+  "required_files": [
+    "docs/goal-closeout/cti-ses-production-access-request/packet.json",
+    "docs/goal-closeout/cti-ses-production-access-request/command-evidence.json",
+    "docs/goal-closeout/cti-ses-production-access-request/claude-review-result.json",
+    "docs/goal-closeout/cti-ses-production-access-request/construction-inspection.json",
+    "docs/goal-closeout/cti-ses-production-access-request/adjudication.md",
+    "docs/launch/cti-i24-owner-approval-receipt-2026-07-06.json",
+    "docs/launch/cti-ses-production-access-request-receipt-2026-07-06.json"
+  ],
+  "inspection": {
+    "i24_approval_recorded": true,
+    "ses_production_access_request_submitted": true,
+    "ses_review_status_pending": true,
+    "ses_production_access_enabled": false,
+    "production_stop_condition_preserved": true,
+    "password_reset_execute_unblocked": false,
+    "no_secret_token_password_values_recorded": true,
+    "no_production_ready_claim": true,
+    "no_go_live_claim": true
+  }
+}

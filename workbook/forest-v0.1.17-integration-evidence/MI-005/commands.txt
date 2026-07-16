@@ -1,0 +1,7 @@
+git fetch origin --prune --tags
+git rev-parse origin/main HEAD HEAD^{tree}
+git merge-base origin/main HEAD
+git merge-tree --write-tree --messages origin/main HEAD
+git rev-list --left-right --count origin/main...HEAD
+jq -e '.verdict == "PASS" and .origin_main_sha == .merge_base_sha and .current_tree_sha == .merged_tree_sha and .merge_tree_exit == 0 and .conflict_file_count == 0 and .resolution_row_count == 0 and .unresolved_count == 0 and .blanket_resolution_count == 0 and (.policies | to_entries | all(.value.exercised == false))' workbook/forest-v0.1.17-integration-evidence/MI-005/receipt.json
+test "$(wc -l < workbook/forest-v0.1.17-integration-evidence/MI-005/conflict-resolution-ledger.tsv | tr -d ' ')" = 1

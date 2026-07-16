@@ -139,6 +139,7 @@ export function createAnalyticsRepository({ filePath, seedRecords = [] } = {}) {
           .filter((record) => !query.tenant_id || record.tenant_id === query.tenant_id)
           .filter((record) => !query.model_type || record.model_type === query.model_type)
           .filter((record) => !query.matter_id || record.matter_id === query.matter_id)
+          .filter((record) => !query.client_group_id || record.client_group_id === query.client_group_id)
           .map((record) => Object.freeze(clone(record))),
       );
     },

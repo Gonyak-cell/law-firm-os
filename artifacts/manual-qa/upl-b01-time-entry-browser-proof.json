@@ -1,0 +1,436 @@
+{
+  "schema_version": "law-firm-os.manual-qa.upl-b01-time-entry-browser-proof.v1",
+  "generated_at": "2026-07-03T03:24:12.494Z",
+  "tuw_ids": [
+    "UPL-B-01"
+  ],
+  "scope": "Matter time-entry browser proof with arbitrary form values and multiple entries on the same matter.",
+  "route": "http://127.0.0.1:49811/?locale=ko&view=matters&ctx=allow#matter-time",
+  "api_base": "http://127.0.0.1:49810",
+  "matter_id": "matter_rp05_synthetic_opening",
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "input_cases": [
+    {
+      "work_date": "2026-07-01",
+      "duration_minutes": 47,
+      "narrative": "UPL B01 arbitrary first mr4dd7r9",
+      "role_id": "attorney",
+      "billable": true
+    },
+    {
+      "work_date": "2026-07-02",
+      "duration_minutes": 13,
+      "narrative": "UPL B01 arbitrary second mr4dd7r9",
+      "role_id": "staff",
+      "billable": false
+    }
+  ],
+  "observed": {
+    "requests": [
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=100",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=100&cursor=100",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/analytics/realization?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "payload": null
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/analytics/utilization?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "payload": null
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:49810/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+        "payload": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "permission_ref": "ui_sf_b_w02_recently_viewed",
+          "audit_hint_ref": "ui_sf_b_w02_recently_viewed_probe",
+          "actor_id": "matter_matter_operator",
+          "viewed_at": "2026-07-03T03:24:11.631Z"
+        }
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49810/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5",
+        "payload": null
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:49810/api/finance/time-entries",
+        "payload": {
+          "tenant_id": "tenant_cmp_g7_synthetic",
+          "permission_ref": "ui_cmp_g7_finance_live",
+          "audit_hint_ref": "ui_cmp_g7_finance_probe",
+          "actor_id": "matter_finance_operator",
+          "idempotency_key": "time_ui_mr4dda00_uyttxh",
+          "time_entry": {
+            "time_entry_id": "time_ui_mr4dda00_uyttxh",
+            "tenant_id": "tenant_cmp_g7_synthetic",
+            "matter_id": "matter_rp05_synthetic_opening",
+            "role_id": "attorney",
+            "work_date": "2026-07-01",
+            "narrative": "UPL B01 arbitrary first mr4dd7r9",
+            "duration_minutes": 47,
+            "billable": true
+          }
+        }
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:49810/api/finance/time-entries",
+        "payload": {
+          "tenant_id": "tenant_cmp_g7_synthetic",
+          "permission_ref": "ui_cmp_g7_finance_live",
+          "audit_hint_ref": "ui_cmp_g7_finance_probe",
+          "actor_id": "matter_finance_operator",
+          "idempotency_key": "time_ui_mr4dda1t_j6tc8r",
+          "time_entry": {
+            "time_entry_id": "time_ui_mr4dda1t_j6tc8r",
+            "tenant_id": "tenant_cmp_g7_synthetic",
+            "matter_id": "matter_rp05_synthetic_opening",
+            "role_id": "staff",
+            "work_date": "2026-07-02",
+            "narrative": "UPL B01 arbitrary second mr4dd7r9",
+            "duration_minutes": 13,
+            "billable": false
+          }
+        }
+      }
+    ],
+    "responses": [
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=100"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "status": 403,
+        "url": "http://127.0.0.1:49810/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=100&cursor=100"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "status": 403,
+        "url": "http://127.0.0.1:49810/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/analytics/realization?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/analytics/utilization?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49810/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+      },
+      {
+        "status": 201,
+        "url": "http://127.0.0.1:49810/api/finance/time-entries"
+      },
+      {
+        "status": 201,
+        "url": "http://127.0.0.1:49810/api/finance/time-entries"
+      }
+    ],
+    "consoleMessages": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      }
+    ],
+    "pageErrors": []
+  },
+  "readback": {
+    "status": 200,
+    "created_rows": [
+      {
+        "time_entry_id": "time_ui_mr4dda00_uyttxh",
+        "tenant_id": "tenant_cmp_g7_synthetic",
+        "matter_id": "matter_rp05_synthetic_opening",
+        "role_id": "attorney",
+        "work_date": "2026-07-01",
+        "narrative": "UPL B01 arbitrary first mr4dd7r9",
+        "duration_minutes": 47,
+        "billable": true,
+        "model_type": "TimeEntry",
+        "status": "draft",
+        "actor_id": "matter_finance_operator",
+        "approved_for_wip": false,
+        "resource_id": "time_ui_mr4dda00_uyttxh",
+        "owner_module": "finance",
+        "created_at": "2026-07-03T03:24:12.387Z",
+        "updated_at": "2026-07-03T03:24:12.387Z",
+        "writes_product_state": true,
+        "creates_database_rows": true,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": true,
+        "dispatches_finance_runtime": true,
+        "executes_api_handler": false,
+        "posts_gl_entries": false,
+        "g7_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false,
+        "bank_reference_included": false,
+        "journal_lines_included": false,
+        "credential_material_included": false
+      },
+      {
+        "time_entry_id": "time_ui_mr4dda1t_j6tc8r",
+        "tenant_id": "tenant_cmp_g7_synthetic",
+        "matter_id": "matter_rp05_synthetic_opening",
+        "role_id": "staff",
+        "work_date": "2026-07-02",
+        "narrative": "UPL B01 arbitrary second mr4dd7r9",
+        "duration_minutes": 13,
+        "billable": false,
+        "model_type": "TimeEntry",
+        "status": "draft",
+        "actor_id": "matter_finance_operator",
+        "approved_for_wip": false,
+        "resource_id": "time_ui_mr4dda1t_j6tc8r",
+        "owner_module": "finance",
+        "created_at": "2026-07-03T03:24:12.451Z",
+        "updated_at": "2026-07-03T03:24:12.451Z",
+        "writes_product_state": true,
+        "creates_database_rows": true,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": true,
+        "dispatches_finance_runtime": true,
+        "executes_api_handler": false,
+        "posts_gl_entries": false,
+        "g7_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false,
+        "bank_reference_included": false,
+        "journal_lines_included": false,
+        "credential_material_included": false
+      }
+    ],
+    "returned_count": 3
+  },
+  "ui_snapshot": {
+    "time_entry_count": 3,
+    "screenshot": "artifacts/manual-qa/screenshots/upl-b01-time-entry-browser-proof.png"
+  },
+  "checks": [
+    {
+      "id": "b01-form-mounted",
+      "passed": true
+    },
+    {
+      "id": "b01-first-arbitrary-values-posted",
+      "passed": true
+    },
+    {
+      "id": "b01-second-arbitrary-values-posted",
+      "passed": true
+    },
+    {
+      "id": "b01-multiple-entries-same-matter",
+      "passed": true
+    },
+    {
+      "id": "b01-distinct-runtime-ids",
+      "passed": true
+    },
+    {
+      "id": "b01-ui-renders-both-narratives",
+      "passed": true
+    },
+    {
+      "id": "b01-api-readback-succeeded",
+      "passed": true
+    },
+    {
+      "id": "b01-browser-no-page-errors",
+      "passed": true
+    }
+  ],
+  "pass": true
+}

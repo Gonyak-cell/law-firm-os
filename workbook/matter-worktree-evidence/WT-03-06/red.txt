@@ -1,0 +1,2 @@
+Exit: 1
+Failure: Task complete/reopen controls, confirmation, and reason were absent.

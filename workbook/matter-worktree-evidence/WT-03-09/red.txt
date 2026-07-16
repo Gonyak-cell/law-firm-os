@@ -1,0 +1,2 @@
+Exit: 1
+Failure: expand/collapse/search/fit tools and focus movement were absent.

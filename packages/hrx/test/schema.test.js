@@ -14,6 +14,8 @@ import {
 test("HRX core schema descriptors are exported", () => {
   assert.equal(HRX_CORE_SCHEMA_VERSION, "law-firm-os.hrx-core-schema.v0.1");
   assert.deepEqual(HRX_CORE_SCHEMAS.Employee.required, ["tenant_id", "employee_id", "display_name", "status"]);
+  assert.ok(HRX_CORE_SCHEMAS.Employee.status_values.includes("onboarding"));
+  assert.ok(HRX_CORE_SCHEMAS.Employee.status_values.includes("notice"));
   assert.deepEqual(HRX_CORE_SCHEMAS.EmployeeUserLink.purpose_values, ["login_mapping"]);
 });
 

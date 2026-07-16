@@ -1,0 +1,132 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.command-evidence.v0.1",
+  "goal_id": "cti-s2-authentication-unblock-packet",
+  "recorded_at": "2026-07-06T04:05:08Z",
+  "secret_values_recorded": false,
+  "commands_run": [
+    {
+      "command": "jq S1 execute packet fields for status, stop_condition, s1_g_status, production_runtime_probe, production_mutation_boundary",
+      "exit_code": 0,
+      "summary": "PASS. Confirmed input closeout blocker is S1-G authenticated marker/audit/readback requiring S2 or approved probe principal."
+    },
+    {
+      "command": "rg/sed source review for session-auth.js, desktop aws-runtime/auth, canonical S2 plan rows",
+      "exit_code": 0,
+      "summary": "PASS. Confirmed operational /api/auth/login currently blocks synthetic login, verifyToken uses signed session path after S1, and desktop expects /api/desktop/login plus password reset surfaces."
+    },
+    {
+      "command": "node --check scripts/validate-cti-s2-authentication-unblock-packet-closeout.mjs",
+      "exit_code": 0,
+      "summary": "PASS. S2 unblock closeout validator parses."
+    },
+    {
+      "command": "node scripts/validate-cti-s2-authentication-unblock-packet-closeout.mjs",
+      "exit_code": 0,
+      "summary": "PASS. Validator confirms packet fields, closeout 5 files, crosswalk, LT-PRE-W12 ledger registration, and non-execution boundaries."
+    },
+    {
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "PASS. launch-TUW ledger validator reports 370 TUWs, 77 WPs, PRE-EXIT coverage 40, violations 0."
+    },
+    {
+      "command": "record I7 owner approval receipt and update S2 unblock packet/crosswalk/closeout status",
+      "exit_code": 0,
+      "summary": "PASS. Recorded I7-CTI-S2-AUTHENTICATION-UNBLOCK-PACKET-OWNER-APPROVAL-2026-07-06 in docs/launch/cti-i7-owner-approval-receipt-2026-07-06.md and updated approval_status=approved while preserving non-execution boundaries."
+    },
+    {
+      "command": "node --check scripts/validate-cti-s2-authentication-unblock-packet-closeout.mjs",
+      "exit_code": 0,
+      "summary": "PASS. Updated S2 unblock validator parses after I7 receipt support."
+    },
+    {
+      "command": "node scripts/validate-cti-s2-authentication-unblock-packet-closeout.mjs",
+      "exit_code": 0,
+      "summary": "PASS. Validator confirms I7_OWNER_APPROVAL_RECORDED, approval_status=approved, receipt linkage, closeout 5 files, crosswalk, and non-execution boundaries."
+    },
+    {
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "PASS. launch-TUW ledger validator reports 370 TUWs, 77 WPs, PRE-EXIT coverage 40, violations 0."
+    },
+    {
+      "command": "record I8 conditional owner approval receipt and update S1-G probe boundary",
+      "exit_code": 0,
+      "summary": "PASS. Recorded I8-CTI-S2-S1G-AUTHENTICATED-PROBE-OWNER-APPROVAL-2026-07-06 as conditional approval effective only after S2 execute PASS, while preserving s1_g_probe_executed=false and no production migration/write/CUTOVER claims."
+    },
+    {
+      "command": "node --check scripts/validate-cti-s2-authentication-unblock-packet-closeout.mjs",
+      "exit_code": 0,
+      "summary": "PASS. Updated S2 unblock validator parses after I8 conditional approval support."
+    },
+    {
+      "command": "node scripts/validate-cti-s2-authentication-unblock-packet-closeout.mjs",
+      "exit_code": 0,
+      "summary": "PASS. Validator confirms I8 conditional approval receipt, S2 execute PASS precondition, no debug/direct mint/secret lookup boundary, and s1_g_probe_executed=false."
+    },
+    {
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "PASS. launch-TUW ledger validator reports 370 TUWs, 77 WPs, PRE-EXIT coverage 40, violations 0."
+    },
+    {
+      "command": "record I9 S2 execute owner approval receipt and update S2 execute boundary",
+      "exit_code": 0,
+      "summary": "PASS. Recorded I9-CTI-S2-AUTHENTICATION-EXECUTE-OWNER-APPROVAL-2026-07-06 for a separate bounded cti-s2-authentication-execute goal while preserving s2_implementation_executed=false, production_mutation_executed=false, password_issuance_executed=false, and s1_g_probe_executed=false in this closeout."
+    },
+    {
+      "command": "node --check scripts/validate-cti-s2-authentication-unblock-packet-closeout.mjs",
+      "exit_code": 0,
+      "summary": "PASS. Updated S2 unblock validator parses after I9 execute approval support."
+    },
+    {
+      "command": "node scripts/validate-cti-s2-authentication-unblock-packet-closeout.mjs",
+      "exit_code": 0,
+      "summary": "PASS. Validator confirms I9 execute approval receipt, cti-s2-authentication-execute binding, S2-T01/T02/T04/T06 scope, and no implementation/production mutation/password issuance/S1-G probe execution in this closeout."
+    },
+    {
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "PASS. launch-TUW ledger validator reports 370 TUWs, 77 WPs, PRE-EXIT coverage 40, violations 0."
+    }
+  ],
+  "commands_not_run": [
+    {
+      "command": "S2 implementation or code deployment",
+      "reason": "I9 approval is recorded for a separate bounded S2 execute goal, but this unblock packet closeout does not execute implementation or deployment."
+    },
+    {
+      "command": "production credential store write",
+      "reason": "Requires later S2 execute approval after I7."
+    },
+    {
+      "command": "password generation, issuance, or distribution",
+      "reason": "Explicitly out of scope; remains cutover/I3 or later approval boundary."
+    },
+    {
+      "command": "S1-G authenticated production probe",
+      "reason": "I8 conditional approval is recorded, but the probe still requires S2 AUTHENTICATION execute PASS and a real production principal/session model."
+    },
+    {
+      "command": "S3 tenant migration, CUTOVER, OIDC implementation, DB conversion",
+      "reason": "Explicitly out of scope."
+    }
+  ],
+  "validation_results": {
+    "cti_s2_authentication_unblock_packet_closeout": "PASS",
+    "launch_tuw_ledger": "PASS"
+  },
+  "non_execution_summary": {
+    "s2_implementation_executed": false,
+    "production_mutation_executed": false,
+    "credential_store_write_executed": false,
+    "password_issuance_executed": false,
+    "s1_g_probe_executed": false,
+    "s3_tenant_migration_executed": false,
+    "cutover_executed": false,
+    "oidc_implementation_executed": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

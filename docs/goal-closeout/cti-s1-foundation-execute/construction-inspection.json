@@ -1,0 +1,102 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.construction-inspection.v0.1",
+  "goal_id": "cti-s1-foundation-execute",
+  "recorded_at": "2026-07-06T03:56:44Z",
+  "final_verdict": "BLOCKED_S1_G_AUTHENTICATED_PROBE_REQUIRES_S2_OR_APPROVED_PROBE_PRINCIPAL",
+  "i5_approval_status": "approved",
+  "i6_approval_status": "approved",
+  "checks": [
+    {
+      "id": "i5_i6_approval_recorded",
+      "result": "PASS",
+      "detail": "I5 and I6 approval_signature_ref values are recorded for the S1 execute boundary."
+    },
+    {
+      "id": "efs_access_point_mount_targets",
+      "result": "PASS",
+      "detail": "Approved EFS, access point, and two mount targets are available in approved subnets."
+    },
+    {
+      "id": "vpc_endpoint_and_security_groups",
+      "result": "PASS",
+      "detail": "Secrets Manager VPCE is available with private DNS; SG rules restrict HTTPS/NFS to Lambda SG edges."
+    },
+    {
+      "id": "lambda_vpc_efs_env",
+      "result": "PASS",
+      "detail": "Lambda is Active/Successful with /mnt/lawos EFS AP mount, approved VPC/subnets/SG, operational STORE_PATH env keys, LAWOS_AUDIT_STORE_PATH, and LAWOS_API_SESSION_SECRET_SECRET_ID."
+    },
+    {
+      "id": "lambda_iam",
+      "result": "PASS",
+      "detail": "Lambda role has VPC access plus scoped inline policies for S1 EFS client and session secret read."
+    },
+    {
+      "id": "lawos_audit_store_path_manifest_preflight",
+      "result": "PASS",
+      "detail": "LAWOS_AUDIT_STORE_PATH is present in the manifest/catalog and store-path preflight validator passed."
+    },
+    {
+      "id": "durable_security_audit_code_and_test",
+      "result": "PASS_LOCAL",
+      "detail": "Admin security audit append/read NDJSON at LAWOS_AUDIT_STORE_PATH survives server restart in local test."
+    },
+    {
+      "id": "session_secret_secret_id_bootstrap",
+      "result": "PASS_PRODUCTION_HEALTH_AND_LOCAL_MOCK",
+      "detail": "Production health reached operational 200 after secret-id bootstrap; local mock verifies SigV4 GetSecretValue path. Secret value was not fetched or printed."
+    },
+    {
+      "id": "fixed_session_secret_cold_start",
+      "result": "PASS_LOCAL",
+      "detail": "Operational session auth verifies a session after a simulated cold start with the same injected secret."
+    },
+    {
+      "id": "matter_reseed_guard",
+      "result": "PASS",
+      "detail": "Matter repository seed guard preserves existing durable records and only inserts missing seed carve-out records."
+    },
+    {
+      "id": "backup_restore_v0_2_isolated_rehearsal",
+      "result": "PASS_LOCAL",
+      "detail": "Backup/restore drill v0.2 records real_client_data_used=true and restores to an isolated local rehearsal target with checksum mismatch count 0; production restore was not run."
+    },
+    {
+      "id": "authenticated_marker_audit_live_probe",
+      "result": "BLOCKED_REQUIRES_S2_OR_APPROVED_PROBE_PRINCIPAL",
+      "detail": "Production synthetic login is disabled and unauthenticated audit is 401. S2 is out of scope and secret fetch/debug endpoint are not approved."
+    }
+  ],
+  "s1_g_status": {
+    "cold_start_marker_survives": "blocked_authenticated_marker_probe_requires_s2_or_approved_probe_principal",
+    "audit_event_survives": "blocked_authenticated_audit_probe_requires_s2_or_approved_probe_principal",
+    "fixed_session_secret": "PASS_PRODUCTION_HEALTH_200_AFTER_SECRET_ID_BOOTSTRAP_AND_LOCAL_COLD_START_TEST",
+    "restore_rehearsal_passed": "PASS_LOCAL_ISOLATED_V0_2_REHEARSAL_PRODUCTION_RESTORE_NOT_RUN"
+  },
+  "authority_boundary": {
+    "production_infrastructure_mutation_executed": true,
+    "efs_created": true,
+    "efs_access_point_created": true,
+    "efs_mount_target_created": true,
+    "security_groups_created": true,
+    "secretsmanager_vpc_endpoint_created": true,
+    "lambda_role_mutated": true,
+    "lambda_code_deployed": true,
+    "lambda_configuration_mutated": true,
+    "store_path_env_applied": true,
+    "lawos_audit_store_path_applied": true,
+    "lawos_api_session_secret_secret_id_applied": true,
+    "secret_value_fetched": false,
+    "authenticated_production_marker_probe_executed": false,
+    "production_store_migration_executed": false,
+    "restore_execution_performed": false,
+    "password_issuance_performed": false,
+    "cutover_executed": false,
+    "s2_authentication_implemented": false,
+    "s3_tenant_migration_executed": false,
+    "oidc_implemented": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

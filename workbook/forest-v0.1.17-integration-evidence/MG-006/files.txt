@@ -1,0 +1,12 @@
+packages/hrx/test/migration-recovery.test.js
+scripts/generate-migration-recovery-evidence.mjs
+scripts/validate-hrx-migration-recovery.mjs
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md
+workbook/forest-v0.1.17-integration-evidence/MG-006/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/MG-006/commands.txt
+workbook/forest-v0.1.17-integration-evidence/MG-006/files.txt
+workbook/forest-v0.1.17-integration-evidence/MG-006/migration-recovery-report.json
+workbook/forest-v0.1.17-integration-evidence/MG-006/receipt.json
+workbook/forest-v0.1.17-integration-evidence/MG-006/recovery-matrix.json
+workbook/forest-v0.1.17-integration-evidence/MG-006/semantic-review.md
+workbook/forest-v0.1.17-integration-evidence/MG-006/tests.txt

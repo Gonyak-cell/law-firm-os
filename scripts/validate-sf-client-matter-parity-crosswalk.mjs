@@ -1427,11 +1427,6 @@ forbid(importDataMappingPanel, permissionAdminUiPattern, "importDataMappingPanel
 forbid(importDataMappingPanel, dataCloudEnrichmentUiPattern, "importDataMappingPanel:no-data-cloud-enrichment-ui-before-routes");
 forbid(importDataMappingPanel, reportingBuilderUiPattern, "importDataMappingPanel:no-report-builder-client-profitability-ui-before-routes");
 
-const adminSurface = read("apps/web/src/components/AdminSurface.jsx");
-forbid(adminSurface, permissionAdminUiPattern, "adminSurface:no-permission-admin-ui-before-routes");
-forbid(adminSurface, dataCloudEnrichmentUiPattern, "adminSurface:no-data-cloud-enrichment-ui-before-routes");
-forbid(adminSurface, reportingBuilderUiPattern, "adminSurface:no-report-builder-client-profitability-ui-before-routes");
-
 const peopleHome = read("apps/web/src/people/PeopleHome.tsx");
 check(peopleHome, /people-admin/, "peopleHome:people-admin-section");
 check(peopleHome, /PermissionAdminPanel/, "peopleHome:PermissionAdminPanel-mounted");

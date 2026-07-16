@@ -9,6 +9,8 @@ const REQUIRED_FILES = [
   "packages/dms/src/migrations/001_dms_vault_runtime.sql",
   "packages/dms/src/storage/storage-adapter.js",
   "packages/dms/src/storage/local-storage-adapter.js",
+  "packages/dms/src/storage/file-storage-adapter.js",
+  "packages/dms/src/storage/download-service.js",
   "packages/dms/src/storage/s3-storage-adapter.js",
   "packages/dms/src/storage/sharepoint-storage-adapter.js",
   "packages/dms/src/vault-object.js",
@@ -72,6 +74,8 @@ function rejectPatterns(file, patterns) {
 
 requirePatterns("packages/dms/src/repository.js", [/filePath/, /recordIdempotency/, /appendAudit/, /transaction\(fn\)/]);
 requirePatterns("packages/dms/src/storage/storage-adapter.js", [/assertStorageAdapter/, /sha256Hex/, /raw_path_exposed: false/]);
+requirePatterns("packages/dms/src/storage/file-storage-adapter.js", [/createFileStorageAdapter/, /writeFileSync/, /readFileSync/, /object hash mismatch/]);
+requirePatterns("packages/dms/src/storage/download-service.js", [/downloadFileObjectWithAudit/, /storage\.getObject/, /file object hash mismatch/, /dms\.document\.download/]);
 requirePatterns("packages/dms/src/document-service.js", [/uploadDocument/, /storage\.putObject/, /recordIdempotency/, /dms\.document\.upload/]);
 requirePatterns("packages/dms/src/lock-service.js", [/already checked out by another editor/]);
 requirePatterns("packages/dms/src/privilege-service.js", [/filterPrivilegedForSearch/, /privileged: true/]);
@@ -84,6 +88,11 @@ requirePatterns("apps/api/src/vault-dms-runtime-context.js", [
   /runtime_write_ready: true/,
   /production_ready_claim: false/,
   /handleVaultDocumentUpload/,
+  /handleVaultDocumentDownload/,
+  /appendVaultSensitiveReadAudit/,
+  /sensitive_read_audit_required: true/,
+  /\/download/,
+  /content_sha256/,
   /MATTER_VAULT_REGISTERED_TENANT_ID/,
   /registered_account/,
   /account_linkage/,
@@ -97,7 +106,7 @@ requirePatterns("apps/web/src/components/VaultSurface.jsx", [
 ]);
 requirePatterns("apps/web/src/components/DocumentDetail.jsx", [/data-cmp-g5-document-detail="true"/, /document_bytes_included/, /storage_pointer_ref_included/]);
 requirePatterns("apps/web/src/components/EmailFilingView.jsx", [/data-cmp-g5-email-filing="true"/, /연동 정보가 연결되지 않았습니다/]);
-requirePatterns("apps/api/test/cmp-r4-g5-vault.test.js", [/survives restart/, /never leaks raw storage fields/, /safe-source/, /registered_account\.email/]);
+requirePatterns("apps/api/test/cmp-r4-g5-vault.test.js", [/survives restart/, /\/download/, /content_sha256/, /Buffer\.from/, /sensitive reads write durable allow audits/, /sensitive_read_audit_required/, /never leaks raw storage fields/, /safe-source/, /registered_account\.email/]);
 
 rejectPatterns("apps/web/src/components/VaultSurface.jsx", [/mockData|from "\.\.\/data\/mockData/]);
 

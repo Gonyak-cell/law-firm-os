@@ -38,7 +38,7 @@ function statusLabel(value) {
 }
 
 function issueLabel(value) {
-  if (value === "no_blocking_errors") return "차단 없음";
+  if (value === "no_blocking_errors") return "문제 없음";
   if (value === "missing_required_mapping") return "필수 매핑 필요";
   return value ?? "대기";
 }
@@ -159,7 +159,7 @@ export function ImportDataMappingPanel({ ctx = "allow", surface = "client" }) {
   }
 
   return (
-    <Panel id={`${surface}-import`} className="record-list-panel" title="가져오기" meta="필드 매핑">
+    <Panel id={`${surface}-import`} className="record-list-panel" title="가져오기">
       <div
         className="matter-live-stack"
         data-sf-b-w05-import-wizard="true"
@@ -190,7 +190,7 @@ export function ImportDataMappingPanel({ ctx = "allow", surface = "client" }) {
           <div className="record-action-strip" data-sf-b-w05-field-mapping-stepper="true">
             <div>
               <strong>필드 매핑</strong>
-              <span>허용된 대상 필드만 저장합니다.</span>
+              <span>가져올 항목과 대상 필드를 맞춥니다.</span>
             </div>
             <button className="secondary-button" type="button" disabled={pending === "mapping"} onClick={handleMapping}>
               <GitBranch size={15} />
@@ -220,7 +220,7 @@ export function ImportDataMappingPanel({ ctx = "allow", surface = "client" }) {
           <div className="record-action-strip" data-sf-b-w05-rollback-error-action="true">
             <div>
               <strong>되돌리기와 오류</strong>
-              <span>승인 기록과 안전한 오류 보고서만 표시합니다.</span>
+              <span>되돌리기 요청과 오류 보고서를 확인합니다.</span>
             </div>
             <button className="secondary-button" type="button" disabled={pending === "rollback"} onClick={handleRollbackAndReport}>
               <RotateCcw size={15} />
@@ -245,25 +245,25 @@ export function ImportDataMappingPanel({ ctx = "allow", surface = "client" }) {
         {stageResult?.kind === "data" && (
           <div className="record-boundary-note" data-sf-b-w05-source-stage-result="true">
             <ShieldCheck size={15} />
-            <span>원본 구조가 저장되었고 원본 행은 응답하지 않았습니다.</span>
+            <span>원본 구조가 준비되었습니다.</span>
           </div>
         )}
         {mappingResult?.kind === "data" && (
           <div className="record-boundary-note" data-sf-b-w05-field-mapping-result="true">
             <ShieldCheck size={15} />
-            <span>필드 매핑 {mappingRows.length}건이 허용 목록 기준으로 저장되었습니다.</span>
+            <span>필드 매핑 {mappingRows.length}건이 저장되었습니다.</span>
           </div>
         )}
         {previewResult?.item && (
           <div className="record-boundary-note" data-sf-b-w05-preview-safe-sample="true" data-raw-row-hidden="true" data-validation-marker="raw row 미노출">
             <ShieldCheck size={15} />
-            <span>미리보기 {previewResult.item.sampled_row_count ?? 0}건, 원본 행 미노출.</span>
+            <span>미리보기 {previewResult.item.sampled_row_count ?? 0}건이 준비되었습니다.</span>
           </div>
         )}
         {dryRunResult?.kind === "data" && (
           <div className="record-boundary-note" data-sf-b-w05-dry-run-result="true">
             <ShieldCheck size={15} />
-            <span>{actionText(dryRunResult, "사전 검증이 통과했고 대상 레코드는 변경되지 않았습니다.")}</span>
+            <span>{actionText(dryRunResult, "사전 검증이 완료되었습니다.")}</span>
           </div>
         )}
         {executeResult?.kind === "data" && (
@@ -275,7 +275,7 @@ export function ImportDataMappingPanel({ ctx = "allow", surface = "client" }) {
         {rollbackResult?.kind === "data" && (
           <div className="record-boundary-note" data-sf-b-w05-rollback-result="true">
             <ShieldCheck size={15} />
-            <span>실제 가져오기 실행 전이라 되돌리기는 승인 기록 대기 상태입니다.</span>
+            <span>되돌리기 요청이 대기 중입니다.</span>
           </div>
         )}
 

@@ -1,0 +1,78 @@
+{
+  "schema_version": "law-firm-os.cti.i1-owner-approval-receipt.v0.2",
+  "approval_signature_ref": "I1-CTI-LAWYER-ROLE-MAPPING-OWNER-CONFIRMATION-2026-07-06",
+  "status": "owner_mapping_confirmed_with_dropdown_normalization_required",
+  "recorded_at": "2026-07-06T06:45:22.997724+00:00",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "source_owner_workbook_sha256": "52382ee35d4ba7e0133ed2d9ddad8a1c53ee64c9ab42a0ca89fba5dc177106d4",
+  "finalized_private_workbook_sha256": "e4adaaa7e510ac2a68ad495e335562d2a2310730ea8436a9e371fdadab971b18",
+  "finalized_assignment_digest_sha256": "5ce24b09dffb5b8f0c5f9ce3e4fe6c61b2470397b35aaee14ea436930eedc607",
+  "row_count": 148,
+  "columns": [
+    "row_number",
+    "matter_id",
+    "matter_number",
+    "matter_code",
+    "client_display_name",
+    "matter_type_english",
+    "matter_litigation_axis",
+    "matter_detail_type_korean",
+    "source_lanes",
+    "source_revision",
+    "retaining_attorney_email",
+    "responsible_attorney_email",
+    "additional_attorney_emails",
+    "matter_status",
+    "owner_notes"
+  ],
+  "owner_instruction": "Owner provided filled draft workbook and instructed Codex to proceed; one blank matter_status was conservatively defaulted to unknown_review_required.",
+  "defaulted_values": {
+    "matter_status_unknown_review_required_rows": 1,
+    "default_policy": "blank matter_status -> unknown_review_required"
+  },
+  "required_field_counts": {
+    "retaining_attorney_filled_rows": 296,
+    "retaining_attorney_blank_rows": 0,
+    "responsible_attorney_filled_rows": 296,
+    "responsible_attorney_blank_rows": 0,
+    "matter_status_filled_rows": 148,
+    "matter_status_blank_rows": 0
+  },
+  "status_counts": {
+    "active": 126,
+    "closed": 18,
+    "unknown_review_required": 1,
+    "hold": 3
+  },
+  "role_model_counts": {
+    "retaining_attorney_multi_select_rows": 87,
+    "responsible_attorney_multi_select_rows": 148,
+    "additional_attorney_multi_select_rows": 148,
+    "same_retaining_and_responsible_raw_rows": 87,
+    "unique_role_token_count": 6
+  },
+  "production_model_requirement": {
+    "retaining_attorneys": "multi-select dropdown; minimum one selected principal; joint retaining allowed",
+    "responsible_attorneys": "multi-select dropdown; minimum one selected principal; same principal as retaining allowed",
+    "matter_status": "single-select dropdown: active, closed, hold, unknown_review_required",
+    "owner_notes": "operator/admin note only; exclude plaintext notes from repo evidence",
+    "canonical_storage": "store user/account IDs, not display labels, in production write paths"
+  },
+  "validation": {
+    "expected_columns_present": true,
+    "invalid_status_row_count": 0,
+    "formula_error_token_scan": "PASS",
+    "repo_safe_receipt": true
+  },
+  "authority_boundary": {
+    "production_write_executed": false,
+    "cutover_executed": false,
+    "s3_tenant_migration_executed": false,
+    "s4_account_permission_injection_executed": false,
+    "password_issuance_distribution_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "plaintext_pii_recorded_in_repo": false,
+    "credential_or_token_material_recorded": false
+  }
+}

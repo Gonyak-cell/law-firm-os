@@ -1,0 +1,60 @@
+{
+  "schema_version": "lawos.wave1.upl-b13.popbill-sandbox-proof.v1",
+  "generated_at": "2026-07-12T05:26:13.578Z",
+  "row_id": "UPL-B-13",
+  "vendor": "popbill",
+  "sdk": {
+    "package": "popbill",
+    "method_plan": [
+      "checkIsMember",
+      "getUnitCost",
+      "getChargeInfo",
+      "checkMgtKeyInUse",
+      "registIssue"
+    ]
+  },
+  "sandbox_mode": true,
+  "credential_fingerprint": {
+    "link_id_hash": "6506d5ea00bb",
+    "secret_key_hash": "d2fc1fbbd0a1"
+  },
+  "strict_boundary": {
+    "owner_vendor_decision": true,
+    "local_3_3_withholding_model_passed": true,
+    "external_tax_invoice_vendor_selected": true,
+    "external_vendor_sandbox_roundtrip": false,
+    "strict_pass_claim": false,
+    "production_tax_invoice_issued": false,
+    "raw_secret_written_to_artifact": false
+  },
+  "withholding_mapping": {
+    "gross_amount": 1000000,
+    "withholding_rate": 0.033,
+    "total_withholding_amount": 33000,
+    "net_payable_amount": 967000,
+    "popbill_native_withholding_field": false,
+    "mapped_to_field": "remark3",
+    "mapped_field_hash": "880f7f0467ad"
+  },
+  "vendor_payload_summary": {
+    "provider": "popbill",
+    "environment": "test",
+    "request_hash": "532af7af7fe7ea242cb9a0ccfb100109cadbfc3193974d182390a9efb0ad303e",
+    "mgt_key_hash": "c3b59d956c25",
+    "write_date": "20260712",
+    "issue_type": "정발행",
+    "purpose_type": "청구",
+    "tax_type": "과세",
+    "supply_cost_total": 1000000,
+    "tax_total": 100000,
+    "total_amount": 1100000,
+    "detail_count": 1,
+    "raw_request_body_written": false,
+    "raw_corp_numbers_written": false
+  },
+  "popbill_receipt": null,
+  "blocker": {
+    "reason": "Set POPBILL_ALLOW_SANDBOX_ISSUE=1 after confirming Popbill test certificate setup"
+  },
+  "status": "READY_NEEDS_SANDBOX_ISSUE_APPROVAL"
+}

@@ -1,0 +1,6 @@
+RED: all four Task endpoints returned unmatched-route errors.
+GREEN Worktree API slice: 15/15.
+MANUAL QA: {"first":"done","replay":true,"audits":1}
+STATIC: node --check and git diff --check passed.
+LOC: matter-worktree-task-api.js 45.
+

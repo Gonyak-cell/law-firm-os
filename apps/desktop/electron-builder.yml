@@ -6,8 +6,11 @@ directories:
   buildResources: build
   output: dist
 
+asar: false
+
 files:
   - "src/**/*"
+  - "build/**/*"
   - "package.json"
   - "!test/**/*"
   - "!**/*.test.mjs"

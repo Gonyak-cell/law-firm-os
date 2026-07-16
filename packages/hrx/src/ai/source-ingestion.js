@@ -19,6 +19,16 @@ function stableHash(value) {
   return createHash("sha256").update(String(value ?? "")).digest("hex");
 }
 
+function searchTerms(value) {
+  return Object.freeze([
+    ...new Set(
+      String(value ?? "")
+        .toLowerCase()
+        .match(/[\p{L}\p{N}_:-]{2,}/gu) ?? [],
+    ),
+  ].slice(0, 80));
+}
+
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -33,8 +43,17 @@ function chunkContent(input = {}) {
   return input.text ?? input.content ?? input.raw_text ?? input.body ?? input.payload ?? input.chunk_hash;
 }
 
+function safeMetadata(metadata = {}, content = "") {
+  rejectStoredPayload(metadata);
+  return Object.freeze({
+    ...metadata,
+    search_terms: Object.freeze([...(metadata.search_terms ?? []), ...searchTerms(content)]),
+  });
+}
+
 export function createHrxAiSourceChunk(input = {}) {
   rejectStoredPayload(input);
+  const metadata = safeMetadata(input.metadata);
   const chunkHash = optionalString(input, "chunk_hash");
   return Object.freeze({
     tenant_id: requiredString(input, "tenant_id"),
@@ -43,7 +62,7 @@ export function createHrxAiSourceChunk(input = {}) {
     source_type: optionalString(input, "source_type") ?? "policy_document",
     chunk_index: Number.isInteger(input.chunk_index) && input.chunk_index >= 0 ? input.chunk_index : 0,
     chunk_hash: chunkHash ?? requiredString(input, "content_hash"),
-    metadata: Object.freeze({ ...(input.metadata ?? {}) }),
+    metadata,
     indexed_by: Object.freeze(["source_ref", "chunk_id", "chunk_hash"]),
     raw_payload_present: false,
   });
@@ -66,9 +85,41 @@ export function ingestHrxAiSourceChunks(input = {}) {
         chunk_id: chunk.chunk_id ?? `${sourceRef}#${index + 1}`,
         chunk_index: Number.isInteger(chunk.chunk_index) ? chunk.chunk_index : index,
         chunk_hash: chunk.chunk_hash ?? stableHash(content),
-        metadata: chunk.metadata,
+        metadata: safeMetadata(chunk.metadata, content),
       });
     }),
+  );
+}
+
+function matchChunk(chunk, query) {
+  const queryTerms = searchTerms(query);
+  if (queryTerms.length === 0) return { score: 0, matched_terms: Object.freeze([]) };
+  const chunkTerms = new Set(chunk.metadata?.search_terms ?? []);
+  const matchedTerms = queryTerms.filter((term) =>
+    [...chunkTerms].some((chunkTerm) => chunkTerm === term || chunkTerm.includes(term) || term.includes(chunkTerm)),
+  );
+  return Object.freeze({ score: matchedTerms.length, matched_terms: Object.freeze(matchedTerms) });
+}
+
+function searchIndexedChunks(chunks, query = {}) {
+  return Object.freeze(
+    chunks
+      .filter((chunk) => !query.tenant_id || chunk.tenant_id === query.tenant_id)
+      .map((chunk) => ({ chunk, match: matchChunk(chunk, query.query) }))
+      .filter(({ match }) => match.score > 0)
+      .sort((left, right) => right.match.score - left.match.score || left.chunk.chunk_index - right.chunk.chunk_index || left.chunk.chunk_id.localeCompare(right.chunk.chunk_id))
+      .slice(0, Number.isInteger(query.limit) && query.limit > 0 ? query.limit : 10)
+      .map(({ chunk, match }) => Object.freeze({
+        tenant_id: chunk.tenant_id,
+        source_ref: chunk.source_ref,
+        chunk_id: chunk.chunk_id,
+        source_type: chunk.source_type,
+        chunk_index: chunk.chunk_index,
+        chunk_hash: chunk.chunk_hash,
+        matched_terms: match.matched_terms,
+        score: match.score,
+        raw_payload_present: false,
+      })),
   );
 }
 
@@ -95,6 +146,9 @@ export function createInMemoryHrxAiSourceChunkIndex(seed = []) {
           .sort((left, right) => left.chunk_index - right.chunk_index || left.chunk_id.localeCompare(right.chunk_id))
           .map((chunk) => Object.freeze(clone(chunk))),
       );
+    },
+    search(query = {}) {
+      return searchIndexedChunks([...chunks.values()], query);
     },
   };
 
@@ -160,6 +214,9 @@ export function createSqlHrxAiSourceChunkIndex({ store } = {}) {
           .sort((left, right) => left.chunk_index - right.chunk_index || left.chunk_id.localeCompare(right.chunk_id))
           .map(deserializeChunk),
       );
+    },
+    search(query = {}) {
+      return searchIndexedChunks(this.list({ tenant_id: query.tenant_id, source_ref: query.source_ref }), query);
     },
   });
 }

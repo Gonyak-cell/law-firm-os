@@ -7,4 +7,5 @@ export * from "./finance-audit.js";
 export * from "./wip-service.js";
 export * from "./prebill-service.js";
 export * from "./invoice-service.js";
+export * from "./invoice-pdf-service.js";
 export * from "./tax-invoice-service.js";

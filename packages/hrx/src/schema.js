@@ -1,4 +1,4 @@
-const EMPLOYEE_STATUSES = ["active", "inactive", "on_leave", "terminated"];
+const EMPLOYEE_STATUSES = ["onboarding", "probation", "active", "inactive", "on_leave", "notice", "terminated"];
 const EMPLOYMENT_TYPES = ["full_time", "part_time", "contractor", "intern"];
 const EMPLOYMENT_PROFILE_STATUSES = ["active", "future", "on_leave", "terminated"];
 const EMPLOYEE_USER_LINK_PURPOSES = ["login_mapping"];
@@ -13,6 +13,7 @@ export const HRX_EMPLOYEE_USER_LINK_PURPOSES = Object.freeze([...EMPLOYEE_USER_L
 export const HRX_CORE_SCHEMAS = deepFreeze({
   Employee: {
     required: ["tenant_id", "employee_id", "display_name", "status"],
+    status_values: EMPLOYEE_STATUSES,
     reserved_identity_fields: RESERVED_IDENTITY_FIELDS,
   },
   EmploymentProfile: {

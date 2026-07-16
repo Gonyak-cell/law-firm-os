@@ -1,0 +1,12 @@
+node --check scripts/validate-cp002-product-capabilities.mjs
+node scripts/validate-cp002-product-capabilities.mjs --help
+node scripts/validate-cp002-product-capabilities.mjs --unknown # expected exit 2
+node scripts/validate-cp002-product-capabilities.mjs --emit
+node scripts/validate-cp002-product-capabilities.mjs --check
+git grep -n 'people-company-leave' <target-sha> -- apps/web/src apps/web/test
+node --test --test-force-exit --test-timeout=30000 --test-concurrency=1 apps/web/test/home-dashboard-r1.test.mjs apps/web/test/ui-regression.test.mjs apps/web/test/forest-responsive-layout-browser.test.mjs apps/web/test/leave-settings-ui.test.mjs apps/web/test/leave-accrual-ui.test.mjs apps/web/test/leave-self-service-ui.test.mjs apps/web/test/payroll-workspace-ui.test.mjs
+node scripts/validate-hrx-route-authz.mjs
+node --test --test-force-exit --test-timeout=30000 --test-concurrency=1 apps/api/test/hrx/route-authz.test.js apps/api/test/hrx/hrx-role-scope-matrix.test.js
+node -e "JSON.parse(require('fs').readFileSync('workbook/forest-v0.1.17-integration-evidence/CP-002/product-capability-matrix.json','utf8'))"
+git diff --check
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed

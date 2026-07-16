@@ -1,0 +1,120 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.command-evidence.v0.1",
+  "goal_id": "cti-s1-foundation-execute",
+  "recorded_at": "2026-07-06T03:58:06Z",
+  "secret_values_recorded": false,
+  "commands_run": [
+    {
+      "command": "aws sso/sts profile chain validation for matter-prod-deploy-admin",
+      "exit_code": 0,
+      "summary": "PASS. Matter production deploy role chain available; default profile emptiness was not treated as failure."
+    },
+    {
+      "command": "aws efs describe-file-systems / describe-access-points / describe-mount-targets / describe-mount-target-security-groups",
+      "exit_code": 0,
+      "summary": "PASS. fs-01e9f68b22b23e9f3 and fsap-0be58113c42e109fe available; two mount targets available in approved subnets with sg-027ca875653ea68ff."
+    },
+    {
+      "command": "aws ec2 describe-security-groups sg-0f555cc1f1708fc22 sg-027ca875653ea68ff sg-09686a354faa5f019",
+      "exit_code": 0,
+      "summary": "PASS. Lambda SG has no inbound and only egress 443 to VPCE SG and 2049 to EFS SG; EFS/VPCE SG inbound only from Lambda SG."
+    },
+    {
+      "command": "aws ec2 describe-vpc-endpoints --filters service-name=com.amazonaws.ap-northeast-2.secretsmanager",
+      "exit_code": 0,
+      "summary": "PASS. vpce-0e91b4dc91f85e4a5 available, private DNS enabled, approved subnets, SG sg-09686a354faa5f019."
+    },
+    {
+      "command": "aws iam list-attached-role-policies and list-role-policies for matter-lawos-api-prod-lambda-role",
+      "exit_code": 0,
+      "summary": "PASS. Attached AWSLambdaVPCAccessExecutionRole/AWSLambdaBasicExecutionRole; inline policies matter-lawos-prod-cti-s1-efs-client and matter-lawos-prod-cti-s1-session-secret-read."
+    },
+    {
+      "command": "aws lambda update-function-code / update-function-configuration for matter-lawos-api-prod",
+      "exit_code": 0,
+      "summary": "PASS. Deployed package sha256 1124d27724c366e1a5765753ce0b9febb861bc3f6d9a56269e1a8fbee0f6705e with EFS mount /mnt/lawos, approved VPC, operational STORE_PATH env keys. Environment values were redirected and deleted; secret values were not printed."
+    },
+    {
+      "command": "aws lambda get-function-configuration --query EnvironmentKeys/FileSystemConfigs/VpcConfig/State/LastUpdateStatus",
+      "exit_code": 0,
+      "summary": "PASS. Lambda Active/Successful; EFS AP mounted at /mnt/lawos; env keys include 13 STORE_PATH vars plus LAWOS_AUDIT_STORE_PATH and LAWOS_API_SESSION_SECRET_SECRET_ID; values not printed."
+    },
+    {
+      "command": "aws efs describe-backup-policy --file-system-id fs-01e9f68b22b23e9f3",
+      "exit_code": 0,
+      "summary": "PASS. BackupPolicy Status ENABLED."
+    },
+    {
+      "command": "node --check apps/api/src/session-auth.js && node --check apps/api/src/server.js && node --check apps/api/src/lambda.js && node --check apps/api/src/store-path-manifest.js",
+      "exit_code": 0,
+      "summary": "PASS. Modified API runtime files parse."
+    },
+    {
+      "command": "node --check apps/api/test/admin-security-durable-audit.test.js && node --check apps/api/test/lambda-session-secret.test.js && node --check apps/api/test/session-auth-api.test.js && node --check packages/matter/test/runtime-services.test.js && node --check scripts/test/matter-vault-backup-restore.test.mjs",
+      "exit_code": 0,
+      "summary": "PASS. Modified and added test files parse."
+    },
+    {
+      "command": "node scripts/validate-store-path-preflight.mjs",
+      "exit_code": 0,
+      "summary": "PASS. store-path-preflight passed 5 scenarios and covers LAWOS_AUDIT_STORE_PATH / LAWOS_API_SESSION_SECRET_SECRET_ID catalog evidence."
+    },
+    {
+      "command": "node --test apps/api/test/session-auth-api.test.js apps/api/test/admin-security-durable-audit.test.js apps/api/test/lambda-session-secret.test.js",
+      "exit_code": 0,
+      "summary": "PASS. 13 tests passed, including fixed operational session secret cold-start, durable audit restart, and Lambda Secrets Manager fetch mock."
+    },
+    {
+      "command": "node --test scripts/test/matter-vault-backup-restore.test.mjs packages/matter/test/runtime-services.test.js",
+      "exit_code": 0,
+      "summary": "PASS. 16 tests passed, including backup/restore v0.2 real_client_data_used isolated rehearsal and Matter reseed guard."
+    },
+    {
+      "command": "safe production health/auth-boundary probe against https://d2mthcc8vp3cr2.cloudfront.net",
+      "exit_code": 0,
+      "summary": "PASS. /api/health returned 200 operational; synthetic login returned 403 AUTH_SYNTHETIC_LOGIN_DISABLED; unauthenticated audit returned 401 AUTH_SESSION_REQUIRED; secret values recorded false."
+    },
+    {
+      "command": "node --check scripts/validate-cti-s1-foundation-execute-closeout.mjs",
+      "exit_code": 0,
+      "summary": "PASS. S1 execute closeout validator parses."
+    },
+    {
+      "command": "node scripts/validate-cti-s1-foundation-execute-closeout.mjs",
+      "exit_code": 0,
+      "summary": "PASS. Validator confirms I6-applied S1 evidence, production infrastructure mutation true, migration/restore/secret fetch false, and active S1-G authenticated probe blocker."
+    },
+    {
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "PASS. launch-TUW ledger validator reports 364 TUWs, 76 WPs, PRE-EXIT coverage 34, violations 0."
+    }
+  ],
+  "commands_not_run": [
+    {
+      "command": "aws secretsmanager get-secret-value --secret-id /amic-vault/prod/api/session-signing",
+      "reason": "Explicitly prohibited by I6; no secret value was fetched, printed, or committed."
+    },
+    {
+      "command": "authenticated production marker/audit write/readback probe",
+      "reason": "Blocked because S2 authentication is out of scope, operational synthetic login is disabled, and no temporary probe principal or debug endpoint is approved."
+    },
+    {
+      "command": "production store migration",
+      "reason": "Explicitly out of scope."
+    },
+    {
+      "command": "production restore execution",
+      "reason": "Explicitly out of scope; only local isolated backup/restore v0.2 rehearsal was run."
+    },
+    {
+      "command": "S2/S3/S4/S5/S6, CUTOVER, password issuance, OIDC, DB conversion, production_ready/go-live claim",
+      "reason": "Explicitly out of scope and blocked from progression by this closeout."
+    }
+  ],
+  "validation_results": {
+    "cti_s1_foundation_execute_closeout": "PASS",
+    "launch_tuw_ledger": "PASS",
+    "store_path_preflight": "PASS"
+  }
+}

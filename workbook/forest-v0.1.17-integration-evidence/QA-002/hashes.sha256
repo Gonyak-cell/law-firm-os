@@ -1,0 +1,14 @@
+9ffa2d74bcfe12281e43bc9e9e1ab86e41b15050cc9a2c1ecfdf8bbdb2d09171  workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md
+76be04ad87683d1674a65f142cf8aad09a7a578283eb31fb69a97356cf4ab9f6  workbook/forest-v0.1.17-integration-evidence/QA-002/acceptance.md
+2aa938e4ab887357c76dc2751f3a26bcc6051933dfd239a48c9cdc0fb190e431  workbook/forest-v0.1.17-integration-evidence/QA-002/commands.txt
+aa3df635f76b6f28e5889f438e795a9320e951e31b0e88b37cdb5c8b85b22a98  workbook/forest-v0.1.17-integration-evidence/QA-002/files.txt
+bb2b179ecfc35e81dc3a07d953ba42af0e2883efaea5fe4443c23f6250d24a87  workbook/forest-v0.1.17-integration-evidence/QA-002/receipt.json
+33dc15402f80b6d2dae5661155d1fd4e321dac27075e3cd93911f3096f7c5401  workbook/forest-v0.1.17-integration-evidence/QA-002/tests.json
+3afaa697fe61cff3fcfc8db77d3a976dbcd280450ee55258ce7a550c13b064c6  workbook/forest-v0.1.17-integration-evidence/QA-002/web-ui-package-entrypoint-summary.txt
+62c78b3a93fb7479afa20a84840e3c36cf55363f1690e936d969b18ca1dab3a2  workbook/forest-v0.1.17-integration-evidence/QA-002/logs/desktop-file-bridge.tap
+a980568d768c1730751d3e4a9458acb04d41575792b159c8a29136df769f61e7  workbook/forest-v0.1.17-integration-evidence/QA-002/logs/desktop-session.tap
+1933560aac5af50fc3242885a48568cb3ebf416822d567531b503b427631fbad  workbook/forest-v0.1.17-integration-evidence/QA-002/logs/desktop-smoke.tap
+2f19f80f758ca1aa441428b5f094a41921b0080bda9ac1298c413432faa970c1  workbook/forest-v0.1.17-integration-evidence/QA-002/logs/desktop-update.tap
+fed1f9e90b86cafa2409360300de5f07f175ac67045500384aa02bd35e01f03a  workbook/forest-v0.1.17-integration-evidence/QA-002/logs/web-build.txt
+c3efe9b49da7a0f7f6eaaa4b4221a040873d1cd53b661a070d3eb96e7b20afcc  workbook/forest-v0.1.17-integration-evidence/QA-002/logs/web-typecheck.txt
+14e1474f43d26fc6b8cbee9b02e0a6f8521449d3d186131aa50126c5333ce172  workbook/forest-v0.1.17-integration-evidence/QA-002/logs/web-ui-serial.tap

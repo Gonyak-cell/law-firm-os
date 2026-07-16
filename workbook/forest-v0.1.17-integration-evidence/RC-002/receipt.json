@@ -1,0 +1,55 @@
+{
+  "tuw": "RC-002",
+  "verdict": "PASS",
+  "candidate_entry_sha": "f68bb059e5b801dd26614379770b373b9089829c",
+  "evidence_commit_sha": "f943b8be568fec9bdede9a3d1c1b73c910988e01",
+  "forest_comparison_base": "7717d5cee158fc97056510e8aebc9e0854d34196",
+  "forest_content_checkpoint": "fbf7062398da1157ee1322d7440194c1b13f7e0f",
+  "root_source_head": "aa653bb12c7424fb5cda717817ba1ee1d2c454c3",
+  "root_source_worktree_sha256": "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3",
+  "root_source_tracked_modified_count": 56,
+  "root_source_untracked_count": 21,
+  "all_common_path_count": 52,
+  "integration_metadata_excluded": [
+    "workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md"
+  ],
+  "product_common_path_count": 51,
+  "semantic_reviewed_count": 51,
+  "semantic_review_sha256": "9a322adf92cb0339a122ba73f7fbb6bc2d867ec9f62086cfc37b76a27626c63b",
+  "identical_count": 2,
+  "different_count": 49,
+  "root_only_count": 25,
+  "forest_only_count": 170,
+  "unclassified_count": 0,
+  "parse_error_count": 0,
+  "relation_counts": {
+    "BIDIRECTIONAL_CONTRACT_DELTA": 13,
+    "CONTENT_DELTA_SAME_EXTRACTED_CONTRACT": 23,
+    "FOREST_EXTENDS_EXTRACTED_CONTRACT": 11,
+    "IDENTICAL": 2,
+    "ROOT_EXTENDS_EXTRACTED_CONTRACT": 2
+  },
+  "area_counts": {
+    "api-runtime": 6,
+    "api-test": 5,
+    "authz": 1,
+    "build-script": 4,
+    "desktop-runtime": 1,
+    "desktop-test": 1,
+    "evidence-doc": 2,
+    "hrx-runtime": 1,
+    "hrx-test": 4,
+    "leave-domain": 5,
+    "leave-ui": 8,
+    "migration": 1,
+    "store": 2,
+    "web-runtime": 4,
+    "web-test": 6
+  },
+  "identical_paths": [
+    "apps/desktop/src/main/main.js",
+    "scripts/validate-public-renderer-no-hrx-roster-pii.mjs"
+  ],
+  "manifest_sha256": "760757a4f0575e65b65cc0401640a7c28fee2605323c1cfc0f8f70a3e0f559bb",
+  "external_blockers": []
+}

@@ -1,0 +1,100 @@
+{
+  "goal_id": "cti-s1-foundation-unblock-packet",
+  "title": "CTI S1 FOUNDATION unblock packet",
+  "created_at": "2026-07-06T02:50:59Z",
+  "status": "owner_approved_for_s1_execute",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "source_plan_sha256": "92b0d9197bc075ce3a61135414458d89a80173ace43ddfb7c57cd70a69e9f197",
+  "upstream_s1_blocker_register_sha256": "efeb78b9511ab9b379ceebf405fa49e3c502e16e9dee358587772427bce70f0f",
+  "upstream_s1_aws_inventory_sha256": "af449167708538228179476877f8cb93351ebc011323960ce6721dcf640e938c",
+  "upstream_s1_blocked_packet_sha256": "855bd6f92ac8f213663d8f56dd715d06d239575b575ac911627976736aa17234",
+  "store_path_manifest_sha256": "bdc968e1cbf7cab57b511cba0d7ce0a5b3bda391c7c6bf23473bdf7aaded28be",
+  "backup_restore_drill_sha256": "81ea406c50c33a78e8a65c6ca4de4898ae034594626da7bfc9854b4b5f8ecef8",
+  "launch_tuw_work_package": "LT-PRE-W10",
+  "required_approval_ref": "I5-CTI-S1-FOUNDATION-UNBLOCK-PACKET-OWNER-APPROVAL-2026-07-06",
+  "approval_status": "approved",
+  "approval_signature_ref": "I5-CTI-S1-FOUNDATION-UNBLOCK-PACKET-OWNER-APPROVAL-2026-07-06",
+  "approval_recorded_at": "2026-07-06",
+  "approval_ready_packet": "docs/launch/cti-s1-foundation-unblock-packet-2026-07-06.md",
+  "selected_choices": {
+    "durable_store_target": {
+      "target_type": "aws_efs_access_point_for_lambda",
+      "account": "770880870480",
+      "region": "ap-northeast-2",
+      "vpc_id": "vpc-038f70d924a774bea",
+      "subnet_ids": [
+        "subnet-0a718a221e621715f",
+        "subnet-0af415c198603de77"
+      ],
+      "lambda_security_group_name": "matter-lawos-prod-lambda-sg",
+      "efs_security_group_name": "matter-lawos-prod-efs-sg",
+      "efs_file_system_name": "matter-lawos-prod-cti-s1-efs",
+      "efs_access_point_name": "matter-lawos-prod-runtime-ap",
+      "efs_access_point_root": "/lawos-runtime",
+      "lambda_mount_path": "/mnt/lawos",
+      "encryption_enabled": true,
+      "efs_backup_policy_enabled_before_migration": true
+    },
+    "audit_store": {
+      "env": "LAWOS_AUDIT_STORE_PATH",
+      "key": "securityAuditStorePath",
+      "path": "/mnt/lawos/audit/security-audit-events.ndjson",
+      "mode": "append_only_ndjson",
+      "manifest_change_required": true,
+      "preflight_required_for_operational": true,
+      "backup_inclusion_required": true
+    },
+    "session_secret": {
+      "existing_secret_name": "/amic-vault/prod/api/session-signing",
+      "injection_method": "runtime_secrets_manager_fetch",
+      "new_env": "LAWOS_API_SESSION_SECRET_SECRET_ID",
+      "new_env_value_ref": "/amic-vault/prod/api/session-signing",
+      "secret_value_fetched": false,
+      "secret_value_committed": false,
+      "lambda_iam_scope": "secretsmanager:GetSecretValue on the single session-signing secret ARN"
+    },
+    "backup_restore_v0_2": {
+      "backup_schema": "law-firm-os.matter-vault-runtime-backup.v0.2",
+      "restore_schema": "law-firm-os.matter-vault-runtime-restore.v0.2",
+      "drill_schema": "law-firm-os.matter-vault-runtime-backup-restore-drill.v0.2",
+      "backup_root": "/mnt/lawos/backups/matter-vault-runtime-stores",
+      "restore_rehearsal_target": "/mnt/lawos/restore-rehearsals/<timestamp>",
+      "real_client_data_used": true,
+      "production_restore_executed": false,
+      "receipt_payload": "counts_and_sha256_only_no_plaintext_pii"
+    }
+  },
+  "store_path_mapping_count": 13,
+  "derived_store_paths": [
+    {
+      "env": "LAWOS_DMS_OBJECT_STORE_PATH",
+      "path": "/mnt/lawos/stores/dms-store.json.objects"
+    }
+  ],
+  "authority_boundary": {
+    "efs_creation_executed": false,
+    "lambda_configuration_mutation_executed": false,
+    "secret_value_fetched": false,
+    "production_store_migration_executed": false,
+    "restore_execution_performed": false,
+    "s1_execute_authorized": true,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "out_of_scope": [
+    "EFS creation",
+    "Lambda configuration mutation",
+    "secret value retrieval",
+    "production store migration",
+    "restore execution",
+    "S2-S6",
+    "CUTOVER",
+    "password issuance",
+    "OIDC",
+    "DB conversion",
+    "production_ready",
+    "go-live"
+  ],
+  "closeout_verdict": "OWNER_APPROVED_FOR_S1_EXECUTE",
+  "s1_execute_boundary": "AUTHORIZED_BY_I5_WITH_STOP_CONDITIONS"
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": "law-firm-os.closeout-review-result.v0.1",
+  "goal_id": "cti-password-reset-jwsuh-live-send",
+  "reviewed_at": "2026-07-06T12:01:58.810Z",
+  "review_result": "BLOCKED",
+  "findings": [
+    {
+      "severity": "P1",
+      "summary": "jwsuh@amic.kr live reset email send did not reach sent status; production reset emails to other users remain prohibited."
+    }
+  ],
+  "recommendation": "Retry only the jwsuh@amic.kr lane after resolving the send blocker."
+}

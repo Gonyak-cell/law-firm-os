@@ -1,0 +1,3 @@
+Command: node --test --test-name-pattern='WT-03-0[34]' apps/web/test/matter-worktree-ui-contract.test.mjs
+Exit: 1
+Failure: Worktree URL state and Matter Code selector were absent.

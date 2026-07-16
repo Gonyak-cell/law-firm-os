@@ -245,7 +245,7 @@ assert(apiClient.includes("/api/hrx/payroll/approve"), "HRX UI client missing pa
 assert(apiClient.includes("/api/hrx/payroll/export"), "HRX UI client missing payroll export API");
 assert(apiClient.includes("hrx.payroll.preview") && apiClient.includes("hrx.payroll.export"), "HRX UI client missing payroll scopes");
 assert(payrollUi.includes("calculation_runtime") && payrollUi.includes("disbursement_instruction_included"), "Payroll UI must show calculation/disbursement boundary");
-assert(payrollUi.includes("급여정산") && payrollUi.includes("계산·세금·지급 실행은 아직 구현되지 않았습니다"), "Payroll UI must keep Korean unimplemented execution copy visible");
+assert(payrollUi.includes("급여정산") && payrollUi.includes("계산과 지급 실행은 아직 제공하지 않습니다"), "Payroll UI must keep Korean unimplemented execution copy visible");
 assert(peopleKoUiPlan.includes("기능명은 한국 SaaS에서 쓰이는 표현 그대로 쓴다"), "Korean SaaS label policy missing");
 assert(peopleKoUiPlan.includes("구현되지 않은 기능은 `구현 안됨`"), "Unimplemented feature state policy missing");
 assert(peopleKoUiPlan.includes("일부만 구현된 기능은 `일부 구현됨`"), "Partially implemented feature state policy missing");

@@ -1,0 +1,42 @@
+ALTER TABLE hrx_leave_promotion_campaigns ADD COLUMN entitlement_period_end TEXT;
+ALTER TABLE hrx_leave_promotion_campaigns ADD COLUMN schedule_profile_id TEXT;
+ALTER TABLE hrx_leave_promotion_campaigns ADD COLUMN legal_basis_code TEXT;
+ALTER TABLE hrx_leave_promotion_campaigns ADD COLUMN legal_basis_version TEXT;
+ALTER TABLE hrx_leave_promotion_campaigns ADD COLUMN legal_basis_effective_from TEXT;
+ALTER TABLE hrx_leave_promotion_campaigns ADD COLUMN legal_review_state TEXT NOT NULL DEFAULT 'required';
+ALTER TABLE hrx_leave_promotion_campaigns ADD COLUMN timezone TEXT NOT NULL DEFAULT 'Asia/Seoul';
+ALTER TABLE hrx_leave_promotion_campaigns ADD COLUMN threshold_minutes INTEGER;
+ALTER TABLE hrx_leave_promotion_campaigns ADD COLUMN standard_day_minutes INTEGER;
+ALTER TABLE hrx_leave_promotion_campaigns ADD COLUMN source_version TEXT;
+ALTER TABLE hrx_leave_promotion_campaigns ADD COLUMN calculation_snapshot_hash TEXT;
+ALTER TABLE hrx_leave_promotion_campaigns ADD COLUMN target_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE hrx_leave_promotion_campaigns ADD COLUMN idempotency_key TEXT;
+ALTER TABLE hrx_leave_promotion_campaigns ADD COLUMN updated_at TEXT;
+
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN unused_minutes INTEGER;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN standard_day_minutes INTEGER;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN unused_days REAL;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN source_version TEXT;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN state TEXT NOT NULL DEFAULT 'first_notice_pending';
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN first_notice_deadline_at TEXT;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN first_document_version TEXT;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN first_issued_at TEXT;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN first_delivery_state TEXT NOT NULL DEFAULT 'not_created';
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN first_delivered_at TEXT;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN first_viewed_at TEXT;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN first_evidence_hash TEXT;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN response_due_at TEXT;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN responded_at TEXT;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN second_notice_deadline_at TEXT;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN second_document_id TEXT;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN second_document_version TEXT;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN second_issued_at TEXT;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN second_delivery_state TEXT NOT NULL DEFAULT 'not_created';
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN second_delivered_at TEXT;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN second_viewed_at TEXT;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN second_evidence_hash TEXT;
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN compliance_state TEXT NOT NULL DEFAULT 'open';
+ALTER TABLE hrx_leave_promotion_recipients ADD COLUMN late_reasons_json TEXT NOT NULL DEFAULT '[]';
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_hrx_leave_promotion_campaign_idempotency
+  ON hrx_leave_promotion_campaigns (tenant_id, idempotency_key);

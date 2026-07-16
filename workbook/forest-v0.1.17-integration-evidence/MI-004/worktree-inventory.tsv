@@ -1,0 +1,5 @@
+scope	path	branch	head	dirty_count	writer_state	written_by_mi004
+user_root	/Users/jws/Documents/Codex/Law Firm OS	codex/profile-contact-regression-fix	aa653bb12c7424fb5cda717817ba1ee1d2c454c3	77	preserved_user_owned	false
+candidate	/private/tmp/lawos-forest-v016-release	codex/forest-v0.1.16-release-20260713	4d59c9b7dfba16b68aa5c85e362dd2b87ec5e6bc	0	frozen	false
+integration	/private/tmp/lawos-forest-v017-integration	codex/integration/forest-v0.1.17	4d59c9b7dfba16b68aa5c85e362dd2b87ec5e6bc	0	sole_active_writer	true
+other_aggregate	7 pre-existing worktrees	out_of_scope	mixed	439	not_observed_active	false

@@ -81,7 +81,7 @@ for (const label of ["관리", "회사 설정", "구성원", "휴가관리", "�
   assert.ok(peopleNavigationSource.includes(label), `People navigation missing ${label}`);
 }
 
-for (const hiddenLabel of ["관계자 관리", "사건 관련 인물", "인물 목록", "인물 검색", "연결 관계", "Client/Matter 연결", "구성원 운영", "설정·정산", "인사규정", "인력 현황", "인사정보 접근 권한"]) {
+for (const hiddenLabel of ["관계자 관리", "사건 관련 인물", "인물 목록", "인물 검색", "연결 관계", "Client/Matter 연결", "구성원 운영", "설정 정산", "인사규정", "인력 현황", "인사정보 접근 권한"]) {
   assert.equal(peopleNavigationSource.includes(hiddenLabel), false, `People sidebar must not expose removed legal-person menu label: ${hiddenLabel}`);
 }
 
@@ -120,15 +120,18 @@ for (const marker of [
   "fetchLegalPeopleRelationships",
   "Matter 참여자 확인",
   "참여자 상세",
-  "Client·Matter 관련 기록",
+  "관련 기록",
   "이해상충 검토",
-  "권한에 따라 축약"
+  "permission_summary",
+  "sensitive_fields_visible",
+  "제한 보기",
+  "access_state"
 ]) {
   requireText(legalPeopleWorkspacePath, marker);
 }
 
 for (const marker of [
-  "hrx.legal_people.read",
+  "sessionHrxRuntimeHeaders",
   "/api/hrx/legal-people/search",
   "/api/hrx/legal-people/relationships",
   "fetchLegalPeopleSearch",
@@ -151,7 +154,8 @@ for (const marker of [
   "fetchLegalPeopleSearch",
   "matter_id: \"matter_lcx_001\"",
   "data-lcx-ppl-matter-backlink",
-  "Matter 참여자와 관련 인물"
+  "Matter 인물 연결",
+  "Matter 연결 인물"
 ]) {
   requireText(mattersSurfacePath, marker);
 }

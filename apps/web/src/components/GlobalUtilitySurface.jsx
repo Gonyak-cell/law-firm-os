@@ -1,7 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { ArrowRight, Link2, ShieldCheck } from "lucide-react";
 import { conditionalGlobalItems, getGlobalUtilityByView, globalUtilityItems } from "../data/globalUtilities.js";
+import { GuardedStateNotice } from "./GuardedState.js";
+import { ForestHero } from "./ForestHero.jsx";
 import { PageHeader, Panel } from "./primitives.jsx";
+import { EmployeeList } from "../people/employees/EmployeeList.tsx";
+import { HRDocumentWorkspace } from "../people/documents/HRDocumentWorkspace.tsx";
+import { PermissionAdminPanel } from "../people/admin/PermissionAdminPanel.jsx";
 
 function sectionStateLabel(section, utility) {
   if (section.state === "audit_required") return "감사 필요";
@@ -10,6 +15,7 @@ function sectionStateLabel(section, utility) {
 }
 
 function sectionDescription(section, utility) {
+  if (section.description) return section.description;
   if (utility.status === "decision-required") return utility.decision;
   if (section.legacyRoutes?.length > 0) {
     const domains = Array.from(new Set(section.legacyRoutes.map((route) => route.view))).join(", ");
@@ -37,16 +43,6 @@ function UtilitySectionCard({ section, utility, active, onOpen }) {
       </span>
       <span className="global-utility-source">{section.source}</span>
       <ArrowRight size={15} />
-    </button>
-  );
-}
-
-function UtilityTab({ section, utility, active, onOpen }) {
-  const Icon = section.icon ?? utility.icon;
-  return (
-    <button type="button" className={active ? "active" : ""} onClick={() => onOpen(section.id)}>
-      <Icon size={14} />
-      <span>{section.label}</span>
     </button>
   );
 }
@@ -89,21 +85,19 @@ function UtilityDetail({ section, utility }) {
         </div>
       )}
       {section.state === "audit_required" && (
-        <div className="live-data-state live-data-review" data-global-audit-required="true">
-          <strong>감사 대상 작업입니다.</strong>
+        <GuardedStateNotice state="audit_required" title="감사 대상 작업입니다." dataAttrs={{ "data-global-audit-required": "true" }}>
           강제 승인/거절 또는 고급 옵션은 권한과 사유 기록이 필요합니다.
-        </div>
+        </GuardedStateNotice>
       )}
       {utility.status === "decision-required" && (
-        <div className="live-data-state live-data-review" data-global-decision-required="true">
-          <strong>조건부 전역화 항목입니다.</strong>
+        <GuardedStateNotice state="owner_blocked" title="확인이 필요한 항목입니다." dataAttrs={{ "data-global-decision-required": "true" }}>
           {utility.decision}
-        </div>
+        </GuardedStateNotice>
       )}
       {utility.id === "notifications" && section.id === "notifications-center" && (
         <div className="live-data-state live-data-empty" data-global-notifications-center="true">
-          <strong>상단 알림 드로어와 같은 알림 원장을 사용합니다.</strong>
-          드로어의 읽음 처리와 알림 설정은 이 전역 알림 센터의 항목으로 연결됩니다.
+          <strong>알림과 메시지를 한곳에서 확인합니다.</strong>
+          읽음 처리와 알림 설정을 여기에서 관리합니다.
         </div>
       )}
     </Panel>
@@ -114,6 +108,9 @@ export function GlobalUtilitySurface({ view, activeSection = "", setView }) {
   const utility = getGlobalUtilityByView(view) ?? globalUtilityItems[0];
   const activeId = utility.sections.some((section) => section.id === activeSection) ? activeSection : utility.defaultSection;
   const active = utility.sections.find((section) => section.id === activeId) ?? utility.sections[0];
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
+  const liveEmploymentContracts = utility.id === "policies" && active.id === "policies-employment-contracts";
+  const livePermissionAdmin = utility.id === "settings" && active.id === "settings-permissions";
 
   function openSection(sectionId) {
     setView(utility.id, sectionId);
@@ -125,10 +122,11 @@ export function GlobalUtilitySurface({ view, activeSection = "", setView }) {
       data-global-utility-surface={utility.id}
       data-global-conditional={utility.status === "decision-required" ? "true" : "false"}
     >
+      <ForestHero title={utility.label} imageOpacity={0.18} />
       <div className="global-utility-layer">
         <PageHeader
           title={utility.label}
-          subtitle={utility.description ?? utility.decision}
+          heroTakeover
           actions={
             <span className="global-utility-status">
               <ShieldCheck size={15} />
@@ -136,28 +134,40 @@ export function GlobalUtilitySurface({ view, activeSection = "", setView }) {
             </span>
           }
         />
-        <div className="global-utility-tabs" role="tablist" aria-label={`${utility.label} 항목`}>
-          {utility.sections.map((section) => (
-            <UtilityTab key={section.id} section={section} utility={utility} active={section.id === activeId} onOpen={openSection} />
-          ))}
-        </div>
         <div className="global-utility-layout">
           <div className="global-utility-card-list">
             {utility.sections.map((section) => (
               <UtilitySectionCard key={section.id} section={section} utility={utility} active={section.id === activeId} onOpen={openSection} />
             ))}
           </div>
-          <UtilityDetail section={active} utility={utility} />
+          {liveEmploymentContracts ? (
+            <div className="global-utility-live-detail" data-global-live-hr-documents="employment-contracts">
+              <EmployeeList selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} refreshKey={activeId} />
+              <HRDocumentWorkspace employeeId={selectedEmployeeId} refreshKey={activeId} mode="contracts" />
+            </div>
+          ) : livePermissionAdmin ? (
+            <div className="global-utility-live-detail settings-admin-live-detail" data-global-live-admin-permissions="settings-permissions">
+              <PermissionAdminPanel key={activeId} />
+            </div>
+          ) : (
+            <UtilityDetail section={active} utility={utility} />
+          )}
         </div>
         {utility.id === "settings" && (
           <div className="global-utility-related" data-global-conditional-preview="true">
             {conditionalGlobalItems.map((item) => {
               const Icon = item.icon;
               return (
-                <button key={item.id} type="button" className="global-utility-related-item" onClick={() => setView(item.id, item.defaultSection)}>
+                <button
+                  key={item.id}
+                  type="button"
+                  className="global-utility-related-item"
+                  data-global-preview-marker="true"
+                  onClick={() => setView(item.id, item.defaultSection)}
+                >
                   <Icon size={15} />
                   <span>{item.label}</span>
-                  <small>조건부</small>
+                  <small>미리보기</small>
                 </button>
               );
             })}

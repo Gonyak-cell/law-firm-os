@@ -1,0 +1,17 @@
+{
+  "schema_version": "law-firm-os.matter-worktree-owner-assignment.v1",
+  "recorded_at": "2026-07-12T13:51:43+09:00",
+  "recorded_from": "user_directive",
+  "source_ref": "codex-thread:019f4a53-0f37-76b3-b961-d28243cf0531",
+  "practice_area_owners": {
+    "litigation": "jwsuh@amic.kr",
+    "corporate-advisory": "jwsuh@amic.kr",
+    "dispute": "jwsuh@amic.kr",
+    "transaction": "jwsuh@amic.kr"
+  },
+  "permission_rule_owner": "jwsuh@amic.kr",
+  "legal_template_approver": "jwsuh@amic.kr",
+  "actual_template_approval": "separate_approval_ref_required",
+  "public_release_approval": false,
+  "aws_deployment_approval": false
+}

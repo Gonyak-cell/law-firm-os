@@ -1,0 +1,57 @@
+{
+  "schema_version": "law-firm-os.cti-owner-approval-receipt.v0.1",
+  "approval_id": "I19",
+  "approval_signature_ref": "I19-CTI-CUTOVER-POST-I18-SNAPSHOT-REBIND-OWNER-APPROVAL-2026-07-06",
+  "status": "approval_recorded_snapshot_rebound",
+  "recorded_at": "2026-07-06T08:18:00Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "goal_id": "cti-cutover-post-i18-snapshot-rebind",
+  "source_receipt": "docs/launch/cti-cutover-execute-precheck-live-snapshot-receipt-2026-07-06.json",
+  "rebound_snapshot_boundary": {
+    "snapshot_hash": "b4139c730895d173cf964a92fa6ba375c93cefcb13687b0f82732c4c0531da49",
+    "readable_store_file_count": 15,
+    "restore_rehearsal_status": "PASS",
+    "restore_source_file_count": 15,
+    "restore_restored_file_count": 15,
+    "restore_checksum_mismatch_count": 0
+  },
+  "superseded_snapshot_boundary": {
+    "snapshot_hash": "2ce798915fccf16aff5c25746e8db4478dc5f160b7ebe7ca430833ce7735cffb",
+    "readable_store_file_count": 13,
+    "superseded_for_cutover_retry": true
+  },
+  "approved_scope": {
+    "rebind_i15_rollback_abort_criteria_to_post_i18_snapshot": true,
+    "update_cutover_preflight_packet_and_closeout": true,
+    "cutover_execute_allowed_by_this_receipt": false
+  },
+  "conditions": {
+    "cutover_execute_requires_separate_goal": true,
+    "production_restore_allowed_by_this_receipt": false,
+    "production_write_allowed_by_this_receipt": false,
+    "tenant_migration_allowed_by_this_receipt": false,
+    "account_permission_injection_allowed_by_this_receipt": false,
+    "password_distribution_allowed_by_this_receipt": false
+  },
+  "boundary": {
+    "cutover_executed": false,
+    "production_restore_executed": false,
+    "production_write_executed": false,
+    "tenant_migration_executed": false,
+    "account_permission_injection_executed": false,
+    "operational_profile_switch_executed": false,
+    "bridge_token_rotation_executed": false,
+    "password_issuance_distribution_executed": false,
+    "s5_enrichment_executed": false,
+    "s6_final_seal_executed": false,
+    "oidc_implementation_executed": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "secret_value_recorded": false,
+    "plaintext_password_recorded": false,
+    "plaintext_pii_recorded": false,
+    "credential_material_recorded": false,
+    "token_material_recorded": false
+  }
+}

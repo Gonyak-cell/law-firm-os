@@ -1,0 +1,10 @@
+packages/matter/src/worktree-mutation.js
+packages/matter/src/task-service.js
+packages/matter/src/worktree-template-snapshot.js
+packages/matter/src/index.js
+packages/matter/test/worktree-mutation.test.js
+packages/matter/test/worktree-template-snapshot.test.js
+workbook/matter-worktree-evidence/WT-01-10/acceptance.md
+workbook/matter-worktree-evidence/WT-01-10/commands.txt
+workbook/matter-worktree-evidence/WT-01-10/tests.txt
+workbook/matter-worktree-evidence/WT-01-10/files.txt

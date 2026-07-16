@@ -1,0 +1,50 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.matter_vault_browser_proof.v0.1",
+  "generated_at": "2026-06-30T09:31:11.378Z",
+  "tuw_id": "LCX-FULL-06.05",
+  "verdict": "PASS",
+  "snapshot": {
+    "attrs": {
+      "source_state": "source-blocked",
+      "preflight_state": "not-run",
+      "publish_state": "draft-required",
+      "publish_write_enabled": "false",
+      "import_dry_run_state": "preflight-required",
+      "import_execute_state": "preflight-required",
+      "email_send_state": "draft-required"
+    },
+    "disabled_count": 7,
+    "email_provider_blocked": true,
+    "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\nMatter\n사건 운영\n홈\n사건 목록\n18\n신규 사건\n수임 진행\n종결 처리\n보관 사건\n업무 진행\n문서·자료\n사건 문서\n증거·자료\n양식·템플릿\n인장·날인\n소통·참여\n결재·청구\n리포트·관리\nMatter\n\n사건 상태, 담당자·참여자, 문서, 일정, 결재·청구 흐름을 확인합니다.\n\n새로고침\n홈\n사건 목록\n업무 보드\n일정\n외부 일정\n사건 문서\nMatter Vault\n문서 연결\nVault 미리보기\n등록 Vault 저장소\n새로고침\n문서 연결\n문서 내용은 권한이 있을 때만 표시됩니다.\n문서 작업 사전검사\n문서 사전검사\nMatter app 원천\nMatter/Vault 원천 차단\nfail-closed\n권한 확인\n사전검사 전\nreference-only\nVault 게시\n초안과 사전검사 필요\nwrite=false\n문서 가져오기\n사전검사 전 실행 차단\npreflight-required\n외부 발송\n초안 필요\noutlook_graph=false\n활동\t유형\t제목\t표시 범위\n문서\t상태\t계정\t보호\nSynthetic engagement letter\t사용 중\tjwsuh@amic.kr\t보호됨\n문서\t버전\t색인\t보안\ndoc_rp07_synthetic_001\tversion_doc_rp07_synthetic_001_1\ttitle, matter_id, version_id\t보호됨\n표시할 감사 정보가 없습니다\n문서 초안\n템플릿\t유형\t필드\t승인\n위임계약서\t문서\t3개\t승인 필요\n진행상황 안내 메일\t이메일\t3개\t승인 필요\n템플릿 선택 후 초안을 만들 수 있습니다\n초안 생성\n검토 준비\n승인 요청\nVault 등록 요청\n표시할 승인 요청 정보가 없습니다\n이메일 초안\n초안 작성 후 발송 경계를 확인할 수 있습니다\n초안 생성\n내용 정리\n발송 요청\n레코드\nMatter 1\n상태\n개시 중\n청구\n청구 준비 가능\n책임자\n미지정\n팀\n1\n문서\n0\n활동\n0\n기한\n0\n대화\n0\n청구\n2\n분석\n2\n청구 상태\n청구 준비 가능\n저장\n책",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-06-screenshots/matter-vault.png"
+  },
+  "checks": [
+    {
+      "id": "boundary-mounted",
+      "passed": true
+    },
+    {
+      "id": "publish-write-disabled",
+      "passed": true
+    },
+    {
+      "id": "import-execute-blocked",
+      "passed": true
+    },
+    {
+      "id": "email-send-guarded",
+      "passed": true
+    },
+    {
+      "id": "no-forbidden-text",
+      "passed": true
+    }
+  ],
+  "boundary": {
+    "browser_observation_only": true,
+    "vault_write_complete_claim": false,
+    "email_send_complete_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

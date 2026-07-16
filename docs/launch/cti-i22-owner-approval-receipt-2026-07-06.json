@@ -1,0 +1,40 @@
+{
+  "schema_version": "law-firm-os.cti.owner-approval-receipt.v0.1",
+  "approval_id": "I22",
+  "approval_signature_ref": "I22-CTI-CUTOVER-POST-I21-PARTIAL-RESUME-BOUNDARY-OWNER-APPROVAL-2026-07-06",
+  "recorded_at": "2026-07-06T09:35:18.000Z",
+  "goal_id": "cti-cutover-execute",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "approval_type": "post_i21_partial_resume_boundary",
+  "current_snapshot_hash": "6b66029c055ece6c3cfa6a7cd559c8eb387a958261e92f006aa67f3f48767ddd",
+  "current_readable_store_file_count": 15,
+  "current_matter_store_record_count": 404,
+  "current_auth_credential_store_record_count": 11,
+  "approved_scope": [
+    "Lambda code patch/deploy",
+    "Use the post-I21 partial snapshot as the CUTOVER resume boundary",
+    "Clean up S3 synthetic Matter residue",
+    "Regenerate hash credential records from the existing private handoff file without printing, logging, or committing plaintext passwords",
+    "Idempotently reapply 9 production credentials",
+    "Idempotently apply 2 QA disabled credential records",
+    "Reconfirm bridge token rotation/control",
+    "Run first-login validation",
+    "Run CUT-G validation",
+    "Generate PII-safe hash/count evidence and closeout"
+  ],
+  "conditions": [
+    "Plaintext passwords must not be printed, logged, or committed",
+    "Secret, token, and password values must not be queried for output, printed, or committed",
+    "Production restore is not approved",
+    "Production matter mutation is limited to S3 synthetic residue cleanup and idempotent canonical readback/repair",
+    "No production_ready or go-live claim before CUT-G PASS"
+  ],
+  "explicit_non_approval": [
+    "production restore",
+    "OIDC implementation",
+    "DB conversion",
+    "S5 enrichment",
+    "S6 seal",
+    "production_ready claim when validation failed"
+  ]
+}

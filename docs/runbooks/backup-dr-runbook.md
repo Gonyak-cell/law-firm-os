@@ -1,6 +1,6 @@
 # Backup And DR Runbook
 
-Status: draft_blocked_pending_rpo_rto_approval_and_restore_rehearsal
+Status: draft_approved_rpo_rto_pending_backup_automation_and_restore_rehearsal
 Work package: LT-L3-W05
 TUW: LT-L3-W05-T04
 Prepared at: 2026-06-18
@@ -8,22 +8,25 @@ Review policy: review_waived_by_user
 
 ## Boundary
 
-This runbook is an operational draft only. It does not approve RPO/RTO values,
-does not prove backup automation, does not execute a restore rehearsal, does
-not create production infrastructure, and does not authorize production or
-real-client data use.
+This runbook is an operational draft only. The 2026-07-09 durable-data
+execution decision approves the local-store RPO/RTO targets below, but this
+runbook still does not prove backup automation, does not execute a restore
+rehearsal, does not create production infrastructure, and does not authorize
+production or real-client data use.
 
-The approved numeric targets must come from
-`docs/launch/l3/rpo-rto-decision.md` after owner approval and launch decision
-register cross-reference. Current candidate numbers in that decision brief are
-not pass/fail criteria.
+Approved numeric targets for the current local durable-store lane come from
+`workbook/durable-data-persistence-execution-plan-2026-07-09.md`: RPO is
+write-immediate (`RPO≈0`) and the restore rehearsal target is 30 minutes. These
+targets are local durable-store targets only until the Stage 5 Postgres cutover
+has its own execution evidence.
 
 ## Target Source Control
 
 | Control | Required source | Current state |
 | --- | --- | --- |
-| Approved DB RPO/RTO | LT-L3-W05-T01 owner-approved row | pending_owner_approval |
-| Approved audit-store RPO/RTO | LT-L3-W05-T01 owner-approved row | pending_owner_approval |
+| Approved local durable-store RPO/RTO | `workbook/durable-data-persistence-execution-plan-2026-07-09.md` D3/D10 | approved_2026-07-09_rpo_write_immediate_rto_30m |
+| Approved DB RPO/RTO | Stage 5 Postgres execution packet | pending_postgres_cutover_evidence |
+| Approved audit-store RPO/RTO | Stage 5 Postgres/audit execution packet | pending_postgres_cutover_evidence |
 | Approved index recovery target | LT-L3-W05-T01 owner-approved row | proposal_only |
 | Document-original recovery boundary | LT-PRE-W03 MAT-DEC-03 storage decision | blocked_pending_mat_dec_03 |
 | Restore rehearsal source log | LT-L3-W05-T03 `docs/launch/l3/dr-rehearsal-report.md` | pending_rehearsal |
@@ -109,16 +112,26 @@ evidence in the rehearsal report.
 
 | LT-L3-W05-T03 rehearsal item | Runbook step coverage | Current state |
 | --- | --- | --- |
-| Restore duration <= approved RTO | DR-STEP-07 through DR-STEP-12 | pending_rehearsal |
-| Data-loss window <= approved RPO | DR-STEP-04 through DR-STEP-05 | pending_rehearsal |
+| Restore duration <= approved 30-minute local-store RTO | DR-STEP-07 through DR-STEP-12 | pending_rehearsal |
+| Data-loss window <= approved write-immediate local-store RPO | DR-STEP-04 through DR-STEP-05 | pending_rehearsal |
 | Restored audit hash chain verify exit 0 | DR-STEP-08 through DR-STEP-09 | pending_rehearsal |
 | Step timestamp log complete | DR-STEP-01 through DR-STEP-12 | pending_rehearsal |
+
+## Durable Data Persistence 2026-07-09
+
+| Decision | Approved state | Execution boundary |
+| --- | --- | --- |
+| D3 RPO | Write-immediate local durability (`RPO≈0`) plus S3 upload queue target. | Approval recorded; backup automation and upload receipt still required before G4 evidence can pass. |
+| D8 AWS account | Matter account via `matter-prod-deploy-admin` in `ap-northeast-2`. | AWS credential/session freshness must be verified at execution time. |
+| D9 retention | S3 versioning with no lifecycle expiry and delete-deny bucket policy. | Bucket policy evidence still required. |
+| D10 RTO | Single-command restore target `<=30 minutes`. | Restore rehearsal evidence still required. |
+| D11/D12 multi-device and offline | Local cache first, online replay later. | Until Stage 5 Postgres is complete, operators must use one primary input device. |
+| D13 encryption | AWS-managed KMS (`aws/s3`, `aws/rds`). | S3/RDS encryption receipts still required. |
 
 ## Open Blockers
 
 | Blocker | Required resolution |
 | --- | --- |
-| LT-L3-W05-T01 approval | Owner-approved RPO/RTO values and launch decision register cross-reference. |
 | LT-L3-W05-T02 backup automation | Backup schedule, encryption, offsite storage, and success log evidence. |
 | LT-L3-W05-T03 restore rehearsal | Measured restore, RPO/RTO comparison, audit chain verify, and step timestamp log. |
 | LT-PRE-W03 MAT-DEC-03 | Document-original storage ownership and retention/restore responsibility. |

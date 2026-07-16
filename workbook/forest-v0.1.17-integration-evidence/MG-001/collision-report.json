@@ -1,0 +1,65 @@
+{
+  "source_ordinal_collision_count": 6,
+  "source_ordinal_collisions": [
+    {
+      "ordinal": "011",
+      "root_filename": "011_hrx_payroll_items.sql",
+      "forest_filename": "011_hrx_leave_type_economics.sql",
+      "same_filename": false,
+      "same_sha256": false
+    },
+    {
+      "ordinal": "012",
+      "root_filename": "012_hrx_payroll_profiles.sql",
+      "forest_filename": "012_hrx_leave_job_outbox.sql",
+      "same_filename": false,
+      "same_sha256": false
+    },
+    {
+      "ordinal": "013",
+      "root_filename": "013_hrx_payroll_time_inputs.sql",
+      "forest_filename": "013_hrx_leave_accrual_batches.sql",
+      "same_filename": false,
+      "same_sha256": false
+    },
+    {
+      "ordinal": "014",
+      "root_filename": "014_hrx_leave_usage_units.sql",
+      "forest_filename": "014_hrx_leave_occurrence_metadata.sql",
+      "same_filename": false,
+      "same_sha256": false
+    },
+    {
+      "ordinal": "015",
+      "root_filename": "015_hrx_leave_accrual_rule_versions.sql",
+      "forest_filename": "015_hrx_leave_occurrence_upload_batches.sql",
+      "same_filename": false,
+      "same_sha256": false
+    },
+    {
+      "ordinal": "016",
+      "root_filename": "016_hrx_leave_entitlement_lifecycle.sql",
+      "forest_filename": "016_hrx_leave_promotion_exclusions.sql",
+      "same_filename": false,
+      "same_sha256": false
+    }
+  ],
+  "reserved_forward_ordinals": [
+    "026",
+    "027",
+    "028"
+  ],
+  "reserved_forward_filenames": [
+    "026_hrx_payroll_catalog_assignments.sql",
+    "027_hrx_attendance_approval_receipts.sql",
+    "028_hrx_leave_accrual_rule_versions.sql"
+  ],
+  "occupied_reserved_filename_count": 0,
+  "planned_port_contract_count": 71,
+  "duplicate_planned_port_contract_count": 0,
+  "forest_001_025_contract_collision_count": 0,
+  "forest_001_025_contract_collisions": [],
+  "reused_root_filename_count": 0,
+  "destructive_statement_count": 0,
+  "verdict": "PASS"
+}

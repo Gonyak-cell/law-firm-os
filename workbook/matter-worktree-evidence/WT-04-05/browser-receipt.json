@@ -1,0 +1,99 @@
+{
+  "results": [
+    {
+      "viewport": 1280,
+      "pageWidth": 1280,
+      "overflow": false,
+      "practiceWidths": [
+        244,
+        244,
+        244,
+        244
+      ],
+      "equalPracticeWidths": true,
+      "treeItems": 5
+    },
+    {
+      "viewport": 1024,
+      "pageWidth": 1024,
+      "overflow": false,
+      "practiceWidths": [
+        188.3,
+        188.3,
+        188.3,
+        188.3
+      ],
+      "equalPracticeWidths": true,
+      "treeItems": 5
+    },
+    {
+      "viewport": 768,
+      "pageWidth": 768,
+      "overflow": false,
+      "practiceWidths": [
+        521,
+        521,
+        521,
+        521
+      ],
+      "equalPracticeWidths": true,
+      "treeItems": 5
+    },
+    {
+      "viewport": 375,
+      "pageWidth": 375,
+      "overflow": false,
+      "practiceWidths": [
+        309,
+        309,
+        309,
+        309
+      ],
+      "equalPracticeWidths": true,
+      "treeItems": 5
+    }
+  ],
+  "reopenCalls": 2,
+  "keyboardSearchFocused": true,
+  "keyboard": {
+    "practiceAreaChanged": true,
+    "matterSelected": true,
+    "arrowRightFocusedChild": true,
+    "arrowDownFocusedNext": true,
+    "arrowUpFocusedPrevious": true,
+    "arrowLeftCollapsed": true,
+    "arrowRightExpanded": true,
+    "spaceOpenedReopen": true
+  },
+  "largeRenderMs": 72.80250000000001,
+  "largeRender": {
+    "treeItems": 301,
+    "pageOverflow": false,
+    "longTasks": []
+  },
+  "largeLayout": {
+    "canvasScrollLeft": 0,
+    "canvasScrollTop": 9610,
+    "canvas": {
+      "left": 272,
+      "right": 908,
+      "top": 450.0602722167969,
+      "bottom": 990.0602722167969
+    },
+    "root": {
+      "left": 297,
+      "right": 517,
+      "top": 691.0602416992188,
+      "bottom": 747.0602416992188
+    },
+    "tree": {
+      "left": 297,
+      "right": 1045
+    }
+  },
+  "recoveryStates": {
+    "denied": true,
+    "conflict": true,
+    "error": true
+  }
+}

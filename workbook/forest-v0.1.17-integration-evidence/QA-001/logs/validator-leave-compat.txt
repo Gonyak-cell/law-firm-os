@@ -1,0 +1,11 @@
+{
+  "verdict": "PASS",
+  "entry_sha": "17700c5450cd9de9add0dce1ec44be77d3b49ad7",
+  "leave_tuws": "49/49",
+  "implementation_axes": "7/7",
+  "test_files": 40,
+  "package_scenarios": 10,
+  "package_role_checks": 7,
+  "package_screenshots": 11,
+  "renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96"
+}

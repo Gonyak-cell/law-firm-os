@@ -1,0 +1,59 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.command-evidence.v0.1",
+  "goal_id": "cti-ses-production-access-request",
+  "recorded_at": "2026-07-06T11:54:04Z",
+  "decision": "PASS_SUBMITTED_PENDING_EXTERNAL_REVIEW",
+  "commands": [
+    {
+      "command": "aws --version",
+      "exit_code": 0,
+      "summary": "AWS CLI v2.35.4 was available."
+    },
+    {
+      "command": "aws sesv2 put-account-details help",
+      "exit_code": 0,
+      "summary": "Installed CLI confirmed required request shape: mail-type, website-url, contact-language, use-case-description, additional-contact-email-addresses, and production-access-enabled."
+    },
+    {
+      "command": "aws sts get-caller-identity --profile matter-prod-deploy-admin --region ap-northeast-2",
+      "exit_code": 0,
+      "summary": "matter-prod-deploy-admin role chain verified for account 770880870480."
+    },
+    {
+      "command": "aws sesv2 get-account --profile matter-prod-deploy-admin --region ap-northeast-2",
+      "exit_code": 0,
+      "summary": "Pre-request SES account was healthy with ProductionAccessEnabled=false."
+    },
+    {
+      "command": "curl -I https://d2mthcc8vp3cr2.cloudfront.net",
+      "exit_code": 0,
+      "summary": "Matter production runtime URL selected for AWS-required website-url returned HTTP 200."
+    },
+    {
+      "command": "aws sesv2 put-account-details --profile matter-prod-deploy-admin --region ap-northeast-2",
+      "exit_code": 0,
+      "summary": "SES production access request submitted for transactional internal password reset email."
+    },
+    {
+      "command": "aws sesv2 get-account --profile matter-prod-deploy-admin --region ap-northeast-2",
+      "exit_code": 0,
+      "summary": "Post-request SES account shows ReviewDetails.Status=PENDING and ProductionAccessEnabled=false."
+    },
+    {
+      "command": "aws sesv2 get-email-identity --email-identity jwsuh@amic.kr",
+      "exit_code": 0,
+      "summary": "Sender identity remains verified for sending."
+    }
+  ],
+  "boundary": {
+    "production_code_deployed": false,
+    "lambda_env_mutated": false,
+    "lambda_iam_mutated": false,
+    "production_credential_mutated": false,
+    "password_reset_email_sent": false,
+    "token_material_recorded": false,
+    "credential_material_recorded": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

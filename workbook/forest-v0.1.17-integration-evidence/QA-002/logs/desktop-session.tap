@@ -1,0 +1,49 @@
+
+> @law-firm-os/desktop@0.1.17 test:session
+> node --test test/auth-coordinator.test.mjs test/aws-runtime-client.test.mjs test/session-ipc.test.mjs test/session-cleanup.test.mjs
+
+✔ auth coordinator starts PKCE login without exposing verifier or tokens (1.522083ms)
+✔ auth coordinator stores token material in secure store and returns session status only (0.81275ms)
+✔ auth coordinator rejects state mismatch and clears session on logout (0.481333ms)
+✔ auth coordinator signs into AWS runtime account without exposing operator material (0.264292ms)
+✔ encrypted file secure store persists session token without plaintext token material (1.574709ms)
+✔ auth coordinator restores a persisted session through runtime verification (0.167542ms)
+✔ auth coordinator persists and restores tokenless desktop sessions through account validation (0.158041ms)
+✔ auth coordinator drops persisted session when runtime verification fails (0.069875ms)
+✔ runtime config loads AWS execute-api URL and operator credential from local env shape (1.134458ms)
+✔ runtime config ignores partial stale desktop auth override when a production runtime pair is present (0.234417ms)
+✔ runtime config keeps loopback desktop runtime override for local API even when a production pair is present (0.22525ms)
+✔ runtime config keeps a complete desktop auth override from app bundle ancestors (0.109209ms)
+✔ runtime config falls back to production auth URL without operator credential (0.083916ms)
+✔ runtime client keeps bearer credential in main-process fetch and returns sanitized account data (0.200042ms)
+✔ runtime client supports password reset and password login without operator credential (0.673875ms)
+✔ runtime client maps loopback local API logins to local-dev credentials in main process (0.096958ms)
+✔ runtime client uses desktop auth endpoints when operator credential is configured (0.155625ms)
+✔ runtime client wraps reset confirm transport and non-json failures without secret material (0.242834ms)
+✔ runtime client preserves 403 deny responses for general-account smoke checks (0.103625ms)
+✔ runtime client proxies signed desktop read API calls without exposing session material (0.232125ms)
+✔ runtime client read API bridge blocks writes and auth routes (0.331291ms)
+✔ desktop runtime permits only the exact Search preference mutation route (0.376542ms)
+✔ desktop runtime permits the explicit HRX leave mutations and signed step-up exchange (0.603667ms)
+✔ desktop runtime permits only the explicit HRX payroll mutations (0.709375ms)
+✔ runtime client permits only authenticated Matter profile and stakeholder writes (0.128125ms)
+✔ WT-02-09 desktop runtime permits only the explicit Worktree write routes (0.147ms)
+✔ desktop runtime blocks dot-segment paths before URL normalization (0.031084ms)
+✔ runtime client never substitutes the desktop operator credential for a missing signed session (0.032542ms)
+✔ runtime response guard rejects secret-bearing payloads (0.15825ms)
+✔ disabled runtime client reports missing config without secret material (0.054708ms)
+✔ dot env parser keeps comments out of runtime values (0.02525ms)
+✔ session status omits token bodies while secure store retains main-process material (1.210625ms)
+✔ logout clears secure store and registered cache stores (0.626667ms)
+✔ preload session API source does not expose token storage APIs (1.659333ms)
+✔ session IPC exposes account login and smoke without renderer token material (1.561958ms)
+✔ session IPC preserves login lockout state without signing the renderer in (0.110167ms)
+✔ session IPC rejects an untrusted sender before coordinator access (0.267792ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 79.1075

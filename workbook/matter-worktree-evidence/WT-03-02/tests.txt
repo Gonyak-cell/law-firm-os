@@ -1,0 +1,2 @@
+RED: Worktree API clients absent.
+GREEN: six explicit states and read/write client behavior passed.

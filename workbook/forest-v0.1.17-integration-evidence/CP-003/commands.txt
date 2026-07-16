@@ -1,0 +1,14 @@
+node --check scripts/validate-cp003-leave-upper-compatibility.mjs
+node scripts/validate-cp003-leave-upper-compatibility.mjs --help
+node scripts/validate-cp003-leave-upper-compatibility.mjs --unknown # expected exit 2
+node scripts/validate-cp003-leave-upper-compatibility.mjs --emit
+node scripts/validate-cp003-leave-upper-compatibility.mjs --check
+node --test --test-force-exit --test-timeout=30000 --test-concurrency=1 packages/hrx/test/leave-*.test.js
+node --test --test-force-exit --test-timeout=30000 --test-concurrency=1 apps/api/test/hrx/leave*.test.js
+node --test --test-force-exit --test-timeout=30000 --test-concurrency=1 apps/web/test/leave-*.test.mjs
+node scripts/validate-hrx-route-authz.mjs
+node scripts/validate-public-renderer-no-hrx-roster-pii.mjs
+git diff --name-only 75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c..17700c5450cd9de9add0dce1ec44be77d3b49ad7 -- apps/api/src apps/web/src apps/desktop/src packages/hrx/src packages/shared/src
+node -e "JSON.parse(require('fs').readFileSync('workbook/forest-v0.1.17-integration-evidence/CP-003/leave-upper-compatibility-matrix.json','utf8'))"
+git diff --check
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed

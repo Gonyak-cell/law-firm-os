@@ -10,7 +10,13 @@ import { createAttendanceCorrection, createInMemoryAttendanceStore } from "../pa
 import { createLeaveRequestService, createInMemoryLeaveRequestStore } from "../packages/hrx/src/leave/request-service.js";
 import { createInMemoryLeaveBalanceLedger } from "../packages/hrx/src/leave/balance.js";
 import { markHrxLegalRiskPrivileged } from "../packages/hrx/src/legal-risk.js";
-import { createOvertimeExportRecord, createOvertimeRequest, transitionOvertimeRequest } from "../packages/hrx/src/overtime.js";
+import {
+  createInMemoryOvertimeStore,
+  createOvertimeExportRecord,
+  createOvertimeRequest,
+  createWeeklyOvertimeRiskReport,
+  transitionOvertimeRequest,
+} from "../packages/hrx/src/overtime.js";
 import { createPayrollExportService } from "../packages/hrx/src/payroll-export-service.js";
 import { createPayrollReconciliationSummary } from "../packages/hrx/src/payroll-reconciliation.js";
 import { assertCandidateConsentAllowsProcessing, createCandidateConsent } from "../packages/hrx/src/recruiting/consent.js";
@@ -21,7 +27,14 @@ import { createOffer, maskOfferCompensation } from "../packages/hrx/src/recruiti
 import { assertRecruitingStageTransition, createRecruitingPipelineSnapshot } from "../packages/hrx/src/recruiting/state-machine.js";
 import { runHrxRetentionJob } from "../packages/hrx/src/retention-job.js";
 import { createHrxLegalHold } from "../packages/hrx/src/legal-hold.js";
-import { applyLeaveCarryover, calculateLeaveAccrual, createLeavePolicy } from "../packages/hrx/src/rules/leave-policy.js";
+import {
+  applyLeaveCarryover,
+  calculateKoreanAnnualPaidLeaveEntitlement,
+  calculateLeaveAccrual,
+  createLeaveAccrualLedgerEntry,
+  createLeaveCarryoverLedgerEntry,
+  createLeavePolicy,
+} from "../packages/hrx/src/rules/leave-policy.js";
 
 const root = process.cwd();
 const errors = [];
@@ -85,6 +98,27 @@ const policy = createLeavePolicy({
 });
 assert(calculateLeaveAccrual(policy, 15) === 96, "leave policy must cap accrual at annual entitlement");
 assert(applyLeaveCarryover(policy, 72) === 40, "leave policy must cap carryover");
+assert(calculateKoreanAnnualPaidLeaveEntitlement({ service_months: 11 }) === 11, "Korean annual leave must accrue monthly during the first year");
+assert(calculateKoreanAnnualPaidLeaveEntitlement({ service_months: 12, yearly_attendance_rate: 0.8 }) === 15, "Korean annual leave must grant 15 days after one year with 80 percent attendance");
+assert(calculateKoreanAnnualPaidLeaveEntitlement({ service_months: 60, years_of_service: 5 }) === 17, "Korean annual leave must add seniority days every two years after the first year");
+assert(calculateKoreanAnnualPaidLeaveEntitlement({ service_months: 300, years_of_service: 25 }) === 25, "Korean annual leave must cap statutory entitlement at 25 days");
+const accrualEntry = createLeaveAccrualLedgerEntry({
+  tenant_id: "tenant-a",
+  employee_id: "emp-001",
+  policy: { ...policy, accrual_unit: "days", accrual_rate_per_month: 1, annual_entitlement: 15 },
+  occurred_on: "2026-01-01",
+  service_months: 12,
+  yearly_attendance_rate: 0.95,
+});
+const carryoverEntry = createLeaveCarryoverLedgerEntry({
+  tenant_id: "tenant-a",
+  employee_id: "emp-001",
+  policy,
+  occurred_on: "2026-01-01",
+  closing_balance: 72,
+});
+assert(accrualEntry.entry_type === "earned" && accrualEntry.amount === 15, "leave accrual job must emit earned ledger entries");
+assert(carryoverEntry.entry_type === "carryover" && carryoverEntry.amount === 40, "leave carryover job must emit capped carryover ledger entries");
 
 const audit = createHrxAuditEventStore();
 const balanceLedger = createInMemoryLeaveBalanceLedger();
@@ -94,6 +128,16 @@ const leaveService = createLeaveRequestService({
   audit,
 });
 const context = { tenant_id: "tenant-a", actor_id: "validator-user" };
+balanceLedger.append({
+  tenant_id: "tenant-a",
+  entry_id: "earned-validator",
+  employee_id: "emp-001",
+  policy_id: "pto-validator",
+  entry_type: "earned",
+  amount: 16,
+  occurred_on: "2026-06-30",
+  source_ref: "PolicyAccrual:validator",
+});
 await leaveService.submit(context, {
   request_id: "leave-validator",
   employee_id: "emp-001",
@@ -145,6 +189,33 @@ const overtime = createOvertimeRequest({
 const approvedOvertime = transitionOvertimeRequest(overtime, { state: "approved", approver_id: "manager-001" });
 const overtimeExport = createOvertimeExportRecord(approvedOvertime, { export_ref: "payroll-preview-validator" });
 assert(overtimeExport.calculation_runtime === false && overtimeExport.human_review_required === true, "overtime export must remain payroll-preview boundary only");
+const overtimeStore = createInMemoryOvertimeStore();
+overtimeStore.create({
+  tenant_id: "tenant-a",
+  overtime_id: "ot-validator-approved",
+  employee_id: "emp-001",
+  work_date: "2026-07-06",
+  hours: 4,
+  reason: "approved validator overtime",
+});
+overtimeStore.update(
+  { tenant_id: "tenant-a", overtime_id: "ot-validator-approved" },
+  { state: "approved", approver_id: "manager-001" },
+);
+const overtimeRiskReport = createWeeklyOvertimeRiskReport({
+  tenant_id: "tenant-a",
+  employee_id: "emp-001",
+  attendance_records: [
+    { tenant_id: "tenant-a", attendance_id: "att-week-1", employee_id: "emp-001", work_date: "2026-07-06", recorded_hours: 12 },
+    { tenant_id: "tenant-a", attendance_id: "att-week-2", employee_id: "emp-001", work_date: "2026-07-07", recorded_hours: 12 },
+    { tenant_id: "tenant-a", attendance_id: "att-week-3", employee_id: "emp-001", work_date: "2026-07-08", recorded_hours: 12 },
+    { tenant_id: "tenant-a", attendance_id: "att-week-4", employee_id: "emp-001", work_date: "2026-07-09", recorded_hours: 12 },
+    { tenant_id: "tenant-a", attendance_id: "att-week-5", employee_id: "emp-001", work_date: "2026-07-10", recorded_hours: 8 },
+  ],
+  overtime_requests: overtimeStore.list({ tenant_id: "tenant-a", employee_id: "emp-001" }),
+});
+assert(overtimeRiskReport.events.some((event) => event.risk_type === "weekly_limit_exceeded"), "overtime risk report must flag weekly 52-hour excess");
+assert(overtimeRiskReport.events.some((event) => event.risk_type === "unapproved_overtime_detected"), "overtime risk report must flag unapproved excess attendance");
 
 const approvalPlan = createApprovalRoutePlan({
   policy: {
@@ -494,17 +565,40 @@ const offboardingRouteResult = await lifecycleRoute.handle({
     offboarding_id: "offboarding-route-validator",
     employee_id: "emp-route-validator",
     separation_date: "2026-12-31",
-    access_revocations: [{ system_ref: "IdP:core", revoked: true }],
+    access_revocations: [{ system_ref: "IdP:core", revoked: true, confirmation_ref: "LX-11:AccessRevocation:validator:idp-core" }],
     document_returns: [{ document_ref: "Doc:laptop", returned: true }],
     legal_hold_checks: [{ hold_ref: "LegalHold:none", clear: true }],
+    matter_reassignments: [
+      {
+        matter_id: "matter-validator",
+        reassigned_to_employee_id: "emp-route-successor",
+        reassigned: true,
+        handover_ref: "MatterHandover:validator",
+      },
+    ],
+    handover_items: [
+      {
+        item_id: "handover-validator",
+        title: "Matter handover",
+        completed: true,
+        evidence_ref: "MatterHandover:validator",
+      },
+    ],
   },
 });
 assert(offboardingRouteResult.status === 201, "lifecycle route must create offboarding case");
-const offboardingCloseRouteResult = await lifecycleRoute.handle({
+const offboardingBlockedCloseRouteResult = await lifecycleRoute.handle({
   method: "POST",
   context: routeContext,
   params: { resource: "offboarding_close", offboarding_id: "offboarding-route-validator" },
   body: {},
+});
+assert(offboardingBlockedCloseRouteResult.status === 400, "lifecycle route must block offboarding before leave reconciliation is synced");
+const offboardingCloseRouteResult = await lifecycleRoute.handle({
+  method: "POST",
+  context: routeContext,
+  params: { resource: "offboarding_close", offboarding_id: "offboarding-route-validator" },
+  body: { leave_reconciliation_status: "approved_and_synced" },
 });
 assert(offboardingCloseRouteResult.status === 200, "lifecycle route must close only ready offboarding case");
 

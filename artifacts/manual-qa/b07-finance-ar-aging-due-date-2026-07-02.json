@@ -1,0 +1,29 @@
+{
+  "schema_version": "law-firm-os.upl-b07-ar-aging-proof.v0.1",
+  "receipt_type": "finance_ar_aging_due_date_proof",
+  "contract_ref": "UPL-B-07",
+  "generated_at": "2026-07-02T11:59:55.119Z",
+  "outcome": "passed",
+  "production_ready_claim": false,
+  "synthetic_only": true,
+  "missing_due_date_blocked": true,
+  "missing_due_date_error": "invoice due_date must be a valid ISO date",
+  "as_of_date": "2026-07-15",
+  "bucket_source": "due_date",
+  "balance_count": 5,
+  "expected_buckets": {
+    "bucket_current": 100,
+    "bucket_1_30": 200,
+    "bucket_31_60": 300,
+    "bucket_61_90": 400,
+    "bucket_90_plus": 500
+  },
+  "actual_buckets": {
+    "bucket_current": 100,
+    "bucket_1_30": 200,
+    "bucket_31_60": 300,
+    "bucket_61_90": 400,
+    "bucket_90_plus": 500
+  },
+  "fake_bucket_regression_blocked": true
+}

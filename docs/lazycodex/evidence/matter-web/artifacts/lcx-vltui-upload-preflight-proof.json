@@ -1,7 +1,7 @@
 {
   "schema_version": "law-firm-os.lazycodex.lcx_vltui.upload_preflight_proof.v0.1",
   "tuw_id": "LCX-VLTUI-02.03",
-  "generated_at": "2026-06-29T12:50:36.136Z",
+  "generated_at": "2026-06-30T09:31:03.924Z",
   "web_url": "http://127.0.0.1:5173",
   "source_refs": [
     "apps/api/src/matter-runtime-context.js",

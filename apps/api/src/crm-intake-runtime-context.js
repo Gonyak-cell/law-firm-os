@@ -5,6 +5,10 @@ import { handoffOpportunityToIntake } from "../../../packages/crm/src/intake-han
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
 import { createIntakeRequest } from "../../../packages/intake/src/intake-request-service.js";
 import { createConflictCheck } from "../../../packages/intake/src/conflict-check-service.js";
+import { executeConflictSearch } from "../../../packages/intake/src/conflict-search-service.js";
+import { decideConflict } from "../../../packages/intake/src/conflict-decision-service.js";
+import { approveWaiver } from "../../../packages/intake/src/waiver-service.js";
+import { approveEngagement } from "../../../packages/intake/src/engagement-service.js";
 import { issueClearanceToken, validateClearanceToken } from "../../../packages/intake/src/clearance-token-service.js";
 import {
   createClientGroupService,
@@ -53,6 +57,10 @@ export const CRM_INTAKE_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/intake/requests",
     "POST /api/intake/requests",
     "POST /api/intake/conflict-checks",
+    "POST /api/intake/conflict-decisions",
+    "POST /api/intake/waivers",
+    "POST /api/intake/engagements",
+    "GET /api/intake/clearance-tokens",
     "POST /api/intake/clearance-tokens",
     "GET /api/intake/audit",
   ]),
@@ -276,12 +284,16 @@ export function createCrmIntakeRuntimeContext({
   crmRepository = createCrmRuntimeRepository({ seedRecords: CRM_RUNTIME_SEED }),
   intakeRepository = createIntakeRuntimeRepository({ seedRecords: INTAKE_RUNTIME_SEED }),
   masterDataRepository = createMasterDataRepository({ seedRecords: CRM_MASTER_DATA_SEED }),
+  matterRepository = null,
+  dmsRuntime = null,
 } = {}) {
   seedMasterDataRepository(masterDataRepository, CRM_MASTER_DATA_SEED);
   return Object.freeze({
     crmRepository,
     intakeRepository,
     masterDataRepository,
+    matterRepository,
+    dmsRuntime,
     seed_ref: "cmp-g6-crm-intake-synthetic",
     masterDataServices: Object.freeze({
       organizationService: createOrganizationService({ repository: masterDataRepository }),
@@ -426,6 +438,84 @@ function itemResponse({ requestId, auditHintRef, outcome, item, auditEvent, stat
   };
 }
 
+function conflictCheckSearchPayload({ conflictCheck, body, auditHintRef } = {}) {
+  const snapshot = conflictCheck?.party_snapshot ?? {};
+  return {
+    conflict_search_id:
+      body?.conflict_search?.conflict_search_id ?? `search_${conflictCheck.conflict_check_id}`,
+    tenant_id: conflictCheck.tenant_id,
+    conflict_check_id: conflictCheck.conflict_check_id,
+    aliases: body?.conflict_search?.aliases ?? snapshot.aliases ?? [],
+    party_ids: body?.conflict_search?.party_ids ?? snapshot.party_ids ?? [],
+    party_names: body?.conflict_search?.party_names ?? [],
+    relationship_refs: body?.conflict_search?.relationship_refs ?? snapshot.relationship_refs ?? [],
+    audit_hint_ref: auditHintRef,
+    owner_user_id: conflictCheck.owner_user_id,
+    hit_count: body?.conflict_search?.hit_count ?? body?.hit_count,
+  };
+}
+
+function conflictDecisionPayload({ body, context } = {}) {
+  const input = body?.conflict_decision ?? (body?.decision && typeof body.decision === "object" ? body.decision : {});
+  return {
+    ...input,
+    conflict_decision_id: input.conflict_decision_id ?? body?.conflict_decision_id,
+    tenant_id: input.tenant_id ?? body?.tenant_id,
+    conflict_check_id: input.conflict_check_id ?? body?.conflict_check_id,
+    reviewer_id: input.reviewer_id ?? body?.reviewer_id ?? context?.principal?.user_id,
+    decision: input.decision ?? (typeof body?.decision === "string" ? body.decision : body?.decision_value),
+    conflict_hit_ids: input.conflict_hit_ids ?? body?.conflict_hit_ids ?? [],
+    rationale: input.rationale ?? body?.rationale ?? "conflict_review_recorded",
+  };
+}
+
+function waiverPayload({ body, context } = {}) {
+  const input = body?.waiver ?? {};
+  return {
+    ...input,
+    waiver_id: input.waiver_id ?? body?.waiver_id,
+    tenant_id: input.tenant_id ?? body?.tenant_id,
+    intake_request_id: input.intake_request_id ?? body?.intake_request_id,
+    conflict_check_id: input.conflict_check_id ?? body?.conflict_check_id,
+    conflict_hit_ids: input.conflict_hit_ids ?? body?.conflict_hit_ids ?? [],
+    consent_document_id: input.consent_document_id ?? body?.consent_document_id,
+    approver_id: input.approver_id ?? body?.approver_id ?? context?.principal?.user_id,
+    approval_reason: input.approval_reason ?? body?.approval_reason ?? "conflict_waiver_approved",
+  };
+}
+
+function engagementPayload({ body, context } = {}) {
+  const input = body?.engagement ?? {};
+  const signedDocumentId = input.signed_document_id ?? body?.signed_document_id;
+  return {
+    ...input,
+    engagement_id: input.engagement_id ?? body?.engagement_id,
+    tenant_id: input.tenant_id ?? body?.tenant_id,
+    intake_request_id: input.intake_request_id ?? body?.intake_request_id,
+    signed_document_id: signedDocumentId,
+    signature_ref: input.signature_ref ?? body?.signature_ref ?? (signedDocumentId ? `signature:${signedDocumentId}` : undefined),
+    template_id: input.template_id ?? body?.template_id ?? "matter_engagement_letter",
+    template_document: input.template_document ?? body?.template_document,
+    signed_document_upload: input.signed_document_upload ?? body?.signed_document_upload,
+    approver_id: input.approver_id ?? body?.approver_id ?? context?.principal?.user_id,
+  };
+}
+
+function clearanceTokenPayload({ body } = {}) {
+  const input = body?.token ?? {};
+  const clearanceTokenId = input.clearance_token_id ?? body?.clearance_token_id;
+  return {
+    ...input,
+    clearance_token_id: clearanceTokenId,
+    tenant_id: input.tenant_id ?? body?.tenant_id,
+    intake_request_id: input.intake_request_id ?? body?.intake_request_id,
+    conflict_check_id: input.conflict_check_id ?? body?.conflict_check_id,
+    engagement_id: input.engagement_id ?? body?.engagement_id,
+    snapshot_hash: input.snapshot_hash ?? body?.snapshot_hash,
+    expires_at: input.expires_at ?? body?.expires_at,
+  };
+}
+
 function primaryId(record) {
   if (!record) return null;
   return (
@@ -483,6 +573,7 @@ function resolveAccountOrganization(runtime, tenantId, accountId) {
 
 function serializeAccount(organization, runtime) {
   const clientGroup = clientGroupForOrganization(runtime.masterDataRepository, organization);
+  const runtimeAccount = runtimeAccountForAccountId(runtime.crmRepository, organization.tenant_id, organization.organization_id);
   return Object.freeze({
     resource_id: organization.organization_id,
     tenant_id: organization.tenant_id,
@@ -494,6 +585,8 @@ function serializeAccount(organization, runtime) {
     display_name: organization.display_name,
     status: organization.status,
     owner_user_id: organization.owner_user_id,
+    created_at: runtimeAccount?.created_at ?? organization.created_at ?? null,
+    updated_at: runtimeAccount?.updated_at ?? organization.updated_at ?? runtimeAccount?.created_at ?? organization.created_at ?? null,
     account_source: "master-data.Organization",
     client_group_source: clientGroup ? "master-data.ClientGroup" : null,
     canonical_sync_state: "canonical_source",
@@ -516,6 +609,8 @@ function serializeRuntimeAccount(account) {
     display_name: account.display_name,
     status: account.status ?? "active",
     owner_user_id: account.owner_user_id ?? null,
+    created_at: account.created_at ?? null,
+    updated_at: account.updated_at ?? account.created_at ?? null,
     account_source: "crm-runtime.Account",
     client_group_source: account.client_group_id ? "crm-runtime.linked_client_group" : null,
     canonical_sync_state: account.organization_id && account.client_group_id ? "synced" : "facade_only",
@@ -528,6 +623,7 @@ function serializeRuntimeAccount(account) {
 
 function serializeContact(person, runtime) {
   const primaryContactPoint = contactPointForEntity(runtime.masterDataRepository, person.tenant_id, person.entity_id);
+  const contactValue = primaryContactPoint?.value ?? person.email ?? person.phone ?? null;
   return Object.freeze({
     resource_id: person.person_id,
     tenant_id: person.tenant_id,
@@ -546,34 +642,88 @@ function serializeContact(person, runtime) {
     primary_contact_verified: primaryContactPoint?.verified === true,
     email_value_included: false,
     contact_point_value_included: false,
+    email: undefined,
+    contact_point_value: undefined,
+    contact_value_masked: Boolean(contactValue),
     direct_matter_reference_included: false,
     production_ready_claim: false,
   });
 }
 
-function serializeRuntimeContact(contact) {
+const CONTACT_VALUE_READER_ROLES = Object.freeze([
+  "crm_contact_value_reader",
+  "crm_intake_admin",
+  "matter_vault_admin",
+  "security_admin",
+  "tenant_owner",
+]);
+
+function canReadContactValue({ context, query } = {}) {
+  const roles = Array.isArray(context?.principal?.role_ids) ? context.principal.role_ids : [];
+  const hasReaderRole = roles.some((role) => CONTACT_VALUE_READER_ROLES.includes(role));
+  return hasReaderRole && String(query?.permission_ref ?? "").includes("contact_value");
+}
+
+function withVisibleContactValue(serialized, { includeContactValue = false, contactType, value } = {}) {
+  const rawValue = typeof value === "string" && value.trim() !== "" ? value.trim() : null;
+  if (!includeContactValue || !rawValue) {
+    return Object.freeze({
+      ...serialized,
+      email_value_included: false,
+      contact_point_value_included: false,
+      contact_value_masked: Boolean(rawValue),
+    });
+  }
   return Object.freeze({
-    resource_id: contact.resource_id ?? contact.contact_id,
-    tenant_id: contact.tenant_id,
-    contact_id: contact.contact_id,
-    person_id: contact.person_id ?? null,
-    party_id: contact.party_id ?? null,
-    entity_id: contact.entity_id ?? null,
-    account_id: contact.account_id ?? null,
-    display_name: contact.display_name,
-    status: contact.status ?? "active",
-    owner_user_id: contact.owner_user_id ?? null,
-    contact_source: "crm-runtime.Contact",
-    canonical_sync_state: contact.person_id ? "synced" : "facade_only",
-    canonical_write_mounted: contact.person_id ? true : false,
-    primary_contact_point_id: contact.primary_contact_point_id ?? null,
-    primary_contact_type: contact.primary_contact_type ?? null,
-    primary_contact_verified: false,
-    email_value_included: false,
-    contact_point_value_included: false,
-    duplicate_review_required: false,
-    direct_matter_reference_included: false,
-    production_ready_claim: false,
+    ...serialized,
+    email: contactType === "email" ? rawValue : undefined,
+    phone: contactType === "phone" ? rawValue : undefined,
+    contact_point_value: rawValue,
+    email_value_included: contactType === "email",
+    phone_value_included: contactType === "phone",
+    contact_point_value_included: true,
+    contact_value_masked: false,
+  });
+}
+
+function serializeContactForQuery(person, runtime, options = {}) {
+  const serialized = serializeContact(person, runtime);
+  const primaryContactPoint = contactPointForEntity(runtime.masterDataRepository, person.tenant_id, person.entity_id);
+  return withVisibleContactValue(serialized, {
+    ...options,
+    contactType: primaryContactPoint?.contact_type ?? (person.email ? "email" : person.phone ? "phone" : null),
+    value: primaryContactPoint?.value ?? person.email ?? person.phone ?? null,
+  });
+}
+
+function serializeRuntimeContact(contact, options = {}) {
+  const contactValue = contact.contact_point_value ?? contact.email ?? contact.phone ?? null;
+  const contactType = contact.primary_contact_type ?? (contact.email ? "email" : contact.phone ? "phone" : null);
+  return Object.freeze({
+    ...withVisibleContactValue(
+      {
+        resource_id: contact.resource_id ?? contact.contact_id,
+        tenant_id: contact.tenant_id,
+        contact_id: contact.contact_id,
+        person_id: contact.person_id ?? null,
+        party_id: contact.party_id ?? null,
+        entity_id: contact.entity_id ?? null,
+        account_id: contact.account_id ?? null,
+        display_name: contact.display_name,
+        status: contact.status ?? "active",
+        owner_user_id: contact.owner_user_id ?? null,
+        contact_source: "crm-runtime.Contact",
+        canonical_sync_state: contact.person_id ? "synced" : "facade_only",
+        canonical_write_mounted: contact.person_id ? true : false,
+        primary_contact_point_id: contact.primary_contact_point_id ?? null,
+        primary_contact_type: contactType,
+        primary_contact_verified: false,
+        duplicate_review_required: false,
+        direct_matter_reference_included: false,
+        production_ready_claim: false,
+      },
+      { ...options, contactType, value: contactValue },
+    ),
   });
 }
 
@@ -586,41 +736,62 @@ function serializeAccountContact(relationship, account, runtime) {
   const primaryContactPoint = person
     ? contactPointForEntity(runtime.masterDataRepository, account.tenant_id, person.entity_id)
     : null;
-  return Object.freeze({
-    resource_id: relationship.relationship_id,
-    tenant_id: relationship.tenant_id,
-    relationship_id: relationship.relationship_id,
-    account_id: account.organization_id,
-    contact_id: person?.person_id ?? null,
-    relationship_type: relationship.relationship_type,
-    direction: relationship.direction,
-    status: relationship.status,
-    contact_display_name: person?.display_name ?? null,
-    primary_contact_type: primaryContactPoint?.contact_type ?? null,
-    contact_point_value_included: false,
-    relationship_endpoint_hidden: false,
-    direct_matter_reference_included: false,
-    production_ready_claim: false,
+  return withVisibleContactValue(
+    {
+      resource_id: relationship.relationship_id,
+      tenant_id: relationship.tenant_id,
+      relationship_id: relationship.relationship_id,
+      account_id: account.organization_id,
+      contact_id: person?.person_id ?? null,
+      relationship_type: relationship.relationship_type,
+      direction: relationship.direction,
+      status: relationship.status,
+      contact_display_name: person?.display_name ?? null,
+      primary_contact_type: primaryContactPoint?.contact_type ?? null,
+      relationship_endpoint_hidden: false,
+      direct_matter_reference_included: false,
+      production_ready_claim: false,
+    },
+    { contactType: primaryContactPoint?.contact_type ?? null, value: primaryContactPoint?.value ?? null },
+  );
+}
+
+function serializeAccountContactForQuery(relationship, account, runtime, options = {}) {
+  const serialized = serializeAccountContact(relationship, account, runtime);
+  const person = serialized.contact_id
+    ? runtime.masterDataRepository.get({ tenant_id: account.tenant_id, model_type: "Person", id: serialized.contact_id })
+    : null;
+  const primaryContactPoint = person ? contactPointForEntity(runtime.masterDataRepository, account.tenant_id, person.entity_id) : null;
+  return withVisibleContactValue(serialized, {
+    ...options,
+    contactType: primaryContactPoint?.contact_type ?? null,
+    value: primaryContactPoint?.value ?? null,
   });
 }
 
-function serializeRuntimeAccountContact(contact, accountId) {
-  return Object.freeze({
-    resource_id: `crm_runtime_relationship:${accountId}:${contact.contact_id}`,
-    tenant_id: contact.tenant_id,
-    relationship_id: `crm_runtime_relationship:${accountId}:${contact.contact_id}`,
-    account_id: accountId,
-    contact_id: contact.contact_id,
-    relationship_type: contact.relationship_type ?? "crm_runtime_contact",
-    direction: "contact_to_account",
-    status: contact.status ?? "active",
-    contact_display_name: contact.display_name,
-    primary_contact_type: contact.primary_contact_type ?? null,
-    contact_point_value_included: false,
-    relationship_endpoint_hidden: false,
-    direct_matter_reference_included: false,
-    production_ready_claim: false,
-  });
+function serializeRuntimeAccountContact(contact, accountId, options = {}) {
+  return withVisibleContactValue(
+    {
+      resource_id: `crm_runtime_relationship:${accountId}:${contact.contact_id}`,
+      tenant_id: contact.tenant_id,
+      relationship_id: `crm_runtime_relationship:${accountId}:${contact.contact_id}`,
+      account_id: accountId,
+      contact_id: contact.contact_id,
+      relationship_type: contact.relationship_type ?? "crm_runtime_contact",
+      direction: "contact_to_account",
+      status: contact.status ?? "active",
+      contact_display_name: contact.display_name,
+      primary_contact_type: contact.primary_contact_type ?? null,
+      relationship_endpoint_hidden: false,
+      direct_matter_reference_included: false,
+      production_ready_claim: false,
+    },
+    {
+      ...options,
+      contactType: contact.primary_contact_type ?? null,
+      value: contact.contact_point_value ?? contact.email ?? contact.phone ?? null,
+    },
+  );
 }
 
 function serializeDuplicateCandidate(record, source) {
@@ -770,13 +941,21 @@ function actorIdFrom(body, context) {
   return typeof actorId === "string" && actorId.trim() !== "" ? actorId : null;
 }
 
-function serializeActivity(activity = {}) {
+function partyDisplayName(runtime, tenantId, partyId) {
+  if (!runtime?.masterDataRepository || !partyId) return null;
+  return runtime.masterDataRepository
+    .list({ tenant_id: tenantId, model_type: "Party" })
+    .find((party) => party.party_id === partyId)?.display_name ?? null;
+}
+
+function serializeActivity(activity = {}, runtime = DEFAULT_RUNTIME) {
   const confidential = activity.confidential === true;
   return Object.freeze({
     resource_id: activity.crm_activity_id,
     tenant_id: activity.tenant_id,
     crm_activity_id: activity.crm_activity_id,
     party_id: activity.party_id,
+    party_display_name: partyDisplayName(runtime, activity.tenant_id, activity.party_id),
     opportunity_id: activity.opportunity_id ?? null,
     activity_type: activity.activity_type,
     subject: confidential ? "보호된 이력" : activity.subject,
@@ -784,6 +963,9 @@ function serializeActivity(activity = {}) {
     confidential_subject_included: !confidential,
     status: activity.status,
     owner_user_id: activity.owner_user_id,
+    occurred_at: activity.occurred_at ?? activity.created_at ?? null,
+    created_at: activity.created_at ?? null,
+    updated_at: activity.updated_at ?? activity.created_at ?? null,
     direct_matter_reference_included: false,
     production_ready_claim: false,
   });
@@ -1045,6 +1227,72 @@ function normalizeCrmPatch(updates = {}) {
   return patch;
 }
 
+function nonEmptyString(value) {
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
+}
+
+function normalizeRawContactValue(input = {}) {
+  const submitted = [
+    ["email", input.email ?? input.email_value],
+    ["phone", input.phone ?? input.mobile_phone],
+    [input.contact_type === "phone" ? "phone" : "email", input.contact_point_value],
+  ]
+    .map(([type, value]) => [type, nonEmptyString(value)])
+    .filter(([, value]) => value);
+  if (submitted.length === 0) return Object.freeze({ hasValue: false });
+  if (submitted.length > 1) return null;
+  const [type, rawValue] = submitted[0];
+  if (type === "email") {
+    const value = rawValue.toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return null;
+    return Object.freeze({ hasValue: true, contact_type: "email", contact_point_value: value, email: value, phone: null });
+  }
+  const value = rawValue.replace(/\s+/g, " ").trim();
+  const digitCount = (value.match(/\d/g) ?? []).length;
+  if (digitCount < 7 || !/^[0-9+(). -]+$/.test(value)) return null;
+  return Object.freeze({ hasValue: true, contact_type: "phone", contact_point_value: value, email: null, phone: value });
+}
+
+function normalizeCrmContactPatch(updates = {}) {
+  if (includesDirectMatterReference(updates)) return null;
+  const patch = normalizeCrmPatch(updates) ?? {};
+  const rawContactValue = normalizeRawContactValue(updates);
+  if (rawContactValue === null) return null;
+  if (rawContactValue.hasValue) {
+    patch.primary_contact_type = rawContactValue.contact_type;
+    patch.contact_point_value = rawContactValue.contact_point_value;
+    patch.email = rawContactValue.email;
+    patch.phone = rawContactValue.phone;
+    patch.raw_contact_value_stored = true;
+  }
+  return Object.keys(patch).length > 0 ? patch : null;
+}
+
+function updateCanonicalContactValue(runtime, existing, rawContactValue) {
+  if (!rawContactValue?.hasValue) return null;
+  const updated = {};
+  if (existing?.person_id) {
+    updated.person = runtime.masterDataRepository.update(
+      { tenant_id: existing.tenant_id, model_type: "Person", id: existing.person_id },
+      {
+        email: rawContactValue.email,
+        phone: rawContactValue.phone,
+      },
+    );
+  }
+  if (existing?.primary_contact_point_id) {
+    updated.contact_point = runtime.masterDataRepository.update(
+      { tenant_id: existing.tenant_id, model_type: "ContactPoint", id: existing.primary_contact_point_id },
+      {
+        contact_type: rawContactValue.contact_type,
+        value: rawContactValue.contact_point_value,
+        verification_status: "unverified",
+      },
+    );
+  }
+  return Object.freeze(updated);
+}
+
 export function handleCrmAccountPatch({ accountId, body, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
   const query = { tenant_id: body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref, resource_id: accountId };
   const gated = routeGate({ context, query, requestId, policy });
@@ -1138,14 +1386,15 @@ export function handleCrmAccountPatch({ accountId, body, context, requestId, run
 export function handleCrmContactList({ query, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
   const gated = routeGate({ context, query, requestId, policy });
   if (gated) return gated;
+  const includeContactValue = canReadContactValue({ context, query });
   const runtimeContacts = runtime.crmRepository
     .list({ tenant_id: query.tenant_id, model_type: "Contact" })
-    .map((contact) => serializeRuntimeContact(contact));
+    .map((contact) => serializeRuntimeContact(contact, { includeContactValue }));
   const runtimeCanonicalContactIds = new Set(runtimeContacts.map((contact) => contact.person_id).filter(Boolean));
   const masterDataContacts = runtime.masterDataRepository
     .list({ tenant_id: query.tenant_id, model_type: "Person" })
     .filter((person) => !runtimeCanonicalContactIds.has(person.person_id))
-    .map((person) => serializeContact(person, runtime));
+    .map((person) => serializeContactForQuery(person, runtime, { includeContactValue }));
   return listResponse({
     requestId,
     query,
@@ -1161,16 +1410,11 @@ export function handleCrmContactCreate({ body, context, requestId, runtime = DEF
   if (gated) return gated;
   const contact = body?.contact ?? {};
   const displayName = String(contact.display_name ?? "").trim();
-  const rawContactValueSubmitted =
-    contact.email ||
-    contact.email_value ||
-    contact.contact_point_value ||
-    contact.phone ||
-    contact.mobile_phone;
+  const rawContactValue = normalizeRawContactValue(contact);
   if (
     displayName.length < 2 ||
     displayName.length > 120 ||
-    rawContactValueSubmitted ||
+    rawContactValue === null ||
     contact.matter_id ||
     contact.matter_ref ||
     contact.matter_create_command
@@ -1269,6 +1513,10 @@ export function handleCrmContactCreate({ body, context, requestId, runtime = DEF
         permission_ref: query.permission_ref,
         audit_hint_ref: query.audit_hint_ref,
         primary_contact_fingerprint: contactFingerprint || null,
+        email: rawContactValue.hasValue ? rawContactValue.email : null,
+        phone: rawContactValue.hasValue ? rawContactValue.phone : null,
+        contact_type: rawContactValue.hasValue ? rawContactValue.contact_type : undefined,
+        contact_point_value: rawContactValue.hasValue ? rawContactValue.contact_point_value : contactFingerprint || null,
         account_entity_id: accountOrganization?.entity_id ?? null,
         account_party_id: accountOrganization?.party_id ?? null,
       });
@@ -1292,6 +1540,10 @@ export function handleCrmContactCreate({ body, context, requestId, runtime = DEF
           canonical_write_mounted: true,
           primary_contact_type: canonicalWrite.contact_point?.contact_type ?? (contactFingerprint ? "email" : null),
           primary_contact_fingerprint: contactFingerprint || null,
+          contact_point_value: rawContactValue.hasValue ? rawContactValue.contact_point_value : null,
+          email: rawContactValue.hasValue ? rawContactValue.email : null,
+          phone: rawContactValue.hasValue ? rawContactValue.phone : null,
+          raw_contact_value_stored: rawContactValue.hasValue,
           created_by: actorId,
           created_at: createdAt,
           email_value_included: false,
@@ -1299,7 +1551,7 @@ export function handleCrmContactCreate({ body, context, requestId, runtime = DEF
           direct_matter_reference_included: false,
           production_ready_claim: false,
         });
-        const safeItem = serializeRuntimeContact(persisted);
+        const safeItem = serializeRuntimeContact(persisted, { includeContactValue: canReadContactValue({ context, query }) });
         const auditEvent = crmTx.appendAudit({
           event_id: `crm.contact.created:${query.tenant_id}:${safeContactId}`,
           tenant_id: query.tenant_id,
@@ -1315,6 +1567,7 @@ export function handleCrmContactCreate({ body, context, requestId, runtime = DEF
             account_id: accountId,
             canonical_write_status: canonicalWrite.canonical_write_status,
             canonical_record_types: ["Party", "Entity", "Person", "ContactPoint", "Relationship"],
+            raw_contact_value_stored: rawContactValue.hasValue,
             email_value_included: false,
             contact_point_value_included: false,
             automatic_merge_executed: false,
@@ -1354,19 +1607,7 @@ export function handleCrmContactPatch({ contactId, body, context, requestId, run
   const gated = routeGate({ context, query, requestId, policy });
   if (gated) return gated;
   const updates = body?.field_updates ?? {};
-  if (
-    updates.email ||
-    updates.email_value ||
-    updates.contact_point_value ||
-    updates.phone ||
-    updates.mobile_phone ||
-    updates.matter_id ||
-    updates.matter_ref ||
-    updates.matter_create_command
-  ) {
-    return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
-  }
-  const patch = normalizeCrmPatch(updates);
+  const patch = normalizeCrmContactPatch(updates);
   if (!patch) {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
   }
@@ -1395,6 +1636,8 @@ export function handleCrmContactPatch({ contactId, body, context, requestId, run
   }
   try {
     const updatedAt = new Date().toISOString();
+    const rawContactValue = normalizeRawContactValue(updates);
+    const canonicalUpdate = updateCanonicalContactValue(runtime, existing, rawContactValue);
     const persisted = runtime.crmRepository.update(
       { tenant_id: query.tenant_id, model_type: "Contact", resource_id: contactId },
       {
@@ -1407,7 +1650,7 @@ export function handleCrmContactPatch({ contactId, body, context, requestId, run
         production_ready_claim: false,
       },
     );
-    const safeItem = serializeRuntimeContact(persisted);
+    const safeItem = serializeRuntimeContact(persisted, { includeContactValue: canReadContactValue({ context, query }) });
     const auditEvent = runtime.crmRepository.appendAudit({
       event_id: `crm.contact.patched:${query.tenant_id}:${contactId}:${idempotencyKey}`,
       tenant_id: query.tenant_id,
@@ -1421,6 +1664,8 @@ export function handleCrmContactPatch({ contactId, body, context, requestId, run
       metadata: {
         permission_ref: query.permission_ref,
         patched_fields: Object.keys(patch),
+        canonical_contact_point_updated: Boolean(canonicalUpdate?.contact_point),
+        raw_contact_value_stored: rawContactValue?.hasValue === true,
         email_value_included: false,
         contact_point_value_included: false,
         automatic_merge_executed: false,
@@ -1460,10 +1705,11 @@ export function handleCrmAccountContactList({
 } = {}) {
   const gated = routeGate({ context, query: { ...query, resource_id: accountId }, requestId, policy });
   if (gated) return gated;
+  const includeContactValue = canReadContactValue({ context, query });
   const runtimeRelationships = runtime.crmRepository
     .list({ tenant_id: query.tenant_id, model_type: "Contact" })
     .filter((contact) => contact.account_id === accountId)
-    .map((contact) => serializeRuntimeAccountContact(contact, accountId));
+    .map((contact) => serializeRuntimeAccountContact(contact, accountId, { includeContactValue }));
   const runtimeRelationshipContactIds = new Set(runtimeRelationships.map((relationship) => relationship.contact_id).filter(Boolean));
   const account = organizationForAccountId(runtime.masterDataRepository, query.tenant_id, accountId);
   if (!account) {
@@ -1471,7 +1717,7 @@ export function handleCrmAccountContactList({
   }
   const masterDataRelationships = runtime.masterDataServices.relationshipService
     .listForEntity({ tenant_id: query.tenant_id, entity_id: account.entity_id })
-    .map((relationship) => serializeAccountContact(relationship, account, runtime))
+    .map((relationship) => serializeAccountContactForQuery(relationship, account, runtime, { includeContactValue }))
     .filter((relationship) => !runtimeRelationshipContactIds.has(relationship.contact_id));
   return listResponse({
     requestId,
@@ -1814,7 +2060,7 @@ export function handleCrmActivityList({ query, context, requestId, runtime = DEF
     context,
     policy,
     items: runtime.crmRepository.list({ tenant_id: query.tenant_id, model_type: "CRMActivity" }),
-    serializer: serializeActivity,
+    serializer: (activity) => serializeActivity(activity, runtime),
   });
 }
 
@@ -1875,7 +2121,7 @@ export function handleCrmActivityCreate({ body, context, requestId, runtime = DE
     const response = {
       request_id: requestId,
       outcome: "created",
-      item: sanitizeItem(serializeActivity(created)),
+      item: sanitizeItem(serializeActivity(created, runtime)),
       audit_event: auditEvent,
       safe_error_codes: [],
       audit_hint_ref: query.audit_hint_ref,
@@ -1930,7 +2176,7 @@ export function handleCrmActivityPatch({ activityId, body, context, requestId, r
     const response = {
       request_id: requestId,
       outcome: "updated",
-      item: sanitizeItem(serializeActivity(updated)),
+      item: sanitizeItem(serializeActivity(updated, runtime)),
       audit_event: auditEvent,
       safe_error_codes: [],
       audit_hint_ref: query.audit_hint_ref,
@@ -2235,6 +2481,18 @@ export function handleIntakeRequestList({ query, context, requestId, runtime = D
   });
 }
 
+export function handleClearanceTokenList({ query, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
+  const gated = routeGate({ context, query, requestId, policy });
+  if (gated) return gated;
+  return listResponse({
+    requestId,
+    query,
+    context,
+    policy,
+    items: runtime.intakeRepository.list({ tenant_id: query.tenant_id, model_type: "ClearanceToken" }),
+  });
+}
+
 export function handleCrmLeadCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
   const query = { tenant_id: body?.lead?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
   const gated = routeGate({ context, query, requestId, policy });
@@ -2354,14 +2612,158 @@ export function handleConflictCheckCreate({ body, context, requestId, runtime = 
       actor_id: body.actor_id ?? context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
+    const searchResult = executeConflictSearch({
+      repository: runtime.intakeRepository,
+      search: conflictCheckSearchPayload({
+        conflictCheck: result.conflict_check,
+        body,
+        auditHintRef: query.audit_hint_ref,
+      }),
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.conflict_search?.idempotency_key ?? `${body.idempotency_key}:search`,
+      masterDataRepository: runtime.masterDataRepository,
+      matterRepository: runtime.matterRepository,
+    });
+    const updatedConflictCheck =
+      runtime.intakeRepository.get({
+        tenant_id: result.conflict_check.tenant_id,
+        model_type: "ConflictCheck",
+        conflict_check_id: result.conflict_check.conflict_check_id,
+      }) ?? result.conflict_check;
     return itemResponse({
       requestId,
       auditHintRef: query.audit_hint_ref,
       outcome: result.idempotent_replay ? "idempotent_replay" : "created",
-      item: result.conflict_check,
+      item: updatedConflictCheck,
       auditEvent: result.audit_event,
       status: result.idempotent_replay ? 200 : 201,
-      extra: { idempotent_replay: result.idempotent_replay },
+      extra: {
+        conflict_search: sanitizeItem(searchResult.conflict_search),
+        conflict_hits: searchResult.conflict_hits.map(sanitizeItem),
+        hit_count: searchResult.conflict_search.hit_count,
+        idempotent_replay: result.idempotent_replay,
+      },
+    });
+  } catch {
+    return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+export function handleConflictDecisionRecord({ body, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
+  const decision = conflictDecisionPayload({ body, context });
+  const query = { tenant_id: decision.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, policy });
+  if (gated) return gated;
+  try {
+    const result = decideConflict({
+      repository: runtime.intakeRepository,
+      decision,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    const updatedConflictCheck = runtime.intakeRepository.get({
+      tenant_id: decision.tenant_id,
+      model_type: "ConflictCheck",
+      conflict_check_id: decision.conflict_check_id,
+    });
+    const conflictHits = runtime.intakeRepository.list({
+      tenant_id: decision.tenant_id,
+      model_type: "ConflictHit",
+      conflict_check_id: decision.conflict_check_id,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : "created",
+      item: result.conflict_decision,
+      auditEvent: result.audit_event,
+      status: result.idempotent_replay ? 200 : 201,
+      extra: {
+        conflict_decision: sanitizeItem(result.conflict_decision),
+        conflict_check: sanitizeItem(updatedConflictCheck),
+        conflict_hits: conflictHits.map(sanitizeItem),
+        clearance_link_ready: result.conflict_decision.decision === "clear",
+        idempotent_replay: result.idempotent_replay,
+      },
+    });
+  } catch {
+    return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+export function handleWaiverApprove({ body, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
+  const waiver = waiverPayload({ body, context });
+  const query = { tenant_id: waiver.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, policy });
+  if (gated) return gated;
+  try {
+    const result = approveWaiver({
+      repository: runtime.intakeRepository,
+      waiver,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    const updatedConflictCheck = runtime.intakeRepository.get({
+      tenant_id: waiver.tenant_id,
+      model_type: "ConflictCheck",
+      conflict_check_id: waiver.conflict_check_id,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : "approved",
+      item: result.waiver,
+      auditEvent: result.audit_event,
+      status: result.idempotent_replay ? 200 : 201,
+      extra: {
+        waiver: sanitizeItem(result.waiver),
+        conflict_check: sanitizeItem(updatedConflictCheck),
+        clearance_link_ready: result.clearance_link_ready === true,
+        idempotent_replay: result.idempotent_replay,
+      },
+    });
+  } catch {
+    return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+export function handleEngagementApprove({ body, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
+  const engagement = engagementPayload({ body, context });
+  const query = { tenant_id: engagement.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, policy });
+  if (gated) return gated;
+  try {
+    const result = approveEngagement({
+      repository: runtime.intakeRepository,
+      engagement,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+      dms_repository: runtime.dmsRuntime?.repository,
+      dms_storage: runtime.dmsRuntime?.storage,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : "approved",
+      item: result.engagement,
+      auditEvent: result.audit_event,
+      status: result.idempotent_replay ? 200 : 201,
+      extra: {
+        engagement: sanitizeItem(result.engagement),
+        template_document: sanitizeItem(result.template_document),
+        signed_document_upload: sanitizeItem(result.signed_document_upload),
+        engagement_ready:
+          result.engagement.status === "approved" &&
+          Boolean(result.engagement.signed_document_id) &&
+          result.engagement.signed_upload_verified === true,
+        template_document_id: result.template_document?.template_document_id ?? result.engagement.template_document_id,
+        signed_document_id: result.engagement.signed_document_id,
+        signed_document_upload_id: result.signed_document_upload?.signed_document_upload_id ?? result.engagement.signed_document_upload_id,
+        signed_upload_verified: result.engagement.signed_upload_verified === true,
+        template_audit_event: result.template_audit_event,
+        signed_upload_audit_event: result.signed_upload_audit_event,
+        idempotent_replay: result.idempotent_replay,
+      },
     });
   } catch {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
@@ -2375,7 +2777,7 @@ export function handleClearanceTokenIssue({ body, context, requestId, runtime = 
   try {
     const result = issueClearanceToken({
       repository: runtime.intakeRepository,
-      token: body.token,
+      token: clearanceTokenPayload({ body }),
       actor_id: body.actor_id ?? context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
@@ -2387,7 +2789,12 @@ export function handleClearanceTokenIssue({ body, context, requestId, runtime = 
       item: result.clearance_token,
       auditEvent: result.audit_event,
       status: result.idempotent_replay ? 200 : 201,
-      extra: { validation, idempotent_replay: result.idempotent_replay },
+      extra: {
+        validation,
+        conflict_review: result.conflict_review,
+        engagement_review: result.engagement_review,
+        idempotent_replay: result.idempotent_replay,
+      },
     });
   } catch {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
@@ -2527,6 +2934,10 @@ export async function handleCrmIntakeApiRequest({
   if (pathname === "/api/intake/requests" && method === "GET") return handleIntakeRequestList({ query, context, requestId, runtime, policy });
   if (pathname === "/api/intake/requests" && method === "POST") return handleIntakeRequestCreate({ body, context, requestId, runtime, policy });
   if (pathname === "/api/intake/conflict-checks" && method === "POST") return handleConflictCheckCreate({ body, context, requestId, runtime, policy });
+  if (pathname === "/api/intake/conflict-decisions" && method === "POST") return handleConflictDecisionRecord({ body, context, requestId, runtime, policy });
+  if (pathname === "/api/intake/waivers" && method === "POST") return handleWaiverApprove({ body, context, requestId, runtime, policy });
+  if (pathname === "/api/intake/engagements" && method === "POST") return handleEngagementApprove({ body, context, requestId, runtime, policy });
+  if (pathname === "/api/intake/clearance-tokens" && method === "GET") return handleClearanceTokenList({ query, context, requestId, runtime, policy });
   if (pathname === "/api/intake/clearance-tokens" && method === "POST") return handleClearanceTokenIssue({ body, context, requestId, runtime, policy });
   if (pathname === "/api/intake/audit" && method === "GET") return handleIntakeAudit({ query, context, requestId, runtime, policy });
   return errorResponse(404, requestId, [CRM_INTAKE_API_ERROR_CODES.not_found], { audit_hint_ref: query.audit_hint_ref });

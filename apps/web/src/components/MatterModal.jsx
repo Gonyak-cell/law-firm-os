@@ -310,7 +310,7 @@ export function MatterModal({ type, labels, onClose, setTheme }) {
               위치 선택
               <ChevronDown size={14} />
             </button>
-            <small>접근 권한이 있는 위치만 표시됩니다.</small>
+            <small>사용 가능한 위치를 선택하세요.</small>
           </label>
         </>
       )

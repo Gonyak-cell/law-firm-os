@@ -1,0 +1,119 @@
+{
+  "id": "d04-hrx-attendance-runtime-2026-07-02",
+  "created_at": "2026-07-02T00:00:00.000+09:00",
+  "wave": "Wave 1 internal SaaS uplift",
+  "plan_item": "UPL-D-04",
+  "scope": "HRX attendance backend/runtime slice: durable attendance table, API read/write/correction routes, self-service guard, route policy, monthly effective aggregation.",
+  "claim_boundary": {
+    "completed": [
+      "attendance records persist through the HRX durable file-backed store",
+      "GET /api/hrx/attendance lists tenant-scoped attendance records",
+      "POST /api/hrx/attendance creates source-traceable manual attendance records",
+      "POST /api/hrx/attendance/:attendance_id/correct appends correction-chain rows",
+      "monthly_summary excludes corrected originals and counts the effective correction row",
+      "HRX route authz requires hrx.attendance.read or hrx.attendance.write before runtime",
+      "self-service attendance reads are bound to EmployeeUserLink ownership"
+    ],
+    "not_claimed": [
+      "attendance input UI",
+      "work-schedule and holiday calendar UI",
+      "full leave-day auto-calculation UX integration"
+    ]
+  },
+  "manual_surface_receipt": {
+    "command": "node --input-type=module -e <startApiServer attendance flow>",
+    "employee": {
+      "status": 201,
+      "employee_id": "emp_manual_attendance_002"
+    },
+    "created": {
+      "status": 201,
+      "attendance_id": "att-manual-002",
+      "source_ref": "TimeClock:manual-qa:att-manual-002"
+    },
+    "corrected": {
+      "status": 200,
+      "attendance_id": "att-manual-002-correction",
+      "correction_of_attendance_id": "att-manual-002"
+    },
+    "listed": {
+      "status": 200,
+      "count": 2,
+      "monthly_summary": {
+        "month": "2026-07",
+        "record_count": 2,
+        "effective_record_count": 1,
+        "correction_count": 1,
+        "total_recorded_hours": 7.5,
+        "by_status": {
+          "present": 0,
+          "absent": 0,
+          "remote": 1,
+          "leave": 0,
+          "holiday": 0
+        }
+      }
+    },
+    "audit": {
+      "status": 200,
+      "actions": [
+        "hrx.employee.create",
+        "hrx.attendance.write",
+        "hrx.attendance.correct",
+        "hrx.attendance.read"
+      ]
+    }
+  },
+  "focused_verification": {
+    "command": "node --test packages/hrx/test/attendance.test.js packages/hrx/test/attendance-sql.test.js packages/hrx/test/migration.test.js apps/api/test/hrx/durability.test.js apps/api/test/hrx/route-authz.test.js apps/api/test/hrx-runtime-api.test.js",
+    "result": "PASS",
+    "tests": 44,
+    "failed": 0
+  },
+  "broad_verification": {
+    "hrx_package_api": {
+      "command": "node --test packages/hrx/test/*.test.js apps/api/test/hrx/*.test.js apps/api/test/hrx-runtime-api.test.js",
+      "result": "PASS",
+      "tests": 427,
+      "failed": 0
+    },
+    "validators": [
+      {
+        "command": "node scripts/validate-hrx-route-authz.mjs",
+        "result": "PASS",
+        "route_policy_count": 35
+      },
+      {
+        "command": "node scripts/validate-hrx-persistence.mjs",
+        "result": "PASS",
+        "workflow_table_added": "hrx_attendance_records"
+      },
+      {
+        "command": "node scripts/validate-hrx-workflows.mjs",
+        "result": "PASS"
+      },
+      {
+        "command": "node scripts/validate-hrx-runtime-readiness.mjs",
+        "result": "PASS"
+      }
+    ],
+    "repo_checks": [
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      },
+      {
+        "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+        "result": "PASS_WITH_EXISTING_FINDINGS",
+        "finding_count": 37,
+        "new_attendance_backend_findings": 0
+      },
+      {
+        "command": "npm test",
+        "result": "PASS",
+        "tests": 4103,
+        "failed": 0
+      }
+    ]
+  }
+}

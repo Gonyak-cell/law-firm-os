@@ -1,0 +1,94 @@
+{
+  "artifact": "d10-compensation-record",
+  "date": "2026-07-03",
+  "backlog_ref": "workbook/wave1-internal-uplift-tuw-backlog-2026-07-02.md#UPL-D-10",
+  "objective": "Compensation Record real route with encrypted ref storage, self/elevated access, step-up, contract linkage, and no hardcoded null masked_compensation_ref",
+  "lazyweb": {
+    "job_id": "9cab4963-c034-4854-b99e-1e74c0ada252",
+    "report_id": "cd841738-2648-43bc-ab7c-bb46bb26dddb",
+    "url": "https://www.lazyweb.com/report/lazyweb/cd841738-2648-43bc-ab7c-bb46bb26dddb/?source=create",
+    "degraded": false,
+    "failures": []
+  },
+  "api_manual_qa": [
+    {
+      "case": "no_step_up",
+      "request": "GET /api/hrx/compensation?employee_id=emp_amic_ytkim",
+      "actor_id": "user_amic_jwsuh",
+      "status": 403,
+      "safe_error_code": "HRX_STEP_UP_REQUIRED",
+      "step_up_required": true,
+      "record_count": 0,
+      "blocked_terms_present": false
+    },
+    {
+      "case": "self_service",
+      "request": "GET /api/hrx/compensation?employee_id=emp_amic_ytkim",
+      "actor_id": "user_amic_ytkim",
+      "status": 200,
+      "outcome": "ok",
+      "masked_compensation_ref": "local-kms://hrx/tenant_amic_matter_vault/emp_amic_ytkim/comp-001",
+      "record_count": 1,
+      "contract_document_ref": "DMS:employment-contract-003",
+      "record_keys": [
+        "compensation_id",
+        "contract_document_ref",
+        "currency_ref",
+        "effective_from",
+        "effective_to",
+        "employee_id",
+        "employment_contract_id",
+        "masked_compensation_ref",
+        "raw_amount_included",
+        "source_ref",
+        "tenant_id"
+      ],
+      "blocked_terms_present": false
+    },
+    {
+      "case": "elevated_reader",
+      "request": "GET /api/hrx/compensation?employee_id=emp_amic_ytkim",
+      "actor_id": "user_amic_jwsuh",
+      "status": 200,
+      "outcome": "ok",
+      "masked_compensation_ref": "local-kms://hrx/tenant_amic_matter_vault/emp_amic_ytkim/comp-001",
+      "record_count": 1,
+      "contract_document_ref": "DMS:employment-contract-003",
+      "blocked_terms_present": false
+    }
+  ],
+  "browser_manual_qa": {
+    "url": "http://127.0.0.1:5177/?view=people&ctx=allow#people-members",
+    "selected_employee_id": "emp_amic_ytkim",
+    "step_up_screenshot": "artifacts/manual-qa/d10-compensation-profile-stepup-2026-07-03.png",
+    "success_screenshot": "artifacts/manual-qa/d10-compensation-profile-after-2026-07-03.png",
+    "step_up_challenge_visible": true,
+    "masked_ref_visible_after_step_up": true,
+    "contract_link_visible_after_step_up": true,
+    "blocked_terms_visible_after_step_up": false
+  },
+  "automated_checks": [
+    "node --test packages/hrx/test/compensation.test.js packages/hrx/test/migration.test.js apps/api/test/hrx/route-authz.test.js apps/api/test/hrx-runtime-api.test.js",
+    "node --test packages/hrx/test/compensation.test.js packages/hrx/test/migration.test.js apps/api/test/hrx/route-authz.test.js apps/api/test/hrx-runtime-api.test.js apps/web/e2e/hrx/employee-profile.spec.ts",
+    "npx tsc --noEmit --allowImportingTsExtensions --moduleResolution bundler --module esnext --target es2022 --jsx react-jsx --skipLibCheck --strict apps/web/src/react-jsx.d.ts apps/web/src/people/hrxApiClient.ts apps/web/src/people/security/HrxStepUpChallenge.tsx apps/web/src/people/employees/EmployeeProfile.tsx",
+    "npx tsc --noEmit --allowImportingTsExtensions --moduleResolution bundler --module esnext --target es2022 --jsx react-jsx --skipLibCheck --strict --types node apps/web/src/react-jsx.d.ts apps/web/src/people/hrxApiClient.ts apps/web/src/people/security/HrxStepUpChallenge.tsx apps/web/src/people/employees/EmployeeProfile.tsx apps/web/e2e/hrx/employee-profile.spec.ts",
+    "npm run hrx:ui:validate",
+    "npm --workspace apps/web run build",
+    "node scripts/validate-hrx-route-authz.mjs",
+    "node scripts/validate-hrx-runtime-readiness.mjs",
+    "node scripts/validate-hrx-persistence.mjs",
+    "node scripts/validate-hrx-workflows.mjs",
+    "npm test",
+    "git diff --check"
+  ],
+  "ai_slop_review": {
+    "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+    "exit_code": 0,
+    "d10_surface_new_findings": 0,
+    "changed_tree_findings": 37,
+    "remaining_finding_groups": [
+      "pre-existing changed-tree glow, mesh, dark-mode, and motion warnings in apps/web/src/styles.css outside the D-10 compensation section",
+      "ai-buzzword-stack warnings in apps/api/test/session-auth-api.test.js and artifacts/manual-qa/a14-login-protection-2026-07-02.json outside the D-10 compensation work"
+    ]
+  }
+}

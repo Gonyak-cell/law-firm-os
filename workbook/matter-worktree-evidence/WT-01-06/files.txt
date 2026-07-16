@@ -1,0 +1,8 @@
+packages/matter/src/worktree-concurrency.js
+packages/matter/src/repository.js
+packages/matter/src/index.js
+packages/matter/test/worktree-concurrency.test.js
+workbook/matter-worktree-evidence/WT-01-06/acceptance.md
+workbook/matter-worktree-evidence/WT-01-06/commands.txt
+workbook/matter-worktree-evidence/WT-01-06/tests.txt
+workbook/matter-worktree-evidence/WT-01-06/files.txt

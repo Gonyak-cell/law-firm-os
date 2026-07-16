@@ -1,0 +1,7 @@
+workbook/forest-v0.1.17-integration-evidence/MI-004/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/MI-004/commands.txt
+workbook/forest-v0.1.17-integration-evidence/MI-004/files.txt
+workbook/forest-v0.1.17-integration-evidence/MI-004/receipt.json
+workbook/forest-v0.1.17-integration-evidence/MI-004/tests.txt
+workbook/forest-v0.1.17-integration-evidence/MI-004/worktree-inventory.tsv
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md

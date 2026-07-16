@@ -1,0 +1,63 @@
+{
+  "schema_version": "law-firm-os.upl-b17.accounting-export-proof.v0.1",
+  "generated_at": "2026-07-03T09:20:26.708Z",
+  "verdict": "PASS",
+  "api_url": "http://127.0.0.1:59558",
+  "contract_ref": "UPL-B-17",
+  "route_surface": [
+    "GET /api/finance/accounting-export.csv",
+    "GET /api/finance/audit"
+  ],
+  "checks": [
+    {
+      "id": "period-filter-keeps-july-only",
+      "passed": true
+    },
+    {
+      "id": "debit-credit-balanced",
+      "passed": true
+    },
+    {
+      "id": "csv-safe-export-shape",
+      "passed": true
+    },
+    {
+      "id": "idempotent-replay-and-audit",
+      "passed": true
+    }
+  ],
+  "observed": {
+    "export": {
+      "status": 201,
+      "item": {
+        "accounting_export_id": "accounting-export:tenant_amic_matter_vault:2026-07-01:2026-07-31",
+        "tenant_id": "tenant_amic_matter_vault",
+        "export_format": "csv",
+        "status": "ready_for_review",
+        "from_date": "2026-07-01",
+        "to_date": "2026-07-31",
+        "csv_text": "journal_entry_id,posting_date,source_ref,matter_id,account,debit,credit,currency\njournal_upl_b17_july,2026-07-05,invoice_upl_b17_july,matter_upl_b17,ar,100000,0,KRW\njournal_upl_b17_july,2026-07-05,invoice_upl_b17_july,matter_upl_b17,revenue,0,100000,KRW\n",
+        "csv_sha256": "3a79c3771816f0172db288395f4328bfd301e8dc549cd56fa4de350995712322",
+        "row_count": 2,
+        "debit_total": 100000,
+        "credit_total": 100000,
+        "balanced": true,
+        "bank_reference_included": false,
+        "credential_material_included": false,
+        "raw_journal_payload_included": false,
+        "production_ready_claim": false
+      }
+    },
+    "replay": {
+      "status": 200,
+      "outcome": "idempotent_replay"
+    },
+    "audit": {
+      "status": 200,
+      "actions": [
+        "accounting.export.csv.create",
+        "finance:accounting_export:read"
+      ]
+    }
+  }
+}

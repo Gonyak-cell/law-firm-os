@@ -1,0 +1,11 @@
+{
+  "verdict": "PASS",
+  "checked_files": 50,
+  "preload_policy": "preload_allowlist_checked",
+  "findings": [],
+  "probes": {
+    "insecure_browser_window": "detected",
+    "missing_preload_allowlist": "detected",
+    "non_allowlisted_navigation": "detected"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": "law-firm-os.user-root-preservation.v1",
+  "recorded_at": "2026-07-16T00:20:47.499Z",
+  "root": "/Users/jws/Documents/Codex/Law Firm OS",
+  "baseline": "RC-001/manifest.tsv",
+  "baseline_manifest_sha256": "92be2f2fc8bc4b7e1f0d4b7f2198c0b83ed728f4f7b3af3823db831b1bf07460",
+  "baseline_entries": 77,
+  "changed_entries": 0,
+  "changes": [],
+  "content_values_printed": false,
+  "preserved_app": {
+    "pid": 55090,
+    "executable": "/private/tmp/lawos-forest-v016-release/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+    "restarted_or_replaced": false
+  },
+  "verdict": "PASS"
+}

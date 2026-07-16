@@ -1,0 +1,34 @@
+RED
+package command: node --test packages/matter/test/worktree-practice-area.test.js
+package exit: 1
+package result: module not found for packages/matter/src/practice-area.js
+web command: node --test apps/web/test/matter-board-practice-area-contract.test.mjs
+web exit: 1
+web result: Matter board did not import or delegate to the shared classifier
+
+GREEN
+package command: node --test packages/matter/test/worktree-practice-area.test.js
+package exit: 0
+package result: 3 passed, 0 failed
+web command: node --test apps/web/test/matter-board-practice-area-contract.test.mjs
+web exit: 0
+web result: 1 passed, 0 failed
+
+MATTER PACKAGE REGRESSION
+command: LAWOS_LOCAL_BACKUP_ROOT=/tmp/lawos-backups-data LAWOS_RUNTIME_BACKUP_QUEUE_ROOT=/tmp/lawos-backup-queue npm --workspace packages/matter test
+exit: 0
+result: 140 passed, 0 failed
+
+WEB BUILD
+command: npm --workspace apps/web run build
+exit: 0
+result: Vite production build completed; 1724 modules transformed
+
+WEB UI SUITE ENVIRONMENT LIMITATION
+command: npm --workspace apps/web run test:ui
+exit: 1
+result: 66 passed, 18 failed, 1 skipped; failures were browser-server tests denied listen permission on 127.0.0.1
+
+STATIC CHECKS
+git diff --check: passed
+secret-pattern scan: no matches

@@ -1,0 +1,15 @@
+git status --short
+git fetch origin --prune --tags
+git rev-parse HEAD
+git rev-parse origin/main
+git ls-remote origin refs/heads/main refs/tags/matter-desktop-v0.1.16-20260713-137fa156c
+git show -s --format='%H%n%T%n%P%n%cI%n%s' <target-sha>
+git merge-base --is-ancestor <from-sha> <to-sha>
+git rev-list --left-right --count <from-sha>...<to-sha>
+git merge-base <from-sha> <to-sha>
+git branch -a --contains <target-sha>
+git show-ref | rg 'forest|archive|v016|release-20260713'
+gh release view matter-desktop-v0.1.16-20260713-137fa156c --repo Gonyak-cell/law-firm-os --json tagName,isPrerelease,isDraft,publishedAt,targetCommitish,url,name
+gh release list --repo Gonyak-cell/law-firm-os --limit 20 --json tagName,isPrerelease,isDraft,publishedAt,name
+node <inline CP-001 evidence validator>
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed

@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.concept_fit_validation.v0.1",
+  "generated_at": "2026-06-30T12:46:45.760Z",
+  "verdict": "PASS",
+  "tuw_ids": [
+    "LCX-OPEN-01A.01",
+    "LCX-OPEN-01A.02",
+    "LCX-OPEN-01A.03",
+    "LCX-OPEN-01A.04",
+    "LCX-OPEN-01A.05"
+  ],
+  "source_refs": [
+    "docs/lazycodex/lcx-openable-implementation-tuw-plan-2026-06-30.md",
+    "docs/lazycodex/lcx-openable-implementation-tuw-traceability-2026-06-30.md",
+    "docs/lazycodex/lcx-no-unimplemented-implementation-plan-2026-06-30.md",
+    "docs/lazycodex/lcx-korea-saas-operating-fit-research-matrix-2026-06-30.md",
+    "docs/lazycodex/lcx-korea-saas-operating-fit-implementation-plan-2026-06-30.md"
+  ],
+  "axis_a_original_concept": {
+    "client_crm_intake_required": true,
+    "matter_erp_legal_operations_required": true,
+    "people_hrx_responsibility_required": true,
+    "matter_first_join_required": true,
+    "failure_status": "concept_spine_missing"
+  },
+  "row_summary": {
+    "checked_openable_rows": 105,
+    "concept_spine_rows": 5,
+    "status_counts": {
+      "closed_repo_implemented": 46,
+      "closed_request_only": 49,
+      "closed_dry_run_only": 7,
+      "blocked_external_receipt_required": 3
+    }
+  },
+  "required_fields": [
+    "client_ref",
+    "matter_ref",
+    "people_responsibility",
+    "engagement_scope",
+    "permission_context",
+    "audit_context",
+    "pre_matter_exception",
+    "joined_readback_required"
+  ],
+  "boundary": {
+    "external_send_claim": false,
+    "payment_movement_claim": false,
+    "tax_invoice_issue_claim": false,
+    "payroll_disbursement_claim": false,
+    "production_vault_write_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

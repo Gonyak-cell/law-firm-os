@@ -1,0 +1,76 @@
+{
+  "verdict": "PASS",
+  "package": "/Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "homeNavigation": {
+    "approvalOpen": "true",
+    "approvalActive": false,
+    "meetingCurrent": "location"
+  },
+  "board": [
+    {
+      "label": "홈",
+      "active": false,
+      "weight": "400",
+      "border": "rgb(229, 231, 235)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "label": "송무",
+      "active": true,
+      "weight": "700",
+      "border": "rgb(38, 194, 96)",
+      "background": "color(srgb 0.914902 0.976078 0.937647)"
+    },
+    {
+      "label": "기업 자문",
+      "active": false,
+      "weight": "400",
+      "border": "rgb(229, 231, 235)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "label": "분쟁",
+      "active": false,
+      "weight": "400",
+      "border": "rgb(229, 231, 235)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "label": "트랜잭션",
+      "active": false,
+      "weight": "400",
+      "border": "rgb(229, 231, 235)",
+      "background": "rgb(255, 255, 255)"
+    }
+  ],
+  "worktree": [
+    {
+      "label": "송무",
+      "active": false,
+      "weight": "400",
+      "border": "rgb(229, 231, 235)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "label": "기업 자문",
+      "active": true,
+      "weight": "700",
+      "border": "rgb(38, 194, 96)",
+      "background": "color(srgb 0.914902 0.976078 0.937647)"
+    },
+    {
+      "label": "분쟁",
+      "active": false,
+      "weight": "400",
+      "border": "rgb(229, 231, 235)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "label": "트랜잭션",
+      "active": false,
+      "weight": "400",
+      "border": "rgb(229, 231, 235)",
+      "background": "rgb(255, 255, 255)"
+    }
+  ]
+}

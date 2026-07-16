@@ -1,0 +1,218 @@
+{
+  "schema_version": "law-firm-os.upl-c04.clearance-ledger-proof.v0.1",
+  "generated_at": "2026-07-03T09:39:16.417Z",
+  "verdict": "PASS",
+  "api_url": "http://127.0.0.1:62608",
+  "contract_ref": "UPL-C-04",
+  "route_surface": [
+    "POST /api/intake/conflict-checks",
+    "POST /api/intake/conflict-decisions",
+    "POST /api/intake/waivers",
+    "POST /api/intake/engagements",
+    "POST /api/intake/clearance-tokens",
+    "POST /api/matters/openings",
+    "GET /api/intake/audit"
+  ],
+  "checks": [
+    {
+      "id": "default-api-server-wires-matter-opening-to-intake-clearance-ledger",
+      "passed": true
+    },
+    {
+      "id": "issued-token-engagement-forgery-blocked",
+      "passed": true
+    },
+    {
+      "id": "issued-token-snapshot-forgery-blocked",
+      "passed": true
+    },
+    {
+      "id": "caller-token-state-shape-ignored-in-favor-of-ledger-record",
+      "passed": true
+    },
+    {
+      "id": "clearance-lineage-audit-history-present",
+      "passed": true
+    }
+  ],
+  "observed": {
+    "clearance": {
+      "status": 201,
+      "item": {
+        "clearance_token_id": "clearance_upl_c04_valid",
+        "tenant_id": "tenant_amic_matter_vault",
+        "intake_request_id": "intake_upl_c04_new_client",
+        "conflict_check_id": "conflict_upl_c04_review",
+        "engagement_id": "engagement_upl_c04_signed",
+        "snapshot_hash": "snapshot_upl_c04_review",
+        "expires_at": "2026-07-10T00:00:00.000Z",
+        "model_type": "ClearanceToken",
+        "token_state": "active",
+        "status": "active",
+        "issued_at": "2026-07-03T09:39:16.406Z",
+        "outcome": "cleared",
+        "blocked_claims": [],
+        "conflict_review_state": "clear_decision_recorded",
+        "conflict_decision_id": "decision_upl_c04_clear",
+        "waiver_id": "waiver_upl_c04_consent",
+        "conflict_review_satisfied": true,
+        "engagement_review_state": "approved_engagement_recorded",
+        "engagement_signed_document_id": "signed_doc_upl_c04_engagement",
+        "engagement_signature_ref": "signature:signed_doc_upl_c04_engagement",
+        "engagement_template_document_id": "template_doc_upl_c04_engagement",
+        "engagement_signed_document_upload_id": "signed_upload_upl_c04_engagement",
+        "engagement_signed_document_sha256": "sha256:signed_doc_upl_c04_engagement",
+        "engagement_signed_upload_verified": true,
+        "engagement_review_satisfied": true,
+        "resource_id": "clearance_upl_c04_valid",
+        "owner_module": "intake",
+        "created_at": "2026-07-03T09:39:16.406Z",
+        "updated_at": "2026-07-03T09:39:16.406Z",
+        "writes_product_state": true,
+        "creates_database_rows": true,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": true,
+        "dispatches_intake_runtime": true,
+        "executes_api_handler": false,
+        "creates_matter": false,
+        "g6_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false,
+        "direct_matter_reference_included": false,
+        "raw_conflict_memo_included": false
+      },
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "token_state": "active",
+        "production_ready_claim": false
+      }
+    },
+    "never_issued_token": {
+      "status": 400,
+      "ui_state": "blocked",
+      "safe_error_codes": [
+        "MATTER_API_VALIDATION_ERROR"
+      ]
+    },
+    "forged_engagement": {
+      "status": 400,
+      "ui_state": "blocked",
+      "safe_error_codes": [
+        "MATTER_API_VALIDATION_ERROR"
+      ]
+    },
+    "forged_snapshot": {
+      "status": 400,
+      "ui_state": "blocked",
+      "safe_error_codes": [
+        "MATTER_API_VALIDATION_ERROR"
+      ]
+    },
+    "ledger_only_open": {
+      "status": 201,
+      "item": {
+        "tenant_id": "tenant_amic_matter_vault",
+        "resource_id": "matter_upl_c04_ledger_only",
+        "matter_id": "matter_upl_c04_ledger_only",
+        "matter_code": null,
+        "matter_number": "M-UPL-C04-matter_upl_c04_ledger_only",
+        "matter_name": "C04 ledger-only matter opening",
+        "title": "C04 ledger-only matter opening",
+        "status": "opening",
+        "client_id": "party_upl_c04_new_client",
+        "client_display_name": null,
+        "legal_client_party_id": "party_upl_c04_new_client",
+        "billing_client_party_id": "party_upl_c04_new_client",
+        "matter_type_english": null,
+        "matter_litigation_axis": null,
+        "matter_detail_type_korean": null,
+        "client_case_role": null,
+        "client_case_role_confidence": null,
+        "source_revision": null,
+        "owner_module": "MatterCore",
+        "owner_employee_id": null,
+        "owner_user_id": null,
+        "owner_display_name": null,
+        "permission_envelope_id": "perm:tenant_amic_matter_vault:matter_upl_c04_ledger_only",
+        "audit_trace_id": "audit:tenant_amic_matter_vault:matter_upl_c04_ledger_only",
+        "document_count": 0,
+        "vault_workspace_id": "workspace:matter_upl_c04_ledger_only",
+        "matter_vault_linked": true,
+        "team_member_count": 0,
+        "matter_party_count": 0,
+        "adverse_party_count": 0,
+        "wip_status": "not_started",
+        "risk_level": "standard",
+        "opened_at": null,
+        "closed_at": null,
+        "runtime_write_ready": true,
+        "r5_r6_owner_decision_ready": true,
+        "production_ready_claim": false
+      },
+      "persisted": {
+        "model_type": "Matter",
+        "tenant_id": "tenant_amic_matter_vault",
+        "matter_id": "matter_upl_c04_ledger_only",
+        "owner_module": "MatterCore",
+        "permission_envelope_id": "perm:tenant_amic_matter_vault:matter_upl_c04_ledger_only",
+        "audit_trace_id": "audit:tenant_amic_matter_vault:matter_upl_c04_ledger_only",
+        "synthetic_only": true,
+        "writes_product_state": true,
+        "evaluates_runtime_permission": false,
+        "writes_audit_event": false,
+        "creates_database_rows": false,
+        "matter_code": null,
+        "matter_name": "C04 ledger-only matter opening",
+        "client_id": "party_upl_c04_new_client",
+        "client_display_name": null,
+        "title": "C04 ledger-only matter opening",
+        "status": "opening",
+        "matter_type_english": null,
+        "matter_litigation_axis": null,
+        "matter_detail_type_korean": null,
+        "client_case_role": null,
+        "client_case_role_confidence": null,
+        "practice_group": null,
+        "responsible_lawyer": null,
+        "source_revision": null,
+        "source_updated_at": null,
+        "approval_ref": null,
+        "migration_approval_ref": null,
+        "matter_number": "M-UPL-C04-matter_upl_c04_ledger_only",
+        "created_by": "user_amic_jwsuh",
+        "created_at": "2026-07-03T00:00:00.000Z",
+        "opened_at": null,
+        "closed_at": null,
+        "matter_wiki_ref": "matterwiki:tenant_amic_matter_vault:matter_upl_c04_ledger_only",
+        "matter_graph_ref": "mattergraph:tenant_amic_matter_vault:matter_upl_c04_ledger_only",
+        "future_citation_ledger_ref_policy": "reserved_for_rp06",
+        "future_loop_context_policy": "stable_context_reference_only_no_loop_engine",
+        "client_visible_by_default": false,
+        "legal_client_party_id": "party_upl_c04_new_client",
+        "billing_client_party_id": "party_upl_c04_new_client",
+        "clearance_token_id": "clearance_upl_c04_valid",
+        "intake_request_id": "intake_upl_c04_new_client",
+        "engagement_id": "engagement_upl_c04_signed",
+        "conflict_check_id": "conflict_upl_c04_review",
+        "clearance_snapshot_hash": "snapshot_upl_c04_review",
+        "resource_id": "matter_upl_c04_ledger_only"
+      }
+    },
+    "audit": {
+      "status": 200,
+      "actions": [
+        "clearance.token.issue",
+        "conflict.check.create",
+        "conflict.decision.record",
+        "conflict.hit.create",
+        "conflict.search.executed",
+        "engagement.approved",
+        "engagement.signed_document.uploaded",
+        "engagement.template.generated",
+        "waiver.approved"
+      ]
+    }
+  }
+}

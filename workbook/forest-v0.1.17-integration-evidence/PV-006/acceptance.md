@@ -1,0 +1,25 @@
+# PV-006 Acceptance
+
+- TUW: PV-006
+- status: DONE
+- entry_sha: `a2d50e95b204da433986ec94e5ce1d8ed04e3dbb`
+- product_exit_sha: `8e9165c0a8b412eafde454c8436e00cf434a9e37` (the evidence commit is intentionally separate)
+- product_exit_tree: `7f36de9062dffd049128f4a262837fc9abb48b83`
+- policy contract: one shared registry fixes 21 retired paths, known legacy asset hashes, approved Forest brochure/icon/logo hashes, and active branding/reference tokens; historical evidence directories are excluded from runtime product scanning
+- test-first proof: the PV-006 unit contract initially failed because `scripts/lib/matter-desktop-legacy-assets.mjs` did not exist; red stdout SHA-256 `464c2d078fe28052b8a9a3029d1cd05057515af50b730378cadeb3519db9ab77`
+- source proof: 191 active product files scanned, 21 retired paths checked absent, forbidden references 0, and all approved asset hashes matched
+- exact package proof: the exact clean product SHA generated Mac first and Windows second with `source_dirty=false`, the same source tree, the same app ID/channel, and the same renderer digest
+- renderer parity: Mac and Windows both record SHA-256 `f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445` and 28 files; mismatch count 0
+- bundle proof: 35 files per platform were scanned; legacy violations 0, forbidden references 0, and packaged `offline.html`/`offline.matter.html` entries 0 on both platforms
+- current-entry contract: the packaged renderer is `apps/desktop/src/renderer/web/index.html?desktop=1`; the source-only current Forest offline contract remains for existing smoke assertions but is excluded from shipping bundles, and Electron redirects configured offline targets to the current web entry
+- asset scope: Parnas/Petrabridge logos, images, marks, and branding references are forbidden; legitimate historical business data spelled `PETRA BRIDGE PARTNERS` is not classified as a UI asset
+- release wiring: internal and formal pipelines run PV-006 source and bundle scans before exact-SHA staging/release assembly
+- artifact stage: 9 artifacts and receipts were staged under `apps/desktop/dist/releases/0.1.17/8e9165c0a8b412eafde454c8436e00cf434a9e37/internal`; generic build paths are explicitly false as release truth
+- regression: PV-001~PV-006 unit tests 21/21 PASS, PV-001/PV-002 source+package PASS, PV-003~PV-006 source PASS, PV-005 package PASS, PV-006 bundle PASS, Desktop smoke 102/102 PASS, file bridge 17/17 plus two validators PASS, Web UI 143 PASS + 1 existing skip, Web typecheck/build PASS, CP-006 source/package/legacy/Lazyweb support PASS, public renderer PII PASS, packaging/syntax/diff/secret-pattern/sloplint checks PASS
+- preserved user root checkout: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`, branch `codex/profile-contact-regression-fix`, tracked 56, untracked 21, status 77, fingerprint `02751feb70e89afbfb00acf1dac14092cdef0c071be736a55aa6c6982b60d93c`; no write performed
+- rejected QA: candidate `ba68799b` was discarded after forbidden-reference coverage was broadened, an unsupported root Web `test` script invocation was replaced by the real `test:ui` contract, an attempted expansion of the historical CP-006 matrix was reverted because PV-006 must not rewrite closed evidence, and a post-evidence bundle rerun was correctly rejected by the clean-source gate because these evidence files made the worktree dirty; the accepted bundle report remains the pre-evidence clean `8e9165c0` run
+- commands: see `commands.txt`
+- package matrix: see `package-matrix.json`
+- known_limits: the accepted Mac bundle is internal and unsigned/not notarized/not stapled; Windows native install/restart/uninstall and Authenticode were not proven on Darwin; rendered global-screen QA and duplicate-app termination belong to PV-007 and later QA gates
+- external_blockers: none for PV-006 legacy asset/reference integrity; formal macOS distribution, Windows native/AuthentiCode, public release, production, and go-live remain separate later gates and false
+- AI slop review: pass; no product UI or user-facing copy changed and sloplint reported no auto-detectable signals

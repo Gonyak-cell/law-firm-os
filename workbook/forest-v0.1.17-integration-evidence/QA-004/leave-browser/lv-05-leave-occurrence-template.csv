@@ -1,0 +1,2 @@
+﻿template_version,hrx-leave-occurrence-v1
+employee_id,group_id,policy_version_id,direction,amount_minutes,valid_from,expires_on,memo,source_document_id

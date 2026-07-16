@@ -1,0 +1,50 @@
+{
+  "generated_at": "2026-07-02T12:10:45.119Z",
+  "scope": "UPL-D-03 Korean statutory annual paid leave rule engine",
+  "result": "pass",
+  "source_basis": "Korea Labor Standards Act Article 60 baseline: first-year monthly accrual, 15 days after one year with at least 80 percent attendance, seniority additions, 25-day cap",
+  "observations": {
+    "first_year_7_months": 7,
+    "first_year_11_months": 11,
+    "one_year_80_percent_attendance": 15,
+    "three_years": 16,
+    "five_years": 17,
+    "twenty_five_year_cap": 25,
+    "below_80_percent_attendance": 6
+  },
+  "accrual_entry": {
+    "tenant_id": "tenant-a",
+    "entry_id": "leave_accrual_emp-001_2026-01-01",
+    "employee_id": "emp-001",
+    "policy_id": "pto-kr",
+    "entry_type": "earned",
+    "amount": 15,
+    "occurred_on": "2026-01-01",
+    "source_ref": "LeaveAccrual:pto-kr:emp-001:2026-01-01",
+    "metadata": {
+      "policy_version": "2026.1",
+      "accrual_unit": "days",
+      "statutory_basis": "KR_LSA_ARTICLE_60"
+    }
+  },
+  "carryover_entry": {
+    "tenant_id": "tenant-a",
+    "entry_id": "leave_carryover_emp-001_2026-01-01",
+    "employee_id": "emp-001",
+    "policy_id": "pto-kr",
+    "entry_type": "carryover",
+    "amount": 5,
+    "occurred_on": "2026-01-01",
+    "source_ref": "LeaveCarryover:pto-kr:emp-001:2026-01-01",
+    "metadata": {
+      "policy_version": "2026.1",
+      "closing_balance": 12,
+      "carryover_limit": 5
+    }
+  },
+  "verification": [
+    "node --check packages/hrx/src/rules/leave-policy.js && node --check packages/hrx/test/leave-policy.test.js && node --check scripts/validate-hrx-workflows.mjs",
+    "node --test packages/hrx/test/leave-policy.test.js apps/api/test/hrx/leave.test.js",
+    "node scripts/validate-hrx-workflows.mjs"
+  ]
+}

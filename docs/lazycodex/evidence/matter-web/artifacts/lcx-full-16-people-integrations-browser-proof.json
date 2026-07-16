@@ -1,0 +1,68 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.people_integrations_browser_proof.v0.1",
+  "generated_at": "2026-06-30T09:51:47.949Z",
+  "tuw_id": "LCX-FULL-16.05",
+  "verdict": "PASS",
+  "snapshot": {
+    "eContract": {
+      "global_surface": true,
+      "legacy_route_visible": true,
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\n전자계약\n전자계약 전송\n전자계약 템플릿\n서명 진행 상태\n전자계약 설정\n전자계약\n\n전자계약 전송, 템플릿, 서명 진행 상태를 여러 도메인에서 함께 다룹니다.\n\n전역 메뉴\n전자계약 전송\n전자계약 템플릿\n서명 진행 상태\n전자계약 설정\n전자계약 전송\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n전자계약 템플릿\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n서명 진행 상태\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n전자계약 설정\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nSettings\n전자계약 전송\n전역\n전자계약\n\npeople 메뉴에서 이 전역 항목으로 연결합니다.\n\n소스\nPeople\n상태\n전역\n연결\n1개\npeople#people-econtract-send",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-16-screenshots/people-econtract-send.png"
+    },
+    "payroll": {
+      "payroll_route_mounted": true,
+      "preview_button_visible": true,
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\n구성원\n관리\n구성원\n9\n조직\n직무/역할\n설정\n근로정보\n설정\n구성원 등록\n입퇴사 관리\n근무일정\n출퇴근기록\n휴가\n마감 및 급여\n마감 관리\n검토\n급여정산\n급여명세서\n연동\n수당/최저임금\n검토\n근로정보 기준\n설정\n급여정산\n미리보기·내보내기 전용\n현재는 정산 미리보기, 검토 승인, 내보내기만 제공합니다. 계산·세금·지급 실행은 아직 제공하지 않습니다.\n기간\n구성원\n외부 급여 서비스\n문서 참조\n미리보기 생성\n검토 승인 기록\n내보내기 파일 생성\n급여정산 미리보기를 준비할 수 있습니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-16-screenshots/people-payroll.png"
+    },
+    "message": {
+      "global_surface": true,
+      "legacy_route_visible": true,
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\n메시지\n메시지 전송\n메시지 자동화\n메시지 템플릿\n공지사항\n사건 이메일·메시지\n2\n메시지\n\n도메인별 메시지, 공지, 자동화, 템플릿을 한 곳에서 관리합니다.\n\n전역 메뉴\n메시지 전송\n메시지 자동화\n메시지 템플릿\n공지사항\n사건 이메일·메시지\n메시지 전송\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n메시지 자동화\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n메시지 템플릿\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n공지사항\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n사건 이메일·메시지\n전역 메뉴에서 직접 여는 항목입니다.\nMatter\n메시지 전송\n전역\n메시지\n\npeople 메뉴에서 이 전역 항목으로 연결합니다.\n\n소스\nPeople\n상태\n전역\n연결\n1개\npeople#people-message-send",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-16-screenshots/people-message-send.png"
+    },
+    "company": {
+      "global_surface": true,
+      "legacy_route_visible": true,
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\n설정\n회사 설정\n권한\n보안\n연동\n결제\n지원\n고급 옵션\n태그 관리\n설정\n\n회사 설정, 권한, 보안, 연동, 결제, 지원, 고급 옵션, 태그 관리를 전역 설정으로 이동합니다.\n\n전역 메뉴\n회사 설정\n권한\n보안\n연동\n결제\n지원\n고급 옵션\n태그 관리\n회사 설정\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n권한\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n보안\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n연동\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n결제\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n지원\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n고급 옵션\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n태그 관리\n전역 메뉴에서 직접 여는 항목입니다.\nWorkspace\n연동\n전역\n설정\n\npeople 메뉴에서 이 전역 항목으로 연결합니다.\n\n소스\nPeople\n상태\n전역\n연결\n1개\npeople#people-company-integrations\n일정\n조건부\n청구·재무\n조건부\n데이터 가져오기\n조건부\n문서·방침\n조건부",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-16-screenshots/people-company-integrations.png"
+    },
+    "page_errors": []
+  },
+  "checks": [
+    {
+      "id": "econtract-integration-visible",
+      "passed": true
+    },
+    {
+      "id": "payroll-boundary-visible",
+      "passed": true
+    },
+    {
+      "id": "message-integration-visible",
+      "passed": true
+    },
+    {
+      "id": "company-integration-visible",
+      "passed": true
+    },
+    {
+      "id": "no-page-errors",
+      "passed": true
+    },
+    {
+      "id": "no-forbidden-text",
+      "passed": true
+    }
+  ],
+  "boundary": {
+    "browser_observation_only": true,
+    "external_send_claim": false,
+    "payroll_calculation_claim": false,
+    "payroll_disbursement_claim": false,
+    "provider_production_write_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

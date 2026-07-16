@@ -1,0 +1,162 @@
+# People Professional Profile Browser Proof
+
+Generated at: 2026-07-07T02:03:49.366Z
+Verdict: PASS
+
+## Sources
+
+- AMIC Law: https://amic-law.vercel.app/
+- PetraBridge: https://petrabridge.vercel.app/
+
+## Subjects
+
+- 박병준: PASS / kind=attorney / screenshot=`docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/park-byungjun.png`
+- 임영훈: PASS / kind=attorney / screenshot=`docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/lim-younghoon.png`
+- 서지원: PASS / kind=attorney / screenshot=`docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/suh-jiwon.png`
+- 조성민: PASS / kind=attorney / screenshot=`docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/cho-sungmin.png`
+- 김양태: PASS / kind=cpa / screenshot=`docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/kim-yangtae.png`
+- 조우상: PASS / kind=deal_advisor / screenshot=`docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/jo-woosang.png`
+
+## Assertions
+
+- PASS: source-map proof subject ids are present
+- PASS: browser proof performed no non-auth API writes
+- PASS: browser DOM contains no local password or session token
+- PASS: browser has no page errors
+- PASS: browser has no unexpected console warnings or errors
+- PASS: 박병준 API status < 500
+- PASS: 박병준 API professional_profile exists
+- PASS: 박병준 API profile kind
+- PASS: 박병준 API contains 변호사
+- PASS: 박병준 API contains 상사분쟁
+- PASS: 박병준 API contains 김·장
+- PASS: 박병준 API contains 서울고등법원
+- PASS: 박병준 API contains UC Berkeley
+- PASS: 박병준 API contains 사법연수원 제44기
+- PASS: 임영훈 API status < 500
+- PASS: 임영훈 API professional_profile exists
+- PASS: 임영훈 API profile kind
+- PASS: 임영훈 API contains 변호사
+- PASS: 임영훈 API contains 조세쟁송
+- PASS: 임영훈 API contains 삼성전자
+- PASS: 임영훈 API contains 김·장
+- PASS: 임영훈 API contains 연세대학교
+- PASS: 임영훈 API contains 공인회계사
+- PASS: 서지원 API status < 500
+- PASS: 서지원 API professional_profile exists
+- PASS: 서지원 API profile kind
+- PASS: 서지원 API contains 변호사
+- PASS: 서지원 API contains M&A
+- PASS: 서지원 API contains 김·장
+- PASS: 서지원 API contains 국방부
+- PASS: 서지원 API contains 서울대학교
+- PASS: 서지원 API contains 사법연수원 제46기
+- PASS: 조성민 API status < 500
+- PASS: 조성민 API professional_profile exists
+- PASS: 조성민 API profile kind
+- PASS: 조성민 API contains 변호사
+- PASS: 조성민 API contains 금융규제
+- PASS: 조성민 API contains 화온
+- PASS: 조성민 API contains 김·장
+- PASS: 조성민 API contains 연세대학교
+- PASS: 조성민 API contains 사법연수원 제47기
+- PASS: 김양태 API status < 500
+- PASS: 김양태 API professional_profile exists
+- PASS: 김양태 API profile kind
+- PASS: 김양태 API contains 공인회계사
+- PASS: 김양태 API contains Deal Advisory
+- PASS: 김양태 API contains 페트라브릿지
+- PASS: 김양태 API contains KPMG
+- PASS: 김양태 API contains UIBE
+- PASS: 김양태 API contains 서울시립대학교
+- PASS: 김양태 API excludes 변호사
+- PASS: 김양태 API excludes attorney
+- PASS: 조우상 API status < 500
+- PASS: 조우상 API professional_profile exists
+- PASS: 조우상 API profile kind
+- PASS: 조우상 API contains Deal Advisory
+- PASS: 조우상 API contains 페트라브릿지
+- PASS: 조우상 API contains KPMG
+- PASS: 조우상 API contains Sciences Po
+- PASS: 조우상 API contains Brandeis
+- PASS: 조우상 API excludes 변호사
+- PASS: 조우상 API excludes 공인회계사
+- PASS: 조우상 API excludes attorney
+- PASS: 조우상 API excludes CPA
+- PASS: 박병준 professional profile section visible
+- PASS: 박병준 profile kind rendered as attorney
+- PASS: 박병준 UI contains 전문 프로필
+- PASS: 박병준 UI contains 변호사
+- PASS: 박병준 UI contains 상사분쟁
+- PASS: 박병준 UI contains 김·장
+- PASS: 박병준 UI contains 서울고등법원
+- PASS: 박병준 UI contains UC Berkeley
+- PASS: 박병준 UI contains 사법연수원 제44기
+- PASS: 박병준 UI contains 출처
+- PASS: 임영훈 professional profile section visible
+- PASS: 임영훈 profile kind rendered as attorney
+- PASS: 임영훈 UI contains 전문 프로필
+- PASS: 임영훈 UI contains 변호사
+- PASS: 임영훈 UI contains 조세쟁송
+- PASS: 임영훈 UI contains 삼성전자
+- PASS: 임영훈 UI contains 김·장
+- PASS: 임영훈 UI contains 연세대학교
+- PASS: 임영훈 UI contains 공인회계사
+- PASS: 임영훈 UI contains 출처
+- PASS: 서지원 professional profile section visible
+- PASS: 서지원 profile kind rendered as attorney
+- PASS: 서지원 UI contains 전문 프로필
+- PASS: 서지원 UI contains 변호사
+- PASS: 서지원 UI contains M&A
+- PASS: 서지원 UI contains 김·장
+- PASS: 서지원 UI contains 국방부
+- PASS: 서지원 UI contains 서울대학교
+- PASS: 서지원 UI contains 사법연수원 제46기
+- PASS: 서지원 UI contains 출처
+- PASS: 조성민 professional profile section visible
+- PASS: 조성민 profile kind rendered as attorney
+- PASS: 조성민 UI contains 전문 프로필
+- PASS: 조성민 UI contains 변호사
+- PASS: 조성민 UI contains 금융규제
+- PASS: 조성민 UI contains 화온
+- PASS: 조성민 UI contains 김·장
+- PASS: 조성민 UI contains 연세대학교
+- PASS: 조성민 UI contains 사법연수원 제47기
+- PASS: 조성민 UI contains 출처
+- PASS: 김양태 professional profile section visible
+- PASS: 김양태 profile kind rendered as cpa
+- PASS: 김양태 UI contains 전문 프로필
+- PASS: 김양태 UI contains 공인회계사
+- PASS: 김양태 UI contains Deal Advisory
+- PASS: 김양태 UI contains 페트라브릿지
+- PASS: 김양태 UI contains KPMG
+- PASS: 김양태 UI contains UIBE
+- PASS: 김양태 UI contains 서울시립대학교
+- PASS: 김양태 UI contains 출처
+- PASS: 김양태 UI excludes 변호사
+- PASS: 김양태 UI excludes attorney
+- PASS: 조우상 professional profile section visible
+- PASS: 조우상 profile kind rendered as deal_advisor
+- PASS: 조우상 UI contains 전문 프로필
+- PASS: 조우상 UI contains Deal Advisory
+- PASS: 조우상 UI contains 페트라브릿지
+- PASS: 조우상 UI contains KPMG
+- PASS: 조우상 UI contains Sciences Po
+- PASS: 조우상 UI contains Brandeis
+- PASS: 조우상 UI contains 출처
+- PASS: 조우상 UI excludes 변호사
+- PASS: 조우상 UI excludes 공인회계사
+- PASS: 조우상 UI excludes attorney
+- PASS: 조우상 UI excludes CPA
+- PASS: 박병준 screenshot exists
+- PASS: 임영훈 screenshot exists
+- PASS: 서지원 screenshot exists
+- PASS: 조성민 screenshot exists
+- PASS: 김양태 screenshot exists
+- PASS: 조우상 screenshot exists
+
+## Boundary
+
+- Runtime web scraping: false
+- Production write: false
+- OIDC / DB conversion / production_ready claim: false

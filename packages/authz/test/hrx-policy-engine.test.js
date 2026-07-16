@@ -28,6 +28,26 @@ test("HRX ABAC policy allows scoped HR purpose", () => {
   assert.equal(decision.audit_required, true);
 });
 
+test("HRX ABAC policy accepts LawOS roster roles when scope is present", () => {
+  const decision = evaluateHrxPolicy({
+    principal: { ...basePrincipal, role_ids: ["lawos_staff"] },
+    resource: baseResource,
+    action: "read",
+    purpose: "hr_operations",
+  });
+  assert.equal(decision.effect, "allow");
+});
+
+test("HRX ABAC policy resolves overtime sensitivity scopes", () => {
+  const decision = evaluateHrxPolicy({
+    principal: { ...basePrincipal, hrx_scopes: ["hrx.overtime.read"] },
+    resource: { ...baseResource, resource_type: "OvertimeRequest", sensitivity: "overtime" },
+    purpose: "hr_operations",
+  });
+  assert.equal(decision.effect, "allow");
+  assert.equal(decision.required_scope, "hrx.overtime.read");
+});
+
 test("HRX ABAC policy denies by tenant, role, purpose, and scope", () => {
   assert.equal(
     evaluateHrxPolicy({

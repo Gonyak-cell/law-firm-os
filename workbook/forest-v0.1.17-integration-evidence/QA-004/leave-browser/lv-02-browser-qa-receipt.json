@@ -1,0 +1,79 @@
+{
+  "schema_version": "lawos.leave_management.browser_qa.v0.1",
+  "work_package": "LV-02",
+  "generated_at": "2026-07-15T23:36:07.192Z",
+  "runtime": {
+    "profile": "local-dev",
+    "endpoint_kind": "loopback_ephemeral",
+    "persistent_store_kind": "isolated_temporary"
+  },
+  "roles": {
+    "hr_admin": "user_amic_jwsuh",
+    "staff": "user_amic_yjlee"
+  },
+  "checks": {
+    "hr_sidebar_visible": true,
+    "staff_sidebar_hidden": true,
+    "staff_direct_route_denied": true,
+    "group_created": true,
+    "leave_type_created": true,
+    "policy_draft_created": true,
+    "policy_published": true,
+    "responsive_geometry_passed": true,
+    "page_error_count": 0,
+    "console_error_count": 0
+  },
+  "geometry": [
+    {
+      "viewport": {
+        "width": 1512,
+        "height": 864
+      },
+      "client_width": 1512,
+      "scroll_width": 1512,
+      "panel_visible": true
+    },
+    {
+      "viewport": {
+        "width": 720,
+        "height": 800
+      },
+      "client_width": 720,
+      "scroll_width": 720,
+      "panel_visible": true
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-02-leave-settings-1512x864.png",
+      "sha256": "e08d4cc30834152c0de9374dfe4e772dab403de262402a52ee0cbd46923530ae",
+      "viewport": {
+        "width": 1512,
+        "height": 864
+      }
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-02-leave-settings-720x800.png",
+      "sha256": "710d549d62128faa5f4a145261ba75745e1ce782ba3645a69206ee8cd874dfeb",
+      "viewport": {
+        "width": 720,
+        "height": 800
+      }
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-02-leave-settings-staff-denied-1280x820.png",
+      "sha256": "f64e82736f2e50b2f69e255705a9169ebdb9fd648b0af6d565fbf3bcd95aa057",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      }
+    }
+  ],
+  "boundary": {
+    "production_store_used": false,
+    "real_employee_data_used": false,
+    "credential_material_recorded": false,
+    "public_release_claim": false,
+    "go_live_claim": false
+  }
+}

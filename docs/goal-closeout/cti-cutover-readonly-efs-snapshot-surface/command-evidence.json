@@ -1,0 +1,84 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.command-evidence.v0.1",
+  "goal_id": "cti-cutover-readonly-efs-snapshot-surface",
+  "recorded_at": "2026-07-06T07:10:00Z",
+  "closeout_decision": "PASS_READONLY_EFS_SNAPSHOT_SURFACE",
+  "commands": [
+    {
+      "command": "node --check apps/api/src/lambda.js",
+      "exit_code": 0,
+      "status": "LOCAL_TEST_PASS",
+      "summary": "Lambda handler syntax check passed."
+    },
+    {
+      "command": "node --test apps/api/test/lambda-session-secret.test.js",
+      "exit_code": 0,
+      "status": "LOCAL_TEST_PASS",
+      "summary": "Secrets Manager bootstrap and I14 direct-invoke snapshot tests passed."
+    },
+    {
+      "command": "aws lambda update-function-code --function-name matter-lawos-api-prod --zip-file fileb://... --revision-id <pre-i14-revision>",
+      "exit_code": 0,
+      "status": "LAMBDA_DEPLOY_PASS",
+      "summary": "Lambda code update passed; post CodeSha256=QPwLXbHH9NOUzN/hENTHVGJ8RnrI7Rkjz4/LrHzuqwA=; LastUpdateStatus=Successful."
+    },
+    {
+      "command": "aws lambda invoke --function-name matter-lawos-api-prod --payload I14 direct invoke",
+      "exit_code": 0,
+      "status": "DIRECT_INVOKE_PASS",
+      "summary": "Lambda direct invoke returned status 200; snapshot_hash=2ce798915fccf16aff5c25746e8db4478dc5f160b7ebe7ca430833ce7735cffb."
+    },
+    {
+      "command": "aws lambda invoke --function-name matter-lawos-api-prod --payload HTTP-shaped I14 snapshot event",
+      "exit_code": 0,
+      "status": "HTTP_SHAPED_EVENT_REJECT_PASS",
+      "summary": "Deployed Lambda returned statusCode=403 reason=cti_snapshot_surface_direct_invoke_only public_http_endpoint=false."
+    },
+    {
+      "command": "Lambda-internal isolated restore rehearsal",
+      "exit_code": 0,
+      "status": "SNAPSHOT_RESTORE_PASS",
+      "summary": "restore status=PASS; source=13; restored=13; mismatches=0."
+    },
+    {
+      "command": "node scripts/validate-cti-cutover-preflight-go-no-go.mjs",
+      "exit_code": 0,
+      "status": "VALIDATOR_PASS",
+      "summary": "Preflight validator now recognizes current snapshot and restore rehearsal PASS while preserving NO_GO_BLOCKED."
+    },
+    {
+      "command": "node scripts/validate-cti-cutover-readonly-efs-snapshot-surface.mjs",
+      "exit_code": 0,
+      "status": "VALIDATOR_PASS",
+      "summary": "I14 closeout validator passes."
+    },
+    {
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "status": "VALIDATOR_PASS",
+      "summary": "launch-TUW ledger validator PASS; TUW total=398; work packages=82; PRE=68; violations=0."
+    }
+  ],
+  "boundary": {
+    "cutover_executed": false,
+    "production_write_executed": false,
+    "production_restore_executed": false,
+    "tenant_migration_executed": false,
+    "account_permission_injection_executed": false,
+    "operational_profile_switch_executed": false,
+    "bridge_token_rotation_executed": false,
+    "password_issuance_distribution_executed": false,
+    "freeze_execution_executed": false,
+    "s5_enrichment_executed": false,
+    "s6_final_seal_executed": false,
+    "oidc_implementation_executed": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "secret_values_recorded": false,
+    "plaintext_pii_recorded": false,
+    "credential_material_recorded": false,
+    "token_material_recorded": false,
+    "password_material_recorded": false
+  }
+}

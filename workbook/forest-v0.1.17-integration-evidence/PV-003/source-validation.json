@@ -1,0 +1,18 @@
+{
+  "verdict": "PASS",
+  "mode": "source",
+  "protected_entrypoints": [
+    "scripts/build-matter-desktop-mac.mjs",
+    "scripts/build-matter-desktop-win.mjs",
+    "scripts/build-matter-desktop-win-installer.mjs",
+    "scripts/release-matter-desktop-formal.mjs"
+  ],
+  "protected_entrypoint_count": 4,
+  "formal_bypass_count": 0,
+  "allowed_refs": [
+    "main",
+    "integration/forest-v<semver>",
+    "release/forest-v<semver>",
+    "DETACHED exact SHA"
+  ]
+}

@@ -1,0 +1,8 @@
+git fetch --prune --tags origin
+git status --short --branch
+git rev-parse HEAD origin/main origin/codex/integration/forest-v0.1.17
+git merge-base HEAD origin/main
+git rev-list --left-right --count origin/main...HEAD
+git merge-tree $(git merge-base HEAD origin/main) origin/main HEAD
+gh api repos/Gonyak-cell/law-firm-os/branches/main/protection
+gh api repos/Gonyak-cell/law-firm-os

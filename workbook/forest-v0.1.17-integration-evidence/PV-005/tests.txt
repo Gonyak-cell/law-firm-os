@@ -1,0 +1,61 @@
+PV-005 test-first red proof:
+- exit: 1
+- cause: requested module scripts/lib/matter-desktop-release-paths.mjs was absent
+- stdout sha256: c931d07cfb77952846dadbcc5ce557f3501c99d0ed7fb09446cf1d140a18d9f9
+- stderr sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+CLI contract:
+- staging help: PASS
+- PV-005 validator help: PASS
+- PV-005 validator bad input: PASS, exit 2, usage on stderr
+- bad-input stdout sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+- bad-input stderr sha256: fe9f944fde1b82e8e0856a52d85afc9a5cb0280c3f5069fff54fa00ab50c1e7d
+
+Unit and source contracts:
+- PV-001 through PV-005: 17/17 PASS
+- PV-005: 4/4 PASS
+- PV-001 source/package: PASS
+- PV-002 source/package: PASS; shared field mismatch 0, receipt mismatch 0
+- PV-003 source: PASS; protected entrypoints 4, formal bypass 0
+- PV-004 source: PASS; channels 4, unique app IDs 4, unique prefixes 4, builder bypass 0
+- PV-005 source: PASS; protected consumers 5, generic release truth refs 0, scoped pipelines 2
+- PV-005 package: PASS; artifact count 9, generic dependencies 0
+
+Actual exact-SHA package proof:
+- product SHA: c0c46faed61d2a4011d506b43929cdb4c47cffa4
+- product tree: 8c4d354fb6a563176b0a1c80ae30bb21fd6e4d7d
+- source_dirty: Mac false, Windows false
+- sequential build order: Mac then Windows
+- packaged/external manifest equality: 2/2 PASS
+- renderer distinct hash count: 1
+- renderer sha256: f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445
+- renderer file count: 28
+- exact SHA artifact root: apps/desktop/dist/releases/0.1.17/c0c46faed61d2a4011d506b43929cdb4c47cffa4/internal
+- staged artifact count: 9
+- generic mac/win roots moved out during validation: true
+- package validation with generic roots absent: PASS
+- internal release assembly with generic roots absent: PASS
+- post-assembly package validation with generic roots absent: PASS
+- manifest paths outside exact SHA root: 0
+
+Regression:
+- Desktop smoke: 102/102 PASS
+- Desktop file bridge: 17/17 PASS
+- Desktop file bridge validators: 2/2 PASS
+- public renderer PII: PASS; 56 files, protected values not printed
+- syntax: PASS
+- git diff --check: PASS
+- changed-file secret-pattern scan: PASS
+- AI slop review: PASS
+
+Rejected QA attempts:
+- The first accepted-looking package set at f86cb72b was discarded after the release-receipt dirtiness contract required a product patch; all accepted package proof was rebuilt at c0c46fae.
+- One PV-002 package run failed only after generated build receipts were prematurely restored to the repository baseline; the exact-SHA builders and stage were rerun, then the complete accepted regression passed.
+- One command invoked an unsupported PV-004 --package mode and exited with usage; PV-004 supports --source only, which passed. No product assertion failed in that attempt.
+
+Boundaries:
+- accepted signed/notarized/stapled/Gatekeeper-ready formal Mac package: false
+- Windows native runtime/install/restart/uninstall proof: false
+- Windows Authenticode: false
+- public release: false
+- production go-live: false

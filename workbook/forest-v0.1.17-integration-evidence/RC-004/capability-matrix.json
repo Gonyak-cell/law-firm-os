@@ -1,0 +1,426 @@
+[
+  {
+    "id": "HOME",
+    "acceptance": "승인 대기는 구체 항목을 직접 표시하고 최근 작업은 정렬된 단일 행이며 캘린더와 공존한다.",
+    "source_anchors": [
+      "apps/web/src/components/HomeSurface.jsx",
+      "apps/web/src/components/HomeFinanceOperations.jsx"
+    ],
+    "proof_anchors": [
+      "apps/web/test/home-dashboard-r1.test.mjs",
+      "apps/web/test/ui-regression.test.mjs"
+    ],
+    "preserved_path_count": 6,
+    "preserved_paths": [
+      "apps/web/src/components/DashboardList.jsx",
+      "apps/web/src/components/FinanceSurface.jsx",
+      "apps/web/src/components/HomeFinanceOperations.jsx",
+      "apps/web/src/components/HomeSurface.jsx",
+      "apps/web/src/components/OpsSurface.jsx",
+      "apps/web/test/home-dashboard-r1.test.mjs"
+    ],
+    "source_anchor_sha256": {
+      "apps/web/src/components/HomeSurface.jsx": "780be0e55fa3630475c9f175c00fd9883921f0bb6b983e9a87cd468a463f268d",
+      "apps/web/src/components/HomeFinanceOperations.jsx": "cd676308d78f5cd90370d26479a9d02f49c18a0b9d1b044b92fd7b01e030fa3e"
+    },
+    "proof_anchor_sha256": {
+      "apps/web/test/home-dashboard-r1.test.mjs": "28c7c306fc2433583614460a3c7add021ae83ea12f8928b7b5b536c3f9beb214",
+      "apps/web/test/ui-regression.test.mjs": "6ee0dc98fc53c88c3da20617e2a962866fb434c69fc30af2fe70475ea88d4401"
+    },
+    "acceptance_status": "COVERED"
+  },
+  {
+    "id": "CLIENT",
+    "acceptance": "현재 Forest 고객 목록·가져오기·enrichment 계약을 유지한다.",
+    "source_anchors": [
+      "apps/web/src/components/ClientsSurface.jsx",
+      "apps/web/src/components/ImportDataMappingPanel.jsx"
+    ],
+    "proof_anchors": [
+      "apps/web/test/forest-responsive-layout-browser.test.mjs",
+      "apps/web/test/ui-regression.test.mjs"
+    ],
+    "preserved_path_count": 5,
+    "preserved_paths": [
+      "apps/web/src/components/ClientsSurface.jsx",
+      "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+      "apps/web/src/components/ImportDataMappingPanel.jsx",
+      "apps/web/src/components/IntakeSurface.jsx",
+      "apps/web/src/components/ProfilesSurface.jsx"
+    ],
+    "source_anchor_sha256": {
+      "apps/web/src/components/ClientsSurface.jsx": "99943c843bfab17e7a23f7c8b079dd4f687de487e6ff32647867a3cc4043b73b",
+      "apps/web/src/components/ImportDataMappingPanel.jsx": "9e8664b9967c21f9a3ebd492f600e31b798337e4a90123c323cb199c442c232c"
+    },
+    "proof_anchor_sha256": {
+      "apps/web/test/forest-responsive-layout-browser.test.mjs": "e93b6febbc396bc787c4a12ded1b8c6bc64fd46d97497e244f353ccaf057ec5d",
+      "apps/web/test/ui-regression.test.mjs": "6ee0dc98fc53c88c3da20617e2a962866fb434c69fc30af2fe70475ea88d4401"
+    },
+    "acceptance_status": "COVERED"
+  },
+  {
+    "id": "MATTER",
+    "acceptance": "현재 Matter 목록과 Vault 연결 상태를 한 줄 정보 계층으로 유지한다.",
+    "source_anchors": [
+      "apps/web/src/components/MattersSurface.jsx",
+      "apps/web/src/components/MatterVaultPanel.jsx"
+    ],
+    "proof_anchors": [
+      "apps/web/test/forest-responsive-layout-browser.test.mjs",
+      "apps/web/test/ui-regression.test.mjs"
+    ],
+    "preserved_path_count": 2,
+    "preserved_paths": [
+      "apps/web/src/components/MatterVaultPanel.jsx",
+      "apps/web/src/components/MattersSurface.jsx"
+    ],
+    "source_anchor_sha256": {
+      "apps/web/src/components/MattersSurface.jsx": "2d02e3e33d18dff7c08edd2de89402ea0569e1782298c70342efbcf0858b6fa9",
+      "apps/web/src/components/MatterVaultPanel.jsx": "cb3317308c0992173cb689e7b9afef91471abce9eaf2625932b33b89fd5addc3"
+    },
+    "proof_anchor_sha256": {
+      "apps/web/test/forest-responsive-layout-browser.test.mjs": "e93b6febbc396bc787c4a12ded1b8c6bc64fd46d97497e244f353ccaf057ec5d",
+      "apps/web/test/ui-regression.test.mjs": "6ee0dc98fc53c88c3da20617e2a962866fb434c69fc30af2fe70475ea88d4401"
+    },
+    "acceptance_status": "COVERED"
+  },
+  {
+    "id": "PEOPLE",
+    "acceptance": "구성원 조회와 People 업무 모듈을 유지하고 삭제된 근무일정·직무역할·근로정보 메뉴를 되살리지 않는다.",
+    "source_anchors": [
+      "apps/web/src/people/PeopleHome.tsx",
+      "apps/web/src/people/employees/EmployeeList.tsx"
+    ],
+    "proof_anchors": [
+      "apps/web/test/forest-responsive-layout-browser.test.mjs",
+      "apps/api/test/hrx-runtime-api.test.js"
+    ],
+    "preserved_path_count": 14,
+    "preserved_paths": [
+      "apps/web/src/admin/hrx/HRXAuditViewer.tsx",
+      "apps/web/src/admin/hrx/HRXPolicyConsole.tsx",
+      "apps/web/src/people/PeopleHome.tsx",
+      "apps/web/src/people/ai/HRAIAssistant.tsx",
+      "apps/web/src/people/analytics/HRAnalytics.tsx",
+      "apps/web/src/people/approvals/ManagerApprovalQueue.tsx",
+      "apps/web/src/people/attendance/AttendanceWorkspace.tsx",
+      "apps/web/src/people/documents/HRDocumentWorkspace.tsx",
+      "apps/web/src/people/employees/EmployeeList.tsx",
+      "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "apps/web/src/people/legal/LegalPeopleWorkspace.tsx",
+      "apps/web/src/people/lifecycle/LifecycleBoard.tsx",
+      "apps/web/src/people/peopleFeatureCatalog.js",
+      "apps/web/src/people/recruiting/RecruitingPipeline.tsx"
+    ],
+    "source_anchor_sha256": {
+      "apps/web/src/people/PeopleHome.tsx": "4e1fcd87472ec9d9969481908ddbafc88179bf806e7757c2503fda515bfceb4d",
+      "apps/web/src/people/employees/EmployeeList.tsx": "b860f75d53110a787a50ccc45a99d3d9afb70c8ac14f84c39aa77b283f041477"
+    },
+    "proof_anchor_sha256": {
+      "apps/web/test/forest-responsive-layout-browser.test.mjs": "e93b6febbc396bc787c4a12ded1b8c6bc64fd46d97497e244f353ccaf057ec5d",
+      "apps/api/test/hrx-runtime-api.test.js": "aebdee4c555b3162d9889c2dd13198a7d288756e3caa8b59e2c31fe3106bb6c7"
+    },
+    "acceptance_status": "COVERED"
+  },
+  {
+    "id": "SEARCH",
+    "acceptance": "Search 명칭·Vault 통합 검색·현재 Forest hero와 메뉴를 유지하고 문서/OCR 별도 메뉴를 만들지 않는다.",
+    "source_anchors": [
+      "apps/web/src/components/VaultSurface.jsx",
+      "apps/web/src/App.jsx"
+    ],
+    "proof_anchors": [
+      "apps/web/test/forest-responsive-layout-browser.test.mjs",
+      "apps/web/test/ui-regression.test.mjs"
+    ],
+    "preserved_path_count": 5,
+    "preserved_paths": [
+      "apps/web/src/components/AnalyticsSurface.jsx",
+      "apps/web/src/components/AskSurface.jsx",
+      "apps/web/src/components/ReadinessSurface.jsx",
+      "apps/web/src/components/ReportBuilderPanel.jsx",
+      "apps/web/src/components/VaultSurface.jsx"
+    ],
+    "source_anchor_sha256": {
+      "apps/web/src/components/VaultSurface.jsx": "dad063b450619e997dafa72a721d260fa928a9ce909672170ac704b6c84473c8",
+      "apps/web/src/App.jsx": "0e726eb7532bc3940741f86c2b4b2296f08406f5fa3473fc8f8dd1ce4ba203a6"
+    },
+    "proof_anchor_sha256": {
+      "apps/web/test/forest-responsive-layout-browser.test.mjs": "e93b6febbc396bc787c4a12ded1b8c6bc64fd46d97497e244f353ccaf057ec5d",
+      "apps/web/test/ui-regression.test.mjs": "6ee0dc98fc53c88c3da20617e2a962866fb434c69fc30af2fe70475ea88d4401"
+    },
+    "acceptance_status": "COVERED"
+  },
+  {
+    "id": "PORTAL",
+    "acceptance": "현재 Portal shell과 candidate collaboration surface를 유지한다.",
+    "source_anchors": [
+      "apps/web/src/components/PortalSurface.jsx",
+      "apps/web/src/candidate/CandidatePortal.tsx"
+    ],
+    "proof_anchors": [
+      "apps/web/test/forest-responsive-layout-browser.test.mjs",
+      "apps/web/test/ui-regression.test.mjs"
+    ],
+    "preserved_path_count": 2,
+    "preserved_paths": [
+      "apps/web/src/candidate/CandidatePortal.tsx",
+      "apps/web/src/components/PortalSurface.jsx"
+    ],
+    "source_anchor_sha256": {
+      "apps/web/src/components/PortalSurface.jsx": "fbc6d1c62cef8cb4069cd6d2ac72f89c9da54e42eeb6218a99dc159f8f283d97",
+      "apps/web/src/candidate/CandidatePortal.tsx": "cc4d83d3c6f1b1aced1db56de8b7e57a12917f28df76ac3fad8eb9111bc641ba"
+    },
+    "proof_anchor_sha256": {
+      "apps/web/test/forest-responsive-layout-browser.test.mjs": "e93b6febbc396bc787c4a12ded1b8c6bc64fd46d97497e244f353ccaf057ec5d",
+      "apps/web/test/ui-regression.test.mjs": "6ee0dc98fc53c88c3da20617e2a962866fb434c69fc30af2fe70475ea88d4401"
+    },
+    "acceptance_status": "COVERED"
+  },
+  {
+    "id": "AUTH_PROFILE",
+    "acceptance": "Forest 로그인·권한·계정 연결 프로필을 유지하며 known account가 generic 세션 사용자로 후퇴하지 않는다.",
+    "source_anchors": [
+      "apps/api/src/hrx-role-scope-matrix.js",
+      "apps/web/src/components/UserProfileSurface.jsx"
+    ],
+    "proof_anchors": [
+      "apps/api/test/hrx/hrx-role-scope-matrix.test.js",
+      "apps/api/test/profile-api.test.js",
+      "scripts/validate-public-renderer-no-hrx-roster-pii.mjs"
+    ],
+    "preserved_path_count": 5,
+    "preserved_paths": [
+      "apps/api/src/hrx-role-scope-matrix.js",
+      "apps/api/test/hrx/hrx-role-scope-matrix.test.js",
+      "apps/web/src/people/admin/PermissionAdminPanel.jsx",
+      "apps/web/src/people/security/HrxRiskDashboard.tsx",
+      "apps/web/src/people/security/HrxStepUpChallenge.tsx"
+    ],
+    "source_anchor_sha256": {
+      "apps/api/src/hrx-role-scope-matrix.js": "3a93ff39dc21e103e6c0e62b180d12c83ad75009a7a9455b709ea811d4e14c7f",
+      "apps/web/src/components/UserProfileSurface.jsx": "a9d3f1f814ff480cd13206bbf994b57b8e2a7ca24b7ba445f67d7599894cf3bb"
+    },
+    "proof_anchor_sha256": {
+      "apps/api/test/hrx/hrx-role-scope-matrix.test.js": "39aa41854069f8fb0f9ab4ad675c3b175f1a246efd4ef3a836952e2937189080",
+      "apps/api/test/profile-api.test.js": "9f151883e51853a645e77cd998a30a71d8951999c5b4c0f59eb0db77b37b6d08",
+      "scripts/validate-public-renderer-no-hrx-roster-pii.mjs": "86f9cbfc8f929b533c803f6cbbb44023edc49f5eaed0f37bd7b1bab6bf018b45"
+    },
+    "acceptance_status": "COVERED"
+  },
+  {
+    "id": "LEAVE",
+    "acceptance": "휴가 유형·자동/수동 발생·원장 lifecycle·사용·만료·promotion·provider·privacy 전체를 보존한다.",
+    "source_anchors": [
+      "packages/hrx/src/leave/entitlement-command-service.js",
+      "packages/hrx/src/leave/occurrence-upload-batch-service.js",
+      "packages/hrx/src/leave/type-economics.js"
+    ],
+    "proof_anchors": [
+      "packages/hrx/test/leave-entitlement-command-service.test.js",
+      "packages/hrx/test/leave-occurrence-upload-batch-service.test.js",
+      "apps/web/test/leave-settings-ui.test.mjs"
+    ],
+    "preserved_path_count": 46,
+    "preserved_paths": [
+      "apps/api/test/hrx/leave-entitlement-lifecycle-api.test.js",
+      "apps/api/test/hrx/leave-integration-api.test.js",
+      "apps/api/test/hrx/leave-promotion-api.test.js",
+      "apps/api/test/hrx/leave-reporting-api.test.js",
+      "apps/web/test/leave-settings-ui.test.mjs",
+      "docs/lazycodex/evidence/matter-desktop/artifacts/leave-management-package-qa.json",
+      "packages/hrx/src/leave/accrual-batch-repository.js",
+      "packages/hrx/src/leave/accrual-batch-service.js",
+      "packages/hrx/src/leave/accrual-period-generator.js",
+      "packages/hrx/src/leave/entitlement-command-service.js",
+      "packages/hrx/src/leave/entitlement-lifecycle.js",
+      "packages/hrx/src/leave/entitlement-read-service.js",
+      "packages/hrx/src/leave/expiration-job.js",
+      "packages/hrx/src/leave/expiration-service.js",
+      "packages/hrx/src/leave/migration-reconciliation-service.js",
+      "packages/hrx/src/leave/occurrence-upload-batch-service.js",
+      "packages/hrx/src/leave/promotion-service.js",
+      "packages/hrx/src/leave/provider-adapters.js",
+      "packages/hrx/src/leave/reporting-service.js",
+      "packages/hrx/src/leave/type-economics.js",
+      "packages/hrx/src/leave/type-rule-backfill.js",
+      "packages/hrx/src/migrations/011_hrx_leave_type_economics.sql",
+      "packages/hrx/src/migrations/012_hrx_leave_job_outbox.sql",
+      "packages/hrx/src/migrations/013_hrx_leave_accrual_batches.sql",
+      "packages/hrx/src/migrations/014_hrx_leave_occurrence_metadata.sql",
+      "packages/hrx/src/migrations/015_hrx_leave_occurrence_upload_batches.sql",
+      "packages/hrx/src/migrations/016_hrx_leave_promotion_exclusions.sql",
+      "packages/hrx/src/migrations/017_hrx_leave_promotion_notice_hashes.sql",
+      "packages/hrx/src/migrations/018_hrx_leave_promotion_evidence_receipts.sql",
+      "packages/hrx/src/migrations/019_hrx_leave_integration_dead_letters.sql",
+      "packages/hrx/src/migrations/020_hrx_leave_rule_snapshots.sql",
+      "packages/hrx/test/leave-accrual-batch-repository.test.js",
+      "packages/hrx/test/leave-accrual-batch-service.test.js",
+      "packages/hrx/test/leave-accrual-period-generator.test.js",
+      "packages/hrx/test/leave-entitlement-command-service.test.js",
+      "packages/hrx/test/leave-entitlement-lifecycle.test.js",
+      "packages/hrx/test/leave-expiration-job.test.js",
+      "packages/hrx/test/leave-expiration-service.test.js",
+      "packages/hrx/test/leave-migration-reconciliation-service.test.js",
+      "packages/hrx/test/leave-occurrence-upload-batch-service.test.js",
+      "packages/hrx/test/leave-promotion-service.test.js",
+      "packages/hrx/test/leave-provider-adapters.test.js",
+      "packages/hrx/test/leave-reporting-service.test.js",
+      "packages/hrx/test/leave-type-economics.test.js",
+      "packages/hrx/test/leave-type-rule-backfill.test.js",
+      "scripts/run-leave-management-packaged-qa.mjs"
+    ],
+    "source_anchor_sha256": {
+      "packages/hrx/src/leave/entitlement-command-service.js": "2f614d61da7cabc55fc1d32bcc51935433ec30c56c577605998b236996f1bd61",
+      "packages/hrx/src/leave/occurrence-upload-batch-service.js": "c1e0ca4a47b82321b2ac41bf3636d2a878cbe7a859f84c82752ca103bd4af3a0",
+      "packages/hrx/src/leave/type-economics.js": "119dfc0fec8db4594e9b393159eb72d5ad8ec6f75bb581b612a71b9d920bea31"
+    },
+    "proof_anchor_sha256": {
+      "packages/hrx/test/leave-entitlement-command-service.test.js": "bf0c1dcb012324d4086e0fbd64772e7c7875685ff4e2da7101a14d9709f39798",
+      "packages/hrx/test/leave-occurrence-upload-batch-service.test.js": "304fb6bfce0df071286dc3fb77510323a28a1d8b94807dfb8ee5d5764a9c5826",
+      "apps/web/test/leave-settings-ui.test.mjs": "057b8546b4904fa476aeb7b862c50421fe66179f9875a9ffcbae962c2a470198"
+    },
+    "acceptance_status": "COVERED"
+  },
+  {
+    "id": "PAYROLL",
+    "acceptance": "입력·계산·공제·run·명세서·지급·신고·migration·year-end 전체를 보존한다.",
+    "source_anchors": [
+      "packages/hrx/src/payroll/run-service.js",
+      "packages/hrx/src/payroll/deduction-engine.js",
+      "packages/hrx/src/payroll/document-service.js"
+    ],
+    "proof_anchors": [
+      "packages/hrx/test/payroll-run-service.test.js",
+      "packages/hrx/test/payroll-deduction-engine.test.js",
+      "apps/web/test/payroll-workspace-ui.test.mjs"
+    ],
+    "preserved_path_count": 56,
+    "preserved_paths": [
+      "apps/api/src/hrx-payroll-runtime.js",
+      "apps/api/src/routes/hrx/payroll-runtime.js",
+      "apps/api/test/hrx/payroll-runtime.test.js",
+      "apps/web/src/people/payroll/PayrollBoundaryPanel.tsx",
+      "apps/web/src/people/payroll/PayrollStatementWorkspace.tsx",
+      "apps/web/test/payroll-workspace-ui.test.mjs",
+      "docs/lazycodex/evidence/matter-desktop/artifacts/payroll-final-verification-2026-07-15.md",
+      "docs/lazycodex/evidence/matter-desktop/artifacts/payroll-package-qa-2026-07-15.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/payroll-browser-qa-2026-07-15.json",
+      "packages/billing/src/invoice-pdf-service.js",
+      "packages/hrx/fixtures/company-time-payroll-policy.synthetic.json",
+      "packages/hrx/fixtures/leave-payroll-golden.synthetic.json",
+      "packages/hrx/fixtures/payroll-statutory-rules.synthetic.json",
+      "packages/hrx/src/company-policy-manifest.js",
+      "packages/hrx/src/golden-fixture.js",
+      "packages/hrx/src/migrations/021_hrx_payroll_runtime.sql",
+      "packages/hrx/src/migrations/022_hrx_payroll_inputs.sql",
+      "packages/hrx/src/migrations/023_hrx_payroll_profile_units.sql",
+      "packages/hrx/src/migrations/024_hrx_payroll_run_controls.sql",
+      "packages/hrx/src/migrations/025_hrx_payroll_year_end.sql",
+      "packages/hrx/src/overtime.js",
+      "packages/hrx/src/payroll-boundary.js",
+      "packages/hrx/src/payroll/calculation-engine.js",
+      "packages/hrx/src/payroll/deduction-engine.js",
+      "packages/hrx/src/payroll/document-service.js",
+      "packages/hrx/src/payroll/filing-service.js",
+      "packages/hrx/src/payroll/input-snapshot-service.js",
+      "packages/hrx/src/payroll/migration-service.js",
+      "packages/hrx/src/payroll/money.js",
+      "packages/hrx/src/payroll/parallel-comparison-service.js",
+      "packages/hrx/src/payroll/payment-service.js",
+      "packages/hrx/src/payroll/repository.js",
+      "packages/hrx/src/payroll/run-service.js",
+      "packages/hrx/src/payroll/statutory-rule-service.js",
+      "packages/hrx/src/payroll/year-end-service.js",
+      "packages/hrx/src/provider-receipt-contract.js",
+      "packages/hrx/test/company-policy-manifest.test.js",
+      "packages/hrx/test/golden-fixture.test.js",
+      "packages/hrx/test/payroll-calculation-engine.test.js",
+      "packages/hrx/test/payroll-deduction-engine.test.js",
+      "packages/hrx/test/payroll-document-service.test.js",
+      "packages/hrx/test/payroll-filing-service.test.js",
+      "packages/hrx/test/payroll-input-snapshot-service.test.js",
+      "packages/hrx/test/payroll-migration-service.test.js",
+      "packages/hrx/test/payroll-money.test.js",
+      "packages/hrx/test/payroll-parallel-comparison-service.test.js",
+      "packages/hrx/test/payroll-payment-service.test.js",
+      "packages/hrx/test/payroll-readiness-contract.test.js",
+      "packages/hrx/test/payroll-repository.test.js",
+      "packages/hrx/test/payroll-run-service.test.js",
+      "packages/hrx/test/payroll-statutory-rule-service.test.js",
+      "packages/hrx/test/payroll-year-end-service.test.js",
+      "packages/hrx/test/provider-receipt-contract.test.js",
+      "scripts/run-payroll-browser-qa.mjs",
+      "scripts/run-payroll-packaged-qa.mjs",
+      "workbook/hrx-leave-payroll-tuw-implementation-plan-2026-07-14.md"
+    ],
+    "source_anchor_sha256": {
+      "packages/hrx/src/payroll/run-service.js": "a9bf60cc9d7aa6ed31a04a1262e0db21f8985848a8724bb7b9e9fdaf5167be14",
+      "packages/hrx/src/payroll/deduction-engine.js": "46b5ff7273030ab012ca0629db17685c64ea16ae017fc91c565e43e8261da5a8",
+      "packages/hrx/src/payroll/document-service.js": "8fc18d77fcc3d8f4aae6b479ca319debf9bbcb23f7a84120c39133449fb26ca7"
+    },
+    "proof_anchor_sha256": {
+      "packages/hrx/test/payroll-run-service.test.js": "972da8cd163974fbc96e8c631655afd2e3800f0e0f746f1197067b6012466654",
+      "packages/hrx/test/payroll-deduction-engine.test.js": "66169257a2b2db8c4e1aeb4df25be65d11089361649b7850d4ce27f4fe396dcd",
+      "apps/web/test/payroll-workspace-ui.test.mjs": "b97826e63b27133d3a42037b7c9cc8270dfdf30048dbd28987027eac18e467ee"
+    },
+    "acceptance_status": "COVERED"
+  },
+  {
+    "id": "PERSISTENCE_AUTHZ_PACKAGE",
+    "acceptance": "durable store·tenant/authz·Desktop runtime·renderer·PII validator·checkpoint/QA 도구를 보존한다.",
+    "source_anchors": [
+      "packages/hrx/src/store/port.js",
+      "apps/desktop/src/main/aws-runtime.js",
+      "apps/web/src/components/Shell.jsx"
+    ],
+    "proof_anchors": [
+      "apps/desktop/test/aws-runtime-client.test.mjs",
+      "apps/desktop/test/renderer-runtime-ui.test.mjs",
+      "apps/web/test/forest-responsive-layout-browser.test.mjs"
+    ],
+    "preserved_path_count": 29,
+    "preserved_paths": [
+      "apps/api/test/hrx-runtime-api.test.js",
+      "apps/desktop/src/main/aws-runtime.js",
+      "apps/desktop/src/renderer/offline.html",
+      "apps/desktop/test/aws-runtime-client.test.mjs",
+      "apps/desktop/test/renderer-runtime-ui.test.mjs",
+      "apps/web/src/App.jsx",
+      "apps/web/src/components/Shell.jsx",
+      "apps/web/src/components/primitives.jsx",
+      "apps/web/src/data/globalUtilities.js",
+      "apps/web/src/i18n.js",
+      "apps/web/src/styles.css",
+      "apps/web/test/forest-responsive-layout-browser.test.mjs",
+      "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md",
+      "packages/hrx/src/migrations/safety.js",
+      "packages/hrx/test/migration-safety.test.js",
+      "scripts/generate-forest-checkpoint-evidence.mjs",
+      "workbook/forest-v0.1.17-integration-evidence/FZ-001/acceptance.md",
+      "workbook/forest-v0.1.17-integration-evidence/FZ-001/commands.txt",
+      "workbook/forest-v0.1.17-integration-evidence/FZ-001/receipt.json",
+      "workbook/forest-v0.1.17-integration-evidence/FZ-002/acceptance.md",
+      "workbook/forest-v0.1.17-integration-evidence/FZ-002/manifest.tsv",
+      "workbook/forest-v0.1.17-integration-evidence/FZ-002/receipt.json",
+      "workbook/forest-v0.1.17-integration-evidence/FZ-003/acceptance.md",
+      "workbook/forest-v0.1.17-integration-evidence/FZ-003/commands.txt",
+      "workbook/forest-v0.1.17-integration-evidence/FZ-003/security-scan.json",
+      "workbook/forest-v0.1.17-integration-evidence/FZ-004/acceptance.md",
+      "workbook/forest-v0.1.17-integration-evidence/FZ-004/commands.txt",
+      "workbook/forest-v0.1.17-integration-evidence/FZ-004/receipt.json",
+      "workbook/forest-v0.1.17-integration-evidence/FZ-005/precommit-security-scan.json"
+    ],
+    "source_anchor_sha256": {
+      "packages/hrx/src/store/port.js": "b5e9c147c051b82a79d979a93b7d5a132e72f96beaca95d829bf2a4a9d036083",
+      "apps/desktop/src/main/aws-runtime.js": "0acaeaca7d565a0f358e0a34b17987f46674e030a0754e272d09db8bd3e03052",
+      "apps/web/src/components/Shell.jsx": "49efdac45e27a7b5634b4e2eca7c225bbf4eed77334848f1519279f5b0da4c2b"
+    },
+    "proof_anchor_sha256": {
+      "apps/desktop/test/aws-runtime-client.test.mjs": "634efc618f32796700d719cb623cf8c87f41d906d855f02a19bfcfce3780798d",
+      "apps/desktop/test/renderer-runtime-ui.test.mjs": "e6a7a711926017059664cb2f86356d48867c4d1f5c1b390e34510c2ed0e8b669",
+      "apps/web/test/forest-responsive-layout-browser.test.mjs": "e93b6febbc396bc787c4a12ded1b8c6bc64fd46d97497e244f353ccaf057ec5d"
+    },
+    "acceptance_status": "COVERED"
+  }
+]

@@ -1,0 +1,122 @@
+{
+  "id": "d05-hrx-overtime-risk-runtime-2026-07-02",
+  "created_at": "2026-07-02T00:00:00.000+09:00",
+  "wave": "Wave 1 internal SaaS uplift",
+  "plan_item": "UPL-D-05",
+  "scope": "HRX overtime backend/runtime slice: durable overtime request store, API submit/list/approve/reject routes, weekly 52-hour risk detection, unapproved excess attendance detection.",
+  "claim_boundary": {
+    "completed": [
+      "overtime requests persist through the HRX durable file-backed store",
+      "GET /api/hrx/overtime lists tenant-scoped overtime requests",
+      "POST /api/hrx/overtime submits a source-traceable overtime request",
+      "POST /api/hrx/overtime/:overtime_id/approve transitions submitted overtime to approved",
+      "GET /api/hrx/overtime/risks compares effective attendance records with approved overtime",
+      "weekly 52-hour limit excess produces a high-severity risk event",
+      "attendance hours beyond standard daily hours without approved overtime produce warning risk events",
+      "HRX route authz requires hrx.overtime.read or hrx.overtime.write before runtime"
+    ],
+    "not_claimed": [
+      "overtime input UI",
+      "manager approval queue UI",
+      "payroll calculation or disbursement execution"
+    ]
+  },
+  "manual_surface_receipt": {
+    "command": "node --input-type=module -e <startApiServer overtime risk flow>",
+    "employee": {
+      "status": 201,
+      "employee_id": "emp_manual_overtime_001"
+    },
+    "submitted": {
+      "status": 201,
+      "overtime_id": "ot-manual-001",
+      "state": "submitted"
+    },
+    "approved": {
+      "status": 200,
+      "state": "approved",
+      "approver_id": "manager-manual-001"
+    },
+    "risks": {
+      "status": 200,
+      "event_count": 4,
+      "event_types": [
+        "unapproved_overtime_detected",
+        "unapproved_overtime_detected",
+        "unapproved_overtime_detected",
+        "weekly_limit_exceeded"
+      ],
+      "weekly_excess": 4,
+      "unapproved_dates": [
+        "2026-07-07",
+        "2026-07-08",
+        "2026-07-09"
+      ]
+    },
+    "audit": {
+      "status": 200,
+      "actions": [
+        "hrx.employee.create",
+        "hrx.overtime.submit",
+        "hrx.overtime.approve",
+        "hrx.overtime.risk.read"
+      ]
+    }
+  },
+  "focused_verification": {
+    "command": "node --test packages/hrx/test/overtime.test.js packages/hrx/test/attendance.test.js packages/hrx/test/attendance-sql.test.js packages/hrx/test/migration.test.js packages/authz/test/hrx-policy-engine.test.js apps/api/test/hrx/durability.test.js apps/api/test/hrx/route-authz.test.js apps/api/test/hrx-runtime-api.test.js",
+    "result": "PASS",
+    "tests": 55,
+    "failed": 0
+  },
+  "hrx_scope_verification": {
+    "command": "node --test packages/hrx/test/*.test.js packages/authz/test/hrx-policy-engine.test.js apps/api/test/hrx/*.test.js apps/api/test/hrx-runtime-api.test.js",
+    "result": "PASS",
+    "tests": 436,
+    "failed": 0
+  },
+  "validators": [
+    {
+      "command": "node scripts/validate-hrx-route-authz.mjs",
+      "result": "PASS",
+      "route_policy_count": 39
+    },
+    {
+      "command": "node scripts/validate-hrx-persistence.mjs",
+      "result": "PASS",
+      "durable_store": "file-backed",
+      "workflow_table_added": "hrx_overtime_requests"
+    },
+    {
+      "command": "node scripts/validate-hrx-workflows.mjs",
+      "result": "PASS",
+      "scope": "people_ops_workflows"
+    },
+    {
+      "command": "node scripts/validate-hrx-runtime-readiness.mjs",
+      "result": "PASS"
+    }
+  ],
+  "repo_verification": {
+    "git_diff_check": {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    "artifact_json": {
+      "command": "node -e \"JSON.parse(fs.readFileSync('artifacts/manual-qa/d05-hrx-overtime-risk-runtime-2026-07-02.json','utf8'))\"",
+      "result": "PASS"
+    },
+    "full_test_suite": {
+      "command": "npm test",
+      "result": "PASS",
+      "tests": 4107,
+      "failed": 0
+    },
+    "ai_slop_review": {
+      "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+      "result": "PASS_WITH_EXISTING_UNRELATED_FINDINGS",
+      "finding_count": 37,
+      "d05_backend_runtime_new_findings": 0
+    }
+  }
+}

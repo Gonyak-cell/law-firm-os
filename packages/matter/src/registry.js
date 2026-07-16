@@ -2644,6 +2644,12 @@ export const MATTER_TASK_STATUSES = Object.freeze(["todo", "in_progress", "block
 
 export const MATTER_CHECKLIST_STATUSES = Object.freeze(["draft", "active", "completed", "archived"]);
 
+export const MATTER_WORKTREE_STATUSES = Object.freeze(["active", "archived"]);
+
+export const MATTER_WORKTREE_NODE_TYPES = Object.freeze(["branch", "task"]);
+
+export const MATTER_WORKTREE_TEMPLATE_STATUSES = Object.freeze(["draft", "approved", "archived"]);
+
 export const MATTER_WIKI_STATUSES = Object.freeze(["shell", "active", "under_review", "snapshotted", "archived"]);
 
 export const MATTER_WIKI_SECTION_TYPES = Object.freeze([
@@ -2816,6 +2822,85 @@ export const MATTER_CORE_MODEL_DEFINITIONS = Object.freeze({
     lifecycle_statuses: MATTER_CHECKLIST_STATUSES,
     matter_trace_policy: "required",
     required_fields: Object.freeze(["checklist_id", "tenant_id", "matter_id", "title", "status"]),
+  }),
+  MatterWorktree: Object.freeze({
+    primary_id: "worktree_id",
+    tenant_field: "tenant_id",
+    owner_module: "MatterCore",
+    lifecycle_statuses: MATTER_WORKTREE_STATUSES,
+    matter_trace_policy: "required",
+    required_fields: Object.freeze([
+      "worktree_id",
+      "tenant_id",
+      "matter_id",
+      "status",
+      "version",
+      "created_by",
+      "created_at",
+      "updated_by",
+      "updated_at",
+    ]),
+  }),
+  MatterWorktreeNode: Object.freeze({
+    primary_id: "node_id",
+    tenant_field: "tenant_id",
+    owner_module: "MatterCore",
+    lifecycle_statuses: MATTER_WORKTREE_STATUSES,
+    matter_trace_policy: "required",
+    nullable_required_fields: Object.freeze(["parent_node_id", "task_id"]),
+    required_fields: Object.freeze([
+      "node_id",
+      "worktree_id",
+      "tenant_id",
+      "matter_id",
+      "node_type",
+      "parent_node_id",
+      "title",
+      "sort_order",
+      "status",
+      "task_id",
+    ]),
+  }),
+  MatterWorktreeTemplate: Object.freeze({
+    primary_id: "template_id",
+    tenant_field: "tenant_id",
+    owner_module: "MatterCore",
+    lifecycle_statuses: MATTER_WORKTREE_TEMPLATE_STATUSES,
+    matter_trace_policy: "none",
+    nullable_required_fields: Object.freeze(["approval_ref", "approved_by", "approved_at"]),
+    required_fields: Object.freeze([
+      "template_id",
+      "tenant_id",
+      "practice_area",
+      "name",
+      "status",
+      "version",
+      "approval_ref",
+      "approved_by",
+      "approved_at",
+      "created_by",
+      "created_at",
+      "updated_by",
+      "updated_at",
+    ]),
+  }),
+  MatterWorktreeTemplateNode: Object.freeze({
+    primary_id: "template_node_id",
+    tenant_field: "tenant_id",
+    owner_module: "MatterCore",
+    lifecycle_statuses: MATTER_WORKTREE_STATUSES,
+    matter_trace_policy: "none",
+    nullable_required_fields: Object.freeze(["parent_template_node_id"]),
+    required_fields: Object.freeze([
+      "template_node_id",
+      "template_id",
+      "tenant_id",
+      "node_type",
+      "parent_template_node_id",
+      "title",
+      "sort_order",
+      "status",
+    ]),
   }),
   MatterWiki: Object.freeze({
     primary_id: "wiki_id",

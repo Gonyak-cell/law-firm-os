@@ -1,0 +1,9 @@
+packages/matter/src/repository.js
+packages/matter/src/repository-record.js
+packages/matter/src/migrations/index.js
+packages/matter/src/migrations/002_matter_worktree.sql
+packages/matter/test/worktree-repository.test.js
+workbook/matter-worktree-evidence/WT-01-04/acceptance.md
+workbook/matter-worktree-evidence/WT-01-04/commands.txt
+workbook/matter-worktree-evidence/WT-01-04/tests.txt
+workbook/matter-worktree-evidence/WT-01-04/files.txt

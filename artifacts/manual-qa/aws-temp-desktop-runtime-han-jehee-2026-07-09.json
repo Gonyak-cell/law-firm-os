@@ -1,0 +1,35 @@
+{
+  "schema_version": "law-firm-os.aws-temp-desktop-runtime-han-jehee.v1",
+  "generated_at": "2026-07-09T05:13:58.394Z",
+  "function_name": "matter-temp-desktop-runtime",
+  "base_origin": "https://d2mthcc8vp3cr2.cloudfront.net",
+  "lambda_code_sha256": "m/uOypvvRLvKftcEjk3Fpg9ASG2fYMU7JZ6/WJZ/U84=",
+  "deployment_zip_sha256": "9bfb8eca9bef44bbca7ed7048e4dc5a60f40486d9f60c53b259ebf58967f53ce",
+  "health": {
+    "ok": true,
+    "service": "matter-temp-desktop-runtime",
+    "registered_account_count": 12,
+    "highest_privilege_account": "jwsuh@amic.kr",
+    "production_ready_completed": false,
+    "public_release_completed": false
+  },
+  "accounts": {
+    "ok": true,
+    "count": 12,
+    "han_account": {
+      "email": "jh731@amic.kr",
+      "display_name": "한제희",
+      "source_title": "고문변호사",
+      "status": "active",
+      "role_ids": [
+        "attorney",
+        "matter_vault_user"
+      ],
+      "group_ids": [
+        "group_attorneys",
+        "group_matter_vault_users"
+      ]
+    },
+    "token_material_returned": false
+  }
+}

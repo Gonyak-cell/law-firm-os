@@ -1,0 +1,21 @@
+# MG-006 Acceptance
+
+- TUW: MG-006
+- status: DONE
+- entry_sha: `a79cb5f2743a03e012af01badcf86d1721750aab`
+- exit_sha: `75a3851e06e2d2a6c91363b707b39ffec800a175`
+- changed_files: deterministic recovery validator, regression test, evidence generator, MG-006 evidence set, Goal execution ledger
+- root source HEAD: `aa653bb12c7424fb5cda717817ba1ee1d2c454c3`
+- root source working-tree SHA-256: `7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3`
+- migration rerun: first 28/28, second 0/28
+- injected failure: canonical partial receipts 0, SQLite partial schema objects 0
+- restore: canonical exact true, SQLite exact true
+- SQLite transaction rollback exact: true
+- integrity: ok; FK errors 0
+- commands: see `commands.txt`
+- test_result: syntax, CLI contracts, 5 recovery gates, 12 targeted migration tests, 566 complete HRX tests, web production build, integrity, root fingerprint, and deterministic checks PASS
+- manual_qa: directly ran validator happy/help/invalid paths and inspected immutable receipt skip, injected failure restore, backup checksum rejection, checkpoint file restore, re-upgrade, transaction rollback, and durable reopen hashes
+- evidence_hashes: report `8d9aeb9451d1cbd191c5ecbc95fa96e06ca5eaea97c8b235f53c966540ba1c45`, recovery matrix `de280d096bbf730d396b51c71a21aff92d248a147b51bad34af06aaa63a32a0d`
+- known_limits: repository-safe synthetic files only; production data migration and external provider/bank/tax writes are outside MG-006 and remain approval-gated
+- external_blockers: none
+- AI slop review: pass; no product UI or user-facing copy changed

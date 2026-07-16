@@ -1,0 +1,96 @@
+{
+  "schema_version": "lawos.amic_current.production_bridge_upsert.v0.1",
+  "generated_at": "2026-07-09T01:25:24.394Z",
+  "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+  "tenant_id": "tenant_amic_matter_vault",
+  "verdict": "PASS",
+  "token_source": "lambda_environment",
+  "sso_login": {
+    "attempted": false,
+    "profile": "amic-vault-staging-admin",
+    "status": null,
+    "auto_login_enabled": true
+  },
+  "lambda_function_name": "matter-lawos-api-prod",
+  "lambda_deployment_commit": "365325a0213b015ecfccb3b8130786605a83de93",
+  "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+  "approval_ref": "amic-current-matter-codes-production-bridge-2026-07-01",
+  "secret_value_recorded": false,
+  "client_upserts": {
+    "total": 99,
+    "actions": {
+      "skipped_idempotent": 99
+    },
+    "failed": []
+  },
+  "matter_upserts": {
+    "total": 148,
+    "actions": {
+      "skipped_idempotent": 148
+    },
+    "failed": []
+  },
+  "readback": {
+    "required_codes": [
+      {
+        "code": "제이에스테크/DEAL/Project Jade",
+        "found": true,
+        "match_count": 1
+      },
+      {
+        "code": "새빗켐/DEAL/Project Tempus",
+        "found": true,
+        "match_count": 1
+      },
+      {
+        "code": "성일하이텍/DEAL/Project S",
+        "found": true,
+        "match_count": 1
+      },
+      {
+        "code": "포이스/DEAL/Project Fausta",
+        "found": true,
+        "match_count": 1
+      },
+      {
+        "code": "위즈코어/DEAL/Project Wiz",
+        "found": true,
+        "match_count": 1
+      },
+      {
+        "code": "엠피닉스/DEAL/Project Phoenix",
+        "found": true,
+        "match_count": 1
+      },
+      {
+        "code": "유진이엔티/DEAL/Project Horizon",
+        "found": true,
+        "match_count": 1
+      },
+      {
+        "code": "타이탄컴퍼니/DEAL/Project Titan",
+        "found": true,
+        "match_count": 1
+      },
+      {
+        "code": "성진종합전기/DEAL/Project Switch",
+        "found": true,
+        "match_count": 1
+      },
+      {
+        "code": "귀한사람들/Advisory/retainer",
+        "found": true,
+        "match_count": 1
+      }
+    ],
+    "lookup_count_leak_prevented": true
+  },
+  "boundary": {
+    "remote_production_bridge_write_executed": true,
+    "real_client_matter_code_inventory_used": true,
+    "raw_document_content_used": false,
+    "vault_document_write_enabled": false,
+    "public_release_claim": false,
+    "company_wide_go_live_claim": false
+  }
+}

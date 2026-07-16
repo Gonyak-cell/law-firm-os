@@ -86,9 +86,9 @@ const rows = [
   {
     id: "LCX8-ACTION-0241",
     url: `${WEB}/?locale=ko&view=profile&ctx=allow`,
-    selector: "[data-profile-action-card='비용·정산 내역']",
+    selector: "[data-profile-action-card='정산 내역']",
     expectSelector: "[data-profile-local-state]",
-    expectedText: /비용·정산 내역.*프로필 데이터/s,
+    expectedText: /정산 내역.*프로필 데이터/s,
     screenshot: `${SCREENSHOT_DIR}/lcx8-action-0241-profile-expense-card-proof.png`,
     classification: "ui_state_only"
   },

@@ -1,0 +1,134 @@
+{
+  "schema_version": "law-firm-os.dashboard-package-screen-qa.v0.1",
+  "generated_at": "2026-07-10T17:01:35.352Z",
+  "status": "passed",
+  "platform": "darwin",
+  "executable": "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "executable_sha256": "c0bf182389ea930585e3b0bf5c4f16529461e02bf3be751cb364d0e25f2257e0",
+  "renderer_handoff": "packaged_login_to_product_url",
+  "fixture_only": true,
+  "real_client_data_used": false,
+  "credential_material_used": false,
+  "expected_sections": {
+    "home": [
+      "home",
+      "recent-work",
+      "today-todo",
+      "calendar",
+      "monthly-sales",
+      "new-engagements",
+      "feed"
+    ],
+    "clients": [
+      "new-clients",
+      "prospects-contacts",
+      "revenue-ranking",
+      "client-meetings",
+      "accounts-receivable"
+    ],
+    "matters": [
+      "recent-work",
+      "today-todo",
+      "my-matters",
+      "new-engagements",
+      "closed-matters"
+    ],
+    "people": []
+  },
+  "surfaces": {
+    "home": {
+      "sections": [
+        "home",
+        "recent-work",
+        "today-todo",
+        "new-engagements",
+        "monthly-sales",
+        "feed",
+        "calendar"
+      ],
+      "section_row_counts": {
+        "home": 0,
+        "recent-work": 3,
+        "today-todo": 0,
+        "new-engagements": 1,
+        "monthly-sales": 1,
+        "feed": 0,
+        "calendar": 0
+      },
+      "record_rows": 5,
+      "horizontal_overflow": false,
+      "matter_kpi_count": 0,
+      "approval_widget_count": 0,
+      "people_dashboard_count": 0,
+      "customer_dashboard_title_count": 1,
+      "forbidden_visible_values": [],
+      "body_preview": "Welcome, 대시보드 패키지 QA QA님 2026년 7월 11일 토요일 최근 작업 QA-2026-001 고객 미지정 / 계약 자문 7. 11. 오전 02:01 진행 중 QA-2026-002 고객 미지정 / 신규 수임 검토 7. 11. 오전 02:01 수임 준비 QA-2026-003 고객 미지정 / 종결 자문 7. 11. 오전 02:01 종결 오늘 To Do 오늘 계약서 검토 7. 11. 오후 12:00, 매터 연결 오늘 신규 수임 라온 주식회사 신규 자문 수임 7. 11. 오전 02:01 검토 중 월별 매출 2026-07 청구 12,000,000 KRW 수납 9,000,000 KRW 피드 사내 공지 뉴스 뉴스레터 대시보드 QA 공지 캘린더 일 월 화 수 목 금 토 28 29 30 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 1 2 3 4 5 6 7 8 7월 11일 (토) 캘린더 열기 고객 미팅",
+      "screenshot": "artifacts/manual-qa/dashboard-package/darwin/home-dashboard-darwin.png"
+    },
+    "clients": {
+      "sections": [
+        "new-clients",
+        "prospects-contacts",
+        "revenue-ranking",
+        "client-meetings",
+        "accounts-receivable"
+      ],
+      "section_row_counts": {
+        "new-clients": 1,
+        "prospects-contacts": 3,
+        "revenue-ranking": 1,
+        "client-meetings": 1,
+        "accounts-receivable": 1
+      },
+      "record_rows": 7,
+      "horizontal_overflow": false,
+      "matter_kpi_count": 0,
+      "approval_widget_count": 0,
+      "people_dashboard_count": 0,
+      "customer_dashboard_title_count": 5,
+      "forbidden_visible_values": [],
+      "body_preview": "신규 고객 마루 주식회사 고객 07. 11. 오전 02:01 담당 미지정 잠재 고객/접촉 바른 그룹 접촉 완료 07. 11. 오전 02:01 담당 미지정 새롬 자문 검토 완료 07. 11. 오전 02:01 담당 미지정 오세진 진행 중 07. 11. 오전 02:01 담당 미지정 매출 순위 1. 마루 주식회사 청구 12,000,000 KRW 수납 9,000,000 KRW 고객 미팅 정기 고객 미팅 마루 주식회사 07. 11. 오전 02:01 담당 미지정 미수금 마루 주식회사 미수 3,000,000 KRW 현재 잔액 회수 확인",
+      "screenshot": "artifacts/manual-qa/dashboard-package/darwin/clients-dashboard-darwin.png"
+    },
+    "matters": {
+      "sections": [
+        "recent-work",
+        "today-todo",
+        "my-matters",
+        "new-engagements",
+        "closed-matters"
+      ],
+      "section_row_counts": {
+        "recent-work": 1,
+        "today-todo": 1,
+        "my-matters": 2,
+        "new-engagements": 1,
+        "closed-matters": 1
+      },
+      "record_rows": 6,
+      "horizontal_overflow": false,
+      "matter_kpi_count": 0,
+      "approval_widget_count": 0,
+      "people_dashboard_count": 0,
+      "customer_dashboard_title_count": 0,
+      "forbidden_visible_values": [],
+      "body_preview": "최근 작업 QA-2026-001 가람 주식회사 / 계약 자문 07. 11. 오전 02:01 진행 중 오늘의 To Do 오늘 계약서 검토 QA-2026-001 07. 11. 오후 12:00 예정 나의 매터(담당 지정) QA-2026-001 가람 주식회사 / 계약 자문 기한 없음 진행 중 QA-2026-002 나래 파트너스 / 신규 수임 검토 기한 없음 개시 중 신규 수임 QA-2026-002 나래 파트너스 / 신규 수임 검토 07. 11. 오전 02:01 개시 중 종결 매터 QA-2026-003 다온 유한회사 / 종결 자문 07. 11. 오전 02:01 종결",
+      "screenshot": "artifacts/manual-qa/dashboard-package/darwin/matters-dashboard-darwin.png"
+    },
+    "people": {
+      "sections": [],
+      "section_row_counts": {},
+      "record_rows": 0,
+      "horizontal_overflow": false,
+      "matter_kpi_count": 0,
+      "approval_widget_count": 0,
+      "people_dashboard_count": 0,
+      "customer_dashboard_title_count": 0,
+      "forbidden_visible_values": [],
+      "body_preview": "현재 재직 입사예정 퇴사예정 퇴사 계약직 더보기 조직 구성원 추가 구성원 직위 소속 부서 이메일 표시할 구성원이 없습니다.",
+      "screenshot": "artifacts/manual-qa/dashboard-package/darwin/people-workforce-darwin.png"
+    }
+  },
+  "public_release": false,
+  "production_go_live": false
+}

@@ -1,55 +1,32 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import path from "node:path";
-import { createMatterCoreRecord } from "./model.js";
+import { existsSync } from "node:fs";
+import { readFileSyncWithStaleRetry, writeJsonFileDurably } from "../../persistence/src/durable-file.js";
 import { MATTER_CORE_MIGRATIONS } from "./migrations/index.js";
-
-const PRIMARY_ID_FIELDS = Object.freeze({
-  MatterClient: "client_id",
-  Matter: "matter_id",
-  MatterMember: "member_id",
-  MatterTask: "task_id",
-  MatterCalendarEvent: "event_id",
-  MatterChecklist: "checklist_id",
-});
+import {
+  normalizeRepositoryRecord,
+  primaryIdOf,
+  repositoryRecordKey,
+  repositoryRefKey,
+} from "./repository-record.js";
 
 function clone(value) {
   return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
-}
-
-function primaryIdOf(record) {
-  const field = PRIMARY_ID_FIELDS[record.model_type];
-  return field ? record[field] : record.resource_id ?? record.id;
 }
 
 function assertTenant(value) {
   if (typeof value !== "string" || value.trim() === "") throw new TypeError("tenant_id is required");
 }
 
-function normalizeRecord(input = {}) {
-  if (typeof input.model_type !== "string" || input.model_type.trim() === "") {
-    throw new TypeError("model_type is required");
-  }
-  const record = PRIMARY_ID_FIELDS[input.model_type]
-    ? { ...input, ...createMatterCoreRecord(input.model_type, input) }
-    : { ...input };
-  assertTenant(record.tenant_id);
-  const resourceId = primaryIdOf(record);
-  if (typeof resourceId !== "string" || resourceId.trim() === "") {
-    throw new TypeError(`${record.model_type} resource id is required`);
-  }
-  return Object.freeze({
-    ...record,
-    resource_id: resourceId,
-    writes_product_state: true,
-    creates_database_rows: record.creates_database_rows ?? true,
-  });
-}
-
-function recordKey(record) {
-  return `${record.tenant_id}:${record.model_type}:${primaryIdOf(record)}`;
-}
-
 function findUniquenessConflict({ records, record, key }) {
+  if (record.model_type === "MatterWorktree" && record.status === "active") {
+    return [...records.entries()].find(
+      ([existingKey, existing]) =>
+        existingKey !== key
+        && existing.tenant_id === record.tenant_id
+        && existing.model_type === "MatterWorktree"
+        && existing.matter_id === record.matter_id
+        && existing.status === "active",
+    )?.[1];
+  }
   if (record.model_type === "Matter" && record.matter_code) {
     return [...records.entries()].find(
       ([existingKey, existing]) =>
@@ -71,13 +48,6 @@ function findUniquenessConflict({ records, record, key }) {
   return null;
 }
 
-function refKey(ref = {}) {
-  const modelType = ref.model_type;
-  const field = PRIMARY_ID_FIELDS[modelType];
-  const id = ref.id ?? ref.resource_id ?? (field ? ref[field] : undefined);
-  return `${ref.tenant_id}:${modelType}:${id}`;
-}
-
 function emptyState() {
   return {
     migrations: [...MATTER_CORE_MIGRATIONS],
@@ -87,66 +57,83 @@ function emptyState() {
   };
 }
 
+function mergeMigrations(migrations = []) {
+  const merged = new Map(migrations.map((migration) => [migration.id, migration]));
+  for (const migration of MATTER_CORE_MIGRATIONS) merged.set(migration.id, migration);
+  return [...merged.values()];
+}
+
 function loadState(filePath) {
   if (!filePath || !existsSync(filePath)) return emptyState();
-  const parsed = JSON.parse(readFileSync(filePath, "utf8"));
+  const parsed = JSON.parse(readFileSyncWithStaleRetry(filePath));
+  const migrations = mergeMigrations(parsed.migrations);
   return {
     ...emptyState(),
     ...parsed,
+    migrations,
+    migration_upgrade_required: JSON.stringify(parsed.migrations ?? []) !== JSON.stringify(migrations),
     records: parsed.records ?? [],
     idempotency: parsed.idempotency ?? [],
     audit_events: parsed.audit_events ?? [],
   };
 }
 
-export function createMatterRepository({ filePath, seedRecords = [] } = {}) {
+export function createMatterRepository({ filePath, seedRecords = [], writeState = writeJsonFileDurably } = {}) {
   let closed = false;
+  let transactionDepth = 0;
   let state = loadState(filePath);
   const records = new Map();
   const idempotency = new Map();
   const auditEvents = new Map();
 
-  function persist() {
-    if (!filePath) return;
-    mkdirSync(path.dirname(filePath), { recursive: true });
-    writeFileSync(
+  function currentState() {
+    return {
+      migrations: state.migrations,
+      records: [...records.values()],
+      idempotency: [...idempotency.values()],
+      audit_events: [...auditEvents.values()],
+    };
+  }
+
+  function persist({ createBackup = true, force = false } = {}) {
+    if (!filePath || (transactionDepth > 0 && !force)) return;
+    const nextState = currentState();
+    writeState({
       filePath,
-      `${JSON.stringify(
-        {
-          migrations: state.migrations,
-          records: [...records.values()],
-          idempotency: [...idempotency.values()],
-          audit_events: [...auditEvents.values()],
-        },
-        null,
-        2,
-      )}\n`,
-    );
+      value: nextState,
+      previousState: state,
+      createBackup,
+    });
+    state = nextState;
   }
 
   function assertOpen() {
     if (closed) throw new Error("Matter repository is closed");
   }
 
-  function put(record, { overwrite = false } = {}) {
-    const normalized = normalizeRecord(record);
-    const key = recordKey(normalized);
+  function put(record, { overwrite = false, createBackup = true } = {}) {
+    const normalized = normalizeRepositoryRecord(record);
+    const key = repositoryRecordKey(normalized);
     const conflict = findUniquenessConflict({ records, record: normalized, key });
     if (conflict) {
+      if (normalized.model_type === "MatterWorktree") {
+        throw new Error(`active MatterWorktree already exists for Matter ${normalized.matter_id}`);
+      }
       const field = normalized.model_type === "Matter" ? "matter_code" : "client_short_name";
       throw new Error(`${normalized.model_type} ${field} already exists: ${normalized[field]}`);
     }
     if (!overwrite && records.has(key)) throw new Error(`${normalized.model_type} already exists: ${primaryIdOf(normalized)}`);
     records.set(key, clone(normalized));
-    persist();
+    persist({ createBackup });
     return Object.freeze(clone(normalized));
   }
 
-  for (const record of state.records) records.set(recordKey(record), clone(record));
+  for (const record of state.records) records.set(repositoryRecordKey(record), clone(record));
   for (const entry of state.idempotency) idempotency.set(`${entry.tenant_id}:${entry.idempotency_key}`, clone(entry));
   for (const event of state.audit_events) auditEvents.set(`${event.tenant_id}:${event.event_id}`, clone(event));
+  if (state.migration_upgrade_required) persist();
   for (const record of seedRecords) {
-    if (!records.has(recordKey(normalizeRecord(record)))) put(record, { overwrite: true });
+    if (!records.has(repositoryRecordKey(normalizeRepositoryRecord(record)))) put(record, { overwrite: true, createBackup: false });
   }
 
   return Object.freeze({
@@ -162,13 +149,13 @@ export function createMatterRepository({ filePath, seedRecords = [] } = {}) {
     },
     update(ref, patch = {}) {
       assertOpen();
-      const current = records.get(refKey(ref));
+      const current = records.get(repositoryRefKey(ref));
       if (!current) throw new Error(`${ref.model_type} not found: ${ref.id ?? ref.resource_id}`);
       return put({ ...current, ...patch, tenant_id: current.tenant_id, model_type: current.model_type, resource_id: current.resource_id }, { overwrite: true });
     },
     get(ref) {
       assertOpen();
-      return Object.freeze(clone(records.get(refKey(ref))));
+      return Object.freeze(clone(records.get(repositoryRefKey(ref))));
     },
     list(query = {}) {
       assertOpen();
@@ -182,7 +169,7 @@ export function createMatterRepository({ filePath, seedRecords = [] } = {}) {
     },
     delete(ref) {
       assertOpen();
-      const deleted = records.delete(refKey(ref));
+      const deleted = records.delete(repositoryRefKey(ref));
       persist();
       return deleted;
     },
@@ -196,6 +183,10 @@ export function createMatterRepository({ filePath, seedRecords = [] } = {}) {
         tenant_id: entry.tenant_id,
         idempotency_key: entry.idempotency_key,
         operation: entry.operation ?? "matter_operation",
+        object_type: entry.object_type ?? null,
+        object_id: entry.object_id ?? null,
+        actor_id: entry.actor_id ?? null,
+        request_fingerprint: entry.request_fingerprint ?? null,
         response: clone(entry.response ?? {}),
         created_at: entry.created_at ?? new Date().toISOString(),
       });
@@ -228,14 +219,17 @@ export function createMatterRepository({ filePath, seedRecords = [] } = {}) {
     },
     transaction(fn) {
       assertOpen();
+      const entryDepth = transactionDepth;
       const before = {
         records: new Map([...records.entries()].map(([key, value]) => [key, clone(value)])),
         idempotency: new Map([...idempotency.entries()].map(([key, value]) => [key, clone(value)])),
         auditEvents: new Map([...auditEvents.entries()].map(([key, value]) => [key, clone(value)])),
       };
+      transactionDepth = entryDepth + 1;
       try {
         const result = fn(this);
-        persist();
+        transactionDepth = entryDepth;
+        persist({ force: entryDepth === 0 });
         return result;
       } catch (error) {
         records.clear();
@@ -244,8 +238,10 @@ export function createMatterRepository({ filePath, seedRecords = [] } = {}) {
         for (const [key, value] of before.records) records.set(key, value);
         for (const [key, value] of before.idempotency) idempotency.set(key, value);
         for (const [key, value] of before.auditEvents) auditEvents.set(key, value);
-        persist();
+        transactionDepth = entryDepth;
         throw error;
+      } finally {
+        transactionDepth = entryDepth;
       }
     },
     snapshot() {

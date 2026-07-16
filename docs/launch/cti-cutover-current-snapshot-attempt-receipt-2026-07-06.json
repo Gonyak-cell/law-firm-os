@@ -1,0 +1,79 @@
+{
+  "schema_version": "law-firm-os.cti-cutover-current-snapshot-attempt-receipt.v0.1",
+  "goal_id": "cti-cutover-snapshot-restore-rehearsal",
+  "status": "BLOCKED_NO_APPROVED_EFS_FILE_READ_SURFACE",
+  "recorded_at": "2026-07-06T06:53:24.756Z",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "approval_refs_verified": [
+    "I1-CTI-LAWYER-ROLE-MAPPING-OWNER-CONFIRMATION-2026-07-06",
+    "I2-CTI-KYT-ACCESS-SCOPE-OWNER-APPROVAL-2026-07-06",
+    "I3-CTI-INITIAL-PASSWORD-DISTRIBUTION-CHANNEL-OWNER-APPROVAL-2026-07-06",
+    "I4-CTI-G0-S0-OWNER-RATIFICATION-2026-07-06",
+    "I5-CTI-S1-FOUNDATION-UNBLOCK-PACKET-OWNER-APPROVAL-2026-07-06",
+    "I6-CTI-S1-SECRETSMANAGER-VPCE-IAM-OWNER-APPROVAL-2026-07-06",
+    "I7-CTI-S2-AUTHENTICATION-UNBLOCK-PACKET-OWNER-APPROVAL-2026-07-06",
+    "I8-CTI-S2-S1G-AUTHENTICATED-PROBE-OWNER-APPROVAL-2026-07-06",
+    "I9-CTI-S2-AUTHENTICATION-EXECUTE-OWNER-APPROVAL-2026-07-06",
+    "I10-CTI-BUILD-S3-S4-CODE-PREP-OWNER-APPROVAL-2026-07-06",
+    "I11-CTI-CUTOVER-EXECUTE-OWNER-APPROVAL-2026-07-06"
+  ],
+  "upstream_evidence": {
+    "build_g_pass": true,
+    "i1_owner_mapping_confirmation_recorded": true
+  },
+  "current_runtime_metadata": {
+    "lambda_function_name": "matter-lawos-api-prod",
+    "lambda_state": "Active",
+    "lambda_last_update_status": "Successful",
+    "lambda_last_modified": "2026-07-06T03:45:32.000+0000",
+    "lambda_code_sha256": "ESTSdyTDZuGldldTzguf67hhvD9tmlYmnhqPvuD2cF4=",
+    "efs_file_system_id": "fs-01e9f68b22b23e9f3",
+    "efs_lifecycle_state": "available",
+    "efs_size_bytes": 1064960,
+    "efs_size_timestamp": "2026-07-06T15:39:41+09:00",
+    "efs_access_point_id": "fsap-0be58113c42e109fe",
+    "efs_root_directory_path": "/lawos-runtime",
+    "lambda_store_path_env_key_count": 15,
+    "efs_backup_policy_status": "ENABLED",
+    "efs_recovery_point_count": 0,
+    "api_health_status_code": 200,
+    "api_runtime_profile": "operational",
+    "api_synthetic_login_enabled": false,
+    "matters_without_session_status_code": 401,
+    "matters_without_session_safe_error_codes": [
+      "AUTH_SESSION_REQUIRED"
+    ]
+  },
+  "snapshot_result": {
+    "current_snapshot_hash_count_receipt_created": false,
+    "snapshot_hash": null,
+    "snapshot_record_count": null,
+    "snapshot_scope": "approved_current_production_runtime_store_files_under_/mnt/lawos",
+    "reason": "No approved read-only path can enumerate and hash EFS runtime store files from outside the Lambda runtime. Product API readback requires an authenticated production session, which remains blocked by S1-G/I8 conditions."
+  },
+  "restore_rehearsal_result": {
+    "snapshot_bound_restore_rehearsal_executed": false,
+    "outcome": "BLOCKED_DEPENDS_ON_CURRENT_SNAPSHOT_HASH_COUNT_RECEIPT",
+    "production_restore_executed": false
+  },
+  "private_evidence": {
+    "local_path": "/Users/jws/.codex/local-evidence/cti-cutover-snapshot-restore-rehearsal/cti-cutover-snapshot-read-surface-evidence-2026-07-06.json",
+    "sha256": "7adb725fdeca9fefb757aeeae994a4cca654ce4fcb3618582fbcb386b453bbb0",
+    "plaintext_pii_in_evidence": false
+  },
+  "authority_boundary": {
+    "production_write_executed": false,
+    "production_restore_executed": false,
+    "restore_execution_against_production": false,
+    "tenant_migration_executed": false,
+    "account_permission_injection_executed": false,
+    "operational_profile_switch_executed": false,
+    "bridge_token_rotation_executed": false,
+    "password_distribution_executed": false,
+    "cutover_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "secret_value_recorded": false,
+    "plaintext_pii_recorded": false
+  }
+}

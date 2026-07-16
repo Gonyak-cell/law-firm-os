@@ -35,7 +35,7 @@ jobs:
   hrx-production-rollout:
     name: HRX rollout validation
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,6 +49,9 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
       - name: API tests
         run: npm --workspace apps/api test
 
@@ -57,6 +60,9 @@ jobs:
 
       - name: Web build
         run: npm --workspace apps/web run build
+
+      - name: Public renderer HRX roster PII guard
+        run: npm run public-renderer:pii:validate
 
       - name: HRX UI validator
         run: npm run hrx:ui:validate

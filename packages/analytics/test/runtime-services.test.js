@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { createFinanceRepository } from "../../billing/src/finance-repository.js";
 import {
+  computeFinanceDashboardMetrics,
+  buildFinanceReadModels,
   createAnalyticsExport,
   createAnalyticsRepository,
   createClientProfitability,
@@ -12,11 +15,52 @@ import {
   createRealizationMetric,
   recordAnalyticsEvent,
   refreshAnalyticsReadModels,
+  selectFinanceRowsForMatter,
 } from "../src/index.js";
 
 const TENANT = "tenant-cmp-g8";
 const MATTER = "matter-cmp-g8";
 const ACTOR = "user-cmp-g8";
+
+function listRepository(records) {
+  return {
+    list(query = {}) {
+      return records.filter((record) =>
+        (!query.tenant_id || record.tenant_id === query.tenant_id) &&
+        (!query.model_type || record.model_type === query.model_type)
+      );
+    },
+  };
+}
+
+function financeReadModelFixture() {
+  return createFinanceRepository({
+    seedRecords: [
+      { model_type: "Invoice", invoice_id: "inv-krw", tenant_id: TENANT, matter_id: "matter-a", billing_client_party_id: "party-a", amount_due: 1000, currency: "KRW", issued_at: "2026-06-30T16:00:00.000Z", status: "issued" },
+      { model_type: "Invoice", invoice_id: "inv-cancelled", tenant_id: TENANT, matter_id: "matter-a", billing_client_party_id: "party-a", amount_due: 900, currency: "KRW", issued_at: "2026-07-02", status: "cancelled" },
+      { model_type: "Invoice", invoice_id: "inv-usd", tenant_id: TENANT, matter_id: "matter-a", client_group_id: "client-group-a", amount_due: 20, currency: "USD", issued_at: "2026-07-15", status: "issued" },
+      { model_type: "BillingAdjustment", adjustment_id: "adjust-credit", tenant_id: TENANT, invoice_id: "inv-krw", adjustment_amount: 100, adjustment_type: "credit", adjusted_at: "2026-07-03", status: "approved" },
+      { model_type: "Payment", payment_id: "pay-partial", tenant_id: TENANT, matter_id: "matter-a", billing_client_party_id: "party-a", amount: 700, currency: "KRW", received_at: "2026-07-04", status: "received" },
+      { model_type: "PaymentMatch", payment_match_id: "match-partial", tenant_id: TENANT, payment_id: "pay-partial", invoice_id: "inv-krw", matched_amount: 400, currency: "KRW", matched_at: "2026-07-05", status: "matched" },
+      { model_type: "Expense", expense_id: "expense-inferred", tenant_id: TENANT, matter_id: "matter-a", amount: 200, currency: "KRW", approved_for_wip: true, status: "approved", created_at: "2026-07-06T01:00:00.000Z" },
+      { model_type: "Disbursement", disbursement_id: "disbursement-unlinked", tenant_id: TENANT, matter_id: "matter-unlinked", amount: 50, currency: "KRW", recoverable: true, disbursed_at: "2026-07-07", status: "approved" },
+      { model_type: "ARBalance", ar_balance_id: "ar-open", tenant_id: TENANT, matter_id: "matter-a", invoice_id: "inv-krw", billing_client_party_id: "party-a", balance: 500, currency: "KRW", as_of_date: "2026-07-31", status: "open" },
+    ],
+  });
+}
+
+function canonicalClientRepositories() {
+  return {
+    masterDataRepository: listRepository([
+      { model_type: "ClientGroup", tenant_id: TENANT, client_group_id: "client-group-a", display_name: "고객 A" },
+      { model_type: "BillingProfile", tenant_id: TENANT, billing_profile_id: "billing-a", client_group_id: "client-group-a", billing_client_party_id: "party-a" },
+    ]),
+    matterRepository: listRepository([
+      { model_type: "Matter", tenant_id: TENANT, matter_id: "matter-a", billing_client_party_id: "party-a" },
+      { model_type: "Matter", tenant_id: TENANT, matter_id: "matter-unlinked" },
+    ]),
+  };
+}
 
 function createMetricSet(repository) {
   recordAnalyticsEvent({
@@ -35,6 +79,7 @@ function createMetricSet(repository) {
     repository,
     tenant_id: TENANT,
     matter_id: MATTER,
+    client_group_id: "client-group-g8",
     time_entries: [{ standard_value: 400000 }],
     invoices: [{ amount_due: 350000 }],
     payments: [{ amount: 300000 }],
@@ -45,7 +90,7 @@ function createMetricSet(repository) {
     repository,
     tenant_id: TENANT,
     client_group_id: "client-group-g8",
-    matter_rows: [{ profitability_amount: matter.item.profitability_amount }],
+    matter_rows: [matter.item],
     actor_id: ACTOR,
     idempotency_key: "client-profit-1",
   });
@@ -90,7 +135,7 @@ test("G8 analytics repository persists read models, audit, and idempotency", () 
   repository.close();
 
   const reopened = createAnalyticsRepository({ filePath: storePath });
-  assert.equal(reopened.list({ tenant_id: TENANT, model_type: "AnalyticsDashboard" }).length, 3);
+  assert.equal(reopened.list({ tenant_id: TENANT, model_type: "AnalyticsDashboard" }).length, 5);
   assert.equal(reopened.getIdempotency({ tenant_id: TENANT, idempotency_key: "refresh-1" }).operation, "analytics_read_model_refresh");
   assert.equal(reopened.listAudit({ tenant_id: TENANT }).some((event) => event.action === "analytics.export.create"), true);
 });
@@ -117,6 +162,196 @@ test("G8 analytics runtime blocks source mutation and computes safe read models"
   const { matter, refresh } = createMetricSet(repository);
   assert.equal(matter.item.source_object_mutated, false);
   assert.equal(matter.item.profitability_amount, -100000);
-  assert.equal(refresh.dashboards.length, 3);
+  assert.equal(refresh.dashboards.length, 5);
+  const dashboards = Object.fromEntries(refresh.dashboards.map((dashboard) => [dashboard.dashboard_id, dashboard]));
+  assert.equal(dashboards["dashboard-realization"].metric_value, 87.5);
+  assert.equal(dashboards["dashboard-employee-utilization"].metric_value, 75);
   assert.equal(repository.list({ tenant_id: TENANT, model_type: "AnalyticsExport" })[0].credential_material_included, false);
+});
+
+test("G8 dashboard refresh computes metrics from finance repository instead of constants", () => {
+  const analyticsRepository = createAnalyticsRepository();
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      {
+        model_type: "RateCard",
+        rate_card_id: "rate-g8-b08",
+        tenant_id: TENANT,
+        currency: "KRW",
+        effective_from: "2026-07-01",
+        role_rates: [{ role_id: "partner", hourly_rate: 150000 }],
+        status: "active",
+      },
+      {
+        model_type: "TimeEntry",
+        time_entry_id: "time-g8-b08",
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        actor_id: ACTOR,
+        role_id: "partner",
+        duration_minutes: 120,
+        billable: true,
+        status: "approved",
+      },
+      {
+        model_type: "Invoice",
+        invoice_id: "invoice-g8-b08",
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        amount_due: 900000,
+        amount_paid: 0,
+        currency: "KRW",
+        status: "issued",
+      },
+      {
+        model_type: "Payment",
+        payment_id: "payment-g8-b08",
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        bank_reference: "bank-g8-b08",
+        amount: 450000,
+        currency: "KRW",
+      },
+      {
+        model_type: "ARBalance",
+        ar_balance_id: "ar-g8-b08",
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        invoice_id: "invoice-g8-b08",
+        balance: 450000,
+        status: "open",
+      },
+    ],
+  });
+
+  const metrics = computeFinanceDashboardMetrics({ financeRepository, analyticsRepository, tenant_id: TENANT });
+  const rows = selectFinanceRowsForMatter({ financeRepository, tenant_id: TENANT, matter_id: MATTER });
+  assert.equal(metrics.metric_source, "finance_repository");
+  assert.equal(metrics.ar_open_balance, 450000);
+  assert.equal(metrics.client_health_percent, 50);
+  assert.equal(metrics.practice_pnl_amount, 600000);
+  assert.equal(rows.time_entries[0].standard_value, 300000);
+  assert.equal(rows.invoices[0].amount_due, 900000);
+  assert.equal(rows.payments[0].amount, 450000);
+
+  const refresh = refreshAnalyticsReadModels({
+    repository: analyticsRepository,
+    financeRepository,
+    tenant_id: TENANT,
+    actor_id: ACTOR,
+    idempotency_key: "refresh-finance-derived-1",
+  });
+  const dashboards = Object.fromEntries(refresh.dashboards.map((dashboard) => [dashboard.dashboard_id, dashboard]));
+  assert.equal(dashboards["dashboard-ar-aging"].metric_value, 450000);
+  assert.equal(dashboards["dashboard-client-health"].metric_value, 50);
+  assert.equal(dashboards["dashboard-practice-pnl"].metric_value, 600000);
+  assert.equal(dashboards["dashboard-ar-aging"].metric_source, "finance_repository");
+
+  const refreshSource = readFileSync(new URL("../src/refresh-job-service.js", import.meta.url), "utf8");
+  assert.equal(/metric_value:\s*(400000|87|32)\b/.test(refreshSource), false);
+});
+
+test("G8 client profitability aggregates only matching client group matter rows", () => {
+  const repository = createAnalyticsRepository();
+  const clientOneMatter = createMatterProfitability({
+    repository,
+    tenant_id: TENANT,
+    matter_id: "matter-client-one",
+    client_group_id: "client-group-one",
+    time_entries: [{ standard_value: 100000 }],
+    invoices: [{ amount_due: 300000 }],
+    payments: [{ amount: 250000 }],
+    actor_id: ACTOR,
+    idempotency_key: "matter-profit-client-one",
+  });
+  const clientTwoMatter = createMatterProfitability({
+    repository,
+    tenant_id: TENANT,
+    matter_id: "matter-client-two",
+    client_group_id: "client-group-two",
+    time_entries: [{ standard_value: 400000 }],
+    invoices: [{ amount_due: 500000 }],
+    payments: [{ amount: 300000 }],
+    actor_id: ACTOR,
+    idempotency_key: "matter-profit-client-two",
+  });
+
+  assert.equal(clientOneMatter.item.client_group_id, "client-group-one");
+  assert.equal(clientTwoMatter.item.client_group_id, "client-group-two");
+
+  const clientOne = createClientProfitability({
+    repository,
+    tenant_id: TENANT,
+    client_group_id: "client-group-one",
+    matter_rows: [clientOneMatter.item, clientTwoMatter.item],
+    actor_id: ACTOR,
+    idempotency_key: "client-profit-one",
+  });
+  const clientTwo = createClientProfitability({
+    repository,
+    tenant_id: TENANT,
+    client_group_id: "client-group-two",
+    matter_rows: [clientOneMatter.item, clientTwoMatter.item],
+    actor_id: ACTOR,
+    idempotency_key: "client-profit-two",
+  });
+
+  assert.equal(clientOne.item.matter_count, 1);
+  assert.equal(clientOne.item.profitability_amount, 150000);
+  assert.equal(clientTwo.item.matter_count, 1);
+  assert.equal(clientTwo.item.profitability_amount, -100000);
+  assert.notEqual(clientOne.item.profitability_amount, clientTwo.item.profitability_amount);
+});
+
+test("WP-FIN-2 reconciles overview, monthly, and canonical client read models across finance fixtures", () => {
+  const model = buildFinanceReadModels({
+    financeRepository: financeReadModelFixture(),
+    ...canonicalClientRepositories(),
+    tenant_id: TENANT,
+    from: "2026-07-01",
+    to: "2026-07-31",
+  });
+
+  const krw = model.overview.totals.find((row) => row.currency === "KRW");
+  const usd = model.overview.totals.find((row) => row.currency === "USD");
+  assert.deepEqual(
+    {
+      billed_amount: krw.billed_amount,
+      collected_amount: krw.collected_amount,
+      matter_cost: krw.matter_cost,
+      recoverable_cost: krw.recoverable_cost,
+      ar_balance: krw.ar_balance,
+      unlinked_amount: krw.unlinked_amount,
+      date_inferred_count: krw.date_inferred_count,
+    },
+    { billed_amount: 900, collected_amount: 400, matter_cost: 250, recoverable_cost: 250, ar_balance: 500, unlinked_amount: 50, date_inferred_count: 1 },
+  );
+  assert.equal(usd.billed_amount, 20);
+  assert.equal(model.overview.currency_conversion_applied, false);
+
+  const julyKrw = model.monthly.find((row) => row.month === "2026-07" && row.currency === "KRW");
+  assert.equal(julyKrw.billed_amount, krw.billed_amount);
+  assert.equal(julyKrw.collected_amount, krw.collected_amount);
+  assert.equal(julyKrw.matter_cost, krw.matter_cost);
+
+  const clientKrw = model.clients.find((row) => row.client_group_id === "client-group-a" && row.currency === "KRW");
+  const unlinkedKrw = model.clients.find((row) => row.client_group_id === null && row.currency === "KRW");
+  assert.equal(clientKrw.client_group_label, "고객 A");
+  assert.equal(clientKrw.client_mapping_source, "master-data.ClientGroup");
+  assert.equal(clientKrw.billed_amount + unlinkedKrw.billed_amount, krw.billed_amount);
+  assert.equal(clientKrw.collected_amount + unlinkedKrw.collected_amount, krw.collected_amount);
+  assert.equal(clientKrw.matter_cost + unlinkedKrw.matter_cost, krw.matter_cost);
+  assert.equal(unlinkedKrw.matter_cost, 50);
+  assert.equal(model.raw_source_payload_included, false);
+  assert.equal(model.production_ready_claim, false);
+});
+
+test("WP-FIN-2 falls back to Payment only when no PaymentMatch source rows exist", () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      { model_type: "Payment", payment_id: "pay-fallback", tenant_id: TENANT, matter_id: "matter-a", client_group_id: "client-group-a", amount: 125, currency: "USD", received_at: "2026-07-08", status: "received" },
+    ],
+  });
+  const model = buildFinanceReadModels({ financeRepository, tenant_id: TENANT });
+  assert.equal(model.overview.totals.find((row) => row.currency === "USD").collected_amount, 125);
 });

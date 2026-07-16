@@ -1,0 +1,26 @@
+{
+  "schema_version": "law-firm-os.home_topbar_no_join_code_qa.v0.1",
+  "generated_at": "2026-07-07T09:25:38.783Z",
+  "verdict": "PASS",
+  "route": "/?locale=ko&view=home&ctx=allow&skin=forest",
+  "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/home-topbar-no-join-code-2026-07-07.png",
+  "checks": {
+    "body_text_absent": true,
+    "topbar_text_absent": true,
+    "topbar_button_absent": true,
+    "create_button_present": true,
+    "notification_button_present": true
+  },
+  "topbar_buttons": [
+    "Home",
+    "Client",
+    "Matter",
+    "People",
+    "Vault",
+    "Portal",
+    "새로 만들기",
+    "서",
+    "3",
+    "한국어"
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.command-evidence.v0.1",
+  "goal_id": "cti-cutover-preflight-go-no-go",
+  "recorded_at": "2026-07-06T08:18:00Z",
+  "commands": [
+    {
+      "command": "node --check apps/api/src/lambda.js",
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Lambda source parses successfully after I18 direct-invoke S1-G probe surface additions."
+    },
+    {
+      "command": "node --check apps/api/test/lambda-session-secret.test.js",
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Lambda session/probe test file parses successfully."
+    },
+    {
+      "command": "node --test apps/api/test/lambda-session-secret.test.js",
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "5 tests passed, including I18 one-principal credential-store write and direct-invoke-only guards."
+    },
+    {
+      "command": "node --check scripts/validate-cti-cutover-preflight-go-no-go.mjs",
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "CUTOVER preflight validator parses successfully."
+    },
+    {
+      "command": "node scripts/validate-cti-cutover-preflight-go-no-go.mjs",
+      "exit_code": 0,
+      "status": "PASS_GO_READY_NOT_EXECUTED",
+      "summary": "decision=GO_READY_NOT_EXECUTED; I1 recorded; I19 post-I18 snapshot rebind PASS; snapshot-bound restore rehearsal PASS; I15/I19 rollback/abort criteria approved; I16 no-active-use freeze waiver recorded; I18 S1-G authenticated production probe PASS; blockers=0."
+    },
+    {
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "TUW total=402; work packages=83; PRE=72; violations=0."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "No whitespace errors detected in the working diff."
+    },
+    {
+      "command": "sensitive-pattern scan for I19/preflight rebind repo-safe evidence",
+      "exit_code": 0,
+      "status": "PASS_NO_MATCHES",
+      "summary": "No sensitive-pattern matches in repo-safe I19/preflight rebind receipts, closeout, or validators."
+    }
+  ],
+  "boundary": {
+    "cutover_execution": false,
+    "tenant_migration": false,
+    "account_injection": false,
+    "operational_profile_switch": false,
+    "bridge_token_rotation": false,
+    "password_distribution": false,
+    "s5_enrichment": false,
+    "s6_seal": false,
+    "oidc_implementation": false,
+    "db_conversion": false,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "secret_value_recorded": false,
+    "plaintext_password_recorded": false,
+    "plaintext_pii_recorded": false
+  },
+  "preflight_decision": "GO_READY_NOT_EXECUTED"
+}

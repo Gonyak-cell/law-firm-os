@@ -1,0 +1,22 @@
+git rev-parse HEAD
+git rev-parse 'HEAD^{tree}'
+test -z "$(git status --porcelain)"
+MATTER_DESKTOP_RELEASE_CHANNEL=internal npm --workspace apps/desktop run build:mac
+test "$(git rev-parse HEAD)" = "0e72dd1335c8e996388de16fbd8be441618330ed"
+test -z "$(git status --porcelain)"
+MATTER_DESKTOP_RELEASE_CHANNEL=internal npm --workspace apps/desktop run build:win
+node scripts/run-cp007-packaged-runtime-smoke.mjs
+node scripts/validate-cp007-packaged-runtime-boundary.mjs --emit
+node scripts/validate-cp007-packaged-runtime-boundary.mjs --check
+node scripts/validate-cp007-packaged-runtime-boundary.mjs --help
+node scripts/validate-cp007-packaged-runtime-boundary.mjs --invalid # expected exit 2
+npm --workspace apps/desktop run test:smoke
+node scripts/validate-matter-desktop-security.mjs
+node scripts/validate-matter-desktop-packaging.mjs
+node scripts/validate-matter-vault-r4-local-secrets.mjs
+node scripts/validate-public-renderer-no-hrx-roster-pii.mjs
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed
+node --check scripts/run-cp007-packaged-runtime-smoke.mjs
+node --check scripts/validate-cp007-packaged-runtime-boundary.mjs
+git diff --check
+recompute RC-001 root checkout diff/status/path-manifest fingerprint without writing to the root checkout

@@ -1,0 +1,379 @@
+{
+  "verdict": "PASS",
+  "app": "/Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+  "screenshots": {
+    "aMark": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-mic-a-mark-2026-07-07.png",
+    "micReveal": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-mic-mic-reveal-2026-07-07.png",
+    "settled": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-mic-settled-2026-07-07.png",
+    "final": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-desktop/artifacts/desktop-amic-law-intro-mic-final-2026-07-07.png"
+  },
+  "checks": {
+    "aMarkOnlyAtStart": true,
+    "micLawRevealsAfterA": true,
+    "micAssetIsNotFullAmic": true,
+    "dynamicHandoffVarsApplied": true,
+    "settledPositionMatchesFinalLogo": true,
+    "finalForestReady": true,
+    "noUnexpectedOverflow": true,
+    "loginWasNotSubmitted": true
+  },
+  "states": {
+    "aMark": {
+      "logoIntro": "play",
+      "introA": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "rect": {
+          "x": 539.946533203125,
+          "y": 366,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "introMic": {
+        "opacity": 0,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "inset(0px 100% 0px 0px)",
+        "transform": "matrix(1, 0, 0, 1, -18, 0)",
+        "rect": {
+          "x": 521.946533203125,
+          "y": 366,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "introLockup": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "matrix(1, 0, 0, 1, -100.053, -18)",
+        "rect": {
+          "x": 539.946533203125,
+          "y": 366,
+          "width": 220,
+          "height": 36
+        }
+      },
+      "finalLogo": {
+        "opacity": 0,
+        "visibility": "visible",
+        "display": "flex",
+        "clipPath": "none",
+        "transform": "matrix(1, 0, 0, 1, 0, 10)",
+        "rect": {
+          "x": 885.296875,
+          "y": 129.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "finalLogoImage": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 129.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "naturalTarget": {
+        "x": 885.296875,
+        "y": 119.8515625,
+        "width": 175,
+        "height": 28
+      },
+      "computedVars": {
+        "dx": "332.797px",
+        "dy": "-250.148px",
+        "scale": "0.7955"
+      },
+      "handoffDelta": {
+        "centerX": 322.850341796875,
+        "centerY": 250.1484375,
+        "width": 45,
+        "height": 8
+      },
+      "loginResultText": "",
+      "emailValue": "",
+      "passwordValue": "",
+      "hasOverflow": false
+    },
+    "micReveal": {
+      "logoIntro": "play",
+      "introA": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "rect": {
+          "x": 530,
+          "y": 366,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "introMic": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "inset(0px)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "rect": {
+          "x": 530,
+          "y": 366,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "introLockup": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "matrix(1, 0, 0, 1, -110, -18)",
+        "rect": {
+          "x": 530,
+          "y": 366,
+          "width": 220,
+          "height": 36
+        }
+      },
+      "finalLogo": {
+        "opacity": 0,
+        "visibility": "visible",
+        "display": "flex",
+        "clipPath": "none",
+        "transform": "matrix(1, 0, 0, 1, 0, 10)",
+        "rect": {
+          "x": 885.296875,
+          "y": 129.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "finalLogoImage": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 129.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "naturalTarget": {
+        "x": 885.296875,
+        "y": 119.8515625,
+        "width": 175,
+        "height": 28
+      },
+      "computedVars": {
+        "dx": "332.797px",
+        "dy": "-250.148px",
+        "scale": "0.7955"
+      },
+      "handoffDelta": {
+        "centerX": 332.796875,
+        "centerY": 250.1484375,
+        "width": 45,
+        "height": 8
+      },
+      "loginResultText": "",
+      "emailValue": "",
+      "passwordValue": "",
+      "hasOverflow": false
+    },
+    "settled": {
+      "logoIntro": "play",
+      "introA": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "rect": {
+          "x": 885.2919921875,
+          "y": 119.53302001953125,
+          "width": 175.010009765625,
+          "height": 27.99786376953125
+        }
+      },
+      "introMic": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "inset(0px)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "rect": {
+          "x": 885.2919921875,
+          "y": 119.53302001953125,
+          "width": 175.010009765625,
+          "height": 27.99786376953125
+        }
+      },
+      "introLockup": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "matrix(0.7955, 0, 0, 0.7955, 222.797, -268.148)",
+        "rect": {
+          "x": 885.2919921875,
+          "y": 119.53302001953125,
+          "width": 175.010009765625,
+          "height": 28.63800048828125
+        }
+      },
+      "finalLogo": {
+        "opacity": 0,
+        "visibility": "visible",
+        "display": "flex",
+        "clipPath": "none",
+        "transform": "matrix(1, 0, 0, 1, 0, 10)",
+        "rect": {
+          "x": 885.296875,
+          "y": 129.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "finalLogoImage": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 129.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "naturalTarget": {
+        "x": 885.296875,
+        "y": 119.8515625,
+        "width": 175,
+        "height": 28
+      },
+      "computedVars": {
+        "dx": "332.797px",
+        "dy": "-250.148px",
+        "scale": "0.7955"
+      },
+      "handoffDelta": {
+        "centerX": 0.0001220703125,
+        "centerY": 0.000457763671875,
+        "width": 0.010009765625,
+        "height": 0.63800048828125
+      },
+      "loginResultText": "",
+      "emailValue": "",
+      "passwordValue": "",
+      "hasOverflow": false
+    },
+    "final": {
+      "logoIntro": "complete",
+      "introA": {
+        "opacity": 0.96,
+        "visibility": "hidden",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "none",
+        "rect": {
+          "x": 625,
+          "y": 366,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "introMic": {
+        "opacity": 0,
+        "visibility": "hidden",
+        "display": "block",
+        "clipPath": "inset(0px 100% 0px 0px)",
+        "transform": "matrix(1, 0, 0, 1, -18, 0)",
+        "rect": {
+          "x": 607,
+          "y": 366,
+          "width": 220,
+          "height": 35.1953125
+        }
+      },
+      "introLockup": {
+        "opacity": 1,
+        "visibility": "hidden",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "matrix(1, 0, 0, 1, -15, -18)",
+        "rect": {
+          "x": 625,
+          "y": 366,
+          "width": 220,
+          "height": 36
+        }
+      },
+      "finalLogo": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "flex",
+        "clipPath": "none",
+        "transform": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 119.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "finalLogoImage": {
+        "opacity": 1,
+        "visibility": "visible",
+        "display": "block",
+        "clipPath": "none",
+        "transform": "none",
+        "rect": {
+          "x": 885.296875,
+          "y": 119.8515625,
+          "width": 175,
+          "height": 28
+        }
+      },
+      "naturalTarget": {
+        "x": 885.296875,
+        "y": 119.8515625,
+        "width": 175,
+        "height": 28
+      },
+      "computedVars": {
+        "dx": "332.797px",
+        "dy": "-250.148px",
+        "scale": "0.7955"
+      },
+      "handoffDelta": {
+        "centerX": 237.796875,
+        "centerY": 250.1484375,
+        "width": 45,
+        "height": 8
+      },
+      "loginResultText": "",
+      "emailValue": "",
+      "passwordValue": "",
+      "hasOverflow": false
+    }
+  },
+  "note": "QA launched fresh packaged app instances, verified MIC Law reveals separately from A, measured the settled lockup against the final login logo, and did not submit login credentials."
+}

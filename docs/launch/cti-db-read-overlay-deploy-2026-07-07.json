@@ -1,0 +1,19 @@
+{
+  "artifact_id": "cti-db-read-overlay-deploy-2026-07-07",
+  "completed_at": "2026-07-07T05:27:39.085Z",
+  "approval_signature_ref": "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06",
+  "lambda": "matter-lawos-api-prod",
+  "config_revision_id": "4d6af43d-2152-4306-9321-27f5cf447195",
+  "code_revision_id": "f1bdba3c-0713-44cd-9f8e-e474b4596cba",
+  "final_revision_id": "7ac0adcb-1db1-44a5-96a9-b2bc264d570e",
+  "last_update_status": "Successful",
+  "code_sha256": "zUupWvESjfp8pQKizZLh/eh1/BFN498AH0XAd3s+4FA=",
+  "package_sha256": "sha256:cd4ba95af1128dfa7ca502a2cd92e1fde875fc114de3df001f45c0777b3ee050",
+  "db_tenant_id_hash": "sha256:9b94711d6ad83039fef084d0f0cc0345ec694902c6d67462c3383afbbcdf6e97",
+  "db_read_overlay_enabled": true,
+  "secret_value_returned": false,
+  "token_or_password_returned": false,
+  "production_write_executed": false,
+  "production_ready_claim": false,
+  "pii_safe": true
+}

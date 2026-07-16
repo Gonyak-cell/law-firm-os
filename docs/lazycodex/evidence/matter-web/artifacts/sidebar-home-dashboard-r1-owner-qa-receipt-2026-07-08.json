@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-07-08T01:47:07.177Z",
+  "viewport": {
+    "width": 1366,
+    "height": 900
+  },
+  "public_release_claim": false,
+  "owner_confirmation_recorded": false,
+  "screenshots": {
+    "dashboard": "docs/lazycodex/evidence/matter-web/artifacts/sidebar-home-dashboard-r1-dashboard-2026-07-08.png",
+    "requests": "docs/lazycodex/evidence/matter-web/artifacts/sidebar-home-dashboard-r1-requests-counts-2026-07-08.png",
+    "profile": "docs/lazycodex/evidence/matter-web/artifacts/sidebar-home-dashboard-r1-profile-mode-exception-2026-07-08.png",
+    "fallback": "docs/lazycodex/evidence/matter-web/artifacts/sidebar-home-dashboard-r1-fallback-home-dashboard-2026-07-08.png"
+  },
+  "observations": {
+    "dashboardCounts": {
+      "hero": "8",
+      "widget": "5",
+      "sidebar": "5",
+      "topbar": "5"
+    },
+    "requestRows": 5,
+    "profileReturn": {
+      "view": "matters",
+      "section": "matter-calendar"
+    },
+    "fallback": {
+      "href": "http://127.0.0.1:56682/?view=home&ctx=allow#home-dashboard",
+      "activeHomeSection": "home-dashboard"
+    }
+  }
+}

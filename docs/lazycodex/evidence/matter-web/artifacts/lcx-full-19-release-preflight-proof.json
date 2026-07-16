@@ -1,0 +1,106 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.release_preflight_proof.v0.1",
+  "generated_at": "2026-06-30T12:33:31.196Z",
+  "tuw_parent": "LCX-FULL-19",
+  "verdict": "FAIL",
+  "status": "preflight_recorded_with_blocked_gates",
+  "gates": [
+    {
+      "tuw_id": "LCX-FULL-19.01",
+      "label": "env/formal release preflight",
+      "command": "npm run matter-desktop:formal-release:validate",
+      "exit_code": 1,
+      "claim_status": "FAIL",
+      "allowed_claim": "formal release validation failed with an unclassified error",
+      "blocked_reason": "Unclassified formal release validator failure.",
+      "evidence_ref": null,
+      "parsed_summary": null,
+      "output_tail": "> law-firm-os@0.1.0 matter-desktop:formal-release:validate > node scripts/validate-matter-desktop-formal-release-bundle.mjs node:internal/modules/run_main:123 triggerUncaughtException( ^ AssertionError [ERR_ASSERTION]: formal release receipt missing phrase: Release ID | `matter-desktop-v0.1.0` at file:///Users/jws/Documents/Codex/Law%20Firm%20OS/scripts/validate-matter-desktop-formal-release-bundle.mjs:103:3 at ModuleJob.run (node:internal/modules/esm/module_job:343:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26) at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) { generatedMessage: false, code: 'ERR_ASSERTION', actual: false, expected: true, operator: '==', diff: 'simple' } Node.js v22.22.3"
+    },
+    {
+      "tuw_id": "LCX-FULL-19.02",
+      "label": "AWS runtime smoke",
+      "command": "npm run matter-desktop:aws-runtime:smoke",
+      "exit_code": 0,
+      "claim_status": "PASS",
+      "allowed_claim": "AWS temporary runtime smoke passed with token/password material suppressed",
+      "blocked_reason": null,
+      "evidence_ref": null,
+      "parsed_summary": {
+        "runtime_mode": "aws-temporary-execute-api",
+        "account_count": 9,
+        "super_admin_login_result": "allow",
+        "general_admin_restriction": "deny",
+        "operator_token_material_printed": false,
+        "password_material_printed": false,
+        "reset_token_material_printed": false,
+        "public_release_claim": false,
+        "production_go_live_claim": false,
+        "owner_approval_claim": false
+      },
+      "output_tail": "> law-firm-os@0.1.0 matter-desktop:aws-runtime:smoke > node scripts/smoke-matter-desktop-aws-runtime.mjs { \"verdict\": \"PASS\", \"runtime_mode\": \"aws-temporary-execute-api\", \"base_url\": \"https://73o8hpqpgl.execute-api.ap-northeast-2.amazonaws.com/staging\", \"account_count\": 9, \"super_admin_login\": { \"email\": \"[redacted-email]\", \"role\": \"system_super_admin\", \"password_reset_confirmed\": true, \"result\": \"allow\" }, \"general_account_login\": { \"email\": \"[redacted-email]\", \"password_reset_confirmed\": true, \"result\": \"allow\" }, \"general_account_admin_restriction\": { \"email\": \"[redacted-email]\", \"feature_id\": \"matter_vault_admin\", \"result\": \"deny\", \"http_status\": 403 }, \"operator_token_material_printed\": false, \"password_material_printed\": false, \"reset_token_material_printed\": false, \"real_client_data_used\": false, \"custom_domain_required\": false, \"public_release_claim\": false, \"production_go_live_claim\": false, \"owner_approval_claim\": false }"
+    },
+    {
+      "tuw_id": "LCX-FULL-19.03",
+      "label": "web production smoke",
+      "command": "npm run lcx:vltui:production-smoke",
+      "exit_code": 1,
+      "claim_status": "BLOCKED",
+      "allowed_claim": "production smoke is explicitly blocked until required env is present",
+      "blocked_reason": "LAWOS_VAULT_BRIDGE_TOKEN [redacted] required for production bridge smoke",
+      "evidence_ref": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json",
+      "parsed_summary": {
+        "missing_required_env": [
+          "LAWOS_VAULT_BRIDGE_TOKEN"
+        ],
+        "artifact_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.md"
+      },
+      "output_tail": "> law-firm-os@0.1.0 lcx:vltui:production-smoke > node scripts/run-lcx-vltui-production-smoke.mjs { \"verdict\": \"BLOCKED\", \"blocked_reason\": \"LAWOS_VAULT_BRIDGE_TOKEN [redacted] required for production bridge smoke\", \"missing_required_env\": [ \"LAWOS_VAULT_BRIDGE_TOKEN\" ], \"artifact_json\": \"docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json\", \"artifact_md\": \"docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.md\" }"
+    },
+    {
+      "tuw_id": "LCX-FULL-19.04",
+      "label": "release no-public-claim guard",
+      "command": "node scripts/validate-matter-desktop-no-public-release-claim.mjs",
+      "exit_code": 0,
+      "claim_status": "PASS",
+      "allowed_claim": "public release/go-live/owner approval claims remain false",
+      "blocked_reason": null,
+      "evidence_ref": null,
+      "parsed_summary": {
+        "public_release_claim": false,
+        "production_go_live_claim": false,
+        "owner_approval_claim": false
+      },
+      "output_tail": "{ \"verdict\": \"PASS\", \"checked_files\": 45, \"findings\": [], \"probes\": { \"public_release_claim\": \"detected\", \"production_go_live_claim\": \"detected\", \"owner_approval_claim\": \"detected\" }, \"public_release_claim\": false, \"production_go_live_claim\": false, \"owner_approval_claim\": false }"
+    },
+    {
+      "tuw_id": "LCX-FULL-19.05",
+      "label": "desktop screen QA",
+      "command": "npm run matter-desktop:screen-qa",
+      "exit_code": 0,
+      "claim_status": "PASS",
+      "allowed_claim": "desktop screen QA passed as supervised pilot candidate proof",
+      "blocked_reason": null,
+      "evidence_ref": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa-result.json",
+      "parsed_summary": {
+        "screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa.png"
+      },
+      "output_tail": "> law-firm-os@0.1.0 matter-desktop:screen-qa > node scripts/smoke-matter-desktop-screen-qa.mjs { \"verdict\": \"PASS\", \"receipt\": \"docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa-result.json\", \"screenshot\": \"docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa.png\" }"
+    }
+  ],
+  "gate_claim_counts": {
+    "pass": 3,
+    "blocked": 1,
+    "fail": 1
+  },
+  "boundary": {
+    "formal_release_candidate_publicly_released": false,
+    "production_cutover_executed_by_this_preflight": false,
+    "company_wide_go_live_executed_by_this_preflight": false,
+    "public_release_claim": false,
+    "production_go_live_claim": false,
+    "owner_approval_claim_by_this_preflight": false,
+    "provider_production_write_claim_by_this_preflight": false,
+    "real_client_data_used": false
+  }
+}

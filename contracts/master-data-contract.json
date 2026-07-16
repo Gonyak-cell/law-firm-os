@@ -341,7 +341,7 @@
     "builds_block_semantics_descriptor": true,
     "builds_evidence_template_descriptor": true,
     "builds_validation_command_check_descriptor": true,
-    "builds_harness_boundary_note_descriptor": true,
+    "builds_runtime_boundary_note_descriptor": true,
     "builds_closeout_handoff_descriptor": true,
     "builds_regression_receipt_descriptor": true,
     "builds_next_gate_readiness_descriptor": true,
@@ -386,6 +386,7 @@
     "unauthorized_object_name"
   ],
   "public_exports": [
+    "AMIC_CURRENT_CLIENT_CANDIDATES",
     "MASTER_DATA_API_REFERENCE_SURFACE",
     "MASTER_DATA_AUDIT_SOURCE",
     "MASTER_DATA_CONTACT_POINT_TYPES",
@@ -469,6 +470,7 @@
     "createBillingProfileService",
     "createClientGroupService",
     "createContactPointService",
+    "createCrmCanonicalWriteService",
     "createMasterDataApiReferenceCatalog",
     "createMasterDataApiReferenceFixture",
     "createMasterDataBillingProfile",
@@ -2619,7 +2621,7 @@
         "BLOCK semantics": 2,
         "Evidence template": 2,
         "Validation command check": 2,
-        "Harness boundary note": 2,
+        "Runtime boundary note": 2,
         "Closeout handoff": 2,
         "Regression receipt": 2,
         "Next gate readiness": 2
@@ -2860,7 +2862,7 @@
         "BLOCK semantics": 1,
         "Evidence template": 1,
         "Validation command check": 1,
-        "Harness boundary note": 1,
+        "Runtime boundary note": 1,
         "Closeout handoff": 1,
         "Regression receipt": 1,
         "Next gate readiness": 1,
@@ -2910,10 +2912,10 @@
         "invokes_commands_from_package_code": false,
         "executes_shell_from_service": false
       },
-      "harness_boundary_note": {
-        "section_id": "cp174_harness_boundary_note",
+      "runtime_boundary_note": {
+        "section_id": "cp174_runtime_boundary_note",
         "unit_id": "RP04.P08.M05.S17",
-        "harness_scope": "closeout_pack_evidence_only",
+        "runtime_scope": "closeout_pack_evidence_only",
         "package_executes_hermes": false,
         "package_executes_claude": false,
         "package_requests_network": false,
@@ -3120,7 +3122,7 @@
         "BLOCK semantics": 3,
         "Evidence template": 3,
         "Validation command check": 3,
-        "Harness boundary note": 3,
+        "Runtime boundary note": 3,
         "Closeout handoff": 3,
         "Regression receipt": 3,
         "Next gate readiness": 3,

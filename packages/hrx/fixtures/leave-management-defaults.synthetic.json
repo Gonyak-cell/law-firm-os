@@ -1,0 +1,88 @@
+{
+  "schema_version": "law-firm-os.hrx.leave-management-baseline.v0.1",
+  "status": "synthetic_defaults_only",
+  "tenant_id": "tenant_leave_synthetic",
+  "real_employee_data_allowed": false,
+  "deployment_requires_company_decisions": true,
+  "decisions": [
+    { "id": "DEC-LV-01", "value": "hire_date_source_with_fiscal_projection", "deployment_blocking": true },
+    { "id": "DEC-LV-02", "value": "assigned_schedule_then_explicit_company_default", "deployment_blocking": true },
+    { "id": "DEC-LV-03", "value": "annual_bereavement_sick_family_care_unpaid", "deployment_blocking": true },
+    { "id": "DEC-LV-04", "value": "annual_reason_optional_special_leave_evidence_by_type", "deployment_blocking": true },
+    { "id": "DEC-LV-05", "value": "effective_dated_carryover_expiry_compensation", "deployment_blocking": true },
+    { "id": "DEC-LV-06", "value": "manager_one_stage_hr_exception", "deployment_blocking": true },
+    { "id": "DEC-LV-07", "value": "coworker_sees_leave_only", "deployment_blocking": true },
+    { "id": "DEC-LV-08", "value": "document_delivery_and_read_evidence", "deployment_blocking": true },
+    { "id": "DEC-LV-09", "value": "versioned_retention_with_legal_hold", "deployment_blocking": true },
+    { "id": "DEC-LV-10", "value": "termination_reconciliation_before_payroll_handoff", "deployment_blocking": true }
+  ],
+  "legal_basis_versions": [
+    {
+      "code": "KR_LSA_ARTICLE_60_61_CURRENT",
+      "effective_from": "2026-07-13",
+      "effective_to": "2026-08-19",
+      "review_required": true
+    },
+    {
+      "code": "KR_LSA_2026_08_20",
+      "effective_from": "2026-08-20",
+      "effective_to": null,
+      "review_required": true
+    }
+  ],
+  "schedule_source": {
+    "resolver": "HRX_WORK_SCHEDULE_ASSIGNMENT",
+    "attendance_is_schedule_source": false,
+    "silent_480_minute_fallback": false,
+    "missing_schedule_error": "HRX_LEAVE_WORK_SCHEDULE_REQUIRED",
+    "company_default_profile": {
+      "schedule_profile_id": "schedule_default_480_seoul",
+      "timezone": "Asia/Seoul",
+      "effective_from": "2026-01-01",
+      "assignment_required": true,
+      "working_weekdays": [1, 2, 3, 4, 5],
+      "work_segments": [
+        { "start": "09:00", "end": "12:00" },
+        { "start": "13:00", "end": "18:00" }
+      ],
+      "daily_minutes": 480,
+      "holiday_calendar_ref": "KR_PUBLIC_HOLIDAYS"
+    }
+  },
+  "leave_group": {
+    "group_id": "leave_group_paid_time",
+    "code": "PAID_TIME",
+    "calculation_unit": "minutes",
+    "negative_balance_allowed": false,
+    "allocation_order": "earliest_expiry_then_earned_at"
+  },
+  "leave_types": [
+    { "code": "ANNUAL", "label": "연차", "duration_modes": ["full_day", "half_day", "quarter_day", "hourly"], "reason_required": false, "attachment_required": false },
+    { "code": "BEREAVEMENT", "label": "경조휴가", "duration_modes": ["full_day"], "reason_required": true, "attachment_required": true },
+    { "code": "SICK", "label": "병가", "duration_modes": ["full_day", "half_day", "hourly"], "reason_required": false, "attachment_required": false },
+    { "code": "FAMILY_CARE", "label": "가족돌봄휴가", "duration_modes": ["full_day", "half_day"], "reason_required": true, "attachment_required": false },
+    { "code": "UNPAID", "label": "무급휴가", "duration_modes": ["full_day", "half_day", "hourly"], "reason_required": true, "attachment_required": false }
+  ],
+  "policy_version": {
+    "policy_version_id": "leave_policy_kr_synthetic_2026_1",
+    "effective_from": "2026-07-13",
+    "calculation_unit": "minutes",
+    "reserve_on_submit": true,
+    "release_and_use_on_approve": true,
+    "statutory_annual_reject_allowed": false,
+    "legal_basis_code": "KR_LSA_ARTICLE_60_61_CURRENT"
+  },
+  "route_ownership": {
+    "canonical_settings_section": "people-leave-types",
+    "legacy_redirects": {
+      "people-company-leave": "people-leave-types"
+    },
+    "people_policy_owns_leave_calculation": false
+  },
+  "role_scope_profiles": {
+    "staff": ["hrx.leave.self.read", "hrx.leave.self.write"],
+    "attorney_manager": ["hrx.leave.self.read", "hrx.leave.self.write", "hrx.leave.team.read", "hrx.leave.approve"],
+    "hr": ["hrx.leave.self.read", "hrx.leave.self.write", "hrx.leave.team.read", "hrx.leave.approve", "hrx.leave.policy.read", "hrx.leave.policy.write", "hrx.leave.accrual.execute", "hrx.leave.ledger.adjust", "hrx.leave.promotion.manage", "hrx.leave.report.export", "hrx.leave.termination.settle"],
+    "admin": ["hrx.leave.self.read", "hrx.leave.self.write", "hrx.leave.team.read", "hrx.leave.approve", "hrx.leave.policy.read", "hrx.leave.policy.write", "hrx.leave.accrual.execute", "hrx.leave.ledger.adjust", "hrx.leave.promotion.manage", "hrx.leave.report.export", "hrx.leave.termination.settle"]
+  }
+}

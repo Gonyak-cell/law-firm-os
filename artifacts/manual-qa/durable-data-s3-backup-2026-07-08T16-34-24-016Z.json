@@ -1,0 +1,36 @@
+{
+  "schema_version": "law-firm-os.runtime-store-s3-backup.v0.1",
+  "receipt_type": "durable_runtime_store_s3_backup",
+  "outcome": "passed",
+  "generated_at": "2026-07-08T16:34:24.016Z",
+  "store_dir": "/Users/jws/Library/Application Support/LawFirmOS/runtime-stores",
+  "local_backup_dir": "/Users/jws/Documents/Codex/Law Firm OS/artifacts/backups/matter-vault-runtime-stores/2026-07-08T16-34-24-371Z",
+  "local_backup_manifest_path": "/Users/jws/Documents/Codex/Law Firm OS/artifacts/backups/matter-vault-runtime-stores/2026-07-08T16-34-24-371Z/lawos-runtime-store-backup-manifest.json",
+  "local_backup_file_count": 13,
+  "local_backup_total_bytes": 1413953,
+  "local_backup_real_client_data_used": true,
+  "aws_profile": "matter-prod-deploy-admin",
+  "aws_region": "ap-northeast-2",
+  "aws_account_id": "770880870480",
+  "aws_identity_verified": true,
+  "bucket": "lawos-matter-runtime-backups-770880870480-ap-northeast-2",
+  "device_id": "MACui-MacBookPro.local",
+  "prefix": "devices/MACui-MacBookPro.local/backups/2026-07-08T16-34-24-016Z",
+  "bucket_policy": {
+    "bucket_created": false,
+    "versioning": "Enabled",
+    "encryption": "aws:kms alias/aws/s3",
+    "delete_policy": "deny"
+  },
+  "upload": {
+    "bucket": "lawos-matter-runtime-backups-770880870480-ap-northeast-2",
+    "prefix": "devices/MACui-MacBookPro.local/backups/2026-07-08T16-34-24-016Z",
+    "manifest_uri": "s3://lawos-matter-runtime-backups-770880870480-ap-northeast-2/devices/MACui-MacBookPro.local/backups/2026-07-08T16-34-24-016Z/lawos-runtime-store-backup-manifest.json"
+  },
+  "offline_queue_path": null,
+  "drained_queue_count": 0,
+  "upload_error": null,
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "public_release_claim": false
+}

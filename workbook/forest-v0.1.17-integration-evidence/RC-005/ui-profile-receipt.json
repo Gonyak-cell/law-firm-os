@@ -1,0 +1,31 @@
+{
+  "schema_version": "law-firm-os.forest.rc-005-ui-profile.v1",
+  "tuw": ["RC-005-D", "RC-005-E"],
+  "status": "DONE",
+  "entry_sha": "ee03b8c127f1be4d7a8ce4bb5b104f0ba27f110f",
+  "exit_sha": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c",
+  "renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96",
+  "mac_windows_renderer_equal": true,
+  "packaged_leave": {
+    "verdict": "PASS",
+    "scenario_count": 10,
+    "screenshot_count": 11,
+    "console_error_count": 0
+  },
+  "packaged_profile": {
+    "verdict": "PASS",
+    "session_user_id": "user_amic_jwsuh",
+    "member_id": "emp_amic_jwsuh",
+    "display_name": "서지원"
+  },
+  "public_renderer_pii": {
+    "verdict": "PASS",
+    "renderer_root_count": 2,
+    "scanned_file_count": 54,
+    "protected_values_printed": false
+  },
+  "root_fingerprint_sha256": "7837aff481b222426ff93da5a617324fa4e7ae8966f728dee5bf1e8731bea0b3",
+  "public_release": false,
+  "production_go_live": false
+}
+

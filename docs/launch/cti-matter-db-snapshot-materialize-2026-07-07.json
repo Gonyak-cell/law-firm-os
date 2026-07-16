@@ -1,0 +1,66 @@
+{
+  "artifact_id": "cti-matter-db-snapshot-materialize-2026-07-07",
+  "started_at": "2026-07-07T05:35:55.568Z",
+  "completed_at": "2026-07-07T05:36:36.192Z",
+  "approval_signature_ref": "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06",
+  "lambda": {
+    "function_name": "matter-lawos-api-prod",
+    "code_update_sha256": "iHYsQxTB0LqIiw7rD35fpg8LgC1GLGvEdaKV8RnuX+4=",
+    "code_update_revision_id": "7ddb4faf-d878-4adf-b5c2-0c656101b179",
+    "package_sha256": "sha256:88762c4314c1d0ba888b0eeb0f7e5fa60f0b802d462c6bc475a295f119ee5fee",
+    "pg_deps_included": [
+      "node_modules/pg",
+      "node_modules/pg-cloudflare",
+      "node_modules/pg-connection-string",
+      "node_modules/pg-int8",
+      "node_modules/pg-pool",
+      "node_modules/pg-protocol",
+      "node_modules/pg-types",
+      "node_modules/pgpass",
+      "node_modules/postgres-array",
+      "node_modules/postgres-bytea",
+      "node_modules/postgres-date",
+      "node_modules/postgres-interval",
+      "node_modules/split2",
+      "node_modules/xtend"
+    ]
+  },
+  "invoke": {
+    "status_code": 200,
+    "function_error": null,
+    "response_status_code": 200
+  },
+  "materialize_receipt": {
+    "ok": true,
+    "schema_version": "law-firm-os.cti.matter-db-snapshot-materialize.v0.1",
+    "maintenance_action": "cti_matter_db_snapshot_materialize",
+    "approval_signature_ref": "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06",
+    "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+    "generated_at": "2026-07-07T05:36:04.831Z",
+    "app_tenant_id": "tenant_amic_matter_vault",
+    "database_tenant_id_hash": "sha256:9b94711d6ad83039fef084d0f0cc0345ec694902c6d67462c3383afbbcdf6e97",
+    "matter_store_path_hash": "sha256:5f98cea290526114154a6a7a3ee6a04fe9018ebf26a3d2cc95c1095aad79c225",
+    "before_sha256": "sha256:9b07ca0c0d05948c9f264b75e3941ac3a5f5f135a48baf0b23c806432d6106d1",
+    "after_sha256": "sha256:c4dfd17b53497e3cd092ed91675b8763af3df5e99a140b35cc8811c59ba3b1bd",
+    "materialized_counts": {
+      "MatterClient": 80,
+      "Matter": 123,
+      "MatterMember": 123
+    },
+    "total_materialized_record_count": 326,
+    "matter_store_total_record_count": 2174,
+    "pii_safe": true,
+    "secret_value_returned": false,
+    "credential_material_returned": false,
+    "token_or_password_returned": false,
+    "production_write_executed": true,
+    "production_write_scope": "matter_runtime_store_materialized_read_model_only",
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "verdict": "PASS",
+  "pii_safe": true,
+  "secret_value_returned": false,
+  "token_or_password_returned": false,
+  "production_ready_claim": false
+}

@@ -1,0 +1,181 @@
+{
+  "schema_version": "law-firm-os.wave1.upl_d14.offboarding_close_gate.browser_receipt.v0.1",
+  "generated_at": "2026-07-02T16:31:07.746Z",
+  "tuw_id": "UPL-D-14",
+  "source_backlog": "workbook/wave1-internal-uplift-tuw-backlog-2026-07-02.md#UPL-D-14",
+  "lx11_control": "계정 회수 수동 체크리스트: 회수 확인 기록 필수",
+  "lx11_confirmation_ref": "LX-11:AccessRevocation:d14:idp-core",
+  "base_url": "http://127.0.0.1:49913",
+  "tenant_id": "tenant_amic_matter_vault",
+  "actor_id": "user_amic_jwsuh",
+  "offboarding_id": "d14-offboarding-close-gate-1783009866836",
+  "matter_id": "matter_rp05_synthetic_opening",
+  "browser_driven": true,
+  "passed": true,
+  "assertions": {
+    "blocked_incomplete_close": true,
+    "lx11_access_revocation_confirmation_required": true,
+    "matter_reassignment_required": true,
+    "handover_required": true,
+    "close_persisted_in_runtime": true,
+    "audit_recorded": true,
+    "no_page_errors": true
+  },
+  "observed": {
+    "before_case": {
+      "tenant_id": "tenant_amic_matter_vault",
+      "offboarding_id": "d14-offboarding-close-gate-1783009866836",
+      "employee_id": "emp_amic_yjlee",
+      "separation_date": "2026-07-31",
+      "state": "open",
+      "access_revocations": [
+        {
+          "system_ref": "IdP:core",
+          "revoked": true,
+          "confirmation_ref": null
+        }
+      ],
+      "document_returns": [
+        {
+          "document_ref": "Laptop:emp_amic_yjlee",
+          "returned": true
+        }
+      ],
+      "legal_hold_checks": [
+        {
+          "hold_ref": "LegalHold:none",
+          "clear": true
+        }
+      ],
+      "matter_reassignments": [
+        {
+          "matter_id": "matter_rp05_synthetic_opening",
+          "reassigned_to_employee_id": null,
+          "reassigned": false,
+          "handover_ref": null
+        }
+      ],
+      "handover_items": [
+        {
+          "item_id": "handover-matter-files",
+          "title": "담당 matter 인수인계",
+          "completed": false,
+          "evidence_ref": null
+        }
+      ]
+    },
+    "blocked_response": {
+      "status": 400,
+      "body": {
+        "request_id": "hrx_request_error",
+        "outcome": "blocked",
+        "safe_error_code": "HRX_OFFBOARDING_CLOSE_BLOCKED",
+        "reason": "Offboarding case cannot close until access, documents, legal hold, matter reassignment, and handover checks are clear"
+      }
+    },
+    "completed_response": {
+      "status": 200,
+      "body": {
+        "request_id": "req_ca17e95a-bf73-4e42-9fae-a9f43dfd1d62",
+        "outcome": "closed",
+        "offboarding": {
+          "tenant_id": "tenant_amic_matter_vault",
+          "offboarding_id": "d14-offboarding-close-gate-1783009866836",
+          "employee_id": "emp_amic_yjlee",
+          "separation_date": "2026-07-31",
+          "state": "closed",
+          "access_revocations": [
+            {
+              "system_ref": "IdP:core",
+              "revoked": true,
+              "confirmation_ref": "LX-11:AccessRevocation:d14:idp-core"
+            }
+          ],
+          "document_returns": [
+            {
+              "document_ref": "Laptop:emp_amic_yjlee",
+              "returned": true
+            }
+          ],
+          "legal_hold_checks": [
+            {
+              "hold_ref": "LegalHold:none",
+              "clear": true
+            }
+          ],
+          "matter_reassignments": [
+            {
+              "matter_id": "matter_rp05_synthetic_opening",
+              "reassigned_to_employee_id": "emp_amic_jwsuh",
+              "reassigned": true,
+              "handover_ref": "MatterHandover:d14:matter_rp05_synthetic_opening"
+            }
+          ],
+          "handover_items": [
+            {
+              "item_id": "handover-matter-files",
+              "title": "담당 matter 인수인계",
+              "completed": true,
+              "evidence_ref": "HandoverEvidence:d14:matter-files"
+            }
+          ]
+        }
+      }
+    },
+    "after_case": {
+      "tenant_id": "tenant_amic_matter_vault",
+      "offboarding_id": "d14-offboarding-close-gate-1783009866836",
+      "employee_id": "emp_amic_yjlee",
+      "separation_date": "2026-07-31",
+      "state": "closed",
+      "access_revocations": [
+        {
+          "system_ref": "IdP:core",
+          "revoked": true,
+          "confirmation_ref": "LX-11:AccessRevocation:d14:idp-core"
+        }
+      ],
+      "document_returns": [
+        {
+          "document_ref": "Laptop:emp_amic_yjlee",
+          "returned": true
+        }
+      ],
+      "legal_hold_checks": [
+        {
+          "hold_ref": "LegalHold:none",
+          "clear": true
+        }
+      ],
+      "matter_reassignments": [
+        {
+          "matter_id": "matter_rp05_synthetic_opening",
+          "reassigned_to_employee_id": "emp_amic_jwsuh",
+          "reassigned": true,
+          "handover_ref": "MatterHandover:d14:matter_rp05_synthetic_opening"
+        }
+      ],
+      "handover_items": [
+        {
+          "item_id": "handover-matter-files",
+          "title": "담당 matter 인수인계",
+          "completed": true,
+          "evidence_ref": "HandoverEvidence:d14:matter-files"
+        }
+      ]
+    },
+    "audit_event_count": 2,
+    "console_messages": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      }
+    ],
+    "page_errors": []
+  },
+  "non_claims": [
+    "local synthetic HRX runtime only",
+    "no production closeout claim",
+    "no external IdP or matter-owner operation executed"
+  ]
+}

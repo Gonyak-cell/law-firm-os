@@ -1,0 +1,25 @@
+# CP-002 Acceptance
+
+- TUW: CP-002
+- status: DONE
+- entry_sha: `b6853d529699ec155dfdbb59d2f4f976b58b6cb6`
+- exit_sha: `b6853d529699ec155dfdbb59d2f4f976b58b6cb6` (validator and evidence only; product tree unchanged)
+- comparison targets: 5/5 exact Git objects from CP-001
+- product axes: Home, Client, Matter, People, Search, Portal, auth/profile, leave, payroll, persistence/authz/package 10/10
+- candidate top navigation: Home, Client, Matter, People, Search, Portal 6/6
+- candidate capability anchors: source 23/23, proof placements 24/24
+- candidate Forest preservation paths: 170/170
+- prior target losses: nav route 0, unresolved People section 0, HRX route policy 0
+- approved consolidation: `people-company-leave -> people-leave-types` redirect verified; old settings entry is not duplicated
+- approved rename: route ID `vault` retains compatibility while its visible label is `Search`
+- HRX route policy definitions: origin/main 30, root 104, v0.1.16 baseline 104, Forest checkpoint 143, candidate 153
+- live route authz inventory: 159 policies, validator PASS
+- Forest checkpoint path comparison: 170 total, 158 byte-identical, 12 changed, 0 missing
+- changed path adjudication: product runtime 5, regression tests 4, QA tool 1, evidence receipts 2; all belong to RC-005 accepted ports or later proof updates
+- targeted tests: Web navigation/UI 75/75, API route/authz matrix 23/23
+- commands: see `commands.txt`
+- evidence_hashes: validator `68794aaa86d1e63ec16e6a8b4144180239d31179f6cd7ac9070985bc9e68f0e8`, product matrix `52056aebc84fc36a9317fb00762ad99583270bd8597c5659ebbb6ba9e7051e44`
+- manual_qa: ran validator help, invalid argument, emit, and checked-in matrix modes; inspected the only raw section delta and confirmed its explicit redirect and regression assertion
+- known_limits: CP-002 proves product-axis inventory and zero route/menu/API/anchor loss; domain depth is proven separately by CP-003 through CP-007
+- external_blockers: none
+- AI slop review: pass; no product UI or user-facing copy changed

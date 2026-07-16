@@ -1,0 +1,70 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.command-evidence.v0.1",
+  "goal_id": "cti-build-s3-s4-code-prep",
+  "recorded_at": "2026-07-06T05:06:09.697Z",
+  "commands": [
+    {
+      "command": "node --check changed BUILD/S3/S4 JavaScript files",
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "matter runtime, session auth, account registry, bridge tests, bridge dry-run script, seed validator, BUILD-G validator, generated candidate module all parse successfully."
+    },
+    {
+      "command": "node --test apps/api/test/matter-vault-bridge-api.test.js",
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "8 tests passed; bridge blocks without token/control window, rejects bearer-only auth, enforces tenant allow-list, uses service actor, and keeps reference-only preflight."
+    },
+    {
+      "command": "node --test apps/api/test/session-auth-api.test.js",
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "12 tests passed; signed sessions and operational auth still pass with tenant_ids/tenant_refs session envelope."
+    },
+    {
+      "command": "node scripts/validate-matter-vault-user-registration-seed.mjs",
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "registered_account_count=11; QA accounts retain active seed status while QA production-disabled guard is enforced."
+    },
+    {
+      "command": "node scripts/run-current-matter-codes-production-bridge-upsert.mjs",
+      "exit_code": 0,
+      "status": "PASS_DRY_RUN",
+      "summary": "dry_run=true; tenant_id=tenant_amic_matter_vault; client_upserts=99; matter_upserts=148; remote_production_bridge_write_executed=false; artifacts=docs/goal-closeout/cti-build-s3-s4-code-prep/bridge-upsert-dry-run-evidence.{json,md}."
+    },
+    {
+      "command": "node scripts/validate-cti-build-s3-s4-code-prep.mjs",
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "BUILD-G PASS; candidate_count=148; S3/S4/CUTOVER execution=false; production_ready/go_live=false."
+    },
+    {
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "TUW total=382; work packages=79; violations=0."
+    }
+  ],
+  "boundary": {
+    "s3_execution": false,
+    "s4_execution": false,
+    "production_tenant_migration_executed": false,
+    "production_account_permission_injection_executed": false,
+    "bridge_token_actual_rotation_executed": false,
+    "password_issuance_distribution_executed": false,
+    "cutover_execution": false,
+    "s5_enrichment_executed": false,
+    "s6_final_seal_executed": false,
+    "oidc_implementation_executed": false,
+    "db_conversion_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "secret_value_recorded": false,
+    "plaintext_pii_recorded": false
+  },
+  "build_g": {
+    "status": "PASS",
+    "execution_mode": "code_only"
+  }
+}

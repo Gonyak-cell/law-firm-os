@@ -75,7 +75,7 @@ assert.equal(stateById.get("matter_app_api_ready").upload_authoritative, true);
 const negativeCaseIds = new Set(contract.negative_cases.map((row) => row.id));
 for (const id of [
   "law_bridge_token_missing",
-  "law_bridge_bearer_missing_or_wrong",
+  "law_bridge_header_missing_or_wrong",
   "matter_app_api_base_url_missing",
   "stale_source_timestamp",
   "matter_projection_mismatch"
@@ -85,6 +85,7 @@ for (const id of [
 for (const negativeCase of contract.negative_cases) {
   assert.equal(negativeCase.write_capable_state, false, `${negativeCase.id} must not be write capable`);
 }
+assert.ok(contract.law_firm_os_bridge.required_runtime_header_names.includes("x-lawos-vault-bridge-token"));
 
 assert.equal(contract.synthetic_upsert_handshake.client.idempotencyKeyHash.length > 0, true);
 assert.equal(contract.synthetic_upsert_handshake.client.clientId.length > 0, true);
@@ -124,7 +125,7 @@ for (const forbidden of ["Bearer ", "sk-", "cookie=", "BEGIN PRIVATE KEY", "prod
 }
 
 for (const marker of [
-  "Vault bridge rejects missing bearer auth and invalid canonical upsert payloads",
+  "Vault bridge rejects missing bridge headers and invalid canonical upsert payloads",
   "MATTER_VAULT_BRIDGE_BLOCKED",
   "MATTER_API_VALIDATION_ERROR",
   "count_leak_prevented",

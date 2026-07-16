@@ -1,0 +1,29 @@
+PASS validator syntax
+PASS validator --help
+PASS validator unknown argument exit 2
+PASS validator --emit
+PASS validator --check exact checked-in matrix
+PASS payroll plan TUWs 61/61 DONE
+PASS payroll implementation axes 8/8
+PASS payroll test-file inventory 23/23
+PASS package payroll domain 65/65
+PASS payroll API 8/8
+PASS payroll Web UI 3/3
+PASS combined fresh payroll regression 76/76
+PASS HRX route authz validator, route_policy_count 159
+PASS public renderer PII validator, scanned files 54, protected values printed 0
+PASS user root checkout preservation fingerprint exact
+PASS product runtime source changed 0 files from exact package build SHA to CP-004 entry
+PASS current internal package scenarios 9/9
+PASS current internal package screenshots and geometry 5/5
+PASS current internal package target rows 44px, overflow 0, broken images 0
+PASS current internal package page errors 0 and console errors 0
+PASS current internal package restart domain snapshot identical
+PASS exact Mac/Windows renderer SHA-256 parity
+PASS package claim boundaries all false
+PASS historical browser receipt recorded 6 roles x 5 widths with recorded errors 0
+PASS historical browser receipt excluded from current-source proof because source revision is absent
+PASS GATE-002 remains intentionally BLOCKED
+PASS JSON parse
+PASS diff check
+PASS AI slop changed scan

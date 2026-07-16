@@ -1,0 +1,1313 @@
+{
+  "schema_version": "law-firm-os.lazycodex.people-professional-profile-browser-proof.v0.1",
+  "generated_at": "2026-07-07T02:03:49.366Z",
+  "verdict": "PASS",
+  "source_urls": [
+    "https://amic-law.vercel.app/",
+    "https://petrabridge.vercel.app/"
+  ],
+  "source_map": "docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-source-map-2026-07-07.json",
+  "roster_source": "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json",
+  "web_origin": "http://127.0.0.1:5187",
+  "api_origin": "http://127.0.0.1:4217",
+  "subjects": [
+    {
+      "display_name": "박병준",
+      "expected_kind": "attorney",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/park-byungjun.png",
+      "text_sample": "전문 프로필 변호사 공개 역할 대표변호사 전문 분야 상사분쟁 · 경영권 분쟁 · 민·형사소송 · 건설·부동산 소송 · IP 주요 경력 법무법인 아믹 대표변호사 (2025~현재) 미국 Gori Company 고문변호사 (2024~2025) 김·장 법률사무소 변호사 (2017~2024) 서울고등법원 재판연구원 (2015~2017) 학력 UC Berkeley School of Law, LL.M. 서울대학교 대학원 법학과 석사 수료 성균관대학교 물리학과 학사 사법연수원 제44기 자격·면허 대한민국 변호사 미국 변호사(캘리포니아·텍사스) 출처 People / 박병준 · https://amic-law.vercel.app/ 비고 PetraBridge Alongside AMIC mirror의 2026~현재 표기는 AMIC People 원천과 달라 개인 프로필에는 AMIC People 원천을 우선한다.",
+      "checks": [
+        {
+          "name": "박병준 professional profile section visible",
+          "passed": true
+        },
+        {
+          "name": "박병준 profile kind rendered as attorney",
+          "passed": true,
+          "expected_kind": "attorney"
+        },
+        {
+          "name": "박병준 UI contains 전문 프로필",
+          "passed": true,
+          "expected": "전문 프로필"
+        },
+        {
+          "name": "박병준 UI contains 변호사",
+          "passed": true,
+          "expected": "변호사"
+        },
+        {
+          "name": "박병준 UI contains 상사분쟁",
+          "passed": true,
+          "expected": "상사분쟁"
+        },
+        {
+          "name": "박병준 UI contains 김·장",
+          "passed": true,
+          "expected": "김·장"
+        },
+        {
+          "name": "박병준 UI contains 서울고등법원",
+          "passed": true,
+          "expected": "서울고등법원"
+        },
+        {
+          "name": "박병준 UI contains UC Berkeley",
+          "passed": true,
+          "expected": "UC Berkeley"
+        },
+        {
+          "name": "박병준 UI contains 사법연수원 제44기",
+          "passed": true,
+          "expected": "사법연수원 제44기"
+        },
+        {
+          "name": "박병준 UI contains 출처",
+          "passed": true,
+          "expected": "출처"
+        }
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "display_name": "임영훈",
+      "expected_kind": "attorney",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/lim-younghoon.png",
+      "text_sample": "전문 프로필 변호사 공개 역할 대표변호사 전문 분야 경영권분쟁 · 조세쟁송 · 국제조세 · M&A · IP · 금융소송 주요 경력 법무법인 아믹 대표변호사 (2025~현재) 법무법인 에스엘파트너스 대표변호사 (2023~2025) 삼성전자 법무실 변호사 (2021~2023) 김·장 법률사무소 변호사 (2017~2021) 딜로이트 안진회계법인 공인회계사 (2011~2012) 학력 연세대학교 경제학과 학사 사법연수원 제46기 자격·면허 대한민국 변호사 대한민국 공인회계사 출처 People / 임영훈 · https://amic-law.vercel.app/ 비고 PetraBridge Alongside AMIC mirror의 2026~현재 표기는 AMIC People 원천과 달라 개인 프로필에는 AMIC People 원천을 우선한다.",
+      "checks": [
+        {
+          "name": "임영훈 professional profile section visible",
+          "passed": true
+        },
+        {
+          "name": "임영훈 profile kind rendered as attorney",
+          "passed": true,
+          "expected_kind": "attorney"
+        },
+        {
+          "name": "임영훈 UI contains 전문 프로필",
+          "passed": true,
+          "expected": "전문 프로필"
+        },
+        {
+          "name": "임영훈 UI contains 변호사",
+          "passed": true,
+          "expected": "변호사"
+        },
+        {
+          "name": "임영훈 UI contains 조세쟁송",
+          "passed": true,
+          "expected": "조세쟁송"
+        },
+        {
+          "name": "임영훈 UI contains 삼성전자",
+          "passed": true,
+          "expected": "삼성전자"
+        },
+        {
+          "name": "임영훈 UI contains 김·장",
+          "passed": true,
+          "expected": "김·장"
+        },
+        {
+          "name": "임영훈 UI contains 연세대학교",
+          "passed": true,
+          "expected": "연세대학교"
+        },
+        {
+          "name": "임영훈 UI contains 공인회계사",
+          "passed": true,
+          "expected": "공인회계사"
+        },
+        {
+          "name": "임영훈 UI contains 출처",
+          "passed": true,
+          "expected": "출처"
+        }
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "display_name": "서지원",
+      "expected_kind": "attorney",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/suh-jiwon.png",
+      "text_sample": "전문 프로필 변호사 공개 역할 대표변호사 전문 분야 M&A · 기업지배구조자문 · 공정거래 · 회사법 · 사모투자 주요 경력 법무법인 아믹 대표변호사 (2025~현재) 법무법인 에스엘파트너스 파트너변호사 (2024~2025) 김·장 법률사무소 변호사 (2020~2024) 국방부 법무관 (2019~2020) 해군본부 법무관 (2018~2019) 해병대 제1사단 법무관 (2017~2018) 학력 서울대학교 교육학과 학사 사법연수원 제46기 자격·면허 대한민국 변호사 출처 People / 서지원 · https://amic-law.vercel.app/ 비고 PetraBridge Alongside AMIC mirror의 2026~현재 표기는 AMIC People 원천과 달라 개인 프로필에는 AMIC People 원천을 우선한다.",
+      "checks": [
+        {
+          "name": "서지원 professional profile section visible",
+          "passed": true
+        },
+        {
+          "name": "서지원 profile kind rendered as attorney",
+          "passed": true,
+          "expected_kind": "attorney"
+        },
+        {
+          "name": "서지원 UI contains 전문 프로필",
+          "passed": true,
+          "expected": "전문 프로필"
+        },
+        {
+          "name": "서지원 UI contains 변호사",
+          "passed": true,
+          "expected": "변호사"
+        },
+        {
+          "name": "서지원 UI contains M&A",
+          "passed": true,
+          "expected": "M&A"
+        },
+        {
+          "name": "서지원 UI contains 김·장",
+          "passed": true,
+          "expected": "김·장"
+        },
+        {
+          "name": "서지원 UI contains 국방부",
+          "passed": true,
+          "expected": "국방부"
+        },
+        {
+          "name": "서지원 UI contains 서울대학교",
+          "passed": true,
+          "expected": "서울대학교"
+        },
+        {
+          "name": "서지원 UI contains 사법연수원 제46기",
+          "passed": true,
+          "expected": "사법연수원 제46기"
+        },
+        {
+          "name": "서지원 UI contains 출처",
+          "passed": true,
+          "expected": "출처"
+        }
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "display_name": "조성민",
+      "expected_kind": "attorney",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/cho-sungmin.png",
+      "text_sample": "전문 프로필 변호사 공개 역할 대표변호사 전문 분야 상사분쟁 · 민·형사소송 · 금융규제 및 컴플라이언스 · 인사노무 · 가사 및 상속 주요 경력 법무법인 아믹 대표변호사 (2026~현재) 법무법인 화온 대표변호사 (2024~2026) 김·장 법률사무소 변호사 (2018~2024) 학력 연세대학교 법학과 학사 사법연수원 제47기 자격·면허 대한민국 변호사 출처 People / 조성민 · https://amic-law.vercel.app/ 비고 AMIC People 원천과 PetraBridge Alongside AMIC mirror의 핵심 경력·자격이 일치한다.",
+      "checks": [
+        {
+          "name": "조성민 professional profile section visible",
+          "passed": true
+        },
+        {
+          "name": "조성민 profile kind rendered as attorney",
+          "passed": true,
+          "expected_kind": "attorney"
+        },
+        {
+          "name": "조성민 UI contains 전문 프로필",
+          "passed": true,
+          "expected": "전문 프로필"
+        },
+        {
+          "name": "조성민 UI contains 변호사",
+          "passed": true,
+          "expected": "변호사"
+        },
+        {
+          "name": "조성민 UI contains 금융규제",
+          "passed": true,
+          "expected": "금융규제"
+        },
+        {
+          "name": "조성민 UI contains 화온",
+          "passed": true,
+          "expected": "화온"
+        },
+        {
+          "name": "조성민 UI contains 김·장",
+          "passed": true,
+          "expected": "김·장"
+        },
+        {
+          "name": "조성민 UI contains 연세대학교",
+          "passed": true,
+          "expected": "연세대학교"
+        },
+        {
+          "name": "조성민 UI contains 사법연수원 제47기",
+          "passed": true,
+          "expected": "사법연수원 제47기"
+        },
+        {
+          "name": "조성민 UI contains 출처",
+          "passed": true,
+          "expected": "출처"
+        }
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "display_name": "김양태",
+      "expected_kind": "cpa",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/kim-yangtae.png",
+      "text_sample": "전문 프로필 공인회계사 / Deal Advisory 공개 역할 CEO / KICPA · 대표이사 · 고문 전문 분야 M&A 자문 · Deal Advisory · 재무 실사 · 가치평가 · 거래구조 설계 주요 경력 페트라브릿지파트너스 대표이사 (2026~현재) 미래에셋비전기업인수목적11호(KOSDAQ 상장) 대표이사 (2025~현재) 신협중앙회 블라인드펀드 투자심사위원 (2025~현재) KPMG 삼정회계법인 Deal Advisory 부문 파트너 (2017~2025) KPMG China 베이징 사무소 국제조세 부문 (2016~2017) KPMG 삼정회계법인 Deal Advisory 부문 (2015~2016) KCBC Beijing 세무자문 (2013~2015) Deloitte 안진회계법인 회계감사 부문 (2010~2013) 학력 중국 베이징 UIBE MBA 서울시립대학교 세무학 학사 자격·면허 대한민국 공인회계사 출처 Team / 김양태 · https://petrabridge.verce",
+      "checks": [
+        {
+          "name": "김양태 professional profile section visible",
+          "passed": true
+        },
+        {
+          "name": "김양태 profile kind rendered as cpa",
+          "passed": true,
+          "expected_kind": "cpa"
+        },
+        {
+          "name": "김양태 UI contains 전문 프로필",
+          "passed": true,
+          "expected": "전문 프로필"
+        },
+        {
+          "name": "김양태 UI contains 공인회계사",
+          "passed": true,
+          "expected": "공인회계사"
+        },
+        {
+          "name": "김양태 UI contains Deal Advisory",
+          "passed": true,
+          "expected": "Deal Advisory"
+        },
+        {
+          "name": "김양태 UI contains 페트라브릿지",
+          "passed": true,
+          "expected": "페트라브릿지"
+        },
+        {
+          "name": "김양태 UI contains KPMG",
+          "passed": true,
+          "expected": "KPMG"
+        },
+        {
+          "name": "김양태 UI contains UIBE",
+          "passed": true,
+          "expected": "UIBE"
+        },
+        {
+          "name": "김양태 UI contains 서울시립대학교",
+          "passed": true,
+          "expected": "서울시립대학교"
+        },
+        {
+          "name": "김양태 UI contains 출처",
+          "passed": true,
+          "expected": "출처"
+        },
+        {
+          "name": "김양태 UI excludes 변호사",
+          "passed": true,
+          "forbidden": "변호사"
+        },
+        {
+          "name": "김양태 UI excludes attorney",
+          "passed": true,
+          "forbidden": "attorney"
+        }
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "display_name": "조우상",
+      "expected_kind": "deal_advisor",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/jo-woosang.png",
+      "text_sample": "전문 프로필 Deal Advisory 공개 역할 DIRECTOR · 이사 · 전문위원 전문 분야 M&A 전략 · 거래 구조 설계 · 재무·사업 분석 · Commercial Due Diligence 주요 경력 페트라브릿지파트너스 이사 (2026~현재) KPMG 삼정회계법인 Deal Advisory 부문 (2017~2025) 학력 프랑스 파리 Sciences Po 공공정책경제학 석사 미국 Brandeis University 경제학·수학 학사 출처 Team / 조우상 · https://petrabridge.vercel.app/ People / 조우상 · https://amic-law.vercel.app/ 비고 공개 원천상 별도 전문자격 표시는 확인되지 않는다.",
+      "checks": [
+        {
+          "name": "조우상 professional profile section visible",
+          "passed": true
+        },
+        {
+          "name": "조우상 profile kind rendered as deal_advisor",
+          "passed": true,
+          "expected_kind": "deal_advisor"
+        },
+        {
+          "name": "조우상 UI contains 전문 프로필",
+          "passed": true,
+          "expected": "전문 프로필"
+        },
+        {
+          "name": "조우상 UI contains Deal Advisory",
+          "passed": true,
+          "expected": "Deal Advisory"
+        },
+        {
+          "name": "조우상 UI contains 페트라브릿지",
+          "passed": true,
+          "expected": "페트라브릿지"
+        },
+        {
+          "name": "조우상 UI contains KPMG",
+          "passed": true,
+          "expected": "KPMG"
+        },
+        {
+          "name": "조우상 UI contains Sciences Po",
+          "passed": true,
+          "expected": "Sciences Po"
+        },
+        {
+          "name": "조우상 UI contains Brandeis",
+          "passed": true,
+          "expected": "Brandeis"
+        },
+        {
+          "name": "조우상 UI contains 출처",
+          "passed": true,
+          "expected": "출처"
+        },
+        {
+          "name": "조우상 UI excludes 변호사",
+          "passed": true,
+          "forbidden": "변호사"
+        },
+        {
+          "name": "조우상 UI excludes 공인회계사",
+          "passed": true,
+          "forbidden": "공인회계사"
+        },
+        {
+          "name": "조우상 UI excludes attorney",
+          "passed": true,
+          "forbidden": "attorney"
+        },
+        {
+          "name": "조우상 UI excludes CPA",
+          "passed": true,
+          "forbidden": "CPA"
+        }
+      ],
+      "verdict": "PASS"
+    }
+  ],
+  "api_readback": [
+    {
+      "display_name": "박병준",
+      "employee_id": "emp_amic_bj_park",
+      "status": 200,
+      "profile_kind": "attorney"
+    },
+    {
+      "display_name": "임영훈",
+      "employee_id": "emp_amic_yhlim",
+      "status": 200,
+      "profile_kind": "attorney"
+    },
+    {
+      "display_name": "서지원",
+      "employee_id": "emp_amic_jwsuh",
+      "status": 200,
+      "profile_kind": "attorney"
+    },
+    {
+      "display_name": "조성민",
+      "employee_id": "emp_amic_smcho",
+      "status": 200,
+      "profile_kind": "attorney"
+    },
+    {
+      "display_name": "김양태",
+      "employee_id": "emp_amic_ytkim",
+      "status": 200,
+      "profile_kind": "cpa"
+    },
+    {
+      "display_name": "조우상",
+      "employee_id": "emp_amic_wsjo",
+      "status": 200,
+      "profile_kind": "deal_advisor"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "source-map proof subject ids are present",
+      "passed": true
+    },
+    {
+      "name": "browser proof performed no non-auth API writes",
+      "passed": true,
+      "api_writes": []
+    },
+    {
+      "name": "browser DOM contains no local password or session token",
+      "passed": true,
+      "details": {
+        "local_password_rendered": false,
+        "session_token_rendered": false
+      }
+    },
+    {
+      "name": "browser has no page errors",
+      "passed": true,
+      "page_errors": []
+    },
+    {
+      "name": "browser has no unexpected console warnings or errors",
+      "passed": true,
+      "unexpected_console_messages": []
+    },
+    {
+      "name": "박병준 API status < 500",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "박병준 API professional_profile exists",
+      "passed": true
+    },
+    {
+      "name": "박병준 API profile kind",
+      "passed": true,
+      "expected": "attorney",
+      "actual": "attorney"
+    },
+    {
+      "name": "박병준 API contains 변호사",
+      "passed": true,
+      "expected": "변호사"
+    },
+    {
+      "name": "박병준 API contains 상사분쟁",
+      "passed": true,
+      "expected": "상사분쟁"
+    },
+    {
+      "name": "박병준 API contains 김·장",
+      "passed": true,
+      "expected": "김·장"
+    },
+    {
+      "name": "박병준 API contains 서울고등법원",
+      "passed": true,
+      "expected": "서울고등법원"
+    },
+    {
+      "name": "박병준 API contains UC Berkeley",
+      "passed": true,
+      "expected": "UC Berkeley"
+    },
+    {
+      "name": "박병준 API contains 사법연수원 제44기",
+      "passed": true,
+      "expected": "사법연수원 제44기"
+    },
+    {
+      "name": "임영훈 API status < 500",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "임영훈 API professional_profile exists",
+      "passed": true
+    },
+    {
+      "name": "임영훈 API profile kind",
+      "passed": true,
+      "expected": "attorney",
+      "actual": "attorney"
+    },
+    {
+      "name": "임영훈 API contains 변호사",
+      "passed": true,
+      "expected": "변호사"
+    },
+    {
+      "name": "임영훈 API contains 조세쟁송",
+      "passed": true,
+      "expected": "조세쟁송"
+    },
+    {
+      "name": "임영훈 API contains 삼성전자",
+      "passed": true,
+      "expected": "삼성전자"
+    },
+    {
+      "name": "임영훈 API contains 김·장",
+      "passed": true,
+      "expected": "김·장"
+    },
+    {
+      "name": "임영훈 API contains 연세대학교",
+      "passed": true,
+      "expected": "연세대학교"
+    },
+    {
+      "name": "임영훈 API contains 공인회계사",
+      "passed": true,
+      "expected": "공인회계사"
+    },
+    {
+      "name": "서지원 API status < 500",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "서지원 API professional_profile exists",
+      "passed": true
+    },
+    {
+      "name": "서지원 API profile kind",
+      "passed": true,
+      "expected": "attorney",
+      "actual": "attorney"
+    },
+    {
+      "name": "서지원 API contains 변호사",
+      "passed": true,
+      "expected": "변호사"
+    },
+    {
+      "name": "서지원 API contains M&A",
+      "passed": true,
+      "expected": "M&A"
+    },
+    {
+      "name": "서지원 API contains 김·장",
+      "passed": true,
+      "expected": "김·장"
+    },
+    {
+      "name": "서지원 API contains 국방부",
+      "passed": true,
+      "expected": "국방부"
+    },
+    {
+      "name": "서지원 API contains 서울대학교",
+      "passed": true,
+      "expected": "서울대학교"
+    },
+    {
+      "name": "서지원 API contains 사법연수원 제46기",
+      "passed": true,
+      "expected": "사법연수원 제46기"
+    },
+    {
+      "name": "조성민 API status < 500",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "조성민 API professional_profile exists",
+      "passed": true
+    },
+    {
+      "name": "조성민 API profile kind",
+      "passed": true,
+      "expected": "attorney",
+      "actual": "attorney"
+    },
+    {
+      "name": "조성민 API contains 변호사",
+      "passed": true,
+      "expected": "변호사"
+    },
+    {
+      "name": "조성민 API contains 금융규제",
+      "passed": true,
+      "expected": "금융규제"
+    },
+    {
+      "name": "조성민 API contains 화온",
+      "passed": true,
+      "expected": "화온"
+    },
+    {
+      "name": "조성민 API contains 김·장",
+      "passed": true,
+      "expected": "김·장"
+    },
+    {
+      "name": "조성민 API contains 연세대학교",
+      "passed": true,
+      "expected": "연세대학교"
+    },
+    {
+      "name": "조성민 API contains 사법연수원 제47기",
+      "passed": true,
+      "expected": "사법연수원 제47기"
+    },
+    {
+      "name": "김양태 API status < 500",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "김양태 API professional_profile exists",
+      "passed": true
+    },
+    {
+      "name": "김양태 API profile kind",
+      "passed": true,
+      "expected": "cpa",
+      "actual": "cpa"
+    },
+    {
+      "name": "김양태 API contains 공인회계사",
+      "passed": true,
+      "expected": "공인회계사"
+    },
+    {
+      "name": "김양태 API contains Deal Advisory",
+      "passed": true,
+      "expected": "Deal Advisory"
+    },
+    {
+      "name": "김양태 API contains 페트라브릿지",
+      "passed": true,
+      "expected": "페트라브릿지"
+    },
+    {
+      "name": "김양태 API contains KPMG",
+      "passed": true,
+      "expected": "KPMG"
+    },
+    {
+      "name": "김양태 API contains UIBE",
+      "passed": true,
+      "expected": "UIBE"
+    },
+    {
+      "name": "김양태 API contains 서울시립대학교",
+      "passed": true,
+      "expected": "서울시립대학교"
+    },
+    {
+      "name": "김양태 API excludes 변호사",
+      "passed": true,
+      "forbidden": "변호사"
+    },
+    {
+      "name": "김양태 API excludes attorney",
+      "passed": true,
+      "forbidden": "attorney"
+    },
+    {
+      "name": "조우상 API status < 500",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "조우상 API professional_profile exists",
+      "passed": true
+    },
+    {
+      "name": "조우상 API profile kind",
+      "passed": true,
+      "expected": "deal_advisor",
+      "actual": "deal_advisor"
+    },
+    {
+      "name": "조우상 API contains Deal Advisory",
+      "passed": true,
+      "expected": "Deal Advisory"
+    },
+    {
+      "name": "조우상 API contains 페트라브릿지",
+      "passed": true,
+      "expected": "페트라브릿지"
+    },
+    {
+      "name": "조우상 API contains KPMG",
+      "passed": true,
+      "expected": "KPMG"
+    },
+    {
+      "name": "조우상 API contains Sciences Po",
+      "passed": true,
+      "expected": "Sciences Po"
+    },
+    {
+      "name": "조우상 API contains Brandeis",
+      "passed": true,
+      "expected": "Brandeis"
+    },
+    {
+      "name": "조우상 API excludes 변호사",
+      "passed": true,
+      "forbidden": "변호사"
+    },
+    {
+      "name": "조우상 API excludes 공인회계사",
+      "passed": true,
+      "forbidden": "공인회계사"
+    },
+    {
+      "name": "조우상 API excludes attorney",
+      "passed": true,
+      "forbidden": "attorney"
+    },
+    {
+      "name": "조우상 API excludes CPA",
+      "passed": true,
+      "forbidden": "CPA"
+    },
+    {
+      "name": "박병준 professional profile section visible",
+      "passed": true
+    },
+    {
+      "name": "박병준 profile kind rendered as attorney",
+      "passed": true,
+      "expected_kind": "attorney"
+    },
+    {
+      "name": "박병준 UI contains 전문 프로필",
+      "passed": true,
+      "expected": "전문 프로필"
+    },
+    {
+      "name": "박병준 UI contains 변호사",
+      "passed": true,
+      "expected": "변호사"
+    },
+    {
+      "name": "박병준 UI contains 상사분쟁",
+      "passed": true,
+      "expected": "상사분쟁"
+    },
+    {
+      "name": "박병준 UI contains 김·장",
+      "passed": true,
+      "expected": "김·장"
+    },
+    {
+      "name": "박병준 UI contains 서울고등법원",
+      "passed": true,
+      "expected": "서울고등법원"
+    },
+    {
+      "name": "박병준 UI contains UC Berkeley",
+      "passed": true,
+      "expected": "UC Berkeley"
+    },
+    {
+      "name": "박병준 UI contains 사법연수원 제44기",
+      "passed": true,
+      "expected": "사법연수원 제44기"
+    },
+    {
+      "name": "박병준 UI contains 출처",
+      "passed": true,
+      "expected": "출처"
+    },
+    {
+      "name": "임영훈 professional profile section visible",
+      "passed": true
+    },
+    {
+      "name": "임영훈 profile kind rendered as attorney",
+      "passed": true,
+      "expected_kind": "attorney"
+    },
+    {
+      "name": "임영훈 UI contains 전문 프로필",
+      "passed": true,
+      "expected": "전문 프로필"
+    },
+    {
+      "name": "임영훈 UI contains 변호사",
+      "passed": true,
+      "expected": "변호사"
+    },
+    {
+      "name": "임영훈 UI contains 조세쟁송",
+      "passed": true,
+      "expected": "조세쟁송"
+    },
+    {
+      "name": "임영훈 UI contains 삼성전자",
+      "passed": true,
+      "expected": "삼성전자"
+    },
+    {
+      "name": "임영훈 UI contains 김·장",
+      "passed": true,
+      "expected": "김·장"
+    },
+    {
+      "name": "임영훈 UI contains 연세대학교",
+      "passed": true,
+      "expected": "연세대학교"
+    },
+    {
+      "name": "임영훈 UI contains 공인회계사",
+      "passed": true,
+      "expected": "공인회계사"
+    },
+    {
+      "name": "임영훈 UI contains 출처",
+      "passed": true,
+      "expected": "출처"
+    },
+    {
+      "name": "서지원 professional profile section visible",
+      "passed": true
+    },
+    {
+      "name": "서지원 profile kind rendered as attorney",
+      "passed": true,
+      "expected_kind": "attorney"
+    },
+    {
+      "name": "서지원 UI contains 전문 프로필",
+      "passed": true,
+      "expected": "전문 프로필"
+    },
+    {
+      "name": "서지원 UI contains 변호사",
+      "passed": true,
+      "expected": "변호사"
+    },
+    {
+      "name": "서지원 UI contains M&A",
+      "passed": true,
+      "expected": "M&A"
+    },
+    {
+      "name": "서지원 UI contains 김·장",
+      "passed": true,
+      "expected": "김·장"
+    },
+    {
+      "name": "서지원 UI contains 국방부",
+      "passed": true,
+      "expected": "국방부"
+    },
+    {
+      "name": "서지원 UI contains 서울대학교",
+      "passed": true,
+      "expected": "서울대학교"
+    },
+    {
+      "name": "서지원 UI contains 사법연수원 제46기",
+      "passed": true,
+      "expected": "사법연수원 제46기"
+    },
+    {
+      "name": "서지원 UI contains 출처",
+      "passed": true,
+      "expected": "출처"
+    },
+    {
+      "name": "조성민 professional profile section visible",
+      "passed": true
+    },
+    {
+      "name": "조성민 profile kind rendered as attorney",
+      "passed": true,
+      "expected_kind": "attorney"
+    },
+    {
+      "name": "조성민 UI contains 전문 프로필",
+      "passed": true,
+      "expected": "전문 프로필"
+    },
+    {
+      "name": "조성민 UI contains 변호사",
+      "passed": true,
+      "expected": "변호사"
+    },
+    {
+      "name": "조성민 UI contains 금융규제",
+      "passed": true,
+      "expected": "금융규제"
+    },
+    {
+      "name": "조성민 UI contains 화온",
+      "passed": true,
+      "expected": "화온"
+    },
+    {
+      "name": "조성민 UI contains 김·장",
+      "passed": true,
+      "expected": "김·장"
+    },
+    {
+      "name": "조성민 UI contains 연세대학교",
+      "passed": true,
+      "expected": "연세대학교"
+    },
+    {
+      "name": "조성민 UI contains 사법연수원 제47기",
+      "passed": true,
+      "expected": "사법연수원 제47기"
+    },
+    {
+      "name": "조성민 UI contains 출처",
+      "passed": true,
+      "expected": "출처"
+    },
+    {
+      "name": "김양태 professional profile section visible",
+      "passed": true
+    },
+    {
+      "name": "김양태 profile kind rendered as cpa",
+      "passed": true,
+      "expected_kind": "cpa"
+    },
+    {
+      "name": "김양태 UI contains 전문 프로필",
+      "passed": true,
+      "expected": "전문 프로필"
+    },
+    {
+      "name": "김양태 UI contains 공인회계사",
+      "passed": true,
+      "expected": "공인회계사"
+    },
+    {
+      "name": "김양태 UI contains Deal Advisory",
+      "passed": true,
+      "expected": "Deal Advisory"
+    },
+    {
+      "name": "김양태 UI contains 페트라브릿지",
+      "passed": true,
+      "expected": "페트라브릿지"
+    },
+    {
+      "name": "김양태 UI contains KPMG",
+      "passed": true,
+      "expected": "KPMG"
+    },
+    {
+      "name": "김양태 UI contains UIBE",
+      "passed": true,
+      "expected": "UIBE"
+    },
+    {
+      "name": "김양태 UI contains 서울시립대학교",
+      "passed": true,
+      "expected": "서울시립대학교"
+    },
+    {
+      "name": "김양태 UI contains 출처",
+      "passed": true,
+      "expected": "출처"
+    },
+    {
+      "name": "김양태 UI excludes 변호사",
+      "passed": true,
+      "forbidden": "변호사"
+    },
+    {
+      "name": "김양태 UI excludes attorney",
+      "passed": true,
+      "forbidden": "attorney"
+    },
+    {
+      "name": "조우상 professional profile section visible",
+      "passed": true
+    },
+    {
+      "name": "조우상 profile kind rendered as deal_advisor",
+      "passed": true,
+      "expected_kind": "deal_advisor"
+    },
+    {
+      "name": "조우상 UI contains 전문 프로필",
+      "passed": true,
+      "expected": "전문 프로필"
+    },
+    {
+      "name": "조우상 UI contains Deal Advisory",
+      "passed": true,
+      "expected": "Deal Advisory"
+    },
+    {
+      "name": "조우상 UI contains 페트라브릿지",
+      "passed": true,
+      "expected": "페트라브릿지"
+    },
+    {
+      "name": "조우상 UI contains KPMG",
+      "passed": true,
+      "expected": "KPMG"
+    },
+    {
+      "name": "조우상 UI contains Sciences Po",
+      "passed": true,
+      "expected": "Sciences Po"
+    },
+    {
+      "name": "조우상 UI contains Brandeis",
+      "passed": true,
+      "expected": "Brandeis"
+    },
+    {
+      "name": "조우상 UI contains 출처",
+      "passed": true,
+      "expected": "출처"
+    },
+    {
+      "name": "조우상 UI excludes 변호사",
+      "passed": true,
+      "forbidden": "변호사"
+    },
+    {
+      "name": "조우상 UI excludes 공인회계사",
+      "passed": true,
+      "forbidden": "공인회계사"
+    },
+    {
+      "name": "조우상 UI excludes attorney",
+      "passed": true,
+      "forbidden": "attorney"
+    },
+    {
+      "name": "조우상 UI excludes CPA",
+      "passed": true,
+      "forbidden": "CPA"
+    },
+    {
+      "name": "박병준 screenshot exists",
+      "passed": true,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/park-byungjun.png"
+    },
+    {
+      "name": "임영훈 screenshot exists",
+      "passed": true,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/lim-younghoon.png"
+    },
+    {
+      "name": "서지원 screenshot exists",
+      "passed": true,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/suh-jiwon.png"
+    },
+    {
+      "name": "조성민 screenshot exists",
+      "passed": true,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/cho-sungmin.png"
+    },
+    {
+      "name": "김양태 screenshot exists",
+      "passed": true,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/kim-yangtae.png"
+    },
+    {
+      "name": "조우상 screenshot exists",
+      "passed": true,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/people-professional-profile-screenshots-2026-07-07/jo-woosang.png"
+    }
+  ],
+  "network": {
+    "api_writes": [],
+    "auth_login_request_count": 1,
+    "api_requests": [
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5187/api/auth/login"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/portal/dashboard?tenant_id=tenant_cmp_g10_synthetic&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/portal/rfi?tenant_id=tenant_cmp_g10_synthetic&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/matters?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=100"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/ai/review-queue?tenant_id=matter-runtime-tenant&permission_ref=ui_cmp_g9_ai_live&audit_hint_ref=ui_cmp_g9_ai_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/employees"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/data-room/projections?tenant_id=tenant_cmp_g10_synthetic&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/employees"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/lifecycle/onboarding"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/lifecycle/offboarding"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/org-chart"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/employees"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/employees/emp_amic_bj_park"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/compensation?employee_id=emp_amic_bj_park"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/employees/emp_amic_yhlim"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/compensation?employee_id=emp_amic_yhlim"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/employees/emp_amic_jwsuh"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/compensation?employee_id=emp_amic_jwsuh"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/employees/emp_amic_smcho"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/compensation?employee_id=emp_amic_smcho"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/employees/emp_amic_ytkim"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/compensation?employee_id=emp_amic_ytkim"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/employees/emp_amic_wsjo"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5187/api/hrx/compensation?employee_id=emp_amic_wsjo"
+      }
+    ],
+    "api_responses": [
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5187/api/auth/login"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5187/api/hrx/employees"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5187/api/hrx/lifecycle/onboarding"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5187/api/hrx/lifecycle/offboarding"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5187/api/hrx/org-chart"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5187/api/hrx/employees"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5187/api/hrx/employees/emp_amic_bj_park"
+      },
+      {
+        "status": 403,
+        "url": "http://127.0.0.1:5187/api/hrx/compensation?employee_id=emp_amic_bj_park"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5187/api/hrx/employees/emp_amic_yhlim"
+      },
+      {
+        "status": 403,
+        "url": "http://127.0.0.1:5187/api/hrx/compensation?employee_id=emp_amic_yhlim"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5187/api/hrx/employees/emp_amic_jwsuh"
+      },
+      {
+        "status": 403,
+        "url": "http://127.0.0.1:5187/api/hrx/compensation?employee_id=emp_amic_jwsuh"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5187/api/hrx/employees/emp_amic_smcho"
+      },
+      {
+        "status": 403,
+        "url": "http://127.0.0.1:5187/api/hrx/compensation?employee_id=emp_amic_smcho"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5187/api/hrx/employees/emp_amic_ytkim"
+      },
+      {
+        "status": 403,
+        "url": "http://127.0.0.1:5187/api/hrx/compensation?employee_id=emp_amic_ytkim"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5187/api/hrx/employees/emp_amic_wsjo"
+      },
+      {
+        "status": 403,
+        "url": "http://127.0.0.1:5187/api/hrx/compensation?employee_id=emp_amic_wsjo"
+      }
+    ]
+  },
+  "claim_boundary": {
+    "runtime_web_scraping": false,
+    "production_write": false,
+    "private_unapproved_claims_added": false,
+    "firm_level_experience_asserted_as_personal_without_source": false,
+    "oidc_implementation": false,
+    "db_conversion": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

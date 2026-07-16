@@ -1,0 +1,133 @@
+{
+  "schema_version": "law-firm-os.lazycodex.dprs_motion_progress.v0.2",
+  "generated_at": "2026-07-01T15:49:42Z",
+  "status": "implemented_and_verified_internal",
+  "implemented_scope": [
+    "LCX-DPRS-00 source risk remediated in script defaults",
+    "LCX-DPRS-01 protected reset helper and focused tests",
+    "LCX-DPRS-02 dedicated synthetic QA account routing",
+    "LCX-DPRS-03 reset-capable smoke and packaged QA scripts no longer reset jwsuh@amic.kr by default",
+    "LCX-DPRS-04 protected-account negative tests",
+    "LCX-DPRS-05 AWS temporary runtime redeployed with the dedicated QA seed and logo asset",
+    "LCX-DPRS-06 packaged Electron reset/product screen QA passed with QA-only reset",
+    "LCX-DPRS-07 evidence updated without secret material",
+    "LCX-MOTION-01 motion duration/easing tokens",
+    "LCX-MOTION-02 button/link/input micro-interaction CSS",
+    "LCX-MOTION-03 auth mode panel transition and reduced-motion guard",
+    "LCX-MOTION-04 product shell top menu, sidebar, panel, and drawer motion tokens",
+    "LCX-MOTION-05 product panels/cards/status surfaces use tokenized transitions",
+    "LCX-MOTION-06 live loading states use subtle pulse only",
+    "LCX-MOTION-07 product and auth reduced-motion guards",
+    "LCX-MOTION-08 packaged screen QA asserts post-login logo flow does not replay after password login",
+    "LCX-MOTION-09 closeout evidence updated"
+  ],
+  "changed_files": [
+    "scripts/lib/protected-reset-accounts.mjs",
+    "scripts/test/protected-reset-accounts.test.mjs",
+    "scripts/smoke-matter-desktop-aws-runtime.mjs",
+    "scripts/smoke-matter-desktop-screen-qa.mjs",
+    "scripts/run-lcx-dprui-packaged-screen-qa.mjs",
+    "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
+    "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-receipt.md",
+    "scripts/validate-matter-vault-user-registration-seed.mjs",
+    "apps/api/test/matter-temp-desktop-runtime-lambda.test.js",
+    "apps/desktop/src/renderer/offline.html",
+    "apps/web/src/main.jsx",
+    "apps/web/src/motion.css",
+    "apps/desktop/test/renderer-runtime-ui.test.mjs",
+    "docs/lazycodex/lcx-desktop-reset-safety-motion-implementation-tuw-plan-2026-07-02.md",
+    "docs/lazycodex/lcx-desktop-reset-safety-motion-implementation-tuw-traceability-2026-07-02.md"
+  ],
+  "reset_protection": {
+    "protected_real_account": "jwsuh@amic.kr",
+    "protected_reset_default_allowed": false,
+    "dangerous_override_env": "MATTER_ALLOW_PROTECTED_ACCOUNT_RESET",
+    "default_qa_reset_account": "matter.desktop.qa@amic.kr",
+    "qa_email_override_env": "MATTER_DESKTOP_QA_EMAIL",
+    "arbitrary_real_user_default_selection_allowed": false,
+    "token_material_returned": false
+  },
+  "remote_runtime_redeploy": {
+    "aws_account": "770880870480",
+    "region": "ap-northeast-2",
+    "profile": "matter-staging-admin",
+    "lambda_function_name": "matter-temp-desktop-runtime",
+    "handler": "index.handler",
+    "runtime": "nodejs20.x",
+    "last_update_status": "Successful",
+    "state": "Active",
+    "code_sha256": "78movUlcFA4eHUzYGQCHCT+30loYv6XgOxfDtixYWY0=",
+    "revision_id": "f5e76c16-87f4-4f74-9f6d-082e5737fb4d",
+    "deployment_package_sha256": "efc9a8bd495c140e1e1d4cd8190087093fb7d25a18bfa5e03b17c3b62c58598d",
+    "packaged_files": [
+      "index.mjs",
+      "matter-vault-user-registration-seed.json",
+      "icon-source-mark.png"
+    ],
+    "environment_variables_changed": false,
+    "secrets_changed": false
+  },
+  "remote_health": {
+    "status": 200,
+    "ok": true,
+    "registered_account_count": 10,
+    "highest_privilege_account": "jwsuh@amic.kr",
+    "password_reset_delivery_mode": "sesv2_email",
+    "password_reset_email_provider": "sesv2",
+    "password_reset_email_configured": true
+  },
+  "motion_contract": {
+    "tokens_added": [
+      "--motion-press: 70ms",
+      "--motion-hover: 110ms",
+      "--motion-menu: 150ms",
+      "--motion-content: 180ms",
+      "--motion-panel: 240ms",
+      "--motion-large: 400ms",
+      "--motion-pulse: 900ms"
+    ],
+    "reduced_motion_guard_present": true,
+    "new_animation_keyframes": [
+      "authPanelIn"
+    ],
+    "new_animation_dependency_added": false,
+    "post_login_logo_flow_replays_after_password_login": false
+  },
+  "verification": {
+    "node --test scripts/test/protected-reset-accounts.test.mjs": "PASS 8/8",
+    "npm run matter-vault:user-registration:validate": "PASS registered_account_count=10",
+    "node --test packages/runtime-auth/test/matter-vault-user-registration-seed.test.js": "PASS 3/3",
+    "node --test apps/api/test/matter-temp-desktop-runtime-lambda.test.js": "PASS 9/9",
+    "npm --workspace apps/desktop run test:smoke": "PASS 66/66",
+    "node --check reset QA scripts": "PASS",
+    "npm --workspace apps/desktop run build:mac": "PASS internal package rebuilt after product CSS motion changes",
+    "remote /health after lambda redeploy": "PASS registered_account_count=10",
+    "npm run matter-desktop:aws-runtime:smoke": "PASS qa reset only, jwsuh protected read-only",
+    "npm run matter-desktop:screen-qa": "PASS packaged Electron QA, post-login logo flow not replayed",
+    "node scripts/run-lcx-dprui-packaged-screen-qa.mjs": "PASS packaged reset UI QA and source/bundle parity",
+    "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed": "PASS no auto-detectable AI slop signals",
+    "git diff --check": "PASS",
+    "precise secret-material grep": "PASS no material-shaped reset URL, bearer token, AWS credential, or password query findings"
+  },
+  "screen_qa_artifacts": {
+    "desktop_screen_qa_receipt": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa-result.json",
+    "desktop_screen_qa_screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa.png",
+    "dprui_packaged_receipt": "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-dprui-06-screen-qa-result.json"
+  },
+  "not_claimed": {
+    "public_release": false,
+    "production_go_live": false,
+    "owner_final_approval": false,
+    "app_store_distribution": false,
+    "external_distribution_approval": false
+  },
+  "secret_material_checks": {
+    "reset_token_material_printed": false,
+    "password_material_printed": false,
+    "operator_token_material_printed": false,
+    "bearer_token_material_printed": false,
+    "cookie_material_printed": false,
+    "aws_credential_material_printed": false,
+    "reset_url_material_printed": false
+  }
+}

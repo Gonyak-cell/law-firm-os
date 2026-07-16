@@ -1,0 +1,31 @@
+{
+  "verdict": "PASS",
+  "checked_at": "2026-07-09T03:54:54.477Z",
+  "app_bundle": "apps/desktop/dist/mac/matter.app",
+  "user_data_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-topbar-compact-fAFZpP",
+  "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/artifacts/manual-qa/desktop-topbar-compact-no-profile-2026-07-09.png",
+  "metrics": {
+    "href": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&ctx=allow#home-dashboard",
+    "skin": "forest",
+    "css_topbar_height": "52px",
+    "topbar_height": 52,
+    "topbar_bottom": 52,
+    "app_frame_top": 0,
+    "page_canvas_top": 0,
+    "topbar_profile_trigger_count": 0,
+    "topbar_text": "HomeClientMatterPeopleVaultPortal/새로 만들기",
+    "sidebar_profile_trigger_count": 1,
+    "product_axis_labels": [
+      "Home",
+      "Client",
+      "Matter",
+      "People",
+      "Vault",
+      "Portal"
+    ],
+    "product_axis_icon_count": 0,
+    "profile_trigger_text": [
+      "서지원대표변호사"
+    ]
+  }
+}

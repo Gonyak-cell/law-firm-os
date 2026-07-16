@@ -1,0 +1,10 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.claude-review-result.v0.1",
+  "goal_id": "cti-cutover-snapshot-restore-rehearsal",
+  "recorded_at": "2026-07-06T06:53:24.756Z",
+  "review_tool": "not_run",
+  "status": "not_required_for_blocked_snapshot_restore_preflight_closeout",
+  "findings": [],
+  "production_ready_claim": false,
+  "go_live_claim": false
+}

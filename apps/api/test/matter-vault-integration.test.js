@@ -3,27 +3,34 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
+import { authedJson } from "./helpers/session.js";
+import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
 
-const TENANT = "tenant_matter_vault";
+const TENANT = "matter-runtime-tenant";
 const MATTER_ID = "matter_mv_open_001";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_mv&audit_hint_ref=audit_hint_mv`;
 
-function permissionContext(effect = "allow") {
-  return JSON.stringify({
-    principal: { user_id: "user_mv_owner", tenant_id: TENANT, role_ids: ["matter_vault_user"] },
-    rules: [{ id: `rule_matter_vault_${effect}`, effect, action: "*" }],
-    object_acl: [],
-  });
-}
-
 async function withServer(callback) {
   const base = mkdtempSync(join(tmpdir(), "lawos-matter-vault-api-"));
+  const clearance = openingPayload().clearance_token;
   const started = await startApiServer({
     port: 0,
     matterStorePath: join(base, "matter-store.json"),
     dmsStorePath: join(base, "dms-store.json"),
+    intakeRepository: createIntakeRuntimeRepository({
+      seedRecords: [
+        {
+          ...clearance,
+          model_type: "ClearanceToken",
+          token_state: "active",
+          status: "active",
+          outcome: "cleared",
+          blocked_claims: [],
+          conflict_review_satisfied: true,
+        },
+      ],
+    }),
   });
   try {
     return await callback(`http://${started.host}:${started.port}`);
@@ -33,14 +40,7 @@ async function withServer(callback) {
 }
 
 async function json(baseUrl, path, options = {}) {
-  const headers = {
-    [PERMISSION_CONTEXT_HEADER]: permissionContext(),
-    ...(options.headers ?? {}),
-  };
-  if (options.body && !headers["content-type"]) headers["content-type"] = "application/json";
-  const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
-  const body = await response.json();
-  return { status: response.status, body };
+  return authedJson(baseUrl, path, options);
 }
 
 function openingPayload() {
@@ -142,9 +142,9 @@ test("Matter-Vault opening creates a Vault workspace, link, summary, document fa
     assert.equal(timeline.body.item.count_leak_prevented, true);
 
     const denied = await json(baseUrl, `/api/matters/${MATTER_ID}/vault-summary?${BASE_QUERY}`, {
-      headers: { [PERMISSION_CONTEXT_HEADER]: undefined },
+      noAuth: true,
     });
-    assert.equal(denied.status, 403);
-    assert.equal(denied.body.count_leak_prevented, true);
+    assert.equal(denied.status, 401);
+    assert.deepEqual(denied.body.safe_error_codes, ["AUTH_SESSION_REQUIRED"]);
   });
 });

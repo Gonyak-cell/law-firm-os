@@ -1,0 +1,30 @@
+git diff --check
+node --check scripts/lib/matter-desktop-provenance.mjs
+node --check scripts/build-matter-desktop-mac.mjs
+node --check scripts/build-matter-desktop-win.mjs
+node --check scripts/build-matter-desktop-win-installer.mjs
+node --check scripts/validate-pv001-desktop-version.mjs
+node --check scripts/validate-pv004-desktop-channels.mjs
+node --check scripts/test/pv004-desktop-channel.test.mjs
+node --test scripts/test/pv002-build-manifest.test.mjs scripts/test/pv003-clean-sha-build-gate.test.mjs scripts/test/pv004-desktop-channel.test.mjs
+node scripts/validate-pv001-desktop-version.mjs --source
+node scripts/validate-pv002-build-manifest.mjs --source
+node scripts/validate-pv003-clean-sha-build-gate.mjs --source
+node scripts/validate-pv004-desktop-channels.mjs --help
+node scripts/validate-pv004-desktop-channels.mjs --bad
+node scripts/validate-pv004-desktop-channels.mjs --source
+npm --workspace apps/desktop run test:smoke
+npm --workspace apps/desktop run test:file-bridge
+npm run public-renderer:pii:validate
+python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo "$PWD" --changed
+git worktree add --detach /private/tmp/lawos-pv004-package-f5344fde f5344fdeaf35b86e86049710e4bb5aa9a0d72f39
+ln -s /private/tmp/lawos-forest-v016-release/node_modules /private/tmp/lawos-pv004-package-f5344fde/node_modules
+GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.excludesFile GIT_CONFIG_VALUE_0=/private/tmp/pv004-excludes-f5344fde node --input-type=module -e "readDesktopBuildSourceIdentity(...)" # source_dirty=false
+export GIT_CONFIG_COUNT=1
+export GIT_CONFIG_KEY_0=core.excludesFile
+export GIT_CONFIG_VALUE_0=/private/tmp/pv004-excludes-f5344fde
+MATTER_DESKTOP_RELEASE_CHANNEL=<dev|internal|candidate|formal> MATTER_DESKTOP_EXPECTED_SOURCE_SHA=f5344fdeaf35b86e86049710e4bb5aa9a0d72f39 npm --workspace apps/desktop run build:mac
+MATTER_DESKTOP_RELEASE_CHANNEL=<dev|internal|candidate|formal> MATTER_DESKTOP_EXPECTED_SOURCE_SHA=f5344fdeaf35b86e86049710e4bb5aa9a0d72f39 npm --workspace apps/desktop run build:win
+MATTER_DESKTOP_RELEASE_CHANNEL=preview npm --workspace apps/desktop run build:mac # exit 1, no artifact mutation
+MATTER_DESKTOP_RELEASE_CHANNEL=preview npm --workspace apps/desktop run build:win # exit 1, no artifact mutation
+node --input-type=module # assert eight manifests, four Info.plists, four installer manifests, archive hashes, renderer parity, formal boundary

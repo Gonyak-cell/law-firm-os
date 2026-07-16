@@ -1,0 +1,46 @@
+{
+  "goal_id": "cti-g0-s0",
+  "title": "Canonical Tenant Injection G0/S0 kickoff",
+  "created_at": "2026-07-06T02:31:07.212Z",
+  "status": "completed_i4_ratified_s0_probes_executed",
+  "source_plan": "workbook/canonical-tenant-data-injection-execution-plan-2026-07-06.md",
+  "source_plan_sha256": "92b0d9197bc075ce3a61135414458d89a80173ace43ddfb7c57cd70a69e9f197",
+  "contract_ref": "contracts/production-data-policy-contract.json",
+  "contract_sha256": "3a7af805ca00b42d6bb42e02d1e6121b57b0a7d44d732aec39fcbacba248d874",
+  "approval_signature_ref": "I4-CTI-G0-S0-OWNER-RATIFICATION-2026-07-06",
+  "launch_tuw_work_package": "LT-PRE-W08",
+  "cti_scope": "G0/S0 only",
+  "in_scope": [
+    "I4 ratification record",
+    "S0-T01 Lambda production configuration read with masked env evidence",
+    "S0-T02 local persistence census",
+    "S0-T03 cold-start synthetic marker probe after S0-T04",
+    "S0-T04 production store readback hash snapshot",
+    "S0-T05 desktop seed drift diff",
+    "S0-T06 PII-safe I1 mapping template",
+    "S0-T07 real_client_data_used inventory",
+    "D-07 disposition recommendation",
+    "S1 branch assessment"
+  ],
+  "out_of_scope": [
+    "S1-S6 implementation",
+    "CUTOVER execution",
+    "account password generation or distribution",
+    "production migration",
+    "owner approval completion claim beyond I4 G0/S0",
+    "Entra ID/OIDC implementation",
+    "DB conversion",
+    "go-live or production_ready claim"
+  ],
+  "stop_condition_resolution": "I4 was supplied by the owner with approval_signature_ref I4-CTI-G0-S0-OWNER-RATIFICATION-2026-07-06.",
+  "non_claims": [
+    "production_ready",
+    "go_live_approved",
+    "migration_executed",
+    "cutover_executed",
+    "account_passwords_issued",
+    "s1_started"
+  ],
+  "closeout_verdict": "COMPLETE_G0_S0_ONLY",
+  "next_goal_required": "cti-s1-foundation"
+}

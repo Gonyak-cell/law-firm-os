@@ -1,0 +1,42 @@
+{
+  "schema_version": "law-firm-os.goal-closeout.construction-inspection.v0.1",
+  "goal_id": "cti-cutover-snapshot-restore-rehearsal",
+  "recorded_at": "2026-07-06T06:53:24.756Z",
+  "verdict": "BLOCKED_NO_APPROVED_EFS_FILE_READ_SURFACE",
+  "inspections": [
+    {
+      "id": "CUTOVER-SNAPSHOT-AWS-CREDS",
+      "status": "PASS",
+      "finding": "matter-prod-deploy-admin STS resolved in account 770880870480."
+    },
+    {
+      "id": "CUTOVER-SNAPSHOT-LAMBDA-EFS-METADATA",
+      "status": "PASS",
+      "finding": "Lambda config and EFS/access point metadata are readable and show /mnt/lawos mounted through the approved access point."
+    },
+    {
+      "id": "CUTOVER-SNAPSHOT-PRODUCT-READBACK",
+      "status": "BLOCKED",
+      "finding": "Unauthenticated /api/matters returns AUTH_SESSION_REQUIRED; I8/S1-G production principal remains blocked."
+    },
+    {
+      "id": "CUTOVER-SNAPSHOT-EFS-CONTENT",
+      "status": "BLOCKED",
+      "finding": "AWS APIs expose EFS metadata but not mounted file content; no approved maintenance endpoint or isolated mount path exists to hash/count runtime store files."
+    },
+    {
+      "id": "CUTOVER-RESTORE-REHEARSAL",
+      "status": "BLOCKED",
+      "finding": "Snapshot-bound restore rehearsal cannot run without a current snapshot hash/count receipt."
+    }
+  ],
+  "non_claims": {
+    "current_snapshot_hash_count_created": false,
+    "snapshot_bound_restore_rehearsal_pass": false,
+    "production_write_executed": false,
+    "production_restore_executed": false,
+    "cutover_executed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  }
+}

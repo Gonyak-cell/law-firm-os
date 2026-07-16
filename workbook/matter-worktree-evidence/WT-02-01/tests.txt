@@ -1,0 +1,7 @@
+RED: valid fixture initially returned 404 because route was absent; denied cases remained non-disclosing.
+GREEN targeted API: 3/3.
+GREEN Matter profile regression plus Worktree API: 4/4.
+MANUAL QA: {"allow_status":200,"root":"root","unclassified":1,"denied_status":404,"denied_items":0,"count_leak_prevented":true}
+STATIC: node --check and git diff --check passed.
+LOC: matter-worktree-read-api.js 74.
+

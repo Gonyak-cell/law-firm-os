@@ -9,3 +9,4 @@ export * from "./metrics-service.js";
 export * from "./dashboard-service.js";
 export * from "./export-control-service.js";
 export * from "./refresh-job-service.js";
+export * from "./finance-read-model.js";

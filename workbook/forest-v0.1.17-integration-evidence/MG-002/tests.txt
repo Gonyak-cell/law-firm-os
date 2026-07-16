@@ -1,0 +1,16 @@
+node --check scripts/generate-migration-deprecation-evidence.mjs: PASS
+CLI help contract: PASS
+missing root-source rejection: PASS
+MG-001 denied contracts: 73/73 enforced
+FOREST_SUPERSEDED: 71
+REJECT_CONFLICTING_MUTABILITY: 2
+absent contracts: 61
+canonical Forest replacements: 12
+duplicate table/column/index/trigger contracts: 0
+copied root migration filename/hash: 0
+deprecated runtime symbols: 0
+canonical anchor drift: 0
+payroll profile optimistic-CAS regression: PASS
+migration/type-economics/lifecycle targeted regressions: PASS
+root working-tree mutations: 0
+deterministic rerun: PASS

@@ -1,7 +1,10 @@
 import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, parse, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const DEFAULT_ENV_FILE = ".env.matter-vault-r4.local";
+const DEFAULT_PRODUCTION_RUNTIME_BASE_URL = "https://43whkpla74oln46xkmjar4jgae0ebzba.lambda-url.ap-northeast-2.on.aws";
+const moduleDir = dirname(fileURLToPath(import.meta.url));
 const FORBIDDEN_RESPONSE_FIELDS = new Set([
   "access_token",
   "refresh_token",
@@ -46,23 +49,80 @@ function valueFrom(env, fileValues, keys) {
   return "";
 }
 
+function isLoopbackBaseUrl(value) {
+  try {
+    const url = new URL(value);
+    return ["127.0.0.1", "localhost"].includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function localDevCredentialForEmail(email) {
+  const normalizedEmail = String(email ?? "").trim().toLowerCase();
+  return normalizedEmail ? `local-dev-only:${normalizedEmail}` : "";
+}
+
+function envPathCandidates({ env = process.env, cwd = process.cwd(), moduleDirectory = moduleDir } = {}) {
+  if (env.MATTER_DESKTOP_ENV_FILE) return [resolve(env.MATTER_DESKTOP_ENV_FILE)];
+  const starts = [cwd, moduleDirectory].filter(Boolean).map((candidate) => resolve(candidate));
+  const seen = new Set();
+  const candidates = [];
+  for (const start of starts) {
+    let current = start;
+    while (!seen.has(current)) {
+      seen.add(current);
+      candidates.push(resolve(current, DEFAULT_ENV_FILE));
+      const parent = dirname(current);
+      if (parent === current || current === parse(current).root) break;
+      current = parent;
+    }
+  }
+  return candidates;
+}
+
+function selectEnvPath({ env, cwd, moduleDirectory, existsSyncImpl }) {
+  const candidates = envPathCandidates({ env, cwd, moduleDirectory });
+  return candidates.find((candidate) => existsSyncImpl(candidate)) ?? candidates[0];
+}
+
 export function loadMatterVaultRuntimeConfig({
   env = process.env,
-  envPath = env.MATTER_DESKTOP_ENV_FILE ?? resolve(process.cwd(), DEFAULT_ENV_FILE),
+  envPath,
+  cwd = process.cwd(),
+  moduleDirectory = moduleDir,
   existsSyncImpl = existsSync,
   readFileSyncImpl = readFileSync
 } = {}) {
-  const absoluteEnvPath = resolve(envPath);
+  const absoluteEnvPath = resolve(
+    envPath ?? selectEnvPath({ env, cwd, moduleDirectory, existsSyncImpl })
+  );
   const fileValues = existsSyncImpl(absoluteEnvPath) ? parseDotEnv(readFileSyncImpl(absoluteEnvPath, "utf8")) : {};
-  const baseUrl = valueFrom(env, fileValues, [
-    "MATTER_VAULT_R4_PRODUCTION_BASE_URL",
-    "MATTER_DESKTOP_RUNTIME_BASE_URL"
-  ]).replace(/\/+$/, "");
-  const operatorToken = valueFrom(env, fileValues, [
+  const desktopRuntimeBaseUrl = valueFrom(env, fileValues, ["MATTER_DESKTOP_RUNTIME_BASE_URL"]);
+  const desktopOperatorToken = valueFrom(env, fileValues, ["MATTER_DESKTOP_OPERATOR_TOKEN"]);
+  const productionRuntimeBaseUrl = valueFrom(env, fileValues, [
+    "MATTER_VAULT_R4_PRODUCTION_BASE_URL"
+  ]);
+  const productionOperatorToken = valueFrom(env, fileValues, [
     "MATTER_VAULT_R4_OPERATOR_TOKEN",
     "MATTER_R4_OPERATOR_TOKEN",
     "MATTER_OPERATOR_TOKEN"
   ]);
+  const hasProductionRuntimePair = Boolean(productionRuntimeBaseUrl && productionOperatorToken);
+  const desktopRuntimeIsLoopback = isLoopbackBaseUrl(desktopRuntimeBaseUrl);
+  const useDesktopRuntimeOverride = Boolean(desktopRuntimeBaseUrl && (
+    desktopOperatorToken ||
+    !hasProductionRuntimePair ||
+    desktopRuntimeIsLoopback
+  ));
+  const baseUrl = (
+    useDesktopRuntimeOverride
+      ? desktopRuntimeBaseUrl
+      : productionRuntimeBaseUrl || desktopRuntimeBaseUrl || DEFAULT_PRODUCTION_RUNTIME_BASE_URL
+  ).replace(/\/+$/, "");
+  const operatorToken = useDesktopRuntimeOverride
+    ? desktopOperatorToken || (desktopRuntimeIsLoopback ? "" : productionOperatorToken)
+    : productionOperatorToken;
   const tenantId = valueFrom(env, fileValues, [
     "MATTER_VAULT_R4_PRODUCTION_TENANT_ID",
     "MATTER_DESKTOP_TENANT_ID"
@@ -75,10 +135,12 @@ export function loadMatterVaultRuntimeConfig({
     "MATTER_VAULT_R4_MIGRATION_WINDOW",
     "MATTER_DESKTOP_MIGRATION_WINDOW"
   ]);
+  const localLoginEmail = isLoopbackBaseUrl(baseUrl)
+    ? valueFrom(env, fileValues, ["MATTER_DESKTOP_LOCAL_LOGIN_EMAIL"])
+    : "";
 
   const missing = [];
   if (!baseUrl) missing.push("MATTER_VAULT_R4_PRODUCTION_BASE_URL");
-  if (!operatorToken) missing.push("MATTER_VAULT_R4_OPERATOR_TOKEN");
   if (missing.length) {
     throw new MatterVaultRuntimeConfigError("Matter-Vault temporary runtime config is incomplete", {
       missing,
@@ -90,22 +152,27 @@ export function loadMatterVaultRuntimeConfig({
   return Object.freeze({
     baseUrl,
     operatorToken,
+    operatorRuntimeConfigured: Boolean(operatorToken),
     tenantId,
     operatorActor,
     migrationWindow,
+    localLoginEmail,
     envPath: absoluteEnvPath,
     envFilePresent: existsSyncImpl(absoluteEnvPath)
   });
 }
 
 export function publicRuntimeConfig(config = {}) {
+  const localLoginEmail = isLoopbackBaseUrl(config.baseUrl) ? String(config.localLoginEmail ?? "").trim() : "";
   return {
     configured: Boolean(config.baseUrl),
-    mode: "aws-temporary-execute-api",
+    mode: config.operatorToken ? "aws-temporary-execute-api" : "production-auth-http",
     baseUrl: config.baseUrl,
     tenantId: config.tenantId,
     operatorActor: config.operatorActor,
     migrationWindow: config.migrationWindow,
+    localLoginEmail,
+    operatorRuntimeConfigured: Boolean(config.operatorToken),
     operatorTokenMaterialExposed: false
   };
 }
@@ -134,28 +201,142 @@ export function assertNoRuntimeSecretMaterial(value, operatorToken) {
 }
 
 function jsonHeaders(operatorToken) {
-  return {
-    authorization: `Bearer ${operatorToken}`,
-    "content-type": "application/json; charset=utf-8"
-  };
+  const headers = { "content-type": "application/json; charset=utf-8" };
+  if (operatorToken) headers.authorization = `Bearer ${operatorToken}`;
+  return headers;
+}
+
+function isDesktopMatterWriteRoute(method, path) {
+  return (
+    (method === "POST" && path === "/api/vault/search/preferences") ||
+    (method === "PATCH" && /^\/api\/matters\/[A-Za-z0-9_-]+\/profile$/.test(path)) ||
+    (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/stakeholders$/.test(path)) ||
+    (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree$/.test(path)) ||
+    (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree\/template-applications$/.test(path)) ||
+    (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree\/nodes$/.test(path)) ||
+    (method === "PATCH" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree\/nodes\/[A-Za-z0-9_-]+$/.test(path)) ||
+    (method === "DELETE" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree\/nodes\/[A-Za-z0-9_-]+$/.test(path)) ||
+    (method === "POST" && /^\/api\/matters\/[A-Za-z0-9_-]+\/worktree\/tasks\/[A-Za-z0-9_-]+\/(complete|reopen|unblock)$/.test(path))
+  );
+}
+
+function isDesktopHrxLeaveWriteRoute(method, path) {
+  if (method === "PATCH") {
+    return (
+      /^\/api\/hrx\/leave\/me\/requests\/[^/]+$/.test(path) ||
+      /^\/api\/hrx\/leave\/(groups|types|policies)\/[^/]+$/.test(path)
+    );
+  }
+  if (method !== "POST") return false;
+  return (
+    [
+      "/api/hrx/leave",
+      "/api/hrx/leave/me/preview",
+      "/api/hrx/leave/me/requests",
+      "/api/hrx/leave/delegations",
+      "/api/hrx/leave/accrual/rules",
+      "/api/hrx/leave/accrual/preview",
+      "/api/hrx/leave/accrual/execute",
+      "/api/hrx/leave/accrual/manual/preview",
+      "/api/hrx/leave/accrual/manual/execute",
+      "/api/hrx/leave/ledger/snapshots",
+      "/api/hrx/leave/promotion-campaigns",
+      "/api/hrx/leave/promotion-campaigns/preview",
+      "/api/hrx/leave/integrations/process",
+      "/api/hrx/leave/termination-reconciliations/preview",
+      "/api/hrx/leave/termination-reconciliations/execute",
+      "/api/hrx/leave/groups",
+      "/api/hrx/leave/types",
+      "/api/hrx/leave/policies",
+    ].includes(path) ||
+    /^\/api\/hrx\/leave\/me\/requests\/[^/]+\/(cancel|reschedule-response|additional-information)$/.test(path) ||
+    /^\/api\/hrx\/leave\/requests\/[^/]+\/(approve|reject|reschedule|request-info|escalate)$/.test(path) ||
+    /^\/api\/hrx\/leave\/delegations\/[^/]+\/(revoke|expire)$/.test(path) ||
+    /^\/api\/hrx\/leave\/promotion-recipients\/[^/]+\/(first-notice|second-notice|evidence|response)$/.test(path) ||
+    /^\/api\/hrx\/leave\/policies\/[^/]+\/(publish|versions)$/.test(path) ||
+    /^\/api\/hrx\/leave\/[^/]+\/(approve|reject)$/.test(path)
+  );
+}
+
+function isDesktopHrxPayrollWriteRoute(method, path) {
+  if (method !== "POST") return false;
+  return (
+    [
+      "/api/hrx/payroll",
+      "/api/hrx/payroll/preview",
+      "/api/hrx/payroll/approve",
+      "/api/hrx/payroll/export",
+      "/api/hrx/payroll/periods",
+      "/api/hrx/payroll/runs",
+    ].includes(path) ||
+    /^\/api\/hrx\/payroll\/runs\/[^/]+\/(snapshot|preview|approve|close)$/.test(path) ||
+    /^\/api\/hrx\/payroll\/runs\/[^/]+\/statements\/(generate|deliver)$/.test(path) ||
+    /^\/api\/hrx\/payroll\/statements\/[^/]+\/revoke$/.test(path) ||
+    /^\/api\/hrx\/payroll\/runs\/[^/]+\/payments\/prepare$/.test(path) ||
+    /^\/api\/hrx\/payroll\/payment-batches\/[^/]+\/(approve|export|reconcile)$/.test(path) ||
+    /^\/api\/hrx\/payroll\/runs\/[^/]+\/filings$/.test(path) ||
+    /^\/api\/hrx\/payroll\/filings\/[^/]+\/(validate|submit|correct)$/.test(path) ||
+    /^\/api\/hrx\/payroll\/runs\/[^/]+\/year-end\/(collect|calculate|review)$/.test(path) ||
+    /^\/api\/hrx\/payroll\/issues\/[^/]+\/resolve$/.test(path)
+  );
+}
+
+function isDesktopHrxStepUpRoute(method, path) {
+  return method === "POST" && path === "/api/auth/step-up";
+}
+
+function parseDesktopMatterWriteBody(body) {
+  if (typeof body !== "string" || !body.trim()) return null;
+  try {
+    const parsed = JSON.parse(body);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
 export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetchImpl = globalThis.fetch, ...config }) {
   if (!baseUrl) throw new MatterVaultRuntimeConfigError("Matter-Vault runtime base URL is required");
-  if (!operatorToken) throw new MatterVaultRuntimeConfigError("Matter-Vault operator token is required");
   if (typeof fetchImpl !== "function") throw new MatterVaultRuntimeConfigError("fetch implementation is required");
+  const runtimeBaseIsLoopback = isLoopbackBaseUrl(baseUrl);
 
-  const requestJson = async (path, { method = "GET", body, actorEmail, authRequired = true } = {}) => {
+  const requestJson = async (path, { method = "GET", body, actorEmail, authRequired = true, authToken, headers: extraHeaders = {} } = {}) => {
+    const credential = authToken ?? (authRequired ? operatorToken : "");
+    if (authRequired && !credential) {
+      return {
+        ok: false,
+        reason: "runtime_auth_not_configured",
+        http_status: 0,
+        token_material_returned: false
+      };
+    }
     const url = new URL(String(path).replace(/^\/+/, ""), `${baseUrl}/`);
-    const headers = authRequired ? jsonHeaders(operatorToken) : { "content-type": "application/json; charset=utf-8" };
+    const headers = { ...jsonHeaders(credential), ...extraHeaders };
     if (actorEmail) headers["x-matter-actor-email"] = actorEmail;
     const response = await fetchImpl(url, {
       method,
       headers,
       body: body == null ? undefined : JSON.stringify(body)
-    });
+    }).catch((error) => ({
+      ok: false,
+      reason: "runtime_request_failed",
+      error_code: error?.code ?? error?.name ?? "fetch_failed",
+      http_status: 0,
+      token_material_returned: false
+    }));
+    if (!response || typeof response.text !== "function") return response;
     const text = await response.text();
-    const parsed = text ? JSON.parse(text) : {};
+    let parsed = {};
+    try {
+      parsed = text ? JSON.parse(text) : {};
+    } catch {
+      parsed = {
+        ok: false,
+        reason: "runtime_response_not_json",
+        response_body_present: Boolean(text),
+        token_material_returned: false
+      };
+    }
     assertNoRuntimeSecretMaterial(parsed, operatorToken);
     return {
       ...parsed,
@@ -163,37 +344,183 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
     };
   };
 
+  const requestRuntimeApi = async ({ path, method = "GET", headers = {}, body = null, sessionToken } = {}) => {
+    const safeMethod = String(method ?? "GET").toUpperCase();
+    const safePath = typeof path === "string" ? path.trim() : "";
+    const rawPathname = safePath.split(/[?#]/, 1)[0];
+    const normalizedPathname = safePath.startsWith("/") && !safePath.includes("\\")
+      ? new URL(safePath, "http://desktop.invalid").pathname
+      : "";
+    const signedSessionToken = typeof sessionToken === "string" ? sessionToken.trim() : "";
+    if (!signedSessionToken) {
+      return {
+        ok: false,
+        reason: "desktop_runtime_session_required",
+        http_status: 401,
+        token_material_returned: false
+      };
+    }
+    if (!normalizedPathname || normalizedPathname !== rawPathname) {
+      return {
+        ok: false,
+        reason: "desktop_runtime_read_bridge_path_blocked",
+        http_status: 403,
+        token_material_returned: false
+      };
+    }
+    const allowedWrite = isDesktopMatterWriteRoute(safeMethod, normalizedPathname) ||
+      isDesktopHrxLeaveWriteRoute(safeMethod, normalizedPathname) ||
+      isDesktopHrxPayrollWriteRoute(safeMethod, normalizedPathname) ||
+      isDesktopHrxStepUpRoute(safeMethod, normalizedPathname);
+    if (safeMethod !== "GET" && !allowedWrite) {
+      return {
+        ok: false,
+        reason: "desktop_runtime_read_bridge_get_only",
+        http_status: 405,
+        token_material_returned: false
+      };
+    }
+    if (!normalizedPathname.startsWith("/api/") && !normalizedPathname.startsWith("/master-data/")) {
+      return {
+        ok: false,
+        reason: "desktop_runtime_read_bridge_path_blocked",
+        http_status: 403,
+        token_material_returned: false
+      };
+    }
+    const parsedBody = allowedWrite ? parseDesktopMatterWriteBody(body) : body;
+    if (allowedWrite && !parsedBody) {
+      return {
+        ok: false,
+        reason: "desktop_runtime_write_body_invalid",
+        http_status: 400,
+        token_material_returned: false
+      };
+    }
+    if (normalizedPathname.startsWith("/api/auth/") && !isDesktopHrxStepUpRoute(safeMethod, normalizedPathname)) {
+      return {
+        ok: false,
+        reason: "desktop_runtime_read_bridge_auth_path_blocked",
+        http_status: 403,
+        token_material_returned: false
+      };
+    }
+    const forwardedHeaders = {};
+    const headerEntries = headers && typeof headers === "object" && !Array.isArray(headers)
+      ? Object.entries(headers)
+      : [];
+    for (const [name, value] of headerEntries) {
+      const lowerName = String(name).toLowerCase();
+      if (["content-type", "x-lawos-permission-context", "x-lawos-hrx-step-up"].includes(lowerName)) {
+        forwardedHeaders[name] = String(value);
+      }
+    }
+    const response = await requestJson(safePath, {
+      method: safeMethod,
+      body: parsedBody,
+      headers: forwardedHeaders,
+      authToken: signedSessionToken,
+      authRequired: true
+    });
+    return {
+      http_status: response.http_status,
+      body: response,
+      token_material_returned: false
+    };
+  };
+
   return Object.freeze({
     runtimeStatus() {
-      return publicRuntimeConfig({ baseUrl, ...config });
+      return publicRuntimeConfig({ baseUrl, operatorToken, ...config });
     },
     health() {
       return requestJson("/health", { authRequired: false });
     },
     accounts() {
+      if (!operatorToken) {
+        return {
+          ok: true,
+          users: [],
+          count: 0,
+          reason: "account_listing_deferred_until_sign_in",
+          http_status: 200,
+          token_material_returned: false
+        };
+      }
       return requestJson("/api/desktop/accounts");
     },
     requestPasswordReset({ email } = {}) {
-      return requestJson("/api/desktop/password-reset/request", { method: "POST", body: { email } });
+      if (operatorToken) {
+        return requestJson("/api/desktop/password-reset/request", { method: "POST", body: { email } });
+      }
+      return requestJson("/api/auth/password-reset/request", { method: "POST", body: { email }, authRequired: false });
     },
     latestResetEmail({ email } = {}) {
-      return requestJson("/api/desktop/password-reset/latest-email", { method: "POST", body: { email } });
+      if (operatorToken) {
+        return requestJson("/api/desktop/password-reset/latest-email", { method: "POST", body: { email } });
+      }
+      return {
+        ok: false,
+        reason: "password_reset_email_token_not_available_in_production",
+        synthetic_only: false,
+        token_material_returned: false,
+        http_status: 410,
+      };
     },
     confirmPasswordReset({ token, password } = {}) {
-      return requestJson("/api/desktop/password-reset/confirm", { method: "POST", body: { token, password } });
+      if (operatorToken) {
+        return requestJson("/api/desktop/password-reset/confirm", { method: "POST", body: { token, password } });
+      }
+      return requestJson("/api/auth/password-reset/confirm", { method: "POST", body: { token, password }, authRequired: false });
     },
     login({ email, password } = {}) {
-      return requestJson("/api/desktop/login", { method: "POST", body: { email, password } });
-    },
-    features({ email } = {}) {
-      return requestJson("/api/matter-vault/features", { actorEmail: email });
-    },
-    smoke({ email, featureId = "matter_vault_dashboard" } = {}) {
-      return requestJson("/api/matter-vault/smoke", {
+      if (operatorToken) {
+        return requestJson("/api/desktop/login", { method: "POST", body: { email, password } });
+      }
+      const localDevCredential = runtimeBaseIsLoopback ? localDevCredentialForEmail(email) : "";
+      return requestJson("/api/auth/login", {
         method: "POST",
-        body: { email, feature_id: featureId },
-        actorEmail: email
+        body: { email, password: localDevCredential || password },
+        authRequired: false
       });
+    },
+    async features({ email, sessionToken } = {}) {
+      if (!sessionToken && operatorToken) return requestJson("/api/matter-vault/features", { actorEmail: email });
+      if (!sessionToken) {
+        return { ok: false, reason: "auth_session_required", features: [], http_status: 401, token_material_returned: false };
+      }
+      const response = await requestJson("/api/auth/session", { authToken: sessionToken });
+      return {
+        ...response,
+        features: [],
+        token_material_returned: false
+      };
+    },
+    async smoke({ email, sessionToken, featureId = "matter_vault_dashboard" } = {}) {
+      if (!sessionToken && operatorToken) {
+        return requestJson("/api/matter-vault/smoke", {
+          method: "POST",
+          body: { email, feature_id: featureId },
+          actorEmail: email
+        });
+      }
+      if (!sessionToken) {
+        return { ok: false, allowed: false, decision: "deny", reason: "auth_session_required", http_status: 401 };
+      }
+      const path = featureId === "matter_vault_admin"
+        ? "/api/admin/security/users"
+        : "/api/profile/me?permission_ref=desktop_feature_check&audit_hint_ref=desktop_feature_check";
+      const response = await requestJson(path, { authToken: sessionToken });
+      return {
+        ...response,
+        allowed: response.http_status >= 200 && response.http_status < 400,
+        decision: response.http_status >= 200 && response.http_status < 400 ? "allow" : "deny",
+        feature_id: featureId,
+        token_material_returned: false
+      };
+    },
+    api(input = {}) {
+      return requestRuntimeApi(input);
     }
   });
 }
@@ -226,6 +553,7 @@ export function createDisabledMatterVaultRuntimeClient(error) {
     confirmPasswordReset: unavailable,
     login: unavailable,
     features: unavailable,
-    smoke: unavailable
+    smoke: unavailable,
+    api: unavailable
   });
 }

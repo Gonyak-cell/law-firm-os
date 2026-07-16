@@ -8,6 +8,11 @@ import {
   MATTER_WIKI_SOURCE_POLICIES,
   getMatterCoreModelDefinition,
 } from "./registry.js";
+import { createMatterWorktree, createMatterWorktreeNode } from "./worktree-model.js";
+import { createMatterWorktreeTemplate, createMatterWorktreeTemplateNode } from "./worktree-template-model.js";
+
+export { createMatterWorktree, createMatterWorktreeNode } from "./worktree-model.js";
+export { createMatterWorktreeTemplate, createMatterWorktreeTemplateNode } from "./worktree-template-model.js";
 
 function freezeRecord(record) {
   return Object.freeze(record);
@@ -19,7 +24,10 @@ function freezeList(list) {
 
 export function missingMatterCoreRequiredFields(modelType, input) {
   const definition = getMatterCoreModelDefinition(modelType);
-  return definition.required_fields.filter((field) => input?.[field] === undefined || input?.[field] === null || input?.[field] === "");
+  const nullable = new Set(definition.nullable_required_fields ?? []);
+  return definition.required_fields.filter((field) =>
+    input?.[field] === undefined || (!nullable.has(field) && (input?.[field] === null || input?.[field] === "")),
+  );
 }
 
 function assertRequiredFields(modelType, input) {
@@ -68,7 +76,10 @@ export function createMatter(input) {
     title: input.title,
     status: input.status,
     matter_type_english: input.matter_type_english ?? null,
+    matter_litigation_axis: input.matter_litigation_axis ?? null,
     matter_detail_type_korean: input.matter_detail_type_korean ?? null,
+    client_case_role: input.client_case_role ?? null,
+    client_case_role_confidence: input.client_case_role_confidence ?? null,
     practice_group: input.practice_group ?? null,
     responsible_lawyer: input.responsible_lawyer ?? null,
     source_revision: input.source_revision ?? null,
@@ -354,6 +365,10 @@ const FACTORIES = Object.freeze({
   MatterTask: createMatterTask,
   MatterCalendarEvent: createMatterCalendarEvent,
   MatterChecklist: createMatterChecklist,
+  MatterWorktree: createMatterWorktree,
+  MatterWorktreeNode: createMatterWorktreeNode,
+  MatterWorktreeTemplate: createMatterWorktreeTemplate,
+  MatterWorktreeTemplateNode: createMatterWorktreeTemplateNode,
   MatterWiki: createMatterWiki,
   MatterWikiSection: createMatterWikiSection,
   MatterWikiSourceLink: createMatterWikiSourceLink,

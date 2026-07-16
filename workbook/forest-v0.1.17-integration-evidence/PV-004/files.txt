@@ -1,0 +1,26 @@
+Product files:
+package.json
+scripts/build-matter-desktop-mac.mjs
+scripts/build-matter-desktop-win-installer.mjs
+scripts/build-matter-desktop-win.mjs
+scripts/lib/matter-desktop-provenance.mjs
+scripts/test/pv004-desktop-channel.test.mjs
+scripts/validate-pv001-desktop-version.mjs
+scripts/validate-pv004-desktop-channels.mjs
+
+Evidence files:
+workbook/forest-v0.1.17-integration-evidence/PV-004/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/PV-004/channel-matrix.json
+workbook/forest-v0.1.17-integration-evidence/PV-004/commands.txt
+workbook/forest-v0.1.17-integration-evidence/PV-004/files.txt
+workbook/forest-v0.1.17-integration-evidence/PV-004/package-matrix.json
+workbook/forest-v0.1.17-integration-evidence/PV-004/receipt.json
+workbook/forest-v0.1.17-integration-evidence/PV-004/tests.txt
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md
+
+Disposable package QA:
+/private/tmp/lawos-pv004-package-f5344fde
+/private/tmp/pv004-build-matrix-f5344fde
+/private/tmp/pv004-excludes-f5344fde
+
+The disposable package paths are QA staging, not release truth. Exact hashes and acceptance boundaries are preserved in package-matrix.json and receipt.json.

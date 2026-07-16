@@ -1,0 +1,9 @@
+docs/lazycodex/evidence/matter-desktop/artifacts/payroll-package-qa-2026-07-15.json
+scripts/validate-cp004-payroll-upper-compatibility.mjs
+workbook/forest-v0.1.17-integration-evidence/CP-004/acceptance.md
+workbook/forest-v0.1.17-integration-evidence/CP-004/commands.txt
+workbook/forest-v0.1.17-integration-evidence/CP-004/files.txt
+workbook/forest-v0.1.17-integration-evidence/CP-004/payroll-upper-compatibility-matrix.json
+workbook/forest-v0.1.17-integration-evidence/CP-004/receipt.json
+workbook/forest-v0.1.17-integration-evidence/CP-004/tests.txt
+workbook/forest-v0.1.17-main-integration-release-goal-plan-2026-07-15.md

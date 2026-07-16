@@ -56,12 +56,15 @@ function runCommand(command, args) {
 }
 
 function extractTapSummary(output) {
-  const match = [...output.matchAll(/# tests (\d+)[\s\S]*?# pass (\d+)[\s\S]*?# fail (\d+)/g)].at(-1);
-  if (!match) return null;
+  const metric = (name) => output.match(new RegExp(`(?:#|ℹ)\\s+${name}\\s+(\\d+)`))?.[1];
+  const tests = metric("tests");
+  const pass = metric("pass");
+  const fail = metric("fail");
+  if ([tests, pass, fail].some((value) => value === undefined)) return null;
   return {
-    tests: Number(match[1]),
-    pass: Number(match[2]),
-    fail: Number(match[3])
+    tests: Number(tests),
+    pass: Number(pass),
+    fail: Number(fail)
   };
 }
 
@@ -118,9 +121,11 @@ function fakeWindowForNavigationGuards() {
 
 async function buildRowProofs() {
   const rowProofs = [];
+  const packagedRendererUrl = "file:///matter/renderer/offline.html";
+  const originOptions = { packagedRendererUrl };
 
   assertApprovedRendererUrl("http://127.0.0.1:5173");
-  assert(isApprovedRendererUrl("file:///matter/renderer/offline.html"), "packaged file renderer should be approved");
+  assert(isApprovedRendererUrl(packagedRendererUrl, originOptions), "exact packaged file renderer should be approved");
   rowProofs.push({
     id: "LCX8-ACTION-0245",
     status_decision: "GUARDED final / source guard confirmed",
@@ -131,7 +136,7 @@ async function buildRowProofs() {
 
   await expectThrowsCode(() => assertApprovedRendererUrl("https://evil.example"), "Blocked unapproved desktop renderer origin");
   const fakeWindow = fakeWindowForNavigationGuards();
-  installNavigationGuards(fakeWindow);
+  installNavigationGuards(fakeWindow, originOptions);
   let prevented = false;
   fakeWindow.handlers["will-navigate"]({ preventDefault: () => { prevented = true; } }, "https://evil.example");
   const windowOpenDecision = fakeWindow.webContents.runWindowOpen("https://evil.example");
@@ -396,7 +401,7 @@ const proof = {
     failed: 0
   },
   source_observations: {
-    origin_policy: "apps/desktop/src/main/origin-policy.js allowlists packaged/file and approved dev renderer, denies unapproved navigation/window-open",
+    origin_policy: "apps/desktop/src/main/origin-policy.js allowlists the exact packaged renderer path and development origin only outside packaged mode, then denies unapproved navigation/window-open",
     file_bridge: "apps/desktop/src/main/fileBridge.js requires trusted gesture, rejects renderer bytes, permission-prechecks, and audits denied prechecks",
     temp_preview: "apps/desktop/src/main/tempPreview.js scopes temp previews and clears cache on logout/tenant switch/app quit",
     deep_links: "apps/desktop/src/main/deepLinks.js route-only parser denies action execution, invalid identifiers, and unknown query parameters",

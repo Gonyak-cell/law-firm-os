@@ -1,0 +1,603 @@
+{
+  "schema_version": "law-firm-os.leave-management.package-qa.v1",
+  "generated_at": "2026-07-15T13:08:00.977Z",
+  "verdict": "PASS",
+  "synthetic_only": true,
+  "source": {
+    "revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c",
+    "tree_sha256": "265d6c4ce2b6c3f97046c16c3212e2c384b9c9bb25b346740d91c29cf86d527f",
+    "build_renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96",
+    "packaged_source_sha256": "dada88aa630af0f65374bf6a4e20e71d6b7c1b86f6beafa0ebfb1d656ff34546"
+  },
+  "app": {
+    "bundle": "apps/desktop/dist/mac/matter.app",
+    "executable": "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
+    "app_bundle_sha256": "c8f34ccc3e6ba1840bb33244806b6fb86ecc361e7972c9308930fbfc7e0e5514",
+    "executable_sha256": "c0bf182389ea930585e3b0bf5c4f16529461e02bf3be751cb364d0e25f2257e0",
+    "verification_scope": "functional_only",
+    "release_channel": "not_attested_by_functional_qa",
+    "signed": null,
+    "notarized": null
+  },
+  "windows_package": {
+    "package_directory": "apps/desktop/dist/win/matter-internal-0.1.16-win32-x64",
+    "executable": "apps/desktop/dist/win/matter-internal-0.1.16-win32-x64/matter.exe",
+    "executable_sha256": "b0b6e0cd22a7a135e5230118be27a4c2713a516340f0bbdfb446acb9b2dae31e",
+    "unsigned_zip": "apps/desktop/dist/win/matter-internal-0.1.16-win32-x64-unsigned.zip",
+    "unsigned_zip_sha256": "90504b6f14d937ab5acf4debb44500d0dfad78191a5f4b59f97952d5fa45567e",
+    "renderer_sha256": "b73aac5c2686e1650d2a7685a8d4b790a45786fe4363029ffbfc5da9899c1a96",
+    "renderer_matches_macos": true,
+    "pe_header": "MZ",
+    "archive_test": "pass",
+    "native_runtime_smoke": "not_run_on_darwin",
+    "verification_scope": "package_structure_and_renderer_parity",
+    "authenticode_signed": false
+  },
+  "runtime": {
+    "profile": "local-dev",
+    "endpoint_kind": "loopback_ephemeral",
+    "first_endpoint": "http://127.0.0.1:63545",
+    "second_endpoint": "http://127.0.0.1:63585",
+    "first_status": {
+      "configured": true,
+      "mode": "production-auth-http",
+      "baseUrl": "http://127.0.0.1:63545",
+      "tenantId": "",
+      "operatorActor": "",
+      "migrationWindow": "",
+      "localLoginEmail": "jwsuh@amic.kr",
+      "operatorRuntimeConfigured": false,
+      "operatorTokenMaterialExposed": false
+    },
+    "second_status": {
+      "configured": true,
+      "mode": "production-auth-http",
+      "baseUrl": "http://127.0.0.1:63585",
+      "tenantId": "",
+      "operatorActor": "",
+      "migrationWindow": "",
+      "localLoginEmail": "jwsuh@amic.kr",
+      "operatorRuntimeConfigured": false,
+      "operatorTokenMaterialExposed": false
+    },
+    "user_data_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-leave-package-qa-ZAN8V5",
+    "runtime_store_dir": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/matter-leave-package-qa-ZAN8V5/runtime-stores",
+    "migration_version": "029_hrx_leave_accrual_rule_version_index"
+  },
+  "roles": {
+    "employee": {
+      "user_id": "user_amic_yjlee",
+      "tenant_ids": [
+        "tenant_amic_matter_vault"
+      ]
+    },
+    "manager": {
+      "user_id": "user_amic_tryoon",
+      "tenant_ids": [
+        "tenant_amic_matter_vault"
+      ]
+    },
+    "hr_admin": {
+      "user_id": "user_amic_jwsuh",
+      "tenant_ids": [
+        "tenant_amic_matter_vault"
+      ]
+    },
+    "other_tenant": {
+      "user_id": "user_qa_tenant_b",
+      "tenant_ids": [
+        "tenant_b_qa_synthetic"
+      ]
+    }
+  },
+  "scenarios": {
+    "employee_half_day_cancel": true,
+    "full_day_approved_and_projected": true,
+    "reschedule_response_reapproval": true,
+    "failure_paths": true,
+    "automatic_accrual_rerun": true,
+    "manual_adjustment_and_exports": true,
+    "promotion_evidence_flow": true,
+    "termination_offboarding_payroll": true,
+    "role_and_attachment_boundaries": true,
+    "restart_persistence": true
+  },
+  "role_checks": {
+    "manager_queue_visible": true,
+    "employee_integration_denied": true,
+    "hr_integration_panel_visible": true,
+    "hr_document_access": true,
+    "employee_integration_panel_hidden": true,
+    "employee_document_scope": true,
+    "other_tenant_denied_without_counts": true
+  },
+  "restart": {
+    "session_restoration_mode": "tokenless_loopback_session_restored",
+    "secure_session_restoration_claim": false,
+    "before": {
+      "balance": {
+        "tenant_id": "tenant_amic_matter_vault",
+        "employee_id": "emp_amic_yjlee",
+        "policy_id": null,
+        "group_id": "pkg-group",
+        "earned_balance": 10080,
+        "used_balance": 480,
+        "available_balance": 0,
+        "reserved_balance": 0,
+        "expired_balance": 9840,
+        "earned_minutes": 10080,
+        "used_minutes": 480,
+        "available_minutes": 0,
+        "reserved_minutes": 0,
+        "expired_minutes": 9840,
+        "entry_ids": [
+          "leave_ledger_adjustment_3da2cf61-bf6a-4831-8b9b-feabd4ae2aa7",
+          "leave_ledger_earned_31cfb3c4-7b1a-4c73-b563-103f3ce33dbd",
+          "leave_released_2f05fd1d-c04c-4518-ac47-99379ab3df26",
+          "leave_released_7d481d8c-a95d-48d1-8d07-377109c61419",
+          "leave_released_897e1365-3e83-4529-bfbd-daeaf08298a5",
+          "leave_reserved_210f68e3-b997-4f70-b8dc-4aade6e3a784",
+          "leave_reserved_74d0e8a9-5014-4d98-8ff7-8cc795ea1dd4",
+          "leave_reserved_e707a192-705b-41fc-aef9-d1d81670ff60",
+          "leave_termination_expired_78ab71d6-eb15-4671-95b3-66977fab3494",
+          "leave_termination_expired_8a88b705-f267-46f4-a1c5-b20acdab0ff5",
+          "leave_termination_expired_fe7550e0-53ea-43e8-a5b2-aa4d23eb49c4",
+          "leave_used_f2c689ff-789c-4c0f-858c-80f6f92c2516",
+          "pkg-earned-emp_amic_yjlee"
+        ]
+      },
+      "approved_requests": [
+        {
+          "request_id": "leave-request:fd3dadda-ea54-4067-8b83-b3b03316dd69",
+          "state": "approved",
+          "start_date": "2026-07-16",
+          "end_date": "2026-07-16",
+          "requested_minutes": 480
+        }
+      ],
+      "cancelled_request_count": 1,
+      "promotion_campaign_count": 2,
+      "promotion_recipient_states": [
+        "employee_responded",
+        "first_notice_pending",
+        "second_notice_delivered"
+      ],
+      "termination_states": [
+        "approved_and_synced",
+        "previewed"
+      ],
+      "outbox_states": [
+        "leave.promotion.first_notice_deadline:delivered",
+        "leave.promotion.first_notice_deadline:delivered",
+        "leave.promotion.first_notice_issued:delivered",
+        "leave.promotion.response_recorded:delivered",
+        "leave.promotion.second_notice_deadline:delivered",
+        "leave.promotion.second_notice_deadline:delivered",
+        "leave.promotion.second_notice_issued:delivered",
+        "leave.request.approved:delivered",
+        "leave.request.cancelled:delivered",
+        "leave.request.reschedule_accepted:delivered",
+        "leave.request.reschedule_proposed:delivered",
+        "leave.request.submitted:delivered",
+        "leave.request.submitted:delivered",
+        "leave.termination.payroll_reconciliation_requested:delivered"
+      ],
+      "delivered_boundary_count": 17,
+      "manual_adjustment_count": 1
+    },
+    "after": {
+      "balance": {
+        "tenant_id": "tenant_amic_matter_vault",
+        "employee_id": "emp_amic_yjlee",
+        "policy_id": null,
+        "group_id": "pkg-group",
+        "earned_balance": 10080,
+        "used_balance": 480,
+        "available_balance": 0,
+        "reserved_balance": 0,
+        "expired_balance": 9840,
+        "earned_minutes": 10080,
+        "used_minutes": 480,
+        "available_minutes": 0,
+        "reserved_minutes": 0,
+        "expired_minutes": 9840,
+        "entry_ids": [
+          "leave_ledger_adjustment_3da2cf61-bf6a-4831-8b9b-feabd4ae2aa7",
+          "leave_ledger_earned_31cfb3c4-7b1a-4c73-b563-103f3ce33dbd",
+          "leave_released_2f05fd1d-c04c-4518-ac47-99379ab3df26",
+          "leave_released_7d481d8c-a95d-48d1-8d07-377109c61419",
+          "leave_released_897e1365-3e83-4529-bfbd-daeaf08298a5",
+          "leave_reserved_210f68e3-b997-4f70-b8dc-4aade6e3a784",
+          "leave_reserved_74d0e8a9-5014-4d98-8ff7-8cc795ea1dd4",
+          "leave_reserved_e707a192-705b-41fc-aef9-d1d81670ff60",
+          "leave_termination_expired_78ab71d6-eb15-4671-95b3-66977fab3494",
+          "leave_termination_expired_8a88b705-f267-46f4-a1c5-b20acdab0ff5",
+          "leave_termination_expired_fe7550e0-53ea-43e8-a5b2-aa4d23eb49c4",
+          "leave_used_f2c689ff-789c-4c0f-858c-80f6f92c2516",
+          "pkg-earned-emp_amic_yjlee"
+        ]
+      },
+      "approved_requests": [
+        {
+          "request_id": "leave-request:fd3dadda-ea54-4067-8b83-b3b03316dd69",
+          "state": "approved",
+          "start_date": "2026-07-16",
+          "end_date": "2026-07-16",
+          "requested_minutes": 480
+        }
+      ],
+      "cancelled_request_count": 1,
+      "promotion_campaign_count": 2,
+      "promotion_recipient_states": [
+        "employee_responded",
+        "first_notice_pending",
+        "second_notice_delivered"
+      ],
+      "termination_states": [
+        "approved_and_synced",
+        "previewed"
+      ],
+      "outbox_states": [
+        "leave.promotion.first_notice_deadline:delivered",
+        "leave.promotion.first_notice_deadline:delivered",
+        "leave.promotion.first_notice_issued:delivered",
+        "leave.promotion.response_recorded:delivered",
+        "leave.promotion.second_notice_deadline:delivered",
+        "leave.promotion.second_notice_deadline:delivered",
+        "leave.promotion.second_notice_issued:delivered",
+        "leave.request.approved:delivered",
+        "leave.request.cancelled:delivered",
+        "leave.request.reschedule_accepted:delivered",
+        "leave.request.reschedule_proposed:delivered",
+        "leave.request.submitted:delivered",
+        "leave.request.submitted:delivered",
+        "leave.termination.payroll_reconciliation_requested:delivered"
+      ],
+      "delivered_boundary_count": 17,
+      "manual_adjustment_count": 1
+    },
+    "identical": true,
+    "domain_snapshot_sha256_before": "7dd8d9d652f791d3420146db624a4ae84eb167547afafc302eb97f22858f6775",
+    "domain_snapshot_sha256_after": "7dd8d9d652f791d3420146db624a4ae84eb167547afafc302eb97f22858f6775",
+    "store_file_sha256_before": "58385370ad0876b4ecc71dcdee75ee32940dcbcaa618e521f92145608daedc2a",
+    "store_file_sha256_after": "576f4f7e1cfaea22f79d429a88529f8729a3bad2f0310970af635b145dc65c6d",
+    "store_file_hash_expected_to_change_with_audit_events": true
+  },
+  "viewport_manifest": [
+    {
+      "name": "viewport-1512x900",
+      "path": "output/playwright/leave-management-package/viewport-1512x900.png",
+      "sha256": "db0bb78b84c688c77d969f1d81830ef7082a7a996440b009486803c0f7c8bb16",
+      "viewport": {
+        "width": 1512,
+        "height": 900
+      },
+      "route": "people-leave-usage",
+      "role": "hr_admin",
+      "runtime_profile": "local-dev",
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
+    },
+    {
+      "name": "viewport-1280x820",
+      "path": "output/playwright/leave-management-package/viewport-1280x820.png",
+      "sha256": "3e24f527fd35393ca28fe6b2d9c2efbf3e33538bb6574cac3095070215e70cc7",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      },
+      "route": "people-leave-usage",
+      "role": "hr_admin",
+      "runtime_profile": "local-dev",
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
+    },
+    {
+      "name": "viewport-1024x800",
+      "path": "output/playwright/leave-management-package/viewport-1024x800.png",
+      "sha256": "6b1e800bce2091b8106b4472356327dbbe3a809f8cf1171fa4b28f069fd2b985",
+      "viewport": {
+        "width": 1024,
+        "height": 800
+      },
+      "route": "people-leave-usage",
+      "role": "hr_admin",
+      "runtime_profile": "local-dev",
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
+    },
+    {
+      "name": "viewport-820x900",
+      "path": "output/playwright/leave-management-package/viewport-820x900.png",
+      "sha256": "2b89d0cb732117e4c45cc4004b45438932cf25342d13ff01ab93494bdfe7a469",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "route": "people-leave-usage",
+      "role": "hr_admin",
+      "runtime_profile": "local-dev",
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
+    },
+    {
+      "name": "viewport-720x900",
+      "path": "output/playwright/leave-management-package/viewport-720x900.png",
+      "sha256": "9960a638726ef47d2642eb7e98921945400e7dfe3ce70efa6a7763f36df32994",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      },
+      "route": "people-leave-usage",
+      "role": "hr_admin",
+      "runtime_profile": "local-dev",
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "01-employee-half-day-cancel-720x900",
+      "path": "output/playwright/leave-management-package/01-employee-half-day-cancel-720x900.png",
+      "sha256": "64220860198d3c0f4acd2b5c6c224281217e4c831b603c162a82772d649d7118",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      },
+      "route": "people-leave",
+      "role": "employee",
+      "runtime_profile": "local-dev",
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
+    },
+    {
+      "name": "02-manager-reschedule-1024x900",
+      "path": "output/playwright/leave-management-package/02-manager-reschedule-1024x900.png",
+      "sha256": "3e71df82851380e876d391abb9aceb144bd8e2759bd4a1bb95b9b9b36d8250c8",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "route": "people-leave-requests",
+      "role": "manager",
+      "runtime_profile": "local-dev",
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
+    },
+    {
+      "name": "03-hr-promotion-1512x900",
+      "path": "output/playwright/leave-management-package/03-hr-promotion-1512x900.png",
+      "sha256": "6cc6d1e09cdb6410afbb4c1505a07b417236bac57587cc6984f1dfbfacf8ba38",
+      "viewport": {
+        "width": 1512,
+        "height": 900
+      },
+      "route": "people-annual-leave-notices",
+      "role": "hr_admin",
+      "runtime_profile": "local-dev",
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
+    },
+    {
+      "name": "04-hr-termination-pending-720x900",
+      "path": "output/playwright/leave-management-package/04-hr-termination-pending-720x900.png",
+      "sha256": "d4fb5c9238871b6af4036558de2cdd5b4118464225e8c6342b6065058448df07",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      },
+      "route": "people-leave-termination",
+      "role": "hr_admin",
+      "runtime_profile": "local-dev",
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
+    },
+    {
+      "name": "05-other-tenant-denied-720x900",
+      "path": "output/playwright/leave-management-package/05-other-tenant-denied-720x900.png",
+      "sha256": "398deef93e7efe294d39791424adfb157ff73577d43d56043daf962ae02ec125",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      },
+      "route": "people-leave",
+      "role": "other_tenant",
+      "runtime_profile": "local-dev",
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
+    },
+    {
+      "name": "viewport-1512x900",
+      "path": "output/playwright/leave-management-package/viewport-1512x900.png",
+      "sha256": "db0bb78b84c688c77d969f1d81830ef7082a7a996440b009486803c0f7c8bb16",
+      "viewport": {
+        "width": 1512,
+        "height": 900
+      },
+      "route": "people-leave-usage",
+      "role": "hr_admin",
+      "runtime_profile": "local-dev",
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
+    },
+    {
+      "name": "viewport-1280x820",
+      "path": "output/playwright/leave-management-package/viewport-1280x820.png",
+      "sha256": "3e24f527fd35393ca28fe6b2d9c2efbf3e33538bb6574cac3095070215e70cc7",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      },
+      "route": "people-leave-usage",
+      "role": "hr_admin",
+      "runtime_profile": "local-dev",
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
+    },
+    {
+      "name": "viewport-1024x800",
+      "path": "output/playwright/leave-management-package/viewport-1024x800.png",
+      "sha256": "6b1e800bce2091b8106b4472356327dbbe3a809f8cf1171fa4b28f069fd2b985",
+      "viewport": {
+        "width": 1024,
+        "height": 800
+      },
+      "route": "people-leave-usage",
+      "role": "hr_admin",
+      "runtime_profile": "local-dev",
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
+    },
+    {
+      "name": "viewport-820x900",
+      "path": "output/playwright/leave-management-package/viewport-820x900.png",
+      "sha256": "2b89d0cb732117e4c45cc4004b45438932cf25342d13ff01ab93494bdfe7a469",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "route": "people-leave-usage",
+      "role": "hr_admin",
+      "runtime_profile": "local-dev",
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
+    },
+    {
+      "name": "viewport-720x900",
+      "path": "output/playwright/leave-management-package/viewport-720x900.png",
+      "sha256": "9960a638726ef47d2642eb7e98921945400e7dfe3ce70efa6a7763f36df32994",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      },
+      "route": "people-leave-usage",
+      "role": "hr_admin",
+      "runtime_profile": "local-dev",
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
+    },
+    {
+      "name": "06-restart-restored-1280x820",
+      "path": "output/playwright/leave-management-package/06-restart-restored-1280x820.png",
+      "sha256": "3e24f527fd35393ca28fe6b2d9c2efbf3e33538bb6574cac3095070215e70cc7",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      },
+      "route": "people-leave-usage",
+      "role": "hr_admin_restored",
+      "runtime_profile": "local-dev",
+      "source_revision": "75f10995d9e04c35e8d21710fc64d6bd5e9b5e4c"
+    }
+  ],
+  "geometry": [
+    {
+      "name": "01-employee-half-day-cancel-720x900",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      },
+      "client_width": 705,
+      "scroll_width": 705,
+      "target_visible": true
+    },
+    {
+      "name": "02-manager-reschedule-1024x900",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "client_width": 1024,
+      "scroll_width": 1024,
+      "target_visible": true
+    },
+    {
+      "name": "03-hr-promotion-1512x900",
+      "viewport": {
+        "width": 1512,
+        "height": 900
+      },
+      "client_width": 1512,
+      "scroll_width": 1512,
+      "target_visible": true
+    },
+    {
+      "name": "04-hr-termination-pending-720x900",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      },
+      "client_width": 705,
+      "scroll_width": 705,
+      "target_visible": true
+    },
+    {
+      "name": "05-other-tenant-denied-720x900",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      },
+      "client_width": 705,
+      "scroll_width": 705,
+      "target_visible": true
+    },
+    {
+      "name": "viewport-1512x900",
+      "viewport": {
+        "width": 1512,
+        "height": 900
+      },
+      "client_width": 1512,
+      "scroll_width": 1512,
+      "target_visible": true
+    },
+    {
+      "name": "viewport-1280x820",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      },
+      "client_width": 1280,
+      "scroll_width": 1280,
+      "target_visible": true
+    },
+    {
+      "name": "viewport-1024x800",
+      "viewport": {
+        "width": 1024,
+        "height": 800
+      },
+      "client_width": 1024,
+      "scroll_width": 1024,
+      "target_visible": true
+    },
+    {
+      "name": "viewport-820x900",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "client_width": 805,
+      "scroll_width": 805,
+      "target_visible": true
+    },
+    {
+      "name": "viewport-720x900",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      },
+      "client_width": 705,
+      "scroll_width": 705,
+      "target_visible": true
+    },
+    {
+      "name": "06-restart-restored-1280x820",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      },
+      "client_width": 1280,
+      "scroll_width": 1280,
+      "target_visible": true
+    }
+  ],
+  "console": {
+    "page_error_count": 0,
+    "console_error_count": 0,
+    "ignored_hmr_error_count": 0
+  },
+  "boundaries": {
+    "real_employee_data_used": false,
+    "external_provider_write_claim": false,
+    "production_ready_claim": false,
+    "public_release_claim": false,
+    "go_live_claim": false,
+    "legal_labor_approval_claim": false
+  }
+}

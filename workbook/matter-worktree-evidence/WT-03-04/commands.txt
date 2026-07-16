@@ -1,0 +1,2 @@
+node --test apps/web/test/matter-worktree-ui-contract.test.mjs
+npm --workspace apps/web run typecheck

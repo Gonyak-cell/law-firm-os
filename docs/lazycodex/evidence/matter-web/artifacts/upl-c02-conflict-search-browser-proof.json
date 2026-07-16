@@ -1,0 +1,476 @@
+{
+  "schema_version": "law-firm-os.upl-c02.browser-proof.v0.2",
+  "generated_at": "2026-07-03T09:27:08.797Z",
+  "verdict": "PASS",
+  "contract_ref": "UPL-C-02",
+  "api_runtime": "startApiServer+seeded-intake-master-matter-repositories",
+  "url": "http://127.0.0.1:5202/?locale=ko&view=clients&data=live&ctx=allow#client-conflict",
+  "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-web/artifacts/upl-c02-screenshots/upl-c02-conflict-search-hit-list.png",
+  "checks": [
+    {
+      "id": "real-api-conflict-check-route-called-from-browser",
+      "passed": true,
+      "evidence": {
+        "status": 201,
+        "hit_count": 1
+      }
+    },
+    {
+      "id": "client-conflict-surface-visible",
+      "passed": true,
+      "evidence": {
+        "hit_list_length": 44
+      }
+    },
+    {
+      "id": "browser-uses-signed-session-without-legacy-permission-context",
+      "passed": true,
+      "evidence": {
+        "api_request_count": 49
+      }
+    },
+    {
+      "id": "conflict-check-write-sent-from-ui",
+      "passed": true,
+      "evidence": {
+        "writes": 1
+      }
+    },
+    {
+      "id": "browser-proof-clean",
+      "passed": true,
+      "evidence": {
+        "console_events": 0,
+        "failed_requests": 0,
+        "page_errors": 0
+      }
+    },
+    {
+      "id": "no-session-token-rendered",
+      "passed": true,
+      "evidence": {}
+    }
+  ],
+  "observed": {
+    "writes": [
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5202/api/intake/conflict-checks",
+        "has_authorization": true,
+        "has_permission_context": false,
+        "payload": {
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "permission_ref": "ui_cmp_g6_crm_intake_live",
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+          "actor_id": "user_amic_jwsuh",
+          "idempotency_key": "conflict:conflict_ui_mr4qc0q4_4q5du7",
+          "conflict_check": {
+            "conflict_check_id": "conflict_ui_mr4qc0q4_4q5du7",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "intake_request_id": "intake_upl_c02_new_client",
+            "party_snapshot": {
+              "party_ids": [
+                "party_upl_c02_new_client"
+              ]
+            },
+            "status": "snapshot_recorded",
+            "owner_user_id": "user_amic_jwsuh"
+          }
+        }
+      }
+    ],
+    "hit_list_text": "Hit\t출처\t심각도\t상태\n상대방 테크 주식회사\t과거 Matter\t높음\t계약 검토",
+    "api_response": {
+      "status": 201,
+      "hit_count": 1,
+      "conflict_search": {
+        "conflict_search_id": "search_conflict_ui_mr4qc0q4_4q5du7",
+        "tenant_id": "tenant_cmp_g6_synthetic",
+        "conflict_check_id": "conflict_ui_mr4qc0q4_4q5du7",
+        "aliases": [],
+        "party_ids": [
+          "party_upl_c02_new_client"
+        ],
+        "party_names": [],
+        "relationship_refs": [],
+        "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+        "owner_user_id": "user_amic_jwsuh",
+        "hit_count": 1,
+        "model_type": "ConflictSearch",
+        "normalized_terms": [
+          "상대방테크"
+        ],
+        "generated_hit_ids": [
+          "hit_search_conflict_ui_mr4qc0q4_4q5du7_MatterParty_party_upl_c02_adverse_0"
+        ],
+        "caller_supplied_hit_count_ignored": false,
+        "raw_query_included": false,
+        "status": "executed",
+        "resource_id": "search_conflict_ui_mr4qc0q4_4q5du7",
+        "owner_module": "intake",
+        "created_at": "2026-07-03T09:27:08.721Z",
+        "updated_at": "2026-07-03T09:27:08.721Z",
+        "writes_product_state": true,
+        "creates_database_rows": true,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": true,
+        "dispatches_intake_runtime": true,
+        "executes_api_handler": false,
+        "creates_matter": false,
+        "g6_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false,
+        "direct_matter_reference_included": false,
+        "raw_conflict_memo_included": false
+      },
+      "first_hit": {
+        "model_type": "ConflictHit",
+        "conflict_hit_id": "hit_search_conflict_ui_mr4qc0q4_4q5du7_MatterParty_party_upl_c02_adverse_0",
+        "tenant_id": "tenant_cmp_g6_synthetic",
+        "conflict_check_id": "conflict_ui_mr4qc0q4_4q5du7",
+        "matched_party_id": "party_upl_c02_adverse",
+        "hit_source": "former_matter",
+        "source_record_ref": "MatterParty:party_upl_c02_adverse",
+        "severity": "high",
+        "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+        "status": "review_required",
+        "owner_user_id": "user_amic_jwsuh",
+        "matched_display_name": "상대방 테크 주식회사",
+        "matched_model_type": "MatterParty",
+        "matched_party_role": "adverse_party",
+        "source_matter_ref_included": false,
+        "match_kind": "exact_normalized",
+        "match_score": 1,
+        "normalized_query": "상대방테크",
+        "raw_hit_payload_visible": false,
+        "created_by": "user_amic_jwsuh",
+        "owner_module": "intake",
+        "permission_ref": null,
+        "synthetic_only": true,
+        "no_real_data": true,
+        "writes_product_state": true,
+        "creates_database_rows": false,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": false,
+        "dispatches_intake_runtime": true,
+        "executes_api_handler": false,
+        "creates_matter": false,
+        "g3_runtime_readiness_claim": "open",
+        "party_reference_fields": [
+          "matched_party_id"
+        ],
+        "hit_summary": null,
+        "hit_source_audit_required": true,
+        "resource_id": "hit_search_conflict_ui_mr4qc0q4_4q5du7_MatterParty_party_upl_c02_adverse_0",
+        "created_at": "2026-07-03T09:27:08.721Z",
+        "updated_at": "2026-07-03T09:27:08.721Z",
+        "g6_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false,
+        "direct_matter_reference_included": false,
+        "raw_conflict_memo_included": false
+      }
+    },
+    "api_requests": [
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5202/api/auth/login",
+        "has_authorization": false,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/portal/dashboard?tenant_id=tenant_cmp_g10_synthetic&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/portal/rfi?tenant_id=tenant_cmp_g10_synthetic&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=100",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/ai/review-queue?tenant_id=matter-runtime-tenant&permission_ref=ui_cmp_g9_ai_live&audit_hint_ref=ui_cmp_g9_ai_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/hrx/employees",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/data-room/projections?tenant_id=tenant_cmp_g10_synthetic&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/hrx/legal-people/search?client_id=client_lcx_001",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_upl_c07_contact_value_read&audit_hint_ref=ui_upl_c07_contact_value_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/activities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_activity_read&audit_hint_ref=ui_lcx_vltui_05_activity_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_proposal_read&audit_hint_ref=ui_lcx_vltui_05_proposal_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/client-settings?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_client_settings_read&audit_hint_ref=ui_lcx_vltui_05_client_settings_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/record-actions/client/client_group_rp04_amic_client_001/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_upl_c07_contact_value_read&audit_hint_ref=ui_upl_c07_contact_value_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5202/api/intake/conflict-checks",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/hrx/legal-people/search?client_id=client_lcx_001",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_upl_c07_contact_value_read&audit_hint_ref=ui_upl_c07_contact_value_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/activities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_activity_read&audit_hint_ref=ui_lcx_vltui_05_activity_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_proposal_read&audit_hint_ref=ui_lcx_vltui_05_proposal_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/client-settings?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_lcx_vltui_05_client_settings_read&audit_hint_ref=ui_lcx_vltui_05_client_settings_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/record-actions/client/client_group_rp04_amic_client_001/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/record-actions/client/client_group_rp04_amic_client_001/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5202/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_upl_c07_contact_value_read&audit_hint_ref=ui_upl_c07_contact_value_read_probe",
+        "has_authorization": true,
+        "has_permission_context": false
+      }
+    ],
+    "console_events": [],
+    "failed_requests": [],
+    "page_errors": []
+  }
+}

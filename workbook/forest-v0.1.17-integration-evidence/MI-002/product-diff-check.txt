@@ -1,0 +1,3 @@
+docs/lazycodex/evidence/matter-desktop/artifacts/payroll-final-verification-2026-07-15.md:3: trailing whitespace.
+docs/lazycodex/evidence/matter-desktop/artifacts/payroll-final-verification-2026-07-15.md:4: trailing whitespace.
+packages/hrx/test/leave-type-economics.test.js:137: new blank line at EOF.

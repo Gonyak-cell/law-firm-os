@@ -49,3 +49,11 @@ export function createClientHealthDashboard(args = {}) {
 export function createPracticePnlDashboard(args = {}) {
   return createDashboard({ ...args, dashboard: { ...args.dashboard, dashboard_type: "practice_pnl" }, action: "analytics.dashboard.practice_pnl.refresh" });
 }
+
+export function createRealizationDashboard(args = {}) {
+  return createDashboard({ ...args, dashboard: { ...args.dashboard, dashboard_type: "realization" }, action: "analytics.dashboard.realization.refresh" });
+}
+
+export function createEmployeeUtilizationDashboard(args = {}) {
+  return createDashboard({ ...args, dashboard: { ...args.dashboard, dashboard_type: "employee_utilization" }, action: "analytics.dashboard.employee_utilization.refresh" });
+}

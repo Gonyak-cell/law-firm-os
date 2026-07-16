@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.source-merge-gate-split.v1",
+  "recorded_at": "2026-07-16T04:33:04Z",
+  "tuw_id": "MR-000",
+  "status": "DONE",
+  "decision": "SOURCE_MERGE_APPROVED_RELEASE_DEPLOYMENT_BLOCKED",
+  "source": {
+    "branch": "codex/integration/forest-v0.1.17",
+    "head_at_decision": "9b40b843e9e004ae63f7336556add99cd70acf3c",
+    "product_revision": "39ed9571b0e841e1a6480e6875fe7b6658f83465",
+    "origin_main_revision": "fdd1e34a42ee11ad1e5049647048471be772f381"
+  },
+  "source_merge": {
+    "pull_request_allowed": true,
+    "main_merge_allowed": true,
+    "required_check": "HRX rollout validation",
+    "required_method": "merge_commit"
+  },
+  "release_boundary": {
+    "qa_006_status": "BLOCKED_AUTHENTICODE",
+    "windows_native_status": "PASS",
+    "installer_signature": "NotSigned",
+    "executable_signature": "NotSigned",
+    "release_packaging_allowed": false,
+    "tag_allowed": false,
+    "artifact_publication_allowed": false,
+    "deployment_allowed": false,
+    "aws_write_allowed": false,
+    "production_data_write_allowed": false,
+    "go_live_allowed": false
+  }
+}

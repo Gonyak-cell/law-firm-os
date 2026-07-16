@@ -140,6 +140,24 @@ const matter = {
   vault_workspace_id: "vault_workspace_lcx_vltui_06"
 };
 
+const adverseParty = {
+  tenant_id: "tenant_rp05_synthetic",
+  resource_id: "matter_party_lcx_vltui_06_adverse",
+  matter_party_id: "matter_party_lcx_vltui_06_adverse",
+  matter_id: MATTER_ID,
+  party_id: "party_lcx_vltui_06_adverse",
+  display_name: "상대방 주식회사",
+  party_role: "adverse_party",
+  role_scope: "matter_conflict_subject",
+  conflict_subject: true,
+  retroactive_entry: true,
+  retroactive_source: "manual_retroactive_entry",
+  status: "active",
+  registered_at: "2026-07-03T00:00:00.000Z",
+  raw_contact_values_included: false,
+  production_ready_claim: false
+};
+
 const activities = [
   {
     activity_id: ACTIVITY_ID,
@@ -245,6 +263,8 @@ function matterCollection(url) {
       outcome: "passed",
       item: matter,
       team: [{ display_name: "Matter Owner" }, { display_name: "Associate" }],
+      matter_parties: [],
+      adverse_parties: [],
       client_report: { sections: [{ label: "진행", body: "권한 기준 요약", client_visible: false }] },
       vault_summary: { document_count: 1 },
       matter_vault_link: { vault_workspace_id: matter.vault_workspace_id },
@@ -302,6 +322,12 @@ function matterCollection(url) {
       production_ready_claim: false
     };
   }
+  if (url.pathname.endsWith("/parties")) {
+    return {
+      ...collectionBody("lcx-vltui-06-matter-parties", [adverseParty], "ui_upl_c01_matter_party_write_probe"),
+      adverse_parties: [adverseParty]
+    };
+  }
   if (url.pathname === "/api/matters/audit") {
     return collectionBody("lcx-vltui-06-matter-audit", [
       { event_id: "audit_lcx_06", action: "matter.read", object_type: "Matter", object_id: MATTER_ID, decision: "allow", production_ready_claim: false }
@@ -311,6 +337,32 @@ function matterCollection(url) {
 }
 
 function financeCollection(url) {
+  if (url.pathname === "/api/finance/accounting-export.csv") {
+    return itemBody({
+      requestId: "lcx-vltui-06-accounting-export",
+      outcome: "created",
+      item: {
+        accounting_export_id: "accounting_export_lcx_vltui_06",
+        tenant_id: "tenant_cmp_g7_synthetic",
+        export_format: "csv",
+        status: "ready_for_review",
+        from_date: url.searchParams.get("from_date"),
+        to_date: url.searchParams.get("to_date"),
+        csv_text: "journal_entry_id,posting_date,source_ref,matter_id,account,debit,credit,currency\njournal_lcx_vltui_06,2026-07-05,invoice_lcx_vltui_06,matter_lcx_vltui_06_alpha,ar,450000,0,KRW\njournal_lcx_vltui_06,2026-07-05,invoice_lcx_vltui_06,matter_lcx_vltui_06_alpha,revenue,0,450000,KRW\n",
+        csv_sha256: "b".repeat(64),
+        row_count: 2,
+        debit_total: 450000,
+        credit_total: 450000,
+        balanced: true,
+        bank_reference_included: false,
+        credential_material_included: false,
+        raw_journal_payload_included: false,
+        production_ready_claim: false
+      },
+      auditHintRef: "ui_cmp_g7_finance_probe",
+      action: "accounting.export.csv.create"
+    });
+  }
   if (url.pathname === "/api/finance/time-entries") {
     return collectionBody("lcx-vltui-06-time-entries", [
       { time_entry_id: "time_lcx_vltui_06", matter_id: MATTER_ID, work_date: "2026-06-29", status: "review_required", duration_minutes: 30 }
@@ -335,7 +387,19 @@ function financeCollection(url) {
 function analyticsCollection(url) {
   if (url.pathname === "/api/analytics/dashboards") {
     return collectionBody("lcx-vltui-06-dashboards", [
-      { dashboard_id: "dashboard_lcx_vltui_06", title: "Matter 운영", dashboard_type: "matter", status: "active", metric_count: 3 }
+      { dashboard_id: "dashboard_lcx_vltui_06", title: "Matter 운영", dashboard_type: "matter", status: "active", metric_count: 3 },
+      { dashboard_id: "dashboard-realization", title: "Realization", dashboard_type: "realization", status: "published", metric_value: 87.5, metric_unit: "percent", metric_record_count: 1 },
+      { dashboard_id: "dashboard-employee-utilization", title: "Employee Utilization", dashboard_type: "employee_utilization", status: "published", metric_value: 75, metric_unit: "percent", metric_record_count: 1 }
+    ], "ui_cmp_g8_analytics_probe");
+  }
+  if (url.pathname === "/api/analytics/realization") {
+    return collectionBody("lcx-vltui-06-realization", [
+      { realization_metric_id: "realization:tenant_cmp_g8_synthetic:matter_lcx_vltui_06_alpha", matter_id: MATTER_ID, billed_value: 350000, standard_value: 400000, realization_rate: 0.875 }
+    ], "ui_cmp_g8_analytics_probe");
+  }
+  if (url.pathname === "/api/analytics/utilization") {
+    return collectionBody("lcx-vltui-06-utilization", [
+      { employee_utilization_id: "util:tenant_cmp_g8_synthetic:employee_lcx_vltui_06:2026-07", employee_id: "employee_lcx_vltui_06", period_id: "2026-07", capacity_hours: 160, billable_hours: 120, utilization_rate: 0.75 }
     ], "ui_cmp_g8_analytics_probe");
   }
   if (url.pathname.includes("profitability")) {
@@ -379,6 +443,21 @@ function importCollection(url) {
 }
 
 function writeBody(url, method) {
+  if (url.pathname.endsWith("/parties")) {
+    return itemBody({
+      requestId: "lcx-vltui-06-adverse-party",
+      outcome: "created",
+      item: adverseParty,
+      auditHintRef: "ui_upl_c01_matter_party_write_probe",
+      action: "matter.party.registered",
+      extra: {
+        matter: { ...matter, adverse_party_count: 1 },
+        matter_parties: [adverseParty],
+        adverse_parties: [adverseParty],
+        state_idempotent: true
+      }
+    });
+  }
   if (url.pathname.endsWith("/status-transitions")) {
     return itemBody({
       requestId: "lcx-vltui-06-status-transition",
@@ -486,9 +565,27 @@ function writeBody(url, method) {
     return itemBody({
       requestId: "lcx-vltui-06-time-entry",
       outcome: "created",
-      item: { time_entry_id: "time_lcx_vltui_06_created", matter_id: MATTER_ID, duration_minutes: 30, currency: "KRW" },
+      item: { time_entry_id: "time_lcx_vltui_06_created", matter_id: MATTER_ID, duration_minutes: 30, status: "approved", approved_for_wip: true, currency: "KRW" },
       auditHintRef: "ui_cmp_g7_finance_probe",
       action: "finance.time.created"
+    });
+  }
+  if (url.pathname === "/api/finance/expenses") {
+    return itemBody({
+      requestId: "lcx-vltui-06-expense",
+      outcome: "created",
+      item: { expense_id: "expense_lcx_vltui_06_created", matter_id: MATTER_ID, amount: 25000, currency: "KRW", status: "approved", approved_for_wip: true },
+      auditHintRef: "ui_cmp_g7_finance_probe",
+      action: "finance.expense.created"
+    });
+  }
+  if (url.pathname === "/api/finance/disbursements") {
+    return itemBody({
+      requestId: "lcx-vltui-06-disbursement",
+      outcome: "created",
+      item: { disbursement_id: "disbursement_lcx_vltui_06_created", matter_id: MATTER_ID, amount: 15000, currency: "KRW", status: "approved", recoverable: true },
+      auditHintRef: "ui_cmp_g7_finance_probe",
+      action: "finance.disbursement.created"
     });
   }
   if (url.pathname === "/api/finance/wip") {
@@ -511,6 +608,18 @@ function writeBody(url, method) {
       auditHintRef: "ui_cmp_g7_finance_probe",
       action: "finance.payment.recorded"
     });
+  }
+  if (url.pathname === "/api/analytics/refresh") {
+    return {
+      ...itemBody({
+        requestId: "lcx-vltui-06-analytics-refresh",
+        outcome: "created",
+        item: { refresh_run_id: "refresh_lcx_vltui_06", status: "succeeded" },
+        auditHintRef: "ui_cmp_g8_analytics_probe",
+        action: "analytics.read_model.refresh"
+      }),
+      items: analyticsCollection(new URL("http://lawos.local/api/analytics/dashboards")).items
+    };
   }
   if (url.pathname === "/api/import-jobs") {
     return itemBody({
@@ -574,7 +683,7 @@ function writeBody(url, method) {
 }
 
 function responseFor(url, method) {
-  if ((method === "POST" || method === "PATCH") && (url.pathname.startsWith("/api/matters") || url.pathname.startsWith("/api/record-actions") || url.pathname.startsWith("/api/finance") || url.pathname.startsWith("/api/import-jobs"))) {
+  if ((method === "POST" || method === "PATCH") && (url.pathname.startsWith("/api/matters") || url.pathname.startsWith("/api/record-actions") || url.pathname.startsWith("/api/finance") || url.pathname.startsWith("/api/analytics") || url.pathname.startsWith("/api/import-jobs"))) {
     return writeBody(url, method);
   }
   if (url.pathname.startsWith("/api/record-actions/matter")) return recordActionCollection(url);
@@ -596,7 +705,9 @@ function parseContext(request) {
 }
 
 function classifyWrite(url, method) {
+  if (method === "GET" && url.pathname === "/api/finance/accounting-export.csv") return "finance_accounting_export";
   if (method !== "POST" && method !== "PATCH") return null;
+  if (url.pathname.endsWith("/parties")) return "matter_adverse_party";
   if (url.pathname.endsWith("/status-transitions")) return "lifecycle_closeout";
   if (url.pathname.endsWith("/activities")) return "activity_create";
   if (url.pathname.includes("/activities/")) return "activity_patch";
@@ -608,8 +719,11 @@ function classifyWrite(url, method) {
   if (url.pathname.endsWith("/field-update")) return "risk_field_update";
   if (url.pathname.endsWith("/bulk-updates")) return "owner_blocked";
   if (url.pathname === "/api/finance/time-entries") return "finance_time_entry";
+  if (url.pathname === "/api/finance/expenses") return "finance_expense";
+  if (url.pathname === "/api/finance/disbursements") return "finance_disbursement";
   if (url.pathname === "/api/finance/wip") return "finance_wip";
   if (url.pathname === "/api/finance/payments") return "finance_payment";
+  if (url.pathname === "/api/analytics/refresh") return "analytics_refresh";
   if (url.pathname === "/api/import-jobs") return "import_job";
   if (url.pathname.endsWith("/source-files")) return "import_source";
   if (url.pathname.endsWith("/field-mappings")) return "import_mapping";
@@ -676,7 +790,13 @@ async function runCase(browser) {
     const writeKind = classifyWrite(url, request.method());
     if (writeKind) {
       const payload = request.postData() ? JSON.parse(request.postData()) : {};
-      writes.push({ kind: writeKind, path: url.pathname, context: parseContext(request), payload });
+      writes.push({
+        kind: writeKind,
+        path: url.pathname,
+        query: Object.fromEntries(url.searchParams.entries()),
+        context: parseContext(request),
+        payload
+      });
     }
     if (url.pathname.startsWith("/api/")) {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(responseFor(url, request.method())) });
@@ -692,6 +812,14 @@ async function runCase(browser) {
       await visible(page, `[data-lcx-vltui-06-connected-section='${marker}']`);
       sectionResults.push({ section, marker, connected: true });
     }
+
+    await page.goto(proofUrl("matter-command"), { waitUntil: "domcontentloaded" });
+    await page.locator("[data-matter-adverse-party-form='true']").getByPlaceholder("상대방 이름").fill(adverseParty.display_name);
+    await clickScoped(page, "[data-matter-adverse-party-form='true']", "등록");
+    const adversePartyWrite = await waitFor(() => writes.find((write) => write.kind === "matter_adverse_party"), "matter adverse party");
+    await page.locator("[data-matter-adverse-party-list='true']").getByText(adverseParty.display_name, { exact: true }).waitFor({ state: "visible", timeout: 15000 });
+    const adversePartyText = await page.locator("[data-matter-adverse-party-list='true']").innerText();
+    await page.screenshot({ path: join(ROOT, SCREENSHOT_DIR, "lcx-vltui-06-adverse-party-proof.png"), fullPage: true });
 
     await page.goto(proofUrl("matter-closeout"), { waitUntil: "domcontentloaded" });
     await clickScoped(page, "[data-lcx-vltui-06-lifecycle-boundary='true']", "완료");
@@ -732,12 +860,33 @@ async function runCase(browser) {
     const channelMessage = await waitFor(() => writes.find((write) => write.kind === "channel_message"), "channel message");
 
     await page.goto(proofUrl("matter-expenses"), { waitUntil: "domcontentloaded" });
-    await clickScoped(page, "[data-lcx-vltui-06-expenses-connected='true']", "시간 기록");
+    await clickScoped(page, "[data-matter-time-entry-form='true']", "저장");
     const financeTime = await waitFor(() => writes.find((write) => write.kind === "finance_time_entry"), "finance time");
+    await clickScoped(page, "[data-matter-expense-form='true']", "경비 기록");
+    await page.waitForTimeout(200);
+    if (pageErrors.length > 0) throw new Error(`Page error after expense click: ${pageErrors.join("; ")}`);
+    const financeExpense = await waitFor(() => writes.find((write) => write.kind === "finance_expense"), "finance expense");
+    await clickScoped(page, "[data-matter-disbursement-form='true']", "대납 기록");
+    await page.waitForTimeout(200);
+    if (pageErrors.length > 0) throw new Error(`Page error after disbursement click: ${pageErrors.join("; ")}`);
+    const financeDisbursement = await waitFor(() => writes.find((write) => write.kind === "finance_disbursement"), "finance disbursement");
     await clickScoped(page, "[data-lcx-vltui-06-expenses-connected='true']", "청구 준비");
     const financeWip = await waitFor(() => writes.find((write) => write.kind === "finance_wip"), "finance wip");
-    await clickScoped(page, "[data-lcx-vltui-06-expenses-connected='true']", "수납 기록");
+    await clickScoped(page, "[data-lcx-vltui-06-expenses-connected='true']", "입금 기록");
     const financePayment = await waitFor(() => writes.find((write) => write.kind === "finance_payment"), "finance payment");
+    await clickScoped(page, "[data-lcx-vltui-06-expenses-connected='true']", "CSV 생성");
+    const financeAccountingExport = await waitFor(() => writes.find((write) => write.kind === "finance_accounting_export"), "finance accounting export");
+    const accountingExportText = await page.locator("[data-matter-accounting-export-summary='true']").innerText();
+    await page.screenshot({ path: join(ROOT, SCREENSHOT_DIR, "lcx-vltui-06-accounting-export-proof.png"), fullPage: true });
+
+    await page.goto(proofUrl("matter-analytics"), { waitUntil: "domcontentloaded" });
+    const kpiCardsVisible = await visible(page, "[data-matter-analytics-kpi-cards='true']");
+    await visible(page, "[data-matter-analytics-realization-card='true']");
+    await visible(page, "[data-matter-analytics-utilization-card='true']");
+    const realizationCardText = await page.locator("[data-matter-analytics-realization-card='true']").innerText();
+    const utilizationCardText = await page.locator("[data-matter-analytics-utilization-card='true']").innerText();
+    await clickScoped(page, "[data-matter-analytics-actions='true']", "새로고침");
+    const analyticsRefresh = await waitFor(() => writes.find((write) => write.kind === "analytics_refresh"), "analytics refresh");
 
     await page.goto(proofUrl("matter-risk"), { waitUntil: "domcontentloaded" });
     await clickScoped(page, "[data-lcx-vltui-06-search-risk='risk']", "위험 표시");
@@ -775,6 +924,7 @@ async function runCase(browser) {
       [deadlineChange, "ui_sf_b_w03_calendar_patch_probe"],
       [deadlineConfirm, "ui_sf_b_w03_deadline_confirm_probe"],
       [channelMessage, "ui_sf_b_w03_channel_message_probe"],
+      [adversePartyWrite, "ui_upl_c01_matter_party_write_probe"],
       [providerBlocked, "ui_sf_b_w03_channel_provider_sync_probe"],
       [ownerBlocked, "ui_sf_b_w02_record_actions_matter_probe"],
       [riskField, "ui_sf_b_w02_record_actions_matter_probe"],
@@ -786,7 +936,19 @@ async function runCase(browser) {
       [importExecute, "ui_sf_b_w05_import_data_mapping_probe"],
       [importRollback, "ui_sf_b_w05_import_data_mapping_probe"]
     ];
-    const financeWrites = [financeTime, financeWip, financePayment];
+    const financeWrites = [financeTime, financeExpense, financeDisbursement, financeWip, financePayment];
+    const analyticsKpiVisible =
+      kpiCardsVisible &&
+      realizationCardText.includes("87.5%") &&
+      realizationCardText.includes("실현율") &&
+      utilizationCardText.includes("75%") &&
+      utilizationCardText.includes("가동률");
+    const analyticsRefreshSessionPassed =
+      analyticsRefresh?.context?.principal?.user_id === ACTOR_REF &&
+      analyticsRefresh.context.principal.session_principal_source === "desktop_web_session_envelope" &&
+      analyticsRefresh.payload?.actor_id === ACTOR_REF &&
+      analyticsRefresh.payload?.tenant_id === "tenant_cmp_g8_synthetic" &&
+      analyticsRefresh.payload?.audit_hint_ref === "ui_cmp_g8_analytics_probe";
 
     const checks = [
       { id: "all-matter-sections-connected", passed: sectionResults.length === CONNECTED_SECTIONS.length && sectionResults.every((item) => item.connected) },
@@ -795,7 +957,11 @@ async function runCase(browser) {
       { id: "vault-evidence-template-shortcut", passed: evidenceShortcutVisible && templateShortcutVisible },
       { id: "seal-approval-owner-provider-blocked", passed: writePassed(ownerBlocked, "ui_sf_b_w02_record_actions_matter_probe") && writePassed(providerBlocked, "ui_sf_b_w03_channel_provider_sync_probe") },
       { id: "meeting-announcement-calendar-channel", passed: writePassed(calendarCreate, "ui_sf_b_w03_calendar_write_probe") && writePassed(deadlineChange, "ui_sf_b_w03_calendar_patch_probe") && writePassed(deadlineConfirm, "ui_sf_b_w03_deadline_confirm_probe") && writePassed(channelMessage, "ui_sf_b_w03_channel_message_probe") },
+      { id: "adverse-party-retroactive-registration-visible", passed: writePassed(adversePartyWrite, "ui_upl_c01_matter_party_write_probe") && adversePartyText.includes(adverseParty.display_name) && adversePartyText.includes("소급") },
       { id: "expense-finance-boundary-audited", passed: financeWrites.every((write) => write?.payload?.actor_id === ACTOR_REF && write.payload?.audit_hint_ref === "ui_cmp_g7_finance_probe") },
+      { id: "expense-disbursement-inputs-feed-wip", passed: financeExpense.payload?.expense?.status === "approved" && financeExpense.payload?.expense?.billable === true && Number(financeExpense.payload?.expense?.amount) === 25000 && financeDisbursement.payload?.disbursement?.recoverable === true && financeDisbursement.payload?.disbursement?.billable === true && Number(financeDisbursement.payload?.disbursement?.amount) === 15000 },
+      { id: "accounting-export-period-csv-balanced", passed: financeAccountingExport.query?.from_date === "2026-07-01" && financeAccountingExport.query?.to_date === "2026-07-31" && financeAccountingExport.query?.audit_hint_ref === "ui_cmp_g7_finance_probe" && accountingExportText.includes("KRW 450,000") },
+      { id: "analytics-kpi-cards-show-seeded-realization-utilization", passed: analyticsKpiVisible && analyticsRefreshSessionPassed },
       { id: "search-risk-permission-scoped", passed: writePassed(riskField, "ui_sf_b_w02_record_actions_matter_probe") },
       { id: "integration-settings-no-credentials", passed: writePassed(settingsField, "ui_sf_b_w02_record_actions_matter_probe") },
       { id: "import-dry-run-guarded-execute", passed: [importJob, importSource, importMapping, importDryRun, importExecute, importRollback].every((write) => writePassed(write, "ui_sf_b_w05_import_data_mapping_probe")) && importExecute.payload?.actor_id === ACTOR_REF },
@@ -811,12 +977,25 @@ async function runCase(browser) {
       writes: writes.map((write) => ({
         kind: write.kind,
         path: write.path,
+        query: write.kind === "finance_accounting_export" ? write.query : undefined,
+        payload: write.kind === "matter_adverse_party" ? {
+          actor_id: write.payload?.actor_id ?? null,
+          audit_hint_ref: write.payload?.audit_hint_ref ?? null,
+          matter_party: write.payload?.matter_party ?? null
+        } : undefined,
         principal: write.context?.principal ?? null,
         audit_hint_ref: write.payload?.audit_hint_ref ?? null,
         actor_id: write.payload?.actor_id ?? null
       })),
+      analytics_kpi_cards: {
+        realization: realizationCardText,
+        utilization: utilizationCardText
+      },
+      adverse_party_text: adversePartyText,
       page_errors: pageErrors,
-      screenshot: `${SCREENSHOT_DIR}/lcx-vltui-06-matter-sections-proof.png`
+      screenshot: `${SCREENSHOT_DIR}/lcx-vltui-06-matter-sections-proof.png`,
+      adverse_party_screenshot: `${SCREENSHOT_DIR}/lcx-vltui-06-adverse-party-proof.png`,
+      accounting_export_screenshot: `${SCREENSHOT_DIR}/lcx-vltui-06-accounting-export-proof.png`
     };
   } finally {
     await context.close();

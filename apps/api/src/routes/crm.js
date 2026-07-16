@@ -63,6 +63,30 @@ export const CRM_INTAKE_ROUTE_POLICIES = Object.freeze([
   }),
   Object.freeze({
     method: "POST",
+    pattern: /^\/api\/intake\/conflict-decisions$/,
+    action: "intake:conflict_decision:write",
+    resource_type: "conflict_decision",
+  }),
+  Object.freeze({
+    method: "POST",
+    pattern: /^\/api\/intake\/waivers$/,
+    action: "intake:waiver:write",
+    resource_type: "waiver",
+  }),
+  Object.freeze({
+    method: "POST",
+    pattern: /^\/api\/intake\/engagements$/,
+    action: "intake:engagement:write",
+    resource_type: "engagement",
+  }),
+  Object.freeze({
+    method: "GET",
+    pattern: /^\/api\/intake\/clearance-tokens$/,
+    action: "intake:clearance:read",
+    resource_type: "clearance_token",
+  }),
+  Object.freeze({
+    method: "POST",
     pattern: /^\/api\/intake\/clearance-tokens$/,
     action: "intake:clearance:write",
     resource_type: "clearance_token",
