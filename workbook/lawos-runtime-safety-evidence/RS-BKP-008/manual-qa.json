@@ -1,0 +1,53 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.manual-qa.v0.1",
+  "tuw_id": "RS-BKP-008",
+  "source_sha": "79025ea354b4e7009f916e74eba21713ae927a6d",
+  "recorded_at": "2026-07-16T10:51:26Z",
+  "observed_flows": {
+    "backup_cli": {
+      "outcome": "dry_run",
+      "mode": "dry_run_no_aws",
+      "local_backup_file_count": 1,
+      "aws_read_executed": false,
+      "aws_mutation_executed": false
+    },
+    "restore_cli": {
+      "outcome": "passed",
+      "mode": "local_isolated_restore",
+      "restored_file_count": 1,
+      "isolated_restore": true,
+      "current_authority_overwrite_allowed": false
+    },
+    "queue_cli": {
+      "outcome": "dry_run",
+      "pending_event_count": 0,
+      "aws_read_executed": false
+    },
+    "permission_cli": {
+      "outcome": "dry_run",
+      "candidate_count": 0,
+      "changed_count": 0
+    },
+    "help": {
+      "backup": "PASS",
+      "queue": "PASS",
+      "restore": "PASS",
+      "permission": "PASS"
+    },
+    "negative_exit_codes": {
+      "backup_execute_without_approval": 1,
+      "queue_execute_without_approval": 1,
+      "restore_current_authority": 1,
+      "permission_apply_without_decisions": 1
+    }
+  },
+  "claims": {
+    "manual_qa_passed": true,
+    "real_client_data_used": false,
+    "aws_contacted": false,
+    "external_data_transfer_executed": false,
+    "production_ready": false,
+    "release_executed": false,
+    "go_live": false
+  }
+}

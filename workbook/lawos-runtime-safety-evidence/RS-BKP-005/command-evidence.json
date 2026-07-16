@@ -1,0 +1,26 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-BKP-005",
+  "implementation_state": "VERIFIED",
+  "execution_state": "EXTERNAL_APPROVAL_BLOCKED",
+  "source_sha": "79025ea354b4e7009f916e74eba21713ae927a6d",
+  "tree": "5bbbdb79aaf060f4562f28b623c106618286e6da",
+  "recorded_at": "2026-07-16T10:51:26Z",
+  "command": "node --test scripts/test/runtime-store-backup-restore.test.mjs",
+  "exit_code": 0,
+  "summary": "PASS 5/5; default backup and queue commands perform no AWS call, read-only preflight is separate, upload requires an approval reference and bucket mutation requires a second infrastructure approval reference",
+  "artifacts": [
+    "scripts/backup-runtime-stores-to-s3.mjs",
+    "scripts/process-runtime-store-backup-queue.mjs",
+    "scripts/test/runtime-store-backup-restore.test.mjs"
+  ],
+  "claims": {
+    "dry_run_no_aws_verified": true,
+    "capability_preflight_implemented": true,
+    "aws_backup_approved": false,
+    "aws_contacted": false,
+    "aws_mutation_executed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-BKP-004",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_SYNTHETIC_ONLY",
+  "source_sha": "79025ea354b4e7009f916e74eba21713ae927a6d",
+  "tree": "5bbbdb79aaf060f4562f28b623c106618286e6da",
+  "recorded_at": "2026-07-16T10:51:26Z",
+  "command": "node --test scripts/test/runtime-store-backup-restore.test.mjs scripts/test/matter-vault-backup-restore.test.mjs",
+  "exit_code": 0,
+  "summary": "PASS 9/9 combined backup tests; the snapshot records all 16 manifest stores plus derived DMS object count, bytes and aggregate hash without persisting absolute source paths",
+  "artifacts": [
+    "scripts/drill-matter-vault-backup-restore.mjs",
+    "scripts/test/runtime-store-backup-restore.test.mjs",
+    "scripts/test/matter-vault-backup-restore.test.mjs"
+  ],
+  "claims": {
+    "manifest_store_coverage": 16,
+    "derived_dms_inventory_verified": true,
+    "real_client_data_used": false,
+    "aws_contacted": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

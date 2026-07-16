@@ -1,0 +1,25 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-BKP-008",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_FAKE_ONLY",
+  "source_sha": "79025ea354b4e7009f916e74eba21713ae927a6d",
+  "tree": "5bbbdb79aaf060f4562f28b623c106618286e6da",
+  "recorded_at": "2026-07-16T10:51:26Z",
+  "command": "node --test packages/persistence/test/s3-backup-queue.test.js scripts/test/runtime-store-backup-restore.test.mjs && npm --workspace packages/persistence test",
+  "exit_code": 0,
+  "summary": "PASS; VC-BKP 10/10 and persistence regression 56/56, with local enqueue, retry, receipt, snapshot and isolated restore behavior verified and no AWS activation claim",
+  "artifacts": [
+    "packages/persistence/test/s3-backup-queue.test.js",
+    "scripts/test/runtime-store-backup-restore.test.mjs",
+    "workbook/lawos-runtime-safety-evidence/RS-BKP-008/manual-qa.json"
+  ],
+  "claims": {
+    "backup_source_local_verified": true,
+    "aws_backup_active": false,
+    "rpo_rto_met": false,
+    "production_ready": false,
+    "release_executed": false,
+    "go_live": false
+  }
+}
