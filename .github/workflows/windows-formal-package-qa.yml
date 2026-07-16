@@ -96,6 +96,7 @@ jobs:
           Copy-Item "apps\desktop\dist\win\matter-0.1.17-win-build-manifest.json" "artifacts\QA-006\build\" -ErrorAction SilentlyContinue
           Copy-Item "apps\desktop\dist\win\matter-0.1.17-win-installer-manifest.json" "artifacts\QA-006\build\" -ErrorAction SilentlyContinue
           Copy-Item "docs\lazycodex\evidence\matter-desktop\artifacts\windows-build.md" "artifacts\QA-006\build\" -ErrorAction SilentlyContinue
+          Copy-Item "apps\desktop\dist\win-unpacked\resources\app\src\renderer\web" "artifacts\QA-006\build\renderer" -Recurse -ErrorAction SilentlyContinue
 
       - name: Upload Windows QA evidence
         if: always()

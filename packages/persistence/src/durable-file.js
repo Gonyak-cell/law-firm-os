@@ -44,7 +44,7 @@ function timestampSlug(date = new Date()) {
 }
 
 function fsyncFile(filePath) {
-  const fd = openSync(filePath, "r");
+  const fd = openSync(filePath, "r+");
   try {
     fsyncSync(fd);
   } finally {
