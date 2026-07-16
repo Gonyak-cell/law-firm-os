@@ -91,7 +91,7 @@ function installPackage() {
 
 function authenticode(filePath) {
   const command = [
-    "$signature = Get-AuthenticodeSignature -LiteralPath $args[0]",
+    "$signature = Get-AuthenticodeSignature -LiteralPath $env:MATTER_AUTHENTICODE_PATH",
     "[pscustomobject]@{",
     "  status = $signature.Status.ToString()",
     "  status_message = $signature.StatusMessage",
@@ -104,8 +104,11 @@ function authenticode(filePath) {
     "-NonInteractive",
     "-Command",
     command,
-    filePath,
-  ], { encoding: "utf8", windowsHide: true }).trim());
+  ], {
+    encoding: "utf8",
+    env: { ...process.env, MATTER_AUTHENTICODE_PATH: filePath },
+    windowsHide: true,
+  }).trim());
 }
 
 async function findProductPage(app) {
@@ -238,7 +241,7 @@ const api = await startApiServer({
   stepUpAuthority,
   ...storePaths,
 });
-const externalApiBaseUrl = `http://0.0.0.0:${api.port}`;
+const externalApiBaseUrl = `http://127.0.0.1:${api.port}`;
 const health = await fetch(`${externalApiBaseUrl}/api/health`).then(async (response) => ({
   status: response.status,
   body: await response.json(),

@@ -66,11 +66,16 @@ async function zipPackageDirectory(sourceDir, targetZipPath) {
   if (process.platform === "win32") {
     await execFileAsync("powershell.exe", [
       "-NoProfile",
+      "-NonInteractive",
       "-Command",
-      "Compress-Archive -Force -Path $args[0] -DestinationPath $args[1]",
-      sourceDir,
-      targetZipPath
-    ]);
+      "Compress-Archive -Force -LiteralPath $env:MATTER_ZIP_SOURCE -DestinationPath $env:MATTER_ZIP_TARGET",
+    ], {
+      env: {
+        ...process.env,
+        MATTER_ZIP_SOURCE: sourceDir,
+        MATTER_ZIP_TARGET: targetZipPath,
+      },
+    });
     return;
   }
   if (existsSync("/usr/bin/ditto")) {
@@ -143,6 +148,7 @@ const iconHash = sha256(await readFile(iconPath));
 const executableHash = sha256(await readFile(executablePath));
 const packageZipHash = sha256(await readFile(packageZipPath));
 const packageDirStat = await stat(packageDir);
+const nativeInstallSmoke = `not_run_on_${process.platform}`;
 const artifact = {
   productName: "matter",
   appId,
@@ -221,7 +227,7 @@ Built at: \`${buildManifest.built_at}\`
 - executable exists: ${existsSync(executablePath)}
 - unsigned package zip exists: ${existsSync(packageZipPath)}
 - install smoke result: package_candidate_created
-- Windows native install smoke: not_run_on_darwin
+- Windows native install smoke: ${nativeInstallSmoke}
 - formal release local API default disabled: ${formalRelease && existsSync(join(packageDir, "resources", formalReleaseMarkerName))}
 
 ## Non-Claims
@@ -262,7 +268,7 @@ console.log(
       icon: "apps/desktop/build/icon.ico",
       icon_sha256: iconHash,
       install_smoke_result: "package_candidate_created",
-      windows_native_install_smoke: "not_run_on_darwin",
+      windows_native_install_smoke: nativeInstallSmoke,
       windows_authenticode_signing: false,
       formal_release_local_api_default_disabled: formalRelease && existsSync(join(packageDir, "resources", formalReleaseMarkerName)),
       public_release: false,
