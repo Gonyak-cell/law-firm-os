@@ -1,0 +1,24 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DBF-009",
+  "implementation_state": "VERIFIED",
+  "execution_state": "DISPOSABLE_LOCAL_ONLY",
+  "source_sha": "86f4566eac262f82b10220f78bc9e2b4721135eb",
+  "tree": "f8e83803b05ab857ce0232379807c6d2217a2c03",
+  "recorded_at": "2026-07-16T14:24:15Z",
+  "command": "node --test packages/persistence/test/postgres-transaction.test.js packages/persistence/test/postgres-repository-contract.test.js; disposable PostgreSQL manual QA driver",
+  "exit_code": 0,
+  "summary": "PASS; record, immutable audit and pending outbox commit atomically, invalid outbox rolls all three back, and manual counts were records=1 audits=1 outbox=1",
+  "artifacts": [
+    "packages/persistence/src/postgres/repository-v2.js",
+    "packages/persistence/src/postgres/migrations/001_repository_port_v2.sql",
+    "packages/persistence/test/postgres-transaction.test.js"
+  ],
+  "claims": {
+    "record_audit_outbox_atomic": true,
+    "rollback_on_partial_failure_verified": true,
+    "audit_update_delete_rejected": true,
+    "production_ready": false,
+    "go_live": false
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DBF-012",
+  "implementation_state": "VERIFIED",
+  "execution_state": "EXTERNAL_DECISION_PENDING",
+  "source_sha": "86f4566eac262f82b10220f78bc9e2b4721135eb",
+  "tree": "f8e83803b05ab857ce0232379807c6d2217a2c03",
+  "recorded_at": "2026-07-16T14:24:15Z",
+  "command": "exact-SHA validation matrix: PG 10/10; persistence 66/66; Matter 191/191; API authority 8/8; writer coverage; governance; HRX security; isolated store-path preflight; npm run build; manual disposable-PG QA",
+  "exit_code": 0,
+  "summary": "All source-foundation gates PASS; explicit postgres-v2 selection fails closed on init failure and successful foundation preflight still refuses API startup until domain adapters are completed",
+  "artifacts": [
+    "apps/api/src/persistence-authority.js",
+    "apps/api/src/server.js",
+    "apps/api/test/persistence-authority.test.js",
+    "workbook/lawos-postgres-production-authority-decision-packet-2026-07-16.md"
+  ],
+  "claims": {
+    "explicit_authority_selection_verified": true,
+    "postgres_init_failure_refuses_startup": true,
+    "json_fallback_on_postgres_failure": false,
+    "postgres_domain_adapters_complete": false,
+    "external_dependency_EXT_PG_PROD": "PENDING",
+    "production_database_selected": false,
+    "production_connection_opened": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

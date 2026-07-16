@@ -1,0 +1,23 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DBF-003",
+  "implementation_state": "VERIFIED",
+  "execution_state": "SOURCE_ONLY",
+  "source_sha": "86f4566eac262f82b10220f78bc9e2b4721135eb",
+  "tree": "f8e83803b05ab857ce0232379807c6d2217a2c03",
+  "recorded_at": "2026-07-16T14:24:15Z",
+  "command": "node --test --test-concurrency=1 apps/api/test/api-handler-dispatcher.test.js apps/api/test/persistence-authority.test.js",
+  "exit_code": 0,
+  "summary": "PASS 8/8; sync and Promise handlers return the same envelope and typed errors map without raw internal detail",
+  "artifacts": [
+    "apps/api/src/api-handler-dispatcher.js",
+    "apps/api/test/api-handler-dispatcher.test.js"
+  ],
+  "claims": {
+    "promise_dispatch_verified": true,
+    "safe_error_taxonomy_verified": true,
+    "raw_error_detail_exposed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}
