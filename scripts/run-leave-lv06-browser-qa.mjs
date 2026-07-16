@@ -60,7 +60,7 @@ async function recordEvidence(page, { stage, eventType, receipt = "", digest }) 
   await form.waitFor({ state: "visible", timeout: 15_000 });
   await form.getByLabel("증거 단계").selectOption(stage);
   await form.getByLabel("증거 결과").selectOption(eventType);
-  await form.getByLabel("전달 확인 번호").fill(receipt);
+  if (eventType === "delivered") await form.getByLabel("전달 확인 번호").fill(receipt);
   await form.getByLabel("증거 SHA-256").fill(digest);
   const response = page.waitForResponse((value) => value.url().includes("/api/hrx/leave/promotion-recipients/") && value.url().endsWith("/evidence") && value.status() === 200);
   await form.getByRole("button", { name: "증거 기록" }).click();
@@ -126,19 +126,20 @@ try {
 
   let first = recipients.nth(0);
   let response = page.waitForResponse((value) => value.url().endsWith("/first-notice") && value.status() === 200);
-  await first.getByRole("button", { name: "1차 문서 참조" }).click();
+  await first.getByRole("button", { name: "1차", exact: true }).click();
   await response;
   await recordEvidence(page, { stage: "first", eventType: "delivered", receipt: "lv06-delivery-first-1", digest: "a".repeat(64) });
   first = recipients.nth(0);
-  await first.locator("input[type='date']").fill("2026-09-14");
+  const processing = page.locator("[data-leave-promotion-evidence='true']");
+  await processing.locator("input[type='date']").fill("2026-09-14");
   response = page.waitForResponse((value) => value.url().endsWith("/response") && value.status() === 200);
-  await first.getByRole("button", { name: "응답 기록" }).click();
+  await processing.getByRole("button", { name: "응답 기록", exact: true }).click();
   await response;
   await page.waitForTimeout(150);
 
   let second = recipients.nth(1);
   response = page.waitForResponse((value) => value.url().endsWith("/first-notice") && value.status() === 200);
-  await second.getByRole("button", { name: "1차 문서 참조" }).click();
+  await second.getByRole("button", { name: "1차", exact: true }).click();
   await response;
   await recordEvidence(page, { stage: "first", eventType: "failed", digest: "b".repeat(64) });
   await recordEvidence(page, { stage: "first", eventType: "delivered", receipt: "lv06-delivery-first-2", digest: "c".repeat(64) });
@@ -146,7 +147,7 @@ try {
   now = "2026-07-16T01:00:00.000Z";
   second = recipients.nth(1);
   response = page.waitForResponse((value) => value.url().endsWith("/second-notice") && value.status() === 200);
-  await second.getByRole("button", { name: "2차 문서 참조" }).click();
+  await second.getByRole("button", { name: "2차", exact: true }).click();
   await response;
   await recordEvidence(page, { stage: "second", eventType: "delivered", receipt: "lv06-delivery-second-2", digest: "d".repeat(64) });
   await page.getByText("2차 열람 확인 대기", { exact: true }).waitFor();
@@ -160,7 +161,7 @@ try {
   staffPage.on("console", (message) => { if (message.type() === "error") consoleErrors.push({ text: message.text(), url: message.location().url }); });
   await login(staffPage, baseUrl, staffAccount);
   consoleErrors.length = 0;
-  const staffMenuCount = await staffPage.getByRole("button", { name: "연차휴가 사용 촉진 문서", exact: true }).count();
+  const staffMenuCount = await staffPage.getByRole("button", { name: "연차 사용 촉진", exact: true }).count();
   await staffPage.goto(`${baseUrl}/?locale=ko&view=people&ctx=allow#people-annual-leave-notices`, { waitUntil: "networkidle" });
   await staffPage.locator("[data-leave-promotion-access='denied']").waitFor({ state: "visible", timeout: 15_000 });
 

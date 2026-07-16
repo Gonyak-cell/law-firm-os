@@ -1,0 +1,21 @@
+git rev-parse HEAD
+git rev-parse HEAD^{tree}
+git rev-parse forest-v0.1.17-integration-candidate-e19a17dd
+git rev-parse forest-v0.1.17-integration-candidate-e19a17dd^{}
+
+MATTER_DESKTOP_RELEASE_CHANNEL=internal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=e19a17dd48edf131cada90cf0b2c9b6891002d8d MATTER_DESKTOP_SIGN=internal MATTER_DESKTOP_NOTARIZE=0 npm --workspace apps/desktop run build:mac
+MATTER_DESKTOP_RELEASE_CHANNEL=internal MATTER_DESKTOP_EXPECTED_SOURCE_SHA=e19a17dd48edf131cada90cf0b2c9b6891002d8d npm --workspace apps/desktop run build:win
+
+LAWOS_QA_WEB_URL=http://127.0.0.1:4174 LAWOS_QA_API_URL=http://127.0.0.1:4180 LAWOS_QA_EVIDENCE_DIR=workbook/forest-v0.1.17-integration-evidence/QA-004/payroll-browser LAWOS_QA_RECEIPT_PATH=workbook/forest-v0.1.17-integration-evidence/QA-004/payroll-browser-receipt.json node scripts/run-payroll-browser-qa.mjs
+MATTER_PAYROLL_PACKAGE_QA_ARTIFACT_DIR=workbook/forest-v0.1.17-integration-evidence/QA-004/payroll-package node scripts/run-payroll-packaged-qa.mjs
+
+node scripts/run-leave-lv02-browser-qa.mjs
+node scripts/run-leave-lv03-browser-qa.mjs
+node scripts/run-leave-lv04-browser-qa.mjs
+node scripts/run-leave-lv05-browser-qa.mjs
+node scripts/run-leave-lv06-browser-qa.mjs
+node scripts/run-leave-lv07-browser-qa.mjs
+
+node --check scripts/run-leave-lv06-browser-qa.mjs
+node --check scripts/run-leave-lv07-browser-qa.mjs
+git diff --check

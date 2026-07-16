@@ -80,7 +80,7 @@ try {
       ...internal,
       schedule: { mode: "synthetic_schedule", async deliver(input) {
         scheduleAttempts.push({ idempotency_key: input.idempotency_key, operation: input.payload.operation, schedule_object_ref: input.payload.schedule_object_ref });
-        if (input.payload.operation === "cancel") scheduleObjects.delete(input.payload.schedule_object_ref);
+        if (input.payload.operation === "delete") scheduleObjects.delete(input.payload.schedule_object_ref);
         else scheduleObjects.add(input.payload.schedule_object_ref);
         if (failFirstSchedule) {
           failFirstSchedule = false;
@@ -122,16 +122,18 @@ try {
   await page.goto(`${baseUrl}/?locale=ko&view=people&ctx=allow#people-leave-usage`, { waitUntil: "networkidle" });
   await page.locator("#people-leave-usage").waitFor({ state: "visible", timeout: 15_000 });
   await page.getByText("업무 시스템 연동", { exact: true }).waitFor();
-  const pendingCount = page.locator(".leave-integration-summary > span").filter({ hasText: "동기화 대기" }).locator("strong");
-  await pendingCount.getByText("1", { exact: true }).waitFor();
+  const integrationDetails = page.locator("[data-leave-integration-status='true'] details");
+  const integrationSummary = integrationDetails.locator("summary > span");
+  await integrationSummary.filter({ hasText: "대기 1" }).waitFor();
+  await integrationDetails.locator("summary").click();
   await page.getByText("일정 · 대기", { exact: true }).waitFor();
   await capture(page, "lv-07-integration-pending-1512x900.png", 1512, 900, "#people-leave-usage", screenshots, geometries);
 
   const processResponse = page.waitForResponse((response) => response.url().endsWith("/api/hrx/leave/integrations/process") && response.status() === 200);
   await page.getByRole("button", { name: "대기 항목 처리" }).click();
   await processResponse;
-  await pendingCount.getByText("0", { exact: true }).waitFor();
-  await page.getByText("일정 · 전달", { exact: true }).waitFor();
+  await integrationSummary.filter({ hasText: "대기 0" }).waitFor();
+  await page.getByText("일정 · 연결됨", { exact: true }).waitFor();
   const scheduleObjectCountAfterRetry = scheduleObjects.size;
   await capture(page, "lv-07-integration-delivered-720x900.png", 720, 900, "#people-leave-usage", screenshots, geometries);
 
@@ -181,7 +183,7 @@ try {
       attendance_leave_excludes_absence: attendancePayload.days[0].leave_minutes === 240 && attendancePayload.days[0].unexcused_absence_minutes === 0,
       payroll_paid_partition_minutes: payrollPayload.paid_minutes === 240 && payrollPayload.unpaid_minutes === 0 && payrollPayload.raw_compensation_amount_included === false,
       notification_private_fields_excluded: !/브라우저 비공개 사유|reason_text|employee_id|document_id/.test(JSON.stringify(notificationPayloads)),
-      approved_cancel_inverse_delivered: cancelDeliveries.length === 4 && cancelDeliveries.every((row) => row.state === "delivered") && scheduleAttempts.at(-1).operation === "cancel",
+      approved_cancel_inverse_delivered: cancelDeliveries.length === 4 && cancelDeliveries.every((row) => row.state === "delivered") && scheduleAttempts.at(-1).operation === "delete",
       approved_cancel_balance_restored: request.state === "cancelled_after_approval" && balance.available_minutes === 960,
       schedule_create_cancel_same_ref: new Set(scheduleAttempts.map((row) => row.schedule_object_ref)).size === 1 && scheduleObjects.size === 0,
       staff_integration_panel_hidden: staffIntegrationPanelCount === 0,

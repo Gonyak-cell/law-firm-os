@@ -1,0 +1,62 @@
+{
+  "schema_version": "law-firm-os.leave-lv06-browser-qa.v0.1",
+  "generated_at": "2026-07-15T23:42:57.368Z",
+  "synthetic_only": true,
+  "checks": {
+    "target_count": 2,
+    "source_snapshot_present": true,
+    "statutory_deadlines_separate": true,
+    "first_response_recorded": true,
+    "failed_delivery_not_lost": true,
+    "second_delivery_required_view": true,
+    "document_metadata_only": true,
+    "legal_review_remains_required": true,
+    "staff_menu_hidden": true,
+    "staff_direct_route_denied": true,
+    "page_errors": 0,
+    "leave_console_errors": 0,
+    "unrelated_console_errors": 1
+  },
+  "geometries": [
+    {
+      "name": "lv-06-promotion-preview-1512x900.png",
+      "client_width": 1512,
+      "scroll_width": 1512,
+      "visible": true
+    },
+    {
+      "name": "lv-06-promotion-evidence-720x900.png",
+      "client_width": 720,
+      "scroll_width": 720,
+      "visible": true
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-06-promotion-preview-1512x900.png",
+      "sha256": "39c5d9a075394d0db864c7d3541e4c91eb34c18281c34842acd3672919bd577c",
+      "viewport": {
+        "width": 1512,
+        "height": 900
+      }
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-06-promotion-evidence-720x900.png",
+      "sha256": "d87029ace5fbd985b9b165b967518fea92a1816a70fa56c0eadbe2124dce88b9",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      }
+    }
+  ],
+  "leave_console_error_details": [],
+  "unrelated_console_error_details": [
+    {
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "url": "http://127.0.0.1:5173/api/analytics/finance/monthly?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe&recognition_basis=billed"
+    }
+  ],
+  "production_ready_claim": false,
+  "public_release_claim": false,
+  "go_live_claim": false
+}

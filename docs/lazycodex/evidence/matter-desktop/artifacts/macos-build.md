@@ -9,13 +9,13 @@ Version: `0.1.17`
 Channel: `internal`
 Build manifest: `apps/desktop/dist/mac/matter-internal-0.1.17-macos-build-manifest.json`
 Packaged build manifest: `apps/desktop/dist/mac/matter.app/Contents/Resources/matter-build-manifest.json`
-Build manifest SHA-256: `a038b3d12a82ea742484dda9feed91df227633028040eb1f72953b9b63efa4b3`
-Source SHA: `298bbb2b577ba07980b7ec1671c677902b546c85`
-Source tree: `f0b88838d5ed300069e10ef4be811729e7098c1b`
+Build manifest SHA-256: `31b077795990eaa5ff46edbde980195a84977b8dcac3b32bcd947fae99f0aedc`
+Source SHA: `e19a17dd48edf131cada90cf0b2c9b6891002d8d`
+Source tree: `d954dafbf67ba9dca47fd44effbc6109a4e056af`
 Source dirty: `false`
-Renderer SHA-256: `f0a043dedfe1be18d711748e3b78d7313cdc1e92c90444a598b998b212485445`
+Renderer SHA-256: `efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599`
 Renderer files: `28`
-Built at: `2026-07-15T18:05:34.212Z`
+Built at: `2026-07-15T23:30:35.689Z`
 
 ## Package Structure
 
@@ -33,9 +33,9 @@ Built at: `2026-07-15T18:05:34.212Z`
 - requested signing mode: internal
 - resolved signing identity: not_applied_internal_package
 - Developer ID signature: not_distribution_ready: Developer ID authority missing; TeamIdentifier=not set
-- codesign verify: not_distribution_ready: /private/tmp/lawos-pv-parity-298bbb2b/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
-- strict codesign verify: not_distribution_ready: /private/tmp/lawos-pv-parity-298bbb2b/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
-- gatekeeper assess: not_distribution_ready: /private/tmp/lawos-pv-parity-298bbb2b/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
+- codesign verify: not_distribution_ready: /private/tmp/lawos-forest-v017-integration/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
+- strict codesign verify: not_distribution_ready: /private/tmp/lawos-forest-v017-integration/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
+- gatekeeper assess: not_distribution_ready: /private/tmp/lawos-forest-v017-integration/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
 - public distribution approval: not claimed
 - notarization requested: false
 - notarization credential source: missing
@@ -43,7 +43,7 @@ Built at: `2026-07-15T18:05:34.212Z`
 - DMG codesign verify: not_applied_internal_package
 - DMG notarization state: not_submitted_internal_only
 - DMG stapler validate: not_submitted_internal_only
-- DMG Gatekeeper assess: not_distribution_ready: /private/tmp/lawos-pv-parity-298bbb2b/apps/desktop/dist/mac/matter-internal-0.1.17-macos.dmg: rejected
+- DMG Gatekeeper assess: not_distribution_ready: /private/tmp/lawos-forest-v017-integration/apps/desktop/dist/mac/matter-internal-0.1.17-macos.dmg: rejected
 - DMG image verify: pass
 
 ## Install Smoke

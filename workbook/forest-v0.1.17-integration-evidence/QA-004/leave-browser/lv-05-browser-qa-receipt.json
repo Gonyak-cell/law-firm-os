@@ -1,0 +1,112 @@
+{
+  "schema_version": "law-firm-os.leave-lv05-browser-qa.v0.1",
+  "generated_at": "2026-07-15T23:36:55.336Z",
+  "synthetic_only": true,
+  "checks": {
+    "usage_screen_totals_visible": true,
+    "csv_occurrence_template_valid": true,
+    "xlsx_occurrence_template_valid": true,
+    "csv_download_private_fields_excluded": true,
+    "xlsx_download_valid_container": true,
+    "balance_reconciliation_copy_absent": true,
+    "termination_preview_execute_step_up": true,
+    "termination_dual_control": true,
+    "payroll_outbox_pending": true,
+    "offboarding_fail_closed_pending_sync": true,
+    "staff_usage_row_count": 1,
+    "staff_unauthorized_query_count": 0,
+    "staff_termination_menu_hidden": true,
+    "staff_direct_termination_denied": true,
+    "page_errors": 0,
+    "leave_console_errors": 0,
+    "unrelated_console_errors": 1
+  },
+  "exports": [
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-05-leave-occurrence-template.csv",
+      "sha256": "16f11564da3c0190cc3b3ec019e276d104ec8d58f0c7e7108e22750250e1f8f0"
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-05-leave-occurrence-template.xlsx",
+      "sha256": "18e230e4347c04520c05f195e0fb67931d6a50dabf0672f62ef1b247e9b340ef"
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-05-leave-usage.csv",
+      "sha256": "a0c01b34f2cdbe0b421eadff6f7225c612ed7fe6ca46fedfff9063e698f06f4e"
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-05-leave-usage.xlsx",
+      "sha256": "6325e2bc3845e14f6f799138b3a7fdf85b80c5c00bbff4a3c7eaca519dc9eeaa"
+    }
+  ],
+  "geometries": [
+    {
+      "name": "lv-05-usage-1512x900.png",
+      "client_width": 1512,
+      "scroll_width": 1512,
+      "visible": true
+    },
+    {
+      "name": "lv-05-occurrence-upload-720x900.png",
+      "client_width": 720,
+      "scroll_width": 720,
+      "visible": true
+    },
+    {
+      "name": "lv-05-usage-720x900.png",
+      "client_width": 720,
+      "scroll_width": 720,
+      "visible": true
+    },
+    {
+      "name": "lv-05-termination-pending-sync-720x900.png",
+      "client_width": 720,
+      "scroll_width": 720,
+      "visible": true
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-05-usage-1512x900.png",
+      "sha256": "70bf7418309e924e1a47d1773350be8a683143d9984b6f468d30903ca0d240c8",
+      "viewport": {
+        "width": 1512,
+        "height": 900
+      }
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-05-occurrence-upload-720x900.png",
+      "sha256": "49cad7f82f48ea6b97d5ecb537cb2f97d7bf97ad44c475892ea09e5657c8f753",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      }
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-05-usage-720x900.png",
+      "sha256": "97d25e12978ef95e2c6230c47d1e61be623edea8ac8ac5331fcc467a95a1894f",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      }
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-05-termination-pending-sync-720x900.png",
+      "sha256": "8ac503729827e3ab89ec2732bfc004d3d636105386d4f9e893f8af00aa6f9f2f",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      }
+    }
+  ],
+  "leave_console_error_details": [],
+  "unrelated_console_error_details": [
+    {
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "url": "http://127.0.0.1:5173/api/analytics/finance/monthly?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe&recognition_basis=billed"
+    }
+  ],
+  "production_ready_claim": false,
+  "public_release_claim": false,
+  "go_live_claim": false
+}

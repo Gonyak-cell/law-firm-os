@@ -1,0 +1,1236 @@
+{
+  "schema_version": "law-firm-os.payroll.browser-qa.v0.2",
+  "generated_at": "2026-07-15T23:34:42.435Z",
+  "runtime": {
+    "web_base_url": "http://127.0.0.1:4174",
+    "endpoint_kind": "current_running_loopback",
+    "api_base_url": "http://127.0.0.1:4180",
+    "auth_contract": "signed_session_and_step_up"
+  },
+  "checks": {
+    "six_role_matrix_complete": true,
+    "five_viewports_each_complete": true,
+    "signed_session_matrix_complete": true,
+    "role_surface_contracts_passed": true,
+    "row_density_contracts_passed": true,
+    "root_overflow_count": 0,
+    "main_overflow_count": 0,
+    "broken_image_count": 0,
+    "empty_button_count": 0,
+    "unlabeled_control_count": 0,
+    "unexpected_http_error_count": 0,
+    "unexpected_console_error_count": 0,
+    "page_error_count": 0,
+    "detail_drawer_accessibility_passed": true,
+    "payment_and_filing_views_passed": true,
+    "employee_self_statement_passed": true,
+    "preparer_statement_management_passed": true
+  },
+  "detail_drawer": {
+    "close_button_initial_focus": true,
+    "escape_closed_dialog": true,
+    "opener_focus_restored": true,
+    "payment_reconciled_visible": true,
+    "filing_kinds_visible": true,
+    "filing_accepted_visible": true,
+    "filing_row_heights": [
+      44,
+      44,
+      44,
+      44
+    ]
+  },
+  "employee_statement": {
+    "self_statement_rows": 1,
+    "self_statement_empty": false,
+    "self_surface_settled": true,
+    "management_toolbar_hidden": true,
+    "metrics": {
+      "panel_visible": true,
+      "root_client_width": 1280,
+      "root_scroll_width": 1280,
+      "main_client_width": 1066,
+      "main_scroll_width": 1066,
+      "broken_images": 0,
+      "empty_buttons": 0,
+      "unlabeled_controls": 0,
+      "row_heights": [
+        44
+      ],
+      "non_44px_rows": 0,
+      "employee_rows": 0,
+      "filing_rows": 0
+    },
+    "unexpected_http_errors": [],
+    "unexpected_console_errors": [],
+    "page_errors": []
+  },
+  "preparer_statements": {
+    "statement_rows": 10,
+    "management_toolbar_visible": true,
+    "export_buttons_visible": true,
+    "metrics": {
+      "panel_visible": true,
+      "root_client_width": 1280,
+      "root_scroll_width": 1280,
+      "main_client_width": 1066,
+      "main_scroll_width": 1066,
+      "broken_images": 0,
+      "empty_buttons": 0,
+      "unlabeled_controls": 0,
+      "row_heights": [
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "non_44px_rows": 0,
+      "employee_rows": 0,
+      "filing_rows": 0
+    },
+    "unexpected_http_errors": [],
+    "unexpected_console_errors": [],
+    "page_errors": []
+  },
+  "roles": [
+    {
+      "role": "employee",
+      "actor_id": "user_amic_yjlee",
+      "role_profile_id": "lawos_staff",
+      "hrx_scope_count": 8,
+      "signed_session": true,
+      "header_only_trust_allowed": false,
+      "payroll_allowed": false,
+      "viewports": [
+        {
+          "viewport": {
+            "width": 1512,
+            "height": 864
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1512,
+            "root_scroll_width": 1512,
+            "main_client_width": 1298,
+            "main_scroll_width": 1298,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4174/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1280,
+            "height": 820
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1280,
+            "root_scroll_width": 1280,
+            "main_client_width": 1066,
+            "main_scroll_width": 1066,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1024,
+            "root_scroll_width": 1024,
+            "main_client_width": 843,
+            "main_scroll_width": 843,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 820,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 820,
+            "root_scroll_width": 820,
+            "main_client_width": 820,
+            "main_scroll_width": 820,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 720,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 720,
+            "root_scroll_width": 720,
+            "main_client_width": 720,
+            "main_scroll_width": 720,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        }
+      ]
+    },
+    {
+      "role": "manager",
+      "actor_id": "user_amic_bj_park",
+      "role_profile_id": "lawos_partner_attorney",
+      "hrx_scope_count": 16,
+      "signed_session": true,
+      "header_only_trust_allowed": false,
+      "payroll_allowed": false,
+      "viewports": [
+        {
+          "viewport": {
+            "width": 1512,
+            "height": 864
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1512,
+            "root_scroll_width": 1512,
+            "main_client_width": 1298,
+            "main_scroll_width": 1298,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4174/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1280,
+            "height": 820
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1280,
+            "root_scroll_width": 1280,
+            "main_client_width": 1066,
+            "main_scroll_width": 1066,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1024,
+            "root_scroll_width": 1024,
+            "main_client_width": 843,
+            "main_scroll_width": 843,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 820,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 820,
+            "root_scroll_width": 820,
+            "main_client_width": 820,
+            "main_scroll_width": 820,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 720,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 720,
+            "root_scroll_width": 720,
+            "main_client_width": 720,
+            "main_scroll_width": 720,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        }
+      ]
+    },
+    {
+      "role": "hr",
+      "actor_id": "user_amic_tryoon",
+      "role_profile_id": "lawos_hr_operations",
+      "hrx_scope_count": 46,
+      "signed_session": true,
+      "header_only_trust_allowed": false,
+      "payroll_allowed": false,
+      "viewports": [
+        {
+          "viewport": {
+            "width": 1512,
+            "height": 864
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1512,
+            "root_scroll_width": 1512,
+            "main_client_width": 1298,
+            "main_scroll_width": 1298,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4174/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1280,
+            "height": 820
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1280,
+            "root_scroll_width": 1280,
+            "main_client_width": 1066,
+            "main_scroll_width": 1066,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1024,
+            "root_scroll_width": 1024,
+            "main_client_width": 843,
+            "main_scroll_width": 843,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 820,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 820,
+            "root_scroll_width": 820,
+            "main_client_width": 820,
+            "main_scroll_width": 820,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 720,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 720,
+            "root_scroll_width": 720,
+            "main_client_width": 720,
+            "main_scroll_width": 720,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        }
+      ]
+    },
+    {
+      "role": "payroll_preparer",
+      "actor_id": "user_amic_jwsuh",
+      "role_profile_id": "lawos_system_admin_partner",
+      "hrx_scope_count": 62,
+      "signed_session": true,
+      "header_only_trust_allowed": false,
+      "payroll_allowed": true,
+      "viewports": [
+        {
+          "viewport": {
+            "width": 1512,
+            "height": 864
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1512,
+            "root_scroll_width": 1512,
+            "main_client_width": 1298,
+            "main_scroll_width": 1298,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4174/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1280,
+            "height": 820
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1280,
+            "root_scroll_width": 1280,
+            "main_client_width": 1066,
+            "main_scroll_width": 1066,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1024,
+            "root_scroll_width": 1024,
+            "main_client_width": 843,
+            "main_scroll_width": 843,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 820,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 820,
+            "root_scroll_width": 820,
+            "main_client_width": 820,
+            "main_scroll_width": 820,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 720,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 720,
+            "root_scroll_width": 720,
+            "main_client_width": 720,
+            "main_scroll_width": 720,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        }
+      ]
+    },
+    {
+      "role": "payroll_approver",
+      "actor_id": "user_amic_ytkim",
+      "role_profile_id": "lawos_admin_partner",
+      "hrx_scope_count": 62,
+      "signed_session": true,
+      "header_only_trust_allowed": false,
+      "payroll_allowed": true,
+      "viewports": [
+        {
+          "viewport": {
+            "width": 1512,
+            "height": 864
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1512,
+            "root_scroll_width": 1512,
+            "main_client_width": 1298,
+            "main_scroll_width": 1298,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4174/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1280,
+            "height": 820
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1280,
+            "root_scroll_width": 1280,
+            "main_client_width": 1066,
+            "main_scroll_width": 1066,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1024,
+            "root_scroll_width": 1024,
+            "main_client_width": 843,
+            "main_scroll_width": 843,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 820,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 820,
+            "root_scroll_width": 820,
+            "main_client_width": 820,
+            "main_scroll_width": 820,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 720,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 720,
+            "root_scroll_width": 720,
+            "main_client_width": 720,
+            "main_scroll_width": 720,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44,
+              44
+            ],
+            "non_44px_rows": 0,
+            "employee_rows": 10,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        }
+      ]
+    },
+    {
+      "role": "no_scope",
+      "actor_id": "user_amic_matter_desktop_qa",
+      "role_profile_id": "lawos_desktop_qa",
+      "hrx_scope_count": 0,
+      "signed_session": true,
+      "header_only_trust_allowed": false,
+      "payroll_allowed": false,
+      "viewports": [
+        {
+          "viewport": {
+            "width": 1512,
+            "height": 864
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1512,
+            "root_scroll_width": 1512,
+            "main_client_width": 1298,
+            "main_scroll_width": 1298,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [
+            {
+              "status": 403,
+              "url": "http://127.0.0.1:4174/api/hrx/payroll/periods"
+            }
+          ],
+          "expected_denial_console_errors": 1,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1280,
+            "height": 820
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1280,
+            "root_scroll_width": 1280,
+            "main_client_width": 1066,
+            "main_scroll_width": 1066,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 1024,
+            "root_scroll_width": 1024,
+            "main_client_width": 843,
+            "main_scroll_width": 843,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 820,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 820,
+            "root_scroll_width": 820,
+            "main_client_width": 820,
+            "main_scroll_width": 820,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        },
+        {
+          "viewport": {
+            "width": 720,
+            "height": 800
+          },
+          "surface_contract_passed": true,
+          "row_contract_passed": true,
+          "metrics": {
+            "panel_visible": true,
+            "root_client_width": 720,
+            "root_scroll_width": 720,
+            "main_client_width": 720,
+            "main_scroll_width": 720,
+            "broken_images": 0,
+            "empty_buttons": 0,
+            "unlabeled_controls": 0,
+            "row_heights": [],
+            "non_44px_rows": 0,
+            "employee_rows": 0,
+            "filing_rows": 0
+          },
+          "expected_denial_http_errors": [],
+          "expected_denial_console_errors": 0,
+          "unexpected_http_errors": [],
+          "unexpected_console_errors": [],
+          "page_errors": []
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "workbook/forest-v0.1.17-integration-evidence/QA-004/payroll-browser/employee-1280x820.png",
+      "sha256": "d2d2399cdf23f42dc2deee5b0f45e9ff0051c246a55bd2453839e132fbfb32e1",
+      "role": "employee",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      }
+    },
+    {
+      "path": "workbook/forest-v0.1.17-integration-evidence/QA-004/payroll-browser/employee-720x800.png",
+      "sha256": "696906ebe44f53f805e2a3ec095bb6cef481df4885b422cd38793c7206952ec3",
+      "role": "employee",
+      "viewport": {
+        "width": 720,
+        "height": 800
+      }
+    },
+    {
+      "path": "workbook/forest-v0.1.17-integration-evidence/QA-004/payroll-browser/manager-1280x820.png",
+      "sha256": "955cf6831e3362a24bf131b35e779fed28c59233d407a8a8b3ad0304d58ca7c8",
+      "role": "manager",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      }
+    },
+    {
+      "path": "workbook/forest-v0.1.17-integration-evidence/QA-004/payroll-browser/manager-720x800.png",
+      "sha256": "57b39c1a6ae089344ea4f9868c0ccd5a2f9fd8720bb436056a9d814640b14a25",
+      "role": "manager",
+      "viewport": {
+        "width": 720,
+        "height": 800
+      }
+    },
+    {
+      "path": "workbook/forest-v0.1.17-integration-evidence/QA-004/payroll-browser/hr-1280x820.png",
+      "sha256": "ba570e0c3093fb6a391882d34a4680c3de1926733fbedc8238096708be8bef93",
+      "role": "hr",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      }
+    },
+    {
+      "path": "workbook/forest-v0.1.17-integration-evidence/QA-004/payroll-browser/hr-720x800.png",
+      "sha256": "0d89debcdf09f3457851149a51c104e362e312109a8b279ac407d0466da3bf7c",
+      "role": "hr",
+      "viewport": {
+        "width": 720,
+        "height": 800
+      }
+    },
+    {
+      "path": "workbook/forest-v0.1.17-integration-evidence/QA-004/payroll-browser/payroll_preparer-1280x820.png",
+      "sha256": "2d6ef83aa866e3f5ada1708280fde774afcc5e7c4d13df1b8cdf5cbca9f2171b",
+      "role": "payroll_preparer",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      }
+    },
+    {
+      "path": "workbook/forest-v0.1.17-integration-evidence/QA-004/payroll-browser/payroll_preparer-720x800.png",
+      "sha256": "88bf180866e1891ce1da4310dbbd0090aec64ff2b97e58a87e7e1f87f0b42d46",
+      "role": "payroll_preparer",
+      "viewport": {
+        "width": 720,
+        "height": 800
+      }
+    },
+    {
+      "path": "workbook/forest-v0.1.17-integration-evidence/QA-004/payroll-browser/payroll_approver-1280x820.png",
+      "sha256": "6ce75a594c65281beb9eb73fdf03d62cf907f122d33b926cbf3e38e4d2b893a3",
+      "role": "payroll_approver",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      }
+    },
+    {
+      "path": "workbook/forest-v0.1.17-integration-evidence/QA-004/payroll-browser/payroll_approver-720x800.png",
+      "sha256": "142c427af4b988a96e954d4c44c2bf896e3d8d4e101657b75231a90d57118ad0",
+      "role": "payroll_approver",
+      "viewport": {
+        "width": 720,
+        "height": 800
+      }
+    },
+    {
+      "path": "workbook/forest-v0.1.17-integration-evidence/QA-004/payroll-browser/no_scope-1280x820.png",
+      "sha256": "7ee971c46e2fbce562037235f115fe184444644b1ebe54564a59351efcbbab30",
+      "role": "no_scope",
+      "viewport": {
+        "width": 1280,
+        "height": 820
+      }
+    },
+    {
+      "path": "workbook/forest-v0.1.17-integration-evidence/QA-004/payroll-browser/no_scope-720x800.png",
+      "sha256": "90d3e6ccde78a25b7ea9d66a19c1624397ca6cc7b78a25c4a24b60a6058f0192",
+      "role": "no_scope",
+      "viewport": {
+        "width": 720,
+        "height": 800
+      }
+    }
+  ],
+  "boundary": {
+    "synthetic_runtime_only": true,
+    "external_provider_write_claim": false,
+    "production_approved_claim": false,
+    "public_release_claim": false,
+    "go_live_claim": false
+  }
+}

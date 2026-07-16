@@ -1,0 +1,111 @@
+{
+  "schema_version": "law-firm-os.leave-lv07-browser-qa.v0.1",
+  "generated_at": "2026-07-15T23:48:48.149Z",
+  "synthetic_only": true,
+  "checks": {
+    "pending_sync_visible_before_retry": true,
+    "approved_ledger_survived_provider_failure": true,
+    "retry_delivered_all_boundaries": true,
+    "schedule_retry_single_object": true,
+    "attendance_leave_excludes_absence": true,
+    "payroll_paid_partition_minutes": true,
+    "notification_private_fields_excluded": true,
+    "approved_cancel_inverse_delivered": true,
+    "approved_cancel_balance_restored": true,
+    "schedule_create_cancel_same_ref": true,
+    "staff_integration_panel_hidden": true,
+    "staff_integration_api_denied_without_counts": true,
+    "page_errors": 0,
+    "leave_console_errors": 0,
+    "unrelated_console_errors": 1
+  },
+  "geometries": [
+    {
+      "name": "lv-07-integration-pending-1512x900.png",
+      "client_width": 1512,
+      "scroll_width": 1512,
+      "visible": true
+    },
+    {
+      "name": "lv-07-integration-delivered-720x900.png",
+      "client_width": 720,
+      "scroll_width": 720,
+      "visible": true
+    },
+    {
+      "name": "lv-07-approved-cancel-720x900.png",
+      "client_width": 720,
+      "scroll_width": 720,
+      "visible": true
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-07-integration-pending-1512x900.png",
+      "sha256": "e015b409130a0e0bccc0a55b4fce3bffd0632db14d32780f2ea8f1a4bf2b6c42",
+      "viewport": {
+        "width": 1512,
+        "height": 900
+      }
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-07-integration-delivered-720x900.png",
+      "sha256": "21248c4575c0e309ea525986caec6d7349468ccf2b76bcce2ad1959e51f3a4b5",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      }
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-07-approved-cancel-720x900.png",
+      "sha256": "df6b337625562653bd58d721ce9d75a6304f4ca66a9e933ce75067b3d60a12c2",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      }
+    }
+  ],
+  "schedule_attempts": [
+    {
+      "idempotency_key": "lv07-browser-approve:outbox:schedule",
+      "operation": "upsert",
+      "schedule_object_ref": "LeaveSchedule:lv07-browser-request"
+    },
+    {
+      "idempotency_key": "lv07-browser-approve:outbox:schedule",
+      "operation": "upsert",
+      "schedule_object_ref": "LeaveSchedule:lv07-browser-request"
+    },
+    {
+      "idempotency_key": "leave-cancel:a3a6a1d8-0980-460f-8898-3e5b4abeb8a4:outbox:schedule",
+      "operation": "delete",
+      "schedule_object_ref": "LeaveSchedule:lv07-browser-request"
+    }
+  ],
+  "expected_denial": {
+    "status": 403,
+    "safe_error_code": "HRX_AUTHZ_DENIED",
+    "body_keys": [
+      "action",
+      "fail_closed",
+      "outcome",
+      "reason",
+      "request_id",
+      "required_scope",
+      "route_policy_id",
+      "safe_error_code"
+    ],
+    "console_errors": 1
+  },
+  "leave_console_error_details": [],
+  "unrelated_console_error_details": [
+    {
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "url": "http://127.0.0.1:5173/api/analytics/finance/monthly?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe&recognition_basis=billed"
+    }
+  ],
+  "production_ready_claim": false,
+  "external_provider_write_claim": false,
+  "public_release_claim": false,
+  "go_live_claim": false
+}

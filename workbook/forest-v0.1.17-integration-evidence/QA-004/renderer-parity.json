@@ -1,0 +1,48 @@
+{
+  "schema_version": "law-firm-os.forest-v0.1.17.qa004-renderer-parity.v1",
+  "recorded_at": "2026-07-16T00:15:00+09:00",
+  "candidate": {
+    "tag": "forest-v0.1.17-integration-candidate-e19a17dd",
+    "tag_object": "7eed2921b9553a80d3e854a11262bedcc00ed771",
+    "source_sha": "e19a17dd48edf131cada90cf0b2c9b6891002d8d",
+    "source_tree": "d954dafbf67ba9dca47fd44effbc6109a4e056af",
+    "source_dirty": false,
+    "version": "0.1.17",
+    "channel": "internal",
+    "app_id": "com.amic.matter.desktop.internal"
+  },
+  "canonical_algorithm": "sha256(sorted sha256 file manifest with ./ relative paths)",
+  "canonical_renderer": {
+    "file_count": 28,
+    "web_staging_sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+    "macos_packaged_sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+    "windows_packaged_sha256": "efc12338c5f6b77e3fb1f88f0ef5285c925144dc346cdbb3ff53ab08d7199599",
+    "missing_paths": 0,
+    "byte_differences": 0,
+    "passed": true
+  },
+  "build_manifests": {
+    "macos_sha256": "31b077795990eaa5ff46edbde980195a84977b8dcac3b32bcd947fae99f0aedc",
+    "windows_sha256": "69416a788cf41765a47447bb96c3601340c1e929de8789d83bc3c6d6cbc6c589",
+    "packaged_manifest_matches_external_macos": true,
+    "packaged_manifest_matches_external_windows": true
+  },
+  "package_qa_raw_algorithm": {
+    "macos_sha256": "7d9143a66c88920534399a28790845392664a6642b6270560fa3f78f3181df0f",
+    "windows_sha256": "7d9143a66c88920534399a28790845392664a6642b6270560fa3f78f3181df0f",
+    "matches": true,
+    "note": "This raw package-QA algorithm differs from the canonical build-manifest algorithm and is not compared across algorithms."
+  },
+  "package_boundaries": {
+    "macos_internal_bundle_only": true,
+    "developer_id_distribution_signed": false,
+    "notarized": false,
+    "stapled": false,
+    "gatekeeper_distribution_pass": false,
+    "windows_native_runtime_tested": false,
+    "windows_authenticode_signed": false,
+    "public_release_claim": false,
+    "production_go_live_claim": false
+  },
+  "verdict": "PASS_INTERNAL_PARITY_ONLY"
+}

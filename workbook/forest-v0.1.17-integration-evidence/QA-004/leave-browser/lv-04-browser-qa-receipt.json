@@ -1,0 +1,91 @@
+{
+  "schema_version": "law-firm-os.leave-lv04-browser-qa.v0.1",
+  "generated_at": "2026-07-15T23:36:40.171Z",
+  "synthetic_only": true,
+  "checks": {
+    "automatic_preview_visible": true,
+    "signed_step_up_execute": true,
+    "first_new_entries": 1,
+    "rerun_new_entries": 0,
+    "earned_entries_stable": true,
+    "manual_dual_control_execute": true,
+    "rule_version_created": true,
+    "rule_version_deactivated": true,
+    "staff_auto_menu_hidden": true,
+    "staff_manual_menu_hidden": true,
+    "staff_direct_route_denied": true,
+    "page_errors": 0,
+    "leave_console_errors": 0,
+    "unrelated_console_errors": 1
+  },
+  "geometries": [
+    {
+      "name": "lv-04-auto-preview-1512x900.png",
+      "client_width": 1512,
+      "scroll_width": 1512,
+      "visible": true
+    },
+    {
+      "name": "lv-04-auto-rerun-720x900.png",
+      "client_width": 720,
+      "scroll_width": 720,
+      "visible": true
+    },
+    {
+      "name": "lv-04-manual-complete-720x900.png",
+      "client_width": 720,
+      "scroll_width": 720,
+      "visible": true
+    },
+    {
+      "name": "lv-04-rule-version-deactivated-1512x900.png",
+      "client_width": 1512,
+      "scroll_width": 1512,
+      "visible": true
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-04-auto-preview-1512x900.png",
+      "sha256": "242b453a97c2a8e2972cdeb5e999d03ce50d14c46a6d9128751ac5e7bee3af80",
+      "viewport": {
+        "width": 1512,
+        "height": 900
+      }
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-04-auto-rerun-720x900.png",
+      "sha256": "fe4ca57e011bbf1daf29545da5da877d0383c4db1ec20176ecd02ecb8db68a2d",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      }
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-04-manual-complete-720x900.png",
+      "sha256": "25df7193347d4e72c68f93019931af5dc37af4e9a0590ab446d64f877910131a",
+      "viewport": {
+        "width": 720,
+        "height": 900
+      }
+    },
+    {
+      "path": "output/playwright/leave-management-implementation-2026-07-13/lv-04-rule-version-deactivated-1512x900.png",
+      "sha256": "8eaeb9c3f3aa558db3f020d66b2271aeacd94a372c208443d4fbd7e746aedd5d",
+      "viewport": {
+        "width": 1512,
+        "height": 900
+      }
+    }
+  ],
+  "leave_console_error_details": [],
+  "unrelated_console_error_details": [
+    {
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "url": "http://127.0.0.1:5173/api/analytics/finance/monthly?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe&recognition_basis=billed"
+    }
+  ],
+  "production_ready_claim": false,
+  "public_release_claim": false,
+  "go_live_claim": false
+}
