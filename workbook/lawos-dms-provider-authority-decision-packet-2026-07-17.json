@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.decision-packet.v1",
+  "packet_id": "LAWOS-DMS-PROVIDER-AUTHORITY-20260717",
+  "decision_source_sha": "9912071d0839c974e85d8ba5f6f3dd9665a066d7",
+  "decision_source_tree": "e886fc2f2d101f5302324988802e6641ded5070e",
+  "action": "dms-provider-authority",
+  "environment": "source-local",
+  "required_role": "owner",
+  "allowed_decisions": ["approved", "rejected"],
+  "current_state": "PENDING_HUMAN_APPROVAL",
+  "requirements": [
+    "Choose the future DMS original-byte provider and bind tenant namespace, object identity, versioning, legal hold, retention, delete semantics, ACL, residency, backup, and restore responsibilities.",
+    "Require a provider sandbox receipt for tenant separation, upload, independent readback digest, finalize, download, version, ACL, hold, retention, reconciliation, delete, and restore behavior.",
+    "Keep PostgreSQL metadata authority, provider byte authority, and API routing as separate phased decisions.",
+    "Require a separate exact-SHA user execution instruction before any provider or staging contact.",
+    "Keep production, release, deployment, and go-live outside this packet."
+  ],
+  "options": [
+    {
+      "decision": "approved",
+      "effects": ["Permit a future provider-specific source and sandbox lane after a separate execution instruction."],
+      "prohibited_actions": ["Do not contact or write to a provider from this packet.", "Do not use real client bytes.", "Do not claim provider staging verified."]
+    },
+    {
+      "decision": "rejected",
+      "effects": ["Keep the provider-neutral source checkpoint and require a revised provider decision."],
+      "prohibited_actions": ["Do not activate a provider adapter.", "Do not reinterpret local storage tests as provider evidence.", "Do not release or deploy."]
+    }
+  ],
+  "external_actions_authorized": false,
+  "claims": {"release": false, "deployment": false, "cutover": false, "go_live": false}
+}
