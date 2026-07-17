@@ -33,7 +33,7 @@ function normalizeRecord(input = {}) {
   return Object.freeze({
     ...clone(input),
     resource_id: resourceId,
-    owner_module: "analytics",
+    owner_module: input.owner_module ?? "analytics",
     created_at: input.created_at ?? now,
     updated_at: now,
     writes_product_state: true,
@@ -42,7 +42,7 @@ function normalizeRecord(input = {}) {
     deletes_database_rows: false,
     evaluates_runtime_permission: true,
     writes_audit_event: input.writes_audit_event ?? true,
-    dispatches_analytics_runtime: true,
+    dispatches_analytics_runtime: input.dispatches_analytics_runtime ?? true,
     mutates_source_object: false,
     writes_billing_source: false,
     writes_finance_source: false,

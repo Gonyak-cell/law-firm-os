@@ -1480,6 +1480,7 @@ export function createApiServer({
   portalRuntime = createDefaultPortalRuntime(),
   uiReadinessRuntime = createDefaultUiReadinessRuntime(),
   homeDashboardRuntime = createDefaultHomeDashboardRuntime({
+    operationalRepository: analyticsRuntime?.repository,
     sourceCollectors: createHomeDashboardSourceCollectors({ hrxRuntime, matterRuntime, dmsRuntime, aiRuntime }),
   }),
   enterpriseReadinessRuntime = createDefaultEnterpriseReadinessRuntime(),
@@ -1707,6 +1708,7 @@ export async function startApiServer({
       storePath: uiReadinessStorePath ?? resolvedStorePaths.uiReadinessStorePath,
     });
   const homeDashboardRuntimeContext = homeDashboardRuntime ?? createDefaultHomeDashboardRuntime({
+    operationalRepository: analyticsRuntimeContext?.repository,
     sourceCollectors: createHomeDashboardSourceCollectors({
       hrxRuntime: runtime,
       matterRuntime: matterRuntimeContext,
