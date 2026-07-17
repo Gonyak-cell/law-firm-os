@@ -59,6 +59,8 @@ function respondJson(response, status, body) {
   response.end(JSON.stringify(body));
 }
 
+const requestCounts = new Map();
+
 async function requestJson(request) {
   const chunks = [];
   for await (const chunk of request) chunks.push(chunk);
@@ -69,6 +71,12 @@ async function requestJson(request) {
 const server = createServer(async (request, response) => {
   const url = new URL(request.url ?? "/", "http://127.0.0.1");
   const pathname = url.pathname;
+  const requestKey = pathname === "/api/home/action-inbox"
+    ? `${pathname}?type=${url.searchParams.get("type") ?? ""}`
+    : pathname === "/api/home/feed"
+      ? `${pathname}?tab=${url.searchParams.get("tab") ?? ""}`
+      : pathname;
+  requestCounts.set(requestKey, (requestCounts.get(requestKey) ?? 0) + 1);
   if (pathname === "/health") return respondJson(response, 200, { ok: true, fixture_only: true, production_ready_claim: false });
   if (pathname === "/api/auth/login") {
     await requestJson(request);
@@ -184,14 +192,33 @@ try {
           : '[data-hr-workforce-table="true"]';
     await page.waitForSelector(rootSelector, { timeout: 30_000 });
     if (view === "home") {
-      await page.waitForFunction(
-        ({ selector }) => {
+      try {
+        await page.waitForFunction(
+          ({ selector }) => {
+            const text = document.querySelector(selector)?.innerText ?? "";
+            return text.includes("오늘 계약서 검토") && text.includes("비용 승인 검토") && text.includes("대시보드 QA 공지");
+          },
+          { selector: rootSelector },
+          { timeout: 30_000 },
+        );
+      } catch (error) {
+        const diagnostic = await page.evaluate(({ selector }) => {
           const text = document.querySelector(selector)?.innerText ?? "";
-          return text.includes("오늘 계약서 검토") && text.includes("비용 승인 검토") && text.includes("대시보드 QA 공지");
-        },
-        { selector: rootSelector },
-        { timeout: 30_000 },
-      );
+          return {
+            task_visible: text.includes("오늘 계약서 검토"),
+            approval_visible: text.includes("비용 승인 검토"),
+            feed_visible: text.includes("대시보드 QA 공지"),
+            body_preview: text.replace(/\s+/g, " ").slice(0, 1200),
+          };
+        }, { selector: rootSelector });
+        const failureEvidence = {
+          ...diagnostic,
+          request_counts: Object.fromEntries([...requestCounts.entries()].sort(([left], [right]) => left.localeCompare(right))),
+        };
+        await page.screenshot({ path: path.join(artifactDir, `home-data-timeout-${platform}.png`), fullPage: true, animations: "disabled", caret: "hide" });
+        writeFileSync(path.join(artifactDir, `home-data-timeout-${platform}.json`), `${JSON.stringify(failureEvidence, null, 2)}\n`);
+        throw new Error(`Home fixture data did not become ready: ${JSON.stringify(failureEvidence)}`, { cause: error });
+      }
     } else {
       await page.waitForTimeout(2_000);
     }
