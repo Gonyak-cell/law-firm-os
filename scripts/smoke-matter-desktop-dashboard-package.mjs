@@ -165,6 +165,14 @@ try {
   assert(page, "packaged main window did not become ready");
   await page.setViewportSize({ width: 1280, height: 820 });
   await page.emulateMedia({ reducedMotion: "reduce" });
+  const desktopSession = await page.evaluate(async ({ email, password }) => {
+    const current = await window.matterSession?.status?.();
+    if (current?.state === "signed_in") return { ok: true, state: current.state };
+    const result = await window.matterSession?.login?.({ email, password });
+    return { ok: result?.ok === true, state: result?.session?.state ?? "signed_out" };
+  }, { email: "dashboard-package-qa@fixture.local", password: "fixture-only" });
+  assert.deepEqual(desktopSession, { ok: true, state: "signed_in" }, "packaged fixture session must be established in the main process");
+  await page.reload({ waitUntil: "domcontentloaded" });
   if (await page.locator('[data-home-dashboard-shell="true"]').count() === 0) {
     if (await page.locator('[data-login-screen="forest-split"]').count() > 0) {
       await page.fill("[data-login-email]", "dashboard-package-qa@fixture.local");
