@@ -1,7 +1,7 @@
 # Law Firm OS 런타임 안전성·중앙 원장 전환 상세 TUW 실행계획
 
 - 작성일: 2026-07-16 KST
-- 상태: `DETAILED_PLAN_READY`
+- 상태: `DETAILED_PLAN_READY_WITH_EVIDENCE_V0_2_ERRATUM`
 - 상위 계획: `workbook/lawos-runtime-safety-central-ledger-implementation-plan-2026-07-16.md`
 - 근거 검토: `workbook/lawos-current-main-runtime-safety-analysis-review-2026-07-16.md`
 - 기준 `origin/main`: `b46a686f719875c6980ecba9bc213a605f58fa45`
@@ -33,10 +33,10 @@
 
 | 축 | 허용 상태 | 의미 |
 |---|---|---|
-| `implementation_state` | `PLANNED`, `READY`, `IN_PROGRESS`, `SOURCE_DONE`, `VERIFIED`, `MERGE_READY`, `MERGED` | 저장소 소스와 로컬 검증 상태 |
+| `implementation_state` | `PLANNED`, `READY`, `IN_PROGRESS`, `VERIFIED`, `BLOCKED`, `BLOCKED_NOT_REPRODUCIBLE`, `DISABLED_BY_APPROVED_DECISION` | 저장소 소스와 로컬 검증 또는 승인된 비활성화 상태 |
 | `execution_state` | `NOT_APPLICABLE`, `APPROVAL_REQUIRED`, `EXECUTE_READY`, `EXECUTED`, `REHEARSED`, `BLOCKED_EXTERNAL` | staging·AWS·production 등 외부 실행 상태 |
 
-`MERGED`는 배포를 의미하지 않는다. `EXECUTED`는 검증 완료를 의미하지 않으며, `REHEARSED` 또는 해당 gate receipt가 별도로 필요하다.
+2026-07-17 evidence v0.2 erratum부터 `SOURCE_DONE`, `MERGE_READY`, `MERGED`는 receipt 상태가 아니라 Git/통합 보고의 별도 사실선이다. `EXECUTED`는 검증 완료를 의미하지 않으며, `REHEARSED` 또는 해당 gate receipt가 별도로 필요하다. `DISABLED_BY_APPROVED_DECISION`은 유효한 서명 결정과 fail-closed negative proof가 있을 때만 허용된다.
 
 ### 2.2 크기·위험·실행자
 
@@ -64,10 +64,11 @@
 6. 구현-검증 시도는 TUW당 3회다. 세 번째 실패 뒤에는 추가 수정하지 않고 blocker와 세 시도를 기록한다.
 7. 실데이터, token, secret, 원문 PII를 git evidence에 넣지 않는다. count, salted hash, invariant 결과만 기록한다.
 8. 증거 기본 경로는 `workbook/lawos-runtime-safety-evidence/<TUW-ID>/command-evidence.json`이다. 실행 시에만 생성한다.
-9. evidence에는 `source_sha`, `tree`, `profile`, `command`, `exit_code`, `started_at`, `finished_at`, `safe_counts`, `claims`를 넣는다.
-10. 제품 코드 commit은 terminal 검증보다 앞설 수 있지만, terminal evidence 없이 `MERGE_READY`가 될 수 없다.
-11. release/tag/notarization upload/AWS deploy/production write는 이 계획만으로 권한이 생기지 않는다.
-12. 현재 packaged surface가 source 가정과 다르면 source-only 판단을 중단하고 packaged screen/runtime을 다시 기준으로 삼는다.
+9. 신규 evidence v0.2에는 `schema_version`, `tuw_id`, 두 상태축, `target_source_sha`, `target_tree`, `toolchain_sha`, `profile`, ordinal이 일치하는 `commands[]`/`results[]`, `started_at`, `finished_at`, `safe_counts`, `skip_count`, `output_path`, `output_sha256`, closed boolean `claims`, `external_actions`를 넣는다. legacy supersession은 원본 경로와 SHA-256을 `legacy_evidence`로 보존한다.
+10. `--require-verified`는 내부적으로 `--require-all`을 포함하며 모든 호출에서도 두 flag를 명시한다. raw output은 Git 밖에 보관하고 Git에는 allowlisted hash evidence만 둔다.
+11. 제품 코드 commit은 terminal 검증보다 앞설 수 있지만, terminal evidence 없이 source merge candidate가 될 수 없다.
+12. release/tag/notarization upload/AWS deploy/production write는 이 계획만으로 권한이 생기지 않는다.
+13. 현재 packaged surface가 source 가정과 다르면 source-only 판단을 중단하고 packaged screen/runtime을 다시 기준으로 삼는다.
 
 ## 4. 중단 코드와 rollback 종류
 
@@ -82,7 +83,7 @@
 | `STOP-PII` | evidence/log/render에 secret·PII가 노출됨 | 산출물 폐기·redact 후 보안 검토 |
 | `STOP-SEC` | 권한·tenant·IPC·CORS·CSP negative test 실패 | merge 금지, fail-closed 상태 유지 |
 | `STOP-LOCK` | writer lock owner를 안전하게 판별할 수 없음 | lock 강제 해제 금지, operator 판정 요청 |
-| `STOP-EXT` | AWS/provider/IdP/real-data/production 권한이 필요함 | packet만 완성하고 `BLOCKED_EXTERNAL`로 종료 |
+| `STOP-EXT` | AWS/provider/IdP/real-data/staging/production 권한 또는 별도 사용자 실행 지시가 필요함 | 승인·지시가 없으면 외부 접촉 0, `APPROVAL_REQUIRED`; 유효한 승인과 정확한 named-environment 시도 뒤 환경 불가 hash가 있을 때만 `BLOCKED_EXTERNAL` |
 | `STOP-3X` | 서로 다른 세 수정 시도 후에도 검증 실패 | blocker와 재현 명령 기록 후 중단 |
 
 ### 4.2 rollback 종류
@@ -108,6 +109,7 @@
 | `EXT-DMS-PROVIDER` | MAT-DEC-03: SharePoint/OneDrive 대 object storage | 실제 document original write | provider-neutral source 가능 | `RS-DMS-001`, `RS-DMS-010`, `RS-CUT-010`: decision·sandbox·restore receipt |
 | `EXT-IDP` | IdP/MFA/passkey provider와 credential transition | production authentication 전환 | provider-neutral interface 가능 | `RS-IDN-009`: interface/local adapter; 실제 provider 전환은 별도 승인 execution packet이며 `G7-IDN` source claim에 포함하지 않음 |
 | `EXT-RETENTION` | backup 보존·삭제·legal hold·PIPA 결정 | retention/lifecycle 실제 적용 | decision packet 가능 | `RS-BKP-007`, `RS-DMS-001`, `RS-CUT-008`: 승인된 retention/legal-hold matrix |
+| `EXT-READINESS-AUTHORITY` | UI/Enterprise readiness record의 mutable control-plane 또는 immutable artifact 권위 결정 | readiness 이식과 `PROJECTIONS_SOURCE_VERIFIED` claim | packet·source-local 분류와 negative proof 가능 | `RS-PRJ-005`, `RS-PRJ-006`, `RS-CUT-002`: RFC 8785 canonical payload + detached Ed25519 receipt |
 | `EXT-PROD-WINDOW` | write freeze·migration·rollback window 승인 | production cutover | runbook·synthetic rehearsal 가능 | `RS-CUT-001`, `RS-CUT-008`, `RS-CUT-009`: operator·window·abort authorization |
 | `EXT-RELEASE` | exact-main build/tag/release/AWS deploy 승인 | release와 배포 | source test만 가능 | 이 source plan의 TUW가 실행하지 않음; `RS-CUT-008`은 별도 release/deploy receipt 없으면 production 진입 금지 |
 | `EXT-WIN-SIGN` | Authenticode 자격·승인 | Windows distribution | source/build preflight만 가능 | source merge 비차단, Windows release 차단; 이 계획 밖 release checklist에서만 해제 |
@@ -157,11 +159,21 @@
 | `G6-DBF` | `RS-DBF-012` | disposable PG contract·RLS | `POSTGRES_SOURCE_FOUNDATION_VERIFIED` | production DB selected |
 | `G7-IDN` | `RS-IDN-010` | restart/revoke/concurrency tests | `IDENTITY_LEDGER_SOURCE_VERIFIED` | IdP cutover complete |
 | `G8-DOM` | `RS-DOM-030` | domain import/shadow/rehearsal receipts | `DOMAIN_ADAPTERS_SOURCE_VERIFIED` | production migrated |
-| `G9-DMS-SRC` | `RS-DMS-009` | provider-neutral reconciliation | `DMS_SOURCE_VERIFIED` | original provider active |
+| `G9-DMS-SRC` | `RS-DMS-009` | provider-neutral reconciliation | `DMS_SOURCE_CHECKPOINT_VERIFIED`, `SOURCE_MERGE_CANDIDATE` | provider selected/active, staging, production, release |
 | `G9-DMS-EXT` | `RS-DMS-010` | MAT-DEC-03 + sandbox receipt | `DMS_PROVIDER_STAGING_VERIFIED` | production upload/go-live |
 | `G10-PRJ` | `RS-PRJ-006` | restart/rebuild/watermark | `PROJECTIONS_SOURCE_VERIFIED` | analytics SLO met |
 | `G11-OFF` | `RS-OFF-006` | encrypted offline/replay tests | `OFFLINE_SOURCE_VERIFIED` | device rollout complete |
 | `G12-CUT` | `RS-CUT-012` | per-domain approval·cutover·DR receipts | `CENTRAL_LEDGER_CUTOVER_VERIFIED` | release/go-live without EXT-RELEASE |
+
+### 7.1 approval-dependent outcome erratum
+
+| 범위 | signed-approved/enabled | signed-rejected/disabled | unsigned/missing |
+|---|---|---|---|
+| `RS-PRJ-005`~`006` | 둘 다 `VERIFIED/NOT_APPLICABLE`, `PROJECTIONS_SOURCE_VERIFIED` 가능 | `RS-PRJ-005`는 결정 검증으로 `VERIFIED`; `RS-PRJ-006`은 `DISABLED_BY_APPROVED_DECISION`; CUT dependency 미충족 | `RS-PRJ-005`는 `READY/APPROVAL_REQUIRED`, `RS-PRJ-006`은 `PLANNED/APPROVAL_REQUIRED`, verified false |
+| `RS-OFF-001`~`006` | 6개 모두 `VERIFIED/NOT_APPLICABLE` | `RS-OFF-001`, `006`은 결정/fail-closed 검증으로 `VERIFIED`; `002`~`005`는 `DISABLED_BY_APPROVED_DECISION` | `RS-OFF-001`은 `READY/APPROVAL_REQUIRED`, 나머지는 `PLANNED/APPROVAL_REQUIRED`, verified false |
+| `RS-DMS-010`, `RS-CUT-*` 외부 경로 | 유효한 승인 receipt와 별도 exact user execution instruction이 모두 있을 때만 execute selector 허용 | rejection receipt를 보존하고 product/external write 0; source-local 선행 결과만 유지 | 외부 접촉·write 0, `APPROVAL_REQUIRED`; `BLOCKED_EXTERNAL` 사용 금지 |
+
+147행 command manifest는 `.omo/plans/lawos-runtime-safety-147-command-catalog-20260717.md`와 `workbook/lawos-runtime-safety-evidence/evidence-rerun-manifest-v0.2.json`의 catalog SHA-256 일치로 고정한다. 두 파일은 source/governance artifact이며, 실행 raw log allowlist를 넓히지 않는다.
 
 ## 8. 의존성 개요
 
@@ -421,14 +433,14 @@ manifest 밖 writer는 `RS-STO-001`에서 별도로 분류한다. 최소 확인 
 | `RS-PRJ-002` | audit/A/M/agent | Home audit가 append-only transaction에 연결되고 restart 후 유지됨 | Home runtime/tests | `RS-PRJ-001` | `VC-PRJ-001` | `STOP-DATA` / `RB-DB-PRE` |
 | `RS-PRJ-003` | telemetry/B/M/agent | usage telemetry가 outbox/buffer를 사용하며 실패해도 operational transaction을 깨지 않음 | Home runtime/tests | `RS-PRJ-002` | `VC-PRJ-001` | `STOP-DATA` / `RB-DB-PRE` |
 | `RS-PRJ-004` | projection/B/H/agent | Analytics가 source watermark·freshness·rebuild contract를 갖고 독립 authority가 아님 | Analytics repository/runtime/tests | `RS-DOM-030` | `VC-PRJ-001` | `STOP-DATA` / `RB-DB-PRE` |
-| `RS-PRJ-005` | decision/A/H/hybrid | UI/Enterprise readiness 각 record가 mutable control-plane 또는 immutable artifact로 분류·이식됨 | readiness repositories/evidence | `RS-GOV-005`, `RS-DBF-012` | `VC-STORE-001`, `VC-DOC-001` | `STOP-DATA`, `STOP-SCOPE` / `RB-DB-PRE` |
-| `RS-PRJ-006` | gate/A/H/agent | restart·projection rebuild·watermark·telemetry failure·Forest Home 회귀가 PASS함 | evidence only | `RS-PRJ-003`, `RS-PRJ-004`, `RS-PRJ-005` | `VC-PRJ-001` | `STOP-DATA`, `STOP-3X` / `RB-DB-PRE`; terminal |
+| `RS-PRJ-005` | decision/A/H/hybrid | UI/Enterprise readiness 각 record가 mutable control-plane 또는 immutable artifact로 분류·이식됨 | readiness repositories/evidence | `RS-GOV-005`, `RS-DBF-012` | `VC-STORE-001`, `VC-DOC-001` | `STOP-EXT`, `STOP-DATA`, `STOP-SCOPE` / `RB-DB-PRE`; `EXT-READINESS-AUTHORITY` |
+| `RS-PRJ-006` | gate/A/H/agent | 승인된 readiness outcome 아래 restart·projection rebuild·watermark·telemetry failure·Forest Home 회귀가 PASS함 | evidence only | `RS-PRJ-003`, `RS-PRJ-004`, `RS-PRJ-005` | `VC-PRJ-001` | `STOP-EXT`, `STOP-DATA`, `STOP-3X` / `RB-DB-PRE`; terminal, `EXT-READINESS-AUTHORITY` |
 
 ### 10.12 RS-OFF — encrypted offline cache/outbox
 
 | ID | 분류 | 관찰 가능한 결과 | touchpoints | depends_on | 검증 | stop/rollback |
 |---|---|---|---|---|---|---|
-| `RS-OFF-001` | decision/A/H/hybrid | offline 허용 action·read-only action·금지 action·conflict UX가 route 단위로 승인됨 | offline decision matrix | `RS-IDN-010`, `RS-DOM-030` | `VC-DOC-001` | `STOP-SCOPE` / `RB-CODE` |
+| `RS-OFF-001` | decision/A/H/hybrid | offline 허용 action·read-only action·금지 action·conflict UX가 route 단위로 승인되거나 signed-disabled로 닫힘 | offline decision matrix | `RS-IDN-010`, `RS-DOM-030` | `VC-DOC-001` | `STOP-EXT`, `STOP-SCOPE` / `RB-CODE`; `EXT-READINESS-AUTHORITY` |
 | `RS-OFF-002` | decision/A/M/agent | 실행 Electron/Node의 `node:sqlite` 적합성, encryption/key lifecycle, dependency 필요 여부 ADR이 고정됨 | offline ADR/probe | `RS-OFF-001` | `VC-OFF-001` | `STOP-SEC` / `RB-CODE` |
 | `RS-OFF-003` | security/A/H/agent | safeStorage-wrapped key와 encrypted SQLite cache schema가 plaintext PII/token을 남기지 않음 | desktop offline store/tests | `RS-OFF-002` | `VC-OFF-001`, `VC-SEC-001` | `STOP-PII`, `STOP-SEC` / `RB-CODE` |
 | `RS-OFF-004` | runtime/A/H/agent | outbox가 idempotency key·base version·encrypted payload·retry state를 보존함 | desktop offline outbox/tests | `RS-OFF-003` | `VC-OFF-001` | `STOP-DATA` / `RB-CODE` |

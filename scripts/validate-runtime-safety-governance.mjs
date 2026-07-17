@@ -7,6 +7,7 @@ import {
   DERIVED_STORE_PATH_MANIFEST,
   STORE_PATH_MANIFEST,
 } from "../apps/api/src/store-path-manifest.js";
+import { auditLegacyRuntimeSafetyEvidence } from "./lib/runtime-safety-evidence-audit.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PLAN_PATH = "workbook/lawos-runtime-safety-central-ledger-detailed-tuw-execution-plan-2026-07-16.md";
@@ -38,10 +39,15 @@ const EXPECTED_EXTERNAL_KEYS = Object.freeze([
   "EXT-DMS-PROVIDER",
   "EXT-IDP",
   "EXT-RETENTION",
+  "EXT-READINESS-AUTHORITY",
   "EXT-PROD-WINDOW",
   "EXT-RELEASE",
   "EXT-WIN-SIGN",
 ]);
+
+const LEGACY_EXPECTED_EXTERNAL_KEYS = Object.freeze(
+  EXPECTED_EXTERNAL_KEYS.filter((key) => key !== "EXT-READINESS-AUTHORITY"),
+);
 
 function absolute(path) {
   return join(ROOT, path);
@@ -192,7 +198,7 @@ function validateGovernanceArtifacts() {
 
   const dependencies = readJson(`${EVIDENCE_ROOT}/RS-GOV-006/external-dependency-ledger.json`);
   assert.equal(dependencies.source_sha, APPROVED_PLAN_SHA);
-  assert.equal(sameSet(dependencies.dependencies.map((entry) => entry.key), EXPECTED_EXTERNAL_KEYS), true, "external dependency evidence drifted");
+  assert.equal(sameSet(dependencies.dependencies.map((entry) => entry.key), LEGACY_EXPECTED_EXTERNAL_KEYS), true, "legacy external dependency evidence drifted");
   assert.equal(dependencies.dependencies.find((entry) => entry.key === "EXT-PLAN-APPROVAL")?.status, "approved_source_only");
   assert.equal(dependencies.dependencies.filter((entry) => entry.status === "approval_required").length, 10);
 
@@ -219,9 +225,15 @@ function validateGovernanceArtifacts() {
 }
 
 function main() {
-  const plan = parsePlan(readText(PLAN_PATH));
+  const planText = readText(PLAN_PATH);
+  const plan = parsePlan(planText);
   const inventory = validateWriterInventory();
   const artifacts = validateGovernanceArtifacts();
+  const evidenceAudit = auditLegacyRuntimeSafetyEvidence({
+    evidenceRoot: absolute(EVIDENCE_ROOT),
+    planText,
+  });
+  assert.equal(evidenceAudit.verdict, "PASS", "legacy runtime-safety evidence audit drifted");
   console.log(JSON.stringify({
     verdict: "PASS",
     validator: "runtime-safety-governance",
@@ -236,8 +248,16 @@ function main() {
     baseline_legacy_durable_writer_user_count: inventory.durable_writer_users.length,
     current_legacy_durable_writer_user_count: inventory.currentDurableWriterUsers.length,
     repository_call_graph_node_count: artifacts.callGraph.nodes.length,
-    external_dependency_count: artifacts.dependencies.dependencies.length,
+    external_dependency_count: plan.externalKeys.length,
+    legacy_external_dependency_count: artifacts.dependencies.dependencies.length,
     source_implementation_approved: true,
+    legacy_evidence_audit: {
+      verdict: evidenceAudit.verdict,
+      receipt_count: evidenceAudit.legacy_receipt_count,
+      complete_count: evidenceAudit.complete_legacy_receipt_count,
+      missing_required_field_count: evidenceAudit.missing_required_field_receipt_count,
+      invalid_execution_state_count: evidenceAudit.invalid_execution_state_count,
+    },
     external_execution_approved: false,
     production_ready_claim: false,
     go_live_claim: false,
