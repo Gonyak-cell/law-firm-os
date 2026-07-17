@@ -423,7 +423,7 @@ Each `argv` value is a literal argv array. `{{...}}` interpolation is limited to
 
 ```json
 [
-  ["node", "scripts/validate-dms-provider-authority-decision.mjs", "--packet", "workbook/lawos-dms-provider-authority-decision-packet-2026-07-16.md", "--source-sha", "{{S_DMS}}", "--action", "dms-provider-authority", "--environment", "source-local", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--approval-receipt", "{{DMS_APPROVAL_RECEIPT_OR_NONE}}"]
+  ["node", "scripts/validate-dms-provider-authority-decision.mjs", "--packet", "workbook/lawos-dms-provider-authority-decision-packet-2026-07-17.json", "--source-sha", "{{S_DMS}}", "--decision-source-sha", "{{DMS_DECISION_SOURCE_SHA}}", "--action", "dms-provider-authority", "--environment", "source-local", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--approval-receipt", "{{DMS_APPROVAL_RECEIPT_OR_NONE}}"]
 ]
 ```
 
@@ -431,9 +431,10 @@ Each `argv` value is a literal argv array. `{{...}}` interpolation is limited to
 
 ```json
 [
-  ["node", "--test", "packages/dms/test/central-ledger.test.js", "packages/dms/test/upload-reconciliation.test.js", "packages/dms/test/document-state-machine.test.js", "packages/dms/test/runtime-services.test.js", "apps/api/test/vault-dms-postgres-runtime.test.js", "apps/api/test/vault-search-preferences.test.js", "apps/api/test/e2e/vault-search-acl.test.js", "apps/api/test/e2e/vault-storage-security.test.js", "packages/persistence/test/postgres-transaction.test.js", "packages/persistence/test/postgres-repository-contract.test.js"],
-  ["node", "scripts/run-dms-source-driver.mjs", "--profile", "local-disposable-postgres", "--scenario", "all", "--source-sha", "{{S_DMS}}", "--output-dir", "{{TUW_OUTPUT_DIR}}/driver"],
-  ["node", "scripts/validate-dms-source-readiness.mjs", "--source-only", "--expected-source-sha", "{{S_DMS}}"]
+  ["node", "--test", "packages/dms/test/security-regressions.test.js", "packages/dms/test/postgres-security-regressions.test.js", "packages/dms/test/upload-reconciliation.test.js"],
+  ["node", "--test", "packages/dms/test/central-ledger.test.js", "packages/dms/test/runtime-services.test.js", "apps/api/test/vault-dms-postgres-runtime.test.js", "packages/hrx/test/payroll-document-service.test.js", "packages/intake/test/runtime-services.test.js"],
+  ["node", "--test", "packages/persistence/test/postgres-transaction.test.js", "packages/persistence/test/postgres-repository-contract.test.js", "packages/hrx/test/postgres-migrations.test.js"],
+  ["node", "scripts/validate-runtime-safety-governance.mjs"]
 ]
 ```
 
@@ -441,7 +442,7 @@ Each `argv` value is a literal argv array. `{{...}}` interpolation is limited to
 
 ```json
 [
-  ["node", "scripts/run-dms-provider-preflight.mjs", "--source-sha", "{{S_DMS}}", "--packet", "workbook/lawos-dms-provider-authority-decision-packet-2026-07-16.md", "--approval-receipt", "{{DMS_APPROVAL_RECEIPT_OR_NONE}}", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--preflight-only", "--output-dir", "{{TUW_OUTPUT_DIR}}"]
+  ["node", "scripts/run-dms-provider-preflight.mjs", "--source-sha", "{{S_DMS}}", "--decision-source-sha", "{{DMS_DECISION_SOURCE_SHA}}", "--packet", "workbook/lawos-dms-provider-authority-decision-packet-2026-07-17.json", "--approval-receipt", "{{DMS_APPROVAL_RECEIPT_OR_NONE}}", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--preflight-only", "--output-dir", "{{TUW_OUTPUT_DIR}}"]
 ]
 ```
 

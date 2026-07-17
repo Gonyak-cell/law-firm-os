@@ -1,7 +1,7 @@
 {
   "schema_version": "law-firm-os.runtime-safety.evidence-rerun-manifest.v0.2",
   "catalog_path": ".omo/plans/lawos-runtime-safety-147-command-catalog-20260717.md",
-  "catalog_sha256": "4fe861ad35dfcc694de7715aa51dd22f2ce15004f87de7ef47e49d8548b9319c",
+  "catalog_sha256": "e1c94299cc2f3402cfd122a0ef0631026ab3d21bd7c9746707887f4f0b9715be",
   "historical_tuw_count": 113,
   "post_legacy_tuw_count": 34,
   "tuw_count": 147,
@@ -6968,9 +6968,11 @@
           "node",
           "scripts/validate-dms-provider-authority-decision.mjs",
           "--packet",
-          "workbook/lawos-dms-provider-authority-decision-packet-2026-07-16.md",
+          "workbook/lawos-dms-provider-authority-decision-packet-2026-07-17.json",
           "--source-sha",
           "{{S_DMS}}",
+          "--decision-source-sha",
+          "{{DMS_DECISION_SOURCE_SHA}}",
           "--action",
           "dms-provider-authority",
           "--environment",
@@ -7041,35 +7043,29 @@
         [
           "node",
           "--test",
+          "packages/dms/test/security-regressions.test.js",
+          "packages/dms/test/postgres-security-regressions.test.js",
+          "packages/dms/test/upload-reconciliation.test.js"
+        ],
+        [
+          "node",
+          "--test",
           "packages/dms/test/central-ledger.test.js",
-          "packages/dms/test/upload-reconciliation.test.js",
-          "packages/dms/test/document-state-machine.test.js",
           "packages/dms/test/runtime-services.test.js",
           "apps/api/test/vault-dms-postgres-runtime.test.js",
-          "apps/api/test/vault-search-preferences.test.js",
-          "apps/api/test/e2e/vault-search-acl.test.js",
-          "apps/api/test/e2e/vault-storage-security.test.js",
+          "packages/hrx/test/payroll-document-service.test.js",
+          "packages/intake/test/runtime-services.test.js"
+        ],
+        [
+          "node",
+          "--test",
           "packages/persistence/test/postgres-transaction.test.js",
-          "packages/persistence/test/postgres-repository-contract.test.js"
+          "packages/persistence/test/postgres-repository-contract.test.js",
+          "packages/hrx/test/postgres-migrations.test.js"
         ],
         [
           "node",
-          "scripts/run-dms-source-driver.mjs",
-          "--profile",
-          "local-disposable-postgres",
-          "--scenario",
-          "all",
-          "--source-sha",
-          "{{S_DMS}}",
-          "--output-dir",
-          "{{TUW_OUTPUT_DIR}}/driver"
-        ],
-        [
-          "node",
-          "scripts/validate-dms-source-readiness.mjs",
-          "--source-only",
-          "--expected-source-sha",
-          "{{S_DMS}}"
+          "scripts/validate-runtime-safety-governance.mjs"
         ]
       ],
       "outcomes": {
@@ -7119,35 +7115,29 @@
         [
           "node",
           "--test",
+          "packages/dms/test/security-regressions.test.js",
+          "packages/dms/test/postgres-security-regressions.test.js",
+          "packages/dms/test/upload-reconciliation.test.js"
+        ],
+        [
+          "node",
+          "--test",
           "packages/dms/test/central-ledger.test.js",
-          "packages/dms/test/upload-reconciliation.test.js",
-          "packages/dms/test/document-state-machine.test.js",
           "packages/dms/test/runtime-services.test.js",
           "apps/api/test/vault-dms-postgres-runtime.test.js",
-          "apps/api/test/vault-search-preferences.test.js",
-          "apps/api/test/e2e/vault-search-acl.test.js",
-          "apps/api/test/e2e/vault-storage-security.test.js",
+          "packages/hrx/test/payroll-document-service.test.js",
+          "packages/intake/test/runtime-services.test.js"
+        ],
+        [
+          "node",
+          "--test",
           "packages/persistence/test/postgres-transaction.test.js",
-          "packages/persistence/test/postgres-repository-contract.test.js"
+          "packages/persistence/test/postgres-repository-contract.test.js",
+          "packages/hrx/test/postgres-migrations.test.js"
         ],
         [
           "node",
-          "scripts/run-dms-source-driver.mjs",
-          "--profile",
-          "local-disposable-postgres",
-          "--scenario",
-          "all",
-          "--source-sha",
-          "{{S_DMS}}",
-          "--output-dir",
-          "{{TUW_OUTPUT_DIR}}/driver"
-        ],
-        [
-          "node",
-          "scripts/validate-dms-source-readiness.mjs",
-          "--source-only",
-          "--expected-source-sha",
-          "{{S_DMS}}"
+          "scripts/validate-runtime-safety-governance.mjs"
         ]
       ],
       "outcomes": {
@@ -7197,35 +7187,29 @@
         [
           "node",
           "--test",
+          "packages/dms/test/security-regressions.test.js",
+          "packages/dms/test/postgres-security-regressions.test.js",
+          "packages/dms/test/upload-reconciliation.test.js"
+        ],
+        [
+          "node",
+          "--test",
           "packages/dms/test/central-ledger.test.js",
-          "packages/dms/test/upload-reconciliation.test.js",
-          "packages/dms/test/document-state-machine.test.js",
           "packages/dms/test/runtime-services.test.js",
           "apps/api/test/vault-dms-postgres-runtime.test.js",
-          "apps/api/test/vault-search-preferences.test.js",
-          "apps/api/test/e2e/vault-search-acl.test.js",
-          "apps/api/test/e2e/vault-storage-security.test.js",
+          "packages/hrx/test/payroll-document-service.test.js",
+          "packages/intake/test/runtime-services.test.js"
+        ],
+        [
+          "node",
+          "--test",
           "packages/persistence/test/postgres-transaction.test.js",
-          "packages/persistence/test/postgres-repository-contract.test.js"
+          "packages/persistence/test/postgres-repository-contract.test.js",
+          "packages/hrx/test/postgres-migrations.test.js"
         ],
         [
           "node",
-          "scripts/run-dms-source-driver.mjs",
-          "--profile",
-          "local-disposable-postgres",
-          "--scenario",
-          "all",
-          "--source-sha",
-          "{{S_DMS}}",
-          "--output-dir",
-          "{{TUW_OUTPUT_DIR}}/driver"
-        ],
-        [
-          "node",
-          "scripts/validate-dms-source-readiness.mjs",
-          "--source-only",
-          "--expected-source-sha",
-          "{{S_DMS}}"
+          "scripts/validate-runtime-safety-governance.mjs"
         ]
       ],
       "outcomes": {
@@ -7275,35 +7259,29 @@
         [
           "node",
           "--test",
+          "packages/dms/test/security-regressions.test.js",
+          "packages/dms/test/postgres-security-regressions.test.js",
+          "packages/dms/test/upload-reconciliation.test.js"
+        ],
+        [
+          "node",
+          "--test",
           "packages/dms/test/central-ledger.test.js",
-          "packages/dms/test/upload-reconciliation.test.js",
-          "packages/dms/test/document-state-machine.test.js",
           "packages/dms/test/runtime-services.test.js",
           "apps/api/test/vault-dms-postgres-runtime.test.js",
-          "apps/api/test/vault-search-preferences.test.js",
-          "apps/api/test/e2e/vault-search-acl.test.js",
-          "apps/api/test/e2e/vault-storage-security.test.js",
+          "packages/hrx/test/payroll-document-service.test.js",
+          "packages/intake/test/runtime-services.test.js"
+        ],
+        [
+          "node",
+          "--test",
           "packages/persistence/test/postgres-transaction.test.js",
-          "packages/persistence/test/postgres-repository-contract.test.js"
+          "packages/persistence/test/postgres-repository-contract.test.js",
+          "packages/hrx/test/postgres-migrations.test.js"
         ],
         [
           "node",
-          "scripts/run-dms-source-driver.mjs",
-          "--profile",
-          "local-disposable-postgres",
-          "--scenario",
-          "all",
-          "--source-sha",
-          "{{S_DMS}}",
-          "--output-dir",
-          "{{TUW_OUTPUT_DIR}}/driver"
-        ],
-        [
-          "node",
-          "scripts/validate-dms-source-readiness.mjs",
-          "--source-only",
-          "--expected-source-sha",
-          "{{S_DMS}}"
+          "scripts/validate-runtime-safety-governance.mjs"
         ]
       ],
       "outcomes": {
@@ -7353,35 +7331,29 @@
         [
           "node",
           "--test",
+          "packages/dms/test/security-regressions.test.js",
+          "packages/dms/test/postgres-security-regressions.test.js",
+          "packages/dms/test/upload-reconciliation.test.js"
+        ],
+        [
+          "node",
+          "--test",
           "packages/dms/test/central-ledger.test.js",
-          "packages/dms/test/upload-reconciliation.test.js",
-          "packages/dms/test/document-state-machine.test.js",
           "packages/dms/test/runtime-services.test.js",
           "apps/api/test/vault-dms-postgres-runtime.test.js",
-          "apps/api/test/vault-search-preferences.test.js",
-          "apps/api/test/e2e/vault-search-acl.test.js",
-          "apps/api/test/e2e/vault-storage-security.test.js",
+          "packages/hrx/test/payroll-document-service.test.js",
+          "packages/intake/test/runtime-services.test.js"
+        ],
+        [
+          "node",
+          "--test",
           "packages/persistence/test/postgres-transaction.test.js",
-          "packages/persistence/test/postgres-repository-contract.test.js"
+          "packages/persistence/test/postgres-repository-contract.test.js",
+          "packages/hrx/test/postgres-migrations.test.js"
         ],
         [
           "node",
-          "scripts/run-dms-source-driver.mjs",
-          "--profile",
-          "local-disposable-postgres",
-          "--scenario",
-          "all",
-          "--source-sha",
-          "{{S_DMS}}",
-          "--output-dir",
-          "{{TUW_OUTPUT_DIR}}/driver"
-        ],
-        [
-          "node",
-          "scripts/validate-dms-source-readiness.mjs",
-          "--source-only",
-          "--expected-source-sha",
-          "{{S_DMS}}"
+          "scripts/validate-runtime-safety-governance.mjs"
         ]
       ],
       "outcomes": {
@@ -7431,35 +7403,29 @@
         [
           "node",
           "--test",
+          "packages/dms/test/security-regressions.test.js",
+          "packages/dms/test/postgres-security-regressions.test.js",
+          "packages/dms/test/upload-reconciliation.test.js"
+        ],
+        [
+          "node",
+          "--test",
           "packages/dms/test/central-ledger.test.js",
-          "packages/dms/test/upload-reconciliation.test.js",
-          "packages/dms/test/document-state-machine.test.js",
           "packages/dms/test/runtime-services.test.js",
           "apps/api/test/vault-dms-postgres-runtime.test.js",
-          "apps/api/test/vault-search-preferences.test.js",
-          "apps/api/test/e2e/vault-search-acl.test.js",
-          "apps/api/test/e2e/vault-storage-security.test.js",
+          "packages/hrx/test/payroll-document-service.test.js",
+          "packages/intake/test/runtime-services.test.js"
+        ],
+        [
+          "node",
+          "--test",
           "packages/persistence/test/postgres-transaction.test.js",
-          "packages/persistence/test/postgres-repository-contract.test.js"
+          "packages/persistence/test/postgres-repository-contract.test.js",
+          "packages/hrx/test/postgres-migrations.test.js"
         ],
         [
           "node",
-          "scripts/run-dms-source-driver.mjs",
-          "--profile",
-          "local-disposable-postgres",
-          "--scenario",
-          "all",
-          "--source-sha",
-          "{{S_DMS}}",
-          "--output-dir",
-          "{{TUW_OUTPUT_DIR}}/driver"
-        ],
-        [
-          "node",
-          "scripts/validate-dms-source-readiness.mjs",
-          "--source-only",
-          "--expected-source-sha",
-          "{{S_DMS}}"
+          "scripts/validate-runtime-safety-governance.mjs"
         ]
       ],
       "outcomes": {
@@ -7509,35 +7475,29 @@
         [
           "node",
           "--test",
+          "packages/dms/test/security-regressions.test.js",
+          "packages/dms/test/postgres-security-regressions.test.js",
+          "packages/dms/test/upload-reconciliation.test.js"
+        ],
+        [
+          "node",
+          "--test",
           "packages/dms/test/central-ledger.test.js",
-          "packages/dms/test/upload-reconciliation.test.js",
-          "packages/dms/test/document-state-machine.test.js",
           "packages/dms/test/runtime-services.test.js",
           "apps/api/test/vault-dms-postgres-runtime.test.js",
-          "apps/api/test/vault-search-preferences.test.js",
-          "apps/api/test/e2e/vault-search-acl.test.js",
-          "apps/api/test/e2e/vault-storage-security.test.js",
+          "packages/hrx/test/payroll-document-service.test.js",
+          "packages/intake/test/runtime-services.test.js"
+        ],
+        [
+          "node",
+          "--test",
           "packages/persistence/test/postgres-transaction.test.js",
-          "packages/persistence/test/postgres-repository-contract.test.js"
+          "packages/persistence/test/postgres-repository-contract.test.js",
+          "packages/hrx/test/postgres-migrations.test.js"
         ],
         [
           "node",
-          "scripts/run-dms-source-driver.mjs",
-          "--profile",
-          "local-disposable-postgres",
-          "--scenario",
-          "all",
-          "--source-sha",
-          "{{S_DMS}}",
-          "--output-dir",
-          "{{TUW_OUTPUT_DIR}}/driver"
-        ],
-        [
-          "node",
-          "scripts/validate-dms-source-readiness.mjs",
-          "--source-only",
-          "--expected-source-sha",
-          "{{S_DMS}}"
+          "scripts/validate-runtime-safety-governance.mjs"
         ]
       ],
       "outcomes": {
@@ -7587,35 +7547,29 @@
         [
           "node",
           "--test",
+          "packages/dms/test/security-regressions.test.js",
+          "packages/dms/test/postgres-security-regressions.test.js",
+          "packages/dms/test/upload-reconciliation.test.js"
+        ],
+        [
+          "node",
+          "--test",
           "packages/dms/test/central-ledger.test.js",
-          "packages/dms/test/upload-reconciliation.test.js",
-          "packages/dms/test/document-state-machine.test.js",
           "packages/dms/test/runtime-services.test.js",
           "apps/api/test/vault-dms-postgres-runtime.test.js",
-          "apps/api/test/vault-search-preferences.test.js",
-          "apps/api/test/e2e/vault-search-acl.test.js",
-          "apps/api/test/e2e/vault-storage-security.test.js",
+          "packages/hrx/test/payroll-document-service.test.js",
+          "packages/intake/test/runtime-services.test.js"
+        ],
+        [
+          "node",
+          "--test",
           "packages/persistence/test/postgres-transaction.test.js",
-          "packages/persistence/test/postgres-repository-contract.test.js"
+          "packages/persistence/test/postgres-repository-contract.test.js",
+          "packages/hrx/test/postgres-migrations.test.js"
         ],
         [
           "node",
-          "scripts/run-dms-source-driver.mjs",
-          "--profile",
-          "local-disposable-postgres",
-          "--scenario",
-          "all",
-          "--source-sha",
-          "{{S_DMS}}",
-          "--output-dir",
-          "{{TUW_OUTPUT_DIR}}/driver"
-        ],
-        [
-          "node",
-          "scripts/validate-dms-source-readiness.mjs",
-          "--source-only",
-          "--expected-source-sha",
-          "{{S_DMS}}"
+          "scripts/validate-runtime-safety-governance.mjs"
         ]
       ],
       "outcomes": {
@@ -7667,8 +7621,10 @@
           "scripts/run-dms-provider-preflight.mjs",
           "--source-sha",
           "{{S_DMS}}",
+          "--decision-source-sha",
+          "{{DMS_DECISION_SOURCE_SHA}}",
           "--packet",
-          "workbook/lawos-dms-provider-authority-decision-packet-2026-07-16.md",
+          "workbook/lawos-dms-provider-authority-decision-packet-2026-07-17.json",
           "--approval-receipt",
           "{{DMS_APPROVAL_RECEIPT_OR_NONE}}",
           "--trust-registry",
