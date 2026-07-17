@@ -1,0 +1,14 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.run-manifest.v0.2",
+  "tuw_id": "RS-CUT-008",
+  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "target_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
+  "toolchain_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "evidence_commit": "6aa95fc5e7566dbb51c3019d697da609c6712dde",
+  "evidence_tree": "fcb28150c08fc038cda13716d714f262953c20af",
+  "evidence_path": "workbook/lawos-runtime-safety-evidence/RS-CUT-008/command-evidence.v0.2.json",
+  "evidence_sha256": "3f015ef7b3350a6e2140854b41264d5d4ceb6043391a5085c61f5d629b03904b",
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/raw/RS-CUT-008/RS-CUT-008-combined.log",
+  "output_sha256": "a5c6796626071a2272c6f4ed2ee2ae8df9d668d8813a19a282e137a83e3c4716",
+  "external_actions": []
+}
