@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
+import { MATTER_APP_CONTENT_SECURITY_POLICY } from "../src/main/app-protocol.js";
 
 const webIndexPath = new URL("../../web/index.html", import.meta.url);
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
@@ -13,6 +14,10 @@ const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
 function cspDirectives(html) {
   const tag = html.match(/<meta\s+[^>]*http-equiv=["']Content-Security-Policy["'][^>]*>/iu)?.[0] ?? "";
   const content = tag.match(/content=(["'])(.*?)\1/iu)?.[2] ?? "";
+  return parseCspDirectives(content);
+}
+
+function parseCspDirectives(content) {
   return new Map(content.split(";").map((entry) => entry.trim()).filter(Boolean).map((entry) => {
     const [name, ...values] = entry.split(/\s+/u);
     return [name, values];
@@ -41,7 +46,8 @@ test("packaged web HTML declares a restrictive CSP without executable inline scr
   assert.deepEqual(directives.get("script-src"), ["'self'"]);
   assert.deepEqual(directives.get("object-src"), ["'none'"]);
   assert.deepEqual(directives.get("base-uri"), ["'none'"]);
-  assert.deepEqual(directives.get("frame-ancestors"), ["'none'"]);
+  assert.equal(directives.has("frame-ancestors"), false);
+  assert.deepEqual(parseCspDirectives(MATTER_APP_CONTENT_SECURITY_POLICY).get("frame-ancestors"), ["'none'"]);
   for (const values of directives.values()) {
     assert.equal(values.includes("*"), false);
     assert.equal(values.includes("'unsafe-eval'"), false);

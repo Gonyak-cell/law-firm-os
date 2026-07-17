@@ -7,6 +7,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import {
+  MATTER_APP_CONTENT_SECURITY_POLICY,
   MATTER_APP_ORIGIN,
   MATTER_APP_SCHEME,
   installMatterAppProtocol,
@@ -126,7 +127,10 @@ test("matter-app protocol serves resolved files and returns a path-blind 404 for
       webRoot: fixture.webRoot,
     });
 
-    assert.equal(await handler({ url: "matter-app://app/index.html" }), expected);
+    const served = await handler({ url: "matter-app://app/index.html" });
+    assert.equal(served.status, 200);
+    assert.equal(await served.text(), "ok");
+    assert.equal(served.headers.get("content-security-policy"), MATTER_APP_CONTENT_SECURITY_POLICY);
     assert.equal(fetched.length, 1);
     assert.match(fetched[0], /^file:/);
     const rejected = await handler({ url: "matter-app://app/%2e%2e/outside.txt" });

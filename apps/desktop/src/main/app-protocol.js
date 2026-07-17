@@ -7,6 +7,7 @@ const moduleDir = dirname(fileURLToPath(import.meta.url));
 export const MATTER_APP_SCHEME = "matter-app";
 export const MATTER_APP_ORIGIN = `${MATTER_APP_SCHEME}://app`;
 export const MATTER_APP_WEB_ROOT = join(moduleDir, "../renderer/web");
+export const MATTER_APP_CONTENT_SECURITY_POLICY = "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' http://127.0.0.1:* https:; worker-src 'self' blob:; form-action 'self'";
 
 export function matterAppRendererUrl() {
   const url = new URL(`${MATTER_APP_ORIGIN}/index.html`);
@@ -95,7 +96,14 @@ export function installMatterAppProtocol({
     const filePath = resolveMatterAppRequestPath(request?.url, { webRoot });
     if (!filePath) return new Response("Not found", { status: 404 });
     try {
-      return await net.fetch(pathToFileURL(filePath).toString());
+      const response = await net.fetch(pathToFileURL(filePath).toString());
+      const headers = new Headers(response.headers);
+      headers.set("Content-Security-Policy", MATTER_APP_CONTENT_SECURITY_POLICY);
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
     } catch {
       return new Response("Not found", { status: 404 });
     }
