@@ -1,0 +1,54 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.decision-packet.v1",
+  "packet_id": "LAWOS-OFFLINE-CAPABILITY-20260717",
+  "decision_source_sha": "2ccd9bbe0fbdb8d40c766e36d93a635d79649613",
+  "decision_source_tree": "5487cb813af09b083cc3f8f6f3a4983ce9402611",
+  "action": "offline-capability",
+  "environment": "desktop-local",
+  "required_role": "owner",
+  "allowed_decisions": [
+    "approved",
+    "rejected"
+  ],
+  "current_state": "PENDING_HUMAN_APPROVAL",
+  "requirements": [
+    "Choose whether a future desktop source lane may add an encrypted offline cache and outbox.",
+    "If approved, require safeStorage-wrapped key lifecycle, encrypted local storage, expected-version conflicts, exactly-once replay, and logout, revoke, and key-loss cleanup.",
+    "If rejected, retain capability absence and fail closed without restoring the retired offline login renderer.",
+    "Treat an unsigned or missing receipt as pending and prohibit capability source, cache, outbox, replay, route, rollout, and external execution.",
+    "Require a separate exact-SHA source revision and verification bundle before an approved decision can become enabled."
+  ],
+  "options": [
+    {
+      "decision": "approved",
+      "effects": [
+        "Permit a separate future source revision to implement and verify the encrypted offline capability.",
+        "Keep the current pending source capability-absent until that revision is complete."
+      ],
+      "prohibited_actions": [
+        "Do not enable offline behavior from this packet alone.",
+        "Do not persist plaintext PII, credentials, or tokens.",
+        "Do not release or roll out a desktop package."
+      ]
+    },
+    {
+      "decision": "rejected",
+      "effects": [
+        "Keep offline cache, outbox, replay, and capability routes absent.",
+        "Validate the current desktop renderer redirect as fail closed."
+      ],
+      "prohibited_actions": [
+        "Do not restore offline.html as a runtime target.",
+        "Do not add node:sqlite or an equivalent offline persistence dependency.",
+        "Do not release or roll out a desktop package."
+      ]
+    }
+  ],
+  "external_actions_authorized": false,
+  "claims": {
+    "release": false,
+    "deployment": false,
+    "cutover": false,
+    "go_live": false
+  }
+}

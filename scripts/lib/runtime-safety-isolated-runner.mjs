@@ -93,6 +93,20 @@ function selectCommands(row, variant) {
   return row.commands[variant];
 }
 
+function selectOutcome(row, variant, externalAuthorized) {
+  const key = variant ?? (externalAuthorized ? "authorized_executed" : "pass");
+  const outcome = row.outcomes?.[key];
+  if (!outcome) {
+    if (variant) fail("RUNNER_VARIANT", "variant has no closed outcome contract", { variant });
+    return {
+      implementation_state: "VERIFIED",
+      execution_state: externalAuthorized ? "EXECUTED" : "NOT_APPLICABLE",
+      claims: { verified: true },
+    };
+  }
+  return outcome;
+}
+
 function resolveExecutable(command) {
   if (command === "node") return process.execPath;
   return command;
@@ -175,6 +189,7 @@ export async function runRuntimeSafetyTuw({
   }
   const rawRoot = safeOutputDirectory(outputDir, checkout);
   const commands = selectCommands(row, variant).map((argv) => argv.map((arg) => interpolateArg(arg, variables)));
+  const outcome = selectOutcome(row, variant, externalAuthorized);
   const allowedInjected = new Set(["LAWOS_TEST_POSTGRES_URL", "LAWOS_APPROVAL_TRUST_REGISTRY_SHA256"]);
   for (const [key, value] of Object.entries(injectedEnv)) {
     if (!allowedInjected.has(key) || typeof value !== "string" || /[\0\r\n]/.test(value)) fail("RUNNER_ENV", "injected environment key or value is not allowed", { key });
@@ -225,8 +240,8 @@ export async function runRuntimeSafetyTuw({
   const receipt = {
     schema_version: EVIDENCE_SCHEMA_VERSION,
     tuw_id: row.tuw_id,
-    implementation_state: "VERIFIED",
-    execution_state: externalAuthorized ? "EXECUTED" : "NOT_APPLICABLE",
+    implementation_state: outcome.implementation_state,
+    execution_state: outcome.execution_state,
     target_source_sha: inspection.target_source_sha,
     target_tree: inspection.target_tree,
     toolchain_sha: toolchainSha,
@@ -235,11 +250,20 @@ export async function runRuntimeSafetyTuw({
     results,
     started_at: startedAt,
     finished_at: new Date().toISOString(),
-    safe_counts: { passed: results.length, failed: 0 },
+    safe_counts: {
+      passed: results.length,
+      failed: 0,
+      approval_required: outcome.execution_state === "APPROVAL_REQUIRED" ? 1 : 0,
+    },
     skip_count: 0,
     output_path: combinedPath,
     output_sha256: sha256(combinedOutput),
-    claims: { verified: true, production_ready: false, release_executed: false, go_live: false },
+    claims: {
+      ...outcome.claims,
+      production_ready: false,
+      release_executed: false,
+      go_live: false,
+    },
     external_actions: externalAuthorized ? [{ action: row.selector, environment: "authorized", executed: true, approval_id: "bound-by-run-manifest", user_instruction_sha256: userInstructionSha256 }] : [],
   };
   validateRuntimeSafetyEvidence(receipt, { outputBytes: combinedOutput, allowedOutputRoots: [rawRoot] });

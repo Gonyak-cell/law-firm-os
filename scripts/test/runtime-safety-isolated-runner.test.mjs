@@ -55,6 +55,35 @@ test("isolated runner executes one hash-bound TUW and writes raw output outside 
   assert.equal(receipt.results[0].exit_code, 0);
 });
 
+test("isolated runner preserves a closed approval-required outcome without upgrading it to verified", async () => {
+  const f = fixture();
+  const receipt = await runRuntimeSafetyTuw({
+    row: {
+      ...f.row,
+      outcomes: {
+        unsigned_pending: {
+          implementation_state: "READY",
+          execution_state: "APPROVAL_REQUIRED",
+          claims: { verified: false },
+        },
+      },
+    },
+    variant: "unsigned_pending",
+    checkout: f.repo,
+    targetSourceSha: f.head,
+    targetTree: f.tree,
+    toolchainSha: f.head,
+    dependencyReceipt: f.dependencyReceipt,
+    outputDir: f.outputDir,
+    profile: "approval-packet-local-only",
+  });
+  assert.equal(receipt.implementation_state, "READY");
+  assert.equal(receipt.execution_state, "APPROVAL_REQUIRED");
+  assert.equal(receipt.claims.verified, false);
+  assert.equal(receipt.safe_counts.approval_required, 1);
+  assert.deepEqual(receipt.external_actions, []);
+});
+
 test("isolated runner rejects timeout, secret output, skipped PostgreSQL, and prohibited commands", async () => {
   let f = fixture();
   await expectCode("RUNNER_TIMEOUT", runRuntimeSafetyTuw({ ...f, checkout: f.repo, targetSourceSha: f.head, targetTree: f.tree, toolchainSha: f.head, dependencyReceipt: f.dependencyReceipt, outputDir: f.outputDir, row: { ...f.row, timeout_ms: 20, commands: [["node", "-e", "setTimeout(() => {}, 10000)"]] } }));

@@ -1,0 +1,54 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.decision-packet.v1",
+  "packet_id": "LAWOS-READINESS-AUTHORITY-20260717",
+  "decision_source_sha": "2ccd9bbe0fbdb8d40c766e36d93a635d79649613",
+  "decision_source_tree": "5487cb813af09b083cc3f8f6f3a4983ce9402611",
+  "action": "readiness-authority",
+  "environment": "source-local",
+  "required_role": "owner",
+  "allowed_decisions": [
+    "approved",
+    "rejected"
+  ],
+  "current_state": "PENDING_HUMAN_APPROVAL",
+  "requirements": [
+    "Classify UI readiness and enterprise readiness records as mutable control-plane state or immutable projection artifacts.",
+    "Bind any approved classification to the decision source SHA and tree in this packet.",
+    "Keep Home operational decisions, audit events, and outbox events transactional and authoritative rather than treating them as analytics projections.",
+    "Require a separate CUT dependency receipt, user execution instruction, and environment approval before any migration, external connection, or authority switch.",
+    "Preserve release, deployment, production cutover, and go-live as separate approvals."
+  ],
+  "options": [
+    {
+      "decision": "approved",
+      "effects": [
+        "Permit the source-local PRJ terminal to classify UI and enterprise readiness stores as rebuildable projections after exact-SHA tests pass.",
+        "Permit CUT-002 to consume a verified PRJ outcome as one dependency only."
+      ],
+      "prohibited_actions": [
+        "Do not migrate readiness records or switch an authority in this decision step.",
+        "Do not contact staging, production, AWS, an identity provider, or a document provider.",
+        "Do not release, deploy, cut over, or go live."
+      ]
+    },
+    {
+      "decision": "rejected",
+      "effects": [
+        "Keep the current readiness authority unchanged.",
+        "Close PRJ-006 as disabled by approved decision and keep CUT-002 blocked."
+      ],
+      "prohibited_actions": [
+        "Do not reinterpret rejection as migration approval.",
+        "Do not create an affirmative projection-source claim.",
+        "Do not release, deploy, cut over, or go live."
+      ]
+    }
+  ],
+  "external_actions_authorized": false,
+  "claims": {
+    "release": false,
+    "deployment": false,
+    "cutover": false,
+    "go_live": false
+  }
+}

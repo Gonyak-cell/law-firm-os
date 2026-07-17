@@ -1,7 +1,7 @@
 {
   "schema_version": "law-firm-os.runtime-safety.evidence-rerun-manifest.v0.2",
   "catalog_path": ".omo/plans/lawos-runtime-safety-147-command-catalog-20260717.md",
-  "catalog_sha256": "08f98465af7255ed197ce3401b865574c2e2f143f776de856abe9fc549e7e25c",
+  "catalog_sha256": "4b2b612cbb33e407f2a57cf552cd7188360a94ef3e56e03322d0cd5adcdaf0d7",
   "historical_tuw_count": 113,
   "post_legacy_tuw_count": 34,
   "tuw_count": 147,
@@ -7949,7 +7949,7 @@
           "node",
           "scripts/validate-readiness-authority-decision.mjs",
           "--packet",
-          "workbook/lawos-readiness-authority-decision-packet-2026-07-17.md",
+          "workbook/lawos-readiness-authority-decision-packet-2026-07-17.json",
           "--source-sha",
           "{{PRJ_DECISION_SOURCE_SHA}}",
           "--action",
@@ -8021,16 +8021,21 @@
       "commands": [
         [
           "node",
-          "scripts/validate-runtime-safety-evidence.mjs",
-          "--manifest",
-          "workbook/lawos-runtime-safety-evidence/evidence-rerun-manifest-v0.2.json",
-          "--require-all",
-          "--require-workstreams",
-          "RS-PRJ",
-          "--source-head",
+          "scripts/validate-project-readiness-outcome.mjs",
+          "--source-sha",
           "{{S_PRJ}}",
-          "--evidence-head",
-          "{{E_PRJ_OUTCOME}}"
+          "--decision-source-sha",
+          "{{PRJ_DECISION_SOURCE_SHA}}",
+          "--packet",
+          "workbook/lawos-readiness-authority-decision-packet-2026-07-17.json",
+          "--approval-receipt",
+          "{{PRJ_APPROVAL_RECEIPT_OR_NONE}}",
+          "--trust-registry",
+          "/private/tmp/lawos-approval-trust/registry.v1.json",
+          "--expected-trust-registry-sha256",
+          "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}",
+          "--output-dir",
+          "{{TUW_OUTPUT_DIR}}"
         ]
       ],
       "outcomes": {
@@ -8092,7 +8097,7 @@
           "node",
           "scripts/validate-offline-capability-decision.mjs",
           "--packet",
-          "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.md",
+          "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
           "--source-sha",
           "{{OFF_DECISION_SOURCE_SHA}}",
           "--action",
@@ -8170,6 +8175,8 @@
             "{{S_OFF_SELECTED}}",
             "--outcome",
             "enabled",
+            "--packet",
+            "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
             "--decision-receipt",
             "{{OFF_APPROVAL_RECEIPT_OR_NONE}}",
             "--trust-registry",
@@ -8197,6 +8204,8 @@
             "{{S_OFF_SELECTED}}",
             "--outcome",
             "disabled",
+            "--packet",
+            "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
             "--decision-receipt",
             "{{OFF_APPROVAL_RECEIPT_OR_NONE}}",
             "--trust-registry",
@@ -8222,6 +8231,8 @@
             "{{S_OFF_SELECTED}}",
             "--outcome",
             "pending",
+            "--packet",
+            "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
             "--decision-receipt",
             "/private/tmp/lawos-approvals/ABSENT",
             "--trust-registry",
@@ -8302,6 +8313,8 @@
             "{{S_OFF_SELECTED}}",
             "--outcome",
             "enabled",
+            "--packet",
+            "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
             "--decision-receipt",
             "{{OFF_APPROVAL_RECEIPT_OR_NONE}}",
             "--trust-registry",
@@ -8329,6 +8342,8 @@
             "{{S_OFF_SELECTED}}",
             "--outcome",
             "disabled",
+            "--packet",
+            "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
             "--decision-receipt",
             "{{OFF_APPROVAL_RECEIPT_OR_NONE}}",
             "--trust-registry",
@@ -8354,6 +8369,8 @@
             "{{S_OFF_SELECTED}}",
             "--outcome",
             "pending",
+            "--packet",
+            "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
             "--decision-receipt",
             "/private/tmp/lawos-approvals/ABSENT",
             "--trust-registry",
@@ -8434,6 +8451,8 @@
             "{{S_OFF_SELECTED}}",
             "--outcome",
             "enabled",
+            "--packet",
+            "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
             "--decision-receipt",
             "{{OFF_APPROVAL_RECEIPT_OR_NONE}}",
             "--trust-registry",
@@ -8461,6 +8480,8 @@
             "{{S_OFF_SELECTED}}",
             "--outcome",
             "disabled",
+            "--packet",
+            "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
             "--decision-receipt",
             "{{OFF_APPROVAL_RECEIPT_OR_NONE}}",
             "--trust-registry",
@@ -8486,6 +8507,8 @@
             "{{S_OFF_SELECTED}}",
             "--outcome",
             "pending",
+            "--packet",
+            "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
             "--decision-receipt",
             "/private/tmp/lawos-approvals/ABSENT",
             "--trust-registry",
@@ -8566,6 +8589,8 @@
             "{{S_OFF_SELECTED}}",
             "--outcome",
             "enabled",
+            "--packet",
+            "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
             "--decision-receipt",
             "{{OFF_APPROVAL_RECEIPT_OR_NONE}}",
             "--trust-registry",
@@ -8593,6 +8618,8 @@
             "{{S_OFF_SELECTED}}",
             "--outcome",
             "disabled",
+            "--packet",
+            "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
             "--decision-receipt",
             "{{OFF_APPROVAL_RECEIPT_OR_NONE}}",
             "--trust-registry",
@@ -8618,6 +8645,8 @@
             "{{S_OFF_SELECTED}}",
             "--outcome",
             "pending",
+            "--packet",
+            "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
             "--decision-receipt",
             "/private/tmp/lawos-approvals/ABSENT",
             "--trust-registry",
@@ -8692,16 +8721,21 @@
       "commands": [
         [
           "node",
-          "scripts/validate-runtime-safety-evidence.mjs",
-          "--manifest",
-          "workbook/lawos-runtime-safety-evidence/evidence-rerun-manifest-v0.2.json",
-          "--require-all",
-          "--require-workstreams",
-          "RS-OFF",
-          "--source-head",
+          "scripts/run-offline-capability-outcome.mjs",
+          "--source-sha",
           "{{S_OFF_SELECTED}}",
-          "--evidence-head",
-          "{{E_OFF_OUTCOME}}"
+          "--outcome",
+          "pending",
+          "--packet",
+          "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
+          "--decision-receipt",
+          "/private/tmp/lawos-approvals/ABSENT",
+          "--trust-registry",
+          "/private/tmp/lawos-approval-trust/registry.v1.json",
+          "--expected-trust-registry-sha256",
+          "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}",
+          "--output-dir",
+          "{{TUW_OUTPUT_DIR}}"
         ]
       ],
       "outcomes": {
@@ -8768,14 +8802,18 @@
           "{{S_CUT}}",
           "--packet",
           "workbook/lawos-runtime-safety-evidence/RS-CUT-001/approval-packet.json",
+          "--action",
+          "central-ledger-cutover-plan",
+          "--environment",
+          "source-local",
           "--approval-receipt",
           "{{CUT_001_APPROVAL_RECEIPT_OR_NONE}}",
           "--trust-registry",
           "/private/tmp/lawos-approval-trust/registry.v1.json",
           "--expected-trust-registry-sha256",
           "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}",
-          "--output-receipt",
-          "{{TUW_OUTPUT_DIR}}/command-evidence.v0.2.json"
+          "--output-dir",
+          "{{TUW_OUTPUT_DIR}}"
         ]
       ],
       "outcomes": {
@@ -8838,8 +8876,8 @@
           "scripts/generate-central-ledger-cutover-inventory.mjs",
           "--source-sha",
           "{{S_CUT}}",
-          "--dependency-receipt",
-          "{{CUT_001_RECEIPT}}",
+          "--dependency-receipt-bundle",
+          "{{CUT_DEPENDENCY_RECEIPT_BUNDLE}}",
           "--output",
           "{{TUW_OUTPUT_DIR}}/source-inventory.json"
         ],
@@ -8852,10 +8890,10 @@
           "{{S_CUT}}",
           "--packet",
           "{{TUW_OUTPUT_DIR}}/source-inventory.json",
-          "--prior-receipt",
-          "{{CUT_001_RECEIPT}}",
-          "--output-receipt",
-          "{{TUW_OUTPUT_DIR}}/command-evidence.v0.2.json"
+          "--dependency-receipt-bundle",
+          "{{CUT_DEPENDENCY_RECEIPT_BUNDLE}}",
+          "--output-dir",
+          "{{TUW_OUTPUT_DIR}}"
         ]
       ],
       "outcomes": {
@@ -8907,6 +8945,8 @@
           "scripts/run-central-ledger-cutover.mjs",
           "--phase",
           "{{CUT_003_PHASE}}",
+          "--mode",
+          "dependency-preflight",
           "--source-sha",
           "{{S_CUT}}",
           "--packet",
@@ -8926,9 +8966,11 @@
           "--source-sha",
           "{{S_CUT}}",
           "--packet",
-          "{{TUW_OUTPUT_DIR}}/command-evidence.v0.2.json",
+          "{{TUW_OUTPUT_DIR}}/status.json",
           "--prior-receipt",
-          "{{CUT_002_RECEIPT}}"
+          "{{CUT_002_RECEIPT}}",
+          "--output-dir",
+          "{{TUW_OUTPUT_DIR}}"
         ]
       ],
       "outcomes": {
@@ -8984,14 +9026,18 @@
           "{{S_CUT}}",
           "--packet",
           "workbook/lawos-runtime-safety-evidence/RS-CUT-004/decision-packet.json",
+          "--action",
+          "central-ledger-staging-acceptance",
+          "--environment",
+          "staging",
           "--approval-receipt",
           "{{CUT_004_APPROVAL_RECEIPT_OR_NONE}}",
           "--trust-registry",
           "/private/tmp/lawos-approval-trust/registry.v1.json",
           "--expected-trust-registry-sha256",
           "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}",
-          "--output-receipt",
-          "{{TUW_OUTPUT_DIR}}/command-evidence.v0.2.json"
+          "--output-dir",
+          "{{TUW_OUTPUT_DIR}}"
         ]
       ],
       "outcomes": {
@@ -9292,6 +9338,10 @@
           "{{S_CUT}}",
           "--packet",
           "workbook/lawos-runtime-safety-evidence/RS-CUT-008/production-authorization.json",
+          "--action",
+          "central-ledger-production-authorization",
+          "--environment",
+          "production",
           "--approval-receipt",
           "{{CUT_008_APPROVAL_RECEIPT_OR_NONE}}",
           "--trust-registry",
@@ -9300,8 +9350,8 @@
           "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}",
           "--prior-receipt",
           "{{CUT_007_RECEIPT}}",
-          "--output-receipt",
-          "{{TUW_OUTPUT_DIR}}/command-evidence.v0.2.json"
+          "--output-dir",
+          "{{TUW_OUTPUT_DIR}}"
         ]
       ],
       "outcomes": {
@@ -9389,9 +9439,11 @@
           "--source-sha",
           "{{S_CUT}}",
           "--packet",
-          "{{TUW_OUTPUT_DIR}}/command-evidence.v0.2.json",
+          "{{TUW_OUTPUT_DIR}}/status.json",
           "--prior-receipt",
-          "{{CUT_PREDECESSOR_RECEIPT}}"
+          "{{CUT_PREDECESSOR_RECEIPT}}",
+          "--output-dir",
+          "{{TUW_OUTPUT_DIR}}"
         ]
       ],
       "outcomes": {
@@ -9479,9 +9531,11 @@
           "--source-sha",
           "{{S_CUT}}",
           "--packet",
-          "{{TUW_OUTPUT_DIR}}/command-evidence.v0.2.json",
+          "{{TUW_OUTPUT_DIR}}/status.json",
           "--prior-receipt",
-          "{{CUT_PREDECESSOR_RECEIPT}}"
+          "{{CUT_PREDECESSOR_RECEIPT}}",
+          "--output-dir",
+          "{{TUW_OUTPUT_DIR}}"
         ]
       ],
       "outcomes": {
@@ -9569,9 +9623,11 @@
           "--source-sha",
           "{{S_CUT}}",
           "--packet",
-          "{{TUW_OUTPUT_DIR}}/command-evidence.v0.2.json",
+          "{{TUW_OUTPUT_DIR}}/status.json",
           "--prior-receipt",
-          "{{CUT_PREDECESSOR_RECEIPT}}"
+          "{{CUT_PREDECESSOR_RECEIPT}}",
+          "--output-dir",
+          "{{TUW_OUTPUT_DIR}}"
         ]
       ],
       "outcomes": {
@@ -9659,9 +9715,11 @@
           "--source-sha",
           "{{S_CUT}}",
           "--packet",
-          "{{TUW_OUTPUT_DIR}}/command-evidence.v0.2.json",
+          "{{TUW_OUTPUT_DIR}}/status.json",
           "--prior-receipt",
-          "{{CUT_PREDECESSOR_RECEIPT}}"
+          "{{CUT_PREDECESSOR_RECEIPT}}",
+          "--output-dir",
+          "{{TUW_OUTPUT_DIR}}"
         ]
       ],
       "outcomes": {
