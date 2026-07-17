@@ -1,0 +1,121 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.2",
+  "tuw_id": "RS-CUT-003",
+  "implementation_state": "PLANNED",
+  "execution_state": "APPROVAL_REQUIRED",
+  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "target_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
+  "toolchain_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "profile": "source-local",
+  "commands": [
+    {
+      "ordinal": 1,
+      "argv": [
+        "node",
+        "scripts/run-central-ledger-cutover.mjs",
+        "--phase",
+        "dependency-preflight",
+        "--mode",
+        "dependency-preflight",
+        "--source-sha",
+        "d28b0261c560a39c70767e65df78fdb548cef7da",
+        "--packet",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/generated/RS-CUT-002/source-inventory.json",
+        "--prior-receipt",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/generated/RS-CUT-002/command-evidence.v0.2.json",
+        "--dependency-receipt",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/dependencies.json",
+        "--output-dir",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/generated/RS-CUT-003"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LAWOS_LOCAL_BACKUP_ROOT",
+        "LAWOS_RUNTIME_BACKUP_QUEUE_ROOT",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-CUT-003:command-1"
+    },
+    {
+      "ordinal": 2,
+      "argv": [
+        "node",
+        "scripts/validate-central-ledger-cutover-readiness.mjs",
+        "--stage",
+        "CUT-003",
+        "--source-sha",
+        "d28b0261c560a39c70767e65df78fdb548cef7da",
+        "--packet",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/generated/RS-CUT-003/status.json",
+        "--prior-receipt",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/generated/RS-CUT-002/command-evidence.v0.2.json",
+        "--output-dir",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/generated/RS-CUT-003"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LAWOS_LOCAL_BACKUP_ROOT",
+        "LAWOS_RUNTIME_BACKUP_QUEUE_ROOT",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-CUT-003:command-2"
+    }
+  ],
+  "results": [
+    {
+      "ordinal": 1,
+      "exit_code": 0,
+      "started_at": "2026-07-17T10:39:15.492Z",
+      "finished_at": "2026-07-17T10:39:15.551Z",
+      "output_sha256": "3b44c386ede74b3d1d90a15ea58ca047c45b090936bd3256ceb4f0ad4f7ca842",
+      "result_slice": "isolated:RS-CUT-003:command-1",
+      "passed": true,
+      "skipped": 0
+    },
+    {
+      "ordinal": 2,
+      "exit_code": 0,
+      "started_at": "2026-07-17T10:39:15.552Z",
+      "finished_at": "2026-07-17T10:39:15.611Z",
+      "output_sha256": "a7fabfd3ed534b6e0721877c0abaefc1ab9602ed849c53444dca641eff8a350c",
+      "result_slice": "isolated:RS-CUT-003:command-2",
+      "passed": true,
+      "skipped": 0
+    }
+  ],
+  "started_at": "2026-07-17T10:39:15.492Z",
+  "finished_at": "2026-07-17T10:39:15.611Z",
+  "safe_counts": {
+    "passed": 2,
+    "failed": 0,
+    "approval_required": 1
+  },
+  "skip_count": 0,
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/raw/RS-CUT-003/RS-CUT-003-combined.log",
+  "output_sha256": "5dd6b8e05cbe2c7a72ca0d37538d6de8fa3a5088d1a5df508332fa1fa5d10f43",
+  "claims": {
+    "verified": false,
+    "production_ready": false,
+    "release_executed": false,
+    "go_live": false
+  },
+  "external_actions": []
+}

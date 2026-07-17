@@ -1,0 +1,113 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.2",
+  "tuw_id": "RS-CUT-002",
+  "implementation_state": "PLANNED",
+  "execution_state": "APPROVAL_REQUIRED",
+  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "target_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
+  "toolchain_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "profile": "source-local",
+  "commands": [
+    {
+      "ordinal": 1,
+      "argv": [
+        "node",
+        "scripts/generate-central-ledger-cutover-inventory.mjs",
+        "--source-sha",
+        "d28b0261c560a39c70767e65df78fdb548cef7da",
+        "--dependency-receipt-bundle",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/dependency-bundle.json",
+        "--output",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/generated/RS-CUT-002/source-inventory.json"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LAWOS_LOCAL_BACKUP_ROOT",
+        "LAWOS_RUNTIME_BACKUP_QUEUE_ROOT",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-CUT-002:command-1"
+    },
+    {
+      "ordinal": 2,
+      "argv": [
+        "node",
+        "scripts/validate-central-ledger-cutover-readiness.mjs",
+        "--stage",
+        "CUT-002",
+        "--source-sha",
+        "d28b0261c560a39c70767e65df78fdb548cef7da",
+        "--packet",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/generated/RS-CUT-002/source-inventory.json",
+        "--dependency-receipt-bundle",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/dependency-bundle.json",
+        "--output-dir",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/generated/RS-CUT-002"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LAWOS_LOCAL_BACKUP_ROOT",
+        "LAWOS_RUNTIME_BACKUP_QUEUE_ROOT",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-CUT-002:command-2"
+    }
+  ],
+  "results": [
+    {
+      "ordinal": 1,
+      "exit_code": 0,
+      "started_at": "2026-07-17T10:38:28.197Z",
+      "finished_at": "2026-07-17T10:38:28.719Z",
+      "output_sha256": "8bba79b7e8417a91691e291fc0a3315f67336057c8dc2ffd73c08b02d940c3e6",
+      "result_slice": "isolated:RS-CUT-002:command-1",
+      "passed": true,
+      "skipped": 0
+    },
+    {
+      "ordinal": 2,
+      "exit_code": 0,
+      "started_at": "2026-07-17T10:38:28.720Z",
+      "finished_at": "2026-07-17T10:38:29.228Z",
+      "output_sha256": "d187ec15f3bcebd5c763b31242b7826021e1cc94edc83393bc3629921b42eb44",
+      "result_slice": "isolated:RS-CUT-002:command-2",
+      "passed": true,
+      "skipped": 0
+    }
+  ],
+  "started_at": "2026-07-17T10:38:28.196Z",
+  "finished_at": "2026-07-17T10:38:29.228Z",
+  "safe_counts": {
+    "passed": 2,
+    "failed": 0,
+    "approval_required": 1
+  },
+  "skip_count": 0,
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/raw/RS-CUT-002/RS-CUT-002-combined.log",
+  "output_sha256": "c2943dff597cabb8c0c309491767472359b90badf8796109a6a0a344a476e144",
+  "claims": {
+    "verified": false,
+    "production_ready": false,
+    "release_executed": false,
+    "go_live": false
+  },
+  "external_actions": []
+}

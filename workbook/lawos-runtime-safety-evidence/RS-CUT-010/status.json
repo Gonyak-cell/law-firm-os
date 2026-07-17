@@ -1,0 +1,29 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.cut-preflight-status.v1",
+  "stage": "CUT-010",
+  "phase": "production-dr-restore",
+  "mode": "approval-required",
+  "source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "source_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
+  "prior_tuw_id": "RS-CUT-009",
+  "prior_receipt_sha256": "2e0856afb741c42e4987f8ef4cf5c876116e50f929406a94931fb7f564ea6693",
+  "prior_verified": false,
+  "packet_sha256": "af9a595ae70ab3aabc75ce245cb207224604fd61ccb3c662d5cad5333cbbc82c",
+  "implementation_state": "READY",
+  "execution_state": "APPROVAL_REQUIRED",
+  "verified": false,
+  "blockers": [
+    "APPROVAL_REQUIRED",
+    "USER_EXECUTION_INSTRUCTION_REQUIRED",
+    "PREDECESSOR_NOT_VERIFIED"
+  ],
+  "db_connections": 0,
+  "db_writes": 0,
+  "external_actions_executed": 0,
+  "real_data_used": false,
+  "release_executed": false,
+  "deployment_executed": false,
+  "json_authority_disabled": false,
+  "cutover_executed": false,
+  "go_live": false
+}

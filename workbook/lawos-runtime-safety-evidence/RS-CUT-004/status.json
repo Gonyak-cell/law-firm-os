@@ -1,0 +1,15 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.status.v0.2",
+  "tuw_id": "RS-CUT-004",
+  "implementation_state": "READY",
+  "execution_state": "APPROVAL_REQUIRED",
+  "selected_outcome": "unsigned_pending",
+  "blocker": "APPROVAL_REQUIRED",
+  "external_actions": [],
+  "claims": {
+    "verified": false,
+    "production_ready": false,
+    "release_executed": false,
+    "go_live": false
+  }
+}

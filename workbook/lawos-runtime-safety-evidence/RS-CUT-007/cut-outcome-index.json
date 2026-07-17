@@ -1,0 +1,27 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.cut-outcome-index.v1",
+  "source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "source_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
+  "selected_tuw_id": "RS-CUT-007",
+  "selected_receipt_path": "workbook/lawos-runtime-safety-evidence/RS-CUT-007/command-evidence.v0.2.json",
+  "selected_receipt_sha256": "d2ad69cfc9607d1711119e6038f459c554d8696b60f08b6c14897861df46a443",
+  "implementation_state": "READY",
+  "execution_state": "APPROVAL_REQUIRED",
+  "verified": false,
+  "outcome": "pending",
+  "blockers": [
+    "APPROVAL_REQUIRED",
+    "USER_EXECUTION_INSTRUCTION_REQUIRED",
+    "PREDECESSOR_NOT_VERIFIED"
+  ],
+  "claims": {
+    "external_actions_executed": 0,
+    "db_writes": 0,
+    "real_data_used": false,
+    "release_executed": false,
+    "deployment_executed": false,
+    "json_authority_disabled": false,
+    "cutover_executed": false,
+    "go_live": false
+  }
+}
