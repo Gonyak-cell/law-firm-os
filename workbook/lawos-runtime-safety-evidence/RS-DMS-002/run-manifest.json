@@ -1,0 +1,14 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.run-manifest.v0.2",
+  "tuw_id": "RS-DMS-002",
+  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "target_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
+  "toolchain_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "evidence_commit": "1fd1d0fec0f0f25e160bda5bd9e7970e975030b8",
+  "evidence_tree": "c0c69940de972954b63b230d18ae9c5be6b3dff1",
+  "evidence_path": "workbook/lawos-runtime-safety-evidence/RS-DMS-002/command-evidence.v0.2.json",
+  "evidence_sha256": "97bbaa6cee8ad3cf7915c713370569293063080b1edaec679fcdd35ae16251cc",
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/raw/RS-DMS-002/RS-DMS-002-combined.log",
+  "output_sha256": "29bc8b34b421f0dca458335e735c3635c69668b242847317414dcbacad28dd91",
+  "external_actions": []
+}

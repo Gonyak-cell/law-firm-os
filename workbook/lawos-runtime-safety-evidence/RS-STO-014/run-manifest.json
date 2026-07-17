@@ -1,0 +1,14 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.run-manifest.v0.2",
+  "tuw_id": "RS-STO-014",
+  "target_source_sha": "3cdbd3db10d22b02aac5c718324702e0d96520ac",
+  "target_tree": "fec4f3473a0817a59710f0f0fa42f14bf714872d",
+  "toolchain_sha": "a9885445c236331f72c8cf31b0de54d514fc331b",
+  "evidence_commit": "1fd1d0fec0f0f25e160bda5bd9e7970e975030b8",
+  "evidence_tree": "c0c69940de972954b63b230d18ae9c5be6b3dff1",
+  "evidence_path": "workbook/lawos-runtime-safety-evidence/RS-STO-014/command-evidence.v0.2.json",
+  "evidence_sha256": "00d33d74be3068ec0d673b59dbd6d31aa6bb274bd6957cd6968f5a465c008423",
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/history/remediation-a9885445/raw/RS-STO-014/combined.log",
+  "output_sha256": "c3001a9c31e6c46e0d7f18a31fbf7244f12b789deb96ab8d05fe161aae9584e6",
+  "external_actions": []
+}
