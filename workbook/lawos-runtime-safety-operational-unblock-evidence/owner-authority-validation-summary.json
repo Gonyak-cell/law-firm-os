@@ -1,0 +1,23 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.owner-authority-summary.v1",
+  "recorded_at": "2026-07-17T14:53:19Z",
+  "verdict": "PASS",
+  "key_id": "lawos-owner-89a4135951d7ffb6",
+  "algorithm": "Ed25519",
+  "registry_sha256": "f38f414a115edb73cd2a999c39735c667a634114a05e0ebfd10d707cbf5af0df",
+  "authority_validation_sha256": "dd461a3fa81ba420a73cdd247fde39944833a8c93876e655206e9c07ab22e0bd",
+  "private_key_outside_repository": true,
+  "private_key_mode": "0600",
+  "registry_mode": "0600",
+  "least_privilege_action_count": 5,
+  "production_authority_present": false,
+  "receipt_count": 5,
+  "owner_instruction_signature_valid": true,
+  "owner_instruction_sha256": "ed7211d6d2395f47d891ef70a2ed94498c4c9b46ce4b7ea0a24f5d11f40222f5",
+  "owner_instruction_signature_sha256": "ecdb636eb5262e3d05992e4bb65a7af9f9eb24b196dc45ea48e37ff37d23ee25",
+  "target_source_sha": "199ac95ae591110031822a701c22a8c293549fcf",
+  "target_source_tree": "f82dd4e9977d75bf3f0c25dda728c95e257c6f3c",
+  "external_execution_authorized": false,
+  "external_actions_executed": 0,
+  "private_key_material_persisted_in_repository": false
+}

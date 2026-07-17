@@ -1,0 +1,21 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.dms-provider-selection.v1",
+  "recorded_at": "2026-07-17T14:53:19Z",
+  "provider": "aws-s3-object-storage",
+  "decision": "approved",
+  "decision_verified": true,
+  "decision_source_sha": "9912071d0839c974e85d8ba5f6f3dd9665a066d7",
+  "target_source_sha": "199ac95ae591110031822a701c22a8c293549fcf",
+  "target_source_tree": "f82dd4e9977d75bf3f0c25dda728c95e257c6f3c",
+  "packet_sha256": "4d9ace87b3b805c18d757e596e2c456ea90329ab02b8ed6fd1c0aa31ad940429",
+  "approval_receipt_sha256": "bdfa27e6ae0f23f8f6849878162baddd1760cd11e0d3092573e224581ed0f0ee",
+  "approval_signature_sha256": "cc31ab132109791bc01fbb6b4ac9506c965a159c48e80333b8a4f78a1f7ae23f",
+  "owner_instruction_sha256": "ed7211d6d2395f47d891ef70a2ed94498c4c9b46ce4b7ea0a24f5d11f40222f5",
+  "preflight_sha256": "a2b76c4f60be0281b135ba8c0dd80bca576b375051a2234a79e3b7229bd01950",
+  "provider_contacted": false,
+  "provider_write_count": 0,
+  "backup_upload_count": 0,
+  "real_data_used": false,
+  "provider_sandbox_verified": false,
+  "remaining_boundary": "separate provider-write and provider-sandbox approval required"
+}
