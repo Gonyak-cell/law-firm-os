@@ -59,19 +59,19 @@ function createEncryptedPayrollArtifactVault({
         tag: cipher.getAuthTag().toString("base64url"),
         ciphertext: ciphertext.toString("base64url"),
       }), "utf8");
-      const receipt = storage.putObject({ object_id, bytes: encrypted, content_type: "application/vnd.law-firm-os.encrypted+json" });
+      const receipt = storage.putObject({ tenant_id, object_id, bytes: encrypted, content_type: "application/vnd.law-firm-os.encrypted+json" });
       return Object.freeze({ document_ref: receipt.storage_pointer_ref, document_hash: hash(plain), byte_size: plain.byteLength, content_type });
     },
     get({ tenant_id, object_id }) {
-      const stored = storage.getObject({ object_id });
+      const stored = storage.getObject({ tenant_id, object_id });
       const envelope = JSON.parse(stored.bytes.toString("utf8"));
       const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(envelope.iv, "base64url"));
       decipher.setAAD(Buffer.from(`${tenant_id}:${object_id}`, "utf8"));
       decipher.setAuthTag(Buffer.from(envelope.tag, "base64url"));
       return Buffer.concat([decipher.update(Buffer.from(envelope.ciphertext, "base64url")), decipher.final()]);
     },
-    stat({ object_id }) {
-      return storage.statObject({ object_id });
+    stat({ tenant_id, object_id }) {
+      return storage.statObject({ tenant_id, object_id });
     },
   });
 }

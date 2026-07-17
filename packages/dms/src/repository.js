@@ -1,8 +1,9 @@
 import { createDurableJsonStateController } from "../../persistence/src/durable-file.js";
 import { createDmsCoreRecord } from "./model.js";
 import { DMS_RUNTIME_MIGRATIONS } from "./migrations/index.js";
+import { assertNoDmsPersistedSecrets, projectDmsPersistedRecord } from "./persistence-guard.js";
 
-const PRIMARY_ID_FIELDS = Object.freeze({
+export const DMS_PRIMARY_ID_FIELDS = Object.freeze({
   DmsWorkspace: "workspace_id",
   DmsFolder: "folder_id",
   DmsDocument: "document_id",
@@ -31,16 +32,17 @@ function assertTenant(value) {
   if (typeof value !== "string" || value.trim() === "") throw new TypeError("tenant_id is required");
 }
 
-function primaryIdOf(record) {
-  const field = PRIMARY_ID_FIELDS[record.model_type];
+export function primaryIdOf(record) {
+  const field = DMS_PRIMARY_ID_FIELDS[record.model_type];
   return field ? record[field] : record.resource_id ?? record.id;
 }
 
 function normalizeRecord(input = {}) {
+  assertNoDmsPersistedSecrets(input);
   if (typeof input.model_type !== "string" || input.model_type.trim() === "") {
     throw new TypeError("model_type is required");
   }
-  const record = PRIMARY_ID_FIELDS[input.model_type] && input.model_type.startsWith("Dms") && ![
+  const record = DMS_PRIMARY_ID_FIELDS[input.model_type] && input.model_type.startsWith("Dms") && ![
     "DmsLock",
     "DmsPrivilegeLabel",
     "DmsLegalHold",
@@ -50,22 +52,22 @@ function normalizeRecord(input = {}) {
     "DmsSearchIndex",
     "DmsRagEvidence",
   ].includes(input.model_type)
-    ? { ...input, ...createDmsCoreRecord(input.model_type, input) }
-    : { ...input };
+    ? projectDmsPersistedRecord({ ...input, ...createDmsCoreRecord(input.model_type, input) })
+    : projectDmsPersistedRecord(input);
   assertTenant(record.tenant_id);
   const resourceId = primaryIdOf(record);
   if (typeof resourceId !== "string" || resourceId.trim() === "") {
     throw new TypeError(`${record.model_type} resource id is required`);
   }
   const now = new Date().toISOString();
-  return Object.freeze({
+  return Object.freeze(projectDmsPersistedRecord({
     ...record,
     resource_id: resourceId,
     created_at: record.created_at ?? now,
     updated_at: now,
     writes_product_state: true,
     creates_database_rows: record.creates_database_rows ?? true,
-  });
+  }));
 }
 
 function recordKey(record) {
@@ -74,7 +76,7 @@ function recordKey(record) {
 
 function refKey(ref = {}) {
   const modelType = ref.model_type;
-  const field = PRIMARY_ID_FIELDS[modelType];
+  const field = DMS_PRIMARY_ID_FIELDS[modelType];
   const id = ref.id ?? ref.resource_id ?? (field ? ref[field] : undefined);
   return `${ref.tenant_id}:${modelType}:${id}`;
 }
@@ -99,7 +101,7 @@ function normalizeState(input) {
   };
 }
 
-export function createDmsRepository({ filePath, seedRecords = [] } = {}) {
+export function createDmsRepository({ filePath, seedRecords = [], preserveSeedRecords = false } = {}) {
   let closed = false;
   let transactionDepth = 0;
   const stateController = createDurableJsonStateController({ filePath, defaultValue: emptyState(), normalizeValue: normalizeState });
@@ -148,7 +150,15 @@ export function createDmsRepository({ filePath, seedRecords = [] } = {}) {
   hydrate(state);
   for (const record of seedRecords) {
     const normalized = normalizeRecord(record);
-    if (!records.has(recordKey(normalized))) put(record, { overwrite: true });
+    if (!records.has(recordKey(normalized))) {
+      if (preserveSeedRecords) {
+        assertNoDmsPersistedSecrets(record);
+        records.set(recordKey(normalized), clone(projectDmsPersistedRecord({ ...record, resource_id: normalized.resource_id })));
+        persist();
+      } else {
+        put(record, { overwrite: true });
+      }
+    }
   }
 
   const repository = {
@@ -192,6 +202,7 @@ export function createDmsRepository({ filePath, seedRecords = [] } = {}) {
     },
     recordIdempotency(entry = {}) {
       assertOpen();
+      assertNoDmsPersistedSecrets(entry, "idempotency");
       assertTenant(entry.tenant_id);
       if (typeof entry.idempotency_key !== "string" || entry.idempotency_key.trim() === "") {
         throw new TypeError("idempotency_key is required");
@@ -213,6 +224,7 @@ export function createDmsRepository({ filePath, seedRecords = [] } = {}) {
     },
     appendAudit(event = {}) {
       assertOpen();
+      assertNoDmsPersistedSecrets(event, "audit_event");
       assertTenant(event.tenant_id);
       if (typeof event.event_id !== "string" || event.event_id.trim() === "") throw new TypeError("event_id is required");
       const value = Object.freeze(clone(event));

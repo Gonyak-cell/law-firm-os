@@ -113,6 +113,17 @@ export async function createMigratedPostgresFixture(t) {
     await adminPool.query("GRANT SELECT, INSERT ON lawos_domain.import_receipts TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT ON lawos_domain.shadow_receipts TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT ON lawos_domain.rehearsal_receipts TO lawos_app");
+    await adminPool.query("GRANT USAGE ON SCHEMA lawos_dms TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_dms.upload_sessions TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_dms.documents TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_dms.file_objects TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT ON lawos_dms.document_versions TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT ON lawos_dms.idempotency_keys TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT ON lawos_dms.audit_events TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_dms.outbox_events TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_dms.legal_holds TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_dms.retention_policies TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_dms.delete_intents TO lawos_app");
     const appUrl = new URL(instance.connection_string);
     appUrl.username = "lawos_app";
     appPool = createPostgresPool({

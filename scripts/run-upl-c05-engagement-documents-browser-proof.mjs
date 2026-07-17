@@ -293,7 +293,7 @@ try {
     ? dmsRepository.get({ tenant_id: TENANT, model_type: "DmsFileObject", file_object_id: storedUpload.dms_file_object_id })
     : null;
   const storedObject = storedDmsFileObject?.vault_object_id
-    ? dmsStorage.getObject({ object_id: storedDmsFileObject.vault_object_id })
+    ? dmsStorage.getObject({ tenant_id: TENANT, object_id: storedDmsFileObject.vault_object_id })
     : null;
   const writeKinds = writes.map((write) => write.kind);
   const checks = [

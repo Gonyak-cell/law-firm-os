@@ -817,6 +817,7 @@ export function writeBinaryFileDurably({
       atomicReplaceFile({
         filePath: sidecarPath,
         data: `${JSON.stringify({ ...sidecar.value, content_sha256: sha256 }, null, 2)}\n`,
+        faultInjector: faultInjector ? (point, context) => faultInjector(`sidecar:${point}`, context) : undefined,
       });
     }
     return { filePath, size: buffer.length, sha256, readbackSha256, sidecarPath };

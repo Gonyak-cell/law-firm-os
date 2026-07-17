@@ -89,16 +89,16 @@ test("G5 DMS repository persists metadata, idempotency, and audit across reopen"
 test("G5 storage adapters hash content and reject credential material", () => {
   const storage = createLocalStorageAdapter({ adapter_id: "local-test" });
   assertStorageAdapter(storage);
-  const receipt = storage.putObject({ object_id: "object-1", bytes: "hello", content_type: "text/plain" });
+  const receipt = storage.putObject({ tenant_id: TENANT, object_id: "object-1", bytes: "hello", content_type: "text/plain" });
   assert.equal(receipt.raw_path_exposed, false);
-  assert.equal(storage.statObject({ object_id: "object-1" }).sha256, receipt.sha256);
+  assert.equal(storage.statObject({ tenant_id: TENANT, object_id: "object-1" }).sha256, receipt.sha256);
   const rootPath = join(mkdtempSync(join(tmpdir(), "dms-file-storage-")), "objects");
   const fileStorage = createFileStorageAdapter({ adapter_id: "file-test", rootPath });
   assertStorageAdapter(fileStorage);
-  const fileReceipt = fileStorage.putObject({ object_id: "object-file-1", bytes: "durable", content_type: "text/plain" });
+  const fileReceipt = fileStorage.putObject({ tenant_id: TENANT, object_id: "object-file-1", bytes: "durable", content_type: "text/plain" });
   const reopened = createFileStorageAdapter({ adapter_id: "file-test", rootPath });
-  assert.equal(reopened.getObject({ object_id: "object-file-1" }).sha256, fileReceipt.sha256);
-  assert.equal(reopened.getObject({ object_id: "object-file-1" }).bytes.toString("utf8"), "durable");
+  assert.equal(reopened.getObject({ tenant_id: TENANT, object_id: "object-file-1" }).sha256, fileReceipt.sha256);
+  assert.equal(reopened.getObject({ tenant_id: TENANT, object_id: "object-file-1" }).bytes.toString("utf8"), "durable");
   assert.throws(() => createS3StorageAdapterPlaceholder({ access_key: "secret" }), /credential_ref only/);
   assert.throws(() => createSharePointStorageAdapterPlaceholder({ access_token: "secret" }), /credential_ref only/);
   assert.equal(createM365({ credential_ref: "secretref:m365" }).credential_material_included, false);

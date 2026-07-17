@@ -25,10 +25,12 @@ test("HRX migration inventory classifies all 29 SQLite sources and translates ev
 test("HRX PostgreSQL migrations pass fresh, upgrade, RLS, checksum and recovery contracts", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
+  const foundationMigrationCount = listPostgresFoundationMigrations().length;
+  const hrxMigrationCount = listHrxPostgresMigrations().length;
   const first = await runHrxPostgresMigrations(fixture.adminPool, { appliedBy: "hrx-disposable-test" });
-  assert.equal(first.length, 34);
-  assert.equal(first.slice(0, 3).every((migration) => migration.applied === false), true);
-  assert.equal(first.slice(3).every((migration) => migration.applied === true), true);
+  assert.equal(first.length, foundationMigrationCount + hrxMigrationCount);
+  assert.equal(first.slice(0, foundationMigrationCount).every((migration) => migration.applied === false), true);
+  assert.equal(first.slice(foundationMigrationCount).every((migration) => migration.applied === true), true);
 
   const objects = await fixture.adminPool.query(
     `SELECT

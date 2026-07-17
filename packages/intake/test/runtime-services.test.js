@@ -618,7 +618,7 @@ test("G6 engagement signed document bytes are stored in DMS with server hash ver
     model_type: "DmsFileObject",
     file_object_id: engagement.signed_document_upload.dms_file_object_id,
   });
-  const object = storage.getObject({ object_id: fileObject.vault_object_id });
+  const object = storage.getObject({ tenant_id: TENANT, object_id: fileObject.vault_object_id });
   assert.equal(object.sha256, serverHash);
   assert.deepEqual(object.bytes, bytes);
 });
