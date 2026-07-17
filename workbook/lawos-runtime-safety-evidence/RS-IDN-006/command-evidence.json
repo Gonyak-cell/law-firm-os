@@ -1,0 +1,26 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-IDN-006",
+  "implementation_state": "VERIFIED",
+  "execution_state": "DISPOSABLE_LOCAL_ONLY",
+  "source_sha": "81593387661b40046fcdd91482397d74dbd6c3df",
+  "tree": "6e59014bfa25e7112d7b349ce76d5b034203aa06",
+  "recorded_at": "2026-07-16T16:03:48Z",
+  "command": "VC-AUTH-001; inline live local PostgreSQL HTTP driver; node scripts/validate-matter-desktop-security.mjs",
+  "exit_code": 0,
+  "summary": "Login, failure, lock, step-up, challenge revocation, logout and break-glass actions are append-only audited without passwords, provider proof, session tokens, step-up tokens or raw administrative reasons",
+  "artifacts": [
+    "packages/persistence/src/postgres/migrations/002_identity_ledger.sql",
+    "packages/runtime-auth/src/postgres-identity-ledger.js",
+    "apps/api/test/session-auth-api.test.js"
+  ],
+  "claims": {
+    "security_audit_append_only": true,
+    "secret_field_guard_verified": true,
+    "manual_audit_event_count": 6,
+    "manual_secret_material_absent": true,
+    "raw_error_detail_exposed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

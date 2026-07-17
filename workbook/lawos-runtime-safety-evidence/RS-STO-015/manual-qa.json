@@ -1,0 +1,22 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.manual-qa.v0.1",
+  "tuw_id": "RS-STO-015",
+  "source_sha": "3cdbd3db10d22b02aac5c718324702e0d96520ac",
+  "recorded_at": "2026-07-16T10:28:02Z",
+  "observed_flows": {
+    "crm_intake_api_restart": {"direct_matter_shortcut_status": 400, "handoff_status": 201, "intake_rows_after_restart": 1, "tenant_isolation": true},
+    "auth_cross_instance": {"credential_revision_revokes_existing_session": true, "revocation_survives_restart": true, "reset_token_revocation_observed_before_consume": true, "login_lock_threshold_exact": 5},
+    "repository_concurrency": {"adapters_checked": 14, "stale_writes_rejected": 14, "winner_reloaded": 14, "retry_after_reload_passed": true},
+    "writer_coverage": {"manifest_paths": 16, "manifest_paths_covered": 16, "derived_dms_bytes_covered": true, "unclassified_direct_writer_files": 0, "operational_direct_authority_writes": 0},
+    "preflight": {"first_parallel_run": "ENVIRONMENT_INTERFERENCE", "isolated_rerun": "PASS", "scenarios": 5, "production_ready_claim": false}
+  },
+  "claims": {
+    "manual_qa_passed": true,
+    "file_authority_transition_safe": true,
+    "external_data_transfer_executed": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

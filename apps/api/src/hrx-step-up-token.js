@@ -1,11 +1,16 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { createHrxStepUpSession } from "../../../packages/authz/src/hrx-step-up-session.js";
+import {
+  LAWOS_RUNTIME_PROFILES,
+  resolveRuntimeProfile,
+  runtimePreflightError,
+} from "./runtime-profile.js";
 
 export const HRX_STEP_UP_TOKEN_PREFIX = "lawos_hrx_step_up_v1";
 export const HRX_STEP_UP_TOKEN_CONTRACT_REF = "workbook/wave1-internal-uplift-tuw-backlog-2026-07-02.md#UPL-A-04";
 
-const DEFAULT_SECRET = "lawos-local-wave1-hrx-step-up-secret";
-const DEFAULT_TOTP_SECRET = "lawos-local-wave1-hrx-step-up-totp-secret";
+export const HRX_STEP_UP_DEFAULT_SECRET = "lawos-local-wave1-hrx-step-up-secret";
+export const HRX_STEP_UP_DEFAULT_TOTP_SECRET = "lawos-local-wave1-hrx-step-up-totp-secret";
 const DEFAULT_TTL_MS = 5 * 60 * 1000;
 const DEFAULT_TOTP_STEP_MS = 30 * 1000;
 
@@ -43,6 +48,47 @@ function clean(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function assertOperationalStepUpSecret(value, { envName, knownDefault }) {
+  const secret = clean(value);
+  if (!secret) {
+    throw runtimePreflightError(`${envName} is required for operational runtime profile`);
+  }
+  if (secret === knownDefault) {
+    throw runtimePreflightError(`${envName} must not use the local default for operational runtime profile`);
+  }
+  if (secret.length < 32) {
+    throw runtimePreflightError(`${envName} must be at least 32 characters for operational runtime profile`);
+  }
+  return secret;
+}
+
+export function resolveHrxStepUpConfig({
+  env = process.env,
+  profile = resolveRuntimeProfile(env),
+  secret,
+  totpSecret,
+} = {}) {
+  const resolvedProfile = resolveRuntimeProfile({ ...env, LAWOS_RUNTIME_PROFILE: profile });
+  const configuredSecret = secret === undefined ? env.LAWOS_HRX_STEP_UP_SECRET : secret;
+  const configuredTotpSecret = totpSecret === undefined ? env.LAWOS_HRX_STEP_UP_TOTP_SECRET : totpSecret;
+  if (resolvedProfile === LAWOS_RUNTIME_PROFILES.operational) {
+    return Object.freeze({
+      secret: assertOperationalStepUpSecret(configuredSecret, {
+        envName: "LAWOS_HRX_STEP_UP_SECRET",
+        knownDefault: HRX_STEP_UP_DEFAULT_SECRET,
+      }),
+      totpSecret: assertOperationalStepUpSecret(configuredTotpSecret, {
+        envName: "LAWOS_HRX_STEP_UP_TOTP_SECRET",
+        knownDefault: HRX_STEP_UP_DEFAULT_TOTP_SECRET,
+      }),
+    });
+  }
+  return Object.freeze({
+    secret: clean(configuredSecret) || HRX_STEP_UP_DEFAULT_SECRET,
+    totpSecret: clean(configuredTotpSecret) || HRX_STEP_UP_DEFAULT_TOTP_SECRET,
+  });
+}
+
 function normalizePrincipal(principal = {}) {
   const tenantId = clean(principal.tenant_id ?? principal.tenantId);
   const actorId = clean(principal.user_id ?? principal.actor_id ?? principal.actorId);
@@ -72,12 +118,17 @@ function totpInput({ tenant_id, tenantId, actor_id, actorId, purpose } = {}, win
 }
 
 export function createHrxStepUpAuthority({
-  secret = process.env.LAWOS_HRX_STEP_UP_SECRET || DEFAULT_SECRET,
-  totpSecret = process.env.LAWOS_HRX_STEP_UP_TOTP_SECRET || DEFAULT_TOTP_SECRET,
+  secret,
+  totpSecret,
+  profile,
+  env = process.env,
   ttlMs = Number(process.env.LAWOS_HRX_STEP_UP_TTL_MS || DEFAULT_TTL_MS),
   totpStepMs = DEFAULT_TOTP_STEP_MS,
   now = () => Date.now(),
 } = {}) {
+  const config = resolveHrxStepUpConfig({ env, profile, secret, totpSecret });
+  secret = config.secret;
+  totpSecret = config.totpSecret;
   const nowMs = () => currentMs(now);
   const nowIso = () => new Date(nowMs()).toISOString();
 
@@ -104,33 +155,7 @@ export function createHrxStepUpAuthority({
     return hmac(secret, payloadPart);
   }
 
-  function issue({ principal = {}, purpose, totp_code, requestId = "req_unset" } = {}) {
-    const normalized = normalizePrincipal(principal);
-    const resolvedPurpose = clean(purpose);
-    if (!normalized.tenantId || !normalized.actorId) {
-      return Object.freeze({
-        status: 401,
-        body: errorBody(requestId, "HRX_STEP_UP_SESSION_REQUIRED", "hrx_step_up_session_required"),
-      });
-    }
-    if (!resolvedPurpose) {
-      return Object.freeze({
-        status: 400,
-        body: errorBody(requestId, "HRX_STEP_UP_PURPOSE_REQUIRED", "hrx_step_up_purpose_required"),
-      });
-    }
-    const totpContext = {
-      tenant_id: normalized.tenantId,
-      actor_id: normalized.actorId,
-      purpose: resolvedPurpose,
-    };
-    if (!verifyTotp(totpContext, totp_code)) {
-      return Object.freeze({
-        status: 403,
-        body: errorBody(requestId, "HRX_STEP_UP_TOTP_INVALID", "hrx_step_up_totp_invalid"),
-      });
-    }
-
+  function issueVerifiedSession({ normalized, resolvedPurpose, requestId }) {
     const issuedAtMs = nowMs();
     const session = createHrxStepUpSession({
       tenant_id: normalized.tenantId,
@@ -163,6 +188,53 @@ export function createHrxStepUpAuthority({
         production_ready_claim: false,
       }),
     });
+  }
+
+  function validateIssueContext(principal, purpose, requestId) {
+    const normalized = normalizePrincipal(principal);
+    const resolvedPurpose = clean(purpose);
+    if (!normalized.tenantId || !normalized.actorId) {
+      return Object.freeze({ error: Object.freeze({
+        status: 401,
+        body: errorBody(requestId, "HRX_STEP_UP_SESSION_REQUIRED", "hrx_step_up_session_required"),
+      }) });
+    }
+    if (!resolvedPurpose) {
+      return Object.freeze({ error: Object.freeze({
+        status: 400,
+        body: errorBody(requestId, "HRX_STEP_UP_PURPOSE_REQUIRED", "hrx_step_up_purpose_required"),
+      }) });
+    }
+    return Object.freeze({ normalized, resolvedPurpose });
+  }
+
+  function issue({ principal = {}, purpose, totp_code, requestId = "req_unset" } = {}) {
+    const context = validateIssueContext(principal, purpose, requestId);
+    if (context.error) return context.error;
+    const totpContext = {
+      tenant_id: context.normalized.tenantId,
+      actor_id: context.normalized.actorId,
+      purpose: context.resolvedPurpose,
+    };
+    if (!verifyTotp(totpContext, totp_code)) {
+      return Object.freeze({
+        status: 403,
+        body: errorBody(requestId, "HRX_STEP_UP_TOTP_INVALID", "hrx_step_up_totp_invalid"),
+      });
+    }
+    return issueVerifiedSession({ ...context, requestId });
+  }
+
+  function issueVerified({ principal = {}, purpose, provider_verification: verification, requestId = "req_unset" } = {}) {
+    const context = validateIssueContext(principal, purpose, requestId);
+    if (context.error) return context.error;
+    if (verification?.ok !== true || !clean(verification.provider_id) || !clean(verification.assertion_id)) {
+      return Object.freeze({
+        status: 403,
+        body: errorBody(requestId, "HRX_STEP_UP_PROVIDER_INVALID", "hrx_step_up_provider_invalid"),
+      });
+    }
+    return issueVerifiedSession({ ...context, requestId });
   }
 
   function verify(token) {
@@ -206,6 +278,7 @@ export function createHrxStepUpAuthority({
 
   return Object.freeze({
     issue,
+    issueVerified,
     verify,
     generateTotp,
     nowIso,

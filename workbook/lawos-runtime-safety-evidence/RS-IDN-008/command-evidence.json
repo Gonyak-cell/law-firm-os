@@ -1,0 +1,28 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-IDN-008",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_SOURCE_ONLY",
+  "source_sha": "81593387661b40046fcdd91482397d74dbd6c3df",
+  "tree": "6e59014bfa25e7112d7b349ce76d5b034203aa06",
+  "recorded_at": "2026-07-16T16:03:48Z",
+  "command": "node --test apps/desktop/test/auth-coordinator.test.mjs apps/desktop/test/aws-runtime-client.test.mjs apps/desktop/test/renderer-runtime-ui.test.mjs apps/desktop/test/session-cleanup.test.mjs; Playwright source-browser QA at 1440x900 and 1024x768",
+  "exit_code": 0,
+  "summary": "Desktop targeted regression PASS 44/44; logout attempts server revocation, still attempts every local cleanup after independent failures, returns no token/error detail and renders exact safe warning copy without horizontal overflow",
+  "artifacts": [
+    "apps/desktop/src/main/auth.js",
+    "apps/desktop/src/main/aws-runtime.js",
+    "apps/desktop/src/renderer/offline.html",
+    "apps/desktop/test/session-cleanup.test.mjs"
+  ],
+  "claims": {
+    "server_revoke_attempted": true,
+    "all_local_cleanup_attempts_guaranteed": true,
+    "unsafe_remote_error_propagated": false,
+    "warning_copy_verified_two_viewports": true,
+    "packaged_app_QA": false,
+    "release_executed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

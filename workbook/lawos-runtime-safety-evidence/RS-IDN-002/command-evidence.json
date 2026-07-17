@@ -1,0 +1,26 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-IDN-002",
+  "implementation_state": "VERIFIED",
+  "execution_state": "DISPOSABLE_LOCAL_ONLY",
+  "source_sha": "81593387661b40046fcdd91482397d74dbd6c3df",
+  "tree": "6e59014bfa25e7112d7b349ce76d5b034203aa06",
+  "recorded_at": "2026-07-16T16:03:48Z",
+  "command": "node --test apps/api/test/session-auth-api.test.js apps/api/test/auth-restart-revocation.test.js apps/api/test/auth-concurrency.test.js",
+  "exit_code": 0,
+  "summary": "VC-AUTH-001 PASS 24/24; the identity repository v2 uses async tenant-scoped PostgreSQL transactions and exposes no production-ready claim",
+  "artifacts": [
+    "packages/runtime-auth/src/identity-ledger.js",
+    "packages/runtime-auth/src/postgres-identity-ledger.js",
+    "packages/runtime-auth/src/index.js"
+  ],
+  "claims": {
+    "repository_contract_version": "v2",
+    "async_contract_verified": true,
+    "tenant_context_required": true,
+    "cross_tenant_visibility_observed": false,
+    "json_operational_authority_reactivated": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

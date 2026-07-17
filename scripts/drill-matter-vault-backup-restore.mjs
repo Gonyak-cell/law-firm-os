@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, mkdtemp, readFile, readdir, stat, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,6 +9,11 @@ import {
   DERIVED_STORE_PATH_MANIFEST,
   STORE_PATH_MANIFEST,
 } from "../apps/api/src/store-path-manifest.js";
+import {
+  hashDurableValue,
+  LAWOS_DURABLE_STORE_ENVELOPE_KEY,
+} from "../packages/persistence/src/durable-file.js";
+import { verifyDurableNdjsonFile } from "../packages/persistence/src/durable-append.js";
 
 export const MATTER_VAULT_RUNTIME_BACKUP_SCHEMA_VERSION = "law-firm-os.matter-vault-runtime-backup.v0.1";
 export const MATTER_VAULT_RUNTIME_RESTORE_SCHEMA_VERSION = "law-firm-os.matter-vault-runtime-restore.v0.1";
@@ -34,6 +39,10 @@ function secondsBetween(startNs, endNs = process.hrtime.bigint()) {
 
 function sha256(buffer) {
   return createHash("sha256").update(buffer).digest("hex");
+}
+
+function pathRef(value) {
+  return value ? `path-${sha256(Buffer.from(resolve(value))).slice(0, 24)}` : null;
 }
 
 function timestampSlug(date) {
@@ -68,9 +77,34 @@ function resolveInside(root, target) {
   return resolvedTarget;
 }
 
+function isInside(root, target) {
+  const rel = relative(resolve(root), resolve(target));
+  return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
+}
+
 async function writeJson(filePath, value) {
-  await mkdir(dirname(filePath), { recursive: true });
-  await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  await writePrivateFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+async function ensurePrivateDirectory(dirPath) {
+  await mkdir(dirPath, { recursive: true, mode: 0o700 });
+  try {
+    await chmod(dirPath, 0o700);
+  } catch (error) {
+    if (!new Set(["ENOSYS", "ENOTSUP", "EPERM"]).has(error?.code)) throw error;
+  }
+  return dirPath;
+}
+
+async function writePrivateFile(filePath, bytes) {
+  await ensurePrivateDirectory(dirname(filePath));
+  await writeFile(filePath, bytes, { mode: 0o600 });
+  try {
+    await chmod(filePath, 0o600);
+  } catch (error) {
+    if (!new Set(["ENOSYS", "ENOTSUP", "EPERM"]).has(error?.code)) throw error;
+  }
+  return filePath;
 }
 
 async function safeStat(filePath) {
@@ -80,6 +114,44 @@ async function safeStat(filePath) {
     if (error?.code === "ENOENT") return null;
     throw error;
   }
+}
+
+function recordCount(value) {
+  if (Array.isArray(value)) return value.length;
+  if (!value || typeof value !== "object") return 0;
+  if (Array.isArray(value.records)) return value.records.length;
+  if (Array.isArray(value.rows)) return value.rows.length;
+  if (value.tables && typeof value.tables === "object") {
+    return Object.values(value.tables).reduce((total, rows) => total + (Array.isArray(rows) ? rows.length : 0), 0);
+  }
+  return 0;
+}
+
+function analyzeStoreBytes(bytes, fileName) {
+  if (fileName.endsWith(".ndjson")) {
+    const rows = bytes.toString("utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line));
+    if (rows.some((row) => !row || typeof row !== "object" || Array.isArray(row))) {
+      throw new TypeError(`invalid NDJSON store row: ${fileName}`);
+    }
+    return { format: "ndjson", record_count: rows.length, durable_generation: null, durable_hash_valid: true };
+  }
+  const parsed = JSON.parse(bytes.toString("utf8"));
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new TypeError(`invalid JSON store root: ${fileName}`);
+  }
+  const metadata = parsed[LAWOS_DURABLE_STORE_ENVELOPE_KEY];
+  let durableHashValid = true;
+  let durableGeneration = null;
+  if (metadata) {
+    const payload = { ...parsed };
+    delete payload[LAWOS_DURABLE_STORE_ENVELOPE_KEY];
+    durableHashValid = hashDurableValue(payload) === metadata.content_sha256;
+    durableGeneration = metadata.generation;
+    if (!durableHashValid || !Number.isSafeInteger(durableGeneration) || durableGeneration < 1) {
+      throw new Error(`durable store invariant failed: ${fileName}`);
+    }
+  }
+  return { format: "json", record_count: recordCount(parsed), durable_generation: durableGeneration, durable_hash_valid: durableHashValid };
 }
 
 function dmsObjectManifest() {
@@ -159,7 +231,7 @@ export async function createMatterVaultRuntimeBackup({
   const resolvedStoreDir = sources.store_dir;
   const resolvedBackupDir = resolve(backupDir ?? join(backupRoot, timestampSlug(generatedAt)));
   const storesBackupDir = join(resolvedBackupDir, "stores");
-  await mkdir(storesBackupDir, { recursive: true });
+  await ensurePrivateDirectory(storesBackupDir);
 
   const files = [];
   const missing_store_files = [];
@@ -176,8 +248,10 @@ export async function createMatterVaultRuntimeBackup({
 
     const bytes = await readFile(sourcePath);
     const digest = sha256(bytes);
+    const analysis = analyzeStoreBytes(bytes, definition.file_name);
+    if (analysis.format === "ndjson") verifyDurableNdjsonFile({ filePath: sourcePath });
     const backup_relative_path = join("stores", definition.file_name);
-    await writeFile(resolveInside(resolvedBackupDir, backup_relative_path), bytes);
+    await writePrivateFile(resolveInside(resolvedBackupDir, backup_relative_path), bytes);
 
     newestMtimeMs = newestMtimeMs === null ? sourceStat.mtimeMs : Math.max(newestMtimeMs, sourceStat.mtimeMs);
     backup_total_bytes += bytes.byteLength;
@@ -189,6 +263,7 @@ export async function createMatterVaultRuntimeBackup({
       type: "store_file",
       byte_length: bytes.byteLength,
       sha256: digest,
+      ...analysis,
       source_mtime: sourceStat.mtime.toISOString()
     });
   }
@@ -202,8 +277,10 @@ export async function createMatterVaultRuntimeBackup({
     const digest = sha256(bytes);
     const backup_relative_path = join("objects", relativeObjectPath);
     const targetPath = resolveInside(resolvedBackupDir, backup_relative_path);
-    await mkdir(dirname(targetPath), { recursive: true });
-    await writeFile(targetPath, bytes);
+    await writePrivateFile(targetPath, bytes);
+    const objectAnalysis = relativeObjectPath.endsWith(".json")
+      ? { sidecar_json_valid: Boolean(JSON.parse(bytes.toString("utf8"))) }
+      : { sidecar_json_valid: null };
 
     newestMtimeMs = newestMtimeMs === null ? sourceStat.mtimeMs : Math.max(newestMtimeMs, sourceStat.mtimeMs);
     backup_total_bytes += bytes.byteLength;
@@ -218,6 +295,7 @@ export async function createMatterVaultRuntimeBackup({
       type: "dms_object_store_file",
       byte_length: bytes.byteLength,
       sha256: digest,
+      ...objectAnalysis,
       source_mtime: sourceStat.mtime.toISOString(),
     });
   }
@@ -230,7 +308,21 @@ export async function createMatterVaultRuntimeBackup({
   const backupSchemaVersion = containsRealClientData
     ? MATTER_VAULT_RUNTIME_BACKUP_SCHEMA_VERSION_V0_2
     : MATTER_VAULT_RUNTIME_BACKUP_SCHEMA_VERSION;
-  const manifest = {
+  const storeInventory = MATTER_VAULT_RUNTIME_STORE_FILES.map((definition) => {
+    const file = files.find((entry) => entry.type === "store_file" && entry.key === definition.key);
+    return {
+      key: definition.key,
+      bounded_context: definition.bounded_context,
+      file_name: definition.file_name,
+      present: Boolean(file),
+      byte_length: file?.byte_length ?? 0,
+      sha256: file?.sha256 ?? null,
+      record_count: file?.record_count ?? 0,
+      durable_generation: file?.durable_generation ?? null,
+    };
+  });
+  const objectInventory = files.filter((entry) => entry.type === "dms_object_store_file");
+  const manifestCore = {
     schema_version: backupSchemaVersion,
     receipt_type: "matter_vault_runtime_store_backup",
     contract_ref: "UPL-A-09",
@@ -250,6 +342,13 @@ export async function createMatterVaultRuntimeBackup({
     backup_dir: resolvedBackupDir,
     manifest_path: join(resolvedBackupDir, MATTER_VAULT_RUNTIME_BACKUP_MANIFEST_FILE),
     known_store_file_count: MATTER_VAULT_RUNTIME_STORE_FILES.length,
+    store_inventory: storeInventory,
+    store_inventory_present_count: storeInventory.filter((entry) => entry.present).length,
+    dms_object_inventory: {
+      file_count: objectInventory.length,
+      byte_length: objectInventory.reduce((total, entry) => total + entry.byte_length, 0),
+      aggregate_sha256: sha256(Buffer.from(objectInventory.map((entry) => `${entry.backup_relative_path}:${entry.sha256}`).join("\n"))),
+    },
     backup_file_count: files.length,
     backup_total_bytes,
     rpo_seconds_measured:
@@ -258,17 +357,54 @@ export async function createMatterVaultRuntimeBackup({
     missing_store_files,
     files
   };
+  const manifest = {
+    ...manifestCore,
+    snapshot_sha256: sha256(Buffer.from(JSON.stringify({
+      store_inventory: storeInventory,
+      dms_object_inventory: manifestCore.dms_object_inventory,
+      files: files.map(({ key, backup_relative_path, byte_length, sha256: digest, record_count }) => ({ key, backup_relative_path, byte_length, sha256: digest, record_count })),
+    }))),
+  };
 
-  await writeJson(manifest.manifest_path, manifest);
+  const persistedManifest = {
+    ...manifest,
+    store_dir_ref: pathRef(manifest.store_dir),
+    resolved_store_path_refs: Object.fromEntries(
+      Object.entries(manifest.resolved_store_paths).map(([key, value]) => [key, pathRef(value)]),
+    ),
+    dms_object_store_ref: pathRef(manifest.dms_object_store_path),
+    backup_dir_ref: pathRef(manifest.backup_dir),
+    missing_store_files: manifest.missing_store_files.map(({ source_path: _sourcePath, ...entry }) => entry),
+    files: manifest.files.map(({ source_path: _sourcePath, ...entry }) => entry),
+  };
+  delete persistedManifest.store_dir;
+  delete persistedManifest.resolved_store_paths;
+  delete persistedManifest.dms_object_store_path;
+  delete persistedManifest.backup_dir;
+  delete persistedManifest.manifest_path;
+  await writeJson(manifest.manifest_path, persistedManifest);
   return manifest;
 }
 
-export async function restoreMatterVaultRuntimeBackup({ backupDir, restoreDir, now } = {}) {
+export async function restoreMatterVaultRuntimeBackup({
+  backupDir,
+  restoreDir,
+  currentStoreDir,
+  allowExistingRestoreDir = false,
+  now,
+} = {}) {
   if (!backupDir) throw new Error("backupDir is required for restore");
   const startedNs = process.hrtime.bigint();
   const generatedAt = toDate(now);
   const resolvedBackupDir = resolve(backupDir);
   const resolvedRestoreDir = resolve(restoreDir ?? join(dirname(resolvedBackupDir), `${basename(resolvedBackupDir)}-restored`));
+  if (currentStoreDir && isInside(currentStoreDir, resolvedRestoreDir)) {
+    throw new Error("Runtime restore refuses to overwrite the current authority directory");
+  }
+  const restoreStat = await safeStat(resolvedRestoreDir);
+  if (restoreStat && !allowExistingRestoreDir && (await readdir(resolvedRestoreDir)).length > 0) {
+    throw new Error("Runtime restore requires a new or empty isolated directory");
+  }
   const manifestPath = join(resolvedBackupDir, MATTER_VAULT_RUNTIME_BACKUP_MANIFEST_FILE);
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
 
@@ -291,11 +427,19 @@ export async function restoreMatterVaultRuntimeBackup({ backupDir, restoreDir, n
   ) {
     throw new Error("Matter-Vault runtime restore v0.2 requires explicit real_client_data_used=true");
   }
+  const storeInventory = manifest.store_inventory ?? MATTER_VAULT_RUNTIME_STORE_FILES.map((definition) => {
+    const file = manifest.files?.find((entry) => (entry.type ?? "store_file") === "store_file" && entry.key === definition.key);
+    return { key: definition.key, present: Boolean(file) };
+  });
+  if (manifest.known_store_file_count !== MATTER_VAULT_RUNTIME_STORE_FILES.length || storeInventory.length !== MATTER_VAULT_RUNTIME_STORE_FILES.length) {
+    throw new Error("Runtime restore manifest does not cover all store definitions");
+  }
 
-  await mkdir(resolvedRestoreDir, { recursive: true });
   let restored_total_bytes = 0;
   let checksum_mismatch_count = 0;
-  const files = [];
+  let parse_error_count = 0;
+  let record_count_mismatch_count = 0;
+  const plannedFiles = [];
 
   for (const file of manifest.files ?? []) {
     const sourcePath = resolveInside(resolvedBackupDir, file.backup_relative_path);
@@ -303,12 +447,27 @@ export async function restoreMatterVaultRuntimeBackup({ backupDir, restoreDir, n
     const actualSha256 = sha256(bytes);
     const checksum_match = actualSha256 === file.sha256;
     if (!checksum_match) checksum_mismatch_count += 1;
+    let analysis = null;
+    if ((file.type ?? "store_file") === "store_file") {
+      try {
+        analysis = analyzeStoreBytes(bytes, file.file_name);
+        if (analysis.format === "ndjson") verifyDurableNdjsonFile({ filePath: sourcePath });
+        if (Number.isSafeInteger(file.record_count) && analysis.record_count !== file.record_count) record_count_mismatch_count += 1;
+      } catch {
+        parse_error_count += 1;
+      }
+    } else if (file.file_name.endsWith(".json")) {
+      try {
+        JSON.parse(bytes.toString("utf8"));
+      } catch {
+        parse_error_count += 1;
+      }
+    }
 
     const restorePath = resolveInside(resolvedRestoreDir, file.restore_relative_path ?? file.file_name);
-    await mkdir(dirname(restorePath), { recursive: true });
-    await writeFile(restorePath, bytes);
-    restored_total_bytes += bytes.byteLength;
-    files.push({
+    plannedFiles.push({
+      bytes,
+      restorePath,
       key: file.key,
       bounded_context: file.bounded_context,
       file_name: file.file_name,
@@ -318,8 +477,26 @@ export async function restoreMatterVaultRuntimeBackup({ backupDir, restoreDir, n
       byte_length: bytes.byteLength,
       expected_sha256: file.sha256,
       actual_sha256: actualSha256,
-      checksum_match
+      checksum_match,
+      record_count: analysis?.record_count ?? null,
     });
+  }
+  if (checksum_mismatch_count > 0 || parse_error_count > 0 || record_count_mismatch_count > 0) {
+    throw Object.assign(new Error("Runtime restore validation failed before materialization"), {
+      code: "LAWOS_BACKUP_RESTORE_VALIDATION_FAILED",
+      checksum_mismatch_count,
+      parse_error_count,
+      record_count_mismatch_count,
+    });
+  }
+
+  await ensurePrivateDirectory(resolvedRestoreDir);
+  const files = [];
+  for (const planned of plannedFiles) {
+    await writePrivateFile(planned.restorePath, planned.bytes);
+    restored_total_bytes += planned.bytes.byteLength;
+    const { bytes: _bytes, restorePath: _restorePath, ...receipt } = planned;
+    files.push(receipt);
   }
 
   return {
@@ -330,7 +507,7 @@ export async function restoreMatterVaultRuntimeBackup({ backupDir, restoreDir, n
     receipt_type: "matter_vault_runtime_store_restore",
     contract_ref: manifest.contract_ref ?? "UPL-A-09",
     daily_backup_job_contract_ref: manifest.daily_backup_job_contract_ref,
-    outcome: checksum_mismatch_count === 0 ? "passed" : "failed",
+    outcome: "passed",
     synthetic_only: manifest.synthetic_only === true,
     production_ready_claim: false,
     go_live_claim: false,
@@ -345,6 +522,10 @@ export async function restoreMatterVaultRuntimeBackup({ backupDir, restoreDir, n
     restored_file_count: files.length,
     restored_total_bytes,
     checksum_mismatch_count,
+    parse_error_count,
+    record_count_mismatch_count,
+    isolated_restore: true,
+    current_authority_overwritten: false,
     rpo_seconds_measured: manifest.rpo_seconds_measured,
     rto_seconds_measured: secondsBetween(startedNs),
     files

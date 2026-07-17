@@ -1,0 +1,31 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DUR-011",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "90e241bf4f06004974e7a97592f07309873f0131",
+  "tree": "03523aab761d3df40ac4f515052a66543a5227ee",
+  "profile": "fault-injection-local",
+  "recorded_at": "2026-07-16T09:36:20Z",
+  "command": "run deterministic kill-before-write, mid-temp, post-rename, ENOSPC and killed-owner fault cases",
+  "exit_code": 0,
+  "fault_cases": {
+    "kill_before_write": "previous_generation_valid",
+    "mid_temp": "previous_generation_valid_and_temp_removed",
+    "post_rename": "new_generation_parseable_and_hash_valid",
+    "disk_full": "previous_generation_valid_and_temp_removed",
+    "killed_lock_owner": "dead_same_host_recovered"
+  },
+  "artifacts": [
+    "packages/persistence/test/store-fault-injection.test.js",
+    "packages/persistence/test/fixtures/hold-lock.mjs"
+  ],
+  "claims": {
+    "fault_harness_verified": true,
+    "last_committed_generation_always_parseable": true,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

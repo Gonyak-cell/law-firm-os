@@ -1,0 +1,48 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.manual-qa.v0.1",
+  "tuw_id": "RS-DBF-012",
+  "source_sha": "86f4566eac262f82b10220f78bc9e2b4721135eb",
+  "tree": "f8e83803b05ab857ce0232379807c6d2217a2c03",
+  "recorded_at": "2026-07-16T14:24:15Z",
+  "driver": "inline ESM driver using createMigratedPostgresFixture and RepositoryPortV2",
+  "observed_flows": {
+    "disposable_cluster": {
+      "postgres_version_family": "16",
+      "migration_applied": true,
+      "cluster_stopped_after_qa": true,
+      "residual_postgres_processes": 0
+    },
+    "tenant_rls": {
+      "source_tenant_read_visible": true,
+      "other_tenant_read_result": "undefined",
+      "cross_tenant_hidden": true
+    },
+    "atomic_commit": {
+      "records": 1,
+      "audits": 1,
+      "outbox": 1,
+      "outbox_status": "pending"
+    },
+    "optimistic_conflict": {
+      "code": "LAWOS_REPOSITORY_CONFLICT",
+      "safe_error_code": "REPOSITORY_VERSION_CONFLICT",
+      "status": 409,
+      "stale_overwrite_observed": false
+    },
+    "driver_calibration": {
+      "attempts_before_final": 2,
+      "reason": "The one-off driver initially asserted two guessed error identifiers; source and automated contracts were unchanged, and the final driver asserted the exported typed error contract exactly.",
+      "final_result": "PASS"
+    }
+  },
+  "claims": {
+    "manual_qa_passed": true,
+    "postgres_source_foundation_verified": true,
+    "production_connection_opened": false,
+    "real_client_data_used": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+import { stableJsonStringify } from "../../persistence/src/durable-file.js";
 import { appendAnalyticsAuditEvent } from "./audit.js";
 import {
   createArAgingDashboard,
@@ -14,6 +16,9 @@ const ZERO_METRICS = Object.freeze({
   finance_record_count: 0,
   metric_source: "empty_finance_repository",
 });
+
+const FINANCE_SOURCE_TYPES = Object.freeze(["RateCard", "TimeEntry", "Invoice", "Payment", "ARBalance"]);
+const ANALYTICS_SOURCE_TYPES = Object.freeze(["MatterProfitability", "ClientProfitability", "EmployeeUtilization", "RealizationMetric"]);
 
 function requiredString(input, field) {
   const value = input?.[field];
@@ -101,6 +106,34 @@ function matchesPeriod(entry = {}, periodId) {
     if (typeof entry[field] === "string" && entry[field].startsWith(periodId)) return true;
   }
   return entry.period_id === undefined && entry.work_date === undefined && entry.entry_date === undefined && entry.date === undefined && entry.performed_at === undefined;
+}
+
+function canonicalSourceRows(repository, tenantId, modelTypes) {
+  return modelTypes
+    .flatMap((modelType) => listRecords(repository, tenantId, modelType))
+    .map((record) => ({ ...record }))
+    .sort((left, right) => stableJsonStringify(left).localeCompare(stableJsonStringify(right)));
+}
+
+export function createAnalyticsSourceWatermark({ financeRepository, analyticsRepository, tenant_id } = {}) {
+  requiredString({ tenant_id }, "tenant_id");
+  const payload = {
+    schema_version: "law-firm-os.analytics-source-watermark.v1",
+    tenant_id,
+    finance: canonicalSourceRows(financeRepository, tenant_id, FINANCE_SOURCE_TYPES),
+    analytics: canonicalSourceRows(analyticsRepository, tenant_id, ANALYTICS_SOURCE_TYPES),
+  };
+  return createHash("sha256").update(stableJsonStringify(payload)).digest("hex");
+}
+
+export function classifyAnalyticsFreshness({ refreshed_at, now = new Date(), max_age_ms = 15 * 60 * 1000 } = {}) {
+  const refreshedAt = Date.parse(refreshed_at ?? "");
+  const current = now instanceof Date ? now.getTime() : Date.parse(now);
+  if (!Number.isFinite(refreshedAt) || !Number.isFinite(current) || !Number.isSafeInteger(max_age_ms) || max_age_ms < 0) {
+    throw new TypeError("analytics freshness inputs are invalid");
+  }
+  const age = Math.max(0, current - refreshedAt);
+  return Object.freeze({ status: age <= max_age_ms ? "fresh" : "stale", age_ms: age, max_age_ms });
 }
 
 export function selectFinanceRowsForMatter({ financeRepository, tenant_id, matter_id } = {}) {
@@ -205,13 +238,37 @@ export function computeKpiDashboardMetrics({ analyticsRepository, tenant_id } = 
   });
 }
 
-export function refreshAnalyticsReadModels({ repository, financeRepository, tenant_id, actor_id, idempotency_key } = {}) {
+export function refreshAnalyticsReadModels({ repository, financeRepository, tenant_id, actor_id, idempotency_key, clock = () => new Date(), max_age_ms = 15 * 60 * 1000 } = {}) {
   requiredString({ tenant_id }, "tenant_id");
   requiredString({ actor_id }, "actor_id");
   requiredString({ idempotency_key }, "idempotency_key");
   const replay = repository.getIdempotency({ tenant_id, idempotency_key });
   if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
+  const sourceWatermark = createAnalyticsSourceWatermark({ financeRepository, analyticsRepository: repository, tenant_id });
+  const existingRun = listRecords(repository, tenant_id, "ReadModelRefreshRun")
+    .find((run) => run.source_watermark === sourceWatermark && run.status === "succeeded");
+  if (existingRun) {
+    const response = Object.freeze({
+      outcome: "unchanged",
+      refresh_run: existingRun,
+      dashboards: Object.freeze(listRecords(repository, tenant_id, "AnalyticsDashboard").filter((row) => row.source_watermark === sourceWatermark)),
+      audit_event: null,
+      source_watermark: sourceWatermark,
+      freshness: classifyAnalyticsFreshness({ refreshed_at: existingRun.refreshed_at, now: clock(), max_age_ms }),
+      rebuild_replay: true,
+      idempotent_replay: false,
+    });
+    repository.recordIdempotency({ tenant_id, idempotency_key, operation: "analytics_read_model_refresh", response });
+    return response;
+  }
   return repository.transaction((tx) => {
+    const refreshedAt = clock().toISOString();
+    const projection = {
+      source_watermark: sourceWatermark,
+      source_authority: "finance_and_analytics_source_records",
+      projection_only: true,
+      refreshed_at: refreshedAt,
+    };
     const metrics = computeFinanceDashboardMetrics({ financeRepository, analyticsRepository: tx, tenant_id });
     const kpiMetrics = computeKpiDashboardMetrics({ analyticsRepository: tx, tenant_id });
     const ar = createArAgingDashboard({
@@ -223,6 +280,7 @@ export function refreshAnalyticsReadModels({ repository, financeRepository, tena
         metric_value: metrics.ar_open_balance,
         metric_source: metrics.metric_source,
         finance_record_count: metrics.finance_record_count,
+        ...projection,
       },
       actor_id,
       idempotency_key: `${idempotency_key}:ar`,
@@ -236,6 +294,7 @@ export function refreshAnalyticsReadModels({ repository, financeRepository, tena
         metric_value: metrics.client_health_percent,
         metric_source: metrics.metric_source,
         finance_record_count: metrics.finance_record_count,
+        ...projection,
       },
       actor_id,
       idempotency_key: `${idempotency_key}:health`,
@@ -249,6 +308,7 @@ export function refreshAnalyticsReadModels({ repository, financeRepository, tena
         metric_value: metrics.practice_pnl_amount,
         metric_source: metrics.metric_source,
         finance_record_count: metrics.finance_record_count,
+        ...projection,
       },
       actor_id,
       idempotency_key: `${idempotency_key}:pnl`,
@@ -265,6 +325,7 @@ export function refreshAnalyticsReadModels({ repository, financeRepository, tena
           metric_unit: "percent",
           metric_source: "analytics_repository",
           metric_record_count: kpiMetrics.realization_record_count,
+          ...projection,
         },
         actor_id,
         idempotency_key: `${idempotency_key}:realization`,
@@ -281,6 +342,7 @@ export function refreshAnalyticsReadModels({ repository, financeRepository, tena
           metric_unit: "percent",
           metric_source: "analytics_repository",
           metric_record_count: kpiMetrics.utilization_record_count,
+          ...projection,
         },
         actor_id,
         idempotency_key: `${idempotency_key}:utilization`,
@@ -288,10 +350,11 @@ export function refreshAnalyticsReadModels({ repository, financeRepository, tena
     }
     const run = tx.create({
       model_type: "ReadModelRefreshRun",
-      refresh_run_id: `refresh:${tenant_id}:${Date.now()}`,
+      refresh_run_id: `refresh:${tenant_id}:${sourceWatermark.slice(0, 24)}`,
       tenant_id,
       status: "succeeded",
       refreshed_dashboard_ids: Object.freeze(dashboards.map((dashboard) => dashboard.dashboard_id)),
+      ...projection,
     });
     const auditEvent = appendAnalyticsAuditEvent({
       repository: tx,
@@ -304,7 +367,16 @@ export function refreshAnalyticsReadModels({ repository, financeRepository, tena
         idempotency_key,
       },
     });
-    const response = Object.freeze({ outcome: "created", refresh_run: run, dashboards: Object.freeze(dashboards), audit_event: auditEvent, idempotent_replay: false });
+    const response = Object.freeze({
+      outcome: "created",
+      refresh_run: run,
+      dashboards: Object.freeze(dashboards),
+      audit_event: auditEvent,
+      source_watermark: sourceWatermark,
+      freshness: classifyAnalyticsFreshness({ refreshed_at: refreshedAt, now: clock(), max_age_ms }),
+      rebuild_replay: false,
+      idempotent_replay: false,
+    });
     tx.recordIdempotency({ tenant_id, idempotency_key, operation: "analytics_read_model_refresh", response });
     return response;
   });

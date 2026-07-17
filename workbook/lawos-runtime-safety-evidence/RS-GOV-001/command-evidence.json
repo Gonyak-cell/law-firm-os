@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-GOV-001",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "source_sha": "1d2df30e235d3080aaa877bb6e01b0a43be8e5c5",
+  "tree": "c7c0db4ca9e554aceaa22cfce804ecea8be95c36",
+  "profile": "source-local",
+  "command": "git fetch origin main; git rev-parse; git merge-base --is-ancestor; git status --porcelain=v1",
+  "exit_code": 0,
+  "started_at": "2026-07-16T08:25:50Z",
+  "finished_at": "2026-07-16T08:26:10Z",
+  "safe_counts": {
+    "origin_main_sha_count": 1,
+    "approved_plan_sha_count": 1,
+    "missing_ref_count": 0,
+    "worktree_status_entry_count": 0
+  },
+  "facts": {
+    "origin_main": "b46a686f719875c6980ecba9bc213a605f58fa45",
+    "origin_main_is_ancestor_of_source": true,
+    "worktree": "/private/tmp/lawos-rs-gov-20260716",
+    "branch": "codex/rs-gov-20260716"
+  },
+  "claims": {
+    "baseline_verified": true,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

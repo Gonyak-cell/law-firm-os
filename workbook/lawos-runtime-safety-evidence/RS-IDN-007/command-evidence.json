@@ -1,0 +1,25 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-IDN-007",
+  "implementation_state": "VERIFIED",
+  "execution_state": "DISPOSABLE_LOCAL_ONLY",
+  "source_sha": "81593387661b40046fcdd91482397d74dbd6c3df",
+  "tree": "6e59014bfa25e7112d7b349ce76d5b034203aa06",
+  "recorded_at": "2026-07-16T16:03:48Z",
+  "command": "node --test apps/api/test/session-auth-api.test.js apps/api/test/auth-restart-revocation.test.js; inline live local PostgreSQL HTTP driver",
+  "exit_code": 0,
+  "summary": "Server logout commits JTI and active challenge revocation before HTTP 200; the first call reports replayed=false, the identical replay reports replayed=true, and the revoked session returns HTTP 401",
+  "artifacts": [
+    "apps/api/src/session-auth.js",
+    "apps/api/src/server.js",
+    "apps/api/test/session-auth-api.test.js"
+  ],
+  "claims": {
+    "server_logout_idempotent": true,
+    "revoke_committed_before_success": true,
+    "logout_replay_safe": true,
+    "revoked_session_accepted": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

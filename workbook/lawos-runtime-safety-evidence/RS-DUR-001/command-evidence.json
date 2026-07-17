@@ -1,0 +1,34 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DUR-001",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "source_sha": "90e241bf4f06004974e7a97592f07309873f0131",
+  "tree": "03523aab761d3df40ac4f515052a66543a5227ee",
+  "profile": "source-local",
+  "recorded_at": "2026-07-16T09:36:20Z",
+  "expected_red": {
+    "base_sha": "c54b0f3d8f108716f89f7452bddec0611efae120",
+    "command": "node --test packages/persistence/test/durable-file.test.js packages/persistence/test/multi-process-generation.test.js packages/persistence/test/store-fault-injection.test.js packages/persistence/test/store-permissions.test.js",
+    "exit_code": 1,
+    "summary": "4/4 test files failed because the durable envelope, lock, append and byte-writer exports did not exist"
+  },
+  "final_verification": {
+    "command": "node --test packages/persistence/test/durable-file.test.js packages/persistence/test/multi-process-generation.test.js packages/persistence/test/store-fault-injection.test.js packages/persistence/test/store-permissions.test.js",
+    "exit_code": 0,
+    "summary": "13/13 PASS"
+  },
+  "artifacts": [
+    "packages/persistence/src/durable-file.js",
+    "packages/persistence/test/durable-file.test.js"
+  ],
+  "claims": {
+    "expected_red_proven": true,
+    "envelope_contract_verified": true,
+    "all_stores_migrated": false,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

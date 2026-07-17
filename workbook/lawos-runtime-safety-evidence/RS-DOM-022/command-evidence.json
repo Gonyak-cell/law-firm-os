@@ -1,0 +1,34 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DOM-022",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_SOURCE_VERIFIED",
+  "source_sha": "49768ead507457e03a9036d8720873c1e45ccf00",
+  "tree": "fd4c93d4b69dbb5fc5432a55b7a263feefd781ea",
+  "recorded_at": "2026-07-16T17:36:26Z",
+  "command": "node --test packages/hrx/test/*.test.js apps/api/test/hrx/*.test.js",
+  "exit_code": 0,
+  "summary": "HRX full exact-SHA regression, restart, concurrency, shadow and disposable cutover rehearsal pass.",
+  "artifacts": [
+    "packages/hrx/test/postgres-store-v2.test.js",
+    "workbook/lawos-runtime-safety-evidence/RS-DOM-030/domain-completeness.json"
+  ],
+  "verification": {
+    "receipt_id": "VC-HRX-001",
+    "passed": 692,
+    "failed": 0,
+    "exact_source_sha": true
+  },
+  "claims": {
+    "local_disposable_postgresql_only": true,
+    "source_worktree_clean_before_evidence": true,
+    "postgres_api_authority_active": false,
+    "staging_migration_executed": false,
+    "production_migration_executed": false,
+    "real_client_data_used": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

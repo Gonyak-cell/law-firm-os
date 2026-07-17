@@ -1,0 +1,9 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.output-hashes.v0.2",
+  "tuw_id": "RS-CUT-004",
+  "target_source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "combined_output_sha256": "f219620f0850758397108f6f273ab473e1001256e4be8bbeeb7406e98ac226c1",
+  "command_output_sha256": {
+    "1": "f219620f0850758397108f6f273ab473e1001256e4be8bbeeb7406e98ac226c1"
+  }
+}

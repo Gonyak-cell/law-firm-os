@@ -1,0 +1,20 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.staging-acceptance.v1",
+  "recorded_at": "2026-07-17T14:53:19Z",
+  "decision": "approved",
+  "condition": "synthetic-only",
+  "decision_verified": true,
+  "decision_source_sha": "1663c0622acc992e478a5ca4f33b7ce58fe096b6",
+  "target_source_sha": "199ac95ae591110031822a701c22a8c293549fcf",
+  "target_source_tree": "f82dd4e9977d75bf3f0c25dda728c95e257c6f3c",
+  "packet_sha256": "56b2a1a4e2f209fa4d6a4e6bd259a19f25a4c9f1436c10deb4070c41df421965",
+  "approval_receipt_sha256": "0a9d903695cd965d56ad015d0839f76b90d3d0d443d336487f50df0c9058996e",
+  "approval_signature_sha256": "4cd5e0bc683af49d680415b9ad9cfd918cd826333889081cf1147d83adcb1489",
+  "owner_instruction_sha256": "ed7211d6d2395f47d891ef70a2ed94498c4c9b46ce4b7ea0a24f5d11f40222f5",
+  "cut_004_readiness_sha256": "57be713e9e09b6b015f7e2baad683e257dd7bf0c23d22eccfa23899f9b860ec4",
+  "staging_contacted": false,
+  "staging_mutation_count": 0,
+  "real_client_data_authorized": false,
+  "execution_authorized": false,
+  "remaining_boundary": "separate staging execution instruction and predecessor closure required"
+}

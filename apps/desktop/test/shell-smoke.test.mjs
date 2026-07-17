@@ -83,7 +83,9 @@ test("desktop shell starts with packaged renderer target, preload, and hardened 
   assert.equal(target, packagedRendererUrl());
   assert.equal(window.loadedURL, packagedRendererUrl());
   const packagedUrl = new URL(packagedRendererUrl());
-  assert.equal(packagedUrl.pathname.endsWith("/renderer/web/index.html"), true);
+  assert.equal(packagedUrl.protocol, "matter-app:");
+  assert.equal(packagedUrl.hostname, "app");
+  assert.equal(packagedUrl.pathname, "/index.html");
   assert.equal(packagedUrl.searchParams.get("desktop"), "1");
   assert.equal(window.options.webPreferences.nodeIntegration, false);
   assert.equal(window.options.webPreferences.contextIsolation, true);

@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-SA-001",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "source_sha": "6429851bc161007984c78d36bc7ea04b1aeaf03d",
+  "tree": "f6a0e54352434f252e7e432253a0343b684c1f60",
+  "profile": "source-local",
+  "recorded_at": "2026-07-16T08:54:58Z",
+  "expected_red": {
+    "base_sha": "aa1d6de89598c79332341e37e362e6fbca55ebd3",
+    "command": "node --test apps/desktop/test/single-instance.test.mjs apps/api/test/operational-step-up-preflight.test.js",
+    "exit_code": 1,
+    "summary": "2/2 test files failed because the required single-instance and operational step-up exports did not exist"
+  },
+  "final_verification": {
+    "command": "node --test apps/desktop/test/single-instance.test.mjs apps/api/test/operational-step-up-preflight.test.js",
+    "exit_code": 0,
+    "summary": "5/5 PASS"
+  },
+  "artifacts": [
+    "apps/desktop/test/single-instance.test.mjs"
+  ],
+  "claims": {
+    "expected_red_proven": true,
+    "source_verified": true,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

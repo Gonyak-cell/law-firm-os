@@ -1,0 +1,31 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DUR-009",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "90e241bf4f06004974e7a97592f07309873f0131",
+  "tree": "03523aab761d3df40ac4f515052a66543a5227ee",
+  "profile": "filesystem-local",
+  "recorded_at": "2026-07-16T09:36:20Z",
+  "command": "append two NDJSON entries under an exclusive append lock and tamper with the second payload",
+  "exit_code": 0,
+  "observations": {
+    "append_flag": "O_APPEND",
+    "verified_sequence": 2,
+    "hash_chain_entries": 2,
+    "tamper_error_code": "LAWOS_APPEND_HASH_MISMATCH"
+  },
+  "artifacts": [
+    "packages/persistence/src/durable-append.js",
+    "packages/persistence/test/store-fault-injection.test.js"
+  ],
+  "claims": {
+    "exclusive_append_verified": true,
+    "append_fsync_verified": true,
+    "sequence_hash_continuity_verified": true,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

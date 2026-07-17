@@ -1,0 +1,247 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.writer-inventory.v0.1",
+  "tuw_id": "RS-GOV-003",
+  "recorded_at": "2026-07-16T08:27:08Z",
+  "source_sha": "1d2df30e235d3080aaa877bb6e01b0a43be8e5c5",
+  "source_tree": "c7c0db4ca9e554aceaa22cfce804ecea8be95c36",
+  "required_manifest_path_count": 16,
+  "derived_path_count": 1,
+  "direct_fs_writer_file_count": 18,
+  "durable_writer_consumer_count": 4,
+  "direct_fs_writer_files": [
+    "apps/api/src/auth-credential-store.js",
+    "apps/api/src/auth-password-reset-store.js",
+    "apps/api/src/lambda.js",
+    "apps/api/src/local-durable-store-paths.js",
+    "apps/api/src/session-auth.js",
+    "packages/ai-governance/src/runtime-repository.js",
+    "packages/analytics/src/runtime-repository.js",
+    "packages/authz/src/trust-runtime-store.js",
+    "packages/billing/src/finance-repository.js",
+    "packages/client-portal/src/runtime-repository.js",
+    "packages/dms/src/repository.js",
+    "packages/dms/src/storage/file-storage-adapter.js",
+    "packages/enterprise/src/enterprise-readiness-repository.js",
+    "packages/hrx/src/store/file-store.js",
+    "packages/persistence/src/connection.js",
+    "packages/persistence/src/durable-file.js",
+    "packages/persistence/src/s3-backup-queue.js",
+    "packages/platform/src/ui-readiness-repository.js"
+  ],
+  "durable_writer_users": [
+    "packages/crm/src/runtime-repository.js",
+    "packages/intake/src/runtime-repository.js",
+    "packages/master-data/src/repository.js",
+    "packages/matter/src/repository.js",
+    "packages/persistence/src/durable-file.js"
+  ],
+  "paths": [
+    {
+      "key": "hrxStorePath",
+      "file_name": "hrx-store.json",
+      "bounded_context": "hrx",
+      "format": "json",
+      "write_mode": "temp_then_rename_without_file_or_directory_fsync_or_disk_generation_cas",
+      "source_paths": ["packages/hrx/src/store/file-store.js"],
+      "planned_tuws": ["RS-STO-006", "RS-DOM-016", "RS-DOM-022"]
+    },
+    {
+      "key": "masterDataStorePath",
+      "file_name": "master-data-store.json",
+      "bounded_context": "master-data",
+      "format": "json",
+      "write_mode": "common_durable_writer_without_cross_process_generation_cas",
+      "source_paths": ["packages/master-data/src/repository.js", "packages/persistence/src/durable-file.js"],
+      "planned_tuws": ["RS-STO-005", "RS-DOM-002", "RS-DOM-005"]
+    },
+    {
+      "key": "matterStorePath",
+      "file_name": "matter-store.json",
+      "bounded_context": "matter",
+      "format": "json",
+      "write_mode": "common_durable_writer_without_cross_process_generation_cas",
+      "source_paths": ["packages/matter/src/repository.js", "packages/persistence/src/durable-file.js"],
+      "planned_tuws": ["RS-STO-002", "RS-DOM-006", "RS-DOM-010"]
+    },
+    {
+      "key": "dmsStorePath",
+      "file_name": "dms-store.json",
+      "bounded_context": "vault-dms",
+      "format": "json",
+      "write_mode": "direct_write_file_sync",
+      "source_paths": ["packages/dms/src/repository.js"],
+      "planned_tuws": ["RS-STO-011", "RS-DMS-002", "RS-DMS-010"]
+    },
+    {
+      "key": "crmStorePath",
+      "file_name": "crm-store.json",
+      "bounded_context": "crm",
+      "format": "json",
+      "write_mode": "common_durable_writer_without_cross_process_generation_cas",
+      "source_paths": ["packages/crm/src/runtime-repository.js", "packages/persistence/src/durable-file.js"],
+      "planned_tuws": ["RS-STO-003", "RS-DOM-011", "RS-DOM-015"]
+    },
+    {
+      "key": "intakeStorePath",
+      "file_name": "intake-store.json",
+      "bounded_context": "intake",
+      "format": "json",
+      "write_mode": "common_durable_writer_without_cross_process_generation_cas",
+      "source_paths": ["packages/intake/src/runtime-repository.js", "packages/persistence/src/durable-file.js"],
+      "planned_tuws": ["RS-STO-004", "RS-DOM-011", "RS-DOM-015"]
+    },
+    {
+      "key": "crmMasterDataStorePath",
+      "file_name": "crm-master-data-store.json",
+      "bounded_context": "crm-master-data",
+      "format": "json",
+      "write_mode": "common_durable_writer_without_cross_process_generation_cas",
+      "source_paths": ["packages/master-data/src/repository.js", "packages/persistence/src/durable-file.js"],
+      "planned_tuws": ["RS-STO-005", "RS-DOM-002", "RS-DOM-005"]
+    },
+    {
+      "key": "financeStorePath",
+      "file_name": "finance-store.json",
+      "bounded_context": "finance",
+      "format": "json",
+      "write_mode": "direct_write_file_sync",
+      "source_paths": ["packages/billing/src/finance-repository.js"],
+      "planned_tuws": ["RS-STO-007", "RS-DOM-023", "RS-DOM-027"]
+    },
+    {
+      "key": "analyticsStorePath",
+      "file_name": "analytics-store.json",
+      "bounded_context": "analytics",
+      "format": "json",
+      "write_mode": "direct_write_file_sync",
+      "source_paths": ["packages/analytics/src/runtime-repository.js"],
+      "planned_tuws": ["RS-STO-008", "RS-PRJ-004", "RS-PRJ-006"]
+    },
+    {
+      "key": "aiStorePath",
+      "file_name": "ai-store.json",
+      "bounded_context": "ai-governance",
+      "format": "json",
+      "write_mode": "direct_write_file_sync",
+      "source_paths": ["packages/ai-governance/src/runtime-repository.js"],
+      "planned_tuws": ["RS-STO-009", "RS-DOM-029", "RS-DOM-030"]
+    },
+    {
+      "key": "portalStorePath",
+      "file_name": "portal-store.json",
+      "bounded_context": "client-portal",
+      "format": "json",
+      "write_mode": "direct_write_file_sync",
+      "source_paths": ["packages/client-portal/src/runtime-repository.js"],
+      "planned_tuws": ["RS-STO-010", "RS-DOM-028", "RS-DOM-030"]
+    },
+    {
+      "key": "uiReadinessStorePath",
+      "file_name": "ui-readiness-store.json",
+      "bounded_context": "ui-readiness",
+      "format": "json",
+      "write_mode": "direct_write_file_sync",
+      "source_paths": ["packages/platform/src/ui-readiness-repository.js"],
+      "planned_tuws": ["RS-STO-012", "RS-PRJ-005", "RS-PRJ-006"]
+    },
+    {
+      "key": "enterpriseReadinessStorePath",
+      "file_name": "enterprise-readiness-store.json",
+      "bounded_context": "enterprise-readiness",
+      "format": "json",
+      "write_mode": "direct_write_file_sync",
+      "source_paths": ["packages/enterprise/src/enterprise-readiness-repository.js"],
+      "planned_tuws": ["RS-STO-012", "RS-PRJ-005", "RS-PRJ-006"]
+    },
+    {
+      "key": "securityAuditStorePath",
+      "file_name": "security-audit-events.ndjson",
+      "bounded_context": "api-security-audit",
+      "format": "ndjson",
+      "write_mode": "direct_append_file_sync_without_cross_process_sequence_lock",
+      "source_paths": ["apps/api/src/session-auth.js"],
+      "planned_tuws": ["RS-STO-014", "RS-IDN-006", "RS-IDN-010"]
+    },
+    {
+      "key": "authCredentialStorePath",
+      "file_name": "auth/credential-store.json",
+      "bounded_context": "api-auth-credentials",
+      "format": "json",
+      "write_mode": "direct_write_file_sync",
+      "source_paths": ["apps/api/src/auth-credential-store.js"],
+      "planned_tuws": ["RS-STO-013", "RS-IDN-001", "RS-IDN-010"]
+    },
+    {
+      "key": "authPasswordResetStorePath",
+      "file_name": "auth/password-reset-store.json",
+      "bounded_context": "api-auth-password-reset",
+      "format": "json",
+      "write_mode": "direct_write_file_sync",
+      "source_paths": ["apps/api/src/auth-password-reset-store.js"],
+      "planned_tuws": ["RS-STO-013", "RS-IDN-009", "RS-IDN-010"]
+    }
+  ],
+  "derived_paths": [
+    {
+      "key": "dmsObjectStorePath",
+      "display_path": "dms-store.json.objects/",
+      "bounded_context": "vault-dms",
+      "format": "binary_plus_json_sidecar",
+      "write_mode": "two_direct_write_file_sync_calls_without_atomic_pair_or_compensation",
+      "source_paths": ["packages/dms/src/storage/file-storage-adapter.js"],
+      "planned_tuws": ["RS-DUR-010", "RS-DMS-003", "RS-DMS-010"]
+    }
+  ],
+  "additional_writer_surfaces": [
+    {
+      "source_paths": ["apps/api/src/lambda.js"],
+      "classification": "operational_administrative_and_migration_writer",
+      "authority_scope": "manifest-backed auth, finance, analytics, audit, migration and repair paths",
+      "coverage_rule": "must be migrated or explicitly allowlisted by RS-STO-015; runtime repository coverage alone is insufficient",
+      "planned_tuws": ["RS-STO-001", "RS-STO-015", "RS-CUT-011"]
+    }
+  ],
+  "out_of_manifest_writers": [
+    {
+      "source_paths": ["apps/api/src/local-durable-store-paths.js"],
+      "classification": "local_secret_material",
+      "operational_record_authority": false,
+      "current_safety": "0600 file mode, separate from domain records",
+      "planned_tuws": ["RS-STO-001"]
+    },
+    {
+      "source_paths": ["packages/authz/src/trust-runtime-store.js"],
+      "classification": "opt_in_library_file_store_not_wired_by_current_app_runtime",
+      "operational_record_authority": false,
+      "current_safety": "direct write if a caller supplies filePath; app wiring re-scan required",
+      "planned_tuws": ["RS-STO-001", "RS-STO-015"]
+    },
+    {
+      "source_paths": ["packages/persistence/src/connection.js"],
+      "classification": "synthetic_persistence_connection",
+      "operational_record_authority": false,
+      "current_safety": "temp then rename; must remain test or synthetic only",
+      "planned_tuws": ["RS-STO-001"]
+    },
+    {
+      "source_paths": ["packages/persistence/src/s3-backup-queue.js"],
+      "classification": "backup_queue_artifact",
+      "operational_record_authority": false,
+      "current_safety": "direct create without exclusive atomic create or fsync",
+      "planned_tuws": ["RS-DUR-008", "RS-BKP-001", "RS-BKP-003"]
+    },
+    {
+      "source_paths": ["packages/persistence/src/durable-file.js"],
+      "classification": "generation_backup_artifact",
+      "operational_record_authority": false,
+      "current_safety": "timestamp-only backup names can collide",
+      "planned_tuws": ["RS-DUR-007", "RS-BKP-004"]
+    }
+  ],
+  "claims": {
+    "inventory_complete_for_current_source_scan": true,
+    "all_writers_safe": false,
+    "central_ledger_complete": false,
+    "production_ready": false
+  }
+}

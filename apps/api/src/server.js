@@ -36,7 +36,7 @@ import {
 } from "./master-data-context.js";
 import { HRX_SESSION_BOUND_HEADER, authorizeHrxApiRequest } from "./middleware/hrx-authz.js";
 import { appendHrxRouteAudit } from "./middleware/hrx-audit-write.js";
-import { authorizeHrxStepUpRequest } from "./middleware/hrx-step-up-context.js";
+import { HRX_STEP_UP_CONTEXT_HEADER, authorizeHrxStepUpRequest } from "./middleware/hrx-step-up-context.js";
 import { PERMISSION_CONTEXT_HEADER, PERMISSION_DECISION_ORDER, evaluateRouteDecision, parsePermissionContext } from "./permission-gate.js";
 import {
   createHrxRuntimeContext,
@@ -141,6 +141,7 @@ import {
   LAWOS_RUNTIME_PROFILES,
   resolveRuntimeProfile,
   resolveSessionSecret,
+  runtimePreflightError,
 } from "./runtime-profile.js";
 import {
   assertStorePathPreflight,
@@ -155,6 +156,11 @@ import {
   OUTLOOK_ADDIN_BOUNDED_CONTEXT,
   handleOutlookAddinApiRequest,
 } from "./outlook-addin-runtime-context.js";
+import { dispatchApiHandler, mapApiHandlerError } from "./api-handler-dispatcher.js";
+import {
+  LAWOS_PERSISTENCE_AUTHORITIES,
+  preparePersistenceAuthority,
+} from "./persistence-authority.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
@@ -486,7 +492,11 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
   uses_real_client_data: true,
 });
 
-const DEFAULT_CORS_ALLOWED_ORIGINS = Object.freeze(["null", "http://127.0.0.1:5173", "http://127.0.0.1:5186"]);
+const DEFAULT_CORS_ALLOWED_ORIGINS = Object.freeze([
+  "matter-app://app",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5186",
+]);
 const CORS_BASE_HEADERS = Object.freeze({
   "access-control-allow-methods": "GET, POST, PATCH, DELETE, OPTIONS",
   "access-control-allow-headers": [
@@ -506,7 +516,7 @@ export function configuredCorsAllowedOrigins({ env = process.env } = {}) {
   const configured = (env.LAWOS_API_ALLOWED_ORIGINS ?? "")
     .split(",")
     .map((origin) => origin.trim())
-    .filter(Boolean);
+    .filter((origin) => origin && origin.toLowerCase() !== "null" && origin !== "*");
   return Object.freeze([...new Set([...DEFAULT_CORS_ALLOWED_ORIGINS, ...configured])]);
 }
 
@@ -947,11 +957,12 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
   const requestId = query.request_id || `req_${randomUUID()}`;
+  req.lawosRequestId = requestId;
 
   if (req.method === "OPTIONS") {
     sendOptions(req, res);
@@ -1019,6 +1030,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       time: new Date().toISOString(),
       runtime_profile: runtimeProfile,
       synthetic_login_enabled: runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational,
+      persistence_authority: persistenceAuthority,
       ...SERVICE_DESCRIPTOR,
     });
     return;
@@ -1072,7 +1084,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     return;
   }
 
-  const sessionContext = sessionAuth.resolvePermissionContextFromHeaders(req.headers, { requestId, requireSessionToken: true });
+  const sessionContext = await sessionAuth.resolvePermissionContextFromHeaders(req.headers, { requestId, requireSessionToken: true });
   if (!sessionContext.ok) {
     sendJson(req, res, sessionContext.status ?? 401, sessionContext.body ?? {
       request_id: requestId,
@@ -1140,6 +1152,35 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       });
       sendJson(req, res, hrxStepUp.status, { request_id: requestId, ...hrxStepUp.body });
       return;
+    }
+    if (hrxStepUp.decision?.step_up_required === true && typeof sessionAuth.validateStepUpChallenge === "function") {
+      const stepUpHeader = Array.isArray(req.headers[HRX_STEP_UP_CONTEXT_HEADER])
+        ? req.headers[HRX_STEP_UP_CONTEXT_HEADER][0]
+        : req.headers[HRX_STEP_UP_CONTEXT_HEADER];
+      const challenge = await sessionAuth.validateStepUpChallenge({
+        token: stepUpHeader,
+        principal: sessionContext.principal,
+        purpose: hrxStepUp.decision.purpose,
+      });
+      if (!challenge.ok) {
+        await appendHrxDeniedRouteAudit({
+          runtime: hrxRuntime,
+          context: hrxAuthz.context,
+          route: pathname,
+          policy: hrxAuthz.policy,
+          decision: { effect: "deny", reason: challenge.reason, action: hrxAuthz.policy.action },
+        });
+        sendJson(req, res, challenge.status ?? 403, {
+          request_id: requestId,
+          outcome: "blocked",
+          ok: false,
+          reason: challenge.reason,
+          safe_error_code: challenge.safe_error_code ?? "HRX_STEP_UP_CHALLENGE_INVALID",
+          step_up_required: true,
+          fail_closed: true,
+        });
+        return;
+      }
     }
     const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const permissionContext = requestPermissionContext();
@@ -1253,7 +1294,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     const context = requestPermissionContext();
     const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     if (pathname.startsWith("/api/admin/security")) {
-      const result = sessionAuth.handleSecurityAdminApiRequest({
+      const result = await sessionAuth.handleSecurityAdminApiRequest({
         pathname,
         method: req.method,
         body,
@@ -1439,29 +1480,40 @@ export function createApiServer({
   portalRuntime = createDefaultPortalRuntime(),
   uiReadinessRuntime = createDefaultUiReadinessRuntime(),
   homeDashboardRuntime = createDefaultHomeDashboardRuntime({
+    operationalRepository: analyticsRuntime?.repository,
     sourceCollectors: createHomeDashboardSourceCollectors({ hrxRuntime, matterRuntime, dmsRuntime, aiRuntime }),
   }),
   enterpriseReadinessRuntime = createDefaultEnterpriseReadinessRuntime(),
-  stepUpAuthority = createHrxStepUpAuthority(),
   runtimeProfile = resolveRuntimeProfile(),
-  sessionAuth = createApiSessionAuth({ stepUpAuthority, profile: runtimeProfile }),
+  persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent,
+  stepUpAuthority,
+  sessionAuth,
 } = {}) {
+  const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority({ profile: runtimeProfile });
+  const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
+    stepUpAuthority: resolvedStepUpAuthority,
+    profile: runtimeProfile,
+  });
   return http.createServer(async (req, res) => {
     try {
       const matterRuntimeWithClearanceLedger =
         matterRuntime?.clearanceRepository || !crmIntakeRuntime?.intakeRepository
           ? matterRuntime
           : Object.freeze({ ...matterRuntime, clearanceRepository: crmIntakeRuntime.intakeRepository });
-      await handle(req, res, { hrxRuntime, hrxRuntimeUnavailable, masterDataRuntime, matterRuntime: matterRuntimeWithClearanceLedger, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile });
+      await dispatchApiHandler(handle, req, res, { hrxRuntime, hrxRuntimeUnavailable, masterDataRuntime, matterRuntime: matterRuntimeWithClearanceLedger, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth: resolvedSessionAuth, stepUpAuthority: resolvedStepUpAuthority, runtimeProfile, persistenceAuthority });
     } catch (error) {
-      sendJson(req, res, 500, { outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "internal_error", message: error.message });
+      const mapped = mapApiHandlerError(error, { requestId: req.lawosRequestId ?? req.headers["x-request-id"] ?? null });
+      sendJson(req, res, mapped.status, mapped.body);
     }
   });
 }
 
-export function startApiServer({
+export async function startApiServer({
   port = DEFAULT_PORT,
   runtimeProfile,
+  persistenceAuthority,
+  persistenceAuthorityEnv = process.env,
+  persistenceConnectPostgres,
   sessionSecret,
   hrxRuntime,
   hrxStore,
@@ -1509,8 +1561,19 @@ export function startApiServer({
   passwordResetEmailDelivery,
   sessionAuth,
   stepUpAuthority,
+  hrxStepUpSecret,
+  hrxStepUpTotpSecret,
 } = {}) {
   const resolvedRuntimeProfile = normalizeRuntimeProfileOption(runtimeProfile);
+  const persistenceAuthorityState = await preparePersistenceAuthority({
+    value: persistenceAuthority,
+    env: persistenceAuthorityEnv,
+    connectPostgres: persistenceConnectPostgres,
+  });
+  if (persistenceAuthorityState.authority === LAWOS_PERSISTENCE_AUTHORITIES.postgresV2) {
+    await persistenceAuthorityState.close?.();
+    throw runtimePreflightError("postgres-v2 domain adapters are incomplete; JSON fallback is disabled");
+  }
   const storePreflight = assertStorePathPreflight({
     profile: resolvedRuntimeProfile,
     providedStorePaths: startupStorePathOptions({
@@ -1536,6 +1599,11 @@ export function startApiServer({
   const resolvedSessionSecret = resolveSessionSecret({
     profile: resolvedRuntimeProfile,
     explicitSecret: sessionSecret,
+  });
+  const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority({
+    profile: resolvedRuntimeProfile,
+    secret: hrxStepUpSecret,
+    totpSecret: hrxStepUpTotpSecret,
   });
   const resolvedStorePaths = storePreflight.storePaths;
   let hrxRuntimeUnavailable = null;
@@ -1640,6 +1708,7 @@ export function startApiServer({
       storePath: uiReadinessStorePath ?? resolvedStorePaths.uiReadinessStorePath,
     });
   const homeDashboardRuntimeContext = homeDashboardRuntime ?? createDefaultHomeDashboardRuntime({
+    operationalRepository: analyticsRuntimeContext?.repository,
     sourceCollectors: createHomeDashboardSourceCollectors({
       hrxRuntime: runtime,
       matterRuntime: matterRuntimeContext,
@@ -1653,7 +1722,6 @@ export function startApiServer({
       repository: enterpriseReadinessRepository,
       storePath: enterpriseReadinessStorePath ?? resolvedStorePaths.enterpriseReadinessStorePath,
     });
-  const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority();
   const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
     profile: resolvedRuntimeProfile,
     secret: resolvedSessionSecret,
@@ -1680,6 +1748,7 @@ export function startApiServer({
     stepUpAuthority: resolvedStepUpAuthority,
     sessionAuth: resolvedSessionAuth,
     runtimeProfile: resolvedRuntimeProfile,
+    persistenceAuthority: persistenceAuthorityState.authority,
     hrxRuntimeUnavailable,
   });
   return new Promise((resolve, reject) => {

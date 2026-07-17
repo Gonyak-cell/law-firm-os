@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-SB-001",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "source_sha": "b323b4bc2fc554f1df3fa9f400056c754aac3876",
+  "tree": "7d643b7d6ac8554862f382645d137594d8fc26b9",
+  "profile": "source-local",
+  "recorded_at": "2026-07-16T09:20:03Z",
+  "expected_red": {
+    "base_sha": "b463506baec8d9e9940db9e015d8266a237b592b",
+    "command": "node --test apps/desktop/test/app-protocol.test.mjs",
+    "exit_code": 1,
+    "summary": "the custom-protocol test module did not exist before RS-SB implementation"
+  },
+  "final_verification": {
+    "command": "node --test apps/desktop/test/app-protocol.test.mjs apps/desktop/test/csp.test.mjs apps/desktop/test/origin-policy.test.mjs apps/desktop/test/session-ipc.test.mjs",
+    "exit_code": 0,
+    "summary": "12/12 PASS including traversal, custom-origin, CSP, navigation and untrusted IPC checks"
+  },
+  "artifacts": [
+    "apps/desktop/test/app-protocol.test.mjs"
+  ],
+  "claims": {
+    "expected_red_proven": true,
+    "source_verified": true,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

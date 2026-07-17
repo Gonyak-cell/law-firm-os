@@ -1,0 +1,82 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.terminal-validation.v0.1",
+  "terminal_tuw_id": "RS-IDN-010",
+  "gate_id": "G7-IDN",
+  "verdict": "PASS",
+  "allowed_claim": "IDENTITY_LEDGER_SOURCE_VERIFIED",
+  "source_sha": "81593387661b40046fcdd91482397d74dbd6c3df",
+  "tree": "6e59014bfa25e7112d7b349ce76d5b034203aa06",
+  "recorded_at": "2026-07-16T16:03:48Z",
+  "verification_contracts": {
+    "VC-AUTH-001": "PASS 24/24",
+    "VC-PG-001": "PASS 10/10",
+    "persistence_regression": "PASS 66/66",
+    "matter_regression": "PASS 191/191",
+    "api_authority_targeted": "PASS 8/8",
+    "api_admin_and_hrx_security_targeted": "PASS 6/6",
+    "runtime_auth_regression": "PASS 18/18",
+    "desktop_targeted_regression": "PASS 44/44",
+    "matter_desktop_security_validator": "PASS; 56 files",
+    "hrx_security_negative_validator": "PASS; 9 files",
+    "runtime_store_writer_coverage": "PASS; 16/16 manifest paths, derived DMS covered, 0 unclassified writers, 0 operational direct-authority writes",
+    "runtime_safety_governance": "PASS; 147 TUWs, 13 workstreams, 13 terminals, approved plan SHA exact",
+    "VC-PREFLIGHT-001-isolated": "PASS; 5 scenarios",
+    "web_production_build": "PASS; 1719 modules",
+    "changed_javascript_syntax": "PASS",
+    "ai_slop_changed_surface": "PASS; no auto-detectable signals at exact source SHA",
+    "live_disposable_postgresql_http_QA": "PASS",
+    "desktop_logout_source_browser_QA": "PASS at 1440x900 and 1024x768"
+  },
+  "broad_regression_observations": {
+    "root_npm_test_exact_source_sha": "4513/4516 PASS",
+    "failure_count": 3,
+    "classification": "PRE_EXISTING_EXTERNAL_RECEIPT_BLOCKER_AND_CASCADE",
+    "primary_failure": "UPL-B-13 Popbill sandbox proof requires the uncommitted operator credential file .env.popbill.local",
+    "cascade_failures": [
+      "Wave-1 external receipt readiness observes the blocked Popbill receipt",
+      "Wave-1 strict verification observes the same blocked receipt"
+    ],
+    "same_failure_family_observed_before_RS_IDN_source_commit": true,
+    "rs_idn_change_required": false,
+    "generated_manual_QA_artifacts_restored_to_source_SHA": true
+  },
+  "calibrations": {
+    "store_path_preflight_first_attempt": "FAILED_ONLY_WHILE_ANOTHER_TEST_OWNED_TEMP_STORE_lawos-hrx-runtime-fFVYrg",
+    "store_path_preflight_isolated_rerun": "PASS 5/5",
+    "classification": "PARALLEL_TEST_INTERFERENCE",
+    "source_failure": false
+  },
+  "observations": {
+    "origin_main_sha_at_program_start": "b46a686f719875c6980ecba9bc213a605f58fa45",
+    "required_merge_sha_is_origin_main_ancestor": true,
+    "dedicated_worktree": "/private/tmp/lawos-rs-idn-20260716",
+    "branch": "codex/rs-idn-20260716",
+    "source_worktree_clean_before_evidence": true,
+    "protected_root_head": "b46a686f719875c6980ecba9bc213a605f58fa45",
+    "protected_root_branch": "codex/root-main-sync-20260716",
+    "protected_root_mutated": false,
+    "production_connection_opened": false,
+    "provider_contacted": false,
+    "aws_contacted": false,
+    "real_client_data_used": false
+  },
+  "remaining_boundaries": {
+    "external_dependency_EXT_IDP": "PENDING",
+    "identity_provider_selected": false,
+    "identity_provider_configured": false,
+    "mfa_provider_configured": false,
+    "passkey_provider_configured": false,
+    "credential_transition_approved": false,
+    "identity_provider_cutover_executed": false,
+    "production_database_selected": false,
+    "production_database_provisioned": false,
+    "staging_execution_approved": false,
+    "production_migration_executed": false,
+    "real_data_migration_executed": false,
+    "release_approved": false,
+    "tag_approved": false,
+    "aws_mutation_approved": false,
+    "windows_signing_approved": false,
+    "go_live_approved": false
+  }
+}

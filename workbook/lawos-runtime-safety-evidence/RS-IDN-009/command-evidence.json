@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-IDN-009",
+  "implementation_state": "VERIFIED",
+  "execution_state": "EXTERNAL_DECISION_PENDING",
+  "source_sha": "81593387661b40046fcdd91482397d74dbd6c3df",
+  "tree": "6e59014bfa25e7112d7b349ce76d5b034203aa06",
+  "recorded_at": "2026-07-16T16:03:48Z",
+  "command": "node --test apps/api/test/session-auth-api.test.js packages/runtime-auth/test/step-up-provider.test.js; node --test apps/api/test/hrx/step-up-route.test.js",
+  "exit_code": 0,
+  "summary": "Password-reset and step-up challenges use expiring, revocable, one-time hash state with shared audit; provider-neutral verification and the explicit local/internal adapter fail closed without a default proof",
+  "artifacts": [
+    "packages/runtime-auth/src/step-up-provider.js",
+    "packages/runtime-auth/src/postgres-identity-ledger.js",
+    "apps/api/src/hrx-step-up-token.js",
+    "apps/api/src/session-auth.js",
+    "workbook/lawos-idp-mfa-passkey-decision-packet-2026-07-16.md"
+  ],
+  "claims": {
+    "reset_token_hash_only": true,
+    "step_up_challenge_hash_only": true,
+    "challenge_expiry_and_revocation_verified": true,
+    "provider_exception_fails_closed": true,
+    "default_provider_proof_exists": false,
+    "external_dependency_EXT_IDP": "PENDING",
+    "provider_selected": false,
+    "provider_configured": false,
+    "provider_cutover_executed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.prj-source-verification-summary.v1",
+  "recorded_at": "2026-07-17T15:02:30Z",
+  "verdict": "PASS",
+  "source_sha": "199ac95ae591110031822a701c22a8c293549fcf",
+  "source_tree": "f82dd4e9977d75bf3f0c25dda728c95e257c6f3c",
+  "source_worktree_clean": true,
+  "node_version": "v22.22.3",
+  "npm_version": "10.9.8",
+  "package_lock_sha256": "745691b99cb087df3bdfaed356712c231de4b9fd562c6dd20b4338fe8487e414",
+  "source_verification_bundle_sha256": "7059b4285d0f28dc6aceaddc355f061ae89e7324bc429243381239f2344e4422",
+  "prj_outcome_sha256": "64d33bdcd5140521ac2c156cadfb387e26e02ba2639ac287be3a8cf0f41c802e",
+  "required_source_path_count": 4,
+  "commands": [
+    {
+      "scope": "persistence-home-ui-analytics",
+      "exit_code": 0,
+      "passed": 42,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "scope": "home-dashboard-and-analytics-api",
+      "exit_code": 0,
+      "passed": 21,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "safe_counts": {
+    "passed": 63,
+    "failed": 0,
+    "skipped": 0
+  },
+  "external_actions_executed": 0,
+  "db_writes": 0,
+  "real_data_used": false
+}

@@ -1,4 +1,5 @@
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
+import { createHomeDashboardOperationalState } from "./home-dashboard-operational-state.js";
 
 const NEWS_CACHE_MIN_MS = 15 * 60 * 1000;
 const NEWS_CACHE_MAX_MS = 30 * 60 * 1000;
@@ -99,6 +100,7 @@ export const HOME_DASHBOARD_API_ERROR_CODES = Object.freeze({
   method_not_allowed: "HOME_METHOD_NOT_ALLOWED",
   action_not_allowed: "HOME_ACTION_NOT_ALLOWED",
   item_not_found: "HOME_ITEM_NOT_FOUND",
+  idempotency_conflict: "HOME_IDEMPOTENCY_CONFLICT",
   news_source_failed: "HOME_NEWS_SOURCE_FAILED",
   news_all_sources_failed: "HOME_NEWS_ALL_SOURCES_FAILED",
 });
@@ -109,7 +111,12 @@ export function createDefaultHomeDashboardRuntime({
   cacheTtlMs = NEWS_CACHE_MIN_MS,
   seed = {},
   sourceCollectors = {},
+  operationalStorePath,
+  operationalRepository,
+  telemetrySink = null,
 } = {}) {
+  const operationalState = createHomeDashboardOperationalState({ repository: operationalRepository, filePath: operationalStorePath });
+  const persisted = operationalState.snapshot();
   return {
     now,
     newsFetch,
@@ -118,9 +125,13 @@ export function createDefaultHomeDashboardRuntime({
     agendaEvents: Array.isArray(seed.agendaEvents) ? [...seed.agendaEvents] : [],
     feedEntries: Array.isArray(seed.feedEntries) ? [...seed.feedEntries] : [],
     sourceCollectors: normalizeSourceCollectors(sourceCollectors),
-    decisions: new Map(),
-    auditEvents: [],
+    decisions: new Map(persisted.decisions.map((decision) => [decision.storage_key, Object.freeze(decision)])),
+    auditEvents: persisted.audit_events.map((event) => Object.freeze(event)),
+    outboxEvents: persisted.outbox_events.map((event) => Object.freeze(event)),
     usageEvents: [],
+    telemetrySink,
+    telemetryFailures: 0,
+    operationalState,
     newsCache: new Map(),
   };
 }
@@ -296,7 +307,22 @@ function countsFor(items, now) {
   return Object.freeze({ approval, task_late: taskLate, task_today: taskToday });
 }
 
-function appendAudit(runtime, event = {}) {
+function persistOperationalState(runtime) {
+  return runtime.operationalState.commit({
+    decisions: [...runtime.decisions.values()],
+    audit_events: runtime.auditEvents,
+    outbox_events: runtime.outboxEvents,
+  });
+}
+
+function reloadOperationalState(runtime) {
+  const persisted = runtime.operationalState.reload();
+  runtime.decisions = new Map(persisted.decisions.map((decision) => [decision.storage_key, Object.freeze(decision)]));
+  runtime.auditEvents = persisted.audit_events.map((event) => Object.freeze(event));
+  runtime.outboxEvents = persisted.outbox_events.map((event) => Object.freeze(event));
+}
+
+function appendAudit(runtime, event = {}, { persist = true } = {}) {
   if (!runtime?.auditEvents) return null;
   const auditEvent = Object.freeze({
     audit_event_id: event.audit_event_id ?? `home_audit_${runtime.auditEvents.length + 1}`,
@@ -318,6 +344,14 @@ function appendAudit(runtime, event = {}) {
     }),
   });
   runtime.auditEvents.push(auditEvent);
+  if (persist) {
+    try {
+      persistOperationalState(runtime);
+    } catch (error) {
+      runtime.auditEvents.pop();
+      throw error;
+    }
+  }
   return auditEvent;
 }
 
@@ -337,6 +371,12 @@ function appendUsage(runtime, event = {}) {
     production_ready_claim: false,
   });
   runtime.usageEvents.push(usageEvent);
+  try {
+    const pending = runtime.telemetrySink?.(usageEvent);
+    if (pending && typeof pending.then === "function") pending.catch(() => { runtime.telemetryFailures += 1; });
+  } catch {
+    runtime.telemetryFailures += 1;
+  }
   return usageEvent;
 }
 
@@ -573,7 +613,8 @@ async function handleActionInbox({ pathname, method, query, context, requestId, 
 }
 
 function decisionKey(body, itemId, action) {
-  return body.idempotency_key ?? `${body.tenant_id}:${itemId}:${action}`;
+  const idempotencyKey = body.idempotency_key ?? `${itemId}:${action}`;
+  return `${body.tenant_id}:${idempotencyKey}`;
 }
 
 async function handleDecision({ pathname, method, query, body, context, requestId, runtime }) {
@@ -617,6 +658,11 @@ async function handleDecision({ pathname, method, query, body, context, requestI
   const key = decisionKey(body, itemId, action);
   const existing = runtime.decisions.get(key);
   if (existing) {
+    if (existing.item_id !== itemId || existing.action !== action) {
+      return errorResponse(409, requestId, [HOME_DASHBOARD_API_ERROR_CODES.idempotency_conflict], {
+        audit_hint_ref: decisionQuery.audit_hint_ref,
+      });
+    }
     appendUsage(runtime, {
       tenant_id: decisionQuery.tenant_id,
       actor_id: context?.principal?.user_id ?? null,
@@ -641,12 +687,15 @@ async function handleDecision({ pathname, method, query, body, context, requestI
   }
   const decision = Object.freeze({
     decision_id: `home_decision_${runtime.decisions.size + 1}`,
+    tenant_id: decisionQuery.tenant_id,
     item_id: itemId,
     action,
     reason: body.reason ?? null,
     actor_id: context?.principal?.user_id ?? null,
     created_at: toIso(runtime.now()),
-    idempotency_key: key,
+    idempotency_key: body.idempotency_key ?? `${itemId}:${action}`,
+    storage_key: key,
+    state_version: 1,
     production_ready_claim: false,
   });
   runtime.decisions.set(key, decision);
@@ -659,8 +708,29 @@ async function handleDecision({ pathname, method, query, body, context, requestI
     outcome: "passed",
     audit_hint_ref: decisionQuery.audit_hint_ref,
     permission_ref: decisionQuery.permission_ref,
-    metadata: { decision_action: action, idempotency_key: key },
+    metadata: { decision_action: action, idempotency_key: decision.idempotency_key },
+  }, { persist: false });
+  const outboxEvent = Object.freeze({
+    outbox_event_id: `home_outbox_${runtime.outboxEvents.length + 1}`,
+    tenant_id: decisionQuery.tenant_id,
+    event_type: "home.action_inbox.decision.committed",
+    aggregate_id: itemId,
+    decision_id: decision.decision_id,
+    state_version: decision.state_version,
+    status: "pending",
+    created_at: decision.created_at,
+    raw_payload_included: false,
   });
+  runtime.outboxEvents.push(outboxEvent);
+  try {
+    persistOperationalState(runtime);
+  } catch (error) {
+    runtime.outboxEvents.pop();
+    runtime.auditEvents.pop();
+    runtime.decisions.delete(key);
+    try { reloadOperationalState(runtime); } catch {}
+    throw error;
+  }
   appendUsage(runtime, {
     tenant_id: decisionQuery.tenant_id,
     actor_id: context?.principal?.user_id ?? null,

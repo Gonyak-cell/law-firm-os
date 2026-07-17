@@ -1,0 +1,12 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.output-hashes.v0.2",
+  "tuw_id": "RS-IDN-001",
+  "target_source_sha": "81593387661b40046fcdd91482397d74dbd6c3df",
+  "combined_output_sha256": "9c8b3205cca1492b5279a9ead5ee1cb7ed3d2c16ea5d877ad15e325ece40545b",
+  "command_output_sha256": {
+    "1": "770af618f67cf755fa57980b40fcb27ca716bd4d522f83fa4f1a01ec3b051f5f",
+    "2": "1aadd567919b8a7c55d7f9f7ffee57eabc3b5377a2a9c09d3958fd3c9521a94e",
+    "3": "603bab101e499e6c8a9f88ab87f788dab8b49647eab937991d22763709462f02",
+    "4": "f66f328ce533d27cc64aaad08ed8eb43901769980782f449fbf779c0ea6919ce"
+  }
+}

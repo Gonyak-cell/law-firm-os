@@ -1,0 +1,48 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.terminal-validation.v0.1",
+  "workstream": "RS-GOV",
+  "terminal_tuw": "RS-GOV-008",
+  "recorded_at": "2026-07-16T08:35:00Z",
+  "validated_sha": "2a98c43926324bb33109d4a3d670aed99a90ea0e",
+  "validated_tree": "509f15014b4a3d8692af0a6dab8e87977edabc88",
+  "verdict": "PASS",
+  "terminal_claim": "PLAN_EXECUTION_READY",
+  "commands": [
+    {
+      "command": "node scripts/validate-runtime-safety-governance.mjs",
+      "exit_code": 0,
+      "summary": "147 TUWs, 13 workstreams and terminals, 16+1 paths, 18 direct writer files, 16 call-graph nodes and 11 external dependencies PASS"
+    },
+    {
+      "command": "node --check scripts/validate-runtime-safety-governance.mjs",
+      "exit_code": 0,
+      "summary": "validator syntax PASS"
+    },
+    {
+      "command": "git diff --check HEAD^",
+      "exit_code": 0,
+      "summary": "committed RS-GOV change has no whitespace error"
+    }
+  ],
+  "safe_counts": {
+    "worktree_status_entry_count": 0,
+    "user_root_mutation_count": 0,
+    "tuw_count": 147,
+    "workstream_count": 13,
+    "final_terminal_count": 13,
+    "required_manifest_path_count": 16,
+    "derived_path_count": 1,
+    "direct_fs_writer_file_count": 18,
+    "external_dependency_count": 11
+  },
+  "boundary": {
+    "source_implementation_may_proceed": true,
+    "runtime_risks_fixed_by_this_gate": false,
+    "external_execution_approved": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "production_migration_executed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

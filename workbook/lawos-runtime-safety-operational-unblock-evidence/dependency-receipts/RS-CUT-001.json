@@ -1,0 +1,14 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.operational-dependency-receipt.v1",
+  "tuw_id": "RS-CUT-001",
+  "target_source_sha": "199ac95ae591110031822a701c22a8c293549fcf",
+  "target_tree": "f82dd4e9977d75bf3f0c25dda728c95e257c6f3c",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "decision": "approved",
+  "approval_receipt_sha256": "b8f58b7ee6a0d388b48695fd60ff86e31d7f053bfd81dbc674f46c61e5bbde8d",
+  "approval_signature_sha256": "63ef0126f385df3fb3f11d8d3b60e553bae458278abfe0024dc6ce8867155996",
+  "readiness_sha256": "800069fd4aae46f7cde9b77f2b25a24303e24cb8d8ccd385aee3108d0806af41",
+  "claims": { "verified": true, "production_ready": false, "release_executed": false, "go_live": false },
+  "external_actions": []
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.dms-provider-preflight.v1",
+  "source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "source_tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
+  "decision_source_sha": "9912071d0839c974e85d8ba5f6f3dd9665a066d7",
+  "packet_sha256": "4d9ace87b3b805c18d757e596e2c456ea90329ab02b8ed6fd1c0aa31ad940429",
+  "implementation_state": "READY",
+  "execution_state": "APPROVAL_REQUIRED",
+  "verified": false,
+  "decision": null,
+  "blockers": [
+    "DMS_PROVIDER_APPROVAL_REQUIRED",
+    "USER_EXECUTION_INSTRUCTION_REQUIRED"
+  ],
+  "provider_contacted": false,
+  "provider_write_count": 0,
+  "real_data_used": false,
+  "staging_contacted": false,
+  "production_contacted": false,
+  "release_executed": false,
+  "go_live": false
+}

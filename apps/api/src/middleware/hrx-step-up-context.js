@@ -2,7 +2,6 @@ import { evaluateHrxStepUp } from "./hrx-step-up.js";
 import { createHrxStepUpAuthority } from "../hrx-step-up-token.js";
 
 export const HRX_STEP_UP_CONTEXT_HEADER = "x-lawos-hrx-step-up";
-const DEFAULT_HRX_STEP_UP_AUTHORITY = createHrxStepUpAuthority();
 
 function headerValue(headers = {}, name) {
   const value = headers[name] ?? headers[name.toLowerCase()];
@@ -23,25 +22,27 @@ function blocked(status, safeErrorCode, reason, extra = {}) {
   });
 }
 
-export function parseHrxStepUpContext(headers = {}, { verifier = DEFAULT_HRX_STEP_UP_AUTHORITY } = {}) {
+export function parseHrxStepUpContext(headers = {}, { verifier } = {}) {
+  const resolvedVerifier = verifier ?? createHrxStepUpAuthority();
   const value = headerValue(headers, HRX_STEP_UP_CONTEXT_HEADER);
   if (!value.trim()) {
     return Object.freeze({ ok: false, token: null, reason: "hrx_step_up_context_absent" });
   }
-  const verified = verifier.verify(value);
+  const verified = resolvedVerifier.verify(value);
   if (!verified.ok) {
     return Object.freeze({ ok: false, token: null, reason: verified.reason ?? "hrx_step_up_token_invalid" });
   }
   return Object.freeze({ ok: true, token: verified.token, source: verified.source ?? "signed_step_up_token" });
 }
 
-export function authorizeHrxStepUpRequest({ action, context = {}, headers = {}, now, verifier = DEFAULT_HRX_STEP_UP_AUTHORITY } = {}) {
-  const parsed = parseHrxStepUpContext(headers, { verifier });
+export function authorizeHrxStepUpRequest({ action, context = {}, headers = {}, now, verifier } = {}) {
+  const resolvedVerifier = verifier ?? createHrxStepUpAuthority();
+  const parsed = parseHrxStepUpContext(headers, { verifier: resolvedVerifier });
   const decision = evaluateHrxStepUp({
     action,
     context,
     token: parsed.ok ? parsed.token : null,
-    now: now ?? verifier.nowIso?.(),
+    now: now ?? resolvedVerifier.nowIso?.(),
   });
   if (decision.effect === "allow") {
     return Object.freeze({

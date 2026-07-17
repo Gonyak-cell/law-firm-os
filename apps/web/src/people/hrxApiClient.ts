@@ -1,4 +1,4 @@
-import { readLawosApiSession } from "../data/apiClient.js";
+import { isDesktopRendererLocation, readLawosApiSession } from "../data/apiClient.js";
 
 const HRX_ORG_REF = "tenant_amic_matter_vault";
 const LAWOS_SESSION_ENVELOPE_STORAGE_KEY = "lawos.session.envelope";
@@ -52,9 +52,8 @@ declare global {
 const HRX_STEP_UP_STORAGE_KEY = "lawos_hrx_step_up_token";
 
 function desktopApiBaseUrl(): string {
-  if (typeof window === "undefined" || window.location?.protocol !== "file:") return "";
+  if (typeof window === "undefined" || !isDesktopRendererLocation(window.location)) return "";
   const params = new URLSearchParams(window.location.search);
-  if (params.get("desktop") !== "1") return "";
   const sessionBaseUrl = window.matterSession?.desktopApiBaseUrl;
   const rawBaseUrl = typeof sessionBaseUrl === "string" && sessionBaseUrl.trim()
     ? sessionBaseUrl
@@ -76,9 +75,7 @@ function apiRequestUrl(input: string): string {
 }
 
 function desktopReadBridge() {
-  if (typeof window === "undefined" || window.location?.protocol !== "file:") return null;
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("desktop") !== "1") return null;
+  if (typeof window === "undefined" || !isDesktopRendererLocation(window.location)) return null;
   return typeof window.matterSession?.api === "function" ? window.matterSession.api : null;
 }
 

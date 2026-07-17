@@ -61,6 +61,119 @@ test("logout clears secure store and registered cache stores", async () => {
   assert.equal(rendererCache.cleared, true);
 });
 
+test("logout revokes the server session before clearing every local cache", async () => {
+  const secureStore = memorySecureStore();
+  const cache = fakeCache();
+  const calls = [];
+  await secureStore.set("session_token", "lawos_session_v1.secret");
+  const coordinator = new MainProcessAuthCoordinator({
+    secureStore,
+    cacheStores: [cache],
+    runtimeClient: {
+      async logout({ sessionToken }) {
+        calls.push(sessionToken);
+        return { ok: true, replayed: false, http_status: 200, session_token: "must-not-render" };
+      }
+    }
+  });
+
+  const result = await coordinator.logout();
+
+  assert.deepEqual(calls, ["lawos_session_v1.secret"]);
+  assert.deepEqual(secureStore.snapshot(), {});
+  assert.equal(cache.cleared, true);
+  assert.deepEqual(result.server_revoke, { attempted: true, ok: true, reason: null, http_status: 200 });
+  assert.equal(result.local_cache_cleared, true);
+  assert.equal(JSON.stringify(result).includes("lawos_session_v1.secret"), false);
+  assert.equal(JSON.stringify(result).includes("must-not-render"), false);
+});
+
+test("logout clears local session material when server revocation fails", async () => {
+  const secureStore = memorySecureStore();
+  const cache = fakeCache();
+  await secureStore.set("session_token", "lawos_session_v1.secret");
+  const coordinator = new MainProcessAuthCoordinator({
+    secureStore,
+    cacheStores: [cache],
+    runtimeClient: {
+      async logout() {
+        throw new Error("network response included lawos_session_v1.secret");
+      }
+    }
+  });
+
+  const result = await coordinator.logout();
+
+  assert.deepEqual(secureStore.snapshot(), {});
+  assert.equal(cache.cleared, true);
+  assert.deepEqual(result.server_revoke, {
+    attempted: true,
+    ok: false,
+    reason: "server_session_revoke_failed",
+    http_status: 0
+  });
+  assert.equal(result.local_cache_cleared, true);
+  assert.equal(JSON.stringify(result).includes("lawos_session_v1.secret"), false);
+  assert.equal(JSON.stringify(result).includes("network response"), false);
+});
+
+test("logout still clears every local cache when reading the signed session fails", async () => {
+  let secureStoreCleared = false;
+  let runtimeCalls = 0;
+  const cache = fakeCache();
+  const coordinator = new MainProcessAuthCoordinator({
+    secureStore: {
+      async get() {
+        throw new Error("secure store read included secret material");
+      },
+      async clear() {
+        secureStoreCleared = true;
+      }
+    },
+    cacheStores: [cache],
+    runtimeClient: {
+      async logout() {
+        runtimeCalls += 1;
+      }
+    }
+  });
+
+  const result = await coordinator.logout();
+
+  assert.equal(secureStoreCleared, true);
+  assert.equal(cache.cleared, true);
+  assert.equal(runtimeCalls, 0);
+  assert.equal(result.local_cache_cleared, true);
+  assert.deepEqual(result.server_revoke, {
+    attempted: true,
+    ok: false,
+    reason: "server_session_revoke_failed",
+    http_status: 0
+  });
+  assert.equal(JSON.stringify(result).includes("secret material"), false);
+});
+
+test("logout attempts all local cache clears and reports an incomplete wipe safely", async () => {
+  const secureStore = memorySecureStore();
+  const laterCache = fakeCache();
+  await secureStore.set("session_token", "lawos_session_v1.secret");
+  const coordinator = new MainProcessAuthCoordinator({
+    secureStore,
+    cacheStores: [
+      { async clear() { throw new Error("cache contained lawos_session_v1.secret"); } },
+      laterCache
+    ],
+    runtimeClient: { async logout() { return { ok: true, http_status: 200 }; } }
+  });
+
+  const result = await coordinator.logout();
+
+  assert.deepEqual(secureStore.snapshot(), {});
+  assert.equal(laterCache.cleared, true);
+  assert.equal(result.local_cache_cleared, false);
+  assert.equal(JSON.stringify(result).includes("lawos_session_v1.secret"), false);
+});
+
 test("preload session API source does not expose token storage APIs", async () => {
   const preloadSource = await readFile(desktopPreloadPath(), "utf8");
 

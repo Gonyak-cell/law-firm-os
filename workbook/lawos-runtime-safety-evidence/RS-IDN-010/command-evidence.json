@@ -1,0 +1,34 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-IDN-010",
+  "implementation_state": "VERIFIED",
+  "execution_state": "EXTERNAL_DECISION_PENDING",
+  "source_sha": "81593387661b40046fcdd91482397d74dbd6c3df",
+  "tree": "6e59014bfa25e7112d7b349ce76d5b034203aa06",
+  "recorded_at": "2026-07-16T16:03:48Z",
+  "command": "exact-SHA validation matrix: VC-AUTH 24/24; PostgreSQL 10/10; persistence 66/66; Matter 191/191; API authority 8/8; API security 6/6; runtime-auth 18/18; desktop 44/44; security validators; writer/governance/preflight validators; web build; sloplint; live PostgreSQL HTTP QA; Playwright source-browser QA",
+  "exit_code": 0,
+  "summary": "All G7-IDN source gates PASS at the committed SHA; identity, challenge, revocation, logout and audit behavior are locally verified while EXT-IDP and all production/release actions remain pending",
+  "artifacts": [
+    "packages/persistence/src/postgres/migrations/002_identity_ledger.sql",
+    "packages/runtime-auth/src/postgres-identity-ledger.js",
+    "packages/runtime-auth/src/step-up-provider.js",
+    "apps/api/src/session-auth.js",
+    "apps/api/src/server.js",
+    "apps/desktop/src/main/auth.js",
+    "apps/desktop/src/renderer/offline.html",
+    "workbook/lawos-idp-mfa-passkey-decision-packet-2026-07-16.md"
+  ],
+  "claims": {
+    "identity_ledger_source_verified": true,
+    "source_worktree_clean_before_evidence": true,
+    "external_dependency_EXT_IDP": "PENDING",
+    "idp_cutover_complete": false,
+    "production_database_used": false,
+    "real_client_data_used": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

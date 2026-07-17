@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DUR-010",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "90e241bf4f06004974e7a97592f07309873f0131",
+  "tree": "03523aab761d3df40ac4f515052a66543a5227ee",
+  "profile": "filesystem-local",
+  "recorded_at": "2026-07-16T09:36:20Z",
+  "command": "write binary bytes, verify digest readback, create a sidecar and inject a post-rename failure",
+  "exit_code": 0,
+  "safe_counts": {
+    "binary_digest_readbacks": 1,
+    "sidecars_written": 1,
+    "post_rename_compensation_hooks": 1,
+    "external_provider_calls": 0
+  },
+  "artifacts": [
+    "packages/persistence/src/durable-file.js",
+    "packages/persistence/test/store-fault-injection.test.js"
+  ],
+  "claims": {
+    "binary_atomic_write_verified": true,
+    "digest_readback_verified": true,
+    "compensation_hook_verified": true,
+    "dms_provider_approved": false,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

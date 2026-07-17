@@ -1,0 +1,26 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DBF-011",
+  "implementation_state": "VERIFIED",
+  "execution_state": "DISPOSABLE_LOCAL_ONLY",
+  "source_sha": "86f4566eac262f82b10220f78bc9e2b4721135eb",
+  "tree": "f8e83803b05ab857ce0232379807c6d2217a2c03",
+  "recorded_at": "2026-07-16T14:24:15Z",
+  "command": "parallel exact-SHA group: PG contract; npm --workspace packages/persistence test; npm --workspace packages/matter test",
+  "exit_code": 0,
+  "summary": "PG contract PASS 10/10, persistence PASS 66/66 and Matter PASS 191/191; file v2 and PostgreSQL v2 pass the same domain-neutral contract harness",
+  "artifacts": [
+    "packages/persistence/test/helpers/repository-port-v2-contract.js",
+    "packages/persistence/test/postgres-repository-contract.test.js",
+    "packages/matter/src/repository-v2.js",
+    "packages/persistence/src/postgres/repository-v2.js"
+  ],
+  "claims": {
+    "file_and_postgres_contract_parity_verified": true,
+    "persistence_regression_passed": true,
+    "matter_regression_passed": true,
+    "three_independent_failures_observed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

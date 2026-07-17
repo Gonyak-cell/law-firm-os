@@ -1,0 +1,125 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.external-dependency-ledger.v0.1",
+  "tuw_id": "RS-GOV-006",
+  "recorded_at": "2026-07-16T08:27:08Z",
+  "source_sha": "1d2df30e235d3080aaa877bb6e01b0a43be8e5c5",
+  "dependencies": [
+    {
+      "key": "EXT-PLAN-APPROVAL",
+      "status": "approved_source_only",
+      "owner": "user",
+      "blocks": "source implementation start",
+      "allowed_now": ["repository source changes", "local and disposable tests", "evidence and external execution packets"],
+      "forbidden_now": ["release", "AWS mutation", "real-data migration", "production cutover", "go-live"],
+      "linked_tuws": ["RS-GOV-008"],
+      "receipt": "workbook/lawos-runtime-safety-evidence/RS-GOV-008/source-implementation-approval.json"
+    },
+    {
+      "key": "EXT-AWS-BACKUP",
+      "status": "approval_required",
+      "owner": "infrastructure and security owner",
+      "blocks": "actual off-device backup activation and remote restore receipt",
+      "allowed_now": ["queue schema", "processor", "dry-run", "fake integration", "restore tooling"],
+      "linked_tuws": ["RS-BKP-005", "RS-CUT-008", "RS-CUT-010"],
+      "required_receipt": "approved bucket, KMS, policy, role and scheduler plus isolated restore"
+    },
+    {
+      "key": "EXT-PG-PROD",
+      "status": "approval_required",
+      "owner": "infrastructure, security and data owner",
+      "blocks": "production PostgreSQL provisioning, connection and cutover",
+      "allowed_now": ["RepositoryPortV2", "disposable PostgreSQL schema and adapter tests", "migration tooling"],
+      "linked_tuws": ["RS-DBF-012", "RS-CUT-008", "RS-CUT-009", "RS-CUT-010"],
+      "required_receipt": "approved vendor, instance, region, secret or IAM, encryption and PITR configuration"
+    },
+    {
+      "key": "EXT-STAGING",
+      "status": "approval_required",
+      "owner": "environment owner",
+      "blocks": "approved staging shadow and cutover rehearsal",
+      "allowed_now": ["local and disposable PostgreSQL rehearsal"],
+      "linked_tuws": ["RS-CUT-005", "RS-CUT-006", "RS-CUT-007"],
+      "required_receipt": "staging tenant, credentials, source SHA, migration and smoke receipts"
+    },
+    {
+      "key": "EXT-REAL-DATA",
+      "status": "approval_required",
+      "owner": "data owner and privacy owner",
+      "blocks": "real-client-data inventory, import, shadow and cutover",
+      "allowed_now": ["synthetic importer", "PII-safe count and hash tooling"],
+      "linked_tuws": ["RS-CUT-004", "RS-CUT-005", "RS-CUT-009"],
+      "required_receipt": "purpose, data scope, operator, retention and PII-safe evidence approval"
+    },
+    {
+      "key": "EXT-DMS-PROVIDER",
+      "status": "approval_required",
+      "owner": "MAT-DEC-03 owner",
+      "blocks": "actual document original provider write and recovery",
+      "allowed_now": ["provider-neutral adapter contract", "local test adapter", "reconciler"],
+      "linked_tuws": ["RS-DMS-001", "RS-DMS-010", "RS-CUT-008", "RS-CUT-010"],
+      "required_receipt": "provider decision, ACL authority, versioning, retention, legal hold, sandbox roundtrip and restore"
+    },
+    {
+      "key": "EXT-IDP",
+      "status": "approval_required",
+      "owner": "identity and security owner",
+      "blocks": "production IdP, MFA or passkey provider transition",
+      "allowed_now": ["provider-neutral factor interface", "local and internal test adapter", "no-default-secret validation"],
+      "linked_tuws": ["RS-IDN-009", "RS-IDN-010"],
+      "required_receipt": "provider, recovery, credential transition, break-glass and revocation acceptance"
+    },
+    {
+      "key": "EXT-RETENTION",
+      "status": "approval_required",
+      "owner": "legal, privacy and records owner",
+      "blocks": "actual retention, deletion and legal-hold lifecycle",
+      "allowed_now": ["decision packet", "dry-run permission and inventory tooling"],
+      "linked_tuws": ["RS-BKP-007", "RS-DMS-001", "RS-CUT-008"],
+      "required_receipt": "approved backup, audit, document, legal-hold and PIPA retention matrix"
+    },
+    {
+      "key": "EXT-PROD-WINDOW",
+      "status": "approval_required",
+      "owner": "production change owner",
+      "blocks": "production write freeze, migration and rollback window",
+      "allowed_now": ["runbook", "synthetic rehearsal", "abort and forward-repair tooling"],
+      "linked_tuws": ["RS-CUT-001", "RS-CUT-008", "RS-CUT-009", "RS-CUT-012"],
+      "required_receipt": "operator, window, communication, abort authority and rollback cutoff approval"
+    },
+    {
+      "key": "EXT-RELEASE",
+      "status": "approval_required",
+      "owner": "release owner",
+      "blocks": "tag, exact-main formal package, notarization upload and AWS deploy",
+      "allowed_now": ["source tests", "local package preflight without publication"],
+      "linked_tuws": ["RS-CUT-008", "RS-CUT-009"],
+      "required_receipt": "exact SHA release, package and deploy authorization"
+    },
+    {
+      "key": "EXT-WIN-SIGN",
+      "status": "approval_required",
+      "owner": "Windows release owner",
+      "blocks": "Windows Authenticode signing and distribution",
+      "allowed_now": ["source and build preflight without distribution"],
+      "linked_tuws": [],
+      "required_receipt": "approved Authenticode identity, signed artifact and native install smoke"
+    }
+  ],
+  "boundary": {
+    "source_implementation_approved": true,
+    "staging_execution_approved": false,
+    "aws_mutation_approved": false,
+    "provider_mutation_approved": false,
+    "real_data_use_approved": false,
+    "production_migration_approved": false,
+    "release_approved": false,
+    "go_live_approved": false
+  },
+  "claims": {
+    "external_dependency_count": 11,
+    "approved_source_only_count": 1,
+    "approval_required_count": 10,
+    "external_execution_complete": false,
+    "production_ready": false
+  }
+}

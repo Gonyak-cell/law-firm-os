@@ -1,0 +1,24 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DBF-007",
+  "implementation_state": "VERIFIED",
+  "execution_state": "DISPOSABLE_LOCAL_ONLY",
+  "source_sha": "86f4566eac262f82b10220f78bc9e2b4721135eb",
+  "tree": "f8e83803b05ab857ce0232379807c6d2217a2c03",
+  "recorded_at": "2026-07-16T14:24:15Z",
+  "command": "node --test packages/persistence/test/postgres-transaction.test.js packages/persistence/test/postgres-repository-contract.test.js; node scripts/validate-hrx-security-negative-tests.mjs",
+  "exit_code": 0,
+  "summary": "PG PASS 10/10 and HRX security negative validation PASS across 9 files; forced RLS hides cross-tenant reads and rejects cross-tenant writes",
+  "artifacts": [
+    "packages/persistence/src/postgres/migrations/001_repository_port_v2.sql",
+    "packages/persistence/test/postgres-transaction.test.js"
+  ],
+  "claims": {
+    "rls_enabled_and_forced": true,
+    "cross_tenant_read_hidden": true,
+    "cross_tenant_write_rejected": true,
+    "real_client_data_used": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

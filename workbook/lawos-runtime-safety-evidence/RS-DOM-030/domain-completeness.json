@@ -1,0 +1,473 @@
+{
+  "schema_version": "law-firm-os.domain-adapter-completeness.v0.1",
+  "source_sha": "49768ead507457e03a9036d8720873c1e45ccf00",
+  "tree": "fd4c93d4b69dbb5fc5432a55b7a263feefd781ea",
+  "recorded_at": "2026-07-16T17:36:26Z",
+  "verdict": "PASS",
+  "allowed_claim": "DOMAIN_ADAPTERS_SOURCE_VERIFIED",
+  "source_worktree_clean_before_evidence": true,
+  "domain_count": 8,
+  "domains": [
+    {
+      "domain_id": "master-data",
+      "tuw_ids": [
+        "RS-DOM-002",
+        "RS-DOM-003",
+        "RS-DOM-004",
+        "RS-DOM-005"
+      ],
+      "source_sha": "49768ead507457e03a9036d8720873c1e45ccf00",
+      "adapter": {
+        "module_path": "packages/master-data/src/central-ledger.js",
+        "test_path": "packages/master-data/test/central-ledger.test.js",
+        "async_port_verified": true,
+        "tenant_scoped": true,
+        "audit_preserved": true,
+        "idempotency_preserved": true
+      },
+      "import_receipt": {
+        "status": "source_imported",
+        "rejected_count": 0,
+        "second_import_replayed": true,
+        "rollback_cutoff": "pre_authority",
+        "source_hash": "d6ed74fef624ae404318f196b91ec7328ead455ce296e57e9118e993a4180d03",
+        "snapshot_hash": "7c389cd55d81e506854282fea31407e46b3fa27c0922cf59ed14f869be13b66f",
+        "source_count": 10,
+        "target_count": 10,
+        "invariant_hash": "2d24512cc11471576cd69d4d7fce3bc7c0b7fa6a4b1b0e478d30f64df43184d8",
+        "receipt_id": "import-3755f25c1f2364a547f027df4e0d5a0c"
+      },
+      "shadow_receipt": {
+        "status": "equal",
+        "difference_count": 0,
+        "source_count": 10,
+        "target_count": 10,
+        "invariant_hash": "d0e5a16f6f9be6a80b0a7ca1ffa64aa7af085de728310f4fa24f3c0c09133940",
+        "source_hash": "7c389cd55d81e506854282fea31407e46b3fa27c0922cf59ed14f869be13b66f",
+        "target_hash": "7c389cd55d81e506854282fea31407e46b3fa27c0922cf59ed14f869be13b66f",
+        "receipt_id": "shadow-06624a9cdb8b486d56895614471a0fe9"
+      },
+      "rehearsal_receipt": {
+        "status": "source_ready",
+        "rollback_cutoff": "pre_authority",
+        "production_migrated": false,
+        "smoke_hash": "c39ac14113e59aca4a89344b9de38b128fe428c9705fecd2ef767b6ee7fd4757",
+        "receipt_id": "rehearsal-39587a34c3ad9e64859c2818ee9f6088"
+      }
+    },
+    {
+      "domain_id": "matter",
+      "tuw_ids": [
+        "RS-DOM-006",
+        "RS-DOM-007",
+        "RS-DOM-008",
+        "RS-DOM-009",
+        "RS-DOM-010"
+      ],
+      "source_sha": "49768ead507457e03a9036d8720873c1e45ccf00",
+      "adapter": {
+        "module_path": "packages/matter/src/central-ledger.js",
+        "test_path": "packages/matter/test/central-ledger.test.js",
+        "async_port_verified": true,
+        "tenant_scoped": true,
+        "audit_preserved": true,
+        "idempotency_preserved": true
+      },
+      "import_receipt": {
+        "status": "source_imported",
+        "rejected_count": 0,
+        "second_import_replayed": true,
+        "rollback_cutoff": "pre_authority",
+        "source_hash": "9c7590bd11a0657047a5162318f45169bda13f055ea3bfc64141f650f34e7bdd",
+        "snapshot_hash": "945f7a14c588efdcd6cb9d0136416ec28a33f3067f4b8aea3b77770d52e4c89c",
+        "source_count": 405,
+        "target_count": 405,
+        "invariant_hash": "24801068d931b9b00a311cfff2ded715dff4c982024a24bdd4560c9d80cb8ee4",
+        "receipt_id": "import-11e474ad677ed55bfce20223bf56df1c"
+      },
+      "shadow_receipt": {
+        "status": "equal",
+        "difference_count": 0,
+        "source_count": 405,
+        "target_count": 405,
+        "invariant_hash": "d424bacd6cdd2f573e5ab7b82485326a5a753c9f7af164fb49f8fe39812e5bcb",
+        "source_hash": "945f7a14c588efdcd6cb9d0136416ec28a33f3067f4b8aea3b77770d52e4c89c",
+        "target_hash": "945f7a14c588efdcd6cb9d0136416ec28a33f3067f4b8aea3b77770d52e4c89c",
+        "receipt_id": "shadow-50211de41c07b0ece554bede8f073523"
+      },
+      "rehearsal_receipt": {
+        "status": "source_ready",
+        "rollback_cutoff": "pre_authority",
+        "production_migrated": false,
+        "smoke_hash": "985b6404c975d0e8e4e7ce25fe00637122f67122b4371a224725a3bc614c9155",
+        "receipt_id": "rehearsal-6390d33b35ab6813387c13cdaaba8740"
+      }
+    },
+    {
+      "domain_id": "crm",
+      "tuw_ids": [
+        "RS-DOM-011",
+        "RS-DOM-012",
+        "RS-DOM-014",
+        "RS-DOM-015"
+      ],
+      "source_sha": "49768ead507457e03a9036d8720873c1e45ccf00",
+      "adapter": {
+        "module_path": "packages/crm/src/central-ledger.js",
+        "test_path": "packages/crm/test/central-ledger.test.js",
+        "async_port_verified": true,
+        "tenant_scoped": true,
+        "audit_preserved": true,
+        "idempotency_preserved": true
+      },
+      "import_receipt": {
+        "status": "source_imported",
+        "rejected_count": 0,
+        "second_import_replayed": true,
+        "rollback_cutoff": "pre_authority",
+        "source_hash": "802f818b01b0d2fbff40405747d852f0afa86ed98484d61459082ff86e263faf",
+        "snapshot_hash": "b99b725f48cb3ab864d394c17e9bb9c6dc6117c0f4631ae79bc7058270451781",
+        "source_count": 5,
+        "target_count": 5,
+        "invariant_hash": "5a954b8c82a707994e0e1861afceb5bd02a2cda2a60e600f644bb7b1b5e52052",
+        "receipt_id": "import-caaa9e92c4745ae6a9c5f08d08456acd"
+      },
+      "shadow_receipt": {
+        "status": "equal",
+        "difference_count": 0,
+        "source_count": 5,
+        "target_count": 5,
+        "invariant_hash": "8be0da7b2cc9b99654a441b846d7ea2409c24729df9da5d393d0c094157d4cdc",
+        "source_hash": "b99b725f48cb3ab864d394c17e9bb9c6dc6117c0f4631ae79bc7058270451781",
+        "target_hash": "b99b725f48cb3ab864d394c17e9bb9c6dc6117c0f4631ae79bc7058270451781",
+        "receipt_id": "shadow-84a864333817338cd8c07af675a60dc3"
+      },
+      "rehearsal_receipt": {
+        "status": "source_ready",
+        "rollback_cutoff": "pre_authority",
+        "production_migrated": false,
+        "smoke_hash": "b9c5a5961dfaf2be748ce1e45a5eba6a5a318bace17277df803bc434f93aa8b1",
+        "receipt_id": "rehearsal-8b5f05fbd3a160d88a113438db9dc156"
+      }
+    },
+    {
+      "domain_id": "intake",
+      "tuw_ids": [
+        "RS-DOM-011",
+        "RS-DOM-013",
+        "RS-DOM-014",
+        "RS-DOM-015"
+      ],
+      "source_sha": "49768ead507457e03a9036d8720873c1e45ccf00",
+      "adapter": {
+        "module_path": "packages/intake/src/central-ledger.js",
+        "test_path": "packages/crm/test/central-ledger.test.js",
+        "async_port_verified": true,
+        "tenant_scoped": true,
+        "audit_preserved": true,
+        "idempotency_preserved": true
+      },
+      "import_receipt": {
+        "status": "source_imported",
+        "rejected_count": 0,
+        "second_import_replayed": true,
+        "rollback_cutoff": "pre_authority",
+        "source_hash": "b0e7478db1b2a936d5642d097c08a23072ab8cdeb5539796ed8c43b025ef7aa5",
+        "snapshot_hash": "3d2b0834c5fb54100499e72cf34d0600234e5c1618c0c2e1fa47a96d15246f82",
+        "source_count": 2,
+        "target_count": 2,
+        "invariant_hash": "97e9a32e278b152d567156f29a21e5101edc922ef5e863728490b773a1b7ae5c",
+        "receipt_id": "import-2e54fdbf2f467a975deabca315d35c1d"
+      },
+      "shadow_receipt": {
+        "status": "equal",
+        "difference_count": 0,
+        "source_count": 2,
+        "target_count": 2,
+        "invariant_hash": "50803383e27b9443caafb1a7e797e944ed66dd9b92c6789469c8230bd0500bb6",
+        "source_hash": "3d2b0834c5fb54100499e72cf34d0600234e5c1618c0c2e1fa47a96d15246f82",
+        "target_hash": "3d2b0834c5fb54100499e72cf34d0600234e5c1618c0c2e1fa47a96d15246f82",
+        "receipt_id": "shadow-6b8b116fa26bbfb0daaeae8111b5582b"
+      },
+      "rehearsal_receipt": {
+        "status": "source_ready",
+        "rollback_cutoff": "pre_authority",
+        "production_migrated": false,
+        "smoke_hash": "3a67809018357f21f243751ca3c2a67995954dbafbe78088bcb31eab9a1b1226",
+        "receipt_id": "rehearsal-170870c39631365ce46c38179e635d03"
+      }
+    },
+    {
+      "domain_id": "hrx",
+      "tuw_ids": [
+        "RS-DOM-016",
+        "RS-DOM-017",
+        "RS-DOM-018",
+        "RS-DOM-019",
+        "RS-DOM-020",
+        "RS-DOM-021",
+        "RS-DOM-022"
+      ],
+      "source_sha": "49768ead507457e03a9036d8720873c1e45ccf00",
+      "adapter": {
+        "module_path": "packages/hrx/src/postgres-store-v2.js",
+        "test_path": "packages/hrx/test/postgres-store-v2.test.js",
+        "async_port_verified": true,
+        "tenant_scoped": true,
+        "audit_preserved": true,
+        "idempotency_preserved": true
+      },
+      "import_receipt": {
+        "status": "source_imported",
+        "rejected_count": 0,
+        "second_import_replayed": true,
+        "rollback_cutoff": "pre_authority",
+        "source_hash": "22201e862631043d24dab46cfd452c1d5fcbf81ad4e9ce891837762aca40b5e0",
+        "snapshot_hash": "84b8fb6642d2a264da716cf63a4bfee813734797cbec4d6ed6e53af1755efa55",
+        "source_count": 73,
+        "target_count": 73,
+        "invariant_hash": "ddd749d9f96380608d72da5a4b22036a9769063bd9f9bcdc7a13ff48343115db",
+        "receipt_id": "import-fcca60ececbb3f86fa91dc230569b892"
+      },
+      "shadow_receipt": {
+        "status": "equal",
+        "difference_count": 0,
+        "source_count": 73,
+        "target_count": 73,
+        "invariant_hash": "814c71caa3dde05baa0ec03dc37ddd74c6a500ae165900e29549d3853eec29f0",
+        "source_hash": "84b8fb6642d2a264da716cf63a4bfee813734797cbec4d6ed6e53af1755efa55",
+        "target_hash": "84b8fb6642d2a264da716cf63a4bfee813734797cbec4d6ed6e53af1755efa55",
+        "receipt_id": "shadow-eb4c486da3e63df97085ba9e9772fef3"
+      },
+      "rehearsal_receipt": {
+        "status": "source_ready",
+        "rollback_cutoff": "pre_authority",
+        "production_migrated": false,
+        "smoke_hash": "317fb326018db654cbfff3074049e017558e39e4e7b37a8675f368ad365d61bc",
+        "receipt_id": "rehearsal-0f2d1b3887f8ef7281396554e5a1df60"
+      }
+    },
+    {
+      "domain_id": "finance",
+      "tuw_ids": [
+        "RS-DOM-023",
+        "RS-DOM-024",
+        "RS-DOM-025",
+        "RS-DOM-026",
+        "RS-DOM-027"
+      ],
+      "source_sha": "49768ead507457e03a9036d8720873c1e45ccf00",
+      "adapter": {
+        "module_path": "packages/billing/src/central-ledger.js",
+        "test_path": "packages/billing/test/central-ledger.test.js",
+        "async_port_verified": true,
+        "tenant_scoped": true,
+        "audit_preserved": true,
+        "idempotency_preserved": true
+      },
+      "import_receipt": {
+        "status": "source_imported",
+        "rejected_count": 0,
+        "second_import_replayed": true,
+        "rollback_cutoff": "pre_authority",
+        "source_hash": "069a219ea57a50b542391f5940c532952b6f276a5479c78050bbbdd78050eeea",
+        "snapshot_hash": "677fee4b9b3fc36b80011887e3cd1a0989371eb5f1524c22faf198d6ac38295f",
+        "source_count": 14,
+        "target_count": 14,
+        "invariant_hash": "46d463e444dc9948b666fb1424b4dd1c95207d679bbf3367b551df0ede0a4bdf",
+        "receipt_id": "import-010b9bd61e40d22cb70b934e6e2f9113"
+      },
+      "shadow_receipt": {
+        "status": "equal",
+        "difference_count": 0,
+        "source_count": 14,
+        "target_count": 14,
+        "invariant_hash": "aebc3e821648aeabbf9a621c8f67a2f8c166957a878bab01c2da0d26ce79efe7",
+        "source_hash": "677fee4b9b3fc36b80011887e3cd1a0989371eb5f1524c22faf198d6ac38295f",
+        "target_hash": "677fee4b9b3fc36b80011887e3cd1a0989371eb5f1524c22faf198d6ac38295f",
+        "receipt_id": "shadow-5ba1b3f07284eb687f05a0cf0486ca0c"
+      },
+      "rehearsal_receipt": {
+        "status": "source_ready",
+        "rollback_cutoff": "pre_authority",
+        "production_migrated": false,
+        "smoke_hash": "b1d134934c401415180cdb2ece1ea627868f8baeedaa01684068045e330f299a",
+        "receipt_id": "rehearsal-4d7882ad6f43e743a28b69945c3523b5"
+      }
+    },
+    {
+      "domain_id": "client-portal",
+      "tuw_ids": [
+        "RS-DOM-028"
+      ],
+      "source_sha": "49768ead507457e03a9036d8720873c1e45ccf00",
+      "adapter": {
+        "module_path": "packages/client-portal/src/central-ledger.js",
+        "test_path": "packages/client-portal/test/central-ledger.test.js",
+        "runtime_path": "apps/api/src/portal-runtime-context.js",
+        "async_port_verified": true,
+        "tenant_scoped": true,
+        "audit_preserved": true,
+        "idempotency_preserved": true
+      },
+      "import_receipt": {
+        "status": "source_imported",
+        "rejected_count": 0,
+        "second_import_replayed": true,
+        "rollback_cutoff": "pre_authority",
+        "source_hash": "ab2eb53aaa960ae0324fac17947ea9646bf4c821895c1243b5a08cdc2ab3581d",
+        "snapshot_hash": "68c5fb3892252c8f25eb250d61203c10ed3380f796bc1b45c012b1ccfee38b85",
+        "source_count": 8,
+        "target_count": 8,
+        "invariant_hash": "a5e58f90028b2557597f56fdc004759feae4d178551f0f488d85438cc479424b",
+        "receipt_id": "import-20ee23853ffad1b68a7620ed0f05e496"
+      },
+      "shadow_receipt": {
+        "status": "equal",
+        "difference_count": 0,
+        "source_count": 8,
+        "target_count": 8,
+        "invariant_hash": "5b5c4144957bf8a9bc224c132d92306b6e95566ab2287725927870bf56f4ae7b",
+        "source_hash": "68c5fb3892252c8f25eb250d61203c10ed3380f796bc1b45c012b1ccfee38b85",
+        "target_hash": "68c5fb3892252c8f25eb250d61203c10ed3380f796bc1b45c012b1ccfee38b85",
+        "receipt_id": "shadow-6b0e05b41c7318c4dc8cca934be1defc"
+      },
+      "rehearsal_receipt": {
+        "status": "source_ready",
+        "rollback_cutoff": "pre_authority",
+        "production_migrated": false,
+        "smoke_hash": "baa48f96788d620bd7e35fe096f944b96b505ae14da8906602526b5ae83bc293",
+        "receipt_id": "rehearsal-cb4256b2fa6ed003956ed4e06ed46c46"
+      }
+    },
+    {
+      "domain_id": "ai-governance",
+      "tuw_ids": [
+        "RS-DOM-029"
+      ],
+      "source_sha": "49768ead507457e03a9036d8720873c1e45ccf00",
+      "adapter": {
+        "module_path": "packages/ai-governance/src/central-ledger.js",
+        "test_path": "packages/ai-governance/test/central-ledger.test.js",
+        "runtime_path": "apps/api/src/ai-runtime-context.js",
+        "async_port_verified": true,
+        "tenant_scoped": true,
+        "audit_preserved": true,
+        "idempotency_preserved": true
+      },
+      "import_receipt": {
+        "status": "source_imported",
+        "rejected_count": 0,
+        "second_import_replayed": true,
+        "rollback_cutoff": "pre_authority",
+        "source_hash": "50ca34838a689f3d0de546664e6e564dab26c7ca92faf2dc16ad5af95bdef82c",
+        "snapshot_hash": "d26b59339b29e0df6f1e85683b1acb834bf8c970c5b4476366e4ff577fb4f98d",
+        "source_count": 8,
+        "target_count": 8,
+        "invariant_hash": "0af1dd6f347b487ece41400f7ed3eb6837175ee25815ff9bc7bca1cfe2b364ae",
+        "receipt_id": "import-3c30cc19cbb10087a2f3eeb14e272702"
+      },
+      "shadow_receipt": {
+        "status": "equal",
+        "difference_count": 0,
+        "source_count": 8,
+        "target_count": 8,
+        "invariant_hash": "1c738d350b5f32e8ea11136d8af2304802477e63ff61ad8c675396be3a93b2c8",
+        "source_hash": "d26b59339b29e0df6f1e85683b1acb834bf8c970c5b4476366e4ff577fb4f98d",
+        "target_hash": "d26b59339b29e0df6f1e85683b1acb834bf8c970c5b4476366e4ff577fb4f98d",
+        "receipt_id": "shadow-6b45aea6ee567e2bfc2bdf267bb3ee78"
+      },
+      "rehearsal_receipt": {
+        "status": "source_ready",
+        "rollback_cutoff": "pre_authority",
+        "production_migrated": false,
+        "smoke_hash": "74488724e512c97ddbdbaac69dcecbb946d3e16fcabce6d6292b64d3900e88a2",
+        "receipt_id": "rehearsal-3ab6dd325d882d702917542fde71839e"
+      }
+    }
+  ],
+  "verification_contracts": [
+    {
+      "receipt_id": "VC-PG-001",
+      "command": "node --test packages/persistence/test/postgres-transaction.test.js packages/persistence/test/postgres-repository-contract.test.js",
+      "exit_code": 0,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "receipt_id": "VC-MD-001",
+      "command": "node --test packages/master-data/test/*.test.js apps/api/test/master-data-runtime.test.js apps/api/test/master-data-api.test.js",
+      "exit_code": 0,
+      "passed": 117,
+      "failed": 0
+    },
+    {
+      "receipt_id": "VC-MAT-001",
+      "command": "node --test packages/matter/test/*.test.js apps/api/test/matter-worktree-*.test.js apps/api/test/matter-vault-persistence.test.js",
+      "exit_code": 0,
+      "passed": 222,
+      "failed": 0
+    },
+    {
+      "receipt_id": "VC-CRM-001",
+      "command": "node --test packages/crm/test/*.test.js packages/intake/test/*.test.js apps/api/test/crm-intake-api.test.js",
+      "exit_code": 0,
+      "passed": 171,
+      "failed": 0
+    },
+    {
+      "receipt_id": "VC-HRX-001",
+      "command": "node --test packages/hrx/test/*.test.js apps/api/test/hrx/*.test.js",
+      "exit_code": 0,
+      "passed": 692,
+      "failed": 0
+    },
+    {
+      "receipt_id": "VC-FIN-001",
+      "command": "node --test packages/billing/test/*.test.js apps/api/test/finance*.test.js",
+      "exit_code": 0,
+      "passed": 110,
+      "failed": 0
+    },
+    {
+      "receipt_id": "VC-PORTAI-001",
+      "command": "node --test packages/client-portal/test/*.test.js packages/ai-governance/test/*.test.js",
+      "exit_code": 0,
+      "passed": 226,
+      "failed": 0
+    },
+    {
+      "receipt_id": "VC-SEC-001.desktop",
+      "command": "node scripts/validate-matter-desktop-security.mjs",
+      "exit_code": 0,
+      "passed": 56,
+      "failed": 0
+    },
+    {
+      "receipt_id": "VC-SEC-001.hrx",
+      "command": "node scripts/validate-hrx-security-negative-tests.mjs",
+      "exit_code": 0,
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "receipt_id": "VC-DOC-001",
+      "command": "node scripts/validate-runtime-safety-governance.mjs",
+      "exit_code": 0,
+      "passed": 147,
+      "failed": 0
+    }
+  ],
+  "claims": {
+    "importer_shadow_rehearsal_complete": true,
+    "unclassified_domain_count": 0,
+    "postgres_api_authority_active": false,
+    "staging_migration_executed": false,
+    "production_migration_executed": false,
+    "real_client_data_used": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

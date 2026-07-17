@@ -1358,6 +1358,13 @@
       overflow-wrap: normal;
     }
 
+    .login-result.result[data-tone="warning"] {
+      color: #515b66;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+    }
+
     @keyframes amicLawIntroLayer {
       0%,
       95% {
@@ -2193,6 +2200,7 @@
       nodes.authTitle.textContent = AUTH_COPY[mode]?.title ?? AUTH_COPY.sign_in.title;
       nodes.authSubtitle.textContent = AUTH_COPY[mode]?.subtitle ?? AUTH_COPY.sign_in.subtitle;
       renderResetContext();
+      delete nodes.loginResult.dataset.tone;
       nodes.loginResult.textContent = message;
     }
 
@@ -2544,12 +2552,26 @@
       nodes.loginResult.textContent = labels[topic] ?? "관련 안내는 내부 배포 문서에서 확인할 수 있습니다.";
     }
 
+    function logoutStatusMessage(session = {}) {
+      if (session.local_cache_cleared !== true) {
+        return "로그아웃 정보를 모두 지우지 못했습니다. 앱을 종료하고 관리자에게 문의하세요.";
+      }
+      if (session.server_revoke?.attempted === true && session.server_revoke.ok !== true) {
+        return "이 기기에서는 로그아웃되었습니다. 서버 로그아웃은 확인하지 못했습니다.";
+      }
+      return "로그아웃되었습니다.";
+    }
+
     async function logout() {
       const session = await api.logout();
+      const logoutWarning = session.local_cache_cleared !== true || (session.server_revoke?.attempted === true && session.server_revoke.ok !== true);
+      const message = logoutStatusMessage(session);
       renderSession(session);
       renderFeatures([]);
-      setAuthMode("sign_in", { message: "로그아웃되었습니다." });
-      nodes.loginResult.textContent = "로그아웃되었습니다.";
+      setAuthMode("sign_in", { message });
+      if (logoutWarning) nodes.loginResult.dataset.tone = "warning";
+      else delete nodes.loginResult.dataset.tone;
+      nodes.loginResult.textContent = message;
       nodes.checkResult.textContent = "계정을 선택하고 로그인한 뒤 기능을 확인하세요.";
     }
 

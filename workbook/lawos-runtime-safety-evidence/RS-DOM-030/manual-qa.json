@@ -1,0 +1,127 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.manual-qa.v0.1",
+  "tuw_id": "RS-DOM-030",
+  "source_sha": "49768ead507457e03a9036d8720873c1e45ccf00",
+  "tree": "fd4c93d4b69dbb5fc5432a55b7a263feefd781ea",
+  "recorded_at": "2026-07-16T17:36:26Z",
+  "driver": "opt-in receipt capture through seven central-ledger test files against disposable local PostgreSQL",
+  "observed_flows": {
+    "receipt_capture": {
+      "tests": 15,
+      "passed": 15,
+      "failed": 0,
+      "domain_receipt_rows": 8
+    },
+    "domains": {
+      "master-data": {
+        "import_status": "source_imported",
+        "imported_count": 10,
+        "rejected_count": 0,
+        "second_import_replayed": true,
+        "shadow_status": "equal",
+        "shadow_difference_count": 0,
+        "rehearsal_status": "source_ready",
+        "rollback_cutoff": "pre_authority",
+        "production_migrated": false
+      },
+      "matter": {
+        "import_status": "source_imported",
+        "imported_count": 405,
+        "rejected_count": 0,
+        "second_import_replayed": true,
+        "shadow_status": "equal",
+        "shadow_difference_count": 0,
+        "rehearsal_status": "source_ready",
+        "rollback_cutoff": "pre_authority",
+        "production_migrated": false
+      },
+      "crm": {
+        "import_status": "source_imported",
+        "imported_count": 5,
+        "rejected_count": 0,
+        "second_import_replayed": true,
+        "shadow_status": "equal",
+        "shadow_difference_count": 0,
+        "rehearsal_status": "source_ready",
+        "rollback_cutoff": "pre_authority",
+        "production_migrated": false
+      },
+      "intake": {
+        "import_status": "source_imported",
+        "imported_count": 2,
+        "rejected_count": 0,
+        "second_import_replayed": true,
+        "shadow_status": "equal",
+        "shadow_difference_count": 0,
+        "rehearsal_status": "source_ready",
+        "rollback_cutoff": "pre_authority",
+        "production_migrated": false
+      },
+      "hrx": {
+        "import_status": "source_imported",
+        "imported_count": 73,
+        "rejected_count": 0,
+        "second_import_replayed": true,
+        "shadow_status": "equal",
+        "shadow_difference_count": 0,
+        "rehearsal_status": "source_ready",
+        "rollback_cutoff": "pre_authority",
+        "production_migrated": false
+      },
+      "finance": {
+        "import_status": "source_imported",
+        "imported_count": 14,
+        "rejected_count": 0,
+        "second_import_replayed": true,
+        "shadow_status": "equal",
+        "shadow_difference_count": 0,
+        "rehearsal_status": "source_ready",
+        "rollback_cutoff": "pre_authority",
+        "production_migrated": false
+      },
+      "client-portal": {
+        "import_status": "source_imported",
+        "imported_count": 8,
+        "rejected_count": 0,
+        "second_import_replayed": true,
+        "shadow_status": "equal",
+        "shadow_difference_count": 0,
+        "rehearsal_status": "source_ready",
+        "rollback_cutoff": "pre_authority",
+        "production_migrated": false
+      },
+      "ai-governance": {
+        "import_status": "source_imported",
+        "imported_count": 8,
+        "rejected_count": 0,
+        "second_import_replayed": true,
+        "shadow_status": "equal",
+        "shadow_difference_count": 0,
+        "rehearsal_status": "source_ready",
+        "rollback_cutoff": "pre_authority",
+        "production_migrated": false
+      }
+    },
+    "invariant_probes": {
+      "master_data_source_conflict_rejected": true,
+      "matter_idempotency_and_audit_preserved": true,
+      "crm_intake_atomic_rollback_preserved": true,
+      "hrx_stale_concurrent_writer_rejected": true,
+      "hrx_append_only_mutation_rejected": true,
+      "finance_append_only_mutation_rejected": true,
+      "portal_revocation_and_secret_boundary_preserved": true,
+      "ai_human_review_citation_and_raw_payload_boundary_preserved": true
+    }
+  },
+  "claims": {
+    "manual_qa_passed": true,
+    "domain_adapters_source_verified": true,
+    "postgres_api_authority_active": false,
+    "production_connection_opened": false,
+    "real_client_data_used": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

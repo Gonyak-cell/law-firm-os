@@ -5,7 +5,7 @@ export function downloadFileObjectWithAudit({ repository, storage, tenant_id, fi
   if (!permission_decision_id) throw new Error("permission decision required before download");
   const fileObject = repository.get({ tenant_id, model_type: "DmsFileObject", file_object_id });
   if (!fileObject) throw new Error("file object not found");
-  const object = storage.getObject({ object_id: fileObject.vault_object_id ?? fileObject.storage_pointer_ref });
+  const object = storage.getObject({ tenant_id, object_id: fileObject.vault_object_id ?? fileObject.storage_pointer_ref });
   if (fileObject.sha256 && object.sha256 !== fileObject.sha256) throw new Error("file object hash mismatch");
   const audit_event = appendDmsAuditEvent({
     repository,

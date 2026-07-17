@@ -1,0 +1,31 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-SB-005",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "source_sha": "b323b4bc2fc554f1df3fa9f400056c754aac3876",
+  "tree": "7d643b7d6ac8554862f382645d137594d8fc26b9",
+  "profile": "source-local",
+  "recorded_at": "2026-07-16T09:20:03Z",
+  "command": "verify navigation, IPC sender and window-open policies share the exact packaged origin and fail closed",
+  "exit_code": 0,
+  "safe_counts": {
+    "window_open_allow_cases": 0,
+    "window_open_deny_cases": 4,
+    "untrusted_ipc_sender_accesses": 0
+  },
+  "artifacts": [
+    "apps/desktop/src/main/origin-policy.js",
+    "apps/desktop/src/main/session-ipc.js",
+    "apps/desktop/test/origin-policy.test.mjs",
+    "apps/desktop/test/session-ipc.test.mjs"
+  ],
+  "claims": {
+    "shared_exact_origin_policy_verified": true,
+    "new_window_default_deny_verified": true,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

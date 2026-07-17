@@ -1,0 +1,9 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.status.v0.2",
+  "tuw_id": "RS-BKP-005",
+  "implementation_state": "READY",
+  "execution_state": "APPROVAL_REQUIRED",
+  "blocker": "approval packet was not supplied; source-local safety commands were still rerun",
+  "selected_outcome": "packet_missing",
+  "external_actions": []
+}

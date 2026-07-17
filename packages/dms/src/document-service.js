@@ -33,6 +33,7 @@ export function uploadDocument({
       version_id,
     });
     const receipt = storage.putObject({
+      tenant_id: document.tenant_id,
       object_id,
       bytes,
       content_type: document.mime_type ?? "application/octet-stream",

@@ -1,0 +1,30 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-GOV-004",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "source_sha": "1d2df30e235d3080aaa877bb6e01b0a43be8e5c5",
+  "tree": "c7c0db4ca9e554aceaa22cfce804ecea8be95c36",
+  "profile": "source-local",
+  "command": "trace startApiServer store-path wiring to runtime factories, repositories and async-transition TUWs",
+  "exit_code": 0,
+  "started_at": "2026-07-16T08:27:20Z",
+  "finished_at": "2026-07-16T08:31:30Z",
+  "safe_counts": {
+    "manifest_call_graph_node_count": 16,
+    "integration_choke_point_count": 3,
+    "missing_source_path_count": 0,
+    "async_transition_complete_count": 0
+  },
+  "artifacts": [
+    "workbook/lawos-runtime-safety-evidence/RS-GOV-004/repository-call-graph.json"
+  ],
+  "claims": {
+    "sync_call_graph_classified": true,
+    "async_transition_complete": false,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

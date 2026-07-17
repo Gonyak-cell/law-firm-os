@@ -1,0 +1,12 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.operational-dependency-receipt.v1",
+  "tuw_id": "RS-OFF-005",
+  "target_source_sha": "199ac95ae591110031822a701c22a8c293549fcf",
+  "target_tree": "f82dd4e9977d75bf3f0c25dda728c95e257c6f3c",
+  "implementation_state": "DISABLED_BY_APPROVED_DECISION",
+  "execution_state": "NOT_APPLICABLE",
+  "decision": "rejected",
+  "outcome": "disabled",
+  "claims": { "verified": true, "production_ready": false, "release_executed": false, "go_live": false },
+  "external_actions": []
+}

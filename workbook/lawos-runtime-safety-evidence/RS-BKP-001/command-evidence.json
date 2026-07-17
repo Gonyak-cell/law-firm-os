@@ -1,0 +1,24 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-BKP-001",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "79025ea354b4e7009f916e74eba21713ae927a6d",
+  "tree": "5bbbdb79aaf060f4562f28b623c106618286e6da",
+  "recorded_at": "2026-07-16T10:51:26Z",
+  "command": "node --test packages/persistence/test/s3-backup-queue.test.js scripts/test/runtime-store-backup-restore.test.mjs",
+  "exit_code": 0,
+  "summary": "PASS 10/10; queue events use private files and pseudonymous device, store, root and bucket references while retaining generation, content hash, reason and profile",
+  "artifacts": [
+    "packages/persistence/src/s3-backup-queue.js",
+    "packages/persistence/src/durable-file.js",
+    "packages/persistence/test/s3-backup-queue.test.js"
+  ],
+  "claims": {
+    "pii_free_queue_event_verified": true,
+    "aws_contacted": false,
+    "production_ready": false,
+    "release_executed": false,
+    "go_live": false
+  }
+}

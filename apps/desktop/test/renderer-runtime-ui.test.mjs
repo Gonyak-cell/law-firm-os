@@ -125,6 +125,11 @@ test("packaged renderer presents user-facing connection login and feature checks
   assert.match(source, /window\.setTimeout\(\(\) => \{[\s\S]*window\.location\.assign\(target\);[\s\S]*\}, 0\);/);
   assert.match(source, /function loginFailureMessage/);
   assert.match(source, /function resetFailureMessage/);
+  assert.match(source, /function logoutStatusMessage/);
+  assert.match(source, /session\.server_revoke\?\.attempted === true && session\.server_revoke\.ok !== true/);
+  assert.match(source, /이 기기에서는 로그아웃되었습니다\. 서버 로그아웃은 확인하지 못했습니다\./);
+  assert.match(source, /로그아웃 정보를 모두 지우지 못했습니다\. 앱을 종료하고 관리자에게 문의하세요\./);
+  assert.match(source, /\.login-result\.result\[data-tone="warning"\][\s\S]*color: #515b66;[\s\S]*white-space: normal;/);
   assert.match(source, /function isResetTokenTerminalFailure/);
   assert.match(source, /email_password_required/);
   assert.match(source, /password_reset_required/);

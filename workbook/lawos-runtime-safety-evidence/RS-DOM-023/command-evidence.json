@@ -1,0 +1,34 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DOM-023",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_SOURCE_VERIFIED",
+  "source_sha": "49768ead507457e03a9036d8720873c1e45ccf00",
+  "tree": "fd4c93d4b69dbb5fc5432a55b7a263feefd781ea",
+  "recorded_at": "2026-07-16T17:36:26Z",
+  "command": "node --test packages/billing/test/*.test.js apps/api/test/finance*.test.js",
+  "exit_code": 0,
+  "summary": "Finance records are classified into mutable documents and append-only ledgers with money, time, WIP, AR and trust invariants.",
+  "artifacts": [
+    "packages/billing/src/central-ledger.js",
+    "packages/billing/test/central-ledger.test.js"
+  ],
+  "verification": {
+    "receipt_id": "VC-FIN-001",
+    "passed": 110,
+    "failed": 0,
+    "exact_source_sha": true
+  },
+  "claims": {
+    "local_disposable_postgresql_only": true,
+    "source_worktree_clean_before_evidence": true,
+    "postgres_api_authority_active": false,
+    "staging_migration_executed": false,
+    "production_migration_executed": false,
+    "real_client_data_used": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "production_ready": false,
+    "go_live": false
+  }
+}

@@ -1,0 +1,171 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.cut-source-inventory.v1",
+  "source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "source_tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
+  "files": [
+    {
+      "path": ".omo/plans/lawos-runtime-safety-147-command-catalog-20260717.md",
+      "blob_oid": "631c9a90a7c43c944c1c82d3bdf9a61aeede9db1",
+      "sha256": "e1c94299cc2f3402cfd122a0ef0631026ab3d21bd7c9746707887f4f0b9715be"
+    },
+    {
+      "path": "apps/api/src/home-dashboard-operational-state.js",
+      "blob_oid": "573b9fa3383e4b9562552c624af31a6554d76699",
+      "sha256": "f6f261101d857864849148c35b87fab8e8aa29b0217e93eb3bc3612cea3b2083"
+    },
+    {
+      "path": "apps/api/src/home-dashboard-runtime-context.js",
+      "blob_oid": "6a807940c13cde2cdb8353c5f2a808686157efad",
+      "sha256": "1f4f2ca6100aedf8a5c4ddefc58451123cd5c05c11af42fa30009cd1a42e13b2"
+    },
+    {
+      "path": "apps/api/src/store-path-manifest.js",
+      "blob_oid": "111e5816cb8038abfc2b3203f7cde285e8b0b218",
+      "sha256": "c4552664238862f9cfb58aad1dbc9f52b84451bb90654343f592f1e2dad46e94"
+    },
+    {
+      "path": "packages/analytics/src/refresh-job-service.js",
+      "blob_oid": "41aea1ca7da3d927ac6cbac32cb1bef89820623f",
+      "sha256": "9128472c157cad07579e07ec35e27bb6494415c99e4f0cb6ad098e59afd2a526"
+    },
+    {
+      "path": "packages/persistence/src/postgres/migrations/001_repository_port_v2.sql",
+      "blob_oid": "565490f4e4c7de14794b09b650dec311df2073fa",
+      "sha256": "cca53a5b398a5934094a1d42776c1e2774af203faca4cc63d15f545be4803dd5"
+    },
+    {
+      "path": "packages/persistence/src/postgres/migrations/002_identity_ledger.sql",
+      "blob_oid": "3525da570630069c2448a31df2ecf8b65b77420b",
+      "sha256": "0069e6051b2876ad971155f20b8472092dddc84de9825b0188e331acc19f3fd1"
+    },
+    {
+      "path": "packages/persistence/src/postgres/migrations/003_domain_ledger.sql",
+      "blob_oid": "13235269645a044905d7ebe1b05bd16cf2f79b39",
+      "sha256": "f8492c9ef4d6ee0ac7c3fc44739823373b8441f7f27f446d4328ba0d48c4cc7d"
+    },
+    {
+      "path": "packages/persistence/src/postgres/migrations/004_dms_upload_runtime.sql",
+      "blob_oid": "096847ea6451dd4a52a328ec32a92646f3db60a9",
+      "sha256": "ede01f3bc1908f8118e8ecd5c032622c8ec10e0ad3e7ce0e894b2bfd4083ab26"
+    },
+    {
+      "path": "scripts/generate-central-ledger-cutover-dependency-bundle.mjs",
+      "blob_oid": "56f76e37c9e3a77c39bd518c3eda838cec92a221",
+      "sha256": "617a7d766db3352dea064fb3dabc2ba2abefd3707c882a90696e5930fc765b7c"
+    },
+    {
+      "path": "scripts/generate-central-ledger-cutover-inventory.mjs",
+      "blob_oid": "dcb0991fc02eda7c20d7c4494681628ee67f4d92",
+      "sha256": "e3a6e5305842ae00c395e828d3ee3c0f88efa9d781c72583aeee9a2e35a28103"
+    },
+    {
+      "path": "scripts/lib/central-ledger-cutover-contract.mjs",
+      "blob_oid": "38e88e41f2289b4acff8eed66b63d87735e60112",
+      "sha256": "df6a659813d8dcec6d63763bf88b3fbff7aefee895daa2c5dc7c0bd0136ebc5f"
+    },
+    {
+      "path": "scripts/lib/offline-capability-outcome.mjs",
+      "blob_oid": "5caad3bca6a6d4402390e9b0784a6865a5890883",
+      "sha256": "4c91dd2edc5e8f4397a670302d08d4cba98c3904e148ab3428c8b655bbc63911"
+    },
+    {
+      "path": "scripts/lib/runtime-safety-command-catalog.mjs",
+      "blob_oid": "6e8b4c923b14be8a7711fe244e60842b62129252",
+      "sha256": "74ed5f7f29fd18d9e14fa44a31f5f902e28ada4e52bbbd7a624dd5d77a5b8abb"
+    },
+    {
+      "path": "scripts/lib/runtime-safety-decision-gate.mjs",
+      "blob_oid": "d5f69ef037ba0a26b1d5918825e426440cf2c042",
+      "sha256": "90d501145565cb533916ac79a97811d7c721ce1cf83e540bad11921cf1b552b2"
+    },
+    {
+      "path": "scripts/run-central-ledger-cutover.mjs",
+      "blob_oid": "cc0166a1b84ef6e49972e044fbff030271bc90af",
+      "sha256": "1253909c246597fea34c6bc2d470f192dc4808a2e207bde1322b31c7f8967b9b"
+    },
+    {
+      "path": "scripts/run-dms-provider-preflight.mjs",
+      "blob_oid": "942d1a74539acc0d657e2b83540b9dbeead4e1b0",
+      "sha256": "051fb38dd29fb416a6d2af9da63d6a63d7c3e970e2ef5d104ec2dcced79a4b09"
+    },
+    {
+      "path": "scripts/run-offline-capability-outcome.mjs",
+      "blob_oid": "3d17c070a4d075285785244d60bf9ca863972f5f",
+      "sha256": "6b64747ea1a081a69d5127f56adaf54c907a24bd319f686abca7c17f3aa1a66e"
+    },
+    {
+      "path": "scripts/validate-central-ledger-cutover-readiness.mjs",
+      "blob_oid": "a7e72f5fa195685df017516a3a00b2dca2af7ad1",
+      "sha256": "2129df7619e8cc99369fd8f08c8bb8bbad8cae80b4a69e5060e3a2f368d50768"
+    },
+    {
+      "path": "scripts/validate-dms-provider-authority-decision.mjs",
+      "blob_oid": "33e3970cbdea20bb2630189f84e28f64c4023056",
+      "sha256": "f35ddfdc3baced4447da0e4ae81c349700d29b27661c00b5651f86c28a22a162"
+    },
+    {
+      "path": "scripts/validate-offline-capability-decision.mjs",
+      "blob_oid": "c0a07b7431a3f7d869b36b0b563d574a0cc11be5",
+      "sha256": "661aa9e87a7ec256ef6d92ebf08ea61e610c8624a1f03f796c16bd012f608087"
+    },
+    {
+      "path": "scripts/validate-project-readiness-outcome.mjs",
+      "blob_oid": "ebde3ffbd8897a61597571cac9b28fe73bc85121",
+      "sha256": "bffc705352fc941f4a7eb5a080d00ce0cfd5f76ee04a82450270fa467df93819"
+    },
+    {
+      "path": "scripts/validate-readiness-authority-decision.mjs",
+      "blob_oid": "ca21c6f0933836273e836db9dedf6145e69b4b48",
+      "sha256": "302382110c1961ee14d473605210c60ef43368a7576fe72ab82393a3d6df7f92"
+    },
+    {
+      "path": "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
+      "blob_oid": "34235153d7dec899b9d7a6a49511002f584725ac",
+      "sha256": "2f1073fc4844f112799f7f05b683aaa19f4dfc9456e424b6821546dd64289445"
+    },
+    {
+      "path": "workbook/lawos-dms-provider-authority-decision-packet-2026-07-17.json",
+      "blob_oid": "c820d86903048f101acf6e901fd4f8cf3df392dc",
+      "sha256": "08c3493653fee69d707ab4a1a9733f934f410625ccd002376e8fbce12a8d60f2"
+    },
+    {
+      "path": "workbook/lawos-readiness-authority-decision-packet-2026-07-17.json",
+      "blob_oid": "7ed986d14b65d1415afca2313b5ab85e54889152",
+      "sha256": "4702e68194ae42c46d153dd152123bd6fc9a9dfcf30b3db42f2de0a2b23dbf10"
+    },
+    {
+      "path": "workbook/lawos-runtime-safety-evidence/evidence-rerun-manifest-v0.2.json",
+      "blob_oid": "46ac147a3f7fa91ff2119e05de87b7b43df1e7e4",
+      "sha256": "30e784dc200f14ee473af2f6ed93c7880699b07248eb6a90c64dcb927ed518c2"
+    },
+    {
+      "path": "workbook/lawos-runtime-safety-evidence/RS-CUT-001/approval-packet.json",
+      "blob_oid": "c1c56bc9302bdecb3deaddddbdcad9f49ccbba50",
+      "sha256": "7b85ecbc293f437f5e310b4cee2ea6ea681c083a97d3081c026a6c4355e9016a"
+    },
+    {
+      "path": "workbook/lawos-runtime-safety-evidence/RS-CUT-004/decision-packet.json",
+      "blob_oid": "506b7c64089b44cf3f1fbe00d4cfd9bf993b3184",
+      "sha256": "700280a9a312d4ca6a388b015c42b96a27f055f1ffbf3459a38636beabd612a0"
+    },
+    {
+      "path": "workbook/lawos-runtime-safety-evidence/RS-CUT-008/production-authorization.json",
+      "blob_oid": "35e05d37904232f920ee575f1b03e754dbb39d44",
+      "sha256": "af9a595ae70ab3aabc75ce245cb207224604fd61ccb3c662d5cad5333cbbc82c"
+    }
+  ],
+  "dependency_artifact_count": 13,
+  "dependency_satisfied": false,
+  "blockers": [
+    "RS-PRJ-005/006",
+    "RS-OFF-001..006",
+    "RS-CUT-001"
+  ],
+  "claims": {
+    "external_actions_executed": 0,
+    "db_writes": 0,
+    "real_data_used": false,
+    "release_executed": false,
+    "go_live": false
+  }
+}

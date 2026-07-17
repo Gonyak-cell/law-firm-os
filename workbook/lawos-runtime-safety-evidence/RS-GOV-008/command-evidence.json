@@ -1,0 +1,30 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-GOV-008",
+  "implementation_state": "VERIFIED",
+  "execution_state": "EXECUTED",
+  "source_sha": "1d2df30e235d3080aaa877bb6e01b0a43be8e5c5",
+  "tree": "c7c0db4ca9e554aceaa22cfce804ecea8be95c36",
+  "profile": "source-local",
+  "command": "record explicit user instruction as source-only implementation approval and create the long-running goal",
+  "exit_code": 0,
+  "started_at": "2026-07-16T08:25:12Z",
+  "finished_at": "2026-07-16T08:25:12Z",
+  "safe_counts": {
+    "approval_receipt_count": 1,
+    "approved_source_plan_count": 1,
+    "external_approval_count": 0
+  },
+  "artifacts": [
+    "workbook/lawos-runtime-safety-evidence/RS-GOV-008/source-implementation-approval.json"
+  ],
+  "claims": {
+    "g0_plan_execution_ready": true,
+    "source_execution_approved": true,
+    "external_execution_approved": false,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

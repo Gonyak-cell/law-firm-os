@@ -1,0 +1,30 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DUR-007",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "90e241bf4f06004974e7a97592f07309873f0131",
+  "tree": "03523aab761d3df40ac4f515052a66543a5227ee",
+  "profile": "filesystem-local",
+  "recorded_at": "2026-07-16T09:36:20Z",
+  "command": "create multiple backups at one timestamp and prune by the configured generation limit",
+  "exit_code": 0,
+  "safe_counts": {
+    "same_timestamp_backup_collisions": 0,
+    "generation_and_uuid_name_matches": 2,
+    "backups_after_keep_one_prune": 1
+  },
+  "artifacts": [
+    "packages/persistence/src/durable-file.js",
+    "packages/persistence/test/store-permissions.test.js"
+  ],
+  "claims": {
+    "generation_uuid_backup_names_verified": true,
+    "collision_free_backup_verified": true,
+    "bounded_prune_verified": true,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

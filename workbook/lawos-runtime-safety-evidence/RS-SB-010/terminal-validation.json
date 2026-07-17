@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.terminal-validation.v0.1",
+  "terminal_tuw_id": "RS-SB-010",
+  "gate_id": "G2-SB",
+  "verdict": "PASS",
+  "allowed_claim": "TRUST_BOUNDARY_B_LOCAL_VERIFIED",
+  "source_sha": "b323b4bc2fc554f1df3fa9f400056c754aac3876",
+  "tree": "7d643b7d6ac8554862f382645d137594d8fc26b9",
+  "recorded_at": "2026-07-16T09:20:03Z",
+  "verification_contracts": {
+    "VC-DESK-SB": "PASS",
+    "VC-CORS-001": "PASS",
+    "VC-DESK-BASE": "PASS",
+    "VC-SEC-001": "PASS",
+    "desktop_full_smoke": "PASS",
+    "manual_native_electron_origin": "PASS",
+    "manual_built_renderer_csp": "PASS",
+    "internal_macos_package": "PASS"
+  },
+  "observations": {
+    "origin_main_sha": "b46a686f719875c6980ecba9bc213a605f58fa45",
+    "required_merge_sha_is_origin_main_ancestor": true,
+    "dedicated_worktree": "/private/tmp/lawos-rs-sb-20260716",
+    "branch": "codex/rs-sb-20260716",
+    "source_worktree_clean_before_evidence": true,
+    "detached_package_worktree": "/private/tmp/lawos-rs-sb-build-20260716",
+    "protected_root_head": "b46a686f719875c6980ecba9bc213a605f58fa45",
+    "protected_root_branch": "codex/root-main-sync-20260716",
+    "protected_root_mutated": false
+  },
+  "remaining_boundaries": {
+    "developer_id_signing_approved": false,
+    "notarization_approved": false,
+    "release_approved": false,
+    "tag_approved": false,
+    "aws_mutation_approved": false,
+    "staging_execution_approved": false,
+    "production_migration_approved": false,
+    "go_live_approved": false
+  }
+}

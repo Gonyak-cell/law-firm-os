@@ -1,0 +1,15 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-STO-004",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "3cdbd3db10d22b02aac5c718324702e0d96520ac",
+  "tree": "fec4f3473a0817a59710f0f0fa42f14bf714872d",
+  "recorded_at": "2026-07-16T10:28:02Z",
+  "commands": [
+    {"command": "node --test packages/crm/test/*.test.js packages/intake/test/*.test.js apps/api/test/crm-intake-api.test.js", "exit_code": 0, "summary": "169/169 PASS; direct Matter shortcut blocked and one Intake handoff survives restart"},
+    {"command": "node --test packages/persistence/test/store-adapter-cas.test.js", "exit_code": 0, "summary": "Intake stale-generation conflict and winner reload PASS"}
+  ],
+  "artifacts": ["packages/intake/src/runtime-repository.js", "apps/api/test/crm-intake-api.test.js"],
+  "claims": {"intake_file_authority_cas_verified": true, "direct_matter_shortcut_blocked": true, "production_ready": false, "go_live": false}
+}

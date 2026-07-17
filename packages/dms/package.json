@@ -8,5 +8,8 @@
   },
   "scripts": {
     "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1089.0"
   }
 }

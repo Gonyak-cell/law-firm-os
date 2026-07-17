@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.decision-packet.v1",
+  "packet_id": "LAWOS-CUT-004-STAGING-ACCEPTANCE-20260717",
+  "decision_source_sha": "1663c0622acc992e478a5ca4f33b7ce58fe096b6",
+  "decision_source_tree": "6e175f2f0559d63f1ef37298e705c314427845fc",
+  "action": "central-ledger-staging-acceptance",
+  "environment": "staging",
+  "required_role": "owner",
+  "allowed_decisions": ["approved", "rejected"],
+  "current_state": "PENDING_HUMAN_APPROVAL",
+  "requirements": [
+    "Define domain-by-domain count, digest, invariant, role, tenant, restart, audit, and outbox acceptance thresholds.",
+    "Name the observation period, operator, observer, abort owner, and forward-repair owner.",
+    "Bind any approval to a verified CUT-003 predecessor and a separate user execution instruction.",
+    "Do not infer real-data authority, staging credentials, or environment availability from this packet.",
+    "Keep production, release, deployment, and go-live outside this decision."
+  ],
+  "options": [
+    {
+      "decision": "approved",
+      "effects": ["Permit a separately instructed staging rehearsal after all predecessor gates verify."],
+      "prohibited_actions": ["Do not contact staging without a user execution instruction.", "Do not use real client data without separate authority.", "Do not enter production."]
+    },
+    {
+      "decision": "rejected",
+      "effects": ["Keep CUT-005 through CUT-007 approval-required."],
+      "prohibited_actions": ["Do not run a staging migration or switch.", "Do not claim staging unavailable without an authorized attempt."]
+    }
+  ],
+  "external_actions_authorized": false,
+  "claims": {"release": false, "deployment": false, "cutover": false, "go_live": false}
+}

@@ -1,0 +1,36 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-SB-008",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "source_sha": "b323b4bc2fc554f1df3fa9f400056c754aac3876",
+  "tree": "7d643b7d6ac8554862f382645d137594d8fc26b9",
+  "profile": "source-local",
+  "recorded_at": "2026-07-16T09:20:03Z",
+  "expected_red": {
+    "base_sha": "b463506baec8d9e9940db9e015d8266a237b592b",
+    "command": "node --test apps/api/test/cors-negative.test.js",
+    "exit_code": 1,
+    "summary": "2/2 new CORS expectations failed because the custom origin was absent and null was allowed; a configuration probe also showed null and wildcard could be re-added"
+  },
+  "final_verification": {
+    "command": "node --test apps/api/test/cors-negative.test.js apps/api/test/master-data-api.test.js",
+    "exit_code": 0,
+    "summary": "21/21 PASS; exact custom/dev origins reflected, null and arbitrary origins omitted"
+  },
+  "artifacts": [
+    "apps/api/src/server.js",
+    "apps/api/test/cors-negative.test.js",
+    "apps/api/test/master-data-api.test.js"
+  ],
+  "claims": {
+    "expected_red_proven": true,
+    "exact_cors_allowlist_verified": true,
+    "null_origin_reflections": 0,
+    "wildcard_origin_reflections": 0,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

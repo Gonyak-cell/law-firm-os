@@ -59,6 +59,8 @@ function respondJson(response, status, body) {
   response.end(JSON.stringify(body));
 }
 
+const requestCounts = new Map();
+
 async function requestJson(request) {
   const chunks = [];
   for await (const chunk of request) chunks.push(chunk);
@@ -69,6 +71,12 @@ async function requestJson(request) {
 const server = createServer(async (request, response) => {
   const url = new URL(request.url ?? "/", "http://127.0.0.1");
   const pathname = url.pathname;
+  const requestKey = pathname === "/api/home/action-inbox"
+    ? `${pathname}?type=${url.searchParams.get("type") ?? ""}`
+    : pathname === "/api/home/feed"
+      ? `${pathname}?tab=${url.searchParams.get("tab") ?? ""}`
+      : pathname;
+  requestCounts.set(requestKey, (requestCounts.get(requestKey) ?? 0) + 1);
   if (pathname === "/health") return respondJson(response, 200, { ok: true, fixture_only: true, production_ready_claim: false });
   if (pathname === "/api/auth/login") {
     await requestJson(request);
@@ -77,13 +85,16 @@ const server = createServer(async (request, response) => {
   if (pathname === "/api/auth/session") return respondJson(response, 200, { ok: true, session, fixture_only: true, production_ready_claim: false });
   if (pathname === "/api/profile/me") return respondJson(response, 200, { ...listBody(), item: { user_id: session.user_id, display_name: session.display_name, title: "QA" } });
   if (pathname === "/api/home/action-inbox") {
-    const taskItems = url.searchParams.get("type") === "task"
+    const type = url.searchParams.get("type");
+    const items = type === "task"
       ? [{ id: "task_dashboard_today", type: "task", title: "오늘 계약서 검토", matter_ref: matters[0].matter_id, due_at: `${todayKey}T12:00:00`, status: "todo" }]
-      : [];
-    return respondJson(response, 200, { ...listBody(taskItems), counts: { approval: 0, task_late: 0, task_today: taskItems.length } });
+      : type === "approval"
+        ? [{ id: "approval_dashboard_pending", type: "approval", title: "비용 승인 검토", matter_ref: matters[0].matter_id, due_at: `${todayKey}T18:00:00`, status: "pending" }]
+        : [];
+    return respondJson(response, 200, { ...listBody(items), counts: { approval: 1, task_late: 0, task_today: 1 } });
   }
   if (pathname === "/api/home/agenda") return respondJson(response, 200, { ...listBody(), events: [{ id: "agenda_dashboard_today", title: "고객 미팅", starts_at: `${todayKey}T03:00:00.000Z`, type: "event" }] });
-  if (pathname === "/api/home/feed") return respondJson(response, 200, { ...listBody(), entries: [{ id: "feed_dashboard_notice", title: "대시보드 QA 공지", summary: "패키지 화면 검증용 합성 공지", created_at: nowIso, tab: "notice" }], source_statuses: [] });
+  if (pathname === "/api/home/feed") return respondJson(response, 200, { ...listBody(), entries: [{ id: "feed_dashboard_notice", tab: "notice", source: "AMIC 공지", title: "대시보드 QA 공지", body_preview: "패키지 화면 검증용 합성 공지", published_at: nowIso }], source_statuses: [] });
   if (pathname === "/api/matters/recently-viewed") return respondJson(response, 200, listBody([{ ...matters[0], viewed_at: nowIso }]));
   if (pathname === "/api/matters") return respondJson(response, 200, listBody(matters));
   if (pathname === "/api/intake/requests") return respondJson(response, 200, listBody([{ intake_request_id: "intake_dashboard_new", display_name: "라온 주식회사", requested_scope_summary: "신규 자문 수임", requested_at: nowIso, status: "review" }]));
@@ -154,6 +165,14 @@ try {
   assert(page, "packaged main window did not become ready");
   await page.setViewportSize({ width: 1280, height: 820 });
   await page.emulateMedia({ reducedMotion: "reduce" });
+  const desktopSession = await page.evaluate(async ({ email, password }) => {
+    const current = await window.matterSession?.status?.();
+    if (current?.state === "signed_in") return { ok: true, state: current.state };
+    const result = await window.matterSession?.login?.({ email, password });
+    return { ok: result?.ok === true, state: result?.session?.state ?? "signed_out" };
+  }, { email: "dashboard-package-qa@fixture.local", password: "fixture-only" });
+  assert.deepEqual(desktopSession, { ok: true, state: "signed_in" }, "packaged fixture session must be established in the main process");
+  await page.reload({ waitUntil: "domcontentloaded" });
   if (await page.locator('[data-home-dashboard-shell="true"]').count() === 0) {
     if (await page.locator('[data-login-screen="forest-split"]').count() > 0) {
       await page.fill("[data-login-email]", "dashboard-package-qa@fixture.local");
@@ -180,7 +199,54 @@ try {
           ? '[data-matter-dashboard="true"]'
           : '[data-hr-workforce-table="true"]';
     await page.waitForSelector(rootSelector, { timeout: 30_000 });
-    await page.waitForTimeout(2_000);
+    if (view === "home") {
+      try {
+        await page.waitForFunction(
+          ({ selector }) => {
+            const text = document.querySelector(selector)?.innerText ?? "";
+            const feedText = document.querySelector(".home-dashboard-feed")?.innerText ?? "";
+            return text.includes("오늘 계약서 검토") && text.includes("비용 승인 검토") && feedText.includes("대시보드 QA 공지");
+          },
+          { selector: rootSelector },
+          { timeout: 30_000 },
+        );
+      } catch (error) {
+        const diagnostic = await page.evaluate(async ({ selector }) => {
+          const text = document.querySelector(selector)?.innerText ?? "";
+          const feedWidget = document.querySelector(".home-dashboard-feed");
+          const bridgeResponse = await window.matterSession?.api?.({
+            path: "/api/home/feed?tab=notice&permission_ref=dashboard-package-qa&audit_hint_ref=dashboard-package-qa",
+            method: "GET",
+            headers: {},
+            body: null,
+          });
+          return {
+            task_visible: text.includes("오늘 계약서 검토"),
+            approval_visible: text.includes("비용 승인 검토"),
+            feed_visible: feedWidget?.innerText?.includes("대시보드 QA 공지") === true,
+            feed_widget_text: feedWidget?.innerText?.replace(/\s+/g, " ").slice(0, 600) ?? "",
+            feed_entry_count: feedWidget?.querySelector("[data-home-feed-entry-count]")?.getAttribute("data-home-feed-entry-count") ?? null,
+            feed_bridge_probe: {
+              http_status: bridgeResponse?.http_status ?? null,
+              outcome: bridgeResponse?.body?.outcome ?? null,
+              entry_count: Array.isArray(bridgeResponse?.body?.entries) ? bridgeResponse.body.entries.length : null,
+              first_title: bridgeResponse?.body?.entries?.[0]?.title ?? null,
+              reason: bridgeResponse?.body?.reason ?? bridgeResponse?.reason ?? null,
+            },
+            body_preview: text.replace(/\s+/g, " ").slice(0, 1200),
+          };
+        }, { selector: rootSelector });
+        const failureEvidence = {
+          ...diagnostic,
+          request_counts: Object.fromEntries([...requestCounts.entries()].sort(([left], [right]) => left.localeCompare(right))),
+        };
+        await page.screenshot({ path: path.join(artifactDir, `home-data-timeout-${platform}.png`), fullPage: true, animations: "disabled", caret: "hide" });
+        writeFileSync(path.join(artifactDir, `home-data-timeout-${platform}.json`), `${JSON.stringify(failureEvidence, null, 2)}\n`);
+        throw new Error(`Home fixture data did not become ready: ${JSON.stringify(failureEvidence)}`, { cause: error });
+      }
+    } else {
+      await page.waitForTimeout(2_000);
+    }
     const snapshot = await page.evaluate(({ selector }) => {
       const surfaceText = document.querySelector(selector)?.innerText ?? "";
       const forbiddenPatterns = [

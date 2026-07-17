@@ -1,5 +1,4 @@
-import { existsSync } from "node:fs";
-import { readFileSyncWithStaleRetry, writeJsonFileDurably } from "../../persistence/src/durable-file.js";
+import { createDurableJsonStateController } from "../../persistence/src/durable-file.js";
 import { createIntakeCoreRecord } from "./model.js";
 
 const CORE_MODELS = Object.freeze(["IntakeRequest", "ConflictCheck", "ConflictHit"]);
@@ -79,9 +78,8 @@ function emptyState() {
   return { migrations: ["intake-runtime-001-file-store"], records: [], idempotency: [], audit_events: [] };
 }
 
-function loadState(filePath) {
-  if (!filePath || !existsSync(filePath)) return emptyState();
-  const parsed = JSON.parse(readFileSyncWithStaleRetry(filePath));
+function normalizeState(input) {
+  const parsed = input ?? emptyState();
   return {
     ...emptyState(),
     ...parsed,
@@ -91,12 +89,31 @@ function loadState(filePath) {
   };
 }
 
-export function createIntakeRuntimeRepository({ filePath, seedRecords = [] } = {}) {
+export function createIntakeRuntimeRepository({
+  filePath,
+  seedRecords = [],
+  preserveSeedRecords = false,
+} = {}) {
   let closed = false;
-  let state = loadState(filePath);
+  let transactionDepth = 0;
+  const stateController = createDurableJsonStateController({
+    filePath,
+    defaultValue: emptyState(),
+    normalizeValue: normalizeState,
+  });
+  let state = stateController.value;
   const records = new Map();
   const idempotency = new Map();
   const auditEvents = new Map();
+
+  function hydrate(nextState) {
+    records.clear();
+    idempotency.clear();
+    auditEvents.clear();
+    for (const record of nextState.records) records.set(recordKey(record), clone(record));
+    for (const entry of nextState.idempotency) idempotency.set(`${entry.tenant_id}:${entry.idempotency_key}`, clone(entry));
+    for (const event of nextState.audit_events) auditEvents.set(`${event.tenant_id}:${event.event_id}`, clone(event));
+  }
 
   function assertOpen() {
     if (closed) throw new Error("Intake runtime repository is closed");
@@ -111,16 +128,20 @@ export function createIntakeRuntimeRepository({ filePath, seedRecords = [] } = {
     };
   }
 
-  function persist({ createBackup = true } = {}) {
-    if (!filePath) return;
+  function persist({ createBackup = true, force = false } = {}) {
+    if (!filePath || (transactionDepth > 0 && !force)) return;
     const nextState = currentState();
-    writeJsonFileDurably({
-      filePath,
-      value: nextState,
-      previousState: state,
-      createBackup,
-    });
-    state = nextState;
+    try {
+      stateController.commit(nextState, { createBackup });
+      state = stateController.value;
+    } catch (error) {
+      try {
+        state = stateController.reload().value;
+        hydrate(state);
+        error.durable_store_reloaded = true;
+      } catch {}
+      throw error;
+    }
   }
 
   function put(record, { overwrite = false, createBackup = true } = {}) {
@@ -132,12 +153,17 @@ export function createIntakeRuntimeRepository({ filePath, seedRecords = [] } = {
     return Object.freeze(clone(normalized));
   }
 
-  for (const record of state.records) records.set(recordKey(record), clone(record));
-  for (const entry of state.idempotency) idempotency.set(`${entry.tenant_id}:${entry.idempotency_key}`, clone(entry));
-  for (const event of state.audit_events) auditEvents.set(`${event.tenant_id}:${event.event_id}`, clone(event));
+  hydrate(state);
   for (const record of seedRecords) {
     const normalized = normalizeRecord(record);
-    if (!records.has(recordKey(normalized))) put(record, { overwrite: true, createBackup: false });
+    if (!records.has(recordKey(normalized))) {
+      if (preserveSeedRecords) {
+        records.set(recordKey(normalized), clone({ ...record, resource_id: normalized.resource_id }));
+        persist({ createBackup: false });
+      } else {
+        put(record, { overwrite: true, createBackup: false });
+      }
+    }
   }
 
   const repository = {
@@ -213,24 +239,31 @@ export function createIntakeRuntimeRepository({ filePath, seedRecords = [] } = {
     },
     transaction(fn) {
       assertOpen();
+      const entryDepth = transactionDepth;
       const before = {
         records: new Map([...records.entries()].map(([key, value]) => [key, clone(value)])),
         idempotency: new Map([...idempotency.entries()].map(([key, value]) => [key, clone(value)])),
         auditEvents: new Map([...auditEvents.entries()].map(([key, value]) => [key, clone(value)])),
       };
+      transactionDepth = entryDepth + 1;
       try {
         const result = fn(repository);
-        persist();
+        transactionDepth = entryDepth;
+        persist({ force: entryDepth === 0 });
         return result;
       } catch (error) {
-        records.clear();
-        idempotency.clear();
-        auditEvents.clear();
-        for (const [key, value] of before.records) records.set(key, value);
-        for (const [key, value] of before.idempotency) idempotency.set(key, value);
-        for (const [key, value] of before.auditEvents) auditEvents.set(key, value);
-        persist();
+        if (!error?.durable_store_reloaded) {
+          records.clear();
+          idempotency.clear();
+          auditEvents.clear();
+          for (const [key, value] of before.records) records.set(key, value);
+          for (const [key, value] of before.idempotency) idempotency.set(key, value);
+          for (const [key, value] of before.auditEvents) auditEvents.set(key, value);
+        }
+        transactionDepth = entryDepth;
         throw error;
+      } finally {
+        transactionDepth = entryDepth;
       }
     },
     snapshot() {

@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-DUR-005",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "90e241bf4f06004974e7a97592f07309873f0131",
+  "tree": "03523aab761d3df40ac4f515052a66543a5227ee",
+  "profile": "source-local",
+  "recorded_at": "2026-07-16T09:36:20Z",
+  "command": "re-read disk generation inside the lock and attempt a stale expected-generation write",
+  "exit_code": 0,
+  "observations": {
+    "error_code": "LAWOS_STORE_CONFLICT",
+    "expected_generation": 0,
+    "current_generation": 1,
+    "backup_side_effect_count": 0,
+    "authority_write_side_effect_count": 0
+  },
+  "artifacts": [
+    "packages/persistence/src/durable-file.js",
+    "packages/persistence/test/durable-file.test.js"
+  ],
+  "claims": {
+    "generation_cas_verified": true,
+    "stale_writer_rejected": true,
+    "conflict_side_effects_zero": true,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

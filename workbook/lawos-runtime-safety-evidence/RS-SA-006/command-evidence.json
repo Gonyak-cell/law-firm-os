@@ -1,0 +1,29 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-SA-006",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "source_sha": "6429851bc161007984c78d36bc7ea04b1aeaf03d",
+  "tree": "f6a0e54352434f252e7e432253a0343b684c1f60",
+  "profile": "source-local",
+  "recorded_at": "2026-07-16T08:54:58Z",
+  "command": "resolve runtime-profile-aware HRX step-up signing and TOTP secrets",
+  "exit_code": 0,
+  "safe_counts": {
+    "local_default_secret_count": 2,
+    "operational_default_secret_count": 0,
+    "operational_minimum_secret_length": 32
+  },
+  "artifacts": [
+    "apps/api/src/hrx-step-up-token.js",
+    "apps/api/src/runtime-profile.js"
+  ],
+  "claims": {
+    "local_defaults_explicitly_bounded": true,
+    "operational_defaults_rejected": true,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

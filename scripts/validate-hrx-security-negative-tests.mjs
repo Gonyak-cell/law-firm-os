@@ -36,6 +36,10 @@ const checks = [
     file: "packages/authz/test/hrx-step-up-session.test.js",
     patterns: [/fresh MFA assurance/i, /revokes sessions/i, /rejects weak/i],
   },
+  {
+    file: "apps/api/test/operational-step-up-preflight.test.js",
+    patterns: [/operational step-up config rejects/i, /known default/i, /LAWOS_RUNTIME_PREFLIGHT_FAILED/i],
+  },
 ];
 
 const errors = [];

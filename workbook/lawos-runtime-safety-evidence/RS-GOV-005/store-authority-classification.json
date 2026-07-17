@@ -1,0 +1,185 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.store-authority-classification.v0.1",
+  "tuw_id": "RS-GOV-005",
+  "recorded_at": "2026-07-16T08:27:08Z",
+  "source_sha": "1d2df30e235d3080aaa877bb6e01b0a43be8e5c5",
+  "classification_rule": "Operational decisions and mutable records move to the central transaction ledger; rebuildable views become projections; generated evidence becomes immutable artifacts; document bytes move only to the approved original provider.",
+  "unresolved_policy_count": 0,
+  "paths": [
+    {
+      "key": "hrxStorePath",
+      "current_authority": "operational_json_authority",
+      "target_class": "central_transactional_ledger",
+      "target": "tenant-scoped HRX PostgreSQL schema with append-only leave/payroll ledgers",
+      "data_class": ["personal_information", "employment", "compensation", "health_or_leave_sensitive"],
+      "retention_gate": "EXT-RETENTION",
+      "owner_tuws": ["RS-DOM-016", "RS-DOM-022"]
+    },
+    {
+      "key": "masterDataStorePath",
+      "current_authority": "operational_json_authority",
+      "target_class": "central_reference_authority",
+      "target": "canonical tenant-scoped Master Data PostgreSQL schema",
+      "data_class": ["client_identity", "reference_data"],
+      "retention_gate": "EXT-RETENTION",
+      "owner_tuws": ["RS-DOM-002", "RS-DOM-005"]
+    },
+    {
+      "key": "matterStorePath",
+      "current_authority": "operational_json_authority",
+      "target_class": "central_transactional_ledger",
+      "target": "Matter PostgreSQL schema with version, idempotency, audit and outbox",
+      "data_class": ["client_confidential", "legal_privilege", "personal_information"],
+      "retention_gate": "EXT-RETENTION",
+      "owner_tuws": ["RS-DOM-006", "RS-DOM-010"]
+    },
+    {
+      "key": "dmsStorePath",
+      "current_authority": "operational_json_metadata_authority",
+      "target_class": "central_document_metadata_ledger",
+      "target": "DMS metadata, upload-session, audit and outbox PostgreSQL schema",
+      "data_class": ["client_confidential", "legal_privilege", "document_metadata"],
+      "retention_gate": "EXT-DMS-PROVIDER and EXT-RETENTION",
+      "owner_tuws": ["RS-DMS-002", "RS-DMS-010"]
+    },
+    {
+      "key": "crmStorePath",
+      "current_authority": "operational_json_authority",
+      "target_class": "central_transactional_ledger",
+      "target": "CRM PostgreSQL schema linked to canonical Master Data",
+      "data_class": ["client_identity", "contact", "relationship"],
+      "retention_gate": "EXT-RETENTION",
+      "owner_tuws": ["RS-DOM-011", "RS-DOM-015"]
+    },
+    {
+      "key": "intakeStorePath",
+      "current_authority": "operational_json_authority",
+      "target_class": "central_transactional_ledger",
+      "target": "Intake and clearance PostgreSQL schema with decision audit",
+      "data_class": ["prospective_client", "conflict_sensitive", "personal_information"],
+      "retention_gate": "EXT-RETENTION",
+      "owner_tuws": ["RS-DOM-011", "RS-DOM-015"]
+    },
+    {
+      "key": "crmMasterDataStorePath",
+      "current_authority": "second_operational_json_authority",
+      "target_class": "reference_projection_or_alias",
+      "target": "remove independent authority and resolve against canonical Master Data",
+      "data_class": ["client_identity", "reference_data"],
+      "retention_gate": "EXT-RETENTION",
+      "owner_tuws": ["RS-DOM-002", "RS-DOM-005"]
+    },
+    {
+      "key": "financeStorePath",
+      "current_authority": "operational_json_authority",
+      "target_class": "central_financial_ledger",
+      "target": "Finance PostgreSQL schema with immutable ledger events and mutable document versions",
+      "data_class": ["financial", "billing", "client_confidential"],
+      "retention_gate": "EXT-RETENTION",
+      "owner_tuws": ["RS-DOM-023", "RS-DOM-027"]
+    },
+    {
+      "key": "analyticsStorePath",
+      "current_authority": "authority_like_json_store",
+      "target_class": "rebuildable_projection",
+      "target": "source-watermarked projection with deterministic rebuild and freshness",
+      "data_class": ["aggregated_operational", "potential_personal_information"],
+      "retention_gate": "projection TTL policy",
+      "owner_tuws": ["RS-PRJ-004", "RS-PRJ-006"]
+    },
+    {
+      "key": "aiStorePath",
+      "current_authority": "operational_json_authority",
+      "target_class": "central_policy_and_audit_ledger",
+      "target": "AI policy, review, citation and audit PostgreSQL schema",
+      "data_class": ["policy", "client_confidential", "review_audit"],
+      "retention_gate": "EXT-RETENTION",
+      "owner_tuws": ["RS-DOM-029", "RS-DOM-030"]
+    },
+    {
+      "key": "portalStorePath",
+      "current_authority": "operational_json_authority",
+      "target_class": "central_secure_collaboration_ledger",
+      "target": "Portal invite, secure-link, revocation and audit PostgreSQL schema",
+      "data_class": ["client_confidential", "external_identity", "access_control"],
+      "retention_gate": "EXT-RETENTION",
+      "owner_tuws": ["RS-DOM-028", "RS-DOM-030"]
+    },
+    {
+      "key": "uiReadinessStorePath",
+      "current_authority": "mixed_control_plane_and_generated_evidence_json",
+      "target_class": "policy_resolved_split",
+      "target": "mutable control-plane rows to PostgreSQL; generated evidence to immutable artifact storage",
+      "data_class": ["release_control", "generated_evidence"],
+      "retention_gate": "EXT-RETENTION for immutable evidence",
+      "owner_tuws": ["RS-PRJ-005", "RS-PRJ-006"]
+    },
+    {
+      "key": "enterpriseReadinessStorePath",
+      "current_authority": "mixed_control_plane_and_generated_evidence_json",
+      "target_class": "policy_resolved_split",
+      "target": "mutable control-plane rows to PostgreSQL; generated evidence to immutable artifact storage",
+      "data_class": ["release_control", "generated_evidence"],
+      "retention_gate": "EXT-RETENTION for immutable evidence",
+      "owner_tuws": ["RS-PRJ-005", "RS-PRJ-006"]
+    },
+    {
+      "key": "securityAuditStorePath",
+      "current_authority": "append_only_ndjson_audit",
+      "target_class": "central_append_only_security_audit",
+      "target": "tenant-scoped append-only audit committed with security state transitions",
+      "data_class": ["security_audit", "personal_information_metadata"],
+      "retention_gate": "EXT-RETENTION",
+      "owner_tuws": ["RS-IDN-001", "RS-IDN-010"]
+    },
+    {
+      "key": "authCredentialStorePath",
+      "current_authority": "operational_credential_json",
+      "target_class": "central_identity_ledger_and_external_provider_reference",
+      "target": "account status and credential references in PostgreSQL; production factor verification through approved provider",
+      "data_class": ["authentication", "credential_hash", "security_sensitive"],
+      "retention_gate": "EXT-IDP and EXT-RETENTION",
+      "owner_tuws": ["RS-IDN-001", "RS-IDN-010"]
+    },
+    {
+      "key": "authPasswordResetStorePath",
+      "current_authority": "operational_reset_token_hash_json",
+      "target_class": "central_expiring_security_state",
+      "target": "expiring and revocable reset hashes committed with audit",
+      "data_class": ["authentication", "reset_hash", "security_sensitive"],
+      "retention_gate": "EXT-RETENTION",
+      "owner_tuws": ["RS-IDN-009", "RS-IDN-010"]
+    }
+  ],
+  "derived_paths": [
+    {
+      "key": "dmsObjectStorePath",
+      "current_authority": "local_binary_and_sidecar_directory",
+      "target_class": "approved_versioned_original_provider",
+      "target": "provider object versions with digest, ACL, retention, legal hold and reconciliation",
+      "data_class": ["client_confidential", "legal_privilege", "document_original"],
+      "retention_gate": "EXT-DMS-PROVIDER and EXT-RETENTION",
+      "owner_tuws": ["RS-DMS-001", "RS-DMS-010"]
+    }
+  ],
+  "non_file_operational_state": [
+    {
+      "state": "login failure, account lock, break-glass and active session JTI maps",
+      "current_authority": "process_memory",
+      "target": "central identity and security ledger",
+      "owner_tuws": ["RS-IDN-001", "RS-IDN-010"]
+    },
+    {
+      "state": "Home decisions, audit events and usage events",
+      "current_authority": "process_memory",
+      "target": "operational decision table, append-only audit and non-blocking telemetry/projection",
+      "owner_tuws": ["RS-PRJ-001", "RS-PRJ-006"]
+    }
+  ],
+  "claims": {
+    "authority_policy_complete": true,
+    "record_level_readiness_classification_complete": false,
+    "migration_complete": false,
+    "production_ready": false
+  }
+}

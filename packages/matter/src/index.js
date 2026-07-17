@@ -6,6 +6,8 @@ export * from "./client-matter-g4.js";
 export * from "./hrx-workload-projection.js";
 export * from "./hr-risk-link.js";
 export * from "./repository.js";
+export * from "./repository-v2.js";
+export * from "./central-ledger.js";
 export * from "./migrations/index.js";
 export * from "./numbering-service.js";
 export * from "./canonical-identity-service.js";

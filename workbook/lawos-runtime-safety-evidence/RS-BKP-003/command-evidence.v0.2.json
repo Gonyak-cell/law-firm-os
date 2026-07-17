@@ -1,0 +1,119 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.2",
+  "tuw_id": "RS-BKP-003",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "target_source_sha": "79025ea354b4e7009f916e74eba21713ae927a6d",
+  "target_tree": "5bbbdb79aaf060f4562f28b623c106618286e6da",
+  "toolchain_sha": "a9885445c236331f72c8cf31b0de54d514fc331b",
+  "profile": "source-local",
+  "commands": [
+    {
+      "ordinal": 1,
+      "argv": [
+        "node",
+        "--test",
+        "packages/persistence/test/s3-backup-queue.test.js",
+        "scripts/test/runtime-store-backup-restore.test.mjs",
+        "scripts/test/matter-vault-backup-restore.test.mjs",
+        "packages/persistence/test/store-permissions.test.js"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-history-79025ea3",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-BKP-003:command-1"
+    },
+    {
+      "ordinal": 2,
+      "argv": [
+        "npm",
+        "--workspace",
+        "packages/persistence",
+        "test"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-history-79025ea3",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-BKP-003:command-2"
+    }
+  ],
+  "results": [
+    {
+      "ordinal": 1,
+      "exit_code": 0,
+      "started_at": "2026-07-17T06:41:49.201Z",
+      "finished_at": "2026-07-17T06:41:55.069Z",
+      "output_sha256": "99622931b78ff7f6b827c1f8be4c7dab1341a85d8700092b277b52c76fd157fd",
+      "result_slice": "isolated:RS-BKP-003:command-1",
+      "passed": true,
+      "skipped": 0
+    },
+    {
+      "ordinal": 2,
+      "exit_code": 0,
+      "started_at": "2026-07-17T06:41:55.098Z",
+      "finished_at": "2026-07-17T06:41:59.767Z",
+      "output_sha256": "220b25a998c57b9180e48c26e370f157fc0f4d17b22724443d64262970ec6fd6",
+      "result_slice": "isolated:RS-BKP-003:command-2",
+      "passed": true,
+      "skipped": 0
+    }
+  ],
+  "started_at": "2026-07-17T06:41:49.201Z",
+  "finished_at": "2026-07-17T06:41:59.791Z",
+  "safe_counts": {
+    "commands_passed": 2,
+    "commands_failed": 0
+  },
+  "skip_count": 0,
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/history/remediation-a9885445/raw/RS-BKP-003/combined.log",
+  "output_sha256": "d9fe3094a716bf0e2b6b8a1a854ed4add71aad479f34adfc304e52010eaf4b14",
+  "claims": {
+    "verified": true,
+    "source_merge_candidate": false,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "provider_contacted": false,
+    "idp_contacted": false,
+    "staging_contacted": false,
+    "production_contacted": false,
+    "real_data_contacted": false,
+    "windows_signing_executed": false,
+    "cutover_executed": false,
+    "json_authority_disabled": false,
+    "go_live": false
+  },
+  "external_actions": [],
+  "legacy_evidence": {
+    "path": "workbook/lawos-runtime-safety-evidence/RS-BKP-003/command-evidence.json",
+    "sha256": "77fa6425288bbb2ec0362072de3df7d75041e23da96b4a31325781e5759395f6",
+    "blob_oid": "5daa0850a6e5c530ee8867530fb7b11917dfc0f9"
+  },
+  "dependency_receipt": {
+    "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/history/79025ea354b4e7009f916e74eba21713ae927a6d/dependencies.json",
+    "sha256": "77a4a6a4b53583065613b113497fcabf7ba9863a99ee08fce9a4dcdcacaa170c",
+    "lockfile_sha256": "745691b99cb087df3bdfaed356712c231de4b9fd562c6dd20b4338fe8487e414"
+  },
+  "selected_outcome": "pass"
+}

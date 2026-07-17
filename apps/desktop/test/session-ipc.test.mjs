@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { MainProcessAuthCoordinator } from "../src/main/auth.js";
-import { APPROVED_DEV_RENDERER_URL } from "../src/main/origin-policy.js";
+import { APPROVED_DEV_RENDERER_URL, isApprovedRendererUrl } from "../src/main/origin-policy.js";
 import { registerSessionIpcHandlers, SESSION_CHANNELS } from "../src/main/session-ipc.js";
 
-const trustedSender = (event) => event?.senderFrame?.url === APPROVED_DEV_RENDERER_URL;
+const trustedSender = (event) => isApprovedRendererUrl(event?.senderFrame?.url ?? event?.sender?.getURL?.());
 
 class FakeIpcMain {
   handlers = new Map();
@@ -182,7 +182,13 @@ test("session IPC rejects an untrusted sender before coordinator access", async 
     (error) => error?.code === "UNTRUSTED_RENDERER_IPC_SENDER"
   );
   assert.equal(calls, 0);
-  assert.equal((await ipcMain.invoke(SESSION_CHANNELS.status)).state, "signed_in");
+  assert.equal((await ipcMain.invoke(
+    SESSION_CHANNELS.status,
+    undefined,
+    { senderFrame: { url: "matter-app://app/index.html?desktop=1" } },
+  )).state, "signed_in");
   assert.equal(calls, 1);
+  assert.equal((await ipcMain.invoke(SESSION_CHANNELS.status)).state, "signed_in");
+  assert.equal(calls, 2);
   registration.dispose();
 });

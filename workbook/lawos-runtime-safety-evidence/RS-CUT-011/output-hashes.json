@@ -1,0 +1,10 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.output-hashes.v0.2",
+  "tuw_id": "RS-CUT-011",
+  "target_source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "combined_output_sha256": "26a96a8a969a9133666ba6126ea26dd81ed6897ef1a3b769e42e29d5fa44e0fb",
+  "command_output_sha256": {
+    "1": "cf83dff4d31f9c8b210b855bd2f14108017ad7d87253c5995f97cd647c1bd0a5",
+    "2": "128581bf1f3956b4e1aad15ad4b17bcd4275dff79e5160032dc332eb7ff8da57"
+  }
+}

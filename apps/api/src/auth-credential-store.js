@@ -1,6 +1,5 @@
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
+import { createDurableJsonStateController } from "../../../packages/persistence/src/durable-file.js";
 
 export const LAWOS_INTERNAL_PASSWORD_PROVIDER_ID = "lawos-internal-password-provider-v1";
 export const LAWOS_AUTH_CREDENTIAL_STORE_ENV = "LAWOS_AUTH_CREDENTIAL_STORE_PATH";
@@ -34,35 +33,19 @@ function recordsFromParsed(parsed = {}) {
   return [];
 }
 
-function readStoreRecords(filePath) {
-  if (!filePath || !existsSync(filePath)) return [];
-  const parsed = JSON.parse(readFileSync(filePath, "utf8"));
-  if (parsed.schema_version !== LAWOS_AUTH_CREDENTIAL_STORE_SCHEMA_VERSION) {
-    throw new Error(`Unsupported auth credential store schema: ${parsed.schema_version ?? "missing"}`);
+function normalizeStoreState(input = {}) {
+  if (input.schema_version && input.schema_version !== LAWOS_AUTH_CREDENTIAL_STORE_SCHEMA_VERSION) {
+    throw new Error(`Unsupported auth credential store schema: ${input.schema_version}`);
   }
-  if (parsed.provider_id && parsed.provider_id !== LAWOS_INTERNAL_PASSWORD_PROVIDER_ID) {
-    throw new Error(`Unsupported auth credential provider: ${parsed.provider_id}`);
+  if (input.provider_id && input.provider_id !== LAWOS_INTERNAL_PASSWORD_PROVIDER_ID) {
+    throw new Error(`Unsupported auth credential provider: ${input.provider_id}`);
   }
-  return recordsFromParsed(parsed);
-}
-
-function persistStoreRecords({ filePath, records, now }) {
-  if (!filePath) return;
-  mkdirSync(dirname(filePath), { recursive: true });
-  writeFileSync(
-    filePath,
-    `${JSON.stringify(
-      {
-        schema_version: LAWOS_AUTH_CREDENTIAL_STORE_SCHEMA_VERSION,
-        provider_id: LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
-        updated_at: new Date(now()).toISOString(),
-        records,
-      },
-      null,
-      2,
-    )}\n`,
-    "utf8",
-  );
+  return {
+    ...input,
+    schema_version: LAWOS_AUTH_CREDENTIAL_STORE_SCHEMA_VERSION,
+    provider_id: LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
+    records: recordsFromParsed(input).map(normalizeRecord),
+  };
 }
 
 function digestForPassword(password, salt, params = LAWOS_AUTH_SCRYPT_PARAMS) {
@@ -116,11 +99,49 @@ export function createAuthCredentialStore({
   records,
   now = () => Date.now(),
 } = {}) {
-  const normalized = (records ?? readStoreRecords(filePath)).map(normalizeRecord);
+  const stateController = createDurableJsonStateController({
+    filePath,
+    defaultValue: normalizeStoreState(),
+    normalizeValue: normalizeStoreState,
+  });
+  const normalized = (records ?? stateController.value.records).map(normalizeRecord);
   const byUserId = new Map(normalized.filter((record) => record.user_id).map((record) => [record.user_id, record]));
 
-  function getByUserId(userId) {
+  function hydrate(state) {
+    byUserId.clear();
+    for (const record of state.records.map(normalizeRecord)) {
+      if (record.user_id) byUserId.set(record.user_id, record);
+    }
+  }
+
+  function refresh() {
+    if (filePath) hydrate(stateController.reload().value);
+  }
+
+  function lookupByUserId(userId) {
     return byUserId.get(String(userId ?? "")) ?? null;
+  }
+
+  function persist() {
+    if (!filePath) return;
+    try {
+      stateController.commit({
+        ...stateController.value,
+        updated_at: new Date(now()).toISOString(),
+        records: [...byUserId.values()],
+      });
+    } catch (error) {
+      try {
+        hydrate(stateController.reload().value);
+        error.durable_store_reloaded = true;
+      } catch {}
+      throw error;
+    }
+  }
+
+  function getByUserId(userId) {
+    refresh();
+    return lookupByUserId(userId);
   }
 
   function verifyPassword({ user, password } = {}) {
@@ -169,7 +190,7 @@ export function createAuthCredentialStore({
   }
 
   function setPassword({ user, password, status = "active" } = {}) {
-    const current = getByUserId(user?.user_id);
+    const current = lookupByUserId(user?.user_id);
     const next = normalizeRecord({
       user_id: user?.user_id,
       email: user?.email,
@@ -179,12 +200,12 @@ export function createAuthCredentialStore({
       locked_until: null,
     });
     byUserId.set(next.user_id, next);
-    persistStoreRecords({ filePath, records: [...byUserId.values()], now });
+    persist();
     return next;
   }
 
   function requirePasswordReset({ user } = {}) {
-    const current = getByUserId(user?.user_id);
+    const current = lookupByUserId(user?.user_id);
     const next = normalizeRecord({
       user_id: user?.user_id,
       email: user?.email,
@@ -194,7 +215,7 @@ export function createAuthCredentialStore({
       locked_until: null,
     });
     byUserId.set(next.user_id, next);
-    persistStoreRecords({ filePath, records: [...byUserId.values()], now });
+    persist();
     return next;
   }
 
@@ -203,7 +224,9 @@ export function createAuthCredentialStore({
     schema_version: LAWOS_AUTH_CREDENTIAL_STORE_SCHEMA_VERSION,
     source: filePath ? "file" : "in_memory_fixture",
     filePath: filePath ?? null,
-    count: byUserId.size,
+    get count() {
+      return byUserId.size;
+    },
     getByUserId,
     verifyPassword,
     validateSessionCredential,

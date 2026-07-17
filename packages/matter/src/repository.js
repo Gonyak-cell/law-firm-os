@@ -1,5 +1,7 @@
-import { existsSync } from "node:fs";
-import { readFileSyncWithStaleRetry, writeJsonFileDurably } from "../../persistence/src/durable-file.js";
+import {
+  createDurableJsonStateController,
+  writeDurableJsonFile,
+} from "../../persistence/src/durable-file.js";
 import { MATTER_CORE_MIGRATIONS } from "./migrations/index.js";
 import {
   normalizeRepositoryRecord,
@@ -63,9 +65,8 @@ function mergeMigrations(migrations = []) {
   return [...merged.values()];
 }
 
-function loadState(filePath) {
-  if (!filePath || !existsSync(filePath)) return emptyState();
-  const parsed = JSON.parse(readFileSyncWithStaleRetry(filePath));
+function normalizeState(input) {
+  const parsed = input ?? emptyState();
   const migrations = mergeMigrations(parsed.migrations);
   return {
     ...emptyState(),
@@ -78,13 +79,28 @@ function loadState(filePath) {
   };
 }
 
-export function createMatterRepository({ filePath, seedRecords = [], writeState = writeJsonFileDurably } = {}) {
+export function createMatterRepository({ filePath, seedRecords = [], writeState = writeDurableJsonFile } = {}) {
   let closed = false;
   let transactionDepth = 0;
-  let state = loadState(filePath);
+  const stateController = createDurableJsonStateController({
+    filePath,
+    defaultValue: emptyState(),
+    normalizeValue: normalizeState,
+    writeState,
+  });
+  let state = stateController.value;
   const records = new Map();
   const idempotency = new Map();
   const auditEvents = new Map();
+
+  function hydrate(nextState) {
+    records.clear();
+    idempotency.clear();
+    auditEvents.clear();
+    for (const record of nextState.records) records.set(repositoryRecordKey(record), clone(record));
+    for (const entry of nextState.idempotency) idempotency.set(`${entry.tenant_id}:${entry.idempotency_key}`, clone(entry));
+    for (const event of nextState.audit_events) auditEvents.set(`${event.tenant_id}:${event.event_id}`, clone(event));
+  }
 
   function currentState() {
     return {
@@ -98,13 +114,17 @@ export function createMatterRepository({ filePath, seedRecords = [], writeState 
   function persist({ createBackup = true, force = false } = {}) {
     if (!filePath || (transactionDepth > 0 && !force)) return;
     const nextState = currentState();
-    writeState({
-      filePath,
-      value: nextState,
-      previousState: state,
-      createBackup,
-    });
-    state = nextState;
+    try {
+      stateController.commit(nextState, { createBackup });
+      state = stateController.value;
+    } catch (error) {
+      try {
+        state = stateController.reload().value;
+        hydrate(state);
+        error.durable_store_reloaded = true;
+      } catch {}
+      throw error;
+    }
   }
 
   function assertOpen() {
@@ -128,9 +148,7 @@ export function createMatterRepository({ filePath, seedRecords = [], writeState 
     return Object.freeze(clone(normalized));
   }
 
-  for (const record of state.records) records.set(repositoryRecordKey(record), clone(record));
-  for (const entry of state.idempotency) idempotency.set(`${entry.tenant_id}:${entry.idempotency_key}`, clone(entry));
-  for (const event of state.audit_events) auditEvents.set(`${event.tenant_id}:${event.event_id}`, clone(event));
+  hydrate(state);
   if (state.migration_upgrade_required) persist();
   for (const record of seedRecords) {
     if (!records.has(repositoryRecordKey(normalizeRepositoryRecord(record)))) put(record, { overwrite: true, createBackup: false });
@@ -232,12 +250,14 @@ export function createMatterRepository({ filePath, seedRecords = [], writeState 
         persist({ force: entryDepth === 0 });
         return result;
       } catch (error) {
-        records.clear();
-        idempotency.clear();
-        auditEvents.clear();
-        for (const [key, value] of before.records) records.set(key, value);
-        for (const [key, value] of before.idempotency) idempotency.set(key, value);
-        for (const [key, value] of before.auditEvents) auditEvents.set(key, value);
+        if (!error?.durable_store_reloaded) {
+          records.clear();
+          idempotency.clear();
+          auditEvents.clear();
+          for (const [key, value] of before.records) records.set(key, value);
+          for (const [key, value] of before.idempotency) idempotency.set(key, value);
+          for (const [key, value] of before.auditEvents) auditEvents.set(key, value);
+        }
         transactionDepth = entryDepth;
         throw error;
       } finally {

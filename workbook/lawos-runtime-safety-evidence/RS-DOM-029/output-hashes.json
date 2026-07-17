@@ -1,0 +1,10 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.output-hashes.v0.2",
+  "tuw_id": "RS-DOM-029",
+  "target_source_sha": "49768ead507457e03a9036d8720873c1e45ccf00",
+  "combined_output_sha256": "08ceeb93d4f8e21200781a1f7bda0acc3a31954c7b6df5a9d794e29ae208e743",
+  "command_output_sha256": {
+    "1": "ee6b9959ad386a702a45fb410b1baa6b0bb25bce55fb1538d086899ef0ad2d7a",
+    "2": "5405400690e98c985527093603a840db5908593c19821f4e66285197d09f36bb"
+  }
+}

@@ -1,12 +1,13 @@
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import {
   createDisabledMatterVaultRuntimeClient,
   createMatterVaultAwsRuntimeClient,
   loadMatterVaultRuntimeConfig
 } from "./aws-runtime.js";
 import { MainProcessAuthCoordinator, encryptedFileSecureStore, memorySecureStore } from "./auth.js";
+import { installMatterAppProtocol, matterAppRendererUrl, registerMatterAppScheme } from "./app-protocol.js";
 import { parseMatterDeepLink, redactDeepLinkIntent } from "./deepLinks.js";
 import { startDesktopLocalApiServer, stopDesktopLocalApiServer } from "./local-api.js";
 import { assertApprovedRendererUrl, installNavigationGuards, isApprovedRendererUrl } from "./origin-policy.js";
@@ -32,9 +33,7 @@ export function describeDesktopSkeleton() {
 }
 
 export function packagedRendererUrl() {
-  const url = pathToFileURL(join(moduleDir, "../renderer/web/index.html"));
-  url.searchParams.set("desktop", "1");
-  return url.toString();
+  return matterAppRendererUrl();
 }
 
 export function desktopPreloadPath() {
@@ -149,6 +148,74 @@ export function collectMatterDeepLinkArgs(argv = process.argv) {
   return argv.filter((argument) => typeof argument === "string" && argument.startsWith("matter://"));
 }
 
+export function acquireDesktopSingleInstance(app) {
+  if (typeof app?.requestSingleInstanceLock !== "function") {
+    throw new TypeError("Electron app.requestSingleInstanceLock is required");
+  }
+  const acquired = app.requestSingleInstanceLock();
+  if (!acquired) app.quit?.();
+  return acquired;
+}
+
+function focusDesktopWindow(window) {
+  if (!window) return false;
+  if (window.isMinimized?.()) window.restore?.();
+  window.show?.();
+  window.focus?.();
+  return true;
+}
+
+export function createDesktopInstanceCoordinator({ app, argv = process.argv } = {}) {
+  const pendingDeepLinks = collectMatterDeepLinkArgs(argv);
+  let activeWindow = null;
+  let deliveredDeepLinkCount = 0;
+  let rejectedDeepLinkCount = 0;
+  let lastIntent = null;
+
+  function dispatch(candidate) {
+    const intent = passwordResetDeepLinkIntent(candidate);
+    if (!intent) {
+      rejectedDeepLinkCount += 1;
+      return { sent: false, reason: "not_password_reset_deep_link" };
+    }
+    const redactedIntent = redactDeepLinkIntent(intent);
+    lastIntent = redactedIntent;
+    if (!activeWindow) {
+      pendingDeepLinks.push(candidate);
+      return { sent: false, queued: true, intent: redactedIntent };
+    }
+    const result = sendPasswordResetDeepLink(activeWindow, candidate);
+    if (result.sent) deliveredDeepLinkCount += 1;
+    return result;
+  }
+
+  app.on("open-url", (event, url) => {
+    event.preventDefault();
+    dispatch(url);
+  });
+  app.on("second-instance", (_event, secondArgv = []) => {
+    for (const url of collectMatterDeepLinkArgs(secondArgv)) dispatch(url);
+    focusDesktopWindow(activeWindow);
+  });
+
+  return Object.freeze({
+    setActiveWindow(window) {
+      activeWindow = window;
+      const queued = pendingDeepLinks.splice(0);
+      return queued.map(dispatch);
+    },
+    snapshot() {
+      return Object.freeze({
+        active_window: Boolean(activeWindow),
+        pending_deep_link_count: pendingDeepLinks.length,
+        delivered_deep_link_count: deliveredDeepLinkCount,
+        rejected_deep_link_count: rejectedDeepLinkCount,
+        last_intent: lastIntent,
+      });
+    },
+  });
+}
+
 export async function startDesktopShell({
   BrowserWindowConstructor,
   rendererUrl = rendererTargetFromEnv(),
@@ -158,8 +225,7 @@ export async function startDesktopShell({
   packaged = false,
   initialDeepLinkUrl
 } = {}) {
-  const packagedTarget = packagedRendererUrl();
-  const originOptions = { packagedRendererUrl: packagedTarget, allowDevRenderer: !packaged };
+  const originOptions = { allowDevRenderer: !packaged };
   const target = assertApprovedRendererUrl(rendererUrl, originOptions);
   const isTrustedSender = (event) => isApprovedRendererUrl(
     event?.senderFrame?.url ?? event?.sender?.getURL?.(),
@@ -176,16 +242,13 @@ export async function startDesktopShell({
 }
 
 export async function startElectronApp() {
-  const { app, BrowserWindow, ipcMain, safeStorage } = await import("electron");
-  const pendingDeepLinks = collectMatterDeepLinkArgs(process.argv);
-  let activeWindow = null;
+  const { app, BrowserWindow, ipcMain, net, protocol, safeStorage } = await import("electron");
+  if (!acquireDesktopSingleInstance(app)) return { primaryInstance: false };
+  registerMatterAppScheme(protocol);
+  const instanceCoordinator = createDesktopInstanceCoordinator({ app, argv: process.argv });
   const userDataPath = desktopUserDataPath(app);
-  app.on("open-url", (event, url) => {
-    event.preventDefault();
-    if (activeWindow) sendPasswordResetDeepLink(activeWindow, url);
-    else pendingDeepLinks.push(url);
-  });
   await app.whenReady();
+  installMatterAppProtocol({ protocol, net });
   configureDesktopAppIcon(app);
   configureDesktopProtocol(app);
   const formalRelease = isFormalReleasePackage();
@@ -211,10 +274,8 @@ export async function startElectronApp() {
     ipcMain,
     coordinator,
     packaged: app.isPackaged === true,
-    initialDeepLinkUrl: pendingDeepLinks.shift()
   });
-  activeWindow = shell.window;
-  for (const url of pendingDeepLinks) sendPasswordResetDeepLink(activeWindow, url);
+  instanceCoordinator.setActiveWindow(shell.window);
   return shell;
 }
 

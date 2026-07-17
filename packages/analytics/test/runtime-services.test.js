@@ -5,6 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { createFinanceRepository } from "../../billing/src/finance-repository.js";
 import {
+  classifyAnalyticsFreshness,
   computeFinanceDashboardMetrics,
   buildFinanceReadModels,
   createAnalyticsExport,
@@ -249,6 +250,51 @@ test("G8 dashboard refresh computes metrics from finance repository instead of c
 
   const refreshSource = readFileSync(new URL("../src/refresh-job-service.js", import.meta.url), "utf8");
   assert.equal(/metric_value:\s*(400000|87|32)\b/.test(refreshSource), false);
+});
+
+test("analytics refresh binds a deterministic source watermark and rebuilds idempotently with freshness", () => {
+  const repository = createAnalyticsRepository();
+  const financeRepository = createFinanceRepository({
+    seedRecords: [{
+      model_type: "Invoice",
+      invoice_id: "invoice-watermark-001",
+      tenant_id: TENANT,
+      matter_id: MATTER,
+      amount_due: 1000,
+      amount_paid: 500,
+      currency: "KRW",
+      status: "issued",
+    }],
+  });
+  const refreshedAt = new Date("2026-07-17T08:00:00.000Z");
+  const first = refreshAnalyticsReadModels({
+    repository,
+    financeRepository,
+    tenant_id: TENANT,
+    actor_id: ACTOR,
+    idempotency_key: "watermark-refresh-001",
+    clock: () => new Date(refreshedAt),
+  });
+  assert.match(first.source_watermark, /^[a-f0-9]{64}$/u);
+  assert.equal(first.freshness.status, "fresh");
+  assert.equal(first.dashboards.every((row) => row.source_watermark === first.source_watermark && row.projection_only === true), true);
+
+  const rebuilt = refreshAnalyticsReadModels({
+    repository,
+    financeRepository,
+    tenant_id: TENANT,
+    actor_id: ACTOR,
+    idempotency_key: "watermark-refresh-002",
+    clock: () => new Date("2026-07-17T08:05:00.000Z"),
+  });
+  assert.equal(rebuilt.rebuild_replay, true);
+  assert.equal(rebuilt.refresh_run.refresh_run_id, first.refresh_run.refresh_run_id);
+  assert.equal(repository.list({ tenant_id: TENANT, model_type: "ReadModelRefreshRun" }).length, 1);
+  assert.deepEqual(classifyAnalyticsFreshness({
+    refreshed_at: first.refresh_run.refreshed_at,
+    now: new Date("2026-07-17T08:20:00.001Z"),
+    max_age_ms: 20 * 60 * 1000,
+  }).status, "stale");
 });
 
 test("G8 client profitability aggregates only matching client group matter rows", () => {

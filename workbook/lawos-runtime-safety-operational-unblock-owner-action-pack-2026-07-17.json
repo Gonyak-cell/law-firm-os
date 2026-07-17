@@ -1,0 +1,207 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.operational-unblock-owner-action-pack.v1",
+  "packet_id": "LAWOS-RUNTIME-SAFETY-OPERATIONAL-UNBLOCK-20260717",
+  "status": "OWNER_ACTION_REQUIRED",
+  "prepared_from": {
+    "local_main_sha": "199ac95ae591110031822a701c22a8c293549fcf",
+    "local_main_tree": "f82dd4e9977d75bf3f0c25dda728c95e257c6f3c",
+    "origin_main_sha": "b46a686f719875c6980ecba9bc213a605f58fa45",
+    "local_main_ahead_count": 51,
+    "remote_publication_required_before_release": true
+  },
+  "covered_tuw_ids": [
+    "RS-BKP-005",
+    "RS-DMS-001",
+    "RS-DMS-010",
+    "RS-PRJ-005",
+    "RS-PRJ-006",
+    "RS-OFF-001",
+    "RS-OFF-002",
+    "RS-OFF-003",
+    "RS-OFF-004",
+    "RS-OFF-005",
+    "RS-OFF-006",
+    "RS-CUT-001",
+    "RS-CUT-002",
+    "RS-CUT-003",
+    "RS-CUT-004",
+    "RS-CUT-005",
+    "RS-CUT-006",
+    "RS-CUT-007",
+    "RS-CUT-008",
+    "RS-CUT-009",
+    "RS-CUT-010",
+    "RS-CUT-011",
+    "RS-CUT-012"
+  ],
+  "decision_packet_bindings": [
+    {
+      "gate": "RS-DMS-001",
+      "path": "workbook/lawos-dms-provider-authority-decision-packet-2026-07-17.json",
+      "sha256": "08c3493653fee69d707ab4a1a9733f934f410625ccd002376e8fbce12a8d60f2",
+      "action": "dms-provider-authority",
+      "environment": "source-local"
+    },
+    {
+      "gate": "RS-PRJ-005/006",
+      "path": "workbook/lawos-readiness-authority-decision-packet-2026-07-17.json",
+      "sha256": "4702e68194ae42c46d153dd152123bd6fc9a9dfcf30b3db42f2de0a2b23dbf10",
+      "action": "readiness-authority",
+      "environment": "source-local"
+    },
+    {
+      "gate": "RS-OFF-001..006",
+      "path": "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
+      "sha256": "2f1073fc4844f112799f7f05b683aaa19f4dfc9456e424b6821546dd64289445",
+      "action": "offline-capability",
+      "environment": "desktop-local"
+    },
+    {
+      "gate": "RS-CUT-001",
+      "path": "workbook/lawos-runtime-safety-evidence/RS-CUT-001/approval-packet.json",
+      "sha256": "7b85ecbc293f437f5e310b4cee2ea6ea681c083a97d3081c026a6c4355e9016a",
+      "action": "central-ledger-cutover-plan",
+      "environment": "source-local"
+    },
+    {
+      "gate": "RS-CUT-004..007",
+      "path": "workbook/lawos-runtime-safety-evidence/RS-CUT-004/decision-packet.json",
+      "sha256": "700280a9a312d4ca6a388b015c42b96a27f055f1ffbf3459a38636beabd612a0",
+      "action": "central-ledger-staging-acceptance",
+      "environment": "staging"
+    },
+    {
+      "gate": "RS-CUT-008..012",
+      "path": "workbook/lawos-runtime-safety-evidence/RS-CUT-008/production-authorization.json",
+      "sha256": "af9a595ae70ab3aabc75ce245cb207224604fd61ccb3c662d5cad5333cbbc82c",
+      "action": "central-ledger-production-authorization",
+      "environment": "production"
+    }
+  ],
+  "owner_decisions": [
+    {
+      "id": "DMS_PROVIDER_AUTHORITY",
+      "selected": null,
+      "allowed": ["approved", "rejected"],
+      "additional_input_required": ["provider=s3|sharepoint|hybrid", "sandbox_tenant_reference", "retention_and_legal_hold_owner"],
+      "recommendation": "OWNER_SELECTION_REQUIRED"
+    },
+    {
+      "id": "READINESS_AUTHORITY",
+      "selected": null,
+      "allowed": ["approved", "rejected"],
+      "additional_input_required": [],
+      "recommendation": "approved"
+    },
+    {
+      "id": "OFFLINE_CAPABILITY",
+      "selected": null,
+      "allowed": ["approved", "rejected"],
+      "additional_input_required": [],
+      "recommendation": "rejected"
+    },
+    {
+      "id": "CUTOVER_PLAN",
+      "selected": null,
+      "allowed": ["approved", "rejected"],
+      "additional_input_required": [],
+      "recommendation": "approved"
+    },
+    {
+      "id": "STAGING_ACCEPTANCE",
+      "selected": null,
+      "allowed": ["approved", "rejected"],
+      "additional_input_required": ["staging_database_reference", "operator", "observer", "abort_owner", "observation_window", "synthetic_or_real_data_scope"],
+      "recommendation": "approved_after_predecessors_with_synthetic_data_only"
+    },
+    {
+      "id": "PRODUCTION_AUTHORIZATION",
+      "selected": null,
+      "allowed": ["approved", "rejected"],
+      "additional_input_required": ["production_database_reference", "cutover_operator", "incident_owner", "cutover_window", "rollback_cutoff", "pitr_reference"],
+      "recommendation": "defer_until_staging_and_dr_verified"
+    }
+  ],
+  "external_authority_inputs": {
+    "approval_trust_registry_path": null,
+    "approval_trust_registry_sha256": null,
+    "signed_receipts_and_detached_signatures": [],
+    "aws_backup": {
+      "approval_ref": null,
+      "infrastructure_approval_ref": null,
+      "profile": "matter-prod-deploy-admin",
+      "region": "ap-northeast-2",
+      "account_id": "770880870480",
+      "bucket": "lawos-matter-runtime-backups-770880870480-ap-northeast-2",
+      "kms": "alias/aws/s3",
+      "versioning": "Enabled",
+      "lifecycle_expiry": "none",
+      "delete_policy": "deny",
+      "sso_session_verified": true,
+      "sso_verified_at_utc": "2026-07-17T14:27:00Z",
+      "read_only_bucket_preflight": "PASS_NO_MUTATION",
+      "preflight_receipt": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/operational-unblock-199ac95a/backup-preflight-receipt.json"
+    },
+    "staging": {
+      "database_reference": null,
+      "observed_candidate_identifier": "amic-vault-staging-postgres",
+      "observed_candidate_state": "available_encrypted",
+      "tenant_reference": null,
+      "credential_reference": null,
+      "real_client_data_authorized": false
+    },
+    "production": {
+      "database_reference": null,
+      "observed_candidate_identifier": "amic-vault-prod-postgres",
+      "observed_candidate_state": "available_encrypted",
+      "credential_reference": null,
+      "cutover_window": null,
+      "release_approval_ref": null,
+      "aws_deploy_approval_ref": null
+    },
+    "windows_signing": {
+      "provider": null,
+      "certificate_fingerprint": null,
+      "windows_runner_reference": null,
+      "approval_ref": null
+    },
+    "go_live": {
+      "approval_ref": null,
+      "incident_commander": null,
+      "on_call_reference": null,
+      "monitoring_window_minutes": 15
+    }
+  },
+  "execution_order": [
+    "Publish the exact local main candidate and complete exact-head CI before any release claim.",
+    "Validate the owner trust registry and detached signatures for DMS, readiness, offline, and CUT-001.",
+    "Materialize approved PRJ and OFF outcomes, then regenerate CUT-002/003 dependency evidence.",
+    "Renew AWS SSO and run read-only backup, Lambda, and staging capability preflights.",
+    "Validate the signed staging acceptance receipt and separately instruct CUT-005, CUT-006, and CUT-007.",
+    "Verify staging smoke, rollback thresholds, provider sandbox, off-device backup, and restore rehearsal.",
+    "Validate production authorization and separately instruct CUT-009 through CUT-012 in serial order.",
+    "Approve and execute release, AWS deploy, Windows signing, and go-live as distinct final actions."
+  ],
+  "current_preflight": {
+    "aws_sso": "PASS_THREE_ROLE_STS_VERIFIED_AT_2026-07-17T14:27:00Z",
+    "aws_backup_bucket": "PASS_READ_ONLY_VERSIONED_KMS_PUBLIC_BLOCKED_NO_MUTATION",
+    "production_lambda": "ACTIVE_DEPLOYMENT_COMMIT_137fa156cdb6bb30bb3af72bf3e928ad7e6e4959",
+    "staging_database_reference": "ABSENT",
+    "production_database_reference": "ABSENT",
+    "dms_provider_selection": "ABSENT",
+    "windows_signing_provider": "ABSENT",
+    "nonwindows_release_gate_validator": "PASS_WITH_PUBLIC_RELEASE_FALSE"
+  },
+  "claims": {
+    "approvals_granted": false,
+    "external_execution_authorized": false,
+    "provider_verified": false,
+    "staging_verified": false,
+    "production_ready": false,
+    "release_ready": false,
+    "aws_deployed": false,
+    "windows_signed": false,
+    "cutover_complete": false,
+    "go_live": false
+  }
+}

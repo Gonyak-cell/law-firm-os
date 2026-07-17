@@ -13,8 +13,12 @@ const PRIMARY_ID_FIELDS = Object.freeze({
   MatterWorktreeTemplateNode: "template_node_id",
 });
 
+export function primaryIdFieldOf(modelType) {
+  return PRIMARY_ID_FIELDS[modelType] ?? null;
+}
+
 export function primaryIdOf(record) {
-  const field = PRIMARY_ID_FIELDS[record.model_type];
+  const field = primaryIdFieldOf(record.model_type);
   return field ? record[field] : record.resource_id ?? record.id;
 }
 
@@ -45,7 +49,7 @@ export function repositoryRecordKey(record) {
 }
 
 export function repositoryRefKey(ref = {}) {
-  const field = PRIMARY_ID_FIELDS[ref.model_type];
+  const field = primaryIdFieldOf(ref.model_type);
   const id = ref.id ?? ref.resource_id ?? (field ? ref[field] : undefined);
   return `${ref.tenant_id}:${ref.model_type}:${id}`;
 }

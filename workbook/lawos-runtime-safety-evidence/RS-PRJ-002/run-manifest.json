@@ -1,0 +1,14 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.run-manifest.v0.2",
+  "tuw_id": "RS-PRJ-002",
+  "target_source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "target_tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
+  "toolchain_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "evidence_commit": "26df568fb089c246b7c49f068faa813401c2f0a9",
+  "evidence_tree": "6b8fca041d78baad8a289b2562a3562f51da5213",
+  "evidence_path": "workbook/lawos-runtime-safety-evidence/RS-PRJ-002/command-evidence.v0.2.json",
+  "evidence_sha256": "6032802c1ab616c7512e0b161d44452d8d74400dc89a4b1e59e8da7ad2e7b8e9",
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc-prj/raw/RS-PRJ-002/RS-PRJ-002-combined.log",
+  "output_sha256": "cf0652b89600056fadbf68c5c31824515961b7746c95e90117ecba82998e9e32",
+  "external_actions": []
+}

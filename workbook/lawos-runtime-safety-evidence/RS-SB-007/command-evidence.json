@@ -1,0 +1,30 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-SB-007",
+  "implementation_state": "VERIFIED",
+  "execution_state": "LOCAL_ONLY",
+  "source_sha": "b323b4bc2fc554f1df3fa9f400056c754aac3876",
+  "tree": "7d643b7d6ac8554862f382645d137594d8fc26b9",
+  "profile": "native-electron-local",
+  "recorded_at": "2026-07-16T09:20:03Z",
+  "command": "run the app-protocol native Electron fixture and inspect the actual request Origin",
+  "exit_code": 0,
+  "observations": {
+    "electron_version": "42.7.0",
+    "renderer_url": "matter-app://app/index.html?desktop=1",
+    "observed_origin": "matter-app://app",
+    "temporary_profile_removed": true
+  },
+  "artifacts": [
+    "apps/desktop/test/app-protocol.test.mjs",
+    "apps/desktop/test/fixtures/app-protocol-electron.mjs"
+  ],
+  "claims": {
+    "actual_custom_origin_verified": true,
+    "external_environment_used": false,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}

@@ -196,6 +196,63 @@ test("runtime client supports password reset and password login without operator
   assert.equal(latest.token_material_returned, false);
 });
 
+test("runtime client revokes a signed session without exposing bearer material", async () => {
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "https://example.execute-api.ap-northeast-2.amazonaws.com/staging",
+    fetchImpl: async (url, init) => {
+      calls.push({ url: url.toString(), init });
+      return jsonResponse(200, { ok: true, replayed: false, token_material_returned: false });
+    }
+  });
+
+  const response = await client.logout({ sessionToken: "lawos_session_v1.secret" });
+
+  assert.equal(calls[0].url.endsWith("/api/auth/logout"), true);
+  assert.equal(calls[0].init.method, "POST");
+  assert.equal(calls[0].init.headers.authorization, "Bearer lawos_session_v1.secret");
+  assert.deepEqual(response, {
+    ok: true,
+    replayed: false,
+    reason: null,
+    http_status: 200,
+    token_material_returned: false
+  });
+  assert.equal(JSON.stringify(response).includes("lawos_session_v1.secret"), false);
+});
+
+test("runtime client refuses logout without a signed session", async () => {
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "https://example.execute-api.ap-northeast-2.amazonaws.com/staging",
+    fetchImpl: async () => {
+      throw new Error("missing session must not call the runtime");
+    }
+  });
+
+  assert.deepEqual(await client.logout(), {
+    ok: false,
+    reason: "auth_session_required",
+    http_status: 401,
+    token_material_returned: false
+  });
+});
+
+test("runtime client replaces an unsafe logout failure reason", async () => {
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "https://example.execute-api.ap-northeast-2.amazonaws.com/staging",
+    fetchImpl: async () => jsonResponse(502, {
+      ok: false,
+      reason: "upstream echoed lawos_session_v1.secret",
+      token_material_returned: false
+    })
+  });
+
+  const response = await client.logout({ sessionToken: "lawos_session_v1.secret" });
+
+  assert.equal(response.reason, "server_session_revoke_failed");
+  assert.equal(JSON.stringify(response).includes("lawos_session_v1.secret"), false);
+});
+
 test("runtime client maps loopback local API logins to local-dev credentials in main process", async () => {
   const calls = [];
   const client = createMatterVaultAwsRuntimeClient({

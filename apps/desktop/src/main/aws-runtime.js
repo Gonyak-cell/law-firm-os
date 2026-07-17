@@ -484,6 +484,29 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
         authRequired: false
       });
     },
+    async logout({ sessionToken } = {}) {
+      const signedSessionToken = typeof sessionToken === "string" ? sessionToken.trim() : "";
+      if (!signedSessionToken) {
+        return {
+          ok: false,
+          reason: "auth_session_required",
+          http_status: 401,
+          token_material_returned: false
+        };
+      }
+      const response = await requestJson("/api/auth/logout", {
+        method: "POST",
+        authToken: signedSessionToken,
+        authRequired: true
+      });
+      return {
+        ok: response.ok === true,
+        replayed: response.replayed === true,
+        reason: response.ok === true ? null : "server_session_revoke_failed",
+        http_status: Number(response.http_status ?? 0),
+        token_material_returned: false
+      };
+    },
     async features({ email, sessionToken } = {}) {
       if (!sessionToken && operatorToken) return requestJson("/api/matter-vault/features", { actorEmail: email });
       if (!sessionToken) {
@@ -552,6 +575,7 @@ export function createDisabledMatterVaultRuntimeClient(error) {
     latestResetEmail: unavailable,
     confirmPasswordReset: unavailable,
     login: unavailable,
+    logout: unavailable,
     features: unavailable,
     smoke: unavailable,
     api: unavailable

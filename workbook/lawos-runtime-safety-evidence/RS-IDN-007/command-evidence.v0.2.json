@@ -1,0 +1,193 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.2",
+  "tuw_id": "RS-IDN-007",
+  "implementation_state": "BLOCKED_NOT_REPRODUCIBLE",
+  "execution_state": "NOT_APPLICABLE",
+  "target_source_sha": "81593387661b40046fcdd91482397d74dbd6c3df",
+  "target_tree": "6e59014bfa25e7112d7b349ce76d5b034203aa06",
+  "toolchain_sha": "a9885445c236331f72c8cf31b0de54d514fc331b",
+  "profile": "source-local",
+  "commands": [
+    {
+      "ordinal": 1,
+      "argv": [
+        "node",
+        "--test",
+        "packages/persistence/test/postgres-transaction.test.js",
+        "packages/persistence/test/postgres-repository-contract.test.js",
+        "apps/api/test/session-auth-api.test.js",
+        "apps/api/test/auth-restart-revocation.test.js",
+        "apps/api/test/auth-concurrency.test.js",
+        "apps/api/test/admin-security-api.test.js",
+        "apps/api/test/hrx/step-up-route.test.js",
+        "packages/runtime-auth/test/step-up-provider.test.js",
+        "apps/desktop/test/auth-coordinator.test.mjs",
+        "apps/desktop/test/session-cleanup.test.mjs"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-history-81593387",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-IDN-007:command-1"
+    },
+    {
+      "ordinal": 2,
+      "argv": [
+        "node",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-execution-20260717/scripts/run-runtime-safety-disposable-postgres-qa.mjs",
+        "--repo",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-history-81593387",
+        "--source-sha",
+        "81593387661b40046fcdd91482397d74dbd6c3df",
+        "--scenario",
+        "identity",
+        "--require-skipped",
+        "0"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-history-81593387",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-IDN-007:command-2"
+    },
+    {
+      "ordinal": 3,
+      "argv": [
+        "node",
+        "scripts/validate-matter-desktop-security.mjs"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-history-81593387",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-IDN-007:command-3"
+    },
+    {
+      "ordinal": 4,
+      "argv": [
+        "node",
+        "scripts/validate-runtime-safety-governance.mjs"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-history-81593387",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-IDN-007:command-4"
+    }
+  ],
+  "results": [
+    {
+      "ordinal": 1,
+      "exit_code": 126,
+      "started_at": "2026-07-17T08:15:25.041Z",
+      "finished_at": "2026-07-17T08:15:25.042Z",
+      "output_sha256": "770af618f67cf755fa57980b40fcb27ca716bd4d522f83fa4f1a01ec3b051f5f",
+      "result_slice": "isolated:RS-IDN-007:command-1",
+      "passed": false,
+      "skipped": 0
+    },
+    {
+      "ordinal": 2,
+      "exit_code": 1,
+      "started_at": "2026-07-17T08:15:25.044Z",
+      "finished_at": "2026-07-17T08:15:25.092Z",
+      "output_sha256": "1aadd567919b8a7c55d7f9f7ffee57eabc3b5377a2a9c09d3958fd3c9521a94e",
+      "result_slice": "isolated:RS-IDN-007:command-2",
+      "passed": false,
+      "skipped": 0
+    },
+    {
+      "ordinal": 3,
+      "exit_code": 0,
+      "started_at": "2026-07-17T08:15:25.098Z",
+      "finished_at": "2026-07-17T08:15:25.153Z",
+      "output_sha256": "603bab101e499e6c8a9f88ab87f788dab8b49647eab937991d22763709462f02",
+      "result_slice": "isolated:RS-IDN-007:command-3",
+      "passed": true,
+      "skipped": 0
+    },
+    {
+      "ordinal": 4,
+      "exit_code": 0,
+      "started_at": "2026-07-17T08:15:25.158Z",
+      "finished_at": "2026-07-17T08:15:25.396Z",
+      "output_sha256": "f66f328ce533d27cc64aaad08ed8eb43901769980782f449fbf779c0ea6919ce",
+      "result_slice": "isolated:RS-IDN-007:command-4",
+      "passed": true,
+      "skipped": 0
+    }
+  ],
+  "started_at": "2026-07-17T08:00:25.039Z",
+  "finished_at": "2026-07-17T08:15:25.408Z",
+  "safe_counts": {
+    "commands_passed": 2,
+    "commands_failed": 2
+  },
+  "skip_count": 0,
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/history/remediation-a9885445/raw/RS-IDN-007/combined.log",
+  "output_sha256": "9c8b3205cca1492b5279a9ead5ee1cb7ed3d2c16ea5d877ad15e325ece40545b",
+  "claims": {
+    "verified": false,
+    "source_merge_candidate": false,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "provider_contacted": false,
+    "idp_contacted": false,
+    "staging_contacted": false,
+    "production_contacted": false,
+    "real_data_contacted": false,
+    "windows_signing_executed": false,
+    "cutover_executed": false,
+    "json_authority_disabled": false,
+    "go_live": false
+  },
+  "external_actions": [],
+  "legacy_evidence": {
+    "path": "workbook/lawos-runtime-safety-evidence/RS-IDN-007/command-evidence.json",
+    "sha256": "b40b15303b5f285ec3edc5f425b0aca340c1960b5056167d693f4575d477fda0",
+    "blob_oid": "3cbe8a0c41b1b6377ac0068258ffa3d349b530a8"
+  },
+  "dependency_receipt": {
+    "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/history/81593387661b40046fcdd91482397d74dbd6c3df/dependencies.json",
+    "sha256": "eb1b225db843b79f67c6e9c7407b21bb536f002cad31cc8667e135985923d867",
+    "lockfile_sha256": "745691b99cb087df3bdfaed356712c231de4b9fd562c6dd20b4338fe8487e414"
+  },
+  "selected_outcome": "blocked_not_reproducible"
+}

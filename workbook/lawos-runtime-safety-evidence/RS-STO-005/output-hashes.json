@@ -1,0 +1,10 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.output-hashes.v0.2",
+  "tuw_id": "RS-STO-005",
+  "target_source_sha": "3cdbd3db10d22b02aac5c718324702e0d96520ac",
+  "combined_output_sha256": "1caa52c779f70c4f04d999156c1d88914bf3d8b259b01e1a8a00faf5c9f78cce",
+  "command_output_sha256": {
+    "1": "c3d28a63aadfdf390ee1fa9932dd8bef4d0b18c8806641fe244bccc0e4f11a8e",
+    "2": "f39c63543061ba25811494e3169841b7f9dc2eac00fdc4dd85c00919b1cac60b"
+  }
+}

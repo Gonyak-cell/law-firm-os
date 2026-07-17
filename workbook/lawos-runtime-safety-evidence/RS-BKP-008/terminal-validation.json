@@ -1,0 +1,46 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.terminal-validation.v0.1",
+  "terminal_tuw_id": "RS-BKP-008",
+  "gate_id": "G5-BKP",
+  "verdict": "PASS",
+  "allowed_claim": "BACKUP_SOURCE_LOCAL_VERIFIED",
+  "source_sha": "79025ea354b4e7009f916e74eba21713ae927a6d",
+  "tree": "5bbbdb79aaf060f4562f28b623c106618286e6da",
+  "recorded_at": "2026-07-16T10:51:26Z",
+  "verification_contracts": {
+    "VC-BKP-001": "PASS 10/10",
+    "persistence_regression": "PASS 56/56",
+    "legacy_backup_restore_regression": "PASS 5/5",
+    "runtime_store_writer_coverage": "PASS",
+    "runtime_safety_governance": "PASS",
+    "VC-PREFLIGHT-001-isolated": "PASS",
+    "CLI_manual_QA": "PASS"
+  },
+  "observations": {
+    "origin_main_sha": "b46a686f719875c6980ecba9bc213a605f58fa45",
+    "required_merge_sha_is_origin_main_ancestor": true,
+    "dedicated_worktree": "/private/tmp/lawos-rs-bkp-20260716",
+    "branch": "codex/rs-bkp-20260716",
+    "source_worktree_clean_before_evidence": true,
+    "protected_root_head": "b46a686f719875c6980ecba9bc213a605f58fa45",
+    "protected_root_branch": "codex/root-main-sync-20260716",
+    "protected_root_mutated": false,
+    "aws_contacted": false,
+    "real_client_data_used": false
+  },
+  "remaining_boundaries": {
+    "aws_backup_active": false,
+    "aws_backup_approved": false,
+    "retention_decision_approved": false,
+    "legal_hold_policy_approved": false,
+    "off_device_restore_rehearsed": false,
+    "rpo_rto_met": false,
+    "release_approved": false,
+    "tag_approved": false,
+    "aws_mutation_approved": false,
+    "staging_execution_approved": false,
+    "real_data_migration_approved": false,
+    "production_migration_approved": false,
+    "go_live_approved": false
+  }
+}

@@ -26,6 +26,11 @@ import { STORE_PATH_MANIFEST } from "../src/store-path-manifest.js";
 import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
 import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
 
+const OPERATIONAL_STEP_UP_OPTIONS = Object.freeze({
+  hrxStepUpSecret: "lambda-test-operational-step-up-secret-32-bytes",
+  hrxStepUpTotpSecret: "lambda-test-operational-step-up-totp-secret-32-bytes",
+});
+
 async function createDurableStorePaths(root) {
   const paths = {};
   for (const entry of STORE_PATH_MANIFEST) {
@@ -153,6 +158,7 @@ test("operational auth stays available when the HRX store is unreadable", async 
       port: 0,
       runtimeProfile: "operational",
       sessionSecret: "operational-session-secret-32-bytes",
+      ...OPERATIONAL_STEP_UP_OPTIONS,
       ...paths,
     });
 
@@ -186,6 +192,7 @@ test("operational auth stays available when the finance store is unreadable", as
       port: 0,
       runtimeProfile: "operational",
       sessionSecret: "operational-session-secret-32-bytes",
+      ...OPERATIONAL_STEP_UP_OPTIONS,
       ...paths,
     });
 
@@ -326,6 +333,7 @@ test("I18 S1-G authenticated production probe restores credential store and retu
           port: 0,
           runtimeProfile: "operational",
           sessionSecret: "operational-session-secret-32-bytes",
+          ...OPERATIONAL_STEP_UP_OPTIONS,
           ...paths,
         });
         return `http://${started.host}:${started.port}`;
@@ -417,6 +425,7 @@ test("I18 S1-G authenticated production probe verifies the current reporting lin
           port: 0,
           runtimeProfile: "operational",
           sessionSecret: "operational-session-secret-32-bytes",
+          ...OPERATIONAL_STEP_UP_OPTIONS,
           ...paths,
         });
         return `http://${started.host}:${started.port}`;
@@ -558,6 +567,7 @@ test("LCX-AUTH reset recovery creates one target reset URL without setting a pas
       port: 0,
       runtimeProfile: "operational",
       sessionSecret: "operational-session-secret-32-bytes",
+      ...OPERATIONAL_STEP_UP_OPTIONS,
       ...paths,
     });
     const baseUrl = `http://${started.host}:${started.port}`;

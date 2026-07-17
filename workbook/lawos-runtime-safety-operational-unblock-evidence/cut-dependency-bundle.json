@@ -1,0 +1,117 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.cut-dependency-bundle.v1",
+  "source_sha": "199ac95ae591110031822a701c22a8c293549fcf",
+  "source_tree": "f82dd4e9977d75bf3f0c25dda728c95e257c6f3c",
+  "artifacts": [
+    {
+      "key": "dms-receipt",
+      "tuw_id": "RS-DMS-009",
+      "kind": "receipt",
+      "path": "workbook/lawos-runtime-safety-evidence/RS-DMS-009/command-evidence.v0.2.json",
+      "sha256": "e6ff8d864d4612ca5814ae18f387969e2ad965373901ff4834b5584a32ce8e6c",
+      "source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b"
+    },
+    {
+      "key": "dms-outcome",
+      "tuw_id": "RS-DMS-009",
+      "kind": "dms-source-readiness",
+      "path": "workbook/lawos-runtime-safety-evidence/RS-DMS-009/dms-source-readiness.json",
+      "sha256": "38dbe2d62be95ef72949f5247c82cb55c33005fbb594ebd436b2ddd24212efba",
+      "source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b"
+    },
+    {
+      "key": "prj-005",
+      "tuw_id": "RS-PRJ-005",
+      "kind": "receipt",
+      "path": "workbook/lawos-runtime-safety-operational-unblock-evidence/dependency-receipts/RS-PRJ-005.json",
+      "sha256": "a97644cfcd2f7d65b7e357d1ed6d58578e01a479ff3a89e8a284a131f95eb417",
+      "source_sha": "199ac95ae591110031822a701c22a8c293549fcf"
+    },
+    {
+      "key": "prj-006",
+      "tuw_id": "RS-PRJ-006",
+      "kind": "receipt",
+      "path": "workbook/lawos-runtime-safety-operational-unblock-evidence/dependency-receipts/RS-PRJ-006.json",
+      "sha256": "0f8e9d9fcac12b4e9b3fe49c0e6e7cc22f558229931fab756fbc2e334116fe69",
+      "source_sha": "199ac95ae591110031822a701c22a8c293549fcf"
+    },
+    {
+      "key": "prj-outcome",
+      "tuw_id": "RS-PRJ-006",
+      "kind": "prj-outcome",
+      "path": "workbook/lawos-runtime-safety-operational-unblock-evidence/prj-outcome.json",
+      "sha256": "64d33bdcd5140521ac2c156cadfb387e26e02ba2639ac287be3a8cf0f41c802e",
+      "source_sha": "199ac95ae591110031822a701c22a8c293549fcf"
+    },
+    {
+      "key": "off-001",
+      "tuw_id": "RS-OFF-001",
+      "kind": "receipt",
+      "path": "workbook/lawos-runtime-safety-operational-unblock-evidence/dependency-receipts/RS-OFF-001.json",
+      "sha256": "4842106cd168a16e52c598f2a0218651907db71c418ae6056c5593cbdde2ecfa",
+      "source_sha": "199ac95ae591110031822a701c22a8c293549fcf"
+    },
+    {
+      "key": "off-002",
+      "tuw_id": "RS-OFF-002",
+      "kind": "receipt",
+      "path": "workbook/lawos-runtime-safety-operational-unblock-evidence/dependency-receipts/RS-OFF-002.json",
+      "sha256": "f22c192d8e344f18785492eb60c5cb00b6cdb204e06766028184be992706b0d5",
+      "source_sha": "199ac95ae591110031822a701c22a8c293549fcf"
+    },
+    {
+      "key": "off-003",
+      "tuw_id": "RS-OFF-003",
+      "kind": "receipt",
+      "path": "workbook/lawos-runtime-safety-operational-unblock-evidence/dependency-receipts/RS-OFF-003.json",
+      "sha256": "ab18b08719f07d6cf4ca380e84e5d9614961b7f6a0ce4ac6f759a21c2e5ed57d",
+      "source_sha": "199ac95ae591110031822a701c22a8c293549fcf"
+    },
+    {
+      "key": "off-004",
+      "tuw_id": "RS-OFF-004",
+      "kind": "receipt",
+      "path": "workbook/lawos-runtime-safety-operational-unblock-evidence/dependency-receipts/RS-OFF-004.json",
+      "sha256": "15f0fc4e75d661daa990e7b1e4e4b16251fdd888b128a336005f397342546cf2",
+      "source_sha": "199ac95ae591110031822a701c22a8c293549fcf"
+    },
+    {
+      "key": "off-005",
+      "tuw_id": "RS-OFF-005",
+      "kind": "receipt",
+      "path": "workbook/lawos-runtime-safety-operational-unblock-evidence/dependency-receipts/RS-OFF-005.json",
+      "sha256": "e0953c2a465993a0cab6946035dbc9bb4fa2e9bfd4c925a37fe463663e802b69",
+      "source_sha": "199ac95ae591110031822a701c22a8c293549fcf"
+    },
+    {
+      "key": "off-006",
+      "tuw_id": "RS-OFF-006",
+      "kind": "receipt",
+      "path": "workbook/lawos-runtime-safety-operational-unblock-evidence/dependency-receipts/RS-OFF-006.json",
+      "sha256": "55d81e38b827c4fe5a253d6cf7472670e838381bacb2010d773e0f317dc6a458",
+      "source_sha": "199ac95ae591110031822a701c22a8c293549fcf"
+    },
+    {
+      "key": "off-outcome",
+      "tuw_id": "RS-OFF-006",
+      "kind": "off-outcome",
+      "path": "workbook/lawos-runtime-safety-operational-unblock-evidence/off-outcome.json",
+      "sha256": "13b282711475f1e09f68f32db735962ec21ed9a83d24e60251adc4682440289a",
+      "source_sha": "199ac95ae591110031822a701c22a8c293549fcf"
+    },
+    {
+      "key": "cut-001",
+      "tuw_id": "RS-CUT-001",
+      "kind": "receipt",
+      "path": "workbook/lawos-runtime-safety-operational-unblock-evidence/dependency-receipts/RS-CUT-001.json",
+      "sha256": "63cee534114f7bf55d2d88c1f3a6a65733848486ed975fc57b855c4c5f5566aa",
+      "source_sha": "199ac95ae591110031822a701c22a8c293549fcf"
+    }
+  ],
+  "claims": {
+    "external_actions_executed": 0,
+    "real_data_used": false,
+    "release_executed": false,
+    "go_live": false
+  }
+}

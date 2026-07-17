@@ -3,12 +3,19 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { withPostgresTransaction } from "../../../packages/persistence/src/postgres/transaction.js";
+import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
+import {
+  createLocalInternalStepUpProvider,
+  createPostgresIdentityLedger,
+} from "../../../packages/runtime-auth/src/index.js";
 import { startApiServer } from "../src/server.js";
 import { createApiSessionAuth } from "../src/session-auth.js";
 import {
   LAWOS_AUTH_CREDENTIAL_STORE_SCHEMA_VERSION,
   LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
   createAuthCredentialRecord,
+  createScryptPasswordHash,
 } from "../src/auth-credential-store.js";
 import {
   MATTER_VAULT_USER_REGISTRATION_SEED,
@@ -142,6 +149,7 @@ test("Auth descriptor exposes the Wave-1 API session surface", async () => {
     assert.deepEqual(authContext.endpoints, [
       "POST /api/auth/login",
       "GET /api/auth/session",
+      "POST /api/auth/logout",
       "POST /api/auth/step-up",
       "GET /api/auth/password-reset/open",
       "POST /api/auth/password-reset/request",
@@ -200,17 +208,17 @@ test("POST /api/auth/login issues a signed session token for the registered rost
   });
 });
 
-test("Local-dev sessions use per-instance secrets and operational synthetic login is disabled", () => {
+test("Local-dev sessions use per-instance secrets and operational synthetic login is disabled", async () => {
   const account = user();
   const credentialStorePath = credentialStorePathFor([credentialRecord(account, "operational-password-1")]);
   const firstAuth = createApiSessionAuth({ now: () => Date.parse("2026-07-02T00:00:00.000Z") });
   const secondAuth = createApiSessionAuth({ now: () => Date.parse("2026-07-02T00:00:00.000Z") });
-  const signed = firstAuth.login({
+  const signed = await firstAuth.login({
     email: account.email,
     password: account.local_dev.synthetic_token,
   }, { requestId: "req_local_dev_random_secret" });
   assert.equal(signed.status, 200);
-  const crossVerify = secondAuth.verifyToken(signed.body.session_token, { requestId: "req_cross_verify" });
+  const crossVerify = await secondAuth.verifyToken(signed.body.session_token, { requestId: "req_cross_verify" });
   assert.equal(crossVerify.status, 401);
   assert.deepEqual(crossVerify.body.safe_error_codes, ["AUTH_SESSION_INVALID"]);
 
@@ -239,7 +247,7 @@ test("Local-dev sessions use per-instance secrets and operational synthetic logi
     credentialStorePath,
     passwordResetTokenStorePath: passwordResetStorePath(),
   });
-  const operationalLogin = operationalAuth.login({
+  const operationalLogin = await operationalAuth.login({
     email: account.email,
     password: account.local_dev.synthetic_token,
   }, { requestId: "req_operational_synthetic_disabled" });
@@ -247,7 +255,7 @@ test("Local-dev sessions use per-instance secrets and operational synthetic logi
   assert.deepEqual(operationalLogin.body.safe_error_codes, ["AUTH_SYNTHETIC_LOGIN_DISABLED"]);
 });
 
-test("Operational credential-store sessions verify across cold starts with credential revision checks", () => {
+test("Operational credential-store sessions verify across cold starts with credential revision checks", async () => {
   const account = user();
   const fixedSecret = "operational-session-secret-32-bytes";
   const password = "operational-password-1";
@@ -260,7 +268,7 @@ test("Operational credential-store sessions verify across cold starts with crede
     passwordResetTokenStorePath: passwordResetStorePath(),
     now: () => issuedAt,
   });
-  const signed = signingAuth.login({
+  const signed = await signingAuth.login({
     email: account.email,
     password,
   }, { requestId: "req_s1_fixed_secret_sign" });
@@ -276,7 +284,7 @@ test("Operational credential-store sessions verify across cold starts with crede
     passwordResetTokenStorePath: passwordResetStorePath(),
     now: () => issuedAt + 1000,
   });
-  const verified = restartedOperationalAuth.verifyToken(signed.body.session_token, {
+  const verified = await restartedOperationalAuth.verifyToken(signed.body.session_token, {
     requestId: "req_s1_fixed_secret_verify",
   });
   assert.equal(verified.ok, true);
@@ -294,7 +302,7 @@ test("Operational credential-store sessions verify across cold starts with crede
     passwordResetTokenStorePath: passwordResetStorePath(),
     now: () => issuedAt + 1000,
   });
-  const revoked = rotatedAuth.verifyToken(signed.body.session_token, {
+  const revoked = await rotatedAuth.verifyToken(signed.body.session_token, {
     requestId: "req_s2_credential_revoked",
   });
   assert.equal(revoked.status, 401);
@@ -307,7 +315,7 @@ test("Operational credential-store sessions verify across cold starts with crede
     passwordResetTokenStorePath: passwordResetStorePath(),
     now: () => issuedAt + 1000,
   });
-  const rejected = wrongSecretAuth.verifyToken(signed.body.session_token, {
+  const rejected = await wrongSecretAuth.verifyToken(signed.body.session_token, {
     requestId: "req_s1_wrong_secret_verify",
   });
   assert.equal(rejected.status, 401);
@@ -591,6 +599,222 @@ test("POST /api/auth/step-up issues signed HRX step-up tokens for signed session
     });
     assert.equal(expired.status, 403);
     assert.equal(expired.body.reason, "hrx_step_up_token_expired");
+  });
+});
+
+test("PostgreSQL identity auth persists reset, step-up, logout, and break-glass state without secret audit material", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  let now = Date.parse("2026-07-16T02:00:00.000Z");
+  const account = user();
+  const tenantId = MATTER_VAULT_REGISTERED_TENANT_ID;
+  const oldPassword = "postgres-identity-old-password";
+  const newPassword = "postgres-identity-new-password";
+  const acceptedProof = "provider-proof-accepted";
+  const rejectedProof = "provider-proof-rejected";
+  let delivered = null;
+  const ledger = createPostgresIdentityLedger({ pool: fixture.appPool, clock: () => now });
+  await ledger.setCredential({
+    tenant_id: tenantId,
+    user: account,
+    provider_id: LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
+    password_hash: createScryptPasswordHash(oldPassword),
+    status: "active",
+    actor_id: account.user_id,
+  });
+  const stepUpProvider = createLocalInternalStepUpProvider({
+    providerId: "test-local-step-up",
+    factors: ["totp", "passkey"],
+    verifyProof: async (input) => input.proof === acceptedProof
+      ? { ok: true, assertion_id: "assertion-postgres-001" }
+      : { ok: false, reason: "proof_invalid" },
+  });
+  const stepUpAuthority = createHrxStepUpAuthority({
+    secret: "postgres-identity-step-up-secret",
+    totpSecret: "postgres-identity-step-up-totp",
+    now: () => now,
+  });
+  const sessionAuth = createApiSessionAuth({
+    profile: "operational",
+    secret: "postgres-identity-session-secret-32-bytes",
+    identityRepository: ledger,
+    passwordResetTtlMs: 60_000,
+    passwordResetEmailDelivery: async ({ to, token, expires_at }) => {
+      delivered = { to, token, expires_at };
+      return { mode: "email", provider: "test-delivery", status: "sent", message_id: "postgres-reset-001" };
+    },
+    stepUpAuthority,
+    stepUpProvider,
+    now: () => now,
+  });
+
+  await withServer({ sessionAuth, stepUpAuthority }, async (baseUrl) => {
+    const signed = await json(baseUrl, "/api/auth/login", {
+      method: "POST",
+      body: { email: account.email, password: oldPassword },
+    });
+    assert.equal(signed.status, 200);
+    const headers = { authorization: `Bearer ${signed.body.session_token}` };
+
+    const rejectedStepUp = await json(baseUrl, "/api/auth/step-up", {
+      method: "POST",
+      headers,
+      body: { purpose: "security_audit", factor: "totp", proof: rejectedProof },
+    });
+    assert.equal(rejectedStepUp.status, 403);
+    assert.deepEqual(rejectedStepUp.body.safe_error_codes, ["HRX_STEP_UP_PROVIDER_INVALID"]);
+
+    const acceptedStepUp = await json(baseUrl, "/api/auth/step-up", {
+      method: "POST",
+      headers,
+      body: { purpose: "security_audit", factor: "totp", proof: acceptedProof },
+    });
+    assert.equal(acceptedStepUp.status, 200);
+    assert.match(acceptedStepUp.body.step_up_token, /^lawos_hrx_step_up_v1\./);
+
+    const storedStepUp = await withPostgresTransaction(fixture.appPool, { tenant_id: tenantId }, async (client) => {
+      const result = await client.query(
+        `SELECT challenge_hash, provider_id, purpose, revoked_at
+           FROM lawos_identity.challenges
+          WHERE tenant_id = $1 AND user_id = $2 AND challenge_type = 'step_up'`,
+        [tenantId, account.user_id],
+      );
+      return result.rows;
+    });
+    assert.equal(storedStepUp.length, 1);
+    assert.equal(storedStepUp[0].provider_id, "test-local-step-up");
+    assert.equal(storedStepUp[0].purpose, "security_audit");
+    assert.notEqual(storedStepUp[0].challenge_hash, acceptedStepUp.body.step_up_token);
+    const activeStepUp = await json(baseUrl, "/api/hrx/audit", {
+      headers: { ...headers, "x-lawos-hrx-step-up": acceptedStepUp.body.step_up_token },
+    });
+    assert.equal(activeStepUp.status, 200);
+    await ledger.revokeChallengesForUser({
+      tenant_id: tenantId,
+      user_id: account.user_id,
+      challenge_type: "step_up",
+      reason: "bounded_test_revocation",
+      actor_id: account.user_id,
+    });
+    const rejectedRevokedStepUp = await json(baseUrl, "/api/hrx/audit", {
+      headers: { ...headers, "x-lawos-hrx-step-up": acceptedStepUp.body.step_up_token },
+    });
+    assert.equal(rejectedRevokedStepUp.status, 403);
+    assert.equal(rejectedRevokedStepUp.body.safe_error_code, "HRX_STEP_UP_CHALLENGE_INVALID");
+    now += 1;
+    const replacementStepUp = await json(baseUrl, "/api/auth/step-up", {
+      method: "POST",
+      headers,
+      body: { purpose: "security_audit", factor: "totp", proof: acceptedProof },
+    });
+    assert.equal(replacementStepUp.status, 200);
+
+    const requestedReset = await json(baseUrl, "/api/auth/password-reset/request", {
+      method: "POST",
+      body: { email: account.email },
+    });
+    assert.equal(requestedReset.status, 200);
+    assert.equal(delivered?.to, account.email);
+    assert.ok(delivered?.token);
+    assert.equal(JSON.stringify(requestedReset.body).includes(delivered.token), false);
+
+    const priorSession = await json(baseUrl, "/api/auth/session", { headers });
+    assert.equal(priorSession.status, 401);
+    assert.deepEqual(priorSession.body.safe_error_codes, ["AUTH_CREDENTIAL_REVOKED"]);
+    const blockedOldPassword = await json(baseUrl, "/api/auth/login", {
+      method: "POST",
+      body: { email: account.email, password: oldPassword },
+    });
+    assert.equal(blockedOldPassword.status, 403);
+    assert.deepEqual(blockedOldPassword.body.safe_error_codes, ["AUTH_PASSWORD_RESET_REQUIRED"]);
+
+    const confirmed = await json(baseUrl, "/api/auth/password-reset/confirm", {
+      method: "POST",
+      body: { token: delivered.token, password: newPassword },
+    });
+    assert.equal(confirmed.status, 200);
+    const reused = await json(baseUrl, "/api/auth/password-reset/confirm", {
+      method: "POST",
+      body: { token: delivered.token, password: "postgres-identity-third-password" },
+    });
+    assert.equal(reused.status, 401);
+    assert.deepEqual(reused.body.safe_error_codes, ["AUTH_PASSWORD_RESET_TOKEN_USED"]);
+
+    now += 1_000;
+    const resetLogin = await json(baseUrl, "/api/auth/login", {
+      method: "POST",
+      body: { email: account.email, password: newPassword },
+    });
+    assert.equal(resetLogin.status, 200);
+    const resetHeaders = { authorization: `Bearer ${resetLogin.body.session_token}` };
+    const logout = await json(baseUrl, "/api/auth/logout", { method: "POST", headers: resetHeaders });
+    const logoutReplay = await json(baseUrl, "/api/auth/logout", { method: "POST", headers: resetHeaders });
+    assert.equal(logout.status, 200);
+    assert.equal(logout.body.replayed, false);
+    assert.equal(logoutReplay.status, 200);
+    assert.equal(logoutReplay.body.replayed, true);
+    const revokedSession = await json(baseUrl, "/api/auth/session", { headers: resetHeaders });
+    assert.equal(revokedSession.status, 401);
+    assert.deepEqual(revokedSession.body.safe_error_codes, ["AUTH_SESSION_REVOKED"]);
+
+    const revokedStepUp = await withPostgresTransaction(fixture.appPool, { tenant_id: tenantId }, async (client) => {
+      const result = await client.query(
+        `SELECT revoked_at, revoke_reason
+           FROM lawos_identity.challenges
+          WHERE tenant_id = $1 AND user_id = $2 AND challenge_type = 'step_up' AND revoke_reason = 'logout'
+          ORDER BY requested_at DESC LIMIT 1`,
+        [tenantId, account.user_id],
+      );
+      return result.rows[0];
+    });
+    assert.ok(revokedStepUp.revoked_at);
+    assert.equal(revokedStepUp.revoke_reason, "logout");
+
+    await ledger.createBreakGlassRequest({
+      tenant_id: tenantId,
+      break_glass_request_id: "break-glass-postgres-001",
+      requester: account,
+      requester_label: account.email,
+      reason: "bounded local verification",
+      actor_id: account.user_id,
+    });
+    const approved = await ledger.transitionBreakGlassRequest({
+      tenant_id: tenantId,
+      break_glass_request_id: "break-glass-postgres-001",
+      state: "approved",
+      actor_id: "security-admin",
+    });
+    assert.equal(approved.ok, true);
+    const restartedLedger = createPostgresIdentityLedger({ pool: fixture.appPool, clock: () => now });
+    const persistedBreakGlass = await restartedLedger.listBreakGlassRequests({ tenant_id: tenantId });
+    assert.equal(persistedBreakGlass[0].state, "approved");
+
+    const audit = await restartedLedger.listSecurityAudit({ tenant_id: tenantId });
+    const actions = new Set(audit.map((event) => event.action));
+    for (const action of [
+      "auth.login.succeeded",
+      "auth.step_up.failed",
+      "auth.step_up.succeeded",
+      "auth.password_reset.requested",
+      "auth.password_reset.consumed",
+      "auth.logout",
+      "admin.security.break_glass.requested",
+      "admin.security.break_glass.approved",
+    ]) assert.equal(actions.has(action), true, `missing identity audit action ${action}`);
+    const auditText = JSON.stringify(audit);
+    for (const secret of [
+      oldPassword,
+      newPassword,
+      acceptedProof,
+      rejectedProof,
+      delivered.token,
+      signed.body.session_token,
+      resetLogin.body.session_token,
+      acceptedStepUp.body.step_up_token,
+      replacementStepUp.body.step_up_token,
+    ]) assert.equal(auditText.includes(secret), false);
+    assert.deepEqual(await restartedLedger.listSecurityAudit({ tenant_id: "tenant_identity_other" }), []);
+    assert.equal(restartedLedger.capabilities.production_ready_claim, false);
   });
 });
 

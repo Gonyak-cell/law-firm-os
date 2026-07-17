@@ -13,7 +13,7 @@ import { VaultSurface } from "./components/VaultSurface.jsx";
 import { PortalSurface } from "./components/PortalSurface.jsx";
 import { UserProfileSurface } from "./components/UserProfileSurface.jsx";
 import { PeopleHome } from "./people/PeopleHome.tsx";
-import { loginLawosApiSession, readLawosApiSession, readLawosSessionEnvelope } from "./data/apiClient.js";
+import { isDesktopRendererLocation, loginLawosApiSession, readLawosApiSession, readLawosSessionEnvelope } from "./data/apiClient.js";
 import { canAccessHomeCompany } from "./data/homeAccess.js";
 import { canAccessHomeFinanceSection } from "./data/financeAccess.js";
 import { fetchHomeMessageItems } from "./data/homeMessages.js";
@@ -86,10 +86,9 @@ function readHomeCompanyAccess(source = globalThis) {
 function isDesktopRenderer(source = globalThis) {
   const windowLike = source?.window ?? source;
   const location = windowLike?.location ?? source?.location;
-  if (location?.protocol !== "file:") return false;
+  if (!isDesktopRendererLocation(location)) return false;
   try {
-    const params = new URLSearchParams(location.search ?? "");
-    return params.get("desktop") === "1" && typeof windowLike?.matterSession?.status === "function";
+    return typeof windowLike?.matterSession?.status === "function";
   } catch {
     return false;
   }

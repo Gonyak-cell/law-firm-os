@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
-import { createDefaultHomeDashboardRuntime, createHomeDashboardSourceCollectors } from "../src/home-dashboard-runtime-context.js";
+import {
+  HOME_DASHBOARD_API_ERROR_CODES,
+  createDefaultHomeDashboardRuntime,
+  createHomeDashboardSourceCollectors,
+} from "../src/home-dashboard-runtime-context.js";
 import { highestPrivilegeRegisteredAccount } from "../src/matter-vault-account-registry.js";
 import { startApiServer } from "../src/server.js";
 import { authedJson } from "./helpers/session.js";
@@ -355,6 +362,84 @@ test("Home action decisions are permission gated, idempotent, and limited to O-0
     assert.equal(blocked.status, 400);
     assert.deepEqual(blocked.body.safe_error_codes, ["HOME_ACTION_NOT_ALLOWED"]);
   }, { homeDashboardRuntime: runtime });
+});
+
+test("Home operational decisions, audit, and outbox commit atomically across restart while telemetry stays nonblocking", async () => {
+  const operationalStorePath = join(mkdtempSync(join(tmpdir(), "lawos-home-operational-")), "home-operational.json");
+  const staleRuntime = createSeedRuntime({ operationalStorePath });
+  const runtime = createSeedRuntime({
+    operationalStorePath,
+    telemetrySink() {
+      throw new Error("telemetry unavailable");
+    },
+  });
+  await withServer(async (baseUrl) => {
+    const response = await json(baseUrl, "/home/action-inbox/approval_leave_001/decision", {
+      method: "POST",
+      body: {
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_home_dashboard_write",
+        audit_hint_ref: "audit_hint_home_dashboard_write",
+        idempotency_key: "home-restart-decision-001",
+        action: "approve",
+      },
+    });
+    assert.equal(response.status, 201);
+  }, { homeDashboardRuntime: runtime });
+  assert.equal(runtime.operationalState.snapshot().state_version, 1);
+  assert.equal(runtime.outboxEvents.length, 1);
+  assert.equal(runtime.telemetryFailures, 1);
+
+  await withServer(async (baseUrl) => {
+    const conflict = await json(baseUrl, "/home/action-inbox/approval_leave_001/decision", {
+      method: "POST",
+      body: {
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_home_dashboard_write",
+        audit_hint_ref: "audit_hint_home_dashboard_write",
+        idempotency_key: "home-stale-writer-001",
+        action: "approve",
+      },
+    });
+    assert.equal(conflict.status, 409);
+  }, { homeDashboardRuntime: staleRuntime });
+  assert.equal(staleRuntime.decisions.size, 1);
+  assert.equal([...staleRuntime.decisions.values()].some((decision) => decision.idempotency_key === "home-stale-writer-001"), false);
+  assert.equal(staleRuntime.auditEvents.length, 1);
+  assert.equal(staleRuntime.outboxEvents.length, 1);
+
+  const reopened = createSeedRuntime({ operationalStorePath });
+  assert.equal(reopened.decisions.size, 1);
+  assert.equal(reopened.auditEvents.filter((event) => event.action === "home.action_inbox.decision").length, 1);
+  assert.equal(reopened.outboxEvents.length, 1);
+  await withServer(async (baseUrl) => {
+    const replay = await json(baseUrl, "/home/action-inbox/approval_leave_001/decision", {
+      method: "POST",
+      body: {
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_home_dashboard_write",
+        audit_hint_ref: "audit_hint_home_dashboard_write",
+        idempotency_key: "home-restart-decision-001",
+        action: "approve",
+      },
+    });
+    assert.equal(replay.status, 200);
+    assert.equal(replay.body.outcome, "idempotent_replay");
+
+    const mismatch = await json(baseUrl, "/home/action-inbox/approval_leave_001/decision", {
+      method: "POST",
+      body: {
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_home_dashboard_write",
+        audit_hint_ref: "audit_hint_home_dashboard_write",
+        idempotency_key: "home-restart-decision-001",
+        action: "reject",
+      },
+    });
+    assert.equal(mismatch.status, 409);
+    assert.deepEqual(mismatch.body.safe_error_codes, [HOME_DASHBOARD_API_ERROR_CODES.idempotency_conflict]);
+  }, { homeDashboardRuntime: reopened });
+  assert.equal(reopened.outboxEvents.length, 1);
 });
 
 test("Home agenda and Vault-tag newsletter feed return sanitized contract shapes", async () => {

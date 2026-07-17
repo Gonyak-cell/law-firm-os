@@ -1,0 +1,14 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.operational-dependency-receipt.v1",
+  "tuw_id": "RS-PRJ-005",
+  "target_source_sha": "199ac95ae591110031822a701c22a8c293549fcf",
+  "target_tree": "f82dd4e9977d75bf3f0c25dda728c95e257c6f3c",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "decision": "approved",
+  "approval_receipt_sha256": "9c583aad2c9abf196f3a4dacaf9fbbb1b48888202d4211bfa79922519c125d42",
+  "approval_signature_sha256": "8ce16895f04e2c40d66b5924222f998568cc3e41396330b3042bbeb55586c412",
+  "source_verification_bundle_sha256": "7059b4285d0f28dc6aceaddc355f061ae89e7324bc429243381239f2344e4422",
+  "claims": { "verified": true, "production_ready": false, "release_executed": false, "go_live": false },
+  "external_actions": []
+}

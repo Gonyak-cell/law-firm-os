@@ -1,0 +1,71 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.terminal-validation.v0.1",
+  "terminal_tuw_id": "RS-DOM-030",
+  "gate_id": "G8-DOM",
+  "verdict": "PASS",
+  "allowed_claim": "DOMAIN_ADAPTERS_SOURCE_VERIFIED",
+  "source_sha": "49768ead507457e03a9036d8720873c1e45ccf00",
+  "tree": "fd4c93d4b69dbb5fc5432a55b7a263feefd781ea",
+  "recorded_at": "2026-07-16T17:36:26Z",
+  "verification_contracts": {
+    "VC-PG-001": "PASS 10/10",
+    "VC-MD-001": "PASS 117/117",
+    "VC-MAT-001": "PASS 222/222",
+    "VC-CRM-001": "PASS 171/171",
+    "VC-HRX-001": "PASS 692/692",
+    "VC-FIN-001": "PASS 110/110",
+    "VC-PORTAI-001": "PASS 226/226",
+    "VC-SEC-001.desktop": "PASS; 56 files",
+    "VC-SEC-001.hrx": "PASS; 9 files",
+    "VC-DOC-001": "PASS; 147 TUWs, 13 workstreams, 13 terminals",
+    "domain_completeness_unit": "PASS 3/3",
+    "domain_receipt_capture": "PASS 15/15; 8 receipt rows",
+    "runtime_store_writer_coverage": "PASS; 16/16 manifest paths, derived DMS covered, 0 unclassified writers, 0 operational direct-authority writes",
+    "VC-PREFLIGHT-001-isolated": "PASS; 5 scenarios",
+    "web_production_build": "PASS; 1719 modules",
+    "changed_javascript_syntax": "PASS"
+  },
+  "broad_regression_observations": {
+    "root_npm_test_exact_source_sha": "4536/4539 PASS",
+    "failure_count": 3,
+    "classification": "PRE_EXISTING_EXTERNAL_RECEIPT_BLOCKER_AND_CASCADE",
+    "primary_failure": "UPL-B-13 Popbill sandbox proof requires the uncommitted operator credential file .env.popbill.local",
+    "cascade_failures": [
+      "Wave-1 external receipt readiness observes the blocked Popbill receipt",
+      "Wave-1 strict verification observes the same blocked receipt"
+    ],
+    "same_failure_family_observed_before_RS_DOM_source_commit": true,
+    "rs_dom_change_required": false,
+    "generated_manual_QA_artifacts_restored_to_source_SHA": true
+  },
+  "observations": {
+    "origin_main_sha_at_program_start": "b46a686f719875c6980ecba9bc213a605f58fa45",
+    "required_merge_sha_is_origin_main_ancestor": true,
+    "dedicated_worktree": "/private/tmp/lawos-rs-dom-20260716",
+    "branch": "codex/rs-dom-20260716",
+    "source_worktree_clean_before_evidence": true,
+    "protected_root_head": "b46a686f719875c6980ecba9bc213a605f58fa45",
+    "protected_root_branch": "codex/root-main-sync-20260716",
+    "protected_root_mutated": false,
+    "disposable_postgresql_only": true,
+    "production_connection_opened": false,
+    "provider_contacted": false,
+    "aws_contacted": false,
+    "real_client_data_used": false
+  },
+  "remaining_boundaries": {
+    "external_dependency_EXT_PG_PROD": "PENDING",
+    "production_database_selected": false,
+    "production_database_provisioned": false,
+    "postgres_api_authority_active": false,
+    "staging_execution_approved": false,
+    "staging_migration_executed": false,
+    "production_migration_executed": false,
+    "real_data_migration_executed": false,
+    "release_approved": false,
+    "tag_approved": false,
+    "aws_mutation_approved": false,
+    "windows_signing_approved": false,
+    "go_live_approved": false
+  }
+}

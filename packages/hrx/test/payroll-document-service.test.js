@@ -80,7 +80,7 @@ test("PY-DOC-001/002 generates versioned encrypted PDF statements and regenerate
   assert.equal(service.generate(PREPARER, { run_id: run.run_id }).generated_count, 0);
   const first = repository.getStatement(PREPARER, { statement_id: generated.statements[0].statement_id });
   assert.match(first.document_ref, /^vault:\/\/payroll-document-test\//);
-  const encrypted = storage.getObject({ object_id: `payroll/${run.run_id}/${first.employee_id}/${first.document_hash}.pdf` }).bytes.toString("utf8");
+  const encrypted = storage.getObject({ tenant_id: TENANT, object_id: `payroll/${run.run_id}/${first.employee_id}/${first.document_hash}.pdf` }).bytes.toString("utf8");
   assert.doesNotMatch(encrypted, /4000000|Employee One|%PDF/);
   assert.equal(repository.getStatementTemplate(PREPARER, { template_id: first.template_id }).status, "published");
   store.close();

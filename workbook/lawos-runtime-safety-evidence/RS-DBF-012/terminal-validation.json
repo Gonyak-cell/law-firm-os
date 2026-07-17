@@ -1,0 +1,63 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.terminal-validation.v0.1",
+  "terminal_tuw_id": "RS-DBF-012",
+  "gate_id": "G6-DBF",
+  "verdict": "PASS",
+  "allowed_claim": "POSTGRES_SOURCE_FOUNDATION_VERIFIED",
+  "source_sha": "86f4566eac262f82b10220f78bc9e2b4721135eb",
+  "tree": "f8e83803b05ab857ce0232379807c6d2217a2c03",
+  "recorded_at": "2026-07-16T14:24:15Z",
+  "verification_contracts": {
+    "VC-PG-001": "PASS 10/10",
+    "persistence_regression": "PASS 66/66",
+    "matter_regression": "PASS 191/191",
+    "api_authority_targeted": "PASS 8/8",
+    "api_full_same_tree_precommit": "PASS 407/407",
+    "runtime_store_writer_coverage": "PASS; 16/16 manifest paths, derived DMS covered, 0 unclassified writers",
+    "runtime_safety_governance": "PASS; 147 TUWs, 13 workstreams",
+    "hrx_security_negative": "PASS; 9 files",
+    "VC-PREFLIGHT-001-isolated": "PASS; 5 scenarios",
+    "web_production_build": "PASS; 1719 modules",
+    "changed_javascript_syntax": "PASS",
+    "disposable_postgres_manual_QA": "PASS"
+  },
+  "broad_regression_observations": {
+    "root_npm_test_same_tree_precommit": "4509/4512 PASS",
+    "failure_count": 3,
+    "classification": "PRE_EXISTING_EXTERNAL_RECEIPT_BLOCKER_AND_PARALLEL_CASCADE",
+    "primary_failure": "UPL-B-13 requires .env.popbill.local and reports BLOCKED_POPBILL_CREDENTIALS_MISSING in a clean worktree",
+    "cascade_failures": [
+      "Wave1 external receipt readiness observes the concurrently generated blocked receipt",
+      "strict verification observes the same concurrently generated blocked receipt"
+    ],
+    "baseline_reproduction_at_66c7a948a887838a777c9d5fe4be7a8da0b98d0d": "4/5 PASS with the same UPL-B-13 credential failure",
+    "rs_dbf_change_required": false
+  },
+  "observations": {
+    "origin_main_sha_at_program_start": "b46a686f719875c6980ecba9bc213a605f58fa45",
+    "required_merge_sha_is_origin_main_ancestor": true,
+    "dedicated_worktree": "/private/tmp/lawos-rs-dbf-20260716",
+    "branch": "codex/rs-dbf-20260716",
+    "source_worktree_clean_before_evidence": true,
+    "protected_root_head": "b46a686f719875c6980ecba9bc213a605f58fa45",
+    "protected_root_branch": "codex/root-main-sync-20260716",
+    "protected_root_mutated": false,
+    "production_connection_opened": false,
+    "aws_contacted": false,
+    "real_client_data_used": false
+  },
+  "remaining_boundaries": {
+    "external_dependency_EXT_PG_PROD": "PENDING",
+    "production_database_selected": false,
+    "production_database_provisioned": false,
+    "postgres_domain_adapters_complete": false,
+    "postgres_api_authority_active": false,
+    "staging_migration_executed": false,
+    "production_migration_executed": false,
+    "real_data_migration_executed": false,
+    "release_approved": false,
+    "tag_approved": false,
+    "aws_mutation_approved": false,
+    "go_live_approved": false
+  }
+}

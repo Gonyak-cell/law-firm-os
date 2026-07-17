@@ -1,0 +1,28 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.1",
+  "tuw_id": "RS-SA-002",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "source_sha": "6429851bc161007984c78d36bc7ea04b1aeaf03d",
+  "tree": "f6a0e54352434f252e7e432253a0343b684c1f60",
+  "profile": "source-local",
+  "recorded_at": "2026-07-16T08:54:58Z",
+  "command": "verify requestSingleInstanceLock precedes userData and local API initialization",
+  "exit_code": 0,
+  "safe_counts": {
+    "single_instance_lock_calls": 1,
+    "secondary_instance_local_api_initializations": 0,
+    "secondary_instance_store_initializations": 0
+  },
+  "artifacts": [
+    "apps/desktop/src/main/main.js",
+    "apps/desktop/test/single-instance.test.mjs"
+  ],
+  "claims": {
+    "early_single_instance_lock_verified": true,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "go_live": false
+  }
+}
