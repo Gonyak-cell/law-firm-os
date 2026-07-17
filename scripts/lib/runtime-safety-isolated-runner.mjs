@@ -197,6 +197,8 @@ export async function runRuntimeSafetyTuw({
   const env = {
     ...row.env,
     PATH: `${dirname(process.execPath)}:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin`,
+    LAWOS_LOCAL_BACKUP_ROOT: join(rawRoot, "local-backups"),
+    LAWOS_RUNTIME_BACKUP_QUEUE_ROOT: join(rawRoot, "backup-queue"),
     ...injectedEnv,
   };
   const startedAt = new Date().toISOString();

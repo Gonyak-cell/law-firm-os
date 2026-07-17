@@ -42,8 +42,19 @@ async function expectCode(code, promise) {
 
 test("isolated runner executes one hash-bound TUW and writes raw output outside Git", async () => {
   const f = fixture();
+  const localBackupRoot = join(f.outputDir, "local-backups");
+  const backupQueueRoot = join(f.outputDir, "backup-queue");
   const receipt = await runRuntimeSafetyTuw({
-    row: f.row,
+    row: {
+      ...f.row,
+      commands: [[
+        "node",
+        "-e",
+        "if (process.env.LAWOS_LOCAL_BACKUP_ROOT !== process.argv[1] || process.env.LAWOS_RUNTIME_BACKUP_QUEUE_ROOT !== process.argv[2]) process.exit(2); console.log('pass')",
+        localBackupRoot,
+        backupQueueRoot,
+      ]],
+    },
     checkout: f.repo,
     targetSourceSha: f.head,
     targetTree: f.tree,
@@ -53,6 +64,8 @@ test("isolated runner executes one hash-bound TUW and writes raw output outside 
   });
   assert.equal(receipt.claims.verified, true);
   assert.equal(receipt.results[0].exit_code, 0);
+  assert.equal(receipt.commands[0].env_keys.includes("LAWOS_LOCAL_BACKUP_ROOT"), true);
+  assert.equal(receipt.commands[0].env_keys.includes("LAWOS_RUNTIME_BACKUP_QUEUE_ROOT"), true);
 });
 
 test("isolated runner preserves a closed approval-required outcome without upgrading it to verified", async () => {
