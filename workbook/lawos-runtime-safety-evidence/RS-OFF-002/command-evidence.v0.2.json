@@ -3,9 +3,9 @@
   "tuw_id": "RS-OFF-002",
   "implementation_state": "PLANNED",
   "execution_state": "APPROVAL_REQUIRED",
-  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
-  "target_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
-  "toolchain_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "target_source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "target_tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
+  "toolchain_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
   "profile": "source-local",
   "commands": [
     {
@@ -14,7 +14,7 @@
         "node",
         "scripts/run-offline-capability-outcome.mjs",
         "--source-sha",
-        "d28b0261c560a39c70767e65df78fdb548cef7da",
+        "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
         "--decision-source-sha",
         "2ccd9bbe0fbdb8d40c766e36d93a635d79649613",
         "--outcome",
@@ -28,9 +28,9 @@
         "--expected-trust-registry-sha256",
         "0000000000000000000000000000000000000000000000000000000000000000",
         "--output-dir",
-        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/generated/RS-OFF-002"
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc/generated/RS-OFF-002"
       ],
-      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
       "env_keys": [
         "AWS_EC2_METADATA_DISABLED",
         "CI",
@@ -55,7 +55,7 @@
         "scripts/test/offline-capability-decision.test.mjs",
         "apps/desktop/test/shell-smoke.test.mjs"
       ],
-      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
       "env_keys": [
         "AWS_EC2_METADATA_DISABLED",
         "CI",
@@ -77,9 +77,9 @@
     {
       "ordinal": 1,
       "exit_code": 0,
-      "started_at": "2026-07-17T08:32:15.821Z",
-      "finished_at": "2026-07-17T08:32:15.898Z",
-      "output_sha256": "cd02111a43d22017d45bd2ce2a4130a651e259ff466db2412bf4b5870ef064cf",
+      "started_at": "2026-07-17T11:42:18.229Z",
+      "finished_at": "2026-07-17T11:42:18.306Z",
+      "output_sha256": "000c76f6c119b265658360870f02c1a3e77819f77786289c018b9b7f8be01adb",
       "result_slice": "isolated:RS-OFF-002:command-1",
       "passed": true,
       "skipped": 0
@@ -87,24 +87,24 @@
     {
       "ordinal": 2,
       "exit_code": 0,
-      "started_at": "2026-07-17T08:32:15.898Z",
-      "finished_at": "2026-07-17T08:32:16.036Z",
-      "output_sha256": "d78adc3386d8cc766bb8914db5738dd300418e71e4311ffddfb88ec93a228334",
+      "started_at": "2026-07-17T11:42:18.306Z",
+      "finished_at": "2026-07-17T11:42:18.439Z",
+      "output_sha256": "8a94791653d45001e8cf53498ae37c6c56ebfe3ddf66a5cddeec7c27f0d1faa7",
       "result_slice": "isolated:RS-OFF-002:command-2",
       "passed": true,
       "skipped": 0
     }
   ],
-  "started_at": "2026-07-17T08:32:15.821Z",
-  "finished_at": "2026-07-17T08:32:16.044Z",
+  "started_at": "2026-07-17T11:42:18.229Z",
+  "finished_at": "2026-07-17T11:42:18.442Z",
   "safe_counts": {
     "passed": 2,
     "failed": 0,
     "approval_required": 1
   },
   "skip_count": 0,
-  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/raw/RS-OFF-002/RS-OFF-002-combined.log",
-  "output_sha256": "98b52ff91515039fe9f03e79d3e3ed42b6547db10125914083ca8d7889bbf66b",
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc/raw/RS-OFF-002/RS-OFF-002-combined.log",
+  "output_sha256": "359f6216c0b4fbef751af9e66ffc2712bafadbf452449e72e02a19cde667b245",
   "claims": {
     "verified": false,
     "production_ready": false,

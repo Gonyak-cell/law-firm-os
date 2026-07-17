@@ -3,9 +3,9 @@
   "tuw_id": "RS-DMS-010",
   "implementation_state": "READY",
   "execution_state": "APPROVAL_REQUIRED",
-  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
-  "target_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
-  "toolchain_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "target_source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "target_tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
+  "toolchain_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
   "profile": "provider-neutral-local",
   "commands": [
     {
@@ -14,7 +14,7 @@
         "node",
         "scripts/run-dms-provider-preflight.mjs",
         "--source-sha",
-        "d28b0261c560a39c70767e65df78fdb548cef7da",
+        "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
         "--decision-source-sha",
         "9912071d0839c974e85d8ba5f6f3dd9665a066d7",
         "--packet",
@@ -27,9 +27,9 @@
         "0000000000000000000000000000000000000000000000000000000000000000",
         "--preflight-only",
         "--output-dir",
-        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/generated/RS-DMS-010"
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc/generated/RS-DMS-010"
       ],
-      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
       "env_keys": [
         "AWS_EC2_METADATA_DISABLED",
         "CI",
@@ -51,24 +51,24 @@
     {
       "ordinal": 1,
       "exit_code": 0,
-      "started_at": "2026-07-17T08:32:15.215Z",
-      "finished_at": "2026-07-17T08:32:15.290Z",
-      "output_sha256": "170ac0f208409b29307abf8e93cd31c66b2e1317410649c10b4db1214e7b4bd0",
+      "started_at": "2026-07-17T11:41:55.895Z",
+      "finished_at": "2026-07-17T11:41:55.961Z",
+      "output_sha256": "50c59c1a30f9c7164475ac077793a379a4b1d460de9cf1ea8662ea878a3fe795",
       "result_slice": "isolated:RS-DMS-010:all",
       "passed": true,
       "skipped": 0
     }
   ],
-  "started_at": "2026-07-17T08:32:15.215Z",
-  "finished_at": "2026-07-17T08:32:15.310Z",
+  "started_at": "2026-07-17T11:41:55.895Z",
+  "finished_at": "2026-07-17T11:41:55.962Z",
   "safe_counts": {
     "passed": 1,
     "failed": 0,
     "approval_required": 1
   },
   "skip_count": 0,
-  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/raw/RS-DMS-010/RS-DMS-010-combined.log",
-  "output_sha256": "170ac0f208409b29307abf8e93cd31c66b2e1317410649c10b4db1214e7b4bd0",
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc/raw/RS-DMS-010/RS-DMS-010-combined.log",
+  "output_sha256": "50c59c1a30f9c7164475ac077793a379a4b1d460de9cf1ea8662ea878a3fe795",
   "claims": {
     "verified": false,
     "production_ready": false,

@@ -3,9 +3,9 @@
   "tuw_id": "RS-PRJ-002",
   "implementation_state": "VERIFIED",
   "execution_state": "NOT_APPLICABLE",
-  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
-  "target_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
-  "toolchain_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "target_source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "target_tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
+  "toolchain_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
   "profile": "source-local",
   "commands": [
     {
@@ -18,7 +18,7 @@
         "packages/persistence/test/postgres-repository-contract.test.js",
         "apps/web/test/home-dashboard-r1.test.mjs"
       ],
-      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
       "env_keys": [
         "AWS_EC2_METADATA_DISABLED",
         "CI",
@@ -40,24 +40,24 @@
     {
       "ordinal": 1,
       "exit_code": 0,
-      "started_at": "2026-07-17T10:09:32.230Z",
-      "finished_at": "2026-07-17T10:16:07.680Z",
-      "output_sha256": "c9a8e62c10025391027c59250703bf418f8c11a8e4366aaa76db1f537e38b353",
+      "started_at": "2026-07-17T11:48:53.575Z",
+      "finished_at": "2026-07-17T11:55:26.565Z",
+      "output_sha256": "cf0652b89600056fadbf68c5c31824515961b7746c95e90117ecba82998e9e32",
       "result_slice": "isolated:RS-PRJ-002:all",
       "passed": true,
       "skipped": 0
     }
   ],
-  "started_at": "2026-07-17T10:09:32.230Z",
-  "finished_at": "2026-07-17T10:16:07.681Z",
+  "started_at": "2026-07-17T11:48:53.575Z",
+  "finished_at": "2026-07-17T11:55:26.566Z",
   "safe_counts": {
     "passed": 1,
     "failed": 0,
     "approval_required": 0
   },
   "skip_count": 0,
-  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-prj-sequential/raw/RS-PRJ-002/RS-PRJ-002-combined.log",
-  "output_sha256": "c9a8e62c10025391027c59250703bf418f8c11a8e4366aaa76db1f537e38b353",
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc-prj/raw/RS-PRJ-002/RS-PRJ-002-combined.log",
+  "output_sha256": "cf0652b89600056fadbf68c5c31824515961b7746c95e90117ecba82998e9e32",
   "claims": {
     "verified": true,
     "production_ready": false,

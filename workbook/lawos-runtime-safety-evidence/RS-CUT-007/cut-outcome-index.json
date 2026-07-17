@@ -1,10 +1,10 @@
 {
   "schema_version": "law-firm-os.runtime-safety.cut-outcome-index.v1",
-  "source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
-  "source_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
+  "source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "source_tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
   "selected_tuw_id": "RS-CUT-007",
   "selected_receipt_path": "workbook/lawos-runtime-safety-evidence/RS-CUT-007/command-evidence.v0.2.json",
-  "selected_receipt_sha256": "d2ad69cfc9607d1711119e6038f459c554d8696b60f08b6c14897861df46a443",
+  "selected_receipt_sha256": "aa8926417a6dbb4c36caeae314d398ac55ade73f88311b4fd9b97256665a1106",
   "implementation_state": "READY",
   "execution_state": "APPROVAL_REQUIRED",
   "verified": false,

@@ -3,9 +3,9 @@
   "tuw_id": "RS-CUT-008",
   "implementation_state": "READY",
   "execution_state": "APPROVAL_REQUIRED",
-  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
-  "target_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
-  "toolchain_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "target_source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "target_tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
+  "toolchain_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
   "profile": "approval-packet-local-only",
   "commands": [
     {
@@ -16,7 +16,7 @@
         "--stage",
         "CUT-008",
         "--source-sha",
-        "d28b0261c560a39c70767e65df78fdb548cef7da",
+        "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
         "--decision-source-sha",
         "1663c0622acc992e478a5ca4f33b7ce58fe096b6",
         "--packet",
@@ -32,11 +32,11 @@
         "--expected-trust-registry-sha256",
         "0000000000000000000000000000000000000000000000000000000000000000",
         "--prior-receipt",
-        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/generated/RS-CUT-007/command-evidence.v0.2.json",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc-cut/generated/RS-CUT-007/command-evidence.v0.2.json",
         "--output-dir",
-        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/generated/RS-CUT-008"
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc-cut/generated/RS-CUT-008"
       ],
-      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
       "env_keys": [
         "AWS_EC2_METADATA_DISABLED",
         "CI",
@@ -58,24 +58,24 @@
     {
       "ordinal": 1,
       "exit_code": 0,
-      "started_at": "2026-07-17T10:39:17.593Z",
-      "finished_at": "2026-07-17T10:39:17.663Z",
-      "output_sha256": "a5c6796626071a2272c6f4ed2ee2ae8df9d668d8813a19a282e137a83e3c4716",
+      "started_at": "2026-07-17T12:11:27.666Z",
+      "finished_at": "2026-07-17T12:11:27.736Z",
+      "output_sha256": "1c825dbd1b1a930b37617c949c78c52f42152583832c5eeacc71dae4f976e374",
       "result_slice": "isolated:RS-CUT-008:all",
       "passed": true,
       "skipped": 0
     }
   ],
-  "started_at": "2026-07-17T10:39:17.592Z",
-  "finished_at": "2026-07-17T10:39:17.664Z",
+  "started_at": "2026-07-17T12:11:27.666Z",
+  "finished_at": "2026-07-17T12:11:27.736Z",
   "safe_counts": {
     "passed": 1,
     "failed": 0,
     "approval_required": 1
   },
   "skip_count": 0,
-  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/raw/RS-CUT-008/RS-CUT-008-combined.log",
-  "output_sha256": "a5c6796626071a2272c6f4ed2ee2ae8df9d668d8813a19a282e137a83e3c4716",
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc-cut/raw/RS-CUT-008/RS-CUT-008-combined.log",
+  "output_sha256": "1c825dbd1b1a930b37617c949c78c52f42152583832c5eeacc71dae4f976e374",
   "claims": {
     "verified": false,
     "production_ready": false,

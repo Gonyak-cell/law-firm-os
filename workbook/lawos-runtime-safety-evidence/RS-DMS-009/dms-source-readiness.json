@@ -2,31 +2,31 @@
   "schema_version": "law-firm-os.dms-source-readiness.v0.2",
   "verdict": "PASS",
   "allowed_claim": "DMS_SOURCE_CHECKPOINT_VERIFIED",
-  "source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
-  "tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
+  "source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
   "source_worktree_clean_before_evidence": true,
   "source_worktree_clean_after_evidence": true,
-  "started_at": "2026-07-17T08:32:22.425Z",
-  "finished_at": "2026-07-17T08:32:49.761Z",
+  "started_at": "2026-07-17T11:39:49.314Z",
+  "finished_at": "2026-07-17T11:40:00.425Z",
   "toolchain_sha256": "0ef2a6478ad53e079c9f199ae79658fd312d2ef79cd63cf2955c15d8fed69e6c",
-  "dependency_receipt_sha256": "36c5c693a5bb8f3a9846fe9e1077bfc8adbc6fa49dbddc6bdab79f084a45367a",
+  "dependency_receipt_sha256": "a59136fc61464332e9f4554338cd58e6a8d60ddc708f994eff3f3de2527650e1",
   "verification_contracts": [
     {
       "receipt_id": "VC-DMS-ADVERSARIAL-001",
       "command": "node --test packages/dms/test/security-regressions.test.js packages/dms/test/postgres-security-regressions.test.js packages/dms/test/upload-reconciliation.test.js",
       "exit_code": 0,
       "counts": {
-        "passed": 20,
+        "passed": 23,
         "failed": 0,
         "skipped": 0,
-        "total": 20
+        "total": 23
       },
-      "output_sha256": "21b1e1f97876a3dd23feed4cd51187c4a67c3b36bb9e40de1dda31fafc8bdd57",
+      "output_sha256": "110658ffdc17a2b2833564fc970153ad305783d57b037744ef77ab41e0a0220a",
       "result_slice": "isolated:VC-DMS-ADVERSARIAL-001:all",
       "db_skipped": 0,
       "postgres_started": true,
-      "started_at": "2026-07-17T08:32:22.426Z",
-      "finished_at": "2026-07-17T08:32:40.199Z"
+      "started_at": "2026-07-17T11:39:49.315Z",
+      "finished_at": "2026-07-17T11:39:56.098Z"
     },
     {
       "receipt_id": "VC-DMS-CONSUMERS-001",
@@ -38,12 +38,12 @@
         "skipped": 0,
         "total": 19
       },
-      "output_sha256": "4e45f0bd532cf50ce346ecedb2eb5393a0222da128db647560648167b7faa5d5",
+      "output_sha256": "395d454f8b302b2b98669f8ef69b8797be6fb9cd98d2e611e7193b0512b1d8f8",
       "result_slice": "isolated:VC-DMS-CONSUMERS-001:all",
       "db_skipped": 0,
       "postgres_started": true,
-      "started_at": "2026-07-17T08:32:40.200Z",
-      "finished_at": "2026-07-17T08:32:42.645Z"
+      "started_at": "2026-07-17T11:39:56.099Z",
+      "finished_at": "2026-07-17T11:39:57.109Z"
     },
     {
       "receipt_id": "VC-DMS-POSTGRES-001",
@@ -55,12 +55,12 @@
         "skipped": 0,
         "total": 12
       },
-      "output_sha256": "31e0a60535006c40fd45b521be236f973e92ff6917237c16831254545ecc84c7",
+      "output_sha256": "66f9eae2dac1cf6a3c9abd1fbbc9448893b5c8326606a3d384efb9e92f0ef306",
       "result_slice": "isolated:VC-DMS-POSTGRES-001:all",
       "db_skipped": 0,
       "postgres_started": true,
-      "started_at": "2026-07-17T08:32:42.646Z",
-      "finished_at": "2026-07-17T08:32:49.452Z"
+      "started_at": "2026-07-17T11:39:57.110Z",
+      "finished_at": "2026-07-17T11:40:00.219Z"
     },
     {
       "receipt_id": "VC-DMS-GOVERNANCE-001",
@@ -76,8 +76,8 @@
       "result_slice": "isolated:VC-DMS-GOVERNANCE-001:all",
       "db_skipped": 0,
       "postgres_started": false,
-      "started_at": "2026-07-17T08:32:49.453Z",
-      "finished_at": "2026-07-17T08:32:49.599Z"
+      "started_at": "2026-07-17T11:40:00.219Z",
+      "finished_at": "2026-07-17T11:40:00.341Z"
     }
   ],
   "adversarial_tests": [
@@ -107,12 +107,27 @@
       "command_receipt_id": "VC-DMS-ADVERSARIAL-001"
     },
     {
+      "test_id": "DMS-PERSISTENCE-UNKNOWN-MODEL-REJECTED",
+      "status": "passed",
+      "command_receipt_id": "VC-DMS-ADVERSARIAL-001"
+    },
+    {
       "test_id": "DMS-PERSISTENCE-SECRET-BINARY-REJECTED",
       "status": "passed",
       "command_receipt_id": "VC-DMS-ADVERSARIAL-001"
     },
     {
       "test_id": "DMS-PROVIDER-FAILURE-NO-PUBLICATION",
+      "status": "passed",
+      "command_receipt_id": "VC-DMS-ADVERSARIAL-001"
+    },
+    {
+      "test_id": "DMS-PROVIDER-FINALIZE-SAME-WORKER-LEASE-CAS",
+      "status": "passed",
+      "command_receipt_id": "VC-DMS-ADVERSARIAL-001"
+    },
+    {
+      "test_id": "DMS-PROVIDER-POINTER-CANONICALIZED",
       "status": "passed",
       "command_receipt_id": "VC-DMS-ADVERSARIAL-001"
     },
@@ -138,16 +153,16 @@
     }
   ],
   "output_hashes": {
-    "VC-DMS-ADVERSARIAL-001": "21b1e1f97876a3dd23feed4cd51187c4a67c3b36bb9e40de1dda31fafc8bdd57",
-    "VC-DMS-CONSUMERS-001": "4e45f0bd532cf50ce346ecedb2eb5393a0222da128db647560648167b7faa5d5",
-    "VC-DMS-POSTGRES-001": "31e0a60535006c40fd45b521be236f973e92ff6917237c16831254545ecc84c7",
+    "VC-DMS-ADVERSARIAL-001": "110658ffdc17a2b2833564fc970153ad305783d57b037744ef77ab41e0a0220a",
+    "VC-DMS-CONSUMERS-001": "395d454f8b302b2b98669f8ef69b8797be6fb9cd98d2e611e7193b0512b1d8f8",
+    "VC-DMS-POSTGRES-001": "66f9eae2dac1cf6a3c9abd1fbbc9448893b5c8326606a3d384efb9e92f0ef306",
     "VC-DMS-GOVERNANCE-001": "ed949083ea4992b9edda38e4d52ab11a9b849bfc0204bd20738e98e3c1f074ed"
   },
   "run_manifest": {
     "schema_version": "law-firm-os.dms-source-run-manifest.v1",
-    "source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
-    "tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
-    "checkout": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+    "source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+    "tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
+    "checkout": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
     "command_receipt_ids": [
       "VC-DMS-ADVERSARIAL-001",
       "VC-DMS-CONSUMERS-001",
@@ -164,9 +179,9 @@
           "packages/dms/test/postgres-security-regressions.test.js",
           "packages/dms/test/upload-reconciliation.test.js"
         ],
-        "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
-        "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/dms-source-seal/raw/VC-DMS-ADVERSARIAL-001.log",
-        "output_sha256": "21b1e1f97876a3dd23feed4cd51187c4a67c3b36bb9e40de1dda31fafc8bdd57"
+        "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
+        "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc/raw/VC-DMS-ADVERSARIAL-001.log",
+        "output_sha256": "110658ffdc17a2b2833564fc970153ad305783d57b037744ef77ab41e0a0220a"
       },
       {
         "receipt_id": "VC-DMS-CONSUMERS-001",
@@ -179,9 +194,9 @@
           "packages/hrx/test/payroll-document-service.test.js",
           "packages/intake/test/runtime-services.test.js"
         ],
-        "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
-        "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/dms-source-seal/raw/VC-DMS-CONSUMERS-001.log",
-        "output_sha256": "4e45f0bd532cf50ce346ecedb2eb5393a0222da128db647560648167b7faa5d5"
+        "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
+        "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc/raw/VC-DMS-CONSUMERS-001.log",
+        "output_sha256": "395d454f8b302b2b98669f8ef69b8797be6fb9cd98d2e611e7193b0512b1d8f8"
       },
       {
         "receipt_id": "VC-DMS-POSTGRES-001",
@@ -192,9 +207,9 @@
           "packages/persistence/test/postgres-repository-contract.test.js",
           "packages/hrx/test/postgres-migrations.test.js"
         ],
-        "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
-        "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/dms-source-seal/raw/VC-DMS-POSTGRES-001.log",
-        "output_sha256": "31e0a60535006c40fd45b521be236f973e92ff6917237c16831254545ecc84c7"
+        "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
+        "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc/raw/VC-DMS-POSTGRES-001.log",
+        "output_sha256": "66f9eae2dac1cf6a3c9abd1fbbc9448893b5c8326606a3d384efb9e92f0ef306"
       },
       {
         "receipt_id": "VC-DMS-GOVERNANCE-001",
@@ -202,15 +217,15 @@
           "node",
           "scripts/validate-runtime-safety-governance.mjs"
         ],
-        "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
-        "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/dms-source-seal/raw/VC-DMS-GOVERNANCE-001.log",
+        "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
+        "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc/raw/VC-DMS-GOVERNANCE-001.log",
         "output_sha256": "ed949083ea4992b9edda38e4d52ab11a9b849bfc0204bd20738e98e3c1f074ed"
       }
     ],
-    "started_at": "2026-07-17T08:32:22.425Z",
-    "finished_at": "2026-07-17T08:32:49.761Z",
-    "dependency_receipt_sha256": "36c5c693a5bb8f3a9846fe9e1077bfc8adbc6fa49dbddc6bdab79f084a45367a",
-    "sha256": "163025570d513f04a6bbd0ba5454c12b12990f8543e7912bd4fe4a0e326c4e23"
+    "started_at": "2026-07-17T11:39:49.314Z",
+    "finished_at": "2026-07-17T11:40:00.425Z",
+    "dependency_receipt_sha256": "a59136fc61464332e9f4554338cd58e6a8d60ddc708f994eff3f3de2527650e1",
+    "sha256": "8367ac318274818badd7c7a6ac4658fefc367c8ad9a8410ede47d26ff045113c"
   },
   "tuws": {
     "RS-DMS-001": {
@@ -270,8 +285,11 @@
     "DMS-DELETE-INTENT-RACE-BLOCKED": true,
     "DMS-DIGEST-FORGED-RECEIPT-BLOCKED": true,
     "DMS-FILE-KILLPOINT-ATOMIC": true,
+    "DMS-PERSISTENCE-UNKNOWN-MODEL-REJECTED": true,
     "DMS-PERSISTENCE-SECRET-BINARY-REJECTED": true,
     "DMS-PROVIDER-FAILURE-NO-PUBLICATION": true,
+    "DMS-PROVIDER-FINALIZE-SAME-WORKER-LEASE-CAS": true,
+    "DMS-PROVIDER-POINTER-CANONICALIZED": true,
     "DMS-RECONCILER-BACKOFF-DEADLETTER": true,
     "DMS-RECONCILER-SKIP-LOCKED-ONCE": true,
     "DMS-STAGE-LEASE-CAS": true,
@@ -283,8 +301,8 @@
     "db_skipped": 0
   },
   "lineage": {
-    "source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
-    "evidence_parent_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+    "source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+    "evidence_parent_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
     "evidence_only": true,
     "product_diff_count": 0,
     "test_diff_count": 0,

@@ -3,9 +3,9 @@
   "tuw_id": "RS-DMS-004",
   "implementation_state": "VERIFIED",
   "execution_state": "NOT_APPLICABLE",
-  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
-  "target_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
-  "toolchain_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "target_source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "target_tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
+  "toolchain_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
   "profile": "source-local",
   "commands": [
     {
@@ -17,7 +17,7 @@
         "packages/dms/test/postgres-security-regressions.test.js",
         "packages/dms/test/upload-reconciliation.test.js"
       ],
-      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
       "env_keys": [
         "AWS_EC2_METADATA_DISABLED",
         "CI",
@@ -45,7 +45,7 @@
         "packages/hrx/test/payroll-document-service.test.js",
         "packages/intake/test/runtime-services.test.js"
       ],
-      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
       "env_keys": [
         "AWS_EC2_METADATA_DISABLED",
         "CI",
@@ -71,7 +71,7 @@
         "packages/persistence/test/postgres-repository-contract.test.js",
         "packages/hrx/test/postgres-migrations.test.js"
       ],
-      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
       "env_keys": [
         "AWS_EC2_METADATA_DISABLED",
         "CI",
@@ -94,7 +94,7 @@
         "node",
         "scripts/validate-runtime-safety-governance.mjs"
       ],
-      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
       "env_keys": [
         "AWS_EC2_METADATA_DISABLED",
         "CI",
@@ -116,9 +116,9 @@
     {
       "ordinal": 1,
       "exit_code": 0,
-      "started_at": "2026-07-17T08:33:11.460Z",
-      "finished_at": "2026-07-17T08:33:26.159Z",
-      "output_sha256": "5fc539a07e5fd40729c4a71d09105c8365b52b06fd89075a97c7cd7a23f32dfe",
+      "started_at": "2026-07-17T11:40:51.056Z",
+      "finished_at": "2026-07-17T11:40:57.712Z",
+      "output_sha256": "4303bbbfbfc9bda5f534f39fec32888b151f7e45d2e1f6a507bc0ba7477be54c",
       "result_slice": "isolated:RS-DMS-004:command-1",
       "passed": true,
       "skipped": 0
@@ -126,9 +126,9 @@
     {
       "ordinal": 2,
       "exit_code": 0,
-      "started_at": "2026-07-17T08:33:26.161Z",
-      "finished_at": "2026-07-17T08:33:28.200Z",
-      "output_sha256": "56dc00dea9f9f419da10b8e34533c5e6200d1d84d7505e1efe3181618201f70d",
+      "started_at": "2026-07-17T11:40:57.712Z",
+      "finished_at": "2026-07-17T11:40:58.647Z",
+      "output_sha256": "580b21fbdc5a454268b3964fed3f35a6ff6ce85a5dd26cc1e2cf3386ec90ee26",
       "result_slice": "isolated:RS-DMS-004:command-2",
       "passed": true,
       "skipped": 0
@@ -136,9 +136,9 @@
     {
       "ordinal": 3,
       "exit_code": 0,
-      "started_at": "2026-07-17T08:33:28.200Z",
-      "finished_at": "2026-07-17T08:33:34.167Z",
-      "output_sha256": "b0011b7b538403066814c8f641d4ff92dce8b77c9d1dfff48608c33029a8869e",
+      "started_at": "2026-07-17T11:40:58.647Z",
+      "finished_at": "2026-07-17T11:41:01.585Z",
+      "output_sha256": "04fa3516af419fbb39f3ba4698e9e12ba85f3c36588b571ad2830babe7cf3719",
       "result_slice": "isolated:RS-DMS-004:command-3",
       "passed": true,
       "skipped": 0
@@ -146,24 +146,24 @@
     {
       "ordinal": 4,
       "exit_code": 0,
-      "started_at": "2026-07-17T08:33:34.167Z",
-      "finished_at": "2026-07-17T08:33:34.316Z",
+      "started_at": "2026-07-17T11:41:01.586Z",
+      "finished_at": "2026-07-17T11:41:01.705Z",
       "output_sha256": "ed949083ea4992b9edda38e4d52ab11a9b849bfc0204bd20738e98e3c1f074ed",
       "result_slice": "isolated:RS-DMS-004:command-4",
       "passed": true,
       "skipped": 0
     }
   ],
-  "started_at": "2026-07-17T08:33:11.460Z",
-  "finished_at": "2026-07-17T08:33:34.316Z",
+  "started_at": "2026-07-17T11:40:51.056Z",
+  "finished_at": "2026-07-17T11:41:01.706Z",
   "safe_counts": {
     "passed": 4,
     "failed": 0,
     "approval_required": 0
   },
   "skip_count": 0,
-  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/raw/RS-DMS-004/RS-DMS-004-combined.log",
-  "output_sha256": "f141d2a3bd92244c52eed6ef3050350a223b4c12bd632202a2fcfb69e0458c12",
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc/raw/RS-DMS-004/RS-DMS-004-combined.log",
+  "output_sha256": "a77cb8fbfb172b55e4a87f899872b64dd6742b26f7e1426db01f8e420b8391ae",
   "claims": {
     "verified": true,
     "production_ready": false,

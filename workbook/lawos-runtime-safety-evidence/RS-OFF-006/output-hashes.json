@@ -1,9 +1,9 @@
 {
   "schema_version": "law-firm-os.runtime-safety.output-hashes.v0.2",
   "tuw_id": "RS-OFF-006",
-  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
-  "combined_output_sha256": "cd02111a43d22017d45bd2ce2a4130a651e259ff466db2412bf4b5870ef064cf",
+  "target_source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "combined_output_sha256": "000c76f6c119b265658360870f02c1a3e77819f77786289c018b9b7f8be01adb",
   "command_output_sha256": {
-    "1": "cd02111a43d22017d45bd2ce2a4130a651e259ff466db2412bf4b5870ef064cf"
+    "1": "000c76f6c119b265658360870f02c1a3e77819f77786289c018b9b7f8be01adb"
   }
 }

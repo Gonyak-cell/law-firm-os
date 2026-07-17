@@ -3,9 +3,9 @@
   "tuw_id": "RS-PRJ-005",
   "implementation_state": "READY",
   "execution_state": "APPROVAL_REQUIRED",
-  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
-  "target_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
-  "toolchain_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "target_source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "target_tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
+  "toolchain_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
   "profile": "approval-packet-local-only",
   "commands": [
     {
@@ -28,7 +28,7 @@
         "--approval-receipt",
         "/private/tmp/lawos-approvals/ABSENT"
       ],
-      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
       "env_keys": [
         "AWS_EC2_METADATA_DISABLED",
         "CI",
@@ -50,23 +50,23 @@
     {
       "ordinal": 1,
       "exit_code": 0,
-      "started_at": "2026-07-17T10:31:34.745Z",
-      "finished_at": "2026-07-17T10:31:34.806Z",
+      "started_at": "2026-07-17T12:10:29.505Z",
+      "finished_at": "2026-07-17T12:10:29.567Z",
       "output_sha256": "deaa3e46fce93ab9b9c0c043ebd983e1fa7ac786ad9d5de7511d48c9a7b38a77",
       "result_slice": "isolated:RS-PRJ-005:all",
       "passed": true,
       "skipped": 0
     }
   ],
-  "started_at": "2026-07-17T10:31:34.744Z",
-  "finished_at": "2026-07-17T10:31:34.807Z",
+  "started_at": "2026-07-17T12:10:29.505Z",
+  "finished_at": "2026-07-17T12:10:29.568Z",
   "safe_counts": {
     "passed": 1,
     "failed": 0,
     "approval_required": 1
   },
   "skip_count": 0,
-  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-prj-sequential/raw/RS-PRJ-005/RS-PRJ-005-combined.log",
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc-prj/raw/RS-PRJ-005/RS-PRJ-005-combined.log",
   "output_sha256": "deaa3e46fce93ab9b9c0c043ebd983e1fa7ac786ad9d5de7511d48c9a7b38a77",
   "claims": {
     "verified": false,

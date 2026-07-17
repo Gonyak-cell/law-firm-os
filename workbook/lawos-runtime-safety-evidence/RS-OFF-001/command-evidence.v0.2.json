@@ -3,9 +3,9 @@
   "tuw_id": "RS-OFF-001",
   "implementation_state": "READY",
   "execution_state": "APPROVAL_REQUIRED",
-  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
-  "target_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
-  "toolchain_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "target_source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "target_tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
+  "toolchain_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
   "profile": "source-local",
   "commands": [
     {
@@ -28,7 +28,7 @@
         "--approval-receipt",
         "/private/tmp/lawos-approvals/ABSENT"
       ],
-      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
       "env_keys": [
         "AWS_EC2_METADATA_DISABLED",
         "CI",
@@ -50,23 +50,23 @@
     {
       "ordinal": 1,
       "exit_code": 0,
-      "started_at": "2026-07-17T08:32:15.540Z",
-      "finished_at": "2026-07-17T08:32:15.600Z",
+      "started_at": "2026-07-17T11:42:18.045Z",
+      "finished_at": "2026-07-17T11:42:18.111Z",
       "output_sha256": "7f0ef85b56dcd8fabed0e9faf1ed07d53dca7fcd3db379289f75e40703d613cc",
       "result_slice": "isolated:RS-OFF-001:all",
       "passed": true,
       "skipped": 0
     }
   ],
-  "started_at": "2026-07-17T08:32:15.540Z",
-  "finished_at": "2026-07-17T08:32:15.606Z",
+  "started_at": "2026-07-17T11:42:18.045Z",
+  "finished_at": "2026-07-17T11:42:18.112Z",
   "safe_counts": {
     "passed": 1,
     "failed": 0,
     "approval_required": 1
   },
   "skip_count": 0,
-  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/raw/RS-OFF-001/RS-OFF-001-combined.log",
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc/raw/RS-OFF-001/RS-OFF-001-combined.log",
   "output_sha256": "7f0ef85b56dcd8fabed0e9faf1ed07d53dca7fcd3db379289f75e40703d613cc",
   "claims": {
     "verified": false,
