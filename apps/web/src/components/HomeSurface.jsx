@@ -26,6 +26,7 @@ import {
   fetchPortalDashboard,
   fetchPortalRfi,
   fetchUserProfile,
+  isDesktopRendererLocation,
   readLawosApiSession,
   readLawosSessionEnvelope,
   fetchVaultDocuments
@@ -215,9 +216,7 @@ function desktopSessionBridge(source = globalThis) {
   if (typeof bridge?.status !== "function" || typeof bridge?.smoke !== "function") return null;
   try {
     const location = source?.location ?? source?.window?.location;
-    if (location?.protocol !== "file:") return null;
-    const params = new URLSearchParams(location.search ?? "");
-    if (params.get("desktop") !== "1") return null;
+    if (!isDesktopRendererLocation(location)) return null;
   } catch {
     return null;
   }

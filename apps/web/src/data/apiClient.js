@@ -117,10 +117,21 @@ const SAFE_REF_PATTERN = /^[A-Za-z0-9._:-]{1,160}$/;
 const SAFE_ACTOR_REF_PATTERN = /^[A-Za-z0-9._:@+-]{1,200}$/;
 const FORBIDDEN_SESSION_TEXT = /(password|reset|bearer|cookie|secret|credential|authorization|token|sk-)/i;
 
+export function isDesktopRendererLocation(location) {
+  if (!location || !["file:", "matter-app:"].includes(location.protocol)) return false;
+  if (location.protocol === "matter-app:" && (
+    location.hostname !== "app" || location.port || location.username || location.password
+  )) return false;
+  try {
+    return new URLSearchParams(location.search ?? "").get("desktop") === "1";
+  } catch {
+    return false;
+  }
+}
+
 function desktopApiBaseUrl() {
-  if (typeof window === "undefined" || window.location?.protocol !== "file:") return "";
+  if (typeof window === "undefined" || !isDesktopRendererLocation(window.location)) return "";
   const params = new URLSearchParams(window.location.search);
-  if (params.get("desktop") !== "1") return "";
   const sessionBaseUrl = window.matterSession?.desktopApiBaseUrl;
   const rawBaseUrl = typeof sessionBaseUrl === "string" && sessionBaseUrl.trim()
     ? sessionBaseUrl
@@ -142,9 +153,7 @@ function apiRequestUrl(input) {
 }
 
 function desktopReadBridge() {
-  if (typeof window === "undefined" || window.location?.protocol !== "file:") return null;
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("desktop") !== "1") return null;
+  if (typeof window === "undefined" || !isDesktopRendererLocation(window.location)) return null;
   return typeof window.matterSession?.api === "function" ? window.matterSession.api : null;
 }
 
@@ -241,13 +250,7 @@ function writeSessionEnvelopeFromApiSession(body, source = globalThis) {
 function desktopSessionLoginBridge(source = globalThis) {
   const windowLike = source?.window ?? source;
   const location = windowLike?.location ?? source?.location;
-  if (location?.protocol !== "file:") return null;
-  try {
-    const params = new URLSearchParams(location.search ?? "");
-    if (params.get("desktop") !== "1") return null;
-  } catch {
-    return null;
-  }
+  if (!isDesktopRendererLocation(location)) return null;
   const bridge = windowLike?.matterSession ?? source?.matterSession;
   return typeof bridge?.login === "function" ? bridge.login.bind(bridge) : null;
 }
