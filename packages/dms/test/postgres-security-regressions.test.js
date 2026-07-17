@@ -210,11 +210,11 @@ test("DMS-03 committed delete intent fails reads closed, rechecks holds, and nev
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
   const base = createLocalStorageAdapter({ adapter_id: "delete-intent" });
-  let deleteCalls = 0;
+  const deleteCalls = [];
   const storage = Object.freeze({
     ...base,
     deleteCommittedObject(input) {
-      deleteCalls += 1;
+      deleteCalls.push(Object.freeze({ ...input }));
       return base.deleteCommittedObject(input);
     },
   });
@@ -262,7 +262,7 @@ test("DMS-03 committed delete intent fails reads closed, rechecks holds, and nev
   assert.equal(base.statObject({ tenant_id: TENANT, object_id: deletable.object_id }), null);
   const replay = await runtime.executeCommittedObjectDelete({ tenant_id: TENANT, delete_intent_id: requested.intent.delete_intent_id });
   assert.equal(replay.replayed, true);
-  assert.equal(deleteCalls, 1);
+  assert.deepEqual(deleteCalls.map((row) => row.object_id), [deletable.object_id]);
 });
 
 test("DMS-08 reconciler applies bounded backoff and seals one terminal dead-letter receipt", async (t) => {

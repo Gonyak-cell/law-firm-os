@@ -1109,24 +1109,26 @@ export function createPostgresDmsUploadRuntime({
       );
       const current = result.rows[0];
       if (!current) throw codedError("DMS delete intent was not found", "DMS_DELETE_INTENT_NOT_FOUND", 404);
-      if (["provider_deleted", "completed"].includes(current.state)) return current;
-      if (current.state !== "pending") throw codedError("DMS delete intent is terminal", "DMS_DELETE_INTENT_INVALID_STATE");
+      if (current.state === "completed") return current;
+      if (!["pending", "provider_deleted"].includes(current.state)) throw codedError("DMS delete intent is terminal", "DMS_DELETE_INTENT_INVALID_STATE");
       if (_lease_token && (current.lease_token !== _lease_token || current.lease_owner !== runtimeWorkerId)) {
         throw codedError("DMS delete intent claim was lost", "DMS_DELETE_LEASE_LOST");
       }
       if (current.lease_expires_at && Date.parse(current.lease_expires_at) > Date.parse(claimedAt)) {
         if (!_lease_token) throw codedError("DMS delete intent lease is active", "DMS_DELETE_LEASE_ACTIVE");
       }
-      const canonical = await selectCanonicalObject(client, tenantId, {
-        documentId: current.document_id,
-        objectId: current.object_id,
-        lock: true,
-        allowedStatuses: ["delete_pending"],
-      });
-      if (canonical.sha256 !== current.expected_sha256 || canonical.version_id !== current.expected_version_id) {
-        throw codedError("DMS delete intent version changed", "DMS_COMMITTED_DELETE_CONDITION_FAILED");
+      if (current.state === "pending") {
+        const canonical = await selectCanonicalObject(client, tenantId, {
+          documentId: current.document_id,
+          objectId: current.object_id,
+          lock: true,
+          allowedStatuses: ["delete_pending"],
+        });
+        if (canonical.sha256 !== current.expected_sha256 || canonical.version_id !== current.expected_version_id) {
+          throw codedError("DMS delete intent version changed", "DMS_COMMITTED_DELETE_CONDITION_FAILED");
+        }
+        await assertCanonicalDeleteProtection(client, tenantId, canonical, claimedAt);
       }
-      await assertCanonicalDeleteProtection(client, tenantId, canonical, claimedAt);
       if (_lease_token) return current;
       const claimed = await client.query(
         `UPDATE lawos_dms.delete_intents
@@ -1151,7 +1153,6 @@ export function createPostgresDmsUploadRuntime({
           `UPDATE lawos_dms.delete_intents
               SET state = 'provider_deleted', provider_receipt = $3::jsonb,
                   provider_deleted_at = $4::timestamptz,
-                  lease_owner = NULL, lease_token = NULL, lease_expires_at = NULL,
                   attempt_count = attempt_count + 1, last_error_code = NULL, updated_at = $4::timestamptz
             WHERE tenant_id = $1 AND delete_intent_id = $2 AND lease_token = $5
             RETURNING *`,
