@@ -9,7 +9,7 @@ export const DMS_SOURCE_VERIFICATION_COMMANDS = Object.freeze([
   Object.freeze({
     receipt_id: "VC-DMS-ADVERSARIAL-001",
     command: "node --test packages/dms/test/security-regressions.test.js packages/dms/test/postgres-security-regressions.test.js packages/dms/test/upload-reconciliation.test.js",
-    expected_counts: Object.freeze({ passed: 20, failed: 0, skipped: 0, total: 20 }),
+    expected_counts: Object.freeze({ passed: 23, failed: 0, skipped: 0, total: 23 }),
     postgres_required: true,
   }),
   Object.freeze({
@@ -38,8 +38,11 @@ export const DMS_ADVERSARIAL_TEST_IDS = Object.freeze([
   "DMS-DELETE-INTENT-RACE-BLOCKED",
   "DMS-DIGEST-FORGED-RECEIPT-BLOCKED",
   "DMS-FILE-KILLPOINT-ATOMIC",
+  "DMS-PERSISTENCE-UNKNOWN-MODEL-REJECTED",
   "DMS-PERSISTENCE-SECRET-BINARY-REJECTED",
   "DMS-PROVIDER-FAILURE-NO-PUBLICATION",
+  "DMS-PROVIDER-FINALIZE-SAME-WORKER-LEASE-CAS",
+  "DMS-PROVIDER-POINTER-CANONICALIZED",
   "DMS-RECONCILER-BACKOFF-DEADLETTER",
   "DMS-RECONCILER-SKIP-LOCKED-ONCE",
   "DMS-STAGE-LEASE-CAS",
