@@ -204,18 +204,35 @@ try {
         await page.waitForFunction(
           ({ selector }) => {
             const text = document.querySelector(selector)?.innerText ?? "";
-            return text.includes("오늘 계약서 검토") && text.includes("비용 승인 검토") && text.includes("대시보드 QA 공지");
+            const feedText = document.querySelector(".home-dashboard-feed")?.innerText ?? "";
+            return text.includes("오늘 계약서 검토") && text.includes("비용 승인 검토") && feedText.includes("대시보드 QA 공지");
           },
           { selector: rootSelector },
           { timeout: 30_000 },
         );
       } catch (error) {
-        const diagnostic = await page.evaluate(({ selector }) => {
+        const diagnostic = await page.evaluate(async ({ selector }) => {
           const text = document.querySelector(selector)?.innerText ?? "";
+          const feedWidget = document.querySelector(".home-dashboard-feed");
+          const bridgeResponse = await window.matterSession?.api?.({
+            path: "/api/home/feed?tab=notice&permission_ref=dashboard-package-qa&audit_hint_ref=dashboard-package-qa",
+            method: "GET",
+            headers: {},
+            body: null,
+          });
           return {
             task_visible: text.includes("오늘 계약서 검토"),
             approval_visible: text.includes("비용 승인 검토"),
-            feed_visible: text.includes("대시보드 QA 공지"),
+            feed_visible: feedWidget?.innerText?.includes("대시보드 QA 공지") === true,
+            feed_widget_text: feedWidget?.innerText?.replace(/\s+/g, " ").slice(0, 600) ?? "",
+            feed_entry_count: feedWidget?.querySelector("[data-home-feed-entry-count]")?.getAttribute("data-home-feed-entry-count") ?? null,
+            feed_bridge_probe: {
+              http_status: bridgeResponse?.http_status ?? null,
+              outcome: bridgeResponse?.body?.outcome ?? null,
+              entry_count: Array.isArray(bridgeResponse?.body?.entries) ? bridgeResponse.body.entries.length : null,
+              first_title: bridgeResponse?.body?.entries?.[0]?.title ?? null,
+              reason: bridgeResponse?.body?.reason ?? bridgeResponse?.reason ?? null,
+            },
             body_preview: text.replace(/\s+/g, " ").slice(0, 1200),
           };
         }, { selector: rootSelector });
