@@ -91,10 +91,10 @@ const server = createServer(async (request, response) => {
       : type === "approval"
         ? [{ id: "approval_dashboard_pending", type: "approval", title: "비용 승인 검토", matter_ref: matters[0].matter_id, due_at: `${todayKey}T18:00:00`, status: "pending" }]
         : [];
-    return respondJson(response, 200, { ...listBody(items), counts: { approval: type === "approval" ? items.length : 0, task_late: 0, task_today: type === "task" ? items.length : 0 } });
+    return respondJson(response, 200, { ...listBody(items), counts: { approval: 1, task_late: 0, task_today: 1 } });
   }
   if (pathname === "/api/home/agenda") return respondJson(response, 200, { ...listBody(), events: [{ id: "agenda_dashboard_today", title: "고객 미팅", starts_at: `${todayKey}T03:00:00.000Z`, type: "event" }] });
-  if (pathname === "/api/home/feed") return respondJson(response, 200, { ...listBody(), entries: [{ id: "feed_dashboard_notice", title: "대시보드 QA 공지", summary: "패키지 화면 검증용 합성 공지", created_at: nowIso, tab: "notice" }], source_statuses: [] });
+  if (pathname === "/api/home/feed") return respondJson(response, 200, { ...listBody(), entries: [{ id: "feed_dashboard_notice", tab: "notice", source: "AMIC 공지", title: "대시보드 QA 공지", body_preview: "패키지 화면 검증용 합성 공지", published_at: nowIso }], source_statuses: [] });
   if (pathname === "/api/matters/recently-viewed") return respondJson(response, 200, listBody([{ ...matters[0], viewed_at: nowIso }]));
   if (pathname === "/api/matters") return respondJson(response, 200, listBody(matters));
   if (pathname === "/api/intake/requests") return respondJson(response, 200, listBody([{ intake_request_id: "intake_dashboard_new", display_name: "라온 주식회사", requested_scope_summary: "신규 자문 수임", requested_at: nowIso, status: "review" }]));
