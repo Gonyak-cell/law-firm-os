@@ -77,10 +77,13 @@ const server = createServer(async (request, response) => {
   if (pathname === "/api/auth/session") return respondJson(response, 200, { ok: true, session, fixture_only: true, production_ready_claim: false });
   if (pathname === "/api/profile/me") return respondJson(response, 200, { ...listBody(), item: { user_id: session.user_id, display_name: session.display_name, title: "QA" } });
   if (pathname === "/api/home/action-inbox") {
-    const taskItems = url.searchParams.get("type") === "task"
+    const type = url.searchParams.get("type");
+    const items = type === "task"
       ? [{ id: "task_dashboard_today", type: "task", title: "오늘 계약서 검토", matter_ref: matters[0].matter_id, due_at: `${todayKey}T12:00:00`, status: "todo" }]
-      : [];
-    return respondJson(response, 200, { ...listBody(taskItems), counts: { approval: 0, task_late: 0, task_today: taskItems.length } });
+      : type === "approval"
+        ? [{ id: "approval_dashboard_pending", type: "approval", title: "비용 승인 검토", matter_ref: matters[0].matter_id, due_at: `${todayKey}T18:00:00`, status: "pending" }]
+        : [];
+    return respondJson(response, 200, { ...listBody(items), counts: { approval: type === "approval" ? items.length : 0, task_late: 0, task_today: type === "task" ? items.length : 0 } });
   }
   if (pathname === "/api/home/agenda") return respondJson(response, 200, { ...listBody(), events: [{ id: "agenda_dashboard_today", title: "고객 미팅", starts_at: `${todayKey}T03:00:00.000Z`, type: "event" }] });
   if (pathname === "/api/home/feed") return respondJson(response, 200, { ...listBody(), entries: [{ id: "feed_dashboard_notice", title: "대시보드 QA 공지", summary: "패키지 화면 검증용 합성 공지", created_at: nowIso, tab: "notice" }], source_statuses: [] });
@@ -180,7 +183,18 @@ try {
           ? '[data-matter-dashboard="true"]'
           : '[data-hr-workforce-table="true"]';
     await page.waitForSelector(rootSelector, { timeout: 30_000 });
-    await page.waitForTimeout(2_000);
+    if (view === "home") {
+      await page.waitForFunction(
+        ({ selector }) => {
+          const text = document.querySelector(selector)?.innerText ?? "";
+          return text.includes("오늘 계약서 검토") && text.includes("비용 승인 검토") && text.includes("대시보드 QA 공지");
+        },
+        { selector: rootSelector },
+        { timeout: 30_000 },
+      );
+    } else {
+      await page.waitForTimeout(2_000);
+    }
     const snapshot = await page.evaluate(({ selector }) => {
       const surfaceText = document.querySelector(selector)?.innerText ?? "";
       const forbiddenPatterns = [
