@@ -490,15 +490,15 @@ Each `argv` value is a literal argv array. `{{...}}` interpolation is limited to
 ```json
 {
   "enabled": [
-    ["node", "scripts/run-offline-capability-outcome.mjs", "--source-sha", "{{S_OFF_SELECTED}}", "--outcome", "enabled", "--packet", "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json", "--decision-receipt", "{{OFF_APPROVAL_RECEIPT_OR_NONE}}", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--output-dir", "{{TUW_OUTPUT_DIR}}"],
+    ["node", "scripts/run-offline-capability-outcome.mjs", "--source-sha", "{{S_OFF_SELECTED}}", "--decision-source-sha", "{{OFF_DECISION_SOURCE_SHA}}", "--outcome", "enabled", "--packet", "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json", "--decision-receipt", "{{OFF_APPROVAL_RECEIPT_OR_NONE}}", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--output-dir", "{{TUW_OUTPUT_DIR}}"],
     ["node", "--test", "apps/desktop/test/offline-runtime-probe.test.mjs", "apps/desktop/test/offline-cache.test.mjs", "apps/desktop/test/offline-replay-conflict.test.mjs", "apps/desktop/test/session-cleanup.test.mjs", "apps/desktop/test/shell-smoke.test.mjs"]
   ],
   "disabled": [
-    ["node", "scripts/run-offline-capability-outcome.mjs", "--source-sha", "{{S_OFF_SELECTED}}", "--outcome", "disabled", "--packet", "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json", "--decision-receipt", "{{OFF_APPROVAL_RECEIPT_OR_NONE}}", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--output-dir", "{{TUW_OUTPUT_DIR}}"],
+    ["node", "scripts/run-offline-capability-outcome.mjs", "--source-sha", "{{S_OFF_SELECTED}}", "--decision-source-sha", "{{OFF_DECISION_SOURCE_SHA}}", "--outcome", "disabled", "--packet", "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json", "--decision-receipt", "{{OFF_APPROVAL_RECEIPT_OR_NONE}}", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--output-dir", "{{TUW_OUTPUT_DIR}}"],
     ["node", "--test", "apps/desktop/test/offline-disabled.test.mjs", "apps/desktop/test/shell-smoke.test.mjs", "scripts/test/offline-capability-decision.test.mjs"]
   ],
   "pending": [
-    ["node", "scripts/run-offline-capability-outcome.mjs", "--source-sha", "{{S_OFF_SELECTED}}", "--outcome", "pending", "--packet", "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json", "--decision-receipt", "/private/tmp/lawos-approvals/ABSENT", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--output-dir", "{{TUW_OUTPUT_DIR}}"],
+    ["node", "scripts/run-offline-capability-outcome.mjs", "--source-sha", "{{S_OFF_SELECTED}}", "--decision-source-sha", "{{OFF_DECISION_SOURCE_SHA}}", "--outcome", "pending", "--packet", "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json", "--decision-receipt", "/private/tmp/lawos-approvals/ABSENT", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--output-dir", "{{TUW_OUTPUT_DIR}}"],
     ["node", "--test", "scripts/test/offline-capability-decision.test.mjs", "apps/desktop/test/shell-smoke.test.mjs"]
   ]
 }
@@ -508,7 +508,7 @@ Each `argv` value is a literal argv array. `{{...}}` interpolation is limited to
 
 ```json
 [
-  ["node", "scripts/run-offline-capability-outcome.mjs", "--source-sha", "{{S_OFF_SELECTED}}", "--outcome", "pending", "--packet", "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json", "--decision-receipt", "/private/tmp/lawos-approvals/ABSENT", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--output-dir", "{{TUW_OUTPUT_DIR}}"]
+  ["node", "scripts/run-offline-capability-outcome.mjs", "--source-sha", "{{S_OFF_SELECTED}}", "--decision-source-sha", "{{OFF_DECISION_SOURCE_SHA}}", "--outcome", "pending", "--packet", "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json", "--decision-receipt", "/private/tmp/lawos-approvals/ABSENT", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--output-dir", "{{TUW_OUTPUT_DIR}}"]
 ]
 ```
 
@@ -516,7 +516,7 @@ Each `argv` value is a literal argv array. `{{...}}` interpolation is limited to
 
 ```json
 [
-  ["node", "scripts/validate-central-ledger-cutover-readiness.mjs", "--stage", "CUT-001", "--source-sha", "{{S_CUT}}", "--packet", "workbook/lawos-runtime-safety-evidence/RS-CUT-001/approval-packet.json", "--action", "central-ledger-cutover-plan", "--environment", "source-local", "--approval-receipt", "{{CUT_001_APPROVAL_RECEIPT_OR_NONE}}", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--output-dir", "{{TUW_OUTPUT_DIR}}"]
+  ["node", "scripts/validate-central-ledger-cutover-readiness.mjs", "--stage", "CUT-001", "--source-sha", "{{S_CUT}}", "--decision-source-sha", "{{CUT_DECISION_SOURCE_SHA}}", "--packet", "workbook/lawos-runtime-safety-evidence/RS-CUT-001/approval-packet.json", "--action", "central-ledger-cutover-plan", "--environment", "source-local", "--approval-receipt", "{{CUT_001_APPROVAL_RECEIPT_OR_NONE}}", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--output-dir", "{{TUW_OUTPUT_DIR}}"]
 ]
 ```
 
@@ -542,7 +542,7 @@ Each `argv` value is a literal argv array. `{{...}}` interpolation is limited to
 
 ```json
 [
-  ["node", "scripts/validate-central-ledger-cutover-readiness.mjs", "--stage", "CUT-004", "--source-sha", "{{S_CUT}}", "--packet", "workbook/lawos-runtime-safety-evidence/RS-CUT-004/decision-packet.json", "--action", "central-ledger-staging-acceptance", "--environment", "staging", "--approval-receipt", "{{CUT_004_APPROVAL_RECEIPT_OR_NONE}}", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--output-dir", "{{TUW_OUTPUT_DIR}}"]
+  ["node", "scripts/validate-central-ledger-cutover-readiness.mjs", "--stage", "CUT-004", "--source-sha", "{{S_CUT}}", "--decision-source-sha", "{{CUT_DECISION_SOURCE_SHA}}", "--packet", "workbook/lawos-runtime-safety-evidence/RS-CUT-004/decision-packet.json", "--action", "central-ledger-staging-acceptance", "--environment", "staging", "--approval-receipt", "{{CUT_004_APPROVAL_RECEIPT_OR_NONE}}", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--output-dir", "{{TUW_OUTPUT_DIR}}"]
 ]
 ```
 
@@ -574,7 +574,7 @@ Each `argv` value is a literal argv array. `{{...}}` interpolation is limited to
 
 ```json
 [
-  ["node", "scripts/validate-central-ledger-cutover-readiness.mjs", "--stage", "CUT-008", "--source-sha", "{{S_CUT}}", "--packet", "workbook/lawos-runtime-safety-evidence/RS-CUT-008/production-authorization.json", "--action", "central-ledger-production-authorization", "--environment", "production", "--approval-receipt", "{{CUT_008_APPROVAL_RECEIPT_OR_NONE}}", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--prior-receipt", "{{CUT_007_RECEIPT}}", "--output-dir", "{{TUW_OUTPUT_DIR}}"]
+  ["node", "scripts/validate-central-ledger-cutover-readiness.mjs", "--stage", "CUT-008", "--source-sha", "{{S_CUT}}", "--decision-source-sha", "{{CUT_DECISION_SOURCE_SHA}}", "--packet", "workbook/lawos-runtime-safety-evidence/RS-CUT-008/production-authorization.json", "--action", "central-ledger-production-authorization", "--environment", "production", "--approval-receipt", "{{CUT_008_APPROVAL_RECEIPT_OR_NONE}}", "--trust-registry", "/private/tmp/lawos-approval-trust/registry.v1.json", "--expected-trust-registry-sha256", "{{LAWOS_APPROVAL_TRUST_REGISTRY_SHA256}}", "--prior-receipt", "{{CUT_007_RECEIPT}}", "--output-dir", "{{TUW_OUTPUT_DIR}}"]
 ]
 ```
 

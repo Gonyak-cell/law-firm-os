@@ -4,7 +4,7 @@ import test from "node:test";
 import { buildRuntimeSafetyRerunManifest, parseRuntimeSafetyCommandCatalog, REQUIRED_SELECTORS } from "../lib/runtime-safety-command-catalog.mjs";
 
 const CATALOG = readFileSync(".omo/plans/lawos-runtime-safety-147-command-catalog-20260717.md", "utf8");
-const EXPECTED_SHA256 = "4b2b612cbb33e407f2a57cf552cd7188360a94ef3e56e03322d0cd5adcdaf0d7";
+const EXPECTED_SHA256 = "4fe861ad35dfcc694de7715aa51dd22f2ce15004f87de7ef47e49d8548b9319c";
 
 test("147 command catalog is bijective, closed, and hash-bound", () => {
   const parsed = parseRuntimeSafetyCommandCatalog(CATALOG, { expectedSha256: EXPECTED_SHA256 });

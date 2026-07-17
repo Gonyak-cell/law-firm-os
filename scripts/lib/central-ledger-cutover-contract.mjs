@@ -7,6 +7,7 @@ export const CUT_DEPENDENCY_BUNDLE_SCHEMA = "law-firm-os.runtime-safety.cut-depe
 export const CUT_SOURCE_INVENTORY_SCHEMA = "law-firm-os.runtime-safety.cut-source-inventory.v1";
 
 export const CUT_REQUIRED_SOURCE_PATHS = Object.freeze([
+  ".omo/plans/lawos-runtime-safety-147-command-catalog-20260717.md",
   "apps/api/src/home-dashboard-operational-state.js",
   "apps/api/src/home-dashboard-runtime-context.js",
   "apps/api/src/store-path-manifest.js",
@@ -19,6 +20,7 @@ export const CUT_REQUIRED_SOURCE_PATHS = Object.freeze([
   "scripts/generate-central-ledger-cutover-inventory.mjs",
   "scripts/lib/central-ledger-cutover-contract.mjs",
   "scripts/lib/offline-capability-outcome.mjs",
+  "scripts/lib/runtime-safety-command-catalog.mjs",
   "scripts/lib/runtime-safety-decision-gate.mjs",
   "scripts/run-central-ledger-cutover.mjs",
   "scripts/run-offline-capability-outcome.mjs",
@@ -26,6 +28,12 @@ export const CUT_REQUIRED_SOURCE_PATHS = Object.freeze([
   "scripts/validate-offline-capability-decision.mjs",
   "scripts/validate-project-readiness-outcome.mjs",
   "scripts/validate-readiness-authority-decision.mjs",
+  "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
+  "workbook/lawos-readiness-authority-decision-packet-2026-07-17.json",
+  "workbook/lawos-runtime-safety-evidence/evidence-rerun-manifest-v0.2.json",
+  "workbook/lawos-runtime-safety-evidence/RS-CUT-001/approval-packet.json",
+  "workbook/lawos-runtime-safety-evidence/RS-CUT-004/decision-packet.json",
+  "workbook/lawos-runtime-safety-evidence/RS-CUT-008/production-authorization.json",
 ]);
 
 export const CUT_DEPENDENCY_SLOTS = Object.freeze([

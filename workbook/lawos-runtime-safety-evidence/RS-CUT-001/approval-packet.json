@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.decision-packet.v1",
+  "packet_id": "LAWOS-CUT-001-PLAN-20260717",
+  "decision_source_sha": "1663c0622acc992e478a5ca4f33b7ce58fe096b6",
+  "decision_source_tree": "6e175f2f0559d63f1ef37298e705c314427845fc",
+  "action": "central-ledger-cutover-plan",
+  "environment": "source-local",
+  "required_role": "owner",
+  "allowed_decisions": ["approved", "rejected"],
+  "current_state": "PENDING_HUMAN_APPROVAL",
+  "requirements": [
+    "Approve or reject the source-local per-domain cutover runbook only; this packet does not authorize execution.",
+    "Require distinct freeze, final import, DB-only switch, readback, abort, and forward-repair receipts for every environment.",
+    "Keep pre-first-write rollback separate from post-first-write forward repair or PITR.",
+    "Require a separate user execution instruction and exact source SHA for staging or production activity.",
+    "Keep release, deployment, production cutover, and go-live separately authorized."
+  ],
+  "options": [
+    {
+      "decision": "approved",
+      "effects": ["Permit CUT-001 to become a verified source-local runbook dependency."],
+      "prohibited_actions": ["Do not connect to a database or provider.", "Do not freeze writes or migrate data.", "Do not release, deploy, cut over, or go live."]
+    },
+    {
+      "decision": "rejected",
+      "effects": ["Keep CUT-001 blocked and require a revised packet."],
+      "prohibited_actions": ["Do not treat rejection as execution authority.", "Do not advance CUT-002."]
+    }
+  ],
+  "external_actions_authorized": false,
+  "claims": {"release": false, "deployment": false, "cutover": false, "go_live": false}
+}

@@ -20,10 +20,12 @@ try {
   const options = args(process.argv.slice(2));
   const sourceSha = options["source-sha"];
   const sourceTree = execFileSync("git", ["rev-parse", `${sourceSha}^{tree}`], { encoding: "utf8" }).trim();
+  const decisionSourceSha = options["decision-source-sha"] ?? sourceSha;
+  const decisionSourceTree = execFileSync("git", ["rev-parse", `${decisionSourceSha}^{tree}`], { encoding: "utf8" }).trim();
   const gate = evaluateDecisionGate({
     packet: readDecisionPacket(resolve(options.packet ?? "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json")),
-    sourceSha,
-    sourceTree,
+    sourceSha: decisionSourceSha,
+    sourceTree: decisionSourceTree,
     action: "offline-capability",
     environment: "desktop-local",
     trustRegistryPath: options["trust-registry"],
@@ -42,6 +44,7 @@ try {
     outcome: selected,
     source_sha: sourceSha,
     source_tree: sourceTree,
+    decision_source_sha: decisionSourceSha,
     packet_sha256: gate.packet_sha256,
     implementation_state: selected === "pending" ? "PLANNED" : selected === "disabled" ? "DISABLED_BY_APPROVED_DECISION" : "VERIFIED",
     execution_state: selected === "pending" ? "APPROVAL_REQUIRED" : "NOT_APPLICABLE",
@@ -62,6 +65,7 @@ try {
       outcome: selected,
       source_sha: sourceSha,
       source_tree: sourceTree,
+      decision_source_sha: decisionSourceSha,
       packet_sha256: gate.packet_sha256,
       verified: selected !== "pending",
       capability_path_count: source.capability_path_count,

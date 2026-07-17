@@ -53,10 +53,12 @@ try {
   let result;
   if (APPROVAL_STAGES[stage]) {
     const contract = APPROVAL_STAGES[stage];
+    const decisionSourceSha = options["decision-source-sha"] ?? sourceSha;
+    const decisionSourceTree = execFileSync("git", ["rev-parse", `${decisionSourceSha}^{tree}`], { encoding: "utf8" }).trim();
     const gate = evaluateDecisionGate({
       packet: readDecisionPacket(resolve(options.packet)),
-      sourceSha,
-      sourceTree,
+      sourceSha: decisionSourceSha,
+      sourceTree: decisionSourceTree,
       action: options.action ?? contract.action,
       environment: options.environment ?? contract.environment,
       trustRegistryPath: options["trust-registry"],
@@ -67,6 +69,9 @@ try {
       validator: "central-ledger-cutover-readiness",
       stage,
       ...gate,
+      decision_source_sha: decisionSourceSha,
+      source_sha: sourceSha,
+      source_tree: sourceTree,
       implementation_state: gate.outcome === "pending" ? "READY" : gate.outcome === "rejected" ? "BLOCKED" : "VERIFIED",
       execution_state: gate.outcome === "pending" ? "APPROVAL_REQUIRED" : "NOT_APPLICABLE",
       verified: gate.outcome === "approved",

@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.decision-packet.v1",
+  "packet_id": "LAWOS-CUT-008-PRODUCTION-AUTHORIZATION-20260717",
+  "decision_source_sha": "1663c0622acc992e478a5ca4f33b7ce58fe096b6",
+  "decision_source_tree": "6e175f2f0559d63f1ef37298e705c314427845fc",
+  "action": "central-ledger-production-authorization",
+  "environment": "production",
+  "required_role": "owner",
+  "allowed_decisions": ["approved", "rejected"],
+  "current_state": "PENDING_HUMAN_APPROVAL",
+  "requirements": [
+    "Require independent production database, off-device backup, DMS provider, retention and legal-hold, operator, window, rollback, and incident receipts.",
+    "Require verified CUT-007 staging evidence and exact predecessor hash binding.",
+    "Require a separate exact user execution instruction before any production connection or mutation.",
+    "Keep first-write rollback cutoff, PITR, DR restore, no-fallback, and JSON authority disable as distinct serial stages.",
+    "Require separate release, tag, AWS deployment, Windows signing, and go-live approvals."
+  ],
+  "options": [
+    {
+      "decision": "approved",
+      "effects": ["Permit a future exact-SHA production instruction to be evaluated after every prerequisite receipt verifies."],
+      "prohibited_actions": ["Do not execute production activity from this packet alone.", "Do not disable JSON authority.", "Do not release, deploy, sign, or go live."]
+    },
+    {
+      "decision": "rejected",
+      "effects": ["Keep CUT-009 through CUT-012 approval-required and non-verified."],
+      "prohibited_actions": ["Do not contact production or a provider.", "Do not claim blocked-external without an authorized attempt.", "Do not disable fallback or JSON writers."]
+    }
+  ],
+  "external_actions_authorized": false,
+  "claims": {"release": false, "deployment": false, "cutover": false, "go_live": false}
+}
