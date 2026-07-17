@@ -182,7 +182,7 @@ function permissionContextFromPrincipal(principal) {
 }
 
 function homeTenantIdForUser(user = {}, fallbackTenantId = MATTER_VAULT_REGISTERED_TENANT_ID) {
-  return user.tenant_memberships?.[0]?.tenant_id ?? fallbackTenantId;
+  return user?.tenant_memberships?.[0]?.tenant_id ?? fallbackTenantId;
 }
 
 function errorBody(requestId, safeErrorCode, reason) {

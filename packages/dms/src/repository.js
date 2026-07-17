@@ -13,6 +13,7 @@ export const DMS_PRIMARY_ID_FIELDS = Object.freeze({
   DmsExtractedText: "extracted_text_id",
   DmsOcrResult: "ocr_result_id",
   DmsEmailThread: "email_thread_id",
+  DmsEmailAttachmentMapping: "mapping_id",
   DmsDocumentRelation: "relation_id",
   DmsLock: "lock_id",
   DmsPrivilegeLabel: "label_id",
@@ -22,6 +23,7 @@ export const DMS_PRIMARY_ID_FIELDS = Object.freeze({
   DmsSecureLink: "secure_link_id",
   DmsSearchIndex: "index_id",
   DmsRagEvidence: "ledger_id",
+  VaultSearchPreferences: "resource_id",
 });
 
 function clone(value) {
@@ -54,6 +56,7 @@ function normalizeRecord(input = {}) {
     "DmsSecureLink",
     "DmsSearchIndex",
     "DmsRagEvidence",
+    "DmsEmailAttachmentMapping",
   ].includes(input.model_type)
     ? projectDmsPersistedRecord({ ...input, ...createDmsCoreRecord(input.model_type, input) })
     : projectDmsPersistedRecord(input);

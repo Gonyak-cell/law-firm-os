@@ -33,13 +33,14 @@ function fields(...values) {
 const DMS_RECORD_FIELDS = Object.freeze({
   DmsWorkspace: fields("workspace_id", "name", "status", "root_folder_id", "matter_trace_ref", "client_visible_by_default", "owner_user_id", "registered_account"),
   DmsFolder: fields("folder_id", "workspace_id", "parent_folder_id", "name", "status"),
-  DmsDocument: fields("document_id", "workspace_id", "folder_id", "title", "status", "current_version_id", "retention_label_id", "legal_hold_id", "source_policy", "version_safe_dms", "matter_first_trace_required", "client_visible_candidate", "owner_user_id", "registered_account_email", "registered_account", "account_linkage", "privilege_label_id", "privileged", "confidentiality", "latest_sha256", "mime_type", "filename"),
+  DmsDocument: fields("document_id", "workspace_id", "folder_id", "title", "status", "current_version_id", "retention_label_id", "legal_hold_id", "source_policy", "version_safe_dms", "matter_first_trace_required", "client_visible_candidate", "owner_user_id", "registered_account_email", "registered_account", "account_linkage", "privilege_label_id", "privileged", "confidentiality", "latest_sha256", "mime_type", "filename", "source_email_thread_id", "source_attachment_id"),
   DmsDocumentVersion: fields("version_id", "document_id", "version_number", "status", "file_object_id", "created_by", "hash_algorithm", "sha256", "persisted", "registered_account"),
   DmsFileObject: fields("file_object_id", "storage_pointer_ref", "sha256", "byte_size", "mime_type", "object_storage_runtime_executed", "document_bytes_loaded", "vault_object_id", "owner_user_id", "filename", "raw_path_exposed", "bytes_included"),
   DmsRendition: fields("rendition_id", "version_id", "rendition_type", "status", "file_object_id"),
   DmsExtractedText: fields("extracted_text_id", "version_id", "source_policy", "status", "text_pointer_ref", "raw_text_exposed"),
   DmsOcrResult: fields("ocr_result_id", "version_id", "source_policy", "status", "ocr_runtime_executed"),
-  DmsEmailThread: fields("email_thread_id", "subject", "status", "email_runtime_executed", "reserved_for_rp08"),
+  DmsEmailThread: fields("email_thread_id", "email_id", "graph_message_id", "internet_message_id", "conversation_id", "subject", "from", "to", "cc", "bcc", "body_ref", "body_preview", "sent_at", "received_at", "mailbox_ref", "account_ref", "attachment_metadata", "filing_user", "filing_time", "filing_mode", "confidentiality", "privilege", "ai_processed", "raw_body_included", "provider_payload_included", "field_contract", "field_contract_count", "status", "message_ids", "filed_document_ids", "credential_material_included", "email_runtime_executed", "reserved_for_rp08"),
+  DmsEmailAttachmentMapping: fields("mapping_id", "email_thread_id", "attachment_id", "document_id", "sha256", "raw_bytes_included", "storage_pointer_ref_included"),
   DmsDocumentRelation: fields("relation_id", "source_document_id", "target_document_id", "relation_type", "status"),
   DmsLock: fields("lock_id", "document_id", "actor_id", "status", "checked_out_at"),
   DmsPrivilegeLabel: fields("label_id", "document_id", "privilege_class", "confidentiality", "applied_by"),
@@ -49,6 +50,7 @@ const DMS_RECORD_FIELDS = Object.freeze({
   DmsSecureLink: fields("secure_link_id", "document_id", "expires_at", "mfa_required", "watermark_required", "status"),
   DmsSearchIndex: fields("index_id", "document_id", "version_id", "title", "extracted_text_ref", "ocr_result_ref", "privilege_label_id", "indexed_fields", "body_text_indexed", "body_character_count", "ocr_text_indexed", "ocr_character_count", "ocr_runtime_executed", "ocr_provider", "indexed_at", "extractor", "ocr_extractor", "search_backend", "body_searchable_text", "ocr_searchable_text", "searchable_text", "raw_text_included", "storage_pointer_ref_included"),
   DmsRagEvidence: fields("ledger_id", "document_id", "sources", "citation_source_validation"),
+  VaultSearchPreferences: fields("owner_user_id", "recent", "saved", "retention_days", "result_payloads_persisted"),
 });
 
 function rejection(path) {
