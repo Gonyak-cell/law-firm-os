@@ -112,3 +112,18 @@ test("DMS-04 repository projects known record schemas instead of preserving arbi
   assert.equal(Object.hasOwn(repository.snapshot().records[0], "harmless_extra"), false);
   repository.close();
 });
+
+test("DMS-04 repository rejects unknown record types instead of bypassing the model allowlist", () => {
+  const repository = createDmsRepository();
+  assert.throws(
+    () => repository.create({
+      model_type: "DmsExtensionRecord",
+      tenant_id: TENANT_A,
+      resource_id: "extension-unsafe",
+      token: "must-not-persist",
+    }),
+    /unsupported DMS model_type/,
+  );
+  assert.equal(repository.snapshot().records.length, 0);
+  repository.close();
+});

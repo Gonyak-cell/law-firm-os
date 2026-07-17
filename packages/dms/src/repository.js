@@ -42,6 +42,9 @@ function normalizeRecord(input = {}) {
   if (typeof input.model_type !== "string" || input.model_type.trim() === "") {
     throw new TypeError("model_type is required");
   }
+  if (!Object.hasOwn(DMS_PRIMARY_ID_FIELDS, input.model_type)) {
+    throw new TypeError(`unsupported DMS model_type: ${input.model_type}`);
+  }
   const record = DMS_PRIMARY_ID_FIELDS[input.model_type] && input.model_type.startsWith("Dms") && ![
     "DmsLock",
     "DmsPrivilegeLabel",

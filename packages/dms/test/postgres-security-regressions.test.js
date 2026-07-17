@@ -206,6 +206,57 @@ test("DMS-08 concurrent reconciler workers claim each provider finalize once", a
   assert.equal((await writer.getUploadSession(session)).state, "finalized");
 });
 
+test("DMS-08 same-worker concurrent finalize cannot overwrite an active provider lease", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const base = createLocalStorageAdapter({ adapter_id: "same-worker-finalize" });
+  let enterFinalize;
+  let releaseFinalize;
+  const entered = new Promise((resolve) => { enterFinalize = resolve; });
+  const released = new Promise((resolve) => { releaseFinalize = resolve; });
+  let finalizeCalls = 0;
+  const storage = Object.freeze({
+    ...base,
+    async finalizeObject(input) {
+      finalizeCalls += 1;
+      enterFinalize();
+      await released;
+      return base.finalizeObject(input);
+    },
+  });
+  const runtime = createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage, clock: () => new Date(NOW), workerId: "same-worker" });
+  const session = input("same-worker-finalize", { adapter_id: storage.adapter_id });
+  await runtime.createUploadSession(session);
+  await runtime.stageUpload({ tenant_id: TENANT, session_id: session.session_id, bytes: BYTES });
+  const first = runtime.finalizeUpload({ tenant_id: TENANT, session_id: session.session_id });
+  await entered;
+  await assert.rejects(
+    runtime.finalizeUpload({ tenant_id: TENANT, session_id: session.session_id }),
+    (error) => error?.safe_error_code === "DMS_UPLOAD_FINALIZE_LEASE_ACTIVE",
+  );
+  releaseFinalize();
+  await first;
+  assert.equal(finalizeCalls, 1);
+  assert.equal((await runtime.getUploadSession(session)).state, "finalized");
+});
+
+test("DMS-07 provider receipt cannot replace the canonical tenant-qualified storage pointer", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const base = createLocalStorageAdapter({ adapter_id: "canonical-pointer" });
+  const storage = Object.freeze({
+    ...base,
+    finalizeObject(input) {
+      return Object.freeze({ ...base.finalizeObject(input), storage_pointer_ref: "file:///provider/internal/path" });
+    },
+  });
+  const runtime = createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage, clock: () => new Date(NOW) });
+  const session = await upload(runtime, storage, "canonical-pointer");
+  const state = await runtime.getDocumentState({ tenant_id: TENANT, document_id: session.document_id });
+  assert.match(state.file_objects[0].storage_pointer_ref, /^vault:\/\/canonical-pointer\/[a-f0-9]{64}$/u);
+  assert.equal(state.file_objects[0].storage_pointer_ref.includes("provider/internal"), false);
+});
+
 test("DMS-03 committed delete intent fails reads closed, rechecks holds, and never repeats provider success", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;

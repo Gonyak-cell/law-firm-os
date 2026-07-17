@@ -552,7 +552,7 @@ export function createPostgresDmsUploadRuntime({
       adapter_id: session.adapter_id,
       tenant_id: session.tenant_id,
       object_id: session.object_id,
-      storage_pointer_ref: receipt?.storage_pointer_ref ?? createStoragePointerRef({ adapter_id: session.adapter_id, tenant_id: session.tenant_id, object_id: session.object_id }),
+      storage_pointer_ref: createStoragePointerRef({ adapter_id: session.adapter_id, tenant_id: session.tenant_id, object_id: session.object_id }),
       sha256: receipt?.sha256 ?? session.expected_sha256,
       byte_size: Number(receipt?.byte_size ?? session.expected_byte_size),
       mime_type: receipt?.mime_type ?? session.content_type,
@@ -586,8 +586,7 @@ export function createPostgresDmsUploadRuntime({
         throw codedError("DMS provider finalize requires verified staged bytes", "DMS_UPLOAD_INVALID_STATE");
       }
       if (locked.provider_finalize_lease_expires_at
-          && Date.parse(locked.provider_finalize_lease_expires_at) > Date.parse(claimedAt)
-          && locked.provider_finalize_owner !== runtimeWorkerId) {
+          && Date.parse(locked.provider_finalize_lease_expires_at) > Date.parse(claimedAt)) {
         throw codedError("DMS provider finalize lease is already active", "DMS_UPLOAD_FINALIZE_LEASE_ACTIVE");
       }
       const result = await client.query(
@@ -861,7 +860,7 @@ export function createPostgresDmsUploadRuntime({
             await releaseReconciliationClaim(tenantId, session.session_id);
             continue;
           }
-          await markBytesStored(session, staged, "dms-reconciler");
+          await markBytesStored(session, staged, { eventActor: "dms-reconciler" });
         }
         const finalized = await finalizeUpload({ tenant_id: tenantId, session_id: session.session_id });
         outcomes.push(Object.freeze({ session_id: session.session_id, action: "finalized", state: finalized.session.state }));
