@@ -35,7 +35,10 @@
 
 ## 현재 preflight 결과
 
-- AWS role chain은 존재하지만 SSO session이 만료되어 STS, backup bucket, production Lambda read-only 확인이 중단됐다.
+- AWS SSO를 2026-07-17T14:27Z에 갱신했고 `matter-prod-deploy-admin`, `matter-readonly-auditor`, `matter-cutover-operator`의 STS identity를 확인했다.
+- backup bucket은 read-only preflight에서 versioning enabled, `alias/aws/s3` KMS, public access block을 확인했다. synthetic-only snapshot을 사용했고 AWS mutation은 0이다.
+- production Lambda는 `Active`이며 관찰된 배포 commit은 `137fa156cdb6bb30bb3af72bf3e928ad7e6e4959`다. 이는 현재 runtime-safety candidate 배포 증거가 아니다.
+- staging/prod RDS candidate는 각각 `amic-vault-staging-postgres`, `amic-vault-prod-postgres`이며 `available`·encrypted 상태다. 아직 runtime-safety 승인·credential에 bind되지 않았다.
 - `LAWOS_STAGING_DATABASE_URL`, `LAWOS_PRODUCTION_DATABASE_URL`, DMS provider 선택, Windows certificate 입력은 현재 shell에 없다.
 - non-Windows release gate validator는 통과했지만 `public_release_approved=false`, `windows_authenticode_signing_approved=false`를 유지한다.
 - 로컬 `main`은 `origin/main`보다 51 commits 앞서 있으므로 exact-head CI와 release 이전에 remote publication 단계가 필요하다.

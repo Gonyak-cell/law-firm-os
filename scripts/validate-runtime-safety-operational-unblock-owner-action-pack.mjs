@@ -72,7 +72,10 @@ export function validateOperationalUnblockOwnerActionPack(pack, { root = process
   assert.equal(pack.external_authority_inputs.approval_trust_registry_sha256, null);
   assert.deepEqual(pack.external_authority_inputs.signed_receipts_and_detached_signatures, []);
   assert.equal(pack.external_authority_inputs.staging.real_client_data_authorized, false);
-  assert.equal(pack.external_authority_inputs.aws_backup.sso_session_verified, false);
+  assert.equal(pack.external_authority_inputs.aws_backup.sso_session_verified, true);
+  assert.equal(pack.external_authority_inputs.aws_backup.read_only_bucket_preflight, "PASS_NO_MUTATION");
+  assert.equal(pack.external_authority_inputs.staging.observed_candidate_state, "available_encrypted");
+  assert.equal(pack.external_authority_inputs.production.observed_candidate_state, "available_encrypted");
   assert.equal(pack.execution_order.length, 8);
   assert.equal(Object.values(pack.claims).every((value) => value === false), true);
 

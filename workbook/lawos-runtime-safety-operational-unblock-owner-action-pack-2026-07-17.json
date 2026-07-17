@@ -137,16 +137,23 @@
       "versioning": "Enabled",
       "lifecycle_expiry": "none",
       "delete_policy": "deny",
-      "sso_session_verified": false
+      "sso_session_verified": true,
+      "sso_verified_at_utc": "2026-07-17T14:27:00Z",
+      "read_only_bucket_preflight": "PASS_NO_MUTATION",
+      "preflight_receipt": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/operational-unblock-199ac95a/backup-preflight-receipt.json"
     },
     "staging": {
       "database_reference": null,
+      "observed_candidate_identifier": "amic-vault-staging-postgres",
+      "observed_candidate_state": "available_encrypted",
       "tenant_reference": null,
       "credential_reference": null,
       "real_client_data_authorized": false
     },
     "production": {
       "database_reference": null,
+      "observed_candidate_identifier": "amic-vault-prod-postgres",
+      "observed_candidate_state": "available_encrypted",
       "credential_reference": null,
       "cutover_window": null,
       "release_approval_ref": null,
@@ -176,9 +183,9 @@
     "Approve and execute release, AWS deploy, Windows signing, and go-live as distinct final actions."
   ],
   "current_preflight": {
-    "aws_sso": "EXPIRED_REAUTHENTICATION_REQUIRED",
-    "aws_backup_bucket": "NOT_EVALUATED_DUE_TO_EXPIRED_SSO",
-    "production_lambda": "NOT_EVALUATED_DUE_TO_EXPIRED_SSO",
+    "aws_sso": "PASS_THREE_ROLE_STS_VERIFIED_AT_2026-07-17T14:27:00Z",
+    "aws_backup_bucket": "PASS_READ_ONLY_VERSIONED_KMS_PUBLIC_BLOCKED_NO_MUTATION",
+    "production_lambda": "ACTIVE_DEPLOYMENT_COMMIT_137fa156cdb6bb30bb3af72bf3e928ad7e6e4959",
     "staging_database_reference": "ABSENT",
     "production_database_reference": "ABSENT",
     "dms_provider_selection": "ABSENT",
