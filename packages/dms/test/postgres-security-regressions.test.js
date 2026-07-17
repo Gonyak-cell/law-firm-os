@@ -72,6 +72,72 @@ test("DMS-02 canonical object authority rejects a held-object/unprotected-docume
   );
 });
 
+test("DMS-02 provider Object Lock is applied before legal-hold and retention metadata is accepted", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const base = createLocalStorageAdapter({ adapter_id: "provider-retention" });
+  const calls = [];
+  let failLegalHold = false;
+  const storage = Object.freeze({
+    ...base,
+    capabilities: Object.freeze({ ...base.capabilities, provider_retention: true }),
+    async setObjectLegalHold(input) {
+      calls.push({ operation: "legal_hold", ...input });
+      if (failLegalHold) throw new Error("provider legal hold unavailable");
+      return { status: input.status };
+    },
+    async setObjectRetention(input) {
+      calls.push({ operation: "retention", ...input });
+      return { mode: input.mode, retain_until: input.retain_until };
+    },
+  });
+  const runtime = createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage, clock: () => new Date(NOW) });
+  const held = await upload(runtime, storage, "provider-held");
+  await runtime.placeLegalHold({
+    tenant_id: TENANT,
+    legal_hold_id: "hold-provider",
+    document_id: held.document_id,
+    object_id: held.object_id,
+    created_by: "legal-admin",
+    reason: "active litigation",
+  });
+  assert.deepEqual(calls[0], {
+    operation: "legal_hold",
+    tenant_id: TENANT,
+    object_id: held.object_id,
+    status: "ON",
+  });
+  assert.equal((await runtime.getDocumentState({ tenant_id: TENANT, document_id: held.document_id })).document.legal_hold_status, "active");
+
+  const retained = await upload(runtime, storage, "provider-retained");
+  await runtime.setRetentionPolicy({
+    tenant_id: TENANT,
+    retention_policy_id: "retention-provider",
+    document_id: retained.document_id,
+    object_id: retained.object_id,
+    retain_until: "2026-08-01T00:00:00.000Z",
+  });
+  assert.deepEqual(calls[1], {
+    operation: "retention",
+    tenant_id: TENANT,
+    object_id: retained.object_id,
+    retain_until: "2026-08-01T00:00:00.000Z",
+    mode: "GOVERNANCE",
+  });
+
+  const rejected = await upload(runtime, storage, "provider-rejected");
+  failLegalHold = true;
+  await assert.rejects(runtime.placeLegalHold({
+    tenant_id: TENANT,
+    legal_hold_id: "hold-provider-rejected",
+    document_id: rejected.document_id,
+    object_id: rejected.object_id,
+    created_by: "legal-admin",
+    reason: "provider unavailable",
+  }), /provider legal hold unavailable/);
+  assert.equal((await runtime.getDocumentState({ tenant_id: TENANT, document_id: rejected.document_id })).document.legal_hold_status, "none");
+});
+
 test("DMS-07 provider finalize failure leaves public metadata, current pointer, audit and outbox absent", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;

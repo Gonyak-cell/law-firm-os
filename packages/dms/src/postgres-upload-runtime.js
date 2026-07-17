@@ -936,6 +936,12 @@ export function createPostgresDmsUploadRuntime({
     const reasonHash = hashValue({ reason: requiredText(input.reason, "reason") });
     return transact(tenantId, async (client) => {
       const canonical = await selectCanonicalObject(client, tenantId, { documentId, objectId, lock: true, allowedStatuses: ["committed", "delete_pending"] });
+      if (storage.capabilities.provider_retention) {
+        if (typeof storage.setObjectLegalHold !== "function") {
+          throw codedError("storage adapter declares provider retention without legal hold support", "DMS_PROVIDER_RETENTION_CONTRACT_INVALID", 500);
+        }
+        await storage.setObjectLegalHold({ tenant_id: tenantId, object_id: canonical.object_id, status: "ON" });
+      }
       await client.query(
         `INSERT INTO lawos_dms.legal_holds
            (tenant_id, legal_hold_id, document_id, object_id, status, reason_hash, created_by, created_at)
@@ -961,6 +967,17 @@ export function createPostgresDmsUploadRuntime({
     const retainUntil = requiredTimestamp(input.retain_until, "retain_until");
     return transact(tenantId, async (client) => {
       const canonical = await selectCanonicalObject(client, tenantId, { documentId, objectId, lock: true, allowedStatuses: ["committed", "delete_pending"] });
+      if (storage.capabilities.provider_retention) {
+        if (typeof storage.setObjectRetention !== "function") {
+          throw codedError("storage adapter declares provider retention without retention support", "DMS_PROVIDER_RETENTION_CONTRACT_INVALID", 500);
+        }
+        await storage.setObjectRetention({
+          tenant_id: tenantId,
+          object_id: canonical.object_id,
+          retain_until: retainUntil,
+          mode: "GOVERNANCE",
+        });
+      }
       await client.query(
         `INSERT INTO lawos_dms.retention_policies
            (tenant_id, retention_policy_id, document_id, object_id, retain_until, disposition, created_at)
