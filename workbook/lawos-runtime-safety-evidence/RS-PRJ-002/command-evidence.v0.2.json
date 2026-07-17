@@ -1,0 +1,68 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.2",
+  "tuw_id": "RS-PRJ-002",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "target_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
+  "toolchain_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "profile": "source-local",
+  "commands": [
+    {
+      "ordinal": 1,
+      "argv": [
+        "node",
+        "--test",
+        "apps/api/test/home-dashboard-api.test.js",
+        "packages/persistence/test/postgres-transaction.test.js",
+        "packages/persistence/test/postgres-repository-contract.test.js",
+        "apps/web/test/home-dashboard-r1.test.mjs"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LAWOS_LOCAL_BACKUP_ROOT",
+        "LAWOS_RUNTIME_BACKUP_QUEUE_ROOT",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-PRJ-002:all"
+    }
+  ],
+  "results": [
+    {
+      "ordinal": 1,
+      "exit_code": 0,
+      "started_at": "2026-07-17T10:09:32.230Z",
+      "finished_at": "2026-07-17T10:16:07.680Z",
+      "output_sha256": "c9a8e62c10025391027c59250703bf418f8c11a8e4366aaa76db1f537e38b353",
+      "result_slice": "isolated:RS-PRJ-002:all",
+      "passed": true,
+      "skipped": 0
+    }
+  ],
+  "started_at": "2026-07-17T10:09:32.230Z",
+  "finished_at": "2026-07-17T10:16:07.681Z",
+  "safe_counts": {
+    "passed": 1,
+    "failed": 0,
+    "approval_required": 0
+  },
+  "skip_count": 0,
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-prj-sequential/raw/RS-PRJ-002/RS-PRJ-002-combined.log",
+  "output_sha256": "c9a8e62c10025391027c59250703bf418f8c11a8e4366aaa76db1f537e38b353",
+  "claims": {
+    "verified": true,
+    "production_ready": false,
+    "release_executed": false,
+    "go_live": false
+  },
+  "external_actions": []
+}

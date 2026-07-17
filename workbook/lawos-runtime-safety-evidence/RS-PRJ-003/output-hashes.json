@@ -1,0 +1,9 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.output-hashes.v0.2",
+  "tuw_id": "RS-PRJ-003",
+  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "combined_output_sha256": "97b28571a5c1b385886de4b0705ac7c53c82a176090900a17c6c88556d3033ee",
+  "command_output_sha256": {
+    "1": "97b28571a5c1b385886de4b0705ac7c53c82a176090900a17c6c88556d3033ee"
+  }
+}

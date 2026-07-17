@@ -1,0 +1,117 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.2",
+  "tuw_id": "RS-STO-013",
+  "implementation_state": "BLOCKED_NOT_REPRODUCIBLE",
+  "execution_state": "NOT_APPLICABLE",
+  "target_source_sha": "3cdbd3db10d22b02aac5c718324702e0d96520ac",
+  "target_tree": "fec4f3473a0817a59710f0f0fa42f14bf714872d",
+  "toolchain_sha": "a9885445c236331f72c8cf31b0de54d514fc331b",
+  "profile": "source-local",
+  "commands": [
+    {
+      "ordinal": 1,
+      "argv": [
+        "node",
+        "--test",
+        "apps/api/test/session-auth-api.test.js",
+        "apps/api/test/auth-restart-revocation.test.js",
+        "apps/api/test/auth-concurrency.test.js",
+        "packages/persistence/test/store-adapter-cas.test.js"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-history-3cdbd3db",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-STO-013:command-1"
+    },
+    {
+      "ordinal": 2,
+      "argv": [
+        "node",
+        "scripts/validate-runtime-store-writer-coverage.mjs"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-history-3cdbd3db",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-STO-013:command-2"
+    }
+  ],
+  "results": [
+    {
+      "ordinal": 1,
+      "exit_code": 126,
+      "started_at": "2026-07-17T07:16:41.861Z",
+      "finished_at": "2026-07-17T07:16:41.862Z",
+      "output_sha256": "770af618f67cf755fa57980b40fcb27ca716bd4d522f83fa4f1a01ec3b051f5f",
+      "result_slice": "isolated:RS-STO-013:command-1",
+      "passed": false,
+      "skipped": 0
+    },
+    {
+      "ordinal": 2,
+      "exit_code": 0,
+      "started_at": "2026-07-17T07:16:41.863Z",
+      "finished_at": "2026-07-17T07:16:42.001Z",
+      "output_sha256": "c9f3f0e6ad20b64454de6672da35dfdc2f3c31ff6d00fe08da063e33b9b83bba",
+      "result_slice": "isolated:RS-STO-013:command-2",
+      "passed": true,
+      "skipped": 0
+    }
+  ],
+  "started_at": "2026-07-17T07:01:41.855Z",
+  "finished_at": "2026-07-17T07:16:42.005Z",
+  "safe_counts": {
+    "commands_passed": 1,
+    "commands_failed": 1
+  },
+  "skip_count": 0,
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/history/remediation-a9885445/raw/RS-STO-013/combined.log",
+  "output_sha256": "b8db94614d91df0a3b8f77a91da9fe37363e5d37db859911dbb3d92cdcf1347d",
+  "claims": {
+    "verified": false,
+    "source_merge_candidate": false,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "provider_contacted": false,
+    "idp_contacted": false,
+    "staging_contacted": false,
+    "production_contacted": false,
+    "real_data_contacted": false,
+    "windows_signing_executed": false,
+    "cutover_executed": false,
+    "json_authority_disabled": false,
+    "go_live": false
+  },
+  "external_actions": [],
+  "legacy_evidence": {
+    "path": "workbook/lawos-runtime-safety-evidence/RS-STO-013/command-evidence.json",
+    "sha256": "c963bf9ea53ba9e2b64f93355b8a1bfeb4ed2bc398d8613e137cf77b28700ac1",
+    "blob_oid": "4b05b807b6f033bd0c9755b3c3d6d730cef37666"
+  },
+  "dependency_receipt": {
+    "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/history/3cdbd3db10d22b02aac5c718324702e0d96520ac/dependencies.json",
+    "sha256": "573489b07c94b4efce2fba2f0cb9b3b4dc8545450fe17b761a001acee4d68a5c",
+    "lockfile_sha256": "745691b99cb087df3bdfaed356712c231de4b9fd562c6dd20b4338fe8487e414"
+  },
+  "selected_outcome": "blocked_not_reproducible"
+}

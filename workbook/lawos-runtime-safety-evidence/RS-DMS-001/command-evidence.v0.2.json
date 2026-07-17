@@ -1,0 +1,80 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.2",
+  "tuw_id": "RS-DMS-001",
+  "implementation_state": "READY",
+  "execution_state": "APPROVAL_REQUIRED",
+  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "target_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
+  "toolchain_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "profile": "approval-packet-local-only",
+  "commands": [
+    {
+      "ordinal": 1,
+      "argv": [
+        "node",
+        "scripts/validate-dms-provider-authority-decision.mjs",
+        "--packet",
+        "workbook/lawos-dms-provider-authority-decision-packet-2026-07-17.json",
+        "--source-sha",
+        "d28b0261c560a39c70767e65df78fdb548cef7da",
+        "--decision-source-sha",
+        "9912071d0839c974e85d8ba5f6f3dd9665a066d7",
+        "--action",
+        "dms-provider-authority",
+        "--environment",
+        "source-local",
+        "--trust-registry",
+        "/private/tmp/lawos-approval-trust/registry.v1.json",
+        "--expected-trust-registry-sha256",
+        "0000000000000000000000000000000000000000000000000000000000000000",
+        "--approval-receipt",
+        "/private/tmp/lawos-approvals/ABSENT"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LAWOS_LOCAL_BACKUP_ROOT",
+        "LAWOS_RUNTIME_BACKUP_QUEUE_ROOT",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-DMS-001:all"
+    }
+  ],
+  "results": [
+    {
+      "ordinal": 1,
+      "exit_code": 0,
+      "started_at": "2026-07-17T08:32:14.958Z",
+      "finished_at": "2026-07-17T08:32:15.025Z",
+      "output_sha256": "18e84278af9e4463f6189ee3a539b421a8e40ae41b6d73c6a3b5a3e27da0db64",
+      "result_slice": "isolated:RS-DMS-001:all",
+      "passed": true,
+      "skipped": 0
+    }
+  ],
+  "started_at": "2026-07-17T08:32:14.957Z",
+  "finished_at": "2026-07-17T08:32:15.027Z",
+  "safe_counts": {
+    "passed": 1,
+    "failed": 0,
+    "approval_required": 1
+  },
+  "skip_count": 0,
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/raw/RS-DMS-001/RS-DMS-001-combined.log",
+  "output_sha256": "18e84278af9e4463f6189ee3a539b421a8e40ae41b6d73c6a3b5a3e27da0db64",
+  "claims": {
+    "verified": false,
+    "production_ready": false,
+    "release_executed": false,
+    "go_live": false
+  },
+  "external_actions": []
+}

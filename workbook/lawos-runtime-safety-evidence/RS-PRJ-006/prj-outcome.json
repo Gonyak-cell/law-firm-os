@@ -1,0 +1,19 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.prj-outcome.v1",
+  "outcome": "pending",
+  "source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "source_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
+  "decision_source_sha": "2ccd9bbe0fbdb8d40c766e36d93a635d79649613",
+  "packet_sha256": "8a47342620488f9916a0cc9856f9888cfcf9fd5acc53c8d707222e7a4d793846",
+  "verified": false,
+  "implementation_state": "PLANNED",
+  "execution_state": "APPROVAL_REQUIRED",
+  "source_path_count": 4,
+  "external_actions_executed": 0,
+  "db_writes": 0,
+  "real_data_used": false,
+  "release_executed": false,
+  "deployment_executed": false,
+  "cutover_executed": false,
+  "go_live": false
+}

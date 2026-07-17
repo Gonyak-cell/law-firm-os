@@ -1,0 +1,117 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.2",
+  "tuw_id": "RS-STO-002",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "target_source_sha": "3cdbd3db10d22b02aac5c718324702e0d96520ac",
+  "target_tree": "fec4f3473a0817a59710f0f0fa42f14bf714872d",
+  "toolchain_sha": "a9885445c236331f72c8cf31b0de54d514fc331b",
+  "profile": "source-local",
+  "commands": [
+    {
+      "ordinal": 1,
+      "argv": [
+        "npm",
+        "--workspace",
+        "packages/matter",
+        "test"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-history-3cdbd3db",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-STO-002:command-1"
+    },
+    {
+      "ordinal": 2,
+      "argv": [
+        "node",
+        "--test",
+        "apps/api/test/matter-vault-persistence.test.js",
+        "packages/persistence/test/store-adapter-cas.test.js"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-history-3cdbd3db",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-STO-002:command-2"
+    }
+  ],
+  "results": [
+    {
+      "ordinal": 1,
+      "exit_code": 0,
+      "started_at": "2026-07-17T06:41:27.302Z",
+      "finished_at": "2026-07-17T06:41:32.007Z",
+      "output_sha256": "468e19c76840256b55cc817b3ff65de7388b84c1a9c700d1408c36f8f99be9cc",
+      "result_slice": "isolated:RS-STO-002:command-1",
+      "passed": true,
+      "skipped": 0
+    },
+    {
+      "ordinal": 2,
+      "exit_code": 0,
+      "started_at": "2026-07-17T06:41:32.027Z",
+      "finished_at": "2026-07-17T06:41:36.203Z",
+      "output_sha256": "9cb9194e9f3b3d78ed52d689a4d2c2b6dddf9a138d47d94973f122edd290f4c2",
+      "result_slice": "isolated:RS-STO-002:command-2",
+      "passed": true,
+      "skipped": 0
+    }
+  ],
+  "started_at": "2026-07-17T06:41:27.302Z",
+  "finished_at": "2026-07-17T06:41:36.244Z",
+  "safe_counts": {
+    "commands_passed": 2,
+    "commands_failed": 0
+  },
+  "skip_count": 0,
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/history/remediation-a9885445/raw/RS-STO-002/combined.log",
+  "output_sha256": "fd9b11041bb8961368e9cfd9f14252410558316f1144c9cc911ab0fd49cba9f4",
+  "claims": {
+    "verified": true,
+    "source_merge_candidate": false,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "provider_contacted": false,
+    "idp_contacted": false,
+    "staging_contacted": false,
+    "production_contacted": false,
+    "real_data_contacted": false,
+    "windows_signing_executed": false,
+    "cutover_executed": false,
+    "json_authority_disabled": false,
+    "go_live": false
+  },
+  "external_actions": [],
+  "legacy_evidence": {
+    "path": "workbook/lawos-runtime-safety-evidence/RS-STO-002/command-evidence.json",
+    "sha256": "7b7275b28f034fe7d35da743981012bd60a34f70ff89f8c41dca14d59f956f65",
+    "blob_oid": "ae874159b61a9b753d889190e64cf1c6df060893"
+  },
+  "dependency_receipt": {
+    "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/history/3cdbd3db10d22b02aac5c718324702e0d96520ac/dependencies.json",
+    "sha256": "573489b07c94b4efce2fba2f0cb9b3b4dc8545450fe17b761a001acee4d68a5c",
+    "lockfile_sha256": "745691b99cb087df3bdfaed356712c231de4b9fd562c6dd20b4338fe8487e414"
+  },
+  "selected_outcome": "pass"
+}

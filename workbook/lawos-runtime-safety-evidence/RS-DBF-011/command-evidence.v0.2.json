@@ -1,0 +1,219 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.2",
+  "tuw_id": "RS-DBF-011",
+  "implementation_state": "BLOCKED_NOT_REPRODUCIBLE",
+  "execution_state": "NOT_APPLICABLE",
+  "target_source_sha": "86f4566eac262f82b10220f78bc9e2b4721135eb",
+  "target_tree": "f8e83803b05ab857ce0232379807c6d2217a2c03",
+  "toolchain_sha": "a9885445c236331f72c8cf31b0de54d514fc331b",
+  "profile": "source-local",
+  "commands": [
+    {
+      "ordinal": 1,
+      "argv": [
+        "node",
+        "--test",
+        "packages/persistence/test/postgres-transaction.test.js",
+        "packages/persistence/test/postgres-repository-contract.test.js",
+        "apps/api/test/persistence-authority.test.js"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-history-86f4566e",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-DBF-011:command-1"
+    },
+    {
+      "ordinal": 2,
+      "argv": [
+        "npm",
+        "--workspace",
+        "packages/persistence",
+        "test"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-history-86f4566e",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-DBF-011:command-2"
+    },
+    {
+      "ordinal": 3,
+      "argv": [
+        "npm",
+        "--workspace",
+        "packages/matter",
+        "test"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-history-86f4566e",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-DBF-011:command-3"
+    },
+    {
+      "ordinal": 4,
+      "argv": [
+        "node",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-execution-20260717/scripts/run-runtime-safety-disposable-postgres-qa.mjs",
+        "--repo",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-history-86f4566e",
+        "--source-sha",
+        "86f4566eac262f82b10220f78bc9e2b4721135eb",
+        "--require-skipped",
+        "0"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-history-86f4566e",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-DBF-011:command-4"
+    },
+    {
+      "ordinal": 5,
+      "argv": [
+        "node",
+        "scripts/validate-hrx-security-negative-tests.mjs"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-history-86f4566e",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-DBF-011:command-5"
+    }
+  ],
+  "results": [
+    {
+      "ordinal": 1,
+      "exit_code": 0,
+      "started_at": "2026-07-17T06:55:59.305Z",
+      "finished_at": "2026-07-17T06:57:00.737Z",
+      "output_sha256": "9aba30f1ce68fbc116574595ffbc24cc61318fff75776b4b274ea6b7b144fcf4",
+      "result_slice": "isolated:RS-DBF-011:command-1",
+      "passed": true,
+      "skipped": 0
+    },
+    {
+      "ordinal": 2,
+      "exit_code": 0,
+      "started_at": "2026-07-17T06:57:00.750Z",
+      "finished_at": "2026-07-17T06:58:02.117Z",
+      "output_sha256": "70b76724c0326c4aed492851c34d98bf8f77a24468fe1271d2f0a80d13f244fc",
+      "result_slice": "isolated:RS-DBF-011:command-2",
+      "passed": true,
+      "skipped": 0
+    },
+    {
+      "ordinal": 3,
+      "exit_code": 0,
+      "started_at": "2026-07-17T06:58:02.119Z",
+      "finished_at": "2026-07-17T06:58:03.611Z",
+      "output_sha256": "657313f804fc27ed9c9f4ae63b3e9eaf32df1992c86049d28109fe4f03730cfd",
+      "result_slice": "isolated:RS-DBF-011:command-3",
+      "passed": true,
+      "skipped": 0
+    },
+    {
+      "ordinal": 4,
+      "exit_code": 1,
+      "started_at": "2026-07-17T06:58:03.617Z",
+      "finished_at": "2026-07-17T06:58:03.668Z",
+      "output_sha256": "1aadd567919b8a7c55d7f9f7ffee57eabc3b5377a2a9c09d3958fd3c9521a94e",
+      "result_slice": "isolated:RS-DBF-011:command-4",
+      "passed": false,
+      "skipped": 0
+    },
+    {
+      "ordinal": 5,
+      "exit_code": 0,
+      "started_at": "2026-07-17T06:58:03.673Z",
+      "finished_at": "2026-07-17T06:58:03.721Z",
+      "output_sha256": "d5fac8a02e073533af474d2734d01d7e7369abb2b7c2d2a1a61f55a709978966",
+      "result_slice": "isolated:RS-DBF-011:command-5",
+      "passed": true,
+      "skipped": 0
+    }
+  ],
+  "started_at": "2026-07-17T06:55:59.305Z",
+  "finished_at": "2026-07-17T06:58:03.735Z",
+  "safe_counts": {
+    "commands_passed": 4,
+    "commands_failed": 1
+  },
+  "skip_count": 0,
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/history/remediation-a9885445/raw/RS-DBF-011/combined.log",
+  "output_sha256": "49a25aa050b62102d5bcbf0bf64549211adefe6dde4a377f4cdb867a4db2d2a0",
+  "claims": {
+    "verified": false,
+    "source_merge_candidate": false,
+    "production_ready": false,
+    "release_executed": false,
+    "aws_mutation_executed": false,
+    "provider_contacted": false,
+    "idp_contacted": false,
+    "staging_contacted": false,
+    "production_contacted": false,
+    "real_data_contacted": false,
+    "windows_signing_executed": false,
+    "cutover_executed": false,
+    "json_authority_disabled": false,
+    "go_live": false
+  },
+  "external_actions": [],
+  "legacy_evidence": {
+    "path": "workbook/lawos-runtime-safety-evidence/RS-DBF-011/command-evidence.json",
+    "sha256": "23d7064dc3b6683f7ea22eb1dc99bd3b536f03666a07121935cbc63e0c1b2f7e",
+    "blob_oid": "7c52549abd3872f09bc31d80ced230eea2b7991d"
+  },
+  "dependency_receipt": {
+    "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/history/86f4566eac262f82b10220f78bc9e2b4721135eb/dependencies.json",
+    "sha256": "6360d478e44f03bd86c27638c1442fcbae0bfc4724b4ee10d0bbfd68f4f4a76e",
+    "lockfile_sha256": "745691b99cb087df3bdfaed356712c231de4b9fd562c6dd20b4338fe8487e414"
+  },
+  "selected_outcome": "blocked_not_reproducible"
+}

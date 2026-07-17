@@ -1,0 +1,115 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.2",
+  "tuw_id": "RS-OFF-003",
+  "implementation_state": "PLANNED",
+  "execution_state": "APPROVAL_REQUIRED",
+  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "target_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
+  "toolchain_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "profile": "source-local",
+  "commands": [
+    {
+      "ordinal": 1,
+      "argv": [
+        "node",
+        "scripts/run-offline-capability-outcome.mjs",
+        "--source-sha",
+        "d28b0261c560a39c70767e65df78fdb548cef7da",
+        "--decision-source-sha",
+        "2ccd9bbe0fbdb8d40c766e36d93a635d79649613",
+        "--outcome",
+        "pending",
+        "--packet",
+        "workbook/lawos-offline-action-conflict-decision-packet-2026-07-17.json",
+        "--decision-receipt",
+        "/private/tmp/lawos-approvals/ABSENT",
+        "--trust-registry",
+        "/private/tmp/lawos-approval-trust/registry.v1.json",
+        "--expected-trust-registry-sha256",
+        "0000000000000000000000000000000000000000000000000000000000000000",
+        "--output-dir",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/generated/RS-OFF-003"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LAWOS_LOCAL_BACKUP_ROOT",
+        "LAWOS_RUNTIME_BACKUP_QUEUE_ROOT",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-OFF-003:command-1"
+    },
+    {
+      "ordinal": 2,
+      "argv": [
+        "node",
+        "--test",
+        "scripts/test/offline-capability-decision.test.mjs",
+        "apps/desktop/test/shell-smoke.test.mjs"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LAWOS_LOCAL_BACKUP_ROOT",
+        "LAWOS_RUNTIME_BACKUP_QUEUE_ROOT",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-OFF-003:command-2"
+    }
+  ],
+  "results": [
+    {
+      "ordinal": 1,
+      "exit_code": 0,
+      "started_at": "2026-07-17T08:32:16.240Z",
+      "finished_at": "2026-07-17T08:32:16.313Z",
+      "output_sha256": "cd02111a43d22017d45bd2ce2a4130a651e259ff466db2412bf4b5870ef064cf",
+      "result_slice": "isolated:RS-OFF-003:command-1",
+      "passed": true,
+      "skipped": 0
+    },
+    {
+      "ordinal": 2,
+      "exit_code": 0,
+      "started_at": "2026-07-17T08:32:16.314Z",
+      "finished_at": "2026-07-17T08:32:16.448Z",
+      "output_sha256": "cc2c9b65ffd170c602c9fb87d2c21f8ad454337646ceec47c711c0926c1f0c19",
+      "result_slice": "isolated:RS-OFF-003:command-2",
+      "passed": true,
+      "skipped": 0
+    }
+  ],
+  "started_at": "2026-07-17T08:32:16.240Z",
+  "finished_at": "2026-07-17T08:32:16.449Z",
+  "safe_counts": {
+    "passed": 2,
+    "failed": 0,
+    "approval_required": 1
+  },
+  "skip_count": 0,
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/raw/RS-OFF-003/RS-OFF-003-combined.log",
+  "output_sha256": "40007788018b337ebc35fd4d982ac17b3d61200ce96837093bbb2ef6b2e9a947",
+  "claims": {
+    "verified": false,
+    "production_ready": false,
+    "release_executed": false,
+    "go_live": false
+  },
+  "external_actions": []
+}

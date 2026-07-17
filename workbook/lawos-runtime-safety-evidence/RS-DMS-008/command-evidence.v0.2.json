@@ -1,0 +1,174 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.command-evidence.v0.2",
+  "tuw_id": "RS-DMS-008",
+  "implementation_state": "VERIFIED",
+  "execution_state": "NOT_APPLICABLE",
+  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "target_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
+  "toolchain_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "profile": "source-local",
+  "commands": [
+    {
+      "ordinal": 1,
+      "argv": [
+        "node",
+        "--test",
+        "packages/dms/test/security-regressions.test.js",
+        "packages/dms/test/postgres-security-regressions.test.js",
+        "packages/dms/test/upload-reconciliation.test.js"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LAWOS_LOCAL_BACKUP_ROOT",
+        "LAWOS_RUNTIME_BACKUP_QUEUE_ROOT",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-DMS-008:command-1"
+    },
+    {
+      "ordinal": 2,
+      "argv": [
+        "node",
+        "--test",
+        "packages/dms/test/central-ledger.test.js",
+        "packages/dms/test/runtime-services.test.js",
+        "apps/api/test/vault-dms-postgres-runtime.test.js",
+        "packages/hrx/test/payroll-document-service.test.js",
+        "packages/intake/test/runtime-services.test.js"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LAWOS_LOCAL_BACKUP_ROOT",
+        "LAWOS_RUNTIME_BACKUP_QUEUE_ROOT",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-DMS-008:command-2"
+    },
+    {
+      "ordinal": 3,
+      "argv": [
+        "node",
+        "--test",
+        "packages/persistence/test/postgres-transaction.test.js",
+        "packages/persistence/test/postgres-repository-contract.test.js",
+        "packages/hrx/test/postgres-migrations.test.js"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LAWOS_LOCAL_BACKUP_ROOT",
+        "LAWOS_RUNTIME_BACKUP_QUEUE_ROOT",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-DMS-008:command-3"
+    },
+    {
+      "ordinal": 4,
+      "argv": [
+        "node",
+        "scripts/validate-runtime-safety-governance.mjs"
+      ],
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+      "env_keys": [
+        "AWS_EC2_METADATA_DISABLED",
+        "CI",
+        "GIT_OPTIONAL_LOCKS",
+        "LANG",
+        "LAWOS_LOCAL_BACKUP_ROOT",
+        "LAWOS_RUNTIME_BACKUP_QUEUE_ROOT",
+        "LC_ALL",
+        "NO_PROXY",
+        "PATH",
+        "TZ"
+      ],
+      "parser": "ordered-process-results-v1",
+      "timeout_ms": 900000,
+      "result_slice": "isolated:RS-DMS-008:command-4"
+    }
+  ],
+  "results": [
+    {
+      "ordinal": 1,
+      "exit_code": 0,
+      "started_at": "2026-07-17T08:33:11.703Z",
+      "finished_at": "2026-07-17T08:33:26.290Z",
+      "output_sha256": "e8fd5d4249046852b93aa58e651a31fed69cd2d1f42fe28a86193e99721a721a",
+      "result_slice": "isolated:RS-DMS-008:command-1",
+      "passed": true,
+      "skipped": 0
+    },
+    {
+      "ordinal": 2,
+      "exit_code": 0,
+      "started_at": "2026-07-17T08:33:26.292Z",
+      "finished_at": "2026-07-17T08:33:28.231Z",
+      "output_sha256": "d13909a26c39496e9ea6e8e70f30bd8b995b4f3118e448c97fde20dd409be61f",
+      "result_slice": "isolated:RS-DMS-008:command-2",
+      "passed": true,
+      "skipped": 0
+    },
+    {
+      "ordinal": 3,
+      "exit_code": 0,
+      "started_at": "2026-07-17T08:33:28.231Z",
+      "finished_at": "2026-07-17T08:33:34.167Z",
+      "output_sha256": "08ec361b6f491c7271a73ba5197de8ebb17ba2a658896012f1184c596eafeb3f",
+      "result_slice": "isolated:RS-DMS-008:command-3",
+      "passed": true,
+      "skipped": 0
+    },
+    {
+      "ordinal": 4,
+      "exit_code": 0,
+      "started_at": "2026-07-17T08:33:34.167Z",
+      "finished_at": "2026-07-17T08:33:34.316Z",
+      "output_sha256": "ed949083ea4992b9edda38e4d52ab11a9b849bfc0204bd20738e98e3c1f074ed",
+      "result_slice": "isolated:RS-DMS-008:command-4",
+      "passed": true,
+      "skipped": 0
+    }
+  ],
+  "started_at": "2026-07-17T08:33:11.703Z",
+  "finished_at": "2026-07-17T08:33:34.316Z",
+  "safe_counts": {
+    "passed": 4,
+    "failed": 0,
+    "approval_required": 0
+  },
+  "skip_count": 0,
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/raw/RS-DMS-008/RS-DMS-008-combined.log",
+  "output_sha256": "225806f6ef9eeb9e8085f89d4600a27d5510ee86c5459bebfe1e4cbe964eefd7",
+  "claims": {
+    "verified": true,
+    "production_ready": false,
+    "release_executed": false,
+    "go_live": false
+  },
+  "external_actions": []
+}

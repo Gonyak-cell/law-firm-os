@@ -1,0 +1,9 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.output-hashes.v0.2",
+  "tuw_id": "RS-DUR-001",
+  "target_source_sha": "90e241bf4f06004974e7a97592f07309873f0131",
+  "combined_output_sha256": "940b3f7680498c3622cc9e90f0e30af60f940572872645f0bf163bf1d2bab100",
+  "command_output_sha256": {
+    "1": "940b3f7680498c3622cc9e90f0e30af60f940572872645f0bf163bf1d2bab100"
+  }
+}

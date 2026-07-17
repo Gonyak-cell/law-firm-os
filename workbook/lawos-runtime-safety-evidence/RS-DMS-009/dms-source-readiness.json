@@ -2,14 +2,14 @@
   "schema_version": "law-firm-os.dms-source-readiness.v0.2",
   "verdict": "PASS",
   "allowed_claim": "DMS_SOURCE_CHECKPOINT_VERIFIED",
-  "source_sha": "2b3755fc9533c47f30af3bc8ecdbe6d33aa197c1",
-  "tree": "60592c1351bd63fd5f10ae87d9936f954adb2080",
+  "source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
   "source_worktree_clean_before_evidence": true,
   "source_worktree_clean_after_evidence": true,
-  "started_at": "2026-07-17T06:33:57.457Z",
-  "finished_at": "2026-07-17T06:34:07.211Z",
+  "started_at": "2026-07-17T08:32:22.425Z",
+  "finished_at": "2026-07-17T08:32:49.761Z",
   "toolchain_sha256": "0ef2a6478ad53e079c9f199ae79658fd312d2ef79cd63cf2955c15d8fed69e6c",
-  "dependency_receipt_sha256": "674021c98f8ef74c3a6d094f7fb21d324ce05d1a1a6665e40bc62e9150a1731b",
+  "dependency_receipt_sha256": "36c5c693a5bb8f3a9846fe9e1077bfc8adbc6fa49dbddc6bdab79f084a45367a",
   "verification_contracts": [
     {
       "receipt_id": "VC-DMS-ADVERSARIAL-001",
@@ -21,12 +21,12 @@
         "skipped": 0,
         "total": 20
       },
-      "output_sha256": "bc098ada882df5d65300b557ad5a1099de7ffbda380b4378b18e445d4d698e25",
+      "output_sha256": "21b1e1f97876a3dd23feed4cd51187c4a67c3b36bb9e40de1dda31fafc8bdd57",
       "result_slice": "isolated:VC-DMS-ADVERSARIAL-001:all",
       "db_skipped": 0,
       "postgres_started": true,
-      "started_at": "2026-07-17T06:33:57.458Z",
-      "finished_at": "2026-07-17T06:34:02.819Z"
+      "started_at": "2026-07-17T08:32:22.426Z",
+      "finished_at": "2026-07-17T08:32:40.199Z"
     },
     {
       "receipt_id": "VC-DMS-CONSUMERS-001",
@@ -38,12 +38,12 @@
         "skipped": 0,
         "total": 19
       },
-      "output_sha256": "348beb27004a05743c52aa20352a50fa7c702b29ca325a25c5d6031b54fb3dcf",
+      "output_sha256": "4e45f0bd532cf50ce346ecedb2eb5393a0222da128db647560648167b7faa5d5",
       "result_slice": "isolated:VC-DMS-CONSUMERS-001:all",
       "db_skipped": 0,
       "postgres_started": true,
-      "started_at": "2026-07-17T06:34:02.820Z",
-      "finished_at": "2026-07-17T06:34:03.848Z"
+      "started_at": "2026-07-17T08:32:40.200Z",
+      "finished_at": "2026-07-17T08:32:42.645Z"
     },
     {
       "receipt_id": "VC-DMS-POSTGRES-001",
@@ -55,12 +55,12 @@
         "skipped": 0,
         "total": 12
       },
-      "output_sha256": "91f389696d307d1886657c217acd4f9bfd480b9011f31febdcb3f7b4442311bd",
+      "output_sha256": "31e0a60535006c40fd45b521be236f973e92ff6917237c16831254545ecc84c7",
       "result_slice": "isolated:VC-DMS-POSTGRES-001:all",
       "db_skipped": 0,
       "postgres_started": true,
-      "started_at": "2026-07-17T06:34:03.849Z",
-      "finished_at": "2026-07-17T06:34:07.019Z"
+      "started_at": "2026-07-17T08:32:42.646Z",
+      "finished_at": "2026-07-17T08:32:49.452Z"
     },
     {
       "receipt_id": "VC-DMS-GOVERNANCE-001",
@@ -76,8 +76,8 @@
       "result_slice": "isolated:VC-DMS-GOVERNANCE-001:all",
       "db_skipped": 0,
       "postgres_started": false,
-      "started_at": "2026-07-17T06:34:07.019Z",
-      "finished_at": "2026-07-17T06:34:07.139Z"
+      "started_at": "2026-07-17T08:32:49.453Z",
+      "finished_at": "2026-07-17T08:32:49.599Z"
     }
   ],
   "adversarial_tests": [
@@ -138,16 +138,16 @@
     }
   ],
   "output_hashes": {
-    "VC-DMS-ADVERSARIAL-001": "bc098ada882df5d65300b557ad5a1099de7ffbda380b4378b18e445d4d698e25",
-    "VC-DMS-CONSUMERS-001": "348beb27004a05743c52aa20352a50fa7c702b29ca325a25c5d6031b54fb3dcf",
-    "VC-DMS-POSTGRES-001": "91f389696d307d1886657c217acd4f9bfd480b9011f31febdcb3f7b4442311bd",
+    "VC-DMS-ADVERSARIAL-001": "21b1e1f97876a3dd23feed4cd51187c4a67c3b36bb9e40de1dda31fafc8bdd57",
+    "VC-DMS-CONSUMERS-001": "4e45f0bd532cf50ce346ecedb2eb5393a0222da128db647560648167b7faa5d5",
+    "VC-DMS-POSTGRES-001": "31e0a60535006c40fd45b521be236f973e92ff6917237c16831254545ecc84c7",
     "VC-DMS-GOVERNANCE-001": "ed949083ea4992b9edda38e4d52ab11a9b849bfc0204bd20738e98e3c1f074ed"
   },
   "run_manifest": {
     "schema_version": "law-firm-os.dms-source-run-manifest.v1",
-    "source_sha": "2b3755fc9533c47f30af3bc8ecdbe6d33aa197c1",
-    "tree": "60592c1351bd63fd5f10ae87d9936f954adb2080",
-    "checkout": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-dms-evidence-2b3755fc",
+    "source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+    "tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
+    "checkout": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
     "command_receipt_ids": [
       "VC-DMS-ADVERSARIAL-001",
       "VC-DMS-CONSUMERS-001",
@@ -164,9 +164,9 @@
           "packages/dms/test/postgres-security-regressions.test.js",
           "packages/dms/test/upload-reconciliation.test.js"
         ],
-        "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-dms-evidence-2b3755fc",
-        "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/dms/2b3755fc9533c47f30af3bc8ecdbe6d33aa197c1/raw/VC-DMS-ADVERSARIAL-001.log",
-        "output_sha256": "bc098ada882df5d65300b557ad5a1099de7ffbda380b4378b18e445d4d698e25"
+        "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+        "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/dms-source-seal/raw/VC-DMS-ADVERSARIAL-001.log",
+        "output_sha256": "21b1e1f97876a3dd23feed4cd51187c4a67c3b36bb9e40de1dda31fafc8bdd57"
       },
       {
         "receipt_id": "VC-DMS-CONSUMERS-001",
@@ -179,9 +179,9 @@
           "packages/hrx/test/payroll-document-service.test.js",
           "packages/intake/test/runtime-services.test.js"
         ],
-        "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-dms-evidence-2b3755fc",
-        "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/dms/2b3755fc9533c47f30af3bc8ecdbe6d33aa197c1/raw/VC-DMS-CONSUMERS-001.log",
-        "output_sha256": "348beb27004a05743c52aa20352a50fa7c702b29ca325a25c5d6031b54fb3dcf"
+        "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+        "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/dms-source-seal/raw/VC-DMS-CONSUMERS-001.log",
+        "output_sha256": "4e45f0bd532cf50ce346ecedb2eb5393a0222da128db647560648167b7faa5d5"
       },
       {
         "receipt_id": "VC-DMS-POSTGRES-001",
@@ -192,9 +192,9 @@
           "packages/persistence/test/postgres-repository-contract.test.js",
           "packages/hrx/test/postgres-migrations.test.js"
         ],
-        "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-dms-evidence-2b3755fc",
-        "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/dms/2b3755fc9533c47f30af3bc8ecdbe6d33aa197c1/raw/VC-DMS-POSTGRES-001.log",
-        "output_sha256": "91f389696d307d1886657c217acd4f9bfd480b9011f31febdcb3f7b4442311bd"
+        "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+        "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/dms-source-seal/raw/VC-DMS-POSTGRES-001.log",
+        "output_sha256": "31e0a60535006c40fd45b521be236f973e92ff6917237c16831254545ecc84c7"
       },
       {
         "receipt_id": "VC-DMS-GOVERNANCE-001",
@@ -202,15 +202,15 @@
           "node",
           "scripts/validate-runtime-safety-governance.mjs"
         ],
-        "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-dms-evidence-2b3755fc",
-        "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/dms/2b3755fc9533c47f30af3bc8ecdbe6d33aa197c1/raw/VC-DMS-GOVERNANCE-001.log",
+        "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-d28b0261",
+        "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261/dms-source-seal/raw/VC-DMS-GOVERNANCE-001.log",
         "output_sha256": "ed949083ea4992b9edda38e4d52ab11a9b849bfc0204bd20738e98e3c1f074ed"
       }
     ],
-    "started_at": "2026-07-17T06:33:57.457Z",
-    "finished_at": "2026-07-17T06:34:07.211Z",
-    "dependency_receipt_sha256": "674021c98f8ef74c3a6d094f7fb21d324ce05d1a1a6665e40bc62e9150a1731b",
-    "sha256": "ac16857b1eed90e504a585f6e3c988439d42d80a85a025bd28532295c9682f33"
+    "started_at": "2026-07-17T08:32:22.425Z",
+    "finished_at": "2026-07-17T08:32:49.761Z",
+    "dependency_receipt_sha256": "36c5c693a5bb8f3a9846fe9e1077bfc8adbc6fa49dbddc6bdab79f084a45367a",
+    "sha256": "163025570d513f04a6bbd0ba5454c12b12990f8543e7912bd4fe4a0e326c4e23"
   },
   "tuws": {
     "RS-DMS-001": {
@@ -283,8 +283,8 @@
     "db_skipped": 0
   },
   "lineage": {
-    "source_sha": "2b3755fc9533c47f30af3bc8ecdbe6d33aa197c1",
-    "evidence_parent_sha": "2b3755fc9533c47f30af3bc8ecdbe6d33aa197c1",
+    "source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+    "evidence_parent_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
     "evidence_only": true,
     "product_diff_count": 0,
     "test_diff_count": 0,

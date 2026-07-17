@@ -1,0 +1,12 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.output-hashes.v0.2",
+  "tuw_id": "RS-DMS-004",
+  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
+  "combined_output_sha256": "f141d2a3bd92244c52eed6ef3050350a223b4c12bd632202a2fcfb69e0458c12",
+  "command_output_sha256": {
+    "1": "5fc539a07e5fd40729c4a71d09105c8365b52b06fd89075a97c7cd7a23f32dfe",
+    "2": "56dc00dea9f9f419da10b8e34533c5e6200d1d84d7505e1efe3181618201f70d",
+    "3": "b0011b7b538403066814c8f641d4ff92dce8b77c9d1dfff48608c33029a8869e",
+    "4": "ed949083ea4992b9edda38e4d52ab11a9b849bfc0204bd20738e98e3c1f074ed"
+  }
+}

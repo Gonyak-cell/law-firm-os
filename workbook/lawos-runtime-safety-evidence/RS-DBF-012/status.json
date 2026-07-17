@@ -1,0 +1,9 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.status.v0.2",
+  "tuw_id": "RS-DBF-012",
+  "implementation_state": "BLOCKED_NOT_REPRODUCIBLE",
+  "execution_state": "NOT_APPLICABLE",
+  "blocker": "the exact manifest command did not reproduce without failure or skip at the historical source SHA",
+  "selected_outcome": "blocked_not_reproducible",
+  "external_actions": []
+}
