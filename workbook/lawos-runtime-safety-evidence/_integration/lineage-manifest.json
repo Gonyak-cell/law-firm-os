@@ -1,0 +1,46 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.integration-lineage.v1",
+  "source": {
+    "sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+    "tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
+    "checkout": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
+    "clean": true
+  },
+  "evidence_input": {
+    "sha": "b42b947f1e2bef1816586511cd14a9a739963c54",
+    "tree": "9b1604787a529c647f2cb346a2491878564068f7",
+    "checkout": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-execution-20260717",
+    "clean": true
+  },
+  "evidence_append_model": "non-circular audit: this manifest evaluates the exact evidence input and is appended by a later evidence-only commit",
+  "ancestry": {
+    "source_is_ancestor_of_evidence_input": true
+  },
+  "source_to_evidence": {
+    "changed_path_count": 513,
+    "evidence_allowlisted_path_count": 513,
+    "non_evidence_path_count": 0,
+    "product_path_count": 0,
+    "test_path_count": 0,
+    "validator_path_count": 0,
+    "duplicate_path_count": 0
+  },
+  "baseline_to_source": {
+    "baseline_sha": "b46a686f719875c6980ecba9bc213a605f58fa45",
+    "changed_path_count": 369,
+    "diff_check_passed": true
+  },
+  "planned_integration_paths": [
+    "workbook/lawos-runtime-safety-evidence/_integration/dependencies.json",
+    "workbook/lawos-runtime-safety-evidence/_integration/run-manifest.json",
+    "workbook/lawos-runtime-safety-evidence/_integration/command-evidence.v0.2.json",
+    "workbook/lawos-runtime-safety-evidence/_integration/lineage-manifest.json",
+    "workbook/lawos-runtime-safety-evidence/_integration/final-147-audit.json"
+  ],
+  "materialization": {
+    "explicit_one_to_one": true,
+    "glob_used": false,
+    "destination_collision_count": 0,
+    "source_hash_drift_count": 0
+  }
+}

@@ -1,0 +1,851 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.final-147-audit.v1",
+  "verdict": "PASS",
+  "maximum_authorized_claim": "MAXIMUM_AUTHORIZED_SOURCE_LOCAL_STATE_VERIFIED",
+  "source_evidence_pair": {
+    "source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+    "source_tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
+    "evidence_input_sha": "b42b947f1e2bef1816586511cd14a9a739963c54",
+    "evidence_input_tree": "9b1604787a529c647f2cb346a2491878564068f7"
+  },
+  "plan": {
+    "path": "/Users/jws/.codex/recovery/law-firm-os/lawos-runtime-safety-dms-detailed-execution-plan-2026-07-17.md",
+    "sha256": "01e937b07c01143515d5c07d7384f56773efc8d91e8378fa290a2df3827dc456",
+    "named_work_package_count": 52,
+    "goal_authority_contract_count": 1,
+    "f1_declared_task_count": 53
+  },
+  "f1_plan_compliance": {
+    "verdict": "PASS",
+    "task_count": 53,
+    "tasks": [
+      {
+        "task_id": "R0-01",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "candidate-inventory.pass2.json",
+          "shared-git-sentinel.final-audit.json",
+          "platform-goal-gate.json"
+        ]
+      },
+      {
+        "task_id": "R0-02",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "candidate-inventory.pass2.json",
+          "shared-git-sentinel.final-audit.json",
+          "platform-goal-gate.json"
+        ]
+      },
+      {
+        "task_id": "R0-03",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "candidate-inventory.pass2.json",
+          "shared-git-sentinel.final-audit.json",
+          "platform-goal-gate.json"
+        ]
+      },
+      {
+        "task_id": "R0-04",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "candidate-inventory.pass2.json",
+          "shared-git-sentinel.final-audit.json",
+          "platform-goal-gate.json"
+        ]
+      },
+      {
+        "task_id": "R0-05",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "candidate-inventory.pass2.json",
+          "shared-git-sentinel.final-audit.json",
+          "platform-goal-gate.json"
+        ]
+      },
+      {
+        "task_id": "GOV-01",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "strict-147",
+          "runtime-safety-governance",
+          "source/evidence lineage"
+        ]
+      },
+      {
+        "task_id": "GOV-02",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "strict-147",
+          "runtime-safety-governance",
+          "source/evidence lineage"
+        ]
+      },
+      {
+        "task_id": "GOV-03",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "strict-147",
+          "runtime-safety-governance",
+          "source/evidence lineage"
+        ]
+      },
+      {
+        "task_id": "GOV-04",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "strict-147",
+          "runtime-safety-governance",
+          "source/evidence lineage"
+        ]
+      },
+      {
+        "task_id": "GOV-05",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "strict-147",
+          "runtime-safety-governance",
+          "source/evidence lineage"
+        ]
+      },
+      {
+        "task_id": "GOV-06",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "strict-147",
+          "runtime-safety-governance",
+          "source/evidence lineage"
+        ]
+      },
+      {
+        "task_id": "DMS-01",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "dms-source-readiness.json",
+          "VC-DMS-ADVERSARIAL-001",
+          "VC-DMS-POSTGRES-001"
+        ]
+      },
+      {
+        "task_id": "DMS-02",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "dms-source-readiness.json",
+          "VC-DMS-ADVERSARIAL-001",
+          "VC-DMS-POSTGRES-001"
+        ]
+      },
+      {
+        "task_id": "DMS-03",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "dms-source-readiness.json",
+          "VC-DMS-ADVERSARIAL-001",
+          "VC-DMS-POSTGRES-001"
+        ]
+      },
+      {
+        "task_id": "DMS-04",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "dms-source-readiness.json",
+          "VC-DMS-ADVERSARIAL-001",
+          "VC-DMS-POSTGRES-001"
+        ]
+      },
+      {
+        "task_id": "DMS-05",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "dms-source-readiness.json",
+          "VC-DMS-ADVERSARIAL-001",
+          "VC-DMS-POSTGRES-001"
+        ]
+      },
+      {
+        "task_id": "DMS-06",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "dms-source-readiness.json",
+          "VC-DMS-ADVERSARIAL-001",
+          "VC-DMS-POSTGRES-001"
+        ]
+      },
+      {
+        "task_id": "DMS-07",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "dms-source-readiness.json",
+          "VC-DMS-ADVERSARIAL-001",
+          "VC-DMS-POSTGRES-001"
+        ]
+      },
+      {
+        "task_id": "DMS-08",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "dms-source-readiness.json",
+          "VC-DMS-ADVERSARIAL-001",
+          "VC-DMS-POSTGRES-001"
+        ]
+      },
+      {
+        "task_id": "DMS-09",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "dms-source-readiness.json",
+          "VC-DMS-ADVERSARIAL-001",
+          "VC-DMS-POSTGRES-001"
+        ]
+      },
+      {
+        "task_id": "DMS-10",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "dms-source-readiness.json",
+          "VC-DMS-ADVERSARIAL-001",
+          "VC-DMS-POSTGRES-001"
+        ]
+      },
+      {
+        "task_id": "DMS-11",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "dms-source-readiness.json",
+          "VC-DMS-ADVERSARIAL-001",
+          "VC-DMS-POSTGRES-001"
+        ]
+      },
+      {
+        "task_id": "DMS-12",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "dms-source-readiness.json",
+          "VC-DMS-ADVERSARIAL-001",
+          "VC-DMS-POSTGRES-001"
+        ]
+      },
+      {
+        "task_id": "EVD-01",
+        "verdict": "PASS_TRUTHFUL_NONREPRODUCIBLE_BLOCKERS_PRESERVED",
+        "evidence_refs": [
+          "audit-legacy-after-e4.json",
+          "strict-147",
+          "evidence-contract-remediation-v0.2.json"
+        ]
+      },
+      {
+        "task_id": "EVD-02",
+        "verdict": "PASS_TRUTHFUL_NONREPRODUCIBLE_BLOCKERS_PRESERVED",
+        "evidence_refs": [
+          "audit-legacy-after-e4.json",
+          "strict-147",
+          "evidence-contract-remediation-v0.2.json"
+        ]
+      },
+      {
+        "task_id": "EVD-03",
+        "verdict": "PASS_TRUTHFUL_NONREPRODUCIBLE_BLOCKERS_PRESERVED",
+        "evidence_refs": [
+          "audit-legacy-after-e4.json",
+          "strict-147",
+          "evidence-contract-remediation-v0.2.json"
+        ]
+      },
+      {
+        "task_id": "EVD-04",
+        "verdict": "PASS_TRUTHFUL_NONREPRODUCIBLE_BLOCKERS_PRESERVED",
+        "evidence_refs": [
+          "audit-legacy-after-e4.json",
+          "strict-147",
+          "evidence-contract-remediation-v0.2.json"
+        ]
+      },
+      {
+        "task_id": "EVD-05",
+        "verdict": "PASS_TRUTHFUL_NONREPRODUCIBLE_BLOCKERS_PRESERVED",
+        "evidence_refs": [
+          "audit-legacy-after-e4.json",
+          "strict-147",
+          "evidence-contract-remediation-v0.2.json"
+        ]
+      },
+      {
+        "task_id": "PRJ-01",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "RS-PRJ-001..006",
+          "prj-browser-qa-result.json",
+          "source-review-a6004ddc.json"
+        ]
+      },
+      {
+        "task_id": "PRJ-02",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "RS-PRJ-001..006",
+          "prj-browser-qa-result.json",
+          "source-review-a6004ddc.json"
+        ]
+      },
+      {
+        "task_id": "PRJ-03",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "RS-PRJ-001..006",
+          "prj-browser-qa-result.json",
+          "source-review-a6004ddc.json"
+        ]
+      },
+      {
+        "task_id": "PRJ-04",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "RS-PRJ-001..006",
+          "prj-browser-qa-result.json",
+          "source-review-a6004ddc.json"
+        ]
+      },
+      {
+        "task_id": "PRJ-05",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "RS-PRJ-001..006",
+          "prj-browser-qa-result.json",
+          "source-review-a6004ddc.json"
+        ]
+      },
+      {
+        "task_id": "PRJ-06",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "RS-PRJ-001..006",
+          "prj-browser-qa-result.json",
+          "source-review-a6004ddc.json"
+        ]
+      },
+      {
+        "task_id": "OFF-01",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "RS-OFF-001..006",
+          "off-outcome.json",
+          "off-electron-qa-result.json"
+        ]
+      },
+      {
+        "task_id": "OFF-02",
+        "verdict": "PASS_NOT_SELECTED_PENDING_OUTCOME",
+        "evidence_refs": [
+          "RS-OFF-001..006",
+          "off-outcome.json",
+          "off-electron-qa-result.json"
+        ]
+      },
+      {
+        "task_id": "OFF-03",
+        "verdict": "PASS_NOT_SELECTED_PENDING_OUTCOME",
+        "evidence_refs": [
+          "RS-OFF-001..006",
+          "off-outcome.json",
+          "off-electron-qa-result.json"
+        ]
+      },
+      {
+        "task_id": "OFF-04",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "RS-OFF-001..006",
+          "off-outcome.json",
+          "off-electron-qa-result.json"
+        ]
+      },
+      {
+        "task_id": "OFF-05",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "RS-OFF-001..006",
+          "off-outcome.json",
+          "off-electron-qa-result.json"
+        ]
+      },
+      {
+        "task_id": "CUT-01",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "RS-CUT-001..012",
+          "dependency-bundle.json",
+          "cut-outcome-index.json"
+        ]
+      },
+      {
+        "task_id": "CUT-02",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "RS-CUT-001..012",
+          "dependency-bundle.json",
+          "cut-outcome-index.json"
+        ]
+      },
+      {
+        "task_id": "CUT-03",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "RS-CUT-001..012",
+          "dependency-bundle.json",
+          "cut-outcome-index.json"
+        ]
+      },
+      {
+        "task_id": "CUT-04",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "RS-CUT-001..012",
+          "dependency-bundle.json",
+          "cut-outcome-index.json"
+        ]
+      },
+      {
+        "task_id": "CUT-05",
+        "verdict": "PASS_APPROVAL_BOUNDARY_PRESERVED",
+        "evidence_refs": [
+          "RS-CUT-001..012",
+          "dependency-bundle.json",
+          "cut-outcome-index.json"
+        ]
+      },
+      {
+        "task_id": "CUT-06",
+        "verdict": "PASS_APPROVAL_BOUNDARY_PRESERVED",
+        "evidence_refs": [
+          "RS-CUT-001..012",
+          "dependency-bundle.json",
+          "cut-outcome-index.json"
+        ]
+      },
+      {
+        "task_id": "CUT-07",
+        "verdict": "PASS_APPROVAL_BOUNDARY_PRESERVED",
+        "evidence_refs": [
+          "RS-CUT-001..012",
+          "dependency-bundle.json",
+          "cut-outcome-index.json"
+        ]
+      },
+      {
+        "task_id": "CUT-08",
+        "verdict": "PASS_APPROVAL_BOUNDARY_PRESERVED",
+        "evidence_refs": [
+          "RS-CUT-001..012",
+          "dependency-bundle.json",
+          "cut-outcome-index.json"
+        ]
+      },
+      {
+        "task_id": "CUT-09",
+        "verdict": "PASS_APPROVAL_BOUNDARY_PRESERVED",
+        "evidence_refs": [
+          "RS-CUT-001..012",
+          "dependency-bundle.json",
+          "cut-outcome-index.json"
+        ]
+      },
+      {
+        "task_id": "INT-01",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "regression comparison",
+          "strict-147",
+          "F1-F4 final audit"
+        ]
+      },
+      {
+        "task_id": "INT-02",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "regression comparison",
+          "strict-147",
+          "F1-F4 final audit"
+        ]
+      },
+      {
+        "task_id": "INT-03",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "regression comparison",
+          "strict-147",
+          "F1-F4 final audit"
+        ]
+      },
+      {
+        "task_id": "INT-04",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "regression comparison",
+          "strict-147",
+          "F1-F4 final audit"
+        ]
+      },
+      {
+        "task_id": "GOAL-AUTHORITY-01",
+        "verdict": "PASS",
+        "evidence_refs": [
+          "platform-goal-gate.json",
+          "host-managed-metadata-exception-authority.json"
+        ]
+      }
+    ],
+    "self_report_used_as_substitute": false,
+    "must_not": {
+      "protected_root_modified": false,
+      "shared_product_git_metadata_modified": false,
+      "legacy_receipt_overwritten": false,
+      "push_or_pr_or_merge_executed": false,
+      "tag_or_release_executed": false,
+      "aws_provider_idp_staging_production_contacted": false,
+      "real_client_data_used": false,
+      "json_authority_disabled": false,
+      "windows_signing_executed": false,
+      "go_live_claimed": false
+    }
+  },
+  "f2_independent_code_review": {
+    "verdict": "PASS",
+    "exact_detached_source_checkout": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
+    "dependency_receipt_sha256": "a59136fc61464332e9f4554338cd58e6a8d60ddc708f994eff3f3de2527650e1",
+    "review_artifact": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/review/source-review-a6004ddc.json",
+    "review_artifact_sha256": "5583048b0d9bb0b539622bc73f8bf4051cd73ddb1aeed8b519c8b7c4dae561c5",
+    "critical_count": 0,
+    "high_count": 0,
+    "unresolved_correctness_major_count": 0,
+    "new_regression_failure_count": 0
+  },
+  "f3_actual_local_qa": {
+    "verdict": "PASS",
+    "dms": {
+      "disposable_postgres_started": true,
+      "db_skipped": 0,
+      "tenant_separated_local_and_file_storage": true,
+      "adversarial_passed": 23,
+      "consumers_passed": 19,
+      "postgres_contracts_passed": 12,
+      "named_security_invariant_count": 14,
+      "receipt_sha256": "38dbe2d62be95ef72949f5247c82cb55c33005fbb594ebd436b2ddd24212efba"
+    },
+    "prj": {
+      "actual_forest_home_browser": true,
+      "browser_restarted": true,
+      "analytics_and_readiness_visible": true,
+      "screenshot_count": 2,
+      "qa_sha256": "2ef18904f2c5850771a475b7b5b833da4b21d76bd8ef066f3bf1731f01c2e65f",
+      "manual_review_sha256": "5c4b04ba94c52188476d513b8bd1afb7e45c542f673102b2052f92ce5f365bc4"
+    },
+    "off": {
+      "exact_lockfile_electron_main_process": true,
+      "selected_outcome": "pending",
+      "capability_path_count": 0,
+      "fail_closed": true,
+      "qa_sha256": "a3877b1e6dcc57bd026a4034242583406ea45da43a82a52bd6331649e4512a27"
+    },
+    "cut": {
+      "selected_mode": "dependency-preflight",
+      "synthetic_execution_permitted": false,
+      "approval_required": true,
+      "external_write_count": 0
+    },
+    "screenshot_and_log_secret_finding_count": 0,
+    "prohibited_external_action_count": 0
+  },
+  "f4_scope_and_preservation": {
+    "verdict": "PASS",
+    "protected_root_porcelain_empty": true,
+    "protected_root_head": "b46a686f719875c6980ecba9bc213a605f58fa45",
+    "origin_main": "b46a686f719875c6980ecba9bc213a605f58fa45",
+    "root_index_unchanged": true,
+    "dms_index_unchanged": true,
+    "object_inventory_unchanged": true,
+    "non_host_managed_metadata_change_count": 0,
+    "host_managed_metadata_exception": {
+      "applied": true,
+      "authority_path": "/Users/jws/.codex/recovery/law-firm-os/rs-dms-candidate-20260717/host-managed-metadata-exception-authority.json",
+      "authority_sha256": "aa59d210a9e6ae4cb4a8459fc8237b93e619cde216717308cd08ee3111e89019",
+      "excluded_paths": [
+        "refs/codex/turn-diffs/**",
+        "packed-refs changes caused by Codex host-managed turn-diff maintenance"
+      ],
+      "observed_changed_entry_count": 16,
+      "authorizes_mutation_or_cleanup": false
+    },
+    "lost_original_temp_path_recreated": false,
+    "quarantine_inventory_preserved": true,
+    "source_checkout_clean": true,
+    "evidence_input_checkout_clean": true,
+    "sentinel_source_checkout_clean": true,
+    "external_prohibited_write_count": 0,
+    "release_or_go_live_affirmative_claim_count": 0
+  },
+  "row_audit": {
+    "verdict": "PASS",
+    "unique_tuw_count": 147,
+    "workstream_count": 13,
+    "workstream_ids": [
+      "RS-BKP",
+      "RS-CUT",
+      "RS-DBF",
+      "RS-DMS",
+      "RS-DOM",
+      "RS-DUR",
+      "RS-GOV",
+      "RS-IDN",
+      "RS-OFF",
+      "RS-PRJ",
+      "RS-SA",
+      "RS-SB",
+      "RS-STO"
+    ],
+    "terminal_row_count": 13,
+    "terminal_ids": [
+      "RS-GOV-008",
+      "RS-SA-008",
+      "RS-SB-010",
+      "RS-DUR-012",
+      "RS-STO-015",
+      "RS-BKP-008",
+      "RS-DBF-012",
+      "RS-IDN-010",
+      "RS-DOM-030",
+      "RS-DMS-010",
+      "RS-PRJ-006",
+      "RS-OFF-006",
+      "RS-CUT-012"
+    ],
+    "dependency_cycle_count": 0,
+    "invalid_state_count": 0,
+    "missing_required_receipt_count": 0,
+    "duplicate_receipt_path_count": 0,
+    "duplicate_receipt_blob_count": 0,
+    "implementation_state_counts": {
+      "BLOCKED_NOT_REPRODUCIBLE": 43,
+      "PLANNED": 8,
+      "READY": 15,
+      "VERIFIED": 81
+    },
+    "execution_state_counts": {
+      "APPROVAL_REQUIRED": 23,
+      "NOT_APPLICABLE": 124
+    },
+    "terminal_verified_count": 4,
+    "verified_count": 81,
+    "nonverified_count": 66,
+    "approval_required_count": 23,
+    "approval_required_ids": [
+      "RS-BKP-005",
+      "RS-CUT-001",
+      "RS-CUT-002",
+      "RS-CUT-003",
+      "RS-CUT-004",
+      "RS-CUT-005",
+      "RS-CUT-006",
+      "RS-CUT-007",
+      "RS-CUT-008",
+      "RS-CUT-009",
+      "RS-CUT-010",
+      "RS-CUT-011",
+      "RS-CUT-012",
+      "RS-DMS-001",
+      "RS-DMS-010",
+      "RS-OFF-001",
+      "RS-OFF-002",
+      "RS-OFF-003",
+      "RS-OFF-004",
+      "RS-OFF-005",
+      "RS-OFF-006",
+      "RS-PRJ-005",
+      "RS-PRJ-006"
+    ],
+    "blocked_not_reproducible_count": 43,
+    "blocked_not_reproducible_ids": [
+      "RS-DBF-001",
+      "RS-DBF-002",
+      "RS-DBF-003",
+      "RS-DBF-004",
+      "RS-DBF-005",
+      "RS-DBF-006",
+      "RS-DBF-007",
+      "RS-DBF-008",
+      "RS-DBF-009",
+      "RS-DBF-010",
+      "RS-DBF-011",
+      "RS-DBF-012",
+      "RS-DOM-016",
+      "RS-DOM-017",
+      "RS-DOM-018",
+      "RS-DOM-019",
+      "RS-DOM-020",
+      "RS-DOM-021",
+      "RS-DOM-022",
+      "RS-DOM-030",
+      "RS-GOV-001",
+      "RS-GOV-002",
+      "RS-GOV-003",
+      "RS-GOV-004",
+      "RS-GOV-005",
+      "RS-GOV-006",
+      "RS-GOV-007",
+      "RS-GOV-008",
+      "RS-IDN-001",
+      "RS-IDN-002",
+      "RS-IDN-003",
+      "RS-IDN-004",
+      "RS-IDN-005",
+      "RS-IDN-006",
+      "RS-IDN-007",
+      "RS-IDN-008",
+      "RS-IDN-009",
+      "RS-IDN-010",
+      "RS-SB-007",
+      "RS-SB-009",
+      "RS-SB-010",
+      "RS-STO-006",
+      "RS-STO-013"
+    ],
+    "blocker_preserved_count": 66,
+    "blocker_ids": [
+      "RS-BKP-005",
+      "RS-CUT-001",
+      "RS-CUT-002",
+      "RS-CUT-003",
+      "RS-CUT-004",
+      "RS-CUT-005",
+      "RS-CUT-006",
+      "RS-CUT-007",
+      "RS-CUT-008",
+      "RS-CUT-009",
+      "RS-CUT-010",
+      "RS-CUT-011",
+      "RS-CUT-012",
+      "RS-DBF-001",
+      "RS-DBF-002",
+      "RS-DBF-003",
+      "RS-DBF-004",
+      "RS-DBF-005",
+      "RS-DBF-006",
+      "RS-DBF-007",
+      "RS-DBF-008",
+      "RS-DBF-009",
+      "RS-DBF-010",
+      "RS-DBF-011",
+      "RS-DBF-012",
+      "RS-DMS-001",
+      "RS-DMS-010",
+      "RS-DOM-016",
+      "RS-DOM-017",
+      "RS-DOM-018",
+      "RS-DOM-019",
+      "RS-DOM-020",
+      "RS-DOM-021",
+      "RS-DOM-022",
+      "RS-DOM-030",
+      "RS-GOV-001",
+      "RS-GOV-002",
+      "RS-GOV-003",
+      "RS-GOV-004",
+      "RS-GOV-005",
+      "RS-GOV-006",
+      "RS-GOV-007",
+      "RS-GOV-008",
+      "RS-IDN-001",
+      "RS-IDN-002",
+      "RS-IDN-003",
+      "RS-IDN-004",
+      "RS-IDN-005",
+      "RS-IDN-006",
+      "RS-IDN-007",
+      "RS-IDN-008",
+      "RS-IDN-009",
+      "RS-IDN-010",
+      "RS-OFF-001",
+      "RS-OFF-002",
+      "RS-OFF-003",
+      "RS-OFF-004",
+      "RS-OFF-005",
+      "RS-OFF-006",
+      "RS-PRJ-005",
+      "RS-PRJ-006",
+      "RS-SB-007",
+      "RS-SB-009",
+      "RS-SB-010",
+      "RS-STO-006",
+      "RS-STO-013"
+    ]
+  },
+  "legacy_remediation": {
+    "original_legacy_receipt_count": 113,
+    "original_complete_count": 8,
+    "original_missing_required_field_count": 105,
+    "original_invalid_execution_state_count": 88,
+    "v0_2_receipt_count": 113,
+    "verified_count": 69,
+    "blocked_not_reproducible_count": 43,
+    "approval_required_count": 1,
+    "legacy_file_modified_count": 0
+  },
+  "broad_regression": {
+    "verdict": "PASS",
+    "baseline_counts": {
+      "tests": 4463,
+      "pass": 4460,
+      "fail": 3,
+      "skipped": 0
+    },
+    "candidate_counts": {
+      "tests": 4599,
+      "pass": 4596,
+      "fail": 3,
+      "skipped": 0
+    },
+    "inherited_failure_count": 3,
+    "new_failure_count": 0,
+    "removed_pass_count": 0,
+    "intentional_new_pass_count": 136,
+    "comparison_sha256": "1a47bc8817a4d18a3aa30eb0653b9a2d739d117007ca62566e64e87711e979ed"
+  },
+  "merge_assessment": {
+    "local_source_merge_candidate": true,
+    "main_merge_executed": false,
+    "source_merge_blocker_count": 0,
+    "remaining_approval_or_external_blockers": [
+      "RS-BKP-005",
+      "RS-DMS-001",
+      "RS-DMS-010",
+      "RS-PRJ-005/006",
+      "RS-OFF-001..006",
+      "RS-CUT-001..012",
+      "provider sandbox verification",
+      "staging rehearsal/execution",
+      "production cutover/DR/no-fallback",
+      "release/tag/AWS deploy/Windows signing/go-live"
+    ],
+    "release_ready": false,
+    "production_ready": false,
+    "cutover_complete": false,
+    "go_live": false
+  },
+  "artifact_hashes": {
+    "dependencies_sha256": "a59136fc61464332e9f4554338cd58e6a8d60ddc708f994eff3f3de2527650e1",
+    "command_evidence_sha256": "13ecd1f48d426ec6378b696b559b92939ae355ae4cf3dc20588345e596cc8bf6",
+    "lineage_manifest_sha256": "54b930cf0c69522f07be27dabfbfba55e11592fded1c533574eab5bda200233c",
+    "plan_sha256": "01e937b07c01143515d5c07d7384f56773efc8d91e8378fa290a2df3827dc456",
+    "goal_gate_sha256": "6af5633c9edee8e0c38cd49350209c762db4b93199a8c4f407e370c0cd18de6d",
+    "source_review_sha256": "5583048b0d9bb0b539622bc73f8bf4051cd73ddb1aeed8b519c8b7c4dae561c5",
+    "dms_readiness_sha256": "38dbe2d62be95ef72949f5247c82cb55c33005fbb594ebd436b2ddd24212efba",
+    "regression_comparison_sha256": "1a47bc8817a4d18a3aa30eb0653b9a2d739d117007ca62566e64e87711e979ed",
+    "browser_qa_sha256": "9a50b56c98734972d712f50c1a65979d327a10a18cde82508b9e734a05b45cbe",
+    "browser_review_sha256": "9108ad5bb0a2e33713976289c653e5f4964391116cd3f7c74c281df939c2eae8",
+    "prj_browser_qa_sha256": "2ef18904f2c5850771a475b7b5b833da4b21d76bd8ef066f3bf1731f01c2e65f",
+    "prj_browser_review_sha256": "5c4b04ba94c52188476d513b8bd1afb7e45c542f673102b2052f92ce5f365bc4",
+    "off_electron_qa_sha256": "a3877b1e6dcc57bd026a4034242583406ea45da43a82a52bd6331649e4512a27",
+    "exception_authority_sha256": "aa59d210a9e6ae4cb4a8459fc8237b93e619cde216717308cd08ee3111e89019"
+  }
+}

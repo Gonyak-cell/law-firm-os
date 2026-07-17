@@ -1,0 +1,133 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.integration-run-manifest.v1",
+  "run_id": "integration-a6004ddc-b42b947f",
+  "source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "source_tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
+  "evidence_input_sha": "b42b947f1e2bef1816586511cd14a9a739963c54",
+  "evidence_input_tree": "9b1604787a529c647f2cb346a2491878564068f7",
+  "started_at": "2026-07-17T12:35:16.051Z",
+  "finished_at": "2026-07-17T12:35:23.948Z",
+  "plan": {
+    "path": "/Users/jws/.codex/recovery/law-firm-os/lawos-runtime-safety-dms-detailed-execution-plan-2026-07-17.md",
+    "sha256": "01e937b07c01143515d5c07d7384f56773efc8d91e8378fa290a2df3827dc456"
+  },
+  "goal_gate": {
+    "path": "/Users/jws/.codex/recovery/law-firm-os/rs-dms-candidate-20260717/platform-goal-gate.json",
+    "sha256": "6af5633c9edee8e0c38cd49350209c762db4b93199a8c4f407e370c0cd18de6d"
+  },
+  "exception_authority": {
+    "path": "/Users/jws/.codex/recovery/law-firm-os/rs-dms-candidate-20260717/host-managed-metadata-exception-authority.json",
+    "sha256": "aa59d210a9e6ae4cb4a8459fc8237b93e619cde216717308cd08ee3111e89019"
+  },
+  "dependencies": {
+    "path": "dependencies.json",
+    "sha256": "a59136fc61464332e9f4554338cd58e6a8d60ddc708f994eff3f3de2527650e1"
+  },
+  "outputs": [
+    {
+      "path": "command-evidence.v0.2.json",
+      "sha256": "13ecd1f48d426ec6378b696b559b92939ae355ae4cf3dc20588345e596cc8bf6"
+    },
+    {
+      "path": "lineage-manifest.json",
+      "sha256": "54b930cf0c69522f07be27dabfbfba55e11592fded1c533574eab5bda200233c"
+    },
+    {
+      "path": "final-147-audit.json",
+      "sha256": "6ebc4c393ba00e574249801e520b8f0835da142e4b3dd24eeb8680ae130e6c2a"
+    }
+  ],
+  "input_artifacts": [
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc/dms-source-readiness.json",
+      "sha256": "38dbe2d62be95ef72949f5247c82cb55c33005fbb594ebd436b2ddd24212efba"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/review/source-review-a6004ddc.json",
+      "sha256": "5583048b0d9bb0b539622bc73f8bf4051cd73ddb1aeed8b519c8b7c4dae561c5"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/regression/comparison-b46a686f-a6004ddc.json",
+      "sha256": "1a47bc8817a4d18a3aa30eb0653b9a2d739d117007ca62566e64e87711e979ed"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/manual-qa/browser-a6004ddc-final/browser-qa-result.json",
+      "sha256": "9a50b56c98734972d712f50c1a65979d327a10a18cde82508b9e734a05b45cbe"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/manual-qa/browser-a6004ddc-final/manual-visual-review.json",
+      "sha256": "9108ad5bb0a2e33713976289c653e5f4964391116cd3f7c74c281df939c2eae8"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/manual-qa/prj-browser-a6004ddc/prj-browser-qa-result.json",
+      "sha256": "2ef18904f2c5850771a475b7b5b833da4b21d76bd8ef066f3bf1731f01c2e65f"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/manual-qa/prj-browser-a6004ddc/manual-visual-review.json",
+      "sha256": "5c4b04ba94c52188476d513b8bd1afb7e45c542f673102b2052f92ce5f365bc4"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/manual-qa/off-electron-a6004ddc/off-electron-qa-result.json",
+      "sha256": "a3877b1e6dcc57bd026a4034242583406ea45da43a82a52bd6331649e4512a27"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/audit-legacy-after-e4.json",
+      "sha256": "38c36fbe06377fa430541174f42b5d6f7bd61d07716caeaa078f34ae81b6dec1"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/integration-a6004ddc-b42b947f/shared-git-sentinel.final-audit.json",
+      "sha256": "b1df2977fbc49cb45f553c836da7a11a3531534c90a36d8b3df5cd6ceeb561aa"
+    }
+  ],
+  "helper_artifacts": [
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-current-evidence-orchestrator.mjs",
+      "sha256": "1834d3627dc28cd22efdc0a44ed00022616d2a544e3243eea733340dabb43ecd"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-broad-regression.mjs",
+      "sha256": "b2b3e8bd195035b2a13f8cf5ddd0f8cc3946ce6440a73b2c66121b0d1c5557f0"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-copy-overlay.mjs",
+      "sha256": "95edb64f697a3b4fd74fb5100e6a93559399e34bc550fdbb3e0c927dd6ffc9d8"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-generate-cut-outcome-index.mjs",
+      "sha256": "20af3bcb8990d4c4d715febdca686164aafb171b9a9499efeb7cc6f66fe29f6f"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-browser-qa-orchestrator.mjs",
+      "sha256": "645d91608c49a95bc9f18262236279838ad5429367144328e362e0ed8a0a9567"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-replace-current-evidence.mjs",
+      "sha256": "e0e71a0889cfc33b0bfdad8188b21cef68ec7dc175fa1b4eb68e84bec39990b2"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-compare-regression.mjs",
+      "sha256": "311c6cfd34bf80d18adbe170b0b95f58bbe0ba7965e1bc88f14c4093a8919261"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-prj-browser-qa.mjs",
+      "sha256": "8f1958cb0122da404db54842cd12ef0710a128606e587067b29dcfd15c7ef708"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-off-electron-qa.mjs",
+      "sha256": "361ed65d3baee17f26025de4357440ff56155b737d366e8c8d0aa8e95c19b538"
+    },
+    {
+      "path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-generate-final-integration.mjs",
+      "sha256": "da4e3e5c5521f22d03a0eca9fadbfc32410f542caccd9576f79861bb85cdbe09"
+    }
+  ],
+  "boundaries": {
+    "external_actions": [],
+    "external_write_count": 0,
+    "release_executed": false,
+    "deployment_executed": false,
+    "main_merge_executed": false,
+    "go_live": false
+  },
+  "verdict": "PASS"
+}

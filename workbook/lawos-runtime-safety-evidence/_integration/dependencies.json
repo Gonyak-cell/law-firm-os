@@ -1,0 +1,23 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.dependency-materialization.v1",
+  "repo": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
+  "target_source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "target_tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
+  "lockfile": "package-lock.json",
+  "lockfile_blob": "35950ec94de28af2f27926c15389f50d26e3ab3c",
+  "lockfile_sha256": "745691b99cb087df3bdfaed356712c231de4b9fd562c6dd20b4338fe8487e414",
+  "npm_command": [
+    "npm",
+    "ci",
+    "--no-audit",
+    "--no-fund"
+  ],
+  "node_version": "v26.0.0",
+  "npm_version": "11.12.1",
+  "os": "darwin 25.5.0",
+  "arch": "arm64",
+  "postgres_version": "psql (PostgreSQL) 16.14 (Homebrew)",
+  "electron_version": "42.7.0",
+  "installed_graph_sha256": "00bea39c123e450314ef8174d00eac491f05e32764c97c6f19e4a34d87796005",
+  "npm_output_sha256": "5d057c41dfdaa358acd8bfab24e7e438a8c499ce9ce0be95973b8d330157bb2d"
+}

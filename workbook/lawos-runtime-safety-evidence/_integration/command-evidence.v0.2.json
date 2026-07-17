@@ -1,0 +1,581 @@
+{
+  "schema_version": "law-firm-os.runtime-safety.integration-command-evidence.v0.2",
+  "audit_id": "RS-INTEGRATION-F1-F4-20260717",
+  "target_source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "target_tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
+  "evidence_input_sha": "b42b947f1e2bef1816586511cd14a9a739963c54",
+  "evidence_input_tree": "9b1604787a529c647f2cb346a2491878564068f7",
+  "profile": "source-local-integration-audit",
+  "started_at": "2026-07-17T12:35:16.051Z",
+  "finished_at": "2026-07-17T12:35:23.926Z",
+  "commands": [
+    {
+      "ordinal": 1,
+      "label": "git rev-parse HEAD",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "command": "git rev-parse HEAD",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-1"
+    },
+    {
+      "ordinal": 2,
+      "label": "git rev-parse HEAD^{tree}",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD^{tree}"
+      ],
+      "command": "git rev-parse HEAD^{tree}",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-2"
+    },
+    {
+      "ordinal": 3,
+      "label": "git status --porcelain=v1",
+      "argv": [
+        "git",
+        "status",
+        "--porcelain=v1"
+      ],
+      "command": "git status --porcelain=v1",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-3"
+    },
+    {
+      "ordinal": 4,
+      "label": "git rev-parse HEAD",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "command": "git rev-parse HEAD",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-sentinel-a6004ddc",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-4"
+    },
+    {
+      "ordinal": 5,
+      "label": "git rev-parse HEAD^{tree}",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD^{tree}"
+      ],
+      "command": "git rev-parse HEAD^{tree}",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-sentinel-a6004ddc",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-5"
+    },
+    {
+      "ordinal": 6,
+      "label": "git status --porcelain=v1",
+      "argv": [
+        "git",
+        "status",
+        "--porcelain=v1"
+      ],
+      "command": "git status --porcelain=v1",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-sentinel-a6004ddc",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-6"
+    },
+    {
+      "ordinal": 7,
+      "label": "git rev-parse HEAD",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "command": "git rev-parse HEAD",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-execution-20260717",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-7"
+    },
+    {
+      "ordinal": 8,
+      "label": "git rev-parse HEAD^{tree}",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD^{tree}"
+      ],
+      "command": "git rev-parse HEAD^{tree}",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-execution-20260717",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-8"
+    },
+    {
+      "ordinal": 9,
+      "label": "git status --porcelain=v1",
+      "argv": [
+        "git",
+        "status",
+        "--porcelain=v1"
+      ],
+      "command": "git status --porcelain=v1",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-execution-20260717",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-9"
+    },
+    {
+      "ordinal": 10,
+      "label": "git rev-parse origin/main",
+      "argv": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "command": "git rev-parse origin/main",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-execution-20260717",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-10"
+    },
+    {
+      "ordinal": 11,
+      "label": "git merge-base --is-ancestor b46a686f719875c6980ecba9bc213a605f58fa45 origin/main",
+      "argv": [
+        "git",
+        "merge-base",
+        "--is-ancestor",
+        "b46a686f719875c6980ecba9bc213a605f58fa45",
+        "origin/main"
+      ],
+      "command": "git merge-base --is-ancestor b46a686f719875c6980ecba9bc213a605f58fa45 origin/main",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-execution-20260717",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-11"
+    },
+    {
+      "ordinal": 12,
+      "label": "git merge-base --is-ancestor a6004ddca2003abf1ec4e20ebc09ac20e486b50b b42b947f1e2bef1816586511cd14a9a739963c54",
+      "argv": [
+        "git",
+        "merge-base",
+        "--is-ancestor",
+        "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+        "b42b947f1e2bef1816586511cd14a9a739963c54"
+      ],
+      "command": "git merge-base --is-ancestor a6004ddca2003abf1ec4e20ebc09ac20e486b50b b42b947f1e2bef1816586511cd14a9a739963c54",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-execution-20260717",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-12"
+    },
+    {
+      "ordinal": 13,
+      "label": "strict 147 evidence validator",
+      "argv": [
+        "node",
+        "scripts/validate-runtime-safety-evidence.mjs",
+        "--mode",
+        "strict",
+        "--output-root",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/history/remediation-a9885445",
+        "--output-root",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc",
+        "--output-root",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc-prj",
+        "--output-root",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc-cut"
+      ],
+      "command": "node scripts/validate-runtime-safety-evidence.mjs --mode strict --output-root /Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/history/remediation-a9885445 --output-root /Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc --output-root /Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc-prj --output-root /Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc-cut",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-execution-20260717",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-13"
+    },
+    {
+      "ordinal": 14,
+      "label": "runtime safety governance validator",
+      "argv": [
+        "node",
+        "scripts/validate-runtime-safety-governance.mjs"
+      ],
+      "command": "node scripts/validate-runtime-safety-governance.mjs",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-execution-20260717",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-14"
+    },
+    {
+      "ordinal": 15,
+      "label": "exact source DMS readiness validator",
+      "argv": [
+        "node",
+        "scripts/validate-dms-source-readiness.mjs",
+        "--receipt",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc/dms-source-readiness.json",
+        "--expected-source-sha",
+        "a6004ddca2003abf1ec4e20ebc09ac20e486b50b"
+      ],
+      "command": "node scripts/validate-dms-source-readiness.mjs --receipt /Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc/dms-source-readiness.json --expected-source-sha a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-final-a6004ddc",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-15"
+    },
+    {
+      "ordinal": 16,
+      "label": "baseline to source diff check",
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "b46a686f719875c6980ecba9bc213a605f58fa45..a6004ddca2003abf1ec4e20ebc09ac20e486b50b"
+      ],
+      "command": "git diff --check b46a686f719875c6980ecba9bc213a605f58fa45..a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-execution-20260717",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-16"
+    },
+    {
+      "ordinal": 17,
+      "label": "source to evidence path inventory",
+      "argv": [
+        "git",
+        "diff",
+        "--name-only",
+        "a6004ddca2003abf1ec4e20ebc09ac20e486b50b..b42b947f1e2bef1816586511cd14a9a739963c54"
+      ],
+      "command": "git diff --name-only a6004ddca2003abf1ec4e20ebc09ac20e486b50b..b42b947f1e2bef1816586511cd14a9a739963c54",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-execution-20260717",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-17"
+    },
+    {
+      "ordinal": 18,
+      "label": "baseline to source path inventory",
+      "argv": [
+        "git",
+        "diff",
+        "--name-only",
+        "b46a686f719875c6980ecba9bc213a605f58fa45..a6004ddca2003abf1ec4e20ebc09ac20e486b50b"
+      ],
+      "command": "git diff --name-only b46a686f719875c6980ecba9bc213a605f58fa45..a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-execution-20260717",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-18"
+    },
+    {
+      "ordinal": 19,
+      "label": "protected root porcelain",
+      "argv": [
+        "git",
+        "status",
+        "--porcelain=v1"
+      ],
+      "command": "git status --porcelain=v1",
+      "cwd": "/Users/jws/Documents/Codex/Law Firm OS",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-19"
+    },
+    {
+      "ordinal": 20,
+      "label": "protected root HEAD",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "command": "git rev-parse HEAD",
+      "cwd": "/Users/jws/Documents/Codex/Law Firm OS",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-20"
+    },
+    {
+      "ordinal": 21,
+      "label": "protected origin main",
+      "argv": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "command": "git rev-parse origin/main",
+      "cwd": "/Users/jws/Documents/Codex/Law Firm OS",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-21"
+    },
+    {
+      "ordinal": 22,
+      "label": "final protected shared Git sentinel",
+      "argv": [
+        "node",
+        "/Users/jws/.codex/recovery/law-firm-os/rs-dms-candidate-20260717/tools/hash-shared-git-sentinel.mjs",
+        "final-audit",
+        "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/integration-a6004ddc-b42b947f/shared-git-sentinel.final-audit.json"
+      ],
+      "command": "node /Users/jws/.codex/recovery/law-firm-os/rs-dms-candidate-20260717/tools/hash-shared-git-sentinel.mjs final-audit /Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/integration-a6004ddc-b42b947f/shared-git-sentinel.final-audit.json",
+      "cwd": "/Users/jws/.codex/recovery/law-firm-os",
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-22"
+    }
+  ],
+  "results": [
+    {
+      "ordinal": 1,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:16.051Z",
+      "finished_at": "2026-07-17T12:35:16.059Z",
+      "stdout_sha256": "524d9abdba2f5cddacd61f4a259ce4d5c43e6f8a45d4cc9d61b69725e2191061",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "524d9abdba2f5cddacd61f4a259ce4d5c43e6f8a45d4cc9d61b69725e2191061",
+      "output_bytes": 41,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-1"
+    },
+    {
+      "ordinal": 2,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:16.059Z",
+      "finished_at": "2026-07-17T12:35:16.067Z",
+      "stdout_sha256": "6a3adb357ccf4dbfecf841378f92ce426bb4874330d9d6f4effeb1d82d8498e6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "6a3adb357ccf4dbfecf841378f92ce426bb4874330d9d6f4effeb1d82d8498e6",
+      "output_bytes": 41,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-2"
+    },
+    {
+      "ordinal": 3,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:16.067Z",
+      "finished_at": "2026-07-17T12:35:16.140Z",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-3"
+    },
+    {
+      "ordinal": 4,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:16.140Z",
+      "finished_at": "2026-07-17T12:35:16.148Z",
+      "stdout_sha256": "524d9abdba2f5cddacd61f4a259ce4d5c43e6f8a45d4cc9d61b69725e2191061",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "524d9abdba2f5cddacd61f4a259ce4d5c43e6f8a45d4cc9d61b69725e2191061",
+      "output_bytes": 41,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-4"
+    },
+    {
+      "ordinal": 5,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:16.148Z",
+      "finished_at": "2026-07-17T12:35:16.156Z",
+      "stdout_sha256": "6a3adb357ccf4dbfecf841378f92ce426bb4874330d9d6f4effeb1d82d8498e6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "6a3adb357ccf4dbfecf841378f92ce426bb4874330d9d6f4effeb1d82d8498e6",
+      "output_bytes": 41,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-5"
+    },
+    {
+      "ordinal": 6,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:16.157Z",
+      "finished_at": "2026-07-17T12:35:16.225Z",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-6"
+    },
+    {
+      "ordinal": 7,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:16.225Z",
+      "finished_at": "2026-07-17T12:35:16.233Z",
+      "stdout_sha256": "4999947c96fd4ed0bb12944ec947e61aacb8bafa8d11ba66d1f5443f004a9c67",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "4999947c96fd4ed0bb12944ec947e61aacb8bafa8d11ba66d1f5443f004a9c67",
+      "output_bytes": 41,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-7"
+    },
+    {
+      "ordinal": 8,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:16.233Z",
+      "finished_at": "2026-07-17T12:35:16.241Z",
+      "stdout_sha256": "53d635660fcc910390cbb55b65504184ab056cc629339ec5bf2cb72633ddbb73",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "53d635660fcc910390cbb55b65504184ab056cc629339ec5bf2cb72633ddbb73",
+      "output_bytes": 41,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-8"
+    },
+    {
+      "ordinal": 9,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:16.241Z",
+      "finished_at": "2026-07-17T12:35:16.332Z",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-9"
+    },
+    {
+      "ordinal": 10,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:16.332Z",
+      "finished_at": "2026-07-17T12:35:16.339Z",
+      "stdout_sha256": "95d1e2382ff651c67de2deaddc697b8b4306a66d30c8c53c3a7af4d8961b0cf6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "95d1e2382ff651c67de2deaddc697b8b4306a66d30c8c53c3a7af4d8961b0cf6",
+      "output_bytes": 41,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-10"
+    },
+    {
+      "ordinal": 11,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:16.340Z",
+      "finished_at": "2026-07-17T12:35:16.347Z",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-11"
+    },
+    {
+      "ordinal": 12,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:16.347Z",
+      "finished_at": "2026-07-17T12:35:16.355Z",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-12"
+    },
+    {
+      "ordinal": 13,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:16.355Z",
+      "finished_at": "2026-07-17T12:35:22.953Z",
+      "stdout_sha256": "69e048e1c61f1c62548188de13832b4b344c10e87558eca4579b5b22cbacd7fb",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "69e048e1c61f1c62548188de13832b4b344c10e87558eca4579b5b22cbacd7fb",
+      "output_bytes": 139,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-13"
+    },
+    {
+      "ordinal": 14,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:22.953Z",
+      "finished_at": "2026-07-17T12:35:23.183Z",
+      "stdout_sha256": "ed949083ea4992b9edda38e4d52ab11a9b849bfc0204bd20738e98e3c1f074ed",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "ed949083ea4992b9edda38e4d52ab11a9b849bfc0204bd20738e98e3c1f074ed",
+      "output_bytes": 916,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-14"
+    },
+    {
+      "ordinal": 15,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:23.183Z",
+      "finished_at": "2026-07-17T12:35:23.269Z",
+      "stdout_sha256": "919aaa662de16a36eecdd710fba612a82386879b958cc8d3b8c0ba128eb9fef4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "919aaa662de16a36eecdd710fba612a82386879b958cc8d3b8c0ba128eb9fef4",
+      "output_bytes": 486,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-15"
+    },
+    {
+      "ordinal": 16,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:23.269Z",
+      "finished_at": "2026-07-17T12:35:23.305Z",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-16"
+    },
+    {
+      "ordinal": 17,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:23.305Z",
+      "finished_at": "2026-07-17T12:35:23.319Z",
+      "stdout_sha256": "97050b1bceddac4085283e130fd3fe98f83eacff608639292816917fac49c610",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "97050b1bceddac4085283e130fd3fe98f83eacff608639292816917fac49c610",
+      "output_bytes": 35927,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-17"
+    },
+    {
+      "ordinal": 18,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:23.319Z",
+      "finished_at": "2026-07-17T12:35:23.332Z",
+      "stdout_sha256": "793db639ee853cd0480752fd74322c104aea1b93110aa53d764624ed7a6cd443",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "793db639ee853cd0480752fd74322c104aea1b93110aa53d764624ed7a6cd443",
+      "output_bytes": 20851,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-18"
+    },
+    {
+      "ordinal": 19,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:23.332Z",
+      "finished_at": "2026-07-17T12:35:23.407Z",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-19"
+    },
+    {
+      "ordinal": 20,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:23.408Z",
+      "finished_at": "2026-07-17T12:35:23.415Z",
+      "stdout_sha256": "95d1e2382ff651c67de2deaddc697b8b4306a66d30c8c53c3a7af4d8961b0cf6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "95d1e2382ff651c67de2deaddc697b8b4306a66d30c8c53c3a7af4d8961b0cf6",
+      "output_bytes": 41,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-20"
+    },
+    {
+      "ordinal": 21,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:23.415Z",
+      "finished_at": "2026-07-17T12:35:23.422Z",
+      "stdout_sha256": "95d1e2382ff651c67de2deaddc697b8b4306a66d30c8c53c3a7af4d8961b0cf6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "95d1e2382ff651c67de2deaddc697b8b4306a66d30c8c53c3a7af4d8961b0cf6",
+      "output_bytes": 41,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-21"
+    },
+    {
+      "ordinal": 22,
+      "exit_code": 0,
+      "signal": null,
+      "started_at": "2026-07-17T12:35:23.422Z",
+      "finished_at": "2026-07-17T12:35:23.926Z",
+      "stdout_sha256": "be9a15dbbacd4a20d52a66eb3cc87dba88e4937e751dc012888ee108f2978988",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "be9a15dbbacd4a20d52a66eb3cc87dba88e4937e751dc012888ee108f2978988",
+      "output_bytes": 548,
+      "result_slice": "isolated:RS-INTEGRATION-F1-F4-20260717:command-22"
+    }
+  ],
+  "safe_counts": {
+    "passed": 22,
+    "failed": 0,
+    "skipped": 0
+  },
+  "claims": {
+    "f1_passed": true,
+    "f2_passed": true,
+    "f3_passed": true,
+    "f4_passed": true,
+    "source_local_state_verified": true,
+    "main_merge_executed": false,
+    "release_executed": false,
+    "deployment_executed": false,
+    "external_actions_executed": false,
+    "production_ready": false,
+    "go_live": false
+  },
+  "external_actions": []
+}
