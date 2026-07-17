@@ -1,14 +1,14 @@
 {
   "schema_version": "law-firm-os.runtime-safety.run-manifest.v0.2",
   "tuw_id": "RS-CUT-004",
-  "target_source_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
-  "target_tree": "4bd3f8f9a11fc0583fc5dfb230ad72a08655698e",
-  "toolchain_sha": "d28b0261c560a39c70767e65df78fdb548cef7da",
-  "evidence_commit": "6aa95fc5e7566dbb51c3019d697da609c6712dde",
-  "evidence_tree": "fcb28150c08fc038cda13716d714f262953c20af",
+  "target_source_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "target_tree": "c1c7e1cb3427e6d8e45555261dec3b4a94363100",
+  "toolchain_sha": "a6004ddca2003abf1ec4e20ebc09ac20e486b50b",
+  "evidence_commit": "26df568fb089c246b7c49f068faa813401c2f0a9",
+  "evidence_tree": "6b8fca041d78baad8a289b2562a3562f51da5213",
   "evidence_path": "workbook/lawos-runtime-safety-evidence/RS-CUT-004/command-evidence.v0.2.json",
-  "evidence_sha256": "f2c798409614aa779ad94c5e1d8bb516f00f91c82a4215fb82f41150243ba66b",
-  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/current/d28b0261-cut/raw/RS-CUT-004/RS-CUT-004-combined.log",
-  "output_sha256": "46d346ee71414943ba1af31e16beb84ce16afe8ecd27567346de53fb97a41896",
+  "evidence_sha256": "f37fb717d9851beec92e34a555ae16e9c6acfdac37168487c3bc55992f9462a4",
+  "output_path": "/Users/jws/.codex/recovery/law-firm-os/runtime-safety-runs-20260717/final-a6004ddc-cut/raw/RS-CUT-004/RS-CUT-004-combined.log",
+  "output_sha256": "f219620f0850758397108f6f273ab473e1001256e4be8bbeeb7406e98ac226c1",
   "external_actions": []
 }
