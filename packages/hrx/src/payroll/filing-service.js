@@ -147,7 +147,7 @@ export function calculateYearEndSettlement(input = {}) {
 
 export function createPayrollFilingService({
   repository,
-  artifactVault = createEncryptedPayrollArtifactVault(),
+  artifactVault = createEncryptedPayrollArtifactVault({ allowSyntheticSecret: true }),
   providerPort = null,
   clock = () => new Date().toISOString(),
   schemaRegistry = SYNTHETIC_PAYROLL_FILING_SCHEMAS,
@@ -184,7 +184,7 @@ export function createPayrollFilingService({
     throw safeError("Year-end records are required", "HRX_PAYROLL_FILING_RECORDS_REQUIRED", 409);
   }
 
-  function createPackage(context, input = {}) {
+  async function createPackage(context, input = {}) {
     const runId = requiredString(input, "run_id");
     const filingKind = requiredString(input, "filing_kind");
     const schemaVersion = requiredString(input, "schema_version");
@@ -201,7 +201,7 @@ export function createPayrollFilingService({
     const payload = Object.freeze({ schema_version: schemaVersion, fixture_only: schemaVersion.includes(".synthetic."), filing_kind: filingKind, run_id: runId, record_count: records.length, totals, records, created_at: bundle.run.closed_at ?? clock(), production_ready_claim: false });
     const bytes = Buffer.from(JSON.stringify(stable(payload)), "utf8");
     const packageHash = hash(bytes);
-    const artifact = artifactVault.put({ tenant_id: context.tenant_id, object_id: `payroll/${runId}/filing-${filingKind}-${packageHash}.json`, bytes, content_type: "application/json" });
+    const artifact = await artifactVault.put({ tenant_id: context.tenant_id, object_id: `payroll/${runId}/filing-${filingKind}-${packageHash}.json`, bytes, content_type: "application/json" });
     return repository.createFilingJob(context, { run_id: runId, filing_kind: filingKind, schema_version: schemaVersion, package_ref: artifact.document_ref, package_hash: packageHash });
   }
 
@@ -216,10 +216,10 @@ export function createPayrollFilingService({
     let job = repository.getFilingJob(context, { filing_job_id: requiredString(input, "filing_job_id") });
     if (!job) throw safeError("Filing job not found", "HRX_PAYROLL_FILING_NOT_FOUND", 404);
     if (!["validated", "submitted"].includes(job.state)) throw safeError("Validated or submitted filing job is required", "HRX_PAYROLL_FILING_STATE_INVALID", 409);
+    if (!providerPort?.submit) throw safeError("Authoritative filing provider is required", "HRX_PAYROLL_FILING_PROVIDER_REQUIRED", 503);
     if (job.state === "validated") {
       job = repository.transitionFilingJob(context, { filing_job_id: job.filing_job_id, state: "submitted", expected_version: job.state_version });
     }
-    if (!providerPort?.submit) return Object.freeze({ job, provider_state: "pending", production_ready_claim: false });
     const receipt = createHrxProviderReceipt(await providerPort.submit({ tenant_id: context.tenant_id, filing_job_id: job.filing_job_id, filing_kind: job.filing_kind, package_hash: job.package_hash, idempotency_key: `${job.filing_job_id}:${job.package_hash}`, payload_hash: `sha256:${job.package_hash}` }));
     if (receipt.state === "pending") return Object.freeze({ job, provider_state: "pending", production_ready_claim: false });
     job = repository.transitionFilingJob(context, {

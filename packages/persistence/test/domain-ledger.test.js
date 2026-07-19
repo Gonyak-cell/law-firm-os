@@ -148,7 +148,22 @@ test("PostgreSQL domain ledger imports idempotently, compares shadow state and r
     domain_id: DOMAIN,
     import_receipt_id: imported.receipt.receipt_id,
     shadow_receipt_id: shadow.receipt.receipt_id,
-    smoke_result: { api_contract_unchanged: true, adapter: "postgres-v2" },
+    smoke_result: {
+      status: "passed",
+      synthetic_only: true,
+      environment: "test",
+      adapter: "postgres-v2",
+      executed_at: "2026-07-16T17:00:00.000Z",
+      source_snapshot_hash: shadow.comparison.source_hash,
+      checks: {
+        source_imported: imported.receipt.status === "source_imported",
+        idempotency_replayed: replay.replayed,
+        shadow_equal: shadow.comparison.equal,
+        readback_equal: shadow.comparison.target_hash === shadow.comparison.source_hash,
+        json_dual_write_absent: true,
+      },
+      production_migrated: false,
+    },
   });
   assert.equal(rehearsal.status, "source_ready");
   assert.equal(rehearsal.production_migrated, false);
@@ -166,7 +181,22 @@ test("PostgreSQL domain ledger imports idempotently, compares shadow state and r
       domain_id: DOMAIN,
       import_receipt_id: imported.receipt.receipt_id,
       shadow_receipt_id: differentShadow.receipt.receipt_id,
-      smoke_result: { api_contract_unchanged: false },
+      smoke_result: {
+        status: "passed",
+        synthetic_only: true,
+        environment: "test",
+        adapter: "postgres-v2",
+        executed_at: "2026-07-16T17:00:00.000Z",
+        source_snapshot_hash: differentShadow.comparison.source_hash,
+        checks: {
+          source_imported: true,
+          idempotency_replayed: true,
+          shadow_equal: true,
+          readback_equal: true,
+          json_dual_write_absent: true,
+        },
+        production_migrated: false,
+      },
     }),
     (error) => error?.code === "LAWOS_DOMAIN_IMPORT_CONFLICT",
   );

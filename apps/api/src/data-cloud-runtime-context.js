@@ -161,8 +161,8 @@ function responseBody(requestId, query, payload = {}) {
   };
 }
 
-function actorFrom(context, body) {
-  return body?.actor_id ?? context?.principal?.user_id;
+function actorFrom(context) {
+  return context?.principal?.user_id;
 }
 
 function commonInput(query, body, context) {
@@ -170,7 +170,7 @@ function commonInput(query, body, context) {
     tenant_id: query.tenant_id,
     permission_ref: query.permission_ref,
     audit_hint_ref: query.audit_hint_ref,
-    actor_id: actorFrom(context, body),
+    actor_id: actorFrom(context),
   };
 }
 

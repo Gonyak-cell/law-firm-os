@@ -3,7 +3,12 @@ import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { inspectRuntimeSafetyCheckout } from "./runtime-safety-dependency-materialization.mjs";
-import { EVIDENCE_SCHEMA_VERSION, validateRuntimeSafetyEvidence } from "./runtime-safety-evidence-contract.mjs";
+import {
+  EVIDENCE_SCHEMA_VERSION,
+  runtimeSafetyArgvContainsSecretMaterial,
+  runtimeSafetyTextContainsSecretMaterial,
+  validateRuntimeSafetyEvidence,
+} from "./runtime-safety-evidence-contract.mjs";
 
 export class RuntimeSafetyRunnerError extends Error {
   constructor(code, message, details = {}) {
@@ -44,6 +49,9 @@ export function validateRuntimeSafetyCommand(argv, {
 } = {}) {
   if (!Array.isArray(argv) || argv.length === 0 || argv.some((arg) => typeof arg !== "string" || !arg || /[\0\r\n]/.test(arg))) {
     fail("RUNNER_COMMAND", "command must be a non-empty literal argv array");
+  }
+  if (runtimeSafetyArgvContainsSecretMaterial(argv)) {
+    fail("RUNNER_SECRET_ARGV", "command argv contained secret material");
   }
   const executable = basename(argv[0]).toLowerCase();
   const lower = argv.map((arg) => arg.toLowerCase());
@@ -122,7 +130,8 @@ function safeOutputDirectory(outputDir, checkout) {
 }
 
 function containsSecret(output) {
-  return /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\bBearer\s+[A-Za-z0-9._~+/-]+=*|\b(?:authorization|api[_-]?key|access[_-]?token|refresh[_-]?token|cookie|secret|private[_-]?key)\s*[:=]\s*\S+/i.test(output);
+  return runtimeSafetyTextContainsSecretMaterial(output)
+    || /\bsecret\s*[:=]\s*\S+/i.test(output);
 }
 
 export async function runIsolatedCommand({ argv, cwd, env, timeoutMs, maxOutputBytes = 16 * 1024 * 1024 }) {

@@ -418,7 +418,7 @@ export function createLeaveIntegrationService({
         if (typeof terminationDeliveryRecorder !== "function") {
           throw guardedError("Termination payroll delivery recorder is not configured", "HRX_LEAVE_TERMINATION_RECORDER_NOT_CONFIGURED");
         }
-        terminationDeliveryRecorder(context, { outbox_event_id: outbox.outbox_event_id, provider_receipt_ref: providerReceiptRef });
+        terminationDeliveryRecorder(context, { outbox_event_id: outbox.outbox_event_id, provider_receipt: result?.provider_receipt });
       }
       if (/^leave\.promotion\.(first|second)_notice_issued$/.test(outbox.event_type)) {
         if (typeof promotionDeliveryRecorder !== "function") {

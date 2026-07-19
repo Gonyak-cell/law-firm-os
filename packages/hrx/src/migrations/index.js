@@ -122,6 +122,14 @@ export const HRX_CORE_MIGRATIONS = Object.freeze([
     id: "029_hrx_leave_accrual_rule_version_index",
     filename: "029_hrx_leave_accrual_rule_version_index.sql",
   }),
+  Object.freeze({
+    id: "030_hrx_operational_authority",
+    filename: "030_hrx_operational_authority.sql",
+  }),
+  Object.freeze({
+    id: "031_hrx_leave_command_receipts_append_only",
+    filename: "031_hrx_leave_command_receipts_append_only.sql",
+  }),
 ]);
 
 const UNSAFE_SQL_PATTERNS = Object.freeze([

@@ -79,7 +79,7 @@ function normalizeState(input) {
   };
 }
 
-export function createMatterRepository({ filePath, seedRecords = [], writeState = writeDurableJsonFile } = {}) {
+export function createMatterRepository({ filePath, seedRecords = [], preserveSeedRecords = false, writeState = writeDurableJsonFile } = {}) {
   let closed = false;
   let transactionDepth = 0;
   const stateController = createDurableJsonStateController({
@@ -151,7 +151,15 @@ export function createMatterRepository({ filePath, seedRecords = [], writeState 
   hydrate(state);
   if (state.migration_upgrade_required) persist();
   for (const record of seedRecords) {
-    if (!records.has(repositoryRecordKey(normalizeRepositoryRecord(record)))) put(record, { overwrite: true, createBackup: false });
+    const normalized = normalizeRepositoryRecord(record);
+    const key = repositoryRecordKey(normalized);
+    if (!records.has(key)) {
+      if (preserveSeedRecords) {
+        records.set(key, clone({ ...record, resource_id: normalized.resource_id }));
+      } else {
+        put(record, { overwrite: true, createBackup: false });
+      }
+    }
   }
 
   return Object.freeze({

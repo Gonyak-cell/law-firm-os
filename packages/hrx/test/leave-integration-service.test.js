@@ -312,14 +312,14 @@ test("LV-TYPE-006 projects a zero-paid snapshot without calculating compensation
   store.close();
 });
 
-test("LV-07 termination payroll retry keeps the offboarding gate consistent after partial failure", async () => {
+test("LV-07 synthetic payroll receipt cannot clear the offboarding gate", async () => {
   const store = createFileHrxStore();
   runHrxMigrations(store);
   createSqlHrxRepository({ store, clock: () => NOW }).createEmployee({ tenant_id: TENANT, employee_id: EMPLOYEE, display_name: "합성 구성원", status: "active" });
   store.query("insert", { table: "hrx_offboarding_cases", row: { tenant_id: TENANT, offboarding_id: "offboarding-lv07", employee_id: EMPLOYEE, separation_date: "2026-07-31", state: "open", leave_reconciliation_status: "approved_pending_sync" } });
   store.query("insert", { table: "hrx_leave_termination_reconciliations", row: { tenant_id: TENANT, reconciliation_id: "reconciliation-lv07", employee_id: EMPLOYEE, termination_date: "2026-07-31", mode: "execute", source_version: "source-lv07", snapshot_hash: "snapshot-lv07", preview_reconciliation_id: "preview-lv07", state: "approved_pending_sync", result_json: JSON.stringify({ offboarding_id: "offboarding-lv07", sync_state: "pending" }), idempotency_key: "reconciliation-lv07", created_at: NOW, approved_at: NOW, approved_by_actor_id: "hr-approver", executed_by_actor_id: "hr-operator", completed_at: null } });
   store.query("insert", { table: "hrx_leave_sync_outbox", row: { tenant_id: TENANT, outbox_event_id: "termination-outbox-lv07", aggregate_type: "LeaveTerminationReconciliation", aggregate_id: "preview-lv07", event_type: "leave.termination.payroll_reconciliation_requested", payload_json: JSON.stringify({ employee_id: EMPLOYEE, termination_date: "2026-07-31", totals: { unused_minutes: 480 }, groups: [], raw_compensation_amount_included: false }), idempotency_key: "termination-outbox-lv07", state: "pending", attempt_count: 0, available_at: NOW, delivered_at: null, provider_receipt_ref: null, created_at: NOW } });
-  const termination = createLeaveTerminationService({ store, clock: () => NOW, idFactory: sequentialIds(), approverAuthorizer: () => true });
+  const termination = createLeaveTerminationService({ store, clock: () => NOW, idFactory: sequentialIds(), approverAuthorizer: () => true, payrollReceiptAuthorizer: () => false });
   const providerObjects = new Set();
   let attempts = 0;
   const integration = createLeaveIntegrationService({
@@ -347,10 +347,13 @@ test("LV-07 termination payroll retry keeps the offboarding gate consistent afte
   assert.equal(store.query("selectOne", { table: "hrx_leave_sync_outbox", where: { tenant_id: TENANT, outbox_event_id: "termination-outbox-lv07" } }).state, "pending_sync");
 
   await integration.process(context);
-  assert.equal(store.query("selectOne", { table: "hrx_leave_termination_reconciliations", where: { tenant_id: TENANT, reconciliation_id: "reconciliation-lv07" } }).state, "approved_and_synced");
-  assert.equal(store.query("selectOne", { table: "hrx_offboarding_cases", where: { tenant_id: TENANT, offboarding_id: "offboarding-lv07" } }).leave_reconciliation_status, "approved_and_synced");
+  assert.equal(store.query("selectOne", { table: "hrx_leave_termination_reconciliations", where: { tenant_id: TENANT, reconciliation_id: "reconciliation-lv07" } }).state, "approved_pending_sync");
+  assert.equal(store.query("selectOne", { table: "hrx_offboarding_cases", where: { tenant_id: TENANT, offboarding_id: "offboarding-lv07" } }).leave_reconciliation_status, "approved_pending_sync");
   assert.equal(providerObjects.size, 1);
-  assert.equal((await integration.process(context)).processed_count, 0);
-  assert.equal(termination.recordPayrollDelivery(context, { outbox_event_id: "termination-outbox-lv07", provider_receipt_ref: "SyntheticPayrollReceipt:LV07" }).state, "approved_and_synced");
+  assert.equal(store.query("selectOne", { table: "hrx_leave_integration_deliveries", where: { tenant_id: TENANT, outbox_event_id: "termination-outbox-lv07", provider_kind: "payroll" } }).state, "failed");
+  assert.throws(
+    () => termination.recordPayrollDelivery(context, { outbox_event_id: "termination-outbox-lv07", provider_receipt_ref: "SyntheticPayrollReceipt:LV07" }),
+    /provider receipt schema_version is unsupported/,
+  );
   store.close();
 });

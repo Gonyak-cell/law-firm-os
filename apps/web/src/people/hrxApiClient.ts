@@ -930,6 +930,14 @@ export async function previewHrxLeaveManualAdjustment(form: HrxClientRecord) {
     : { kind: "error" as const, reason: result.reason ?? null };
 }
 
+export async function approveHrxLeaveManualAdjustment(form: HrxClientRecord) {
+  const result = await requestJson("/api/hrx/leave/accrual/manual/approve", { method: "POST", body: JSON.stringify(form) });
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  return result.kind === "data" && result.body.approval_receipt
+    ? { kind: "data" as const, approval_receipt: result.body.approval_receipt }
+    : { kind: "error" as const, reason: result.reason ?? null };
+}
+
 export async function executeHrxLeaveManualAdjustment(form: HrxClientRecord) {
   const result = await requestJson("/api/hrx/leave/accrual/manual/execute", { method: "POST", body: JSON.stringify(form) });
   if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
@@ -979,6 +987,14 @@ export async function previewHrxLeaveOccurrenceUpload(form: HrxClientRecord) {
   const result = await requestJson("/api/hrx/leave/accrual/manual/uploads/preview", { method: "POST", body: JSON.stringify(form) });
   return result.kind === "data" && result.body.batch
     ? { kind: "data" as const, batch: result.body.batch }
+    : { kind: "error" as const, reason: result.reason ?? null };
+}
+
+export async function approveHrxLeaveOccurrenceUpload(batchId: string, form: HrxClientRecord) {
+  const result = await requestJson(`/api/hrx/leave/accrual/manual/uploads/${encodeURIComponent(batchId)}/approve`, { method: "POST", body: JSON.stringify(form) });
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  return result.kind === "data" && result.body.approval_receipt
+    ? { kind: "data" as const, approval_receipt: result.body.approval_receipt }
     : { kind: "error" as const, reason: result.reason ?? null };
 }
 
@@ -1127,6 +1143,14 @@ export async function previewHrxLeaveTermination(form: HrxClientRecord) {
   const result = await requestJson("/api/hrx/leave/termination-reconciliations/preview", { method: "POST", body: JSON.stringify(form) });
   return result.kind === "data" && result.body.reconciliation
     ? { kind: "data" as const, reconciliation: result.body.reconciliation }
+    : { kind: "error" as const, reason: result.reason ?? null, status: result.status };
+}
+
+export async function approveHrxLeaveTermination(form: HrxClientRecord) {
+  const result = await requestJson("/api/hrx/leave/termination-reconciliations/approve", { method: "POST", body: JSON.stringify(form) });
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  return result.kind === "data" && result.body.approval_receipt
+    ? { kind: "data" as const, approval_receipt: result.body.approval_receipt }
     : { kind: "error" as const, reason: result.reason ?? null, status: result.status };
 }
 

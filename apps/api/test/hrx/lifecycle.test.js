@@ -38,53 +38,62 @@ test("lifecycle route manages onboarding plan and task updates with audit", asyn
   );
 });
 
-test("lifecycle route creates and closes offboarding only after checks clear", async () => {
+test("lifecycle route closes only authoritative offboarding evidence", async () => {
   const audit = createHrxAuditEventStore();
-  const route = createHrxLifecycleRoute({ audit });
-  const created = await route.handle({
-    method: "POST",
-    context,
-    params: { resource: "offboarding" },
-    body: {
-      offboarding_id: "off-001",
-      employee_id: "emp-001",
-      separation_date: "2026-08-31",
-      access_revocations: [{ system_ref: "DMS", revoked: true }],
-      document_returns: [{ document_ref: "Laptop:asset-001", returned: true }],
-      legal_hold_checks: [{ hold_ref: "HoldCheck:001", clear: false }],
-      matter_reassignments: [{ matter_id: "matter-001", reassigned: false }],
-      handover_items: [{ item_id: "handover-001", title: "Matter handover", completed: false }],
-      leave_reconciliation_status: "pending",
-    },
+  const base = {
+    tenant_id: context.tenant_id,
+    employee_id: "emp-001",
+    separation_date: "2026-08-31",
+    document_returns: [{ document_ref: "Laptop:asset-001", returned: true }],
+  };
+  const route = createHrxLifecycleRoute({
+    audit,
+    seed: { offboarding: [
+      {
+        ...base,
+        offboarding_id: "off-pending",
+        access_revocations: [{ system_ref: "DMS", revoked: true }],
+        legal_hold_checks: [{ hold_ref: "HoldCheck:001", clear: false }],
+        matter_reassignments: [{ matter_id: "matter-001", reassigned: false }],
+        handover_items: [{ item_id: "handover-001", title: "Matter handover", completed: false }],
+        leave_reconciliation_status: "pending",
+      },
+      {
+        ...base,
+        offboarding_id: "off-ready",
+        access_revocations: [{ system_ref: "DMS", revoked: true, confirmation_ref: "LX-11:AccessRevocation:001" }],
+        legal_hold_checks: [{ hold_ref: "HoldCheck:001", clear: true }],
+        matter_reassignments: [{ matter_id: "matter-001", reassigned_to_employee_id: "emp-002", reassigned: true, handover_ref: "Handover:001" }],
+        handover_items: [{ item_id: "handover-001", title: "Matter handover", completed: true }],
+        leave_reconciliation_status: "approved_and_synced",
+      },
+    ] },
   });
-  assert.equal(created.status, 201);
 
   const blocked = await route.handle({
     method: "POST",
     context,
-    params: { resource: "offboarding_close", offboarding_id: "off-001" },
+    params: { resource: "offboarding_close", offboarding_id: "off-pending" },
     body: {},
   });
   assert.equal(blocked.status, 400);
 
+  const forged = await route.handle({
+    method: "POST",
+    context,
+    params: { resource: "offboarding_close", offboarding_id: "off-pending" },
+    body: {
+      legal_hold_checks: [{ hold_ref: "HoldCheck:001", clear: true }],
+    },
+  });
+  assert.equal(forged.status, 400);
+  assert.equal(forged.body.safe_error_code, "HRX_OFFBOARDING_EVIDENCE_MISMATCH");
+
   const closed = await route.handle({
     method: "POST",
     context,
-    params: { resource: "offboarding_close", offboarding_id: "off-001" },
-    body: {
-      access_revocations: [{ system_ref: "DMS", revoked: true, confirmation_ref: "LX-11:AccessRevocation:001" }],
-      legal_hold_checks: [{ hold_ref: "HoldCheck:001", clear: true }],
-      matter_reassignments: [
-        {
-          matter_id: "matter-001",
-          reassigned_to_employee_id: "emp-002",
-          reassigned: true,
-          handover_ref: "Handover:001",
-        },
-      ],
-      handover_items: [{ item_id: "handover-001", title: "Matter handover", completed: true }],
-      leave_reconciliation_status: "approved_and_synced",
-    },
+    params: { resource: "offboarding_close", offboarding_id: "off-ready" },
+    body: {},
   });
   assert.equal(closed.status, 200);
   assert.equal(closed.body.offboarding.state, "closed");

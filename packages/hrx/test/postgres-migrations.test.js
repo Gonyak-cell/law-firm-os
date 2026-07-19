@@ -9,17 +9,18 @@ import {
   listHrxPostgresMigrations,
   runHrxPostgresMigrations,
 } from "../src/postgres-migrations.js";
-import { HRX_STORE_TABLES } from "../src/store/file-store.js";
+import { HRX_APPEND_ONLY_TABLES, HRX_STORE_TABLES } from "../src/store/file-store.js";
 
-test("HRX migration inventory classifies all 29 SQLite sources and translates every abort trigger", () => {
+test("HRX migration inventory classifies all 31 SQLite sources and translates every abort trigger", () => {
   const inventory = classifyHrxPostgresMigrationGaps();
-  assert.equal(inventory.migration_count, 29);
-  assert.equal(inventory.table_count, 73);
-  assert.equal(inventory.compatible_count + inventory.translated_trigger_migration_count, 29);
-  assert.equal(inventory.translated_trigger_count, 12);
+  assert.equal(inventory.migration_count, 31);
+  assert.equal(inventory.table_count, 77);
+  assert.equal(inventory.compatible_count + inventory.translated_trigger_migration_count, 31);
+  assert.equal(inventory.translated_trigger_count, 14);
   assert.equal(inventory.rows.every((row) => row.translated_sql_ready), true);
   assert.equal(inventory.rows.every((row) => row.destructive_statement_count === 0), true);
-  assert.equal(listHrxPostgresMigrations().length, 31);
+  assert.equal(listHrxPostgresMigrations().length, 34);
+  assert.equal(new Set(listHrxPostgresMigrations().map((migration) => migration.id)).size, 34);
 });
 
 test("HRX PostgreSQL migrations pass fresh, upgrade, RLS, checksum and recovery contracts", async (t) => {
@@ -50,6 +51,18 @@ test("HRX PostgreSQL migrations pass fresh, upgrade, RLS, checksum and recovery 
     policy_count: HRX_STORE_TABLES.length,
   });
 
+  const appendOnlyTriggers = await fixture.adminPool.query(
+    `SELECT event_object_table
+       FROM information_schema.triggers
+      WHERE trigger_schema = 'lawos_hrx'
+        AND trigger_name = 'lawos_hrx_append_only_guard'
+      ORDER BY event_object_table`,
+  );
+  assert.deepEqual(
+    [...new Set(appendOnlyTriggers.rows.map(({ event_object_table }) => event_object_table))],
+    [...HRX_APPEND_ONLY_TABLES],
+  );
+
   const replay = await runHrxPostgresMigrations(fixture.adminPool, { appliedBy: "hrx-disposable-test" });
   assert.equal(replay.every((migration) => migration.applied === false), true);
 
@@ -75,7 +88,7 @@ test("HRX PostgreSQL migrations pass fresh, upgrade, RLS, checksum and recovery 
   );
 
   const failingMigration = {
-    id: "131_hrx_synthetic_failure",
+    id: "299_hrx_synthetic_failure",
     sql: "CREATE TABLE lawos_hrx.must_rollback (tenant_id text); SELECT missing_hrx_function();",
   };
   await assert.rejects(
@@ -87,7 +100,7 @@ test("HRX PostgreSQL migrations pass fresh, upgrade, RLS, checksum and recovery 
   const rollback = await fixture.adminPool.query(
     `SELECT
        to_regclass('lawos_hrx.must_rollback') AS rolled_back_table,
-       EXISTS (SELECT 1 FROM lawos_meta.schema_migrations WHERE migration_id = '131_hrx_synthetic_failure') AS receipt_exists`,
+       EXISTS (SELECT 1 FROM lawos_meta.schema_migrations WHERE migration_id = '299_hrx_synthetic_failure') AS receipt_exists`,
   );
   assert.deepEqual(rollback.rows[0], { rolled_back_table: null, receipt_exists: false });
 });

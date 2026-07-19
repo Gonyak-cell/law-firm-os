@@ -160,8 +160,8 @@ function responseBody(requestId, query, payload = {}) {
   };
 }
 
-function actorFrom(context, body) {
-  return body?.actor_id ?? context?.principal?.user_id;
+function actorFrom(context) {
+  return context?.principal?.user_id;
 }
 
 function commonInput(query, body, context) {
@@ -169,7 +169,7 @@ function commonInput(query, body, context) {
     tenant_id: query.tenant_id,
     permission_ref: query.permission_ref,
     audit_hint_ref: query.audit_hint_ref,
-    actor_id: actorFrom(context, body),
+    actor_id: actorFrom(context),
   };
 }
 
@@ -191,7 +191,7 @@ export function handleReportsApiRequest({ pathname, method, query, body, context
   const reportService = service(repositories);
 
   try {
-    if (route.action === "report:definition:read" && method === "GET" && reportId) {
+    if (route.action === "reports:definition:read" && method === "GET" && reportId) {
       return {
         status: 200,
         body: responseBody(requestId, mergedQuery, {
@@ -200,7 +200,7 @@ export function handleReportsApiRequest({ pathname, method, query, body, context
         }),
       };
     }
-    if (route.action === "report:definition:read") {
+    if (route.action === "reports:definition:read") {
       return {
         status: 200,
         body: responseBody(requestId, mergedQuery, {
@@ -209,7 +209,7 @@ export function handleReportsApiRequest({ pathname, method, query, body, context
         }),
       };
     }
-    if (route.action === "report:audit:read") {
+    if (route.action === "reports:audit:read") {
       return {
         status: 200,
         body: responseBody(requestId, mergedQuery, {
@@ -224,14 +224,14 @@ export function handleReportsApiRequest({ pathname, method, query, body, context
     const common = commonInput(mergedQuery, body, context);
     let status = 200;
     let payload;
-    if (route.action === "report:definition:write") {
+    if (route.action === "reports:definition:write") {
       const result = reportService.createReport({ ...common, ...body });
       status = 201;
       payload = { outcome: "passed", ui_state: "route_mounted", item: result.report, audit_event: result.audit_event };
-    } else if (route.action === "report:definition:patch") {
+    } else if (route.action === "reports:definition:patch") {
       const result = reportService.patchReport({ ...common, ...body, report_id: reportId });
       payload = { outcome: "passed", ui_state: "route_mounted", item: result.report, audit_event: result.audit_event };
-    } else if (route.action === "report:query:run") {
+    } else if (route.action === "reports:query:run") {
       const result = reportService.runReport({ ...common, ...body, report_id: reportId });
       payload = {
         outcome: "passed",
@@ -241,7 +241,7 @@ export function handleReportsApiRequest({ pathname, method, query, body, context
         arbitrary_sql_executed: false,
         source_object_mutated: false,
       };
-    } else if (route.action === "report:share:write") {
+    } else if (route.action === "reports:share:write") {
       const result = reportService.shareReport({ ...common, ...body, report_id: reportId });
       payload = { outcome: "owner_blocked", ui_state: "owner_blocked", item: result.share_grant, audit_event: result.audit_event };
     } else {

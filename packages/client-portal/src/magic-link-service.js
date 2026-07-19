@@ -33,14 +33,35 @@ function inviteUrl(baseUrl, token) {
   return url.toString();
 }
 
-function activeSession(repository, { tenant_id, external_session_id } = {}) {
+function activeSession(repository, { tenant_id, external_session_id, clock = nowIso } = {}) {
+  if (typeof clock !== "function") throw new TypeError("clock must be a function");
   const session = repository.get({ tenant_id, model_type: "PortalExternalSession", resource_id: external_session_id });
   if (!session || session.status !== "active") {
     const error = new Error("external portal session is not active");
     error.safe_error_code = "PORTAL_EXTERNAL_SESSION_INACTIVE";
     throw error;
   }
+  const invite = repository.get({ tenant_id, model_type: "PortalMagicLinkInvite", resource_id: session.invite_id });
+  if (!invite || invite.status !== "used" || invite.revoked_at) {
+    throw blocked("PORTAL_EXTERNAL_SESSION_INACTIVE", "external portal session is not active");
+  }
+  if (safeTimestamp(clock()) >= safeTimestamp(session.expires_at ?? invite.expires_at)) {
+    throw blocked("PORTAL_EXTERNAL_SESSION_EXPIRED", "external portal session is expired");
+  }
   return session;
+}
+
+function revokeMatchingSessions(repository, { tenant_id, revoked_at, predicate }) {
+  const sessions = repository
+    .list({ tenant_id, model_type: "PortalExternalSession" })
+    .filter((session) => session.status === "active" && predicate(session));
+  for (const session of sessions) {
+    repository.update(
+      { tenant_id, model_type: "PortalExternalSession", resource_id: session.external_session_id },
+      { status: "revoked", revoked_at },
+    );
+  }
+  return sessions.length;
 }
 
 function blocked(code, message) {
@@ -122,16 +143,19 @@ export function createMagicLinkInvite({ repository, invite, actor_id, idempotenc
   });
 }
 
-export function consumeMagicLinkInvite({ repository, token, now = nowIso() } = {}) {
+export function consumeMagicLinkInvite({ repository, token, clock = nowIso } = {}) {
   requiredString({ token }, "token");
+  if (typeof clock !== "function") throw new TypeError("clock must be a function");
+  const observedAt = clock();
   const tokenHash = sha256(token);
   const invite = repository.list({ model_type: "PortalMagicLinkInvite" }).find((record) => record.token_hash === tokenHash);
   if (!invite) throw blocked("PORTAL_MAGIC_LINK_NOT_FOUND", "magic link invite was not found");
+  const idempotencyKey = `portal_magic_link_consume:${tokenHash}`;
   if (invite.status === "revoked") throw blocked("PORTAL_MAGIC_LINK_REVOKED", "magic link invite was revoked");
   if (invite.status === "used" || invite.used_at) throw blocked("PORTAL_MAGIC_LINK_ALREADY_USED", "magic link invite was already used");
-  if (safeTimestamp(now) > safeTimestamp(invite.expires_at)) throw blocked("PORTAL_MAGIC_LINK_EXPIRED", "magic link invite is expired");
+  if (safeTimestamp(observedAt) >= safeTimestamp(invite.expires_at)) throw blocked("PORTAL_MAGIC_LINK_EXPIRED", "magic link invite is expired");
   return repository.transaction((tx) => {
-    const usedAt = nowIso();
+    const usedAt = new Date(safeTimestamp(observedAt)).toISOString();
     const updatedInvite = tx.update(
       { tenant_id: invite.tenant_id, model_type: "PortalMagicLinkInvite", resource_id: invite.invite_id },
       { status: "used", used_at: usedAt },
@@ -148,6 +172,7 @@ export function consumeMagicLinkInvite({ repository, token, now = nowIso() } = {
       rfi_request_id: invite.rfi_request_id,
       secure_link_id: invite.secure_link_id,
       status: "active",
+      expires_at: invite.expires_at,
       token_material_included: false,
       document_bytes_included: false,
     });
@@ -163,22 +188,42 @@ export function consumeMagicLinkInvite({ repository, token, now = nowIso() } = {
         metadata: { external_session_id: sessionId, token_material_included: false },
       },
     });
-    return Object.freeze({ outcome: "consumed", invite: updatedInvite, external_session: session, audit_event: auditEvent });
+    const response = Object.freeze({
+      outcome: "consumed",
+      invite: updatedInvite,
+      external_session: session,
+      audit_event: auditEvent,
+      idempotent_replay: false,
+    });
+    tx.recordIdempotency({
+      tenant_id: invite.tenant_id,
+      idempotency_key: idempotencyKey,
+      operation: "portal_magic_link_invite_consume",
+      response,
+    });
+    return response;
   });
 }
 
-export function revokeMagicLinkInvite({ repository, tenant_id, invite_id, actor_id, idempotency_key } = {}) {
+export function revokeMagicLinkInvite({ repository, tenant_id, invite_id, actor_id, idempotency_key, clock = nowIso } = {}) {
   requiredString({ tenant_id }, "tenant_id");
   requiredString({ invite_id }, "invite_id");
   requiredString({ actor_id }, "actor_id");
   requiredString({ idempotency_key }, "idempotency_key");
+  if (typeof clock !== "function") throw new TypeError("clock must be a function");
   const replay = repository.getIdempotency({ tenant_id, idempotency_key });
   if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
   return repository.transaction((tx) => {
+    const revokedAt = new Date(safeTimestamp(clock())).toISOString();
     const invite = tx.update(
       { tenant_id, model_type: "PortalMagicLinkInvite", resource_id: invite_id },
-      { status: "revoked", revoked_at: nowIso() },
+      { status: "revoked", revoked_at: revokedAt },
     );
+    const revokedSessionCount = revokeMatchingSessions(tx, {
+      tenant_id,
+      revoked_at: revokedAt,
+      predicate: (session) => session.invite_id === invite_id,
+    });
     const auditEvent = appendPortalAuditEvent({
       repository: tx,
       event: {
@@ -191,17 +236,17 @@ export function revokeMagicLinkInvite({ repository, tenant_id, invite_id, actor_
         metadata: { token_material_included: false },
       },
     });
-    const response = Object.freeze({ outcome: "revoked", invite, audit_event: auditEvent, idempotent_replay: false });
+    const response = Object.freeze({ outcome: "revoked", invite, revoked_session_count: revokedSessionCount, audit_event: auditEvent, idempotent_replay: false });
     tx.recordIdempotency({ tenant_id, idempotency_key, operation: "portal_magic_link_invite_revoke", response });
     return response;
   });
 }
 
-export function submitExternalRfiResponse({ repository, external_session_id, rfi_response, idempotency_key } = {}) {
+export function submitExternalRfiResponse({ repository, external_session_id, rfi_response, idempotency_key, clock = nowIso } = {}) {
   requiredString(rfi_response, "tenant_id");
   requiredString({ external_session_id }, "external_session_id");
   requiredString({ idempotency_key }, "idempotency_key");
-  const session = activeSession(repository, { tenant_id: rfi_response.tenant_id, external_session_id });
+  const session = activeSession(repository, { tenant_id: rfi_response.tenant_id, external_session_id, clock });
   if (session.rfi_request_id !== rfi_response.rfi_request_id) {
     throw blocked("PORTAL_EXTERNAL_SESSION_RFI_MISMATCH", "RFI response does not match the external session");
   }
@@ -219,16 +264,17 @@ export function submitExternalRfiResponse({ repository, external_session_id, rfi
   });
 }
 
-export function accessExternalSecureLink({ repository, tenant_id, secure_link_id, external_session_id, now = nowIso() } = {}) {
+export function accessExternalSecureLink({ repository, tenant_id, secure_link_id, external_session_id, clock = nowIso } = {}) {
   requiredString({ tenant_id }, "tenant_id");
   requiredString({ secure_link_id }, "secure_link_id");
   requiredString({ external_session_id }, "external_session_id");
-  const session = activeSession(repository, { tenant_id, external_session_id });
+  if (typeof clock !== "function") throw new TypeError("clock must be a function");
+  const session = activeSession(repository, { tenant_id, external_session_id, clock });
   if (session.secure_link_id !== secure_link_id) throw blocked("PORTAL_SECURE_LINK_SESSION_MISMATCH", "secure link does not match the external session");
   const link = repository.get({ tenant_id, model_type: "SecureLink", secure_link_id });
   if (!link) throw blocked("PORTAL_SECURE_LINK_NOT_FOUND", "secure link was not found");
   if (link.status !== "active") throw blocked("PORTAL_SECURE_LINK_REVOKED", "secure link is not active");
-  if (safeTimestamp(now) > safeTimestamp(link.expires_at)) throw blocked("PORTAL_SECURE_LINK_EXPIRED", "secure link is expired");
+  if (safeTimestamp(clock()) >= safeTimestamp(link.expires_at)) throw blocked("PORTAL_SECURE_LINK_EXPIRED", "secure link is expired");
   appendPortalAuditEvent({
     repository,
     event: {
@@ -244,18 +290,25 @@ export function accessExternalSecureLink({ repository, tenant_id, secure_link_id
   return Object.freeze({ outcome: "passed", secure_link: link });
 }
 
-export function revokeSecureLink({ repository, tenant_id, secure_link_id, actor_id, idempotency_key } = {}) {
+export function revokeSecureLink({ repository, tenant_id, secure_link_id, actor_id, idempotency_key, clock = nowIso } = {}) {
   requiredString({ tenant_id }, "tenant_id");
   requiredString({ secure_link_id }, "secure_link_id");
   requiredString({ actor_id }, "actor_id");
   requiredString({ idempotency_key }, "idempotency_key");
+  if (typeof clock !== "function") throw new TypeError("clock must be a function");
   const replay = repository.getIdempotency({ tenant_id, idempotency_key });
   if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
   return repository.transaction((tx) => {
+    const revokedAt = new Date(safeTimestamp(clock())).toISOString();
     const secureLink = tx.update(
       { tenant_id, model_type: "SecureLink", secure_link_id },
-      { status: "revoked", revoked_at: nowIso() },
+      { status: "revoked", revoked_at: revokedAt },
     );
+    const revokedSessionCount = revokeMatchingSessions(tx, {
+      tenant_id,
+      revoked_at: revokedAt,
+      predicate: (session) => session.secure_link_id === secure_link_id,
+    });
     const auditEvent = appendPortalAuditEvent({
       repository: tx,
       event: {
@@ -268,7 +321,7 @@ export function revokeSecureLink({ repository, tenant_id, secure_link_id, actor_
         metadata: { document_bytes_included: false, token_material_included: false },
       },
     });
-    const response = Object.freeze({ outcome: "revoked", secure_link: secureLink, audit_event: auditEvent, idempotent_replay: false });
+    const response = Object.freeze({ outcome: "revoked", secure_link: secureLink, revoked_session_count: revokedSessionCount, audit_event: auditEvent, idempotent_replay: false });
     tx.recordIdempotency({ tenant_id, idempotency_key, operation: "portal_secure_link_revoke", response });
     return response;
   });

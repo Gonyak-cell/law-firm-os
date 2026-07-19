@@ -7,6 +7,8 @@ export const HRX_LEAVE_RECONCILIATION_STATES = Object.freeze([
   "sync_failed",
 ]);
 export const HRX_OFFBOARDING_CLOSE_BLOCKED = "HRX_OFFBOARDING_CLOSE_BLOCKED";
+export const HRX_OFFBOARDING_IDENTITY_MISMATCH = "HRX_OFFBOARDING_IDENTITY_MISMATCH";
+export const HRX_OFFBOARDING_EVIDENCE_MISMATCH = "HRX_OFFBOARDING_EVIDENCE_MISMATCH";
 
 function requiredString(input, field) {
   const value = input?.[field];
@@ -58,6 +60,18 @@ function closeBlockedError(readiness) {
   const error = new TypeError("Offboarding case cannot close until access, documents, legal hold, matter reassignment, handover, and leave reconciliation checks are clear");
   error.safe_error_code = HRX_OFFBOARDING_CLOSE_BLOCKED;
   error.readiness = readiness;
+  return error;
+}
+
+function identityMismatchError(field) {
+  const error = new TypeError(`Offboarding case identity cannot change: ${field}`);
+  error.safe_error_code = HRX_OFFBOARDING_IDENTITY_MISMATCH;
+  return error;
+}
+
+function evidenceMismatchError(field) {
+  const error = new TypeError(`Offboarding close evidence must come from the current ledger case: ${field}`);
+  error.safe_error_code = HRX_OFFBOARDING_EVIDENCE_MISMATCH;
   return error;
 }
 
@@ -114,8 +128,31 @@ export function evaluateOffboardingReadiness(input = {}) {
   });
 }
 
-export function closeOffboardingCase(input = {}) {
-  const offboarding = createOffboardingCase(input);
+export function closeOffboardingCase(input = {}, { current_case } = {}) {
+  let offboarding;
+  if (current_case) {
+    const current = createOffboardingCase(current_case);
+    const asserted = createOffboardingCase({ ...current, ...input });
+    for (const field of ["tenant_id", "offboarding_id", "employee_id", "separation_date"]) {
+      if (asserted[field] !== current[field]) throw identityMismatchError(field);
+    }
+    for (const field of [
+      "state",
+      "leave_reconciliation_status",
+      "access_revocations",
+      "document_returns",
+      "legal_hold_checks",
+      "matter_reassignments",
+      "handover_items",
+    ]) {
+      if (input[field] !== undefined && JSON.stringify(asserted[field]) !== JSON.stringify(current[field])) {
+        throw evidenceMismatchError(field);
+      }
+    }
+    offboarding = current;
+  } else {
+    offboarding = createOffboardingCase(input);
+  }
   const readiness = evaluateOffboardingReadiness(offboarding);
   if (!readiness.ready) throw closeBlockedError(readiness);
   return createOffboardingCase({ ...offboarding, state: "closed" });

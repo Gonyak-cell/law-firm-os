@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { createDmsRepository } from "../../../packages/dms/src/repository.js";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
+import { sha256Hex } from "../../../packages/dms/src/storage/storage-adapter.js";
 import { uploadDocument } from "../../../packages/dms/src/document-service.js";
 import { downloadFileObjectWithAudit } from "../../../packages/dms/src/storage/download-service.js";
 import { serializeFileObjectSafe } from "../../../packages/dms/src/file-object-service.js";
@@ -49,6 +50,7 @@ export const VAULT_DMS_API_ERROR_CODES = Object.freeze({
   review_required: "VAULT_DMS_REVIEW_REQUIRED",
   approval_required: "VAULT_DMS_APPROVAL_REQUIRED",
   not_found: "VAULT_DMS_NOT_FOUND",
+  payload_too_large: "VAULT_DMS_PAYLOAD_TOO_LARGE",
 });
 
 export const VAULT_DMS_RUNTIME_SEED = Object.freeze([
@@ -125,6 +127,7 @@ const SEARCH_RECENT_LIMIT = 20;
 const SEARCH_SAVED_LIMIT = 50;
 const SEARCH_HISTORY_RETENTION_MS = 90 * 24 * 60 * 60 * 1000;
 const SEARCH_PREFERENCE_OPERATIONS = new Set(["remember", "save", "delete_saved", "clear_recent", "share_authorize"]);
+const VAULT_DMS_MAX_UPLOAD_BYTES = 16 * 1024 * 1024;
 
 function errorResponse(status, requestId, codes, extra = {}) {
   return {
@@ -287,6 +290,63 @@ function serializeDocument(record) {
   });
 }
 
+function isPostgresDmsRuntime(runtime) {
+  return runtime?.authority === "postgres-v2"
+    && runtime?.upload_runtime?.source_only === false
+    && typeof runtime.upload_runtime.finalizeUpload === "function";
+}
+
+function serializePostgresDocument(entry = {}) {
+  const document = entry.document ?? entry;
+  return Object.freeze({
+    tenant_id: document.tenant_id,
+    resource_id: document.document_id,
+    document_id: document.document_id,
+    matter_id: document.matter_id,
+    workspace_id: document.workspace_id,
+    title: document.title,
+    status: document.status,
+    current_version_id: document.current_version_id,
+    privilege_label_id: null,
+    legal_hold_id: document.legal_hold_status === "active" ? "active" : null,
+    legal_hold_status: document.legal_hold_status ?? "none",
+    owner_user_id: entry.version?.created_by ?? null,
+    registered_account_email: null,
+    registered_account: null,
+    account_linkage: Object.freeze({ status: "server_authoritative", registry: MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE }),
+    raw_path_exposed: false,
+    document_bytes_included: false,
+    storage_pointer_ref_included: false,
+    production_ready_claim: false,
+  });
+}
+
+function strictUploadBytes(body = {}) {
+  let bytes;
+  if (body.content_base64 != null) {
+    const encoded = String(body.content_base64);
+    if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u.test(encoded)) {
+      throw Object.assign(new TypeError("content_base64 is invalid"), { safe_error_code: "VAULT_DMS_API_VALIDATION_ERROR", status: 400 });
+    }
+    if (encoded.length > Math.ceil(VAULT_DMS_MAX_UPLOAD_BYTES / 3) * 4 + 4) {
+      throw Object.assign(new TypeError("document upload exceeds the byte limit"), {
+        safe_error_code: VAULT_DMS_API_ERROR_CODES.payload_too_large,
+        status: 413,
+      });
+    }
+    bytes = Buffer.from(encoded, "base64");
+  } else {
+    bytes = Buffer.from(String(body.content_text ?? ""), "utf8");
+  }
+  if (bytes.byteLength > VAULT_DMS_MAX_UPLOAD_BYTES) {
+    throw Object.assign(new TypeError("document upload exceeds the byte limit"), {
+      safe_error_code: VAULT_DMS_API_ERROR_CODES.payload_too_large,
+      status: 413,
+    });
+  }
+  return bytes;
+}
+
 function currentFileObjectForDocument({ repository, tenant_id, document_id } = {}) {
   const document = repository.get({ tenant_id, model_type: "DmsDocument", document_id });
   if (!document) return null;
@@ -369,18 +429,52 @@ function normalizeUploadDocumentBody(body = {}) {
   };
 }
 
-export function handleVaultDocumentList({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+export async function handleVaultDocumentList({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const matterId = typeof query.matter_id === "string" && query.matter_id.trim() ? query.matter_id.trim() : null;
   const gated = routeGate({
     context,
     query,
     requestId,
     action: "dms:document:read",
-    resource: { resource_type: "vault_document" },
+    resource: { resource_type: "vault_document", matter_id: matterId },
     repository: runtime.repository,
   });
   if (gated) return gated;
+  if (isPostgresDmsRuntime(runtime)) {
+    const documents = await runtime.upload_runtime.listDocuments({
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      actor_id: context?.principal?.user_id ?? context?.principal?.actor_id ?? "unknown_actor",
+    });
+    const serialized = documents.map(serializePostgresDocument);
+    const { allowed } = trimItemsByPermission({
+      context,
+      items: serialized,
+      action: "dms:document:read",
+      resourceType: "vault_document",
+    });
+    return {
+      status: 200,
+      body: {
+        request_id: requestId,
+        outcome: "passed",
+        items: allowed,
+        page_info: {
+          returned_count: allowed.length,
+          omitted_document_count: null,
+          registered_account_count: null,
+          authority: "postgres-v2",
+        },
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: allowed.length === 0 ? "empty" : null,
+        count_leak_prevented: true,
+        production_ready_claim: false,
+      },
+    };
+  }
   const serialized = runtime.repository
-    .list({ tenant_id: query.tenant_id, model_type: "DmsDocument" })
+    .list({ tenant_id: query.tenant_id, model_type: "DmsDocument", matter_id: matterId })
     .map(serializeDocument);
   const { allowed } = trimItemsByPermission({
     context,
@@ -416,7 +510,7 @@ export function handleVaultDocumentList({ query, context, requestId, runtime = D
   };
 }
 
-export function handleVaultDocumentUpload({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+export async function handleVaultDocumentUpload({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const normalizedBody = normalizeUploadDocumentBody(body);
   const query = {
     tenant_id: normalizedBody.document?.tenant_id ?? normalizedBody.tenant_id,
@@ -433,8 +527,8 @@ export function handleVaultDocumentUpload({ body, context, requestId, runtime = 
   });
   if (gated) return gated;
   const actorAccount = resolveRegisteredAccount({
-    user_id: normalizedBody.actor_id ?? normalizedBody.document?.owner_user_id ?? context?.principal?.user_id,
-    email: normalizedBody.actor_email ?? normalizedBody.document?.registered_account_email ?? context?.principal?.email,
+    user_id: context?.principal?.user_id,
+    email: context?.principal?.email,
   });
   if (!actorAccount) {
     return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
@@ -444,9 +538,54 @@ export function handleVaultDocumentUpload({ body, context, requestId, runtime = 
   }
   const linkedAccount = registeredAccountPublicRef(actorAccount);
   try {
-    const uploadBytes = normalizedBody.content_base64
-      ? Buffer.from(String(normalizedBody.content_base64), "base64")
-      : normalizedBody.content_text ?? "";
+    if (isPostgresDmsRuntime(runtime)) {
+      const uploadBytes = strictUploadBytes(normalizedBody);
+      const versionId = normalizedBody.document.current_version_id;
+      const uploaded = await runtime.upload_runtime.uploadDocument({
+        document: {
+          ...normalizedBody.document,
+          tenant_id: query.tenant_id,
+          owner_user_id: linkedAccount.user_id,
+          registered_account_email: linkedAccount.email,
+        },
+        bytes: uploadBytes,
+        actor_id: linkedAccount.user_id,
+        idempotency_key: normalizedBody.idempotency_key,
+        object_id: normalizedBody.object_id ?? `object:${versionId}`,
+        session_id: normalizedBody.upload_session_id ?? `dms-upload:${randomUUID()}`,
+        version_number: Number(normalizedBody.version_number ?? normalizedBody.document.version_number ?? 1),
+        expires_at: normalizedBody.expires_at,
+      });
+      return {
+        status: uploaded.idempotent_replay ? 200 : 201,
+        body: {
+          request_id: requestId,
+          outcome: uploaded.outcome,
+          item: serializePostgresDocument(uploaded),
+          version: uploaded.version,
+          file_object: uploaded.file_object,
+          search_index: {
+            index_id: null,
+            body_text_indexed: false,
+            ocr_text_indexed: false,
+            ocr_runtime_executed: false,
+            ocr_provider: null,
+            search_backend: "postgres-metadata",
+            raw_text_included: false,
+            storage_pointer_ref_included: false,
+          },
+          audit_event: uploaded.audit_event,
+          idempotent_replay: uploaded.idempotent_replay,
+          upload_file: normalizedBody.upload_file,
+          provider_finalize_before_metadata: true,
+          independent_digest_readback: true,
+          safe_error_codes: [],
+          audit_hint_ref: query.audit_hint_ref,
+          production_ready_claim: false,
+        },
+      };
+    }
+    const uploadBytes = strictUploadBytes(normalizedBody);
     const result = uploadDocument({
       repository: runtime.repository,
       storage: runtime.storage,
@@ -498,15 +637,18 @@ export function handleVaultDocumentUpload({ body, context, requestId, runtime = 
         production_ready_claim: false,
       },
     };
-  } catch {
-    return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
+  } catch (error) {
+    const safeCode = error?.safe_error_code === "DMS_SEARCH_INDEX_INPUT_TOO_LARGE"
+      ? VAULT_DMS_API_ERROR_CODES.payload_too_large
+      : error?.safe_error_code ?? VAULT_DMS_API_ERROR_CODES.validation_error;
+    return errorResponse(Number(error?.status) || 400, requestId, [safeCode], {
       audit_hint_ref: query.audit_hint_ref,
       ui_state: "blocked",
     });
   }
 }
 
-export function handleVaultDocumentDownload({ documentId, query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+export async function handleVaultDocumentDownload({ documentId, query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const gated = routeGate({
     context,
     query,
@@ -516,6 +658,56 @@ export function handleVaultDocumentDownload({ documentId, query, context, reques
     repository: runtime.repository,
   });
   if (gated) return gated;
+  if (isPostgresDmsRuntime(runtime)) {
+    try {
+      const download = await runtime.upload_runtime.downloadDocument({
+        tenant_id: query.tenant_id,
+        document_id: documentId,
+        actor_id: context?.principal?.user_id ?? context?.principal?.actor_id ?? "unknown_actor",
+      });
+      return {
+        status: 200,
+        body: {
+          request_id: requestId,
+          outcome: "passed",
+          item: serializePostgresDocument({ document: download.document, version: download.version }),
+          version: download.version,
+          file_object: {
+            file_object_id: download.file_object.file_object_id,
+            sha256: download.file_object.sha256,
+            byte_size: Number(download.file_object.byte_size),
+            mime_type: download.file_object.content_type,
+            status: download.file_object.status,
+            raw_path_exposed: false,
+            storage_pointer_ref_included: false,
+          },
+          download: {
+            encoding: "base64",
+            content_base64: download.bytes.toString("base64"),
+            content_sha256: download.sha256,
+            sha256: download.sha256,
+            byte_size: download.byte_size,
+            mime_type: download.mime_type,
+            raw_path_exposed: false,
+            storage_pointer_ref_included: false,
+            independent_digest_readback: true,
+          },
+          audit_event: { event_id: download.audit_event_id, raw_payload_included: false },
+          document_bytes_included: true,
+          raw_path_exposed: false,
+          storage_pointer_ref_included: false,
+          safe_error_codes: [],
+          audit_hint_ref: query.audit_hint_ref,
+          production_ready_claim: false,
+        },
+      };
+    } catch (error) {
+      return errorResponse(Number(error?.status) || 400, requestId, [error?.safe_error_code ?? VAULT_DMS_API_ERROR_CODES.validation_error], {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: "blocked",
+      });
+    }
+  }
   const current = currentFileObjectForDocument({
     repository: runtime.repository,
     tenant_id: query.tenant_id,
@@ -571,17 +763,90 @@ export function handleVaultDocumentDownload({ documentId, query, context, reques
   }
 }
 
-export function handleVaultSearch({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+export async function handleVaultSearch({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const matterId = typeof query.matter_id === "string" && query.matter_id.trim() ? query.matter_id.trim() : null;
   const gated = routeGate({
     context,
     query,
     requestId,
     action: "dms:search",
-    resource: { resource_type: "vault_search" },
+    resource: { resource_type: "vault_search", matter_id: matterId },
     repository: runtime.repository,
   });
   if (gated) return gated;
-  const documents = runtime.repository.list({ tenant_id: query.tenant_id, model_type: "DmsDocument" });
+  if (isPostgresDmsRuntime(runtime)) {
+    const searchQuery = typeof query.q === "string" ? query.q : query.query ?? "";
+    const normalizedSearch = searchQuery.trim().toLocaleLowerCase("ko-KR");
+    const dateFrom = typeof query.date_from === "string" && /^\d{4}-\d{2}-\d{2}$/u.test(query.date_from) ? query.date_from : "";
+    const dateTo = typeof query.date_to === "string" && /^\d{4}-\d{2}-\d{2}$/u.test(query.date_to) ? query.date_to : "";
+    if ((query.current_version && query.current_version !== "current")
+      || (query.date_from && !dateFrom)
+      || (query.date_to && !dateTo)
+      || (dateFrom && dateTo && dateFrom > dateTo)) {
+      return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: "blocked",
+      });
+    }
+    const entries = await runtime.upload_runtime.listDocuments({
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      actor_id: context?.principal?.user_id ?? context?.principal?.actor_id ?? "unknown_actor",
+    });
+    const serialized = entries.map(serializePostgresDocument);
+    const { allowed } = trimItemsByPermission({
+      context,
+      items: serialized,
+      action: "dms:document:read",
+      resourceType: "vault_document",
+    });
+    const allowedIds = new Set(allowed.map((item) => item.document_id));
+    const results = entries.filter((entry) => {
+      if (!allowedIds.has(entry.document.document_id)) return false;
+      const searchable = `${entry.document.title} ${entry.document.document_id} ${entry.document.matter_id}`.toLocaleLowerCase("ko-KR");
+      if (normalizedSearch && !searchable.includes(normalizedSearch)) return false;
+      const updatedDate = entry.document.updated_at.slice(0, 10);
+      if (dateFrom && updatedDate < dateFrom) return false;
+      if (dateTo && updatedDate > dateTo) return false;
+      return true;
+    }).map((entry) => Object.freeze({
+      document_id: entry.document.document_id,
+      version_id: entry.version?.version_id ?? null,
+      matter_id: entry.document.matter_id,
+      title: entry.document.title,
+      indexed_at: entry.document.updated_at,
+      body_text_indexed: false,
+      ocr_text_indexed: false,
+      raw_text_included: false,
+      storage_pointer_ref_included: false,
+    }));
+    return {
+      status: 200,
+      body: {
+        request_id: requestId,
+        outcome: "passed",
+        items: results,
+        page_info: {
+          query: searchQuery,
+          returned_count: results.length,
+          omitted_result_count: null,
+          current_version_only: true,
+          date_from: dateFrom || null,
+          date_to: dateTo || null,
+          search_backend: "postgres_metadata",
+          body_text_indexed: false,
+          ocr_index_mode: "disabled",
+          ocr_runtime_executed: false,
+        },
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: results.length === 0 ? "empty" : null,
+        count_leak_prevented: true,
+        production_ready_claim: false,
+      },
+    };
+  }
+  const documents = runtime.repository.list({ tenant_id: query.tenant_id, model_type: "DmsDocument", matter_id: matterId });
   const serialized = documents.map(serializeDocument);
   const { allowed } = trimItemsByPermission({
     context,
@@ -869,22 +1134,47 @@ export function handleVaultSearchPreferences({ method, query, body, context, req
   };
 }
 
-export function handleVaultAudit({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+export async function handleVaultAudit({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const matterId = typeof query.matter_id === "string" && query.matter_id.trim() ? query.matter_id.trim() : null;
   const gated = routeGate({
     context,
     query,
     requestId,
     action: "dms:audit:read",
-    resource: { resource_type: "vault_audit" },
+    resource: { resource_type: "vault_audit", matter_id: matterId },
     repository: runtime.repository,
   });
   if (gated) return gated;
+  if (isPostgresDmsRuntime(runtime)) {
+    return {
+      status: 200,
+      body: {
+        request_id: requestId,
+        outcome: "passed",
+        items: await runtime.upload_runtime.listAuditEvents({ tenant_id: query.tenant_id, matter_id: matterId }),
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        production_ready_claim: false,
+      },
+    };
+  }
+  const documents = matterId
+    ? runtime.repository.list({ tenant_id: query.tenant_id, model_type: "DmsDocument", matter_id: matterId })
+    : [];
+  const documentIds = new Set(documents.map((document) => document.document_id));
+  const events = runtime.repository.listAudit({ tenant_id: query.tenant_id })
+    .filter((event) => !matterId
+      || event.matter_id === matterId
+      || event.metadata?.matter_id === matterId
+      || documentIds.has(event.object_id)
+      || documentIds.has(event.after?.document_id))
+    .map((event) => Object.freeze({ ...event, matter_id: matterId ?? event.matter_id ?? event.metadata?.matter_id ?? null }));
   return {
     status: 200,
     body: {
       request_id: requestId,
       outcome: "passed",
-      items: runtime.repository.listAudit({ tenant_id: query.tenant_id }),
+      items: events,
       safe_error_codes: [],
       audit_hint_ref: query.audit_hint_ref,
       production_ready_claim: false,

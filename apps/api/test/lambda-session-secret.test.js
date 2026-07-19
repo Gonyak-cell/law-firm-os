@@ -9,6 +9,12 @@ import {
   CTI_READONLY_EFS_SNAPSHOT_APPROVAL_REF,
   CTI_DB_CONNECTION_PROOF_ACTION,
   CTI_DB_CONNECTION_PROOF_APPROVAL_REF,
+  CTI_CLIENT_DISPLAY_NAME_REPAIR_ACTION,
+  CTI_CLIENT_DISPLAY_NAME_REPAIR_APPROVAL_REF,
+  CTI_MATTER_DB_SNAPSHOT_MATERIALIZE_ACTION,
+  CTI_MATTER_DB_SNAPSHOT_MATERIALIZE_APPROVAL_REF,
+  CTI_MATTER_STORE_READ_MODEL_PROOF_ACTION,
+  CTI_MATTER_STORE_READ_MODEL_PROOF_APPROVAL_REF,
   CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_ACTION,
   CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_APPROVAL_REF,
   HRX_ROSTER_RECONCILE_ACTION,
@@ -16,6 +22,8 @@ import {
   LCX_AUTH_RESET_RECOVERY_ACTION,
   LCX_AUTH_RESET_RECOVERY_APPROVAL_REF,
   buildCtiS1GAuthenticatedProductionProbeReceipt,
+  buildCtiS5EnrichmentExecuteReceipt,
+  buildCtiCutoverExecuteRetryReceipt,
   buildHrxRosterReconcileReceipt,
   buildLcxAuthResetRecoveryReceipt,
   createLambdaPasswordResetEmailDelivery,
@@ -146,68 +154,48 @@ test("Lambda password reset email delivery remains unconfigured without an appro
   assert.equal(delivery, undefined);
 });
 
-test("operational auth stays available when the HRX store is unreadable", async () => {
+test("operational startup rejects legacy JSON authority before reading a corrupt HRX store", async () => {
   const artifactsRoot = resolve("artifacts", "tmp");
   await mkdir(artifactsRoot, { recursive: true });
   const root = await mkdtemp(join(artifactsRoot, "lawos-hrx-corrupt-startup-test-"));
   const paths = await createDurableStorePaths(root);
-  let started = null;
   try {
     await writeFile(paths.hrxStorePath, "");
-    started = await startApiServer({
-      port: 0,
-      runtimeProfile: "operational",
-      sessionSecret: "operational-session-secret-32-bytes",
-      ...OPERATIONAL_STEP_UP_OPTIONS,
-      ...paths,
-    });
-
-    const baseUrl = `http://${started.host}:${started.port}`;
-    const health = await fetch(`${baseUrl}/api/health`);
-    assert.equal(health.status, 200);
-    const login = await fetch(`${baseUrl}/api/auth/login`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: "not-a-real-user@example.invalid", password: "not-a-real-password" }),
-    });
-    assert.equal(login.status, 401);
-    const body = await login.json();
-    assert.equal(body.reason, "auth_credential_invalid");
-    assert.deepEqual(body.safe_error_codes, ["AUTH_CREDENTIAL_INVALID"]);
+    await assert.rejects(startApiServer({
+        port: 0,
+        runtimeProfile: "operational",
+        persistenceAuthority: "file-current",
+        sessionSecret: "operational-session-secret-32-bytes",
+        ...OPERATIONAL_STEP_UP_OPTIONS,
+        ...paths,
+      }),
+      (error) => error?.code === "LAWOS_RUNTIME_PREFLIGHT_FAILED"
+        && /requires postgres-v2/u.test(error.message),
+    );
   } finally {
-    await new Promise((resolveClose) => started?.server?.close(resolveClose) ?? resolveClose());
     await rm(root, { recursive: true, force: true });
   }
 });
 
-test("operational auth stays available when the finance store is unreadable", async () => {
+test("operational startup rejects legacy JSON authority before reading a corrupt finance store", async () => {
   const artifactsRoot = resolve("artifacts", "tmp");
   await mkdir(artifactsRoot, { recursive: true });
   const root = await mkdtemp(join(artifactsRoot, "lawos-finance-corrupt-startup-test-"));
   const paths = await createDurableStorePaths(root);
-  let started = null;
   try {
     await writeFile(paths.financeStorePath, '{"records":[]}\nnot-json');
-    started = await startApiServer({
-      port: 0,
-      runtimeProfile: "operational",
-      sessionSecret: "operational-session-secret-32-bytes",
-      ...OPERATIONAL_STEP_UP_OPTIONS,
-      ...paths,
-    });
-
-    const baseUrl = `http://${started.host}:${started.port}`;
-    const login = await fetch(`${baseUrl}/api/auth/login`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: "not-a-real-user@example.invalid", password: "not-a-real-password" }),
-    });
-    assert.equal(login.status, 401);
-    const body = await login.json();
-    assert.equal(body.reason, "auth_credential_invalid");
-    assert.deepEqual(body.safe_error_codes, ["AUTH_CREDENTIAL_INVALID"]);
+    await assert.rejects(startApiServer({
+        port: 0,
+        runtimeProfile: "operational",
+        persistenceAuthority: "file-current",
+        sessionSecret: "operational-session-secret-32-bytes",
+        ...OPERATIONAL_STEP_UP_OPTIONS,
+        ...paths,
+      }),
+      (error) => error?.code === "LAWOS_RUNTIME_PREFLIGHT_FAILED"
+        && /requires postgres-v2/u.test(error.message),
+    );
   } finally {
-    await new Promise((resolveClose) => started?.server?.close(resolveClose) ?? resolveClose());
     await rm(root, { recursive: true, force: true });
   }
 });
@@ -309,13 +297,13 @@ test("I26 DB connection proof surface is direct-invoke only and approval gated",
   assert.equal(approvalBody.secret_value_returned, false);
 });
 
-test("I18 S1-G authenticated production probe restores credential store and returns only safe evidence", async () => {
+test("I18 S1-G legacy credential JSON probe is disabled for operational authority", async () => {
   const artifactsRoot = resolve("artifacts", "tmp");
   await mkdir(artifactsRoot, { recursive: true });
   const root = await mkdtemp(join(artifactsRoot, "lawos-cti-i18-test-"));
   const paths = await createDurableStorePaths(root);
-  let started = null;
   try {
+    let apiStarted = false;
     const receipt = await buildCtiS1GAuthenticatedProductionProbeReceipt({
       event: {
         lawos_maintenance_action: CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_ACTION,
@@ -329,84 +317,33 @@ test("I18 S1-G authenticated production probe restores credential store and retu
         AWS_LAMBDA_FUNCTION_NAME: "matter-lawos-api-prod",
       },
       apiBaseUrlFn: async () => {
-        started = await startApiServer({
-          port: 0,
-          runtimeProfile: "operational",
-          sessionSecret: "operational-session-secret-32-bytes",
-          ...OPERATIONAL_STEP_UP_OPTIONS,
-          ...paths,
-        });
-        return `http://${started.host}:${started.port}`;
+        apiStarted = true;
+        throw new Error("operational JSON probe must fail before API startup");
       },
     });
 
-    assert.equal(receipt.ok, true, JSON.stringify({ status: receipt.status, hrx: receipt.probe_results?.hrx_employees }));
-    assert.equal(receipt.status, "PASS");
-    assert.equal(receipt.approval_signature_ref, CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_APPROVAL_REF);
-    assert.equal(receipt.credential_store.records_before_count, 0);
-    assert.equal(receipt.credential_store.records_after_count, 1);
-    assert.equal(receipt.credential_store.target_status, "must_change");
-    assert.equal(receipt.probe_results.login.status, 200);
-    assert.equal(receipt.probe_results.login.credential_provider, "lawos-internal-password-provider-v1");
-    assert.equal(receipt.probe_results.login.local_dev_synthetic_only, false);
-    assert.equal(receipt.probe_results.session.status, 200);
-    assert.equal(receipt.probe_results.hrx_employees.status, 200);
-    assert.equal(receipt.probe_results.hrx_employees.employee_count, 0);
-    assert.equal(receipt.probe_results.hrx_employees.roster_source_ref_count, 0);
-    assert.equal(receipt.probe_results.hrx_employees.expected_reporting_line_count, 3);
-    assert.equal(receipt.probe_results.hrx_employees.matching_reporting_line_count, 0);
-    assert.equal(receipt.probe_results.hrx_employees.current_roster_verification_requested, false);
-    assert.equal(receipt.probe_results.hrx_employees.plaintext_employee_identifiers_returned, false);
-    assert.equal(receipt.probe_results.matter_readback.status, 200);
-    assert.equal(receipt.probe_results.marker.status, 200);
-    assert.equal(receipt.probe_results.audit_readback.matching_marker_audit_count, 1);
-    assert.equal(receipt.probe_results.marker_readback.matching_marker_readback_count, 1);
+    assert.equal(receipt.ok, false);
+    assert.equal(receipt.status, "BLOCKED_CREDENTIAL_STORE_PRECONDITION_FAILED");
+    assert.equal(receipt.reason, "operational_credential_json_authority_disabled");
     assert.equal(receipt.boundary.direct_invoke_only, true);
-    assert.equal(receipt.boundary.public_http_endpoint, false);
-    assert.equal(receipt.boundary.real_login_flow_used, true);
-    assert.equal(receipt.boundary.debug_endpoint_used, false);
-    assert.equal(receipt.boundary.direct_token_mint_used, false);
-    assert.equal(receipt.boundary.temporary_backdoor_principal_used, false);
-    assert.equal(receipt.boundary.token_or_password_returned, false);
-    assert.equal(receipt.boundary.plaintext_password_recorded, false);
-    assert.equal(receipt.boundary.credential_material_recorded_in_receipt, false);
-    assert.equal(receipt.boundary.credential_store_restored, true);
-    assert.equal(receipt.boundary.production_migration_executed, false);
-    assert.equal(receipt.boundary.cutover_executed, false);
-    assert.equal(receipt.credential_store_restore.executed, true);
-    assert.equal(receipt.credential_store_restore.mode, "removed_probe_store");
-    assert.equal(receipt.credential_store_restore.plaintext_password_returned, false);
-    assert.equal(receipt.credential_store_restore.password_hash_digest_returned, false);
-    assert.equal(receipt.credential_store_restore.password_hash_salt_returned, false);
-
-    const receiptText = JSON.stringify(receipt);
-    assert.doesNotMatch(receiptText, /jwsuh@amic\.kr/);
-    assert.doesNotMatch(receiptText, /lawos_session_v1\./);
-    assert.doesNotMatch(receiptText, /operational-session-secret-32-bytes/);
-
+    assert.equal(receipt.boundary.credential_store_write_executed, false);
+    assert.equal(apiStarted, false);
     await assert.rejects(
       readFile(paths.authCredentialStorePath, "utf8"),
       /ENOENT/,
     );
   } finally {
-    if (started) await new Promise((resolveClose) => started.server.close(resolveClose));
     await rm(root, { recursive: true, force: true });
   }
 });
 
-test("I18 S1-G authenticated production probe verifies the current reporting lines", async () => {
+test("I18 S1-G legacy credential JSON probe remains disabled when roster verification is requested", async () => {
   const artifactsRoot = resolve("artifacts", "tmp");
   await mkdir(artifactsRoot, { recursive: true });
   const root = await mkdtemp(join(artifactsRoot, "lawos-cti-i18-roster-test-"));
   const paths = await createDurableStorePaths(root);
-  let started = null;
   try {
-    await buildHrxRosterReconcileReceipt({
-      env: {
-        LAWOS_READONLY_SNAPSHOT_ALLOWED_ROOT: root,
-        LAWOS_HRX_STORE_PATH: paths.hrxStorePath,
-      },
-    });
+    let apiStarted = false;
     const receipt = await buildCtiS1GAuthenticatedProductionProbeReceipt({
       event: {
         lawos_maintenance_action: CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_ACTION,
@@ -421,27 +358,16 @@ test("I18 S1-G authenticated production probe verifies the current reporting lin
         AWS_LAMBDA_FUNCTION_NAME: "matter-lawos-api-prod",
       },
       apiBaseUrlFn: async () => {
-        started = await startApiServer({
-          port: 0,
-          runtimeProfile: "operational",
-          sessionSecret: "operational-session-secret-32-bytes",
-          ...OPERATIONAL_STEP_UP_OPTIONS,
-          ...paths,
-        });
-        return `http://${started.host}:${started.port}`;
+        apiStarted = true;
+        throw new Error("operational JSON probe must fail before API startup");
       },
     });
 
-    assert.equal(receipt.status, "PASS");
-    assert.equal(receipt.probe_results.hrx_employees.employee_count, 10);
-    assert.equal(receipt.probe_results.hrx_employees.roster_source_ref_count, 10);
-    assert.equal(receipt.probe_results.hrx_employees.expected_reporting_line_count, 3);
-    assert.equal(receipt.probe_results.hrx_employees.matching_reporting_line_count, 3);
-    assert.equal(receipt.probe_results.hrx_employees.current_roster_verification_requested, true);
-    assert.equal(receipt.boundary.credential_store_restored, true);
-    assert.equal(receipt.boundary.token_or_password_returned, false);
+    assert.equal(receipt.status, "BLOCKED_CREDENTIAL_STORE_PRECONDITION_FAILED");
+    assert.equal(receipt.reason, "operational_credential_json_authority_disabled");
+    assert.equal(receipt.boundary.credential_store_write_executed, false);
+    assert.equal(apiStarted, false);
   } finally {
-    if (started) await new Promise((resolveClose) => started.server.close(resolveClose));
     await rm(root, { recursive: true, force: true });
   }
 });
@@ -466,6 +392,7 @@ test("approved HRX roster reconciliation creates the current members and reporti
   try {
     const receipt = await buildHrxRosterReconcileReceipt({
       env: {
+        LAWOS_RUNTIME_PROFILE: "local-dev",
         LAWOS_READONLY_SNAPSHOT_ALLOWED_ROOT: root,
         LAWOS_HRX_STORE_PATH: paths.hrxStorePath,
       },
@@ -492,6 +419,50 @@ test("approved HRX roster reconciliation creates the current members and reporti
   }
 });
 
+test("operational legacy migration writers fail closed without touching JSON stores", async () => {
+  const env = { LAWOS_RUNTIME_PROFILE: "operational" };
+  const receipts = await Promise.all([
+    buildCtiS5EnrichmentExecuteReceipt({ env }),
+    buildCtiCutoverExecuteRetryReceipt({ env }),
+    buildHrxRosterReconcileReceipt({ env }),
+  ]);
+  assert.deepEqual(
+    receipts.map((receipt) => receipt.status),
+    [
+      "BLOCKED_OPERATIONAL_JSON_AUTHORITY_DISABLED",
+      "BLOCKED_OPERATIONAL_JSON_AUTHORITY_DISABLED",
+      "BLOCKED_OPERATIONAL_JSON_AUTHORITY_DISABLED",
+    ],
+  );
+  assert.equal(receipts.every((receipt) => receipt.production_write_executed === false), true);
+  assert.equal(receipts.every((receipt) => receipt.json_fallback === false), true);
+  assert.equal(receipts.every((receipt) => receipt.dual_write === false), true);
+});
+
+test("approved legacy Matter JSON maintenance actions remain disabled in operational", async () => {
+  const previousProfile = process.env.LAWOS_RUNTIME_PROFILE;
+  process.env.LAWOS_RUNTIME_PROFILE = "operational";
+  try {
+    const actions = [
+      [CTI_MATTER_DB_SNAPSHOT_MATERIALIZE_ACTION, CTI_MATTER_DB_SNAPSHOT_MATERIALIZE_APPROVAL_REF],
+      [CTI_MATTER_STORE_READ_MODEL_PROOF_ACTION, CTI_MATTER_STORE_READ_MODEL_PROOF_APPROVAL_REF],
+      [CTI_CLIENT_DISPLAY_NAME_REPAIR_ACTION, CTI_CLIENT_DISPLAY_NAME_REPAIR_APPROVAL_REF],
+    ];
+    for (const [lawos_maintenance_action, approval_signature_ref] of actions) {
+      const response = await handler({ lawos_maintenance_action, approval_signature_ref });
+      assert.equal(response.statusCode, 424);
+      const body = JSON.parse(response.body);
+      assert.equal(body.status, "BLOCKED_OPERATIONAL_JSON_AUTHORITY_DISABLED");
+      assert.equal(body.production_write_executed, false);
+      assert.equal(body.json_fallback, false);
+      assert.equal(body.dual_write, false);
+    }
+  } finally {
+    if (previousProfile === undefined) delete process.env.LAWOS_RUNTIME_PROFILE;
+    else process.env.LAWOS_RUNTIME_PROFILE = previousProfile;
+  }
+});
+
 test("HRX roster reconciliation surface is direct-invoke only and approval gated", async () => {
   const httpResponse = await handler({
     rawPath: "/api/maintenance/hrx-roster-reconcile",
@@ -509,12 +480,11 @@ test("HRX roster reconciliation surface is direct-invoke only and approval gated
   assert.equal(approvalBody.required_approval_signature_ref, HRX_ROSTER_RECONCILE_APPROVAL_REF);
 });
 
-test("LCX-AUTH reset recovery creates one target reset URL without setting a password", async () => {
+test("LCX-AUTH legacy reset JSON writer is disabled for operational authority", async () => {
   const artifactsRoot = resolve("artifacts", "tmp");
   await mkdir(artifactsRoot, { recursive: true });
   const root = await mkdtemp(join(artifactsRoot, "lawos-lcx-auth-reset-test-"));
   const paths = await createDurableStorePaths(root);
-  let started = null;
   const issuedAt = Date.now();
   try {
     const receipt = await buildLcxAuthResetRecoveryReceipt({
@@ -525,6 +495,7 @@ test("LCX-AUTH reset recovery creates one target reset URL without setting a pas
         target_email: "jwsuh@amic.kr",
       },
       env: {
+        LAWOS_RUNTIME_PROFILE: "operational",
         LAWOS_READONLY_SNAPSHOT_ALLOWED_ROOT: root,
         LAWOS_AUTH_PASSWORD_RESET_STORE_PATH: paths.authPasswordResetStorePath,
         LAWOS_AUTH_PASSWORD_RESET_BASE_URL: "matter://password-reset/confirm",
@@ -533,65 +504,17 @@ test("LCX-AUTH reset recovery creates one target reset URL without setting a pas
       now: () => issuedAt,
     });
 
-    assert.equal(receipt.ok, true);
-    assert.equal(receipt.status, "PASS_ONE_TIME_RESET_OPEN_URL_CREATED");
-    assert.equal(receipt.approval_signature_ref, LCX_AUTH_RESET_RECOVERY_APPROVAL_REF);
-    assert.match(receipt.reset_open_url, /^https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=/);
-    assert.equal(receipt.reset_store.write_executed, true);
-    assert.equal(receipt.reset_store.records_before_count, 0);
-    assert.equal(receipt.reset_store.records_after_count, 1);
-    assert.equal(receipt.boundary.direct_invoke_only, true);
-    assert.equal(receipt.boundary.public_http_endpoint, false);
-    assert.equal(receipt.boundary.target_count, 1);
-    assert.equal(receipt.boundary.target_user_only, true);
-    assert.equal(receipt.boundary.other_user_credential_mutated, false);
-    assert.equal(receipt.boundary.password_value_set, false);
-    assert.equal(receipt.boundary.password_value_returned, false);
-    assert.equal(receipt.boundary.credential_store_write_executed, false);
-    assert.equal(receipt.boundary.reset_token_store_write_executed, true);
-    assert.equal(receipt.token_material_returned_to_caller, true);
-    assert.equal(receipt.reset_url_returned_to_caller, true);
+    assert.equal(receipt.ok, false);
+    assert.equal(receipt.status, "BLOCKED_OPERATIONAL_JSON_AUTHORITY_DISABLED");
+    assert.equal(receipt.reason, "operational_password_reset_json_authority_disabled");
+    assert.equal(receipt.credential_store_write_executed, false);
+    assert.equal(receipt.reset_token_store_write_executed, false);
+    assert.equal(receipt.token_material_returned_to_caller, false);
+    assert.equal(receipt.reset_url_returned_to_caller, false);
     assert.equal(receipt.production_ready_claim, false);
     assert.equal(receipt.go_live_claim, false);
-
-    const receiptText = JSON.stringify(receipt);
-    assert.doesNotMatch(receiptText, /jwsuh@amic\.kr/);
-    assert.doesNotMatch(receiptText, /new-test-password/);
-
-    const resetUrl = new URL(receipt.reset_open_url);
-    const token = new URLSearchParams(resetUrl.hash.slice(1)).get("token");
-    assert.equal(typeof token, "string");
-    assert.ok(token.length >= 32);
-
-    started = await startApiServer({
-      port: 0,
-      runtimeProfile: "operational",
-      sessionSecret: "operational-session-secret-32-bytes",
-      ...OPERATIONAL_STEP_UP_OPTIONS,
-      ...paths,
-    });
-    const baseUrl = `http://${started.host}:${started.port}`;
-    const confirm = await fetch(`${baseUrl}/api/auth/password-reset/confirm`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ token, password: "new-test-password-1234" }),
-    });
-    assert.equal(confirm.status, 200);
-    const confirmBody = await confirm.json();
-    assert.equal(confirmBody.ok, true);
-    assert.equal(confirmBody.token_material_returned, false);
-
-    const login = await fetch(`${baseUrl}/api/auth/login`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: "jwsuh@amic.kr", password: "new-test-password-1234" }),
-    });
-    assert.equal(login.status, 200);
-    const loginBody = await login.json();
-    assert.equal(loginBody.ok, true);
-    assert.equal(loginBody.session.user_id, "user_amic_jwsuh");
+    await assert.rejects(readFile(paths.authPasswordResetStorePath, "utf8"), /ENOENT/);
   } finally {
-    if (started) await new Promise((resolveClose) => started.server.close(resolveClose));
     await rm(root, { recursive: true, force: true });
   }
 });

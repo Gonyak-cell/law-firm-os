@@ -198,7 +198,7 @@ export function handleRecordActionsApiRequest({ pathname, method, query, body, c
         },
       };
     }
-    const actorId = body?.actor_id ?? context?.principal?.user_id;
+    const actorId = context?.principal?.user_id;
     if (route.action === "record_action:field_update") {
       const recordId = decodeURIComponent(route.params[1]);
       const idempotencyKey = body?.idempotency_key ?? `record-action-field-update:${objectName}:${recordId}:${Object.keys(body?.field_updates ?? {}).join(",")}`;

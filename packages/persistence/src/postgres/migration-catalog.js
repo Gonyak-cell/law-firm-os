@@ -20,6 +20,11 @@ export const POSTGRES_FOUNDATION_MIGRATIONS = Object.freeze([
   loadMigration("002_identity_ledger", "002_identity_ledger.sql"),
   loadMigration("003_domain_ledger", "003_domain_ledger.sql"),
   loadMigration("004_dms_upload_runtime", "004_dms_upload_runtime.sql"),
+  loadMigration("005_domain_runtime_authority", "005_domain_runtime_authority.sql"),
+  loadMigration("006_entra_oidc_authority", "006_entra_oidc_authority.sql"),
+  loadMigration("007_break_glass_multi_approval", "007_break_glass_multi_approval.sql"),
+  loadMigration("008_dms_permanent_delete_approval", "008_dms_permanent_delete_approval.sql"),
+  loadMigration("009_authenticated_tenant_context", "009_authenticated_tenant_context.sql"),
 ]);
 
 export function listPostgresFoundationMigrations() {

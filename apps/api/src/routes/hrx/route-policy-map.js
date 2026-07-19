@@ -732,7 +732,7 @@ const HRX_ROUTE_POLICIES = Object.freeze([
   {
     id: "hrx.leave.occurrence.upload.execute",
     method: "POST",
-    pattern: /^\/api\/hrx\/leave\/accrual\/manual\/uploads\/(?<batch_id>[^/]+)\/execute$/,
+    pattern: /^\/api\/hrx\/leave\/accrual\/manual\/uploads\/(?<batch_id>[^/]+)\/(?<command>approve|execute)$/,
     action: "hrx.leave.ledger.adjust.upload.execute",
     sensitivity: "leave",
     required_scope: "hrx.leave.ledger.adjust",
@@ -764,7 +764,7 @@ const HRX_ROUTE_POLICIES = Object.freeze([
   {
     id: "hrx.leave.manual.execute",
     method: "POST",
-    pattern: /^\/api\/hrx\/leave\/accrual\/manual\/execute$/,
+    pattern: /^\/api\/hrx\/leave\/accrual\/manual\/(?<command>approve|execute)$/,
     action: "hrx.leave.ledger.adjust",
     sensitivity: "leave",
     required_scope: "hrx.leave.ledger.adjust",
@@ -968,7 +968,7 @@ const HRX_ROUTE_POLICIES = Object.freeze([
   {
     id: "hrx.leave.termination.execute",
     method: "POST",
-    pattern: /^\/api\/hrx\/leave\/termination-reconciliations\/execute$/,
+    pattern: /^\/api\/hrx\/leave\/termination-reconciliations\/(?<command>approve|execute)$/,
     action: "hrx.leave.termination.settle",
     sensitivity: "leave",
     required_scope: "hrx.leave.termination.settle",

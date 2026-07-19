@@ -16,7 +16,7 @@ function payload() {
     matterRepository: createMatterRepository(),
     dmsRepository: createDmsRepository(),
     matter: { tenant_id: TENANT, matter_id: 'matter_mv_hardening', matter_number: 'MV-HARDEN-1', title: 'Hardening', status: 'opening', legal_client_party_id: 'party', billing_client_party_id: 'party', permission_envelope_id: 'perm_mv', audit_trace_id: 'audit_mv', created_by: 'actor', created_at: '2026-06-20T00:00:00.000Z' },
-    clearance_token: { clearance_token_id: 'clearance', tenant_id: TENANT, intake_request_id: 'intake', conflict_check_id: 'conflict', engagement_id: 'engagement', snapshot_hash: 'sha256:clearance', token_state: 'valid', outcome: 'passed' },
+    clearance_token: { clearance_token_id: 'clearance', tenant_id: TENANT, intake_request_id: 'intake', conflict_check_id: 'conflict', engagement_id: 'engagement', snapshot_hash: 'sha256:clearance', token_state: 'valid', outcome: 'passed', expires_at: '2999-01-01T00:00:00.000Z' },
     matter_number_seed: 'MV-HARDEN',
     idempotency_key: 'idem-mv-hardening',
     actor_id: 'actor',

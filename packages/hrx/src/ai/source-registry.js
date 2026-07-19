@@ -126,3 +126,72 @@ export function createHrxAiSourceRegistry(seed = []) {
 
   return Object.freeze(registry);
 }
+
+function serializeSource(source) {
+  return Object.freeze({
+    tenant_id: source.tenant_id,
+    source_ref: source.source_ref,
+    source_type: source.source_type,
+    sensitivity: source.sensitivity,
+    title: source.title,
+    owner_ref: source.owner_ref,
+    tags_json: JSON.stringify(source.tags),
+    indexed_by: source.indexed_by,
+    raw_payload_present: 0,
+  });
+}
+
+function deserializeSource(row) {
+  if (!row) return undefined;
+  return createHrxAiSourceRecord({
+    tenant_id: row.tenant_id,
+    source_ref: row.source_ref,
+    source_type: row.source_type,
+    sensitivity: row.sensitivity,
+    title: row.title,
+    owner_ref: row.owner_ref,
+    tags: JSON.parse(row.tags_json ?? "[]"),
+  });
+}
+
+export function createSqlHrxAiSourceRegistry({ store } = {}) {
+  if (!store || typeof store.query !== "function") throw new TypeError("SQL HRX AI source registry requires store.query");
+
+  const registry = {
+    index(input) {
+      const source = createHrxAiSourceRecord(input);
+      return deserializeSource(store.query("insert", {
+        table: "hrx_ai_source_registry",
+        row: serializeSource(source),
+      }));
+    },
+    get(ref = {}) {
+      return deserializeSource(store.query("selectOne", {
+        table: "hrx_ai_source_registry",
+        where: { tenant_id: ref.tenant_id, source_ref: ref.source_ref },
+      }));
+    },
+    list(query = {}) {
+      const where = {};
+      if (query.tenant_id) where.tenant_id = query.tenant_id;
+      if (query.source_type) where.source_type = query.source_type;
+      if (query.sensitivity) where.sensitivity = query.sensitivity;
+      const tags = Array.isArray(query.tags) ? query.tags : [];
+      const sourceRefs = Array.isArray(query.source_refs) ? new Set(query.source_refs) : null;
+      return Object.freeze(store.query("select", { table: "hrx_ai_source_registry", where })
+        .map(deserializeSource)
+        .filter((source) => !sourceRefs || sourceRefs.has(source.source_ref))
+        .filter((source) => tags.every((tag) => source.tags.includes(tag))));
+    },
+    search(query = {}) {
+      const limit = Number.isInteger(query.limit) && query.limit > 0 ? query.limit : 10;
+      const sourceTypes = Array.isArray(query.source_types) ? new Set(query.source_types) : null;
+      return Object.freeze(registry.list(query)
+        .filter((source) => !sourceTypes || sourceTypes.has(source.source_type))
+        .filter((source) => sourceMatchesQuery(source, query.query))
+        .slice(0, limit));
+    },
+  };
+
+  return Object.freeze(registry);
+}

@@ -21,6 +21,7 @@ export function openMatterWithVault({
   require_canonical_matter_code = false,
   actor_id,
   billing,
+  now,
 } = {}) {
   requiredString({ actor_id }, "actor_id");
   requiredString({ idempotency_key }, "idempotency_key");
@@ -45,6 +46,7 @@ export function openMatterWithVault({
       require_canonical_matter_code,
       actor_id,
       billing,
+      ...(now === undefined ? {} : { now }),
     });
 
     const dmsCreated = dmsRepository.transaction((dmsTx) =>

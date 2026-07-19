@@ -292,7 +292,7 @@ export function handleRecordsSearch({ query, context, requestId, runtime = DEFAU
     query,
     context,
     requestId,
-    action: "search",
+    action: "master_data:search",
     resourceType: "master_data_record",
     supportedFilterKeys: SUPPORTED_FILTER_KEYS.records,
     runtime,
@@ -306,7 +306,7 @@ export function handleRelationshipLookup({ query, context, requestId, runtime = 
     query,
     context,
     requestId,
-    action: "search",
+    action: "master_data:search",
     resourceType: "master_data_relationship",
     supportedFilterKeys: SUPPORTED_FILTER_KEYS.relationships,
     runtime,
@@ -324,7 +324,7 @@ export function handleClientGroupResolution({ clientGroupId, query, context, req
       resource_type: "master_data_client_group",
       resource_id: clientGroupId,
     },
-    action: "view",
+    action: "master_data:view",
   });
   const gated = gateDecisionResponse(decision, requestId, query.audit_hint_ref);
   if (gated) return gated;
@@ -354,7 +354,7 @@ export function handleClientGroupResolution({ clientGroupId, query, context, req
   const { allowed } = trimItemsByPermission({
     context,
     items: [serializeRecord(group, runtime).item],
-    action: "view",
+    action: "master_data:view",
     resourceType: "master_data_client_group",
   });
   if (allowed.length === 0) {

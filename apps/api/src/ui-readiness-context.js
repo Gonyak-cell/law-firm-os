@@ -213,16 +213,16 @@ function writeResponse({ body, context, requestId, runtime, action, resourceType
 }
 
 export function handleUiAudit({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
-  const gated = routeGate({ context, query, requestId, action: "ui:audit:read", resourceType: "ui_audit" });
+  const gated = routeGate({ context, query, requestId, action: "ui_readiness:audit:read", resourceType: "ui_audit" });
   if (gated) return gated;
   return { status: 200, body: { request_id: requestId, outcome: "passed", items: runtime.repository.listAudit({ tenant_id: query.tenant_id }), safe_error_codes: [], audit_hint_ref: query.audit_hint_ref, count_leak_prevented: true, production_ready_claim: false } };
 }
 
 export async function handleUiReadinessApiRequest({ pathname, method, query, body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
-  if (pathname === "/api/ui/readiness" && method === "GET") return listResponse({ query, context, requestId, runtime, action: "ui:readiness:read", resourceType: "ui_readiness_check", modelType: "UiReadinessCheck" });
+  if (pathname === "/api/ui/readiness" && method === "GET") return listResponse({ query, context, requestId, runtime, action: "ui_readiness:read", resourceType: "ui_readiness_check", modelType: "UiReadinessCheck" });
   if (pathname === "/api/ui/audit" && method === "GET") return handleUiAudit({ query, context, requestId, runtime });
-  if (pathname === "/api/ui/checks" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "ui:readiness:write", resourceType: "ui_readiness_check", tenantId: body?.ui_check?.tenant_id ?? body?.tenant_id, itemKey: "ui_check", fn: () => recordUiReadinessCheck({ repository: runtime.repository, ui_check: body.ui_check, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
-  if (pathname === "/api/ui/critical-path-runs" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "ui:critical_path:write", resourceType: "critical_path_run", tenantId: body?.critical_path_run?.tenant_id ?? body?.tenant_id, itemKey: "critical_path_run", fn: () => recordCriticalPathRun({ repository: runtime.repository, critical_path_run: body.critical_path_run, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
-  if (pathname === "/api/ui/adjudications" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "ui:adjudication:write", resourceType: "ui_adjudication", tenantId: body?.ui_adjudication?.tenant_id ?? body?.tenant_id, itemKey: "ui_adjudication", fn: () => adjudicateUiReadiness({ repository: runtime.repository, ui_adjudication: body.ui_adjudication, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
+  if (pathname === "/api/ui/checks" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "ui_readiness:write", resourceType: "ui_readiness_check", tenantId: body?.ui_check?.tenant_id ?? body?.tenant_id, itemKey: "ui_check", fn: () => recordUiReadinessCheck({ repository: runtime.repository, ui_check: body.ui_check, actor_id: context.principal.user_id, idempotency_key: body.idempotency_key }) });
+  if (pathname === "/api/ui/critical-path-runs" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "ui_readiness:critical_path:write", resourceType: "critical_path_run", tenantId: body?.critical_path_run?.tenant_id ?? body?.tenant_id, itemKey: "critical_path_run", fn: () => recordCriticalPathRun({ repository: runtime.repository, critical_path_run: body.critical_path_run, actor_id: context.principal.user_id, idempotency_key: body.idempotency_key }) });
+  if (pathname === "/api/ui/adjudications" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "ui_readiness:adjudication:write", resourceType: "ui_adjudication", tenantId: body?.ui_adjudication?.tenant_id ?? body?.tenant_id, itemKey: "ui_adjudication", fn: () => adjudicateUiReadiness({ repository: runtime.repository, ui_adjudication: body.ui_adjudication, actor_id: context.principal.user_id, idempotency_key: body.idempotency_key }) });
   return errorResponse(404, requestId, [UI_READINESS_API_ERROR_CODES.not_found], { audit_hint_ref: query.audit_hint_ref });
 }

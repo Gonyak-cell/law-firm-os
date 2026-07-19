@@ -512,7 +512,6 @@ function clearanceTokenPayload({ body } = {}) {
     conflict_check_id: input.conflict_check_id ?? body?.conflict_check_id,
     engagement_id: input.engagement_id ?? body?.engagement_id,
     snapshot_hash: input.snapshot_hash ?? body?.snapshot_hash,
-    expires_at: input.expires_at ?? body?.expires_at,
   };
 }
 
@@ -937,7 +936,7 @@ function includesDirectMatterReference(input = {}) {
 }
 
 function actorIdFrom(body, context) {
-  const actorId = body?.actor_id ?? context?.principal?.user_id;
+  const actorId = context?.principal?.user_id;
   return typeof actorId === "string" && actorId.trim() !== "" ? actorId : null;
 }
 
@@ -1109,7 +1108,7 @@ export function handleCrmAccountCreate({ body, context, requestId, runtime = DEF
   if (displayName.length < 2 || displayName.length > 120 || account.matter_id || account.matter_ref || account.matter_create_command) {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
   }
-  const actorId = body?.actor_id ?? context?.principal?.user_id;
+  const actorId = context?.principal?.user_id;
   if (typeof actorId !== "string" || actorId.trim() === "") {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
   }
@@ -1305,7 +1304,7 @@ export function handleCrmAccountPatch({ accountId, body, context, requestId, run
   if (!patch) {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
   }
-  const actorId = body?.actor_id ?? context?.principal?.user_id;
+  const actorId = context?.principal?.user_id;
   if (typeof actorId !== "string" || actorId.trim() === "") {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
   }
@@ -1421,7 +1420,7 @@ export function handleCrmContactCreate({ body, context, requestId, runtime = DEF
   ) {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
   }
-  const actorId = body?.actor_id ?? context?.principal?.user_id;
+  const actorId = context?.principal?.user_id;
   if (typeof actorId !== "string" || actorId.trim() === "") {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
   }
@@ -1611,7 +1610,7 @@ export function handleCrmContactPatch({ contactId, body, context, requestId, run
   if (!patch) {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
   }
-  const actorId = body?.actor_id ?? context?.principal?.user_id;
+  const actorId = context?.principal?.user_id;
   if (typeof actorId !== "string" || actorId.trim() === "") {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
   }
@@ -1758,7 +1757,7 @@ export function handleCrmDuplicateReview({ body, context, requestId, runtime = D
       audit_event: {
         event_id: `crm.duplicate_review.requested:${body.tenant_id}:${requestId}`,
         tenant_id: body.tenant_id,
-        actor_id: body.actor_id ?? context?.principal?.user_id ?? null,
+        actor_id: context?.principal?.user_id ?? null,
         action: "crm.duplicate_review.requested",
         object_type: "MasterDataDuplicateReview",
         decision: "review_required",
@@ -1787,7 +1786,7 @@ export function handleCrmDuplicateMergeProposalCreate({ body, context, requestId
   };
   const gated = routeGate({ context, query, requestId, policy });
   if (gated) return gated;
-  const actorId = proposalInput.actor_id ?? body?.actor_id ?? context?.principal?.user_id;
+  const actorId = context?.principal?.user_id;
   if (typeof actorId !== "string" || actorId.trim() === "") {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
   }
@@ -1905,7 +1904,7 @@ export function handleCrmDuplicateMergeProposalExecute({
   };
   const gated = routeGate({ context, query, requestId, policy });
   if (gated) return gated;
-  const actorId = body?.actor_id ?? context?.principal?.user_id;
+  const actorId = context?.principal?.user_id;
   if (typeof actorId !== "string" || actorId.trim() === "") {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
   }
@@ -2501,7 +2500,7 @@ export function handleCrmLeadCreate({ body, context, requestId, runtime = DEFAUL
     const result = createLead({
       repository: runtime.crmRepository,
       lead: body.lead,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -2526,7 +2525,7 @@ export function handleCrmOpportunityCreate({ body, context, requestId, runtime =
     const result = createOpportunity({
       repository: runtime.crmRepository,
       opportunity: body.opportunity,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -2553,7 +2552,7 @@ export function handleOpportunityHandoff({ body, context, requestId, runtime = D
       intakeService: runtime.intakeService,
       tenant_id: body.tenant_id,
       opportunity_id: opportunityId,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
       intake_request_id: body.intake_request_id,
       requested_scope_summary: body.requested_scope_summary,
@@ -2580,7 +2579,7 @@ export function handleIntakeRequestCreate({ body, context, requestId, runtime = 
     const result = createIntakeRequest({
       repository: runtime.intakeRepository,
       request: body.request,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -2609,7 +2608,7 @@ export function handleConflictCheckCreate({ body, context, requestId, runtime = 
     const result = createConflictCheck({
       repository: runtime.intakeRepository,
       conflict_check: body.conflict_check,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     const searchResult = executeConflictSearch({
@@ -2619,7 +2618,7 @@ export function handleConflictCheckCreate({ body, context, requestId, runtime = 
         body,
         auditHintRef: query.audit_hint_ref,
       }),
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.conflict_search?.idempotency_key ?? `${body.idempotency_key}:search`,
       masterDataRepository: runtime.masterDataRepository,
       matterRepository: runtime.matterRepository,
@@ -2658,7 +2657,7 @@ export function handleConflictDecisionRecord({ body, context, requestId, runtime
     const result = decideConflict({
       repository: runtime.intakeRepository,
       decision,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     const updatedConflictCheck = runtime.intakeRepository.get({
@@ -2700,7 +2699,7 @@ export function handleWaiverApprove({ body, context, requestId, runtime = DEFAUL
     const result = approveWaiver({
       repository: runtime.intakeRepository,
       waiver,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     const updatedConflictCheck = runtime.intakeRepository.get({
@@ -2736,7 +2735,7 @@ export function handleEngagementApprove({ body, context, requestId, runtime = DE
     const result = approveEngagement({
       repository: runtime.intakeRepository,
       engagement,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
       dms_repository: runtime.dmsRuntime?.repository,
       dms_storage: runtime.dmsRuntime?.storage,
@@ -2778,10 +2777,10 @@ export function handleClearanceTokenIssue({ body, context, requestId, runtime = 
     const result = issueClearanceToken({
       repository: runtime.intakeRepository,
       token: clearanceTokenPayload({ body }),
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
-    const validation = validateClearanceToken(result.clearance_token, { now: body.now });
+    const validation = validateClearanceToken(result.clearance_token);
     return itemResponse({
       requestId,
       auditHintRef: query.audit_hint_ref,

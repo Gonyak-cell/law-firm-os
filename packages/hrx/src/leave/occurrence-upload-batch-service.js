@@ -58,9 +58,21 @@ function batchRows(store, tenantId, batchId) {
     .sort((left, right) => left.row_number - right.row_number);
 }
 
+function batchApproval(store, row) {
+  const receipt = store.query("selectOne", {
+    table: "hrx_leave_command_receipts",
+    where: { tenant_id: row.tenant_id, idempotency_key: `leave-manual-approval:occurrence_upload:${row.upload_batch_id}` },
+  });
+  if (!receipt || receipt.command_type !== "leave_manual_approval") return null;
+  const result = parseJson(receipt.result_json);
+  if (result.object_id !== row.upload_batch_id || result.snapshot_hash !== row.preview_hash) return null;
+  return Object.freeze({ approval_receipt_id: receipt.command_receipt_id, approved_by_actor_id: result.approved_by_actor_id ?? null });
+}
+
 function batchView(store, row, { replayed = false, newEntries = 0 } = {}) {
   if (!row) return undefined;
   const rows = batchRows(store, row.tenant_id, row.upload_batch_id);
+  const approval = batchApproval(store, row);
   return Object.freeze({
     tenant_id: row.tenant_id,
     upload_batch_id: row.upload_batch_id,
@@ -72,7 +84,8 @@ function batchView(store, row, { replayed = false, newEntries = 0 } = {}) {
     status: row.status,
     row_count: row.row_count,
     created_by_actor_id: row.created_by_actor_id,
-    approved_by_actor_id: row.approved_by_actor_id,
+    approved_by_actor_id: row.approved_by_actor_id ?? approval?.approved_by_actor_id ?? null,
+    approval_receipt_id: approval?.approval_receipt_id ?? null,
     state_version: row.state_version,
     created_at: row.created_at,
     updated_at: row.updated_at,
@@ -98,7 +111,7 @@ export function createLeaveOccurrenceUploadBatchService({
   idFactory = (prefix) => `${prefix}_${randomUUID()}`,
 } = {}) {
   assertHrxStorePort(store);
-  if (!manualService || typeof manualService.prepareManualUpload !== "function" || typeof manualService.executeManual !== "function" || typeof manualService.assertManualApproval !== "function") {
+  if (!manualService || typeof manualService.prepareManualUpload !== "function" || typeof manualService.executeApprovedUploadRow !== "function" || typeof manualService.recordManualApproval !== "function" || typeof manualService.assertManualApprovalReceipt !== "function") {
     throw new TypeError("leave occurrence upload batch service requires the manual accrual service");
   }
 
@@ -234,11 +247,13 @@ export function createLeaveOccurrenceUploadBatchService({
         completed_at: null,
       });
       try {
-        const result = manualService.executeManual(context, {
-          rows: [parseJson(running.payload_json)],
+        const result = manualService.executeApprovedUploadRow(context, {
+          row: parseJson(running.payload_json),
           schedule_only: batch.schedule_only,
           as_of: batch.as_of,
-          approved_by_actor_id: batch.approved_by_actor_id,
+          approval_receipt_id: batchApproval(store, batch)?.approval_receipt_id,
+          upload_batch_id: batch.upload_batch_id,
+          preview_hash: batch.preview_hash,
           idempotency_key: `${batch.execute_idempotency_key}:${running.row_key}`,
         });
         const rowResult = result.rows[0];
@@ -278,13 +293,26 @@ export function createLeaveOccurrenceUploadBatchService({
     return batchView(store, completed, { newEntries });
   }
 
+  function approve(context, input) {
+    const batch = requireBatch(context, input);
+    assertPreviewHash(batch, input);
+    if (batch.status !== "previewed") throw guardedError("Upload batch is not ready for approval", "HRX_LEAVE_OCCURRENCE_UPLOAD_STATE_INVALID");
+    if (batch.error_count > 0) throw guardedError("Upload preview errors must be fixed before approval", "HRX_LEAVE_OCCURRENCE_UPLOAD_PREVIEW_HAS_ERRORS");
+    return manualService.recordManualApproval(context, {
+      approval_kind: "occurrence_upload",
+      object_id: batch.upload_batch_id,
+      snapshot_hash: batch.preview_hash,
+      initiated_by_actor_id: batch.created_by_actor_id,
+    });
+  }
+
   function execute(context, input) {
     const batch = requireBatch(context, input);
     assertPreviewHash(batch, input);
     const executeIdempotencyKey = requiredString(input, "idempotency_key");
-    const approval = manualService.assertManualApproval(context, input.approved_by_actor_id);
+    const approval = manualService.assertManualApprovalReceipt(context, { approval_receipt_id: input.approval_receipt_id, approval_kind: "occurrence_upload", object_id: batch.upload_batch_id, snapshot_hash: batch.preview_hash });
     if (batch.execute_idempotency_key) {
-      if (batch.execute_idempotency_key !== executeIdempotencyKey || batch.approved_by_actor_id !== approval.approved_by_actor_id) {
+      if (batch.execute_idempotency_key !== executeIdempotencyKey || batch.approved_by_actor_id !== approval.approved_by_actor_id || batchApproval(store, batch)?.approval_receipt_id !== approval.approval_receipt_id) {
         throw guardedError("Upload execution idempotency key was reused with different approval", "HRX_LEAVE_OCCURRENCE_UPLOAD_EXECUTION_CONFLICT");
       }
       return batchView(store, batch, { replayed: true });
@@ -306,12 +334,12 @@ export function createLeaveOccurrenceUploadBatchService({
     requiredString(context, "actor_id");
     if (context.step_up_verified !== true) throw guardedError("Fresh MFA is required", "HRX_STEP_UP_REQUIRED", 403);
     if (batch.status === "completed") return batchView(store, batch, { replayed: true });
-    if (!batch.execute_idempotency_key || !batch.approved_by_actor_id || !["running", "completed_with_errors"].includes(batch.status)) {
+    if (!batch.execute_idempotency_key || !batch.approved_by_actor_id || !batchApproval(store, batch) || !["running", "completed_with_errors"].includes(batch.status)) {
       throw guardedError("Upload batch has no retryable execution", "HRX_LEAVE_OCCURRENCE_UPLOAD_STATE_INVALID");
     }
     if (batch.status !== "running") batch = updateBatch(batch, { status: "running", completed_at: null });
     return finish(batch, runRows(context, batch, ["failed", "running"]));
   }
 
-  return Object.freeze({ preview, read, execute, resume });
+  return Object.freeze({ preview, read, approve, execute, resume });
 }

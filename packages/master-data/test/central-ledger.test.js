@@ -89,6 +89,28 @@ test("Master Data PostgreSQL import, replay, shadow and async command rehearsal 
   assert.equal(secondImport.replayed, true);
   const shadow = await ledger.compareSnapshot(source);
   assert.equal(shadow.comparison.equal, true);
+  const rehearsal = await ledger.recordRehearsal({
+    tenant_id: TENANT,
+    domain_id: MASTER_DATA_DOMAIN_DESCRIPTOR.domain_id,
+    import_receipt_id: imported.receipt.receipt_id,
+    shadow_receipt_id: shadow.receipt.receipt_id,
+    smoke_result: {
+      status: "passed",
+      synthetic_only: true,
+      environment: "test",
+      adapter: "master-data-postgres-domain-ledger",
+      executed_at: "2026-07-16T17:30:00.000Z",
+      source_snapshot_hash: shadow.comparison.source_hash,
+      checks: {
+        source_imported: imported.receipt.status === "source_imported",
+        idempotency_replayed: secondImport.replayed,
+        shadow_equal: shadow.comparison.equal,
+        readback_equal: shadow.comparison.source_hash === shadow.comparison.target_hash,
+        json_dual_write_absent: true,
+      },
+      production_migrated: false,
+    },
+  });
 
   const entity = source.records.find((record) => record.record_type === "Entity");
   const command = await runRecordRepositoryDomainCommand({
@@ -97,27 +119,33 @@ test("Master Data PostgreSQL import, replay, shadow and async command rehearsal 
     tenant_id: TENANT,
     create_repository: createMasterDataRepository,
     command(repository) {
-      return repository.update(
-        { tenant_id: TENANT, model_type: "Entity", entity_id: entity.record_id },
-        { display_name: "Central ledger rehearsal entity" },
-      );
+      return repository.transaction((tx) => {
+        const updated = tx.update(
+          { tenant_id: TENANT, model_type: "Entity", entity_id: entity.record_id },
+          { display_name: "Central ledger rehearsal entity" },
+        );
+        tx.recordIdempotency({
+          tenant_id: TENANT,
+          idempotency_key: "master-data-central-ledger-update-001",
+          operation: "master_data_central_ledger_update",
+          response: { entity_id: entity.record_id, outcome: "updated" },
+        });
+        tx.appendAudit({
+          tenant_id: TENANT,
+          event_id: "master-data:central-ledger:update:001",
+          action: "master-data.central-ledger.update",
+          actor_id: "user_rs_dom_rehearsal",
+          object_type: "Entity",
+          object_id: entity.record_id,
+          metadata: { changed_field_count: 1 },
+        });
+        return updated;
+      });
     },
   });
   assert.equal(command.result.display_name, "Central ledger rehearsal entity");
   assert.equal(command.flush.comparison.equal, true);
 
-  const rehearsal = await ledger.recordRehearsal({
-    tenant_id: TENANT,
-    domain_id: MASTER_DATA_DOMAIN_DESCRIPTOR.domain_id,
-    import_receipt_id: imported.receipt.receipt_id,
-    shadow_receipt_id: shadow.receipt.receipt_id,
-    smoke_result: {
-      adapter: "master-data-postgres-domain-ledger",
-      source_import_equal: true,
-      async_command_readback_equal: command.flush.comparison.equal,
-      production_migrated: false,
-    },
-  });
   assert.equal(rehearsal.status, "source_ready");
   assert.equal(rehearsal.production_migrated, false);
   reportDomainReceiptEvidence({ source, imported, secondImport, shadow, rehearsal });

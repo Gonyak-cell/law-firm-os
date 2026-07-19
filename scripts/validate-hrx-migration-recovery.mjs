@@ -284,7 +284,11 @@ function auditSqliteRecovery(root) {
   database.close();
 
   assert(checkpointReceipts.length === 25, "SQLite checkpoint 025 receipt count mismatch");
-  assert(upgradeReceipts.length === 4 && restoredUpgradeReceipts.length === 4, "SQLite upgrade receipt count mismatch");
+  const expectedUpgradeCount = migrations.length - 25;
+  assert(
+    upgradeReceipts.length === expectedUpgradeCount && restoredUpgradeReceipts.length === expectedUpgradeCount,
+    "SQLite upgrade receipt count mismatch",
+  );
   assert(backupFileSha256 === restoredFileSha256, "SQLite restored file does not match backup bytes");
   assert(checkpointSnapshot.schema_sha256 === restoredCheckpointSnapshot.schema_sha256, "SQLite checkpoint schema was not restored");
   assert(checkpointSnapshot.data_sha256 === restoredCheckpointSnapshot.data_sha256, "SQLite checkpoint rows were not restored");

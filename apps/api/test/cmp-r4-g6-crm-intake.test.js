@@ -1243,22 +1243,20 @@ test("G6 conflict check, clearance token, and audit routes stay safe and tenant 
       method: "POST",
       body: JSON.stringify(matterTenantOpening),
     });
-    assert.equal(openedInMatterTenant.status, 201);
-    assert.equal(openedInMatterTenant.body.item.matter_id, "matter_rp05_from_cmp_g6_001");
-    assert.equal(openedInMatterTenant.body.item.tenant_id, MATTER_TENANT);
+    assert.equal(openedInMatterTenant.status, 400);
+    assert.deepEqual(openedInMatterTenant.body.safe_error_codes, ["MATTER_API_VALIDATION_ERROR"]);
     const openedMatterTenantRecord = matterRepository.get({
       tenant_id: MATTER_TENANT,
       model_type: "Matter",
       matter_id: "matter_rp05_from_cmp_g6_001",
     });
-    assert.equal(openedMatterTenantRecord.clearance_token_id, "clearance_cmp_g6_api_001");
-    assert.equal(openedMatterTenantRecord.intake_request_id, "intake_cmp_g6_synthetic_001");
+    assert.equal(openedMatterTenantRecord, undefined);
     const listedInMatterTenant = await json(
       baseUrl,
       `/api/matters?tenant_id=${MATTER_TENANT}&permission_ref=perm_ref_rp05_read&audit_hint_ref=audit_hint_rp05_read`,
     );
     assert.equal(listedInMatterTenant.status, 200);
-    assert.ok(listedInMatterTenant.body.items.some((item) => item.matter_id === "matter_rp05_from_cmp_g6_001"));
+    assert.equal(listedInMatterTenant.body.items.some((item) => item.matter_id === "matter_rp05_from_cmp_g6_001"), false);
 
     const audit = await json(baseUrl, `/api/intake/audit?${BASE_QUERY}`);
     assert.equal(audit.status, 200);

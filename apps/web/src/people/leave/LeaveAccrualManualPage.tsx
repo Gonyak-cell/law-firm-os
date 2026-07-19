@@ -3,6 +3,7 @@ import { Download, Play, Upload } from "lucide-react";
 import { Panel } from "../../components/primitives.jsx";
 import { HrxStepUpChallenge } from "../security/HrxStepUpChallenge.tsx";
 import {
+  approveHrxLeaveManualAdjustment,
   executeHrxLeaveManualAdjustment,
   fetchHrxLeaveConfiguration,
   fetchHrxLeaveOccurrenceTemplate,
@@ -43,17 +44,15 @@ export function LeaveAccrualManualPage() {
   const [groups, setGroups] = useState<Row[]>([]);
   const [policies, setPolicies] = useState<Row[]>([]);
   const [documents, setDocuments] = useState<Row[]>([]);
-  const [approvers, setApprovers] = useState<Row[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [csvText, setCsvText] = useState("");
   const [xlsxContent, setXlsxContent] = useState("");
   const [fileName, setFileName] = useState("");
-  const [approvedBy, setApprovedBy] = useState("");
   const [preview, setPreview] = useState<Row | null>(null);
   const [previewPayload, setPreviewPayload] = useState<Row | null>(null);
   const [idempotencyKey, setIdempotencyKey] = useState("");
   const [result, setResult] = useState<Row | null>(null);
-  const [stepUpRequired, setStepUpRequired] = useState(false);
+  const [stepUpAction, setStepUpAction] = useState<"" | "approve" | "execute">("");
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
 
@@ -68,8 +67,6 @@ export function LeaveAccrualManualPage() {
       setGroups(activeGroups);
       setPolicies(activePolicies);
       setDocuments(support.documents as Row[]);
-      setApprovers(support.approvers as Row[]);
-      setApprovedBy(text(support.approvers[0] as Row, "actor_id"));
       setForm((current) => ({ ...current, group_id: text(activeGroups[0], "group_id"), policy_version_id: text(activePolicies[0], "policy_version_id"), source_document_id: text(support.documents[0] as Row, "document_id"), employee_id: text(support.documents[0] as Row, "employee_id") }));
     });
   }, []);
@@ -123,7 +120,7 @@ export function LeaveAccrualManualPage() {
     setBusy("preview");
     setError("");
     setResult(null);
-    setStepUpRequired(false);
+    setStepUpAction("");
     const response = await previewHrxLeaveManualAdjustment(nextPayload);
     setBusy("");
     if (response.kind !== "data") {
@@ -141,20 +138,38 @@ export function LeaveAccrualManualPage() {
     setError("");
     const response = await executeHrxLeaveManualAdjustment({
       ...previewPayload,
-      approved_by_actor_id: approvedBy,
+      approval_receipt_id: text(preview, "approval_receipt_id"),
       idempotency_key: idempotencyKey
     });
     setBusy("");
     if (response.kind === "step_up_required") {
-      setStepUpRequired(true);
+      setStepUpAction("execute");
       return;
     }
     if (response.kind !== "data") {
       setError(typeof response.reason === "string" ? response.reason : "수동 발생을 실행하지 못했습니다.");
       return;
     }
-    setStepUpRequired(false);
+    setStepUpAction("");
     setResult(response.result as Row);
+  }
+
+  async function approve() {
+    if (!previewPayload || !preview) return;
+    setBusy("approve");
+    setError("");
+    const response = await approveHrxLeaveManualAdjustment(previewPayload);
+    setBusy("");
+    if (response.kind === "step_up_required") {
+      setStepUpAction("approve");
+      return;
+    }
+    if (response.kind !== "data") {
+      setError("승인 영수증을 기록하지 못했습니다.");
+      return;
+    }
+    setStepUpAction("");
+    setPreview({ ...preview, approval_receipt_id: text(response.approval_receipt as Row, "approval_receipt_id"), approved_by_actor_id: text(response.approval_receipt as Row, "approved_by_actor_id") });
   }
 
   const visible = result ?? preview;
@@ -196,10 +211,10 @@ export function LeaveAccrualManualPage() {
         {visible && <div className="data-table-wrap"><table className="data-table"><thead><tr><th>행</th><th>구성원</th><th>결과</th><th>방향</th><th>조정량</th><th>확인 사항</th></tr></thead><tbody>{rows.map((row, index) => <tr key={`${number(row, "row_number")}:${index}`} data-compact-record="true"><td>{number(row, "row_number")}</td><td>{text(row, "employee_id") || "확인 필요"}</td><td><span className={`record-state-badge ${text(row, "status")}`}>{text(row, "status") === "ready" ? "반영 가능" : text(row, "status") === "created" ? "반영 완료" : "오류"}</span></td><td>{text(row, "direction") === "debit" ? "차감" : text(row, "direction") === "credit" ? "추가" : "-"}</td><td>{number(row, "amount_minutes").toLocaleString("ko-KR")}분</td><td>{text(row, "error_message") || "-"}</td></tr>)}</tbody></table></div>}
 
         <div className="leave-manual-approval">
-          <label><span>승인 HR</span><select aria-label="승인 HR" required value={approvedBy} onChange={(event) => setApprovedBy(event.target.value)}><option value="">승인자 선택</option>{approvers.map((approver) => <option key={text(approver, "actor_id")} value={text(approver, "actor_id")}>{text(approver, "display_name")}</option>)}</select></label>
-          <button className="primary-button" type="button" disabled={!previewPayload || !approvedBy || busy === "execute" || number(preview?.counts as Row, "ready") === 0} onClick={() => void execute()}><Play size={14} />원장 조정 반영</button>
+          <button className="secondary-button" type="button" disabled={!previewPayload || !preview || Boolean(text(preview, "approval_receipt_id")) || busy === "approve" || number(preview?.counts as Row, "ready") === 0} onClick={() => void approve()}>승인 기록</button>
+          <button className="primary-button" type="button" disabled={!previewPayload || !text(preview, "approval_receipt_id") || busy === "execute" || number(preview?.counts as Row, "ready") === 0} onClick={() => void execute()}><Play size={14} />원장 조정 반영</button>
         </div>
-        {stepUpRequired && <HrxStepUpChallenge purpose="leave_ledger_adjustment" onVerified={() => void execute()} />}
+        {stepUpAction && <HrxStepUpChallenge purpose="leave_ledger_adjustment" onVerified={() => { const action = stepUpAction; setStepUpAction(""); if (action === "approve") void approve(); else void execute(); }} />}
       </section>
     </Panel>
   );

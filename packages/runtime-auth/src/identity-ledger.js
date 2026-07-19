@@ -5,6 +5,7 @@ export const IDENTITY_LEDGER_METHODS = Object.freeze([
   "ensureAccount",
   "getAccount",
   "setCredential",
+  "ensureFederatedAccount",
   "requirePasswordReset",
   "recordLoginFailure",
   "completeLogin",

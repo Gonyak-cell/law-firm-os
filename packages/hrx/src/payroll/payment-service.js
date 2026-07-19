@@ -57,7 +57,7 @@ export function createPayrollPaymentService({
   repository,
   accountResolver,
   bankAdapter = createSyntheticPayrollBankAdapter(),
-  artifactVault = createEncryptedPayrollArtifactVault(),
+  artifactVault = createEncryptedPayrollArtifactVault({ allowSyntheticSecret: true }),
   clock = () => new Date().toISOString(),
 } = {}) {
   if (!repository || typeof accountResolver?.resolve !== "function") throw new TypeError("payroll payment service requires repository and accountResolver");
@@ -109,13 +109,13 @@ export function createPayrollPaymentService({
     return Object.freeze({ batch, items: current.items });
   }
 
-  function exportBatch(context, input = {}) {
+  async function exportBatch(context, input = {}) {
     const batchId = requiredString(input, "payment_batch_id");
     const current = bundle(context, batchId);
     if (current.batch.state !== "approved") throw safeError("Approved payment batch is required", "HRX_PAYROLL_PAYMENT_STATE_INVALID", 409);
     const rendered = render(context, current.batch.run_id);
     if (rendered.checksum !== current.batch.checksum) throw safeError("Payment batch checksum changed", "HRX_PAYROLL_PAYMENT_TAMPERED", 409);
-    const artifact = artifactVault.put({ tenant_id: context.tenant_id, object_id: `payroll/${current.batch.run_id}/payment-${rendered.checksum}.csv`, bytes: rendered.bytes, content_type: "text/csv;charset=utf-8" });
+    const artifact = await artifactVault.put({ tenant_id: context.tenant_id, object_id: `payroll/${current.batch.run_id}/payment-${rendered.checksum}.csv`, bytes: rendered.bytes, content_type: "text/csv;charset=utf-8" });
     const batch = repository.transitionPaymentBatch(context, { payment_batch_id: batchId, state: "exported", expected_version: current.batch.state_version, artifact_ref: artifact.document_ref });
     const items = current.items.map((item) => repository.transitionPaymentItem(context, { payment_item_id: item.payment_item_id, state: "exported", expected_version: item.state_version }));
     return Object.freeze({ batch, items: Object.freeze(items), filename: `${current.batch.run_id}-bank-transfer.csv`, mime_type: "text/csv;charset=utf-8", content_base64: rendered.bytes.toString("base64"), checksum: rendered.checksum, production_ready_claim: false });

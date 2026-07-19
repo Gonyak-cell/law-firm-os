@@ -29,6 +29,7 @@ import {
   resolveLawosUserRoleAssignment,
 } from "../src/lawos-role-registry.js";
 import { createHrxStepUpAuthority } from "../src/hrx-step-up-token.js";
+import { evaluateRouteDecision } from "../src/permission-gate.js";
 
 async function withServer(options, callback) {
   const started = await startApiServer({ port: 0, ...(options ?? {}) });
@@ -148,6 +149,8 @@ test("Auth descriptor exposes the Wave-1 API session surface", async () => {
     assert.ok(authContext);
     assert.deepEqual(authContext.endpoints, [
       "POST /api/auth/login",
+      "POST /api/auth/oidc/start",
+      "POST /api/auth/oidc/complete",
       "GET /api/auth/session",
       "POST /api/auth/logout",
       "POST /api/auth/step-up",
@@ -162,6 +165,7 @@ test("Auth descriptor exposes the Wave-1 API session surface", async () => {
     assert.match(authContext.login_protection_contract_ref, /#UPL-A-14$/);
     assert.equal(authContext.max_failed_logins_before_lock, 5);
     assert.equal(authContext.lock_response_status, 423);
+    assert.equal(authContext.operational_auth_provider, "microsoft-entra-oidc");
   });
 });
 
@@ -206,6 +210,46 @@ test("POST /api/auth/login issues a signed session token for the registered rost
     assert.equal(session.body.session.user_id, account.user_id);
     assert.equal(session.body.session.token_material_returned, false);
   });
+});
+
+test("Signed-session permission rules enforce verified scopes without a universal allow", async () => {
+  const staff = userByEmail("yjlee@amic.kr");
+  const auth = createApiSessionAuth({ secret: "scope-bound-session-test-secret" });
+  const signed = await auth.login({
+    email: staff.email,
+    password: staff.local_dev.synthetic_token,
+  }, { requestId: "req_scope_bound_login" });
+  assert.equal(signed.status, 200);
+  const verified = await auth.verifyToken(signed.body.session_token, { requestId: "req_scope_bound_verify" });
+  assert.equal(verified.ok, true);
+  assert.equal(verified.context.rules.some((rule) => rule.action === "*"), false);
+
+  const decide = (action) => evaluateRouteDecision({
+    context: verified.context,
+    resource: { tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID, resource_type: "ScopeProbe" },
+    action,
+  });
+  assert.equal(decide("matter:read").effect, "allow");
+  assert.equal(decide("dms:document:read").effect, "allow");
+  assert.equal(decide("matter:status:transition").effect, "deny");
+  assert.equal(decide("dms:document:write").effect, "deny");
+  assert.equal(decide("analytics:finance:read").effect, "deny");
+
+  const password = "scope-bound-operational-password";
+  const operational = createApiSessionAuth({
+    profile: "operational",
+    secret: "scope-bound-operational-session-secret",
+    credentialStorePath: credentialStorePathFor([credentialRecord(staff, password)]),
+    passwordResetTokenStorePath: passwordResetStorePath(),
+  });
+  const operationalSigned = await operational.login({ email: staff.email, password }, { requestId: "req_scope_operational_login" });
+  const operationalVerified = await operational.verifyToken(operationalSigned.body.session_token, { requestId: "req_scope_operational_verify" });
+  assert.equal(operationalVerified.ok, true);
+  assert.equal(evaluateRouteDecision({
+    context: operationalVerified.context,
+    resource: { tenant_id: "tenant_rp04_synthetic", resource_type: "ScopeProbe" },
+    action: "matter:read",
+  }).reason, "cross_tenant_deny");
 });
 
 test("Local-dev sessions use per-instance secrets and operational synthetic login is disabled", async () => {
@@ -672,6 +716,20 @@ test("PostgreSQL identity auth persists reset, step-up, logout, and break-glass 
     assert.equal(acceptedStepUp.status, 200);
     assert.match(acceptedStepUp.body.step_up_token, /^lawos_hrx_step_up_v1\./);
 
+    const parallelSession = await json(baseUrl, "/api/auth/login", {
+      method: "POST",
+      body: { email: account.email, password: oldPassword },
+    });
+    assert.equal(parallelSession.status, 200);
+    const crossSessionStepUp = await json(baseUrl, "/api/hrx/audit", {
+      headers: {
+        authorization: `Bearer ${parallelSession.body.session_token}`,
+        "x-lawos-hrx-step-up": acceptedStepUp.body.step_up_token,
+      },
+    });
+    assert.equal(crossSessionStepUp.status, 403);
+    assert.equal(crossSessionStepUp.body.reason, "hrx_sensitive_action_requires_fresh_mfa");
+
     const storedStepUp = await withPostgresTransaction(fixture.appPool, { tenant_id: tenantId }, async (client) => {
       const result = await client.query(
         `SELECT challenge_hash, provider_id, purpose, revoked_at
@@ -689,6 +747,18 @@ test("PostgreSQL identity auth persists reset, step-up, logout, and break-glass 
       headers: { ...headers, "x-lawos-hrx-step-up": acceptedStepUp.body.step_up_token },
     });
     assert.equal(activeStepUp.status, 200);
+    const replayedStepUp = await json(baseUrl, "/api/hrx/audit", {
+      headers: { ...headers, "x-lawos-hrx-step-up": acceptedStepUp.body.step_up_token },
+    });
+    assert.equal(replayedStepUp.status, 403);
+    assert.equal(replayedStepUp.body.safe_error_code, "HRX_STEP_UP_CHALLENGE_INVALID");
+
+    const revocableStepUp = await json(baseUrl, "/api/auth/step-up", {
+      method: "POST",
+      headers,
+      body: { purpose: "security_audit", factor: "totp", proof: acceptedProof },
+    });
+    assert.equal(revocableStepUp.status, 200);
     await ledger.revokeChallengesForUser({
       tenant_id: tenantId,
       user_id: account.user_id,
@@ -697,7 +767,7 @@ test("PostgreSQL identity auth persists reset, step-up, logout, and break-glass 
       actor_id: account.user_id,
     });
     const rejectedRevokedStepUp = await json(baseUrl, "/api/hrx/audit", {
-      headers: { ...headers, "x-lawos-hrx-step-up": acceptedStepUp.body.step_up_token },
+      headers: { ...headers, "x-lawos-hrx-step-up": revocableStepUp.body.step_up_token },
     });
     assert.equal(rejectedRevokedStepUp.status, 403);
     assert.equal(rejectedRevokedStepUp.body.safe_error_code, "HRX_STEP_UP_CHALLENGE_INVALID");
@@ -776,15 +846,26 @@ test("PostgreSQL identity auth persists reset, step-up, logout, and break-glass 
       requester: account,
       requester_label: account.email,
       reason: "bounded local verification",
+      break_glass_account_ref: "secretsmanager://lawos/break-glass/account",
       actor_id: account.user_id,
     });
+    const firstApproval = await ledger.transitionBreakGlassRequest({
+      tenant_id: tenantId,
+      break_glass_request_id: "break-glass-postgres-001",
+      state: "approved",
+      actor_id: "security-admin-1",
+    });
+    assert.equal(firstApproval.ok, true);
+    assert.equal(firstApproval.record.state, "pending");
+    assert.equal(firstApproval.approvals_remaining, 1);
     const approved = await ledger.transitionBreakGlassRequest({
       tenant_id: tenantId,
       break_glass_request_id: "break-glass-postgres-001",
       state: "approved",
-      actor_id: "security-admin",
+      actor_id: "security-admin-2",
     });
     assert.equal(approved.ok, true);
+    assert.equal(approved.record.state, "approved");
     const restartedLedger = createPostgresIdentityLedger({ pool: fixture.appPool, clock: () => now });
     const persistedBreakGlass = await restartedLedger.listBreakGlassRequests({ tenant_id: tenantId });
     assert.equal(persistedBreakGlass[0].state, "approved");
@@ -799,6 +880,7 @@ test("PostgreSQL identity auth persists reset, step-up, logout, and break-glass 
       "auth.password_reset.consumed",
       "auth.logout",
       "admin.security.break_glass.requested",
+      "admin.security.break_glass.approval_recorded",
       "admin.security.break_glass.approved",
     ]) assert.equal(actions.has(action), true, `missing identity audit action ${action}`);
     const auditText = JSON.stringify(audit);
@@ -811,6 +893,7 @@ test("PostgreSQL identity auth persists reset, step-up, logout, and break-glass 
       signed.body.session_token,
       resetLogin.body.session_token,
       acceptedStepUp.body.step_up_token,
+      revocableStepUp.body.step_up_token,
       replacementStepUp.body.step_up_token,
     ]) assert.equal(auditText.includes(secret), false);
     assert.deepEqual(await restartedLedger.listSecurityAudit({ tenant_id: "tenant_identity_other" }), []);

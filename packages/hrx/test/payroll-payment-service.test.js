@@ -76,7 +76,7 @@ test("PY-BANK-001 creates an encrypted deterministic bank batch while persisting
   store.close();
 });
 
-test("PY-BANK-002 enforces payment four-eyes, payroll/payment approver separation, step-up, and checksum integrity", () => {
+test("PY-BANK-002 enforces payment four-eyes, payroll/payment approver separation, step-up, and checksum integrity", async () => {
   const { store, repository, run, accounts, service } = runtime();
   const prepared = service.prepare(PREPARER, { run_id: run.run_id });
   assert.throws(() => service.approve(PREPARER, { payment_batch_id: prepared.batch.payment_batch_id, step_up_receipt: stepUp(prepared.batch.payment_batch_id, PREPARER.actor_id) }), (error) => error.safe_error_code === "HRX_PAYROLL_SELF_APPROVAL");
@@ -84,16 +84,16 @@ test("PY-BANK-002 enforces payment four-eyes, payroll/payment approver separatio
   const approved = service.approve(PAYMENT_APPROVER, { payment_batch_id: prepared.batch.payment_batch_id, step_up_receipt: stepUp(prepared.batch.payment_batch_id) });
   assert.equal(approved.batch.state, "approved");
   accounts.set("emp-001", { ...accounts.get("emp-001"), account_number: "999999999999" });
-  assert.throws(() => service.exportBatch(PAYMENT_APPROVER, { payment_batch_id: prepared.batch.payment_batch_id }), (error) => error.safe_error_code === "HRX_PAYROLL_PAYMENT_TAMPERED");
+  await assert.rejects(service.exportBatch(PAYMENT_APPROVER, { payment_batch_id: prepared.batch.payment_batch_id }), (error) => error.safe_error_code === "HRX_PAYROLL_PAYMENT_TAMPERED");
   assert.equal(repository.getPaymentBatch(PREPARER, { payment_batch_id: prepared.batch.payment_batch_id }).state, "approved");
   store.close();
 });
 
-test("PY-BANK-002/003 exports after separate approval and records paid/failed outcomes only with a successful bank receipt", () => {
+test("PY-BANK-002/003 exports after separate approval and records paid/failed outcomes only with a successful bank receipt", async () => {
   const { store, repository, run, service } = runtime();
   const prepared = service.prepare(PREPARER, { run_id: run.run_id });
   service.approve(PAYMENT_APPROVER, { payment_batch_id: prepared.batch.payment_batch_id, step_up_receipt: stepUp(prepared.batch.payment_batch_id) });
-  const exported = service.exportBatch(PAYMENT_APPROVER, { payment_batch_id: prepared.batch.payment_batch_id });
+  const exported = await service.exportBatch(PAYMENT_APPROVER, { payment_batch_id: prepared.batch.payment_batch_id });
   assert.equal(exported.batch.state, "exported");
   assert.equal(Buffer.from(exported.content_base64, "base64").subarray(0, 3).toString("utf8"), "﻿");
   assert.throws(() => service.reconcile(PAYMENT_APPROVER, { payment_batch_id: prepared.batch.payment_batch_id, provider_receipt: bankReceipt(prepared.batch.payment_batch_id, "pending"), items: [] }), (error) => error.safe_error_code === "HRX_PAYROLL_PROVIDER_RECEIPT_REQUIRED");

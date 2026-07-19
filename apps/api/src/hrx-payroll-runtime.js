@@ -6,7 +6,10 @@ import {
   createEncryptedPayrollArtifactVault,
   createPayrollDocumentService,
 } from "../../../packages/hrx/src/payroll/document-service.js";
-import { createPayrollFilingService } from "../../../packages/hrx/src/payroll/filing-service.js";
+import {
+  SYNTHETIC_PAYROLL_FILING_SCHEMAS,
+  createPayrollFilingService,
+} from "../../../packages/hrx/src/payroll/filing-service.js";
 import { createSqlPayrollItemCatalog } from "../../../packages/hrx/src/payroll-item-catalog.js";
 import { createSqlPayrollProfileService } from "../../../packages/hrx/src/payroll-profile-service.js";
 import { createSqlPayrollTimeInputService } from "../../../packages/hrx/src/payroll-time-input-snapshot.js";
@@ -169,7 +172,7 @@ export function seedSyntheticPayrollRuntimeStore(store, tenantIds, options = {})
               compensation_id: compensationId,
               amount_minor: 3_000_000 + index * 250_000,
               currency_ref: "KRW",
-            }, { iv: Buffer.alloc(12, (index % 254) + 1) }),
+            }, { iv: Buffer.alloc(12, (index % 254) + 1), allowSyntheticKey: true }),
             currency_ref: "KRW",
             raw_amount_included: false,
             effective_from: "2026-01-01",
@@ -232,33 +235,65 @@ export function seedSyntheticPayrollRuntimeStore(store, tenantIds, options = {})
   }
 }
 
-export function createHrxPayrollRuntime({ store, clock, audit } = {}) {
+export function createHrxPayrollRuntime({
+  store,
+  clock,
+  audit,
+  artifactStorage,
+  artifactSecret,
+  compensationKeyMaterial,
+  allowSyntheticArtifactSecret = true,
+  allowSyntheticCompensationKey = true,
+  allowSyntheticProviders = true,
+  deliveryPort,
+  accountResolver: providedAccountResolver,
+  bankAdapter,
+  bankReconciliationPort,
+  filingProviderPort,
+  filingSchemaRegistry,
+} = {}) {
   if (!store) return null;
   const itemCatalog = createSqlPayrollItemCatalog({ store, audit, ...(clock ? { clock } : {}) });
-  const profileService = createSqlPayrollProfileService({ store, ...(clock ? { clock } : {}) });
+  const compensationEncryptionOptions = {
+    ...(compensationKeyMaterial ? { keyMaterial: compensationKeyMaterial } : {}),
+    allowSyntheticKey: allowSyntheticCompensationKey,
+  };
+  const profileService = createSqlPayrollProfileService({
+    store,
+    ...(clock ? { clock } : {}),
+    encryptionOptions: compensationEncryptionOptions,
+  });
   const timeInputService = createSqlPayrollTimeInputService({ store, ...(clock ? { clock } : {}) });
   const payrollRepository = createPayrollRepository({ store, ...(clock ? { clock } : {}) });
   const inputSnapshotService = createPayrollInputSnapshotService({
     store,
     payrollRepository,
-    compensationResolver: createServerCompensationResolver({ store }),
+    compensationResolver: createServerCompensationResolver({
+      store,
+      ...(compensationKeyMaterial ? { keyMaterial: compensationKeyMaterial } : {}),
+      allowSyntheticKey: allowSyntheticCompensationKey,
+    }),
     policyManifest: (tenantId) => payrollPolicy(tenantId),
     ...(clock ? { clock } : {}),
   });
   const runService = createPayrollRunService({ payrollRepository, inputSnapshotService, ...(clock ? { clock } : {}) });
-  const artifactVault = createEncryptedPayrollArtifactVault();
+  const artifactVault = createEncryptedPayrollArtifactVault({
+    ...(artifactStorage ? { storage: artifactStorage } : {}),
+    ...(artifactSecret ? { secret: artifactSecret } : {}),
+    allowSyntheticSecret: allowSyntheticArtifactSecret,
+  });
   const documentService = createPayrollDocumentService({
     repository: payrollRepository,
     store,
     artifactVault,
-    deliveryPort: {
+    deliveryPort: deliveryPort ?? (allowSyntheticProviders ? {
       async send(request) {
         return syntheticReceipt(request, { providerKind: "delivery", operation: `statement.${request.channel}` });
       },
-    },
+    } : null),
     ...(clock ? { clock } : {}),
   });
-  const accountResolver = {
+  const syntheticAccountResolver = {
     resolve({ tenant_id, employee_id }) {
       const employee = store.query("selectOne", { table: "hrx_employees", where: { tenant_id, employee_id } });
       if (!employee) return null;
@@ -271,17 +306,67 @@ export function createHrxPayrollRuntime({ store, clock, audit } = {}) {
       });
     },
   };
-  const paymentService = createPayrollPaymentService({ repository: payrollRepository, accountResolver, artifactVault, ...(clock ? { clock } : {}) });
+  const unavailableBankAdapter = Object.freeze({
+    format_code: "PROVIDER_REQUIRED",
+    render() {
+      const error = new Error("Authoritative payroll bank adapter is required");
+      error.safe_error_code = "HRX_PAYROLL_BANK_PROVIDER_REQUIRED";
+      error.status = 503;
+      throw error;
+    },
+  });
+  const accountResolver = providedAccountResolver
+    ?? (allowSyntheticProviders ? syntheticAccountResolver : Object.freeze({ resolve: () => null }));
+  const paymentService = createPayrollPaymentService({
+    repository: payrollRepository,
+    accountResolver,
+    bankAdapter: bankAdapter ?? (allowSyntheticProviders ? undefined : unavailableBankAdapter),
+    artifactVault,
+    ...(clock ? { clock } : {}),
+  });
   const filingService = createPayrollFilingService({
     repository: payrollRepository,
     artifactVault,
-    providerPort: {
+    providerPort: filingProviderPort ?? (allowSyntheticProviders ? {
       async submit(request) {
         return syntheticReceipt(request, { providerKind: "filing", operation: `filing.${request.filing_kind}` });
       },
-    },
+    } : null),
+    schemaRegistry: filingSchemaRegistry ?? (allowSyntheticProviders ? SYNTHETIC_PAYROLL_FILING_SCHEMAS : Object.freeze({})),
     ...(clock ? { clock } : {}),
   });
+  const resolvedBankReconciliationPort = bankReconciliationPort ?? (allowSyntheticProviders ? Object.freeze({
+    async reconcile({ context, bundle }) {
+      const providerReceipt = syntheticReceipt({
+        tenant_id: context.tenant_id,
+        idempotency_key: `${bundle.batch.payment_batch_id}:reconcile`,
+        payload_hash: `sha256:${sha256({ payment_batch_id: bundle.batch.payment_batch_id, checksum: bundle.batch.checksum })}`,
+      }, { providerKind: "bank", operation: "bulk_transfer_reconcile" });
+      return Object.freeze({
+        provider_receipt: providerReceipt,
+        items: bundle.items.map((item) => Object.freeze({
+          employee_id: item.employee_id,
+          state: "paid",
+          provider_receipt_ref: `provider:sandbox/bank/item/${item.payment_item_id}`,
+        })),
+        reported_paid_total_krw: bundle.items.reduce((sum, item) => sum + item.amount_krw, 0),
+      });
+    },
+  }) : null);
   const yearEndService = createPayrollYearEndService({ repository: payrollRepository });
-  return Object.freeze({ itemCatalog, profileService, timeInputService, payrollRepository, inputSnapshotService, runService, documentService, paymentService, filingService, yearEndService, artifactVault });
+  return Object.freeze({
+    itemCatalog,
+    profileService,
+    timeInputService,
+    payrollRepository,
+    inputSnapshotService,
+    runService,
+    documentService,
+    paymentService,
+    filingService,
+    yearEndService,
+    artifactVault,
+    bankReconciliationPort: resolvedBankReconciliationPort,
+    provider_mode: allowSyntheticProviders ? "synthetic-test" : "external-required",
+  });
 }

@@ -31,16 +31,16 @@ test("HRX domain inventory covers migrations, tables, append-only, CAS, payroll 
   const store = currentSourceStore();
   try {
     const result = createHrxDomainSnapshot({ store, tenant_id: TENANT });
-    assert.equal(result.inventory.migration_count, 29);
-    assert.equal(result.inventory.expected_migration_count, 29);
-    assert.equal(result.inventory.table_count, 73);
-    assert.equal(result.inventory.append_only_table_count, 10);
-    assert.equal(result.inventory.cas_table_count, 23);
+    assert.equal(result.inventory.migration_count, 31);
+    assert.equal(result.inventory.expected_migration_count, 31);
+    assert.equal(result.inventory.table_count, 77);
+    assert.equal(result.inventory.append_only_table_count, 11);
+    assert.equal(result.inventory.cas_table_count, 26);
     assert.equal(result.inventory.tenant_mismatch_count, 0);
     assert.equal(result.inventory.product_row_count > 0, true);
     assert.equal(result.inventory.table_counts.hrx_employees > 0, true);
     assert.equal(result.inventory.table_counts.hrx_payroll_runs > 0, true);
-    assert.equal(Object.keys(result.inventory.table_hashes).length, 73);
+    assert.equal(Object.keys(result.inventory.table_hashes).length, 77);
     assert.equal(result.inventory.integrity.row_count, result.inventory.product_row_count);
     assert.equal(result.inventory.integrity.primary_key_integrity_passed, true);
     assert.equal(result.inventory.integrity.unique_integrity_passed, true);
@@ -87,10 +87,38 @@ test("HRX PostgreSQL import, async store port, legacy service command, CAS and a
   assert.equal(secondImport.replayed, true);
   const shadow = await ledger.compareSnapshot(source.snapshot);
   assert.equal(shadow.comparison.equal, true);
+  const rehearsal = await ledger.recordRehearsal({
+    tenant_id: TENANT,
+    domain_id: "hrx",
+    import_receipt_id: imported.receipt.receipt_id,
+    shadow_receipt_id: shadow.receipt.receipt_id,
+    smoke_result: {
+      status: "passed",
+      synthetic_only: true,
+      environment: "test",
+      adapter: "hrx-postgres-store-v2",
+      executed_at: "2026-07-16T19:00:00.000Z",
+      source_snapshot_hash: shadow.comparison.source_hash,
+      checks: {
+        source_imported: imported.receipt.status === "source_imported",
+        idempotency_replayed: secondImport.replayed,
+        shadow_equal: shadow.comparison.equal,
+        readback_equal: shadow.comparison.source_hash === shadow.comparison.target_hash,
+        json_dual_write_absent: true,
+      },
+      production_migrated: false,
+    },
+  });
 
   const legacyCommand = await runHrxPostgresCommand({
     ledger,
     tenant_id: TENANT,
+    request_context: {
+      method: "TEST:COMMAND",
+      pathname: "hrx-postgres-store-v2/legacy-command",
+      idempotency_key: "hrx-postgres-legacy-command-001",
+      actor_id: "synthetic-test",
+    },
     command(store) {
       const repository = createSqlHrxRepository({ store, clock: CLOCK });
       const employee = repository.createEmployee({
@@ -120,7 +148,11 @@ test("HRX PostgreSQL import, async store port, legacy service command, CAS and a
     where: { tenant_id: TENANT },
   });
   assert.equal(employees.some((employee) => employee.employee_id === "employee-rs-dom-001"), true);
-  await port.transaction({ tenant_id: TENANT }, async (tx) => {
+  await port.transaction({
+    tenant_id: TENANT,
+    idempotency_key: "hrx-postgres-port-transaction-001",
+    actor_id: "synthetic-test",
+  }, async (tx) => {
     await tx.query("insert", {
       table: "hrx_employees",
       row: {
@@ -153,14 +185,32 @@ test("HRX PostgreSQL import, async store port, legacy service command, CAS and a
     where: { tenant_id: TENANT, employee_id: "employee-rs-dom-001" },
     patch: { display_name: "First concurrent winner" },
   });
-  await flushHrxStoreToPostgres({ ledger, store: first, tenant_id: TENANT });
+  await flushHrxStoreToPostgres({
+    ledger,
+    store: first,
+    tenant_id: TENANT,
+    request_context: {
+      method: "TEST:CONCURRENT",
+      pathname: "hrx-postgres-store-v2/concurrent-first",
+      idempotency_key: "hrx-postgres-concurrent-first",
+    },
+  });
   second.query("updateOne", {
     table: "hrx_employees",
     where: { tenant_id: TENANT, employee_id: "employee-rs-dom-001" },
     patch: { display_name: "Stale concurrent writer" },
   });
   await assert.rejects(
-    flushHrxStoreToPostgres({ ledger, store: second, tenant_id: TENANT }),
+    flushHrxStoreToPostgres({
+      ledger,
+      store: second,
+      tenant_id: TENANT,
+      request_context: {
+        method: "TEST:CONCURRENT",
+        pathname: "hrx-postgres-store-v2/concurrent-second",
+        idempotency_key: "hrx-postgres-concurrent-second",
+      },
+    }),
     (error) => error?.safe_error_code === "HRX_POSTGRES_BASELINE_CONFLICT" && error?.status === 409,
   );
   first.close();
@@ -181,21 +231,6 @@ test("HRX PostgreSQL import, async store port, legacy service command, CAS and a
   );
   appendOnly.close();
 
-  const rehearsal = await ledger.recordRehearsal({
-    tenant_id: TENANT,
-    domain_id: "hrx",
-    import_receipt_id: imported.receipt.receipt_id,
-    shadow_receipt_id: shadow.receipt.receipt_id,
-    smoke_result: {
-      adapter: "hrx-postgres-store-v2",
-      migration_count: source.inventory.migration_count,
-      source_import_equal: true,
-      legacy_service_command_equal: legacyCommand.flush.comparison.equal,
-      async_transaction_passed: true,
-      payroll_rows_preserved: true,
-      production_migrated: false,
-    },
-  });
   assert.equal(rehearsal.status, "source_ready");
   assert.equal(rehearsal.production_migrated, false);
   reportDomainReceiptEvidence({ source: source.snapshot, imported, secondImport, shadow, rehearsal });

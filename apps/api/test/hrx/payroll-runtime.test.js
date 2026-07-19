@@ -9,7 +9,7 @@ import { createFileHrxStore } from "../../../../packages/hrx/src/store/file-stor
 const TENANT = "tenant-payroll-api";
 const NOW = "2026-07-15T01:00:00.000Z";
 
-function setup() {
+function setup(runtimeOptions = {}) {
   const store = createFileHrxStore();
   runHrxMigrations(store);
   const repository = createSqlHrxRepository({ store, clock: () => NOW });
@@ -28,7 +28,7 @@ function setup() {
     repository.createEmployeeUserLink({ tenant_id: TENANT, link_id: `link-${employeeId}`, employee_id: employeeId, user_id: `user-${index + 1}`, purpose: "login_mapping" });
   }
   seedSyntheticPayrollRuntimeStore(store, [TENANT], { clock: () => NOW });
-  const runtime = createHrxPayrollRuntime({ store, clock: () => NOW });
+  const runtime = createHrxPayrollRuntime({ store, clock: () => NOW, ...runtimeOptions });
   const route = createHrxPayrollRuntimeRoute({ runtime, store, clock: () => NOW });
   return { store, runtime, route };
 }
@@ -68,6 +68,33 @@ test("PY-UI-001/002 runtime API lists, snapshots, previews, approves, and closes
   assert.equal(closed.status, 200);
   assert.equal(closed.body.bundle.run.status, "closed");
   assert.deepEqual(value.runtime.payrollRepository.listOutboxEvents(preparer, { run_id: runId }).map((row) => row.event_type), ["payroll.preview", "payroll.approve", "payroll.close"]);
+  value.store.close();
+});
+
+test("operational payroll providers fail closed without bank, filing, or delivery authority", async () => {
+  const value = setup({ allowSyntheticProviders: false });
+  const preparer = { tenant_id: TENANT, actor_id: "payroll-preparer", step_up_verified: false };
+  const approver = { tenant_id: TENANT, actor_id: "payroll-approver", step_up_verified: true, step_up_purpose: "payroll_export_review" };
+  const runId = value.runtime.payrollRepository.listRuns(preparer)[0].run_id;
+  await call(value.route, preparer, "snapshot", { run_id: runId });
+  await call(value.route, preparer, "preview", { run_id: runId });
+  await call(value.route, approver, "approve", { run_id: runId });
+  await call(value.route, approver, "close", { run_id: runId });
+
+  assert.equal(value.runtime.provider_mode, "external-required");
+  await call(value.route, preparer, "statements-generate", { run_id: runId });
+  const delivery = await call(value.route, preparer, "statements-deliver", { run_id: runId }, { channel: "email" });
+  assert.equal(delivery.status, 200);
+  assert.equal(delivery.body.outcome, "queued");
+  assert.equal(delivery.body.delivery.delivered_count, 0);
+
+  const payment = await call(value.route, preparer, "payment-prepare", { run_id: runId });
+  assert.equal(payment.status, 409);
+  assert.equal(payment.body.safe_error_code, "HRX_PAYROLL_PAYMENT_ACCOUNT_MISSING");
+
+  const filing = await call(value.route, preparer, "filing-create", { run_id: runId }, { filing_kind: "withholding" });
+  assert.equal(filing.status, 409);
+  assert.equal(filing.body.safe_error_code, "HRX_PAYROLL_FILING_SCHEMA_UNAPPROVED");
   value.store.close();
 });
 

@@ -81,12 +81,36 @@ function bodyHash(value) {
   return sha256Hex(String(value ?? ""));
 }
 
-function bytesForAttachment(attachment = {}) {
+function bytesForAttachment(attachment = {}, { required = true } = {}) {
   if (typeof attachment.content_base64 === "string" && attachment.content_base64.trim()) {
-    return Buffer.from(attachment.content_base64, "base64");
+    const encoded = attachment.content_base64.replace(/\s+/gu, "");
+    if (!/^[A-Za-z0-9+/]*={0,2}$/u.test(encoded) || encoded.length % 4 !== 0) {
+      throw new TypeError("attachment.content_base64 must be valid base64");
+    }
+    const bytes = Buffer.from(encoded, "base64");
+    if (bytes.toString("base64").replace(/=+$/u, "") !== encoded.replace(/=+$/u, "")) {
+      throw new TypeError("attachment.content_base64 must be valid base64");
+    }
+    return bytes;
   }
   if (typeof attachment.content_text === "string") return Buffer.from(attachment.content_text);
-  return Buffer.from(`Attachment placeholder: ${attachment.name ?? attachment.attachment_id ?? "unknown"}`);
+  if (required) throw new TypeError("attachment bytes are required");
+  return null;
+}
+
+function attachmentMetadata(attachment = {}) {
+  const bytes = bytesForAttachment(attachment, { required: false });
+  const declaredSize = Number(attachment.size ?? attachment.byte_size);
+  const size = Number.isSafeInteger(declaredSize) && declaredSize >= 0 ? declaredSize : bytes?.byteLength ?? null;
+  return Object.freeze({
+    attachment_id: optionalString(attachment.attachment_id ?? attachment.id, `att:${safeId(attachment.name)}`),
+    name: optionalString(attachment.name, "attachment"),
+    content_type: optionalString(attachment.content_type ?? attachment.mime_type, "application/octet-stream"),
+    size,
+    confidentiality: optionalString(attachment.confidentiality, "internal"),
+    sha256: optionalString(attachment.sha256, bytes ? sha256Hex(bytes) : null),
+    bytes_included: false,
+  });
 }
 
 function safePerson(value = {}) {
@@ -222,19 +246,7 @@ function normalizeEmailThread({ input = {}, tenant_id, matter_id, actor_id, mode
     received_at: optionalString(email.received_at ?? email.receivedAt, filingTime),
     mailbox_ref: optionalString(email.mailbox_ref ?? email.mailbox, "mailbox:outlook:addin"),
     account_ref: optionalString(email.account_ref ?? email.account, "account:outlook:addin"),
-    attachment_metadata: Object.freeze(
-      attachments.map((attachment) =>
-        Object.freeze({
-          attachment_id: optionalString(attachment.attachment_id ?? attachment.id, `att:${safeId(attachment.name)}`),
-          name: optionalString(attachment.name, "attachment"),
-          content_type: optionalString(attachment.content_type ?? attachment.mime_type, "application/octet-stream"),
-          size: Number(attachment.size ?? attachment.byte_size ?? bytesForAttachment(attachment).byteLength),
-          confidentiality: optionalString(attachment.confidentiality, "internal"),
-          sha256: optionalString(attachment.sha256, sha256Hex(bytesForAttachment(attachment))),
-          bytes_included: false,
-        }),
-      ),
-    ),
+    attachment_metadata: Object.freeze(attachments.map(attachmentMetadata)),
     filing_user: actor_id,
     filing_time: filingTime,
     filing_mode: mode,
@@ -352,25 +364,27 @@ function listMatterTimeline({ repository, tenant_id, matter_id, actor } = {}) {
   return buildMatterTimelineReadModel({ entries, actor, tenant_id, matter_id });
 }
 
+function safeMatterDocument(document = {}) {
+  return Object.freeze({
+    document_id: document.document_id,
+    matter_id: document.matter_id,
+    title: document.title,
+    folder_id: document.folder_id ?? null,
+    current_version_id: document.current_version_id,
+    latest_sha256: document.latest_sha256 ?? null,
+    source_email_thread_id: document.source_email_thread_id ?? null,
+    source_attachment_id: document.source_attachment_id ?? null,
+    document_bytes_included: false,
+    storage_pointer_ref_included: false,
+    production_ready_claim: false,
+  });
+}
+
 function listMatterDocuments({ repository, tenant_id, matter_id } = {}) {
   return Object.freeze(
     repository
       .list({ tenant_id, model_type: "DmsDocument", matter_id })
-      .map((document) =>
-        Object.freeze({
-          document_id: document.document_id,
-          matter_id: document.matter_id,
-          title: document.title,
-          folder_id: document.folder_id ?? null,
-          current_version_id: document.current_version_id,
-          latest_sha256: document.latest_sha256 ?? null,
-          source_email_thread_id: document.source_email_thread_id ?? null,
-          source_attachment_id: document.source_attachment_id ?? null,
-          document_bytes_included: false,
-          storage_pointer_ref_included: false,
-          production_ready_claim: false,
-        }),
-      ),
+      .map(safeMatterDocument),
   );
 }
 
@@ -507,7 +521,7 @@ function fileEmail({ body, context, requestId, runtime, mode = "manual" }) {
   });
 }
 
-function saveAttachments({ body, context, requestId, runtime }) {
+async function saveAttachments({ body, context, requestId, runtime }) {
   const tenantId = requiredString(body.tenant_id ?? context?.principal?.tenant_id, "tenant_id");
   const matterId = requiredString(body.matter_id ?? body.matterId, "matter_id");
   const actorId = actorFrom(context);
@@ -529,6 +543,12 @@ function saveAttachments({ body, context, requestId, runtime }) {
   const selected = new Set(Array.isArray(body.selected_attachment_ids) ? body.selected_attachment_ids : attachments.map((item) => item.attachment_id ?? item.id));
   const folderState = ensureMatterFolders({ repository: runtime.dmsRuntime.repository, matter, actor_id: actorId });
   const emailFolder = folderState.folders.find((folder) => folder.name === "00_Email");
+  const postgresDms = typeof runtime.dmsRuntime.upload_runtime?.uploadDocument === "function";
+  const knownDocuments = postgresDms
+    ? (await runtime.dmsRuntime.upload_runtime.listDocuments({ tenant_id: tenantId, actor_id: actorId }))
+        .filter((entry) => entry.document.matter_id === matterId)
+        .map((entry) => ({ ...entry.document, latest_sha256: entry.version?.sha256 ?? null }))
+    : [...runtime.dmsRuntime.repository.list({ tenant_id: tenantId, model_type: "DmsDocument", matter_id: matterId })];
   const saved = [];
   const duplicates = [];
   for (const attachment of attachments) {
@@ -536,19 +556,14 @@ function saveAttachments({ body, context, requestId, runtime }) {
     if (!selected.has(attachmentId)) continue;
     const bytes = bytesForAttachment(attachment);
     const sha256 = sha256Hex(bytes);
-    const duplicate = runtime.dmsRuntime.repository
-      .list({ tenant_id: tenantId, model_type: "DmsDocument", matter_id: matterId })
-      .find((document) => document.latest_sha256 === sha256);
+    const duplicate = knownDocuments.find((document) => document.latest_sha256 === sha256);
     if (duplicate) {
       duplicates.push(Object.freeze({ attachment_id: attachmentId, duplicate_document_id: duplicate.document_id, sha256 }));
       continue;
     }
     const documentId = `doc:${safeId(emailThreadId)}:${safeId(attachmentId)}`;
     const versionId = `version:${documentId}:1`;
-    const uploaded = uploadDocument({
-      repository: runtime.dmsRuntime.repository,
-      storage: runtime.dmsRuntime.storage,
-      document: {
+    const document = {
         document_id: documentId,
         tenant_id: tenantId,
         matter_id: matterId,
@@ -563,11 +578,23 @@ function saveAttachments({ body, context, requestId, runtime }) {
         source_email_thread_id: emailThreadId,
         source_attachment_id: attachmentId,
         source_policy: "source_required",
-      },
-      bytes,
-      actor_id: actorId,
-      idempotency_key: `outlook-attachment:${emailThreadId}:${attachmentId}:${sha256}`,
-    });
+    };
+    const uploaded = postgresDms
+      ? await runtime.dmsRuntime.upload_runtime.uploadDocument({
+          document,
+          bytes,
+          actor_id: actorId,
+          idempotency_key: `outlook-attachment:${emailThreadId}:${attachmentId}:${sha256}`,
+        })
+      : uploadDocument({
+          repository: runtime.dmsRuntime.repository,
+          storage: runtime.dmsRuntime.storage,
+          document,
+          bytes,
+          actor_id: actorId,
+          idempotency_key: `outlook-attachment:${emailThreadId}:${attachmentId}:${sha256}`,
+        });
+    knownDocuments.push(uploaded.document);
     const mappingId = `email-attachment:${emailThreadId}:${attachmentId}`;
     runtime.dmsRuntime.repository.upsert({
       model_type: "DmsEmailAttachmentMapping",
@@ -613,7 +640,9 @@ function saveAttachments({ body, context, requestId, runtime }) {
     duplicate_attachments: Object.freeze(duplicates),
     duplicate_count: duplicates.length,
     folder_structure: MATTER_FOLDER_NAMES,
-    documents: listMatterDocuments({ repository: runtime.dmsRuntime.repository, tenant_id: tenantId, matter_id: matterId }),
+    documents: postgresDms
+      ? Object.freeze(knownDocuments.map(safeMatterDocument))
+      : listMatterDocuments({ repository: runtime.dmsRuntime.repository, tenant_id: tenantId, matter_id: matterId }),
     document_bytes_included: false,
   });
 }
@@ -729,7 +758,7 @@ function routeMatch(pathname, pattern) {
   return pathname.match(pattern);
 }
 
-export function handleOutlookAddinApiRequest({ pathname, method, query = {}, body = {}, context, requestId, runtime } = {}) {
+export async function handleOutlookAddinApiRequest({ pathname, method, query = {}, body = {}, context, requestId, runtime } = {}) {
   try {
     if (pathname === "/api/outlook/bootstrap" && method === "GET") {
       return handleBootstrap({ query, context, requestId });
@@ -788,7 +817,7 @@ export function handleOutlookAddinApiRequest({ pathname, method, query = {}, bod
       return fileEmail({ body, context, requestId, runtime, mode: "sent" });
     }
     if (pathname === "/api/outlook/attachments/save" && method === "POST") {
-      return saveAttachments({ body, context, requestId, runtime });
+      return await saveAttachments({ body, context, requestId, runtime });
     }
     if (pathname === "/api/outlook/followups" && method === "POST") {
       return createFollowup({ body, context, requestId, runtime });

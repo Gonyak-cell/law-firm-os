@@ -315,31 +315,37 @@ export async function flushRecordRepositoryToDomainLedger({
   }).snapshot;
   const expectedBaseline = materializedBaselines.get(repository);
   const scope = { tenant_id, domain_id: descriptor.domain_id };
-  await ledger.transaction(scope, (tx) => flushSnapshotToScopedDomainLedger({
+  await ledger.transaction(scope, (tx) => flushDomainSnapshotToScopedLedger({
     tx,
-    descriptor,
     source,
     tenant_id,
+    domain_id: descriptor.domain_id,
     expected_baseline: expectedBaseline,
   }));
-  const comparison = await compareLedgerReadback({ ledger, descriptor, source, tenant_id });
+  const comparison = await compareDomainSnapshotWithLedgerReadback({
+    ledger,
+    source,
+    tenant_id,
+    domain_id: descriptor.domain_id,
+  });
   return Object.freeze({ snapshot: source, comparison });
 }
 
-async function flushSnapshotToScopedDomainLedger({
+export async function flushDomainSnapshotToScopedLedger({
   tx,
-  descriptor,
   source,
   tenant_id,
+  domain_id = source?.domain_id,
   expected_baseline,
 } = {}) {
+  const domainId = requireDomainId(domain_id);
   const currentRecords = await tx.list();
   const currentIdempotency = await tx.listIdempotency();
   const currentAudit = await tx.listAudit();
   if (expected_baseline) {
     const currentSnapshot = createDomainSnapshot({
       tenant_id,
-      domain_id: descriptor.domain_id,
+      domain_id: domainId,
       records: currentRecords,
       idempotency_entries: currentIdempotency,
       audit_events: currentAudit,
@@ -356,18 +362,23 @@ async function flushSnapshotToScopedDomainLedger({
     }
   }
   const recordMap = new Map(currentRecords.map((record) => [
-    recordIdentity(descriptor.domain_id, record.record_type, record.record_id),
+    recordIdentity(domainId, record.record_type, record.record_id),
     record,
   ]));
+  let changedRecordCount = 0;
   for (const record of source.records) {
-    const current = recordMap.get(recordIdentity(descriptor.domain_id, record.record_type, record.record_id));
-    if (!current) await tx.write({ ...record, expected_version: 0 });
+    const current = recordMap.get(recordIdentity(domainId, record.record_type, record.record_id));
+    if (!current) {
+      await tx.write({ ...record, expected_version: 0 });
+      changedRecordCount += 1;
+    }
     else if (
       current.payload_hash !== record.payload_hash
       || current.unique_key !== record.unique_key
       || current.append_only !== record.append_only
     ) {
       await tx.write({ ...record, expected_version: current.state_version });
+      changedRecordCount += 1;
     }
   }
   for (const record of source.records) await tx.addReferences(record);
@@ -380,6 +391,15 @@ async function flushSnapshotToScopedDomainLedger({
     });
   }
   const idempotencyKeys = new Set(currentIdempotency.map((entry) => entry.key));
+  const newIdempotencyEntries = source.idempotency_entries.filter((entry) => !idempotencyKeys.has(entry.key));
+  if (changedRecordCount > 0 && newIdempotencyEntries.length === 0) {
+    throw Object.assign(new Error(`${domainId} domain mutation must claim an idempotency key`), {
+      code: "LAWOS_DOMAIN_IDEMPOTENCY_REQUIRED",
+      safe_error_code: "DOMAIN_IDEMPOTENCY_REQUIRED",
+      status: 409,
+      domain_id: domainId,
+    });
+  }
   for (const entry of source.idempotency_entries) {
     const result = await tx.claimIdempotency(entry);
     if (idempotencyKeys.has(entry.key) && !result.replayed) {
@@ -387,6 +407,15 @@ async function flushSnapshotToScopedDomainLedger({
     }
   }
   const auditById = new Map(currentAudit.map((event) => [event.event_id, event]));
+  const newAuditEvents = source.audit_events.filter((event) => !auditById.has(event.event_id));
+  if (changedRecordCount > 0 && newAuditEvents.length === 0) {
+    throw Object.assign(new Error(`${domainId} domain mutation must append an audit event`), {
+      code: "LAWOS_DOMAIN_AUDIT_REQUIRED",
+      safe_error_code: "DOMAIN_AUDIT_REQUIRED",
+      status: 409,
+      domain_id: domainId,
+    });
+  }
   for (const event of source.audit_events) {
     const current = auditById.get(event.event_id);
     if (current) {
@@ -399,11 +428,24 @@ async function flushSnapshotToScopedDomainLedger({
       }
     } else {
       await tx.appendAudit(event);
+      if (typeof tx.enqueueOutbox !== "function") throw new TypeError("domain transaction outbox method is required");
+      await tx.enqueueOutbox({
+        event_id: `outbox:${event.event_id}`,
+        topic: `${domainId}.audit`,
+        aggregate_type: event.object_type,
+        aggregate_id: event.object_id,
+        payload: {
+          audit_event_id: event.event_id,
+          event_type: event.event_type,
+          payload_hash: hashDomainValue(event.payload ?? {}),
+        },
+        created_at: event.created_at,
+      });
     }
   }
   const target = createDomainSnapshot({
     tenant_id,
-    domain_id: descriptor.domain_id,
+    domain_id: domainId,
     records: await tx.list(),
     idempotency_entries: await tx.listIdempotency(),
     audit_events: await tx.listAudit(),
@@ -421,11 +463,17 @@ async function flushSnapshotToScopedDomainLedger({
   return comparison;
 }
 
-async function compareLedgerReadback({ ledger, descriptor, source, tenant_id } = {}) {
-  const scope = { tenant_id, domain_id: descriptor.domain_id };
+export async function compareDomainSnapshotWithLedgerReadback({
+  ledger,
+  source,
+  tenant_id,
+  domain_id = source?.domain_id,
+} = {}) {
+  const domainId = requireDomainId(domain_id);
+  const scope = { tenant_id, domain_id: domainId };
   const target = createDomainSnapshot({
     tenant_id,
-    domain_id: descriptor.domain_id,
+    domain_id: domainId,
     records: await ledger.list(scope),
     idempotency_entries: await ledger.listIdempotency(scope),
     audit_events: await ledger.listAudit(scope),
@@ -475,6 +523,7 @@ export async function runRecordRepositoryMultiDomainCommand({
   ledger,
   tenant_id,
   domains,
+  additional_domains = [],
   command,
 } = {}) {
   if (!ledger || typeof ledger.transactionMany !== "function") {
@@ -500,6 +549,33 @@ export async function runRecordRepositoryMultiDomainCommand({
   if (new Set(definitions.map((domain) => domain.descriptor.domain_id)).size !== definitions.length) {
     throw new TypeError("multi-domain command domain_ids must be unique");
   }
+  if (!Array.isArray(additional_domains)) throw new TypeError("additional_domains must be an array");
+  const additionalDefinitions = additional_domains.map((domain) => {
+    const definition = Object.freeze({
+      key: requiredText(domain?.key, "additional domain key"),
+      domain_id: requireDomainId(domain?.domain_id),
+      materialize: domain?.materialize,
+      create_snapshot: domain?.create_snapshot,
+      get_baseline: domain?.get_baseline,
+      flush: domain?.flush,
+      compare: domain?.compare,
+      close: domain?.close,
+    });
+    for (const method of ["materialize", "create_snapshot", "get_baseline", "flush", "compare", "close"]) {
+      if (typeof definition[method] !== "function") {
+        throw new TypeError(`additional domain ${definition.key}.${method} is required`);
+      }
+    }
+    return definition;
+  });
+  const allKeys = definitions.map((domain) => domain.key)
+    .concat(additionalDefinitions.map((domain) => domain.key));
+  const allDomainIds = definitions.map((domain) => domain.descriptor.domain_id)
+    .concat(additionalDefinitions.map((domain) => domain.domain_id));
+  if (new Set(allKeys).size !== allKeys.length) throw new TypeError("multi-domain command keys must be unique");
+  if (new Set(allDomainIds).size !== allDomainIds.length) {
+    throw new TypeError("multi-domain command domain_ids must be unique");
+  }
 
   const repositories = Object.fromEntries(await Promise.all(definitions.map(async (domain) => [
     domain.key,
@@ -510,8 +586,12 @@ export async function runRecordRepositoryMultiDomainCommand({
       create_repository: domain.create_repository,
     }),
   ])));
+  const additionalValues = Object.fromEntries(await Promise.all(additionalDefinitions.map(async (domain) => [
+    domain.key,
+    await domain.materialize({ ledger, tenant_id }),
+  ])));
   try {
-    const result = await command(Object.freeze(repositories));
+    const result = await command(Object.freeze({ ...repositories, ...additionalValues }));
     const sources = Object.fromEntries(definitions.map((domain) => [
       domain.descriptor.domain_id,
       createRecordRepositoryDomainSnapshot({
@@ -527,32 +607,79 @@ export async function runRecordRepositoryMultiDomainCommand({
       domain.descriptor.domain_id,
       materializedBaselines.get(repositories[domain.key]),
     ]));
+    for (const domain of additionalDefinitions) {
+      sources[domain.domain_id] = domain.create_snapshot({
+        value: additionalValues[domain.key],
+        tenant_id,
+      });
+      baselines[domain.domain_id] = domain.get_baseline({
+        value: additionalValues[domain.key],
+        tenant_id,
+      });
+    }
+    const localComparisons = Object.fromEntries(definitions.map((domain) => [
+      domain.descriptor.domain_id,
+      compareDomainSnapshots(
+        baselines[domain.descriptor.domain_id],
+        sources[domain.descriptor.domain_id],
+      ),
+    ]));
+    for (const domain of additionalDefinitions) {
+      localComparisons[domain.domain_id] = compareDomainSnapshots(
+        baselines[domain.domain_id],
+        sources[domain.domain_id],
+      );
+    }
+    if (Object.values(localComparisons).every((comparison) => comparison.equal)) {
+      return Object.freeze({ result, flushes: Object.freeze({}) });
+    }
     await ledger.transactionMany({
       tenant_id,
-      domain_ids: definitions.map((domain) => domain.descriptor.domain_id),
+      domain_ids: allDomainIds,
     }, async (transactions) => {
       for (const domain of definitions) {
-        await flushSnapshotToScopedDomainLedger({
+        await flushDomainSnapshotToScopedLedger({
           tx: transactions[domain.descriptor.domain_id],
-          descriptor: domain.descriptor,
           source: sources[domain.descriptor.domain_id],
           tenant_id,
+          domain_id: domain.descriptor.domain_id,
           expected_baseline: baselines[domain.descriptor.domain_id],
+        });
+      }
+      for (const domain of additionalDefinitions) {
+        await domain.flush({
+          tx: transactions[domain.domain_id],
+          source: sources[domain.domain_id],
+          tenant_id,
+          domain_id: domain.domain_id,
+          expected_baseline: baselines[domain.domain_id],
         });
       }
     });
     const flushes = Object.fromEntries(await Promise.all(definitions.map(async (domain) => {
       const snapshot = sources[domain.descriptor.domain_id];
-      const comparison = await compareLedgerReadback({
+      const comparison = await compareDomainSnapshotWithLedgerReadback({
         ledger,
-        descriptor: domain.descriptor,
         source: snapshot,
         tenant_id,
+        domain_id: domain.descriptor.domain_id,
       });
       return [domain.key, Object.freeze({ snapshot, comparison })];
-    })));
+    }).concat(additionalDefinitions.map(async (domain) => {
+      const snapshot = sources[domain.domain_id];
+      const comparison = await domain.compare({
+        ledger,
+        source: snapshot,
+        tenant_id,
+        domain_id: domain.domain_id,
+      });
+      return [domain.key, Object.freeze({ snapshot, comparison })];
+    }))));
     return Object.freeze({ result, flushes: Object.freeze(flushes) });
   } finally {
     for (const repository of Object.values(repositories)) repository.close?.();
+    for (const domain of additionalDefinitions) {
+      await domain.close({ value: additionalValues[domain.key], tenant_id });
+    }
   }
 }

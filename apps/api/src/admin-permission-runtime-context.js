@@ -159,8 +159,8 @@ function responseBody(requestId, query, payload = {}) {
   };
 }
 
-function actorFrom(context, body) {
-  return body?.actor_id ?? context?.principal?.user_id;
+function actorFrom(context) {
+  return context?.principal?.user_id;
 }
 
 function commonInput(query, body, context) {
@@ -168,7 +168,7 @@ function commonInput(query, body, context) {
     tenant_id: query.tenant_id,
     permission_ref: query.permission_ref,
     audit_hint_ref: query.audit_hint_ref,
-    actor_id: actorFrom(context, body),
+    actor_id: actorFrom(context),
   };
 }
 
@@ -190,7 +190,7 @@ export function handleAdminPermissionApiRequest({ pathname, method, query, body,
   const adminService = service(repositories);
 
   try {
-    if (route.action === "admin:permission_set:read") {
+    if (route.action === "admin_permission:permission_set:read") {
       return {
         status: 200,
         body: responseBody(requestId, mergedQuery, {
@@ -199,7 +199,7 @@ export function handleAdminPermissionApiRequest({ pathname, method, query, body,
         }),
       };
     }
-    if (route.action === "admin:permission_assignment:read") {
+    if (route.action === "admin_permission:permission_assignment:read") {
       return {
         status: 200,
         body: responseBody(requestId, mergedQuery, {
@@ -208,7 +208,7 @@ export function handleAdminPermissionApiRequest({ pathname, method, query, body,
         }),
       };
     }
-    if (route.action === "admin:object_manager:read") {
+    if (route.action === "admin_permission:object_manager:read") {
       return {
         status: 200,
         body: responseBody(requestId, mergedQuery, {
@@ -218,7 +218,7 @@ export function handleAdminPermissionApiRequest({ pathname, method, query, body,
         }),
       };
     }
-    if (route.action === "admin:object_manager:field_read") {
+    if (route.action === "admin_permission:object_manager:field_read") {
       return {
         status: 200,
         body: responseBody(requestId, mergedQuery, {
@@ -228,7 +228,7 @@ export function handleAdminPermissionApiRequest({ pathname, method, query, body,
         }),
       };
     }
-    if (route.action === "admin:connected_app:read") {
+    if (route.action === "admin_permission:connected_app:read") {
       return {
         status: 200,
         body: responseBody(requestId, mergedQuery, {
@@ -237,7 +237,7 @@ export function handleAdminPermissionApiRequest({ pathname, method, query, body,
         }),
       };
     }
-    if (route.action === "admin:audit:read") {
+    if (route.action === "admin_permission:audit:read") {
       return {
         status: 200,
         body: responseBody(requestId, mergedQuery, {
@@ -252,20 +252,20 @@ export function handleAdminPermissionApiRequest({ pathname, method, query, body,
     const common = commonInput(mergedQuery, body, context);
     let status = 200;
     let payload;
-    if (route.action === "admin:permission_set:write") {
+    if (route.action === "admin_permission:permission_set:write") {
       const result = adminService.createPermissionSet({ ...common, ...body });
       status = 201;
       payload = { outcome: "owner_blocked", ui_state: "owner_blocked", item: result.permission_set, audit_event: result.audit_event };
-    } else if (route.action === "admin:permission_set:patch") {
+    } else if (route.action === "admin_permission:permission_set:patch") {
       const result = adminService.patchPermissionSet({ ...common, permission_set_id: decodeURIComponent(route.params[0]), patch: body?.patch ?? body });
       payload = { outcome: "owner_blocked", ui_state: "owner_blocked", item: result.permission_set, audit_event: result.audit_event };
-    } else if (route.action === "admin:permission_assignment:write") {
+    } else if (route.action === "admin_permission:permission_assignment:write") {
       const result = adminService.assignPermissionSet({ ...common, ...body });
       payload = { outcome: "owner_blocked", ui_state: "owner_blocked", item: result.assignment, audit_event: result.audit_event };
-    } else if (route.action === "admin:permission_assignment:revoke") {
+    } else if (route.action === "admin_permission:permission_assignment:revoke") {
       const result = adminService.revokePermissionSetAssignment({ ...common, ...body, assignment_id: decodeURIComponent(route.params[0]) });
       payload = { outcome: "owner_blocked", ui_state: "owner_blocked", item: result.assignment, audit_event: result.audit_event };
-    } else if (route.action === "admin:object_manager:patch") {
+    } else if (route.action === "admin_permission:object_manager:patch") {
       const result = adminService.patchObjectFieldPolicy({
         ...common,
         ...body,
@@ -279,11 +279,11 @@ export function handleAdminPermissionApiRequest({ pathname, method, query, body,
         audit_event: result.audit_event,
         physical_schema_mutated: false,
       };
-    } else if (route.action === "admin:connected_app:write") {
+    } else if (route.action === "admin_permission:connected_app:write") {
       const result = adminService.createConnectedApp({ ...common, ...body });
       status = 201;
       payload = { outcome: "provider_blocked", ui_state: "provider_blocked", item: result.connected_app, audit_event: result.audit_event };
-    } else if (route.action === "admin:connected_app:disable") {
+    } else if (route.action === "admin_permission:connected_app:disable") {
       const result = adminService.disableConnectedApp({ ...common, ...body, app_id: decodeURIComponent(route.params[0]) });
       payload = { outcome: "provider_blocked", ui_state: "provider_blocked", item: result.connected_app, audit_event: result.audit_event };
     } else {

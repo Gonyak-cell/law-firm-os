@@ -40,7 +40,36 @@ function matches(rule, principal, resource, action) {
 }
 
 function actionMatches(rule, action) {
-  return rule.action === action || rule.actions?.includes(action) || rule.action === "*";
+  const actionValue = String(action ?? "");
+  const actionOk = rule.action === actionValue
+    || rule.actions?.includes(actionValue)
+    || rule.action === "*"
+    || (typeof rule.action_prefix === "string" && actionValue.startsWith(rule.action_prefix))
+    || rule.action_prefixes?.some((prefix) => typeof prefix === "string" && actionValue.startsWith(prefix))
+    || (typeof rule.action_suffix === "string" && actionValue.endsWith(rule.action_suffix))
+    || rule.action_suffixes?.some((suffix) => typeof suffix === "string" && actionValue.endsWith(suffix));
+  if (!actionOk) return false;
+  if (rule.action_access == null) return true;
+  if (rule.action_access !== "read") return false;
+  const terminal = actionValue.split(/[:.]/u).at(-1);
+  return new Set([
+    "bootstrap",
+    "download",
+    "get",
+    "items",
+    "list",
+    "open",
+    "preflight",
+    "preview",
+    "profile-self",
+    "profiles",
+    "read",
+    "reviews",
+    "search",
+    "statements-self",
+    "view",
+    "viewed",
+  ]).has(terminal);
 }
 
 function decision(effect, reason, principal, resource, action, matched_rule_id = null) {

@@ -882,6 +882,26 @@ function passwordResetRecordCount(parsed = {}) {
   return Array.isArray(parsed?.records) ? parsed.records.length : 0;
 }
 
+function legacyFileAuthorityAllowed(env = process.env) {
+  return String(env.LAWOS_RUNTIME_PROFILE ?? "").trim() === "local-dev";
+}
+
+function legacyJsonMutationBlockedReceipt({ maintenanceAction, reason, schemaVersion = null } = {}) {
+  return Object.freeze({
+    ok: false,
+    ...(schemaVersion ? { schema_version: schemaVersion } : {}),
+    maintenance_action: maintenanceAction,
+    status: "BLOCKED_OPERATIONAL_JSON_AUTHORITY_DISABLED",
+    status_code: 424,
+    reason,
+    production_write_executed: false,
+    json_fallback: false,
+    dual_write: false,
+    production_ready_claim: false,
+    go_live_claim: false,
+  });
+}
+
 export async function buildLcxAuthResetRecoveryReceipt({
   event = {},
   env = process.env,
@@ -889,6 +909,23 @@ export async function buildLcxAuthResetRecoveryReceipt({
 } = {}) {
   const generatedAtMs = now();
   const generatedAt = new Date(generatedAtMs).toISOString();
+  if (!legacyFileAuthorityAllowed(env)) {
+    return {
+      ok: false,
+      schema_version: LCX_AUTH_RESET_RECOVERY_SCHEMA_VERSION,
+      maintenance_action: LCX_AUTH_RESET_RECOVERY_ACTION,
+      approval_signature_ref: LCX_AUTH_RESET_RECOVERY_APPROVAL_REF,
+      status: "BLOCKED_OPERATIONAL_JSON_AUTHORITY_DISABLED",
+      status_code: 424,
+      reason: "operational_password_reset_json_authority_disabled",
+      token_material_returned_to_caller: false,
+      reset_url_returned_to_caller: false,
+      credential_store_write_executed: false,
+      reset_token_store_write_executed: false,
+      production_ready_claim: false,
+      go_live_claim: false,
+    };
+  }
   const targetEmail = String(event.target_email ?? event.email ?? LCX_AUTH_RESET_RECOVERY_TARGET_EMAIL).trim().toLowerCase();
   if (targetEmail !== LCX_AUTH_RESET_RECOVERY_TARGET_EMAIL) {
     return {
@@ -1198,6 +1235,13 @@ function authCredentialRecordsFromStore(parsed = {}) {
 }
 
 async function writeI18ProbeCredential({ env = process.env, generatedAt = new Date().toISOString() } = {}) {
+  if (!legacyFileAuthorityAllowed(env)) {
+    return {
+      ok: false,
+      status: 424,
+      reason: "operational_credential_json_authority_disabled",
+    };
+  }
   const credentialStorePath = cleanPath(env[LAWOS_AUTH_CREDENTIAL_STORE_ENV]);
   if (!credentialStorePath) {
     return {
@@ -2807,6 +2851,13 @@ async function appendS5SecurityAuditEvent({ env = process.env, generatedAt, rece
 }
 
 export async function buildCtiS5EnrichmentExecuteReceipt({ event = {}, env = process.env } = {}) {
+  if (!legacyFileAuthorityAllowed(env)) {
+    return legacyJsonMutationBlockedReceipt({
+      maintenanceAction: CTI_S5_ENRICHMENT_EXECUTE_ACTION,
+      reason: "operational_s5_json_authority_disabled",
+      schemaVersion: CTI_S5_ENRICHMENT_EXECUTE_SCHEMA_VERSION,
+    });
+  }
   const generatedAt = new Date().toISOString();
   const requestId = String(event.request_id ?? event.requestId ?? "cti-s5-enrichment-execute");
   let stage = "validate_mapping_rows";
@@ -3031,6 +3082,13 @@ async function appendCutoverSecurityAuditEvent({
 }
 
 export async function buildCtiCutoverExecuteRetryReceipt({ event = {}, env = process.env } = {}) {
+  if (!legacyFileAuthorityAllowed(env)) {
+    return legacyJsonMutationBlockedReceipt({
+      maintenanceAction: CTI_CUTOVER_EXECUTE_RETRY_ACTION,
+      reason: "operational_cutover_json_authority_disabled",
+      schemaVersion: CTI_CUTOVER_EXECUTE_RETRY_SCHEMA_VERSION,
+    });
+  }
   const generatedAt = new Date().toISOString();
   const requestId = String(event.request_id ?? event.requestId ?? "cti-cutover-execute-retry");
   const eventApprovalRefs = Array.isArray(event.approval_signature_refs)
@@ -3338,6 +3396,12 @@ async function handleCtiS1GAuthenticatedProductionProbe(event = {}) {
 }
 
 export async function buildHrxRosterReconcileReceipt({ env = process.env, now = () => new Date() } = {}) {
+  if (!legacyFileAuthorityAllowed(env)) {
+    return legacyJsonMutationBlockedReceipt({
+      maintenanceAction: HRX_ROSTER_RECONCILE_ACTION,
+      reason: "operational_hrx_json_authority_disabled",
+    });
+  }
   const storePath = cleanPath(env.LAWOS_HRX_STORE_PATH);
   if (!storePath) {
     return {
@@ -3820,6 +3884,7 @@ async function loadMatterDbReadOverlayRecords({ env = process.env, force = false
 }
 
 async function createLambdaMatterRepository({ env = process.env } = {}) {
+  if (!legacyFileAuthorityAllowed(env)) return undefined;
   const baseRepository = createMatterRepository({
     filePath: env.LAWOS_MATTER_STORE_PATH,
     seedRecords: [],
@@ -3836,6 +3901,13 @@ async function createLambdaMatterRepository({ env = process.env } = {}) {
 }
 
 async function buildMatterDbSnapshotMaterializeReceipt({ event = {}, env = process.env } = {}) {
+  if (!legacyFileAuthorityAllowed(env)) {
+    return legacyJsonMutationBlockedReceipt({
+      maintenanceAction: CTI_MATTER_DB_SNAPSHOT_MATERIALIZE_ACTION,
+      reason: "operational_matter_json_materialization_disabled",
+      schemaVersion: CTI_MATTER_DB_SNAPSHOT_MATERIALIZE_SCHEMA_VERSION,
+    });
+  }
   const generatedAt = new Date().toISOString();
   const storePath = String(env.LAWOS_MATTER_STORE_PATH ?? "").trim();
   if (!storePath) throw new Error("LAWOS_MATTER_STORE_PATH is required for Matter DB snapshot materialization");
@@ -3937,6 +4009,13 @@ async function handleMatterDbSnapshotMaterialize(event = {}) {
 }
 
 async function buildMatterStoreReadModelProofReceipt({ event = {}, env = process.env } = {}) {
+  if (!legacyFileAuthorityAllowed(env)) {
+    return legacyJsonMutationBlockedReceipt({
+      maintenanceAction: CTI_MATTER_STORE_READ_MODEL_PROOF_ACTION,
+      reason: "operational_matter_json_read_model_disabled",
+      schemaVersion: CTI_MATTER_STORE_READ_MODEL_PROOF_SCHEMA_VERSION,
+    });
+  }
   const storePath = String(env.LAWOS_MATTER_STORE_PATH ?? "").trim();
   if (!storePath) throw new Error("LAWOS_MATTER_STORE_PATH is required for Matter store read model proof");
   const bytes = await readFile(storePath);
@@ -4071,6 +4150,13 @@ function countStoreLiteralOccurrences(bytes, target = CTI_CLIENT_DISPLAY_REPAIR_
 }
 
 async function buildClientDisplayNameRepairReceipt({ event = {}, env = process.env } = {}) {
+  if (!legacyFileAuthorityAllowed(env)) {
+    return legacyJsonMutationBlockedReceipt({
+      maintenanceAction: CTI_CLIENT_DISPLAY_NAME_REPAIR_ACTION,
+      reason: "operational_matter_json_authority_disabled",
+      schemaVersion: CTI_CLIENT_DISPLAY_NAME_REPAIR_SCHEMA_VERSION,
+    });
+  }
   const generatedAt = new Date().toISOString();
   const dryRun = event.dry_run === true;
   const storePath = String(env.LAWOS_MATTER_STORE_PATH ?? "").trim();
@@ -4223,12 +4309,15 @@ async function handleLcxAuthResetRecovery(event = {}) {
 
 async function apiBaseUrl() {
   if (!serverPromise) {
-    serverPromise = (async () => startApiServer({
-      port: 0,
-      sessionSecret: await resolveLambdaSessionSecret(),
-      passwordResetEmailDelivery: createLambdaPasswordResetEmailDelivery(),
-      matterRepository: await createLambdaMatterRepository(),
-    }))();
+    serverPromise = (async () => {
+      const matterRepository = await createLambdaMatterRepository();
+      return startApiServer({
+        port: 0,
+        sessionSecret: await resolveLambdaSessionSecret(),
+        passwordResetEmailDelivery: createLambdaPasswordResetEmailDelivery(),
+        ...(matterRepository ? { matterRepository } : {}),
+      });
+    })();
   }
   const { port } = await serverPromise;
   return `http://127.0.0.1:${port}`;

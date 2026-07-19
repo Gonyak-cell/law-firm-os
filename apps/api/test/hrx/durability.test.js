@@ -196,3 +196,85 @@ test("HRX recruiting and lifecycle writes survive runtime reopen", () => {
   assert.equal(offboarding.state, "closed");
   reopenedStore.close();
 });
+
+test("operational HRX construction is read-only and risk, approval, policy, and AI authority survives reopen", () => {
+  const operationalStore = createFileHrxStore();
+  runHrxMigrations(operationalStore);
+  const beforeConstruction = operationalStore.snapshot();
+  createHrxRuntimeContext({ store: operationalStore, seedRuntimeFixtures: false });
+  assert.deepEqual(operationalStore.snapshot(), beforeConstruction);
+  operationalStore.close();
+
+  const storeFile = join(mkdtempSync(join(tmpdir(), "hrx-operational-authority-durability-")), "hrx-store.json");
+  const requestContext = Object.freeze({
+    tenant_id: "tenant-a",
+    actor_id: "user-hrx-authority",
+    actor_role: "hr_admin",
+    hrx_scopes: ["hrx.risk.read", "hrx.risk.write", "hrx.approval.write", "hrx.policy.write"],
+    session_bound: true,
+  });
+  const request = (context, pathname, method, body = {}, query = {}) => handleHrxApiRequest({
+    pathname,
+    method,
+    body,
+    query,
+    context,
+    requestContext,
+  });
+
+  const store = createFileHrxStore({ filePath: storeFile });
+  runHrxMigrations(store);
+  const context = createHrxRuntimeContext({ store });
+  const consentCountBeforeInvalidCandidate = store.snapshot().tables.hrx_candidate_consents.length;
+  assert.equal(request(context, "/api/hrx/recruiting/candidates", "POST", {
+    candidate_id: "candidate-invalid-atomicity",
+    consent: {
+      consent_id: "consent-invalid-atomicity",
+      purpose: "recruiting_processing",
+      granted_at: "2026-07-18T00:00:00.000Z",
+      evidence_ref: "Consent:invalid-atomicity",
+    },
+  }).status, 400);
+  assert.equal(store.snapshot().tables.hrx_candidate_consents.length, consentCountBeforeInvalidCandidate);
+  const scan = request(context, "/api/hrx/risks/scan", "POST", { as_of: "2026-07-18" });
+  assert.equal(scan.status, 200);
+  const riskId = scan.body.risk_events[0]?.risk_event_id;
+  assert.equal(typeof riskId, "string");
+  assert.equal(request(
+    context,
+    `/api/hrx/risks/${encodeURIComponent(riskId)}/transition`,
+    "POST",
+    { status: "acknowledged", reason: "durability_probe" },
+  ).status, 200);
+  assert.equal(request(context, "/api/hrx/approvals/approval-legal-risk-001/approve", "POST", {
+    decision_reason: "durability_probe",
+  }).status, 200);
+  assert.equal(request(context, "/api/hrx/policies", "POST", {
+    policy_id: "retention-durable",
+    policy_type: "retention",
+    policy_version: "2026.2",
+    effective_from: "2026-07-18",
+  }).status, 201);
+  assert.equal(context.aiSourceRegistry.get({ tenant_id: "tenant-a", source_ref: "Policy:leave:2026" })?.source_type, "policy_document");
+  assert.equal(context.aiSourceChunks.get({
+    tenant_id: "tenant-a",
+    source_ref: "Policy:leave:2026",
+    chunk_id: "leave-policy-annual-promotion",
+  })?.raw_payload_present, false);
+  store.close();
+
+  const reopenedStore = createFileHrxStore({ filePath: storeFile });
+  runHrxMigrations(reopenedStore);
+  const reopened = createHrxRuntimeContext({ store: reopenedStore });
+  assert.equal(reopened.riskEvents.get({ tenant_id: "tenant-a", risk_event_id: riskId })?.status, "acknowledged");
+  assert.equal(reopened.approvals.find((item) =>
+    item.tenant_id === "tenant-a" && item.approval_id === "approval-legal-risk-001")?.state, "approved");
+  assert.equal(reopened.policies.some((item) => item.tenant_id === "tenant-a" && item.policy_id === "retention-durable"), true);
+  assert.equal(reopened.aiSourceRegistry.get({ tenant_id: "tenant-a", source_ref: "Policy:leave:2026" })?.raw_payload_present, false);
+  assert.equal(reopened.aiSourceChunks.get({
+    tenant_id: "tenant-a",
+    source_ref: "Policy:leave:2026",
+    chunk_id: "leave-policy-annual-promotion",
+  })?.chunk_hash.length, 64);
+  reopenedStore.close();
+});

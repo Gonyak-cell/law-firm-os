@@ -276,7 +276,7 @@ function chooseProfile(rows, missingCode, ambiguousCode) {
   return rows[0];
 }
 
-export function createServerCompensationResolver({ store, keyMaterial } = {}) {
+export function createServerCompensationResolver({ store, keyMaterial, allowSyntheticKey = false } = {}) {
   assertHrxStorePort(store);
   return Object.freeze({
     resolve(contextInput, input = {}) {
@@ -294,7 +294,11 @@ export function createServerCompensationResolver({ store, keyMaterial } = {}) {
       }
       let decrypted;
       try {
-        decrypted = decryptCompensationAmountRef(record.encrypted_amount_ref, { tenant_id: tenantId, employee_id: employeeId, compensation_id: compensationId }, { keyMaterial });
+        decrypted = decryptCompensationAmountRef(
+          record.encrypted_amount_ref,
+          { tenant_id: tenantId, employee_id: employeeId, compensation_id: compensationId },
+          { keyMaterial, allowSyntheticKey },
+        );
       } catch {
         throw inputIssue("PAYROLL_COMPENSATION_INVALID", "COMPENSATION_DECRYPT_FAILED");
       }

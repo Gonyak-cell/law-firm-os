@@ -304,7 +304,7 @@ export function handleRealizationCreate({ body, context, requestId, runtime = DE
       matter_id: body.matter_id,
       billed_value: sumRows(financeRows.invoices, ["amount_due", "invoice_total"]),
       standard_value: sumRows(financeRows.time_entries, ["standard_value", "amount"]),
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return {
@@ -345,7 +345,7 @@ export function handleEmployeeUtilizationCreate({ body, context, requestId, runt
       period_id: body.period_id,
       capacity_hours: financeRows.capacity_hours,
       billable_hours: financeRows.billable_hours,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return {
@@ -374,7 +374,7 @@ export function handleAnalyticsRefresh({ body, context, requestId, runtime = DEF
       repository: runtime.repository,
       financeRepository: runtime.financeRepository,
       tenant_id: body.tenant_id,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return {
@@ -416,7 +416,7 @@ export function handleMatterProfitabilityCreate({ body, context, requestId, runt
       time_entries: financeRows.time_entries,
       invoices: financeRows.invoices,
       payments: financeRows.payments,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return {
@@ -450,7 +450,7 @@ export function handleClientProfitabilityCreate({ body, context, requestId, runt
       tenant_id: body.tenant_id,
       client_group_id: body.client_group_id,
       matter_rows: matterRows,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return {
@@ -483,7 +483,7 @@ export function handleAnalyticsExportCreate({ body, context, requestId, runtime 
     const result = createAnalyticsExport({
       repository: runtime.repository,
       analytics_export: body.analytics_export,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
       permission_ref: body.permission_ref,
     });

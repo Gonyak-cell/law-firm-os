@@ -3,7 +3,7 @@ import { createHrxStepUpAuthority } from "../src/hrx-step-up-token.js";
 export function signedStepUpHeader({
   tenant_id,
   actor_id,
-  purpose = "hrx_sensitive_action",
+  purpose = "security_audit",
   authority = createHrxStepUpAuthority(),
   at,
 } = {}) {

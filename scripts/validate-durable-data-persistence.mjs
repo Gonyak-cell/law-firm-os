@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { homedir } from "node:os";
+import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { startApiServer } from "../apps/api/src/server.js";
 import { lawosDurableStorePathOptions } from "../apps/api/src/local-durable-store-paths.js";
@@ -20,7 +20,7 @@ async function closeServer(started) {
 }
 
 async function fetchJson(url) {
-  const response = await fetch(url);
+  const response = await fetch(url, { headers: { connection: "close" } });
   return { status: response.status, body: await response.json() };
 }
 
@@ -42,11 +42,11 @@ function matterRecord(index) {
   };
 }
 
-async function validateOperationalRestartPreservesStores(root) {
+async function validateLocalDevRestartPreservesStores(root) {
   const paths = lawosDurableStorePathOptions({ root });
   const first = await startApiServer({
     port: 0,
-    runtimeProfile: "operational",
+    runtimeProfile: "local-dev",
     sessionSecret: SESSION_SECRET,
     ...OPERATIONAL_STEP_UP_OPTIONS,
     ...paths,
@@ -54,7 +54,7 @@ async function validateOperationalRestartPreservesStores(root) {
   try {
     const health = await fetchJson(`http://${first.host}:${first.port}/api/health`);
     assert.equal(health.status, 200);
-    assert.equal(health.body.runtime_profile, "operational");
+    assert.equal(health.body.runtime_profile, "local-dev");
   } finally {
     await closeServer(first);
   }
@@ -62,7 +62,7 @@ async function validateOperationalRestartPreservesStores(root) {
   const before = JSON.parse(readFileSync(paths.matterStorePath, "utf8"));
   const second = await startApiServer({
     port: 0,
-    runtimeProfile: "operational",
+    runtimeProfile: "local-dev",
     sessionSecret: SESSION_SECRET,
     ...OPERATIONAL_STEP_UP_OPTIONS,
     ...paths,
@@ -91,18 +91,22 @@ function validateDesktopStorePathUnity(root) {
 
 function validateAtomicBackupAndShrinkGuard(root) {
   const storePath = join(root, "matter-atomic-store.json");
-  const repo = createMatterRepository({ filePath: storePath });
+  const generationRoot = join(root, "backups");
+  const repo = createMatterRepository({
+    filePath: storePath,
+    writeState: (options) => writeJsonFileDurably({ ...options, backupRoot: generationRoot }),
+  });
   for (let index = 0; index < 12; index += 1) repo.create(matterRecord(index));
   repo.update(
     { tenant_id: "tenant_durable_validate", model_type: "Matter", id: "matter_durable_001" },
     { title: "Durable validate updated" },
   );
-  const generationRoot = join(process.env.HOME, "lawos-backups", "data", "matter-atomic-store.json");
   assert.equal(existsSync(generationRoot), true);
   assert.throws(
     () =>
       writeJsonFileDurably({
         filePath: storePath,
+        backupRoot: generationRoot,
         previousState: JSON.parse(readFileSync(storePath, "utf8")),
         value: { migrations: [], records: [], idempotency: [], audit_events: [] },
       }),
@@ -112,18 +116,18 @@ function validateAtomicBackupAndShrinkGuard(root) {
 }
 
 async function main() {
-  const validationRoot = join(homedir(), "Library", "Application Support", "LawFirmOS");
+  const validationRoot = tmpdir();
   mkdirSync(validationRoot, { recursive: true });
   const root = mkdtempSync(join(validationRoot, "durable-data-validate-"));
   try {
-    const operational = await validateOperationalRestartPreservesStores(root);
+    const localDev = await validateLocalDevRestartPreservesStores(root);
     const desktop = validateDesktopStorePathUnity(root);
     const atomic = validateAtomicBackupAndShrinkGuard(root);
     console.log(JSON.stringify({
       outcome: "passed",
       validator: "durable-data-persistence",
       root,
-      operational,
+      local_dev: localDev,
       desktop,
       atomic,
       production_ready_claim: false,

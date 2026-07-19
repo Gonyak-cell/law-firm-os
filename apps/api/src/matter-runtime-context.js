@@ -1866,7 +1866,7 @@ export function handleMatterOpening({ body, context, requestId, runtime = DEFAUL
   });
   if (gated) return gated;
   try {
-    const actorId = body.actor_id ?? context.principal.user_id;
+    const actorId = context.principal.user_id;
     const result = runtime.dmsRuntime?.repository
       ? openMatterWithVault({
           matterRepository: runtime.repository,
@@ -1923,7 +1923,7 @@ export function handleMatterOpening({ body, context, requestId, runtime = DEFAUL
   }
 }
 
-export function handleMatterDocumentFacade({ matterId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+export async function handleMatterDocumentFacade({ matterId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
   const query = {
     tenant_id: body?.document?.tenant_id ?? body?.tenant_id,
     permission_ref: body?.permission_ref,
@@ -1945,6 +1945,7 @@ export function handleMatterDocumentFacade({ matterId, body, context, requestId,
     });
   }
   try {
+    const actorId = context.principal.user_id;
     const document = {
       ...body.document,
       tenant_id: query.tenant_id,
@@ -1954,14 +1955,25 @@ export function handleMatterDocumentFacade({ matterId, body, context, requestId,
       permission_envelope_id: body.document?.permission_envelope_id ?? link.permission_envelope_id,
       audit_trace_id: body.document?.audit_trace_id ?? `audit:${matterId}:vault-document`,
     };
-    const result = uploadDocument({
-      repository: runtime.dmsRuntime.repository,
-      storage: runtime.dmsRuntime.storage,
-      document,
-      bytes: body.content_text ?? "",
-      actor_id: body.actor_id ?? context.principal.user_id,
-      idempotency_key: body.idempotency_key,
-    });
+    const result = typeof runtime.dmsRuntime.upload_runtime?.uploadDocument === "function"
+      ? await runtime.dmsRuntime.upload_runtime.uploadDocument({
+          document,
+          bytes: body.content_text ?? "",
+          actor_id: actorId,
+          idempotency_key: body.idempotency_key,
+          object_id: body.object_id,
+          session_id: body.upload_session_id,
+          version_number: body.version_number ?? document.version_number,
+          expires_at: body.expires_at,
+        })
+      : uploadDocument({
+          repository: runtime.dmsRuntime.repository,
+          storage: runtime.dmsRuntime.storage,
+          document,
+          bytes: body.content_text ?? "",
+          actor_id: actorId,
+          idempotency_key: body.idempotency_key,
+        });
     const timelineEventId = `matter.timeline.vault_document:${query.tenant_id}:${matterId}:${result.document.document_id}`;
     const auditEventId = `matter.document_facade.uploaded:${query.tenant_id}:${matterId}:${result.document.document_id}`;
     const existingTimeline = result.idempotent_replay
@@ -1987,13 +1999,28 @@ export function handleMatterDocumentFacade({ matterId, body, context, requestId,
     const matterAudit = existingMatterAudit ?? appendAudit(runtime, {
       event_id: auditEventId,
       tenant_id: query.tenant_id,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: actorId,
       action: "matter.document_facade.uploaded",
       object_type: "DmsDocument",
       object_id: result.document.document_id,
       reason: "matter_facade_delegated_bytes_to_vault",
       metadata: { vault_workspace_id: link.vault_workspace_id, timeline_event_id: timeline.event_id },
     });
+    const matterIdempotencyKey = `${body.idempotency_key}:matter-document-facade`;
+    if (!runtime.repository.getIdempotency({ tenant_id: query.tenant_id, idempotency_key: matterIdempotencyKey })) {
+      runtime.repository.recordIdempotency({
+        tenant_id: query.tenant_id,
+        idempotency_key: matterIdempotencyKey,
+        operation: "matter_document_facade_upload",
+        response: {
+          matter_id: matterId,
+          document_id: result.document.document_id,
+          version_id: result.version.version_id,
+          timeline_event_id: timeline.event_id,
+          audit_event_id: matterAudit.event_id,
+        },
+      });
+    }
     return {
       status: result.idempotent_replay ? 200 : 201,
       body: {
@@ -2106,7 +2133,7 @@ export function handleMatterActivityCreate({ matterId, body, context, requestId,
       tenant_id: query.tenant_id,
       matter_id: matterId,
       activity: body?.activity,
-      actor_id: body?.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "created" });
@@ -2140,7 +2167,7 @@ export function handleMatterActivityPatch({ matterId, activityId, body, context,
       matter_id: matterId,
       activity_id: activityId,
       patch: body?.patch,
-      actor_id: body?.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "updated" });
@@ -2189,7 +2216,7 @@ export function handleMatterCalendarCreate({ matterId, body, context, requestId,
       tenant_id: query.tenant_id,
       matter_id: matterId,
       event: body?.event,
-      actor_id: body?.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "created" });
@@ -2223,7 +2250,7 @@ export function handleMatterCalendarPatch({ matterId, eventId, body, context, re
       matter_id: matterId,
       event_id: eventId,
       patch: body?.patch,
-      actor_id: body?.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "updated" });
@@ -2264,7 +2291,8 @@ export function handleMatterDeadlineConfirm({ matterId, deadlineId, body, contex
     resource: { resource_type: "matter_deadline", resource_id: deadlineId, matter_id: matterId },
   });
   if (gated) return gated;
-  const idempotencyKey = body?.idempotency_key ?? `matter.deadline.confirm:${matterId}:${deadlineId}:${body?.confirmer_user_id ?? requestId}`;
+  const confirmerUserId = context.principal.user_id;
+  const idempotencyKey = body?.idempotency_key ?? `matter.deadline.confirm:${matterId}:${deadlineId}:${confirmerUserId}:${requestId}`;
   const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
   if (replay) return replay;
   try {
@@ -2272,7 +2300,7 @@ export function handleMatterDeadlineConfirm({ matterId, deadlineId, body, contex
       tenant_id: query.tenant_id,
       matter_id: matterId,
       deadline_id: deadlineId,
-      confirmer_user_id: body?.confirmer_user_id ?? body?.actor_id ?? context.principal.user_id,
+      confirmer_user_id: confirmerUserId,
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "confirmed" });
@@ -2330,7 +2358,7 @@ export function handleMatterChannelMessageCreate({ matterId, body, context, requ
       tenant_id: query.tenant_id,
       matter_id: matterId,
       message: body?.message,
-      actor_id: body?.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "created" });
@@ -2358,7 +2386,7 @@ export function handleMatterChannelProviderSync({ matterId, body, context, reque
   const result = matterActivityService(runtime).providerSyncBlocked({
     tenant_id: query.tenant_id,
     matter_id: matterId,
-    actor_id: body?.actor_id ?? context.principal.user_id,
+    actor_id: context.principal.user_id,
     occurred_at: body?.occurred_at,
   });
   return {
@@ -2401,7 +2429,7 @@ export function handleMatterBuilderDraftCreate({ matterId, body, context, reques
       tenant_id: query.tenant_id,
       matter_id: matterId,
       draft: body?.draft,
-      actor_id: body?.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "created" });
@@ -2435,7 +2463,7 @@ export function handleMatterBuilderDraftPatch({ matterId, draftId, body, context
       matter_id: matterId,
       draft_id: draftId,
       patch: body?.patch,
-      actor_id: body?.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "updated" });
@@ -2499,7 +2527,7 @@ export function handleMatterBuilderApprovalRequest({ matterId, draftId, body, co
       tenant_id: query.tenant_id,
       matter_id: matterId,
       draft_id: draftId,
-      actor_id: body?.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "approval_required" });
@@ -2545,7 +2573,7 @@ export function handleMatterBuilderPublishToVault({ matterId, draftId, body, con
       tenant_id: query.tenant_id,
       matter_id: matterId,
       draft_id: draftId,
-      actor_id: body?.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       occurred_at: body?.occurred_at,
     });
     return {
@@ -2579,7 +2607,7 @@ export function handleMatterEmailDraftCreate({ matterId, body, context, requestI
       tenant_id: query.tenant_id,
       matter_id: matterId,
       draft: body?.draft,
-      actor_id: body?.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "created" });
@@ -2613,7 +2641,7 @@ export function handleMatterEmailDraftPatch({ matterId, draftId, body, context, 
       matter_id: matterId,
       draft_id: draftId,
       patch: body?.patch,
-      actor_id: body?.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "updated" });
@@ -2643,7 +2671,7 @@ export function handleMatterEmailDraftSend({ matterId, draftId, body, context, r
       tenant_id: query.tenant_id,
       matter_id: matterId,
       draft_id: draftId,
-      actor_id: body?.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       occurred_at: body?.occurred_at,
     });
     return {
@@ -2694,7 +2722,7 @@ export function handleMatterTeamMemberCreate({ matterId, body, context, requestI
       onboardingGate: runtime.onboardingGate,
       matter,
       member: { ...body.member, matter_id: matterId },
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       audit,
     });
     const employee = runtime.employeeDirectory?.get?.({
@@ -2715,7 +2743,7 @@ export function handleMatterTeamMemberCreate({ matterId, body, context, requestI
           {
             ...ownerAssignment,
             owner_module: "matter_team",
-            updated_by: body.actor_id ?? context.principal.user_id,
+            updated_by: context.principal.user_id,
             updated_at: ownerAssignment.assigned_at,
           },
         )
@@ -2724,7 +2752,7 @@ export function handleMatterTeamMemberCreate({ matterId, body, context, requestI
       ? appendAudit(runtime, {
           event_id: `matter.owner.assignment:${query.tenant_id}:${matterId}:${persisted.member_id}`,
           tenant_id: query.tenant_id,
-          actor_id: body.actor_id ?? context.principal.user_id,
+          actor_id: context.principal.user_id,
           action: "matter.owner.assignment",
           object_type: "Matter",
           object_id: matterId,
@@ -2837,7 +2865,7 @@ export function handleMatterPartyRegister({ matterId, body, context, requestId, 
       ui_state: "empty",
     });
   }
-  const actorId = body?.actor_id ?? context?.principal?.user_id;
+  const actorId = context?.principal?.user_id;
   if (typeof actorId !== "string" || actorId.trim() === "") {
     return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
       audit_hint_ref: query.audit_hint_ref,
@@ -2929,7 +2957,7 @@ export function handleMatterOwnerChange({ matterId, body, context, requestId, ru
       ui_state: "empty",
     });
   }
-  const actorId = body?.actor_id ?? context?.principal?.user_id;
+  const actorId = context?.principal?.user_id;
   const employeeId = body?.owner?.employee_id ?? body?.employee_id;
   if (typeof actorId !== "string" || actorId.trim() === "" || typeof employeeId !== "string" || employeeId.trim() === "") {
     return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
@@ -3099,7 +3127,7 @@ export function handleMatterInlinePatch({ matterId, body, context, requestId, ru
       ui_state: "empty",
     });
   }
-  const actorId = body?.actor_id ?? context?.principal?.user_id;
+  const actorId = context?.principal?.user_id;
   if (typeof actorId !== "string" || actorId.trim() === "") {
     return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
       audit_hint_ref: query.audit_hint_ref,
@@ -3245,7 +3273,7 @@ export function handleMatterStatusTransition({ matterId, body, context, requestI
       status: transition.targetStatus,
       status_transitioned_at: transition.occurredAt,
       status_transition_reason: transition.reason,
-      updated_by: body.actor_id ?? context.principal.user_id,
+      updated_by: context.principal.user_id,
       updated_at: transition.occurredAt,
     };
     if (transition.targetStatus === "closed") {
@@ -3259,7 +3287,7 @@ export function handleMatterStatusTransition({ matterId, body, context, requestI
     const auditEvent = appendAudit(runtime, {
       event_id: `matter.status.transitioned:${query.tenant_id}:${matterId}:${transition.targetStatus}`,
       tenant_id: query.tenant_id,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       action: "matter.status.transitioned",
       object_type: "Matter",
       object_id: matterId,
@@ -3332,7 +3360,7 @@ export function handleMatterBulkStatusTransition({ body, context, requestId, run
     resource: { resource_type: "matter_bulk_status_transition" },
   });
   if (gated) return gated;
-  const actorId = body?.actor_id ?? context?.principal?.user_id;
+  const actorId = context?.principal?.user_id;
   if (typeof actorId !== "string" || actorId.trim() === "") {
     return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
       audit_hint_ref: query.audit_hint_ref,
@@ -3560,7 +3588,7 @@ export function handleMatterListViewSave({ body, context, requestId, runtime = D
     resource: { resource_type: "matter_list_view" },
   });
   if (gated) return gated;
-  const actorId = body?.actor_id ?? context?.principal?.user_id;
+  const actorId = context?.principal?.user_id;
   if (typeof actorId !== "string" || actorId.trim() === "") {
     return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
       audit_hint_ref: query.audit_hint_ref,
@@ -3651,7 +3679,7 @@ export function handleMatterRecentlyViewedMark({ matterId, body, context, reques
       ui_state: "empty",
     });
   }
-  const actorId = body?.actor_id ?? context?.principal?.user_id;
+  const actorId = context?.principal?.user_id;
   if (typeof actorId !== "string" || actorId.trim() === "") {
     return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
       audit_hint_ref: query.audit_hint_ref,

@@ -82,6 +82,34 @@ test("CRM/Intake PostgreSQL imports, async ports and handoff rehearsal preserve 
   const intakeShadow = await ledger.compareSnapshot(intakeSource);
   assert.equal(crmShadow.comparison.equal, true);
   assert.equal(intakeShadow.comparison.equal, true);
+  const rehearsals = new Map();
+  for (const [source, imported, secondImport, shadow] of [
+    [crmSource, crmImport, crmSecondImport, crmShadow],
+    [intakeSource, intakeImport, intakeSecondImport, intakeShadow],
+  ]) {
+    rehearsals.set(source.domain_id, await ledger.recordRehearsal({
+      tenant_id: TENANT,
+      domain_id: source.domain_id,
+      import_receipt_id: imported.receipt.receipt_id,
+      shadow_receipt_id: shadow.receipt.receipt_id,
+      smoke_result: {
+        status: "passed",
+        synthetic_only: true,
+        environment: "test",
+        adapter: `${source.domain_id}-postgres-domain-ledger`,
+        executed_at: "2026-07-16T18:20:00.000Z",
+        source_snapshot_hash: shadow.comparison.source_hash,
+        checks: {
+          source_imported: imported.receipt.status === "source_imported",
+          idempotency_replayed: secondImport.replayed,
+          shadow_equal: shadow.comparison.equal,
+          readback_equal: shadow.comparison.source_hash === shadow.comparison.target_hash,
+          json_dual_write_absent: true,
+        },
+        production_migrated: false,
+      },
+    }));
+  }
 
   await runRecordRepositoryDomainCommand({
     ledger,
@@ -142,15 +170,33 @@ test("CRM/Intake PostgreSQL imports, async ports and handoff rehearsal preserve 
     tenant_id: TENANT,
     create_repository: createIntakeRuntimeRepository,
     command(repository) {
-      return repository.create({
-        model_type: "ConflictDecision",
-        conflict_decision_id: "decision_rs_dom_atomic_001",
-        tenant_id: TENANT,
-        intake_request_id: "intake_cmp_g6_synthetic_001",
-        conflict_check_id: "conflict_cmp_g6_synthetic_001",
-        reviewer_id: ACTOR,
-        decision: "clear",
-        status: "recorded",
+      return repository.transaction((tx) => {
+        const decision = tx.create({
+          model_type: "ConflictDecision",
+          conflict_decision_id: "decision_rs_dom_atomic_001",
+          tenant_id: TENANT,
+          intake_request_id: "intake_cmp_g6_synthetic_001",
+          conflict_check_id: "conflict_cmp_g6_synthetic_001",
+          reviewer_id: ACTOR,
+          decision: "clear",
+          status: "recorded",
+        });
+        tx.recordIdempotency({
+          tenant_id: TENANT,
+          idempotency_key: "intake-conflict-decision-rs-dom-001",
+          operation: "intake_conflict_decision_record",
+          response: { conflict_decision_id: decision.conflict_decision_id, outcome: "recorded" },
+        });
+        tx.appendAudit({
+          tenant_id: TENANT,
+          event_id: "intake:conflict-decision:rs-dom-001",
+          action: "intake.conflict-decision.recorded",
+          actor_id: ACTOR,
+          object_type: "ConflictDecision",
+          object_id: decision.conflict_decision_id,
+          metadata: { append_only: true },
+        });
+        return decision;
       });
     },
   });
@@ -192,23 +238,12 @@ test("CRM/Intake PostgreSQL imports, async ports and handoff rehearsal preserve 
   }), undefined);
 
   for (const receipt of [
-    [crmSource, crmImport, crmSecondImport, crmShadow, crmFlush],
-    [intakeSource, intakeImport, intakeSecondImport, intakeShadow, intakeFlush],
+    [crmSource, crmImport, crmSecondImport, crmShadow],
+    [intakeSource, intakeImport, intakeSecondImport, intakeShadow],
   ]) {
-    const [source, imported, secondImport, shadow, flush] = receipt;
+    const [source, imported, secondImport, shadow] = receipt;
     const { domain_id } = source;
-    const rehearsal = await ledger.recordRehearsal({
-      tenant_id: TENANT,
-      domain_id,
-      import_receipt_id: imported.receipt.receipt_id,
-      shadow_receipt_id: shadow.receipt.receipt_id,
-      smoke_result: {
-        adapter: `${domain_id}-postgres-domain-ledger`,
-        handoff_readback_equal: flush.comparison.equal,
-        creates_matter: false,
-        production_migrated: false,
-      },
-    });
+    const rehearsal = rehearsals.get(domain_id);
     assert.equal(rehearsal.status, "source_ready");
     assert.equal(rehearsal.production_migrated, false);
     reportDomainReceiptEvidence({ source, imported, secondImport, shadow, rehearsal });

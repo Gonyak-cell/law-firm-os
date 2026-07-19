@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { mkdtempSync, mkdirSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir, userInfo } from "node:os";
@@ -91,9 +92,19 @@ export async function createMigratedPostgresFixture(t) {
     applicationName: "lawos-postgres-v2-admin-test",
   });
   let appPool;
+  const tenantContextSecret = randomBytes(32).toString("base64url");
   try {
     await runPostgresMigrations(adminPool, { appliedBy: "disposable-contract-test" });
     await adminPool.query("CREATE ROLE lawos_app LOGIN");
+    await adminPool.query("ALTER DATABASE postgres SET lawos.environment = 'synthetic-test'");
+    await adminPool.query(
+      `INSERT INTO lawos_security.tenant_context_authorities
+         (database_role, tenant_id, context_secret, synthetic_wildcard)
+       VALUES ('lawos_app', '*', $1, true)`,
+      [Buffer.from(tenantContextSecret, "utf8")],
+    );
+    await adminPool.query("GRANT USAGE ON SCHEMA lawos_meta TO lawos_app");
+    await adminPool.query("GRANT SELECT ON lawos_meta.schema_migrations TO lawos_app");
     await adminPool.query("GRANT USAGE ON SCHEMA lawos_runtime TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_runtime.records TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT ON lawos_runtime.idempotency_keys TO lawos_app");
@@ -104,12 +115,14 @@ export async function createMigratedPostgresFixture(t) {
     await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.sessions TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.challenges TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.break_glass_requests TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT ON lawos_identity.break_glass_approvals TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT ON lawos_identity.security_audit_events TO lawos_app");
     await adminPool.query("GRANT USAGE ON SCHEMA lawos_domain TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_domain.records TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT ON lawos_domain.record_references TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT ON lawos_domain.idempotency_keys TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT ON lawos_domain.audit_events TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_domain.outbox_events TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT ON lawos_domain.import_receipts TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT ON lawos_domain.shadow_receipts TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT ON lawos_domain.rehearsal_receipts TO lawos_app");
@@ -131,6 +144,7 @@ export async function createMigratedPostgresFixture(t) {
       sslMode: "disable",
       allowInsecureLocal: true,
       applicationName: "lawos-postgres-v2-app-test",
+      tenantContextSecret,
     });
   } catch (error) {
     await appPool?.end().catch(() => {});
@@ -143,5 +157,5 @@ export async function createMigratedPostgresFixture(t) {
     await adminPool.end();
     await instance.stop();
   });
-  return Object.freeze({ instance, adminPool, appPool });
+  return Object.freeze({ instance, adminPool, appPool, tenantContextSecret });
 }

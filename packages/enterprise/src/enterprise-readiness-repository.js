@@ -66,7 +66,7 @@ function normalizeState(input) {
   return { ...emptyState(), ...parsed, records: parsed.records ?? [], idempotency: parsed.idempotency ?? [], audit_events: parsed.audit_events ?? [] };
 }
 
-export function createEnterpriseReadinessRepository({ filePath, seedRecords = [] } = {}) {
+export function createEnterpriseReadinessRepository({ filePath, seedRecords = [], preserveSeedRecords = false } = {}) {
   let closed = false;
   let transactionDepth = 0;
   const stateController = createDurableJsonStateController({ filePath, defaultValue: emptyState(), normalizeValue: normalizeState });
@@ -115,7 +115,13 @@ export function createEnterpriseReadinessRepository({ filePath, seedRecords = []
   hydrate(state);
   for (const record of seedRecords) {
     const normalized = normalizeRecord(record);
-    if (!records.has(recordKey(normalized))) put(record, { overwrite: true });
+    if (!records.has(recordKey(normalized))) {
+      if (preserveSeedRecords) {
+        records.set(recordKey(normalized), clone({ ...record, resource_id: normalized.resource_id }));
+      } else {
+        put(record, { overwrite: true });
+      }
+    }
   }
 
   const repository = {
@@ -197,6 +203,15 @@ export function createEnterpriseReadinessRepository({ filePath, seedRecords = []
       } finally {
         transactionDepth = entryDepth;
       }
+    },
+    snapshot() {
+      assertOpen();
+      return clone({
+        migrations: state.migrations,
+        records: [...records.values()],
+        idempotency: [...idempotency.values()],
+        audit_events: [...auditEvents.values()],
+      });
     },
     close() {
       closed = true;

@@ -56,7 +56,7 @@ export function createHrxLifecycleRoute({ audit, seed = {} } = {}) {
           return response(200, { outcome: "updated", onboarding: onboardingPlans[index] });
         }
         if (request.method === "GET" && resource === "offboarding") {
-          return response(200, { outcome: "ok", offboarding: offboardingCases });
+          return response(200, { outcome: "ok", offboarding: offboardingCases.filter((item) => item.tenant_id === request.context.tenant_id) });
         }
         if (request.method === "POST" && resource === "offboarding") {
           const offboarding = createOffboardingCase({ ...request.body, tenant_id: request.context.tenant_id });
@@ -70,9 +70,9 @@ export function createHrxLifecycleRoute({ audit, seed = {} } = {}) {
           return response(201, { outcome: "created", offboarding });
         }
         if (request.method === "POST" && resource === "offboarding_close") {
-          const index = offboardingCases.findIndex((item) => item.offboarding_id === request.params?.offboarding_id);
+          const index = offboardingCases.findIndex((item) => item.tenant_id === request.context.tenant_id && item.offboarding_id === request.params?.offboarding_id);
           if (index === -1) return response(404, { outcome: "not_found", safe_error_code: "HRX_OFFBOARDING_NOT_FOUND" });
-          offboardingCases[index] = closeOffboardingCase({ ...offboardingCases[index], ...request.body });
+          offboardingCases[index] = closeOffboardingCase(request.body, { current_case: offboardingCases[index] });
           await appendAudit(audit, request.context, {
             action: "hrx.offboarding.close",
             object_type: "OffboardingCase",
@@ -83,7 +83,7 @@ export function createHrxLifecycleRoute({ audit, seed = {} } = {}) {
         }
         return response(405, { outcome: "blocked", safe_error_code: "METHOD_NOT_ALLOWED" });
       } catch (error) {
-        return response(400, { outcome: "blocked", safe_error_code: "HRX_LIFECYCLE_ROUTE_ERROR", reason: error.message });
+        return response(400, { outcome: "blocked", safe_error_code: error.safe_error_code ?? "HRX_LIFECYCLE_ROUTE_ERROR", reason: error.message });
       }
     },
   });

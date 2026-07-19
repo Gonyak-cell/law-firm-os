@@ -36,16 +36,21 @@ function ledgerClearanceToken({ clearance, tenantId, clearance_repository } = {}
   return issued;
 }
 
-function validateClearance(clearance = {}, tenantId, clearance_repository) {
+function validateClearance(clearance = {}, tenantId, clearance_repository, now) {
   const issuedClearance = ledgerClearanceToken({ clearance, tenantId, clearance_repository });
-  for (const field of ["clearance_token_id", "intake_request_id", "conflict_check_id", "engagement_id", "snapshot_hash"]) {
+  for (const field of ["clearance_token_id", "intake_request_id", "conflict_check_id", "engagement_id", "snapshot_hash", "expires_at"]) {
     requiredString(issuedClearance, field);
   }
-  if (issuedClearance.tenant_id !== tenantId && issuedClearance.owner_module !== "intake") {
+  if (issuedClearance.tenant_id !== tenantId) {
     throw new Error("Matter opening clearance tenant mismatch");
   }
   if (issuedClearance.token_state === "expired" || issuedClearance.token_state === "stale") throw new Error("Matter opening clearance token is stale");
   if (clearance_repository && issuedClearance.token_state !== "active") throw new Error("Matter opening clearance token is not active in Intake ledger");
+  const expiresAt = new Date(issuedClearance.expires_at).getTime();
+  const observedAt = new Date(now).getTime();
+  if (!Number.isFinite(expiresAt) || !Number.isFinite(observedAt) || expiresAt <= observedAt) {
+    throw new Error("Matter opening clearance token is expired");
+  }
   if (issuedClearance.outcome === "blocked" || issuedClearance.blocked_claims?.length > 0) throw new Error("Matter opening clearance has blocked claims");
   return issuedClearance;
 }
@@ -62,10 +67,11 @@ export function openMatterTransaction({
   dms,
   billing,
   actor_id,
+  now = new Date().toISOString(),
 } = {}) {
   requiredString({ actor_id }, "actor_id");
   requiredString({ idempotency_key }, "idempotency_key");
-  const verifiedClearanceToken = validateClearance(clearance_token, matter?.tenant_id, clearance_repository);
+  const verifiedClearanceToken = validateClearance(clearance_token, matter?.tenant_id, clearance_repository, now);
   assertMatterOpeningIntakeDependency({
     ...matter,
     intake_request_id: verifiedClearanceToken.intake_request_id,

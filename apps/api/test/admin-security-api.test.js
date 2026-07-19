@@ -98,7 +98,7 @@ test("admin security operations disable login, reactivate accounts, and audit br
   const requested = await json("/api/admin/security/break-glass", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ requester_user_id: target.user_id, reason: "stage 11 emergency access proof" }),
+    body: JSON.stringify({ requester_user_id: target.user_id, break_glass_account_ref: "secretsmanager://lawos/break-glass/account", reason: "stage 11 emergency access proof" }),
   });
   assert.equal(requested.status, 201);
   assert.equal(requested.body.item.state, "pending");
@@ -109,12 +109,14 @@ test("admin security operations disable login, reactivate accounts, and audit br
     body: JSON.stringify({ reason: "stage 11 approve proof" }),
   });
   assert.equal(approved.status, 200);
-  assert.equal(approved.body.item.state, "approved");
+  assert.equal(approved.body.item.state, "pending");
+  assert.equal(approved.body.item.approval_count, 1);
+  assert.equal(approved.body.item.required_approvals, 2);
 
   const revokeCandidate = await json("/api/admin/security/break-glass", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ requester_user_id: target.user_id, reason: "stage 11 revoke proof" }),
+    body: JSON.stringify({ requester_user_id: target.user_id, break_glass_account_ref: "secretsmanager://lawos/break-glass/account", reason: "stage 11 revoke proof" }),
   });
   const revoked = await json(`/api/admin/security/break-glass/${encodeURIComponent(revokeCandidate.body.item.break_glass_request_id)}/revoke`, {
     method: "POST",
@@ -129,6 +131,6 @@ test("admin security operations disable login, reactivate accounts, and audit br
   assert.ok(actions.has("admin.security.user.disabled"));
   assert.ok(actions.has("admin.security.user.reactivated"));
   assert.ok(actions.has("admin.security.break_glass.requested"));
-  assert.ok(actions.has("admin.security.break_glass.approved"));
+  assert.ok(actions.has("admin.security.break_glass.approval_recorded"));
   assert.ok(actions.has("admin.security.break_glass.revoked"));
 });

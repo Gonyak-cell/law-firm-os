@@ -73,6 +73,7 @@ test("PostgreSQL session revocation and account disable survive independent proc
     sslMode: "disable",
     allowInsecureLocal: true,
     applicationName: "lawos-identity-second-process-test",
+    tenantContextSecret: fixture.tenantContextSecret,
   });
   const account = findRegisteredAccountByEmail("jwsuh@amic.kr");
   assert.ok(account);

@@ -3,7 +3,7 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:
 const RAW_AMOUNT_FIELDS = Object.freeze(["amount", "salary", "base_pay", "bonus_amount", "equity_value", "gross_pay", "net_pay"]);
 export const COMPENSATION_ENVELOPE_PREFIX = "lawos-comp-v1.";
 const COMPENSATION_KEY_ENV = "LAWOS_HRX_COMPENSATION_ENCRYPTION_KEY";
-const DEFAULT_COMPENSATION_KEY_MATERIAL = "lawos-local-dev-compensation-key-v1";
+const SYNTHETIC_COMPENSATION_KEY_MATERIAL = "lawos-synthetic-only-compensation-key-v1";
 
 function requiredString(input, field) {
   const value = input?.[field];
@@ -11,8 +11,12 @@ function requiredString(input, field) {
   return value.trim();
 }
 
-function keyMaterial(input) {
-  return String(input ?? process.env[COMPENSATION_KEY_ENV] ?? DEFAULT_COMPENSATION_KEY_MATERIAL);
+function keyMaterial(input, { allowSyntheticKey = false } = {}) {
+  const value = input ?? process.env[COMPENSATION_KEY_ENV];
+  if (typeof value === "string" && value.length > 0) return value;
+  if (Buffer.isBuffer(value) && value.byteLength > 0) return value;
+  if (allowSyntheticKey) return SYNTHETIC_COMPENSATION_KEY_MATERIAL;
+  throw new TypeError(`compensation encryption requires injected key material or ${COMPENSATION_KEY_ENV}`);
 }
 
 function digest(value, length = 24) {
@@ -27,8 +31,8 @@ function fromB64url(value) {
   return Buffer.from(String(value), "base64url");
 }
 
-function compensationKey(keyInput) {
-  return createHash("sha256").update(keyMaterial(keyInput)).digest();
+function compensationKey(options = {}) {
+  return createHash("sha256").update(keyMaterial(options.keyMaterial, options)).digest();
 }
 
 function compensationAad(input = {}) {
@@ -81,13 +85,14 @@ export function encryptCompensationAmount(input = {}, options = {}) {
   const iv = options.iv ? Buffer.from(options.iv) : randomBytes(12);
   if (iv.length !== 12) throw new TypeError("compensation encryption iv must be 12 bytes");
   const aad = compensationAad({ tenant_id, employee_id, compensation_id });
-  const cipher = createCipheriv("aes-256-gcm", compensationKey(options.keyMaterial), iv);
+  const resolvedKeyMaterial = keyMaterial(options.keyMaterial, options);
+  const cipher = createCipheriv("aes-256-gcm", compensationKey({ ...options, keyMaterial: resolvedKeyMaterial }), iv);
   cipher.setAAD(aad);
   const ciphertext = Buffer.concat([cipher.update(payload), cipher.final()]);
   const envelope = {
     schema_version: 1,
     alg: "AES-256-GCM",
-    key_ref: `lawos-local-key:${digest(keyMaterial(options.keyMaterial), 16)}`,
+    key_ref: `lawos-key:${digest(resolvedKeyMaterial, 16)}`,
     aad_hash: digest(aad.toString("utf8")),
     iv: b64url(iv),
     tag: b64url(cipher.getAuthTag()),
@@ -100,7 +105,7 @@ export function decryptCompensationAmountRef(encrypted_amount_ref, context = {},
   const envelope = parseCompensationEnvelope(encrypted_amount_ref);
   const aad = compensationAad(context);
   if (envelope.aad_hash !== digest(aad.toString("utf8"))) throw new TypeError("encrypted_amount_ref context mismatch");
-  const decipher = createDecipheriv("aes-256-gcm", compensationKey(options.keyMaterial), fromB64url(envelope.iv));
+  const decipher = createDecipheriv("aes-256-gcm", compensationKey(options), fromB64url(envelope.iv));
   decipher.setAAD(aad);
   decipher.setAuthTag(fromB64url(envelope.tag));
   const payload = JSON.parse(Buffer.concat([decipher.update(fromB64url(envelope.ciphertext)), decipher.final()]).toString("utf8"));

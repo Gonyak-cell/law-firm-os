@@ -400,11 +400,11 @@ export function createMatterActivityCalendarChannelService({ repository } = {}) 
     const actorId = requiredString(actor_id, "actor_id");
     const now = occurred_at ?? new Date().toISOString();
     const current = repository.get({ tenant_id: tenantId, model_type: "MatterCalendarEvent", event_id: eventId });
-    if (!current) throw new Error("calendar event not found");
+    if (!current || current.matter_id !== matterId) throw new Error("calendar event not found");
     const changesDate = Boolean(patch?.starts_at && patch.starts_at !== current.starts_at);
     const critical = (current.criticality ?? "standard") === "critical" || patch?.criticality === "critical";
     if (critical && changesDate && patch?.dual_control_confirmed !== true) {
-      const requestId = `deadline_change:${eventId}`;
+      const requestId = `deadline_change:${matterId}:${eventId}`;
       const request = repository.upsert({
         model_type: "MatterDeadlineChangeRequest",
         resource_id: requestId,
@@ -493,9 +493,14 @@ export function createMatterActivityCalendarChannelService({ repository } = {}) 
     const eventId = requiredString(deadline_id, "deadline_id");
     const confirmerId = requiredString(confirmer_user_id, "confirmer_user_id");
     const now = occurred_at ?? new Date().toISOString();
-    const requestId = `deadline_change:${eventId}`;
+    const requestId = `deadline_change:${matterId}:${eventId}`;
     const request = repository.get({ tenant_id: tenantId, model_type: "MatterDeadlineChangeRequest", resource_id: requestId });
-    if (!request || request.status !== "pending_confirmation") throw new Error("deadline change request not found");
+    if (
+      !request
+      || request.status !== "pending_confirmation"
+      || request.matter_id !== matterId
+      || request.event_id !== eventId
+    ) throw new Error("deadline change request not found");
     const confirmation = confirmCriticalDeadlineChange({
       tenant_id: tenantId,
       matter_id: matterId,
@@ -505,6 +510,7 @@ export function createMatterActivityCalendarChannelService({ repository } = {}) 
       audit_ref: `audit:${tenantId}:${matterId}:${eventId}:${now}`,
     });
     const event = repository.get({ tenant_id: tenantId, model_type: "MatterCalendarEvent", event_id: eventId });
+    if (!event || event.matter_id !== matterId) throw new Error("calendar event not found");
     const updated = changeMatterDeadline({
       repository,
       event,

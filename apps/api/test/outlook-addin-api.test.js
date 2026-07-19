@@ -168,6 +168,22 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
     });
     assert.equal(duplicateBody.duplicate_count, 1);
 
+    const missingBytes = await fetch(`${baseUrl}/api/outlook/attachments/save`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...sessionHeaders },
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        email_thread_id: fileBody.email_thread.email_thread_id,
+        selected_attachment_ids: ["att-missing-bytes"],
+        attachments: [{ attachment_id: "att-missing-bytes", name: "missing.pdf", content_type: "application/pdf" }],
+      }),
+    });
+    const missingBytesBody = await missingBytes.json();
+    assert.equal(missingBytes.status, 400);
+    assert.deepEqual(missingBytesBody.safe_error_codes, ["OUTLOOK_ADDIN_VALIDATION_ERROR"]);
+    assert.match(missingBytesBody.message, /attachment bytes are required/u);
+
     const followup = await json("/api/outlook/followups", {
       method: "POST",
       body: JSON.stringify({

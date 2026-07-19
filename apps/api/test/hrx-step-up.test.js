@@ -124,6 +124,6 @@ test("HRX step-up rejects signed tokens with the wrong sensitive purpose", () =>
       expires_at: "2026-06-19T00:05:00.000Z",
     },
   });
-  assert.equal(generic.effect, "allow");
-  assert.equal(generic.purpose, "hrx_sensitive_action");
+  assert.equal(generic.effect, "challenge");
+  assert.equal(generic.reason, "hrx_step_up_purpose_mismatch");
 });

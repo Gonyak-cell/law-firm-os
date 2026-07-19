@@ -8,6 +8,11 @@ import { DOMAIN_IDS, hashDomainValue } from "../packages/persistence/src/domain-
 import { createPostgresDomainLedger } from "../packages/persistence/src/postgres/domain-ledger.js";
 import { runPostgresMigrations } from "../packages/persistence/src/postgres/migration-runner.js";
 import { createPostgresPool } from "../packages/persistence/src/postgres/pool.js";
+import { withPostgresTransaction } from "../packages/persistence/src/postgres/transaction.js";
+import {
+  resolvePostgresConnectionString,
+  resolvePostgresTenantContextSecret,
+} from "../apps/api/src/persistence-authority.js";
 import { validateRuntimeSafetyEvidence } from "./lib/runtime-safety-evidence-contract.mjs";
 
 function arg(name, fallback = null) {
@@ -95,7 +100,9 @@ function evidenceBase({ targetSourceSha, targetTree, toolchainSha, startedAt, fi
 }
 
 const startedAt = new Date().toISOString();
-const connectionString = required(process.env.DATABASE_URL, "DATABASE_URL");
+const operationalEnv = { ...process.env, LAWOS_RUNTIME_PROFILE: "operational" };
+const connectionString = await resolvePostgresConnectionString({ env: operationalEnv });
+const tenantContextSecret = await resolvePostgresTenantContextSecret({ env: operationalEnv });
 const approvalRef = required(arg("--approval-ref"), "--approval-ref");
 const userInstructionSha = required(arg("--user-instruction-sha256"), "--user-instruction-sha256");
 if (!/^[0-9a-f]{64}$/u.test(userInstructionSha)) throw new Error("--user-instruction-sha256 must be lowercase SHA-256");
@@ -110,14 +117,30 @@ const pool = createPostgresPool({
   statementTimeoutMillis: 30_000,
   max: 4,
   applicationName: "lawos-cut-staging-synthetic",
+  tenantContextSecret,
 });
 
 const domainResults = [];
 let migrationResults;
 let rlsCounts;
 let outboxCount = 0;
+let tenantAuthoritiesInstalled = false;
 try {
   migrationResults = await runPostgresMigrations(pool, { appliedBy: "runtime-safety-staging-synthetic" });
+  await pool.query(
+    `INSERT INTO lawos_security.tenant_context_authorities
+       (database_role, tenant_id, context_secret, synthetic_wildcard, active)
+     VALUES
+       (session_user, $1, $3, false, true),
+       (session_user, $2, $3, false, true)
+     ON CONFLICT (database_role, tenant_id) DO UPDATE
+       SET context_secret = EXCLUDED.context_secret,
+           synthetic_wildcard = false,
+           active = true,
+           rotated_at = clock_timestamp()`,
+    [tenantA, tenantB, Buffer.from(tenantContextSecret, "utf8")],
+  );
+  tenantAuthoritiesInstalled = true;
   const ledger = createPostgresDomainLedger({ pool });
   for (const domainId of DOMAIN_IDS) {
     const snapshot = syntheticSnapshot({ tenantId: tenantA, domainId, runId });
@@ -125,14 +148,36 @@ try {
     const replay = await ledger.importSnapshot(snapshot);
     const shadow = await ledger.compareSnapshot(snapshot);
     if (shadow.comparison.equal !== true || replay.replayed !== true) throw new Error(`staging import invariant failed: ${domainId}`);
+    const record = snapshot.records[0];
+    const readback = await ledger.read({
+      tenant_id: tenantA,
+      domain_id: domainId,
+      record_type: record.record_type,
+      record_id: record.record_id,
+    });
     const rehearsal = await ledger.recordRehearsal({
       tenant_id: tenantA,
       domain_id: domainId,
       import_receipt_id: imported.receipt.receipt_id,
       shadow_receipt_id: shadow.receipt.receipt_id,
-      smoke_result: { synthetic_only: true, environment: "staging", adapter: "postgres-v2" },
+      smoke_result: {
+        status: "passed",
+        synthetic_only: true,
+        environment: "staging",
+        adapter: "postgres-v2",
+        executed_at: new Date().toISOString(),
+        source_snapshot_hash: shadow.comparison.source_hash,
+        checks: {
+          source_imported: imported.receipt.status === "source_imported",
+          idempotency_replayed: replay.replayed,
+          shadow_equal: shadow.comparison.equal,
+          readback_equal: readback?.payload_hash === snapshot.records[0].payload_hash,
+          json_dual_write_absent: readback?.payload?.json_dual_write !== true,
+        },
+        safe_counts: { record_count: shadow.comparison.target_count },
+        production_migrated: false,
+      },
     });
-    const record = snapshot.records[0];
     const dbOnlyWrite = await ledger.write({
       ...record,
       expected_version: 1,
@@ -162,56 +207,40 @@ try {
   const tenantBSnapshot = syntheticSnapshot({ tenantId: tenantB, domainId: "matter", runId: `other-${runId}` });
   await ledger.importSnapshot(tenantBSnapshot);
 
-  const client = await pool.connect();
-  try {
-    const currentUser = (await client.query("SELECT current_user AS user_name")).rows[0].user_name;
-    if (!/^[A-Za-z_][A-Za-z0-9_]{0,62}$/u.test(currentUser)) throw new Error("staging database user name is invalid");
-    await client.query(`DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'lawos_staging_rehearsal') THEN
-          CREATE ROLE lawos_staging_rehearsal NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT;
-        END IF;
-      END
-    $$`);
-    await client.query(`GRANT lawos_staging_rehearsal TO "${currentUser}"`);
-    await client.query("GRANT USAGE ON SCHEMA lawos_domain, lawos_runtime TO lawos_staging_rehearsal");
-    await client.query("GRANT SELECT ON ALL TABLES IN SCHEMA lawos_domain TO lawos_staging_rehearsal");
-    await client.query("GRANT SELECT, INSERT ON lawos_runtime.outbox_events TO lawos_staging_rehearsal");
-    await client.query("BEGIN");
-    await client.query("SET LOCAL ROLE lawos_staging_rehearsal");
-    await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantA]);
-    const tenantAVisible = await client.query("SELECT count(*)::int AS count FROM lawos_domain.records");
-    await client.query("ROLLBACK");
-    await client.query("BEGIN");
-    await client.query("SET LOCAL ROLE lawos_staging_rehearsal");
-    await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantB]);
-    const tenantBVisible = await client.query("SELECT count(*)::int AS count FROM lawos_domain.records");
-    await client.query("ROLLBACK");
+  {
+    const tenantAVisible = await withPostgresTransaction(pool, { tenant_id: tenantA, readOnly: true }, (client) =>
+      client.query("SELECT count(*)::int AS count FROM lawos_domain.records"));
+    const tenantBVisible = await withPostgresTransaction(pool, { tenant_id: tenantB, readOnly: true }, (client) =>
+      client.query("SELECT count(*)::int AS count FROM lawos_domain.records"));
     rlsCounts = { tenant_a_visible: tenantAVisible.rows[0].count, tenant_b_visible: tenantBVisible.rows[0].count };
     if (rlsCounts.tenant_a_visible !== DOMAIN_IDS.length || rlsCounts.tenant_b_visible !== 1) {
       throw new Error("staging tenant RLS visibility invariant failed");
     }
 
-    await client.query("BEGIN");
-    await client.query("SET LOCAL ROLE lawos_staging_rehearsal");
-    await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantA]);
-    await client.query(
-      `INSERT INTO lawos_runtime.outbox_events
-         (tenant_id, event_id, topic, payload, status, created_at)
-       VALUES ($1, $2, 'runtime_safety.synthetic_staging_smoke', $3::jsonb, 'pending', clock_timestamp())`,
-      [tenantA, `synthetic-outbox:${runId}`, JSON.stringify({ synthetic_only: true, domain_count: DOMAIN_IDS.length })],
-    );
-    const outbox = await client.query(
-      "SELECT count(*)::int AS count FROM lawos_runtime.outbox_events WHERE event_id = $1",
-      [`synthetic-outbox:${runId}`],
-    );
-    await client.query("COMMIT");
+    const outbox = await withPostgresTransaction(pool, { tenant_id: tenantA }, async (client) => {
+      await client.query(
+        `INSERT INTO lawos_runtime.outbox_events
+           (tenant_id, event_id, topic, payload, status, created_at)
+         VALUES ($1, $2, 'runtime_safety.synthetic_staging_smoke', $3::jsonb, 'pending', clock_timestamp())`,
+        [tenantA, `synthetic-outbox:${runId}`, JSON.stringify({ synthetic_only: true, domain_count: DOMAIN_IDS.length })],
+      );
+      return client.query(
+        "SELECT count(*)::int AS count FROM lawos_runtime.outbox_events WHERE event_id = $1",
+        [`synthetic-outbox:${runId}`],
+      );
+    });
     outboxCount = outbox.rows[0].count;
     if (outboxCount !== 1) throw new Error("staging synthetic outbox smoke failed");
-  } finally {
-    client.release();
   }
 } finally {
+  if (tenantAuthoritiesInstalled) {
+    await pool.query(
+      `DELETE FROM lawos_security.tenant_context_authorities
+        WHERE database_role = session_user
+          AND tenant_id = ANY($1::text[])`,
+      [[tenantA, tenantB]],
+    );
+  }
   await pool.end();
 }
 

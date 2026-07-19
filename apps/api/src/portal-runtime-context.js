@@ -64,6 +64,7 @@ export const PORTAL_API_ERROR_CODES = Object.freeze({
   magic_link_already_used: "PORTAL_MAGIC_LINK_ALREADY_USED",
   magic_link_revoked: "PORTAL_MAGIC_LINK_REVOKED",
   external_session_inactive: "PORTAL_EXTERNAL_SESSION_INACTIVE",
+  external_session_expired: "PORTAL_EXTERNAL_SESSION_EXPIRED",
   secure_link_expired: "PORTAL_SECURE_LINK_EXPIRED",
   secure_link_revoked: "PORTAL_SECURE_LINK_REVOKED",
 });
@@ -275,6 +276,7 @@ function statusForExternalError(code) {
   if (code === PORTAL_API_ERROR_CODES.magic_link_already_used) return 409;
   if (code === PORTAL_API_ERROR_CODES.magic_link_revoked || code === PORTAL_API_ERROR_CODES.secure_link_revoked) return 403;
   if (code === PORTAL_API_ERROR_CODES.external_session_inactive) return 403;
+  if (code === PORTAL_API_ERROR_CODES.external_session_expired) return 410;
   if (typeof code === "string" && code.endsWith("_MISMATCH")) return 403;
   if (typeof code === "string" && code.endsWith("_NOT_FOUND")) return 404;
   return 400;
@@ -329,7 +331,7 @@ function createInviteResponse({ body, context, requestId, runtime }) {
     const result = createMagicLinkInvite({
       repository: runtime.repository,
       invite: body.invite,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
       base_url: body.base_url,
     });
@@ -367,7 +369,7 @@ function revokeInviteResponse({ body, context, requestId, runtime, inviteId }) {
       repository: runtime.repository,
       tenant_id: tenantId,
       invite_id: inviteId,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return {
@@ -398,7 +400,7 @@ function revokeSecureLinkResponse({ body, context, requestId, runtime, secureLin
       repository: runtime.repository,
       tenant_id: tenantId,
       secure_link_id: secureLinkId,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return {
@@ -422,7 +424,7 @@ function revokeSecureLinkResponse({ body, context, requestId, runtime, secureLin
 
 function consumeInviteResponse({ body, requestId, runtime }) {
   try {
-    const result = consumeMagicLinkInvite({ repository: runtime.repository, token: body?.token, now: body?.now });
+    const result = consumeMagicLinkInvite({ repository: runtime.repository, token: body?.token });
     return externalSuccessResponse({
       status: 200,
       requestId,
@@ -469,7 +471,6 @@ function externalSecureLinkAccessResponse({ query, requestId, runtime, secureLin
       tenant_id: query?.tenant_id,
       secure_link_id: secureLinkId,
       external_session_id: query?.external_session_id,
-      now: query?.now,
     });
     return externalSuccessResponse({
       status: 200,
@@ -497,14 +498,14 @@ export async function handlePortalApiRequest({ pathname, method, query, body, co
   if (pathname === "/api/data-room/projections" && method === "GET") return listResponse({ query, context, requestId, runtime, action: "data_room:projection:read", resourceType: "data_room_projection", modelType: "DataRoomProjection" });
   if (pathname === "/api/portal/audit" && method === "GET") return handlePortalAudit({ query, context, requestId, runtime });
 
-  if (pathname === "/api/portal/external-users" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:external_user:write", resourceType: "external_user", tenantId: body?.external_user?.tenant_id ?? body?.tenant_id, itemKey: "external_user", fn: () => createExternalUser({ repository: runtime.repository, external_user: body.external_user, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
-  if (pathname === "/api/portal/external-acls" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:external_acl:write", resourceType: "external_acl", tenantId: body?.external_acl?.tenant_id ?? body?.tenant_id, itemKey: "external_acl", fn: () => createExternalAcl({ repository: runtime.repository, external_acl: body.external_acl, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
-  if (pathname === "/api/portal/rfi" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:rfi:write", resourceType: "rfi_request", tenantId: body?.rfi_request?.tenant_id ?? body?.tenant_id, itemKey: "rfi_request", fn: () => createRfiRequest({ repository: runtime.repository, rfi_request: body.rfi_request, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
-  if (pathname === "/api/portal/rfi-responses" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:rfi_response:write", resourceType: "rfi_response", tenantId: body?.rfi_response?.tenant_id ?? body?.tenant_id, itemKey: "rfi_response", fn: () => createRfiResponse({ repository: runtime.repository, rfi_response: body.rfi_response, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
-  if (pathname === "/api/portal/approvals" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:approval:write", resourceType: "client_approval", tenantId: body?.client_approval?.tenant_id ?? body?.tenant_id, itemKey: "client_approval", fn: () => createClientApproval({ repository: runtime.repository, client_approval: body.client_approval, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
-  if (pathname === "/api/portal/secure-links" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:secure_link:write", resourceType: "secure_link", tenantId: body?.secure_link?.tenant_id ?? body?.tenant_id, itemKey: "secure_link", fn: () => createSecureLink({ repository: runtime.repository, secure_link: body.secure_link, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
-  if (pathname === "/api/portal/dashboard" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:dashboard:write", resourceType: "portal_dashboard_projection", tenantId: body?.dashboard_projection?.tenant_id ?? body?.tenant_id, itemKey: "dashboard_projection", fn: () => createPortalDashboardProjection({ repository: runtime.repository, dashboard_projection: body.dashboard_projection, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
-  if (pathname === "/api/portal/projections" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:projection:write", resourceType: "portal_projection", tenantId: body?.portal_projection?.tenant_id ?? body?.tenant_id, itemKey: "portal_projection", fn: () => createPortalProjection({ repository: runtime.repository, portal_projection: body.portal_projection, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
+  if (pathname === "/api/portal/external-users" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:external_user:write", resourceType: "external_user", tenantId: body?.external_user?.tenant_id ?? body?.tenant_id, itemKey: "external_user", fn: () => createExternalUser({ repository: runtime.repository, external_user: body.external_user, actor_id: context.principal.user_id, idempotency_key: body.idempotency_key }) });
+  if (pathname === "/api/portal/external-acls" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:external_acl:write", resourceType: "external_acl", tenantId: body?.external_acl?.tenant_id ?? body?.tenant_id, itemKey: "external_acl", fn: () => createExternalAcl({ repository: runtime.repository, external_acl: body.external_acl, actor_id: context.principal.user_id, idempotency_key: body.idempotency_key }) });
+  if (pathname === "/api/portal/rfi" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:rfi:write", resourceType: "rfi_request", tenantId: body?.rfi_request?.tenant_id ?? body?.tenant_id, itemKey: "rfi_request", fn: () => createRfiRequest({ repository: runtime.repository, rfi_request: body.rfi_request, actor_id: context.principal.user_id, idempotency_key: body.idempotency_key }) });
+  if (pathname === "/api/portal/rfi-responses" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:rfi_response:write", resourceType: "rfi_response", tenantId: body?.rfi_response?.tenant_id ?? body?.tenant_id, itemKey: "rfi_response", fn: () => createRfiResponse({ repository: runtime.repository, rfi_response: body.rfi_response, actor_id: context.principal.user_id, idempotency_key: body.idempotency_key }) });
+  if (pathname === "/api/portal/approvals" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:approval:write", resourceType: "client_approval", tenantId: body?.client_approval?.tenant_id ?? body?.tenant_id, itemKey: "client_approval", fn: () => createClientApproval({ repository: runtime.repository, client_approval: body.client_approval, actor_id: context.principal.user_id, idempotency_key: body.idempotency_key }) });
+  if (pathname === "/api/portal/secure-links" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:secure_link:write", resourceType: "secure_link", tenantId: body?.secure_link?.tenant_id ?? body?.tenant_id, itemKey: "secure_link", fn: () => createSecureLink({ repository: runtime.repository, secure_link: body.secure_link, actor_id: context.principal.user_id, idempotency_key: body.idempotency_key }) });
+  if (pathname === "/api/portal/dashboard" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:dashboard:write", resourceType: "portal_dashboard_projection", tenantId: body?.dashboard_projection?.tenant_id ?? body?.tenant_id, itemKey: "dashboard_projection", fn: () => createPortalDashboardProjection({ repository: runtime.repository, dashboard_projection: body.dashboard_projection, actor_id: context.principal.user_id, idempotency_key: body.idempotency_key }) });
+  if (pathname === "/api/portal/projections" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:projection:write", resourceType: "portal_projection", tenantId: body?.portal_projection?.tenant_id ?? body?.tenant_id, itemKey: "portal_projection", fn: () => createPortalProjection({ repository: runtime.repository, portal_projection: body.portal_projection, actor_id: context.principal.user_id, idempotency_key: body.idempotency_key }) });
   if (pathname === "/api/portal/invites" && method === "POST") return createInviteResponse({ body, context, requestId, runtime });
   if (pathname === "/api/portal/invites/consume" && method === "POST") return consumeInviteResponse({ body, requestId, runtime });
   if (pathname === "/api/portal/external/rfi-responses" && method === "POST") return externalRfiResponse({ body, requestId, runtime });
@@ -514,8 +515,8 @@ export async function handlePortalApiRequest({ pathname, method, query, body, co
   if (secureLinkRevokeId && method === "POST") return revokeSecureLinkResponse({ body, context, requestId, runtime, secureLinkId: secureLinkRevokeId });
   const inviteRevokeId = pathId(pathname, "/api/portal/invites/", "/revoke");
   if (inviteRevokeId && method === "POST") return revokeInviteResponse({ body, context, requestId, runtime, inviteId: inviteRevokeId });
-  if (pathname === "/api/data-room/rooms" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "data_room:write", resourceType: "data_room", tenantId: body?.data_room?.tenant_id ?? body?.tenant_id, itemKey: "data_room", fn: () => createDataRoom({ repository: runtime.repository, data_room: body.data_room, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
-  if (pathname === "/api/data-room/projections" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "data_room:projection:write", resourceType: "data_room_projection", tenantId: body?.data_room_projection?.tenant_id ?? body?.tenant_id, itemKey: "data_room_projection", fn: () => syncDataRoomProjection({ repository: runtime.repository, data_room_projection: body.data_room_projection, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
+  if (pathname === "/api/data-room/rooms" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "data_room:write", resourceType: "data_room", tenantId: body?.data_room?.tenant_id ?? body?.tenant_id, itemKey: "data_room", fn: () => createDataRoom({ repository: runtime.repository, data_room: body.data_room, actor_id: context.principal.user_id, idempotency_key: body.idempotency_key }) });
+  if (pathname === "/api/data-room/projections" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "data_room:projection:write", resourceType: "data_room_projection", tenantId: body?.data_room_projection?.tenant_id ?? body?.tenant_id, itemKey: "data_room_projection", fn: () => syncDataRoomProjection({ repository: runtime.repository, data_room_projection: body.data_room_projection, actor_id: context.principal.user_id, idempotency_key: body.idempotency_key }) });
 
   return errorResponse(404, requestId, [PORTAL_API_ERROR_CODES.not_found], { audit_hint_ref: query?.audit_hint_ref });
 }

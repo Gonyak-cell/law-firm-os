@@ -235,7 +235,7 @@ test("C13 external portal invite flow is one-time, auditable, and byte-safe", as
     const consumed = await json(baseUrl, "/api/portal/invites/consume", {
       method: "POST",
       noAuth: true,
-      body: JSON.stringify({ token, now: "2026-07-03T00:00:00.000Z" }),
+      body: JSON.stringify({ token }),
     });
     assert.equal(consumed.status, 200);
     assert.equal(consumed.body.item.status, "active");
@@ -245,7 +245,7 @@ test("C13 external portal invite flow is one-time, auditable, and byte-safe", as
     const reused = await json(baseUrl, "/api/portal/invites/consume", {
       method: "POST",
       noAuth: true,
-      body: JSON.stringify({ token, now: "2026-07-03T00:00:01.000Z" }),
+      body: JSON.stringify({ token }),
     });
     assert.equal(reused.status, 409);
     assert.deepEqual(reused.body.safe_error_codes, ["PORTAL_MAGIC_LINK_ALREADY_USED"]);
@@ -272,7 +272,7 @@ test("C13 external portal invite flow is one-time, auditable, and byte-safe", as
 
     const accessed = await json(
       baseUrl,
-      `/api/portal/external/secure-links/secure_link_c13_api_001/access?tenant_id=${TENANT}&external_session_id=${externalSessionId}&now=2026-07-03T00%3A00%3A00.000Z`,
+      `/api/portal/external/secure-links/secure_link_c13_api_001/access?tenant_id=${TENANT}&external_session_id=${externalSessionId}`,
       { noAuth: true },
     );
     assert.equal(accessed.status, 200);
@@ -298,7 +298,7 @@ test("C13 external portal invite flow is one-time, auditable, and byte-safe", as
       { noAuth: true },
     );
     assert.equal(blockedAccess.status, 403);
-    assert.deepEqual(blockedAccess.body.safe_error_codes, ["PORTAL_SECURE_LINK_REVOKED"]);
+    assert.deepEqual(blockedAccess.body.safe_error_codes, ["PORTAL_EXTERNAL_SESSION_INACTIVE"]);
 
     const audit = await json(baseUrl, `/api/portal/audit?${BASE_QUERY}`);
     assert.ok(audit.body.items.some((event) => event.action === "portal.magic_link_invite.create"));

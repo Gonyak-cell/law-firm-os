@@ -16,12 +16,16 @@ import { convertCandidateToEmployee } from "../../../packages/hrx/src/recruiting
 import { createInterview } from "../../../packages/hrx/src/recruiting/interview.js";
 import { createJobOpening } from "../../../packages/hrx/src/recruiting/job-opening.js";
 import { createOffer, transitionOffer } from "../../../packages/hrx/src/recruiting/offer.js";
-import { createHrxAiSourceRegistry } from "../../../packages/hrx/src/ai/source-registry.js";
+import { createHrxAiSourceRegistry, createSqlHrxAiSourceRegistry } from "../../../packages/hrx/src/ai/source-registry.js";
 import { createHrxPermissionAwareRetriever } from "../../../packages/hrx/src/ai/rag.js";
 import { createHrxModelGatewayFromEnv } from "../../../packages/hrx/src/ai/model-provider-registry.js";
 import { createInMemoryHrxAiReviewQueue } from "../../../packages/hrx/src/ai/review-queue.js";
 import { createSqlHrxAiReviewQueue } from "../../../packages/hrx/src/ai/review-queue-sql.js";
-import { createInMemoryHrxAiSourceChunkIndex, ingestHrxAiSourceChunks } from "../../../packages/hrx/src/ai/source-ingestion.js";
+import {
+  createInMemoryHrxAiSourceChunkIndex,
+  createSqlHrxAiSourceChunkIndex,
+  ingestHrxAiSourceChunks,
+} from "../../../packages/hrx/src/ai/source-ingestion.js";
 import {
   HRX_ATTENDANCE_STATUSES,
   createInMemoryAttendanceStore,
@@ -53,7 +57,9 @@ import {
 import {
   createHrxRiskDailyScan,
   createHrxRiskDashboard,
+  createHrxRiskEvent,
   createInMemoryHrxRiskEventStore,
+  transitionHrxRiskEvent,
 } from "../../../packages/hrx/src/risk-event.js";
 import { createOnboardingPlan, updateOnboardingTask } from "../../../packages/hrx/src/onboarding.js";
 import { createInMemoryHrxRepository } from "../../../packages/hrx/src/repository.js";
@@ -1225,7 +1231,7 @@ function compensationSeed(tenantId) {
         compensation_id: compensationId,
         amount_minor: 10101010,
         currency_ref: "Currency:KRW",
-      }),
+      }, { allowSyntheticKey: true }),
       currency_ref: "Currency:KRW",
       effective_from: "2026-06-20",
       source_ref: `HRDoc:${employeeId}:compensation-record`,
@@ -1944,10 +1950,15 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function createDurableRuntimeCollection({ store, table, idField, seed = [] }) {
+function createDurableRuntimeCollection({ store, table, idField, seed = [], stateVersioned = false }) {
   for (const row of seed) {
     const where = { tenant_id: row.tenant_id, [idField]: row[idField] };
-    if (!store.query("selectOne", { table, where })) store.query("insert", { table, row: clone(row) });
+    if (!store.query("selectOne", { table, where })) {
+      store.query("insert", {
+        table,
+        row: clone(stateVersioned ? { ...row, state_version: row.state_version ?? 1 } : row),
+      });
+    }
   }
   return Object.freeze({
     list() {
@@ -1960,10 +1971,17 @@ function createDurableRuntimeCollection({ store, table, idField, seed = [] }) {
       return store.query("insert", { table, row: clone(row) });
     },
     update(row) {
+      const where = { tenant_id: row.tenant_id, [idField]: row[idField] };
+      const current = store.query("selectOne", { table, where });
+      if (!current) return undefined;
+      const patch = stateVersioned
+        ? { ...clone(row), state_version: current.state_version + 1 }
+        : clone(row);
       return store.query("updateOne", {
         table,
-        where: { tenant_id: row.tenant_id, [idField]: row[idField] },
-        patch: clone(row),
+        where,
+        patch,
+        ...(stateVersioned ? { expected_version: current.state_version } : {}),
       });
     },
   });
@@ -1972,6 +1990,26 @@ function createDurableRuntimeCollection({ store, table, idField, seed = [] }) {
 function createHrxDurableRuntimeCollections({ store, seedTenantIds }) {
   if (!store) return null;
   return Object.freeze({
+    riskEvents: createDurableRuntimeCollection({
+      store,
+      table: "hrx_risk_events",
+      idField: "risk_event_id",
+      stateVersioned: true,
+    }),
+    approvals: createDurableRuntimeCollection({
+      store,
+      table: "hrx_operational_approvals",
+      idField: "approval_id",
+      seed: seedTenantIds.flatMap(approvalSeed),
+      stateVersioned: true,
+    }),
+    policies: createDurableRuntimeCollection({
+      store,
+      table: "hrx_operational_policies",
+      idField: "policy_id",
+      seed: seedTenantIds.flatMap(policySeed),
+      stateVersioned: true,
+    }),
     jobOpenings: createDurableRuntimeCollection({
       store,
       table: "hrx_job_openings",
@@ -2019,6 +2057,47 @@ function createHrxDurableRuntimeCollections({ store, seedTenantIds }) {
       idField: "offboarding_id",
       seed: seedTenantIds.flatMap(offboardingSeed),
     }),
+  });
+}
+
+function createDurableHrxRiskEventStore(collection) {
+  function normalize(value) {
+    return value ? Object.freeze(createHrxRiskEvent(value)) : undefined;
+  }
+  return Object.freeze({
+    upsertMany(eventInputs = []) {
+      return Object.freeze(eventInputs.map((input) => {
+        const next = createHrxRiskEvent(input);
+        const current = collection.list().find((event) =>
+          event.tenant_id === next.tenant_id && event.risk_event_id === next.risk_event_id);
+        if (!current) return normalize(collection.insert({ ...next, state_version: 1 }));
+        return normalize(collection.update({
+          ...next,
+          status: current.status,
+          resolution_ref: current.resolution_ref,
+          state_history: current.state_history,
+        }));
+      }));
+    },
+    get(ref = {}) {
+      return normalize(collection.list().find((event) =>
+        event.tenant_id === ref.tenant_id && event.risk_event_id === ref.risk_event_id));
+    },
+    list(query = {}) {
+      return Object.freeze(collection.list()
+        .filter((event) => !query.tenant_id || event.tenant_id === query.tenant_id)
+        .filter((event) => !query.status || event.status === query.status)
+        .filter((event) => !query.risk_type || event.risk_type === query.risk_type)
+        .map(normalize)
+        .sort((left, right) => left.risk_type.localeCompare(right.risk_type)
+          || String(left.employee_id ?? "").localeCompare(String(right.employee_id ?? ""))
+          || left.risk_event_id.localeCompare(right.risk_event_id)));
+    },
+    transition(ref = {}, change = {}) {
+      const current = this.get(ref);
+      if (!current) return undefined;
+      return normalize(collection.update(transitionHrxRiskEvent(current, change)));
+    },
   });
 }
 
@@ -2308,8 +2387,26 @@ export function seedHrxDurableRuntimeStore(store, options = {}) {
   });
 }
 
-export function createHrxRuntimeContext({ repository: providedRepository, store, matterTimeEntries, matterDeadlines, modelGateway, clock: runtimeClock, leaveIntegrationProviders, seedPayrollRuntime = false } = {}) {
-  const seedTenantIds = HRX_DEFAULT_SEED_TENANT_IDS;
+export function createHrxRuntimeContext({
+  repository: providedRepository,
+  store,
+  matterTimeEntries,
+  matterDeadlines,
+  modelGateway,
+  clock: runtimeClock,
+  leaveIntegrationProviders,
+  allowSyntheticLeaveIntegrationProviders = true,
+  payrollArtifactStorage,
+  payrollArtifactSecret,
+  compensationKeyMaterial,
+  allowSyntheticPayrollArtifactSecret = true,
+  allowSyntheticCompensationKey = true,
+  allowSyntheticPayrollProviders = true,
+  payrollProviders = Object.freeze({}),
+  seedPayrollRuntime = false,
+  seedRuntimeFixtures = true,
+} = {}) {
+  const seedTenantIds = seedRuntimeFixtures ? HRX_DEFAULT_SEED_TENANT_IDS : [];
   const repository = providedRepository ?? (store ? createSqlHrxRepository({ store }) : createInMemoryHrxRepository({
     employees: seedTenantIds.flatMap(seedEmployees),
     employment_profiles: seedTenantIds.flatMap(seedEmploymentProfiles),
@@ -2331,9 +2428,12 @@ export function createHrxRuntimeContext({ repository: providedRepository, store,
     ? createSqlAttendanceStore({ store })
     : createInMemoryAttendanceStore(seedTenantIds.flatMap(attendanceSeed));
   const overtime = store ? createSqlOvertimeStore({ store }) : createInMemoryOvertimeStore();
-  const riskEvents = createInMemoryHrxRiskEventStore();
+  const durableCollections = createHrxDurableRuntimeCollections({ store, seedTenantIds });
+  const riskEvents = durableCollections
+    ? createDurableHrxRiskEventStore(durableCollections.riskEvents)
+    : createInMemoryHrxRiskEventStore();
   const audit = store ? createDurableAuditStore({ store }) : createHrxAuditEventStore();
-  const policies = seedTenantIds.flatMap(policySeed);
+  const policies = runtimeCollectionRows(durableCollections, "policies", seedTenantIds.flatMap(policySeed));
   const leavePolicyService = store ? createLeavePolicyService({ store }) : null;
   const leaveService = createLeaveRequestService({
     store: leaveStore,
@@ -2375,6 +2475,8 @@ export function createHrxRuntimeContext({ repository: providedRepository, store,
         employeeDirectory: ({ tenant_id }) => employeeDirectoryRows(repository, tenant_id),
       })
     : null;
+  const resolvedLeaveIntegrationProviders = leaveIntegrationProviders
+    ?? (allowSyntheticLeaveIntegrationProviders ? createInternalLeaveIntegrationProviders() : Object.freeze({}));
   const leaveTerminationService = store
     ? createLeaveTerminationService({
         store,
@@ -2382,6 +2484,10 @@ export function createHrxRuntimeContext({ repository: providedRepository, store,
           const account = REGISTERED_ACCOUNTS.find((candidate) => candidate.user_id === actor_id);
           if (!account || account.status !== "active" || !account.tenant_ids.includes(tenant_id)) return false;
           return resolveLawosUserRoleAssignment(account, { tenantId: tenant_id })?.hrx_scopes?.includes(required_scope) === true;
+        },
+        payrollReceiptAuthorizer: ({ provider_id }) => {
+          const provider = resolvedLeaveIntegrationProviders.payroll;
+          return provider?.operational_authority === true && provider?.provider_id === provider_id;
         },
       })
     : null;
@@ -2396,7 +2502,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store,
   const leaveIntegrationService = store
     ? createLeaveIntegrationService({
         store,
-        providers: leaveIntegrationProviders ?? createInternalLeaveIntegrationProviders(),
+        providers: resolvedLeaveIntegrationProviders,
         terminationDeliveryRecorder: (context, input) => leaveTerminationService.recordPayrollDelivery(context, input),
         promotionDeliveryRecorder: (context, input) => {
           const recipient = store.query("selectOne", { table: "hrx_leave_promotion_recipients", where: { tenant_id: context.tenant_id, recipient_id: input.recipient_id } });
@@ -2422,9 +2528,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store,
         outboxDispatcher: (context) => leaveIntegrationService.process(context, { limit: 50, aggregate_types: ["LeaveRequest"] }),
       })
     : null;
-  const durableCollections = createHrxDurableRuntimeCollections({ store, seedTenantIds });
-
-  const approvals = seedTenantIds.flatMap(approvalSeed);
+  const approvals = runtimeCollectionRows(durableCollections, "approvals", seedTenantIds.flatMap(approvalSeed));
   const jobOpenings = runtimeCollectionRows(durableCollections, "jobOpenings", seedTenantIds.flatMap(jobOpeningSeed));
   const candidates = runtimeCollectionRows(durableCollections, "candidates", seedTenantIds.flatMap(candidateSeed));
   const candidateConsents = runtimeCollectionRows(durableCollections, "candidateConsents", []);
@@ -2434,14 +2538,33 @@ export function createHrxRuntimeContext({ repository: providedRepository, store,
   const onboardingPlans = runtimeCollectionRows(durableCollections, "onboardingPlans", seedTenantIds.flatMap(onboardingSeed));
   const offboardingCases = runtimeCollectionRows(durableCollections, "offboardingCases", seedTenantIds.flatMap(offboardingSeed));
   const statutoryTrainings = seedTenantIds.flatMap(statutoryTrainingSeed);
-  const aiSourceRegistry = createHrxAiSourceRegistry(seedTenantIds.flatMap(aiSourceSeed));
-  const aiSourceChunks = createInMemoryHrxAiSourceChunkIndex(seedTenantIds.flatMap(aiSourceChunkSeed));
+  const aiSourceRegistry = store ? createSqlHrxAiSourceRegistry({ store }) : createHrxAiSourceRegistry();
+  for (const source of seedTenantIds.flatMap(aiSourceSeed)) {
+    if (!aiSourceRegistry.get({ tenant_id: source.tenant_id, source_ref: source.source_ref })) aiSourceRegistry.index(source);
+  }
+  const aiSourceChunks = store ? createSqlHrxAiSourceChunkIndex({ store }) : createInMemoryHrxAiSourceChunkIndex();
+  for (const chunk of seedTenantIds.flatMap(aiSourceChunkSeed)) {
+    if (!aiSourceChunks.get({ tenant_id: chunk.tenant_id, source_ref: chunk.source_ref, chunk_id: chunk.chunk_id })) {
+      aiSourceChunks.index(chunk);
+    }
+  }
   const aiRetriever = createHrxPermissionAwareRetriever({ registry: aiSourceRegistry, authz: createScopedAiSourceAuthz(), chunkIndex: aiSourceChunks });
   const aiReviewQueue = store ? createSqlHrxAiReviewQueue({ store }) : createInMemoryHrxAiReviewQueue();
   const resolvedModelGateway = modelGateway ?? createHrxModelGatewayFromEnv();
   const aiRoute = createHrxAiRoute({ retriever: aiRetriever, reviewQueue: aiReviewQueue, audit, modelGateway: resolvedModelGateway });
   if (store && seedPayrollRuntime) seedSyntheticPayrollRuntimeStore(store, seedTenantIds, { ...(runtimeClock ? { clock: runtimeClock } : {}) });
-  const payrollRuntime = createHrxPayrollRuntime({ store, audit, ...(runtimeClock ? { clock: runtimeClock } : {}) });
+  const payrollRuntime = createHrxPayrollRuntime({
+    store,
+    audit,
+    ...(runtimeClock ? { clock: runtimeClock } : {}),
+    ...(payrollArtifactStorage ? { artifactStorage: payrollArtifactStorage } : {}),
+    ...(payrollArtifactSecret ? { artifactSecret: payrollArtifactSecret } : {}),
+    ...(compensationKeyMaterial ? { compensationKeyMaterial } : {}),
+    allowSyntheticArtifactSecret: allowSyntheticPayrollArtifactSecret,
+    allowSyntheticCompensationKey,
+    allowSyntheticProviders: allowSyntheticPayrollProviders,
+    ...payrollProviders,
+  });
   const payrollRoute = createHrxPayrollRoute({ audit });
   const payrollRuntimeRoute = createHrxPayrollRuntimeRoute({ runtime: payrollRuntime, store, audit, ...(runtimeClock ? { clock: runtimeClock } : {}) });
   const matterAssignments = Object.freeze(seedTenantIds.flatMap(matterAssignmentSeed));
@@ -3588,12 +3711,24 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         });
         return response(200, { outcome: "previewed", batch });
       }
-      const uploadCommand = pathname.match(/^\/api\/hrx\/leave\/accrual\/manual\/uploads\/([^/]+)\/(execute|retry)$/);
+      const uploadCommand = pathname.match(/^\/api\/hrx\/leave\/accrual\/manual\/uploads\/([^/]+)\/(approve|execute|retry)$/);
       if (uploadCommand && method === "POST") {
         if (!uploadService) return response(503, { outcome: "blocked", safe_error_code: "HRX_LEAVE_OCCURRENCE_UPLOAD_STORE_REQUIRED" });
         if (actorContext.step_up_verified !== true) return response(403, { outcome: "blocked", safe_error_code: "HRX_STEP_UP_REQUIRED", step_up_required: true, required_purpose: "leave_ledger_adjustment", fail_closed: true });
         const batchId = decodeURIComponent(uploadCommand[1]);
         const command = uploadCommand[2];
+        if (command === "approve") {
+          const approvalReceipt = uploadService.approve(actorContext, { ...body, upload_batch_id: batchId });
+          appendRuntimeAudit(context.audit, {
+            ...actorContext,
+            action: "hrx.leave.occurrence.upload.approve",
+            object_type: "LeaveOccurrenceUploadBatch",
+            object_id: batchId,
+            reason: "leave_occurrence_upload_independently_approved",
+            metadata: { approval_receipt_id: approvalReceipt.approval_receipt_id, snapshot_hash: approvalReceipt.snapshot_hash },
+          });
+          return response(200, { outcome: "approved", approval_receipt: approvalReceipt });
+        }
         const batch = command === "execute"
           ? uploadService.execute(actorContext, { ...body, upload_batch_id: batchId })
           : uploadService.resume(actorContext, { ...body, upload_batch_id: batchId });
@@ -3614,6 +3749,12 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       }
       if (pathname === "/api/hrx/leave/accrual/manual/preview" && method === "POST") {
         return response(200, { outcome: "previewed", preview: service.previewManual(actorContext, body) });
+      }
+      if (pathname === "/api/hrx/leave/accrual/manual/approve" && method === "POST") {
+        if (actorContext.step_up_verified !== true) {
+          return response(403, { outcome: "blocked", safe_error_code: "HRX_STEP_UP_REQUIRED", step_up_required: true, required_purpose: "leave_ledger_adjustment", fail_closed: true });
+        }
+        return response(200, { outcome: "approved", approval_receipt: service.approveManual(actorContext, body) });
       }
       if (pathname === "/api/hrx/leave/accrual/manual/execute" && method === "POST") {
         if (actorContext.step_up_verified !== true) {
@@ -3718,6 +3859,9 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       }
       if (pathname === "/api/hrx/leave/termination-reconciliations/preview" && method === "POST") {
         return response(200, { outcome: "previewed", reconciliation: service.preview(terminationContext, body) });
+      }
+      if (pathname === "/api/hrx/leave/termination-reconciliations/approve" && method === "POST") {
+        return response(200, { outcome: "approved", approval_receipt: service.approve(terminationContext, body) });
       }
       if (pathname === "/api/hrx/leave/termination-reconciliations/execute" && method === "POST") {
         return response(200, { outcome: "executed", reconciliation: service.execute(terminationContext, body) });
@@ -4102,6 +4246,7 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         decision_reason: body.decision_reason ?? `${action}_from_manager_queue`,
       });
       const finalize = (extraBody = {}) => {
+        persistRuntimeUpdate(context, "approvals", next);
         context.approvals[index] = next;
         appendRuntimeAudit(context.audit, {
           ...actorContext,
@@ -4181,8 +4326,8 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
 
     if (pathname === "/api/hrx/recruiting/job-openings" && method === "POST") {
       const jobOpening = createJobOpening({ ...body, tenant_id: tenantId });
-      context.jobOpenings.push(jobOpening);
       persistRuntimeInsert(context, "jobOpenings", jobOpening);
+      context.jobOpenings.push(jobOpening);
       appendRuntimeAudit(context.audit, {
         ...actorContext,
         action: "hrx.job_opening.create",
@@ -4200,15 +4345,21 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         tenant_id: tenantId,
         candidate_id: body.candidate_id,
       });
-      context.candidateConsents.push(consent);
-      persistRuntimeInsert(context, "candidateConsents", consent);
-      assertCandidateConsentAllowsProcessing(context.candidateConsents, {
+      const candidate = createCandidateProfile({ ...body, tenant_id: tenantId });
+      if (context.candidateConsents.some((item) => item.tenant_id === tenantId && item.consent_id === consent.consent_id)) {
+        throw new TypeError("candidate consent already exists");
+      }
+      if (context.candidates.some((item) => item.tenant_id === tenantId && item.candidate_id === candidate.candidate_id)) {
+        throw new TypeError("candidate already exists");
+      }
+      assertCandidateConsentAllowsProcessing([...context.candidateConsents, consent], {
         tenant_id: tenantId,
         candidate_id: body.candidate_id,
       });
-      const candidate = createCandidateProfile({ ...body, tenant_id: tenantId });
-      context.candidates.push(candidate);
+      persistRuntimeInsert(context, "candidateConsents", consent);
       persistRuntimeInsert(context, "candidates", candidate);
+      context.candidateConsents.push(consent);
+      context.candidates.push(candidate);
       appendRuntimeAudit(context.audit, {
         ...actorContext,
         action: "hrx.candidate.create",
@@ -4224,8 +4375,8 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       requireRecruitingRecord(context.candidates, tenantId, "candidate_id", body.candidate_id, "HRX_CANDIDATE_NOT_FOUND");
       requireRecruitingRecord(context.jobOpenings, tenantId, "job_opening_id", body.job_opening_id, "HRX_JOB_OPENING_NOT_FOUND");
       const application = createApplication({ ...body, tenant_id: tenantId });
-      context.applications.push(application);
       persistRuntimeInsert(context, "applications", application);
+      context.applications.push(application);
       appendRuntimeAudit(context.audit, {
         ...actorContext,
         action: "hrx.application.create",
@@ -4241,8 +4392,8 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       requireRecruitingRecord(context.applications, tenantId, "application_id", body.application_id, "HRX_APPLICATION_NOT_FOUND");
       requireRecruitingRecord(context.candidates, tenantId, "candidate_id", body.candidate_id, "HRX_CANDIDATE_NOT_FOUND");
       const interview = createInterview({ ...body, tenant_id: tenantId });
-      context.interviews.push(interview);
       persistRuntimeInsert(context, "interviews", interview);
+      context.interviews.push(interview);
       appendRuntimeAudit(context.audit, {
         ...actorContext,
         action: "hrx.interview.create",
@@ -4258,8 +4409,8 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       requireRecruitingRecord(context.applications, tenantId, "application_id", body.application_id, "HRX_APPLICATION_NOT_FOUND");
       requireRecruitingRecord(context.candidates, tenantId, "candidate_id", body.candidate_id, "HRX_CANDIDATE_NOT_FOUND");
       const offer = createOffer({ ...body, tenant_id: tenantId });
-      context.offers.push(offer);
       persistRuntimeInsert(context, "offers", offer);
+      context.offers.push(offer);
       appendRuntimeAudit(context.audit, {
         ...actorContext,
         action: "hrx.offer.create",
@@ -4280,8 +4431,8 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         stage: body.stage,
         stage_reason: body.stage_reason ?? "updated_from_recruiting_pipeline",
       });
-      context.applications[index] = next;
       persistRuntimeUpdate(context, "applications", next);
+      context.applications[index] = next;
       appendRuntimeAudit(context.audit, {
         ...actorContext,
         action: "hrx.application.stage.update",
@@ -4302,8 +4453,8 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         state: body.state,
         approval_ref: body.approval_ref ?? context.offers[index].approval_ref,
       });
-      context.offers[index] = next;
       persistRuntimeUpdate(context, "offers", next);
+      context.offers[index] = next;
       appendRuntimeAudit(context.audit, {
         ...actorContext,
         action: "hrx.offer.stage.update",
@@ -4377,8 +4528,8 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       const index = context.onboardingPlans.findIndex((plan) => plan.tenant_id === tenantId && plan.onboarding_id === onboardingId);
       if (index === -1) return response(404, { outcome: "not_found", safe_error_code: "HRX_ONBOARDING_PLAN_NOT_FOUND" });
       const next = updateOnboardingTask(context.onboardingPlans[index], taskId, { status: body.status });
-      context.onboardingPlans[index] = next;
       persistRuntimeUpdate(context, "onboardingPlans", next);
+      context.onboardingPlans[index] = next;
       appendRuntimeAudit(context.audit, {
         ...actorContext,
         action: "hrx.onboarding.task.update",
@@ -4404,10 +4555,10 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       const current = (context.durableCollections?.offboardingCases?.list() ?? context.offboardingCases)
         .find((item) => item.tenant_id === tenantId && item.offboarding_id === offboardingId);
       if (!current) return response(404, { outcome: "not_found", safe_error_code: "HRX_OFFBOARDING_CASE_NOT_FOUND" });
-      const next = closeOffboardingCase({ ...current, ...body });
+      const next = closeOffboardingCase(body, { current_case: current });
       const index = context.offboardingCases.findIndex((item) => item.tenant_id === tenantId && item.offboarding_id === offboardingId);
-      if (index >= 0) context.offboardingCases[index] = next;
       persistRuntimeUpdate(context, "offboardingCases", next);
+      if (index >= 0) context.offboardingCases[index] = next;
       appendRuntimeAudit(context.audit, {
         ...actorContext,
         action: "hrx.offboarding.close",
@@ -4435,6 +4586,7 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       for (const field of ["policy_id", "policy_type", "policy_version", "effective_from"]) {
         if (typeof policy[field] !== "string" || policy[field].trim() === "") throw new TypeError(`${field} is required`);
       }
+      persistRuntimeInsert(context, "policies", policy);
       context.policies.push(policy);
       appendRuntimeAudit(context.audit, {
         ...actorContext,

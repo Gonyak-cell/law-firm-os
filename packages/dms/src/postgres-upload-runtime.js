@@ -137,6 +137,7 @@ function assertReceiptMatchesSession(receipt, session) {
 export function createPostgresDmsUploadRuntime({
   pool,
   storage,
+  sourceOnly = true,
   clock = () => new Date(),
   idFactory = randomUUID,
   faultInjector,
@@ -147,6 +148,7 @@ export function createPostgresDmsUploadRuntime({
   reconciliationBackoffMillis = 1_000,
   workerId = `dms-worker:${idFactory()}`,
   transactionOptions = {},
+  verifyPermanentDeleteApproval = null,
 } = {}) {
   if (!pool || typeof pool.connect !== "function") throw new TypeError("PostgreSQL pool is required");
   assertStagedStorageAdapter(storage);
@@ -176,6 +178,11 @@ export function createPostgresDmsUploadRuntime({
     const tenantId = requiredText(tenant_id, "tenant_id");
     const sessionId = requiredText(session_id, "session_id");
     return transact(tenantId, (client) => selectSession(client, tenantId, sessionId), { readOnly: true });
+  }
+
+  function nextUploadExpiry(ttlMillis = 15 * 60 * 1_000) {
+    if (!Number.isSafeInteger(ttlMillis) || ttlMillis < 60_000) throw new TypeError("upload ttl must be at least one minute");
+    return new Date(Date.parse(timestamp(clock)) + ttlMillis).toISOString();
   }
 
   async function createUploadSession(input = {}) {
@@ -664,6 +671,90 @@ export function createPostgresDmsUploadRuntime({
     return Object.freeze({ session: finalized, receipt: safeProviderReceipt(receipt ?? session.provider_receipt, session), replayed });
   }
 
+  async function uploadDocument({
+    document = {},
+    bytes,
+    actor_id,
+    idempotency_key,
+    object_id,
+    session_id,
+    version_number,
+    expires_at,
+  } = {}) {
+    const tenantId = requiredText(document.tenant_id, "document.tenant_id");
+    const documentId = requiredText(document.document_id, "document.document_id");
+    const versionId = requiredText(
+      document.current_version_id ?? `version:${documentId}:${version_number ?? document.version_number ?? 1}`,
+      "document.current_version_id",
+    );
+    const actorId = requiredText(actor_id, "actor_id");
+    const buffer = Buffer.isBuffer(bytes) ? Buffer.from(bytes) : Buffer.from(bytes ?? []);
+    const created = await createUploadSession({
+      tenant_id: tenantId,
+      session_id: session_id ?? `dms-upload:${idFactory()}`,
+      idempotency_key: requiredText(idempotency_key, "idempotency_key"),
+      matter_id: requiredText(document.matter_id, "document.matter_id"),
+      workspace_id: requiredText(document.workspace_id, "document.workspace_id"),
+      document_id: documentId,
+      version_id: versionId,
+      version_number: requiredVersionNumber(version_number ?? document.version_number ?? 1),
+      object_id: object_id ?? `object:${versionId}`,
+      adapter_id: storage.adapter_id,
+      title: requiredText(document.title, "document.title"),
+      content_type: requiredText(document.mime_type ?? document.content_type ?? "application/octet-stream", "document.mime_type"),
+      expected_sha256: sha256Hex(buffer),
+      expected_byte_size: buffer.byteLength,
+      permission_envelope_id: requiredText(document.permission_envelope_id, "document.permission_envelope_id"),
+      audit_trace_id: requiredText(document.audit_trace_id, "document.audit_trace_id"),
+      actor_id: actorId,
+      expires_at: expires_at ?? nextUploadExpiry(),
+    });
+    await stageUpload({ tenant_id: tenantId, session_id: created.session.session_id, bytes: buffer });
+    const finalized = await finalizeUpload({ tenant_id: tenantId, session_id: created.session.session_id });
+    const state = await getDocumentState({ tenant_id: tenantId, document_id: documentId });
+    if (!state) throw codedError("DMS document metadata was not published", "DMS_DOCUMENT_NOT_FOUND", 404);
+    const version = state.versions.find((item) => item.version_id === versionId);
+    const fileObject = state.file_objects.find((item) => item.file_object_id === version?.file_object_id);
+    if (!version || !fileObject) throw codedError("DMS committed version is unavailable", "DMS_COMMITTED_OBJECT_NOT_FOUND", 404);
+    const { storage_pointer_ref: _storagePointerRef, ...safeFileObject } = fileObject;
+    const storageReceipt = Object.freeze({
+      adapter_id: finalized.receipt.adapter_id,
+      tenant_id: finalized.receipt.tenant_id,
+      object_id: finalized.receipt.object_id,
+      sha256: finalized.receipt.sha256,
+      byte_size: Number(finalized.receipt.byte_size),
+      mime_type: finalized.receipt.mime_type,
+      raw_path_exposed: false,
+      storage_pointer_ref_included: false,
+    });
+    return Object.freeze({
+      outcome: created.replayed || finalized.replayed ? "idempotent_replay" : "created",
+      document: Object.freeze({
+        ...document,
+        ...state.document,
+        current_version_id: versionId,
+        latest_sha256: version.sha256,
+        owner_user_id: document.owner_user_id ?? actorId,
+      }),
+      version,
+      file_object: Object.freeze({
+        ...safeFileObject,
+        mime_type: safeFileObject.content_type,
+        raw_path_exposed: false,
+        storage_pointer_ref_included: false,
+      }),
+      storage_receipt: storageReceipt,
+      audit_event: Object.freeze({
+        event_id: `audit:${created.session.session_id}:finalized`,
+        raw_payload_included: false,
+      }),
+      idempotent_replay: created.replayed || finalized.replayed === true,
+      upload_session_id: created.session.session_id,
+      provider_finalize_before_metadata: true,
+      independent_digest_readback: true,
+    });
+  }
+
   async function assertOrphanCleanupAllowed(client, session, now) {
     if (session.metadata_committed_at || session.state === "finalized") {
       throw codedError("committed DMS objects cannot be orphan-cleaned", "DMS_COMMITTED_OBJECT_DELETE_BLOCKED");
@@ -926,6 +1017,19 @@ export function createPostgresDmsUploadRuntime({
     if (guard.retained) throw codedError("DMS committed object is within its retention period", "DMS_RETENTION_DELETE_BLOCKED");
   }
 
+  async function assertNoActiveProviderDelete(client, tenantId, canonical) {
+    const active = await client.query(
+      `SELECT 1 FROM lawos_dms.delete_intents
+        WHERE tenant_id = $1 AND object_id = $2
+          AND state IN ('pending', 'provider_deleted') AND lease_token IS NOT NULL
+        LIMIT 1`,
+      [tenantId, canonical.object_id],
+    );
+    if (active.rowCount > 0) {
+      throw codedError("DMS provider deletion is already in progress", "DMS_OBJECT_DELETE_IN_PROGRESS", 409);
+    }
+  }
+
   async function placeLegalHold(input = {}) {
     const tenantId = requiredText(input.tenant_id, "tenant_id");
     const createdAt = timestamp(clock);
@@ -936,6 +1040,7 @@ export function createPostgresDmsUploadRuntime({
     const reasonHash = hashValue({ reason: requiredText(input.reason, "reason") });
     return transact(tenantId, async (client) => {
       const canonical = await selectCanonicalObject(client, tenantId, { documentId, objectId, lock: true, allowedStatuses: ["committed", "delete_pending"] });
+      await assertNoActiveProviderDelete(client, tenantId, canonical);
       if (storage.capabilities.provider_retention) {
         if (typeof storage.setObjectLegalHold !== "function") {
           throw codedError("storage adapter declares provider retention without legal hold support", "DMS_PROVIDER_RETENTION_CONTRACT_INVALID", 500);
@@ -967,6 +1072,7 @@ export function createPostgresDmsUploadRuntime({
     const retainUntil = requiredTimestamp(input.retain_until, "retain_until");
     return transact(tenantId, async (client) => {
       const canonical = await selectCanonicalObject(client, tenantId, { documentId, objectId, lock: true, allowedStatuses: ["committed", "delete_pending"] });
+      await assertNoActiveProviderDelete(client, tenantId, canonical);
       if (storage.capabilities.provider_retention) {
         if (typeof storage.setObjectRetention !== "function") {
           throw codedError("storage adapter declares provider retention without retention support", "DMS_PROVIDER_RETENTION_CONTRACT_INVALID", 500);
@@ -1000,6 +1106,42 @@ export function createPostgresDmsUploadRuntime({
     }, { readOnly: true });
   }
 
+  async function verifyStoredDeleteApproval(tenantId, intent) {
+    if (typeof verifyPermanentDeleteApproval !== "function") {
+      throw codedError(
+        "DMS permanent delete execution requires an independently verified approval receipt",
+        "DMS_PERMANENT_DELETE_APPROVAL_REQUIRED",
+        403,
+      );
+    }
+    const storedReceipt = Object.freeze({
+      receipt_ref: requiredText(intent.approval_receipt_ref, "approval receipt_ref"),
+      receipt_sha256: requiredSha256(intent.approval_receipt_sha256, "approval receipt_sha256"),
+      key_id: requiredText(intent.approval_key_id, "approval key_id"),
+    });
+    const approval = await verifyPermanentDeleteApproval({
+      tenant_id: tenantId,
+      document_id: intent.document_id,
+      object_id: intent.object_id,
+      requested_by: intent.requested_by,
+      approval_receipt: storedReceipt,
+      execution_reverification: true,
+    });
+    if (
+      approval?.verified !== true
+      || approval.receipt_ref !== storedReceipt.receipt_ref
+      || approval.receipt_sha256 !== storedReceipt.receipt_sha256
+      || approval.key_id !== storedReceipt.key_id
+    ) {
+      throw codedError(
+        "DMS permanent delete approval receipt failed execution re-verification",
+        "DMS_PERMANENT_DELETE_APPROVAL_INVALID",
+        403,
+      );
+    }
+    return storedReceipt;
+  }
+
   async function requestCommittedObjectDelete(input = {}) {
     if (storage.capabilities.conditional_delete !== true) {
       throw codedError("storage adapter does not support conditional committed delete", "DMS_STORAGE_DELETE_NOT_SUPPORTED", 409);
@@ -1009,6 +1151,30 @@ export function createPostgresDmsUploadRuntime({
     const objectId = requiredText(input.object_id, "object_id");
     const idempotencyKey = requiredText(input.idempotency_key, "idempotency_key");
     const requestedBy = requiredText(input.requested_by, "requested_by");
+    if (typeof verifyPermanentDeleteApproval !== "function") {
+      throw codedError(
+        "DMS permanent delete requires an independently verified approval receipt",
+        "DMS_PERMANENT_DELETE_APPROVAL_REQUIRED",
+        403,
+      );
+    }
+    const approval = await verifyPermanentDeleteApproval({
+      tenant_id: tenantId,
+      document_id: documentId,
+      object_id: objectId,
+      requested_by: requestedBy,
+      approval_receipt: input.approval_receipt,
+    });
+    if (approval?.verified !== true) {
+      throw codedError(
+        "DMS permanent delete approval receipt was not verified",
+        "DMS_PERMANENT_DELETE_APPROVAL_INVALID",
+        403,
+      );
+    }
+    const approvalReceiptRef = requiredText(approval.receipt_ref, "approval receipt_ref");
+    const approvalReceiptSha256 = requiredSha256(approval.receipt_sha256, "approval receipt_sha256");
+    const approvalKeyId = requiredText(approval.key_id, "approval key_id");
     const intentId = input.delete_intent_id ? requiredText(input.delete_intent_id, "delete_intent_id") : `dms-delete:${idFactory()}`;
     const createdAt = timestamp(clock);
     return transact(tenantId, async (client) => {
@@ -1018,7 +1184,12 @@ export function createPostgresDmsUploadRuntime({
       );
       if (existing.rows[0]) {
         const row = existing.rows[0];
-        if (row.document_id !== documentId || row.object_id !== objectId || row.requested_by !== requestedBy) {
+        if (
+          row.document_id !== documentId
+          || row.object_id !== objectId
+          || row.requested_by !== requestedBy
+          || row.approval_receipt_sha256 !== approvalReceiptSha256
+        ) {
           throw codedError("DMS delete idempotency key was reused with a different request", "DMS_IDEMPOTENCY_CONFLICT");
         }
         return Object.freeze({ intent: Object.freeze({ ...row }), replayed: true });
@@ -1028,11 +1199,15 @@ export function createPostgresDmsUploadRuntime({
       const inserted = await client.query(
         `INSERT INTO lawos_dms.delete_intents
            (tenant_id, delete_intent_id, idempotency_key, document_id, object_id, file_object_id,
-            expected_version_id, expected_sha256, requested_by, state, next_attempt_at, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending', $10::timestamptz, $10::timestamptz, $10::timestamptz)
+            expected_version_id, expected_sha256, requested_by, approval_receipt_ref,
+            approval_receipt_sha256, approval_key_id, permanent_delete_approval_verified,
+            state, next_attempt_at, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, true,
+                 'pending', $13::timestamptz, $13::timestamptz, $13::timestamptz)
          RETURNING *`,
         [tenantId, intentId, idempotencyKey, canonical.document_id, canonical.object_id, canonical.file_object_id,
-          canonical.version_id, canonical.sha256, requestedBy, createdAt],
+          canonical.version_id, canonical.sha256, requestedBy, approvalReceiptRef, approvalReceiptSha256,
+          approvalKeyId, createdAt],
       );
       await client.query(
         `UPDATE lawos_dms.file_objects SET status = 'delete_pending'
@@ -1127,6 +1302,14 @@ export function createPostgresDmsUploadRuntime({
       if (!current) throw codedError("DMS delete intent was not found", "DMS_DELETE_INTENT_NOT_FOUND", 404);
       if (current.state === "completed") return current;
       if (!["pending", "provider_deleted"].includes(current.state)) throw codedError("DMS delete intent is terminal", "DMS_DELETE_INTENT_INVALID_STATE");
+      if (
+        current.permanent_delete_approval_verified !== true
+        || !current.approval_receipt_ref
+        || !current.approval_receipt_sha256
+        || !current.approval_key_id
+      ) {
+        throw codedError("DMS permanent delete approval is absent", "DMS_PERMANENT_DELETE_APPROVAL_REQUIRED", 403);
+      }
       if (_lease_token && (current.lease_token !== _lease_token || current.lease_owner !== runtimeWorkerId)) {
         throw codedError("DMS delete intent claim was lost", "DMS_DELETE_LEASE_LOST");
       }
@@ -1158,26 +1341,41 @@ export function createPostgresDmsUploadRuntime({
     });
     if (intent.state === "completed") return Object.freeze({ intent: Object.freeze({ ...intent }), replayed: true });
     if (intent.state !== "provider_deleted") {
-      const providerReceipt = await storage.deleteCommittedObject({
-        tenant_id: tenantId,
-        object_id: intent.object_id,
-        expected_sha256: intent.expected_sha256,
-      });
-      const providerDeletedAt = timestamp(clock);
-      intent = await transact(tenantId, async (client) => {
-        const updated = await client.query(
-          `UPDATE lawos_dms.delete_intents
-              SET state = 'provider_deleted', provider_receipt = $3::jsonb,
-                  provider_deleted_at = $4::timestamptz,
-                  attempt_count = attempt_count + 1, last_error_code = NULL, updated_at = $4::timestamptz
-            WHERE tenant_id = $1 AND delete_intent_id = $2 AND lease_token = $5
-            RETURNING *`,
-          [tenantId, intentId, JSON.stringify({ ...providerReceipt, raw_path_exposed: false, bytes_exposed: false }), providerDeletedAt, leaseToken],
-        );
-        if (!updated.rows[0]) throw codedError("DMS delete intent compare-and-swap failed", "DMS_DELETE_LEASE_LOST");
-        return updated.rows[0];
-      });
-      faultInjector?.("after_provider_delete_before_tombstone", { delete_intent_id: intentId });
+      let providerDeleted = false;
+      try {
+        await verifyStoredDeleteApproval(tenantId, intent);
+        const providerReceipt = await storage.deleteCommittedObject({
+          tenant_id: tenantId,
+          object_id: intent.object_id,
+          expected_sha256: intent.expected_sha256,
+        });
+        providerDeleted = true;
+        const providerDeletedAt = timestamp(clock);
+        intent = await transact(tenantId, async (client) => {
+          const updated = await client.query(
+            `UPDATE lawos_dms.delete_intents
+                SET state = 'provider_deleted', provider_receipt = $3::jsonb,
+                    provider_deleted_at = $4::timestamptz,
+                    attempt_count = attempt_count + 1, last_error_code = NULL, updated_at = $4::timestamptz
+              WHERE tenant_id = $1 AND delete_intent_id = $2 AND lease_token = $5
+              RETURNING *`,
+            [tenantId, intentId, JSON.stringify({ ...providerReceipt, raw_path_exposed: false, bytes_exposed: false }), providerDeletedAt, leaseToken],
+          );
+          if (!updated.rows[0]) throw codedError("DMS delete intent compare-and-swap failed", "DMS_DELETE_LEASE_LOST");
+          return updated.rows[0];
+        });
+        faultInjector?.("after_provider_delete_before_tombstone", { delete_intent_id: intentId });
+      } catch (error) {
+        if (!providerDeleted) {
+          await transact(tenantId, (client) => client.query(
+            `UPDATE lawos_dms.delete_intents
+                SET lease_owner = NULL, lease_token = NULL, lease_expires_at = NULL, updated_at = $3::timestamptz
+              WHERE tenant_id = $1 AND delete_intent_id = $2 AND state = 'pending' AND lease_token = $4`,
+            [tenantId, intentId, timestamp(clock), leaseToken],
+          ));
+        }
+        throw error;
+      }
     }
     return finalizeDeleteIntent(tenantId, intentId);
   }
@@ -1293,14 +1491,172 @@ export function createPostgresDmsUploadRuntime({
     }, { readOnly: true });
   }
 
+  async function listDocuments({ tenant_id, matter_id = null, actor_id = "dms-api" } = {}) {
+    const tenantId = requiredText(tenant_id, "tenant_id");
+    const matterId = matter_id == null ? null : requiredText(matter_id, "matter_id");
+    const actorId = requiredText(actor_id, "actor_id");
+    const documents = await transact(tenantId, async (client) => {
+      const result = await client.query(
+        `SELECT d.tenant_id, d.document_id, d.matter_id, d.workspace_id, d.title, d.status,
+                d.current_version_id, d.permission_envelope_id, d.audit_trace_id,
+                d.legal_hold_status, d.created_at, d.updated_at,
+                v.version_number, v.file_object_id, v.sha256 AS version_sha256,
+                v.created_by, v.created_at AS version_created_at,
+                f.object_id, f.adapter_id, f.sha256 AS object_sha256,
+                f.byte_size, f.content_type, f.status AS file_object_status
+           FROM lawos_dms.documents d
+           LEFT JOIN lawos_dms.document_versions v
+             ON v.tenant_id = d.tenant_id AND v.version_id = d.current_version_id
+           LEFT JOIN lawos_dms.file_objects f
+             ON f.tenant_id = v.tenant_id AND f.file_object_id = v.file_object_id
+          WHERE d.tenant_id = $1 AND ($2::text IS NULL OR d.matter_id = $2)
+          ORDER BY d.updated_at DESC, d.document_id`,
+        [tenantId, matterId],
+      );
+      return result.rows.map((row) => Object.freeze({
+        document: Object.freeze({
+          tenant_id: row.tenant_id,
+          document_id: row.document_id,
+          matter_id: row.matter_id,
+          workspace_id: row.workspace_id,
+          title: row.title,
+          status: row.status,
+          current_version_id: row.current_version_id,
+          permission_envelope_id: row.permission_envelope_id,
+          audit_trace_id: row.audit_trace_id,
+          legal_hold_status: row.legal_hold_status,
+          created_at: new Date(row.created_at).toISOString(),
+          updated_at: new Date(row.updated_at).toISOString(),
+        }),
+        version: row.current_version_id ? Object.freeze({
+          version_id: row.current_version_id,
+          version_number: Number(row.version_number),
+          file_object_id: row.file_object_id,
+          sha256: row.version_sha256,
+          created_by: row.created_by,
+          created_at: new Date(row.version_created_at).toISOString(),
+        }) : null,
+        file_object: row.object_id ? Object.freeze({
+          file_object_id: row.file_object_id,
+          object_id: row.object_id,
+          adapter_id: row.adapter_id,
+          sha256: row.object_sha256,
+          byte_size: Number(row.byte_size),
+          content_type: row.content_type,
+          status: row.file_object_status,
+          raw_path_exposed: false,
+          storage_pointer_ref_included: false,
+        }) : null,
+      }));
+    }, { readOnly: true });
+    const occurredAt = timestamp(clock);
+    await transact(tenantId, (client) => appendAudit(client, {
+      tenant_id: tenantId,
+      event_id: `audit:dms-document-list:${idFactory()}`,
+      event_type: "dms.document.listed",
+      actor_id: actorId,
+      object_type: "DmsDocumentCollection",
+      object_id: "vault-documents",
+      payload: { matter_id: matterId, returned_count: documents.length, raw_payload_included: false },
+      created_at: occurredAt,
+    }));
+    return Object.freeze(documents);
+  }
+
+  async function downloadDocument({ tenant_id, document_id, actor_id = "dms-api" } = {}) {
+    const tenantId = requiredText(tenant_id, "tenant_id");
+    const documentId = requiredText(document_id, "document_id");
+    const actorId = requiredText(actor_id, "actor_id");
+    const state = await getDocumentState({ tenant_id: tenantId, document_id: documentId });
+    if (!state) throw codedError("DMS document was not found", "DMS_DOCUMENT_NOT_FOUND", 404);
+    const version = state.versions.find((item) => item.version_id === state.document.current_version_id);
+    const fileObject = state.file_objects.find((item) => item.file_object_id === version?.file_object_id);
+    if (!version || !fileObject || fileObject.status !== "committed") {
+      throw codedError("DMS current object is unavailable", "DMS_COMMITTED_OBJECT_NOT_FOUND", 404);
+    }
+    const object = await storage.getObject({ tenant_id: tenantId, object_id: fileObject.object_id });
+    const objectByteSize = object.byte_size == null ? Buffer.byteLength(object.bytes) : Number(object.byte_size);
+    if (object.sha256 !== fileObject.sha256 || objectByteSize !== Number(fileObject.byte_size)) {
+      throw codedError("DMS provider readback does not match PostgreSQL metadata", "DMS_COMMITTED_DIGEST_MISMATCH", 409);
+    }
+    const independentDigest = await storage.digestObject({ tenant_id: tenantId, object_id: fileObject.object_id });
+    if (independentDigest?.sha256 !== fileObject.sha256 || Number(independentDigest?.byte_size) !== Number(fileObject.byte_size)) {
+      throw codedError("DMS independent provider digest does not match PostgreSQL metadata", "DMS_COMMITTED_DIGEST_MISMATCH", 409);
+    }
+    const occurredAt = timestamp(clock);
+    const auditEventId = `audit:dms-document-download:${idFactory()}`;
+    await transact(tenantId, (client) => appendAudit(client, {
+      tenant_id: tenantId,
+      event_id: auditEventId,
+      event_type: "dms.document.downloaded",
+      actor_id: actorId,
+      object_type: "DmsDocument",
+      object_id: documentId,
+      payload: { version_id: version.version_id, sha256: fileObject.sha256, byte_size: Number(fileObject.byte_size) },
+      created_at: occurredAt,
+    }));
+    return Object.freeze({
+      document: state.document,
+      version,
+      file_object: Object.freeze({ ...fileObject, storage_pointer_ref: undefined }),
+      bytes: Buffer.from(object.bytes),
+      sha256: object.sha256,
+      byte_size: objectByteSize,
+      mime_type: object.mime_type ?? fileObject.content_type,
+      audit_event_id: auditEventId,
+    });
+  }
+
+  async function listAuditEvents({ tenant_id, matter_id = null } = {}) {
+    const tenantId = requiredText(tenant_id, "tenant_id");
+    const matterId = matter_id == null ? null : requiredText(matter_id, "matter_id");
+    return transact(tenantId, async (client) => {
+      const result = await client.query(
+        `SELECT a.tenant_id, a.event_id, a.event_type, a.actor_id, a.object_type,
+                a.object_id, a.payload, a.created_at,
+                COALESCE(d.matter_id, s.matter_id, NULLIF(a.payload->>'matter_id', '')) AS matter_id
+           FROM lawos_dms.audit_events a
+           LEFT JOIN lawos_dms.documents d
+             ON d.tenant_id = a.tenant_id
+            AND (d.document_id = a.object_id OR d.document_id = a.payload->>'document_id')
+           LEFT JOIN lawos_dms.upload_sessions s
+             ON s.tenant_id = a.tenant_id AND s.session_id = a.object_id
+          WHERE a.tenant_id = $1
+            AND ($2::text IS NULL OR COALESCE(d.matter_id, s.matter_id, NULLIF(a.payload->>'matter_id', '')) = $2)
+          ORDER BY a.created_at, a.event_id`,
+        [tenantId, matterId],
+      );
+      return Object.freeze(result.rows.map((row) => Object.freeze({
+        ...row,
+        created_at: new Date(row.created_at).toISOString(),
+        raw_payload_included: false,
+        document_bytes_included: false,
+      })));
+    }, { readOnly: true });
+  }
+
   return Object.freeze({
-    source_only: true,
+    source_only: sourceOnly === true,
+    api_authority_active: sourceOnly !== true,
+    capabilities: Object.freeze({
+      authority: "postgres-v2",
+      tenant_rls: true,
+      provider_finalize_before_metadata: true,
+      independent_digest_readback: true,
+      legal_hold_priority: true,
+      retention_guard: true,
+      permanent_delete_requires_verified_approval: true,
+      json_fallback: false,
+      dual_write: false,
+    }),
     production_ready_claim: false,
     storage_contract_version: storage.contract_version,
     createUploadSession,
+    nextUploadExpiry,
     getUploadSession,
     stageUpload,
     finalizeUpload,
+    uploadDocument,
     cleanupOrphan,
     reconcileUploadSessions,
     placeLegalHold,
@@ -1310,5 +1666,8 @@ export function createPostgresDmsUploadRuntime({
     executeCommittedObjectDelete,
     reconcileDeleteIntents,
     getDocumentState,
+    listDocuments,
+    downloadDocument,
+    listAuditEvents,
   });
 }

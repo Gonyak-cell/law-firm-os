@@ -234,6 +234,11 @@ function main() {
     planText,
   });
   assert.equal(evidenceAudit.verdict, "PASS", "legacy runtime-safety evidence audit drifted");
+  assert.equal(
+    evidenceAudit.rows.every((row) => row.v0_2_present),
+    true,
+    "every legacy receipt must be superseded by a strict v0.2 receipt",
+  );
   console.log(JSON.stringify({
     verdict: "PASS",
     validator: "runtime-safety-governance",
@@ -257,6 +262,8 @@ function main() {
       complete_count: evidenceAudit.complete_legacy_receipt_count,
       missing_required_field_count: evidenceAudit.missing_required_field_receipt_count,
       invalid_execution_state_count: evidenceAudit.invalid_execution_state_count,
+      v0_2_superseded_count: evidenceAudit.rows.filter((row) => row.v0_2_present).length,
+      legacy_receipts_authoritative: false,
     },
     external_execution_approved: false,
     production_ready_claim: false,
