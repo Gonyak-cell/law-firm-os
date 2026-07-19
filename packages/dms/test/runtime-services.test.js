@@ -19,6 +19,7 @@ import {
   createRetentionPolicy,
   createS3StorageAdapterPlaceholder,
   createSearchIndexEnvelope,
+  DMS_SEARCH_INDEX_LIMITS,
   createSecureLink,
   createSharePointStorageAdapterPlaceholder,
   createVaultObjectId,
@@ -359,4 +360,29 @@ test("UPL-E-02 DMS OCR sidecar indexes scanned PDF text without claiming OCR run
   assert.equal(search.results[0].raw_text_included, false);
   assert.equal(search.results[0].storage_pointer_ref_included, false);
   assert.equal(JSON.stringify(search.results[0]).includes("OCR키워드"), false);
+});
+
+test("Vault search indexing rejects oversized source bytes and OCR sidecars", () => {
+  const document = documentFixture({
+    document_id: "doc-index-limit",
+    current_version_id: "version-index-limit-1",
+    mime_type: "application/pdf",
+  });
+  assert.throws(
+    () => createSearchIndexEnvelope({
+      document,
+      version: { version_id: document.current_version_id },
+      bytes: Buffer.alloc(DMS_SEARCH_INDEX_LIMITS.source_bytes + 1),
+    }),
+    (error) => error.safe_error_code === "DMS_SEARCH_INDEX_INPUT_TOO_LARGE" && error.status === 413,
+  );
+  assert.throws(
+    () => createSearchIndexEnvelope({
+      document,
+      version: { version_id: document.current_version_id },
+      bytes: "%PDF-1.4",
+      ocr_text: "x".repeat(DMS_SEARCH_INDEX_LIMITS.ocr_characters + 1),
+    }),
+    (error) => error.safe_error_code === "DMS_SEARCH_INDEX_INPUT_TOO_LARGE" && error.status === 413,
+  );
 });

@@ -25,8 +25,8 @@ function staffActor() {
   return { tenant_id: TENANT, actor_id: "user_amic_yjlee", actor_role: "lawos_staff", hrx_scopes: ["hrx.leave.self.read"], session_bound: true };
 }
 
-function hrActor(stepUp = false) {
-  return { tenant_id: TENANT, actor_id: "user_amic_tryoon", actor_role: "lawos_hr", hrx_scopes: ["hrx.leave.self.read", "hrx.leave.team.read", "hrx.leave.report.export", "hrx.leave.termination.settle"], session_bound: true, step_up_verified: stepUp, step_up_purpose: stepUp ? "leave_termination_settlement" : null };
+function hrActor(stepUp = false, actorId = "user_amic_tryoon") {
+  return { tenant_id: TENANT, actor_id: actorId, actor_role: "lawos_hr", hrx_scopes: ["hrx.leave.self.read", "hrx.leave.team.read", "hrx.leave.report.export", "hrx.leave.termination.settle"], session_bound: true, step_up_verified: stepUp, step_up_purpose: stepUp ? "leave_termination_settlement" : null };
 }
 
 function request(context, pathname, method = "GET", body = {}, requestContext = hrActor(), query = {}) {
@@ -43,6 +43,7 @@ test("LV-05 route policies bind read, export, snapshot, and termination to granu
     ["POST", "/api/hrx/leave/ledger/snapshots", "hrx.leave.report.export", "hrx.leave.report.snapshot"],
     ["GET", "/api/hrx/leave/reports/export", "hrx.leave.report.export", "hrx.leave.report.export"],
     ["POST", "/api/hrx/leave/termination-reconciliations/preview", "hrx.leave.termination.settle", "hrx.leave.termination.preview"],
+    ["POST", "/api/hrx/leave/termination-reconciliations/approve", "hrx.leave.termination.settle", "hrx.leave.termination.settle"],
     ["POST", "/api/hrx/leave/termination-reconciliations/execute", "hrx.leave.termination.settle", "hrx.leave.termination.settle"],
   ];
   for (const [method, pathname, scope, action] of expectations) {
@@ -125,11 +126,19 @@ test("LV-05 termination API scopes candidates, rejects missing step-up, and leav
   assert.equal(preview.status, 200, JSON.stringify(preview.body));
   assert.equal(preview.body.reconciliation.result.totals.unused_minutes, 480);
 
-  const challenged = request(context, "/api/hrx/leave/termination-reconciliations/execute", "POST", { preview_reconciliation_id: preview.body.reconciliation.reconciliation_id, approved_by_actor_id: "user_amic_jwsuh", idempotency_key: "termination-api-001" });
+  const approvalChallenged = request(context, "/api/hrx/leave/termination-reconciliations/approve", "POST", { preview_reconciliation_id: preview.body.reconciliation.reconciliation_id });
+  assert.equal(approvalChallenged.status, 403);
+  assert.equal(approvalChallenged.body.safe_error_code, "HRX_STEP_UP_REQUIRED");
+
+  const approved = request(context, "/api/hrx/leave/termination-reconciliations/approve", "POST", { preview_reconciliation_id: preview.body.reconciliation.reconciliation_id }, hrActor(true, "user_amic_jwsuh"));
+  assert.equal(approved.status, 200, JSON.stringify(approved.body));
+  assert.equal(approved.body.approval_receipt.approved_by_actor_id, "user_amic_jwsuh");
+
+  const challenged = request(context, "/api/hrx/leave/termination-reconciliations/execute", "POST", { preview_reconciliation_id: preview.body.reconciliation.reconciliation_id, approval_receipt_id: approved.body.approval_receipt.approval_receipt_id, idempotency_key: "termination-api-001" });
   assert.equal(challenged.status, 403);
   assert.equal(challenged.body.safe_error_code, "HRX_STEP_UP_REQUIRED");
 
-  const executed = request(context, "/api/hrx/leave/termination-reconciliations/execute", "POST", { preview_reconciliation_id: preview.body.reconciliation.reconciliation_id, approved_by_actor_id: "user_amic_jwsuh", idempotency_key: "termination-api-001" }, hrActor(true));
+  const executed = request(context, "/api/hrx/leave/termination-reconciliations/execute", "POST", { preview_reconciliation_id: preview.body.reconciliation.reconciliation_id, approval_receipt_id: approved.body.approval_receipt.approval_receipt_id, idempotency_key: "termination-api-001" }, hrActor(true));
   assert.equal(executed.status, 200, JSON.stringify(executed.body));
   assert.equal(executed.body.reconciliation.state, "approved_pending_sync");
   assert.equal(store.query("selectOne", { table: "hrx_offboarding_cases", where: { tenant_id: TENANT, offboarding_id: "off-leave-synthetic-001" } }).leave_reconciliation_status, "approved_pending_sync");

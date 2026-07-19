@@ -80,7 +80,7 @@ try {
     employee_id: "emp-001",
     amount_minor: 12345678,
     currency_ref: "Currency:KRW",
-  });
+  }, { allowSyntheticKey: true });
   repo.createEmployee({ tenant_id: "tenant-a", employee_id: "emp-001", display_name: "Ari Kim", status: "active" });
   repo.createEmploymentProfile({
     tenant_id: "tenant-a",

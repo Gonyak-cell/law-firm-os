@@ -12,6 +12,9 @@ const PRIMARY_KEYS = Object.freeze({
   hrx_leave_requests: ["tenant_id", "request_id"],
   hrx_attendance_records: ["tenant_id", "attendance_id"],
   hrx_overtime_requests: ["tenant_id", "overtime_id"],
+  hrx_risk_events: ["tenant_id", "risk_event_id"],
+  hrx_operational_approvals: ["tenant_id", "approval_id"],
+  hrx_operational_policies: ["tenant_id", "policy_id"],
   hrx_job_openings: ["tenant_id", "job_opening_id"],
   hrx_candidates: ["tenant_id", "candidate_id"],
   hrx_candidate_consents: ["tenant_id", "consent_id"],
@@ -22,6 +25,7 @@ const PRIMARY_KEYS = Object.freeze({
   hrx_offboarding_cases: ["tenant_id", "offboarding_id"],
   hrx_audit_events: ["tenant_id", "event_id"],
   hrx_ai_review_items: ["tenant_id", "review_id"],
+  hrx_ai_source_registry: ["tenant_id", "source_ref"],
   hrx_ai_source_chunks: ["tenant_id", "source_ref", "chunk_id"],
   hrx_analytics_snapshots: ["tenant_id", "snapshot_id"],
   hrx_leave_groups: ["tenant_id", "group_id"],
@@ -90,6 +94,9 @@ const CAS_TABLES = new Set([
   "hrx_leave_occurrence_upload_batches",
   "hrx_leave_occurrence_upload_rows",
   "hrx_leave_requests",
+  "hrx_risk_events",
+  "hrx_operational_approvals",
+  "hrx_operational_policies",
   "hrx_approval_requests",
   "hrx_payroll_periods",
   "hrx_payroll_runs",
@@ -110,6 +117,7 @@ const APPEND_ONLY_TABLES = new Set([
   "hrx_audit_events",
   "hrx_compensation_records",
   "hrx_leave_balance_entries",
+  "hrx_leave_command_receipts",
   "hrx_payroll_input_snapshots",
   "hrx_payroll_item_assignments",
   "hrx_attendance_approval_receipts",
@@ -120,6 +128,10 @@ const APPEND_ONLY_TABLES = new Set([
 ]);
 
 const UNIQUE_CONSTRAINTS = Object.freeze({
+  hrx_risk_events: [["tenant_id", "risk_event_id"]],
+  hrx_operational_approvals: [["tenant_id", "object_type", "object_id"]],
+  hrx_operational_policies: [["tenant_id", "policy_id"]],
+  hrx_ai_source_registry: [["tenant_id", "source_ref"]],
   hrx_leave_groups: [["tenant_id", "code"]],
   hrx_leave_types: [["tenant_id", "code"]],
   hrx_leave_policy_versions: [["tenant_id", "policy_code", "version"]],
@@ -700,6 +712,50 @@ function assertPayrollConstraints(state, table, row) {
 }
 
 function assertCoreConstraints(state, table, row) {
+  if (table === "hrx_risk_events") {
+    for (const field of ["category", "risk_type", "severity", "title", "intake_source_ref", "owner_role", "detected_on", "status"]) {
+      if (typeof row[field] !== "string" || !row[field].trim()) throw new TypeError(`HRX risk event ${field} is required`);
+    }
+    if (!["harassment", "discrimination", "security", "privacy", "payroll", "performance", "compliance", "labor", "training", "lifecycle", "other"].includes(row.category)) {
+      throw new TypeError("HRX risk event category is invalid");
+    }
+    if (!["low", "medium", "high", "critical"].includes(row.severity)) throw new TypeError("HRX risk event severity is invalid");
+    if (!["open", "acknowledged", "in_progress", "resolved", "dismissed"].includes(row.status)) {
+      throw new TypeError("HRX risk event status is invalid");
+    }
+    if (!Array.isArray(row.source_refs) || !Array.isArray(row.state_history)) {
+      throw new TypeError("HRX risk event source_refs and state_history must be arrays");
+    }
+    if (["resolved", "dismissed"].includes(row.status) && !isPresent(row.resolution_ref)) {
+      throw new TypeError("resolved HRX risk event requires resolution_ref");
+    }
+  }
+  if (table === "hrx_operational_approvals") {
+    for (const field of ["object_type", "object_id", "route", "approver_role", "state"]) {
+      if (typeof row[field] !== "string" || !row[field].trim()) throw new TypeError(`HRX operational approval ${field} is required`);
+    }
+    if (!["manager", "hr", "legal"].includes(row.route)) throw new TypeError("HRX operational approval route is invalid");
+    if (!["pending", "approved", "rejected"].includes(row.state)) throw new TypeError("HRX operational approval state is invalid");
+    if (["approved", "rejected"].includes(row.state) !== isPresent(row.decided_by)) {
+      throw new TypeError("HRX operational approval resolution fields are inconsistent");
+    }
+  }
+  if (table === "hrx_operational_policies") {
+    assertNoPrivateJson(row, "HRX operational policy");
+  }
+  if (table === "hrx_ai_source_registry") {
+    for (const field of ["source_type", "sensitivity", "tags_json", "indexed_by"]) {
+      if (typeof row[field] !== "string" || !row[field].trim()) throw new TypeError(`HRX AI source registry ${field} is required`);
+    }
+    if (!["policy_document", "hr_document", "case_record"].includes(row.source_type)) {
+      throw new TypeError("HRX AI source registry source_type is invalid");
+    }
+    parseJson(row.tags_json, "HRX AI source registry tags_json", "array");
+    if (![false, 0].includes(row.raw_payload_present)) throw new TypeError("HRX AI source registry raw payload must not be stored");
+    for (const blocked of ["body", "content", "text", "document_body", "raw_text", "payload", "embedding_text", "prompt", "source_id", "document_id", "case_id"]) {
+      if (Object.hasOwn(row, blocked)) throw new TypeError(`HRX AI source registry must not include ${blocked}`);
+    }
+  }
   if (["hrx_documents", "hrx_compensation_records", "hrx_leave_balance_entries", "hrx_leave_requests", "hrx_attendance_records", "hrx_overtime_requests"].includes(table)) {
     const employeeExists = state.tables.hrx_employees.some(
       (employee) => employee.tenant_id === row.tenant_id && employee.employee_id === row.employee_id,
@@ -1341,8 +1397,15 @@ export function createFileHrxStore({ filePath, initialState } = {}) {
       if (!migration || typeof migration.id !== "string" || typeof migration.sql !== "string") {
         throw new TypeError("migration id and sql are required");
       }
-      if (state.applied_migrations.some((applied) => applied.id === migration.id)) {
-        return { id: migration.id, applied: false };
+      const migrationHash = hash(migration.sql);
+      const existing = state.applied_migrations.find((applied) => applied.id === migration.id);
+      if (existing) {
+        if (existing.hash !== migrationHash) {
+          const error = new Error(`HRX migration checksum drift detected for ${migration.id}`);
+          error.safe_error_code = "HRX_MIGRATION_HASH_MISMATCH";
+          throw error;
+        }
+        return { id: migration.id, applied: false, hash: existing.hash };
       }
       const draft = clone(state);
       for (const table of TABLES) {
@@ -1350,7 +1413,7 @@ export function createFileHrxStore({ filePath, initialState } = {}) {
       }
       const applied = {
         id: migration.id,
-        hash: hash(migration.sql),
+        hash: migrationHash,
         applied_at: migration.applied_at ?? new Date(0).toISOString(),
       };
       draft.applied_migrations.push(applied);

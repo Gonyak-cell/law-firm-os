@@ -157,8 +157,8 @@ function queryWithBody(query, body) {
   };
 }
 
-function actorFrom(context, body) {
-  return body?.actor_id ?? context?.principal?.user_id;
+function actorFrom(context) {
+  return context?.principal?.user_id;
 }
 
 function withCommonInput(query, body, context, jobId = null) {
@@ -166,7 +166,7 @@ function withCommonInput(query, body, context, jobId = null) {
     tenant_id: query.tenant_id,
     permission_ref: query.permission_ref,
     audit_hint_ref: query.audit_hint_ref,
-    actor_id: actorFrom(context, body),
+    actor_id: actorFrom(context),
     job_id: jobId,
   };
 }
@@ -188,7 +188,7 @@ export function handleImportDataMappingApiRequest({ pathname, method, query, bod
   const repositories = createRuntime(runtime);
   const importService = service(repositories);
   try {
-    if (route.action === "import:target:read") {
+    if (route.action === "import_data_mapping:target:read") {
       const result = importService.listTargets();
       return {
         status: 200,
@@ -200,7 +200,7 @@ export function handleImportDataMappingApiRequest({ pathname, method, query, bod
         }),
       };
     }
-    if (route.action === "import:job:read") {
+    if (route.action === "import_data_mapping:job:read") {
       const items = importService.listJobs({ tenant_id: mergedQuery.tenant_id });
       return {
         status: 200,
@@ -211,14 +211,14 @@ export function handleImportDataMappingApiRequest({ pathname, method, query, bod
         }),
       };
     }
-    if (route.action === "import:preview:read") {
+    if (route.action === "import_data_mapping:preview:read") {
       const item = importService.readPreview({ tenant_id: mergedQuery.tenant_id, job_id: jobId });
       return {
         status: 200,
         body: responseBody(requestId, mergedQuery, { outcome: "passed", item }),
       };
     }
-    if (route.action === "import:error_report:read") {
+    if (route.action === "import_data_mapping:error_report:read") {
       const report = importService.errorReport({ tenant_id: mergedQuery.tenant_id, job_id: jobId });
       return {
         status: 200,
@@ -235,7 +235,7 @@ export function handleImportDataMappingApiRequest({ pathname, method, query, bod
     const common = withCommonInput(mergedQuery, body, context, jobId);
     let status = 200;
     let payload;
-    if (route.action === "import:job:create") {
+    if (route.action === "import_data_mapping:job:create") {
       const result = importService.createJob({
         ...common,
         job_id: body?.job_id,
@@ -244,20 +244,20 @@ export function handleImportDataMappingApiRequest({ pathname, method, query, bod
       });
       status = 201;
       payload = { outcome: "created", item: result.job, audit_event: result.audit_event };
-    } else if (route.action === "import:source:stage") {
+    } else if (route.action === "import_data_mapping:source:stage") {
       const result = importService.stageSourceFile({ ...common, source_file: body?.source_file });
       status = 201;
       payload = { outcome: "staged", item: result.source, preview: result.preview, audit_event: result.audit_event };
-    } else if (route.action === "import:mapping:write") {
+    } else if (route.action === "import_data_mapping:mapping:write") {
       const result = importService.saveFieldMappings({ ...common, field_mappings: body?.field_mappings });
       payload = { outcome: "mapped", item: result.mapping, preview: result.preview, audit_event: result.audit_event };
-    } else if (route.action === "import:dry_run") {
+    } else if (route.action === "import_data_mapping:dry_run") {
       const result = importService.dryRun(common);
       payload = { outcome: result.dry_run.outcome, ui_state: result.dry_run.ui_state, item: result.dry_run, audit_event: result.audit_event };
-    } else if (route.action === "import:execute") {
+    } else if (route.action === "import_data_mapping:execute") {
       const result = importService.execute(common);
       payload = { outcome: result.execution.outcome, ui_state: result.execution.ui_state, item: result.execution, audit_event: result.audit_event };
-    } else if (route.action === "import:rollback") {
+    } else if (route.action === "import_data_mapping:rollback") {
       const result = importService.rollback(common);
       payload = { outcome: result.rollback.outcome, ui_state: result.rollback.ui_state, item: result.rollback, audit_event: result.audit_event };
     } else {

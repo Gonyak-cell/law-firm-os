@@ -29,7 +29,7 @@ export function lawosDurableStorePathOptions({ root = LAWOS_DURABLE_RUNTIME_HOME
 export function lawosDurableStoreEnv({ root = LAWOS_DURABLE_RUNTIME_HOME, includeSessionSecret = true } = {}) {
   const paths = lawosDurableStorePathOptions({ root });
   const env = {
-    [LAWOS_RUNTIME_PROFILE_ENV]: LAWOS_RUNTIME_PROFILES.operational,
+    [LAWOS_RUNTIME_PROFILE_ENV]: LAWOS_RUNTIME_PROFILES.localDev,
   };
   for (const entry of STORE_PATH_MANIFEST) env[entry.env] = paths[entry.key];
   for (const entry of DERIVED_STORE_PATH_MANIFEST) {

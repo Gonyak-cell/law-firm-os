@@ -21,12 +21,14 @@ function clone(value) {
 }
 
 function emptyState() {
-  return { schema_version: MASTER_DATA_REPOSITORY_SCHEMA_VERSION, records: [] };
+  return { schema_version: MASTER_DATA_REPOSITORY_SCHEMA_VERSION, records: [], idempotency: [], audit_events: [] };
 }
 
 function normalizeState(input) {
   const state = { ...emptyState(), ...(input ?? {}) };
   state.records = Array.isArray(state.records) ? state.records : [];
+  state.idempotency = Array.isArray(state.idempotency) ? state.idempotency : [];
+  state.audit_events = Array.isArray(state.audit_events) ? state.audit_events : [];
   return state;
 }
 
@@ -56,6 +58,10 @@ function sameIdentity(left, right) {
   return left.tenant_id === right.tenant_id && left.model_type === right.model_type && primaryIdOf(left) === primaryIdOf(right);
 }
 
+function identityKey(record) {
+  return JSON.stringify([record.tenant_id, record.model_type, primaryIdOf(record)]);
+}
+
 function matchesRef(record, ref = {}) {
   if (record.tenant_id !== ref.tenant_id || record.model_type !== ref.model_type) return false;
   const id = ref.id ?? ref[primaryIdField(record.model_type)];
@@ -68,7 +74,7 @@ function matchesQuery(record, query = {}) {
   return true;
 }
 
-export function createMasterDataRepository({ filePath, seedRecords = [] } = {}) {
+export function createMasterDataRepository({ filePath, seedRecords = [], preserveSeedRecords = false } = {}) {
   const stateController = createDurableJsonStateController({
     filePath,
     defaultValue: emptyState(),
@@ -124,6 +130,8 @@ export function createMasterDataRepository({ filePath, seedRecords = [] } = {}) 
       read: true,
       update: true,
       seed: true,
+      idempotency: true,
+      audit: true,
     }),
 
     create(input) {
@@ -173,6 +181,55 @@ export function createMasterDataRepository({ filePath, seedRecords = [] } = {}) 
       return Object.freeze(clone(next));
     },
 
+    recordIdempotency(entry = {}) {
+      ensureOpen();
+      const tenantId = String(entry.tenant_id ?? "").trim();
+      const key = String(entry.idempotency_key ?? "").trim();
+      if (!tenantId) throw new TypeError("tenant_id is required");
+      if (!key) throw new TypeError("idempotency_key is required");
+      const existing = state.idempotency.find((item) => item.tenant_id === tenantId && item.idempotency_key === key);
+      const value = Object.freeze({
+        tenant_id: tenantId,
+        idempotency_key: key,
+        operation: entry.operation ?? "master_data_operation",
+        response: clone(entry.response ?? {}),
+        created_at: entry.created_at ?? new Date().toISOString(),
+      });
+      if (existing && (
+        existing.operation !== value.operation
+        || JSON.stringify(existing.response) !== JSON.stringify(value.response)
+      )) {
+        const error = new Error("Master Data idempotency key already exists with different content");
+        error.code = "LAWOS_IDEMPOTENCY_CONFLICT";
+        throw error;
+      }
+      if (!existing) state.idempotency.push(value);
+      flush();
+      return existing ? Object.freeze(clone(existing)) : value;
+    },
+
+    appendAudit(event = {}) {
+      ensureOpen();
+      const tenantId = String(event.tenant_id ?? "").trim();
+      const eventId = String(event.event_id ?? "").trim();
+      if (!tenantId) throw new TypeError("tenant_id is required");
+      if (!eventId) throw new TypeError("event_id is required");
+      if (state.audit_events.some((item) => item.tenant_id === tenantId && item.event_id === eventId)) {
+        throw new Error(`Master Data audit event already exists: ${eventId}`);
+      }
+      const value = Object.freeze({ ...clone(event), tenant_id: tenantId, event_id: eventId });
+      state.audit_events.push(value);
+      flush();
+      return value;
+    },
+
+    listAudit(query = {}) {
+      ensureOpen();
+      return Object.freeze(state.audit_events
+        .filter((event) => !query.tenant_id || event.tenant_id === query.tenant_id)
+        .map((event) => Object.freeze(clone(event))));
+    },
+
     transaction(callback) {
       ensureOpen();
       if (typeof callback !== "function") throw new TypeError("transaction callback is required");
@@ -204,7 +261,17 @@ export function createMasterDataRepository({ filePath, seedRecords = [] } = {}) 
     },
   };
 
-  for (const record of seedRecords) seedIfMissing(record);
+  const seedIdentities = new Set(state.records.map(identityKey));
+  let seedChanged = false;
+  for (const record of seedRecords) {
+    const normalized = normalizeRecord(record);
+    const key = identityKey(normalized);
+    if (seedIdentities.has(key)) continue;
+    state.records.push(preserveSeedRecords ? clone(record) : normalized);
+    seedIdentities.add(key);
+    seedChanged = true;
+  }
+  if (seedChanged) flush({ createBackup: false });
 
   return Object.freeze(repository);
 }

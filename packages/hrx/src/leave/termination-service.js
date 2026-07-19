@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { createSqlHrxAuditEventStore } from "../../../audit/src/hrx-event-store-sql.js";
+import { assertHrxProviderReceiptSucceeded } from "../provider-receipt-contract.js";
 import { planEarliestExpiryAllocations } from "./allocation.js";
 import { createSqlLeaveBalanceLedger } from "./balance.js";
 
@@ -80,6 +81,20 @@ function reconciliationView(row) {
   return Object.freeze({ ...row, result: Object.freeze(parseJson(row.result_json, {})), result_json: undefined });
 }
 
+function approvalReceiptView(row) {
+  return Object.freeze({
+    approval_receipt_id: row.command_receipt_id,
+    ...parseJson(row.result_json, {}),
+  });
+}
+
+function requireAuthorizedEmployee(context, employeeId) {
+  const authorized = new Set(Array.isArray(context?.authorized_employee_ids) ? context.authorized_employee_ids : []);
+  if (!authorized.has(employeeId)) {
+    throw guardedError("Termination employee is outside the approved organization scope", "HRX_LEAVE_TERMINATION_SCOPE_DENIED", 403);
+  }
+}
+
 function aggregateTotals(groups) {
   const fields = ["final_accrued_minutes", "reserved_minutes", "used_minutes", "unused_minutes", "negative_minutes", "future_request_reversal_minutes"];
   return Object.freeze(Object.fromEntries(fields.map((field) => [field, groups.reduce((total, group) => total + Number(group[field] ?? 0), 0)])));
@@ -90,6 +105,7 @@ export function createLeaveTerminationService({
   clock = () => new Date().toISOString(),
   idFactory = (prefix) => `${prefix}_${randomUUID()}`,
   approverAuthorizer = () => false,
+  payrollReceiptAuthorizer = () => false,
 } = {}) {
   if (!store || typeof store.transaction !== "function" || typeof store.query !== "function") {
     throw new TypeError("leave termination service requires a transactional store");
@@ -182,6 +198,16 @@ export function createLeaveTerminationService({
     });
   }
 
+  function view(row) {
+    const base = reconciliationView(row);
+    if (row.mode !== "preview") return base;
+    const receipt = store.query("selectOne", { table: "hrx_leave_command_receipts", where: { tenant_id: row.tenant_id, idempotency_key: `termination-approval:${row.reconciliation_id}` } });
+    if (!receipt || receipt.command_type !== "leave_termination_approval") return Object.freeze({ ...base, approval_receipt_id: null });
+    const approval = parseJson(receipt.result_json, {});
+    if (approval.preview_reconciliation_id !== row.reconciliation_id || approval.snapshot_hash !== row.snapshot_hash) return Object.freeze({ ...base, approval_receipt_id: null });
+    return Object.freeze({ ...base, approval_receipt_id: receipt.command_receipt_id, approved_by_actor_id: approval.approved_by_actor_id ?? null });
+  }
+
   function list(context) {
     const tenantId = requiredString(context, "tenant_id");
     const authorized = new Set(Array.isArray(context.authorized_employee_ids) ? context.authorized_employee_ids : []);
@@ -189,7 +215,7 @@ export function createLeaveTerminationService({
       .query("select", { table: "hrx_leave_termination_reconciliations", where: { tenant_id: tenantId } })
       .filter((row) => authorized.has(row.employee_id))
       .sort((left, right) => right.created_at.localeCompare(left.created_at))
-      .map(reconciliationView));
+      .map(view));
   }
 
   function candidates(context) {
@@ -210,14 +236,13 @@ export function createLeaveTerminationService({
     const actorId = requiredString(context, "actor_id");
     const employeeId = requiredString(input, "employee_id");
     const terminationDate = isoDate(input.termination_date, "termination_date");
-    const authorized = new Set(Array.isArray(context.authorized_employee_ids) ? context.authorized_employee_ids : []);
-    if (!authorized.has(employeeId)) throw guardedError("Termination employee is outside the approved organization scope", "HRX_LEAVE_TERMINATION_SCOPE_DENIED", 403);
+    requireAuthorizedEmployee(context, employeeId);
     const source = sourceSnapshot(tenantId, employeeId, terminationDate);
     const result = calculate(source, terminationDate);
     const snapshotHash = hash({ source_version: source.source_version, result });
     const idempotencyKey = `termination-preview:${source.offboarding.offboarding_id}:${source.source_version}`;
     const existing = store.query("selectOne", { table: "hrx_leave_termination_reconciliations", where: { tenant_id: tenantId, idempotency_key: idempotencyKey } });
-    if (existing) return reconciliationView(existing);
+    if (existing) return view(existing);
     const now = clock();
     return store.transaction((tx) => {
       const row = tx.query("insert", { table: "hrx_leave_termination_reconciliations", row: {
@@ -235,12 +260,87 @@ export function createLeaveTerminationService({
         created_at: now,
         approved_at: null,
         approved_by_actor_id: null,
-        executed_by_actor_id: null,
+        executed_by_actor_id: actorId,
         completed_at: null,
       } });
       tx.query("updateOne", { table: "hrx_offboarding_cases", where: { tenant_id: tenantId, offboarding_id: source.offboarding.offboarding_id }, patch: { leave_reconciliation_status: "previewed" } });
       createSqlHrxAuditEventStore({ store: tx }).append({ event_id: idFactory("leave_audit_termination_preview"), tenant_id: tenantId, actor_id: actorId, action: "hrx.leave.termination.preview", object_type: "LeaveTerminationReconciliation", object_id: row.reconciliation_id, decision: "allow", reason: "termination_leave_balance_previewed", occurred_at: now, metadata: { validation_error_count: result.validation_errors.length, source_version: source.source_version } });
-      return reconciliationView(row);
+      return view(row);
+    });
+  }
+
+  function approve(context, input = {}) {
+    requireStepUp(context);
+    const tenantId = requiredString(context, "tenant_id");
+    const actorId = requiredString(context, "actor_id");
+    const previewId = requiredString(input, "preview_reconciliation_id");
+    const previewRow = store.query("selectOne", { table: "hrx_leave_termination_reconciliations", where: { tenant_id: tenantId, reconciliation_id: previewId } });
+    if (!previewRow || previewRow.mode !== "preview") throw guardedError("Termination preview not found", "HRX_LEAVE_TERMINATION_PREVIEW_NOT_FOUND", 404);
+    requireAuthorizedEmployee(context, previewRow.employee_id);
+    const previewedBy = typeof previewRow.executed_by_actor_id === "string" ? previewRow.executed_by_actor_id.trim() : "";
+    if (!previewedBy) throw guardedError("Termination preview does not contain authenticated initiator evidence", "HRX_LEAVE_TERMINATION_PREVIEW_ACTOR_REQUIRED");
+    if (previewedBy === actorId) throw guardedError("Termination settlement requires a different HR approver", "HRX_LEAVE_TERMINATION_DUAL_CONTROL_REQUIRED", 403);
+    if (!approverAuthorizer({ tenant_id: tenantId, actor_id: actorId, required_scope: "hrx.leave.termination.settle" })) {
+      throw guardedError("Termination settlement approver is not authorized", "HRX_LEAVE_TERMINATION_APPROVER_DENIED", 403);
+    }
+    const previousResult = parseJson(previewRow.result_json, {});
+    if ((previousResult.validation_errors ?? []).length > 0) throw guardedError("Termination preview contains unresolved ledger errors", "HRX_LEAVE_TERMINATION_REVIEW_REQUIRED");
+    const source = sourceSnapshot(tenantId, previewRow.employee_id, previewRow.termination_date);
+    const currentResult = calculate(source, previewRow.termination_date);
+    const currentHash = hash({ source_version: source.source_version, result: currentResult });
+    if (source.source_version !== previewRow.source_version || currentHash !== previewRow.snapshot_hash) {
+      throw guardedError("Termination sources changed after preview", "HRX_LEAVE_TERMINATION_PREVIEW_STALE");
+    }
+    const idempotencyKey = `termination-approval:${previewId}`;
+    const inputHash = hash({
+      preview_reconciliation_id: previewId,
+      employee_id: previewRow.employee_id,
+      source_version: previewRow.source_version,
+      snapshot_hash: previewRow.snapshot_hash,
+      previewed_by_actor_id: previewedBy,
+      approved_by_actor_id: actorId,
+    });
+    const existing = store.query("selectOne", { table: "hrx_leave_command_receipts", where: { tenant_id: tenantId, idempotency_key: idempotencyKey } });
+    if (existing) {
+      if (existing.command_type !== "leave_termination_approval" || existing.input_hash !== inputHash) {
+        throw guardedError("Termination preview already has a different approval decision", "HRX_LEAVE_TERMINATION_APPROVAL_CONFLICT");
+      }
+      return approvalReceiptView(existing);
+    }
+    const now = clock();
+    return store.transaction((tx) => {
+      const result = Object.freeze({
+        preview_reconciliation_id: previewId,
+        employee_id: previewRow.employee_id,
+        source_version: previewRow.source_version,
+        snapshot_hash: previewRow.snapshot_hash,
+        previewed_by_actor_id: previewedBy,
+        approved_by_actor_id: actorId,
+        approved_at: now,
+      });
+      const receipt = tx.query("insert", { table: "hrx_leave_command_receipts", row: {
+        tenant_id: tenantId,
+        command_receipt_id: idFactory("leave_termination_approval"),
+        idempotency_key: idempotencyKey,
+        command_type: "leave_termination_approval",
+        request_id: null,
+        input_hash: inputHash,
+        result_json: JSON.stringify(result),
+        created_at: now,
+      } });
+      createSqlHrxAuditEventStore({ store: tx }).append({
+        event_id: idFactory("leave_audit_termination_approval"),
+        tenant_id: tenantId,
+        actor_id: actorId,
+        action: "hrx.leave.termination.approve",
+        object_type: "LeaveTerminationReconciliation",
+        object_id: previewId,
+        decision: "allow",
+        reason: "independent_termination_leave_settlement_approved",
+        occurred_at: now,
+        metadata: { approval_receipt_id: receipt.command_receipt_id, snapshot_hash: previewRow.snapshot_hash },
+      });
+      return approvalReceiptView(receipt);
     });
   }
 
@@ -318,21 +418,36 @@ export function createLeaveTerminationService({
     const tenantId = requiredString(context, "tenant_id");
     const actorId = requiredString(context, "actor_id");
     const previewId = requiredString(input, "preview_reconciliation_id");
-    const approvedBy = requiredString(input, "approved_by_actor_id");
+    const approvalReceiptId = requiredString(input, "approval_receipt_id");
     const idempotencyKey = requiredString(input, "idempotency_key");
+    const approvalReceipt = store.query("selectOne", { table: "hrx_leave_command_receipts", where: { tenant_id: tenantId, command_receipt_id: approvalReceiptId } });
+    if (!approvalReceipt || approvalReceipt.command_type !== "leave_termination_approval") {
+      throw guardedError("Termination approval receipt not found", "HRX_LEAVE_TERMINATION_APPROVAL_REQUIRED", 403);
+    }
+    const approval = parseJson(approvalReceipt.result_json, {});
+    const approvedBy = requiredString(approval, "approved_by_actor_id");
     if (approvedBy === actorId) throw guardedError("Termination settlement requires a different HR approver", "HRX_LEAVE_TERMINATION_DUAL_CONTROL_REQUIRED", 403);
     if (!approverAuthorizer({ tenant_id: tenantId, actor_id: approvedBy, required_scope: "hrx.leave.termination.settle" })) {
       throw guardedError("Termination settlement approver is not authorized", "HRX_LEAVE_TERMINATION_APPROVER_DENIED", 403);
     }
     const replay = store.query("selectOne", { table: "hrx_leave_termination_reconciliations", where: { tenant_id: tenantId, idempotency_key: idempotencyKey } });
     if (replay) {
-      if (replay.preview_reconciliation_id !== previewId || replay.approved_by_actor_id !== approvedBy) {
+      const replayResult = parseJson(replay.result_json, {});
+      if (replay.preview_reconciliation_id !== previewId || replay.approved_by_actor_id !== approvedBy || replayResult.approval_receipt_id !== approvalReceiptId) {
         throw guardedError("Termination idempotency key was reused with different input", "HRX_LEAVE_IDEMPOTENCY_KEY_REUSED");
       }
-      return reconciliationView(replay);
+      return view(replay);
     }
     const previewRow = store.query("selectOne", { table: "hrx_leave_termination_reconciliations", where: { tenant_id: tenantId, reconciliation_id: previewId } });
     if (!previewRow || previewRow.mode !== "preview") throw guardedError("Termination preview not found", "HRX_LEAVE_TERMINATION_PREVIEW_NOT_FOUND", 404);
+    requireAuthorizedEmployee(context, previewRow.employee_id);
+    if (approval.preview_reconciliation_id !== previewId
+      || approval.employee_id !== previewRow.employee_id
+      || approval.source_version !== previewRow.source_version
+      || approval.snapshot_hash !== previewRow.snapshot_hash
+      || approval.previewed_by_actor_id !== previewRow.executed_by_actor_id) {
+      throw guardedError("Termination approval receipt does not match the preview", "HRX_LEAVE_TERMINATION_APPROVAL_MISMATCH", 403);
+    }
     const previousResult = parseJson(previewRow.result_json, {});
     if ((previousResult.validation_errors ?? []).length > 0) throw guardedError("Termination preview contains unresolved ledger errors", "HRX_LEAVE_TERMINATION_REVIEW_REQUIRED");
     const source = sourceSnapshot(tenantId, previewRow.employee_id, previewRow.termination_date);
@@ -361,7 +476,7 @@ export function createLeaveTerminationService({
         provider_receipt_ref: null,
         created_at: now,
       } });
-      const result = Object.freeze({ ...currentResult, reversed_requests: Object.freeze(reversedRequests), settlement_actions: Object.freeze(settlementActions), payroll_outbox_event_id: outboxEventId, sync_state: "pending" });
+      const result = Object.freeze({ ...currentResult, reversed_requests: Object.freeze(reversedRequests), settlement_actions: Object.freeze(settlementActions), approval_receipt_id: approvalReceiptId, payroll_outbox_event_id: outboxEventId, sync_state: "pending" });
       const row = tx.query("insert", { table: "hrx_leave_termination_reconciliations", row: {
         tenant_id: tenantId,
         reconciliation_id: idFactory("leave_termination_execute"),
@@ -381,8 +496,8 @@ export function createLeaveTerminationService({
         completed_at: null,
       } });
       tx.query("updateOne", { table: "hrx_offboarding_cases", where: { tenant_id: tenantId, offboarding_id: currentResult.offboarding_id }, patch: { leave_reconciliation_status: "approved_pending_sync" } });
-      createSqlHrxAuditEventStore({ store: tx }).append({ event_id: idFactory("leave_audit_termination_execute"), tenant_id: tenantId, actor_id: actorId, action: "hrx.leave.termination.execute", object_type: "LeaveTerminationReconciliation", object_id: row.reconciliation_id, decision: "allow", reason: "dual_control_termination_leave_settlement_executed", occurred_at: now, metadata: { approved_by_actor_id: approvedBy, group_count: result.groups.length, unused_minutes: result.totals.unused_minutes, negative_minutes: result.totals.negative_minutes, payroll_outbox_event_id: outboxEventId } });
-      return reconciliationView(row);
+      createSqlHrxAuditEventStore({ store: tx }).append({ event_id: idFactory("leave_audit_termination_execute"), tenant_id: tenantId, actor_id: actorId, action: "hrx.leave.termination.execute", object_type: "LeaveTerminationReconciliation", object_id: row.reconciliation_id, decision: "allow", reason: "dual_control_termination_leave_settlement_executed", occurred_at: now, metadata: { approved_by_actor_id: approvedBy, approval_receipt_id: approvalReceiptId, group_count: result.groups.length, unused_minutes: result.totals.unused_minutes, negative_minutes: result.totals.negative_minutes, payroll_outbox_event_id: outboxEventId } });
+      return view(row);
     });
   }
 
@@ -390,11 +505,21 @@ export function createLeaveTerminationService({
     const tenantId = requiredString(context, "tenant_id");
     const actorId = requiredString(context, "actor_id");
     const outboxEventId = requiredString(input, "outbox_event_id");
-    const providerReceiptRef = requiredString(input, "provider_receipt_ref");
+    const providerReceipt = assertHrxProviderReceiptSucceeded(input.provider_receipt);
+    const providerReceiptRef = providerReceipt.provider_receipt_ref;
     const now = clock();
     return store.transaction((tx) => {
       const outbox = tx.query("selectOne", { table: "hrx_leave_sync_outbox", where: { tenant_id: tenantId, outbox_event_id: outboxEventId } });
       if (!outbox || outbox.event_type !== "leave.termination.payroll_reconciliation_requested") throw guardedError("Termination payroll outbox event not found", "HRX_LEAVE_TERMINATION_OUTBOX_NOT_FOUND", 404);
+      const expectedPayloadHash = `sha256:${hash(parseJson(outbox.payload_json, {}))}`;
+      const expectedIdempotencyKey = `${outbox.idempotency_key}:payroll`;
+      if (providerReceipt.tenant_id !== tenantId
+        || providerReceipt.provider_kind !== "payroll"
+        || providerReceipt.idempotency_key !== expectedIdempotencyKey
+        || providerReceipt.payload_hash !== expectedPayloadHash
+        || !payrollReceiptAuthorizer({ tenant_id: tenantId, provider_id: providerReceipt.provider_id, operation: providerReceipt.operation })) {
+        throw guardedError("Termination payroll receipt is not bound to this delivery", "HRX_LEAVE_TERMINATION_RECEIPT_MISMATCH", 403);
+      }
       if (outbox.state === "delivered") {
         if (outbox.provider_receipt_ref !== providerReceiptRef) {
           throw guardedError("Termination payroll receipt does not match the recorded delivery", "HRX_LEAVE_TERMINATION_RECEIPT_CONFLICT");
@@ -404,15 +529,15 @@ export function createLeaveTerminationService({
       }
       const reconciliation = tx.query("selectOne", { table: "hrx_leave_termination_reconciliations", where: { tenant_id: tenantId, preview_reconciliation_id: outbox.aggregate_id } });
       if (!reconciliation) throw guardedError("Executed termination reconciliation not found", "HRX_LEAVE_TERMINATION_EXECUTION_NOT_FOUND", 404);
-      if (reconciliation.state === "approved_and_synced") return reconciliationView(reconciliation);
-      const result = { ...parseJson(reconciliation.result_json, {}), sync_state: "delivered", provider_receipt_ref: providerReceiptRef };
+      if (reconciliation.state === "approved_and_synced") return view(reconciliation);
+      const result = { ...parseJson(reconciliation.result_json, {}), sync_state: "delivered", provider_receipt_ref: providerReceiptRef, provider_receipt_id: providerReceipt.receipt_id, provider_id: providerReceipt.provider_id, provider_payload_hash: providerReceipt.payload_hash };
       const updated = tx.query("updateOne", { table: "hrx_leave_termination_reconciliations", where: { tenant_id: tenantId, reconciliation_id: reconciliation.reconciliation_id }, patch: { state: "approved_and_synced", result_json: JSON.stringify(result), completed_at: now } });
       const offboardingId = result.offboarding_id;
       tx.query("updateOne", { table: "hrx_offboarding_cases", where: { tenant_id: tenantId, offboarding_id: offboardingId }, patch: { leave_reconciliation_status: "approved_and_synced" } });
-      createSqlHrxAuditEventStore({ store: tx }).append({ event_id: idFactory("leave_audit_termination_synced"), tenant_id: tenantId, actor_id: actorId, action: "hrx.leave.termination.payroll_synced", object_type: "LeaveTerminationReconciliation", object_id: updated.reconciliation_id, decision: "allow", reason: "termination_payroll_handoff_receipt_recorded", occurred_at: now, metadata: { outbox_event_id: outboxEventId, provider_receipt_ref: providerReceiptRef } });
-      return reconciliationView(updated);
+      createSqlHrxAuditEventStore({ store: tx }).append({ event_id: idFactory("leave_audit_termination_synced"), tenant_id: tenantId, actor_id: actorId, action: "hrx.leave.termination.payroll_synced", object_type: "LeaveTerminationReconciliation", object_id: updated.reconciliation_id, decision: "allow", reason: "termination_payroll_handoff_receipt_recorded", occurred_at: now, metadata: { outbox_event_id: outboxEventId, provider_receipt_ref: providerReceiptRef, provider_receipt_id: providerReceipt.receipt_id, provider_id: providerReceipt.provider_id, provider_payload_hash: providerReceipt.payload_hash } });
+      return view(updated);
     });
   }
 
-  return Object.freeze({ list, candidates, preview, execute, recordPayrollDelivery });
+  return Object.freeze({ list, candidates, preview, approve, execute, recordPayrollDelivery });
 }

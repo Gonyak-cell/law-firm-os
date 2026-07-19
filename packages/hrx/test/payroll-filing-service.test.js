@@ -102,16 +102,32 @@ test("PY-TAX-001/002/006 calculates retirement, plan, termination, and year-end 
   assert.equal(calculateYearEndSettlement({ employee_id: "emp-001", tax_year: 2026, taxable_income_krw: 48_000_000, determined_tax_krw: 2_000_000, withheld_tax_krw: 2_200_000, collection_complete: true, tax_review_receipt_ref: "provider:tax/review" }).settlement_krw, 200_000);
 });
 
-test("PY-TAX-003/004/005 creates validated fixture-only filing packages and rejects totals or schemas that are not approved", () => {
+test("PY-TAX-003/004/005 creates validated fixture-only filing packages and rejects totals or schemas that are not approved", async () => {
   const { store, repository, run, service } = runtime();
-  const withholding = service.createPackage(PREPARER, { run_id: run.run_id, filing_kind: "withholding", schema_version: SYNTHETIC_PAYROLL_FILING_SCHEMAS.withholding });
-  assert.equal(service.createPackage(PREPARER, { run_id: run.run_id, filing_kind: "withholding", schema_version: SYNTHETIC_PAYROLL_FILING_SCHEMAS.withholding }).filing_job_id, withholding.filing_job_id);
+  const withholding = await service.createPackage(PREPARER, { run_id: run.run_id, filing_kind: "withholding", schema_version: SYNTHETIC_PAYROLL_FILING_SCHEMAS.withholding });
+  assert.equal((await service.createPackage(PREPARER, { run_id: run.run_id, filing_kind: "withholding", schema_version: SYNTHETIC_PAYROLL_FILING_SCHEMAS.withholding })).filing_job_id, withholding.filing_job_id);
   assert.equal(service.validate(PREPARER, { filing_job_id: withholding.filing_job_id }).state, "validated");
-  const social = service.createPackage(PREPARER, { run_id: run.run_id, filing_kind: "social_insurance", schema_version: SYNTHETIC_PAYROLL_FILING_SCHEMAS.social_insurance });
+  const social = await service.createPackage(PREPARER, { run_id: run.run_id, filing_kind: "social_insurance", schema_version: SYNTHETIC_PAYROLL_FILING_SCHEMAS.social_insurance });
   assert.equal(social.state, "draft");
-  assert.throws(() => service.createPackage(PREPARER, { run_id: run.run_id, filing_kind: "payment_statement", schema_version: "kr.nts.production.v1" }), (error) => error.safe_error_code === "HRX_PAYROLL_FILING_SCHEMA_UNAPPROVED");
-  assert.throws(() => service.createPackage(PREPARER, { run_id: run.run_id, filing_kind: "payment_statement", schema_version: SYNTHETIC_PAYROLL_FILING_SCHEMAS.payment_statement, records: [{ employee_id: "emp-001", gross_krw: 1, deduction_krw: 1, net_krw: 0 }] }), (error) => error.safe_error_code === "HRX_PAYROLL_FILING_TOTAL_MISMATCH");
+  await assert.rejects(service.createPackage(PREPARER, { run_id: run.run_id, filing_kind: "payment_statement", schema_version: "kr.nts.production.v1" }), (error) => error.safe_error_code === "HRX_PAYROLL_FILING_SCHEMA_UNAPPROVED");
+  await assert.rejects(service.createPackage(PREPARER, { run_id: run.run_id, filing_kind: "payment_statement", schema_version: SYNTHETIC_PAYROLL_FILING_SCHEMAS.payment_statement, records: [{ employee_id: "emp-001", gross_krw: 1, deduction_krw: 1, net_krw: 0 }] }), (error) => error.safe_error_code === "HRX_PAYROLL_FILING_TOTAL_MISMATCH");
   assert.equal(repository.listFilingJobs(PREPARER).length, 2);
+  store.close();
+});
+
+test("filing submission does not leave validated state without an authoritative provider", async () => {
+  const { store, repository, run, service } = runtime();
+  const job = await service.createPackage(PREPARER, {
+    run_id: run.run_id,
+    filing_kind: "withholding",
+    schema_version: SYNTHETIC_PAYROLL_FILING_SCHEMAS.withholding,
+  });
+  const validated = service.validate(PREPARER, { filing_job_id: job.filing_job_id });
+  await assert.rejects(
+    service.submit(APPROVER, { filing_job_id: job.filing_job_id }),
+    (error) => error.safe_error_code === "HRX_PAYROLL_FILING_PROVIDER_REQUIRED",
+  );
+  assert.equal(repository.getFilingJob(PREPARER, { filing_job_id: job.filing_job_id }).state, validated.state);
   store.close();
 });
 
@@ -119,13 +135,13 @@ test("PY-TAX-003/004/005/007 keeps pending submissions retryable and persists pr
   let state = "pending";
   const port = { async submit(request) { return providerReceipt(request, state); } };
   const { store, repository, run, service } = runtime(port);
-  const acceptedJob = service.createPackage(PREPARER, { run_id: run.run_id, filing_kind: "withholding", schema_version: SYNTHETIC_PAYROLL_FILING_SCHEMAS.withholding });
+  const acceptedJob = await service.createPackage(PREPARER, { run_id: run.run_id, filing_kind: "withholding", schema_version: SYNTHETIC_PAYROLL_FILING_SCHEMAS.withholding });
   service.validate(PREPARER, { filing_job_id: acceptedJob.filing_job_id });
   assert.equal((await service.submit(APPROVER, { filing_job_id: acceptedJob.filing_job_id })).job.state, "submitted");
   state = "succeeded";
   assert.equal((await service.submit(APPROVER, { filing_job_id: acceptedJob.filing_job_id })).job.state, "accepted");
 
-  const rejectedJob = service.createPackage(PREPARER, { run_id: run.run_id, filing_kind: "payment_statement", schema_version: SYNTHETIC_PAYROLL_FILING_SCHEMAS.payment_statement });
+  const rejectedJob = await service.createPackage(PREPARER, { run_id: run.run_id, filing_kind: "payment_statement", schema_version: SYNTHETIC_PAYROLL_FILING_SCHEMAS.payment_statement });
   service.validate(PREPARER, { filing_job_id: rejectedJob.filing_job_id });
   state = "failed";
   assert.equal((await service.submit(APPROVER, { filing_job_id: rejectedJob.filing_job_id })).job.state, "rejected");

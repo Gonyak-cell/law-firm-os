@@ -71,13 +71,13 @@ function sandboxDelivery(state = "succeeded") {
   });
 }
 
-test("PY-DOC-001/002 generates versioned encrypted PDF statements and regenerates the same bytes after storage restart", () => {
+test("PY-DOC-001/002 generates versioned encrypted PDF statements and regenerates the same bytes after storage restart", async () => {
   const { store, repository, run } = createRuntime();
   const storage = createLocalStorageAdapter({ adapter_id: "payroll-document-test" });
-  const service = createPayrollDocumentService({ repository, store, artifactVault: createEncryptedPayrollArtifactVault({ storage, secret: "test-secret" }), clock: () => NOW });
-  const generated = service.generate(PREPARER, { run_id: run.run_id });
+  const service = createPayrollDocumentService({ repository, store, artifactVault: createEncryptedPayrollArtifactVault({ storage, secret: "test-secret-material-with-at-least-32-bytes" }), clock: () => NOW });
+  const generated = await service.generate(PREPARER, { run_id: run.run_id });
   assert.deepEqual([generated.statement_count, generated.generated_count], [2, 2]);
-  assert.equal(service.generate(PREPARER, { run_id: run.run_id }).generated_count, 0);
+  assert.equal((await service.generate(PREPARER, { run_id: run.run_id })).generated_count, 0);
   const first = repository.getStatement(PREPARER, { statement_id: generated.statements[0].statement_id });
   assert.match(first.document_ref, /^vault:\/\/payroll-document-test\//);
   const encrypted = storage.getObject({ tenant_id: TENANT, object_id: `payroll/${run.run_id}/${first.employee_id}/${first.document_hash}.pdf` }).bytes.toString("utf8");
@@ -86,11 +86,11 @@ test("PY-DOC-001/002 generates versioned encrypted PDF statements and regenerate
   store.close();
 });
 
-test("PY-DOC-003 exports CSV/XLSX with totals equal to the closed run", () => {
+test("PY-DOC-003 exports CSV/XLSX with totals equal to the closed run", async () => {
   const { store, repository, run } = createRuntime();
   const service = createPayrollDocumentService({ repository, store, clock: () => NOW });
-  const csv = service.exportRegister(PREPARER, { run_id: run.run_id, format: "csv" });
-  const xlsx = service.exportRegister(PREPARER, { run_id: run.run_id, format: "xlsx" });
+  const csv = await service.exportRegister(PREPARER, { run_id: run.run_id, format: "csv" });
+  const xlsx = await service.exportRegister(PREPARER, { run_id: run.run_id, format: "xlsx" });
   assert.deepEqual(csv.totals, { gross_krw: 9_000_000, deduction_krw: 1_100_000, net_krw: 7_900_000 });
   assert.deepEqual(xlsx.totals, csv.totals);
   assert.equal(csv.row_count, 2);
@@ -102,7 +102,7 @@ test("PY-DOC-003 exports CSV/XLSX with totals equal to the closed run", () => {
 test("PY-DOC-004/005 requires provider receipts, prevents cross-employee reads, and records self-service views", async () => {
   const { store, repository, run } = createRuntime();
   const pending = createPayrollDocumentService({ repository, store, deliveryPort: sandboxDelivery("pending"), clock: () => NOW });
-  pending.generate(PREPARER, { run_id: run.run_id });
+  await pending.generate(PREPARER, { run_id: run.run_id });
   const queued = await pending.deliver(PREPARER, { run_id: run.run_id, channel: "email" });
   assert.equal(queued.delivered_count, 0);
   assert.ok(queued.receipts.every((row) => row.state === "queued"));
@@ -112,11 +112,11 @@ test("PY-DOC-004/005 requires provider receipts, prevents cross-employee reads, 
   assert.equal(delivered.delivered_count, 2);
   const statements = service.selfList({ tenant_id: TENANT, actor_id: "employee-1" }, { employee_id: "emp-001" });
   assert.equal(statements.length, 1);
-  const read = service.read({ tenant_id: TENANT, actor_id: "employee-1" }, { employee_id: "emp-001", statement_id: statements[0].statement_id });
+  const read = await service.read({ tenant_id: TENANT, actor_id: "employee-1" }, { employee_id: "emp-001", statement_id: statements[0].statement_id });
   assert.equal(Buffer.from(read.content_base64, "base64").subarray(0, 8).toString("utf8"), "%PDF-1.4");
   assert.equal(read.statement.state, "viewed");
   assert.ok(Date.parse(read.expires_at) > Date.parse(NOW));
-  assert.throws(() => service.read({ tenant_id: TENANT, actor_id: "employee-2" }, { employee_id: "emp-002", statement_id: statements[0].statement_id }), (error) => error.safe_error_code === "HRX_PAYROLL_STATEMENT_NOT_FOUND" && error.status === 404);
+  await assert.rejects(service.read({ tenant_id: TENANT, actor_id: "employee-2" }, { employee_id: "emp-002", statement_id: statements[0].statement_id }), (error) => error.safe_error_code === "HRX_PAYROLL_STATEMENT_NOT_FOUND" && error.status === 404);
   service.revoke(PREPARER, { statement_id: statements[0].statement_id });
   assert.equal(service.selfList({ tenant_id: TENANT, actor_id: "employee-1" }, { employee_id: "emp-001" }).length, 0);
   store.close();

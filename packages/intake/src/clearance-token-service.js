@@ -10,6 +10,14 @@ function epoch(value) {
   return new Date(value).getTime();
 }
 
+export const CLEARANCE_TOKEN_LIFETIME_MS = 7 * 24 * 60 * 60 * 1_000;
+
+function trustedTimestamp(value, field) {
+  const timestamp = epoch(value);
+  if (!Number.isFinite(timestamp)) throw new TypeError(`${field} must be a valid timestamp`);
+  return timestamp;
+}
+
 function latestByDate(records, field) {
   return [...records].sort((left, right) => epoch(right?.[field] ?? 0) - epoch(left?.[field] ?? 0))[0] ?? null;
 }
@@ -168,7 +176,14 @@ export function validateClearanceToken(token = {}, { now = new Date().toISOStrin
   });
 }
 
-export function issueClearanceToken({ repository, token, actor_id, idempotency_key } = {}) {
+export function issueClearanceToken({
+  repository,
+  token,
+  actor_id,
+  idempotency_key,
+  now = new Date().toISOString(),
+  lifetime_ms = CLEARANCE_TOKEN_LIFETIME_MS,
+} = {}) {
   requiredString({ actor_id }, "actor_id");
   requiredString({ idempotency_key }, "idempotency_key");
   requiredString(token, "tenant_id");
@@ -176,6 +191,10 @@ export function issueClearanceToken({ repository, token, actor_id, idempotency_k
   requiredString(token, "conflict_check_id");
   requiredString(token, "engagement_id");
   requiredString(token, "snapshot_hash");
+  const issuedAtEpoch = trustedTimestamp(now, "now");
+  if (!Number.isSafeInteger(lifetime_ms) || lifetime_ms <= 0) throw new TypeError("lifetime_ms must be a positive safe integer");
+  const issuedAt = new Date(issuedAtEpoch).toISOString();
+  const expiresAt = new Date(issuedAtEpoch + lifetime_ms).toISOString();
   const reviewState = conflictReviewLedgerState({ repository, token });
   if (!reviewState.review_satisfied) {
     throw new Error(`Clearance requires conflict review ledger proof: ${reviewState.reason}`);
@@ -194,8 +213,8 @@ export function issueClearanceToken({ repository, token, actor_id, idempotency_k
       clearance_token_id: token.clearance_token_id,
       token_state: "active",
       status: "active",
-      issued_at: token.issued_at ?? new Date().toISOString(),
-      expires_at: token.expires_at ?? "2026-06-27T00:00:00.000Z",
+      issued_at: issuedAt,
+      expires_at: expiresAt,
       outcome: "cleared",
       blocked_claims: Object.freeze([]),
       conflict_review_state: reviewState.reason,

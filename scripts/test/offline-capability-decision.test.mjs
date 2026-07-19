@@ -46,3 +46,10 @@ test("enabled outcome cannot be claimed from the pending capability-absent sourc
     (error) => error.code === "OFFLINE_ENABLED_SOURCE_MISSING",
   );
 });
+
+test("rejected outcome keeps every offline authority path absent and fails closed", () => {
+  const source = validateOfflineSourceOutcome({ outcome: "disabled", inspection: inspectOfflineCapabilitySource() });
+  assert.equal(source.capability_path_count, 0);
+  assert.equal(source.sqlite_imported_by_desktop_main, false);
+  assert.equal(source.retired_offline_renderer_fail_closed, true);
+});

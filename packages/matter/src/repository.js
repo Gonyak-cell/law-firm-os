@@ -50,6 +50,27 @@ function findUniquenessConflict({ records, record, key }) {
   return null;
 }
 
+function uniquenessKey(record) {
+  if (record.model_type === "MatterWorktree" && record.status === "active") {
+    return JSON.stringify(["MatterWorktree", record.tenant_id, record.matter_id]);
+  }
+  if (record.model_type === "Matter" && record.matter_code) {
+    return JSON.stringify(["Matter", record.tenant_id, record.matter_code]);
+  }
+  if (record.model_type === "MatterClient" && record.client_short_name) {
+    return JSON.stringify(["MatterClient", record.tenant_id, record.client_short_name]);
+  }
+  return null;
+}
+
+function uniquenessConflictError(record) {
+  if (record.model_type === "MatterWorktree") {
+    return new Error(`active MatterWorktree already exists for Matter ${record.matter_id}`);
+  }
+  const field = record.model_type === "Matter" ? "matter_code" : "client_short_name";
+  return new Error(`${record.model_type} ${field} already exists: ${record[field]}`);
+}
+
 function emptyState() {
   return {
     migrations: [...MATTER_CORE_MIGRATIONS],
@@ -79,7 +100,7 @@ function normalizeState(input) {
   };
 }
 
-export function createMatterRepository({ filePath, seedRecords = [], writeState = writeDurableJsonFile } = {}) {
+export function createMatterRepository({ filePath, seedRecords = [], preserveSeedRecords = false, writeState = writeDurableJsonFile } = {}) {
   let closed = false;
   let transactionDepth = 0;
   const stateController = createDurableJsonStateController({
@@ -150,9 +171,24 @@ export function createMatterRepository({ filePath, seedRecords = [], writeState 
 
   hydrate(state);
   if (state.migration_upgrade_required) persist();
+  const seedUniqueness = new Set([...records.values()].map(uniquenessKey).filter(Boolean));
+  let seedChanged = false;
   for (const record of seedRecords) {
-    if (!records.has(repositoryRecordKey(normalizeRepositoryRecord(record)))) put(record, { overwrite: true, createBackup: false });
+    const normalized = normalizeRepositoryRecord(record);
+    const key = repositoryRecordKey(normalized);
+    if (!records.has(key)) {
+      if (preserveSeedRecords) {
+        records.set(key, clone({ ...record, resource_id: normalized.resource_id }));
+      } else {
+        const uniqueKey = uniquenessKey(normalized);
+        if (uniqueKey && seedUniqueness.has(uniqueKey)) throw uniquenessConflictError(normalized);
+        records.set(key, clone(normalized));
+        if (uniqueKey) seedUniqueness.add(uniqueKey);
+        seedChanged = true;
+      }
+    }
   }
+  if (seedChanged) persist({ createBackup: false });
 
   return Object.freeze({
     durable: Boolean(filePath),

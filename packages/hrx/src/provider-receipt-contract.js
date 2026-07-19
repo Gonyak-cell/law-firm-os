@@ -1,5 +1,5 @@
 export const HRX_PROVIDER_RECEIPT_SCHEMA_VERSION = "law-firm-os.hrx.provider-receipt.v0.1";
-export const HRX_PROVIDER_RECEIPT_KINDS = Object.freeze(["delivery", "calendar", "bank", "filing"]);
+export const HRX_PROVIDER_RECEIPT_KINDS = Object.freeze(["delivery", "calendar", "payroll", "bank", "filing"]);
 export const HRX_PROVIDER_RECEIPT_STATES = Object.freeze(["pending", "succeeded", "failed"]);
 
 function requiredString(value, field) {

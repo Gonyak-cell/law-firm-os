@@ -61,27 +61,32 @@ test("LV-OCC-007 executes an approved upload exactly once from its matching prev
   assert.deepEqual(preview.counts, { ready: 2, preview_errors: 0, duplicates: 0, completed: 0, failed: 0, pending: 2, new_entries: 0 });
   assert.doesNotMatch(JSON.stringify(preview), /예약 발생|proof-emp/);
   assert.throws(
-    () => service.execute({ ...CONTEXT, step_up_verified: false }, { upload_batch_id: preview.upload_batch_id, preview_hash: preview.preview_hash, approved_by_actor_id: "hr-approver", idempotency_key: "upload-execute-1" }),
+    () => service.approve(CONTEXT, { upload_batch_id: preview.upload_batch_id, preview_hash: preview.preview_hash }),
+    (error) => error.safe_error_code === "HRX_LEAVE_MANUAL_DUAL_CONTROL_REQUIRED",
+  );
+  const approval = service.approve({ ...CONTEXT, actor_id: "hr-approver" }, { upload_batch_id: preview.upload_batch_id, preview_hash: preview.preview_hash });
+  assert.throws(
+    () => service.execute({ ...CONTEXT, step_up_verified: false }, { upload_batch_id: preview.upload_batch_id, preview_hash: preview.preview_hash, approval_receipt_id: approval.approval_receipt_id, idempotency_key: "upload-execute-1" }),
     (error) => error.safe_error_code === "HRX_STEP_UP_REQUIRED" && error.status === 403,
   );
   assert.equal(service.read(CONTEXT, { upload_batch_id: preview.upload_batch_id }).status, "previewed");
   assert.throws(
-    () => service.execute(CONTEXT, { upload_batch_id: preview.upload_batch_id, preview_hash: "0".repeat(64), approved_by_actor_id: "hr-approver", idempotency_key: "upload-execute-1" }),
+    () => service.execute(CONTEXT, { upload_batch_id: preview.upload_batch_id, preview_hash: "0".repeat(64), approval_receipt_id: approval.approval_receipt_id, idempotency_key: "upload-execute-1" }),
     (error) => error.safe_error_code === "HRX_LEAVE_OCCURRENCE_UPLOAD_PREVIEW_MISMATCH",
   );
 
-  const executed = service.execute(CONTEXT, { upload_batch_id: preview.upload_batch_id, preview_hash: preview.preview_hash, approved_by_actor_id: "hr-approver", idempotency_key: "upload-execute-1" });
+  const executed = service.execute(CONTEXT, { upload_batch_id: preview.upload_batch_id, preview_hash: preview.preview_hash, approval_receipt_id: approval.approval_receipt_id, idempotency_key: "upload-execute-1" });
   assert.equal(executed.status, "completed");
   assert.deepEqual(executed.rows.map((row) => [row.execution_status, row.attempt_count]), [["completed", 1], ["completed", 1]]);
   assert.equal(executed.counts.new_entries, 2);
   assert.equal(store.query("select", { table: "hrx_leave_balance_entries", where: { tenant_id: TENANT, entry_type: "adjustment" } }).length, 2);
 
-  const replay = service.execute(CONTEXT, { upload_batch_id: preview.upload_batch_id, preview_hash: preview.preview_hash, approved_by_actor_id: "hr-approver", idempotency_key: "upload-execute-1" });
+  const replay = service.execute(CONTEXT, { upload_batch_id: preview.upload_batch_id, preview_hash: preview.preview_hash, approval_receipt_id: approval.approval_receipt_id, idempotency_key: "upload-execute-1" });
   assert.equal(replay.replayed, true);
   assert.equal(replay.counts.new_entries, 0);
   assert.equal(store.query("select", { table: "hrx_leave_balance_entries", where: { tenant_id: TENANT, entry_type: "adjustment" } }).length, 2);
   assert.throws(
-    () => service.execute(CONTEXT, { upload_batch_id: preview.upload_batch_id, preview_hash: preview.preview_hash, approved_by_actor_id: "hr-approver", idempotency_key: "upload-execute-different" }),
+    () => service.execute(CONTEXT, { upload_batch_id: preview.upload_batch_id, preview_hash: preview.preview_hash, approval_receipt_id: approval.approval_receipt_id, idempotency_key: "upload-execute-different" }),
     (error) => error.safe_error_code === "HRX_LEAVE_OCCURRENCE_UPLOAD_EXECUTION_CONFLICT",
   );
   store.close();
@@ -92,19 +97,20 @@ test("LV-OCC-007 resumes only a failed upload row after durable reopen", () => {
   let failSecond = true;
   const faultedManualService = {
     ...first.manualService,
-    executeManual(context, input) {
-      if (failSecond && input.rows[0]?.employee_id === "emp-002") {
+    executeApprovedUploadRow(context, input) {
+      if (failSecond && input.row?.employee_id === "emp-002") {
         failSecond = false;
         const error = new Error("synthetic upload interruption");
         error.safe_error_code = "SYNTHETIC_UPLOAD_INTERRUPTION";
         throw error;
       }
-      return first.manualService.executeManual(context, input);
+      return first.manualService.executeApprovedUploadRow(context, input);
     },
   };
   const service = createLeaveOccurrenceUploadBatchService({ store: first.store, manualService: faultedManualService, clock: () => NOW });
   const preview = service.preview(CONTEXT, { csv_text: csv(first.manualService), schedule_only: true, as_of: "2026-07-14", idempotency_key: "upload-preview-resume" });
-  const partial = service.execute(CONTEXT, { upload_batch_id: preview.upload_batch_id, preview_hash: preview.preview_hash, approved_by_actor_id: "hr-approver", idempotency_key: "upload-execute-resume" });
+  const approval = service.approve({ ...CONTEXT, actor_id: "hr-approver" }, { upload_batch_id: preview.upload_batch_id, preview_hash: preview.preview_hash });
+  const partial = service.execute(CONTEXT, { upload_batch_id: preview.upload_batch_id, preview_hash: preview.preview_hash, approval_receipt_id: approval.approval_receipt_id, idempotency_key: "upload-execute-resume" });
   assert.equal(partial.status, "completed_with_errors");
   assert.deepEqual(partial.rows.map((row) => [row.execution_status, row.attempt_count]), [["completed", 1], ["failed", 1]]);
   assert.equal(first.store.query("select", { table: "hrx_leave_balance_entries", where: { tenant_id: TENANT, entry_type: "adjustment" } }).length, 1);

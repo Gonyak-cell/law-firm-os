@@ -2,11 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { authedJson } from "./helpers/session.js";
 import { startApiServer } from "../src/server.js";
+import { findRegisteredAccountByUserId } from "../src/matter-vault-account-registry.js";
 
 const TENANT = "tenant_rp05_synthetic";
 const MATTER_ID = "matter_rp05_synthetic_opening";
 const ACTOR_ID = "user_rp05_owner";
-const CONFIRMER_ID = "user_rp05_associate";
+const CONFIRMER_ID = "user_amic_wsjo";
+const CONFIRMER_ACCOUNT = findRegisteredAccountByUserId(CONFIRMER_ID);
 
 async function withServer(callback) {
   const started = await startApiServer({ port: 0 });
@@ -17,8 +19,8 @@ async function withServer(callback) {
   }
 }
 
-async function json(baseUrl, path, { method = "GET", body, headers = {}, noAuth = false } = {}) {
-  return authedJson(baseUrl, path, { method, body, headers, noAuth });
+async function json(baseUrl, path, { method = "GET", body, headers = {}, noAuth = false, account } = {}) {
+  return authedJson(baseUrl, path, { method, body, headers, noAuth, account });
 }
 
 function query(permission = "read") {
@@ -156,9 +158,10 @@ test("SF-B-W03R critical calendar changes are approval state first and confirm w
 
     const confirm = await json(baseUrl, `/api/matters/${MATTER_ID}/deadlines/calendar_sf_b_w03_deadline/confirm-change`, {
       method: "POST",
+      account: CONFIRMER_ACCOUNT,
       body: body({
         idempotency_key: "sf-b-w03-deadline-confirm",
-        confirmer_user_id: CONFIRMER_ID,
+        confirmer_user_id: "forged-confirmer",
       }),
     });
     assert.equal(confirm.status, 200);
@@ -170,6 +173,54 @@ test("SF-B-W03R critical calendar changes are approval state first and confirm w
     const deadlines = await json(baseUrl, `/api/matters/${MATTER_ID}/deadlines?${query("deadline_read")}`);
     assert.equal(deadlines.status, 200);
     assert.equal(deadlines.body.items.some((item) => item.deadline_id === "calendar_sf_b_w03_deadline"), true);
+  });
+});
+
+test("SF-B-W03R deadline confirmation binds the signed confirmer and canonical matter", async () => {
+  await withServer(async (baseUrl) => {
+    const deadlineId = "calendar_sf_b_w03_cross_matter";
+    await json(baseUrl, `/api/matters/${MATTER_ID}/calendar-events`, {
+      method: "POST",
+      body: body({
+        idempotency_key: "sf-b-w03-cross-matter-create",
+        event: {
+          event_id: deadlineId,
+          title: "Canonical matter deadline",
+          starts_at: "2026-07-20T01:00:00.000Z",
+          criticality: "critical",
+          legal_consequence: "court_deadline",
+        },
+      }),
+    });
+    await json(baseUrl, `/api/matters/${MATTER_ID}/calendar-events/${deadlineId}`, {
+      method: "PATCH",
+      body: body({
+        idempotency_key: "sf-b-w03-cross-matter-request",
+        patch: { starts_at: "2026-07-21T01:00:00.000Z" },
+      }),
+    });
+
+    const crossMatter = await json(baseUrl, `/api/matters/matter_rp05_synthetic_closed/deadlines/${deadlineId}/confirm-change`, {
+      method: "POST",
+      account: CONFIRMER_ACCOUNT,
+      body: body({
+        idempotency_key: "sf-b-w03-cross-matter-confirm",
+        confirmer_user_id: "forged-confirmer",
+      }),
+    });
+    assert.equal(crossMatter.status, 400);
+    assert.equal(crossMatter.body.ui_state, "blocked");
+
+    const canonical = await json(baseUrl, `/api/matters/${MATTER_ID}/deadlines/${deadlineId}/confirm-change`, {
+      method: "POST",
+      account: CONFIRMER_ACCOUNT,
+      body: body({
+        idempotency_key: "sf-b-w03-canonical-confirm",
+        confirmer_user_id: "forged-confirmer",
+      }),
+    });
+    assert.equal(canonical.status, 200);
+    assert.equal(canonical.body.confirmation.dual_control_satisfied, true);
   });
 });
 

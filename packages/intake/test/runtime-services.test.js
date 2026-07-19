@@ -437,6 +437,7 @@ test("G6 opportunity handoff and conflict workflow produce a valid clearance tok
     },
     actor_id: ACTOR,
     idempotency_key: "token-1",
+    now: "2026-06-20T00:00:00.000Z",
   });
   assert.equal(validateClearanceToken(token.clearance_token, { now: "2026-06-20T00:00:00.000Z" }).valid, true);
   assert.equal(token.conflict_review.review_satisfied, true);

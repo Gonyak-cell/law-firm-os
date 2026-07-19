@@ -42,11 +42,19 @@ function csvCell(value) {
 
 function createEncryptedPayrollArtifactVault({
   storage = createLocalStorageAdapter({ adapter_id: "hrx-payroll-vault" }),
-  secret = process.env.HRX_PAYROLL_ARTIFACT_KEY ?? "synthetic-payroll-artifact-key-not-for-production",
+  secret,
+  allowSyntheticSecret = false,
 } = {}) {
-  const key = createHash("sha256").update(secret).digest();
+  const keyMaterial = secret ?? (allowSyntheticSecret ? randomBytes(32) : null);
+  if (!(typeof keyMaterial === "string" || Buffer.isBuffer(keyMaterial)) || Buffer.byteLength(keyMaterial) < 32) {
+    throw new TypeError("payroll artifact encryption requires at least 32 bytes of injected secret material");
+  }
+  if (!["putObject", "getObject", "statObject"].every((method) => typeof storage?.[method] === "function")) {
+    throw new TypeError("payroll artifact storage must support putObject, getObject, and statObject");
+  }
+  const key = createHash("sha256").update(keyMaterial).digest();
   return Object.freeze({
-    put({ tenant_id, object_id, bytes, content_type }) {
+    async put({ tenant_id, object_id, bytes, content_type }) {
       const plain = Buffer.isBuffer(bytes) ? Buffer.from(bytes) : Buffer.from(bytes ?? "");
       const iv = randomBytes(12);
       const aad = Buffer.from(`${tenant_id}:${object_id}`, "utf8");
@@ -59,18 +67,18 @@ function createEncryptedPayrollArtifactVault({
         tag: cipher.getAuthTag().toString("base64url"),
         ciphertext: ciphertext.toString("base64url"),
       }), "utf8");
-      const receipt = storage.putObject({ tenant_id, object_id, bytes: encrypted, content_type: "application/vnd.law-firm-os.encrypted+json" });
+      const receipt = await storage.putObject({ tenant_id, object_id, bytes: encrypted, content_type: "application/vnd.law-firm-os.encrypted+json" });
       return Object.freeze({ document_ref: receipt.storage_pointer_ref, document_hash: hash(plain), byte_size: plain.byteLength, content_type });
     },
-    get({ tenant_id, object_id }) {
-      const stored = storage.getObject({ tenant_id, object_id });
+    async get({ tenant_id, object_id }) {
+      const stored = await storage.getObject({ tenant_id, object_id });
       const envelope = JSON.parse(stored.bytes.toString("utf8"));
       const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(envelope.iv, "base64url"));
       decipher.setAAD(Buffer.from(`${tenant_id}:${object_id}`, "utf8"));
       decipher.setAuthTag(Buffer.from(envelope.tag, "base64url"));
       return Buffer.concat([decipher.update(Buffer.from(envelope.ciphertext, "base64url")), decipher.final()]);
     },
-    stat({ tenant_id, object_id }) {
+    async stat({ tenant_id, object_id }) {
       return storage.statObject({ tenant_id, object_id });
     },
   });
@@ -99,7 +107,7 @@ function statementView(statement) {
 export function createPayrollDocumentService({
   repository,
   store,
-  artifactVault = createEncryptedPayrollArtifactVault(),
+  artifactVault = createEncryptedPayrollArtifactVault({ allowSyntheticSecret: true }),
   deliveryPort = null,
   clock = () => new Date().toISOString(),
 } = {}) {
@@ -134,7 +142,7 @@ export function createPayrollDocumentService({
     return Object.freeze({ bytes, document_hash: hash(bytes), bundle, period, result, employee, items });
   }
 
-  function generate(context, input = {}) {
+  async function generate(context, input = {}) {
     const runId = requiredString(input, "run_id");
     const bundle = requireClosedBundle(context, runId);
     const templates = repository.listStatementTemplates(context, { status: "published" });
@@ -143,24 +151,28 @@ export function createPayrollDocumentService({
       : templates[0];
     if (!template || template.status !== "published") throw safeError("Published payroll statement template is required", "HRX_PAYROLL_TEMPLATE_STATE_INVALID", 409);
     const existing = new Map(repository.listStatements(context, { run_id: runId }).map((row) => [row.employee_id, row]));
-    const statements = bundle.results.map((result) => {
-      if (existing.has(result.employee_id)) return existing.get(result.employee_id);
+    const statements = [];
+    for (const result of bundle.results) {
+      if (existing.has(result.employee_id)) {
+        statements.push(existing.get(result.employee_id));
+        continue;
+      }
       const rendered = render(context, runId, result.employee_id);
-      const artifact = artifactVault.put({
+      const artifact = await artifactVault.put({
         tenant_id: context.tenant_id,
         object_id: `payroll/${runId}/${result.employee_id}/${rendered.document_hash}.pdf`,
         bytes: rendered.bytes,
         content_type: "application/pdf",
       });
-      return repository.createStatement(context, {
+      statements.push(repository.createStatement(context, {
         run_id: runId,
         employee_id: result.employee_id,
         template_id: template.template_id,
         document_ref: artifact.document_ref,
         document_hash: rendered.document_hash,
         generated_at: bundle.run.closed_at ?? clock(),
-      });
-    });
+      }));
+    }
     return Object.freeze({
       run_id: runId,
       template_id: template.template_id,
@@ -175,7 +187,7 @@ export function createPayrollDocumentService({
     return Object.freeze(repository.listStatements(context, input).map(statementView));
   }
 
-  function exportRegister(context, input = {}) {
+  async function exportRegister(context, input = {}) {
     const runId = requiredString(input, "run_id");
     const format = requiredString(input, "format").toLowerCase();
     if (!["csv", "xlsx"].includes(format)) throw new TypeError("format must be csv or xlsx");
@@ -195,7 +207,7 @@ export function createPayrollDocumentService({
       : createXlsxBuffer({ headers: CSV_HEADERS, rows, sheetName: "급여대장" });
     const totals = bundle.results.reduce((sum, row) => ({ gross_krw: sum.gross_krw + row.gross_krw, deduction_krw: sum.deduction_krw + row.deduction_krw, net_krw: sum.net_krw + row.net_krw }), { gross_krw: 0, deduction_krw: 0, net_krw: 0 });
     const artifactHash = hash(bytes);
-    const artifact = artifactVault.put({ tenant_id: context.tenant_id, object_id: `payroll/${runId}/register-${artifactHash}.${format}`, bytes, content_type: format === "csv" ? "text/csv;charset=utf-8" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const artifact = await artifactVault.put({ tenant_id: context.tenant_id, object_id: `payroll/${runId}/register-${artifactHash}.${format}`, bytes, content_type: format === "csv" ? "text/csv;charset=utf-8" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     return Object.freeze({
       run_id: runId,
       format,
@@ -257,7 +269,7 @@ export function createPayrollDocumentService({
       .map(statementView));
   }
 
-  function read(context, input = {}) {
+  async function read(context, input = {}) {
     const statementId = requiredString(input, "statement_id");
     const employeeId = requiredString(input, "employee_id");
     let statement = repository.getStatement(context, { statement_id: statementId });
@@ -267,11 +279,11 @@ export function createPayrollDocumentService({
     let bytes;
     const objectId = statementObjectId(statement);
     try {
-      bytes = artifactVault.get({ tenant_id: context.tenant_id, object_id: objectId });
+      bytes = await artifactVault.get({ tenant_id: context.tenant_id, object_id: objectId });
     } catch {
       const rendered = render(context, statement.run_id, statement.employee_id);
       if (rendered.document_hash !== statement.document_hash) throw safeError("Payroll statement integrity check failed", "HRX_PAYROLL_STATEMENT_INTEGRITY", 409);
-      artifactVault.put({ tenant_id: context.tenant_id, object_id: objectId, bytes: rendered.bytes, content_type: "application/pdf" });
+      await artifactVault.put({ tenant_id: context.tenant_id, object_id: objectId, bytes: rendered.bytes, content_type: "application/pdf" });
       bytes = rendered.bytes;
     }
     if (hash(bytes) !== statement.document_hash) throw safeError("Payroll statement integrity check failed", "HRX_PAYROLL_STATEMENT_INTEGRITY", 409);

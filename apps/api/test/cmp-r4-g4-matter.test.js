@@ -115,6 +115,7 @@ function openingPayload(overrides = {}) {
       snapshot_hash: "sha256:clearance-api-open-001",
       token_state: "valid",
       outcome: "passed",
+      expires_at: "2999-01-01T00:00:00.000Z",
     },
     ...overrides,
   };
@@ -555,7 +556,7 @@ test("G4 Matter adverse party registration is idempotent and visible on detail",
     assert.equal(created.body.item.matter_party_id, "matter_party_api_c01_adverse");
     assert.equal(created.body.item.party_kind, "organization");
     assert.equal(created.body.item.party_role, "adverse_party");
-    assert.equal(created.body.item.created_by, "user_rp05_owner");
+    assert.equal(created.body.item.created_by, AUTH_ACTOR_ID);
     assert.equal(created.body.item.conflict_subject, true);
     assert.equal(created.body.item.retroactive_entry, true);
     assert.equal(created.body.item.raw_contact_values_included, false);
@@ -577,7 +578,7 @@ test("G4 Matter adverse party registration is idempotent and visible on detail",
     assert.equal(parties.body.items.length, 1);
     assert.equal(parties.body.items[0].display_name, "상대방 주식회사");
     assert.equal(parties.body.items[0].party_kind, "organization");
-    assert.equal(parties.body.items[0].created_by, "user_rp05_owner");
+    assert.equal(parties.body.items[0].created_by, AUTH_ACTOR_ID);
     assert.equal(parties.body.adverse_parties.length, 1);
 
     const detail = await json(baseUrl, `/api/matters/matter_rp05_synthetic_opening?${BASE_QUERY}`);

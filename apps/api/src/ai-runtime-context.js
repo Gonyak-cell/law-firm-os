@@ -154,7 +154,7 @@ export function handleAiPolicyCreate({ body, context, requestId, runtime = DEFAU
   const gated = routeGate({ context, query, requestId, action: "ai:policy:write", resourceType: "ai_policy" });
   if (gated) return gated;
   try {
-    const result = createAiPolicy({ repository: runtime.repository, policy: body.policy, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key });
+    const result = createAiPolicy({ repository: runtime.repository, policy: body.policy, actor_id: context.principal.user_id, idempotency_key: body.idempotency_key });
     return { status: result.idempotent_replay ? 200 : 201, body: { request_id: requestId, outcome: result.idempotent_replay ? "idempotent_replay" : "created", item: sanitizeAiItem(result.ai_policy), audit_event: result.audit_event, safe_error_codes: [], audit_hint_ref: query.audit_hint_ref, production_ready_claim: false } };
   } catch {
     return errorResponse(400, requestId, [AI_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
@@ -171,7 +171,7 @@ export function handleAiRetrievalCreate({ body, context, requestId, runtime = DE
     const result = createRetrievalRequest({
       repository: runtime.repository,
       retrieval_request: { ...body.retrieval_request, retrieved_doc_ids: permission.retrieved_doc_ids },
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return { status: result.idempotent_replay ? 200 : 201, body: { request_id: requestId, outcome: result.idempotent_replay ? "idempotent_replay" : "created", item: sanitizeAiItem(result.retrieval_request), permission, audit_event: result.audit_event, safe_error_codes: [], audit_hint_ref: query.audit_hint_ref, production_ready_claim: false } };
@@ -185,8 +185,8 @@ export function handleAiOutputCreate({ body, context, requestId, runtime = DEFAU
   const gated = routeGate({ context, query, requestId, action: "ai:output:write", resourceType: "ai_output" });
   if (gated) return gated;
   try {
-    const prompt = createPromptLog({ repository: runtime.repository, prompt_log: body.prompt_log, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: `${body.idempotency_key}:prompt` });
-    const result = createAiOutput({ repository: runtime.repository, ai_output: { ...body.ai_output, prompt_log_id: prompt.prompt_log.prompt_log_id }, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key });
+    const prompt = createPromptLog({ repository: runtime.repository, prompt_log: body.prompt_log, actor_id: context.principal.user_id, idempotency_key: `${body.idempotency_key}:prompt` });
+    const result = createAiOutput({ repository: runtime.repository, ai_output: { ...body.ai_output, prompt_log_id: prompt.prompt_log.prompt_log_id }, actor_id: context.principal.user_id, idempotency_key: body.idempotency_key });
     return { status: result.idempotent_replay ? 200 : 201, body: { request_id: requestId, outcome: result.idempotent_replay ? "idempotent_replay" : "created", item: sanitizeAiItem(result.ai_output), review_task: sanitizeAiItem(result.review_task), audit_event: result.audit_event, safe_error_codes: [], audit_hint_ref: query.audit_hint_ref, production_ready_claim: false } };
   } catch {
     return errorResponse(400, requestId, [AI_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
@@ -198,7 +198,7 @@ export function handleAiExportCreate({ body, context, requestId, runtime = DEFAU
   const gated = routeGate({ context, query, requestId, action: "ai:export:write", resourceType: "ai_output_export" });
   if (gated) return gated;
   try {
-    const result = createAiOutputExport({ repository: runtime.repository, ai_output_export: body.ai_output_export, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key });
+    const result = createAiOutputExport({ repository: runtime.repository, ai_output_export: body.ai_output_export, actor_id: context.principal.user_id, idempotency_key: body.idempotency_key });
     return { status: result.idempotent_replay ? 200 : 201, body: { request_id: requestId, outcome: result.idempotent_replay ? "idempotent_replay" : "created", item: sanitizeAiItem(result.ai_output_export), audit_event: result.audit_event, safe_error_codes: [], audit_hint_ref: query.audit_hint_ref, production_ready_claim: false } };
   } catch {
     return errorResponse(400, requestId, [AI_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });

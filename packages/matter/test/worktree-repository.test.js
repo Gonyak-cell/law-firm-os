@@ -118,3 +118,42 @@ test("WT-01-04 upgrades a legacy file-store migration manifest without losing re
   assert.deepEqual(persisted.migrations.map(({ id }) => id), ["001_matter_core", "002_matter_worktree"]);
   assert.equal(legacy.marker, "retain");
 });
+
+test("Matter repository persists a seed batch once while retaining uniqueness guards", () => {
+  const filePath = storePath("matter-seed-batch-");
+  const writes = [];
+  const writeState = ({ value }) => {
+    writes.push(value);
+    return { generation: writes.length };
+  };
+  const matterSeed = (matter_id, matter_code) => ({
+    tenant_id: "tenant_seed_batch",
+    model_type: "Matter",
+    matter_id,
+    matter_code,
+    client_id: "client_seed_batch",
+    title: matter_id,
+    status: "open",
+    created_by: "user_seed_batch",
+    created_at: timestamp,
+    permission_envelope_id: "permission_seed_batch",
+    audit_trace_id: "audit_seed_batch",
+  });
+  const seedRecords = [
+    matterSeed("matter_seed_1", "AMIC/LIT/CIV/SEED-1"),
+    matterSeed("matter_seed_2", "AMIC/LIT/CIV/SEED-2"),
+  ];
+
+  const repository = createMatterRepository({ filePath, seedRecords, writeState });
+
+  assert.equal(writes.length, 1);
+  assert.equal(repository.list({ tenant_id: "tenant_seed_batch", model_type: "Matter" }).length, 2);
+  assert.throws(
+    () => createMatterRepository({
+      filePath: storePath("matter-seed-duplicate-"),
+      seedRecords: [seedRecords[0], { ...seedRecords[1], matter_code: seedRecords[0].matter_code }],
+      writeState,
+    }),
+    /matter_code already exists/,
+  );
+});

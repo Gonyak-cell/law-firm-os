@@ -61,6 +61,7 @@ function clearanceToken() {
     conflict_check_id: "conflict_upl_a08_desktop_001",
     engagement_id: "engagement_upl_a08_desktop_001",
     snapshot_hash: "sha256:upl-a08-desktop-clearance-001",
+    expires_at: "2099-12-31T23:59:59.000Z",
     token_state: "valid",
     outcome: "passed",
   };

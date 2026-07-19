@@ -56,7 +56,7 @@ test("compensation amount envelopes decrypt only with the bound record context",
   );
   assert.equal(decrypted.amount_minor, 12345678);
   assert.equal(decrypted.currency_ref, "Currency:KRW");
-  assert.match(decrypted.key_ref, /^lawos-local-key:/);
+  assert.match(decrypted.key_ref, /^lawos-key:/);
   assert.throws(
     () =>
       decryptCompensationAmountRef(
@@ -66,6 +66,34 @@ test("compensation amount envelopes decrypt only with the bound record context",
       ),
     /context mismatch/,
   );
+});
+
+test("compensation encryption has no implicit default key", () => {
+  const previous = process.env.LAWOS_HRX_COMPENSATION_ENCRYPTION_KEY;
+  delete process.env.LAWOS_HRX_COMPENSATION_ENCRYPTION_KEY;
+  try {
+    assert.throws(
+      () => encryptCompensationAmount({
+        tenant_id: "tenant-a",
+        compensation_id: "comp-no-key",
+        employee_id: "emp-001",
+        amount_minor: 1,
+      }),
+      /requires injected key material/,
+    );
+    assert.match(
+      encryptCompensationAmount({
+        tenant_id: "tenant-a",
+        compensation_id: "comp-synthetic",
+        employee_id: "emp-001",
+        amount_minor: 1,
+      }, { allowSyntheticKey: true, iv: Buffer.alloc(12, 9) }),
+      new RegExp(`^${COMPENSATION_ENVELOPE_PREFIX}`),
+    );
+  } finally {
+    if (previous === undefined) delete process.env.LAWOS_HRX_COMPENSATION_ENCRYPTION_KEY;
+    else process.env.LAWOS_HRX_COMPENSATION_ENCRYPTION_KEY = previous;
+  }
 });
 
 test("compensation metadata rejects raw amount fields", () => {

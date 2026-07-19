@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   HRX_OFFBOARDING_CLOSE_BLOCKED,
+  HRX_OFFBOARDING_EVIDENCE_MISMATCH,
+  HRX_OFFBOARDING_IDENTITY_MISMATCH,
   closeOffboardingCase,
   createOffboardingCase,
   evaluateOffboardingReadiness,
@@ -69,4 +71,35 @@ test("offboarding close requires matter reassignment and handover items when pre
   });
   assert.equal(closed.matter_reassignments[0].reassigned_to_employee_id, "emp-002");
   assert.equal(closed.state, "closed");
+});
+
+test("offboarding close cannot rebind immutable case identity", () => {
+  assert.throws(
+    () => closeOffboardingCase(
+      {
+        ...offboarding,
+        tenant_id: "tenant-b",
+        leave_reconciliation_status: "approved_and_synced",
+        access_revocations: [{ system_ref: "idp", revoked: true, confirmation_ref: "receipt:idp" }],
+        document_returns: [{ document_ref: "laptop", returned: true }],
+        legal_hold_checks: [{ hold_ref: "hold:none", clear: true }],
+      },
+      { current_case: offboarding },
+    ),
+    (error) => error.safe_error_code === HRX_OFFBOARDING_IDENTITY_MISMATCH,
+  );
+});
+
+test("offboarding close ignores no caller evidence and rejects attempts to replace ledger readiness", () => {
+  const current = createOffboardingCase({
+    ...offboarding,
+    leave_reconciliation_status: "approved_and_synced",
+    access_revocations: [{ system_ref: "idp", revoked: true, confirmation_ref: "receipt:idp" }],
+    legal_hold_checks: [{ hold_ref: "hold:none", clear: true }],
+  });
+  assert.throws(
+    () => closeOffboardingCase({ legal_hold_checks: [{ hold_ref: "hold:none", clear: false }] }, { current_case: current }),
+    (error) => error.safe_error_code === HRX_OFFBOARDING_EVIDENCE_MISMATCH,
+  );
+  assert.equal(closeOffboardingCase({}, { current_case: current }).state, "closed");
 });

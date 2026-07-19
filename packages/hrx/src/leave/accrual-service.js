@@ -771,36 +771,112 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
 
   function previewManual(context, input) {
     const prepared = prepareManualUpload(context, input);
+    const approvalReceipt = store.query("selectOne", {
+      table: "hrx_leave_command_receipts",
+      where: { tenant_id: requiredString(context, "tenant_id"), idempotency_key: `leave-manual-approval:manual_adjustment:${prepared.snapshot_hash}` },
+    });
+    const approval = approvalReceipt?.command_type === "leave_manual_approval" ? JSON.parse(approvalReceipt.result_json) : null;
     return Object.freeze({
       ...prepared,
+      approval_receipt_id: approval?.snapshot_hash === prepared.snapshot_hash ? approvalReceipt.command_receipt_id : null,
+      approved_by_actor_id: approval?.snapshot_hash === prepared.snapshot_hash ? approval.approved_by_actor_id : null,
       rows: Object.freeze(prepared.rows.map(({ reason, source_document_id, ...row }) => Object.freeze(row))),
     });
   }
 
-  function assertManualApproval(context, approverActorId) {
+  function recordManualApproval(context, input = {}) {
     requireStepUp(context);
     const tenantId = requiredString(context, "tenant_id");
     const actorId = requiredString(context, "actor_id");
-    const approvedByActorId = requiredString({ approved_by_actor_id: approverActorId }, "approved_by_actor_id");
-    if (approvedByActorId === actorId) throw guardedError("Manual adjustment requires a different approver", "HRX_LEAVE_MANUAL_DUAL_CONTROL_REQUIRED", 403);
-    if (!approverAuthorizer({ tenant_id: tenantId, actor_id: approvedByActorId, required_scope: "hrx.leave.ledger.adjust" })) {
+    const approvalKind = requiredString(input, "approval_kind");
+    const objectId = requiredString(input, "object_id");
+    const snapshotHash = requiredString(input, "snapshot_hash");
+    const initiatedByActorId = typeof input.initiated_by_actor_id === "string" ? input.initiated_by_actor_id.trim() : "";
+    if (initiatedByActorId && initiatedByActorId === actorId) throw guardedError("Manual adjustment requires a different approver", "HRX_LEAVE_MANUAL_DUAL_CONTROL_REQUIRED", 403);
+    if (!approverAuthorizer({ tenant_id: tenantId, actor_id: actorId, required_scope: "hrx.leave.ledger.adjust" })) {
       throw guardedError("Manual adjustment approver is not authorized", "HRX_LEAVE_MANUAL_APPROVER_DENIED", 403);
     }
-    return Object.freeze({ tenant_id: tenantId, actor_id: actorId, approved_by_actor_id: approvedByActorId });
+    const idempotencyKey = `leave-manual-approval:${approvalKind}:${objectId}`;
+    const inputHash = hash({ approval_kind: approvalKind, object_id: objectId, snapshot_hash: snapshotHash, initiated_by_actor_id: initiatedByActorId || null, approved_by_actor_id: actorId });
+    const existing = store.query("selectOne", { table: "hrx_leave_command_receipts", where: { tenant_id: tenantId, idempotency_key: idempotencyKey } });
+    if (existing) {
+      if (existing.command_type !== "leave_manual_approval" || existing.input_hash !== inputHash) {
+        throw guardedError("Manual adjustment already has a different approval decision", "HRX_LEAVE_MANUAL_APPROVAL_CONFLICT");
+      }
+      return Object.freeze({ approval_receipt_id: existing.command_receipt_id, ...JSON.parse(existing.result_json) });
+    }
+    const now = clock();
+    return store.transaction((tx) => {
+      const result = Object.freeze({
+        approval_kind: approvalKind,
+        object_id: objectId,
+        snapshot_hash: snapshotHash,
+        initiated_by_actor_id: initiatedByActorId || null,
+        approved_by_actor_id: actorId,
+        approved_at: now,
+      });
+      const receipt = tx.query("insert", { table: "hrx_leave_command_receipts", row: {
+        tenant_id: tenantId,
+        command_receipt_id: idFactory("leave_manual_approval"),
+        idempotency_key: idempotencyKey,
+        command_type: "leave_manual_approval",
+        request_id: null,
+        input_hash: inputHash,
+        result_json: JSON.stringify(result),
+        created_at: now,
+      } });
+      createSqlHrxAuditEventStore({ store: tx }).append({ event_id: idFactory("leave_audit_manual_approval"), tenant_id: tenantId, actor_id: actorId, action: "hrx.leave.ledger.adjust.approve", object_type: "LeaveAdjustmentApproval", object_id: objectId, decision: "allow", reason: "independent_manual_leave_adjustment_approved", occurred_at: now, metadata: { approval_receipt_id: receipt.command_receipt_id, approval_kind: approvalKind, snapshot_hash: snapshotHash } });
+      return Object.freeze({ approval_receipt_id: receipt.command_receipt_id, ...result });
+    });
   }
 
-  function executeManual(context, input) {
-    const approval = assertManualApproval(context, input.approved_by_actor_id);
+  function assertManualApprovalReceipt(context, input = {}) {
+    requireStepUp(context);
+    const tenantId = requiredString(context, "tenant_id");
+    const actorId = requiredString(context, "actor_id");
+    const approvalReceiptId = requiredString(input, "approval_receipt_id");
+    const receipt = store.query("selectOne", { table: "hrx_leave_command_receipts", where: { tenant_id: tenantId, command_receipt_id: approvalReceiptId } });
+    if (!receipt || receipt.command_type !== "leave_manual_approval") throw guardedError("Manual adjustment approval receipt not found", "HRX_LEAVE_MANUAL_APPROVAL_REQUIRED", 403);
+    const result = JSON.parse(receipt.result_json);
+    const approverActorId = requiredString(result, "approved_by_actor_id");
+    if (approverActorId === actorId) throw guardedError("Manual adjustment requires a different approver", "HRX_LEAVE_MANUAL_DUAL_CONTROL_REQUIRED", 403);
+    if (!approverAuthorizer({ tenant_id: tenantId, actor_id: approverActorId, required_scope: "hrx.leave.ledger.adjust" })) {
+      throw guardedError("Manual adjustment approver is not authorized", "HRX_LEAVE_MANUAL_APPROVER_DENIED", 403);
+    }
+    if (result.approval_kind !== requiredString(input, "approval_kind")
+      || result.object_id !== requiredString(input, "object_id")
+      || result.snapshot_hash !== requiredString(input, "snapshot_hash")) {
+      throw guardedError("Manual adjustment approval receipt does not match the approved snapshot", "HRX_LEAVE_MANUAL_APPROVAL_MISMATCH", 403);
+    }
+    return Object.freeze({ tenant_id: tenantId, actor_id: actorId, approved_by_actor_id: approverActorId, approval_receipt_id: approvalReceiptId, approval_kind: result.approval_kind, object_id: result.object_id, snapshot_hash: result.snapshot_hash });
+  }
+
+  function approveManual(context, input = {}) {
+    const prepared = prepareManualUpload(context, input);
+    return recordManualApproval(context, { approval_kind: "manual_adjustment", object_id: prepared.snapshot_hash, snapshot_hash: prepared.snapshot_hash });
+  }
+
+  function executeManual(context, input = {}) {
+    const prepared = prepareManualUpload(context, input);
+    const approval = assertManualApprovalReceipt(context, { approval_receipt_id: input.approval_receipt_id, approval_kind: "manual_adjustment", object_id: prepared.snapshot_hash, snapshot_hash: prepared.snapshot_hash });
+    return executePreparedManual(context, input, prepared, approval);
+  }
+
+  function executeApprovedUploadRow(context, input = {}) {
+    const prepared = prepareManualUpload(context, { rows: [input.row], schedule_only: input.schedule_only, as_of: input.as_of });
+    const approval = assertManualApprovalReceipt(context, { approval_receipt_id: input.approval_receipt_id, approval_kind: "occurrence_upload", object_id: input.upload_batch_id, snapshot_hash: input.preview_hash });
+    return executePreparedManual(context, input, prepared, approval);
+  }
+
+  function executePreparedManual(context, input, prepared, approval) {
     const tenantId = approval.tenant_id;
     const actorId = approval.actor_id;
     const approverActorId = approval.approved_by_actor_id;
     const idempotencyKey = requiredString(input, "idempotency_key");
-    const xlsxContentBase64 = input.xlsx_content_base64 ?? (input.format === "xlsx" ? input.content_base64 : null);
-    const sourceRows = input.csv_text ? parseLeaveManualAdjustmentCsv(input.csv_text) : xlsxContentBase64 ? parseLeaveManualAdjustmentXlsx(xlsxContentBase64) : input.rows ?? [];
-    const scheduleOnly = input.schedule_only === true;
-    const asOf = input.as_of ? isoDate(input.as_of, "as_of") : clock().slice(0, 10);
-    const validated = validateManualRows(store, tenantId, sourceRows, { scheduleOnly, asOf });
-    const inputHash = hash({ approved_by_actor_id: approverActorId, rows: validated, ...(scheduleOnly ? { schedule_only: true } : {}) });
+    const scheduleOnly = prepared.schedule_only;
+    const asOf = prepared.as_of;
+    const validated = prepared.rows;
+    const inputHash = hash({ approval_receipt_id: approval.approval_receipt_id, approval_kind: approval.approval_kind, approval_object_id: approval.object_id, rows: validated, ...(scheduleOnly ? { schedule_only: true } : {}) });
     const replay = store.query("selectOne", { table: "hrx_leave_command_receipts", where: { tenant_id: tenantId, idempotency_key: idempotencyKey } });
     if (replay) {
       if (replay.input_hash !== inputHash) throw guardedError("Idempotency key was reused with different input", "HRX_LEAVE_IDEMPOTENCY_KEY_REUSED");
@@ -829,10 +905,10 @@ export function createLeaveAccrualService({ store, clock = () => new Date().toIS
       });
       const result = Object.freeze({ rows: Object.freeze(rows), counts: Object.freeze({ created: rows.filter((row) => row.status === "created").length, errors: rows.filter((row) => row.status === "error").length }) });
       tx.query("insert", { table: "hrx_leave_command_receipts", row: { tenant_id: tenantId, command_receipt_id: idFactory("leave_receipt_manual_adjustment"), idempotency_key: idempotencyKey, command_type: "manual_leave_adjustment", request_id: null, input_hash: inputHash, result_json: JSON.stringify(result), created_at: now } });
-      createSqlHrxAuditEventStore({ store: tx }).append({ event_id: idFactory("leave_audit_manual_adjustment"), tenant_id: tenantId, actor_id: actorId, action: "hrx.leave.ledger.adjust", object_type: "LeaveAdjustmentBatch", object_id: idempotencyKey, decision: "allow", reason: "dual_control_manual_leave_adjustment", occurred_at: now, metadata: { approved_by_actor_id: approverActorId, created_count: result.counts.created, error_count: result.counts.errors } });
+      createSqlHrxAuditEventStore({ store: tx }).append({ event_id: idFactory("leave_audit_manual_adjustment"), tenant_id: tenantId, actor_id: actorId, action: "hrx.leave.ledger.adjust", object_type: "LeaveAdjustmentBatch", object_id: idempotencyKey, decision: "allow", reason: "dual_control_manual_leave_adjustment", occurred_at: now, metadata: { approved_by_actor_id: approverActorId, approval_receipt_id: approval.approval_receipt_id, approval_kind: approval.approval_kind, created_count: result.counts.created, error_count: result.counts.errors } });
       return result;
     });
   }
 
-  return Object.freeze({ listRules, createRule, updateRule, deactivateRule, preview, validatePreview, execute, manualTemplate: createLeaveOccurrenceUploadTemplate, prepareManualUpload, assertManualApproval, previewManual, executeManual });
+  return Object.freeze({ listRules, createRule, updateRule, deactivateRule, preview, validatePreview, execute, manualTemplate: createLeaveOccurrenceUploadTemplate, prepareManualUpload, recordManualApproval, assertManualApprovalReceipt, approveManual, previewManual, executeManual, executeApprovedUploadRow });
 }

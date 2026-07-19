@@ -218,6 +218,28 @@ test("AI governance PostgreSQL import, async API, append-only guard, shadow, and
   assert.equal(secondImport.replayed, true);
   const shadow = await ledger.compareSnapshot(source.snapshot);
   assert.equal(shadow.comparison.equal, true);
+  const rehearsal = await ledger.recordRehearsal({
+    tenant_id: TENANT,
+    domain_id: AI_GOVERNANCE_DOMAIN_DESCRIPTOR.domain_id,
+    import_receipt_id: imported.receipt.receipt_id,
+    shadow_receipt_id: shadow.receipt.receipt_id,
+    smoke_result: {
+      status: "passed",
+      synthetic_only: true,
+      environment: "test",
+      adapter: "ai-governance-postgres-domain-ledger",
+      executed_at: "2026-07-16T23:00:00.000Z",
+      source_snapshot_hash: shadow.comparison.source_hash,
+      checks: {
+        source_imported: imported.receipt.status === "source_imported",
+        idempotency_replayed: secondImport.replayed,
+        shadow_equal: shadow.comparison.equal,
+        readback_equal: shadow.comparison.source_hash === shadow.comparison.target_hash,
+        json_dual_write_absent: true,
+      },
+      production_migrated: false,
+    },
+  });
 
   const api = await handleAiPostgresApiRequest({
     ledger,
@@ -287,21 +309,6 @@ test("AI governance PostgreSQL import, async API, append-only guard, shadow, and
   assert.ok(auditEvents.some((event) => event.event_type === "ai.review.adjudicate"));
   assert.ok(auditEvents.some((event) => event.event_type === "ai.citation.ledger"));
 
-  const rehearsal = await ledger.recordRehearsal({
-    tenant_id: TENANT,
-    domain_id: AI_GOVERNANCE_DOMAIN_DESCRIPTOR.domain_id,
-    import_receipt_id: imported.receipt.receipt_id,
-    shadow_receipt_id: shadow.receipt.receipt_id,
-    smoke_result: {
-      adapter: "ai-governance-postgres-domain-ledger",
-      source_import_equal: true,
-      async_api_command_equal: api.persistence.shadow_equal,
-      human_review_preserved: reconciliation.review_task_count === 2,
-      citation_preserved: reconciliation.citation_ledger_count === 1,
-      ai_governance_invariant_hash: reconciliation.invariant_hash,
-      production_migrated: false,
-    },
-  });
   assert.equal(rehearsal.status, "source_ready");
   assert.equal(rehearsal.production_migrated, false);
   reportDomainReceiptEvidence({ source: source.snapshot, imported, secondImport, shadow, rehearsal });

@@ -1,3 +1,16 @@
+export const DMS_SEARCH_INDEX_LIMITS = Object.freeze({
+  source_bytes: 16 * 1024 * 1024,
+  body_characters: 1_000_000,
+  ocr_characters: 1_000_000,
+});
+
+function inputLimitError(label) {
+  const error = new TypeError(`${label} exceeds the DMS search indexing limit`);
+  error.safe_error_code = "DMS_SEARCH_INDEX_INPUT_TOO_LARGE";
+  error.status = 413;
+  return error;
+}
+
 function normalizeSearchText(value) {
   return String(value ?? "")
     .normalize("NFKC")
@@ -18,16 +31,23 @@ function decodeXmlEntities(value) {
 function printableText(bytes) {
   if (bytes === undefined || bytes === null) return "";
   const buffer = Buffer.isBuffer(bytes) ? bytes : Buffer.from(String(bytes), "utf8");
-  return normalizeSearchText(buffer.toString("utf8"));
+  if (buffer.byteLength > DMS_SEARCH_INDEX_LIMITS.source_bytes) throw inputLimitError("document source bytes");
+  const text = normalizeSearchText(buffer.toString("utf8"));
+  if (text.length > DMS_SEARCH_INDEX_LIMITS.body_characters) throw inputLimitError("document searchable text");
+  return text;
 }
 
 function ocrSidecarText(value) {
-  if (Array.isArray(value)) return normalizeSearchText(value.join(" "));
+  let text;
+  if (Array.isArray(value)) text = normalizeSearchText(value.join(" "));
   if (value && typeof value === "object") {
-    if (Array.isArray(value.pages)) return normalizeSearchText(value.pages.map((page) => page?.text ?? page).join(" "));
-    return normalizeSearchText(value.text);
+    text = Array.isArray(value.pages)
+      ? normalizeSearchText(value.pages.map((page) => page?.text ?? page).join(" "))
+      : normalizeSearchText(value.text);
   }
-  return normalizeSearchText(value);
+  text ??= normalizeSearchText(value);
+  if (text.length > DMS_SEARCH_INDEX_LIMITS.ocr_characters) throw inputLimitError("OCR sidecar text");
+  return text;
 }
 
 export function extractSearchableDocumentText({ bytes, mime_type, filename } = {}) {

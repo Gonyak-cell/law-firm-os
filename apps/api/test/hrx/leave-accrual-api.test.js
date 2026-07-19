@@ -23,8 +23,8 @@ function setup() {
   return { store, context: createHrxRuntimeContext({ store }) };
 }
 
-function actor(stepUp = false) {
-  return { tenant_id: TENANT, actor_id: "user_amic_tryoon", actor_role: "lawos_hr", hrx_scopes: ["hrx.leave.accrual.read", "hrx.leave.accrual.write", "hrx.leave.accrual.preview", "hrx.leave.accrual.execute", "hrx.leave.ledger.adjust", "hrx.leave.report.export"], session_bound: true, step_up_verified: stepUp };
+function actor(stepUp = false, actorId = "user_amic_tryoon") {
+  return { tenant_id: TENANT, actor_id: actorId, actor_role: "lawos_hr", hrx_scopes: ["hrx.leave.accrual.read", "hrx.leave.accrual.write", "hrx.leave.accrual.preview", "hrx.leave.accrual.execute", "hrx.leave.ledger.adjust", "hrx.leave.report.export"], session_bound: true, step_up_verified: stepUp };
 }
 
 function request(context, pathname, method, body = {}, requestContext = actor(), query = {}) {
@@ -46,9 +46,11 @@ test("LV-04 accrual routes use granular HR scopes and step-up actions", () => {
     ["POST", "/api/hrx/leave/accrual/batches/batch-001/retry", "hrx.leave.accrual.execute", "hrx.leave.accrual.execute.batch.retry"],
     ["GET", "/api/hrx/leave/accrual/manual/template", "hrx.leave.ledger.adjust", "hrx.leave.ledger.read"],
     ["POST", "/api/hrx/leave/accrual/manual/preview", "hrx.leave.ledger.adjust", "hrx.leave.ledger.preview"],
+    ["POST", "/api/hrx/leave/accrual/manual/approve", "hrx.leave.ledger.adjust", "hrx.leave.ledger.adjust"],
     ["POST", "/api/hrx/leave/accrual/manual/execute", "hrx.leave.ledger.adjust", "hrx.leave.ledger.adjust"],
     ["POST", "/api/hrx/leave/accrual/manual/uploads/preview", "hrx.leave.ledger.adjust", "hrx.leave.occurrence.upload.preview"],
     ["GET", "/api/hrx/leave/accrual/manual/uploads/upload-001", "hrx.leave.ledger.adjust", "hrx.leave.occurrence.upload.read"],
+    ["POST", "/api/hrx/leave/accrual/manual/uploads/upload-001/approve", "hrx.leave.ledger.adjust", "hrx.leave.ledger.adjust.upload.execute"],
     ["POST", "/api/hrx/leave/accrual/manual/uploads/upload-001/execute", "hrx.leave.ledger.adjust", "hrx.leave.ledger.adjust.upload.execute"],
     ["POST", "/api/hrx/leave/accrual/manual/uploads/upload-001/retry", "hrx.leave.ledger.adjust", "hrx.leave.ledger.adjust.upload.retry"],
   ];
@@ -161,9 +163,26 @@ test("LV-OCC-007 API executes a matching approved upload once and returns row re
   assert.equal(previewed.status, 200, JSON.stringify(previewed.body));
   assert.equal(previewed.body.batch.status, "previewed");
   assert.equal(JSON.stringify(previewed.body).includes("API 예약 발생"), false);
+  const selfApproval = request(context, "/api/hrx/leave/accrual/manual/uploads/upload-api-001/approve", "POST", {
+    preview_hash: previewed.body.batch.preview_hash,
+  }, actor(true));
+  assert.equal(selfApproval.status, 403);
+  assert.equal(selfApproval.body.safe_error_code, "HRX_LEAVE_MANUAL_DUAL_CONTROL_REQUIRED");
+
+  const approvalChallenge = request(context, "/api/hrx/leave/accrual/manual/uploads/upload-api-001/approve", "POST", {
+    preview_hash: previewed.body.batch.preview_hash,
+  }, actor(false, "user_amic_jwsuh"));
+  assert.equal(approvalChallenge.status, 403);
+  assert.equal(approvalChallenge.body.safe_error_code, "HRX_STEP_UP_REQUIRED");
+
+  const approved = request(context, "/api/hrx/leave/accrual/manual/uploads/upload-api-001/approve", "POST", {
+    preview_hash: previewed.body.batch.preview_hash,
+  }, actor(true, "user_amic_jwsuh"));
+  assert.equal(approved.status, 200, JSON.stringify(approved.body));
+
   const challenged = request(context, "/api/hrx/leave/accrual/manual/uploads/upload-api-001/execute", "POST", {
     preview_hash: previewed.body.batch.preview_hash,
-    approved_by_actor_id: "user_amic_jwsuh",
+    approval_receipt_id: approved.body.approval_receipt.approval_receipt_id,
     idempotency_key: "upload-api-execute-001",
   });
   assert.equal(challenged.status, 403);
@@ -174,7 +193,7 @@ test("LV-OCC-007 API executes a matching approved upload once and returns row re
 
   const executed = request(context, "/api/hrx/leave/accrual/manual/uploads/upload-api-001/execute", "POST", {
     preview_hash: previewed.body.batch.preview_hash,
-    approved_by_actor_id: "user_amic_jwsuh",
+    approval_receipt_id: approved.body.approval_receipt.approval_receipt_id,
     idempotency_key: "upload-api-execute-001",
   }, actor(true));
   assert.equal(executed.status, 200, JSON.stringify(executed.body));
@@ -185,7 +204,7 @@ test("LV-OCC-007 API executes a matching approved upload once and returns row re
 
   const replay = request(context, "/api/hrx/leave/accrual/manual/uploads/upload-api-001/execute", "POST", {
     preview_hash: previewed.body.batch.preview_hash,
-    approved_by_actor_id: "user_amic_jwsuh",
+    approval_receipt_id: approved.body.approval_receipt.approval_receipt_id,
     idempotency_key: "upload-api-execute-001",
   }, actor(true));
   assert.equal(replay.body.batch.replayed, true);
@@ -328,17 +347,18 @@ test("LV-04 manual adjustment API preserves row errors and requires another auth
   assert.equal(preview.status, 200);
   assert.deepEqual(preview.body.preview.counts, { ready: 1, errors: 1, duplicates: 0 });
 
-  const selfApproved = request(context, "/api/hrx/leave/accrual/manual/execute", "POST", { rows, approved_by_actor_id: "user_amic_tryoon", idempotency_key: "manual-api-self" }, actor(true));
-  assert.equal(selfApproved.status, 403);
-  assert.equal(selfApproved.body.safe_error_code, "HRX_LEAVE_MANUAL_DUAL_CONTROL_REQUIRED");
-
-  const challenged = request(context, "/api/hrx/leave/accrual/manual/execute", "POST", { rows, approved_by_actor_id: "user_amic_jwsuh", idempotency_key: "manual-api-step-up" });
+  const challenged = request(context, "/api/hrx/leave/accrual/manual/approve", "POST", { rows }, actor(false, "user_amic_jwsuh"));
   assert.equal(challenged.status, 403);
   assert.equal(challenged.body.step_up_required, true);
   assert.equal(challenged.body.required_purpose, "leave_ledger_adjustment");
   assert.equal(challenged.body.fail_closed, true);
 
-  const executed = request(context, "/api/hrx/leave/accrual/manual/execute", "POST", { rows, approved_by_actor_id: "user_amic_jwsuh", idempotency_key: "manual-api-approved" }, actor(true));
+  const approved = request(context, "/api/hrx/leave/accrual/manual/approve", "POST", { rows }, actor(true, "user_amic_jwsuh"));
+  assert.equal(approved.status, 200, JSON.stringify(approved.body));
+  const selfExecuted = request(context, "/api/hrx/leave/accrual/manual/execute", "POST", { rows, approval_receipt_id: approved.body.approval_receipt.approval_receipt_id, idempotency_key: "manual-api-self" }, actor(true, "user_amic_jwsuh"));
+  assert.equal(selfExecuted.status, 403);
+  assert.equal(selfExecuted.body.safe_error_code, "HRX_LEAVE_MANUAL_DUAL_CONTROL_REQUIRED");
+  const executed = request(context, "/api/hrx/leave/accrual/manual/execute", "POST", { rows, approval_receipt_id: approved.body.approval_receipt.approval_receipt_id, idempotency_key: "manual-api-approved" }, actor(true));
   assert.equal(executed.status, 200, JSON.stringify(executed.body));
   assert.deepEqual(executed.body.result.counts, { created: 1, errors: 1 });
 });
@@ -351,7 +371,8 @@ test("LV-OCC-003 API creates only future scheduled occurrences and keeps them ou
   ];
   const preview = request(context, "/api/hrx/leave/accrual/manual/preview", "POST", { rows, schedule_only: true, as_of: "2026-07-14" });
   assert.deepEqual(preview.body.preview.counts, { ready: 1, errors: 1, duplicates: 0 });
-  const executed = request(context, "/api/hrx/leave/accrual/manual/execute", "POST", { rows, schedule_only: true, as_of: "2026-07-14", approved_by_actor_id: "user_amic_jwsuh", idempotency_key: "manual-scheduled-api" }, actor(true));
+  const approved = request(context, "/api/hrx/leave/accrual/manual/approve", "POST", { rows, schedule_only: true, as_of: "2026-07-14" }, actor(true, "user_amic_jwsuh"));
+  const executed = request(context, "/api/hrx/leave/accrual/manual/execute", "POST", { rows, schedule_only: true, as_of: "2026-07-14", approval_receipt_id: approved.body.approval_receipt.approval_receipt_id, idempotency_key: "manual-scheduled-api" }, actor(true));
   assert.equal(executed.status, 200, JSON.stringify(executed.body));
   assert.equal(executed.body.result.rows[0].lifecycle_state, "scheduled");
   const occurrences = request(context, "/api/hrx/leave/occurrences", "GET", {}, actor(), { state: "scheduled", as_of: "2026-07-14" });

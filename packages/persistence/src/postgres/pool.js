@@ -2,6 +2,30 @@ import pg from "pg";
 
 const { Pool } = pg;
 const LOOPBACK_HOSTS = new Set(["127.0.0.1", "::1", "localhost"]);
+export const POSTGRES_TENANT_CONTEXT_SECRET = Symbol.for("lawos.postgres.tenant-context-secret");
+
+function tenantContextSecret(value) {
+  if (value === undefined || value === null) return null;
+  const secret = Buffer.isBuffer(value) ? Buffer.from(value) : Buffer.from(String(value), "utf8");
+  if (secret.byteLength < 32) throw new TypeError("PostgreSQL tenant context secret must contain at least 32 bytes");
+  return secret;
+}
+
+export function attachPostgresTenantContextSecret(pool, value) {
+  if (!pool || (typeof pool.connect !== "function" && typeof pool.query !== "function")) {
+    throw new TypeError("PostgreSQL pool is required");
+  }
+  const secret = tenantContextSecret(value);
+  if (!secret) throw new TypeError("PostgreSQL tenant context secret is required");
+  if (pool[POSTGRES_TENANT_CONTEXT_SECRET]) return pool;
+  Object.defineProperty(pool, POSTGRES_TENANT_CONTEXT_SECRET, {
+    value: secret,
+    enumerable: false,
+    configurable: false,
+    writable: false,
+  });
+  return pool;
+}
 
 function positiveInteger(value, name, defaultValue) {
   const resolved = value ?? defaultValue;
@@ -28,6 +52,9 @@ export function resolvePostgresPoolConfig({
   if (!new Set(["postgres:", "postgresql:"]).has(url.protocol)) {
     throw new TypeError("PostgreSQL connection URL must use postgres or postgresql");
   }
+  if ([...url.searchParams.keys()].length > 0) {
+    throw new Error("PostgreSQL connection URL query parameters are not allowed; use the verified pool configuration");
+  }
   if (!new Set(["verify-full", "disable"]).has(sslMode)) {
     throw new TypeError("sslMode must be verify-full or disable");
   }
@@ -47,5 +74,8 @@ export function resolvePostgresPoolConfig({
 
 export function createPostgresPool(options = {}) {
   const config = resolvePostgresPoolConfig(options);
-  return new (options.PoolClass ?? Pool)(config);
+  const pool = new (options.PoolClass ?? Pool)(config);
+  const secret = tenantContextSecret(options.tenantContextSecret);
+  if (secret) attachPostgresTenantContextSecret(pool, secret);
+  return pool;
 }

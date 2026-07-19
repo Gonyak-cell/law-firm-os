@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Play } from "lucide-react";
 import { Panel } from "../../components/primitives.jsx";
 import { HrxStepUpChallenge } from "../security/HrxStepUpChallenge.tsx";
-import { executeHrxLeaveTermination, fetchHrxLeaveTerminationWorkspace, previewHrxLeaveTermination } from "../hrxApiClient.ts";
+import { approveHrxLeaveTermination, executeHrxLeaveTermination, fetchHrxLeaveTerminationWorkspace, previewHrxLeaveTermination } from "../hrxApiClient.ts";
 
 type Row = Record<string, unknown>;
 
@@ -29,14 +29,12 @@ function reconciliationStateLabel(state: string) {
 
 export function LeaveTerminationPage() {
   const [candidates, setCandidates] = useState<Row[]>([]);
-  const [approvers, setApprovers] = useState<Row[]>([]);
   const [history, setHistory] = useState<Row[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState("");
-  const [approvedBy, setApprovedBy] = useState("");
   const [preview, setPreview] = useState<Row | null>(null);
   const [result, setResult] = useState<Row | null>(null);
   const [idempotencyKey, setIdempotencyKey] = useState("");
-  const [stepUpRequired, setStepUpRequired] = useState(false);
+  const [stepUpAction, setStepUpAction] = useState<"" | "approve" | "execute">("");
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
 
@@ -49,10 +47,8 @@ export function LeaveTerminationPage() {
       return;
     }
     setCandidates(response.candidates as Row[]);
-    setApprovers(response.approvers as Row[]);
     setHistory(response.reconciliations as Row[]);
     setSelectedEmployee((current) => current || text(response.candidates[0] as Row, "employee_id"));
-    setApprovedBy((current) => current || text(response.approvers[0] as Row, "actor_id"));
   }
 
   useEffect(() => { void load(); }, []);
@@ -69,7 +65,7 @@ export function LeaveTerminationPage() {
     setBusy("preview");
     setError("");
     setResult(null);
-    setStepUpRequired(false);
+    setStepUpAction("");
     const response = await previewHrxLeaveTermination({ employee_id: text(candidate, "employee_id"), termination_date: text(candidate, "termination_date") });
     setBusy("");
     if (response.kind !== "data") {
@@ -80,21 +76,39 @@ export function LeaveTerminationPage() {
     setIdempotencyKey(`leave-termination-${Date.now()}`);
   }
 
+  async function approve() {
+    if (!preview) return;
+    setBusy("approve");
+    setError("");
+    const response = await approveHrxLeaveTermination({ preview_reconciliation_id: text(preview, "reconciliation_id") });
+    setBusy("");
+    if (response.kind === "step_up_required") {
+      setStepUpAction("approve");
+      return;
+    }
+    if (response.kind !== "data") {
+      setError("정산 승인 영수증을 기록하지 못했습니다.");
+      return;
+    }
+    setStepUpAction("");
+    setPreview({ ...preview, approval_receipt_id: text(response.approval_receipt as Row, "approval_receipt_id"), approved_by_actor_id: text(response.approval_receipt as Row, "approved_by_actor_id") });
+  }
+
   async function execute() {
     if (!preview) return;
     setBusy("execute");
     setError("");
-    const response = await executeHrxLeaveTermination({ preview_reconciliation_id: text(preview, "reconciliation_id"), approved_by_actor_id: approvedBy, idempotency_key: idempotencyKey });
+    const response = await executeHrxLeaveTermination({ preview_reconciliation_id: text(preview, "reconciliation_id"), approval_receipt_id: text(preview, "approval_receipt_id"), idempotency_key: idempotencyKey });
     setBusy("");
     if (response.kind === "step_up_required") {
-      setStepUpRequired(true);
+      setStepUpAction("execute");
       return;
     }
     if (response.kind !== "data") {
       setError("퇴사 정산을 원장과 급여 인계 큐에 반영하지 못했습니다.");
       return;
     }
-    setStepUpRequired(false);
+    setStepUpAction("");
     setResult(response.reconciliation as Row);
     void load();
   }
@@ -107,11 +121,11 @@ export function LeaveTerminationPage() {
         <div className="leave-accrual-section-head"><h3>정산 대상</h3></div>
         <div className="leave-termination-controls">
           <label><span>퇴사 예정자</span><select value={selectedEmployee} onChange={(event) => { setSelectedEmployee(event.target.value); setPreview(null); setResult(null); }}><option value="">대상 선택</option>{candidates.map((row) => <option key={text(row, "offboarding_id")} value={text(row, "employee_id")}>{text(row, "employee_display_name")} · {text(row, "termination_date")}</option>)}</select></label>
-          <label><span>다른 승인 HR</span><select value={approvedBy} onChange={(event) => setApprovedBy(event.target.value)}><option value="">승인자 선택</option>{approvers.map((row) => <option key={text(row, "actor_id")} value={text(row, "actor_id")}>{text(row, "display_name")}</option>)}</select></label>
           <button className="secondary-button" type="button" disabled={!candidate || busy === "preview"} onClick={() => void runPreview()}>정산 미리보기</button>
-          <button className="primary-button" type="button" disabled={!preview || !approvedBy || validationErrors.length > 0 || busy === "execute" || Boolean(result)} onClick={() => void execute()}><Play size={14} />정산 실행</button>
+          <button className="secondary-button" type="button" disabled={!preview || Boolean(text(preview, "approval_receipt_id")) || validationErrors.length > 0 || busy === "approve" || Boolean(result)} onClick={() => void approve()}>승인 기록</button>
+          <button className="primary-button" type="button" disabled={!preview || !text(preview, "approval_receipt_id") || validationErrors.length > 0 || busy === "execute" || Boolean(result)} onClick={() => void execute()}><Play size={14} />정산 실행</button>
         </div>
-        {stepUpRequired && <HrxStepUpChallenge purpose="leave_termination_settlement" onVerified={() => void execute()} />}
+        {stepUpAction && <HrxStepUpChallenge purpose="leave_termination_settlement" onVerified={() => { const action = stepUpAction; setStepUpAction(""); if (action === "approve") void approve(); else void execute(); }} />}
       </section>
 
       {visible ? <section className="leave-accrual-section">

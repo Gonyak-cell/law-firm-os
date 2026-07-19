@@ -12,6 +12,10 @@ export const DOMAIN_IDS = Object.freeze([
   "client-portal",
   "ai-governance",
   "dms",
+  "dms-auxiliary",
+  "analytics",
+  "ui-readiness",
+  "enterprise-readiness",
 ]);
 
 const HASH_PATTERN = /^[a-f0-9]{64}$/u;
@@ -49,6 +53,43 @@ export function requireDomainHash(value, name = "hash") {
   const hash = requiredText(value, name);
   if (!HASH_PATTERN.test(hash)) throw new TypeError(`${name} must be a SHA-256 hash`);
   return hash;
+}
+
+const REQUIRED_SMOKE_CHECKS = Object.freeze([
+  "source_imported",
+  "idempotency_replayed",
+  "shadow_equal",
+  "readback_equal",
+  "json_dual_write_absent",
+]);
+
+export function normalizeDomainSmokeResult(input = {}) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new TypeError("smoke_result must be an object");
+  }
+  if (input.status !== "passed") throw new TypeError("smoke_result status must be passed");
+  if (input.synthetic_only !== true) throw new TypeError("smoke_result must be synthetic-only");
+  if (input.production_migrated !== false) throw new TypeError("smoke_result production_migrated must be false");
+  const environment = requiredText(input.environment, "smoke_result environment");
+  if (!new Set(["test", "staging"]).has(environment)) throw new TypeError("smoke_result environment must be test or staging");
+  const executedAt = new Date(input.executed_at);
+  if (!Number.isFinite(executedAt.getTime())) throw new TypeError("smoke_result executed_at must be a valid timestamp");
+  const checks = input.checks;
+  if (!checks || typeof checks !== "object" || Array.isArray(checks)) throw new TypeError("smoke_result checks are required");
+  for (const check of REQUIRED_SMOKE_CHECKS) {
+    if (checks[check] !== true) throw new TypeError(`smoke_result check failed: ${check}`);
+  }
+  return Object.freeze({
+    status: "passed",
+    synthetic_only: true,
+    environment,
+    adapter: requiredText(input.adapter, "smoke_result adapter"),
+    executed_at: executedAt.toISOString(),
+    source_snapshot_hash: requireDomainHash(input.source_snapshot_hash, "smoke_result source_snapshot_hash"),
+    checks: Object.freeze(Object.fromEntries(REQUIRED_SMOKE_CHECKS.map((check) => [check, true]))),
+    safe_counts: Object.freeze(structuredClone(input.safe_counts ?? {})),
+    production_migrated: false,
+  });
 }
 
 function normalizeReference(input, tenantId) {

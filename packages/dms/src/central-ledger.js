@@ -13,12 +13,21 @@ export const DMS_APPEND_ONLY_RECORD_TYPES = Object.freeze([
   "DmsRagEvidence",
 ]);
 
+export const DMS_SPECIALIZED_AUTHORITY_RECORD_TYPES = Object.freeze([
+  "DmsDocument",
+  "DmsDocumentVersion",
+  "DmsFileObject",
+  "DmsLegalHold",
+  "DmsRetentionPolicy",
+]);
+
 export const DMS_AUTHORITY_TRANSITION_BOUNDARY = Object.freeze({
   schema_version: "law-firm-os.dms-authority-transition.v0.2",
   current_file_json_authority_active: true,
   postgres_mutable_target_schema: "lawos_dms",
   lawos_domain_records_mode: "immutable_snapshot_shadow_only",
   mutable_domain_ledger_command_allowed: false,
+  auxiliary_metadata_domain_id: "dms-auxiliary",
   dual_write_allowed: false,
   global_postgres_authority_active: false,
 });
@@ -109,6 +118,58 @@ export const DMS_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "DmsLegalHold|DmsRetentionPolicy.document_id->DmsDocument",
   ],
 });
+
+export const DMS_AUXILIARY_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
+  domain_id: "dms-auxiliary",
+  resolve_record_id: primaryIdOf,
+  unique_key: uniqueKey,
+  append_only: (record) => DMS_APPEND_ONLY_RECORD_TYPES.includes(record.model_type),
+  references,
+  pii_fields: DMS_DOMAIN_DESCRIPTOR.inventory.pii_fields,
+  primary_key_fields: DMS_DOMAIN_DESCRIPTOR.inventory.primary_key_fields,
+  unique_rules: DMS_DOMAIN_DESCRIPTOR.inventory.unique_rules,
+  reference_rules: DMS_DOMAIN_DESCRIPTOR.inventory.reference_rules,
+});
+
+function assertAuxiliaryRecordType(value) {
+  const modelType = value?.model_type;
+  if (DMS_SPECIALIZED_AUTHORITY_RECORD_TYPES.includes(modelType)) {
+    throw Object.assign(new Error(`${modelType} must use the lawos_dms specialized authority`), {
+      code: "LAWOS_DMS_SPECIALIZED_AUTHORITY_REQUIRED",
+      safe_error_code: "DMS_SPECIALIZED_AUTHORITY_REQUIRED",
+      status: 409,
+    });
+  }
+}
+
+export function createDmsAuxiliaryRepository(options = {}) {
+  for (const record of options.seedRecords ?? []) assertAuxiliaryRecordType(record);
+  const repository = createDmsRepository(options);
+  let auxiliary;
+  auxiliary = Object.freeze({
+    ...repository,
+    create(record) {
+      assertAuxiliaryRecordType(record);
+      return repository.create(record);
+    },
+    upsert(record) {
+      assertAuxiliaryRecordType(record);
+      return repository.upsert(record);
+    },
+    update(ref, patch = {}) {
+      assertAuxiliaryRecordType(ref);
+      return repository.update(ref, patch);
+    },
+    delete(ref) {
+      assertAuxiliaryRecordType(ref);
+      return repository.delete(ref);
+    },
+    transaction(fn) {
+      return repository.transaction(() => fn(auxiliary));
+    },
+  });
+  return auxiliary;
+}
 
 export function createDmsDomainSnapshot({ repositories, tenant_id } = {}) {
   const result = createRecordRepositoryDomainSnapshot({

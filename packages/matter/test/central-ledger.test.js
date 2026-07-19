@@ -57,6 +57,28 @@ test("Matter PostgreSQL import, idempotency, audit and async update rehearsal pr
   assert.equal(secondImport.replayed, true);
   const shadow = await ledger.compareSnapshot(source);
   assert.equal(shadow.comparison.equal, true);
+  const rehearsal = await ledger.recordRehearsal({
+    tenant_id: TENANT,
+    domain_id: "matter",
+    import_receipt_id: imported.receipt.receipt_id,
+    shadow_receipt_id: shadow.receipt.receipt_id,
+    smoke_result: {
+      status: "passed",
+      synthetic_only: true,
+      environment: "test",
+      adapter: "matter-postgres-domain-ledger",
+      executed_at: "2026-07-16T18:00:00.000Z",
+      source_snapshot_hash: shadow.comparison.source_hash,
+      checks: {
+        source_imported: imported.receipt.status === "source_imported",
+        idempotency_replayed: secondImport.replayed,
+        shadow_equal: shadow.comparison.equal,
+        readback_equal: shadow.comparison.source_hash === shadow.comparison.target_hash,
+        json_dual_write_absent: true,
+      },
+      production_migrated: false,
+    },
+  });
   const matter = source.records.find((record) => record.record_type === "Matter");
   const command = await runRecordRepositoryDomainCommand({
     ledger,
@@ -93,18 +115,6 @@ test("Matter PostgreSQL import, idempotency, audit and async update rehearsal pr
   assert.equal((await ledger.listIdempotency({ tenant_id: TENANT, domain_id: "matter" })).length, 1);
   assert.equal((await ledger.listAudit({ tenant_id: TENANT, domain_id: "matter" })).length, 1);
 
-  const rehearsal = await ledger.recordRehearsal({
-    tenant_id: TENANT,
-    domain_id: "matter",
-    import_receipt_id: imported.receipt.receipt_id,
-    shadow_receipt_id: shadow.receipt.receipt_id,
-    smoke_result: {
-      adapter: "matter-postgres-domain-ledger",
-      source_import_equal: true,
-      async_update_readback_equal: command.flush.comparison.equal,
-      production_migrated: false,
-    },
-  });
   assert.equal(rehearsal.status, "source_ready");
   assert.equal(rehearsal.production_migrated, false);
   reportDomainReceiptEvidence({ source, imported, secondImport, shadow, rehearsal });

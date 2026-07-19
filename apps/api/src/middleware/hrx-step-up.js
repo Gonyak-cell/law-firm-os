@@ -12,7 +12,6 @@ export const HRX_STEP_UP_REQUIRED_ACTION_PREFIXES = Object.freeze([
 ]);
 
 export const HRX_STEP_UP_PURPOSES = Object.freeze({
-  fallback: "hrx_sensitive_action",
   compensation: "compensation_access",
   evaluation: "evaluation_review",
   payroll: "payroll_export_review",
@@ -48,7 +47,10 @@ export function requiredPurposeForAction(action) {
 }
 
 function tokenMatchesContext(token = {}, context = {}) {
-  return token.tenant_id === context.tenant_id && token.actor_id === context.actor_id;
+  const primarySessionJti = clean(context.session_jti ?? context.primary_session_jti);
+  return token.tenant_id === context.tenant_id
+    && token.actor_id === context.actor_id
+    && (!primarySessionJti || token.primary_session_jti === primarySessionJti);
 }
 
 function tokenFresh(token = {}, now = new Date().toISOString()) {
@@ -59,7 +61,7 @@ function tokenFresh(token = {}, now = new Date().toISOString()) {
 function tokenPurposeMatchesAction(token = {}, action) {
   const purpose = clean(token.purpose);
   const requiredPurpose = requiredPurposeForAction(action);
-  return Boolean(purpose && (purpose === HRX_STEP_UP_PURPOSES.fallback || purpose === requiredPurpose));
+  return Boolean(purpose && purpose === requiredPurpose);
 }
 
 export function evaluateHrxStepUp({ action, context = {}, token = null, now } = {}) {

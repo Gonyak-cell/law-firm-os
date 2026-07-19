@@ -95,3 +95,47 @@ export async function runPostgresMigrations(pool, {
     client?.release();
   }
 }
+
+export async function verifyPostgresMigrationState(pool, {
+  migrations = listPostgresFoundationMigrations(),
+} = {}) {
+  if (!pool || typeof pool.query !== "function") throw new TypeError("PostgreSQL pool is required");
+  const ordered = migrations.map(normalizeMigration);
+  let result;
+  try {
+    result = await pool.query(
+      "SELECT migration_id, checksum FROM lawos_meta.schema_migrations ORDER BY migration_id",
+    );
+  } catch (error) {
+    throw sanitizePostgresError(error);
+  }
+  if (result.rows.length !== ordered.length) {
+    throw migrationHistoryError("PostgreSQL migration history is not at the exact source catalog", {
+      applied_count: result.rows.length,
+      expected_count: ordered.length,
+    });
+  }
+  for (let index = 0; index < ordered.length; index += 1) {
+    const applied = result.rows[index];
+    const expected = ordered[index];
+    if (applied.migration_id !== expected.id) {
+      throw migrationHistoryError("PostgreSQL migration history differs from the source catalog", {
+        migration_id: applied.migration_id,
+        expected_migration_id: expected.id,
+      });
+    }
+    if (applied.checksum !== expected.checksum) {
+      throw Object.assign(new Error("PostgreSQL migration checksum mismatch"), {
+        code: "LAWOS_POSTGRES_MIGRATION_CHECKSUM_MISMATCH",
+        safe_error_code: "POSTGRES_MIGRATION_CHECKSUM_MISMATCH",
+        status: 500,
+        migration_id: expected.id,
+      });
+    }
+  }
+  return Object.freeze(ordered.map((migration) => Object.freeze({
+    id: migration.id,
+    checksum: migration.checksum,
+    applied: true,
+  })));
+}

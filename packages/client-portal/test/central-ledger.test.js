@@ -111,7 +111,7 @@ function buildPortalSource() {
   const consumed = consumeMagicLinkInvite({
     repository,
     token,
-    now: "2026-07-16T00:00:00.000Z",
+    clock: () => "2026-07-16T00:00:00.000Z",
   });
   submitExternalRfiResponse({
     repository,
@@ -133,7 +133,7 @@ function buildPortalSource() {
     tenant_id: TENANT,
     secure_link_id: usedLink.secure_link.secure_link_id,
     external_session_id: consumed.external_session.external_session_id,
-    now: "2026-07-16T00:00:00.000Z",
+    clock: () => "2026-07-16T00:00:00.000Z",
   });
   revokeSecureLink({
     repository,
@@ -237,6 +237,28 @@ test("Portal PostgreSQL import, async API, append-only guard, shadow, and rehear
   assert.equal(secondImport.replayed, true);
   const shadow = await ledger.compareSnapshot(source.snapshot);
   assert.equal(shadow.comparison.equal, true);
+  const rehearsal = await ledger.recordRehearsal({
+    tenant_id: TENANT,
+    domain_id: PORTAL_DOMAIN_DESCRIPTOR.domain_id,
+    import_receipt_id: imported.receipt.receipt_id,
+    shadow_receipt_id: shadow.receipt.receipt_id,
+    smoke_result: {
+      status: "passed",
+      synthetic_only: true,
+      environment: "test",
+      adapter: "portal-postgres-domain-ledger",
+      executed_at: "2026-07-16T22:00:00.000Z",
+      source_snapshot_hash: shadow.comparison.source_hash,
+      checks: {
+        source_imported: imported.receipt.status === "source_imported",
+        idempotency_replayed: secondImport.replayed,
+        shadow_equal: shadow.comparison.equal,
+        readback_equal: shadow.comparison.source_hash === shadow.comparison.target_hash,
+        json_dual_write_absent: true,
+      },
+      production_migrated: false,
+    },
+  });
 
   const link = await handlePortalPostgresApiRequest({
     ledger,
@@ -347,20 +369,6 @@ test("Portal PostgreSQL import, async API, append-only guard, shadow, and rehear
   assert.equal(reconciliation.invariant_passed, true);
   assert.equal(JSON.stringify(targetRecords).includes("must-not-persist"), false);
 
-  const rehearsal = await ledger.recordRehearsal({
-    tenant_id: TENANT,
-    domain_id: PORTAL_DOMAIN_DESCRIPTOR.domain_id,
-    import_receipt_id: imported.receipt.receipt_id,
-    shadow_receipt_id: shadow.receipt.receipt_id,
-    smoke_result: {
-      adapter: "portal-postgres-domain-ledger",
-      source_import_equal: true,
-      async_api_command_equal: consumed.persistence.shadow_equal,
-      revocation_preserved: revoked.response.body.item.status === "revoked",
-      portal_invariant_hash: reconciliation.invariant_hash,
-      production_migrated: false,
-    },
-  });
   assert.equal(rehearsal.status, "source_ready");
   assert.equal(rehearsal.production_migrated, false);
   reportDomainReceiptEvidence({ source: source.snapshot, imported, secondImport, shadow, rehearsal });

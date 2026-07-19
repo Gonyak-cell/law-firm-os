@@ -84,7 +84,7 @@ async function hrxElevatedActorHeaders(actor_id, targetBaseUrl = baseUrl) {
   };
 }
 
-async function hrxSelfServiceHeaders(actor_id, targetBaseUrl = baseUrl) {
+async function hrxSelfServiceHeaders(actor_id, targetBaseUrl = baseUrl, purpose = "security_audit") {
   return {
     ...(await sessionHeadersForActor(targetBaseUrl, actor_id)),
     "x-lawos-tenant-id": "tenant_amic_matter_vault",
@@ -93,6 +93,7 @@ async function hrxSelfServiceHeaders(actor_id, targetBaseUrl = baseUrl) {
     "x-lawos-hrx-step-up": signedStepUpHeader({
       tenant_id: "tenant_amic_matter_vault",
       actor_id,
+      purpose,
     }),
     "x-lawos-hrx-scopes": ["hrx.employee.read", "hrx.document.read", "hrx.attendance.read", "hrx.leave.read", "hrx.compensation.read"].join(","),
   };
@@ -411,7 +412,7 @@ test("GET /api/hrx/compensation requires step-up and returns masked ref-only rec
   assert.equal(challenged.body.safe_error_code, "HRX_STEP_UP_REQUIRED");
 
   const self = await json("/api/hrx/compensation?employee_id=emp_amic_ytkim", {
-    headers: await hrxSelfServiceHeaders("user_amic_ytkim"),
+    headers: await hrxSelfServiceHeaders("user_amic_ytkim", baseUrl, "compensation_access"),
   });
   assert.equal(self.status, 200);
   assert.equal(self.body.outcome, "ok");
@@ -424,13 +425,21 @@ test("GET /api/hrx/compensation requires step-up and returns masked ref-only rec
   assert.equal(JSON.stringify(self.body).includes("salary"), false);
 
   const otherDenied = await json("/api/hrx/compensation?employee_id=emp_amic_ytkim", {
-    headers: await hrxSelfServiceHeaders("user_amic_bj_park"),
+    headers: await hrxSelfServiceHeaders("user_amic_bj_park", baseUrl, "compensation_access"),
   });
   assert.equal(otherDenied.status, 403);
   assert.equal(otherDenied.body.safe_error_code, "HRX_AUTHZ_DENIED");
   assert.equal(otherDenied.body.required_scope, "hrx.compensation.read");
 
-  const elevated = await json("/api/hrx/compensation?employee_id=emp_amic_ytkim");
+  const elevated = await json("/api/hrx/compensation?employee_id=emp_amic_ytkim", {
+    headers: {
+      "x-lawos-hrx-step-up": signedStepUpHeader({
+        tenant_id: "tenant_amic_matter_vault",
+        actor_id: "user_amic_jwsuh",
+        purpose: "compensation_access",
+      }),
+    },
+  });
   assert.equal(elevated.status, 200);
   assert.deepEqual(
     elevated.body.compensation_records.map((record) => record.compensation_id),
@@ -1234,6 +1243,13 @@ test("GET and POST lifecycle routes update onboarding and offboarding through AP
   assert.equal(offboarding.body.offboarding[0].access_revocations[0].confirmation_ref, "LX-11:AccessRevocation:off-001:idp-core");
   assert.equal(offboarding.body.offboarding[0].matter_reassignments[0].reassigned, true);
 
+  const tenantRebind = await json("/api/hrx/lifecycle/offboarding/off-001/close", {
+    method: "POST",
+    body: JSON.stringify({ tenant_id: "tenant-forged" }),
+  });
+  assert.equal(tenantRebind.status, 400);
+  assert.equal(tenantRebind.body.safe_error_code, "HRX_OFFBOARDING_IDENTITY_MISMATCH");
+
   const blockedReassignment = await json("/api/hrx/lifecycle/offboarding/off-001/close", {
     method: "POST",
     body: JSON.stringify({
@@ -1241,7 +1257,28 @@ test("GET and POST lifecycle routes update onboarding and offboarding through AP
     }),
   });
   assert.equal(blockedReassignment.status, 400);
-  assert.equal(blockedReassignment.body.safe_error_code, "HRX_OFFBOARDING_CLOSE_BLOCKED");
+  assert.equal(blockedReassignment.body.safe_error_code, "HRX_OFFBOARDING_EVIDENCE_MISMATCH");
+
+  const forgedReady = await json("/api/hrx/lifecycle/offboarding/off-002/close", {
+    method: "POST",
+    body: JSON.stringify({
+      leave_reconciliation_status: "approved_and_synced",
+      access_revocations: [],
+      document_returns: [],
+      legal_hold_checks: [],
+      matter_reassignments: [],
+      handover_items: [],
+    }),
+  });
+  assert.equal(forgedReady.status, 400);
+  assert.equal(forgedReady.body.safe_error_code, "HRX_OFFBOARDING_EVIDENCE_MISMATCH");
+
+  const authoritativeBlocked = await json("/api/hrx/lifecycle/offboarding/off-002/close", {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  assert.equal(authoritativeBlocked.status, 400);
+  assert.equal(authoritativeBlocked.body.safe_error_code, "HRX_OFFBOARDING_CLOSE_BLOCKED");
 
   const closed = await json("/api/hrx/lifecycle/offboarding/off-001/close", {
     method: "POST",
@@ -1283,6 +1320,13 @@ test("GET /api/hrx/audit remains tenant scoped", async () => {
 test("POST /api/hrx/payroll creates preview, approval and export artifact without payment execution", async () => {
   const preview = await json("/api/hrx/payroll/preview", {
     method: "POST",
+    headers: {
+      "x-lawos-hrx-step-up": signedStepUpHeader({
+        tenant_id: "tenant_amic_matter_vault",
+        actor_id: "user_amic_jwsuh",
+        purpose: "payroll_export_review",
+      }),
+    },
     body: JSON.stringify({
       preview_id: "payroll-api-preview-001",
       payroll_period: "2026-06",
@@ -1297,6 +1341,13 @@ test("POST /api/hrx/payroll creates preview, approval and export artifact withou
 
   const approved = await json("/api/hrx/payroll/approve", {
     method: "POST",
+    headers: {
+      "x-lawos-hrx-step-up": signedStepUpHeader({
+        tenant_id: "tenant_amic_matter_vault",
+        actor_id: "user_amic_jwsuh",
+        purpose: "payroll_export_review",
+      }),
+    },
     body: JSON.stringify({
       preview_id: "payroll-api-preview-001",
       approval_ref: "Approval:payroll-api-preview-001",
@@ -1307,6 +1358,13 @@ test("POST /api/hrx/payroll creates preview, approval and export artifact withou
 
   const exported = await json("/api/hrx/payroll/export", {
     method: "POST",
+    headers: {
+      "x-lawos-hrx-step-up": signedStepUpHeader({
+        tenant_id: "tenant_amic_matter_vault",
+        actor_id: "user_amic_jwsuh",
+        purpose: "payroll_export_review",
+      }),
+    },
     body: JSON.stringify({
       preview_id: "payroll-api-preview-001",
       export_artifact_ref: "DMS:payroll-api-preview-001",

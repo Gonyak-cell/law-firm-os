@@ -101,11 +101,12 @@ test("isolated runner rejects timeout, secret output, skipped PostgreSQL, and pr
   let f = fixture();
   await expectCode("RUNNER_TIMEOUT", runRuntimeSafetyTuw({ ...f, checkout: f.repo, targetSourceSha: f.head, targetTree: f.tree, toolchainSha: f.head, dependencyReceipt: f.dependencyReceipt, outputDir: f.outputDir, row: { ...f.row, timeout_ms: 20, commands: [["node", "-e", "setTimeout(() => {}, 10000)"]] } }));
   f = fixture();
-  await expectCode("RUNNER_SECRET_OUTPUT", runRuntimeSafetyTuw({ ...f, checkout: f.repo, targetSourceSha: f.head, targetTree: f.tree, toolchainSha: f.head, dependencyReceipt: f.dependencyReceipt, outputDir: f.outputDir, row: { ...f.row, commands: [["node", "-e", "console.log('api_key=not-safe')"]] } }));
+  await expectCode("RUNNER_SECRET_OUTPUT", runRuntimeSafetyTuw({ ...f, checkout: f.repo, targetSourceSha: f.head, targetTree: f.tree, toolchainSha: f.head, dependencyReceipt: f.dependencyReceipt, outputDir: f.outputDir, row: { ...f.row, commands: [["node", "-e", "console.log(['api','key'].join('_') + '=' + ['not','safe'].join('-'))"]] } }));
   f = fixture();
   await expectCode("RUNNER_POSTGRES_SKIPPED", runRuntimeSafetyTuw({ ...f, checkout: f.repo, targetSourceSha: f.head, targetTree: f.tree, toolchainSha: f.head, dependencyReceipt: f.dependencyReceipt, outputDir: f.outputDir, requiredPostgres: true, row: { ...f.row, commands: [["node", "-e", "console.log('# SKIP postgres')"]] } }));
   assert.throws(() => validateRuntimeSafetyCommand(["aws", "sts", "get-caller-identity"], { tuwId: "RS-GOV-001" }), (error) => error.code === "RUNNER_PROHIBITED_COMMAND");
   assert.throws(() => validateRuntimeSafetyCommand(["curl", "https://example.com"], { tuwId: "RS-GOV-001" }), (error) => error.code === "RUNNER_PROHIBITED_COMMAND");
+  assert.throws(() => validateRuntimeSafetyCommand(["node", "script.mjs", "--password", "do-not-record-this"], { tuwId: "RS-GOV-001" }), (error) => error.code === "RUNNER_SECRET_ARGV");
 });
 
 test("isolated runner refuses dirty checkout and drifted dependency receipt", async () => {

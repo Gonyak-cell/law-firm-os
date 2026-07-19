@@ -339,7 +339,7 @@ export function handleFinanceTimeEntryCreate({ body, context, requestId, runtime
     const result = createTimeEntry({
       repository: runtime.repository,
       time_entry: body.time_entry,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -369,7 +369,7 @@ export function handleFinanceTimeEntryApprove({ body, context, requestId, runtim
       repository: runtime.repository,
       tenant_id: body.tenant_id,
       time_entry_id: body.time_entry_id,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -394,7 +394,7 @@ export function handleFinanceExpenseCreate({ body, context, requestId, runtime =
     const result = createExpense({
       repository: runtime.repository,
       expense: body.expense,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -419,7 +419,7 @@ export function handleFinanceDisbursementCreate({ body, context, requestId, runt
     const result = createDisbursement({
       repository: runtime.repository,
       disbursement: body.disbursement,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -450,7 +450,7 @@ export function handleFinanceFeeArrangementCreate({ body, context, requestId, ru
       repository: runtime.repository,
       fee_arrangement: body.fee_arrangement,
       rate_card: rateCard,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -485,7 +485,7 @@ export function handleFinanceWipGenerate({ body, context, requestId, runtime = D
       matter_id: body.matter_id,
       rate_card: rateCard,
       fee_arrangement: feeArrangement,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -513,7 +513,7 @@ export function handleFinanceWipSnapshotLock({ body, context, requestId, runtime
       matter_id: body.matter_id,
       wip_item_ids: body.wip_item_ids,
       wip_snapshot_id: body.wip_snapshot_id,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -538,7 +538,7 @@ export function handleFinancePreBillCreate({ body, context, requestId, runtime =
     const result = createPreBill({
       repository: runtime.repository,
       prebill: body.prebill,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -568,7 +568,7 @@ export function handleFinancePreBillApprove({ body, context, requestId, runtime 
       repository: runtime.repository,
       tenant_id: body.tenant_id,
       prebill_id: body.prebill_id,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -599,7 +599,7 @@ export function handleFinancePreBillReject({ body, context, requestId, runtime =
       tenant_id: body.tenant_id,
       prebill_id: body.prebill_id,
       reason_code: body.reason_code,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -624,7 +624,7 @@ export function handleFinanceInvoiceIssue({ body, context, requestId, runtime = 
     const result = createInvoiceFromPreBill({
       repository: runtime.repository,
       invoice: body.invoice,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -649,7 +649,7 @@ export function handleFinancePaymentImport({ body, context, requestId, runtime =
     const result = importPayment({
       repository: runtime.repository,
       payment: body.payment,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -674,7 +674,7 @@ export function handleFinancePaymentMatchCreate({ body, context, requestId, runt
     const result = matchPaymentToInvoice({
       repository: runtime.repository,
       match: body.match,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -703,7 +703,7 @@ export function handleFinanceTrustDepositCreate({ body, context, requestId, runt
     const result = receiveTrustDeposit({
       repository: runtime.repository,
       deposit: body.deposit,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -728,7 +728,7 @@ export function handleFinanceTrustDrawdownCreate({ body, context, requestId, run
     const result = drawdownTrustToInvoice({
       repository: runtime.repository,
       drawdown: body.drawdown,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({
@@ -757,7 +757,7 @@ export function handleFinanceTrustRefundCreate({ body, context, requestId, runti
     const result = recordTrustRefundLiability({
       repository: runtime.repository,
       refund: body.refund,
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
     return itemResponse({

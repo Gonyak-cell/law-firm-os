@@ -3295,6 +3295,7 @@ export async function fetchVaultDocuments({
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
+  if (matterId) params.set("matter_id", matterId);
 
   let body;
   try {
@@ -3808,7 +3809,7 @@ export function fetchMatterVaultSearch({ matterId, ctx = "allow" } = {}) {
 export function fetchMatterVaultAudit({ matterId, ctx = "allow" } = {}) {
   return fetchMatterVaultCollection({
     path: "/api/vault/audit",
-    matterId: null,
+    matterId,
     ctx,
     permissionRef: "ui_mv_matter_vault_audit",
     auditHintRef: "ui_mv_matter_vault_audit_probe"
@@ -4544,15 +4545,13 @@ export function issueIntakeClearanceToken({ intakeRequest, conflictCheck, engage
       audit_hint_ref: DEFAULT_CRM_INTAKE_AUDIT_HINT_REF,
       actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
       idempotency_key: `clearance:${clearanceId}`,
-      now: "2026-06-20T00:00:00.000Z",
       token: {
         clearance_token_id: clearanceId,
         tenant_id: CRM_INTAKE_TENANT_ID,
         intake_request_id: intakeRequest?.intake_request_id,
         conflict_check_id: conflictCheck?.conflict_check_id,
         engagement_id: engagement?.engagement_id,
-        snapshot_hash: conflictCheck?.snapshot_hash,
-        expires_at: "2026-06-27T00:00:00.000Z"
+        snapshot_hash: conflictCheck?.snapshot_hash
       }
     }
   });
@@ -5539,10 +5538,10 @@ async function portalExternalJson(path, options = {}) {
   return { kind: "data", status: 200, body };
 }
 
-export function consumePortalInvite({ token, now } = {}) {
+export function consumePortalInvite({ token } = {}) {
   return portalExternalJson("/api/portal/invites/consume", {
     method: "POST",
-    body: JSON.stringify({ token, now })
+    body: JSON.stringify({ token })
   });
 }
 
@@ -5564,12 +5563,11 @@ export function submitPortalExternalRfiResponse({ externalSessionId, tenantId, r
   });
 }
 
-export function accessPortalExternalSecureLink({ tenantId, secureLinkId, externalSessionId, now } = {}) {
+export function accessPortalExternalSecureLink({ tenantId, secureLinkId, externalSessionId } = {}) {
   const params = new URLSearchParams({
     tenant_id: tenantId,
     external_session_id: externalSessionId
   });
-  if (now) params.set("now", now);
   return portalExternalJson(`/api/portal/external/secure-links/${encodeURIComponent(secureLinkId)}/access?${params.toString()}`);
 }
 

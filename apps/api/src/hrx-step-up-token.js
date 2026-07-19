@@ -67,6 +67,7 @@ export function resolveHrxStepUpConfig({
   profile = resolveRuntimeProfile(env),
   secret,
   totpSecret,
+  totpRequired = true,
 } = {}) {
   const resolvedProfile = resolveRuntimeProfile({ ...env, LAWOS_RUNTIME_PROFILE: profile });
   const configuredSecret = secret === undefined ? env.LAWOS_HRX_STEP_UP_SECRET : secret;
@@ -77,10 +78,12 @@ export function resolveHrxStepUpConfig({
         envName: "LAWOS_HRX_STEP_UP_SECRET",
         knownDefault: HRX_STEP_UP_DEFAULT_SECRET,
       }),
-      totpSecret: assertOperationalStepUpSecret(configuredTotpSecret, {
-        envName: "LAWOS_HRX_STEP_UP_TOTP_SECRET",
-        knownDefault: HRX_STEP_UP_DEFAULT_TOTP_SECRET,
-      }),
+      totpSecret: totpRequired
+        ? assertOperationalStepUpSecret(configuredTotpSecret, {
+            envName: "LAWOS_HRX_STEP_UP_TOTP_SECRET",
+            knownDefault: HRX_STEP_UP_DEFAULT_TOTP_SECRET,
+          })
+        : null,
     });
   }
   return Object.freeze({
@@ -92,7 +95,8 @@ export function resolveHrxStepUpConfig({
 function normalizePrincipal(principal = {}) {
   const tenantId = clean(principal.tenant_id ?? principal.tenantId);
   const actorId = clean(principal.user_id ?? principal.actor_id ?? principal.actorId);
-  return Object.freeze({ tenantId, actorId });
+  const primarySessionJti = clean(principal.session_jti ?? principal.primary_session_jti);
+  return Object.freeze({ tenantId, actorId, primarySessionJti });
 }
 
 function errorBody(requestId, safeErrorCode, reason) {
@@ -125,8 +129,9 @@ export function createHrxStepUpAuthority({
   ttlMs = Number(process.env.LAWOS_HRX_STEP_UP_TTL_MS || DEFAULT_TTL_MS),
   totpStepMs = DEFAULT_TOTP_STEP_MS,
   now = () => Date.now(),
+  externalProviderOnly = false,
 } = {}) {
-  const config = resolveHrxStepUpConfig({ env, profile, secret, totpSecret });
+  const config = resolveHrxStepUpConfig({ env, profile, secret, totpSecret, totpRequired: !externalProviderOnly });
   secret = config.secret;
   totpSecret = config.totpSecret;
   const nowMs = () => currentMs(now);
@@ -139,12 +144,14 @@ export function createHrxStepUpAuthority({
   }
 
   function generateTotp(input = {}, { at } = {}) {
+    if (externalProviderOnly) throw runtimePreflightError("local TOTP is disabled for external-provider step-up authority");
     const timestamp = at === undefined ? nowMs() : currentMs(at);
     const window = Math.floor(timestamp / totpStepMs);
     return totpForWindow(input, window);
   }
 
   function verifyTotp(input = {}, code) {
+    if (externalProviderOnly) return false;
     const supplied = clean(code);
     if (!/^\d{6}$/.test(supplied)) return false;
     const window = Math.floor(nowMs() / totpStepMs);
@@ -160,6 +167,7 @@ export function createHrxStepUpAuthority({
     const session = createHrxStepUpSession({
       tenant_id: normalized.tenantId,
       actor_id: normalized.actorId,
+      primary_session_jti: normalized.primarySessionJti || undefined,
       purpose: resolvedPurpose,
       mfa: true,
       assurance_level: 2,
@@ -266,6 +274,7 @@ export function createHrxStepUpAuthority({
         session_id: payload.session_id,
         tenant_id: payload.tenant_id,
         actor_id: payload.actor_id,
+        primary_session_jti: payload.primary_session_jti ?? null,
         purpose: payload.purpose,
         mfa: payload.mfa,
         assurance_level: payload.assurance_level,
@@ -277,6 +286,11 @@ export function createHrxStepUpAuthority({
   }
 
   return Object.freeze({
+    capabilities: Object.freeze({
+      external_provider_only: externalProviderOnly,
+      local_totp: !externalProviderOnly,
+      default_totp: false,
+    }),
     issue,
     issueVerified,
     verify,

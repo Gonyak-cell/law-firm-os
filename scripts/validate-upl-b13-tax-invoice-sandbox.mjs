@@ -4,7 +4,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const ROOT = process.cwd();
-const ARTIFACT_PATH = "artifacts/manual-qa/upl-b13-popbill-sandbox-proof.json";
+const ARTIFACT_PATH = process.env.LAWOS_UPL_B13_ARTIFACT_JSON
+  ?? "artifacts/manual-qa/upl-b13-popbill-sandbox-proof.json";
 const ENV_PATH = ".env.popbill.local";
 
 function read(path) {

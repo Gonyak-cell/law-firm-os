@@ -1,8 +1,13 @@
+import { createHash } from "node:crypto";
 import {
   compareDomainSnapshots,
   createDomainSnapshot,
   hashDomainValue,
 } from "../../persistence/src/domain-ledger.js";
+import {
+  compareDomainSnapshotWithLedgerReadback,
+  flushDomainSnapshotToScopedLedger,
+} from "../../persistence/src/record-domain-adapter.js";
 import {
   HRX_APPEND_ONLY_TABLES,
   HRX_CAS_TABLES,
@@ -28,10 +33,6 @@ function requiredText(value, name) {
 
 function clone(value) {
   return value === undefined ? undefined : structuredClone(value);
-}
-
-function recordIdentity(record) {
-  return `${record.record_type}:${record.record_id}`;
 }
 
 function rowRecordId(table, row) {
@@ -79,6 +80,66 @@ function tableRecords(state, tenantId) {
       append_only: HRX_APPEND_ONLY_TABLES.includes(table),
       payload: clone(row),
     })));
+}
+
+function centralIdempotencyEntries(state, tenantId) {
+  const entries = [];
+  for (const table of HRX_STORE_TABLES) {
+    for (const row of state.tables?.[table] ?? []) {
+      if (row.tenant_id !== tenantId) continue;
+      for (const [field, value] of Object.entries(row)) {
+        if (field !== "idempotency_key" && !field.endsWith("_idempotency_key")) continue;
+        const key = String(value ?? "").trim();
+        if (!key) continue;
+        const identity = { table, field, key_hash: hashDomainValue(key) };
+        entries.push({
+          tenant_id: tenantId,
+          domain_id: HRX_DOMAIN_ID,
+          key: `hrx:${hashDomainValue(identity)}`,
+          request_hash: hashDomainValue({ domain_id: HRX_DOMAIN_ID, ...identity }),
+          response: { source_record_type: table, source_response_included: false },
+          created_at: row.created_at ?? row.occurred_at ?? null,
+        });
+      }
+    }
+  }
+  return entries;
+}
+
+function centralAuditEvents(state, tenantId) {
+  return (state.tables?.hrx_audit_events ?? [])
+    .filter((row) => row.tenant_id === tenantId)
+    .map((row) => ({
+      tenant_id: tenantId,
+      domain_id: HRX_DOMAIN_ID,
+      event_id: requiredText(row.event_id, "HRX audit event_id"),
+      event_type: requiredText(row.action, "HRX audit action"),
+      actor_id: row.actor_id ?? null,
+      object_type: row.object_type ?? null,
+      object_id: row.object_id ?? null,
+      payload: {
+        source_event_hash: requiredText(row.event_hash, "HRX audit event_hash"),
+        source_metadata_included: false,
+      },
+      created_at: row.occurred_at ?? null,
+    }));
+}
+
+function mergeCentralEntries(priorEntries, derivedEntries, identity, fingerprint, conflictCode) {
+  const merged = new Map((priorEntries ?? []).map((entry) => [identity(entry), entry]));
+  for (const entry of derivedEntries) {
+    const key = identity(entry);
+    const prior = merged.get(key);
+    if (prior && fingerprint(prior) !== fingerprint(entry)) {
+      throw Object.assign(new Error("HRX central metadata conflicts with the materialized PostgreSQL baseline"), {
+        code: conflictCode,
+        safe_error_code: "HRX_POSTGRES_CENTRAL_METADATA_CONFLICT",
+        status: 409,
+      });
+    }
+    merged.set(key, entry);
+  }
+  return [...merged.values()];
 }
 
 function orderedTableRows(state, table, tenantId) {
@@ -131,6 +192,27 @@ export function createHrxDomainSnapshot({ store, tenant_id } = {}) {
   const state = store.snapshot();
   const integrity = validateHrxStoreSnapshot(state);
   const records = [...migrationRecords(state, tenantId), ...tableRecords(state, tenantId)];
+  const baseline = materializedBaselines.get(store);
+  const idempotencyEntries = mergeCentralEntries(
+    baseline?.idempotency_entries,
+    centralIdempotencyEntries(state, tenantId),
+    (entry) => entry.key,
+    (entry) => hashDomainValue({ request_hash: entry.request_hash, response: entry.response }),
+    "LAWOS_HRX_POSTGRES_IDEMPOTENCY_CONFLICT",
+  );
+  const auditEvents = mergeCentralEntries(
+    baseline?.audit_events,
+    centralAuditEvents(state, tenantId),
+    (event) => event.event_id,
+    (event) => hashDomainValue({
+      event_type: event.event_type,
+      actor_id: event.actor_id,
+      object_type: event.object_type,
+      object_id: event.object_id,
+      payload: event.payload,
+    }),
+    "LAWOS_HRX_POSTGRES_AUDIT_CONFLICT",
+  );
   const sourceHash = hashDomainValue({
     tenant_id: tenantId,
     schema_version: state.schema_version,
@@ -144,6 +226,8 @@ export function createHrxDomainSnapshot({ store, tenant_id } = {}) {
     tenant_id: tenantId,
     domain_id: HRX_DOMAIN_ID,
     records,
+    idempotency_entries: idempotencyEntries,
+    audit_events: auditEvents,
     source_hash: sourceHash,
   });
   const tableCounts = Object.fromEntries(HRX_STORE_TABLES.map((table) => [
@@ -161,6 +245,8 @@ export function createHrxDomainSnapshot({ store, tenant_id } = {}) {
       product_row_count: snapshot.records.length - (state.applied_migrations?.length ?? 0),
       append_only_table_count: HRX_APPEND_ONLY_TABLES.length,
       append_only_record_count: snapshot.records.filter((record) => record.append_only).length,
+      idempotency_count: snapshot.idempotency_entries.length,
+      audit_event_count: snapshot.audit_events.length,
       cas_table_count: HRX_CAS_TABLES.length,
       unique_rule_count: Object.values(HRX_TABLE_UNIQUE_CONSTRAINTS)
         .reduce((total, constraints) => total + constraints.length, 0),
@@ -183,18 +269,28 @@ export function createHrxDomainSnapshot({ store, tenant_id } = {}) {
   });
 }
 
-function snapshotFromLedgerRecords(tenantId, records) {
+function snapshotFromLedgerRecords(tenantId, records, idempotencyEntries = [], auditEvents = []) {
   return createDomainSnapshot({
     tenant_id: tenantId,
     domain_id: HRX_DOMAIN_ID,
     records,
+    idempotency_entries: idempotencyEntries,
+    audit_events: auditEvents,
   });
 }
 
 export async function materializeHrxStoreFromPostgres({ ledger, tenant_id } = {}) {
   if (!ledger || typeof ledger.list !== "function") throw new TypeError("PostgreSQL domain ledger is required");
   const tenantId = requiredText(tenant_id, "tenant_id");
-  const records = await ledger.list({ tenant_id: tenantId, domain_id: HRX_DOMAIN_ID });
+  if (typeof ledger.listIdempotency !== "function" || typeof ledger.listAudit !== "function") {
+    throw new TypeError("PostgreSQL domain ledger idempotency and audit methods are required");
+  }
+  const scope = { tenant_id: tenantId, domain_id: HRX_DOMAIN_ID };
+  const [records, idempotencyEntries, auditEvents] = await Promise.all([
+    ledger.list(scope),
+    ledger.listIdempotency(scope),
+    ledger.listAudit(scope),
+  ]);
   const state = {
     schema_version: "law-firm-os.hrx-file-store.v0.1",
     applied_migrations: records
@@ -210,8 +306,110 @@ export async function materializeHrxStoreFromPostgres({ ledger, tenant_id } = {}
   };
   validateHrxStoreSnapshot(state);
   const store = createFileHrxStore({ initialState: state });
-  materializedBaselines.set(store, snapshotFromLedgerRecords(tenantId, records));
+  materializedBaselines.set(store, snapshotFromLedgerRecords(
+    tenantId,
+    records,
+    idempotencyEntries,
+    auditEvents,
+  ));
   return store;
+}
+
+function migrationHash(sql) {
+  return createHash("sha256").update(sql).digest("hex");
+}
+
+export function assertHrxPostgresAuthorityReady({ store, tenant_id } = {}) {
+  const tenantId = requiredText(tenant_id, "tenant_id");
+  const state = store.snapshot();
+  const expected = loadHrxCoreMigrations().map((migration) => ({
+    id: migration.id,
+    hash: migrationHash(migration.sql),
+  })).sort((left, right) => left.id.localeCompare(right.id));
+  const actual = (state.applied_migrations ?? []).map((migration) => ({
+    id: migration.id,
+    hash: migration.hash,
+  })).sort((left, right) => left.id.localeCompare(right.id));
+  const baseline = materializedBaselines.get(store);
+  const source = createHrxDomainSnapshot({ store, tenant_id: tenantId }).snapshot;
+  const comparison = baseline ? compareDomainSnapshots(baseline, source) : null;
+  if (hashDomainValue(actual) !== hashDomainValue(expected) || comparison?.equal !== true) {
+    throw Object.assign(new Error("HRX PostgreSQL authority requires an exact pre-authority import"), {
+      code: "LAWOS_HRX_POSTGRES_AUTHORITY_NOT_READY",
+      safe_error_code: "HRX_POSTGRES_AUTHORITY_NOT_READY",
+      status: 503,
+      expected_migration_count: expected.length,
+      actual_migration_count: actual.length,
+      central_metadata_equal: comparison?.equal === true,
+    });
+  }
+  return Object.freeze({ source, baseline, migration_count: expected.length });
+}
+
+export function getHrxMaterializedBaseline(store) {
+  const baseline = materializedBaselines.get(store);
+  if (!baseline) throw new TypeError("HRX PostgreSQL materialized baseline is required");
+  return baseline;
+}
+
+export function createHrxOperationalDomainSnapshot({ store, tenant_id, request_context } = {}) {
+  const tenantId = requiredText(tenant_id, "tenant_id");
+  const base = createHrxDomainSnapshot({ store, tenant_id: tenantId }).snapshot;
+  const baseline = getHrxMaterializedBaseline(store);
+  if (compareDomainSnapshots(baseline, base).equal) return base;
+
+  const idempotencyKey = requiredText(request_context?.idempotency_key, "HRX request idempotency_key");
+  const method = requiredText(request_context?.method ?? "COMMAND", "HRX request method").toUpperCase();
+  const pathname = requiredText(request_context?.pathname ?? "internal-command", "HRX request pathname");
+  const requestFingerprint = {
+    method,
+    pathname_hash: hashDomainValue(pathname),
+    request_target_hash: request_context?.request_target_hash ?? null,
+    request_body_hash: request_context?.request_body_hash ?? null,
+    idempotency_key_hash: hashDomainValue(idempotencyKey),
+  };
+  const centralKey = `hrx-api:${hashDomainValue({
+    tenant_id: tenantId,
+    idempotency_key_hash: requestFingerprint.idempotency_key_hash,
+  })}`;
+  const requestHash = hashDomainValue(requestFingerprint);
+  const priorIdempotency = baseline.idempotency_entries.find((entry) => entry.key === centralKey);
+  if (priorIdempotency && priorIdempotency.request_hash !== requestHash) {
+    throw Object.assign(new Error("HRX API idempotency key was reused for a different request"), {
+      code: "LAWOS_HRX_POSTGRES_IDEMPOTENCY_CONFLICT",
+      safe_error_code: "HRX_POSTGRES_IDEMPOTENCY_CONFLICT",
+      status: 409,
+    });
+  }
+  const auditEventId = `hrx-api-audit:${hashDomainValue({ tenant_id: tenantId, central_key: centralKey })}`;
+  return createDomainSnapshot({
+    ...base,
+    idempotency_entries: base.idempotency_entries.concat(priorIdempotency ? [] : [{
+      tenant_id: tenantId,
+      domain_id: HRX_DOMAIN_ID,
+      key: centralKey,
+      request_hash: requestHash,
+      response: { outcome_recorded: true, response_payload_included: false },
+    }]),
+    audit_events: base.audit_events.some((event) => event.event_id === auditEventId)
+      ? base.audit_events
+      : base.audit_events.concat([{
+        tenant_id: tenantId,
+        domain_id: HRX_DOMAIN_ID,
+        event_id: auditEventId,
+        event_type: "hrx.api.mutation_committed",
+        actor_id: request_context?.actor_id ?? null,
+        object_type: "HrxApiCommand",
+        object_id: centralKey,
+        payload: {
+          method,
+          pathname_hash: requestFingerprint.pathname_hash,
+          request_target_hash: requestFingerprint.request_target_hash,
+          request_body_hash: requestFingerprint.request_body_hash,
+          request_payload_included: false,
+        },
+      }]),
+  });
 }
 
 function baselineConflict(comparison) {
@@ -235,59 +433,48 @@ function shadowDifference(comparison) {
 }
 
 async function compareCommittedReadback({ ledger, tenantId, source }) {
-  const records = await ledger.list({ tenant_id: tenantId, domain_id: HRX_DOMAIN_ID });
-  const comparison = compareDomainSnapshots(source, snapshotFromLedgerRecords(tenantId, records));
+  const comparison = await compareDomainSnapshotWithLedgerReadback({
+    ledger,
+    source,
+    tenant_id: tenantId,
+    domain_id: HRX_DOMAIN_ID,
+  });
   if (!comparison.equal) throw shadowDifference(comparison);
   return comparison;
 }
 
-export async function flushHrxStoreToPostgres({ ledger, store, tenant_id } = {}) {
+export async function flushHrxStoreToPostgres({ ledger, store, tenant_id, request_context = null } = {}) {
   const tenantId = requiredText(tenant_id, "tenant_id");
-  const source = createHrxDomainSnapshot({ store, tenant_id: tenantId }).snapshot;
+  const source = createHrxOperationalDomainSnapshot({ store, tenant_id: tenantId, request_context });
   const expectedBaseline = materializedBaselines.get(store);
-  await ledger.transaction({ tenant_id: tenantId, domain_id: HRX_DOMAIN_ID }, async (tx) => {
-    const currentRecords = await tx.list();
-    if (expectedBaseline) {
-      const baselineComparison = compareDomainSnapshots(
-        expectedBaseline,
-        snapshotFromLedgerRecords(tenantId, currentRecords),
-      );
-      if (!baselineComparison.equal) throw baselineConflict(baselineComparison);
-    }
-    const currentByIdentity = new Map(currentRecords.map((record) => [recordIdentity(record), record]));
-    for (const record of source.records) {
-      const current = currentByIdentity.get(recordIdentity(record));
-      if (!current) {
-        await tx.write({ ...record, expected_version: 0 });
-      } else if (
-        current.payload_hash !== record.payload_hash
-        || current.unique_key !== record.unique_key
-        || current.append_only !== record.append_only
-      ) {
-        await tx.write({ ...record, expected_version: current.state_version });
-      }
-    }
-    if (currentRecords.some((record) => !source.records.some((candidate) =>
-      candidate.record_type === record.record_type && candidate.record_id === record.record_id))) {
-      throw Object.assign(new Error("HRX PostgreSQL unit of work cannot silently delete records"), {
-        code: "LAWOS_HRX_POSTGRES_DELETE_UNSUPPORTED",
-        safe_error_code: "HRX_POSTGRES_DELETE_UNSUPPORTED",
-        status: 409,
+  try {
+    await ledger.transaction({ tenant_id: tenantId, domain_id: HRX_DOMAIN_ID }, (tx) =>
+      flushDomainSnapshotToScopedLedger({
+        tx,
+        source,
+        tenant_id: tenantId,
+        domain_id: HRX_DOMAIN_ID,
+        expected_baseline: expectedBaseline,
+      }));
+  } catch (error) {
+    if (error?.safe_error_code === "DOMAIN_BASELINE_CONFLICT") {
+      throw baselineConflict({
+        difference_count: error.difference_count,
+        difference_fingerprint: error.difference_fingerprint,
       });
     }
-    const comparison = compareDomainSnapshots(source, snapshotFromLedgerRecords(tenantId, await tx.list()));
-    if (!comparison.equal) throw shadowDifference(comparison);
-  });
+    throw error;
+  }
   const comparison = await compareCommittedReadback({ ledger, tenantId, source });
   return Object.freeze({ snapshot: source, comparison });
 }
 
-export async function runHrxPostgresCommand({ ledger, tenant_id, command } = {}) {
+export async function runHrxPostgresCommand({ ledger, tenant_id, command, request_context = null } = {}) {
   if (typeof command !== "function") throw new TypeError("HRX PostgreSQL command callback is required");
   const store = await materializeHrxStoreFromPostgres({ ledger, tenant_id });
   try {
     const result = await command(store);
-    const flush = await flushHrxStoreToPostgres({ ledger, store, tenant_id });
+    const flush = await flushHrxStoreToPostgres({ ledger, store, tenant_id, request_context });
     return Object.freeze({ result, flush });
   } finally {
     store.close();
@@ -308,9 +495,9 @@ export function createPostgresHrxStorePortV2({ ledger } = {}) {
     if (closed) throw new Error("HRX PostgreSQL store port is closed");
   };
 
-  async function runLegacyCommand({ tenant_id, command } = {}) {
+  async function runLegacyCommand({ tenant_id, command, request_context = null } = {}) {
     ensureOpen();
-    return runHrxPostgresCommand({ ledger, tenant_id, command });
+    return runHrxPostgresCommand({ ledger, tenant_id, command, request_context });
   }
 
   return Object.freeze({
@@ -335,11 +522,21 @@ export function createPostgresHrxStorePortV2({ ledger } = {}) {
         ledger,
         tenant_id: tenantId,
         command: (store) => store.query(operation, params),
+        request_context: {
+          method: `STORE:${operation}`,
+          pathname: `hrx-store/${params.table ?? "unknown"}`,
+          idempotency_key: params.idempotency_key
+            ?? params.row?.idempotency_key
+            ?? params.where?.idempotency_key
+            ?? `hrx-store-query:${hashDomainValue({ operation, params })}`,
+          request_body_hash: hashDomainValue(params),
+          actor_id: params.actor_id ?? null,
+        },
       });
       return command.result;
     },
 
-    async transaction({ tenant_id } = {}, callback) {
+    async transaction({ tenant_id, idempotency_key, actor_id = null } = {}, callback) {
       ensureOpen();
       const tenantId = requiredText(tenant_id, "tenant_id");
       if (typeof callback !== "function") throw new TypeError("HRX PostgreSQL transaction callback is required");
@@ -353,6 +550,12 @@ export function createPostgresHrxStorePortV2({ ledger } = {}) {
           });
           return callback(transactionStore);
         },
+        request_context: {
+          method: "STORE:TRANSACTION",
+          pathname: "hrx-store/transaction",
+          idempotency_key,
+          actor_id,
+        },
       });
       return command.result;
     },
@@ -364,6 +567,13 @@ export function createPostgresHrxStorePortV2({ ledger } = {}) {
         tenant_id,
         command(store) {
           return migrations.map((migration) => store.migrate(migration));
+        },
+        request_context: {
+          method: "STORE:MIGRATE",
+          pathname: "hrx-store/migrations",
+          idempotency_key: `hrx-migrate:${hashDomainValue(migrations.map((migration) => migration.id))}`,
+          request_body_hash: hashDomainValue(migrations.map((migration) => ({ id: migration.id, sql_hash: migrationHash(migration.sql) }))),
+          actor_id: "system-migration",
         },
       });
       return command.result;

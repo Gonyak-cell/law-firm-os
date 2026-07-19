@@ -100,6 +100,15 @@ test("v0.2 evidence contract rejects unsafe counts, output drift, and false veri
   expectEvidenceCode("EVIDENCE_CLAIMS", (receipt) => { receipt.claims.unbounded_claim = true; });
 });
 
+test("v0.2 evidence contract rejects secret material in recorded argv", () => {
+  expectEvidenceCode("EVIDENCE_SECRET_ARGV", (receipt) => {
+    receipt.commands[0].argv = ["node", "script.mjs", "--client-secret", "do-not-record-this"];
+  });
+  expectEvidenceCode("EVIDENCE_SECRET_ARGV", (receipt) => {
+    receipt.commands[0].argv = ["node", "script.mjs", "postgresql://user:password@db.internal/lawos"];
+  });
+});
+
 function approvalFixture() {
   const root = mkdtempSync(join(tmpdir(), "lawos-approval-contract-"));
   const { publicKey, privateKey } = generateKeyPairSync("ed25519");

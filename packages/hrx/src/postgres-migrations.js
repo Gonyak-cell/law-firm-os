@@ -59,11 +59,23 @@ function hardeningSql() {
       `ALTER TABLE ${qualified} FORCE ROW LEVEL SECURITY;`,
       `DROP POLICY IF EXISTS tenant_isolation ON ${qualified};`,
       `CREATE POLICY tenant_isolation ON ${qualified}`,
-      "  USING (tenant_id = nullif(current_setting('app.current_tenant_id', true), ''))",
-      "  WITH CHECK (tenant_id = nullif(current_setting('app.current_tenant_id', true), ''));",
+      "  USING (tenant_id = lawos_security.current_tenant_id())",
+      "  WITH CHECK (tenant_id = lawos_security.current_tenant_id());",
     ].join("\n");
   });
   return policies.join("\n\n");
+}
+
+function appendOnlyHardeningSql() {
+  return HRX_APPEND_ONLY_TABLES.map((table) => {
+    const qualified = `${quoteIdentifier(HRX_POSTGRES_SCHEMA)}.${quoteIdentifier(table)}`;
+    return [
+      `DROP TRIGGER IF EXISTS lawos_hrx_append_only_guard ON ${qualified};`,
+      "CREATE TRIGGER lawos_hrx_append_only_guard",
+      `BEFORE UPDATE OR DELETE ON ${qualified}`,
+      "FOR EACH ROW EXECUTE FUNCTION lawos_runtime.reject_hrx_append_only();",
+    ].join("\n");
+  }).join("\n\n");
 }
 
 export function listHrxPostgresMigrations() {
@@ -76,7 +88,8 @@ export function listHrxPostgresMigrations() {
   return Object.freeze([
     Object.freeze({ id: "100_hrx_schema", file_name: null, sql: bootstrapSql() }),
     ...translated,
-    Object.freeze({ id: "130_hrx_rls", file_name: null, sql: hardeningSql() }),
+    Object.freeze({ id: "200_hrx_rls", file_name: null, sql: hardeningSql() }),
+    Object.freeze({ id: "201_hrx_append_only", file_name: null, sql: appendOnlyHardeningSql() }),
   ]);
 }
 

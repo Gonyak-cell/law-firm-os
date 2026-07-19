@@ -5,7 +5,7 @@ import { IDENTITY_LEDGER_CONTRACT_VERSION } from "./identity-ledger.js";
 
 const ACCOUNT_STATUSES = new Set(["active", "disabled"]);
 const CREDENTIAL_STATUSES = new Set(["active", "must_change", "reset_required", "locked", "disabled"]);
-const CHALLENGE_TYPES = new Set(["password_reset", "step_up"]);
+const CHALLENGE_TYPES = new Set(["password_reset", "step_up", "oidc_login"]);
 const FORBIDDEN_AUDIT_DETAIL_KEY = /(^|_)(password|secret|token|totp|proof|authorization|challenge_hash|password_hash)(_|$)/iu;
 
 function clone(value) {
@@ -83,6 +83,8 @@ function mapAccount(row) {
     credential_status: row.credential_status,
     credential_rev: Number(row.credential_rev),
     password_hash: Object.freeze(clone(row.password_hash ?? {})),
+    federated_tenant_id: row.federated_tenant_id,
+    federated_subject_id: row.federated_subject_id,
     failed_login_count: Number(row.failed_login_count),
     locked_until: row.locked_until ? iso(row.locked_until) : null,
     created_at: iso(row.created_at),
@@ -117,8 +119,14 @@ function mapBreakGlass(row) {
     requester_user_id: row.requester_user_id,
     requester_label: row.requester_label,
     reason: row.reason,
+    break_glass_account_ref: row.break_glass_account_ref,
+    minimum_privilege_profile: row.minimum_privilege_profile,
+    required_approvals: Number(row.required_approvals ?? 2),
+    approval_count: Number(row.approval_count ?? 0),
     state: row.state,
     requested_at: iso(row.requested_at),
+    expires_at: row.expires_at ? iso(row.expires_at) : null,
+    activated_at: row.activated_at ? iso(row.activated_at) : null,
     decided_by: row.decided_by,
     decided_at: row.decided_at ? iso(row.decided_at) : null,
   });
@@ -166,7 +174,8 @@ async function ensureAccountRow(client, tenantId, user, clock) {
   );
   const result = await client.query(
     `SELECT tenant_id, user_id, email, account_status, credential_provider, credential_status, credential_rev,
-            password_hash, failed_login_count, locked_until, created_at, updated_at
+            password_hash, federated_tenant_id, federated_subject_id,
+            failed_login_count, locked_until, created_at, updated_at
        FROM lawos_identity.accounts WHERE tenant_id = $1 AND user_id = $2`,
     [tenantId, account.user_id],
   );
@@ -201,7 +210,8 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     return scoped(tenantId, async (client) => {
       const result = await client.query(
         `SELECT tenant_id, user_id, email, account_status, credential_provider, credential_status, credential_rev,
-                password_hash, failed_login_count, locked_until, created_at, updated_at
+                password_hash, federated_tenant_id, federated_subject_id,
+                failed_login_count, locked_until, created_at, updated_at
            FROM lawos_identity.accounts WHERE tenant_id = $1 AND user_id = $2`,
         [tenantId, userId],
       );
@@ -228,7 +238,8 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
                 password_hash = $7::jsonb, failed_login_count = 0, locked_until = NULL, updated_at = $8::timestamptz
           WHERE tenant_id = $1 AND user_id = $2
         RETURNING tenant_id, user_id, email, account_status, credential_provider, credential_status, credential_rev,
-                  password_hash, failed_login_count, locked_until, created_at, updated_at`,
+                  password_hash, federated_tenant_id, federated_subject_id,
+                  failed_login_count, locked_until, created_at, updated_at`,
         [tenantId, seed.user_id, seed.email, input.provider_id ?? seed.credential_provider, status, credentialRev, JSON.stringify(input.password_hash ?? {}), timestamp],
       );
       await insertAudit(client, tenantId, {
@@ -236,6 +247,81 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
         object_id: seed.user_id,
         actor_id: input.actor_id ?? seed.user_id,
         details: { credential_rev: credentialRev, credential_status: status },
+      }, clock);
+      return mapAccount(result.rows[0]);
+    });
+  }
+
+  async function ensureFederatedAccount(input = {}) {
+    const tenantId = requireRepositoryTenantId(input.tenant_id);
+    const seed = normalizeAccountSeed(input.user);
+    const providerId = required(input.provider_id, "federated provider_id");
+    const federatedTenantId = required(input.federated_tenant_id, "federated_tenant_id");
+    const federatedSubjectId = required(input.federated_subject_id, "federated_subject_id");
+    return scoped(tenantId, async (client) => {
+      await ensureAccountRow(client, tenantId, seed, clock);
+      const locked = await client.query(
+        `SELECT credential_provider, credential_status, credential_rev,
+                federated_tenant_id, federated_subject_id
+           FROM lawos_identity.accounts
+          WHERE tenant_id = $1 AND user_id = $2 FOR UPDATE`,
+        [tenantId, seed.user_id],
+      );
+      const current = locked.rows[0];
+      if (current.federated_subject_id && (
+        current.credential_provider !== providerId
+        || current.federated_tenant_id !== federatedTenantId
+        || current.federated_subject_id !== federatedSubjectId
+      )) {
+        throw Object.assign(new Error("federated identity subject does not match the bound account"), {
+          code: "LAWOS_FEDERATED_IDENTITY_CONFLICT",
+          safe_error_code: "FEDERATED_IDENTITY_CONFLICT",
+          status: 403,
+        });
+      }
+      const bindingChanged = current.credential_provider !== providerId
+        || current.federated_tenant_id !== federatedTenantId
+        || current.federated_subject_id !== federatedSubjectId;
+      const credentialRev = Number(current.credential_rev) + (current.credential_provider && bindingChanged ? 1 : 0);
+      const timestamp = iso(nowMs(clock));
+      const result = await client.query(
+        `UPDATE lawos_identity.accounts
+            SET email = $3,
+                credential_provider = $4,
+                credential_status = 'active',
+                credential_rev = $5,
+                password_hash = '{}'::jsonb,
+                federated_tenant_id = $6,
+                federated_subject_id = $7,
+                failed_login_count = 0,
+                locked_until = NULL,
+                updated_at = $8::timestamptz
+          WHERE tenant_id = $1 AND user_id = $2
+        RETURNING tenant_id, user_id, email, account_status, credential_provider, credential_status, credential_rev,
+                  password_hash, federated_tenant_id, federated_subject_id,
+                  failed_login_count, locked_until, created_at, updated_at`,
+        [tenantId, seed.user_id, seed.email, providerId, credentialRev, federatedTenantId, federatedSubjectId, timestamp],
+      );
+      if (credentialRev !== Number(current.credential_rev)) {
+        await client.query(
+          `UPDATE lawos_identity.sessions
+              SET revoked_at = $3::timestamptz,
+                  revoked_by = $2,
+                  revocation_reason = 'federated_identity_rebound'
+            WHERE tenant_id = $1 AND user_id = $2 AND revoked_at IS NULL`,
+          [tenantId, seed.user_id, timestamp],
+        );
+      }
+      await insertAudit(client, tenantId, {
+        action: bindingChanged ? "auth.federated_identity.bound" : "auth.federated_identity.verified",
+        object_id: seed.user_id,
+        actor_id: input.actor_id ?? seed.user_id,
+        details: {
+          provider_id: providerId,
+          subject_bound: true,
+          phishing_resistant_mfa: input.phishing_resistant_mfa === true,
+          conditional_access_verified: input.conditional_access_verified === true,
+        },
       }, clock);
       return mapAccount(result.rows[0]);
     });
@@ -251,7 +337,8 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
             SET credential_status = 'reset_required', credential_rev = credential_rev + 1, updated_at = $3::timestamptz
           WHERE tenant_id = $1 AND user_id = $2
         RETURNING tenant_id, user_id, email, account_status, credential_provider, credential_status, credential_rev,
-                  password_hash, failed_login_count, locked_until, created_at, updated_at`,
+                  password_hash, federated_tenant_id, federated_subject_id,
+                  failed_login_count, locked_until, created_at, updated_at`,
         [tenantId, seed.user_id, iso(nowMs(clock))],
       );
       await insertAudit(client, tenantId, {
@@ -422,7 +509,8 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
                 updated_at = $4::timestamptz
           WHERE tenant_id = $1 AND user_id = $2
         RETURNING tenant_id, user_id, email, account_status, credential_provider, credential_status, credential_rev,
-                  password_hash, failed_login_count, locked_until, created_at, updated_at`,
+                  password_hash, federated_tenant_id, federated_subject_id,
+                  failed_login_count, locked_until, created_at, updated_at`,
         [tenantId, seed.user_id, status, timestamp],
       );
       if (status === "disabled") {
@@ -513,6 +601,10 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     const tenantId = requireRepositoryTenantId(input.tenant_id);
     const type = required(input.challenge_type, "challenge_type");
     const challengeHash = required(input.challenge_hash, "challenge_hash");
+    const userId = optional(input.user_id);
+    const purpose = optional(input.purpose);
+    const expectedMetadata = clone(input.expected_metadata ?? {});
+    assertAuditDetails(expectedMetadata, "expected challenge metadata");
     const currentTime = nowMs(clock);
     return scoped(tenantId, async (client) => {
       const result = await client.query(
@@ -525,6 +617,12 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
       const record = mapChallenge(result.rows[0]);
       const rejected = expectedChallengeError(record, currentTime);
       if (rejected) return rejected;
+      const metadataMatches = Object.entries(expectedMetadata).every(
+        ([key, value]) => JSON.stringify(record.metadata?.[key]) === JSON.stringify(value),
+      );
+      if ((userId && record.user_id !== userId) || (purpose && record.purpose !== purpose) || !metadataMatches) {
+        return Object.freeze({ ok: false, reason: "challenge_context_mismatch", safe_error_code: "AUTH_CHALLENGE_INVALID", status: 401 });
+      }
       const usedAt = iso(currentTime);
       await client.query(
         "UPDATE lawos_identity.challenges SET used_at = $4::timestamptz WHERE tenant_id = $1 AND challenge_type = $2 AND challenge_hash = $3",
@@ -568,20 +666,37 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     const requester = normalizeAccountSeed(input.requester);
     const requestId = required(input.break_glass_request_id, "break_glass_request_id");
     const reason = required(input.reason, "break-glass reason");
+    const breakGlassAccountRef = required(input.break_glass_account_ref, "break_glass_account_ref");
+    if (breakGlassAccountRef === requester.user_id) throw new TypeError("break-glass account must be separate from the requester account");
+    const requiredApprovals = Number(input.required_approvals ?? 2);
+    if (!Number.isSafeInteger(requiredApprovals) || requiredApprovals < 2 || requiredApprovals > 5) {
+      throw new TypeError("break-glass required_approvals must be between 2 and 5");
+    }
+    const requestedAt = iso(input.requested_at ?? nowMs(clock));
+    const expiresAt = iso(input.expires_at ?? (millis(requestedAt) + 15 * 60 * 1_000));
+    if (millis(expiresAt) <= millis(requestedAt)) throw new TypeError("break-glass expires_at must be after requested_at");
     return scoped(tenantId, async (client) => {
       await ensureAccountRow(client, tenantId, requester, clock);
       const result = await client.query(
         `INSERT INTO lawos_identity.break_glass_requests
-           (tenant_id, break_glass_request_id, requester_user_id, requester_label, reason, state, requested_at)
-         VALUES ($1, $2, $3, $4, $5, 'pending', $6::timestamptz)
-         RETURNING tenant_id, break_glass_request_id, requester_user_id, requester_label, reason, state, requested_at, decided_by, decided_at`,
-        [tenantId, requestId, requester.user_id, input.requester_label ?? null, reason, iso(input.requested_at ?? nowMs(clock))],
+           (tenant_id, break_glass_request_id, requester_user_id, requester_label, reason,
+            break_glass_account_ref, minimum_privilege_profile, required_approvals,
+            approval_count, state, requested_at, expires_at)
+         VALUES ($1, $2, $3, $4, $5, $6, 'break_glass_minimum', $7, 0, 'pending', $8::timestamptz, $9::timestamptz)
+         RETURNING *`,
+        [tenantId, requestId, requester.user_id, input.requester_label ?? null, reason,
+          breakGlassAccountRef, requiredApprovals, requestedAt, expiresAt],
       );
       await insertAudit(client, tenantId, {
         action: "admin.security.break_glass.requested",
         object_id: requestId,
         actor_id: input.actor_id,
-        details: { requester_user_id: requester.user_id },
+        details: {
+          requester_user_id: requester.user_id,
+          separate_account_reference_present: true,
+          minimum_privilege_profile: "break_glass_minimum",
+          required_approvals: requiredApprovals,
+        },
       }, clock);
       return mapBreakGlass(result.rows[0]);
     });
@@ -592,32 +707,96 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     const requestId = required(input.break_glass_request_id, "break_glass_request_id");
     const state = required(input.state, "break-glass state");
     if (!["approved", "revoked"].includes(state)) throw new TypeError("break-glass transition must be approved or revoked");
+    const actorId = required(input.actor_id, "break-glass actor_id");
     return scoped(tenantId, async (client) => {
       const current = await client.query(
-        `SELECT tenant_id, break_glass_request_id, requester_user_id, requester_label, reason, state, requested_at, decided_by, decided_at
+        `SELECT *
            FROM lawos_identity.break_glass_requests
           WHERE tenant_id = $1 AND break_glass_request_id = $2 FOR UPDATE`,
         [tenantId, requestId],
       );
       if (!current.rows[0]) return Object.freeze({ ok: false, reason: "break_glass_not_found", safe_error_code: "ADMIN_SECURITY_BREAK_GLASS_NOT_FOUND", status: 404 });
       const currentRecord = mapBreakGlass(current.rows[0]);
-      if (currentRecord.state === state) return Object.freeze({ ok: true, replayed: true, record: currentRecord });
-      if (currentRecord.state === "revoked" || (currentRecord.state === "approved" && state === "approved")) {
+      if (currentRecord.state === "revoked") {
         return Object.freeze({ ok: false, reason: "break_glass_transition_invalid", safe_error_code: "ADMIN_SECURITY_BREAK_GLASS_TRANSITION_INVALID", status: 409 });
       }
-      const result = await client.query(
-        `UPDATE lawos_identity.break_glass_requests SET state = $3, decided_by = $4, decided_at = $5::timestamptz
-          WHERE tenant_id = $1 AND break_glass_request_id = $2
-        RETURNING tenant_id, break_glass_request_id, requester_user_id, requester_label, reason, state, requested_at, decided_by, decided_at`,
-        [tenantId, requestId, state, input.actor_id, iso(input.decided_at ?? nowMs(clock))],
+      const decidedAt = iso(input.decided_at ?? nowMs(clock));
+      if (state === "revoked") {
+        const result = await client.query(
+          `UPDATE lawos_identity.break_glass_requests
+              SET state = 'revoked', decided_by = $3, decided_at = $4::timestamptz
+            WHERE tenant_id = $1 AND break_glass_request_id = $2
+          RETURNING *`,
+          [tenantId, requestId, actorId, decidedAt],
+        );
+        await insertAudit(client, tenantId, {
+          action: "admin.security.break_glass.revoked",
+          object_id: requestId,
+          actor_id: actorId,
+          details: { state: "revoked", approval_count: currentRecord.approval_count },
+        }, clock);
+        return Object.freeze({ ok: true, replayed: false, record: mapBreakGlass(result.rows[0]) });
+      }
+      if (currentRecord.state === "approved") return Object.freeze({ ok: true, replayed: true, record: currentRecord, approvals_remaining: 0 });
+      if (millis(currentRecord.expires_at) <= millis(decidedAt)) {
+        return Object.freeze({ ok: false, reason: "break_glass_expired", safe_error_code: "ADMIN_SECURITY_BREAK_GLASS_EXPIRED", status: 409 });
+      }
+      if (actorId === currentRecord.requester_user_id) {
+        return Object.freeze({ ok: false, reason: "break_glass_self_approval_denied", safe_error_code: "ADMIN_SECURITY_BREAK_GLASS_SELF_APPROVAL_DENIED", status: 403 });
+      }
+      const evidenceSha256 = optional(input.evidence_sha256);
+      if (evidenceSha256 && !/^[a-f0-9]{64}$/u.test(evidenceSha256)) throw new TypeError("break-glass evidence_sha256 is invalid");
+      const approvalId = optional(input.approval_id) ?? `break-glass-approval:${randomUUID()}`;
+      const approval = await client.query(
+        `INSERT INTO lawos_identity.break_glass_approvals
+           (tenant_id, approval_id, break_glass_request_id, approver_id, approved_at, evidence_sha256)
+         VALUES ($1, $2, $3, $4, $5::timestamptz, $6)
+         ON CONFLICT (tenant_id, break_glass_request_id, approver_id) DO NOTHING
+         RETURNING approval_id`,
+        [tenantId, approvalId, requestId, actorId, decidedAt, evidenceSha256],
       );
-      await insertAudit(client, tenantId, {
-        action: state === "approved" ? "admin.security.break_glass.approved" : "admin.security.break_glass.revoked",
-        object_id: requestId,
-        actor_id: input.actor_id,
-        details: { state },
-      }, clock);
-      return Object.freeze({ ok: true, replayed: false, record: mapBreakGlass(result.rows[0]) });
+      const countResult = await client.query(
+        `SELECT count(*)::integer AS approval_count
+           FROM lawos_identity.break_glass_approvals
+          WHERE tenant_id = $1 AND break_glass_request_id = $2`,
+        [tenantId, requestId],
+      );
+      const approvalCount = Number(countResult.rows[0].approval_count);
+      const activated = approvalCount >= currentRecord.required_approvals;
+      const result = await client.query(
+        `UPDATE lawos_identity.break_glass_requests
+            SET approval_count = $3,
+                state = CASE WHEN $4::boolean THEN 'approved' ELSE 'pending' END,
+                activated_at = CASE WHEN $4::boolean THEN $5::timestamptz ELSE NULL END,
+                decided_by = CASE WHEN $4::boolean THEN $6 ELSE NULL END,
+                decided_at = CASE WHEN $4::boolean THEN $5::timestamptz ELSE NULL END
+          WHERE tenant_id = $1 AND break_glass_request_id = $2
+        RETURNING *`,
+        [tenantId, requestId, approvalCount, activated, decidedAt, actorId],
+      );
+      if (approval.rowCount > 0) {
+        await insertAudit(client, tenantId, {
+          action: "admin.security.break_glass.approval_recorded",
+          object_id: requestId,
+          actor_id: actorId,
+          details: { approval_count: approvalCount, required_approvals: currentRecord.required_approvals, evidence_reference_present: Boolean(evidenceSha256) },
+        }, clock);
+      }
+      if (activated) {
+        await insertAudit(client, tenantId, {
+          action: "admin.security.break_glass.approved",
+          object_id: requestId,
+          actor_id: actorId,
+          details: { state: "approved", approval_count: approvalCount, minimum_privilege_profile: currentRecord.minimum_privilege_profile },
+        }, clock);
+      }
+      return Object.freeze({
+        ok: true,
+        replayed: approval.rowCount === 0,
+        approval_recorded: approval.rowCount > 0,
+        approvals_remaining: Math.max(0, currentRecord.required_approvals - approvalCount),
+        record: mapBreakGlass(result.rows[0]),
+      });
     });
   }
 
@@ -625,7 +804,7 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     const tenantId = requireRepositoryTenantId(input.tenant_id);
     return scoped(tenantId, async (client) => {
       const result = await client.query(
-        `SELECT tenant_id, break_glass_request_id, requester_user_id, requester_label, reason, state, requested_at, decided_by, decided_at
+        `SELECT *
            FROM lawos_identity.break_glass_requests WHERE tenant_id = $1 ORDER BY requested_at DESC, break_glass_request_id DESC`,
         [tenantId],
       );
@@ -656,6 +835,7 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     ensureAccount,
     getAccount,
     setCredential,
+    ensureFederatedAccount,
     requirePasswordReset,
     recordLoginFailure,
     completeLogin,

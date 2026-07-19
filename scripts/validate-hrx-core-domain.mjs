@@ -25,7 +25,7 @@ const compensationValidatorRef = encryptCompensationAmount({
   employee_id: "emp-001",
   amount_minor: 12345678,
   currency_ref: "Currency:KRW",
-});
+}, { allowSyntheticKey: true });
 
 function assert(condition, message) {
   if (!condition) errors.push(message);

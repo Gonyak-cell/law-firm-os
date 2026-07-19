@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
 import { closeOffboardingCase } from "../src/offboarding.js";
 import { createSqlLeaveBalanceLedger } from "../src/leave/balance.js";
@@ -7,6 +8,33 @@ import { createFileHrxStore } from "../src/store/file-store.js";
 
 const TENANT = "tenant-leave-termination-synthetic";
 const NOW = "2026-07-13T01:00:00.000Z";
+
+function stableStringify(value) {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+}
+
+function payrollReceipt(store, outboxEventId, patch = {}) {
+  const outbox = store.query("selectOne", { table: "hrx_leave_sync_outbox", where: { tenant_id: TENANT, outbox_event_id: outboxEventId } });
+  const payloadHash = createHash("sha256").update(stableStringify(JSON.parse(outbox.payload_json))).digest("hex");
+  return {
+    schema_version: "law-firm-os.hrx.provider-receipt.v0.1",
+    receipt_id: "payroll-receipt-001",
+    tenant_id: TENANT,
+    provider_kind: "payroll",
+    provider_id: "payroll-authority",
+    operation: "payroll.termination.reconciliation",
+    idempotency_key: `${outbox.idempotency_key}:payroll`,
+    payload_hash: `sha256:${payloadHash}`,
+    state: "succeeded",
+    requested_at: NOW,
+    completed_at: NOW,
+    provider_receipt_ref: "PayrollProviderReceipt:001",
+    error_code: null,
+    ...patch,
+  };
+}
 
 function fixture() {
   const store = createFileHrxStore();
@@ -31,6 +59,7 @@ function fixture() {
     clock: () => NOW,
     idFactory: (prefix) => `${prefix}-${++sequence}`,
     approverAuthorizer: ({ actor_id, required_scope }) => actor_id === "hr-approver" && required_scope === "hrx.leave.termination.settle",
+    payrollReceiptAuthorizer: ({ provider_id }) => provider_id === "payroll-authority",
   });
   const context = { tenant_id: TENANT, actor_id: "hr-operator", authorized_employee_ids: ["emp-001"], step_up_verified: true, step_up_purpose: "leave_termination_settlement" };
   return { store, service, context };
@@ -44,15 +73,27 @@ test("termination preview and execute reconcile future reservations, append the 
   assert.equal(preview.result.totals.future_request_reversal_minutes, 240);
 
   assert.throws(
-    () => service.execute({ ...context, step_up_verified: false }, { preview_reconciliation_id: preview.reconciliation_id, approved_by_actor_id: "hr-approver", idempotency_key: "termination-execute-001" }),
+    () => service.approve(context, { preview_reconciliation_id: preview.reconciliation_id }),
+    (error) => error.safe_error_code === "HRX_LEAVE_TERMINATION_DUAL_CONTROL_REQUIRED",
+  );
+  const approval = service.approve({ ...context, actor_id: "hr-approver" }, { preview_reconciliation_id: preview.reconciliation_id });
+  assert.equal(approval.approved_by_actor_id, "hr-approver");
+  assert.equal(service.approve({ ...context, actor_id: "hr-approver" }, { preview_reconciliation_id: preview.reconciliation_id }).approval_receipt_id, approval.approval_receipt_id);
+
+  assert.throws(
+    () => service.execute({ ...context, step_up_verified: false }, { preview_reconciliation_id: preview.reconciliation_id, approval_receipt_id: approval.approval_receipt_id, idempotency_key: "termination-execute-001" }),
     (error) => error.safe_error_code === "HRX_STEP_UP_REQUIRED",
   );
   assert.throws(
-    () => service.execute(context, { preview_reconciliation_id: preview.reconciliation_id, approved_by_actor_id: "hr-operator", idempotency_key: "termination-execute-001" }),
+    () => service.execute({ ...context, actor_id: "hr-approver" }, { preview_reconciliation_id: preview.reconciliation_id, approval_receipt_id: approval.approval_receipt_id, idempotency_key: "termination-execute-001" }),
     (error) => error.safe_error_code === "HRX_LEAVE_TERMINATION_DUAL_CONTROL_REQUIRED",
   );
+  assert.throws(
+    () => service.execute({ ...context, authorized_employee_ids: [] }, { preview_reconciliation_id: preview.reconciliation_id, approval_receipt_id: approval.approval_receipt_id, idempotency_key: "termination-execute-out-of-scope" }),
+    (error) => error.safe_error_code === "HRX_LEAVE_TERMINATION_SCOPE_DENIED",
+  );
 
-  const executed = service.execute(context, { preview_reconciliation_id: preview.reconciliation_id, approved_by_actor_id: "hr-approver", idempotency_key: "termination-execute-001" });
+  const executed = service.execute(context, { preview_reconciliation_id: preview.reconciliation_id, approval_receipt_id: approval.approval_receipt_id, idempotency_key: "termination-execute-001" });
   assert.equal(executed.state, "approved_pending_sync");
   assert.equal(executed.result.reversed_requests.length, 1);
   assert.equal(store.query("selectOne", { table: "hrx_leave_requests", where: { tenant_id: TENANT, request_id: "future-001" } }).state, "cancelled");
@@ -64,27 +105,33 @@ test("termination preview and execute reconcile future reservations, append the 
   const pendingOffboarding = store.query("selectOne", { table: "hrx_offboarding_cases", where: { tenant_id: TENANT, offboarding_id: "off-001" } });
   assert.throws(() => closeOffboardingCase(pendingOffboarding), (error) => error.safe_error_code === "HRX_OFFBOARDING_CLOSE_BLOCKED");
 
-  const synced = service.recordPayrollDelivery(context, { outbox_event_id: executed.result.payroll_outbox_event_id, provider_receipt_ref: "PayrollSandboxReceipt:001" });
+  assert.throws(
+    () => service.recordPayrollDelivery(context, { outbox_event_id: executed.result.payroll_outbox_event_id, provider_receipt: payrollReceipt(store, executed.result.payroll_outbox_event_id, { provider_id: "synthetic-payroll" }) }),
+    (error) => error.safe_error_code === "HRX_LEAVE_TERMINATION_RECEIPT_MISMATCH",
+  );
+  const synced = service.recordPayrollDelivery(context, { outbox_event_id: executed.result.payroll_outbox_event_id, provider_receipt: payrollReceipt(store, executed.result.payroll_outbox_event_id) });
   assert.equal(synced.state, "approved_and_synced");
   const readyOffboarding = store.query("selectOne", { table: "hrx_offboarding_cases", where: { tenant_id: TENANT, offboarding_id: "off-001" } });
   assert.equal(closeOffboardingCase(readyOffboarding).state, "closed");
-  assert.equal(store.query("selectOne", { table: "hrx_leave_sync_outbox", where: { tenant_id: TENANT, outbox_event_id: executed.result.payroll_outbox_event_id } }).provider_receipt_ref, "PayrollSandboxReceipt:001");
+  assert.equal(store.query("selectOne", { table: "hrx_leave_sync_outbox", where: { tenant_id: TENANT, outbox_event_id: executed.result.payroll_outbox_event_id } }).provider_receipt_ref, "PayrollProviderReceipt:001");
 });
 
 test("termination execute rejects a stale preview and remains idempotent after success", () => {
   const first = fixture();
   const preview = first.service.preview(first.context, { employee_id: "emp-001", termination_date: "2026-07-31" });
+  const approval = first.service.approve({ ...first.context, actor_id: "hr-approver" }, { preview_reconciliation_id: preview.reconciliation_id });
   first.store.query("insert", { table: "hrx_leave_entitlements", row: { tenant_id: TENANT, entitlement_id: "late-entitlement", employee_id: "emp-001", group_id: "annual", policy_version_id: "annual-v1", granted_minutes: 60, valid_from: "2026-07-20", expires_on: "2026-12-31", source_ref: "LeaveAccrualRun:late", idempotency_key: "late-entitlement", state_version: 1 } });
   createSqlLeaveBalanceLedger({ store: first.store }).append({ tenant_id: TENANT, entry_id: "late-earned", employee_id: "emp-001", policy_id: "ANNUAL-2026", group_id: "annual", policy_version_id: "annual-v1", entitlement_id: "late-entitlement", idempotency_key: "late-earned", entry_type: "earned", amount_minutes: 60, occurred_on: "2026-07-20", source_ref: "LeaveAccrualRun:late" });
   assert.throws(
-    () => first.service.execute(first.context, { preview_reconciliation_id: preview.reconciliation_id, approved_by_actor_id: "hr-approver", idempotency_key: "stale-execute" }),
+    () => first.service.execute(first.context, { preview_reconciliation_id: preview.reconciliation_id, approval_receipt_id: approval.approval_receipt_id, idempotency_key: "stale-execute" }),
     (error) => error.safe_error_code === "HRX_LEAVE_TERMINATION_PREVIEW_STALE",
   );
 
   const second = fixture();
   const fresh = second.service.preview(second.context, { employee_id: "emp-001", termination_date: "2026-07-31" });
-  const executed = second.service.execute(second.context, { preview_reconciliation_id: fresh.reconciliation_id, approved_by_actor_id: "hr-approver", idempotency_key: "replay-execute" });
-  const replay = second.service.execute(second.context, { preview_reconciliation_id: fresh.reconciliation_id, approved_by_actor_id: "hr-approver", idempotency_key: "replay-execute" });
+  const freshApproval = second.service.approve({ ...second.context, actor_id: "hr-approver" }, { preview_reconciliation_id: fresh.reconciliation_id });
+  const executed = second.service.execute(second.context, { preview_reconciliation_id: fresh.reconciliation_id, approval_receipt_id: freshApproval.approval_receipt_id, idempotency_key: "replay-execute" });
+  const replay = second.service.execute(second.context, { preview_reconciliation_id: fresh.reconciliation_id, approval_receipt_id: freshApproval.approval_receipt_id, idempotency_key: "replay-execute" });
   assert.equal(replay.reconciliation_id, executed.reconciliation_id);
   assert.equal(second.store.query("select", { table: "hrx_leave_balance_entries", where: { tenant_id: TENANT, entry_type: "expired" } }).length, 1);
 });

@@ -48,6 +48,8 @@ export const API_AUTH_BOUNDED_CONTEXT = Object.freeze({
   contract_schema_version: "law-firm-os.api-auth-session.v0.1",
   endpoints: Object.freeze([
     "POST /api/auth/login",
+    "POST /api/auth/oidc/start",
+    "POST /api/auth/oidc/complete",
     "GET /api/auth/session",
     "POST /api/auth/logout",
     "POST /api/auth/step-up",
@@ -60,7 +62,7 @@ export const API_AUTH_BOUNDED_CONTEXT = Object.freeze({
   step_up_contract_ref: HRX_STEP_UP_TOKEN_CONTRACT_REF,
   login_protection_contract_ref: "workbook/wave1-internal-uplift-tuw-backlog-2026-07-02.md#UPL-A-14",
   runtime_persistence: "signed_session_token",
-  operational_auth_provider: LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
+  operational_auth_provider: "microsoft-entra-oidc",
   credential_store_env: LAWOS_AUTH_CREDENTIAL_STORE_ENV,
   password_reset_store_env: LAWOS_AUTH_PASSWORD_RESET_STORE_ENV,
   max_failed_logins_before_lock: 5,
@@ -75,6 +77,7 @@ const DEFAULT_TTL_MS = 8 * 60 * 60 * 1000;
 const DEFAULT_MAX_FAILED_LOGINS = 5;
 const DEFAULT_LOGIN_LOCK_MS = 15 * 60 * 1000;
 const DEFAULT_PASSWORD_RESET_MIN_LENGTH = 12;
+const DEFAULT_ENTRA_STEP_UP_MAX_AUTH_AGE_MS = 5 * 60 * 1000;
 const LAWOS_RUNTIME_TENANT_IDS = Object.freeze([
   MATTER_VAULT_REGISTERED_TENANT_ID,
   "tenant_rp04_synthetic",
@@ -92,6 +95,116 @@ const LAWOS_RUNTIME_TENANT_IDS = Object.freeze([
   "tenant_upl_c09_c12_outlook",
   "matter-runtime-tenant",
 ]);
+
+const TENANT_ADMIN_ACTION_PREFIXES = Object.freeze([
+  "admin_permission:",
+  "ai:",
+  "analytics:",
+  "crm:",
+  "crm.",
+  "data_cloud:",
+  "data_room:",
+  "enterprise:",
+  "home:",
+  "home.",
+  "intake:",
+  "import_data_mapping:",
+  "master_data:",
+  "outlook:",
+  "portal:",
+  "record_action:",
+  "reports:",
+  "ui_readiness:",
+]);
+
+const TENANT_ADMIN_EXACT_ACTIONS = Object.freeze([
+  "assignment-create",
+  "assistant",
+  "attendance-approve",
+  "issue-resolve",
+  "items",
+  "list",
+  "period-create",
+  "profile-create",
+  "profile-self",
+  "profiles",
+  "read",
+  "reviews",
+  "run-create",
+  "statements-self",
+]);
+
+function allowRule(id, input = {}) {
+  return Object.freeze({ id: `api-session-${id}`, effect: "allow", ...input });
+}
+
+function permissionRulesFromScopes(scopes = []) {
+  const granted = new Set(scopes);
+  const rules = [allowRule("profile-read", { action: "profile:read" })];
+  if (granted.has("matter.read")) {
+    rules.push(allowRule("matter-read", {
+      action_prefixes: ["matter:", "matter.", "home:", "home.", "outlook:matter:"],
+      action_access: "read",
+    }));
+    rules.push(allowRule("outlook-bootstrap", { action: "outlook:addin:bootstrap" }));
+  }
+  if (granted.has("matter.write")) {
+    rules.push(allowRule("matter-write", { action_prefixes: ["matter:", "matter."] }));
+    rules.push(allowRule("matter-outlook-write", { actions: ["outlook:followup:create"] }));
+  }
+  if (granted.has("vault.read")) {
+    rules.push(allowRule("vault-read", {
+      action_prefixes: ["dms:", "vault:", "matter:vault:", "outlook:document:"],
+      action_access: "read",
+    }));
+  }
+  if (granted.has("vault.write")) {
+    rules.push(allowRule("vault-write", { action_prefixes: ["dms:", "vault:"] }));
+    rules.push(allowRule("vault-adapters-write", {
+      actions: ["matter:document:write", "outlook:attachment:save", "outlook:email:file"],
+    }));
+  }
+  if (granted.has("audit.read")) {
+    rules.push(allowRule("audit-read", { action_suffixes: [":audit:read", ".audit.read"] }));
+  }
+  if (granted.has("audit.export")) {
+    rules.push(allowRule("audit-export", { action_suffixes: [":audit:export", ".audit.export"] }));
+  }
+  const financePrefixes = new Map([
+    ["analytics.finance.read", ["analytics:finance:", "finance:ar:"]],
+    ["finance.time.write", ["finance:time:"]],
+    ["finance.expense.write", ["finance:expense:", "finance:disbursement:"]],
+    ["finance.billing.write", ["finance:fee_arrangement:", "finance:wip:", "finance:wip_snapshot:", "finance:prebill:", "finance:invoice:"]],
+    ["finance.payment.write", ["finance:payment:", "finance:payment_match:", "finance:trust_ledger:"]],
+    ["finance.export", ["finance:accounting_export:"]],
+    ["finance.audit.read", ["finance:audit:"]],
+  ]);
+  for (const [scope, prefixes] of financePrefixes) {
+    if (granted.has(scope)) rules.push(allowRule(scope.replaceAll(".", "-"), { action_prefixes: prefixes }));
+  }
+  if (granted.has("finance.approve")) {
+    rules.push(allowRule("finance-approve", {
+      actions: ["finance:time:approve", "finance:prebill:approve", "finance:prebill:reject"],
+    }));
+  }
+  for (const scope of granted) {
+    if (!scope.startsWith("hrx.")) continue;
+    const [, category, ...rest] = scope.split(".");
+    const readOnly = rest.at(-1) === "read";
+    rules.push(allowRule(scope.replaceAll(".", "-"), {
+      action_prefix: `hrx.${category}.`,
+      ...(readOnly ? { action_access: "read" } : {}),
+    }));
+  }
+  if (granted.has("tenant.admin")) {
+    rules.push(allowRule("tenant-admin-prefixes", { action_prefixes: TENANT_ADMIN_ACTION_PREFIXES }));
+    rules.push(allowRule("tenant-admin-actions", { actions: TENANT_ADMIN_EXACT_ACTIONS }));
+  }
+  if (granted.has("user.admin")) rules.push(allowRule("user-admin", { action_prefix: "user:" }));
+  if (granted.has("security.admin")) rules.push(allowRule("security-admin", { action_prefix: "security:" }));
+  if (granted.has("cutover.execute")) rules.push(allowRule("cutover-execute", { action_prefix: "cutover:" }));
+  return Object.freeze(rules);
+}
 
 function base64UrlEncode(value) {
   return Buffer.from(value).toString("base64url");
@@ -165,18 +278,18 @@ function publicSession({ user, principal, expiresAt, roleAssignment }) {
   });
 }
 
-function permissionContextFromPrincipal(principal) {
+function permissionContextFromPrincipal(principal, { allowSyntheticTenantAliases = false } = {}) {
+  const tenantIds = allowSyntheticTenantAliases && principal.tenant_id === MATTER_VAULT_REGISTERED_TENANT_ID
+    ? LAWOS_RUNTIME_TENANT_IDS
+    : Object.freeze([principal.tenant_id]);
   return Object.freeze({
     principal: Object.freeze({
       ...principal,
-      tenant_ids:
-        principal.tenant_id === MATTER_VAULT_REGISTERED_TENANT_ID
-          ? LAWOS_RUNTIME_TENANT_IDS
-          : Object.freeze([principal.tenant_id]),
+      tenant_ids: tenantIds,
       session_principal_source: "api_signed_session",
       session_source_ref: MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
     }),
-    rules: Object.freeze([{ id: "api-session-internal-allow", effect: "allow", action: "*" }]),
+    rules: permissionRulesFromScopes(principal.scopes),
     object_acl: Object.freeze([]),
   });
 }
@@ -295,8 +408,10 @@ function principalFromSignedSession({ user, payload = {}, trustedTenantId, reque
     role_ids: Object.freeze([...(membership.role_ids ?? roleAssignment.role_ids ?? [])]),
     group_ids: Object.freeze([...(membership.group_ids ?? roleAssignment.group_ids ?? [])]),
     scopes: Object.freeze([...(membership.scopes ?? roleAssignment.scopes ?? [])]),
-    assurance_level: user.assurance_level ?? "password",
+    assurance_level: credential?.assurance_level ?? user.assurance_level ?? "password",
+    entra_subject_id: credential?.federated_subject_id ?? null,
     session_id: payload.sid ?? `sess_${user.user_id}`,
+    session_jti: payload.jti ?? null,
     credential_rev: credential?.credential_rev ?? payload.credential_rev ?? null,
     credential_status: credential?.credential_status ?? null,
     must_change_password: credential?.must_change_password === true,
@@ -323,6 +438,7 @@ export function createApiSessionAuth({
   now = () => Date.now(),
   stepUpAuthority = null,
   stepUpProvider = null,
+  staffOidcProvider = null,
   identityRepository = null,
 } = {}) {
   const runtimeProfile = resolveRuntimeProfile({ LAWOS_RUNTIME_PROFILE: profile });
@@ -332,6 +448,10 @@ export function createApiSessionAuth({
     ? createLocalDevAuthProvider({ subjects: subjectsFromSeed(seed, { trustedTenantId }) })
     : null;
   const centralIdentityRepository = identityRepository ? assertIdentityLedger(identityRepository) : null;
+  const federatedStaffAuthEnabled = !syntheticLoginEnabled && staffOidcProvider != null;
+  if (federatedStaffAuthEnabled && !centralIdentityRepository) {
+    throw new TypeError("Entra staff OIDC requires the central identity repository");
+  }
   if (!syntheticLoginEnabled && !centralIdentityRepository && !credentialStore && !credentialStorePath) {
     const error = new Error(`${LAWOS_AUTH_CREDENTIAL_STORE_ENV} is required for operational runtime profile`);
     error.code = "LAWOS_AUTH_CREDENTIAL_STORE_REQUIRED";
@@ -452,7 +572,14 @@ export function createApiSessionAuth({
   }
 
   function publicBreakGlassRequest(request) {
-    return Object.freeze({ ...request, token_material_returned: false, production_ready_claim: false });
+    const { reason, approvals, ...safe } = request ?? {};
+    return Object.freeze({
+      ...safe,
+      reason_present: Boolean(String(reason ?? "").trim()),
+      approvals_recorded: Array.isArray(approvals) ? approvals.length : Number(request?.approval_count ?? 0),
+      token_material_returned: false,
+      production_ready_claim: false,
+    });
   }
 
   async function failedLoginState(email, user = findRegisteredAccountByEmail(email, seed)) {
@@ -529,7 +656,17 @@ export function createApiSessionAuth({
     if (record.account_status !== "active" || ["disabled", "reset_required", "locked"].includes(record.credential_status)) {
       return Object.freeze({ ok: false, reason: "credential_inactive", safe_error_code: "AUTH_CREDENTIAL_REVOKED", status: 401 });
     }
-    return Object.freeze({ ok: true, credential_rev: record.credential_rev, credential_status: record.credential_status, must_change_password: record.credential_status === "must_change" });
+    const verifiedFederatedCredential = federatedStaffAuthEnabled
+      && record.credential_provider === staffOidcProvider.provider_id
+      && Boolean(record.federated_subject_id);
+    return Object.freeze({
+      ok: true,
+      credential_rev: record.credential_rev,
+      credential_status: record.credential_status,
+      must_change_password: record.credential_status === "must_change",
+      assurance_level: verifiedFederatedCredential ? "phishing-resistant-mfa" : "password",
+      federated_subject_id: verifiedFederatedCredential ? record.federated_subject_id : null,
+    });
   }
 
   async function requireOperationalPasswordReset(user) {
@@ -765,6 +902,275 @@ export function createApiSessionAuth({
     });
   }
 
+  async function startOidcAuthorization(body = {}, headers = {}, { requestId = "req_unset" } = {}) {
+    if (!federatedStaffAuthEnabled) {
+      return Object.freeze({ status: 403, body: errorBody(requestId, "AUTH_OIDC_NOT_CONFIGURED", "auth_oidc_not_configured") });
+    }
+    const flow = body.flow === "step_up" ? "step_up" : "login";
+    let user;
+    let purpose = "staff_login";
+    let primarySessionJti = null;
+    if (flow === "step_up") {
+      const resolved = await resolvePermissionContextFromHeaders(headers, { requestId, requireSessionToken: true });
+      if (!resolved.ok) {
+        return Object.freeze({
+          status: resolved.status ?? 401,
+          body: resolved.body ?? errorBody(requestId, "AUTH_SESSION_REQUIRED", "auth_session_required"),
+        });
+      }
+      user = findRegisteredAccountByUserId(resolved.principal.user_id, seed);
+      primarySessionJti = resolved.principal.session_jti;
+      purpose = `step_up:${String(body.purpose ?? "").trim()}`;
+      if (!user || !primarySessionJti || purpose === "step_up:") {
+        return Object.freeze({ status: 400, body: errorBody(requestId, "HRX_STEP_UP_PURPOSE_REQUIRED", "hrx_step_up_purpose_required") });
+      }
+    } else {
+      user = findRegisteredAccountByEmail(String(body.email ?? "").trim(), seed);
+      if (!user) {
+        return Object.freeze({ status: 403, body: errorBody(requestId, "AUTH_ENTRA_ACCOUNT_UNMAPPED", "auth_entra_account_unmapped") });
+      }
+    }
+    if (await accountStatus(user) !== "active") {
+      return Object.freeze({ status: 403, body: await disabledAccountBody(requestId, user) });
+    }
+    const stepUpMaxAuthAgeMs = Number(
+      staffOidcProvider.capabilities?.step_up_max_auth_age_ms
+      ?? DEFAULT_ENTRA_STEP_UP_MAX_AUTH_AGE_MS,
+    );
+    let authorization;
+    try {
+      authorization = staffOidcProvider.createAuthorizationRequest({
+        redirect_uri: body.redirect_uri,
+        code_challenge: body.code_challenge,
+        login_hint: user.email,
+        max_age_seconds: flow === "step_up" ? Math.ceil(stepUpMaxAuthAgeMs / 1000) : undefined,
+      });
+    } catch (error) {
+      return Object.freeze({
+        status: error?.status ?? 400,
+        body: errorBody(requestId, error?.safe_error_code ?? "AUTH_ENTRA_REQUEST_INVALID", "auth_entra_request_invalid"),
+      });
+    }
+    const tenantId = homeTenantIdForUser(user, trustedTenantId);
+    await centralIdentityRepository.createChallenge({
+      tenant_id: tenantId,
+      user: identitySeed(user),
+      challenge_type: "oidc_login",
+      challenge_hash: hashIdentityToken(authorization.state),
+      purpose,
+      provider_id: staffOidcProvider.provider_id,
+      requested_at: now(),
+      expires_at: now() + 10 * 60 * 1000,
+      actor_id: user.user_id,
+      audit_action: "auth.oidc.authorization.started",
+      metadata: {
+        flow,
+        nonce_hash: authorization.nonce_hash,
+        redirect_uri_hash: authorization.redirect_uri_hash,
+        code_challenge: authorization.code_challenge,
+        phishing_resistant_required: true,
+        conditional_access_required: true,
+        step_up_max_auth_age_ms: flow === "step_up" ? stepUpMaxAuthAgeMs : null,
+        primary_session_jti: primarySessionJti,
+      },
+    });
+    return Object.freeze({
+      status: 200,
+      body: Object.freeze({
+        request_id: requestId,
+        outcome: "authorization_required",
+        ok: true,
+        authorization_url: authorization.authorization_url,
+        state: authorization.state,
+        provider_id: staffOidcProvider.provider_id,
+        flow,
+        pkce_method: "S256",
+        mfa_required: true,
+        phishing_resistant_required: true,
+        conditional_access_required: true,
+        token_material_returned: true,
+        production_ready_claim: false,
+      }),
+    });
+  }
+
+  async function completeOidcAuthorization(body = {}, headers = {}, { requestId = "req_unset" } = {}) {
+    if (!federatedStaffAuthEnabled) {
+      return Object.freeze({ status: 403, body: errorBody(requestId, "AUTH_OIDC_NOT_CONFIGURED", "auth_oidc_not_configured") });
+    }
+    const state = String(body.state ?? "").trim();
+    const redirectUri = String(body.redirect_uri ?? "").trim();
+    const codeVerifier = String(body.code_verifier ?? "").trim();
+    if (!state || !redirectUri || !codeVerifier || !body.code) {
+      return Object.freeze({ status: 400, body: errorBody(requestId, "AUTH_ENTRA_CALLBACK_INVALID", "auth_entra_callback_invalid") });
+    }
+    const challengeHash = hashIdentityToken(state);
+    const validation = await centralIdentityRepository.validateChallenge({
+      tenant_id: trustedTenantId,
+      challenge_type: "oidc_login",
+      challenge_hash: challengeHash,
+    });
+    if (!validation.ok) {
+      return Object.freeze({ status: validation.status ?? 401, body: errorBody(requestId, validation.safe_error_code ?? "AUTH_CHALLENGE_INVALID", validation.reason) });
+    }
+    const challenge = validation.record;
+    const expectedCodeChallenge = createHash("sha256").update(codeVerifier, "utf8").digest("base64url");
+    if (
+      challenge.metadata?.code_challenge !== expectedCodeChallenge
+      || challenge.metadata?.redirect_uri_hash !== createHash("sha256").update(redirectUri, "utf8").digest("hex")
+    ) {
+      return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_ENTRA_PKCE_INVALID", "auth_entra_pkce_invalid") });
+    }
+    const user = findRegisteredAccountByUserId(challenge.user_id, seed);
+    if (!user || normalizeLoginKey(user.email) !== normalizeLoginKey(challenge.email)) {
+      return Object.freeze({ status: 403, body: errorBody(requestId, "AUTH_ENTRA_ACCOUNT_UNMAPPED", "auth_entra_account_unmapped") });
+    }
+    const existingAccount = await centralIdentityRepository.getAccount({
+      tenant_id: trustedTenantId,
+      user_id: user.user_id,
+    });
+    let verification;
+    try {
+      verification = await staffOidcProvider.completeAuthorization({
+        code: body.code,
+        redirect_uri: redirectUri,
+        code_verifier: codeVerifier,
+        expected_nonce_hash: challenge.metadata.nonce_hash,
+        expected_user_id: existingAccount?.federated_subject_id ?? undefined,
+        max_auth_age_ms: challenge.metadata?.flow === "step_up"
+          ? challenge.metadata.step_up_max_auth_age_ms
+          : undefined,
+      });
+    } catch (error) {
+      await appendSecurityAudit({
+        action: "auth.oidc.authorization.failed",
+        object_id: user.user_id,
+        context: { principal: { tenant_id: trustedTenantId, user_id: user.user_id } },
+        details: { reason: error?.safe_error_code ?? "ENTRA_VERIFICATION_FAILED", provider_id: staffOidcProvider.provider_id },
+      });
+      return Object.freeze({
+        status: error?.status ?? 401,
+        body: errorBody(requestId, error?.safe_error_code ?? "AUTH_ENTRA_VERIFICATION_FAILED", "auth_entra_verification_failed"),
+      });
+    }
+    if (normalizeLoginKey(verification.email) !== normalizeLoginKey(user.email)) {
+      return Object.freeze({ status: 403, body: errorBody(requestId, "AUTH_ENTRA_ACCOUNT_UNMAPPED", "auth_entra_account_unmapped") });
+    }
+    let stepUpPrincipal = null;
+    if (challenge.metadata?.flow === "step_up") {
+      const resolved = await resolvePermissionContextFromHeaders(headers, { requestId, requireSessionToken: true });
+      if (
+        !resolved.ok
+        || resolved.principal.user_id !== user.user_id
+        || !resolved.principal.session_jti
+        || resolved.principal.session_jti !== challenge.metadata.primary_session_jti
+      ) {
+        return Object.freeze({ status: 403, body: errorBody(requestId, "AUTH_ENTRA_SUBJECT_MISMATCH", "auth_entra_subject_mismatch") });
+      }
+      stepUpPrincipal = resolved.principal;
+    }
+    const account = await centralIdentityRepository.ensureFederatedAccount({
+      tenant_id: trustedTenantId,
+      user: identitySeed(user),
+      provider_id: verification.provider_id,
+      federated_tenant_id: verification.tenant_id,
+      federated_subject_id: verification.assertion_id,
+      actor_id: user.user_id,
+      phishing_resistant_mfa: true,
+      conditional_access_verified: true,
+    });
+    const consumed = await centralIdentityRepository.consumeChallenge({
+      tenant_id: trustedTenantId,
+      challenge_type: "oidc_login",
+      challenge_hash: challengeHash,
+      user_id: user.user_id,
+      purpose: challenge.purpose,
+      expected_metadata: challenge.metadata?.flow === "step_up"
+        ? { primary_session_jti: challenge.metadata.primary_session_jti }
+        : {},
+      actor_id: user.user_id,
+      audit_action: "auth.oidc.authorization.consumed",
+    });
+    if (!consumed.ok) {
+      return Object.freeze({ status: consumed.status ?? 401, body: errorBody(requestId, consumed.safe_error_code ?? "AUTH_CHALLENGE_INVALID", consumed.reason) });
+    }
+
+    if (challenge.metadata?.flow === "step_up") {
+      const purpose = String(challenge.purpose ?? "").replace(/^step_up:/u, "");
+      const issued = stepUpTokenAuthority().issueVerified({
+        principal: stepUpPrincipal,
+        purpose,
+        provider_verification: Object.freeze({ ok: true, ...verification }),
+        requestId,
+      });
+      if (issued.status !== 200) return issued;
+      await centralIdentityRepository.createChallenge({
+        tenant_id: trustedTenantId,
+        user: identitySeed(user),
+        challenge_type: "step_up",
+        challenge_hash: hashIdentityToken(issued.body.step_up_token),
+        purpose,
+        provider_id: verification.provider_id,
+        requested_at: now(),
+        expires_at: issued.body.expires_at,
+        actor_id: user.user_id,
+        metadata: {
+          factor: verification.factor,
+          phishing_resistant: true,
+          primary_session_jti: stepUpPrincipal.session_jti,
+        },
+      });
+      return issued;
+    }
+
+    const principal = principalFromSignedSession({
+      user,
+      payload: { sid: `sess_oidc_${randomUUID()}`, credential_rev: account.credential_rev },
+      trustedTenantId,
+      requestId,
+      credential: {
+        credential_rev: account.credential_rev,
+        credential_status: account.credential_status,
+        assurance_level: verification.assurance_level,
+        federated_subject_id: verification.assertion_id,
+      },
+    });
+    const session = createToken({ principal, user });
+    const committed = await centralIdentityRepository.completeLogin({
+      tenant_id: trustedTenantId,
+      user: identitySeed(user),
+      session_jti: session.payload.jti,
+      session_id: session.payload.sid,
+      credential_rev: account.credential_rev,
+      issued_at: session.payload.iat,
+      expires_at: session.payload.exp,
+    });
+    if (!committed.ok) {
+      return Object.freeze({ status: committed.status ?? 401, body: errorBody(requestId, committed.safe_error_code ?? "AUTH_SESSION_INVALID", committed.reason) });
+    }
+    return Object.freeze({
+      status: 200,
+      body: Object.freeze({
+        request_id: requestId,
+        outcome: "passed",
+        ok: true,
+        token_type: "Bearer",
+        session_token: session.token,
+        expires_at: session.expires_at,
+        session: session.session,
+        roster_source: MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
+        credential_provider: verification.provider_id,
+        assurance_level: verification.assurance_level,
+        mfa_verified: true,
+        phishing_resistant_verified: true,
+        conditional_access_verified: true,
+        local_dev_synthetic_only: false,
+        token_material_returned: true,
+        production_ready_claim: false,
+      }),
+    });
+  }
+
   async function verifyToken(token, { requestId = "req_unset" } = {}) {
     const parts = String(token ?? "").split(".");
     if (parts.length !== 3 || parts[0] !== TOKEN_PREFIX) {
@@ -828,7 +1234,7 @@ export function createApiSessionAuth({
       ok: true,
       principal,
       token_payload: Object.freeze({ jti: payload.jti, user_id: payload.user_id, tenant_id: payload.tenant_id, exp: payload.exp }),
-      context: permissionContextFromPrincipal(principal),
+      context: permissionContextFromPrincipal(principal, { allowSyntheticTenantAliases: syntheticLoginEnabled }),
       session: publicSession({
         user,
         principal,
@@ -839,6 +1245,12 @@ export function createApiSessionAuth({
   }
 
   async function login(body = {}, { requestId = "req_unset" } = {}) {
+    if (federatedStaffAuthEnabled) {
+      return Object.freeze({
+        status: 403,
+        body: errorBody(requestId, "AUTH_PASSWORD_LOGIN_DISABLED", "auth_password_login_disabled"),
+      });
+    }
     const email = String(body.email ?? "").trim();
     const credential = String(body.password ?? body.credential ?? body.local_dev_token ?? "").trim();
     if (!email || !credential) {
@@ -971,6 +1383,18 @@ export function createApiSessionAuth({
   }
 
   async function handleAuthApiRequest({ pathname, method, body = {}, headers = {}, requestId = "req_unset" } = {}) {
+    if (pathname === "/api/auth/oidc/start") {
+      if (method !== "POST") {
+        return Object.freeze({ status: 405, body: errorBody(requestId, "AUTH_METHOD_NOT_ALLOWED", "auth_method_not_allowed") });
+      }
+      return startOidcAuthorization(body, headers, { requestId });
+    }
+    if (pathname === "/api/auth/oidc/complete") {
+      if (method !== "POST") {
+        return Object.freeze({ status: 405, body: errorBody(requestId, "AUTH_METHOD_NOT_ALLOWED", "auth_method_not_allowed") });
+      }
+      return completeOidcAuthorization(body, headers, { requestId });
+    }
     if (pathname === "/api/auth/login") {
       if (method !== "POST") {
         return Object.freeze({ status: 405, body: errorBody(requestId, "AUTH_METHOD_NOT_ALLOWED", "auth_method_not_allowed") });
@@ -1058,6 +1482,12 @@ export function createApiSessionAuth({
       if (method !== "POST") {
         return Object.freeze({ status: 405, body: errorBody(requestId, "AUTH_METHOD_NOT_ALLOWED", "auth_method_not_allowed") });
       }
+      if (federatedStaffAuthEnabled) {
+        return Object.freeze({
+          status: 403,
+          body: errorBody(requestId, "AUTH_ENTRA_STEP_UP_REQUIRED", "auth_entra_step_up_required"),
+        });
+      }
       const resolved = await resolvePermissionContextFromHeaders(headers, { requestId, requireSessionToken: true });
       if (!resolved.ok) {
         return Object.freeze({
@@ -1119,7 +1549,10 @@ export function createApiSessionAuth({
           requested_at: now(),
           expires_at: issued.body.expires_at,
           actor_id: resolved.principal.user_id,
-          metadata: { factor: verification?.factor ?? "totp" },
+          metadata: {
+            factor: verification?.factor ?? "totp",
+            primary_session_jti: resolved.principal.session_jti ?? null,
+          },
         });
       } else {
         await appendSecurityAudit({
@@ -1135,11 +1568,17 @@ export function createApiSessionAuth({
       if (method !== "POST") {
         return Object.freeze({ status: 405, body: errorBody(requestId, "AUTH_METHOD_NOT_ALLOWED", "auth_method_not_allowed") });
       }
+      if (federatedStaffAuthEnabled) {
+        return Object.freeze({ status: 403, body: errorBody(requestId, "AUTH_PASSWORD_LOGIN_DISABLED", "auth_password_login_disabled") });
+      }
       return requestPasswordReset(body, { requestId });
     }
     if (pathname === "/api/auth/password-reset/confirm") {
       if (method !== "POST") {
         return Object.freeze({ status: 405, body: errorBody(requestId, "AUTH_METHOD_NOT_ALLOWED", "auth_method_not_allowed") });
+      }
+      if (federatedStaffAuthEnabled) {
+        return Object.freeze({ status: 403, body: errorBody(requestId, "AUTH_PASSWORD_LOGIN_DISABLED", "auth_password_login_disabled") });
       }
       return confirmPasswordReset(body, { requestId });
     }
@@ -1147,13 +1586,25 @@ export function createApiSessionAuth({
   }
 
   async function validateStepUpChallenge({ token, principal = {}, purpose } = {}) {
-    if (!centralIdentityRepository) return Object.freeze({ ok: true, authority: "signed-token-only" });
-    const validation = await centralIdentityRepository.validateChallenge({
+    const challengeHash = hashIdentityToken(token);
+    if (!centralIdentityRepository) return Object.freeze({ ok: true, authority: "signed-token-local-dev" });
+    if (!principal.session_jti) {
+      return Object.freeze({
+        ok: false,
+        status: 403,
+        reason: "hrx_step_up_session_binding_missing",
+        safe_error_code: "HRX_STEP_UP_CHALLENGE_INVALID",
+      });
+    }
+    const validation = await centralIdentityRepository.consumeChallenge({
       tenant_id: principal.tenant_id,
       challenge_type: "step_up",
-      challenge_hash: hashIdentityToken(token),
+      challenge_hash: challengeHash,
       user_id: principal.user_id,
       purpose,
+      expected_metadata: { primary_session_jti: principal.session_jti },
+      actor_id: principal.user_id,
+      audit_action: "auth.step_up.consumed",
     });
     if (validation.ok) return Object.freeze({ ok: true, authority: "postgres-v2" });
     await appendSecurityAudit({
@@ -1250,13 +1701,24 @@ export function createApiSessionAuth({
       if (!requester) return Object.freeze({ status: 400, body: errorBody(requestId, "ADMIN_SECURITY_BREAK_GLASS_REQUESTER_REQUIRED", "admin_security_break_glass_requester_required") });
       const reason = String(body.reason ?? "").trim();
       if (!reason) return Object.freeze({ status: 400, body: errorBody(requestId, "ADMIN_SECURITY_BREAK_GLASS_REASON_REQUIRED", "admin_security_break_glass_reason_required") });
+      const breakGlassAccountRef = String(body.break_glass_account_ref ?? "").trim();
+      if (!breakGlassAccountRef || breakGlassAccountRef === requester.user_id) {
+        return Object.freeze({ status: 400, body: errorBody(requestId, "ADMIN_SECURITY_BREAK_GLASS_SEPARATE_ACCOUNT_REQUIRED", "admin_security_break_glass_separate_account_required") });
+      }
       let request = Object.freeze({
         break_glass_request_id: `break_glass_${randomUUID()}`,
         requester_user_id: requester.user_id,
         requester_label: requester.display_name,
         reason,
+        break_glass_account_ref: breakGlassAccountRef,
+        minimum_privilege_profile: "break_glass_minimum",
+        required_approvals: 2,
+        approval_count: 0,
+        approvals: Object.freeze([]),
         state: "pending",
         requested_at: new Date(now()).toISOString(),
+        expires_at: new Date(now() + 15 * 60 * 1_000).toISOString(),
+        activated_at: null,
         decided_by: null,
         decided_at: null,
       });
@@ -1267,7 +1729,10 @@ export function createApiSessionAuth({
           requester_label: requester.display_name,
           break_glass_request_id: request.break_glass_request_id,
           reason: request.reason,
+          break_glass_account_ref: request.break_glass_account_ref,
+          required_approvals: request.required_approvals,
           requested_at: request.requested_at,
+          expires_at: request.expires_at,
           actor_id: securityActorId(context),
         });
       } else {
@@ -1276,7 +1741,7 @@ export function createApiSessionAuth({
           action: "admin.security.break_glass.requested",
           object_id: request.break_glass_request_id,
           context,
-          details: { requester_user_id: requester.user_id },
+          details: { requester_user_id: requester.user_id, separate_account_reference_present: true, required_approvals: 2 },
         });
       }
       return Object.freeze({
@@ -1304,31 +1769,56 @@ export function createApiSessionAuth({
           state: nextState,
           actor_id: securityActorId(context),
           decided_at: now(),
+          evidence_sha256: body.evidence_sha256,
         });
         if (!transition.ok) return Object.freeze({ status: transition.status ?? 409, body: errorBody(requestId, transition.safe_error_code, transition.reason) });
         next = transition.record;
       } else {
         const current = breakGlassRequests.get(breakGlassRequestId);
         if (!current) return Object.freeze({ status: 404, body: errorBody(requestId, "ADMIN_SECURITY_BREAK_GLASS_NOT_FOUND", "admin_security_break_glass_not_found") });
-        next = Object.freeze({
-          ...current,
-          state: nextState,
-          decided_by: securityActorId(context),
-          decided_at: new Date(now()).toISOString(),
-        });
+        const actorId = securityActorId(context);
+        if (action === "approve") {
+          if (actorId === current.requester_user_id) {
+            return Object.freeze({ status: 403, body: errorBody(requestId, "ADMIN_SECURITY_BREAK_GLASS_SELF_APPROVAL_DENIED", "admin_security_break_glass_self_approval_denied") });
+          }
+          if (Date.parse(current.expires_at) <= now()) {
+            return Object.freeze({ status: 409, body: errorBody(requestId, "ADMIN_SECURITY_BREAK_GLASS_EXPIRED", "admin_security_break_glass_expired") });
+          }
+          const approvals = new Set(current.approvals ?? []);
+          approvals.add(actorId);
+          const activated = approvals.size >= current.required_approvals;
+          next = Object.freeze({
+            ...current,
+            approvals: Object.freeze([...approvals]),
+            approval_count: approvals.size,
+            state: activated ? "approved" : "pending",
+            activated_at: activated ? new Date(now()).toISOString() : null,
+            decided_by: activated ? actorId : null,
+            decided_at: activated ? new Date(now()).toISOString() : null,
+          });
+        } else {
+          next = Object.freeze({
+            ...current,
+            state: "revoked",
+            decided_by: actorId,
+            decided_at: new Date(now()).toISOString(),
+          });
+        }
         breakGlassRequests.set(breakGlassRequestId, next);
         await appendSecurityAudit({
-          action: action === "approve" ? "admin.security.break_glass.approved" : "admin.security.break_glass.revoked",
+          action: action === "approve" && next.state !== "approved"
+            ? "admin.security.break_glass.approval_recorded"
+            : action === "approve" ? "admin.security.break_glass.approved" : "admin.security.break_glass.revoked",
           object_id: breakGlassRequestId,
           context,
-          details: { state: nextState },
+          details: { state: next.state, approval_count: next.approval_count, required_approvals: next.required_approvals },
         });
       }
       return Object.freeze({
         status: 200,
         body: Object.freeze({
           request_id: requestId,
-          outcome: nextState,
+          outcome: next.state,
           item: publicBreakGlassRequest(next),
           safe_error_codes: Object.freeze([]),
           production_ready_claim: false,
@@ -1356,6 +1846,14 @@ export function createApiSessionAuth({
   }
 
   return Object.freeze({
+    capabilities: Object.freeze({
+      provider: federatedStaffAuthEnabled ? staffOidcProvider.provider_id : syntheticLoginEnabled ? "local-dev-synthetic-provider" : LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
+      federated_staff_auth: federatedStaffAuthEnabled,
+      local_password_login: !federatedStaffAuthEnabled,
+      local_synthetic_login: syntheticLoginEnabled,
+      default_totp: !federatedStaffAuthEnabled,
+      phishing_resistant_mfa_required: federatedStaffAuthEnabled,
+    }),
     login,
     requestPasswordReset,
     confirmPasswordReset,

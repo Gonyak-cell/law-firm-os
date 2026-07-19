@@ -237,11 +237,12 @@ test("manual adjustment keeps row errors visible and enforces dual control", () 
   assert.equal(Object.hasOwn(preview.rows[0], "reason"), false);
   assert.equal(Object.hasOwn(preview.rows[0], "source_document_id"), false);
 
+  const approval = service.approveManual({ ...context, actor_id: "hr-approver" }, { rows });
   assert.throws(
-    () => service.executeManual(context, { rows, approved_by_actor_id: "hr-operator", idempotency_key: "manual-1" }),
+    () => service.executeManual({ ...context, actor_id: "hr-approver" }, { rows, approval_receipt_id: approval.approval_receipt_id, idempotency_key: "manual-1" }),
     (error) => error.safe_error_code === "HRX_LEAVE_MANUAL_DUAL_CONTROL_REQUIRED",
   );
-  const result = service.executeManual(context, { rows, approved_by_actor_id: "hr-approver", idempotency_key: "manual-1" });
+  const result = service.executeManual(context, { rows, approval_receipt_id: approval.approval_receipt_id, idempotency_key: "manual-1" });
   assert.deepEqual(result.counts, { created: 1, errors: 1 });
   const entry = store.query("selectOne", { table: "hrx_leave_balance_entries", where: { tenant_id: TENANT, idempotency_key: "manual-1:1:credit" } });
   assert.equal(entry.adjustment_direction, "credit");
@@ -305,7 +306,8 @@ test("LV-OCC-003 creates a dual-approved future occurrence without activating it
   ];
   const preview = service.previewManual(context, { rows, schedule_only: true, as_of: "2026-07-13" });
   assert.deepEqual(preview.counts, { ready: 1, errors: 2, duplicates: 0 });
-  const result = service.executeManual(context, { rows, schedule_only: true, as_of: "2026-07-13", approved_by_actor_id: "hr-approver", idempotency_key: "scheduled-manual-1" });
+  const approval = service.approveManual({ ...context, actor_id: "hr-approver" }, { rows, schedule_only: true, as_of: "2026-07-13" });
+  const result = service.executeManual(context, { rows, schedule_only: true, as_of: "2026-07-13", approval_receipt_id: approval.approval_receipt_id, idempotency_key: "scheduled-manual-1" });
   assert.deepEqual(result.counts, { created: 1, errors: 2 });
   assert.equal(result.rows[0].lifecycle_state, "scheduled");
   assert.equal(result.rows[0].valid_from, "2026-08-01");
@@ -323,6 +325,6 @@ test("LV-OCC-003 creates a dual-approved future occurrence without activating it
   assert.equal(occurrence.totals.total_minutes, 480);
   assert.equal(occurrence.totals.remaining_minutes, 0);
   assert.equal(JSON.stringify(occurrence).includes("승인된 예정 발생"), false);
-  assert.deepEqual(service.executeManual(context, { rows, schedule_only: true, as_of: "2026-07-13", approved_by_actor_id: "hr-approver", idempotency_key: "scheduled-manual-1" }).counts, { created: 1, errors: 2 });
+  assert.deepEqual(service.executeManual(context, { rows, schedule_only: true, as_of: "2026-07-13", approval_receipt_id: approval.approval_receipt_id, idempotency_key: "scheduled-manual-1" }).counts, { created: 1, errors: 2 });
   assert.equal(store.query("select", { table: "hrx_leave_entitlements", where: { tenant_id: TENANT, idempotency_key: "scheduled-manual-1:1:entitlement" } }).length, 1);
 });

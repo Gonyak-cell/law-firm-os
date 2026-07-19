@@ -4,6 +4,7 @@ import {
   createDomainSnapshot,
   domainReceiptId,
   hashDomainValue,
+  normalizeDomainSmokeResult,
   normalizeDomainRecord,
   requireDomainHash,
   requireDomainId,
@@ -326,6 +327,66 @@ function createScopedDomainLedger(client, tenantId, domainId, clock) {
     return Object.freeze(result.rows.map((row) => Object.freeze({ ...clone(row), created_at: iso(row.created_at) })));
   }
 
+  async function enqueueOutbox(input = {}) {
+    const eventId = requiredText(input.event_id, "outbox event_id");
+    const topic = requiredText(input.topic, "outbox topic");
+    assertSafeEvidencePayload(input.payload ?? {});
+    const result = await client.query(
+      `INSERT INTO lawos_domain.outbox_events
+         (tenant_id, domain_id, event_id, topic, aggregate_type, aggregate_id, payload, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::timestamptz)
+       ON CONFLICT (tenant_id, domain_id, event_id) DO NOTHING
+       RETURNING tenant_id, domain_id, event_id, topic, aggregate_type, aggregate_id,
+                 payload, status, attempt_count, created_at, published_at`,
+      [
+        tenantId,
+        domainId,
+        eventId,
+        topic,
+        input.aggregate_type ?? null,
+        input.aggregate_id ?? null,
+        JSON.stringify(input.payload ?? {}),
+        input.created_at ?? timestamp(clock),
+      ],
+    );
+    const row = result.rows[0] ?? (await client.query(
+      `SELECT tenant_id, domain_id, event_id, topic, aggregate_type, aggregate_id,
+              payload, status, attempt_count, created_at, published_at
+         FROM lawos_domain.outbox_events
+        WHERE tenant_id = $1 AND domain_id = $2 AND event_id = $3`,
+      [tenantId, domainId, eventId],
+    )).rows[0];
+    if (row.topic !== topic || hashDomainValue(row.payload) !== hashDomainValue(input.payload ?? {})) {
+      throw new RepositoryIdempotencyConflictError("domain outbox event already exists with different content");
+    }
+    return Object.freeze({
+      replayed: result.rowCount === 0,
+      event: Object.freeze({
+        ...clone(row),
+        attempt_count: Number(row.attempt_count),
+        created_at: iso(row.created_at),
+        published_at: iso(row.published_at),
+      }),
+    });
+  }
+
+  async function listOutbox() {
+    const result = await client.query(
+      `SELECT tenant_id, domain_id, event_id, topic, aggregate_type, aggregate_id,
+              payload, status, attempt_count, created_at, published_at
+         FROM lawos_domain.outbox_events
+        WHERE tenant_id = $1 AND domain_id = $2
+        ORDER BY created_at, event_id`,
+      [tenantId, domainId],
+    );
+    return Object.freeze(result.rows.map((row) => Object.freeze({
+      ...clone(row),
+      attempt_count: Number(row.attempt_count),
+      created_at: iso(row.created_at),
+      published_at: iso(row.published_at),
+    })));
+  }
+
   async function findImportReceipt(sourceHash) {
     const result = await client.query(
       `SELECT * FROM lawos_domain.import_receipts
@@ -405,6 +466,11 @@ function createScopedDomainLedger(client, tenantId, domainId, clock) {
           AND imports.receipt_id = $4
           AND shadows.receipt_id = $5
           AND shadows.status = 'equal'
+          AND shadows.source_hash = imports.snapshot_hash
+          AND shadows.target_hash = imports.snapshot_hash
+          AND shadows.source_count = imports.target_count
+          AND shadows.target_count = imports.target_count
+          AND imports.snapshot_hash = $8
        RETURNING *`,
       [
         tenantId,
@@ -414,6 +480,7 @@ function createScopedDomainLedger(client, tenantId, domainId, clock) {
         requiredText(input.shadow_receipt_id, "shadow_receipt_id"),
         requireDomainHash(input.smoke_hash, "smoke_hash"),
         input.recorded_at ?? timestamp(clock),
+        requireDomainHash(input.source_snapshot_hash, "source_snapshot_hash"),
       ],
     );
     if (result.rowCount !== 1) {
@@ -440,6 +507,8 @@ function createScopedDomainLedger(client, tenantId, domainId, clock) {
     listIdempotency,
     appendAudit,
     listAudit,
+    enqueueOutbox,
+    listOutbox,
     findImportReceipt,
     appendImportReceipt,
     appendShadowReceipt,
@@ -563,8 +632,20 @@ export function createPostgresDomainLedger({ pool, clock = () => new Date(), tra
     shadow_receipt_id,
     smoke_result,
   } = {}) {
-    const smokeHash = hashDomainValue(smoke_result ?? {});
+    const normalizedSmoke = normalizeDomainSmokeResult(smoke_result);
+    assertSafeEvidencePayload(normalizedSmoke, "smoke_result");
+    const smokeHash = hashDomainValue(normalizedSmoke);
     return transaction({ tenant_id, domain_id }, async (tx) => {
+      const currentSnapshot = createDomainSnapshot({
+        tenant_id,
+        domain_id,
+        records: await tx.list(),
+        idempotency_entries: await tx.listIdempotency(),
+        audit_events: await tx.listAudit(),
+      });
+      if (currentSnapshot.snapshot_hash !== normalizedSmoke.source_snapshot_hash) {
+        throw domainImportConflict("source-ready rehearsal target changed after shadow comparison");
+      }
       const receiptId = domainReceiptId("rehearsal", {
         tenant_id,
         domain_id,
@@ -577,6 +658,7 @@ export function createPostgresDomainLedger({ pool, clock = () => new Date(), tra
         import_receipt_id,
         shadow_receipt_id,
         smoke_hash: smokeHash,
+        source_snapshot_hash: normalizedSmoke.source_snapshot_hash,
       });
     });
   }
@@ -605,6 +687,8 @@ export function createPostgresDomainLedger({ pool, clock = () => new Date(), tra
     listIdempotency: (input) => scoped(input, "listIdempotency"),
     appendAudit: (input) => scoped(input, "appendAudit"),
     listAudit: (input) => scoped(input, "listAudit"),
+    enqueueOutbox: (input) => scoped(input, "enqueueOutbox"),
+    listOutbox: (input) => scoped(input, "listOutbox"),
     transaction,
     transactionMany,
     importSnapshot,

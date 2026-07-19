@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -13,7 +13,6 @@ import {
 } from "../apps/api/src/store-path-manifest.js";
 import {
   startDesktopLocalApiServer,
-  stopDesktopLocalApiServer,
 } from "../apps/desktop/src/main/local-api.js";
 
 const OPERATIONAL_SECRET = "store-path-preflight-operational-secret-32";
@@ -42,22 +41,17 @@ function storePathsUnder(root) {
 }
 
 async function fetchJson(url) {
-  const response = await fetch(url);
+  const response = await fetch(url, { headers: { connection: "close" } });
   return { status: response.status, body: await response.json() };
 }
 
 async function closeServer(started) {
+  started.server.closeAllConnections?.();
+  started.server.closeIdleConnections?.();
   await new Promise((resolveClose) => started.server.close(resolveClose));
 }
 
-function assertStoreFilesExist(paths) {
-  for (const key of ["hrxStorePath", "matterStorePath", "dmsStorePath"]) {
-    assert.equal(existsSync(paths[key]), true, `${key} should be created`);
-    assert.equal(statSync(paths[key]).size > 0, true, `${key} should contain runtime data`);
-  }
-}
-
-async function scenarioOperationalNoEnv() {
+async function scenarioOperationalRequiresPostgres() {
   const before = runtimeTmpdirEntries();
   const result = spawnSync(process.execPath, ["apps/api/src/server.js"], {
     cwd: resolve("."),
@@ -70,43 +64,30 @@ async function scenarioOperationalNoEnv() {
     timeout: 5_000,
   });
   assert.equal(result.status, 78);
-  assert.match(result.stderr, /LAWOS_STORE_PREFLIGHT_FAILED/);
-  for (const entry of STORE_PATH_MANIFEST) assert.match(result.stderr, new RegExp(entry.env));
+  assert.match(result.stderr, /PostgreSQL authority failed initialization/);
+  assert.match(result.stderr, /file fallback is disabled/);
   const after = runtimeTmpdirEntries();
   for (const name of after) assert.equal(before.has(name), true, `unexpected tmpdir runtime directory: ${name}`);
 }
 
-async function scenarioOperationalStorePaths() {
+async function scenarioOperationalRejectsStorePaths() {
   const parent = join(resolve("."), "artifacts", "tmp-store-preflight");
   mkdirSync(parent, { recursive: true });
   const root = mkdtempSync(join(parent, "operational-"));
   const paths = storePathsUnder(root);
   try {
-    const first = await startApiServer({
-      port: 0,
-      runtimeProfile: "operational",
-      sessionSecret: OPERATIONAL_SECRET,
-      ...OPERATIONAL_STEP_UP_OPTIONS,
-      ...paths,
-    });
-    const firstHealth = await fetchJson(`http://${first.host}:${first.port}/api/health`);
-    assert.equal(firstHealth.status, 200);
-    assert.equal(firstHealth.body.runtime_profile, "operational");
-    assert.equal(firstHealth.body.synthetic_login_enabled, false);
-    await closeServer(first);
-    assertStoreFilesExist(paths);
-
-    const second = await startApiServer({
-      port: 0,
-      runtimeProfile: "operational",
-      sessionSecret: OPERATIONAL_SECRET,
-      ...OPERATIONAL_STEP_UP_OPTIONS,
-      ...paths,
-    });
-    const secondHealth = await fetchJson(`http://${second.host}:${second.port}/api/health`);
-    assert.equal(secondHealth.status, 200);
-    assert.equal(secondHealth.body.runtime_profile, "operational");
-    await closeServer(second);
+    await assert.rejects(startApiServer({
+        port: 0,
+        runtimeProfile: "operational",
+        persistenceAuthority: "file-current",
+        sessionSecret: OPERATIONAL_SECRET,
+        ...OPERATIONAL_STEP_UP_OPTIONS,
+        ...paths,
+      }),
+      (error) => error?.code === "LAWOS_RUNTIME_PREFLIGHT_FAILED"
+        && /requires postgres-v2/u.test(error.message),
+    );
+    for (const entry of STORE_PATH_MANIFEST) assert.equal(existsSync(paths[entry.key]), false);
   } finally {
     rmSync(root, { recursive: true, force: true });
     rmSync(parent, { recursive: true, force: true });
@@ -128,7 +109,10 @@ async function scenarioBareLocalDev() {
 async function scenarioDesktopLocalApi() {
   const userDataPath = mkdtempSync(join(tmpdir(), "lawos-store-preflight-desktop-"));
   const localApi = await startDesktopLocalApiServer({
-    env: { ...process.env, LAWOS_RUNTIME_PROFILE: "operational" },
+    env: {
+      LAWOS_RUNTIME_PROFILE: "operational",
+      MATTER_DESKTOP_RUNTIME_STORE_DIR: userDataPath,
+    },
     userDataPath,
   });
   assert.ok(localApi);
@@ -137,7 +121,8 @@ async function scenarioDesktopLocalApi() {
     assert.equal(health.status, 200);
     assert.equal(health.body.runtime_profile, "local-dev");
   } finally {
-    stopDesktopLocalApiServer(localApi);
+    await closeServer(localApi);
+    rmSync(userDataPath, { recursive: true, force: true });
   }
 }
 
@@ -147,7 +132,10 @@ async function scenarioCatalogMatchesManifest() {
     assert.match(catalog, new RegExp(entry.env));
   }
   for (const phrase of [
-    "required-for-operational",
+    "local-dev/file-current",
+    "LAWOS_PERSISTENCE_AUTHORITY",
+    "LAWOS_POSTGRES_URL_SECRET_ID",
+    "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID",
     "LAWOS_API_SESSION_SECRET",
     "LAWOS_AUDIT_STORE_PATH",
     "LAWOS_API_SESSION_SECRET_SECRET_ID",
@@ -159,8 +147,8 @@ async function scenarioCatalogMatchesManifest() {
 }
 
 async function main() {
-  await scenarioOperationalNoEnv();
-  await scenarioOperationalStorePaths();
+  await scenarioOperationalRequiresPostgres();
+  await scenarioOperationalRejectsStorePaths();
   await scenarioBareLocalDev();
   await scenarioDesktopLocalApi();
   await scenarioCatalogMatchesManifest();

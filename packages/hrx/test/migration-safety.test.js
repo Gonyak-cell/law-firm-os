@@ -41,6 +41,10 @@ test("GOV-004 preserves existing rows and rejects changed SQL under an applied m
     () => service.preflight({ migrations: [{ ...applied, sql: `${applied.sql}\nCREATE TABLE IF NOT EXISTS tampered (id TEXT);` }] }),
     (error) => error.safe_error_code === "HRX_MIGRATION_HASH_MISMATCH",
   );
+  assert.throws(
+    () => store.migrate({ ...applied, sql: `${applied.sql}\n-- direct-store-drift` }),
+    (error) => error.safe_error_code === "HRX_MIGRATION_HASH_MISMATCH",
+  );
   store.close();
 });
 

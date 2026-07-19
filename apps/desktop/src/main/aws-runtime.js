@@ -238,12 +238,14 @@ function isDesktopHrxLeaveWriteRoute(method, path) {
       "/api/hrx/leave/accrual/preview",
       "/api/hrx/leave/accrual/execute",
       "/api/hrx/leave/accrual/manual/preview",
+      "/api/hrx/leave/accrual/manual/approve",
       "/api/hrx/leave/accrual/manual/execute",
       "/api/hrx/leave/ledger/snapshots",
       "/api/hrx/leave/promotion-campaigns",
       "/api/hrx/leave/promotion-campaigns/preview",
       "/api/hrx/leave/integrations/process",
       "/api/hrx/leave/termination-reconciliations/preview",
+      "/api/hrx/leave/termination-reconciliations/approve",
       "/api/hrx/leave/termination-reconciliations/execute",
       "/api/hrx/leave/groups",
       "/api/hrx/leave/types",
@@ -253,6 +255,7 @@ function isDesktopHrxLeaveWriteRoute(method, path) {
     /^\/api\/hrx\/leave\/requests\/[^/]+\/(approve|reject|reschedule|request-info|escalate)$/.test(path) ||
     /^\/api\/hrx\/leave\/delegations\/[^/]+\/(revoke|expire)$/.test(path) ||
     /^\/api\/hrx\/leave\/promotion-recipients\/[^/]+\/(first-notice|second-notice|evidence|response)$/.test(path) ||
+    /^\/api\/hrx\/leave\/accrual\/manual\/uploads\/[^/]+\/(approve|execute|retry)$/.test(path) ||
     /^\/api\/hrx\/leave\/policies\/[^/]+\/(publish|versions)$/.test(path) ||
     /^\/api\/hrx\/leave\/[^/]+\/(approve|reject)$/.test(path)
   );

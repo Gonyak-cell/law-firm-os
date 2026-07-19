@@ -3,6 +3,8 @@ import { CalendarSync, Download, FileUp, Pencil, Plus, RefreshCw } from "lucide-
 import { Panel } from "../../components/primitives.jsx";
 import { HrxStepUpChallenge } from "../security/HrxStepUpChallenge.tsx";
 import {
+  approveHrxLeaveManualAdjustment,
+  approveHrxLeaveOccurrenceUpload,
   cancelHrxScheduledLeaveEntitlement,
   executeHrxLeaveManualAdjustment,
   executeHrxLeaveOccurrenceUpload,
@@ -23,7 +25,7 @@ import {
 type Row = Record<string, unknown>;
 type OccurrenceView = "list" | "month" | "type";
 type Stage = "" | "manual" | "upload" | "edit";
-type StepUpAction = "" | "manual" | "upload" | "upload-retry" | "edit" | "cancel";
+type StepUpAction = "" | "manual-approve" | "manual-execute" | "upload-approve" | "upload-execute" | "upload-retry" | "edit" | "cancel";
 
 function text(row: Row | null | undefined, field: string) {
   const value = row?.[field];
@@ -118,8 +120,6 @@ export function LeaveUsagePage({ canExport = false, canProcessIntegrations = fal
   const [groups, setGroups] = useState<Row[]>([]);
   const [policies, setPolicies] = useState<Row[]>([]);
   const [documents, setDocuments] = useState<Row[]>([]);
-  const [approvers, setApprovers] = useState<Row[]>([]);
-  const [approvedBy, setApprovedBy] = useState("");
   const [stage, setStage] = useState<Stage>("");
   const [manualForm, setManualForm] = useState(initialManualForm);
   const [manualPreview, setManualPreview] = useState<Row | null>(null);
@@ -161,12 +161,9 @@ export function LeaveUsagePage({ canExport = false, canProcessIntegrations = fal
       const activeGroups = configuration.groups.filter((row: Row) => text(row, "status") === "active") as Row[];
       const activePolicies = configuration.policies.filter((row: Row) => text(row, "status") === "active") as Row[];
       const supportDocuments = support.documents as Row[];
-      const supportApprovers = support.approvers as Row[];
       setGroups(activeGroups);
       setPolicies(activePolicies);
       setDocuments(supportDocuments);
-      setApprovers(supportApprovers);
-      setApprovedBy(text(supportApprovers[0], "actor_id"));
       setManualForm((current) => ({
         ...current,
         employee_id: text(supportDocuments[0], "employee_id"),
@@ -277,10 +274,10 @@ export function LeaveUsagePage({ canExport = false, canProcessIntegrations = fal
     if (!manualPayload) return;
     setBusy("manual-execute");
     setError("");
-    const result = await executeHrxLeaveManualAdjustment({ ...manualPayload, approved_by_actor_id: approvedBy, idempotency_key: manualKey });
+    const result = await executeHrxLeaveManualAdjustment({ ...manualPayload, approval_receipt_id: text(manualPreview, "approval_receipt_id"), idempotency_key: manualKey });
     setBusy("");
     if (result.kind === "step_up_required") {
-      setStepUpAction("manual");
+      setStepUpAction("manual-execute");
       return;
     }
     if (result.kind !== "data") {
@@ -290,6 +287,24 @@ export function LeaveUsagePage({ canExport = false, canProcessIntegrations = fal
     setStepUpAction("");
     setManualResult(result.result as Row);
     await load();
+  }
+
+  async function approveManual() {
+    if (!manualPayload || !manualPreview) return;
+    setBusy("manual-approve");
+    setError("");
+    const result = await approveHrxLeaveManualAdjustment(manualPayload);
+    setBusy("");
+    if (result.kind === "step_up_required") {
+      setStepUpAction("manual-approve");
+      return;
+    }
+    if (result.kind !== "data") {
+      setError("수동 발생 승인 영수증을 기록하지 못했습니다.");
+      return;
+    }
+    setStepUpAction("");
+    setManualPreview({ ...manualPreview, approval_receipt_id: text(result.approval_receipt as Row, "approval_receipt_id"), approved_by_actor_id: text(result.approval_receipt as Row, "approved_by_actor_id") });
   }
 
   async function previewUpload() {
@@ -313,10 +328,10 @@ export function LeaveUsagePage({ canExport = false, canProcessIntegrations = fal
     if (!batchId) return;
     setBusy("upload-execute");
     setError("");
-    const result = await executeHrxLeaveOccurrenceUpload(batchId, { preview_hash: text(uploadBatch, "preview_hash"), approved_by_actor_id: approvedBy, idempotency_key: `leave-occurrence-upload-execute:${batchId}` });
+    const result = await executeHrxLeaveOccurrenceUpload(batchId, { preview_hash: text(uploadBatch, "preview_hash"), approval_receipt_id: text(uploadBatch, "approval_receipt_id"), idempotency_key: `leave-occurrence-upload-execute:${batchId}` });
     setBusy("");
     if (result.kind === "step_up_required") {
-      setStepUpAction("upload");
+      setStepUpAction("upload-execute");
       return;
     }
     if (result.kind !== "data") {
@@ -326,6 +341,25 @@ export function LeaveUsagePage({ canExport = false, canProcessIntegrations = fal
     setStepUpAction("");
     setUploadBatch(result.batch as Row);
     await load();
+  }
+
+  async function approveUpload() {
+    const batchId = text(uploadBatch, "upload_batch_id");
+    if (!batchId || !uploadBatch) return;
+    setBusy("upload-approve");
+    setError("");
+    const result = await approveHrxLeaveOccurrenceUpload(batchId, { preview_hash: text(uploadBatch, "preview_hash") });
+    setBusy("");
+    if (result.kind === "step_up_required") {
+      setStepUpAction("upload-approve");
+      return;
+    }
+    if (result.kind !== "data") {
+      setError("업로드 승인 영수증을 기록하지 못했습니다.");
+      return;
+    }
+    setStepUpAction("");
+    setUploadBatch({ ...uploadBatch, approval_receipt_id: text(result.approval_receipt as Row, "approval_receipt_id"), approved_by_actor_id: text(result.approval_receipt as Row, "approved_by_actor_id") });
   }
 
   async function retryUpload() {
@@ -412,8 +446,10 @@ export function LeaveUsagePage({ canExport = false, canProcessIntegrations = fal
   function retryAfterStepUp() {
     const action = stepUpAction;
     setStepUpAction("");
-    if (action === "manual") void executeManual();
-    if (action === "upload") void executeUpload();
+    if (action === "manual-approve") void approveManual();
+    if (action === "manual-execute") void executeManual();
+    if (action === "upload-approve") void approveUpload();
+    if (action === "upload-execute") void executeUpload();
     if (action === "upload-retry") void retryUpload();
     if (action === "edit") void saveScheduled();
     if (action === "cancel") void cancelScheduled();
@@ -466,14 +502,14 @@ export function LeaveUsagePage({ canExport = false, canProcessIntegrations = fal
           <button className="secondary-button" disabled={busy === "manual-preview"}>미리보기</button>
         </form>
         {manualRows.length > 0 && <div className="leave-occurrence-stage-result" data-compact-record="true"><span>{text(manualRows[0], "employee_id") || "확인 필요"}</span><span>{number(manualRows[0], "amount_minutes").toLocaleString("ko-KR")}분</span><span className="record-state-badge" data-state={text(manualRows[0], "status") === "error" ? "error" : "review"}>{text(manualRows[0], "error_message") || (manualResult ? "반영 완료" : "승인 대기")}</span></div>}
-        <div className="leave-occurrence-stage-actions"><label><span>승인 HR</span><select aria-label="수동 발생 승인 HR" required value={approvedBy} onChange={(event) => setApprovedBy(event.target.value)}><option value="">승인자 선택</option>{approvers.map((approver) => <option key={text(approver, "actor_id")} value={text(approver, "actor_id")}>{text(approver, "display_name")}</option>)}</select></label><button className="primary-button" type="button" disabled={!manualPayload || !approvedBy || number(manualPreview?.counts as Row, "ready") === 0 || busy === "manual-execute"} onClick={() => void executeManual()}>승인 후 반영</button></div>
+        <div className="leave-occurrence-stage-actions"><button className="secondary-button" type="button" disabled={!manualPayload || !manualPreview || Boolean(text(manualPreview, "approval_receipt_id")) || number(manualPreview?.counts as Row, "ready") === 0 || busy === "manual-approve"} onClick={() => void approveManual()}>승인 기록</button><button className="primary-button" type="button" disabled={!manualPayload || !text(manualPreview, "approval_receipt_id") || number(manualPreview?.counts as Row, "ready") === 0 || busy === "manual-execute"} onClick={() => void executeManual()}>반영</button></div>
       </section>}
 
       {stage === "upload" && <section className="leave-occurrence-stage" aria-label="파일 업로드 조정안">
         <div className="leave-occurrence-stage-head"><strong>파일 업로드 조정안</strong>{uploadBatch && <span>정상 {number(uploadCounts, "ready")} · 오류 {number(uploadCounts, "preview_errors")} · 중복 {number(uploadCounts, "duplicates")}</span>}</div>
         <div className="leave-occurrence-upload-controls"><button className="secondary-button" type="button" disabled={busy === "template-csv"} onClick={() => void downloadTemplate("csv")}><Download size={14} />CSV 양식</button><button className="secondary-button" type="button" disabled={busy === "template-xlsx"} onClick={() => void downloadTemplate("xlsx")}><Download size={14} />XLSX 양식</button><label className="secondary-button leave-occurrence-file"><FileUp size={14} />파일 선택<input aria-label="휴가 발생 파일" type="file" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importUploadFile(file); }} /></label>{uploadFile.file_name && <span>{uploadFile.file_name}</span>}<button className="secondary-button" type="button" disabled={!hasUploadFile || busy === "upload-preview"} onClick={() => void previewUpload()}>미리보기</button></div>
         {uploadRows.length > 0 && <div className="data-table-wrap leave-occurrence-upload-table"><table className="data-table"><thead><tr><th>행</th><th>구성원</th><th>상태</th><th>오류</th><th>시도</th></tr></thead><tbody>{uploadRows.map((row) => <tr key={`${number(row, "row_number")}:${text(row, "row_key")}`} data-compact-record="true"><td>{number(row, "row_number")}</td><td>{text(row, "employee_id") || "-"}</td><td>{text(row, "execution_status") === "completed" ? "완료" : text(row, "preview_status") === "ready" ? "반영 가능" : "확인 필요"}</td><td>{text(row, "error_message") || "-"}</td><td>{number(row, "attempt_count")}</td></tr>)}</tbody></table></div>}
-        <div className="leave-occurrence-stage-actions"><label><span>승인 HR</span><select aria-label="업로드 승인 HR" required value={approvedBy} onChange={(event) => setApprovedBy(event.target.value)}><option value="">승인자 선택</option>{approvers.map((approver) => <option key={text(approver, "actor_id")} value={text(approver, "actor_id")}>{text(approver, "display_name")}</option>)}</select></label>{text(uploadBatch, "status") === "completed_with_errors" && <button className="secondary-button" type="button" disabled={busy === "upload-retry"} onClick={() => void retryUpload()}>실패 행 재시도</button>}<button className="primary-button" type="button" disabled={!text(uploadBatch, "upload_batch_id") || !approvedBy || number(uploadCounts, "ready") === 0 || number(uploadCounts, "preview_errors") > 0 || busy === "upload-execute"} onClick={() => void executeUpload()}>승인 후 반영</button></div>
+        <div className="leave-occurrence-stage-actions">{text(uploadBatch, "status") === "completed_with_errors" && <button className="secondary-button" type="button" disabled={busy === "upload-retry"} onClick={() => void retryUpload()}>실패 행 재시도</button>}<button className="secondary-button" type="button" disabled={!text(uploadBatch, "upload_batch_id") || Boolean(text(uploadBatch, "approval_receipt_id")) || number(uploadCounts, "ready") === 0 || number(uploadCounts, "preview_errors") > 0 || busy === "upload-approve"} onClick={() => void approveUpload()}>승인 기록</button><button className="primary-button" type="button" disabled={!text(uploadBatch, "upload_batch_id") || !text(uploadBatch, "approval_receipt_id") || number(uploadCounts, "ready") === 0 || number(uploadCounts, "preview_errors") > 0 || busy === "upload-execute"} onClick={() => void executeUpload()}>반영</button></div>
       </section>}
 
       {stage === "edit" && <section className="leave-occurrence-stage" aria-label="예정 발생 조정안">

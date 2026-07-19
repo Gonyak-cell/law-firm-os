@@ -1,7 +1,6 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { SYNTHETIC_PAYROLL_FILING_SCHEMAS } from "../../../../../packages/hrx/src/payroll/filing-service.js";
 import { createPayrollStepUpReceipt } from "../../../../../packages/hrx/src/payroll/run-service.js";
-import { HRX_PROVIDER_RECEIPT_SCHEMA_VERSION } from "../../../../../packages/hrx/src/provider-receipt-contract.js";
 
 function response(status, body) {
   return Object.freeze({ status, body: Object.freeze(body) });
@@ -48,25 +47,6 @@ function selfEmployeeId(store, context) {
 function paymentBundle(runtime, context, batchId) {
   const value = runtime.paymentService.bundle(context, batchId);
   return Object.freeze({ ...value, production_ready_claim: false });
-}
-
-function syntheticBankReceipt(context, batch, now) {
-  const payloadHash = createHash("sha256").update(`${batch.payment_batch_id}:${batch.checksum}`).digest("hex");
-  return Object.freeze({
-    schema_version: HRX_PROVIDER_RECEIPT_SCHEMA_VERSION,
-    receipt_id: `synthetic-bank-${batch.payment_batch_id}`,
-    tenant_id: context.tenant_id,
-    provider_kind: "bank",
-    provider_id: "lawos-bank-sandbox",
-    operation: "bulk_transfer_reconcile",
-    idempotency_key: `${batch.payment_batch_id}:reconcile`,
-    payload_hash: `sha256:${payloadHash}`,
-    state: "succeeded",
-    requested_at: now,
-    completed_at: now,
-    provider_receipt_ref: `provider:sandbox/bank/${batch.payment_batch_id}`,
-    error_code: null,
-  });
 }
 
 function employeeRows(store, context, bundle) {
@@ -264,11 +244,11 @@ export function createHrxPayrollRuntimeRoute({ runtime, store, audit, clock = ()
           return response(200, { outcome: "ok", statements: runtime.documentService.list(context, { run_id: runId }) });
         }
         if (request.method === "POST" && action === "statements-generate") {
-          const generated = runtime.documentService.generate(context, { ...request.body, run_id: requiredString(request.params, "run_id") });
+          const generated = await runtime.documentService.generate(context, { ...request.body, run_id: requiredString(request.params, "run_id") });
           return response(200, { outcome: "generated", generated });
         }
         if (request.method === "GET" && action === "statement-export") {
-          const artifact = runtime.documentService.exportRegister(context, { run_id: requiredString(request.params, "run_id"), format: request.query?.format ?? "csv" });
+          const artifact = await runtime.documentService.exportRegister(context, { run_id: requiredString(request.params, "run_id"), format: request.query?.format ?? "csv" });
           return response(200, { outcome: "exported", artifact });
         }
         if (request.method === "POST" && action === "statements-deliver") {
@@ -280,7 +260,7 @@ export function createHrxPayrollRuntimeRoute({ runtime, store, audit, clock = ()
           return response(200, { outcome: "ok", statements: runtime.documentService.selfList(context, { employee_id: employeeId }) });
         }
         if (request.method === "GET" && action === "statement-read") {
-          const statement = runtime.documentService.read(context, { employee_id: selfEmployeeId(store, context), statement_id: requiredString(request.params, "statement_id") });
+          const statement = await runtime.documentService.read(context, { employee_id: selfEmployeeId(store, context), statement_id: requiredString(request.params, "statement_id") });
           return response(200, { outcome: "ok", artifact: statement });
         }
         if (request.method === "POST" && action === "statement-revoke") {
@@ -305,18 +285,22 @@ export function createHrxPayrollRuntimeRoute({ runtime, store, audit, clock = ()
           return response(200, { outcome: "approved", payment: Object.freeze({ ...payment, production_ready_claim: false }) });
         }
         if (request.method === "POST" && action === "payment-export") {
-          const artifact = runtime.paymentService.exportBatch(context, { ...request.body, payment_batch_id: requiredString(request.params, "payment_batch_id") });
+          const artifact = await runtime.paymentService.exportBatch(context, { ...request.body, payment_batch_id: requiredString(request.params, "payment_batch_id") });
           return response(200, { outcome: "exported", artifact });
         }
         if (request.method === "POST" && action === "payment-reconcile") {
           const batchId = requiredString(request.params, "payment_batch_id");
           const current = runtime.paymentService.bundle(context, batchId);
-          const items = current.items.map((item) => ({ employee_id: item.employee_id, state: "paid", provider_receipt_ref: `provider:sandbox/bank/item/${item.payment_item_id}` }));
+          if (!runtime.bankReconciliationPort?.reconcile) {
+            const error = new Error("Authoritative bank reconciliation provider is required");
+            error.safe_error_code = "HRX_PAYROLL_BANK_PROVIDER_REQUIRED";
+            error.status = 503;
+            throw error;
+          }
+          const providerResult = await runtime.bankReconciliationPort.reconcile({ context, bundle: current });
           const payment = runtime.paymentService.reconcile(context, {
             payment_batch_id: batchId,
-            provider_receipt: syntheticBankReceipt(context, current.batch, clock()),
-            items,
-            reported_paid_total_krw: current.items.reduce((sum, item) => sum + item.amount_krw, 0),
+            ...providerResult,
           });
           return response(200, { outcome: "reconciled", payment: Object.freeze({ ...payment, production_ready_claim: false }) });
         }
@@ -328,7 +312,7 @@ export function createHrxPayrollRuntimeRoute({ runtime, store, audit, clock = ()
           const filingKind = requiredString(request.body, "filing_kind");
           const runId = requiredString(request.params, "run_id");
           const records = filingKind === "year_end" ? runtime.yearEndService.filingRecords(context, { run_id: runId }) : request.body.records;
-          const filing = runtime.filingService.createPackage(context, { ...request.body, run_id: runId, ...(records ? { records } : {}), schema_version: request.body.schema_version ?? SYNTHETIC_PAYROLL_FILING_SCHEMAS[filingKind] });
+          const filing = await runtime.filingService.createPackage(context, { ...request.body, run_id: runId, ...(records ? { records } : {}), schema_version: request.body.schema_version ?? SYNTHETIC_PAYROLL_FILING_SCHEMAS[filingKind] });
           return response(200, { outcome: "created", filing });
         }
         if (request.method === "POST" && action === "year-end-collect") {

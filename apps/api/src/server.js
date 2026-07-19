@@ -17,6 +17,7 @@ import { createMasterDataRepository } from "../../../packages/master-data/src/re
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
 import { createDmsRepository } from "../../../packages/dms/src/repository.js";
 import { createFileStorageAdapter } from "../../../packages/dms/src/storage/file-storage-adapter.js";
+import { createS3StorageAdapter } from "../../../packages/dms/src/storage/s3-storage-adapter.js";
 import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
@@ -46,6 +47,7 @@ import {
 } from "./hrx-runtime-context.js";
 import { findHrxMemberRosterByUserId, memberPhotoDataUrlForEmployeeId } from "./hrx-member-roster-registry.js";
 import { findRegisteredAccountByUserId } from "./matter-vault-account-registry.js";
+import { MATTER_VAULT_REGISTERED_TENANT_ID } from "./matter-vault-account-registry.js";
 import {
   MATTER_BOUNDED_CONTEXT,
   MATTER_VAULT_BRIDGE_ROUTES,
@@ -159,8 +161,16 @@ import {
 import { dispatchApiHandler, mapApiHandlerError } from "./api-handler-dispatcher.js";
 import {
   LAWOS_PERSISTENCE_AUTHORITIES,
+  LAWOS_OFFLINE_REJECTED_POLICY,
   preparePersistenceAuthority,
 } from "./persistence-authority.js";
+import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
+import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
+import { createPostgresIdentityLedger } from "../../../packages/runtime-auth/src/postgres-identity-ledger.js";
+import { createPostgresApiRuntimeAuthority } from "./postgres-api-runtime-authority.js";
+import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgres-upload-runtime.js";
+import { createEntraOidcProviderFromSecretReference } from "./entra-oidc-provider.js";
+import { resolveAwsSecretString } from "./aws-secret-reference.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
@@ -190,6 +200,45 @@ function startupStorePathOptions(options = {}) {
     authCredentialStorePath: options.authCredentialStorePath,
     authPasswordResetStorePath: options.authPasswordResetStorePath,
   };
+}
+
+function createPostgresDmsStorageFromEnv(env = process.env) {
+  const required = (name) => {
+    const value = String(env[name] ?? "").trim();
+    if (!value) throw runtimePreflightError(`${name} is required for postgres-v2 DMS authority`);
+    return value;
+  };
+  if (String(env.LAWOS_DMS_S3_OBJECT_LOCK_ENABLED ?? "").trim().toLowerCase() !== "true") {
+    throw runtimePreflightError("LAWOS_DMS_S3_OBJECT_LOCK_ENABLED=true is required for postgres-v2 DMS authority");
+  }
+  return createS3StorageAdapter({
+    adapter_id: "lawos-dms-s3-production",
+    credential_ref: required("LAWOS_DMS_S3_CREDENTIAL_REF"),
+    bucket: required("LAWOS_DMS_S3_BUCKET"),
+    expected_bucket_owner: required("LAWOS_DMS_S3_EXPECTED_BUCKET_OWNER"),
+    region: required("LAWOS_DMS_S3_REGION"),
+    prefix: env.LAWOS_DMS_S3_PREFIX ?? "lawos-dms",
+    kms_key_id: required("LAWOS_DMS_S3_KMS_KEY_ID"),
+    object_lock_enabled: true,
+  });
+}
+
+async function resolvePayrollArtifactSecret({ env, explicitSecret, secretsClient, resolveSecret = resolveAwsSecretString } = {}) {
+  if (typeof explicitSecret === "string" || Buffer.isBuffer(explicitSecret)) {
+    if (Buffer.byteLength(explicitSecret) < 32) throw runtimePreflightError("payroll artifact secret must contain at least 32 bytes");
+    return explicitSecret;
+  }
+  if (String(env.HRX_PAYROLL_ARTIFACT_KEY ?? "").trim()) {
+    throw runtimePreflightError("HRX_PAYROLL_ARTIFACT_KEY must not contain operational secret material; use LAWOS_PAYROLL_ARTIFACT_KEY_SECRET_ID");
+  }
+  const secretId = String(env.LAWOS_PAYROLL_ARTIFACT_KEY_SECRET_ID ?? "").trim();
+  if (!secretId) throw runtimePreflightError("LAWOS_PAYROLL_ARTIFACT_KEY_SECRET_ID is required for postgres-v2 payroll artifacts");
+  const region = String(env.AWS_REGION ?? env.AWS_DEFAULT_REGION ?? env.LAWOS_AWS_REGION ?? "ap-northeast-2").trim();
+  const secret = await resolveSecret({ secretId, region, client: secretsClient });
+  if (!(typeof secret === "string" || Buffer.isBuffer(secret)) || Buffer.byteLength(secret) < 32) {
+    throw runtimePreflightError("payroll artifact secret reference resolved invalid material");
+  }
+  return secret;
 }
 
 function createEphemeralHrxStorePath() {
@@ -260,7 +309,10 @@ export function createDefaultHrxRuntime({
   return createHrxRuntimeContext({
     store: hrxStore,
     modelGateway,
+    allowSyntheticLeaveIntegrationProviders: runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational,
+    allowSyntheticCompensationKey: runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational,
     seedPayrollRuntime: runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational,
+    seedRuntimeFixtures: runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational,
   });
 }
 
@@ -492,6 +544,30 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
   uses_real_client_data: true,
 });
 
+function serviceDescriptorForAuthority({ persistenceAuthority, persistenceCapabilities } = {}) {
+  if (persistenceAuthority !== LAWOS_PERSISTENCE_AUTHORITIES.postgresV2) return SERVICE_DESCRIPTOR;
+  return Object.freeze({
+    ...SERVICE_DESCRIPTOR,
+    bounded_contexts: Object.freeze(SERVICE_DESCRIPTOR.bounded_contexts.map((context) => Object.freeze({
+      ...context,
+      runtime_persistence: context.bounded_context === "api-auth"
+        ? "postgres-identity-ledger-v2"
+        : context.bounded_context === "vault-dms"
+          ? "postgres-dms-s3-v3"
+          : "postgres-repository-port-v2",
+      postgres_authority_active: true,
+      json_fallback: false,
+      dual_write: false,
+      tenant_rls: true,
+      optimistic_version: true,
+      idempotency: true,
+      audit: true,
+      outbox: true,
+    }))),
+    persistence_authority_capabilities: persistenceCapabilities ?? null,
+  });
+}
+
 const DEFAULT_CORS_ALLOWED_ORIGINS = Object.freeze([
   "matter-app://app",
   "http://127.0.0.1:5173",
@@ -547,6 +623,49 @@ function sendHtml(req, res, status, body) {
     ...corsHeadersForRequest(req),
   });
   res.end(body);
+}
+
+function createBufferedResponse() {
+  let status = null;
+  let headers = null;
+  let body = null;
+  let ended = false;
+  return Object.freeze({
+    get headersSent() { return status !== null; },
+    get writableEnded() { return ended; },
+    writeHead(nextStatus, nextHeaders = {}) {
+      if (ended) throw new Error("buffered response already ended");
+      status = nextStatus;
+      headers = { ...nextHeaders };
+      return this;
+    },
+    end(chunk) {
+      if (ended) throw new Error("buffered response already ended");
+      if (status === null) status = 200;
+      body = chunk ?? null;
+      ended = true;
+      return this;
+    },
+    commit(target) {
+      if (!ended || status === null) throw new Error("API command completed without a response");
+      target.writeHead(status, headers ?? {});
+      target.end(body);
+    },
+  });
+}
+
+function requestUsesProductRuntime(req) {
+  if (req.method === "OPTIONS") return false;
+  const pathname = new URL(req.url || "/", `http://${HOST}`).pathname.replace(/\/+$/, "") || "/";
+  return !["/api/health", "/health"].includes(pathname) && !pathname.startsWith("/api/auth");
+}
+
+function publicRuntimeTenant(req) {
+  const pathname = new URL(req.url || "/", `http://${HOST}`).pathname.replace(/\/+$/, "") || "/";
+  const routeKey = `${req.method} ${pathname}`;
+  return MATTER_VAULT_BRIDGE_ROUTES.has(routeKey) || isPortalExternalPublicRoute(req.method, pathname)
+    ? MATTER_VAULT_REGISTERED_TENANT_ID
+    : null;
 }
 
 function passwordResetOpenPageHtml() {
@@ -762,19 +881,46 @@ function parseMultipartFormData(raw, contentType) {
   return payload;
 }
 
-async function readRequestBody(req) {
+export const DEFAULT_REQUEST_BODY_LIMIT_BYTES = 32 * 1024 * 1024;
+
+function requestBodyTooLargeError() {
+  const error = new Error("request body exceeds the configured byte budget");
+  error.status = 413;
+  error.safe_error_code = "API_REQUEST_BODY_TOO_LARGE";
+  return error;
+}
+
+export async function readRequestBody(req, { maxBytes = DEFAULT_REQUEST_BODY_LIMIT_BYTES } = {}) {
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new TypeError("maxBytes must be a positive safe integer");
+  const declaredLength = Number(Array.isArray(req.headers?.["content-length"])
+    ? req.headers["content-length"][0]
+    : req.headers?.["content-length"]);
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) throw requestBodyTooLargeError();
   const chunks = [];
-  for await (const chunk of req) chunks.push(chunk);
-  if (chunks.length === 0) return {};
-  const raw = Buffer.concat(chunks);
-  if (raw.length === 0) return {};
-  const contentType = contentTypeOf(req);
-  if (contentType.toLowerCase().startsWith("multipart/form-data")) {
-    return parseMultipartFormData(raw, contentType);
+  let totalBytes = 0;
+  for await (const chunk of req) {
+    const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    totalBytes += bytes.byteLength;
+    if (totalBytes > maxBytes) throw requestBodyTooLargeError();
+    chunks.push(bytes);
   }
-  const text = raw.toString("utf8").trim();
-  if (!text) return {};
-  return JSON.parse(text);
+  const raw = Buffer.concat(chunks, totalBytes);
+  const contentType = contentTypeOf(req);
+  let body = {};
+  if (raw.length > 0 && contentType.toLowerCase().startsWith("multipart/form-data")) {
+    body = parseMultipartFormData(raw, contentType);
+  } else if (raw.length > 0) {
+    const text = raw.toString("utf8").trim();
+    if (text) body = JSON.parse(text);
+  }
+  const authenticatedActorId = String(req.lawosAuthenticatedActorId ?? "").trim();
+  if (authenticatedActorId && body && typeof body === "object" && !Array.isArray(body)) {
+    body = { ...body, actor_id: authenticatedActorId };
+  }
+  req.lawosRequestBodyHash = hashDomainValue(body);
+  const bodyIdempotencyKey = String(body?.idempotency_key ?? "").trim();
+  if (bodyIdempotencyKey) req.lawosRequestBodyIdempotencyKey = bodyIdempotencyKey;
+  return body;
 }
 
 function hasJsonRequestBody(method) {
@@ -957,7 +1103,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -1031,12 +1177,25 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       runtime_profile: runtimeProfile,
       synthetic_login_enabled: runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational,
       persistence_authority: persistenceAuthority,
-      ...SERVICE_DESCRIPTOR,
+      runtime_safety_policy: LAWOS_OFFLINE_REJECTED_POLICY,
+      auth_authority: sessionAuth.capabilities ?? null,
+      ...serviceDescriptorForAuthority({ persistenceAuthority, persistenceCapabilities }),
     });
     return;
   }
 
   if (pathname === "/api/auth/password-reset/open") {
+    if (sessionAuth.capabilities?.federated_staff_auth === true) {
+      sendJson(req, res, 403, {
+        request_id: requestId,
+        outcome: "blocked",
+        reason: "auth_password_login_disabled",
+        safe_error_codes: ["AUTH_PASSWORD_LOGIN_DISABLED"],
+        token_material_returned: false,
+        production_ready_claim: false,
+      });
+      return;
+    }
     if (req.method !== "GET") {
       sendJson(req, res, 405, { request_id: requestId, outcome: "blocked", reason: "auth_method_not_allowed" });
       return;
@@ -1097,6 +1256,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     });
     return;
   }
+  req.lawosAuthenticatedActorId = sessionContext.principal.user_id;
   const requestPermissionContext = () => sessionContext.context;
   const requestHeaders = () => {
     const principal = sessionContext.principal;
@@ -1137,7 +1297,10 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     }
     const hrxStepUp = authorizeHrxStepUpRequest({
       action: hrxAuthz.policy.action,
-      context: hrxAuthz.context,
+      context: {
+        ...hrxAuthz.context,
+        session_jti: sessionContext.principal.session_jti ?? null,
+      },
       headers: req.headers,
       verifier: stepUpAuthority,
       requestId,
@@ -1488,6 +1651,7 @@ export function createApiServer({
   persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent,
   stepUpAuthority,
   sessionAuth,
+  requestRuntimeAuthority = null,
 } = {}) {
   const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority({ profile: runtimeProfile });
   const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
@@ -1496,11 +1660,84 @@ export function createApiServer({
   });
   return http.createServer(async (req, res) => {
     try {
-      const matterRuntimeWithClearanceLedger =
-        matterRuntime?.clearanceRepository || !crmIntakeRuntime?.intakeRepository
-          ? matterRuntime
-          : Object.freeze({ ...matterRuntime, clearanceRepository: crmIntakeRuntime.intakeRepository });
-      await dispatchApiHandler(handle, req, res, { hrxRuntime, hrxRuntimeUnavailable, masterDataRuntime, matterRuntime: matterRuntimeWithClearanceLedger, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth: resolvedSessionAuth, stepUpAuthority: resolvedStepUpAuthority, runtimeProfile, persistenceAuthority });
+      const dispatchWithRuntimes = async (targetResponse, requestRuntimes = {}) => {
+        const resolvedCrmIntakeRuntime = requestRuntimes.crmIntakeRuntime ?? crmIntakeRuntime;
+        const baseMatterRuntime = requestRuntimes.matterRuntime ?? matterRuntime;
+        const matterRuntimeWithClearanceLedger =
+          baseMatterRuntime?.clearanceRepository || !resolvedCrmIntakeRuntime?.intakeRepository
+            ? baseMatterRuntime
+            : Object.freeze({ ...baseMatterRuntime, clearanceRepository: resolvedCrmIntakeRuntime.intakeRepository });
+        return dispatchApiHandler(handle, req, targetResponse, {
+          hrxRuntime: requestRuntimes.hrxRuntime ?? hrxRuntime,
+          hrxRuntimeUnavailable,
+          masterDataRuntime: requestRuntimes.masterDataRuntime ?? masterDataRuntime,
+          matterRuntime: matterRuntimeWithClearanceLedger,
+          dmsRuntime: requestRuntimes.dmsRuntime ?? dmsRuntime,
+          crmIntakeRuntime: resolvedCrmIntakeRuntime,
+          financeRuntime: requestRuntimes.financeRuntime ?? financeRuntime,
+          financeRuntimeUnavailable,
+          analyticsRuntime: requestRuntimes.analyticsRuntime ?? analyticsRuntime,
+          aiRuntime: requestRuntimes.aiRuntime ?? aiRuntime,
+          portalRuntime: requestRuntimes.portalRuntime ?? portalRuntime,
+          uiReadinessRuntime: requestRuntimes.uiReadinessRuntime ?? uiReadinessRuntime,
+          homeDashboardRuntime: requestRuntimes.homeDashboardRuntime ?? homeDashboardRuntime,
+          enterpriseReadinessRuntime: requestRuntimes.enterpriseReadinessRuntime ?? enterpriseReadinessRuntime,
+          sessionAuth: resolvedSessionAuth,
+          stepUpAuthority: resolvedStepUpAuthority,
+          runtimeProfile,
+          persistenceAuthority,
+          persistenceCapabilities: requestRuntimeAuthority?.capabilities ?? null,
+        });
+      };
+
+      if (!requestRuntimeAuthority || !requestUsesProductRuntime(req)) {
+        await dispatchWithRuntimes(res);
+        return;
+      }
+
+      let tenantId = publicRuntimeTenant(req);
+      if (!tenantId) {
+        const sessionContext = await resolvedSessionAuth.resolvePermissionContextFromHeaders(req.headers, {
+          requestId: req.headers["x-request-id"] ?? "req_postgres_authority",
+          requireSessionToken: true,
+        });
+        if (!sessionContext.ok) {
+          await dispatchWithRuntimes(res);
+          return;
+        }
+        tenantId = sessionContext.principal.tenant_id;
+        req.lawosActorId = sessionContext.principal.user_id ?? sessionContext.principal.actor_id ?? null;
+      }
+      const bufferedResponse = createBufferedResponse();
+      const requestTarget = new URL(req.url || "/", `http://${HOST}`);
+      await requestRuntimeAuthority.run({
+        tenant_id: tenantId,
+        request_context: {
+          method: req.method,
+          pathname: requestTarget.pathname,
+          actor_id: req.lawosActorId ?? null,
+          get request_body_hash() {
+            return req.lawosRequestBodyHash ?? hashDomainValue({});
+          },
+          get request_target_hash() {
+            return hashDomainValue(`${requestTarget.pathname}${requestTarget.search}`);
+          },
+          get idempotency_key() {
+            const headerKey = String(
+              req.headers["idempotency-key"] ?? req.headers["x-idempotency-key"] ?? "",
+            ).trim();
+            if (headerKey) return headerKey;
+            if (req.lawosRequestBodyIdempotencyKey) return req.lawosRequestBodyIdempotencyKey;
+            return `request-fingerprint:${hashDomainValue({
+              method: req.method,
+              request_target_hash: hashDomainValue(`${requestTarget.pathname}${requestTarget.search}`),
+              request_body_hash: req.lawosRequestBodyHash ?? hashDomainValue({}),
+            })}`;
+          },
+        },
+        command: (requestRuntimes) => dispatchWithRuntimes(bufferedResponse, requestRuntimes),
+      });
+      bufferedResponse.commit(res);
     } catch (error) {
       const mapped = mapApiHandlerError(error, { requestId: req.lawosRequestId ?? req.headers["x-request-id"] ?? null });
       sendJson(req, res, mapped.status, mapped.body);
@@ -1514,6 +1751,9 @@ export async function startApiServer({
   persistenceAuthority,
   persistenceAuthorityEnv = process.env,
   persistenceConnectPostgres,
+  persistenceVerifyPostgresMigrations,
+  persistenceSecretsClient,
+  persistenceResolvePostgresSecret,
   sessionSecret,
   hrxRuntime,
   hrxStore,
@@ -1526,6 +1766,11 @@ export async function startApiServer({
   matterStorePath,
   dmsRuntime,
   dmsRepository,
+  dmsStorage,
+  dmsVerifyPermanentDeleteApproval,
+  payrollArtifactSecret,
+  payrollSecretsClient,
+  payrollResolveArtifactSecret,
   dmsStorePath,
   dmsObjectStorePath,
   crmIntakeRuntime: providedCrmIntakeRuntime,
@@ -1560,19 +1805,123 @@ export async function startApiServer({
   authPasswordResetStorePath,
   passwordResetEmailDelivery,
   sessionAuth,
+  staffOidcProvider,
+  entraSecretsClient,
+  entraFetchFn,
   stepUpAuthority,
   hrxStepUpSecret,
   hrxStepUpTotpSecret,
 } = {}) {
   const resolvedRuntimeProfile = normalizeRuntimeProfileOption(runtimeProfile);
+  const resolvedPersistenceAuthorityEnv = {
+    ...persistenceAuthorityEnv,
+    LAWOS_RUNTIME_PROFILE: resolvedRuntimeProfile,
+  };
   const persistenceAuthorityState = await preparePersistenceAuthority({
     value: persistenceAuthority,
-    env: persistenceAuthorityEnv,
+    env: resolvedPersistenceAuthorityEnv,
     connectPostgres: persistenceConnectPostgres,
+    verifyPostgresMigrations: persistenceVerifyPostgresMigrations,
+    secretsClient: persistenceSecretsClient,
+    resolvePostgresSecret: persistenceResolvePostgresSecret,
+  });
+  const resolvedSessionSecret = resolveSessionSecret({
+    profile: resolvedRuntimeProfile,
+    explicitSecret: sessionSecret,
+  });
+  let resolvedStaffOidcProvider = staffOidcProvider ?? null;
+  if (
+    persistenceAuthorityState.authority === LAWOS_PERSISTENCE_AUTHORITIES.postgresV2
+    && resolvedRuntimeProfile === LAWOS_RUNTIME_PROFILES.operational
+    && !sessionAuth
+    && !resolvedStaffOidcProvider
+  ) {
+    resolvedStaffOidcProvider = await createEntraOidcProviderFromSecretReference({
+      env: resolvedPersistenceAuthorityEnv,
+      secretsClient: entraSecretsClient,
+      fetchFn: entraFetchFn,
+    });
+  }
+  const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority({
+    profile: resolvedRuntimeProfile,
+    secret: hrxStepUpSecret,
+    totpSecret: hrxStepUpTotpSecret,
+    externalProviderOnly: Boolean(resolvedStaffOidcProvider),
   });
   if (persistenceAuthorityState.authority === LAWOS_PERSISTENCE_AUTHORITIES.postgresV2) {
-    await persistenceAuthorityState.close?.();
-    throw runtimePreflightError("postgres-v2 domain adapters are incomplete; JSON fallback is disabled");
+    try {
+      const postgresPool = persistenceAuthorityState.pool;
+      if (!postgresPool || typeof postgresPool.connect !== "function") {
+        throw runtimePreflightError("postgres-v2 authority connector must expose transaction-capable pool");
+      }
+      const identityRepository = createPostgresIdentityLedger({ pool: postgresPool });
+      const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
+        profile: resolvedRuntimeProfile,
+        secret: resolvedSessionSecret,
+        passwordResetEmailDelivery,
+        stepUpAuthority: resolvedStepUpAuthority,
+        staffOidcProvider: resolvedStaffOidcProvider,
+        identityRepository,
+      });
+      const resolvedDmsStorage = dmsStorage ?? createPostgresDmsStorageFromEnv(resolvedPersistenceAuthorityEnv);
+      const resolvedPayrollArtifactSecret = await resolvePayrollArtifactSecret({
+        env: resolvedPersistenceAuthorityEnv,
+        explicitSecret: payrollArtifactSecret,
+        secretsClient: payrollSecretsClient,
+        resolveSecret: payrollResolveArtifactSecret,
+      });
+      const activeDmsUploadRuntime = createPostgresDmsUploadRuntime({
+        pool: postgresPool,
+        storage: resolvedDmsStorage,
+        sourceOnly: false,
+        verifyPermanentDeleteApproval: dmsVerifyPermanentDeleteApproval,
+      });
+      const requestRuntimeAuthority = createPostgresApiRuntimeAuthority({
+        ledger: createPostgresDomainLedger({ pool: postgresPool }),
+        dmsStorage: resolvedDmsStorage,
+        dmsUploadRuntime: activeDmsUploadRuntime,
+        payrollArtifactSecret: resolvedPayrollArtifactSecret,
+      });
+      const server = createApiServer({
+        hrxRuntime: null,
+        masterDataRuntime: null,
+        matterRuntime: null,
+        dmsRuntime: null,
+        crmIntakeRuntime: null,
+        financeRuntime: null,
+        analyticsRuntime: null,
+        aiRuntime: null,
+        portalRuntime: null,
+        uiReadinessRuntime: null,
+        homeDashboardRuntime: null,
+        enterpriseReadinessRuntime: null,
+        stepUpAuthority: resolvedStepUpAuthority,
+        sessionAuth: resolvedSessionAuth,
+        requestRuntimeAuthority,
+        runtimeProfile: resolvedRuntimeProfile,
+        persistenceAuthority: persistenceAuthorityState.authority,
+      });
+      server.once("close", () => {
+        void persistenceAuthorityState.close?.();
+      });
+      return await new Promise((resolve, reject) => {
+        server.once("error", async (error) => {
+          await persistenceAuthorityState.close?.();
+          reject(error);
+        });
+        server.listen(port, HOST, () => {
+          resolve({
+            server,
+            port: server.address().port,
+            host: HOST,
+            persistence_authority: requestRuntimeAuthority.capabilities,
+          });
+        });
+      });
+    } catch (error) {
+      await persistenceAuthorityState.close?.();
+      throw error;
+    }
   }
   const storePreflight = assertStorePathPreflight({
     profile: resolvedRuntimeProfile,
@@ -1595,15 +1944,6 @@ export async function startApiServer({
       authCredentialStorePath,
       authPasswordResetStorePath,
     }),
-  });
-  const resolvedSessionSecret = resolveSessionSecret({
-    profile: resolvedRuntimeProfile,
-    explicitSecret: sessionSecret,
-  });
-  const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority({
-    profile: resolvedRuntimeProfile,
-    secret: hrxStepUpSecret,
-    totpSecret: hrxStepUpTotpSecret,
   });
   const resolvedStorePaths = storePreflight.storePaths;
   let hrxRuntimeUnavailable = null;
@@ -1776,9 +2116,10 @@ function stopCliServer(signal) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const cliStartupOptions = shouldUseDurableLocalDefaults()
+  const useDurableLocalDefaults = shouldUseDurableLocalDefaults();
+  const cliStartupOptions = useDurableLocalDefaults
     ? {
-        runtimeProfile: LAWOS_RUNTIME_PROFILES.operational,
+        runtimeProfile: LAWOS_RUNTIME_PROFILES.localDev,
         sessionSecret: readOrCreateLocalSessionSecret(),
         ...lawosDurableStorePathOptions({ root: ensureLawosDurableStoreHome() }),
       }
@@ -1796,7 +2137,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       });
       console.log(`law-firm-os api listening on http://${HOST}:${port}`);
       console.log(`health: http://${HOST}:${port}/api/health`);
-      if (cliStartupOptions.runtimeProfile === LAWOS_RUNTIME_PROFILES.operational) {
+      if (useDurableLocalDefaults) {
         console.log("runtime stores: ~/Library/Application Support/LawFirmOS/runtime-stores");
       }
     })

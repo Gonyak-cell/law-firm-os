@@ -77,6 +77,18 @@ const SHA256 = /^[0-9a-f]{64}$/;
 const TUW_ID = /^RS-[A-Z]+-\d{3}$/;
 const SAFE_KEY = /^[a-z][a-z0-9_]*$/;
 const RESULT_SLICE = /^isolated:(RS-[A-Z]+-\d{3}):([a-z0-9][a-z0-9._-]*|all)$/;
+const SECRET_ARG_FLAGS = new Set([
+  "--api-key",
+  "--authorization",
+  "--client-secret",
+  "--connection-string",
+  "--cookie",
+  "--password",
+  "--postgres-url",
+  "--private-key",
+  "--secret",
+  "--token",
+]);
 
 export class RuntimeSafetyEvidenceError extends Error {
   constructor(code, message, details = {}) {
@@ -114,6 +126,26 @@ function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
 }
 
+export function runtimeSafetyTextContainsSecretMaterial(value) {
+  const text = String(value ?? "");
+  return /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/i.test(text)
+    || /\bBearer\s+[A-Za-z0-9._~+/-]+=*/i.test(text)
+    || /\b(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?)?:?\/\/[^\s/:@]+:[^\s@]+@/i.test(text)
+    || /\b(?:authorization|api[_-]?key|client[_-]?secret|access[_-]?token|refresh[_-]?token|cookie|password|passwd|private[_-]?key|connection[_-]?string)\s*[:=]\s*[^\s,;]+/i.test(text);
+}
+
+export function runtimeSafetyArgvContainsSecretMaterial(argv) {
+  if (!Array.isArray(argv)) return false;
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = String(argv[index] ?? "");
+    if (runtimeSafetyTextContainsSecretMaterial(arg)) return true;
+    const [flag, inlineValue] = arg.split("=", 2);
+    if (!SECRET_ARG_FLAGS.has(flag.toLowerCase())) continue;
+    if (inlineValue || argv[index + 1]) return true;
+  }
+  return false;
+}
+
 function validateOutputPath(outputPath, allowedOutputRoots) {
   if (typeof outputPath !== "string" || outputPath.length === 0 || outputPath.includes("\0")) {
     fail("EVIDENCE_OUTPUT_PATH", "output_path must be a non-empty path");
@@ -143,6 +175,9 @@ function validateCommand(command, tuwId, expectedOrdinal) {
   if (command.ordinal !== expectedOrdinal) fail("EVIDENCE_ORDINAL", "command ordinal is not contiguous");
   if (!Array.isArray(command.argv) || command.argv.length === 0 || command.argv.some((part) => typeof part !== "string" || part.length === 0 || /[\0\r\n]/.test(part))) {
     fail("EVIDENCE_COMMAND", "command argv must be a non-empty literal string array");
+  }
+  if (runtimeSafetyArgvContainsSecretMaterial(command.argv)) {
+    fail("EVIDENCE_SECRET_ARGV", "command argv must not contain secret material");
   }
   if (typeof command.cwd !== "string" || command.cwd.length === 0) fail("EVIDENCE_COMMAND", "command cwd is required");
   if (!Array.isArray(command.env_keys) || command.env_keys.some((key) => typeof key !== "string" || !/^[A-Z][A-Z0-9_]*$/.test(key))) {

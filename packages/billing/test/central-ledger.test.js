@@ -249,6 +249,28 @@ test("Finance PostgreSQL import, async API command, append-only guard, shadow, a
   assert.equal(secondImport.replayed, true);
   const shadow = await ledger.compareSnapshot(source.snapshot);
   assert.equal(shadow.comparison.equal, true);
+  const rehearsal = await ledger.recordRehearsal({
+    tenant_id: TENANT,
+    domain_id: FINANCE_DOMAIN_DESCRIPTOR.domain_id,
+    import_receipt_id: imported.receipt.receipt_id,
+    shadow_receipt_id: shadow.receipt.receipt_id,
+    smoke_result: {
+      status: "passed",
+      synthetic_only: true,
+      environment: "test",
+      adapter: "finance-postgres-domain-ledger",
+      executed_at: "2026-07-16T21:00:00.000Z",
+      source_snapshot_hash: shadow.comparison.source_hash,
+      checks: {
+        source_imported: imported.receipt.status === "source_imported",
+        idempotency_replayed: secondImport.replayed,
+        shadow_equal: shadow.comparison.equal,
+        readback_equal: shadow.comparison.source_hash === shadow.comparison.target_hash,
+        json_dual_write_absent: true,
+      },
+      production_migrated: false,
+    },
+  });
 
   const api = await handleFinancePostgresApiRequest({
     ledger,
@@ -311,19 +333,6 @@ test("Finance PostgreSQL import, async API command, append-only guard, shadow, a
   assert.equal(reconciliation.time_minutes, 90);
   assert.equal(reconciliation.invariant_passed, true);
 
-  const rehearsal = await ledger.recordRehearsal({
-    tenant_id: TENANT,
-    domain_id: FINANCE_DOMAIN_DESCRIPTOR.domain_id,
-    import_receipt_id: imported.receipt.receipt_id,
-    shadow_receipt_id: shadow.receipt.receipt_id,
-    smoke_result: {
-      adapter: "finance-postgres-domain-ledger",
-      source_import_equal: true,
-      async_api_command_equal: api.persistence.shadow_equal,
-      money_invariant_hash: reconciliation.invariant_hash,
-      production_migrated: false,
-    },
-  });
   assert.equal(rehearsal.status, "source_ready");
   assert.equal(rehearsal.production_migrated, false);
   reportDomainReceiptEvidence({ source: source.snapshot, imported, secondImport, shadow, rehearsal });

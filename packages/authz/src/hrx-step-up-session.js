@@ -32,6 +32,9 @@ export function createHrxStepUpSession(input = {}, { now = new Date().toISOStrin
     session_id: input.session_id ?? `hrx_step_up_${randomUUID()}`,
     tenant_id: requiredString(input, "tenant_id"),
     actor_id: requiredString(input, "actor_id"),
+    primary_session_jti: input.primary_session_jti
+      ? requiredString(input, "primary_session_jti")
+      : null,
     purpose: requiredString(input, "purpose"),
     mfa: true,
     assurance_level: assuranceLevel,

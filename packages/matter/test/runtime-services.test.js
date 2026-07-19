@@ -45,6 +45,7 @@ function clearanceToken(overrides = {}) {
     engagement_id: "engagement-g4",
     snapshot_hash: "sha256:clearance-g4",
     token_state: "active",
+    expires_at: "2999-01-01T00:00:00.000Z",
     outcome: "passed",
     blocked_claims: [],
     ...overrides,
@@ -410,6 +411,29 @@ test("Matter opening transaction rolls back when DMS or Billing side effects fai
   assert.equal(result.matter.matter_code, "G4 Client/LIT/CIV/개시");
   assert.equal(repository.list({ tenant_id, model_type: "MatterClient" }).length, 1);
   assert.equal(repository.listAudit({ tenant_id, object_id: "matter-g4-opened" }).length, 1);
+});
+
+test("Matter opening rejects an Intake-issued clearance token from another tenant", () => {
+  const repository = createMatterRepository();
+  const foreignClearance = clearanceToken({
+    tenant_id: "tenant-other",
+    owner_module: "intake",
+    conflict_review_satisfied: true,
+  });
+
+  assert.throws(
+    () => openMatterTransaction({
+      repository,
+      matter: matterInput(),
+      clearance_token: foreignClearance,
+      clearance_repository: { get: () => foreignClearance },
+      matter_number_seed: "Cross Tenant",
+      idempotency_key: "idem-opening-cross-tenant",
+      actor_id,
+    }),
+    /clearance tenant mismatch/u,
+  );
+  assert.equal(repository.list({ tenant_id, model_type: "Matter" }).length, 0);
 });
 
 test("MatterTeam runtime blocks user_id-only and unavailable employees", () => {

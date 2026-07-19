@@ -7,8 +7,10 @@ import { calculateKoreanBusinessIncomeWithholding } from "../packages/billing/sr
 
 const ROOT = process.cwd();
 const ENV_PATH = join(ROOT, ".env.popbill.local");
-const ARTIFACT_JSON = join(ROOT, "artifacts/manual-qa/upl-b13-popbill-sandbox-proof.json");
-const ARTIFACT_MD = join(ROOT, "artifacts/manual-qa/upl-b13-popbill-sandbox-proof.md");
+const ARTIFACT_JSON = process.env.LAWOS_UPL_B13_ARTIFACT_JSON
+  ?? join(ROOT, "artifacts/manual-qa/upl-b13-popbill-sandbox-proof.json");
+const ARTIFACT_MD = process.env.LAWOS_UPL_B13_ARTIFACT_MD
+  ?? join(ROOT, "artifacts/manual-qa/upl-b13-popbill-sandbox-proof.md");
 
 function hash(value) {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex");

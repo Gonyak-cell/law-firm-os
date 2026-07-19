@@ -13,6 +13,19 @@ import {
 const TENANT = "tenant-dms-security";
 const BYTES = Buffer.from("DMS security regression bytes");
 const NOW = "2026-07-17T06:00:00.000Z";
+const DELETE_APPROVAL_RECEIPT = Object.freeze({
+  receipt_ref: "dms-delete-approval:test",
+  receipt_sha256: "a".repeat(64),
+  key_id: "test-owner-key",
+});
+
+async function verifyPermanentDeleteApproval({ approval_receipt } = {}) {
+  return approval_receipt?.receipt_ref === DELETE_APPROVAL_RECEIPT.receipt_ref
+    && approval_receipt?.receipt_sha256 === DELETE_APPROVAL_RECEIPT.receipt_sha256
+    && approval_receipt?.key_id === DELETE_APPROVAL_RECEIPT.key_id
+    ? Object.freeze({ verified: true, ...DELETE_APPROVAL_RECEIPT })
+    : Object.freeze({ verified: false });
+}
 
 function input(prefix, overrides = {}) {
   return {
@@ -335,7 +348,24 @@ test("DMS-03 committed delete intent fails reads closed, rechecks holds, and nev
       return base.deleteCommittedObject(input);
     },
   });
-  const runtime = createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage, clock: () => new Date(NOW) });
+  const unapprovedRuntime = createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage, clock: () => new Date(NOW) });
+  const unapproved = await upload(unapprovedRuntime, storage, "delete-unapproved");
+  await assert.rejects(
+    unapprovedRuntime.requestCommittedObjectDelete({
+      tenant_id: TENANT,
+      document_id: unapproved.document_id,
+      object_id: unapproved.object_id,
+      idempotency_key: "delete-unapproved",
+      requested_by: "records-admin",
+    }),
+    (error) => error?.safe_error_code === "DMS_PERMANENT_DELETE_APPROVAL_REQUIRED",
+  );
+  const runtime = createPostgresDmsUploadRuntime({
+    pool: fixture.appPool,
+    storage,
+    clock: () => new Date(NOW),
+    verifyPermanentDeleteApproval,
+  });
   const blocked = await upload(runtime, storage, "delete-held-race");
   const blockedIntent = await runtime.requestCommittedObjectDelete({
     tenant_id: TENANT,
@@ -343,6 +373,7 @@ test("DMS-03 committed delete intent fails reads closed, rechecks holds, and nev
     object_id: blocked.object_id,
     idempotency_key: "delete-held-race",
     requested_by: "records-admin",
+    approval_receipt: DELETE_APPROVAL_RECEIPT,
   });
   await assert.rejects(
     runtime.getDocumentState({ tenant_id: TENANT, document_id: blocked.document_id }),
@@ -369,8 +400,24 @@ test("DMS-03 committed delete intent fails reads closed, rechecks holds, and nev
     object_id: deletable.object_id,
     idempotency_key: "delete-success",
     requested_by: "records-admin",
+    approval_receipt: DELETE_APPROVAL_RECEIPT,
   });
-  const deleteWorkerB = createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage, clock: () => new Date(NOW), workerId: "delete-worker-b" });
+  await assert.rejects(
+    fixture.adminPool.query(
+      `UPDATE lawos_dms.delete_intents
+          SET approval_receipt_sha256 = $3
+        WHERE tenant_id = $1 AND delete_intent_id = $2`,
+      [TENANT, requested.intent.delete_intent_id, "b".repeat(64)],
+    ),
+    /approval fields are immutable/u,
+  );
+  const deleteWorkerB = createPostgresDmsUploadRuntime({
+    pool: fixture.appPool,
+    storage,
+    clock: () => new Date(NOW),
+    workerId: "delete-worker-b",
+    verifyPermanentDeleteApproval,
+  });
   const deleteOutcomes = (await Promise.all([
     runtime.reconcileDeleteIntents({ tenant_id: TENANT }),
     deleteWorkerB.reconcileDeleteIntents({ tenant_id: TENANT }),
@@ -380,6 +427,120 @@ test("DMS-03 committed delete intent fails reads closed, rechecks holds, and nev
   const replay = await runtime.executeCommittedObjectDelete({ tenant_id: TENANT, delete_intent_id: requested.intent.delete_intent_id });
   assert.equal(replay.replayed, true);
   assert.deepEqual(deleteCalls.map((row) => row.object_id), [deletable.object_id]);
+});
+
+test("DMS-03 legal hold and retention writes cannot report success during provider destruction", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const base = createLocalStorageAdapter({ adapter_id: "delete-protection-fence" });
+  let signalProviderDelete;
+  let releaseProviderDelete;
+  const providerDeleteStarted = new Promise((resolve) => { signalProviderDelete = resolve; });
+  const providerDeleteGate = new Promise((resolve) => { releaseProviderDelete = resolve; });
+  const storage = Object.freeze({
+    ...base,
+    async deleteCommittedObject(input) {
+      signalProviderDelete();
+      await providerDeleteGate;
+      return base.deleteCommittedObject(input);
+    },
+  });
+  const runtime = createPostgresDmsUploadRuntime({
+    pool: fixture.appPool,
+    storage,
+    clock: () => new Date(NOW),
+    verifyPermanentDeleteApproval,
+  });
+  const document = await upload(runtime, storage, "delete-protection-fence");
+  const requested = await runtime.requestCommittedObjectDelete({
+    tenant_id: TENANT,
+    document_id: document.document_id,
+    object_id: document.object_id,
+    idempotency_key: "delete-protection-fence",
+    requested_by: "records-admin",
+    approval_receipt: DELETE_APPROVAL_RECEIPT,
+  });
+  const execution = runtime.executeCommittedObjectDelete({
+    tenant_id: TENANT,
+    delete_intent_id: requested.intent.delete_intent_id,
+  });
+  await providerDeleteStarted;
+  try {
+    await assert.rejects(
+      runtime.placeLegalHold({
+        tenant_id: TENANT,
+        legal_hold_id: "hold-during-provider-delete",
+        document_id: document.document_id,
+        object_id: document.object_id,
+        created_by: "legal-admin",
+        reason: "must not claim protection after provider destruction starts",
+      }),
+      (error) => error?.safe_error_code === "DMS_OBJECT_DELETE_IN_PROGRESS",
+    );
+    await assert.rejects(
+      runtime.setRetentionPolicy({
+        tenant_id: TENANT,
+        retention_policy_id: "retention-during-provider-delete",
+        document_id: document.document_id,
+        object_id: document.object_id,
+        retain_until: "2027-07-18T00:00:00.000Z",
+      }),
+      (error) => error?.safe_error_code === "DMS_OBJECT_DELETE_IN_PROGRESS",
+    );
+  } finally {
+    releaseProviderDelete();
+  }
+  const completed = await execution;
+  assert.equal(completed.intent.state, "completed");
+  assert.equal(base.statObject({ tenant_id: TENANT, object_id: document.object_id }), null);
+});
+
+test("DMS-03 provider delete re-verifies the immutable owner receipt immediately before destruction", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const base = createLocalStorageAdapter({ adapter_id: "delete-reverify" });
+  let providerDeleteCalls = 0;
+  const storage = Object.freeze({
+    ...base,
+    deleteCommittedObject(input) {
+      providerDeleteCalls += 1;
+      return base.deleteCommittedObject(input);
+    },
+  });
+  let approvalValid = true;
+  const phases = [];
+  const verifier = async (input) => {
+    phases.push(input.execution_reverification === true ? "execute" : "request");
+    return approvalValid
+      ? Object.freeze({ verified: true, ...DELETE_APPROVAL_RECEIPT })
+      : Object.freeze({ verified: false });
+  };
+  const runtime = createPostgresDmsUploadRuntime({
+    pool: fixture.appPool,
+    storage,
+    clock: () => new Date(NOW),
+    verifyPermanentDeleteApproval: verifier,
+  });
+  const document = await upload(runtime, storage, "delete-reverify");
+  const requested = await runtime.requestCommittedObjectDelete({
+    tenant_id: TENANT,
+    document_id: document.document_id,
+    object_id: document.object_id,
+    idempotency_key: "delete-reverify",
+    requested_by: "records-admin",
+    approval_receipt: DELETE_APPROVAL_RECEIPT,
+  });
+  approvalValid = false;
+  await assert.rejects(
+    runtime.executeCommittedObjectDelete({
+      tenant_id: TENANT,
+      delete_intent_id: requested.intent.delete_intent_id,
+    }),
+    (error) => error?.safe_error_code === "DMS_PERMANENT_DELETE_APPROVAL_INVALID",
+  );
+  assert.deepEqual(phases, ["request", "execute"]);
+  assert.equal(providerDeleteCalls, 0);
+  assert.equal(base.statObject({ tenant_id: TENANT, object_id: document.object_id }).sha256, sha256Hex(BYTES));
 });
 
 test("DMS-08 reconciler applies bounded backoff and seals one terminal dead-letter receipt", async (t) => {

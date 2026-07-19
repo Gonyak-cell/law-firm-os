@@ -6,6 +6,7 @@ import { createMigratedPostgresFixture } from "../../persistence/test/helpers/di
 import { reportDomainReceiptEvidence } from "../../persistence/test/helpers/domain-receipt-evidence.js";
 import {
   createDmsDomainSnapshot,
+  createDmsAuxiliaryRepository,
   createDmsRepository,
   DMS_DOMAIN_DESCRIPTOR,
   runDmsPostgresCommand,
@@ -54,6 +55,23 @@ test("DMS central-ledger inventory fixes version, object, reference, PII and byt
   );
 });
 
+test("DMS auxiliary ledger accepts workspace metadata but rejects specialized document authority rows", () => {
+  const repository = createDmsAuxiliaryRepository({ seedRecords: [VAULT_DMS_RUNTIME_SEED[0]] });
+  try {
+    assert.equal(repository.list({ tenant_id: TENANT, model_type: "DmsWorkspace" }).length, 1);
+    assert.throws(
+      () => repository.create(VAULT_DMS_RUNTIME_SEED[1]),
+      (error) => error?.safe_error_code === "DMS_SPECIALIZED_AUTHORITY_REQUIRED",
+    );
+    assert.throws(
+      () => repository.transaction((tx) => tx.upsert(VAULT_DMS_RUNTIME_SEED[2])),
+      (error) => error?.safe_error_code === "DMS_SPECIALIZED_AUTHORITY_REQUIRED",
+    );
+  } finally {
+    repository.close();
+  }
+});
+
 test("DMS PostgreSQL snapshot/shadow preserve source while mutable lawos_domain commands fail closed", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
@@ -86,10 +104,19 @@ test("DMS PostgreSQL snapshot/shadow preserve source while mutable lawos_domain 
     import_receipt_id: imported.receipt.receipt_id,
     shadow_receipt_id: shadow.receipt.receipt_id,
     smoke_result: {
+      status: "passed",
+      synthetic_only: true,
+      environment: "test",
       adapter: "dms-postgres-domain-ledger",
-      source_import_equal: true,
-      mutable_domain_ledger_write_rejected: true,
-      upload_runtime_source_verified: true,
+      executed_at: "2026-07-16T20:00:00.000Z",
+      source_snapshot_hash: shadow.comparison.source_hash,
+      checks: {
+        source_imported: imported.receipt.status === "source_imported",
+        idempotency_replayed: replay.replayed,
+        shadow_equal: shadow.comparison.equal,
+        readback_equal: shadow.comparison.source_hash === shadow.comparison.target_hash,
+        json_dual_write_absent: true,
+      },
       production_migrated: false,
     },
   });

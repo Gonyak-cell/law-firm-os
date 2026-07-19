@@ -88,7 +88,7 @@ async function main() {
   try {
     started = await startApiServer({
       port: 0,
-      runtimeProfile: "operational",
+      runtimeProfile: "local-dev",
       sessionSecret: readOrCreateLocalSessionSecret(),
       ...lawosDurableStorePathOptions({ root: LAWOS_DURABLE_RUNTIME_HOME }),
     });
@@ -112,6 +112,8 @@ async function main() {
       probe_terms: PROBE_TERMS,
       probes,
       production_ready_claim: false,
+      operational_authority_claim: false,
+      legacy_file_authority_only: true,
       go_live_claim: false,
       public_release_claim: false,
     };

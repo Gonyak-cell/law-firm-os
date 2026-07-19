@@ -22,6 +22,14 @@ test("PostgreSQL pool requires verified TLS except for explicit loopback disposa
     () => resolvePostgresPoolConfig({ connectionString: "postgresql://db.example.test/lawos", sslMode: "disable", allowInsecureLocal: true }),
     /loopback/u,
   );
+  assert.throws(
+    () => resolvePostgresPoolConfig({ connectionString: "postgresql://db.example.test/lawos?sslmode=disable" }),
+    /query parameters are not allowed/u,
+  );
+  assert.throws(
+    () => resolvePostgresPoolConfig({ connectionString: "postgresql://db.example.test/lawos?host=%2Ftmp" }),
+    /query parameters are not allowed/u,
+  );
   const local = resolvePostgresPoolConfig({
     connectionString: "postgresql://127.0.0.1:5432/postgres",
     sslMode: "disable",
@@ -79,6 +87,21 @@ test("transaction tenant setting and RLS block cross-tenant visibility and write
   const setting = await withPostgresTransaction(fixture.appPool, { tenant_id: "tenant-rls-a" }, async (client) =>
     client.query("SELECT current_setting('app.current_tenant_id') AS tenant"));
   assert.equal(setting.rows[0].tenant, "tenant-rls-a");
+  const retargeted = await withPostgresTransaction(
+    fixture.appPool,
+    { tenant_id: "tenant-rls-a" },
+    async (client) => {
+      await client.query("SELECT set_config('app.current_tenant_id', 'tenant-rls-b', true)");
+      const authenticated = await client.query("SELECT lawos_security.current_tenant_id() AS tenant");
+      const visible = await client.query("SELECT count(*)::int AS count FROM lawos_runtime.records");
+      return { tenant: authenticated.rows[0].tenant, count: visible.rows[0].count };
+    },
+  );
+  assert.deepEqual(retargeted, { tenant: null, count: 0 });
+  await assert.rejects(
+    fixture.appPool.query("SELECT context_secret FROM lawos_security.tenant_context_authorities"),
+    (error) => error?.code === "42501",
+  );
   assert.equal(await repository.read({ tenant_id: "tenant-rls-b", record_type: "RlsRecord", record_id: "rls-1" }), undefined);
   await assert.rejects(
     withPostgresTransaction(fixture.appPool, { tenant_id: "tenant-rls-a" }, (client) => client.query(

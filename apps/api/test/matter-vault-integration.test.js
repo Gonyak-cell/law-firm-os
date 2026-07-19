@@ -73,6 +73,7 @@ function openingPayload() {
       snapshot_hash: "sha256:clearance-mv-001",
       token_state: "valid",
       outcome: "passed",
+      expires_at: "2999-01-01T00:00:00.000Z",
     },
   };
 }
