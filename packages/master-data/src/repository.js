@@ -58,6 +58,10 @@ function sameIdentity(left, right) {
   return left.tenant_id === right.tenant_id && left.model_type === right.model_type && primaryIdOf(left) === primaryIdOf(right);
 }
 
+function identityKey(record) {
+  return JSON.stringify([record.tenant_id, record.model_type, primaryIdOf(record)]);
+}
+
 function matchesRef(record, ref = {}) {
   if (record.tenant_id !== ref.tenant_id || record.model_type !== ref.model_type) return false;
   const id = ref.id ?? ref[primaryIdField(record.model_type)];
@@ -257,17 +261,17 @@ export function createMasterDataRepository({ filePath, seedRecords = [], preserv
     },
   };
 
+  const seedIdentities = new Set(state.records.map(identityKey));
+  let seedChanged = false;
   for (const record of seedRecords) {
-    if (!preserveSeedRecords) {
-      seedIfMissing(record);
-      continue;
-    }
     const normalized = normalizeRecord(record);
-    if (!state.records.some((current) => sameIdentity(current, normalized))) {
-      state.records.push(clone(record));
-      flush({ createBackup: false });
-    }
+    const key = identityKey(normalized);
+    if (seedIdentities.has(key)) continue;
+    state.records.push(preserveSeedRecords ? clone(record) : normalized);
+    seedIdentities.add(key);
+    seedChanged = true;
   }
+  if (seedChanged) flush({ createBackup: false });
 
   return Object.freeze(repository);
 }
