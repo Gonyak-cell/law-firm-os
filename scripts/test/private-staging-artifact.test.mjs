@@ -166,6 +166,9 @@ test("artifact runtime-source redactions remove every known real identity marker
     scanned_source_count: 4,
     real_identity_marker_count: 0,
   });
+  assert.equal(validatePrivateStagingSourceIdentityBoundary([
+    { path: "synthetic-account.json", text: '{"email":"lawos-staging-admin@amic.kr"}' },
+  ]).real_identity_marker_count, 0);
   assert.throws(() => validatePrivateStagingSourceIdentityBoundary([{ path: "leak.js", text: "legacy-user@amic.kr" }]), /real identity markers/u);
 });
 

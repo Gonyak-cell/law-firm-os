@@ -18,6 +18,7 @@ const SYNTHETIC_ADMIN_FINANCE_SCOPES = Object.freeze([
 ]);
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 const REAL_IDENTITY_SOURCE_PATTERN = /@amic\.(?:kr|law)|\b(?:user|emp)_amic_[a-z0-9_]+\b/iu;
+const APPROVED_SYNTHETIC_AMIC_EMAIL_PATTERN = /\blawos-staging-[a-z0-9-]+@amic\.(?:kr|law)\b/giu;
 
 export const PRIVATE_STAGING_SOURCE_REDACTION_TARGETS = Object.freeze([
   "apps/api/src/hrx-member-roster-registry.js",
@@ -52,6 +53,11 @@ function assertNoSensitiveIdentityMaterial(value) {
   }
 }
 
+function containsRealIdentitySourceMarker(value) {
+  const text = String(value ?? "").replace(APPROVED_SYNTHETIC_AMIC_EMAIL_PATTERN, "");
+  return REAL_IDENTITY_SOURCE_PATTERN.test(text);
+}
+
 export function redactPrivateStagingRuntimeSource({ targetPath, text, syntheticSources } = {}) {
   const path = requiredText(targetPath, "private staging redaction target");
   if (!PRIVATE_STAGING_SOURCE_REDACTION_TARGETS.includes(path)) throw new TypeError(`unsupported private staging redaction target: ${path}`);
@@ -81,7 +87,7 @@ export function redactPrivateStagingRuntimeSource({ targetPath, text, syntheticS
     output = output.replace(/\b[A-Z0-9._%+-]+@amic\.kr\b/giu, admin.email);
   }
   if (output === text) throw new Error(`private staging source redaction made no change: ${path}`);
-  if (REAL_IDENTITY_SOURCE_PATTERN.test(output)) throw new Error(`private staging source redaction left a real identity marker: ${path}`);
+  if (containsRealIdentitySourceMarker(output)) throw new Error(`private staging source redaction left a real identity marker: ${path}`);
   return Object.freeze({
     target_path: path,
     purpose: "remove-real-identity-source-markers",
@@ -92,7 +98,7 @@ export function redactPrivateStagingRuntimeSource({ targetPath, text, syntheticS
 
 export function validatePrivateStagingSourceIdentityBoundary(entries = []) {
   const violations = entries
-    .filter((entry) => REAL_IDENTITY_SOURCE_PATTERN.test(String(entry?.text ?? "")))
+    .filter((entry) => containsRealIdentitySourceMarker(entry?.text))
     .map((entry) => requiredText(entry.path, "private staging source path"));
   if (violations.length) throw new Error(`private staging artifact source contains real identity markers: ${violations.slice(0, 5).join(", ")}`);
   return Object.freeze({ scanned_source_count: entries.length, real_identity_marker_count: 0 });
