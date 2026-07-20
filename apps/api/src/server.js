@@ -211,6 +211,10 @@ function createPostgresDmsStorageFromEnv(env = process.env) {
   if (String(env.LAWOS_DMS_S3_OBJECT_LOCK_ENABLED ?? "").trim().toLowerCase() !== "true") {
     throw runtimePreflightError("LAWOS_DMS_S3_OBJECT_LOCK_ENABLED=true is required for postgres-v2 DMS authority");
   }
+  const defaultRetentionDays = Number(env.LAWOS_DMS_S3_DEFAULT_RETENTION_DAYS);
+  if (!Number.isInteger(defaultRetentionDays) || defaultRetentionDays < 1) {
+    throw runtimePreflightError("LAWOS_DMS_S3_DEFAULT_RETENTION_DAYS must be a positive integer for committed objects");
+  }
   return createS3StorageAdapter({
     adapter_id: "lawos-dms-s3-production",
     credential_ref: required("LAWOS_DMS_S3_CREDENTIAL_REF"),
@@ -220,6 +224,7 @@ function createPostgresDmsStorageFromEnv(env = process.env) {
     prefix: env.LAWOS_DMS_S3_PREFIX ?? "lawos-dms",
     kms_key_id: required("LAWOS_DMS_S3_KMS_KEY_ID"),
     object_lock_enabled: true,
+    default_retention_days: defaultRetentionDays,
   });
 }
 
