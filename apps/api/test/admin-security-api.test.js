@@ -72,8 +72,8 @@ test("admin security operations disable login, reactivate accounts, and audit br
   assert.equal(disabled.body.item.login_allowed, false);
 
   const blockedLogin = await loginAs("yjlee@amic.kr");
-  assert.equal(blockedLogin.status, 403);
-  assert.deepEqual(blockedLogin.body.safe_error_codes, ["AUTH_ACCOUNT_DISABLED"]);
+  assert.equal(blockedLogin.status, 401);
+  assert.deepEqual(blockedLogin.body.safe_error_codes, ["AUTH_CREDENTIAL_INVALID"]);
 
   const reactivated = await json(`/api/admin/security/users/${encodeURIComponent(target.user_id)}/reactivate`, {
     method: "POST",

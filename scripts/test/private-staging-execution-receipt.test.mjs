@@ -4,6 +4,7 @@ import test from "node:test";
 import { canonicalizeJson } from "../lib/runtime-safety-approval-contract.mjs";
 import {
   PRIVATE_STAGING_REQUIRED_RECEIPT_KINDS,
+  privateStagingReceiptSignerScope,
   resolvePrivateStagingReceiptSigner,
   validatePrivateStagingExecutionReceipt,
   validatePrivateStagingReceiptSet,
@@ -107,13 +108,30 @@ test("receipt signer must be a current registered Ed25519 owner key", () => {
       algorithm: "Ed25519",
       public_key_spki_pem: publicKey.export({ type: "spki", format: "pem" }),
       roles: ["owner"],
+      actions: ["lawos-private-staging-exact-head-execution"],
+      environments: ["lawos-staging"],
       valid_from: "2026-07-01T00:00:00.000Z",
       valid_until: "2027-07-01T00:00:00.000Z",
       revoked_at: null,
     }],
   };
-  assert.equal(resolvePrivateStagingReceiptSigner(registry, registry.keys[0].key_id, Date.parse("2026-07-20T00:00:00.000Z")).key_id, registry.keys[0].key_id);
+  const scope = privateStagingReceiptSignerScope("cut-007");
+  const context = {
+    expectedRole: scope.role,
+    expectedAction: scope.action,
+    expectedEnvironment: scope.environment,
+    receiptEnvironment: "lawos-staging",
+    receiptStartedAt: Date.parse("2026-07-20T00:00:00.000Z"),
+    receiptFinishedAt: Date.parse("2026-07-20T00:01:00.000Z"),
+  };
+  assert.equal(resolvePrivateStagingReceiptSigner(registry, registry.keys[0].key_id, Date.parse("2026-07-20T00:00:30.000Z"), context).key_id, registry.keys[0].key_id);
+  const wrongAction = structuredClone(registry);
+  wrongAction.keys[0].actions = ["unrelated-action"];
+  assert.throws(() => resolvePrivateStagingReceiptSigner(wrongAction, wrongAction.keys[0].key_id, Date.parse("2026-07-20T00:00:30.000Z"), context), /action/u);
+  const wrongEnvironment = structuredClone(registry);
+  wrongEnvironment.keys[0].environments = ["development"];
+  assert.throws(() => resolvePrivateStagingReceiptSigner(wrongEnvironment, wrongEnvironment.keys[0].key_id, Date.parse("2026-07-20T00:00:30.000Z"), context), /environment/u);
   const revoked = structuredClone(registry);
   revoked.keys[0].revoked_at = "2026-07-19T00:00:00.000Z";
-  assert.throws(() => resolvePrivateStagingReceiptSigner(revoked, revoked.keys[0].key_id, Date.parse("2026-07-20T00:00:00.000Z")), /revoked/u);
+  assert.throws(() => resolvePrivateStagingReceiptSigner(revoked, revoked.keys[0].key_id, Date.parse("2026-07-20T00:00:30.000Z"), context), /revoked/u);
 });

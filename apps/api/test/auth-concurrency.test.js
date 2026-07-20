@@ -61,8 +61,8 @@ test("login lock begins only after the configured failed-attempt threshold", asy
     assert.equal(failed.status, 401);
   }
   const locked = await auth.login({ email: account.email, password: account.local_dev.synthetic_token }, { requestId: "locked" });
-  assert.equal(locked.status, 423);
-  assert.deepEqual(locked.body.safe_error_codes, ["AUTH_LOGIN_LOCKED"]);
+  assert.equal(locked.status, 401);
+  assert.deepEqual(locked.body.safe_error_codes, ["AUTH_CREDENTIAL_INVALID"]);
 });
 
 test("PostgreSQL identity ledger serializes concurrent login failures and enforces tenant RLS", async (t) => {

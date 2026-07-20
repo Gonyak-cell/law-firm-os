@@ -82,6 +82,7 @@ export const CTI_CLIENT_DISPLAY_NAME_REPAIR_ACTION = "cti_client_display_name_re
 export const CTI_CLIENT_DISPLAY_NAME_REPAIR_APPROVAL_REF =
   "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06";
 export const LCX_AUTH_RESET_RECOVERY_ACTION = "lcx_auth_reset_recovery_01";
+export const LAWOS_PASSWORD_RESET_WORKER_ACTION = "lawos_password_reset_worker";
 export const LCX_AUTH_RESET_RECOVERY_APPROVAL_REF = "LCX-AUTH-RESET-RECOVERY-01";
 
 const CTI_READONLY_EFS_SNAPSHOT_SCHEMA_VERSION = "law-firm-os.cti.readonly-efs-snapshot.v0.1";
@@ -4307,7 +4308,7 @@ async function handleLcxAuthResetRecovery(event = {}) {
   }
 }
 
-async function apiBaseUrl() {
+async function apiRuntime() {
   if (!serverPromise) {
     serverPromise = (async () => {
       const matterRepository = await createLambdaMatterRepository();
@@ -4319,7 +4320,11 @@ async function apiBaseUrl() {
       });
     })();
   }
-  const { port } = await serverPromise;
+  return serverPromise;
+}
+
+async function apiBaseUrl() {
+  const { port } = await apiRuntime();
   return `http://127.0.0.1:${port}`;
 }
 
@@ -4334,6 +4339,19 @@ async function resetCachedApiServer() {
 }
 
 export async function handler(event = {}) {
+  if (maintenanceAction(event) === LAWOS_PASSWORD_RESET_WORKER_ACTION) {
+    const tenantId = String(process.env.LAWOS_PASSWORD_RESET_TENANT_ID ?? "").trim();
+    if (!tenantId) throw new Error("LAWOS_PASSWORD_RESET_TENANT_ID is required for the password reset worker");
+    const runtime = await apiRuntime();
+    const counts = await runtime.sessionAuth.processPasswordResetQueue({ tenantId, limit: 1 });
+    return {
+      outcome: "PASS",
+      worker: LAWOS_PASSWORD_RESET_WORKER_ACTION,
+      ...counts,
+      email_included: false,
+      token_material_returned: false,
+    };
+  }
   if (maintenanceAction(event) === HRX_ROSTER_RECONCILE_ACTION) {
     return handleHrxRosterReconcile(event);
   }

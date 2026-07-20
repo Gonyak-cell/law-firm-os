@@ -59,19 +59,27 @@
     },
     {
       "service": "AWS Lambda and API Gateway",
-      "configuration": "synthetic pilot traffic allowance",
+      "configuration": "enforced public-route worst case: 0.04 request/s, 5 second 1 GiB Lambda timeout, reserved concurrency 1",
       "quantity": 1,
-      "unit": "allowance",
-      "unit_price_usd": 2,
-      "monthly_estimate_usd": 2
+      "unit": "enforced-monthly-maximum",
+      "unit_price_usd": 9.89,
+      "monthly_estimate_usd": 9.89
+    },
+    {
+      "service": "AWS Lambda password-reset worker",
+      "configuration": "five-minute synthetic-only schedule at the full 5 second 1 GiB Lambda timeout plus bounded logs",
+      "quantity": 8760,
+      "unit": "scheduled-invocation-month",
+      "unit_price_usd": 0.00009589,
+      "monthly_estimate_usd": 0.84
     },
     {
       "service": "Amazon S3 and CloudWatch Logs",
-      "configuration": "synthetic documents, artifacts, and 30-day logs",
+      "configuration": "synthetic documents, artifacts, and bounded public-route logs",
       "quantity": 1,
-      "unit": "allowance",
-      "unit_price_usd": 4,
-      "monthly_estimate_usd": 4
+      "unit": "enforced-monthly-maximum",
+      "unit_price_usd": 2,
+      "monthly_estimate_usd": 2
     },
     {
       "service": "S3 gateway VPC endpoint",
@@ -90,21 +98,53 @@
       "monthly_estimate_usd": 0
     }
   ],
-  "subtotal_monthly_usd": 89.27,
-  "contingency_monthly_usd": 10,
-  "total_monthly_estimate_usd": 99.27,
-  "total_monthly_estimate_krw_at_planning_rate": 148905,
+  "subtotal_monthly_usd": 96,
+  "contingency_monthly_usd": 2,
+  "total_monthly_estimate_usd": 98,
+  "total_monthly_estimate_krw_at_planning_rate": 147000,
   "one_time_estimate_usd": 0,
   "within_effective_aws_budget": true,
   "within_owner_krw_cap": true,
   "creation_gate": "PASS",
+  "enforced_public_route_envelope": {
+    "authorization": "explicit-synthetic-staging-cost-bound-exception",
+    "hours_per_month": 730,
+    "throttling_rate_per_second": 0.04,
+    "throttling_burst_limit": 20,
+    "lambda_memory_gib": 1,
+    "lambda_timeout_seconds": 5,
+    "lambda_reserved_concurrency": 1,
+    "monthly_request_ceiling": 105140,
+    "monthly_lambda_gb_second_ceiling": 525700,
+    "lambda_compute_unit_price_usd": 0.000016667,
+    "lambda_compute_ceiling_usd": 8.761842,
+    "api_gateway_unit_price_usd_per_million": 1,
+    "api_gateway_ceiling_usd": 0.10514,
+    "lambda_request_unit_price_usd_per_million": 0.2,
+    "lambda_request_ceiling_usd": 0.021028,
+    "metrics_and_logs_ceiling_usd": 1,
+    "lambda_api_logs_ceiling_usd": 9.89,
+    "all_variable_services_ceiling_usd": 12.73
+  },
+  "password_reset_worker_envelope": {
+    "schedule": "rate(5 minutes)",
+    "monthly_invocation_ceiling": 8760,
+    "lambda_memory_gib": 1,
+    "lambda_timeout_seconds": 5,
+    "monthly_lambda_gb_second_ceiling": 43800,
+    "lambda_compute_unit_price_usd": 0.000016667,
+    "lambda_request_unit_price_usd_per_million": 0.2,
+    "metrics_and_logs_ceiling_usd": 0.1,
+    "worker_ceiling_usd": 0.84
+  },
   "assumptions": [
-    "No real data or sustained load is used in private staging.",
+    "No real data is used in private staging; sustained hostile traffic is included in the enforced public-route ceiling.",
     "RDS backup storage does not exceed the free backup allocation associated with active database storage.",
     "No internet gateway, public subnet, NAT gateway, or public IPv4 address is created.",
     "The endpoint estimate uses a conservative USD 0.02 per endpoint-AZ-hour, above the generic AWS PrivateLink example rate, for two endpoint services in two availability zones.",
     "Secrets Manager and SES API access stays on interface VPC endpoints; S3 access stays on the no-hourly-charge gateway endpoint.",
-    "The account-level LawOS staging cost budget alerts at 80 percent actual and 100 percent forecasted use of USD 100.",
-    "The cost estimate must be refreshed if the change set adds persistent services or the measured usage exceeds an allowance."
+    "The account-level LawOS staging cost budget alerts the exact synthetic mailbox and SNS topic at 80 percent actual and 100 percent forecasted use of USD 100.",
+    "The five-minute password-reset worker schedule is modeled at its full Lambda timeout and does not perform public synchronous delivery work.",
+    "The validator rejects any increase to the public-route rate, timeout, memory, concurrency, worker cadence, or variable-service ceiling without a new reviewed model."
   ]
 }

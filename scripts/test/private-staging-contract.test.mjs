@@ -29,17 +29,35 @@ test("private staging infrastructure contract is isolated and cost gated", () =>
   assert.deepEqual(result.kms_current_key_wildcard_allow_sids, ["EnableAccountIamAuthority", "AllowRegionalCloudWatchLogsEncryption"]);
   assert.equal(result.bootstrap_default_enabled, false);
   assert.ok(result.inline_template_byte_size > 0 && result.inline_template_byte_size <= 51_200);
+
+  const unversioned = clone(fixture("template.json"));
+  delete unversioned.Resources.ApiFunction.Properties.Code.S3ObjectVersion;
+  assert.throws(() => validatePrivateStagingTemplate(unversioned), /immutable artifact version/u);
 });
 
 test("artifact store contract permits only the isolated bucket and deny policy", () => {
   assert.equal(validateArtifactStoreTemplate(fixture("artifact-store-template.json")).verdict, "PASS");
+
+  const broadened = clone(fixture("artifact-store-template.json"));
+  broadened.Resources.ArtifactBucketPolicy.Properties.PolicyDocument.Statement.push({
+    Sid: "AllowExternalRead",
+    Effect: "Allow",
+    Principal: { AWS: "arn:aws:iam::111122223333:root" },
+    Action: "s3:GetObject",
+    Resource: { "Fn::Sub": "${ArtifactBucket.Arn}/*" },
+  });
+  assert.throws(() => validateArtifactStoreTemplate(broadened), /artifact bucket policy/u);
+
+  const wrongBucket = clone(fixture("artifact-store-template.json"));
+  wrongBucket.Resources.ArtifactBucketPolicy.Properties.Bucket = "unapproved-bucket";
+  assert.throws(() => validateArtifactStoreTemplate(wrongBucket), /artifact bucket policy/u);
 });
 
 test("cost estimate is below both the owner cap and stricter AWS budget", () => {
   const result = validatePrivateStagingCost(fixture("cost-estimate.json"));
   assert.equal(result.verdict, "PASS");
-  assert.equal(result.total_monthly_estimate_usd, 99.27);
-  assert.equal(result.total_monthly_estimate_krw, 148905);
+  assert.equal(result.total_monthly_estimate_usd, 98);
+  assert.equal(result.total_monthly_estimate_krw, 147000);
 });
 
 test("public RDS and database default routes are rejected", () => {
@@ -95,7 +113,61 @@ test("role reuse, managed policies, and unrelated wildcard Allows are rejected",
     Action: "s3:GetObject",
     Resource: "*",
   });
-  assert.throws(() => validatePrivateStagingTemplate(wildcard), /only IAM Allow with Resource/u);
+  assert.throws(() => validatePrivateStagingTemplate(wildcard), /IAM policy contract|only IAM Allow with Resource/u);
+
+  const arrayWildcard = clone(fixture("template.json"));
+  arrayWildcard.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement.push({
+    Sid: "ArrayWildcard",
+    Effect: "Allow",
+    Action: ["s3:GetObject"],
+    Resource: ["*"],
+  });
+  assert.throws(() => validatePrivateStagingTemplate(arrayWildcard), /IAM policy contract|only IAM Allow/u);
+
+  const broadenedTrust = clone(fixture("template.json"));
+  broadenedTrust.Resources.ApiExecutionRole.Properties.AssumeRolePolicyDocument.Statement[0].Principal.Service = [
+    "lambda.amazonaws.com",
+    "ec2.amazonaws.com",
+  ];
+  assert.throws(() => validatePrivateStagingTemplate(broadenedTrust), /IAM trust policy contract/u);
+
+  const extraRole = clone(fixture("template.json"));
+  extraRole.Resources.UnreviewedRole = {
+    Type: "AWS::IAM::Role",
+    Properties: {
+      AssumeRolePolicyDocument: broadenedTrust.Resources.ApiExecutionRole.Properties.AssumeRolePolicyDocument,
+      Policies: [],
+    },
+  };
+  assert.throws(() => validatePrivateStagingTemplate(extraRole), /unexpected IAM policy-bearing resource/u);
+
+  const extraLambdaGrant = clone(fixture("template.json"));
+  extraLambdaGrant.Resources.UnreviewedInvokePermission = {
+    Type: "AWS::Lambda::Permission",
+    Properties: {
+      Action: "lambda:InvokeFunction",
+      FunctionName: { Ref: "AdminFunction" },
+      Principal: "s3.amazonaws.com",
+    },
+  };
+  assert.throws(() => validatePrivateStagingTemplate(extraLambdaGrant), /unexpected Lambda resource policy/u);
+
+  const attachedManagedPolicy = clone(fixture("template.json"));
+  attachedManagedPolicy.Resources.UnreviewedManagedPolicy = {
+    Type: "AWS::IAM::ManagedPolicy",
+    Properties: {
+      Roles: [{ Ref: "ApiExecutionRole" }],
+      PolicyDocument: {
+        Version: "2012-10-17",
+        Statement: [{ Effect: "Allow", Action: "s3:*", Resource: "*" }],
+      },
+    },
+  };
+  assert.throws(() => validatePrivateStagingTemplate(attachedManagedPolicy), /unexpected IAM policy-bearing resource/u);
+
+  const broadenedTopicGrant = clone(fixture("template.json"));
+  broadenedTopicGrant.Resources.CostAlertTopicPolicy.Properties.PolicyDocument.Statement[0].Principal = "*";
+  assert.throws(() => validatePrivateStagingTemplate(broadenedTopicGrant), /SNS resource policy contract/u);
 });
 
 test("KMS wildcard semantics remain confined to the current staging key", () => {
@@ -107,7 +179,60 @@ test("KMS wildcard semantics remain confined to the current staging key", () => 
     Action: "kms:Decrypt",
     Resource: "*",
   });
-  assert.throws(() => validatePrivateStagingTemplate(template), /KMS key policy may contain only/u);
+  assert.throws(() => validatePrivateStagingTemplate(template), /KMS key policy/u);
+
+  const arrayWildcard = clone(fixture("template.json"));
+  arrayWildcard.Resources.StagingKey.Properties.KeyPolicy.Statement[0].Resource = ["*"];
+  assert.throws(() => validatePrivateStagingTemplate(arrayWildcard), /KMS key policy/u);
+
+  const extraStatement = clone(fixture("template.json"));
+  extraStatement.Resources.StagingKey.Properties.KeyPolicy.Statement.push({
+    Sid: "ExternalDecrypt",
+    Effect: "Allow",
+    Principal: { AWS: "arn:aws:iam::111122223333:root" },
+    Action: "kms:Decrypt",
+    Resource: "*",
+  });
+  assert.throws(() => validatePrivateStagingTemplate(extraStatement), /KMS key policy/u);
+
+  const extraKey = clone(fixture("template.json"));
+  extraKey.Resources.UnreviewedKey = clone(extraKey.Resources.StagingKey);
+  assert.throws(() => validatePrivateStagingTemplate(extraKey), /unexpected KMS authority resource/u);
+});
+
+test("owner approval claims require exact immutable S3 and admin IAM bindings", () => {
+  const missingDeleteDeny = clone(fixture("template.json"));
+  missingDeleteDeny.Resources.DmsBucketPolicy.Properties.PolicyDocument.Statement = missingDeleteDeny.Resources.DmsBucketPolicy.Properties.PolicyDocument.Statement.filter((statement) => statement.Sid !== "DenyApprovalAuditDeletion");
+  assert.throws(() => validatePrivateStagingTemplate(missingDeleteDeny), /DMS bucket policy/u);
+
+  const extraBucketPolicy = clone(fixture("template.json"));
+  extraBucketPolicy.Resources.UnreviewedBucketPolicy = clone(extraBucketPolicy.Resources.DmsBucketPolicy);
+  assert.throws(() => validatePrivateStagingTemplate(extraBucketPolicy), /unexpected S3 bucket policy/u);
+
+  const missingAuditWrite = clone(fixture("template.json"));
+  missingAuditWrite.Resources.AdminExecutionRole.Properties.Policies[0].PolicyDocument.Statement = missingAuditWrite.Resources.AdminExecutionRole.Properties.Policies[0].PolicyDocument.Statement.filter((statement) => statement.Sid !== "WriteImmutableApprovalAudit");
+  assert.throws(() => validatePrivateStagingTemplate(missingAuditWrite), /AdminExecutionRole IAM policy/u);
+
+  const unpinnedRegistry = clone(fixture("template.json"));
+  delete unpinnedRegistry.Resources.AdminFunction.Properties.Environment.Variables.LAWOS_OWNER_TRUST_REGISTRY_SHA256;
+  assert.throws(() => validatePrivateStagingTemplate(unpinnedRegistry), /trust registry/u);
+
+  const endpointDrift = clone(fixture("template.json"));
+  endpointDrift.Resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement[0].Resource.pop();
+  assert.throws(() => validatePrivateStagingTemplate(endpointDrift), /S3 gateway endpoint policy/u);
+});
+
+test("the RDS gate inventories every instance and rejects extras", () => {
+  const extraPublic = clone(fixture("template.json"));
+  extraPublic.Resources.ExtraDatabase = clone(extraPublic.Resources.Database);
+  extraPublic.Resources.ExtraDatabase.Properties.DBInstanceIdentifier = "lawos-private-staging-extra";
+  extraPublic.Resources.ExtraDatabase.Properties.PubliclyAccessible = true;
+  assert.throws(() => validatePrivateStagingTemplate(extraPublic), /exactly one approved RDS/u);
+
+  const extraPrivate = clone(fixture("template.json"));
+  extraPrivate.Resources.ExtraDatabase = clone(extraPrivate.Resources.Database);
+  extraPrivate.Resources.ExtraDatabase.Properties.DBInstanceIdentifier = "lawos-private-staging-extra";
+  assert.throws(() => validatePrivateStagingTemplate(extraPrivate), /exactly one approved RDS/u);
 });
 
 test("secret-looking Lambda environment values are rejected", () => {
@@ -129,4 +254,14 @@ test("cost increases over the effective budget are rejected", () => {
   cost.total_monthly_estimate_usd += 20;
   cost.total_monthly_estimate_krw_at_planning_rate += 30000;
   assert.throws(() => validatePrivateStagingCost(cost), /effective USD budget/u);
+
+  const unbounded = clone(fixture("cost-estimate.json"));
+  unbounded.enforced_public_route_envelope.throttling_rate_per_second = 10;
+  assert.throws(() => validatePrivateStagingCost(unbounded), /cost rate model/u);
+
+  const noActionableRecipient = clone(fixture("template.json"));
+  noActionableRecipient.Resources.MonthlyCostBudget.Properties.NotificationsWithSubscribers[0].Subscribers =
+    noActionableRecipient.Resources.MonthlyCostBudget.Properties.NotificationsWithSubscribers[0].Subscribers
+      .filter((subscriber) => subscriber.SubscriptionType !== "EMAIL");
+  assert.throws(() => validatePrivateStagingTemplate(noActionableRecipient), /directly notify/u);
 });

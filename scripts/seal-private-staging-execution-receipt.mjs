@@ -14,6 +14,7 @@ import {
 import { basename, dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { canonicalizeJson } from "./lib/runtime-safety-approval-contract.mjs";
 import {
+  privateStagingReceiptSignerScope,
   resolvePrivateStagingReceiptSigner,
   validatePrivateStagingExecutionReceipt,
 } from "./lib/private-staging-execution-receipt.mjs";
@@ -64,7 +65,15 @@ validatePrivateStagingExecutionReceipt(receipt, {
   ownerInstructionSha256: option("--owner-instruction-sha256"),
   approvalId: option("--approval-id"),
 });
-const signer = resolvePrivateStagingReceiptSigner(JSON.parse(registryBytes), receipt.key_id);
+const signerScope = privateStagingReceiptSignerScope(receipt.receipt_kind);
+const signer = resolvePrivateStagingReceiptSigner(JSON.parse(registryBytes), receipt.key_id, Date.now(), {
+  expectedRole: signerScope.role,
+  expectedAction: signerScope.action,
+  expectedEnvironment: signerScope.environment,
+  receiptEnvironment: receipt.environment,
+  receiptStartedAt: Date.parse(receipt.started_at),
+  receiptFinishedAt: Date.parse(receipt.finished_at),
+});
 const privateKey = createPrivateKey(readFileSync(privateKeyPath));
 const publicKey = createPublicKey(privateKey);
 if (publicKey.export({ type: "spki", format: "pem" }) !== signer.public_key_spki_pem) throw new Error("owner private key does not match the registered signer");

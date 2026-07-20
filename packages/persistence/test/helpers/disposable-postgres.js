@@ -117,6 +117,7 @@ export async function createMigratedPostgresFixture(t) {
     await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.directory_outbox_events TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.sessions TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.challenges TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.password_reset_jobs TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.break_glass_requests TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT ON lawos_identity.break_glass_approvals TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT ON lawos_identity.security_audit_events TO lawos_app");

@@ -37,6 +37,7 @@ import {
   validatePrivateStagingExactHeadPacket,
 } from "./lib/private-staging-exact-head-authority.mjs";
 import {
+  privateStagingReceiptSignerScope,
   resolvePrivateStagingReceiptSigner,
   verifyPrivateStagingExecutionReceipt,
 } from "./lib/private-staging-execution-receipt.mjs";
@@ -52,6 +53,8 @@ const API_FUNCTION = "lawos-private-staging-api";
 const PHASES = new Set(["preflight", "deploy", "cut005", "cut006", "cut007", "all"]);
 const PROTECTED_MARKER = /(?:amic-vault-staging|matter-lawos-api-staging|matter-lawos-api-prod|matter-prod-deploy-admin|matter-cutover-operator)/iu;
 const SYNTHETIC_MANIFEST = JSON.parse(JSON.parse(readFileSync("infra/lawos-private-staging/template.json", "utf8")).Resources.SyntheticManifestSecret.Properties.SecretString);
+let artifactVersionId = null;
+let ownerAuthorization = null;
 
 function option(name, fallback = null) {
   const index = process.argv.indexOf(name);
@@ -69,6 +72,14 @@ function requiredOption(name) {
 
 function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+function ed25519SignatureBase64(bytes) {
+  if (bytes.length === 64) return bytes.toString("base64");
+  const text = bytes.toString("utf8").trim();
+  const decoded = /^[a-f0-9]{128}$/iu.test(text) ? Buffer.from(text, "hex") : Buffer.from(text, "base64");
+  if (decoded.length !== 64) throw new Error("owner approval signature is not Ed25519");
+  return decoded.toString("base64");
 }
 
 function git(...args) {
@@ -163,9 +174,12 @@ function stackParameterMap(stack) {
 
 function assertExactExistingStack(stack) {
   const parameters = stackParameterMap(stack);
-  for (const [key, expected] of [["SourceSha", packet.source_sha], ["SourceTree", packet.source_tree], ["ArtifactSha256", packet.artifact_sha256], ["OwnerInstructionSha256", packet.packet_sha256]]) {
+  for (const [key, expected] of [["SourceSha", packet.source_sha], ["SourceTree", packet.source_tree], ["ArtifactSha256", packet.artifact_sha256], ["OwnerInstructionSha256", packet.packet_sha256], ["OwnerTrustRegistrySha256", registrySha256]]) {
     if (parameters[key] !== expected) throw new Error(`existing private staging stack ${key} does not match the approved exact head`);
   }
+  if (!parameters.ArtifactVersion) throw new Error("existing private staging stack has no immutable artifact version");
+  if (artifactVersionId && parameters.ArtifactVersion !== artifactVersionId) throw new Error("existing private staging stack artifact version drifted");
+  artifactVersionId = parameters.ArtifactVersion;
   if (!/(?:CREATE|UPDATE)_COMPLETE/u.test(stack.StackStatus ?? "")) throw new Error(`private staging stack is not complete: ${stack.StackStatus ?? "unknown"}`);
 }
 
@@ -198,7 +212,7 @@ function createAndExecuteChangeSet({ parameters, label, mode, allowedModifiedLog
 function assertCloudFormationTemplateApi() {
   const result = awsJson(["cloudformation", "validate-template", "--template-body", `file://${cloudFormationTemplatePath}`]);
   const parameterKeys = new Set((result.Parameters ?? []).map((parameter) => parameter.ParameterKey));
-  for (const required of ["SourceSha", "SourceTree", "ArtifactSha256", "OwnerInstructionSha256", "EnableLambdaEniBootstrap", "RuntimeGeneration"]) {
+  for (const required of ["SourceSha", "SourceTree", "ArtifactSha256", "ArtifactVersion", "OwnerInstructionSha256", "OwnerTrustRegistrySha256", "EnableLambdaEniBootstrap", "RuntimeGeneration"]) {
     if (!parameterKeys.has(required)) throw new Error(`CloudFormation validation omitted required parameter ${required}`);
   }
   return Object.freeze({ cloudformation_template_valid_count: 1, cloudformation_parameter_count: parameterKeys.size });
@@ -257,18 +271,22 @@ function assertDeployedBudget() {
 function uploadExactArtifact() {
   assertArtifactStore();
   const head = awsTryJson(["s3api", "head-object", "--bucket", ARTIFACT_BUCKET, "--key", packet.artifact_s3_key]);
+  let versionId = head?.VersionId ?? null;
   if (!head) {
     progress("artifact-upload", "executing", { artifact_sha256: packet.artifact_sha256 });
-    awsJson([
+    const uploaded = awsJson([
       "s3api", "put-object", "--bucket", ARTIFACT_BUCKET, "--key", packet.artifact_s3_key,
       "--body", artifactPath,
       "--server-side-encryption", "AES256",
       "--metadata", `sha256=${packet.artifact_sha256},source-sha=${packet.source_sha},data-scope=synthetic-only`,
       "--tagging", "environment=lawos-staging&system=lawos&data-scope=synthetic-only",
     ]);
+    versionId = uploaded.VersionId ?? null;
   }
-  const verified = awsJson(["s3api", "head-object", "--bucket", ARTIFACT_BUCKET, "--key", packet.artifact_s3_key]);
-  if (Number(verified.ContentLength) !== artifactManifest.artifact_byte_size || verified.Metadata?.sha256 !== packet.artifact_sha256 || verified.Metadata?.["source-sha"] !== packet.source_sha) throw new Error("uploaded exact-head artifact metadata mismatch");
+  if (!versionId || versionId === "null") throw new Error("artifact upload did not return an immutable S3 VersionId");
+  const verified = awsJson(["s3api", "head-object", "--bucket", ARTIFACT_BUCKET, "--key", packet.artifact_s3_key, "--version-id", versionId]);
+  if (verified.VersionId !== versionId || Number(verified.ContentLength) !== artifactManifest.artifact_byte_size || verified.Metadata?.sha256 !== packet.artifact_sha256 || verified.Metadata?.["source-sha"] !== packet.source_sha) throw new Error("uploaded exact-head artifact metadata or version mismatch");
+  artifactVersionId = versionId;
   return verified;
 }
 
@@ -280,6 +298,7 @@ function lambdaConfiguration(functionName) {
     sourceTree: packet.source_tree,
     artifactSha256: packet.artifact_sha256,
     instructionSha256: packet.packet_sha256,
+    ownerTrustRegistrySha256: registrySha256,
   });
   return configuration;
 }
@@ -338,7 +357,7 @@ async function health() {
 async function forceColdGeneration(label) {
   const before = await health();
   const generation = `${label}-${Date.now().toString(36)}`;
-  const parameters = buildPrivateStagingStackParameters({ packet, artifactBucket: ARTIFACT_BUCKET, approvalId, inputs, eniBootstrap: false, runtimeGeneration: generation });
+  const parameters = buildPrivateStagingStackParameters({ packet, artifactBucket: ARTIFACT_BUCKET, artifactVersionId, approvalId, ownerTrustRegistrySha256: registrySha256, inputs, eniBootstrap: false, runtimeGeneration: generation });
   stack = createAndExecuteChangeSet({
     parameters,
     label: `${label}-cold-generation`,
@@ -404,7 +423,7 @@ async function deploy() {
   if (stack) assertExactExistingStack(stack);
   if (!stack) {
     stack = createAndExecuteChangeSet({
-      parameters: buildPrivateStagingStackParameters({ packet, artifactBucket: ARTIFACT_BUCKET, approvalId, inputs, eniBootstrap: true, runtimeGeneration: `initial-${packet.source_sha.slice(0, 12)}` }),
+      parameters: buildPrivateStagingStackParameters({ packet, artifactBucket: ARTIFACT_BUCKET, artifactVersionId, approvalId, ownerTrustRegistrySha256: registrySha256, inputs, eniBootstrap: true, runtimeGeneration: `initial-${packet.source_sha.slice(0, 12)}` }),
       label: "initial-deploy",
       mode: "create",
     });
@@ -414,7 +433,7 @@ async function deploy() {
   const currentParameters = stackParameterMap(stack);
   if (currentParameters.EnableLambdaEniBootstrap !== "false") {
     stack = createAndExecuteChangeSet({
-      parameters: buildPrivateStagingStackParameters({ packet, artifactBucket: ARTIFACT_BUCKET, approvalId, inputs, eniBootstrap: false, runtimeGeneration: currentParameters.RuntimeGeneration ?? `initial-${packet.source_sha.slice(0, 12)}` }),
+      parameters: buildPrivateStagingStackParameters({ packet, artifactBucket: ARTIFACT_BUCKET, artifactVersionId, approvalId, ownerTrustRegistrySha256: registrySha256, inputs, eniBootstrap: false, runtimeGeneration: currentParameters.RuntimeGeneration ?? `initial-${packet.source_sha.slice(0, 12)}` }),
       label: "remove-eni-bootstrap",
       mode: "update",
       allowedModifiedLogicalIds: ["ApiExecutionRole", "AdminExecutionRole", "ApiFunction", "AdminFunction"],
@@ -428,7 +447,7 @@ async function deploy() {
   const outputs = stackOutputMap(stack);
   apiEndpoint = new URL(outputs.ApiEndpoint);
   const bootstrapEvent = buildPrivateStagingAdminEvent({
-    action: "lawos-private-staging-database-bootstrap", packet, approvalId, syntheticManifestSha256,
+    action: "lawos-private-staging-database-bootstrap", packet, approvalId, syntheticManifestSha256, ownerAuthorization,
   });
   const bootstrap = invokeAdmin(bootstrapEvent, "database-bootstrap");
   if (bootstrap.result.outcome !== "PASS"
@@ -457,6 +476,7 @@ async function deploy() {
     source_sha: packet.source_sha,
     source_tree: packet.source_tree,
     artifact_sha256: packet.artifact_sha256,
+    artifact_s3_version_sha256: sha256(artifactVersionId),
     stack_id_fingerprint: sha256(stack.StackId),
     stack_status: stack.StackStatus,
     lambda_active_successful_count: 2,
@@ -478,7 +498,7 @@ async function deploy() {
     verified_sandbox_recipient_count: sesReadiness.verified_sandbox_recipient_count,
     protected_resource_mutation_count: 0,
     real_data_count: 0,
-  }, { infrastructure_evidence_sha256: infrastructureEvidence.sha256, template_sha256: templateSha256 }, { staging_deployment_executed: true });
+  }, { infrastructure_evidence_sha256: infrastructureEvidence.sha256, template_sha256: templateSha256, artifact_s3_version_sha256: sha256(artifactVersionId) }, { staging_deployment_executed: true });
   writeReceipt("database-bootstrap", startedAt, {
     migration_count: Number(bootstrap.result.migration_count),
     migration_applied_count: Number(bootstrap.result.migration_applied_count),
@@ -520,7 +540,7 @@ async function cut005() {
   const startedAt = new Date().toISOString();
   requireStack();
   const action = "lawos-private-staging-cut-005";
-  const invocation = invokeAdmin(buildPrivateStagingAdminEvent({ action, packet, approvalId, syntheticManifestSha256 }), "cut-005");
+  const invocation = invokeAdmin(buildPrivateStagingAdminEvent({ action, packet, approvalId, syntheticManifestSha256, ownerAuthorization }), "cut-005");
   const result = assertPrivateStagingCut005Result(invocation.result, { action, packet, approvalId });
   writeReceipt("cut-005", startedAt, {
     domain_count: Number(result.domain_count),
@@ -552,7 +572,7 @@ async function cut006() {
   });
   const action = "lawos-private-staging-cut-006";
   const event = buildPrivateStagingAdminEvent({
-    action, packet, approvalId, syntheticManifestSha256,
+    action, packet, approvalId, syntheticManifestSha256, ownerAuthorization,
     extra: {
       artifact_entry_manifest_sha256: artifactManifest.artifact_entries_sha256,
       artifact_runtime_store_entry_count: artifactManifest.artifact_runtime_store_entry_count,
@@ -585,7 +605,7 @@ async function cut007() {
   const startedAt = new Date().toISOString();
   requireStack();
   const baselineAction = "lawos-private-staging-synthetic-baseline";
-  const baseline = invokeAdmin(buildPrivateStagingAdminEvent({ action: baselineAction, packet, approvalId, syntheticManifestSha256 }), "cut-007-baseline");
+  const baseline = invokeAdmin(buildPrivateStagingAdminEvent({ action: baselineAction, packet, approvalId, syntheticManifestSha256, ownerAuthorization }), "cut-007-baseline");
   if (baseline.result.outcome !== "PASS" || baseline.result.action !== baselineAction || baseline.result.source_sha !== packet.source_sha) throw new Error("CUT-007 synthetic baseline failed");
   const brokerPath = privateRegularFile(requiredOption("--mailbox-broker-module"), "synthetic mailbox broker module");
   const broker = await import(`${pathToFileURL(brokerPath).href}?run=${Date.now()}`);
@@ -606,7 +626,7 @@ async function cut007() {
       },
       readback: ({ execution_id, expected }) => {
         const action = "lawos-private-staging-cut-007-readback";
-        const invocation = invokeAdmin(buildPrivateStagingAdminEvent({ action, packet, approvalId, syntheticManifestSha256, extra: { run_id: execution_id, expected } }), "cut-007-readback");
+        const invocation = invokeAdmin(buildPrivateStagingAdminEvent({ action, packet, approvalId, syntheticManifestSha256, ownerAuthorization, extra: { run_id: execution_id, expected } }), "cut-007-readback");
         if (invocation.result.outcome !== "PASS" || invocation.result.action !== action || invocation.result.source_sha !== packet.source_sha) throw new Error("CUT-007 independent readback failed");
         return invocation.result;
       },
@@ -673,7 +693,9 @@ const registrySha256 = requiredOption("--registry-sha256");
 if (sha256(registryBytes) !== registrySha256) throw new Error("owner trust registry digest mismatch");
 const approvalReceiptPath = privateRegularFile(requiredOption("--approval-receipt"), "exact-head approval receipt");
 const approvalSignaturePath = privateRegularFile(option("--approval-signature", `${approvalReceiptPath}.sig`), "exact-head approval signature");
-const approvalReceipt = JSON.parse(readFileSync(approvalReceiptPath, "utf8"));
+const approvalReceiptBytes = readFileSync(approvalReceiptPath);
+const approvalSignatureBytes = readFileSync(approvalSignaturePath);
+const approvalReceipt = JSON.parse(approvalReceiptBytes);
 const approval = validateRuntimeSafetyApprovalBundle({
   registryPath,
   expectedRegistrySha256: registrySha256,
@@ -690,13 +712,26 @@ const approval = validateRuntimeSafetyApprovalBundle({
 });
 if (!approval.valid || approval.decision !== "approved") throw new Error("exact-head owner approval is not approved");
 const approvalId = approval.approval_id;
+ownerAuthorization = Object.freeze({
+  registry_json: registryBytes.toString("utf8"),
+  receipt_json: approvalReceiptBytes.toString("utf8"),
+  signature_base64: ed25519SignatureBase64(approvalSignatureBytes),
+});
 
 const registry = JSON.parse(registryBytes);
 for (const [name, kind] of [[requiredOption("--ci-receipt"), "exact-head-ci"], [requiredOption("--security-receipt"), "security-review"]]) {
   const path = privateRegularFile(name, `${kind} receipt`);
   const receipt = JSON.parse(readFileSync(path, "utf8"));
   const signature = readFileSync(privateRegularFile(`${path}.sig`, `${kind} signature`));
-  const signer = resolvePrivateStagingReceiptSigner(registry, receipt.key_id);
+  const signerScope = privateStagingReceiptSignerScope(receipt.receipt_kind);
+  const signer = resolvePrivateStagingReceiptSigner(registry, receipt.key_id, Date.now(), {
+    expectedRole: signerScope.role,
+    expectedAction: signerScope.action,
+    expectedEnvironment: signerScope.environment,
+    receiptEnvironment: receipt.environment,
+    receiptStartedAt: Date.parse(receipt.started_at),
+    receiptFinishedAt: Date.parse(receipt.finished_at),
+  });
   const verified = verifyPrivateStagingExecutionReceipt({ receipt, signature, publicKey: signer.public_key_spki_pem, expected: { sourceSha, sourceTree, artifactSha256: packet.artifact_sha256, ownerInstructionSha256: packet.packet_sha256, approvalId, executionState: "PASS" } });
   if (verified.receipt_kind !== kind) throw new Error(`${kind} receipt kind mismatch`);
 }

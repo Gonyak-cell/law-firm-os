@@ -91,17 +91,29 @@ test("DMS-02 provider Object Lock is applied before legal-hold and retention met
   const base = createLocalStorageAdapter({ adapter_id: "provider-retention" });
   const calls = [];
   let failLegalHold = false;
+  const legalHolds = new Map();
+  const retentionPolicies = new Map();
   const storage = Object.freeze({
     ...base,
     capabilities: Object.freeze({ ...base.capabilities, provider_retention: true }),
     async setObjectLegalHold(input) {
       calls.push({ operation: "legal_hold", ...input });
       if (failLegalHold) throw new Error("provider legal hold unavailable");
+      legalHolds.set(input.object_id, input.status);
       return { status: input.status };
+    },
+    async getObjectLegalHold(input) {
+      calls.push({ operation: "legal_hold_read", ...input });
+      return { status: legalHolds.get(input.object_id) ?? "OFF" };
     },
     async setObjectRetention(input) {
       calls.push({ operation: "retention", ...input });
+      retentionPolicies.set(input.object_id, { mode: input.mode, retain_until: input.retain_until });
       return { mode: input.mode, retain_until: input.retain_until };
+    },
+    async getObjectRetention(input) {
+      calls.push({ operation: "retention_read", ...input });
+      return retentionPolicies.get(input.object_id) ?? { mode: null, retain_until: null };
     },
   });
   const runtime = createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage, clock: () => new Date(NOW) });
@@ -120,6 +132,11 @@ test("DMS-02 provider Object Lock is applied before legal-hold and retention met
     object_id: held.object_id,
     status: "ON",
   });
+  assert.deepEqual(calls[1], {
+    operation: "legal_hold_read",
+    tenant_id: TENANT,
+    object_id: held.object_id,
+  });
   assert.equal((await runtime.getDocumentState({ tenant_id: TENANT, document_id: held.document_id })).document.legal_hold_status, "active");
 
   const retained = await upload(runtime, storage, "provider-retained");
@@ -130,13 +147,37 @@ test("DMS-02 provider Object Lock is applied before legal-hold and retention met
     object_id: retained.object_id,
     retain_until: "2026-08-01T00:00:00.000Z",
   });
-  assert.deepEqual(calls[1], {
+  assert.deepEqual(calls[2], {
     operation: "retention",
     tenant_id: TENANT,
     object_id: retained.object_id,
     retain_until: "2026-08-01T00:00:00.000Z",
     mode: "GOVERNANCE",
   });
+  assert.deepEqual(calls[3], {
+    operation: "retention_read",
+    tenant_id: TENANT,
+    object_id: retained.object_id,
+  });
+
+  legalHolds.set(held.object_id, "OFF");
+  await assert.rejects(runtime.placeLegalHold({
+    tenant_id: TENANT,
+    legal_hold_id: "hold-provider",
+    document_id: held.document_id,
+    object_id: held.object_id,
+    created_by: "legal-admin",
+    reason: "active litigation",
+  }), (error) => error?.safe_error_code === "DMS_PROVIDER_LEGAL_HOLD_DRIFT");
+
+  retentionPolicies.set(retained.object_id, { mode: "GOVERNANCE", retain_until: "2026-07-31T23:59:59.000Z" });
+  await assert.rejects(runtime.setRetentionPolicy({
+    tenant_id: TENANT,
+    retention_policy_id: "retention-provider",
+    document_id: retained.document_id,
+    object_id: retained.object_id,
+    retain_until: "2026-08-01T00:00:00.000Z",
+  }), (error) => error?.safe_error_code === "DMS_PROVIDER_RETENTION_DRIFT");
 
   const rejected = await upload(runtime, storage, "provider-rejected");
   failLegalHold = true;

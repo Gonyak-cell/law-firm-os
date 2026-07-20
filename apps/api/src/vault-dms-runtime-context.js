@@ -132,6 +132,12 @@ const SEARCH_SAVED_LIMIT = 50;
 const SEARCH_HISTORY_RETENTION_MS = 90 * 24 * 60 * 60 * 1000;
 const SEARCH_PREFERENCE_OPERATIONS = new Set(["remember", "save", "delete_saved", "clear_recent", "share_authorize"]);
 const VAULT_DMS_MAX_UPLOAD_BYTES = 16 * 1024 * 1024;
+const DMS_GOVERNANCE_ACTIONS = Object.freeze({
+  "legal-hold": "dms:governance:legal-hold",
+  retention: "dms:governance:retention",
+  "delete-check": "dms:governance:delete-check",
+  "permanent-delete": "dms:governance:permanent-delete",
+});
 
 function errorResponse(status, requestId, codes, extra = {}) {
   return {
@@ -797,15 +803,8 @@ export async function handleVaultDocumentGovernance({ documentId, operation, bod
     permission_ref: body.permission_ref,
     audit_hint_ref: body.audit_hint_ref,
   };
-  const gated = routeGate({
-    context,
-    query,
-    requestId,
-    action: "dms:document:write",
-    resource: { resource_type: "vault_document", resource_id: documentId, matter_id: body.matter_id },
-    repository: runtime.repository,
-  });
-  if (gated) return gated;
+  const invalid = validateCommonQuery(query, requestId);
+  if (invalid) return invalid;
   if (!isPostgresDmsRuntime(runtime)) {
     return errorResponse(409, requestId, ["DMS_POSTGRES_AUTHORITY_REQUIRED"], {
       audit_hint_ref: query.audit_hint_ref,
@@ -814,6 +813,28 @@ export async function handleVaultDocumentGovernance({ documentId, operation, bod
   }
   const actorId = context?.principal?.user_id ?? context?.principal?.actor_id;
   try {
+    const action = DMS_GOVERNANCE_ACTIONS[operation];
+    if (!action) return errorResponse(404, requestId, [VAULT_DMS_API_ERROR_CODES.not_found], { audit_hint_ref: query.audit_hint_ref });
+    const canonical = await runtime.upload_runtime.getGovernanceAuthorizationResource({
+      tenant_id: query.tenant_id,
+      document_id: documentId,
+      object_id: body.object_id,
+    });
+    if (body.matter_id != null && String(body.matter_id).trim() !== canonical.matter_id) {
+      throw Object.assign(new Error("request matter does not match canonical DMS matter"), {
+        status: 409,
+        safe_error_code: "DMS_CANONICAL_MATTER_MISMATCH",
+      });
+    }
+    const gated = routeGate({
+      context,
+      query,
+      requestId,
+      action,
+      resource: { resource_type: "vault_document", resource_id: canonical.document_id, matter_id: canonical.matter_id },
+      repository: runtime.repository,
+    });
+    if (gated) return gated;
     let result;
     if (operation === "legal-hold") {
       result = await runtime.upload_runtime.placeLegalHold({
@@ -823,6 +844,7 @@ export async function handleVaultDocumentGovernance({ documentId, operation, bod
         legal_hold_id: body.legal_hold_id,
         reason: body.reason,
         created_by: actorId,
+        expected_matter_id: canonical.matter_id,
       });
     } else if (operation === "retention") {
       result = await runtime.upload_runtime.setRetentionPolicy({
@@ -831,12 +853,14 @@ export async function handleVaultDocumentGovernance({ documentId, operation, bod
         object_id: body.object_id,
         retention_policy_id: body.retention_policy_id,
         retain_until: body.retain_until,
+        expected_matter_id: canonical.matter_id,
       });
     } else if (operation === "delete-check") {
       result = await runtime.upload_runtime.assertCommittedObjectDeleteAllowed({
         tenant_id: query.tenant_id,
         document_id: documentId,
         object_id: body.object_id,
+        expected_matter_id: canonical.matter_id,
       });
     } else if (operation === "permanent-delete") {
       if (body.approval_receipt != null) throw Object.assign(new Error("permanent-delete approval material is not accepted by the staging probe route"), {
@@ -849,6 +873,7 @@ export async function handleVaultDocumentGovernance({ documentId, operation, bod
         object_id: body.object_id,
         idempotency_key: body.idempotency_key,
         requested_by: actorId,
+        expected_matter_id: canonical.matter_id,
       });
     } else {
       return errorResponse(404, requestId, [VAULT_DMS_API_ERROR_CODES.not_found], { audit_hint_ref: query.audit_hint_ref });

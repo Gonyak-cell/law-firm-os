@@ -52,20 +52,25 @@ export function validatePrivateStagingExecutionInputs(input) {
   });
 }
 
-export function buildPrivateStagingStackParameters({ packet, artifactBucket, approvalId, inputs, eniBootstrap, runtimeGeneration } = {}) {
+export function buildPrivateStagingStackParameters({ packet, artifactBucket, artifactVersionId, approvalId, ownerTrustRegistrySha256, inputs, eniBootstrap, runtimeGeneration } = {}) {
   if (!isRecord(packet) || !SHA1.test(packet.source_sha ?? "") || !SHA1.test(packet.source_tree ?? "") || !SHA256.test(packet.artifact_sha256 ?? "")) fail("exact-head packet binding is invalid");
   const normalizedInputs = validatePrivateStagingExecutionInputs(inputs);
   const bucket = requiredText(artifactBucket, "artifactBucket", /^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/u);
+  const version = requiredText(artifactVersionId, "artifactVersionId", /^[A-Za-z0-9._~+/=-]{1,1024}$/u);
+  if (version === "null") fail("artifactVersionId is invalid");
   const approved = requiredText(approvalId, "approvalId", /^[A-Za-z0-9._:@/+=-]{16,256}$/u);
   const instructionSha = requiredText(packet.packet_sha256, "packet.packet_sha256", SHA256);
+  const registrySha = requiredText(ownerTrustRegistrySha256, "ownerTrustRegistrySha256", SHA256);
   const generation = requiredText(runtimeGeneration, "runtimeGeneration", /^[a-z0-9-]{8,64}$/u);
   const values = {
     ArtifactBucket: bucket,
     ArtifactKey: packet.artifact_s3_key,
+    ArtifactVersion: version,
     SourceSha: packet.source_sha,
     SourceTree: packet.source_tree,
     ArtifactSha256: packet.artifact_sha256,
     OwnerInstructionSha256: instructionSha,
+    OwnerTrustRegistrySha256: registrySha,
     BootstrapApprovalId: approved,
     Cut005ApprovalId: approved,
     Cut006ApprovalId: approved,
@@ -99,16 +104,22 @@ export function assertPrivateStagingChangeSet(changeSet, { mode = "create", allo
   return Object.freeze({ change_count: changeSet.Changes.length, protected_resource_change_count: 0, replacement_count: 0 });
 }
 
-export function assertPrivateStagingLambdaConfiguration(configuration, { functionName, sourceSha, sourceTree, artifactSha256, instructionSha256 } = {}) {
+export function assertPrivateStagingLambdaConfiguration(configuration, { functionName, sourceSha, sourceTree, artifactSha256, instructionSha256, ownerTrustRegistrySha256 } = {}) {
   if (!isRecord(configuration) || configuration.FunctionName !== functionName) fail("Lambda function identity mismatch");
   if (configuration.State !== "Active" || configuration.LastUpdateStatus !== "Successful") fail("Lambda is not Active/Successful");
   if (!String(configuration.Role ?? "").endsWith(`/${functionName}-role`)) fail("Lambda does not use its dedicated staging role");
   if (configuration.Runtime !== "nodejs22.x" || !configuration.Architectures?.includes("arm64")) fail("Lambda runtime or architecture drifted");
+  const expectedCodeSha256 = Buffer.from(requiredText(artifactSha256, "artifactSha256", SHA256), "hex").toString("base64");
+  if (configuration.CodeSha256 !== expectedCodeSha256) fail("Lambda code digest differs from the approved artifact");
   if (!(configuration.VpcConfig?.VpcId && (configuration.VpcConfig?.SubnetIds ?? []).length === 2 && (configuration.VpcConfig?.SecurityGroupIds ?? []).length === 1)) fail("Lambda is not attached to the isolated VPC");
   const env = configuration.Environment?.Variables ?? {};
   if (env.LAWOS_RUNTIME_PROFILE !== "operational" || env.LAWOS_PERSISTENCE_AUTHORITY !== "postgres-v2" || env.LAWOS_STAFF_AUTHORITY !== "internal-password" || env.LAWOS_DATA_SCOPE !== "synthetic-only") fail("Lambda runtime authority drifted");
   if (env.LAWOS_DEPLOYMENT_COMMIT !== sourceSha || env.LAWOS_DEPLOYMENT_TREE !== sourceTree || env.LAWOS_DEPLOYMENT_ARTIFACT_SHA256 !== artifactSha256) fail("Lambda exact-head binding drifted");
-  if (functionName.endsWith("admin") && env.LAWOS_OWNER_INSTRUCTION_SHA256 !== instructionSha256) fail("admin Lambda owner instruction binding drifted");
+  if (functionName.endsWith("admin")) {
+    if (env.LAWOS_OWNER_INSTRUCTION_SHA256 !== instructionSha256) fail("admin Lambda owner instruction binding drifted");
+    if (env.LAWOS_OWNER_TRUST_REGISTRY_SHA256 !== ownerTrustRegistrySha256) fail("admin Lambda owner trust registry binding drifted");
+    if (!env.LAWOS_APPROVAL_AUDIT_BUCKET || !env.LAWOS_STAGING_KMS_KEY_ARN) fail("admin Lambda immutable approval audit authority is incomplete");
+  }
   if (Object.keys(env).some((key) => LEGACY_ENV.test(key))) fail("Lambda environment re-enabled a legacy persistence path");
   return Object.freeze({ active_successful_count: 1, legacy_environment_key_count: 0, vpc_attached_count: 1 });
 }
@@ -166,7 +177,20 @@ export function assertPrivateStagingBudget(budget) {
   });
 }
 
-export function buildPrivateStagingAdminEvent({ action, packet, approvalId, syntheticManifestSha256, extra = {} } = {}) {
+function ownerAuthorizationBundle(value) {
+  if (!isRecord(value)) fail("ownerAuthorization must be an object");
+  const keys = Object.keys(value).sort();
+  if (JSON.stringify(keys) !== JSON.stringify(["receipt_json", "registry_json", "signature_base64"])) fail("ownerAuthorization shape is invalid");
+  return Object.freeze({
+    registry_json: requiredText(value.registry_json, "ownerAuthorization.registry_json"),
+    receipt_json: requiredText(value.receipt_json, "ownerAuthorization.receipt_json"),
+    signature_base64: requiredText(value.signature_base64, "ownerAuthorization.signature_base64", /^[A-Za-z0-9+/]+={0,2}$/u),
+  });
+}
+
+export function buildPrivateStagingAdminEvent({ action, packet, approvalId, syntheticManifestSha256, ownerAuthorization, extra = {} } = {}) {
+  const protectedFields = new Set(["action", "approval_id", "data_scope", "source_sha", "source_tree", "artifact_sha256", "owner_instruction_sha256", "synthetic_manifest_sha256", "owner_authorization"]);
+  if (!isRecord(extra) || Object.keys(extra).some((key) => protectedFields.has(key))) fail("admin event extra fields may not override authorization bindings");
   return Object.freeze({
     action: requiredText(action, "admin action", /^lawos-private-staging-[a-z0-9-]+$/u),
     approval_id: requiredText(approvalId, "approvalId"),
@@ -176,6 +200,7 @@ export function buildPrivateStagingAdminEvent({ action, packet, approvalId, synt
     artifact_sha256: requiredText(packet?.artifact_sha256, "artifact_sha256", SHA256),
     owner_instruction_sha256: requiredText(packet?.packet_sha256, "owner_instruction_sha256", SHA256),
     synthetic_manifest_sha256: requiredText(syntheticManifestSha256, "synthetic_manifest_sha256", SHA256),
+    owner_authorization: ownerAuthorizationBundle(ownerAuthorization),
     ...extra,
   });
 }
@@ -230,7 +255,7 @@ export function buildPrivateStagingExecutionReceipt({
     exit_code: 0,
     profile,
     environment: kind === "source-baseline" || kind.includes("local") ? "source-local" : "lawos-staging",
-    data_scope: ["source-baseline", "pr-172-adjudication", "source-field-contract", "internal-password-authority", "migration-engine", "local-postgres-validation", "artifact-reproduction", "exact-head-ci", "security-review", "cost-verification"].includes(kind) ? "none" : "synthetic-only",
+    data_scope: ["source-baseline", "pr-172-adjudication", "source-field-contract", "internal-password-authority", "migration-engine", "local-postgres-validation", "artifact-verification", "exact-head-ci", "security-review", "cost-verification"].includes(kind) ? "none" : "synthetic-only",
     contact_scope: kind === "cut-007" ? "synthetic-mailbox-only" : "none",
     source_sha: packet.source_sha,
     source_tree: packet.source_tree,

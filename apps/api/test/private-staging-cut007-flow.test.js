@@ -70,6 +70,7 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
   const sessionSecret = "cut007-disposable-session-secret-with-adequate-length";
   let started = null;
   let baseUrl = null;
+  let activeSessionAuth = null;
 
   const passwordResetEmailDelivery = async ({ to, token }) => {
     const queue = delivered.get(to) ?? [];
@@ -97,12 +98,13 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
       connect: fixture.appPool.connect.bind(fixture.appPool),
       end: async () => {},
     };
+    activeSessionAuth = sessionAuth();
     started = await startApiServer({
       port: 0,
       runtimeProfile: "operational",
       staffAuthAuthority: "internal-password",
       sessionSecret,
-      sessionAuth: sessionAuth(),
+      sessionAuth: activeSessionAuth,
       stepUpAuthority: Object.freeze({}),
       persistenceAuthority: "postgres-v2",
       persistenceAuthorityEnv: {
@@ -140,6 +142,7 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
     wait: (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
     passwordFactory: (purpose) => `C7!Synthetic-${purpose}-Password-2026`,
     mailboxTokenProvider: async ({ email }) => {
+      await activeSessionAuth.processPasswordResetQueue();
       const queue = delivered.get(email) ?? [];
       assert.ok(queue.length > 0, `missing synthetic mailbox message for ${email}`);
       return queue.shift();

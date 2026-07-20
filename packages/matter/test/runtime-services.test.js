@@ -413,6 +413,60 @@ test("Matter opening transaction rolls back when DMS or Billing side effects fai
   assert.equal(repository.listAudit({ tenant_id, object_id: "matter-g4-opened" }).length, 1);
 });
 
+test("Matter opening replay rejects changed actor and legacy unbound receipts", () => {
+  const repository = createMatterRepository();
+  const matter = matterInput({ matter_id: "matter-opening-replay-bound" });
+  const input = {
+    repository,
+    matter,
+    clearance_token: clearanceToken(),
+    matter_number_seed: "Opening Bound",
+    idempotency_key: "idem-opening-bound",
+    actor_id,
+  };
+  const first = openMatterTransaction(input);
+  assert.equal(first.idempotent_replay, false);
+  const replay = openMatterTransaction({
+    ...input,
+    billing: { createMatterLedger: () => ({ ledger_id: "runtime-dependency-changed-after-first-write" }) },
+  });
+  assert.equal(replay.idempotent_replay, true);
+  assert.throws(
+    () => openMatterTransaction({ ...input, actor_id: "actor-other" }),
+    (error) => error?.code === "MATTER_OPENING_IDEMPOTENCY_CONFLICT",
+  );
+  for (const changed of [
+    { matter: { ...matter, name: "changed matter body" } },
+    { client: { client_id: "client-changed", client_short_name: "Changed" } },
+    { clearance_token: { ...clearanceToken(), snapshot_hash: "changed-clearance-snapshot" } },
+    { matter_number_seed: "changed-number-seed" },
+    { require_canonical_matter_code: true },
+  ]) {
+    assert.throws(
+      () => openMatterTransaction({ ...input, ...changed }),
+      (error) => error?.code === "MATTER_OPENING_IDEMPOTENCY_CONFLICT",
+    );
+  }
+
+  repository.recordIdempotency({
+    tenant_id,
+    idempotency_key: "idem-opening-legacy",
+    operation: "matter_opening",
+    object_type: "Matter",
+    object_id: "matter-opening-legacy",
+    actor_id,
+    response: { outcome: "created" },
+  });
+  assert.throws(
+    () => openMatterTransaction({
+      ...input,
+      matter: matterInput({ matter_id: "matter-opening-legacy" }),
+      idempotency_key: "idem-opening-legacy",
+    }),
+    (error) => error?.code === "MATTER_OPENING_IDEMPOTENCY_CONFLICT",
+  );
+});
+
 test("Matter opening rejects an Intake-issued clearance token from another tenant", () => {
   const repository = createMatterRepository();
   const foreignClearance = clearanceToken({

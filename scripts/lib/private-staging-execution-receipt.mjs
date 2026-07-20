@@ -10,7 +10,7 @@ export const PRIVATE_STAGING_REQUIRED_RECEIPT_KINDS = Object.freeze([
   "internal-password-authority",
   "migration-engine",
   "local-postgres-validation",
-  "artifact-reproduction",
+  "artifact-verification",
   "exact-head-ci",
   "security-review",
   "infrastructure-deployment",
@@ -21,6 +21,8 @@ export const PRIVATE_STAGING_REQUIRED_RECEIPT_KINDS = Object.freeze([
   "cut-006",
   "cut-007",
 ]);
+const PRIVATE_STAGING_RECEIPT_ACTION = "lawos-private-staging-exact-head-execution";
+const SOURCE_LOCAL_RECEIPT_KINDS = new Set(["source-baseline", "local-postgres-validation"]);
 
 const SHA1 = /^[0-9a-f]{40}$/u;
 const SHA256 = /^[0-9a-f]{64}$/u;
@@ -187,16 +189,35 @@ export function verifyPrivateStagingExecutionReceipt({ receipt, signature, publi
   return Object.freeze({ ...result, signature_valid: true });
 }
 
-export function resolvePrivateStagingReceiptSigner(registry, keyId, now = Date.now()) {
+export function privateStagingReceiptSignerScope(receiptKind) {
+  if (!PRIVATE_STAGING_REQUIRED_RECEIPT_KINDS.includes(receiptKind)) fail("receipt signer scope kind is not allowed");
+  return Object.freeze({
+    role: "owner",
+    action: PRIVATE_STAGING_RECEIPT_ACTION,
+    environment: SOURCE_LOCAL_RECEIPT_KINDS.has(receiptKind) ? "source-local" : "lawos-staging",
+  });
+}
+
+export function resolvePrivateStagingReceiptSigner(registry, keyId, now = Date.now(), context = {}) {
   if (!isRecord(registry) || registry.schema_version !== "law-firm-os.runtime-safety.approval-trust-registry.v1" || !Array.isArray(registry.keys)) fail("owner trust registry is invalid");
   const key = registry.keys.find((entry) => entry?.key_id === keyId);
-  if (!key || key.algorithm !== "Ed25519" || !Array.isArray(key.roles) || !key.roles.includes("owner")) fail("receipt signer is not a registered Ed25519 owner key");
+  if (!isRecord(context)) fail("receipt signer scope context is invalid");
+  const expectedRole = requiredText(context.expectedRole, "signer.expectedRole");
+  const expectedAction = requiredText(context.expectedAction, "signer.expectedAction");
+  const expectedEnvironment = requiredText(context.expectedEnvironment, "signer.expectedEnvironment");
+  if (context.receiptEnvironment !== expectedEnvironment) fail("receipt signer environment does not match the receipt");
+  if (!key || key.algorithm !== "Ed25519" || !Array.isArray(key.roles) || !key.roles.includes(expectedRole)) fail("receipt signer role is not authorized");
+  if (!Array.isArray(key.actions) || !key.actions.includes(expectedAction)) fail("receipt signer action is not authorized");
+  if (!Array.isArray(key.environments) || !key.environments.includes(expectedEnvironment)) fail("receipt signer environment is not authorized");
   if (key.revoked_at != null) fail("receipt signer is revoked");
   const validFrom = timestamp(key.valid_from, "signer.valid_from");
   const validUntil = timestamp(key.valid_until, "signer.valid_until");
-  if (now < validFrom || now > validUntil) fail("receipt signer is outside its validity interval");
+  const startedAt = Number(context.receiptStartedAt);
+  const finishedAt = Number(context.receiptFinishedAt);
+  if (![now, startedAt, finishedAt].every(Number.isFinite) || finishedAt < startedAt) fail("receipt signer validation time is invalid");
+  if (now < validFrom || now > validUntil || startedAt < validFrom || finishedAt > validUntil) fail("receipt signer is outside its validity interval");
   if (typeof key.public_key_spki_pem !== "string" || !key.public_key_spki_pem.includes("BEGIN PUBLIC KEY")) fail("receipt signer public key is invalid");
-  return Object.freeze({ key_id: key.key_id, public_key_spki_pem: key.public_key_spki_pem });
+  return Object.freeze({ key_id: key.key_id, public_key_spki_pem: key.public_key_spki_pem, role: expectedRole, action: expectedAction, environment: expectedEnvironment });
 }
 
 export function validatePrivateStagingReceiptSet(receipts, expected = {}) {

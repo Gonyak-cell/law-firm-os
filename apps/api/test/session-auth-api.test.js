@@ -179,7 +179,7 @@ test("Auth descriptor exposes the Wave-1 API session surface", async () => {
     assert.match(authContext.step_up_contract_ref, /#UPL-A-04$/);
     assert.match(authContext.login_protection_contract_ref, /#UPL-A-14$/);
     assert.equal(authContext.max_failed_logins_before_lock, 5);
-    assert.equal(authContext.lock_response_status, 423);
+    assert.equal(authContext.lock_response_status, 401);
     assert.equal(authContext.operational_auth_provider, LAWOS_INTERNAL_PASSWORD_PROVIDER_ID);
   });
 });
@@ -310,8 +310,8 @@ test("Local-dev sessions use per-instance secrets and operational synthetic logi
     email: account.email,
     password: account.local_dev.synthetic_token,
   }, { requestId: "req_operational_synthetic_disabled" });
-  assert.equal(operationalLogin.status, 403);
-  assert.deepEqual(operationalLogin.body.safe_error_codes, ["AUTH_SYNTHETIC_LOGIN_DISABLED"]);
+  assert.equal(operationalLogin.status, 401);
+  assert.deepEqual(operationalLogin.body.safe_error_codes, ["AUTH_CREDENTIAL_INVALID"]);
 });
 
 test("Operational credential-store sessions verify across cold starts with credential revision checks", async () => {
@@ -398,8 +398,8 @@ test("Operational /api/auth/login uses credential store and rejects synthetic to
       method: "POST",
       body: { email: account.email, password: account.local_dev.synthetic_token },
     });
-    assert.equal(synthetic.status, 403);
-    assert.deepEqual(synthetic.body.safe_error_codes, ["AUTH_SYNTHETIC_LOGIN_DISABLED"]);
+    assert.equal(synthetic.status, 401);
+    assert.deepEqual(synthetic.body.safe_error_codes, ["AUTH_CREDENTIAL_INVALID"]);
 
     const signed = await json(baseUrl, "/api/auth/login", {
       method: "POST",
@@ -462,6 +462,8 @@ test("Operational password reset uses email delivery, hash-only tokens, and one-
       { outcome: unknown.body.outcome, ok: unknown.body.ok, accepted: unknown.body.accepted, email_delivery: unknown.body.email_delivery },
       { outcome: requested.body.outcome, ok: requested.body.ok, accepted: requested.body.accepted, email_delivery: requested.body.email_delivery },
     );
+    const processed = await sessionAuth.processPasswordResetQueue();
+    assert.deepEqual(processed, { claimed: 2, completed: 1, dropped: 1, retry: 0 });
     assert.equal(delivered?.to, account.email);
     assert.ok(delivered?.token);
     assert.equal(JSON.stringify(requested.body).includes(delivered.token), false);
@@ -470,8 +472,8 @@ test("Operational password reset uses email delivery, hash-only tokens, and one-
       method: "POST",
       body: { email: account.email, password: oldPassword },
     });
-    assert.equal(blockedOldPassword.status, 403);
-    assert.deepEqual(blockedOldPassword.body.safe_error_codes, ["AUTH_PASSWORD_RESET_REQUIRED"]);
+    assert.equal(blockedOldPassword.status, 401);
+    assert.deepEqual(blockedOldPassword.body.safe_error_codes, ["AUTH_CREDENTIAL_INVALID"]);
 
     const invalid = await json(baseUrl, "/api/auth/password-reset/confirm", {
       method: "POST",
@@ -530,14 +532,16 @@ test("Operational password reset hides production-disabled QA account state", as
     assert.equal(reset.status, 200);
     assert.equal(reset.body.outcome, "accepted");
     assert.equal(reset.body.email_delivery.status, "accepted");
+    const processed = await sessionAuth.processPasswordResetQueue();
+    assert.deepEqual(processed, { claimed: 1, completed: 0, dropped: 1, retry: 0 });
     assert.equal(deliveryCalled, false);
 
     const loginRejected = await json(baseUrl, "/api/auth/login", {
       method: "POST",
       body: { email: account.email, password },
     });
-    assert.equal(loginRejected.status, 403);
-    assert.deepEqual(loginRejected.body.safe_error_codes, ["AUTH_ACCOUNT_DISABLED"]);
+    assert.equal(loginRejected.status, 401);
+    assert.deepEqual(loginRejected.body.safe_error_codes, ["AUTH_CREDENTIAL_INVALID"]);
   });
 });
 
@@ -559,6 +563,8 @@ test("Operational password reset delivery failure does not force reset-required 
       });
       assert.equal(reset.status, 200);
       assert.equal(reset.body.email_delivery.status, "accepted");
+      const processed = await sessionAuth.processPasswordResetQueue();
+      assert.deepEqual(processed, { claimed: 1, completed: 0, dropped: 0, retry: 1 });
 
       const stillValid = await json(baseUrl, "/api/auth/login", {
         method: "POST",
@@ -604,6 +610,8 @@ test("Operational password reset delivery exception does not expose exception te
     });
     assert.equal(reset.status, 200);
     assert.equal(reset.body.email_delivery.status, "accepted");
+    const processed = await sessionAuth.processPasswordResetQueue();
+    assert.deepEqual(processed, { claimed: 1, completed: 0, dropped: 0, retry: 1 });
     assert.equal(JSON.stringify(reset.body).includes("network failure"), false);
 
     const stillValid = await json(baseUrl, "/api/auth/login", {
@@ -810,6 +818,8 @@ test("PostgreSQL identity auth persists reset, step-up, logout, and break-glass 
       body: { email: account.email },
     });
     assert.equal(requestedReset.status, 200);
+    const processedReset = await sessionAuth.processPasswordResetQueue();
+    assert.deepEqual(processedReset, { claimed: 1, completed: 1, dropped: 0, retry: 0 });
     assert.equal(delivered?.to, account.email);
     assert.ok(delivered?.token);
     assert.equal(JSON.stringify(requestedReset.body).includes(delivered.token), false);
@@ -821,8 +831,8 @@ test("PostgreSQL identity auth persists reset, step-up, logout, and break-glass 
       method: "POST",
       body: { email: account.email, password: oldPassword },
     });
-    assert.equal(blockedOldPassword.status, 403);
-    assert.deepEqual(blockedOldPassword.body.safe_error_codes, ["AUTH_PASSWORD_RESET_REQUIRED"]);
+    assert.equal(blockedOldPassword.status, 401);
+    assert.deepEqual(blockedOldPassword.body.safe_error_codes, ["AUTH_CREDENTIAL_INVALID"]);
 
     const confirmed = await json(baseUrl, "/api/auth/password-reset/confirm", {
       method: "POST",
@@ -1077,9 +1087,9 @@ test("Auth locks an account after repeated bad login attempts", async () => {
     assert.equal(fifth.status, 401);
 
     const locked = await login(baseUrl);
-    assert.equal(locked.status, 423);
-    assert.deepEqual(locked.body.safe_error_codes, ["AUTH_LOGIN_LOCKED"]);
-    assert.match(locked.body.locked_until, /^2026-07-02T00:01:00\.000Z$/);
+    assert.equal(locked.status, 401);
+    assert.deepEqual(locked.body.safe_error_codes, ["AUTH_CREDENTIAL_INVALID"]);
+    assert.equal("locked_until" in locked.body, false);
 
     now += 60_001;
     const loginAfterLockExpiry = await login(baseUrl);

@@ -42,6 +42,13 @@ const BOOTSTRAP_APPROVAL_ID = "LAWOS-EXACT-HEAD-BOOTSTRAP-APPROVAL-TEST";
 const CUT005_APPROVAL_ID = "LAWOS-EXACT-HEAD-CUT005-APPROVAL-TEST";
 const CUT006_APPROVAL_ID = "LAWOS-EXACT-HEAD-CUT006-APPROVAL-TEST";
 const CUT007_APPROVAL_ID = "LAWOS-EXACT-HEAD-CUT007-APPROVAL-TEST";
+const AUTHORIZATION = Object.freeze({
+  key_id: "lawos-owner-test",
+  receipt_sha256: "1".repeat(64),
+  claim_fingerprint: "2".repeat(64),
+  claim_body_sha256: "3".repeat(64),
+});
+const authorize = async () => AUTHORIZATION;
 
 function env() {
   return {
@@ -92,6 +99,7 @@ test("private staging bootstrap returns only safe exact-head counts", async () =
   const result = await bootstrapPrivateStagingDatabase({
     event: event(),
     env: env(),
+    authorize,
     resolveSecret: async ({ secretId }) => {
       if (secretId.endsWith("/master")) return { username: "lawos_admin", password: "master-test-password" };
       if (secretId.endsWith("/application")) return { username: "lawos_app", password: "application-test-password" };
@@ -132,12 +140,31 @@ test("private staging bootstrap rejects HTTP invocation and exact-head drift", a
   );
 });
 
+test("private staging bootstrap consumes signed authorization before resolving any secret", async () => {
+  let secretResolutionCount = 0;
+  await assert.rejects(
+    bootstrapPrivateStagingDatabase({
+      event: event(),
+      env: env(),
+      authorize: async () => {
+        const error = new Error("owner authorization was already consumed for this action");
+        error.code = "PRIVATE_STAGING_APPROVAL_REPLAY";
+        throw error;
+      },
+      resolveSecret: async () => { secretResolutionCount += 1; return {}; },
+    }),
+    (error) => error.code === "PRIVATE_STAGING_APPROVAL_REPLAY",
+  );
+  assert.equal(secretResolutionCount, 0);
+});
+
 test("private staging CUT-005 uses the ready application secret and returns safe counts", async () => {
   let poolOptions;
   const pool = { connect: async () => {}, end: async () => {} };
   const result = await executePrivateStagingCut005({
     event: event({ action: PRIVATE_STAGING_CUT005_ACTION, approval_id: CUT005_APPROVAL_ID }),
     env: env(),
+    authorize,
     resolveSecret: async ({ secretId }) => {
       if (secretId.endsWith("/application")) {
         return {
@@ -196,6 +223,7 @@ test("private staging CUT-006 binds deployed configuration, cold start, artifact
       file_current_initialized_count: 0,
     }),
     env: env(),
+    authorize,
     resolveSecret: async ({ secretId }) => {
       if (secretId.endsWith("/application")) {
         return {
@@ -245,6 +273,7 @@ test("private staging CUT-007 baseline is exact-head bound and returns only safe
   const result = await executePrivateStagingSyntheticBaseline({
     event: event({ action: PRIVATE_STAGING_SYNTHETIC_BASELINE_ACTION, approval_id: CUT007_APPROVAL_ID }),
     env: env(),
+    authorize,
     resolveSecret: async ({ secretId }) => {
       if (secretId.endsWith("/application")) {
         return {
@@ -305,6 +334,7 @@ test("private staging CUT-007 readback is exact-head bound and forwards only syn
       expected,
     }),
     env: env(),
+    authorize,
     resolveSecret: async ({ secretId }) => {
       if (secretId.endsWith("/application")) return {
         configuration_state: "ready",

@@ -34,6 +34,28 @@ test('Matter-Vault hardening keeps opening idempotent and projection safe', () =
   assert.equal(projection.omitted_denied_count, null);
 });
 
+test('Matter-Vault replay is bound to the actor, clearance, and material request', () => {
+  const input = payload();
+  openMatterWithVault(input);
+  assert.throws(
+    () => openMatterWithVault({ ...input, actor_id: 'different-actor' }),
+    (error) => error?.code === 'MATTER_OPENING_IDEMPOTENCY_CONFLICT',
+  );
+  assert.throws(
+    () => openMatterWithVault({ ...input, matter: { ...input.matter, title: 'Different title' } }),
+    (error) => error?.code === 'MATTER_OPENING_IDEMPOTENCY_CONFLICT',
+  );
+  assert.throws(
+    () => openMatterWithVault({
+      ...input,
+      clearance_token: { ...input.clearance_token, snapshot_hash: 'sha256:different-clearance' },
+    }),
+    (error) => error?.code === 'MATTER_OPENING_IDEMPOTENCY_CONFLICT',
+  );
+  assert.equal(input.matterRepository.list({ tenant_id: TENANT, model_type: 'Matter' }).length, 1);
+  assert.equal(input.dmsRepository.list({ tenant_id: TENANT, model_type: 'DmsWorkspace' }).length, 1);
+});
+
 test('Matter-Vault hardening blocks held exports and permissionless search/AI', () => {
   assert.throws(() => assertLegalHoldAllowsAction({ document: { legal_hold_id: 'hold' }, action: 'export' }), /legal hold/);
   assert.throws(() => searchMatterVault({ query: 'doc', index_rows: [] }), /permission decision/);

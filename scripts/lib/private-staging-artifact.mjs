@@ -150,7 +150,7 @@ export function buildPrivateStagingSyntheticSources(manifest) {
     const roleIds = [...new Set([...account.roles, admin ? "lawos_admin" : "lawos_attorney"])].sort();
     const hrxScopes = [...hrxScopesForRoleProfile(admin ? "admin" : "manager")];
     const productScopes = admin
-      ? ["audit.read", "matter.read", "matter.write", "security.admin", "tenant.admin", "user.admin", "vault.read", "vault.write", ...SYNTHETIC_ADMIN_FINANCE_SCOPES]
+      ? ["audit.read", "matter.read", "matter.write", "security.admin", "tenant.admin", "user.admin", "vault.governance", "vault.read", "vault.write", ...SYNTHETIC_ADMIN_FINANCE_SCOPES]
       : ["matter.read", "matter.write", "vault.read", "vault.write"];
     const scopes = [...new Set([...productScopes, ...hrxScopes])].sort();
     const groupIds = admin
@@ -280,6 +280,38 @@ export function privateStagingArtifactSourcePathAllowed(path) {
   return /^packages\/[^/]+\/(?:package\.json|src\/)/u.test(normalized);
 }
 
+export function parsePrivateStagingGitTree(value) {
+  const records = (Buffer.isBuffer(value) ? value : Buffer.from(value ?? ""))
+    .toString("utf8")
+    .split("\0")
+    .filter(Boolean);
+  const accepted = [];
+  const seen = new Set();
+  for (const record of records) {
+    const match = /^(\d{6}) ([a-z]+) ([a-f0-9]{40})\t([^\r\n\0]+)$/u.exec(record);
+    if (!match) throw new Error("private staging Git tree contains an invalid entry");
+    const [, mode, type, oid, path] = match;
+    if (!privateStagingArtifactSourcePathAllowed(path)) continue;
+    if (!(["100644", "100755"].includes(mode) && type === "blob")) {
+      throw new Error(`private staging artifact source must be a regular Git blob: ${path}`);
+    }
+    if (seen.has(path)) throw new Error(`private staging Git tree contains a duplicate path: ${path}`);
+    seen.add(path);
+    accepted.push(Object.freeze({ mode, type, oid, path }));
+  }
+  return Object.freeze(accepted.sort((left, right) => left.path.localeCompare(right.path, "en")));
+}
+
+export function assertPrivateStagingGitBlobMaterialization(entry, exactBlobBytes, stagedBytes) {
+  if (!entry || entry.type !== "blob" || !["100644", "100755"].includes(entry.mode) || !GIT_OID_PATTERN.test(entry.oid ?? "")) {
+    throw new Error("private staging artifact source identity is invalid");
+  }
+  const exact = Buffer.isBuffer(exactBlobBytes) ? exactBlobBytes : Buffer.from(exactBlobBytes ?? "");
+  const staged = Buffer.isBuffer(stagedBytes) ? stagedBytes : Buffer.from(stagedBytes ?? "");
+  if (!exact.equals(staged)) throw new Error(`private staging staged bytes differ from the exact Git blob: ${entry.path}`);
+  return Object.freeze({ path: entry.path, oid: entry.oid, byte_size: exact.byteLength });
+}
+
 export function validateRdsCaBundle(bytes) {
   const value = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes ?? "");
   const text = value.toString("utf8");
@@ -291,7 +323,12 @@ export function validateRdsCaBundle(bytes) {
 }
 
 export function validatePrivateStagingArtifactEntries(entries) {
-  const normalized = [...new Set(entries.map((entry) => String(entry).replace(/^\.\//u, "")))].sort();
+  const raw = entries.map((entry) => String(entry).replace(/^\.\//u, ""));
+  if (raw.some((entry) => !entry || entry.includes("\\") || entry.startsWith("/") || entry.split("/").includes(".."))) {
+    throw new Error("private staging artifact contains an unsafe archive path");
+  }
+  if (new Set(raw).size !== raw.length) throw new Error("private staging artifact contains a duplicate entry");
+  const normalized = [...raw].sort();
   const required = [
     "apps/api/src/lambda.js",
     "apps/api/src/matter-vault-user-registration-seed.json",

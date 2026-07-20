@@ -4,6 +4,7 @@ import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync, statSyn
 import { resolve } from "node:path";
 import {
   PRIVATE_STAGING_REQUIRED_RECEIPT_KINDS,
+  privateStagingReceiptSignerScope,
   resolvePrivateStagingReceiptSigner,
   validatePrivateStagingReceiptSet,
   verifyPrivateStagingExecutionReceipt,
@@ -48,7 +49,15 @@ for (const name of files) {
   const receiptPath = privatePath(resolve(receiptDir, name), `receipt ${name}`, "file");
   const signaturePath = privatePath(`${receiptPath}.sig`, `signature ${name}`, "file");
   const receipt = JSON.parse(readFileSync(receiptPath, "utf8"));
-  const signer = resolvePrivateStagingReceiptSigner(registry, receipt.key_id);
+  const signerScope = privateStagingReceiptSignerScope(receipt.receipt_kind);
+  const signer = resolvePrivateStagingReceiptSigner(registry, receipt.key_id, Date.now(), {
+    expectedRole: signerScope.role,
+    expectedAction: signerScope.action,
+    expectedEnvironment: signerScope.environment,
+    receiptEnvironment: receipt.environment,
+    receiptStartedAt: Date.parse(receipt.started_at),
+    receiptFinishedAt: Date.parse(receipt.finished_at),
+  });
   verifyPrivateStagingExecutionReceipt({ receipt, signature: readFileSync(signaturePath), publicKey: signer.public_key_spki_pem, expected });
   receipts.push(receipt);
 }

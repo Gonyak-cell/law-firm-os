@@ -29,17 +29,26 @@ const inputs = {
   review_date: "2026-07-27",
   expiration_date: "2026-08-31",
 };
+const ownerAuthorization = Object.freeze({
+  registry_json: "{\"schema_version\":\"test\"}\n",
+  receipt_json: "{\"schema_version\":\"test\"}\n",
+  signature_base64: Buffer.alloc(64, 7).toString("base64"),
+});
 
 test("execution inputs and stack parameters stay exact-head and synthetic-only", () => {
   assert.equal(validatePrivateStagingExecutionInputs(inputs).owner, "law-firm-os-owner");
   const values = Object.fromEntries(buildPrivateStagingStackParameters({
     packet, artifactBucket: "lawos-private-staging-artifacts-770880870480-ap-northeast-2",
+    artifactVersionId: "3LgP4ZVjZ8.example-version",
     approvalId: "LAWOS-PRIVATE-STAGING-EXACT-HEAD-APPROVAL-20260720", inputs, eniBootstrap: true,
+    ownerTrustRegistrySha256: "e".repeat(64),
     runtimeGeneration: "initial-aaaaaaaaaaaa",
   }).map(({ key, value }) => [key, value]));
   assert.equal(values.EnableLambdaEniBootstrap, "true");
   assert.equal(values.SourceSha, packet.source_sha);
+  assert.equal(values.ArtifactVersion, "3LgP4ZVjZ8.example-version");
   assert.equal(values.OwnerInstructionSha256, packet.packet_sha256);
+  assert.equal(values.OwnerTrustRegistrySha256, "e".repeat(64));
   assert.equal(values.PasswordResetBaseUrl, undefined);
 });
 
@@ -58,14 +67,30 @@ test("change-set review rejects protected resources, removals, and replacements"
 test("deployed Lambda, RDS, and DMS bucket contracts fail closed", () => {
   const lambda = {
     FunctionName: "lawos-private-staging-api", State: "Active", LastUpdateStatus: "Successful",
+    CodeSha256: Buffer.from(packet.artifact_sha256, "hex").toString("base64"),
     Role: "arn:aws:iam::770880870480:role/lawos-private-staging-api-role", Runtime: "nodejs22.x", Architectures: ["arm64"],
     VpcConfig: { VpcId: "vpc-1", SubnetIds: ["subnet-a", "subnet-b"], SecurityGroupIds: ["sg-1"] },
     Environment: { Variables: { LAWOS_RUNTIME_PROFILE: "operational", LAWOS_PERSISTENCE_AUTHORITY: "postgres-v2", LAWOS_STAFF_AUTHORITY: "internal-password", LAWOS_DATA_SCOPE: "synthetic-only", LAWOS_DEPLOYMENT_COMMIT: packet.source_sha, LAWOS_DEPLOYMENT_TREE: packet.source_tree, LAWOS_DEPLOYMENT_ARTIFACT_SHA256: packet.artifact_sha256 } },
   };
   assert.equal(assertPrivateStagingLambdaConfiguration(lambda, { functionName: lambda.FunctionName, sourceSha: packet.source_sha, sourceTree: packet.source_tree, artifactSha256: packet.artifact_sha256, instructionSha256: packet.packet_sha256 }).legacy_environment_key_count, 0);
+  const wrongCode = structuredClone(lambda);
+  wrongCode.CodeSha256 = Buffer.from("f".repeat(64), "hex").toString("base64");
+  assert.throws(() => assertPrivateStagingLambdaConfiguration(wrongCode, { functionName: wrongCode.FunctionName, sourceSha: packet.source_sha, sourceTree: packet.source_tree, artifactSha256: packet.artifact_sha256 }), /code digest/u);
   const drift = structuredClone(lambda);
   drift.Environment.Variables.LAWOS_MATTER_STORE_PATH = "/tmp/matter.json";
   assert.throws(() => assertPrivateStagingLambdaConfiguration(drift, { functionName: drift.FunctionName, sourceSha: packet.source_sha, sourceTree: packet.source_tree, artifactSha256: packet.artifact_sha256 }), /legacy/u);
+  const admin = structuredClone(lambda);
+  admin.FunctionName = "lawos-private-staging-admin";
+  admin.Role = "arn:aws:iam::770880870480:role/lawos-private-staging-admin-role";
+  Object.assign(admin.Environment.Variables, {
+    LAWOS_OWNER_INSTRUCTION_SHA256: packet.packet_sha256,
+    LAWOS_OWNER_TRUST_REGISTRY_SHA256: "e".repeat(64),
+    LAWOS_APPROVAL_AUDIT_BUCKET: "lawos-private-staging-dms-test",
+    LAWOS_STAGING_KMS_KEY_ARN: "arn:aws:kms:ap-northeast-2:770880870480:key/test",
+  });
+  assert.equal(assertPrivateStagingLambdaConfiguration(admin, { functionName: admin.FunctionName, sourceSha: packet.source_sha, sourceTree: packet.source_tree, artifactSha256: packet.artifact_sha256, instructionSha256: packet.packet_sha256, ownerTrustRegistrySha256: "e".repeat(64) }).active_successful_count, 1);
+  admin.Environment.Variables.LAWOS_OWNER_TRUST_REGISTRY_SHA256 = "f".repeat(64);
+  assert.throws(() => assertPrivateStagingLambdaConfiguration(admin, { functionName: admin.FunctionName, sourceSha: packet.source_sha, sourceTree: packet.source_tree, artifactSha256: packet.artifact_sha256, instructionSha256: packet.packet_sha256, ownerTrustRegistrySha256: "e".repeat(64) }), /trust registry/u);
   assert.equal(assertPrivateStagingRds({ DBInstanceIdentifier: "lawos-private-staging-postgres", PubliclyAccessible: false, StorageEncrypted: true, DeletionProtection: true, BackupRetentionPeriod: 7, DBInstanceStatus: "available", Endpoint: { Address: "private", Port: 5432 } }).public_rds_count, 0);
   assert.equal(assertPrivateStagingBucket({ versioning: { Status: "Enabled" }, publicAccess: { PublicAccessBlockConfiguration: { BlockPublicAcls: true, IgnorePublicAcls: true, BlockPublicPolicy: true, RestrictPublicBuckets: true } }, encryption: { ServerSideEncryptionConfiguration: [{ ApplyServerSideEncryptionByDefault: { SSEAlgorithm: "aws:kms" } }] }, objectLock: { ObjectLockEnabled: "Enabled" } }).public_bucket_count, 0);
 });
@@ -113,8 +138,10 @@ test("SES and budget readiness fail closed before synthetic contact or cost clai
 
 test("admin events and CUT-005/CUT-006 results require exact bindings and zero counters", () => {
   const approvalId = "LAWOS-PRIVATE-STAGING-EXACT-HEAD-APPROVAL-20260720";
-  const event = buildPrivateStagingAdminEvent({ action: "lawos-private-staging-cut-006", packet, approvalId, syntheticManifestSha256: "e".repeat(64), extra: { api_cold_start_observed: true } });
+  const event = buildPrivateStagingAdminEvent({ action: "lawos-private-staging-cut-006", packet, approvalId, syntheticManifestSha256: "e".repeat(64), ownerAuthorization, extra: { api_cold_start_observed: true } });
   assert.equal(event.source_sha, packet.source_sha);
+  assert.equal(event.owner_authorization.signature_base64, ownerAuthorization.signature_base64);
+  assert.throws(() => buildPrivateStagingAdminEvent({ action: "lawos-private-staging-cut-006", packet, approvalId, syntheticManifestSha256: "e".repeat(64), ownerAuthorization, extra: { source_sha: "f".repeat(40) } }), /override/u);
   const common = { outcome: "PASS", source_sha: packet.source_sha, source_tree: packet.source_tree, artifact_sha256: packet.artifact_sha256, owner_instruction_sha256: packet.packet_sha256, approval_id: approvalId, secret_material_returned: false, production_ready_claim: false, real_data_count: 0 };
   const cut005 = { ...common, action: "lawos-private-staging-cut-005", source_record_count: 20, accepted_record_count: 13, rejected_row_count: 7, unexpected_rejection_count: 0, shadow_difference_count: 0, tenant_negative_visible_count: 0, json_fallback_count: 0, json_writer_count: 0, dual_write_count: 0, transactional_rollback: { residual_item_count: 0 }, resume_equivalence: { resume_equal: true, immediate_replay_noop: true } };
   assert.equal(assertPrivateStagingCut005Result(cut005, { action: cut005.action, packet, approvalId }).outcome, "PASS");

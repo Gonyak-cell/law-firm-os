@@ -2,7 +2,6 @@
 import { createHash } from "node:crypto";
 import {
   chmodSync,
-  copyFileSync,
   existsSync,
   lstatSync,
   mkdirSync,
@@ -21,9 +20,10 @@ import { dirname, join, relative, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import {
   buildPrivateStagingSyntheticSources,
+  assertPrivateStagingGitBlobMaterialization,
   PRIVATE_STAGING_SOURCE_OVERRIDES,
   PRIVATE_STAGING_SOURCE_REDACTION_TARGETS,
-  privateStagingArtifactSourcePathAllowed,
+  parsePrivateStagingGitTree,
   redactPrivateStagingRuntimeSource,
   validatePrivateStagingArtifactEntries,
   validatePrivateStagingSourceIdentityBoundary,
@@ -47,6 +47,10 @@ function required(value, name) {
 
 function git(...args) {
   return execFileSync("git", args, { cwd: process.cwd(), encoding: "utf8", maxBuffer: 16 * 1024 * 1024 }).trim();
+}
+
+function gitBytes(...args) {
+  return execFileSync("git", args, { cwd: process.cwd(), encoding: null, maxBuffer: 64 * 1024 * 1024 });
 }
 
 function sha256(value) {
@@ -105,6 +109,16 @@ function privateManifestPath(path) {
   return target;
 }
 
+function providedCaBundlePath(path) {
+  const targetInput = resolve(path);
+  if (!existsSync(targetInput) || lstatSync(targetInput).isSymbolicLink()) throw new Error("provided RDS CA bundle must be an existing regular non-symlink file");
+  const target = realpathSync(targetInput);
+  if (!statSync(target).isFile()) throw new Error("provided RDS CA bundle must be a regular file");
+  const root = realpathSync(process.cwd());
+  if (target === root || relative(root, target).split(/[\\/]/u)[0] !== "..") throw new Error("provided RDS CA bundle must remain outside the repository worktree");
+  return target;
+}
+
 const nodeMajor = Number(process.versions.node.split(".")[0]);
 if (nodeMajor !== 22) throw new Error("private staging artifact must be built with Node.js 22");
 const sourceSha = git("rev-parse", "HEAD");
@@ -115,6 +129,7 @@ if (sourceSha !== expectedSourceSha || sourceTree !== expectedSourceTree) throw 
 if (git("status", "--porcelain=v1", "--untracked-files=all")) throw new Error("artifact build requires a clean exact-head worktree");
 const outputDir = ensureOutsideRepository(required(option("--output-dir"), "--output-dir"));
 const syntheticIdentityPath = privateManifestPath(required(option("--synthetic-identity-manifest"), "--synthetic-identity-manifest"));
+const providedCaPath = option("--rds-ca-bundle") ? providedCaBundlePath(option("--rds-ca-bundle")) : null;
 const syntheticIdentityBytes = readFileSync(syntheticIdentityPath);
 const syntheticIdentityManifest = JSON.parse(syntheticIdentityBytes);
 validatePrivateStagingSyntheticIdentityManifestBinding(syntheticIdentityManifest, { sourceSha, sourceTree });
@@ -124,11 +139,13 @@ chmodSync(outputDir, 0o700);
 const stagingRoot = mkdtempSync(join(tmpdir(), "lawos-private-staging-artifact-"));
 
 try {
-  const tracked = git("ls-files").split("\n").filter(privateStagingArtifactSourcePathAllowed).sort();
-  for (const sourcePath of tracked) {
-    const targetPath = join(stagingRoot, sourcePath);
+  const tracked = parsePrivateStagingGitTree(gitBytes("ls-tree", "-rz", "--full-tree", sourceSha));
+  for (const entry of tracked) {
+    const targetPath = join(stagingRoot, entry.path);
     mkdirSync(dirname(targetPath), { recursive: true });
-    copyFileSync(resolve(sourcePath), targetPath);
+    const exactBlobBytes = gitBytes("cat-file", "blob", entry.oid);
+    writeFileSync(targetPath, exactBlobBytes, { mode: entry.mode === "100755" ? 0o755 : 0o644 });
+    assertPrivateStagingGitBlobMaterialization(entry, exactBlobBytes, readFileSync(targetPath));
   }
   for (const [targetPath, value] of [
     ["apps/api/src/matter-vault-user-registration-seed.json", syntheticSources.account_seed],
@@ -139,7 +156,7 @@ try {
     writeFileSync(absoluteTarget, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o644 });
   }
   const sourceOverrides = PRIVATE_STAGING_SOURCE_OVERRIDES.map((override) => {
-    const bytes = readFileSync(resolve(override.source_path));
+    const bytes = readFileSync(join(stagingRoot, override.source_path));
     const targetPath = join(stagingRoot, override.target_path);
     mkdirSync(dirname(targetPath), { recursive: true });
     writeFileSync(targetPath, bytes, { mode: 0o644 });
@@ -168,12 +185,17 @@ try {
   });
   const sourceIdentityBoundary = validatePrivateStagingSourceIdentityBoundary(
     tracked
+      .map((entry) => entry.path)
       .filter((path) => !path.endsWith(".png"))
       .map((path) => ({ path, text: readFileSync(join(stagingRoot, path), "utf8") })),
   );
-  const caResponse = await fetch(RDS_CA_URL, { signal: AbortSignal.timeout(30_000) });
-  if (!caResponse.ok) throw new Error(`RDS CA bundle fetch failed: HTTP ${caResponse.status}`);
-  const caBytes = Buffer.from(await caResponse.arrayBuffer());
+  const caBytes = providedCaPath
+    ? readFileSync(providedCaPath)
+    : await (async () => {
+      const response = await fetch(RDS_CA_URL, { signal: AbortSignal.timeout(30_000) });
+      if (!response.ok) throw new Error(`RDS CA bundle fetch failed: HTTP ${response.status}`);
+      return Buffer.from(await response.arrayBuffer());
+    })();
   const ca = validateRdsCaBundle(caBytes);
   const caPath = join(stagingRoot, "certs/global-bundle.pem");
   mkdirSync(dirname(caPath), { recursive: true });
@@ -195,6 +217,7 @@ try {
     dependency_lock_sha256: dependencyLockSha,
     rds_ca_bundle: {
       source: RDS_CA_URL,
+      retrieval_mode: "validated-truststore-bytes",
       sha256: sha256(caBytes),
       byte_size: ca.byte_size,
       certificate_count: ca.certificate_count,

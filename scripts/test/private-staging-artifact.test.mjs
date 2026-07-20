@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  assertPrivateStagingGitBlobMaterialization,
   buildPrivateStagingSyntheticSources,
   PRIVATE_STAGING_SOURCE_OVERRIDES,
   PRIVATE_STAGING_SOURCE_REDACTION_TARGETS,
+  parsePrivateStagingGitTree,
   privateStagingArtifactSourcePathAllowed,
   redactPrivateStagingRuntimeSource,
   validatePrivateStagingArtifactEntries,
@@ -23,6 +25,32 @@ test("artifact source allowlist includes runtime inputs and excludes evidence an
   assert.equal(privateStagingArtifactSourcePathAllowed(".env.production"), false);
   assert.equal(privateStagingArtifactSourcePathAllowed("private-key.pem"), false);
   assert.equal(privateStagingArtifactSourcePathAllowed("docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json"), false);
+});
+
+test("artifact source inventory accepts only exact regular Git blobs", () => {
+  const inventory = Buffer.from([
+    `100644 blob ${"a".repeat(40)}\tapps/api/src/lambda.js`,
+    `100755 blob ${"b".repeat(40)}\tpackages/persistence/src/postgres/pool.js`,
+    `100644 blob ${"c".repeat(40)}\tworkbook/ignored.json`,
+    "",
+  ].join("\0"));
+  assert.deepEqual(parsePrivateStagingGitTree(inventory), [
+    { mode: "100644", type: "blob", oid: "a".repeat(40), path: "apps/api/src/lambda.js" },
+    { mode: "100755", type: "blob", oid: "b".repeat(40), path: "packages/persistence/src/postgres/pool.js" },
+  ]);
+
+  const symlink = Buffer.from(`120000 blob ${"d".repeat(40)}\tapps/api/src/lambda.js\0`);
+  assert.throws(() => parsePrivateStagingGitTree(symlink), /regular Git blob/u);
+
+  const submodule = Buffer.from(`160000 commit ${"e".repeat(40)}\tpackages/persistence/src/postgres/pool.js\0`);
+  assert.throws(() => parsePrivateStagingGitTree(submodule), /regular Git blob/u);
+
+  const entry = parsePrivateStagingGitTree(Buffer.from(`100644 blob ${"f".repeat(40)}\tapps/api/src/lambda.js\0`))[0];
+  assert.equal(assertPrivateStagingGitBlobMaterialization(entry, Buffer.from("exact"), Buffer.from("exact")).byte_size, 5);
+  assert.throws(
+    () => assertPrivateStagingGitBlobMaterialization(entry, Buffer.from("exact"), Buffer.from("host-substitution")),
+    /differ from the exact Git blob/u,
+  );
 });
 
 test("artifact entry contract requires both Lambda handlers and RDS trust bundle", () => {
@@ -58,6 +86,21 @@ test("artifact entry contract requires both Lambda handlers and RDS trust bundle
     "packages/persistence/src/postgres/migration-runner.js",
     "apps/api/test/secret.test.js",
   ]), /forbidden entries/u);
+  const valid = [
+    "apps/api/src/lambda.js",
+    "apps/api/src/matter-vault-user-registration-seed.json",
+    "apps/api/src/private-staging-admin-lambda.js",
+    "apps/api/src/private-staging-cut006.js",
+    "apps/api/src/private-staging-cut007-readback.js",
+    "apps/api/src/private-staging-synthetic-baseline.js",
+    "apps/api/src/hrx-member-roster-source-of-truth.json",
+    "certs/global-bundle.pem",
+    "deployment-manifest.json",
+    "package.json",
+    "packages/persistence/src/postgres/migration-runner.js",
+  ];
+  assert.throws(() => validatePrivateStagingArtifactEntries([...valid, valid[0]]), /duplicate entry/u);
+  assert.throws(() => validatePrivateStagingArtifactEntries([...valid, "../package.json"]), /unsafe archive path/u);
 });
 
 test("artifact builder creates only synthetic packaged account and HRX sources", () => {

@@ -94,7 +94,7 @@ function normalizeDirectoryMembership(input = {}, tenantId, userId) {
     ?? (input.user?.tenant_memberships ?? []).find((entry) => entry?.tenant_id === tenantId)
     ?? input.user
     ?? {};
-  const status = membership.status === "disabled" ? "disabled" : "active";
+  const status = membership.status === "active" ? "active" : "disabled";
   return Object.freeze({
     tenant_id: tenantId,
     user_id: userId,
@@ -214,6 +214,24 @@ function mapChallenge(row) {
     revoked_at: row.revoked_at ? iso(row.revoked_at) : null,
     revoke_reason: row.revoke_reason,
     metadata: Object.freeze(clone(row.metadata ?? {})),
+  });
+}
+
+function mapPasswordResetJob(row) {
+  if (!row) return null;
+  return Object.freeze({
+    tenant_id: row.tenant_id,
+    job_id: row.job_id,
+    email: row.email,
+    request_id: row.request_id,
+    state: row.state,
+    attempt_count: Number(row.attempt_count),
+    available_at: iso(row.available_at),
+    lease_owner: row.lease_owner,
+    lease_expires_at: row.lease_expires_at ? iso(row.lease_expires_at) : null,
+    last_error_code: row.last_error_code,
+    created_at: iso(row.created_at),
+    updated_at: iso(row.updated_at),
   });
 }
 
@@ -873,11 +891,22 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     return scoped(tenantId, async (client) => {
       await ensureAccountRow(client, tenantId, seed, clock);
       const currentResult = await client.query(
-        `SELECT tenant_id, user_id, account_status, credential_status, credential_rev, failed_login_count, locked_until
-           FROM lawos_identity.accounts WHERE tenant_id = $1 AND user_id = $2 FOR UPDATE`,
+        `SELECT accounts.tenant_id, accounts.user_id, accounts.account_status, accounts.credential_status,
+                accounts.credential_rev, accounts.failed_login_count, accounts.locked_until,
+                memberships.status AS membership_status,
+                memberships.state_version AS membership_state_version
+           FROM lawos_identity.accounts AS accounts
+           JOIN lawos_identity.account_memberships AS memberships
+             ON memberships.tenant_id = accounts.tenant_id
+            AND memberships.user_id = accounts.user_id
+          WHERE accounts.tenant_id = $1 AND accounts.user_id = $2
+          FOR UPDATE OF accounts, memberships`,
         [tenantId, seed.user_id],
       );
       const current = currentResult.rows[0];
+      if (!current || current.membership_status !== "active") {
+        return Object.freeze({ ok: false, reason: "tenant_membership_inactive", safe_error_code: "AUTH_CREDENTIAL_INVALID", status: 401 });
+      }
       if (current.account_status !== "active") return Object.freeze({ ok: false, reason: "account_disabled", safe_error_code: "AUTH_ACCOUNT_DISABLED", status: 403 });
       if (!["active", "must_change"].includes(current.credential_status)) {
         return Object.freeze({ ok: false, reason: "credential_inactive", safe_error_code: "AUTH_CREDENTIAL_REVOKED", status: 401 });
@@ -896,9 +925,9 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
       );
       await client.query(
         `INSERT INTO lawos_identity.sessions
-           (tenant_id, session_jti, session_id, user_id, credential_rev, issued_at, expires_at)
-         VALUES ($1, $2, $3, $4, $5, $6::timestamptz, $7::timestamptz)`,
-        [tenantId, sessionJti, sessionId, seed.user_id, credentialRev, issuedAt, expiresAt],
+           (tenant_id, session_jti, session_id, user_id, credential_rev, membership_state_version, issued_at, expires_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7::timestamptz, $8::timestamptz)`,
+        [tenantId, sessionJti, sessionId, seed.user_id, credentialRev, Number(current.membership_state_version), issuedAt, expiresAt],
       );
       if (wasLocked) await insertAudit(client, tenantId, { action: "auth.login.unlocked", object_id: seed.user_id, actor_id: seed.user_id, details: { reason: "successful_login_after_lock_expiry" } }, clock);
       await insertAudit(client, tenantId, { action: "auth.login.succeeded", object_id: seed.user_id, actor_id: seed.user_id, details: { session_registered: true } }, clock);
@@ -911,10 +940,14 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     const sessionJti = required(input.session_jti, "session_jti");
     return scoped(tenantId, async (client) => {
       const result = await client.query(
-        `SELECT s.session_jti, s.user_id, s.credential_rev AS session_credential_rev, s.expires_at, s.revoked_at,
-                a.account_status, a.credential_status, a.credential_rev
+        `SELECT s.session_jti, s.user_id, s.credential_rev AS session_credential_rev,
+                s.membership_state_version AS session_membership_state_version,
+                s.expires_at, s.revoked_at,
+                a.account_status, a.credential_status, a.credential_rev,
+                m.status AS membership_status, m.state_version AS membership_state_version
            FROM lawos_identity.sessions s
            JOIN lawos_identity.accounts a ON a.tenant_id = s.tenant_id AND a.user_id = s.user_id
+           JOIN lawos_identity.account_memberships m ON m.tenant_id = s.tenant_id AND m.user_id = s.user_id
           WHERE s.tenant_id = $1 AND s.session_jti = $2`,
         [tenantId, sessionJti],
       );
@@ -923,6 +956,12 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
       if (row.revoked_at) return Object.freeze({ ok: false, reason: "session_revoked", safe_error_code: "AUTH_SESSION_REVOKED", status: 401 });
       if (millis(row.expires_at) <= nowMs(clock)) return Object.freeze({ ok: false, reason: "auth_session_expired", safe_error_code: "AUTH_SESSION_EXPIRED", status: 401 });
       if (row.account_status !== "active") return Object.freeze({ ok: false, reason: "account_disabled", safe_error_code: "AUTH_ACCOUNT_DISABLED", status: 403 });
+      if (row.membership_status !== "active") {
+        return Object.freeze({ ok: false, reason: "tenant_membership_inactive", safe_error_code: "AUTH_SESSION_REVOKED", status: 401 });
+      }
+      if (Number(row.session_membership_state_version) !== Number(row.membership_state_version)) {
+        return Object.freeze({ ok: false, reason: "membership_revision_mismatch", safe_error_code: "AUTH_SESSION_REVOKED", status: 401 });
+      }
       if (["disabled", "reset_required", "locked"].includes(row.credential_status)) {
         return Object.freeze({ ok: false, reason: "credential_inactive", safe_error_code: "AUTH_CREDENTIAL_REVOKED", status: 401 });
       }
@@ -1134,6 +1173,85 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     });
   }
 
+  async function enqueuePasswordReset(input = {}) {
+    const tenantId = requireRepositoryTenantId(input.tenant_id);
+    const email = required(input.email, "password reset email").toLowerCase();
+    const requestId = required(input.request_id, "password reset request_id");
+    const jobId = optional(input.job_id) ?? `password-reset:${randomUUID()}`;
+    const timestamp = iso(nowMs(clock));
+    return scoped(tenantId, async (client) => {
+      const result = await client.query(
+        `INSERT INTO lawos_identity.password_reset_jobs
+           (tenant_id, job_id, email, request_id, state, attempt_count, available_at, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, 'pending', 0, $5::timestamptz, $5::timestamptz, $5::timestamptz)
+         RETURNING *`,
+        [tenantId, jobId, email, requestId, timestamp],
+      );
+      return mapPasswordResetJob(result.rows[0]);
+    });
+  }
+
+  async function claimPasswordResetJobs(input = {}) {
+    const tenantId = requireRepositoryTenantId(input.tenant_id);
+    const workerId = required(input.worker_id, "password reset worker_id");
+    const limit = Number(input.limit ?? 10);
+    const leaseMs = Number(input.lease_ms ?? 60_000);
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) throw new TypeError("password reset claim limit is invalid");
+    if (!Number.isFinite(leaseMs) || leaseMs < 1_000 || leaseMs > 15 * 60_000) throw new TypeError("password reset lease_ms is invalid");
+    const timestamp = nowMs(clock);
+    return scoped(tenantId, async (client) => {
+      const result = await client.query(
+        `WITH candidates AS (
+           SELECT job_id
+             FROM lawos_identity.password_reset_jobs
+            WHERE tenant_id = $1
+              AND ((state = 'pending' AND available_at <= $2::timestamptz)
+                OR (state = 'processing' AND lease_expires_at <= $2::timestamptz))
+            ORDER BY available_at, created_at, job_id
+            FOR UPDATE SKIP LOCKED
+            LIMIT $3
+         )
+         UPDATE lawos_identity.password_reset_jobs AS jobs
+            SET state = 'processing', attempt_count = attempt_count + 1,
+                lease_owner = $4, lease_expires_at = $5::timestamptz,
+                updated_at = $2::timestamptz
+           FROM candidates
+          WHERE jobs.tenant_id = $1 AND jobs.job_id = candidates.job_id
+         RETURNING jobs.*`,
+        [tenantId, iso(timestamp), limit, workerId, iso(timestamp + leaseMs)],
+      );
+      return Object.freeze(result.rows.map(mapPasswordResetJob));
+    });
+  }
+
+  async function finishPasswordResetJob(input = {}) {
+    const tenantId = requireRepositoryTenantId(input.tenant_id);
+    const jobId = required(input.job_id, "password reset job_id");
+    const workerId = required(input.worker_id, "password reset worker_id");
+    const outcome = required(input.outcome, "password reset job outcome");
+    if (!["completed", "dropped", "retry"].includes(outcome)) throw new TypeError("password reset job outcome is invalid");
+    const retryDelayMs = Number(input.retry_delay_ms ?? 60_000);
+    const timestamp = nowMs(clock);
+    return scoped(tenantId, async (client) => {
+      const result = await client.query(
+        `UPDATE lawos_identity.password_reset_jobs
+            SET state = CASE
+                  WHEN $4 = 'retry' AND attempt_count < 3 THEN 'pending'
+                  WHEN $4 = 'retry' THEN 'failed'
+                  ELSE $4
+                END,
+                available_at = CASE WHEN $4 = 'retry' AND attempt_count < 3 THEN $6::timestamptz ELSE available_at END,
+                lease_owner = NULL, lease_expires_at = NULL,
+                last_error_code = $5, updated_at = $7::timestamptz
+          WHERE tenant_id = $1 AND job_id = $2 AND state = 'processing' AND lease_owner = $3
+        RETURNING *`,
+        [tenantId, jobId, workerId, outcome, optional(input.last_error_code), iso(timestamp + retryDelayMs), iso(timestamp)],
+      );
+      if (!result.rows[0]) throw new Error("password reset queue lease is not owned by this worker");
+      return mapPasswordResetJob(result.rows[0]);
+    });
+  }
+
   async function createBreakGlassRequest(input = {}) {
     const tenantId = requireRepositoryTenantId(input.tenant_id);
     const requester = normalizeAccountSeed(input.requester);
@@ -1335,6 +1453,9 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     validateChallenge,
     consumeChallenge,
     revokeChallengesForUser,
+    enqueuePasswordReset,
+    claimPasswordResetJobs,
+    finishPasswordResetJob,
     createBreakGlassRequest,
     transitionBreakGlassRequest,
     listBreakGlassRequests,

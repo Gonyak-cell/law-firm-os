@@ -1,5 +1,6 @@
 import { appendMatterAuditEvent } from "./audit.js";
-import { openMatterTransaction } from "./opening-service.js";
+import { openMatterTransaction, prepareMatterOpeningRequest } from "./opening-service.js";
+import { assertMatterOpeningReplay } from "./matter-opening-authority.js";
 import { persistMatterVaultLink } from "./matter-vault-link-repository.js";
 import { createWorkspaceForMatter } from "../../dms/src/workspace-service.js";
 
@@ -28,9 +29,27 @@ export function openMatterWithVault({
   if (!matterRepository?.transaction) throw new TypeError("matterRepository transaction port is required");
   if (!dmsRepository?.transaction) throw new TypeError("dmsRepository transaction port is required");
 
-  const replay = matterRepository.getIdempotency({
+  const preparedVault = prepareMatterOpeningRequest({
+    matter,
+    clearance_token,
+    clearance_repository,
+    matter_number_seed,
+    idempotency_key,
+    client,
+    require_canonical_matter_code,
+    actor_id,
+    billing,
+    ...(now === undefined ? {} : { now }),
+    operation: "matter_vault_opening",
+  });
+  const replay = assertMatterOpeningReplay(matterRepository.getIdempotency({
     tenant_id: matter?.tenant_id,
     idempotency_key: `${idempotency_key}:matter-vault`,
+  }), {
+    operation: "matter_vault_opening",
+    actor_id,
+    object_id: matter?.matter_id,
+    request_fingerprint: preparedVault.request_fingerprint,
   });
   if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
 
@@ -46,6 +65,19 @@ export function openMatterWithVault({
       require_canonical_matter_code,
       actor_id,
       billing,
+      prepared_authority: prepareMatterOpeningRequest({
+        matter,
+        clearance_token,
+        clearance_repository,
+        matter_number_seed,
+        idempotency_key,
+        client,
+        require_canonical_matter_code,
+        actor_id,
+        billing,
+        ...(now === undefined ? {} : { now }),
+        operation: "matter_opening",
+      }),
       ...(now === undefined ? {} : { now }),
     });
 
@@ -67,6 +99,7 @@ export function openMatterWithVault({
         object_type: "DmsWorkspace",
         object_id: created.workspace.workspace_id,
         actor_id,
+        request_fingerprint: preparedVault.request_fingerprint,
         response: {
           outcome: "created",
           workspace_id: created.workspace.workspace_id,
@@ -125,6 +158,10 @@ export function openMatterWithVault({
       tenant_id: opened.matter.tenant_id,
       idempotency_key: `${idempotency_key}:matter-vault`,
       operation: "matter_vault_opening",
+      object_type: "Matter",
+      object_id: opened.matter.matter_id,
+      actor_id,
+      request_fingerprint: preparedVault.request_fingerprint,
       response,
     });
     return response;

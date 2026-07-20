@@ -4,6 +4,7 @@ import { execFileSync } from "node:child_process";
 import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { privateStagingPacketSha256, validatePrivateStagingExactHeadPacket } from "./lib/private-staging-exact-head-authority.mjs";
+import { PRIVATE_STAGING_TRUSTED_SECURITY_CHECK, validatePrivateStagingGithubChecks } from "./lib/private-staging-github-authority.mjs";
 
 function option(name) {
   const index = process.argv.indexOf(name);
@@ -20,9 +21,23 @@ function git(...args) {
   return execFileSync("git", args, { cwd: process.cwd(), encoding: "utf8" }).trim();
 }
 
+function gitBytes(...args) {
+  return execFileSync("git", args, { cwd: process.cwd(), encoding: null, maxBuffer: 32 * 1024 * 1024 });
+}
+
 function ghJson(args) {
   const text = execFileSync("gh", args, { cwd: process.cwd(), encoding: "utf8", maxBuffer: 32 * 1024 * 1024, stdio: ["ignore", "pipe", "pipe"] });
   return JSON.parse(text);
+}
+
+function ghArrayPages(endpoint) {
+  const pages = ghJson(["api", "--paginate", "--slurp", endpoint]);
+  if (!Array.isArray(pages) || pages.some((page) => !Array.isArray(page))) {
+    throw new Error("GitHub paginated alert response is invalid");
+  }
+  const records = pages.flat();
+  if (records.length > 10_000) throw new Error("GitHub alert inventory exceeds the closed review limit");
+  return records;
 }
 
 function privateFile(candidate, name) {
@@ -65,24 +80,32 @@ const repo = option("--repo");
 if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(repo)) throw new TypeError("--repo must be owner/name");
 const prNumber = Number(option("--pr-number"));
 if (!Number.isSafeInteger(prNumber) || prNumber < 1) throw new TypeError("--pr-number is invalid");
-const pr = ghJson(["pr", "view", String(prNumber), "--repo", repo, "--json", "headRefOid,baseRefName,state,statusCheckRollup,url"]);
+const pr = ghJson(["pr", "view", String(prNumber), "--repo", repo, "--json", "headRefOid,baseRefName,state,url"]);
 if (pr.headRefOid !== sourceSha || pr.baseRefName !== "main" || !["OPEN", "MERGED"].includes(pr.state)) throw new Error("PR is not bound to the exact source head and main base");
-const checks = (pr.statusCheckRollup ?? []).map((check) => ({
-  name: String(check.name ?? check.context ?? check.workflowName ?? check.__typename ?? "unknown").slice(0, 160),
-  conclusion: String(check.conclusion ?? check.state ?? check.status ?? "UNKNOWN").toUpperCase(),
-  details_url_sha256: sha256(String(check.detailsUrl ?? check.targetUrl ?? "")),
-}));
-if (!checks.length || checks.some((check) => check.conclusion !== "SUCCESS")) throw new Error("exact-head CI contains a missing, pending, skipped, neutral, or failed check");
-const securityChecks = checks.filter((check) => /(?:codeql|security|sast|secret|dependency|dependabot)/iu.test(check.name));
-if (!securityChecks.length) throw new Error("exact-head CI has no identifiable security check");
 
 const [owner, name] = repo.split("/");
+const checkResponse = ghJson(["api", `repos/${owner}/${name}/commits/${sourceSha}/check-runs?per_page=100`]);
+const workflowResponse = ghJson(["api", `repos/${owner}/${name}/actions/runs?head_sha=${sourceSha}&per_page=100`]);
+if (Number(checkResponse.total_count) !== (checkResponse.check_runs ?? []).length || Number(workflowResponse.total_count) !== (workflowResponse.workflow_runs ?? []).length) {
+  throw new Error("GitHub exact-head check inventory is incomplete or paginated");
+}
+const workflowSha256 = sha256(gitBytes("show", `${sourceSha}:${PRIVATE_STAGING_TRUSTED_SECURITY_CHECK.workflow_path}`));
+const authority = validatePrivateStagingGithubChecks({
+  checkRuns: checkResponse.check_runs,
+  workflowRuns: workflowResponse.workflow_runs,
+  repository: repo,
+  headSha: sourceSha,
+  workflowSha256,
+});
+const detailsBySuite = new Map((checkResponse.check_runs ?? []).map((check) => [Number(check?.check_suite?.id), sha256(String(check?.details_url ?? ""))]));
+const checks = authority.checks.map((check) => Object.freeze({ ...check, details_url_sha256: detailsBySuite.get(check.check_suite_id) }));
+const securityChecks = authority.security_checks;
 const endpoints = {
   code_scanning: `repos/${owner}/${name}/code-scanning/alerts?state=open&per_page=100`,
   secret_scanning: `repos/${owner}/${name}/secret-scanning/alerts?state=open&per_page=100`,
   dependabot: `repos/${owner}/${name}/dependabot/alerts?state=open&per_page=100`,
 };
-const alerts = Object.fromEntries(Object.entries(endpoints).map(([key, endpoint]) => [key, ghJson(["api", endpoint])]));
+const alerts = Object.fromEntries(Object.entries(endpoints).map(([key, endpoint]) => [key, ghArrayPages(endpoint)]));
 const codeCriticalHigh = alerts.code_scanning.filter((alert) => ["critical", "high"].includes(String(alert.rule?.security_severity_level ?? "").toLowerCase())).length;
 const dependencyCriticalHigh = alerts.dependabot.filter((alert) => ["critical", "high"].includes(String(alert.security_advisory?.severity ?? "").toLowerCase())).length;
 const openSecretCount = alerts.secret_scanning.length;
@@ -119,6 +142,8 @@ const securityPath = writeEvidence(outputDir, `security-review-${sourceSha}.json
   command: `gh api ${repo} code-scanning secret-scanning dependabot read-only review`,
   ...common,
   security_check_count: securityChecks.length,
+  trusted_security_checks: securityChecks,
+  trusted_security_workflow_sha256: workflowSha256,
   open_code_critical_high_count: codeCriticalHigh,
   open_dependency_critical_high_count: dependencyCriticalHigh,
   open_secret_alert_count: openSecretCount,

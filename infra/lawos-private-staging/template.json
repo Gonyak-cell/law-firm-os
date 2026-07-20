@@ -10,6 +10,12 @@
       "Type": "String",
       "AllowedPattern": "^lawos-private-staging/[0-9a-f]{40}/[0-9a-f]{64}\\.zip$"
     },
+    "ArtifactVersion": {
+      "Type": "String",
+      "MinLength": 1,
+      "MaxLength": 1024,
+      "AllowedPattern": "^[A-Za-z0-9._~+/=-]+$"
+    },
     "SourceSha": {
       "Type": "String",
       "AllowedPattern": "^[0-9a-f]{40}$"
@@ -25,6 +31,11 @@
     "OwnerInstructionSha256": {
       "Type": "String",
       "AllowedPattern": "^[0-9a-f]{64}$"
+    },
+    "OwnerTrustRegistrySha256": {
+      "Type": "String",
+      "AllowedPattern": "^[0-9a-f]{64}$",
+      "Description": "Exact deployed digest of the current owner trust registry used by the admin Lambda"
     },
     "BootstrapApprovalId": {
       "Type": "String",
@@ -284,7 +295,8 @@
               "Action": ["s3:DeleteObject", "s3:DeleteObjectVersion", "s3:GetBucketLocation", "s3:GetBucketObjectLockConfiguration", "s3:GetBucketVersioning", "s3:GetObject", "s3:GetObjectLegalHold", "s3:GetObjectRetention", "s3:GetObjectVersion", "s3:ListBucket", "s3:ListBucketVersions", "s3:PutObject", "s3:PutObjectLegalHold", "s3:PutObjectRetention"],
               "Resource": [
                 { "Fn::GetAtt": ["DmsBucket", "Arn"] },
-                { "Fn::Sub": "${DmsBucket.Arn}/lawos-dms/*" }
+                { "Fn::Sub": "${DmsBucket.Arn}/lawos-dms/*" },
+                { "Fn::Sub": "${DmsBucket.Arn}/approval-audit/*" }
               ]
             }
           ]
@@ -808,6 +820,13 @@
                   "s3:x-amz-server-side-encryption-aws-kms-key-id": { "Fn::GetAtt": ["StagingKey", "Arn"] }
                 }
               }
+            },
+            {
+              "Sid": "DenyApprovalAuditDeletion",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": ["s3:DeleteObject", "s3:DeleteObjectVersion"],
+              "Resource": { "Fn::Sub": "${DmsBucket.Arn}/approval-audit/*" }
             }
           ]
         }
@@ -962,6 +981,20 @@
                   "Resource": { "Ref": "ApplicationDatabaseSecret" }
                 },
                 {
+                  "Sid": "WriteImmutableApprovalAudit",
+                  "Effect": "Allow",
+                  "Action": ["s3:PutObject", "s3:PutObjectRetention"],
+                  "Resource": { "Fn::Sub": "${DmsBucket.Arn}/approval-audit/*" },
+                  "Condition": {
+                    "StringEquals": {
+                      "s3:x-amz-server-side-encryption": "aws:kms",
+                      "s3:x-amz-server-side-encryption-aws-kms-key-id": { "Fn::GetAtt": ["StagingKey", "Arn"] },
+                      "s3:x-amz-object-lock-mode": "COMPLIANCE"
+                    },
+                    "Null": { "s3:x-amz-object-lock-retain-until-date": "false" }
+                  }
+                },
+                {
                   "Sid": "UseExactStagingKey",
                   "Effect": "Allow",
                   "Action": ["kms:Decrypt", "kms:Encrypt", "kms:GenerateDataKey", "kms:DescribeKey"],
@@ -1012,7 +1045,7 @@
       "DependsOn": ["ApiLogGroup", "LambdaVpcEniBootstrapPolicy"],
       "Properties": {
         "Architectures": ["arm64"],
-        "Code": { "S3Bucket": { "Ref": "ArtifactBucket" }, "S3Key": { "Ref": "ArtifactKey" } },
+        "Code": { "S3Bucket": { "Ref": "ArtifactBucket" }, "S3Key": { "Ref": "ArtifactKey" }, "S3ObjectVersion": { "Ref": "ArtifactVersion" } },
         "Description": "Exact-head LawOS private staging API; synthetic-only",
         "Environment": {
           "Variables": {
@@ -1037,6 +1070,7 @@
             "LAWOS_AUTH_PASSWORD_RESET_EMAIL_REGION": { "Ref": "AWS::Region" },
             "LAWOS_AUTH_PASSWORD_RESET_OPEN_BASE_URL": { "Fn::Sub": "${HttpApi.ApiEndpoint}/api/auth/password-reset/open" },
             "LAWOS_AUTH_PASSWORD_RESET_TTL_MS": "60000",
+            "LAWOS_PASSWORD_RESET_TENANT_ID": "tenant_lawos_staging_cut007_a",
             "LAWOS_API_LOGIN_LOCK_MS": "60000",
             "LAWOS_API_MAX_FAILED_LOGINS": "5",
             "LAWOS_PAYROLL_ARTIFACT_KEY_SECRET_ID": { "Ref": "PayrollArtifactSecret" },
@@ -1055,10 +1089,10 @@
         "Handler": "apps/api/src/lambda.handler",
         "KmsKeyArn": { "Fn::GetAtt": ["StagingKey", "Arn"] },
         "MemorySize": 1024,
-        "ReservedConcurrentExecutions": 10,
+        "ReservedConcurrentExecutions": 1,
         "Role": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] },
         "Runtime": "nodejs22.x",
-        "Timeout": 30,
+        "Timeout": 5,
         "VpcConfig": {
           "Ipv6AllowedForDualStack": false,
           "SecurityGroupIds": [{ "Fn::GetAtt": ["LambdaSecurityGroup", "GroupId"] }],
@@ -1073,19 +1107,46 @@
         ]
       }
     },
+    "PasswordResetWorkerSchedule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "Description": "Drains durable synthetic-only password reset jobs after the public request has returned",
+        "Name": "lawos-private-staging-password-reset-worker",
+        "ScheduleExpression": "rate(5 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": { "Fn::GetAtt": ["ApiFunction", "Arn"] },
+            "Id": "lawos-private-staging-api-password-reset-worker",
+            "Input": "{\"action\":\"lawos_password_reset_worker\"}"
+          }
+        ]
+      }
+    },
+    "PasswordResetWorkerInvokePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": { "Ref": "ApiFunction" },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": { "Fn::GetAtt": ["PasswordResetWorkerSchedule", "Arn"] }
+      }
+    },
     "AdminFunction": {
       "Type": "AWS::Lambda::Function",
       "DependsOn": ["AdminLogGroup", "LambdaVpcEniBootstrapPolicy"],
       "Properties": {
         "Architectures": ["arm64"],
-        "Code": { "S3Bucket": { "Ref": "ArtifactBucket" }, "S3Key": { "Ref": "ArtifactKey" } },
+        "Code": { "S3Bucket": { "Ref": "ArtifactBucket" }, "S3Key": { "Ref": "ArtifactKey" }, "S3ObjectVersion": { "Ref": "ArtifactVersion" } },
         "Description": "Direct-invoke migrations and synthetic-only rehearsal for LawOS private staging",
         "Environment": {
           "Variables": {
             "LAWOS_APPLICATION_DATABASE_SECRET_ID": { "Ref": "ApplicationDatabaseSecret" },
+            "LAWOS_APPROVAL_AUDIT_BUCKET": { "Ref": "DmsBucket" },
             "LAWOS_DATABASE_HOST": { "Fn::GetAtt": ["Database", "Endpoint.Address"] },
             "LAWOS_DATABASE_NAME": "lawos",
             "LAWOS_DATABASE_PORT": { "Fn::GetAtt": ["Database", "Endpoint.Port"] },
+            "LAWOS_DATA_SCOPE": "synthetic-only",
             "LAWOS_DEPLOYMENT_ARTIFACT_SHA256": { "Ref": "ArtifactSha256" },
             "LAWOS_DEPLOYMENT_COMMIT": { "Ref": "SourceSha" },
             "LAWOS_DEPLOYMENT_TREE": { "Ref": "SourceTree" },
@@ -1095,12 +1156,14 @@
             "LAWOS_CUT007_APPROVAL_ID": { "Ref": "Cut007ApprovalId" },
             "LAWOS_MASTER_DATABASE_SECRET_ID": { "Fn::GetAtt": ["Database", "MasterUserSecret.SecretArn"] },
             "LAWOS_OWNER_INSTRUCTION_SHA256": { "Ref": "OwnerInstructionSha256" },
+            "LAWOS_OWNER_TRUST_REGISTRY_SHA256": { "Ref": "OwnerTrustRegistrySha256" },
             "LAWOS_PERSISTENCE_AUTHORITY": "postgres-v2",
             "LAWOS_POSTGRES_SSL_MODE": "verify-full",
             "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID": { "Ref": "TenantContextSecret" },
             "LAWOS_RUNTIME_PROFILE": "operational",
             "LAWOS_RUNTIME_GENERATION": { "Ref": "RuntimeGeneration" },
             "LAWOS_STAFF_AUTHORITY": "internal-password",
+            "LAWOS_STAGING_KMS_KEY_ARN": { "Fn::GetAtt": ["StagingKey", "Arn"] },
             "LAWOS_SYNTHETIC_MANIFEST_SECRET_ID": { "Ref": "SyntheticManifestSecret" },
             "NODE_EXTRA_CA_CERTS": "/var/task/certs/global-bundle.pem"
           }
@@ -1156,6 +1219,13 @@
     },
     "HttpApiDefaultRoute": {
       "Type": "AWS::ApiGatewayV2::Route",
+      "Metadata": {
+        "LawOSPublicRouteException": {
+          "scope": "synthetic-only-private-staging",
+          "reason": "first-use-password-and-login-must-remain-reachable-before-a-LawOS-session-exists",
+          "enforcement": "template-bound-rate-timeout-concurrency-and-monthly-worst-case-cost"
+        }
+      },
       "Properties": {
         "ApiId": { "Ref": "HttpApi" },
         "AuthorizationType": "NONE",
@@ -1171,7 +1241,7 @@
         "DefaultRouteSettings": {
           "DetailedMetricsEnabled": true,
           "ThrottlingBurstLimit": 20,
-          "ThrottlingRateLimit": 10
+          "ThrottlingRateLimit": 0.04
         },
         "StageName": "$default",
         "Tags": {
@@ -1246,7 +1316,10 @@
               "Threshold": 80,
               "ThresholdType": "PERCENTAGE"
             },
-            "Subscribers": [{ "Address": { "Ref": "CostAlertTopic" }, "SubscriptionType": "SNS" }]
+            "Subscribers": [
+              { "Address": { "Ref": "CostAlertTopic" }, "SubscriptionType": "SNS" },
+              { "Address": { "Ref": "PasswordResetFromEmail" }, "SubscriptionType": "EMAIL" }
+            ]
           },
           {
             "Notification": {
@@ -1255,7 +1328,10 @@
               "Threshold": 100,
               "ThresholdType": "PERCENTAGE"
             },
-            "Subscribers": [{ "Address": { "Ref": "CostAlertTopic" }, "SubscriptionType": "SNS" }]
+            "Subscribers": [
+              { "Address": { "Ref": "CostAlertTopic" }, "SubscriptionType": "SNS" },
+              { "Address": { "Ref": "PasswordResetFromEmail" }, "SubscriptionType": "EMAIL" }
+            ]
           }
         ]
       }

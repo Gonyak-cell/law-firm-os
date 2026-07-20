@@ -3,6 +3,7 @@ import { appendMatterAuditEvent } from "./audit.js";
 import { assertMatterOpeningIntakeDependency } from "./intake-dependency-guard.js";
 import { reserveMatterCode, upsertMatterClient } from "./canonical-identity-service.js";
 import { reserveMatterNumber } from "./numbering-service.js";
+import { assertMatterOpeningReplay, matterOpeningRequestFingerprint } from "./matter-opening-authority.js";
 
 function compact(value) {
   return String(value ?? "").trim();
@@ -55,6 +56,50 @@ function validateClearance(clearance = {}, tenantId, clearance_repository, now) 
   return issuedClearance;
 }
 
+export function prepareMatterOpeningRequest({
+  matter,
+  clearance_token,
+  clearance_repository,
+  matter_number_seed,
+  idempotency_key,
+  client,
+  require_canonical_matter_code = false,
+  billing,
+  actor_id,
+  now = new Date().toISOString(),
+  operation = "matter_opening",
+} = {}) {
+  requiredString({ actor_id }, "actor_id");
+  requiredString({ idempotency_key }, "idempotency_key");
+  requiredString(matter, "tenant_id");
+  requiredString(matter, "matter_id");
+  const verifiedClearanceToken = validateClearance(clearance_token, matter.tenant_id, clearance_repository, now);
+  assertMatterOpeningIntakeDependency({
+    ...matter,
+    intake_request_id: verifiedClearanceToken.intake_request_id,
+    clearance_token_id: verifiedClearanceToken.clearance_token_id,
+  });
+  const requestFingerprint = matterOpeningRequestFingerprint({
+    operation,
+    idempotency_key,
+    actor_id,
+    matter,
+    client,
+    clearance: verifiedClearanceToken,
+    matter_number_seed,
+    require_canonical_matter_code,
+    billing,
+  });
+  return Object.freeze({
+    operation,
+    actor_id,
+    tenant_id: matter.tenant_id,
+    matter_id: matter.matter_id,
+    verified_clearance_token: verifiedClearanceToken,
+    request_fingerprint: requestFingerprint,
+  });
+}
+
 export function openMatterTransaction({
   repository,
   matter,
@@ -68,16 +113,33 @@ export function openMatterTransaction({
   billing,
   actor_id,
   now = new Date().toISOString(),
+  prepared_authority,
 } = {}) {
-  requiredString({ actor_id }, "actor_id");
-  requiredString({ idempotency_key }, "idempotency_key");
-  const verifiedClearanceToken = validateClearance(clearance_token, matter?.tenant_id, clearance_repository, now);
-  assertMatterOpeningIntakeDependency({
-    ...matter,
-    intake_request_id: verifiedClearanceToken.intake_request_id,
-    clearance_token_id: verifiedClearanceToken.clearance_token_id,
+  const prepared = prepared_authority?.operation === "matter_opening"
+    ? prepared_authority
+    : prepareMatterOpeningRequest({
+        matter,
+        clearance_token,
+        clearance_repository,
+        matter_number_seed,
+        idempotency_key,
+        client,
+        require_canonical_matter_code,
+        billing,
+        actor_id,
+        now,
+        operation: "matter_opening",
+      });
+  if (prepared.actor_id !== actor_id || prepared.tenant_id !== matter?.tenant_id || prepared.matter_id !== matter?.matter_id) {
+    throw new TypeError("prepared Matter opening authority does not match the request");
+  }
+  const verifiedClearanceToken = prepared.verified_clearance_token;
+  const replay = assertMatterOpeningReplay(repository.getIdempotency({ tenant_id: matter.tenant_id, idempotency_key }), {
+    operation: "matter_opening",
+    actor_id,
+    object_id: matter.matter_id,
+    request_fingerprint: prepared.request_fingerprint,
   });
-  const replay = repository.getIdempotency({ tenant_id: matter.tenant_id, idempotency_key });
   if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
 
   return repository.transaction((tx) => {
@@ -179,7 +241,16 @@ export function openMatterTransaction({
       audit_event: audit,
       idempotent_replay: false,
     });
-    tx.recordIdempotency({ tenant_id: persisted.tenant_id, idempotency_key, operation: "matter_opening", response });
+    tx.recordIdempotency({
+      tenant_id: persisted.tenant_id,
+      idempotency_key,
+      operation: "matter_opening",
+      object_type: "Matter",
+      object_id: persisted.matter_id,
+      actor_id,
+      request_fingerprint: prepared.request_fingerprint,
+      response,
+    });
     return response;
   });
 }

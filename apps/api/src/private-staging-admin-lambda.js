@@ -15,6 +15,7 @@ import { runPrivateStagingCut007Readback } from "./private-staging-cut007-readba
 import { runPrivateStagingSyntheticBaseline } from "./private-staging-synthetic-baseline.js";
 import { resolveAwsJsonSecret } from "./aws-secret-reference.js";
 import { postgresUrlFromSecret } from "./persistence-authority.js";
+import { authorizePrivateStagingAdminInvocation } from "./private-staging-owner-authorization.js";
 
 export const PRIVATE_STAGING_BOOTSTRAP_ACTION = "lawos-private-staging-database-bootstrap";
 export const PRIVATE_STAGING_CUT005_ACTION = "lawos-private-staging-cut-005";
@@ -97,11 +98,21 @@ function exactDeploymentAuthority(event, env) {
   return Object.freeze({ sourceSha, sourceTree, artifactSha, instructionSha });
 }
 
+function authorizationEvidence(authorization) {
+  return Object.freeze({
+    authorization_key_id: authorization.key_id,
+    authorization_receipt_sha256: authorization.receipt_sha256,
+    authorization_claim_fingerprint: authorization.claim_fingerprint,
+    authorization_claim_body_sha256: authorization.claim_body_sha256,
+  });
+}
+
 export async function bootstrapPrivateStagingDatabase({
   event,
   env = process.env,
   resolveSecret = resolveAwsJsonSecret,
   putSecret,
+  authorize = authorizePrivateStagingAdminInvocation,
   createPool = createPostgresPool,
   runMigrations = runPostgresMigrations,
   verifyMigrations = verifyPostgresMigrationState,
@@ -114,6 +125,7 @@ export async function bootstrapPrivateStagingDatabase({
     artifactSha,
     instructionSha,
   } = exactDeploymentAuthority(event, env);
+  const authorization = await authorize({ event, env, action: PRIVATE_STAGING_BOOTSTRAP_ACTION, approvalId });
   const region = requiredText(env.AWS_REGION ?? env.AWS_DEFAULT_REGION ?? env.LAWOS_AWS_REGION, "AWS region");
   const [master, application, tenantContext, rawManifest] = await Promise.all([
     resolveSecret({ secretId: requiredText(env.LAWOS_MASTER_DATABASE_SECRET_ID, "LAWOS_MASTER_DATABASE_SECRET_ID"), region }),
@@ -193,6 +205,7 @@ export async function bootstrapPrivateStagingDatabase({
     production_contacted: false,
     production_ready_claim: false,
     approval_id: approvalId,
+    ...authorizationEvidence(authorization),
   });
 }
 
@@ -200,6 +213,7 @@ export async function executePrivateStagingCut005({
   event,
   env = process.env,
   resolveSecret = resolveAwsJsonSecret,
+  authorize = authorizePrivateStagingAdminInvocation,
   createPool = createPostgresPool,
   verifyMigrations = verifyPostgresMigrationState,
   runCut005 = runPrivateStagingCut005,
@@ -207,6 +221,7 @@ export async function executePrivateStagingCut005({
   const approvalId = requiredText(env[PRIVATE_STAGING_CUT005_APPROVAL_ENV], PRIVATE_STAGING_CUT005_APPROVAL_ENV);
   assertDirectInvoke(event, { action: PRIVATE_STAGING_CUT005_ACTION, approvalId });
   const { sourceSha, sourceTree, artifactSha, instructionSha } = exactDeploymentAuthority(event, env);
+  const authorization = await authorize({ event, env, action: PRIVATE_STAGING_CUT005_ACTION, approvalId });
   const region = requiredText(env.AWS_REGION ?? env.AWS_DEFAULT_REGION ?? env.LAWOS_AWS_REGION, "AWS region");
   const [application, tenantContext, rawManifest] = await Promise.all([
     resolveSecret({ secretId: requiredText(env.LAWOS_APPLICATION_DATABASE_SECRET_ID, "LAWOS_APPLICATION_DATABASE_SECRET_ID"), region }),
@@ -247,6 +262,7 @@ export async function executePrivateStagingCut005({
       approval_id: approvalId,
       secret_material_returned: false,
       production_ready_claim: false,
+      ...authorizationEvidence(authorization),
     });
   } finally {
     await pool.end();
@@ -257,6 +273,7 @@ export async function executePrivateStagingCut006({
   event,
   env = process.env,
   resolveSecret = resolveAwsJsonSecret,
+  authorize = authorizePrivateStagingAdminInvocation,
   createPool = createPostgresPool,
   verifyMigrations = verifyPostgresMigrationState,
   runCut006 = runPrivateStagingCut006,
@@ -264,6 +281,7 @@ export async function executePrivateStagingCut006({
   const approvalId = requiredText(env[PRIVATE_STAGING_CUT006_APPROVAL_ENV], PRIVATE_STAGING_CUT006_APPROVAL_ENV);
   assertDirectInvoke(event, { action: PRIVATE_STAGING_CUT006_ACTION, approvalId });
   const { sourceSha, sourceTree, artifactSha, instructionSha } = exactDeploymentAuthority(event, env);
+  const authorization = await authorize({ event, env, action: PRIVATE_STAGING_CUT006_ACTION, approvalId });
   const region = requiredText(env.AWS_REGION ?? env.AWS_DEFAULT_REGION ?? env.LAWOS_AWS_REGION, "AWS region");
   const [application, tenantContext, rawManifest] = await Promise.all([
     resolveSecret({ secretId: requiredText(env.LAWOS_APPLICATION_DATABASE_SECRET_ID, "LAWOS_APPLICATION_DATABASE_SECRET_ID"), region }),
@@ -317,6 +335,7 @@ export async function executePrivateStagingCut006({
       approval_id: approvalId,
       secret_material_returned: false,
       production_ready_claim: false,
+      ...authorizationEvidence(authorization),
     });
   } finally {
     await pool.end();
@@ -327,6 +346,7 @@ export async function executePrivateStagingSyntheticBaseline({
   event,
   env = process.env,
   resolveSecret = resolveAwsJsonSecret,
+  authorize = authorizePrivateStagingAdminInvocation,
   createPool = createPostgresPool,
   verifyMigrations = verifyPostgresMigrationState,
   runBaseline = runPrivateStagingSyntheticBaseline,
@@ -334,6 +354,7 @@ export async function executePrivateStagingSyntheticBaseline({
   const approvalId = requiredText(env[PRIVATE_STAGING_CUT007_APPROVAL_ENV], PRIVATE_STAGING_CUT007_APPROVAL_ENV);
   assertDirectInvoke(event, { action: PRIVATE_STAGING_SYNTHETIC_BASELINE_ACTION, approvalId });
   const { sourceSha, sourceTree, artifactSha, instructionSha } = exactDeploymentAuthority(event, env);
+  const authorization = await authorize({ event, env, action: PRIVATE_STAGING_SYNTHETIC_BASELINE_ACTION, approvalId });
   const region = requiredText(env.AWS_REGION ?? env.AWS_DEFAULT_REGION ?? env.LAWOS_AWS_REGION, "AWS region");
   const [application, tenantContext, rawManifest] = await Promise.all([
     resolveSecret({ secretId: requiredText(env.LAWOS_APPLICATION_DATABASE_SECRET_ID, "LAWOS_APPLICATION_DATABASE_SECRET_ID"), region }),
@@ -373,6 +394,7 @@ export async function executePrivateStagingSyntheticBaseline({
       approval_id: approvalId,
       secret_material_returned: false,
       production_ready_claim: false,
+      ...authorizationEvidence(authorization),
     });
   } finally {
     await pool.end();
@@ -383,6 +405,7 @@ export async function executePrivateStagingCut007Readback({
   event,
   env = process.env,
   resolveSecret = resolveAwsJsonSecret,
+  authorize = authorizePrivateStagingAdminInvocation,
   createPool = createPostgresPool,
   verifyMigrations = verifyPostgresMigrationState,
   runReadback = runPrivateStagingCut007Readback,
@@ -390,6 +413,7 @@ export async function executePrivateStagingCut007Readback({
   const approvalId = requiredText(env[PRIVATE_STAGING_CUT007_APPROVAL_ENV], PRIVATE_STAGING_CUT007_APPROVAL_ENV);
   assertDirectInvoke(event, { action: PRIVATE_STAGING_CUT007_READBACK_ACTION, approvalId });
   const { sourceSha, sourceTree, artifactSha, instructionSha } = exactDeploymentAuthority(event, env);
+  const authorization = await authorize({ event, env, action: PRIVATE_STAGING_CUT007_READBACK_ACTION, approvalId });
   const region = requiredText(env.AWS_REGION ?? env.AWS_DEFAULT_REGION ?? env.LAWOS_AWS_REGION, "AWS region");
   const [application, tenantContext, rawManifest] = await Promise.all([
     resolveSecret({ secretId: requiredText(env.LAWOS_APPLICATION_DATABASE_SECRET_ID, "LAWOS_APPLICATION_DATABASE_SECRET_ID"), region }),
@@ -431,6 +455,7 @@ export async function executePrivateStagingCut007Readback({
       approval_id: approvalId,
       secret_material_returned: false,
       production_ready_claim: false,
+      ...authorizationEvidence(authorization),
     });
   } finally {
     await pool.end();

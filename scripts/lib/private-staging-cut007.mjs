@@ -297,12 +297,12 @@ export async function runPrivateStagingCut007({
     body: { email: principals.disabled.email },
   });
   invariant(disabledReset.body.outcome === "accepted", "disabled-reset-enumeration", "disabled state leaked through reset", disabledReset);
-  const disabledLogin = await request("disabled-login", 403, {
+  const disabledLogin = await request("disabled-login", 401, {
     method: "POST",
     path: "/api/auth/login",
     body: { email: principals.disabled.email, password: await passwordFactory("disabled", principals.disabled) },
   });
-  invariant(hasSafeCode(disabledLogin, "AUTH_ACCOUNT_DISABLED"), "disabled-login", "disabled account was not rejected", disabledLogin);
+  invariant(hasSafeCode(disabledLogin, "AUTH_CREDENTIAL_INVALID"), "disabled-login", "disabled account did not use the generic login failure envelope", disabledLogin);
   counters.assertion_count += 2;
   counters.auth_flow_count += 4;
 
@@ -798,12 +798,12 @@ export async function runPrivateStagingCut007({
       body: { email: principals.attorney.email, password: `wrong-${suffix}-${attempt}` },
     });
   }
-  const locked = await request("failed-login-lockout", 423, {
+  const locked = await request("failed-login-lockout", 401, {
     method: "POST",
     path: "/api/auth/login",
     body: { email: principals.attorney.email, password: attorneyPassword },
   });
-  invariant(hasSafeCode(locked, "AUTH_LOGIN_LOCKED"), "failed-login-lockout", "failed-login lockout did not activate", locked);
+  invariant(hasSafeCode(locked, "AUTH_CREDENTIAL_INVALID"), "failed-login-lockout", "lockout response was not enumeration-safe", locked);
   counters.assertion_count += 1;
   counters.auth_flow_count += 6;
 

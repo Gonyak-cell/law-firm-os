@@ -160,6 +160,71 @@ function validateReceiptShape(receipt) {
   }
 }
 
+export function validateRuntimeSafetyApprovalPayload(options) {
+  const {
+    registryBytes,
+    receiptBytes,
+    signatureBytes,
+    expectedRegistrySha256,
+    expectedRole,
+    expectedAction,
+    expectedEnvironment,
+    expectedPacketSha256,
+    expectedSourceSha,
+    expectedSourceTree,
+    allowedDataScope = [],
+    allowedContactScope = [],
+    now = Date.now(),
+  } = options ?? {};
+  const rawRegistry = Buffer.isBuffer(registryBytes) ? registryBytes : Buffer.from(registryBytes ?? "");
+  const rawReceipt = Buffer.isBuffer(receiptBytes) ? receiptBytes : Buffer.from(receiptBytes ?? "");
+  const rawSignature = Buffer.isBuffer(signatureBytes) ? signatureBytes : Buffer.from(signatureBytes ?? "");
+  if (!SHA256.test(expectedRegistrySha256 ?? "") || sha256Hex(rawRegistry) !== expectedRegistrySha256) {
+    fail("APPROVAL_REGISTRY_DIGEST", "trust registry digest does not match");
+  }
+  let registry;
+  let receipt;
+  try {
+    registry = JSON.parse(rawRegistry);
+    receipt = JSON.parse(rawReceipt);
+  } catch {
+    fail("APPROVAL_JSON", "registry and receipt must contain valid JSON");
+  }
+  validateRegistry(registry, now);
+  validateReceiptShape(receipt);
+  const key = registry.keys.find((entry) => entry.key_id === receipt.key_id);
+  if (!key) fail("APPROVAL_KEY", "receipt key_id is not present in the trust registry");
+  if (key.algorithm !== "Ed25519") fail("APPROVAL_ALGORITHM", "receipt key is not Ed25519");
+  if (key.revoked_at !== null && key.revoked_at !== undefined) fail("APPROVAL_REVOKED", "receipt key is revoked");
+  const signedAt = parseTime(receipt.signed_at, "APPROVAL_TIME", "signed_at");
+  const expiresAt = parseTime(receipt.expires_at, "APPROVAL_TIME", "expires_at");
+  const validFrom = parseTime(key.valid_from, "APPROVAL_REGISTRY", "key.valid_from");
+  const validUntil = parseTime(key.valid_until, "APPROVAL_REGISTRY", "key.valid_until");
+  if (expiresAt <= signedAt || now > expiresAt) fail("APPROVAL_EXPIRED", "approval receipt is expired");
+  if (signedAt < validFrom || signedAt > validUntil || now > validUntil) fail("APPROVAL_KEY_TIME", "approval key is outside its validity interval");
+  if (receipt.role !== expectedRole || !key.roles.includes(expectedRole)) fail("APPROVAL_ROLE", "approval role is not authorized");
+  if (receipt.action !== expectedAction || !key.actions.includes(expectedAction)) fail("APPROVAL_ACTION", "approval action is not authorized");
+  if (receipt.environment !== expectedEnvironment || !key.environments.includes(expectedEnvironment)) fail("APPROVAL_ENVIRONMENT", "approval environment is not authorized");
+  if (receipt.packet_sha256 !== expectedPacketSha256) fail("APPROVAL_PACKET", "approval packet binding does not match");
+  if (receipt.source_sha !== expectedSourceSha || receipt.source_tree !== expectedSourceTree) fail("APPROVAL_SOURCE", "approval source binding does not match");
+  if (receipt.data_scope.some((scope) => !allowedDataScope.includes(scope)) || receipt.contact_scope.some((scope) => !allowedContactScope.includes(scope))) {
+    fail("APPROVAL_SCOPE", "approval requests data or contact scope outside the allowed boundary");
+  }
+  const signature = decodeSignature(rawSignature);
+  const canonicalBytes = Buffer.from(canonicalizeJson(receipt));
+  if (!verifySignature(null, canonicalBytes, key.public_key_spki_pem, signature)) fail("APPROVAL_SIGNATURE", "detached approval signature is invalid");
+  return Object.freeze({
+    valid: true,
+    decision: receipt.decision,
+    approval_id: receipt.approval_id,
+    key_id: receipt.key_id,
+    registry_sha256: expectedRegistrySha256,
+    receipt_sha256: sha256Hex(canonicalBytes),
+    signed_at: receipt.signed_at,
+    expires_at: receipt.expires_at,
+  });
+}
+
 export function validateRuntimeSafetyApprovalBundle(options) {
   const {
     registryPath,
@@ -196,47 +261,19 @@ export function validateRuntimeSafetyApprovalBundle(options) {
   const actualRegistrySha256 = sha256Hex(registryBytes);
   if (actualRegistrySha256 !== expectedRegistrySha256) fail("APPROVAL_REGISTRY_DIGEST", "trust registry digest does not match");
 
-  let registry;
-  let receipt;
-  try {
-    registry = JSON.parse(registryBytes);
-    receipt = JSON.parse(readFileSync(receiptFile));
-  } catch {
-    fail("APPROVAL_JSON", "registry and receipt must contain valid JSON");
-  }
-  validateRegistry(registry, now);
-  validateReceiptShape(receipt);
-
-  const key = registry.keys.find((entry) => entry.key_id === receipt.key_id);
-  if (!key) fail("APPROVAL_KEY", "receipt key_id is not present in the trust registry");
-  if (key.algorithm !== "Ed25519") fail("APPROVAL_ALGORITHM", "receipt key is not Ed25519");
-  if (key.revoked_at !== null && key.revoked_at !== undefined) fail("APPROVAL_REVOKED", "receipt key is revoked");
-  const signedAt = parseTime(receipt.signed_at, "APPROVAL_TIME", "signed_at");
-  const expiresAt = parseTime(receipt.expires_at, "APPROVAL_TIME", "expires_at");
-  const validFrom = parseTime(key.valid_from, "APPROVAL_REGISTRY", "key.valid_from");
-  const validUntil = parseTime(key.valid_until, "APPROVAL_REGISTRY", "key.valid_until");
-  if (expiresAt <= signedAt || now > expiresAt) fail("APPROVAL_EXPIRED", "approval receipt is expired");
-  if (signedAt < validFrom || signedAt > validUntil || now > validUntil) fail("APPROVAL_KEY_TIME", "approval key is outside its validity interval");
-
-  if (receipt.role !== expectedRole || !key.roles.includes(expectedRole)) fail("APPROVAL_ROLE", "approval role is not authorized");
-  if (receipt.action !== expectedAction || !key.actions.includes(expectedAction)) fail("APPROVAL_ACTION", "approval action is not authorized");
-  if (receipt.environment !== expectedEnvironment || !key.environments.includes(expectedEnvironment)) fail("APPROVAL_ENVIRONMENT", "approval environment is not authorized");
-  if (receipt.packet_sha256 !== expectedPacketSha256) fail("APPROVAL_PACKET", "approval packet binding does not match");
-  if (receipt.source_sha !== expectedSourceSha || receipt.source_tree !== expectedSourceTree) fail("APPROVAL_SOURCE", "approval source binding does not match");
-  if (receipt.data_scope.some((scope) => !allowedDataScope.includes(scope)) || receipt.contact_scope.some((scope) => !allowedContactScope.includes(scope))) {
-    fail("APPROVAL_SCOPE", "approval requests data or contact scope outside the allowed boundary");
-  }
-
-  const signature = decodeSignature(readFileSync(signatureFile));
-  const canonicalBytes = Buffer.from(canonicalizeJson(receipt));
-  if (!verifySignature(null, canonicalBytes, key.public_key_spki_pem, signature)) fail("APPROVAL_SIGNATURE", "detached approval signature is invalid");
-
-  return Object.freeze({
-    valid: true,
-    decision: receipt.decision,
-    approval_id: receipt.approval_id,
-    key_id: receipt.key_id,
-    registry_sha256: actualRegistrySha256,
-    receipt_sha256: sha256Hex(canonicalBytes),
+  return validateRuntimeSafetyApprovalPayload({
+    registryBytes,
+    receiptBytes: readFileSync(receiptFile),
+    signatureBytes: readFileSync(signatureFile),
+    expectedRegistrySha256: actualRegistrySha256,
+    expectedRole,
+    expectedAction,
+    expectedEnvironment,
+    expectedPacketSha256,
+    expectedSourceSha,
+    expectedSourceTree,
+    allowedDataScope,
+    allowedContactScope,
+    now,
   });
 }

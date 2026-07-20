@@ -40,6 +40,7 @@ import {
   LAWOS_AUTH_PASSWORD_RESET_STORE_ENV,
   createAuthPasswordResetStore,
 } from "./auth-password-reset-store.js";
+import { createAuthPasswordResetQueue } from "./auth-password-reset-queue.js";
 
 export const AUTHORIZATION_HEADER = "authorization";
 export const API_AUTH_BOUNDED_CONTEXT = Object.freeze({
@@ -66,7 +67,7 @@ export const API_AUTH_BOUNDED_CONTEXT = Object.freeze({
   credential_store_env: LAWOS_AUTH_CREDENTIAL_STORE_ENV,
   password_reset_store_env: LAWOS_AUTH_PASSWORD_RESET_STORE_ENV,
   max_failed_logins_before_lock: 5,
-  lock_response_status: 423,
+  lock_response_status: 401,
   runtime_write_ready: true,
   production_ready_claim: false,
   fail_closed: true,
@@ -159,10 +160,13 @@ function permissionRulesFromScopes(scopes = []) {
     }));
   }
   if (granted.has("vault.write")) {
-    rules.push(allowRule("vault-write", { action_prefixes: ["dms:", "vault:"] }));
+    rules.push(allowRule("vault-write", { actions: ["dms:document:write", "vault:upload:preflight"] }));
     rules.push(allowRule("vault-adapters-write", {
       actions: ["matter:document:write", "outlook:attachment:save", "outlook:email:file"],
     }));
+  }
+  if (granted.has("vault.governance")) {
+    rules.push(allowRule("vault-governance", { action_prefix: "dms:governance:" }));
   }
   if (granted.has("audit.read")) {
     rules.push(allowRule("audit-read", { action_suffixes: [":audit:read", ".audit.read"] }));
@@ -310,6 +314,13 @@ function errorBody(requestId, safeErrorCode, reason) {
   });
 }
 
+function publicLoginFailure(requestId) {
+  return Object.freeze({
+    status: 401,
+    body: errorBody(requestId, "AUTH_CREDENTIAL_INVALID", "auth_credential_invalid"),
+  });
+}
+
 function securityAdminDenied(requestId) {
   return Object.freeze({
     status: 403,
@@ -339,13 +350,12 @@ function resolveSessionRoleAssignment(user, { tenantId = MATTER_VAULT_REGISTERED
   if (user?.directory_source !== "postgres-v2") {
     return resolveLawosUserRoleAssignment(user, { tenantId });
   }
-  const membership = (user.tenant_memberships ?? []).find((entry) => entry?.tenant_id === tenantId)
-    ?? user.tenant_memberships?.[0]
-    ?? {};
-  const roleIds = Object.freeze([...(membership.role_ids ?? user.role_ids ?? [])]);
-  const groupIds = Object.freeze([...(membership.group_ids ?? user.group_ids ?? [])]);
-  const scopes = Object.freeze([...(membership.scopes ?? user.scopes ?? [])]);
-  const hrxScopes = Object.freeze([...(membership.hrx_scopes ?? user.hrx_scopes ?? [])]);
+  const membership = (user.tenant_memberships ?? []).find((entry) => entry?.tenant_id === tenantId && entry?.status === "active");
+  if (!membership) return null;
+  const roleIds = Object.freeze([...(membership.role_ids ?? [])]);
+  const groupIds = Object.freeze([...(membership.group_ids ?? [])]);
+  const scopes = Object.freeze([...(membership.scopes ?? [])]);
+  const hrxScopes = Object.freeze([...(membership.hrx_scopes ?? [])]);
   return Object.freeze({
     user_id: user.user_id,
     role_profile_id: membership.role_profile_id ?? user.role_profile_id ?? null,
@@ -355,8 +365,8 @@ function resolveSessionRoleAssignment(user, { tenantId = MATTER_VAULT_REGISTERED
     hrx_scopes: hrxScopes,
     source_ref: membership.source_ref ?? "postgres-v2-account-membership",
     tenant_membership: Object.freeze({
-      tenant_id: membership.tenant_id ?? tenantId,
-      status: membership.status ?? "active",
+      tenant_id: membership.tenant_id,
+      status: "active",
       role_ids: roleIds,
       group_ids: groupIds,
       scopes,
@@ -426,6 +436,9 @@ function createSecurityAuditEventStore({ filePath } = {}) {
 
 function principalFromSignedSession({ user, payload = {}, trustedTenantId, requestId, credential = null }) {
   const roleAssignment = resolveSessionRoleAssignment(user, { tenantId: trustedTenantId });
+  if (!roleAssignment) {
+    return Object.freeze({ ok: false, status_code: 403, reason: "tenant_membership_inactive" });
+  }
   const membership = roleAssignment.tenant_membership ?? {};
   return Object.freeze({
     ok: true,
@@ -466,6 +479,7 @@ export function createApiSessionAuth({
   passwordResetTokenStorePath = process.env[LAWOS_AUTH_PASSWORD_RESET_STORE_ENV],
   passwordResetTokenStore,
   passwordResetEmailDelivery,
+  passwordResetQueue,
   passwordResetTtlMs = Number(process.env.LAWOS_AUTH_PASSWORD_RESET_TTL_MS || DEFAULT_PASSWORD_RESET_TTL_MS),
   passwordResetMinLength = Number(process.env.LAWOS_AUTH_PASSWORD_RESET_MIN_LENGTH || DEFAULT_PASSWORD_RESET_MIN_LENGTH),
   now = () => Date.now(),
@@ -507,6 +521,18 @@ export function createApiSessionAuth({
   }
   const operationalCredentialStore = centralIdentityRepository ? null : credentialStore ?? createAuthCredentialStore({ filePath: credentialStorePath, now });
   const operationalPasswordResetStore = centralIdentityRepository ? null : passwordResetTokenStore ?? createAuthPasswordResetStore({ filePath: passwordResetTokenStorePath, now });
+  const operationalPasswordResetQueue = syntheticLoginEnabled
+    ? null
+    : centralIdentityRepository
+      ? Object.freeze({
+          enqueue: (input) => centralIdentityRepository.enqueuePasswordReset(input),
+          claim: (input) => centralIdentityRepository.claimPasswordResetJobs(input),
+          finish: (input) => centralIdentityRepository.finishPasswordResetJob(input),
+        })
+      : passwordResetQueue ?? createAuthPasswordResetQueue({
+          filePath: passwordResetTokenStorePath ? `${passwordResetTokenStorePath}.jobs` : undefined,
+          now,
+        });
   const failedLogins = new Map();
   const accountStatusByUserId = new Map(seed.users.map((user) => [
     user.user_id,
@@ -515,6 +541,9 @@ export function createApiSessionAuth({
   const breakGlassRequests = new Map();
   const revokedSessionJtis = new Set();
   const securityAuditStore = createSecurityAuditEventStore({ filePath: securityAuditStorePath });
+  const dummyPasswordHash = syntheticLoginEnabled
+    ? null
+    : createScryptPasswordHash(randomBytes(32).toString("base64url"));
 
   async function directoryUserByEmail(email, tenantId = trustedTenantId) {
     if (centralIdentityRepository) {
@@ -619,7 +648,7 @@ export function createApiSessionAuth({
       role_ids: Object.freeze([...(roleAssignment?.role_ids ?? user.role_ids ?? [])]),
       group_ids: Object.freeze([...(roleAssignment?.group_ids ?? user.group_ids ?? [])]),
       scopes: Object.freeze([...(roleAssignment?.scopes ?? user.scopes ?? [])]),
-      login_allowed: status === "active" && (!credentialStatus || ["active", "must_change"].includes(credentialStatus)),
+      login_allowed: Boolean(roleAssignment) && status === "active" && (!credentialStatus || ["active", "must_change"].includes(credentialStatus)),
       token_material_returned: false,
       production_ready_claim: false,
     });
@@ -677,27 +706,32 @@ export function createApiSessionAuth({
     failedLogins.delete(normalizeLoginKey(email));
   }
 
+  function usableScryptPasswordHash(value) {
+    return value?.algorithm === "node:crypto.scrypt"
+      && typeof value.salt === "string" && value.salt.length > 0
+      && typeof value.digest === "string" && value.digest.length > 0
+      && Number(value.params?.N) === 16_384
+      && Number(value.params?.r) === 8
+      && Number(value.params?.p) === 1
+      && Number(value.params?.keylen) === 64;
+  }
+
   async function verifyOperationalPassword(user, password) {
-    if (!centralIdentityRepository) return operationalCredentialStore.verifyPassword({ user, password });
-    const record = await centralAccount(user);
-    if (!record) return Object.freeze({ ok: false, reason: "credential_missing", safe_error_code: "AUTH_CREDENTIAL_MISSING" });
-    if (record.account_status === "disabled" || record.credential_status === "disabled") {
-      return Object.freeze({ ok: false, reason: "credential_disabled", safe_error_code: "AUTH_CREDENTIAL_DISABLED", status: 403 });
-    }
-    if (record.credential_status === "reset_required") {
-      return Object.freeze({ ok: false, reason: "password_reset_required", safe_error_code: "AUTH_PASSWORD_RESET_REQUIRED", status: 403 });
-    }
-    if (record.credential_status === "locked" && (!record.locked_until || Date.parse(record.locked_until) > now())) {
-      return Object.freeze({ ok: false, reason: "credential_locked", safe_error_code: "AUTH_CREDENTIAL_LOCKED", status: 423 });
-    }
-    if (!verifyScryptPasswordHash(record.password_hash, password)) {
-      return Object.freeze({ ok: false, reason: "credential_invalid", safe_error_code: "AUTH_CREDENTIAL_INVALID", status: 401 });
+    const record = centralIdentityRepository
+      ? (user ? await centralAccount(user) : null)
+      : operationalCredentialStore.getByUserId(user?.user_id);
+    const passwordHash = usableScryptPasswordHash(record?.password_hash) ? record.password_hash : dummyPasswordHash;
+    const passwordMatches = verifyScryptPasswordHash(passwordHash, password);
+    const accountState = centralIdentityRepository ? record?.account_status : (user ? await accountStatus(user) : "disabled");
+    const credentialStatus = centralIdentityRepository ? record?.credential_status : record?.status;
+    if (!user || !record || accountState !== "active" || !["active", "must_change"].includes(credentialStatus) || !passwordMatches) {
+      return Object.freeze({ ok: false, reason: "auth_credential_invalid", safe_error_code: "AUTH_CREDENTIAL_INVALID", status: 401 });
     }
     return Object.freeze({
       ok: true,
       credential_rev: record.credential_rev,
-      credential_status: record.credential_status,
-      must_change_password: record.credential_status === "must_change",
+      credential_status: credentialStatus,
+      must_change_password: credentialStatus === "must_change",
     });
   }
 
@@ -782,7 +816,7 @@ export function createApiSessionAuth({
         body: errorBody(requestId, "AUTH_PASSWORD_RESET_OPERATIONAL_REQUIRED", "password_reset_operational_required"),
       });
     }
-    const email = String(body.email ?? "").trim();
+    const email = String(body.email ?? "").trim().toLowerCase();
     if (!email) {
       return Object.freeze({ status: 400, body: errorBody(requestId, "AUTH_PASSWORD_RESET_EMAIL_REQUIRED", "password_reset_email_required") });
     }
@@ -792,12 +826,38 @@ export function createApiSessionAuth({
         body: errorBody(requestId, "AUTH_PASSWORD_RESET_EMAIL_NOT_CONFIGURED", "password_reset_email_not_configured"),
       });
     }
-    const user = await directoryUserByEmail(email);
-    if (!user || await accountStatus(user) !== "active") return acceptedPasswordResetResponse(requestId);
-    const token = createPasswordResetToken(centralIdentityRepository ? homeTenantIdForUser(user, trustedTenantId) : null);
+    try {
+      await operationalPasswordResetQueue.enqueue({
+        tenant_id: trustedTenantId,
+        email,
+        request_id: requestId,
+      });
+    } catch {
+      return Object.freeze({
+        status: 503,
+        body: errorBody(requestId, "AUTH_PASSWORD_RESET_QUEUE_UNAVAILABLE", "password_reset_queue_unavailable"),
+      });
+    }
+    return acceptedPasswordResetResponse(requestId);
+  }
+
+  async function processPasswordResetJob(job, workerId) {
+    const user = await directoryUserByEmail(job.email, job.tenant_id);
+    const activeMembership = user ? resolveSessionRoleAssignment(user, { tenantId: job.tenant_id }) : null;
+    if (!user || await accountStatus(user) !== "active" || !activeMembership) {
+      await operationalPasswordResetQueue.finish({
+        tenant_id: job.tenant_id,
+        job_id: job.job_id,
+        worker_id: workerId,
+        outcome: "dropped",
+        last_error_code: "AUTH_PASSWORD_RESET_TARGET_INELIGIBLE",
+      });
+      return "dropped";
+    }
+    const token = createPasswordResetToken(centralIdentityRepository ? job.tenant_id : null);
     const resetRecord = centralIdentityRepository
       ? await centralIdentityRepository.createChallenge({
-          tenant_id: homeTenantIdForUser(user, trustedTenantId),
+          tenant_id: job.tenant_id,
           user: identitySeed(user),
           challenge_type: "password_reset",
           challenge_hash: hashIdentityToken(token),
@@ -821,7 +881,7 @@ export function createApiSessionAuth({
         user,
         token,
         expires_at: resetRecord.expires_at,
-        request_id: requestId,
+        request_id: job.request_id,
       });
     } catch {
       delivery = Object.freeze({
@@ -837,7 +897,7 @@ export function createApiSessionAuth({
     if (delivery?.status === "failed") {
       if (centralIdentityRepository) {
         await centralIdentityRepository.revokeChallengesForUser({
-          tenant_id: homeTenantIdForUser(user, trustedTenantId),
+          tenant_id: job.tenant_id,
           user_id: user.user_id,
           challenge_type: "password_reset",
           reason: "reset_delivery_failed",
@@ -846,10 +906,46 @@ export function createApiSessionAuth({
       } else {
         operationalPasswordResetStore.revokeForUser({ userId: user.user_id, reason: "reset_delivery_failed" });
       }
+      await operationalPasswordResetQueue.finish({
+        tenant_id: job.tenant_id,
+        job_id: job.job_id,
+        worker_id: workerId,
+        outcome: "retry",
+        last_error_code: "AUTH_PASSWORD_RESET_DELIVERY_FAILED",
+      });
+      return "retry";
     } else {
       await requireOperationalPasswordReset(user);
     }
-    return acceptedPasswordResetResponse(requestId);
+    await operationalPasswordResetQueue.finish({
+      tenant_id: job.tenant_id,
+      job_id: job.job_id,
+      worker_id: workerId,
+      outcome: "completed",
+    });
+    return "completed";
+  }
+
+  async function processPasswordResetQueue({
+    tenantId = trustedTenantId,
+    workerId = `password-reset-worker:${randomUUID()}`,
+    limit = 10,
+  } = {}) {
+    if (syntheticLoginEnabled || !passwordResetDeliveryConfigured()) {
+      return Object.freeze({ claimed: 0, completed: 0, dropped: 0, retry: 0 });
+    }
+    const jobs = await operationalPasswordResetQueue.claim({
+      tenant_id: tenantId,
+      worker_id: workerId,
+      limit,
+      lease_ms: 60_000,
+    });
+    const counts = { claimed: jobs.length, completed: 0, dropped: 0, retry: 0 };
+    for (const job of jobs) {
+      const outcome = await processPasswordResetJob(job, workerId);
+      counts[outcome] += 1;
+    }
+    return Object.freeze(counts);
   }
 
   async function confirmPasswordReset(body = {}, { requestId = "req_unset" } = {}) {
@@ -1253,15 +1349,6 @@ export function createApiSessionAuth({
     if (credential && !credential.ok) {
       return Object.freeze({ ok: false, status: credential.status ?? 401, body: errorBody(requestId, credential.safe_error_code, credential.reason) });
     }
-    const principal = provider
-      ? deriveServerPrincipal({
-          request: { headers: { authorization: `Bearer ${user.local_dev.synthetic_token}` } },
-          provider,
-          trustedTenantId: homeTenantId,
-          request_id: requestId,
-        })
-      : principalFromSignedSession({ user, payload, trustedTenantId: homeTenantId, requestId, credential });
-    if (!principal.ok) return Object.freeze({ ok: false, status: principal.status_code ?? 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", principal.reason) });
     if (centralIdentityRepository) {
       const active = await centralIdentityRepository.validateSession({
         tenant_id: homeTenantId,
@@ -1272,6 +1359,15 @@ export function createApiSessionAuth({
         return Object.freeze({ ok: false, status: active.status ?? 401, body: errorBody(requestId, active.safe_error_code ?? "AUTH_SESSION_REVOKED", active.reason ?? "auth_session_revoked") });
       }
     }
+    const principal = provider
+      ? deriveServerPrincipal({
+          request: { headers: { authorization: `Bearer ${user.local_dev.synthetic_token}` } },
+          provider,
+          trustedTenantId: homeTenantId,
+          request_id: requestId,
+        })
+      : principalFromSignedSession({ user, payload, trustedTenantId: homeTenantId, requestId, credential });
+    if (!principal.ok) return Object.freeze({ ok: false, status: principal.status_code ?? 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", principal.reason) });
     return Object.freeze({
       ok: true,
       principal,
@@ -1303,62 +1399,39 @@ export function createApiSessionAuth({
     }
     const user = await directoryUserByEmail(email);
     const lock = await failedLoginState(email, user);
-    if (lock.locked) {
-      return Object.freeze({
-        status: 423,
-        body: Object.freeze({
-          ...errorBody(requestId, "AUTH_LOGIN_LOCKED", "auth_login_locked"),
-          locked_until: new Date(lock.locked_until).toISOString(),
-        }),
-      });
-    }
-
-    if (!user) {
-      await recordFailedLogin(email, null);
-      return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_CREDENTIAL_INVALID", "auth_credential_invalid") });
-    }
-    if (await accountStatus(user) !== "active") {
-      return Object.freeze({ status: 403, body: await disabledAccountBody(requestId, user) });
-    }
-    const homeTenantId = homeTenantIdForUser(user, trustedTenantId);
     let principal;
     let credentialResult = null;
     if (syntheticLoginEnabled) {
-      principal = deriveServerPrincipal({
-        request: { headers: { authorization: `Bearer ${credential}` } },
-        provider,
-        trustedTenantId: homeTenantId,
-        request_id: requestId,
-      });
+      const eligible = Boolean(user) && !lock.locked && await accountStatus(user) === "active";
+      if (eligible) {
+        const homeTenantId = homeTenantIdForUser(user, trustedTenantId);
+        principal = deriveServerPrincipal({
+          request: { headers: { authorization: `Bearer ${credential}` } },
+          provider,
+          trustedTenantId: homeTenantId,
+          request_id: requestId,
+        });
+      }
     } else {
-      if (safeEqual(credential, user.local_dev?.synthetic_token ?? "")) {
-        await recordFailedLogin(email, user);
-        return Object.freeze({
-          status: 403,
-          body: errorBody(requestId, "AUTH_SYNTHETIC_LOGIN_DISABLED", "auth_synthetic_login_disabled"),
-        });
-      }
       credentialResult = await verifyOperationalPassword(user, credential);
-      if (!credentialResult.ok) {
-        await recordFailedLogin(email, user);
-        return Object.freeze({
-          status: credentialResult.status ?? 401,
-          body: errorBody(requestId, credentialResult.safe_error_code ?? "AUTH_CREDENTIAL_INVALID", credentialResult.reason ?? "auth_credential_invalid"),
+      const syntheticCredential = Boolean(user) && safeEqual(credential, user.local_dev?.synthetic_token ?? "");
+      if (user && !lock.locked && credentialResult.ok && !syntheticCredential) {
+        const homeTenantId = homeTenantIdForUser(user, trustedTenantId);
+        principal = principalFromSignedSession({
+          user,
+          payload: { sid: `sess_${user.user_id}`, credential_rev: credentialResult.credential_rev },
+          trustedTenantId: homeTenantId,
+          requestId,
+          credential: credentialResult,
         });
       }
-      principal = principalFromSignedSession({
-        user,
-        payload: { sid: `sess_${user.user_id}`, credential_rev: credentialResult.credential_rev },
-        trustedTenantId: homeTenantId,
-        requestId,
-        credential: credentialResult,
-      });
     }
-    if (!principal.ok || principal.user_id !== user.user_id) {
-      await recordFailedLogin(email, user);
-      return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_CREDENTIAL_INVALID", "auth_credential_invalid") });
+    if (!user || lock.locked || !principal?.ok || principal.user_id !== user.user_id) {
+      if (!lock.locked) await recordFailedLogin(email, user);
+      return publicLoginFailure(requestId);
     }
 
+    const homeTenantId = homeTenantIdForUser(user, trustedTenantId);
     const session = createToken({ principal, user });
     if (centralIdentityRepository) {
       const committed = await centralIdentityRepository.completeLogin({
@@ -1371,13 +1444,7 @@ export function createApiSessionAuth({
         expires_at: session.payload.exp,
       });
       if (!committed.ok) {
-        return Object.freeze({
-          status: committed.status ?? 401,
-          body: Object.freeze({
-            ...errorBody(requestId, committed.safe_error_code ?? "AUTH_CREDENTIAL_INVALID", committed.reason ?? "auth_credential_invalid"),
-            ...(committed.locked_until ? { locked_until: committed.locked_until } : {}),
-          }),
-        });
+        return publicLoginFailure(requestId);
       }
     } else {
       await clearFailedLogin(email);
@@ -1901,6 +1968,7 @@ export function createApiSessionAuth({
     }),
     login,
     requestPasswordReset,
+    processPasswordResetQueue,
     confirmPasswordReset,
     verifyToken,
     resolvePermissionContextFromHeaders,

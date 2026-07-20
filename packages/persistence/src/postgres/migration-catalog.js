@@ -26,6 +26,7 @@ export const POSTGRES_FOUNDATION_MIGRATIONS = Object.freeze([
   loadMigration("008_dms_permanent_delete_approval", "008_dms_permanent_delete_approval.sql"),
   loadMigration("009_authenticated_tenant_context", "009_authenticated_tenant_context.sql"),
   loadMigration("010_internal_password_directory", "010_internal_password_directory.sql"),
+  loadMigration("011_identity_session_membership_authority", "011_identity_session_membership_authority.sql"),
 ]);
 
 export function listPostgresFoundationMigrations() {

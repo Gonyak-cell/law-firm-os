@@ -5,6 +5,7 @@ import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { buildPrivateStagingExecutionReceipt } from "./lib/private-staging-aws-execution.mjs";
 import { PRIVATE_STAGING_EXACT_HEAD_ACTION, validatePrivateStagingExactHeadPacket } from "./lib/private-staging-exact-head-authority.mjs";
 import { validateRuntimeSafetyApprovalBundle } from "./lib/runtime-safety-approval-contract.mjs";
+import { PRIVATE_STAGING_TRUSTED_SECURITY_CHECK } from "./lib/private-staging-github-authority.mjs";
 
 function option(name, fallback = null) {
   const index = process.argv.indexOf(name);
@@ -50,10 +51,22 @@ for (const [evidence, schema] of [[ci, "law-firm-os.private-staging.github-ci-ev
 }
 if (ci.skipped_count !== 0 || ci.check_count !== ci.success_count || ci.check_count < 1) throw new Error("CI evidence is incomplete");
 if (security.open_code_critical_high_count !== 0 || security.open_dependency_critical_high_count !== 0 || security.open_secret_alert_count !== 0 || security.security_check_count < 1) throw new Error("security evidence contains blockers");
+const trustedSecurity = security.trusted_security_checks ?? [];
+const trusted = trustedSecurity[0];
+if (trustedSecurity.length !== 1
+  || trusted.name !== PRIVATE_STAGING_TRUSTED_SECURITY_CHECK.name
+  || trusted.publisher_app_id !== PRIVATE_STAGING_TRUSTED_SECURITY_CHECK.app_id
+  || trusted.publisher_app_slug !== PRIVATE_STAGING_TRUSTED_SECURITY_CHECK.app_slug
+  || trusted.workflow_name !== PRIVATE_STAGING_TRUSTED_SECURITY_CHECK.workflow_name
+  || trusted.workflow_path !== PRIVATE_STAGING_TRUSTED_SECURITY_CHECK.workflow_path
+  || trusted.workflow_event !== PRIVATE_STAGING_TRUSTED_SECURITY_CHECK.event
+  || trusted.head_sha !== packet.source_sha
+  || trusted.workflow_sha256 !== security.trusted_security_workflow_sha256
+  || !/^[0-9a-f]{64}$/u.test(trusted.workflow_sha256 ?? "")) throw new Error("security evidence lacks the exact trusted GitHub identity");
 const outputDir = outputDirectory(requiredOption("--output-dir"));
 const specs = [
   { kind: "exact-head-ci", evidence: ci, path: ciPath, safeCounts: { check_count: ci.check_count, success_count: ci.success_count, skipped_count: 0, real_data_count: 0 }, claims: { exact_head_ci_passed: true } },
-  { kind: "security-review", evidence: security, path: securityPath, safeCounts: { security_check_count: security.security_check_count, open_code_critical_high_count: 0, open_dependency_critical_high_count: 0, open_secret_alert_count: 0, real_data_count: 0 }, claims: { security_review_passed: true } },
+  { kind: "security-review", evidence: security, path: securityPath, safeCounts: { security_check_count: 1, open_code_critical_high_count: 0, open_dependency_critical_high_count: 0, open_secret_alert_count: 0, real_data_count: 0 }, claims: { security_review_passed: true } },
 ];
 for (const spec of specs) {
   const receipt = buildPrivateStagingExecutionReceipt({ kind: spec.kind, keyId: approvalReceipt.key_id, approvalId: approval.approval_id, packet, startedAt: spec.evidence.started_at, finishedAt: spec.evidence.finished_at, command: spec.evidence.command, profile: spec.evidence.profile, safeCounts: spec.safeCounts, digests: { evidence_sha256: sha256(readFileSync(spec.path)), pr_url_sha256: spec.evidence.pr_url_sha256 }, claims: spec.claims });

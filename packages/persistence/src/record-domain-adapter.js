@@ -16,6 +16,50 @@ function clone(value) {
 }
 
 const materializedBaselines = new WeakMap();
+const IDEMPOTENCY_AUTHORITY_FIELD = "__lawos_idempotency_authority_v1";
+const IDEMPOTENCY_RESPONSE_FIELD = "__lawos_idempotency_response_v1";
+
+function responseWithIdempotencyAuthority(entry) {
+  const response = clone(entry.response ?? null);
+  const requestFingerprint = String(entry.request_fingerprint ?? "").trim();
+  if (!requestFingerprint) return response;
+  const authority = Object.freeze({
+    operation: requiredText(entry.operation, "idempotency operation"),
+    actor_id: entry.actor_id ?? null,
+    object_type: entry.object_type ?? null,
+    object_id: entry.object_id ?? null,
+    request_fingerprint: requestFingerprint,
+  });
+  if (response && typeof response === "object" && !Array.isArray(response)) {
+    if (Object.hasOwn(response, IDEMPOTENCY_AUTHORITY_FIELD)) {
+      throw new TypeError("idempotency response uses a reserved authority field");
+    }
+    return { ...response, [IDEMPOTENCY_AUTHORITY_FIELD]: authority };
+  }
+  return {
+    [IDEMPOTENCY_AUTHORITY_FIELD]: authority,
+    [IDEMPOTENCY_RESPONSE_FIELD]: response,
+  };
+}
+
+function responseFromIdempotencyAuthority(value) {
+  const response = clone(value ?? null);
+  if (!response || typeof response !== "object" || Array.isArray(response)) {
+    return Object.freeze({ authority: null, response });
+  }
+  const authority = response[IDEMPOTENCY_AUTHORITY_FIELD];
+  if (!authority || typeof authority !== "object" || Array.isArray(authority)) {
+    return Object.freeze({ authority: null, response });
+  }
+  delete response[IDEMPOTENCY_AUTHORITY_FIELD];
+  if (Object.hasOwn(response, IDEMPOTENCY_RESPONSE_FIELD)) {
+    const unwrapped = clone(response[IDEMPOTENCY_RESPONSE_FIELD]);
+    delete response[IDEMPOTENCY_RESPONSE_FIELD];
+    if (Object.keys(response).length > 0) throw new TypeError("idempotency response envelope contains unexpected fields");
+    return Object.freeze({ authority: clone(authority), response: unwrapped });
+  }
+  return Object.freeze({ authority: clone(authority), response });
+}
 
 function recordIdentity(domainId, recordType, recordId) {
   return `${domainId}:${recordType}:${recordId}`;
@@ -194,13 +238,14 @@ export function createRecordRepositoryDomainSnapshot({
         domain_id: descriptor.domain_id,
         key,
         request_hash: entry.request_hash
+          ?? entry.request_fingerprint
           ?? (String(entry.operation ?? "").startsWith("request-hash:")
             ? String(entry.operation).slice("request-hash:".length)
             : hashDomainValue({
               operation: entry.operation ?? "imported_domain_operation",
               key,
             })),
-        response: clone(entry.response ?? null),
+        response: responseWithIdempotencyAuthority(entry),
         created_at: entry.created_at ?? null,
       };
       const prior = idempotencyMap.get(key);
@@ -299,11 +344,16 @@ export async function materializeRecordRepositoryFromDomainLedger({
     preserveSeedRecords: true,
   });
   for (const entry of idempotency) {
+    const decoded = responseFromIdempotencyAuthority(entry.response);
     repository.recordIdempotency?.({
       tenant_id,
       idempotency_key: entry.key,
-      operation: `request-hash:${entry.request_hash}`,
-      response: clone(entry.response),
+      operation: decoded.authority?.operation ?? `request-hash:${entry.request_hash}`,
+      object_type: decoded.authority?.object_type ?? null,
+      object_id: decoded.authority?.object_id ?? null,
+      actor_id: decoded.authority?.actor_id ?? null,
+      request_fingerprint: decoded.authority?.request_fingerprint ?? null,
+      response: decoded.response,
       created_at: entry.created_at,
     });
   }

@@ -53,7 +53,8 @@ const packet = Object.freeze({ ...rawPacket, packet_sha256: validatedPacket.pack
 const localGatesPath = privateFile(requiredOption("--local-gates"), "local gates summary");
 const localGatesBytes = readFileSync(localGatesPath);
 const localGates = JSON.parse(localGatesBytes);
-if (localGates.schema_version !== "law-firm-os.private-staging.local-gates.v1" || localGates.execution_state !== "PASS" || localGates.source_sha !== packet.source_sha || localGates.source_tree !== packet.source_tree || localGates.artifact_sha256 !== packet.artifact_sha256 || localGates.packet_sha256 !== packet.packet_sha256 || localGates.fail_count !== 0 || localGates.artifact_reproduced !== true) throw new Error("local gate summary is not an exact-head PASS");
+if (localGates.schema_version !== "law-firm-os.private-staging.local-gates.v2" || localGates.execution_state !== "PASS" || localGates.source_sha !== packet.source_sha || localGates.source_tree !== packet.source_tree || localGates.artifact_sha256 !== packet.artifact_sha256 || localGates.packet_sha256 !== packet.packet_sha256 || localGates.fail_count !== 0 || localGates.artifact_verified !== true || localGates.artifact_reproduced !== false) throw new Error("local gate summary is not an exact-head PASS");
+if (localGates.isolation?.disposable_exact_head_clone !== true || localGates.isolation?.operator_home_readable !== false || localGates.isolation?.operator_home_writable !== false || localGates.isolation?.external_network_egress !== "denied" || localGates.external_effect_observation?.aws_mutation !== "not_observed" || localGates.external_effect_observation?.real_data_contact !== "not_observed" || localGates.external_effect_observation?.external_network_contact !== "denied_by_kernel_sandbox") throw new Error("local gate isolation or external-effect observation is incomplete");
 
 const registryPath = privateFile(requiredOption("--registry"), "owner trust registry");
 const registrySha256 = requiredOption("--registry-sha256");
@@ -79,26 +80,27 @@ if (approval.decision !== "approved") throw new Error("exact-head approval is no
 
 const byId = new Map(localGates.results.map((result) => [result.id, result]));
 const critical = byId.get("json-postgres-private-staging-critical");
-const artifact = byId.get("artifact-reproduction");
-if (!critical || !artifact) throw new Error("local gate summary is missing critical or artifact reproduction evidence");
+const artifact = byId.get("artifact-verification");
+if (!critical || !artifact) throw new Error("local gate summary is missing critical or artifact verification evidence");
 const summarySha256 = sha256(localGatesBytes);
 const commonSafeCounts = {
   command_count: Number(localGates.command_count),
   pass_count: Number(localGates.pass_count),
   fail_count: 0,
-  real_data_count: 0,
+  isolated_worker_count: 1,
+  external_egress_allowed_count: 0,
 };
 const specs = [
   {
     kind: "source-baseline",
     result: byId.get("private-staging-infrastructure-contract"),
-    safeCounts: { clean_worktree_count: 1, exact_source_binding_count: 1, base_main_binding_count: 1, real_data_count: 0 },
+    safeCounts: { clean_worktree_count: 1, exact_source_binding_count: 1, base_main_binding_count: 1, isolated_worker_count: 1 },
     claims: { source_baseline_verified: true },
   },
   {
     kind: "pr-172-adjudication",
     result: critical,
-    safeCounts: { pr_head_tree_match_count: 1, pr_head_ancestor_count: 1, real_data_count: 0 },
+    safeCounts: { pr_head_tree_match_count: 1, pr_head_ancestor_count: 1, isolated_worker_count: 1 },
     claims: { pr_172_reuse_adjudicated: true },
   },
   {
@@ -110,7 +112,7 @@ const specs = [
   {
     kind: "internal-password-authority",
     result: byId.get("private-staging-internal-auth-contract"),
-    safeCounts: { pass_count: Number(byId.get("private-staging-internal-auth-contract")?.pass_count ?? 0), external_identity_prerequisite_count: 0, real_data_count: 0 },
+    safeCounts: { pass_count: Number(byId.get("private-staging-internal-auth-contract")?.pass_count ?? 0), external_identity_prerequisite_count: 0, isolated_worker_count: 1 },
     claims: { internal_password_authority_verified: true, entra_required: false },
   },
   {
@@ -122,14 +124,14 @@ const specs = [
   {
     kind: "local-postgres-validation",
     result: critical,
-    safeCounts: { pass_count: Number(critical.pass_count), fail_count: 0, skipped_count: Number(critical.skipped_count), real_data_count: 0 },
+    safeCounts: { pass_count: Number(critical.pass_count), fail_count: 0, skipped_count: Number(critical.skipped_count), isolated_worker_count: 1 },
     claims: { disposable_postgres_verified: true, cut_007_api_flow_verified: true },
   },
   {
-    kind: "artifact-reproduction",
+    kind: "artifact-verification",
     result: artifact,
-    safeCounts: { artifact_reproduction_count: 1, artifact_digest_difference_count: 0, artifact_runtime_store_entry_count: 0, artifact_real_json_store_count: 0, real_data_count: 0 },
-    claims: { artifact_reproduced: true },
+    safeCounts: { artifact_verification_count: 1, artifact_digest_difference_count: 0, artifact_runtime_store_entry_count: 0, artifact_real_json_store_count: 0, isolated_worker_count: 1 },
+    claims: { artifact_verified: true, artifact_reproduced: false },
   },
 ];
 const outputDir = outputDirectory(requiredOption("--output-dir"));
@@ -144,7 +146,7 @@ for (const spec of specs) {
     startedAt: spec.result.started_at,
     finishedAt: spec.result.finished_at,
     command: spec.result.command,
-    profile: "source-local-node22",
+    profile: "source-local-node22-sandboxed",
     safeCounts: spec.safeCounts,
     digests: { local_gates_sha256: summarySha256, command_stdout_sha256: spec.result.stdout_sha256, command_stderr_sha256: spec.result.stderr_sha256 },
     claims: spec.claims,

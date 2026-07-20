@@ -5,6 +5,11 @@ export const PRIVATE_STAGING_REGION = "ap-northeast-2";
 export const PRIVATE_STAGING_VPC_CIDR = "10.96.0.0/16";
 export const PRIVATE_STAGING_COST_LIMIT_KRW = 300_000;
 export const PRIVATE_STAGING_EFFECTIVE_BUDGET_USD = 100;
+const PUBLIC_ROUTE_RATE_LIMIT = 0.04;
+const PUBLIC_ROUTE_BURST_LIMIT = 20;
+const PUBLIC_ROUTE_LAMBDA_MEMORY_MIB = 1024;
+const PUBLIC_ROUTE_LAMBDA_TIMEOUT_SECONDS = 5;
+const PUBLIC_ROUTE_LAMBDA_RESERVED_CONCURRENCY = 1;
 export const LAMBDA_VPC_ENI_ACTIONS = Object.freeze([
   "ec2:CreateNetworkInterface",
   "ec2:DescribeNetworkInterfaces",
@@ -17,6 +22,24 @@ const LAMBDA_FUNCTION_CODE_DENY_ACTIONS = Object.freeze([
   ...LAMBDA_VPC_ENI_ACTIONS,
   "ec2:DetachNetworkInterface",
 ]);
+const EXACT_LAMBDA_TRUST_SHA256 = "f3502e8666443cacc9bec965f5cc2886f9ed0e884c87714821fdc6872835efd0";
+const EXACT_IAM_POLICY_SHA256 = Object.freeze({
+  ApiExecutionRole: "dfa8956a7b4d72c84efc3d7e45510900ea56674bb55fa0695f8375067370880f",
+  AdminExecutionRole: "2b4b2b6cf148322157780df628dccfca9f5ff25266b92b727625ccb488f36f73",
+});
+const EXACT_ENI_BOOTSTRAP_POLICY_SHA256 = "c2befe2c36d8536fe68f38ab394582980087c01d6f03c8069a20cb4b4ba79740";
+const EXACT_KMS_KEY_POLICY_SHA256 = "21a2577535bde578130fd7f1ae293a8300c1eb28d29bc949fcc75242b3aafc8b";
+const EXACT_KMS_ALIAS_SHA256 = "a5c174930d14cbc3a40f51c04112fd55e4b27b4659f4aa17ca2e1d1e0117467d";
+const EXACT_S3_ENDPOINT_POLICY_SHA256 = "fd69eaa070403f359a58fea72ba10b50f9ab2ee1cf4ba26fd666709814742801";
+const EXACT_DMS_BUCKET_POLICY_SHA256 = "1be4582417ee8d76f4c09bbca1265830a66a95d0dfca305adc686504803556d3";
+const EXACT_ARTIFACT_BUCKET_POLICY_SHA256 = "080473c4a6175765a0c5b8240584779ac6c772c50978299659e5f15fd2956023";
+const EXACT_LAMBDA_PERMISSION_SHA256 = Object.freeze({
+  HttpApiInvokePermission: "91b58aac2a5d78774ef523f7ef8116eb131522b7ba39a392ed4487a371d21360",
+  PasswordResetWorkerInvokePermission: "2047607b7917b9429030004797f5617468e952b5b0ec5824232246935f27a2af",
+});
+const EXACT_SNS_TOPIC_POLICY_SHA256 = Object.freeze({
+  CostAlertTopicPolicy: "792c5c428873525a9074b89b962facf01d8b040d023f803d01db7a09429817b8",
+});
 
 const PROTECTED_RESOURCE_MARKERS = Object.freeze([
   "amic-vault-staging",
@@ -92,7 +115,23 @@ function sortedStrings(values) {
   return [...values].map(String).sort();
 }
 
+function arrayValue(value) {
+  return Array.isArray(value) ? value : [value];
+}
+
 function validateIam(resources) {
+  const iamResources = Object.entries(resources).filter(([, resource]) => String(resource.Type ?? "").startsWith("AWS::IAM::"));
+  const expectedIamResources = ["AdminExecutionRole", "ApiExecutionRole", "LambdaVpcEniBootstrapPolicy"];
+  assert(
+    JSON.stringify(sortedStrings(iamResources.map(([logicalId]) => logicalId))) === JSON.stringify(expectedIamResources),
+    "private staging contains an unexpected IAM policy-bearing resource",
+  );
+  for (const logicalId of ["ApiExecutionRole", "AdminExecutionRole"]) {
+    const properties = resources[logicalId]?.Properties;
+    assert(canonicalSha256(properties?.AssumeRolePolicyDocument) === EXACT_LAMBDA_TRUST_SHA256, `${logicalId} IAM trust policy contract drifted`);
+    assert(canonicalSha256(properties?.Policies) === EXACT_IAM_POLICY_SHA256[logicalId], `${logicalId} IAM policy contract drifted`);
+  }
+  assert(canonicalSha256(resources.LambdaVpcEniBootstrapPolicy?.Properties) === EXACT_ENI_BOOTSTRAP_POLICY_SHA256, "Lambda ENI bootstrap IAM policy contract drifted");
   const wildcardAllows = [];
   for (const [logicalId, resource] of Object.entries(resources)) {
     if (resource.Type === "AWS::IAM::Role") {
@@ -102,7 +141,7 @@ function validateIam(resources) {
     for (const statement of resourceStatements(resource)) {
       const actions = Array.isArray(statement.Action) ? statement.Action : [statement.Action];
       assert(!actions.includes("iam:PassRole") && !actions.includes("sts:AssumeRole"), `${logicalId} must not grant cross-role authority`);
-      if (statement.Effect === "Allow" && statement.Resource === "*") {
+      if (statement.Effect === "Allow" && arrayValue(statement.Resource).includes("*")) {
         wildcardAllows.push({ logical_id: logicalId, sid: statement.Sid, actions: sortedStrings(actions) });
       }
       if (statement.Sid === "DenyFunctionCodeEc2Networking") {
@@ -119,6 +158,36 @@ function validateIam(resources) {
   const bootstrap = resources.LambdaVpcEniBootstrapPolicy;
   assert(bootstrap?.Condition === "LambdaEniBootstrapEnabled", "temporary ENI policy must be conditional");
   return wildcardAllows;
+}
+
+function validateResourcePolicies(resources) {
+  const lambdaPermissions = Object.entries(resources)
+    .filter(([, resource]) => resource.Type === "AWS::Lambda::Permission");
+  assert(
+    JSON.stringify(sortedStrings(lambdaPermissions.map(([logicalId]) => logicalId)))
+      === JSON.stringify(sortedStrings(Object.keys(EXACT_LAMBDA_PERMISSION_SHA256))),
+    "private staging contains an unexpected Lambda resource policy",
+  );
+  for (const [logicalId, resource] of lambdaPermissions) {
+    assert(
+      canonicalSha256(resource.Properties) === EXACT_LAMBDA_PERMISSION_SHA256[logicalId],
+      `${logicalId} Lambda resource policy contract drifted`,
+    );
+  }
+
+  const topicPolicies = Object.entries(resources)
+    .filter(([, resource]) => resource.Type === "AWS::SNS::TopicPolicy");
+  assert(
+    JSON.stringify(sortedStrings(topicPolicies.map(([logicalId]) => logicalId)))
+      === JSON.stringify(sortedStrings(Object.keys(EXACT_SNS_TOPIC_POLICY_SHA256))),
+    "private staging contains an unexpected SNS resource policy",
+  );
+  for (const [logicalId, resource] of topicPolicies) {
+    assert(
+      canonicalSha256(resource.Properties) === EXACT_SNS_TOPIC_POLICY_SHA256[logicalId],
+      `${logicalId} SNS resource policy contract drifted`,
+    );
+  }
 }
 
 function validateNetwork(resources, template) {
@@ -144,6 +213,7 @@ function validateNetwork(resources, template) {
   assert(endpoints.length === 3, "private staging must define exactly the S3, Secrets Manager, and SES endpoints");
   const s3 = resources.S3GatewayEndpoint?.Properties;
   assert(s3?.VpcEndpointType === "Gateway" && JSON.stringify(s3.ServiceName).includes(".s3"), "S3 gateway endpoint is required");
+  assert(canonicalSha256(s3?.PolicyDocument) === EXACT_S3_ENDPOINT_POLICY_SHA256, "S3 gateway endpoint policy contract drifted");
   assert(JSON.stringify(s3.RouteTableIds) === JSON.stringify([{ Ref: "AppRouteTableA" }, { Ref: "AppRouteTableB" }]), "S3 gateway endpoint must attach only to application route tables");
   assert(JSON.stringify(s3.PolicyDocument).includes("${DmsBucket.Arn}/lawos-dms/*"), "S3 endpoint policy must remain confined to the staging DMS namespace");
   for (const [logicalId, serviceSuffix] of [["SecretsManagerEndpoint", ".secretsmanager"], ["SesApiEndpoint", ".email"]]) {
@@ -172,19 +242,27 @@ function validateNetwork(resources, template) {
 }
 
 function validateDatabase(resources) {
-  const database = resources.Database?.Properties;
-  assert(database?.PubliclyAccessible === false, "RDS must not be publicly accessible");
-  assert(database?.StorageEncrypted === true, "RDS storage encryption is required");
-  assert(database?.DeletionProtection === true, "RDS deletion protection is required");
-  assert(database?.BackupRetentionPeriod >= 7, "RDS must retain at least seven days of PITR backups");
-  assert(database?.MultiAZ === false, "this cost-bounded staging plan expects the approved Single-AZ exception");
-  assert(database?.DBInstanceClass === "db.t4g.micro", "RDS class exceeds or differs from the approved cost model");
-  assert(database?.AllocatedStorage === "20" && database?.StorageType === "gp3", "RDS storage differs from the approved cost model");
-  assert(database?.ManageMasterUserPassword === true, "RDS master credential must be managed by Secrets Manager");
-  assert((database?.EnableCloudwatchLogsExports ?? []).includes("postgresql"), "PostgreSQL audit log export is required");
+  const inventory = Object.entries(resources).filter(([, resource]) => resource.Type === "AWS::RDS::DBInstance");
+  assert(inventory.length === 1 && inventory[0][0] === "Database", "private staging must contain exactly one approved RDS instance");
+  for (const [logicalId, resource] of inventory) {
+    const database = resource.Properties;
+    assert(database?.PubliclyAccessible === false, `${logicalId} RDS must not be publicly accessible`);
+    assert(database?.StorageEncrypted === true, `${logicalId} RDS storage encryption is required`);
+    assert(database?.DeletionProtection === true, `${logicalId} RDS deletion protection is required`);
+    assert(database?.BackupRetentionPeriod >= 7, `${logicalId} RDS must retain at least seven days of PITR backups`);
+    assert(database?.MultiAZ === false, `${logicalId} cost-bounded staging plan expects the approved Single-AZ exception`);
+    assert(database?.DBInstanceClass === "db.t4g.micro", `${logicalId} RDS class exceeds or differs from the approved cost model`);
+    assert(database?.AllocatedStorage === "20" && database?.StorageType === "gp3", `${logicalId} RDS storage differs from the approved cost model`);
+    assert(database?.ManageMasterUserPassword === true, `${logicalId} RDS master credential must be managed by Secrets Manager`);
+    assert((database?.EnableCloudwatchLogsExports ?? []).includes("postgresql"), `${logicalId} PostgreSQL audit log export is required`);
+  }
   const parameters = resources.DatabaseParameterGroup?.Properties?.Parameters;
   assert(parameters?.["rds.force_ssl"] === "1", "RDS must force TLS");
   assert(parameters?.log_connections === "1" && parameters?.log_disconnections === "1", "RDS connection audit logging is required");
+  return Object.freeze({
+    private_rds_count: inventory.filter(([, resource]) => resource.Properties?.PubliclyAccessible === false).length,
+    public_rds_count: inventory.filter(([, resource]) => resource.Properties?.PubliclyAccessible === true).length,
+  });
 }
 
 function validateLambdas(resources) {
@@ -195,10 +273,15 @@ function validateLambdas(resources) {
   ]) {
     const fn = resources[logicalId]?.Properties;
     assert(fn?.Handler === expectedHandler, `${logicalId} handler drifted`);
+    assert(fn?.Code?.S3ObjectVersion?.Ref === "ArtifactVersion", `${logicalId} must use the immutable artifact version`);
     assert(JSON.stringify(fn?.Role).includes(expectedRole), `${logicalId} must use its dedicated role`);
     assert(JSON.stringify(fn?.VpcConfig?.SubnetIds) === JSON.stringify([{ Ref: "AppSubnetA" }, { Ref: "AppSubnetB" }]), `${logicalId} must attach to both private application subnets`);
     assert(JSON.stringify(fn?.VpcConfig?.SecurityGroupIds).includes("LambdaSecurityGroup"), `${logicalId} must use the dedicated Lambda security group`);
   }
+  const api = resources.ApiFunction?.Properties;
+  assert(api?.MemorySize === PUBLIC_ROUTE_LAMBDA_MEMORY_MIB, "API Lambda memory differs from the cost-bound exception");
+  assert(api?.Timeout === PUBLIC_ROUTE_LAMBDA_TIMEOUT_SECONDS, "API Lambda timeout differs from the cost-bound exception");
+  assert(api?.ReservedConcurrentExecutions === PUBLIC_ROUTE_LAMBDA_RESERVED_CONCURRENCY, "API Lambda concurrency differs from the cost-bound exception");
   const env = resources.ApiFunction.Properties.Environment.Variables;
   assert(env.LAWOS_RUNTIME_PROFILE === "operational", "API must use the operational profile");
   assert(env.LAWOS_PERSISTENCE_AUTHORITY === "postgres-v2", "API must use postgres-v2 authority");
@@ -229,6 +312,10 @@ function validateLambdas(resources) {
   assert(adminEnv.LAWOS_PERSISTENCE_AUTHORITY === "postgres-v2", "admin Lambda must use postgres-v2 authority");
   assert(adminEnv.LAWOS_STAFF_AUTHORITY === "internal-password", "admin Lambda must use internal-password staff authority");
   assert(adminEnv.LAWOS_RUNTIME_GENERATION?.Ref === "RuntimeGeneration", "admin runtime generation must be an exact stack parameter reference");
+  assert(adminEnv.LAWOS_DATA_SCOPE === "synthetic-only", "admin Lambda must remain synthetic-only");
+  assert(adminEnv.LAWOS_OWNER_TRUST_REGISTRY_SHA256?.Ref === "OwnerTrustRegistrySha256", "admin Lambda must pin the exact owner trust registry digest");
+  assert(adminEnv.LAWOS_APPROVAL_AUDIT_BUCKET?.Ref === "DmsBucket", "admin Lambda approval claims must use the exact staging audit bucket");
+  assert(JSON.stringify(adminEnv.LAWOS_STAGING_KMS_KEY_ARN).includes("StagingKey"), "admin Lambda approval claims must use the exact staging KMS key");
   for (const [key, parameter] of [
     ["LAWOS_BOOTSTRAP_APPROVAL_ID", "BootstrapApprovalId"],
     ["LAWOS_CUT005_APPROVAL_ID", "Cut005ApprovalId"],
@@ -272,6 +359,12 @@ function validateSecretsAndInternalAuth(resources, template) {
 }
 
 function validateCostControls(resources) {
+  const route = resources.HttpApiDefaultRoute;
+  const stage = resources.HttpApiStage?.Properties?.DefaultRouteSettings;
+  assert(route?.Properties?.AuthorizationType === "NONE" && route?.Properties?.RouteKey === "$default", "public staging route shape drifted");
+  const exception = route?.Metadata?.LawOSPublicRouteException;
+  assert(exception?.scope === "synthetic-only-private-staging" && exception?.enforcement === "template-bound-rate-timeout-concurrency-and-monthly-worst-case-cost", "public route lacks the exact cost-bound exception");
+  assert(stage?.ThrottlingRateLimit === PUBLIC_ROUTE_RATE_LIMIT && stage?.ThrottlingBurstLimit === PUBLIC_ROUTE_BURST_LIMIT, "public route throttle exceeds or differs from the cost-bound exception");
   const budget = resources.MonthlyCostBudget?.Properties?.Budget;
   assert(budget?.BudgetLimit?.Amount === 100 && budget?.BudgetLimit?.Unit === "USD", "private staging monthly AWS budget must remain USD 100");
   assert(budget?.BudgetType === "COST" && budget?.TimeUnit === "MONTHLY", "private staging cost budget cadence drifted");
@@ -279,10 +372,21 @@ function validateCostControls(resources) {
   const notifications = resources.MonthlyCostBudget?.Properties?.NotificationsWithSubscribers ?? [];
   assert(notifications.some(({ Notification: item }) => item?.NotificationType === "ACTUAL" && item?.Threshold === 80), "80 percent actual cost alert is required");
   assert(notifications.some(({ Notification: item }) => item?.NotificationType === "FORECASTED" && item?.Threshold === 100), "100 percent forecasted cost alert is required");
+  for (const notification of notifications) {
+    const emailSubscribers = (notification.Subscribers ?? []).filter((subscriber) => subscriber?.SubscriptionType === "EMAIL");
+    assert(
+      emailSubscribers.length === 1 && emailSubscribers[0]?.Address?.Ref === "PasswordResetFromEmail",
+      "every cost alert must directly notify the exact synthetic staging mailbox",
+    );
+  }
   assert(resources.CostAlertTopic?.Type === "AWS::SNS::Topic", "private staging cost alert topic is required");
+  assert(resources.PasswordResetWorkerSchedule?.Properties?.ScheduleExpression === "rate(5 minutes)", "password-reset worker cadence exceeds the cost-bound schedule");
+  assert(resources.PasswordResetWorkerSchedule?.Properties?.State === "ENABLED", "password-reset worker schedule must remain enabled");
 }
 
 function validateDms(resources) {
+  const bucketPolicies = Object.entries(resources).filter(([, resource]) => resource.Type === "AWS::S3::BucketPolicy");
+  assert(bucketPolicies.length === 1 && bucketPolicies[0][0] === "DmsBucketPolicy", "private staging contains an unexpected S3 bucket policy");
   const bucket = resources.DmsBucket?.Properties;
   assert(bucket?.VersioningConfiguration?.Status === "Enabled", "DMS bucket versioning is required");
   assert(bucket?.ObjectLockEnabled === true, "DMS bucket Object Lock is required");
@@ -290,11 +394,23 @@ function validateDms(resources) {
   assert(bucket?.ObjectLockConfiguration?.Rule == null, "bucket-wide default retention would prevent staged-object cleanup; retention must begin after commit");
   assert(Object.values(bucket?.PublicAccessBlockConfiguration ?? {}).every((value) => value === true), "DMS public access must be fully blocked");
   assert(JSON.stringify(bucket?.BucketEncryption).includes("aws:kms"), "DMS SSE-KMS is required");
+  const policy = resources.DmsBucketPolicy?.Properties?.PolicyDocument;
+  assert(canonicalSha256(policy) === EXACT_DMS_BUCKET_POLICY_SHA256, "DMS bucket policy contract drifted");
+  const auditDeleteDeny = (policy?.Statement ?? []).find((statement) => statement.Sid === "DenyApprovalAuditDeletion");
+  assert(auditDeleteDeny?.Effect === "Deny" && JSON.stringify(auditDeleteDeny?.Resource).includes("approval-audit/*"), "immutable approval-audit deletion deny is required");
 }
 
 function validateKms(resources) {
+  const kmsResources = Object.entries(resources).filter(([, resource]) => String(resource.Type ?? "").startsWith("AWS::KMS::"));
+  assert(
+    JSON.stringify(sortedStrings(kmsResources.map(([logicalId]) => logicalId))) === JSON.stringify(["StagingKey", "StagingKeyAlias"]),
+    "private staging contains an unexpected KMS authority resource",
+  );
+  assert(resources.StagingKey?.Type === "AWS::KMS::Key", "staging KMS key type drifted");
+  assert(resources.StagingKeyAlias?.Type === "AWS::KMS::Alias" && canonicalSha256(resources.StagingKeyAlias.Properties) === EXACT_KMS_ALIAS_SHA256, "staging KMS alias contract drifted");
   const statements = resources.StagingKey?.Properties?.KeyPolicy?.Statement ?? [];
-  const wildcardAllows = statements.filter((statement) => statement.Effect === "Allow" && statement.Resource === "*");
+  assert(canonicalSha256(resources.StagingKey?.Properties?.KeyPolicy) === EXACT_KMS_KEY_POLICY_SHA256, "KMS key policy contract drifted");
+  const wildcardAllows = statements.filter((statement) => statement.Effect === "Allow" && arrayValue(statement.Resource).includes("*"));
   assert(wildcardAllows.length === 2, "KMS key policy may contain only the account-authority and exact log-encryption current-key wildcard Allows");
   const account = wildcardAllows.find((statement) => statement.Sid === "EnableAccountIamAuthority");
   assert(account?.Action === "kms:*", "KMS account IAM authority statement drifted");
@@ -324,24 +440,28 @@ export function validatePrivateStagingTemplate(template) {
   const resources = template.Resources ?? {};
   assert(Object.keys(resources).length > 0, "CloudFormation resources are required");
   assert(template.Parameters?.EnableLambdaEniBootstrap?.Default === "false", "ENI bootstrap must default off");
+  assert(template.Parameters?.ArtifactVersion?.Default == null, "immutable artifact version must be supplied explicitly");
+  assert(template.Parameters?.OwnerTrustRegistrySha256?.Default == null, "owner trust registry digest must be supplied explicitly");
   for (const parameter of ["BootstrapApprovalId", "Cut005ApprovalId", "Cut006ApprovalId", "Cut007ApprovalId"]) {
     assert(template.Parameters?.[parameter]?.Default == null, `${parameter} must be explicitly supplied for the exact deployment target`);
   }
   validateNetwork(resources, template);
-  validateDatabase(resources);
+  const rdsInventory = validateDatabase(resources);
   validateLambdas(resources);
   validateSecretsAndInternalAuth(resources, template);
   validateDms(resources);
   validateCostControls(resources);
   const kmsWildcardAllows = validateKms(resources);
-  validateTags(resources);
   const wildcardAllows = validateIam(resources);
+  validateResourcePolicies(resources);
+  validateTags(resources);
   return Object.freeze({
     verdict: "PASS_WITH_OWNER_DELTA_REQUIRED",
     resource_count: Object.keys(resources).length,
     inline_template_byte_size: inlineTemplateByteSize,
     protected_resource_marker_count: 0,
-    public_rds_count: 0,
+    private_rds_count: rdsInventory.private_rds_count,
+    public_rds_count: rdsInventory.public_rds_count,
     database_default_route_count: 0,
     internet_gateway_count: 0,
     nat_gateway_count: 0,
@@ -368,6 +488,12 @@ export function validateArtifactStoreTemplate(template) {
   assert(bucket?.VersioningConfiguration?.Status === "Enabled", "artifact bucket versioning is required");
   assert(Object.values(bucket?.PublicAccessBlockConfiguration ?? {}).every((value) => value === true), "artifact bucket public access must be blocked");
   assert(JSON.stringify(bucket?.BucketEncryption).includes("AES256"), "artifact bucket encryption is required");
+  const policy = resources.ArtifactBucketPolicy?.Properties;
+  assert(canonicalSha256(policy) === EXACT_ARTIFACT_BUCKET_POLICY_SHA256, "artifact bucket policy contract drifted");
+  assert(policy?.Bucket?.Ref === "ArtifactBucket", "artifact bucket policy must bind the exact artifact bucket");
+  const statements = policy?.PolicyDocument?.Statement ?? [];
+  assert(statements.length === 1 && statements[0]?.Sid === "DenyInsecureTransport" && statements[0]?.Effect === "Deny", "artifact bucket policy must contain only the TLS deny");
+  assert(statements[0]?.Condition?.Bool?.["aws:SecureTransport"] === "false", "artifact bucket policy TLS condition drifted");
   validateTags(resources);
   return Object.freeze({ verdict: "PASS", resource_count: Object.keys(resources).length });
 }
@@ -383,6 +509,33 @@ export function validatePrivateStagingCost(cost) {
   assert(cost.creation_gate === "PASS", "cost creation gate is not PASS");
   assert(!(cost.line_items ?? []).some((item) => /NAT Gateway|Public IPv4/iu.test(String(item.service))), "cost model must not contain removed public networking");
   assert((cost.line_items ?? []).some((item) => item.service === "AWS PrivateLink interface endpoints" && Number(item.quantity) === 2920), "cost model must include two interface endpoints across two availability zones");
+  const envelope = cost.enforced_public_route_envelope;
+  assert(envelope?.authorization === "explicit-synthetic-staging-cost-bound-exception", "public route cost exception is missing");
+  assert(envelope.hours_per_month === 730 && envelope.throttling_rate_per_second === PUBLIC_ROUTE_RATE_LIMIT && envelope.throttling_burst_limit === PUBLIC_ROUTE_BURST_LIMIT, "public route cost rate model drifted");
+  assert(envelope.lambda_memory_gib === PUBLIC_ROUTE_LAMBDA_MEMORY_MIB / 1024 && envelope.lambda_timeout_seconds === PUBLIC_ROUTE_LAMBDA_TIMEOUT_SECONDS && envelope.lambda_reserved_concurrency === PUBLIC_ROUTE_LAMBDA_RESERVED_CONCURRENCY, "public route Lambda cost model drifted");
+  const monthlyRequests = envelope.hours_per_month * 3600 * envelope.throttling_rate_per_second
+    + envelope.throttling_burst_limit;
+  const monthlyGbSeconds = monthlyRequests * envelope.lambda_timeout_seconds * envelope.lambda_memory_gib;
+  assert(Math.abs(monthlyRequests - envelope.monthly_request_ceiling) < 0.001, "public route monthly request ceiling is not derived from the enforced throttle");
+  assert(Math.abs(monthlyGbSeconds - envelope.monthly_lambda_gb_second_ceiling) < 0.001, "public route Lambda duration ceiling is not derived from the enforced controls");
+  const compute = monthlyGbSeconds * Number(envelope.lambda_compute_unit_price_usd);
+  const api = monthlyRequests / 1_000_000 * Number(envelope.api_gateway_unit_price_usd_per_million);
+  const lambdaRequests = monthlyRequests / 1_000_000 * Number(envelope.lambda_request_unit_price_usd_per_million);
+  assert(Math.abs(compute - Number(envelope.lambda_compute_ceiling_usd)) < 0.001, "public route Lambda compute ceiling drifted");
+  assert(Math.abs(api - Number(envelope.api_gateway_ceiling_usd)) < 0.001 && Math.abs(lambdaRequests - Number(envelope.lambda_request_ceiling_usd)) < 0.001, "public route request ceiling drifted");
+  const requestDriven = compute + api + lambdaRequests + Number(envelope.metrics_and_logs_ceiling_usd);
+  assert(requestDriven <= Number(envelope.lambda_api_logs_ceiling_usd) && Number(envelope.all_variable_services_ceiling_usd) === 12.73, "public route variable-service ceiling is incomplete");
+  const worker = cost.password_reset_worker_envelope;
+  assert(worker?.schedule === "rate(5 minutes)" && worker.monthly_invocation_ceiling === 8760, "password-reset worker cadence model drifted");
+  const workerGbSeconds = worker.monthly_invocation_ceiling * worker.lambda_timeout_seconds * worker.lambda_memory_gib;
+  const workerCost = workerGbSeconds * Number(worker.lambda_compute_unit_price_usd)
+    + worker.monthly_invocation_ceiling / 1_000_000 * Number(worker.lambda_request_unit_price_usd_per_million)
+    + Number(worker.metrics_and_logs_ceiling_usd);
+  assert(workerGbSeconds === worker.monthly_lambda_gb_second_ceiling && workerCost <= Number(worker.worker_ceiling_usd), "password-reset worker cost ceiling drifted");
+  assert((cost.line_items ?? []).some((item) => item.service === "AWS Lambda password-reset worker" && Number(item.monthly_estimate_usd) === Number(worker.worker_ceiling_usd)), "password-reset worker line item is missing");
+  const fixedBaseline = Number(cost.subtotal_monthly_usd) - Number(envelope.all_variable_services_ceiling_usd);
+  assert(fixedBaseline + Number(envelope.all_variable_services_ceiling_usd) + Number(cost.contingency_monthly_usd) === Number(cost.total_monthly_estimate_usd), "enforced cost envelope does not reconcile to the total");
+  assert(PRIVATE_STAGING_EFFECTIVE_BUDGET_USD - cost.total_monthly_estimate_usd >= 0.5, "enforced cost envelope lacks minimum budget headroom");
   return Object.freeze({
     verdict: "PASS",
     subtotal_monthly_usd: cost.subtotal_monthly_usd,
