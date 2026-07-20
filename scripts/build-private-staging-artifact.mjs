@@ -28,6 +28,7 @@ import {
   validatePrivateStagingArtifactEntries,
   validatePrivateStagingSourceIdentityBoundary,
   validatePrivateStagingSourceOverrides,
+  validatePrivateStagingSyntheticIdentityManifestBinding,
   validateRdsCaBundle,
 } from "./lib/private-staging-artifact.mjs";
 
@@ -115,7 +116,9 @@ if (git("status", "--porcelain=v1", "--untracked-files=all")) throw new Error("a
 const outputDir = ensureOutsideRepository(required(option("--output-dir"), "--output-dir"));
 const syntheticIdentityPath = privateManifestPath(required(option("--synthetic-identity-manifest"), "--synthetic-identity-manifest"));
 const syntheticIdentityBytes = readFileSync(syntheticIdentityPath);
-const syntheticSources = buildPrivateStagingSyntheticSources(JSON.parse(syntheticIdentityBytes));
+const syntheticIdentityManifest = JSON.parse(syntheticIdentityBytes);
+validatePrivateStagingSyntheticIdentityManifestBinding(syntheticIdentityManifest, { sourceSha, sourceTree });
+const syntheticSources = buildPrivateStagingSyntheticSources(syntheticIdentityManifest);
 mkdirSync(outputDir, { recursive: true, mode: 0o700 });
 chmodSync(outputDir, 0o700);
 const stagingRoot = mkdtempSync(join(tmpdir(), "lawos-private-staging-artifact-"));

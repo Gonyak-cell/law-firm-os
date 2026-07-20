@@ -9,6 +9,7 @@ import {
   validatePrivateStagingArtifactEntries,
   validatePrivateStagingSourceIdentityBoundary,
   validatePrivateStagingSourceOverrides,
+  validatePrivateStagingSyntheticIdentityManifestBinding,
   validateRdsCaBundle,
 } from "../lib/private-staging-artifact.mjs";
 import { createHash } from "node:crypto";
@@ -120,6 +121,21 @@ test("artifact builder rejects unapproved or credential-bearing account manifest
   credential.accounts_approved = true;
   credential.client_secret = "forbidden";
   assert.throws(() => buildPrivateStagingSyntheticSources(credential), /forbidden credential field/u);
+});
+
+test("synthetic identity approval is bound to the exact source SHA and tree", () => {
+  const sourceSha = "a".repeat(40);
+  const sourceTree = "b".repeat(40);
+  const manifest = { source_sha: sourceSha, source_tree: sourceTree, accounts_approved: true };
+  assert.deepEqual(validatePrivateStagingSyntheticIdentityManifestBinding(manifest, { sourceSha, sourceTree }), {
+    source_sha: sourceSha,
+    source_tree: sourceTree,
+    accounts_approved: true,
+  });
+  assert.throws(
+    () => validatePrivateStagingSyntheticIdentityManifestBinding(manifest, { sourceSha: "c".repeat(40), sourceTree }),
+    /source SHA\/tree drifted/u,
+  );
 });
 
 test("artifact source overrides remove real client candidates and user role assignments", () => {

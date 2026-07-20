@@ -17,6 +17,7 @@ const SYNTHETIC_ADMIN_FINANCE_SCOPES = Object.freeze([
   "finance.audit.read",
 ]);
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
+const GIT_OID_PATTERN = /^[a-f0-9]{40}$/u;
 const REAL_IDENTITY_SOURCE_PATTERN = /@amic\.(?:kr|law)|\b(?:user|emp)_amic_[a-z0-9_]+\b/iu;
 const APPROVED_SYNTHETIC_AMIC_EMAIL_PATTERN = /\blawos-staging-[a-z0-9-]+@amic\.(?:kr|law)\b/giu;
 
@@ -102,6 +103,16 @@ export function validatePrivateStagingSourceIdentityBoundary(entries = []) {
     .map((entry) => requiredText(entry.path, "private staging source path"));
   if (violations.length) throw new Error(`private staging artifact source contains real identity markers: ${violations.slice(0, 5).join(", ")}`);
   return Object.freeze({ scanned_source_count: entries.length, real_identity_marker_count: 0 });
+}
+
+export function validatePrivateStagingSyntheticIdentityManifestBinding(manifest, { sourceSha, sourceTree } = {}) {
+  if (!GIT_OID_PATTERN.test(String(sourceSha ?? "")) || !GIT_OID_PATTERN.test(String(sourceTree ?? ""))) {
+    throw new TypeError("exact source SHA/tree binding is invalid");
+  }
+  if (manifest?.source_sha !== sourceSha || manifest?.source_tree !== sourceTree) {
+    throw new Error("synthetic identity manifest source SHA/tree drifted");
+  }
+  return Object.freeze({ source_sha: sourceSha, source_tree: sourceTree, accounts_approved: manifest.accounts_approved === true });
 }
 
 export function buildPrivateStagingSyntheticSources(manifest) {
