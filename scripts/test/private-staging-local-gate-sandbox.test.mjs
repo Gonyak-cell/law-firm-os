@@ -21,6 +21,7 @@ test("local gate children receive only the explicit nonsecret environment", () =
     }
     assert.equal(env.HOME.startsWith(root), true);
     assert.equal(env.TMPDIR.startsWith(root), true);
+    assert.equal(env.PLAYWRIGHT_BROWSERS_PATH.startsWith(root), true);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

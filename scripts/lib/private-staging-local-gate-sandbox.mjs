@@ -16,6 +16,7 @@ export const PRIVATE_STAGING_GATE_ENVIRONMENT_KEYS = Object.freeze([
   "NPM_CONFIG_OFFLINE",
   "NPM_CONFIG_UPDATE_NOTIFIER",
   "PATH",
+  "PLAYWRIGHT_BROWSERS_PATH",
   "TMPDIR",
 ]);
 
@@ -39,7 +40,8 @@ export function createPrivateStagingGateEnvironment(root) {
   const home = join(root, "home");
   const tmp = join(root, "tmp");
   const npmCache = join(root, "npm-cache");
-  for (const path of [home, tmp, npmCache]) mkdirSync(path, { recursive: true, mode: 0o700 });
+  const playwrightBrowsers = join(root, "playwright-browsers");
+  for (const path of [home, tmp, npmCache, playwrightBrowsers]) mkdirSync(path, { recursive: true, mode: 0o700 });
   const env = {
     AWS_EC2_METADATA_DISABLED: "true",
     CI: "1",
@@ -55,6 +57,7 @@ export function createPrivateStagingGateEnvironment(root) {
     NPM_CONFIG_OFFLINE: "true",
     NPM_CONFIG_UPDATE_NOTIFIER: "false",
     PATH: "/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    PLAYWRIGHT_BROWSERS_PATH: playwrightBrowsers,
     TMPDIR: tmp,
   };
   const keys = Object.keys(env).sort();

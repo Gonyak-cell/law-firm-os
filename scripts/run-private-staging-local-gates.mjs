@@ -2,7 +2,8 @@
 import { createHash } from "node:crypto";
 import { execFileSync, spawnSync } from "node:child_process";
 import { chmodSync, copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { chromium } from "playwright";
 import { privateStagingPacketSha256, validatePrivateStagingExactHeadPacket } from "./lib/private-staging-exact-head-authority.mjs";
 import { createPrivateStagingGateEnvironment, PRIVATE_STAGING_GATE_ENVIRONMENT_KEYS, privateStagingGateCommand } from "./lib/private-staging-local-gate-sandbox.mjs";
 
@@ -115,6 +116,38 @@ function testFiles(root) {
     });
 }
 
+function assertRegularDirectoryTree(root, name) {
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    const path = join(root, entry.name);
+    if (entry.isSymbolicLink() || (!entry.isDirectory() && !entry.isFile())) throw new Error(`${name} contains an unsafe entry`);
+    if (entry.isDirectory()) assertRegularDirectoryTree(path, name);
+  }
+}
+
+function stagePlaywrightHeadlessShell(root) {
+  const executablePath = realpathSync(chromium.executablePath());
+  let revisionDirectory = dirname(executablePath);
+  while (dirname(revisionDirectory) !== revisionDirectory && !/^chromium-\d+$/u.test(basename(revisionDirectory))) {
+    revisionDirectory = dirname(revisionDirectory);
+  }
+  const revision = basename(revisionDirectory).match(/^chromium-(\d+)$/u)?.[1];
+  if (!revision) throw new Error("installed Playwright Chromium revision is unavailable");
+  const source = join(dirname(revisionDirectory), `chromium_headless_shell-${revision}`);
+  if (!existsSync(source) || lstatSync(source).isSymbolicLink() || !statSync(source).isDirectory()) {
+    throw new Error("exact Playwright headless shell is unavailable");
+  }
+  assertRegularDirectoryTree(source, "installed Playwright headless shell");
+  const destinationRoot = join(root, "playwright-browsers");
+  mkdirSync(destinationRoot, { recursive: true, mode: 0o700 });
+  chmodSync(destinationRoot, 0o700);
+  execFileSync("cp", ["-cR", source, destinationRoot], { cwd: root, stdio: "ignore" });
+  const destination = join(destinationRoot, basename(source));
+  if (!existsSync(destination) || lstatSync(destination).isSymbolicLink() || !statSync(destination).isDirectory()) {
+    throw new Error("private Playwright headless shell staging failed");
+  }
+  assertRegularDirectoryTree(destination, "private Playwright headless shell");
+}
+
 const startedAt = new Date().toISOString();
 const sourceSha = git("rev-parse", "HEAD^{commit}");
 const sourceTree = git("rev-parse", "HEAD^{tree}");
@@ -167,6 +200,7 @@ const results = [];
 const worker = createIsolatedWorker(sourceSha, syntheticIdentityPath, artifactPath, artifactManifestPath);
 let critical;
 try {
+  stagePlaywrightHeadlessShell(worker.root);
   const gate = (id, command, args, timeoutMs) => runGate(id, command, args, {
     cwd: worker.repository,
     env: worker.environment,
@@ -189,7 +223,7 @@ try {
   results.push(gate("repository-package-dependencies", "npm", ["ls", "--all"]));
   results.push(gate("repository-package-suite", "npm", ["test"], 60 * 60 * 1000));
   results.push(gate("api-suite", "node", ["--test", "--test-concurrency=1", ...apiTests], 45 * 60 * 1000));
-  const webUi = gate("web-ui-suite", "node", ["--test", "--test-concurrency=1", ...webTests]);
+  const webUi = gate("web-ui-suite", "node", ["--test", "--test-force-exit", "--test-concurrency=1", ...webTests]);
   if (webUi.skipped_count !== 0) throw new Error("web UI suite contains an unexplained skip");
   results.push(webUi);
   results.push(gate("web-production-build", "npm", ["run", "build"]));
