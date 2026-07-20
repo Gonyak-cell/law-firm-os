@@ -26,6 +26,22 @@
       "Type": "String",
       "AllowedPattern": "^[0-9a-f]{64}$"
     },
+    "BootstrapApprovalId": {
+      "Type": "String",
+      "AllowedPattern": "^[A-Za-z0-9._:@/+=-]{16,256}$"
+    },
+    "Cut005ApprovalId": {
+      "Type": "String",
+      "AllowedPattern": "^[A-Za-z0-9._:@/+=-]{16,256}$"
+    },
+    "Cut006ApprovalId": {
+      "Type": "String",
+      "AllowedPattern": "^[A-Za-z0-9._:@/+=-]{16,256}$"
+    },
+    "Cut007ApprovalId": {
+      "Type": "String",
+      "AllowedPattern": "^[A-Za-z0-9._:@/+=-]{16,256}$"
+    },
     "Owner": {
       "Type": "String",
       "Default": "law-firm-os-owner",
@@ -45,11 +61,28 @@
       "Type": "String",
       "Default": "https://lawos-private-staging.invalid"
     },
+    "PasswordResetSesIdentityArn": {
+      "Type": "String",
+      "AllowedPattern": "^arn:[a-z0-9-]+:ses:ap-northeast-2:[0-9]{12}:identity/.+$",
+      "Description": "Verified SES identity allowed to send synthetic-only staging password setup messages"
+    },
+    "PasswordResetFromEmail": {
+      "Type": "String",
+      "NoEcho": true,
+      "AllowedPattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+      "Description": "Verified sender address under PasswordResetSesIdentityArn"
+    },
     "EnableLambdaEniBootstrap": {
       "Type": "String",
       "Default": "false",
       "AllowedValues": ["true", "false"],
       "Description": "Requires a separate narrow owner approval. Set true only while VPC ENIs are initially attached; update to false immediately afterward."
+    },
+    "RuntimeGeneration": {
+      "Type": "String",
+      "Default": "initial-source",
+      "AllowedPattern": "^[a-z0-9-]{8,64}$",
+      "Description": "Exact-head controlled generation marker used to force and verify fresh Lambda execution environments."
     }
   },
   "Conditions": {
@@ -61,7 +94,6 @@
     "Network": {
       "Cidrs": {
         "Vpc": "10.96.0.0/16",
-        "PublicA": "10.96.0.0/24",
         "AppA": "10.96.10.0/24",
         "AppB": "10.96.11.0/24",
         "DbA": "10.96.20.0/24",
@@ -79,43 +111,6 @@
         "InstanceTenancy": "default",
         "Tags": [
           { "Key": "Name", "Value": "lawos-private-staging" },
-          { "Key": "environment", "Value": "lawos-staging" },
-          { "Key": "system", "Value": "lawos" },
-          { "Key": "owner", "Value": { "Ref": "Owner" } },
-          { "Key": "review", "Value": { "Ref": "ReviewDate" } },
-          { "Key": "expiration", "Value": { "Ref": "ExpirationDate" } }
-        ]
-      }
-    },
-    "InternetGateway": {
-      "Type": "AWS::EC2::InternetGateway",
-      "Properties": {
-        "Tags": [
-          { "Key": "Name", "Value": "lawos-private-staging-egress" },
-          { "Key": "environment", "Value": "lawos-staging" },
-          { "Key": "system", "Value": "lawos" },
-          { "Key": "owner", "Value": { "Ref": "Owner" } },
-          { "Key": "review", "Value": { "Ref": "ReviewDate" } },
-          { "Key": "expiration", "Value": { "Ref": "ExpirationDate" } }
-        ]
-      }
-    },
-    "InternetGatewayAttachment": {
-      "Type": "AWS::EC2::VPCGatewayAttachment",
-      "Properties": {
-        "InternetGatewayId": { "Ref": "InternetGateway" },
-        "VpcId": { "Ref": "Vpc" }
-      }
-    },
-    "PublicSubnetA": {
-      "Type": "AWS::EC2::Subnet",
-      "Properties": {
-        "AvailabilityZone": { "Fn::Select": [0, { "Fn::GetAZs": "" }] },
-        "CidrBlock": { "Fn::FindInMap": ["Network", "Cidrs", "PublicA"] },
-        "MapPublicIpOnLaunch": false,
-        "VpcId": { "Ref": "Vpc" },
-        "Tags": [
-          { "Key": "Name", "Value": "lawos-private-staging-egress-a" },
           { "Key": "environment", "Value": "lawos-staging" },
           { "Key": "system", "Value": "lawos" },
           { "Key": "owner", "Value": { "Ref": "Owner" } },
@@ -192,67 +187,6 @@
         ]
       }
     },
-    "PublicRouteTable": {
-      "Type": "AWS::EC2::RouteTable",
-      "Properties": {
-        "VpcId": { "Ref": "Vpc" },
-        "Tags": [
-          { "Key": "Name", "Value": "lawos-private-staging-public" },
-          { "Key": "environment", "Value": "lawos-staging" },
-          { "Key": "system", "Value": "lawos" },
-          { "Key": "owner", "Value": { "Ref": "Owner" } },
-          { "Key": "review", "Value": { "Ref": "ReviewDate" } },
-          { "Key": "expiration", "Value": { "Ref": "ExpirationDate" } }
-        ]
-      }
-    },
-    "PublicDefaultRoute": {
-      "Type": "AWS::EC2::Route",
-      "DependsOn": "InternetGatewayAttachment",
-      "Properties": {
-        "DestinationCidrBlock": "0.0.0.0/0",
-        "GatewayId": { "Ref": "InternetGateway" },
-        "RouteTableId": { "Ref": "PublicRouteTable" }
-      }
-    },
-    "PublicRouteTableAssociationA": {
-      "Type": "AWS::EC2::SubnetRouteTableAssociation",
-      "Properties": {
-        "RouteTableId": { "Ref": "PublicRouteTable" },
-        "SubnetId": { "Ref": "PublicSubnetA" }
-      }
-    },
-    "NatEip": {
-      "Type": "AWS::EC2::EIP",
-      "DependsOn": "InternetGatewayAttachment",
-      "Properties": {
-        "Domain": "vpc",
-        "Tags": [
-          { "Key": "Name", "Value": "lawos-private-staging-nat" },
-          { "Key": "environment", "Value": "lawos-staging" },
-          { "Key": "system", "Value": "lawos" },
-          { "Key": "owner", "Value": { "Ref": "Owner" } },
-          { "Key": "review", "Value": { "Ref": "ReviewDate" } },
-          { "Key": "expiration", "Value": { "Ref": "ExpirationDate" } }
-        ]
-      }
-    },
-    "NatGateway": {
-      "Type": "AWS::EC2::NatGateway",
-      "Properties": {
-        "AllocationId": { "Fn::GetAtt": ["NatEip", "AllocationId"] },
-        "ConnectivityType": "public",
-        "SubnetId": { "Ref": "PublicSubnetA" },
-        "Tags": [
-          { "Key": "Name", "Value": "lawos-private-staging-nat" },
-          { "Key": "environment", "Value": "lawos-staging" },
-          { "Key": "system", "Value": "lawos" },
-          { "Key": "owner", "Value": { "Ref": "Owner" } },
-          { "Key": "review", "Value": { "Ref": "ReviewDate" } },
-          { "Key": "expiration", "Value": { "Ref": "ExpirationDate" } }
-        ]
-      }
-    },
     "AppRouteTableA": {
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
@@ -279,22 +213,6 @@
           { "Key": "review", "Value": { "Ref": "ReviewDate" } },
           { "Key": "expiration", "Value": { "Ref": "ExpirationDate" } }
         ]
-      }
-    },
-    "AppDefaultRouteA": {
-      "Type": "AWS::EC2::Route",
-      "Properties": {
-        "DestinationCidrBlock": "0.0.0.0/0",
-        "NatGatewayId": { "Ref": "NatGateway" },
-        "RouteTableId": { "Ref": "AppRouteTableA" }
-      }
-    },
-    "AppDefaultRouteB": {
-      "Type": "AWS::EC2::Route",
-      "Properties": {
-        "DestinationCidrBlock": "0.0.0.0/0",
-        "NatGatewayId": { "Ref": "NatGateway" },
-        "RouteTableId": { "Ref": "AppRouteTableB" }
       }
     },
     "AppRouteTableAssociationA": {
@@ -356,6 +274,21 @@
     "S3GatewayEndpoint": {
       "Type": "AWS::EC2::VPCEndpoint",
       "Properties": {
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "ExactStagingDmsBucketOnly",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": ["s3:DeleteObject", "s3:DeleteObjectVersion", "s3:GetBucketLocation", "s3:GetBucketObjectLockConfiguration", "s3:GetBucketVersioning", "s3:GetObject", "s3:GetObjectLegalHold", "s3:GetObjectRetention", "s3:GetObjectVersion", "s3:ListBucket", "s3:ListBucketVersions", "s3:PutObject", "s3:PutObjectLegalHold", "s3:PutObjectRetention"],
+              "Resource": [
+                { "Fn::GetAtt": ["DmsBucket", "Arn"] },
+                { "Fn::Sub": "${DmsBucket.Arn}/lawos-dms/*" }
+              ]
+            }
+          ]
+        },
         "RouteTableIds": [{ "Ref": "AppRouteTableA" }, { "Ref": "AppRouteTableB" }],
         "ServiceName": { "Fn::Sub": "com.amazonaws.${AWS::Region}.s3" },
         "Tags": [
@@ -370,20 +303,120 @@
         "VpcId": { "Ref": "Vpc" }
       }
     },
+    "ServiceEndpointSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "LawOS private staging AWS service endpoints",
+        "GroupName": "lawos-private-staging-service-endpoints",
+        "SecurityGroupEgress": [],
+        "VpcId": { "Ref": "Vpc" },
+        "Tags": [
+          { "Key": "Name", "Value": "lawos-private-staging-service-endpoints" },
+          { "Key": "environment", "Value": "lawos-staging" },
+          { "Key": "system", "Value": "lawos" },
+          { "Key": "owner", "Value": { "Ref": "Owner" } },
+          { "Key": "review", "Value": { "Ref": "ReviewDate" } },
+          { "Key": "expiration", "Value": { "Ref": "ExpirationDate" } }
+        ]
+      }
+    },
+    "ServiceEndpointIngressFromLambda": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "Description": "TLS only from LawOS staging Lambda",
+        "FromPort": 443,
+        "GroupId": { "Fn::GetAtt": ["ServiceEndpointSecurityGroup", "GroupId"] },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": { "Fn::GetAtt": ["LambdaSecurityGroup", "GroupId"] },
+        "ToPort": 443
+      }
+    },
+    "SecretsManagerEndpoint": {
+      "Type": "AWS::EC2::VPCEndpoint",
+      "Properties": {
+        "PrivateDnsEnabled": true,
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "ApiReadsExactRuntimeSecrets",
+              "Effect": "Allow",
+              "Principal": { "AWS": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+              "Action": "secretsmanager:GetSecretValue",
+              "Resource": [
+                { "Ref": "ApplicationDatabaseSecret" },
+                { "Ref": "TenantContextSecret" },
+                { "Ref": "SessionSecret" },
+                { "Ref": "PayrollArtifactSecret" },
+                { "Ref": "ProviderCredentialReferenceSecret" }
+              ]
+            },
+            {
+              "Sid": "AdminBootstrapsExactSecrets",
+              "Effect": "Allow",
+              "Principal": { "AWS": { "Fn::GetAtt": ["AdminExecutionRole", "Arn"] } },
+              "Action": ["secretsmanager:GetSecretValue", "secretsmanager:PutSecretValue"],
+              "Resource": [
+                { "Fn::GetAtt": ["Database", "MasterUserSecret.SecretArn"] },
+                { "Ref": "ApplicationDatabaseSecret" },
+                { "Ref": "TenantContextSecret" },
+                { "Ref": "SyntheticManifestSecret" }
+              ]
+            }
+          ]
+        },
+        "SecurityGroupIds": [{ "Fn::GetAtt": ["ServiceEndpointSecurityGroup", "GroupId"] }],
+        "ServiceName": { "Fn::Sub": "com.amazonaws.${AWS::Region}.secretsmanager" },
+        "SubnetIds": [{ "Ref": "AppSubnetA" }, { "Ref": "AppSubnetB" }],
+        "Tags": [
+          { "Key": "Name", "Value": "lawos-private-staging-secretsmanager" },
+          { "Key": "environment", "Value": "lawos-staging" },
+          { "Key": "system", "Value": "lawos" },
+          { "Key": "owner", "Value": { "Ref": "Owner" } },
+          { "Key": "review", "Value": { "Ref": "ReviewDate" } },
+          { "Key": "expiration", "Value": { "Ref": "ExpirationDate" } }
+        ],
+        "VpcEndpointType": "Interface",
+        "VpcId": { "Ref": "Vpc" }
+      }
+    },
+    "SesApiEndpoint": {
+      "Type": "AWS::EC2::VPCEndpoint",
+      "Properties": {
+        "PrivateDnsEnabled": true,
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "SyntheticPasswordSetupOnly",
+              "Effect": "Allow",
+              "Principal": { "AWS": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+              "Action": ["ses:SendEmail", "ses:SendRawEmail"],
+              "Resource": { "Ref": "PasswordResetSesIdentityArn" }
+            }
+          ]
+        },
+        "SecurityGroupIds": [{ "Fn::GetAtt": ["ServiceEndpointSecurityGroup", "GroupId"] }],
+        "ServiceName": { "Fn::Sub": "com.amazonaws.${AWS::Region}.email" },
+        "SubnetIds": [{ "Ref": "AppSubnetA" }, { "Ref": "AppSubnetB" }],
+        "Tags": [
+          { "Key": "Name", "Value": "lawos-private-staging-ses-api" },
+          { "Key": "environment", "Value": "lawos-staging" },
+          { "Key": "system", "Value": "lawos" },
+          { "Key": "owner", "Value": { "Ref": "Owner" } },
+          { "Key": "review", "Value": { "Ref": "ReviewDate" } },
+          { "Key": "expiration", "Value": { "Ref": "ExpirationDate" } }
+        ],
+        "VpcEndpointType": "Interface",
+        "VpcId": { "Ref": "Vpc" }
+      }
+    },
     "LambdaSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "GroupDescription": "LawOS private staging Lambda egress",
         "GroupName": "lawos-private-staging-lambda",
-        "SecurityGroupEgress": [
-          {
-            "Description": "TLS egress to Entra and AWS public endpoints through staging NAT",
-            "IpProtocol": "tcp",
-            "FromPort": 443,
-            "ToPort": 443,
-            "CidrIp": "0.0.0.0/0"
-          }
-        ],
+        "SecurityGroupEgress": [],
         "VpcId": { "Ref": "Vpc" },
         "Tags": [
           { "Key": "Name", "Value": "lawos-private-staging-lambda" },
@@ -432,6 +465,17 @@
         "GroupId": { "Fn::GetAtt": ["LambdaSecurityGroup", "GroupId"] },
         "IpProtocol": "tcp",
         "ToPort": 5432
+      }
+    },
+    "LambdaEgressToServiceEndpoints": {
+      "Type": "AWS::EC2::SecurityGroupEgress",
+      "Properties": {
+        "Description": "TLS only to LawOS staging AWS service endpoints",
+        "DestinationSecurityGroupId": { "Fn::GetAtt": ["ServiceEndpointSecurityGroup", "GroupId"] },
+        "FromPort": 443,
+        "GroupId": { "Fn::GetAtt": ["LambdaSecurityGroup", "GroupId"] },
+        "IpProtocol": "tcp",
+        "ToPort": 443
       }
     },
     "StagingKey": {
@@ -653,24 +697,6 @@
         ]
       }
     },
-    "EntraConfigSecret": {
-      "Type": "AWS::SecretsManager::Secret",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "Description": "LawOS staging Entra OIDC configuration populated after tenant pilot creation",
-        "KmsKeyId": { "Fn::GetAtt": ["StagingKey", "Arn"] },
-        "Name": "/lawos/private-staging/entra/oidc",
-        "SecretString": "{\"configuration_state\":\"pending_entra_pilot\"}",
-        "Tags": [
-          { "Key": "environment", "Value": "lawos-staging" },
-          { "Key": "system", "Value": "lawos" },
-          { "Key": "owner", "Value": { "Ref": "Owner" } },
-          { "Key": "review", "Value": { "Ref": "ReviewDate" } },
-          { "Key": "expiration", "Value": { "Ref": "ExpirationDate" } }
-        ]
-      }
-    },
     "ProviderCredentialReferenceSecret": {
       "Type": "AWS::SecretsManager::Secret",
       "DeletionPolicy": "Retain",
@@ -697,7 +723,7 @@
         "Description": "Approved synthetic-only tenant inventory for LawOS private staging",
         "KmsKeyId": { "Fn::GetAtt": ["StagingKey", "Arn"] },
         "Name": "/lawos/private-staging/synthetic/manifest",
-        "SecretString": "{\"schema_version\":\"law-firm-os.synthetic-staging-manifest.v1\",\"data_scope\":\"synthetic-only\",\"tenant_ids\":[\"tenant_lawos_staging_a\",\"tenant_lawos_staging_b\"],\"real_data_allowed\":false}",
+        "SecretString": "{\"schema_version\":\"law-firm-os.synthetic-staging-manifest.v2\",\"data_scope\":\"synthetic-only\",\"tenant_ids\":[\"tenant_lawos_staging_cut005_a\",\"tenant_lawos_staging_cut005_b\",\"tenant_lawos_staging_cut006_a\",\"tenant_lawos_staging_cut006_b\",\"tenant_lawos_staging_cut007_a\",\"tenant_lawos_staging_cut007_b\"],\"purpose_tenants\":{\"cut005\":[\"tenant_lawos_staging_cut005_a\",\"tenant_lawos_staging_cut005_b\"],\"cut006\":[\"tenant_lawos_staging_cut006_a\",\"tenant_lawos_staging_cut006_b\"],\"cut007\":[\"tenant_lawos_staging_cut007_a\",\"tenant_lawos_staging_cut007_b\"]},\"real_data_allowed\":false}",
         "Tags": [
           { "Key": "environment", "Value": "lawos-staging" },
           { "Key": "system", "Value": "lawos" },
@@ -850,9 +876,14 @@
                     { "Ref": "TenantContextSecret" },
                     { "Ref": "SessionSecret" },
                     { "Ref": "PayrollArtifactSecret" },
-                    { "Ref": "EntraConfigSecret" },
                     { "Ref": "ProviderCredentialReferenceSecret" }
                   ]
+                },
+                {
+                  "Sid": "SendSyntheticPasswordSetupEmail",
+                  "Effect": "Allow",
+                  "Action": ["ses:SendEmail", "ses:SendRawEmail"],
+                  "Resource": { "Ref": "PasswordResetSesIdentityArn" }
                 },
                 {
                   "Sid": "UseExactStagingKey",
@@ -999,13 +1030,24 @@
             "LAWOS_DMS_S3_OBJECT_LOCK_ENABLED": "true",
             "LAWOS_DMS_S3_PREFIX": "lawos-dms",
             "LAWOS_DMS_S3_REGION": { "Ref": "AWS::Region" },
-            "LAWOS_ENTRA_OIDC_CONFIG_SECRET_ID": { "Ref": "EntraConfigSecret" },
+            "LAWOS_AUTH_PASSWORD_RESET_BASE_URL": { "Fn::Sub": "${HttpApi.ApiEndpoint}/api/auth/password-reset/confirm" },
+            "LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY": "sesv2",
+            "LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM": { "Ref": "PasswordResetFromEmail" },
+            "LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM_NAME": "Matter OS",
+            "LAWOS_AUTH_PASSWORD_RESET_EMAIL_REGION": { "Ref": "AWS::Region" },
+            "LAWOS_AUTH_PASSWORD_RESET_OPEN_BASE_URL": { "Fn::Sub": "${HttpApi.ApiEndpoint}/api/auth/password-reset/open" },
+            "LAWOS_AUTH_PASSWORD_RESET_TTL_MS": "60000",
+            "LAWOS_API_LOGIN_LOCK_MS": "60000",
+            "LAWOS_API_MAX_FAILED_LOGINS": "5",
             "LAWOS_PAYROLL_ARTIFACT_KEY_SECRET_ID": { "Ref": "PayrollArtifactSecret" },
             "LAWOS_PERSISTENCE_AUTHORITY": "postgres-v2",
             "LAWOS_POSTGRES_SSL_MODE": "verify-full",
             "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID": { "Ref": "TenantContextSecret" },
             "LAWOS_POSTGRES_URL_SECRET_ID": { "Ref": "ApplicationDatabaseSecret" },
             "LAWOS_RUNTIME_PROFILE": "operational",
+            "LAWOS_RUNTIME_GENERATION": { "Ref": "RuntimeGeneration" },
+            "LAWOS_DATA_SCOPE": "synthetic-only",
+            "LAWOS_STAFF_AUTHORITY": "internal-password",
             "NODE_EXTRA_CA_CERTS": "/var/task/certs/global-bundle.pem"
           }
         },
@@ -1047,11 +1089,18 @@
             "LAWOS_DEPLOYMENT_ARTIFACT_SHA256": { "Ref": "ArtifactSha256" },
             "LAWOS_DEPLOYMENT_COMMIT": { "Ref": "SourceSha" },
             "LAWOS_DEPLOYMENT_TREE": { "Ref": "SourceTree" },
+            "LAWOS_BOOTSTRAP_APPROVAL_ID": { "Ref": "BootstrapApprovalId" },
+            "LAWOS_CUT005_APPROVAL_ID": { "Ref": "Cut005ApprovalId" },
+            "LAWOS_CUT006_APPROVAL_ID": { "Ref": "Cut006ApprovalId" },
+            "LAWOS_CUT007_APPROVAL_ID": { "Ref": "Cut007ApprovalId" },
             "LAWOS_MASTER_DATABASE_SECRET_ID": { "Fn::GetAtt": ["Database", "MasterUserSecret.SecretArn"] },
             "LAWOS_OWNER_INSTRUCTION_SHA256": { "Ref": "OwnerInstructionSha256" },
+            "LAWOS_PERSISTENCE_AUTHORITY": "postgres-v2",
             "LAWOS_POSTGRES_SSL_MODE": "verify-full",
             "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID": { "Ref": "TenantContextSecret" },
             "LAWOS_RUNTIME_PROFILE": "operational",
+            "LAWOS_RUNTIME_GENERATION": { "Ref": "RuntimeGeneration" },
+            "LAWOS_STAFF_AUTHORITY": "internal-password",
             "LAWOS_SYNTHETIC_MANIFEST_SECRET_ID": { "Ref": "SyntheticManifestSecret" },
             "NODE_EXTRA_CA_CERTS": "/var/task/certs/global-bundle.pem"
           }
@@ -1081,7 +1130,7 @@
     "HttpApi": {
       "Type": "AWS::ApiGatewayV2::Api",
       "Properties": {
-        "Description": "LawOS private staging API; application Entra/session authorization is mandatory",
+        "Description": "LawOS private staging API; internal password/session authorization is mandatory",
         "DisableExecuteApiEndpoint": false,
         "Name": "lawos-private-staging",
         "ProtocolType": "HTTP",
@@ -1143,6 +1192,74 @@
         "SourceArn": { "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*" }
       }
     },
+    "CostAlertTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "DisplayName": "LawOS private staging cost alerts",
+        "TopicName": "lawos-private-staging-cost-alerts",
+        "Tags": [
+          { "Key": "environment", "Value": "lawos-staging" },
+          { "Key": "system", "Value": "lawos" },
+          { "Key": "owner", "Value": { "Ref": "Owner" } },
+          { "Key": "review", "Value": { "Ref": "ReviewDate" } },
+          { "Key": "expiration", "Value": { "Ref": "ExpirationDate" } }
+        ]
+      }
+    },
+    "CostAlertTopicPolicy": {
+      "Type": "AWS::SNS::TopicPolicy",
+      "Properties": {
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "BudgetPublishesOnly",
+              "Effect": "Allow",
+              "Principal": { "Service": "budgets.amazonaws.com" },
+              "Action": "sns:Publish",
+              "Resource": { "Ref": "CostAlertTopic" },
+              "Condition": {
+                "ArnLike": { "aws:SourceArn": { "Fn::Sub": "arn:${AWS::Partition}:budgets::${AWS::AccountId}:*" } },
+                "StringEquals": { "aws:SourceAccount": { "Ref": "AWS::AccountId" } }
+              }
+            }
+          ]
+        },
+        "Topics": [{ "Ref": "CostAlertTopic" }]
+      }
+    },
+    "MonthlyCostBudget": {
+      "Type": "AWS::Budgets::Budget",
+      "Properties": {
+        "Budget": {
+          "BudgetLimit": { "Amount": 100, "Unit": "USD" },
+          "BudgetName": "lawos-private-staging-monthly",
+          "BudgetType": "COST",
+          "CostFilters": { "TagKeyValue": ["user:environment$lawos-staging"] },
+          "TimeUnit": "MONTHLY"
+        },
+        "NotificationsWithSubscribers": [
+          {
+            "Notification": {
+              "ComparisonOperator": "GREATER_THAN",
+              "NotificationType": "ACTUAL",
+              "Threshold": 80,
+              "ThresholdType": "PERCENTAGE"
+            },
+            "Subscribers": [{ "Address": { "Ref": "CostAlertTopic" }, "SubscriptionType": "SNS" }]
+          },
+          {
+            "Notification": {
+              "ComparisonOperator": "GREATER_THAN",
+              "NotificationType": "FORECASTED",
+              "Threshold": 100,
+              "ThresholdType": "PERCENTAGE"
+            },
+            "Subscribers": [{ "Address": { "Ref": "CostAlertTopic" }, "SubscriptionType": "SNS" }]
+          }
+        ]
+      }
+    },
     "ApiErrorAlarm": {
       "Type": "AWS::CloudWatch::Alarm",
       "Properties": {
@@ -1198,7 +1315,6 @@
     "ApplicationDatabaseSecretArn": { "Value": { "Ref": "ApplicationDatabaseSecret" } },
     "DatabaseEndpoint": { "Value": { "Fn::GetAtt": ["Database", "Endpoint.Address"] } },
     "DmsBucketName": { "Value": { "Ref": "DmsBucket" } },
-    "EntraConfigSecretArn": { "Value": { "Ref": "EntraConfigSecret" } },
     "StagingKmsKeyArn": { "Value": { "Fn::GetAtt": ["StagingKey", "Arn"] } },
     "VpcId": { "Value": { "Ref": "Vpc" } }
   }

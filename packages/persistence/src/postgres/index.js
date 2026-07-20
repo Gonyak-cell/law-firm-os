@@ -5,3 +5,5 @@ export * from "./migration-catalog.js";
 export * from "./migration-runner.js";
 export * from "./repository-v2.js";
 export * from "./domain-ledger.js";
+export * from "./json-postgres-migration.js";
+export * from "./source-inventory.js";

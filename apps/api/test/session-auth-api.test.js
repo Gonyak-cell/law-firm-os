@@ -66,6 +66,21 @@ function userByEmail(email) {
   return account;
 }
 
+async function provisionDirectoryAccount(ledger, account, tenantId = MATTER_VAULT_REGISTERED_TENANT_ID) {
+  const assignment = resolveLawosUserRoleAssignment(account, { tenantId });
+  return ledger.provisionDirectoryUser({
+    tenant_id: tenantId,
+    user: account,
+    membership: {
+      ...assignment.tenant_membership,
+      role_profile_id: assignment.role_profile_id,
+      hrx_scopes: assignment.hrx_scopes,
+      source_ref: assignment.source_ref,
+    },
+    actor_id: "synthetic-test-provisioner",
+  });
+}
+
 function disabledProductionUser() {
   const account = MATTER_VAULT_USER_REGISTRATION_SEED.users.find((candidate) => (
     candidate.status === "disabled" ||
@@ -165,7 +180,7 @@ test("Auth descriptor exposes the Wave-1 API session surface", async () => {
     assert.match(authContext.login_protection_contract_ref, /#UPL-A-14$/);
     assert.equal(authContext.max_failed_logins_before_lock, 5);
     assert.equal(authContext.lock_response_status, 423);
-    assert.equal(authContext.operational_auth_provider, "microsoft-entra-oidc");
+    assert.equal(authContext.operational_auth_provider, LAWOS_INTERNAL_PASSWORD_PROVIDER_ID);
   });
 });
 
@@ -435,9 +450,18 @@ test("Operational password reset uses email delivery, hash-only tokens, and one-
     });
     assert.equal(requested.status, 200);
     assert.equal(requested.body.outcome, "accepted");
-    assert.equal(requested.body.email_delivery.status, "sent");
+    assert.equal(requested.body.email_delivery.status, "accepted");
     assert.equal(requested.body.email_delivery.token_material_returned, false);
     assert.equal(requested.body.email_delivery.reset_url_returned, false);
+    const unknown = await json(baseUrl, "/api/auth/password-reset/request", {
+      method: "POST",
+      body: { email: "unknown-staff@example.invalid" },
+    });
+    assert.equal(unknown.status, requested.status);
+    assert.deepEqual(
+      { outcome: unknown.body.outcome, ok: unknown.body.ok, accepted: unknown.body.accepted, email_delivery: unknown.body.email_delivery },
+      { outcome: requested.body.outcome, ok: requested.body.ok, accepted: requested.body.accepted, email_delivery: requested.body.email_delivery },
+    );
     assert.equal(delivered?.to, account.email);
     assert.ok(delivered?.token);
     assert.equal(JSON.stringify(requested.body).includes(delivered.token), false);
@@ -483,7 +507,7 @@ test("Operational password reset uses email delivery, hash-only tokens, and one-
 
 });
 
-test("Operational password reset rejects production-disabled QA accounts", async () => {
+test("Operational password reset hides production-disabled QA account state", async () => {
   const account = disabledProductionUser();
   const password = "qa-disabled-password";
   let deliveryCalled = false;
@@ -503,8 +527,9 @@ test("Operational password reset rejects production-disabled QA accounts", async
       method: "POST",
       body: { email: account.email },
     });
-    assert.equal(reset.status, 403);
-    assert.deepEqual(reset.body.safe_error_codes, ["AUTH_ACCOUNT_DISABLED"]);
+    assert.equal(reset.status, 200);
+    assert.equal(reset.body.outcome, "accepted");
+    assert.equal(reset.body.email_delivery.status, "accepted");
     assert.equal(deliveryCalled, false);
 
     const loginRejected = await json(baseUrl, "/api/auth/login", {
@@ -532,8 +557,8 @@ test("Operational password reset delivery failure does not force reset-required 
         method: "POST",
         body: { email: account.email },
       });
-      assert.equal(reset.status, 502);
-      assert.equal(reset.body.email_delivery.status, "failed");
+      assert.equal(reset.status, 200);
+      assert.equal(reset.body.email_delivery.status, "accepted");
 
       const stillValid = await json(baseUrl, "/api/auth/login", {
         method: "POST",
@@ -577,8 +602,8 @@ test("Operational password reset delivery exception does not expose exception te
       method: "POST",
       body: { email: account.email },
     });
-    assert.equal(reset.status, 502);
-    assert.equal(reset.body.email_delivery.status, "failed");
+    assert.equal(reset.status, 200);
+    assert.equal(reset.body.email_delivery.status, "accepted");
     assert.equal(JSON.stringify(reset.body).includes("network failure"), false);
 
     const stillValid = await json(baseUrl, "/api/auth/login", {
@@ -658,6 +683,7 @@ test("PostgreSQL identity auth persists reset, step-up, logout, and break-glass 
   const rejectedProof = "provider-proof-rejected";
   let delivered = null;
   const ledger = createPostgresIdentityLedger({ pool: fixture.appPool, clock: () => now });
+  await provisionDirectoryAccount(ledger, account, tenantId);
   await ledger.setCredential({
     tenant_id: tenantId,
     user: account,

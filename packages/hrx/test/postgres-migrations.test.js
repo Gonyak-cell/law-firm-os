@@ -11,16 +11,16 @@ import {
 } from "../src/postgres-migrations.js";
 import { HRX_APPEND_ONLY_TABLES, HRX_STORE_TABLES } from "../src/store/file-store.js";
 
-test("HRX migration inventory classifies all 31 SQLite sources and translates every abort trigger", () => {
+test("HRX migration inventory classifies all 32 SQLite sources and translates every abort trigger", () => {
   const inventory = classifyHrxPostgresMigrationGaps();
-  assert.equal(inventory.migration_count, 31);
+  assert.equal(inventory.migration_count, 32);
   assert.equal(inventory.table_count, 77);
-  assert.equal(inventory.compatible_count + inventory.translated_trigger_migration_count, 31);
+  assert.equal(inventory.compatible_count + inventory.translated_trigger_migration_count, 32);
   assert.equal(inventory.translated_trigger_count, 14);
   assert.equal(inventory.rows.every((row) => row.translated_sql_ready), true);
   assert.equal(inventory.rows.every((row) => row.destructive_statement_count === 0), true);
-  assert.equal(listHrxPostgresMigrations().length, 34);
-  assert.equal(new Set(listHrxPostgresMigrations().map((migration) => migration.id)).size, 34);
+  assert.equal(listHrxPostgresMigrations().length, 35);
+  assert.equal(new Set(listHrxPostgresMigrations().map((migration) => migration.id)).size, 35);
 });
 
 test("HRX PostgreSQL migrations pass fresh, upgrade, RLS, checksum and recovery contracts", async (t) => {

@@ -5,6 +5,7 @@ import {
   hashDomainValue,
 } from "../../persistence/src/domain-ledger.js";
 import {
+  applyCommittedStateVersions,
   compareDomainSnapshotWithLedgerReadback,
   flushDomainSnapshotToScopedLedger,
 } from "../../persistence/src/record-domain-adapter.js";
@@ -331,7 +332,10 @@ export function assertHrxPostgresAuthorityReady({ store, tenant_id } = {}) {
     hash: migration.hash,
   })).sort((left, right) => left.id.localeCompare(right.id));
   const baseline = materializedBaselines.get(store);
-  const source = createHrxDomainSnapshot({ store, tenant_id: tenantId }).snapshot;
+  const source = applyCommittedStateVersions(
+    createHrxDomainSnapshot({ store, tenant_id: tenantId }).snapshot,
+    baseline,
+  );
   const comparison = baseline ? compareDomainSnapshots(baseline, source) : null;
   if (hashDomainValue(actual) !== hashDomainValue(expected) || comparison?.equal !== true) {
     throw Object.assign(new Error("HRX PostgreSQL authority requires an exact pre-authority import"), {
@@ -354,8 +358,11 @@ export function getHrxMaterializedBaseline(store) {
 
 export function createHrxOperationalDomainSnapshot({ store, tenant_id, request_context } = {}) {
   const tenantId = requiredText(tenant_id, "tenant_id");
-  const base = createHrxDomainSnapshot({ store, tenant_id: tenantId }).snapshot;
   const baseline = getHrxMaterializedBaseline(store);
+  const base = applyCommittedStateVersions(
+    createHrxDomainSnapshot({ store, tenant_id: tenantId }).snapshot,
+    baseline,
+  );
   if (compareDomainSnapshots(baseline, base).equal) return base;
 
   const idempotencyKey = requiredText(request_context?.idempotency_key, "HRX request idempotency_key");

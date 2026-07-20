@@ -1,7 +1,11 @@
 import { createHash } from "node:crypto";
 
-export const IDENTITY_LEDGER_CONTRACT_VERSION = "law-firm-os.identity-ledger.v2";
+export const IDENTITY_LEDGER_CONTRACT_VERSION = "law-firm-os.identity-ledger.v3";
 export const IDENTITY_LEDGER_METHODS = Object.freeze([
+  "provisionDirectoryUser",
+  "findDirectoryUserByEmail",
+  "findDirectoryUserByUserId",
+  "listDirectoryUsers",
   "ensureAccount",
   "getAccount",
   "setCredential",

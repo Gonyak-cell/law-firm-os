@@ -20,10 +20,35 @@ test("CUT-005 imports every domain, verifies immediate no-op replay, hashes, ver
   assert.equal(first.shadow_difference_count, 0);
   assert.equal(first.state_version_one_count, 13);
   assert.equal(first.tenant_negative_visible_count, 0);
-  assert.equal(first.rejected_row_count, 0);
+  assert.equal(first.source_record_count, 19);
+  assert.equal(first.accepted_record_count, 13);
+  assert.equal(first.rejected_row_count, 7);
+  assert.deepEqual(first.rejected_reason_counts, {
+    DUPLICATE_RECORD_ID: 1,
+    FORBIDDEN_SECRET_OR_RAW_BYTES: 1,
+    INVALID_STATE_VERSION: 1,
+    MISSING_REFERENCE_TARGET: 1,
+    REQUIRED_FIELD_MISSING: 1,
+    TENANT_SCOPE_MISMATCH: 2,
+  });
+  assert.equal(first.unexpected_rejection_count, 0);
+  assert.equal(first.directory_result.source_count, 2);
+  assert.equal(first.directory_result.accepted_count, 1);
+  assert.equal(first.directory_result.rejected_count, 1);
+  assert.equal(first.directory_result.replayed_noop_count, 1);
+  assert.equal(first.directory_result.idempotency_count, 1);
+  assert.equal(first.directory_result.audit_count, 1);
+  assert.equal(first.directory_result.outbox_count, 1);
+  assert.equal(first.transactional_rollback.interrupted, true);
+  assert.equal(first.transactional_rollback.residual_item_count, 0);
+  assert.equal(first.resume_equivalence.resume_equal, true);
+  assert.equal(first.resume_equivalence.immediate_replay_noop, true);
+  assert.equal(first.resume_equivalence.completed_step_count, 14);
+  assert.equal(first.domain_results.every((domain) => domain.readback_equal === true), true);
   assert.match(first.safe_hash_summary_sha256, /^[a-f0-9]{64}$/u);
   assert.equal(first.json_fallback_count, 0);
   assert.equal(first.dual_write_count, 0);
+  assert.equal(JSON.stringify(first).includes("synthetic-forbidden-field"), false);
 
   const repeatedExecution = await runPrivateStagingCut005(input);
   assert.equal(repeatedExecution.initial_import_applied_count, 0);

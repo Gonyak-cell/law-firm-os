@@ -6,6 +6,7 @@ import {
   findRegisteredAccountByEmail,
 } from "../src/matter-vault-account-registry.js";
 import { createApiSessionAuth } from "../src/session-auth.js";
+import { resolveLawosUserRoleAssignment } from "../src/lawos-role-registry.js";
 import { createPostgresIdentityLedger } from "../../../packages/runtime-auth/src/index.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 
@@ -68,6 +69,18 @@ test("operational Entra session authority persists only verified federated ident
     },
   });
   const ledger = createPostgresIdentityLedger({ pool: fixture.appPool, clock: () => now });
+  const assignment = resolveLawosUserRoleAssignment(account, { tenantId: MATTER_VAULT_REGISTERED_TENANT_ID });
+  await ledger.provisionDirectoryUser({
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+    user: account,
+    membership: {
+      ...assignment.tenant_membership,
+      role_profile_id: assignment.role_profile_id,
+      hrx_scopes: assignment.hrx_scopes,
+      source_ref: assignment.source_ref,
+    },
+    actor_id: "synthetic-test-provisioner",
+  });
   const auth = createApiSessionAuth({
     profile: "operational",
     secret: "entra-session-test-secret-with-adequate-length",
@@ -78,9 +91,11 @@ test("operational Entra session authority persists only verified federated ident
 
   assert.deepEqual(auth.capabilities, {
     provider: provider.provider_id,
+    staff_auth_authority: "entra-oidc",
     federated_staff_auth: true,
     local_password_login: false,
     local_synthetic_login: false,
+    account_directory: "postgres-v2",
     default_totp: false,
     phishing_resistant_mfa_required: true,
   });

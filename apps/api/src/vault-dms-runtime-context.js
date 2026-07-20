@@ -28,6 +28,10 @@ export const VAULT_DMS_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/vault/documents",
     "POST /api/vault/documents",
     "GET /api/vault/documents/:document_id/download",
+    "POST /api/vault/documents/:document_id/legal-holds",
+    "POST /api/vault/documents/:document_id/retention-policies",
+    "POST /api/vault/documents/:document_id/delete-check",
+    "POST /api/vault/documents/:document_id/permanent-delete",
     "GET /api/vault/search",
     "GET /api/vault/search/preferences",
     "POST /api/vault/search/preferences",
@@ -313,11 +317,33 @@ function serializePostgresDocument(entry = {}) {
     owner_user_id: entry.version?.created_by ?? null,
     registered_account_email: null,
     registered_account: null,
-    account_linkage: Object.freeze({ status: "server_authoritative", registry: MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE }),
+    account_linkage: Object.freeze({ status: "server_authoritative", registry: "postgres-v2-account-directory" }),
     raw_path_exposed: false,
     document_bytes_included: false,
     storage_pointer_ref_included: false,
     production_ready_claim: false,
+  });
+}
+
+function postgresDirectoryAccountFromPrincipal(principal = {}) {
+  if (principal.directory_source !== "postgres-v2") return null;
+  if (!principal.user_id || !principal.email) return null;
+  return Object.freeze({
+    user_id: principal.user_id,
+    email: principal.email,
+    display_name: principal.display_name ?? principal.email,
+    english_name: principal.display_name ?? principal.email,
+    source_title: "postgres-v2-account-directory",
+    status: "active",
+    production_status: null,
+    qa_tenant_scope: null,
+    registration_state: "postgres-directory",
+    highest_privilege: false,
+    privilege_rank: null,
+    role_ids: Object.freeze([...(principal.role_ids ?? [])]),
+    group_ids: Object.freeze([...(principal.group_ids ?? [])]),
+    scopes: Object.freeze([...(principal.scopes ?? [])]),
+    tenant_ids: Object.freeze([principal.tenant_id]),
   });
 }
 
@@ -526,17 +552,19 @@ export async function handleVaultDocumentUpload({ body, context, requestId, runt
     repository: runtime.repository,
   });
   if (gated) return gated;
-  const actorAccount = resolveRegisteredAccount({
-    user_id: context?.principal?.user_id,
-    email: context?.principal?.email,
-  });
+  const actorAccount = isPostgresDmsRuntime(runtime)
+    ? postgresDirectoryAccountFromPrincipal(context?.principal)
+    : resolveRegisteredAccount({
+        user_id: context?.principal?.user_id,
+        email: context?.principal?.email,
+      });
   if (!actorAccount) {
     return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
       audit_hint_ref: query.audit_hint_ref,
       ui_state: "blocked",
     });
   }
-  const linkedAccount = registeredAccountPublicRef(actorAccount);
+  const linkedAccount = isPostgresDmsRuntime(runtime) ? actorAccount : registeredAccountPublicRef(actorAccount);
   try {
     if (isPostgresDmsRuntime(runtime)) {
       const uploadBytes = strictUploadBytes(normalizedBody);
@@ -757,6 +785,90 @@ export async function handleVaultDocumentDownload({ documentId, query, context, 
     };
   } catch {
     return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+}
+
+export async function handleVaultDocumentGovernance({ documentId, operation, body = {}, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const query = {
+    tenant_id: body.tenant_id,
+    permission_ref: body.permission_ref,
+    audit_hint_ref: body.audit_hint_ref,
+  };
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "dms:document:write",
+    resource: { resource_type: "vault_document", resource_id: documentId, matter_id: body.matter_id },
+    repository: runtime.repository,
+  });
+  if (gated) return gated;
+  if (!isPostgresDmsRuntime(runtime)) {
+    return errorResponse(409, requestId, ["DMS_POSTGRES_AUTHORITY_REQUIRED"], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+  const actorId = context?.principal?.user_id ?? context?.principal?.actor_id;
+  try {
+    let result;
+    if (operation === "legal-hold") {
+      result = await runtime.upload_runtime.placeLegalHold({
+        tenant_id: query.tenant_id,
+        document_id: documentId,
+        object_id: body.object_id,
+        legal_hold_id: body.legal_hold_id,
+        reason: body.reason,
+        created_by: actorId,
+      });
+    } else if (operation === "retention") {
+      result = await runtime.upload_runtime.setRetentionPolicy({
+        tenant_id: query.tenant_id,
+        document_id: documentId,
+        object_id: body.object_id,
+        retention_policy_id: body.retention_policy_id,
+        retain_until: body.retain_until,
+      });
+    } else if (operation === "delete-check") {
+      result = await runtime.upload_runtime.assertCommittedObjectDeleteAllowed({
+        tenant_id: query.tenant_id,
+        document_id: documentId,
+        object_id: body.object_id,
+      });
+    } else if (operation === "permanent-delete") {
+      if (body.approval_receipt != null) throw Object.assign(new Error("permanent-delete approval material is not accepted by the staging probe route"), {
+        status: 403,
+        safe_error_code: "DMS_PERMANENT_DELETE_APPROVAL_REQUIRED",
+      });
+      result = await runtime.upload_runtime.requestCommittedObjectDelete({
+        tenant_id: query.tenant_id,
+        document_id: documentId,
+        object_id: body.object_id,
+        idempotency_key: body.idempotency_key,
+        requested_by: actorId,
+      });
+    } else {
+      return errorResponse(404, requestId, [VAULT_DMS_API_ERROR_CODES.not_found], { audit_hint_ref: query.audit_hint_ref });
+    }
+    return {
+      status: result.replayed ? 200 : operation === "delete-check" ? 200 : 201,
+      body: {
+        request_id: requestId,
+        outcome: result.replayed ? "idempotent_replay" : "passed",
+        item: result,
+        idempotent_replay: result.replayed === true,
+        reason_plaintext_included: false,
+        approval_material_included: false,
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        production_ready_claim: false,
+      },
+    };
+  } catch (error) {
+    return errorResponse(Number(error?.status) || 400, requestId, [error?.safe_error_code ?? VAULT_DMS_API_ERROR_CODES.validation_error], {
       audit_hint_ref: query.audit_hint_ref,
       ui_state: "blocked",
     });
@@ -1196,6 +1308,23 @@ export async function handleVaultDmsApiRequest({
     return handleVaultDocumentDownload({
       documentId: decodeURIComponent(downloadMatch[1]),
       query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const governanceMatch = pathname.match(/^\/api\/vault\/documents\/([^/]+)\/(legal-holds|retention-policies|delete-check|permanent-delete)$/u);
+  if (governanceMatch && method === "POST") {
+    const operation = {
+      "legal-holds": "legal-hold",
+      "retention-policies": "retention",
+      "delete-check": "delete-check",
+      "permanent-delete": "permanent-delete",
+    }[governanceMatch[2]];
+    return handleVaultDocumentGovernance({
+      documentId: decodeURIComponent(governanceMatch[1]),
+      operation,
+      body,
       context,
       requestId,
       runtime,

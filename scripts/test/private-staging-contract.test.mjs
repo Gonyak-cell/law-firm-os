@@ -20,10 +20,15 @@ test("private staging infrastructure contract is isolated and cost gated", () =>
   assert.equal(result.verdict, "PASS_WITH_OWNER_DELTA_REQUIRED");
   assert.equal(result.public_rds_count, 0);
   assert.equal(result.database_default_route_count, 0);
+  assert.equal(result.internet_gateway_count, 0);
+  assert.equal(result.nat_gateway_count, 0);
+  assert.equal(result.public_subnet_count, 0);
+  assert.equal(result.interface_endpoint_count, 2);
   assert.equal(result.lambda_function_url_count, 0);
   assert.deepEqual(result.iam_wildcard_allow_sids, ["LambdaVpcEniBootstrap"]);
   assert.deepEqual(result.kms_current_key_wildcard_allow_sids, ["EnableAccountIamAuthority", "AllowRegionalCloudWatchLogsEncryption"]);
   assert.equal(result.bootstrap_default_enabled, false);
+  assert.ok(result.inline_template_byte_size > 0 && result.inline_template_byte_size <= 51_200);
 });
 
 test("artifact store contract permits only the isolated bucket and deny policy", () => {
@@ -33,8 +38,8 @@ test("artifact store contract permits only the isolated bucket and deny policy",
 test("cost estimate is below both the owner cap and stricter AWS budget", () => {
   const result = validatePrivateStagingCost(fixture("cost-estimate.json"));
   assert.equal(result.verdict, "PASS");
-  assert.equal(result.total_monthly_estimate_usd, 90);
-  assert.equal(result.total_monthly_estimate_krw, 135000);
+  assert.equal(result.total_monthly_estimate_usd, 99.27);
+  assert.equal(result.total_monthly_estimate_krw, 148905);
 });
 
 test("public RDS and database default routes are rejected", () => {
@@ -45,9 +50,33 @@ test("public RDS and database default routes are rejected", () => {
   const dbRoute = clone(fixture("template.json"));
   dbRoute.Resources.BadDatabaseDefaultRoute = {
     Type: "AWS::EC2::Route",
-    Properties: { DestinationCidrBlock: "0.0.0.0/0", RouteTableId: { Ref: "DbRouteTableA" }, GatewayId: { Ref: "InternetGateway" } },
+    Properties: { DestinationCidrBlock: "0.0.0.0/0", RouteTableId: { Ref: "DbRouteTableA" }, NatGatewayId: "nat-forbidden" },
   };
-  assert.throws(() => validatePrivateStagingTemplate(dbRoute), /database route table/u);
+  assert.throws(() => validatePrivateStagingTemplate(dbRoute), /internet default route/u);
+});
+
+test("internet gateways, NAT, Entra, and legacy persistence authority are rejected", () => {
+  const internet = clone(fixture("template.json"));
+  internet.Resources.InternetGateway = { Type: "AWS::EC2::InternetGateway", Properties: { Tags: [] } };
+  assert.throws(() => validatePrivateStagingTemplate(internet), /forbidden public or NAT networking/u);
+
+  const entra = clone(fixture("template.json"));
+  entra.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_ENTRA_OIDC_CONFIG_SECRET_ID = { Ref: "SessionSecret" };
+  assert.throws(() => validatePrivateStagingTemplate(entra), /ENTRA/u);
+
+  const jsonStore = clone(fixture("template.json"));
+  jsonStore.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_RUNTIME_STORE_PATH = "/tmp/runtime-stores";
+  assert.throws(() => validatePrivateStagingTemplate(jsonStore), /legacy persistence path/u);
+});
+
+test("private service endpoints and internal password authority are mandatory", () => {
+  const endpoint = clone(fixture("template.json"));
+  endpoint.Resources.SecretsManagerEndpoint.Properties.PrivateDnsEnabled = false;
+  assert.throws(() => validatePrivateStagingTemplate(endpoint), /private DNS/u);
+
+  const auth = clone(fixture("template.json"));
+  auth.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_STAFF_AUTHORITY = "entra-oidc";
+  assert.throws(() => validatePrivateStagingTemplate(auth), /internal-password/u);
 });
 
 test("role reuse, managed policies, and unrelated wildcard Allows are rejected", () => {

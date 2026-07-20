@@ -57,12 +57,12 @@ export const API_AUTH_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/auth/password-reset/request",
     "POST /api/auth/password-reset/confirm",
   ]),
-  roster_source: MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
+  roster_source: "runtime-selected-account-directory",
   role_registry_source: LAWOS_ROLE_REGISTRY_SOURCE,
   step_up_contract_ref: HRX_STEP_UP_TOKEN_CONTRACT_REF,
   login_protection_contract_ref: "workbook/wave1-internal-uplift-tuw-backlog-2026-07-02.md#UPL-A-14",
   runtime_persistence: "signed_session_token",
-  operational_auth_provider: "microsoft-entra-oidc",
+  operational_auth_provider: LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
   credential_store_env: LAWOS_AUTH_CREDENTIAL_STORE_ENV,
   password_reset_store_env: LAWOS_AUTH_PASSWORD_RESET_STORE_ENV,
   max_failed_logins_before_lock: 5,
@@ -261,7 +261,7 @@ function publicSession({ user, principal, expiresAt, roleAssignment }) {
     highest_privilege: account.highest_privilege,
     privilege_rank: account.privilege_rank,
     role_profile_id: roleAssignment?.role_profile_id ?? null,
-    role_registry_source: LAWOS_ROLE_REGISTRY_SOURCE,
+    role_registry_source: roleAssignment?.source_ref ?? LAWOS_ROLE_REGISTRY_SOURCE,
     role_ids: principal.role_ids,
     group_ids: principal.group_ids,
     scopes: principal.scopes,
@@ -272,7 +272,7 @@ function publicSession({ user, principal, expiresAt, roleAssignment }) {
     credential_status: principal.credential_status ?? null,
     must_change_password: principal.must_change_password === true,
     session_principal_source: "api_signed_session",
-    session_source_ref: MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
+    session_source_ref: user.directory_source ?? MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
     expires_at: expiresAt,
     token_material_returned: false,
   });
@@ -287,7 +287,7 @@ function permissionContextFromPrincipal(principal, { allowSyntheticTenantAliases
       ...principal,
       tenant_ids: tenantIds,
       session_principal_source: "api_signed_session",
-      session_source_ref: MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
+      session_source_ref: principal.directory_source ?? MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
     }),
     rules: permissionRulesFromScopes(principal.scopes),
     object_acl: Object.freeze([]),
@@ -332,6 +332,36 @@ function subjectsFromSeed(seed, { trustedTenantId = seed.tenant_id } = {}) {
       assurance_level: user.assurance_level ?? "password",
       tenant_memberships: [roleAssignment.tenant_membership],
     };
+  });
+}
+
+function resolveSessionRoleAssignment(user, { tenantId = MATTER_VAULT_REGISTERED_TENANT_ID } = {}) {
+  if (user?.directory_source !== "postgres-v2") {
+    return resolveLawosUserRoleAssignment(user, { tenantId });
+  }
+  const membership = (user.tenant_memberships ?? []).find((entry) => entry?.tenant_id === tenantId)
+    ?? user.tenant_memberships?.[0]
+    ?? {};
+  const roleIds = Object.freeze([...(membership.role_ids ?? user.role_ids ?? [])]);
+  const groupIds = Object.freeze([...(membership.group_ids ?? user.group_ids ?? [])]);
+  const scopes = Object.freeze([...(membership.scopes ?? user.scopes ?? [])]);
+  const hrxScopes = Object.freeze([...(membership.hrx_scopes ?? user.hrx_scopes ?? [])]);
+  return Object.freeze({
+    user_id: user.user_id,
+    role_profile_id: membership.role_profile_id ?? user.role_profile_id ?? null,
+    role_ids: roleIds,
+    group_ids: groupIds,
+    scopes,
+    hrx_scopes: hrxScopes,
+    source_ref: membership.source_ref ?? "postgres-v2-account-membership",
+    tenant_membership: Object.freeze({
+      tenant_id: membership.tenant_id ?? tenantId,
+      status: membership.status ?? "active",
+      role_ids: roleIds,
+      group_ids: groupIds,
+      scopes,
+      hrx_scopes: hrxScopes,
+    }),
   });
 }
 
@@ -395,7 +425,7 @@ function createSecurityAuditEventStore({ filePath } = {}) {
 }
 
 function principalFromSignedSession({ user, payload = {}, trustedTenantId, requestId, credential = null }) {
-  const roleAssignment = resolveLawosUserRoleAssignment(user, { tenantId: trustedTenantId });
+  const roleAssignment = resolveSessionRoleAssignment(user, { tenantId: trustedTenantId });
   const membership = roleAssignment.tenant_membership ?? {};
   return Object.freeze({
     ok: true,
@@ -404,6 +434,8 @@ function principalFromSignedSession({ user, payload = {}, trustedTenantId, reque
     user_id: user.user_id,
     actor_id: user.user_id,
     actor_type: "user",
+    email: user.email,
+    display_name: user.display_name,
     tenant_id: trustedTenantId,
     role_ids: Object.freeze([...(membership.role_ids ?? roleAssignment.role_ids ?? [])]),
     group_ids: Object.freeze([...(membership.group_ids ?? roleAssignment.group_ids ?? [])]),
@@ -415,6 +447,7 @@ function principalFromSignedSession({ user, payload = {}, trustedTenantId, reque
     credential_rev: credential?.credential_rev ?? payload.credential_rev ?? null,
     credential_status: credential?.credential_status ?? null,
     must_change_password: credential?.must_change_password === true,
+    directory_source: user.directory_source ?? MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
     request_id: requestId,
   });
 }
@@ -483,6 +516,27 @@ export function createApiSessionAuth({
   const revokedSessionJtis = new Set();
   const securityAuditStore = createSecurityAuditEventStore({ filePath: securityAuditStorePath });
 
+  async function directoryUserByEmail(email, tenantId = trustedTenantId) {
+    if (centralIdentityRepository) {
+      return centralIdentityRepository.findDirectoryUserByEmail({ tenant_id: tenantId, email });
+    }
+    return findRegisteredAccountByEmail(email, seed);
+  }
+
+  async function directoryUserByUserId(userId, tenantId = trustedTenantId) {
+    if (centralIdentityRepository) {
+      return centralIdentityRepository.findDirectoryUserByUserId({ tenant_id: tenantId, user_id: userId });
+    }
+    return findRegisteredAccountByUserId(userId, seed);
+  }
+
+  async function directoryUsers(tenantId = trustedTenantId) {
+    if (centralIdentityRepository) {
+      return centralIdentityRepository.listDirectoryUsers({ tenant_id: tenantId });
+    }
+    return Object.freeze([...seed.users]);
+  }
+
   function identitySeed(user = {}) {
     const disabled = user.status === "disabled" || (!syntheticLoginEnabled && user.production_status === "disabled");
     return Object.freeze({
@@ -495,13 +549,13 @@ export function createApiSessionAuth({
 
   async function centralAccount(user) {
     if (!centralIdentityRepository) return null;
-    return centralIdentityRepository.ensureAccount({ tenant_id: homeTenantIdForUser(user, trustedTenantId), user: identitySeed(user) });
+    return centralIdentityRepository.getAccount({ tenant_id: homeTenantIdForUser(user, trustedTenantId), user_id: user.user_id });
   }
 
   async function accountStatus(userOrUserId) {
-    const user = typeof userOrUserId === "string" ? findRegisteredAccountByUserId(userOrUserId, seed) : userOrUserId;
+    const user = typeof userOrUserId === "string" ? await directoryUserByUserId(userOrUserId) : userOrUserId;
     const userId = typeof userOrUserId === "string" ? userOrUserId : user?.user_id;
-    if (centralIdentityRepository && user) return (await centralAccount(user))?.account_status ?? "active";
+    if (centralIdentityRepository) return user ? (await centralAccount(user))?.account_status ?? "disabled" : "disabled";
     return accountStatusByUserId.get(userId) ?? "active";
   }
 
@@ -549,7 +603,7 @@ export function createApiSessionAuth({
   }
 
   async function publicSecurityUser(user) {
-    const roleAssignment = resolveLawosUserRoleAssignment(user, { tenantId: trustedTenantId });
+    const roleAssignment = resolveSessionRoleAssignment(user, { tenantId: trustedTenantId });
     const centralAccountState = centralIdentityRepository ? await centralAccount(user) : null;
     const status = centralAccountState?.account_status ?? accountStatusByUserId.get(user.user_id) ?? "active";
     const credentialStatus = centralAccountState?.credential_status ?? null;
@@ -582,7 +636,7 @@ export function createApiSessionAuth({
     });
   }
 
-  async function failedLoginState(email, user = findRegisteredAccountByEmail(email, seed)) {
+  async function failedLoginState(email, user = null) {
     const key = normalizeLoginKey(email);
     if (centralIdentityRepository && user) {
       const account = await centralAccount(user);
@@ -595,7 +649,7 @@ export function createApiSessionAuth({
     return Object.freeze({ key, locked: false });
   }
 
-  async function recordFailedLogin(email, user = findRegisteredAccountByEmail(email, seed)) {
+  async function recordFailedLogin(email, user = null) {
     const key = normalizeLoginKey(email);
     if (centralIdentityRepository && user) {
       return centralIdentityRepository.recordLoginFailure({
@@ -706,6 +760,21 @@ export function createApiSessionAuth({
     });
   }
 
+  function acceptedPasswordResetResponse(requestId) {
+    return Object.freeze({
+      status: 200,
+      body: Object.freeze({
+        request_id: requestId,
+        outcome: "accepted",
+        ok: true,
+        accepted: true,
+        email_delivery: publicPasswordResetDelivery({ mode: "email", provider: "configured", status: "accepted" }),
+        token_material_returned: false,
+        production_ready_claim: false,
+      }),
+    });
+  }
+
   async function requestPasswordReset(body = {}, { requestId = "req_unset" } = {}) {
     if (syntheticLoginEnabled) {
       return Object.freeze({
@@ -717,30 +786,14 @@ export function createApiSessionAuth({
     if (!email) {
       return Object.freeze({ status: 400, body: errorBody(requestId, "AUTH_PASSWORD_RESET_EMAIL_REQUIRED", "password_reset_email_required") });
     }
-    const user = findRegisteredAccountByEmail(email, seed);
-    if (!user) {
-      return Object.freeze({
-        status: 200,
-        body: Object.freeze({
-          request_id: requestId,
-          outcome: "accepted",
-          ok: true,
-          accepted: true,
-          email_delivery: publicPasswordResetDelivery({ status: "not_sent_unknown_account" }),
-          token_material_returned: false,
-          production_ready_claim: false,
-        }),
-      });
-    }
-    if (await accountStatus(user) !== "active") {
-      return Object.freeze({ status: 403, body: await disabledAccountBody(requestId, user) });
-    }
     if (!passwordResetDeliveryConfigured()) {
       return Object.freeze({
         status: 503,
         body: errorBody(requestId, "AUTH_PASSWORD_RESET_EMAIL_NOT_CONFIGURED", "password_reset_email_not_configured"),
       });
     }
+    const user = await directoryUserByEmail(email);
+    if (!user || await accountStatus(user) !== "active") return acceptedPasswordResetResponse(requestId);
     const token = createPasswordResetToken(centralIdentityRepository ? homeTenantIdForUser(user, trustedTenantId) : null);
     const resetRecord = centralIdentityRepository
       ? await centralIdentityRepository.createChallenge({
@@ -796,18 +849,7 @@ export function createApiSessionAuth({
     } else {
       await requireOperationalPasswordReset(user);
     }
-    return Object.freeze({
-      status: delivery?.status === "failed" ? 502 : 200,
-      body: Object.freeze({
-        request_id: requestId,
-        outcome: delivery?.status === "failed" ? "blocked" : "accepted",
-        ok: delivery?.status !== "failed",
-        accepted: delivery?.status !== "failed",
-        email_delivery: publicPasswordResetDelivery(delivery),
-        token_material_returned: false,
-        production_ready_claim: false,
-      }),
-    });
+    return acceptedPasswordResetResponse(requestId);
   }
 
   async function confirmPasswordReset(body = {}, { requestId = "req_unset" } = {}) {
@@ -842,7 +884,7 @@ export function createApiSessionAuth({
         : consumed.safe_error_code;
       return Object.freeze({ status: consumed.status ?? 401, body: errorBody(requestId, safeErrorCode, consumed.reason) });
     }
-    const user = findRegisteredAccountByUserId(consumed.record.user_id, seed);
+    const user = await directoryUserByUserId(consumed.record.user_id, consumed.record.tenant_id ?? trustedTenantId);
     if (!user || normalizeLoginKey(user.email) !== consumed.record.email) {
       return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_PASSWORD_RESET_TOKEN_INVALID", "invalid_reset_token") });
     }
@@ -897,7 +939,7 @@ export function createApiSessionAuth({
         user,
         principal,
         expiresAt: new Date(expiresAtMs).toISOString(),
-        roleAssignment: resolveLawosUserRoleAssignment(user, { tenantId: principal.tenant_id }),
+        roleAssignment: resolveSessionRoleAssignment(user, { tenantId: principal.tenant_id }),
       }),
     });
   }
@@ -918,14 +960,14 @@ export function createApiSessionAuth({
           body: resolved.body ?? errorBody(requestId, "AUTH_SESSION_REQUIRED", "auth_session_required"),
         });
       }
-      user = findRegisteredAccountByUserId(resolved.principal.user_id, seed);
+      user = await directoryUserByUserId(resolved.principal.user_id, resolved.principal.tenant_id);
       primarySessionJti = resolved.principal.session_jti;
       purpose = `step_up:${String(body.purpose ?? "").trim()}`;
       if (!user || !primarySessionJti || purpose === "step_up:") {
         return Object.freeze({ status: 400, body: errorBody(requestId, "HRX_STEP_UP_PURPOSE_REQUIRED", "hrx_step_up_purpose_required") });
       }
     } else {
-      user = findRegisteredAccountByEmail(String(body.email ?? "").trim(), seed);
+      user = await directoryUserByEmail(String(body.email ?? "").trim());
       if (!user) {
         return Object.freeze({ status: 403, body: errorBody(requestId, "AUTH_ENTRA_ACCOUNT_UNMAPPED", "auth_entra_account_unmapped") });
       }
@@ -1021,7 +1063,7 @@ export function createApiSessionAuth({
     ) {
       return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_ENTRA_PKCE_INVALID", "auth_entra_pkce_invalid") });
     }
-    const user = findRegisteredAccountByUserId(challenge.user_id, seed);
+    const user = await directoryUserByUserId(challenge.user_id, challenge.tenant_id ?? trustedTenantId);
     if (!user || normalizeLoginKey(user.email) !== normalizeLoginKey(challenge.email)) {
       return Object.freeze({ status: 403, body: errorBody(requestId, "AUTH_ENTRA_ACCOUNT_UNMAPPED", "auth_entra_account_unmapped") });
     }
@@ -1158,7 +1200,7 @@ export function createApiSessionAuth({
         session_token: session.token,
         expires_at: session.expires_at,
         session: session.session,
-        roster_source: MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
+        roster_source: centralIdentityRepository ? "postgres-v2-account-directory" : MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
         credential_provider: verification.provider_id,
         assurance_level: verification.assurance_level,
         mfa_verified: true,
@@ -1194,7 +1236,7 @@ export function createApiSessionAuth({
     if (!centralIdentityRepository && revokedSessionJtis.has(payload.jti)) {
       return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_REVOKED", "auth_session_revoked") });
     }
-    const user = findRegisteredAccountByUserId(payload.user_id, seed);
+    const user = await directoryUserByUserId(payload.user_id, payload.tenant_id ?? trustedTenantId);
     if (!user) {
       return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_UNKNOWN_USER", "auth_session_unknown_user") });
     }
@@ -1239,7 +1281,7 @@ export function createApiSessionAuth({
         user,
         principal,
         expiresAt: new Date(payload.exp).toISOString(),
-        roleAssignment: resolveLawosUserRoleAssignment(user, { tenantId: principal.tenant_id }),
+        roleAssignment: resolveSessionRoleAssignment(user, { tenantId: principal.tenant_id }),
       }),
     });
   }
@@ -1259,7 +1301,7 @@ export function createApiSessionAuth({
         body: errorBody(requestId, "AUTH_EMAIL_CREDENTIAL_REQUIRED", "email_credential_required"),
       });
     }
-    const user = findRegisteredAccountByEmail(email, seed);
+    const user = await directoryUserByEmail(email);
     const lock = await failedLoginState(email, user);
     if (lock.locked) {
       return Object.freeze({
@@ -1356,7 +1398,7 @@ export function createApiSessionAuth({
         session_token: session.token,
         expires_at: session.expires_at,
         session: session.session,
-        roster_source: MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
+        roster_source: centralIdentityRepository ? "postgres-v2-account-directory" : MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
         credential_provider: syntheticLoginEnabled ? "local-dev-synthetic-provider" : LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
         local_dev_synthetic_only: syntheticLoginEnabled,
         must_change_password: credentialResult?.must_change_password === true,
@@ -1439,7 +1481,7 @@ export function createApiSessionAuth({
       } catch {
         return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", "auth_session_invalid") });
       }
-      const user = findRegisteredAccountByUserId(payload.user_id, seed);
+      const user = await directoryUserByUserId(payload.user_id, payload.tenant_id ?? trustedTenantId);
       const tenantId = user ? homeTenantIdForUser(user, trustedTenantId) : null;
       if (payload.typ !== TOKEN_PREFIX || !user || payload.tenant_id !== tenantId || !payload.jti) {
         return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", "auth_session_invalid") });
@@ -1537,7 +1579,7 @@ export function createApiSessionAuth({
         });
         return issued;
       }
-      const stepUpUser = findRegisteredAccountByUserId(resolved.principal.user_id, seed);
+      const stepUpUser = await directoryUserByUserId(resolved.principal.user_id, resolved.principal.tenant_id);
       if (centralIdentityRepository && stepUpUser) {
         await centralIdentityRepository.createChallenge({
           tenant_id: resolved.principal.tenant_id,
@@ -1625,12 +1667,13 @@ export function createApiSessionAuth({
     if (!hasSecurityAdminScope(context)) return securityAdminDenied(requestId);
 
     if (pathname === "/api/admin/security/users" && method === "GET") {
+      const users = await directoryUsers(context.principal.tenant_id);
       return Object.freeze({
         status: 200,
         body: Object.freeze({
           request_id: requestId,
           outcome: "passed",
-          items: Object.freeze(await Promise.all(seed.users.map(publicSecurityUser))),
+          items: Object.freeze(await Promise.all(users.map(publicSecurityUser))),
           safe_error_codes: Object.freeze([]),
           production_ready_claim: false,
         }),
@@ -1641,7 +1684,7 @@ export function createApiSessionAuth({
     if (userTransitionMatch && method === "POST") {
       const userId = decodeURIComponent(userTransitionMatch[1]);
       const action = userTransitionMatch[2];
-      const target = findRegisteredAccountByUserId(userId, seed);
+      const target = await directoryUserByUserId(userId, context.principal.tenant_id);
       if (!target) return Object.freeze({ status: 404, body: errorBody(requestId, "ADMIN_SECURITY_USER_NOT_FOUND", "admin_security_user_not_found") });
       if (action === "disable" && target.user_id === securityActorId(context)) {
         return Object.freeze({ status: 400, body: errorBody(requestId, "ADMIN_SECURITY_SELF_DISABLE_DENIED", "admin_security_self_disable_denied") });
@@ -1697,7 +1740,7 @@ export function createApiSessionAuth({
 
     if (pathname === "/api/admin/security/break-glass" && method === "POST") {
       const requesterUserId = String(body.requester_user_id ?? "").trim();
-      const requester = findRegisteredAccountByUserId(requesterUserId, seed);
+      const requester = await directoryUserByUserId(requesterUserId, context.principal.tenant_id);
       if (!requester) return Object.freeze({ status: 400, body: errorBody(requestId, "ADMIN_SECURITY_BREAK_GLASS_REQUESTER_REQUIRED", "admin_security_break_glass_requester_required") });
       const reason = String(body.reason ?? "").trim();
       if (!reason) return Object.freeze({ status: 400, body: errorBody(requestId, "ADMIN_SECURITY_BREAK_GLASS_REASON_REQUIRED", "admin_security_break_glass_reason_required") });
@@ -1848,9 +1891,11 @@ export function createApiSessionAuth({
   return Object.freeze({
     capabilities: Object.freeze({
       provider: federatedStaffAuthEnabled ? staffOidcProvider.provider_id : syntheticLoginEnabled ? "local-dev-synthetic-provider" : LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
+      staff_auth_authority: federatedStaffAuthEnabled ? "entra-oidc" : syntheticLoginEnabled ? "local-dev-synthetic" : "internal-password",
       federated_staff_auth: federatedStaffAuthEnabled,
       local_password_login: !federatedStaffAuthEnabled,
       local_synthetic_login: syntheticLoginEnabled,
+      account_directory: centralIdentityRepository ? "postgres-v2" : "static-fixture",
       default_totp: !federatedStaffAuthEnabled,
       phishing_resistant_mfa_required: federatedStaffAuthEnabled,
     }),

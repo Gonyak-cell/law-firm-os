@@ -130,6 +130,10 @@ export const HRX_CORE_MIGRATIONS = Object.freeze([
     id: "031_hrx_leave_command_receipts_append_only",
     filename: "031_hrx_leave_command_receipts_append_only.sql",
   }),
+  Object.freeze({
+    id: "032_hrx_professional_profile",
+    filename: "032_hrx_professional_profile.sql",
+  }),
 ]);
 
 const UNSAFE_SQL_PATTERNS = Object.freeze([

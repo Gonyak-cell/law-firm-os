@@ -26,32 +26,24 @@
       "monthly_estimate_usd": 2.62
     },
     {
-      "service": "NAT Gateway",
-      "configuration": "one staging gateway",
-      "quantity": 730,
-      "unit": "gateway-hour",
-      "unit_price_usd": 0.059,
-      "monthly_estimate_usd": 43.07
+      "service": "AWS PrivateLink interface endpoints",
+      "configuration": "Secrets Manager and SES API across two private application subnets",
+      "quantity": 2920,
+      "unit": "endpoint-AZ-hour",
+      "unit_price_usd": 0.02,
+      "monthly_estimate_usd": 58.4
     },
     {
-      "service": "NAT Gateway data processing",
-      "configuration": "10 GB planning allowance",
-      "quantity": 10,
+      "service": "AWS PrivateLink data processing",
+      "configuration": "20 GB conservative synthetic-pilot allowance",
+      "quantity": 20,
       "unit": "GB",
-      "unit_price_usd": 0.059,
-      "monthly_estimate_usd": 0.59
-    },
-    {
-      "service": "Public IPv4",
-      "configuration": "NAT gateway elastic IP",
-      "quantity": 730,
-      "unit": "address-hour",
-      "unit_price_usd": 0.005,
-      "monthly_estimate_usd": 3.65
+      "unit_price_usd": 0.01,
+      "monthly_estimate_usd": 0.2
     },
     {
       "service": "AWS Secrets Manager",
-      "configuration": "seven staging secrets",
+      "configuration": "six explicit staging secrets plus the RDS managed master secret",
       "quantity": 7,
       "unit": "secret-month",
       "unit_price_usd": 0.4,
@@ -88,12 +80,20 @@
       "unit": "endpoint-month",
       "unit_price_usd": 0,
       "monthly_estimate_usd": 0
+    },
+    {
+      "service": "AWS Budgets and SNS cost alert topic",
+      "configuration": "80 percent actual and 100 percent forecasted alerts; no external subscription",
+      "quantity": 1,
+      "unit": "control",
+      "unit_price_usd": 0,
+      "monthly_estimate_usd": 0
     }
   ],
-  "subtotal_monthly_usd": 78,
-  "contingency_monthly_usd": 12,
-  "total_monthly_estimate_usd": 90,
-  "total_monthly_estimate_krw_at_planning_rate": 135000,
+  "subtotal_monthly_usd": 89.27,
+  "contingency_monthly_usd": 10,
+  "total_monthly_estimate_usd": 99.27,
+  "total_monthly_estimate_krw_at_planning_rate": 148905,
   "one_time_estimate_usd": 0,
   "within_effective_aws_budget": true,
   "within_owner_krw_cap": true,
@@ -101,7 +101,10 @@
   "assumptions": [
     "No real data or sustained load is used in private staging.",
     "RDS backup storage does not exceed the free backup allocation associated with active database storage.",
-    "No hourly interface VPC endpoint is created; Secrets Manager and Entra use TLS through the staging NAT.",
+    "No internet gateway, public subnet, NAT gateway, or public IPv4 address is created.",
+    "The endpoint estimate uses a conservative USD 0.02 per endpoint-AZ-hour, above the generic AWS PrivateLink example rate, for two endpoint services in two availability zones.",
+    "Secrets Manager and SES API access stays on interface VPC endpoints; S3 access stays on the no-hourly-charge gateway endpoint.",
+    "The account-level LawOS staging cost budget alerts at 80 percent actual and 100 percent forecasted use of USD 100.",
     "The cost estimate must be refreshed if the change set adds persistent services or the measured usage exceeds an allowance."
   ]
 }

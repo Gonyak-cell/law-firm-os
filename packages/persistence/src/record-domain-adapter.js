@@ -21,6 +21,33 @@ function recordIdentity(domainId, recordType, recordId) {
   return `${domainId}:${recordType}:${recordId}`;
 }
 
+export function applyCommittedStateVersions(source, baseline) {
+  if (!baseline) return source;
+  const priorByIdentity = new Map(baseline.records.map((record) => [
+    recordIdentity(record.domain_id, record.record_type, record.record_id),
+    record,
+  ]));
+  const records = source.records.map((record) => {
+    const prior = priorByIdentity.get(recordIdentity(record.domain_id, record.record_type, record.record_id));
+    if (!prior) return { ...record, state_version: 1 };
+    const changed = prior.payload_hash !== record.payload_hash
+      || prior.unique_key !== record.unique_key
+      || prior.append_only !== record.append_only
+      || hashDomainValue(prior.references) !== hashDomainValue(record.references);
+    return {
+      ...record,
+      state_version: changed ? prior.state_version + 1 : prior.state_version,
+    };
+  });
+  return createDomainSnapshot({
+    tenant_id: source.tenant_id,
+    domain_id: source.domain_id,
+    records,
+    idempotency_entries: source.idempotency_entries,
+    audit_events: source.audit_events,
+  });
+}
+
 function normalizeSources(repositories) {
   const sources = Array.isArray(repositories) ? repositories : [repositories];
   if (!sources.length) throw new TypeError("at least one source repository is required");
@@ -308,12 +335,13 @@ export async function flushRecordRepositoryToDomainLedger({
   repository,
   tenant_id,
 } = {}) {
-  const source = createRecordRepositoryDomainSnapshot({
+  const rawSource = createRecordRepositoryDomainSnapshot({
     descriptor,
     repositories: [{ source_id: "materialized-postgres-unit-of-work", repository }],
     tenant_id,
   }).snapshot;
   const expectedBaseline = materializedBaselines.get(repository);
+  const source = applyCommittedStateVersions(rawSource, expectedBaseline);
   const scope = { tenant_id, domain_id: descriptor.domain_id };
   await ledger.transaction(scope, (tx) => flushDomainSnapshotToScopedLedger({
     tx,
@@ -592,20 +620,20 @@ export async function runRecordRepositoryMultiDomainCommand({
   ])));
   try {
     const result = await command(Object.freeze({ ...repositories, ...additionalValues }));
+    const baselines = Object.fromEntries(definitions.map((domain) => [
+      domain.descriptor.domain_id,
+      materializedBaselines.get(repositories[domain.key]),
+    ]));
     const sources = Object.fromEntries(definitions.map((domain) => [
       domain.descriptor.domain_id,
-      createRecordRepositoryDomainSnapshot({
+      applyCommittedStateVersions(createRecordRepositoryDomainSnapshot({
         descriptor: domain.descriptor,
         repositories: [{
           source_id: "materialized-postgres-multi-domain-unit-of-work",
           repository: repositories[domain.key],
         }],
         tenant_id,
-      }).snapshot,
-    ]));
-    const baselines = Object.fromEntries(definitions.map((domain) => [
-      domain.descriptor.domain_id,
-      materializedBaselines.get(repositories[domain.key]),
+      }).snapshot, baselines[domain.descriptor.domain_id]),
     ]));
     for (const domain of additionalDefinitions) {
       sources[domain.domain_id] = domain.create_snapshot({

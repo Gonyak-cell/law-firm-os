@@ -12,7 +12,23 @@ import {
   createScryptPasswordHash,
 } from "../src/auth-credential-store.js";
 import { findRegisteredAccountByEmail } from "../src/matter-vault-account-registry.js";
+import { resolveLawosUserRoleAssignment } from "../src/lawos-role-registry.js";
 import { createApiSessionAuth } from "../src/session-auth.js";
+
+async function provisionDirectoryAccount(ledger, account, tenantId) {
+  const assignment = resolveLawosUserRoleAssignment(account, { tenantId });
+  await ledger.provisionDirectoryUser({
+    tenant_id: tenantId,
+    user: account,
+    membership: {
+      ...assignment.tenant_membership,
+      role_profile_id: assignment.role_profile_id,
+      hrx_scopes: assignment.hrx_scopes,
+      source_ref: assignment.source_ref,
+    },
+    actor_id: "synthetic-test-provisioner",
+  });
+}
 
 function fixtureRoot(t) {
   const root = mkdtempSync(join(tmpdir(), "lawos-auth-restart-"));
@@ -83,6 +99,7 @@ test("PostgreSQL session revocation and account disable survive independent proc
   const secret = "postgres-operational-session-secret-32-bytes";
   const firstLedger = createPostgresIdentityLedger({ pool: fixture.appPool, clock: () => now });
   const secondLedger = createPostgresIdentityLedger({ pool: secondPool, clock: () => now });
+  await provisionDirectoryAccount(firstLedger, account, tenantId);
   await firstLedger.setCredential({
     tenant_id: tenantId,
     user: account,

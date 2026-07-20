@@ -20,7 +20,7 @@ const PAYROLL_ARTIFACT_SECRET = "postgres-vault-test-payroll-artifact-secret";
 
 function allowContext(tenantId = TENANT) {
   return Object.freeze({
-    principal: Object.freeze({ user_id: ACTOR, actor_id: ACTOR, email: "jwsuh@amic.kr", tenant_id: tenantId, role_ids: ["matter_vault_admin"] }),
+    principal: Object.freeze({ user_id: ACTOR, actor_id: ACTOR, email: "lawos-staging-vault-admin@example.test", tenant_id: tenantId, role_ids: ["matter_vault_admin"], directory_source: "postgres-v2" }),
     rules: Object.freeze([{ id: "postgres-vault-allow", effect: "allow", action: "*" }]),
     object_acl: Object.freeze([]),
   });
@@ -215,6 +215,119 @@ test("PostgreSQL Vault API finalizes provider bytes before publishing tenant met
   const matterAudit = await ledger.listAudit({ tenant_id: TENANT, domain_id: "matter" });
   const facadeAudit = matterAudit.find((event) => event.event_type === "matter.document_facade.uploaded");
   assert.equal(facadeAudit.actor_id, ACTOR);
+
+  const governanceBody = {
+    tenant_id: TENANT,
+    permission_ref: "perm-postgres-vault",
+    audit_hint_ref: "audit-postgres-vault-governance",
+    object_id: `object:${versionId}`,
+  };
+  const legalHold = await authority.run({
+    tenant_id: TENANT,
+    command: (runtimes) => handleVaultDmsApiRequest({
+      pathname: `/api/vault/documents/${documentId}/legal-holds`,
+      method: "POST",
+      query: {},
+      body: { ...governanceBody, legal_hold_id: "hold-postgres-vault-001", reason: "synthetic litigation hold" },
+      context: allowContext(),
+      requestId: "req-postgres-vault-hold",
+      runtime: runtimes.dmsRuntime,
+    }),
+  });
+  assert.equal(legalHold.status, 201, JSON.stringify(legalHold.body));
+  assert.equal(legalHold.body.item.status, "active");
+  assert.equal(legalHold.body.reason_plaintext_included, false);
+  assert.equal(JSON.stringify(legalHold.body).includes("synthetic litigation hold"), false);
+  const legalHoldReplay = await authority.run({
+    tenant_id: TENANT,
+    command: (runtimes) => handleVaultDmsApiRequest({
+      pathname: `/api/vault/documents/${documentId}/legal-holds`,
+      method: "POST",
+      query: {},
+      body: { ...governanceBody, legal_hold_id: "hold-postgres-vault-001", reason: "synthetic litigation hold" },
+      context: allowContext(),
+      requestId: "req-postgres-vault-hold-replay",
+      runtime: runtimes.dmsRuntime,
+    }),
+  });
+  assert.equal(legalHoldReplay.status, 200);
+  assert.equal(legalHoldReplay.body.idempotent_replay, true);
+
+  const retention = await authority.run({
+    tenant_id: TENANT,
+    command: (runtimes) => handleVaultDmsApiRequest({
+      pathname: `/api/vault/documents/${documentId}/retention-policies`,
+      method: "POST",
+      query: {},
+      body: { ...governanceBody, retention_policy_id: "retention-postgres-vault-001", retain_until: "2026-08-18T06:00:00.000Z" },
+      context: allowContext(),
+      requestId: "req-postgres-vault-retention",
+      runtime: runtimes.dmsRuntime,
+    }),
+  });
+  assert.equal(retention.status, 201, JSON.stringify(retention.body));
+  const retentionReplay = await authority.run({
+    tenant_id: TENANT,
+    command: (runtimes) => handleVaultDmsApiRequest({
+      pathname: `/api/vault/documents/${documentId}/retention-policies`,
+      method: "POST",
+      query: {},
+      body: { ...governanceBody, retention_policy_id: "retention-postgres-vault-001", retain_until: "2026-08-18T06:00:00.000Z" },
+      context: allowContext(),
+      requestId: "req-postgres-vault-retention-replay",
+      runtime: runtimes.dmsRuntime,
+    }),
+  });
+  assert.equal(retentionReplay.status, 200);
+  assert.equal(retentionReplay.body.idempotent_replay, true);
+
+  const heldDelete = await authority.run({
+    tenant_id: TENANT,
+    command: (runtimes) => handleVaultDmsApiRequest({
+      pathname: `/api/vault/documents/${documentId}/delete-check`,
+      method: "POST",
+      query: {},
+      body: governanceBody,
+      context: allowContext(),
+      requestId: "req-postgres-vault-delete-held",
+      runtime: runtimes.dmsRuntime,
+    }),
+  });
+  assert.equal(heldDelete.status, 409);
+  assert.deepEqual(heldDelete.body.safe_error_codes, ["DMS_LEGAL_HOLD_DELETE_BLOCKED"]);
+  const mismatchedDelete = await authority.run({
+    tenant_id: TENANT,
+    command: (runtimes) => handleVaultDmsApiRequest({
+      pathname: `/api/vault/documents/${documentId}/delete-check`,
+      method: "POST",
+      query: {},
+      body: { ...governanceBody, object_id: `object:${facadeVersionId}` },
+      context: allowContext(),
+      requestId: "req-postgres-vault-delete-mismatch",
+      runtime: runtimes.dmsRuntime,
+    }),
+  });
+  assert.equal(mismatchedDelete.status, 409);
+  assert.deepEqual(mismatchedDelete.body.safe_error_codes, ["DMS_DOCUMENT_OBJECT_MISMATCH"]);
+  const unapprovedDelete = await authority.run({
+    tenant_id: TENANT,
+    command: (runtimes) => handleVaultDmsApiRequest({
+      pathname: `/api/vault/documents/${facadeDocumentId}/permanent-delete`,
+      method: "POST",
+      query: {},
+      body: {
+        ...governanceBody,
+        object_id: `object:${facadeVersionId}`,
+        idempotency_key: "delete-postgres-vault-unapproved-001",
+      },
+      context: allowContext(),
+      requestId: "req-postgres-vault-delete-unapproved",
+      runtime: runtimes.dmsRuntime,
+    }),
+  });
+  assert.equal(unapprovedDelete.status, 403);
+  assert.deepEqual(unapprovedDelete.body.safe_error_codes, ["DMS_PERMANENT_DELETE_APPROVAL_REQUIRED"]);
+  assert.equal((await uploadRuntime.getDocumentState({ tenant_id: TENANT, document_id: documentId })).document.legal_hold_status, "active");
 
   const listed = await authority.run({
     tenant_id: TENANT,

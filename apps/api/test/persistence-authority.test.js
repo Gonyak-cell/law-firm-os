@@ -250,12 +250,13 @@ test("API startup activates the transaction-capable PostgreSQL authority without
     runtimeProfile: "operational",
     sessionSecret: "test-only-session-secret-with-adequate-length",
     stepUpAuthority: Object.freeze({}),
-    staffOidcProvider: Object.freeze({ provider_id: "microsoft-entra-oidc-test" }),
+    staffAuthAuthority: "internal-password",
     persistenceAuthority: "postgres-v2",
     persistenceAuthorityEnv: {
       LAWOS_POSTGRES_URL_SECRET_ID: "lawos/test/disposable",
       LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID: "lawos/test/disposable-tenant-context",
       LAWOS_PAYROLL_ARTIFACT_KEY_SECRET_ID: "lawos/test/payroll-artifact-key",
+      LAWOS_DATA_SCOPE: "synthetic-only",
       AWS_REGION: "ap-northeast-2",
     },
     persistenceResolvePostgresSecret: async ({ secretId }) => secretId.endsWith("tenant-context")
@@ -277,10 +278,13 @@ test("API startup activates the transaction-capable PostgreSQL authority without
   const health = await fetch(`http://${started.host}:${started.port}/api/health`).then((response) => response.json());
   assert.equal(health.runtime_safety_policy.offline_capability, "rejected");
   assert.equal(health.runtime_safety_policy.authority_loss_mode, "fail_closed");
-  assert.equal(health.auth_authority.federated_staff_auth, true);
+  assert.equal(health.auth_authority.staff_auth_authority, "internal-password");
+  assert.equal(health.auth_authority.federated_staff_auth, false);
+  assert.equal(health.auth_authority.account_directory, "postgres-v2");
   assert.equal(health.bounded_contexts.every((context) => context.postgres_authority_active === true), true);
   assert.equal(health.bounded_contexts.every((context) => context.json_fallback === false && context.dual_write === false), true);
   assert.equal(health.persistence_authority_capabilities.authority, "postgres-v2");
+  assert.match(health.runtime_instance_fingerprint, /^[0-9a-f]{32}$/u);
   await new Promise((resolve) => started.server.close(resolve));
   assert.equal(closed, true);
   assert.equal(existsSync(storeRoot), false);

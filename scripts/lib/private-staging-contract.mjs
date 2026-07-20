@@ -47,6 +47,7 @@ const TAGGED_TYPES = new Set([
   "AWS::RDS::DBSubnetGroup",
   "AWS::S3::Bucket",
   "AWS::SecretsManager::Secret",
+  "AWS::SNS::Topic",
 ]);
 
 function assert(condition, message) {
@@ -122,17 +123,47 @@ function validateIam(resources) {
 
 function validateNetwork(resources, template) {
   assert(template.Mappings?.Network?.Cidrs?.Vpc === PRIVATE_STAGING_VPC_CIDR, "private staging VPC CIDR drifted");
-  for (const name of ["PublicSubnetA", "AppSubnetA", "AppSubnetB", "DbSubnetA", "DbSubnetB"]) {
+  assert(template.Mappings?.Network?.Cidrs?.PublicA == null, "private staging must not define a public subnet CIDR");
+  for (const name of ["AppSubnetA", "AppSubnetB", "DbSubnetA", "DbSubnetB"]) {
     assert(resources[name]?.Properties?.MapPublicIpOnLaunch === false, `${name} must disable public IP assignment`);
   }
-  const dbRouteTables = new Set(["DbRouteTableA", "DbRouteTableB"]);
+  const forbiddenTypes = new Set([
+    "AWS::EC2::EIP",
+    "AWS::EC2::InternetGateway",
+    "AWS::EC2::NatGateway",
+    "AWS::EC2::VPCGatewayAttachment",
+  ]);
+  for (const [logicalId, resource] of Object.entries(resources)) {
+    assert(!forbiddenTypes.has(resource.Type), `${logicalId} introduces forbidden public or NAT networking`);
+  }
   const defaultRoutes = Object.entries(resources).filter(([, resource]) =>
     resource.Type === "AWS::EC2::Route"
     && (resource.Properties?.DestinationCidrBlock === "0.0.0.0/0" || resource.Properties?.DestinationIpv6CidrBlock === "::/0"));
-  for (const [logicalId, route] of defaultRoutes) {
-    assert(!dbRouteTables.has(refName(route.Properties?.RouteTableId)), `${logicalId} exposes a database route table`);
+  assert(defaultRoutes.length === 0, "private staging must not contain an internet default route");
+  const endpoints = Object.entries(resources).filter(([, resource]) => resource.Type === "AWS::EC2::VPCEndpoint");
+  assert(endpoints.length === 3, "private staging must define exactly the S3, Secrets Manager, and SES endpoints");
+  const s3 = resources.S3GatewayEndpoint?.Properties;
+  assert(s3?.VpcEndpointType === "Gateway" && JSON.stringify(s3.ServiceName).includes(".s3"), "S3 gateway endpoint is required");
+  assert(JSON.stringify(s3.RouteTableIds) === JSON.stringify([{ Ref: "AppRouteTableA" }, { Ref: "AppRouteTableB" }]), "S3 gateway endpoint must attach only to application route tables");
+  assert(JSON.stringify(s3.PolicyDocument).includes("${DmsBucket.Arn}/lawos-dms/*"), "S3 endpoint policy must remain confined to the staging DMS namespace");
+  for (const [logicalId, serviceSuffix] of [["SecretsManagerEndpoint", ".secretsmanager"], ["SesApiEndpoint", ".email"]]) {
+    const endpoint = resources[logicalId]?.Properties;
+    assert(endpoint?.VpcEndpointType === "Interface", `${logicalId} must be an interface endpoint`);
+    assert(endpoint?.PrivateDnsEnabled === true, `${logicalId} private DNS is required`);
+    assert(JSON.stringify(endpoint?.ServiceName).includes(serviceSuffix), `${logicalId} service name drifted`);
+    assert(JSON.stringify(endpoint?.SubnetIds) === JSON.stringify([{ Ref: "AppSubnetA" }, { Ref: "AppSubnetB" }]), `${logicalId} must span both private application subnets`);
+    assert(JSON.stringify(endpoint?.SecurityGroupIds).includes("ServiceEndpointSecurityGroup"), `${logicalId} must use the service endpoint security group`);
   }
-  assert(defaultRoutes.length === 3, "only public and application route tables may have default routes");
+  const lambdaEgress = resources.LambdaSecurityGroup?.Properties?.SecurityGroupEgress;
+  const endpointEgress = resources.ServiceEndpointSecurityGroup?.Properties?.SecurityGroupEgress;
+  assert(Array.isArray(lambdaEgress) && lambdaEgress.length === 0, "Lambda security group must not have inline or public egress");
+  assert(Array.isArray(endpointEgress) && endpointEgress.length === 0, "service endpoint security group must not have outbound rules");
+  const serviceIngress = resources.ServiceEndpointIngressFromLambda?.Properties;
+  assert(serviceIngress?.FromPort === 443 && serviceIngress?.ToPort === 443, "service endpoints must accept TLS only");
+  assert(JSON.stringify(serviceIngress?.SourceSecurityGroupId).includes("LambdaSecurityGroup"), "service endpoint ingress must originate from the Lambda security group");
+  const serviceEgress = resources.LambdaEgressToServiceEndpoints?.Properties;
+  assert(serviceEgress?.FromPort === 443 && serviceEgress?.ToPort === 443, "Lambda service endpoint egress must be TLS only");
+  assert(JSON.stringify(serviceEgress?.DestinationSecurityGroupId).includes("ServiceEndpointSecurityGroup"), "Lambda TLS egress must target the service endpoint security group");
   const ingress = resources.DatabaseIngressFromLambda?.Properties;
   assert(ingress?.FromPort === 5432 && ingress?.ToPort === 5432, "database ingress must be PostgreSQL only");
   assert(refName(ingress?.SourceSecurityGroupId) === null, "database ingress must use a security-group attribute, not CIDR or plain Ref");
@@ -171,17 +202,84 @@ function validateLambdas(resources) {
   const env = resources.ApiFunction.Properties.Environment.Variables;
   assert(env.LAWOS_RUNTIME_PROFILE === "operational", "API must use the operational profile");
   assert(env.LAWOS_PERSISTENCE_AUTHORITY === "postgres-v2", "API must use postgres-v2 authority");
+  assert(env.LAWOS_STAFF_AUTHORITY === "internal-password", "API must use internal-password staff authority");
+  assert(env.LAWOS_RUNTIME_GENERATION?.Ref === "RuntimeGeneration", "API runtime generation must be an exact stack parameter reference");
   assert(env.LAWOS_POSTGRES_SSL_MODE === "verify-full", "API must use TLS verify-full");
+  assert(env.LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY === "sesv2", "API must deliver password setup through SES v2");
+  assert(env.LAWOS_AUTH_PASSWORD_RESET_EMAIL_REGION?.Ref === "AWS::Region", "password reset SES region must follow the stack region");
+  assert(env.LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM?.Ref === "PasswordResetFromEmail", "password reset sender must come from a parameter reference");
+  assert(env.LAWOS_AUTH_PASSWORD_RESET_BASE_URL?.["Fn::Sub"] === "${HttpApi.ApiEndpoint}/api/auth/password-reset/confirm", "password reset confirmation URL must use the exact staging API endpoint");
+  assert(env.LAWOS_AUTH_PASSWORD_RESET_OPEN_BASE_URL?.["Fn::Sub"] === "${HttpApi.ApiEndpoint}/api/auth/password-reset/open", "password reset open URL must use the exact staging API endpoint");
   assert(env.LAWOS_DMS_S3_DEFAULT_RETENTION_DAYS === "7", "committed staging DMS objects must receive seven-day provider retention");
+  for (const key of Object.keys(env)) {
+    assert(!/ENTRA|OIDC/u.test(key), `${key} is forbidden in internal-password staging`);
+    assert(!/(JSON|STORE_PATH|FILE_CURRENT|DUAL_WRITE)/u.test(key), `${key} would re-enable a legacy persistence path`);
+  }
   for (const [key, value] of Object.entries(env)) {
     if (/SECRET_ID$/u.test(key)) {
       assert(value && typeof value === "object", `${key} must be a resource reference`);
       continue;
     }
-    if (/(PASSWORD|SECRET(?!_ID)|TOKEN|DATABASE_URL|POSTGRES_URL$)/u.test(key)) {
+    if (/(PASSWORD(?!_RESET)|SECRET(?!_ID)|TOKEN|DATABASE_URL|POSTGRES_URL$)/u.test(key)) {
       throw new Error(`API environment must not contain secret material: ${key}`);
     }
   }
+  const adminEnv = resources.AdminFunction.Properties.Environment.Variables;
+  assert(adminEnv.LAWOS_RUNTIME_PROFILE === "operational", "admin Lambda must use the operational profile");
+  assert(adminEnv.LAWOS_PERSISTENCE_AUTHORITY === "postgres-v2", "admin Lambda must use postgres-v2 authority");
+  assert(adminEnv.LAWOS_STAFF_AUTHORITY === "internal-password", "admin Lambda must use internal-password staff authority");
+  assert(adminEnv.LAWOS_RUNTIME_GENERATION?.Ref === "RuntimeGeneration", "admin runtime generation must be an exact stack parameter reference");
+  for (const [key, parameter] of [
+    ["LAWOS_BOOTSTRAP_APPROVAL_ID", "BootstrapApprovalId"],
+    ["LAWOS_CUT005_APPROVAL_ID", "Cut005ApprovalId"],
+    ["LAWOS_CUT006_APPROVAL_ID", "Cut006ApprovalId"],
+    ["LAWOS_CUT007_APPROVAL_ID", "Cut007ApprovalId"],
+  ]) assert(adminEnv[key]?.Ref === parameter, `${key} must be an exact deployment parameter reference`);
+  for (const key of Object.keys(adminEnv)) {
+    assert(!/ENTRA|OIDC/u.test(key), `${key} is forbidden in internal-password staging`);
+    assert(!/(JSON|STORE_PATH|FILE_CURRENT|DUAL_WRITE)/u.test(key), `${key} would re-enable a legacy persistence path`);
+  }
+}
+
+function validateSecretsAndInternalAuth(resources, template) {
+  const serialized = JSON.stringify(template);
+  assert(!/entra/iu.test(serialized), "private staging template must not contain an Entra dependency");
+  const explicitSecrets = Object.entries(resources).filter(([, resource]) => resource.Type === "AWS::SecretsManager::Secret");
+  assert(explicitSecrets.length === 6, "private staging must keep exactly six explicit staging secrets after Entra removal");
+  assert(resources.EntraConfigSecret == null, "Entra configuration secret is forbidden");
+  const expectedSecrets = [
+    "ApplicationDatabaseSecret",
+    "TenantContextSecret",
+    "SessionSecret",
+    "PayrollArtifactSecret",
+    "ProviderCredentialReferenceSecret",
+    "SyntheticManifestSecret",
+  ];
+  assert(JSON.stringify(sortedStrings(explicitSecrets.map(([name]) => name))) === JSON.stringify(sortedStrings(expectedSecrets)), "staging secret inventory drifted");
+  assert(template.Parameters?.PasswordResetFromEmail?.NoEcho === true, "password reset sender parameter must be hidden from stack output");
+  assert(String(template.Parameters?.PasswordResetSesIdentityArn?.AllowedPattern ?? "").includes("ses:ap-northeast-2"), "SES identity parameter must remain region-bound");
+  const apiStatements = resourceStatements(resources.ApiExecutionRole);
+  const send = apiStatements.find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail");
+  assert(send?.Effect === "Allow", "API role SES statement is required");
+  assert(JSON.stringify(sortedStrings(Array.isArray(send?.Action) ? send.Action : [send?.Action])) === JSON.stringify(["ses:SendEmail", "ses:SendRawEmail"]), "API role SES actions drifted");
+  assert(send?.Resource?.Ref === "PasswordResetSesIdentityArn", "API role SES authority must be confined to the configured verified identity");
+  assert(JSON.stringify(resources.SesApiEndpoint?.Properties?.PolicyDocument).includes("PasswordResetSesIdentityArn"), "SES endpoint policy must be confined to the configured verified identity");
+  const syntheticManifest = JSON.parse(resources.SyntheticManifestSecret?.Properties?.SecretString ?? "null");
+  assert(syntheticManifest?.schema_version === "law-firm-os.synthetic-staging-manifest.v2", "synthetic manifest must use purpose-bound schema v2");
+  assert((syntheticManifest?.tenant_ids ?? []).length === 6, "synthetic manifest must isolate CUT-005, CUT-006, and CUT-007 across six tenants");
+  const purposeTenantIds = ["cut005", "cut006", "cut007"].flatMap((purpose) => syntheticManifest?.purpose_tenants?.[purpose] ?? []);
+  assert(purposeTenantIds.length === 6 && new Set(purposeTenantIds).size === 6, "synthetic purpose tenants must be distinct");
+}
+
+function validateCostControls(resources) {
+  const budget = resources.MonthlyCostBudget?.Properties?.Budget;
+  assert(budget?.BudgetLimit?.Amount === 100 && budget?.BudgetLimit?.Unit === "USD", "private staging monthly AWS budget must remain USD 100");
+  assert(budget?.BudgetType === "COST" && budget?.TimeUnit === "MONTHLY", "private staging cost budget cadence drifted");
+  assert(JSON.stringify(budget?.CostFilters).includes("user:environment$lawos-staging"), "private staging budget must be scoped to the staging environment tag");
+  const notifications = resources.MonthlyCostBudget?.Properties?.NotificationsWithSubscribers ?? [];
+  assert(notifications.some(({ Notification: item }) => item?.NotificationType === "ACTUAL" && item?.Threshold === 80), "80 percent actual cost alert is required");
+  assert(notifications.some(({ Notification: item }) => item?.NotificationType === "FORECASTED" && item?.Threshold === 100), "100 percent forecasted cost alert is required");
+  assert(resources.CostAlertTopic?.Type === "AWS::SNS::Topic", "private staging cost alert topic is required");
 }
 
 function validateDms(resources) {
@@ -219,24 +317,36 @@ function validateTags(resources) {
 
 export function validatePrivateStagingTemplate(template) {
   assert(template && typeof template === "object" && !Array.isArray(template), "CloudFormation template is required");
+  const inlineTemplateByteSize = Buffer.byteLength(JSON.stringify(template));
+  assert(inlineTemplateByteSize <= 51_200, "minified CloudFormation template exceeds the inline API limit");
   const bytes = JSON.stringify(template).toLowerCase();
   for (const marker of PROTECTED_RESOURCE_MARKERS) assert(!bytes.includes(marker), `protected resource marker appears in template: ${marker}`);
   const resources = template.Resources ?? {};
   assert(Object.keys(resources).length > 0, "CloudFormation resources are required");
   assert(template.Parameters?.EnableLambdaEniBootstrap?.Default === "false", "ENI bootstrap must default off");
+  for (const parameter of ["BootstrapApprovalId", "Cut005ApprovalId", "Cut006ApprovalId", "Cut007ApprovalId"]) {
+    assert(template.Parameters?.[parameter]?.Default == null, `${parameter} must be explicitly supplied for the exact deployment target`);
+  }
   validateNetwork(resources, template);
   validateDatabase(resources);
   validateLambdas(resources);
+  validateSecretsAndInternalAuth(resources, template);
   validateDms(resources);
+  validateCostControls(resources);
   const kmsWildcardAllows = validateKms(resources);
   validateTags(resources);
   const wildcardAllows = validateIam(resources);
   return Object.freeze({
     verdict: "PASS_WITH_OWNER_DELTA_REQUIRED",
     resource_count: Object.keys(resources).length,
+    inline_template_byte_size: inlineTemplateByteSize,
     protected_resource_marker_count: 0,
     public_rds_count: 0,
     database_default_route_count: 0,
+    internet_gateway_count: 0,
+    nat_gateway_count: 0,
+    public_subnet_count: 0,
+    interface_endpoint_count: 2,
     lambda_function_url_count: 0,
     iam_wildcard_allow_count: wildcardAllows.length,
     iam_wildcard_allow_sids: wildcardAllows.map((item) => item.sid),
@@ -271,6 +381,8 @@ export function validatePrivateStagingCost(cost) {
   assert(cost.total_monthly_estimate_usd <= PRIVATE_STAGING_EFFECTIVE_BUDGET_USD, "estimated AWS monthly cost exceeds the effective USD budget");
   assert(cost.total_monthly_estimate_krw_at_planning_rate <= PRIVATE_STAGING_COST_LIMIT_KRW, "estimated monthly cost exceeds the owner KRW cap");
   assert(cost.creation_gate === "PASS", "cost creation gate is not PASS");
+  assert(!(cost.line_items ?? []).some((item) => /NAT Gateway|Public IPv4/iu.test(String(item.service))), "cost model must not contain removed public networking");
+  assert((cost.line_items ?? []).some((item) => item.service === "AWS PrivateLink interface endpoints" && Number(item.quantity) === 2920), "cost model must include two interface endpoints across two availability zones");
   return Object.freeze({
     verdict: "PASS",
     subtotal_monthly_usd: cost.subtotal_monthly_usd,

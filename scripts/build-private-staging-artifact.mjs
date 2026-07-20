@@ -8,9 +8,12 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   realpathSync,
   rmSync,
   statSync,
+  lutimesSync,
+  utimesSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -18,8 +21,13 @@ import { dirname, join, relative, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import {
   buildPrivateStagingSyntheticSources,
+  PRIVATE_STAGING_SOURCE_OVERRIDES,
+  PRIVATE_STAGING_SOURCE_REDACTION_TARGETS,
   privateStagingArtifactSourcePathAllowed,
+  redactPrivateStagingRuntimeSource,
   validatePrivateStagingArtifactEntries,
+  validatePrivateStagingSourceIdentityBoundary,
+  validatePrivateStagingSourceOverrides,
   validateRdsCaBundle,
 } from "./lib/private-staging-artifact.mjs";
 
@@ -42,6 +50,27 @@ function git(...args) {
 
 function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+function deterministicArchiveEntries(root, timestamp) {
+  const files = [];
+  function visit(relativePath = "") {
+    const directory = join(root, relativePath);
+    for (const entry of readdirSync(directory, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name, "en"))) {
+      const path = relativePath ? join(relativePath, entry.name) : entry.name;
+      const absolute = join(root, path);
+      if (entry.isDirectory()) {
+        utimesSync(absolute, timestamp, timestamp);
+        visit(path);
+      } else {
+        if (entry.isSymbolicLink()) lutimesSync(absolute, timestamp, timestamp);
+        else utimesSync(absolute, timestamp, timestamp);
+        files.push(path.replaceAll("\\", "/"));
+      }
+    }
+  }
+  visit();
+  return files.sort();
 }
 
 function ensureOutsideRepository(path) {
@@ -106,6 +135,39 @@ try {
     mkdirSync(dirname(absoluteTarget), { recursive: true });
     writeFileSync(absoluteTarget, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o644 });
   }
+  const sourceOverrides = PRIVATE_STAGING_SOURCE_OVERRIDES.map((override) => {
+    const bytes = readFileSync(resolve(override.source_path));
+    const targetPath = join(stagingRoot, override.target_path);
+    mkdirSync(dirname(targetPath), { recursive: true });
+    writeFileSync(targetPath, bytes, { mode: 0o644 });
+    return {
+      ...override,
+      sha256: sha256(bytes),
+      byte_size: bytes.byteLength,
+      text: bytes.toString("utf8"),
+    };
+  });
+  const overrideValidation = validatePrivateStagingSourceOverrides(sourceOverrides);
+  const sourceRedactions = PRIVATE_STAGING_SOURCE_REDACTION_TARGETS.map((targetPath) => {
+    const absoluteTarget = join(stagingRoot, targetPath);
+    const redacted = redactPrivateStagingRuntimeSource({
+      targetPath,
+      text: readFileSync(absoluteTarget, "utf8"),
+      syntheticSources,
+    });
+    writeFileSync(absoluteTarget, redacted.text, { mode: 0o644 });
+    return {
+      target_path: targetPath,
+      purpose: redacted.purpose,
+      sha256: sha256(Buffer.from(redacted.text)),
+      byte_size: redacted.byte_size,
+    };
+  });
+  const sourceIdentityBoundary = validatePrivateStagingSourceIdentityBoundary(
+    tracked
+      .filter((path) => !path.endsWith(".png"))
+      .map((path) => ({ path, text: readFileSync(join(stagingRoot, path), "utf8") })),
+  );
   const caResponse = await fetch(RDS_CA_URL, { signal: AbortSignal.timeout(30_000) });
   if (!caResponse.ok) throw new Error(`RDS CA bundle fetch failed: HTTP ${caResponse.status}`);
   const caBytes = Buffer.from(await caResponse.arrayBuffer());
@@ -136,6 +198,13 @@ try {
     },
     synthetic_identity_manifest_sha256: sha256(syntheticIdentityBytes),
     synthetic_identity_safe_counts: syntheticSources.safe_counts,
+    synthetic_source_overrides: sourceOverrides.map(({ text: _text, ...override }) => override),
+    synthetic_source_override_count: overrideValidation.override_count,
+    synthetic_source_redactions: sourceRedactions,
+    synthetic_source_redaction_count: sourceRedactions.length,
+    scanned_source_identity_boundary_count: sourceIdentityBoundary.scanned_source_count,
+    real_client_candidate_count: overrideValidation.real_client_candidate_count,
+    real_identity_match_count: sourceIdentityBoundary.real_identity_marker_count,
     data_scope: "synthetic-only",
     json_fallback: false,
     dual_write: false,
@@ -146,7 +215,12 @@ try {
   const archivePath = join(outputDir, `lawos-private-staging-${sourceSha}.zip`);
   const manifestPath = join(outputDir, `lawos-private-staging-${sourceSha}.manifest.json`);
   if (existsSync(archivePath) || existsSync(manifestPath)) throw new Error("private staging artifact output already exists");
-  execFileSync("zip", ["-X", "-q", "-r", archivePath, "."], { cwd: stagingRoot });
+  const sourceTimestamp = new Date(Number(git("show", "-s", "--format=%ct", sourceSha)) * 1000);
+  const deterministicEntries = deterministicArchiveEntries(stagingRoot, sourceTimestamp);
+  execFileSync("zip", ["-X", "-q", archivePath, "-@"], {
+    cwd: stagingRoot,
+    input: `${deterministicEntries.join("\n")}\n`,
+  });
   chmodSync(archivePath, 0o600);
   const entries = execFileSync("unzip", ["-Z1", archivePath], { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 })
     .trim().split("\n").filter((entry) => entry && !entry.endsWith("/"));
@@ -154,12 +228,16 @@ try {
   const archiveBytes = readFileSync(archivePath);
   if (archiveBytes.byteLength > 50 * 1024 * 1024) throw new Error("private staging artifact exceeds the direct Lambda archive limit");
   const archiveSha = sha256(archiveBytes);
+  const artifactEntriesSha = sha256(Buffer.from(`${entries.sort().join("\n")}\n`));
   const outerManifest = {
     ...deploymentManifest,
     artifact_path: archivePath,
     artifact_sha256: archiveSha,
     artifact_byte_size: statSync(archivePath).size,
     artifact_entry_count: validated.entry_count,
+    artifact_entries_sha256: artifactEntriesSha,
+    artifact_runtime_store_entry_count: validated.runtime_store_entry_count,
+    artifact_real_json_store_count: validated.real_json_store_count,
     artifact_s3_key: `lawos-private-staging/${sourceSha}/${archiveSha}.zip`,
     generated_at: new Date().toISOString(),
   };

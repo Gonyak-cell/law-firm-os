@@ -49,8 +49,8 @@ export function openMatterWithVault({
       ...(now === undefined ? {} : { now }),
     });
 
-    const dmsCreated = dmsRepository.transaction((dmsTx) =>
-      createWorkspaceForMatter({
+    const dmsCreated = dmsRepository.transaction((dmsTx) => {
+      const created = createWorkspaceForMatter({
         repository: dmsTx,
         matter: {
           ...opened.matter,
@@ -59,8 +59,23 @@ export function openMatterWithVault({
           audit_trace_id: opened.matter.audit_trace_id ?? matter.audit_trace_id,
         },
         actor_id,
-      }),
-    );
+      });
+      dmsTx.recordIdempotency({
+        tenant_id: opened.matter.tenant_id,
+        idempotency_key: `${idempotency_key}:dms-workspace`,
+        operation: "matter_vault_workspace_opening",
+        object_type: "DmsWorkspace",
+        object_id: created.workspace.workspace_id,
+        actor_id,
+        response: {
+          outcome: "created",
+          workspace_id: created.workspace.workspace_id,
+          root_folder_id: created.root_folder.folder_id,
+          raw_payload_included: false,
+        },
+      });
+      return created;
+    });
 
     const linkAudit = appendMatterAuditEvent({
       repository: matterTx,

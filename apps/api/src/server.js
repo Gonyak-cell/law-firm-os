@@ -10,6 +10,8 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+
+const PROCESS_INSTANCE_FINGERPRINT = randomUUID().replaceAll("-", "");
 import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
 import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
 import { HRX_DURABLE_CORE_TABLES, HRX_DURABLE_WORKFLOW_TABLES } from "../../../packages/hrx/src/store/port.js";
@@ -171,6 +173,10 @@ import { createPostgresApiRuntimeAuthority } from "./postgres-api-runtime-author
 import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgres-upload-runtime.js";
 import { createEntraOidcProviderFromSecretReference } from "./entra-oidc-provider.js";
 import { resolveAwsSecretString } from "./aws-secret-reference.js";
+import {
+  LAWOS_STAFF_AUTH_AUTHORITIES,
+  resolveStaffAuthAuthority,
+} from "./staff-auth-authority.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
@@ -549,12 +555,14 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
   uses_real_client_data: true,
 });
 
-function serviceDescriptorForAuthority({ persistenceAuthority, persistenceCapabilities } = {}) {
+function serviceDescriptorForAuthority({ persistenceAuthority, persistenceCapabilities, dataScope } = {}) {
   if (persistenceAuthority !== LAWOS_PERSISTENCE_AUTHORITIES.postgresV2) return SERVICE_DESCRIPTOR;
+  const syntheticOnly = dataScope === "synthetic-only";
   return Object.freeze({
     ...SERVICE_DESCRIPTOR,
     bounded_contexts: Object.freeze(SERVICE_DESCRIPTOR.bounded_contexts.map((context) => Object.freeze({
       ...context,
+      ...(context.bounded_context === "master-data" && syntheticOnly ? { uses_real_client_data: false } : {}),
       runtime_persistence: context.bounded_context === "api-auth"
         ? "postgres-identity-ledger-v2"
         : context.bounded_context === "vault-dms"
@@ -569,6 +577,8 @@ function serviceDescriptorForAuthority({ persistenceAuthority, persistenceCapabi
       audit: true,
       outbox: true,
     }))),
+    synthetic_only: syntheticOnly,
+    uses_real_client_data: syntheticOnly ? false : SERVICE_DESCRIPTOR.uses_real_client_data,
     persistence_authority_capabilities: persistenceCapabilities ?? null,
   });
 }
@@ -1108,7 +1118,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -1184,7 +1194,8 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       persistence_authority: persistenceAuthority,
       runtime_safety_policy: LAWOS_OFFLINE_REJECTED_POLICY,
       auth_authority: sessionAuth.capabilities ?? null,
-      ...serviceDescriptorForAuthority({ persistenceAuthority, persistenceCapabilities }),
+      runtime_instance_fingerprint: dataScope === "synthetic-only" ? PROCESS_INSTANCE_FINGERPRINT : undefined,
+      ...serviceDescriptorForAuthority({ persistenceAuthority, persistenceCapabilities, dataScope }),
     });
     return;
   }
@@ -1657,6 +1668,7 @@ export function createApiServer({
   stepUpAuthority,
   sessionAuth,
   requestRuntimeAuthority = null,
+  dataScope = process.env.LAWOS_DATA_SCOPE ?? null,
 } = {}) {
   const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority({ profile: runtimeProfile });
   const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
@@ -1692,6 +1704,7 @@ export function createApiServer({
           runtimeProfile,
           persistenceAuthority,
           persistenceCapabilities: requestRuntimeAuthority?.capabilities ?? null,
+          dataScope,
         });
       };
 
@@ -1810,6 +1823,7 @@ export async function startApiServer({
   authPasswordResetStorePath,
   passwordResetEmailDelivery,
   sessionAuth,
+  staffAuthAuthority,
   staffOidcProvider,
   entraSecretsClient,
   entraFetchFn,
@@ -1822,6 +1836,9 @@ export async function startApiServer({
     ...persistenceAuthorityEnv,
     LAWOS_RUNTIME_PROFILE: resolvedRuntimeProfile,
   };
+  const resolvedStaffAuthAuthority = resolveStaffAuthAuthority(
+    staffAuthAuthority ?? resolvedPersistenceAuthorityEnv.LAWOS_STAFF_AUTHORITY,
+  );
   const persistenceAuthorityState = await preparePersistenceAuthority({
     value: persistenceAuthority,
     env: resolvedPersistenceAuthorityEnv,
@@ -1835,7 +1852,12 @@ export async function startApiServer({
     explicitSecret: sessionSecret,
   });
   let resolvedStaffOidcProvider = staffOidcProvider ?? null;
+  if (resolvedStaffAuthAuthority === LAWOS_STAFF_AUTH_AUTHORITIES.internalPassword && resolvedStaffOidcProvider) {
+    throw runtimePreflightError("staff OIDC provider is forbidden when LAWOS_STAFF_AUTHORITY=internal-password");
+  }
   if (
+    resolvedStaffAuthAuthority === LAWOS_STAFF_AUTH_AUTHORITIES.entraOidc
+    &&
     persistenceAuthorityState.authority === LAWOS_PERSISTENCE_AUTHORITIES.postgresV2
     && resolvedRuntimeProfile === LAWOS_RUNTIME_PROFILES.operational
     && !sessionAuth
@@ -1846,6 +1868,14 @@ export async function startApiServer({
       secretsClient: entraSecretsClient,
       fetchFn: entraFetchFn,
     });
+  }
+  if (
+    resolvedStaffAuthAuthority === LAWOS_STAFF_AUTH_AUTHORITIES.entraOidc
+    && resolvedRuntimeProfile === LAWOS_RUNTIME_PROFILES.operational
+    && !sessionAuth
+    && !resolvedStaffOidcProvider
+  ) {
+    throw runtimePreflightError("LAWOS_STAFF_AUTHORITY=entra-oidc requires a configured Entra OIDC provider");
   }
   const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority({
     profile: resolvedRuntimeProfile,
@@ -1905,6 +1935,7 @@ export async function startApiServer({
         requestRuntimeAuthority,
         runtimeProfile: resolvedRuntimeProfile,
         persistenceAuthority: persistenceAuthorityState.authority,
+        dataScope: resolvedPersistenceAuthorityEnv.LAWOS_DATA_SCOPE ?? process.env.LAWOS_DATA_SCOPE ?? null,
       });
       server.once("close", () => {
         void persistenceAuthorityState.close?.();

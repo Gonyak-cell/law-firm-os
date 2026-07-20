@@ -31,8 +31,8 @@ test("HRX domain inventory covers migrations, tables, append-only, CAS, payroll 
   const store = currentSourceStore();
   try {
     const result = createHrxDomainSnapshot({ store, tenant_id: TENANT });
-    assert.equal(result.inventory.migration_count, 31);
-    assert.equal(result.inventory.expected_migration_count, 31);
+    assert.equal(result.inventory.migration_count, 32);
+    assert.equal(result.inventory.expected_migration_count, 32);
     assert.equal(result.inventory.table_count, 77);
     assert.equal(result.inventory.append_only_table_count, 11);
     assert.equal(result.inventory.cas_table_count, 26);

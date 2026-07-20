@@ -351,6 +351,7 @@ export function createMasterDataSyntheticFixture() {
   const tenant_id = "tenant_rp04_synthetic";
   const owner_user_id = "user_rp04_owner";
   const amicCurrentClientRecords = createAmicCurrentClientCandidateRecords({ tenant_id, owner_user_id });
+  const usesRealClientData = amicCurrentClientRecords.length > 0;
   const entity = createMasterDataEntity({
     entity_id: "entity_rp04_org_amic",
     tenant_id,
@@ -435,8 +436,8 @@ export function createMasterDataSyntheticFixture() {
       contactPoint,
       billingProfile,
     ]),
-    synthetic_only: false,
-    uses_real_client_data: true,
+    synthetic_only: !usesRealClientData,
+    uses_real_client_data: usesRealClientData,
     writes_product_state: false,
     evaluates_runtime_permission: false,
     writes_audit_event: false,

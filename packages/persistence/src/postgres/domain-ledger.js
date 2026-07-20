@@ -214,6 +214,36 @@ function createScopedDomainLedger(client, tenantId, domainId, clock) {
     return clone(rowToRecord(result.rows[0], record.references));
   }
 
+  async function importRecord(input = {}) {
+    const record = normalizeDomainRecord(input, { tenant_id: tenantId, domain_id: domainId });
+    const createdAt = record.created_at ?? timestamp(clock);
+    const updatedAt = record.updated_at ?? createdAt;
+    const result = await client.query(
+      `INSERT INTO lawos_domain.records
+         (tenant_id, domain_id, record_type, record_id, state_version, unique_key,
+          payload, payload_hash, append_only, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10::timestamptz, $11::timestamptz)
+       ON CONFLICT (tenant_id, domain_id, record_type, record_id) DO NOTHING
+       RETURNING tenant_id, domain_id, record_type, record_id, state_version,
+                 unique_key, payload, payload_hash, append_only, created_at, updated_at`,
+      [
+        tenantId,
+        domainId,
+        record.record_type,
+        record.record_id,
+        record.state_version,
+        record.unique_key,
+        JSON.stringify(record.payload),
+        record.payload_hash,
+        record.append_only,
+        createdAt,
+        updatedAt,
+      ],
+    );
+    if (result.rowCount === 0) throw domainImportConflict("domain record appeared during import", { record_type: record.record_type });
+    return clone(rowToRecord(result.rows[0], record.references));
+  }
+
   async function addReferences(record) {
     const normalized = normalizeDomainRecord(record, { tenant_id: tenantId, domain_id: domainId });
     for (const reference of normalized.references) {
@@ -502,6 +532,7 @@ function createScopedDomainLedger(client, tenantId, domainId, clock) {
     read,
     list,
     write,
+    importRecord,
     addReferences,
     claimIdempotency,
     listIdempotency,
@@ -560,7 +591,7 @@ export function createPostgresDomainLedger({ pool, clock = () => new Date(), tra
           }
           continue;
         }
-        await tx.write({ ...record, expected_version: 0 });
+        await tx.importRecord(record);
       }
       for (const record of snapshot.records) await tx.addReferences(record);
       for (const entry of snapshot.idempotency_entries) {

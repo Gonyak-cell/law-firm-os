@@ -2708,6 +2708,21 @@ export function handleMatterTeamMemberCreate({ matterId, body, context, requestI
       ui_state: "empty",
     });
   }
+  const idempotencyKey = body?.idempotency_key ?? `matter-team:${matterId}:${body?.member?.member_id ?? requestId}`;
+  const replay = runtime.repository.getIdempotency({ tenant_id: query.tenant_id, idempotency_key: idempotencyKey });
+  if (replay?.response) {
+    return {
+      status: 200,
+      body: {
+        ...replay.response,
+        request_id: requestId,
+        outcome: "idempotent_replay",
+        idempotent_replay: true,
+        audit_hint_ref: query.audit_hint_ref,
+        production_ready_claim: false,
+      },
+    };
+  }
   try {
     const audit = {
       append: (event) =>
@@ -2766,20 +2781,28 @@ export function handleMatterTeamMemberCreate({ matterId, body, context, requestI
           },
         })
       : null;
-    return {
-      status: 201,
-      body: {
+    const response = {
         request_id: requestId,
         outcome: "created",
         item: serializeMember(persisted),
         matter: updatedMatter ? serializeMatter(updatedMatter, runtime) : null,
         owner_assignment: ownerAssignment,
         audit_event: ownerAuditEvent,
+        idempotent_replay: false,
         safe_error_codes: [],
         audit_hint_ref: query.audit_hint_ref,
         production_ready_claim: false,
-      },
     };
+    runtime.repository.recordIdempotency({
+      tenant_id: query.tenant_id,
+      idempotency_key: idempotencyKey,
+      operation: "matter_team_member_create",
+      object_type: "MatterMember",
+      object_id: persisted.member_id,
+      actor_id: context.principal.user_id,
+      response,
+    });
+    return { status: 201, body: response };
   } catch (error) {
     const onboardingBlocked = error?.code === MATTER_ONBOARDING_GATE_ERROR_CODE;
     return errorResponse(onboardingBlocked ? 409 : 400, requestId, [onboardingBlocked ? MATTER_API_ERROR_CODES.onboarding_gate_required : MATTER_API_ERROR_CODES.validation_error], {

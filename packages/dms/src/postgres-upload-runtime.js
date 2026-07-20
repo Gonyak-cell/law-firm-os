@@ -1039,6 +1039,20 @@ export function createPostgresDmsUploadRuntime({
     const actorId = requiredText(input.created_by, "created_by");
     const reasonHash = hashValue({ reason: requiredText(input.reason, "reason") });
     return transact(tenantId, async (client) => {
+      const existing = await client.query(
+        `SELECT legal_hold_id, document_id, object_id, status, reason_hash
+           FROM lawos_dms.legal_holds
+          WHERE tenant_id = $1 AND legal_hold_id = $2
+          FOR UPDATE`,
+        [tenantId, holdId],
+      );
+      if (existing.rows[0]) {
+        const row = existing.rows[0];
+        if (row.document_id !== documentId || row.object_id !== objectId || row.status !== "active" || row.reason_hash !== reasonHash) {
+          throw codedError("DMS legal hold idempotency key conflicts with existing state", "DMS_IDEMPOTENCY_CONFLICT");
+        }
+        return Object.freeze({ tenant_id: tenantId, legal_hold_id: holdId, status: "active", reason_hash: reasonHash, replayed: true });
+      }
       const canonical = await selectCanonicalObject(client, tenantId, { documentId, objectId, lock: true, allowedStatuses: ["committed", "delete_pending"] });
       await assertNoActiveProviderDelete(client, tenantId, canonical);
       if (storage.capabilities.provider_retention) {
@@ -1059,7 +1073,7 @@ export function createPostgresDmsUploadRuntime({
           WHERE tenant_id = $1 AND document_id = $2`,
         [tenantId, canonical.document_id, createdAt],
       );
-      return Object.freeze({ tenant_id: tenantId, legal_hold_id: holdId, status: "active", reason_hash: reasonHash });
+      return Object.freeze({ tenant_id: tenantId, legal_hold_id: holdId, status: "active", reason_hash: reasonHash, replayed: false });
     });
   }
 
@@ -1071,6 +1085,23 @@ export function createPostgresDmsUploadRuntime({
     const objectId = input.object_id ? requiredText(input.object_id, "object_id") : null;
     const retainUntil = requiredTimestamp(input.retain_until, "retain_until");
     return transact(tenantId, async (client) => {
+      const existing = await client.query(
+        `SELECT retention_policy_id, document_id, object_id, retain_until, disposition
+           FROM lawos_dms.retention_policies
+          WHERE tenant_id = $1 AND retention_policy_id = $2
+          FOR UPDATE`,
+        [tenantId, policyId],
+      );
+      if (existing.rows[0]) {
+        const row = existing.rows[0];
+        if (row.document_id !== documentId
+          || (objectId && row.object_id !== objectId)
+          || new Date(row.retain_until).toISOString() !== retainUntil
+          || row.disposition !== "review_before_delete") {
+          throw codedError("DMS retention policy idempotency key conflicts with existing state", "DMS_IDEMPOTENCY_CONFLICT");
+        }
+        return Object.freeze({ tenant_id: tenantId, retention_policy_id: policyId, retain_until: retainUntil, replayed: true });
+      }
       const canonical = await selectCanonicalObject(client, tenantId, { documentId, objectId, lock: true, allowedStatuses: ["committed", "delete_pending"] });
       await assertNoActiveProviderDelete(client, tenantId, canonical);
       if (storage.capabilities.provider_retention) {
@@ -1090,7 +1121,7 @@ export function createPostgresDmsUploadRuntime({
          VALUES ($1, $2, $3, $4, $5::timestamptz, 'review_before_delete', $6::timestamptz)`,
         [tenantId, policyId, canonical.document_id, canonical.object_id, retainUntil, createdAt],
       );
-      return Object.freeze({ tenant_id: tenantId, retention_policy_id: policyId, retain_until: retainUntil });
+      return Object.freeze({ tenant_id: tenantId, retention_policy_id: policyId, retain_until: retainUntil, replayed: false });
     });
   }
 
