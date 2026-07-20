@@ -145,6 +145,7 @@ try {
   for (const domainId of DOMAIN_IDS) {
     const snapshot = syntheticSnapshot({ tenantId: tenantA, domainId, runId });
     const imported = await ledger.importSnapshot(snapshot);
+    const normalizedRecord = imported.snapshot.records[0];
     const replay = await ledger.importSnapshot(snapshot);
     const shadow = await ledger.compareSnapshot(snapshot);
     if (shadow.comparison.equal !== true || replay.replayed !== true) throw new Error(`staging import invariant failed: ${domainId}`);
@@ -171,7 +172,7 @@ try {
           source_imported: imported.receipt.status === "source_imported",
           idempotency_replayed: replay.replayed,
           shadow_equal: shadow.comparison.equal,
-          readback_equal: readback?.payload_hash === snapshot.records[0].payload_hash,
+          readback_equal: readback?.payload_hash === normalizedRecord.payload_hash,
           json_dual_write_absent: readback?.payload?.json_dual_write !== true,
         },
         safe_counts: { record_count: shadow.comparison.target_count },

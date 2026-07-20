@@ -77,12 +77,18 @@ export function createS3StorageAdapter(config = {}) {
   const prefix = safePrefix(config.prefix);
   const client = config.client ?? new S3Client({ region: requireString(config.region, "region") });
   const objectLockEnabled = config.object_lock_enabled === true;
+  const defaultRetentionDays = config.default_retention_days == null ? null : Number(config.default_retention_days);
+  if (defaultRetentionDays != null && (!objectLockEnabled || !Number.isInteger(defaultRetentionDays) || defaultRetentionDays < 1 || defaultRetentionDays > 36_500)) {
+    throw new TypeError("default_retention_days requires Object Lock and must be an integer from 1 through 36500");
+  }
+  const clock = typeof config.clock === "function" ? config.clock : () => Date.now();
   const capabilities = Object.freeze({
     staged_uploads: true,
     digest_verification: true,
     orphan_cleanup: true,
     provider_retention: objectLockEnabled,
     conditional_delete: true,
+    default_committed_retention: defaultRetentionDays != null,
   });
 
   const common = Object.freeze({ Bucket: bucket, ExpectedBucketOwner: expectedBucketOwner });
@@ -207,7 +213,8 @@ export function createS3StorageAdapter(config = {}) {
     if (current && current.sha256 !== staged.sha256) {
       throw codedError("committed object has a different digest", "DMS_FINALIZE_CONFLICT");
     }
-    if (!current) {
+    let committed = current;
+    if (!committed) {
       try {
         await client.send(new PutObjectCommand({
           ...common,
@@ -222,11 +229,31 @@ export function createS3StorageAdapter(config = {}) {
       } catch (error) {
         if (!isPreconditionFailed(error)) throw error;
       }
-      const committed = await read(committedKey);
+      committed = await read(committedKey);
       if (!committed) {
         throw codedError("S3 committed object digest verification failed", "DMS_COMMITTED_DIGEST_MISMATCH");
       }
       if (committed.sha256 !== staged.sha256) throw codedError("committed object has a different digest", "DMS_FINALIZE_CONFLICT");
+    }
+    let defaultRetentionApplied = false;
+    if (defaultRetentionDays != null) {
+      const retention = await client.send(new GetObjectRetentionCommand({
+        ...common,
+        Key: committedKey,
+        VersionId: committed.response.VersionId,
+      }));
+      if (!retention.Retention?.RetainUntilDate) {
+        const now = new Date(clock());
+        if (!Number.isFinite(now.getTime())) throw new TypeError("S3 adapter clock returned an invalid timestamp");
+        const retainUntil = new Date(now.getTime() + defaultRetentionDays * 24 * 60 * 60 * 1000);
+        await client.send(new PutObjectRetentionCommand({
+          ...common,
+          Key: committedKey,
+          VersionId: committed.response.VersionId,
+          Retention: { Mode: "GOVERNANCE", RetainUntilDate: retainUntil },
+        }));
+        defaultRetentionApplied = true;
+      }
     }
     await client.send(new DeleteObjectCommand({
       ...common,
@@ -234,7 +261,8 @@ export function createS3StorageAdapter(config = {}) {
       VersionId: staged.response.VersionId,
     }));
     await client.send(new DeleteObjectCommand({ ...common, Key: stagedKey }));
-    return statObject({ tenant_id: tenantId, object_id: objectId });
+    const receipt = await statObject({ tenant_id: tenantId, object_id: objectId });
+    return Object.freeze({ ...receipt, default_retention_applied: defaultRetentionApplied });
   }
 
   async function deleteOrphan({ tenant_id, session_id, object_id } = {}) {
