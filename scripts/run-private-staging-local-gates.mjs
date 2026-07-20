@@ -83,7 +83,7 @@ function runGate(id, command, args, { cwd, env, timeoutMs = 30 * 60 * 1000 }) {
 }
 
 function createIsolatedWorker(sourceSha, syntheticIdentityPath, artifactPath, artifactManifestPath) {
-  const root = mkdtempSync("/private/tmp/lawos-private-staging-local-gates-");
+  const root = mkdtempSync("/private/tmp/lawos-psg-");
   chmodSync(root, 0o700);
   const repository = join(root, "repository");
   execFileSync("git", ["clone", "--quiet", "--no-hardlinks", "--no-checkout", process.cwd(), repository], { cwd: process.cwd(), stdio: "ignore" });
