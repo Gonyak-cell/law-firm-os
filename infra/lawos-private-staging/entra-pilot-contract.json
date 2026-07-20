@@ -1,0 +1,116 @@
+{
+  "schema_version": "law-firm-os.private-staging.entra-pilot.v1",
+  "environment": "lawos-staging",
+  "tenant_source": "interactive-azure-cli-context-only",
+  "tenant_value_in_source": false,
+  "licensing": {
+    "conditional_access_minimum": "Microsoft Entra ID P1",
+    "verified_in_source": false,
+    "interactive_tenant_verification_required": true
+  },
+  "application": {
+    "display_name": "LawOS Private Staging",
+    "sign_in_audience": "AzureADMyOrg",
+    "public_client": true,
+    "redirect_uris": [
+      "matter://auth/lawos-private-staging/callback"
+    ],
+    "client_secret_required": false,
+    "implicit_id_token": false,
+    "implicit_access_token": false,
+    "required_resource_access": [],
+    "optional_id_token_claims": [
+      {
+        "name": "auth_time",
+        "essential": true,
+        "additional_properties": []
+      },
+      {
+        "name": "amr",
+        "essential": true,
+        "additional_properties": [
+          "include_granular_amr"
+        ]
+      }
+    ],
+    "configuration_secret_ref": "/lawos/private-staging/entra/oidc"
+  },
+  "groups": {
+    "pilot": "LawOS Private Staging Pilot",
+    "emergency_exclusion": "LawOS Entra Emergency Access",
+    "pilot_dynamic_membership": false,
+    "pilot_nested_groups": false
+  },
+  "authentication_context": {
+    "display_name": "LawOS Private Staging Phishing Resistant",
+    "context_id_source": "next-unallocated-c1-through-c25",
+    "requested_in_oidc_claims": true
+  },
+  "conditional_access": {
+    "display_name": "LawOS Private Staging Pilot - Phishing Resistant",
+    "initial_state": "enabledForReportingButNotEnforced",
+    "included_users": [
+      "pilot-group-object-id-ref"
+    ],
+    "excluded_users": [
+      "emergency-exclusion-group-object-id-ref"
+    ],
+    "included_applications": [
+      "lawos-staging-service-principal-object-id-ref"
+    ],
+    "included_authentication_context": "allocated-authentication-context-id-ref",
+    "all_users": false,
+    "all_cloud_apps": false,
+    "grant_control": "authenticationStrength",
+    "authentication_strength": "built-in-phishing-resistant-mfa",
+    "observation_days_minimum": 7,
+    "enablement_scope": "pilot-group-only",
+    "enablement_requires": [
+      "seven-complete-days-report-only",
+      "pilot-fido2-success",
+      "pilot-non-phishing-resistant-failure",
+      "what-if-pass",
+      "emergency-access-pass",
+      "non-pilot-impact-count-zero"
+    ]
+  },
+  "emergency_access": {
+    "minimum_cloud_only_accounts": 2,
+    "phishing_resistant_authentication": true,
+    "fido2_physical_registration_required": true,
+    "credential_custody_outside_source": true,
+    "human_administrator_only": true,
+    "automation_user_creation": false,
+    "automation_role_assignment": false,
+    "sign_in_alert_required": true,
+    "routine_use_forbidden": true,
+    "lawos_application_break_glass_separate": true
+  },
+  "graph_authority": {
+    "execution_model": "interactive-just-in-time-delegated-admin",
+    "required_delegated_permissions": [
+      "Application.ReadWrite.All",
+      "Group.ReadWrite.All",
+      "Policy.ReadWrite.ConditionalAccess"
+    ],
+    "forbidden_permissions": [
+      "Directory.ReadWrite.All",
+      "RoleManagement.ReadWrite.Directory",
+      "User.ReadWrite.All",
+      "Mail.ReadWrite",
+      "Sites.FullControl.All"
+    ],
+    "application_permission_grant": false,
+    "bootstrap_application_credential": false,
+    "remove_or_revoke_after_configuration": true
+  },
+  "evidence": {
+    "token_material_recorded": false,
+    "user_principal_names_recorded": false,
+    "raw_sign_in_logs_recorded": false,
+    "safe_counts_only": true,
+    "hashed_object_references_only": true
+  },
+  "production_ready_claim": false,
+  "go_live_claim": false
+}

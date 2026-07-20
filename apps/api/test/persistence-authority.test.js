@@ -5,6 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 import {
   LAWOS_PERSISTENCE_AUTHORITIES,
+  postgresUrlFromSecret,
   preparePersistenceAuthority,
   resolvePersistenceAuthority,
 } from "../src/persistence-authority.js";
@@ -181,6 +182,28 @@ test("operational PostgreSQL authority resolves credentials only through an AWS 
   assert.equal(connectorOptions.tenantContextSecret, TENANT_CONTEXT_SECRET);
   assert.equal(state.json_fallback, false);
   await state.close();
+});
+
+test("structured Secrets Manager PostgreSQL credentials are encoded only in process memory", () => {
+  const connectionString = postgresUrlFromSecret(JSON.stringify({
+    host: "lawos-private-staging.example.rds.amazonaws.com",
+    port: 5432,
+    dbname: "lawos",
+    username: "lawos_app",
+    password: "synthetic test / password @ value",
+    configuration_state: "ready",
+  }));
+  const parsed = new URL(connectionString);
+  assert.equal(parsed.hostname, "lawos-private-staging.example.rds.amazonaws.com");
+  assert.equal(parsed.port, "5432");
+  assert.equal(parsed.pathname, "/lawos");
+  assert.equal(decodeURIComponent(parsed.username), "lawos_app");
+  assert.equal(decodeURIComponent(parsed.password), "synthetic test / password @ value");
+  assert.equal(connectionString.includes("synthetic test / password @ value"), false);
+  assert.throws(
+    () => postgresUrlFromSecret(JSON.stringify({ username: "lawos_app", password: "incomplete" })),
+    /complete structured credential/u,
+  );
 });
 
 test("API startup rejects PostgreSQL failure before creating any file authority", async (t) => {

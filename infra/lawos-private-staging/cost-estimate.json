@@ -1,0 +1,107 @@
+{
+  "schema_version": "law-firm-os.private-staging.cost-estimate.v1",
+  "prepared_on": "2026-07-20",
+  "currency": "USD",
+  "aws_account_id": "770880870480",
+  "aws_region": "ap-northeast-2",
+  "monthly_cost_limit_krw": 300000,
+  "effective_aws_budget_limit_usd": 100,
+  "planning_exchange_rate_krw_per_usd": 1500,
+  "pricing_basis_hours_per_month": 730,
+  "line_items": [
+    {
+      "service": "Amazon RDS for PostgreSQL",
+      "configuration": "db.t4g.micro Single-AZ",
+      "quantity": 730,
+      "unit": "instance-hour",
+      "unit_price_usd": 0.025,
+      "monthly_estimate_usd": 18.25
+    },
+    {
+      "service": "Amazon RDS storage",
+      "configuration": "20 GiB gp3",
+      "quantity": 20,
+      "unit": "GB-month",
+      "unit_price_usd": 0.131,
+      "monthly_estimate_usd": 2.62
+    },
+    {
+      "service": "NAT Gateway",
+      "configuration": "one staging gateway",
+      "quantity": 730,
+      "unit": "gateway-hour",
+      "unit_price_usd": 0.059,
+      "monthly_estimate_usd": 43.07
+    },
+    {
+      "service": "NAT Gateway data processing",
+      "configuration": "10 GB planning allowance",
+      "quantity": 10,
+      "unit": "GB",
+      "unit_price_usd": 0.059,
+      "monthly_estimate_usd": 0.59
+    },
+    {
+      "service": "Public IPv4",
+      "configuration": "NAT gateway elastic IP",
+      "quantity": 730,
+      "unit": "address-hour",
+      "unit_price_usd": 0.005,
+      "monthly_estimate_usd": 3.65
+    },
+    {
+      "service": "AWS Secrets Manager",
+      "configuration": "seven staging secrets",
+      "quantity": 7,
+      "unit": "secret-month",
+      "unit_price_usd": 0.4,
+      "monthly_estimate_usd": 2.8
+    },
+    {
+      "service": "AWS KMS",
+      "configuration": "one customer-managed staging key",
+      "quantity": 1,
+      "unit": "key-month",
+      "unit_price_usd": 1,
+      "monthly_estimate_usd": 1
+    },
+    {
+      "service": "AWS Lambda and API Gateway",
+      "configuration": "synthetic pilot traffic allowance",
+      "quantity": 1,
+      "unit": "allowance",
+      "unit_price_usd": 2,
+      "monthly_estimate_usd": 2
+    },
+    {
+      "service": "Amazon S3 and CloudWatch Logs",
+      "configuration": "synthetic documents, artifacts, and 30-day logs",
+      "quantity": 1,
+      "unit": "allowance",
+      "unit_price_usd": 4,
+      "monthly_estimate_usd": 4
+    },
+    {
+      "service": "S3 gateway VPC endpoint",
+      "configuration": "application route tables",
+      "quantity": 1,
+      "unit": "endpoint-month",
+      "unit_price_usd": 0,
+      "monthly_estimate_usd": 0
+    }
+  ],
+  "subtotal_monthly_usd": 78,
+  "contingency_monthly_usd": 12,
+  "total_monthly_estimate_usd": 90,
+  "total_monthly_estimate_krw_at_planning_rate": 135000,
+  "one_time_estimate_usd": 0,
+  "within_effective_aws_budget": true,
+  "within_owner_krw_cap": true,
+  "creation_gate": "PASS",
+  "assumptions": [
+    "No real data or sustained load is used in private staging.",
+    "RDS backup storage does not exceed the free backup allocation associated with active database storage.",
+    "No hourly interface VPC endpoint is created; Secrets Manager and Entra use TLS through the staging NAT.",
+    "The cost estimate must be refreshed if the change set adds persistent services or the measured usage exceeds an allowance."
+  ]
+}

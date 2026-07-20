@@ -1,0 +1,87 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "LawOS private staging exact-head deployment artifact store.",
+  "Parameters": {
+    "Owner": {
+      "Type": "String",
+      "Default": "law-firm-os-owner",
+      "AllowedPattern": "^[a-zA-Z0-9._@-]{3,64}$"
+    },
+    "ReviewDate": {
+      "Type": "String",
+      "Default": "2026-07-27",
+      "AllowedPattern": "^2026-[0-9]{2}-[0-9]{2}$"
+    },
+    "ExpirationDate": {
+      "Type": "String",
+      "Default": "2026-08-31",
+      "AllowedPattern": "^2026-[0-9]{2}-[0-9]{2}$"
+    }
+  },
+  "Resources": {
+    "ArtifactBucket": {
+      "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            { "ServerSideEncryptionByDefault": { "SSEAlgorithm": "AES256" } }
+          ]
+        },
+        "BucketName": { "Fn::Sub": "lawos-private-staging-artifacts-${AWS::AccountId}-${AWS::Region}" },
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "Id": "expire-unreferenced-artifacts",
+              "NoncurrentVersionExpiration": { "NoncurrentDays": 7 },
+              "Status": "Enabled"
+            }
+          ]
+        },
+        "OwnershipControls": { "Rules": [{ "ObjectOwnership": "BucketOwnerEnforced" }] },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "VersioningConfiguration": { "Status": "Enabled" },
+        "Tags": [
+          { "Key": "Name", "Value": "lawos-private-staging-artifacts" },
+          { "Key": "environment", "Value": "lawos-staging" },
+          { "Key": "system", "Value": "lawos" },
+          { "Key": "owner", "Value": { "Ref": "Owner" } },
+          { "Key": "review", "Value": { "Ref": "ReviewDate" } },
+          { "Key": "expiration", "Value": { "Ref": "ExpirationDate" } }
+        ]
+      }
+    },
+    "ArtifactBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": { "Ref": "ArtifactBucket" },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "DenyInsecureTransport",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": "s3:*",
+              "Resource": [
+                { "Fn::GetAtt": ["ArtifactBucket", "Arn"] },
+                { "Fn::Sub": "${ArtifactBucket.Arn}/*" }
+              ],
+              "Condition": { "Bool": { "aws:SecureTransport": "false" } }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ArtifactBucketName": { "Value": { "Ref": "ArtifactBucket" } },
+    "ArtifactBucketArn": { "Value": { "Fn::GetAtt": ["ArtifactBucket", "Arn"] } }
+  }
+}
