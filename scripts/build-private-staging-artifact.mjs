@@ -45,7 +45,7 @@ function required(value, name) {
 }
 
 function git(...args) {
-  return execFileSync("git", args, { cwd: process.cwd(), encoding: "utf8" }).trim();
+  return execFileSync("git", args, { cwd: process.cwd(), encoding: "utf8", maxBuffer: 16 * 1024 * 1024 }).trim();
 }
 
 function sha256(value) {
