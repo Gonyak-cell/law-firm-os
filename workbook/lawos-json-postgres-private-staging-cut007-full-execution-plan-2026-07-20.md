@@ -1,7 +1,7 @@
-# LawOS JSON to PostgreSQL, Internal Email Authentication, Private Staging, and CUT-005~007 Full Execution Plan
+# LawOS JSON to PostgreSQL, Internal Email Authentication, Private Staging, CUT-005~007, and Real-Data Migration Full Execution Plan
 
 - Plan ID: `LAWOS-JSON-POSTGRES-PRIVATE-STAGING-CUT007-20260720`
-- Plan version: `v1.0`
+- Plan version: `v1.1`
 - Prepared on: `2026-07-20 KST`
 - Repository: `/Users/jws/Documents/Codex/Law Firm OS`
 - Protected root worktree: read-only; never reset, stash, clean, commit, or modify
@@ -23,9 +23,11 @@ Complete the source implementation, isolated LawOS private staging deployment, a
 4. CUT-005 proves migration accuracy, rejected-row accounting, replay no-op, and tenant isolation;
 5. CUT-006 proves all deployed writes are PostgreSQL-only with JSON fallback, JSON writer, dual-write, file-current authority, offline mutation, and memory fallback all equal to zero;
 6. CUT-007 proves the complete synthetic user journey, including authentication, HRX professional history, client/matter workflows, DMS controls, role/tenant negatives, cold restart, audit, and outbox;
-7. every execution claim is bound to the exact source SHA, tree, artifact digest, stack/template digest, and independently signed receipt.
+7. W12 imports the signed, adjudicated real employee/account/history/matter/client inventory into an isolated private rehearsal database and proves complete reconciliation with reset delivery captured by a sink;
+8. W13 migrates only the approved inventory into production PostgreSQL, retires operational JSON authority, and proves missing-JSON operation without fallback or dual-write;
+9. every execution claim is bound to the exact source SHA, tree, artifact digest, stack/template digest, data-inventory digest, and independently signed receipt.
 
-This plan does not by itself authorize production data writes, production cutover, release, signing, publication, production traffic, or go-live.
+W12 and W13 are now mandatory parts of the overall goal. Their inclusion in this plan is not a blanket execution approval: W12 still requires a signed exact inventory/rehearsal authorization, and W13 still requires a signed exact-main production migration authorization. Release, signing, publication, production traffic, and go-live remain outside this plan.
 
 ## 2. Terminal completion states
 
@@ -85,13 +87,12 @@ The following are never imported as active account data and never appear in rece
 - private keys, recovery keys, or database credentials;
 - raw DMS bytes or raw PII in evidence.
 
-### 3.3 Deployment exclusions before separate approval
+### 3.3 Included but separately authorized execution boundaries
 
-- production database write;
-- real roster/client/document migration;
-- real employee password-reset email send;
-- production cutover;
-- release, tag, signing, publication, AWS production deploy, or go-live.
+- real roster/client/document reads and rehearsal writes are W12 work but require the signed W12 inventory/rehearsal authorization;
+- production database writes, source-writer freeze, authority switch, and JSON retirement are W13 work but require the signed W13 exact-main authorization;
+- real employee password-setup email is allowed only after W13 migration and only on an individual user request;
+- release, tag, signing, publication, unrelated AWS production deployment, production traffic activation, and go-live remain excluded.
 
 ## 4. Truth boundaries
 
@@ -146,10 +147,10 @@ W9 CUT-006
        ↓
 W10 CUT-007
        ↓
-W11 Receipt sealing, merge readiness, and handoff
-       ↓ separate approval
+W11 Receipt sealing, merge readiness, and gated continuation
+       ↓ signed W12 inventory/rehearsal approval
 W12 Real-data rehearsal
-       ↓ separate approval
+       ↓ signed W13 exact-main production migration approval
 W13 Production migration and JSON retirement
 ```
 
@@ -661,7 +662,7 @@ Run API integration proof plus a real browser/desktop Forest critical-flow smoke
 
 Create and verify an independently signed CUT-007 receipt. No real staff, client, or document data is used.
 
-## 18. W11 — Sealing, commit, PR, and merge readiness
+## 18. W11 — Sealing, commit, PR, merge readiness, and gated continuation
 
 ### W11.1 Independent receipts
 
@@ -706,34 +707,88 @@ The final report must state separately:
 - CUT-006 status;
 - CUT-007 status;
 - merge readiness;
-- remaining real-data, production, release, signing, and go-live blockers.
+- exact W12 authorization and source-inventory adjudication status;
+- exact W13 authorization and production-migration readiness;
+- remaining release, signing, production-traffic, and go-live blockers.
 
-## 19. W12 — Separately approved real-data rehearsal
+## 19. W12 — Signed-inventory real-data rehearsal
 
-After CUT-007 and a new real-data approval:
+### W12.1 Entry gates
 
-- freeze and sign the authoritative source inventory;
-- import the approved real employee/account/history/matter/client data into an isolated private database;
-- route all password-reset delivery to a sink during rehearsal;
-- reconcile counts, hashes, versions, histories, relationships, audit, and rejected rows;
-- manually adjudicate every exception;
-- run read-only user-visible sampling without exposing raw evidence;
-- produce a signed real-data rehearsal receipt.
+W12 starts only after CUT-007 PASS and a signed authorization binds the exact source SHA/tree, migration artifact, canonical source-inventory digest, field-crosswalk digest, isolated rehearsal target, reset-email sink, allowed data domains, retention window, operators, and deletion/cleanup disposition. The authorization must prohibit production writes, external email delivery, raw PII in evidence, and any source mutation.
 
-## 20. W13 — Separately approved production migration
+### W12.2 Inventory adjudication
 
-After an exact-main production authorization:
+- freeze the candidate inventory without changing source content;
+- resolve every duplicate generation by lineage, stable record identity, state version, audit chronology, and owner decision rather than modification time alone;
+- resolve all roster gaps and duplicate-email collisions explicitly;
+- classify every discovered field as `live`, `derived`, `archive-only`, `secret-excluded`, `synthetic-excluded`, or `rejected-with-reason`;
+- require every real account, employee, professional-history, client, matter-code, matter, DMS metadata, finance, portal, audit, idempotency, and outbox source to map to an approved destination or explicit exclusion;
+- generate canonical per-source and per-record hashes, safe counts, relationship counts, and a signed immutable inventory manifest without placing raw PII in receipts.
 
-- freeze JSON writers;
-- create immutable source and RDS backups;
-- import only the approved manifest;
-- run complete readback and cross-domain reconciliation;
-- switch authority to PostgreSQL;
-- remove JSON fallback, writers, and dual-write;
-- run missing-JSON production smoke;
-- allow first-use setup emails only on individual user request;
-- observe stability;
-- use PITR or forward repair for failure, never JSON rollback.
+The current inventory baseline has 287 candidate files, 84 duplicate candidates, 203 manual-review candidates, 857 discovered fields, two roster gaps, and two duplicate-email collisions. None of those exceptions may be silently resolved or counted as migrated.
+
+### W12.3 Isolated rehearsal execution
+
+1. create or designate a private rehearsal database isolated from production and from the synthetic CUT database;
+2. verify TLS `verify-full`, least-privilege roles, RLS, PITR/snapshot recovery, audit, outbox, and zero public reachability;
+3. route every password-reset notification to an approved non-delivery sink and prove external send count is zero;
+4. run migration `dry-run`, validate the deterministic plan digest, then run `apply` with checkpoint/resume enabled;
+5. import only rows named by the signed inventory in dependency order: tenants and identities, HRX, master-data/CRM/intake, clients and matters, DMS metadata, finance/portal, audit/idempotency/outbox;
+6. repeat the same migration and prove a complete no-op with stable hashes and no duplicate audit/outbox effects;
+7. run wrong-tenant and wrong-role negative reads, relationship-integrity checks, and cold-restart readback;
+8. retain no active password or legacy password hash and emit no raw PII, document bytes, token, or credential into evidence.
+
+### W12.4 Reconciliation and exception closure
+
+- reconcile source/destination counts and canonical hashes by tenant, entity, domain, relationship, and version;
+- reconcile employee-user links, career/education/qualification history ordering, client-matter relationships, matter codes, DMS versions, legal holds, retention, audit, idempotency, and outbox;
+- require zero unexplained variance and zero unexpected rejected rows;
+- manually adjudicate every expected rejection and bind each decision to a pseudonymous row reference and reason code;
+- run owner-selected read-only user-visible samples without exposing raw evidence;
+- restore the rehearsal database independently and repeat the reconciliation before PASS.
+
+### W12.5 Terminal evidence
+
+W12 completes only with independently signed and verified PASS receipts for inventory freeze/adjudication, rehearsal infrastructure, sink enforcement, migration, idempotent replay, tenant/RLS negatives, reconciliation, isolated restore, and owner sampling. The consolidated W12 receipt binds all component receipt digests and proves production write count and external email send count are both zero.
+
+## 20. W13 — Exact-main production migration and JSON retirement
+
+### W13.1 Entry gates and authorization
+
+W13 starts only after W12 PASS and a signed authorization binds the exact final `origin/main` SHA/tree, production artifact, approved real-data inventory and crosswalk digests, production RDS/provider/backup targets, migration window, operators, rollback boundary, expected safe counts, and notification policy. Any SHA/tree, migration checksum, inventory, target, operator, or window drift invalidates the authorization.
+
+### W13.2 Pre-write controls
+
+1. verify private production RDS, TLS `verify-full`, Multi-AZ, deletion protection, encryption, PITR, secret rotation, RLS, least-privilege roles, audit, and outbox;
+2. fingerprint production and protected AWS resources and reject public RDS/S3, excessive IAM, or production-role ambiguity;
+3. freeze operational JSON writers and all competing imports, then take immutable source and RDS backups and prove an isolated restore;
+4. recalculate the source inventory and require byte-for-byte digest equality with the approved W12 inventory;
+5. run a final read-only dry-run and require counts, rejects, migration checksums, target emptiness/compatibility, and available capacity to match the authorization;
+6. record the pre-first-write rollback point. Before the first PostgreSQL write, code/config rollback is permitted; after it, JSON authority rollback and dual-write are forbidden.
+
+### W13.3 Migration and authority switch
+
+1. import only the signed manifest in the rehearsed dependency order with checkpoints and idempotency keys;
+2. stop on any unexpected reject, duplicate, version conflict, tenant/RLS failure, audit/outbox mismatch, or source drift;
+3. run complete readback and cross-domain reconciliation before authority activation;
+4. switch operational authority to PostgreSQL RepositoryPortV2;
+5. disable and remove operational JSON fallback, JSON writers, dual-write, file-current authority, offline mutation, and memory fallback;
+6. make missing JSON files the tested production condition and require application startup plus critical reads/writes to pass;
+7. permit first-use password-setup mail only after an individual registered user requests it; never bulk-send reset links during migration.
+
+### W13.4 Post-write verification and recovery
+
+- prove all forbidden fallback counters are exactly zero across warm and cold starts;
+- reconcile all approved real rows, histories, relationships, DMS controls, audit, idempotency, and outbox with zero unexplained variance;
+- run tenant isolation, authorization, critical user-flow, DMS digest/hold/retention, and backup-restore smoke;
+- observe the authorized stability window with alerts and operator ownership;
+- recover failures only through PITR, forward repair, or the signed post-write runbook, never by re-enabling JSON authority;
+- preserve legacy JSON only as immutable migration evidence or encrypted backup according to the approved retention decision, not as an operational store.
+
+### W13.5 Terminal evidence
+
+W13 completes only with independently signed and verified PASS receipts for writer freeze, immutable backups and restore, exact inventory match, production migration, full reconciliation, PostgreSQL authority switch, missing-JSON smoke, zero fallback counters, individual-request password setup, stability observation, and final JSON retirement. This terminal does not by itself authorize release, signing, production traffic activation, or go-live.
 
 ## 21. Stop conditions
 
@@ -777,6 +832,8 @@ Recommended subdirectories:
 - `cut-005/`
 - `cut-006/`
 - `cut-007/`
+- `real-data-rehearsal/`
+- `production-migration/`
 - `receipts/`
 - `final-readiness/`
 
@@ -784,9 +841,9 @@ Directories must be mode `0700`; sensitive files must be mode `0600`. Receipts s
 
 ## 23. Definition of done
 
-This plan is complete only when every W0~W11 item is either:
+This plan is complete only when every W0~W13 item is either:
 
 - implemented and verified with cited evidence; or
 - explicitly marked blocked by a named external approval that was not granted.
 
-No item may be silently omitted, summarized into a blanket PASS, or counted complete from a schema-valid but unexecuted receipt. W12~W13 remain separate approval-gated terminals and must not be represented as completed by CUT-005~007.
+No item may be silently omitted, summarized into a blanket PASS, or counted complete from a schema-valid but unexecuted receipt. W12 and W13 are now part of the goal, but each remains an independently authorized terminal and must not be represented as completed by CUT-005~007, by source implementation, or by an unsigned inventory.
