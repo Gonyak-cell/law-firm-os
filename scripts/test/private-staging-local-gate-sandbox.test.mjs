@@ -53,8 +53,8 @@ test("macOS local gate sandbox enforces egress and operator-home denial", {
 
     const operatorRead = privateStagingGateCommand("node", [
       "-e",
-      'const fs=require("fs");try{fs.readFileSync(process.argv[1]);process.exit(2)}catch(e){process.exit(["EPERM","EACCES"].includes(e.code)?0:3)}',
-      join(process.cwd(), "package.json"),
+      'const fs=require("fs");try{fs.readdirSync(process.argv[1]);process.exit(2)}catch(e){process.exit(["EPERM","EACCES"].includes(e.code)?0:3)}',
+      "/Users",
     ]);
     assert.equal(spawnSync(operatorRead.command, operatorRead.args, { env: environment, timeout: 5_000 }).status, 0);
   } finally {
