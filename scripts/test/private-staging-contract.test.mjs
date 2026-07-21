@@ -34,8 +34,8 @@ test("private staging infrastructure contract is isolated and cost gated", () =>
   assert.equal(result.public_subnet_count, 0);
   assert.equal(result.interface_endpoint_count, 2);
   assert.equal(result.lambda_function_url_count, 0);
-  assert.equal(result.iam_wildcard_allow_count, 2);
-  assert.deepEqual(result.iam_wildcard_allow_sids, ["LambdaVpcEniBootstrap", "LambdaVpcEniBootstrap"]);
+  assert.equal(result.iam_wildcard_allow_count, 3);
+  assert.deepEqual(result.iam_wildcard_allow_sids, ["SendSyntheticPasswordSetupEmail", "LambdaVpcEniBootstrap", "LambdaVpcEniBootstrap"]);
   assert.deepEqual(result.kms_current_key_wildcard_allow_sids, ["EnableAccountIamAuthority", "AllowRegionalCloudWatchLogsEncryption"]);
   assert.equal(result.bootstrap_default_enabled, false);
   assert.ok(result.inline_template_byte_size > 0 && result.inline_template_byte_size <= 51_200);
@@ -152,6 +152,39 @@ test("internet gateways, NAT, Entra, and legacy persistence authority are reject
 });
 
 test("private service endpoints and internal password authority are mandatory", () => {
+  const exact = fixture("template.json");
+  const exactApiSend = exact.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
+    .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail");
+  const exactEndpointSend = exact.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0];
+  const exactRecipientCondition = {
+    StringEquals: { "ses:FromAddress": { Ref: "PasswordResetFromEmail" } },
+    "ForAllValues:StringEquals": {
+      "ses:Recipients": [
+        "jwsuh+lawos-staging-admin@amic.kr",
+        "jwsuh+lawos-staging-attorney@amic.kr",
+      ],
+    },
+    Null: { "ses:Recipients": "false" },
+  };
+  assert.deepEqual(exactApiSend, {
+    Sid: "SendSyntheticPasswordSetupEmail",
+    Effect: "Allow",
+    Action: "ses:SendEmail",
+    Resource: "*",
+    Condition: exactRecipientCondition,
+  });
+  assert.deepEqual(exactEndpointSend, {
+    Sid: "SyntheticPasswordSetupOnly",
+    Effect: "Allow",
+    Principal: { AWS: { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root" } },
+    Action: "ses:SendEmail",
+    Resource: "*",
+    Condition: {
+      ArnEquals: { "aws:PrincipalArn": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+      ...exactRecipientCondition,
+    },
+  });
+
   const endpoint = clone(fixture("template.json"));
   endpoint.Resources.SecretsManagerEndpoint.Properties.PrivateDnsEnabled = false;
   assert.throws(() => validatePrivateStagingTemplate(endpoint), /private DNS/u);
@@ -183,9 +216,25 @@ test("private service endpoints and internal password authority are mandatory", 
   };
   assert.throws(() => validatePrivateStagingTemplate(wrongSesPrincipalArn), /API role principal ARN/u);
 
-  const broadSesResource = clone(fixture("template.json"));
-  broadSesResource.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Resource = "*";
-  assert.throws(() => validatePrivateStagingTemplate(broadSesResource), /configured sender/u);
+  const nonWildcardSesResource = clone(fixture("template.json"));
+  nonWildcardSesResource.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Resource = { Ref: "PasswordResetSesIdentityArn" };
+  assert.throws(() => validatePrivateStagingTemplate(nonWildcardSesResource), /Resource \*/u);
+
+  const endpointRawEmail = clone(fixture("template.json"));
+  endpointRawEmail.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Action = ["ses:SendEmail", "ses:SendRawEmail"];
+  assert.throws(() => validatePrivateStagingTemplate(endpointRawEmail), /only ses:SendEmail/u);
+
+  const apiRawEmail = clone(fixture("template.json"));
+  apiRawEmail.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
+    .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail")
+    .Action = ["ses:SendEmail", "ses:SendRawEmail"];
+  assert.throws(() => validatePrivateStagingTemplate(apiRawEmail), /IAM policy contract|only ses:SendEmail/u);
+
+  const apiNonWildcardResource = clone(fixture("template.json"));
+  apiNonWildcardResource.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
+    .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail")
+    .Resource = { Ref: "PasswordResetSesIdentityArn" };
+  assert.throws(() => validatePrivateStagingTemplate(apiNonWildcardResource), /IAM policy contract|Resource \*/u);
 
   const missingActiveRecipient = clone(fixture("template.json"));
   missingActiveRecipient.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition["ForAllValues:StringEquals"]["ses:Recipients"] = [
@@ -198,6 +247,12 @@ test("private service endpoints and internal password authority are mandatory", 
     .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail")
     .Condition["ForAllValues:StringEquals"]["ses:Recipients"].push("*@amic.kr");
   assert.throws(() => validatePrivateStagingTemplate(broadApiRecipient), /every active synthetic recipient/u);
+
+  const disabledApiRecipient = clone(fixture("template.json"));
+  disabledApiRecipient.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
+    .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail")
+    .Condition["ForAllValues:StringEquals"]["ses:Recipients"].push("jwsuh+lawos-staging-disabled@amic.kr");
+  assert.throws(() => validatePrivateStagingTemplate(disabledApiRecipient), /IAM policy contract|every active synthetic recipient/u);
 
   const missingRecipientNullGuard = clone(fixture("template.json"));
   delete missingRecipientNullGuard.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.Null;
