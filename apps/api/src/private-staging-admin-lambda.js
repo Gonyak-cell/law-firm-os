@@ -46,6 +46,18 @@ function cut005DirectoryIdentity(runId) {
     user_id: `synthetic-cut005-user-${suffix}`,
     email: `cut005-${suffix}@example.test`,
     source_ref: `synthetic-cut005:${runRef}`,
+    profile: Object.freeze({
+      display_name: "Synthetic CUT-005 User",
+      source_title: "Synthetic Staff",
+      source_ref: `synthetic-cut005:${runRef}`,
+    }),
+    membership: Object.freeze({
+      role_profile_id: "lawos_synthetic_staff",
+      role_ids: Object.freeze(["lawos_staff"]),
+      group_ids: Object.freeze(["group_synthetic_cut005"]),
+      scopes: Object.freeze(["matter.read", "vault.read"]),
+      hrx_scopes: Object.freeze(["hrx.self.read"]),
+    }),
   });
 }
 
@@ -73,19 +85,24 @@ function assertCut005RepairCandidate(row) {
 
 export async function repairPrivateStagingCut005Directory(client, { tenantIds, runId = PRIVATE_STAGING_CUT005_CORPUS_RUN_ID } = {}) {
   if (!client || typeof client.query !== "function") throw new TypeError("PostgreSQL client is required for CUT-005 repair");
-  const tenants = [...new Set((tenantIds ?? []).map((value) => requiredText(value, "CUT-005 tenant id")))];
+  const tenants = [...new Set((tenantIds ?? []).map((value) => requiredText(value, "CUT-005 tenant id")))].sort();
   if (tenants.length !== 2 || tenants.some((tenantId) => !/^tenant_lawos_staging_cut005_[a-z0-9_-]+$/u.test(tenantId))) {
     throw cut005RepairScopeError("CUT-005 directory repair requires two purpose-bound synthetic tenants");
   }
-  const expected = cut005DirectoryIdentity(runId);
+  const expectedByTenant = new Map([
+    [tenants[0], cut005DirectoryIdentity(runId)],
+    [tenants[1], cut005DirectoryIdentity(`${runId}-resume`)],
+  ]);
   let began = false;
   let scannedAccountCount = 0;
   let repairedAccountCount = 0;
+  let restoredAccountCount = 0;
   try {
     await client.query("BEGIN");
     began = true;
     await client.query("SET LOCAL row_security = off");
     for (const tenantId of tenants) {
+      const expected = expectedByTenant.get(tenantId);
       const candidates = await client.query(
         `SELECT accounts.user_id, accounts.email, accounts.account_status,
                 accounts.credential_provider, accounts.credential_status,
@@ -109,30 +126,66 @@ export async function repairPrivateStagingCut005Directory(client, { tenantIds, r
       scannedAccountCount += candidates.rows.length;
       for (const row of candidates.rows) assertCut005RepairCandidate(row);
       const staleUserIds = candidates.rows.filter((row) => row.user_id !== expected.user_id).map((row) => row.user_id);
-      if (!staleUserIds.length) continue;
-      const dependencies = await client.query(
-        `SELECT
-           (SELECT count(*)::integer FROM lawos_identity.sessions WHERE tenant_id = $1 AND user_id = ANY($2::text[])) AS session_count,
-           (SELECT count(*)::integer FROM lawos_identity.challenges WHERE tenant_id = $1 AND user_id = ANY($2::text[])) AS challenge_count,
-           (SELECT count(*)::integer FROM lawos_identity.break_glass_requests WHERE tenant_id = $1 AND requester_user_id = ANY($2::text[])) AS break_glass_count`,
-        [tenantId, staleUserIds],
-      );
-      const counts = dependencies.rows[0] ?? {};
-      if (Number(counts.session_count) !== 0 || Number(counts.challenge_count) !== 0 || Number(counts.break_glass_count) !== 0) {
-        throw cut005RepairScopeError("CUT-005 stale synthetic account has protected runtime references");
+      if (staleUserIds.length) {
+        const dependencies = await client.query(
+          `SELECT
+             (SELECT count(*)::integer FROM lawos_identity.sessions WHERE tenant_id = $1 AND user_id = ANY($2::text[])) AS session_count,
+             (SELECT count(*)::integer FROM lawos_identity.challenges WHERE tenant_id = $1 AND user_id = ANY($2::text[])) AS challenge_count,
+             (SELECT count(*)::integer FROM lawos_identity.break_glass_requests WHERE tenant_id = $1 AND requester_user_id = ANY($2::text[])) AS break_glass_count`,
+          [tenantId, staleUserIds],
+        );
+        const counts = dependencies.rows[0] ?? {};
+        if (Number(counts.session_count) !== 0 || Number(counts.challenge_count) !== 0 || Number(counts.break_glass_count) !== 0) {
+          throw cut005RepairScopeError("CUT-005 stale synthetic account has protected runtime references");
+        }
+        const memberships = await client.query(
+          "DELETE FROM lawos_identity.account_memberships WHERE tenant_id = $1 AND user_id = ANY($2::text[])",
+          [tenantId, staleUserIds],
+        );
+        const accounts = await client.query(
+          "DELETE FROM lawos_identity.accounts WHERE tenant_id = $1 AND user_id = ANY($2::text[])",
+          [tenantId, staleUserIds],
+        );
+        if (memberships.rowCount !== staleUserIds.length || accounts.rowCount !== staleUserIds.length) {
+          throw cut005RepairScopeError("CUT-005 stale synthetic account repair count drifted");
+        }
+        repairedAccountCount += accounts.rowCount;
       }
-      const memberships = await client.query(
-        "DELETE FROM lawos_identity.account_memberships WHERE tenant_id = $1 AND user_id = ANY($2::text[])",
-        [tenantId, staleUserIds],
-      );
-      const accounts = await client.query(
-        "DELETE FROM lawos_identity.accounts WHERE tenant_id = $1 AND user_id = ANY($2::text[])",
-        [tenantId, staleUserIds],
-      );
-      if (memberships.rowCount !== staleUserIds.length || accounts.rowCount !== staleUserIds.length) {
-        throw cut005RepairScopeError("CUT-005 stale synthetic account repair count drifted");
+      if (!candidates.rows.some((row) => row.user_id === expected.user_id)) {
+        const account = await client.query(
+          `INSERT INTO lawos_identity.accounts
+             (tenant_id, user_id, email, account_status, credential_provider, credential_status,
+              credential_rev, password_hash, profile)
+           VALUES ($1, $2, $3, 'active', 'lawos-internal-password-provider-v1',
+                   'reset_required', 1, '{}'::jsonb, $4::jsonb)
+           ON CONFLICT (tenant_id, user_id) DO NOTHING
+           RETURNING user_id`,
+          [tenantId, expected.user_id, expected.email, JSON.stringify(expected.profile)],
+        );
+        const membership = await client.query(
+          `INSERT INTO lawos_identity.account_memberships
+             (tenant_id, user_id, status, role_profile_id, role_ids, group_ids, scopes,
+              hrx_scopes, source_ref, state_version)
+           VALUES ($1, $2, 'active', $3, $4::jsonb, $5::jsonb, $6::jsonb,
+                   $7::jsonb, $8, 1)
+           ON CONFLICT (tenant_id, user_id) DO NOTHING
+           RETURNING user_id`,
+          [
+            tenantId,
+            expected.user_id,
+            expected.membership.role_profile_id,
+            JSON.stringify(expected.membership.role_ids),
+            JSON.stringify(expected.membership.group_ids),
+            JSON.stringify(expected.membership.scopes),
+            JSON.stringify(expected.membership.hrx_scopes),
+            expected.source_ref,
+          ],
+        );
+        if (account.rowCount !== 1 || membership.rowCount !== 1) {
+          throw cut005RepairScopeError("CUT-005 expected synthetic directory identity restoration drifted");
+        }
+        restoredAccountCount += 1;
       }
-      repairedAccountCount += accounts.rowCount;
     }
     await client.query("COMMIT");
     began = false;
@@ -140,6 +193,7 @@ export async function repairPrivateStagingCut005Directory(client, { tenantIds, r
       tenant_count: tenants.length,
       scanned_account_count: scannedAccountCount,
       repaired_account_count: repairedAccountCount,
+      restored_account_count: restoredAccountCount,
       real_data_count: 0,
       audit_history_deleted_count: 0,
     });
@@ -312,6 +366,7 @@ export async function bootstrapPrivateStagingDatabase({
     tenant_authority_count: roleResult.tenant_authority_count,
     cut005_directory_repair_count: cut005RepairResult.repaired_account_count,
     cut005_directory_repair_scanned_count: cut005RepairResult.scanned_account_count,
+    cut005_directory_restore_count: cut005RepairResult.restored_account_count,
     cut005_directory_repair_audit_delete_count: 0,
     synthetic_wildcard_count: 0,
     json_fallback_count: 0,

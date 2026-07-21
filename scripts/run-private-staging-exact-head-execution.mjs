@@ -506,6 +506,7 @@ async function deploy() {
     tenant_authority_count: Number(bootstrap.result.tenant_authority_count),
     cut005_directory_repair_count: Number(bootstrap.result.cut005_directory_repair_count),
     cut005_directory_repair_scanned_count: Number(bootstrap.result.cut005_directory_repair_scanned_count),
+    cut005_directory_restore_count: Number(bootstrap.result.cut005_directory_restore_count),
     cut005_directory_repair_audit_delete_count: Number(bootstrap.result.cut005_directory_repair_audit_delete_count),
     json_fallback_count: 0,
     json_writer_count: 0,

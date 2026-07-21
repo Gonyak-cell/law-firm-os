@@ -90,12 +90,34 @@ function event(overrides = {}) {
   };
 }
 
+function cut005Identity(runId) {
+  const runRef = createHash("sha256").update(runId).digest("hex");
+  const suffix = runRef.slice(0, 12);
+  return {
+    user_id: `synthetic-cut005-user-${suffix}`,
+    email: `cut005-${suffix}@example.test`,
+    account_status: "active",
+    credential_provider: "lawos-internal-password-provider-v1",
+    credential_status: "reset_required",
+    password_hash: {},
+    profile: { source_ref: `synthetic-cut005:${runRef}` },
+    membership_status: "active",
+    source_ref: `synthetic-cut005:${runRef}`,
+  };
+}
+
 test("private staging bootstrap returns only safe exact-head counts", async () => {
   const secretWrites = [];
   let poolOptions;
   const pool = {
     query: async () => ({ rows: [] }),
-    connect: async () => ({ query: async () => ({ rows: [], rowCount: 0 }), release() {} }),
+    connect: async () => ({
+      query: async (sql) => ({
+        rows: [],
+        rowCount: sql.startsWith("INSERT INTO lawos_identity.accounts") || sql.startsWith("INSERT INTO lawos_identity.account_memberships") ? 1 : 0,
+      }),
+      release() {},
+    }),
     end: async () => {},
   };
   const result = await bootstrapPrivateStagingDatabase({
@@ -119,6 +141,7 @@ test("private staging bootstrap returns only safe exact-head counts", async () =
   assert.equal(result.migration_applied_count, 1);
   assert.equal(result.tenant_authority_count, 6);
   assert.equal(result.cut005_directory_repair_count, 0);
+  assert.equal(result.cut005_directory_restore_count, 2);
   assert.equal(result.cut005_directory_repair_audit_delete_count, 0);
   assert.equal(result.json_fallback_count, 0);
   assert.equal(result.dual_write_count, 0);
@@ -134,28 +157,14 @@ test("private staging bootstrap returns only safe exact-head counts", async () =
 });
 
 test("private staging bootstrap repair removes only unreferenced stale CUT-005 synthetic accounts", async () => {
-  const identity = (runId) => {
-    const runRef = createHash("sha256").update(runId).digest("hex");
-    const suffix = runRef.slice(0, 12);
-    return {
-      user_id: `synthetic-cut005-user-${suffix}`,
-      email: `cut005-${suffix}@example.test`,
-      account_status: "active",
-      credential_provider: "lawos-internal-password-provider-v1",
-      credential_status: "reset_required",
-      password_hash: {},
-      profile: { source_ref: `synthetic-cut005:${runRef}` },
-      membership_status: "active",
-      source_ref: `synthetic-cut005:${runRef}`,
-    };
-  };
-  const stable = identity(PRIVATE_STAGING_CUT005_CORPUS_RUN_ID);
-  const stale = identity("cut005-239884f5cf0c");
+  const stable = cut005Identity(PRIVATE_STAGING_CUT005_CORPUS_RUN_ID);
+  const resume = cut005Identity(`${PRIVATE_STAGING_CUT005_CORPUS_RUN_ID}-resume`);
+  const stale = cut005Identity("cut005-239884f5cf0c");
   const deleted = [];
   const client = {
     async query(sql, params = []) {
       if (sql.includes("FROM lawos_identity.accounts AS accounts")) {
-        return { rows: params[0].endsWith("_b") ? [stable, stale] : [stable], rowCount: params[0].endsWith("_b") ? 2 : 1 };
+        return { rows: params[0].endsWith("_b") ? [resume] : [stable, stale], rowCount: params[0].endsWith("_b") ? 1 : 2 };
       }
       if (sql.includes("AS session_count")) return { rows: [{ session_count: 0, challenge_count: 0, break_glass_count: 0 }], rowCount: 1 };
       if (sql.startsWith("DELETE FROM lawos_identity.account_memberships")) return { rows: [], rowCount: params[1].length };
@@ -171,8 +180,35 @@ test("private staging bootstrap repair removes only unreferenced stale CUT-005 s
   });
   assert.equal(result.scanned_account_count, 3);
   assert.equal(result.repaired_account_count, 1);
+  assert.equal(result.restored_account_count, 0);
   assert.equal(result.audit_history_deleted_count, 0);
   assert.deepEqual(deleted, [stale.user_id]);
+});
+
+test("private staging bootstrap repair restores a missing resume identity without deleting history", async () => {
+  const stable = cut005Identity(PRIVATE_STAGING_CUT005_CORPUS_RUN_ID);
+  const insertedUserIds = [];
+  const client = {
+    async query(sql, params = []) {
+      if (sql.includes("FROM lawos_identity.accounts AS accounts")) {
+        return { rows: params[0].endsWith("_a") ? [stable] : [], rowCount: params[0].endsWith("_a") ? 1 : 0 };
+      }
+      if (sql.startsWith("INSERT INTO lawos_identity.accounts")) {
+        insertedUserIds.push(params[1]);
+        return { rows: [{ user_id: params[1] }], rowCount: 1 };
+      }
+      if (sql.startsWith("INSERT INTO lawos_identity.account_memberships")) return { rows: [{ user_id: params[1] }], rowCount: 1 };
+      return { rows: [], rowCount: 0 };
+    },
+  };
+  const result = await repairPrivateStagingCut005Directory(client, {
+    tenantIds: ["tenant_lawos_staging_cut005_b", "tenant_lawos_staging_cut005_a"],
+  });
+  assert.equal(result.scanned_account_count, 1);
+  assert.equal(result.repaired_account_count, 0);
+  assert.equal(result.restored_account_count, 1);
+  assert.equal(result.audit_history_deleted_count, 0);
+  assert.deepEqual(insertedUserIds, [cut005Identity(`${PRIVATE_STAGING_CUT005_CORPUS_RUN_ID}-resume`).user_id]);
 });
 
 test("private staging bootstrap repair rolls back instead of deleting a referenced CUT-005 account", async () => {
