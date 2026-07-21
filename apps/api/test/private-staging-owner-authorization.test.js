@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
 import test from "node:test";
 import { authorizePrivateStagingAdminInvocation, PRIVATE_STAGING_OWNER_AUTHORIZATION_ACTION } from "../src/private-staging-owner-authorization.js";
-import { canonicalizeJson } from "../../../scripts/lib/runtime-safety-approval-contract.mjs";
+import { canonicalizeJson } from "../../../packages/runtime-auth/src/runtime-safety-approval-contract.js";
 
 const SOURCE_SHA = "a".repeat(40);
 const SOURCE_TREE = "b".repeat(40);

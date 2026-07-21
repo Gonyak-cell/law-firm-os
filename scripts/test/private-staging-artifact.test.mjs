@@ -21,6 +21,7 @@ import { readFileSync } from "node:fs";
 test("artifact source allowlist includes runtime inputs and excludes evidence and secrets", () => {
   assert.equal(privateStagingArtifactSourcePathAllowed("apps/api/src/lambda.js"), true);
   assert.equal(privateStagingArtifactSourcePathAllowed("packages/persistence/src/postgres/pool.js"), true);
+  assert.equal(privateStagingArtifactSourcePathAllowed("packages/runtime-auth/src/runtime-safety-approval-contract.js"), true);
   assert.equal(privateStagingArtifactSourcePathAllowed("apps/api/test/lambda-session-secret.test.js"), false);
   assert.equal(privateStagingArtifactSourcePathAllowed("workbook/receipt.json"), false);
   assert.equal(privateStagingArtifactSourcePathAllowed(".env.production"), false);
@@ -67,6 +68,7 @@ test("artifact entry contract requires both Lambda handlers and RDS trust bundle
     "deployment-manifest.json",
     "package.json",
     "packages/persistence/src/postgres/migration-runner.js",
+    "packages/runtime-auth/src/runtime-safety-approval-contract.js",
     "node_modules/pg/package.json",
     "node_modules/retry/test/common.js",
   ]);
@@ -85,6 +87,7 @@ test("artifact entry contract requires both Lambda handlers and RDS trust bundle
     "deployment-manifest.json",
     "package.json",
     "packages/persistence/src/postgres/migration-runner.js",
+    "packages/runtime-auth/src/runtime-safety-approval-contract.js",
     "apps/api/test/secret.test.js",
   ]), /forbidden entries/u);
   const valid = [
@@ -99,6 +102,7 @@ test("artifact entry contract requires both Lambda handlers and RDS trust bundle
     "deployment-manifest.json",
     "package.json",
     "packages/persistence/src/postgres/migration-runner.js",
+    "packages/runtime-auth/src/runtime-safety-approval-contract.js",
   ];
   assert.throws(() => validatePrivateStagingArtifactEntries([...valid, valid[0]]), /duplicate entry/u);
   assert.throws(() => validatePrivateStagingArtifactEntries([...valid, "../package.json"]), /unsafe archive path/u);

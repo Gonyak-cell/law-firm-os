@@ -343,6 +343,7 @@ export function validatePrivateStagingArtifactEntries(entries) {
     "deployment-manifest.json",
     "package.json",
     "packages/persistence/src/postgres/migration-runner.js",
+    "packages/runtime-auth/src/runtime-safety-approval-contract.js",
   ];
   for (const path of required) {
     if (!normalized.includes(path)) throw new Error(`private staging artifact is missing ${path}`);

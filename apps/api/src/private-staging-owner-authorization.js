@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { canonicalizeJson, validateRuntimeSafetyApprovalPayload } from "../../../scripts/lib/runtime-safety-approval-contract.mjs";
+import { canonicalizeJson, validateRuntimeSafetyApprovalPayload } from "../../../packages/runtime-auth/src/runtime-safety-approval-contract.js";
 
 export const PRIVATE_STAGING_OWNER_AUTHORIZATION_ACTION = "lawos-private-staging-exact-head-execution";
 
