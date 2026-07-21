@@ -185,16 +185,29 @@ test("private service endpoints and internal password authority are mandatory", 
 
   const broadSesResource = clone(fixture("template.json"));
   broadSesResource.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Resource = "*";
-  assert.throws(() => validatePrivateStagingTemplate(broadSesResource), /active synthetic recipient identities/u);
+  assert.throws(() => validatePrivateStagingTemplate(broadSesResource), /configured sender/u);
 
   const missingActiveRecipient = clone(fixture("template.json"));
-  missingActiveRecipient.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Resource = [{ Ref: "PasswordResetSesIdentityArn" }];
-  assert.throws(() => validatePrivateStagingTemplate(missingActiveRecipient), /active synthetic recipient identities/u);
+  missingActiveRecipient.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition["ForAllValues:StringEquals"]["ses:Recipients"] = [
+    "jwsuh+lawos-staging-admin@amic.kr",
+  ];
+  assert.throws(() => validatePrivateStagingTemplate(missingActiveRecipient), /every active synthetic recipient/u);
 
   const broadApiRecipient = clone(fixture("template.json"));
   broadApiRecipient.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
-    .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail").Resource.push("*");
-  assert.throws(() => validatePrivateStagingTemplate(broadApiRecipient), /active synthetic recipient identities/u);
+    .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail")
+    .Condition["ForAllValues:StringEquals"]["ses:Recipients"].push("*@amic.kr");
+  assert.throws(() => validatePrivateStagingTemplate(broadApiRecipient), /every active synthetic recipient/u);
+
+  const missingRecipientNullGuard = clone(fixture("template.json"));
+  delete missingRecipientNullGuard.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.Null;
+  assert.throws(() => validatePrivateStagingTemplate(missingRecipientNullGuard), /every active synthetic recipient/u);
+
+  const wrongSesFromAddress = clone(fixture("template.json"));
+  wrongSesFromAddress.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
+    .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail")
+    .Condition.StringEquals["ses:FromAddress"] = "*@amic.kr";
+  assert.throws(() => validatePrivateStagingTemplate(wrongSesFromAddress), /exact sender/u);
 
   const missingSesRequestIdentity = clone(fixture("template.json"));
   delete missingSesRequestIdentity.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_AUTH_PASSWORD_RESET_EMAIL_IDENTITY_ARN;

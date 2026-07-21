@@ -410,13 +410,22 @@
               "Effect": "Allow",
               "Principal": { "AWS": { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root" } },
               "Action": ["ses:SendEmail", "ses:SendRawEmail"],
-              "Resource": [
-                { "Ref": "PasswordResetSesIdentityArn" },
-                { "Fn::Sub": "arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/jwsuh+lawos-staging-attorney@amic.kr" }
-              ],
+              "Resource": { "Ref": "PasswordResetSesIdentityArn" },
               "Condition": {
                 "ArnEquals": {
                   "aws:PrincipalArn": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] }
+                },
+                "StringEquals": {
+                  "ses:FromAddress": { "Ref": "PasswordResetFromEmail" }
+                },
+                "ForAllValues:StringEquals": {
+                  "ses:Recipients": [
+                    "jwsuh+lawos-staging-admin@amic.kr",
+                    "jwsuh+lawos-staging-attorney@amic.kr"
+                  ]
+                },
+                "Null": {
+                  "ses:Recipients": "false"
                 }
               }
             }
@@ -953,10 +962,21 @@
                   "Sid": "SendSyntheticPasswordSetupEmail",
                   "Effect": "Allow",
                   "Action": ["ses:SendEmail", "ses:SendRawEmail"],
-                  "Resource": [
-                    { "Ref": "PasswordResetSesIdentityArn" },
-                    { "Fn::Sub": "arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/jwsuh+lawos-staging-attorney@amic.kr" }
-                  ]
+                  "Resource": { "Ref": "PasswordResetSesIdentityArn" },
+                  "Condition": {
+                    "StringEquals": {
+                      "ses:FromAddress": { "Ref": "PasswordResetFromEmail" }
+                    },
+                    "ForAllValues:StringEquals": {
+                      "ses:Recipients": [
+                        "jwsuh+lawos-staging-admin@amic.kr",
+                        "jwsuh+lawos-staging-attorney@amic.kr"
+                      ]
+                    },
+                    "Null": {
+                      "ses:Recipients": "false"
+                    }
+                  }
                 },
                 {
                   "Sid": "UseExactStagingKey",
