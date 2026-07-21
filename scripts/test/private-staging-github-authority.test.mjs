@@ -31,6 +31,17 @@ function fixtures() {
         app: { id: 15368, slug: "github-actions" },
         check_suite: { id: 111 },
       },
+      {
+        id: 1201,
+        name: "CodeQL",
+        status: "completed",
+        conclusion: "neutral",
+        started_at: "2026-07-20T00:02:00Z",
+        completed_at: "2026-07-20T00:02:01Z",
+        head_sha: headSha,
+        app: { id: 57789, slug: "github-advanced-security" },
+        check_suite: { id: 121 },
+      },
     ],
     workflowRuns: [
       {
@@ -70,6 +81,8 @@ test("GitHub security evidence binds app, workflow, repository, and exact head",
   const result = validatePrivateStagingGithubChecks(fixtures());
   assert.equal(result.security_check_count, 1);
   assert.equal(result.codeql_check_count, 1);
+  assert.equal(result.platform_check_count, 1);
+  assert.equal(result.platform_checks[0].conclusion, "NEUTRAL");
   for (const mutate of [
     (input) => { input.checkRuns[0].app.id = 999; },
     (input) => { input.workflowRuns[0].path = ".github/workflows/spoof.yml"; },
@@ -80,6 +93,21 @@ test("GitHub security evidence binds app, workflow, repository, and exact head",
     mutate(input);
     assert.throws(() => validatePrivateStagingGithubChecks(input), /trusted|exact-head/u);
   }
+});
+
+test("GitHub security evidence rejects failed or untrusted standalone checks", () => {
+  const failed = fixtures();
+  failed.checkRuns[2].conclusion = "failure";
+  assert.throws(() => validatePrivateStagingGithubChecks(failed), /platform check/u);
+
+  const untrusted = fixtures();
+  untrusted.checkRuns.push({
+    ...structuredClone(untrusted.checkRuns[2]),
+    id: 1301,
+    name: "Security review",
+    app: { id: 999, slug: "untrusted" },
+  });
+  assert.throws(() => validatePrivateStagingGithubChecks(untrusted), /untrusted publisher/u);
 });
 
 test("GitHub security evidence selects the latest duplicate trusted context", () => {

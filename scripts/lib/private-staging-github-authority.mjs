@@ -20,6 +20,12 @@ export const PRIVATE_STAGING_TRUSTED_CODEQL_CHECK = Object.freeze({
   event: "dynamic",
 });
 
+export const PRIVATE_STAGING_TRUSTED_CODEQL_PLATFORM_CHECK = Object.freeze({
+  name: "CodeQL",
+  app_id: 57789,
+  app_slug: "github-advanced-security",
+});
+
 function fail(message) {
   const error = new Error(message);
   error.code = "PRIVATE_STAGING_GITHUB_AUTHORITY_INVALID";
@@ -47,7 +53,43 @@ export function validatePrivateStagingGithubChecks({ checkRuns, workflowRuns, re
     runsBySuite.set(suiteId, run);
   }
 
-  const candidates = checkRuns.map((check) => {
+  const platformDefinition = PRIVATE_STAGING_TRUSTED_CODEQL_PLATFORM_CHECK;
+  const platformCandidates = [];
+  const workflowCheckRuns = [];
+  for (const check of checkRuns) {
+    if (check?.head_sha !== sha) fail("GitHub check is not bound to the exact-head source");
+    if (check?.app?.id === 15368 && check?.app?.slug === "github-actions") {
+      workflowCheckRuns.push(check);
+      continue;
+    }
+    if (
+      check?.name === platformDefinition.name
+      && check?.app?.id === platformDefinition.app_id
+      && check?.app?.slug === platformDefinition.app_slug
+    ) {
+      const checkRunId = Number(check?.id);
+      const startedAt = Date.parse(String(check?.started_at ?? ""));
+      if (!Number.isSafeInteger(checkRunId) || checkRunId < 1 || !Number.isFinite(startedAt)) {
+        fail("GitHub CodeQL platform check freshness identity is invalid");
+      }
+      platformCandidates.push(Object.freeze({
+        name: platformDefinition.name,
+        status: String(check.status ?? "").toUpperCase(),
+        conclusion: String(check.conclusion ?? "").toUpperCase(),
+        publisher_app_id: platformDefinition.app_id,
+        publisher_app_slug: platformDefinition.app_slug,
+        check_suite_id: Number(check?.check_suite?.id),
+        check_run_id: checkRunId,
+        started_at: new Date(startedAt).toISOString(),
+        repository: repo,
+        head_sha: sha,
+      }));
+      continue;
+    }
+    fail("exact-head check has an untrusted publisher or context");
+  }
+
+  const candidates = workflowCheckRuns.map((check) => {
     const suiteId = Number(check?.check_suite?.id);
     const workflow = runsBySuite.get(suiteId);
     const checkRunId = Number(check?.id);
@@ -96,6 +138,16 @@ export function validatePrivateStagingGithubChecks({ checkRuns, workflowRuns, re
     return Object.freeze(check);
   });
 
+  if (platformCandidates.length === 0) fail("exactly one trusted GitHub CodeQL platform context is required");
+  const platformCheck = platformCandidates.reduce((latest, candidate) => (
+    !latest || candidate.started_at > latest.started_at || (candidate.started_at === latest.started_at && candidate.check_run_id > latest.check_run_id)
+      ? candidate
+      : latest
+  ), null);
+  if (platformCheck.status !== "COMPLETED" || !["SUCCESS", "NEUTRAL"].includes(platformCheck.conclusion)) {
+    fail("latest GitHub CodeQL platform check is pending or failed");
+  }
+
   const expected = PRIVATE_STAGING_TRUSTED_SECURITY_CHECK;
   const trustedSecurity = checks.filter((check) => (
     check.name === expected.name
@@ -124,8 +176,10 @@ export function validatePrivateStagingGithubChecks({ checkRuns, workflowRuns, re
     checks: Object.freeze(checks),
     security_checks: Object.freeze(trustedSecurity.map((check) => Object.freeze({ ...check, workflow_sha256: workflowDigest }))),
     codeql_checks: Object.freeze(trustedCodeql),
+    platform_checks: Object.freeze([platformCheck]),
     check_count: checks.length,
     security_check_count: 1,
     codeql_check_count: 1,
+    platform_check_count: 1,
   });
 }

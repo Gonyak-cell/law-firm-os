@@ -101,6 +101,7 @@ const detailsByCheckId = new Map((checkResponse.check_runs ?? []).map((check) =>
 const checks = authority.checks.map((check) => Object.freeze({ ...check, details_url_sha256: detailsByCheckId.get(check.check_run_id) }));
 const securityChecks = authority.security_checks;
 const codeqlChecks = authority.codeql_checks;
+const platformChecks = authority.platform_checks.map((check) => Object.freeze({ ...check, details_url_sha256: detailsByCheckId.get(check.check_run_id) }));
 const endpoints = {
   code_scanning: `repos/${owner}/${name}/code-scanning/alerts?state=open&pr=${prNumber}&per_page=100`,
   secret_scanning: `repos/${owner}/${name}/secret-scanning/alerts?state=open&per_page=100`,
@@ -136,6 +137,9 @@ const ciPath = writeEvidence(outputDir, `exact-head-ci-${sourceSha}.json`, {
   success_count: checks.length,
   skipped_count: 0,
   checks,
+  platform_check_count: platformChecks.length,
+  platform_neutral_count: platformChecks.filter((check) => check.conclusion === "NEUTRAL").length,
+  platform_checks: platformChecks,
 });
 const securityPath = writeEvidence(outputDir, `security-review-${sourceSha}.json`, {
   schema_version: "law-firm-os.private-staging.github-security-evidence.v1",
@@ -154,4 +158,4 @@ const securityPath = writeEvidence(outputDir, `security-review-${sourceSha}.json
   reviewed_code_alert_count: alerts.code_scanning.length,
   reviewed_dependency_alert_count: alerts.dependabot.length,
 });
-process.stdout.write(`${JSON.stringify({ verdict: "PASS", ci_evidence_path: ciPath, security_evidence_path: securityPath, exact_head_check_count: checks.length, security_check_count: securityChecks.length, codeql_check_count: codeqlChecks.length, critical_high_count: 0, open_secret_alert_count: 0 }, null, 2)}\n`);
+process.stdout.write(`${JSON.stringify({ verdict: "PASS", ci_evidence_path: ciPath, security_evidence_path: securityPath, exact_head_check_count: checks.length, platform_check_count: platformChecks.length, security_check_count: securityChecks.length, codeql_check_count: codeqlChecks.length, critical_high_count: 0, open_secret_alert_count: 0 }, null, 2)}\n`);
