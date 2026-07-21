@@ -176,11 +176,10 @@ test("private service endpoints and internal password authority are mandatory", 
   assert.deepEqual(exactEndpointSend, {
     Sid: "SyntheticPasswordSetupOnly",
     Effect: "Allow",
-    Principal: { AWS: { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root" } },
+    Principal: { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
     Action: "ses:SendEmail",
     Resource: "*",
     Condition: {
-      ArnEquals: { "aws:PrincipalArn": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
       ...exactRecipientCondition,
     },
   });
@@ -206,14 +205,12 @@ test("private service endpoints and internal password authority are mandatory", 
   broadSesPrincipal.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Principal = "*";
   assert.throws(() => validatePrivateStagingTemplate(broadSesPrincipal), /API role principal ARN/u);
 
-  const missingSesPrincipalCondition = clone(fixture("template.json"));
-  delete missingSesPrincipalCondition.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition;
-  assert.throws(() => validatePrivateStagingTemplate(missingSesPrincipalCondition), /API role principal ARN/u);
+  const missingSesConditions = clone(fixture("template.json"));
+  delete missingSesConditions.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition;
+  assert.throws(() => validatePrivateStagingTemplate(missingSesConditions), /API role principal ARN/u);
 
   const wrongSesPrincipalArn = clone(fixture("template.json"));
-  wrongSesPrincipalArn.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.ArnEquals["aws:PrincipalArn"] = {
-    "Fn::GetAtt": ["AdminExecutionRole", "Arn"],
-  };
+  wrongSesPrincipalArn.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Principal.AWS = { "Fn::GetAtt": ["AdminExecutionRole", "Arn"] };
   assert.throws(() => validatePrivateStagingTemplate(wrongSesPrincipalArn), /API role principal ARN/u);
 
   const nonWildcardSesResource = clone(fixture("template.json"));

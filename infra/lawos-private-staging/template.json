@@ -408,13 +408,10 @@
             {
               "Sid": "SyntheticPasswordSetupOnly",
               "Effect": "Allow",
-              "Principal": { "AWS": { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root" } },
+              "Principal": { "AWS": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
               "Action": "ses:SendEmail",
               "Resource": "*",
               "Condition": {
-                "ArnEquals": {
-                  "aws:PrincipalArn": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] }
-                },
                 "StringEquals": {
                   "ses:FromAddress": { "Ref": "PasswordResetFromEmail" }
                 },
