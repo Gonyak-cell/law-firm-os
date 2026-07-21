@@ -410,7 +410,10 @@
               "Effect": "Allow",
               "Principal": { "AWS": { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root" } },
               "Action": ["ses:SendEmail", "ses:SendRawEmail"],
-              "Resource": { "Ref": "PasswordResetSesIdentityArn" },
+              "Resource": [
+                { "Ref": "PasswordResetSesIdentityArn" },
+                { "Fn::Sub": "arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/jwsuh+lawos-staging-attorney@amic.kr" }
+              ],
               "Condition": {
                 "ArnEquals": {
                   "aws:PrincipalArn": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] }
@@ -950,7 +953,10 @@
                   "Sid": "SendSyntheticPasswordSetupEmail",
                   "Effect": "Allow",
                   "Action": ["ses:SendEmail", "ses:SendRawEmail"],
-                  "Resource": { "Ref": "PasswordResetSesIdentityArn" }
+                  "Resource": [
+                    { "Ref": "PasswordResetSesIdentityArn" },
+                    { "Fn::Sub": "arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/jwsuh+lawos-staging-attorney@amic.kr" }
+                  ]
                 },
                 {
                   "Sid": "UseExactStagingKey",

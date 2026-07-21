@@ -25,7 +25,7 @@ const LAMBDA_FUNCTION_CODE_DENY_ACTIONS = Object.freeze([
 ]);
 const EXACT_LAMBDA_TRUST_SHA256 = "f3502e8666443cacc9bec965f5cc2886f9ed0e884c87714821fdc6872835efd0";
 const EXACT_IAM_POLICY_SHA256 = Object.freeze({
-  ApiExecutionRole: "1b5fda52fb01500242f64f0892ef80c255333f7bac134fc2a4004284166929d6",
+  ApiExecutionRole: "a9567428879459786dbe071a036cccc6c10f1cfd38a75c71528a67561a4b87a2",
   AdminExecutionRole: "8873e2b36fd95105b336d6168a236a44ee53ad16d6e7ffc8d7ec148d2938ae6b",
 });
 const EXACT_ENI_BOOTSTRAP_INLINE_POLICY_SHA256 = "e3fb825de200108539c51b58b92f3f39713dbdaaf5bb1e6d9b908ddb09b0e815";
@@ -436,9 +436,13 @@ function validateSecretsAndInternalAuth(resources, template) {
   assert(String(template.Parameters?.PasswordResetSesIdentityArn?.AllowedPattern ?? "").includes("ses:ap-northeast-2"), "SES identity parameter must remain region-bound");
   const apiStatements = resourceStatements(resources.ApiExecutionRole);
   const send = apiStatements.find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail");
+  const sesIdentityResources = [
+    { Ref: "PasswordResetSesIdentityArn" },
+    { "Fn::Sub": "arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/jwsuh+lawos-staging-attorney@amic.kr" },
+  ];
   assert(send?.Effect === "Allow", "API role SES statement is required");
   assert(JSON.stringify(sortedStrings(Array.isArray(send?.Action) ? send.Action : [send?.Action])) === JSON.stringify(["ses:SendEmail", "ses:SendRawEmail"]), "API role SES actions drifted");
-  assert(send?.Resource?.Ref === "PasswordResetSesIdentityArn", "API role SES authority must be confined to the configured verified identity");
+  assert(JSON.stringify(send?.Resource) === JSON.stringify(sesIdentityResources), "API role SES authority must be confined to the configured sender and active synthetic recipient identities");
   assert(JSON.stringify(resources.ApiFunction?.Properties?.Environment?.Variables?.LAWOS_AUTH_PASSWORD_RESET_EMAIL_IDENTITY_ARN) === JSON.stringify({ Ref: "PasswordResetSesIdentityArn" }), "API SES request must bind the configured verified identity ARN");
   const sesEndpointPolicy = resources.SesApiEndpoint?.Properties?.PolicyDocument;
   assert(JSON.stringify(sesEndpointPolicy) === JSON.stringify({
@@ -448,10 +452,10 @@ function validateSecretsAndInternalAuth(resources, template) {
       Effect: "Allow",
       Principal: { AWS: { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root" } },
       Action: ["ses:SendEmail", "ses:SendRawEmail"],
-      Resource: { Ref: "PasswordResetSesIdentityArn" },
+      Resource: sesIdentityResources,
       Condition: { ArnEquals: { "aws:PrincipalArn": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } } },
     }],
-  }), "SES endpoint policy must delegate only to the API role principal ARN and configured verified identity");
+  }), "SES endpoint policy must delegate only to the API role principal ARN and configured sender and active synthetic recipient identities");
   const syntheticManifest = JSON.parse(resources.SyntheticManifestSecret?.Properties?.SecretString ?? "null");
   assert(syntheticManifest?.schema_version === "law-firm-os.synthetic-staging-manifest.v2", "synthetic manifest must use purpose-bound schema v2");
   assert((syntheticManifest?.tenant_ids ?? []).length === 6, "synthetic manifest must isolate CUT-005, CUT-006, and CUT-007 across six tenants");

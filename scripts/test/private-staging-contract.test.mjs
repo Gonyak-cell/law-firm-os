@@ -185,7 +185,16 @@ test("private service endpoints and internal password authority are mandatory", 
 
   const broadSesResource = clone(fixture("template.json"));
   broadSesResource.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Resource = "*";
-  assert.throws(() => validatePrivateStagingTemplate(broadSesResource), /configured verified identity/u);
+  assert.throws(() => validatePrivateStagingTemplate(broadSesResource), /active synthetic recipient identities/u);
+
+  const missingActiveRecipient = clone(fixture("template.json"));
+  missingActiveRecipient.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Resource = [{ Ref: "PasswordResetSesIdentityArn" }];
+  assert.throws(() => validatePrivateStagingTemplate(missingActiveRecipient), /active synthetic recipient identities/u);
+
+  const broadApiRecipient = clone(fixture("template.json"));
+  broadApiRecipient.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
+    .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail").Resource.push("*");
+  assert.throws(() => validatePrivateStagingTemplate(broadApiRecipient), /active synthetic recipient identities/u);
 
   const missingSesRequestIdentity = clone(fixture("template.json"));
   delete missingSesRequestIdentity.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_AUTH_PASSWORD_RESET_EMAIL_IDENTITY_ARN;
