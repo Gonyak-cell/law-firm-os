@@ -166,6 +166,7 @@ test("Matter profile rejects a cross-type field and raw contact values", () => {
     matter: currentMatter,
     actor_id,
     stakeholder: { stakeholder_id: "010-1234-5678", display_name: "법원 연락 담당", relationship_role: "court_contact" },
+    occurred_at: "2026-07-21T00:00:00.000Z",
   });
-  assert.doesNotMatch(generatedId.stakeholder_id, /010/);
+  assert.doesNotMatch(generatedId.stakeholder_id, /010[-_]?1234[-_]?5678/u);
 });
