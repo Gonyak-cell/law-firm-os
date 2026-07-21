@@ -64,7 +64,7 @@ function assertCut005RepairCandidate(row) {
     || row?.profile?.source_ref !== row.source_ref
     || row.account_status !== "active"
     || row.membership_status !== "active"
-    || row.credential_provider !== "internal-password"
+    || row.credential_provider !== "lawos-internal-password-provider-v1"
     || row.credential_status !== "reset_required"
     || !row.password_hash || Object.keys(row.password_hash).length !== 0) {
     throw cut005RepairScopeError("CUT-005 directory repair candidate escaped the synthetic-only boundary");
