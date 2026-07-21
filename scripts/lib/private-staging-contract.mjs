@@ -26,7 +26,7 @@ const LAMBDA_FUNCTION_CODE_DENY_ACTIONS = Object.freeze([
 const EXACT_LAMBDA_TRUST_SHA256 = "f3502e8666443cacc9bec965f5cc2886f9ed0e884c87714821fdc6872835efd0";
 const EXACT_IAM_POLICY_SHA256 = Object.freeze({
   ApiExecutionRole: "1f0ac52b22b70affa8370e4842011b18ad217611435081a84149bde5d0283e1a",
-  AdminExecutionRole: "370ba8aa8ce19dccdb6462837eb229bd5df3a0cad1683e93688b01b8cc8ca43a",
+  AdminExecutionRole: "0b38973ef36bff0d5530a00db820d458a4bf0a92a7f355d6734b8c2d21af5358",
 });
 const EXACT_ENI_BOOTSTRAP_INLINE_POLICY_SHA256 = "e3fb825de200108539c51b58b92f3f39713dbdaaf5bb1e6d9b908ddb09b0e815";
 const EXACT_KMS_KEY_POLICY_SHA256 = "21a2577535bde578130fd7f1ae293a8300c1eb28d29bc949fcc75242b3aafc8b";
@@ -138,6 +138,24 @@ function validateIam(resources) {
   for (const logicalId of ["ApiExecutionRole", "AdminExecutionRole"]) {
     const properties = resources[logicalId]?.Properties;
     assert(canonicalSha256(properties?.AssumeRolePolicyDocument) === EXACT_LAMBDA_TRUST_SHA256, `${logicalId} IAM trust policy contract drifted`);
+    if (logicalId === "AdminExecutionRole") {
+      const auditWrite = properties?.Policies?.[0]?.PolicyDocument?.Statement?.find(
+        (statement) => statement.Sid === "WriteImmutableApprovalAudit",
+      );
+      assert(auditWrite, "AdminExecutionRole IAM policy must preserve the immutable approval-audit writer");
+      assert(
+        JSON.stringify(sortedStrings(Object.keys(auditWrite?.Condition?.StringEquals ?? {}))) === JSON.stringify([
+          "s3:object-lock-mode",
+          "s3:x-amz-server-side-encryption",
+          "s3:x-amz-server-side-encryption-aws-kms-key-id",
+        ]),
+        "approval-audit IAM Allow must use the supported S3 Object Lock mode condition key",
+      );
+      assert(
+        JSON.stringify(auditWrite?.Condition?.Null) === JSON.stringify({ "s3:object-lock-retain-until-date": "false" }),
+        "approval-audit IAM Allow must require the supported S3 Object Lock retain-until condition key",
+      );
+    }
     assert(canonicalSha256(properties?.Policies) === EXACT_IAM_POLICY_SHA256[logicalId], `${logicalId} IAM policy contract drifted`);
     const conditional = properties?.Policies?.[1]?.["Fn::If"];
     assert(Array.isArray(conditional) && conditional.length === 3, `${logicalId} temporary ENI policy must be a conditional inline policy`);

@@ -266,6 +266,15 @@ test("KMS wildcard semantics remain confined to the current staging key", () => 
 });
 
 test("owner approval claims require exact immutable S3 and admin IAM bindings", () => {
+  const unsupportedObjectLockKeys = clone(fixture("template.json"));
+  const auditWrite = unsupportedObjectLockKeys.Resources.AdminExecutionRole.Properties.Policies[0].PolicyDocument.Statement
+    .find((statement) => statement.Sid === "WriteImmutableApprovalAudit");
+  auditWrite.Condition.StringEquals["s3:x-amz-object-lock-mode"] = auditWrite.Condition.StringEquals["s3:object-lock-mode"];
+  delete auditWrite.Condition.StringEquals["s3:object-lock-mode"];
+  auditWrite.Condition.Null["s3:x-amz-object-lock-retain-until-date"] = auditWrite.Condition.Null["s3:object-lock-retain-until-date"];
+  delete auditWrite.Condition.Null["s3:object-lock-retain-until-date"];
+  assert.throws(() => validatePrivateStagingTemplate(unsupportedObjectLockKeys), /supported S3 Object Lock/u);
+
   const missingDeleteDeny = clone(fixture("template.json"));
   missingDeleteDeny.Resources.DmsBucketPolicy.Properties.PolicyDocument.Statement = missingDeleteDeny.Resources.DmsBucketPolicy.Properties.PolicyDocument.Statement.filter((statement) => statement.Sid !== "DenyApprovalAuditDeletion");
   assert.throws(() => validatePrivateStagingTemplate(missingDeleteDeny), /DMS bucket policy/u);

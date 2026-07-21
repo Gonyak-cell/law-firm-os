@@ -1027,9 +1027,9 @@
                     "StringEquals": {
                       "s3:x-amz-server-side-encryption": "aws:kms",
                       "s3:x-amz-server-side-encryption-aws-kms-key-id": { "Fn::GetAtt": ["StagingKey", "Arn"] },
-                      "s3:x-amz-object-lock-mode": "COMPLIANCE"
+                      "s3:object-lock-mode": "COMPLIANCE"
                     },
-                    "Null": { "s3:x-amz-object-lock-retain-until-date": "false" }
+                    "Null": { "s3:object-lock-retain-until-date": "false" }
                   }
                 },
                 {
