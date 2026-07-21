@@ -355,7 +355,10 @@ export async function runPrivateStagingCut005({ pool, tenantIds, runId } = {}) {
   });
   if (migration.outcome !== "PASS" || migration.domains.length !== DOMAIN_IDS.length) throw new Error("CUT-005 migration invariant failed");
   const domains = migration.domains;
-  const acceptedCount = domains.reduce((total, domain) => total + domain.accepted_count, 0);
+  const acceptedDomainCount = domains.reduce((total, domain) => total + domain.accepted_count, 0);
+  const sourceRecordCount = migration.safe_counts.source_record_count + migration.directory.source_count;
+  const acceptedRecordCount = acceptedDomainCount + migration.directory.accepted_count;
+  const rejectedRowCount = migration.safe_counts.rejected_item_count;
   const expectedRejectedReasons = {
     DUPLICATE_RECORD_ID: 1,
     FORBIDDEN_SECRET_OR_RAW_BYTES: 1,
@@ -365,8 +368,9 @@ export async function runPrivateStagingCut005({ pool, tenantIds, runId } = {}) {
     TENANT_SCOPE_MISMATCH: 2,
   };
   if (
-    migration.safe_counts.source_record_count !== acceptedCount + migration.safe_counts.rejected_record_count
+    migration.safe_counts.source_record_count !== acceptedDomainCount + migration.safe_counts.rejected_record_count
     || migration.directory.source_count !== migration.directory.accepted_count + migration.directory.rejected_count
+    || sourceRecordCount !== acceptedRecordCount + rejectedRowCount
     || JSON.stringify(migration.rejected_reason_counts) !== JSON.stringify(expectedRejectedReasons)
   ) throw new Error("CUT-005 rejected-row accounting invariant failed");
   return Object.freeze({
@@ -374,15 +378,15 @@ export async function runPrivateStagingCut005({ pool, tenantIds, runId } = {}) {
     environment: "lawos-staging",
     data_scope: "synthetic-only",
     domain_count: domains.length,
-    source_record_count: migration.safe_counts.source_record_count,
-    accepted_record_count: acceptedCount,
+    source_record_count: sourceRecordCount,
+    accepted_record_count: acceptedRecordCount,
     initial_import_applied_count: domains.filter((domain) => domain.initial_import_applied).length,
     immediate_replay_noop_count: domains.filter((domain) => domain.replayed_noop_count === domain.accepted_count).length,
     shadow_equal_count: domains.filter((domain) => domain.readback_equal).length,
     shadow_difference_count: domains.filter((domain) => !domain.readback_equal).length,
     state_version_one_count: domains.filter((domain) => domain.state_version_distribution["1"] === domain.accepted_count).length,
     tenant_negative_visible_count: migration.safe_counts.tenant_negative_visible_count,
-    rejected_row_count: migration.safe_counts.rejected_item_count,
+    rejected_row_count: rejectedRowCount,
     rejected_reason_counts: migration.rejected_reason_counts,
     unexpected_rejection_count: 0,
     transactional_rollback: rollback,

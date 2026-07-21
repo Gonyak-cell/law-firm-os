@@ -20,9 +20,10 @@ test("CUT-005 imports every domain, verifies immediate no-op replay, hashes, ver
   assert.equal(first.shadow_difference_count, 0);
   assert.equal(first.state_version_one_count, 13);
   assert.equal(first.tenant_negative_visible_count, 0);
-  assert.equal(first.source_record_count, 19);
-  assert.equal(first.accepted_record_count, 13);
+  assert.equal(first.source_record_count, 21);
+  assert.equal(first.accepted_record_count, 14);
   assert.equal(first.rejected_row_count, 7);
+  assert.equal(first.source_record_count, first.accepted_record_count + first.rejected_row_count);
   assert.deepEqual(first.rejected_reason_counts, {
     DUPLICATE_RECORD_ID: 1,
     FORBIDDEN_SECRET_OR_RAW_BYTES: 1,
