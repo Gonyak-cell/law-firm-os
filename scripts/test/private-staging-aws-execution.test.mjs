@@ -85,6 +85,40 @@ test("change-set review rejects protected resources, removals, and replacements"
   replacement.Changes[0].ResourceChange.Replacement = "True";
   assert.throws(() => assertPrivateStagingChangeSet(replacement, { mode: "update", allowedModifiedLogicalIds: ["Vpc"] }), /replacement/u);
 
+  const schedulePermission = {
+    Status: "CREATE_COMPLETE",
+    Changes: [{
+      ResourceChange: {
+        Action: "Modify",
+        LogicalResourceId: "PasswordResetWorkerInvokePermission",
+        ResourceType: "AWS::Lambda::Permission",
+        Replacement: "Conditional",
+        Details: [{
+          Target: { Attribute: "Properties", Name: "SourceArn", RequiresRecreation: "Always" },
+          Evaluation: "Dynamic",
+          ChangeSource: "ResourceAttribute",
+          CausingEntity: "PasswordResetWorkerSchedule.Arn",
+        }],
+      },
+    }],
+  };
+  assert.equal(assertPrivateStagingChangeSet(schedulePermission, {
+    mode: "update",
+    allowedModifiedLogicalIds: ["PasswordResetWorkerInvokePermission"],
+    allowedConditionalReplacementLogicalIds: ["PasswordResetWorkerInvokePermission"],
+  }).conditional_dependency_recreation_count, 1);
+  assert.throws(() => assertPrivateStagingChangeSet(schedulePermission, {
+    mode: "update",
+    allowedModifiedLogicalIds: ["PasswordResetWorkerInvokePermission"],
+  }), /replacement/u);
+  const wrongDependency = structuredClone(schedulePermission);
+  wrongDependency.Changes[0].ResourceChange.Details[0].CausingEntity = "UnapprovedSchedule.Arn";
+  assert.throws(() => assertPrivateStagingChangeSet(wrongDependency, {
+    mode: "update",
+    allowedModifiedLogicalIds: ["PasswordResetWorkerInvokePermission"],
+    allowedConditionalReplacementLogicalIds: ["PasswordResetWorkerInvokePermission"],
+  }), /replacement/u);
+
   const bootstrapRemoval = structuredClone(valid);
   bootstrapRemoval.Changes[0].ResourceChange = {
     Action: "Remove",

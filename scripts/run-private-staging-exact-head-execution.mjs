@@ -183,7 +183,14 @@ function assertExactExistingStack(stack) {
   if (!/(?:CREATE|UPDATE)_COMPLETE/u.test(stack.StackStatus ?? "")) throw new Error(`private staging stack is not complete: ${stack.StackStatus ?? "unknown"}`);
 }
 
-function createAndExecuteChangeSet({ parameters, label, mode, allowedModifiedLogicalIds = [], allowedRemovedLogicalIds = [] }) {
+function createAndExecuteChangeSet({
+  parameters,
+  label,
+  mode,
+  allowedModifiedLogicalIds = [],
+  allowedRemovedLogicalIds = [],
+  allowedConditionalReplacementLogicalIds = [],
+}) {
   const changeSetName = `lawos-${label}-${packet.source_sha.slice(0, 12)}-${Date.now().toString(36)}`;
   progress(`cloudformation-${label}`, "creating", { change_set_fingerprint: sha256(changeSetName) });
   const created = awsJson([
@@ -198,7 +205,12 @@ function createAndExecuteChangeSet({ parameters, label, mode, allowedModifiedLog
   ]);
   awsWait(["cloudformation", "wait", "change-set-create-complete", "--change-set-name", created.Id]);
   const described = awsJson(["cloudformation", "describe-change-set", "--change-set-name", created.Id]);
-  const review = assertPrivateStagingChangeSet(described, { mode, allowedModifiedLogicalIds, allowedRemovedLogicalIds });
+  const review = assertPrivateStagingChangeSet(described, {
+    mode,
+    allowedModifiedLogicalIds,
+    allowedRemovedLogicalIds,
+    allowedConditionalReplacementLogicalIds,
+  });
   const evidence = writePrivateJson(changeSetDir, `${label}-change-set.json`, described);
   progress(`cloudformation-${label}`, "reviewed", { change_count: review.change_count, protected_resource_change_count: 0, evidence_sha256: evidence.sha256 });
   awsJson(["cloudformation", "execute-change-set", "--change-set-name", created.Id]);
@@ -362,7 +374,14 @@ async function forceColdGeneration(label) {
     parameters,
     label: `${label}-cold-generation`,
     mode: "update",
-    allowedModifiedLogicalIds: ["ApiFunction", "AdminFunction"],
+    allowedModifiedLogicalIds: [
+      "ApiFunction",
+      "AdminFunction",
+      "HttpApiIntegration",
+      "PasswordResetWorkerSchedule",
+      "PasswordResetWorkerInvokePermission",
+    ],
+    allowedConditionalReplacementLogicalIds: ["PasswordResetWorkerInvokePermission"],
   });
   lambdaConfiguration(API_FUNCTION);
   const deadline = Date.now() + 120_000;

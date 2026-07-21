@@ -100,21 +100,45 @@ export function buildPrivateStagingStackParameters({ packet, artifactBucket, art
   return Object.freeze(Object.entries(values).map(([key, value]) => Object.freeze({ key, value })));
 }
 
-export function assertPrivateStagingChangeSet(changeSet, { mode = "create", allowedModifiedLogicalIds = [], allowedRemovedLogicalIds = [] } = {}) {
+export function assertPrivateStagingChangeSet(changeSet, {
+  mode = "create",
+  allowedModifiedLogicalIds = [],
+  allowedRemovedLogicalIds = [],
+  allowedConditionalReplacementLogicalIds = [],
+} = {}) {
   if (!isRecord(changeSet) || changeSet.Status !== "CREATE_COMPLETE" || !Array.isArray(changeSet.Changes)) fail("CloudFormation change set is not ready");
   const allowed = new Set(allowedModifiedLogicalIds);
   const allowedRemoved = new Set(allowedRemovedLogicalIds);
+  const allowedConditional = new Set(allowedConditionalReplacementLogicalIds);
   for (const change of changeSet.Changes) {
     const resource = change?.ResourceChange;
     const logicalId = requiredText(resource?.LogicalResourceId, "change-set logical id", /^[A-Za-z0-9]+$/u);
     const serialized = JSON.stringify(resource);
     if (PROTECTED_MARKER.test(serialized)) fail("CloudFormation change set references a protected AMIC or production resource");
     if (resource.Action === "Remove" && !allowedRemoved.has(logicalId)) fail("CloudFormation resource removal is forbidden in the initial/private staging execution");
-    if (resource.Replacement === "True" || resource.Replacement === "Conditional") fail(`CloudFormation replacement is forbidden: ${logicalId}`);
+    if (resource.Replacement === "True") fail(`CloudFormation replacement is forbidden: ${logicalId}`);
+    if (resource.Replacement === "Conditional") {
+      const details = resource.Details ?? [];
+      const exactScheduleDependency = resource.Action === "Modify"
+        && resource.ResourceType === "AWS::Lambda::Permission"
+        && details.length === 1
+        && details[0]?.Target?.Attribute === "Properties"
+        && details[0]?.Target?.Name === "SourceArn"
+        && details[0]?.Target?.RequiresRecreation === "Always"
+        && details[0]?.Evaluation === "Dynamic"
+        && details[0]?.ChangeSource === "ResourceAttribute"
+        && details[0]?.CausingEntity === "PasswordResetWorkerSchedule.Arn";
+      if (!allowedConditional.has(logicalId) || !exactScheduleDependency) fail(`CloudFormation replacement is forbidden: ${logicalId}`);
+    }
     if (mode === "create" && resource.Action !== "Add") fail(`initial stack change must only add resources: ${logicalId}`);
     if (mode === "update" && resource.Action === "Modify" && !allowed.has(logicalId)) fail(`unexpected stack update target: ${logicalId}`);
   }
-  return Object.freeze({ change_count: changeSet.Changes.length, protected_resource_change_count: 0, replacement_count: 0 });
+  return Object.freeze({
+    change_count: changeSet.Changes.length,
+    protected_resource_change_count: 0,
+    replacement_count: 0,
+    conditional_dependency_recreation_count: changeSet.Changes.filter((change) => change?.ResourceChange?.Replacement === "Conditional").length,
+  });
 }
 
 export function assertPrivateStagingLambdaConfiguration(configuration, { functionName, sourceSha, sourceTree, artifactSha256, instructionSha256, ownerTrustRegistrySha256 } = {}) {
