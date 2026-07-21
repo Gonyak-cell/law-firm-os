@@ -77,8 +77,20 @@ test("private staging application role does not require database or superuser lo
   const client = {
     async query(statement) {
       queries.push(statement);
-      if (statement === "SELECT 1 FROM pg_roles WHERE rolname = $1") {
-        return { rowCount: 1, rows: [{ exists: 1 }] };
+      if (/SELECT rolcanlogin, rolsuper/u.test(statement)) {
+        return {
+          rowCount: 1,
+          rows: [{
+            rolcanlogin: true,
+            rolsuper: false,
+            rolcreatedb: false,
+            rolcreaterole: false,
+            rolinherit: false,
+            rolreplication: false,
+            rolbypassrls: false,
+            rolconnlimit: 20,
+          }],
+        };
       }
       return { rowCount: 0, rows: [] };
     },
@@ -90,6 +102,41 @@ test("private staging application role does not require database or superuser lo
   });
   assert.equal(queries.some((statement) => /^ALTER DATABASE\b/u.test(statement)), false);
   assert.equal(queries.some((statement) => /^SET(?: LOCAL)? log_/u.test(statement)), false);
+  assert.equal(queries.some((statement) => /^ALTER ROLE lawos_app LOGIN\b/u.test(statement)), false);
   assert.equal(result.synthetic_wildcard_count, 0);
   assert.equal(result.tenant_authority_count, 2);
+});
+
+test("private staging application role fails closed on existing privilege drift", async () => {
+  const queries = [];
+  const client = {
+    async query(statement) {
+      queries.push(statement);
+      if (/SELECT rolcanlogin, rolsuper/u.test(statement)) {
+        return {
+          rowCount: 1,
+          rows: [{
+            rolcanlogin: true,
+            rolsuper: false,
+            rolcreatedb: true,
+            rolcreaterole: false,
+            rolinherit: false,
+            rolreplication: false,
+            rolbypassrls: false,
+            rolconnlimit: 20,
+          }],
+        };
+      }
+      return { rowCount: 0, rows: [] };
+    },
+  };
+  await assert.rejects(
+    configureLawosApplicationRole(client, {
+      password: "test-private-staging-role-password",
+      tenantContextSecret: "test-private-staging-tenant-context-secret-material",
+      syntheticTenantIds: ["tenant_lawos_staging_a", "tenant_lawos_staging_b"],
+    }),
+    (error) => error.code === "LAWOS_POSTGRES_APPLICATION_ROLE_DRIFT",
+  );
+  assert.equal(queries.some((statement) => /^ALTER ROLE\b/u.test(statement)), false);
 });

@@ -78,11 +78,30 @@ export async function configureLawosApplicationRole(client, {
   try {
     await client.query("BEGIN");
     began = true;
-    const role = await client.query("SELECT 1 FROM pg_roles WHERE rolname = $1", [ROLE_NAME]);
+    const role = await client.query(
+      `SELECT rolcanlogin, rolsuper, rolcreatedb, rolcreaterole, rolinherit,
+              rolreplication, rolbypassrls, rolconnlimit
+         FROM pg_roles
+        WHERE rolname = $1`,
+      [ROLE_NAME],
+    );
     if (role.rowCount === 0) {
       await client.query(`CREATE ROLE ${ROLE_NAME} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS CONNECTION LIMIT 20`);
     } else {
-      await client.query(`ALTER ROLE ${ROLE_NAME} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS CONNECTION LIMIT 20`);
+      const current = role.rows[0] ?? {};
+      if (current.rolcanlogin !== true
+        || current.rolsuper !== false
+        || current.rolcreatedb !== false
+        || current.rolcreaterole !== false
+        || current.rolinherit !== false
+        || current.rolreplication !== false
+        || current.rolbypassrls !== false
+        || current.rolconnlimit !== 20) {
+        throw Object.assign(new Error("LawOS application database role privilege drifted"), {
+          code: "LAWOS_POSTGRES_APPLICATION_ROLE_DRIFT",
+          safe_error_code: "POSTGRES_APPLICATION_ROLE_DRIFT",
+        });
+      }
     }
     await client.query(`ALTER ROLE ${ROLE_NAME} PASSWORD ${quoteLiteral(rolePassword)}`);
     await client.query(`ALTER ROLE ${ROLE_NAME} SET statement_timeout = '30s'`);
