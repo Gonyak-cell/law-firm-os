@@ -439,7 +439,18 @@ function validateSecretsAndInternalAuth(resources, template) {
   assert(send?.Effect === "Allow", "API role SES statement is required");
   assert(JSON.stringify(sortedStrings(Array.isArray(send?.Action) ? send.Action : [send?.Action])) === JSON.stringify(["ses:SendEmail", "ses:SendRawEmail"]), "API role SES actions drifted");
   assert(send?.Resource?.Ref === "PasswordResetSesIdentityArn", "API role SES authority must be confined to the configured verified identity");
-  assert(JSON.stringify(resources.SesApiEndpoint?.Properties?.PolicyDocument).includes("PasswordResetSesIdentityArn"), "SES endpoint policy must be confined to the configured verified identity");
+  const sesEndpointPolicy = resources.SesApiEndpoint?.Properties?.PolicyDocument;
+  assert(JSON.stringify(sesEndpointPolicy) === JSON.stringify({
+    Version: "2012-10-17",
+    Statement: [{
+      Sid: "SyntheticPasswordSetupOnly",
+      Effect: "Allow",
+      Principal: { AWS: { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root" } },
+      Action: ["ses:SendEmail", "ses:SendRawEmail"],
+      Resource: { Ref: "PasswordResetSesIdentityArn" },
+      Condition: { ArnEquals: { "aws:PrincipalArn": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } } },
+    }],
+  }), "SES endpoint policy must delegate only to the API role principal ARN and configured verified identity");
   const syntheticManifest = JSON.parse(resources.SyntheticManifestSecret?.Properties?.SecretString ?? "null");
   assert(syntheticManifest?.schema_version === "law-firm-os.synthetic-staging-manifest.v2", "synthetic manifest must use purpose-bound schema v2");
   assert((syntheticManifest?.tenant_ids ?? []).length === 6, "synthetic manifest must isolate CUT-005, CUT-006, and CUT-007 across six tenants");

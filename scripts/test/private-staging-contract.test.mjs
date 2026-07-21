@@ -168,6 +168,24 @@ test("private service endpoints and internal password authority are mandatory", 
   const auth = clone(fixture("template.json"));
   auth.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_STAFF_AUTHORITY = "entra-oidc";
   assert.throws(() => validatePrivateStagingTemplate(auth), /internal-password/u);
+
+  const broadSesPrincipal = clone(fixture("template.json"));
+  broadSesPrincipal.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Principal = "*";
+  assert.throws(() => validatePrivateStagingTemplate(broadSesPrincipal), /API role principal ARN/u);
+
+  const missingSesPrincipalCondition = clone(fixture("template.json"));
+  delete missingSesPrincipalCondition.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition;
+  assert.throws(() => validatePrivateStagingTemplate(missingSesPrincipalCondition), /API role principal ARN/u);
+
+  const wrongSesPrincipalArn = clone(fixture("template.json"));
+  wrongSesPrincipalArn.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.ArnEquals["aws:PrincipalArn"] = {
+    "Fn::GetAtt": ["AdminExecutionRole", "Arn"],
+  };
+  assert.throws(() => validatePrivateStagingTemplate(wrongSesPrincipalArn), /API role principal ARN/u);
+
+  const broadSesResource = clone(fixture("template.json"));
+  broadSesResource.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Resource = "*";
+  assert.throws(() => validatePrivateStagingTemplate(broadSesResource), /configured verified identity/u);
 });
 
 test("role reuse, managed policies, and unrelated wildcard Allows are rejected", () => {
