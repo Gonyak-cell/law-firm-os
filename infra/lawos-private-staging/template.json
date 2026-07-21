@@ -576,7 +576,7 @@
     "DatabaseParameterGroup": {
       "Type": "AWS::RDS::DBParameterGroup",
       "Properties": {
-        "Description": "TLS and secret-safe connection logging for LawOS private staging",
+        "Description": "TLS and audit logging for LawOS private staging",
         "Family": "postgres16",
         "Parameters": {
           "rds.force_ssl": "1",
