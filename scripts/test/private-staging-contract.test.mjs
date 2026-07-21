@@ -148,6 +148,15 @@ test("private service endpoints and internal password authority are mandatory", 
   endpoint.Resources.SecretsManagerEndpoint.Properties.PrivateDnsEnabled = false;
   assert.throws(() => validatePrivateStagingTemplate(endpoint), /private DNS/u);
 
+  const wrongPrefixList = clone(fixture("template.json"));
+  wrongPrefixList.Mappings.ServicePrefixLists["ap-northeast-2"].S3 = "pl-unapproved";
+  assert.throws(() => validatePrivateStagingTemplate(wrongPrefixList), /S3 prefix-list mapping/u);
+
+  const publicS3Egress = clone(fixture("template.json"));
+  delete publicS3Egress.Resources.LambdaEgressToS3Gateway.Properties.DestinationPrefixListId;
+  publicS3Egress.Resources.LambdaEgressToS3Gateway.Properties.CidrIp = "0.0.0.0/0";
+  assert.throws(() => validatePrivateStagingTemplate(publicS3Egress), /approved regional S3 prefix list|must not use CIDR/u);
+
   const auth = clone(fixture("template.json"));
   auth.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_STAFF_AUTHORITY = "entra-oidc";
   assert.throws(() => validatePrivateStagingTemplate(auth), /internal-password/u);

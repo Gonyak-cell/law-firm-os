@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 export const PRIVATE_STAGING_ACCOUNT_ID = "770880870480";
 export const PRIVATE_STAGING_REGION = "ap-northeast-2";
 export const PRIVATE_STAGING_VPC_CIDR = "10.96.0.0/16";
+export const PRIVATE_STAGING_S3_PREFIX_LIST_ID = "pl-78a54011";
 export const PRIVATE_STAGING_COST_LIMIT_KRW = 300_000;
 export const PRIVATE_STAGING_EFFECTIVE_BUDGET_USD = 100;
 const PUBLIC_ROUTE_RATE_LIMIT = 0.04;
@@ -209,6 +210,12 @@ function validateResourcePolicies(resources) {
 
 function validateNetwork(resources, template) {
   assert(template.Mappings?.Network?.Cidrs?.Vpc === PRIVATE_STAGING_VPC_CIDR, "private staging VPC CIDR drifted");
+  assert(
+    JSON.stringify(template.Mappings?.ServicePrefixLists) === JSON.stringify({
+      [PRIVATE_STAGING_REGION]: { S3: PRIVATE_STAGING_S3_PREFIX_LIST_ID },
+    }),
+    "private staging S3 prefix-list mapping drifted",
+  );
   assert(template.Mappings?.Network?.Cidrs?.PublicA == null, "private staging must not define a public subnet CIDR");
   for (const name of ["AppSubnetA", "AppSubnetB", "DbSubnetA", "DbSubnetB"]) {
     assert(resources[name]?.Properties?.MapPublicIpOnLaunch === false, `${name} must disable public IP assignment`);
@@ -251,6 +258,24 @@ function validateNetwork(resources, template) {
   const serviceEgress = resources.LambdaEgressToServiceEndpoints?.Properties;
   assert(serviceEgress?.FromPort === 443 && serviceEgress?.ToPort === 443, "Lambda service endpoint egress must be TLS only");
   assert(JSON.stringify(serviceEgress?.DestinationSecurityGroupId).includes("ServiceEndpointSecurityGroup"), "Lambda TLS egress must target the service endpoint security group");
+  const s3EgressResource = resources.LambdaEgressToS3Gateway;
+  const s3Egress = s3EgressResource?.Properties;
+  assert(s3EgressResource?.Type === "AWS::EC2::SecurityGroupEgress", "Lambda S3 gateway egress rule is required");
+  assert(s3Egress?.FromPort === 443 && s3Egress?.ToPort === 443 && s3Egress?.IpProtocol === "tcp", "Lambda S3 gateway egress must be TLS only");
+  assert(
+    JSON.stringify(s3Egress?.GroupId) === JSON.stringify({ "Fn::GetAtt": ["LambdaSecurityGroup", "GroupId"] }),
+    "Lambda S3 gateway egress must originate from the Lambda security group",
+  );
+  assert(
+    JSON.stringify(s3Egress?.DestinationPrefixListId) === JSON.stringify({
+      "Fn::FindInMap": ["ServicePrefixLists", { Ref: "AWS::Region" }, "S3"],
+    }),
+    "Lambda S3 gateway egress must target the approved regional S3 prefix list",
+  );
+  assert(
+    s3Egress?.CidrIp == null && s3Egress?.CidrIpv6 == null && s3Egress?.DestinationSecurityGroupId == null,
+    "Lambda S3 gateway egress must not use CIDR or security-group destinations",
+  );
   const ingress = resources.DatabaseIngressFromLambda?.Properties;
   assert(ingress?.FromPort === 5432 && ingress?.ToPort === 5432, "database ingress must be PostgreSQL only");
   assert(refName(ingress?.SourceSecurityGroupId) === null, "database ingress must use a security-group attribute, not CIDR or plain Ref");

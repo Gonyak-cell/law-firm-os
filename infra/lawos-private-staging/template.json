@@ -110,6 +110,11 @@
         "DbA": "10.96.20.0/24",
         "DbB": "10.96.21.0/24"
       }
+    },
+    "ServicePrefixLists": {
+      "ap-northeast-2": {
+        "S3": "pl-78a54011"
+      }
     }
   },
   "Resources": {
@@ -484,6 +489,19 @@
       "Properties": {
         "Description": "TLS only to LawOS staging AWS service endpoints",
         "DestinationSecurityGroupId": { "Fn::GetAtt": ["ServiceEndpointSecurityGroup", "GroupId"] },
+        "FromPort": 443,
+        "GroupId": { "Fn::GetAtt": ["LambdaSecurityGroup", "GroupId"] },
+        "IpProtocol": "tcp",
+        "ToPort": 443
+      }
+    },
+    "LambdaEgressToS3Gateway": {
+      "Type": "AWS::EC2::SecurityGroupEgress",
+      "Properties": {
+        "Description": "TLS only to the regional Amazon S3 gateway endpoint",
+        "DestinationPrefixListId": {
+          "Fn::FindInMap": ["ServicePrefixLists", { "Ref": "AWS::Region" }, "S3"]
+        },
         "FromPort": 443,
         "GroupId": { "Fn::GetAtt": ["LambdaSecurityGroup", "GroupId"] },
         "IpProtocol": "tcp",
