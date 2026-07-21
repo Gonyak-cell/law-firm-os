@@ -1021,7 +1021,7 @@
                 {
                   "Sid": "WriteImmutableApprovalAudit",
                   "Effect": "Allow",
-                  "Action": ["s3:PutObject", "s3:PutObjectRetention"],
+                  "Action": "s3:PutObject",
                   "Resource": { "Fn::Sub": "${DmsBucket.Arn}/approval-audit/*" },
                   "Condition": {
                     "StringEquals": {
@@ -1029,6 +1029,16 @@
                       "s3:x-amz-server-side-encryption-aws-kms-key-id": { "Fn::GetAtt": ["StagingKey", "Arn"] },
                       "s3:object-lock-mode": "COMPLIANCE"
                     },
+                    "Null": { "s3:object-lock-retain-until-date": "false" }
+                  }
+                },
+                {
+                  "Sid": "WriteImmutableApprovalAuditRetention",
+                  "Effect": "Allow",
+                  "Action": "s3:PutObjectRetention",
+                  "Resource": { "Fn::Sub": "${DmsBucket.Arn}/approval-audit/*" },
+                  "Condition": {
+                    "StringEquals": { "s3:object-lock-mode": "COMPLIANCE" },
                     "Null": { "s3:object-lock-retain-until-date": "false" }
                   }
                 },

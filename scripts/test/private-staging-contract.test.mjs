@@ -275,6 +275,17 @@ test("owner approval claims require exact immutable S3 and admin IAM bindings", 
   delete auditWrite.Condition.Null["s3:object-lock-retain-until-date"];
   assert.throws(() => validatePrivateStagingTemplate(unsupportedObjectLockKeys), /supported S3 Object Lock/u);
 
+  const combinedActions = clone(fixture("template.json"));
+  combinedActions.Resources.AdminExecutionRole.Properties.Policies[0].PolicyDocument.Statement
+    .find((statement) => statement.Sid === "WriteImmutableApprovalAudit").Action = ["s3:PutObject", "s3:PutObjectRetention"];
+  assert.throws(() => validatePrivateStagingTemplate(combinedActions), /grant only s3:PutObject/u);
+
+  const missingRetentionAllow = clone(fixture("template.json"));
+  missingRetentionAllow.Resources.AdminExecutionRole.Properties.Policies[0].PolicyDocument.Statement =
+    missingRetentionAllow.Resources.AdminExecutionRole.Properties.Policies[0].PolicyDocument.Statement
+      .filter((statement) => statement.Sid !== "WriteImmutableApprovalAuditRetention");
+  assert.throws(() => validatePrivateStagingTemplate(missingRetentionAllow), /separate exact-resource/u);
+
   const missingDeleteDeny = clone(fixture("template.json"));
   missingDeleteDeny.Resources.DmsBucketPolicy.Properties.PolicyDocument.Statement = missingDeleteDeny.Resources.DmsBucketPolicy.Properties.PolicyDocument.Statement.filter((statement) => statement.Sid !== "DenyApprovalAuditDeletion");
   assert.throws(() => validatePrivateStagingTemplate(missingDeleteDeny), /DMS bucket policy/u);

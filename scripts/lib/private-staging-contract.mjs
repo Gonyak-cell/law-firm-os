@@ -26,7 +26,7 @@ const LAMBDA_FUNCTION_CODE_DENY_ACTIONS = Object.freeze([
 const EXACT_LAMBDA_TRUST_SHA256 = "f3502e8666443cacc9bec965f5cc2886f9ed0e884c87714821fdc6872835efd0";
 const EXACT_IAM_POLICY_SHA256 = Object.freeze({
   ApiExecutionRole: "1f0ac52b22b70affa8370e4842011b18ad217611435081a84149bde5d0283e1a",
-  AdminExecutionRole: "0b38973ef36bff0d5530a00db820d458a4bf0a92a7f355d6734b8c2d21af5358",
+  AdminExecutionRole: "8873e2b36fd95105b336d6168a236a44ee53ad16d6e7ffc8d7ec148d2938ae6b",
 });
 const EXACT_ENI_BOOTSTRAP_INLINE_POLICY_SHA256 = "e3fb825de200108539c51b58b92f3f39713dbdaaf5bb1e6d9b908ddb09b0e815";
 const EXACT_KMS_KEY_POLICY_SHA256 = "21a2577535bde578130fd7f1ae293a8300c1eb28d29bc949fcc75242b3aafc8b";
@@ -143,6 +143,7 @@ function validateIam(resources) {
         (statement) => statement.Sid === "WriteImmutableApprovalAudit",
       );
       assert(auditWrite, "AdminExecutionRole IAM policy must preserve the immutable approval-audit writer");
+      assert(auditWrite.Action === "s3:PutObject", "approval-audit object write must grant only s3:PutObject");
       assert(
         JSON.stringify(sortedStrings(Object.keys(auditWrite?.Condition?.StringEquals ?? {}))) === JSON.stringify([
           "s3:object-lock-mode",
@@ -154,6 +155,21 @@ function validateIam(resources) {
       assert(
         JSON.stringify(auditWrite?.Condition?.Null) === JSON.stringify({ "s3:object-lock-retain-until-date": "false" }),
         "approval-audit IAM Allow must require the supported S3 Object Lock retain-until condition key",
+      );
+      const auditRetention = properties?.Policies?.[0]?.PolicyDocument?.Statement?.find(
+        (statement) => statement.Sid === "WriteImmutableApprovalAuditRetention",
+      );
+      assert(
+        auditRetention?.Action === "s3:PutObjectRetention"
+          && JSON.stringify(auditRetention.Resource) === JSON.stringify(auditWrite.Resource),
+        "approval-audit retention must use a separate exact-resource s3:PutObjectRetention Allow",
+      );
+      assert(
+        JSON.stringify(auditRetention?.Condition) === JSON.stringify({
+          StringEquals: { "s3:object-lock-mode": "COMPLIANCE" },
+          Null: { "s3:object-lock-retain-until-date": "false" },
+        }),
+        "approval-audit retention Allow must use only supported action-specific Object Lock conditions",
       );
     }
     assert(canonicalSha256(properties?.Policies) === EXACT_IAM_POLICY_SHA256[logicalId], `${logicalId} IAM policy contract drifted`);
