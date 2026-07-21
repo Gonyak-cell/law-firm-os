@@ -148,7 +148,7 @@ export function assertPrivateStagingBucket({ versioning, publicAccess, encryptio
   if (versioning?.Status !== "Enabled") fail("DMS bucket versioning is not enabled");
   if (!["BlockPublicAcls", "IgnorePublicAcls", "BlockPublicPolicy", "RestrictPublicBuckets"].every((key) => publicAccess?.PublicAccessBlockConfiguration?.[key] === true)) fail("DMS public access block is incomplete");
   if (!JSON.stringify(encryption).includes("aws:kms")) fail("DMS SSE-KMS is not active");
-  if (objectLock?.ObjectLockEnabled !== "Enabled") fail("DMS Object Lock is not active");
+  if (objectLock?.ObjectLockConfiguration?.ObjectLockEnabled !== "Enabled") fail("DMS Object Lock is not active");
   return Object.freeze({ versioned_bucket_count: 1, public_bucket_count: 0, kms_encrypted_bucket_count: 1, object_lock_bucket_count: 1 });
 }
 
