@@ -59,7 +59,7 @@ function fixtures() {
       },
       {
         id: 2101,
-        name: "CodeQL Setup",
+        name: "PR #173",
         path: "dynamic/github-code-scanning/codeql",
         event: "dynamic",
         status: "completed",
@@ -74,6 +74,7 @@ function fixtures() {
     repository,
     headSha,
     workflowSha256,
+    pullRequestNumber: 173,
   };
 }
 
@@ -108,6 +109,12 @@ test("GitHub security evidence rejects failed or untrusted standalone checks", (
     app: { id: 999, slug: "untrusted" },
   });
   assert.throws(() => validatePrivateStagingGithubChecks(untrusted), /untrusted publisher/u);
+});
+
+test("GitHub security evidence binds the dynamic CodeQL workflow to the selected PR", () => {
+  const input = fixtures();
+  input.workflowRuns[1].name = "PR #174";
+  assert.throws(() => validatePrivateStagingGithubChecks(input), /JavaScript CodeQL/u);
 });
 
 test("GitHub security evidence selects the latest duplicate trusted context", () => {

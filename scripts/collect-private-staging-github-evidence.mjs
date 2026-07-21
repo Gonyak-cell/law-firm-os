@@ -96,6 +96,7 @@ const authority = validatePrivateStagingGithubChecks({
   repository: repo,
   headSha: sourceSha,
   workflowSha256,
+  pullRequestNumber: prNumber,
 });
 const detailsByCheckId = new Map((checkResponse.check_runs ?? []).map((check) => [Number(check?.id), sha256(String(check?.details_url ?? ""))]));
 const checks = authority.checks.map((check) => Object.freeze({ ...check, details_url_sha256: detailsByCheckId.get(check.check_run_id) }));

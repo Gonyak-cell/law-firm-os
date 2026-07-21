@@ -15,7 +15,6 @@ export const PRIVATE_STAGING_TRUSTED_CODEQL_CHECK = Object.freeze({
   name: "Analyze (javascript-typescript)",
   app_id: 15368,
   app_slug: "github-actions",
-  workflow_name: "CodeQL Setup",
   workflow_path: "dynamic/github-code-scanning/codeql",
   event: "dynamic",
 });
@@ -38,10 +37,12 @@ function required(value, name, pattern) {
   return text;
 }
 
-export function validatePrivateStagingGithubChecks({ checkRuns, workflowRuns, repository, headSha, workflowSha256 } = {}) {
+export function validatePrivateStagingGithubChecks({ checkRuns, workflowRuns, repository, headSha, workflowSha256, pullRequestNumber } = {}) {
   const repo = required(repository, "repository", REPOSITORY);
   const sha = required(headSha, "headSha", SHA1);
   const workflowDigest = required(workflowSha256, "workflowSha256", SHA256);
+  const prNumber = Number(pullRequestNumber);
+  if (!Number.isSafeInteger(prNumber) || prNumber < 1) fail("pullRequestNumber is invalid");
   if (!Array.isArray(checkRuns) || !checkRuns.length || !Array.isArray(workflowRuns)) fail("GitHub check and workflow inventories are required");
   if (checkRuns.length > 100 || workflowRuns.length > 100) fail("GitHub check inventory exceeds the closed first-page contract");
 
@@ -165,7 +166,7 @@ export function validatePrivateStagingGithubChecks({ checkRuns, workflowRuns, re
     check.name === expectedCodeql.name
     && check.publisher_app_id === expectedCodeql.app_id
     && check.publisher_app_slug === expectedCodeql.app_slug
-    && check.workflow_name === expectedCodeql.workflow_name
+    && check.workflow_name === `PR #${prNumber}`
     && check.workflow_path === expectedCodeql.workflow_path
     && check.workflow_event === expectedCodeql.event
     && check.repository === repo
