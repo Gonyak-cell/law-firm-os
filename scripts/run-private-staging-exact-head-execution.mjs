@@ -25,6 +25,7 @@ import {
   assertPrivateStagingRds,
   assertPrivateStagingSesReadiness,
   buildPrivateStagingAdminEvent,
+  buildPrivateStagingColdGenerationPhases,
   buildPrivateStagingExecutionReceipt,
   buildPrivateStagingStackParameters,
   sha256AwsEvidence,
@@ -369,21 +370,45 @@ async function health() {
 async function forceColdGeneration(label) {
   const before = await health();
   const generation = `${label}-${Date.now().toString(36)}`;
-  const parameters = buildPrivateStagingStackParameters({ packet, artifactBucket: ARTIFACT_BUCKET, artifactVersionId, approvalId, ownerTrustRegistrySha256: registrySha256, inputs, eniBootstrap: false, runtimeGeneration: generation });
-  stack = createAndExecuteChangeSet({
-    parameters,
-    label: `${label}-cold-generation`,
-    mode: "update",
-    allowedModifiedLogicalIds: [
-      "ApiFunction",
-      "AdminFunction",
-      "HttpApiIntegration",
-      "PasswordResetWorkerSchedule",
-      "PasswordResetWorkerInvokePermission",
-    ],
-    allowedConditionalReplacementLogicalIds: ["PasswordResetWorkerInvokePermission"],
+  const currentParameters = stackParameterMap(stack);
+  const phases = buildPrivateStagingColdGenerationPhases({
+    currentGeneration: currentParameters.RuntimeGeneration ?? `initial-${packet.source_sha.slice(0, 12)}`,
+    nextGeneration: generation,
   });
+  const runPhase = (phase) => createAndExecuteChangeSet({
+    parameters: buildPrivateStagingStackParameters({
+      packet,
+      artifactBucket: ARTIFACT_BUCKET,
+      artifactVersionId,
+      approvalId,
+      ownerTrustRegistrySha256: registrySha256,
+      inputs,
+      eniBootstrap: phase.eni_bootstrap,
+      runtimeGeneration: phase.runtime_generation,
+    }),
+    label: `${label}-${phase.label}`,
+    mode: "update",
+    allowedModifiedLogicalIds: phase.allowed_modified_logical_ids,
+    allowedConditionalReplacementLogicalIds: phase.allowed_conditional_replacement_logical_ids,
+  });
+  if (currentParameters.EnableLambdaEniBootstrap !== "true") stack = runPhase(phases[0]);
+  try {
+    stack = runPhase(phases[1]);
+    lambdaConfiguration(API_FUNCTION);
+    lambdaConfiguration(ADMIN_FUNCTION);
+  } finally {
+    const deployed = currentStack();
+    const deployedParameters = stackParameterMap(deployed);
+    if (deployedParameters.EnableLambdaEniBootstrap === "true") {
+      stack = runPhase(Object.freeze({ ...phases[2], runtime_generation: deployedParameters.RuntimeGeneration ?? generation }));
+    }
+  }
+  for (const role of ["lawos-private-staging-api-role", "lawos-private-staging-admin-role"]) {
+    const policies = awsJson(["iam", "list-role-policies", "--role-name", role], { region: false }).PolicyNames ?? [];
+    if (policies.some((name) => name.includes("vpc-eni-bootstrap"))) throw new Error("temporary Lambda VPC ENI Allow was not removed after cold generation");
+  }
   lambdaConfiguration(API_FUNCTION);
+  lambdaConfiguration(ADMIN_FUNCTION);
   const deadline = Date.now() + 120_000;
   while (Date.now() < deadline) {
     const after = await health().catch(() => null);

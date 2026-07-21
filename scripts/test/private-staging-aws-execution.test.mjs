@@ -11,6 +11,7 @@ import {
   assertPrivateStagingRds,
   assertPrivateStagingSesReadiness,
   buildPrivateStagingAdminEvent,
+  buildPrivateStagingColdGenerationPhases,
   buildPrivateStagingExecutionReceipt,
   buildPrivateStagingStackParameters,
   validatePrivateStagingExecutionInputs,
@@ -72,6 +73,28 @@ test("execution inputs and stack parameters stay exact-head and synthetic-only",
   assert.equal(values.OwnerInstructionSha256, packet.packet_sha256);
   assert.equal(values.OwnerTrustRegistrySha256, "e".repeat(64));
   assert.equal(values.PasswordResetBaseUrl, undefined);
+});
+
+test("cold generation grants ENI bootstrap only around the VPC Lambda refresh", () => {
+  const phases = buildPrivateStagingColdGenerationPhases({
+    currentGeneration: "current-aaaaaaaaaaaa",
+    nextGeneration: "cut006-bbbbbbbbbbbb",
+  });
+  assert.deepEqual(phases.map(({ label, eni_bootstrap, runtime_generation }) => ({ label, eni_bootstrap, runtime_generation })), [
+    { label: "enable-eni-bootstrap", eni_bootstrap: true, runtime_generation: "current-aaaaaaaaaaaa" },
+    { label: "cold-generation", eni_bootstrap: true, runtime_generation: "cut006-bbbbbbbbbbbb" },
+    { label: "remove-eni-bootstrap", eni_bootstrap: false, runtime_generation: "cut006-bbbbbbbbbbbb" },
+  ]);
+  assert.deepEqual(phases[1].allowed_modified_logical_ids, [
+    "AdminFunction",
+    "ApiFunction",
+    "HttpApiIntegration",
+    "PasswordResetWorkerInvokePermission",
+    "PasswordResetWorkerSchedule",
+  ]);
+  assert.equal(phases[0].allowed_modified_logical_ids.includes("ApiExecutionRole"), true);
+  assert.equal(phases[2].allowed_modified_logical_ids.includes("AdminExecutionRole"), true);
+  assert.throws(() => buildPrivateStagingColdGenerationPhases({ currentGeneration: "same-same", nextGeneration: "same-same" }), /must change/u);
 });
 
 test("change-set review rejects protected resources, removals, and replacements", () => {

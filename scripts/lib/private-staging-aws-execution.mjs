@@ -100,6 +100,42 @@ export function buildPrivateStagingStackParameters({ packet, artifactBucket, art
   return Object.freeze(Object.entries(values).map(([key, value]) => Object.freeze({ key, value })));
 }
 
+export function buildPrivateStagingColdGenerationPhases({ currentGeneration, nextGeneration } = {}) {
+  const current = requiredText(currentGeneration, "current runtime generation", /^[a-z0-9-]{8,64}$/u);
+  const next = requiredText(nextGeneration, "next runtime generation", /^[a-z0-9-]{8,64}$/u);
+  if (current === next) fail("cold generation must change the runtime generation");
+  const toggleTargets = Object.freeze([
+    "AdminExecutionRole",
+    "AdminFunction",
+    "ApiExecutionRole",
+    "ApiFunction",
+    "HttpApiIntegration",
+    "PasswordResetWorkerInvokePermission",
+    "PasswordResetWorkerSchedule",
+    "SecretsManagerEndpoint",
+    "SesApiEndpoint",
+  ]);
+  const runtimeTargets = Object.freeze([
+    "AdminFunction",
+    "ApiFunction",
+    "HttpApiIntegration",
+    "PasswordResetWorkerInvokePermission",
+    "PasswordResetWorkerSchedule",
+  ]);
+  const phase = (label, eniBootstrap, runtimeGeneration, allowedModifiedLogicalIds) => Object.freeze({
+    label,
+    eni_bootstrap: eniBootstrap,
+    runtime_generation: runtimeGeneration,
+    allowed_modified_logical_ids: allowedModifiedLogicalIds,
+    allowed_conditional_replacement_logical_ids: Object.freeze(["PasswordResetWorkerInvokePermission"]),
+  });
+  return Object.freeze([
+    phase("enable-eni-bootstrap", true, current, toggleTargets),
+    phase("cold-generation", true, next, runtimeTargets),
+    phase("remove-eni-bootstrap", false, next, toggleTargets),
+  ]);
+}
+
 export function assertPrivateStagingChangeSet(changeSet, {
   mode = "create",
   allowedModifiedLogicalIds = [],
