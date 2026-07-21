@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   assertPrivateStagingBucket,
   assertPrivateStagingBudget,
+  assertPrivateStagingCallerIdentity,
   assertPrivateStagingChangeSet,
   assertPrivateStagingCut005Result,
   assertPrivateStagingCut006Result,
@@ -33,6 +34,27 @@ const ownerAuthorization = Object.freeze({
   registry_json: "{\"schema_version\":\"test\"}\n",
   receipt_json: "{\"schema_version\":\"test\"}\n",
   signature_base64: Buffer.alloc(64, 7).toString("base64"),
+});
+
+test("AWS caller identity accepts only the exact staging account and assumed role", () => {
+  const approved = {
+    Account: "770880870480",
+    Arn: "arn:aws:sts::770880870480:assumed-role/matter-staging-admin/botocore-session-1784616118",
+  };
+  assert.deepEqual(assertPrivateStagingCallerIdentity(approved), {
+    account_id: "770880870480",
+    role_name: "matter-staging-admin",
+    protected_role_count: 0,
+  });
+  for (const identity of [
+    { ...approved, Account: "111111111111" },
+    { ...approved, Arn: "arn:aws:sts::770880870480:assumed-role/AdministratorAccess/session" },
+    { ...approved, Arn: "arn:aws:sts::770880870480:assumed-role/matter-prod-deploy-admin/session" },
+    { ...approved, Arn: "arn:aws:sts::770880870480:assumed-role/amic-vault-staging/session" },
+    { ...approved, Arn: "arn:aws:sts::770880870480/assumed-role/matter-staging-admin/session" },
+  ]) {
+    assert.throws(() => assertPrivateStagingCallerIdentity(identity), /approved staging role\/account boundary/u);
+  }
 });
 
 test("execution inputs and stack parameters stay exact-head and synthetic-only", () => {

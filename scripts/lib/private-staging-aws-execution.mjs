@@ -27,6 +27,14 @@ export function sha256AwsEvidence(value) {
   return createHash("sha256").update(typeof value === "string" || Buffer.isBuffer(value) ? value : JSON.stringify(value)).digest("hex");
 }
 
+export function assertPrivateStagingCallerIdentity(identity) {
+  const approvedArn = new RegExp(`^arn:aws:sts::${PRIVATE_STAGING_ACCOUNT_ID}:assumed-role/matter-staging-admin/[A-Za-z0-9_+=,.@-]{2,64}$`, "u");
+  if (!isRecord(identity) || identity.Account !== PRIVATE_STAGING_ACCOUNT_ID || !approvedArn.test(identity.Arn ?? "") || PROTECTED_MARKER.test(identity.Arn ?? "")) {
+    fail("AWS caller identity is outside the approved staging role/account boundary");
+  }
+  return Object.freeze({ account_id: PRIVATE_STAGING_ACCOUNT_ID, role_name: "matter-staging-admin", protected_role_count: 0 });
+}
+
 export function validatePrivateStagingExecutionInputs(input) {
   if (!isRecord(input) || input.schema_version !== "law-firm-os.private-staging.execution-inputs.v1") fail("execution input schema is invalid");
   const allowed = ["schema_version", "data_scope", "real_data_allowed", "password_reset_ses_identity_arn", "password_reset_from_email", "owner", "review_date", "expiration_date"];

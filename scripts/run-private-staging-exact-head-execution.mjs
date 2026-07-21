@@ -17,6 +17,7 @@ import { buildPrivateStagingSyntheticSources } from "./lib/private-staging-artif
 import {
   assertPrivateStagingBucket,
   assertPrivateStagingBudget,
+  assertPrivateStagingCallerIdentity,
   assertPrivateStagingChangeSet,
   assertPrivateStagingCut005Result,
   assertPrivateStagingCut006Result,
@@ -51,7 +52,6 @@ const ARTIFACT_BUCKET = `lawos-private-staging-artifacts-${ACCOUNT_ID}-${REGION}
 const ADMIN_FUNCTION = "lawos-private-staging-admin";
 const API_FUNCTION = "lawos-private-staging-api";
 const PHASES = new Set(["preflight", "deploy", "cut005", "cut006", "cut007", "all"]);
-const PROTECTED_MARKER = /(?:amic-vault-staging|matter-lawos-api-staging|matter-lawos-api-prod|matter-prod-deploy-admin|matter-cutover-operator)/iu;
 const SYNTHETIC_MANIFEST = JSON.parse(JSON.parse(readFileSync("infra/lawos-private-staging/template.json", "utf8")).Resources.SyntheticManifestSecret.Properties.SecretString);
 let artifactVersionId = null;
 let ownerAuthorization = null;
@@ -766,7 +766,7 @@ const costModelSha256 = canonicalSha256(costModel);
 const syntheticManifestSha256 = sha256(JSON.stringify(SYNTHETIC_MANIFEST));
 
 const identity = awsJson(["sts", "get-caller-identity"]);
-if (identity.Account !== ACCOUNT_ID || !/\/assumed-role\/matter-staging-admin\//u.test(identity.Arn ?? "") || PROTECTED_MARKER.test(identity.Arn ?? "")) throw new Error("AWS caller identity is outside the approved staging role/account boundary");
+assertPrivateStagingCallerIdentity(identity);
 progress("authorization", "pass", { source_sha: sourceSha, source_tree: sourceTree, artifact_sha256: packet.artifact_sha256, approval_id: approvalId, profile: awsProfile });
 if (["preflight", "deploy", "all"].includes(phase)) {
   const templateValidation = assertCloudFormationTemplateApi();
