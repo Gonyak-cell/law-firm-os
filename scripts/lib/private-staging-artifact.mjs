@@ -1,10 +1,13 @@
 import { hrxScopesForRoleProfile } from "../../apps/api/src/hrx-role-scope-matrix.js";
+import {
+  PRIVATE_STAGING_APPROVED_SYNTHETIC_AMIC_EMAIL_PATTERN,
+  PRIVATE_STAGING_SYNTHETIC_EMAIL_PATTERN,
+} from "../../packages/runtime-auth/src/private-staging-synthetic-email.js";
 
 const FORBIDDEN_ENTRY = /(^|\/)(\.env(?:\.|$)|test|tests|__tests__|\.git|artifacts|workbook)(\/|$)|\.(?:pem|key|p12|pfx)$/iu;
 const FORBIDDEN_ARCHIVE_ENTRY = /(^|\/)(\.env(?:\.|$)|\.git|artifacts|workbook)(\/|$)|\.(?:pem|key|p12|pfx)$/iu;
 const SYNTHETIC_USER_ID = /^synthetic-lawos-staging-[a-z0-9-]+$/u;
 const SYNTHETIC_EMPLOYEE_ID = /^emp-lawos-staging-[a-z0-9-]+$/u;
-const SYNTHETIC_EMAIL = /^lawos-staging-[a-z0-9-]+@[^@\s]+$/u;
 const ALLOWED_ROLES = new Set(["attorney", "firm_admin", "matter_vault_admin", "matter_vault_user"]);
 const SYNTHETIC_ADMIN_FINANCE_SCOPES = Object.freeze([
   "analytics.finance.read",
@@ -19,7 +22,6 @@ const SYNTHETIC_ADMIN_FINANCE_SCOPES = Object.freeze([
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 const GIT_OID_PATTERN = /^[a-f0-9]{40}$/u;
 const REAL_IDENTITY_SOURCE_PATTERN = /@amic\.(?:kr|law)|\b(?:user|emp)_amic_[a-z0-9_]+\b/iu;
-const APPROVED_SYNTHETIC_AMIC_EMAIL_PATTERN = /\blawos-staging-[a-z0-9-]+@amic\.(?:kr|law)\b/giu;
 
 export const PRIVATE_STAGING_SOURCE_REDACTION_TARGETS = Object.freeze([
   "apps/api/src/hrx-member-roster-registry.js",
@@ -55,7 +57,7 @@ function assertNoSensitiveIdentityMaterial(value) {
 }
 
 function containsRealIdentitySourceMarker(value) {
-  const text = String(value ?? "").replace(APPROVED_SYNTHETIC_AMIC_EMAIL_PATTERN, "");
+  const text = String(value ?? "").replace(PRIVATE_STAGING_APPROVED_SYNTHETIC_AMIC_EMAIL_PATTERN, "");
   return REAL_IDENTITY_SOURCE_PATTERN.test(text);
 }
 
@@ -129,7 +131,7 @@ export function buildPrivateStagingSyntheticSources(manifest) {
     const displayName = requiredText(account.display_name, `accounts[${index}].display_name`);
     const accountStatus = account.account_status ?? "active";
     const roles = [...new Set((account.role_ids ?? []).map((role) => requiredText(role, `accounts[${index}].role_id`)))].sort();
-    if (!SYNTHETIC_USER_ID.test(userId) || !SYNTHETIC_EMPLOYEE_ID.test(employeeId) || !SYNTHETIC_EMAIL.test(email)) {
+    if (!SYNTHETIC_USER_ID.test(userId) || !SYNTHETIC_EMPLOYEE_ID.test(employeeId) || !PRIVATE_STAGING_SYNTHETIC_EMAIL_PATTERN.test(email)) {
       throw new TypeError("synthetic identity identifiers are invalid");
     }
     if (!/^LawOS Staging Pilot [A-Z0-9-]+$/u.test(displayName)) throw new TypeError("synthetic identity display name is invalid");

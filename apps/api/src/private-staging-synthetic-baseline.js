@@ -12,13 +12,13 @@ import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
 import { createRecordRepositoryDomainSnapshot } from "../../../packages/persistence/src/record-domain-adapter.js";
 import { createPostgresIdentityLedger } from "../../../packages/runtime-auth/src/postgres-identity-ledger.js";
+import { PRIVATE_STAGING_SYNTHETIC_EMAIL_PATTERN } from "../../../packages/runtime-auth/src/private-staging-synthetic-email.js";
 
 const ACCOUNT_SEED_URL = new URL("./matter-vault-user-registration-seed.json", import.meta.url);
 const ROSTER_URL = new URL("./hrx-member-roster-source-of-truth.json", import.meta.url);
 const INTERNAL_PASSWORD_PROVIDER = "lawos-internal-password-provider-v1";
 const SYNTHETIC_USER_ID = /^synthetic-lawos-staging-[a-z0-9-]+$/u;
 const SYNTHETIC_EMPLOYEE_ID = /^emp-lawos-staging-[a-z0-9-]+$/u;
-const SYNTHETIC_EMAIL = /^lawos-staging-[a-z0-9-]+@[^@\s]+$/u;
 const BASELINE_CLOCK = "2026-07-20T00:00:00.000Z";
 
 function requiredText(value, name) {
@@ -88,7 +88,7 @@ export function validatePrivateStagingSyntheticBaseline({ accountSeed, roster, t
     const email = requiredText(user.email, `users[${index}].email`).toLowerCase();
     const displayName = requiredText(user.display_name, `users[${index}].display_name`);
     const employeeId = requiredText(member?.employee_id, `members[${index}].employee_id`);
-    if (!SYNTHETIC_USER_ID.test(userId) || !SYNTHETIC_EMPLOYEE_ID.test(employeeId) || !SYNTHETIC_EMAIL.test(email)) {
+    if (!SYNTHETIC_USER_ID.test(userId) || !SYNTHETIC_EMPLOYEE_ID.test(employeeId) || !PRIVATE_STAGING_SYNTHETIC_EMAIL_PATTERN.test(email)) {
       throw new TypeError("synthetic baseline identifiers are invalid");
     }
     if (!/^LawOS Staging Pilot [A-Z0-9-]+$/u.test(displayName)

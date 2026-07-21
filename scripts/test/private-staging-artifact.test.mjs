@@ -14,6 +14,7 @@ import {
   validatePrivateStagingSyntheticIdentityManifestBinding,
   validateRdsCaBundle,
 } from "../lib/private-staging-artifact.mjs";
+import { PRIVATE_STAGING_SYNTHETIC_EMAIL_PATTERN } from "../../packages/runtime-auth/src/private-staging-synthetic-email.js";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
@@ -114,21 +115,21 @@ test("artifact builder creates only synthetic packaged account and HRX sources",
       {
         user_id: "synthetic-lawos-staging-admin",
         employee_id: "emp-lawos-staging-admin",
-        email: "lawos-staging-admin@example.invalid",
+        email: "jwsuh+lawos-staging-admin@amic.kr",
         display_name: "LawOS Staging Pilot ADMIN",
         role_ids: ["firm_admin", "matter_vault_admin"],
       },
       {
         user_id: "synthetic-lawos-staging-attorney",
         employee_id: "emp-lawos-staging-attorney",
-        email: "lawos-staging-attorney@example.invalid",
+        email: "jwsuh+lawos-staging-attorney@amic.kr",
         display_name: "LawOS Staging Pilot ATTORNEY",
         role_ids: ["attorney", "matter_vault_user"],
       },
       {
         user_id: "synthetic-lawos-staging-disabled",
         employee_id: "emp-lawos-staging-disabled",
-        email: "lawos-staging-disabled@example.invalid",
+        email: "jwsuh+lawos-staging-disabled@amic.kr",
         display_name: "LawOS Staging Pilot DISABLED",
         role_ids: ["attorney", "matter_vault_user"],
         account_status: "disabled",
@@ -164,6 +165,14 @@ test("artifact builder rejects unapproved or credential-bearing account manifest
   credential.accounts_approved = true;
   credential.client_secret = "forbidden";
   assert.throws(() => buildPrivateStagingSyntheticSources(credential), /forbidden credential field/u);
+});
+
+test("synthetic email contract accepts only the approved plus-address role tags", () => {
+  assert.equal(PRIVATE_STAGING_SYNTHETIC_EMAIL_PATTERN.test("jwsuh+lawos-staging-admin@amic.kr"), true);
+  assert.equal(PRIVATE_STAGING_SYNTHETIC_EMAIL_PATTERN.test("jwsuh+lawos-staging-attorney@amic.kr"), true);
+  assert.equal(PRIVATE_STAGING_SYNTHETIC_EMAIL_PATTERN.test("jwsuh+lawos-staging-disabled@amic.kr"), true);
+  assert.equal(PRIVATE_STAGING_SYNTHETIC_EMAIL_PATTERN.test("jwsuh+lawos-staging-owner@amic.kr"), false);
+  assert.equal(PRIVATE_STAGING_SYNTHETIC_EMAIL_PATTERN.test("jwsuh+lawos-staging-admin@example.com"), false);
 });
 
 test("synthetic identity approval is bound to the exact source SHA and tree", () => {
@@ -228,6 +237,12 @@ test("artifact runtime-source redactions remove every known real identity marker
   assert.equal(validatePrivateStagingSourceIdentityBoundary([
     { path: "synthetic-account.json", text: '{"email":"lawos-staging-admin@amic.kr"}' },
   ]).real_identity_marker_count, 0);
+  assert.equal(validatePrivateStagingSourceIdentityBoundary([
+    { path: "synthetic-account.json", text: '{"email":"jwsuh+lawos-staging-admin@amic.kr"}' },
+  ]).real_identity_marker_count, 0);
+  assert.throws(() => validatePrivateStagingSourceIdentityBoundary([
+    { path: "synthetic-account.json", text: '{"email":"jwsuh+lawos-staging-owner@amic.kr"}' },
+  ]), /real identity markers/u);
   assert.throws(() => validatePrivateStagingSourceIdentityBoundary([{ path: "leak.js", text: "legacy-user@amic.kr" }]), /real identity markers/u);
 });
 

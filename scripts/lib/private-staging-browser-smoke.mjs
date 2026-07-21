@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
+import { PRIVATE_STAGING_SYNTHETIC_EMAIL_PATTERN } from "../../packages/runtime-auth/src/private-staging-synthetic-email.js";
 
-const SYNTHETIC_EMAIL = /^lawos-staging-[a-z0-9-]+@[^@\s]+$/u;
 const SYNTHETIC_USER = /^synthetic-lawos-staging-[a-z0-9-]+$/u;
 
 function fail(message) {
@@ -65,7 +65,7 @@ export async function runPrivateStagingForestBrowserSmoke({
 } = {}) {
   const api = new URL(requiredText(apiBaseUrl, "apiBaseUrl"));
   if (api.protocol !== "https:" && !["127.0.0.1", "localhost"].includes(api.hostname)) fail("staging API must use HTTPS");
-  const email = requiredText(account?.email, "synthetic account email", SYNTHETIC_EMAIL).toLowerCase();
+  const email = requiredText(account?.email, "synthetic account email", PRIVATE_STAGING_SYNTHETIC_EMAIL_PATTERN).toLowerCase();
   requiredText(account?.user_id, "synthetic account user_id", SYNTHETIC_USER);
   requiredText(password, "synthetic account password");
   const outputDir = validateEvidenceDirectory(evidenceDir);

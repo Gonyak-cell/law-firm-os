@@ -30,7 +30,7 @@ test("Forest browser smoke returns only safe synthetic counts and fingerprints",
   const result = await runPrivateStagingForestBrowserSmoke({
     apiBaseUrl: "https://lawos-private-staging.example.invalid",
     webBaseUrl: "http://127.0.0.1:5173",
-    account: { email: "lawos-staging-admin@example.invalid", user_id: "synthetic-lawos-staging-admin" },
+    account: { email: "jwsuh+lawos-staging-admin@amic.kr", user_id: "synthetic-lawos-staging-admin" },
     password: "Synthetic-only-password-123!",
     expected: { matter_id: "matter-cut007-synthetic" },
     evidenceDir,
@@ -41,7 +41,7 @@ test("Forest browser smoke returns only safe synthetic counts and fingerprints",
   assert.equal(result.screenshot_count, 5);
   assert.equal(result.secret_material_returned, false);
   assert.match(result.evidence_fingerprint, /^[0-9a-f]{64}$/u);
-  assert.doesNotMatch(JSON.stringify(result), /password|lawos-staging-admin@/u);
+  assert.doesNotMatch(JSON.stringify(result), /password|(?:jwsuh\+)?lawos-staging-admin@/u);
 });
 
 test("Forest browser smoke rejects non-synthetic accounts and non-HTTPS staging", async () => {
@@ -50,7 +50,7 @@ test("Forest browser smoke rejects non-synthetic accounts and non-HTTPS staging"
   const base = {
     apiBaseUrl: "https://lawos-private-staging.example.invalid",
     webBaseUrl: "http://127.0.0.1:5173",
-    account: { email: "lawos-staging-admin@example.invalid", user_id: "synthetic-lawos-staging-admin" },
+    account: { email: "jwsuh+lawos-staging-admin@amic.kr", user_id: "synthetic-lawos-staging-admin" },
     password: "Synthetic-only-password-123!",
     evidenceDir,
     launchBrowser: fakeLaunchBrowser,

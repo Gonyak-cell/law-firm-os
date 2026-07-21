@@ -1,9 +1,9 @@
 import { createHash, randomBytes } from "node:crypto";
+import { PRIVATE_STAGING_SYNTHETIC_EMAIL_PATTERN } from "../../packages/runtime-auth/src/private-staging-synthetic-email.js";
 
 const SYNTHETIC_TENANT = /^tenant_lawos_staging_cut007_[a-z0-9_-]+$/u;
 const SYNTHETIC_USER = /^synthetic-lawos-staging-[a-z0-9-]+$/u;
 const SYNTHETIC_EMPLOYEE = /^emp-lawos-staging-[a-z0-9-]+$/u;
-const SYNTHETIC_EMAIL = /^lawos-staging-[a-z0-9-]+@[^@\s]+$/u;
 const RESET_EXPIRED = "AUTH_PASSWORD_RESET_TOKEN_EXPIRED";
 
 function requiredText(value, name, pattern = null) {
@@ -60,7 +60,7 @@ function normalizeAccounts(accounts = [], primaryTenantId) {
   const normalized = accounts.map((account, index) => {
     const userId = requiredText(account.user_id, `accounts[${index}].user_id`, SYNTHETIC_USER);
     const employeeId = requiredText(account.employee_id, `accounts[${index}].employee_id`, SYNTHETIC_EMPLOYEE);
-    const email = requiredText(account.email, `accounts[${index}].email`, SYNTHETIC_EMAIL).toLowerCase();
+    const email = requiredText(account.email, `accounts[${index}].email`, PRIVATE_STAGING_SYNTHETIC_EMAIL_PATTERN).toLowerCase();
     const status = requiredText(account.account_status ?? account.status ?? "active", `accounts[${index}].status`);
     const roleIds = [...new Set((account.role_ids ?? []).map((role) => requiredText(role, "role id")))].sort();
     invariant(["active", "disabled"].includes(status), "account-contract", "account status must be active or disabled");
