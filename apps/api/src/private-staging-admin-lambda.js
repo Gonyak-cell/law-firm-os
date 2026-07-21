@@ -26,6 +26,8 @@ export const PRIVATE_STAGING_BOOTSTRAP_APPROVAL_ENV = "LAWOS_BOOTSTRAP_APPROVAL_
 export const PRIVATE_STAGING_CUT005_APPROVAL_ENV = "LAWOS_CUT005_APPROVAL_ID";
 export const PRIVATE_STAGING_CUT006_APPROVAL_ENV = "LAWOS_CUT006_APPROVAL_ID";
 export const PRIVATE_STAGING_CUT007_APPROVAL_ENV = "LAWOS_CUT007_APPROVAL_ID";
+// Stable for the lifetime of the purpose-bound CUT-005 tenants. A new value requires tenant reset or replacement.
+export const PRIVATE_STAGING_CUT005_CORPUS_RUN_ID = "cut005-796c21afe773";
 
 function requiredText(value, name) {
   const text = String(value ?? "").trim();
@@ -248,7 +250,7 @@ export async function executePrivateStagingCut005({
     const result = await runCut005({
       pool,
       tenantIds: manifest.purpose_tenants.cut005,
-      runId: `cut005-${sourceSha.slice(0, 12)}`,
+      runId: PRIVATE_STAGING_CUT005_CORPUS_RUN_ID,
     });
     return Object.freeze({
       ...result,

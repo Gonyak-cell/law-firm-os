@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   PRIVATE_STAGING_BOOTSTRAP_ACTION,
   PRIVATE_STAGING_CUT005_ACTION,
+  PRIVATE_STAGING_CUT005_CORPUS_RUN_ID,
   PRIVATE_STAGING_CUT006_ACTION,
   PRIVATE_STAGING_CUT007_READBACK_ACTION,
   PRIVATE_STAGING_SYNTHETIC_BASELINE_ACTION,
@@ -200,7 +201,7 @@ test("private staging CUT-005 uses the ready application secret and returns safe
   assert.equal(result.outcome, "PASS");
   assert.equal(result.approval_id, CUT005_APPROVAL_ID);
   assert.equal(result.tenant_count, 2);
-  assert.equal(result.run_id, `cut005-${SOURCE_SHA.slice(0, 12)}`);
+  assert.equal(result.run_id, PRIVATE_STAGING_CUT005_CORPUS_RUN_ID);
   assert.equal(result.immediate_replay_noop_count, 13);
   assert.equal(result.dual_write_count, 0);
   assert.equal(result.secret_material_returned, false);
