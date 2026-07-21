@@ -50,6 +50,52 @@ function syntheticSources() {
   });
 }
 
+test("PostgreSQL session auth and the deployed reset worker share the configured tenant", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const pool = {
+    query: fixture.appPool.query.bind(fixture.appPool),
+    connect: fixture.appPool.connect.bind(fixture.appPool),
+    end: async () => {},
+  };
+  const started = await startApiServer({
+    port: 0,
+    runtimeProfile: "operational",
+    staffAuthAuthority: "internal-password",
+    sessionSecret: "cut007-tenant-binding-session-secret-with-adequate-length",
+    passwordResetEmailDelivery: async () => {
+      throw new Error("an unknown synthetic address must not be delivered");
+    },
+    stepUpAuthority: Object.freeze({}),
+    persistenceAuthority: "postgres-v2",
+    persistenceAuthorityEnv: {
+      LAWOS_POSTGRES_URL_SECRET_ID: "lawos/test/cut007-postgres",
+      LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID: "lawos/test/cut007-tenant-context",
+      LAWOS_PAYROLL_ARTIFACT_KEY_SECRET_ID: "lawos/test/cut007-payroll-key",
+      LAWOS_PASSWORD_RESET_TENANT_ID: TENANTS[0],
+      LAWOS_DATA_SCOPE: "synthetic-only",
+      AWS_REGION: "ap-northeast-2",
+    },
+    persistenceResolvePostgresSecret: async ({ secretId }) => secretId.endsWith("tenant-context")
+      ? fixture.tenantContextSecret
+      : fixture.instance.connection_string,
+    persistenceConnectPostgres: async () => pool,
+    dmsStorage: createLocalStorageAdapter({ adapter_id: "cut007-tenant-binding" }),
+    payrollResolveArtifactSecret: async () => "cut007-tenant-binding-payroll-artifact-secret",
+  });
+  t.after(() => new Promise((resolve) => started.server.close(resolve)));
+  const response = await fetch(`http://${started.host}:${started.port}/api/auth/password-reset/request`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: "unknown-cut007-account@example.invalid" }),
+  });
+  assert.equal(response.status, 200);
+  assert.deepEqual(
+    await started.sessionAuth.processPasswordResetQueue({ tenantId: TENANTS[0] }),
+    { claimed: 1, completed: 0, dropped: 1, retry: 0 },
+  );
+});
+
 test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, finance, portal, restart, and PostgreSQL readback path", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
