@@ -15,6 +15,15 @@ function clone(value) {
   return structuredClone(value);
 }
 
+function resolvedRolePolicies(template, logicalId, eniBootstrapEnabled) {
+  return template.Resources[logicalId].Properties.Policies.flatMap((policy) => {
+    const conditional = policy?.["Fn::If"];
+    if (!conditional) return [policy];
+    const selected = eniBootstrapEnabled ? conditional[1] : conditional[2];
+    return selected?.Ref === "AWS::NoValue" ? [] : [selected];
+  });
+}
+
 test("private staging infrastructure contract is isolated and cost gated", () => {
   const result = validatePrivateStagingTemplate(fixture("template.json"));
   assert.equal(result.verdict, "PASS_WITH_OWNER_DELTA_REQUIRED");
@@ -25,7 +34,8 @@ test("private staging infrastructure contract is isolated and cost gated", () =>
   assert.equal(result.public_subnet_count, 0);
   assert.equal(result.interface_endpoint_count, 2);
   assert.equal(result.lambda_function_url_count, 0);
-  assert.deepEqual(result.iam_wildcard_allow_sids, ["LambdaVpcEniBootstrap"]);
+  assert.equal(result.iam_wildcard_allow_count, 2);
+  assert.deepEqual(result.iam_wildcard_allow_sids, ["LambdaVpcEniBootstrap", "LambdaVpcEniBootstrap"]);
   assert.deepEqual(result.kms_current_key_wildcard_allow_sids, ["EnableAccountIamAuthority", "AllowRegionalCloudWatchLogsEncryption"]);
   assert.equal(result.bootstrap_default_enabled, false);
   assert.ok(result.inline_template_byte_size > 0 && result.inline_template_byte_size <= 51_200);
@@ -33,6 +43,52 @@ test("private staging infrastructure contract is isolated and cost gated", () =>
   const unversioned = clone(fixture("template.json"));
   delete unversioned.Resources.ApiFunction.Properties.Code.S3ObjectVersion;
   assert.throws(() => validatePrivateStagingTemplate(unversioned), /immutable artifact version/u);
+});
+
+test("Lambda ENI bootstrap is an embedded true-only role policy with resolvable dependencies", () => {
+  const template = fixture("template.json");
+  assert.equal(template.Resources.LambdaVpcEniBootstrapPolicy, undefined);
+
+  for (const [roleId, runtimePolicyName] of [
+    ["ApiExecutionRole", "lawos-private-staging-api-runtime"],
+    ["AdminExecutionRole", "lawos-private-staging-admin-runtime"],
+  ]) {
+    const enabled = resolvedRolePolicies(template, roleId, true);
+    const disabled = resolvedRolePolicies(template, roleId, false);
+    assert.deepEqual(enabled.map((policy) => policy.PolicyName), [
+      runtimePolicyName,
+      "lawos-private-staging-lambda-vpc-eni-bootstrap-temporary",
+    ]);
+    assert.deepEqual(disabled.map((policy) => policy.PolicyName), [runtimePolicyName]);
+    assert.deepEqual(enabled[1].PolicyDocument.Statement[0], {
+      Sid: "LambdaVpcEniBootstrap",
+      Effect: "Allow",
+      Action: [
+        "ec2:CreateNetworkInterface",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DescribeSubnets",
+        "ec2:DeleteNetworkInterface",
+        "ec2:AssignPrivateIpAddresses",
+        "ec2:UnassignPrivateIpAddresses",
+      ],
+      Resource: "*",
+    });
+  }
+
+  assert.deepEqual(template.Resources.ApiFunction.DependsOn, ["ApiLogGroup"]);
+  assert.deepEqual(template.Resources.AdminFunction.DependsOn, ["AdminLogGroup"]);
+
+  const residual = clone(template);
+  residual.Resources.ApiExecutionRole.Properties.Policies[1]["Fn::If"][2] = residual.Resources.ApiExecutionRole.Properties.Policies[1]["Fn::If"][1];
+  assert.throws(() => validatePrivateStagingTemplate(residual), /disabled branch|IAM policy contract/u);
+
+  const wrongCondition = clone(template);
+  wrongCondition.Resources.ApiExecutionRole.Properties.Policies[1]["Fn::If"][0] = "SomeOtherCondition";
+  assert.throws(() => validatePrivateStagingTemplate(wrongCondition), /LambdaEniBootstrapEnabled|IAM policy contract/u);
+
+  const missingDeny = clone(template);
+  missingDeny.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement = missingDeny.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement.filter((statement) => statement.Sid !== "DenyFunctionCodeEc2Networking");
+  assert.throws(() => validatePrivateStagingTemplate(missingDeny), /function-code EC2 deny|IAM policy contract/u);
 });
 
 test("artifact store contract permits only the isolated bucket and deny policy", () => {

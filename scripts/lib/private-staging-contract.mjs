@@ -24,10 +24,10 @@ const LAMBDA_FUNCTION_CODE_DENY_ACTIONS = Object.freeze([
 ]);
 const EXACT_LAMBDA_TRUST_SHA256 = "f3502e8666443cacc9bec965f5cc2886f9ed0e884c87714821fdc6872835efd0";
 const EXACT_IAM_POLICY_SHA256 = Object.freeze({
-  ApiExecutionRole: "dfa8956a7b4d72c84efc3d7e45510900ea56674bb55fa0695f8375067370880f",
-  AdminExecutionRole: "2b4b2b6cf148322157780df628dccfca9f5ff25266b92b727625ccb488f36f73",
+  ApiExecutionRole: "1f0ac52b22b70affa8370e4842011b18ad217611435081a84149bde5d0283e1a",
+  AdminExecutionRole: "370ba8aa8ce19dccdb6462837eb229bd5df3a0cad1683e93688b01b8cc8ca43a",
 });
-const EXACT_ENI_BOOTSTRAP_POLICY_SHA256 = "c2befe2c36d8536fe68f38ab394582980087c01d6f03c8069a20cb4b4ba79740";
+const EXACT_ENI_BOOTSTRAP_INLINE_POLICY_SHA256 = "e3fb825de200108539c51b58b92f3f39713dbdaaf5bb1e6d9b908ddb09b0e815";
 const EXACT_KMS_KEY_POLICY_SHA256 = "21a2577535bde578130fd7f1ae293a8300c1eb28d29bc949fcc75242b3aafc8b";
 const EXACT_KMS_ALIAS_SHA256 = "a5c174930d14cbc3a40f51c04112fd55e4b27b4659f4aa17ca2e1d1e0117467d";
 const EXACT_S3_ENDPOINT_POLICY_SHA256 = "fd69eaa070403f359a58fea72ba10b50f9ab2ee1cf4ba26fd666709814742801";
@@ -103,12 +103,20 @@ function refName(value) {
   return value?.Ref ?? null;
 }
 
-function resourceStatements(resource) {
+function resourcePolicyEntries(resource) {
   if (resource.Type === "AWS::IAM::Role") {
-    return (resource.Properties?.Policies ?? []).flatMap((policy) => policy.PolicyDocument?.Statement ?? []);
+    return (resource.Properties?.Policies ?? []).map((policy) => {
+      const conditional = policy?.["Fn::If"];
+      if (!Array.isArray(conditional)) return { policy, condition: null };
+      return { policy: conditional[1], condition: conditional[0], disabled: conditional[2] };
+    });
   }
-  if (resource.Type === "AWS::IAM::Policy") return resource.Properties?.PolicyDocument?.Statement ?? [];
+  if (resource.Type === "AWS::IAM::Policy") return [{ policy: resource.Properties, condition: resource.Condition ?? null }];
   return [];
+}
+
+function resourceStatements(resource) {
+  return resourcePolicyEntries(resource).flatMap(({ policy }) => policy?.PolicyDocument?.Statement ?? []);
 }
 
 function sortedStrings(values) {
@@ -121,7 +129,7 @@ function arrayValue(value) {
 
 function validateIam(resources) {
   const iamResources = Object.entries(resources).filter(([, resource]) => String(resource.Type ?? "").startsWith("AWS::IAM::"));
-  const expectedIamResources = ["AdminExecutionRole", "ApiExecutionRole", "LambdaVpcEniBootstrapPolicy"];
+  const expectedIamResources = ["AdminExecutionRole", "ApiExecutionRole"];
   assert(
     JSON.stringify(sortedStrings(iamResources.map(([logicalId]) => logicalId))) === JSON.stringify(expectedIamResources),
     "private staging contains an unexpected IAM policy-bearing resource",
@@ -130,33 +138,42 @@ function validateIam(resources) {
     const properties = resources[logicalId]?.Properties;
     assert(canonicalSha256(properties?.AssumeRolePolicyDocument) === EXACT_LAMBDA_TRUST_SHA256, `${logicalId} IAM trust policy contract drifted`);
     assert(canonicalSha256(properties?.Policies) === EXACT_IAM_POLICY_SHA256[logicalId], `${logicalId} IAM policy contract drifted`);
+    const conditional = properties?.Policies?.[1]?.["Fn::If"];
+    assert(Array.isArray(conditional) && conditional.length === 3, `${logicalId} temporary ENI policy must be a conditional inline policy`);
+    assert(conditional[0] === "LambdaEniBootstrapEnabled", `${logicalId} temporary ENI policy must use LambdaEniBootstrapEnabled`);
+    assert(canonicalSha256(conditional[1]) === EXACT_ENI_BOOTSTRAP_INLINE_POLICY_SHA256, `${logicalId} temporary ENI policy contract drifted`);
+    assert(conditional[2]?.Ref === "AWS::NoValue", `${logicalId} temporary ENI policy disabled branch must remove the policy`);
   }
-  assert(canonicalSha256(resources.LambdaVpcEniBootstrapPolicy?.Properties) === EXACT_ENI_BOOTSTRAP_POLICY_SHA256, "Lambda ENI bootstrap IAM policy contract drifted");
+  assert(resources.LambdaVpcEniBootstrapPolicy == null, "temporary ENI policy must not be a conditionally absent external IAM resource");
   const wildcardAllows = [];
   for (const [logicalId, resource] of Object.entries(resources)) {
     if (resource.Type === "AWS::IAM::Role") {
       assert(!(resource.Properties?.ManagedPolicyArns?.length), `${logicalId} must not use managed policies`);
       assert(!String(resource.Properties?.RoleName ?? "").includes("prod"), `${logicalId} must not use a production role name`);
     }
-    for (const statement of resourceStatements(resource)) {
-      const actions = Array.isArray(statement.Action) ? statement.Action : [statement.Action];
-      assert(!actions.includes("iam:PassRole") && !actions.includes("sts:AssumeRole"), `${logicalId} must not grant cross-role authority`);
-      if (statement.Effect === "Allow" && arrayValue(statement.Resource).includes("*")) {
-        wildcardAllows.push({ logical_id: logicalId, sid: statement.Sid, actions: sortedStrings(actions) });
-      }
-      if (statement.Sid === "DenyFunctionCodeEc2Networking") {
-        assert(statement.Effect === "Deny" && statement.Resource === "*", `${logicalId} function-code EC2 deny is malformed`);
-        assert(JSON.stringify(statement.Condition).includes("lambda:SourceFunctionArn"), `${logicalId} function-code EC2 deny must use SourceFunctionArn`);
-        assert(JSON.stringify(sortedStrings(actions)) === JSON.stringify(sortedStrings(LAMBDA_FUNCTION_CODE_DENY_ACTIONS)), `${logicalId} function-code EC2 deny action set drifted`);
+    let functionCodeDenyCount = 0;
+    for (const { policy, condition } of resourcePolicyEntries(resource)) {
+      for (const statement of policy?.PolicyDocument?.Statement ?? []) {
+        const actions = Array.isArray(statement.Action) ? statement.Action : [statement.Action];
+        assert(!actions.includes("iam:PassRole") && !actions.includes("sts:AssumeRole"), `${logicalId} must not grant cross-role authority`);
+        if (statement.Effect === "Allow" && arrayValue(statement.Resource).includes("*")) {
+          wildcardAllows.push({ logical_id: logicalId, sid: statement.Sid, actions: sortedStrings(actions), condition });
+        }
+        if (statement.Sid === "DenyFunctionCodeEc2Networking") {
+          functionCodeDenyCount += 1;
+          assert(statement.Effect === "Deny" && statement.Resource === "*", `${logicalId} function-code EC2 deny is malformed`);
+          assert(JSON.stringify(statement.Condition).includes("lambda:SourceFunctionArn"), `${logicalId} function-code EC2 deny must use SourceFunctionArn`);
+          assert(JSON.stringify(sortedStrings(actions)) === JSON.stringify(sortedStrings(LAMBDA_FUNCTION_CODE_DENY_ACTIONS)), `${logicalId} function-code EC2 deny action set drifted`);
+        }
       }
     }
+    if (resource.Type === "AWS::IAM::Role") assert(functionCodeDenyCount === 1, `${logicalId} must preserve exactly one function-code EC2 deny`);
   }
-  assert(wildcardAllows.length === 1, "the only IAM Allow with Resource * must be the temporary Lambda VPC ENI bootstrap policy");
-  assert(wildcardAllows[0].logical_id === "LambdaVpcEniBootstrapPolicy", "unexpected IAM wildcard Allow resource");
-  assert(wildcardAllows[0].sid === "LambdaVpcEniBootstrap", "temporary ENI bootstrap Sid drifted");
-  assert(JSON.stringify(wildcardAllows[0].actions) === JSON.stringify(sortedStrings(LAMBDA_VPC_ENI_ACTIONS)), "temporary ENI bootstrap action set drifted");
-  const bootstrap = resources.LambdaVpcEniBootstrapPolicy;
-  assert(bootstrap?.Condition === "LambdaEniBootstrapEnabled", "temporary ENI policy must be conditional");
+  assert(wildcardAllows.length === 2, "the only IAM Allows with Resource * must be the two conditional Lambda VPC ENI bootstrap policies");
+  assert(JSON.stringify(sortedStrings(wildcardAllows.map((item) => item.logical_id))) === JSON.stringify(["AdminExecutionRole", "ApiExecutionRole"]), "unexpected IAM wildcard Allow resource");
+  assert(wildcardAllows.every((item) => item.sid === "LambdaVpcEniBootstrap"), "temporary ENI bootstrap Sid drifted");
+  assert(wildcardAllows.every((item) => item.condition === "LambdaEniBootstrapEnabled"), "temporary ENI bootstrap Allow must be true-only");
+  assert(wildcardAllows.every((item) => JSON.stringify(item.actions) === JSON.stringify(sortedStrings(LAMBDA_VPC_ENI_ACTIONS))), "temporary ENI bootstrap action set drifted");
   return wildcardAllows;
 }
 
@@ -267,14 +284,15 @@ function validateDatabase(resources) {
 
 function validateLambdas(resources) {
   assert(!Object.values(resources).some((resource) => resource.Type === "AWS::Lambda::Url"), "Lambda Function URLs are forbidden");
-  for (const [logicalId, expectedRole, expectedHandler] of [
-    ["ApiFunction", "ApiExecutionRole", "apps/api/src/lambda.handler"],
-    ["AdminFunction", "AdminExecutionRole", "apps/api/src/private-staging-admin-lambda.handler"],
+  for (const [logicalId, expectedRole, expectedHandler, expectedLogGroup] of [
+    ["ApiFunction", "ApiExecutionRole", "apps/api/src/lambda.handler", "ApiLogGroup"],
+    ["AdminFunction", "AdminExecutionRole", "apps/api/src/private-staging-admin-lambda.handler", "AdminLogGroup"],
   ]) {
     const fn = resources[logicalId]?.Properties;
     assert(fn?.Handler === expectedHandler, `${logicalId} handler drifted`);
     assert(fn?.Code?.S3ObjectVersion?.Ref === "ArtifactVersion", `${logicalId} must use the immutable artifact version`);
     assert(JSON.stringify(fn?.Role).includes(expectedRole), `${logicalId} must use its dedicated role`);
+    assert(JSON.stringify(resources[logicalId]?.DependsOn) === JSON.stringify([expectedLogGroup]), `${logicalId} must rely on its embedded role policy without an unresolved external dependency`);
     assert(JSON.stringify(fn?.VpcConfig?.SubnetIds) === JSON.stringify([{ Ref: "AppSubnetA" }, { Ref: "AppSubnetB" }]), `${logicalId} must attach to both private application subnets`);
     assert(JSON.stringify(fn?.VpcConfig?.SecurityGroupIds).includes("LambdaSecurityGroup"), `${logicalId} must use the dedicated Lambda security group`);
   }

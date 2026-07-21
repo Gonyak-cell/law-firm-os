@@ -931,6 +931,26 @@
                 }
               ]
             }
+          },
+          {
+            "Fn::If": [
+              "LambdaEniBootstrapEnabled",
+              {
+                "PolicyName": "lawos-private-staging-lambda-vpc-eni-bootstrap-temporary",
+                "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Sid": "LambdaVpcEniBootstrap",
+                      "Effect": "Allow",
+                      "Action": ["ec2:CreateNetworkInterface", "ec2:DescribeNetworkInterfaces", "ec2:DescribeSubnets", "ec2:DeleteNetworkInterface", "ec2:AssignPrivateIpAddresses", "ec2:UnassignPrivateIpAddresses"],
+                      "Resource": "*"
+                    }
+                  ]
+                }
+              },
+              { "Ref": "AWS::NoValue" }
+            ]
           }
         ],
         "RoleName": "lawos-private-staging-api-role",
@@ -1009,6 +1029,26 @@
                 }
               ]
             }
+          },
+          {
+            "Fn::If": [
+              "LambdaEniBootstrapEnabled",
+              {
+                "PolicyName": "lawos-private-staging-lambda-vpc-eni-bootstrap-temporary",
+                "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Sid": "LambdaVpcEniBootstrap",
+                      "Effect": "Allow",
+                      "Action": ["ec2:CreateNetworkInterface", "ec2:DescribeNetworkInterfaces", "ec2:DescribeSubnets", "ec2:DeleteNetworkInterface", "ec2:AssignPrivateIpAddresses", "ec2:UnassignPrivateIpAddresses"],
+                      "Resource": "*"
+                    }
+                  ]
+                }
+              },
+              { "Ref": "AWS::NoValue" }
+            ]
           }
         ],
         "RoleName": "lawos-private-staging-admin-role",
@@ -1021,28 +1061,9 @@
         ]
       }
     },
-    "LambdaVpcEniBootstrapPolicy": {
-      "Type": "AWS::IAM::Policy",
-      "Condition": "LambdaEniBootstrapEnabled",
-      "Properties": {
-        "PolicyName": "lawos-private-staging-lambda-vpc-eni-bootstrap-temporary",
-        "Roles": [{ "Ref": "ApiExecutionRole" }, { "Ref": "AdminExecutionRole" }],
-        "PolicyDocument": {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Sid": "LambdaVpcEniBootstrap",
-              "Effect": "Allow",
-              "Action": ["ec2:CreateNetworkInterface", "ec2:DescribeNetworkInterfaces", "ec2:DescribeSubnets", "ec2:DeleteNetworkInterface", "ec2:AssignPrivateIpAddresses", "ec2:UnassignPrivateIpAddresses"],
-              "Resource": "*"
-            }
-          ]
-        }
-      }
-    },
     "ApiFunction": {
       "Type": "AWS::Lambda::Function",
-      "DependsOn": ["ApiLogGroup", "LambdaVpcEniBootstrapPolicy"],
+      "DependsOn": ["ApiLogGroup"],
       "Properties": {
         "Architectures": ["arm64"],
         "Code": { "S3Bucket": { "Ref": "ArtifactBucket" }, "S3Key": { "Ref": "ArtifactKey" }, "S3ObjectVersion": { "Ref": "ArtifactVersion" } },
@@ -1134,7 +1155,7 @@
     },
     "AdminFunction": {
       "Type": "AWS::Lambda::Function",
-      "DependsOn": ["AdminLogGroup", "LambdaVpcEniBootstrapPolicy"],
+      "DependsOn": ["AdminLogGroup"],
       "Properties": {
         "Architectures": ["arm64"],
         "Code": { "S3Bucket": { "Ref": "ArtifactBucket" }, "S3Key": { "Ref": "ArtifactKey" }, "S3ObjectVersion": { "Ref": "ArtifactVersion" } },

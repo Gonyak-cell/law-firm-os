@@ -84,6 +84,24 @@ test("change-set review rejects protected resources, removals, and replacements"
   replacement.Changes[0].ResourceChange.Action = "Modify";
   replacement.Changes[0].ResourceChange.Replacement = "True";
   assert.throws(() => assertPrivateStagingChangeSet(replacement, { mode: "update", allowedModifiedLogicalIds: ["Vpc"] }), /replacement/u);
+
+  const bootstrapRemoval = structuredClone(valid);
+  bootstrapRemoval.Changes[0].ResourceChange = {
+    Action: "Remove",
+    LogicalResourceId: "LambdaVpcEniBootstrapPolicy",
+    ResourceType: "AWS::IAM::Policy",
+    Replacement: "False",
+  };
+  assert.equal(assertPrivateStagingChangeSet(bootstrapRemoval, {
+    mode: "update",
+    allowedRemovedLogicalIds: ["LambdaVpcEniBootstrapPolicy"],
+  }).change_count, 1);
+
+  bootstrapRemoval.Changes[0].ResourceChange.LogicalResourceId = "ApiExecutionRole";
+  assert.throws(() => assertPrivateStagingChangeSet(bootstrapRemoval, {
+    mode: "update",
+    allowedRemovedLogicalIds: ["LambdaVpcEniBootstrapPolicy"],
+  }), /removal is forbidden/u);
 });
 
 test("deployed Lambda, RDS, and DMS bucket contracts fail closed", () => {
