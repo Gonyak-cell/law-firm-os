@@ -1,4 +1,4 @@
-import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { createHash, createHmac, randomBytes, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -46,6 +46,7 @@ import { appendNdjsonDurably } from "../../../packages/persistence/src/durable-a
 
 let serverPromise;
 let sessionSecretPromise;
+let hrxStepUpRootSecretPromise;
 
 export const CTI_READONLY_EFS_SNAPSHOT_ACTION = "cti_cutover_readonly_efs_snapshot";
 export const CTI_READONLY_EFS_SNAPSHOT_APPROVAL_REF =
@@ -954,6 +955,26 @@ export async function resolveLambdaSessionSecret({
     sessionSecretPromise = fetchSessionSecretFromSecretsManager({ secretId, env, client });
   }
   return sessionSecretPromise;
+}
+
+export async function resolveLambdaHrxStepUpSecrets({
+  env = process.env,
+  client,
+} = {}) {
+  const secretId = env.LAWOS_HRX_STEP_UP_ROOT_SECRET_ID;
+  if (!secretId) return Object.freeze({});
+  if (!hrxStepUpRootSecretPromise) {
+    hrxStepUpRootSecretPromise = fetchSessionSecretFromSecretsManager({ secretId, env, client });
+  }
+  const rootSecret = await hrxStepUpRootSecretPromise;
+  if (Buffer.byteLength(rootSecret) < 32) throw new Error("HRX step-up root secret must contain at least 32 bytes");
+  const derive = (purpose) => createHmac("sha256", rootSecret)
+    .update(`lawos:hrx-step-up:${purpose}:v1`, "utf8")
+    .digest("base64url");
+  return Object.freeze({
+    hrxStepUpSecret: derive("token-signing"),
+    hrxStepUpTotpSecret: derive("totp"),
+  });
 }
 
 function requestPath(event = {}) {
@@ -4166,9 +4187,11 @@ async function apiRuntime() {
   if (!serverPromise) {
     serverPromise = (async () => {
       const matterRepository = await createLambdaMatterRepository();
+      const hrxStepUpSecrets = await resolveLambdaHrxStepUpSecrets();
       return startApiServer({
         port: 0,
         sessionSecret: await resolveLambdaSessionSecret(),
+        ...hrxStepUpSecrets,
         passwordResetEmailDelivery: createLambdaPasswordResetEmailDelivery(),
         ...(matterRepository ? { matterRepository } : {}),
       });

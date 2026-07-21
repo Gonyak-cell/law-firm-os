@@ -25,7 +25,7 @@ const LAMBDA_FUNCTION_CODE_DENY_ACTIONS = Object.freeze([
 ]);
 const EXACT_LAMBDA_TRUST_SHA256 = "f3502e8666443cacc9bec965f5cc2886f9ed0e884c87714821fdc6872835efd0";
 const EXACT_IAM_POLICY_SHA256 = Object.freeze({
-  ApiExecutionRole: "1f0ac52b22b70affa8370e4842011b18ad217611435081a84149bde5d0283e1a",
+  ApiExecutionRole: "1b5fda52fb01500242f64f0892ef80c255333f7bac134fc2a4004284166929d6",
   AdminExecutionRole: "8873e2b36fd95105b336d6168a236a44ee53ad16d6e7ffc8d7ec148d2938ae6b",
 });
 const EXACT_ENI_BOOTSTRAP_INLINE_POLICY_SHA256 = "e3fb825de200108539c51b58b92f3f39713dbdaaf5bb1e6d9b908ddb09b0e815";
@@ -370,6 +370,7 @@ function validateLambdas(resources) {
   assert(env.LAWOS_RUNTIME_PROFILE === "operational", "API must use the operational profile");
   assert(env.LAWOS_PERSISTENCE_AUTHORITY === "postgres-v2", "API must use postgres-v2 authority");
   assert(env.LAWOS_STAFF_AUTHORITY === "internal-password", "API must use internal-password staff authority");
+  assert(env.LAWOS_HRX_STEP_UP_ROOT_SECRET_ID?.Ref === "HrxStepUpRootSecret", "API HRX step-up root must use the exact secret reference");
   assert(env.LAWOS_RUNTIME_GENERATION?.Ref === "RuntimeGeneration", "API runtime generation must be an exact stack parameter reference");
   assert(env.LAWOS_POSTGRES_SSL_MODE === "verify-full", "API must use TLS verify-full");
   assert(env.LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY === "sesv2", "API must deliver password setup through SES v2");
@@ -416,17 +417,21 @@ function validateSecretsAndInternalAuth(resources, template) {
   const serialized = JSON.stringify(template);
   assert(!/entra/iu.test(serialized), "private staging template must not contain an Entra dependency");
   const explicitSecrets = Object.entries(resources).filter(([, resource]) => resource.Type === "AWS::SecretsManager::Secret");
-  assert(explicitSecrets.length === 6, "private staging must keep exactly six explicit staging secrets after Entra removal");
+  assert(explicitSecrets.length === 7, "private staging must keep exactly seven explicit staging secrets after Entra removal");
   assert(resources.EntraConfigSecret == null, "Entra configuration secret is forbidden");
   const expectedSecrets = [
     "ApplicationDatabaseSecret",
     "TenantContextSecret",
     "SessionSecret",
+    "HrxStepUpRootSecret",
     "PayrollArtifactSecret",
     "ProviderCredentialReferenceSecret",
     "SyntheticManifestSecret",
   ];
   assert(JSON.stringify(sortedStrings(explicitSecrets.map(([name]) => name))) === JSON.stringify(sortedStrings(expectedSecrets)), "staging secret inventory drifted");
+  const runtimeSecretRefs = resourceStatements(resources.ApiExecutionRole)
+    .find((statement) => statement.Sid === "ReadExactRuntimeSecrets")?.Resource ?? [];
+  assert(runtimeSecretRefs.some((resource) => resource?.Ref === "HrxStepUpRootSecret"), "API role must read the exact HRX step-up root secret");
   assert(template.Parameters?.PasswordResetFromEmail?.NoEcho === true, "password reset sender parameter must be hidden from stack output");
   assert(String(template.Parameters?.PasswordResetSesIdentityArn?.AllowedPattern ?? "").includes("ses:ap-northeast-2"), "SES identity parameter must remain region-bound");
   const apiStatements = resourceStatements(resources.ApiExecutionRole);

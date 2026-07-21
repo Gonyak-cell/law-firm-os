@@ -112,8 +112,8 @@ test("artifact store contract permits only the isolated bucket and deny policy",
 test("cost estimate is below both the owner cap and stricter AWS budget", () => {
   const result = validatePrivateStagingCost(fixture("cost-estimate.json"));
   assert.equal(result.verdict, "PASS");
-  assert.equal(result.total_monthly_estimate_usd, 98);
-  assert.equal(result.total_monthly_estimate_krw, 147000);
+  assert.equal(result.total_monthly_estimate_usd, 98.4);
+  assert.equal(result.total_monthly_estimate_krw, 147600);
 });
 
 test("public RDS and database default routes are rejected", () => {

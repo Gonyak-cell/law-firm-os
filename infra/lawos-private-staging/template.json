@@ -364,6 +364,7 @@
                 { "Ref": "ApplicationDatabaseSecret" },
                 { "Ref": "TenantContextSecret" },
                 { "Ref": "SessionSecret" },
+                { "Ref": "HrxStepUpRootSecret" },
                 { "Ref": "PayrollArtifactSecret" },
                 { "Ref": "ProviderCredentialReferenceSecret" }
               ]
@@ -708,6 +709,27 @@
         ]
       }
     },
+    "HrxStepUpRootSecret": {
+      "Type": "AWS::SecretsManager::Secret",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "Description": "LawOS staging HRX step-up root secret",
+        "GenerateSecretString": {
+          "ExcludePunctuation": true,
+          "PasswordLength": 64
+        },
+        "KmsKeyId": { "Fn::GetAtt": ["StagingKey", "Arn"] },
+        "Name": "/lawos/private-staging/hrx/step-up-root",
+        "Tags": [
+          { "Key": "environment", "Value": "lawos-staging" },
+          { "Key": "system", "Value": "lawos" },
+          { "Key": "owner", "Value": { "Ref": "Owner" } },
+          { "Key": "review", "Value": { "Ref": "ReviewDate" } },
+          { "Key": "expiration", "Value": { "Ref": "ExpirationDate" } }
+        ]
+      }
+    },
     "PayrollArtifactSecret": {
       "Type": "AWS::SecretsManager::Secret",
       "DeletionPolicy": "Retain",
@@ -914,6 +936,7 @@
                     { "Ref": "ApplicationDatabaseSecret" },
                     { "Ref": "TenantContextSecret" },
                     { "Ref": "SessionSecret" },
+                    { "Ref": "HrxStepUpRootSecret" },
                     { "Ref": "PayrollArtifactSecret" },
                     { "Ref": "ProviderCredentialReferenceSecret" }
                   ]
@@ -1102,6 +1125,7 @@
           "Variables": {
             "LAWOS_API_ALLOWED_ORIGINS": { "Ref": "AllowedOrigins" },
             "LAWOS_API_SESSION_SECRET_SECRET_ID": { "Ref": "SessionSecret" },
+            "LAWOS_HRX_STEP_UP_ROOT_SECRET_ID": { "Ref": "HrxStepUpRootSecret" },
             "LAWOS_AWS_REGION": { "Ref": "AWS::Region" },
             "LAWOS_DEPLOYMENT_ARTIFACT_SHA256": { "Ref": "ArtifactSha256" },
             "LAWOS_DEPLOYMENT_COMMIT": { "Ref": "SourceSha" },

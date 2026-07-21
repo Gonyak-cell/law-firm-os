@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHmac } from "node:crypto";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -28,6 +29,7 @@ import {
   buildLcxAuthResetRecoveryReceipt,
   createLambdaPasswordResetEmailDelivery,
   handler,
+  resolveLambdaHrxStepUpSecrets,
   resolveLambdaSessionSecret,
 } from "../src/lambda.js";
 import { STORE_PATH_MANIFEST } from "../src/store-path-manifest.js";
@@ -76,6 +78,30 @@ test("Lambda bootstrap fetches LAWOS_API_SESSION_SECRET with the AWS SDK", async
   });
 
   assert.equal(resolved, "operational-session-secret-32-bytes");
+});
+
+test("Lambda bootstrap derives separated HRX step-up keys from an exact secret reference", async () => {
+  const rootSecret = "operational-hrx-step-up-root-secret-32-bytes";
+  const resolved = await resolveLambdaHrxStepUpSecrets({
+    env: {
+      LAWOS_HRX_STEP_UP_ROOT_SECRET_ID: "/lawos/private-staging/hrx/step-up-root",
+      AWS_REGION: "ap-northeast-2",
+    },
+    client: {
+      async send(command) {
+        assert.equal(command.constructor.name, "GetSecretValueCommand");
+        assert.deepEqual(command.input, { SecretId: "/lawos/private-staging/hrx/step-up-root" });
+        return { SecretString: rootSecret };
+      },
+    },
+  });
+  const expected = (purpose) => createHmac("sha256", rootSecret)
+    .update(`lawos:hrx-step-up:${purpose}:v1`, "utf8")
+    .digest("base64url");
+
+  assert.equal(resolved.hrxStepUpSecret, expected("token-signing"));
+  assert.equal(resolved.hrxStepUpTotpSecret, expected("totp"));
+  assert.notEqual(resolved.hrxStepUpSecret, resolved.hrxStepUpTotpSecret);
 });
 
 test("Lambda password reset email delivery uses the SESv2 SDK without returning token material", async () => {

@@ -43,11 +43,11 @@
     },
     {
       "service": "AWS Secrets Manager",
-      "configuration": "six explicit staging secrets plus the RDS managed master secret",
-      "quantity": 7,
+      "configuration": "seven explicit staging secrets plus the RDS managed master secret",
+      "quantity": 8,
       "unit": "secret-month",
       "unit_price_usd": 0.4,
-      "monthly_estimate_usd": 2.8
+      "monthly_estimate_usd": 3.2
     },
     {
       "service": "AWS KMS",
@@ -98,10 +98,10 @@
       "monthly_estimate_usd": 0
     }
   ],
-  "subtotal_monthly_usd": 96,
+  "subtotal_monthly_usd": 96.4,
   "contingency_monthly_usd": 2,
-  "total_monthly_estimate_usd": 98,
-  "total_monthly_estimate_krw_at_planning_rate": 147000,
+  "total_monthly_estimate_usd": 98.4,
+  "total_monthly_estimate_krw_at_planning_rate": 147600,
   "one_time_estimate_usd": 0,
   "within_effective_aws_budget": true,
   "within_owner_krw_cap": true,
