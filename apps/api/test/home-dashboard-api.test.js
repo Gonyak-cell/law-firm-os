@@ -521,7 +521,7 @@ test("Home news feed isolates RSS source failures, link-outs only, and caches so
               <title><![CDATA[블로터 기사]]></title>
               <link>https://www.bloter.net/news/articleView.html?idxno=1</link>
               <pubDate>Tue, 07 Jul 2026 09:00:00 GMT</pubDate>
-              <description><![CDATA[<script >비공개 스크립트</script >본문 미리보기 &amp;lt;보존&amp;gt;]]></description>
+              <description><![CDATA[<script >비공개 스크립트</script\t\n bar>본문 미리보기 &amp;lt;보존&amp;gt;]]></description>
             </item>
           </channel></rss>
         `);

@@ -1171,12 +1171,56 @@ function decodeHtmlTextEntities(value) {
   return String(value).replace(/&(?:nbsp|amp|lt|gt|#39|quot);/g, (entity) => HTML_TEXT_ENTITIES[entity]);
 }
 
+function isHtmlTagBoundary(text, index) {
+  if (index >= text.length) return true;
+  const code = text.charCodeAt(index);
+  return code === 47 || code === 62 || code === 9 || code === 10 || code === 12 || code === 13 || code === 32;
+}
+
+function stripMarkupTags(value) {
+  const text = String(value);
+  const lower = text.toLowerCase();
+  const output = [];
+  let cursor = 0;
+  while (cursor < text.length) {
+    const tagStart = text.indexOf("<", cursor);
+    if (tagStart === -1) {
+      output.push(text.slice(cursor));
+      break;
+    }
+    output.push(text.slice(cursor, tagStart), " ");
+    const tagEnd = text.indexOf(">", tagStart + 1);
+    if (tagEnd === -1) break;
+    let nameStart = tagStart + 1;
+    while (nameStart < tagEnd && isHtmlTagBoundary(text, nameStart) && text.charCodeAt(nameStart) !== 47) nameStart += 1;
+    const closing = text.charCodeAt(nameStart) === 47;
+    if (closing) nameStart += 1;
+    let nameEnd = nameStart;
+    while (nameEnd < tagEnd) {
+      const code = lower.charCodeAt(nameEnd);
+      if (code < 97 || code > 122) break;
+      nameEnd += 1;
+    }
+    const tagName = lower.slice(nameStart, nameEnd);
+    if (!closing && (tagName === "script" || tagName === "style") && isHtmlTagBoundary(text, nameEnd)) {
+      const closePrefix = `</${tagName}`;
+      let closeStart = lower.indexOf(closePrefix, tagEnd + 1);
+      while (closeStart !== -1 && !isHtmlTagBoundary(text, closeStart + closePrefix.length)) {
+        closeStart = lower.indexOf(closePrefix, closeStart + closePrefix.length);
+      }
+      if (closeStart === -1) break;
+      const closeEnd = text.indexOf(">", closeStart + closePrefix.length);
+      if (closeEnd === -1) break;
+      cursor = closeEnd + 1;
+      continue;
+    }
+    cursor = tagEnd + 1;
+  }
+  return output.join("");
+}
+
 function stripTags(value = "") {
-  const withoutTags = String(value)
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, " ")
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .trim();
+  const withoutTags = stripMarkupTags(value).trim();
   return decodeHtmlTextEntities(withoutTags)
     .replace(/\s+/g, " ")
     .trim();
