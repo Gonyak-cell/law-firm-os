@@ -45,6 +45,14 @@ test("private staging infrastructure contract is isolated and cost gated", () =>
   assert.throws(() => validatePrivateStagingTemplate(unversioned), /immutable artifact version/u);
 });
 
+test("private staging password-reset schedule uses the Lambda maintenance-action envelope", () => {
+  const wrongEnvelope = fixture("template.json");
+  wrongEnvelope.Resources.PasswordResetWorkerSchedule.Properties.Targets[0].Input = JSON.stringify({
+    action: "lawos_password_reset_worker",
+  });
+  assert.throws(() => validatePrivateStagingTemplate(wrongEnvelope), /maintenance-action envelope/u);
+});
+
 test("Lambda ENI bootstrap is an embedded true-only role policy with resolvable dependencies", () => {
   const template = fixture("template.json");
   assert.equal(template.Resources.LambdaVpcEniBootstrapPolicy, undefined);

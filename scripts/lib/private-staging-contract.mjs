@@ -471,6 +471,12 @@ function validateCostControls(resources) {
   assert(resources.CostAlertTopic?.Type === "AWS::SNS::Topic", "private staging cost alert topic is required");
   assert(resources.PasswordResetWorkerSchedule?.Properties?.ScheduleExpression === "rate(5 minutes)", "password-reset worker cadence exceeds the cost-bound schedule");
   assert(resources.PasswordResetWorkerSchedule?.Properties?.State === "ENABLED", "password-reset worker schedule must remain enabled");
+  const passwordResetTargets = resources.PasswordResetWorkerSchedule?.Properties?.Targets ?? [];
+  const passwordResetInput = JSON.parse(passwordResetTargets[0]?.Input ?? "null");
+  assert(passwordResetTargets.length === 1
+    && passwordResetInput?.maintenance_action === "lawos_password_reset_worker"
+    && Object.keys(passwordResetInput).length === 1,
+  "password-reset worker event must use the Lambda maintenance-action envelope");
 }
 
 function validateDms(resources) {

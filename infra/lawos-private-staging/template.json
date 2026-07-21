@@ -1193,7 +1193,7 @@
           {
             "Arn": { "Fn::GetAtt": ["ApiFunction", "Arn"] },
             "Id": "lawos-private-staging-api-password-reset-worker",
-            "Input": "{\"action\":\"lawos_password_reset_worker\"}"
+            "Input": "{\"maintenance_action\":\"lawos_password_reset_worker\"}"
           }
         ]
       }
