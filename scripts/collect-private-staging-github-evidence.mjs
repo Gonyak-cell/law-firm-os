@@ -97,11 +97,12 @@ const authority = validatePrivateStagingGithubChecks({
   headSha: sourceSha,
   workflowSha256,
 });
-const detailsBySuite = new Map((checkResponse.check_runs ?? []).map((check) => [Number(check?.check_suite?.id), sha256(String(check?.details_url ?? ""))]));
-const checks = authority.checks.map((check) => Object.freeze({ ...check, details_url_sha256: detailsBySuite.get(check.check_suite_id) }));
+const detailsByCheckId = new Map((checkResponse.check_runs ?? []).map((check) => [Number(check?.id), sha256(String(check?.details_url ?? ""))]));
+const checks = authority.checks.map((check) => Object.freeze({ ...check, details_url_sha256: detailsByCheckId.get(check.check_run_id) }));
 const securityChecks = authority.security_checks;
+const codeqlChecks = authority.codeql_checks;
 const endpoints = {
-  code_scanning: `repos/${owner}/${name}/code-scanning/alerts?state=open&per_page=100`,
+  code_scanning: `repos/${owner}/${name}/code-scanning/alerts?state=open&pr=${prNumber}&per_page=100`,
   secret_scanning: `repos/${owner}/${name}/secret-scanning/alerts?state=open&per_page=100`,
   dependabot: `repos/${owner}/${name}/dependabot/alerts?state=open&per_page=100`,
 };
@@ -144,10 +145,13 @@ const securityPath = writeEvidence(outputDir, `security-review-${sourceSha}.json
   security_check_count: securityChecks.length,
   trusted_security_checks: securityChecks,
   trusted_security_workflow_sha256: workflowSha256,
+  trusted_codeql_check_count: codeqlChecks.length,
+  trusted_codeql_checks: codeqlChecks,
+  code_scanning_scope: Object.freeze({ kind: "pull_request", number: prNumber, exact_head_sha: sourceSha }),
   open_code_critical_high_count: codeCriticalHigh,
   open_dependency_critical_high_count: dependencyCriticalHigh,
   open_secret_alert_count: openSecretCount,
   reviewed_code_alert_count: alerts.code_scanning.length,
   reviewed_dependency_alert_count: alerts.dependabot.length,
 });
-process.stdout.write(`${JSON.stringify({ verdict: "PASS", ci_evidence_path: ciPath, security_evidence_path: securityPath, exact_head_check_count: checks.length, security_check_count: securityChecks.length, critical_high_count: 0, open_secret_alert_count: 0 }, null, 2)}\n`);
+process.stdout.write(`${JSON.stringify({ verdict: "PASS", ci_evidence_path: ciPath, security_evidence_path: securityPath, exact_head_check_count: checks.length, security_check_count: securityChecks.length, codeql_check_count: codeqlChecks.length, critical_high_count: 0, open_secret_alert_count: 0 }, null, 2)}\n`);

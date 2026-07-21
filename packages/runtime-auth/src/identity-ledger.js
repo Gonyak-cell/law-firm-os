@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { scryptSync } from "node:crypto";
 
 export const IDENTITY_LEDGER_CONTRACT_VERSION = "law-firm-os.identity-ledger.v4";
 export const IDENTITY_LEDGER_METHODS = Object.freeze([
@@ -31,7 +31,12 @@ export const IDENTITY_LEDGER_METHODS = Object.freeze([
 ]);
 
 export function hashIdentityToken(token) {
-  return createHash("sha256").update(String(token ?? ""), "utf8").digest("hex");
+  return scryptSync(String(token ?? ""), "lawos-identity-challenge-v1", 32, {
+    N: 1_024,
+    r: 8,
+    p: 1,
+    maxmem: 4 * 1024 * 1024,
+  }).toString("hex");
 }
 
 export function assertIdentityLedger(repository) {

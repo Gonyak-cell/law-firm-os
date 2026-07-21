@@ -60,33 +60,25 @@ function decodeBase64MimePart(rawEmail, contentTypePrefix) {
   return Buffer.from(rawEmail.slice(bodyStart, boundaryStart).replace(/\s+/g, ""), "base64").toString("utf8");
 }
 
-test("Lambda bootstrap fetches LAWOS_API_SESSION_SECRET from Secrets Manager secret id", async () => {
+test("Lambda bootstrap fetches LAWOS_API_SESSION_SECRET with the AWS SDK", async () => {
   const resolved = await resolveLambdaSessionSecret({
     env: {
       LAWOS_API_SESSION_SECRET_SECRET_ID: "/amic-vault/prod/api/session-signing",
       AWS_REGION: "ap-northeast-2",
-      AWS_ACCESS_KEY_ID: "AKIATESTACCESSKEY",
-      AWS_SECRET_ACCESS_KEY: "test-secret-access-key",
-      AWS_SESSION_TOKEN: "test-session-token",
     },
-    now: () => new Date("2026-07-06T00:00:00.000Z"),
-    fetchFn: async (url, options) => {
-      assert.equal(url, "https://secretsmanager.ap-northeast-2.amazonaws.com/");
-      assert.equal(options.method, "POST");
-      assert.equal(options.headers["x-amz-target"], "secretsmanager.GetSecretValue");
-      assert.equal(options.headers["x-amz-security-token"], "test-session-token");
-      assert.match(options.headers.authorization, /^AWS4-HMAC-SHA256 Credential=AKIATESTACCESSKEY\/20260706\/ap-northeast-2\/secretsmanager\/aws4_request/);
-      assert.deepEqual(JSON.parse(options.body), { SecretId: "/amic-vault/prod/api/session-signing" });
-      return new Response(JSON.stringify({ SecretString: "operational-session-secret-32-bytes" }), {
-        status: 200,
-      });
+    client: {
+      async send(command) {
+        assert.equal(command.constructor.name, "GetSecretValueCommand");
+        assert.deepEqual(command.input, { SecretId: "/amic-vault/prod/api/session-signing" });
+        return { SecretString: "operational-session-secret-32-bytes" };
+      },
     },
   });
 
   assert.equal(resolved, "operational-session-secret-32-bytes");
 });
 
-test("Lambda password reset email delivery signs SESv2 without returning token material", async () => {
+test("Lambda password reset email delivery uses the SESv2 SDK without returning token material", async () => {
   const delivery = createLambdaPasswordResetEmailDelivery({
     env: {
       LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY: "sesv2",
@@ -95,37 +87,32 @@ test("Lambda password reset email delivery signs SESv2 without returning token m
       LAWOS_AUTH_PASSWORD_RESET_BASE_URL: "matter://password-reset/confirm",
       LAWOS_AUTH_PASSWORD_RESET_OPEN_BASE_URL: "https://matter.example.test/api/auth/password-reset/open",
       AWS_REGION: "ap-northeast-2",
-      AWS_ACCESS_KEY_ID: "AKIATESTACCESSKEY",
-      AWS_SECRET_ACCESS_KEY: "test-secret-access-key",
-      AWS_SESSION_TOKEN: "test-session-token",
     },
-    now: () => new Date("2026-07-06T00:00:00.000Z"),
-    fetchFn: async (url, options) => {
-      assert.equal(url, "https://email.ap-northeast-2.amazonaws.com/v2/email/outbound-emails");
-      assert.equal(options.method, "POST");
-      assert.equal(options.headers["x-amz-security-token"], "test-session-token");
-      assert.match(options.headers.authorization, /^AWS4-HMAC-SHA256 Credential=AKIATESTACCESSKEY\/20260706\/ap-northeast-2\/ses\/aws4_request/);
-      const body = JSON.parse(options.body);
-      assert.equal(body.FromEmailAddress, "Matter OS <no-reply@amic.kr>");
-      assert.deepEqual(body.Destination.ToAddresses, ["jwsuh@amic.kr"]);
-      assert.equal(body.Content.Simple, undefined);
-      assert.ok(body.Content.Raw.Data);
-      const rawEmail = Buffer.from(body.Content.Raw.Data, "base64").toString("utf8");
-      assert.match(rawEmail, /^From: Matter OS <no-reply@amic\.kr>/m);
-      assert.match(rawEmail, /^Subject: =\?UTF-8\?B\?/m);
-      assert.match(rawEmail, /Content-Type: multipart\/related/);
-      const textPart = decodeBase64MimePart(rawEmail, "Content-Type: text/plain");
-      const htmlPart = decodeBase64MimePart(rawEmail, "Content-Type: text/html");
-      assert.match(textPart, /matter OS 비밀번호 설정/);
-      assert.match(textPart, /https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=reset-token-value/);
-      assert.match(htmlPart, /<h1[^>]*>비밀번호를 설정하세요<\/h1>/);
-      assert.match(htmlPart, /Matter OS/);
-      assert.match(htmlPart, /AMIC 내부 계정 보안 알림/);
-      assert.match(htmlPart, /비밀번호 설정 열기/);
-      assert.match(htmlPart, /href="https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=reset-token-value"/);
-      assert.match(htmlPart, /브라우저 링크: https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=reset-token-value/);
-      assert.match(htmlPart, /matter:\/\/password-reset\/confirm\?token=reset-token-value/);
-      return new Response(JSON.stringify({ MessageId: "ses-message-1" }), { status: 200 });
+    client: {
+      async send(command) {
+        assert.equal(command.constructor.name, "SendEmailCommand");
+        const body = command.input;
+        assert.equal(body.FromEmailAddress, "Matter OS <no-reply@amic.kr>");
+        assert.deepEqual(body.Destination.ToAddresses, ["jwsuh@amic.kr"]);
+        assert.equal(body.Content.Simple, undefined);
+        assert.ok(body.Content.Raw.Data);
+        const rawEmail = Buffer.from(body.Content.Raw.Data).toString("utf8");
+        assert.match(rawEmail, /^From: Matter OS <no-reply@amic\.kr>/m);
+        assert.match(rawEmail, /^Subject: =\?UTF-8\?B\?/m);
+        assert.match(rawEmail, /Content-Type: multipart\/related/);
+        const textPart = decodeBase64MimePart(rawEmail, "Content-Type: text/plain");
+        const htmlPart = decodeBase64MimePart(rawEmail, "Content-Type: text/html");
+        assert.match(textPart, /matter OS 비밀번호 설정/);
+        assert.match(textPart, /https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=reset-token-value/);
+        assert.match(htmlPart, /<h1[^>]*>비밀번호를 설정하세요<\/h1>/);
+        assert.match(htmlPart, /Matter OS/);
+        assert.match(htmlPart, /AMIC 내부 계정 보안 알림/);
+        assert.match(htmlPart, /비밀번호 설정 열기/);
+        assert.match(htmlPart, /href="https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=reset-token-value"/);
+        assert.match(htmlPart, /브라우저 링크: https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=reset-token-value/);
+        assert.match(htmlPart, /matter:\/\/password-reset\/confirm\?token=reset-token-value/);
+        return { MessageId: "ses-message-1" };
+      },
     },
   });
 

@@ -72,6 +72,7 @@ test("Ollama HRX provider is model-switchable and stores only hashes as receipt 
     }), { status: 200, headers: { "content-type": "application/json" } });
   };
   const provider = createOllamaHrxModelProvider({
+    endpoint: "http://127.0.0.1:11434////",
     model: "custom-local-model:latest",
     fetchImpl,
     num_predict: 48,

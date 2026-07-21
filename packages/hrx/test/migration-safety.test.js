@@ -89,3 +89,13 @@ test("GOV-004 refuses a tampered backup before restore", () => {
   );
   store.close();
 });
+
+test("HRX file store rejects prototype property names as table selectors", () => {
+  const store = createFileHrxStore();
+  assert.throws(
+    () => store.query("select", { table: "__proto__" }),
+    /unknown HRX table/u,
+  );
+  assert.equal(Object.hasOwn(store.snapshot().tables, "__proto__"), false);
+  store.close();
+});

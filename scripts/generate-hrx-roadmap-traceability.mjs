@@ -42,6 +42,7 @@ function parseCsv(text) {
 function escapePipe(value) {
   return String(value ?? "")
     .replace(/\r?\n/g, " ")
+    .replace(/\\/g, "\\\\")
     .replace(/\|/g, "\\|")
     .trim();
 }

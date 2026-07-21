@@ -43,6 +43,13 @@ function requireFetch(fetchImpl) {
   return fetchImpl;
 }
 
+function stripTrailingSlashes(value) {
+  const text = String(value ?? "");
+  let end = text.length;
+  while (end > 0 && text.charCodeAt(end - 1) === 47) end -= 1;
+  return text.slice(0, end);
+}
+
 function safeProviderMetadata(metadata = {}) {
   return Object.freeze(
     Object.fromEntries(
@@ -96,7 +103,7 @@ export function createOllamaHrxModelProvider({
   temperature = 0,
 } = {}) {
   const resolvedFetch = requireFetch(fetchImpl);
-  const resolvedEndpoint = String(endpoint ?? DEFAULT_OLLAMA_URL).replace(/\/+$/, "");
+  const resolvedEndpoint = stripTrailingSlashes(endpoint ?? DEFAULT_OLLAMA_URL);
   const resolvedModel = optionalString(model, DEFAULT_OLLAMA_MODEL);
 
   return Object.freeze({

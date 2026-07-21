@@ -1158,17 +1158,26 @@ function collectVaultFeedEntries(dmsRuntime, { tenant_id, query } = {}) {
     .map(mapDmsDocumentFeedEntry);
 }
 
+const HTML_TEXT_ENTITIES = Object.freeze({
+  "&nbsp;": " ",
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&#39;": "'",
+  "&quot;": '"',
+});
+
+function decodeHtmlTextEntities(value) {
+  return String(value).replace(/&(?:nbsp|amp|lt|gt|#39|quot);/g, (entity) => HTML_TEXT_ENTITIES[entity]);
+}
+
 function stripTags(value = "") {
-  return String(value)
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+  const withoutTags = String(value)
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, " ")
     .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&#39;/g, "'")
-    .replace(/&quot;/g, '"')
+    .trim();
+  return decodeHtmlTextEntities(withoutTags)
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -1176,7 +1185,7 @@ function stripTags(value = "") {
 function firstTagValue(itemXml, tagName) {
   const match = itemXml.match(new RegExp(`<${tagName}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tagName}>`, "i"));
   if (!match) return null;
-  return stripTags(match[1].replace(/^<!\[CDATA\[/, "").replace(/\]\]>$/, ""));
+  return match[1].replace(/^<!\[CDATA\[/, "").replace(/\]\]>$/, "");
 }
 
 function parseRssItems(xml, source) {
@@ -1185,10 +1194,10 @@ function parseRssItems(xml, source) {
   for (const match of matches) {
     const itemXml = match[1];
     const title = firstTagValue(itemXml, "title");
-    const url = firstTagValue(itemXml, "link");
-    if (!title || !url) continue;
-    const publishedAt = toIso(firstTagValue(itemXml, "pubDate") ?? firstTagValue(itemXml, "published"));
-    const preview = stripTags(firstTagValue(itemXml, "description") ?? firstTagValue(itemXml, "summary") ?? "");
+    const url = stripTags(firstTagValue(itemXml, "link") ?? "");
+    if (!stripTags(title ?? "") || !url) continue;
+    const publishedAt = toIso(stripTags(firstTagValue(itemXml, "pubDate") ?? firstTagValue(itemXml, "published") ?? ""));
+    const preview = firstTagValue(itemXml, "description") ?? firstTagValue(itemXml, "summary") ?? "";
     items.push(
       Object.freeze({
         id: `news:${source.id}:${items.length + 1}:${Buffer.from(url).toString("base64url").slice(0, 12)}`,
@@ -1285,7 +1294,7 @@ function sanitizeFeedEntry(entry) {
   return Object.freeze({
     id: String(entry.id),
     source: entry.source ?? "Matter",
-    title: entry.title ?? "Untitled feed entry",
+    title: stripTags(entry.title ?? "Untitled feed entry"),
     body_preview: stripTags(entry.body_preview ?? entry.summary ?? "").slice(0, 180),
     published_at: toIso(entry.published_at),
     pinned_until: toIso(entry.pinned_until),

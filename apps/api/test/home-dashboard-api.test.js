@@ -514,14 +514,14 @@ test("Home news feed isolates RSS source failures, link-outs only, and caches so
   const runtime = createSeedRuntime({
     newsFetch: async (url) => {
       fetchUrls.push(url);
-      if (url.includes("bloter.net")) {
+      if (new URL(url).hostname === "cdn.bloter.net") {
         return xmlResponse(`
           <rss><channel>
             <item>
               <title><![CDATA[블로터 기사]]></title>
               <link>https://www.bloter.net/news/articleView.html?idxno=1</link>
               <pubDate>Tue, 07 Jul 2026 09:00:00 GMT</pubDate>
-              <description><![CDATA[본문 전체가 아니라 미리보기만 저장]]></description>
+              <description><![CDATA[<script >비공개 스크립트</script >본문 미리보기 &amp;lt;보존&amp;gt;]]></description>
             </item>
           </channel></rss>
         `);
@@ -537,6 +537,8 @@ test("Home news feed isolates RSS source failures, link-outs only, and caches so
     assert.equal(news.body.entries.length, 1);
     assert.equal(news.body.entries[0].source, "Bloter");
     assert.equal(news.body.entries[0].url, "https://www.bloter.net/news/articleView.html?idxno=1");
+    assert.equal(news.body.entries[0].body_preview, "본문 미리보기 &lt;보존&gt;");
+    assert.equal(JSON.stringify(news.body.entries[0]).includes("비공개 스크립트"), false);
     assert.equal(news.body.entries[0].full_body_included, false);
     assert.ok(news.body.source_statuses.some((status) => status.source === "lawtimes" && status.status === "failed"));
     assert.deepEqual(news.body.safe_error_codes, ["HOME_NEWS_SOURCE_FAILED"]);

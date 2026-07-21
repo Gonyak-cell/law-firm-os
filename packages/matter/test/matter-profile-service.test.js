@@ -154,6 +154,10 @@ test("Matter profile rejects a cross-type field and raw contact values", () => {
     /opaque reference/i,
   );
   assert.throws(
+    () => registerMatterStakeholder({ repository, matter: currentMatter, actor_id, stakeholder: { display_name: "수사관", relationship_role: "police_officer", contact_mode: "crm_contact", contact_id: `${"a".repeat(20_000)}@example.com` } }),
+    /opaque reference/i,
+  );
+  assert.throws(
     () => registerMatterStakeholder({ repository, matter: currentMatter, actor_id, stakeholder: { display_name: "역할 없음" } }),
     /relationship_role is required/,
   );

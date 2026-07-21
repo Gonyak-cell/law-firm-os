@@ -70,10 +70,7 @@ import { createScimDirectoryDescriptor } from "./scim.js";
 import { createSsoConnectionDescriptor } from "./sso.js";
 
 export function enterpriseSaasRowKey(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
+  return (title.toLowerCase().match(/[a-z0-9]+/g) ?? []).join("_");
 }
 
 function freezeResult(binding, result) {

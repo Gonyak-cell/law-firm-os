@@ -1,8 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { EventEmitter } from "node:events";
-import https from "node:https";
 import test from "node:test";
+import { SESv2Client } from "@aws-sdk/client-sesv2";
 import { handler } from "../src/matter-temp-desktop-runtime-lambda.mjs";
 
 const TEST_OPERATOR_TOKEN = "test-operator-token";
@@ -53,31 +52,17 @@ async function withEmailEnv(values, callback) {
   }
 }
 
-function installHttpsJsonResponder(responseBody = { MessageId: "ses-message-1" }) {
-  const originalRequest = https.request;
+function installSesResponder(responseBody = { MessageId: "ses-message-1" }) {
+  const originalSend = SESv2Client.prototype.send;
   const calls = [];
-  https.request = (options, callback) => {
-    const chunks = [];
-    const request = new EventEmitter();
-    request.write = (chunk) => chunks.push(Buffer.from(chunk));
-    request.end = () => {
-      const body = Buffer.concat(chunks).toString("utf8");
-      calls.push({ options, body });
-      const response = new EventEmitter();
-      response.statusCode = 200;
-      response.setEncoding = () => {};
-      callback(response);
-      queueMicrotask(() => {
-        response.emit("data", JSON.stringify(responseBody));
-        response.emit("end");
-      });
-    };
-    return request;
+  SESv2Client.prototype.send = async function send(command) {
+    calls.push({ command_name: command.constructor.name, input: command.input });
+    return responseBody;
   };
   return {
     calls,
     restore() {
-      https.request = originalRequest;
+      SESv2Client.prototype.send = originalSend;
     }
   };
 }
@@ -121,7 +106,7 @@ test("temporary desktop runtime health exposes AWS no-domain synthetic boundary"
 });
 
 test("configured SESv2 reset delivery sends registered reset mail without returning token material", async () => {
-  const stub = installHttpsJsonResponder();
+  const stub = installSesResponder();
   try {
     await withEmailEnv(
       {
@@ -161,15 +146,13 @@ test("configured SESv2 reset delivery sends registered reset mail without return
         assert.equal(stub.calls.length, 1);
 
         const sesCall = stub.calls[0];
-        assert.equal(sesCall.options.hostname, "email.ap-northeast-2.amazonaws.com");
-        assert.equal(sesCall.options.path, "/v2/email/outbound-emails");
-        assert.match(sesCall.options.headers.authorization, /^AWS4-HMAC-SHA256 /);
-        const sesPayload = JSON.parse(sesCall.body);
+        assert.equal(sesCall.command_name, "SendEmailCommand");
+        const sesPayload = sesCall.input;
         assert.equal(sesPayload.FromEmailAddress, "Matter Desktop App Services <matter@amic.kr>");
         assert.deepEqual(sesPayload.Destination.ToAddresses, ["jwsuh@amic.kr"]);
         assert.equal(sesPayload.Content.Simple, undefined);
         assert.ok(sesPayload.Content.Raw.Data);
-        const rawEmail = Buffer.from(sesPayload.Content.Raw.Data, "base64").toString("utf8");
+        const rawEmail = Buffer.from(sesPayload.Content.Raw.Data).toString("utf8");
         assert.match(rawEmail, /^From: Matter Desktop App Services <matter@amic\.kr>/m);
         assert.match(rawEmail, /^Subject: =\?UTF-8\?B\?/m);
         assert.match(rawEmail, /Content-Type: multipart\/related/);

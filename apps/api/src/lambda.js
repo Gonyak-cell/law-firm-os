@@ -1,8 +1,10 @@
-import { createHash, createHmac, randomBytes, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, extname, isAbsolute, join, relative, resolve } from "node:path";
+import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
+import { SendEmailCommand, SESv2Client } from "@aws-sdk/client-sesv2";
 import {
   LAWOS_AUTH_CREDENTIAL_STORE_ENV,
   LAWOS_AUTH_CREDENTIAL_STORE_SCHEMA_VERSION,
@@ -166,123 +168,26 @@ function stableJson(value) {
   return JSON.stringify(value);
 }
 
-function hmac(key, value, encoding) {
-  return createHmac("sha256", key).update(value, "utf8").digest(encoding);
-}
-
-function amzTimestamp(date) {
-  return date.toISOString().replace(/[:-]|\.\d{3}/g, "");
-}
-
-function signingKey({ secretAccessKey, dateStamp, region, service }) {
-  const kDate = hmac(`AWS4${secretAccessKey}`, dateStamp);
-  const kRegion = hmac(kDate, region);
-  const kService = hmac(kRegion, service);
-  return hmac(kService, "aws4_request");
-}
-
-function credentialsFromEnv(env = process.env) {
+function awsClientConfig(env = process.env, region = env.AWS_REGION || env.AWS_DEFAULT_REGION || env.LAWOS_AWS_REGION || "ap-northeast-2") {
   const accessKeyId = env.AWS_ACCESS_KEY_ID;
   const secretAccessKey = env.AWS_SECRET_ACCESS_KEY;
-  if (!accessKeyId || !secretAccessKey) {
-    throw new Error("AWS credentials are required for LAWOS_API_SESSION_SECRET_SECRET_ID runtime fetch");
-  }
-  return Object.freeze({
-    accessKeyId,
-    secretAccessKey,
-    sessionToken: env.AWS_SESSION_TOKEN,
-  });
-}
-
-function createSecretsManagerRequest({
-  secretId,
-  env = process.env,
-  now = () => new Date(),
-} = {}) {
-  if (!secretId) throw new Error("LAWOS_API_SESSION_SECRET_SECRET_ID is required");
-  const region = env.AWS_REGION || env.AWS_DEFAULT_REGION || env.LAWOS_AWS_REGION || "ap-northeast-2";
-  const service = "secretsmanager";
-  const host = `${service}.${region}.amazonaws.com`;
-  const endpoint = `https://${host}/`;
-  const credentials = credentialsFromEnv(env);
-  const date = now();
-  const amzDate = amzTimestamp(date);
-  const dateStamp = amzDate.slice(0, 8);
-  const payload = JSON.stringify({ SecretId: secretId });
-  const headers = {
-    "content-type": "application/x-amz-json-1.1",
-    host,
-    "x-amz-date": amzDate,
-    "x-amz-target": "secretsmanager.GetSecretValue",
-  };
-  if (credentials.sessionToken) headers["x-amz-security-token"] = credentials.sessionToken;
-
-  const signedHeaderNames = Object.keys(headers).sort();
-  const canonicalHeaders = signedHeaderNames.map((name) => `${name}:${headers[name]}\n`).join("");
-  const signedHeaders = signedHeaderNames.join(";");
-  const canonicalRequest = [
-    "POST",
-    "/",
-    "",
-    canonicalHeaders,
-    signedHeaders,
-    sha256Hex(payload),
-  ].join("\n");
-  const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
-  const stringToSign = [
-    "AWS4-HMAC-SHA256",
-    amzDate,
-    credentialScope,
-    sha256Hex(canonicalRequest),
-  ].join("\n");
-  const signature = hmac(
-    signingKey({ secretAccessKey: credentials.secretAccessKey, dateStamp, region, service }),
-    stringToSign,
-    "hex",
-  );
-
-  return Object.freeze({
-    endpoint,
-    options: Object.freeze({
-      method: "POST",
-      headers: Object.freeze({
-        ...headers,
-        authorization: `AWS4-HMAC-SHA256 Credential=${credentials.accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
-      }),
-      body: payload,
-    }),
-  });
+  const credentials = accessKeyId && secretAccessKey
+    ? { accessKeyId, secretAccessKey, sessionToken: env.AWS_SESSION_TOKEN }
+    : undefined;
+  return credentials ? { region, credentials } : { region };
 }
 
 async function fetchSessionSecretFromSecretsManager({
   secretId,
   env = process.env,
-  fetchFn = fetch,
-  now,
+  client,
 } = {}) {
-  const request = createSecretsManagerRequest({ secretId, env, now });
-  const response = await fetchFn(request.endpoint, request.options);
-  const text = await response.text();
-  if (!response.ok) {
-    const error = new Error(`Secrets Manager GetSecretValue failed with HTTP ${response.status}`);
-    error.code = secretsManagerErrorCode(text);
-    error.http_status = response.status;
-    throw error;
-  }
-  const body = JSON.parse(text);
+  if (!secretId) throw new Error("LAWOS_API_SESSION_SECRET_SECRET_ID is required");
+  const secrets = client ?? new SecretsManagerClient(awsClientConfig(env));
+  const body = await secrets.send(new GetSecretValueCommand({ SecretId: secretId }));
   if (typeof body.SecretString === "string") return body.SecretString;
-  if (typeof body.SecretBinary === "string") return Buffer.from(body.SecretBinary, "base64").toString("utf8");
+  if (body.SecretBinary) return Buffer.from(body.SecretBinary).toString("utf8");
   throw new Error("Secrets Manager response did not include SecretString or SecretBinary");
-}
-
-function secretsManagerErrorCode(responseText) {
-  try {
-    const parsed = JSON.parse(String(responseText ?? ""));
-    const rawType = parsed.__type ?? parsed.code ?? parsed.Code ?? "SecretsManagerError";
-    return String(rawType).split("#").pop().replace(/[^A-Za-z0-9_.-]/g, "_").slice(0, 120);
-  } catch {
-    return "SecretsManagerError";
-  }
 }
 
 function databaseUrlFromSecretString(secretString) {
@@ -738,76 +643,26 @@ function passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }
   return Buffer.from(parts.join("\r\n"), "utf8").toString("base64");
 }
 
-function createSesV2SendEmailRequest({ config, to, resetUrl, resetOpenUrl, expiresAt, env = process.env, now = () => new Date() }) {
-  const region = config.region || env.AWS_REGION || env.AWS_DEFAULT_REGION || "ap-northeast-2";
-  const service = "ses";
-  const host = `email.${region}.amazonaws.com`;
-  const path = "/v2/email/outbound-emails";
-  const endpoint = `https://${host}${path}`;
-  const credentials = credentialsFromEnv(env);
-  const date = now();
-  const amzDate = amzTimestamp(date);
-  const dateStamp = amzDate.slice(0, 8);
-  const body = {
+function createSesV2SendEmailInput({ config, to, resetUrl, resetOpenUrl, expiresAt }) {
+  return {
     FromEmailAddress: formattedEmailAddress({ name: config.fromName, email: config.fromEmail }),
     Destination: { ToAddresses: [to] },
     ...(config.replyToEmail ? { ReplyToAddresses: [config.replyToEmail] } : {}),
     Content: {
       Raw: {
-        Data: passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }),
+        Data: Buffer.from(passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }), "base64"),
       },
     },
   };
-  const payload = JSON.stringify(body);
-  const headers = {
-    "content-type": "application/json",
-    host,
-    "x-amz-date": amzDate,
-  };
-  if (credentials.sessionToken) headers["x-amz-security-token"] = credentials.sessionToken;
-  const signedHeaderNames = Object.keys(headers).sort();
-  const canonicalHeaders = signedHeaderNames.map((name) => `${name}:${headers[name]}\n`).join("");
-  const signedHeaders = signedHeaderNames.join(";");
-  const canonicalRequest = [
-    "POST",
-    path,
-    "",
-    canonicalHeaders,
-    signedHeaders,
-    sha256Hex(payload),
-  ].join("\n");
-  const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
-  const stringToSign = [
-    "AWS4-HMAC-SHA256",
-    amzDate,
-    credentialScope,
-    sha256Hex(canonicalRequest),
-  ].join("\n");
-  const signature = hmac(
-    signingKey({ secretAccessKey: credentials.secretAccessKey, dateStamp, region, service }),
-    stringToSign,
-    "hex",
-  );
-  return Object.freeze({
-    endpoint,
-    options: Object.freeze({
-      method: "POST",
-      headers: Object.freeze({
-        ...headers,
-        authorization: `AWS4-HMAC-SHA256 Credential=${credentials.accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
-      }),
-      body: payload,
-    }),
-  });
 }
 
 export function createLambdaPasswordResetEmailDelivery({
   env = process.env,
-  fetchFn = fetch,
-  now,
+  client,
 } = {}) {
   const config = passwordResetEmailConfig(env);
   if (!config.configured) return undefined;
+  const ses = client ?? new SESv2Client(awsClientConfig(env, config.region || env.AWS_REGION || env.AWS_DEFAULT_REGION || "ap-northeast-2"));
   return async function deliverPasswordResetEmail({ to, token, expires_at }) {
     const resetUrl = passwordResetUrl({ baseUrl: config.resetConfirmBaseUrl, token });
     const resetOpenUrl = passwordResetOpenUrl({
@@ -815,15 +670,16 @@ export function createLambdaPasswordResetEmailDelivery({
       token,
       fallbackUrl: resetUrl,
     });
-    const request = createSesV2SendEmailRequest({ config, to, resetUrl, resetOpenUrl, expiresAt: expires_at, env, now });
-    const response = await fetchFn(request.endpoint, request.options);
-    const text = await response.text();
-    if (!response.ok) {
+    let body;
+    try {
+      body = await ses.send(new SendEmailCommand(createSesV2SendEmailInput({ config, to, resetUrl, resetOpenUrl, expiresAt: expires_at })));
+    } catch (error) {
+      const status = Number(error?.$metadata?.httpStatusCode) || 502;
       console.warn(JSON.stringify({
         event: "lawos_password_reset_email_delivery_failed",
         provider: config.provider,
-        provider_status_code: response.status,
-        provider_response_hash: text ? sha256Hex(text) : null,
+        provider_status_code: status,
+        provider_response_hash: error?.name ? sha256Hex(error.name) : null,
         token_material_logged: false,
         reset_url_logged: false,
       }));
@@ -831,12 +687,11 @@ export function createLambdaPasswordResetEmailDelivery({
         mode: "email",
         provider: config.provider,
         status: "failed",
-        reason: `sesv2_send_failed_${response.status}`,
+        reason: `sesv2_send_failed_${status}`,
         token_material_returned: false,
         reset_url_returned: false,
       });
     }
-    const body = text ? JSON.parse(text) : {};
     return Object.freeze({
       mode: "email",
       provider: config.provider,
@@ -1090,14 +945,13 @@ export async function buildLcxAuthResetRecoveryReceipt({
 
 export async function resolveLambdaSessionSecret({
   env = process.env,
-  fetchFn = fetch,
-  now,
+  client,
 } = {}) {
   if (env.LAWOS_API_SESSION_SECRET) return env.LAWOS_API_SESSION_SECRET;
   const secretId = env.LAWOS_API_SESSION_SECRET_SECRET_ID;
   if (!secretId) return undefined;
   if (!sessionSecretPromise) {
-    sessionSecretPromise = fetchSessionSecretFromSecretsManager({ secretId, env, fetchFn, now });
+    sessionSecretPromise = fetchSessionSecretFromSecretsManager({ secretId, env, client });
   }
   return sessionSecretPromise;
 }

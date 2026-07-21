@@ -1,9 +1,5 @@
 function normalizeSegment(value) {
-  return String(value ?? "")
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+  return (String(value ?? "").trim().toUpperCase().match(/[A-Z0-9]+/g) ?? []).join("-");
 }
 
 function requiredString(input, field) {

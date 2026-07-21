@@ -1,6 +1,11 @@
-import https from "node:https";
-import { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 import { readFileSync } from "node:fs";
+import {
+  GetSecretValueCommand,
+  PutSecretValueCommand,
+  SecretsManagerClient,
+} from "@aws-sdk/client-secrets-manager";
+import { SendEmailCommand, SESv2Client } from "@aws-sdk/client-sesv2";
 import {
   MATTER_VAULT_USER_REGISTRATION_SEED,
   findRegisteredAccountByEmail,
@@ -108,7 +113,13 @@ function createOpaqueToken() {
 }
 
 function hashOpaqueToken(token) {
-  return `sha256:${sha256Hex(token)}`;
+  const digest = scryptSync(String(token ?? ""), "lawos-matter-reset-token-v1", 32, {
+    N: 1_024,
+    r: 8,
+    p: 1,
+    maxmem: 4 * 1024 * 1024,
+  });
+  return `scrypt-v1:${digest.toString("hex")}`;
 }
 
 function normalizeEmail(email) {
@@ -130,8 +141,13 @@ function safeEqualHex(left, right) {
   return leftBuffer.length === rightBuffer.length && timingSafeEqual(leftBuffer, rightBuffer);
 }
 
-function hmac(key, value, encoding) {
-  return createHmac("sha256", key).update(value, "utf8").digest(encoding);
+function awsClientConfig(region = process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION ?? "ap-northeast-2") {
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+  const credentials = accessKeyId && secretAccessKey
+    ? { accessKeyId, secretAccessKey, sessionToken: process.env.AWS_SESSION_TOKEN }
+    : undefined;
+  return credentials ? { region, credentials } : { region };
 }
 
 function persistentAuthStateSecretName() {
@@ -190,148 +206,15 @@ function authStateFromSecretString(secretString = "{}") {
   };
 }
 
-function awsJsonRpcRequest({ service, target, body }) {
-  const region = process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION ?? "ap-northeast-2";
-  const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-  const sessionToken = process.env.AWS_SESSION_TOKEN;
-  if (!accessKeyId || !secretAccessKey) throw new Error("aws_credentials_unavailable");
-
-  const host = `${service}.${region}.amazonaws.com`;
-  const payload = JSON.stringify(body);
-  const now = new Date();
-  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
-  const dateStamp = amzDate.slice(0, 8);
-  const headers = {
-    "content-type": "application/x-amz-json-1.1",
-    host,
-    "x-amz-date": amzDate,
-    "x-amz-target": target
-  };
-  if (sessionToken) headers["x-amz-security-token"] = sessionToken;
-
-  const signedHeaderNames = Object.keys(headers).sort();
-  const canonicalHeaders = signedHeaderNames.map((name) => `${name}:${headers[name]}\n`).join("");
-  const signedHeaders = signedHeaderNames.join(";");
-  const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
-  const canonicalRequest = ["POST", "/", "", canonicalHeaders, signedHeaders, sha256Hex(payload)].join("\n");
-  const stringToSign = ["AWS4-HMAC-SHA256", amzDate, credentialScope, sha256Hex(canonicalRequest)].join("\n");
-  const signingKey = hmac(hmac(hmac(hmac(`AWS4${secretAccessKey}`, dateStamp), region), service), "aws4_request");
-  const signature = hmac(signingKey, stringToSign, "hex");
-
-  return new Promise((resolvePromise, reject) => {
-    const request = https.request(
-      {
-        method: "POST",
-        hostname: host,
-        path: "/",
-        headers: {
-          ...headers,
-          authorization: `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
-          "content-length": Buffer.byteLength(payload)
-        }
-      },
-      (res) => {
-        let data = "";
-        res.setEncoding("utf8");
-        res.on("data", (chunk) => {
-          data += chunk;
-        });
-        res.on("end", () => {
-          const parsed = data ? JSON.parse(data) : {};
-          if (res.statusCode >= 400) {
-            const error = new Error(parsed.__type ?? parsed.code ?? `aws_${service}_error`);
-            error.statusCode = res.statusCode;
-            error.body = parsed;
-            reject(error);
-            return;
-          }
-          resolvePromise(parsed);
-        });
-      }
-    );
-    request.on("error", reject);
-    request.write(payload);
-    request.end();
-  });
-}
-
-function awsRestJsonRequest({ service, method = "POST", hostname, path, body, region: requestedRegion }) {
-  const region = requestedRegion ?? process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION ?? "ap-northeast-2";
-  const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-  const sessionToken = process.env.AWS_SESSION_TOKEN;
-  if (!accessKeyId || !secretAccessKey) throw new Error("aws_credentials_unavailable");
-
-  const payload = JSON.stringify(body);
-  const now = new Date();
-  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
-  const dateStamp = amzDate.slice(0, 8);
-  const headers = {
-    "content-type": "application/json",
-    host: hostname,
-    "x-amz-date": amzDate
-  };
-  if (sessionToken) headers["x-amz-security-token"] = sessionToken;
-
-  const signedHeaderNames = Object.keys(headers).sort();
-  const canonicalHeaders = signedHeaderNames.map((name) => `${name}:${headers[name]}\n`).join("");
-  const signedHeaders = signedHeaderNames.join(";");
-  const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
-  const canonicalRequest = [method, path, "", canonicalHeaders, signedHeaders, sha256Hex(payload)].join("\n");
-  const stringToSign = ["AWS4-HMAC-SHA256", amzDate, credentialScope, sha256Hex(canonicalRequest)].join("\n");
-  const signingKey = hmac(hmac(hmac(hmac(`AWS4${secretAccessKey}`, dateStamp), region), service), "aws4_request");
-  const signature = hmac(signingKey, stringToSign, "hex");
-
-  return new Promise((resolvePromise, reject) => {
-    const request = https.request(
-      {
-        method,
-        hostname,
-        path,
-        headers: {
-          ...headers,
-          authorization: `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
-          "content-length": Buffer.byteLength(payload)
-        }
-      },
-      (res) => {
-        let data = "";
-        res.setEncoding("utf8");
-        res.on("data", (chunk) => {
-          data += chunk;
-        });
-        res.on("end", () => {
-          const parsed = data ? JSON.parse(data) : {};
-          if (res.statusCode >= 400) {
-            const error = new Error(parsed.__type ?? parsed.code ?? `aws_${service}_error`);
-            error.statusCode = res.statusCode;
-            error.body = parsed;
-            reject(error);
-            return;
-          }
-          resolvePromise(parsed);
-        });
-      }
-    );
-    request.on("error", reject);
-    request.write(payload);
-    request.end();
-  });
-}
-
 async function loadAuthState() {
   const secretName = persistentAuthStateSecretName();
   if (!secretName) return memoryAuthState;
   try {
-    const result = await awsJsonRpcRequest({
-      service: "secretsmanager",
-      target: "secretsmanager.GetSecretValue",
-      body: { SecretId: secretName }
-    });
+    const client = new SecretsManagerClient(awsClientConfig());
+    const result = await client.send(new GetSecretValueCommand({ SecretId: secretName }));
     return authStateFromSecretString(result.SecretString);
   } catch (error) {
-    if (String(error.message).includes("ResourceNotFoundException")) return emptyAuthState();
+    if (error?.name === "ResourceNotFoundException") return emptyAuthState();
     throw error;
   }
 }
@@ -339,15 +222,12 @@ async function loadAuthState() {
 async function saveAuthState(state) {
   const secretName = persistentAuthStateSecretName();
   if (!secretName) return;
-  await awsJsonRpcRequest({
-    service: "secretsmanager",
-    target: "secretsmanager.PutSecretValue",
-    body: {
+  const client = new SecretsManagerClient(awsClientConfig());
+  await client.send(new PutSecretValueCommand({
       SecretId: secretName,
       SecretString: authStateToSecretString(state),
       ClientRequestToken: randomUUID()
-    }
-  });
+  }));
 }
 
 function headerValue(headers = {}, name) {
@@ -691,12 +571,8 @@ function passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }
 }
 
 async function sendPasswordResetSesEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }) {
-  const result = await awsRestJsonRequest({
-    service: "ses",
-    region: config.region,
-    hostname: `email.${config.region}.amazonaws.com`,
-    path: "/v2/email/outbound-emails",
-    body: {
+  const client = new SESv2Client(awsClientConfig(config.region));
+  const result = await client.send(new SendEmailCommand({
       FromEmailAddress: formattedEmailAddress({ name: config.fromName, email: config.fromEmail }),
       Destination: {
         ToAddresses: [to]
@@ -704,11 +580,10 @@ async function sendPasswordResetSesEmail({ config, to, resetUrl, resetOpenUrl, e
       ...(config.replyToEmail ? { ReplyToAddresses: [config.replyToEmail] } : {}),
       Content: {
         Raw: {
-          Data: passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt })
+          Data: Buffer.from(passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }), "base64")
         }
       }
-    }
-  });
+  }));
   return result.MessageId;
 }
 

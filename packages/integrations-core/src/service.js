@@ -61,10 +61,7 @@ import {
 } from "./registry.js";
 
 export function externalIntegrationsIRowKey(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
+  return (title.toLowerCase().match(/[a-z0-9]+/g) ?? []).join("_");
 }
 
 function freezeCp666Result(result) {

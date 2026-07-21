@@ -240,6 +240,14 @@ function requireTable(table) {
   if (!TABLES.includes(table)) throw new TypeError(`unknown HRX table: ${table}`);
 }
 
+function requireTableRows(state, table) {
+  requireTable(table);
+  if (!Object.hasOwn(state.tables, table) || !Array.isArray(state.tables[table])) {
+    throw new TypeError(`HRX table storage is invalid: ${table}`);
+  }
+  return state.tables[table];
+}
+
 function matchesWhere(row, where = {}) {
   return Object.entries(where).every(([field, value]) => row[field] === value);
 }
@@ -1227,32 +1235,32 @@ function executeQuery(state, operation, params = {}) {
     throw new TypeError("HRX store query operation is required");
   }
   const table = params.table;
-  if (table) requireTable(table);
+  const rows = table ? requireTableRows(state, table) : null;
 
   if (operation === "insert") {
     const row = clone(params.row);
     assertPrimaryKey(table, row);
     assertCoreConstraints(state, table, row);
-    if (state.tables[table].some((current) => samePrimaryKey(table, current, row))) {
+    if (rows.some((current) => samePrimaryKey(table, current, row))) {
       throw new Error(`${table} already exists`);
     }
-    state.tables[table].push(row);
+    rows.push(row);
     return clone(row);
   }
 
   if (operation === "select") {
-    return state.tables[table].filter((row) => matchesWhere(row, params.where)).map(clone);
+    return rows.filter((row) => matchesWhere(row, params.where)).map(clone);
   }
 
   if (operation === "selectOne") {
-    return clone(state.tables[table].find((row) => matchesWhere(row, params.where)));
+    return clone(rows.find((row) => matchesWhere(row, params.where)));
   }
 
   if (operation === "updateOne") {
     if (APPEND_ONLY_TABLES.has(table)) throw new TypeError(`${table} is append-only`);
-    const index = state.tables[table].findIndex((row) => matchesWhere(row, params.where));
+    const index = rows.findIndex((row) => matchesWhere(row, params.where));
     if (index === -1) return undefined;
-    const current = state.tables[table][index];
+    const current = rows[index];
     if (table === "hrx_payroll_rule_versions" && ["published", "retired"].includes(current.approval_state)) {
       throw new TypeError("published payroll rule history is immutable");
     }
@@ -1276,10 +1284,10 @@ function executeQuery(state, operation, params = {}) {
         throw new TypeError(`${table}.state_version must increment by exactly one`);
       }
     }
-    const next = { ...state.tables[table][index], ...clone(params.patch) };
+    const next = { ...current, ...clone(params.patch) };
     assertPrimaryKey(table, next);
     assertCoreConstraints(state, table, next);
-    state.tables[table][index] = next;
+    rows[index] = next;
     return clone(next);
   }
 
@@ -1288,9 +1296,9 @@ function executeQuery(state, operation, params = {}) {
     if (["hrx_payroll_rule_versions", "hrx_payroll_statement_templates", "hrx_payroll_runs", "hrx_payroll_year_end_cases"].includes(table)) {
       throw new TypeError(`${table} history cannot be deleted`);
     }
-    const index = state.tables[table].findIndex((row) => matchesWhere(row, params.where));
+    const index = rows.findIndex((row) => matchesWhere(row, params.where));
     if (index === -1) return false;
-    state.tables[table].splice(index, 1);
+    rows.splice(index, 1);
     return true;
   }
 

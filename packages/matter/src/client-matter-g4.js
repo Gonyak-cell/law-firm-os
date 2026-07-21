@@ -95,11 +95,7 @@ function matterListProjection(matter = {}) {
 }
 
 function normalizeMatterNumberSegment(value) {
-  return String(value ?? "")
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+  return (String(value ?? "").trim().toUpperCase().match(/[A-Z0-9]+/g) ?? []).join("-");
 }
 
 function hasDirectOpportunityMatterShortcut(input = {}) {
