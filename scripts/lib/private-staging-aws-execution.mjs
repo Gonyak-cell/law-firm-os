@@ -19,6 +19,11 @@ function requiredText(value, name, pattern = null) {
   return text;
 }
 
+function requiredExactText(value, name) {
+  if (typeof value !== "string" || !value.trim()) fail(`${name} is invalid`);
+  return value;
+}
+
 function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
@@ -190,8 +195,8 @@ function ownerAuthorizationBundle(value) {
   const keys = Object.keys(value).sort();
   if (JSON.stringify(keys) !== JSON.stringify(["receipt_json", "registry_json", "signature_base64"])) fail("ownerAuthorization shape is invalid");
   return Object.freeze({
-    registry_json: requiredText(value.registry_json, "ownerAuthorization.registry_json"),
-    receipt_json: requiredText(value.receipt_json, "ownerAuthorization.receipt_json"),
+    registry_json: requiredExactText(value.registry_json, "ownerAuthorization.registry_json"),
+    receipt_json: requiredExactText(value.receipt_json, "ownerAuthorization.receipt_json"),
     signature_base64: requiredText(value.signature_base64, "ownerAuthorization.signature_base64", /^[A-Za-z0-9+/]+={0,2}$/u),
   });
 }

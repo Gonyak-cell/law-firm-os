@@ -180,6 +180,8 @@ test("admin events and CUT-005/CUT-006 results require exact bindings and zero c
   const approvalId = "LAWOS-PRIVATE-STAGING-EXACT-HEAD-APPROVAL-20260720";
   const event = buildPrivateStagingAdminEvent({ action: "lawos-private-staging-cut-006", packet, approvalId, syntheticManifestSha256: "e".repeat(64), ownerAuthorization, extra: { api_cold_start_observed: true } });
   assert.equal(event.source_sha, packet.source_sha);
+  assert.equal(event.owner_authorization.registry_json, ownerAuthorization.registry_json);
+  assert.equal(event.owner_authorization.receipt_json, ownerAuthorization.receipt_json);
   assert.equal(event.owner_authorization.signature_base64, ownerAuthorization.signature_base64);
   assert.throws(() => buildPrivateStagingAdminEvent({ action: "lawos-private-staging-cut-006", packet, approvalId, syntheticManifestSha256: "e".repeat(64), ownerAuthorization, extra: { source_sha: "f".repeat(40) } }), /override/u);
   const common = { outcome: "PASS", source_sha: packet.source_sha, source_tree: packet.source_tree, artifact_sha256: packet.artifact_sha256, owner_instruction_sha256: packet.packet_sha256, approval_id: approvalId, secret_material_returned: false, production_ready_claim: false, real_data_count: 0 };
