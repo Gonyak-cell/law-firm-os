@@ -39,6 +39,116 @@ function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
 }
 
+function cut005DirectoryIdentity(runId) {
+  const runRef = sha256(requiredText(runId, "CUT-005 corpus run id"));
+  const suffix = runRef.slice(0, 12);
+  return Object.freeze({
+    user_id: `synthetic-cut005-user-${suffix}`,
+    email: `cut005-${suffix}@example.test`,
+    source_ref: `synthetic-cut005:${runRef}`,
+  });
+}
+
+function cut005RepairScopeError(message) {
+  return Object.assign(new Error(message), {
+    code: "LAWOS_PRIVATE_STAGING_CUT005_REPAIR_SCOPE_DRIFT",
+    safe_error_code: "PRIVATE_STAGING_CUT005_REPAIR_SCOPE_DRIFT",
+  });
+}
+
+function assertCut005RepairCandidate(row) {
+  const user = /^synthetic-cut005-user-([a-f0-9]{12})$/u.exec(String(row?.user_id ?? ""));
+  const email = /^cut005-([a-f0-9]{12})@example\.test$/u.exec(String(row?.email ?? "").toLowerCase());
+  const source = /^synthetic-cut005:([a-f0-9]{64})$/u.exec(String(row?.source_ref ?? ""));
+  if (!user || !email || !source || user[1] !== email[1] || user[1] !== source[1].slice(0, 12)
+    || row?.profile?.source_ref !== row.source_ref
+    || row.account_status !== "active"
+    || row.membership_status !== "active"
+    || row.credential_provider !== "internal-password"
+    || row.credential_status !== "reset_required"
+    || !row.password_hash || Object.keys(row.password_hash).length !== 0) {
+    throw cut005RepairScopeError("CUT-005 directory repair candidate escaped the synthetic-only boundary");
+  }
+}
+
+export async function repairPrivateStagingCut005Directory(client, { tenantIds, runId = PRIVATE_STAGING_CUT005_CORPUS_RUN_ID } = {}) {
+  if (!client || typeof client.query !== "function") throw new TypeError("PostgreSQL client is required for CUT-005 repair");
+  const tenants = [...new Set((tenantIds ?? []).map((value) => requiredText(value, "CUT-005 tenant id")))];
+  if (tenants.length !== 2 || tenants.some((tenantId) => !/^tenant_lawos_staging_cut005_[a-z0-9_-]+$/u.test(tenantId))) {
+    throw cut005RepairScopeError("CUT-005 directory repair requires two purpose-bound synthetic tenants");
+  }
+  const expected = cut005DirectoryIdentity(runId);
+  let began = false;
+  let scannedAccountCount = 0;
+  let repairedAccountCount = 0;
+  try {
+    await client.query("BEGIN");
+    began = true;
+    await client.query("SET LOCAL row_security = off");
+    for (const tenantId of tenants) {
+      const candidates = await client.query(
+        `SELECT accounts.user_id, accounts.email, accounts.account_status,
+                accounts.credential_provider, accounts.credential_status,
+                accounts.password_hash, accounts.profile,
+                memberships.status AS membership_status, memberships.source_ref
+           FROM lawos_identity.accounts AS accounts
+           JOIN lawos_identity.account_memberships AS memberships
+             ON memberships.tenant_id = accounts.tenant_id
+            AND memberships.user_id = accounts.user_id
+          WHERE accounts.tenant_id = $1
+            AND (accounts.user_id LIKE 'synthetic-cut005-user-%'
+              OR lower(accounts.email) LIKE 'cut005-%@example.test'
+              OR memberships.source_ref LIKE 'synthetic-cut005:%')
+          ORDER BY accounts.user_id
+          FOR UPDATE OF accounts, memberships`,
+        [tenantId],
+      );
+      if (candidates.rows.length > 8) {
+        throw cut005RepairScopeError("CUT-005 directory repair candidate count exceeded the synthetic recovery bound");
+      }
+      scannedAccountCount += candidates.rows.length;
+      for (const row of candidates.rows) assertCut005RepairCandidate(row);
+      const staleUserIds = candidates.rows.filter((row) => row.user_id !== expected.user_id).map((row) => row.user_id);
+      if (!staleUserIds.length) continue;
+      const dependencies = await client.query(
+        `SELECT
+           (SELECT count(*)::integer FROM lawos_identity.sessions WHERE tenant_id = $1 AND user_id = ANY($2::text[])) AS session_count,
+           (SELECT count(*)::integer FROM lawos_identity.challenges WHERE tenant_id = $1 AND user_id = ANY($2::text[])) AS challenge_count,
+           (SELECT count(*)::integer FROM lawos_identity.break_glass_requests WHERE tenant_id = $1 AND requester_user_id = ANY($2::text[])) AS break_glass_count`,
+        [tenantId, staleUserIds],
+      );
+      const counts = dependencies.rows[0] ?? {};
+      if (Number(counts.session_count) !== 0 || Number(counts.challenge_count) !== 0 || Number(counts.break_glass_count) !== 0) {
+        throw cut005RepairScopeError("CUT-005 stale synthetic account has protected runtime references");
+      }
+      const memberships = await client.query(
+        "DELETE FROM lawos_identity.account_memberships WHERE tenant_id = $1 AND user_id = ANY($2::text[])",
+        [tenantId, staleUserIds],
+      );
+      const accounts = await client.query(
+        "DELETE FROM lawos_identity.accounts WHERE tenant_id = $1 AND user_id = ANY($2::text[])",
+        [tenantId, staleUserIds],
+      );
+      if (memberships.rowCount !== staleUserIds.length || accounts.rowCount !== staleUserIds.length) {
+        throw cut005RepairScopeError("CUT-005 stale synthetic account repair count drifted");
+      }
+      repairedAccountCount += accounts.rowCount;
+    }
+    await client.query("COMMIT");
+    began = false;
+    return Object.freeze({
+      tenant_count: tenants.length,
+      scanned_account_count: scannedAccountCount,
+      repaired_account_count: repairedAccountCount,
+      real_data_count: 0,
+      audit_history_deleted_count: 0,
+    });
+  } catch (error) {
+    if (began) await client.query("ROLLBACK").catch(() => {});
+    throw error;
+  }
+}
+
 function requiredSha256(value, name) {
   const digest = requiredText(value, name).toLowerCase();
   if (!/^[a-f0-9]{64}$/u.test(digest)) throw new TypeError(`${name} must be a SHA-256 digest`);
@@ -158,6 +268,7 @@ export async function bootstrapPrivateStagingDatabase({
   });
   let migrationResults;
   let roleResult;
+  let cut005RepairResult;
   try {
     migrationResults = await runMigrations(pool, { appliedBy: `lawos-private-staging:${expectedSourceSha}` });
     const client = await pool.connect();
@@ -166,6 +277,9 @@ export async function bootstrapPrivateStagingDatabase({
         password: applicationSecret.password,
         tenantContextSecret,
         syntheticTenantIds: manifest.tenant_ids,
+      });
+      cut005RepairResult = await repairPrivateStagingCut005Directory(client, {
+        tenantIds: manifest.purpose_tenants.cut005,
       });
     } finally {
       client.release();
@@ -196,6 +310,9 @@ export async function bootstrapPrivateStagingDatabase({
     migration_applied_count: migrationResults.filter((item) => item.applied).length,
     application_role_grant_count: roleResult.grant_statement_count,
     tenant_authority_count: roleResult.tenant_authority_count,
+    cut005_directory_repair_count: cut005RepairResult.repaired_account_count,
+    cut005_directory_repair_scanned_count: cut005RepairResult.scanned_account_count,
+    cut005_directory_repair_audit_delete_count: 0,
     synthetic_wildcard_count: 0,
     json_fallback_count: 0,
     json_writer_count: 0,

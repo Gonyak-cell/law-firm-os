@@ -14,6 +14,7 @@ import {
   executePrivateStagingCut007Readback,
   executePrivateStagingSyntheticBaseline,
   handler,
+  repairPrivateStagingCut005Directory,
 } from "../src/private-staging-admin-lambda.js";
 
 const SOURCE_SHA = "a".repeat(40);
@@ -117,6 +118,8 @@ test("private staging bootstrap returns only safe exact-head counts", async () =
   assert.equal(result.migration_count, 2);
   assert.equal(result.migration_applied_count, 1);
   assert.equal(result.tenant_authority_count, 6);
+  assert.equal(result.cut005_directory_repair_count, 0);
+  assert.equal(result.cut005_directory_repair_audit_delete_count, 0);
   assert.equal(result.json_fallback_count, 0);
   assert.equal(result.dual_write_count, 0);
   assert.equal(result.real_data_count, 0);
@@ -128,6 +131,84 @@ test("private staging bootstrap returns only safe exact-head counts", async () =
   assert.equal(stored.password, "application-test-password");
   assert.equal(JSON.stringify(result).includes("application-test-password"), false);
   assert.equal(JSON.stringify(result).includes("master-test-password"), false);
+});
+
+test("private staging bootstrap repair removes only unreferenced stale CUT-005 synthetic accounts", async () => {
+  const identity = (runId) => {
+    const runRef = createHash("sha256").update(runId).digest("hex");
+    const suffix = runRef.slice(0, 12);
+    return {
+      user_id: `synthetic-cut005-user-${suffix}`,
+      email: `cut005-${suffix}@example.test`,
+      account_status: "active",
+      credential_provider: "internal-password",
+      credential_status: "reset_required",
+      password_hash: {},
+      profile: { source_ref: `synthetic-cut005:${runRef}` },
+      membership_status: "active",
+      source_ref: `synthetic-cut005:${runRef}`,
+    };
+  };
+  const stable = identity(PRIVATE_STAGING_CUT005_CORPUS_RUN_ID);
+  const stale = identity("cut005-239884f5cf0c");
+  const deleted = [];
+  const client = {
+    async query(sql, params = []) {
+      if (sql.includes("FROM lawos_identity.accounts AS accounts")) {
+        return { rows: params[0].endsWith("_b") ? [stable, stale] : [stable], rowCount: params[0].endsWith("_b") ? 2 : 1 };
+      }
+      if (sql.includes("AS session_count")) return { rows: [{ session_count: 0, challenge_count: 0, break_glass_count: 0 }], rowCount: 1 };
+      if (sql.startsWith("DELETE FROM lawos_identity.account_memberships")) return { rows: [], rowCount: params[1].length };
+      if (sql.startsWith("DELETE FROM lawos_identity.accounts")) {
+        deleted.push(...params[1]);
+        return { rows: [], rowCount: params[1].length };
+      }
+      return { rows: [], rowCount: 0 };
+    },
+  };
+  const result = await repairPrivateStagingCut005Directory(client, {
+    tenantIds: ["tenant_lawos_staging_cut005_a", "tenant_lawos_staging_cut005_b"],
+  });
+  assert.equal(result.scanned_account_count, 3);
+  assert.equal(result.repaired_account_count, 1);
+  assert.equal(result.audit_history_deleted_count, 0);
+  assert.deepEqual(deleted, [stale.user_id]);
+});
+
+test("private staging bootstrap repair rolls back instead of deleting a referenced CUT-005 account", async () => {
+  const runRef = createHash("sha256").update("cut005-stale-referenced").digest("hex");
+  const suffix = runRef.slice(0, 12);
+  const commands = [];
+  const client = {
+    async query(sql) {
+      commands.push(sql);
+      if (sql.includes("FROM lawos_identity.accounts AS accounts")) {
+        return { rows: [{
+          user_id: `synthetic-cut005-user-${suffix}`,
+          email: `cut005-${suffix}@example.test`,
+          account_status: "active",
+          credential_provider: "internal-password",
+          credential_status: "reset_required",
+          password_hash: {},
+          profile: { source_ref: `synthetic-cut005:${runRef}` },
+          membership_status: "active",
+          source_ref: `synthetic-cut005:${runRef}`,
+        }], rowCount: 1 };
+      }
+      if (sql.includes("AS session_count")) {
+        return { rows: [{ session_count: 1, challenge_count: 0, break_glass_count: 0 }], rowCount: 1 };
+      }
+      return { rows: [], rowCount: 0 };
+    },
+  };
+  await assert.rejects(
+    repairPrivateStagingCut005Directory(client, {
+      tenantIds: ["tenant_lawos_staging_cut005_a", "tenant_lawos_staging_cut005_b"],
+    }),
+    { code: "LAWOS_PRIVATE_STAGING_CUT005_REPAIR_SCOPE_DRIFT" },
+  );
+  assert.equal(commands.includes("ROLLBACK"), true);
+  assert.equal(commands.some((sql) => sql.startsWith("DELETE FROM")), false);
 });
 
 test("private staging bootstrap rejects HTTP invocation and exact-head drift", async () => {
