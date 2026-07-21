@@ -318,6 +318,10 @@ test("the RDS gate inventories every instance and rejects extras", () => {
   extraPrivate.Resources.ExtraDatabase = clone(extraPrivate.Resources.Database);
   extraPrivate.Resources.ExtraDatabase.Properties.DBInstanceIdentifier = "lawos-private-staging-extra";
   assert.throws(() => validatePrivateStagingTemplate(extraPrivate), /exactly one approved RDS/u);
+
+  const passwordLogging = clone(fixture("template.json"));
+  passwordLogging.Resources.DatabaseParameterGroup.Properties.Parameters.log_statement = "ddl";
+  assert.throws(() => validatePrivateStagingTemplate(passwordLogging), /must not record application role passwords/u);
 });
 
 test("secret-looking Lambda environment values are rejected", () => {

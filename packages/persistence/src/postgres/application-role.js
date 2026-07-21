@@ -84,7 +84,6 @@ export async function configureLawosApplicationRole(client, {
     } else {
       await client.query(`ALTER ROLE ${ROLE_NAME} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS CONNECTION LIMIT 20`);
     }
-    await client.query("SET LOCAL log_statement = 'none'");
     await client.query(`ALTER ROLE ${ROLE_NAME} PASSWORD ${quoteLiteral(rolePassword)}`);
     await client.query(`ALTER ROLE ${ROLE_NAME} SET statement_timeout = '30s'`);
     await client.query(`ALTER ROLE ${ROLE_NAME} SET lock_timeout = '5s'`);

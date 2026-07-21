@@ -72,7 +72,7 @@ test("private staging application role rejects wildcard and non-LawOS tenants", 
   );
 });
 
-test("private staging application role does not require a database-level custom setting", async () => {
+test("private staging application role does not require database or superuser logging settings", async () => {
   const queries = [];
   const client = {
     async query(statement) {
@@ -89,6 +89,7 @@ test("private staging application role does not require a database-level custom 
     syntheticTenantIds: ["tenant_lawos_staging_a", "tenant_lawos_staging_b"],
   });
   assert.equal(queries.some((statement) => /^ALTER DATABASE\b/u.test(statement)), false);
+  assert.equal(queries.some((statement) => /^SET(?: LOCAL)? log_/u.test(statement)), false);
   assert.equal(result.synthetic_wildcard_count, 0);
   assert.equal(result.tenant_authority_count, 2);
 });

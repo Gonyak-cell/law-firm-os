@@ -335,6 +335,13 @@ function validateDatabase(resources) {
   const parameters = resources.DatabaseParameterGroup?.Properties?.Parameters;
   assert(parameters?.["rds.force_ssl"] === "1", "RDS must force TLS");
   assert(parameters?.log_connections === "1" && parameters?.log_disconnections === "1", "RDS connection audit logging is required");
+  assert(
+    parameters?.log_statement === "none"
+      && parameters?.log_min_duration_statement === "-1"
+      && parameters?.log_min_error_statement === "panic"
+      && parameters?.log_parameter_max_length_on_error === "0",
+    "RDS query logging must not record application role passwords or error parameters",
+  );
   return Object.freeze({
     private_rds_count: inventory.filter(([, resource]) => resource.Properties?.PubliclyAccessible === false).length,
     public_rds_count: inventory.filter(([, resource]) => resource.Properties?.PubliclyAccessible === true).length,
