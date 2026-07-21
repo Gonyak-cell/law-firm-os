@@ -109,6 +109,7 @@ test("Lambda password reset email delivery uses the SESv2 SDK without returning 
     env: {
       LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY: "sesv2",
       LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM: "no-reply@amic.kr",
+      LAWOS_AUTH_PASSWORD_RESET_EMAIL_IDENTITY_ARN: "arn:aws:ses:ap-northeast-2:770880870480:identity/no-reply@amic.kr",
       LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM_NAME: "Matter OS",
       LAWOS_AUTH_PASSWORD_RESET_BASE_URL: "matter://password-reset/confirm",
       LAWOS_AUTH_PASSWORD_RESET_OPEN_BASE_URL: "https://matter.example.test/api/auth/password-reset/open",
@@ -119,6 +120,7 @@ test("Lambda password reset email delivery uses the SESv2 SDK without returning 
         assert.equal(command.constructor.name, "SendEmailCommand");
         const body = command.input;
         assert.equal(body.FromEmailAddress, "Matter OS <no-reply@amic.kr>");
+        assert.equal(body.FromEmailAddressIdentityArn, "arn:aws:ses:ap-northeast-2:770880870480:identity/no-reply@amic.kr");
         assert.deepEqual(body.Destination.ToAddresses, ["jwsuh@amic.kr"]);
         assert.equal(body.Content.Simple, undefined);
         assert.ok(body.Content.Raw.Data);

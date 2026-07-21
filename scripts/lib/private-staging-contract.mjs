@@ -439,6 +439,7 @@ function validateSecretsAndInternalAuth(resources, template) {
   assert(send?.Effect === "Allow", "API role SES statement is required");
   assert(JSON.stringify(sortedStrings(Array.isArray(send?.Action) ? send.Action : [send?.Action])) === JSON.stringify(["ses:SendEmail", "ses:SendRawEmail"]), "API role SES actions drifted");
   assert(send?.Resource?.Ref === "PasswordResetSesIdentityArn", "API role SES authority must be confined to the configured verified identity");
+  assert(JSON.stringify(resources.ApiFunction?.Properties?.Environment?.Variables?.LAWOS_AUTH_PASSWORD_RESET_EMAIL_IDENTITY_ARN) === JSON.stringify({ Ref: "PasswordResetSesIdentityArn" }), "API SES request must bind the configured verified identity ARN");
   const sesEndpointPolicy = resources.SesApiEndpoint?.Properties?.PolicyDocument;
   assert(JSON.stringify(sesEndpointPolicy) === JSON.stringify({
     Version: "2012-10-17",

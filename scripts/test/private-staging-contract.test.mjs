@@ -186,6 +186,10 @@ test("private service endpoints and internal password authority are mandatory", 
   const broadSesResource = clone(fixture("template.json"));
   broadSesResource.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Resource = "*";
   assert.throws(() => validatePrivateStagingTemplate(broadSesResource), /configured verified identity/u);
+
+  const missingSesRequestIdentity = clone(fixture("template.json"));
+  delete missingSesRequestIdentity.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_AUTH_PASSWORD_RESET_EMAIL_IDENTITY_ARN;
+  assert.throws(() => validatePrivateStagingTemplate(missingSesRequestIdentity), /SES request must bind/u);
 });
 
 test("role reuse, managed policies, and unrelated wildcard Allows are rejected", () => {

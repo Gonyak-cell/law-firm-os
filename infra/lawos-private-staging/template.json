@@ -1146,6 +1146,7 @@
             "LAWOS_AUTH_PASSWORD_RESET_BASE_URL": { "Fn::Sub": "${HttpApi.ApiEndpoint}/api/auth/password-reset/confirm" },
             "LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY": "sesv2",
             "LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM": { "Ref": "PasswordResetFromEmail" },
+            "LAWOS_AUTH_PASSWORD_RESET_EMAIL_IDENTITY_ARN": { "Ref": "PasswordResetSesIdentityArn" },
             "LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM_NAME": "Matter OS",
             "LAWOS_AUTH_PASSWORD_RESET_EMAIL_REGION": { "Ref": "AWS::Region" },
             "LAWOS_AUTH_PASSWORD_RESET_OPEN_BASE_URL": { "Fn::Sub": "${HttpApi.ApiEndpoint}/api/auth/password-reset/open" },

@@ -410,6 +410,7 @@ function passwordResetEmailConfig(env = process.env) {
     .toLowerCase();
   const requested = delivery === PASSWORD_RESET_EMAIL_DELIVERY_SES_V2 || delivery === "ses" || delivery === "aws_ses_v2";
   const fromEmail = String(env.LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM ?? env.MATTER_PASSWORD_RESET_EMAIL_FROM ?? "").trim();
+  const fromIdentityArn = String(env.LAWOS_AUTH_PASSWORD_RESET_EMAIL_IDENTITY_ARN ?? "").trim();
   const fromName = String(env.LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM_NAME ?? env.MATTER_PASSWORD_RESET_EMAIL_FROM_NAME ?? "Matter OS").trim();
   const replyToEmail = String(env.LAWOS_AUTH_PASSWORD_RESET_EMAIL_REPLY_TO ?? env.MATTER_PASSWORD_RESET_EMAIL_REPLY_TO ?? "").trim();
   const region = String(
@@ -436,6 +437,7 @@ function passwordResetEmailConfig(env = process.env) {
     configured: requested && Boolean(fromEmail) && resetConfirmBaseUrlValid && resetOpenBaseUrlValid,
     provider: requested ? PASSWORD_RESET_EMAIL_DELIVERY_SES_V2 : "unconfigured",
     fromEmail,
+    fromIdentityArn,
     fromName,
     replyToEmail,
     region,
@@ -647,6 +649,7 @@ function passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }
 function createSesV2SendEmailInput({ config, to, resetUrl, resetOpenUrl, expiresAt }) {
   return {
     FromEmailAddress: formattedEmailAddress({ name: config.fromName, email: config.fromEmail }),
+    ...(config.fromIdentityArn ? { FromEmailAddressIdentityArn: config.fromIdentityArn } : {}),
     Destination: { ToAddresses: [to] },
     ...(config.replyToEmail ? { ReplyToAddresses: [config.replyToEmail] } : {}),
     Content: {
