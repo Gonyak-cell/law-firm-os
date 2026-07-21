@@ -71,3 +71,24 @@ test("private staging application role rejects wildcard and non-LawOS tenants", 
     /approved LawOS synthetic staging tenant ids/u,
   );
 });
+
+test("private staging application role does not require a database-level custom setting", async () => {
+  const queries = [];
+  const client = {
+    async query(statement) {
+      queries.push(statement);
+      if (statement === "SELECT 1 FROM pg_roles WHERE rolname = $1") {
+        return { rowCount: 1, rows: [{ exists: 1 }] };
+      }
+      return { rowCount: 0, rows: [] };
+    },
+  };
+  const result = await configureLawosApplicationRole(client, {
+    password: "test-private-staging-role-password",
+    tenantContextSecret: "test-private-staging-tenant-context-secret-material",
+    syntheticTenantIds: ["tenant_lawos_staging_a", "tenant_lawos_staging_b"],
+  });
+  assert.equal(queries.some((statement) => /^ALTER DATABASE\b/u.test(statement)), false);
+  assert.equal(result.synthetic_wildcard_count, 0);
+  assert.equal(result.tenant_authority_count, 2);
+});

@@ -52,12 +52,6 @@ function quoteLiteral(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
 }
 
-function quoteIdentifier(value, name) {
-  const identifier = requiredText(value, name);
-  if (!/^[a-z][a-z0-9_]{0,62}$/u.test(identifier)) throw new TypeError(`${name} is invalid`);
-  return `"${identifier}"`;
-}
-
 function normalizeSyntheticTenantIds(values) {
   const tenantIds = [...new Set((values ?? []).map((value) => requiredText(value, "synthetic tenant id")))].sort();
   if (tenantIds.length < 2 || tenantIds.some((tenantId) => !SYNTHETIC_TENANT_PATTERN.test(tenantId))) {
@@ -71,20 +65,17 @@ export function lawosApplicationRoleGrantStatements() {
 }
 
 export async function configureLawosApplicationRole(client, {
-  databaseName = "lawos",
   password,
   tenantContextSecret,
   syntheticTenantIds,
 } = {}) {
   if (!client || typeof client.query !== "function") throw new TypeError("PostgreSQL client is required");
-  const databaseIdentifier = quoteIdentifier(databaseName, "databaseName");
   const rolePassword = requiredText(password, "application role password");
   const contextSecret = Buffer.from(requiredText(tenantContextSecret, "tenantContextSecret"), "utf8");
   if (contextSecret.byteLength < 32) throw new TypeError("tenantContextSecret must contain at least 32 bytes");
   const tenantIds = normalizeSyntheticTenantIds(syntheticTenantIds);
   let began = false;
   try {
-    await client.query(`ALTER DATABASE ${databaseIdentifier} SET lawos.environment = 'lawos-staging'`);
     await client.query("BEGIN");
     began = true;
     const role = await client.query("SELECT 1 FROM pg_roles WHERE rolname = $1", [ROLE_NAME]);

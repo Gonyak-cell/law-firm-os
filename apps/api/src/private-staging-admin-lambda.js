@@ -161,7 +161,6 @@ export async function bootstrapPrivateStagingDatabase({
     const client = await pool.connect();
     try {
       roleResult = await configureLawosApplicationRole(client, {
-        databaseName: applicationSecret.dbname,
         password: applicationSecret.password,
         tenantContextSecret,
         syntheticTenantIds: manifest.tenant_ids,
