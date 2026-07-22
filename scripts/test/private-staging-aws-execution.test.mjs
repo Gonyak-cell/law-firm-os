@@ -60,6 +60,18 @@ test("AWS caller identity accepts only the exact staging account and assumed rol
 
 test("execution inputs and stack parameters stay exact-head and synthetic-only", () => {
   assert.equal(validatePrivateStagingExecutionInputs(inputs).owner, "law-firm-os-owner");
+  const plusAddressInputs = {
+    ...inputs,
+    password_reset_ses_identity_arn: "arn:aws:ses:ap-northeast-2:770880870480:identity/jwsuh@example.invalid",
+    password_reset_from_email: "jwsuh+lawos-staging-admin@example.invalid",
+  };
+  assert.equal(validatePrivateStagingExecutionInputs(plusAddressInputs).password_reset_from_email, plusAddressInputs.password_reset_from_email);
+  for (const password_reset_from_email of [
+    "other+lawos-staging-admin@example.invalid",
+    "jwsuh+lawos-staging-admin@other.invalid",
+  ]) {
+    assert.throws(() => validatePrivateStagingExecutionInputs({ ...plusAddressInputs, password_reset_from_email }), /outside the approved SES identity/u);
+  }
   const values = Object.fromEntries(buildPrivateStagingStackParameters({
     packet, artifactBucket: "lawos-private-staging-artifacts-770880870480-ap-northeast-2",
     artifactVersionId: "3LgP4ZVjZ8.example-version",

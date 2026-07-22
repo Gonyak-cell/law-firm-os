@@ -49,7 +49,10 @@ export function validatePrivateStagingExecutionInputs(input) {
   const sesArn = requiredText(input.password_reset_ses_identity_arn, "password_reset_ses_identity_arn", /^arn:[a-z0-9-]+:ses:ap-northeast-2:770880870480:identity\/.+$/u);
   const fromEmail = requiredText(input.password_reset_from_email, "password_reset_from_email", /^[^@\s]+@[^@\s]+\.[^@\s]+$/u).toLowerCase();
   const identity = sesArn.slice(sesArn.indexOf("identity/") + "identity/".length).toLowerCase();
-  if (!(fromEmail === identity || fromEmail.endsWith(`@${identity}`))) fail("password reset sender is outside the approved SES identity");
+  const at = fromEmail.lastIndexOf("@");
+  const plus = fromEmail.slice(0, at).indexOf("+");
+  const canonicalAddress = plus > 0 ? `${fromEmail.slice(0, plus)}${fromEmail.slice(at)}` : null;
+  if (!(fromEmail === identity || fromEmail.endsWith(`@${identity}`) || (identity.includes("@") && canonicalAddress === identity))) fail("password reset sender is outside the approved SES identity");
   const owner = requiredText(input.owner ?? "law-firm-os-owner", "owner", /^[A-Za-z0-9._@-]{3,64}$/u);
   const reviewDate = requiredText(input.review_date ?? "2026-07-27", "review_date", /^2026-[0-9]{2}-[0-9]{2}$/u);
   const expirationDate = requiredText(input.expiration_date ?? "2026-08-31", "expiration_date", /^2026-[0-9]{2}-[0-9]{2}$/u);
