@@ -947,7 +947,7 @@
                   "Action": "ses:SendEmail",
                   "Resource": { "Ref": "PasswordResetSesIdentityArn" },
                   "Condition": {
-                    "ForAllValues:StringEquals": {
+                    "ForAllValues:StringLike": {
                       "ses:Recipients": [
                         "jwsuh+lawos-staging-admin@amic.kr",
                         "jwsuh+lawos-staging-attorney@amic.kr"

@@ -201,11 +201,64 @@ test("Lambda password reset email delivery classifies authorization failures wit
   const warning = JSON.parse(warnings[0]);
   assert.equal(warning.failure_class, "identity_policy");
   assert.equal(warning.authorization_failure_layer, "identity_policy");
+  assert.deepEqual(warning.authorization_diagnostic, {
+    resource_binding: "not_present",
+    configured_sender_referenced: false,
+    approved_recipient_referenced: true,
+    assumed_api_role_referenced: false,
+    explicit_deny_referenced: false,
+  });
   assert.equal(warning.provider_status_code, 403);
   assert.equal(warnings[0].includes("reset-token-value"), false);
   assert.equal(warnings[0].includes("private@example.test"), false);
   assert.equal(warnings[0].includes("request-id-secret"), false);
   assert.equal(Object.hasOwn(warning, "provider_message"), false);
+});
+
+test("Lambda password reset email authorization diagnostics expose only fixed classifications", async () => {
+  const warnings = [];
+  const originalWarn = console.warn;
+  console.warn = (line) => warnings.push(String(line));
+  try {
+    const delivery = createLambdaPasswordResetEmailDelivery({
+      env: {
+        LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY: "sesv2",
+        LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM: "no-reply@amic.kr",
+        LAWOS_AUTH_PASSWORD_RESET_EMAIL_IDENTITY_ARN: "arn:aws:ses:ap-northeast-2:770880870480:identity/no-reply@amic.kr",
+        LAWOS_AUTH_PASSWORD_RESET_BASE_URL: "matter://password-reset/confirm",
+        AWS_REGION: "ap-northeast-2",
+      },
+      client: {
+        async send() {
+          const error = new Error("User arn:aws:sts::770880870480:assumed-role/lawos-private-staging-api-role/opaque is not authorized to perform ses:SendEmail on resource arn:aws:ses:ap-northeast-2:770880870480:identity/no-reply@amic.kr with an explicit deny; hidden-token");
+          error.name = "AccessDeniedException";
+          error.$metadata = { httpStatusCode: 403, requestId: "hidden-request-id" };
+          throw error;
+        },
+      },
+    });
+    const result = await delivery({
+      to: "approved-recipient@amic.kr",
+      token: "hidden-token",
+      expires_at: "2026-07-06T01:00:00.000Z",
+    });
+    assert.equal(result.status, "failed");
+  } finally {
+    console.warn = originalWarn;
+  }
+
+  const warning = JSON.parse(warnings[0]);
+  assert.deepEqual(warning.authorization_diagnostic, {
+    resource_binding: "configured_identity",
+    configured_sender_referenced: true,
+    approved_recipient_referenced: false,
+    assumed_api_role_referenced: true,
+    explicit_deny_referenced: true,
+  });
+  assert.equal(warnings[0].includes("hidden-token"), false);
+  assert.equal(warnings[0].includes("hidden-request-id"), false);
+  assert.equal(warnings[0].includes("approved-recipient@amic.kr"), false);
+  assert.equal(warnings[0].includes("no-reply@amic.kr"), false);
 });
 
 test("Lambda password reset email delivery safely classifies message preparation failures", async () => {

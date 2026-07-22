@@ -595,6 +595,27 @@ export function classifySesDeliveryFailure(error) {
   return "unclassified";
 }
 
+function safeSesAuthorizationDiagnostic(error, { fromEmail, fromIdentityArn, to } = {}) {
+  const message = String(error?.message ?? "").toLowerCase();
+  const configuredIdentity = String(fromIdentityArn ?? "").trim().toLowerCase();
+  const configuredSender = String(fromEmail ?? "").trim().toLowerCase();
+  const approvedRecipient = String(to ?? "").trim().toLowerCase();
+  const mentionsSesIdentity = /arn:(?:aws|aws-us-gov|aws-cn):ses:[^:\s]+:\d{12}:identity\/[^\s,;]+/u.test(message);
+  return Object.freeze({
+    resource_binding: configuredIdentity && message.includes(configuredIdentity)
+      ? "configured_identity"
+      : mentionsSesIdentity
+        ? "other_ses_identity"
+        : configuredSender && message.includes(configuredSender)
+          ? "configured_sender"
+          : "not_present",
+    configured_sender_referenced: Boolean(configuredSender) && message.includes(configuredSender),
+    approved_recipient_referenced: Boolean(approvedRecipient) && message.includes(approvedRecipient),
+    assumed_api_role_referenced: message.includes("assumed-role/lawos-private-staging-api-role/"),
+    explicit_deny_referenced: message.includes("explicit deny"),
+  });
+}
+
 export function createLambdaPasswordResetEmailDelivery({
   env = process.env,
   client,
@@ -620,6 +641,13 @@ export function createLambdaPasswordResetEmailDelivery({
       const failureClass = deliveryStage === "message_preparation"
         ? "message_preparation"
         : classifySesDeliveryFailure(error);
+      const authorizationDiagnostic = deliveryStage === "provider_send" && status === 403
+        ? safeSesAuthorizationDiagnostic(error, {
+            fromEmail: config.fromEmail,
+            fromIdentityArn: config.fromIdentityArn,
+            to,
+          })
+        : null;
       console.warn(JSON.stringify({
         event: "lawos_password_reset_email_delivery_failed",
         provider: config.provider,
@@ -627,6 +655,7 @@ export function createLambdaPasswordResetEmailDelivery({
         provider_response_hash: error?.name ? sha256Hex(error.name) : null,
         failure_class: failureClass,
         authorization_failure_layer: deliveryStage === "provider_send" ? failureClass : null,
+        authorization_diagnostic: authorizationDiagnostic,
         token_material_logged: false,
         reset_url_logged: false,
       }));

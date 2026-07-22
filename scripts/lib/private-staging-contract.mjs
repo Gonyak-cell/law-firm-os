@@ -29,7 +29,7 @@ const ACTIVE_SYNTHETIC_PASSWORD_RECIPIENTS = Object.freeze([
 ]);
 const EXACT_LAMBDA_TRUST_SHA256 = "f3502e8666443cacc9bec965f5cc2886f9ed0e884c87714821fdc6872835efd0";
 const EXACT_IAM_POLICY_SHA256 = Object.freeze({
-  ApiExecutionRole: "79d45f113cb5bd4285eb841936ae478c1793e1350100919590556611c6c39390",
+  ApiExecutionRole: "1a7644d981858a88fe517a1121c29c4b0aeba093db7e6d9257841e8faa6e1b1c",
   AdminExecutionRole: "8873e2b36fd95105b336d6168a236a44ee53ad16d6e7ffc8d7ec148d2938ae6b",
 });
 const EXACT_ENI_BOOTSTRAP_INLINE_POLICY_SHA256 = "e3fb825de200108539c51b58b92f3f39713dbdaaf5bb1e6d9b908ddb09b0e815";
@@ -447,7 +447,7 @@ function validateSecretsAndInternalAuth(resources, template) {
   const apiStatements = resourceStatements(resources.ApiExecutionRole);
   const send = apiStatements.find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail");
   const exactSesConditions = {
-    "ForAllValues:StringEquals": { "ses:Recipients": ACTIVE_SYNTHETIC_PASSWORD_RECIPIENTS },
+    "ForAllValues:StringLike": { "ses:Recipients": ACTIVE_SYNTHETIC_PASSWORD_RECIPIENTS },
     Null: { "ses:Recipients": "false" },
   };
   assert(send?.Effect === "Allow", "API role SES statement is required");

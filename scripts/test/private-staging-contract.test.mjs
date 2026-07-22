@@ -157,7 +157,7 @@ test("private service endpoints and internal password authority are mandatory", 
     .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail");
   const exactEndpointSend = exact.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0];
   const exactRecipientCondition = {
-    "ForAllValues:StringEquals": {
+    "ForAllValues:StringLike": {
       "ses:Recipients": [
         "jwsuh+lawos-staging-admin@amic.kr",
         "jwsuh+lawos-staging-attorney@amic.kr",
@@ -256,7 +256,7 @@ test("private service endpoints and internal password authority are mandatory", 
   const missingActiveRecipient = clone(fixture("template.json"));
   missingActiveRecipient.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
     .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail")
-    .Condition["ForAllValues:StringEquals"]["ses:Recipients"] = [
+    .Condition["ForAllValues:StringLike"]["ses:Recipients"] = [
     "jwsuh+lawos-staging-admin@amic.kr",
   ];
   assert.throws(() => validatePrivateStagingTemplate(missingActiveRecipient), /IAM policy contract|every active synthetic recipient/u);
@@ -264,13 +264,13 @@ test("private service endpoints and internal password authority are mandatory", 
   const broadApiRecipient = clone(fixture("template.json"));
   broadApiRecipient.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
     .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail")
-    .Condition["ForAllValues:StringEquals"]["ses:Recipients"].push("*@amic.kr");
+    .Condition["ForAllValues:StringLike"]["ses:Recipients"].push("*@amic.kr");
   assert.throws(() => validatePrivateStagingTemplate(broadApiRecipient), /every active synthetic recipient/u);
 
   const disabledApiRecipient = clone(fixture("template.json"));
   disabledApiRecipient.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
     .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail")
-    .Condition["ForAllValues:StringEquals"]["ses:Recipients"].push("jwsuh+lawos-staging-disabled@amic.kr");
+    .Condition["ForAllValues:StringLike"]["ses:Recipients"].push("jwsuh+lawos-staging-disabled@amic.kr");
   assert.throws(() => validatePrivateStagingTemplate(disabledApiRecipient), /IAM policy contract|every active synthetic recipient/u);
 
   const missingRecipientNullGuard = clone(fixture("template.json"));
