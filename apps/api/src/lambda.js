@@ -648,7 +648,7 @@ function passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }
 
 function createSesV2SendEmailInput({ config, to, resetUrl, resetOpenUrl, expiresAt }) {
   return {
-    FromEmailAddress: formattedEmailAddress({ name: config.fromName, email: config.fromEmail }),
+    FromEmailAddress: config.fromEmail,
     Destination: { ToAddresses: [to] },
     ...(config.replyToEmail ? { ReplyToAddresses: [config.replyToEmail] } : {}),
     Content: {
@@ -657,6 +657,20 @@ function createSesV2SendEmailInput({ config, to, resetUrl, resetOpenUrl, expires
       },
     },
   };
+}
+
+export function classifySesDeliveryFailure(error) {
+  const message = String(error?.message ?? "").toLowerCase();
+  if (message.includes("vpc endpoint policy") || message.includes("vpc endpoint")) return "vpc_endpoint_policy";
+  if (message.includes("identity-based policy") || message.includes("identity policy")) return "identity_policy";
+  if (
+    message.includes("email address is not verified")
+    || message.includes("identity is not verified")
+    || message.includes("account is paused")
+    || message.includes("account is under review")
+    || message.includes("suppression list")
+  ) return "ses_service";
+  return "unclassified";
 }
 
 export function createLambdaPasswordResetEmailDelivery({
@@ -683,6 +697,7 @@ export function createLambdaPasswordResetEmailDelivery({
         provider: config.provider,
         provider_status_code: status,
         provider_response_hash: error?.name ? sha256Hex(error.name) : null,
+        authorization_failure_layer: classifySesDeliveryFailure(error),
         token_material_logged: false,
         reset_url_logged: false,
       }));

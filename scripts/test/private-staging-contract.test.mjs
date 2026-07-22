@@ -169,15 +169,8 @@ test("private service endpoints and internal password authority are mandatory", 
   const exactEndpointCondition = {
     StringEquals: {
       "aws:SourceVpc": { Ref: "Vpc" },
-      "ses:FromAddress": { Ref: "PasswordResetFromEmail" },
+      "aws:PrincipalAccount": { Ref: "AWS::AccountId" },
     },
-    "ForAllValues:StringEquals": {
-      "ses:Recipients": [
-        "jwsuh+lawos-staging-admin@amic.kr",
-        "jwsuh+lawos-staging-attorney@amic.kr",
-      ],
-    },
-    Null: { "ses:Recipients": "false" },
   };
   assert.deepEqual(exactApiSend, {
     Sid: "SendSyntheticPasswordSetupEmail",
@@ -236,6 +229,14 @@ test("private service endpoints and internal password authority are mandatory", 
   wrongSourceVpc.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.StringEquals["aws:SourceVpc"] = { Ref: "DbSubnetA" };
   assert.throws(() => validatePrivateStagingTemplate(wrongSourceVpc), /exact staging VPC/u);
 
+  const missingPrincipalAccount = clone(fixture("template.json"));
+  delete missingPrincipalAccount.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.StringEquals["aws:PrincipalAccount"];
+  assert.throws(() => validatePrivateStagingTemplate(missingPrincipalAccount), /exact staging VPC and account/u);
+
+  const wrongPrincipalAccount = clone(fixture("template.json"));
+  wrongPrincipalAccount.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.StringEquals["aws:PrincipalAccount"] = "000000000000";
+  assert.throws(() => validatePrivateStagingTemplate(wrongPrincipalAccount), /exact staging VPC and account/u);
+
   const wildcardSesSession = clone(fixture("template.json"));
   wildcardSesSession.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Principal = {
     AWS: "arn:aws:sts::770880870480:assumed-role/lawos-private-staging-api-role/*",
@@ -262,11 +263,17 @@ test("private service endpoints and internal password authority are mandatory", 
     .Resource = { Ref: "PasswordResetSesIdentityArn" };
   assert.throws(() => validatePrivateStagingTemplate(apiNonWildcardResource), /IAM policy contract|Resource \*/u);
 
+  const endpointMessageConditions = clone(fixture("template.json"));
+  endpointMessageConditions.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.StringEquals["ses:FromAddress"] = { Ref: "PasswordResetFromEmail" };
+  assert.throws(() => validatePrivateStagingTemplate(endpointMessageConditions), /exact staging VPC and account/u);
+
   const missingActiveRecipient = clone(fixture("template.json"));
-  missingActiveRecipient.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition["ForAllValues:StringEquals"]["ses:Recipients"] = [
+  missingActiveRecipient.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
+    .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail")
+    .Condition["ForAllValues:StringEquals"]["ses:Recipients"] = [
     "jwsuh+lawos-staging-admin@amic.kr",
   ];
-  assert.throws(() => validatePrivateStagingTemplate(missingActiveRecipient), /every active synthetic recipient/u);
+  assert.throws(() => validatePrivateStagingTemplate(missingActiveRecipient), /IAM policy contract|every active synthetic recipient/u);
 
   const broadApiRecipient = clone(fixture("template.json"));
   broadApiRecipient.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
@@ -281,8 +288,10 @@ test("private service endpoints and internal password authority are mandatory", 
   assert.throws(() => validatePrivateStagingTemplate(disabledApiRecipient), /IAM policy contract|every active synthetic recipient/u);
 
   const missingRecipientNullGuard = clone(fixture("template.json"));
-  delete missingRecipientNullGuard.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.Null;
-  assert.throws(() => validatePrivateStagingTemplate(missingRecipientNullGuard), /every active synthetic recipient/u);
+  delete missingRecipientNullGuard.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
+    .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail")
+    .Condition.Null;
+  assert.throws(() => validatePrivateStagingTemplate(missingRecipientNullGuard), /IAM policy contract|every active synthetic recipient/u);
 
   const wrongSesFromAddress = clone(fixture("template.json"));
   wrongSesFromAddress.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement

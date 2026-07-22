@@ -414,16 +414,7 @@
               "Condition": {
                 "StringEquals": {
                   "aws:SourceVpc": { "Ref": "Vpc" },
-                  "ses:FromAddress": { "Ref": "PasswordResetFromEmail" }
-                },
-                "ForAllValues:StringEquals": {
-                  "ses:Recipients": [
-                    "jwsuh+lawos-staging-admin@amic.kr",
-                    "jwsuh+lawos-staging-attorney@amic.kr"
-                  ]
-                },
-                "Null": {
-                  "ses:Recipients": "false"
+                  "aws:PrincipalAccount": { "Ref": "AWS::AccountId" }
                 }
               }
             }

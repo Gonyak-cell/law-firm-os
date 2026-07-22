@@ -27,6 +27,7 @@ import {
   buildCtiCutoverExecuteRetryReceipt,
   buildHrxRosterReconcileReceipt,
   buildLcxAuthResetRecoveryReceipt,
+  classifySesDeliveryFailure,
   createLambdaPasswordResetEmailDelivery,
   handler,
   resolveLambdaHrxStepUpSecrets,
@@ -119,7 +120,7 @@ test("Lambda password reset email delivery omits same-account delegation and nev
       async send(command) {
         assert.equal(command.constructor.name, "SendEmailCommand");
         const body = command.input;
-        assert.equal(body.FromEmailAddress, "Matter OS <no-reply@amic.kr>");
+        assert.equal(body.FromEmailAddress, "no-reply@amic.kr");
         assert.equal(body.FromEmailAddressIdentityArn, undefined);
         assert.deepEqual(body.Destination.ToAddresses, ["jwsuh@amic.kr"]);
         assert.equal(body.Content.Simple, undefined);
@@ -157,6 +158,54 @@ test("Lambda password reset email delivery omits same-account delegation and nev
   assert.equal(result.token_material_returned, false);
   assert.equal(result.reset_url_returned, false);
   assert.equal(JSON.stringify(result).includes("reset-token-value"), false);
+});
+
+test("Lambda password reset email delivery classifies authorization failures without logging provider details", async () => {
+  assert.equal(classifySesDeliveryFailure(new Error("because no VPC endpoint policy allows the ses:SendEmail action")), "vpc_endpoint_policy");
+  assert.equal(classifySesDeliveryFailure(new Error("because no identity-based policy allows the ses:SendEmail action")), "identity_policy");
+  assert.equal(classifySesDeliveryFailure(new Error("Email address is not verified")), "ses_service");
+  assert.equal(classifySesDeliveryFailure(new Error("Access denied")), "unclassified");
+
+  const warnings = [];
+  const originalWarn = console.warn;
+  console.warn = (line) => warnings.push(String(line));
+  try {
+    const delivery = createLambdaPasswordResetEmailDelivery({
+      env: {
+        LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY: "sesv2",
+        LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM: "no-reply@amic.kr",
+        LAWOS_AUTH_PASSWORD_RESET_EMAIL_IDENTITY_ARN: "arn:aws:ses:ap-northeast-2:770880870480:identity/no-reply@amic.kr",
+        LAWOS_AUTH_PASSWORD_RESET_BASE_URL: "matter://password-reset/confirm",
+        AWS_REGION: "ap-northeast-2",
+      },
+      client: {
+        async send() {
+          const error = new Error("because no identity-based policy allows reset-token-value for private@example.test request-id-secret");
+          error.name = "AccessDeniedException";
+          error.$metadata = { httpStatusCode: 403, requestId: "request-id-secret" };
+          throw error;
+        },
+      },
+    });
+    const result = await delivery({
+      to: "private@example.test",
+      token: "reset-token-value",
+      expires_at: "2026-07-06T01:00:00.000Z",
+    });
+    assert.equal(result.status, "failed");
+    assert.equal(result.reason, "sesv2_send_failed_403");
+  } finally {
+    console.warn = originalWarn;
+  }
+
+  assert.equal(warnings.length, 1);
+  const warning = JSON.parse(warnings[0]);
+  assert.equal(warning.authorization_failure_layer, "identity_policy");
+  assert.equal(warning.provider_status_code, 403);
+  assert.equal(warnings[0].includes("reset-token-value"), false);
+  assert.equal(warnings[0].includes("private@example.test"), false);
+  assert.equal(warnings[0].includes("request-id-secret"), false);
+  assert.equal(Object.hasOwn(warning, "provider_message"), false);
 });
 
 test("Lambda password reset email delivery remains unconfigured without an approved mail surface", () => {

@@ -463,10 +463,8 @@ function validateSecretsAndInternalAuth(resources, template) {
   const exactSesEndpointConditions = {
     StringEquals: {
       "aws:SourceVpc": { Ref: "Vpc" },
-      "ses:FromAddress": { Ref: "PasswordResetFromEmail" },
+      "aws:PrincipalAccount": { Ref: "AWS::AccountId" },
     },
-    "ForAllValues:StringEquals": { "ses:Recipients": ACTIVE_SYNTHETIC_PASSWORD_RECIPIENTS },
-    Null: { "ses:Recipients": "false" },
   };
   assert(send?.Effect === "Allow", "API role SES statement is required");
   assert(JSON.stringify(sortedStrings(Array.isArray(send?.Action) ? send.Action : [send?.Action])) === JSON.stringify(["ses:SendEmail"]), "API role SES action must be only ses:SendEmail");
@@ -484,7 +482,7 @@ function validateSecretsAndInternalAuth(resources, template) {
       Resource: "*",
       Condition: exactSesEndpointConditions,
     }],
-  }), "SES endpoint wildcard principal must be confined to the exact staging VPC, sender, and every active synthetic recipient using ses:SendEmail and Resource *");
+  }), "SES endpoint wildcard principal must be confined to the exact staging VPC and account using ses:SendEmail and Resource *");
   const syntheticManifest = JSON.parse(resources.SyntheticManifestSecret?.Properties?.SecretString ?? "null");
   assert(syntheticManifest?.schema_version === "law-firm-os.synthetic-staging-manifest.v2", "synthetic manifest must use purpose-bound schema v2");
   assert((syntheticManifest?.tenant_ids ?? []).length === 6, "synthetic manifest must isolate CUT-005, CUT-006, and CUT-007 across six tenants");
@@ -616,7 +614,7 @@ export function validatePrivateStagingTemplate(template) {
     owner_delta_reasons: Object.freeze([
       "AWS Lambda VPC ENI bootstrap actions require Resource * until function ENIs are active",
       "AWS KMS key-policy Resource * denotes only the current staging KMS key but conflicts with the literal wildcard prohibition",
-      "AWS SES recipient-condition keys require Resource * on the exact API-role and VPC-endpoint ses:SendEmail Allows",
+      "AWS SES SendEmail requires Resource * on the exact API-role and VPC-endpoint Allows; sender and recipient restrictions remain on the API role while VPC and account restrictions remain on the endpoint",
     ]),
     bootstrap_default_enabled: false,
   });
