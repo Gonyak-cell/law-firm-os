@@ -166,11 +166,6 @@ test("private service endpoints and internal password authority are mandatory", 
     },
     Null: { "ses:Recipients": "false" },
   };
-  const exactEndpointCondition = {
-    StringEquals: {
-      "aws:SourceVpc": { Ref: "Vpc" },
-    },
-  };
   assert.deepEqual(exactApiSend, {
     Sid: "SendSyntheticPasswordSetupEmail",
     Effect: "Allow",
@@ -184,7 +179,6 @@ test("private service endpoints and internal password authority are mandatory", 
     Principal: "*",
     Action: "ses:SendEmail",
     Resource: "*",
-    Condition: exactEndpointCondition,
   });
 
   const endpoint = clone(fixture("template.json"));
@@ -208,35 +202,31 @@ test("private service endpoints and internal password authority are mandatory", 
   accountRootSesPrincipal.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Principal = {
     AWS: { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root" },
   };
-  assert.throws(() => validatePrivateStagingTemplate(accountRootSesPrincipal), /exact staging VPC/u);
+  assert.throws(() => validatePrivateStagingTemplate(accountRootSesPrincipal), /SES endpoint policy/u);
 
-  const missingSesConditions = clone(fixture("template.json"));
-  delete missingSesConditions.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition;
-  assert.throws(() => validatePrivateStagingTemplate(missingSesConditions), /exact staging VPC/u);
+  const unsupportedSourceVpc = clone(fixture("template.json"));
+  unsupportedSourceVpc.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition = {
+    StringEquals: { "aws:SourceVpc": { Ref: "Vpc" } },
+  };
+  assert.throws(() => validatePrivateStagingTemplate(unsupportedSourceVpc), /SES endpoint policy/u);
 
   const unsupportedSesPrincipalArn = clone(fixture("template.json"));
-  unsupportedSesPrincipalArn.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.ArnEquals = {
-    "aws:PrincipalArn": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] },
+  unsupportedSesPrincipalArn.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition = {
+    ArnEquals: { "aws:PrincipalArn": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
   };
-  assert.throws(() => validatePrivateStagingTemplate(unsupportedSesPrincipalArn), /exact staging VPC/u);
-
-  const missingSourceVpc = clone(fixture("template.json"));
-  delete missingSourceVpc.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.StringEquals["aws:SourceVpc"];
-  assert.throws(() => validatePrivateStagingTemplate(missingSourceVpc), /exact staging VPC/u);
-
-  const wrongSourceVpc = clone(fixture("template.json"));
-  wrongSourceVpc.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.StringEquals["aws:SourceVpc"] = { Ref: "DbSubnetA" };
-  assert.throws(() => validatePrivateStagingTemplate(wrongSourceVpc), /exact staging VPC/u);
+  assert.throws(() => validatePrivateStagingTemplate(unsupportedSesPrincipalArn), /SES endpoint policy/u);
 
   const unsupportedPrincipalAccount = clone(fixture("template.json"));
-  unsupportedPrincipalAccount.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.StringEquals["aws:PrincipalAccount"] = { Ref: "AWS::AccountId" };
-  assert.throws(() => validatePrivateStagingTemplate(unsupportedPrincipalAccount), /exact staging VPC/u);
+  unsupportedPrincipalAccount.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition = {
+    StringEquals: { "aws:PrincipalAccount": { Ref: "AWS::AccountId" } },
+  };
+  assert.throws(() => validatePrivateStagingTemplate(unsupportedPrincipalAccount), /SES endpoint policy/u);
 
   const wildcardSesSession = clone(fixture("template.json"));
   wildcardSesSession.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Principal = {
     AWS: "arn:aws:sts::770880870480:assumed-role/lawos-private-staging-api-role/*",
   };
-  assert.throws(() => validatePrivateStagingTemplate(wildcardSesSession), /exact staging VPC/u);
+  assert.throws(() => validatePrivateStagingTemplate(wildcardSesSession), /SES endpoint policy/u);
 
   const nonWildcardSesResource = clone(fixture("template.json"));
   nonWildcardSesResource.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Resource = { Ref: "PasswordResetSesIdentityArn" };
@@ -244,7 +234,7 @@ test("private service endpoints and internal password authority are mandatory", 
 
   const endpointRawEmail = clone(fixture("template.json"));
   endpointRawEmail.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Action = ["ses:SendEmail", "ses:SendRawEmail"];
-  assert.throws(() => validatePrivateStagingTemplate(endpointRawEmail), /exact staging VPC/u);
+  assert.throws(() => validatePrivateStagingTemplate(endpointRawEmail), /SES endpoint policy/u);
 
   const apiRawEmail = clone(fixture("template.json"));
   apiRawEmail.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
@@ -259,8 +249,10 @@ test("private service endpoints and internal password authority are mandatory", 
   assert.throws(() => validatePrivateStagingTemplate(apiNonWildcardResource), /IAM policy contract|Resource \*/u);
 
   const endpointMessageConditions = clone(fixture("template.json"));
-  endpointMessageConditions.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.StringEquals["ses:FromAddress"] = { Ref: "PasswordResetFromEmail" };
-  assert.throws(() => validatePrivateStagingTemplate(endpointMessageConditions), /exact staging VPC/u);
+  endpointMessageConditions.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition = {
+    StringEquals: { "ses:FromAddress": { Ref: "PasswordResetFromEmail" } },
+  };
+  assert.throws(() => validatePrivateStagingTemplate(endpointMessageConditions), /SES endpoint policy/u);
 
   const missingActiveRecipient = clone(fixture("template.json"));
   missingActiveRecipient.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement

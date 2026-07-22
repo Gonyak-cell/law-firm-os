@@ -410,12 +410,7 @@
               "Effect": "Allow",
               "Principal": "*",
               "Action": "ses:SendEmail",
-              "Resource": "*",
-              "Condition": {
-                "StringEquals": {
-                  "aws:SourceVpc": { "Ref": "Vpc" }
-                }
-              }
+              "Resource": "*"
             }
           ]
         },
