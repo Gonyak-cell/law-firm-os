@@ -5,6 +5,8 @@ const SYNTHETIC_TENANT = /^tenant_lawos_staging_cut007_[a-z0-9_-]+$/u;
 const SYNTHETIC_USER = /^synthetic-lawos-staging-[a-z0-9-]+$/u;
 const SYNTHETIC_EMPLOYEE = /^emp-lawos-staging-[a-z0-9-]+$/u;
 const RESET_EXPIRED = "AUTH_PASSWORD_RESET_TOKEN_EXPIRED";
+const STAGING_THROTTLE_RETRY_WAIT_MS = 26_000;
+const STAGING_THROTTLE_RETRY_LIMIT = 2;
 
 function requiredText(value, name, pattern = null) {
   const text = String(value ?? "").trim();
@@ -111,30 +113,51 @@ function safeReadbackResult(result = {}) {
   });
 }
 
-export function createPrivateStagingHttpTransport({ baseUrl, fetchImpl = globalThis.fetch } = {}) {
+export function createPrivateStagingHttpTransport({
+  baseUrl,
+  fetchImpl = globalThis.fetch,
+  wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
+  throttleRetryWaitMs = STAGING_THROTTLE_RETRY_WAIT_MS,
+  throttleRetryLimit = STAGING_THROTTLE_RETRY_LIMIT,
+} = {}) {
   const endpoint = new URL(requiredText(baseUrl, "baseUrl"));
   if (endpoint.protocol !== "https:" && !["localhost", "127.0.0.1"].includes(endpoint.hostname)) {
     throw new TypeError("CUT-007 transport requires HTTPS outside local disposable tests");
   }
-  if (typeof fetchImpl !== "function") throw new TypeError("fetch implementation is required");
+  if (typeof fetchImpl !== "function" || typeof wait !== "function") throw new TypeError("fetch and wait implementations are required");
+  if (!Number.isInteger(throttleRetryWaitMs) || throttleRetryWaitMs < 0) throw new TypeError("throttle retry wait must be a non-negative integer");
+  if (!Number.isInteger(throttleRetryLimit) || throttleRetryLimit < 0 || throttleRetryLimit > 3) throw new TypeError("throttle retry limit must be between zero and three");
+  let throttlePacingActive = false;
   return async function transport({ method = "GET", path, headers = {}, body } = {}) {
     const url = new URL(requiredText(path, "request path"), endpoint);
     invariant(url.origin === endpoint.origin, "transport", "request path escaped the approved staging origin");
     const requestHeaders = { ...headers };
     if (body !== undefined) requestHeaders["content-type"] = "application/json";
-    const response = await fetchImpl(url, {
-      method,
-      headers: requestHeaders,
-      body: body === undefined ? undefined : JSON.stringify(body),
-      redirect: "error",
-    });
-    let responseBody = {};
-    try {
-      responseBody = await response.json();
-    } catch {
-      responseBody = {};
+    if (throttlePacingActive) await wait(throttleRetryWaitMs);
+    for (let retryCount = 0; ; retryCount += 1) {
+      const response = await fetchImpl(url, {
+        method,
+        headers: requestHeaders,
+        body: body === undefined ? undefined : JSON.stringify(body),
+        redirect: "error",
+      });
+      let responseBody = {};
+      try {
+        responseBody = await response.json();
+      } catch {
+        responseBody = {};
+      }
+      if (response.status !== 429 || retryCount >= throttleRetryLimit) {
+        return Object.freeze({
+          status: response.status,
+          body: responseBody,
+          request_attempt_count: retryCount + 1,
+          throttle_retry_count: retryCount,
+        });
+      }
+      throttlePacingActive = true;
+      await wait(throttleRetryWaitMs);
     }
-    return Object.freeze({ status: response.status, body: responseBody });
   };
 }
 
@@ -176,12 +199,18 @@ export async function runPrivateStagingCut007({
     tenant_negative_count: 0,
     role_negative_count: 0,
     idempotency_replay_count: 0,
+    throttle_retry_count: 0,
   };
 
   async function request(step, expectedStatus, { method = "GET", path, token = null, body } = {}) {
     const headers = token ? { authorization: `Bearer ${token}` } : {};
     const result = await transport({ method, path, headers, body });
-    counters.api_call_count += 1;
+    const attemptCount = result?.request_attempt_count ?? 1;
+    const throttleRetryCount = result?.throttle_retry_count ?? 0;
+    invariant(Number.isInteger(attemptCount) && attemptCount >= 1 && attemptCount <= 4, step, "transport attempt count is invalid");
+    invariant(Number.isInteger(throttleRetryCount) && throttleRetryCount >= 0 && throttleRetryCount < attemptCount, step, "transport throttle retry count is invalid");
+    counters.api_call_count += attemptCount;
+    counters.throttle_retry_count += throttleRetryCount;
     counters.assertion_count += 1;
     expectStatus(result, expectedStatus, step);
     return result;

@@ -50,6 +50,56 @@ function syntheticSources() {
   });
 }
 
+test("CUT-007 HTTP transport paces bounded retries after the cost-envelope throttle activates", async () => {
+  const statuses = [429, 200, 200];
+  const waits = [];
+  const transport = createPrivateStagingHttpTransport({
+    baseUrl: "https://private-staging.example.invalid",
+    fetchImpl: async () => ({
+      status: statuses.shift(),
+      json: async () => ({}),
+    }),
+    wait: async (milliseconds) => waits.push(milliseconds),
+    throttleRetryWaitMs: 1,
+  });
+
+  assert.deepEqual(await transport({ path: "/api/health" }), {
+    status: 200,
+    body: {},
+    request_attempt_count: 2,
+    throttle_retry_count: 1,
+  });
+  assert.deepEqual(await transport({ path: "/api/health" }), {
+    status: 200,
+    body: {},
+    request_attempt_count: 1,
+    throttle_retry_count: 0,
+  });
+  assert.deepEqual(waits, [1, 1]);
+});
+
+test("CUT-007 HTTP transport returns a persistent throttle after the bounded retry limit", async () => {
+  let requestCount = 0;
+  const transport = createPrivateStagingHttpTransport({
+    baseUrl: "https://private-staging.example.invalid",
+    fetchImpl: async () => {
+      requestCount += 1;
+      return { status: 429, json: async () => ({}) };
+    },
+    wait: async () => {},
+    throttleRetryWaitMs: 0,
+    throttleRetryLimit: 2,
+  });
+
+  assert.deepEqual(await transport({ path: "/api/health" }), {
+    status: 429,
+    body: {},
+    request_attempt_count: 3,
+    throttle_retry_count: 2,
+  });
+  assert.equal(requestCount, 3);
+});
+
 test("PostgreSQL session auth and the deployed reset worker share the configured tenant", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
@@ -117,6 +167,7 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
   let started = null;
   let baseUrl = null;
   let activeSessionAuth = null;
+  let activeTransport = null;
 
   const passwordResetEmailDelivery = async ({ to, token }) => {
     const queue = delivered.get(to) ?? [];
@@ -168,6 +219,7 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
       payrollResolveArtifactSecret: async () => "cut007-disposable-payroll-artifact-secret",
     });
     baseUrl = `http://${started.host}:${started.port}`;
+    activeTransport = createPrivateStagingHttpTransport({ baseUrl });
   }
 
   async function stop() {
@@ -178,9 +230,8 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
 
   await start();
   t.after(stop);
-  const transport = async (request) => createPrivateStagingHttpTransport({ baseUrl })(request);
   const result = await runPrivateStagingCut007({
-    transport,
+    transport: (request) => activeTransport(request),
     accounts: ACCOUNT_INPUTS,
     tenantIds: TENANTS,
     runId: "cut007-disposable-full-flow",
