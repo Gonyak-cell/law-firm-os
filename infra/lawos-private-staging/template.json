@@ -416,9 +416,6 @@
               "Action": "ses:SendEmail",
               "Resource": "*",
               "Condition": {
-                "ArnEquals": {
-                  "aws:PrincipalArn": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] }
-                },
                 "StringEquals": {
                   "ses:FromAddress": { "Ref": "PasswordResetFromEmail" }
                 },
