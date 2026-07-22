@@ -123,13 +123,6 @@ const CTI_S5_SOURCE_REVISION = "cti_s5_enrichment_2026_07_06";
 const CTI_S5_OPERATOR_REF = "cti-s5-enrichment-execute-2026-07-06";
 const CTI_S5_KYT_USER_ID = "user_amic_ytkim";
 const PASSWORD_RESET_EMAIL_DELIVERY_SES_V2 = "sesv2";
-const PASSWORD_RESET_LOGO_CONTENT_ID = "amic-law-icon";
-const PASSWORD_RESET_LOGO_FILE_NAME = "icon.png";
-const PASSWORD_RESET_LOGO_MIME_TYPE = "image/png";
-const PASSWORD_RESET_LOGO_CANDIDATES = Object.freeze([
-  new URL(`./${PASSWORD_RESET_LOGO_FILE_NAME}`, import.meta.url),
-  new URL("../../desktop/build/icon.png", import.meta.url),
-]);
 const MATTER_RECORD_PRIMARY_ID_FIELDS = Object.freeze({
   Client: "client_id",
   MatterClient: "client_id",
@@ -457,28 +450,6 @@ function passwordResetEmailConfig(env = process.env) {
   });
 }
 
-function formattedEmailAddress({ name, email } = {}) {
-  const address = String(email ?? "").replace(/[\r\n]+/g, " ").trim();
-  const displayName = String(name ?? "").replace(/[\r\n]+/g, " ").trim();
-  return displayName ? `${displayName} <${address}>` : address;
-}
-
-function emailHeaderValue(value) {
-  return String(value ?? "").replace(/[\r\n]+/g, " ").trim();
-}
-
-function base64Utf8(value) {
-  return Buffer.from(String(value), "utf8").toString("base64");
-}
-
-function base64MimeLines(value) {
-  return String(value).match(/.{1,76}/g)?.join("\r\n") ?? "";
-}
-
-function encodedMimeWord(value) {
-  return `=?UTF-8?B?${base64Utf8(value)}?=`;
-}
-
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -498,20 +469,6 @@ function passwordResetOpenUrl({ baseUrl, token, fallbackUrl }) {
   const url = new URL(baseUrl);
   url.hash = `token=${encodeURIComponent(token)}`;
   return url.toString();
-}
-
-let passwordResetLogoPngBase64;
-
-function passwordResetLogo() {
-  if (passwordResetLogoPngBase64) return passwordResetLogoPngBase64;
-  for (const candidate of PASSWORD_RESET_LOGO_CANDIDATES) {
-    try {
-      passwordResetLogoPngBase64 = readFileSync(candidate).toString("base64");
-      return passwordResetLogoPngBase64;
-    } catch {
-    }
-  }
-  return "";
 }
 
 function passwordResetEmailSubject() {
@@ -538,7 +495,7 @@ function passwordResetEmailHtml({
   resetOpenUrl = resetUrl,
   expiresAt,
   brandName = "Matter OS",
-  logoSrc = `cid:${PASSWORD_RESET_LOGO_CONTENT_ID}`,
+  logoSrc = "",
 } = {}) {
   const safeResetUrl = escapeHtml(resetUrl);
   const safeResetOpenUrl = escapeHtml(resetOpenUrl);
@@ -591,69 +548,26 @@ function passwordResetEmailHtml({
   ].join("");
 }
 
-function passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }) {
-  const rootBoundary = `matter-reset-root-${randomUUID()}`;
-  const alternativeBoundary = `matter-reset-alt-${randomUUID()}`;
-  const from = emailHeaderValue(formattedEmailAddress({ name: config.fromName, email: config.fromEmail }));
-  const recipient = emailHeaderValue(to);
-  const logoBase64 = passwordResetLogo();
-  const headers = [
-    `From: ${from}`,
-    `To: ${recipient}`,
-    `Subject: ${encodedMimeWord(passwordResetEmailSubject())}`,
-    "MIME-Version: 1.0",
-    ...(config.replyToEmail ? [`Reply-To: ${emailHeaderValue(config.replyToEmail)}`] : []),
-    `Content-Type: multipart/related; boundary="${rootBoundary}"`,
-  ];
-  const textBody = base64MimeLines(base64Utf8(passwordResetEmailText({ resetUrl, resetOpenUrl, expiresAt })));
-  const htmlBody = base64MimeLines(base64Utf8(passwordResetEmailHtml({
-    resetUrl,
-    resetOpenUrl,
-    expiresAt,
-    brandName: config.fromName || "Matter OS",
-    logoSrc: logoBase64 ? `cid:${PASSWORD_RESET_LOGO_CONTENT_ID}` : "",
-  })));
-  const parts = [
-    ...headers,
-    "",
-    `--${rootBoundary}`,
-    `Content-Type: multipart/alternative; boundary="${alternativeBoundary}"`,
-    "",
-    `--${alternativeBoundary}`,
-    "Content-Type: text/plain; charset=UTF-8",
-    "Content-Transfer-Encoding: base64",
-    "",
-    textBody,
-    `--${alternativeBoundary}`,
-    "Content-Type: text/html; charset=UTF-8",
-    "Content-Transfer-Encoding: base64",
-    "",
-    htmlBody,
-    `--${alternativeBoundary}--`,
-  ];
-  if (logoBase64) {
-    parts.push(
-      `--${rootBoundary}`,
-      `Content-Type: ${PASSWORD_RESET_LOGO_MIME_TYPE}; name="amic-law-icon.png"`,
-      "Content-Transfer-Encoding: base64",
-      `Content-ID: <${PASSWORD_RESET_LOGO_CONTENT_ID}>`,
-      'Content-Disposition: inline; filename="amic-law-icon.png"',
-      "",
-      base64MimeLines(logoBase64),
-    );
-  }
-  parts.push(`--${rootBoundary}--`, "");
-  return Buffer.from(parts.join("\r\n"), "utf8").toString("base64");
-}
-
 function createSesV2SendEmailInput({ config, to, resetUrl, resetOpenUrl, expiresAt }) {
   return {
     FromEmailAddress: config.fromEmail,
     Destination: { ToAddresses: [to] },
     ...(config.replyToEmail ? { ReplyToAddresses: [config.replyToEmail] } : {}),
     Content: {
-      Raw: {
-        Data: Buffer.from(passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }), "base64"),
+      Simple: {
+        Subject: { Data: passwordResetEmailSubject(), Charset: "UTF-8" },
+        Body: {
+          Text: { Data: passwordResetEmailText({ resetUrl, resetOpenUrl, expiresAt }), Charset: "UTF-8" },
+          Html: {
+            Data: passwordResetEmailHtml({
+              resetUrl,
+              resetOpenUrl,
+              expiresAt,
+              brandName: config.fromName || "Matter OS",
+            }),
+            Charset: "UTF-8",
+          },
+        },
       },
     },
   };

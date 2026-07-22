@@ -52,17 +52,6 @@ async function createDurableStorePaths(root) {
   return paths;
 }
 
-function decodeBase64MimePart(rawEmail, contentTypePrefix) {
-  const marker = rawEmail.indexOf(contentTypePrefix);
-  assert.notEqual(marker, -1, `${contentTypePrefix} part must exist`);
-  const encodedStart = rawEmail.indexOf("\r\n\r\n", marker);
-  assert.notEqual(encodedStart, -1, `${contentTypePrefix} body separator must exist`);
-  const bodyStart = encodedStart + 4;
-  const boundaryStart = rawEmail.indexOf("\r\n--", bodyStart);
-  assert.notEqual(boundaryStart, -1, `${contentTypePrefix} boundary must exist`);
-  return Buffer.from(rawEmail.slice(bodyStart, boundaryStart).replace(/\s+/g, ""), "base64").toString("utf8");
-}
-
 test("Lambda bootstrap fetches LAWOS_API_SESSION_SECRET with the AWS SDK", async () => {
   const resolved = await resolveLambdaSessionSecret({
     env: {
@@ -105,7 +94,7 @@ test("Lambda bootstrap derives separated HRX step-up keys from an exact secret r
   assert.notEqual(resolved.hrxStepUpSecret, resolved.hrxStepUpTotpSecret);
 });
 
-test("Lambda password reset email delivery omits same-account delegation and never returns token material", async () => {
+test("Lambda password reset email delivery uses SESv2 simple content and never returns token material", async () => {
   const delivery = createLambdaPasswordResetEmailDelivery({
     env: {
       LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY: "sesv2",
@@ -123,14 +112,13 @@ test("Lambda password reset email delivery omits same-account delegation and nev
         assert.equal(body.FromEmailAddress, "no-reply@amic.kr");
         assert.equal(body.FromEmailAddressIdentityArn, undefined);
         assert.deepEqual(body.Destination.ToAddresses, ["jwsuh@amic.kr"]);
-        assert.equal(body.Content.Simple, undefined);
-        assert.ok(body.Content.Raw.Data);
-        const rawEmail = Buffer.from(body.Content.Raw.Data).toString("utf8");
-        assert.match(rawEmail, /^From: Matter OS <no-reply@amic\.kr>/m);
-        assert.match(rawEmail, /^Subject: =\?UTF-8\?B\?/m);
-        assert.match(rawEmail, /Content-Type: multipart\/related/);
-        const textPart = decodeBase64MimePart(rawEmail, "Content-Type: text/plain");
-        const htmlPart = decodeBase64MimePart(rawEmail, "Content-Type: text/html");
+        assert.equal(body.Content.Raw, undefined);
+        assert.equal(body.Content.Simple.Subject.Data, "matter 비밀번호 설정");
+        assert.equal(body.Content.Simple.Subject.Charset, "UTF-8");
+        const textPart = body.Content.Simple.Body.Text.Data;
+        const htmlPart = body.Content.Simple.Body.Html.Data;
+        assert.equal(body.Content.Simple.Body.Text.Charset, "UTF-8");
+        assert.equal(body.Content.Simple.Body.Html.Charset, "UTF-8");
         assert.match(textPart, /matter OS 비밀번호 설정/);
         assert.match(textPart, /https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=reset-token-value/);
         assert.match(htmlPart, /<h1[^>]*>비밀번호를 설정하세요<\/h1>/);
