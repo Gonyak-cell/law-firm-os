@@ -663,9 +663,16 @@ export function classifySesDeliveryFailure(error) {
   const message = String(error?.message ?? "").toLowerCase();
   if (message.includes("vpc endpoint policy") || message.includes("vpc endpoint")) return "vpc_endpoint_policy";
   if (message.includes("identity-based policy") || message.includes("identity policy")) return "identity_policy";
+  if (message.includes("service control policy")) return "service_control_policy";
+  if (message.includes("permissions boundary")) return "permissions_boundary";
+  if (message.includes("session policy")) return "session_policy";
+  if (message.includes("resource-based policy") || message.includes("resource policy")) return "resource_policy";
+  if (message.includes("not authorized to perform") && message.includes("ses:sendemail")) return "ses_sendemail_authorization";
   if (
     message.includes("email address is not verified")
     || message.includes("identity is not verified")
+    || message.includes("production access")
+    || message.includes("sandbox")
     || message.includes("account is paused")
     || message.includes("account is under review")
     || message.includes("suppression list")

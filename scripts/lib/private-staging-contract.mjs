@@ -29,7 +29,7 @@ const ACTIVE_SYNTHETIC_PASSWORD_RECIPIENTS = Object.freeze([
 ]);
 const EXACT_LAMBDA_TRUST_SHA256 = "f3502e8666443cacc9bec965f5cc2886f9ed0e884c87714821fdc6872835efd0";
 const EXACT_IAM_POLICY_SHA256 = Object.freeze({
-  ApiExecutionRole: "c5a0705a2ed27948c5b786fba3d3cc7ad0e84803af76b8ac0b8242bf31ac31df",
+  ApiExecutionRole: "79d45f113cb5bd4285eb841936ae478c1793e1350100919590556611c6c39390",
   AdminExecutionRole: "8873e2b36fd95105b336d6168a236a44ee53ad16d6e7ffc8d7ec148d2938ae6b",
 });
 const EXACT_ENI_BOOTSTRAP_INLINE_POLICY_SHA256 = "e3fb825de200108539c51b58b92f3f39713dbdaaf5bb1e6d9b908ddb09b0e815";
@@ -214,20 +214,11 @@ function validateIam(resources) {
     }
     if (resource.Type === "AWS::IAM::Role") assert(functionCodeDenyCount === 1, `${logicalId} must preserve exactly one function-code EC2 deny`);
   }
-  assert(wildcardAllows.length === 3, "the only IAM Allows with Resource * must be the exact SES send statement and two conditional Lambda VPC ENI bootstrap policies");
+  assert(wildcardAllows.length === 2, "the only IAM Allows with Resource * must be the two conditional Lambda VPC ENI bootstrap policies");
   const eniWildcardAllows = wildcardAllows.filter((item) => item.sid === "LambdaVpcEniBootstrap");
   assert(JSON.stringify(sortedStrings(eniWildcardAllows.map((item) => item.logical_id))) === JSON.stringify(["AdminExecutionRole", "ApiExecutionRole"]), "unexpected IAM ENI wildcard Allow resource");
   assert(eniWildcardAllows.every((item) => item.condition === "LambdaEniBootstrapEnabled"), "temporary ENI bootstrap Allow must be true-only");
   assert(eniWildcardAllows.every((item) => JSON.stringify(item.actions) === JSON.stringify(sortedStrings(LAMBDA_VPC_ENI_ACTIONS))), "temporary ENI bootstrap action set drifted");
-  const sesWildcardAllows = wildcardAllows.filter((item) => item.sid === "SendSyntheticPasswordSetupEmail");
-  assert(sesWildcardAllows.length === 1 && sesWildcardAllows[0].logical_id === "ApiExecutionRole", "SES recipient-condition wildcard Allow must exist only on the staging API role");
-  assert(sesWildcardAllows[0].condition === null, "SES recipient-condition wildcard Allow must not depend on the ENI bootstrap condition");
-  assert(JSON.stringify(sesWildcardAllows[0].actions) === JSON.stringify(["ses:SendEmail"]), "SES recipient-condition wildcard Allow must grant only ses:SendEmail");
-  assert(JSON.stringify(sesWildcardAllows[0].statement_condition) === JSON.stringify({
-    StringEquals: { "ses:FromAddress": { Ref: "PasswordResetFromEmail" } },
-    "ForAllValues:StringEquals": { "ses:Recipients": ACTIVE_SYNTHETIC_PASSWORD_RECIPIENTS },
-    Null: { "ses:Recipients": "false" },
-  }), "SES recipient-condition wildcard Allow must restrict the exact sender and every active synthetic recipient");
   return wildcardAllows;
 }
 
@@ -456,14 +447,13 @@ function validateSecretsAndInternalAuth(resources, template) {
   const apiStatements = resourceStatements(resources.ApiExecutionRole);
   const send = apiStatements.find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail");
   const exactSesConditions = {
-    StringEquals: { "ses:FromAddress": { Ref: "PasswordResetFromEmail" } },
     "ForAllValues:StringEquals": { "ses:Recipients": ACTIVE_SYNTHETIC_PASSWORD_RECIPIENTS },
     Null: { "ses:Recipients": "false" },
   };
   assert(send?.Effect === "Allow", "API role SES statement is required");
   assert(JSON.stringify(sortedStrings(Array.isArray(send?.Action) ? send.Action : [send?.Action])) === JSON.stringify(["ses:SendEmail"]), "API role SES action must be only ses:SendEmail");
-  assert(send?.Resource === "*", "API role SES recipient-condition contract requires Resource *");
-  assert(JSON.stringify(send?.Condition) === JSON.stringify(exactSesConditions), "API role SES authority must restrict the exact sender and every active synthetic recipient");
+  assert(JSON.stringify(send?.Resource) === JSON.stringify({ Ref: "PasswordResetSesIdentityArn" }), "API role SES authority must bind the exact verified sender identity ARN");
+  assert(JSON.stringify(send?.Condition) === JSON.stringify(exactSesConditions), "API role SES authority must restrict every active synthetic recipient");
   assert(JSON.stringify(resources.ApiFunction?.Properties?.Environment?.Variables?.LAWOS_AUTH_PASSWORD_RESET_EMAIL_IDENTITY_ARN) === JSON.stringify({ Ref: "PasswordResetSesIdentityArn" }), "API deployment must retain the configured verified SES identity inventory");
   const sesEndpointPolicy = resources.SesApiEndpoint?.Properties?.PolicyDocument;
   assert(JSON.stringify(sesEndpointPolicy) === JSON.stringify({
@@ -607,7 +597,7 @@ export function validatePrivateStagingTemplate(template) {
     owner_delta_reasons: Object.freeze([
       "AWS Lambda VPC ENI bootstrap actions require Resource * until function ENIs are active",
       "AWS KMS key-policy Resource * denotes only the current staging KMS key but conflicts with the literal wildcard prohibition",
-      "AWS SES SendEmail requires Resource * on the exact API-role and condition-free VPC-endpoint Allows; private endpoint DNS, subnets, and security groups confine transport while sender and recipient restrictions remain on the API role",
+      "AWS SES VPC endpoint policy requires the approved condition-free Resource * exception; private endpoint DNS, subnets, and security groups confine transport while the API role binds the exact sender identity ARN and recipients",
     ]),
     bootstrap_default_enabled: false,
   });

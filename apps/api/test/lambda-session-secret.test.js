@@ -163,7 +163,13 @@ test("Lambda password reset email delivery omits same-account delegation and nev
 test("Lambda password reset email delivery classifies authorization failures without logging provider details", async () => {
   assert.equal(classifySesDeliveryFailure(new Error("because no VPC endpoint policy allows the ses:SendEmail action")), "vpc_endpoint_policy");
   assert.equal(classifySesDeliveryFailure(new Error("because no identity-based policy allows the ses:SendEmail action")), "identity_policy");
+  assert.equal(classifySesDeliveryFailure(new Error("with an explicit deny in a service control policy")), "service_control_policy");
+  assert.equal(classifySesDeliveryFailure(new Error("with an explicit deny in a permissions boundary")), "permissions_boundary");
+  assert.equal(classifySesDeliveryFailure(new Error("with an explicit deny in a session policy")), "session_policy");
+  assert.equal(classifySesDeliveryFailure(new Error("because no resource-based policy allows the ses:SendEmail action")), "resource_policy");
+  assert.equal(classifySesDeliveryFailure(new Error("is not authorized to perform: ses:SendEmail on resource")), "ses_sendemail_authorization");
   assert.equal(classifySesDeliveryFailure(new Error("Email address is not verified")), "ses_service");
+  assert.equal(classifySesDeliveryFailure(new Error("Your account remains in the SES sandbox")), "ses_service");
   assert.equal(classifySesDeliveryFailure(new Error("Access denied")), "unclassified");
   const genericAccessDenied = new Error("Access denied");
   genericAccessDenied.name = "AccessDeniedException";

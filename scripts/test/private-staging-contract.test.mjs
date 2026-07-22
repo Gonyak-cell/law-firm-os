@@ -34,8 +34,8 @@ test("private staging infrastructure contract is isolated and cost gated", () =>
   assert.equal(result.public_subnet_count, 0);
   assert.equal(result.interface_endpoint_count, 2);
   assert.equal(result.lambda_function_url_count, 0);
-  assert.equal(result.iam_wildcard_allow_count, 3);
-  assert.deepEqual(result.iam_wildcard_allow_sids, ["SendSyntheticPasswordSetupEmail", "LambdaVpcEniBootstrap", "LambdaVpcEniBootstrap"]);
+  assert.equal(result.iam_wildcard_allow_count, 2);
+  assert.deepEqual(result.iam_wildcard_allow_sids, ["LambdaVpcEniBootstrap", "LambdaVpcEniBootstrap"]);
   assert.deepEqual(result.kms_current_key_wildcard_allow_sids, ["EnableAccountIamAuthority", "AllowRegionalCloudWatchLogsEncryption"]);
   assert.equal(result.bootstrap_default_enabled, false);
   assert.ok(result.inline_template_byte_size > 0 && result.inline_template_byte_size <= 51_200);
@@ -157,7 +157,6 @@ test("private service endpoints and internal password authority are mandatory", 
     .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail");
   const exactEndpointSend = exact.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0];
   const exactRecipientCondition = {
-    StringEquals: { "ses:FromAddress": { Ref: "PasswordResetFromEmail" } },
     "ForAllValues:StringEquals": {
       "ses:Recipients": [
         "jwsuh+lawos-staging-admin@amic.kr",
@@ -170,7 +169,7 @@ test("private service endpoints and internal password authority are mandatory", 
     Sid: "SendSyntheticPasswordSetupEmail",
     Effect: "Allow",
     Action: "ses:SendEmail",
-    Resource: "*",
+    Resource: { Ref: "PasswordResetSesIdentityArn" },
     Condition: exactRecipientCondition,
   });
   assert.deepEqual(exactEndpointSend, {
@@ -242,11 +241,11 @@ test("private service endpoints and internal password authority are mandatory", 
     .Action = ["ses:SendEmail", "ses:SendRawEmail"];
   assert.throws(() => validatePrivateStagingTemplate(apiRawEmail), /IAM policy contract|only ses:SendEmail/u);
 
-  const apiNonWildcardResource = clone(fixture("template.json"));
-  apiNonWildcardResource.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
+  const apiWildcardResource = clone(fixture("template.json"));
+  apiWildcardResource.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
     .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail")
-    .Resource = { Ref: "PasswordResetSesIdentityArn" };
-  assert.throws(() => validatePrivateStagingTemplate(apiNonWildcardResource), /IAM policy contract|Resource \*/u);
+    .Resource = "*";
+  assert.throws(() => validatePrivateStagingTemplate(apiWildcardResource), /IAM policy contract|sender identity ARN/u);
 
   const endpointMessageConditions = clone(fixture("template.json"));
   endpointMessageConditions.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition = {
@@ -280,11 +279,11 @@ test("private service endpoints and internal password authority are mandatory", 
     .Condition.Null;
   assert.throws(() => validatePrivateStagingTemplate(missingRecipientNullGuard), /IAM policy contract|every active synthetic recipient/u);
 
-  const wrongSesFromAddress = clone(fixture("template.json"));
-  wrongSesFromAddress.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
+  const redundantSesFromAddress = clone(fixture("template.json"));
+  redundantSesFromAddress.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
     .find((statement) => statement.Sid === "SendSyntheticPasswordSetupEmail")
-    .Condition.StringEquals["ses:FromAddress"] = "*@amic.kr";
-  assert.throws(() => validatePrivateStagingTemplate(wrongSesFromAddress), /exact sender/u);
+    .Condition.StringEquals = { "ses:FromAddress": { Ref: "PasswordResetFromEmail" } };
+  assert.throws(() => validatePrivateStagingTemplate(redundantSesFromAddress), /IAM policy contract|every active synthetic recipient/u);
 
   const missingSesRequestIdentity = clone(fixture("template.json"));
   delete missingSesRequestIdentity.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_AUTH_PASSWORD_RESET_EMAIL_IDENTITY_ARN;

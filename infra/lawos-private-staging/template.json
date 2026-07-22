@@ -945,11 +945,8 @@
                   "Sid": "SendSyntheticPasswordSetupEmail",
                   "Effect": "Allow",
                   "Action": "ses:SendEmail",
-                  "Resource": "*",
+                  "Resource": { "Ref": "PasswordResetSesIdentityArn" },
                   "Condition": {
-                    "StringEquals": {
-                      "ses:FromAddress": { "Ref": "PasswordResetFromEmail" }
-                    },
                     "ForAllValues:StringEquals": {
                       "ses:Recipients": [
                         "jwsuh+lawos-staging-admin@amic.kr",
