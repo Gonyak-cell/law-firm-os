@@ -176,11 +176,7 @@ test("private service endpoints and internal password authority are mandatory", 
   assert.deepEqual(exactEndpointSend, {
     Sid: "SyntheticPasswordSetupOnly",
     Effect: "Allow",
-    Principal: {
-      AWS: {
-        "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/${ApiExecutionRole}/lawos-private-staging-api",
-      },
-    },
+    Principal: { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
     Action: "ses:SendEmail",
     Resource: "*",
     Condition: {
@@ -207,22 +203,20 @@ test("private service endpoints and internal password authority are mandatory", 
 
   const broadSesPrincipal = clone(fixture("template.json"));
   broadSesPrincipal.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Principal = "*";
-  assert.throws(() => validatePrivateStagingTemplate(broadSesPrincipal), /assumed-role session principal/u);
+  assert.throws(() => validatePrivateStagingTemplate(broadSesPrincipal), /API role principal ARN/u);
 
   const missingSesConditions = clone(fixture("template.json"));
   delete missingSesConditions.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition;
-  assert.throws(() => validatePrivateStagingTemplate(missingSesConditions), /assumed-role session principal/u);
+  assert.throws(() => validatePrivateStagingTemplate(missingSesConditions), /API role principal ARN/u);
 
   const wrongSesPrincipalArn = clone(fixture("template.json"));
-  wrongSesPrincipalArn.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Principal.AWS = {
-    "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/${AdminExecutionRole}/lawos-private-staging-admin",
-  };
-  assert.throws(() => validatePrivateStagingTemplate(wrongSesPrincipalArn), /assumed-role session principal/u);
+  wrongSesPrincipalArn.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Principal.AWS = { "Fn::GetAtt": ["AdminExecutionRole", "Arn"] };
+  assert.throws(() => validatePrivateStagingTemplate(wrongSesPrincipalArn), /API role principal ARN/u);
 
   const wildcardSesSession = clone(fixture("template.json"));
-  wildcardSesSession.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Principal.AWS["Fn::Sub"] =
-    "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/${ApiExecutionRole}/*";
-  assert.throws(() => validatePrivateStagingTemplate(wildcardSesSession), /assumed-role session principal/u);
+  wildcardSesSession.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Principal.AWS =
+    "arn:aws:sts::770880870480:assumed-role/lawos-private-staging-api-role/*";
+  assert.throws(() => validatePrivateStagingTemplate(wildcardSesSession), /API role principal ARN/u);
 
   const nonWildcardSesResource = clone(fixture("template.json"));
   nonWildcardSesResource.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Resource = { Ref: "PasswordResetSesIdentityArn" };

@@ -408,11 +408,7 @@
             {
               "Sid": "SyntheticPasswordSetupOnly",
               "Effect": "Allow",
-              "Principal": {
-                "AWS": {
-                  "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/${ApiExecutionRole}/lawos-private-staging-api"
-                }
-              },
+              "Principal": { "AWS": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
               "Action": "ses:SendEmail",
               "Resource": "*",
               "Condition": {
