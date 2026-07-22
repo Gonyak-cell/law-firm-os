@@ -51,7 +51,7 @@ function syntheticSources() {
 }
 
 test("CUT-007 HTTP transport paces bounded retries after the cost-envelope throttle activates", async () => {
-  const statuses = [429, 200, 200];
+  const statuses = [429, 200, 200, 200];
   const waits = [];
   const transport = createPrivateStagingHttpTransport({
     baseUrl: "https://private-staging.example.invalid",
@@ -61,6 +61,7 @@ test("CUT-007 HTTP transport paces bounded retries after the cost-envelope throt
     }),
     wait: async (milliseconds) => waits.push(milliseconds),
     throttleRetryWaitMs: 1,
+    browserBurstRecoveryWaitMs: 5,
   });
 
   assert.deepEqual(await transport({ path: "/api/health" }), {
@@ -75,7 +76,14 @@ test("CUT-007 HTTP transport paces bounded retries after the cost-envelope throt
     request_attempt_count: 1,
     throttle_retry_count: 0,
   });
-  assert.deepEqual(waits, [1, 1]);
+  assert.deepEqual(await transport.recoverBurstCapacity(), { waited: true, wait_ms: 5 });
+  assert.deepEqual(await transport({ path: "/api/health" }), {
+    status: 200,
+    body: {},
+    request_attempt_count: 1,
+    throttle_retry_count: 0,
+  });
+  assert.deepEqual(waits, [1, 1, 5]);
 });
 
 test("CUT-007 HTTP transport returns a persistent throttle after the bounded retry limit", async () => {

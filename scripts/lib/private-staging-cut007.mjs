@@ -7,6 +7,7 @@ const SYNTHETIC_EMPLOYEE = /^emp-lawos-staging-[a-z0-9-]+$/u;
 const RESET_EXPIRED = "AUTH_PASSWORD_RESET_TOKEN_EXPIRED";
 const STAGING_THROTTLE_RETRY_WAIT_MS = 26_000;
 const STAGING_THROTTLE_RETRY_LIMIT = 2;
+const STAGING_BROWSER_BURST_RECOVERY_WAIT_MS = 520_000;
 
 function requiredText(value, name, pattern = null) {
   const text = String(value ?? "").trim();
@@ -119,6 +120,7 @@ export function createPrivateStagingHttpTransport({
   wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
   throttleRetryWaitMs = STAGING_THROTTLE_RETRY_WAIT_MS,
   throttleRetryLimit = STAGING_THROTTLE_RETRY_LIMIT,
+  browserBurstRecoveryWaitMs = STAGING_BROWSER_BURST_RECOVERY_WAIT_MS,
 } = {}) {
   const endpoint = new URL(requiredText(baseUrl, "baseUrl"));
   if (endpoint.protocol !== "https:" && !["localhost", "127.0.0.1"].includes(endpoint.hostname)) {
@@ -127,8 +129,9 @@ export function createPrivateStagingHttpTransport({
   if (typeof fetchImpl !== "function" || typeof wait !== "function") throw new TypeError("fetch and wait implementations are required");
   if (!Number.isInteger(throttleRetryWaitMs) || throttleRetryWaitMs < 0) throw new TypeError("throttle retry wait must be a non-negative integer");
   if (!Number.isInteger(throttleRetryLimit) || throttleRetryLimit < 0 || throttleRetryLimit > 3) throw new TypeError("throttle retry limit must be between zero and three");
+  if (!Number.isInteger(browserBurstRecoveryWaitMs) || browserBurstRecoveryWaitMs < 0) throw new TypeError("browser burst recovery wait must be a non-negative integer");
   let throttlePacingActive = false;
-  return async function transport({ method = "GET", path, headers = {}, body } = {}) {
+  async function transport({ method = "GET", path, headers = {}, body } = {}) {
     const url = new URL(requiredText(path, "request path"), endpoint);
     invariant(url.origin === endpoint.origin, "transport", "request path escaped the approved staging origin");
     const requestHeaders = { ...headers };
@@ -158,7 +161,16 @@ export function createPrivateStagingHttpTransport({
       throttlePacingActive = true;
       await wait(throttleRetryWaitMs);
     }
-  };
+  }
+  Object.defineProperty(transport, "recoverBurstCapacity", {
+    value: async () => {
+      if (!throttlePacingActive) return Object.freeze({ waited: false, wait_ms: 0 });
+      await wait(browserBurstRecoveryWaitMs);
+      throttlePacingActive = false;
+      return Object.freeze({ waited: true, wait_ms: browserBurstRecoveryWaitMs });
+    },
+  });
+  return transport;
 }
 
 export async function runPrivateStagingCut007({
@@ -200,6 +212,7 @@ export async function runPrivateStagingCut007({
     role_negative_count: 0,
     idempotency_replay_count: 0,
     throttle_retry_count: 0,
+    throttle_burst_recovery_count: 0,
   };
 
   async function request(step, expectedStatus, { method = "GET", path, token = null, body } = {}) {
@@ -848,6 +861,13 @@ export async function runPrivateStagingCut007({
   invariant(readbackResult.safe_counts?.wrong_tenant_visible_count === 0, "postgres-readback", "wrong-tenant visibility is nonzero");
   counters.assertion_count += 1;
 
+  const burstRecovery = typeof transport.recoverBurstCapacity === "function"
+    ? await transport.recoverBurstCapacity()
+    : Object.freeze({ waited: false, wait_ms: 0 });
+  if (counters.throttle_retry_count > 0) {
+    invariant(burstRecovery?.waited === true, "browser-burst-recovery", "throttled API transport did not recover browser burst capacity");
+    counters.throttle_burst_recovery_count += 1;
+  }
   const browserResult = safeBrowserResult(await browserSmoke({
     execution_id: executionId,
     account: Object.freeze({ email: principals.admin.email, user_id: principals.admin.user_id }),

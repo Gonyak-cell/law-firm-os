@@ -6,20 +6,29 @@ import test from "node:test";
 import { runPrivateStagingForestBrowserSmoke } from "../lib/private-staging-browser-smoke.mjs";
 
 class FakePage {
-  constructor() {
+  constructor(responseStatus = null) {
     this.handlers = new Map();
+    this.responseStatus = responseStatus;
   }
   on(name, handler) { this.handlers.set(name, handler); }
-  async goto() {}
+  async goto() {
+    if (this.responseStatus != null) {
+      this.handlers.get("response")?.({
+        url: () => "http://127.0.0.1:5173/api/health",
+        status: () => this.responseStatus,
+        request: () => ({ method: () => "GET" }),
+      });
+    }
+  }
   locator() { return { fill: async () => {}, click: async () => {} }; }
   async waitForSelector() {}
   async evaluate(fn, value) { return value ? true : true; }
   async screenshot({ path }) { writeFileSync(path, "synthetic-browser-evidence"); }
 }
 
-function fakeLaunchBrowser() {
+function fakeLaunchBrowser(responseStatus = null) {
   return Promise.resolve({
-    newContext: async () => ({ newPage: async () => new FakePage() }),
+    newContext: async () => ({ newPage: async () => new FakePage(responseStatus) }),
     close: async () => {},
   });
 }
@@ -57,4 +66,17 @@ test("Forest browser smoke rejects non-synthetic accounts and non-HTTPS staging"
   };
   await assert.rejects(() => runPrivateStagingForestBrowserSmoke({ ...base, account: { ...base.account, email: "real@amic.kr" } }), /synthetic account email/u);
   await assert.rejects(() => runPrivateStagingForestBrowserSmoke({ ...base, apiBaseUrl: "http://public.example.invalid" }), /HTTPS/u);
+});
+
+test("Forest browser smoke rejects throttled API responses", async () => {
+  const evidenceDir = mkdtempSync(join(tmpdir(), "lawos-browser-smoke-"));
+  chmodSync(evidenceDir, 0o700);
+  await assert.rejects(() => runPrivateStagingForestBrowserSmoke({
+    apiBaseUrl: "https://lawos-private-staging.example.invalid",
+    webBaseUrl: "http://127.0.0.1:5173",
+    account: { email: "jwsuh+lawos-staging-admin@amic.kr", user_id: "synthetic-lawos-staging-admin" },
+    password: "Synthetic-only-password-123!",
+    evidenceDir,
+    launchBrowser: () => fakeLaunchBrowser(429),
+  }), /console errors or failed critical requests/u);
 });

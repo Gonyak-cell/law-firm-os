@@ -94,7 +94,7 @@ export async function runPrivateStagingForestBrowserSmoke({
     page.on("requestfailed", (request) => failedRequests.push(sha256(`${request.method()}:${new URL(request.url()).pathname}`).slice(0, 16)));
     page.on("response", (response) => {
       const url = new URL(response.url());
-      if (url.origin === web.origin && url.pathname.startsWith("/api/") && response.status() >= 500) {
+      if (url.origin === web.origin && (url.pathname.startsWith("/api/") || url.pathname.startsWith("/master-data")) && response.status() >= 400) {
         failedRequests.push(sha256(`${response.request().method()}:${url.pathname}:${response.status()}`).slice(0, 16));
       }
     });
