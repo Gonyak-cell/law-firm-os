@@ -670,6 +670,7 @@ export function classifySesDeliveryFailure(error) {
     || message.includes("account is under review")
     || message.includes("suppression list")
   ) return "ses_service";
+  if (error?.name === "AccessDeniedException" && Number(error?.$metadata?.httpStatusCode) === 403) return "authorization_policy";
   return "unclassified";
 }
 

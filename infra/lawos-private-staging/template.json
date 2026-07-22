@@ -413,8 +413,7 @@
               "Resource": "*",
               "Condition": {
                 "StringEquals": {
-                  "aws:SourceVpc": { "Ref": "Vpc" },
-                  "aws:PrincipalAccount": { "Ref": "AWS::AccountId" }
+                  "aws:SourceVpc": { "Ref": "Vpc" }
                 }
               }
             }

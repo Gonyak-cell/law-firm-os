@@ -169,7 +169,6 @@ test("private service endpoints and internal password authority are mandatory", 
   const exactEndpointCondition = {
     StringEquals: {
       "aws:SourceVpc": { Ref: "Vpc" },
-      "aws:PrincipalAccount": { Ref: "AWS::AccountId" },
     },
   };
   assert.deepEqual(exactApiSend, {
@@ -229,13 +228,9 @@ test("private service endpoints and internal password authority are mandatory", 
   wrongSourceVpc.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.StringEquals["aws:SourceVpc"] = { Ref: "DbSubnetA" };
   assert.throws(() => validatePrivateStagingTemplate(wrongSourceVpc), /exact staging VPC/u);
 
-  const missingPrincipalAccount = clone(fixture("template.json"));
-  delete missingPrincipalAccount.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.StringEquals["aws:PrincipalAccount"];
-  assert.throws(() => validatePrivateStagingTemplate(missingPrincipalAccount), /exact staging VPC and account/u);
-
-  const wrongPrincipalAccount = clone(fixture("template.json"));
-  wrongPrincipalAccount.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.StringEquals["aws:PrincipalAccount"] = "000000000000";
-  assert.throws(() => validatePrivateStagingTemplate(wrongPrincipalAccount), /exact staging VPC and account/u);
+  const unsupportedPrincipalAccount = clone(fixture("template.json"));
+  unsupportedPrincipalAccount.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.StringEquals["aws:PrincipalAccount"] = { Ref: "AWS::AccountId" };
+  assert.throws(() => validatePrivateStagingTemplate(unsupportedPrincipalAccount), /exact staging VPC/u);
 
   const wildcardSesSession = clone(fixture("template.json"));
   wildcardSesSession.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Principal = {
@@ -265,7 +260,7 @@ test("private service endpoints and internal password authority are mandatory", 
 
   const endpointMessageConditions = clone(fixture("template.json"));
   endpointMessageConditions.Resources.SesApiEndpoint.Properties.PolicyDocument.Statement[0].Condition.StringEquals["ses:FromAddress"] = { Ref: "PasswordResetFromEmail" };
-  assert.throws(() => validatePrivateStagingTemplate(endpointMessageConditions), /exact staging VPC and account/u);
+  assert.throws(() => validatePrivateStagingTemplate(endpointMessageConditions), /exact staging VPC/u);
 
   const missingActiveRecipient = clone(fixture("template.json"));
   missingActiveRecipient.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement

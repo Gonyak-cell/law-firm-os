@@ -165,6 +165,10 @@ test("Lambda password reset email delivery classifies authorization failures wit
   assert.equal(classifySesDeliveryFailure(new Error("because no identity-based policy allows the ses:SendEmail action")), "identity_policy");
   assert.equal(classifySesDeliveryFailure(new Error("Email address is not verified")), "ses_service");
   assert.equal(classifySesDeliveryFailure(new Error("Access denied")), "unclassified");
+  const genericAccessDenied = new Error("Access denied");
+  genericAccessDenied.name = "AccessDeniedException";
+  genericAccessDenied.$metadata = { httpStatusCode: 403 };
+  assert.equal(classifySesDeliveryFailure(genericAccessDenied), "authorization_policy");
 
   const warnings = [];
   const originalWarn = console.warn;

@@ -463,7 +463,6 @@ function validateSecretsAndInternalAuth(resources, template) {
   const exactSesEndpointConditions = {
     StringEquals: {
       "aws:SourceVpc": { Ref: "Vpc" },
-      "aws:PrincipalAccount": { Ref: "AWS::AccountId" },
     },
   };
   assert(send?.Effect === "Allow", "API role SES statement is required");
@@ -482,7 +481,7 @@ function validateSecretsAndInternalAuth(resources, template) {
       Resource: "*",
       Condition: exactSesEndpointConditions,
     }],
-  }), "SES endpoint wildcard principal must be confined to the exact staging VPC and account using ses:SendEmail and Resource *");
+  }), "SES endpoint wildcard principal must be confined to the exact staging VPC using ses:SendEmail and Resource *");
   const syntheticManifest = JSON.parse(resources.SyntheticManifestSecret?.Properties?.SecretString ?? "null");
   assert(syntheticManifest?.schema_version === "law-firm-os.synthetic-staging-manifest.v2", "synthetic manifest must use purpose-bound schema v2");
   assert((syntheticManifest?.tenant_ids ?? []).length === 6, "synthetic manifest must isolate CUT-005, CUT-006, and CUT-007 across six tenants");
