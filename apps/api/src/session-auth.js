@@ -79,6 +79,21 @@ const DEFAULT_MAX_FAILED_LOGINS = 5;
 const DEFAULT_LOGIN_LOCK_MS = 15 * 60 * 1000;
 const DEFAULT_PASSWORD_RESET_MIN_LENGTH = 12;
 const DEFAULT_ENTRA_STEP_UP_MAX_AUTH_AGE_MS = 5 * 60 * 1000;
+const PASSWORD_RESET_DELIVERY_FAILURE_CLASSES = new Set([
+  "authorization_policy",
+  "delivery_adapter_exception",
+  "identity_policy",
+  "message_preparation",
+  "permissions_boundary",
+  "provider_failure",
+  "resource_policy",
+  "service_control_policy",
+  "ses_sendemail_authorization",
+  "ses_service",
+  "session_policy",
+  "unclassified",
+  "vpc_endpoint_policy",
+]);
 const LAWOS_RUNTIME_TENANT_IDS = Object.freeze([
   MATTER_VAULT_REGISTERED_TENANT_ID,
   "tenant_rp04_synthetic",
@@ -96,6 +111,11 @@ const LAWOS_RUNTIME_TENANT_IDS = Object.freeze([
   "tenant_upl_c09_c12_outlook",
   "matter-runtime-tenant",
 ]);
+
+function safePasswordResetDeliveryFailureClass(value, fallback = "provider_failure") {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  return PASSWORD_RESET_DELIVERY_FAILURE_CLASSES.has(normalized) ? normalized : fallback;
+}
 
 const TENANT_ADMIN_ACTION_PREFIXES = Object.freeze([
   "admin_permission:",
@@ -852,7 +872,7 @@ export function createApiSessionAuth({
         outcome: "dropped",
         last_error_code: "AUTH_PASSWORD_RESET_TARGET_INELIGIBLE",
       });
-      return "dropped";
+      return Object.freeze({ outcome: "dropped" });
     }
     const token = createPasswordResetToken(centralIdentityRepository ? job.tenant_id : null);
     const resetRecord = centralIdentityRepository
@@ -890,6 +910,7 @@ export function createApiSessionAuth({
         status: "failed",
         message_id: null,
         reason: "password_reset_email_delivery_exception",
+        failure_class: "delivery_adapter_exception",
         token_material_returned: false,
         reset_url_returned: false,
       });
@@ -913,7 +934,10 @@ export function createApiSessionAuth({
         outcome: "retry",
         last_error_code: "AUTH_PASSWORD_RESET_DELIVERY_FAILED",
       });
-      return "retry";
+      return Object.freeze({
+        outcome: "retry",
+        failure_class: safePasswordResetDeliveryFailureClass(delivery.failure_class),
+      });
     } else {
       await requireOperationalPasswordReset(user);
     }
@@ -923,7 +947,7 @@ export function createApiSessionAuth({
       worker_id: workerId,
       outcome: "completed",
     });
-    return "completed";
+    return Object.freeze({ outcome: "completed" });
   }
 
   async function processPasswordResetQueue({
@@ -941,9 +965,17 @@ export function createApiSessionAuth({
       lease_ms: 60_000,
     });
     const counts = { claimed: jobs.length, completed: 0, dropped: 0, retry: 0 };
+    const failureClasses = {};
     for (const job of jobs) {
-      const outcome = await processPasswordResetJob(job, workerId);
-      counts[outcome] += 1;
+      const result = await processPasswordResetJob(job, workerId);
+      counts[result.outcome] += 1;
+      if (result.failure_class) {
+        const failureClass = safePasswordResetDeliveryFailureClass(result.failure_class);
+        failureClasses[failureClass] = (failureClasses[failureClass] ?? 0) + 1;
+      }
+    }
+    if (Object.keys(failureClasses).length > 0) {
+      counts.failure_classes = Object.freeze(Object.fromEntries(Object.entries(failureClasses).sort(([left], [right]) => left.localeCompare(right))));
     }
     return Object.freeze(counts);
   }

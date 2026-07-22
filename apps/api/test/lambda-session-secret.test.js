@@ -204,18 +204,58 @@ test("Lambda password reset email delivery classifies authorization failures wit
     });
     assert.equal(result.status, "failed");
     assert.equal(result.reason, "sesv2_send_failed_403");
+    assert.equal(result.failure_class, "identity_policy");
   } finally {
     console.warn = originalWarn;
   }
 
   assert.equal(warnings.length, 1);
   const warning = JSON.parse(warnings[0]);
+  assert.equal(warning.failure_class, "identity_policy");
   assert.equal(warning.authorization_failure_layer, "identity_policy");
   assert.equal(warning.provider_status_code, 403);
   assert.equal(warnings[0].includes("reset-token-value"), false);
   assert.equal(warnings[0].includes("private@example.test"), false);
   assert.equal(warnings[0].includes("request-id-secret"), false);
   assert.equal(Object.hasOwn(warning, "provider_message"), false);
+});
+
+test("Lambda password reset email delivery safely classifies message preparation failures", async () => {
+  const warnings = [];
+  const originalWarn = console.warn;
+  console.warn = (line) => warnings.push(String(line));
+  try {
+    const delivery = createLambdaPasswordResetEmailDelivery({
+      env: {
+        LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY: "sesv2",
+        LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM: "no-reply@amic.kr",
+        LAWOS_AUTH_PASSWORD_RESET_BASE_URL: "https://matter.example.test/api/auth/password-reset/confirm",
+        AWS_REGION: "ap-northeast-2",
+      },
+      client: {
+        async send() {
+          assert.fail("provider send must not run after message preparation fails");
+        },
+      },
+    });
+    const result = await delivery({
+      to: "private@example.test",
+      token: Symbol("hidden-reset-token"),
+      expires_at: "2026-07-06T01:00:00.000Z",
+    });
+    assert.equal(result.status, "failed");
+    assert.equal(result.failure_class, "message_preparation");
+    assert.equal(JSON.stringify(result).includes("hidden-reset-token"), false);
+  } finally {
+    console.warn = originalWarn;
+  }
+
+  assert.equal(warnings.length, 1);
+  const warning = JSON.parse(warnings[0]);
+  assert.equal(warning.failure_class, "message_preparation");
+  assert.equal(warning.authorization_failure_layer, null);
+  assert.equal(warnings[0].includes("hidden-reset-token"), false);
+  assert.equal(warnings[0].includes("private@example.test"), false);
 });
 
 test("Lambda password reset email delivery remains unconfigured without an approved mail surface", () => {

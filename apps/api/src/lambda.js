@@ -689,23 +689,30 @@ export function createLambdaPasswordResetEmailDelivery({
   if (!config.configured) return undefined;
   const ses = client ?? new SESv2Client(awsClientConfig(env, config.region || env.AWS_REGION || env.AWS_DEFAULT_REGION || "ap-northeast-2"));
   return async function deliverPasswordResetEmail({ to, token, expires_at }) {
-    const resetUrl = passwordResetUrl({ baseUrl: config.resetConfirmBaseUrl, token });
-    const resetOpenUrl = passwordResetOpenUrl({
-      baseUrl: config.resetOpenBaseUrl,
-      token,
-      fallbackUrl: resetUrl,
-    });
+    let deliveryStage = "message_preparation";
     let body;
     try {
-      body = await ses.send(new SendEmailCommand(createSesV2SendEmailInput({ config, to, resetUrl, resetOpenUrl, expiresAt: expires_at })));
+      const resetUrl = passwordResetUrl({ baseUrl: config.resetConfirmBaseUrl, token });
+      const resetOpenUrl = passwordResetOpenUrl({
+        baseUrl: config.resetOpenBaseUrl,
+        token,
+        fallbackUrl: resetUrl,
+      });
+      const command = new SendEmailCommand(createSesV2SendEmailInput({ config, to, resetUrl, resetOpenUrl, expiresAt: expires_at }));
+      deliveryStage = "provider_send";
+      body = await ses.send(command);
     } catch (error) {
       const status = Number(error?.$metadata?.httpStatusCode) || 502;
+      const failureClass = deliveryStage === "message_preparation"
+        ? "message_preparation"
+        : classifySesDeliveryFailure(error);
       console.warn(JSON.stringify({
         event: "lawos_password_reset_email_delivery_failed",
         provider: config.provider,
         provider_status_code: status,
         provider_response_hash: error?.name ? sha256Hex(error.name) : null,
-        authorization_failure_layer: classifySesDeliveryFailure(error),
+        failure_class: failureClass,
+        authorization_failure_layer: deliveryStage === "provider_send" ? failureClass : null,
         token_material_logged: false,
         reset_url_logged: false,
       }));
@@ -714,6 +721,7 @@ export function createLambdaPasswordResetEmailDelivery({
         provider: config.provider,
         status: "failed",
         reason: `sesv2_send_failed_${status}`,
+        failure_class: failureClass,
         token_material_returned: false,
         reset_url_returned: false,
       });

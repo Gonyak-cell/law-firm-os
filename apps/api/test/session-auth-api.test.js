@@ -548,7 +548,7 @@ test("Operational password reset hides production-disabled QA account state", as
 test("Operational password reset delivery failure does not force reset-required login lockout", async () => {
   const account = user();
   const password = "delivery-failure-keeps-old-password";
-  async function assertFailedDeliveryDoesNotLockOut({ passwordResetEmailDelivery }) {
+  async function assertFailedDeliveryDoesNotLockOut({ passwordResetEmailDelivery, expectedFailureClass }) {
     const sessionAuth = createApiSessionAuth({
       profile: "operational",
       secret: "operational-reset-failure-secret-32",
@@ -564,7 +564,13 @@ test("Operational password reset delivery failure does not force reset-required 
       assert.equal(reset.status, 200);
       assert.equal(reset.body.email_delivery.status, "accepted");
       const processed = await sessionAuth.processPasswordResetQueue();
-      assert.deepEqual(processed, { claimed: 1, completed: 0, dropped: 0, retry: 1 });
+      assert.deepEqual(processed, {
+        claimed: 1,
+        completed: 0,
+        dropped: 0,
+        retry: 1,
+        failure_classes: { [expectedFailureClass]: 1 },
+      });
 
       const stillValid = await json(baseUrl, "/api/auth/login", {
         method: "POST",
@@ -581,12 +587,15 @@ test("Operational password reset delivery failure does not force reset-required 
       provider: "test-delivery",
       status: "failed",
       message_id: null,
+      failure_class: "private@example.test",
     }),
+    expectedFailureClass: "provider_failure",
   });
   await assertFailedDeliveryDoesNotLockOut({
     passwordResetEmailDelivery: async () => {
       throw new Error("simulated network failure");
     },
+    expectedFailureClass: "delivery_adapter_exception",
   });
 });
 
@@ -611,7 +620,13 @@ test("Operational password reset delivery exception does not expose exception te
     assert.equal(reset.status, 200);
     assert.equal(reset.body.email_delivery.status, "accepted");
     const processed = await sessionAuth.processPasswordResetQueue();
-    assert.deepEqual(processed, { claimed: 1, completed: 0, dropped: 0, retry: 1 });
+    assert.deepEqual(processed, {
+      claimed: 1,
+      completed: 0,
+      dropped: 0,
+      retry: 1,
+      failure_classes: { delivery_adapter_exception: 1 },
+    });
     assert.equal(JSON.stringify(reset.body).includes("network failure"), false);
 
     const stillValid = await json(baseUrl, "/api/auth/login", {
