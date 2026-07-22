@@ -371,6 +371,11 @@ export async function runPrivateStagingCut007({
     token: adminToken,
   });
   invariant((links.body.links ?? []).some((link) => link.employee_id === principals.admin.employee_id), "hrx-employee-user-links", "employee-user link is missing", links);
+  const repeatedLinks = await request("hrx-employee-user-links-repeat", 200, {
+    path: `/api/hrx/employee-user-links?${encodeQuery({ user_id: principals.admin.user_id })}`,
+    token: adminToken,
+  });
+  invariant((repeatedLinks.body.links ?? []).some((link) => link.employee_id === principals.admin.employee_id), "hrx-employee-user-links-repeat", "repeated audited read lost the employee-user link", repeatedLinks);
   const attorneyList = await request("hrx-role-scoped-list", 200, {
     path: "/api/hrx/employees",
     token: attorneyToken,
@@ -398,8 +403,8 @@ export async function runPrivateStagingCut007({
     body: hrxMutationBody,
   });
   invariant(hrxMutation.body.employee?.display_name === hrxMutationBody.display_name, "hrx-synthetic-mutation", "HRX mutation readback mismatch", hrxMutation);
-  counters.assertion_count += 9;
-  counters.hrx_flow_count += 7;
+  counters.assertion_count += 10;
+  counters.hrx_flow_count += 8;
 
   const masterQuery = query(primaryTenantId, "master-read", { model_type: "ClientGroup", limit: 100 });
   const clients = await request("client-search", 200, { path: `/master-data/records?${masterQuery}`, token: adminToken });
@@ -804,12 +809,15 @@ export async function runPrivateStagingCut007({
   counters.assertion_count += 6;
   counters.finance_portal_flow_count += 6;
 
-  const domainAudits = await Promise.all([
-    request("matter-audit", 200, { path: `/api/matters/audit?${query(primaryTenantId, "matter-audit")}`, token: adminToken }),
-    request("dms-audit", 200, { path: `/api/vault/audit?${query(primaryTenantId, "dms-audit")}`, token: adminToken }),
-    request("finance-audit", 200, { path: `/api/finance/audit?${query(primaryTenantId, "finance-audit")}`, token: adminToken }),
-    request("portal-audit", 200, { path: `/api/portal/audit?${query(primaryTenantId, "portal-audit")}`, token: adminToken }),
-  ]);
+  const domainAudits = [];
+  for (const [step, path] of [
+    ["matter-audit", `/api/matters/audit?${query(primaryTenantId, "matter-audit")}`],
+    ["dms-audit", `/api/vault/audit?${query(primaryTenantId, "dms-audit")}`],
+    ["finance-audit", `/api/finance/audit?${query(primaryTenantId, "finance-audit")}`],
+    ["portal-audit", `/api/portal/audit?${query(primaryTenantId, "portal-audit")}`],
+  ]) {
+    domainAudits.push(await request(step, 200, { path, token: adminToken }));
+  }
   invariant(domainAudits.every((result) => Array.isArray(result.body.items) && result.body.items.length > 0), "domain-audit", "one or more domain audit streams are empty");
   counters.assertion_count += 1;
 

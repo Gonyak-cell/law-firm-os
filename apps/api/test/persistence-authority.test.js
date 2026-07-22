@@ -9,7 +9,11 @@ import {
   preparePersistenceAuthority,
   resolvePersistenceAuthority,
 } from "../src/persistence-authority.js";
-import { createApiServer, startApiServer } from "../src/server.js";
+import {
+  createApiServer,
+  resolvePostgresRequestIdempotencyKey,
+  startApiServer,
+} from "../src/server.js";
 import { STORE_PATH_MANIFEST } from "../src/store-path-manifest.js";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
@@ -20,6 +24,42 @@ const TENANT_CONTEXT_SECRET = "test-only-postgres-tenant-context-secret-material
 function storePathsUnder(root) {
   return Object.fromEntries(STORE_PATH_MANIFEST.map((entry) => [entry.key, join(root, entry.fileName)]));
 }
+
+test("PostgreSQL audited reads use occurrence-bound idempotency while mutations preserve replay keys", () => {
+  const base = {
+    request_target_hash: "a".repeat(64),
+    request_body_hash: "b".repeat(64),
+  };
+  const firstRead = resolvePostgresRequestIdempotencyKey({
+    ...base,
+    method: "GET",
+    explicit_key: "caller-reused-read-key",
+    request_occurrence_id: "read-occurrence-1",
+  });
+  const repeatedRead = resolvePostgresRequestIdempotencyKey({
+    ...base,
+    method: "GET",
+    explicit_key: "caller-reused-read-key",
+    request_occurrence_id: "read-occurrence-2",
+  });
+  assert.match(firstRead, /^request-occurrence:[a-f0-9]{64}$/u);
+  assert.notEqual(firstRead, repeatedRead);
+  assert.equal(resolvePostgresRequestIdempotencyKey({
+    ...base,
+    method: "POST",
+    explicit_key: "explicit-mutation-key",
+    body_key: "body-mutation-key",
+  }), "explicit-mutation-key");
+  assert.equal(resolvePostgresRequestIdempotencyKey({
+    ...base,
+    method: "PATCH",
+    body_key: "body-mutation-key",
+  }), "body-mutation-key");
+  assert.equal(
+    resolvePostgresRequestIdempotencyKey({ ...base, method: "DELETE" }),
+    resolvePostgresRequestIdempotencyKey({ ...base, method: "DELETE" }),
+  );
+});
 
 test("persistence authority selection is explicit and file-current does not initialize PostgreSQL", async () => {
   assert.equal(resolvePersistenceAuthority({ env: {} }), LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent);

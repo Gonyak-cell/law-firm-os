@@ -683,6 +683,34 @@ function publicRuntimeTenant(req) {
     : null;
 }
 
+export function resolvePostgresRequestIdempotencyKey({
+  method,
+  explicit_key,
+  body_key,
+  request_occurrence_id,
+  request_target_hash,
+  request_body_hash,
+} = {}) {
+  const normalizedMethod = String(method ?? "GET").trim().toUpperCase();
+  if (normalizedMethod === "GET" || normalizedMethod === "HEAD") {
+    const occurrenceId = String(request_occurrence_id ?? "").trim();
+    if (!occurrenceId) throw new TypeError("PostgreSQL read request occurrence id is required");
+    return `request-occurrence:${hashDomainValue({
+      method: normalizedMethod,
+      request_occurrence_id: occurrenceId,
+    })}`;
+  }
+  const explicitKey = String(explicit_key ?? "").trim();
+  if (explicitKey) return explicitKey;
+  const bodyKey = String(body_key ?? "").trim();
+  if (bodyKey) return bodyKey;
+  return `request-fingerprint:${hashDomainValue({
+    method: normalizedMethod,
+    request_target_hash,
+    request_body_hash,
+  })}`;
+}
+
 function passwordResetOpenPageHtml() {
   return `<!doctype html>
 <html lang="ko">
@@ -1728,6 +1756,7 @@ export function createApiServer({
       }
       const bufferedResponse = createBufferedResponse();
       const requestTarget = new URL(req.url || "/", `http://${HOST}`);
+      const requestOccurrenceId = randomUUID();
       await requestRuntimeAuthority.run({
         tenant_id: tenantId,
         request_context: {
@@ -1741,16 +1770,14 @@ export function createApiServer({
             return hashDomainValue(`${requestTarget.pathname}${requestTarget.search}`);
           },
           get idempotency_key() {
-            const headerKey = String(
-              req.headers["idempotency-key"] ?? req.headers["x-idempotency-key"] ?? "",
-            ).trim();
-            if (headerKey) return headerKey;
-            if (req.lawosRequestBodyIdempotencyKey) return req.lawosRequestBodyIdempotencyKey;
-            return `request-fingerprint:${hashDomainValue({
+            return resolvePostgresRequestIdempotencyKey({
               method: req.method,
+              explicit_key: req.headers["idempotency-key"] ?? req.headers["x-idempotency-key"],
+              body_key: req.lawosRequestBodyIdempotencyKey,
+              request_occurrence_id: requestOccurrenceId,
               request_target_hash: hashDomainValue(`${requestTarget.pathname}${requestTarget.search}`),
               request_body_hash: req.lawosRequestBodyHash ?? hashDomainValue({}),
-            })}`;
+            });
           },
         },
         command: (requestRuntimes) => dispatchWithRuntimes(bufferedResponse, requestRuntimes),
