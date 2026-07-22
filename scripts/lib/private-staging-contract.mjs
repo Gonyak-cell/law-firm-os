@@ -471,14 +471,18 @@ function validateSecretsAndInternalAuth(resources, template) {
     Statement: [{
       Sid: "SyntheticPasswordSetupOnly",
       Effect: "Allow",
-      Principal: { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+      Principal: {
+        AWS: {
+          "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/${ApiExecutionRole}/lawos-private-staging-api",
+        },
+      },
       Action: "ses:SendEmail",
       Resource: "*",
       Condition: {
         ...exactSesConditions,
       },
     }],
-  }), "SES endpoint policy must delegate only ses:SendEmail directly to the API role principal ARN, exact sender, and every active synthetic recipient using Resource *");
+  }), "SES endpoint policy must delegate only ses:SendEmail to the exact API Lambda assumed-role session principal, exact sender, and every active synthetic recipient using Resource *");
   const syntheticManifest = JSON.parse(resources.SyntheticManifestSecret?.Properties?.SecretString ?? "null");
   assert(syntheticManifest?.schema_version === "law-firm-os.synthetic-staging-manifest.v2", "synthetic manifest must use purpose-bound schema v2");
   assert((syntheticManifest?.tenant_ids ?? []).length === 6, "synthetic manifest must isolate CUT-005, CUT-006, and CUT-007 across six tenants");
