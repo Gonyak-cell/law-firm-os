@@ -649,7 +649,6 @@ function passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }
 function createSesV2SendEmailInput({ config, to, resetUrl, resetOpenUrl, expiresAt }) {
   return {
     FromEmailAddress: formattedEmailAddress({ name: config.fromName, email: config.fromEmail }),
-    ...(config.fromIdentityArn ? { FromEmailAddressIdentityArn: config.fromIdentityArn } : {}),
     Destination: { ToAddresses: [to] },
     ...(config.replyToEmail ? { ReplyToAddresses: [config.replyToEmail] } : {}),
     Content: {

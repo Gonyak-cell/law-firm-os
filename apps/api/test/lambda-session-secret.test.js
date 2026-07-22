@@ -104,7 +104,7 @@ test("Lambda bootstrap derives separated HRX step-up keys from an exact secret r
   assert.notEqual(resolved.hrxStepUpSecret, resolved.hrxStepUpTotpSecret);
 });
 
-test("Lambda password reset email delivery uses the SESv2 SDK without returning token material", async () => {
+test("Lambda password reset email delivery omits same-account delegation and never returns token material", async () => {
   const delivery = createLambdaPasswordResetEmailDelivery({
     env: {
       LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY: "sesv2",
@@ -120,7 +120,7 @@ test("Lambda password reset email delivery uses the SESv2 SDK without returning 
         assert.equal(command.constructor.name, "SendEmailCommand");
         const body = command.input;
         assert.equal(body.FromEmailAddress, "Matter OS <no-reply@amic.kr>");
-        assert.equal(body.FromEmailAddressIdentityArn, "arn:aws:ses:ap-northeast-2:770880870480:identity/no-reply@amic.kr");
+        assert.equal(body.FromEmailAddressIdentityArn, undefined);
         assert.deepEqual(body.Destination.ToAddresses, ["jwsuh@amic.kr"]);
         assert.equal(body.Content.Simple, undefined);
         assert.ok(body.Content.Raw.Data);

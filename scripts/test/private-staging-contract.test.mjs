@@ -274,7 +274,7 @@ test("private service endpoints and internal password authority are mandatory", 
 
   const missingSesRequestIdentity = clone(fixture("template.json"));
   delete missingSesRequestIdentity.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_AUTH_PASSWORD_RESET_EMAIL_IDENTITY_ARN;
-  assert.throws(() => validatePrivateStagingTemplate(missingSesRequestIdentity), /SES request must bind/u);
+  assert.throws(() => validatePrivateStagingTemplate(missingSesRequestIdentity), /verified SES identity inventory/u);
 });
 
 test("role reuse, managed policies, and unrelated wildcard Allows are rejected", () => {
