@@ -4,6 +4,7 @@ import {
   jsonPostgresProgramBindingsSha256,
   jsonPostgresProgramStageRequirements,
 } from "./program-stage-gates.js";
+import { commandContainsSensitiveMaterial } from "./program-receipt.js";
 
 export const JSON_POSTGRES_STAGE_PROBE_VERSION =
   "law-firm-os.json-postgres-stage-probe.v1";
@@ -438,7 +439,7 @@ export function validateJsonPostgresStageProbe(probe, {
     || Date.parse(probe.finished_at) < Date.parse(probe.started_at)
     || typeof probe.command !== "string"
     || !probe.command.trim()
-    || /(?:postgres(?:ql)?:\/\/[^\s@]+@|bearer\s+|--password\b)/iu.test(probe.command)
+    || commandContainsSensitiveMaterial(probe.command)
     || probe.exit_code !== 0
     || probe.outcome !== "PASS"
     || !SHA256.test(probe.evidence_sha256 ?? "")) {

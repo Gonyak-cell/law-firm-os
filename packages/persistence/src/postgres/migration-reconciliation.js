@@ -31,6 +31,16 @@ function asArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
+function isBasicEmail(value) {
+  const email = normalized(value);
+  if (!email || Array.from(email).some((character) => character.trim() === "")) return false;
+  const separator = email.indexOf("@");
+  if (separator <= 0 || separator !== email.lastIndexOf("@")) return false;
+  const domain = email.slice(separator + 1);
+  const dot = domain.lastIndexOf(".");
+  return dot > 0 && dot < domain.length - 1;
+}
+
 function entriesByKind(corpus, catalog) {
   const kinds = new Map(catalog.entries.map((entry) => [
     `${entry.domain_id}:${entry.record_type}`,
@@ -86,7 +96,7 @@ export function reconcileJsonPostgresMigrationCorpus({
   const accountUserIds = new Set(accounts.map((account) => normalized(account.user_id)).filter(Boolean));
   const accountEmails = sourceAccounts.map((account) => normalized(account.email)).filter(Boolean);
   const invalidEmailRefs = sourceAccounts
-    .filter((account) => !/^[^@\s]+@[^@\s]+\.[^@\s]+$/u.test(normalized(account.email)))
+    .filter((account) => !isBasicEmail(account.email))
     .map((account) => safeRef(account.user_id || account.email))
     .sort();
 

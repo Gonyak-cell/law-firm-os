@@ -1157,7 +1157,7 @@
             "LAWOS_AUTH_PASSWORD_RESET_EMAIL_REGION": { "Ref": "AWS::Region" },
             "LAWOS_AUTH_PASSWORD_RESET_OPEN_BASE_URL": { "Fn::Sub": "${HttpApi.ApiEndpoint}/api/auth/password-reset/open" },
             "LAWOS_AUTH_PASSWORD_RESET_TTL_MS": "60000",
-            "LAWOS_PASSWORD_RESET_TENANT_ID": "tenant_lawos_staging_cut007_a",
+            "LAWOS_IDENTITY_TENANT_ID": "tenant_lawos_staging_cut007_a",
             "LAWOS_API_LOGIN_LOCK_MS": "60000",
             "LAWOS_API_MAX_FAILED_LOGINS": "5",
             "LAWOS_PAYROLL_ARTIFACT_KEY_SECRET_ID": { "Ref": "PayrollArtifactSecret" },

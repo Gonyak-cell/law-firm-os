@@ -542,7 +542,7 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   api.Properties.Description = "Exact-main LawOS production API with PostgreSQL-only authority";
   apiEnv.LAWOS_DATA_SCOPE = "approved-real-manifest";
   apiEnv.LAWOS_DMS_S3_DEFAULT_RETENTION_DAYS = "365";
-  apiEnv.LAWOS_PASSWORD_RESET_TENANT_ID = { Ref: "PrimaryTenantId" };
+  apiEnv.LAWOS_IDENTITY_TENANT_ID = { Ref: "PrimaryTenantId" };
   apiEnv.LAWOS_AUTH_PASSWORD_RESET_TTL_MS = "900000";
   delete apiEnv.LAWOS_OWNER_INSTRUCTION_SHA256;
   delete apiEnv.LAWOS_SYNTHETIC_MANIFEST_SECRET_ID;

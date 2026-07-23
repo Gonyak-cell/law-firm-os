@@ -79,6 +79,17 @@ test("program receipt requires complete safe evidence fields and rejects sensiti
   const secretCommand = structuredClone(value);
   secretCommand.command = "node migrate.mjs --password never-return";
   assert.throws(() => validateJsonPostgresProgramReceipt(secretCommand), /sensitive material/u);
+  for (const command of [
+    "node migrate.mjs --database postgresql://operator:never-return@db.internal/lawos",
+    "node migrate.mjs --authorization Bearer\tnever-return",
+  ]) {
+    const unsafeCommand = structuredClone(value);
+    unsafeCommand.command = command;
+    assert.throws(() => validateJsonPostgresProgramReceipt(unsafeCommand), /sensitive material/u);
+  }
+  const benignCommand = structuredClone(value);
+  benignCommand.command = `node migrate.mjs --policy bearer-check --passwordless true ${"x".repeat(100_000)}`;
+  assert.equal(validateJsonPostgresProgramReceipt(benignCommand).valid, true);
 });
 
 test("post-go-live relational projection preserves the verified JSON-disabled state", () => {

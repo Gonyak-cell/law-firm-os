@@ -91,6 +91,54 @@ const CLAIM_KEYS = Object.freeze([
   "pii_returned",
   "secret_material_returned",
 ]);
+
+function isCommandWhitespace(character) {
+  return character !== "" && character.trim() === "";
+}
+
+function isAsciiWordCharacter(character) {
+  const code = character.charCodeAt(0);
+  return (code >= 48 && code <= 57)
+    || (code >= 65 && code <= 90)
+    || (code >= 97 && code <= 122)
+    || character === "_";
+}
+
+function containsCredentialedPostgresUrl(command) {
+  for (const scheme of ["postgres://", "postgresql://"]) {
+    let offset = 0;
+    while (offset < command.length) {
+      const schemeIndex = command.indexOf(scheme, offset);
+      if (schemeIndex === -1) break;
+      const authorityStart = schemeIndex + scheme.length;
+      let cursor = authorityStart;
+      while (cursor < command.length && !isCommandWhitespace(command[cursor])) {
+        if (command[cursor] === "@") return cursor > authorityStart;
+        cursor += 1;
+      }
+      offset = authorityStart;
+    }
+  }
+  return false;
+}
+
+export function commandContainsSensitiveMaterial(value) {
+  if (typeof value !== "string") return false;
+  const command = value.toLowerCase();
+  if (containsCredentialedPostgresUrl(command)) return true;
+  let bearerIndex = command.indexOf("bearer");
+  while (bearerIndex !== -1) {
+    if (isCommandWhitespace(command[bearerIndex + "bearer".length] ?? "")) return true;
+    bearerIndex = command.indexOf("bearer", bearerIndex + "bearer".length);
+  }
+  let passwordIndex = command.indexOf("--password");
+  while (passwordIndex !== -1) {
+    const next = command[passwordIndex + "--password".length] ?? "";
+    if (!next || !isAsciiWordCharacter(next)) return true;
+    passwordIndex = command.indexOf("--password", passwordIndex + "--password".length);
+  }
+  return false;
+}
 const KIND_ENVIRONMENT = Object.freeze(Object.fromEntries(JSON_POSTGRES_PROGRAM_RECEIPT_KINDS.map((kind) => [
   kind,
   kind.startsWith("w12-") ? "lawos-private-rehearsal"
@@ -179,7 +227,9 @@ export function validateJsonPostgresProgramReceipt(receipt = {}, expected = {}) 
   const startedAt = timestamp(receipt.started_at, "started_at");
   const finishedAt = timestamp(receipt.finished_at, "finished_at");
   if (finishedAt < startedAt) fail("program receipt time interval is invalid");
-  if (typeof receipt.command !== "string" || !receipt.command.trim() || /(?:postgres(?:ql)?:\/\/[^\s@]+@|bearer\s+|--password\b)/iu.test(receipt.command)) {
+  if (typeof receipt.command !== "string"
+    || !receipt.command.trim()
+    || commandContainsSensitiveMaterial(receipt.command)) {
     fail("program receipt command is missing or contains sensitive material");
   }
   if (!Number.isSafeInteger(receipt.exit_code)) fail("program receipt exit_code is invalid");

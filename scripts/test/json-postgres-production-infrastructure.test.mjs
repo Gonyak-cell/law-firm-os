@@ -32,6 +32,14 @@ test("production template derives the proven private topology without synthetic 
     template.Resources.AdminFunction.Properties.Environment.Variables.LAWOS_PROJECTION_DATABASE_SECRET_ID,
     { Ref: "ProjectionDatabaseSecret" },
   );
+  assert.deepEqual(
+    template.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_IDENTITY_TENANT_ID,
+    { Ref: "PrimaryTenantId" },
+  );
+  assert.equal(
+    template.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_PASSWORD_RESET_TENANT_ID,
+    undefined,
+  );
 });
 
 test("production template fails closed on public RDS, synthetic content, wildcard IAM and default traffic", () => {

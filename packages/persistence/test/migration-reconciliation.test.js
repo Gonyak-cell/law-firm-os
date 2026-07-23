@@ -113,3 +113,20 @@ test("migration reconciliation blocks duplicate emails, roster gaps and matter-c
   assert.equal(result.safe_counts.blocking_count, 4);
   assert.equal(JSON.stringify(result).includes("person@example.test"), false);
 });
+
+test("migration reconciliation validates email structure in linear time without returning the address", () => {
+  for (const email of [
+    "missing-at.example.test",
+    "two@@example.test",
+    "space @example.test",
+    `person@${"segment.".repeat(25_000)}`,
+  ]) {
+    const source = corpus();
+    source.accounts[0].email = email;
+    const recordTypeCatalog = createJsonPostgresRecordTypeCatalog({ corpus: source });
+    const result = reconcileJsonPostgresMigrationCorpus({ corpus: source, recordTypeCatalog });
+    assert.equal(result.outcome, "BLOCKED");
+    assert.equal(result.safe_counts.invalid_email_count, 1);
+    assert.equal(JSON.stringify(result).includes(email), false);
+  }
+});

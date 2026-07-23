@@ -298,7 +298,7 @@ test("PostgreSQL session auth and the deployed reset worker share the configured
       LAWOS_POSTGRES_URL_SECRET_ID: "lawos/test/cut007-postgres",
       LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID: "lawos/test/cut007-tenant-context",
       LAWOS_PAYROLL_ARTIFACT_KEY_SECRET_ID: "lawos/test/cut007-payroll-key",
-      LAWOS_PASSWORD_RESET_TENANT_ID: TENANTS[0],
+      LAWOS_IDENTITY_TENANT_ID: TENANTS[0],
       LAWOS_DATA_SCOPE: "synthetic-only",
       AWS_REGION: "ap-northeast-2",
     },

@@ -91,6 +91,16 @@ test("stage observation rejects a missing probe, a forged digest, and duplicate 
     bindingsSha256: jsonPostgresProgramBindingsSha256(value),
   }), /digest drifted/u);
 
+  const sensitiveCommand = structuredClone(probes[0]);
+  sensitiveCommand.command = "node collector.mjs --database postgres://operator:never-return@db.internal/lawos";
+  assert.throws(() => validateJsonPostgresStageProbe(sensitiveCommand, {
+    stage: "cut-008",
+    sourceSha: SHA,
+    sourceTree: TREE,
+    packetSha256: PACKET_SHA,
+    bindingsSha256: jsonPostgresProgramBindingsSha256(value),
+  }), /execution contract drifted/u);
+
   const duplicated = structuredClone(probes);
   duplicated[1].safe_counts.public_resource_count = 0;
   duplicated[1].result_sha256 = "0".repeat(64);

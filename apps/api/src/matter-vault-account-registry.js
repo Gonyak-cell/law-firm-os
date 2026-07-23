@@ -14,7 +14,7 @@ export const MATTER_VAULT_ACCOUNT_REGISTRY_PATH = existsSync(packagedSeedPath) ?
 export const MATTER_VAULT_USER_REGISTRATION_SEED = Object.freeze(
   JSON.parse(readFileSync(MATTER_VAULT_ACCOUNT_REGISTRY_PATH, "utf8")),
 );
-const configuredOperationalTenantId = String(process.env.LAWOS_PASSWORD_RESET_TENANT_ID ?? "").trim();
+const configuredOperationalTenantId = String(process.env.LAWOS_IDENTITY_TENANT_ID ?? "").trim();
 export const MATTER_VAULT_REGISTERED_TENANT_ID =
   configuredOperationalTenantId || MATTER_VAULT_USER_REGISTRATION_SEED.tenant_id;
 
