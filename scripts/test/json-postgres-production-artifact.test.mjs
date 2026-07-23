@@ -114,10 +114,28 @@ test("production artifact entry and deployment manifest contracts fail closed", 
     "packages/persistence/src/postgres/program-receipt.js",
   ];
   assert.equal(validateJsonPostgresProductionArtifactEntries(entries).entry_count, 12);
+  assert.equal(validateJsonPostgresProductionArtifactEntries([
+    ...entries,
+    "node_modules/pg-types/test/index.js",
+  ]).entry_count, 13);
   assert.throws(
     () => validateJsonPostgresProductionArtifactEntries([
       ...entries,
       "apps/api/src/private-staging-admin-lambda.js",
+    ]),
+    /forbidden entries/u,
+  );
+  assert.throws(
+    () => validateJsonPostgresProductionArtifactEntries([
+      ...entries,
+      "apps/api/test/server.test.js",
+    ]),
+    /forbidden entries/u,
+  );
+  assert.throws(
+    () => validateJsonPostgresProductionArtifactEntries([
+      ...entries,
+      "node_modules/example/private.key",
     ]),
     /forbidden entries/u,
   );

@@ -4,7 +4,8 @@ import {
 } from "./private-staging-artifact.mjs";
 
 const FORBIDDEN_ARCHIVE_ENTRY =
-  /(^|\/)(\.env(?:\.|$)|\.git|artifacts|workbook|test|tests|__tests__)(\/|$)|\.(?:pem|key|p12|pfx|sqlite|sqlite3|db)$/iu;
+  /(^|\/)(\.env(?:\.|$)|\.git|artifacts|workbook)(\/|$)|\.(?:pem|key|p12|pfx|sqlite|sqlite3|db)$/iu;
+const FIRST_PARTY_TEST_ENTRY = /(^|\/)(?:test|tests|__tests__)(\/|$)/iu;
 const REAL_IDENTITY_MARKER =
   /@amic\.(?:kr|law)|\b(?:user|emp)_amic_[a-z0-9_]+\b/iu;
 const PRIVATE_STAGING_SOURCE = /(^|\/)(?:private-staging[^/]*|[^/]*private-staging[^/]*)(?:\/|$)/iu;
@@ -210,6 +211,7 @@ export function validateJsonPostgresProductionArtifactEntries(entries) {
   }
   const forbidden = normalized.filter((entry) =>
     (entry !== "certs/global-bundle.pem" && FORBIDDEN_ARCHIVE_ENTRY.test(entry))
+    || (!entry.startsWith("node_modules/") && FIRST_PARTY_TEST_ENTRY.test(entry))
     || entry.startsWith("infra/")
     || entry.startsWith("scripts/")
     || PRIVATE_STAGING_SOURCE.test(entry));
