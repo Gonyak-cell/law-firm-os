@@ -66,7 +66,7 @@ if (trustedSecurity.length !== 1
 const outputDir = outputDirectory(requiredOption("--output-dir"));
 const specs = [
   { kind: "exact-head-ci", evidence: ci, path: ciPath, safeCounts: { check_count: ci.check_count, success_count: ci.success_count, skipped_count: 0, real_data_count: 0 }, claims: { exact_head_ci_passed: true } },
-  { kind: "security-review", evidence: security, path: securityPath, safeCounts: { security_check_count: 1, open_code_critical_high_count: 0, open_dependency_critical_high_count: 0, open_sensitive_material_alert_count: 0, real_data_count: 0 }, claims: { security_review_passed: true } },
+  { kind: "security-review", evidence: security, path: securityPath, safeCounts: { security_check_count: 1, open_code_critical_high_count: 0, open_dependency_critical_high_count: 0, open_secret_alert_count: 0, real_data_count: 0 }, claims: { security_review_passed: true } },
 ];
 for (const spec of specs) {
   const receipt = buildPrivateStagingExecutionReceipt({ kind: spec.kind, keyId: approvalReceipt.key_id, approvalId: approval.approval_id, packet, startedAt: spec.evidence.started_at, finishedAt: spec.evidence.finished_at, command: spec.evidence.command, profile: spec.evidence.profile, safeCounts: spec.safeCounts, digests: { evidence_sha256: sha256(readFileSync(spec.path)), pr_url_sha256: spec.evidence.pr_url_sha256 }, claims: spec.claims });

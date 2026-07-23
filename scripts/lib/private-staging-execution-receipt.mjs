@@ -114,8 +114,12 @@ function validateSafeCounts(value) {
 export function projectPrivateStagingReceiptSafeCounts(value) {
   if (!isRecord(value) || Object.keys(value).length === 0) fail("safe_counts projection requires a non-empty object");
   const projected = {};
+  const projectedKeys = {
+    password_reset_count: "credential_setup_count",
+    open_secret_alert_count: "open_sensitive_material_alert_count",
+  };
   for (const [key, count] of Object.entries(value)) {
-    const projectedKey = key === "password_reset_count" ? "credential_setup_count" : key;
+    const projectedKey = projectedKeys[key] ?? key;
     if (Object.hasOwn(projected, projectedKey) || (projectedKey !== key && Object.hasOwn(value, projectedKey))) {
       fail(`safe_counts projection collides at ${projectedKey}`);
     }

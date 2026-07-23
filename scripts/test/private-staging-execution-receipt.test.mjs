@@ -95,14 +95,20 @@ test("execution receipt rejects old free-form states, missing fields, and sensit
 test("receipt projection preserves numeric setup evidence under a non-sensitive count name", () => {
   assert.deepEqual(projectPrivateStagingReceiptSafeCounts({
     password_reset_count: 1,
+    open_secret_alert_count: 0,
     real_data_count: 0,
   }), {
     credential_setup_count: 1,
+    open_sensitive_material_alert_count: 0,
     real_data_count: 0,
   });
   assert.throws(() => projectPrivateStagingReceiptSafeCounts({
     password_reset_count: 1,
     credential_setup_count: 1,
+  }), /collides/u);
+  assert.throws(() => projectPrivateStagingReceiptSafeCounts({
+    open_secret_alert_count: 0,
+    open_sensitive_material_alert_count: 0,
   }), /collides/u);
   assert.throws(() => projectPrivateStagingReceiptSafeCounts({ password_reset_count: "1" }), /finite non-negative number/u);
 
