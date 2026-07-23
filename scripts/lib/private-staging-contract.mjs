@@ -10,7 +10,7 @@ const PUBLIC_ROUTE_RATE_LIMIT = 0.04;
 const PUBLIC_ROUTE_BURST_LIMIT = 20;
 const PUBLIC_ROUTE_LAMBDA_MEMORY_MIB = 1024;
 const PUBLIC_ROUTE_LAMBDA_TIMEOUT_SECONDS = 5;
-const PUBLIC_ROUTE_LAMBDA_RESERVED_CONCURRENCY = 1;
+const PUBLIC_ROUTE_LAMBDA_RESERVED_CONCURRENCY = PUBLIC_ROUTE_BURST_LIMIT + 1;
 export const LAMBDA_VPC_ENI_ACTIONS = Object.freeze([
   "ec2:CreateNetworkInterface",
   "ec2:DescribeNetworkInterfaces",
@@ -376,6 +376,7 @@ function validateLambdas(resources) {
   assert(api?.MemorySize === PUBLIC_ROUTE_LAMBDA_MEMORY_MIB, "API Lambda memory differs from the cost-bound exception");
   assert(api?.Timeout === PUBLIC_ROUTE_LAMBDA_TIMEOUT_SECONDS, "API Lambda timeout differs from the cost-bound exception");
   assert(api?.ReservedConcurrentExecutions === PUBLIC_ROUTE_LAMBDA_RESERVED_CONCURRENCY, "API Lambda concurrency differs from the cost-bound exception");
+  assert(resources.AdminFunction?.Properties?.ReservedConcurrentExecutions === 1, "Admin Lambda concurrency must remain one");
   const env = resources.ApiFunction.Properties.Environment.Variables;
   assert(env.LAWOS_RUNTIME_PROFILE === "operational", "API must use the operational profile");
   assert(env.LAWOS_PERSISTENCE_AUTHORITY === "postgres-v2", "API must use postgres-v2 authority");

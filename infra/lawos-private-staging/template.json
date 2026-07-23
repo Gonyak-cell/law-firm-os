@@ -1176,7 +1176,7 @@
         "Handler": "apps/api/src/lambda.handler",
         "KmsKeyArn": { "Fn::GetAtt": ["StagingKey", "Arn"] },
         "MemorySize": 1024,
-        "ReservedConcurrentExecutions": 1,
+        "ReservedConcurrentExecutions": 21,
         "Role": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] },
         "Runtime": "nodejs22.x",
         "Timeout": 5,

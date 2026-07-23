@@ -39,10 +39,20 @@ test("private staging infrastructure contract is isolated and cost gated", () =>
   assert.deepEqual(result.kms_current_key_wildcard_allow_sids, ["EnableAccountIamAuthority", "AllowRegionalCloudWatchLogsEncryption"]);
   assert.equal(result.bootstrap_default_enabled, false);
   assert.ok(result.inline_template_byte_size > 0 && result.inline_template_byte_size <= 51_200);
+  assert.equal(fixture("template.json").Resources.ApiFunction.Properties.ReservedConcurrentExecutions,
+    fixture("template.json").Resources.HttpApiStage.Properties.DefaultRouteSettings.ThrottlingBurstLimit + 1);
 
   const unversioned = clone(fixture("template.json"));
   delete unversioned.Resources.ApiFunction.Properties.Code.S3ObjectVersion;
   assert.throws(() => validatePrivateStagingTemplate(unversioned), /immutable artifact version/u);
+
+  const underProvisionedApi = clone(fixture("template.json"));
+  underProvisionedApi.Resources.ApiFunction.Properties.ReservedConcurrentExecutions = 20;
+  assert.throws(() => validatePrivateStagingTemplate(underProvisionedApi), /API Lambda concurrency/u);
+
+  const broadenedAdmin = clone(fixture("template.json"));
+  broadenedAdmin.Resources.AdminFunction.Properties.ReservedConcurrentExecutions = 2;
+  assert.throws(() => validatePrivateStagingTemplate(broadenedAdmin), /Admin Lambda concurrency/u);
 });
 
 test("private staging password-reset schedule uses the Lambda maintenance-action envelope", () => {
@@ -122,6 +132,10 @@ test("cost estimate is below both the owner cap and stricter AWS budget", () => 
   assert.equal(result.verdict, "PASS");
   assert.equal(result.total_monthly_estimate_usd, 98.4);
   assert.equal(result.total_monthly_estimate_krw, 147600);
+
+  const underProvisioned = clone(fixture("cost-estimate.json"));
+  underProvisioned.enforced_public_route_envelope.lambda_reserved_concurrency = 20;
+  assert.throws(() => validatePrivateStagingCost(underProvisioned), /Lambda cost model/u);
 });
 
 test("public RDS and database default routes are rejected", () => {

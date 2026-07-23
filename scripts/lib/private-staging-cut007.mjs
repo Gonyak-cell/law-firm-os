@@ -137,6 +137,8 @@ export function createPrivateStagingHttpTransport({
     const requestHeaders = { ...headers };
     if (body !== undefined) requestHeaders["content-type"] = "application/json";
     if (throttlePacingActive) await wait(throttleRetryWaitMs);
+    let throttleRetryCount = 0;
+    let capacityRetryCount = 0;
     for (let retryCount = 0; ; retryCount += 1) {
       const response = await fetchImpl(url, {
         method,
@@ -150,15 +152,27 @@ export function createPrivateStagingHttpTransport({
       } catch {
         responseBody = {};
       }
-      if (response.status !== 429 || retryCount >= throttleRetryLimit) {
+      const structuredApplicationError = responseBody && typeof responseBody === "object"
+        && ["outcome", "safe_error_code", "safe_error_codes"].some((key) => Object.hasOwn(responseBody, key));
+      const retryableRateThrottle = response.status === 429 && !structuredApplicationError;
+      const retryableCapacityThrottle = ["GET", "HEAD"].includes(String(method).toUpperCase())
+        && response.status === 503
+        && !structuredApplicationError;
+      if (!(retryableRateThrottle || retryableCapacityThrottle) || retryCount >= throttleRetryLimit) {
         return Object.freeze({
           status: response.status,
           body: responseBody,
           request_attempt_count: retryCount + 1,
-          throttle_retry_count: retryCount,
+          throttle_retry_count: throttleRetryCount,
+          capacity_retry_count: capacityRetryCount,
         });
       }
-      throttlePacingActive = true;
+      if (retryableRateThrottle) {
+        throttlePacingActive = true;
+        throttleRetryCount += 1;
+      } else {
+        capacityRetryCount += 1;
+      }
       await wait(throttleRetryWaitMs);
     }
   }
@@ -204,6 +218,7 @@ export async function runPrivateStagingCut007({
     api_call_count: 0,
     assertion_count: 0,
     auth_flow_count: 0,
+    capacity_retry_count: 0,
     hrx_flow_count: 0,
     client_matter_flow_count: 0,
     dms_flow_count: 0,
@@ -220,10 +235,14 @@ export async function runPrivateStagingCut007({
     const result = await transport({ method, path, headers, body });
     const attemptCount = result?.request_attempt_count ?? 1;
     const throttleRetryCount = result?.throttle_retry_count ?? 0;
+    const capacityRetryCount = result?.capacity_retry_count ?? 0;
     invariant(Number.isInteger(attemptCount) && attemptCount >= 1 && attemptCount <= 4, step, "transport attempt count is invalid");
     invariant(Number.isInteger(throttleRetryCount) && throttleRetryCount >= 0 && throttleRetryCount < attemptCount, step, "transport throttle retry count is invalid");
+    invariant(Number.isInteger(capacityRetryCount) && capacityRetryCount >= 0 && capacityRetryCount < attemptCount, step, "transport capacity retry count is invalid");
+    invariant(throttleRetryCount + capacityRetryCount === attemptCount - 1, step, "transport retry accounting is invalid");
     counters.api_call_count += attemptCount;
     counters.throttle_retry_count += throttleRetryCount;
+    counters.capacity_retry_count += capacityRetryCount;
     counters.assertion_count += 1;
     expectStatus(result, expectedStatus, step);
     return result;

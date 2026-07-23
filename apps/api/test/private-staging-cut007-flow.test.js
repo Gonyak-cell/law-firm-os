@@ -74,12 +74,14 @@ test("CUT-007 HTTP transport paces bounded retries after the cost-envelope throt
     body: {},
     request_attempt_count: 2,
     throttle_retry_count: 1,
+    capacity_retry_count: 0,
   });
   assert.deepEqual(await transport({ path: "/api/health" }), {
     status: 200,
     body: {},
     request_attempt_count: 1,
     throttle_retry_count: 0,
+    capacity_retry_count: 0,
   });
   assert.deepEqual(await transport.recoverBurstCapacity(), { waited: true, wait_ms: 5 });
   assert.deepEqual(await transport({ path: "/api/health" }), {
@@ -87,6 +89,7 @@ test("CUT-007 HTTP transport paces bounded retries after the cost-envelope throt
     body: {},
     request_attempt_count: 1,
     throttle_retry_count: 0,
+    capacity_retry_count: 0,
   });
   assert.deepEqual(waits, [1, 1, 5]);
 });
@@ -109,8 +112,59 @@ test("CUT-007 HTTP transport returns a persistent throttle after the bounded ret
     body: {},
     request_attempt_count: 3,
     throttle_retry_count: 2,
+    capacity_retry_count: 0,
   });
   assert.equal(requestCount, 3);
+});
+
+test("CUT-007 HTTP transport retries gateway capacity 503 but preserves application 503", async () => {
+  const responses = [
+    { status: 503, body: { message: "Service Unavailable" } },
+    { status: 200, body: {} },
+    { status: 503, body: { outcome: "blocked", safe_error_codes: ["API_DEPENDENCY_UNAVAILABLE"] } },
+  ];
+  const waits = [];
+  const transport = createPrivateStagingHttpTransport({
+    baseUrl: "https://private-staging.example.invalid",
+    fetchImpl: async () => {
+      const response = responses.shift();
+      return { status: response.status, json: async () => response.body };
+    },
+    wait: async (milliseconds) => waits.push(milliseconds),
+    throttleRetryWaitMs: 1,
+  });
+
+  assert.deepEqual(await transport({ path: "/master-data/client-groups/client-1" }), {
+    status: 200,
+    body: {},
+    request_attempt_count: 2,
+    throttle_retry_count: 0,
+    capacity_retry_count: 1,
+  });
+  assert.deepEqual(await transport({ path: "/api/health" }), {
+    status: 503,
+    body: { outcome: "blocked", safe_error_codes: ["API_DEPENDENCY_UNAVAILABLE"] },
+    request_attempt_count: 1,
+    throttle_retry_count: 0,
+    capacity_retry_count: 0,
+  });
+  responses.push({ status: 503, body: { message: "Service Unavailable" } });
+  assert.deepEqual(await transport({ method: "POST", path: "/api/auth/login", body: {} }), {
+    status: 503,
+    body: { message: "Service Unavailable" },
+    request_attempt_count: 1,
+    throttle_retry_count: 0,
+    capacity_retry_count: 0,
+  });
+  responses.push({ status: 429, body: { outcome: "blocked", safe_error_code: "APPLICATION_RATE_LIMITED" } });
+  assert.deepEqual(await transport({ method: "POST", path: "/api/auth/login", body: {} }), {
+    status: 429,
+    body: { outcome: "blocked", safe_error_code: "APPLICATION_RATE_LIMITED" },
+    request_attempt_count: 1,
+    throttle_retry_count: 0,
+    capacity_retry_count: 0,
+  });
+  assert.deepEqual(waits, [1]);
 });
 
 test("PostgreSQL session auth and the deployed reset worker share the configured tenant", async (t) => {
@@ -198,6 +252,7 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
   let baseUrl = null;
   let activeSessionAuth = null;
   let activeTransport = null;
+  let gatewayCapacityFailureInjected = false;
 
   const passwordResetEmailDelivery = async ({ to, token }) => {
     const queue = delivered.get(to) ?? [];
@@ -249,7 +304,18 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
       payrollResolveArtifactSecret: async () => "cut007-disposable-payroll-artifact-secret",
     });
     baseUrl = `http://${started.host}:${started.port}`;
-    activeTransport = createPrivateStagingHttpTransport({ baseUrl });
+    activeTransport = createPrivateStagingHttpTransport({
+      baseUrl,
+      throttleRetryWaitMs: 0,
+      fetchImpl: async (input, init) => {
+        const url = new URL(input);
+        if (!gatewayCapacityFailureInjected && url.pathname === "/master-data/client-groups/client-group-lawos-staging") {
+          gatewayCapacityFailureInjected = true;
+          return { status: 503, json: async () => ({ message: "Service Unavailable" }) };
+        }
+        return fetch(input, init);
+      },
+    });
   }
 
   async function stop() {
@@ -260,11 +326,11 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
 
   await start();
   t.after(stop);
-  const result = await runPrivateStagingCut007({
+  const executeFlow = (runId) => runPrivateStagingCut007({
     transport: (request) => activeTransport(request),
     accounts: ACCOUNT_INPUTS,
     tenantIds: TENANTS,
-    runId: "cut007-disposable-full-flow",
+    runId,
     resetExpiryWaitMs: 45,
     wait: (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
     passwordFactory: (purpose) => `C7!Synthetic-${purpose}-Password-2026`,
@@ -295,22 +361,38 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
     }),
   });
 
-  assert.equal(result.outcome, "PASS");
-  assert.equal(result.data_scope, "synthetic-only");
-  assert.equal(result.safe_counts.account_count, 3);
-  assert.equal(result.safe_counts.document_count, 2);
-  assert.ok(result.safe_counts.api_call_count > 50);
-  assert.ok(result.safe_counts.idempotency_replay_count >= 5);
-  assert.equal(result.wrong_tenant_visible_count, 0);
-  assert.equal(result.json_fallback_count, 0);
-  assert.equal(result.json_writer_count, 0);
-  assert.equal(result.dual_write_count, 0);
-  assert.equal(result.file_current_authority_count, 0);
-  assert.equal(result.offline_mutation_count, 0);
-  assert.equal(result.memory_fallback_count, 0);
-  assert.equal(result.secret_material_returned, false);
-  const serialized = JSON.stringify(result);
-  assert.doesNotMatch(serialized, /@example\.test/u);
-  assert.doesNotMatch(serialized, /Synthetic-.*-Password/u);
-  assert.doesNotMatch(serialized, /lawos_session_v1/u);
+  const results = [await executeFlow("cut007-disposable-full-flow-a")];
+  await stop();
+  await runPrivateStagingSyntheticBaseline({
+    pool: fixture.appPool,
+    tenantIds: TENANTS,
+    accountSeed: sources.account_seed,
+    roster: sources.roster,
+  });
+  delivered.clear();
+  await start();
+  results.push(await executeFlow("cut007-disposable-full-flow-b"));
+
+  assert.equal(gatewayCapacityFailureInjected, true);
+  assert.deepEqual(results.map((result) => result.safe_counts.capacity_retry_count), [1, 0]);
+  for (const result of results) {
+    assert.equal(result.outcome, "PASS");
+    assert.equal(result.data_scope, "synthetic-only");
+    assert.equal(result.safe_counts.account_count, 3);
+    assert.equal(result.safe_counts.document_count, 2);
+    assert.ok(result.safe_counts.api_call_count > 50);
+    assert.ok(result.safe_counts.idempotency_replay_count >= 5);
+    assert.equal(result.wrong_tenant_visible_count, 0);
+    assert.equal(result.json_fallback_count, 0);
+    assert.equal(result.json_writer_count, 0);
+    assert.equal(result.dual_write_count, 0);
+    assert.equal(result.file_current_authority_count, 0);
+    assert.equal(result.offline_mutation_count, 0);
+    assert.equal(result.memory_fallback_count, 0);
+    assert.equal(result.secret_material_returned, false);
+    const serialized = JSON.stringify(result);
+    assert.doesNotMatch(serialized, /@example\.test/u);
+    assert.doesNotMatch(serialized, /Synthetic-.*-Password/u);
+    assert.doesNotMatch(serialized, /lawos_session_v1/u);
+  }
 });

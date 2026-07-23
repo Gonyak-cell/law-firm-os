@@ -432,6 +432,31 @@ export async function runPrivateStagingSyntheticBaseline({
     email: user.email,
   })))).filter(Boolean).length + negativeEmployees.length + negativeMasterDataRecords.length + negativeCrmRecords.length;
   const expectedCount = validated.users.length;
+  const expectedCrmRecordKeys = new Set(primaryCrm.snapshot.records.map((record) => `${record.record_type}:${record.record_id}`));
+  const baselineCrmRecordCount = primaryCrmRecords.filter((record) => expectedCrmRecordKeys.has(`${record.record_type}:${record.record_id}`)).length;
+  const additionalCrmRecords = primaryCrmRecords.filter((record) => !expectedCrmRecordKeys.has(`${record.record_type}:${record.record_id}`));
+  const invalidAdditionalCrmRecordCount = additionalCrmRecords.filter((record) => record.record_type !== "Opportunity"
+    || !/^opportunity-cut007-[a-f0-9]{12}$/u.test(record.record_id)
+    || record.payload?.opportunity_id !== record.record_id
+    || record.payload?.tenant_id !== validated.primary_tenant_id
+    || record.payload?.party_id !== "party-lawos-staging-client"
+    || record.payload?.owner_user_id !== ownerUserId
+    || !String(record.payload?.display_name ?? "").startsWith("LawOS Staging CUT-007 Opportunity ")
+    || record.payload?.synthetic_only !== true).length;
+  const safeInvariantCounts = Object.freeze({
+    directory_user_count: directoryUsers.length,
+    employee_count: primaryEmployees.length,
+    employment_profile_count: primaryProfiles.length,
+    employee_user_link_count: primaryLinks.length,
+    identity_outbox_count: identityOutbox.length,
+    identity_idempotency_count: identityIdempotency.length,
+    identity_provision_audit_count: identityAudit.filter((event) => event.action === "auth.directory.user.provisioned").length,
+    master_data_record_count: primaryMasterDataRecords.length,
+    crm_baseline_record_count: baselineCrmRecordCount,
+    crm_total_record_count: primaryCrmRecords.length,
+    crm_boundary_violation_count: invalidAdditionalCrmRecordCount,
+    wrong_tenant_visible_count: wrongTenantVisibleCount,
+  });
   const pass = directoryUsers.length === expectedCount
     && primaryEmployees.length === expectedCount
     && primaryProfiles.length === expectedCount
@@ -446,12 +471,14 @@ export async function runPrivateStagingSyntheticBaseline({
     && primaryCrmReplay.replayed && negativeCrmReplay.replayed
     && primaryMasterDataRecords.length === 10
     && primaryMasterDataRecords.every((record) => record.payload?.synthetic_only === true)
-    && primaryCrmRecords.length === 1
+    && baselineCrmRecordCount === expectedCrmRecordKeys.size
     && primaryCrmRecords.every((record) => record.payload?.synthetic_only === true)
+    && invalidAdditionalCrmRecordCount === 0
     && wrongTenantVisibleCount === 0;
-  if (!pass) throw Object.assign(new Error("private staging synthetic baseline invariants failed"), {
+  if (!pass) throw Object.assign(new Error(`private staging synthetic baseline invariants failed: ${JSON.stringify(safeInvariantCounts)}`), {
     code: "LAWOS_PRIVATE_STAGING_SYNTHETIC_BASELINE_FAILED",
     safe_error_code: "PRIVATE_STAGING_SYNTHETIC_BASELINE_FAILED",
+    safe_counts: safeInvariantCounts,
   });
   return Object.freeze({
     outcome: "PASS",
@@ -463,7 +490,9 @@ export async function runPrivateStagingSyntheticBaseline({
     professional_profile_count: primaryProfiles.filter((record) => record.payload?.professional_profile).length,
     employee_user_link_count: primaryLinks.length,
     master_data_record_count: primaryMasterDataRecords.length,
-    crm_record_count: primaryCrmRecords.length,
+    crm_record_count: baselineCrmRecordCount,
+    crm_total_record_count: primaryCrmRecords.length,
+    crm_additional_synthetic_record_count: primaryCrmRecords.length - baselineCrmRecordCount,
     identity_audit_count: identityAudit.filter((event) => event.action === "auth.directory.user.provisioned").length,
     identity_outbox_count: identityOutbox.length,
     identity_idempotency_count: identityIdempotency.length,

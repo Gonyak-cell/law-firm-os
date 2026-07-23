@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
+import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
 import { createPostgresIdentityLedger } from "../../../packages/runtime-auth/src/postgres-identity-ledger.js";
 import { buildPrivateStagingSyntheticSources } from "../../../scripts/lib/private-staging-artifact.mjs";
 import {
@@ -105,4 +106,47 @@ test("CUT-007 synthetic baseline provisions PostgreSQL identity and HRX with rep
   assert.ok(users.every((user) => user.scopes.length >= user.hrx_scopes.length && user.hrx_scopes.length > 0));
   assert.ok(users.every((user) => !Object.hasOwn(user, "password_hash")));
   assert.deepEqual(await directory.listDirectoryUsers({ tenant_id: TENANTS[1] }), []);
+});
+
+test("CUT-007 synthetic baseline rejects additional CRM records outside the synthetic boundary", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const value = sources();
+  await runPrivateStagingSyntheticBaseline({
+    pool: fixture.appPool,
+    tenantIds: TENANTS,
+    accountSeed: value.account_seed,
+    roster: value.roster,
+  });
+  await createPostgresDomainLedger({ pool: fixture.appPool }).write({
+    tenant_id: TENANTS[0],
+    domain_id: "crm",
+    record_type: "Opportunity",
+    record_id: "opportunity-outside-synthetic-boundary",
+    expected_version: 0,
+    payload: { synthetic_only: false },
+  });
+  await assert.rejects(runPrivateStagingSyntheticBaseline({
+    pool: fixture.appPool,
+    tenantIds: TENANTS,
+    accountSeed: value.account_seed,
+    roster: value.roster,
+  }), (error) => error?.safe_error_code === "PRIVATE_STAGING_SYNTHETIC_BASELINE_FAILED"
+    && error?.safe_counts?.crm_total_record_count === 2);
+
+  await createPostgresDomainLedger({ pool: fixture.appPool }).write({
+    tenant_id: TENANTS[0],
+    domain_id: "crm",
+    record_type: "Opportunity",
+    record_id: "opportunity-outside-synthetic-boundary",
+    expected_version: 1,
+    payload: { synthetic_only: true },
+  });
+  await assert.rejects(runPrivateStagingSyntheticBaseline({
+    pool: fixture.appPool,
+    tenantIds: TENANTS,
+    accountSeed: value.account_seed,
+    roster: value.roster,
+  }), (error) => error?.safe_error_code === "PRIVATE_STAGING_SYNTHETIC_BASELINE_FAILED"
+    && error?.safe_counts?.crm_boundary_violation_count === 1);
 });
