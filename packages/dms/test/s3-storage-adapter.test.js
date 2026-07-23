@@ -10,9 +10,17 @@ function notFound() {
   return error;
 }
 
-function fakeS3Client() {
+function objectGovernanceUnset() {
+  const error = new Error("The specified object does not have an Object Lock configuration");
+  error.name = "NoSuchObjectLockConfiguration";
+  error.$metadata = { httpStatusCode: 404 };
+  return error;
+}
+
+function fakeS3Client({ failRetentionOnce = false } = {}) {
   const objects = new Map();
   let version = 0;
+  let retentionFailurePending = failRetentionOnce;
   const etag = (body) => `\"${sha256Hex(body).slice(0, 32)}\"`;
   return Object.freeze({
     objects,
@@ -86,17 +94,31 @@ function fakeS3Client() {
       if (name === "GetObjectLegalHoldCommand") {
         const object = objects.get(input.Key);
         if (!object) throw notFound();
+        if (object.legalHold === "OFF") throw objectGovernanceUnset();
         return { LegalHold: { Status: object.legalHold } };
       }
       if (name === "PutObjectRetentionCommand") {
+        if (retentionFailurePending) {
+          retentionFailurePending = false;
+          throw new Error("synthetic retention failure");
+        }
         const object = objects.get(input.Key);
         if (!object) throw notFound();
+        if (object.retention
+          && new Date(input.Retention.RetainUntilDate).getTime() < new Date(object.retention.RetainUntilDate).getTime()
+          && input.BypassGovernanceRetention !== true) {
+          const error = new Error("governance retention cannot be shortened without bypass authority");
+          error.name = "AccessDenied";
+          error.$metadata = { httpStatusCode: 403 };
+          throw error;
+        }
         object.retention = { ...input.Retention };
         return {};
       }
       if (name === "GetObjectRetentionCommand") {
         const object = objects.get(input.Key);
         if (!object) throw notFound();
+        if (!object.retention) throw objectGovernanceUnset();
         return { Retention: object.retention };
       }
       throw new Error(`unsupported fake S3 command: ${name}`);
@@ -168,6 +190,15 @@ test("S3 adapter round-trips provider legal hold and retention without accepting
   assert.throws(() => adapter({ access_key_id: "must-not-be-accepted" }), /credential_ref only/);
   const storage = adapter();
   await storage.putObject({ tenant_id: "tenant-a", object_id: "held-object", bytes: "held" });
+  assert.deepEqual(await storage.getObjectLegalHold({ tenant_id: "tenant-a", object_id: "held-object" }), {
+    status: "OFF",
+    version_id: "v2",
+  });
+  assert.deepEqual(await storage.getObjectRetention({ tenant_id: "tenant-a", object_id: "held-object" }), {
+    mode: null,
+    retain_until: null,
+    version_id: "v2",
+  });
   assert.equal((await storage.setObjectLegalHold({ tenant_id: "tenant-a", object_id: "held-object" })).status, "ON");
   assert.equal((await storage.getObjectLegalHold({ tenant_id: "tenant-a", object_id: "held-object" })).status, "ON");
   const retainUntil = "2026-08-01T00:00:00.000Z";
@@ -177,4 +208,64 @@ test("S3 adapter round-trips provider legal hold and retention without accepting
     retain_until: retainUntil,
     version_id: "v2",
   });
+});
+
+test("S3 adapter applies default retention only after commit so staged cleanup remains possible", async () => {
+  const storage = adapter({
+    default_retention_days: 7,
+    clock: () => new Date("2026-07-20T00:00:00.000Z"),
+  });
+  const input = { tenant_id: "tenant-a", session_id: "session-retained", object_id: "object-retained", bytes: "retained" };
+  await storage.stageObject(input);
+  const committed = await storage.finalizeObject(input);
+  assert.equal(committed.default_retention_applied, true);
+  assert.deepEqual(await storage.getObjectRetention({ tenant_id: input.tenant_id, object_id: input.object_id }), {
+    mode: "GOVERNANCE",
+    retain_until: "2026-07-27T00:00:00.000Z",
+    version_id: committed.version_id,
+  });
+  assert.equal(await storage.statStagedObject(input), null);
+  await storage.setObjectRetention({
+    tenant_id: input.tenant_id,
+    object_id: input.object_id,
+    retain_until: "2026-08-20T00:00:00.000Z",
+  });
+  assert.equal((await storage.getObjectRetention({ tenant_id: input.tenant_id, object_id: input.object_id })).retain_until, "2026-08-20T00:00:00.000Z");
+});
+
+test("S3 adapter repairs retention before staged cleanup after a partial finalize failure", async () => {
+  const client = fakeS3Client({ failRetentionOnce: true });
+  const storage = adapter({
+    client,
+    default_retention_days: 7,
+    clock: () => new Date("2026-07-20T00:00:00.000Z"),
+  });
+  const input = { tenant_id: "tenant-a", session_id: "session-repair", object_id: "object-repair", bytes: "retained" };
+  await storage.stageObject(input);
+  await assert.rejects(storage.finalizeObject(input), /synthetic retention failure/u);
+  assert.notEqual(await storage.statStagedObject(input), null);
+  const committed = await storage.finalizeObject(input);
+  assert.equal(committed.default_retention_applied, true);
+  assert.deepEqual(await storage.getObjectRetention({ tenant_id: input.tenant_id, object_id: input.object_id }), {
+    mode: "GOVERNANCE",
+    retain_until: "2026-07-27T00:00:00.000Z",
+    version_id: committed.version_id,
+  });
+  assert.equal(await storage.statStagedObject(input), null);
+});
+
+test("S3 adapter repairs missing retention even when staged cleanup already occurred", async () => {
+  const client = fakeS3Client({ failRetentionOnce: true });
+  const storage = adapter({
+    client,
+    default_retention_days: 7,
+    clock: () => new Date("2026-07-20T00:00:00.000Z"),
+  });
+  const input = { tenant_id: "tenant-a", session_id: "session-cleanup-gap", object_id: "object-cleanup-gap", bytes: "retained" };
+  await storage.stageObject(input);
+  await assert.rejects(storage.finalizeObject(input), /synthetic retention failure/u);
+  await storage.deleteOrphan(input);
+  const committed = await storage.finalizeObject(input);
+  assert.equal(committed.default_retention_applied, true);
+  assert.equal((await storage.getObjectRetention({ tenant_id: input.tenant_id, object_id: input.object_id })).retain_until, "2026-07-27T00:00:00.000Z");
 });

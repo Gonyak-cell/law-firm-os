@@ -11,10 +11,7 @@ function unique(items) {
 }
 
 export function hrxRowKey(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
+  return (title.toLowerCase().match(/[a-z0-9]+/g) ?? []).join("_");
 }
 
 export const HRX_PROGRAM_CONTRACT = deepFreeze({

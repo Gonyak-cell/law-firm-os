@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHmac } from "node:crypto";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -26,8 +27,11 @@ import {
   buildCtiCutoverExecuteRetryReceipt,
   buildHrxRosterReconcileReceipt,
   buildLcxAuthResetRecoveryReceipt,
+  classifySesDeliveryFailure,
+  createRetryablePromiseCache,
   createLambdaPasswordResetEmailDelivery,
   handler,
+  resolveLambdaHrxStepUpSecrets,
   resolveLambdaSessionSecret,
 } from "../src/lambda.js";
 import { STORE_PATH_MANIFEST } from "../src/store-path-manifest.js";
@@ -37,6 +41,25 @@ import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.j
 const OPERATIONAL_STEP_UP_OPTIONS = Object.freeze({
   hrxStepUpSecret: "lambda-test-operational-step-up-secret-32-bytes",
   hrxStepUpTotpSecret: "lambda-test-operational-step-up-totp-secret-32-bytes",
+});
+
+test("Lambda runtime startup cache retries after a rejected initialization", async () => {
+  let attempts = 0;
+  const cache = createRetryablePromiseCache(async () => {
+    attempts += 1;
+    if (attempts === 1) throw new Error("synthetic startup failure");
+    return Object.freeze({ outcome: "PASS" });
+  });
+  const first = cache.get();
+  assert.equal(cache.get(), first);
+  await assert.rejects(first, /synthetic startup failure/u);
+  const recovered = cache.get();
+  assert.notEqual(recovered, first);
+  assert.deepEqual(await recovered, { outcome: "PASS" });
+  assert.equal(cache.get(), recovered);
+  assert.equal(attempts, 2);
+  assert.equal(cache.take(), recovered);
+  assert.equal(cache.take(), undefined);
 });
 
 async function createDurableStorePaths(root) {
@@ -49,83 +72,84 @@ async function createDurableStorePaths(root) {
   return paths;
 }
 
-function decodeBase64MimePart(rawEmail, contentTypePrefix) {
-  const marker = rawEmail.indexOf(contentTypePrefix);
-  assert.notEqual(marker, -1, `${contentTypePrefix} part must exist`);
-  const encodedStart = rawEmail.indexOf("\r\n\r\n", marker);
-  assert.notEqual(encodedStart, -1, `${contentTypePrefix} body separator must exist`);
-  const bodyStart = encodedStart + 4;
-  const boundaryStart = rawEmail.indexOf("\r\n--", bodyStart);
-  assert.notEqual(boundaryStart, -1, `${contentTypePrefix} boundary must exist`);
-  return Buffer.from(rawEmail.slice(bodyStart, boundaryStart).replace(/\s+/g, ""), "base64").toString("utf8");
-}
-
-test("Lambda bootstrap fetches LAWOS_API_SESSION_SECRET from Secrets Manager secret id", async () => {
+test("Lambda bootstrap fetches LAWOS_API_SESSION_SECRET with the AWS SDK", async () => {
   const resolved = await resolveLambdaSessionSecret({
     env: {
       LAWOS_API_SESSION_SECRET_SECRET_ID: "/amic-vault/prod/api/session-signing",
       AWS_REGION: "ap-northeast-2",
-      AWS_ACCESS_KEY_ID: "AKIATESTACCESSKEY",
-      AWS_SECRET_ACCESS_KEY: "test-secret-access-key",
-      AWS_SESSION_TOKEN: "test-session-token",
     },
-    now: () => new Date("2026-07-06T00:00:00.000Z"),
-    fetchFn: async (url, options) => {
-      assert.equal(url, "https://secretsmanager.ap-northeast-2.amazonaws.com/");
-      assert.equal(options.method, "POST");
-      assert.equal(options.headers["x-amz-target"], "secretsmanager.GetSecretValue");
-      assert.equal(options.headers["x-amz-security-token"], "test-session-token");
-      assert.match(options.headers.authorization, /^AWS4-HMAC-SHA256 Credential=AKIATESTACCESSKEY\/20260706\/ap-northeast-2\/secretsmanager\/aws4_request/);
-      assert.deepEqual(JSON.parse(options.body), { SecretId: "/amic-vault/prod/api/session-signing" });
-      return new Response(JSON.stringify({ SecretString: "operational-session-secret-32-bytes" }), {
-        status: 200,
-      });
+    client: {
+      async send(command) {
+        assert.equal(command.constructor.name, "GetSecretValueCommand");
+        assert.deepEqual(command.input, { SecretId: "/amic-vault/prod/api/session-signing" });
+        return { SecretString: "operational-session-secret-32-bytes" };
+      },
     },
   });
 
   assert.equal(resolved, "operational-session-secret-32-bytes");
 });
 
-test("Lambda password reset email delivery signs SESv2 without returning token material", async () => {
+test("Lambda bootstrap derives separated HRX step-up keys from an exact secret reference", async () => {
+  const rootSecret = "operational-hrx-step-up-root-secret-32-bytes";
+  const resolved = await resolveLambdaHrxStepUpSecrets({
+    env: {
+      LAWOS_HRX_STEP_UP_ROOT_SECRET_ID: "/lawos/private-staging/hrx/step-up-root",
+      AWS_REGION: "ap-northeast-2",
+    },
+    client: {
+      async send(command) {
+        assert.equal(command.constructor.name, "GetSecretValueCommand");
+        assert.deepEqual(command.input, { SecretId: "/lawos/private-staging/hrx/step-up-root" });
+        return { SecretString: rootSecret };
+      },
+    },
+  });
+  const expected = (purpose) => createHmac("sha256", rootSecret)
+    .update(`lawos:hrx-step-up:${purpose}:v1`, "utf8")
+    .digest("base64url");
+
+  assert.equal(resolved.hrxStepUpSecret, expected("token-signing"));
+  assert.equal(resolved.hrxStepUpTotpSecret, expected("totp"));
+  assert.notEqual(resolved.hrxStepUpSecret, resolved.hrxStepUpTotpSecret);
+});
+
+test("Lambda password reset email delivery uses SESv2 simple content and never returns token material", async () => {
   const delivery = createLambdaPasswordResetEmailDelivery({
     env: {
       LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY: "sesv2",
       LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM: "no-reply@amic.kr",
+      LAWOS_AUTH_PASSWORD_RESET_EMAIL_IDENTITY_ARN: "arn:aws:ses:ap-northeast-2:770880870480:identity/no-reply@amic.kr",
       LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM_NAME: "Matter OS",
       LAWOS_AUTH_PASSWORD_RESET_BASE_URL: "matter://password-reset/confirm",
       LAWOS_AUTH_PASSWORD_RESET_OPEN_BASE_URL: "https://matter.example.test/api/auth/password-reset/open",
       AWS_REGION: "ap-northeast-2",
-      AWS_ACCESS_KEY_ID: "AKIATESTACCESSKEY",
-      AWS_SECRET_ACCESS_KEY: "test-secret-access-key",
-      AWS_SESSION_TOKEN: "test-session-token",
     },
-    now: () => new Date("2026-07-06T00:00:00.000Z"),
-    fetchFn: async (url, options) => {
-      assert.equal(url, "https://email.ap-northeast-2.amazonaws.com/v2/email/outbound-emails");
-      assert.equal(options.method, "POST");
-      assert.equal(options.headers["x-amz-security-token"], "test-session-token");
-      assert.match(options.headers.authorization, /^AWS4-HMAC-SHA256 Credential=AKIATESTACCESSKEY\/20260706\/ap-northeast-2\/ses\/aws4_request/);
-      const body = JSON.parse(options.body);
-      assert.equal(body.FromEmailAddress, "Matter OS <no-reply@amic.kr>");
-      assert.deepEqual(body.Destination.ToAddresses, ["jwsuh@amic.kr"]);
-      assert.equal(body.Content.Simple, undefined);
-      assert.ok(body.Content.Raw.Data);
-      const rawEmail = Buffer.from(body.Content.Raw.Data, "base64").toString("utf8");
-      assert.match(rawEmail, /^From: Matter OS <no-reply@amic\.kr>/m);
-      assert.match(rawEmail, /^Subject: =\?UTF-8\?B\?/m);
-      assert.match(rawEmail, /Content-Type: multipart\/related/);
-      const textPart = decodeBase64MimePart(rawEmail, "Content-Type: text/plain");
-      const htmlPart = decodeBase64MimePart(rawEmail, "Content-Type: text/html");
-      assert.match(textPart, /matter OS 비밀번호 설정/);
-      assert.match(textPart, /https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=reset-token-value/);
-      assert.match(htmlPart, /<h1[^>]*>비밀번호를 설정하세요<\/h1>/);
-      assert.match(htmlPart, /Matter OS/);
-      assert.match(htmlPart, /AMIC 내부 계정 보안 알림/);
-      assert.match(htmlPart, /비밀번호 설정 열기/);
-      assert.match(htmlPart, /href="https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=reset-token-value"/);
-      assert.match(htmlPart, /브라우저 링크: https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=reset-token-value/);
-      assert.match(htmlPart, /matter:\/\/password-reset\/confirm\?token=reset-token-value/);
-      return new Response(JSON.stringify({ MessageId: "ses-message-1" }), { status: 200 });
+    client: {
+      async send(command) {
+        assert.equal(command.constructor.name, "SendEmailCommand");
+        const body = command.input;
+        assert.equal(body.FromEmailAddress, "no-reply@amic.kr");
+        assert.equal(body.FromEmailAddressIdentityArn, undefined);
+        assert.deepEqual(body.Destination.ToAddresses, ["jwsuh@amic.kr"]);
+        assert.equal(body.Content.Raw, undefined);
+        assert.equal(body.Content.Simple.Subject.Data, "matter 비밀번호 설정");
+        assert.equal(body.Content.Simple.Subject.Charset, "UTF-8");
+        const textPart = body.Content.Simple.Body.Text.Data;
+        const htmlPart = body.Content.Simple.Body.Html.Data;
+        assert.equal(body.Content.Simple.Body.Text.Charset, "UTF-8");
+        assert.equal(body.Content.Simple.Body.Html.Charset, "UTF-8");
+        assert.match(textPart, /matter OS 비밀번호 설정/);
+        assert.match(textPart, /https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=reset-token-value/);
+        assert.match(htmlPart, /<h1[^>]*>비밀번호를 설정하세요<\/h1>/);
+        assert.match(htmlPart, /Matter OS/);
+        assert.match(htmlPart, /AMIC 내부 계정 보안 알림/);
+        assert.match(htmlPart, /비밀번호 설정 열기/);
+        assert.match(htmlPart, /href="https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=reset-token-value"/);
+        assert.match(htmlPart, /브라우저 링크: https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=reset-token-value/);
+        assert.match(htmlPart, /matter:\/\/password-reset\/confirm\?token=reset-token-value/);
+        return { MessageId: "ses-message-1" };
+      },
     },
   });
 
@@ -142,6 +166,157 @@ test("Lambda password reset email delivery signs SESv2 without returning token m
   assert.equal(result.token_material_returned, false);
   assert.equal(result.reset_url_returned, false);
   assert.equal(JSON.stringify(result).includes("reset-token-value"), false);
+});
+
+test("Lambda password reset email delivery classifies authorization failures without logging provider details", async () => {
+  assert.equal(classifySesDeliveryFailure(new Error("because no VPC endpoint policy allows the ses:SendEmail action")), "vpc_endpoint_policy");
+  assert.equal(classifySesDeliveryFailure(new Error("because no identity-based policy allows the ses:SendEmail action")), "identity_policy");
+  assert.equal(classifySesDeliveryFailure(new Error("with an explicit deny in a service control policy")), "service_control_policy");
+  assert.equal(classifySesDeliveryFailure(new Error("with an explicit deny in a permissions boundary")), "permissions_boundary");
+  assert.equal(classifySesDeliveryFailure(new Error("with an explicit deny in a session policy")), "session_policy");
+  assert.equal(classifySesDeliveryFailure(new Error("because no resource-based policy allows the ses:SendEmail action")), "resource_policy");
+  assert.equal(classifySesDeliveryFailure(new Error("is not authorized to perform: ses:SendEmail on resource")), "ses_sendemail_authorization");
+  assert.equal(classifySesDeliveryFailure(new Error("Email address is not verified")), "ses_service");
+  assert.equal(classifySesDeliveryFailure(new Error("Your account remains in the SES sandbox")), "ses_service");
+  assert.equal(classifySesDeliveryFailure(new Error("Access denied")), "unclassified");
+  const genericAccessDenied = new Error("Access denied");
+  genericAccessDenied.name = "AccessDeniedException";
+  genericAccessDenied.$metadata = { httpStatusCode: 403 };
+  assert.equal(classifySesDeliveryFailure(genericAccessDenied), "authorization_policy");
+
+  const warnings = [];
+  const originalWarn = console.warn;
+  console.warn = (line) => warnings.push(String(line));
+  try {
+    const delivery = createLambdaPasswordResetEmailDelivery({
+      env: {
+        LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY: "sesv2",
+        LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM: "no-reply@amic.kr",
+        LAWOS_AUTH_PASSWORD_RESET_EMAIL_IDENTITY_ARN: "arn:aws:ses:ap-northeast-2:770880870480:identity/no-reply@amic.kr",
+        LAWOS_AUTH_PASSWORD_RESET_BASE_URL: "matter://password-reset/confirm",
+        AWS_REGION: "ap-northeast-2",
+      },
+      client: {
+        async send() {
+          const error = new Error("because no identity-based policy allows reset-token-value for private@example.test request-id-secret");
+          error.name = "AccessDeniedException";
+          error.$metadata = { httpStatusCode: 403, requestId: "request-id-secret" };
+          throw error;
+        },
+      },
+    });
+    const result = await delivery({
+      to: "private@example.test",
+      token: "reset-token-value",
+      expires_at: "2026-07-06T01:00:00.000Z",
+    });
+    assert.equal(result.status, "failed");
+    assert.equal(result.reason, "sesv2_send_failed_403");
+    assert.equal(result.failure_class, "identity_policy");
+  } finally {
+    console.warn = originalWarn;
+  }
+
+  assert.equal(warnings.length, 1);
+  const warning = JSON.parse(warnings[0]);
+  assert.equal(warning.failure_class, "identity_policy");
+  assert.equal(warning.authorization_failure_layer, "identity_policy");
+  assert.deepEqual(warning.authorization_diagnostic, {
+    resource_binding: "not_present",
+    configured_sender_referenced: false,
+    approved_recipient_referenced: true,
+    assumed_api_role_referenced: false,
+    explicit_deny_referenced: false,
+  });
+  assert.equal(warning.provider_status_code, 403);
+  assert.equal(warnings[0].includes("reset-token-value"), false);
+  assert.equal(warnings[0].includes("private@example.test"), false);
+  assert.equal(warnings[0].includes("request-id-secret"), false);
+  assert.equal(Object.hasOwn(warning, "provider_message"), false);
+});
+
+test("Lambda password reset email authorization diagnostics expose only fixed classifications", async () => {
+  const warnings = [];
+  const originalWarn = console.warn;
+  console.warn = (line) => warnings.push(String(line));
+  try {
+    const delivery = createLambdaPasswordResetEmailDelivery({
+      env: {
+        LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY: "sesv2",
+        LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM: "no-reply@amic.kr",
+        LAWOS_AUTH_PASSWORD_RESET_EMAIL_IDENTITY_ARN: "arn:aws:ses:ap-northeast-2:770880870480:identity/no-reply@amic.kr",
+        LAWOS_AUTH_PASSWORD_RESET_BASE_URL: "matter://password-reset/confirm",
+        AWS_REGION: "ap-northeast-2",
+      },
+      client: {
+        async send() {
+          const error = new Error("User arn:aws:sts::770880870480:assumed-role/lawos-private-staging-api-role/opaque is not authorized to perform ses:SendEmail on resource arn:aws:ses:ap-northeast-2:770880870480:identity/no-reply@amic.kr with an explicit deny; hidden-token");
+          error.name = "AccessDeniedException";
+          error.$metadata = { httpStatusCode: 403, requestId: "hidden-request-id" };
+          throw error;
+        },
+      },
+    });
+    const result = await delivery({
+      to: "approved-recipient@amic.kr",
+      token: "hidden-token",
+      expires_at: "2026-07-06T01:00:00.000Z",
+    });
+    assert.equal(result.status, "failed");
+  } finally {
+    console.warn = originalWarn;
+  }
+
+  const warning = JSON.parse(warnings[0]);
+  assert.deepEqual(warning.authorization_diagnostic, {
+    resource_binding: "configured_identity",
+    configured_sender_referenced: true,
+    approved_recipient_referenced: false,
+    assumed_api_role_referenced: true,
+    explicit_deny_referenced: true,
+  });
+  assert.equal(warnings[0].includes("hidden-token"), false);
+  assert.equal(warnings[0].includes("hidden-request-id"), false);
+  assert.equal(warnings[0].includes("approved-recipient@amic.kr"), false);
+  assert.equal(warnings[0].includes("no-reply@amic.kr"), false);
+});
+
+test("Lambda password reset email delivery safely classifies message preparation failures", async () => {
+  const warnings = [];
+  const originalWarn = console.warn;
+  console.warn = (line) => warnings.push(String(line));
+  try {
+    const delivery = createLambdaPasswordResetEmailDelivery({
+      env: {
+        LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY: "sesv2",
+        LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM: "no-reply@amic.kr",
+        LAWOS_AUTH_PASSWORD_RESET_BASE_URL: "https://matter.example.test/api/auth/password-reset/confirm",
+        AWS_REGION: "ap-northeast-2",
+      },
+      client: {
+        async send() {
+          assert.fail("provider send must not run after message preparation fails");
+        },
+      },
+    });
+    const result = await delivery({
+      to: "private@example.test",
+      token: Symbol("hidden-reset-token"),
+      expires_at: "2026-07-06T01:00:00.000Z",
+    });
+    assert.equal(result.status, "failed");
+    assert.equal(result.failure_class, "message_preparation");
+    assert.equal(JSON.stringify(result).includes("hidden-reset-token"), false);
+  } finally {
+    console.warn = originalWarn;
+  }
+
+  assert.equal(warnings.length, 1);
+  const warning = JSON.parse(warnings[0]);
+  assert.equal(warning.failure_class, "message_preparation");
+  assert.equal(warning.authorization_failure_layer, null);
+  assert.equal(warnings[0].includes("hidden-reset-token"), false);
+  assert.equal(warnings[0].includes("private@example.test"), false);
 });
 
 test("Lambda password reset email delivery remains unconfigured without an approved mail surface", () => {

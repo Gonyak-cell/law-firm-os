@@ -66,6 +66,43 @@ test("EmploymentProfile schema links to Employee only", () => {
   assert.match(validation.errors.join("\n"), /effective_to must be on or after effective_from/);
 });
 
+test("EmploymentProfile preserves validated professional history without credential material", () => {
+  const professionalProfile = {
+    schema_version: "law-firm-os.people-professional-profile.v0.1",
+    profile_kind: "attorney",
+    public_role_labels: ["Partner"],
+    practice_areas: ["Corporate"],
+    experience: ["Synthetic Matter Team"],
+    education: ["Synthetic Law School"],
+    qualifications: ["Synthetic Bar"],
+    source_refs: ["private-synthetic-identity-manifest"],
+    source_notes: [],
+    excluded_claim_refs: [],
+  };
+  const profile = createEmploymentProfile({
+    tenant_id: "tenant-a",
+    profile_id: "profile-professional-001",
+    employee_id: "emp-001",
+    employment_type: "full_time",
+    status: "active",
+    effective_from: "2026-07-01",
+    professional_profile: professionalProfile,
+  });
+  assert.deepEqual(profile.professional_profile, professionalProfile);
+
+  const credentialLeak = validateEmploymentProfile({
+    tenant_id: "tenant-a",
+    profile_id: "profile-professional-002",
+    employee_id: "emp-001",
+    employment_type: "full_time",
+    status: "active",
+    effective_from: "2026-07-01",
+    professional_profile: { ...professionalProfile, token: "must-not-persist" },
+  });
+  assert.equal(credentialLeak.ok, false);
+  assert.match(credentialLeak.errors.join("\n"), /forbidden credential material/);
+});
+
 test("EmployeeUserLink allows login mapping only and never conflates identifiers", () => {
   const link = createEmployeeUserLink({
     tenant_id: "tenant-a",

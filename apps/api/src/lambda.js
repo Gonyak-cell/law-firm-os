@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, extname, isAbsolute, join, relative, resolve } from "node:path";
+import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
+import { SendEmailCommand, SESv2Client } from "@aws-sdk/client-sesv2";
 import {
   LAWOS_AUTH_CREDENTIAL_STORE_ENV,
   LAWOS_AUTH_CREDENTIAL_STORE_SCHEMA_VERSION,
@@ -42,8 +44,8 @@ import {
 } from "../../../packages/persistence/src/durable-file.js";
 import { appendNdjsonDurably } from "../../../packages/persistence/src/durable-append.js";
 
-let serverPromise;
 let sessionSecretPromise;
+let hrxStepUpRootSecretPromise;
 
 export const CTI_READONLY_EFS_SNAPSHOT_ACTION = "cti_cutover_readonly_efs_snapshot";
 export const CTI_READONLY_EFS_SNAPSHOT_APPROVAL_REF =
@@ -82,6 +84,7 @@ export const CTI_CLIENT_DISPLAY_NAME_REPAIR_ACTION = "cti_client_display_name_re
 export const CTI_CLIENT_DISPLAY_NAME_REPAIR_APPROVAL_REF =
   "I26-CTI-REMAINING-EXECUTION-OMNIBUS-OWNER-APPROVAL-2026-07-06";
 export const LCX_AUTH_RESET_RECOVERY_ACTION = "lcx_auth_reset_recovery_01";
+export const LAWOS_PASSWORD_RESET_WORKER_ACTION = "lawos_password_reset_worker";
 export const LCX_AUTH_RESET_RECOVERY_APPROVAL_REF = "LCX-AUTH-RESET-RECOVERY-01";
 
 const CTI_READONLY_EFS_SNAPSHOT_SCHEMA_VERSION = "law-firm-os.cti.readonly-efs-snapshot.v0.1";
@@ -119,13 +122,6 @@ const CTI_S5_SOURCE_REVISION = "cti_s5_enrichment_2026_07_06";
 const CTI_S5_OPERATOR_REF = "cti-s5-enrichment-execute-2026-07-06";
 const CTI_S5_KYT_USER_ID = "user_amic_ytkim";
 const PASSWORD_RESET_EMAIL_DELIVERY_SES_V2 = "sesv2";
-const PASSWORD_RESET_LOGO_CONTENT_ID = "amic-law-icon";
-const PASSWORD_RESET_LOGO_FILE_NAME = "icon.png";
-const PASSWORD_RESET_LOGO_MIME_TYPE = "image/png";
-const PASSWORD_RESET_LOGO_CANDIDATES = Object.freeze([
-  new URL(`./${PASSWORD_RESET_LOGO_FILE_NAME}`, import.meta.url),
-  new URL("../../desktop/build/icon.png", import.meta.url),
-]);
 const MATTER_RECORD_PRIMARY_ID_FIELDS = Object.freeze({
   Client: "client_id",
   MatterClient: "client_id",
@@ -165,123 +161,26 @@ function stableJson(value) {
   return JSON.stringify(value);
 }
 
-function hmac(key, value, encoding) {
-  return createHmac("sha256", key).update(value, "utf8").digest(encoding);
-}
-
-function amzTimestamp(date) {
-  return date.toISOString().replace(/[:-]|\.\d{3}/g, "");
-}
-
-function signingKey({ secretAccessKey, dateStamp, region, service }) {
-  const kDate = hmac(`AWS4${secretAccessKey}`, dateStamp);
-  const kRegion = hmac(kDate, region);
-  const kService = hmac(kRegion, service);
-  return hmac(kService, "aws4_request");
-}
-
-function credentialsFromEnv(env = process.env) {
+function awsClientConfig(env = process.env, region = env.AWS_REGION || env.AWS_DEFAULT_REGION || env.LAWOS_AWS_REGION || "ap-northeast-2") {
   const accessKeyId = env.AWS_ACCESS_KEY_ID;
   const secretAccessKey = env.AWS_SECRET_ACCESS_KEY;
-  if (!accessKeyId || !secretAccessKey) {
-    throw new Error("AWS credentials are required for LAWOS_API_SESSION_SECRET_SECRET_ID runtime fetch");
-  }
-  return Object.freeze({
-    accessKeyId,
-    secretAccessKey,
-    sessionToken: env.AWS_SESSION_TOKEN,
-  });
-}
-
-function createSecretsManagerRequest({
-  secretId,
-  env = process.env,
-  now = () => new Date(),
-} = {}) {
-  if (!secretId) throw new Error("LAWOS_API_SESSION_SECRET_SECRET_ID is required");
-  const region = env.AWS_REGION || env.AWS_DEFAULT_REGION || env.LAWOS_AWS_REGION || "ap-northeast-2";
-  const service = "secretsmanager";
-  const host = `${service}.${region}.amazonaws.com`;
-  const endpoint = `https://${host}/`;
-  const credentials = credentialsFromEnv(env);
-  const date = now();
-  const amzDate = amzTimestamp(date);
-  const dateStamp = amzDate.slice(0, 8);
-  const payload = JSON.stringify({ SecretId: secretId });
-  const headers = {
-    "content-type": "application/x-amz-json-1.1",
-    host,
-    "x-amz-date": amzDate,
-    "x-amz-target": "secretsmanager.GetSecretValue",
-  };
-  if (credentials.sessionToken) headers["x-amz-security-token"] = credentials.sessionToken;
-
-  const signedHeaderNames = Object.keys(headers).sort();
-  const canonicalHeaders = signedHeaderNames.map((name) => `${name}:${headers[name]}\n`).join("");
-  const signedHeaders = signedHeaderNames.join(";");
-  const canonicalRequest = [
-    "POST",
-    "/",
-    "",
-    canonicalHeaders,
-    signedHeaders,
-    sha256Hex(payload),
-  ].join("\n");
-  const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
-  const stringToSign = [
-    "AWS4-HMAC-SHA256",
-    amzDate,
-    credentialScope,
-    sha256Hex(canonicalRequest),
-  ].join("\n");
-  const signature = hmac(
-    signingKey({ secretAccessKey: credentials.secretAccessKey, dateStamp, region, service }),
-    stringToSign,
-    "hex",
-  );
-
-  return Object.freeze({
-    endpoint,
-    options: Object.freeze({
-      method: "POST",
-      headers: Object.freeze({
-        ...headers,
-        authorization: `AWS4-HMAC-SHA256 Credential=${credentials.accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
-      }),
-      body: payload,
-    }),
-  });
+  const credentials = accessKeyId && secretAccessKey
+    ? { accessKeyId, secretAccessKey, sessionToken: env.AWS_SESSION_TOKEN }
+    : undefined;
+  return credentials ? { region, credentials } : { region };
 }
 
 async function fetchSessionSecretFromSecretsManager({
   secretId,
   env = process.env,
-  fetchFn = fetch,
-  now,
+  client,
 } = {}) {
-  const request = createSecretsManagerRequest({ secretId, env, now });
-  const response = await fetchFn(request.endpoint, request.options);
-  const text = await response.text();
-  if (!response.ok) {
-    const error = new Error(`Secrets Manager GetSecretValue failed with HTTP ${response.status}`);
-    error.code = secretsManagerErrorCode(text);
-    error.http_status = response.status;
-    throw error;
-  }
-  const body = JSON.parse(text);
+  if (!secretId) throw new Error("LAWOS_API_SESSION_SECRET_SECRET_ID is required");
+  const secrets = client ?? new SecretsManagerClient(awsClientConfig(env));
+  const body = await secrets.send(new GetSecretValueCommand({ SecretId: secretId }));
   if (typeof body.SecretString === "string") return body.SecretString;
-  if (typeof body.SecretBinary === "string") return Buffer.from(body.SecretBinary, "base64").toString("utf8");
+  if (body.SecretBinary) return Buffer.from(body.SecretBinary).toString("utf8");
   throw new Error("Secrets Manager response did not include SecretString or SecretBinary");
-}
-
-function secretsManagerErrorCode(responseText) {
-  try {
-    const parsed = JSON.parse(String(responseText ?? ""));
-    const rawType = parsed.__type ?? parsed.code ?? parsed.Code ?? "SecretsManagerError";
-    return String(rawType).split("#").pop().replace(/[^A-Za-z0-9_.-]/g, "_").slice(0, 120);
-  } catch {
-    return "SecretsManagerError";
-  }
 }
 
 function databaseUrlFromSecretString(secretString) {
@@ -503,6 +402,7 @@ function passwordResetEmailConfig(env = process.env) {
     .toLowerCase();
   const requested = delivery === PASSWORD_RESET_EMAIL_DELIVERY_SES_V2 || delivery === "ses" || delivery === "aws_ses_v2";
   const fromEmail = String(env.LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM ?? env.MATTER_PASSWORD_RESET_EMAIL_FROM ?? "").trim();
+  const fromIdentityArn = String(env.LAWOS_AUTH_PASSWORD_RESET_EMAIL_IDENTITY_ARN ?? "").trim();
   const fromName = String(env.LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM_NAME ?? env.MATTER_PASSWORD_RESET_EMAIL_FROM_NAME ?? "Matter OS").trim();
   const replyToEmail = String(env.LAWOS_AUTH_PASSWORD_RESET_EMAIL_REPLY_TO ?? env.MATTER_PASSWORD_RESET_EMAIL_REPLY_TO ?? "").trim();
   const region = String(
@@ -529,6 +429,7 @@ function passwordResetEmailConfig(env = process.env) {
     configured: requested && Boolean(fromEmail) && resetConfirmBaseUrlValid && resetOpenBaseUrlValid,
     provider: requested ? PASSWORD_RESET_EMAIL_DELIVERY_SES_V2 : "unconfigured",
     fromEmail,
+    fromIdentityArn,
     fromName,
     replyToEmail,
     region,
@@ -546,28 +447,6 @@ function passwordResetEmailConfig(env = process.env) {
               ? "password_reset_open_base_url_invalid"
           : null,
   });
-}
-
-function formattedEmailAddress({ name, email } = {}) {
-  const address = String(email ?? "").replace(/[\r\n]+/g, " ").trim();
-  const displayName = String(name ?? "").replace(/[\r\n]+/g, " ").trim();
-  return displayName ? `${displayName} <${address}>` : address;
-}
-
-function emailHeaderValue(value) {
-  return String(value ?? "").replace(/[\r\n]+/g, " ").trim();
-}
-
-function base64Utf8(value) {
-  return Buffer.from(String(value), "utf8").toString("base64");
-}
-
-function base64MimeLines(value) {
-  return String(value).match(/.{1,76}/g)?.join("\r\n") ?? "";
-}
-
-function encodedMimeWord(value) {
-  return `=?UTF-8?B?${base64Utf8(value)}?=`;
 }
 
 function escapeHtml(value) {
@@ -589,20 +468,6 @@ function passwordResetOpenUrl({ baseUrl, token, fallbackUrl }) {
   const url = new URL(baseUrl);
   url.hash = `token=${encodeURIComponent(token)}`;
   return url.toString();
-}
-
-let passwordResetLogoPngBase64;
-
-function passwordResetLogo() {
-  if (passwordResetLogoPngBase64) return passwordResetLogoPngBase64;
-  for (const candidate of PASSWORD_RESET_LOGO_CANDIDATES) {
-    try {
-      passwordResetLogoPngBase64 = readFileSync(candidate).toString("base64");
-      return passwordResetLogoPngBase64;
-    } catch {
-    }
-  }
-  return "";
 }
 
 function passwordResetEmailSubject() {
@@ -629,7 +494,7 @@ function passwordResetEmailHtml({
   resetOpenUrl = resetUrl,
   expiresAt,
   brandName = "Matter OS",
-  logoSrc = `cid:${PASSWORD_RESET_LOGO_CONTENT_ID}`,
+  logoSrc = "",
 } = {}) {
   const safeResetUrl = escapeHtml(resetUrl);
   const safeResetOpenUrl = escapeHtml(resetOpenUrl);
@@ -682,147 +547,114 @@ function passwordResetEmailHtml({
   ].join("");
 }
 
-function passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }) {
-  const rootBoundary = `matter-reset-root-${randomUUID()}`;
-  const alternativeBoundary = `matter-reset-alt-${randomUUID()}`;
-  const from = emailHeaderValue(formattedEmailAddress({ name: config.fromName, email: config.fromEmail }));
-  const recipient = emailHeaderValue(to);
-  const logoBase64 = passwordResetLogo();
-  const headers = [
-    `From: ${from}`,
-    `To: ${recipient}`,
-    `Subject: ${encodedMimeWord(passwordResetEmailSubject())}`,
-    "MIME-Version: 1.0",
-    ...(config.replyToEmail ? [`Reply-To: ${emailHeaderValue(config.replyToEmail)}`] : []),
-    `Content-Type: multipart/related; boundary="${rootBoundary}"`,
-  ];
-  const textBody = base64MimeLines(base64Utf8(passwordResetEmailText({ resetUrl, resetOpenUrl, expiresAt })));
-  const htmlBody = base64MimeLines(base64Utf8(passwordResetEmailHtml({
-    resetUrl,
-    resetOpenUrl,
-    expiresAt,
-    brandName: config.fromName || "Matter OS",
-    logoSrc: logoBase64 ? `cid:${PASSWORD_RESET_LOGO_CONTENT_ID}` : "",
-  })));
-  const parts = [
-    ...headers,
-    "",
-    `--${rootBoundary}`,
-    `Content-Type: multipart/alternative; boundary="${alternativeBoundary}"`,
-    "",
-    `--${alternativeBoundary}`,
-    "Content-Type: text/plain; charset=UTF-8",
-    "Content-Transfer-Encoding: base64",
-    "",
-    textBody,
-    `--${alternativeBoundary}`,
-    "Content-Type: text/html; charset=UTF-8",
-    "Content-Transfer-Encoding: base64",
-    "",
-    htmlBody,
-    `--${alternativeBoundary}--`,
-  ];
-  if (logoBase64) {
-    parts.push(
-      `--${rootBoundary}`,
-      `Content-Type: ${PASSWORD_RESET_LOGO_MIME_TYPE}; name="amic-law-icon.png"`,
-      "Content-Transfer-Encoding: base64",
-      `Content-ID: <${PASSWORD_RESET_LOGO_CONTENT_ID}>`,
-      'Content-Disposition: inline; filename="amic-law-icon.png"',
-      "",
-      base64MimeLines(logoBase64),
-    );
-  }
-  parts.push(`--${rootBoundary}--`, "");
-  return Buffer.from(parts.join("\r\n"), "utf8").toString("base64");
-}
-
-function createSesV2SendEmailRequest({ config, to, resetUrl, resetOpenUrl, expiresAt, env = process.env, now = () => new Date() }) {
-  const region = config.region || env.AWS_REGION || env.AWS_DEFAULT_REGION || "ap-northeast-2";
-  const service = "ses";
-  const host = `email.${region}.amazonaws.com`;
-  const path = "/v2/email/outbound-emails";
-  const endpoint = `https://${host}${path}`;
-  const credentials = credentialsFromEnv(env);
-  const date = now();
-  const amzDate = amzTimestamp(date);
-  const dateStamp = amzDate.slice(0, 8);
-  const body = {
-    FromEmailAddress: formattedEmailAddress({ name: config.fromName, email: config.fromEmail }),
+function createSesV2SendEmailInput({ config, to, resetUrl, resetOpenUrl, expiresAt }) {
+  return {
+    FromEmailAddress: config.fromEmail,
     Destination: { ToAddresses: [to] },
     ...(config.replyToEmail ? { ReplyToAddresses: [config.replyToEmail] } : {}),
     Content: {
-      Raw: {
-        Data: passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }),
+      Simple: {
+        Subject: { Data: passwordResetEmailSubject(), Charset: "UTF-8" },
+        Body: {
+          Text: { Data: passwordResetEmailText({ resetUrl, resetOpenUrl, expiresAt }), Charset: "UTF-8" },
+          Html: {
+            Data: passwordResetEmailHtml({
+              resetUrl,
+              resetOpenUrl,
+              expiresAt,
+              brandName: config.fromName || "Matter OS",
+            }),
+            Charset: "UTF-8",
+          },
+        },
       },
     },
   };
-  const payload = JSON.stringify(body);
-  const headers = {
-    "content-type": "application/json",
-    host,
-    "x-amz-date": amzDate,
-  };
-  if (credentials.sessionToken) headers["x-amz-security-token"] = credentials.sessionToken;
-  const signedHeaderNames = Object.keys(headers).sort();
-  const canonicalHeaders = signedHeaderNames.map((name) => `${name}:${headers[name]}\n`).join("");
-  const signedHeaders = signedHeaderNames.join(";");
-  const canonicalRequest = [
-    "POST",
-    path,
-    "",
-    canonicalHeaders,
-    signedHeaders,
-    sha256Hex(payload),
-  ].join("\n");
-  const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
-  const stringToSign = [
-    "AWS4-HMAC-SHA256",
-    amzDate,
-    credentialScope,
-    sha256Hex(canonicalRequest),
-  ].join("\n");
-  const signature = hmac(
-    signingKey({ secretAccessKey: credentials.secretAccessKey, dateStamp, region, service }),
-    stringToSign,
-    "hex",
-  );
+}
+
+export function classifySesDeliveryFailure(error) {
+  const message = String(error?.message ?? "").toLowerCase();
+  if (message.includes("vpc endpoint policy") || message.includes("vpc endpoint")) return "vpc_endpoint_policy";
+  if (message.includes("identity-based policy") || message.includes("identity policy")) return "identity_policy";
+  if (message.includes("service control policy")) return "service_control_policy";
+  if (message.includes("permissions boundary")) return "permissions_boundary";
+  if (message.includes("session policy")) return "session_policy";
+  if (message.includes("resource-based policy") || message.includes("resource policy")) return "resource_policy";
+  if (message.includes("not authorized to perform") && message.includes("ses:sendemail")) return "ses_sendemail_authorization";
+  if (
+    message.includes("email address is not verified")
+    || message.includes("identity is not verified")
+    || message.includes("production access")
+    || message.includes("sandbox")
+    || message.includes("account is paused")
+    || message.includes("account is under review")
+    || message.includes("suppression list")
+  ) return "ses_service";
+  if (error?.name === "AccessDeniedException" && Number(error?.$metadata?.httpStatusCode) === 403) return "authorization_policy";
+  return "unclassified";
+}
+
+function safeSesAuthorizationDiagnostic(error, { fromEmail, fromIdentityArn, to } = {}) {
+  const message = String(error?.message ?? "").toLowerCase();
+  const configuredIdentity = String(fromIdentityArn ?? "").trim().toLowerCase();
+  const configuredSender = String(fromEmail ?? "").trim().toLowerCase();
+  const approvedRecipient = String(to ?? "").trim().toLowerCase();
+  const mentionsSesIdentity = /arn:(?:aws|aws-us-gov|aws-cn):ses:[^:\s]+:\d{12}:identity\/[^\s,;]+/u.test(message);
   return Object.freeze({
-    endpoint,
-    options: Object.freeze({
-      method: "POST",
-      headers: Object.freeze({
-        ...headers,
-        authorization: `AWS4-HMAC-SHA256 Credential=${credentials.accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
-      }),
-      body: payload,
-    }),
+    resource_binding: configuredIdentity && message.includes(configuredIdentity)
+      ? "configured_identity"
+      : mentionsSesIdentity
+        ? "other_ses_identity"
+        : configuredSender && message.includes(configuredSender)
+          ? "configured_sender"
+          : "not_present",
+    configured_sender_referenced: Boolean(configuredSender) && message.includes(configuredSender),
+    approved_recipient_referenced: Boolean(approvedRecipient) && message.includes(approvedRecipient),
+    assumed_api_role_referenced: message.includes("assumed-role/lawos-private-staging-api-role/"),
+    explicit_deny_referenced: message.includes("explicit deny"),
   });
 }
 
 export function createLambdaPasswordResetEmailDelivery({
   env = process.env,
-  fetchFn = fetch,
-  now,
+  client,
 } = {}) {
   const config = passwordResetEmailConfig(env);
   if (!config.configured) return undefined;
+  const ses = client ?? new SESv2Client(awsClientConfig(env, config.region || env.AWS_REGION || env.AWS_DEFAULT_REGION || "ap-northeast-2"));
   return async function deliverPasswordResetEmail({ to, token, expires_at }) {
-    const resetUrl = passwordResetUrl({ baseUrl: config.resetConfirmBaseUrl, token });
-    const resetOpenUrl = passwordResetOpenUrl({
-      baseUrl: config.resetOpenBaseUrl,
-      token,
-      fallbackUrl: resetUrl,
-    });
-    const request = createSesV2SendEmailRequest({ config, to, resetUrl, resetOpenUrl, expiresAt: expires_at, env, now });
-    const response = await fetchFn(request.endpoint, request.options);
-    const text = await response.text();
-    if (!response.ok) {
+    let deliveryStage = "message_preparation";
+    let body;
+    try {
+      const resetUrl = passwordResetUrl({ baseUrl: config.resetConfirmBaseUrl, token });
+      const resetOpenUrl = passwordResetOpenUrl({
+        baseUrl: config.resetOpenBaseUrl,
+        token,
+        fallbackUrl: resetUrl,
+      });
+      const command = new SendEmailCommand(createSesV2SendEmailInput({ config, to, resetUrl, resetOpenUrl, expiresAt: expires_at }));
+      deliveryStage = "provider_send";
+      body = await ses.send(command);
+    } catch (error) {
+      const status = Number(error?.$metadata?.httpStatusCode) || 502;
+      const failureClass = deliveryStage === "message_preparation"
+        ? "message_preparation"
+        : classifySesDeliveryFailure(error);
+      const authorizationDiagnostic = deliveryStage === "provider_send" && status === 403
+        ? safeSesAuthorizationDiagnostic(error, {
+            fromEmail: config.fromEmail,
+            fromIdentityArn: config.fromIdentityArn,
+            to,
+          })
+        : null;
       console.warn(JSON.stringify({
         event: "lawos_password_reset_email_delivery_failed",
         provider: config.provider,
-        provider_status_code: response.status,
-        provider_response_hash: text ? sha256Hex(text) : null,
+        provider_status_code: status,
+        provider_response_hash: error?.name ? sha256Hex(error.name) : null,
+        failure_class: failureClass,
+        authorization_failure_layer: deliveryStage === "provider_send" ? failureClass : null,
+        authorization_diagnostic: authorizationDiagnostic,
         token_material_logged: false,
         reset_url_logged: false,
       }));
@@ -830,12 +662,12 @@ export function createLambdaPasswordResetEmailDelivery({
         mode: "email",
         provider: config.provider,
         status: "failed",
-        reason: `sesv2_send_failed_${response.status}`,
+        reason: `sesv2_send_failed_${status}`,
+        failure_class: failureClass,
         token_material_returned: false,
         reset_url_returned: false,
       });
     }
-    const body = text ? JSON.parse(text) : {};
     return Object.freeze({
       mode: "email",
       provider: config.provider,
@@ -1089,16 +921,35 @@ export async function buildLcxAuthResetRecoveryReceipt({
 
 export async function resolveLambdaSessionSecret({
   env = process.env,
-  fetchFn = fetch,
-  now,
+  client,
 } = {}) {
   if (env.LAWOS_API_SESSION_SECRET) return env.LAWOS_API_SESSION_SECRET;
   const secretId = env.LAWOS_API_SESSION_SECRET_SECRET_ID;
   if (!secretId) return undefined;
   if (!sessionSecretPromise) {
-    sessionSecretPromise = fetchSessionSecretFromSecretsManager({ secretId, env, fetchFn, now });
+    sessionSecretPromise = fetchSessionSecretFromSecretsManager({ secretId, env, client });
   }
   return sessionSecretPromise;
+}
+
+export async function resolveLambdaHrxStepUpSecrets({
+  env = process.env,
+  client,
+} = {}) {
+  const secretId = env.LAWOS_HRX_STEP_UP_ROOT_SECRET_ID;
+  if (!secretId) return Object.freeze({});
+  if (!hrxStepUpRootSecretPromise) {
+    hrxStepUpRootSecretPromise = fetchSessionSecretFromSecretsManager({ secretId, env, client });
+  }
+  const rootSecret = await hrxStepUpRootSecretPromise;
+  if (Buffer.byteLength(rootSecret) < 32) throw new Error("HRX step-up root secret must contain at least 32 bytes");
+  const derive = (purpose) => createHmac("sha256", rootSecret)
+    .update(`lawos:hrx-step-up:${purpose}:v1`, "utf8")
+    .digest("base64url");
+  return Object.freeze({
+    hrxStepUpSecret: derive("token-signing"),
+    hrxStepUpTotpSecret: derive("totp"),
+  });
 }
 
 function requestPath(event = {}) {
@@ -4307,26 +4158,52 @@ async function handleLcxAuthResetRecovery(event = {}) {
   }
 }
 
+export function createRetryablePromiseCache(factory) {
+  if (typeof factory !== "function") throw new TypeError("retryable promise cache factory is required");
+  let current;
+  return Object.freeze({
+    get() {
+      if (!current) {
+        const pending = Promise.resolve().then(factory);
+        current = pending;
+        void pending.catch(() => {
+          if (current === pending) current = undefined;
+        });
+      }
+      return current;
+    },
+    take() {
+      const pending = current;
+      current = undefined;
+      return pending;
+    },
+  });
+}
+
+const apiRuntimeCache = createRetryablePromiseCache(async () => {
+  const matterRepository = await createLambdaMatterRepository();
+  const hrxStepUpSecrets = await resolveLambdaHrxStepUpSecrets();
+  return startApiServer({
+    port: 0,
+    sessionSecret: await resolveLambdaSessionSecret(),
+    ...hrxStepUpSecrets,
+    passwordResetEmailDelivery: createLambdaPasswordResetEmailDelivery(),
+    ...(matterRepository ? { matterRepository } : {}),
+  });
+});
+
+async function apiRuntime() {
+  return apiRuntimeCache.get();
+}
+
 async function apiBaseUrl() {
-  if (!serverPromise) {
-    serverPromise = (async () => {
-      const matterRepository = await createLambdaMatterRepository();
-      return startApiServer({
-        port: 0,
-        sessionSecret: await resolveLambdaSessionSecret(),
-        passwordResetEmailDelivery: createLambdaPasswordResetEmailDelivery(),
-        ...(matterRepository ? { matterRepository } : {}),
-      });
-    })();
-  }
-  const { port } = await serverPromise;
+  const { port } = await apiRuntime();
   return `http://127.0.0.1:${port}`;
 }
 
 async function resetCachedApiServer() {
-  if (!serverPromise) return;
-  const currentServerPromise = serverPromise;
-  serverPromise = undefined;
+  const currentServerPromise = apiRuntimeCache.take();
+  if (!currentServerPromise) return;
   const current = await currentServerPromise.catch(() => null);
   if (current?.server) {
     await new Promise((resolveClose) => current.server.close(resolveClose));
@@ -4334,6 +4211,19 @@ async function resetCachedApiServer() {
 }
 
 export async function handler(event = {}) {
+  if (maintenanceAction(event) === LAWOS_PASSWORD_RESET_WORKER_ACTION) {
+    const tenantId = String(process.env.LAWOS_PASSWORD_RESET_TENANT_ID ?? "").trim();
+    if (!tenantId) throw new Error("LAWOS_PASSWORD_RESET_TENANT_ID is required for the password reset worker");
+    const runtime = await apiRuntime();
+    const counts = await runtime.sessionAuth.processPasswordResetQueue({ tenantId, limit: 1 });
+    return {
+      outcome: "PASS",
+      worker: LAWOS_PASSWORD_RESET_WORKER_ACTION,
+      ...counts,
+      email_included: false,
+      token_material_returned: false,
+    };
+  }
   if (maintenanceAction(event) === HRX_ROSTER_RECONCILE_ACTION) {
     return handleHrxRosterReconcile(event);
   }

@@ -10,6 +10,8 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+
+const PROCESS_INSTANCE_FINGERPRINT = randomUUID().replaceAll("-", "");
 import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
 import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
 import { HRX_DURABLE_CORE_TABLES, HRX_DURABLE_WORKFLOW_TABLES } from "../../../packages/hrx/src/store/port.js";
@@ -171,6 +173,10 @@ import { createPostgresApiRuntimeAuthority } from "./postgres-api-runtime-author
 import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgres-upload-runtime.js";
 import { createEntraOidcProviderFromSecretReference } from "./entra-oidc-provider.js";
 import { resolveAwsSecretString } from "./aws-secret-reference.js";
+import {
+  LAWOS_STAFF_AUTH_AUTHORITIES,
+  resolveStaffAuthAuthority,
+} from "./staff-auth-authority.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
@@ -211,6 +217,10 @@ function createPostgresDmsStorageFromEnv(env = process.env) {
   if (String(env.LAWOS_DMS_S3_OBJECT_LOCK_ENABLED ?? "").trim().toLowerCase() !== "true") {
     throw runtimePreflightError("LAWOS_DMS_S3_OBJECT_LOCK_ENABLED=true is required for postgres-v2 DMS authority");
   }
+  const defaultRetentionDays = Number(env.LAWOS_DMS_S3_DEFAULT_RETENTION_DAYS);
+  if (!Number.isInteger(defaultRetentionDays) || defaultRetentionDays < 1) {
+    throw runtimePreflightError("LAWOS_DMS_S3_DEFAULT_RETENTION_DAYS must be a positive integer for committed objects");
+  }
   return createS3StorageAdapter({
     adapter_id: "lawos-dms-s3-production",
     credential_ref: required("LAWOS_DMS_S3_CREDENTIAL_REF"),
@@ -220,6 +230,7 @@ function createPostgresDmsStorageFromEnv(env = process.env) {
     prefix: env.LAWOS_DMS_S3_PREFIX ?? "lawos-dms",
     kms_key_id: required("LAWOS_DMS_S3_KMS_KEY_ID"),
     object_lock_enabled: true,
+    default_retention_days: defaultRetentionDays,
   });
 }
 
@@ -544,12 +555,14 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
   uses_real_client_data: true,
 });
 
-function serviceDescriptorForAuthority({ persistenceAuthority, persistenceCapabilities } = {}) {
+function serviceDescriptorForAuthority({ persistenceAuthority, persistenceCapabilities, dataScope } = {}) {
   if (persistenceAuthority !== LAWOS_PERSISTENCE_AUTHORITIES.postgresV2) return SERVICE_DESCRIPTOR;
+  const syntheticOnly = dataScope === "synthetic-only";
   return Object.freeze({
     ...SERVICE_DESCRIPTOR,
     bounded_contexts: Object.freeze(SERVICE_DESCRIPTOR.bounded_contexts.map((context) => Object.freeze({
       ...context,
+      ...(context.bounded_context === "master-data" && syntheticOnly ? { uses_real_client_data: false } : {}),
       runtime_persistence: context.bounded_context === "api-auth"
         ? "postgres-identity-ledger-v2"
         : context.bounded_context === "vault-dms"
@@ -564,6 +577,8 @@ function serviceDescriptorForAuthority({ persistenceAuthority, persistenceCapabi
       audit: true,
       outbox: true,
     }))),
+    synthetic_only: syntheticOnly,
+    uses_real_client_data: syntheticOnly ? false : SERVICE_DESCRIPTOR.uses_real_client_data,
     persistence_authority_capabilities: persistenceCapabilities ?? null,
   });
 }
@@ -666,6 +681,34 @@ function publicRuntimeTenant(req) {
   return MATTER_VAULT_BRIDGE_ROUTES.has(routeKey) || isPortalExternalPublicRoute(req.method, pathname)
     ? MATTER_VAULT_REGISTERED_TENANT_ID
     : null;
+}
+
+export function resolvePostgresRequestIdempotencyKey({
+  method,
+  explicit_key,
+  body_key,
+  request_occurrence_id,
+  request_target_hash,
+  request_body_hash,
+} = {}) {
+  const normalizedMethod = String(method ?? "GET").trim().toUpperCase();
+  if (normalizedMethod === "GET" || normalizedMethod === "HEAD") {
+    const occurrenceId = String(request_occurrence_id ?? "").trim();
+    if (!occurrenceId) throw new TypeError("PostgreSQL read request occurrence id is required");
+    return `request-occurrence:${hashDomainValue({
+      method: normalizedMethod,
+      request_occurrence_id: occurrenceId,
+    })}`;
+  }
+  const explicitKey = String(explicit_key ?? "").trim();
+  if (explicitKey) return explicitKey;
+  const bodyKey = String(body_key ?? "").trim();
+  if (bodyKey) return bodyKey;
+  return `request-fingerprint:${hashDomainValue({
+    method: normalizedMethod,
+    request_target_hash,
+    request_body_hash,
+  })}`;
 }
 
 function passwordResetOpenPageHtml() {
@@ -1103,7 +1146,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -1179,7 +1222,8 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       persistence_authority: persistenceAuthority,
       runtime_safety_policy: LAWOS_OFFLINE_REJECTED_POLICY,
       auth_authority: sessionAuth.capabilities ?? null,
-      ...serviceDescriptorForAuthority({ persistenceAuthority, persistenceCapabilities }),
+      runtime_instance_fingerprint: dataScope === "synthetic-only" ? PROCESS_INSTANCE_FINGERPRINT : undefined,
+      ...serviceDescriptorForAuthority({ persistenceAuthority, persistenceCapabilities, dataScope }),
     });
     return;
   }
@@ -1652,6 +1696,7 @@ export function createApiServer({
   stepUpAuthority,
   sessionAuth,
   requestRuntimeAuthority = null,
+  dataScope = process.env.LAWOS_DATA_SCOPE ?? null,
 } = {}) {
   const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority({ profile: runtimeProfile });
   const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
@@ -1687,6 +1732,7 @@ export function createApiServer({
           runtimeProfile,
           persistenceAuthority,
           persistenceCapabilities: requestRuntimeAuthority?.capabilities ?? null,
+          dataScope,
         });
       };
 
@@ -1708,8 +1754,9 @@ export function createApiServer({
         tenantId = sessionContext.principal.tenant_id;
         req.lawosActorId = sessionContext.principal.user_id ?? sessionContext.principal.actor_id ?? null;
       }
-      const bufferedResponse = createBufferedResponse();
       const requestTarget = new URL(req.url || "/", `http://${HOST}`);
+      const requestOccurrenceId = randomUUID();
+      let bufferedResponse = null;
       await requestRuntimeAuthority.run({
         tenant_id: tenantId,
         request_context: {
@@ -1723,20 +1770,22 @@ export function createApiServer({
             return hashDomainValue(`${requestTarget.pathname}${requestTarget.search}`);
           },
           get idempotency_key() {
-            const headerKey = String(
-              req.headers["idempotency-key"] ?? req.headers["x-idempotency-key"] ?? "",
-            ).trim();
-            if (headerKey) return headerKey;
-            if (req.lawosRequestBodyIdempotencyKey) return req.lawosRequestBodyIdempotencyKey;
-            return `request-fingerprint:${hashDomainValue({
+            return resolvePostgresRequestIdempotencyKey({
               method: req.method,
+              explicit_key: req.headers["idempotency-key"] ?? req.headers["x-idempotency-key"],
+              body_key: req.lawosRequestBodyIdempotencyKey,
+              request_occurrence_id: requestOccurrenceId,
               request_target_hash: hashDomainValue(`${requestTarget.pathname}${requestTarget.search}`),
               request_body_hash: req.lawosRequestBodyHash ?? hashDomainValue({}),
-            })}`;
+            });
           },
         },
-        command: (requestRuntimes) => dispatchWithRuntimes(bufferedResponse, requestRuntimes),
+        command: (requestRuntimes) => {
+          bufferedResponse = createBufferedResponse();
+          return dispatchWithRuntimes(bufferedResponse, requestRuntimes);
+        },
       });
+      if (!bufferedResponse) throw new Error("PostgreSQL API authority completed without a response attempt");
       bufferedResponse.commit(res);
     } catch (error) {
       const mapped = mapApiHandlerError(error, { requestId: req.lawosRequestId ?? req.headers["x-request-id"] ?? null });
@@ -1805,6 +1854,7 @@ export async function startApiServer({
   authPasswordResetStorePath,
   passwordResetEmailDelivery,
   sessionAuth,
+  staffAuthAuthority,
   staffOidcProvider,
   entraSecretsClient,
   entraFetchFn,
@@ -1817,6 +1867,9 @@ export async function startApiServer({
     ...persistenceAuthorityEnv,
     LAWOS_RUNTIME_PROFILE: resolvedRuntimeProfile,
   };
+  const resolvedStaffAuthAuthority = resolveStaffAuthAuthority(
+    staffAuthAuthority ?? resolvedPersistenceAuthorityEnv.LAWOS_STAFF_AUTHORITY,
+  );
   const persistenceAuthorityState = await preparePersistenceAuthority({
     value: persistenceAuthority,
     env: resolvedPersistenceAuthorityEnv,
@@ -1830,7 +1883,12 @@ export async function startApiServer({
     explicitSecret: sessionSecret,
   });
   let resolvedStaffOidcProvider = staffOidcProvider ?? null;
+  if (resolvedStaffAuthAuthority === LAWOS_STAFF_AUTH_AUTHORITIES.internalPassword && resolvedStaffOidcProvider) {
+    throw runtimePreflightError("staff OIDC provider is forbidden when LAWOS_STAFF_AUTHORITY=internal-password");
+  }
   if (
+    resolvedStaffAuthAuthority === LAWOS_STAFF_AUTH_AUTHORITIES.entraOidc
+    &&
     persistenceAuthorityState.authority === LAWOS_PERSISTENCE_AUTHORITIES.postgresV2
     && resolvedRuntimeProfile === LAWOS_RUNTIME_PROFILES.operational
     && !sessionAuth
@@ -1841,6 +1899,14 @@ export async function startApiServer({
       secretsClient: entraSecretsClient,
       fetchFn: entraFetchFn,
     });
+  }
+  if (
+    resolvedStaffAuthAuthority === LAWOS_STAFF_AUTH_AUTHORITIES.entraOidc
+    && resolvedRuntimeProfile === LAWOS_RUNTIME_PROFILES.operational
+    && !sessionAuth
+    && !resolvedStaffOidcProvider
+  ) {
+    throw runtimePreflightError("LAWOS_STAFF_AUTHORITY=entra-oidc requires a configured Entra OIDC provider");
   }
   const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority({
     profile: resolvedRuntimeProfile,
@@ -1858,6 +1924,7 @@ export async function startApiServer({
       const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
         profile: resolvedRuntimeProfile,
         secret: resolvedSessionSecret,
+        trustedTenantId: resolvedPersistenceAuthorityEnv.LAWOS_PASSWORD_RESET_TENANT_ID,
         passwordResetEmailDelivery,
         stepUpAuthority: resolvedStepUpAuthority,
         staffOidcProvider: resolvedStaffOidcProvider,
@@ -1900,6 +1967,7 @@ export async function startApiServer({
         requestRuntimeAuthority,
         runtimeProfile: resolvedRuntimeProfile,
         persistenceAuthority: persistenceAuthorityState.authority,
+        dataScope: resolvedPersistenceAuthorityEnv.LAWOS_DATA_SCOPE ?? process.env.LAWOS_DATA_SCOPE ?? null,
       });
       server.once("close", () => {
         void persistenceAuthorityState.close?.();
@@ -1914,6 +1982,7 @@ export async function startApiServer({
             server,
             port: server.address().port,
             host: HOST,
+            sessionAuth: resolvedSessionAuth,
             persistence_authority: requestRuntimeAuthority.capabilities,
           });
         });
@@ -2094,7 +2163,7 @@ export async function startApiServer({
   return new Promise((resolve, reject) => {
     server.once("error", reject);
     server.listen(port, HOST, () => {
-      resolve({ server, port: server.address().port, host: HOST });
+      resolve({ server, port: server.address().port, host: HOST, sessionAuth: resolvedSessionAuth });
     });
   });
 }

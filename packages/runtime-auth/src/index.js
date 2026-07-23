@@ -7,6 +7,7 @@ export * from "./membership.js";
 export * from "./policy-hooks.js";
 export * from "./principal.js";
 export * from "./provider.js";
+export * from "./runtime-safety-approval-contract.js";
 export * from "./session.js";
 export * from "./identity-ledger.js";
 export * from "./postgres-identity-ledger.js";

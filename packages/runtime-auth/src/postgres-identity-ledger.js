@@ -1,12 +1,28 @@
-import { randomUUID } from "node:crypto";
-import { requireRepositoryTenantId } from "../../persistence/src/repository-port-v2.js";
+import { createHash, randomUUID } from "node:crypto";
+import {
+  RepositoryIdempotencyConflictError,
+  requireRepositoryTenantId,
+} from "../../persistence/src/repository-port-v2.js";
 import { withPostgresTransaction } from "../../persistence/src/postgres/transaction.js";
 import { IDENTITY_LEDGER_CONTRACT_VERSION } from "./identity-ledger.js";
 
 const ACCOUNT_STATUSES = new Set(["active", "disabled"]);
 const CREDENTIAL_STATUSES = new Set(["active", "must_change", "reset_required", "locked", "disabled"]);
 const CHALLENGE_TYPES = new Set(["password_reset", "step_up", "oidc_login"]);
+const INTERNAL_PASSWORD_PROVIDER_ID = "lawos-internal-password-provider-v1";
 const FORBIDDEN_AUDIT_DETAIL_KEY = /(^|_)(password|secret|token|totp|proof|authorization|challenge_hash|password_hash)(_|$)/iu;
+const DIRECTORY_PROFILE_KEYS = Object.freeze([
+  "display_name",
+  "english_name",
+  "source_title",
+  "production_status",
+  "qa_tenant_scope",
+  "registration_state",
+  "highest_privilege",
+  "privilege_rank",
+  "assurance_level",
+  "source_ref",
+]);
 
 function clone(value) {
   return value === undefined ? undefined : structuredClone(value);
@@ -58,6 +74,40 @@ function normalizeCredentialStatus(value, accountStatus = "active") {
   return CREDENTIAL_STATUSES.has(value) ? value : "reset_required";
 }
 
+function normalizeStringArray(value, name) {
+  if (value == null) return Object.freeze([]);
+  if (!Array.isArray(value)) throw new TypeError(`${name} must be an array`);
+  return Object.freeze([...new Set(value.map((item) => required(item, name)))]);
+}
+
+function normalizeDirectoryProfile(user = {}) {
+  const source = user.profile && typeof user.profile === "object" && !Array.isArray(user.profile)
+    ? user.profile
+    : user;
+  return Object.freeze(Object.fromEntries(DIRECTORY_PROFILE_KEYS
+    .filter((key) => source[key] !== undefined && source[key] !== null)
+    .map((key) => [key, clone(source[key])])));
+}
+
+function normalizeDirectoryMembership(input = {}, tenantId, userId) {
+  const membership = input.membership
+    ?? (input.user?.tenant_memberships ?? []).find((entry) => entry?.tenant_id === tenantId)
+    ?? input.user
+    ?? {};
+  const status = membership.status === "active" ? "active" : "disabled";
+  return Object.freeze({
+    tenant_id: tenantId,
+    user_id: userId,
+    status,
+    role_profile_id: optional(membership.role_profile_id),
+    role_ids: normalizeStringArray(membership.role_ids, "directory role id"),
+    group_ids: normalizeStringArray(membership.group_ids, "directory group id"),
+    scopes: normalizeStringArray(membership.scopes, "directory scope"),
+    hrx_scopes: normalizeStringArray(membership.hrx_scopes, "directory HRX scope"),
+    source_ref: optional(membership.source_ref ?? input.user?.source_ref),
+  });
+}
+
 function normalizeAccountSeed(user = {}) {
   const accountStatus = normalizeAccountStatus(user.account_status ?? user.status);
   const credentialRev = Number(user.credential_rev ?? 1);
@@ -69,6 +119,7 @@ function normalizeAccountSeed(user = {}) {
     credential_status: normalizeCredentialStatus(user.credential_status, accountStatus),
     credential_rev: Number.isSafeInteger(credentialRev) && credentialRev > 0 ? credentialRev : 1,
     password_hash: clone(user.password_hash ?? {}),
+    profile: normalizeDirectoryProfile(user),
   });
 }
 
@@ -83,6 +134,7 @@ function mapAccount(row) {
     credential_status: row.credential_status,
     credential_rev: Number(row.credential_rev),
     password_hash: Object.freeze(clone(row.password_hash ?? {})),
+    profile: Object.freeze(clone(row.profile ?? {})),
     federated_tenant_id: row.federated_tenant_id,
     federated_subject_id: row.federated_subject_id,
     failed_login_count: Number(row.failed_login_count),
@@ -91,6 +143,60 @@ function mapAccount(row) {
     updated_at: iso(row.updated_at),
   });
 }
+
+function mapDirectoryUser(row) {
+  if (!row) return null;
+  const profile = Object.freeze(clone(row.profile ?? {}));
+  const membership = Object.freeze({
+    tenant_id: row.tenant_id,
+    status: row.membership_status,
+    role_profile_id: row.role_profile_id,
+    role_ids: Object.freeze(clone(row.role_ids ?? [])),
+    group_ids: Object.freeze(clone(row.group_ids ?? [])),
+    scopes: Object.freeze(clone(row.scopes ?? [])),
+    hrx_scopes: Object.freeze(clone(row.hrx_scopes ?? [])),
+    source_ref: row.membership_source_ref,
+    state_version: Number(row.membership_state_version),
+  });
+  return Object.freeze({
+    tenant_id: row.tenant_id,
+    user_id: row.user_id,
+    email: row.email,
+    status: row.account_status,
+    account_status: row.account_status,
+    credential_provider: row.credential_provider,
+    credential_status: row.credential_status,
+    credential_rev: Number(row.credential_rev),
+    failed_login_count: Number(row.failed_login_count),
+    locked_until: row.locked_until ? iso(row.locked_until) : null,
+    ...profile,
+    profile,
+    role_profile_id: membership.role_profile_id,
+    role_ids: membership.role_ids,
+    group_ids: membership.group_ids,
+    scopes: membership.scopes,
+    hrx_scopes: membership.hrx_scopes,
+    directory_state_version: membership.state_version,
+    tenant_memberships: Object.freeze([membership]),
+    directory_source: "postgres-v2",
+    created_at: iso(row.created_at),
+    updated_at: iso(row.updated_at),
+  });
+}
+
+const DIRECTORY_SELECT = `SELECT accounts.tenant_id, accounts.user_id, accounts.email,
+       accounts.account_status, accounts.credential_provider, accounts.credential_status,
+       accounts.credential_rev, accounts.failed_login_count, accounts.locked_until,
+       accounts.profile, accounts.created_at, accounts.updated_at,
+       memberships.status AS membership_status,
+       memberships.role_profile_id, memberships.role_ids, memberships.group_ids,
+       memberships.scopes, memberships.hrx_scopes,
+       memberships.source_ref AS membership_source_ref,
+       memberships.state_version AS membership_state_version
+  FROM lawos_identity.accounts AS accounts
+  JOIN lawos_identity.account_memberships AS memberships
+    ON memberships.tenant_id = accounts.tenant_id
+   AND memberships.user_id = accounts.user_id`;
 
 function mapChallenge(row) {
   if (!row) return null;
@@ -108,6 +214,24 @@ function mapChallenge(row) {
     revoked_at: row.revoked_at ? iso(row.revoked_at) : null,
     revoke_reason: row.revoke_reason,
     metadata: Object.freeze(clone(row.metadata ?? {})),
+  });
+}
+
+function mapPasswordResetJob(row) {
+  if (!row) return null;
+  return Object.freeze({
+    tenant_id: row.tenant_id,
+    job_id: row.job_id,
+    email: row.email,
+    request_id: row.request_id,
+    state: row.state,
+    attempt_count: Number(row.attempt_count),
+    available_at: iso(row.available_at),
+    lease_owner: row.lease_owner,
+    lease_expires_at: row.lease_expires_at ? iso(row.lease_expires_at) : null,
+    last_error_code: row.last_error_code,
+    created_at: iso(row.created_at),
+    updated_at: iso(row.updated_at),
   });
 }
 
@@ -162,19 +286,117 @@ async function insertAudit(client, tenantId, input, clock) {
   return Object.freeze({ ...clone(row), occurred_at: iso(row.occurred_at) });
 }
 
+function requireSha256(value, name) {
+  const hash = required(value, name).toLowerCase();
+  if (!/^[a-f0-9]{64}$/u.test(hash)) throw new TypeError(`${name} must be a SHA-256 digest`);
+  return hash;
+}
+
+function directoryOutboxEventId(idempotencyKey) {
+  return `identity_directory_${createHash("sha256").update(idempotencyKey).digest("hex").slice(0, 40)}`;
+}
+
+async function claimDirectoryIdempotency(client, tenantId, input, clock) {
+  if (input.idempotency_key == null && input.request_hash == null) return null;
+  const key = required(input.idempotency_key, "directory idempotency key");
+  const requestHash = requireSha256(input.request_hash, "directory idempotency request_hash");
+  const createdAt = iso(nowMs(clock));
+  const inserted = await client.query(
+    `INSERT INTO lawos_identity.directory_idempotency_keys
+       (tenant_id, idempotency_key, request_hash, response, created_at)
+     VALUES ($1, $2, $3, NULL, $4::timestamptz)
+     ON CONFLICT (tenant_id, idempotency_key) DO NOTHING
+     RETURNING tenant_id, idempotency_key, request_hash, response, created_at`,
+    [tenantId, key, requestHash, createdAt],
+  );
+  const row = inserted.rows[0] ?? (await client.query(
+    `SELECT tenant_id, idempotency_key, request_hash, response, created_at
+       FROM lawos_identity.directory_idempotency_keys
+      WHERE tenant_id = $1 AND idempotency_key = $2`,
+    [tenantId, key],
+  )).rows[0];
+  if (row.request_hash !== requestHash) throw new RepositoryIdempotencyConflictError();
+  return Object.freeze({
+    key,
+    request_hash: requestHash,
+    replayed: inserted.rowCount === 0,
+    response: clone(row.response),
+    created_at: iso(row.created_at),
+  });
+}
+
+async function completeDirectoryIdempotency(client, tenantId, claim, response) {
+  if (!claim || claim.replayed) return;
+  await client.query(
+    `UPDATE lawos_identity.directory_idempotency_keys
+        SET response = $3::jsonb
+      WHERE tenant_id = $1 AND idempotency_key = $2`,
+    [tenantId, claim.key, JSON.stringify(response ?? null)],
+  );
+}
+
+function mapDirectoryOutbox(row, replayed = false) {
+  if (!row) return null;
+  return Object.freeze({
+    tenant_id: row.tenant_id,
+    event_id: row.event_id,
+    topic: row.topic,
+    aggregate_type: row.aggregate_type,
+    aggregate_id: row.aggregate_id,
+    payload: Object.freeze(clone(row.payload ?? {})),
+    status: row.status,
+    attempt_count: Number(row.attempt_count),
+    created_at: iso(row.created_at),
+    published_at: row.published_at ? iso(row.published_at) : null,
+    replayed,
+  });
+}
+
+async function enqueueDirectoryOutbox(client, tenantId, input, claim, clock) {
+  if (!claim) return null;
+  const eventId = optional(input.outbox_event_id) ?? directoryOutboxEventId(claim.key);
+  const topic = optional(input.outbox_topic) ?? "identity.directory.user.changed";
+  const payload = {
+    synthetic_only: input.data_scope === "synthetic-only",
+    user_id: required(input.user?.user_id, "identity user_id"),
+    directory_state_version: Number(input.directory_state_version),
+  };
+  assertAuditDetails(payload, "outbox.payload");
+  const inserted = await client.query(
+    `INSERT INTO lawos_identity.directory_outbox_events
+       (tenant_id, event_id, topic, aggregate_type, aggregate_id, payload, created_at)
+     VALUES ($1, $2, $3, 'identity-directory-user', $4, $5::jsonb, $6::timestamptz)
+     ON CONFLICT (tenant_id, event_id) DO NOTHING
+     RETURNING tenant_id, event_id, topic, aggregate_type, aggregate_id, payload,
+               status, attempt_count, created_at, published_at`,
+    [tenantId, eventId, topic, input.user.user_id, JSON.stringify(payload), iso(nowMs(clock))],
+  );
+  const row = inserted.rows[0] ?? (await client.query(
+    `SELECT tenant_id, event_id, topic, aggregate_type, aggregate_id, payload,
+            status, attempt_count, created_at, published_at
+       FROM lawos_identity.directory_outbox_events
+      WHERE tenant_id = $1 AND event_id = $2`,
+    [tenantId, eventId],
+  )).rows[0];
+  if (row.topic !== topic || row.aggregate_id !== input.user.user_id) {
+    throw new RepositoryIdempotencyConflictError("directory outbox event already exists with different content");
+  }
+  return mapDirectoryOutbox(row, inserted.rowCount === 0);
+}
+
 async function ensureAccountRow(client, tenantId, user, clock) {
   const account = normalizeAccountSeed(user);
   const timestamp = iso(nowMs(clock));
   await client.query(
     `INSERT INTO lawos_identity.accounts
-       (tenant_id, user_id, email, account_status, credential_provider, credential_status, credential_rev, password_hash, created_at, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::timestamptz, $9::timestamptz)
+       (tenant_id, user_id, email, account_status, credential_provider, credential_status, credential_rev, password_hash, profile, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10::timestamptz, $10::timestamptz)
      ON CONFLICT (tenant_id, user_id) DO NOTHING`,
-    [tenantId, account.user_id, account.email, account.account_status, account.credential_provider, account.credential_status, account.credential_rev, JSON.stringify(account.password_hash), timestamp],
+    [tenantId, account.user_id, account.email, account.account_status, account.credential_provider, account.credential_status, account.credential_rev, JSON.stringify(account.password_hash), JSON.stringify(account.profile), timestamp],
   );
   const result = await client.query(
     `SELECT tenant_id, user_id, email, account_status, credential_provider, credential_status, credential_rev,
-            password_hash, federated_tenant_id, federated_subject_id,
+            password_hash, profile, federated_tenant_id, federated_subject_id,
             failed_login_count, locked_until, created_at, updated_at
        FROM lawos_identity.accounts WHERE tenant_id = $1 AND user_id = $2`,
     [tenantId, account.user_id],
@@ -199,6 +421,266 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     callback,
   );
 
+  async function provisionDirectoryUser(input = {}) {
+    const tenantId = requireRepositoryTenantId(input.tenant_id);
+    const seed = normalizeAccountSeed({
+      ...input.user,
+      credential_provider: input.user?.credential_provider ?? INTERNAL_PASSWORD_PROVIDER_ID,
+      credential_status: input.user?.credential_status ?? "reset_required",
+      password_hash: {},
+    });
+    const membership = normalizeDirectoryMembership(input, tenantId, seed.user_id);
+    return scoped(tenantId, async (client) => {
+      const idempotency = await claimDirectoryIdempotency(client, tenantId, input, clock);
+      if (idempotency?.replayed) {
+        const existing = await client.query(
+          `${DIRECTORY_SELECT}
+            WHERE accounts.tenant_id = $1 AND accounts.user_id = $2`,
+          [tenantId, seed.user_id],
+        );
+        if (!existing.rows[0]) throw new RepositoryIdempotencyConflictError("directory replay target is missing");
+        const outbox = await client.query(
+          `SELECT tenant_id, event_id, topic, aggregate_type, aggregate_id, payload,
+                  status, attempt_count, created_at, published_at
+             FROM lawos_identity.directory_outbox_events
+            WHERE tenant_id = $1 AND event_id = $2`,
+          [tenantId, optional(input.outbox_event_id) ?? directoryOutboxEventId(idempotency.key)],
+        );
+        return Object.freeze({
+          user: mapDirectoryUser(existing.rows[0]),
+          replayed: true,
+          account_changed: false,
+          membership_changed: false,
+          idempotency_replayed: true,
+          outbox: mapDirectoryOutbox(outbox.rows[0], Boolean(outbox.rows[0])),
+        });
+      }
+      const timestamp = iso(nowMs(clock));
+      const insertedAccount = await client.query(
+        `INSERT INTO lawos_identity.accounts
+           (tenant_id, user_id, email, account_status, credential_provider, credential_status,
+            credential_rev, password_hash, profile, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, '{}'::jsonb, $8::jsonb, $9::timestamptz, $9::timestamptz)
+         ON CONFLICT (tenant_id, user_id) DO NOTHING
+         RETURNING user_id`,
+        [
+          tenantId,
+          seed.user_id,
+          seed.email,
+          seed.account_status,
+          seed.credential_provider,
+          seed.credential_status,
+          seed.credential_rev,
+          JSON.stringify(seed.profile),
+          timestamp,
+        ],
+      );
+      let accountChanged = insertedAccount.rowCount > 0;
+      let accountStatusChanged = false;
+      if (!accountChanged) {
+        const currentAccount = await client.query(
+          `SELECT account_status
+             FROM lawos_identity.accounts
+            WHERE tenant_id = $1 AND user_id = $2
+            FOR UPDATE`,
+          [tenantId, seed.user_id],
+        );
+        accountStatusChanged = currentAccount.rows[0]?.account_status !== seed.account_status;
+        const updatedAccount = await client.query(
+          `UPDATE lawos_identity.accounts
+              SET email = $3,
+                  account_status = $4,
+                  credential_provider = COALESCE(credential_provider, $5),
+                  credential_status = CASE
+                    WHEN $4 = 'disabled' THEN 'disabled'
+                    WHEN account_status = 'disabled' AND $4 = 'active' THEN 'reset_required'
+                    ELSE credential_status
+                  END,
+                  credential_rev = credential_rev + CASE WHEN account_status IS DISTINCT FROM $4 THEN 1 ELSE 0 END,
+                  profile = $6::jsonb,
+                  updated_at = $7::timestamptz
+            WHERE tenant_id = $1
+              AND user_id = $2
+              AND (email, account_status, credential_provider, profile)
+                    IS DISTINCT FROM ($3, $4, COALESCE(credential_provider, $5), $6::jsonb)
+          RETURNING user_id`,
+          [tenantId, seed.user_id, seed.email, seed.account_status, seed.credential_provider, JSON.stringify(seed.profile), timestamp],
+        );
+        accountChanged = updatedAccount.rowCount > 0;
+        if (!accountChanged) accountStatusChanged = false;
+      }
+
+      const insertedMembership = await client.query(
+        `INSERT INTO lawos_identity.account_memberships
+           (tenant_id, user_id, status, role_profile_id, role_ids, group_ids, scopes, hrx_scopes,
+            source_ref, state_version, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7::jsonb, $8::jsonb, $9, 1, $10::timestamptz, $10::timestamptz)
+         ON CONFLICT (tenant_id, user_id) DO NOTHING
+         RETURNING user_id`,
+        [
+          tenantId,
+          seed.user_id,
+          membership.status,
+          membership.role_profile_id,
+          JSON.stringify(membership.role_ids),
+          JSON.stringify(membership.group_ids),
+          JSON.stringify(membership.scopes),
+          JSON.stringify(membership.hrx_scopes),
+          membership.source_ref,
+          timestamp,
+        ],
+      );
+      let membershipChanged = insertedMembership.rowCount > 0;
+      if (!membershipChanged) {
+        const updatedMembership = await client.query(
+          `UPDATE lawos_identity.account_memberships
+              SET status = $3,
+                  role_profile_id = $4,
+                  role_ids = $5::jsonb,
+                  group_ids = $6::jsonb,
+                  scopes = $7::jsonb,
+                  hrx_scopes = $8::jsonb,
+                  source_ref = $9,
+                  state_version = state_version + 1,
+                  updated_at = $10::timestamptz
+            WHERE tenant_id = $1
+              AND user_id = $2
+              AND (status, role_profile_id, role_ids, group_ids, scopes, hrx_scopes, source_ref)
+                    IS DISTINCT FROM ($3, $4, $5::jsonb, $6::jsonb, $7::jsonb, $8::jsonb, $9)
+          RETURNING user_id`,
+          [
+            tenantId,
+            seed.user_id,
+            membership.status,
+            membership.role_profile_id,
+            JSON.stringify(membership.role_ids),
+            JSON.stringify(membership.group_ids),
+            JSON.stringify(membership.scopes),
+            JSON.stringify(membership.hrx_scopes),
+            membership.source_ref,
+            timestamp,
+          ],
+        );
+        membershipChanged = updatedMembership.rowCount > 0;
+      }
+
+      if (accountChanged || membershipChanged) {
+        await insertAudit(client, tenantId, {
+          action: "auth.directory.user.provisioned",
+          object_id: seed.user_id,
+          actor_id: input.actor_id,
+          details: {
+            account_changed: accountChanged,
+            membership_changed: membershipChanged,
+            account_status_changed: accountStatusChanged,
+            account_status: seed.account_status,
+            membership_status: membership.status,
+          },
+        }, clock);
+      }
+      const result = await client.query(
+        `${DIRECTORY_SELECT}
+          WHERE accounts.tenant_id = $1 AND accounts.user_id = $2`,
+        [tenantId, seed.user_id],
+      );
+      const user = mapDirectoryUser(result.rows[0]);
+      const outbox = accountChanged || membershipChanged
+        ? await enqueueDirectoryOutbox(client, tenantId, {
+          ...input,
+          user: { ...input.user, user_id: seed.user_id },
+          directory_state_version: user.directory_state_version,
+        }, idempotency, clock)
+        : null;
+      await completeDirectoryIdempotency(client, tenantId, idempotency, {
+        user_id: seed.user_id,
+        directory_state_version: user.directory_state_version,
+        changed: accountChanged || membershipChanged,
+      });
+      return Object.freeze({
+        user,
+        replayed: !accountChanged && !membershipChanged,
+        account_changed: accountChanged,
+        membership_changed: membershipChanged,
+        idempotency_replayed: false,
+        outbox,
+      });
+    });
+  }
+
+  async function findDirectoryUserByEmail(input = {}) {
+    const tenantId = requireRepositoryTenantId(input.tenant_id);
+    const email = required(input.email, "directory email").toLowerCase();
+    return scoped(tenantId, async (client) => {
+      const result = await client.query(
+        `${DIRECTORY_SELECT}
+          WHERE accounts.tenant_id = $1 AND lower(accounts.email) = $2`,
+        [tenantId, email],
+      );
+      return mapDirectoryUser(result.rows[0]);
+    });
+  }
+
+  async function findDirectoryUserByUserId(input = {}) {
+    const tenantId = requireRepositoryTenantId(input.tenant_id);
+    const userId = required(input.user_id, "directory user_id");
+    return scoped(tenantId, async (client) => {
+      const result = await client.query(
+        `${DIRECTORY_SELECT}
+          WHERE accounts.tenant_id = $1 AND accounts.user_id = $2`,
+        [tenantId, userId],
+      );
+      return mapDirectoryUser(result.rows[0]);
+    });
+  }
+
+  async function listDirectoryUsers(input = {}) {
+    const tenantId = requireRepositoryTenantId(input.tenant_id);
+    return scoped(tenantId, async (client) => {
+      const result = await client.query(
+        `${DIRECTORY_SELECT}
+          WHERE accounts.tenant_id = $1
+          ORDER BY lower(accounts.email) NULLS LAST, accounts.user_id`,
+        [tenantId],
+      );
+      return Object.freeze(result.rows.map(mapDirectoryUser));
+    });
+  }
+
+  async function listDirectoryOutbox(input = {}) {
+    const tenantId = requireRepositoryTenantId(input.tenant_id);
+    return scoped(tenantId, async (client) => {
+      const result = await client.query(
+        `SELECT tenant_id, event_id, topic, aggregate_type, aggregate_id, payload,
+                status, attempt_count, created_at, published_at
+           FROM lawos_identity.directory_outbox_events
+          WHERE tenant_id = $1
+          ORDER BY created_at, event_id`,
+        [tenantId],
+      );
+      return Object.freeze(result.rows.map((row) => mapDirectoryOutbox(row)));
+    });
+  }
+
+  async function listDirectoryIdempotency(input = {}) {
+    const tenantId = requireRepositoryTenantId(input.tenant_id);
+    return scoped(tenantId, async (client) => {
+      const result = await client.query(
+        `SELECT tenant_id, idempotency_key, request_hash, response, created_at
+           FROM lawos_identity.directory_idempotency_keys
+          WHERE tenant_id = $1
+          ORDER BY created_at, idempotency_key`,
+        [tenantId],
+      );
+      return Object.freeze(result.rows.map((row) => Object.freeze({
+        tenant_id: row.tenant_id,
+        key: row.idempotency_key,
+        request_hash: row.request_hash,
+        response: Object.freeze(clone(row.response ?? {})),
+        created_at: iso(row.created_at),
+      })));
+    });
+  }
+
   async function ensureAccount(input = {}) {
     const tenantId = requireRepositoryTenantId(input.tenant_id);
     return scoped(tenantId, (client) => ensureAccountRow(client, tenantId, input.user, clock));
@@ -210,7 +692,7 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     return scoped(tenantId, async (client) => {
       const result = await client.query(
         `SELECT tenant_id, user_id, email, account_status, credential_provider, credential_status, credential_rev,
-                password_hash, federated_tenant_id, federated_subject_id,
+                password_hash, profile, federated_tenant_id, federated_subject_id,
                 failed_login_count, locked_until, created_at, updated_at
            FROM lawos_identity.accounts WHERE tenant_id = $1 AND user_id = $2`,
         [tenantId, userId],
@@ -332,6 +814,7 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     const seed = normalizeAccountSeed(input.user);
     return scoped(tenantId, async (client) => {
       await ensureAccountRow(client, tenantId, seed, clock);
+      const timestamp = iso(nowMs(clock));
       const result = await client.query(
         `UPDATE lawos_identity.accounts
             SET credential_status = 'reset_required', credential_rev = credential_rev + 1, updated_at = $3::timestamptz
@@ -339,7 +822,15 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
         RETURNING tenant_id, user_id, email, account_status, credential_provider, credential_status, credential_rev,
                   password_hash, federated_tenant_id, federated_subject_id,
                   failed_login_count, locked_until, created_at, updated_at`,
-        [tenantId, seed.user_id, iso(nowMs(clock))],
+        [tenantId, seed.user_id, timestamp],
+      );
+      await client.query(
+        `UPDATE lawos_identity.sessions
+            SET revoked_at = $3::timestamptz,
+                revoked_by = $2,
+                revocation_reason = 'password_reset_required'
+          WHERE tenant_id = $1 AND user_id = $2 AND revoked_at IS NULL`,
+        [tenantId, seed.user_id, timestamp],
       );
       await insertAudit(client, tenantId, {
         action: "auth.password_reset.required",
@@ -400,11 +891,22 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     return scoped(tenantId, async (client) => {
       await ensureAccountRow(client, tenantId, seed, clock);
       const currentResult = await client.query(
-        `SELECT tenant_id, user_id, account_status, credential_status, credential_rev, failed_login_count, locked_until
-           FROM lawos_identity.accounts WHERE tenant_id = $1 AND user_id = $2 FOR UPDATE`,
+        `SELECT accounts.tenant_id, accounts.user_id, accounts.account_status, accounts.credential_status,
+                accounts.credential_rev, accounts.failed_login_count, accounts.locked_until,
+                memberships.status AS membership_status,
+                memberships.state_version AS membership_state_version
+           FROM lawos_identity.accounts AS accounts
+           JOIN lawos_identity.account_memberships AS memberships
+             ON memberships.tenant_id = accounts.tenant_id
+            AND memberships.user_id = accounts.user_id
+          WHERE accounts.tenant_id = $1 AND accounts.user_id = $2
+          FOR UPDATE OF accounts, memberships`,
         [tenantId, seed.user_id],
       );
       const current = currentResult.rows[0];
+      if (!current || current.membership_status !== "active") {
+        return Object.freeze({ ok: false, reason: "tenant_membership_inactive", safe_error_code: "AUTH_CREDENTIAL_INVALID", status: 401 });
+      }
       if (current.account_status !== "active") return Object.freeze({ ok: false, reason: "account_disabled", safe_error_code: "AUTH_ACCOUNT_DISABLED", status: 403 });
       if (!["active", "must_change"].includes(current.credential_status)) {
         return Object.freeze({ ok: false, reason: "credential_inactive", safe_error_code: "AUTH_CREDENTIAL_REVOKED", status: 401 });
@@ -423,9 +925,9 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
       );
       await client.query(
         `INSERT INTO lawos_identity.sessions
-           (tenant_id, session_jti, session_id, user_id, credential_rev, issued_at, expires_at)
-         VALUES ($1, $2, $3, $4, $5, $6::timestamptz, $7::timestamptz)`,
-        [tenantId, sessionJti, sessionId, seed.user_id, credentialRev, issuedAt, expiresAt],
+           (tenant_id, session_jti, session_id, user_id, credential_rev, membership_state_version, issued_at, expires_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7::timestamptz, $8::timestamptz)`,
+        [tenantId, sessionJti, sessionId, seed.user_id, credentialRev, Number(current.membership_state_version), issuedAt, expiresAt],
       );
       if (wasLocked) await insertAudit(client, tenantId, { action: "auth.login.unlocked", object_id: seed.user_id, actor_id: seed.user_id, details: { reason: "successful_login_after_lock_expiry" } }, clock);
       await insertAudit(client, tenantId, { action: "auth.login.succeeded", object_id: seed.user_id, actor_id: seed.user_id, details: { session_registered: true } }, clock);
@@ -438,10 +940,14 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     const sessionJti = required(input.session_jti, "session_jti");
     return scoped(tenantId, async (client) => {
       const result = await client.query(
-        `SELECT s.session_jti, s.user_id, s.credential_rev AS session_credential_rev, s.expires_at, s.revoked_at,
-                a.account_status, a.credential_status, a.credential_rev
+        `SELECT s.session_jti, s.user_id, s.credential_rev AS session_credential_rev,
+                s.membership_state_version AS session_membership_state_version,
+                s.expires_at, s.revoked_at,
+                a.account_status, a.credential_status, a.credential_rev,
+                m.status AS membership_status, m.state_version AS membership_state_version
            FROM lawos_identity.sessions s
            JOIN lawos_identity.accounts a ON a.tenant_id = s.tenant_id AND a.user_id = s.user_id
+           JOIN lawos_identity.account_memberships m ON m.tenant_id = s.tenant_id AND m.user_id = s.user_id
           WHERE s.tenant_id = $1 AND s.session_jti = $2`,
         [tenantId, sessionJti],
       );
@@ -450,6 +956,12 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
       if (row.revoked_at) return Object.freeze({ ok: false, reason: "session_revoked", safe_error_code: "AUTH_SESSION_REVOKED", status: 401 });
       if (millis(row.expires_at) <= nowMs(clock)) return Object.freeze({ ok: false, reason: "auth_session_expired", safe_error_code: "AUTH_SESSION_EXPIRED", status: 401 });
       if (row.account_status !== "active") return Object.freeze({ ok: false, reason: "account_disabled", safe_error_code: "AUTH_ACCOUNT_DISABLED", status: 403 });
+      if (row.membership_status !== "active") {
+        return Object.freeze({ ok: false, reason: "tenant_membership_inactive", safe_error_code: "AUTH_SESSION_REVOKED", status: 401 });
+      }
+      if (Number(row.session_membership_state_version) !== Number(row.membership_state_version)) {
+        return Object.freeze({ ok: false, reason: "membership_revision_mismatch", safe_error_code: "AUTH_SESSION_REVOKED", status: 401 });
+      }
       if (["disabled", "reset_required", "locked"].includes(row.credential_status)) {
         return Object.freeze({ ok: false, reason: "credential_inactive", safe_error_code: "AUTH_CREDENTIAL_REVOKED", status: 401 });
       }
@@ -661,6 +1173,85 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     });
   }
 
+  async function enqueuePasswordReset(input = {}) {
+    const tenantId = requireRepositoryTenantId(input.tenant_id);
+    const email = required(input.email, "password reset email").toLowerCase();
+    const requestId = required(input.request_id, "password reset request_id");
+    const jobId = optional(input.job_id) ?? `password-reset:${randomUUID()}`;
+    const timestamp = iso(nowMs(clock));
+    return scoped(tenantId, async (client) => {
+      const result = await client.query(
+        `INSERT INTO lawos_identity.password_reset_jobs
+           (tenant_id, job_id, email, request_id, state, attempt_count, available_at, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, 'pending', 0, $5::timestamptz, $5::timestamptz, $5::timestamptz)
+         RETURNING *`,
+        [tenantId, jobId, email, requestId, timestamp],
+      );
+      return mapPasswordResetJob(result.rows[0]);
+    });
+  }
+
+  async function claimPasswordResetJobs(input = {}) {
+    const tenantId = requireRepositoryTenantId(input.tenant_id);
+    const workerId = required(input.worker_id, "password reset worker_id");
+    const limit = Number(input.limit ?? 10);
+    const leaseMs = Number(input.lease_ms ?? 60_000);
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) throw new TypeError("password reset claim limit is invalid");
+    if (!Number.isFinite(leaseMs) || leaseMs < 1_000 || leaseMs > 15 * 60_000) throw new TypeError("password reset lease_ms is invalid");
+    const timestamp = nowMs(clock);
+    return scoped(tenantId, async (client) => {
+      const result = await client.query(
+        `WITH candidates AS (
+           SELECT job_id
+             FROM lawos_identity.password_reset_jobs
+            WHERE tenant_id = $1
+              AND ((state = 'pending' AND available_at <= $2::timestamptz)
+                OR (state = 'processing' AND lease_expires_at <= $2::timestamptz))
+            ORDER BY available_at, created_at, job_id
+            FOR UPDATE SKIP LOCKED
+            LIMIT $3
+         )
+         UPDATE lawos_identity.password_reset_jobs AS jobs
+            SET state = 'processing', attempt_count = attempt_count + 1,
+                lease_owner = $4, lease_expires_at = $5::timestamptz,
+                updated_at = $2::timestamptz
+           FROM candidates
+          WHERE jobs.tenant_id = $1 AND jobs.job_id = candidates.job_id
+         RETURNING jobs.*`,
+        [tenantId, iso(timestamp), limit, workerId, iso(timestamp + leaseMs)],
+      );
+      return Object.freeze(result.rows.map(mapPasswordResetJob));
+    });
+  }
+
+  async function finishPasswordResetJob(input = {}) {
+    const tenantId = requireRepositoryTenantId(input.tenant_id);
+    const jobId = required(input.job_id, "password reset job_id");
+    const workerId = required(input.worker_id, "password reset worker_id");
+    const outcome = required(input.outcome, "password reset job outcome");
+    if (!["completed", "dropped", "retry"].includes(outcome)) throw new TypeError("password reset job outcome is invalid");
+    const retryDelayMs = Number(input.retry_delay_ms ?? 60_000);
+    const timestamp = nowMs(clock);
+    return scoped(tenantId, async (client) => {
+      const result = await client.query(
+        `UPDATE lawos_identity.password_reset_jobs
+            SET state = CASE
+                  WHEN $4 = 'retry' AND attempt_count < 3 THEN 'pending'
+                  WHEN $4 = 'retry' THEN 'failed'
+                  ELSE $4
+                END,
+                available_at = CASE WHEN $4 = 'retry' AND attempt_count < 3 THEN $6::timestamptz ELSE available_at END,
+                lease_owner = NULL, lease_expires_at = NULL,
+                last_error_code = $5, updated_at = $7::timestamptz
+          WHERE tenant_id = $1 AND job_id = $2 AND state = 'processing' AND lease_owner = $3
+        RETURNING *`,
+        [tenantId, jobId, workerId, outcome, optional(input.last_error_code), iso(timestamp + retryDelayMs), iso(timestamp)],
+      );
+      if (!result.rows[0]) throw new Error("password reset queue lease is not owned by this worker");
+      return mapPasswordResetJob(result.rows[0]);
+    });
+  }
+
   async function createBreakGlassRequest(input = {}) {
     const tenantId = requireRepositoryTenantId(input.tenant_id);
     const requester = normalizeAccountSeed(input.requester);
@@ -831,7 +1422,23 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
 
   return Object.freeze({
     contract_version: IDENTITY_LEDGER_CONTRACT_VERSION,
-    capabilities: Object.freeze({ authority: "postgres-v2", tenant_scoped: true, rls_required: true, async_transactions: true, production_ready_claim: false }),
+    capabilities: Object.freeze({
+      authority: "postgres-v2",
+      tenant_scoped: true,
+      rls_required: true,
+      async_transactions: true,
+      optimistic_version: true,
+      idempotency: true,
+      audit: true,
+      outbox: true,
+      production_ready_claim: false,
+    }),
+    provisionDirectoryUser,
+    findDirectoryUserByEmail,
+    findDirectoryUserByUserId,
+    listDirectoryUsers,
+    listDirectoryOutbox,
+    listDirectoryIdempotency,
     ensureAccount,
     getAccount,
     setCredential,
@@ -846,6 +1453,9 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     validateChallenge,
     consumeChallenge,
     revokeChallengesForUser,
+    enqueuePasswordReset,
+    claimPasswordResetJobs,
+    finishPasswordResetJob,
     createBreakGlassRequest,
     transitionBreakGlassRequest,
     listBreakGlassRequests,

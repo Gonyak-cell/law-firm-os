@@ -64,11 +64,45 @@ const PRODUCT_DOMAINS = Object.freeze([
   Object.freeze({ key: "uiReadinessRepository", descriptor: UI_READINESS_DOMAIN_DESCRIPTOR, create_repository: createUiReadinessRepository }),
   Object.freeze({ key: "enterpriseReadinessRepository", descriptor: ENTERPRISE_READINESS_DOMAIN_DESCRIPTOR, create_repository: createEnterpriseReadinessRepository }),
 ]);
+const POSTGRES_READ_RETRY_LIMIT = 5;
+const POSTGRES_READ_RETRYABLE_CONFLICTS = new Set([
+  "DOMAIN_BASELINE_CONFLICT",
+  "DOMAIN_SHADOW_DIFFERENCE",
+  "HRX_POSTGRES_BASELINE_CONFLICT",
+  "REPOSITORY_VERSION_CONFLICT",
+]);
 
 function requiredText(value, name) {
   const text = String(value ?? "").trim();
   if (!text) throw new TypeError(`${name} is required`);
   return text;
+}
+
+export function isRetryablePostgresReadConflict(error, method) {
+  return ["GET", "HEAD"].includes(String(method ?? "").toUpperCase())
+    && POSTGRES_READ_RETRYABLE_CONFLICTS.has(error?.safe_error_code);
+}
+
+export async function runPostgresReadWithBaselineRetry({
+  method,
+  execute,
+  wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
+  retryLimit = POSTGRES_READ_RETRY_LIMIT,
+} = {}) {
+  if (typeof execute !== "function" || typeof wait !== "function") {
+    throw new TypeError("PostgreSQL request execution and wait callbacks are required");
+  }
+  if (!Number.isInteger(retryLimit) || retryLimit < 0 || retryLimit > POSTGRES_READ_RETRY_LIMIT) {
+    throw new TypeError(`PostgreSQL read retry limit must be between zero and ${POSTGRES_READ_RETRY_LIMIT}`);
+  }
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await execute({ attempt: attempt + 1 });
+    } catch (error) {
+      if (!isRetryablePostgresReadConflict(error, method) || attempt >= retryLimit) throw error;
+      await wait(5 * (2 ** attempt));
+    }
+  }
 }
 
 function createHrxDomainParticipant(requestContext) {
@@ -198,21 +232,27 @@ export function createPostgresApiRuntimeAuthority({ ledger, dmsStorage, dmsUploa
   async function run({ tenant_id, command, request_context = null } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
     if (typeof command !== "function") throw new TypeError("PostgreSQL API command callback is required");
-    const productCommand = await runRecordRepositoryMultiDomainCommand({
-      ledger,
-      tenant_id: tenantId,
-      domains: PRODUCT_DOMAINS,
-      additional_domains: [createHrxDomainParticipant(request_context)],
-      command: (repositories) => command(createRequestRuntimes({
-        repositories,
-        hrxStore: repositories.hrxStore,
-        dmsStorage,
-        dmsUploadRuntime,
-        payrollArtifactSecret,
-        payrollProviders,
-      })),
+    const method = String(request_context?.method ?? "").toUpperCase();
+    return runPostgresReadWithBaselineRetry({
+      method,
+      execute: async () => {
+        const productCommand = await runRecordRepositoryMultiDomainCommand({
+          ledger,
+          tenant_id: tenantId,
+          domains: PRODUCT_DOMAINS,
+          additional_domains: [createHrxDomainParticipant(request_context)],
+          command: (repositories) => command(createRequestRuntimes({
+            repositories,
+            hrxStore: repositories.hrxStore,
+            dmsStorage,
+            dmsUploadRuntime,
+            payrollArtifactSecret,
+            payrollProviders,
+          })),
+        });
+        return productCommand.result;
+      },
     });
-    return productCommand.result;
   }
 
   return Object.freeze({

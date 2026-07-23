@@ -1,0 +1,186 @@
+const SHA1 = /^[0-9a-f]{40}$/u;
+const SHA256 = /^[0-9a-f]{64}$/u;
+const REPOSITORY = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u;
+
+export const PRIVATE_STAGING_TRUSTED_SECURITY_CHECK = Object.freeze({
+  name: "Private staging security",
+  app_id: 15368,
+  app_slug: "github-actions",
+  workflow_name: "Private Staging Security",
+  workflow_path: ".github/workflows/private-staging-security.yml",
+  event: "pull_request",
+});
+
+export const PRIVATE_STAGING_TRUSTED_CODEQL_CHECK = Object.freeze({
+  name: "Analyze (javascript-typescript)",
+  app_id: 15368,
+  app_slug: "github-actions",
+  workflow_path: "dynamic/github-code-scanning/codeql",
+  event: "dynamic",
+});
+
+export const PRIVATE_STAGING_TRUSTED_CODEQL_PLATFORM_CHECK = Object.freeze({
+  name: "CodeQL",
+  app_id: 57789,
+  app_slug: "github-advanced-security",
+});
+
+function fail(message) {
+  const error = new Error(message);
+  error.code = "PRIVATE_STAGING_GITHUB_AUTHORITY_INVALID";
+  throw error;
+}
+
+function required(value, name, pattern) {
+  const text = String(value ?? "").trim();
+  if (!text || (pattern && !pattern.test(text))) fail(`${name} is invalid`);
+  return text;
+}
+
+export function validatePrivateStagingGithubChecks({ checkRuns, workflowRuns, repository, headSha, workflowSha256, pullRequestNumber } = {}) {
+  const repo = required(repository, "repository", REPOSITORY);
+  const sha = required(headSha, "headSha", SHA1);
+  const workflowDigest = required(workflowSha256, "workflowSha256", SHA256);
+  const prNumber = Number(pullRequestNumber);
+  if (!Number.isSafeInteger(prNumber) || prNumber < 1) fail("pullRequestNumber is invalid");
+  if (!Array.isArray(checkRuns) || !checkRuns.length || !Array.isArray(workflowRuns)) fail("GitHub check and workflow inventories are required");
+  if (checkRuns.length > 100 || workflowRuns.length > 100) fail("GitHub check inventory exceeds the closed first-page contract");
+
+  const runsBySuite = new Map();
+  for (const run of workflowRuns) {
+    if (run?.head_sha !== sha || run?.repository?.full_name !== repo || run?.head_repository?.full_name !== repo) continue;
+    const suiteId = Number(run.check_suite_id);
+    if (!Number.isSafeInteger(suiteId) || suiteId < 1 || runsBySuite.has(suiteId)) fail("GitHub workflow suite identity is missing or duplicated");
+    runsBySuite.set(suiteId, run);
+  }
+
+  const platformDefinition = PRIVATE_STAGING_TRUSTED_CODEQL_PLATFORM_CHECK;
+  const platformCandidates = [];
+  const workflowCheckRuns = [];
+  for (const check of checkRuns) {
+    if (check?.head_sha !== sha) fail("GitHub check is not bound to the exact-head source");
+    if (check?.app?.id === 15368 && check?.app?.slug === "github-actions") {
+      workflowCheckRuns.push(check);
+      continue;
+    }
+    if (
+      check?.name === platformDefinition.name
+      && check?.app?.id === platformDefinition.app_id
+      && check?.app?.slug === platformDefinition.app_slug
+    ) {
+      const checkRunId = Number(check?.id);
+      const startedAt = Date.parse(String(check?.started_at ?? ""));
+      if (!Number.isSafeInteger(checkRunId) || checkRunId < 1 || !Number.isFinite(startedAt)) {
+        fail("GitHub CodeQL platform check freshness identity is invalid");
+      }
+      platformCandidates.push(Object.freeze({
+        name: platformDefinition.name,
+        status: String(check.status ?? "").toUpperCase(),
+        conclusion: String(check.conclusion ?? "").toUpperCase(),
+        publisher_app_id: platformDefinition.app_id,
+        publisher_app_slug: platformDefinition.app_slug,
+        check_suite_id: Number(check?.check_suite?.id),
+        check_run_id: checkRunId,
+        started_at: new Date(startedAt).toISOString(),
+        repository: repo,
+        head_sha: sha,
+      }));
+      continue;
+    }
+    fail("exact-head check has an untrusted publisher or context");
+  }
+
+  const candidates = workflowCheckRuns.map((check) => {
+    const suiteId = Number(check?.check_suite?.id);
+    const workflow = runsBySuite.get(suiteId);
+    const checkRunId = Number(check?.id);
+    const workflowRunId = Number(workflow?.id);
+    const startedAt = Date.parse(String(check?.started_at ?? workflow?.created_at ?? ""));
+    if (check?.head_sha !== sha || !workflow) fail("GitHub check is not bound to one exact-head workflow run");
+    if (!Number.isSafeInteger(checkRunId) || checkRunId < 1 || !Number.isSafeInteger(workflowRunId) || workflowRunId < 1 || !Number.isFinite(startedAt)) {
+      fail("GitHub check freshness identity is invalid");
+    }
+    const identity = [check.name, check.app?.id, check.app?.slug, workflow.name, workflow.path, workflow.event].join("\u0000");
+    return Object.freeze({
+      name: required(check.name, "check name"),
+      status: String(check.status ?? "").toUpperCase(),
+      conclusion: String(check.conclusion ?? "").toUpperCase(),
+      publisher_app_id: Number(check.app?.id),
+      publisher_app_slug: String(check.app?.slug ?? ""),
+      check_suite_id: suiteId,
+      check_run_id: checkRunId,
+      workflow_run_id: workflowRunId,
+      started_at: new Date(startedAt).toISOString(),
+      workflow_name: String(workflow.name ?? ""),
+      workflow_path: String(workflow.path ?? ""),
+      workflow_event: String(workflow.event ?? ""),
+      workflow_status: String(workflow.status ?? "").toUpperCase(),
+      workflow_conclusion: String(workflow.conclusion ?? "").toUpperCase(),
+      repository: repo,
+      head_sha: sha,
+      identity,
+    });
+  });
+
+  const latestByIdentity = new Map();
+  for (const candidate of candidates) {
+    const current = latestByIdentity.get(candidate.identity);
+    if (!current || candidate.started_at > current.started_at || (candidate.started_at === current.started_at && candidate.check_run_id > current.check_run_id)) {
+      latestByIdentity.set(candidate.identity, candidate);
+    }
+  }
+  const checks = [...latestByIdentity.values()].map(({ identity: _identity, ...check }) => {
+    if (check.status !== "COMPLETED" || check.conclusion !== "SUCCESS") {
+      fail("latest exact-head CI contains a missing, pending, skipped, neutral, or failed check");
+    }
+    if (check.workflow_status !== "COMPLETED" || check.workflow_conclusion !== "SUCCESS") {
+      fail("latest GitHub check is not bound to one successful exact-head workflow run");
+    }
+    return Object.freeze(check);
+  });
+
+  if (platformCandidates.length === 0) fail("exactly one trusted GitHub CodeQL platform context is required");
+  const platformCheck = platformCandidates.reduce((latest, candidate) => (
+    !latest || candidate.started_at > latest.started_at || (candidate.started_at === latest.started_at && candidate.check_run_id > latest.check_run_id)
+      ? candidate
+      : latest
+  ), null);
+  if (platformCheck.status !== "COMPLETED" || !["SUCCESS", "NEUTRAL"].includes(platformCheck.conclusion)) {
+    fail("latest GitHub CodeQL platform check is pending or failed");
+  }
+
+  const expected = PRIVATE_STAGING_TRUSTED_SECURITY_CHECK;
+  const trustedSecurity = checks.filter((check) => (
+    check.name === expected.name
+    && check.publisher_app_id === expected.app_id
+    && check.publisher_app_slug === expected.app_slug
+    && check.workflow_name === expected.workflow_name
+    && check.workflow_path === expected.workflow_path
+    && check.workflow_event === expected.event
+    && check.repository === repo
+    && check.head_sha === sha
+  ));
+  if (trustedSecurity.length !== 1) fail("exactly one trusted exact-head security check is required");
+  const expectedCodeql = PRIVATE_STAGING_TRUSTED_CODEQL_CHECK;
+  const trustedCodeql = checks.filter((check) => (
+    check.name === expectedCodeql.name
+    && check.publisher_app_id === expectedCodeql.app_id
+    && check.publisher_app_slug === expectedCodeql.app_slug
+    && check.workflow_name === `PR #${prNumber}`
+    && check.workflow_path === expectedCodeql.workflow_path
+    && check.workflow_event === expectedCodeql.event
+    && check.repository === repo
+    && check.head_sha === sha
+  ));
+  if (trustedCodeql.length !== 1) fail("exactly one trusted exact-head JavaScript CodeQL check is required");
+  return Object.freeze({
+    checks: Object.freeze(checks),
+    security_checks: Object.freeze(trustedSecurity.map((check) => Object.freeze({ ...check, workflow_sha256: workflowDigest }))),
+    codeql_checks: Object.freeze(trustedCodeql),
+    platform_checks: Object.freeze([platformCheck]),
+    check_count: checks.length,
+    security_check_count: 1,
+    codeql_check_count: 1,
+    platform_check_count: 1,
+  });
+}

@@ -1,5 +1,7 @@
+import { createHash } from "node:crypto";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
 import { createHomeDashboardOperationalState } from "./home-dashboard-operational-state.js";
+import { stableJsonStringify } from "../../../packages/persistence/src/durable-file.js";
 
 const NEWS_CACHE_MIN_MS = 15 * 60 * 1000;
 const NEWS_CACHE_MAX_MS = 30 * 60 * 1000;
@@ -205,6 +207,7 @@ function routeGate({ context, query, requestId, action, resourceType, runtime })
   });
   if (decision.effect === "allow") return null;
   appendAudit(runtime, {
+    request_id: requestId,
     tenant_id: query.tenant_id,
     actor_id: context?.principal?.user_id ?? null,
     action,
@@ -324,8 +327,19 @@ function reloadOperationalState(runtime) {
 
 function appendAudit(runtime, event = {}, { persist = true } = {}) {
   if (!runtime?.auditEvents) return null;
+  const requestId = String(event.request_id ?? "").trim();
+  const auditEventId = event.audit_event_id ?? (requestId
+    ? `home_audit_${createHash("sha256")
+      .update([
+        requestId,
+        event.action ?? "",
+        event.object_type ?? "",
+        event.object_id ?? "",
+      ].join("\x1f"))
+      .digest("hex")}`
+    : `home_audit_${runtime.auditEvents.length + 1}`);
   const auditEvent = Object.freeze({
-    audit_event_id: event.audit_event_id ?? `home_audit_${runtime.auditEvents.length + 1}`,
+    audit_event_id: auditEventId,
     tenant_id: event.tenant_id ?? null,
     actor_id: event.actor_id ?? null,
     action: event.action,
@@ -343,6 +357,18 @@ function appendAudit(runtime, event = {}, { persist = true } = {}) {
       full_body_storage_enabled: false,
     }),
   });
+  const existing = runtime.auditEvents.find((candidate) => candidate.audit_event_id === auditEventId);
+  if (existing) {
+    const comparable = ({ created_at: _createdAt, ...value }) => value;
+    if (stableJsonStringify(comparable(existing)) !== stableJsonStringify(comparable(auditEvent))) {
+      throw Object.assign(new Error("Home audit request occurrence was reused with different semantics"), {
+        code: "LAWOS_HOME_AUDIT_IDEMPOTENCY_CONFLICT",
+        safe_error_code: "HOME_AUDIT_IDEMPOTENCY_CONFLICT",
+        status: 409,
+      });
+    }
+    return existing;
+  }
   runtime.auditEvents.push(auditEvent);
   if (persist) {
     try {
@@ -578,6 +604,7 @@ async function handleActionInbox({ pathname, method, query, context, requestId, 
   const allAllowed = loaded.allowed;
   const filtered = query.type ? allAllowed.filter((item) => item.type === query.type) : allAllowed;
   const auditEvent = appendAudit(runtime, {
+    request_id: requestId,
     tenant_id: query.tenant_id,
     actor_id: context?.principal?.user_id ?? null,
     action: "home.action_inbox.read",
@@ -700,6 +727,7 @@ async function handleDecision({ pathname, method, query, body, context, requestI
   });
   runtime.decisions.set(key, decision);
   const auditEvent = appendAudit(runtime, {
+    request_id: requestId,
     tenant_id: decisionQuery.tenant_id,
     actor_id: context?.principal?.user_id ?? null,
     action: "home.action_inbox.decision",
@@ -813,6 +841,7 @@ async function handleAgenda({ pathname, method, query, context, requestId, runti
     resourceType: "home_agenda_event",
   });
   const auditEvent = appendAudit(runtime, {
+    request_id: requestId,
     tenant_id: query.tenant_id,
     actor_id: context?.principal?.user_id ?? null,
     action: "home.agenda.read",
@@ -1158,17 +1187,70 @@ function collectVaultFeedEntries(dmsRuntime, { tenant_id, query } = {}) {
     .map(mapDmsDocumentFeedEntry);
 }
 
+const HTML_TEXT_ENTITIES = Object.freeze({
+  "&nbsp;": " ",
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&#39;": "'",
+  "&quot;": '"',
+});
+
+function decodeHtmlTextEntities(value) {
+  return String(value).replace(/&(?:nbsp|amp|lt|gt|#39|quot);/g, (entity) => HTML_TEXT_ENTITIES[entity]);
+}
+
+function isHtmlTagBoundary(text, index) {
+  if (index >= text.length) return true;
+  const code = text.charCodeAt(index);
+  return code === 47 || code === 62 || code === 9 || code === 10 || code === 12 || code === 13 || code === 32;
+}
+
+function stripMarkupTags(value) {
+  const text = String(value);
+  const lower = text.toLowerCase();
+  const output = [];
+  let cursor = 0;
+  while (cursor < text.length) {
+    const tagStart = text.indexOf("<", cursor);
+    if (tagStart === -1) {
+      output.push(text.slice(cursor));
+      break;
+    }
+    output.push(text.slice(cursor, tagStart), " ");
+    const tagEnd = text.indexOf(">", tagStart + 1);
+    if (tagEnd === -1) break;
+    let nameStart = tagStart + 1;
+    while (nameStart < tagEnd && isHtmlTagBoundary(text, nameStart) && text.charCodeAt(nameStart) !== 47) nameStart += 1;
+    const closing = text.charCodeAt(nameStart) === 47;
+    if (closing) nameStart += 1;
+    let nameEnd = nameStart;
+    while (nameEnd < tagEnd) {
+      const code = lower.charCodeAt(nameEnd);
+      if (code < 97 || code > 122) break;
+      nameEnd += 1;
+    }
+    const tagName = lower.slice(nameStart, nameEnd);
+    if (!closing && (tagName === "script" || tagName === "style") && isHtmlTagBoundary(text, nameEnd)) {
+      const closePrefix = `</${tagName}`;
+      let closeStart = lower.indexOf(closePrefix, tagEnd + 1);
+      while (closeStart !== -1 && !isHtmlTagBoundary(text, closeStart + closePrefix.length)) {
+        closeStart = lower.indexOf(closePrefix, closeStart + closePrefix.length);
+      }
+      if (closeStart === -1) break;
+      const closeEnd = text.indexOf(">", closeStart + closePrefix.length);
+      if (closeEnd === -1) break;
+      cursor = closeEnd + 1;
+      continue;
+    }
+    cursor = tagEnd + 1;
+  }
+  return output.join("");
+}
+
 function stripTags(value = "") {
-  return String(value)
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&#39;/g, "'")
-    .replace(/&quot;/g, '"')
+  const withoutTags = stripMarkupTags(value).trim();
+  return decodeHtmlTextEntities(withoutTags)
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -1176,7 +1258,7 @@ function stripTags(value = "") {
 function firstTagValue(itemXml, tagName) {
   const match = itemXml.match(new RegExp(`<${tagName}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tagName}>`, "i"));
   if (!match) return null;
-  return stripTags(match[1].replace(/^<!\[CDATA\[/, "").replace(/\]\]>$/, ""));
+  return match[1].replace(/^<!\[CDATA\[/, "").replace(/\]\]>$/, "");
 }
 
 function parseRssItems(xml, source) {
@@ -1185,10 +1267,10 @@ function parseRssItems(xml, source) {
   for (const match of matches) {
     const itemXml = match[1];
     const title = firstTagValue(itemXml, "title");
-    const url = firstTagValue(itemXml, "link");
-    if (!title || !url) continue;
-    const publishedAt = toIso(firstTagValue(itemXml, "pubDate") ?? firstTagValue(itemXml, "published"));
-    const preview = stripTags(firstTagValue(itemXml, "description") ?? firstTagValue(itemXml, "summary") ?? "");
+    const url = stripTags(firstTagValue(itemXml, "link") ?? "");
+    if (!stripTags(title ?? "") || !url) continue;
+    const publishedAt = toIso(stripTags(firstTagValue(itemXml, "pubDate") ?? firstTagValue(itemXml, "published") ?? ""));
+    const preview = firstTagValue(itemXml, "description") ?? firstTagValue(itemXml, "summary") ?? "";
     items.push(
       Object.freeze({
         id: `news:${source.id}:${items.length + 1}:${Buffer.from(url).toString("base64url").slice(0, 12)}`,
@@ -1285,7 +1367,7 @@ function sanitizeFeedEntry(entry) {
   return Object.freeze({
     id: String(entry.id),
     source: entry.source ?? "Matter",
-    title: entry.title ?? "Untitled feed entry",
+    title: stripTags(entry.title ?? "Untitled feed entry"),
     body_preview: stripTags(entry.body_preview ?? entry.summary ?? "").slice(0, 180),
     published_at: toIso(entry.published_at),
     pinned_until: toIso(entry.pinned_until),
@@ -1356,6 +1438,7 @@ async function handleFeed({ pathname, method, query, context, requestId, runtime
     entries = allowed.map(sanitizeFeedEntry);
   }
   const auditEvent = appendAudit(runtime, {
+    request_id: requestId,
     tenant_id: query.tenant_id,
     actor_id: context?.principal?.user_id ?? null,
     action: "home.feed.read",

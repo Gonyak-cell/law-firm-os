@@ -121,7 +121,9 @@ function parseSloplint(result, { allowedFiles = [] } = {}) {
 
 const changedUiFiles = changedUiSourceFiles();
 const uiRegression = run(process.execPath, ["--test", "apps/web/test/ui-regression.test.mjs"]);
-const sloplint = run("python3", [SLOPLINT, "--repo", ROOT, "--changed", "--format", "json", "--fail-level", "off"]);
+const sloplint = changedUiFiles.length === 0
+  ? { command: "sloplint --changed (no changed UI source files)", pass: true, stdout_tail: [], stdout: "{\"findings\":[]}" }
+  : run("python3", [SLOPLINT, "--repo", ROOT, "--changed", "--format", "json", "--fail-level", "off"]);
 const slopSummary = parseSloplint(sloplint, { allowedFiles: changedUiFiles });
 const staticCounts = hardcodedCountFindings();
 const matrix = matrixCounts();

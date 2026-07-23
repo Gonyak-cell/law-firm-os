@@ -114,10 +114,18 @@ function safeId(value, fallback) {
     .slice(0, 128);
 }
 
+function isEmailAddress(value) {
+  if (/\s/.test(value)) return false;
+  const at = value.indexOf("@");
+  if (at <= 0 || at !== value.lastIndexOf("@")) return false;
+  const dot = value.indexOf(".", at + 1);
+  return dot > at + 1 && dot < value.length - 1;
+}
+
 function isRawContactReference(value) {
   const text = String(value ?? "").trim();
   const normalized = text.replaceAll(/[()\s.-]/g, "");
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text) || /^\+?\d{7,15}$/.test(normalized);
+  return isEmailAddress(text) || /^\+?\d{7,15}$/.test(normalized);
 }
 
 function safeContactReference(value, field) {

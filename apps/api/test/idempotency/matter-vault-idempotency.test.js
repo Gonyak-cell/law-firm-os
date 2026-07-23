@@ -16,7 +16,7 @@ function payload() {
     matterRepository: createMatterRepository(),
     dmsRepository: createDmsRepository(),
     matter: { tenant_id: TENANT, matter_id: 'matter_mv_hardening', matter_number: 'MV-HARDEN-1', title: 'Hardening', status: 'opening', legal_client_party_id: 'party', billing_client_party_id: 'party', permission_envelope_id: 'perm_mv', audit_trace_id: 'audit_mv', created_by: 'actor', created_at: '2026-06-20T00:00:00.000Z' },
-    clearance_token: { clearance_token_id: 'clearance', tenant_id: TENANT, intake_request_id: 'intake', conflict_check_id: 'conflict', engagement_id: 'engagement', snapshot_hash: 'sha256:clearance', token_state: 'valid', outcome: 'passed' },
+    clearance_token: { clearance_token_id: 'clearance', tenant_id: TENANT, intake_request_id: 'intake', conflict_check_id: 'conflict', engagement_id: 'engagement', snapshot_hash: 'sha256:clearance', token_state: 'valid', outcome: 'passed', expires_at: '2999-01-01T00:00:00.000Z' },
     matter_number_seed: 'MV-HARDEN',
     idempotency_key: 'idem-mv-hardening',
     actor_id: 'actor',
@@ -32,6 +32,28 @@ test('Matter-Vault hardening keeps opening idempotent and projection safe', () =
   const projection = createSafeVaultProjection({ documents: [{ document_id: 'doc1', matter_id: first.matter.matter_id, title: 'Doc', status: 'active', raw_path: '/tmp/nope' }] });
   assert.equal(projection.items[0].raw_storage_path_included, false);
   assert.equal(projection.omitted_denied_count, null);
+});
+
+test('Matter-Vault replay is bound to the actor, clearance, and material request', () => {
+  const input = payload();
+  openMatterWithVault(input);
+  assert.throws(
+    () => openMatterWithVault({ ...input, actor_id: 'different-actor' }),
+    (error) => error?.code === 'MATTER_OPENING_IDEMPOTENCY_CONFLICT',
+  );
+  assert.throws(
+    () => openMatterWithVault({ ...input, matter: { ...input.matter, title: 'Different title' } }),
+    (error) => error?.code === 'MATTER_OPENING_IDEMPOTENCY_CONFLICT',
+  );
+  assert.throws(
+    () => openMatterWithVault({
+      ...input,
+      clearance_token: { ...input.clearance_token, snapshot_hash: 'sha256:different-clearance' },
+    }),
+    (error) => error?.code === 'MATTER_OPENING_IDEMPOTENCY_CONFLICT',
+  );
+  assert.equal(input.matterRepository.list({ tenant_id: TENANT, model_type: 'Matter' }).length, 1);
+  assert.equal(input.dmsRepository.list({ tenant_id: TENANT, model_type: 'DmsWorkspace' }).length, 1);
 });
 
 test('Matter-Vault hardening blocks held exports and permissionless search/AI', () => {

@@ -168,7 +168,7 @@ export function normalizeDomainRecord(input = {}, {
   if (scopeDomainId && domainId !== scopeDomainId) throw new TypeError("domain record domain scope mismatch");
   const recordType = requiredText(input.record_type, "record_type");
   const recordId = requiredText(input.record_id, "record_id");
-  const stateVersion = Number(input.state_version ?? 0);
+  const stateVersion = Number(input.state_version ?? 1);
   if (!Number.isSafeInteger(stateVersion) || stateVersion < 0) {
     throw new TypeError("state_version must be a non-negative integer");
   }
@@ -183,7 +183,7 @@ export function normalizeDomainRecord(input = {}, {
     domain_id: domainId,
     record_type: recordType,
     record_id: recordId,
-    state_version: stateVersion,
+    state_version: Math.max(1, stateVersion),
     unique_key: optionalText(input.unique_key),
     payload,
     payload_hash: hashDomainValue(payload),
@@ -210,6 +210,7 @@ function recordFingerprint(record) {
     domain_id: record.domain_id,
     record_type: record.record_type,
     record_id: record.record_id,
+    state_version: record.state_version,
     unique_key: record.unique_key,
     payload_hash: record.payload_hash,
     append_only: record.append_only,
@@ -244,6 +245,7 @@ export function createDomainSnapshot({
   }
   for (const record of normalized) {
     for (const reference of record.references) {
+      if (reference.target_domain_id !== domainId) continue;
       const target = `${reference.tenant_id}:${reference.target_domain_id}:${reference.target_record_type}:${reference.target_record_id}`;
       if (!identities.has(target)) {
         throw new TypeError(`orphan domain reference: ${record.record_type}.${reference.reference_name}`);
@@ -275,6 +277,11 @@ export function createDomainSnapshot({
     append_only_count: normalized.filter((record) => record.append_only).length,
     unique_key_count: uniqueKeys.size,
     reference_count: normalized.reduce((total, record) => total + record.references.length, 0),
+    state_version_counts: Object.fromEntries(
+      [...new Set(normalized.map((record) => record.state_version))]
+        .sort((left, right) => left - right)
+        .map((version) => [String(version), normalized.filter((record) => record.state_version === version).length]),
+    ),
     idempotency_count: normalizedIdempotency.length,
     audit_event_count: normalizedAudit.length,
     duplicate_identity_count: 0,

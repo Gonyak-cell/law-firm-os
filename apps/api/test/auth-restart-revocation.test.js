@@ -12,7 +12,23 @@ import {
   createScryptPasswordHash,
 } from "../src/auth-credential-store.js";
 import { findRegisteredAccountByEmail } from "../src/matter-vault-account-registry.js";
+import { resolveLawosUserRoleAssignment } from "../src/lawos-role-registry.js";
 import { createApiSessionAuth } from "../src/session-auth.js";
+
+async function provisionDirectoryAccount(ledger, account, tenantId) {
+  const assignment = resolveLawosUserRoleAssignment(account, { tenantId });
+  await ledger.provisionDirectoryUser({
+    tenant_id: tenantId,
+    user: account,
+    membership: {
+      ...assignment.tenant_membership,
+      role_profile_id: assignment.role_profile_id,
+      hrx_scopes: assignment.hrx_scopes,
+      source_ref: assignment.source_ref,
+    },
+    actor_id: "synthetic-test-provisioner",
+  });
+}
 
 function fixtureRoot(t) {
   const root = mkdtempSync(join(tmpdir(), "lawos-auth-restart-"));
@@ -83,6 +99,7 @@ test("PostgreSQL session revocation and account disable survive independent proc
   const secret = "postgres-operational-session-secret-32-bytes";
   const firstLedger = createPostgresIdentityLedger({ pool: fixture.appPool, clock: () => now });
   const secondLedger = createPostgresIdentityLedger({ pool: secondPool, clock: () => now });
+  await provisionDirectoryAccount(firstLedger, account, tenantId);
   await firstLedger.setCredential({
     tenant_id: tenantId,
     user: account,
@@ -138,6 +155,27 @@ test("PostgreSQL session revocation and account disable survive independent proc
   assert.equal(revokedAfterRestart.status, 401);
   assert.deepEqual(revokedAfterRestart.body.safe_error_codes, ["AUTH_SESSION_REVOKED"]);
 
+  const membershipBoundLogin = await firstAuth.login({ email: account.email, password }, { requestId: "postgres-login-before-membership-disable" });
+  assert.equal(membershipBoundLogin.status, 200);
+  const assignment = resolveLawosUserRoleAssignment(account, { tenantId });
+  await secondLedger.provisionDirectoryUser({
+    tenant_id: tenantId,
+    user: account,
+    membership: { ...assignment.tenant_membership, status: "disabled" },
+    actor_id: "security-admin",
+  });
+  const disabledMembershipSession = await firstAuth.verifyToken(membershipBoundLogin.body.session_token, { requestId: "disabled-membership-session" });
+  assert.equal(disabledMembershipSession.status, 401);
+  assert.deepEqual(disabledMembershipSession.body.safe_error_codes, ["AUTH_SESSION_REVOKED"]);
+  const disabledMembershipLogin = await firstAuth.login({ email: account.email, password }, { requestId: "disabled-membership-login" });
+  assert.equal(disabledMembershipLogin.status, 401);
+  assert.deepEqual(disabledMembershipLogin.body.safe_error_codes, ["AUTH_CREDENTIAL_INVALID"]);
+  await secondLedger.provisionDirectoryUser({
+    tenant_id: tenantId,
+    user: account,
+    membership: { ...assignment.tenant_membership, status: "active" },
+    actor_id: "security-admin",
+  });
   const secondLogin = await firstAuth.login({ email: account.email, password }, { requestId: "postgres-login-before-disable" });
   assert.equal(secondLogin.status, 200);
   const disabled = await secondLedger.setAccountStatus({
@@ -200,8 +238,8 @@ test("PostgreSQL session revocation and account disable survive independent proc
   assert.equal(reactivatedPublic.credential_status, "reset_required");
   assert.equal(reactivatedPublic.login_allowed, false);
   const reactivatedLogin = await restartedAuth.login({ email: account.email, password }, { requestId: "reactivated-login" });
-  assert.equal(reactivatedLogin.status, 403);
-  assert.deepEqual(reactivatedLogin.body.safe_error_codes, ["AUTH_PASSWORD_RESET_REQUIRED"]);
+  assert.equal(reactivatedLogin.status, 401);
+  assert.deepEqual(reactivatedLogin.body.safe_error_codes, ["AUTH_CREDENTIAL_INVALID"]);
   const auditText = JSON.stringify(await restartedAuth.handleSecurityAdminApiRequest({
     pathname: "/api/admin/security/audit",
     method: "GET",

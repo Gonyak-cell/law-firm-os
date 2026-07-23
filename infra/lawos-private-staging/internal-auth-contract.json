@@ -1,0 +1,50 @@
+{
+  "schema_version": "law-firm-os.private-staging.internal-auth.v1",
+  "environment": "lawos-staging",
+  "authority": "internal-password",
+  "account_directory": {
+    "authority": "postgres-v2",
+    "table": "lawos_identity.account_memberships",
+    "lookup_key": "normalized-email",
+    "auto_registration": false,
+    "static_roster_operational_fallback": false,
+    "tenant_membership_required": true,
+    "disabled_account_denied": true
+  },
+  "first_use": {
+    "imported_credential_status": "reset_required",
+    "plaintext_or_legacy_password_imported": false,
+    "request_response_enumeration_safe": true,
+    "reset_token_stored_as_hash_only": true,
+    "reset_token_single_use": true,
+    "reset_token_ttl_seconds": 60,
+    "password_minimum_length": 12,
+    "password_hash_algorithm": "node-scrypt-v1",
+    "active_sessions_revoked_on_reset": true
+  },
+  "delivery": {
+    "provider": "aws-ses-v2",
+    "vpc_endpoint_service": "com.amazonaws.${AWS::Region}.email",
+    "internet_egress_required": false,
+    "verified_identity_parameter": "PasswordResetSesIdentityArn",
+    "sender_parameter": "PasswordResetFromEmail",
+    "synthetic_mailboxes_only": true,
+    "real_employee_delivery_authorized": false,
+    "sender_or_recipient_values_recorded_in_evidence": false
+  },
+  "login_protection": {
+    "max_failed_logins": 5,
+    "lock_seconds": 60,
+    "tenant_and_role_negatives_required": true,
+    "unknown_email_response_indistinguishable": true
+  },
+  "secrets": {
+    "password_hashes_in_evidence": false,
+    "reset_tokens_in_evidence": false,
+    "session_secrets_in_environment": false,
+    "secret_references_only": true
+  },
+  "entra_dependency_count": 0,
+  "production_ready_claim": false,
+  "go_live_claim": false
+}

@@ -26,7 +26,7 @@ test("default CORS allowlist contains only named custom and development origins"
   });
   assert.equal(configured.includes("null"), false);
   assert.equal(configured.includes("*"), false);
-  assert.equal(configured.includes("https://approved.example"), true);
+  assert.equal(configured.some((origin) => origin === "https://approved.example"), true);
 });
 
 test("API reflects exact custom and dev origins but never null or arbitrary origins", async () => {

@@ -58,6 +58,13 @@ function isLoopbackBaseUrl(value) {
   }
 }
 
+function stripTrailingSlashes(value) {
+  const text = String(value ?? "");
+  let end = text.length;
+  while (end > 0 && text.charCodeAt(end - 1) === 47) end -= 1;
+  return text.slice(0, end);
+}
+
 function localDevCredentialForEmail(email) {
   const normalizedEmail = String(email ?? "").trim().toLowerCase();
   return normalizedEmail ? `local-dev-only:${normalizedEmail}` : "";
@@ -115,11 +122,11 @@ export function loadMatterVaultRuntimeConfig({
     !hasProductionRuntimePair ||
     desktopRuntimeIsLoopback
   ));
-  const baseUrl = (
+  const baseUrl = stripTrailingSlashes(
     useDesktopRuntimeOverride
       ? desktopRuntimeBaseUrl
       : productionRuntimeBaseUrl || desktopRuntimeBaseUrl || DEFAULT_PRODUCTION_RUNTIME_BASE_URL
-  ).replace(/\/+$/, "");
+  );
   const operatorToken = useDesktopRuntimeOverride
     ? desktopOperatorToken || (desktopRuntimeIsLoopback ? "" : productionOperatorToken)
     : productionOperatorToken;

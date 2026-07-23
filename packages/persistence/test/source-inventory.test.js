@@ -1,0 +1,72 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import test from "node:test";
+import {
+  JSON_POSTGRES_FIELD_DISPOSITIONS,
+  JSON_POSTGRES_SOURCE_CLASSIFICATIONS,
+  inventoryJsonPostgresSources,
+} from "../src/postgres/source-inventory.js";
+
+function sha256(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+test("source inventory emits only safe metadata and classifies every field", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "lawos-source-inventory-"));
+  t.after(async () => (await import("node:fs/promises")).rm(root, { recursive: true, force: true }));
+  const primary = {
+    schema_version: "law-firm-os.test.v1",
+    tenant_id: "tenant-real-never-return",
+    users: [{ user_id: "user-real-never-return", email: "person@example.test", api_key: "forbidden" }],
+    members: [{ user_id: "user-real-never-return", employee_id: "employee-real-never-return", work_email: "person@example.test" }],
+    tables: {
+      hrx_employees: [{ tenant_id: "tenant-real-never-return", employee_id: "employee-real-never-return" }],
+      hrx_employee_user_links: [{ tenant_id: "tenant-real-never-return", employee_id: "employee-real-never-return", user_id: "user-real-never-return" }],
+    },
+    records: [{ tenant_id: "tenant-real-never-return", record_type: "Matter", record_id: "matter-real-never-return", matter_code: "CODE-NEVER-RETURN" }],
+  };
+  const bytes = `${JSON.stringify(primary)}\n`;
+  await writeFile(join(root, "matter-store.json"), bytes);
+  await writeFile(join(root, "matter-store-copy.json"), bytes);
+  await writeFile(join(root, "broken-store.json"), "{broken");
+  await writeFile(join(root, "synthetic-store.json"), JSON.stringify({ data_scope: "synthetic-only", records: [{ synthetic_only: true, record_id: "synthetic" }] }));
+  await mkdir(join(root, "ui-screens"));
+  await writeFile(join(root, "ui-screens", "ignored-manifest.json"), JSON.stringify({ password: "ignored" }));
+
+  const report = await inventoryJsonPostgresSources({
+    roots: [{ ref: "runtime-primary", path: root }],
+    authorityManifest: { sources: [{ sha256: sha256(bytes), classification: "authoritative" }] },
+    clock: () => new Date("2026-07-20T00:00:00.000Z"),
+  });
+  assert.equal(report.sources.length, 4);
+  assert.equal(report.classification_counts.authoritative, 1);
+  assert.equal(report.classification_counts.duplicate, 1);
+  assert.equal(report.classification_counts.corrupt, 1);
+  assert.equal(report.classification_counts.synthetic, 1);
+  assert.deepEqual(Object.keys(report.classification_counts), JSON_POSTGRES_SOURCE_CLASSIFICATIONS);
+  assert.deepEqual(Object.keys(report.field_contract.disposition_counts), JSON_POSTGRES_FIELD_DISPOSITIONS);
+  assert.equal(report.field_contract.silent_drop_count, 0);
+  assert.ok(report.field_contract.fields.some((field) => field.field_name === "api_key" && field.disposition === "secret-excluded"));
+  assert.equal(report.reconciliation.registered_account_count, 1);
+  assert.equal(report.reconciliation.roster_member_count, 1);
+  assert.equal(report.reconciliation.employee_without_user_link_count, 0);
+  assert.equal(report.claims.raw_value_returned, false);
+  const serialized = JSON.stringify(report);
+  for (const forbidden of ["tenant-real-never-return", "user-real-never-return", "employee-real-never-return", "person@example.test", "CODE-NEVER-RETURN", "forbidden"]) {
+    assert.equal(serialized.includes(forbidden), false);
+  }
+});
+
+test("source inventory does not choose authority from mtime and records missing roots", async () => {
+  const report = await inventoryJsonPostgresSources({
+    roots: [{ ref: "missing", path: join(tmpdir(), "lawos-source-inventory-definitely-missing") }],
+    clock: () => new Date("2026-07-20T00:00:00.000Z"),
+  });
+  assert.deepEqual(report.roots, [{ root_ref: "missing", exists: false, candidate_file_count: 0 }]);
+  assert.equal(report.classification_counts.authoritative, 0);
+  assert.equal(report.claims.authority_selected_by_mtime, false);
+  assert.equal(report.claims.production_contacted, false);
+});

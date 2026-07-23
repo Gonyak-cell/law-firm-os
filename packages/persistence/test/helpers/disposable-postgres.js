@@ -82,7 +82,7 @@ export async function startDisposablePostgres(t) {
   });
 }
 
-export async function createMigratedPostgresFixture(t) {
+export async function createMigratedPostgresFixture(t, { appPoolMax = 10 } = {}) {
   const instance = await startDisposablePostgres(t);
   if (!instance) return null;
   const adminPool = createPostgresPool({
@@ -112,8 +112,12 @@ export async function createMigratedPostgresFixture(t) {
     await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_runtime.outbox_events TO lawos_app");
     await adminPool.query("GRANT USAGE ON SCHEMA lawos_identity TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.accounts TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.account_memberships TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.directory_idempotency_keys TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.directory_outbox_events TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.sessions TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.challenges TO lawos_app");
+    await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.password_reset_jobs TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT, UPDATE ON lawos_identity.break_glass_requests TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT ON lawos_identity.break_glass_approvals TO lawos_app");
     await adminPool.query("GRANT SELECT, INSERT ON lawos_identity.security_audit_events TO lawos_app");
@@ -145,6 +149,7 @@ export async function createMigratedPostgresFixture(t) {
       allowInsecureLocal: true,
       applicationName: "lawos-postgres-v2-app-test",
       tenantContextSecret,
+      max: appPoolMax,
     });
   } catch (error) {
     await appPool?.end().catch(() => {});

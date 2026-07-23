@@ -75,6 +75,20 @@ const AGENT_INFERENCE_PATTERN = /agent-inferred|codex-approved|codex approval|sy
 const DECISION_AT_PATTERN = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}Z)?$/;
 const EXTERNAL_SIGNATURE_REF_PATTERN =
   /^(external|signature|approval|email|ticket|meeting):[A-Za-z0-9][A-Za-z0-9 _./:@#-]{7,}$/i;
+const OWNER_APPROVAL_ISSUE_URL = "https://github.com/Gonyak-cell/law-firm-os/issues/146";
+
+function hasMarkdownLinkTarget(source, target) {
+  let cursor = 0;
+  while (cursor < source.length) {
+    const start = source.indexOf("](", cursor);
+    if (start === -1) return false;
+    const end = source.indexOf(")", start + 2);
+    if (end === -1) return false;
+    if (source.slice(start + 2, end) === target) return true;
+    cursor = end + 1;
+  }
+  return false;
+}
 
 function readJson(path) {
   return JSON.parse(readFileSync(path, "utf8"));
@@ -218,7 +232,7 @@ for (const phrase of REQUIRED_MARKDOWN_PHRASES) {
   }
 }
 
-if (!postReleaseKickoff.includes("Owner approval evidence") || !postReleaseKickoff.includes("https://github.com/Gonyak-cell/law-firm-os/issues/146")) {
+if (!postReleaseKickoff.includes("Owner approval evidence") || !hasMarkdownLinkTarget(postReleaseKickoff, OWNER_APPROVAL_ISSUE_URL)) {
   addFinding(findings, "P1", "POST_RELEASE_KICKOFF_LINK_MISSING", "Post-release kickoff must link the owner approval issue.", {});
 }
 for (const phrase of ["owner-approved | false", "production go-live: false", "public release: false"]) {

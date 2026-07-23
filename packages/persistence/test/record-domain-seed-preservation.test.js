@@ -10,7 +10,12 @@ import { createEnterpriseReadinessRepository } from "../../enterprise/src/enterp
 import { createIntakeRuntimeRepository } from "../../intake/src/runtime-repository.js";
 import { createMasterDataRepository } from "../../master-data/src/repository.js";
 import { createMatterRepository } from "../../matter/src/repository.js";
+import { MATTER_DOMAIN_DESCRIPTOR } from "../../matter/src/central-ledger.js";
 import { createUiReadinessRepository } from "../../platform/src/ui-readiness-repository.js";
+import {
+  createRecordRepositoryDomainSnapshot,
+  materializeRecordRepositoryFromDomainLedger,
+} from "../src/record-domain-adapter.js";
 
 const TENANT = "tenant_seed_preservation_synthetic";
 const UPDATED_AT = "2026-07-18T07:00:00.000Z";
@@ -60,3 +65,52 @@ for (const [domain, createRepository, record] of REPOSITORIES) {
     }
   });
 }
+
+test("Matter idempotency authority survives a PostgreSQL domain-ledger round trip", async () => {
+  const repository = createMatterRepository();
+  repository.recordIdempotency({
+    tenant_id: TENANT,
+    idempotency_key: "matter-opening-authority-round-trip",
+    operation: "matter_vault_opening",
+    object_type: "Matter",
+    object_id: "matter-authority-round-trip",
+    actor_id: "user-authority-round-trip",
+    request_fingerprint: "a".repeat(64),
+    response: { outcome: "created", matter: { tenant_id: TENANT, matter_id: "matter-authority-round-trip" } },
+  });
+  const snapshot = createRecordRepositoryDomainSnapshot({
+    descriptor: MATTER_DOMAIN_DESCRIPTOR,
+    repositories: repository,
+    tenant_id: TENANT,
+  }).snapshot;
+  assert.equal(snapshot.idempotency_entries[0].request_hash, "a".repeat(64));
+
+  const materialized = await materializeRecordRepositoryFromDomainLedger({
+    ledger: {
+      list: async () => [],
+      listIdempotency: async () => snapshot.idempotency_entries,
+      listAudit: async () => [],
+    },
+    descriptor: MATTER_DOMAIN_DESCRIPTOR,
+    tenant_id: TENANT,
+    create_repository: createMatterRepository,
+  });
+  const replay = materialized.getIdempotency({
+    tenant_id: TENANT,
+    idempotency_key: "matter-opening-authority-round-trip",
+  });
+  assert.deepEqual({
+    operation: replay.operation,
+    object_type: replay.object_type,
+    object_id: replay.object_id,
+    actor_id: replay.actor_id,
+    request_fingerprint: replay.request_fingerprint,
+  }, {
+    operation: "matter_vault_opening",
+    object_type: "Matter",
+    object_id: "matter-authority-round-trip",
+    actor_id: "user-authority-round-trip",
+    request_fingerprint: "a".repeat(64),
+  });
+  assert.equal(Object.hasOwn(replay.response, "__lawos_idempotency_authority_v1"), false);
+});

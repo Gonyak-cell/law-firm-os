@@ -158,5 +158,5 @@ test("HRX migration loader rejects destructive SQL", () => {
     /unsafe SQL pattern/,
   );
   assert.equal(loadHrxCoreMigrations()[0].id, "001_hrx_core");
-  assert.equal(loadHrxCoreMigrations().at(-1).id, "031_hrx_leave_command_receipts_append_only");
+  assert.equal(loadHrxCoreMigrations().at(-1).id, "032_hrx_professional_profile");
 });

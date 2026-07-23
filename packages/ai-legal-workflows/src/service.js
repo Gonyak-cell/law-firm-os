@@ -99,10 +99,7 @@ import {
 } from "./registry.js";
 
 export function aiLegalWorkflowsCoreRowKey(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
+  return (title.toLowerCase().match(/[a-z0-9]+/g) ?? []).join("_");
 }
 
 function freezeCp551Result(result) {

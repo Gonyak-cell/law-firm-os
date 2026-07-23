@@ -4,11 +4,17 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import {
+  LAWOS_POSTGRES_API_POOL_MAX,
   LAWOS_PERSISTENCE_AUTHORITIES,
+  postgresUrlFromSecret,
   preparePersistenceAuthority,
   resolvePersistenceAuthority,
 } from "../src/persistence-authority.js";
-import { createApiServer, startApiServer } from "../src/server.js";
+import {
+  createApiServer,
+  resolvePostgresRequestIdempotencyKey,
+  startApiServer,
+} from "../src/server.js";
 import { STORE_PATH_MANIFEST } from "../src/store-path-manifest.js";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
@@ -16,9 +22,99 @@ import { lawosDurableStoreEnv } from "../src/local-durable-store-paths.js";
 
 const TENANT_CONTEXT_SECRET = "test-only-postgres-tenant-context-secret-material";
 
+test("operational PostgreSQL authority uses one pooled connection per Lambda execution", () => {
+  assert.equal(LAWOS_POSTGRES_API_POOL_MAX, 1);
+});
+
 function storePathsUnder(root) {
   return Object.fromEntries(STORE_PATH_MANIFEST.map((entry) => [entry.key, join(root, entry.fileName)]));
 }
+
+test("PostgreSQL audited reads use occurrence-bound idempotency while mutations preserve replay keys", () => {
+  const base = {
+    request_target_hash: "a".repeat(64),
+    request_body_hash: "b".repeat(64),
+  };
+  const firstRead = resolvePostgresRequestIdempotencyKey({
+    ...base,
+    method: "GET",
+    explicit_key: "caller-reused-read-key",
+    request_occurrence_id: "read-occurrence-1",
+  });
+  const repeatedRead = resolvePostgresRequestIdempotencyKey({
+    ...base,
+    method: "GET",
+    explicit_key: "caller-reused-read-key",
+    request_occurrence_id: "read-occurrence-2",
+  });
+  assert.match(firstRead, /^request-occurrence:[a-f0-9]{64}$/u);
+  assert.notEqual(firstRead, repeatedRead);
+  assert.equal(resolvePostgresRequestIdempotencyKey({
+    ...base,
+    method: "POST",
+    explicit_key: "explicit-mutation-key",
+    body_key: "body-mutation-key",
+  }), "explicit-mutation-key");
+  assert.equal(resolvePostgresRequestIdempotencyKey({
+    ...base,
+    method: "PATCH",
+    body_key: "body-mutation-key",
+  }), "body-mutation-key");
+  assert.equal(
+    resolvePostgresRequestIdempotencyKey({ ...base, method: "DELETE" }),
+    resolvePostgresRequestIdempotencyKey({ ...base, method: "DELETE" }),
+  );
+});
+
+test("PostgreSQL read retries discard failed-attempt response buffers", async (t) => {
+  const principal = {
+    user_id: "user_postgres_read_retry",
+    tenant_id: "tenant_postgres_read_retry",
+    role_ids: ["staff"],
+    scopes: [],
+  };
+  const sessionAuth = {
+    capabilities: {},
+    async resolvePermissionContextFromHeaders() {
+      return {
+        ok: true,
+        principal,
+        context: { principal, rules: [{ id: "allow-read", effect: "allow", action: "*" }], object_acl: [] },
+      };
+    },
+  };
+  let attemptCount = 0;
+  const requestRuntimeAuthority = {
+    capabilities: { authority: "postgres-v2" },
+    async run({ command }) {
+      attemptCount += 1;
+      await command({});
+      attemptCount += 1;
+      return command({});
+    },
+  };
+  const server = createApiServer({
+    sessionAuth,
+    stepUpAuthority: Object.freeze({}),
+    requestRuntimeAuthority,
+    persistenceAuthority: "postgres-v2",
+  });
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  t.after(() => new Promise((resolve) => {
+    server.close(resolve);
+    server.closeAllConnections();
+    server.closeIdleConnections();
+  }));
+
+  const response = await fetch(`http://127.0.0.1:${server.address().port}/api/profile/me`, {
+    headers: { authorization: "Bearer synthetic-read-retry-session", connection: "close" },
+  });
+  assert.equal(response.status, 200);
+  assert.equal(attemptCount, 2);
+});
 
 test("persistence authority selection is explicit and file-current does not initialize PostgreSQL", async () => {
   assert.equal(resolvePersistenceAuthority({ env: {} }), LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent);
@@ -183,6 +279,28 @@ test("operational PostgreSQL authority resolves credentials only through an AWS 
   await state.close();
 });
 
+test("structured Secrets Manager PostgreSQL credentials are encoded only in process memory", () => {
+  const connectionString = postgresUrlFromSecret(JSON.stringify({
+    host: "lawos-private-staging.example.rds.amazonaws.com",
+    port: 5432,
+    dbname: "lawos",
+    username: "lawos_app",
+    password: "synthetic test / password @ value",
+    configuration_state: "ready",
+  }));
+  const parsed = new URL(connectionString);
+  assert.equal(parsed.hostname, "lawos-private-staging.example.rds.amazonaws.com");
+  assert.equal(parsed.port, "5432");
+  assert.equal(parsed.pathname, "/lawos");
+  assert.equal(decodeURIComponent(parsed.username), "lawos_app");
+  assert.equal(decodeURIComponent(parsed.password), "synthetic test / password @ value");
+  assert.equal(connectionString.includes("synthetic test / password @ value"), false);
+  assert.throws(
+    () => postgresUrlFromSecret(JSON.stringify({ username: "lawos_app", password: "incomplete" })),
+    /complete structured credential/u,
+  );
+});
+
 test("API startup rejects PostgreSQL failure before creating any file authority", async (t) => {
   const parent = mkdtempSync(join(tmpdir(), "lawos-authority-preflight-"));
   const storeRoot = join(parent, "must-remain-absent");
@@ -227,12 +345,13 @@ test("API startup activates the transaction-capable PostgreSQL authority without
     runtimeProfile: "operational",
     sessionSecret: "test-only-session-secret-with-adequate-length",
     stepUpAuthority: Object.freeze({}),
-    staffOidcProvider: Object.freeze({ provider_id: "microsoft-entra-oidc-test" }),
+    staffAuthAuthority: "internal-password",
     persistenceAuthority: "postgres-v2",
     persistenceAuthorityEnv: {
       LAWOS_POSTGRES_URL_SECRET_ID: "lawos/test/disposable",
       LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID: "lawos/test/disposable-tenant-context",
       LAWOS_PAYROLL_ARTIFACT_KEY_SECRET_ID: "lawos/test/payroll-artifact-key",
+      LAWOS_DATA_SCOPE: "synthetic-only",
       AWS_REGION: "ap-northeast-2",
     },
     persistenceResolvePostgresSecret: async ({ secretId }) => secretId.endsWith("tenant-context")
@@ -254,10 +373,13 @@ test("API startup activates the transaction-capable PostgreSQL authority without
   const health = await fetch(`http://${started.host}:${started.port}/api/health`).then((response) => response.json());
   assert.equal(health.runtime_safety_policy.offline_capability, "rejected");
   assert.equal(health.runtime_safety_policy.authority_loss_mode, "fail_closed");
-  assert.equal(health.auth_authority.federated_staff_auth, true);
+  assert.equal(health.auth_authority.staff_auth_authority, "internal-password");
+  assert.equal(health.auth_authority.federated_staff_auth, false);
+  assert.equal(health.auth_authority.account_directory, "postgres-v2");
   assert.equal(health.bounded_contexts.every((context) => context.postgres_authority_active === true), true);
   assert.equal(health.bounded_contexts.every((context) => context.json_fallback === false && context.dual_write === false), true);
   assert.equal(health.persistence_authority_capabilities.authority, "postgres-v2");
+  assert.match(health.runtime_instance_fingerprint, /^[0-9a-f]{32}$/u);
   await new Promise((resolve) => started.server.close(resolve));
   assert.equal(closed, true);
   assert.equal(existsSync(storeRoot), false);

@@ -4,6 +4,14 @@ export const DMS_SEARCH_INDEX_LIMITS = Object.freeze({
   ocr_characters: 1_000_000,
 });
 
+const XML_TEXT_ENTITIES = Object.freeze({
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&apos;": "'",
+});
+
 function inputLimitError(label) {
   const error = new TypeError(`${label} exceeds the DMS search indexing limit`);
   error.safe_error_code = "DMS_SEARCH_INDEX_INPUT_TOO_LARGE";
@@ -20,12 +28,10 @@ function normalizeSearchText(value) {
 }
 
 function decodeXmlEntities(value) {
-  return String(value ?? "")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, "\"")
-    .replace(/&apos;/g, "'");
+  return String(value ?? "").replace(
+    /&(?:amp|lt|gt|quot|apos);/g,
+    (entity) => XML_TEXT_ENTITIES[entity],
+  );
 }
 
 function printableText(bytes) {

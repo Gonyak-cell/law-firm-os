@@ -220,10 +220,10 @@ function runConstraintProbes(database) {
 
 export function auditFreshHrxDatabase() {
   const migrations = loadHrxCoreMigrations();
-  const expectedOrdinals = Array.from({ length: 31 }, (_, index) => String(index + 1).padStart(3, "0"));
+  const expectedOrdinals = Array.from({ length: 32 }, (_, index) => String(index + 1).padStart(3, "0"));
   const actualOrdinals = migrations.map((migration) => migration.filename.slice(0, 3));
   if (JSON.stringify(actualOrdinals) !== JSON.stringify(expectedOrdinals)) {
-    throw new Error(`fresh DB migration lineage is not contiguous 001-031: ${actualOrdinals.join(",")}`);
+    throw new Error(`fresh DB migration lineage is not contiguous 001-032: ${actualOrdinals.join(",")}`);
   }
   const combinedSql = migrations.map((migration) => migration.sql).join("\n");
   const expected = Object.freeze({

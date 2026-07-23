@@ -5,15 +5,15 @@ import { auditHrxMigrationRecovery } from "../../../scripts/validate-hrx-migrati
 test("MG-006 reruns, rolls back, and restores migrations without partial commits", () => {
   const report = auditHrxMigrationRecovery();
   assert.equal(report.verdict, "PASS");
-  assert.equal(report.migration_count, 31);
+  assert.equal(report.migration_count, 32);
   assert.equal(report.partial_commit_count, 0);
   assert.equal(report.external_write_count, 0);
 
   const rerun = report.canonical_rerun;
-  assert.equal(rerun.first_pending_count, 31);
-  assert.equal(rerun.first_applied_count, 31);
+  assert.equal(rerun.first_pending_count, 32);
+  assert.equal(rerun.first_applied_count, 32);
   assert.equal(rerun.rerun_pending_count, 0);
-  assert.equal(rerun.rerun_already_applied_count, 31);
+  assert.equal(rerun.rerun_already_applied_count, 32);
   assert.equal(rerun.rerun_applied_count, 0);
   assert.equal(rerun.first_snapshot_sha256, rerun.rerun_snapshot_sha256);
   assert.equal(rerun.first_snapshot_sha256, rerun.reopened_snapshot_sha256);
@@ -33,7 +33,7 @@ test("MG-006 reruns, rolls back, and restores migrations without partial commits
   const sqlite = report.sqlite_recovery;
   assert.equal(sqlite.checkpoint, 25);
   assert.equal(sqlite.checkpoint_migration_count, 25);
-  assert.equal(sqlite.upgrade_migration_count, 6);
+  assert.equal(sqlite.upgrade_migration_count, 7);
   assert.equal(sqlite.backup_file_sha256, sqlite.restored_file_sha256);
   assert.equal(sqlite.checkpoint_schema_sha256, sqlite.restored_checkpoint_schema_sha256);
   assert.equal(sqlite.checkpoint_data_sha256, sqlite.restored_checkpoint_data_sha256);

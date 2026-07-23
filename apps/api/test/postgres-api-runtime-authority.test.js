@@ -3,7 +3,18 @@ import test from "node:test";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
-import { createPostgresApiRuntimeAuthority } from "../src/postgres-api-runtime-authority.js";
+import {
+  createPostgresApiRuntimeAuthority,
+  runPostgresReadWithBaselineRetry,
+} from "../src/postgres-api-runtime-authority.js";
+import { handleAiApiRequest } from "../src/ai-runtime-context.js";
+import { handleAnalyticsApiRequest } from "../src/analytics-runtime-context.js";
+import { handleCrmIntakeApiRequest } from "../src/crm-intake-runtime-context.js";
+import { handleFinanceApiRequest } from "../src/finance-runtime-context.js";
+import { handleHomeDashboardApiRequest } from "../src/home-dashboard-runtime-context.js";
+import { handleHrxApiRequest } from "../src/hrx-runtime-context.js";
+import { handleRecordsSearch } from "../src/master-data-context.js";
+import { handlePortalApiRequest } from "../src/portal-runtime-context.js";
 import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgres-upload-runtime.js";
 import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
 import { createHrxDomainSnapshot } from "../../../packages/hrx/src/postgres-store-v2.js";
@@ -23,9 +34,236 @@ async function importHrxAuthorityBaseline(ledger, tenantId) {
   }
 }
 
-test("PostgreSQL API authority commits product state, idempotency, audit and outbox without JSON fallback", async (t) => {
-  const fixture = await createMigratedPostgresFixture(t);
+test("PostgreSQL API authority retries bounded read baseline conflicts but never retries mutations", async () => {
+  const waits = [];
+  let readAttempts = 0;
+  const result = await runPostgresReadWithBaselineRetry({
+    method: "GET",
+    retryLimit: 4,
+    wait: async (milliseconds) => waits.push(milliseconds),
+    execute: async () => {
+      readAttempts += 1;
+      if (readAttempts < 5) {
+        throw Object.assign(new Error("concurrent audited read"), {
+          safe_error_code: [
+            "DOMAIN_BASELINE_CONFLICT",
+            "HRX_POSTGRES_BASELINE_CONFLICT",
+            "DOMAIN_SHADOW_DIFFERENCE",
+            "REPOSITORY_VERSION_CONFLICT",
+          ][readAttempts - 1],
+        });
+      }
+      return "read-committed";
+    },
+  });
+  assert.equal(result, "read-committed");
+  assert.equal(readAttempts, 5);
+  assert.deepEqual(waits, [5, 10, 20, 40]);
+
+  let mutationAttempts = 0;
+  await assert.rejects(runPostgresReadWithBaselineRetry({
+    method: "POST",
+    retryLimit: 3,
+    wait: async () => {},
+    execute: async () => {
+      mutationAttempts += 1;
+      throw Object.assign(new Error("mutation conflict"), { safe_error_code: "DOMAIN_SHADOW_DIFFERENCE" });
+    },
+  }), /mutation conflict/u);
+  assert.equal(mutationAttempts, 1);
+});
+
+test("PostgreSQL API authority completes the concurrent audited browser read set without leaking conflicts", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 24 });
   if (!fixture) return;
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const dmsStorage = createLocalStorageAdapter({ adapter_id: "postgres-api-home-concurrency-test" });
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger,
+    dmsStorage,
+    payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    dmsUploadRuntime: createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage: dmsStorage, sourceOnly: false }),
+  });
+  await importHrxAuthorityBaseline(ledger, TENANT_A);
+  const context = Object.freeze({
+    principal: Object.freeze({ tenant_id: TENANT_A, user_id: "user_home_concurrency_test" }),
+    rules: Object.freeze([{ id: "allow-home-read", effect: "allow", action: "*" }]),
+    object_acl: Object.freeze([]),
+  });
+  const routes = [
+    { pathname: "/api/home/action-inbox", query: { type: "approval" }, handler: "home" },
+    { pathname: "/api/home/action-inbox", query: { type: "task" }, handler: "home" },
+    { pathname: "/api/home/agenda", query: { from: "2026-07-01T00:00:00.000Z", to: "2026-07-31T23:59:59.999Z" }, handler: "home" },
+    { pathname: "/api/home/feed", query: { tab: "notice" }, handler: "home" },
+    { pathname: "/api/ai/review-queue", query: {}, handler: "ai" },
+    { pathname: "/api/analytics/dashboards", query: {}, handler: "analytics" },
+    { pathname: "/api/analytics/finance/monthly", query: {}, handler: "analytics" },
+    { pathname: "/api/crm/opportunities", query: {}, handler: "crm" },
+    { pathname: "/api/data-room/projections", query: {}, handler: "portal" },
+    { pathname: "/api/finance/ar-aging", query: {}, handler: "finance" },
+    { pathname: "/api/finance/invoices", query: {}, handler: "finance" },
+    { pathname: "/api/finance/time-entries", query: {}, handler: "finance" },
+    { pathname: "/api/hrx/employees", query: {}, handler: "hrx" },
+    { pathname: "/api/hrx/legal-people/search", query: {}, handler: "hrx" },
+    { pathname: "/api/hrx/legal-people/ethics", query: {}, handler: "hrx" },
+    { pathname: "/api/hrx/legal-people/relationships", query: {}, handler: "hrx" },
+    { pathname: "/api/portal/dashboard", query: {}, handler: "portal" },
+    { pathname: "/api/portal/rfi", query: {}, handler: "portal" },
+    { pathname: "/master-data/records", query: {}, handler: "master-data" },
+  ];
+  const browserRead = ({
+    route,
+    occurrence,
+    auditHint = `audit_home_concurrency_test_${occurrence}`,
+  }) => authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "GET",
+      pathname: route.pathname,
+      request_target_hash: occurrence.padEnd(64, "a"),
+      request_body_hash: "b".repeat(64),
+      idempotency_key: `home-read-${occurrence}`,
+      actor_id: "user_home_concurrency_test",
+    },
+    command: (runtimes) => {
+      const query = {
+        tenant_id: TENANT_A,
+        permission_ref: "perm_home_concurrency_test",
+        audit_hint_ref: auditHint,
+        ...route.query,
+      };
+      const requestId = `req_home_concurrency_test_${occurrence}`;
+      if (route.handler === "ai") {
+        return handleAiApiRequest({
+          pathname: route.pathname,
+          method: "GET",
+          query,
+          context,
+          requestId,
+          runtime: runtimes.aiRuntime,
+        });
+      }
+      if (route.handler === "analytics") {
+        return handleAnalyticsApiRequest({
+          pathname: route.pathname,
+          method: "GET",
+          query,
+          context,
+          requestId,
+          runtime: runtimes.analyticsRuntime,
+        });
+      }
+      if (route.handler === "crm") {
+        return handleCrmIntakeApiRequest({
+          pathname: route.pathname,
+          method: "GET",
+          query,
+          context,
+          requestId,
+          runtime: runtimes.crmIntakeRuntime,
+        });
+      }
+      if (route.handler === "finance") {
+        return handleFinanceApiRequest({
+          pathname: route.pathname,
+          method: "GET",
+          query,
+          context,
+          requestId,
+          runtime: runtimes.financeRuntime,
+        });
+      }
+      if (route.handler === "hrx") {
+        return handleHrxApiRequest({
+          pathname: route.pathname,
+          method: "GET",
+          query,
+          context: runtimes.hrxRuntime,
+          requestContext: {
+            tenant_id: TENANT_A,
+            actor_id: "user_home_concurrency_test",
+            actor_role: "firm_admin",
+            hrx_scopes: ["hrx.employee.read", "hrx.legal_people.read"],
+            session_bound: true,
+          },
+          permissionContext: context,
+        });
+      }
+      if (route.handler === "master-data") {
+        return handleRecordsSearch({
+          query,
+          context,
+          requestId,
+          runtime: runtimes.masterDataRuntime,
+        });
+      }
+      if (route.handler === "portal") {
+        return handlePortalApiRequest({
+          pathname: route.pathname,
+          method: "GET",
+          query,
+          context,
+          requestId,
+          runtime: runtimes.portalRuntime,
+        });
+      }
+      return handleHomeDashboardApiRequest({
+        pathname: route.pathname,
+        method: "GET",
+        query,
+        context,
+        requestId,
+        runtime: runtimes.homeDashboardRuntime,
+      });
+    },
+  });
+
+  const requests = Array.from({ length: 3 }, (_, round) => routes.map((route, index) => ({
+    route,
+    occurrence: `${round}-${index}`,
+  }))).flat();
+  const settled = await Promise.allSettled(requests.map(browserRead));
+  const failures = settled
+    .map((result, index) => ({ result, request: requests[index] }))
+    .filter(({ result }) => result.status === "rejected")
+    .map(({ result, request }) => ({
+      pathname: request.route.pathname,
+      occurrence: request.occurrence,
+      code: result.reason?.code ?? null,
+      safe_error_code: result.reason?.safe_error_code ?? null,
+      status: result.reason?.status ?? null,
+    }));
+  assert.deepEqual(failures, []);
+  const results = settled.map((result) => result.value);
+
+  assert.equal(results.length, routes.length * 3);
+  assert.equal(
+    results.every((result) => result.status === 200),
+    true,
+    JSON.stringify(results.map((result) => ({
+      status: result.status,
+      safe_error_codes: result.body?.safe_error_codes ?? [],
+    }))),
+  );
+  assert.equal((await ledger.listAudit({ tenant_id: TENANT_A, domain_id: "analytics" })).length, 12);
+
+  const replay = {
+    route: routes[0],
+    occurrence: "0-0",
+  };
+  assert.equal((await browserRead(replay)).status, 200);
+  assert.equal((await ledger.listAudit({ tenant_id: TENANT_A, domain_id: "analytics" })).length, 12);
+
+  await assert.rejects(
+    browserRead({ ...replay, auditHint: "audit_home_concurrency_test_reused_with_different_semantics" }),
+    (error) => error?.safe_error_code === "HOME_AUDIT_IDEMPOTENCY_CONFLICT",
+  );
+});
+
+test("PostgreSQL API authority commits product state, idempotency, audit and outbox without JSON fallback", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 1 });
+  if (!fixture) return;
+  assert.equal(fixture.appPool.options.max, 1);
   const ledger = createPostgresDomainLedger({
     pool: fixture.appPool,
     clock: () => new Date("2026-07-18T00:00:00.000Z"),

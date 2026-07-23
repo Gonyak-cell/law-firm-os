@@ -2790,10 +2790,7 @@ function freezeCp210Result(result) {
 }
 
 export function dmsCoreCp210RowKey(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
+  return (title.toLowerCase().match(/[a-z0-9]+/g) ?? []).join("_");
 }
 
 const DMS_CORE_CP210_ROW_EXTRAS = Object.freeze({

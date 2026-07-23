@@ -69,10 +69,7 @@ import {
 } from "./registry.js";
 
 export function crmCoreRowKey(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
+  return (title.toLowerCase().match(/[a-z0-9]+/g) ?? []).join("_");
 }
 
 function freezeCp299Result(result) {

@@ -57,6 +57,7 @@ export const MATTER_API_ERROR_CODES = Object.freeze({
   clearance_token_not_issued: "MATTER_CLEARANCE_TOKEN_NOT_ISSUED",
   clearance_token_id_required: "MATTER_CLEARANCE_TOKEN_ID_REQUIRED",
   clearance_ledger_mismatch: "MATTER_CLEARANCE_LEDGER_MISMATCH",
+  opening_idempotency_conflict: "MATTER_OPENING_IDEMPOTENCY_CONFLICT",
 });
 
 export const VAULT_BRIDGE_TOKEN_HEADER = "x-lawos-vault-bridge-token";
@@ -547,6 +548,13 @@ function errorResponse(status, requestId, codes, extra = {}) {
 
 function matterOpeningClearanceError(error) {
   const message = String(error?.message ?? "");
+  if (error?.code === "MATTER_OPENING_IDEMPOTENCY_CONFLICT") {
+    return {
+      status: 409,
+      code: MATTER_API_ERROR_CODES.opening_idempotency_conflict,
+      safe_message: "Matter opening idempotency key does not match the original authorized request.",
+    };
+  }
   if (/clearance_token_id is required|requires clearance_token_id/.test(message)) {
     return {
       code: MATTER_API_ERROR_CODES.clearance_token_id_required,
@@ -566,6 +574,7 @@ function matterOpeningClearanceError(error) {
     };
   }
   return {
+    status: 400,
     code: MATTER_API_ERROR_CODES.validation_error,
     safe_message: "Matter opening validation failed.",
   };
@@ -1915,7 +1924,7 @@ export function handleMatterOpening({ body, context, requestId, runtime = DEFAUL
     };
   } catch (error) {
     const safeError = matterOpeningClearanceError(error);
-    return errorResponse(400, requestId, [safeError.code], {
+    return errorResponse(safeError.status ?? 400, requestId, [safeError.code], {
       audit_hint_ref: query.audit_hint_ref,
       ui_state: "blocked",
       safe_message: safeError.safe_message,
@@ -2708,6 +2717,21 @@ export function handleMatterTeamMemberCreate({ matterId, body, context, requestI
       ui_state: "empty",
     });
   }
+  const idempotencyKey = body?.idempotency_key ?? `matter-team:${matterId}:${body?.member?.member_id ?? requestId}`;
+  const replay = runtime.repository.getIdempotency({ tenant_id: query.tenant_id, idempotency_key: idempotencyKey });
+  if (replay?.response) {
+    return {
+      status: 200,
+      body: {
+        ...replay.response,
+        request_id: requestId,
+        outcome: "idempotent_replay",
+        idempotent_replay: true,
+        audit_hint_ref: query.audit_hint_ref,
+        production_ready_claim: false,
+      },
+    };
+  }
   try {
     const audit = {
       append: (event) =>
@@ -2766,20 +2790,28 @@ export function handleMatterTeamMemberCreate({ matterId, body, context, requestI
           },
         })
       : null;
-    return {
-      status: 201,
-      body: {
+    const response = {
         request_id: requestId,
         outcome: "created",
         item: serializeMember(persisted),
         matter: updatedMatter ? serializeMatter(updatedMatter, runtime) : null,
         owner_assignment: ownerAssignment,
         audit_event: ownerAuditEvent,
+        idempotent_replay: false,
         safe_error_codes: [],
         audit_hint_ref: query.audit_hint_ref,
         production_ready_claim: false,
-      },
     };
+    runtime.repository.recordIdempotency({
+      tenant_id: query.tenant_id,
+      idempotency_key: idempotencyKey,
+      operation: "matter_team_member_create",
+      object_type: "MatterMember",
+      object_id: persisted.member_id,
+      actor_id: context.principal.user_id,
+      response,
+    });
+    return { status: 201, body: response };
   } catch (error) {
     const onboardingBlocked = error?.code === MATTER_ONBOARDING_GATE_ERROR_CODE;
     return errorResponse(onboardingBlocked ? 409 : 400, requestId, [onboardingBlocked ? MATTER_API_ERROR_CODES.onboarding_gate_required : MATTER_API_ERROR_CODES.validation_error], {

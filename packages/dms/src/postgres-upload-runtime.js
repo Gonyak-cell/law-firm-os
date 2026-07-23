@@ -651,13 +651,11 @@ export function createPostgresDmsUploadRuntime({
           if (committed) {
             assertReceiptMatchesSession(committed, session);
             await assertIndependentDigest(session, { staged: false });
-            receipt = committed;
             replayed = true;
-          } else {
-            receipt = await storage.finalizeObject({ tenant_id: session.tenant_id, session_id: session.session_id, object_id: session.object_id });
-            assertReceiptMatchesSession(receipt, session);
-            await assertIndependentDigest(session, { staged: false });
           }
+          receipt = await storage.finalizeObject({ tenant_id: session.tenant_id, session_id: session.session_id, object_id: session.object_id });
+          assertReceiptMatchesSession(receipt, session);
+          await assertIndependentDigest(session, { staged: false });
           faultInjector?.("after_provider_finalize_before_receipt_persist", { session_id: session.session_id });
           session = await persistProviderFinalized(session, claim.leaseToken, receipt);
         } catch (error) {
@@ -977,7 +975,7 @@ export function createPostgresDmsUploadRuntime({
       : ["d.document_id = $2 AND v.version_id = d.current_version_id", documentId];
     const result = await client.query(
       `SELECT f.file_object_id, f.object_id, f.sha256, f.byte_size, f.status AS file_status,
-              v.version_id, v.version_number, v.document_id,
+              v.version_id, v.version_number, v.document_id, d.matter_id,
               d.current_version_id, d.legal_hold_status, d.status AS document_status
          FROM lawos_dms.file_objects f
          JOIN lawos_dms.document_versions v
@@ -997,6 +995,59 @@ export function createPostgresDmsUploadRuntime({
       throw codedError("DMS object is pending or completed deletion", "DMS_OBJECT_DELETE_PENDING");
     }
     return canonical;
+  }
+
+  function assertExpectedMatter(canonical, expectedMatterId) {
+    if (expectedMatterId && canonical.matter_id !== expectedMatterId) {
+      throw codedError("DMS document matter changed after authorization", "DMS_CANONICAL_MATTER_MISMATCH", 409);
+    }
+  }
+
+  async function getGovernanceAuthorizationResource({ tenant_id, document_id, object_id } = {}) {
+    const tenantId = requiredText(tenant_id, "tenant_id");
+    const documentId = requiredText(document_id, "document_id");
+    const objectId = object_id ? requiredText(object_id, "object_id") : null;
+    return transact(tenantId, async (client) => {
+      const canonical = await selectCanonicalObject(client, tenantId, {
+        documentId,
+        objectId,
+        allowedStatuses: ["committed", "delete_pending"],
+      });
+      return Object.freeze({
+        tenant_id: tenantId,
+        document_id: canonical.document_id,
+        object_id: canonical.object_id,
+        matter_id: canonical.matter_id,
+      });
+    }, { readOnly: true });
+  }
+
+  async function verifyProviderLegalHold(tenantId, canonical) {
+    if (!storage.capabilities.provider_retention) return false;
+    if (typeof storage.getObjectLegalHold !== "function") {
+      throw codedError("provider legal-hold readback is required", "DMS_PROVIDER_RETENTION_CONTRACT_INVALID", 500);
+    }
+    const observed = await storage.getObjectLegalHold({ tenant_id: tenantId, object_id: canonical.object_id });
+    if (observed?.status !== "ON") {
+      throw codedError("provider legal hold does not match committed state", "DMS_PROVIDER_LEGAL_HOLD_DRIFT", 409);
+    }
+    return true;
+  }
+
+  async function verifyProviderRetention(tenantId, canonical, retainUntil) {
+    if (!storage.capabilities.provider_retention) return false;
+    if (typeof storage.getObjectRetention !== "function") {
+      throw codedError("provider retention readback is required", "DMS_PROVIDER_RETENTION_CONTRACT_INVALID", 500);
+    }
+    const observed = await storage.getObjectRetention({ tenant_id: tenantId, object_id: canonical.object_id });
+    const observedUntil = Date.parse(observed?.retain_until ?? "");
+    const requiredUntil = Date.parse(retainUntil);
+    if (!["GOVERNANCE", "COMPLIANCE"].includes(observed?.mode)
+      || !Number.isFinite(observedUntil)
+      || observedUntil < requiredUntil) {
+      throw codedError("provider retention does not match committed state", "DMS_PROVIDER_RETENTION_DRIFT", 409);
+    }
+    return true;
   }
 
   async function assertCanonicalDeleteProtection(client, tenantId, canonical, now) {
@@ -1039,7 +1090,31 @@ export function createPostgresDmsUploadRuntime({
     const actorId = requiredText(input.created_by, "created_by");
     const reasonHash = hashValue({ reason: requiredText(input.reason, "reason") });
     return transact(tenantId, async (client) => {
+      const existing = await client.query(
+        `SELECT legal_hold_id, document_id, object_id, status, reason_hash
+           FROM lawos_dms.legal_holds
+          WHERE tenant_id = $1 AND legal_hold_id = $2
+          FOR UPDATE`,
+        [tenantId, holdId],
+      );
+      if (existing.rows[0]) {
+        const row = existing.rows[0];
+        if (row.document_id !== documentId || row.object_id !== objectId || row.status !== "active" || row.reason_hash !== reasonHash) {
+          throw codedError("DMS legal hold idempotency key conflicts with existing state", "DMS_IDEMPOTENCY_CONFLICT");
+        }
+        const canonical = await selectCanonicalObject(client, tenantId, {
+          documentId: row.document_id,
+          objectId: row.object_id,
+          lock: true,
+          allowedStatuses: ["committed", "delete_pending"],
+        });
+        assertExpectedMatter(canonical, input.expected_matter_id);
+        await assertNoActiveProviderDelete(client, tenantId, canonical);
+        const providerReadbackVerified = await verifyProviderLegalHold(tenantId, canonical);
+        return Object.freeze({ tenant_id: tenantId, legal_hold_id: holdId, status: "active", reason_hash: reasonHash, provider_readback_verified: providerReadbackVerified, replayed: true });
+      }
       const canonical = await selectCanonicalObject(client, tenantId, { documentId, objectId, lock: true, allowedStatuses: ["committed", "delete_pending"] });
+      assertExpectedMatter(canonical, input.expected_matter_id);
       await assertNoActiveProviderDelete(client, tenantId, canonical);
       if (storage.capabilities.provider_retention) {
         if (typeof storage.setObjectLegalHold !== "function") {
@@ -1047,6 +1122,7 @@ export function createPostgresDmsUploadRuntime({
         }
         await storage.setObjectLegalHold({ tenant_id: tenantId, object_id: canonical.object_id, status: "ON" });
       }
+      const providerReadbackVerified = await verifyProviderLegalHold(tenantId, canonical);
       await client.query(
         `INSERT INTO lawos_dms.legal_holds
            (tenant_id, legal_hold_id, document_id, object_id, status, reason_hash, created_by, created_at)
@@ -1059,7 +1135,7 @@ export function createPostgresDmsUploadRuntime({
           WHERE tenant_id = $1 AND document_id = $2`,
         [tenantId, canonical.document_id, createdAt],
       );
-      return Object.freeze({ tenant_id: tenantId, legal_hold_id: holdId, status: "active", reason_hash: reasonHash });
+      return Object.freeze({ tenant_id: tenantId, legal_hold_id: holdId, status: "active", reason_hash: reasonHash, provider_readback_verified: providerReadbackVerified, replayed: false });
     });
   }
 
@@ -1071,7 +1147,34 @@ export function createPostgresDmsUploadRuntime({
     const objectId = input.object_id ? requiredText(input.object_id, "object_id") : null;
     const retainUntil = requiredTimestamp(input.retain_until, "retain_until");
     return transact(tenantId, async (client) => {
+      const existing = await client.query(
+        `SELECT retention_policy_id, document_id, object_id, retain_until, disposition
+           FROM lawos_dms.retention_policies
+          WHERE tenant_id = $1 AND retention_policy_id = $2
+          FOR UPDATE`,
+        [tenantId, policyId],
+      );
+      if (existing.rows[0]) {
+        const row = existing.rows[0];
+        if (row.document_id !== documentId
+          || (objectId && row.object_id !== objectId)
+          || new Date(row.retain_until).toISOString() !== retainUntil
+          || row.disposition !== "review_before_delete") {
+          throw codedError("DMS retention policy idempotency key conflicts with existing state", "DMS_IDEMPOTENCY_CONFLICT");
+        }
+        const canonical = await selectCanonicalObject(client, tenantId, {
+          documentId: row.document_id,
+          objectId: row.object_id,
+          lock: true,
+          allowedStatuses: ["committed", "delete_pending"],
+        });
+        assertExpectedMatter(canonical, input.expected_matter_id);
+        await assertNoActiveProviderDelete(client, tenantId, canonical);
+        const providerReadbackVerified = await verifyProviderRetention(tenantId, canonical, retainUntil);
+        return Object.freeze({ tenant_id: tenantId, retention_policy_id: policyId, retain_until: retainUntil, provider_readback_verified: providerReadbackVerified, replayed: true });
+      }
       const canonical = await selectCanonicalObject(client, tenantId, { documentId, objectId, lock: true, allowedStatuses: ["committed", "delete_pending"] });
+      assertExpectedMatter(canonical, input.expected_matter_id);
       await assertNoActiveProviderDelete(client, tenantId, canonical);
       if (storage.capabilities.provider_retention) {
         if (typeof storage.setObjectRetention !== "function") {
@@ -1084,23 +1187,25 @@ export function createPostgresDmsUploadRuntime({
           mode: "GOVERNANCE",
         });
       }
+      const providerReadbackVerified = await verifyProviderRetention(tenantId, canonical, retainUntil);
       await client.query(
         `INSERT INTO lawos_dms.retention_policies
            (tenant_id, retention_policy_id, document_id, object_id, retain_until, disposition, created_at)
          VALUES ($1, $2, $3, $4, $5::timestamptz, 'review_before_delete', $6::timestamptz)`,
         [tenantId, policyId, canonical.document_id, canonical.object_id, retainUntil, createdAt],
       );
-      return Object.freeze({ tenant_id: tenantId, retention_policy_id: policyId, retain_until: retainUntil });
+      return Object.freeze({ tenant_id: tenantId, retention_policy_id: policyId, retain_until: retainUntil, provider_readback_verified: providerReadbackVerified, replayed: false });
     });
   }
 
-  async function assertCommittedObjectDeleteAllowed({ tenant_id, document_id, object_id } = {}) {
+  async function assertCommittedObjectDeleteAllowed({ tenant_id, document_id, object_id, expected_matter_id } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
     const documentId = requiredText(document_id, "document_id");
     const objectId = requiredText(object_id, "object_id");
     const now = timestamp(clock);
     return transact(tenantId, async (client) => {
       const canonical = await selectCanonicalObject(client, tenantId, { documentId, objectId });
+      assertExpectedMatter(canonical, expected_matter_id);
       await assertCanonicalDeleteProtection(client, tenantId, canonical, now);
       return Object.freeze({ allowed: true, provider_retention_enforced: storage.capabilities.provider_retention });
     }, { readOnly: true });
@@ -1195,6 +1300,7 @@ export function createPostgresDmsUploadRuntime({
         return Object.freeze({ intent: Object.freeze({ ...row }), replayed: true });
       }
       const canonical = await selectCanonicalObject(client, tenantId, { documentId, objectId, lock: true });
+      assertExpectedMatter(canonical, input.expected_matter_id);
       await assertCanonicalDeleteProtection(client, tenantId, canonical, createdAt);
       const inserted = await client.query(
         `INSERT INTO lawos_dms.delete_intents
@@ -1665,6 +1771,7 @@ export function createPostgresDmsUploadRuntime({
     requestCommittedObjectDelete,
     executeCommittedObjectDelete,
     reconcileDeleteIntents,
+    getGovernanceAuthorizationResource,
     getDocumentState,
     listDocuments,
     downloadDocument,

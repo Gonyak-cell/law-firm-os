@@ -39,7 +39,7 @@ function normalizeRecord(input = {}) {
     ...record,
     resource_id: resourceId,
     created_at: record.created_at ?? now,
-    updated_at: now,
+    updated_at: record.updated_at ?? now,
     writes_product_state: true,
     creates_database_rows: record.creates_database_rows ?? true,
     updates_database_rows: record.updates_database_rows ?? false,

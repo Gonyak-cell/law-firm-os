@@ -85,6 +85,40 @@ function rejectReservedIdentityFields(input, entityName, errors) {
   }
 }
 
+function professionalProfileField(input, errors) {
+  const profile = input?.professional_profile;
+  if (profile === undefined || profile === null) return null;
+  if (!isPlainObject(profile)) {
+    errors.push("professional_profile must be a plain object");
+    return null;
+  }
+  if (profile.schema_version !== "law-firm-os.people-professional-profile.v0.1") {
+    errors.push("professional_profile schema_version is invalid");
+  }
+  const arrays = ["public_role_labels", "practice_areas", "experience", "education", "qualifications", "source_refs", "source_notes", "excluded_claim_refs"];
+  const normalized = {};
+  for (const field of arrays) {
+    const values = profile[field] ?? [];
+    if (!Array.isArray(values) || values.some((value) => typeof value !== "string" || value.trim() === "")) {
+      errors.push(`professional_profile.${field} must be a string array`);
+      normalized[field] = [];
+    } else {
+      normalized[field] = values.map((value) => value.trim());
+    }
+  }
+  if (typeof profile.profile_kind !== "string" || profile.profile_kind.trim() === "") {
+    errors.push("professional_profile.profile_kind must be a non-empty string");
+  }
+  if (["password", "secret", "token", "private_key", "credential"].some((field) => Object.hasOwn(profile, field))) {
+    errors.push("professional_profile contains forbidden credential material");
+  }
+  return {
+    schema_version: profile.schema_version,
+    profile_kind: String(profile.profile_kind ?? "").trim(),
+    ...normalized,
+  };
+}
+
 function result(errors, value) {
   const ok = errors.length === 0;
   return {
@@ -142,6 +176,7 @@ export function validateEmploymentProfile(input) {
     effective_from: requiredIsoDate(input, "effective_from", errors),
     effective_to: optionalIsoDate(input, "effective_to", errors),
     source_ref: stringField(input, "source_ref", errors, { optional: true }),
+    professional_profile: professionalProfileField(input, errors),
   };
   if (value.effective_to && value.effective_to < value.effective_from) {
     errors.push("effective_to must be on or after effective_from");

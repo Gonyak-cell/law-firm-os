@@ -12,6 +12,7 @@ export const LAWOS_POSTGRES_URL_SECRET_ID_ENV = "LAWOS_POSTGRES_URL_SECRET_ID";
 export const LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ENV = "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET";
 export const LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID_ENV = "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID";
 export const LAWOS_POSTGRES_SSL_MODE_ENV = "LAWOS_POSTGRES_SSL_MODE";
+export const LAWOS_POSTGRES_API_POOL_MAX = 1;
 export const LAWOS_PERSISTENCE_AUTHORITIES = Object.freeze({
   fileCurrent: "file-current",
   postgresV2: "postgres-v2",
@@ -58,6 +59,7 @@ async function defaultConnectPostgres({ connectionString, sslMode, tenantContext
     allowInsecureLocal: sslMode === "disable" && local,
     applicationName: "law-firm-os-api-authority-preflight",
     tenantContextSecret,
+    max: LAWOS_POSTGRES_API_POOL_MAX,
   });
   return pool;
 }
@@ -85,7 +87,7 @@ function tenantContextSecretFromSecret(value) {
   return secret;
 }
 
-function postgresUrlFromSecret(value) {
+export function postgresUrlFromSecret(value) {
   const text = String(value ?? "").trim();
   if (!text) throw new TypeError("PostgreSQL secret reference resolved without secret material");
   try {
@@ -94,8 +96,24 @@ function postgresUrlFromSecret(value) {
     const connectionString = String(
       parsed.LAWOS_POSTGRES_URL ?? parsed.DATABASE_URL ?? parsed.database_url ?? parsed.url ?? "",
     ).trim();
-    if (!connectionString) throw new TypeError("PostgreSQL secret JSON does not contain a connection URL");
-    return connectionString;
+    if (connectionString) return connectionString;
+    const host = String(parsed.host ?? parsed.hostname ?? "").trim();
+    const database = String(parsed.dbname ?? parsed.database ?? parsed.database_name ?? "").trim();
+    const username = String(parsed.username ?? parsed.user ?? "").trim();
+    const password = String(parsed.password ?? "");
+    const port = String(parsed.port ?? "5432").trim();
+    if (!host || !database || !username || !password || !/^\d{1,5}$/u.test(port)) {
+      throw new TypeError("PostgreSQL secret JSON does not contain a complete structured credential");
+    }
+    const portNumber = Number(port);
+    if (portNumber < 1 || portNumber > 65535) throw new TypeError("PostgreSQL secret port is invalid");
+    const url = new URL("postgresql://localhost");
+    url.hostname = host;
+    url.port = port;
+    url.username = username;
+    url.password = password;
+    url.pathname = `/${encodeURIComponent(database)}`;
+    return url.toString();
   } catch (error) {
     if (error instanceof SyntaxError) return text;
     throw error;

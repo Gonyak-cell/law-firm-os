@@ -19,7 +19,7 @@ function jsonResponse(status, body) {
 
 test("runtime config loads AWS execute-api URL and operator credential from local env shape", () => {
   const envText = [
-    "MATTER_VAULT_R4_PRODUCTION_BASE_URL=https://example.execute-api.ap-northeast-2.amazonaws.com/staging/",
+    "MATTER_VAULT_R4_PRODUCTION_BASE_URL=https://example.execute-api.ap-northeast-2.amazonaws.com/staging////",
     "MATTER_VAULT_R4_PRODUCTION_TENANT_ID=tenant_amic_matter_vault",
     "MATTER_VAULT_R4_OPERATOR_ACTOR=jwsuh@amic.kr",
     "MATTER_VAULT_R4_OPERATOR_TOKEN=runtime-secret",

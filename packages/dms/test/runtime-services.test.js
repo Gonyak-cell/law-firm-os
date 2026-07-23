@@ -301,7 +301,7 @@ test("UPL-E-01 DMS search indexes PDF/DOCX body text without exposing raw text",
     document: docxDocument,
     version: { version_id: docxDocument.current_version_id },
     file_object: { mime_type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
-    bytes: "<w:document><w:t>퇴직금 본문키워드 검증</w:t></w:document>",
+    bytes: "<w:document><w:t>퇴직금 본문키워드 검증 &amp;lt;보존&amp;gt;</w:t></w:document>",
   });
   assert.equal(docxIndex.body_text_indexed, true);
 
@@ -325,6 +325,20 @@ test("UPL-E-01 DMS search indexes PDF/DOCX body text without exposing raw text",
   });
   assert.equal(docxSearch.results[0].document_id, docxDocument.document_id);
   assert.equal(JSON.stringify(docxSearch.results[0]).includes("퇴직금"), false);
+
+  const entitySearch = searchMatterVault({
+    permission_decision_id: "decision-e01-docx-entity-search",
+    query: "&lt;보존&gt;",
+    index_rows: [docxIndex],
+    allowed_document_ids: [docxDocument.document_id],
+  });
+  assert.equal(entitySearch.results[0].document_id, docxDocument.document_id);
+  assert.equal(searchMatterVault({
+    permission_decision_id: "decision-e01-docx-double-decode-denial",
+    query: "<보존>",
+    index_rows: [docxIndex],
+    allowed_document_ids: [docxDocument.document_id],
+  }).results.length, 0);
 });
 
 test("UPL-E-02 DMS OCR sidecar indexes scanned PDF text without claiming OCR runtime execution", () => {

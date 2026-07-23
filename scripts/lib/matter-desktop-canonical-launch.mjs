@@ -24,6 +24,7 @@ const MAC_EXECUTABLE_SUFFIX = path.join("Contents", "MacOS", "matter");
 const BUILD_MANIFEST_SUFFIX = path.join("Contents", "Resources", "matter-build-manifest.json");
 const RENDERER_SUFFIX = path.join("Contents", "Resources", "app", "src", "renderer", "web");
 const INFO_PLIST_SUFFIX = path.join("Contents", "Info.plist");
+const PLIST_TEXT_ENTITIES = Object.freeze({ "&amp;": "&", "&lt;": "<", "&gt;": ">" });
 
 function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
@@ -32,10 +33,7 @@ function sha256(value) {
 function plistString(source, key) {
   const match = source.match(new RegExp(`<key>\\s*${key}\\s*</key>\\s*<string>([^<]+)</string>`));
   assert.ok(match, `Info.plist is missing ${key}`);
-  return match[1]
-    .replaceAll("&amp;", "&")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">");
+  return match[1].replace(/&(?:amp|lt|gt);/g, (entity) => PLIST_TEXT_ENTITIES[entity]);
 }
 
 export function inspectCanonicalMacBundle({
