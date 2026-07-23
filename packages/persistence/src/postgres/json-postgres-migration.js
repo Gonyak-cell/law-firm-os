@@ -10,6 +10,7 @@ import {
 } from "../domain-ledger.js";
 import { createPostgresIdentityLedger } from "../../../runtime-auth/src/postgres-identity-ledger.js";
 import { createPostgresDomainLedger } from "./domain-ledger.js";
+import { validateMigrationCorpusAgainstRecordTypeCatalog } from "./record-type-catalog.js";
 
 export const JSON_POSTGRES_MIGRATION_SCHEMA_VERSION = "law-firm-os.json-postgres-migration-corpus.v1";
 export const JSON_POSTGRES_MIGRATION_CHECKPOINT_VERSION = "law-firm-os.json-postgres-migration-checkpoint.v1";
@@ -39,6 +40,7 @@ const DOMAIN_ORDER = new Map([
   "enterprise-readiness",
 ].map((domainId, index) => [domainId, index]));
 const FORBIDDEN_SOURCE_KEY = /(^|_)(password|password_hash|secret|token|credential|authorization|api_key|document_bytes|raw_bytes|raw_payload)(_|$)/iu;
+const SAFE_CREDENTIAL_METADATA = new Set(["credential_provider", "credential_status", "credential_rev"]);
 
 function requiredText(value, name) {
   const text = String(value ?? "").trim();
@@ -60,7 +62,9 @@ function assertNoCredentialOrRawBytes(value, path = "source") {
   }
   if (!value || typeof value !== "object") return;
   for (const [key, item] of Object.entries(value)) {
-    if (FORBIDDEN_SOURCE_KEY.test(key)) throw new TypeError(`${path} contains forbidden secret or raw-byte field`);
+    if (FORBIDDEN_SOURCE_KEY.test(key) && !SAFE_CREDENTIAL_METADATA.has(key)) {
+      throw new TypeError(`${path} contains forbidden secret or raw-byte field`);
+    }
     assertNoCredentialOrRawBytes(item, `${path}.${key}`);
   }
 }
@@ -131,7 +135,7 @@ function directoryProjectionList(users) {
   return users.map(directoryProjection).sort((left, right) => left.user_id.localeCompare(right.user_id));
 }
 
-function prepareMigrationCorpus(corpus = {}, { allowRealData = false } = {}) {
+export function prepareJsonPostgresMigrationCorpus(corpus = {}, { allowRealData = false } = {}) {
   if (corpus.schema_version !== JSON_POSTGRES_MIGRATION_SCHEMA_VERSION) throw new TypeError("migration corpus schema is invalid");
   const tenantId = requiredText(corpus.tenant_id, "migration tenant_id");
   const dataScope = requiredText(corpus.data_scope, "migration data_scope");
@@ -153,20 +157,23 @@ function prepareMigrationCorpus(corpus = {}, { allowRealData = false } = {}) {
       if (accountEmails.has(email)) throw Object.assign(new TypeError("duplicate account email"), { reason_code: "DUPLICATE_ACCOUNT_EMAIL" });
       const membership = source.membership ?? source.tenant_memberships?.[0] ?? {};
       if (membership.tenant_id && membership.tenant_id !== tenantId) throw new TypeError("account tenant scope mismatch");
+      const disabled = source.status === "disabled"
+        || source.account_status === "disabled"
+        || membership.status === "disabled";
       const normalized = Object.freeze({
         user: Object.freeze({
           ...structuredClone(source),
           user_id: userId,
           email,
-          status: source.status === "disabled" ? "disabled" : "active",
-          account_status: source.status === "disabled" ? "disabled" : "active",
+          status: disabled ? "disabled" : "active",
+          account_status: disabled ? "disabled" : "active",
           credential_provider: "lawos-internal-password-provider-v1",
-          credential_status: "reset_required",
+          credential_status: disabled ? "disabled" : "reset_required",
           password_hash: undefined,
         }),
         membership: Object.freeze({
           tenant_id: tenantId,
-          status: membership.status === "disabled" ? "disabled" : "active",
+          status: disabled ? "disabled" : "active",
           role_profile_id: membership.role_profile_id ?? source.role_profile_id ?? null,
           role_ids: normalizedStrings(membership.role_ids ?? source.role_ids, "account role id"),
           group_ids: normalizedStrings(membership.group_ids ?? source.group_ids, "account group id"),
@@ -387,12 +394,38 @@ export async function runJsonPostgresMigration({
   corpus,
   mode = "validate-only",
   allowRealData = false,
+  recordTypeCatalog = null,
   negativeTenantId = null,
   checkpoint = null,
   onCheckpoint = null,
 } = {}) {
   if (!JSON_POSTGRES_MIGRATION_MODES.includes(mode)) throw new TypeError("unsupported JSON PostgreSQL migration mode");
-  const prepared = prepareMigrationCorpus(corpus, { allowRealData });
+  const realData = corpus?.data_scope === "approved-real-manifest";
+  if (realData && allowRealData && !recordTypeCatalog) {
+    const error = new Error("approved real-data migration requires an exact record-type catalog");
+    error.code = "LAWOS_MIGRATION_RECORD_TYPE_CATALOG_REQUIRED";
+    throw error;
+  }
+  const prepared = prepareJsonPostgresMigrationCorpus(corpus, { allowRealData });
+  const preparedCatalogCorpus = {
+    accounts: prepared.accounts.map((account) => {
+      const { password_hash: _discardedPasswordHash, ...user } = account.user;
+      return { ...user, membership: account.membership };
+    }),
+    domains: prepared.domains.map((domain) => ({
+      domain_id: domain.domain_id,
+      records: domain.records,
+    })),
+  };
+  const recordTypeValidation = recordTypeCatalog
+    ? validateMigrationCorpusAgainstRecordTypeCatalog({ corpus: preparedCatalogCorpus, catalog: recordTypeCatalog })
+    : null;
+  if (recordTypeValidation?.valid === false) {
+    const error = new Error("migration corpus does not match the approved record-type catalog");
+    error.code = "LAWOS_MIGRATION_RECORD_TYPE_CATALOG_DRIFT";
+    error.details = recordTypeValidation;
+    throw error;
+  }
   const checkpointState = validateCheckpoint(checkpoint, prepared);
   const completedSteps = [...checkpointState.completed_steps];
   const writes = mode === "import" || mode === "resume";
@@ -543,6 +576,7 @@ export async function runJsonPostgresMigration({
     mode,
     data_scope: prepared.data_scope,
     source_manifest_sha256: prepared.manifest_sha256,
+    record_type_catalog_sha256: recordTypeValidation?.catalog_sha256 ?? null,
     directory: Object.freeze({
       source_count: (corpus.accounts ?? []).length,
       accepted_count: prepared.accounts.length,
@@ -566,6 +600,8 @@ export async function runJsonPostgresMigration({
       accepted_record_count: prepared.snapshots.reduce((total, snapshot) => total + snapshot.records.length, 0),
       rejected_record_count: prepared.rejected.filter((item) => item.source_kind === "record").length,
       rejected_item_count: prepared.rejected.length,
+      record_type_catalog_entry_count: recordTypeValidation?.observed_entry_count ?? 0,
+      logical_reference_missing_count: recordTypeValidation?.missing_reference_count ?? 0,
       tenant_negative_visible_count: directoryTenantNegativeVisibleCount + domainResults.reduce((total, item) => total + item.tenant_negative_visible_count, 0),
     }),
     rejected_reason_counts: reasonCounts(prepared.rejected),

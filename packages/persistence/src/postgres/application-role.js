@@ -1,5 +1,8 @@
+import { setPostgresRolePassword } from "./role-password.js";
+
 const ROLE_NAME = "lawos_app";
 const SYNTHETIC_TENANT_PATTERN = /^tenant_lawos_staging_[a-z0-9_-]+$/u;
+const TENANT_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/u;
 const LEGACY_CONNECTION_LIMITS = new Set([20, 21]);
 export const LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT = 64;
 
@@ -50,10 +53,6 @@ function requiredText(value, name) {
   return text;
 }
 
-function quoteLiteral(value) {
-  return `'${String(value).replaceAll("'", "''")}'`;
-}
-
 function normalizeSyntheticTenantIds(values) {
   const tenantIds = [...new Set((values ?? []).map((value) => requiredText(value, "synthetic tenant id")))].sort();
   if (tenantIds.length < 2 || tenantIds.some((tenantId) => !SYNTHETIC_TENANT_PATTERN.test(tenantId))) {
@@ -62,20 +61,31 @@ function normalizeSyntheticTenantIds(values) {
   return tenantIds;
 }
 
+function normalizeProductionTenantIds(values) {
+  const tenantIds = [...new Set((values ?? []).map((value) => requiredText(value, "approved tenant id")))].sort();
+  if (tenantIds.length < 1 || tenantIds.some((tenantId) =>
+    !TENANT_ID_PATTERN.test(tenantId)
+    || SYNTHETIC_TENANT_PATTERN.test(tenantId)
+    || tenantId === "*")) {
+    throw new TypeError("at least one exact approved non-synthetic production tenant id is required");
+  }
+  return tenantIds;
+}
+
 export function lawosApplicationRoleGrantStatements() {
   return GRANTS;
 }
 
-export async function configureLawosApplicationRole(client, {
+async function configureApplicationRole(client, {
   password,
   tenantContextSecret,
-  syntheticTenantIds,
+  tenantIds,
+  authorityScope,
 } = {}) {
   if (!client || typeof client.query !== "function") throw new TypeError("PostgreSQL client is required");
   const rolePassword = requiredText(password, "application role password");
   const contextSecret = Buffer.from(requiredText(tenantContextSecret, "tenantContextSecret"), "utf8");
   if (contextSecret.byteLength < 32) throw new TypeError("tenantContextSecret must contain at least 32 bytes");
-  const tenantIds = normalizeSyntheticTenantIds(syntheticTenantIds);
   let began = false;
   let connectionLimitMigrated = false;
   try {
@@ -114,7 +124,10 @@ export async function configureLawosApplicationRole(client, {
         });
       }
     }
-    await client.query(`ALTER ROLE ${ROLE_NAME} PASSWORD ${quoteLiteral(rolePassword)}`);
+    await setPostgresRolePassword(client, {
+      roleName: ROLE_NAME,
+      password: rolePassword,
+    });
     await client.query(`ALTER ROLE ${ROLE_NAME} SET statement_timeout = '30s'`);
     await client.query(`ALTER ROLE ${ROLE_NAME} SET lock_timeout = '5s'`);
     await client.query(`ALTER ROLE ${ROLE_NAME} SET idle_in_transaction_session_timeout = '30s'`);
@@ -140,6 +153,7 @@ export async function configureLawosApplicationRole(client, {
       role_name: ROLE_NAME,
       grant_statement_count: GRANTS.length,
       tenant_authority_count: tenantIds.length,
+      authority_scope: authorityScope,
       connection_limit: LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT,
       connection_limit_migrated: connectionLimitMigrated,
       synthetic_wildcard_count: 0,
@@ -150,4 +164,30 @@ export async function configureLawosApplicationRole(client, {
     if (began) await client.query("ROLLBACK").catch(() => {});
     throw error;
   }
+}
+
+export async function configureLawosApplicationRole(client, {
+  password,
+  tenantContextSecret,
+  syntheticTenantIds,
+} = {}) {
+  return configureApplicationRole(client, {
+    password,
+    tenantContextSecret,
+    tenantIds: normalizeSyntheticTenantIds(syntheticTenantIds),
+    authorityScope: "synthetic-private-staging",
+  });
+}
+
+export async function configureLawosProductionApplicationRole(client, {
+  password,
+  tenantContextSecret,
+  approvedTenantIds,
+} = {}) {
+  return configureApplicationRole(client, {
+    password,
+    tenantContextSecret,
+    tenantIds: normalizeProductionTenantIds(approvedTenantIds),
+    authorityScope: "approved-production-tenants",
+  });
 }

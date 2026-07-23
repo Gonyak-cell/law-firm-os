@@ -2,21 +2,14 @@ import { createHash } from "node:crypto";
 import { DOMAIN_IDS, hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
 import { createPostgresIdentityLedger } from "../../../packages/runtime-auth/src/postgres-identity-ledger.js";
+import { validatePostgresOnlyRuntimeConfiguration } from "./postgres-only-runtime-configuration.js";
 
-const STORE_PATH_ENV = /^LAWOS_[A-Z0-9_]*(?:STORE|OBJECT_STORE)_PATH$/u;
 const EXPECTED_AUTHORITY = "postgres-v2";
-const EXPECTED_STAFF_AUTHORITY = "internal-password";
 
 function requiredText(value, name) {
   const text = String(value ?? "").trim();
   if (!text) throw new TypeError(`${name} is required`);
   return text;
-}
-
-function nonNegativeInteger(value, name) {
-  const number = Number(value);
-  if (!Number.isSafeInteger(number) || number < 0) throw new TypeError(`${name} must be a non-negative integer`);
-  return number;
 }
 
 function sha256(value) {
@@ -35,39 +28,7 @@ function normalizeTenants(tenantIds) {
   return tenants;
 }
 
-export function validatePostgresOnlyRuntimeConfiguration({
-  env = {},
-  artifactRuntimeStoreEntryCount = 0,
-  artifactRealJsonStoreCount = 0,
-  fileCurrentInitializedCount = 0,
-  coldStartObserved = false,
-} = {}) {
-  if (env.LAWOS_RUNTIME_PROFILE !== "operational") throw new Error("CUT-006 requires operational runtime profile");
-  if (env.LAWOS_PERSISTENCE_AUTHORITY !== EXPECTED_AUTHORITY) throw new Error("CUT-006 requires postgres-v2 authority");
-  if (env.LAWOS_STAFF_AUTHORITY !== EXPECTED_STAFF_AUTHORITY) throw new Error("CUT-006 requires internal-password staff authority");
-  const populatedStorePathKeys = Object.entries(env)
-    .filter(([key, value]) => STORE_PATH_ENV.test(key) && String(value ?? "").trim())
-    .map(([key]) => key)
-    .sort();
-  if (populatedStorePathKeys.length) throw new Error("CUT-006 forbids JSON/file store-path environment variables");
-  const runtimeStoreEntries = nonNegativeInteger(artifactRuntimeStoreEntryCount, "artifactRuntimeStoreEntryCount");
-  const realJsonStores = nonNegativeInteger(artifactRealJsonStoreCount, "artifactRealJsonStoreCount");
-  const fileCurrentInitialized = nonNegativeInteger(fileCurrentInitializedCount, "fileCurrentInitializedCount");
-  if (runtimeStoreEntries !== 0 || realJsonStores !== 0 || fileCurrentInitialized !== 0) {
-    throw new Error("CUT-006 artifact or runtime initialized a legacy file authority");
-  }
-  if (coldStartObserved !== true) throw new Error("CUT-006 requires a deployed cold-start observation");
-  return Object.freeze({
-    runtime_profile: "operational",
-    persistence_authority: EXPECTED_AUTHORITY,
-    staff_authority: EXPECTED_STAFF_AUTHORITY,
-    populated_store_path_key_count: 0,
-    artifact_runtime_store_entry_count: 0,
-    artifact_real_json_store_count: 0,
-    file_current_initialized_count: 0,
-    cold_start_observed: true,
-  });
-}
+export { validatePostgresOnlyRuntimeConfiguration };
 
 async function commitDomainProbe(ledger, { tenantId, domainId, runId }) {
   const type = recordType(domainId);

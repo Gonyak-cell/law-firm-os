@@ -1,7 +1,7 @@
 # LawOS JSON Authority to PostgreSQL RepositoryPortV2, Real-Data Migration, Production CUT-008~012, Release, and Relational Projection Full Execution Plan
 
 - Plan ID: `LAWOS-JSON-POSTGRES-PRIVATE-STAGING-CUT007-20260720`
-- Plan version: `v2.0`
+- Plan version: `v2.2`
 - Prepared on: `2026-07-20 KST`
 - Updated on: `2026-07-23 KST`
 - Repository: `/Users/jws/Documents/Codex/Law Firm OS`
@@ -15,6 +15,28 @@
 - AWS account: `770880870480`
 - AWS region: `ap-northeast-2`
 - Monthly LawOS AWS cost ceiling: `KRW 300,000`; no security, durability, or availability control may be weakened to meet it
+
+## 0. Goal binding and implementation status
+
+The document title is the controlling goal:
+
+`LawOS JSON Authority to PostgreSQL RepositoryPortV2, Real-Data Migration, Production CUT-008~012, Release, and Relational Projection Full Execution Plan`
+
+The goal is decomposed into the existing W0~W15 work packages. “Implemented” below means the source-local contract, executor, validator, and regression tests exist. It never means that real data was read, AWS was mutated, a production write occurred, an artifact was signed or published, traffic was enabled, or go-live completed.
+
+| Goal slice | Source-local implementation state | External execution state |
+|---|---|---|
+| G0 / W0 baseline and governance | complete on a clean branch from the merged private-staging tree | no external action |
+| G1 / W1 inventory, locator, source-read approval, and adjudication | implemented; all-source terminal-disposition and zero-unresolved gates are enforced | the 287-source read and adjudication are approval-required and not executed |
+| G2 / W2 registered-email internal identity | preserved from the merged checkpoint; real profile/history retention and disabled-account normalization are covered by migration tests | real accounts not imported; no bulk reset delivery |
+| G3 / W3 corpus, record catalog, authority bundle, migration, reconciliation, checkpoint/resume, and DMS executor | implemented for W12 and W13; production commit requires exact signed predecessors and immutable inputs | no real rehearsal or production import |
+| G4 / W4~W11 synthetic private staging | preserved signed PASS checkpoint | do not replay unless its upstream contract is invalidated |
+| G5 / W12 isolated real-data rehearsal | packet, immutable-input, closed stage-probe collector, digest-verified source artifacts, receipt, reconciliation, restore, DMS, capacity, and terminal-gate contracts implemented | requires exact W12 owner approval before source reads, rehearsal AWS mutation, or rehearsal writes |
+| G6 / W13 CUT-008~012 | production IaC, least-privilege roles, CUT-008/009 closed evidence collectors, first-write boundary, cutover, DR, JSON retirement, smoke, and terminal-closeout contracts implemented | requires W12 PASS and a new exact-main production authorization |
+| G7 / W14 signing, formal release, and go-live | artifact reproducibility, release security, macOS/Windows signing verification, formal-release, smoke, traffic, and go-live contracts implemented | requires CUT-012 PASS and exact-main release/go-live authorization |
+| G8 / W15 relational read projection | one-way HRX projection schema, writer role, replay/shadow/RLS gate, closeout, and authority-preservation contracts implemented | post-go-live execution and any authority promotion require separate authorization |
+
+The source branch may be committed, pushed, and subjected to exact-head CI only after the consolidated local source suite passes. W12~W15 external actions remain closed until the separately signed packet for that phase is verified.
 
 ## 1. Objective
 
@@ -180,7 +202,7 @@ The following claims must never be collapsed:
 - operational real data has not been migrated to rehearsal or production, and production has not been contacted by this program;
 - the safe inventory contains 287 candidate files, 84 duplicate candidates, 203 manual-review candidates, 857 discovered field paths, two roster gaps, two lower-case email collisions, and zero selected authoritative sources;
 - W12 real-data rehearsal, W13 CUT-008~012, W14 signing/release/go-live, and W15 relational projection have not executed;
-- the central-ledger cutover runner still refuses production `execute` mode and therefore requires an approval-gated production executor or equivalent exact-main implementation before W13;
+- the general central-ledger cutover runner continues to refuse production `execute` mode; a separate exact-packet, direct-invoke, approval-gated W12/W13 executor is now implemented in source but has not executed;
 - Entra is not required; production uses the registered-email, internal-password, first-use setup contract;
 - operational JSON remains the authority for real production data until W13 passes, even though source defaults, synthetic staging, and fail-closed authority checks are PostgreSQL-complete.
 
@@ -191,7 +213,10 @@ The following claims must never be collapsed:
 - eleven product-domain and HRX transaction participation: `apps/api/src/postgres-api-runtime-authority.js`;
 - HRX generic-ledger materialization: `packages/hrx/src/postgres-store-v2.js`;
 - HRX relational migration tooling: `packages/hrx/src/postgres-migrations.js`;
-- production execute-mode gap: `scripts/run-central-ledger-cutover.mjs`;
+- fail-closed general cutover runner: `scripts/run-central-ledger-cutover.mjs`;
+- exact W12/W13 execution contract and runner: `packages/persistence/src/postgres/execution-contract.js`, `packages/persistence/src/postgres/migration-executor.js`, `scripts/run-json-postgres-program.mjs`, and `apps/api/src/json-postgres-program-admin-lambda.js`;
+- immutable source and deployed input readers: `packages/persistence/src/postgres/source-read-contract.js`, `scripts/lib/json-postgres-program-files.mjs`, and `apps/api/src/immutable-program-input.js`;
+- stage, receipt, CUT, release, and projection gates: `packages/persistence/src/postgres/program-stage-gates.js`, `packages/persistence/src/postgres/program-stage-observation.js`, `packages/persistence/src/postgres/program-stage-evidence.js`, `scripts/collect-json-postgres-program-stage-probe.mjs`, `scripts/lib/json-postgres-terminal-closeout.mjs`, `scripts/lib/json-postgres-release-program.mjs`, and `scripts/lib/json-postgres-relational-projection-closeout.mjs`;
 - safe inventory baseline: `workbook/lawos-json-postgres-source-inventory-summary-2026-07-20.md`;
 - sealed private-staging receipt summary: `/Users/jws/.codex/recovery/law-firm-os/json-postgres-production-release-full-program-20260721/source-213d02ea/receipt-validation-summary.json`;
 - sealed AWS rebind summary: `/Users/jws/.codex/recovery/law-firm-os/json-postgres-production-release-full-program-20260721/source-213d02ea/aws-rebind-execution/213d02ea-direct-rebind-summary.json`.
@@ -201,9 +226,9 @@ The following claims must never be collapsed:
 ```text
 COMPLETED CHECKPOINTS
 W0 Baseline/governance checkpoint
- ├─ W1 Safe source inventory and field discovery: PARTIAL, adjudication pending
+ ├─ W1 Source tooling: IMPLEMENTED, real source read/adjudication pending
  ├─ W2 Internal email authentication source/staging: COMPLETE
- ├─ W3 Synthetic migration engine: COMPLETE, real-data/production executor pending
+ ├─ W3 Real-data and production executor contracts: IMPLEMENTED, execution pending
  └─ W4 Private-staging IaC: COMPLETE
        ↓
 W5 Local/disposable-PostgreSQL validation: COMPLETE CHECKPOINT
@@ -222,13 +247,13 @@ W11 Receipt sealing and PR #173 merge: PASS
 
 REMAINING PROGRAM
        ↓ signed W12 inventory/rehearsal approval
-W12 Real-data inventory adjudication and isolated rehearsal
+W12 Source implementation COMPLETE; real-data inventory adjudication and isolated rehearsal APPROVAL-REQUIRED
        ↓ exact-main conditional production authorization
-W13 CUT-008~012 production migration, DR, and JSON retirement
+W13 Source implementation COMPLETE; CUT-008~012 production migration, DR, and JSON retirement APPROVAL-REQUIRED
        ↓ all production gates PASS
-W14 Exact-main signing, formal release, conditional go-live
+W14 Source implementation COMPLETE; exact-main signing, formal release, conditional go-live APPROVAL-REQUIRED
        ↓ separate non-blocking program
-W15 HRX/domain relational read projections without dual authority
+W15 Source implementation COMPLETE; HRX/domain relational read projection execution SEPARATELY APPROVAL-REQUIRED
 ```
 
 ## 7. W0 — Baseline and governance
@@ -274,7 +299,7 @@ Approval binds exact SHA/tree/artifact and the signed inventory rule. A content 
 
 ## 8. W1 — Source inventory and field contract
 
-Status: `SAFE_INVENTORY_COMPLETE_REAL_AUTHORITY_ADJUDICATION_REQUIRED`.
+Status: `SOURCE_TOOLING_COMPLETE_REAL_SOURCE_READ_AND_AUTHORITY_ADJUDICATION_REQUIRED`.
 
 The safe inventory is not an import authorization. It reports 287 candidate files, 84 duplicate candidates, 203 manual-review candidates, 857 field paths, two roster gaps, two lower-case email collisions, and zero authoritative selections. W12 must close every unresolved item before rehearsal.
 
@@ -405,7 +430,7 @@ Production migration does not bulk-create or bulk-send reset links. It imports a
 
 ## 10. W3 — Lossless migration engine
 
-Status: `SYNTHETIC_ENGINE_COMPLETE_REAL_DATA_AND_PRODUCTION_EXECUTOR_PENDING`.
+Status: `REAL_DATA_AND_PRODUCTION_EXECUTOR_SOURCE_COMPLETE_EXECUTION_APPROVAL_REQUIRED`.
 
 ### W3.1 Supported modes
 
@@ -840,7 +865,7 @@ The completed private-staging closeout produced and validated sixteen of sixteen
 - CUT-006;
 - CUT-007.
 
-Every receipt must contain `started_at`, `finished_at`, `command`, `exit_code`, `profile`, `safe_counts`, exact source/tree/artifact binding, and only allowed execution states.
+Every receipt must contain `started_at`, `finished_at`, `command`, `exit_code`, `profile`, `safe_counts`, exact source/tree/artifact binding, and only allowed execution states. New program receipts use the closed `law-firm-os.json-postgres-program-receipt.v2` contract. The receipt kind deterministically fixes its phase, environment, and one of these profiles: `approved-real-data-source-read`, `private-rehearsal-postgres-v2`, `production-postgres-v2`, `exact-main-release`, or `relational-read-projection`. A caller cannot substitute an arbitrary profile.
 
 Future W12~W14 receipts must satisfy the same contract. Existing private-staging receipts are preserved by digest and are not regenerated merely to change this plan.
 
@@ -903,7 +928,7 @@ During source development, run focused tests for the changed contracts. After th
 
 ## 19. W12 — Signed-inventory real-data rehearsal
 
-Status: `NOT_EXECUTED_NEXT_PROGRAM_GATE`.
+Status: `SOURCE_IMPLEMENTATION_COMPLETE_NOT_EXECUTED_REQUIRES_EXACT_W12_APPROVAL`.
 
 ### W12.1 Entry gates
 
@@ -925,7 +950,7 @@ The current inventory baseline has 287 candidate files, 84 duplicate candidates,
 
 ### W12.3 Isolated rehearsal execution
 
-1. create or designate a private rehearsal database isolated from production and from the synthetic CUT database;
+1. create or designate a private rehearsal database isolated from production and from the synthetic CUT database; the designation path is valid only when an approved target-state artifact proves the exact account, region, target, network, database, role, TLS, encryption, public-access, backup, and retention state;
 2. verify TLS `verify-full`, least-privilege roles, RLS, PITR/snapshot recovery, audit, outbox, and zero public reachability;
 3. route every password-reset notification to an approved non-delivery sink and prove external send count is zero;
 4. run migration `dry-run`, validate the deterministic plan digest, then run `apply` with checkpoint/resume enabled;
@@ -949,11 +974,11 @@ The current inventory baseline has 287 candidate files, 84 duplicate candidates,
 
 ### W12.5 Terminal evidence
 
-W12 completes only with independently signed and verified PASS receipts for inventory freeze/adjudication, record-type schema and logical-reference validation, rehearsal infrastructure, sink enforcement, migration, idempotent replay, tenant/RLS negatives, transaction/failure injection, capacity/performance acceptance, DMS Object Lock/digest/hold/retention, reconciliation, isolated restore, and owner sampling. The consolidated W12 receipt binds all component receipt digests and proves production write count and external email send count are both zero.
+W12 completes only with independently signed and verified PASS receipts for inventory freeze/adjudication, record-type schema and logical-reference validation, rehearsal infrastructure, sink enforcement, migration, idempotent replay, tenant/RLS negatives, transaction/failure injection, capacity/performance acceptance, DMS Object Lock/digest/hold/retention, reconciliation, isolated restore, and owner sampling. Every W12 stage is bound to a repository-owned collector, an exact required artifact-kind set, and the SHA-256 of each private `0600` source artifact as read from disk; an arbitrary observation file or caller-selected collector cannot close a receipt. The consolidated W12 receipt binds all component receipt digests and proves production write count and external email send count are both zero.
 
 ## 20. W13 — Exact-main production migration, CUT-008~012, and JSON retirement
 
-Status: `NOT_EXECUTED_REQUIRES_W12_PASS_AND_EXACT_MAIN_AUTHORIZATION`.
+Status: `SOURCE_IMPLEMENTATION_COMPLETE_NOT_EXECUTED_REQUIRES_W12_PASS_AND_EXACT_MAIN_AUTHORIZATION`.
 
 ### W13.1 Entry gates and conditional authorization
 
@@ -980,7 +1005,8 @@ No arbitrary fixed migration time window is required. The authorization uses an 
 6. verify monthly forecast against the `KRW 300,000` ceiling without weakening required controls;
 7. run exact-main CI/security evidence collection and require mandatory PostgreSQL tests executed with required-skip count zero;
 8. have the readonly auditor validate infrastructure, IAM, schema, migration checksums, provider, backup, retention, performance acceptance, and all predecessor receipts;
-9. issue an independently signed CUT-008 PASS receipt before any production data write.
+9. collect CUT-008 through the closed program-stage evidence collector, which requires and re-hashes the exact infrastructure, IAM, schema, migration, provider, backup, retention, security, cost, and readonly-auditor artifacts named by the collector contract;
+10. issue an independently signed CUT-008 PASS receipt before any production data write.
 
 ### W13.3 Pre-first-write controls
 
@@ -1005,7 +1031,8 @@ Before the first production PostgreSQL write, code/config rollback and target te
 7. switch operational authority to PostgreSQL RepositoryPortV2;
 8. prove the six forbidden counters remain zero across warm and cold starts;
 9. allow first-use password-setup delivery only after an individual active user requests it; never bulk-send reset links during migration;
-10. issue an independently signed CUT-009 PASS receipt.
+10. collect CUT-009 through the closed program-stage evidence collector, which requires and re-hashes the exact migration, readback, reconciliation, tenant/RLS, six-zero-counter, DMS, audit/outbox, source-freeze, and first-write-boundary artifacts;
+11. issue an independently signed CUT-009 PASS receipt.
 
 ### W13.5 CUT-010 isolated DR restore
 
@@ -1058,7 +1085,7 @@ Issue a signed CUT-012 terminal receipt bound to the exact production source/tre
 
 ## 21. W14 — Exact-main signing, formal release, and conditional go-live
 
-Status: `NOT_EXECUTED_REQUIRES_CUT_012_PASS`.
+Status: `SOURCE_IMPLEMENTATION_COMPLETE_NOT_EXECUTED_REQUIRES_CUT_012_PASS_AND_RELEASE_AUTHORIZATION`.
 
 ### W14.1 Release candidate
 
@@ -1091,7 +1118,7 @@ Status: `NOT_EXECUTED_REQUIRES_CUT_012_PASS`.
 
 ## 22. W15 — Post-go-live HRX and domain relational projections
 
-Status: `SEPARATE_NON_BLOCKING_FOLLOW_ON`.
+Status: `SOURCE_IMPLEMENTATION_COMPLETE_SEPARATE_NON_BLOCKING_EXECUTION_GATE`.
 
 The generic JSONB ledger is the Phase-1 production authority. W15 improves relational queryability without rewriting the completed authority migration:
 

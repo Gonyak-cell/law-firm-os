@@ -9,6 +9,8 @@ export * from "./migrations/index.js";
 export * from "./migrations/safety.js";
 export * from "./postgres-migrations.js";
 export * from "./postgres-store-v2.js";
+export * from "./relational-read-projection.js";
+export * from "./postgres-projection-role.js";
 export * from "./identity-link.js";
 export * from "./service.js";
 export * from "./field-masker.js";

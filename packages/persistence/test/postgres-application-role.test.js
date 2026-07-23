@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT,
   configureLawosApplicationRole,
+  configureLawosProductionApplicationRole,
 } from "../src/postgres/application-role.js";
 import { createPostgresPool } from "../src/postgres/pool.js";
 import { runPostgresMigrations } from "../src/postgres/migration-runner.js";
@@ -73,6 +74,64 @@ test("private staging application role rejects wildcard and non-LawOS tenants", 
     }),
     /approved LawOS synthetic staging tenant ids/u,
   );
+});
+
+test("production application role accepts only the exact approved real-tenant set", async () => {
+  const queries = [];
+  const client = {
+    async query(statement, parameters = []) {
+      queries.push({ statement, parameters });
+      if (/SELECT rolcanlogin, rolsuper/u.test(statement)) {
+        return {
+          rowCount: 1,
+          rows: [{
+            rolcanlogin: true,
+            rolsuper: false,
+            rolcreatedb: false,
+            rolcreaterole: false,
+            rolinherit: false,
+            rolreplication: false,
+            rolbypassrls: false,
+            rolconnlimit: LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT,
+          }],
+        };
+      }
+      return { rowCount: 0, rows: [] };
+    },
+  };
+  const result = await configureLawosProductionApplicationRole(client, {
+    password: "test-production-role-password",
+    tenantContextSecret: "test-production-tenant-context-secret-material",
+    approvedTenantIds: ["tenant_amic", "tenant_client_001", "tenant_amic"],
+  });
+  assert.equal(result.authority_scope, "approved-production-tenants");
+  assert.equal(result.tenant_authority_count, 2);
+  assert.equal(result.synthetic_wildcard_count, 0);
+  const deleteQuery = queries.find(({ statement }) => /DELETE FROM lawos_security\.tenant_context_authorities/u.test(statement));
+  assert.deepEqual(deleteQuery.parameters[1], ["tenant_amic", "tenant_client_001"]);
+  const insertedTenantIds = queries
+    .filter(({ statement }) => /INSERT INTO lawos_security\.tenant_context_authorities/u.test(statement))
+    .map(({ parameters }) => parameters[1]);
+  assert.deepEqual(insertedTenantIds, ["tenant_amic", "tenant_client_001"]);
+});
+
+test("production application role rejects wildcard, synthetic staging and empty tenant authority", async () => {
+  const client = { query: async () => { throw new Error("must not query"); } };
+  for (const approvedTenantIds of [
+    [],
+    ["*"],
+    ["tenant_lawos_staging_a"],
+    ["tenant with spaces"],
+  ]) {
+    await assert.rejects(
+      configureLawosProductionApplicationRole(client, {
+        password: "test-password",
+        tenantContextSecret: "test-production-tenant-context-secret-material",
+        approvedTenantIds,
+      }),
+      /exact approved non-synthetic production tenant id/u,
+    );
+  }
 });
 
 test("private staging application role does not require database or superuser logging settings", async () => {

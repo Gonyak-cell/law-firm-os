@@ -4,8 +4,10 @@ import { DOMAIN_IDS } from "../src/domain-ledger.js";
 import { createPostgresDomainLedger } from "../src/postgres/domain-ledger.js";
 import {
   JSON_POSTGRES_MIGRATION_SCHEMA_VERSION,
+  prepareJsonPostgresMigrationCorpus,
   runJsonPostgresMigration,
 } from "../src/postgres/json-postgres-migration.js";
+import { createJsonPostgresRecordTypeCatalog } from "../src/postgres/record-type-catalog.js";
 import { createMigratedPostgresFixture } from "./helpers/disposable-postgres.js";
 
 const TENANT = "tenant_lawos_staging_migration_a";
@@ -126,6 +128,148 @@ test("JSON to PostgreSQL migration validates the full corpus without returning s
   assert.equal(serialized.includes("must-never-be-persisted-or-returned"), false);
   assert.equal(serialized.includes("synthetic.user@example.test"), false);
   assert.equal(serialized.includes("Synthetic User"), false);
+});
+
+test("approved real-data mode requires and enforces an exact record-type catalog", async () => {
+  const source = syntheticCorpus();
+  source.data_scope = "approved-real-manifest";
+  source.accounts[0].credential_provider = "lawos-internal-password-provider-v1";
+  source.accounts[0].credential_status = "reset_required";
+  source.accounts[0].credential_rev = 4;
+  await assert.rejects(
+    runJsonPostgresMigration({ corpus: source, mode: "dry-run", allowRealData: true }),
+    (error) => error?.code === "LAWOS_MIGRATION_RECORD_TYPE_CATALOG_REQUIRED",
+  );
+
+  const catalogSource = structuredClone(source);
+  for (const domain of catalogSource.domains) {
+    domain.records = domain.records.filter((record) => record.record_type !== "RejectedSyntheticMatter");
+  }
+  const catalog = createJsonPostgresRecordTypeCatalog({ corpus: catalogSource });
+  const validated = await runJsonPostgresMigration({
+    corpus: source,
+    mode: "dry-run",
+    allowRealData: true,
+    recordTypeCatalog: catalog,
+  });
+  assert.equal(validated.outcome, "PASS");
+  assert.equal(validated.record_type_catalog_sha256, catalog.catalog_sha256);
+  assert.equal(validated.safe_counts.record_type_catalog_entry_count, DOMAIN_IDS.length + 1);
+  assert.equal(validated.safe_counts.logical_reference_missing_count, 0);
+
+  source.domains[0].records[0].payload.stable_value = "type-drift";
+  await assert.rejects(
+    runJsonPostgresMigration({
+      corpus: source,
+      mode: "dry-run",
+      allowRealData: true,
+      recordTypeCatalog: catalog,
+    }),
+    (error) => error?.code === "LAWOS_MIGRATION_RECORD_TYPE_CATALOG_DRIFT"
+      && error?.details?.field_type_drift_count === 1,
+  );
+});
+
+test("approved real accounts retain registered email and status but import no legacy password material", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const source = syntheticCorpus();
+  source.data_scope = "approved-real-manifest";
+  source.accounts = [{
+    user_id: "real-active-user",
+    email: "registered.active@example.test",
+    status: "active",
+    credential_rev: 7,
+    profile: {
+      employee_id: "employee-real-active",
+      legal_name: "Registered Active",
+      english_name: "Registered Active EN",
+      professional_profile: {
+        experience: ["Prior Firm"],
+        education: ["Law School"],
+        qualifications: ["Bar"],
+      },
+    },
+    membership: { tenant_id: TENANT, status: "active", role_ids: ["lawos_staff"] },
+  }, {
+    user_id: "real-disabled-user",
+    email: "registered.disabled@example.test",
+    status: "active",
+    account_status: "disabled",
+    credential_rev: 3,
+    membership: { tenant_id: TENANT, status: "active", role_ids: [] },
+  }];
+  source.domains = source.domains.map((domain) => ({
+    ...domain,
+    records: domain.records.filter((record) => record.record_type !== "RejectedSyntheticMatter"),
+  }));
+  const catalog = createJsonPostgresRecordTypeCatalog({ corpus: source });
+  const prepared = prepareJsonPostgresMigrationCorpus(source, { allowRealData: true });
+  const preparedDisabled = prepared.accounts.find(({ user }) => user.user_id === "real-disabled-user");
+  assert.equal(preparedDisabled.user.account_status, "disabled");
+  assert.equal(preparedDisabled.user.credential_status, "disabled");
+  assert.equal(preparedDisabled.membership.status, "disabled");
+  const result = await runJsonPostgresMigration({
+    pool: fixture.appPool,
+    corpus: source,
+    mode: "import",
+    allowRealData: true,
+    recordTypeCatalog: catalog,
+    negativeTenantId: OTHER_TENANT,
+  });
+  assert.equal(result.outcome, "PASS");
+  const accounts = await fixture.adminPool.query(
+    `SELECT user_id, email, account_status, credential_provider, credential_status,
+            credential_rev, password_hash, profile
+       FROM lawos_identity.accounts
+      WHERE tenant_id = $1
+      ORDER BY user_id`,
+    [TENANT],
+  );
+  assert.deepEqual(accounts.rows.map((row) => ({ ...row, credential_rev: Number(row.credential_rev) })), [{
+    user_id: "real-active-user",
+    email: "registered.active@example.test",
+    account_status: "active",
+    credential_provider: "lawos-internal-password-provider-v1",
+    credential_status: "reset_required",
+    credential_rev: 7,
+    password_hash: {},
+    profile: {
+      employee_id: "employee-real-active",
+      english_name: "Registered Active EN",
+      legal_name: "Registered Active",
+      professional_profile: {
+        education: ["Law School"],
+        experience: ["Prior Firm"],
+        qualifications: ["Bar"],
+      },
+    },
+  }, {
+    user_id: "real-disabled-user",
+    email: "registered.disabled@example.test",
+    account_status: "disabled",
+    credential_provider: "lawos-internal-password-provider-v1",
+    credential_status: "disabled",
+    credential_rev: 3,
+    password_hash: {},
+    profile: {},
+  }]);
+
+  const forbidden = structuredClone(source);
+  forbidden.accounts[0].password_hash = "legacy-hash-must-not-migrate";
+  const forbiddenCatalogSource = structuredClone(forbidden);
+  delete forbiddenCatalogSource.accounts[0].password_hash;
+  const forbiddenCatalog = createJsonPostgresRecordTypeCatalog({ corpus: forbiddenCatalogSource });
+  const rejected = await runJsonPostgresMigration({
+    corpus: forbidden,
+    mode: "dry-run",
+    allowRealData: true,
+    recordTypeCatalog: forbiddenCatalog,
+  });
+  assert.equal(rejected.directory.accepted_count, 1);
+  assert.equal(rejected.directory.rejected_count, 1);
+  assert.equal(rejected.rejected_reason_counts.FORBIDDEN_SECRET_OR_RAW_BYTES, 1);
+  assert.equal(JSON.stringify(rejected).includes("legacy-hash-must-not-migrate"), false);
 });
 
 test("missing-reference rejection cascades and duplicate domain rows are rejected deterministically", async () => {

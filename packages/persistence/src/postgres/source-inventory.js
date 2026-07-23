@@ -15,10 +15,13 @@ export const JSON_POSTGRES_SOURCE_CLASSIFICATIONS = Object.freeze([
 export const JSON_POSTGRES_FIELD_DISPOSITIONS = Object.freeze([
   "postgres-live",
   "postgres-json-payload",
+  "postgres-specialized-identity",
+  "s3-dms-byte-object",
   "derived-recompute",
   "encrypted-archive-only",
   "secret-excluded",
   "synthetic-excluded",
+  "rejected-with-reason",
 ]);
 
 const SOURCE_CLASSIFICATION_SET = new Set(JSON_POSTGRES_SOURCE_CLASSIFICATIONS);
@@ -27,6 +30,7 @@ const PRUNED_DIRECTORY = /^(?:\.git|node_modules|Cache|Caches|Code Cache|GPUCach
 const CANDIDATE_FILE = /(?:\.json|\.jsonl|\.ndjson)$|(?:store|manifest|registry|roster|profile|contact|secret)/iu;
 const BACKUP_CANDIDATE_FILE = /^(?:(?:hrx|matter|master-data|crm-master-data|crm|intake|dms|finance|portal|analytics|ai|ui-readiness|enterprise-readiness)-store\.json(?:[-.][a-z0-9]+)?|(?:lawos-|runtime-|backup-)?manifest(?:[-.][a-z0-9]+)?\.json)$/iu;
 const SECRET_FIELD = /(^|_)(?:password|password_hash|passwd|secret|token|credential|authorization|api_key|private_key|recovery_key|document_bytes|raw_bytes|raw_payload)(_|$)/iu;
+const SAFE_CREDENTIAL_METADATA = new Set(["credential_provider", "credential_status", "credential_rev"]);
 const LIVE_FIELD = new Set([
   "tenant_id", "domain_id", "record_type", "model_type", "record_id", "unique_key", "state_version", "expected_version",
   "user_id", "employee_id", "email", "work_email", "account_status", "credential_provider", "credential_status",
@@ -203,15 +207,17 @@ function inspectJson(value) {
 
 function fieldDisposition(fieldName, classification) {
   if (classification === "synthetic") return "synthetic-excluded";
-  if (SECRET_FIELD.test(fieldName)) return "secret-excluded";
+  if (SECRET_FIELD.test(fieldName) && !SAFE_CREDENTIAL_METADATA.has(fieldName)) return "secret-excluded";
   if (DERIVED_FIELD.test(fieldName)) return "derived-recompute";
   if (ARCHIVE_ONLY_FIELD.test(fieldName)) return "encrypted-archive-only";
   if (LIVE_FIELD.has(fieldName)) return "postgres-live";
   return "postgres-json-payload";
 }
 
-function authorityClassification(authorityManifest, digest) {
-  const match = authorityManifest?.sources?.find((source) => source.sha256 === digest);
+function authorityClassification(authorityManifest, { digest, sourceRef }) {
+  const match = authorityManifest?.sources?.find((source) => (
+    source.sha256 === digest && (!source.source_ref || source.source_ref === sourceRef)
+  ));
   if (!match) return null;
   if (!SOURCE_CLASSIFICATION_SET.has(match.classification)) throw new TypeError("source authority classification is invalid");
   return match.classification;
@@ -306,7 +312,16 @@ function collectReconciliation(parsedSources) {
   });
 }
 
-export async function inventoryJsonPostgresSources({ roots = [], files = [], authorityManifest = null, clock = () => new Date() } = {}) {
+export async function inventoryJsonPostgresSources({
+  roots = [],
+  files = [],
+  authorityManifest = null,
+  clock = () => new Date(),
+  onSourceLocator = null,
+} = {}) {
+  if (onSourceLocator != null && typeof onSourceLocator !== "function") {
+    throw new TypeError("onSourceLocator must be a function");
+  }
   const candidates = [];
   const rootResults = [];
   for (const root of roots) {
@@ -339,6 +354,15 @@ export async function inventoryJsonPostgresSources({ roots = [], files = [], aut
   for (const candidate of candidates) {
     const metadata = await stat(candidate.path);
     const digest = await fileSha256(candidate.path);
+    const sourceRef = sha256(`${candidate.rootRef}:${relative(candidate.rootPath, candidate.path)}`).slice(0, 32);
+    await onSourceLocator?.(Object.freeze({
+      root_ref: candidate.rootRef,
+      root_path: candidate.rootPath,
+      source_ref: sourceRef,
+      source_path: candidate.path,
+      sha256: digest,
+      byte_size: metadata.size,
+    }));
     let parsed = null;
     let inspection = null;
     let parseError = false;
@@ -354,11 +378,11 @@ export async function inventoryJsonPostgresSources({ roots = [], files = [], aut
         parseError = true;
       }
     }
-    const explicit = authorityClassification(authorityManifest, digest);
+    const explicit = authorityClassification(authorityManifest, { digest, sourceRef });
     const classification = explicit ?? (parseError ? "corrupt" : inspection?.synthetic ? "synthetic" : "manual-review");
     detailed.push({
       root_ref: candidate.rootRef,
-      source_ref: sha256(`${candidate.rootRef}:${relative(candidate.rootPath, candidate.path)}`).slice(0, 32),
+      source_ref: sourceRef,
       source_family: sourceFamily(basename(candidate.path)),
       sha256: digest,
       byte_size: metadata.size,
@@ -436,5 +460,10 @@ export async function inventoryJsonPostgresSources({ roots = [], files = [], aut
       production_contacted: false,
     },
   };
-  return Object.freeze({ ...report, inventory_sha256: sha256(stableJson(report)) });
+  const inventoryContent = { ...report, generated_at: null };
+  return Object.freeze({
+    ...report,
+    inventory_sha256: sha256(stableJson(report)),
+    inventory_content_sha256: sha256(stableJson(inventoryContent)),
+  });
 }

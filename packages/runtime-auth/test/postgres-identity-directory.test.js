@@ -96,4 +96,17 @@ test("PostgreSQL identity directory is tenant-scoped, replay-safe and never expo
   const account = await ledger.getAccount({ tenant_id: tenantId, user_id: input.user.user_id });
   assert.equal(account.credential_status, "active");
   assert.equal(account.password_hash.algorithm, "synthetic-test-hash");
+
+  await assert.rejects(ledger.provisionDirectoryUser({
+    ...input,
+    idempotency_key: "directory-provision-user-sensitive-profile",
+    request_hash: createHash("sha256").update("directory-provision-user-sensitive-profile").digest("hex"),
+    user: {
+      ...input.user,
+      profile: {
+        display_name: "Unsafe profile",
+        professional_profile: { api_key: "must-not-persist" },
+      },
+    },
+  }), /forbidden sensitive material/u);
 });
