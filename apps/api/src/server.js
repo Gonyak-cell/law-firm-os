@@ -1754,9 +1754,9 @@ export function createApiServer({
         tenantId = sessionContext.principal.tenant_id;
         req.lawosActorId = sessionContext.principal.user_id ?? sessionContext.principal.actor_id ?? null;
       }
-      const bufferedResponse = createBufferedResponse();
       const requestTarget = new URL(req.url || "/", `http://${HOST}`);
       const requestOccurrenceId = randomUUID();
+      let bufferedResponse = null;
       await requestRuntimeAuthority.run({
         tenant_id: tenantId,
         request_context: {
@@ -1780,8 +1780,12 @@ export function createApiServer({
             });
           },
         },
-        command: (requestRuntimes) => dispatchWithRuntimes(bufferedResponse, requestRuntimes),
+        command: (requestRuntimes) => {
+          bufferedResponse = createBufferedResponse();
+          return dispatchWithRuntimes(bufferedResponse, requestRuntimes);
+        },
       });
+      if (!bufferedResponse) throw new Error("PostgreSQL API authority completed without a response attempt");
       bufferedResponse.commit(res);
     } catch (error) {
       const mapped = mapApiHandlerError(error, { requestId: req.lawosRequestId ?? req.headers["x-request-id"] ?? null });

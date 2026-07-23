@@ -12,6 +12,7 @@ import { buildPrivateStagingSyntheticSources } from "../../../scripts/lib/privat
 import {
   createPrivateStagingHttpTransport,
   runPrivateStagingCut007,
+  runPrivateStagingCut007BrowserResume,
 } from "../../../scripts/lib/private-staging-cut007.mjs";
 import { startApiServer } from "../src/server.js";
 import { createApiSessionAuth } from "../src/session-auth.js";
@@ -165,6 +166,114 @@ test("CUT-007 HTTP transport retries gateway capacity 503 but preserves applicat
     capacity_retry_count: 0,
   });
   assert.deepEqual(waits, [1]);
+});
+
+test("CUT-007 browser resume revalidates PostgreSQL and runs only reset plus browser checks", async () => {
+  const calls = [];
+  const expected = {
+    user_ids: ACCOUNT_INPUTS.map((account) => account.user_id),
+    employee_ids: ACCOUNT_INPUTS.map((account) => account.employee_id),
+    matter_id: "matter-cut007-resume",
+    document_ids: ["document-cut007-resume-a", "document-cut007-resume-b"],
+    finance_record_id: "time-cut007-resume",
+    portal_record_id: "dashboard-cut007-resume",
+  };
+  const result = await runPrivateStagingCut007BrowserResume({
+    transport: async (request) => {
+      calls.push(`${request.method ?? "GET"} ${request.path}`);
+      if (request.path === "/api/health") {
+        return {
+          status: 200,
+          body: {
+            persistence_authority: "postgres-v2",
+            bounded_contexts: [{
+              postgres_authority_active: true,
+              json_fallback: false,
+              dual_write: false,
+            }],
+            persistence_authority_capabilities: {
+              authority: "postgres-v2",
+              json_fallback: false,
+              dual_write: false,
+              offline_mutation: false,
+            },
+            auth_authority: { staff_auth_authority: "internal-password" },
+            runtime_safety_policy: { offline_capability: "rejected" },
+          },
+          request_attempt_count: 1,
+        };
+      }
+      if (request.path === "/api/auth/password-reset/request") {
+        return {
+          status: 200,
+          body: {
+            outcome: "accepted",
+            email_delivery: {
+              status: "accepted",
+              token_material_returned: false,
+              reset_url_returned: false,
+            },
+          },
+          request_attempt_count: 1,
+        };
+      }
+      return {
+        status: 200,
+        body: { activated: true, token_material_returned: false },
+        request_attempt_count: 1,
+      };
+    },
+    accounts: ACCOUNT_INPUTS,
+    tenantIds: TENANTS,
+    expected,
+    priorReadbackFingerprint: "a".repeat(64),
+    runId: "cut007-browser-resume-test",
+    mailboxTokenProvider: async ({ purpose }) => {
+      assert.equal(purpose, "admin-browser-resume");
+      return "synthetic-browser-resume-token";
+    },
+    passwordFactory: () => "C7!Synthetic-Browser-Resume-Password-2026",
+    readback: async ({ expected: observed }) => {
+      assert.deepEqual(observed, {
+        ...expected,
+        user_ids: [...expected.user_ids].sort(),
+        employee_ids: [...expected.employee_ids].sort(),
+        document_ids: [...expected.document_ids].sort(),
+      });
+      return {
+        outcome: "PASS",
+        safe_counts: { wrong_tenant_visible_count: 0 },
+        readback_fingerprint: "b".repeat(64),
+        json_fallback_count: 0,
+        json_writer_count: 0,
+        dual_write_count: 0,
+        real_data_count: 0,
+        raw_value_returned: false,
+        secret_material_returned: false,
+      };
+    },
+    browserSmoke: async () => ({
+      outcome: "PASS",
+      critical_flow_count: 7,
+      screenshot_count: 5,
+      api_request_count: 80,
+      console_error_count: 0,
+      failed_request_count: 0,
+      evidence_fingerprint: "c".repeat(64),
+    }),
+  });
+
+  assert.deepEqual(calls, [
+    "GET /api/health",
+    "POST /api/auth/password-reset/request",
+    "POST /api/auth/password-reset/confirm",
+  ]);
+  assert.equal(result.outcome, "PASS");
+  assert.equal(result.safe_counts.checkpoint_reused_count, 1);
+  assert.equal(result.safe_counts.current_postgres_readback_count, 1);
+  assert.equal(result.prior_readback_fingerprint, "a".repeat(64));
+  assert.equal(result.readback_fingerprint, "b".repeat(64));
+  assert.doesNotMatch(JSON.stringify(result), /Password|token|@amic\.kr/u);
 });
 
 test("PostgreSQL session auth and the deployed reset worker share the configured tenant", async (t) => {

@@ -121,6 +121,55 @@ test("desktop URL handoff keeps every product tenant reference canonical", async
   });
 });
 
+test("signed-session API requests replace fixture tenant ids at the shared transport boundary", async () => {
+  await withWebModule("/src/data/apiClient.js", async ({
+    LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION,
+    LAWOS_SESSION_ENVELOPE_STORAGE_KEY,
+    bindApiRequestToSignedSession
+  }) => {
+    const tenantId = "tenant_lawos_staging_cut007_a";
+    const storage = new Map([[
+      LAWOS_SESSION_ENVELOPE_STORAGE_KEY,
+      JSON.stringify({
+        schema_version: LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION,
+        state: "signed_in",
+        session_ref: "sess_synthetic_admin",
+        source: "api_signed_session",
+        actor_ref: "synthetic-lawos-staging-admin",
+        tenant_refs: { default: tenantId },
+        role_ids: ["lawos_admin"],
+        scopes: ["tenant.admin"],
+        review_state: "allow"
+      })
+    ]]);
+    const source = {
+      sessionStorage: {
+        getItem: (key) => storage.get(key) ?? null
+      }
+    };
+    const bound = bindApiRequestToSignedSession(
+      "/api/portal/dashboard?tenant_id=tenant_cmp_g10_synthetic&permission_ref=ui",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          tenant_id: "tenant_cmp_g10_synthetic",
+          dashboard_projection: {
+            tenant_id: "tenant_cmp_g10_synthetic",
+            dashboard_projection_id: "dashboard-synthetic"
+          }
+        })
+      },
+      source
+    );
+
+    assert.equal(new URL(bound.input, "http://local").searchParams.get("tenant_id"), tenantId);
+    const body = JSON.parse(bound.init.body);
+    assert.equal(body.tenant_id, tenantId);
+    assert.equal(body.dashboard_projection.tenant_id, tenantId);
+  });
+});
+
 test("home read probes recover error reads before system status", async () => {
   await withWebModule("/src/components/HomeSurface.jsx", async ({ combinePillarResults, normalizeStatus, statusBadgeLabel }) => {
     const recovered = combinePillarResults([{ kind: "error" }, { kind: "error" }]);

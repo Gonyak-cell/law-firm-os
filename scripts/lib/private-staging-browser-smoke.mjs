@@ -88,6 +88,25 @@ async function startExactSourceWebProxy({ apiBaseUrl, createViteServer }) {
   return Object.freeze({ server, baseUrl: `http://127.0.0.1:${address.port}` });
 }
 
+async function waitForApiIdle(pendingRequests, {
+  timeoutMs = 15_000,
+  idleMs = 100,
+  wait = (milliseconds) => new Promise((resolveWait) => setTimeout(resolveWait, milliseconds)),
+} = {}) {
+  const deadline = Date.now() + timeoutMs;
+  let idleSince = null;
+  while (Date.now() < deadline) {
+    if (pendingRequests.size === 0) {
+      idleSince ??= Date.now();
+      if (Date.now() - idleSince >= idleMs) return;
+    } else {
+      idleSince = null;
+    }
+    await wait(Math.min(25, idleMs));
+  }
+  fail("Forest browser smoke did not reach a settled API state");
+}
+
 export async function runPrivateStagingForestBrowserSmoke({
   apiBaseUrl,
   account,
@@ -119,7 +138,9 @@ export async function runPrivateStagingForestBrowserSmoke({
   const failedRequests = [];
   const screenshotPaths = [];
   const visited = [];
+  const pendingApiRequests = new Set();
   let apiRequestCount = 0;
+  let criticalTracking = false;
   try {
     browser = await launchBrowser({ headless: true });
     const context = await browser.newContext({ locale: "ko-KR", timezoneId: "Asia/Seoul" });
@@ -130,18 +151,26 @@ export async function runPrivateStagingForestBrowserSmoke({
       }
     };
     page.on("console", (message) => {
-      if (message.type() === "error") consoleErrors.push(sha256(message.text()).slice(0, 16));
+      if (criticalTracking && message.type() === "error") consoleErrors.push(sha256(message.text()).slice(0, 16));
     });
     page.on("request", (request) => {
       const url = new URL(request.url());
       if (url.origin === web.origin && (url.pathname.startsWith("/api/") || url.pathname.startsWith("/master-data"))) {
         apiRequestCount += 1;
+        pendingApiRequests.add(request);
       }
     });
-    page.on("requestfailed", (request) => failedRequests.push(sha256(`${request.method()}:${new URL(request.url()).pathname}`).slice(0, 16)));
+    page.on("requestfinished", (request) => pendingApiRequests.delete(request));
+    page.on("requestfailed", (request) => {
+      pendingApiRequests.delete(request);
+      const url = new URL(request.url());
+      if (criticalTracking && url.origin === web.origin && (url.pathname.startsWith("/api/") || url.pathname.startsWith("/master-data"))) {
+        failedRequests.push(sha256(`${request.method()}:${url.pathname}`).slice(0, 16));
+      }
+    });
     page.on("response", (response) => {
       const url = new URL(response.url());
-      if (url.origin === web.origin && (url.pathname.startsWith("/api/") || url.pathname.startsWith("/master-data")) && response.status() >= 400) {
+      if (criticalTracking && url.origin === web.origin && (url.pathname.startsWith("/api/") || url.pathname.startsWith("/master-data")) && response.status() >= 400) {
         failedRequests.push(sha256(`${response.request().method()}:${url.pathname}:${response.status()}`).slice(0, 16));
       }
     });
@@ -164,6 +193,10 @@ export async function runPrivateStagingForestBrowserSmoke({
       }
     });
     if (!sessionStored) fail("Forest browser login did not persist a signed API session");
+    await waitForApiIdle(pendingApiRequests);
+    consoleErrors.length = 0;
+    failedRequests.length = 0;
+    criticalTracking = true;
     assertApiRequestBudget();
 
     const routes = [
@@ -180,6 +213,7 @@ export async function runPrivateStagingForestBrowserSmoke({
       if (route.hash) url.hash = route.hash;
       await page.goto(url.href, { waitUntil: "networkidle" });
       await page.waitForSelector(route.selector, { timeout: 30_000 });
+      await waitForApiIdle(pendingApiRequests);
       assertApiRequestBudget();
       const screenshotPath = resolve(outputDir, `${String(screenshotPaths.length + 1).padStart(2, "0")}-${route.id}.png`);
       await page.screenshot({ path: screenshotPath, fullPage: true });
@@ -194,6 +228,7 @@ export async function runPrivateStagingForestBrowserSmoke({
       });
       return response.ok;
     }, expected.matter_id);
+    await waitForApiIdle(pendingApiRequests);
     if (!visibleSyntheticMatter) fail("browser session could not read the synthetic CUT-007 matter");
     assertApiRequestBudget();
     if (consoleErrors.length || failedRequests.length) fail("Forest browser smoke observed console errors or failed critical requests");

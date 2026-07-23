@@ -66,6 +66,56 @@ test("PostgreSQL audited reads use occurrence-bound idempotency while mutations 
   );
 });
 
+test("PostgreSQL read retries discard failed-attempt response buffers", async (t) => {
+  const principal = {
+    user_id: "user_postgres_read_retry",
+    tenant_id: "tenant_postgres_read_retry",
+    role_ids: ["staff"],
+    scopes: [],
+  };
+  const sessionAuth = {
+    capabilities: {},
+    async resolvePermissionContextFromHeaders() {
+      return {
+        ok: true,
+        principal,
+        context: { principal, rules: [{ id: "allow-read", effect: "allow", action: "*" }], object_acl: [] },
+      };
+    },
+  };
+  let attemptCount = 0;
+  const requestRuntimeAuthority = {
+    capabilities: { authority: "postgres-v2" },
+    async run({ command }) {
+      attemptCount += 1;
+      await command({});
+      attemptCount += 1;
+      return command({});
+    },
+  };
+  const server = createApiServer({
+    sessionAuth,
+    stepUpAuthority: Object.freeze({}),
+    requestRuntimeAuthority,
+    persistenceAuthority: "postgres-v2",
+  });
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  t.after(() => new Promise((resolve) => {
+    server.close(resolve);
+    server.closeAllConnections();
+    server.closeIdleConnections();
+  }));
+
+  const response = await fetch(`http://127.0.0.1:${server.address().port}/api/profile/me`, {
+    headers: { authorization: "Bearer synthetic-read-retry-session", connection: "close" },
+  });
+  assert.equal(response.status, 200);
+  assert.equal(attemptCount, 2);
+});
+
 test("persistence authority selection is explicit and file-current does not initialize PostgreSQL", async () => {
   assert.equal(resolvePersistenceAuthority({ env: {} }), LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent);
   assert.equal(

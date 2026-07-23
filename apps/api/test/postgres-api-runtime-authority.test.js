@@ -3,7 +3,10 @@ import test from "node:test";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
-import { createPostgresApiRuntimeAuthority } from "../src/postgres-api-runtime-authority.js";
+import {
+  createPostgresApiRuntimeAuthority,
+  runPostgresReadWithBaselineRetry,
+} from "../src/postgres-api-runtime-authority.js";
 import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgres-upload-runtime.js";
 import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
 import { createHrxDomainSnapshot } from "../../../packages/hrx/src/postgres-store-v2.js";
@@ -22,6 +25,40 @@ async function importHrxAuthorityBaseline(ledger, tenantId) {
     store.close();
   }
 }
+
+test("PostgreSQL API authority retries bounded read baseline conflicts but never retries mutations", async () => {
+  const waits = [];
+  let readAttempts = 0;
+  const result = await runPostgresReadWithBaselineRetry({
+    method: "GET",
+    retryLimit: 3,
+    wait: async (milliseconds) => waits.push(milliseconds),
+    execute: async () => {
+      readAttempts += 1;
+      if (readAttempts < 3) {
+        throw Object.assign(new Error("concurrent audited read"), {
+          safe_error_code: readAttempts === 1 ? "DOMAIN_BASELINE_CONFLICT" : "HRX_POSTGRES_BASELINE_CONFLICT",
+        });
+      }
+      return "read-committed";
+    },
+  });
+  assert.equal(result, "read-committed");
+  assert.equal(readAttempts, 3);
+  assert.deepEqual(waits, [5, 10]);
+
+  let mutationAttempts = 0;
+  await assert.rejects(runPostgresReadWithBaselineRetry({
+    method: "POST",
+    retryLimit: 3,
+    wait: async () => {},
+    execute: async () => {
+      mutationAttempts += 1;
+      throw Object.assign(new Error("mutation conflict"), { safe_error_code: "DOMAIN_BASELINE_CONFLICT" });
+    },
+  }), /mutation conflict/u);
+  assert.equal(mutationAttempts, 1);
+});
 
 test("PostgreSQL API authority commits product state, idempotency, audit and outbox without JSON fallback", async (t) => {
   const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 1 });

@@ -33,7 +33,11 @@ import {
   validatePrivateStagingExecutionInputs,
 } from "./lib/private-staging-aws-execution.mjs";
 import { runPrivateStagingForestBrowserSmoke } from "./lib/private-staging-browser-smoke.mjs";
-import { createPrivateStagingHttpTransport, runPrivateStagingCut007 } from "./lib/private-staging-cut007.mjs";
+import {
+  createPrivateStagingHttpTransport,
+  runPrivateStagingCut007,
+  runPrivateStagingCut007BrowserResume,
+} from "./lib/private-staging-cut007.mjs";
 import {
   PRIVATE_STAGING_EXACT_HEAD_ACTION,
   privateStagingPacketSha256,
@@ -45,7 +49,10 @@ import {
   verifyPrivateStagingExecutionReceipt,
 } from "./lib/private-staging-execution-receipt.mjs";
 import { canonicalSha256, validatePrivateStagingCost, validatePrivateStagingTemplate } from "./lib/private-staging-contract.mjs";
-import { validateRuntimeSafetyApprovalBundle } from "./lib/runtime-safety-approval-contract.mjs";
+import {
+  validateRuntimeSafetyApprovalBundle,
+  validateRuntimeSafetyApprovalPayload,
+} from "./lib/runtime-safety-approval-contract.mjs";
 
 const ACCOUNT_ID = "770880870480";
 const REGION = "ap-northeast-2";
@@ -53,7 +60,20 @@ const STACK_NAME = "lawos-private-staging";
 const ARTIFACT_BUCKET = `lawos-private-staging-artifacts-${ACCOUNT_ID}-${REGION}`;
 const ADMIN_FUNCTION = "lawos-private-staging-admin";
 const API_FUNCTION = "lawos-private-staging-api";
-const PHASES = new Set(["preflight", "deploy", "cut005", "cut006", "cut007", "all"]);
+const PHASES = new Set(["preflight", "deploy", "cut005", "cut006", "cut007", "cut007-browser", "all"]);
+const CUT007_BROWSER_RESUME_ALLOWED_PATHS = new Set([
+  "apps/api/src/postgres-api-runtime-authority.js",
+  "apps/api/src/server.js",
+  "apps/api/test/persistence-authority.test.js",
+  "apps/api/test/postgres-api-runtime-authority.test.js",
+  "apps/api/test/private-staging-cut007-flow.test.js",
+  "apps/web/src/data/apiClient.js",
+  "apps/web/test/hrx-member-roster-fallback.test.mjs",
+  "scripts/lib/private-staging-browser-smoke.mjs",
+  "scripts/lib/private-staging-cut007.mjs",
+  "scripts/run-private-staging-exact-head-execution.mjs",
+  "scripts/test/private-staging-browser-smoke.test.mjs",
+]);
 const SYNTHETIC_MANIFEST = JSON.parse(JSON.parse(readFileSync("infra/lawos-private-staging/template.json", "utf8")).Resources.SyntheticManifestSecret.Properties.SecretString);
 let artifactVersionId = null;
 let ownerAuthorization = null;
@@ -589,6 +609,100 @@ function requireStack() {
   lambdaConfiguration(ADMIN_FUNCTION);
 }
 
+function assertTemporaryEniAllowRemoved() {
+  for (const role of ["lawos-private-staging-api-role", "lawos-private-staging-admin-role"]) {
+    const policies = awsJson(["iam", "list-role-policies", "--role-name", role], { region: false }).PolicyNames ?? [];
+    if (policies.some((name) => name.includes("vpc-eni-bootstrap"))) {
+      throw new Error("temporary Lambda VPC ENI Allow remains attached");
+    }
+  }
+  const parameters = stackParameterMap(stack);
+  if (parameters.EnableLambdaEniBootstrap !== "false") {
+    throw new Error("private staging stack still enables Lambda VPC ENI bootstrap");
+  }
+}
+
+function loadCut007BrowserResumeCheckpoint() {
+  const eventPath = privateRegularFile(requiredOption("--cut007-prior-readback-event"), "prior CUT-007 readback event");
+  const responsePath = privateRegularFile(requiredOption("--cut007-prior-readback-response"), "prior CUT-007 readback response");
+  const eventBytes = readFileSync(eventPath);
+  const responseBytes = readFileSync(responsePath);
+  const event = JSON.parse(eventBytes);
+  const response = JSON.parse(responseBytes);
+  const priorSourceSha = String(event.source_sha ?? "");
+  const priorSourceTree = String(event.source_tree ?? "");
+  if (!/^[a-f0-9]{40}$/u.test(priorSourceSha) || !/^[a-f0-9]{40}$/u.test(priorSourceTree)) {
+    throw new Error("prior CUT-007 source binding is invalid");
+  }
+  const ancestor = spawnSync("git", ["merge-base", "--is-ancestor", priorSourceSha, sourceSha], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+  });
+  if (ancestor.status !== 0 || git("rev-parse", `${priorSourceSha}^{tree}`) !== priorSourceTree) {
+    throw new Error("prior CUT-007 source is not an exact ancestor of the browser-resume source");
+  }
+  const changedPaths = git("diff", "--name-only", `${priorSourceSha}..${sourceSha}`)
+    .split(/\r?\n/u)
+    .filter(Boolean);
+  const unexpectedPaths = changedPaths.filter((path) => !CUT007_BROWSER_RESUME_ALLOWED_PATHS.has(path));
+  if (changedPaths.length === 0 || unexpectedPaths.length > 0) {
+    throw new Error(`CUT-007 browser resume source delta escaped its allowlist: ${unexpectedPaths.join(",") || "empty-delta"}`);
+  }
+  for (const [field, expected] of [
+    ["action", "lawos-private-staging-cut-007-readback"],
+    ["data_scope", "synthetic-only"],
+  ]) {
+    if (event[field] !== expected) throw new Error(`prior CUT-007 readback event ${field} is invalid`);
+  }
+  for (const field of ["action", "approval_id", "artifact_sha256", "owner_instruction_sha256", "source_sha", "source_tree", "synthetic_manifest_sha256"]) {
+    if (response[field] !== event[field]) throw new Error(`prior CUT-007 readback ${field} binding drifted`);
+  }
+  if (response.outcome !== "PASS"
+    || response.run_fingerprint !== sha256(event.run_id)
+    || !/^[a-f0-9]{64}$/u.test(response.readback_fingerprint ?? "")
+    || response.safe_counts?.wrong_tenant_visible_count !== 0
+    || response.real_data_count !== 0
+    || response.raw_value_returned !== false
+    || response.secret_material_returned !== false
+    || ["json_fallback_count", "json_writer_count", "dual_write_count"].some((field) => response[field] !== 0)) {
+    throw new Error("prior CUT-007 readback response is not a reusable PASS checkpoint");
+  }
+  const priorAuthorization = event.owner_authorization;
+  if (!priorAuthorization?.registry_json || !priorAuthorization?.receipt_json || !priorAuthorization?.signature_base64) {
+    throw new Error("prior CUT-007 checkpoint is missing owner authorization");
+  }
+  const priorRegistryBytes = Buffer.from(priorAuthorization.registry_json, "utf8");
+  const priorApproval = validateRuntimeSafetyApprovalPayload({
+    registryBytes: priorRegistryBytes,
+    receiptBytes: Buffer.from(priorAuthorization.receipt_json, "utf8"),
+    signatureBytes: Buffer.from(priorAuthorization.signature_base64, "base64"),
+    expectedRegistrySha256: sha256(priorRegistryBytes),
+    expectedRole: "owner",
+    expectedAction: PRIVATE_STAGING_EXACT_HEAD_ACTION,
+    expectedEnvironment: "staging",
+    expectedPacketSha256: event.owner_instruction_sha256,
+    expectedSourceSha: priorSourceSha,
+    expectedSourceTree: priorSourceTree,
+    allowedDataScope: ["synthetic-only"],
+    allowedContactScope: ["synthetic-mailbox-only"],
+  });
+  if (!priorApproval.valid
+    || priorApproval.decision !== "approved"
+    || priorApproval.approval_id !== event.approval_id
+    || response.authorization_receipt_sha256 !== priorApproval.receipt_sha256
+    || response.authorization_key_id !== priorApproval.key_id) {
+    throw new Error("prior CUT-007 checkpoint owner authorization did not verify");
+  }
+  return Object.freeze({
+    event,
+    response,
+    event_sha256: sha256(eventBytes),
+    response_sha256: sha256(responseBytes),
+    prior_source_sha: priorSourceSha,
+    changed_path_count: changedPaths.length,
+  });
+}
+
 async function cut005() {
   const startedAt = new Date().toISOString();
   requireStack();
@@ -715,8 +829,100 @@ async function cut007() {
   progress("cut-007", "pass", { api_call_count: result.safe_counts.api_call_count, browser_screenshot_count: result.browser_smoke.screenshot_count });
 }
 
+async function cut007Browser() {
+  const startedAt = new Date().toISOString();
+  requireStack();
+  assertTemporaryEniAllowRemoved();
+  const checkpoint = loadCut007BrowserResumeCheckpoint();
+  const brokerPath = privateRegularFile(requiredOption("--mailbox-broker-module"), "synthetic mailbox broker module");
+  const broker = await import(`${pathToFileURL(brokerPath).href}?run=${Date.now()}`);
+  if (typeof broker.waitForResetToken !== "function") throw new Error("synthetic mailbox broker must export waitForResetToken");
+  const { chromium } = await import("playwright");
+  const { createServer: createViteServer } = await import("vite");
+  let currentReadbackSha256 = null;
+  let result;
+  try {
+    result = await runPrivateStagingCut007BrowserResume({
+      transport: createPrivateStagingHttpTransport({ baseUrl: apiEndpoint.href }),
+      accounts: syntheticIdentity.accounts,
+      tenantIds: SYNTHETIC_MANIFEST.purpose_tenants.cut007,
+      expected: checkpoint.event.expected,
+      priorReadbackFingerprint: checkpoint.response.readback_fingerprint,
+      runId: `cut007-browser-resume-${packet.source_sha.slice(0, 12)}`,
+      mailboxTokenProvider: ({ email, purpose, requested_at, environment }) =>
+        broker.waitForResetToken({ email, purpose, requested_at, environment }),
+      readback: ({ expected }) => {
+        const action = "lawos-private-staging-cut-007-readback";
+        const invocation = invokeAdmin(buildPrivateStagingAdminEvent({
+          action,
+          packet,
+          approvalId,
+          syntheticManifestSha256,
+          ownerAuthorization,
+          extra: { run_id: checkpoint.event.run_id, expected },
+        }), "cut-007-browser-resume-readback");
+        if (invocation.result.outcome !== "PASS"
+          || invocation.result.action !== action
+          || invocation.result.source_sha !== packet.source_sha) {
+          throw new Error("CUT-007 browser resume independent readback failed");
+        }
+        currentReadbackSha256 = invocation.responseSha256;
+        return invocation.result;
+      },
+      browserSmoke: ({ account, password, expected }) => runPrivateStagingForestBrowserSmoke({
+        apiBaseUrl: apiEndpoint.href,
+        account,
+        password,
+        expected,
+        evidenceDir: browserEvidenceDir,
+        createViteServer,
+        launchBrowser: (options) => chromium.launch(options),
+      }),
+    });
+  } finally {
+    await broker.close?.();
+  }
+  if (result.outcome !== "PASS"
+    || !currentReadbackSha256
+    || ["json_fallback_count", "json_writer_count", "dual_write_count", "file_current_authority_count", "offline_mutation_count", "memory_fallback_count", "wrong_tenant_visible_count", "real_data_count"].some((key) => result[key] !== 0)) {
+    throw new Error("CUT-007 browser resume failed or observed a forbidden authority");
+  }
+  const resultEvidence = writePrivateJson(cut007Dir, "cut-007-browser-resume-result.json", result);
+  writeReceipt("cut-007", startedAt, {
+    ...result.safe_counts,
+    json_fallback_count: 0,
+    json_writer_count: 0,
+    dual_write_count: 0,
+    file_current_authority_count: 0,
+    offline_mutation_count: 0,
+    memory_fallback_count: 0,
+    wrong_tenant_visible_count: 0,
+    real_data_count: 0,
+  }, {
+    result_sha256: resultEvidence.sha256,
+    execution_fingerprint_sha256: result.execution_fingerprint,
+    prior_readback_event_sha256: checkpoint.event_sha256,
+    prior_readback_response_sha256: checkpoint.response_sha256,
+    current_readback_response_sha256: currentReadbackSha256,
+    prior_readback_fingerprint_sha256: result.prior_readback_fingerprint,
+    current_readback_fingerprint_sha256: result.readback_fingerprint,
+    browser_evidence_fingerprint_sha256: result.browser_smoke.evidence_fingerprint,
+  }, {
+    cut_007_executed: true,
+    prior_control_evidence_reused: true,
+    current_postgres_readback_passed: true,
+    browser_smoke_passed: true,
+    synthetic_mailbox_delivery_verified: true,
+  });
+  progress("cut-007-browser", "pass", {
+    prior_source_sha: checkpoint.prior_source_sha,
+    changed_path_count: checkpoint.changed_path_count,
+    browser_screenshot_count: result.browser_smoke.screenshot_count,
+  });
+}
+
 const phase = option("--phase", "all");
-if (!PHASES.has(phase)) throw new TypeError("--phase must be preflight, deploy, cut005, cut006, cut007, or all");
+if (!PHASES.has(phase)) throw new TypeError("--phase must be preflight, deploy, cut005, cut006, cut007, cut007-browser, or all");
 const awsProfile = option("--profile", "matter-staging-admin");
 if (awsProfile !== "matter-staging-admin") throw new Error("private staging execution requires the dedicated matter-staging-admin profile");
 const sourceSha = git("rev-parse", "HEAD^{commit}");
@@ -841,6 +1047,7 @@ if (phase === "deploy" || phase === "all") await deploy();
 if (phase === "cut005" || phase === "all") await cut005();
 if (phase === "cut006" || phase === "all") await cut006();
 if (phase === "cut007" || phase === "all") await cut007();
+if (phase === "cut007-browser") await cut007Browser();
 
 process.stdout.write(`${JSON.stringify({
   verdict: "PASS",

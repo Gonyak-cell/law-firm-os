@@ -14,9 +14,12 @@ class FakePage {
   on(name, handler) { this.handlers.set(name, handler); }
   async goto() {
     for (let index = 0; index < this.requestsPerNavigation; index += 1) {
-      this.handlers.get("request")?.({
+      const request = {
         url: () => `http://127.0.0.1:5173/api/browser-probe-${index}`,
-      });
+        method: () => "GET",
+      };
+      this.handlers.get("request")?.(request);
+      this.handlers.get("requestfinished")?.(request);
     }
     if (this.responseStatus != null) {
       this.handlers.get("response")?.({

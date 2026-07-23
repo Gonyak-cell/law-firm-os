@@ -324,13 +324,14 @@ function sessionAuthorizedHeaders(headers = {}) {
 
 async function apiFetch(input, init = {}) {
   const headers = sessionAuthorizedHeaders(init.headers);
+  const bound = bindApiRequestToSignedSession(input, { ...init, headers });
   const bridge = desktopReadBridge();
-  if (bridge && typeof input === "string" && input.startsWith("/")) {
+  if (bridge && typeof bound.input === "string" && bound.input.startsWith("/")) {
     const response = await bridge({
-      path: input,
-      method: init.method ?? "GET",
-      headers,
-      body: init.body ?? null
+      path: bound.input,
+      method: bound.init.method ?? "GET",
+      headers: bound.init.headers,
+      body: bound.init.body ?? null
     });
     const status = Number(response?.http_status ?? response?.status ?? 0) || 500;
     const body = response?.body ?? response ?? {};
@@ -339,9 +340,9 @@ async function apiFetch(input, init = {}) {
       headers: { "content-type": "application/json; charset=utf-8", ...(response?.headers ?? {}) }
     });
   }
-  return fetch(apiRequestUrl(input), {
-    ...init,
-    headers
+  return fetch(apiRequestUrl(bound.input), {
+    ...bound.init,
+    headers: bound.init.headers
   });
 }
 
@@ -604,6 +605,60 @@ function tenantRefForDomain(envelope, domain, fallbackTenantId) {
 
 function tenantIdForDomain(domain, fallbackTenantId) {
   return tenantRefForDomain(readLawosSessionEnvelope(), domain, fallbackTenantId);
+}
+
+function requestTenantDomain(pathname = "") {
+  if (pathname.startsWith("/api/crm") || pathname.startsWith("/api/intake")) return "crm";
+  if (pathname.startsWith("/api/finance")) return "finance";
+  if (pathname.startsWith("/api/analytics")) return "analytics";
+  if (pathname.startsWith("/api/ai")) return "ai";
+  if (pathname.startsWith("/api/portal") || pathname.startsWith("/api/data-room")) return "portal";
+  if (pathname.startsWith("/api/hrx") || pathname.startsWith("/api/profile")) return "hrx";
+  if (pathname.startsWith("/api/vault")) return "vault";
+  if (pathname.startsWith("/api/matters")) return "matter";
+  if (pathname.startsWith("/master-data")) return "client";
+  return "default";
+}
+
+function bindJsonTenant(value, tenantId) {
+  if (Array.isArray(value)) return value.map((entry) => bindJsonTenant(entry, tenantId));
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value).map(([key, entry]) => [
+      key,
+      key === "tenant_id" ? tenantId : bindJsonTenant(entry, tenantId)
+    ])
+  );
+}
+
+export function bindApiRequestToSignedSession(input, init = {}, source = globalThis) {
+  if (typeof input !== "string") return { input, init };
+  const envelope = readLawosSessionEnvelope(source);
+  if (!envelope || envelope.state !== "signed_in") return { input, init };
+  const absolute = /^[a-z][a-z0-9+.-]*:\/\//iu.test(input);
+  const url = new URL(input, "http://lawos.session.local");
+  const tenantId = tenantRefForDomain(
+    envelope,
+    requestTenantDomain(url.pathname),
+    envelope.tenant_refs.default
+  );
+  if (!tenantId) return { input, init };
+  if (url.searchParams.has("tenant_id")) url.searchParams.set("tenant_id", tenantId);
+  let body = init.body;
+  const headers = plainHeaders(init.headers);
+  const contentType = Object.entries(headers)
+    .find(([key]) => key.toLowerCase() === "content-type")?.[1];
+  if (typeof body === "string" && String(contentType ?? "").toLowerCase().includes("application/json")) {
+    try {
+      body = JSON.stringify(bindJsonTenant(JSON.parse(body), tenantId));
+    } catch {
+      // Preserve malformed input so the API remains the validation authority.
+    }
+  }
+  return {
+    input: absolute ? url.href : `${url.pathname}${url.search}${url.hash}`,
+    init: body === init.body ? init : { ...init, body }
+  };
 }
 
 function principalWithSession(basePrincipal, domain, envelope = readLawosSessionEnvelope()) {

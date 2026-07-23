@@ -8,6 +8,7 @@ import {
 const SYNTHETIC_TENANT = /^tenant_lawos_staging_cut007_[a-z0-9_-]+$/u;
 const SYNTHETIC_USER = /^synthetic-lawos-staging-[a-z0-9-]+$/u;
 const SYNTHETIC_EMPLOYEE = /^emp-lawos-staging-[a-z0-9-]+$/u;
+const SYNTHETIC_RESOURCE = /^[a-z][a-z0-9:_-]{7,160}$/u;
 const RESET_EXPIRED = "AUTH_PASSWORD_RESET_TOKEN_EXPIRED";
 const STAGING_THROTTLE_RETRY_WAIT_MS = 26_000;
 const STAGING_THROTTLE_RETRY_LIMIT = 2;
@@ -116,6 +117,180 @@ function safeReadbackResult(result = {}) {
     outcome: "PASS",
     safe_counts: Object.freeze({ ...(result.safe_counts ?? {}) }),
     readback_fingerprint: requiredText(result.readback_fingerprint, "readback fingerprint", /^[a-f0-9]{64}$/u),
+  });
+}
+
+function normalizeBrowserResumeExpected(input, principals) {
+  const unique = (values, name, pattern) => {
+    const normalized = [...new Set((values ?? []).map((value) => requiredText(value, name, pattern)))].sort();
+    invariant(normalized.length > 0, "browser-resume-checkpoint", `${name} must not be empty`);
+    return Object.freeze(normalized);
+  };
+  const expected = Object.freeze({
+    user_ids: unique(input?.user_ids, "checkpoint user id", SYNTHETIC_USER),
+    employee_ids: unique(input?.employee_ids, "checkpoint employee id", SYNTHETIC_EMPLOYEE),
+    matter_id: requiredText(input?.matter_id, "checkpoint matter id", SYNTHETIC_RESOURCE),
+    document_ids: unique(input?.document_ids, "checkpoint document id", SYNTHETIC_RESOURCE),
+    finance_record_id: requiredText(input?.finance_record_id, "checkpoint finance record id", SYNTHETIC_RESOURCE),
+    portal_record_id: requiredText(input?.portal_record_id, "checkpoint portal record id", SYNTHETIC_RESOURCE),
+  });
+  invariant(
+    JSON.stringify(expected.user_ids) === JSON.stringify(principals.all.map((account) => account.user_id).sort()),
+    "browser-resume-checkpoint",
+    "checkpoint user set does not match the approved synthetic accounts",
+  );
+  invariant(
+    JSON.stringify(expected.employee_ids) === JSON.stringify(principals.all.map((account) => account.employee_id).sort()),
+    "browser-resume-checkpoint",
+    "checkpoint employee set does not match the approved synthetic accounts",
+  );
+  return expected;
+}
+
+export async function runPrivateStagingCut007BrowserResume({
+  transport,
+  accounts,
+  tenantIds,
+  expected,
+  priorReadbackFingerprint,
+  mailboxTokenProvider,
+  passwordFactory = defaultPasswordFactory,
+  readback,
+  browserSmoke,
+  now = () => Date.now(),
+  runId = `cut007-browser-resume-${Date.now()}`,
+} = {}) {
+  if (typeof transport !== "function") throw new TypeError("CUT-007 browser resume transport is required");
+  if (typeof mailboxTokenProvider !== "function") throw new TypeError("approved synthetic mailbox token provider is required");
+  if (typeof passwordFactory !== "function" || typeof readback !== "function" || typeof browserSmoke !== "function") {
+    throw new TypeError("CUT-007 browser resume password, readback, and browser providers are required");
+  }
+  const tenants = [...new Set((tenantIds ?? []).map((tenant) => requiredText(tenant, "tenant id", SYNTHETIC_TENANT)))].sort();
+  invariant(tenants.length === 2, "browser-resume-tenant-contract", "exactly two CUT-007 synthetic tenants are required");
+  const principals = normalizeAccounts(accounts, tenants[0]);
+  const checkpointExpected = normalizeBrowserResumeExpected(expected, principals);
+  const executionId = requiredText(runId, "browser resume runId", /^[a-z0-9-]{8,80}$/u);
+  const priorFingerprint = requiredText(priorReadbackFingerprint, "prior readback fingerprint", /^[a-f0-9]{64}$/u);
+  const startedAt = new Date(now()).toISOString();
+  let apiCallCount = 0;
+
+  async function request(step, expectedStatus, { method = "GET", path, body } = {}) {
+    const result = await transport({ method, path, body });
+    apiCallCount += Number(result?.request_attempt_count ?? 1);
+    expectStatus(result, expectedStatus, step);
+    return result;
+  }
+
+  const health = await request("browser-resume-health", 200, { path: "/api/health" });
+  invariant(health.body.persistence_authority === "postgres-v2", "browser-resume-health", "PostgreSQL v2 is not the active authority", health);
+  invariant(
+    Array.isArray(health.body.bounded_contexts)
+      && health.body.bounded_contexts.length > 0
+      && health.body.bounded_contexts.every((context) =>
+        context.postgres_authority_active === true
+        && context.json_fallback === false
+        && context.dual_write === false),
+    "browser-resume-health",
+    "a bounded context is outside PostgreSQL-only authority",
+    health,
+  );
+  invariant(
+    health.body.persistence_authority_capabilities?.authority === "postgres-v2"
+      && health.body.persistence_authority_capabilities?.json_fallback === false
+      && health.body.persistence_authority_capabilities?.dual_write === false
+      && health.body.persistence_authority_capabilities?.offline_mutation === false,
+    "browser-resume-health",
+    "PostgreSQL authority capabilities are incomplete",
+    health,
+  );
+  invariant(health.body.auth_authority?.staff_auth_authority === "internal-password", "browser-resume-health", "internal-password is not the staff authority", health);
+  invariant(health.body.runtime_safety_policy?.offline_capability === "rejected", "browser-resume-health", "offline capability must remain rejected", health);
+
+  const readbackResult = safeReadbackResult(await readback({
+    execution_id: executionId,
+    expected: checkpointExpected,
+  }));
+  invariant(readbackResult.safe_counts?.wrong_tenant_visible_count === 0, "browser-resume-readback", "wrong-tenant visibility is nonzero");
+
+  const requestedAt = new Date(now()).toISOString();
+  const reset = await request("browser-resume-reset-request", 200, {
+    method: "POST",
+    path: "/api/auth/password-reset/request",
+    body: { email: principals.admin.email },
+  });
+  invariant(reset.body.outcome === "accepted" && reset.body.email_delivery?.status === "accepted", "browser-resume-reset-request", "reset request was not accepted safely", reset);
+  invariant(reset.body.email_delivery?.token_material_returned === false && reset.body.email_delivery?.reset_url_returned === false, "browser-resume-reset-request", "reset response exposed token material", reset);
+  const resetToken = requiredText(await mailboxTokenProvider({
+    user_id: principals.admin.user_id,
+    email: principals.admin.email,
+    purpose: "admin-browser-resume",
+    requested_at: requestedAt,
+    environment: "lawos-staging",
+  }), "browser resume mailbox reset token");
+  const password = requiredText(await passwordFactory("admin-browser-resume", principals.admin), "browser resume generated password");
+  invariant(password.length >= 12, "browser-resume-password", "generated password does not meet the minimum length");
+  const confirmed = await request("browser-resume-reset-confirm", 200, {
+    method: "POST",
+    path: "/api/auth/password-reset/confirm",
+    body: { token: resetToken, password },
+  });
+  invariant(confirmed.body.activated === true && confirmed.body.token_material_returned === false, "browser-resume-reset-confirm", "password reset did not activate safely", confirmed);
+
+  const browserResult = safeBrowserResult(await browserSmoke({
+    execution_id: executionId,
+    account: Object.freeze({ email: principals.admin.email, user_id: principals.admin.user_id }),
+    password,
+    expected: checkpointExpected,
+  }));
+  invariant(browserResult.outcome === "PASS", "browser-resume-smoke", "Forest browser smoke did not pass");
+  invariant(browserResult.critical_flow_count > 0 && browserResult.screenshot_count > 0, "browser-resume-smoke", "browser evidence is incomplete");
+  invariant(browserResult.api_request_count > 0 && browserResult.api_request_count <= PRIVATE_STAGING_BROWSER_API_REQUEST_LIMIT, "browser-resume-smoke", "browser API request evidence is outside the bounded budget");
+  invariant(browserResult.console_error_count === 0 && browserResult.failed_request_count === 0, "browser-resume-smoke", "browser smoke observed runtime errors");
+
+  const safeCounts = Object.freeze({
+    checkpoint_reused_count: 1,
+    current_postgres_readback_count: 1,
+    password_reset_count: 1,
+    api_call_count: apiCallCount,
+    account_count: principals.all.length,
+    tenant_count: tenants.length,
+    document_count: checkpointExpected.document_ids.length,
+    browser_critical_flow_count: browserResult.critical_flow_count,
+    browser_screenshot_count: browserResult.screenshot_count,
+    browser_api_request_count: browserResult.api_request_count,
+    wrong_tenant_visible_count: 0,
+    real_data_count: 0,
+  });
+  const finishedAt = new Date(Math.max(now(), Date.parse(startedAt) + 1)).toISOString();
+  return Object.freeze({
+    outcome: "PASS",
+    environment: "lawos-staging",
+    data_scope: "synthetic-only",
+    started_at: startedAt,
+    finished_at: finishedAt,
+    run_fingerprint: sha256(executionId),
+    safe_counts: safeCounts,
+    prior_readback_fingerprint: priorFingerprint,
+    readback_fingerprint: readbackResult.readback_fingerprint,
+    browser_smoke: browserResult,
+    execution_fingerprint: sha256(JSON.stringify({
+      safeCounts,
+      priorReadback: priorFingerprint,
+      currentReadback: readbackResult.readback_fingerprint,
+      browser: browserResult.evidence_fingerprint,
+    })),
+    json_fallback_count: 0,
+    json_writer_count: 0,
+    dual_write_count: 0,
+    file_current_authority_count: 0,
+    offline_mutation_count: 0,
+    memory_fallback_count: 0,
+    wrong_tenant_visible_count: 0,
+    real_data_count: 0,
+    secret_material_returned: false,
+    raw_pii_returned: false,
+    production_contacted: false,
+    production_ready_claim: false,
   });
 }
 
