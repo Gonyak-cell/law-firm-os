@@ -28,6 +28,7 @@ import {
   buildHrxRosterReconcileReceipt,
   buildLcxAuthResetRecoveryReceipt,
   classifySesDeliveryFailure,
+  createRetryablePromiseCache,
   createLambdaPasswordResetEmailDelivery,
   handler,
   resolveLambdaHrxStepUpSecrets,
@@ -40,6 +41,25 @@ import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.j
 const OPERATIONAL_STEP_UP_OPTIONS = Object.freeze({
   hrxStepUpSecret: "lambda-test-operational-step-up-secret-32-bytes",
   hrxStepUpTotpSecret: "lambda-test-operational-step-up-totp-secret-32-bytes",
+});
+
+test("Lambda runtime startup cache retries after a rejected initialization", async () => {
+  let attempts = 0;
+  const cache = createRetryablePromiseCache(async () => {
+    attempts += 1;
+    if (attempts === 1) throw new Error("synthetic startup failure");
+    return Object.freeze({ outcome: "PASS" });
+  });
+  const first = cache.get();
+  assert.equal(cache.get(), first);
+  await assert.rejects(first, /synthetic startup failure/u);
+  const recovered = cache.get();
+  assert.notEqual(recovered, first);
+  assert.deepEqual(await recovered, { outcome: "PASS" });
+  assert.equal(cache.get(), recovered);
+  assert.equal(attempts, 2);
+  assert.equal(cache.take(), recovered);
+  assert.equal(cache.take(), undefined);
 });
 
 async function createDurableStorePaths(root) {

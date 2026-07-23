@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { configureLawosApplicationRole } from "../src/postgres/application-role.js";
+import {
+  LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT,
+  configureLawosApplicationRole,
+} from "../src/postgres/application-role.js";
 import { createPostgresPool } from "../src/postgres/pool.js";
 import { runPostgresMigrations } from "../src/postgres/migration-runner.js";
 import { startDisposablePostgres } from "./helpers/disposable-postgres.js";
@@ -44,7 +47,7 @@ test("private staging application role is least privilege and tenant-explicit", 
     rolcreaterole: false,
     rolreplication: false,
     rolbypassrls: false,
-    rolconnlimit: 20,
+    rolconnlimit: LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT,
   });
   const authorities = await pool.query(
     "SELECT tenant_id, synthetic_wildcard, active FROM lawos_security.tenant_context_authorities WHERE database_role = 'lawos_app' ORDER BY tenant_id",
@@ -88,7 +91,7 @@ test("private staging application role does not require database or superuser lo
             rolinherit: false,
             rolreplication: false,
             rolbypassrls: false,
-            rolconnlimit: 20,
+            rolconnlimit: LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT,
           }],
         };
       }
@@ -105,6 +108,41 @@ test("private staging application role does not require database or superuser lo
   assert.equal(queries.some((statement) => /^ALTER ROLE lawos_app LOGIN\b/u.test(statement)), false);
   assert.equal(result.synthetic_wildcard_count, 0);
   assert.equal(result.tenant_authority_count, 2);
+  assert.equal(result.connection_limit, LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT);
+  assert.equal(result.connection_limit_migrated, false);
+});
+
+test("private staging application role migrates only the known prior connection limit", async () => {
+  const queries = [];
+  const client = {
+    async query(statement) {
+      queries.push(statement);
+      if (/SELECT rolcanlogin, rolsuper/u.test(statement)) {
+        return {
+          rowCount: 1,
+          rows: [{
+            rolcanlogin: true,
+            rolsuper: false,
+            rolcreatedb: false,
+            rolcreaterole: false,
+            rolinherit: false,
+            rolreplication: false,
+            rolbypassrls: false,
+            rolconnlimit: 20,
+          }],
+        };
+      }
+      return { rowCount: 0, rows: [] };
+    },
+  };
+  const result = await configureLawosApplicationRole(client, {
+    password: "test-private-staging-role-password",
+    tenantContextSecret: "test-private-staging-tenant-context-secret-material",
+    syntheticTenantIds: ["tenant_lawos_staging_a", "tenant_lawos_staging_b"],
+  });
+  assert.equal(result.connection_limit_migrated, true);
+  assert.equal(result.connection_limit, LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT);
+  assert.equal(queries.filter((statement) => statement === `ALTER ROLE lawos_app CONNECTION LIMIT ${LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT}`).length, 1);
 });
 
 test("private staging application role fails closed on existing privilege drift", async () => {
@@ -123,7 +161,7 @@ test("private staging application role fails closed on existing privilege drift"
             rolinherit: false,
             rolreplication: false,
             rolbypassrls: false,
-            rolconnlimit: 20,
+            rolconnlimit: LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT,
           }],
         };
       }
@@ -139,4 +177,38 @@ test("private staging application role fails closed on existing privilege drift"
     (error) => error.code === "LAWOS_POSTGRES_APPLICATION_ROLE_DRIFT",
   );
   assert.equal(queries.some((statement) => /^ALTER ROLE\b/u.test(statement)), false);
+});
+
+test("private staging application role rejects an unknown connection limit", async () => {
+  const queries = [];
+  const client = {
+    async query(statement) {
+      queries.push(statement);
+      if (/SELECT rolcanlogin, rolsuper/u.test(statement)) {
+        return {
+          rowCount: 1,
+          rows: [{
+            rolcanlogin: true,
+            rolsuper: false,
+            rolcreatedb: false,
+            rolcreaterole: false,
+            rolinherit: false,
+            rolreplication: false,
+            rolbypassrls: false,
+            rolconnlimit: LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT + 1,
+          }],
+        };
+      }
+      return { rowCount: 0, rows: [] };
+    },
+  };
+  await assert.rejects(
+    configureLawosApplicationRole(client, {
+      password: "test-private-staging-role-password",
+      tenantContextSecret: "test-private-staging-tenant-context-secret-material",
+      syntheticTenantIds: ["tenant_lawos_staging_a", "tenant_lawos_staging_b"],
+    }),
+    (error) => error.code === "LAWOS_POSTGRES_APPLICATION_ROLE_DRIFT",
+  );
+  assert.equal(queries.some((statement) => /^ALTER ROLE lawos_app CONNECTION LIMIT\b/u.test(statement)), false);
 });

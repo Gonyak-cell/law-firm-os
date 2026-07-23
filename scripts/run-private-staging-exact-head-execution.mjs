@@ -13,6 +13,7 @@ import {
 } from "node:fs";
 import { basename, dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
+import { LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT } from "../packages/persistence/src/postgres/application-role.js";
 import { buildPrivateStagingSyntheticSources } from "./lib/private-staging-artifact.mjs";
 import {
   assertPrivateStagingBucket,
@@ -501,6 +502,8 @@ async function deploy() {
     || bootstrap.result.artifact_sha256 !== packet.artifact_sha256
     || bootstrap.result.owner_instruction_sha256 !== packet.packet_sha256
     || bootstrap.result.approval_id !== approvalId
+    || bootstrap.result.application_role_connection_limit !== LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT
+    || typeof bootstrap.result.application_role_connection_limit_migrated !== "boolean"
     || bootstrap.result.secret_material_returned !== false
     || bootstrap.result.real_data_count !== 0) throw new Error("database bootstrap exact-head result failed");
 
@@ -547,6 +550,8 @@ async function deploy() {
     migration_count: Number(bootstrap.result.migration_count),
     migration_applied_count: Number(bootstrap.result.migration_applied_count),
     application_role_grant_count: Number(bootstrap.result.application_role_grant_count),
+    application_role_connection_limit: Number(bootstrap.result.application_role_connection_limit),
+    application_role_connection_limit_migrated_count: bootstrap.result.application_role_connection_limit_migrated ? 1 : 0,
     tenant_authority_count: Number(bootstrap.result.tenant_authority_count),
     cut005_directory_repair_count: Number(bootstrap.result.cut005_directory_repair_count),
     cut005_directory_repair_scanned_count: Number(bootstrap.result.cut005_directory_repair_scanned_count),

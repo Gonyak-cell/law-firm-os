@@ -44,7 +44,6 @@ import {
 } from "../../../packages/persistence/src/durable-file.js";
 import { appendNdjsonDurably } from "../../../packages/persistence/src/durable-append.js";
 
-let serverPromise;
 let sessionSecretPromise;
 let hrxStepUpRootSecretPromise;
 
@@ -4159,21 +4158,42 @@ async function handleLcxAuthResetRecovery(event = {}) {
   }
 }
 
+export function createRetryablePromiseCache(factory) {
+  if (typeof factory !== "function") throw new TypeError("retryable promise cache factory is required");
+  let current;
+  return Object.freeze({
+    get() {
+      if (!current) {
+        const pending = Promise.resolve().then(factory);
+        current = pending;
+        void pending.catch(() => {
+          if (current === pending) current = undefined;
+        });
+      }
+      return current;
+    },
+    take() {
+      const pending = current;
+      current = undefined;
+      return pending;
+    },
+  });
+}
+
+const apiRuntimeCache = createRetryablePromiseCache(async () => {
+  const matterRepository = await createLambdaMatterRepository();
+  const hrxStepUpSecrets = await resolveLambdaHrxStepUpSecrets();
+  return startApiServer({
+    port: 0,
+    sessionSecret: await resolveLambdaSessionSecret(),
+    ...hrxStepUpSecrets,
+    passwordResetEmailDelivery: createLambdaPasswordResetEmailDelivery(),
+    ...(matterRepository ? { matterRepository } : {}),
+  });
+});
+
 async function apiRuntime() {
-  if (!serverPromise) {
-    serverPromise = (async () => {
-      const matterRepository = await createLambdaMatterRepository();
-      const hrxStepUpSecrets = await resolveLambdaHrxStepUpSecrets();
-      return startApiServer({
-        port: 0,
-        sessionSecret: await resolveLambdaSessionSecret(),
-        ...hrxStepUpSecrets,
-        passwordResetEmailDelivery: createLambdaPasswordResetEmailDelivery(),
-        ...(matterRepository ? { matterRepository } : {}),
-      });
-    })();
-  }
-  return serverPromise;
+  return apiRuntimeCache.get();
 }
 
 async function apiBaseUrl() {
@@ -4182,9 +4202,8 @@ async function apiBaseUrl() {
 }
 
 async function resetCachedApiServer() {
-  if (!serverPromise) return;
-  const currentServerPromise = serverPromise;
-  serverPromise = undefined;
+  const currentServerPromise = apiRuntimeCache.take();
+  if (!currentServerPromise) return;
   const current = await currentServerPromise.catch(() => null);
   if (current?.server) {
     await new Promise((resolveClose) => current.server.close(resolveClose));

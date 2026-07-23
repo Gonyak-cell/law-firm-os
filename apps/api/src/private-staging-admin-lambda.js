@@ -363,6 +363,8 @@ export async function bootstrapPrivateStagingDatabase({
     migration_count: migrationResults.length,
     migration_applied_count: migrationResults.filter((item) => item.applied).length,
     application_role_grant_count: roleResult.grant_statement_count,
+    application_role_connection_limit: roleResult.connection_limit,
+    application_role_connection_limit_migrated: roleResult.connection_limit_migrated,
     tenant_authority_count: roleResult.tenant_authority_count,
     cut005_directory_repair_count: cut005RepairResult.repaired_account_count,
     cut005_directory_repair_scanned_count: cut005RepairResult.scanned_account_count,

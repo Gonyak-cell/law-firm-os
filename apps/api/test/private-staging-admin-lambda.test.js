@@ -139,6 +139,8 @@ test("private staging bootstrap returns only safe exact-head counts", async () =
   assert.equal(result.outcome, "PASS");
   assert.equal(result.migration_count, 2);
   assert.equal(result.migration_applied_count, 1);
+  assert.equal(result.application_role_connection_limit, 21);
+  assert.equal(result.application_role_connection_limit_migrated, false);
   assert.equal(result.tenant_authority_count, 6);
   assert.equal(result.cut005_directory_repair_count, 0);
   assert.equal(result.cut005_directory_restore_count, 2);

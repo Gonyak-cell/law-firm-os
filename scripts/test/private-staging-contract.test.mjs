@@ -6,6 +6,7 @@ import {
   validatePrivateStagingCost,
   validatePrivateStagingTemplate,
 } from "../lib/private-staging-contract.mjs";
+import { LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT } from "../../packages/persistence/src/postgres/application-role.js";
 
 function fixture(path) {
   return JSON.parse(readFileSync(new URL(`../../infra/lawos-private-staging/${path}`, import.meta.url), "utf8"));
@@ -41,6 +42,8 @@ test("private staging infrastructure contract is isolated and cost gated", () =>
   assert.ok(result.inline_template_byte_size > 0 && result.inline_template_byte_size <= 51_200);
   assert.equal(fixture("template.json").Resources.ApiFunction.Properties.ReservedConcurrentExecutions,
     fixture("template.json").Resources.HttpApiStage.Properties.DefaultRouteSettings.ThrottlingBurstLimit + 1);
+  assert.equal(fixture("template.json").Resources.ApiFunction.Properties.ReservedConcurrentExecutions,
+    LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT);
 
   const unversioned = clone(fixture("template.json"));
   delete unversioned.Resources.ApiFunction.Properties.Code.S3ObjectVersion;

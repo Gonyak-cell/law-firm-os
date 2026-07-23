@@ -1,5 +1,7 @@
 const ROLE_NAME = "lawos_app";
 const SYNTHETIC_TENANT_PATTERN = /^tenant_lawos_staging_[a-z0-9_-]+$/u;
+const LEGACY_CONNECTION_LIMIT = 20;
+export const LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT = 21;
 
 const GRANTS = Object.freeze([
   "GRANT USAGE ON SCHEMA lawos_meta TO lawos_app",
@@ -75,6 +77,7 @@ export async function configureLawosApplicationRole(client, {
   if (contextSecret.byteLength < 32) throw new TypeError("tenantContextSecret must contain at least 32 bytes");
   const tenantIds = normalizeSyntheticTenantIds(syntheticTenantIds);
   let began = false;
+  let connectionLimitMigrated = false;
   try {
     await client.query("BEGIN");
     began = true;
@@ -86,7 +89,7 @@ export async function configureLawosApplicationRole(client, {
       [ROLE_NAME],
     );
     if (role.rowCount === 0) {
-      await client.query(`CREATE ROLE ${ROLE_NAME} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS CONNECTION LIMIT 20`);
+      await client.query(`CREATE ROLE ${ROLE_NAME} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS CONNECTION LIMIT ${LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT}`);
     } else {
       const current = role.rows[0] ?? {};
       if (current.rolcanlogin !== true
@@ -95,9 +98,17 @@ export async function configureLawosApplicationRole(client, {
         || current.rolcreaterole !== false
         || current.rolinherit !== false
         || current.rolreplication !== false
-        || current.rolbypassrls !== false
-        || current.rolconnlimit !== 20) {
+        || current.rolbypassrls !== false) {
         throw Object.assign(new Error("LawOS application database role privilege drifted"), {
+          code: "LAWOS_POSTGRES_APPLICATION_ROLE_DRIFT",
+          safe_error_code: "POSTGRES_APPLICATION_ROLE_DRIFT",
+        });
+      }
+      if (current.rolconnlimit === LEGACY_CONNECTION_LIMIT) {
+        await client.query(`ALTER ROLE ${ROLE_NAME} CONNECTION LIMIT ${LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT}`);
+        connectionLimitMigrated = true;
+      } else if (current.rolconnlimit !== LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT) {
+        throw Object.assign(new Error("LawOS application database role connection limit drifted"), {
           code: "LAWOS_POSTGRES_APPLICATION_ROLE_DRIFT",
           safe_error_code: "POSTGRES_APPLICATION_ROLE_DRIFT",
         });
@@ -129,6 +140,8 @@ export async function configureLawosApplicationRole(client, {
       role_name: ROLE_NAME,
       grant_statement_count: GRANTS.length,
       tenant_authority_count: tenantIds.length,
+      connection_limit: LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT,
+      connection_limit_migrated: connectionLimitMigrated,
       synthetic_wildcard_count: 0,
       password_returned: false,
       secret_material_returned: false,
