@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
+import { CRM_DOMAIN_DESCRIPTOR } from "../../../packages/crm/src/central-ledger.js";
+import { transitionOpportunityStage } from "../../../packages/crm/src/opportunity-service.js";
+import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
+import { runRecordRepositoryDomainCommand } from "../../../packages/persistence/src/record-domain-adapter.js";
+import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 import { createPostgresIdentityLedger } from "../../../packages/runtime-auth/src/postgres-identity-ledger.js";
 import { buildPrivateStagingSyntheticSources } from "../../../scripts/lib/private-staging-artifact.mjs";
@@ -163,6 +168,23 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
     tenantIds: TENANTS,
     accountSeed: sources.account_seed,
     roster: sources.roster,
+  });
+  await runRecordRepositoryDomainCommand({
+    ledger: createPostgresDomainLedger({ pool: fixture.appPool }),
+    descriptor: CRM_DOMAIN_DESCRIPTOR,
+    tenant_id: TENANTS[0],
+    create_repository: createCrmRuntimeRepository,
+    command(repository) {
+      return transitionOpportunityStage({
+        repository,
+        tenant_id: TENANTS[0],
+        opportunity_id: "opportunity-lawos-staging",
+        next_stage: "intake_requested",
+        actor_id: ACCOUNT_INPUTS[0].user_id,
+        idempotency_key: "cut007-prior-attempt-opportunity-transition",
+        patch: { intake_request_id: "intake-cut007-prior-attempt" },
+      });
+    },
   });
 
   const delivered = new Map();

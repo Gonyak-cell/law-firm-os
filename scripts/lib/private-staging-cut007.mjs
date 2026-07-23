@@ -425,6 +425,32 @@ export async function runPrivateStagingCut007({
   });
   invariant((opportunityList.body.items ?? []).some((item) => item.opportunity_id === "opportunity-lawos-staging"), "crm-opportunity", "synthetic opportunity is missing", opportunityList);
 
+  const opportunityId = `opportunity-cut007-${suffix}`;
+  const opportunity = await request("crm-opportunity-create", 201, {
+    method: "POST",
+    path: "/api/crm/opportunities",
+    token: adminToken,
+    body: {
+      tenant_id: primaryTenantId,
+      permission_ref: "cut007-crm-write-permission",
+      audit_hint_ref: "cut007-crm-write-audit",
+      idempotency_key: `cut007-opportunity-${suffix}`,
+      opportunity: {
+        opportunity_id: opportunityId,
+        tenant_id: primaryTenantId,
+        party_id: "party-lawos-staging-client",
+        display_name: `LawOS Staging CUT-007 Opportunity ${suffix}`,
+        stage: "qualified",
+        status: "active",
+        owner_user_id: principals.admin.user_id,
+        synthetic_only: true,
+      },
+    },
+  });
+  invariant(opportunity.body.item?.opportunity_id === opportunityId, "crm-opportunity-create", "isolated CUT-007 opportunity mismatch", opportunity);
+  counters.assertion_count += 1;
+  counters.client_matter_flow_count += 1;
+
   const intakeId = `intake-cut007-${suffix}`;
   const handoffBody = {
     tenant_id: primaryTenantId,
@@ -436,14 +462,14 @@ export async function runPrivateStagingCut007({
   };
   const handoff = await request("crm-intake-handoff", 201, {
     method: "POST",
-    path: "/api/crm/opportunities/opportunity-lawos-staging/handoff",
+    path: `/api/crm/opportunities/${encodeURIComponent(opportunityId)}/handoff`,
     token: adminToken,
     body: handoffBody,
   });
   invariant(handoff.body.item?.intake_request_id === intakeId, "crm-intake-handoff", "intake handoff mismatch", handoff);
   const handoffReplay = await request("crm-intake-handoff-replay", 200, {
     method: "POST",
-    path: "/api/crm/opportunities/opportunity-lawos-staging/handoff",
+    path: `/api/crm/opportunities/${encodeURIComponent(opportunityId)}/handoff`,
     token: adminToken,
     body: handoffBody,
   });
