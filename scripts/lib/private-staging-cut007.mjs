@@ -1,5 +1,9 @@
 import { createHash, randomBytes } from "node:crypto";
 import { PRIVATE_STAGING_SYNTHETIC_EMAIL_PATTERN } from "../../packages/runtime-auth/src/private-staging-synthetic-email.js";
+import {
+  PRIVATE_STAGING_BROWSER_API_REQUEST_LIMIT,
+  PRIVATE_STAGING_CUT007_CONTROL_REQUEST_LIMIT,
+} from "./private-staging-contract.mjs";
 
 const SYNTHETIC_TENANT = /^tenant_lawos_staging_cut007_[a-z0-9_-]+$/u;
 const SYNTHETIC_USER = /^synthetic-lawos-staging-[a-z0-9-]+$/u;
@@ -95,6 +99,7 @@ function safeBrowserResult(result = {}) {
     outcome: result.outcome,
     critical_flow_count: Number(result.critical_flow_count ?? 0),
     screenshot_count: Number(result.screenshot_count ?? 0),
+    api_request_count: Number(result.api_request_count ?? 0),
     console_error_count: Number(result.console_error_count ?? 0),
     failed_request_count: Number(result.failed_request_count ?? 0),
     evidence_fingerprint: requiredText(result.evidence_fingerprint, "browser evidence fingerprint", /^[a-f0-9]{64}$/u),
@@ -244,6 +249,12 @@ export async function runPrivateStagingCut007({
     counters.throttle_retry_count += throttleRetryCount;
     counters.capacity_retry_count += capacityRetryCount;
     counters.assertion_count += 1;
+    invariant(
+      counters.api_call_count <= PRIVATE_STAGING_CUT007_CONTROL_REQUEST_LIMIT,
+      step,
+      "CUT-007 control API request budget was exceeded",
+    );
+    invariant(throttleRetryCount === 0, step, "approved CUT-007 burst capacity was exhausted");
     expectStatus(result, expectedStatus, step);
     return result;
   }
@@ -930,8 +941,14 @@ export async function runPrivateStagingCut007({
   }));
   invariant(browserResult.outcome === "PASS", "browser-smoke", "Forest browser/desktop smoke did not pass");
   invariant(browserResult.critical_flow_count > 0 && browserResult.screenshot_count > 0, "browser-smoke", "browser evidence is incomplete");
+  invariant(
+    browserResult.api_request_count > 0
+      && browserResult.api_request_count <= PRIVATE_STAGING_BROWSER_API_REQUEST_LIMIT,
+    "browser-smoke",
+    "browser API request evidence is outside the bounded budget",
+  );
   invariant(browserResult.console_error_count === 0 && browserResult.failed_request_count === 0, "browser-smoke", "browser smoke observed runtime errors");
-  counters.assertion_count += 3;
+  counters.assertion_count += 4;
 
   const finishedAt = new Date(now()).toISOString();
   const safeCounts = Object.freeze({ ...counters, account_count: principals.all.length, tenant_count: tenants.length, document_count: documentIds.length, real_data_count: 0 });

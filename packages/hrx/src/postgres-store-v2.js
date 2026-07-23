@@ -287,11 +287,9 @@ export async function materializeHrxStoreFromPostgres({ ledger, tenant_id } = {}
     throw new TypeError("PostgreSQL domain ledger idempotency and audit methods are required");
   }
   const scope = { tenant_id: tenantId, domain_id: HRX_DOMAIN_ID };
-  const [records, idempotencyEntries, auditEvents] = await Promise.all([
-    ledger.list(scope),
-    ledger.listIdempotency(scope),
-    ledger.listAudit(scope),
-  ]);
+  const records = await ledger.list(scope);
+  const idempotencyEntries = await ledger.listIdempotency(scope);
+  const auditEvents = await ledger.listAudit(scope);
   const state = {
     schema_version: "law-firm-os.hrx-file-store.v0.1",
     applied_migrations: records

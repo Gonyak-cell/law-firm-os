@@ -24,8 +24,9 @@ async function importHrxAuthorityBaseline(ledger, tenantId) {
 }
 
 test("PostgreSQL API authority commits product state, idempotency, audit and outbox without JSON fallback", async (t) => {
-  const fixture = await createMigratedPostgresFixture(t);
+  const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 1 });
   if (!fixture) return;
+  assert.equal(fixture.appPool.options.max, 1);
   const ledger = createPostgresDomainLedger({
     pool: fixture.appPool,
     clock: () => new Date("2026-07-18T00:00:00.000Z"),

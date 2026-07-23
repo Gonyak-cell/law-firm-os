@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT } from "../../packages/persistence/src/postgres/application-role.js";
 
 export const PRIVATE_STAGING_ACCOUNT_ID = "770880870480";
 export const PRIVATE_STAGING_REGION = "ap-northeast-2";
@@ -7,10 +8,13 @@ export const PRIVATE_STAGING_S3_PREFIX_LIST_ID = "pl-78a54011";
 export const PRIVATE_STAGING_COST_LIMIT_KRW = 300_000;
 export const PRIVATE_STAGING_EFFECTIVE_BUDGET_USD = 100;
 const PUBLIC_ROUTE_RATE_LIMIT = 0.04;
-const PUBLIC_ROUTE_BURST_LIMIT = 20;
+export const PRIVATE_STAGING_PUBLIC_ROUTE_BURST_LIMIT = 256;
+export const PRIVATE_STAGING_CUT007_CONTROL_REQUEST_LIMIT = 96;
+export const PRIVATE_STAGING_BROWSER_API_REQUEST_LIMIT = 128;
+const PRIVATE_STAGING_CUT007_BURST_HEADROOM = 32;
 const PUBLIC_ROUTE_LAMBDA_MEMORY_MIB = 1024;
 const PUBLIC_ROUTE_LAMBDA_TIMEOUT_SECONDS = 5;
-const PUBLIC_ROUTE_LAMBDA_RESERVED_CONCURRENCY = PUBLIC_ROUTE_BURST_LIMIT + 1;
+const PUBLIC_ROUTE_LAMBDA_RESERVED_CONCURRENCY = 32;
 export const LAMBDA_VPC_ENI_ACTIONS = Object.freeze([
   "ec2:CreateNetworkInterface",
   "ec2:DescribeNetworkInterfaces",
@@ -376,6 +380,10 @@ function validateLambdas(resources) {
   assert(api?.MemorySize === PUBLIC_ROUTE_LAMBDA_MEMORY_MIB, "API Lambda memory differs from the cost-bound exception");
   assert(api?.Timeout === PUBLIC_ROUTE_LAMBDA_TIMEOUT_SECONDS, "API Lambda timeout differs from the cost-bound exception");
   assert(api?.ReservedConcurrentExecutions === PUBLIC_ROUTE_LAMBDA_RESERVED_CONCURRENCY, "API Lambda concurrency differs from the cost-bound exception");
+  assert(
+    LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT === PUBLIC_ROUTE_LAMBDA_RESERVED_CONCURRENCY * 2,
+    "PostgreSQL role connection capacity must preserve one full Lambda deployment-overlap margin",
+  );
   assert(resources.AdminFunction?.Properties?.ReservedConcurrentExecutions === 1, "Admin Lambda concurrency must remain one");
   const env = resources.ApiFunction.Properties.Environment.Variables;
   assert(env.LAWOS_RUNTIME_PROFILE === "operational", "API must use the operational profile");
@@ -480,7 +488,14 @@ function validateCostControls(resources) {
   assert(route?.Properties?.AuthorizationType === "NONE" && route?.Properties?.RouteKey === "$default", "public staging route shape drifted");
   const exception = route?.Metadata?.LawOSPublicRouteException;
   assert(exception?.scope === "synthetic-only-private-staging" && exception?.enforcement === "template-bound-rate-timeout-concurrency-and-monthly-worst-case-cost", "public route lacks the exact cost-bound exception");
-  assert(stage?.ThrottlingRateLimit === PUBLIC_ROUTE_RATE_LIMIT && stage?.ThrottlingBurstLimit === PUBLIC_ROUTE_BURST_LIMIT, "public route throttle exceeds or differs from the cost-bound exception");
+  assert(stage?.ThrottlingRateLimit === PUBLIC_ROUTE_RATE_LIMIT && stage?.ThrottlingBurstLimit === PRIVATE_STAGING_PUBLIC_ROUTE_BURST_LIMIT, "public route throttle exceeds or differs from the cost-bound exception");
+  assert(
+    PRIVATE_STAGING_CUT007_CONTROL_REQUEST_LIMIT
+      + PRIVATE_STAGING_BROWSER_API_REQUEST_LIMIT
+      + PRIVATE_STAGING_CUT007_BURST_HEADROOM
+      <= PRIVATE_STAGING_PUBLIC_ROUTE_BURST_LIMIT,
+    "CUT-007 request budgets exceed the approved public-route burst envelope",
+  );
   const budget = resources.MonthlyCostBudget?.Properties?.Budget;
   assert(budget?.BudgetLimit?.Amount === 100 && budget?.BudgetLimit?.Unit === "USD", "private staging monthly AWS budget must remain USD 100");
   assert(budget?.BudgetType === "COST" && budget?.TimeUnit === "MONTHLY", "private staging cost budget cadence drifted");
@@ -634,7 +649,7 @@ export function validatePrivateStagingCost(cost) {
   assert((cost.line_items ?? []).some((item) => item.service === "AWS PrivateLink interface endpoints" && Number(item.quantity) === 2920), "cost model must include two interface endpoints across two availability zones");
   const envelope = cost.enforced_public_route_envelope;
   assert(envelope?.authorization === "explicit-synthetic-staging-cost-bound-exception", "public route cost exception is missing");
-  assert(envelope.hours_per_month === 730 && envelope.throttling_rate_per_second === PUBLIC_ROUTE_RATE_LIMIT && envelope.throttling_burst_limit === PUBLIC_ROUTE_BURST_LIMIT, "public route cost rate model drifted");
+  assert(envelope.hours_per_month === 730 && envelope.throttling_rate_per_second === PUBLIC_ROUTE_RATE_LIMIT && envelope.throttling_burst_limit === PRIVATE_STAGING_PUBLIC_ROUTE_BURST_LIMIT, "public route cost rate model drifted");
   assert(envelope.lambda_memory_gib === PUBLIC_ROUTE_LAMBDA_MEMORY_MIB / 1024 && envelope.lambda_timeout_seconds === PUBLIC_ROUTE_LAMBDA_TIMEOUT_SECONDS && envelope.lambda_reserved_concurrency === PUBLIC_ROUTE_LAMBDA_RESERVED_CONCURRENCY, "public route Lambda cost model drifted");
   const monthlyRequests = envelope.hours_per_month * 3600 * envelope.throttling_rate_per_second
     + envelope.throttling_burst_limit;
@@ -647,7 +662,7 @@ export function validatePrivateStagingCost(cost) {
   assert(Math.abs(compute - Number(envelope.lambda_compute_ceiling_usd)) < 0.001, "public route Lambda compute ceiling drifted");
   assert(Math.abs(api - Number(envelope.api_gateway_ceiling_usd)) < 0.001 && Math.abs(lambdaRequests - Number(envelope.lambda_request_ceiling_usd)) < 0.001, "public route request ceiling drifted");
   const requestDriven = compute + api + lambdaRequests + Number(envelope.metrics_and_logs_ceiling_usd);
-  assert(requestDriven <= Number(envelope.lambda_api_logs_ceiling_usd) && Number(envelope.all_variable_services_ceiling_usd) === 12.73, "public route variable-service ceiling is incomplete");
+  assert(requestDriven <= Number(envelope.lambda_api_logs_ceiling_usd) && Number(envelope.all_variable_services_ceiling_usd) === 12.75, "public route variable-service ceiling is incomplete");
   const worker = cost.password_reset_worker_envelope;
   assert(worker?.schedule === "rate(5 minutes)" && worker.monthly_invocation_ceiling === 8760, "password-reset worker cadence model drifted");
   const workerGbSeconds = worker.monthly_invocation_ceiling * worker.lambda_timeout_seconds * worker.lambda_memory_gib;

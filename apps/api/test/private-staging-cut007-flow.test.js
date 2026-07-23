@@ -365,6 +365,7 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
       outcome: "PASS",
       critical_flow_count: 5,
       screenshot_count: 3,
+      api_request_count: 64,
       console_error_count: 0,
       failed_request_count: 0,
       evidence_fingerprint: "b".repeat(64),
@@ -395,6 +396,8 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
     assert.equal(result.safe_counts.account_count, 3);
     assert.equal(result.safe_counts.document_count, 2);
     assert.ok(result.safe_counts.api_call_count > 50);
+    assert.ok(result.safe_counts.api_call_count <= 96);
+    assert.equal(result.browser_smoke.api_request_count, 64);
     assert.ok(result.safe_counts.idempotency_replay_count >= 5);
     assert.equal(result.wrong_tenant_visible_count, 0);
     assert.equal(result.json_fallback_count, 0);

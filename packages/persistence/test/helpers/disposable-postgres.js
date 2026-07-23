@@ -82,7 +82,7 @@ export async function startDisposablePostgres(t) {
   });
 }
 
-export async function createMigratedPostgresFixture(t) {
+export async function createMigratedPostgresFixture(t, { appPoolMax = 10 } = {}) {
   const instance = await startDisposablePostgres(t);
   if (!instance) return null;
   const adminPool = createPostgresPool({
@@ -149,6 +149,7 @@ export async function createMigratedPostgresFixture(t) {
       allowInsecureLocal: true,
       applicationName: "lawos-postgres-v2-app-test",
       tenantContextSecret,
+      max: appPoolMax,
     });
   } catch (error) {
     await appPool?.end().catch(() => {});

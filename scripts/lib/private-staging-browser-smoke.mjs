@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
-import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, statSync } from "node:fs";
+import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { PRIVATE_STAGING_SYNTHETIC_EMAIL_PATTERN } from "../../packages/runtime-auth/src/private-staging-synthetic-email.js";
+import { PRIVATE_STAGING_BROWSER_API_REQUEST_LIMIT } from "./private-staging-contract.mjs";
 
 const SYNTHETIC_USER = /^synthetic-lawos-staging-[a-z0-9-]+$/u;
 
@@ -19,6 +20,40 @@ function requiredText(value, name, pattern = null) {
 
 function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+function browserDiagnostics({
+  outcome,
+  apiRequestCount,
+  consoleErrors,
+  failedRequests,
+  screenshotPaths,
+  visited,
+  failureMessage = "",
+}) {
+  return Object.freeze({
+    schema_version: "law-firm-os.private-staging.browser-diagnostics.v1",
+    outcome,
+    api_request_count: apiRequestCount,
+    api_request_limit: PRIVATE_STAGING_BROWSER_API_REQUEST_LIMIT,
+    console_error_count: consoleErrors.length,
+    console_error_fingerprint: sha256([...consoleErrors].sort().join(":")),
+    failed_request_count: failedRequests.length,
+    failed_request_fingerprint: sha256([...failedRequests].sort().join(":")),
+    screenshot_count: screenshotPaths.length,
+    visited_routes: Object.freeze([...visited]),
+    failure_fingerprint: failureMessage ? sha256(failureMessage) : null,
+    raw_url_returned: false,
+    secret_material_returned: false,
+    raw_pii_returned: false,
+  });
+}
+
+function writeBrowserDiagnostics(outputDir, diagnostics) {
+  const path = resolve(outputDir, "browser-diagnostics.json");
+  writeFileSync(path, `${JSON.stringify(diagnostics, null, 2)}\n`, { flag: "wx", mode: 0o600 });
+  chmodSync(path, 0o600);
+  return sha256(readFileSync(path));
 }
 
 function validateEvidenceDirectory(path) {
@@ -84,12 +119,24 @@ export async function runPrivateStagingForestBrowserSmoke({
   const failedRequests = [];
   const screenshotPaths = [];
   const visited = [];
+  let apiRequestCount = 0;
   try {
     browser = await launchBrowser({ headless: true });
     const context = await browser.newContext({ locale: "ko-KR", timezoneId: "Asia/Seoul" });
     const page = await context.newPage();
+    const assertApiRequestBudget = () => {
+      if (apiRequestCount > PRIVATE_STAGING_BROWSER_API_REQUEST_LIMIT) {
+        fail("Forest browser smoke exceeded its bounded API request budget");
+      }
+    };
     page.on("console", (message) => {
       if (message.type() === "error") consoleErrors.push(sha256(message.text()).slice(0, 16));
+    });
+    page.on("request", (request) => {
+      const url = new URL(request.url());
+      if (url.origin === web.origin && (url.pathname.startsWith("/api/") || url.pathname.startsWith("/master-data"))) {
+        apiRequestCount += 1;
+      }
     });
     page.on("requestfailed", (request) => failedRequests.push(sha256(`${request.method()}:${new URL(request.url()).pathname}`).slice(0, 16)));
     page.on("response", (response) => {
@@ -117,6 +164,7 @@ export async function runPrivateStagingForestBrowserSmoke({
       }
     });
     if (!sessionStored) fail("Forest browser login did not persist a signed API session");
+    assertApiRequestBudget();
 
     const routes = [
       { id: "home", view: "home", selector: ".page-canvas" },
@@ -132,6 +180,7 @@ export async function runPrivateStagingForestBrowserSmoke({
       if (route.hash) url.hash = route.hash;
       await page.goto(url.href, { waitUntil: "networkidle" });
       await page.waitForSelector(route.selector, { timeout: 30_000 });
+      assertApiRequestBudget();
       const screenshotPath = resolve(outputDir, `${String(screenshotPaths.length + 1).padStart(2, "0")}-${route.id}.png`);
       await page.screenshot({ path: screenshotPath, fullPage: true });
       chmodSync(screenshotPath, 0o600);
@@ -146,21 +195,56 @@ export async function runPrivateStagingForestBrowserSmoke({
       return response.ok;
     }, expected.matter_id);
     if (!visibleSyntheticMatter) fail("browser session could not read the synthetic CUT-007 matter");
+    assertApiRequestBudget();
+    if (consoleErrors.length || failedRequests.length) fail("Forest browser smoke observed console errors or failed critical requests");
+    const screenshotDigests = screenshotPaths.map((path) => sha256(readFileSync(path)));
+    const diagnostics = browserDiagnostics({
+      outcome: "PASS",
+      apiRequestCount,
+      consoleErrors,
+      failedRequests,
+      screenshotPaths,
+      visited,
+    });
+    const diagnosticsFingerprint = writeBrowserDiagnostics(outputDir, diagnostics);
+    return Object.freeze({
+      outcome: "PASS",
+      critical_flow_count: visited.length + 2,
+      screenshot_count: screenshotPaths.length,
+      api_request_count: apiRequestCount,
+      api_request_limit: PRIVATE_STAGING_BROWSER_API_REQUEST_LIMIT,
+      console_error_count: consoleErrors.length,
+      failed_request_count: failedRequests.length,
+      diagnostics_fingerprint: diagnosticsFingerprint,
+      evidence_fingerprint: sha256(JSON.stringify({ visited, screenshotDigests, apiRequestCount, diagnosticsFingerprint })),
+      secret_material_returned: false,
+      raw_pii_returned: false,
+    });
+  } catch (error) {
+    const diagnostics = browserDiagnostics({
+      outcome: "FAIL",
+      apiRequestCount,
+      consoleErrors,
+      failedRequests,
+      screenshotPaths,
+      visited,
+      failureMessage: error?.message ?? "browser smoke failed",
+    });
+    try {
+      const diagnosticsFingerprint = writeBrowserDiagnostics(outputDir, diagnostics);
+      Object.defineProperty(error, "safe_browser_diagnostics", {
+        value: Object.freeze({
+          ...diagnostics,
+          diagnostics_fingerprint: diagnosticsFingerprint,
+        }),
+        enumerable: true,
+      });
+    } catch {
+      // Preserve the primary browser failure if diagnostics cannot be materialized.
+    }
+    throw error;
   } finally {
     await browser?.close();
     await managedWeb?.server.close();
   }
-
-  if (consoleErrors.length || failedRequests.length) fail("Forest browser smoke observed console errors or failed critical requests");
-  const screenshotDigests = screenshotPaths.map((path) => sha256(readFileSync(path)));
-  return Object.freeze({
-    outcome: "PASS",
-    critical_flow_count: visited.length + 2,
-    screenshot_count: screenshotPaths.length,
-    console_error_count: consoleErrors.length,
-    failed_request_count: failedRequests.length,
-    evidence_fingerprint: sha256(JSON.stringify({ visited, screenshotDigests })),
-    secret_material_returned: false,
-    raw_pii_returned: false,
-  });
 }

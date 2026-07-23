@@ -702,6 +702,7 @@ async function cut007() {
     ...result.safe_counts,
     browser_critical_flow_count: Number(result.browser_smoke.critical_flow_count),
     browser_screenshot_count: Number(result.browser_smoke.screenshot_count),
+    browser_api_request_count: Number(result.browser_smoke.api_request_count),
     json_fallback_count: 0,
     json_writer_count: 0,
     dual_write_count: 0,

@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import {
+  LAWOS_POSTGRES_API_POOL_MAX,
   LAWOS_PERSISTENCE_AUTHORITIES,
   postgresUrlFromSecret,
   preparePersistenceAuthority,
@@ -20,6 +21,10 @@ import { createMigratedPostgresFixture } from "../../../packages/persistence/tes
 import { lawosDurableStoreEnv } from "../src/local-durable-store-paths.js";
 
 const TENANT_CONTEXT_SECRET = "test-only-postgres-tenant-context-secret-material";
+
+test("operational PostgreSQL authority uses one pooled connection per Lambda execution", () => {
+  assert.equal(LAWOS_POSTGRES_API_POOL_MAX, 1);
+});
 
 function storePathsUnder(root) {
   return Object.fromEntries(STORE_PATH_MANIFEST.map((entry) => [entry.key, join(root, entry.fileName)]));

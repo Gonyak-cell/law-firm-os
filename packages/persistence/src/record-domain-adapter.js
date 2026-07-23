@@ -334,11 +334,9 @@ export async function materializeRecordRepositoryFromDomainLedger({
   if (!ledger || typeof ledger.list !== "function") throw new TypeError("domain ledger is required");
   if (typeof create_repository !== "function") throw new TypeError("create_repository is required");
   const scope = { tenant_id, domain_id: descriptor.domain_id };
-  const [records, idempotency, auditEvents] = await Promise.all([
-    ledger.list(scope),
-    ledger.listIdempotency(scope),
-    ledger.listAudit(scope),
-  ]);
+  const records = await ledger.list(scope);
+  const idempotency = await ledger.listIdempotency(scope);
+  const auditEvents = await ledger.listAudit(scope);
   const repository = create_repository({
     seedRecords: records.map((record) => clone(record.payload)),
     preserveSeedRecords: true,
@@ -655,20 +653,28 @@ export async function runRecordRepositoryMultiDomainCommand({
     throw new TypeError("multi-domain command domain_ids must be unique");
   }
 
-  const repositories = Object.fromEntries(await Promise.all(definitions.map(async (domain) => [
-    domain.key,
-    await materializeRecordRepositoryFromDomainLedger({
-      ledger,
-      descriptor: domain.descriptor,
-      tenant_id,
-      create_repository: domain.create_repository,
-    }),
-  ])));
-  const additionalValues = Object.fromEntries(await Promise.all(additionalDefinitions.map(async (domain) => [
-    domain.key,
-    await domain.materialize({ ledger, tenant_id }),
-  ])));
+  const repositories = Object.create(null);
+  const additionalValues = Object.create(null);
   try {
+    await ledger.transactionMany({
+      tenant_id,
+      domain_ids: allDomainIds,
+    }, async (transactions) => {
+      for (const domain of definitions) {
+        repositories[domain.key] = await materializeRecordRepositoryFromDomainLedger({
+          ledger: transactions[domain.descriptor.domain_id],
+          descriptor: domain.descriptor,
+          tenant_id,
+          create_repository: domain.create_repository,
+        });
+      }
+      for (const domain of additionalDefinitions) {
+        additionalValues[domain.key] = await domain.materialize({
+          ledger: transactions[domain.domain_id],
+          tenant_id,
+        });
+      }
+    });
     const result = await command(Object.freeze({ ...repositories, ...additionalValues }));
     const baselines = Object.fromEntries(definitions.map((domain) => [
       domain.descriptor.domain_id,
@@ -734,30 +740,39 @@ export async function runRecordRepositoryMultiDomainCommand({
         });
       }
     });
-    const flushes = Object.fromEntries(await Promise.all(definitions.map(async (domain) => {
-      const snapshot = sources[domain.descriptor.domain_id];
-      const comparison = await compareDomainSnapshotWithLedgerReadback({
-        ledger,
-        source: snapshot,
-        tenant_id,
-        domain_id: domain.descriptor.domain_id,
-      });
-      return [domain.key, Object.freeze({ snapshot, comparison })];
-    }).concat(additionalDefinitions.map(async (domain) => {
-      const snapshot = sources[domain.domain_id];
-      const comparison = await domain.compare({
-        ledger,
-        source: snapshot,
-        tenant_id,
-        domain_id: domain.domain_id,
-      });
-      return [domain.key, Object.freeze({ snapshot, comparison })];
-    }))));
+    const flushes = Object.create(null);
+    await ledger.transactionMany({
+      tenant_id,
+      domain_ids: allDomainIds,
+    }, async (transactions) => {
+      for (const domain of definitions) {
+        const snapshot = sources[domain.descriptor.domain_id];
+        const comparison = await compareDomainSnapshotWithLedgerReadback({
+          ledger: transactions[domain.descriptor.domain_id],
+          source: snapshot,
+          tenant_id,
+          domain_id: domain.descriptor.domain_id,
+        });
+        flushes[domain.key] = Object.freeze({ snapshot, comparison });
+      }
+      for (const domain of additionalDefinitions) {
+        const snapshot = sources[domain.domain_id];
+        const comparison = await domain.compare({
+          ledger: transactions[domain.domain_id],
+          source: snapshot,
+          tenant_id,
+          domain_id: domain.domain_id,
+        });
+        flushes[domain.key] = Object.freeze({ snapshot, comparison });
+      }
+    });
     return Object.freeze({ result, flushes: Object.freeze(flushes) });
   } finally {
     for (const repository of Object.values(repositories)) repository.close?.();
     for (const domain of additionalDefinitions) {
-      await domain.close({ value: additionalValues[domain.key], tenant_id });
+      if (Object.hasOwn(additionalValues, domain.key)) {
+        await domain.close({ value: additionalValues[domain.key], tenant_id });
+      }
     }
   }
 }

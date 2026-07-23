@@ -1,7 +1,7 @@
 const ROLE_NAME = "lawos_app";
 const SYNTHETIC_TENANT_PATTERN = /^tenant_lawos_staging_[a-z0-9_-]+$/u;
-const LEGACY_CONNECTION_LIMIT = 20;
-export const LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT = 21;
+const LEGACY_CONNECTION_LIMITS = new Set([20, 21]);
+export const LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT = 64;
 
 const GRANTS = Object.freeze([
   "GRANT USAGE ON SCHEMA lawos_meta TO lawos_app",
@@ -104,7 +104,7 @@ export async function configureLawosApplicationRole(client, {
           safe_error_code: "POSTGRES_APPLICATION_ROLE_DRIFT",
         });
       }
-      if (current.rolconnlimit === LEGACY_CONNECTION_LIMIT) {
+      if (LEGACY_CONNECTION_LIMITS.has(current.rolconnlimit)) {
         await client.query(`ALTER ROLE ${ROLE_NAME} CONNECTION LIMIT ${LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT}`);
         connectionLimitMigrated = true;
       } else if (current.rolconnlimit !== LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT) {

@@ -12,6 +12,7 @@ export const LAWOS_POSTGRES_URL_SECRET_ID_ENV = "LAWOS_POSTGRES_URL_SECRET_ID";
 export const LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ENV = "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET";
 export const LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID_ENV = "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID";
 export const LAWOS_POSTGRES_SSL_MODE_ENV = "LAWOS_POSTGRES_SSL_MODE";
+export const LAWOS_POSTGRES_API_POOL_MAX = 1;
 export const LAWOS_PERSISTENCE_AUTHORITIES = Object.freeze({
   fileCurrent: "file-current",
   postgresV2: "postgres-v2",
@@ -58,6 +59,7 @@ async function defaultConnectPostgres({ connectionString, sslMode, tenantContext
     allowInsecureLocal: sslMode === "disable" && local,
     applicationName: "law-firm-os-api-authority-preflight",
     tenantContextSecret,
+    max: LAWOS_POSTGRES_API_POOL_MAX,
   });
   return pool;
 }
