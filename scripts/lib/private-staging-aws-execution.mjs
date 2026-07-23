@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { PRIVATE_STAGING_ACCOUNT_ID, PRIVATE_STAGING_REGION } from "./private-staging-contract.mjs";
 import {
   PRIVATE_STAGING_EXECUTION_RECEIPT_SCHEMA,
+  projectPrivateStagingReceiptClaims,
   projectPrivateStagingReceiptSafeCounts,
   validatePrivateStagingExecutionReceipt,
 } from "./private-staging-execution-receipt.mjs";
@@ -342,13 +343,13 @@ export function buildPrivateStagingExecutionReceipt({
     artifact_sha256: packet.artifact_sha256,
     safe_counts: projectPrivateStagingReceiptSafeCounts(safeCounts),
     digests,
-    claims: {
+    claims: projectPrivateStagingReceiptClaims({
       secret_material_returned: false,
       raw_pii_returned: false,
       production_contacted: false,
       real_data_contacted: false,
       ...claims,
-    },
+    }),
     blockers: [],
   };
   validatePrivateStagingExecutionReceipt(receipt);

@@ -7,6 +7,7 @@ import {
   PRIVATE_STAGING_REQUIRED_RECEIPT_KINDS,
   privateStagingRequiredReceiptKinds,
   privateStagingReceiptSignerScope,
+  projectPrivateStagingReceiptClaims,
   projectPrivateStagingReceiptSafeCounts,
   resolvePrivateStagingReceiptSigner,
   validatePrivateStagingExecutionReceipt,
@@ -127,6 +128,36 @@ test("receipt projection preserves numeric setup evidence under a non-sensitive 
   const secretNamedAlertCount = receipt();
   secretNamedAlertCount.safe_counts = { open_secret_alert_count: 0, real_data_count: 0 };
   assert.throws(() => validatePrivateStagingExecutionReceipt(secretNamedAlertCount), /sensitive field name/u);
+});
+
+test("receipt claim projection preserves internal authority evidence under a non-sensitive boolean name", () => {
+  assert.deepEqual(projectPrivateStagingReceiptClaims({
+    ...receipt().claims,
+    internal_password_authority_verified: true,
+  }), {
+    ...receipt().claims,
+    internal_identity_authority_verified: true,
+  });
+  assert.throws(() => projectPrivateStagingReceiptClaims({
+    ...receipt().claims,
+    internal_password_authority_verified: true,
+    internal_identity_authority_verified: true,
+  }), /collides/u);
+
+  const legacyName = receipt();
+  legacyName.claims.internal_password_authority_verified = true;
+  assert.throws(() => validatePrivateStagingExecutionReceipt(legacyName), /sensitive material/u);
+
+  for (const field of ["password", "passphrase", "token", "authorization", "credential", "secret", "private_key"]) {
+    assert.throws(() => projectPrivateStagingReceiptClaims({
+      ...receipt().claims,
+      [field]: "material",
+    }), /sensitive material/u);
+  }
+
+  const projected = receipt();
+  projected.claims.internal_identity_authority_verified = true;
+  assert.equal(validatePrivateStagingExecutionReceipt(projected).valid, true);
 });
 
 test("execution receipt verifies detached Ed25519 signature", () => {

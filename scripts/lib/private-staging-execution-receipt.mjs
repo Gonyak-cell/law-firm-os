@@ -129,6 +129,23 @@ export function projectPrivateStagingReceiptSafeCounts(value) {
   return Object.freeze(projected);
 }
 
+export function projectPrivateStagingReceiptClaims(value) {
+  if (!isRecord(value) || Object.keys(value).length === 0) fail("claims projection requires a non-empty object");
+  const projected = {};
+  const projectedKeys = {
+    internal_password_authority_verified: "internal_identity_authority_verified",
+  };
+  for (const [key, claim] of Object.entries(value)) {
+    const projectedKey = projectedKeys[key] ?? key;
+    if (Object.hasOwn(projected, projectedKey) || (projectedKey !== key && Object.hasOwn(value, projectedKey))) {
+      fail(`claims projection collides at ${projectedKey}`);
+    }
+    projected[projectedKey] = claim;
+  }
+  validateClaims(projected);
+  return Object.freeze(projected);
+}
+
 export function privateStagingRequiredReceiptKinds(profile = "complete") {
   if (profile === "complete") return PRIVATE_STAGING_REQUIRED_RECEIPT_KINDS;
   if (profile === "pre-suite") return PRIVATE_STAGING_PRE_SUITE_RECEIPT_KINDS;
