@@ -5,6 +5,9 @@ import {
   createJsonPostgresSourceReadPacket,
 } from "../packages/persistence/src/postgres/source-read-contract.js";
 import {
+  deriveJsonPostgresInventoryContentSha256,
+} from "../packages/persistence/src/postgres/source-inventory.js";
+import {
   createPrivateProgramOutputDirectory,
   readPrivateProgramJson,
   writePrivateProgramJson,
@@ -42,11 +45,12 @@ if (git("status", "--porcelain=v1", "--untracked-files=all")) {
 const sourceSha = git("rev-parse", "HEAD");
 const sourceTree = git("rev-parse", "HEAD^{tree}");
 const inventory = readPrivateProgramJson(option("--inventory"), "safe source inventory");
+const inventoryContentSha256 = deriveJsonPostgresInventoryContentSha256(inventory);
 const created = createJsonPostgresSourceReadPacket({
   packetId: option("--packet-id"),
   sourceSha,
   sourceTree,
-  inventoryContentSha256: inventory.inventory_content_sha256,
+  inventoryContentSha256,
   approvedRootRefs: repeated("--approved-root"),
 });
 const outputDir = createPrivateProgramOutputDirectory(option("--output-dir"));
@@ -60,7 +64,7 @@ const summary = writePrivateProgramJson(
     schema_version: "law-firm-os.json-postgres-source-read-packet-summary.v1",
     source_sha: sourceSha,
     source_tree: sourceTree,
-    inventory_content_sha256: inventory.inventory_content_sha256,
+    inventory_content_sha256: inventoryContentSha256,
     inventory_delta_policy_sha256: created.packet.inventory_delta_policy_sha256,
     packet_sha256: created.packet_sha256,
     approved_root_refs: created.packet.approved_root_refs,

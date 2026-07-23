@@ -61,6 +61,68 @@ function stableJson(value) {
   return JSON.stringify(value);
 }
 
+function inventoryContentMaterial(inventory) {
+  if (!inventory || typeof inventory !== "object" || Array.isArray(inventory)
+    || inventory.schema_version !== JSON_POSTGRES_SOURCE_INVENTORY_VERSION) {
+    throw new TypeError("source inventory is invalid");
+  }
+  const {
+    inventory_sha256: ignoredInventorySha256,
+    inventory_content_sha256: ignoredContentSha256,
+    ...report
+  } = inventory;
+  const normalizedFields = new Map();
+  for (const field of report.field_contract?.fields ?? []) {
+    if (!field || typeof field !== "object" || Array.isArray(field)) {
+      throw new TypeError("source inventory field contract is invalid");
+    }
+    const disposition = SAFE_CREDENTIAL_METADATA.has(field.field_name)
+      && field.disposition === "secret-excluded"
+      ? "postgres-live"
+      : field.disposition;
+    if (!JSON_POSTGRES_FIELD_DISPOSITIONS.includes(disposition)) {
+      throw new TypeError("source inventory field disposition is invalid");
+    }
+    const normalized = { ...field, disposition };
+    normalizedFields.set(`${normalized.field_name}:${normalized.disposition}`, normalized);
+  }
+  const fields = [...normalizedFields.values()].sort(
+    (left, right) => left.field_name.localeCompare(right.field_name)
+      || left.disposition.localeCompare(right.disposition),
+  );
+  const dispositionCounts = Object.fromEntries(JSON_POSTGRES_FIELD_DISPOSITIONS.map((disposition) => [
+    disposition,
+    fields.filter((field) => field.disposition === disposition).length,
+  ]));
+  return {
+    ...report,
+    generated_at: null,
+    field_contract: {
+      ...report.field_contract,
+      field_count: fields.length,
+      disposition_counts: dispositionCounts,
+      fields,
+    },
+  };
+}
+
+export function deriveJsonPostgresInventoryContentSha256(inventory) {
+  const {
+    inventory_sha256: inventorySha256,
+    inventory_content_sha256: inventoryContentSha256,
+    ...report
+  } = inventory ?? {};
+  if (!/^[0-9a-f]{64}$/u.test(inventorySha256 ?? "")
+    || sha256(stableJson(report)) !== inventorySha256) {
+    throw new TypeError("source inventory digest is invalid");
+  }
+  const digest = sha256(stableJson(inventoryContentMaterial(inventory)));
+  if (inventoryContentSha256 != null && inventoryContentSha256 !== digest) {
+    throw new TypeError("source inventory content digest is invalid");
+  }
+  return digest;
+}
+
 function modeString(mode) {
   return `0${(Number(mode) & 0o777).toString(8).padStart(3, "0")}`;
 }
@@ -460,10 +522,11 @@ export async function inventoryJsonPostgresSources({
       production_contacted: false,
     },
   };
-  const inventoryContent = { ...report, generated_at: null };
+  const inventorySha256 = sha256(stableJson(report));
+  const inventoryContentSha256 = sha256(stableJson(inventoryContentMaterial(report)));
   return Object.freeze({
     ...report,
-    inventory_sha256: sha256(stableJson(report)),
-    inventory_content_sha256: sha256(stableJson(inventoryContent)),
+    inventory_sha256: inventorySha256,
+    inventory_content_sha256: inventoryContentSha256,
   });
 }

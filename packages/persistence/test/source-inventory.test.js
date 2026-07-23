@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import {
+  deriveJsonPostgresInventoryContentSha256,
   JSON_POSTGRES_FIELD_DISPOSITIONS,
   JSON_POSTGRES_SOURCE_CLASSIFICATIONS,
   inventoryJsonPostgresSources,
@@ -16,6 +17,14 @@ import {
 
 function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
 }
 
 test("source inventory emits only safe metadata and classifies every field", async (t) => {
@@ -76,6 +85,46 @@ test("source inventory emits only safe metadata and classifies every field", asy
   });
   assert.notEqual(repeated.inventory_sha256, report.inventory_sha256);
   assert.equal(repeated.inventory_content_sha256, report.inventory_content_sha256);
+  assert.equal(deriveJsonPostgresInventoryContentSha256(report), report.inventory_content_sha256);
+
+  const {
+    inventory_sha256: ignoredInventorySha256,
+    inventory_content_sha256: ignoredContentSha256,
+    ...legacyReport
+  } = report;
+  legacyReport.field_contract = {
+    ...legacyReport.field_contract,
+    disposition_counts: Object.fromEntries(
+      Object.entries(legacyReport.field_contract.disposition_counts)
+        .filter(([key]) => ![
+          "postgres-specialized-identity",
+          "s3-dms-byte-object",
+          "rejected-with-reason",
+        ].includes(key)),
+    ),
+    fields: legacyReport.field_contract.fields.map((field) => (
+      ["credential_provider", "credential_status", "credential_rev"].includes(field.field_name)
+        ? { ...field, disposition: "secret-excluded" }
+        : field
+    )),
+  };
+  legacyReport.field_contract.disposition_counts["postgres-live"] -= 3;
+  legacyReport.field_contract.disposition_counts["secret-excluded"] += 3;
+  const legacyInventory = {
+    ...legacyReport,
+    inventory_sha256: sha256(stableJson(legacyReport)),
+  };
+  assert.equal(
+    deriveJsonPostgresInventoryContentSha256(legacyInventory),
+    report.inventory_content_sha256,
+  );
+  assert.throws(
+    () => deriveJsonPostgresInventoryContentSha256({
+      ...legacyInventory,
+      inventory_sha256: "0".repeat(64),
+    }),
+    /digest is invalid/u,
+  );
 });
 
 test("source inventory does not choose authority from mtime and records missing roots", async () => {
