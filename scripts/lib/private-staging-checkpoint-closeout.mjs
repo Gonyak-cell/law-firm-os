@@ -256,7 +256,19 @@ export function validatePrivateStagingCloseoutArtifactManifest(manifest, packet)
   if (!isRecord(manifest) || !isRecord(packet) || manifest.source_sha !== packet.source_sha || manifest.source_tree !== packet.source_tree || manifest.artifact_sha256 !== packet.artifact_sha256) {
     fail("closeout artifact manifest exact binding failed");
   }
-  if (manifest.artifact_sha256 !== PRIVATE_STAGING_CLOSEOUT_CHECKPOINT.artifact_sha256 || manifest.artifact_entries_sha256 !== PRIVATE_STAGING_CLOSEOUT_CHECKPOINT.artifact_entries_sha256 || manifest.artifact_runtime_store_entry_count !== 0 || manifest.artifact_real_json_store_count !== 0) {
+  if (
+    manifest.artifact_entry_count !== 4_895
+    || manifest.artifact_entries_sha256 !== PRIVATE_STAGING_CLOSEOUT_CHECKPOINT.artifact_entries_sha256
+    || manifest.artifact_runtime_store_entry_count !== 0
+    || manifest.artifact_real_json_store_count !== 0
+    || manifest.runtime !== "nodejs22.x"
+    || manifest.data_scope !== "synthetic-only"
+    || manifest.real_identity_match_count !== 0
+    || manifest.real_client_candidate_count !== 0
+    || manifest.json_fallback !== false
+    || manifest.dual_write !== false
+    || manifest.secrets_in_environment !== false
+  ) {
     fail("closeout artifact changed a runtime dependency or introduced a runtime store");
   }
   for (const digest of [packet.packet_sha256, packet.artifact_sha256, manifest.artifact_entries_sha256]) if (!SHA256.test(digest ?? "")) fail("closeout artifact or packet digest is invalid");

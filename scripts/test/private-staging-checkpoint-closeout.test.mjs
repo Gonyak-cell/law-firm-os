@@ -55,16 +55,24 @@ test("rebind and artifact closeout require exact runtime-invariant bindings", ()
   const packet = {
     source_sha: "c".repeat(40),
     source_tree: "d".repeat(40),
-    artifact_sha256: PRIVATE_STAGING_CLOSEOUT_CHECKPOINT.artifact_sha256,
+    artifact_sha256: "a".repeat(64),
     packet_sha256: "e".repeat(64),
   };
   const manifest = {
     source_sha: packet.source_sha,
     source_tree: packet.source_tree,
     artifact_sha256: packet.artifact_sha256,
+    artifact_entry_count: 4_895,
     artifact_entries_sha256: PRIVATE_STAGING_CLOSEOUT_CHECKPOINT.artifact_entries_sha256,
     artifact_runtime_store_entry_count: 0,
     artifact_real_json_store_count: 0,
+    runtime: "nodejs22.x",
+    data_scope: "synthetic-only",
+    real_identity_match_count: 0,
+    real_client_candidate_count: 0,
+    json_fallback: false,
+    dual_write: false,
+    secrets_in_environment: false,
   };
   assert.equal(validatePrivateStagingCloseoutArtifactManifest(manifest, packet).runtime_dependency_change_count, 0);
   const summary = {
