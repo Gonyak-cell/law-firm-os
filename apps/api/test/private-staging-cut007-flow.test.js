@@ -243,7 +243,8 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
 
   const delivered = new Map();
   const storage = createLocalStorageAdapter({ adapter_id: "cut007-disposable-postgres" });
-  const identityRepository = createPostgresIdentityLedger({ pool: fixture.appPool });
+  let authClock = Date.parse("2026-07-20T00:00:00.000Z");
+  const identityRepository = createPostgresIdentityLedger({ pool: fixture.appPool, clock: () => authClock });
   const provisionedAdmin = await identityRepository.findDirectoryUserByEmail({ tenant_id: TENANTS[0], email: ACCOUNT_INPUTS[0].email });
   assert.ok(provisionedAdmin.scopes.includes("hrx.employee.read"));
   assert.ok(provisionedAdmin.hrx_scopes.includes("hrx.employee.read"));
@@ -253,6 +254,7 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
   let activeSessionAuth = null;
   let activeTransport = null;
   let gatewayCapacityFailureInjected = false;
+  const governanceWindows = [];
 
   const passwordResetEmailDelivery = async ({ to, token }) => {
     const queue = delivered.get(to) ?? [];
@@ -271,6 +273,7 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
       passwordResetTtlMs: 30,
       loginLockMs: 60_000,
       maxFailedLogins: 5,
+      now: () => authClock,
     });
   }
 
@@ -327,12 +330,19 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
   await start();
   t.after(stop);
   const executeFlow = (runId) => runPrivateStagingCut007({
-    transport: (request) => activeTransport(request),
+    transport: (request) => {
+      if (request.path === "/api/intake/clearance-tokens") {
+        governanceWindows.push({ clearance_expires_at: request.body?.token?.expires_at });
+      } else if (request.path?.endsWith("/retention-policies")) {
+        governanceWindows.at(-1).retain_until = request.body?.retain_until;
+      }
+      return activeTransport(request);
+    },
     accounts: ACCOUNT_INPUTS,
     tenantIds: TENANTS,
     runId,
     resetExpiryWaitMs: 45,
-    wait: (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
+    wait: async (milliseconds) => { authClock += milliseconds; },
     passwordFactory: (purpose) => `C7!Synthetic-${purpose}-Password-2026`,
     mailboxTokenProvider: async ({ email }) => {
       await activeSessionAuth.processPasswordResetQueue();
@@ -374,6 +384,10 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
   results.push(await executeFlow("cut007-disposable-full-flow-b"));
 
   assert.equal(gatewayCapacityFailureInjected, true);
+  assert.equal(governanceWindows.length, 2);
+  for (const window of governanceWindows) {
+    assert.ok(Date.parse(window.retain_until) - Date.parse(window.clearance_expires_at) >= 22 * 24 * 60 * 60 * 1000);
+  }
   assert.deepEqual(results.map((result) => result.safe_counts.capacity_retry_count), [1, 0]);
   for (const result of results) {
     assert.equal(result.outcome, "PASS");

@@ -10,6 +10,13 @@ function notFound() {
   return error;
 }
 
+function objectGovernanceUnset() {
+  const error = new Error("The specified object does not have an Object Lock configuration");
+  error.name = "NoSuchObjectLockConfiguration";
+  error.$metadata = { httpStatusCode: 404 };
+  return error;
+}
+
 function fakeS3Client({ failRetentionOnce = false } = {}) {
   const objects = new Map();
   let version = 0;
@@ -87,6 +94,7 @@ function fakeS3Client({ failRetentionOnce = false } = {}) {
       if (name === "GetObjectLegalHoldCommand") {
         const object = objects.get(input.Key);
         if (!object) throw notFound();
+        if (object.legalHold === "OFF") throw objectGovernanceUnset();
         return { LegalHold: { Status: object.legalHold } };
       }
       if (name === "PutObjectRetentionCommand") {
@@ -96,12 +104,21 @@ function fakeS3Client({ failRetentionOnce = false } = {}) {
         }
         const object = objects.get(input.Key);
         if (!object) throw notFound();
+        if (object.retention
+          && new Date(input.Retention.RetainUntilDate).getTime() < new Date(object.retention.RetainUntilDate).getTime()
+          && input.BypassGovernanceRetention !== true) {
+          const error = new Error("governance retention cannot be shortened without bypass authority");
+          error.name = "AccessDenied";
+          error.$metadata = { httpStatusCode: 403 };
+          throw error;
+        }
         object.retention = { ...input.Retention };
         return {};
       }
       if (name === "GetObjectRetentionCommand") {
         const object = objects.get(input.Key);
         if (!object) throw notFound();
+        if (!object.retention) throw objectGovernanceUnset();
         return { Retention: object.retention };
       }
       throw new Error(`unsupported fake S3 command: ${name}`);
@@ -173,6 +190,15 @@ test("S3 adapter round-trips provider legal hold and retention without accepting
   assert.throws(() => adapter({ access_key_id: "must-not-be-accepted" }), /credential_ref only/);
   const storage = adapter();
   await storage.putObject({ tenant_id: "tenant-a", object_id: "held-object", bytes: "held" });
+  assert.deepEqual(await storage.getObjectLegalHold({ tenant_id: "tenant-a", object_id: "held-object" }), {
+    status: "OFF",
+    version_id: "v2",
+  });
+  assert.deepEqual(await storage.getObjectRetention({ tenant_id: "tenant-a", object_id: "held-object" }), {
+    mode: null,
+    retain_until: null,
+    version_id: "v2",
+  });
   assert.equal((await storage.setObjectLegalHold({ tenant_id: "tenant-a", object_id: "held-object" })).status, "ON");
   assert.equal((await storage.getObjectLegalHold({ tenant_id: "tenant-a", object_id: "held-object" })).status, "ON");
   const retainUntil = "2026-08-01T00:00:00.000Z";
@@ -199,6 +225,12 @@ test("S3 adapter applies default retention only after commit so staged cleanup r
     version_id: committed.version_id,
   });
   assert.equal(await storage.statStagedObject(input), null);
+  await storage.setObjectRetention({
+    tenant_id: input.tenant_id,
+    object_id: input.object_id,
+    retain_until: "2026-08-20T00:00:00.000Z",
+  });
+  assert.equal((await storage.getObjectRetention({ tenant_id: input.tenant_id, object_id: input.object_id })).retain_until, "2026-08-20T00:00:00.000Z");
 });
 
 test("S3 adapter repairs retention before staged cleanup after a partial finalize failure", async () => {
@@ -220,4 +252,20 @@ test("S3 adapter repairs retention before staged cleanup after a partial finaliz
     version_id: committed.version_id,
   });
   assert.equal(await storage.statStagedObject(input), null);
+});
+
+test("S3 adapter repairs missing retention even when staged cleanup already occurred", async () => {
+  const client = fakeS3Client({ failRetentionOnce: true });
+  const storage = adapter({
+    client,
+    default_retention_days: 7,
+    clock: () => new Date("2026-07-20T00:00:00.000Z"),
+  });
+  const input = { tenant_id: "tenant-a", session_id: "session-cleanup-gap", object_id: "object-cleanup-gap", bytes: "retained" };
+  await storage.stageObject(input);
+  await assert.rejects(storage.finalizeObject(input), /synthetic retention failure/u);
+  await storage.deleteOrphan(input);
+  const committed = await storage.finalizeObject(input);
+  assert.equal(committed.default_retention_applied, true);
+  assert.equal((await storage.getObjectRetention({ tenant_id: input.tenant_id, object_id: input.object_id })).retain_until, "2026-07-27T00:00:00.000Z");
 });

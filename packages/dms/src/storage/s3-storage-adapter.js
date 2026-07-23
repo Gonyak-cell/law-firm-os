@@ -47,6 +47,12 @@ function isPreconditionFailed(error) {
   return error?.$metadata?.httpStatusCode === 412 || error?.name === "PreconditionFailed";
 }
 
+function isObjectGovernanceUnset(error) {
+  return error?.name === "NoSuchObjectLockConfiguration"
+    || error?.Code === "NoSuchObjectLockConfiguration"
+    || error?.code === "NoSuchObjectLockConfiguration";
+}
+
 function metadataFor({ tenantId, objectId, sha256, byteSize }) {
   return Object.freeze({
     "lawos-tenant-ref": sha256Hex(Buffer.from(tenantId)),
@@ -119,6 +125,31 @@ export function createS3StorageAdapter(config = {}) {
       if (isNotFound(error)) return null;
       throw error;
     }
+  }
+
+  async function ensureDefaultRetention(key, versionId) {
+    if (defaultRetentionDays == null) return false;
+    let retention = null;
+    try {
+      retention = await client.send(new GetObjectRetentionCommand({
+        ...common,
+        Key: key,
+        VersionId: versionId ?? undefined,
+      }));
+    } catch (error) {
+      if (!isObjectGovernanceUnset(error)) throw error;
+    }
+    if (retention?.Retention?.RetainUntilDate) return false;
+    const now = new Date(clock());
+    if (!Number.isFinite(now.getTime())) throw new TypeError("S3 adapter clock returned an invalid timestamp");
+    const retainUntil = new Date(now.getTime() + defaultRetentionDays * 24 * 60 * 60 * 1000);
+    await client.send(new PutObjectRetentionCommand({
+      ...common,
+      Key: key,
+      VersionId: versionId ?? undefined,
+      Retention: { Mode: "GOVERNANCE", RetainUntilDate: retainUntil },
+    }));
+    return true;
   }
 
   function receiptFromHead({ tenantId, sessionId, objectId, response }) {
@@ -206,7 +237,10 @@ export function createS3StorageAdapter(config = {}) {
     const staged = await read(stagedKey);
     if (!staged) {
       const committed = await statObject({ tenant_id: tenantId, object_id: objectId });
-      if (committed) return committed;
+      if (committed) {
+        const defaultRetentionApplied = await ensureDefaultRetention(committedKey, committed.version_id);
+        return Object.freeze({ ...committed, default_retention_applied: defaultRetentionApplied });
+      }
       throw codedError("staged object was not found", "DMS_STAGED_OBJECT_NOT_FOUND");
     }
     const current = await read(committedKey);
@@ -235,26 +269,7 @@ export function createS3StorageAdapter(config = {}) {
       }
       if (committed.sha256 !== staged.sha256) throw codedError("committed object has a different digest", "DMS_FINALIZE_CONFLICT");
     }
-    let defaultRetentionApplied = false;
-    if (defaultRetentionDays != null) {
-      const retention = await client.send(new GetObjectRetentionCommand({
-        ...common,
-        Key: committedKey,
-        VersionId: committed.response.VersionId,
-      }));
-      if (!retention.Retention?.RetainUntilDate) {
-        const now = new Date(clock());
-        if (!Number.isFinite(now.getTime())) throw new TypeError("S3 adapter clock returned an invalid timestamp");
-        const retainUntil = new Date(now.getTime() + defaultRetentionDays * 24 * 60 * 60 * 1000);
-        await client.send(new PutObjectRetentionCommand({
-          ...common,
-          Key: committedKey,
-          VersionId: committed.response.VersionId,
-          Retention: { Mode: "GOVERNANCE", RetainUntilDate: retainUntil },
-        }));
-        defaultRetentionApplied = true;
-      }
-    }
+    const defaultRetentionApplied = await ensureDefaultRetention(committedKey, committed.response.VersionId);
     await client.send(new DeleteObjectCommand({
       ...common,
       Key: stagedKey,
@@ -335,12 +350,17 @@ export function createS3StorageAdapter(config = {}) {
     const tenantId = assertTenantId(tenant_id);
     const objectId = requireString(object_id, "object_id");
     const current = await currentVersion({ tenant_id: tenantId, object_id: objectId });
-    const response = await client.send(new GetObjectLegalHoldCommand({
-      ...common,
-      Key: keyFor({ tenant_id: tenantId, object_id: objectId }),
-      VersionId: current.version_id ?? undefined,
-    }));
-    return Object.freeze({ status: response.LegalHold?.Status ?? "OFF", version_id: current.version_id });
+    let response = null;
+    try {
+      response = await client.send(new GetObjectLegalHoldCommand({
+        ...common,
+        Key: keyFor({ tenant_id: tenantId, object_id: objectId }),
+        VersionId: current.version_id ?? undefined,
+      }));
+    } catch (error) {
+      if (!isObjectGovernanceUnset(error)) throw error;
+    }
+    return Object.freeze({ status: response?.LegalHold?.Status ?? "OFF", version_id: current.version_id });
   }
 
   async function setObjectRetention({ tenant_id, object_id, retain_until, mode = "GOVERNANCE" } = {}) {
@@ -366,14 +386,19 @@ export function createS3StorageAdapter(config = {}) {
     const tenantId = assertTenantId(tenant_id);
     const objectId = requireString(object_id, "object_id");
     const current = await currentVersion({ tenant_id: tenantId, object_id: objectId });
-    const response = await client.send(new GetObjectRetentionCommand({
-      ...common,
-      Key: keyFor({ tenant_id: tenantId, object_id: objectId }),
-      VersionId: current.version_id ?? undefined,
-    }));
+    let response = null;
+    try {
+      response = await client.send(new GetObjectRetentionCommand({
+        ...common,
+        Key: keyFor({ tenant_id: tenantId, object_id: objectId }),
+        VersionId: current.version_id ?? undefined,
+      }));
+    } catch (error) {
+      if (!isObjectGovernanceUnset(error)) throw error;
+    }
     return Object.freeze({
-      mode: response.Retention?.Mode ?? null,
-      retain_until: response.Retention?.RetainUntilDate?.toISOString?.() ?? null,
+      mode: response?.Retention?.Mode ?? null,
+      retain_until: response?.Retention?.RetainUntilDate?.toISOString?.() ?? null,
       version_id: current.version_id,
     });
   }

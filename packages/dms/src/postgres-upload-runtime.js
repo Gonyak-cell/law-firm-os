@@ -651,13 +651,11 @@ export function createPostgresDmsUploadRuntime({
           if (committed) {
             assertReceiptMatchesSession(committed, session);
             await assertIndependentDigest(session, { staged: false });
-            receipt = committed;
             replayed = true;
-          } else {
-            receipt = await storage.finalizeObject({ tenant_id: session.tenant_id, session_id: session.session_id, object_id: session.object_id });
-            assertReceiptMatchesSession(receipt, session);
-            await assertIndependentDigest(session, { staged: false });
           }
+          receipt = await storage.finalizeObject({ tenant_id: session.tenant_id, session_id: session.session_id, object_id: session.object_id });
+          assertReceiptMatchesSession(receipt, session);
+          await assertIndependentDigest(session, { staged: false });
           faultInjector?.("after_provider_finalize_before_receipt_persist", { session_id: session.session_id });
           session = await persistProviderFinalized(session, claim.leaseToken, receipt);
         } catch (error) {

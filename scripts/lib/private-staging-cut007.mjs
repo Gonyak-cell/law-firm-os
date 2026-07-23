@@ -755,6 +755,7 @@ export async function runPrivateStagingCut007({
     audit_hint_ref: "cut007-dms-governance-audit",
     object_id: `object:${versionIds[0]}`,
   };
+  const retainUntil = new Date(now() + 30 * 24 * 60 * 60 * 1000).toISOString();
   const hold = await request("dms-legal-hold", 201, {
     method: "POST",
     path: `/api/vault/documents/${encodeURIComponent(documentIds[0])}/legal-holds`,
@@ -766,7 +767,7 @@ export async function runPrivateStagingCut007({
     method: "POST",
     path: `/api/vault/documents/${encodeURIComponent(documentIds[0])}/retention-policies`,
     token: adminToken,
-    body: { ...governanceBase, retention_policy_id: `retention-cut007-${suffix}`, retain_until: expiresAt },
+    body: { ...governanceBase, retention_policy_id: `retention-cut007-${suffix}`, retain_until: retainUntil },
   });
   invariant(retention.body.item != null, "dms-retention", "retention policy is missing", retention);
   const heldDelete = await request("dms-held-delete-denied", 409, {

@@ -212,6 +212,35 @@ test("DMS-07 provider finalize failure leaves public metadata, current pointer, 
   assert.equal(await runtime.getDocumentState({ tenant_id: TENANT, document_id: session.document_id }), null);
 });
 
+test("DMS-07 provider retry re-enters idempotent finalize to repair post-commit governance", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const base = createLocalStorageAdapter({ adapter_id: "provider-governance-repair" });
+  let finalizeCalls = 0;
+  let governanceRepaired = false;
+  const storage = Object.freeze({
+    ...base,
+    finalizeObject(input) {
+      finalizeCalls += 1;
+      const receipt = base.finalizeObject(input);
+      if (finalizeCalls === 1) throw new Error("synthetic post-commit governance gap");
+      governanceRepaired = true;
+      return receipt;
+    },
+  });
+  const runtime = createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage, clock: () => new Date(NOW) });
+  const session = input("provider-governance-repair", { adapter_id: storage.adapter_id });
+  await runtime.createUploadSession(session);
+  await runtime.stageUpload({ tenant_id: TENANT, session_id: session.session_id, bytes: BYTES });
+  await assert.rejects(runtime.finalizeUpload({ tenant_id: TENANT, session_id: session.session_id }), /governance gap/u);
+  assert.notEqual(base.statObject({ tenant_id: TENANT, object_id: session.object_id }), null);
+  assert.equal(await runtime.getDocumentState({ tenant_id: TENANT, document_id: session.document_id }), null);
+  const finalized = await runtime.finalizeUpload({ tenant_id: TENANT, session_id: session.session_id });
+  assert.equal(finalized.session.state, "finalized");
+  assert.equal(finalizeCalls, 2);
+  assert.equal(governanceRepaired, true);
+});
+
 function createCorruptingStorage() {
   const staged = new Map();
   const committed = new Map();
