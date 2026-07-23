@@ -226,7 +226,9 @@ export async function runPrivateStagingForestBrowserSmoke({
       const response = await fetch(`/api/matters/${encodeURIComponent(matterId)}?tenant_id=tenant_lawos_staging_cut007_a&permission_ref=cut007-browser-permission&audit_hint_ref=cut007-browser-audit`, {
         headers: { authorization: `Bearer ${stored.session_token ?? ""}` },
       });
-      return response.ok;
+      const visible = response.ok;
+      await response.arrayBuffer();
+      return visible;
     }, expected.matter_id);
     await waitForApiIdle(pendingApiRequests);
     if (!visibleSyntheticMatter) fail("browser session could not read the synthetic CUT-007 matter");

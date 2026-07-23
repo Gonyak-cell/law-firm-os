@@ -10,6 +10,7 @@ class FakePage {
     this.handlers = new Map();
     this.responseStatus = responseStatus;
     this.requestsPerNavigation = requestsPerNavigation;
+    this.matterProbeResponseConsumed = false;
   }
   on(name, handler) { this.handlers.set(name, handler); }
   async goto() {
@@ -31,13 +32,31 @@ class FakePage {
   }
   locator() { return { fill: async () => {}, click: async () => {} }; }
   async waitForSelector() {}
-  async evaluate(fn, value) { return value ? true : true; }
+  async evaluate(fn, value) {
+    if (!value) return true;
+    const previousSessionStorage = globalThis.sessionStorage;
+    const previousFetch = globalThis.fetch;
+    globalThis.sessionStorage = { getItem: () => JSON.stringify({ session_token: "synthetic-session" }) };
+    globalThis.fetch = async () => ({
+      ok: true,
+      arrayBuffer: async () => { this.matterProbeResponseConsumed = true; },
+    });
+    try {
+      return await fn(value);
+    } finally {
+      if (previousSessionStorage === undefined) delete globalThis.sessionStorage;
+      else globalThis.sessionStorage = previousSessionStorage;
+      globalThis.fetch = previousFetch;
+    }
+  }
   async screenshot({ path }) { writeFileSync(path, "synthetic-browser-evidence"); }
 }
 
-function fakeLaunchBrowser(responseStatus = null, requestsPerNavigation = 1) {
+function fakeLaunchBrowser(responseStatus = null, requestsPerNavigation = 1, onPage = () => {}) {
+  const page = new FakePage(responseStatus, requestsPerNavigation);
+  onPage(page);
   return Promise.resolve({
-    newContext: async () => ({ newPage: async () => new FakePage(responseStatus, requestsPerNavigation) }),
+    newContext: async () => ({ newPage: async () => page }),
     close: async () => {},
   });
 }
@@ -45,6 +64,7 @@ function fakeLaunchBrowser(responseStatus = null, requestsPerNavigation = 1) {
 test("Forest browser smoke returns only safe synthetic counts and fingerprints", async () => {
   const evidenceDir = mkdtempSync(join(tmpdir(), "lawos-browser-smoke-"));
   chmodSync(evidenceDir, 0o700);
+  let page;
   const result = await runPrivateStagingForestBrowserSmoke({
     apiBaseUrl: "https://lawos-private-staging.example.invalid",
     webBaseUrl: "http://127.0.0.1:5173",
@@ -52,13 +72,14 @@ test("Forest browser smoke returns only safe synthetic counts and fingerprints",
     password: "Synthetic-only-password-123!",
     expected: { matter_id: "matter-cut007-synthetic" },
     evidenceDir,
-    launchBrowser: fakeLaunchBrowser,
+    launchBrowser: () => fakeLaunchBrowser(null, 1, (created) => { page = created; }),
   });
   assert.equal(result.outcome, "PASS");
   assert.equal(result.critical_flow_count, 7);
   assert.equal(result.screenshot_count, 5);
   assert.equal(result.api_request_count, 6);
   assert.equal(result.secret_material_returned, false);
+  assert.equal(page.matterProbeResponseConsumed, true);
   assert.match(result.evidence_fingerprint, /^[0-9a-f]{64}$/u);
   const diagnostics = JSON.parse(readFileSync(join(evidenceDir, "browser-diagnostics.json"), "utf8"));
   assert.equal(diagnostics.outcome, "PASS");
