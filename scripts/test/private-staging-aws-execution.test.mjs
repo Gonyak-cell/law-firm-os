@@ -267,8 +267,10 @@ test("execution receipt builder populates every strict W11 field", () => {
   const value = buildPrivateStagingExecutionReceipt({
     kind: "cut-006", keyId: "lawos-owner-ed25519-20260717", approvalId: "LAWOS-PRIVATE-STAGING-EXACT-HEAD-APPROVAL-20260720", packet,
     startedAt: "2026-07-20T00:00:00.000Z", finishedAt: "2026-07-20T00:01:00.000Z", command: "node scripts/run-private-staging-exact-head-execution.mjs --phase cut006 --private-inputs redacted", profile: "matter-staging-admin",
-    safeCounts: { zero_counter_count: 6, real_data_count: 0 }, digests: { cut_result_sha256: "e".repeat(64) }, claims: { cut_006_executed: true },
+    safeCounts: { zero_counter_count: 6, password_reset_count: 1, real_data_count: 0 }, digests: { cut_result_sha256: "e".repeat(64) }, claims: { cut_006_executed: true },
   });
   assert.equal(value.execution_state, "PASS");
   assert.equal(value.safe_counts.zero_counter_count, 6);
+  assert.equal(value.safe_counts.credential_setup_count, 1);
+  assert.equal(Object.hasOwn(value.safe_counts, "password_reset_count"), false);
 });

@@ -1,6 +1,10 @@
 import { createHash } from "node:crypto";
 import { PRIVATE_STAGING_ACCOUNT_ID, PRIVATE_STAGING_REGION } from "./private-staging-contract.mjs";
-import { PRIVATE_STAGING_EXECUTION_RECEIPT_SCHEMA, validatePrivateStagingExecutionReceipt } from "./private-staging-execution-receipt.mjs";
+import {
+  PRIVATE_STAGING_EXECUTION_RECEIPT_SCHEMA,
+  projectPrivateStagingReceiptSafeCounts,
+  validatePrivateStagingExecutionReceipt,
+} from "./private-staging-execution-receipt.mjs";
 
 const SHA1 = /^[0-9a-f]{40}$/u;
 const SHA256 = /^[0-9a-f]{64}$/u;
@@ -336,7 +340,7 @@ export function buildPrivateStagingExecutionReceipt({
     source_sha: packet.source_sha,
     source_tree: packet.source_tree,
     artifact_sha256: packet.artifact_sha256,
-    safe_counts: safeCounts,
+    safe_counts: projectPrivateStagingReceiptSafeCounts(safeCounts),
     digests,
     claims: {
       secret_material_returned: false,

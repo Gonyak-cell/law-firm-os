@@ -3,16 +3,17 @@ import { createHash } from "node:crypto";
 import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import {
-  PRIVATE_STAGING_REQUIRED_RECEIPT_KINDS,
+  privateStagingRequiredReceiptKinds,
   privateStagingReceiptSignerScope,
   resolvePrivateStagingReceiptSigner,
   validatePrivateStagingReceiptSet,
   verifyPrivateStagingExecutionReceipt,
 } from "./lib/private-staging-execution-receipt.mjs";
 
-function option(name) {
+function option(name, fallback = null) {
   const index = process.argv.indexOf(name);
-  const value = index === -1 ? null : process.argv[index + 1];
+  if (index === -1) return fallback;
+  const value = process.argv[index + 1];
   if (!value || value.startsWith("--")) throw new TypeError(`${name} is required`);
   return value;
 }
@@ -35,13 +36,14 @@ const registryPath = privatePath(option("--registry"), "owner trust registry", "
 const registryBytes = readFileSync(registryPath);
 if (sha256(registryBytes) !== option("--registry-sha256")) throw new Error("owner trust registry digest mismatch");
 const registry = JSON.parse(registryBytes);
+const requiredKinds = privateStagingRequiredReceiptKinds(option("--required-kinds-profile", "complete"));
 const expected = {
   sourceSha: option("--source-sha"),
   sourceTree: option("--source-tree"),
   artifactSha256: option("--artifact-sha256"),
   ownerInstructionSha256: option("--owner-instruction-sha256"),
   approvalId: option("--approval-id"),
-  requiredKinds: PRIVATE_STAGING_REQUIRED_RECEIPT_KINDS,
+  requiredKinds,
 };
 const files = readdirSync(receiptDir).filter((name) => name.endsWith(".json")).sort();
 const receipts = [];
@@ -62,11 +64,12 @@ for (const name of files) {
   receipts.push(receipt);
 }
 const result = validatePrivateStagingReceiptSet(receipts, expected);
+if (receipts.length !== requiredKinds.length) throw new Error("receipt directory contains kinds outside the selected profile");
 if (result.pass_count !== result.receipt_count) throw new Error("one or more required receipts is not PASS");
 process.stdout.write(`${JSON.stringify({
   verdict: "PASS",
   ...result,
-  required_receipt_count: PRIVATE_STAGING_REQUIRED_RECEIPT_KINDS.length,
+  required_receipt_count: requiredKinds.length,
   signature_valid_count: receipts.length,
   source_sha: expected.sourceSha,
   source_tree: expected.sourceTree,

@@ -21,6 +21,17 @@ export const PRIVATE_STAGING_REQUIRED_RECEIPT_KINDS = Object.freeze([
   "cut-006",
   "cut-007",
 ]);
+export const PRIVATE_STAGING_PRE_SUITE_RECEIPT_KINDS = Object.freeze([
+  "exact-head-ci",
+  "security-review",
+  "infrastructure-deployment",
+  "database-bootstrap",
+  "cost-verification",
+  "protected-resource-non-interference",
+  "cut-005",
+  "cut-006",
+  "cut-007",
+]);
 const PRIVATE_STAGING_RECEIPT_ACTION = "lawos-private-staging-exact-head-execution";
 const SOURCE_LOCAL_RECEIPT_KINDS = new Set(["source-baseline", "local-postgres-validation"]);
 
@@ -31,7 +42,8 @@ const SAFE_KEY = /^[a-z][a-z0-9_]{1,95}$/u;
 const ALLOWED_EXECUTION_STATES = new Set(["PASS", "BLOCKED_EXTERNAL", "FAIL"]);
 const ALLOWED_DATA_SCOPES = new Set(["none", "synthetic-only"]);
 const ALLOWED_CONTACT_SCOPES = new Set(["none", "synthetic-mailbox-only"]);
-const FORBIDDEN_KEY = /(?:^|_)(?:password|passphrase|token|authorization|api_key|client_secret|private_key|document_bytes|content_base64)(?:_|$)/iu;
+const FORBIDDEN_KEY = /(?:^|_)(?:password|passphrase|token|authorization|credential|secret|api_key|client_secret|private_key|document_bytes|content_base64)(?:_|$)/iu;
+const FORBIDDEN_SAFE_COUNT_KEY = /(?:^|_)(?:password|passphrase|token|authorization|credential|secret|api_key|client_secret|private_key|document_bytes|content_base64)(?:_|$)/iu;
 const FORBIDDEN_TEXT = /(?:-----BEGIN (?:PRIVATE KEY|OPENSSH PRIVATE KEY)-----|\bBearer\s+[A-Za-z0-9._~+/=-]+|[A-Z0-9._%+-]+@(?!example\.invalid\b)[A-Z0-9.-]+\.[A-Z]{2,})/iu;
 
 function fail(message) {
@@ -80,6 +92,10 @@ function assertSafeValue(value, path = "receipt") {
     return;
   }
   if (!isRecord(value)) fail(`${path} contains an unsupported value`);
+  if (path === "receipt.safe_counts") {
+    validateSafeCounts(value);
+    return;
+  }
   for (const [key, entry] of Object.entries(value)) {
     if (!SAFE_KEY.test(key)) fail(`${path}.${key} uses an unsafe field name`);
     if (FORBIDDEN_KEY.test(key) && entry !== false && entry !== 0 && entry !== null) fail(`${path}.${key} may not carry sensitive material`);
@@ -91,7 +107,28 @@ function validateSafeCounts(value) {
   if (!isRecord(value) || Object.keys(value).length === 0) fail("safe_counts must be a non-empty object");
   for (const [key, count] of Object.entries(value)) {
     if (!SAFE_KEY.test(key) || typeof count !== "number" || !Number.isFinite(count) || count < 0) fail(`safe_counts.${key} must be a finite non-negative number`);
+    if (key !== "credential_setup_count" && FORBIDDEN_SAFE_COUNT_KEY.test(key)) fail(`safe_counts.${key} uses a sensitive field name`);
   }
+}
+
+export function projectPrivateStagingReceiptSafeCounts(value) {
+  if (!isRecord(value) || Object.keys(value).length === 0) fail("safe_counts projection requires a non-empty object");
+  const projected = {};
+  for (const [key, count] of Object.entries(value)) {
+    const projectedKey = key === "password_reset_count" ? "credential_setup_count" : key;
+    if (Object.hasOwn(projected, projectedKey) || (projectedKey !== key && Object.hasOwn(value, projectedKey))) {
+      fail(`safe_counts projection collides at ${projectedKey}`);
+    }
+    projected[projectedKey] = count;
+  }
+  validateSafeCounts(projected);
+  return Object.freeze(projected);
+}
+
+export function privateStagingRequiredReceiptKinds(profile = "complete") {
+  if (profile === "complete") return PRIVATE_STAGING_REQUIRED_RECEIPT_KINDS;
+  if (profile === "pre-suite") return PRIVATE_STAGING_PRE_SUITE_RECEIPT_KINDS;
+  fail("receipt kind profile is invalid");
 }
 
 function validateDigests(value) {

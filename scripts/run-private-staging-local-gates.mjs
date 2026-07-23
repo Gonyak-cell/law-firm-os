@@ -188,6 +188,7 @@ const criticalTests = [
   "packages/runtime-auth/test/postgres-identity-directory.test.js",
   "scripts/test/private-staging-artifact.test.mjs",
   "scripts/test/private-staging-aws-execution.test.mjs",
+  "scripts/test/private-staging-checkpoint-closeout.test.mjs",
   "scripts/test/private-staging-browser-smoke.test.mjs",
   "scripts/test/private-staging-contract.test.mjs",
   "scripts/test/private-staging-exact-head-authority.test.mjs",

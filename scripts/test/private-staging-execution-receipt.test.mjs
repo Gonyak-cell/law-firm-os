@@ -3,8 +3,11 @@ import { generateKeyPairSync, sign } from "node:crypto";
 import test from "node:test";
 import { canonicalizeJson } from "../lib/runtime-safety-approval-contract.mjs";
 import {
+  PRIVATE_STAGING_PRE_SUITE_RECEIPT_KINDS,
   PRIVATE_STAGING_REQUIRED_RECEIPT_KINDS,
+  privateStagingRequiredReceiptKinds,
   privateStagingReceiptSignerScope,
+  projectPrivateStagingReceiptSafeCounts,
   resolvePrivateStagingReceiptSigner,
   validatePrivateStagingExecutionReceipt,
   validatePrivateStagingReceiptSet,
@@ -80,6 +83,36 @@ test("execution receipt rejects old free-form states, missing fields, and sensit
   const pii = receipt();
   pii.command = "node run.mjs --email person@amic.kr";
   assert.throws(() => validatePrivateStagingExecutionReceipt(pii), /non-synthetic email/u);
+
+  for (const field of ["password", "token", "credential", "secret"]) {
+    const sensitive = receipt();
+    sensitive.digests = { evidence_sha256: "e".repeat(64) };
+    sensitive.claims[field] = "material";
+    assert.throws(() => validatePrivateStagingExecutionReceipt(sensitive), /sensitive material/u);
+  }
+});
+
+test("receipt projection preserves numeric setup evidence under a non-sensitive count name", () => {
+  assert.deepEqual(projectPrivateStagingReceiptSafeCounts({
+    password_reset_count: 1,
+    real_data_count: 0,
+  }), {
+    credential_setup_count: 1,
+    real_data_count: 0,
+  });
+  assert.throws(() => projectPrivateStagingReceiptSafeCounts({
+    password_reset_count: 1,
+    credential_setup_count: 1,
+  }), /collides/u);
+  assert.throws(() => projectPrivateStagingReceiptSafeCounts({ password_reset_count: "1" }), /finite non-negative number/u);
+
+  const legacyName = receipt();
+  legacyName.safe_counts = { password_reset_count: 1, real_data_count: 0 };
+  assert.throws(() => validatePrivateStagingExecutionReceipt(legacyName), /sensitive field name/u);
+
+  const projected = receipt();
+  projected.safe_counts = { credential_setup_count: 1, real_data_count: 0 };
+  assert.equal(validatePrivateStagingExecutionReceipt(projected).valid, true);
 });
 
 test("execution receipt verifies detached Ed25519 signature", () => {
@@ -97,6 +130,17 @@ test("receipt set requires one unique receipt for every W11 kind", () => {
   assert.equal(validatePrivateStagingReceiptSet(receipts).receipt_count, PRIVATE_STAGING_REQUIRED_RECEIPT_KINDS.length);
   assert.throws(() => validatePrivateStagingReceiptSet(receipts.slice(1)), /missing required kinds/u);
   assert.throws(() => validatePrivateStagingReceiptSet([...receipts, receipt("cut-007")]), /duplicate/u);
+});
+
+test("receipt profiles separate nine pre-suite checkpoints from seven suite-derived receipts", () => {
+  assert.deepEqual(privateStagingRequiredReceiptKinds("pre-suite"), PRIVATE_STAGING_PRE_SUITE_RECEIPT_KINDS);
+  assert.equal(PRIVATE_STAGING_PRE_SUITE_RECEIPT_KINDS.length, 9);
+  assert.equal(privateStagingRequiredReceiptKinds("complete").length, 16);
+  assert.throws(() => privateStagingRequiredReceiptKinds("partial"), /profile/u);
+  const receipts = PRIVATE_STAGING_PRE_SUITE_RECEIPT_KINDS.map(receipt);
+  assert.equal(validatePrivateStagingReceiptSet(receipts, {
+    requiredKinds: privateStagingRequiredReceiptKinds("pre-suite"),
+  }).receipt_count, 9);
 });
 
 test("receipt signer must be a current registered Ed25519 owner key", () => {

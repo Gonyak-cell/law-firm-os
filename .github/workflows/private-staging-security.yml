@@ -52,6 +52,7 @@ jobs:
           packages/runtime-auth/test/*.test.js
           scripts/test/private-staging-artifact.test.mjs
           scripts/test/private-staging-aws-execution.test.mjs
+          scripts/test/private-staging-checkpoint-closeout.test.mjs
           scripts/test/private-staging-contract.test.mjs
           scripts/test/private-staging-execution-receipt.test.mjs
           scripts/test/private-staging-github-authority.test.mjs
