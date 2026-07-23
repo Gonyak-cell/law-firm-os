@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { createAnalyticsRepository } from "../../../packages/analytics/src/runtime-repository.js";
 import { stableJsonStringify } from "../../../packages/persistence/src/durable-file.js";
 
@@ -40,13 +41,18 @@ function validateState(state) {
 function hydrate(repository) {
   const decisionRows = repository.list({ model_type: DECISION_MODEL });
   const outboxRows = repository.list({ model_type: OUTBOX_MODEL });
-  const auditRows = repository.listAudit().filter((event) => event.owner_module === OWNER_MODULE);
+  const auditRows = repository.listAudit().filter((event) =>
+    event.owner_module === OWNER_MODULE || event.payload?.home_operational_event);
   const allRows = [...decisionRows, ...outboxRows, ...auditRows];
   const state = {
     schema_version: HOME_OPERATIONAL_STATE_SCHEMA_VERSION,
     state_version: allRows.reduce((maximum, row) => Math.max(maximum, row.commit_version ?? 0), 0),
     decisions: decisionRows.map((row) => clone(row.payload)),
-    audit_events: auditRows.map((row) => clone(row.payload)),
+    audit_events: auditRows.map((row) => clone(
+      row.payload?.home_operational_event
+        ? { ...row.payload.home_operational_event, raw_payload_included: false }
+        : row.payload,
+    )),
     outbox_events: outboxRows.map((row) => clone(row.payload)),
   };
   validateState(state);
@@ -101,11 +107,22 @@ export function createHomeDashboardOperationalState({ repository, filePath } = {
           }));
         }
         for (const event of next.audit_events.slice(state.audit_events.length)) {
+          const safeEvent = clone(event);
+          delete safeEvent.raw_payload_included;
           tx.appendAudit({
             event_id: `home:${event.audit_event_id}`,
             tenant_id: event.tenant_id,
+            action: event.action,
+            actor_id: event.actor_id,
+            object_type: event.object_type,
+            object_id: event.object_id,
             owner_module: OWNER_MODULE,
-            payload: clone(event),
+            payload: {
+              imported_event_hash: createHash("sha256").update(stableJsonStringify(event)).digest("hex"),
+              source_payload_included: false,
+              home_operational_event: clone(safeEvent),
+            },
+            created_at: event.created_at,
             commit_version: next.state_version,
             raw_payload_included: false,
             production_ready_claim: false,

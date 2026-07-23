@@ -67,7 +67,9 @@ const PRODUCT_DOMAINS = Object.freeze([
 const POSTGRES_READ_RETRY_LIMIT = 5;
 const POSTGRES_READ_RETRYABLE_CONFLICTS = new Set([
   "DOMAIN_BASELINE_CONFLICT",
+  "DOMAIN_SHADOW_DIFFERENCE",
   "HRX_POSTGRES_BASELINE_CONFLICT",
+  "REPOSITORY_VERSION_CONFLICT",
 ]);
 
 function requiredText(value, name) {
@@ -230,8 +232,9 @@ export function createPostgresApiRuntimeAuthority({ ledger, dmsStorage, dmsUploa
   async function run({ tenant_id, command, request_context = null } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
     if (typeof command !== "function") throw new TypeError("PostgreSQL API command callback is required");
+    const method = String(request_context?.method ?? "").toUpperCase();
     return runPostgresReadWithBaselineRetry({
-      method: request_context?.method,
+      method,
       execute: async () => {
         const productCommand = await runRecordRepositoryMultiDomainCommand({
           ledger,

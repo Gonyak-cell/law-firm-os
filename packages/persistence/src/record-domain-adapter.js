@@ -65,6 +65,42 @@ function recordIdentity(domainId, recordType, recordId) {
   return `${domainId}:${recordType}:${recordId}`;
 }
 
+function compareCommittedDomainSnapshotWithReadback(source, target) {
+  const recordKeys = new Set(source.records.map((record) =>
+    recordIdentity(source.domain_id, record.record_type, record.record_id)));
+  const idempotencyKeys = new Set(source.idempotency_entries.map((entry) => entry.key));
+  const auditEventIds = new Set(source.audit_events.map((event) => event.event_id));
+  const committedReadback = createDomainSnapshot({
+    tenant_id: target.tenant_id,
+    domain_id: target.domain_id,
+    records: target.records.filter((record) =>
+      recordKeys.has(recordIdentity(target.domain_id, record.record_type, record.record_id))),
+    idempotency_entries: target.idempotency_entries.filter((entry) => idempotencyKeys.has(entry.key)),
+    audit_events: target.audit_events.filter((event) => auditEventIds.has(event.event_id)),
+  });
+  return compareDomainSnapshots(source, committedReadback);
+}
+
+function compareDomainBaselineWithConcurrentReadback(expected, current) {
+  const expectedRecordKeys = new Set(expected.records.map((record) =>
+    recordIdentity(expected.domain_id, record.record_type, record.record_id)));
+  const unexpectedMutableRecords = current.records.filter((record) =>
+    !record.append_only
+    && !expectedRecordKeys.has(recordIdentity(current.domain_id, record.record_type, record.record_id)));
+  if (unexpectedMutableRecords.length > 0) {
+    return Object.freeze({
+      equal: false,
+      difference_count: unexpectedMutableRecords.length,
+      difference_fingerprint: hashDomainValue(unexpectedMutableRecords.map((record) => ({
+        record_type: record.record_type,
+        record_id: record.record_id,
+        state_version: record.state_version,
+      }))),
+    });
+  }
+  return compareCommittedDomainSnapshotWithReadback(expected, current);
+}
+
 export function applyCommittedStateVersions(source, baseline) {
   if (!baseline) return source;
   const priorByIdentity = new Map(baseline.records.map((record) => [
@@ -418,6 +454,8 @@ export async function flushDomainSnapshotToScopedLedger({
   const currentRecords = await tx.list();
   const currentIdempotency = await tx.listIdempotency();
   const currentAudit = await tx.listAudit();
+  const baselineRecordKeys = new Set((expected_baseline?.records ?? []).map((record) =>
+    recordIdentity(domainId, record.record_type, record.record_id)));
   if (expected_baseline) {
     const currentSnapshot = createDomainSnapshot({
       tenant_id,
@@ -426,7 +464,7 @@ export async function flushDomainSnapshotToScopedLedger({
       idempotency_entries: currentIdempotency,
       audit_events: currentAudit,
     });
-    const baselineComparison = compareDomainSnapshots(expected_baseline, currentSnapshot);
+    const baselineComparison = compareDomainBaselineWithConcurrentReadback(expected_baseline, currentSnapshot);
     if (!baselineComparison.equal) {
       throw Object.assign(new Error("domain unit-of-work baseline changed before commit"), {
         code: "LAWOS_DOMAIN_BASELINE_CONFLICT",
@@ -443,7 +481,8 @@ export async function flushDomainSnapshotToScopedLedger({
   ]));
   let changedRecordCount = 0;
   for (const record of source.records) {
-    const current = recordMap.get(recordIdentity(domainId, record.record_type, record.record_id));
+    const identity = recordIdentity(domainId, record.record_type, record.record_id);
+    const current = recordMap.get(identity);
     if (!current) {
       await tx.write({ ...record, expected_version: 0 });
       changedRecordCount += 1;
@@ -453,12 +492,20 @@ export async function flushDomainSnapshotToScopedLedger({
       || current.unique_key !== record.unique_key
       || current.append_only !== record.append_only
     ) {
+      if (!baselineRecordKeys.has(identity)) {
+        throw Object.assign(new Error("concurrent domain record conflicts with a new unit-of-work record"), {
+          code: "LAWOS_DOMAIN_BASELINE_CONFLICT",
+          safe_error_code: "DOMAIN_BASELINE_CONFLICT",
+          status: 409,
+        });
+      }
       await tx.write({ ...record, expected_version: current.state_version });
       changedRecordCount += 1;
     }
   }
   for (const record of source.records) await tx.addReferences(record);
-  if (currentRecords.some((record) => !source.records.some((candidate) =>
+  const deletionBaseline = expected_baseline?.records ?? currentRecords;
+  if (deletionBaseline.some((record) => !source.records.some((candidate) =>
     candidate.record_type === record.record_type && candidate.record_id === record.record_id))) {
     throw Object.assign(new Error("domain unit of work cannot silently delete records"), {
       code: "LAWOS_DOMAIN_DELETE_UNSUPPORTED",
@@ -526,7 +573,7 @@ export async function flushDomainSnapshotToScopedLedger({
     idempotency_entries: await tx.listIdempotency(),
     audit_events: await tx.listAudit(),
   });
-  const comparison = compareDomainSnapshots(source, target);
+  const comparison = compareCommittedDomainSnapshotWithReadback(source, target);
   if (!comparison.equal) {
     throw Object.assign(new Error("domain unit-of-work flush differs from PostgreSQL readback"), {
       code: "LAWOS_DOMAIN_SHADOW_DIFFERENCE",
@@ -554,7 +601,7 @@ export async function compareDomainSnapshotWithLedgerReadback({
     idempotency_entries: await ledger.listIdempotency(scope),
     audit_events: await ledger.listAudit(scope),
   });
-  const comparison = compareDomainSnapshots(source, target);
+  const comparison = compareCommittedDomainSnapshotWithReadback(source, target);
   if (!comparison.equal) {
     throw Object.assign(new Error("domain unit-of-work commit differs from PostgreSQL readback"), {
       code: "LAWOS_DOMAIN_SHADOW_DIFFERENCE",

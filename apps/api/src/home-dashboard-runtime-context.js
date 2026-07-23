@@ -1,5 +1,7 @@
+import { createHash } from "node:crypto";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
 import { createHomeDashboardOperationalState } from "./home-dashboard-operational-state.js";
+import { stableJsonStringify } from "../../../packages/persistence/src/durable-file.js";
 
 const NEWS_CACHE_MIN_MS = 15 * 60 * 1000;
 const NEWS_CACHE_MAX_MS = 30 * 60 * 1000;
@@ -205,6 +207,7 @@ function routeGate({ context, query, requestId, action, resourceType, runtime })
   });
   if (decision.effect === "allow") return null;
   appendAudit(runtime, {
+    request_id: requestId,
     tenant_id: query.tenant_id,
     actor_id: context?.principal?.user_id ?? null,
     action,
@@ -324,8 +327,19 @@ function reloadOperationalState(runtime) {
 
 function appendAudit(runtime, event = {}, { persist = true } = {}) {
   if (!runtime?.auditEvents) return null;
+  const requestId = String(event.request_id ?? "").trim();
+  const auditEventId = event.audit_event_id ?? (requestId
+    ? `home_audit_${createHash("sha256")
+      .update([
+        requestId,
+        event.action ?? "",
+        event.object_type ?? "",
+        event.object_id ?? "",
+      ].join("\x1f"))
+      .digest("hex")}`
+    : `home_audit_${runtime.auditEvents.length + 1}`);
   const auditEvent = Object.freeze({
-    audit_event_id: event.audit_event_id ?? `home_audit_${runtime.auditEvents.length + 1}`,
+    audit_event_id: auditEventId,
     tenant_id: event.tenant_id ?? null,
     actor_id: event.actor_id ?? null,
     action: event.action,
@@ -343,6 +357,18 @@ function appendAudit(runtime, event = {}, { persist = true } = {}) {
       full_body_storage_enabled: false,
     }),
   });
+  const existing = runtime.auditEvents.find((candidate) => candidate.audit_event_id === auditEventId);
+  if (existing) {
+    const comparable = ({ created_at: _createdAt, ...value }) => value;
+    if (stableJsonStringify(comparable(existing)) !== stableJsonStringify(comparable(auditEvent))) {
+      throw Object.assign(new Error("Home audit request occurrence was reused with different semantics"), {
+        code: "LAWOS_HOME_AUDIT_IDEMPOTENCY_CONFLICT",
+        safe_error_code: "HOME_AUDIT_IDEMPOTENCY_CONFLICT",
+        status: 409,
+      });
+    }
+    return existing;
+  }
   runtime.auditEvents.push(auditEvent);
   if (persist) {
     try {
@@ -578,6 +604,7 @@ async function handleActionInbox({ pathname, method, query, context, requestId, 
   const allAllowed = loaded.allowed;
   const filtered = query.type ? allAllowed.filter((item) => item.type === query.type) : allAllowed;
   const auditEvent = appendAudit(runtime, {
+    request_id: requestId,
     tenant_id: query.tenant_id,
     actor_id: context?.principal?.user_id ?? null,
     action: "home.action_inbox.read",
@@ -700,6 +727,7 @@ async function handleDecision({ pathname, method, query, body, context, requestI
   });
   runtime.decisions.set(key, decision);
   const auditEvent = appendAudit(runtime, {
+    request_id: requestId,
     tenant_id: decisionQuery.tenant_id,
     actor_id: context?.principal?.user_id ?? null,
     action: "home.action_inbox.decision",
@@ -813,6 +841,7 @@ async function handleAgenda({ pathname, method, query, context, requestId, runti
     resourceType: "home_agenda_event",
   });
   const auditEvent = appendAudit(runtime, {
+    request_id: requestId,
     tenant_id: query.tenant_id,
     actor_id: context?.principal?.user_id ?? null,
     action: "home.agenda.read",
@@ -1409,6 +1438,7 @@ async function handleFeed({ pathname, method, query, context, requestId, runtime
     entries = allowed.map(sanitizeFeedEntry);
   }
   const auditEvent = appendAudit(runtime, {
+    request_id: requestId,
     tenant_id: query.tenant_id,
     actor_id: context?.principal?.user_id ?? null,
     action: "home.feed.read",
