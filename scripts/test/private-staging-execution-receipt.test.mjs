@@ -111,8 +111,16 @@ test("receipt projection preserves numeric setup evidence under a non-sensitive 
   assert.throws(() => validatePrivateStagingExecutionReceipt(legacyName), /sensitive field name/u);
 
   const projected = receipt();
-  projected.safe_counts = { credential_setup_count: 1, real_data_count: 0 };
+  projected.safe_counts = {
+    credential_setup_count: 1,
+    open_sensitive_material_alert_count: 0,
+    real_data_count: 0,
+  };
   assert.equal(validatePrivateStagingExecutionReceipt(projected).valid, true);
+
+  const secretNamedAlertCount = receipt();
+  secretNamedAlertCount.safe_counts = { open_secret_alert_count: 0, real_data_count: 0 };
+  assert.throws(() => validatePrivateStagingExecutionReceipt(secretNamedAlertCount), /sensitive field name/u);
 });
 
 test("execution receipt verifies detached Ed25519 signature", () => {
