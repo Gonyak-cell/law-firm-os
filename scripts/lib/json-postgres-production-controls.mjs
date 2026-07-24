@@ -225,12 +225,23 @@ export function createJsonPostgresSourceFreezeProbes({
   const acceptedRecords = Number(
     finalDryRun.safe_counts?.accepted_record_count ?? -1,
   );
+  const rejectionCounts = [
+    finalDryRun.safe_counts?.rejected_record_count,
+    finalDryRun.safe_counts?.rejected_item_count,
+    finalDryRun.safe_counts?.dms_unexpected_rejection_count,
+  ];
+  const unexpectedRejections = rejectionCounts.reduce(
+    (total, value) => total + Number(value),
+    0,
+  );
   if (finalDryRun.mode !== "dry-run"
     || finalDryRun.first_write_state !== "FIRST_PRODUCTION_WRITE_NOT_STARTED"
     || finalDryRun.claims?.production_write !== false
     || finalDryRun.claims?.real_data_mutated !== false
     || finalDryRun.claims?.authority_activated !== false
-    || finalDryRun.safe_counts?.unexpected_rejection_count !== 0
+    || rejectionCounts.some((value) =>
+      !Number.isSafeInteger(value) || value < 0)
+    || unexpectedRejections !== 0
     || finalDryRun.safe_counts?.tenant_negative_visible_count !== 0
     || finalDryRun.migration_manifest_sha256 !== packet.bindings.migration_manifest_sha256
     || acceptedRecords !== performanceAcceptance.record_count
@@ -304,7 +315,7 @@ export function createJsonPostgresSourceFreezeProbes({
       },
       safeCounts: {
         accepted_record_count: acceptedRecords,
-        unexpected_rejection_count: 0,
+        unexpected_rejection_count: unexpectedRejections,
         monthly_cost_forecast_krw: monthly,
       },
       evidenceSha256: finalDryRun.result_sha256,

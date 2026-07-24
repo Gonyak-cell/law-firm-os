@@ -94,7 +94,9 @@ const dryRun = {
   safe_counts: {
     accepted_record_count: 287,
     account_count: 10,
-    unexpected_rejection_count: 0,
+    rejected_record_count: 0,
+    rejected_item_count: 0,
+    dms_unexpected_rejection_count: 0,
     tenant_negative_visible_count: 0,
   },
   claims: {
@@ -254,5 +256,19 @@ test("source-freeze configuration rejects legacy paths and drifted W12 capacity"
     startedAt: "2026-07-23T00:00:00.000Z",
     finishedAt: "2026-07-23T00:01:00.000Z",
     probeRef: "source-freeze-002",
+  }), /W12 acceptance/u);
+  assert.throws(() => createJsonPostgresSourceFreezeProbes({
+    packet,
+    immutableBackup,
+    control,
+    finalDryRun: {
+      ...dryRun,
+      safe_counts: { ...dryRun.safe_counts, rejected_record_count: 1 },
+    },
+    performanceAcceptance: acceptance,
+    monthlyCostForecastKrw: 269100,
+    startedAt: "2026-07-23T00:00:00.000Z",
+    finishedAt: "2026-07-23T00:01:00.000Z",
+    probeRef: "source-freeze-003",
   }), /W12 acceptance/u);
 });
