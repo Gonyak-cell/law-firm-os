@@ -393,6 +393,11 @@ function checkpointFor(prepared, completedSteps) {
   });
 }
 
+function isNegativeTenantAccessDenied(error) {
+  return error?.code === "LAWOS_POSTGRES_ACCESS_DENIED"
+    && error?.status === 403;
+}
+
 async function readDomainTarget(ledger, snapshot) {
   return ledger.transaction(snapshot, async (tx) => createDomainSnapshot({
     tenant_id: snapshot.tenant_id,
@@ -449,6 +454,7 @@ export async function runJsonPostgresMigration({
   if ((writes || reads) && (!pool || typeof pool.connect !== "function")) throw new TypeError("PostgreSQL pool is required for migration execution");
   const identityLedger = pool ? createPostgresIdentityLedger({ pool }) : null;
   const domainLedger = pool ? createPostgresDomainLedger({ pool }) : null;
+  let negativeTenantAccessDenied = false;
   let directoryReplayedCount = 0;
   let directoryAppliedCount = 0;
   if (writes && !completedSteps.includes("identity")) {
@@ -508,15 +514,21 @@ export async function runJsonPostgresMigration({
         error.status = 409;
         throw error;
       }
-      if (negativeTenantId) {
+      if (negativeTenantId && !negativeTenantAccessDenied) {
         for (const record of snapshot.records) {
-          const visible = await domainLedger.read({
-            tenant_id: negativeTenantId,
-            domain_id: snapshot.domain_id,
-            record_type: record.record_type,
-            record_id: record.record_id,
-          });
-          if (visible) tenantNegativeVisibleCount += 1;
+          try {
+            const visible = await domainLedger.read({
+              tenant_id: negativeTenantId,
+              domain_id: snapshot.domain_id,
+              record_type: record.record_type,
+              record_id: record.record_id,
+            });
+            if (visible) tenantNegativeVisibleCount += 1;
+          } catch (error) {
+            if (!isNegativeTenantAccessDenied(error)) throw error;
+            negativeTenantAccessDenied = true;
+            break;
+          }
         }
       }
     }
@@ -582,10 +594,19 @@ export async function runJsonPostgresMigration({
       ))
       .filter(Number.isSafeInteger);
     outboxLagP95Ms = percentile(outboxLagSamples, 0.95);
-    if (negativeTenantId) {
+    if (negativeTenantId && !negativeTenantAccessDenied) {
       for (const account of prepared.accounts) {
-        if (await identityLedger.findDirectoryUserByUserId({ tenant_id: negativeTenantId, user_id: account.user.user_id })) {
-          directoryTenantNegativeVisibleCount += 1;
+        try {
+          if (await identityLedger.findDirectoryUserByUserId({
+            tenant_id: negativeTenantId,
+            user_id: account.user.user_id,
+          })) {
+            directoryTenantNegativeVisibleCount += 1;
+          }
+        } catch (error) {
+          if (!isNegativeTenantAccessDenied(error)) throw error;
+          negativeTenantAccessDenied = true;
+          break;
         }
       }
     }

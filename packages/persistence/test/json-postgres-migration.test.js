@@ -367,6 +367,34 @@ test("full synthetic import preserves versions, replays as no-op, and is hidden 
   assert.equal(repeated.domains.every((domain) => domain.replayed_noop_count === domain.accepted_count), true);
 });
 
+test("an unapproved negative tenant denial proves zero visibility", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  await fixture.adminPool.query(
+    "DELETE FROM lawos_security.tenant_context_authorities WHERE database_role = 'lawos_app'",
+  );
+  await fixture.adminPool.query(
+    `INSERT INTO lawos_security.tenant_context_authorities
+       (database_role, tenant_id, context_secret, synthetic_wildcard)
+     VALUES ('lawos_app', $1, $2, false)`,
+    [TENANT, Buffer.from(fixture.tenantContextSecret, "utf8")],
+  );
+
+  const result = await runJsonPostgresMigration({
+    pool: fixture.appPool,
+    corpus: syntheticCorpus(),
+    mode: "import",
+    negativeTenantId: OTHER_TENANT,
+  });
+
+  assert.equal(result.outcome, "PASS");
+  assert.equal(result.safe_counts.tenant_negative_visible_count, 0);
+  assert.equal(result.domains.every(
+    (domain) => domain.tenant_negative_visible_count === 0,
+  ), true);
+  assert.equal(result.directory.tenant_negative_visible_count, 0);
+});
+
 test("source-bound checkpoint resumes to the same invariant and rejects drift", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
