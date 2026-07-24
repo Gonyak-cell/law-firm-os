@@ -46,9 +46,35 @@ const W12_ADDITIONS = new Set([
   "RehearsalTenantContextSecret",
 ]);
 const W12_INITIAL_MODIFICATIONS = new Set([
+  "HttpApiIntegration",
+  "PasswordResetWorkerInvokePermission",
+  "PasswordResetWorkerSchedule",
   "S3GatewayEndpoint",
   "SecretsManagerEndpoint",
 ]);
+const W12_DYNAMIC_DEPENDENCIES = Object.freeze({
+  HttpApiIntegration: Object.freeze({
+    resource_type: "AWS::ApiGatewayV2::Integration",
+    property: "IntegrationUri",
+    requires_recreation: "Never",
+    causing_entity: "ApiFunction.Arn",
+    replacement: "False",
+  }),
+  PasswordResetWorkerInvokePermission: Object.freeze({
+    resource_type: "AWS::Lambda::Permission",
+    property: "SourceArn",
+    requires_recreation: "Always",
+    causing_entity: "PasswordResetWorkerSchedule.Arn",
+    replacement: "Conditional",
+  }),
+  PasswordResetWorkerSchedule: Object.freeze({
+    resource_type: "AWS::Events::Rule",
+    property: "Targets",
+    requires_recreation: "Never",
+    causing_entity: "ApiFunction.Arn",
+    replacement: "False",
+  }),
+});
 const W12_BOOTSTRAP_REMOVAL_MODIFICATIONS = new Set([
   "RehearsalAdminExecutionRole",
   "RehearsalAdminFunction",
@@ -177,6 +203,30 @@ function normalizedChanges(changeSet = {}) {
     left.logical_resource_id.localeCompare(right.logical_resource_id, "en"));
 }
 
+function assertExactW12DynamicDependencies(changeSet) {
+  for (const entry of changeSet.Changes ?? []) {
+    const change = entry.ResourceChange ?? {};
+    const expected = W12_DYNAMIC_DEPENDENCIES[
+      change.LogicalResourceId
+    ];
+    if (!expected) continue;
+    const details = change.Details ?? [];
+    const detail = details[0];
+    if (change.Action !== "Modify"
+      || change.ResourceType !== expected.resource_type
+      || (change.Replacement ?? "False") !== expected.replacement
+      || details.length !== 1
+      || detail?.Target?.Attribute !== "Properties"
+      || detail.Target.Name !== expected.property
+      || detail.Target.RequiresRecreation !== expected.requires_recreation
+      || detail.Evaluation !== "Dynamic"
+      || detail.ChangeSource !== "ResourceAttribute"
+      || detail.CausingEntity !== expected.causing_entity) {
+      fail("W12 dynamic dependency delta drifted");
+    }
+  }
+}
+
 export function validateJsonPostgresRehearsalChangeSet(changeSet, {
   stackName,
   changeSetType,
@@ -201,6 +251,9 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
     || (templateUrl !== null
       && !isVersionedCloudFormationS3TemplateUrl(templateUrl))) {
     fail("W12 change set binding is invalid");
+  }
+  if (phase === "enable-eni") {
+    assertExactW12DynamicDependencies(changeSet);
   }
   const changes = normalizedChanges(changeSet);
   if (changes.length < 1) fail("W12 change set is empty");

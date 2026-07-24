@@ -206,6 +206,100 @@ test("W12 change-set review allows the exact one-time identity tenant rebind onl
   );
 });
 
+test("W12 change-set review accepts only exact existing runtime dependency reevaluation", () => {
+  const dependencies = [{
+    ResourceChange: {
+      Action: "Modify",
+      LogicalResourceId: "HttpApiIntegration",
+      ResourceType: "AWS::ApiGatewayV2::Integration",
+      Replacement: "False",
+      Scope: ["Properties"],
+      Details: [{
+        Target: {
+          Attribute: "Properties",
+          Name: "IntegrationUri",
+          RequiresRecreation: "Never",
+        },
+        Evaluation: "Dynamic",
+        ChangeSource: "ResourceAttribute",
+        CausingEntity: "ApiFunction.Arn",
+      }],
+    },
+  }, {
+    ResourceChange: {
+      Action: "Modify",
+      LogicalResourceId: "PasswordResetWorkerSchedule",
+      ResourceType: "AWS::Events::Rule",
+      Replacement: "False",
+      Scope: ["Properties"],
+      Details: [{
+        Target: {
+          Attribute: "Properties",
+          Name: "Targets",
+          RequiresRecreation: "Never",
+        },
+        Evaluation: "Dynamic",
+        ChangeSource: "ResourceAttribute",
+        CausingEntity: "ApiFunction.Arn",
+      }],
+    },
+  }, {
+    ResourceChange: {
+      Action: "Modify",
+      LogicalResourceId: "PasswordResetWorkerInvokePermission",
+      ResourceType: "AWS::Lambda::Permission",
+      Replacement: "Conditional",
+      Scope: ["Properties"],
+      Details: [{
+        Target: {
+          Attribute: "Properties",
+          Name: "SourceArn",
+          RequiresRecreation: "Always",
+        },
+        Evaluation: "Dynamic",
+        ChangeSource: "ResourceAttribute",
+        CausingEntity: "PasswordResetWorkerSchedule.Arn",
+      }],
+    },
+  }];
+  const changeSet = {
+    StackName: JSON_POSTGRES_REHEARSAL_STACK,
+    ChangeSetId: "change-set-exact-dynamic-dependencies",
+    Changes: dependencies,
+  };
+  const options = {
+    stackName: JSON_POSTGRES_REHEARSAL_STACK,
+    changeSetType: "UPDATE",
+    phase: "enable-eni",
+    templateSha256: "d".repeat(64),
+    parametersSha256: "e".repeat(64),
+  };
+  assert.equal(
+    validateJsonPostgresRehearsalChangeSet(changeSet, options).verdict,
+    "PASS",
+  );
+  const wrongDependency = structuredClone(changeSet);
+  wrongDependency.Changes[2].ResourceChange.Details[0].CausingEntity =
+    "UnapprovedSchedule.Arn";
+  assert.throws(
+    () => validateJsonPostgresRehearsalChangeSet(
+      wrongDependency,
+      options,
+    ),
+    /dynamic dependency delta drifted/u,
+  );
+  const wrongProperty = structuredClone(changeSet);
+  wrongProperty.Changes[0].ResourceChange.Details[0].Target.Name =
+    "ConnectionType";
+  assert.throws(
+    () => validateJsonPostgresRehearsalChangeSet(
+      wrongProperty,
+      options,
+    ),
+    /dynamic dependency delta drifted/u,
+  );
+});
+
 test("W12 immutable bucket state rejects public, mutable and wrong-key storage", () => {
   const expected = {
     bucketName: JSON_POSTGRES_REHEARSAL_ARTIFACT_BUCKET,
