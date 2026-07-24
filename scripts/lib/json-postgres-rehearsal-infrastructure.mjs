@@ -802,7 +802,17 @@ export function buildJsonPostgresRehearsalTemplate(privateStagingTemplate) {
     Sid: "W12AdminReadsExactRehearsalSecrets",
     Effect: "Allow",
     Principal: {
-      AWS: { "Fn::GetAtt": ["RehearsalAdminExecutionRole", "Arn"] },
+      AWS: {
+        "Fn::Sub":
+          "arn:${AWS::Partition}:iam::${AWS::AccountId}:root",
+      },
+    },
+    Condition: {
+      ArnEquals: {
+        "aws:PrincipalArn": {
+          "Fn::GetAtt": ["RehearsalAdminExecutionRole", "Arn"],
+        },
+      },
     },
     Action: [
       "secretsmanager:GetSecretValue",
@@ -818,7 +828,17 @@ export function buildJsonPostgresRehearsalTemplate(privateStagingTemplate) {
     Sid: "ExactW12RehearsalInputsAndDmsOnly",
     Effect: "Allow",
     Principal: {
-      AWS: { "Fn::GetAtt": ["RehearsalAdminExecutionRole", "Arn"] },
+      AWS: {
+        "Fn::Sub":
+          "arn:${AWS::Partition}:iam::${AWS::AccountId}:root",
+      },
+    },
+    Condition: {
+      ArnEquals: {
+        "aws:PrincipalArn": {
+          "Fn::GetAtt": ["RehearsalAdminExecutionRole", "Arn"],
+        },
+      },
     },
     Action: [
       "s3:GetBucketLocation",
@@ -993,9 +1013,17 @@ export function validateJsonPostgresRehearsalTemplate(template) {
     resources.S3GatewayEndpoint?.Properties?.PolicyDocument?.Statement ?? [];
   const endpoint = endpointStatements
     .find((item) => item.Sid === "ExactW12RehearsalInputsAndDmsOnly");
+  const accountRoot = {
+    "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root",
+  };
+  const exactRole = {
+    "Fn::GetAtt": ["RehearsalAdminExecutionRole", "Arn"],
+  };
   if (!endpoint
-    || endpoint.Principal?.AWS?.["Fn::GetAtt"]?.[0]
-      !== "RehearsalAdminExecutionRole"
+    || JSON.stringify(endpoint.Principal?.AWS)
+      !== JSON.stringify(accountRoot)
+    || JSON.stringify(endpoint.Condition?.ArnEquals?.["aws:PrincipalArn"])
+      !== JSON.stringify(exactRole)
     || endpoint.Action.includes("s3:DeleteObject")
     || endpoint.Action.includes("s3:DeleteObjectVersion")) {
     fail("private rehearsal S3 endpoint policy drifted");
@@ -1004,8 +1032,11 @@ export function validateJsonPostgresRehearsalTemplate(template) {
     resources.SecretsManagerEndpoint?.Properties?.PolicyDocument?.Statement
       ?.find((item) => item.Sid === "W12AdminReadsExactRehearsalSecrets");
   if (!secretEndpoint
-    || secretEndpoint.Principal?.AWS?.["Fn::GetAtt"]?.[0]
-      !== "RehearsalAdminExecutionRole") {
+    || JSON.stringify(secretEndpoint.Principal?.AWS)
+      !== JSON.stringify(accountRoot)
+    || JSON.stringify(
+      secretEndpoint.Condition?.ArnEquals?.["aws:PrincipalArn"],
+    ) !== JSON.stringify(exactRole)) {
     fail("private rehearsal Secrets Manager endpoint policy drifted");
   }
   const serialized = JSON.stringify({

@@ -129,6 +129,23 @@ test("W12 rehearsal reuses the private staging topology with an isolated databas
   assert.equal(evidenceRetention.Action, "s3:PutObjectRetention");
   assert.deepEqual(evidenceRetention.Resource, evidenceWriter.Resource);
   assert.equal(evidenceRetention.Condition, undefined);
+  for (const [resource, sid] of [
+    ["S3GatewayEndpoint", "ExactW12RehearsalInputsAndDmsOnly"],
+    ["SecretsManagerEndpoint", "W12AdminReadsExactRehearsalSecrets"],
+  ]) {
+    const endpoint = template.Resources[resource].Properties.PolicyDocument
+      .Statement.find((item) => item.Sid === sid);
+    assert.deepEqual(endpoint.Principal, {
+      AWS: {
+        "Fn::Sub":
+          "arn:${AWS::Partition}:iam::${AWS::AccountId}:root",
+      },
+    });
+    assert.deepEqual(
+      endpoint.Condition.ArnEquals["aws:PrincipalArn"],
+      { "Fn::GetAtt": ["RehearsalAdminExecutionRole", "Arn"] },
+    );
+  }
   const roleTags =
     template.Resources.RehearsalAdminExecutionRole.Properties.Tags;
   assert.equal(
@@ -261,6 +278,16 @@ test("W12 rehearsal fails closed on public infrastructure, email authority, wild
         .Condition = {
           StringEquals: { "s3:object-lock-mode": "COMPLIANCE" },
         };
+    },
+    (value) => {
+      value.Resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "ExactW12RehearsalInputsAndDmsOnly")
+        .Condition.ArnEquals["aws:PrincipalArn"] = "*";
+    },
+    (value) => {
+      value.Resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "W12AdminReadsExactRehearsalSecrets")
+        .Principal = "*";
     },
   ]) {
     const template = builtTemplate();
