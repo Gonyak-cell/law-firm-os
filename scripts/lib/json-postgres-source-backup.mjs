@@ -123,6 +123,32 @@ export function createJsonPostgresSourceBackupPlan({
   });
 }
 
+export function createJsonPostgresSourceBackupPutReceipt({
+  response,
+  plan,
+  source,
+  kmsKeyArn,
+} = {}) {
+  if (typeof response?.VersionId !== "string" || !response.VersionId) {
+    throw new TypeError("source backup upload returned no immutable version");
+  }
+  const retainUntil = response.ObjectLockRetainUntilDate == null
+    ? plan?.retain_until
+    : new Date(response.ObjectLockRetainUntilDate).toISOString();
+  return Object.freeze({
+    bucket: plan?.bucket,
+    key: source?.object_key,
+    version_id: response.VersionId,
+    expected_bucket_owner: plan?.expected_bucket_owner,
+    server_side_encryption: response.ServerSideEncryption ?? "aws:kms",
+    kms_key_arn: response.SSEKMSKeyId ?? kmsKeyArn,
+    object_lock_mode: response.ObjectLockMode ?? "COMPLIANCE",
+    retain_until: retainUntil,
+    content_sha256: source?.sha256,
+    byte_size: source?.byte_size,
+  });
+}
+
 async function exactBytes(locator, source) {
   if (!isAbsolute(locator?.root_path ?? "") || !isAbsolute(locator?.source_path ?? "")) {
     throw new TypeError("source backup locator is invalid");
