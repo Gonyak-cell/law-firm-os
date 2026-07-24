@@ -302,6 +302,7 @@ test("program input loader binds corpus to the packet tenant and keeps preflight
     loadJsonPostgresMigrationInputs({
       inputLocators: {
         ...locators,
+        base_manifest: { key: "base-manifest" },
         inventory: { key: "inventory" },
         authority_decisions: { key: "decisions" },
         record_authority: { key: "record-authority" },

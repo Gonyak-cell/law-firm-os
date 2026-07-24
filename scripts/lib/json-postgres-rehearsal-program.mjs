@@ -50,6 +50,7 @@ const AUTHORIZATION_KEYS = Object.freeze([
 ]);
 const REQUIRED_INPUT_KEYS = Object.freeze([
   "authority_summary",
+  "base_manifest",
   "record_type_catalog",
   "inventory",
   "authority_decisions",

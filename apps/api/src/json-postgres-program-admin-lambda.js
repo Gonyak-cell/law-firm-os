@@ -682,6 +682,7 @@ export async function executeJsonPostgresProgram({
       recordAuthority: inputs.recordAuthority,
       recordTypeCatalog: inputs.recordTypeCatalog,
       corpus: inputs.corpus,
+      baseManifest: inputs.baseManifest,
       sourceTransformResult: inputs.sourceTransformResult,
     });
     dmsManifest = prepareDmsManifest(inputs.dmsManifest);

@@ -65,6 +65,7 @@ const OPERATIONS = new Set(["prepare", "invoke"]);
 const SHA256 = /^[0-9a-f]{64}$/u;
 const INPUTS = Object.freeze([
   ["authority_summary", "--authority-summary", "application/json"],
+  ["base_manifest", "--base-manifest", "application/json"],
   ["record_type_catalog", "--catalog", "application/json"],
   ["inventory", "--inventory", "application/json"],
   ["authority_decisions", "--decisions", "application/json"],
@@ -406,6 +407,10 @@ async function validateLocalMigrationInputs({ packet, paths }) {
     paths.authority_summary,
     "W12 authority summary",
   );
+  const baseManifest = readPrivateProgramJson(
+    paths.base_manifest,
+    "W12 base authority manifest",
+  );
   const recordTypeCatalog = readPrivateProgramJson(
     paths.record_type_catalog,
     "W12 record-type catalog",
@@ -439,6 +444,7 @@ async function validateLocalMigrationInputs({ packet, paths }) {
     recordTypeCatalog,
     recordAuthority,
     corpus,
+    baseManifest,
     sourceTransformResult,
   });
   const dmsManifest = prepareJsonPostgresDmsObjectManifest(

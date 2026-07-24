@@ -49,6 +49,7 @@ const AUTHORIZATION_KEYS = Object.freeze([
 ]);
 const INPUT_KEYS = Object.freeze([
   "authority_summary",
+  "base_manifest",
   "record_type_catalog",
   "inventory",
   "authority_decisions",
@@ -74,6 +75,7 @@ const MAX_BYTES = Object.freeze({
   approval_receipt: 64 * 1024,
   approval_signature: 4096,
   authority_summary: 2 * 1024 * 1024,
+  base_manifest: 64 * 1024 * 1024,
   record_type_catalog: 16 * 1024 * 1024,
   inventory: 64 * 1024 * 1024,
   authority_decisions: 64 * 1024 * 1024,
@@ -241,7 +243,7 @@ function requireProgramInputs(value, mode) {
     if (!value[key]) fail("LAWOS_PROGRAM_INPUT_SCHEMA", `${key} locator is required`);
   }
   if (mode !== "preflight") {
-    for (const key of ["inventory", "authority_decisions", "record_authority", "migration_corpus", "source_transform_result", "dms_manifest"]) {
+    for (const key of ["base_manifest", "inventory", "authority_decisions", "record_authority", "migration_corpus", "source_transform_result", "dms_manifest"]) {
       if (!value[key]) fail("LAWOS_PROGRAM_INPUT_SCHEMA", `${key} locator is required`);
     }
   }
@@ -337,7 +339,8 @@ export async function loadJsonPostgresMigrationInputs({
       predecessors: Object.freeze([]),
     });
   }
-  const [inventory, decisions, recordAuthority, corpus, sourceTransformResult, dmsManifest, checkpoint, dmsCheckpoint] = await Promise.all([
+  const [baseManifest, inventory, decisions, recordAuthority, corpus, sourceTransformResult, dmsManifest, checkpoint, dmsCheckpoint] = await Promise.all([
+    json("base_manifest"),
     json("inventory"),
     json("authority_decisions"),
     json("record_authority"),
@@ -387,6 +390,7 @@ export async function loadJsonPostgresMigrationInputs({
   return Object.freeze({
     authoritySummary,
     recordTypeCatalog,
+    baseManifest,
     inventory,
     decisions,
     recordAuthority,

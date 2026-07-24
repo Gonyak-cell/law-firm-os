@@ -369,6 +369,8 @@ test("W12 readback runs only the requested bounded rehearsal validation", async 
   approved.approval.phase = "w12-real-data-rehearsal";
   const writes = [];
   let failureInput;
+  let authorityBundleInput;
+  const baseManifest = { manifest_sha256: "6".repeat(64) };
   const result = await executeJsonPostgresProgram({
     event: {
       action: JSON_POSTGRES_PROGRAM_ADMIN_ACTION,
@@ -387,6 +389,7 @@ test("W12 readback runs only the requested bounded rehearsal validation", async 
     }),
     loadInputs: async () => ({
       authorityBundle: { summary: {}, record_type_catalog: {} },
+      baseManifest,
       inventory: {},
       decisions: {},
       recordTypeCatalog: {},
@@ -412,9 +415,12 @@ test("W12 readback runs only the requested bounded rehearsal validation", async 
       : { tenant_context_secret: "tenant-context-value-at-least-32-bytes" },
     createPool: () => ({ async end() {} }),
     verifyMigrations: async () => [],
-    createAuthorityBundle: async () => ({
-      summary: { authority_manifest_sha256: "7".repeat(64) },
-    }),
+    createAuthorityBundle: async (input) => {
+      authorityBundleInput = input;
+      return {
+        summary: { authority_manifest_sha256: "7".repeat(64) },
+      };
+    },
     prepareDmsManifest: () => ({
       manifest_sha256: approved.packet.bindings.dms_object_manifest_sha256,
       authority_manifest_sha256: "7".repeat(64),
@@ -478,6 +484,7 @@ test("W12 readback runs only the requested bounded rehearsal validation", async 
   assert.equal(failureInput.tenantId, "tenant_amic");
   assert.equal(failureInput.negativeTenantId, "tenant_negative");
   assert.deepEqual(writes, ["execution-result", "w12-failure-injection"]);
+  assert.equal(authorityBundleInput.baseManifest, baseManifest);
   assert.equal(result.rehearsal_validation_kind, "failure-injection");
   assert.equal(
     result.rehearsal_validation_evidence_sha256,

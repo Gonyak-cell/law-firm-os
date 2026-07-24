@@ -63,6 +63,7 @@ function locatorSet() {
     },
     inputs: {
       authority_summary: locator("authority-summary"),
+      base_manifest: locator("base-manifest"),
       record_type_catalog: locator("record-type-catalog"),
       inventory: locator("inventory"),
       authority_decisions: locator("authority-decisions"),
