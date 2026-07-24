@@ -1,11 +1,15 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
+import { createPostgresIdentityLedger } from "../../runtime-auth/src/postgres-identity-ledger.js";
 import { DOMAIN_IDS } from "../src/domain-ledger.js";
 import { createPostgresDomainLedger } from "../src/postgres/domain-ledger.js";
 import {
   JSON_POSTGRES_MIGRATION_SCHEMA_VERSION,
+  prepareJsonPostgresMigrationCorpus,
   runJsonPostgresMigration,
 } from "../src/postgres/json-postgres-migration.js";
+import { createJsonPostgresRecordTypeCatalog } from "../src/postgres/record-type-catalog.js";
 import { createMigratedPostgresFixture } from "./helpers/disposable-postgres.js";
 
 const TENANT = "tenant_lawos_staging_migration_a";
@@ -122,10 +126,221 @@ test("JSON to PostgreSQL migration validates the full corpus without returning s
   assert.equal(result.json_fallback_count, 0);
   assert.equal(result.json_writer_count, 0);
   assert.equal(result.dual_write_count, 0);
+  assert.equal(result.file_current_authority_count, 0);
+  assert.equal(result.offline_mutation_count, 0);
+  assert.equal(result.memory_fallback_count, 0);
+  assert.equal(result.performance.records_per_tenant, DOMAIN_IDS.length + 1);
+  assert.equal(result.performance.retry_count, 0);
+  assert.equal(result.performance.conflict_count, 0);
+  assert.equal(result.performance.pool_waiting_count, 0);
+  assert.ok(result.performance.outbox_lag_p95_ms < 2_000);
+  assert.ok(result.performance.elapsed_ms >= 1);
   const serialized = JSON.stringify(result);
   assert.equal(serialized.includes("must-never-be-persisted-or-returned"), false);
   assert.equal(serialized.includes("synthetic.user@example.test"), false);
   assert.equal(serialized.includes("Synthetic User"), false);
+});
+
+test("approved real migration repairs the current safe directory projection without replaying legacy idempotency", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const source = syntheticCorpus();
+  source.data_scope = "approved-real-manifest";
+  source.accounts[0].status = "disabled";
+  source.accounts[0].account_status = "disabled";
+  source.accounts[0].profile = {
+    display_name: "Pending Roster User",
+    roster_link_status: "pending-roster-link",
+    login_allowed: false,
+    identity_setup_allowed: false,
+    access_grant_allowed: false,
+  };
+  source.accounts[0].membership.status = "disabled";
+  source.domains = source.domains.map((domain) => ({
+    ...domain,
+    records: domain.records.filter(
+      (record) => record.record_type !== "RejectedSyntheticMatter",
+    ),
+  }));
+  const identity = createPostgresIdentityLedger({ pool: fixture.appPool });
+  await identity.provisionDirectoryUser({
+    tenant_id: TENANT,
+    actor_id: "legacy-migration",
+    data_scope: "approved-real-manifest",
+    idempotency_key: "json-postgres-migration:identity:legacy",
+    request_hash: createHash("sha256")
+      .update("json-postgres-migration:identity:legacy")
+      .digest("hex"),
+    user: {
+      ...source.accounts[0],
+      profile: { display_name: "Pending Roster User" },
+    },
+    membership: source.accounts[0].membership,
+  });
+  const catalog = createJsonPostgresRecordTypeCatalog({ corpus: source });
+  const result = await runJsonPostgresMigration({
+    pool: fixture.appPool,
+    corpus: source,
+    mode: "import",
+    allowRealData: true,
+    recordTypeCatalog: catalog,
+    negativeTenantId: OTHER_TENANT,
+  });
+  assert.equal(result.outcome, "PASS");
+  assert.equal(result.directory.idempotency_count, 1);
+  assert.equal(result.directory.audit_count, 1);
+  assert.equal(result.directory.outbox_count, 1);
+  assert.ok(result.performance.outbox_lag_p95_ms < 2_000);
+  const repaired = await identity.findDirectoryUserByUserId({
+    tenant_id: TENANT,
+    user_id: source.accounts[0].user_id,
+  });
+  assert.equal(repaired.profile.roster_link_status, "pending-roster-link");
+  assert.equal(repaired.profile.login_allowed, false);
+  assert.equal(repaired.profile.identity_setup_allowed, false);
+  assert.equal(repaired.profile.access_grant_allowed, false);
+});
+
+test("approved real-data mode requires and enforces an exact record-type catalog", async () => {
+  const source = syntheticCorpus();
+  source.data_scope = "approved-real-manifest";
+  source.accounts[0].credential_provider = "lawos-internal-password-provider-v1";
+  source.accounts[0].credential_status = "reset_required";
+  source.accounts[0].credential_rev = 4;
+  await assert.rejects(
+    runJsonPostgresMigration({ corpus: source, mode: "dry-run", allowRealData: true }),
+    (error) => error?.code === "LAWOS_MIGRATION_RECORD_TYPE_CATALOG_REQUIRED",
+  );
+
+  const catalogSource = structuredClone(source);
+  for (const domain of catalogSource.domains) {
+    domain.records = domain.records.filter((record) => record.record_type !== "RejectedSyntheticMatter");
+  }
+  const catalog = createJsonPostgresRecordTypeCatalog({ corpus: catalogSource });
+  const validated = await runJsonPostgresMigration({
+    corpus: source,
+    mode: "dry-run",
+    allowRealData: true,
+    recordTypeCatalog: catalog,
+  });
+  assert.equal(validated.outcome, "PASS");
+  assert.equal(validated.record_type_catalog_sha256, catalog.catalog_sha256);
+  assert.equal(validated.safe_counts.record_type_catalog_entry_count, DOMAIN_IDS.length + 1);
+  assert.equal(validated.safe_counts.logical_reference_missing_count, 0);
+
+  source.domains[0].records[0].payload.stable_value = "type-drift";
+  await assert.rejects(
+    runJsonPostgresMigration({
+      corpus: source,
+      mode: "dry-run",
+      allowRealData: true,
+      recordTypeCatalog: catalog,
+    }),
+    (error) => error?.code === "LAWOS_MIGRATION_RECORD_TYPE_CATALOG_DRIFT"
+      && error?.details?.field_type_drift_count === 1,
+  );
+});
+
+test("approved real accounts retain registered email and status but import no legacy password material", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const source = syntheticCorpus();
+  source.data_scope = "approved-real-manifest";
+  source.accounts = [{
+    user_id: "real-active-user",
+    email: "registered.active@example.test",
+    status: "active",
+    credential_rev: 7,
+    profile: {
+      employee_id: "employee-real-active",
+      legal_name: "Registered Active",
+      english_name: "Registered Active EN",
+      professional_profile: {
+        experience: ["Prior Firm"],
+        education: ["Law School"],
+        qualifications: ["Bar"],
+      },
+    },
+    membership: { tenant_id: TENANT, status: "active", role_ids: ["lawos_staff"] },
+  }, {
+    user_id: "real-disabled-user",
+    email: "registered.disabled@example.test",
+    status: "active",
+    account_status: "disabled",
+    credential_rev: 3,
+    membership: { tenant_id: TENANT, status: "active", role_ids: [] },
+  }];
+  source.domains = source.domains.map((domain) => ({
+    ...domain,
+    records: domain.records.filter((record) => record.record_type !== "RejectedSyntheticMatter"),
+  }));
+  const catalog = createJsonPostgresRecordTypeCatalog({ corpus: source });
+  const prepared = prepareJsonPostgresMigrationCorpus(source, { allowRealData: true });
+  const preparedDisabled = prepared.accounts.find(({ user }) => user.user_id === "real-disabled-user");
+  assert.equal(preparedDisabled.user.account_status, "disabled");
+  assert.equal(preparedDisabled.user.credential_status, "disabled");
+  assert.equal(preparedDisabled.membership.status, "disabled");
+  const result = await runJsonPostgresMigration({
+    pool: fixture.appPool,
+    corpus: source,
+    mode: "import",
+    allowRealData: true,
+    recordTypeCatalog: catalog,
+    negativeTenantId: OTHER_TENANT,
+  });
+  assert.equal(result.outcome, "PASS");
+  const accounts = await fixture.adminPool.query(
+    `SELECT user_id, email, account_status, credential_provider, credential_status,
+            credential_rev, password_hash, profile
+       FROM lawos_identity.accounts
+      WHERE tenant_id = $1
+      ORDER BY user_id`,
+    [TENANT],
+  );
+  assert.deepEqual(accounts.rows.map((row) => ({ ...row, credential_rev: Number(row.credential_rev) })), [{
+    user_id: "real-active-user",
+    email: "registered.active@example.test",
+    account_status: "active",
+    credential_provider: "lawos-internal-password-provider-v1",
+    credential_status: "reset_required",
+    credential_rev: 7,
+    password_hash: {},
+    profile: {
+      employee_id: "employee-real-active",
+      english_name: "Registered Active EN",
+      legal_name: "Registered Active",
+      professional_profile: {
+        education: ["Law School"],
+        experience: ["Prior Firm"],
+        qualifications: ["Bar"],
+      },
+    },
+  }, {
+    user_id: "real-disabled-user",
+    email: "registered.disabled@example.test",
+    account_status: "disabled",
+    credential_provider: "lawos-internal-password-provider-v1",
+    credential_status: "disabled",
+    credential_rev: 3,
+    password_hash: {},
+    profile: {},
+  }]);
+
+  const forbidden = structuredClone(source);
+  forbidden.accounts[0].password_hash = "legacy-hash-must-not-migrate";
+  const forbiddenCatalogSource = structuredClone(forbidden);
+  delete forbiddenCatalogSource.accounts[0].password_hash;
+  const forbiddenCatalog = createJsonPostgresRecordTypeCatalog({ corpus: forbiddenCatalogSource });
+  const rejected = await runJsonPostgresMigration({
+    corpus: forbidden,
+    mode: "dry-run",
+    allowRealData: true,
+    recordTypeCatalog: forbiddenCatalog,
+  });
+  assert.equal(rejected.directory.accepted_count, 1);
+  assert.equal(rejected.directory.rejected_count, 1);
+  assert.equal(rejected.rejected_reason_counts.FORBIDDEN_SECRET_OR_RAW_BYTES, 1);
+  assert.equal(JSON.stringify(rejected).includes("legacy-hash-must-not-migrate"), false);
 });
 
 test("missing-reference rejection cascades and duplicate domain rows are rejected deterministically", async () => {
@@ -213,6 +428,34 @@ test("full synthetic import preserves versions, replays as no-op, and is hidden 
   assert.equal(repeated.directory.audit_count, first.directory.audit_count);
   assert.equal(repeated.directory.outbox_count, first.directory.outbox_count);
   assert.equal(repeated.domains.every((domain) => domain.replayed_noop_count === domain.accepted_count), true);
+});
+
+test("an unapproved negative tenant denial proves zero visibility", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  await fixture.adminPool.query(
+    "DELETE FROM lawos_security.tenant_context_authorities WHERE database_role = 'lawos_app'",
+  );
+  await fixture.adminPool.query(
+    `INSERT INTO lawos_security.tenant_context_authorities
+       (database_role, tenant_id, context_secret, synthetic_wildcard)
+     VALUES ('lawos_app', $1, $2, false)`,
+    [TENANT, Buffer.from(fixture.tenantContextSecret, "utf8")],
+  );
+
+  const result = await runJsonPostgresMigration({
+    pool: fixture.appPool,
+    corpus: syntheticCorpus(),
+    mode: "import",
+    negativeTenantId: OTHER_TENANT,
+  });
+
+  assert.equal(result.outcome, "PASS");
+  assert.equal(result.safe_counts.tenant_negative_visible_count, 0);
+  assert.equal(result.domains.every(
+    (domain) => domain.tenant_negative_visible_count === 0,
+  ), true);
+  assert.equal(result.directory.tenant_negative_visible_count, 0);
 });
 
 test("source-bound checkpoint resumes to the same invariant and rejects drift", async (t) => {

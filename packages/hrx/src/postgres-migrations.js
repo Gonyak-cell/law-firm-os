@@ -78,6 +78,45 @@ function appendOnlyHardeningSql() {
   }).join("\n\n");
 }
 
+function projectionStateSql() {
+  return `
+CREATE SCHEMA IF NOT EXISTS lawos_projection;
+
+CREATE TABLE IF NOT EXISTS lawos_projection.hrx_record_state (
+  tenant_id text NOT NULL,
+  source_record_type text NOT NULL,
+  source_record_id text NOT NULL,
+  source_state_version bigint NOT NULL CHECK (source_state_version >= 1),
+  source_payload_hash text NOT NULL CHECK (source_payload_hash ~ '^[a-f0-9]{64}$'),
+  projected_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+  PRIMARY KEY (tenant_id, source_record_type, source_record_id)
+);
+
+CREATE TABLE IF NOT EXISTS lawos_projection.hrx_outbox_cursor (
+  tenant_id text PRIMARY KEY,
+  last_created_at timestamptz,
+  last_event_id text,
+  projected_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+  CHECK ((last_created_at IS NULL) = (last_event_id IS NULL))
+);
+
+ALTER TABLE lawos_projection.hrx_record_state ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lawos_projection.hrx_record_state FORCE ROW LEVEL SECURITY;
+ALTER TABLE lawos_projection.hrx_outbox_cursor ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lawos_projection.hrx_outbox_cursor FORCE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS tenant_isolation ON lawos_projection.hrx_record_state;
+CREATE POLICY tenant_isolation ON lawos_projection.hrx_record_state
+  USING (tenant_id = lawos_security.current_tenant_id())
+  WITH CHECK (tenant_id = lawos_security.current_tenant_id());
+
+DROP POLICY IF EXISTS tenant_isolation ON lawos_projection.hrx_outbox_cursor;
+CREATE POLICY tenant_isolation ON lawos_projection.hrx_outbox_cursor
+  USING (tenant_id = lawos_security.current_tenant_id())
+  WITH CHECK (tenant_id = lawos_security.current_tenant_id());
+`;
+}
+
 export function listHrxPostgresMigrations() {
   const translated = loadHrxCoreMigrations().map((migration, index) => Object.freeze({
     id: `${String(index + 101).padStart(3, "0")}_hrx_${migration.id}`,
@@ -90,6 +129,7 @@ export function listHrxPostgresMigrations() {
     ...translated,
     Object.freeze({ id: "200_hrx_rls", file_name: null, sql: hardeningSql() }),
     Object.freeze({ id: "201_hrx_append_only", file_name: null, sql: appendOnlyHardeningSql() }),
+    Object.freeze({ id: "202_hrx_projection_state", file_name: null, sql: projectionStateSql() }),
   ]);
 }
 

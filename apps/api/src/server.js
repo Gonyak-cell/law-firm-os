@@ -1924,7 +1924,7 @@ export async function startApiServer({
       const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
         profile: resolvedRuntimeProfile,
         secret: resolvedSessionSecret,
-        trustedTenantId: resolvedPersistenceAuthorityEnv.LAWOS_PASSWORD_RESET_TENANT_ID,
+        trustedTenantId: resolvedPersistenceAuthorityEnv.LAWOS_IDENTITY_TENANT_ID,
         passwordResetEmailDelivery,
         stepUpAuthority: resolvedStepUpAuthority,
         staffOidcProvider: resolvedStaffOidcProvider,

@@ -25,6 +25,10 @@ test("PostgreSQL identity directory is tenant-scoped, replay-safe and never expo
       status: "active",
       display_name: "Synthetic Staff One",
       source_title: "Attorney",
+      roster_link_status: "pending-roster-link",
+      login_allowed: false,
+      identity_setup_allowed: false,
+      access_grant_allowed: false,
       source_ref: "synthetic-directory-v1",
     },
     membership: {
@@ -46,6 +50,10 @@ test("PostgreSQL identity directory is tenant-scoped, replay-safe and never expo
   assert.equal(created.user.tenant_memberships[0].state_version, 1);
   assert.equal(created.user.directory_state_version, 1);
   assert.deepEqual(created.user.role_ids, ["lawos_staff"]);
+  assert.equal(created.user.profile.roster_link_status, "pending-roster-link");
+  assert.equal(created.user.profile.login_allowed, false);
+  assert.equal(created.user.profile.identity_setup_allowed, false);
+  assert.equal(created.user.profile.access_grant_allowed, false);
   assert.equal(created.idempotency_replayed, false);
   assert.equal(created.outbox.replayed, false);
   assert.equal(Object.hasOwn(created.user, "password_hash"), false);
@@ -96,4 +104,17 @@ test("PostgreSQL identity directory is tenant-scoped, replay-safe and never expo
   const account = await ledger.getAccount({ tenant_id: tenantId, user_id: input.user.user_id });
   assert.equal(account.credential_status, "active");
   assert.equal(account.password_hash.algorithm, "synthetic-test-hash");
+
+  await assert.rejects(ledger.provisionDirectoryUser({
+    ...input,
+    idempotency_key: "directory-provision-user-sensitive-profile",
+    request_hash: createHash("sha256").update("directory-provision-user-sensitive-profile").digest("hex"),
+    user: {
+      ...input.user,
+      profile: {
+        display_name: "Unsafe profile",
+        professional_profile: { api_key: "must-not-persist" },
+      },
+    },
+  }), /forbidden sensitive material/u);
 });

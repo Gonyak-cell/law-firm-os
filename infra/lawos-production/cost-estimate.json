@@ -1,0 +1,47 @@
+{
+  "schema_version": "law-firm-os.json-postgres-production-cost.v1",
+  "prepared_on": "2026-07-23",
+  "aws_account_id": "770880870480",
+  "aws_region": "ap-northeast-2",
+  "currency": "USD",
+  "planning_exchange_rate_krw_per_usd": 1500,
+  "monthly_cost_ceiling_krw": 300000,
+  "aws_budget_limit_usd": 190,
+  "line_items": [
+    {
+      "service": "Amazon RDS for PostgreSQL",
+      "configuration": "db.t4g.micro Multi-AZ",
+      "monthly_estimate_usd": 73
+    },
+    {
+      "service": "Amazon RDS storage and PITR",
+      "configuration": "20 GiB gp3, 35-day backup retention allowance",
+      "monthly_estimate_usd": 10
+    },
+    {
+      "service": "AWS PrivateLink interface endpoints",
+      "configuration": "Secrets Manager and SES API across two private subnets",
+      "monthly_estimate_usd": 58.4
+    },
+    {
+      "service": "AWS Secrets Manager and KMS",
+      "configuration": "explicit production secret references and one customer-managed key",
+      "monthly_estimate_usd": 5
+    },
+    {
+      "service": "AWS Lambda, API Gateway, CloudWatch and S3",
+      "configuration": "bounded internal production traffic and immutable evidence",
+      "monthly_estimate_usd": 25
+    }
+  ],
+  "subtotal_monthly_usd": 171.4,
+  "contingency_monthly_usd": 8,
+  "total_monthly_estimate_usd": 179.4,
+  "total_monthly_estimate_krw": 269100,
+  "within_owner_krw_cap": true,
+  "assumptions": [
+    "No NAT gateway, internet gateway, public RDS, public S3, or public IPv4 address is created.",
+    "Production traffic is disabled by default and requires a signed go-live stage.",
+    "The execution preflight must refresh the forecast and stop if the KRW 300000 ceiling would be exceeded."
+  ]
+}

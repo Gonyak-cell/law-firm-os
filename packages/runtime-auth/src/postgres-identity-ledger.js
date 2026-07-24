@@ -11,16 +11,35 @@ const CREDENTIAL_STATUSES = new Set(["active", "must_change", "reset_required", 
 const CHALLENGE_TYPES = new Set(["password_reset", "step_up", "oidc_login"]);
 const INTERNAL_PASSWORD_PROVIDER_ID = "lawos-internal-password-provider-v1";
 const FORBIDDEN_AUDIT_DETAIL_KEY = /(^|_)(password|secret|token|totp|proof|authorization|challenge_hash|password_hash)(_|$)/iu;
+const FORBIDDEN_DIRECTORY_PROFILE_KEY =
+  /(^|_)(?:password|password_hash|passwd|passphrase|secret|token|credential|authorization|api_key|private_key|recovery_key|document_bytes|raw_bytes|raw_payload)(_|$)/iu;
 const DIRECTORY_PROFILE_KEYS = Object.freeze([
   "display_name",
   "english_name",
   "source_title",
+  "employee_id",
+  "legal_name",
+  "work_email",
+  "title",
+  "employment_type",
+  "affiliation",
+  "department",
+  "organization_group",
+  "org_unit_id",
+  "country",
+  "professional_profile",
+  "source_attributes",
+  "mfa_required",
   "production_status",
   "qa_tenant_scope",
   "registration_state",
   "highest_privilege",
   "privilege_rank",
   "assurance_level",
+  "roster_link_status",
+  "login_allowed",
+  "identity_setup_allowed",
+  "access_grant_allowed",
   "source_ref",
 ]);
 
@@ -80,13 +99,33 @@ function normalizeStringArray(value, name) {
   return Object.freeze([...new Set(value.map((item) => required(item, name)))]);
 }
 
+function assertDirectoryProfileSafe(value, path = "profile", depth = 0) {
+  if (depth > 24) throw new TypeError("identity directory profile exceeds the maximum depth");
+  if (Buffer.isBuffer(value) || ArrayBuffer.isView(value)) {
+    throw new TypeError(`${path} contains raw bytes`);
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => assertDirectoryProfileSafe(item, `${path}[${index}]`, depth + 1));
+    return;
+  }
+  if (!value || typeof value !== "object") return;
+  for (const [key, item] of Object.entries(value)) {
+    if (FORBIDDEN_DIRECTORY_PROFILE_KEY.test(key)) {
+      throw new TypeError(`${path} contains forbidden sensitive material`);
+    }
+    assertDirectoryProfileSafe(item, `${path}.${key}`, depth + 1);
+  }
+}
+
 function normalizeDirectoryProfile(user = {}) {
   const source = user.profile && typeof user.profile === "object" && !Array.isArray(user.profile)
     ? user.profile
     : user;
-  return Object.freeze(Object.fromEntries(DIRECTORY_PROFILE_KEYS
+  const profile = Object.fromEntries(DIRECTORY_PROFILE_KEYS
     .filter((key) => source[key] !== undefined && source[key] !== null)
-    .map((key) => [key, clone(source[key])])));
+    .map((key) => [key, clone(source[key])]));
+  assertDirectoryProfileSafe(profile);
+  return Object.freeze(profile);
 }
 
 function normalizeDirectoryMembership(input = {}, tenantId, userId) {

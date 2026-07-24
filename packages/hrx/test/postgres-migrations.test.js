@@ -19,8 +19,8 @@ test("HRX migration inventory classifies all 32 SQLite sources and translates ev
   assert.equal(inventory.translated_trigger_count, 14);
   assert.equal(inventory.rows.every((row) => row.translated_sql_ready), true);
   assert.equal(inventory.rows.every((row) => row.destructive_statement_count === 0), true);
-  assert.equal(listHrxPostgresMigrations().length, 35);
-  assert.equal(new Set(listHrxPostgresMigrations().map((migration) => migration.id)).size, 35);
+  assert.equal(listHrxPostgresMigrations().length, 36);
+  assert.equal(new Set(listHrxPostgresMigrations().map((migration) => migration.id)).size, 36);
 });
 
 test("HRX PostgreSQL migrations pass fresh, upgrade, RLS, checksum and recovery contracts", async (t) => {

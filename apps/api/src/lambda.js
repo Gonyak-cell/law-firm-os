@@ -4212,8 +4212,8 @@ async function resetCachedApiServer() {
 
 export async function handler(event = {}) {
   if (maintenanceAction(event) === LAWOS_PASSWORD_RESET_WORKER_ACTION) {
-    const tenantId = String(process.env.LAWOS_PASSWORD_RESET_TENANT_ID ?? "").trim();
-    if (!tenantId) throw new Error("LAWOS_PASSWORD_RESET_TENANT_ID is required for the password reset worker");
+    const tenantId = String(process.env.LAWOS_IDENTITY_TENANT_ID ?? "").trim();
+    if (!tenantId) throw new Error("LAWOS_IDENTITY_TENANT_ID is required for the password reset worker");
     const runtime = await apiRuntime();
     const counts = await runtime.sessionAuth.processPasswordResetQueue({ tenantId, limit: 1 });
     return {
