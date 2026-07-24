@@ -135,12 +135,7 @@ test("W12 rehearsal reuses the private staging topology with an isolated databas
   ]) {
     const endpoint = template.Resources[resource].Properties.PolicyDocument
       .Statement.find((item) => item.Sid === sid);
-    assert.deepEqual(endpoint.Principal, {
-      AWS: {
-        "Fn::Sub":
-          "arn:${AWS::Partition}:iam::${AWS::AccountId}:root",
-      },
-    });
+    assert.equal(endpoint.Principal, "*");
     assert.equal(endpoint.Condition, undefined);
   }
   const roleTags =
@@ -289,7 +284,9 @@ test("W12 rehearsal fails closed on public infrastructure, email authority, wild
     (value) => {
       value.Resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement
         .find((item) => item.Sid === "W12AdminReadsExactRehearsalSecrets")
-        .Principal = "*";
+        .Principal = {
+          AWS: "arn:aws:iam::000000000000:root",
+        };
     },
     (value) => {
       value.Resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement

@@ -801,12 +801,7 @@ export function buildJsonPostgresRehearsalTemplate(privateStagingTemplate) {
   resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement.push({
     Sid: "W12AdminReadsExactRehearsalSecrets",
     Effect: "Allow",
-    Principal: {
-      AWS: {
-        "Fn::Sub":
-          "arn:${AWS::Partition}:iam::${AWS::AccountId}:root",
-      },
-    },
+    Principal: "*",
     Action: [
       "secretsmanager:GetSecretValue",
       "secretsmanager:PutSecretValue",
@@ -820,12 +815,7 @@ export function buildJsonPostgresRehearsalTemplate(privateStagingTemplate) {
   resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement.push({
     Sid: "ExactW12RehearsalInputsAndDmsOnly",
     Effect: "Allow",
-    Principal: {
-      AWS: {
-        "Fn::Sub":
-          "arn:${AWS::Partition}:iam::${AWS::AccountId}:root",
-      },
-    },
+    Principal: "*",
     Action: [
       "s3:GetBucketLocation",
       "s3:GetBucketObjectLockConfiguration",
@@ -999,9 +989,6 @@ export function validateJsonPostgresRehearsalTemplate(template) {
     resources.S3GatewayEndpoint?.Properties?.PolicyDocument?.Statement ?? [];
   const endpoint = endpointStatements
     .find((item) => item.Sid === "ExactW12RehearsalInputsAndDmsOnly");
-  const accountRoot = {
-    "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root",
-  };
   const endpointActions = [
     "s3:GetBucketLocation",
     "s3:GetBucketObjectLockConfiguration",
@@ -1024,8 +1011,7 @@ export function validateJsonPostgresRehearsalTemplate(template) {
     },
   ];
   if (!endpoint
-    || JSON.stringify(endpoint.Principal?.AWS)
-      !== JSON.stringify(accountRoot)
+    || endpoint.Principal !== "*"
     || endpoint.Condition != null
     || JSON.stringify(endpoint.Action) !== JSON.stringify(endpointActions)
     || JSON.stringify(endpoint.Resource) !== JSON.stringify(endpointResources)) {
@@ -1035,8 +1021,7 @@ export function validateJsonPostgresRehearsalTemplate(template) {
     resources.SecretsManagerEndpoint?.Properties?.PolicyDocument?.Statement
       ?.find((item) => item.Sid === "W12AdminReadsExactRehearsalSecrets");
   if (!secretEndpoint
-    || JSON.stringify(secretEndpoint.Principal?.AWS)
-      !== JSON.stringify(accountRoot)
+    || secretEndpoint.Principal !== "*"
     || secretEndpoint.Condition != null
     || JSON.stringify(secretEndpoint.Action) !== JSON.stringify([
       "secretsmanager:GetSecretValue",
