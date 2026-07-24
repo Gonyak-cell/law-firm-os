@@ -16,6 +16,7 @@ import {
 } from "../packages/persistence/src/postgres/program-receipt.js";
 import {
   buildVersionedS3TemplateUrl,
+  cloudFormationParameterArgs,
   cloudFormationTemplateArgs,
   cloudFormationTemplateRequiresUrl,
   validateCloudFormationChangeSetTemplate,
@@ -134,11 +135,6 @@ function awsWait(args) {
   });
 }
 
-function parameterArgs(parameters) {
-  return Object.entries(parameters)
-    .map(([key, value]) => `ParameterKey=${key},ParameterValue=${value}`);
-}
-
 function outputMap(stack) {
   return Object.fromEntries(
     (stack?.Outputs ?? []).map(({ OutputKey, OutputValue }) => [OutputKey, OutputValue]),
@@ -206,7 +202,7 @@ function createChangeSet({
       templateUrl: resolvedTemplateUrl,
     }).args,
     "--capabilities", "CAPABILITY_NAMED_IAM",
-    "--parameters", ...parameterArgs(parameters),
+    "--parameters", ...cloudFormationParameterArgs(parameters),
     "--description", `Exact-packet ${packet.packet_sha256} ${label}`,
   ]);
   awsWait([

@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   CLOUDFORMATION_TEMPLATE_BODY_MAX_BYTES,
   buildVersionedS3TemplateUrl,
+  cloudFormationParameterArgs,
   cloudFormationTemplateSha256,
   cloudFormationTemplateArgs,
   cloudFormationTemplateRequiresUrl,
@@ -105,5 +106,40 @@ test("CloudFormation change-set template body is the authoritative remote bindin
       expectedSha256,
     }),
     /template digest drifted/u,
+  );
+});
+
+test("CloudFormation update parameters preserve hidden NoEcho values", () => {
+  assert.deepEqual(
+    cloudFormationParameterArgs([
+      { key: "SourceSha", value: "a".repeat(40) },
+      { key: "PasswordResetFromEmail", value: "****" },
+    ]),
+    [
+      `ParameterKey=SourceSha,ParameterValue=${"a".repeat(40)}`,
+      "ParameterKey=PasswordResetFromEmail,UsePreviousValue=true",
+    ],
+  );
+  assert.deepEqual(
+    cloudFormationParameterArgs({
+      EnableLambdaEniBootstrap: "false",
+      PasswordResetFromEmail: "****",
+    }),
+    [
+      "ParameterKey=EnableLambdaEniBootstrap,ParameterValue=false",
+      "ParameterKey=PasswordResetFromEmail,UsePreviousValue=true",
+    ],
+  );
+  assert.throws(
+    () => cloudFormationParameterArgs({
+      "unsafe,key": "value",
+    }),
+    /parameter key is invalid/u,
+  );
+  assert.throws(
+    () => cloudFormationParameterArgs({
+      MissingValue: undefined,
+    }),
+    /has no value/u,
   );
 });

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 
 export const CLOUDFORMATION_TEMPLATE_BODY_MAX_BYTES = 51_200;
+export const CLOUDFORMATION_NO_ECHO_PLACEHOLDER = "****";
 
 function stableJson(value) {
   if (Array.isArray(value)) {
@@ -115,4 +116,22 @@ export function cloudFormationTemplateArgs({
     byte_size: templateByteSize,
     transport: "inline-body",
   });
+}
+
+export function cloudFormationParameterArgs(parameters) {
+  const entries = Array.isArray(parameters)
+    ? parameters
+    : Object.entries(parameters ?? {}).map(([key, value]) => ({ key, value }));
+  return Object.freeze(entries.map(({ key, value }) => {
+    if (!/^[A-Za-z0-9]+$/u.test(key ?? "")) {
+      throw new TypeError("CloudFormation parameter key is invalid");
+    }
+    if (value === CLOUDFORMATION_NO_ECHO_PLACEHOLDER) {
+      return `ParameterKey=${key},UsePreviousValue=true`;
+    }
+    if (value === undefined || value === null) {
+      throw new TypeError(`CloudFormation parameter ${key} has no value`);
+    }
+    return `ParameterKey=${key},ParameterValue=${value}`;
+  }));
 }

@@ -15,6 +15,7 @@ import {
 } from "./lib/json-postgres-production-artifact.mjs";
 import {
   buildVersionedS3TemplateUrl,
+  cloudFormationParameterArgs,
   cloudFormationTemplateArgs,
   cloudFormationTemplateRequiresUrl,
   validateCloudFormationChangeSetTemplate,
@@ -163,14 +164,6 @@ function awsWait(args) {
     maxBuffer: 16 * 1024 * 1024,
     stdio: ["ignore", "pipe", "pipe"],
   });
-}
-
-function parameterArgs(parameters) {
-  const entries = Array.isArray(parameters)
-    ? parameters
-    : Object.entries(parameters).map(([key, value]) => ({ key, value }));
-  return entries.map(({ key, value }) =>
-    `ParameterKey=${key},ParameterValue=${value}`);
 }
 
 function parameterMap(stack) {
@@ -322,7 +315,7 @@ function createReviewedChangeSet({
       templateUrl,
     }).args,
     "--capabilities", "CAPABILITY_NAMED_IAM",
-    "--parameters", ...parameterArgs(parameters),
+    "--parameters", ...cloudFormationParameterArgs(parameters),
     "--description",
     `Exact W12 packet ${packet.packet_sha256} ${phase}`,
   ]);
