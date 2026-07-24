@@ -94,7 +94,7 @@ test("production change-set review rejects removals and unsafe replacements", ()
   const template = { Resources: { ApiFunction: {}, Database: {} } };
   const base = {
     StackName: JSON_POSTGRES_PRODUCTION_STACK,
-    Id: "change-set-1",
+    ChangeSetId: "change-set-1",
     Changes: [
       { ResourceChange: { Action: "Add", LogicalResourceId: "ApiFunction", ResourceType: "AWS::Lambda::Function", Replacement: "False" } },
       { ResourceChange: { Action: "Add", LogicalResourceId: "Database", ResourceType: "AWS::RDS::DBInstance", Replacement: "False" } },

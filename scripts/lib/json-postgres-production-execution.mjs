@@ -144,6 +144,8 @@ export function validateJsonPostgresProductionChangeSet(changeSet, {
     || changeSet?.StackName !== stackName
     || (changeSet?.ChangeSetType != null
       && changeSet.ChangeSetType !== changeSetType)
+    || typeof changeSet?.ChangeSetId !== "string"
+    || changeSet.ChangeSetId.length === 0
     || !["CREATE", "UPDATE"].includes(changeSetType)
     || !SHA256.test(parametersSha256 ?? "")
     || !SHA256.test(templateSha256 ?? "")
@@ -172,7 +174,7 @@ export function validateJsonPostgresProductionChangeSet(changeSet, {
   const reviewMaterial = {
     stack_name: stackName,
     change_set_type: changeSetType,
-    change_set_id: changeSet.Id,
+    change_set_id: changeSet.ChangeSetId,
     template_sha256: templateSha256,
     parameters_sha256: parametersSha256,
     ...(templateUrl === null ? {} : { template_url: templateUrl }),

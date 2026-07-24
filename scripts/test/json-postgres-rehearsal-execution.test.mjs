@@ -73,7 +73,7 @@ test("W12 caller and artifact-store change set are exact-role and add-only", () 
   });
   const review = validateJsonPostgresRehearsalChangeSet({
     StackName: JSON_POSTGRES_REHEARSAL_ARTIFACT_STACK,
-    Id: "change-set-id",
+    ChangeSetId: "change-set-id",
     Changes: [{
       ResourceChange: {
         Action: "Add",
@@ -93,7 +93,7 @@ test("W12 caller and artifact-store change set are exact-role and add-only", () 
   assert.equal(review.verdict, "PASS");
   const unknown = {
     StackName: JSON_POSTGRES_REHEARSAL_ARTIFACT_STACK,
-    Id: "unknown-change-set",
+    ChangeSetId: "unknown-change-set",
     Changes: [{
       ResourceChange: {
         Action: "Add",
@@ -157,7 +157,7 @@ test("W12 caller and artifact-store change set are exact-role and add-only", () 
 test("W12 change-set review allows the exact one-time identity tenant rebind only when declared", () => {
   const changeSet = {
     StackName: JSON_POSTGRES_REHEARSAL_STACK,
-    Id: "change-set-identity-rebind",
+    ChangeSetId: "change-set-identity-rebind",
     Changes: [{
       ResourceChange: {
         Action: "Modify",

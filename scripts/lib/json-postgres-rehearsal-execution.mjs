@@ -188,6 +188,8 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
     || changeSet?.StackName !== stackName
     || (changeSet?.ChangeSetType != null
       && changeSet.ChangeSetType !== changeSetType)
+    || typeof changeSet?.ChangeSetId !== "string"
+    || changeSet.ChangeSetId.length === 0
     || !["CREATE", "UPDATE"].includes(changeSetType)
     || !["artifact-store", "enable-eni", "remove-eni"].includes(phase)
     || !SHA256.test(templateSha256 ?? "")
@@ -251,7 +253,7 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
     stack_name: stackName,
     change_set_type: changeSetType,
     phase,
-    change_set_id: changeSet.Id,
+    change_set_id: changeSet.ChangeSetId,
     template_sha256: templateSha256,
     parameters_sha256: parametersSha256,
     ...(templateUrl === null ? {} : { template_url: templateUrl }),
