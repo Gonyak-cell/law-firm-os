@@ -1,6 +1,7 @@
 name: HRX Production Rollout
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - ".github/workflows/hrx-production-rollout.yml"
