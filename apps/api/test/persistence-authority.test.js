@@ -280,12 +280,14 @@ test("operational PostgreSQL authority resolves credentials only through an AWS 
 });
 
 test("structured Secrets Manager PostgreSQL credentials are encoded only in process memory", () => {
+  const password =
+    "synthetic test % password : [] {} / @ value";
   const connectionString = postgresUrlFromSecret(JSON.stringify({
     host: "lawos-private-staging.example.rds.amazonaws.com",
     port: 5432,
     dbname: "lawos",
     username: "lawos_app",
-    password: "synthetic test / password @ value",
+    password,
     configuration_state: "ready",
   }));
   const parsed = new URL(connectionString);
@@ -293,8 +295,8 @@ test("structured Secrets Manager PostgreSQL credentials are encoded only in proc
   assert.equal(parsed.port, "5432");
   assert.equal(parsed.pathname, "/lawos");
   assert.equal(decodeURIComponent(parsed.username), "lawos_app");
-  assert.equal(decodeURIComponent(parsed.password), "synthetic test / password @ value");
-  assert.equal(connectionString.includes("synthetic test / password @ value"), false);
+  assert.equal(decodeURIComponent(parsed.password), password);
+  assert.equal(connectionString.includes(password), false);
   assert.throws(
     () => postgresUrlFromSecret(JSON.stringify({ username: "lawos_app", password: "incomplete" })),
     /complete structured credential/u,

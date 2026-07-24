@@ -107,13 +107,10 @@ export function postgresUrlFromSecret(value) {
     }
     const portNumber = Number(port);
     if (portNumber < 1 || portNumber > 65535) throw new TypeError("PostgreSQL secret port is invalid");
-    const url = new URL("postgresql://localhost");
-    url.hostname = host;
-    url.port = port;
-    url.username = username;
-    url.password = password;
-    url.pathname = `/${encodeURIComponent(database)}`;
-    return url.toString();
+    const endpoint = new URL("postgresql://localhost");
+    endpoint.hostname = host;
+    endpoint.port = port;
+    return `postgresql://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${endpoint.host}/${encodeURIComponent(database)}`;
   } catch (error) {
     if (error instanceof SyntaxError) return text;
     throw error;
