@@ -304,7 +304,7 @@ function putImmutableJson({
   if (!result.VersionId || result.VersionId === "null") {
     throw new Error(`W12 ${kind} upload is not immutable`);
   }
-  const head = awsJson(AUDIT_PROFILE, [
+  const head = awsJson(INSPECTION_PROFILE, [
     "s3api",
     "head-object",
     "--bucket", packet.target.program_input_bucket_name,
@@ -347,7 +347,7 @@ function downloadEvidence({
   const key =
     `program-execution/${packet.packet_sha256}/${attemptRef}/`
     + `${kind}-${digest}.json`;
-  const head = awsJson(AUDIT_PROFILE, [
+  const head = awsJson(INSPECTION_PROFILE, [
     "s3api",
     "head-object",
     "--bucket", JSON_POSTGRES_REHEARSAL_PROGRAM_INPUT_BUCKET,
@@ -364,7 +364,7 @@ function downloadEvidence({
       < Date.now() + 364 * 24 * 60 * 60 * 1000) {
     throw new Error(`W12 immutable ${kind} governance drifted`);
   }
-  const downloaded = awsJson(AUDIT_PROFILE, [
+  const downloaded = awsJson(INSPECTION_PROFILE, [
     "s3api",
     "get-object",
     "--bucket", JSON_POSTGRES_REHEARSAL_PROGRAM_INPUT_BUCKET,

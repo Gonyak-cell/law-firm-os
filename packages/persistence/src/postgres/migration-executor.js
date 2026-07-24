@@ -187,6 +187,12 @@ export async function runJsonPostgresExecutionMode({
       fail("LAWOS_JSON_POSTGRES_EXECUTION_SOURCE", "migration corpus digest drifted after approval");
     }
   }
+  if (migration && migration.outcome !== "PASS") {
+    fail(
+      "LAWOS_JSON_POSTGRES_READBACK_VARIANCE",
+      "PostgreSQL migration readback did not match the approved source",
+    );
+  }
   if (mode !== "preflight") {
     if (typeof dmsRunner !== "function") fail("LAWOS_JSON_POSTGRES_DMS_REQUIRED", "the exact DMS object migration is required");
     dms = await dmsRunner({ mode });

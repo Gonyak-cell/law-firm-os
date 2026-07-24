@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
+import { createPostgresIdentityLedger } from "../../runtime-auth/src/postgres-identity-ledger.js";
 import { DOMAIN_IDS } from "../src/domain-ledger.js";
 import { createPostgresDomainLedger } from "../src/postgres/domain-ledger.js";
 import {
@@ -131,11 +133,72 @@ test("JSON to PostgreSQL migration validates the full corpus without returning s
   assert.equal(result.performance.retry_count, 0);
   assert.equal(result.performance.conflict_count, 0);
   assert.equal(result.performance.pool_waiting_count, 0);
+  assert.ok(result.performance.outbox_lag_p95_ms < 2_000);
   assert.ok(result.performance.elapsed_ms >= 1);
   const serialized = JSON.stringify(result);
   assert.equal(serialized.includes("must-never-be-persisted-or-returned"), false);
   assert.equal(serialized.includes("synthetic.user@example.test"), false);
   assert.equal(serialized.includes("Synthetic User"), false);
+});
+
+test("approved real migration repairs the current safe directory projection without replaying legacy idempotency", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const source = syntheticCorpus();
+  source.data_scope = "approved-real-manifest";
+  source.accounts[0].status = "disabled";
+  source.accounts[0].account_status = "disabled";
+  source.accounts[0].profile = {
+    display_name: "Pending Roster User",
+    roster_link_status: "pending-roster-link",
+    login_allowed: false,
+    identity_setup_allowed: false,
+    access_grant_allowed: false,
+  };
+  source.accounts[0].membership.status = "disabled";
+  source.domains = source.domains.map((domain) => ({
+    ...domain,
+    records: domain.records.filter(
+      (record) => record.record_type !== "RejectedSyntheticMatter",
+    ),
+  }));
+  const identity = createPostgresIdentityLedger({ pool: fixture.appPool });
+  await identity.provisionDirectoryUser({
+    tenant_id: TENANT,
+    actor_id: "legacy-migration",
+    data_scope: "approved-real-manifest",
+    idempotency_key: "json-postgres-migration:identity:legacy",
+    request_hash: createHash("sha256")
+      .update("json-postgres-migration:identity:legacy")
+      .digest("hex"),
+    user: {
+      ...source.accounts[0],
+      profile: { display_name: "Pending Roster User" },
+    },
+    membership: source.accounts[0].membership,
+  });
+  const catalog = createJsonPostgresRecordTypeCatalog({ corpus: source });
+  const result = await runJsonPostgresMigration({
+    pool: fixture.appPool,
+    corpus: source,
+    mode: "import",
+    allowRealData: true,
+    recordTypeCatalog: catalog,
+    negativeTenantId: OTHER_TENANT,
+  });
+  assert.equal(result.outcome, "PASS");
+  assert.equal(result.directory.idempotency_count, 1);
+  assert.equal(result.directory.audit_count, 1);
+  assert.equal(result.directory.outbox_count, 1);
+  assert.ok(result.performance.outbox_lag_p95_ms < 2_000);
+  const repaired = await identity.findDirectoryUserByUserId({
+    tenant_id: TENANT,
+    user_id: source.accounts[0].user_id,
+  });
+  assert.equal(repaired.profile.roster_link_status, "pending-roster-link");
+  assert.equal(repaired.profile.login_allowed, false);
+  assert.equal(repaired.profile.identity_setup_allowed, false);
+  assert.equal(repaired.profile.access_grant_allowed, false);
 });
 
 test("approved real-data mode requires and enforces an exact record-type catalog", async () => {

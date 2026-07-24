@@ -149,6 +149,8 @@ function directoryProjectionList(users) {
   return users.map(jsonPostgresDirectoryProjection).sort((left, right) => left.user_id.localeCompare(right.user_id));
 }
 
+const DIRECTORY_PROJECTION_REVISION = "v2";
+
 export function prepareJsonPostgresMigrationCorpus(corpus = {}, { allowRealData = false } = {}) {
   if (corpus.schema_version !== JSON_POSTGRES_MIGRATION_SCHEMA_VERSION) throw new TypeError("migration corpus schema is invalid");
   const tenantId = requiredText(corpus.tenant_id, "migration tenant_id");
@@ -461,6 +463,7 @@ export async function runJsonPostgresMigration({
     const identityStartedAt = performance.now();
     for (const account of prepared.accounts) {
       const requestHash = hashDomainValue({
+        directory_projection_revision: DIRECTORY_PROJECTION_REVISION,
         source_manifest_sha256: prepared.manifest_sha256,
         tenant_id: prepared.tenant_id,
         user: account.user,
@@ -472,7 +475,9 @@ export async function runJsonPostgresMigration({
         membership: account.membership,
         actor_id: "json-postgres-migration",
         data_scope: prepared.data_scope,
-        idempotency_key: `json-postgres-migration:identity:${prepared.manifest_sha256}:${account.user.user_id}`,
+        idempotency_key:
+          `json-postgres-migration:identity:${DIRECTORY_PROJECTION_REVISION}:`
+          + `${prepared.manifest_sha256}:${account.user.user_id}`,
         request_hash: requestHash,
       };
       const result = await identityLedger.provisionDirectoryUser({
@@ -576,23 +581,39 @@ export async function runJsonPostgresMigration({
     directoryReadbackHash = hashDomainValue(directoryProjectionList(targetUsers));
     directoryTargetCount = targetUsers.length;
     directoryOrphanCount = Math.max(0, targetUsers.length - prepared.accounts.length);
-    const migrationKeyPrefix = `json-postgres-migration:identity:${prepared.manifest_sha256}:`;
-    directoryIdempotencyCount = idempotencyEntries.filter((entry) => entry.key.startsWith(migrationKeyPrefix)).length;
+    const migrationKeyPrefix =
+      `json-postgres-migration:identity:${DIRECTORY_PROJECTION_REVISION}:`
+      + `${prepared.manifest_sha256}:`;
+    directoryIdempotencyCount = new Set(idempotencyEntries
+      .filter((entry) => entry.key.startsWith(migrationKeyPrefix))
+      .map((entry) => entry.key.slice(migrationKeyPrefix.length)))
+      .size;
     const migratedUserIds = new Set(prepared.accounts.map((account) => account.user.user_id));
-    directoryOutboxCount = outboxEvents.filter((event) => (
-      event.topic === "identity.directory.user.changed" && migratedUserIds.has(event.aggregate_id)
-    )).length;
-    directoryAuditCount = auditEvents.filter((event) => (
-      event.action === "auth.directory.user.provisioned" && migratedUserIds.has(event.object_id)
-    )).length;
-    const measuredAt = Date.now();
+    directoryOutboxCount = new Set(outboxEvents
+      .filter((event) => (
+        event.topic === "identity.directory.user.changed"
+        && migratedUserIds.has(event.aggregate_id)
+      ))
+      .map((event) => event.aggregate_id))
+      .size;
+    directoryAuditCount = new Set(auditEvents
+      .filter((event) => (
+        event.action === "auth.directory.user.provisioned"
+        && migratedUserIds.has(event.object_id)
+      ))
+      .map((event) => event.object_id))
+      .size;
+    const accountUpdatedAtByUserId = new Map(
+      targetUsers.map((user) => [user.user_id, Date.parse(user.updated_at)]),
+    );
     const outboxLagSamples = outboxEvents
       .filter((event) => migratedUserIds.has(event.aggregate_id))
       .map((event) => Math.max(
         0,
-        measuredAt - Date.parse(event.created_at ?? measuredAt),
+        Date.parse(event.created_at)
+          - accountUpdatedAtByUserId.get(event.aggregate_id),
       ))
-      .filter(Number.isSafeInteger);
+      .filter((value) => Number.isSafeInteger(value));
     outboxLagP95Ms = percentile(outboxLagSamples, 0.95);
     if (negativeTenantId && !negativeTenantAccessDenied) {
       for (const account of prepared.accounts) {

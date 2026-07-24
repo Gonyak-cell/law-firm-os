@@ -36,6 +36,10 @@ const DIRECTORY_PROFILE_KEYS = Object.freeze([
   "highest_privilege",
   "privilege_rank",
   "assurance_level",
+  "roster_link_status",
+  "login_allowed",
+  "identity_setup_allowed",
+  "access_grant_allowed",
   "source_ref",
 ]);
 

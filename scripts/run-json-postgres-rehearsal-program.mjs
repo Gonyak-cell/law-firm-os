@@ -148,6 +148,9 @@ const profile = option(
     ? "matter-staging-admin"
     : jsonPostgresRehearsalProfileForMode(mode),
 );
+const evidenceInspectionProfile = mode
+  ? jsonPostgresRehearsalProfileForMode(mode, { inspection: true })
+  : profile;
 
 function awsArgs(args, {
   region = true,
@@ -768,7 +771,7 @@ if (operation === "prepare") {
     JSON_POSTGRES_REHEARSAL_ACCOUNT,
     "--checksum-mode",
     "ENABLED",
-  ]);
+  ], { commandProfile: evidenceInspectionProfile });
   if (!head.VersionId
     || head.VersionId === "null"
     || head.ServerSideEncryption !== "aws:kms"
@@ -794,7 +797,7 @@ if (operation === "prepare") {
     "--checksum-mode",
     "ENABLED",
     executionEvidencePath,
-  ]);
+  ], { commandProfile: evidenceInspectionProfile });
   chmodSync(executionEvidencePath, 0o600);
   const executionEvidenceBytes = readFileSync(executionEvidencePath);
   if (downloaded.VersionId !== head.VersionId
@@ -827,7 +830,7 @@ if (operation === "prepare") {
       JSON_POSTGRES_REHEARSAL_ACCOUNT,
       "--checksum-mode",
       "ENABLED",
-    ]);
+    ], { commandProfile: evidenceInspectionProfile });
     if (!validationHead.VersionId
       || validationHead.VersionId === "null"
       || validationHead.ServerSideEncryption !== "aws:kms"
@@ -857,7 +860,7 @@ if (operation === "prepare") {
       "--checksum-mode",
       "ENABLED",
       validationEvidencePath,
-    ]);
+    ], { commandProfile: evidenceInspectionProfile });
     chmodSync(validationEvidencePath, 0o600);
     validationEvidenceBytes = readFileSync(validationEvidencePath);
     if (downloadedValidation.VersionId !== validationHead.VersionId

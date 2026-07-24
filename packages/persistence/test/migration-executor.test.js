@@ -251,6 +251,49 @@ test("migration executor requires all exact predecessors before commit and suppo
   assert.ok(reconciled.performance.measurement_count > 0);
 });
 
+test("migration executor fails closed when PostgreSQL readback differs from the approved source", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const authorityBundle = await bundle(t);
+  const value = packet(authorityBundle);
+  const predecessors = [
+    predecessor("source-inventory-adjudication", value),
+    predecessor("record-type-and-reference", value),
+    predecessor("w12-infrastructure", value),
+    predecessor("w12-sink", value),
+  ];
+  await runJsonPostgresExecutionMode({
+    packet: value,
+    approval: approval(value),
+    authorityBundle,
+    corpus: corpus(),
+    mode: "commit",
+    pool: fixture.appPool,
+    negativeTenantId: "tenant_execution_b",
+    predecessors,
+    dmsRunner: dmsRunner(value),
+  });
+  await fixture.adminPool.query(
+    `UPDATE lawos_identity.accounts
+        SET email = 'drifted@example.test'
+      WHERE tenant_id = 'tenant_execution_a'
+        AND user_id = 'user-a'`,
+  );
+  await assert.rejects(
+    runJsonPostgresExecutionMode({
+      packet: value,
+      approval: approval(value),
+      authorityBundle,
+      corpus: corpus(),
+      mode: "readback",
+      pool: fixture.appPool,
+      negativeTenantId: "tenant_execution_b",
+      dmsRunner: dmsRunner(value),
+    }),
+    (error) => error?.code === "LAWOS_JSON_POSTGRES_READBACK_VARIANCE",
+  );
+});
+
 test("production commit requires a signed not-started boundary and reports the irreversible transition", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
