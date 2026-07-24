@@ -97,6 +97,7 @@ function inferredEntityKind(domainId, recordType) {
   const type = recordType.toLowerCase().replaceAll(/[^a-z0-9]/gu, "");
   if (domainId === "identity") return "account";
   if (domainId === "hrx" && /employee.*user.*link|user.*employee.*link/u.test(type)) return "employee-user-link";
+  if (domainId === "hrx" && type === "hrxemploymentprofiles") return "professional-profile";
   if (domainId === "hrx" && /professional.*profile/u.test(type)) return "professional-profile";
   if (domainId === "hrx" && /career|experience/u.test(type)) return "career-entry";
   if (domainId === "hrx" && /education/u.test(type)) return "education-entry";
@@ -104,7 +105,8 @@ function inferredEntityKind(domainId, recordType) {
   if (domainId === "hrx" && /employee|member|personnel/u.test(type)) return "employee";
   if (domainId === "master-data" && /client/u.test(type)) return "client";
   if (domainId === "master-data" && /party|entity/u.test(type)) return "party";
-  if (domainId === "matter" && /matter/u.test(type)) return "matter";
+  if (domainId === "matter" && type === "matterclient") return "client";
+  if (domainId === "matter" && type === "matter") return "matter";
   if (domainId === "dms" || domainId === "dms-auxiliary") return "dms-object";
   if (domainId === "finance") return "finance";
   if (domainId === "client-portal") return "portal";

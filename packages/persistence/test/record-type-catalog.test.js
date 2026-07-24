@@ -71,6 +71,42 @@ test("record-type catalog emits shape only and validates logical references", ()
   }
 });
 
+test("record-type catalog classifies only canonical matters as matter entities", () => {
+  const source = corpus();
+  source.domains[1].records.push({
+    record_type: "MatterClient",
+    record_id: "matter-client-never-return",
+    payload: { client_id: "client-never-return" },
+  }, {
+    record_type: "MatterProfile",
+    record_id: "matter-profile-never-return",
+    payload: { matter_id: "matter-never-return" },
+  });
+  source.domains.push({
+    domain_id: "hrx",
+    records: [{
+      record_type: "hrx_employment_profiles",
+      record_id: "profile-never-return",
+      payload: {
+        tenant_id: "tenant-never-return",
+        profile_id: "profile-never-return",
+        employee_id: "employee-never-return",
+      },
+    }],
+  });
+  const catalog = createJsonPostgresRecordTypeCatalog({ corpus: source });
+  const kind = (domainId, recordType) => catalog.entries.find((entry) =>
+    entry.domain_id === domainId
+    && entry.record_type === recordType).entity_kind;
+  assert.equal(kind("matter", "Matter"), "matter");
+  assert.equal(kind("matter", "MatterClient"), "client");
+  assert.equal(kind("matter", "MatterProfile"), "other");
+  assert.equal(
+    kind("hrx", "hrx_employment_profiles"),
+    "professional-profile",
+  );
+});
+
 test("record-type catalog blocks unapproved types, field drift, and missing targets", () => {
   const source = corpus();
   const catalog = createJsonPostgresRecordTypeCatalog({ corpus: source });
