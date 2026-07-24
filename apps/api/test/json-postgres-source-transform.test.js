@@ -26,6 +26,7 @@ import {
 import {
   createMigratedPostgresFixture,
 } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
+import { loadHrxCoreMigrations } from "../../../packages/hrx/src/migrations/index.js";
 
 const TENANT_ID = "tenant_real_fixture";
 const TEST_SOURCE_SHA = "a".repeat(40);
@@ -300,6 +301,8 @@ test("record-aware transform keeps unique records and removes only the older ove
       employee_id: "employee_001",
       display_name: "Fixture Person",
       work_email: "person@example.test",
+      title: "Attorney",
+      org_unit_id: "legal",
       status: "active",
     }],
   }));
@@ -439,18 +442,30 @@ test("record-aware transform disables every approved account pending a roster li
   await writeFile(
     join(accountsRoot, "registration-seed.json"),
     JSON.stringify({
+      tenant_id: TENANT_ID,
       users: [{
         tenant_id: TENANT_ID,
         user_id: "user_linked",
         email: "linked@example.test",
         status: "active",
-        tenant_memberships: [membership("user_linked")],
+        role_profile_id: "staff",
+        role_ids: ["staff"],
+        group_ids: ["all-staff"],
+        scopes: ["matter.read"],
+        hrx_scopes: ["hrx.self"],
+        source_ref: "registration-user_linked",
       }, {
         tenant_id: TENANT_ID,
         user_id: "user_pending",
         email: "pending@example.test",
         status: "active",
-        tenant_memberships: [membership("user_pending")],
+        tenant_memberships: [
+          membership("user_pending"),
+          {
+            ...membership("user_pending"),
+            tenant_id: "tenant_auxiliary",
+          },
+        ],
       }],
     }),
   );
@@ -564,4 +579,207 @@ test("record-aware transform disables every approved account pending a roster li
   assert.equal(pending.profile.login_allowed, false);
   assert.equal(pending.profile.identity_setup_allowed, false);
   assert.equal(pending.profile.access_grant_allowed, false);
+  assert.equal(pending.tenant_id, TENANT_ID);
+  assert.deepEqual(
+    pending.tenant_memberships.map((membership) =>
+      membership.tenant_id),
+    [TENANT_ID],
+  );
+  const linked = compiled.corpus.accounts.find((account) =>
+    account.user_id === "user_linked");
+  assert.deepEqual(
+    linked.tenant_memberships.map((membership) =>
+      membership.tenant_id),
+    [TENANT_ID],
+  );
+});
+
+test("record-aware transform merges partial HRX stores before enforcing references", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "lawos-partial-hrx-transform-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeFile(join(root, "registration-seed.json"), JSON.stringify({
+    tenant_id: TENANT_ID,
+    users: [{
+      user_id: "user_001",
+      email: "person@example.test",
+      status: "active",
+      tenant_memberships: [{
+        tenant_id: TENANT_ID,
+        status: "active",
+        role_profile_id: "staff",
+        role_ids: ["staff"],
+        group_ids: [],
+        scopes: ["matter.read"],
+        hrx_scopes: ["hrx.self"],
+      }],
+    }],
+  }));
+  await writeFile(join(root, "member-roster.json"), JSON.stringify({
+    tenant_id: TENANT_ID,
+    members: [{
+      user_id: "user_001",
+      employee_id: "employee_001",
+      display_name: "Fixture Person",
+      work_email: "person@example.test",
+      title: "Attorney",
+      org_unit_id: "legal",
+      status: "active",
+    }],
+  }));
+  await writeFile(join(root, "hrx-store.json"), JSON.stringify({
+    schema_version: "law-firm-os.hrx-file-store.v0.1",
+    applied_migrations: [{
+      id: "legacy-source-migration",
+      hash: "f".repeat(64),
+      applied_at: "2020-01-01T00:00:00.000Z",
+    }],
+    tables: {
+      hrx_employment_profiles: [{
+        tenant_id: TENANT_ID,
+        profile_id: "legacy_profile_001",
+        employee_id: "employee_001",
+        employment_type: "full_time",
+        status: "active",
+        title: "Attorney",
+        org_unit_id: "legal",
+        effective_from: "2020-01-01",
+        source_ref: "legacy-hrx",
+      }, {
+        tenant_id: TENANT_ID,
+        profile_id: "profile_employee_001",
+        employee_id: "employee_001",
+        employment_type: "contractor",
+        status: "active",
+        effective_from: "2019-01-01",
+        source_ref: "legacy-hrx",
+      }, {
+        tenant_id: TENANT_ID,
+        profile_id: "version_profile_001",
+        employee_id: "employee_001",
+        state_version: 1,
+        employment_type: "full_time",
+        status: "active",
+        title: "Attorney",
+        org_unit_id: "legal",
+        effective_from: "2020-01-01",
+        source_ref: "legacy-hrx",
+      }],
+      hrx_employee_user_links: [{
+        tenant_id: TENANT_ID,
+        link_id: "legacy_login_001",
+        employee_id: "employee_001",
+        user_id: "user_001",
+        purpose: "login_mapping",
+        source_ref: "legacy-hrx",
+      }],
+    },
+  }));
+  await writeFile(join(root, "hrx-store.json.old"), JSON.stringify({
+    schema_version: "law-firm-os.hrx-file-store.v0.1",
+    applied_migrations: [],
+    tables: {
+      hrx_employment_profiles: [{
+        tenant_id: TENANT_ID,
+        profile_id: "legacy_profile_001",
+        employee_id: "employee_001",
+        manager_employee_id: "manager_legacy",
+        employment_type: "full_time",
+        status: "active",
+        title: "Associate",
+        org_unit_id: "legacy",
+        effective_from: "2020-01-01",
+        source_ref: "legacy-hrx-old",
+      }, {
+        tenant_id: TENANT_ID,
+        profile_id: "version_profile_001",
+        employee_id: "employee_001",
+        state_version: 2,
+        employment_type: "full_time",
+        status: "active",
+        title: "Associate",
+        org_unit_id: "legacy",
+        effective_from: "2020-01-01",
+        source_ref: "legacy-hrx-old",
+      }],
+    },
+  }));
+  const locators = [];
+  const inventory = await inventoryJsonPostgresSources({
+    roots: [{ ref: "runtime-primary", path: root }],
+    onSourceLocator: async (locator) => locators.push(locator),
+    clock: () => new Date("2026-07-24T03:00:00.000Z"),
+  });
+  const locatorManifest = createJsonPostgresSourceLocatorManifest({
+    inventory,
+    locators,
+  });
+  const authority = recordAuthority(inventory, ["runtime-primary"]);
+  const transformByFamily = new Map([
+    ["registration-seed", {
+      kind: "identity-registration",
+      domain_id: null,
+    }],
+    ["member-roster", {
+      kind: "identity-roster",
+      domain_id: null,
+    }],
+    ["hrx-store", {
+      kind: "hrx-table-store",
+      domain_id: "hrx",
+    }],
+  ]);
+  const plan = createJsonPostgresSourceTransformPlan({
+    inventory,
+    locatorManifest,
+    transformSetRef: "partial-hrx-transform",
+    tenantId: TENANT_ID,
+    approvedRootRefs: ["runtime-primary"],
+    recordAuthority: authority,
+    decisions: authority.sources.map((source) => ({
+      ...source,
+      transform: source.classification === "authoritative"
+        ? transformByFamily.get(source.source_family)
+        : null,
+    })),
+  });
+  const compiled = await compileJsonPostgresMigrationCorpus({
+    inventory,
+    locatorManifest,
+    transformPlan: plan,
+  });
+  const hrx = compiled.corpus.domains.find((domain) =>
+    domain.domain_id === "hrx");
+  assert.ok(hrx.records.some((record) =>
+    record.record_type === "hrx_employees"));
+  assert.ok(hrx.records.some((record) =>
+    record.record_type === "hrx_employment_profiles"
+    && record.payload.profile_id === "legacy_profile_001"
+    && record.payload.title === "Attorney"));
+  assert.ok(hrx.records.some((record) =>
+    record.record_type === "hrx_employment_profiles"
+    && record.payload.profile_id === "version_profile_001"
+    && record.payload.state_version === 2
+    && record.payload.title === "Associate"));
+  assert.equal(
+    hrx.records.filter((record) =>
+      record.record_type === "hrx_employee_user_links").length,
+    1,
+  );
+  assert.equal(
+    hrx.records.filter((record) =>
+      record.record_type === "__hrx_schema_migration").length,
+    loadHrxCoreMigrations().length,
+  );
+  assert.equal(
+    compiled.result.safe_counts.hrx_primary_key_resolution_count,
+    3,
+  );
+  assert.equal(
+    compiled.result.safe_counts.hrx_unique_resolution_count,
+    1,
+  );
+  assert.equal(
+    compiled.result.safe_counts.roster_authority_resolution_count,
+    3,
+  );
 });

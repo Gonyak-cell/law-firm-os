@@ -9,7 +9,13 @@ import { CRM_DOMAIN_DESCRIPTOR } from "../../../packages/crm/src/central-ledger.
 import { DMS_AUXILIARY_DOMAIN_DESCRIPTOR } from "../../../packages/dms/src/central-ledger.js";
 import { ENTERPRISE_READINESS_DOMAIN_DESCRIPTOR } from "../../../packages/enterprise/src/central-ledger.js";
 import { createHrxDomainSnapshot } from "../../../packages/hrx/src/postgres-store-v2.js";
-import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
+import {
+  HRX_STORE_TABLES,
+  HRX_TABLE_PRIMARY_KEYS,
+  HRX_TABLE_UNIQUE_CONSTRAINTS,
+  createFileHrxStore,
+} from "../../../packages/hrx/src/store/file-store.js";
+import { loadHrxCoreMigrations } from "../../../packages/hrx/src/migrations/index.js";
 import { INTAKE_DOMAIN_DESCRIPTOR } from "../../../packages/intake/src/central-ledger.js";
 import { MASTER_DATA_DOMAIN_DESCRIPTOR } from "../../../packages/master-data/src/central-ledger.js";
 import { MATTER_DOMAIN_DESCRIPTOR } from "../../../packages/matter/src/central-ledger.js";
@@ -572,7 +578,7 @@ function mergeSnapshots(snapshots, tenantId, domainId) {
   });
 }
 
-function rosterSnapshot(rosters, tenantId) {
+function rosterState(rosters, tenantId) {
   const members = rosters.flatMap((source) => source.members ?? []);
   const employeeIds = new Set();
   const userIds = new Set();
@@ -620,18 +626,377 @@ function rosterSnapshot(rosters, tenantId) {
       source_ref: sourceRef,
     });
   }
-  const store = createFileHrxStore({
-    initialState: {
-      schema_version: "law-firm-os.hrx-file-store.v0.1",
-      applied_migrations: [],
-      tables,
-    },
-  });
-  try {
-    return createHrxDomainSnapshot({ store, tenant_id: tenantId }).snapshot;
-  } finally {
-    store.close();
+  return {
+    schema_version: "law-firm-os.hrx-file-store.v0.1",
+    applied_migrations: [],
+    tables,
+  };
+}
+
+function hrxPrimaryKey(table, row) {
+  return HRX_TABLE_PRIMARY_KEYS[table]
+    .map((field) => requiredText(row[field], `${table}.${field}`))
+    .join("\u0000");
+}
+
+const HRX_CHRONOLOGY_FIELDS = Object.freeze([
+  "updated_at",
+  "occurred_at",
+  "created_at",
+  "recorded_at",
+  "changed_at",
+  "effective_at",
+  "effective_from",
+  "completed_at",
+  "deleted_at",
+]);
+
+const HRX_ROOT_PRIORITY = Object.freeze({
+  "registered-roster-source": 0,
+  "runtime-primary": 10,
+  "runtime-desktop": 20,
+  "runtime-electron": 30,
+  "packaged-lawos-user-data": 40,
+  "local-backups": 50,
+});
+
+function hrxChronology(row) {
+  let latest = 0;
+  for (const field of HRX_CHRONOLOGY_FIELDS) {
+    const parsed = Date.parse(row?.[field]);
+    if (Number.isFinite(parsed)) latest = Math.max(latest, parsed);
   }
+  return latest;
+}
+
+function rosterProfileMatchScore(row, rosterProfile) {
+  const fields = [
+    "title",
+    "org_unit_id",
+    "manager_employee_id",
+    "employment_type",
+    "status",
+    "professional_profile",
+  ];
+  let comparable = 0;
+  let matching = 0;
+  for (const field of fields) {
+    if (rosterProfile?.[field] == null || row?.[field] == null) continue;
+    comparable += 1;
+    if (hashDomainValue(rosterProfile[field])
+        === hashDomainValue(row[field])) {
+      matching += 1;
+    }
+  }
+  return { comparable, matching };
+}
+
+function chooseHrxPrimaryKeyWinner(
+  prior,
+  candidate,
+  table,
+  rosterProfilesByEmployee,
+) {
+  const priorIsRosterAuthority =
+    prior.source.transform?.kind === "identity-roster";
+  const candidateIsRosterAuthority =
+    candidate.source.transform?.kind === "identity-roster";
+  const rosterAuthorityTable = [
+    "hrx_employees",
+    "hrx_employment_profiles",
+    "hrx_employee_user_links",
+  ].includes(table);
+  if (rosterAuthorityTable
+    && priorIsRosterAuthority) {
+    return { winner: prior, reason_code: "REGISTERED_ROSTER_AUTHORITY" };
+  }
+  if (rosterAuthorityTable
+    && candidateIsRosterAuthority) {
+    return {
+      winner: candidate,
+      reason_code: "REGISTERED_ROSTER_AUTHORITY",
+    };
+  }
+  const priorVersion = Number.isSafeInteger(prior.row.state_version)
+    ? prior.row.state_version
+    : null;
+  const candidateVersion = Number.isSafeInteger(candidate.row.state_version)
+    ? candidate.row.state_version
+    : null;
+  if (priorVersion !== candidateVersion
+    && (priorVersion !== null || candidateVersion !== null)) {
+    return candidateVersion !== null
+      && (priorVersion === null || candidateVersion > priorVersion)
+      ? { winner: candidate, reason_code: "HIGHER_STATE_VERSION" }
+      : { winner: prior, reason_code: "HIGHER_STATE_VERSION" };
+  }
+  const priorChronology = hrxChronology(prior.row);
+  const candidateChronology = hrxChronology(candidate.row);
+  if (priorChronology !== candidateChronology
+    && (priorChronology > 0 || candidateChronology > 0)) {
+    return candidateChronology > priorChronology
+      ? { winner: candidate, reason_code: "LATEST_AUDIT_CHRONOLOGY" }
+      : { winner: prior, reason_code: "LATEST_AUDIT_CHRONOLOGY" };
+  }
+  if (table === "hrx_employment_profiles"
+    && prior.row.employee_id === candidate.row.employee_id) {
+    const rosterProfile = rosterProfilesByEmployee.get(
+      prior.row.employee_id,
+    );
+    const priorScore = rosterProfileMatchScore(
+      prior.row,
+      rosterProfile,
+    );
+    const candidateScore = rosterProfileMatchScore(
+      candidate.row,
+      rosterProfile,
+    );
+    if (priorScore.comparable > 0
+      && candidateScore.comparable > 0
+      && priorScore.matching !== candidateScore.matching) {
+      return candidateScore.matching > priorScore.matching
+        ? {
+            winner: candidate,
+            reason_code: "REGISTERED_ROSTER_FIELD_AUTHORITY",
+          }
+        : {
+            winner: prior,
+            reason_code: "REGISTERED_ROSTER_FIELD_AUTHORITY",
+          };
+    }
+  }
+  const priorRank = HRX_ROOT_PRIORITY[prior.source.root_ref];
+  const candidateRank = HRX_ROOT_PRIORITY[candidate.source.root_ref];
+  if (Number.isSafeInteger(priorRank)
+    && Number.isSafeInteger(candidateRank)
+    && priorRank !== candidateRank) {
+    return candidateRank < priorRank
+      ? { winner: candidate, reason_code: "OWNER_ROOT_PRIORITY" }
+      : { winner: prior, reason_code: "OWNER_ROOT_PRIORITY" };
+  }
+  return null;
+}
+
+function mergeHrxStates(entries, tenantId) {
+  const normalized = entries.map(({ state, source }) => {
+    const store = createFileHrxStore({ initialState: state });
+    try {
+      return { state: store.snapshot(), source };
+    } finally {
+      store.close();
+    }
+  });
+  const schemaVersions = new Set(normalized.map((entry) =>
+    entry.state.schema_version));
+  if (schemaVersions.size !== 1) {
+    throw new TypeError("authoritative HRX schema versions conflict");
+  }
+  const tables = Object.fromEntries(HRX_STORE_TABLES.map((table) => [
+    table,
+    new Map(),
+  ]));
+  const resolutionRefs = new Set();
+  const rosterResolutionRefs = new Set();
+  const uniqueResolutionRefs = new Set();
+  const unresolved = new Map();
+  const rosterProfilesByEmployee = new Map(
+    normalized
+      .filter((entry) =>
+        entry.source.transform?.kind === "identity-roster")
+      .flatMap((entry) =>
+        entry.state.tables?.hrx_employment_profiles ?? [])
+      .filter((row) =>
+        row.tenant_id === tenantId && row.employee_id)
+      .map((row) => [row.employee_id, row]),
+  );
+  normalized.forEach(({ state, source }) => {
+    for (const table of HRX_STORE_TABLES) {
+      for (const row of state.tables?.[table] ?? []) {
+        if (row.tenant_id !== tenantId) continue;
+        const key = hrxPrimaryKey(table, row);
+        const prior = tables[table].get(key);
+        const candidate = { row, source };
+        if (prior && hashDomainValue(prior.row) !== hashDomainValue(row)) {
+          const conflictRef = `${table}:${sha256(key).slice(0, 24)}`;
+          if (prior.source.source_ref === candidate.source.source_ref) {
+            throw new TypeError(
+              `conflicting authoritative HRX record within one source: ${conflictRef}`,
+            );
+          }
+          const selected = chooseHrxPrimaryKeyWinner(
+            prior,
+            candidate,
+            table,
+            rosterProfilesByEmployee,
+          );
+          if (!selected) {
+            const differingFieldNames = [...new Set([
+              ...Object.keys(prior.row),
+              ...Object.keys(candidate.row),
+            ])].filter((field) =>
+              hashDomainValue(prior.row[field])
+                !== hashDomainValue(candidate.row[field]))
+              .sort();
+            const existing = unresolved.get(conflictRef);
+            unresolved.set(conflictRef, {
+              table,
+              record_ref: sha256(`${table}:${key}`).slice(0, 32),
+              source_refs: [...new Set([
+                ...(existing?.source_refs ?? []),
+                prior.source.source_ref,
+                candidate.source.source_ref,
+              ])].sort(),
+              root_refs: [...new Set([
+                ...(existing?.root_refs ?? []),
+                prior.source.root_ref,
+                candidate.source.root_ref,
+              ])].sort(),
+              state_versions: [...new Set([
+                ...(existing?.state_versions ?? []),
+                Number.isSafeInteger(prior.row.state_version)
+                  ? prior.row.state_version
+                  : null,
+                Number.isSafeInteger(candidate.row.state_version)
+                  ? candidate.row.state_version
+                  : null,
+              ])],
+              chronology_orders: [...new Set([
+                ...(existing?.chronology_orders ?? []),
+                hrxChronology(prior.row),
+                hrxChronology(candidate.row),
+              ])].sort((left, right) => left - right),
+              differing_field_names: [...new Set([
+                ...(existing?.differing_field_names ?? []),
+                ...differingFieldNames,
+              ])].sort(),
+            });
+            continue;
+          }
+          tables[table].set(key, selected.winner);
+          resolutionRefs.add(conflictRef);
+          if (selected.reason_code.startsWith(
+            "REGISTERED_ROSTER_",
+          )) {
+            rosterResolutionRefs.add(conflictRef);
+          }
+          continue;
+        }
+        if (!prior) tables[table].set(key, candidate);
+      }
+    }
+  });
+  if (unresolved.size > 0) {
+    const conflicts = [...unresolved.values()].sort((left, right) =>
+      left.table.localeCompare(right.table)
+        || left.record_ref.localeCompare(right.record_ref));
+    throw Object.assign(
+      new TypeError(
+        "unresolved authoritative HRX records require owner adjudication",
+      ),
+      {
+        safe_details: {
+          conflict_count: conflicts.length,
+          conflicts,
+        },
+      },
+    );
+  }
+  const uniqueConstraints = {
+    ...HRX_TABLE_UNIQUE_CONSTRAINTS,
+    hrx_employee_user_links: [
+      ["tenant_id", "user_id", "purpose"],
+    ],
+  };
+  for (const [table, constraints] of Object.entries(
+    uniqueConstraints,
+  )) {
+    for (const fields of constraints) {
+      const byUniqueKey = new Map();
+      for (const [primaryKey, entry] of [...tables[table].entries()]
+        .sort(([left], [right]) => left.localeCompare(right))) {
+        if (fields.some((field) =>
+          entry.row[field] === undefined
+          || entry.row[field] === null
+          || entry.row[field] === "")) {
+          continue;
+        }
+        const uniqueKey = fields.map((field) =>
+          String(entry.row[field])).join("\u0000");
+        const prior = byUniqueKey.get(uniqueKey);
+        if (!prior) {
+          byUniqueKey.set(uniqueKey, { primaryKey, entry });
+          continue;
+        }
+        const conflictRef =
+          `${table}:unique:${sha256(`${fields.join(",")}:${uniqueKey}`).slice(0, 24)}`;
+        const selected = chooseHrxPrimaryKeyWinner(
+          prior.entry,
+          entry,
+          table,
+          rosterProfilesByEmployee,
+        );
+        if (!selected) {
+          throw Object.assign(
+            new TypeError(
+              `unresolved authoritative HRX unique record: ${conflictRef}`,
+            ),
+            {
+              safe_details: {
+                table,
+                record_ref:
+                  sha256(`${table}:${uniqueKey}`).slice(0, 32),
+                unique_field_names: [...fields],
+                source_refs: [
+                  prior.entry.source.source_ref,
+                  entry.source.source_ref,
+                ].sort(),
+                root_refs: [
+                  prior.entry.source.root_ref,
+                  entry.source.root_ref,
+                ].sort(),
+              },
+            },
+          );
+        }
+        const selectedPrimaryKey = selected.winner === prior.entry
+          ? prior.primaryKey
+          : primaryKey;
+        const loserPrimaryKey = selected.winner === prior.entry
+          ? primaryKey
+          : prior.primaryKey;
+        tables[table].delete(loserPrimaryKey);
+        byUniqueKey.set(uniqueKey, {
+          primaryKey: selectedPrimaryKey,
+          entry: selected.winner,
+        });
+        uniqueResolutionRefs.add(conflictRef);
+        if (selected.reason_code.startsWith(
+          "REGISTERED_ROSTER_",
+        )) {
+          rosterResolutionRefs.add(conflictRef);
+        }
+      }
+    }
+  }
+  return {
+    state: {
+      schema_version: [...schemaVersions][0],
+      applied_migrations: loadHrxCoreMigrations().map((migration) => ({
+        id: migration.id,
+        hash: sha256(migration.sql),
+        applied_at: null,
+      })),
+      tables: Object.fromEntries(HRX_STORE_TABLES.map((table) => [
+        table,
+        [...tables[table].entries()]
+          .sort(([left], [right]) => left.localeCompare(right))
+          .map(([, entry]) => entry.row),
+      ])),
+    },
+    hrx_primary_key_resolution_count: resolutionRefs.size,
+    hrx_unique_resolution_count: uniqueResolutionRefs.size,
+    roster_authority_resolution_count: rosterResolutionRefs.size,
+  };
 }
 
 function identityDecisionRef(user) {
@@ -651,7 +1016,11 @@ function identityAccounts(
   accountOnlyUserIds,
   identityDecisions,
 ) {
-  const users = registrations.flatMap((source) => source.users ?? []);
+  const users = registrations.flatMap((source) =>
+    (source.users ?? []).map((user) => ({
+      user,
+      source_tenant_id: source.tenant_id ?? null,
+    })));
   const members = rosters.flatMap((source) => source.members ?? []);
   const memberByUser = new Map();
   const rosterEmails = new Set();
@@ -668,7 +1037,7 @@ function identityAccounts(
   const appliedIdentityDecisionRefs = new Set();
   const accountIds = new Set();
   const accountEmails = new Set();
-  const accounts = users.map((user) => {
+  const accounts = users.map(({ user, source_tenant_id: sourceTenantId }) => {
     const userId = requiredRef(user.user_id, "registration user id");
     const email = requiredText(user.email, "registration email").toLowerCase();
     if (accountIds.has(userId) || accountEmails.has(email)) throw new TypeError("registration contains duplicate user id or email");
@@ -695,11 +1064,37 @@ function identityAccounts(
     if (accountOnlyDecision) {
       appliedIdentityDecisionRefs.add(accountOnlyDecision.identity_ref);
     }
-    const membership = user.tenant_memberships?.find((entry) => entry.tenant_id === tenantId)
+    const directMembership = user.tenant_memberships?.find((entry) =>
+      entry.tenant_id === tenantId)
       ?? user.membership;
+    const membership = directMembership?.tenant_id === tenantId
+      ? directMembership
+      : sourceTenantId === tenantId
+        ? {
+            tenant_id: tenantId,
+            status: user.status === "disabled" ? "disabled" : "active",
+            role_profile_id: user.role_profile_id ?? null,
+            role_ids: user.role_ids ?? [],
+            group_ids: user.group_ids ?? [],
+            scopes: user.scopes ?? [],
+            hrx_scopes: user.hrx_scopes ?? [],
+            source_ref: user.source_ref ?? null,
+          }
+        : null;
     if (!membership || membership.tenant_id !== tenantId) throw new TypeError(`registration tenant membership is missing: ${userId}`);
+    const targetMembership = accountOnlyDecision ? {
+      ...membership,
+      status: "disabled",
+      role_profile_id: null,
+      role_ids: [],
+      group_ids: [],
+      scopes: [],
+      hrx_scopes: [],
+    } : membership;
     return {
       ...user,
+      tenant_id: tenantId,
+      tenant_memberships: [targetMembership],
       email,
       ...(accountOnlyDecision ? {
         status: "disabled",
@@ -738,15 +1133,7 @@ function identityAccounts(
           access_grant_allowed: false,
         } : {}),
       },
-      membership: accountOnlyDecision ? {
-        ...membership,
-        status: "disabled",
-        role_profile_id: null,
-        role_ids: [],
-        group_ids: [],
-        scopes: [],
-        hrx_scopes: [],
-      } : membership,
+      membership: targetMembership,
     };
   });
   const missingAccounts = [...memberByUser.keys()].filter((userId) => !accountIds.has(userId));
@@ -813,11 +1200,14 @@ export async function compileJsonPostgresMigrationCorpus({
     excludedSecretFieldNames: new Set(),
     canonicalRecordDecisionKeys: new Set(),
     archiveOnlyRecordCopyCount: 0,
+    hrxPrimaryKeyResolutionCount: 0,
+    hrxUniqueResolutionCount: 0,
+    rosterAuthorityResolutionCount: 0,
   };
   const registrations = [];
   const rosters = [];
   const domainStates = new Map();
-  const hrxSnapshots = [];
+  const hrxStates = [];
   const descriptorByDomain = new Map();
   for (const decision of transformPlan.sources) {
     let parsed = await readExactSource(locatorByRef.get(decision.source_ref), {
@@ -841,10 +1231,10 @@ export async function compileJsonPostgresMigrationCorpus({
     if (decision.transform.kind === "hrx-table-store") {
       const store = createFileHrxStore({ initialState: parsed });
       try {
-        hrxSnapshots.push(createHrxDomainSnapshot({
-          store,
-          tenant_id: transformPlan.tenant_id,
-        }).snapshot);
+        hrxStates.push({
+          state: store.snapshot(),
+          source: decision,
+        });
       } finally {
         store.close();
       }
@@ -865,7 +1255,16 @@ export async function compileJsonPostgresMigrationCorpus({
     transformPlan.account_only_user_ids,
     transformPlan.record_authority.identity_decisions,
   );
-  hrxSnapshots.push(rosterSnapshot(rosters, transformPlan.tenant_id));
+  const rosterAuthority = transformPlan.sources.find((source) =>
+    source.classification === "authoritative"
+    && source.transform?.kind === "identity-roster");
+  if (!rosterAuthority) {
+    throw new TypeError("source transform roster authority is missing");
+  }
+  hrxStates.push({
+    state: rosterState(rosters, transformPlan.tenant_id),
+    source: rosterAuthority,
+  });
   const snapshots = [];
   for (const [domainId, states] of domainStates) {
     const descriptor = DESCRIPTORS.get(domainId);
@@ -879,7 +1278,27 @@ export async function compileJsonPostgresMigrationCorpus({
       tenant_id: transformPlan.tenant_id,
     }).snapshot);
   }
-  snapshots.push(mergeSnapshots(hrxSnapshots, transformPlan.tenant_id, "hrx"));
+  const mergedHrx = mergeHrxStates(
+    hrxStates,
+    transformPlan.tenant_id,
+  );
+  state.hrxPrimaryKeyResolutionCount =
+    mergedHrx.hrx_primary_key_resolution_count;
+  state.hrxUniqueResolutionCount =
+    mergedHrx.hrx_unique_resolution_count;
+  state.rosterAuthorityResolutionCount =
+    mergedHrx.roster_authority_resolution_count;
+  const hrxStore = createFileHrxStore({
+    initialState: mergedHrx.state,
+  });
+  try {
+    snapshots.push(createHrxDomainSnapshot({
+      store: hrxStore,
+      tenant_id: transformPlan.tenant_id,
+    }).snapshot);
+  } finally {
+    hrxStore.close();
+  }
   const referenced = withCrossDomainReferences(snapshots, descriptorByDomain);
   const corpus = {
     schema_version: JSON_POSTGRES_MIGRATION_SCHEMA_VERSION,
@@ -916,6 +1335,12 @@ export async function compileJsonPostgresMigrationCorpus({
         transformPlan.record_authority.record_decisions.length,
       archive_only_record_copy_count:
         state.archiveOnlyRecordCopyCount,
+      hrx_primary_key_resolution_count:
+        state.hrxPrimaryKeyResolutionCount,
+      hrx_unique_resolution_count:
+        state.hrxUniqueResolutionCount,
+      roster_authority_resolution_count:
+        state.rosterAuthorityResolutionCount,
       identity_decision_count:
         transformPlan.record_authority.identity_decisions.length,
       account_count: prepared.accounts.length,
