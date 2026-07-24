@@ -1,4 +1,7 @@
 import { createHash } from "node:crypto";
+import {
+  isVersionedCloudFormationS3TemplateUrl,
+} from "./cloudformation-template-transport.mjs";
 
 export const JSON_POSTGRES_REHEARSAL_ACCOUNT = "770880870480";
 export const JSON_POSTGRES_REHEARSAL_REGION = "ap-northeast-2";
@@ -196,8 +199,7 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
     || !SHA256.test(parametersSha256 ?? "")
     || typeof allowIdentityTenantRebind !== "boolean"
     || (templateUrl !== null
-      && (!String(templateUrl).startsWith("https://")
-        || changeSet?.TemplateURL !== templateUrl))) {
+      && !isVersionedCloudFormationS3TemplateUrl(templateUrl))) {
     fail("W12 change set binding is invalid");
   }
   const changes = normalizedChanges(changeSet);

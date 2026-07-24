@@ -141,10 +141,7 @@ test("production change-set review rejects removals and unsafe replacements", ()
     "https://lawos-production-artifacts-770880870480"
     + ".s3.ap-northeast-2.amazonaws.com/cloudformation-template/exact.json"
     + "?versionId=version-1";
-  const versionBound = {
-    ...base,
-    TemplateURL: versionedTemplateUrl,
-  };
+  const versionBound = { ...base };
   assert.equal(
     validateJsonPostgresProductionChangeSet(versionBound, {
       stackName: JSON_POSTGRES_PRODUCTION_STACK,
@@ -163,7 +160,7 @@ test("production change-set review rejects removals and unsafe replacements", ()
       template,
       parametersSha256: "a".repeat(64),
       templateSha256: "b".repeat(64),
-      templateUrl: `${versionedTemplateUrl}-drift`,
+      templateUrl: versionedTemplateUrl.split("?")[0],
     }),
     /binding is invalid/u,
   );

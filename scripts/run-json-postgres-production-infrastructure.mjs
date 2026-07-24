@@ -18,6 +18,7 @@ import {
   buildVersionedS3TemplateUrl,
   cloudFormationTemplateArgs,
   cloudFormationTemplateRequiresUrl,
+  validateCloudFormationChangeSetTemplate,
 } from "./lib/cloudformation-template-transport.mjs";
 import {
   JSON_POSTGRES_PRODUCTION_ENI_ACTIONS,
@@ -155,6 +156,20 @@ function currentStack(name) {
     ?.Stacks?.[0] ?? null;
 }
 
+function assertChangeSetTemplate(changeSetId, expectedSha256) {
+  return validateCloudFormationChangeSetTemplate({
+    response: awsJson([
+      "cloudformation",
+      "get-template",
+      "--change-set-name",
+      changeSetId,
+      "--template-stage",
+      "Original",
+    ]),
+    expectedSha256,
+  });
+}
+
 function createChangeSet({
   stackName,
   type,
@@ -202,6 +217,7 @@ function createChangeSet({
     "cloudformation", "describe-change-set",
     "--change-set-name", created.Id,
   ]);
+  assertChangeSetTemplate(created.Id, templateSha256);
   return validateJsonPostgresProductionChangeSet(described, {
     stackName,
     changeSetType: type,
@@ -217,6 +233,10 @@ function executeReviewedChangeSet(review) {
     "cloudformation", "describe-change-set",
     "--change-set-name", review.change_set_id,
   ]);
+  assertChangeSetTemplate(
+    review.change_set_id,
+    review.template_sha256,
+  );
   const template = review.stack_name === JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK
     ? artifactStoreTemplate
     : productionTemplate;

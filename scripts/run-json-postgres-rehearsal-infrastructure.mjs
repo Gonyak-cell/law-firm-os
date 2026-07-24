@@ -17,6 +17,7 @@ import {
   buildVersionedS3TemplateUrl,
   cloudFormationTemplateArgs,
   cloudFormationTemplateRequiresUrl,
+  validateCloudFormationChangeSetTemplate,
 } from "./lib/cloudformation-template-transport.mjs";
 import {
   validateJsonPostgresRehearsalBackupRetentionContract,
@@ -213,6 +214,20 @@ function deployedTemplate(name) {
     : response.TemplateBody;
 }
 
+function assertChangeSetTemplate(changeSetId, expectedSha256) {
+  return validateCloudFormationChangeSetTemplate({
+    response: awsJson([
+      "cloudformation",
+      "get-template",
+      "--change-set-name",
+      changeSetId,
+      "--template-stage",
+      "Original",
+    ]),
+    expectedSha256,
+  });
+}
+
 function writeResult(directory, operation, source) {
   const material = {
     schema_version: RESULT_VERSION,
@@ -324,6 +339,7 @@ function createReviewedChangeSet({
     "--change-set-name",
     created.Id,
   ]);
+  assertChangeSetTemplate(created.Id, templateSha256);
   return validateJsonPostgresRehearsalChangeSet(described, {
     stackName,
     changeSetType: type,
@@ -343,6 +359,10 @@ function executeReviewedChangeSet(review) {
     "--change-set-name",
     review.change_set_id,
   ]);
+  assertChangeSetTemplate(
+    review.change_set_id,
+    review.template_sha256,
+  );
   const validated = validateJsonPostgresRehearsalChangeSet(current, {
     stackName: review.stack_name,
     changeSetType: review.change_set_type,

@@ -1,4 +1,61 @@
+import { createHash } from "node:crypto";
+
 export const CLOUDFORMATION_TEMPLATE_BODY_MAX_BYTES = 51_200;
+
+function stableJson(value) {
+  if (Array.isArray(value)) {
+    return `[${value.map(stableJson).join(",")}]`;
+  }
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) =>
+      `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+export function cloudFormationTemplateSha256(template) {
+  if (!template || typeof template !== "object" || Array.isArray(template)) {
+    throw new TypeError("CloudFormation template body is invalid");
+  }
+  return createHash("sha256").update(stableJson(template)).digest("hex");
+}
+
+export function isVersionedCloudFormationS3TemplateUrl(value) {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "https:"
+      && parsed.hostname.endsWith(".amazonaws.com")
+      && parsed.searchParams.has("versionId")
+      && parsed.searchParams.get("versionId").length > 0
+      && parsed.username === ""
+      && parsed.password === ""
+      && parsed.hash === "";
+  } catch {
+    return false;
+  }
+}
+
+export function validateCloudFormationChangeSetTemplate({
+  response,
+  expectedSha256,
+} = {}) {
+  let template = response?.TemplateBody;
+  if (typeof template === "string") {
+    try {
+      template = JSON.parse(template);
+    } catch {
+      throw new Error("CloudFormation change-set template is not JSON");
+    }
+  }
+  const actualSha256 = cloudFormationTemplateSha256(template);
+  if (!/^[a-f0-9]{64}$/u.test(expectedSha256 ?? "")
+    || actualSha256 !== expectedSha256) {
+    throw new Error("CloudFormation change-set template digest drifted");
+  }
+  return Object.freeze({
+    template_sha256: actualSha256,
+  });
+}
 
 export function cloudFormationTemplateRequiresUrl(byteSize) {
   if (!Number.isSafeInteger(byteSize) || byteSize < 1) {
@@ -41,10 +98,7 @@ export function cloudFormationTemplateArgs({
   }
   const requiresUrl = cloudFormationTemplateRequiresUrl(templateByteSize);
   if (templateUrl !== null) {
-    const parsed = new URL(templateUrl);
-    if (parsed.protocol !== "https:"
-      || !parsed.hostname.endsWith(".amazonaws.com")
-      || !parsed.searchParams.get("versionId")) {
+    if (!isVersionedCloudFormationS3TemplateUrl(templateUrl)) {
       throw new TypeError("CloudFormation template URL is not version-bound S3 HTTPS");
     }
     return Object.freeze({

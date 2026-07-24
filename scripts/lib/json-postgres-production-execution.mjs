@@ -1,4 +1,7 @@
 import { createHash } from "node:crypto";
+import {
+  isVersionedCloudFormationS3TemplateUrl,
+} from "./cloudformation-template-transport.mjs";
 
 export const JSON_POSTGRES_PRODUCTION_ACCOUNT = "770880870480";
 export const JSON_POSTGRES_PRODUCTION_REGION = "ap-northeast-2";
@@ -150,8 +153,7 @@ export function validateJsonPostgresProductionChangeSet(changeSet, {
     || !SHA256.test(parametersSha256 ?? "")
     || !SHA256.test(templateSha256 ?? "")
     || (templateUrl !== null
-      && (!String(templateUrl).startsWith("https://")
-        || changeSet?.TemplateURL !== templateUrl))) {
+      && !isVersionedCloudFormationS3TemplateUrl(templateUrl))) {
     fail("production change set binding is invalid");
   }
   const allowedIds = new Set(Object.keys(template?.Resources ?? {}));

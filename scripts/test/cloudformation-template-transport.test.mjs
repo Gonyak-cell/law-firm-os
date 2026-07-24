@@ -3,8 +3,10 @@ import test from "node:test";
 import {
   CLOUDFORMATION_TEMPLATE_BODY_MAX_BYTES,
   buildVersionedS3TemplateUrl,
+  cloudFormationTemplateSha256,
   cloudFormationTemplateArgs,
   cloudFormationTemplateRequiresUrl,
+  validateCloudFormationChangeSetTemplate,
 } from "../lib/cloudformation-template-transport.mjs";
 
 test("CloudFormation template transport uses TemplateBody only within the API limit", () => {
@@ -66,5 +68,42 @@ test("CloudFormation oversized templates use an exact S3 object version URL", ()
       versionId: "version",
     }),
     /locator is invalid/u,
+  );
+});
+
+test("CloudFormation change-set template body is the authoritative remote binding", () => {
+  const template = {
+    Resources: {
+      ExactBucket: {
+        Type: "AWS::S3::Bucket",
+      },
+    },
+  };
+  const expectedSha256 = cloudFormationTemplateSha256(template);
+  assert.equal(
+    validateCloudFormationChangeSetTemplate({
+      response: { TemplateBody: template },
+      expectedSha256,
+    }).template_sha256,
+    expectedSha256,
+  );
+  assert.equal(
+    validateCloudFormationChangeSetTemplate({
+      response: { TemplateBody: JSON.stringify(template) },
+      expectedSha256,
+    }).template_sha256,
+    expectedSha256,
+  );
+  assert.throws(
+    () => validateCloudFormationChangeSetTemplate({
+      response: {
+        TemplateBody: {
+          ...template,
+          Description: "drifted",
+        },
+      },
+      expectedSha256,
+    }),
+    /template digest drifted/u,
   );
 });
