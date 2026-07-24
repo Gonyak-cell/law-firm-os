@@ -142,7 +142,8 @@ export function validateJsonPostgresProductionChangeSet(changeSet, {
 } = {}) {
   if (![JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK, JSON_POSTGRES_PRODUCTION_STACK].includes(stackName)
     || changeSet?.StackName !== stackName
-    || changeSet?.ChangeSetType !== changeSetType
+    || (changeSet?.ChangeSetType != null
+      && changeSet.ChangeSetType !== changeSetType)
     || !["CREATE", "UPDATE"].includes(changeSetType)
     || !SHA256.test(parametersSha256 ?? "")
     || !SHA256.test(templateSha256 ?? "")

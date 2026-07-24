@@ -186,7 +186,8 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
   if (![JSON_POSTGRES_REHEARSAL_ARTIFACT_STACK,
     JSON_POSTGRES_REHEARSAL_STACK].includes(stackName)
     || changeSet?.StackName !== stackName
-    || changeSet?.ChangeSetType !== changeSetType
+    || (changeSet?.ChangeSetType != null
+      && changeSet.ChangeSetType !== changeSetType)
     || !["CREATE", "UPDATE"].includes(changeSetType)
     || !["artifact-store", "enable-eni", "remove-eni"].includes(phase)
     || !SHA256.test(templateSha256 ?? "")

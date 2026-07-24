@@ -73,7 +73,6 @@ test("W12 caller and artifact-store change set are exact-role and add-only", () 
   });
   const review = validateJsonPostgresRehearsalChangeSet({
     StackName: JSON_POSTGRES_REHEARSAL_ARTIFACT_STACK,
-    ChangeSetType: "CREATE",
     Id: "change-set-id",
     Changes: [{
       ResourceChange: {
@@ -94,7 +93,6 @@ test("W12 caller and artifact-store change set are exact-role and add-only", () 
   assert.equal(review.verdict, "PASS");
   const unknown = {
     StackName: JSON_POSTGRES_REHEARSAL_ARTIFACT_STACK,
-    ChangeSetType: "CREATE",
     Id: "unknown-change-set",
     Changes: [{
       ResourceChange: {
@@ -113,6 +111,16 @@ test("W12 caller and artifact-store change set are exact-role and add-only", () 
     templateSha256: "d".repeat(64),
     parametersSha256: jsonPostgresRehearsalParametersSha256(parameters),
   }));
+  assert.throws(() => validateJsonPostgresRehearsalChangeSet({
+    ...unknown,
+    ChangeSetType: "UPDATE",
+  }, {
+    stackName: JSON_POSTGRES_REHEARSAL_ARTIFACT_STACK,
+    changeSetType: "CREATE",
+    phase: "artifact-store",
+    templateSha256: "d".repeat(64),
+    parametersSha256: jsonPostgresRehearsalParametersSha256(parameters),
+  }), /binding is invalid/u);
 
   const versionedTemplateUrl =
     "https://lawos-private-rehearsal-artifacts-770880870480"
@@ -149,7 +157,6 @@ test("W12 caller and artifact-store change set are exact-role and add-only", () 
 test("W12 change-set review allows the exact one-time identity tenant rebind only when declared", () => {
   const changeSet = {
     StackName: JSON_POSTGRES_REHEARSAL_STACK,
-    ChangeSetType: "UPDATE",
     Id: "change-set-identity-rebind",
     Changes: [{
       ResourceChange: {

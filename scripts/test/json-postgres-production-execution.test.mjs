@@ -94,7 +94,6 @@ test("production change-set review rejects removals and unsafe replacements", ()
   const template = { Resources: { ApiFunction: {}, Database: {} } };
   const base = {
     StackName: JSON_POSTGRES_PRODUCTION_STACK,
-    ChangeSetType: "CREATE",
     Id: "change-set-1",
     Changes: [
       { ResourceChange: { Action: "Add", LogicalResourceId: "ApiFunction", ResourceType: "AWS::Lambda::Function", Replacement: "False" } },
@@ -109,6 +108,16 @@ test("production change-set review rejects removals and unsafe replacements", ()
     templateSha256: "b".repeat(64),
   });
   assert.equal(result.change_count, 2);
+  assert.throws(() => validateJsonPostgresProductionChangeSet({
+    ...base,
+    ChangeSetType: "UPDATE",
+  }, {
+    stackName: JSON_POSTGRES_PRODUCTION_STACK,
+    changeSetType: "CREATE",
+    template,
+    parametersSha256: "a".repeat(64),
+    templateSha256: "b".repeat(64),
+  }), /binding is invalid/u);
   const unsafe = structuredClone(base);
   unsafe.ChangeSetType = "UPDATE";
   unsafe.Changes[0].ResourceChange.Action = "Remove";
