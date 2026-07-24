@@ -485,10 +485,7 @@ function rehearsalRole() {
               {
                 Sid: "WriteImmutableRehearsalEvidence",
                 Effect: "Allow",
-                Action: [
-                  "s3:PutObject",
-                  "s3:PutObjectRetention",
-                ],
+                Action: "s3:PutObject",
                 Resource: [
                   { "Fn::Sub": "${RehearsalProgramInputBucket.Arn}/program-approval-audit/*" },
                   { "Fn::Sub": "${RehearsalProgramInputBucket.Arn}/program-execution/*" },
@@ -499,6 +496,21 @@ function rehearsalRole() {
                     "s3:x-amz-server-side-encryption-aws-kms-key-id": {
                       "Fn::GetAtt": ["StagingKey", "Arn"],
                     },
+                    "s3:object-lock-mode": "COMPLIANCE",
+                  },
+                  Null: { "s3:object-lock-retain-until-date": "false" },
+                },
+              },
+              {
+                Sid: "SetImmutableRehearsalEvidenceRetention",
+                Effect: "Allow",
+                Action: "s3:PutObjectRetention",
+                Resource: [
+                  { "Fn::Sub": "${RehearsalProgramInputBucket.Arn}/program-approval-audit/*" },
+                  { "Fn::Sub": "${RehearsalProgramInputBucket.Arn}/program-execution/*" },
+                ],
+                Condition: {
+                  StringEquals: {
                     "s3:object-lock-mode": "COMPLIANCE",
                   },
                   Null: { "s3:object-lock-retain-until-date": "false" },
@@ -944,6 +956,12 @@ export function validateJsonPostgresRehearsalTemplate(template) {
   const deny = statements.find((item) => item.Sid === "DenyFunctionCodeEc2Networking");
   const evidenceWriter = statements
     .find((item) => item.Sid === "WriteImmutableRehearsalEvidence");
+  const evidenceRetention = statements
+    .find((item) => item.Sid === "SetImmutableRehearsalEvidenceRetention");
+  const evidenceResources = [
+    { "Fn::Sub": "${RehearsalProgramInputBucket.Arn}/program-approval-audit/*" },
+    { "Fn::Sub": "${RehearsalProgramInputBucket.Arn}/program-execution/*" },
+  ];
   if (role?.Properties?.RoleName !== "lawos-private-staging-w12-admin-role"
     || JSON.stringify(bootstrap?.Action)
       !== JSON.stringify(JSON_POSTGRES_REHEARSAL_ENI_ACTIONS)
@@ -951,10 +969,22 @@ export function validateJsonPostgresRehearsalTemplate(template) {
     || JSON.stringify(deny?.Action) !== JSON.stringify(ENI_DENY_ACTIONS)
     || deny?.Effect !== "Deny"
     || deny?.Resource !== "*"
-    || JSON.stringify(evidenceWriter?.Action) !== JSON.stringify([
-      "s3:PutObject",
-      "s3:PutObjectRetention",
-    ])
+    || evidenceWriter?.Action !== "s3:PutObject"
+    || evidenceRetention?.Action !== "s3:PutObjectRetention"
+    || JSON.stringify(evidenceWriter?.Resource)
+      !== JSON.stringify(evidenceResources)
+    || JSON.stringify(evidenceRetention?.Resource)
+      !== JSON.stringify(evidenceResources)
+    || evidenceWriter?.Condition?.StringEquals
+      ?.["s3:x-amz-server-side-encryption"] !== "aws:kms"
+    || evidenceWriter?.Condition?.StringEquals
+      ?.["s3:object-lock-mode"] !== "COMPLIANCE"
+    || evidenceWriter?.Condition?.Null
+      ?.["s3:object-lock-retain-until-date"] !== "false"
+    || JSON.stringify(evidenceRetention?.Condition) !== JSON.stringify({
+      StringEquals: { "s3:object-lock-mode": "COMPLIANCE" },
+      Null: { "s3:object-lock-retain-until-date": "false" },
+    })
     || statements.some((item) => item.Effect === "Allow"
       && containsWildcardAction(item.Action))
     || statements.some((item) => JSON.stringify(item).match(/\bses:/iu))) {

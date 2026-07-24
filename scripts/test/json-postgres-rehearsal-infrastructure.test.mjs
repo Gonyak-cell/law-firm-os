@@ -118,12 +118,24 @@ test("W12 rehearsal reuses the private staging topology with an isolated databas
       .includes("ses:"),
     false,
   );
-  assert.deepEqual(
+  const evidenceStatements =
     template.Resources.RehearsalAdminExecutionRole.Properties.Policies[0]
-      .PolicyDocument.Statement
-      .find((item) => item.Sid === "WriteImmutableRehearsalEvidence")
-      .Action,
-    ["s3:PutObject", "s3:PutObjectRetention"],
+      .PolicyDocument.Statement;
+  const evidenceWriter = evidenceStatements
+    .find((item) => item.Sid === "WriteImmutableRehearsalEvidence");
+  const evidenceRetention = evidenceStatements
+    .find((item) => item.Sid === "SetImmutableRehearsalEvidenceRetention");
+  assert.equal(evidenceWriter.Action, "s3:PutObject");
+  assert.equal(evidenceRetention.Action, "s3:PutObjectRetention");
+  assert.deepEqual(evidenceRetention.Resource, evidenceWriter.Resource);
+  assert.deepEqual(evidenceRetention.Condition, {
+    StringEquals: { "s3:object-lock-mode": "COMPLIANCE" },
+    Null: { "s3:object-lock-retain-until-date": "false" },
+  });
+  assert.equal(
+    Object.keys(evidenceRetention.Condition.StringEquals)
+      .some((key) => key.includes("server-side-encryption")),
+    false,
   );
   const roleTags =
     template.Resources.RehearsalAdminExecutionRole.Properties.Tags;
@@ -247,7 +259,15 @@ test("W12 rehearsal fails closed on public infrastructure, email authority, wild
       value.Resources.RehearsalAdminExecutionRole.Properties.Policies[0]
         .PolicyDocument.Statement
         .find((item) => item.Sid === "WriteImmutableRehearsalEvidence")
-        .Action = "s3:PutObject";
+        .Action = ["s3:PutObject", "s3:DeleteObject"];
+    },
+    (value) => {
+      value.Resources.RehearsalAdminExecutionRole.Properties.Policies[0]
+        .PolicyDocument.Statement
+        .find((item) =>
+          item.Sid === "SetImmutableRehearsalEvidenceRetention")
+        .Condition.StringEquals["s3:x-amz-server-side-encryption"] =
+          "aws:kms";
     },
   ]) {
     const template = builtTemplate();
