@@ -108,6 +108,10 @@ function fail(message) {
   throw new Error(message);
 }
 
+export function isJsonPostgresRehearsalHostStackComplete(status) {
+  return /^(?:CREATE|UPDATE|IMPORT)_COMPLETE$/u.test(status ?? "");
+}
+
 export function createJsonPostgresRehearsalTarget({
   approvedTenantIds,
 } = {}) {

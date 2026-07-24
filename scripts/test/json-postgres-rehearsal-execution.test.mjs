@@ -12,6 +12,7 @@ import {
   buildJsonPostgresRehearsalArtifactStoreParameters,
   createJsonPostgresRehearsalTarget,
   createJsonPostgresImmutableInputLocator,
+  isJsonPostgresRehearsalHostStackComplete,
   jsonPostgresRehearsalParametersSha256,
   validateJsonPostgresRehearsalChangeSet,
 } from "../lib/json-postgres-rehearsal-execution.mjs";
@@ -37,6 +38,21 @@ function packet() {
     },
   };
 }
+
+test("W12 host accepts only terminal create, update, or import states", () => {
+  assert.equal(
+    isJsonPostgresRehearsalHostStackComplete("IMPORT_COMPLETE"),
+    true,
+  );
+  assert.equal(
+    isJsonPostgresRehearsalHostStackComplete("IMPORT_IN_PROGRESS"),
+    false,
+  );
+  assert.equal(
+    isJsonPostgresRehearsalHostStackComplete("UPDATE_ROLLBACK_COMPLETE"),
+    false,
+  );
+});
 
 test("W12 target is deterministic, private, isolated and cost bounded", () => {
   const target = createJsonPostgresRehearsalTarget({

@@ -50,6 +50,7 @@ import {
   assertJsonPostgresRehearsalStack,
   buildJsonPostgresRehearsalArtifactStoreParameters,
   createJsonPostgresImmutableInputLocator,
+  isJsonPostgresRehearsalHostStackComplete,
   jsonPostgresRehearsalParametersSha256,
   jsonPostgresRehearsalResultSha256,
   validateJsonPostgresRehearsalChangeSet,
@@ -262,7 +263,7 @@ function validatePriorResult(path, operation) {
 
 function validateHostStack(stack) {
   if (!stack
-    || !/^(?:CREATE|UPDATE)_COMPLETE$/u.test(stack.StackStatus ?? "")) {
+    || !isJsonPostgresRehearsalHostStackComplete(stack.StackStatus)) {
     throw new Error("existing private staging stack is not complete");
   }
   const parameters = parameterMap(stack);
