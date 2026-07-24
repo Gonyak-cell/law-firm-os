@@ -129,8 +129,11 @@ function normalizeLocatorMap(value, keys, packet, label) {
   })));
 }
 
-export function jsonPostgresRehearsalProfileForMode(mode) {
+export function jsonPostgresRehearsalProfileForMode(mode, {
+  inspection = false,
+} = {}) {
   if (!MODES.has(mode)) fail("W12 execution mode is invalid");
+  if (inspection) return JSON_POSTGRES_REHEARSAL_PROFILE;
   return ["readback", "reconcile"].includes(mode)
     ? JSON_POSTGRES_REHEARSAL_READONLY_PROFILE
     : JSON_POSTGRES_REHEARSAL_PROFILE;

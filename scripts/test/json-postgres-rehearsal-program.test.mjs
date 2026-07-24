@@ -167,6 +167,12 @@ test("W12 mode selects staging mutator and independent read-only profiles", () =
     jsonPostgresRehearsalProfileForMode("readback"),
     "matter-readonly-auditor",
   );
+  assert.equal(
+    jsonPostgresRehearsalProfileForMode("readback", {
+      inspection: true,
+    }),
+    "matter-staging-admin",
+  );
   assert.equal(assertJsonPostgresRehearsalProgramCaller({
     Account: "770880870480",
     Arn:

@@ -149,10 +149,13 @@ const profile = option(
     : jsonPostgresRehearsalProfileForMode(mode),
 );
 
-function awsArgs(args, { region = true } = {}) {
+function awsArgs(args, {
+  region = true,
+  commandProfile = profile,
+} = {}) {
   return [
     ...args,
-    "--profile", profile,
+    "--profile", commandProfile,
     ...(region ? ["--region", JSON_POSTGRES_REHEARSAL_REGION] : []),
     "--no-cli-pager",
     "--output", "json",
@@ -261,7 +264,13 @@ function runtimeState({ packet, approval }) {
       "get-function-configuration",
       "--function-name",
       JSON_POSTGRES_REHEARSAL_FUNCTION,
-    ]),
+    ], {
+      commandProfile: mode
+        ? jsonPostgresRehearsalProfileForMode(mode, {
+            inspection: true,
+          })
+        : profile,
+    }),
     { packet, expectedVpcId: outputs.VpcId },
   );
   const policyNames = (awsJson([
