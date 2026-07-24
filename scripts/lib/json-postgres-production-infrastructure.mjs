@@ -569,6 +569,29 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   endpointStatement.Condition = {
     StringEquals: { "aws:SourceVpc": { Ref: "Vpc" } },
   };
+  resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement.push({
+    Sid: "ExactProductionProgramInputsAndMigrationDmsOnly",
+    Effect: "Allow",
+    Principal: "*",
+    Action: [
+      "s3:GetBucketLocation",
+      "s3:GetBucketObjectLockConfiguration",
+      "s3:GetBucketVersioning",
+      "s3:GetObject",
+      "s3:GetObjectLegalHold",
+      "s3:GetObjectRetention",
+      "s3:GetObjectVersion",
+      "s3:PutObject",
+      "s3:PutObjectLegalHold",
+      "s3:PutObjectRetention",
+    ],
+    Resource: [
+      { "Fn::GetAtt": ["ProgramInputBucket", "Arn"] },
+      { "Fn::Sub": "${ProgramInputBucket.Arn}/*" },
+      { "Fn::GetAtt": ["DmsBucket", "Arn"] },
+      { "Fn::Sub": "${DmsBucket.Arn}/approved-real-migration/*" },
+    ],
+  });
 
   resources.ApiLogGroup.Properties.RetentionInDays = 365;
   resources.AdminLogGroup.Properties.RetentionInDays = 365;
@@ -731,6 +754,38 @@ export function validateJsonPostgresProductionTemplate(template) {
     || projectionSecretWrites.length !== 2
     || !projectionSecretWrites.some((item) => item?.Ref === "ProjectionDatabaseSecret")) {
     fail("projection writer secret update authority drifted");
+  }
+  const productionInputEndpoint =
+    resources.S3GatewayEndpoint?.Properties?.PolicyDocument?.Statement
+      ?.find((item) =>
+        item.Sid === "ExactProductionProgramInputsAndMigrationDmsOnly");
+  const endpointActions = [
+    "s3:GetBucketLocation",
+    "s3:GetBucketObjectLockConfiguration",
+    "s3:GetBucketVersioning",
+    "s3:GetObject",
+    "s3:GetObjectLegalHold",
+    "s3:GetObjectRetention",
+    "s3:GetObjectVersion",
+    "s3:PutObject",
+    "s3:PutObjectLegalHold",
+    "s3:PutObjectRetention",
+  ];
+  const endpointResources = [
+    { "Fn::GetAtt": ["ProgramInputBucket", "Arn"] },
+    { "Fn::Sub": "${ProgramInputBucket.Arn}/*" },
+    { "Fn::GetAtt": ["DmsBucket", "Arn"] },
+    { "Fn::Sub": "${DmsBucket.Arn}/approved-real-migration/*" },
+  ];
+  if (!productionInputEndpoint
+    || productionInputEndpoint.Effect !== "Allow"
+    || productionInputEndpoint.Principal !== "*"
+    || productionInputEndpoint.Condition != null
+    || JSON.stringify(productionInputEndpoint.Action)
+      !== JSON.stringify(endpointActions)
+    || JSON.stringify(productionInputEndpoint.Resource)
+      !== JSON.stringify(endpointResources)) {
+    fail("production S3 endpoint program-input or migration-DMS authority drifted");
   }
   const digest = sha256(template);
   return Object.freeze({
