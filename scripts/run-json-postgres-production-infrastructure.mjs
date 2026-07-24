@@ -35,6 +35,7 @@ import {
   JSON_POSTGRES_PRODUCTION_REGION,
   JSON_POSTGRES_PRODUCTION_STACK,
   assertJsonPostgresArtifactBucketState,
+  assertJsonPostgresArtifactStoreBinding,
   assertJsonPostgresProductionCaller,
   assertJsonPostgresProductionStack,
   buildJsonPostgresArtifactStoreParameters,
@@ -91,6 +92,14 @@ function git(...args) {
     encoding: "utf8",
     maxBuffer: 16 * 1024 * 1024,
   }).trim();
+}
+
+function gitIsAncestor(ancestor, descendant) {
+  return spawnSync("git", ["merge-base", "--is-ancestor", ancestor, descendant], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+    maxBuffer: 16 * 1024 * 1024,
+  }).status === 0;
 }
 
 function awsArgs(args, { region = true } = {}) {
@@ -259,13 +268,16 @@ function executeReviewedChangeSet(review) {
   return currentStack(review.stack_name);
 }
 
-function artifactStoreState(stack) {
+function artifactStoreState(stack, { requireExactPacketBinding = false } = {}) {
   const outputs = outputMap(stack);
-  if (outputs.ArtifactBucketName !== packet.target.artifact_bucket_name
-    || outputs.SourceSha !== packet.source_sha
-    || outputs.SourceTree !== packet.source_tree
-    || outputs.ExecutionPacketSha256 !== packet.packet_sha256
-    || !outputs.ArtifactKmsKeyArn) {
+  const binding = assertJsonPostgresArtifactStoreBinding({
+    packet,
+    outputs,
+    sourceIsAncestor: gitIsAncestor(outputs.SourceSha, packet.source_sha),
+    sourceTreeMatches:
+      git("rev-parse", `${outputs.SourceSha}^{tree}`) === outputs.SourceTree,
+  });
+  if (requireExactPacketBinding && !binding.exact_packet_binding) {
     throw new Error("production artifact-store stack exact binding drifted");
   }
   const bucket = packet.target.artifact_bucket_name;
@@ -280,6 +292,7 @@ function artifactStoreState(stack) {
     throw new Error("production artifact KMS alias does not resolve to the exact stack key");
   }
   return {
+    ...binding,
     ...assertJsonPostgresArtifactBucketState({
       packet,
       expectedKmsKeyArn: outputs.ArtifactKmsKeyArn,
@@ -644,7 +657,9 @@ if (operation === "preflight") {
     caller,
     review,
     stack_status: stack.StackStatus,
-    artifact_store: artifactStoreState(stack),
+    artifact_store: artifactStoreState(stack, {
+      requireExactPacketBinding: true,
+    }),
     aws_mutation_count: 2,
     production_write_count: 0,
   };

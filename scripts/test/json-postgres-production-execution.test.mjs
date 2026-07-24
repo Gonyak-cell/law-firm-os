@@ -5,6 +5,7 @@ import {
   JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK,
   JSON_POSTGRES_PRODUCTION_STACK,
   assertJsonPostgresArtifactBucketState,
+  assertJsonPostgresArtifactStoreBinding,
   assertJsonPostgresProductionCaller,
   assertJsonPostgresProductionStack,
   buildJsonPostgresArtifactStoreParameters,
@@ -170,6 +171,42 @@ test("production change-set review rejects removals and unsafe replacements", ()
 test("artifact bucket and production stack observations are exact and fail closed", () => {
   const value = packet();
   const keyArn = "arn:aws:kms:ap-northeast-2:770880870480:key/key-1";
+  const exactStoreOutputs = {
+    ArtifactBucketName: value.target.artifact_bucket_name,
+    ArtifactKmsKeyArn: keyArn,
+    SourceSha: value.source_sha,
+    SourceTree: value.source_tree,
+    ExecutionPacketSha256: value.packet_sha256,
+  };
+  assert.equal(assertJsonPostgresArtifactStoreBinding({
+    packet: value,
+    outputs: exactStoreOutputs,
+    sourceTreeMatches: true,
+  }).exact_packet_binding, true);
+  const ancestorStoreOutputs = {
+    ...exactStoreOutputs,
+    SourceSha: "e".repeat(40),
+    SourceTree: "f".repeat(40),
+    ExecutionPacketSha256: "1".repeat(64),
+  };
+  assert.equal(assertJsonPostgresArtifactStoreBinding({
+    packet: value,
+    outputs: ancestorStoreOutputs,
+    sourceIsAncestor: true,
+    sourceTreeMatches: true,
+  }).reused_ancestor_store, true);
+  assert.throws(() => assertJsonPostgresArtifactStoreBinding({
+    packet: value,
+    outputs: ancestorStoreOutputs,
+    sourceIsAncestor: false,
+    sourceTreeMatches: true,
+  }), /binding drifted/u);
+  assert.throws(() => assertJsonPostgresArtifactStoreBinding({
+    packet: value,
+    outputs: { ...exactStoreOutputs, ExecutionPacketSha256: "2".repeat(64) },
+    sourceIsAncestor: true,
+    sourceTreeMatches: true,
+  }), /binding drifted/u);
   assert.equal(assertJsonPostgresArtifactBucketState({
     packet: value,
     expectedKmsKeyArn: keyArn,
