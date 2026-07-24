@@ -3,17 +3,6 @@ name: HRX Production Rollout
 on:
   workflow_dispatch:
   pull_request:
-    paths:
-      - ".github/workflows/hrx-production-rollout.yml"
-      - "apps/api/**"
-      - "apps/web/**"
-      - "docs/lazycodex/**"
-      - "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json"
-      - "package.json"
-      - "package-lock.json"
-      - "packages/**"
-      - "scripts/validate-hrx-*.mjs"
-      - "scripts/validate-lcx-hrx-sft-*.mjs"
   push:
     branches:
       - main
