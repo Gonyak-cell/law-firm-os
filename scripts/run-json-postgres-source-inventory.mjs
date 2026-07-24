@@ -3,12 +3,19 @@ import { execFileSync } from "node:child_process";
 import { chmod, lstat, mkdir, realpath, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
-import { inventoryJsonPostgresSources } from "../packages/persistence/src/postgres/source-inventory.js";
+import {
+  deriveJsonPostgresInventoryContentSha256,
+  inventoryJsonPostgresSources,
+} from "../packages/persistence/src/postgres/source-inventory.js";
+import {
+  createJsonPostgresAdjudicationRecommendations,
+} from "../packages/persistence/src/postgres/source-adjudication.js";
 import {
   createJsonPostgresSourceLocatorManifest,
 } from "../packages/persistence/src/postgres/source-locator-manifest.js";
 import {
   classifyJsonPostgresSourceReadInventory,
+  createJsonPostgresSourceReadDelta,
   validateJsonPostgresSourceReadPacket,
   verifyJsonPostgresSourceReadApproval,
 } from "../packages/persistence/src/postgres/source-read-contract.js";
@@ -62,8 +69,10 @@ function git(...args) {
 }
 
 const home = homedir();
-const output = await outsideWorktreeFile(option("--output"));
+const outputOption = option("--output");
 const locatorOutputOption = option("--locator-output");
+const adjudicationOutputOption = option("--adjudication-output");
+const deltaOutputOption = option("--delta-output");
 const authorityManifestPath = optional("--authority-manifest");
 const authorityManifest = authorityManifestPath
   ? readPrivateProgramJson(authorityManifestPath, "authority manifest")
@@ -75,12 +84,20 @@ const approvedPacket = readPrivateProgramJson(
   option("--source-read-packet"),
   "source-read packet",
 );
+const approvedInventory = readPrivateProgramJson(
+  option("--approved-inventory"),
+  "approved source inventory",
+);
 const sourceSha = git("rev-parse", "HEAD");
 const sourceTree = git("rev-parse", "HEAD^{tree}");
 validateJsonPostgresSourceReadPacket(approvedPacket, {
   sourceSha,
   sourceTree,
 });
+if (deriveJsonPostgresInventoryContentSha256(approvedInventory)
+    !== approvedPacket.inventory_content_sha256) {
+  throw new Error("approved source inventory does not match the packet");
+}
 verifyJsonPostgresSourceReadApproval({
   packet: approvedPacket,
   sourceSha,
@@ -90,6 +107,12 @@ verifyJsonPostgresSourceReadApproval({
   trustRegistrySha256: option("--registry-sha256"),
   approvalReceiptPath: option("--approval"),
 });
+const output = await outsideWorktreeFile(outputOption);
+const locatorOutput = await outsideWorktreeFile(locatorOutputOption);
+const adjudicationOutput = await outsideWorktreeFile(
+  adjudicationOutputOption,
+);
+const deltaOutput = await outsideWorktreeFile(deltaOutputOption);
 const configuredSources = [
   { ref: "runtime-primary", path: `${home}/Library/Application Support/LawFirmOS/runtime-stores` },
   { ref: "runtime-desktop", path: `${home}/Library/Application Support/@law-firm-os/desktop/runtime-stores` },
@@ -98,6 +121,7 @@ const configuredSources = [
     ref: "local-backups",
     path: `${home}/lawos-backups`,
     parse_json: false,
+    adjudication_json: true,
     candidate_mode: "backup",
   },
   { ref: "packaged-lawos-user-data", path: `${home}/Library/Application Support/matter/runtime-stores` },
@@ -124,6 +148,8 @@ const report = await inventoryJsonPostgresSources({
     .filter((source) => source.single_file)
     .map(({ single_file: ignored, ...source }) => source),
   authorityManifest,
+  approvedInventoryContentSha256:
+    approvedPacket.inventory_content_sha256,
   onSourceLocator: async (locator) => privateLocators.push(locator),
 });
 const inventoryState = classifyJsonPostgresSourceReadInventory(
@@ -134,7 +160,6 @@ const { inventory_drifted: inventoryDrifted } = inventoryState;
 const bytes = `${JSON.stringify(report, null, 2)}\n`;
 await writeFile(output, bytes, { flag: "wx", mode: 0o600 });
 await chmod(output, 0o600);
-const locatorOutput = await outsideWorktreeFile(locatorOutputOption);
 const locatorManifest = createJsonPostgresSourceLocatorManifest({
   inventory: report,
   locators: privateLocators,
@@ -145,6 +170,34 @@ await writeFile(locatorOutput, `${JSON.stringify(locatorManifest, null, 2)}\n`, 
 });
 await chmod(locatorOutput, 0o600);
 const locatorManifestSha256 = locatorManifest.locator_manifest_sha256;
+let recommendations = null;
+let inventoryDelta = null;
+if (!inventoryDrifted) {
+  recommendations =
+    createJsonPostgresAdjudicationRecommendations({
+      inventory: report,
+      approvedInventoryContentSha256:
+        approvedPacket.inventory_content_sha256,
+    });
+  await writeFile(
+    adjudicationOutput,
+    `${JSON.stringify(recommendations, null, 2)}\n`,
+    { flag: "wx", mode: 0o600 },
+  );
+  await chmod(adjudicationOutput, 0o600);
+} else {
+  inventoryDelta = createJsonPostgresSourceReadDelta({
+    packet: approvedPacket,
+    approvedInventory,
+    observedInventory: report,
+  });
+  await writeFile(
+    deltaOutput,
+    `${JSON.stringify(inventoryDelta, null, 2)}\n`,
+    { flag: "wx", mode: 0o600 },
+  );
+  await chmod(deltaOutput, 0o600);
+}
 process.stdout.write(`${JSON.stringify({
   verdict: inventoryState.verdict,
   output,
@@ -156,6 +209,14 @@ process.stdout.write(`${JSON.stringify({
   reconciliation: report.reconciliation,
   private_locator_output: locatorOutput,
   private_locator_manifest_sha256: locatorManifestSha256,
+  adjudication_contract_sha256:
+    report.adjudication_contract?.adjudication_contract_sha256 ?? null,
+  adjudication_output: inventoryDrifted ? null : adjudicationOutput,
+  adjudication_recommendation_sha256:
+    recommendations?.recommendation_sha256 ?? null,
+  adjudication_safe_counts: recommendations?.safe_counts ?? null,
+  inventory_delta_output: inventoryDrifted ? deltaOutput : null,
+  inventory_delta_sha256: inventoryDelta?.delta_sha256 ?? null,
   approved_inventory_content_sha256: approvedPacket.inventory_content_sha256,
   observed_inventory_content_sha256: report.inventory_content_sha256,
   inventory_drifted: inventoryDrifted,

@@ -8,12 +8,15 @@ import {
 } from "./source-authority-manifest.js";
 
 export const JSON_POSTGRES_SOURCE_READ_PACKET_VERSION =
-  "law-firm-os.json-postgres-source-read-packet.v1";
+  "law-firm-os.json-postgres-source-read-packet.v2";
+export const JSON_POSTGRES_SOURCE_READ_DELTA_VERSION =
+  "law-firm-os.json-postgres-source-read-delta.v1";
 export const JSON_POSTGRES_SOURCE_READ_ACTION = "lawos-json-postgres-source-read";
 export const JSON_POSTGRES_SOURCE_READ_ENVIRONMENT = "lawos-source-local";
 
 const SHA1 = /^[a-f0-9]{40}$/u;
 const SHA256 = /^[a-f0-9]{64}$/u;
+const SOURCE_REF = /^[a-f0-9]{32}$/u;
 const SAFE_REF = /^[A-Za-z0-9_.:-]{1,160}$/u;
 const PACKET_KEYS = Object.freeze([
   "schema_version",
@@ -33,6 +36,19 @@ const PACKET_KEYS = Object.freeze([
   "external_actions_authorized",
   "claims",
 ]);
+const SOURCE_READ_REQUIREMENTS = Object.freeze([
+  "Read only the exact inventoried local source files under approved roots.",
+  "Return paths only in private 0600 outputs outside the worktree.",
+  "On an exact inventory match, emit PII-safe per-record lineage, state-version, audit-chronology, and authority recommendations in the same inventory execution.",
+  "Bind the approved safe inventory as the delta baseline.",
+  "If inventory content changed under an approved root, emit only a closed PII-safe blocked delta candidate and require new owner adjudication before lineage analysis or import.",
+  "Do not mutate source files, PostgreSQL, AWS, email, production, release, or traffic.",
+]);
+const SOURCE_READ_STOP_CONDITIONS = Object.freeze([
+  "Stop before adjudication or import on inventory, source-byte, root, path, symlink, or signature drift.",
+  "Stop before any unapproved external action or source mutation.",
+  "Stop on secret, credential, raw PII, or document bytes in safe output.",
+]);
 
 function closedObject(value, keys, label) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -44,6 +60,20 @@ function closedObject(value, keys, label) {
 
 function packetMaterial(packet) {
   return Object.fromEntries(PACKET_KEYS.map((key) => [key, packet[key]]));
+}
+
+function sourceReadDeltaMaterial(delta) {
+  return {
+    schema_version: delta.schema_version,
+    approved_inventory_content_sha256:
+      delta.approved_inventory_content_sha256,
+    observed_inventory_content_sha256:
+      delta.observed_inventory_content_sha256,
+    approved_root_refs: delta.approved_root_refs,
+    changes: delta.changes,
+    safe_counts: delta.safe_counts,
+    claims: delta.claims,
+  };
 }
 
 export function createJsonPostgresSourceReadPacket({
@@ -69,17 +99,8 @@ export function createJsonPostgresSourceReadPacket({
       `inventory-delta-policy:${JSON_POSTGRES_INVENTORY_DELTA_POLICY_SHA256}`,
     ],
     contact_scope: [],
-    requirements: [
-      "Read only the exact inventoried local source files under approved roots.",
-      "Return paths only in private 0600 outputs outside the worktree.",
-      "If inventory content changed under an approved root, emit a safe blocked delta candidate and require new owner adjudication before import.",
-      "Do not mutate source files, PostgreSQL, AWS, email, production, release, or traffic.",
-    ],
-    stop_conditions: [
-      "Stop before adjudication or import on inventory, source-byte, root, path, symlink, or signature drift.",
-      "Stop before any unapproved external action or source mutation.",
-      "Stop on secret, credential, raw PII, or document bytes in safe output.",
-    ],
+    requirements: [...SOURCE_READ_REQUIREMENTS],
+    stop_conditions: [...SOURCE_READ_STOP_CONDITIONS],
     current_state: "PENDING_HUMAN_APPROVAL",
     external_actions_authorized: false,
     claims: {
@@ -138,9 +159,11 @@ export function validateJsonPostgresSourceReadPacket(packet, expected = {}) {
     || packet.contact_scope.length !== 0) {
     throw new TypeError("source-read data or contact scope is invalid");
   }
-  if (!Array.isArray(packet.requirements) || packet.requirements.length === 0
-    || !Array.isArray(packet.stop_conditions) || packet.stop_conditions.length === 0) {
-    throw new TypeError("source-read requirements and stop conditions are required");
+  if (JSON.stringify(packet.requirements)
+      !== JSON.stringify(SOURCE_READ_REQUIREMENTS)
+    || JSON.stringify(packet.stop_conditions)
+      !== JSON.stringify(SOURCE_READ_STOP_CONDITIONS)) {
+    throw new TypeError("source-read requirements or stop conditions drifted");
   }
   if (packet.current_state !== "PENDING_HUMAN_APPROVAL"
     || packet.external_actions_authorized !== false) {
@@ -177,6 +200,129 @@ export function classifyJsonPostgresSourceReadInventory(packet, observedInventor
       : "PASS_SAFE_INVENTORY",
     inventory_drifted: inventoryDrifted,
     owner_adjudication_required: inventoryDrifted,
+  });
+}
+
+export function createJsonPostgresSourceReadDelta({
+  packet,
+  approvedInventory,
+  observedInventory,
+} = {}) {
+  validateJsonPostgresSourceReadPacket(packet);
+  if (approvedInventory?.inventory_content_sha256
+      !== packet.inventory_content_sha256
+    || !Array.isArray(approvedInventory?.sources)
+    || !Array.isArray(observedInventory?.sources)
+    || !SHA256.test(observedInventory?.inventory_content_sha256 ?? "")
+    || observedInventory.inventory_content_sha256
+      === packet.inventory_content_sha256) {
+    throw new TypeError("source-read delta inventory binding is invalid");
+  }
+  const approvedByRef = new Map();
+  const observedByRef = new Map();
+  for (const [inventory, target] of [
+    [approvedInventory, approvedByRef],
+    [observedInventory, observedByRef],
+  ]) {
+    for (const source of inventory.sources) {
+      if (!SOURCE_REF.test(source?.source_ref ?? "")
+        || !SAFE_REF.test(source?.root_ref ?? "")
+        || !SHA256.test(source?.sha256 ?? "")
+        || target.has(source.source_ref)) {
+        throw new TypeError("source-read delta source binding is invalid");
+      }
+      target.set(source.source_ref, source);
+    }
+  }
+  const approvedRoots = new Set(packet.approved_root_refs);
+  const changes = [];
+  for (const source of observedInventory.sources) {
+    const prior = approvedByRef.get(source.source_ref);
+    if (prior?.sha256 === source.sha256
+      && prior.root_ref === source.root_ref) continue;
+    changes.push(Object.freeze({
+      change: prior ? "changed" : "added",
+      source_ref: source.source_ref,
+      root_ref: source.root_ref,
+      prior_sha256: prior?.sha256 ?? null,
+      observed_sha256: source.sha256,
+      approved_root: approvedRoots.has(source.root_ref),
+    }));
+  }
+  for (const source of approvedInventory.sources) {
+    if (observedByRef.has(source.source_ref)) continue;
+    changes.push(Object.freeze({
+      change: "removed",
+      source_ref: source.source_ref,
+      root_ref: source.root_ref,
+      prior_sha256: source.sha256,
+      observed_sha256: null,
+      approved_root: approvedRoots.has(source.root_ref),
+    }));
+  }
+  changes.sort((left, right) =>
+    left.source_ref.localeCompare(right.source_ref));
+  const inventoryContractChangeCount = changes.length === 0 ? 1 : 0;
+  const value = Object.freeze({
+    schema_version: JSON_POSTGRES_SOURCE_READ_DELTA_VERSION,
+    approved_inventory_content_sha256:
+      packet.inventory_content_sha256,
+    observed_inventory_content_sha256:
+      observedInventory.inventory_content_sha256,
+    approved_root_refs: Object.freeze([...packet.approved_root_refs]),
+    changes: Object.freeze(changes),
+    safe_counts: Object.freeze({
+      added_count: changes.filter((row) => row.change === "added").length,
+      changed_count: changes.filter((row) => row.change === "changed").length,
+      removed_count: changes.filter((row) => row.change === "removed").length,
+      unapproved_root_count:
+        changes.filter((row) => !row.approved_root).length,
+      inventory_contract_change_count: inventoryContractChangeCount,
+      owner_review_required_count:
+        changes.length + inventoryContractChangeCount,
+    }),
+    claims: Object.freeze({
+      auto_authorized: false,
+      authority_decision_final: false,
+      raw_value_returned: false,
+      raw_path_returned: false,
+      pii_returned: false,
+      secret_material_returned: false,
+      source_mutated: false,
+      postgres_mutated: false,
+      aws_mutated: false,
+      production_contacted: false,
+    }),
+  });
+  return Object.freeze({
+    ...value,
+    delta_sha256: createHash("sha256")
+      .update(canonicalizeJson(sourceReadDeltaMaterial(value)))
+      .digest("hex"),
+  });
+}
+
+export function validateJsonPostgresSourceReadDelta(
+  delta,
+  { packet, approvedInventory, observedInventory } = {},
+) {
+  if (delta?.schema_version !== JSON_POSTGRES_SOURCE_READ_DELTA_VERSION
+    || !SHA256.test(delta?.delta_sha256 ?? "")) {
+    throw new TypeError("source-read delta is invalid");
+  }
+  const rebuilt = createJsonPostgresSourceReadDelta({
+    packet,
+    approvedInventory,
+    observedInventory,
+  });
+  if (canonicalizeJson(rebuilt) !== canonicalizeJson(delta)) {
+    throw new TypeError("source-read delta drifted");
+  }
+  return Object.freeze({
+    valid: true,
+    delta_sha256: delta.delta_sha256,
+    owner_review_required_count:
+      delta.safe_counts.owner_review_required_count,
   });
 }
 

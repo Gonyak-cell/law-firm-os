@@ -1,9 +1,9 @@
 # LawOS JSON Authority to PostgreSQL RepositoryPortV2, Real-Data Migration, Production CUT-008~012, Release, and Relational Projection Full Execution Plan
 
 - Plan ID: `LAWOS-JSON-POSTGRES-PRIVATE-STAGING-CUT007-20260720`
-- Plan version: `v2.2`
+- Plan version: `v2.3`
 - Prepared on: `2026-07-20 KST`
-- Updated on: `2026-07-23 KST`
+- Updated on: `2026-07-24 KST`
 - Repository: `/Users/jws/Documents/Codex/Law Firm OS`
 - Protected root worktree: read-only; never reset, stash, clean, commit, or modify
 - Current `origin/main`: `b08b25dbd913196c7475794db0b91193d2cfd337`
@@ -12,6 +12,10 @@
 - Completed private-staging source tree: `140e552cac6867a6f4e9de55aaf7657faa7498ae`
 - Completed implementation branch: `codex/json-postgres-private-staging-cut007-20260720`
 - Completed implementation PR: `#173`, merged to `origin/main`
+- Current production-program implementation branch: `codex/json-postgres-production-program-20260723`
+- Current production-program PR: `#175`, draft until W12 execution authorization and terminal gates permit promotion
+- Completed read-only source checkpoint: source `126d4a683dc87a74d0bd4c42e9a96dae8b07f9cd`, tree `19127e4d6f0e5bb06b9a7824b6b67e112a273d4a`, packet `LAWOS-JSON-POSTGRES-SOURCE-READ-METADATA-STABLE-20260724-126D4A68`
+- Completed safe inventory checkpoint: 287 sources, normalized content SHA-256 `19182ee7e6d2f22d38211507aafd5f93fc626cab690b3bedd49ac367637dd74b`
 - AWS account: `770880870480`
 - AWS region: `ap-northeast-2`
 - Monthly LawOS AWS cost ceiling: `KRW 300,000`; no security, durability, or availability control may be weakened to meet it
@@ -27,7 +31,7 @@ The goal is decomposed into the existing W0~W15 work packages. “Implemented”
 | Goal slice | Source-local implementation state | External execution state |
 |---|---|---|
 | G0 / W0 baseline and governance | complete on a clean branch from the merged private-staging tree | no external action |
-| G1 / W1 inventory, locator, source-read approval, and adjudication | implemented; all-source terminal-disposition and zero-unresolved gates are enforced | the 287-source read and adjudication are approval-required and not executed |
+| G1 / W1 inventory, locator, source-read approval, and adjudication | implemented, including metadata-stable inventory binding, same-run PII-safe record lineage, state-version/audit chronology, exact-digest recommendation gating, and closed drift delta; all-source terminal-disposition and zero-unresolved gates remain enforced | the approved 126d read completed for all 287 sources; final authority decisions remain zero, and the strengthened lineage/recommendation contract requires one newly exact-bound read before adjudication can close |
 | G2 / W2 registered-email internal identity | preserved from the merged checkpoint; real profile/history retention and disabled-account normalization are covered by migration tests | real accounts not imported; no bulk reset delivery |
 | G3 / W3 corpus, record catalog, authority bundle, migration, reconciliation, checkpoint/resume, and DMS executor | implemented for W12 and W13; production commit requires exact signed predecessors and immutable inputs | no real rehearsal or production import |
 | G4 / W4~W11 synthetic private staging | preserved signed PASS checkpoint | do not replay unless its upstream contract is invalidated |
@@ -36,7 +40,7 @@ The goal is decomposed into the existing W0~W15 work packages. “Implemented”
 | G7 / W14 signing, formal release, and go-live | artifact reproducibility, release security, macOS/Windows signing verification, formal-release, smoke, traffic, and go-live contracts implemented | requires CUT-012 PASS and exact-main release/go-live authorization |
 | G8 / W15 relational read projection | one-way HRX projection schema, writer role, replay/shadow/RLS gate, closeout, and authority-preservation contracts implemented | post-go-live execution and any authority promotion require separate authorization |
 
-The source branch may be committed, pushed, and subjected to exact-head CI only after the consolidated local source suite passes. W12~W15 external actions remain closed until the separately signed packet for that phase is verified.
+The source branch may be committed and pushed after focused regression tests pass; exact-head CI and the consolidated source suite are the terminal source gates after the related fix batch is complete. W12~W15 external actions remain closed until the separately signed packet for that phase is verified.
 
 ## 1. Objective
 
@@ -299,9 +303,9 @@ Approval binds exact SHA/tree/artifact and the signed inventory rule. A content 
 
 ## 8. W1 — Source inventory and field contract
 
-Status: `SOURCE_TOOLING_COMPLETE_REAL_SOURCE_READ_AND_AUTHORITY_ADJUDICATION_REQUIRED`.
+Status: `SOURCE_READ_CHECKPOINT_COMPLETE_DETAILED_LINEAGE_REBIND_AND_AUTHORITY_ADJUDICATION_REQUIRED`.
 
-The safe inventory is not an import authorization. It reports 287 candidate files, 84 duplicate candidates, 203 manual-review candidates, 857 field paths, two roster gaps, two lower-case email collisions, and zero authoritative selections. W12 must close every unresolved item before rehearsal.
+The safe inventory is not an import authorization. The approved 126d read reported 287 candidate files, 84 duplicate candidates, 203 manual-review candidates, 857 field paths, two roster gaps, two lower-case email collisions, and zero authoritative selections. A metadata-only preliminary recommendation pass could not safely close 187 sources because it lacked per-record lineage, state version, and audit chronology. That gap is now closed in source, but the enhanced contract has not reread the real sources and therefore has not created final authority decisions. W12 must close every unresolved item before rehearsal.
 
 ### W1.1 Candidate sources
 
@@ -316,7 +320,7 @@ Inventory without emitting raw values:
 - account, role, roster, contact, and professional-profile registries;
 - DMS object manifests and metadata stores.
 
-For each candidate record only pseudonymous source reference, SHA-256, size, mtime, mode, schema version, tenant count, record-type count, generation, and classification.
+For each candidate source, the public-safe inventory contains only pseudonymous source reference, SHA-256, size, mtime, mode, schema version, tenant count, record-type count, generation, and classification. On an exact approved inventory match, a private `0600` adjudication contract additionally contains only pseudonymous per-record identity, entity-class reference, sanitized content hash, state version, audit chronology order, and bounded relationship references. Raw values, raw paths, PII, credentials, secrets, and document bytes are forbidden.
 
 ### W1.2 Source classifications
 
@@ -330,6 +334,17 @@ Every candidate must be one of:
 - `manual-review`.
 
 Do not select authority solely by modification time. Use generation lineage, record identity, state version, audit chronology, and owner-approved source manifest.
+
+The executable source-read boundary must:
+
+- verify the clean exact source SHA/tree, signed owner approval, trust-registry digest, approved baseline inventory, and seven approved root references under the closed `law-firm-os.json-postgres-source-read-packet.v2` contract before reading;
+- preserve the metadata-stable normalized inventory digest independently of `generated_at`, `mtime`, timestamp-derived generation references, and derived adjudication output;
+- emit record lineage and deterministic non-final recommendations only when the observed normalized inventory digest exactly matches the signed baseline;
+- mark every recommendation `owner_decision_required=true` and keep `authority_decision_final=false`;
+- refuse last-write-wins and leave same-version or ambiguous chronology conflicts unresolved;
+- exclude normalized snake-case, kebab-case, and camel-case secret names plus serialized byte payloads before record hashing;
+- if the inventory digest differs, omit the adjudication contract and recommendations, emit a closed PII-safe added/changed/removed delta, and terminate before import;
+- re-hash every source used by the second-phase lineage reader and stop on in-process source-byte drift.
 
 ### W1.3 Field dispositions
 
@@ -937,6 +952,7 @@ W12 starts only after a signed authorization binds the exact source SHA/tree, mi
 ### W12.2 Inventory adjudication
 
 - freeze the candidate inventory without changing source content;
+- bind the prior approved safe inventory as the immutable comparison baseline and run the detailed lineage pass only after its normalized content digest matches;
 - resolve every duplicate generation by lineage, stable record identity, state version, audit chronology, and owner decision rather than modification time alone;
 - resolve all roster gaps and duplicate-email collisions explicitly;
 - classify every discovered field as `live`, `derived`, `archive-only`, `secret-excluded`, `synthetic-excluded`, or `rejected-with-reason`;
@@ -945,8 +961,10 @@ W12 starts only after a signed authorization binds the exact source SHA/tree, mi
 - assign every operational item to generic ledger, specialized identity, S3 DMS byte object, derived-rebuild, archive-only, or reject;
 - validate canonical record IDs, state versions, logical unique keys, reference keys, and tenant derivation before any rehearsal write;
 - treat lower-case email and matter-code collisions as blocking owner decisions, never automatic last-write-wins.
+- create the safe inventory, private locator manifest, per-record adjudication contract, and non-final recommendation worklist in one clean exact-head process; do not combine artifacts from separate source snapshots;
+- on source-content drift, generate only the closed safe delta, preserve `authority_decision_final=false`, and require a new exact approval before retrying the detailed lineage pass.
 
-The current inventory baseline has 287 candidate files, 84 duplicate candidates, 203 manual-review candidates, 857 discovered fields, two roster gaps, and two duplicate-email collisions. None of those exceptions may be silently resolved or counted as migrated.
+The current inventory baseline has 287 candidate files, 84 duplicate candidates, 203 manual-review candidates, 857 discovered fields, two roster gaps, and two duplicate-email collisions. The 126d read is a valid safe inventory checkpoint, not a final authority manifest. None of those exceptions may be silently resolved or counted as migrated, and the strengthened contract must receive a new exact-head source-read approval before the real lineage worklist is generated.
 
 ### W12.3 Isolated rehearsal execution
 

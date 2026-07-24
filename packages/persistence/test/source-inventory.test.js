@@ -118,6 +118,7 @@ test("source inventory emits only safe metadata and classifies every field", asy
   const {
     inventory_sha256: ignoredMetadataInventorySha256,
     inventory_content_sha256: ignoredMetadataContentSha256,
+    adjudication_contract: ignoredMetadataAdjudicationContract,
     ...timestampSensitiveReport
   } = metadataOnlyChange;
   const timestampSensitiveInventory = {
@@ -156,10 +157,27 @@ test("source inventory emits only safe metadata and classifies every field", asy
       && prior.generation_ref === source.generation_ref
     ))
   )));
+  const driftBlocked = await inventoryJsonPostgresSources({
+    roots: [{ ref: "runtime-primary", path: root }],
+    authorityManifest: {
+      sources: [{
+        sha256: sha256(bytes),
+        classification: "authoritative",
+      }],
+    },
+    approvedInventoryContentSha256: report.inventory_content_sha256,
+    clock: () => new Date("2026-07-21T00:00:00.000Z"),
+  });
+  assert.notEqual(
+    driftBlocked.inventory_content_sha256,
+    report.inventory_content_sha256,
+  );
+  assert.equal(driftBlocked.adjudication_contract, null);
 
   const {
     inventory_sha256: ignoredInventorySha256,
     inventory_content_sha256: ignoredContentSha256,
+    adjudication_contract: ignoredLegacyAdjudicationContract,
     ...legacyReport
   } = report;
   legacyReport.field_contract = {

@@ -7,6 +7,7 @@ export * from "./repository-v2.js";
 export * from "./domain-ledger.js";
 export * from "./json-postgres-migration.js";
 export * from "./source-inventory.js";
+export * from "./source-adjudication.js";
 export * from "./source-locator-manifest.js";
 export * from "./source-read-contract.js";
 export * from "./record-type-catalog.js";

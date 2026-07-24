@@ -2,6 +2,10 @@ import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { opendir, readFile, realpath, stat } from "node:fs/promises";
 import { basename, dirname, extname, join, relative } from "node:path";
+import {
+  createJsonPostgresSourceAdjudicationContract,
+  inspectJsonPostgresAdjudicationSource,
+} from "./source-adjudication.js";
 
 export const JSON_POSTGRES_SOURCE_INVENTORY_VERSION = "law-firm-os.json-postgres-source-inventory.v1";
 export const JSON_POSTGRES_SOURCE_CLASSIFICATIONS = Object.freeze([
@@ -73,6 +77,7 @@ function inventoryContentMaterial(inventory, { normalizeSourceMetadata = true } 
   const {
     inventory_sha256: ignoredInventorySha256,
     inventory_content_sha256: ignoredContentSha256,
+    adjudication_contract: ignoredAdjudicationContract,
     ...report
   } = inventory;
   const normalizedFields = new Map();
@@ -161,6 +166,21 @@ function sourceFamily(name) {
   }
   if (normalized.includes("session-secret")) return "session-secret";
   return extname(normalized).replace(/^\./u, "") || "opaque-candidate";
+}
+
+function isJsonCandidate(path) {
+  return /\.(?:json|jsonl|ndjson)(?:[-.][a-z0-9]+)?$/iu.test(
+    basename(path),
+  );
+}
+
+function parseJsonCandidate(path, bytes) {
+  if (/\.json(?:[-.][a-z0-9]+)?$/iu.test(basename(path))) {
+    return JSON.parse(bytes);
+  }
+  return bytes.toString("utf8").split(/\r?\n/u)
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
 }
 
 async function candidatePaths(rootPath, mode = "default") {
@@ -401,11 +421,16 @@ export async function inventoryJsonPostgresSources({
   roots = [],
   files = [],
   authorityManifest = null,
+  approvedInventoryContentSha256 = null,
   clock = () => new Date(),
   onSourceLocator = null,
 } = {}) {
   if (onSourceLocator != null && typeof onSourceLocator !== "function") {
     throw new TypeError("onSourceLocator must be a function");
+  }
+  if (approvedInventoryContentSha256 !== null
+    && !/^[a-f0-9]{64}$/u.test(approvedInventoryContentSha256)) {
+    throw new TypeError("approved inventory content digest is invalid");
   }
   const candidates = [];
   const rootResults = [];
@@ -416,7 +441,14 @@ export async function inventoryJsonPostgresSources({
       const resolved = await realpath(root.path);
       const paths = await candidatePaths(resolved, root.candidate_mode ?? "default");
       rootResults.push({ root_ref: rootRef, exists: true, candidate_file_count: paths.length });
-      for (const path of paths) candidates.push({ rootRef, rootPath: resolved, path, parseJson: root.parse_json !== false });
+      for (const path of paths) candidates.push({
+        rootRef,
+        rootPath: resolved,
+        path,
+        parseJson: root.parse_json !== false,
+        adjudicationJson:
+          root.parse_json !== false || root.adjudication_json === true,
+      });
     } catch (error) {
       if (error?.code !== "ENOENT") throw error;
       rootResults.push({ root_ref: rootRef, exists: false, candidate_file_count: 0 });
@@ -427,7 +459,14 @@ export async function inventoryJsonPostgresSources({
     if (!rootRef || !file.path) throw new TypeError("inventory file ref and path are required");
     try {
       const path = await realpath(file.path);
-      candidates.push({ rootRef, rootPath: dirname(path), path, parseJson: file.parse_json !== false });
+      candidates.push({
+        rootRef,
+        rootPath: dirname(path),
+        path,
+        parseJson: file.parse_json !== false,
+        adjudicationJson:
+          file.parse_json !== false || file.adjudication_json === true,
+      });
       rootResults.push({ root_ref: rootRef, exists: true, candidate_file_count: 1 });
     } catch (error) {
       if (error?.code !== "ENOENT") throw error;
@@ -451,13 +490,18 @@ export async function inventoryJsonPostgresSources({
     let parsed = null;
     let inspection = null;
     let parseError = false;
-    const parseable = candidate.parseJson && metadata.size <= MAX_PARSE_BYTES
-      && [".json", ".jsonl", ".ndjson"].includes(extname(candidate.path).toLowerCase());
+    let parsedAvailable = false;
+    const parseable = candidate.parseJson
+      && metadata.size <= MAX_PARSE_BYTES
+      && isJsonCandidate(candidate.path);
     if (parseable) {
+      const bytes = await readFile(candidate.path);
+      if (sha256(bytes) !== digest) {
+        throw new Error("source changed while inventory was running");
+      }
       try {
-        const bytes = await readFile(candidate.path);
-        if (extname(candidate.path).toLowerCase() === ".json") parsed = JSON.parse(bytes);
-        else parsed = bytes.toString("utf8").split(/\r?\n/u).filter(Boolean).map((line) => JSON.parse(line));
+        parsed = parseJsonCandidate(candidate.path, bytes);
+        parsedAvailable = true;
         inspection = inspectJson(parsed);
       } catch {
         parseError = true;
@@ -487,6 +531,10 @@ export async function inventoryJsonPostgresSources({
       parse_skipped: !candidate.parseJson,
       oversized_unparsed: metadata.size > MAX_PARSE_BYTES,
       inspection,
+      adjudication_json: candidate.adjudicationJson,
+      adjudication_path: candidate.path,
+      adjudication_parsed: parsed,
+      adjudication_parsed_available: parsedAvailable,
     });
   }
 
@@ -508,7 +556,14 @@ export async function inventoryJsonPostgresSources({
     }
   }
   const fieldRows = [...fields.values()].sort((left, right) => left.field_name.localeCompare(right.field_name) || left.disposition.localeCompare(right.disposition));
-  const sources = detailed.map(({ inspection, ...source }) => Object.freeze(source));
+  const sources = detailed.map(({
+    inspection,
+    adjudication_json: ignoredAdjudicationJson,
+    adjudication_path: ignoredAdjudicationPath,
+    adjudication_parsed: ignoredAdjudicationParsed,
+    adjudication_parsed_available: ignoredAdjudicationParsedAvailable,
+    ...source
+  }) => Object.freeze(source));
   const classifications = Object.fromEntries(JSON_POSTGRES_SOURCE_CLASSIFICATIONS.map((classification) => [
     classification,
     sources.filter((source) => source.classification === classification).length,
@@ -549,10 +604,56 @@ export async function inventoryJsonPostgresSources({
       production_contacted: false,
     },
   };
-  const inventorySha256 = sha256(stableJson(report));
   const inventoryContentSha256 = sha256(stableJson(inventoryContentMaterial(report)));
-  return Object.freeze({
+  let adjudicationContract = null;
+  if (approvedInventoryContentSha256 === null
+    || approvedInventoryContentSha256 === inventoryContentSha256) {
+    const adjudicationSources = [];
+    for (let index = 0; index < detailed.length; index += 1) {
+      const source = detailed[index];
+      let inspection = null;
+      let parseError = source.parse_error;
+      if (source.adjudication_json && !parseError
+        && source.byte_size <= MAX_PARSE_BYTES
+        && isJsonCandidate(source.adjudication_path)) {
+        let parsed = source.adjudication_parsed;
+        if (!source.adjudication_parsed_available) {
+          const bytes = await readFile(source.adjudication_path);
+          if (sha256(bytes) !== source.sha256) {
+            throw new Error("source changed while adjudication was running");
+          }
+          try {
+            parsed = parseJsonCandidate(source.adjudication_path, bytes);
+          } catch {
+            parseError = true;
+          }
+        }
+        try {
+          if (!parseError) {
+            inspection = inspectJsonPostgresAdjudicationSource(parsed);
+          }
+        } catch {
+          parseError = true;
+        }
+      }
+      adjudicationSources.push({
+        source: sources[index],
+        inspection,
+        parseError,
+      });
+    }
+    adjudicationContract = createJsonPostgresSourceAdjudicationContract({
+      inventoryContentSha256,
+      sources: adjudicationSources,
+    });
+  }
+  const completeReport = {
     ...report,
+    adjudication_contract: adjudicationContract,
+  };
+  const inventorySha256 = sha256(stableJson(completeReport));
+  return Object.freeze({
+    ...completeReport,
     inventory_sha256: inventorySha256,
     inventory_content_sha256: inventoryContentSha256,
   });

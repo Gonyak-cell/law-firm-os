@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   classifyJsonPostgresSourceReadInventory,
+  createJsonPostgresSourceReadDelta,
   createJsonPostgresSourceReadPacket,
+  validateJsonPostgresSourceReadDelta,
   validateJsonPostgresSourceReadPacket,
 } from "../src/postgres/source-read-contract.js";
 import {
@@ -87,5 +89,97 @@ test("source-read packet rejects drift, extra fields and affirmative claims", ()
       inventory_delta_policy_sha256: "4".repeat(64),
     }),
     /binding is invalid/u,
+  );
+  assert.throws(
+    () => validateJsonPostgresSourceReadPacket({
+      ...packet,
+      requirements: ["read everything"],
+    }),
+    /requirements or stop conditions drifted/u,
+  );
+});
+
+test("source-read drift emits a closed safe delta and never authorizes it", () => {
+  const { packet } = createJsonPostgresSourceReadPacket({
+    packetId: "LAWOS-SOURCE-READ-DELTA-TEST",
+    sourceSha: SOURCE_SHA,
+    sourceTree: SOURCE_TREE,
+    inventoryContentSha256: INVENTORY_SHA,
+    approvedRootRefs: ["runtime-primary"],
+  });
+  const approvedInventory = {
+    inventory_content_sha256: INVENTORY_SHA,
+    sources: [
+      {
+        source_ref: "a".repeat(32),
+        root_ref: "runtime-primary",
+        sha256: "4".repeat(64),
+      },
+      {
+        source_ref: "b".repeat(32),
+        root_ref: "runtime-primary",
+        sha256: "5".repeat(64),
+      },
+    ],
+  };
+  const observedInventory = {
+    inventory_content_sha256: "6".repeat(64),
+    sources: [
+      {
+        source_ref: "a".repeat(32),
+        root_ref: "runtime-primary",
+        sha256: "7".repeat(64),
+      },
+      {
+        source_ref: "c".repeat(32),
+        root_ref: "unapproved-root",
+        sha256: "8".repeat(64),
+      },
+    ],
+  };
+  const delta = createJsonPostgresSourceReadDelta({
+    packet,
+    approvedInventory,
+    observedInventory,
+  });
+  assert.equal(validateJsonPostgresSourceReadDelta(delta, {
+    packet,
+    approvedInventory,
+    observedInventory,
+  }).valid, true);
+  assert.deepEqual(delta.safe_counts, {
+    added_count: 1,
+    changed_count: 1,
+    removed_count: 1,
+    unapproved_root_count: 1,
+    inventory_contract_change_count: 0,
+    owner_review_required_count: 3,
+  });
+  assert.equal(delta.claims.auto_authorized, false);
+  assert.equal(delta.claims.authority_decision_final, false);
+  assert.equal(Object.values(delta.claims).some((value) => value === true), false);
+  const contractOnlyDelta = createJsonPostgresSourceReadDelta({
+    packet,
+    approvedInventory,
+    observedInventory: {
+      ...approvedInventory,
+      inventory_content_sha256: "9".repeat(64),
+    },
+  });
+  assert.equal(
+    contractOnlyDelta.safe_counts.inventory_contract_change_count,
+    1,
+  );
+  assert.equal(
+    contractOnlyDelta.safe_counts.owner_review_required_count,
+    1,
+  );
+  assert.throws(
+    () => createJsonPostgresSourceReadDelta({
+      packet,
+      approvedInventory,
+      observedInventory: approvedInventory,
+    }),
+    /delta inventory binding is invalid/u,
   );
 });
