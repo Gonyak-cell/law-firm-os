@@ -23,6 +23,7 @@ import {
   JSON_POSTGRES_INVENTORY_DELTA_POLICY_SHA256,
 } from "../../packages/persistence/src/postgres/source-authority-manifest.js";
 import {
+  createJsonPostgresSourceBackupPutReceipt,
   executeJsonPostgresSourceBackup,
 } from "../lib/json-postgres-source-backup.mjs";
 
@@ -40,6 +41,34 @@ test("source backup runner keeps computed packet metadata outside the closed exe
       .length,
     2,
   );
+});
+
+test("source backup accepts omitted PutObject governance echoes before exact readback", () => {
+  assert.deepEqual(createJsonPostgresSourceBackupPutReceipt({
+    response: { VersionId: "version-1" },
+    plan: {
+      bucket: "lawos-prod-input-770880870480",
+      expected_bucket_owner: ACCOUNT,
+      retain_until: "2027-07-23T00:00:00.000Z",
+    },
+    source: {
+      object_key: "source-freeze/source.bin",
+      sha256: "a".repeat(64),
+      byte_size: 42,
+    },
+    kmsKeyArn: KMS_ARN,
+  }), {
+    bucket: "lawos-prod-input-770880870480",
+    key: "source-freeze/source.bin",
+    version_id: "version-1",
+    expected_bucket_owner: ACCOUNT,
+    server_side_encryption: "aws:kms",
+    kms_key_arn: KMS_ARN,
+    object_lock_mode: "COMPLIANCE",
+    retain_until: "2027-07-23T00:00:00.000Z",
+    content_sha256: "a".repeat(64),
+    byte_size: 42,
+  });
 });
 
 async function fixture(t) {

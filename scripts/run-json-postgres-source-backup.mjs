@@ -15,6 +15,7 @@ import {
 } from "../packages/persistence/src/postgres/program-receipt.js";
 import {
   createJsonPostgresSourceBackupPlan,
+  createJsonPostgresSourceBackupPutReceipt,
   executeJsonPostgresSourceBackup,
 } from "./lib/json-postgres-source-backup.mjs";
 import {
@@ -197,19 +198,12 @@ const executed = await executeJsonPostgresSourceBackup({
         inventory_sha256: currentPlan.inventory_content_sha256,
       },
     }));
-    if (!response.VersionId) throw new Error("source backup upload returned no immutable version");
-    return {
-      bucket: currentPlan.bucket,
-      key: source.object_key,
-      version_id: response.VersionId,
-      expected_bucket_owner: currentPlan.expected_bucket_owner,
-      server_side_encryption: response.ServerSideEncryption,
-      kms_key_arn: response.SSEKMSKeyId,
-      object_lock_mode: response.ObjectLockMode,
-      retain_until: new Date(response.ObjectLockRetainUntilDate).toISOString(),
-      content_sha256: source.sha256,
-      byte_size: source.byte_size,
-    };
+    return createJsonPostgresSourceBackupPutReceipt({
+      response,
+      plan: currentPlan,
+      source,
+      kmsKeyArn,
+    });
   },
   getObject: async ({ plan: currentPlan, source, stored }) => {
     const response = await client.send(new GetObjectCommand({
