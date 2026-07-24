@@ -157,8 +157,8 @@ const [versioning, publicAccess, objectLock, encryption] = [
   awsJson(["s3api", "get-bucket-encryption", "--bucket", plan.bucket, "--expected-bucket-owner", ACCOUNT]),
 ];
 const blocked = publicAccess.PublicAccessBlockConfiguration ?? {};
-const encryptionRule = encryption.ServerSideEncryptionConfiguration?.[0]
-  ?.ApplyServerSideEncryptionByDefault;
+const encryptionRule = encryption.ServerSideEncryptionConfiguration
+  ?.Rules?.[0]?.ApplyServerSideEncryptionByDefault;
 if (versioning.Status !== "Enabled"
   || Object.keys(blocked).length !== 4
   || !Object.values(blocked).every(Boolean)

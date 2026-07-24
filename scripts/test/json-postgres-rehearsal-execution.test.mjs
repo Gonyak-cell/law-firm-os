@@ -227,13 +227,15 @@ test("W12 immutable bucket state rejects public, mutable and wrong-key storage",
       },
     },
     encryption: {
-      ServerSideEncryptionConfiguration: [{
-        ApplyServerSideEncryptionByDefault: {
-          SSEAlgorithm: "aws:kms",
-          KMSMasterKeyID:
-            "arn:aws:kms:ap-northeast-2:770880870480:key/key-id",
-        },
-      }],
+      ServerSideEncryptionConfiguration: {
+        Rules: [{
+          ApplyServerSideEncryptionByDefault: {
+            SSEAlgorithm: "aws:kms",
+            KMSMasterKeyID:
+              "arn:aws:kms:ap-northeast-2:770880870480:key/key-id",
+          },
+        }],
+      },
     },
   };
   assert.equal(

@@ -281,8 +281,8 @@ export function assertJsonPostgresRehearsalBucketState({
   encryption,
 } = {}) {
   const blocked = publicAccess?.PublicAccessBlockConfiguration ?? {};
-  const encryptionRule = encryption?.ServerSideEncryptionConfiguration?.[0]
-    ?.ApplyServerSideEncryptionByDefault;
+  const encryptionRule = encryption?.ServerSideEncryptionConfiguration
+    ?.Rules?.[0]?.ApplyServerSideEncryptionByDefault;
   const retention = objectLock?.ObjectLockConfiguration?.Rule
     ?.DefaultRetention;
   if (bucketName !== expectedBucketName

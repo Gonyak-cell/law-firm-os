@@ -200,8 +200,8 @@ export function assertJsonPostgresArtifactBucketState({
   encryption,
 } = {}) {
   const blocked = publicAccess?.PublicAccessBlockConfiguration ?? {};
-  const rule = encryption?.ServerSideEncryptionConfiguration?.[0]
-    ?.ApplyServerSideEncryptionByDefault;
+  const rule = encryption?.ServerSideEncryptionConfiguration
+    ?.Rules?.[0]?.ApplyServerSideEncryptionByDefault;
   if (versioning?.Status !== "Enabled"
     || !Object.values(blocked).every(Boolean)
     || Object.keys(blocked).length !== 4

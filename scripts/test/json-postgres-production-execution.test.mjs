@@ -184,12 +184,14 @@ test("artifact bucket and production stack observations are exact and fail close
       ObjectLockEnabled: "Enabled",
       Rule: { DefaultRetention: { Mode: "COMPLIANCE", Days: 365 } },
     } },
-    encryption: { ServerSideEncryptionConfiguration: [{
-      ApplyServerSideEncryptionByDefault: {
-        SSEAlgorithm: "aws:kms",
-        KMSMasterKeyID: keyArn,
-      },
-    }] },
+    encryption: { ServerSideEncryptionConfiguration: {
+      Rules: [{
+        ApplyServerSideEncryptionByDefault: {
+          SSEAlgorithm: "aws:kms",
+          KMSMasterKeyID: keyArn,
+        },
+      }],
+    } },
   }).verdict, "PASS");
   const stack = {
     StackStatus: "CREATE_COMPLETE",
