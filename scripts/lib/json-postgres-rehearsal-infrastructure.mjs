@@ -1,4 +1,7 @@
 import { createHash } from "node:crypto";
+import {
+  JSON_POSTGRES_REHEARSAL_READONLY_ROLE,
+} from "./json-postgres-rehearsal-execution.mjs";
 
 export const JSON_POSTGRES_REHEARSAL_INFRASTRUCTURE_VERSION =
   "law-firm-os.json-postgres-rehearsal-infrastructure.v1";
@@ -797,6 +800,18 @@ export function buildJsonPostgresRehearsalTemplate(privateStagingTemplate) {
       Tags: rehearsalTags(),
     },
   };
+  resources.RehearsalReadonlyAuditInvokePermission = {
+    Type: "AWS::Lambda::Permission",
+    Properties: {
+      Action: "lambda:InvokeFunction",
+      FunctionName: { Ref: "RehearsalAdminFunction" },
+      Principal: {
+        "Fn::Sub":
+          `arn:\${AWS::Partition}:iam::\${AWS::AccountId}:role/`
+          + JSON_POSTGRES_REHEARSAL_READONLY_ROLE,
+      },
+    },
+  };
 
   resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement.push({
     Sid: "W12AdminReadsExactRehearsalSecrets",
@@ -940,6 +955,19 @@ export function validateJsonPostgresRehearsalTemplate(template) {
     || fn.VpcConfig?.SecurityGroupIds?.length !== 1) {
     fail("private rehearsal direct-invoke Lambda drifted");
   }
+  const readbackPermission =
+    resources.RehearsalReadonlyAuditInvokePermission;
+  if (readbackPermission?.Type !== "AWS::Lambda::Permission"
+    || readbackPermission.Properties?.Action !== "lambda:InvokeFunction"
+    || readbackPermission.Properties?.FunctionName?.Ref
+      !== "RehearsalAdminFunction"
+    || readbackPermission.Properties?.Principal?.["Fn::Sub"]
+      !== `arn:\${AWS::Partition}:iam::\${AWS::AccountId}:role/`
+        + JSON_POSTGRES_REHEARSAL_READONLY_ROLE
+    || readbackPermission.Properties?.SourceArn != null
+    || readbackPermission.Properties?.PrincipalOrgID != null) {
+    fail("private rehearsal read-only audit invocation drifted");
+  }
   const role = resources.RehearsalAdminExecutionRole;
   const statements = roleStatements(role);
   const bootstrap = statements.find((item) => item.Sid === "LambdaVpcEniBootstrap");
@@ -1054,7 +1082,7 @@ export function validateJsonPostgresRehearsalTemplate(template) {
   return Object.freeze({
     verdict: "PASS",
     template_sha256: sha256(template),
-    incremental_resource_count: 9,
+    incremental_resource_count: 10,
     new_vpc_count: 0,
     new_rds_instance_count: 0,
     isolated_database_count: 1,

@@ -118,6 +118,21 @@ test("W12 rehearsal reuses the private staging topology with an isolated databas
       .includes("ses:"),
     false,
   );
+  assert.deepEqual(
+    template.Resources.RehearsalReadonlyAuditInvokePermission,
+    {
+      Type: "AWS::Lambda::Permission",
+      Properties: {
+        Action: "lambda:InvokeFunction",
+        FunctionName: { Ref: "RehearsalAdminFunction" },
+        Principal: {
+          "Fn::Sub":
+            "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/"
+            + "matter-readonly-auditor",
+        },
+      },
+    },
+  );
   const evidenceStatements =
     template.Resources.RehearsalAdminExecutionRole.Properties.Policies[0]
       .PolicyDocument.Statement;
@@ -147,6 +162,14 @@ test("W12 rehearsal reuses the private staging topology with an isolated databas
   assert.equal(
     roleTags.find((tag) => tag.Key === "program").Value,
     "lawos-private-rehearsal",
+  );
+
+  const wildcardAuditor = structuredClone(template);
+  wildcardAuditor.Resources.RehearsalReadonlyAuditInvokePermission
+    .Properties.Principal = "*";
+  assert.throws(
+    () => validateJsonPostgresRehearsalTemplate(wildcardAuditor),
+    /read-only audit invocation drifted/u,
   );
 });
 

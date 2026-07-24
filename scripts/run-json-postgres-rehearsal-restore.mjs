@@ -46,6 +46,7 @@ import {
 import {
   assertJsonPostgresRehearsalProgramCaller,
   createJsonPostgresRehearsalProgramEvent,
+  jsonPostgresRehearsalProfileForMode,
   validateJsonPostgresRehearsalExecutionEvidence,
   validateJsonPostgresRehearsalProgramResponse,
   validateJsonPostgresRehearsalRestoreEvidence,
@@ -70,6 +71,10 @@ import {
 const OPERATIONS = new Set(["restore", "readback", "cleanup"]);
 const DEPLOY_PROFILE = "matter-staging-admin";
 const AUDIT_PROFILE = "matter-readonly-auditor";
+const INSPECTION_PROFILE = jsonPostgresRehearsalProfileForMode(
+  "readback",
+  { inspection: true },
+);
 const SHA256 = /^[0-9a-f]{64}$/u;
 
 function parse(argv) {
@@ -185,7 +190,7 @@ function runtimeState(packet, approval) {
     eniBootstrapEnabled: false,
   });
   assertJsonPostgresRehearsalLambda(
-    awsJson(AUDIT_PROFILE, [
+    awsJson(INSPECTION_PROFILE, [
       "lambda",
       "get-function-configuration",
       "--function-name",

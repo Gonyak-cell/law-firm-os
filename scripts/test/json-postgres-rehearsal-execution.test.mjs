@@ -222,6 +222,43 @@ test("W12 change-set review allows the exact one-time identity tenant rebind onl
   );
 });
 
+test("W12 change-set review allows only the exact read-only audit invoke permission addition", () => {
+  const changeSet = {
+    StackName: JSON_POSTGRES_REHEARSAL_STACK,
+    ChangeSetId: "change-set-readonly-audit-invoke",
+    Changes: [{
+      ResourceChange: {
+        Action: "Add",
+        LogicalResourceId: "RehearsalReadonlyAuditInvokePermission",
+        ResourceType: "AWS::Lambda::Permission",
+        Replacement: "False",
+        Scope: [],
+      },
+    }],
+  };
+  const options = {
+    stackName: JSON_POSTGRES_REHEARSAL_STACK,
+    changeSetType: "UPDATE",
+    phase: "enable-eni",
+    templateSha256: "d".repeat(64),
+    parametersSha256: "e".repeat(64),
+  };
+  assert.equal(
+    validateJsonPostgresRehearsalChangeSet(changeSet, options).verdict,
+    "PASS",
+  );
+  const wildcardRole = structuredClone(changeSet);
+  wildcardRole.Changes[0].ResourceChange.LogicalResourceId =
+    "UnapprovedReadonlyInvokePermission";
+  assert.throws(
+    () => validateJsonPostgresRehearsalChangeSet(
+      wildcardRole,
+      options,
+    ),
+    /unapproved delta/u,
+  );
+});
+
 test("W12 change-set review permits the exact existing Lambda bootstrap transition only when declared", () => {
   const changes = [
     ["ApiExecutionRole", "AWS::IAM::Role"],

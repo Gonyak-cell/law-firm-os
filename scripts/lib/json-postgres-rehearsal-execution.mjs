@@ -6,6 +6,8 @@ import {
 export const JSON_POSTGRES_REHEARSAL_ACCOUNT = "770880870480";
 export const JSON_POSTGRES_REHEARSAL_REGION = "ap-northeast-2";
 export const JSON_POSTGRES_REHEARSAL_PROFILE = "matter-staging-admin";
+export const JSON_POSTGRES_REHEARSAL_READONLY_ROLE =
+  "matter-readonly-auditor";
 export const JSON_POSTGRES_REHEARSAL_STACK = "lawos-private-staging";
 export const JSON_POSTGRES_REHEARSAL_ARTIFACT_STACK =
   "lawos-private-rehearsal-artifact-store";
@@ -38,6 +40,7 @@ const W12_ADDITIONS = new Set([
   "RehearsalAdminExecutionRole",
   "RehearsalAdminFunction",
   "RehearsalAdminLogGroup",
+  "RehearsalReadonlyAuditInvokePermission",
   "RehearsalApplicationDatabaseSecret",
   "RehearsalDmsBucket",
   "RehearsalDmsBucketPolicy",

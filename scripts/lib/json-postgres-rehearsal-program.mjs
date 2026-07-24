@@ -12,12 +12,13 @@ import {
   JSON_POSTGRES_REHEARSAL_ACCOUNT,
   JSON_POSTGRES_REHEARSAL_PROGRAM_INPUT_BUCKET,
   JSON_POSTGRES_REHEARSAL_PROFILE,
+  JSON_POSTGRES_REHEARSAL_READONLY_ROLE,
 } from "./json-postgres-rehearsal-execution.mjs";
 
 export const JSON_POSTGRES_REHEARSAL_LOCATOR_SET_VERSION =
   "law-firm-os.json-postgres-rehearsal-locator-set.v1";
 export const JSON_POSTGRES_REHEARSAL_READONLY_PROFILE =
-  "matter-readonly-auditor";
+  JSON_POSTGRES_REHEARSAL_READONLY_ROLE;
 
 const SHA1 = /^[0-9a-f]{40}$/u;
 const SHA256 = /^[0-9a-f]{64}$/u;
