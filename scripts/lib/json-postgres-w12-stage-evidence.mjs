@@ -531,7 +531,6 @@ function deriveMigrationStage({ packet, artifacts, requirements }) {
     || committed.ledger_invariant_hash
       !== readback.ledger_invariant_hash
     || committed.dms_invariant_hash !== readback.dms_invariant_hash
-    || committed.dms_result_sha256 !== readback.dms_result_sha256
     || !equalExecutionCounts(
       committed,
       readback,

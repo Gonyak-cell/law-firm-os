@@ -682,7 +682,9 @@ test("W12 migration, replay, tenant, and reconciliation evidence reuse exact che
   });
   const committed = executionEvidence(packet, "commit");
   const replay = executionEvidence(packet, "resume");
-  const readback = executionEvidence(packet, "readback");
+  const readback = executionEvidence(packet, "readback", {
+    dms_result_sha256: "7".repeat(64),
+  });
   const reconciled = executionEvidence(packet, "reconcile");
   const migration = derive(packet, "w12-migration", [
     { kind: "execution-result", bytes: bytes(committed) },
@@ -690,6 +692,14 @@ test("W12 migration, replay, tenant, and reconciliation evidence reuse exact che
     { kind: "dms-migration-result", bytes: bytes(committed) },
   ]);
   assert.equal(migration.safe_counts.unexplained_variance_count, 0);
+  const driftedDmsInvariant = executionEvidence(packet, "readback", {
+    dms_invariant_hash: "9".repeat(64),
+  });
+  assert.throws(() => derive(packet, "w12-migration", [
+    { kind: "execution-result", bytes: bytes(committed) },
+    { kind: "database-readback", bytes: bytes(driftedDmsInvariant) },
+    { kind: "dms-migration-result", bytes: bytes(committed) },
+  ]), /complete readback evidence diverged/u);
   const replayEvidence = derive(packet, "w12-replay", [
     { kind: "first-execution-result", bytes: bytes(committed) },
     { kind: "replay-execution-result", bytes: bytes(replay) },
