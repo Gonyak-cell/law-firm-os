@@ -449,7 +449,8 @@
     "packages/*"
   ],
   "devDependencies": {
-    "playwright": "^1.60.0"
+    "playwright": "^1.60.0",
+    "postcss": "8.5.23"
   },
   "dependencies": {
     "pg": "^8.22.0",
