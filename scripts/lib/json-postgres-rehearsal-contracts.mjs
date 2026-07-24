@@ -213,7 +213,11 @@ export function validateJsonPostgresRehearsalBackupRetentionContract(
     fail("backup retention contract values are invalid");
   }
   exactDigest(value, "contract_sha256", "backup retention contract");
-  return Object.freeze({ valid: true, contract_sha256: value.contract_sha256 });
+  return Object.freeze({
+    valid: true,
+    contract_sha256: value.contract_sha256,
+    contract: Object.freeze({ ...value }),
+  });
 }
 
 export function createJsonPostgresRehearsalPerformanceBudget({

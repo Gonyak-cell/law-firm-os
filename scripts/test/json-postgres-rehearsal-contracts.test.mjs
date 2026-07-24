@@ -29,6 +29,8 @@ test("W12 preparation contracts close migration, provider, retention, performanc
     dmsObjectCount: 0,
   });
   const runbook = createJsonPostgresPostWriteRunbookContract();
+  const validatedBackup =
+    validateJsonPostgresRehearsalBackupRetentionContract(backup);
 
   assert.equal(
     validateJsonPostgresRehearsalMigrationCatalog(migration).valid,
@@ -38,10 +40,12 @@ test("W12 preparation contracts close migration, provider, retention, performanc
     validateJsonPostgresRehearsalDmsProviderContract(provider).valid,
     true,
   );
+  assert.equal(validatedBackup.valid, true);
   assert.equal(
-    validateJsonPostgresRehearsalBackupRetentionContract(backup).valid,
-    true,
+    validatedBackup.contract.dms_retain_until,
+    backup.dms_retain_until,
   );
+  assert.equal(Object.isFrozen(validatedBackup.contract), true);
   assert.equal(
     validateJsonPostgresRehearsalPerformanceBudget(performance).valid,
     true,
