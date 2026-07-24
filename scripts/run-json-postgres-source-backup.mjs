@@ -119,7 +119,7 @@ const transformResult = readPrivateProgramJson(option("--transform-result"), "so
 const retainUntil = option("--retain-until");
 const outputDir = createPrivateProgramOutputDirectory(option("--output-dir"));
 const plan = createJsonPostgresSourceBackupPlan({
-  packet,
+  packet: packetSource,
   inventory,
   locatorManifest,
   transformPlan,
@@ -170,7 +170,7 @@ if (versioning.Status !== "Enabled"
 process.env.AWS_PROFILE = PROFILE;
 const client = new S3Client({ region: REGION });
 const executed = await executeJsonPostgresSourceBackup({
-  packet,
+  packet: packetSource,
   inventory,
   locatorManifest,
   transformPlan,
