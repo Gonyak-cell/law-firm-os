@@ -223,6 +223,37 @@ export function assertJsonPostgresArtifactBucketState({
   });
 }
 
+export function assertJsonPostgresArtifactStoreBinding({
+  packet,
+  outputs,
+  sourceIsAncestor = false,
+  sourceTreeMatches = false,
+} = {}) {
+  const exactPacketBinding =
+    outputs?.SourceSha === packet?.source_sha
+    && outputs?.SourceTree === packet?.source_tree
+    && outputs?.ExecutionPacketSha256 === packet?.packet_sha256;
+  const currentSource = outputs?.SourceSha === packet?.source_sha;
+  if (outputs?.ArtifactBucketName !== packet?.target?.artifact_bucket_name
+    || !outputs?.ArtifactKmsKeyArn
+    || !SHA1.test(outputs?.SourceSha ?? "")
+    || !SHA1.test(outputs?.SourceTree ?? "")
+    || !SHA256.test(outputs?.ExecutionPacketSha256 ?? "")
+    || sourceTreeMatches !== true
+    || (currentSource && !exactPacketBinding)
+    || (!currentSource && sourceIsAncestor !== true)) {
+    fail("production artifact-store stack binding drifted");
+  }
+  return Object.freeze({
+    verdict: "PASS",
+    exact_packet_binding: exactPacketBinding,
+    reused_ancestor_store: !exactPacketBinding,
+    store_source_sha: outputs.SourceSha,
+    store_source_tree: outputs.SourceTree,
+    store_packet_sha256: outputs.ExecutionPacketSha256,
+  });
+}
+
 export function assertJsonPostgresProductionStack(stack, {
   packet,
   artifactVersion,
