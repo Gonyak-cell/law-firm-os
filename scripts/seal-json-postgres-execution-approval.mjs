@@ -14,6 +14,10 @@ import {
   validateJsonPostgresExecutionPacket,
 } from "../packages/persistence/src/postgres/execution-contract.js";
 import {
+  JSON_POSTGRES_SOURCE_READ_PACKET_VERSION,
+  validateJsonPostgresSourceReadPacket,
+} from "../packages/persistence/src/postgres/source-read-contract.js";
+import {
   createPrivateProgramOutputDirectory,
   readPrivateProgramBytes,
   readPrivateProgramJson,
@@ -47,10 +51,17 @@ const packet = readPrivateProgramJson(
   option("--packet"),
   "execution packet",
 );
-const validated = validateJsonPostgresExecutionPacket(packet, {
-  sourceSha,
-  sourceTree,
-});
+const sourceRead =
+  packet.schema_version === JSON_POSTGRES_SOURCE_READ_PACKET_VERSION;
+const validated = sourceRead
+  ? validateJsonPostgresSourceReadPacket(packet, {
+      sourceSha,
+      sourceTree,
+    })
+  : validateJsonPostgresExecutionPacket(packet, {
+      sourceSha,
+      sourceTree,
+    });
 const signedAt = new Date(option("--signed-at")).toISOString();
 const expiresAt = new Date(option("--expires-at")).toISOString();
 if (Date.parse(expiresAt) <= Date.parse(signedAt)) {
@@ -95,12 +106,14 @@ const registry = {
       }
     : key),
 };
-const dataScope = [
-  "approved-real-manifest",
-  `authority-manifest:${packet.bindings.authority_manifest_sha256}`,
-  `inventory:${packet.bindings.inventory_content_sha256}`,
-  `inventory-delta-policy:${packet.bindings.inventory_delta_policy_sha256}`,
-];
+const dataScope = sourceRead
+  ? packet.data_scope
+  : [
+      "approved-real-manifest",
+      `authority-manifest:${packet.bindings.authority_manifest_sha256}`,
+      `inventory:${packet.bindings.inventory_content_sha256}`,
+      `inventory-delta-policy:${packet.bindings.inventory_delta_policy_sha256}`,
+    ];
 const receipt = {
   schema_version: "law-firm-os.runtime-safety.approval.v1",
   approval_id: option("--approval-id"),
@@ -160,7 +173,7 @@ const summary = writePrivateProgramJson(
     approval_id: receipt.approval_id,
     source_sha: sourceSha,
     source_tree: sourceTree,
-    phase: packet.phase,
+    phase: sourceRead ? "source-read" : packet.phase,
     packet_sha256: validated.packet_sha256,
     approval_receipt_sha256: verified.receipt_sha256,
     approval_receipt_file_sha256: receiptOutput.sha256,
@@ -176,7 +189,7 @@ const summary = writePrivateProgramJson(
 process.stdout.write(`${JSON.stringify({
   verdict: "PASS",
   approval_id: receipt.approval_id,
-  phase: packet.phase,
+  phase: sourceRead ? "source-read" : packet.phase,
   source_sha: sourceSha,
   source_tree: sourceTree,
   packet_sha256: validated.packet_sha256,
