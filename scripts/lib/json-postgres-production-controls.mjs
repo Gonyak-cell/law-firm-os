@@ -222,8 +222,9 @@ export function createJsonPostgresSourceFreezeProbes({
     || immutableBackup.claims?.postgres_mutated !== false) {
     fail("immutable source backup is incomplete or drifted");
   }
-  const totalRecords = Number(finalDryRun.safe_counts?.accepted_record_count ?? -1)
-    + Number(finalDryRun.safe_counts?.account_count ?? -1);
+  const acceptedRecords = Number(
+    finalDryRun.safe_counts?.accepted_record_count ?? -1,
+  );
   if (finalDryRun.mode !== "dry-run"
     || finalDryRun.first_write_state !== "FIRST_PRODUCTION_WRITE_NOT_STARTED"
     || finalDryRun.claims?.production_write !== false
@@ -232,7 +233,7 @@ export function createJsonPostgresSourceFreezeProbes({
     || finalDryRun.safe_counts?.unexpected_rejection_count !== 0
     || finalDryRun.safe_counts?.tenant_negative_visible_count !== 0
     || finalDryRun.migration_manifest_sha256 !== packet.bindings.migration_manifest_sha256
-    || totalRecords !== performanceAcceptance.record_count
+    || acceptedRecords !== performanceAcceptance.record_count
     || acceptance.acceptance_sha256 !== packet.bindings.performance_acceptance_sha256) {
     fail("final production dry-run does not match W12 acceptance");
   }
@@ -302,7 +303,7 @@ export function createJsonPostgresSourceFreezeProbes({
         w12_capacity_acceptance_matched: true,
       },
       safeCounts: {
-        accepted_record_count: totalRecords,
+        accepted_record_count: acceptedRecords,
         unexpected_rejection_count: 0,
         monthly_cost_forecast_krw: monthly,
       },

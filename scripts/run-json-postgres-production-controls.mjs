@@ -12,6 +12,7 @@ import {
 import {
   JSON_POSTGRES_PRODUCTION_AUDIT_PROFILE,
   JSON_POSTGRES_PRODUCTION_CUTOVER_PROFILE,
+  JSON_POSTGRES_PRODUCTION_DEPLOY_PROFILE,
   JSON_POSTGRES_PRODUCTION_REGION,
   assertJsonPostgresProductionCaller,
 } from "./lib/json-postgres-production-execution.mjs";
@@ -164,9 +165,11 @@ const operation = required(option("--operation"), "--operation");
 if (!OPERATIONS.has(operation)) throw new Error("unsupported production control operation");
 const auditProfile = option("--audit-profile") ?? JSON_POSTGRES_PRODUCTION_AUDIT_PROFILE;
 const cutoverProfile = option("--cutover-profile") ?? JSON_POSTGRES_PRODUCTION_CUTOVER_PROFILE;
+const deployProfile = option("--deploy-profile") ?? JSON_POSTGRES_PRODUCTION_DEPLOY_PROFILE;
 if (auditProfile !== JSON_POSTGRES_PRODUCTION_AUDIT_PROFILE
-  || cutoverProfile !== JSON_POSTGRES_PRODUCTION_CUTOVER_PROFILE) {
-  throw new Error("production controls require the exact audit and cutover role profiles");
+  || cutoverProfile !== JSON_POSTGRES_PRODUCTION_CUTOVER_PROFILE
+  || deployProfile !== JSON_POSTGRES_PRODUCTION_DEPLOY_PROFILE) {
+  throw new Error("production controls require the exact deploy, audit, and cutover role profiles");
 }
 if (git("status", "--porcelain=v1", "--untracked-files=all")) {
   throw new Error("production controls require a clean exact-main worktree");
@@ -201,6 +204,7 @@ verifyJsonPostgresExecutionApproval({
   approvalReceiptPath: required(option("--approval"), "--approval"),
 });
 const operators = {
+  deploy: caller(deployProfile, JSON_POSTGRES_PRODUCTION_DEPLOY_PROFILE),
   auditor: caller(auditProfile, JSON_POSTGRES_PRODUCTION_AUDIT_PROFILE),
   cutover: caller(cutoverProfile, JSON_POSTGRES_PRODUCTION_CUTOVER_PROFILE),
 };
@@ -216,7 +220,7 @@ const monthlyCostForecastKrw = Number(
 let result;
 if (operation === "source-freeze") {
   const configurations = ["lawos-production-api", "lawos-production-admin"].map(
-    (functionName) => awsJson(auditProfile, [
+    (functionName) => awsJson(deployProfile, [
       "lambda", "get-function-configuration", "--function-name", functionName,
     ]),
   );
@@ -234,7 +238,7 @@ if (operation === "source-freeze") {
   );
   const immutable = immutableControlUpload({
     packet,
-    profile: cutoverProfile,
+    profile: deployProfile,
     path: controlFile.path,
     markerSha256: control.freeze_marker_sha256,
     kind: "source-freeze",
@@ -301,7 +305,7 @@ if (operation === "source-freeze") {
   );
   const immutable = immutableControlUpload({
     packet,
-    profile: cutoverProfile,
+    profile: deployProfile,
     path: boundaryFile.path,
     markerSha256: boundary.boundary_marker_sha256,
     kind: "first-write-boundary",

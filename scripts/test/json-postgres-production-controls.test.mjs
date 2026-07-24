@@ -92,7 +92,7 @@ const dryRun = {
   first_write_state: "FIRST_PRODUCTION_WRITE_NOT_STARTED",
   migration_manifest_sha256: packet.bindings.migration_manifest_sha256,
   safe_counts: {
-    accepted_record_count: 277,
+    accepted_record_count: 287,
     account_count: 10,
     unexpected_rejection_count: 0,
     tenant_negative_visible_count: 0,
@@ -247,7 +247,7 @@ test("source-freeze configuration rejects legacy paths and drifted W12 capacity"
     control,
     finalDryRun: {
       ...dryRun,
-      safe_counts: { ...dryRun.safe_counts, accepted_record_count: 276 },
+      safe_counts: { ...dryRun.safe_counts, accepted_record_count: 286 },
     },
     performanceAcceptance: acceptance,
     monthlyCostForecastKrw: 269100,
