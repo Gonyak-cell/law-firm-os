@@ -2,7 +2,9 @@ import { createHash } from "node:crypto";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  bootstrapJsonPostgresRehearsalDatabase,
   bootstrapJsonPostgresProductionDatabase,
+  ensureJsonPostgresRehearsalDatabase,
   executeJsonPostgresRelationalProjection,
   executeJsonPostgresProgram,
   executeJsonPostgresRetirementSmoke,
@@ -12,6 +14,7 @@ import {
 } from "../src/json-postgres-program-admin-lambda.js";
 import {
   JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
+  JSON_POSTGRES_REHEARSAL_BOOTSTRAP_ACTION,
   JSON_POSTGRES_JSON_RETIREMENT_ACTION,
   JSON_POSTGRES_PROGRAM_ADMIN_ACTION,
   JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
@@ -129,6 +132,114 @@ test("production bootstrap configures only approved tenants and returns no secre
   assert.equal(writtenSecret.configuration_state, "ready");
 });
 
+test("private rehearsal bootstrap creates only the isolated database and distinct app role", async () => {
+  const pools = [];
+  let writtenSecret;
+  const result = await bootstrapJsonPostgresRehearsalDatabase({
+    event: {
+      action: JSON_POSTGRES_REHEARSAL_BOOTSTRAP_ACTION,
+      mode: "preflight",
+    },
+    env: {
+      ...env(),
+      LAWOS_ADMIN_DATABASE_NAME: "lawos",
+      LAWOS_DATABASE_NAME: "lawos_rehearsal",
+    },
+    authorize: async () => ({
+      ...authorization(),
+      packet: {
+        ...packet(),
+        phase: "w12-real-data-rehearsal",
+      },
+    }),
+    claim: async () => ({
+      approval_receipt_sha256: "f".repeat(64),
+      claim_sha256: "3".repeat(64),
+    }),
+    resolveSecret: async ({ secretId }) => {
+      if (secretId === "lawos/master") {
+        return { username: "master", password: "master-value" };
+      }
+      if (secretId === "lawos/application") {
+        return {
+          username: "lawos_rehearsal_app",
+          password: "rehearsal-application-value",
+        };
+      }
+      return { tenant_context_secret: "tenant-context-value-at-least-32-bytes" };
+    },
+    putSecret: async (value) => {
+      writtenSecret = JSON.parse(value.secretString);
+    },
+    createPool: (options) => {
+      const pool = {
+        options,
+        async connect() {
+          return { async query() { return { rows: [], rowCount: 0 }; }, release() {} };
+        },
+        async end() {},
+      };
+      pools.push(pool);
+      return pool;
+    },
+    ensureDatabase: async (_client, input) => {
+      assert.equal(input.databaseName, "lawos_rehearsal");
+      return { database_name: "lawos_rehearsal", database_created: true };
+    },
+    runMigrations: async () => [{ id: "001", applied: true }],
+    verifyMigrations: async () => [],
+    configureRole: async (_client, input) => {
+      assert.deepEqual(input.approvedTenantIds, ["tenant_amic"]);
+      return {
+        role_name: "lawos_rehearsal_app",
+        grant_statement_count: 41,
+        tenant_authority_count: 1,
+        synthetic_wildcard_count: 0,
+      };
+    },
+  });
+  assert.equal(result.outcome, "PASS");
+  assert.equal(result.phase, "w12-real-data-rehearsal");
+  assert.equal(result.rehearsal_database_created_count, 1);
+  assert.equal(result.production_data_write_count, 0);
+  assert.equal(result.external_email_send_count, 0);
+  for (const key of [
+    "json_fallback_count",
+    "json_writer_count",
+    "dual_write_count",
+    "file_current_authority_count",
+    "offline_mutation_count",
+    "memory_fallback_count",
+  ]) {
+    assert.equal(result[key], 0);
+  }
+  assert.equal(pools.length, 2);
+  assert.match(pools[0].options.connectionString, /\/lawos$/u);
+  assert.match(pools[1].options.connectionString, /\/lawos_rehearsal$/u);
+  assert.equal(writtenSecret.dbname, "lawos_rehearsal");
+  assert.equal(writtenSecret.username, "lawos_rehearsal_app");
+  assert.equal(JSON.stringify(result).includes("rehearsal-application-value"), false);
+});
+
+test("private rehearsal database creation is exact-name and idempotent", async () => {
+  const queries = [];
+  const client = {
+    async query(statement, parameters = []) {
+      queries.push({ statement, parameters });
+      if (/FROM pg_database/u.test(statement)) return { rowCount: 0, rows: [] };
+      return { rowCount: 0, rows: [] };
+    },
+  };
+  const result = await ensureJsonPostgresRehearsalDatabase(client);
+  assert.equal(result.database_created, true);
+  assert.deepEqual(queries[0].parameters, ["lawos_rehearsal"]);
+  assert.equal(queries[1].statement, "CREATE DATABASE lawos_rehearsal");
+  await assert.rejects(
+    ensureJsonPostgresRehearsalDatabase(client, { databaseName: "lawos" }),
+    (error) => error?.code === "LAWOS_PROGRAM_DATABASE",
+  );
+});
+
 test("program executor preserves the approval boundary in preflight and writes only safe evidence", async () => {
   const execution = {
     outcome: "PASS",
@@ -179,6 +290,131 @@ test("program executor preserves the approval boundary in preflight and writes o
   assert.equal(result.outcome, "PASS");
   assert.equal(result.execution_evidence_sha256, "5".repeat(64));
   assert.equal(result.secret_material_returned, false);
+});
+
+test("W12 readback runs only the requested bounded rehearsal validation", async () => {
+  const approved = authorization();
+  approved.packet = {
+    ...approved.packet,
+    phase: "w12-real-data-rehearsal",
+  };
+  approved.approval.phase = "w12-real-data-rehearsal";
+  const writes = [];
+  let failureInput;
+  const result = await executeJsonPostgresProgram({
+    event: {
+      action: JSON_POSTGRES_PROGRAM_ADMIN_ACTION,
+      attempt_ref: "w12-failure-001",
+      stage: "w12-failure-injection",
+      rehearsal_validation_kind: "failure-injection",
+      mode: "readback",
+      negative_tenant_id: "tenant_negative",
+      inputs: {},
+    },
+    env: env(),
+    authorize: async () => approved,
+    claim: async () => ({
+      approval_receipt_sha256: "f".repeat(64),
+      claim_sha256: "3".repeat(64),
+    }),
+    loadInputs: async () => ({
+      authorityBundle: { summary: {}, record_type_catalog: {} },
+      inventory: {},
+      decisions: {},
+      recordTypeCatalog: {},
+      recordAuthority: {},
+      corpus: {
+        tenant_id: "tenant_amic",
+      },
+      sourceTransformResult: {},
+      dmsManifest: {},
+      predecessors: [],
+      checkpoint: null,
+      dmsCheckpoint: null,
+    }),
+    resolveSecret: async ({ secretId }) => secretId === "lawos/application"
+      ? {
+          configuration_state: "ready",
+          username: "lawos_rehearsal_app",
+          password: "application-value",
+          host: "rehearsal.example.rds.amazonaws.com",
+          port: 5432,
+          dbname: "lawos_rehearsal",
+        }
+      : { tenant_context_secret: "tenant-context-value-at-least-32-bytes" },
+    createPool: () => ({ async end() {} }),
+    verifyMigrations: async () => [],
+    createAuthorityBundle: async () => ({
+      summary: { authority_manifest_sha256: "7".repeat(64) },
+    }),
+    prepareDmsManifest: () => ({
+      manifest_sha256: approved.packet.bindings.dms_object_manifest_sha256,
+      authority_manifest_sha256: "7".repeat(64),
+    }),
+    createDmsStorage: () => ({}),
+    createDmsRuntime: () => ({}),
+    runExecution: async () => ({
+      outcome: "PASS",
+      phase: "w12-real-data-rehearsal",
+      mode: "readback",
+      source_sha: SOURCE_SHA,
+      source_tree: SOURCE_TREE,
+      packet_sha256: PACKET_SHA,
+      result_sha256: "8".repeat(64),
+      first_write_state: "NOT_PRODUCTION",
+      safe_counts: {
+        json_fallback_count: 0,
+        json_writer_count: 0,
+        dual_write_count: 0,
+        file_current_authority_count: 0,
+        offline_mutation_count: 0,
+        memory_fallback_count: 0,
+      },
+      claims: {
+        real_data_read: true,
+        real_data_mutated: false,
+        database_write: false,
+        production_contacted: false,
+        production_write: false,
+        authority_activated: false,
+        json_authority_disabled: false,
+        dms_bytes_in_evidence: false,
+        release: false,
+        go_live: false,
+        raw_value_returned: false,
+        pii_returned: false,
+        secret_material_returned: false,
+      },
+    }),
+    runFailureInjection: async (input) => {
+      failureInput = input;
+      return {
+        outcome: "PASS",
+        result_sha256: "a".repeat(64),
+        raw_value_returned: false,
+        pii_returned: false,
+        secret_material_returned: false,
+      };
+    },
+    writeEvidence: async ({ kind }) => {
+      writes.push(kind);
+      return {
+        sha256: kind === "execution-result"
+          ? "9".repeat(64)
+          : "b".repeat(64),
+        byte_size: 100,
+      };
+    },
+    s3Client: {},
+  });
+  assert.equal(failureInput.tenantId, "tenant_amic");
+  assert.equal(failureInput.negativeTenantId, "tenant_negative");
+  assert.deepEqual(writes, ["execution-result", "w12-failure-injection"]);
+  assert.equal(result.rehearsal_validation_kind, "failure-injection");
+  assert.equal(
+    result.rehearsal_validation_evidence_sha256,
+    "b".repeat(64),
+  );
 });
 
 test("deployed DMS source loader accepts only exact immutable KMS and Object Lock versions", async () => {
@@ -461,6 +697,139 @@ test("CUT-010 readback binds the database pool to the approved isolated DR endpo
   assert.match(poolOptions.connectionString, /lawos-production-dr-a123456789-1/u);
   assert.equal(executionInput.mode, "readback");
   assert.equal(result.execution_evidence_sha256, "9".repeat(64));
+});
+
+test("W12 restore readback binds the database pool to the approved isolated rehearsal endpoint", async () => {
+  const approved = authorization();
+  approved.packet = {
+    ...approved.packet,
+    phase: "w12-real-data-rehearsal",
+  };
+  approved.approval.phase = "w12-real-data-rehearsal";
+  let poolOptions;
+  const result = await executeJsonPostgresProgram({
+    event: {
+      action: JSON_POSTGRES_PROGRAM_ADMIN_ACTION,
+      stage: "w12-restore",
+      phase: "w12-real-data-rehearsal",
+      mode: "readback",
+      inputs: {},
+      rehearsal_restore: {},
+    },
+    env: env(),
+    authorize: async () => approved,
+    claim: async () => ({
+      approval_receipt_sha256: "f".repeat(64),
+      claim_sha256: "3".repeat(64),
+    }),
+    loadInputs: async () => ({
+      authorityBundle: { summary: {}, record_type_catalog: {} },
+      inventory: {},
+      decisions: {},
+      recordTypeCatalog: {},
+      corpus: {},
+      sourceTransformResult: {},
+      dmsManifest: {},
+      predecessors: [],
+      checkpoint: null,
+      dmsCheckpoint: null,
+    }),
+    loadRehearsalRestoreInputs: async () => ({
+      restoreTarget: {
+        endpoint_address:
+          "lawos-private-rehearsal-restore-a123456789-1.example.ap-northeast-2.rds.amazonaws.com",
+        endpoint_port: 5432,
+        database_name: "lawos_rehearsal",
+        migration_result_sha256: "5".repeat(64),
+      },
+      target: {
+        restore_target_sha256: "a".repeat(64),
+        rpo_ms: 1_000,
+        rto_ms: 2_000,
+      },
+      acceptance: { acceptance_sha256: "b".repeat(64) },
+    }),
+    resolveSecret: async ({ secretId }) => secretId === "lawos/application"
+      ? {
+          configuration_state: "ready",
+          username: "lawos_rehearsal_app",
+          password: "application-value",
+          host: "rehearsal.example.rds.amazonaws.com",
+          port: 5432,
+          dbname: "lawos_rehearsal",
+        }
+      : { tenant_context_secret: "tenant-context-value-at-least-32-bytes" },
+    createPool: (options) => {
+      poolOptions = options;
+      return { async end() {} };
+    },
+    verifyMigrations: async () => [],
+    createAuthorityBundle: async () => ({
+      summary: { authority_manifest_sha256: "7".repeat(64) },
+    }),
+    prepareDmsManifest: () => ({
+      manifest_sha256: approved.packet.bindings.dms_object_manifest_sha256,
+      authority_manifest_sha256: "7".repeat(64),
+    }),
+    createDmsStorage: () => ({}),
+    createDmsRuntime: () => ({}),
+    runExecution: async () => ({
+      outcome: "PASS",
+      phase: "w12-real-data-rehearsal",
+      mode: "readback",
+      source_sha: SOURCE_SHA,
+      source_tree: SOURCE_TREE,
+      packet_sha256: PACKET_SHA,
+      result_sha256: "8".repeat(64),
+      first_write_state: "NOT_PRODUCTION",
+      safe_counts: {
+        json_fallback_count: 0,
+        json_writer_count: 0,
+        dual_write_count: 0,
+        file_current_authority_count: 0,
+        offline_mutation_count: 0,
+        memory_fallback_count: 0,
+      },
+      claims: {
+        real_data_read: true,
+        real_data_mutated: false,
+        database_write: false,
+        production_contacted: false,
+        production_write: false,
+        authority_activated: false,
+        json_authority_disabled: false,
+        dms_bytes_in_evidence: false,
+        release: false,
+        go_live: false,
+        raw_value_returned: false,
+        pii_returned: false,
+        secret_material_returned: false,
+      },
+    }),
+    writeEvidence: async ({ kind }) => ({
+      sha256: kind === "execution-result"
+        ? "9".repeat(64)
+        : "b".repeat(64),
+      byte_size: 100,
+    }),
+    s3Client: {},
+  });
+  assert.match(
+    poolOptions.connectionString,
+    /lawos-private-rehearsal-restore-a123456789-1/u,
+  );
+  assert.equal(
+    poolOptions.applicationName,
+    "lawos-json-postgres-w12-restore-readback",
+  );
+  assert.equal(
+    result.rehearsal_restore_target_sha256,
+    "a".repeat(64),
+  );
+  assert.equal(
+    result.rehearsal_restore_evidence_sha256,
+    "b".repeat(64),
+  );
 });
 
 test("CUT-011 warm and cold smoke proves PostgreSQL write/read/audit/outbox without JSON paths", async () => {

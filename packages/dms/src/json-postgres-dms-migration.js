@@ -446,8 +446,10 @@ export async function runJsonPostgresDmsObjectMigration({
     objects: Object.freeze(rows),
     claims: Object.freeze({
       real_data_read: mode !== "validate-only",
-      provider_write: ["import", "resume"].includes(mode),
-      postgres_metadata_write: ["import", "resume"].includes(mode),
+      provider_write:
+        ["import", "resume"].includes(mode) && prepared.objects.length > 0,
+      postgres_metadata_write:
+        ["import", "resume"].includes(mode) && prepared.objects.length > 0,
       object_lock_required: true,
       raw_path_returned: false,
       document_bytes_returned: false,

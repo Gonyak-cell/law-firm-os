@@ -97,6 +97,12 @@ function validatePredecessors({ phase, mode, packet, sourceSha, sourceTree, pred
 function safeCountsFromMigration(result = {}) {
   return Object.freeze({
     ...result.safe_counts,
+    json_fallback_count: result.json_fallback_count,
+    json_writer_count: result.json_writer_count,
+    dual_write_count: result.dual_write_count,
+    file_current_authority_count: result.file_current_authority_count,
+    offline_mutation_count: result.offline_mutation_count,
+    memory_fallback_count: result.memory_fallback_count,
     directory_replayed_noop_count: result.directory?.replayed_noop_count ?? 0,
     directory_idempotency_count: result.directory?.idempotency_count ?? 0,
     directory_audit_count: result.directory?.audit_count ?? 0,
@@ -146,6 +152,23 @@ export async function runJsonPostgresExecutionMode({
       recordTypeCatalog: authorityBundle.record_type_catalog,
     });
     if (reconciliation.outcome !== "PASS") fail("LAWOS_JSON_POSTGRES_RECONCILIATION", "migration corpus reconciliation is blocked");
+    migration = await runJsonPostgresMigration({
+      pool,
+      corpus,
+      mode: "readback",
+      allowRealData: true,
+      recordTypeCatalog: authorityBundle.record_type_catalog,
+      negativeTenantId,
+      checkpoint,
+      onCheckpoint,
+    });
+    if (migration.source_manifest_sha256
+      !== authorityBundle.summary.migration_manifest_sha256) {
+      fail(
+        "LAWOS_JSON_POSTGRES_EXECUTION_SOURCE",
+        "migration corpus digest drifted during reconciliation",
+      );
+    }
   } else {
     const migrationMode = mode === "stage" ? "dry-run"
       : mode === "commit" ? "import"
@@ -167,14 +190,16 @@ export async function runJsonPostgresExecutionMode({
   if (mode !== "preflight") {
     if (typeof dmsRunner !== "function") fail("LAWOS_JSON_POSTGRES_DMS_REQUIRED", "the exact DMS object migration is required");
     dms = await dmsRunner({ mode });
+    const dmsWritesExpected = writes
+      && Number(dms?.safe_counts?.source_object_count ?? 0) > 0;
     if (dms?.outcome !== "PASS"
       || dms.manifest_sha256 !== packet.bindings?.dms_object_manifest_sha256
       || dms.authority_manifest_sha256 !== authorityBundle.summary.authority_manifest_sha256
       || dms.claims?.document_bytes_returned !== false
       || dms.claims?.pii_returned !== false
       || dms.claims?.secret_material_returned !== false
-      || (writes && (dms.claims?.provider_write !== true || dms.claims?.postgres_metadata_write !== true))
-      || (!writes && (dms.claims?.provider_write !== false || dms.claims?.postgres_metadata_write !== false))) {
+      || dms.claims?.provider_write !== dmsWritesExpected
+      || dms.claims?.postgres_metadata_write !== dmsWritesExpected) {
       fail("LAWOS_JSON_POSTGRES_DMS_RESULT", "DMS migration result is missing, unsafe, or binding-drifted");
     }
   }
@@ -182,11 +207,21 @@ export async function runJsonPostgresExecutionMode({
   const firstWriteState = production && writes ? "FIRST_PRODUCTION_WRITE_STARTED"
     : production ? "FIRST_PRODUCTION_WRITE_NOT_STARTED"
       : "NOT_PRODUCTION";
-  const baseSafeCounts = migration ? safeCountsFromMigration(migration)
+  const baseSafeCounts = migration ? {
+    ...safeCountsFromMigration(migration),
+    ...(reconciliation?.safe_counts ?? {}),
+  }
     : reconciliation ? reconciliation.safe_counts
       : authorityBundle.summary.safe_counts;
   const safeCounts = Object.freeze({
     ...baseSafeCounts,
+    json_fallback_count: baseSafeCounts.json_fallback_count ?? 0,
+    json_writer_count: baseSafeCounts.json_writer_count ?? 0,
+    dual_write_count: baseSafeCounts.dual_write_count ?? 0,
+    file_current_authority_count:
+      baseSafeCounts.file_current_authority_count ?? 0,
+    offline_mutation_count: baseSafeCounts.offline_mutation_count ?? 0,
+    memory_fallback_count: baseSafeCounts.memory_fallback_count ?? 0,
     ...Object.fromEntries(Object.entries(dms?.safe_counts ?? {}).map(([key, value]) => [`dms_${key}`, value])),
   });
   const combinedInvariantHash = migration || dms
@@ -215,6 +250,7 @@ export async function runJsonPostgresExecutionMode({
     dms_invariant_hash: dms?.invariant_hash ?? null,
     dms_result_sha256: dms?.result_sha256 ?? null,
     safe_counts: safeCounts,
+    performance: migration?.performance ?? null,
     rejected_reason_counts: migration?.rejected_reason_counts ?? {},
     rejected_rows: migration?.rejected_rows ?? [],
     claims: Object.freeze({

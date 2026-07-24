@@ -20,7 +20,12 @@ import {
 } from "../../../packages/hrx/src/postgres-projection-role.js";
 import { runHrxPostgresMigrations } from "../../../packages/hrx/src/postgres-migrations.js";
 import { projectHrxRelationalReadModel } from "../../../packages/hrx/src/relational-read-projection.js";
-import { configureLawosProductionApplicationRole } from "../../../packages/persistence/src/postgres/application-role.js";
+import {
+  configureLawosProductionApplicationRole,
+  configureLawosRehearsalApplicationRole,
+  LAWOS_PRODUCTION_APPLICATION_ROLE,
+  LAWOS_REHEARSAL_APPLICATION_ROLE,
+} from "../../../packages/persistence/src/postgres/application-role.js";
 import { createJsonPostgresAuthorityBundle } from "../../../packages/persistence/src/postgres/authority-bundle.js";
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
 import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
@@ -30,24 +35,36 @@ import {
   verifyPostgresMigrationState,
 } from "../../../packages/persistence/src/postgres/migration-runner.js";
 import { createPostgresPool } from "../../../packages/persistence/src/postgres/pool.js";
+import {
+  runJsonPostgresRehearsalFailureInjection,
+  runJsonPostgresRehearsalOwnerSampling,
+} from "../../../packages/persistence/src/postgres/rehearsal-runtime-validation.js";
 import { canonicalizeJson } from "../../../packages/runtime-auth/src/runtime-safety-approval-contract.js";
 import { resolveAwsJsonSecret } from "./aws-secret-reference.js";
 import {
   claimJsonPostgresProgramInvocation,
   JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
+  JSON_POSTGRES_REHEARSAL_BOOTSTRAP_ACTION,
   JSON_POSTGRES_PROGRAM_ADMIN_ACTION,
   JSON_POSTGRES_JSON_RETIREMENT_ACTION,
   JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
   loadJsonPostgresRetirementInputs,
   loadJsonPostgresMigrationInputs,
   loadJsonPostgresDrRecoveryInputs,
+  loadJsonPostgresRehearsalRestoreInputs,
   loadJsonPostgresProjectionInputs,
   loadJsonPostgresProgramAuthorization,
 } from "./json-postgres-program-inputs.js";
 import { postgresUrlFromSecret } from "./persistence-authority.js";
 import { validatePostgresOnlyRuntimeConfiguration } from "./postgres-only-runtime-configuration.js";
+import { programEvidenceRetainUntil } from "./program-evidence-retention.js";
 
 const SHA256 = /^[0-9a-f]{64}$/u;
+const REHEARSAL_DATABASE_NAME = "lawos_rehearsal";
+const REHEARSAL_VALIDATION_KINDS = new Set([
+  "failure-injection",
+  "owner-sampling",
+]);
 const SENSITIVE_KEY = /(^|_)(?:password|passwd|passphrase|secret|token|credential|authorization|api_key|private_key|recovery_key|document_bytes|raw_bytes|raw_payload)(_|$)/iu;
 const SAFE_NEGATIVE_BOOLEAN_KEYS = new Set([
   "raw_value_returned",
@@ -145,7 +162,11 @@ export async function loadApprovedDmsSourceObject({
   return bytes;
 }
 
-function structuredApplicationSecret({ current, env }) {
+function structuredApplicationSecret({ current, env, expectedUsername = null }) {
+  const username = requiredText(current.username, "application database username");
+  if (expectedUsername && username !== expectedUsername) {
+    fail("LAWOS_PROGRAM_DATABASE_ROLE", "application database username drifted");
+  }
   const value = {
     schema_version: "law-firm-os.postgres-application-secret.v1",
     configuration_state: "ready",
@@ -153,11 +174,202 @@ function structuredApplicationSecret({ current, env }) {
     host: requiredText(env.LAWOS_DATABASE_HOST, "LAWOS_DATABASE_HOST"),
     port: Number(requiredText(env.LAWOS_DATABASE_PORT, "LAWOS_DATABASE_PORT")),
     dbname: requiredText(env.LAWOS_DATABASE_NAME, "LAWOS_DATABASE_NAME"),
-    username: requiredText(current.username, "application database username"),
+    username,
     password: requiredText(current.password, "application database password"),
   };
   if (!Number.isSafeInteger(value.port) || value.port < 1 || value.port > 65535) throw new TypeError("LAWOS_DATABASE_PORT is invalid");
   return value;
+}
+
+export async function ensureJsonPostgresRehearsalDatabase(client, {
+  databaseName = REHEARSAL_DATABASE_NAME,
+} = {}) {
+  if (!client || typeof client.query !== "function") {
+    throw new TypeError("PostgreSQL client is required");
+  }
+  if (databaseName !== REHEARSAL_DATABASE_NAME) {
+    fail("LAWOS_PROGRAM_DATABASE", "private rehearsal database name drifted");
+  }
+  const existing = await client.query(
+    "SELECT datname FROM pg_database WHERE datname = $1",
+    [databaseName],
+  );
+  if (existing.rowCount > 1) {
+    fail("LAWOS_PROGRAM_DATABASE", "private rehearsal database catalog is inconsistent");
+  }
+  if (existing.rowCount === 0) {
+    await client.query(`CREATE DATABASE ${REHEARSAL_DATABASE_NAME}`);
+  }
+  return Object.freeze({
+    database_name: databaseName,
+    database_created: existing.rowCount === 0,
+  });
+}
+
+export async function bootstrapJsonPostgresRehearsalDatabase({
+  event,
+  env = process.env,
+  authorize = loadJsonPostgresProgramAuthorization,
+  claim = claimJsonPostgresProgramInvocation,
+  resolveSecret = resolveAwsJsonSecret,
+  putSecret,
+  createPool = createPostgresPool,
+  ensureDatabase = ensureJsonPostgresRehearsalDatabase,
+  runMigrations = runPostgresMigrations,
+  verifyMigrations = verifyPostgresMigrationState,
+  configureRole = configureLawosRehearsalApplicationRole,
+} = {}) {
+  if (event.action !== JSON_POSTGRES_REHEARSAL_BOOTSTRAP_ACTION
+    || event.mode !== "preflight") {
+    fail("LAWOS_PROGRAM_ACTION", "private rehearsal bootstrap requires its direct preflight action");
+  }
+  const authorization = await authorize({ event, env });
+  if (authorization.packet.phase !== "w12-real-data-rehearsal") {
+    fail("LAWOS_PROGRAM_PHASE", "private rehearsal bootstrap requires a W12 packet");
+  }
+  if (requiredText(env.LAWOS_DATABASE_NAME, "LAWOS_DATABASE_NAME")
+    !== REHEARSAL_DATABASE_NAME) {
+    fail("LAWOS_PROGRAM_DATABASE", "private rehearsal database target drifted");
+  }
+  const claimEvidence = await claim({ event, authorization, env });
+  const region = requiredText(env.AWS_REGION ?? env.AWS_DEFAULT_REGION, "AWS region");
+  const [master, application, tenantContext] = await Promise.all([
+    resolveSecret({
+      secretId: requiredText(
+        env.LAWOS_MASTER_DATABASE_SECRET_ID,
+        "LAWOS_MASTER_DATABASE_SECRET_ID",
+      ),
+      region,
+    }),
+    resolveSecret({
+      secretId: requiredText(
+        env.LAWOS_APPLICATION_DATABASE_SECRET_ID,
+        "LAWOS_APPLICATION_DATABASE_SECRET_ID",
+      ),
+      region,
+    }),
+    resolveSecret({
+      secretId: requiredText(
+        env.LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID,
+        "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID",
+      ),
+      region,
+    }),
+  ]);
+  const applicationSecret = structuredApplicationSecret({
+    current: application,
+    env,
+    expectedUsername: LAWOS_REHEARSAL_APPLICATION_ROLE,
+  });
+  const adminDatabaseName = requiredText(
+    env.LAWOS_ADMIN_DATABASE_NAME,
+    "LAWOS_ADMIN_DATABASE_NAME",
+  );
+  if (adminDatabaseName !== "lawos") {
+    fail("LAWOS_PROGRAM_DATABASE", "private rehearsal admin database drifted");
+  }
+  const masterSecret = (dbname) => JSON.stringify({
+    ...master,
+    host: env.LAWOS_DATABASE_HOST,
+    port: env.LAWOS_DATABASE_PORT,
+    dbname,
+  });
+  const tenantContextSecret = tenantContextValue(tenantContext);
+  const adminPool = createPool({
+    connectionString: postgresUrlFromSecret(masterSecret(adminDatabaseName)),
+    sslMode: "verify-full",
+    applicationName: "lawos-private-rehearsal-database-create",
+    connectionTimeoutMillis: 10_000,
+    statementTimeoutMillis: 120_000,
+    max: 1,
+  });
+  let database;
+  try {
+    const client = await adminPool.connect();
+    try {
+      database = await ensureDatabase(client, {
+        databaseName: REHEARSAL_DATABASE_NAME,
+      });
+    } finally {
+      client.release();
+    }
+  } finally {
+    await adminPool.end();
+  }
+  const rehearsalPool = createPool({
+    connectionString: postgresUrlFromSecret(masterSecret(REHEARSAL_DATABASE_NAME)),
+    sslMode: "verify-full",
+    applicationName: "lawos-private-rehearsal-admin-bootstrap",
+    connectionTimeoutMillis: 10_000,
+    statementTimeoutMillis: 120_000,
+    max: 1,
+  });
+  let migrations;
+  let role;
+  try {
+    migrations = await runMigrations(rehearsalPool, {
+      appliedBy: `lawos-w12:${authorization.exact.sourceSha}`,
+    });
+    const client = await rehearsalPool.connect();
+    try {
+      role = await configureRole(client, {
+        password: applicationSecret.password,
+        tenantContextSecret,
+        approvedTenantIds: authorization.packet.target.approved_tenant_ids,
+      });
+    } finally {
+      client.release();
+    }
+    await verifyMigrations(rehearsalPool);
+    const writer = putSecret ?? (async ({ secretId, secretString }) => {
+      const client = new SecretsManagerClient({ region });
+      try {
+        await client.send(new PutSecretValueCommand({
+          SecretId: secretId,
+          SecretString: secretString,
+        }));
+      } finally {
+        client.destroy();
+      }
+    });
+    await writer({
+      secretId: requiredText(
+        env.LAWOS_APPLICATION_DATABASE_SECRET_ID,
+        "LAWOS_APPLICATION_DATABASE_SECRET_ID",
+      ),
+      secretString: JSON.stringify(applicationSecret),
+    });
+  } finally {
+    await rehearsalPool.end();
+  }
+  return Object.freeze({
+    outcome: "PASS",
+    action: JSON_POSTGRES_REHEARSAL_BOOTSTRAP_ACTION,
+    phase: authorization.packet.phase,
+    source_sha: authorization.exact.sourceSha,
+    source_tree: authorization.exact.sourceTree,
+    packet_sha256: authorization.packet.packet_sha256,
+    rehearsal_database_created_count: database.database_created ? 1 : 0,
+    rehearsal_database_ready_count: 1,
+    migration_count: migrations.length,
+    migration_applied_count: migrations.filter((item) => item.applied).length,
+    application_role_grant_count: role.grant_statement_count,
+    approved_tenant_count: role.tenant_authority_count,
+    synthetic_wildcard_count: role.synthetic_wildcard_count,
+    json_fallback_count: 0,
+    json_writer_count: 0,
+    dual_write_count: 0,
+    file_current_authority_count: 0,
+    offline_mutation_count: 0,
+    memory_fallback_count: 0,
+    production_data_write_count: 0,
+    external_email_send_count: 0,
+    raw_value_returned: false,
+    pii_returned: false,
+    secret_material_returned: false,
+    approval_receipt_sha256: claimEvidence.approval_receipt_sha256,
+    authorization_claim_sha256: claimEvidence.claim_sha256,
+  });
 }
 
 function structuredProjectionSecret({ current, env }) {
@@ -213,7 +425,10 @@ export async function writeJsonPostgresProgramEvidence({
     ServerSideEncryption: "aws:kms",
     SSEKMSKeyId: requiredText(env.LAWOS_PROGRAM_INPUT_KMS_KEY_ARN, "LAWOS_PROGRAM_INPUT_KMS_KEY_ARN"),
     ObjectLockMode: "COMPLIANCE",
-    ObjectLockRetainUntilDate: new Date(Math.max(Date.parse(authorization.approval.expires_at), now) + 30 * 24 * 60 * 60 * 1000),
+    ObjectLockRetainUntilDate: programEvidenceRetainUntil({
+      approvalExpiresAt: authorization.approval.expires_at,
+      now,
+    }),
   }));
   return Object.freeze({ sha256, byte_size: body.byteLength });
 }
@@ -242,7 +457,11 @@ export async function bootstrapJsonPostgresProductionDatabase({
     resolveSecret({ secretId: requiredText(env.LAWOS_APPLICATION_DATABASE_SECRET_ID, "LAWOS_APPLICATION_DATABASE_SECRET_ID"), region }),
     resolveSecret({ secretId: requiredText(env.LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID, "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID"), region }),
   ]);
-  const applicationSecret = structuredApplicationSecret({ current: application, env });
+  const applicationSecret = structuredApplicationSecret({
+    current: application,
+    env,
+    expectedUsername: LAWOS_PRODUCTION_APPLICATION_ROLE,
+  });
   const masterConnectionString = postgresUrlFromSecret(JSON.stringify({
     ...master,
     host: env.LAWOS_DATABASE_HOST,
@@ -322,6 +541,8 @@ export async function executeJsonPostgresProgram({
   claim = claimJsonPostgresProgramInvocation,
   loadInputs = loadJsonPostgresMigrationInputs,
   loadDrInputs = loadJsonPostgresDrRecoveryInputs,
+  loadRehearsalRestoreInputs =
+    loadJsonPostgresRehearsalRestoreInputs,
   resolveSecret = resolveAwsJsonSecret,
   createPool = createPostgresPool,
   createAuthorityBundle = createJsonPostgresAuthorityBundle,
@@ -330,18 +551,47 @@ export async function executeJsonPostgresProgram({
   createDmsRuntime = createPostgresDmsUploadRuntime,
   runDms = runJsonPostgresDmsObjectMigration,
   runExecution = runJsonPostgresExecutionMode,
+  runFailureInjection = runJsonPostgresRehearsalFailureInjection,
+  runOwnerSampling = runJsonPostgresRehearsalOwnerSampling,
   verifyMigrations = verifyPostgresMigrationState,
   writeEvidence = writeJsonPostgresProgramEvidence,
   s3Client = new S3Client({ region: env.AWS_REGION ?? env.AWS_DEFAULT_REGION }),
 } = {}) {
   if (event.action !== JSON_POSTGRES_PROGRAM_ADMIN_ACTION) fail("LAWOS_PROGRAM_ACTION", "program execution action is invalid");
   const authorization = await authorize({ event, env, s3Client });
+  const rehearsalValidationKind = event.rehearsal_validation_kind ?? null;
+  if (rehearsalValidationKind != null
+    && (!REHEARSAL_VALIDATION_KINDS.has(rehearsalValidationKind)
+      || authorization.packet.phase !== "w12-real-data-rehearsal"
+      || event.stage !== `w12-${rehearsalValidationKind}`
+      || event.mode !== "readback")) {
+    fail(
+      "LAWOS_PROGRAM_REHEARSAL_VALIDATION_SCOPE",
+      "rehearsal validation is limited to an exact W12 readback stage",
+    );
+  }
   const drRecoveryRequested = event.dr_recovery != null;
+  const rehearsalRestoreRequested = event.rehearsal_restore != null;
+  if (drRecoveryRequested && rehearsalRestoreRequested) {
+    fail(
+      "LAWOS_PROGRAM_DR_SCOPE",
+      "one isolated restore target may be selected per invocation",
+    );
+  }
   if (drRecoveryRequested
     && (authorization.packet.phase !== "w13-production-cutover"
       || event.stage !== "cut-010"
       || !["readback", "reconcile"].includes(event.mode))) {
     fail("LAWOS_PROGRAM_DR_SCOPE", "DR recovery is limited to CUT-010 readback and reconciliation");
+  }
+  if (rehearsalRestoreRequested
+    && (authorization.packet.phase !== "w12-real-data-rehearsal"
+      || event.stage !== "w12-restore"
+      || !["readback", "reconcile"].includes(event.mode))) {
+    fail(
+      "LAWOS_PROGRAM_DR_SCOPE",
+      "W12 restore is limited to rehearsal readback and reconciliation",
+    );
   }
   const claimEvidence = await claim({ event, authorization, env, client: s3Client });
   const inputs = await loadInputs({
@@ -355,6 +605,14 @@ export async function executeJsonPostgresProgram({
   const drRecovery = drRecoveryRequested
     ? await loadDrInputs({
       inputLocators: event.dr_recovery,
+      packet: authorization.packet,
+      env,
+      s3Client,
+    })
+    : null;
+  const rehearsalRestore = rehearsalRestoreRequested
+    ? await loadRehearsalRestoreInputs({
+      inputLocators: event.rehearsal_restore,
       packet: authorization.packet,
       env,
       s3Client,
@@ -396,20 +654,25 @@ export async function executeJsonPostgresProgram({
       resolveSecret({ secretId: requiredText(env.LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID, "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID"), region }),
     ]);
     if (application.configuration_state !== "ready") fail("LAWOS_PROGRAM_DATABASE", "application database secret is not bootstrapped");
-    const databaseConnection = drRecovery
+    const isolatedRestore = drRecovery ?? rehearsalRestore;
+    const isolatedRestoreTarget = drRecovery?.drTarget
+      ?? rehearsalRestore?.restoreTarget;
+    const databaseConnection = isolatedRestore
       ? {
         ...application,
-        host: drRecovery.drTarget.endpoint_address,
-        port: drRecovery.drTarget.endpoint_port,
-        dbname: drRecovery.drTarget.database_name,
+        host: isolatedRestoreTarget.endpoint_address,
+        port: isolatedRestoreTarget.endpoint_port,
+        dbname: isolatedRestoreTarget.database_name,
       }
       : application;
     pool = createPool({
       connectionString: postgresUrlFromSecret(JSON.stringify(databaseConnection)),
       sslMode: "verify-full",
       tenantContextSecret: tenantContextValue(tenantContext),
-      applicationName: drRecovery
-        ? `lawos-json-postgres-dr-${event.mode}`
+      applicationName: rehearsalRestore
+        ? `lawos-json-postgres-w12-restore-${event.mode}`
+        : drRecovery
+          ? `lawos-json-postgres-dr-${event.mode}`
         : `lawos-json-postgres-${event.mode}`,
       connectionTimeoutMillis: 10_000,
       statementTimeoutMillis: 120_000,
@@ -457,6 +720,7 @@ export async function executeJsonPostgresProgram({
     },
   });
   let result;
+  let rehearsalValidation = null;
   try {
     result = await runExecution({
       packet: authorization.packet,
@@ -481,6 +745,20 @@ export async function executeJsonPostgresProgram({
       predecessors: inputs.predecessors,
       dmsRunner,
     });
+    if (rehearsalValidationKind === "failure-injection") {
+      rehearsalValidation = await runFailureInjection({
+        pool,
+        tenantId: inputs.corpus.tenant_id,
+        negativeTenantId: event.negative_tenant_id,
+        probeRef: event.attempt_ref,
+      });
+    } else if (rehearsalValidationKind === "owner-sampling") {
+      rehearsalValidation = await runOwnerSampling({
+        pool,
+        corpus: inputs.corpus,
+        packetSha256: authorization.packet.packet_sha256,
+      });
+    }
   } finally {
     await pool?.end();
   }
@@ -519,6 +797,47 @@ export async function executeJsonPostgresProgram({
       client: s3Client,
     })
     : null;
+  const rehearsalRestoreEvidence = rehearsalRestore
+    ? await writeEvidence({
+      kind: `w12-restore-${event.mode}`,
+      value: {
+        schema_version:
+          "law-firm-os.json-postgres-rehearsal-restore-readback-result.v1",
+        outcome: result.outcome,
+        mode: result.mode,
+        source_sha: result.source_sha,
+        source_tree: result.source_tree,
+        packet_sha256: result.packet_sha256,
+        restore_target_sha256:
+          rehearsalRestore.target.restore_target_sha256,
+        performance_acceptance_sha256:
+          rehearsalRestore.acceptance.acceptance_sha256,
+        migration_result_sha256:
+          rehearsalRestore.restoreTarget.migration_result_sha256,
+        rpo_ms: rehearsalRestore.target.rpo_ms,
+        rto_ms: rehearsalRestore.target.rto_ms,
+        rpo_target_met: true,
+        rto_target_met: true,
+        raw_value_returned: false,
+        pii_returned: false,
+        secret_material_returned: false,
+      },
+      event,
+      authorization,
+      env,
+      client: s3Client,
+    })
+    : null;
+  const rehearsalValidationEvidence = rehearsalValidation
+    ? await writeEvidence({
+      kind: `w12-${rehearsalValidationKind}`,
+      value: rehearsalValidation,
+      event,
+      authorization,
+      env,
+      client: s3Client,
+    })
+    : null;
   return Object.freeze({
     outcome: result.outcome,
     action: JSON_POSTGRES_PROGRAM_ADMIN_ACTION,
@@ -535,8 +854,24 @@ export async function executeJsonPostgresProgram({
       rpo_ms: drRecovery.target.rpo_ms,
       rto_ms: drRecovery.target.rto_ms,
     } : {}),
+    ...(rehearsalRestore ? {
+      rehearsal_restore_target_sha256:
+        rehearsalRestore.target.restore_target_sha256,
+      rehearsal_restore_evidence_sha256:
+        rehearsalRestoreEvidence.sha256,
+      rpo_ms: rehearsalRestore.target.rpo_ms,
+      rto_ms: rehearsalRestore.target.rto_ms,
+    } : {}),
+    ...(rehearsalValidation ? {
+      rehearsal_validation_kind: rehearsalValidationKind,
+      rehearsal_validation_result_sha256:
+        rehearsalValidation.result_sha256,
+      rehearsal_validation_evidence_sha256:
+        rehearsalValidationEvidence.sha256,
+    } : {}),
     first_write_state: result.first_write_state,
     safe_counts: result.safe_counts,
+    performance: result.performance,
     claims: result.claims,
     approval_receipt_sha256: claimEvidence.approval_receipt_sha256,
     authorization_claim_sha256: claimEvidence.claim_sha256,
@@ -964,6 +1299,9 @@ export async function executeJsonPostgresRetirementSmoke({
 
 export async function handler(event = {}) {
   try {
+    if (event.action === JSON_POSTGRES_REHEARSAL_BOOTSTRAP_ACTION) {
+      return await bootstrapJsonPostgresRehearsalDatabase({ event });
+    }
     if (event.action === JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION) {
       return await bootstrapJsonPostgresProductionDatabase({ event });
     }
@@ -982,6 +1320,7 @@ export async function handler(event = {}) {
       outcome: "BLOCKED",
       action: [
         JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
+        JSON_POSTGRES_REHEARSAL_BOOTSTRAP_ACTION,
         JSON_POSTGRES_PROGRAM_ADMIN_ACTION,
         JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
         JSON_POSTGRES_JSON_RETIREMENT_ACTION,

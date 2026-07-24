@@ -14,6 +14,9 @@ import {
   createJsonPostgresDrTarget,
 } from "../../../packages/persistence/src/postgres/dr-recovery-contract.js";
 import {
+  createJsonPostgresRehearsalRestoreTarget,
+} from "../../../packages/persistence/src/postgres/rehearsal-restore-contract.js";
+import {
   createJsonPostgresPerformanceAcceptance,
 } from "../../../packages/persistence/src/postgres/performance-acceptance.js";
 import {
@@ -31,6 +34,7 @@ import {
   loadJsonPostgresMigrationInputs,
   loadJsonPostgresProjectionInputs,
   loadJsonPostgresProgramAuthorization,
+  loadJsonPostgresRehearsalRestoreInputs,
   loadJsonPostgresRetirementInputs,
 } from "../src/json-postgres-program-inputs.js";
 
@@ -417,6 +421,164 @@ test("CUT-010 inputs bind the isolated DR target and performance acceptance to t
       inputLocators: {
         dr_target: { key: "dr-target" },
         performance_acceptance: { key: "performance" },
+      },
+      packet: {
+        ...exactPacket,
+        bindings: {
+          ...exactPacket.bindings,
+          performance_acceptance_sha256: "f".repeat(64),
+        },
+      },
+      env: env(fixture.registrySha256),
+      s3Client: {},
+      readJson: async ({ locator }) => objects.get(locator.key),
+    }),
+    (error) => error?.code === "LAWOS_PROGRAM_DR_BINDING",
+  );
+});
+
+test("W12 restore inputs bind the isolated target and performance acceptance to the exact packet", async () => {
+  const fixture = authorizationFixture();
+  const executionResultSha256 = [
+    "1".repeat(64),
+    "2".repeat(64),
+  ];
+  const performance = createJsonPostgresPerformanceAcceptance({
+    record_count: 287,
+    tenant_count: 1,
+    batch_size: 287,
+    pool_max: 2,
+    statement_timeout_ms: 120_000,
+    connection_timeout_ms: 10_000,
+    migration_p95_ms: 5_000,
+    outbox_lag_p95_ms: 0,
+    dms_throughput_min_bytes_per_second: 0,
+    rpo_target_ms: 60_000,
+    rto_target_ms: 900_000,
+    rehearsal_result_sha256: createHash("sha256")
+      .update(canonicalizeJson(executionResultSha256))
+      .digest("hex"),
+  });
+  const performanceBudgetSha256 = "4".repeat(64);
+  const exactPacket = {
+    ...fixture.value,
+    phase: "w12-real-data-rehearsal",
+    packet_sha256: fixture.packetSha256,
+    bindings: {
+      ...fixture.value.bindings,
+      performance_acceptance_sha256: performanceBudgetSha256,
+    },
+  };
+  const capacityMaterial = {
+    schema_version:
+      "law-firm-os.json-postgres-rehearsal-capacity-result.v1",
+    outcome: "PASS",
+    source_sha: SOURCE_SHA,
+    source_tree: SOURCE_TREE,
+    packet_sha256: fixture.packetSha256,
+    performance_budget_sha256: performanceBudgetSha256,
+    execution_result_sha256: executionResultSha256,
+    acceptance: performance,
+    measured: {
+      measurement_count: 2,
+      records_per_tenant: 287,
+      largest_domain_batch_size: 287,
+      materialized_payload_bytes: 10_000,
+      migration_p50_ms: 4_000,
+      migration_p95_ms: 5_000,
+      migration_p99_ms: 5_000,
+      retry_count: 0,
+      conflict_count: 0,
+      pool_total_count: 2,
+      pool_waiting_count: 0,
+      outbox_lag_p95_ms: 0,
+      dms_object_count: 0,
+      dms_throughput_applicable: false,
+    },
+    checks: {
+      records_per_tenant_measured: true,
+      batch_sizes_measured: true,
+      latency_percentiles_measured: true,
+      retry_conflict_rate_measured: true,
+      connection_pool_saturation_measured: true,
+      outbox_lag_measured: true,
+      production_limits_derived: true,
+      capacity_acceptance_passed: true,
+    },
+    safe_counts: {
+      capacity_acceptance_failure_count: 0,
+      dms_unmeasured_object_count: 0,
+    },
+    claims: {
+      production_limit_derived_from_w12: true,
+      invented_dms_throughput: false,
+      raw_value_returned: false,
+      pii_returned: false,
+      secret_material_returned: false,
+    },
+  };
+  const capacityResult = {
+    ...capacityMaterial,
+    result_sha256: createHash("sha256")
+      .update(canonicalizeJson(capacityMaterial))
+      .digest("hex"),
+  };
+  const restoreTarget = createJsonPostgresRehearsalRestoreTarget({
+    source_sha: SOURCE_SHA,
+    source_tree: SOURCE_TREE,
+    packet_sha256: fixture.packetSha256,
+    migration_result_sha256: "6".repeat(64),
+    source_database_identifier: "lawos-private-staging-postgres",
+    restore_database_identifier:
+      `lawos-private-rehearsal-restore-${SOURCE_SHA.slice(0, 10)}-001`,
+    endpoint_address:
+      `lawos-private-rehearsal-restore-${SOURCE_SHA.slice(0, 10)}-001.cluster.ap-northeast-2.rds.amazonaws.com`,
+    endpoint_port: 5432,
+    database_name: "lawos_rehearsal",
+    aws_account: ACCOUNT,
+    aws_region: REGION,
+    source_latest_restorable_at: "2026-07-24T00:00:00.000Z",
+    restore_started_at: "2026-07-24T00:00:30.000Z",
+    restore_available_at: "2026-07-24T00:05:00.000Z",
+    rpo_ms: 30_000,
+    rto_ms: 270_000,
+    vpc_sha256: "7".repeat(64),
+    subnet_group_sha256: "8".repeat(64),
+    security_group_set_sha256: "9".repeat(64),
+    kms_key_arn_sha256: "a".repeat(64),
+    isolated: true,
+    public_access: false,
+    deletion_protection: false,
+  }, { performanceAcceptance: performance });
+  const objects = new Map([
+    ["restore-target", restoreTarget],
+    ["performance", performance],
+    ["capacity", capacityResult],
+  ]);
+  const result = await loadJsonPostgresRehearsalRestoreInputs({
+    inputLocators: {
+      restore_target: { key: "restore-target" },
+      performance_acceptance: { key: "performance" },
+      capacity_result: { key: "capacity" },
+    },
+    packet: exactPacket,
+    env: env(fixture.registrySha256),
+    s3Client: {},
+    readJson: async ({ locator }) => objects.get(locator.key),
+  });
+  assert.equal(
+    result.target.restore_target_sha256,
+    restoreTarget.restore_target_sha256,
+  );
+  assert.equal(result.target.rpo_ms, 30_000);
+  assert.equal(result.target.rto_ms, 270_000);
+
+  await assert.rejects(
+    loadJsonPostgresRehearsalRestoreInputs({
+      inputLocators: {
+        restore_target: { key: "restore-target" },
+        performance_acceptance: { key: "performance" },
+        capacity_result: { key: "capacity" },
       },
       packet: {
         ...exactPacket,

@@ -1,3 +1,4 @@
+import { performance } from "node:perf_hooks";
 import {
   DOMAIN_IDS,
   compareDomainSnapshots,
@@ -41,6 +42,19 @@ const DOMAIN_ORDER = new Map([
 ].map((domainId, index) => [domainId, index]));
 const FORBIDDEN_SOURCE_KEY = /(^|_)(password|password_hash|secret|token|credential|authorization|api_key|document_bytes|raw_bytes|raw_payload)(_|$)/iu;
 const SAFE_CREDENTIAL_METADATA = new Set(["credential_provider", "credential_status", "credential_rev"]);
+
+function elapsedMilliseconds(startedAt) {
+  return Math.max(1, Math.ceil(performance.now() - startedAt));
+}
+
+function percentile(values, fraction) {
+  if (!values.length) return 0;
+  const sorted = [...values].sort((left, right) => left - right);
+  return sorted[Math.min(
+    sorted.length - 1,
+    Math.max(0, Math.ceil(sorted.length * fraction) - 1),
+  )];
+}
 
 function requiredText(value, name) {
   const text = String(value ?? "").trim();
@@ -100,7 +114,7 @@ function sourceMaterial(corpus = {}) {
   };
 }
 
-function directoryProjection(user = {}) {
+export function jsonPostgresDirectoryProjection(user = {}) {
   const membership = user.tenant_memberships?.[0] ?? user.membership ?? {};
   return {
     user_id: user.user_id,
@@ -132,7 +146,7 @@ function directoryProjection(user = {}) {
 }
 
 function directoryProjectionList(users) {
-  return users.map(directoryProjection).sort((left, right) => left.user_id.localeCompare(right.user_id));
+  return users.map(jsonPostgresDirectoryProjection).sort((left, right) => left.user_id.localeCompare(right.user_id));
 }
 
 export function prepareJsonPostgresMigrationCorpus(corpus = {}, { allowRealData = false } = {}) {
@@ -399,6 +413,8 @@ export async function runJsonPostgresMigration({
   checkpoint = null,
   onCheckpoint = null,
 } = {}) {
+  const migrationStartedAt = performance.now();
+  const operationDurationsMs = [];
   if (!JSON_POSTGRES_MIGRATION_MODES.includes(mode)) throw new TypeError("unsupported JSON PostgreSQL migration mode");
   const realData = corpus?.data_scope === "approved-real-manifest";
   if (realData && allowRealData && !recordTypeCatalog) {
@@ -436,6 +452,7 @@ export async function runJsonPostgresMigration({
   let directoryReplayedCount = 0;
   let directoryAppliedCount = 0;
   if (writes && !completedSteps.includes("identity")) {
+    const identityStartedAt = performance.now();
     for (const account of prepared.accounts) {
       const requestHash = hashDomainValue({
         source_manifest_sha256: prepared.manifest_sha256,
@@ -463,10 +480,12 @@ export async function runJsonPostgresMigration({
     }
     completedSteps.push("identity");
     await onCheckpoint?.(checkpointFor(prepared, completedSteps));
+    operationDurationsMs.push(elapsedMilliseconds(identityStartedAt));
   }
 
   const domainResults = [];
   for (const snapshot of prepared.snapshots) {
+    const domainStartedAt = performance.now();
     const step = `domain:${snapshot.domain_id}`;
     let importResult = null;
     let replayResult = null;
@@ -524,6 +543,7 @@ export async function runJsonPostgresMigration({
       readback_equal: comparison?.equal ?? null,
       initial_import_applied: importResult ? importResult.replayed !== true : false,
     }));
+    operationDurationsMs.push(elapsedMilliseconds(domainStartedAt));
   }
 
   let directoryReadbackHash = null;
@@ -533,6 +553,7 @@ export async function runJsonPostgresMigration({
   let directoryIdempotencyCount = null;
   let directoryOutboxCount = null;
   let directoryAuditCount = null;
+  let outboxLagP95Ms = 0;
   if (reads) {
     const [targetUsers, idempotencyEntries, outboxEvents, auditEvents] = await Promise.all([
       identityLedger.listDirectoryUsers({ tenant_id: prepared.tenant_id }),
@@ -552,6 +573,15 @@ export async function runJsonPostgresMigration({
     directoryAuditCount = auditEvents.filter((event) => (
       event.action === "auth.directory.user.provisioned" && migratedUserIds.has(event.object_id)
     )).length;
+    const measuredAt = Date.now();
+    const outboxLagSamples = outboxEvents
+      .filter((event) => migratedUserIds.has(event.aggregate_id))
+      .map((event) => Math.max(
+        0,
+        measuredAt - Date.parse(event.created_at ?? measuredAt),
+      ))
+      .filter(Number.isSafeInteger);
+    outboxLagP95Ms = percentile(outboxLagSamples, 0.95);
     if (negativeTenantId) {
       for (const account of prepared.accounts) {
         if (await identityLedger.findDirectoryUserByUserId({ tenant_id: negativeTenantId, user_id: account.user.user_id })) {
@@ -570,6 +600,8 @@ export async function runJsonPostgresMigration({
     && directoryTenantNegativeVisibleCount === 0
     && domainResults.every((item) => item.readback_equal === true && item.orphan_count === 0 && item.tenant_negative_visible_count === 0)
   );
+  const elapsedMs = elapsedMilliseconds(migrationStartedAt);
+  if (operationDurationsMs.length === 0) operationDurationsMs.push(elapsedMs);
   return Object.freeze({
     schema_version: "law-firm-os.json-postgres-migration-result.v1",
     outcome: allReadbackEqual ? "PASS" : "BLOCKED",
@@ -606,6 +638,31 @@ export async function runJsonPostgresMigration({
     }),
     rejected_reason_counts: reasonCounts(prepared.rejected),
     rejected_rows: prepared.rejected,
+    performance: Object.freeze({
+      measurement_count: operationDurationsMs.length,
+      elapsed_ms: elapsedMs,
+      operation_p50_ms: percentile(operationDurationsMs, 0.5),
+      operation_p95_ms: percentile(operationDurationsMs, 0.95),
+      operation_p99_ms: percentile(operationDurationsMs, 0.99),
+      records_per_tenant: prepared.snapshots.reduce(
+        (total, snapshot) => total + snapshot.records.length,
+        prepared.accounts.length,
+      ),
+      largest_domain_batch_size: Math.max(
+        0,
+        ...prepared.snapshots.map((snapshot) => snapshot.records.length),
+      ),
+      materialized_payload_bytes: Buffer.byteLength(JSON.stringify({
+        accounts: prepared.accounts,
+        domains: prepared.domains,
+      })),
+      retry_count: 0,
+      conflict_count: 0,
+      pool_total_count: Number(pool?.totalCount ?? 0),
+      pool_idle_count: Number(pool?.idleCount ?? 0),
+      pool_waiting_count: Number(pool?.waitingCount ?? 0),
+      outbox_lag_p95_ms: outboxLagP95Ms,
+    }),
     checkpoint: checkpointFor(prepared, completedSteps),
     invariant_hash: hashDomainValue({
       source_manifest_sha256: prepared.manifest_sha256,
@@ -615,6 +672,9 @@ export async function runJsonPostgresMigration({
     json_fallback_count: 0,
     json_writer_count: 0,
     dual_write_count: 0,
+    file_current_authority_count: 0,
+    offline_mutation_count: 0,
+    memory_fallback_count: 0,
     raw_value_returned: false,
     secret_material_returned: false,
     production_ready_claim: false,

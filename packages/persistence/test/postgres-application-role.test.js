@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT,
+  LAWOS_REHEARSAL_APPLICATION_ROLE,
   configureLawosApplicationRole,
   configureLawosProductionApplicationRole,
+  configureLawosRehearsalApplicationRole,
 } from "../src/postgres/application-role.js";
 import { createPostgresPool } from "../src/postgres/pool.js";
 import { runPostgresMigrations } from "../src/postgres/migration-runner.js";
@@ -113,6 +115,37 @@ test("production application role accepts only the exact approved real-tenant se
     .filter(({ statement }) => /INSERT INTO lawos_security\.tenant_context_authorities/u.test(statement))
     .map(({ parameters }) => parameters[1]);
   assert.deepEqual(insertedTenantIds, ["tenant_amic", "tenant_client_001"]);
+});
+
+test("private rehearsal uses a distinct least-privilege role without changing lawos_app", async () => {
+  const queries = [];
+  const client = {
+    async query(statement, parameters = []) {
+      queries.push({ statement, parameters });
+      if (/SELECT rolcanlogin, rolsuper/u.test(statement)) {
+        assert.deepEqual(parameters, [LAWOS_REHEARSAL_APPLICATION_ROLE]);
+        return { rowCount: 0, rows: [] };
+      }
+      return { rowCount: 0, rows: [] };
+    },
+  };
+  const result = await configureLawosRehearsalApplicationRole(client, {
+    password: "test-private-rehearsal-role-password",
+    tenantContextSecret: "test-private-rehearsal-tenant-context-secret-material",
+    approvedTenantIds: ["tenant_amic"],
+  });
+  assert.equal(result.role_name, LAWOS_REHEARSAL_APPLICATION_ROLE);
+  assert.equal(result.authority_scope, "approved-private-rehearsal-tenants");
+  assert.equal(result.tenant_authority_count, 1);
+  assert.equal(
+    queries.some(({ statement }) => /\blawos_app\b/u.test(statement)),
+    false,
+  );
+  assert.equal(
+    queries.some(({ statement }) => statement ===
+      `CREATE ROLE ${LAWOS_REHEARSAL_APPLICATION_ROLE} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS CONNECTION LIMIT ${LAWOS_APPLICATION_ROLE_CONNECTION_LIMIT}`),
+    true,
+  );
 });
 
 test("production application role rejects wildcard, synthetic staging and empty tenant authority", async () => {

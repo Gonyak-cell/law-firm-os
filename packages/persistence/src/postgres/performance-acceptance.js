@@ -71,14 +71,20 @@ export function validateJsonPostgresPerformanceAcceptance(value = {}) {
     "statement_timeout_ms",
     "connection_timeout_ms",
     "migration_p95_ms",
-    "outbox_lag_p95_ms",
-    "dms_throughput_min_bytes_per_second",
     "rpo_target_ms",
     "rto_target_ms",
   ]) {
     if (!Number.isSafeInteger(value[key]) || value[key] < 1) {
       fail(`performance acceptance ${key} is invalid`);
     }
+  }
+  if (!Number.isSafeInteger(value.outbox_lag_p95_ms)
+    || value.outbox_lag_p95_ms < 0) {
+    fail("performance acceptance outbox_lag_p95_ms is invalid");
+  }
+  if (!Number.isSafeInteger(value.dms_throughput_min_bytes_per_second)
+    || value.dms_throughput_min_bytes_per_second < 0) {
+    fail("performance acceptance dms_throughput_min_bytes_per_second is invalid");
   }
   if (value.tenant_count > value.record_count
     || value.batch_size > value.record_count

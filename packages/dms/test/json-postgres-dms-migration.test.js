@@ -182,6 +182,41 @@ test("DMS real-data import uses PostgreSQL metadata plus S3 Object Lock and resu
   assert.equal((await runtime.getDocumentState({ tenant_id: TENANT, document_id: "document-001" })).document.legal_hold_status, "active");
 });
 
+test("DMS import reports no provider or metadata write for an approved empty byte manifest", async () => {
+  const prepared = prepareJsonPostgresDmsObjectManifest({
+    ...manifest(),
+    objects: [],
+  });
+  const runtime = {
+    capabilities: {
+      authority: "postgres-v2",
+      json_fallback: false,
+      dual_write: false,
+      provider_finalize_before_metadata: true,
+      independent_digest_readback: true,
+    },
+  };
+  const storage = {
+    provider: "s3",
+    capabilities: {
+      provider_retention: true,
+      digest_verification: true,
+    },
+  };
+  const result = await runJsonPostgresDmsObjectMigration({
+    manifest: prepared,
+    mode: "import",
+    runtime,
+    storage,
+    negativeTenantId: OTHER_TENANT,
+  });
+  assert.equal(result.outcome, "PASS");
+  assert.equal(result.safe_counts.source_object_count, 0);
+  assert.equal(result.safe_counts.completed_object_count, 0);
+  assert.equal(result.claims.provider_write, false);
+  assert.equal(result.claims.postgres_metadata_write, false);
+});
+
 test("DMS migration fails closed without an S3 Object Lock and digest-readback target", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;

@@ -24,9 +24,17 @@ import {
 import {
   validateJsonPostgresPerformanceAcceptance,
 } from "../../../packages/persistence/src/postgres/performance-acceptance.js";
+import {
+  validateJsonPostgresRehearsalRestoreTarget,
+} from "../../../packages/persistence/src/postgres/rehearsal-restore-contract.js";
+import {
+  validateJsonPostgresRehearsalCapacityResult,
+} from "../../../packages/persistence/src/postgres/rehearsal-capacity-result.js";
+import { programEvidenceRetainUntil } from "./program-evidence-retention.js";
 
 export const JSON_POSTGRES_PROGRAM_ADMIN_ACTION = "lawos-json-postgres-program-execution";
 export const JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION = "lawos-json-postgres-production-bootstrap";
+export const JSON_POSTGRES_REHEARSAL_BOOTSTRAP_ACTION = "lawos-json-postgres-rehearsal-bootstrap";
 export const JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION = "lawos-json-postgres-relational-projection";
 export const JSON_POSTGRES_JSON_RETIREMENT_ACTION = "lawos-json-postgres-json-retirement-smoke";
 
@@ -54,6 +62,11 @@ const INPUT_KEYS = Object.freeze([
 ]);
 const PROJECTION_INPUT_KEYS = Object.freeze(["predecessors"]);
 const DR_INPUT_KEYS = Object.freeze(["dr_target", "performance_acceptance"]);
+const REHEARSAL_RESTORE_INPUT_KEYS = Object.freeze([
+  "restore_target",
+  "performance_acceptance",
+  "capacity_result",
+]);
 const RETIREMENT_INPUT_KEYS = Object.freeze(["deployment_manifest", "predecessors"]);
 const MAX_BYTES = Object.freeze({
   packet: 256 * 1024,
@@ -73,7 +86,9 @@ const MAX_BYTES = Object.freeze({
   predecessor_receipt: 2 * 1024 * 1024,
   predecessor_signature: 4096,
   dr_target: 128 * 1024,
+  restore_target: 128 * 1024,
   performance_acceptance: 128 * 1024,
+  capacity_result: 256 * 1024,
   deployment_manifest: 2 * 1024 * 1024,
 });
 
@@ -130,6 +145,7 @@ export function assertJsonPostgresProgramDirectInvoke(event = {}, {
   allowedActions = [
     JSON_POSTGRES_PROGRAM_ADMIN_ACTION,
     JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
+    JSON_POSTGRES_REHEARSAL_BOOTSTRAP_ACTION,
     JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
     JSON_POSTGRES_JSON_RETIREMENT_ACTION,
   ],
@@ -468,6 +484,73 @@ export async function loadJsonPostgresDrRecoveryInputs({
   });
 }
 
+export async function loadJsonPostgresRehearsalRestoreInputs({
+  inputLocators,
+  packet,
+  env = process.env,
+  s3Client = new S3Client({
+    region: env.AWS_REGION ?? env.AWS_DEFAULT_REGION,
+  }),
+  readJson = readImmutableProgramJson,
+} = {}) {
+  closedObject(
+    inputLocators,
+    REHEARSAL_RESTORE_INPUT_KEYS,
+    "W12 restore input locators",
+  );
+  for (const key of REHEARSAL_RESTORE_INPUT_KEYS) {
+    if (!inputLocators[key]) {
+      fail(
+        "LAWOS_PROGRAM_INPUT_SCHEMA",
+        `${key} locator is required`,
+      );
+    }
+  }
+  const json = (key) => readJson(inputReadOptions(
+    inputLocators[key],
+    env,
+    MAX_BYTES[key],
+    s3Client,
+  ));
+  const [restoreTarget, performanceAcceptance, capacityResult] =
+    await Promise.all([
+    json("restore_target"),
+    json("performance_acceptance"),
+    json("capacity_result"),
+  ]);
+  const acceptance =
+    validateJsonPostgresPerformanceAcceptance(performanceAcceptance);
+  let capacity;
+  try {
+    capacity = validateJsonPostgresRehearsalCapacityResult(
+      capacityResult,
+      { packet, performanceAcceptance },
+    );
+  } catch {
+    fail(
+      "LAWOS_PROGRAM_DR_BINDING",
+      "W12 restore capacity lineage drifted from the execution packet",
+    );
+  }
+  const target = validateJsonPostgresRehearsalRestoreTarget(
+    restoreTarget,
+    {
+      sourceSha: packet.source_sha,
+      sourceTree: packet.source_tree,
+      packetSha256: packet.packet_sha256,
+      performanceAcceptance,
+    },
+  );
+  return Object.freeze({
+    restoreTarget: Object.freeze(restoreTarget),
+    performanceAcceptance: Object.freeze(performanceAcceptance),
+    capacityResult: Object.freeze(capacityResult),
+    target,
+    acceptance,
+    capacity,
+  });
+}
+
 export async function loadJsonPostgresRetirementInputs({
   inputLocators,
   trustRegistry,
@@ -562,7 +645,10 @@ export async function claimJsonPostgresProgramInvocation({
     ServerSideEncryption: "aws:kms",
     SSEKMSKeyId: kmsKeyId,
     ObjectLockMode: "COMPLIANCE",
-    ObjectLockRetainUntilDate: new Date(Math.max(Date.parse(authorization.approval.expires_at), now) + 30 * 24 * 60 * 60 * 1000),
+    ObjectLockRetainUntilDate: programEvidenceRetainUntil({
+      approvalExpiresAt: authorization.approval.expires_at,
+      now,
+    }),
   }));
   return Object.freeze({
     claim_sha256: claimSha256,

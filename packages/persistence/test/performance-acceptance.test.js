@@ -40,3 +40,12 @@ test("performance acceptance rejects forged limits and digest drift", () => {
     pool_max: 101,
   }), /invalid/u);
 });
+
+test("performance acceptance represents an empty approved DMS object set without invented throughput", () => {
+  const value = createJsonPostgresPerformanceAcceptance({
+    ...accepted(),
+    dms_throughput_min_bytes_per_second: 0,
+  });
+  assert.equal(value.dms_throughput_min_bytes_per_second, 0);
+  assert.equal(validateJsonPostgresPerformanceAcceptance(value).valid, true);
+});

@@ -22,4 +22,6 @@ export * from "./migration-executor.js";
 export * from "./execution-contract.js";
 export * from "./program-receipt.js";
 export * from "./performance-acceptance.js";
+export * from "./rehearsal-restore-contract.js";
+export * from "./rehearsal-capacity-result.js";
 export * from "./dr-recovery-contract.js";

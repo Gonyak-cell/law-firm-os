@@ -112,7 +112,6 @@ function packet(authorityBundle, phase = "w12-real-data-rehearsal") {
 
 function dmsRunner(value) {
   return async ({ mode }) => {
-    const writes = ["commit", "resume"].includes(mode);
     return {
       outcome: "PASS",
       manifest_sha256: value.bindings.dms_object_manifest_sha256,
@@ -126,8 +125,8 @@ function dmsRunner(value) {
       },
       safe_counts: { source_object_count: 0, completed_object_count: 0 },
       claims: {
-        provider_write: writes,
-        postgres_metadata_write: writes,
+        provider_write: false,
+        postgres_metadata_write: false,
         document_bytes_returned: false,
         pii_returned: false,
         secret_material_returned: false,
@@ -158,7 +157,7 @@ function predecessor(kind, value, claims = {}) {
 test("migration executor separates preflight, dry-run and stage without database writes", async (t) => {
   const authorityBundle = await bundle(t);
   const value = packet(authorityBundle);
-  for (const mode of ["preflight", "dry-run", "stage", "reconcile"]) {
+  for (const mode of ["preflight", "dry-run", "stage"]) {
     const result = await runJsonPostgresExecutionMode({
       packet: value,
       approval: approval(value),
@@ -170,6 +169,12 @@ test("migration executor separates preflight, dry-run and stage without database
     assert.equal(result.outcome, "PASS");
     assert.equal(result.claims.database_write, false);
     assert.equal(result.claims.production_write, false);
+    assert.equal(result.safe_counts.json_fallback_count, 0);
+    assert.equal(result.safe_counts.json_writer_count, 0);
+    assert.equal(result.safe_counts.dual_write_count, 0);
+    assert.equal(result.safe_counts.file_current_authority_count, 0);
+    assert.equal(result.safe_counts.offline_mutation_count, 0);
+    assert.equal(result.safe_counts.memory_fallback_count, 0);
   }
 });
 
@@ -208,6 +213,12 @@ test("migration executor requires all exact predecessors before commit and suppo
   assert.equal(committed.claims.database_write, true);
   assert.equal(committed.claims.production_write, false);
   assert.equal(committed.first_write_state, "NOT_PRODUCTION");
+  assert.equal(committed.safe_counts.json_fallback_count, 0);
+  assert.equal(committed.safe_counts.json_writer_count, 0);
+  assert.equal(committed.safe_counts.dual_write_count, 0);
+  assert.equal(committed.safe_counts.file_current_authority_count, 0);
+  assert.equal(committed.safe_counts.offline_mutation_count, 0);
+  assert.equal(committed.safe_counts.memory_fallback_count, 0);
 
   const readback = await runJsonPostgresExecutionMode({
     packet: value,
@@ -222,6 +233,22 @@ test("migration executor requires all exact predecessors before commit and suppo
   assert.equal(readback.outcome, "PASS");
   assert.equal(readback.invariant_hash, committed.invariant_hash);
   assert.equal(readback.claims.database_write, false);
+
+  const reconciled = await runJsonPostgresExecutionMode({
+    packet: value,
+    approval: approval(value),
+    authorityBundle,
+    corpus: corpus(),
+    mode: "reconcile",
+    pool: fixture.appPool,
+    negativeTenantId: "tenant_execution_b",
+    dmsRunner: dmsRunner(value),
+  });
+  assert.equal(reconciled.outcome, "PASS");
+  assert.equal(reconciled.claims.database_write, false);
+  assert.equal(reconciled.safe_counts.tenant_negative_visible_count, 0);
+  assert.equal(reconciled.safe_counts.blocking_count, 0);
+  assert.ok(reconciled.performance.measurement_count > 0);
 });
 
 test("production commit requires a signed not-started boundary and reports the irreversible transition", async (t) => {

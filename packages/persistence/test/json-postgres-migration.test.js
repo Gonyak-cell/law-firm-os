@@ -124,6 +124,14 @@ test("JSON to PostgreSQL migration validates the full corpus without returning s
   assert.equal(result.json_fallback_count, 0);
   assert.equal(result.json_writer_count, 0);
   assert.equal(result.dual_write_count, 0);
+  assert.equal(result.file_current_authority_count, 0);
+  assert.equal(result.offline_mutation_count, 0);
+  assert.equal(result.memory_fallback_count, 0);
+  assert.equal(result.performance.records_per_tenant, DOMAIN_IDS.length + 1);
+  assert.equal(result.performance.retry_count, 0);
+  assert.equal(result.performance.conflict_count, 0);
+  assert.equal(result.performance.pool_waiting_count, 0);
+  assert.ok(result.performance.elapsed_ms >= 1);
   const serialized = JSON.stringify(result);
   assert.equal(serialized.includes("must-never-be-persisted-or-returned"), false);
   assert.equal(serialized.includes("synthetic.user@example.test"), false);
