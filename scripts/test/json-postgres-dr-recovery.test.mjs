@@ -51,7 +51,7 @@ function database({ restored = false } = {}) {
     },
     DBSubnetGroup: {
       DBSubnetGroupName: "lawos-production-db-subnets",
-      DBSubnetGroupStatus: "Complete",
+      SubnetGroupStatus: "Complete",
       VpcId: "vpc-1234",
     },
     VpcSecurityGroups: [{ VpcSecurityGroupId: "sg-1234" }],
@@ -133,5 +133,12 @@ test("DR recovery rejects public source or mismatched restored network", () => {
     restoreStartedAt: "2026-07-23T00:01:00.000Z",
     restoreAvailableAt: "2026-07-23T00:21:00.000Z",
     performanceAcceptance: performance(),
+  }), /network/u);
+  assert.throws(() => validateJsonPostgresDrSourceDatabase({
+    ...database(),
+    DBSubnetGroup: {
+      ...database().DBSubnetGroup,
+      SubnetGroupStatus: "Pending",
+    },
   }), /network/u);
 });

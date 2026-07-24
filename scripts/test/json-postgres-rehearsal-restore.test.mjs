@@ -55,7 +55,7 @@ function database({ restored = false } = {}) {
     },
     DBSubnetGroup: {
       DBSubnetGroupName: "lawos-private-staging-db-subnets",
-      DBSubnetGroupStatus: "Complete",
+      SubnetGroupStatus: "Complete",
       VpcId: "vpc-1234",
     },
     VpcSecurityGroups: [{ VpcSecurityGroupId: "sg-1234" }],
@@ -94,6 +94,13 @@ test("W12 restore accepts only the private staging PITR source and exact isolate
     restoreStartedAt: "2026-07-24T00:01:00.000Z",
     restoreAvailableAt: "2026-07-24T00:21:00.000Z",
     performanceAcceptance: performance(),
+  }), /network/u);
+  assert.throws(() => validateJsonPostgresRehearsalSourceDatabase({
+    ...database(),
+    DBSubnetGroup: {
+      ...database().DBSubnetGroup,
+      SubnetGroupStatus: "Pending",
+    },
   }), /network/u);
 });
 

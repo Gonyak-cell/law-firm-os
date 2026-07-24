@@ -35,7 +35,7 @@ function network(database) {
     .sort();
   const subnetGroup = database.DBSubnetGroup;
   if (!subnetGroup?.DBSubnetGroupName
-    || subnetGroup.DBSubnetGroupStatus !== "Complete"
+    || subnetGroup.SubnetGroupStatus !== "Complete"
     || !subnetGroup.VpcId
     || securityGroups.length < 1) {
     fail("database VPC network state is incomplete");
