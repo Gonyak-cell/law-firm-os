@@ -10,8 +10,10 @@ import { join } from "node:path";
 import test from "node:test";
 import {
   createJsonPostgresAdjudicationRecommendations,
+  createJsonPostgresRecordAuthority,
   inspectJsonPostgresAdjudicationSource,
   validateJsonPostgresAdjudicationRecommendations,
+  validateJsonPostgresRecordAuthority,
   validateJsonPostgresSourceAdjudicationContract,
 } from "../src/postgres/source-adjudication.js";
 import {
@@ -228,6 +230,65 @@ test("same-version divergent records remain unresolved without last-write-wins",
   );
   assert.equal(recommendations.claims.authority_selected_by_mtime, false);
   assert.equal(recommendations.claims.authority_decision_final, false);
+  const authority = createJsonPostgresRecordAuthority({
+    inventory: report,
+    recommendations,
+    decisionSetRef: "root-priority-decision",
+    ownerDecisionRef: "owner-root-priority",
+    sourceSha: "a".repeat(40),
+    sourceTree: "b".repeat(40),
+    rootPriority: ["runtime-primary", "local-backups"],
+  });
+  assert.equal(validateJsonPostgresRecordAuthority(authority, {
+    inventory: report,
+    recommendations,
+  }).valid, true);
+  assert.equal(authority.safe_counts.record_decision_count, 1);
+  assert.equal(authority.safe_counts.residual_record_count, 0);
+  assert.equal(authority.safe_counts.authoritative_source_count, 1);
+  assert.equal(authority.safe_counts.superseded_source_count, 1);
+  assert.equal(
+    authority.record_decisions[0].canonical_source_ref,
+    report.sources.find((source) =>
+      source.root_ref === "runtime-primary").source_ref,
+  );
+});
+
+test("record authority refuses a same-root tie without an owner-bound comparison", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "lawos-record-authority-tie-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const base = {
+    tenant_id: "tenant-never-return",
+    model_type: "Matter",
+    resource_id: "matter-conflict-never-return",
+  };
+  await writeFile(
+    join(root, "matter-store-a.json"),
+    JSON.stringify(domainState([{ ...base, status: "open" }])),
+  );
+  await writeFile(
+    join(root, "matter-store-b.json"),
+    JSON.stringify(domainState([{ ...base, status: "closed" }])),
+  );
+  const report = await inventoryJsonPostgresSources({
+    roots: [{ ref: "runtime-primary", path: root }],
+    clock: () => new Date("2026-07-24T00:00:00.000Z"),
+  });
+  const recommendations =
+    createJsonPostgresAdjudicationRecommendations({
+      inventory: report,
+      approvedInventoryContentSha256:
+        report.inventory_content_sha256,
+    });
+  assert.throws(() => createJsonPostgresRecordAuthority({
+    inventory: report,
+    recommendations,
+    decisionSetRef: "same-root-tie",
+    ownerDecisionRef: "owner-same-root-tie",
+    sourceSha: "a".repeat(40),
+    sourceTree: "b".repeat(40),
+    rootPriority: ["runtime-primary"],
+  }), /remains unresolved/u);
 });
 
 test("adjudication excludes normalized secret names and serialized bytes", () => {

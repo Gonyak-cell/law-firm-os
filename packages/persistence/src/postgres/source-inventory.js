@@ -33,7 +33,8 @@ const MAX_PARSE_BYTES = 64 * 1024 * 1024;
 const PRUNED_DIRECTORY = /^(?:\.git|node_modules|Cache|Caches|Code Cache|GPUCache|ui-screens|artifacts)$/u;
 const CANDIDATE_FILE = /(?:\.json|\.jsonl|\.ndjson)$|(?:store|manifest|registry|roster|profile|contact|secret)/iu;
 const BACKUP_CANDIDATE_FILE = /^(?:(?:hrx|matter|master-data|crm-master-data|crm|intake|dms|finance|portal|analytics|ai|ui-readiness|enterprise-readiness)-store\.json(?:[-.][a-z0-9]+)?|(?:lawos-|runtime-|backup-)?manifest(?:[-.][a-z0-9]+)?\.json)$/iu;
-const SECRET_FIELD = /(^|_)(?:password|password_hash|passwd|secret|token|credential|authorization|api_key|private_key|recovery_key|document_bytes|raw_bytes|raw_payload)(_|$)/iu;
+const SECRET_FIELD =
+  /(^|_)(?:passwords?|password_hash|passwd|passphrases?|secrets?|tokens?|credentials?|authorization|api_key|private_key|recovery_key|document_bytes|raw_bytes|raw_payload)(_|$)/iu;
 const SAFE_CREDENTIAL_METADATA = new Set(["credential_provider", "credential_status", "credential_rev"]);
 const LIVE_FIELD = new Set([
   "tenant_id", "domain_id", "record_type", "model_type", "record_id", "unique_key", "state_version", "expected_version",
@@ -67,6 +68,14 @@ function stableJson(value) {
 
 function stableGenerationRef(source) {
   return sha256(`${source.root_ref}:${source.source_ref}:${source.sha256}`).slice(0, 24);
+}
+
+function normalizedFieldName(value) {
+  return String(value)
+    .replace(/([a-z0-9])([A-Z])/gu, "$1_$2")
+    .replace(/[^a-z0-9]+/giu, "_")
+    .replace(/^_+|_+$/gu, "")
+    .toLowerCase();
 }
 
 function inventoryContentMaterial(inventory, { normalizeSourceMetadata = true } = {}) {
@@ -311,11 +320,17 @@ function inspectJson(value) {
 }
 
 function fieldDisposition(fieldName, classification) {
+  const normalized = normalizedFieldName(fieldName);
   if (classification === "synthetic") return "synthetic-excluded";
-  if (SECRET_FIELD.test(fieldName) && !SAFE_CREDENTIAL_METADATA.has(fieldName)) return "secret-excluded";
-  if (DERIVED_FIELD.test(fieldName)) return "derived-recompute";
-  if (ARCHIVE_ONLY_FIELD.test(fieldName)) return "encrypted-archive-only";
-  if (LIVE_FIELD.has(fieldName)) return "postgres-live";
+  if (SECRET_FIELD.test(normalized)
+    && !SAFE_CREDENTIAL_METADATA.has(normalized)) {
+    return "secret-excluded";
+  }
+  if (DERIVED_FIELD.test(normalized)) return "derived-recompute";
+  if (ARCHIVE_ONLY_FIELD.test(normalized)) {
+    return "encrypted-archive-only";
+  }
+  if (LIVE_FIELD.has(normalized)) return "postgres-live";
   return "postgres-json-payload";
 }
 

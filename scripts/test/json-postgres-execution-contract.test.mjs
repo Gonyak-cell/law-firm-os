@@ -44,6 +44,7 @@ function packet(phase = "w12-real-data-rehearsal") {
       "lockfile_sha256",
       "migration_catalog_sha256",
       "record_type_catalog_sha256",
+      "record_authority_sha256",
       "field_crosswalk_sha256",
       "authority_manifest_sha256",
       "authority_bundle_sha256",

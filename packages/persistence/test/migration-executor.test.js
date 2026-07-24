@@ -1,9 +1,18 @@
 import assert from "node:assert/strict";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 import { createJsonPostgresAuthorityBundle, JSON_POSTGRES_AUTHORITY_DECISIONS_VERSION } from "../src/postgres/authority-bundle.js";
 import { runJsonPostgresExecutionMode } from "../src/postgres/migration-executor.js";
 import { createJsonPostgresRecordTypeCatalog } from "../src/postgres/record-type-catalog.js";
-import { JSON_POSTGRES_SOURCE_INVENTORY_VERSION } from "../src/postgres/source-inventory.js";
+import {
+  createJsonPostgresAdjudicationRecommendations,
+  createJsonPostgresRecordAuthority,
+} from "../src/postgres/source-adjudication.js";
+import {
+  inventoryJsonPostgresSources,
+} from "../src/postgres/source-inventory.js";
 import { createMigratedPostgresFixture } from "./helpers/disposable-postgres.js";
 
 const SHA = "a".repeat(40);
@@ -29,65 +38,55 @@ function corpus() {
   };
 }
 
-async function bundle() {
+async function bundle(t) {
   const source = corpus();
   const recordTypeCatalog = createJsonPostgresRecordTypeCatalog({ corpus: source });
-  const inventory = {
-    schema_version: JSON_POSTGRES_SOURCE_INVENTORY_VERSION,
-    generated_at: "2026-07-23T00:00:00.000Z",
-    roots: [{ root_ref: "runtime-primary", exists: true, candidate_file_count: 1 }],
-    sources: [{
-      root_ref: "runtime-primary",
-      source_ref: "f".repeat(32),
-      source_family: "matter",
-      sha256: "e".repeat(64),
-      byte_size: 1,
-      mtime: "2026-07-23T00:00:00.000Z",
-      mode: "0600",
-      schema_version: null,
-      tenant_count: 1,
-      record_type_count: 1,
-      record_count: 1,
-      generation_ref: "d".repeat(24),
-      classification: "manual-review",
-      parse_error: false,
-      parse_skipped: false,
-      oversized_unparsed: false,
+  const root = await mkdtemp(join(tmpdir(), "lawos-migration-executor-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeFile(join(root, "matter-store.json"), JSON.stringify({
+    records: [{
+      tenant_id: "tenant_execution_a",
+      model_type: "Matter",
+      matter_id: "matter-a",
     }],
-    classification_counts: {
-      authoritative: 0, superseded: 0, duplicate: 0, synthetic: 0, corrupt: 0, "manual-review": 1,
-    },
-    field_contract: { field_count: 0, disposition_counts: {}, fields: [], silent_drop_count: 0 },
-    reconciliation: {},
-    unavailable_external_sources: [],
-    claims: {
-      authority_selected_by_mtime: false,
-      raw_value_returned: false,
-      pii_returned: false,
-      secret_material_returned: false,
-      real_data_mutated: false,
-      production_contacted: false,
-    },
-    inventory_sha256: "1".repeat(64),
-    inventory_content_sha256: "2".repeat(64),
-  };
+  }));
+  const inventory = await inventoryJsonPostgresSources({
+    roots: [{ ref: "runtime-primary", path: root }],
+    clock: () => new Date("2026-07-23T00:00:00.000Z"),
+  });
+  const recommendations =
+    createJsonPostgresAdjudicationRecommendations({
+      inventory,
+      approvedInventoryContentSha256:
+        inventory.inventory_content_sha256,
+    });
+  const recordAuthority = createJsonPostgresRecordAuthority({
+    inventory,
+    recommendations,
+    decisionSetRef: "execution-decisions-001",
+    ownerDecisionRef: "execution-owner-decision-001",
+    sourceSha: SHA,
+    sourceTree: TREE,
+    rootPriority: ["runtime-primary"],
+  });
   const decisions = {
     schema_version: JSON_POSTGRES_AUTHORITY_DECISIONS_VERSION,
     decision_set_ref: "execution-decisions-001",
     inventory_content_sha256: inventory.inventory_content_sha256,
     record_type_catalog_sha256: recordTypeCatalog.catalog_sha256,
+    record_authority_sha256: recordAuthority.authority_sha256,
     approved_root_refs: ["runtime-primary"],
-    decisions: [{
-      source_ref: "f".repeat(32),
-      sha256: "e".repeat(64),
-      classification: "authoritative",
-      reason_code: "OWNER_SELECTED",
-      decision_ref: "owner-row-001",
-    }],
+    decisions: recordAuthority.sources,
     field_overrides: [],
     expected_rejections: [],
   };
-  return createJsonPostgresAuthorityBundle({ inventory, decisions, recordTypeCatalog, corpus: source });
+  return createJsonPostgresAuthorityBundle({
+    inventory,
+    decisions,
+    recordTypeCatalog,
+    recordAuthority,
+    corpus: source,
+  });
 }
 
 function packet(authorityBundle, phase = "w12-real-data-rehearsal") {
@@ -101,6 +100,7 @@ function packet(authorityBundle, phase = "w12-real-data-rehearsal") {
       authority_bundle_sha256: authorityBundle.summary.bundle_sha256,
       inventory_content_sha256: authorityBundle.summary.inventory_content_sha256,
       record_type_catalog_sha256: authorityBundle.summary.record_type_catalog_sha256,
+      record_authority_sha256: authorityBundle.summary.record_authority_sha256,
       field_crosswalk_sha256: authorityBundle.summary.field_crosswalk_sha256,
       authority_manifest_sha256: authorityBundle.summary.authority_manifest_sha256,
       migration_manifest_sha256: authorityBundle.summary.migration_manifest_sha256,
@@ -155,8 +155,8 @@ function predecessor(kind, value, claims = {}) {
   };
 }
 
-test("migration executor separates preflight, dry-run and stage without database writes", async () => {
-  const authorityBundle = await bundle();
+test("migration executor separates preflight, dry-run and stage without database writes", async (t) => {
+  const authorityBundle = await bundle(t);
   const value = packet(authorityBundle);
   for (const mode of ["preflight", "dry-run", "stage", "reconcile"]) {
     const result = await runJsonPostgresExecutionMode({
@@ -176,7 +176,7 @@ test("migration executor separates preflight, dry-run and stage without database
 test("migration executor requires all exact predecessors before commit and supports readback", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
-  const authorityBundle = await bundle();
+  const authorityBundle = await bundle(t);
   const value = packet(authorityBundle);
   await assert.rejects(runJsonPostgresExecutionMode({
     packet: value,
@@ -227,7 +227,7 @@ test("migration executor requires all exact predecessors before commit and suppo
 test("production commit requires a signed not-started boundary and reports the irreversible transition", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
-  const authorityBundle = await bundle();
+  const authorityBundle = await bundle(t);
   const value = packet(authorityBundle, "w13-production-cutover");
   const predecessors = [
     predecessor("w12-terminal", value),

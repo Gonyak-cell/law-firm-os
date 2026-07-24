@@ -41,6 +41,10 @@ const input = options(process.argv.slice(2));
 const exactHead = cleanExactHead();
 const inventory = readPrivateProgramJson(required(input.inventory, "inventory"), "source inventory");
 const decisions = readPrivateProgramJson(required(input.decisions, "decisions"), "authority decisions");
+const recordAuthority = readPrivateProgramJson(
+  required(input["record-authority"], "record-authority"),
+  "record authority manifest",
+);
 const recordTypeCatalog = readPrivateProgramJson(required(input.catalog, "catalog"), "record-type catalog");
 const corpus = readPrivateProgramJson(required(input.corpus, "corpus"), "migration corpus");
 const sourceTransformResult = readPrivateProgramJson(
@@ -59,6 +63,7 @@ const bundle = await createJsonPostgresAuthorityBundle({
   corpus,
   baseManifest,
   sourceTransformResult,
+  recordAuthority,
 });
 const outputs = {};
 for (const [name, value] of Object.entries({

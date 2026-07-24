@@ -8,6 +8,10 @@ import {
   createJsonPostgresSourceTransformPlan,
 } from "../../apps/api/src/json-postgres-source-transform.js";
 import {
+  createJsonPostgresAdjudicationRecommendations,
+  createJsonPostgresRecordAuthority,
+} from "../../packages/persistence/src/postgres/source-adjudication.js";
+import {
   JSON_POSTGRES_EXECUTION_REQUIRED_BINDINGS,
   createJsonPostgresExecutionPacket,
 } from "../../packages/persistence/src/postgres/execution-contract.js";
@@ -54,24 +58,36 @@ async function fixture(t) {
     clock: () => new Date("2026-07-23T00:00:00.000Z"),
   });
   const locatorManifest = createJsonPostgresSourceLocatorManifest({ inventory, locators });
+  const recommendations =
+    createJsonPostgresAdjudicationRecommendations({
+      inventory,
+      approvedInventoryContentSha256:
+        inventory.inventory_content_sha256,
+    });
+  const recordAuthority = createJsonPostgresRecordAuthority({
+    inventory,
+    recommendations,
+    decisionSetRef: "backup-fixture",
+    ownerDecisionRef: "backup-fixture-owner",
+    sourceSha: "a".repeat(40),
+    sourceTree: "b".repeat(40),
+    rootPriority: ["runtime-primary"],
+  });
   const transformPlan = createJsonPostgresSourceTransformPlan({
     inventory,
     locatorManifest,
     transformSetRef: "backup-fixture",
     tenantId: TENANT,
     approvedRootRefs: ["runtime-primary"],
-    decisions: inventory.sources.map((source) => ({
-      source_ref: source.source_ref,
-      sha256: source.sha256,
-      classification: "authoritative",
-      reason_code: "OWNER_SELECTED",
-      decision_ref: `decision-${source.source_ref}`,
-      transform: {
+    recordAuthority,
+    decisions: recordAuthority.sources.map((source) => ({
+      ...source,
+      transform: source.classification === "authoritative" ? {
         kind: source.source_family === "member-roster"
           ? "identity-roster"
           : "identity-registration",
         domain_id: null,
-      },
+      } : null,
     })),
   });
   const compiled = await compileJsonPostgresMigrationCorpus({

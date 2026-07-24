@@ -45,6 +45,10 @@ const sourceTree = git("rev-parse", "HEAD^{tree}");
 const inventory = readPrivateProgramJson(option("--inventory"), "safe source inventory");
 const locatorManifest = readPrivateProgramJson(option("--locator-manifest"), "private source locator manifest");
 const transformInput = readPrivateProgramJson(option("--transform-input"), "private source transform input");
+const recordAuthority = readPrivateProgramJson(
+  option("--record-authority"),
+  "record authority manifest",
+);
 const sourceReadPacket = readPrivateProgramJson(option("--source-read-packet"), "source-read packet");
 closedObject(transformInput, [
   "schema_version",
@@ -59,12 +63,14 @@ validateJsonPostgresSourceReadPacket(sourceReadPacket, {
   sourceSha,
   sourceTree,
   inventoryContentSha256: inventory.inventory_content_sha256,
+  recordAuthoritySha256: recordAuthority.authority_sha256,
 });
 verifyJsonPostgresSourceReadApproval({
   packet: sourceReadPacket,
   sourceSha,
   sourceTree,
   inventoryContentSha256: inventory.inventory_content_sha256,
+  recordAuthoritySha256: recordAuthority.authority_sha256,
   trustRegistryPath: option("--registry"),
   trustRegistrySha256: option("--registry-sha256"),
   approvalReceiptPath: option("--approval"),
@@ -80,6 +86,7 @@ const transformPlan = createJsonPostgresSourceTransformPlan({
   tenantId: transformInput.tenant_id,
   approvedRootRefs: transformInput.approved_root_refs,
   accountOnlyUserIds: transformInput.account_only_user_ids,
+  recordAuthority,
   decisions: transformInput.decisions,
 });
 const compiled = await compileJsonPostgresMigrationCorpus({

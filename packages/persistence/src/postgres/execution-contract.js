@@ -8,7 +8,7 @@ import {
   JSON_POSTGRES_INVENTORY_DELTA_POLICY_SHA256,
 } from "./source-authority-manifest.js";
 
-export const JSON_POSTGRES_EXECUTION_PACKET_VERSION = "law-firm-os.json-postgres-execution-packet.v1";
+export const JSON_POSTGRES_EXECUTION_PACKET_VERSION = "law-firm-os.json-postgres-execution-packet.v2";
 export const JSON_POSTGRES_EXECUTION_PHASES = Object.freeze([
   "w12-real-data-rehearsal",
   "w13-production-cutover",
@@ -95,6 +95,7 @@ const REQUIRED_BINDING_KEYS = Object.freeze([
   "lockfile_sha256",
   "migration_catalog_sha256",
   "record_type_catalog_sha256",
+  "record_authority_sha256",
   "field_crosswalk_sha256",
   "authority_manifest_sha256",
   "authority_bundle_sha256",

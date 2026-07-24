@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { lstat, readFile, realpath } from "node:fs/promises";
-import { extname, isAbsolute, relative, sep } from "node:path";
+import { basename, isAbsolute, relative, sep } from "node:path";
 import { ANALYTICS_DOMAIN_DESCRIPTOR } from "../../../packages/analytics/src/central-ledger.js";
 import { AI_GOVERNANCE_DOMAIN_DESCRIPTOR } from "../../../packages/ai-governance/src/central-ledger.js";
 import { FINANCE_DOMAIN_DESCRIPTOR } from "../../../packages/billing/src/central-ledger.js";
@@ -22,6 +22,10 @@ import {
   prepareJsonPostgresMigrationCorpus,
 } from "../../../packages/persistence/src/postgres/json-postgres-migration.js";
 import {
+  inspectJsonPostgresAdjudicationSource,
+  validateJsonPostgresRecordAuthorityBinding,
+} from "../../../packages/persistence/src/postgres/source-adjudication.js";
+import {
   validateJsonPostgresSourceLocatorManifest,
 } from "../../../packages/persistence/src/postgres/source-locator-manifest.js";
 import {
@@ -30,9 +34,9 @@ import {
 import { UI_READINESS_DOMAIN_DESCRIPTOR } from "../../../packages/platform/src/ui-readiness-central-ledger.js";
 
 export const JSON_POSTGRES_SOURCE_TRANSFORM_PLAN_VERSION =
-  "law-firm-os.json-postgres-source-transform-plan.v1";
+  "law-firm-os.json-postgres-source-transform-plan.v2";
 export const JSON_POSTGRES_SOURCE_TRANSFORM_RESULT_VERSION =
-  "law-firm-os.json-postgres-source-transform-result.v1";
+  "law-firm-os.json-postgres-source-transform-result.v2";
 
 const MAX_SOURCE_BYTES = 64 * 1024 * 1024;
 const SHA256 = /^[a-f0-9]{64}$/u;
@@ -51,7 +55,8 @@ const TRANSFORM_KINDS = new Set([
   "runtime-domain-store",
   "hrx-table-store",
 ]);
-const SECRET_FIELD = /(^|_)(?:password|password_hash|passwd|passphrase|secret|token|credential|authorization|api_key|private_key|recovery_key|document_bytes|raw_bytes|raw_payload)(_|$)/iu;
+const SECRET_FIELD =
+  /(^|_)(?:passwords?|password_hash|passwd|passphrases?|secrets?|tokens?|credentials?|authorization|api_key|private_key|recovery_key|document_bytes|raw_bytes|raw_payload)(_|$)/iu;
 const SAFE_CREDENTIAL_METADATA = new Set([
   "credential_provider",
   "credential_status",
@@ -120,6 +125,24 @@ function requiredRef(value, label) {
   return text;
 }
 
+function normalizedFieldName(key) {
+  return String(key)
+    .replace(/([a-z0-9])([A-Z])/gu, "$1_$2")
+    .replace(/[^a-z0-9]+/giu, "_")
+    .replace(/^_+|_+$/gu, "")
+    .toLowerCase();
+}
+
+function isSerializedBytes(value) {
+  return value
+    && typeof value === "object"
+    && !Array.isArray(value)
+    && value.type === "Buffer"
+    && Array.isArray(value.data)
+    && value.data.every((item) =>
+      Number.isInteger(item) && item >= 0 && item <= 255);
+}
+
 function preservedSourceAttributes(source, mappedFields) {
   return Object.fromEntries(Object.entries(source)
     .filter(([key]) => !mappedFields.has(key)));
@@ -142,6 +165,7 @@ function transformPlanMaterial(value) {
     locator_manifest_sha256: value.locator_manifest_sha256,
     approved_root_refs: value.approved_root_refs,
     account_only_user_ids: value.account_only_user_ids,
+    record_authority: value.record_authority,
     sources: value.sources,
   };
 }
@@ -172,8 +196,12 @@ export function createJsonPostgresSourceTransformPlan({
   approvedRootRefs = [],
   accountOnlyUserIds = [],
   decisions = [],
+  recordAuthority,
 } = {}) {
   validateJsonPostgresSourceLocatorManifest(locatorManifest, { inventory });
+  validateJsonPostgresRecordAuthorityBinding(recordAuthority, {
+    inventory,
+  });
   const inventoryDigest = inventory?.inventory_content_sha256;
   if (!SHA256.test(inventoryDigest ?? "")) throw new TypeError("source transform requires an exact inventory");
   const approvedRoots = Object.freeze([...new Set(approvedRootRefs.map((value) =>
@@ -181,12 +209,17 @@ export function createJsonPostgresSourceTransformPlan({
   const approvedRootSet = new Set(approvedRoots);
   const accountOnly = Object.freeze([...new Set(accountOnlyUserIds.map((value) =>
     requiredRef(value, "account-only user id")))].sort());
+  if (accountOnly.length !== recordAuthority.identity_decisions.length) {
+    throw new TypeError(
+      "account-only users drifted from record authority identity decisions",
+    );
+  }
   const sourceByRef = new Map(inventory.sources.map((source) => [source.source_ref, source]));
   const rows = [];
   for (const decision of decisions) {
     closedObject(
       decision,
-      ["source_ref", "root_ref", "sha256", "classification", "reason_code", "decision_ref", "transform"],
+      ["source_ref", "root_ref", "source_family", "sha256", "classification", "reason_code", "decision_ref", "transform"],
       "source transform decision",
     );
     const sourceRef = requiredText(decision.source_ref, "source ref");
@@ -196,12 +229,19 @@ export function createJsonPostgresSourceTransformPlan({
     if (decision.root_ref != null && decision.root_ref !== source.root_ref) {
       throw new TypeError(`source transform root drifted: ${sourceRef}`);
     }
+    if (decision.source_family != null
+      && decision.source_family !== source.source_family) {
+      throw new TypeError(
+        `source transform family drifted: ${sourceRef}`,
+      );
+    }
     const classification = requiredText(decision.classification, "source classification");
     if (!FINAL_CLASSIFICATIONS.has(classification)) throw new TypeError(`source decision is not terminal: ${sourceRef}`);
     if (!approvedRootSet.has(source.root_ref)) throw new TypeError(`source root is not approved: ${source.root_ref}`);
     rows.push(Object.freeze({
       source_ref: sourceRef,
       root_ref: source.root_ref,
+      source_family: source.source_family,
       sha256: source.sha256,
       classification,
       reason_code: requiredRef(decision.reason_code, "source decision reason code"),
@@ -217,6 +257,22 @@ export function createJsonPostgresSourceTransformPlan({
   if (!rows.some((row) => row.classification === "authoritative")) {
     throw new TypeError("source transform plan selects no authoritative source");
   }
+  const authorityByRef = new Map(recordAuthority.sources.map((source) =>
+    [source.source_ref, source]));
+  if (rows.some((row) => {
+    const authority = authorityByRef.get(row.source_ref);
+    return !authority
+      || authority.root_ref !== row.root_ref
+      || authority.source_family !== row.source_family
+      || authority.sha256 !== row.sha256
+      || authority.classification !== row.classification
+      || authority.reason_code !== row.reason_code
+      || authority.decision_ref !== row.decision_ref;
+  })) {
+    throw new TypeError(
+      "source transform decisions drifted from record authority",
+    );
+  }
   const value = Object.freeze({
     schema_version: JSON_POSTGRES_SOURCE_TRANSFORM_PLAN_VERSION,
     transform_set_ref: requiredRef(transformSetRef, "transform set ref"),
@@ -225,6 +281,7 @@ export function createJsonPostgresSourceTransformPlan({
     locator_manifest_sha256: locatorManifest.locator_manifest_sha256,
     approved_root_refs: approvedRoots,
     account_only_user_ids: accountOnly,
+    record_authority: recordAuthority,
     sources: Object.freeze(rows),
   });
   return Object.freeze({
@@ -248,6 +305,7 @@ export function validateJsonPostgresSourceTransformPlan(plan, {
     tenantId: plan.tenant_id,
     approvedRootRefs: plan.approved_root_refs,
     accountOnlyUserIds: plan.account_only_user_ids,
+    recordAuthority: plan.record_authority,
     decisions: plan.sources,
   });
   if (stableJson(rebuilt) !== stableJson(plan)) throw new TypeError("source transform plan digest or binding drifted");
@@ -312,9 +370,14 @@ function sanitize(value, state, depth = 0) {
   if (value === null || typeof value !== "object") return value;
   const output = {};
   for (const [key, item] of Object.entries(value)) {
-    if (SECRET_FIELD.test(key) && !SAFE_CREDENTIAL_METADATA.has(key)) {
+    const normalizedKey = normalizedFieldName(key);
+    if ((SECRET_FIELD.test(normalizedKey)
+        && !SAFE_CREDENTIAL_METADATA.has(normalizedKey))
+      || isSerializedBytes(item)) {
       state.excludedSecretFieldCount += 1;
-      state.excludedSecretFieldNames.add(key);
+      state.excludedSecretFieldNames.add(
+        isSerializedBytes(item) ? "serialized_bytes" : normalizedKey,
+      );
       continue;
     }
     output[key] = sanitize(item, state, depth + 1);
@@ -347,17 +410,125 @@ async function readExactSource(locator, expected, state) {
   }
   state.verifiedSourceCount += 1;
   if (expected.classification !== "authoritative") return null;
-  const extension = extname(sourcePath).toLowerCase();
+  const sourceName = basename(sourcePath);
   let parsed;
-  if (extension === ".json") {
+  if (/\.json(?:[-.][a-z0-9]+)?$/iu.test(sourceName)) {
     parsed = JSON.parse(bytes);
-  } else if (extension === ".jsonl" || extension === ".ndjson") {
+  } else if (/\.(?:jsonl|ndjson)(?:[-.][a-z0-9]+)?$/iu.test(
+    sourceName,
+  )) {
     parsed = bytes.toString("utf8").split(/\r?\n/u).filter(Boolean).map((line) => JSON.parse(line));
   } else {
     throw new TypeError(`authoritative source is not supported JSON: ${expected.source_ref}`);
   }
   state.parsedAuthoritativeSourceCount += 1;
   return sanitize(parsed, state);
+}
+
+function authorityDecisionKey(sourceFamily, recordRef) {
+  return `${sourceFamily}:${recordRef}`;
+}
+
+function filterAuthorityRows(rows, wrapper, source, decisions, state) {
+  if (!Array.isArray(rows)) return rows;
+  const byOrder = new Map(
+    inspectJsonPostgresAdjudicationSource(wrapper).records.map((record) =>
+      [record.source_order, record]),
+  );
+  return rows.filter((row, index) => {
+    const fingerprint = byOrder.get(index);
+    if (!fingerprint) return true;
+    const decision = decisions.get(authorityDecisionKey(
+      source.source_family,
+      fingerprint.record_ref,
+    ));
+    if (!decision) return true;
+    const candidateRefs = new Set([
+      decision.canonical_source_ref,
+      ...decision.archive_only_sources.map((entry) => entry.source_ref),
+    ]);
+    if (!candidateRefs.has(source.source_ref)) {
+      throw new TypeError(
+        `record authority candidate drifted: ${fingerprint.record_ref}`,
+      );
+    }
+    const expectedContent = source.source_ref
+      === decision.canonical_source_ref
+      ? decision.canonical_content_sha256
+      : decision.archive_only_sources.find((entry) =>
+          entry.source_ref === source.source_ref)?.content_sha256;
+    if (fingerprint.content_sha256 !== expectedContent) {
+      throw new TypeError(
+        `record authority content drifted: ${fingerprint.record_ref}`,
+      );
+    }
+    if (source.source_ref === decision.canonical_source_ref) {
+      state.canonicalRecordDecisionKeys.add(authorityDecisionKey(
+        source.source_family,
+        fingerprint.record_ref,
+      ));
+      return true;
+    }
+    state.archiveOnlyRecordCopyCount += 1;
+    return false;
+  });
+}
+
+function applyRecordAuthority(parsed, source, recordAuthority, state) {
+  const decisions = new Map(recordAuthority.record_decisions.map(
+    (decision) => [
+      authorityDecisionKey(
+        decision.source_family,
+        decision.record_ref,
+      ),
+      decision,
+    ],
+  ));
+  if (Array.isArray(parsed)) {
+    return filterAuthorityRows(
+      parsed,
+      parsed,
+      source,
+      decisions,
+      state,
+    );
+  }
+  const output = { ...parsed };
+  for (const key of [
+    "records",
+    "idempotency",
+    "idempotency_entries",
+    "audit_events",
+    "users",
+    "members",
+    "profiles",
+    "contacts",
+  ]) {
+    if (!Array.isArray(parsed[key])) continue;
+    output[key] = filterAuthorityRows(
+      parsed[key],
+      { [key]: parsed[key] },
+      source,
+      decisions,
+      state,
+    );
+  }
+  if (parsed.tables && typeof parsed.tables === "object"
+    && !Array.isArray(parsed.tables)) {
+    output.tables = Object.fromEntries(Object.entries(parsed.tables).map(
+      ([table, rows]) => [
+        table,
+        filterAuthorityRows(
+          rows,
+          { tables: { [table]: rows } },
+          source,
+          decisions,
+          state,
+        ),
+      ],
+    ));
+  }
+  return output;
 }
 
 function snapshotRepository(state) {
@@ -463,7 +634,23 @@ function rosterSnapshot(rosters, tenantId) {
   }
 }
 
-function identityAccounts(registrations, rosters, tenantId, accountOnlyUserIds) {
+function identityDecisionRef(user) {
+  const record = inspectJsonPostgresAdjudicationSource({
+    users: [user],
+  }).records[0];
+  if (!record?.user_ref) {
+    throw new TypeError("account-only user identity cannot be verified");
+  }
+  return sha256(`${record.tenant_ref}:${record.user_ref}`).slice(0, 32);
+}
+
+function identityAccounts(
+  registrations,
+  rosters,
+  tenantId,
+  accountOnlyUserIds,
+  identityDecisions,
+) {
   const users = registrations.flatMap((source) => source.users ?? []);
   const members = rosters.flatMap((source) => source.members ?? []);
   const memberByUser = new Map();
@@ -476,6 +663,9 @@ function identityAccounts(registrations, rosters, tenantId, accountOnlyUserIds) 
     rosterEmails.add(email);
   }
   const accountOnly = new Set(accountOnlyUserIds);
+  const identityDecisionByRef = new Map(identityDecisions.map((decision) =>
+    [decision.identity_ref, decision]));
+  const appliedIdentityDecisionRefs = new Set();
   const accountIds = new Set();
   const accountEmails = new Set();
   const accounts = users.map((user) => {
@@ -489,12 +679,33 @@ function identityAccounts(registrations, rosters, tenantId, accountOnlyUserIds) 
     if (member && requiredText(member.work_email, "roster work email").toLowerCase() !== email) {
       throw new TypeError(`registered and roster email conflict: ${userId}`);
     }
+    const accountOnlyDecision = member
+      ? null
+      : identityDecisionByRef.get(identityDecisionRef(user));
+    if (!member && (!accountOnlyDecision
+      || accountOnlyDecision.account_status !== "disabled"
+      || accountOnlyDecision.roster_link_status !== "pending-roster-link"
+      || accountOnlyDecision.login_allowed !== false
+      || accountOnlyDecision.password_setup_allowed !== false
+      || accountOnlyDecision.authorization_allowed !== false)) {
+      throw new TypeError(
+        `registered account identity decision drifted: ${userId}`,
+      );
+    }
+    if (accountOnlyDecision) {
+      appliedIdentityDecisionRefs.add(accountOnlyDecision.identity_ref);
+    }
     const membership = user.tenant_memberships?.find((entry) => entry.tenant_id === tenantId)
       ?? user.membership;
     if (!membership || membership.tenant_id !== tenantId) throw new TypeError(`registration tenant membership is missing: ${userId}`);
     return {
       ...user,
       email,
+      ...(accountOnlyDecision ? {
+        status: "disabled",
+        account_status: "disabled",
+        credential_status: "disabled",
+      } : {}),
       profile: {
         ...Object.fromEntries(REGISTRATION_PROFILE_FIELDS
           .filter((key) => user[key] !== undefined && user[key] !== null)
@@ -520,14 +731,33 @@ function identityAccounts(registrations, rosters, tenantId, accountOnlyUserIds) 
             ? { roster: preservedSourceAttributes(member, ROSTER_MAPPED_FIELDS) }
             : {}),
         },
+        ...(accountOnlyDecision ? {
+          roster_link_status: "pending-roster-link",
+          login_allowed: false,
+          identity_setup_allowed: false,
+          access_grant_allowed: false,
+        } : {}),
       },
-      membership,
+      membership: accountOnlyDecision ? {
+        ...membership,
+        status: "disabled",
+        role_profile_id: null,
+        role_ids: [],
+        group_ids: [],
+        scopes: [],
+        hrx_scopes: [],
+      } : membership,
     };
   });
   const missingAccounts = [...memberByUser.keys()].filter((userId) => !accountIds.has(userId));
   if (missingAccounts.length > 0) throw new TypeError("approved roster contains members without registered accounts");
   const staleAccountOnly = [...accountOnly].filter((userId) => !accountIds.has(userId) || memberByUser.has(userId));
   if (staleAccountOnly.length > 0) throw new TypeError("account-only user exceptions are stale or unnecessary");
+  if (appliedIdentityDecisionRefs.size !== identityDecisionByRef.size) {
+    throw new TypeError(
+      "record authority identity decisions were not fully materialized",
+    );
+  }
   return accounts.sort((left, right) => left.user_id.localeCompare(right.user_id));
 }
 
@@ -581,6 +811,8 @@ export async function compileJsonPostgresMigrationCorpus({
     parsedAuthoritativeSourceCount: 0,
     excludedSecretFieldCount: 0,
     excludedSecretFieldNames: new Set(),
+    canonicalRecordDecisionKeys: new Set(),
+    archiveOnlyRecordCopyCount: 0,
   };
   const registrations = [];
   const rosters = [];
@@ -588,11 +820,17 @@ export async function compileJsonPostgresMigrationCorpus({
   const hrxSnapshots = [];
   const descriptorByDomain = new Map();
   for (const decision of transformPlan.sources) {
-    const parsed = await readExactSource(locatorByRef.get(decision.source_ref), {
+    let parsed = await readExactSource(locatorByRef.get(decision.source_ref), {
       ...decision,
       byte_size: inventoryByRef.get(decision.source_ref).byte_size,
     }, state);
     if (!parsed) continue;
+    parsed = applyRecordAuthority(
+      parsed,
+      decision,
+      transformPlan.record_authority,
+      state,
+    );
     if (decision.transform.kind === "identity-registration") registrations.push(parsed);
     if (decision.transform.kind === "identity-roster") rosters.push(parsed);
     if (decision.transform.kind === "runtime-domain-store") {
@@ -614,11 +852,18 @@ export async function compileJsonPostgresMigrationCorpus({
   }
   if (registrations.length === 0) throw new TypeError("source transform requires an authoritative identity registration source");
   if (rosters.length === 0) throw new TypeError("source transform requires an authoritative identity roster source");
+  if (state.canonicalRecordDecisionKeys.size
+      !== transformPlan.record_authority.record_decisions.length) {
+    throw new TypeError(
+      "source transform did not materialize every canonical record decision",
+    );
+  }
   const accounts = identityAccounts(
     registrations,
     rosters,
     transformPlan.tenant_id,
     transformPlan.account_only_user_ids,
+    transformPlan.record_authority.identity_decisions,
   );
   hrxSnapshots.push(rosterSnapshot(rosters, transformPlan.tenant_id));
   const snapshots = [];
@@ -667,6 +912,12 @@ export async function compileJsonPostgresMigrationCorpus({
       verified_source_count: state.verifiedSourceCount,
       authoritative_source_count: transformPlan.sources.filter((source) => source.classification === "authoritative").length,
       parsed_authoritative_source_count: state.parsedAuthoritativeSourceCount,
+      record_decision_count:
+        transformPlan.record_authority.record_decisions.length,
+      archive_only_record_copy_count:
+        state.archiveOnlyRecordCopyCount,
+      identity_decision_count:
+        transformPlan.record_authority.identity_decisions.length,
       account_count: prepared.accounts.length,
       domain_count: prepared.snapshots.length,
       record_count: prepared.snapshots.reduce((total, snapshot) => total + snapshot.records.length, 0),

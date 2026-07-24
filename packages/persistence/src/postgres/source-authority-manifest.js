@@ -4,8 +4,11 @@ import {
   JSON_POSTGRES_SOURCE_INVENTORY_VERSION,
 } from "./source-inventory.js";
 import { validateJsonPostgresRecordTypeCatalog } from "./record-type-catalog.js";
+import {
+  validateJsonPostgresRecordAuthorityBinding,
+} from "./source-adjudication.js";
 
-export const JSON_POSTGRES_AUTHORITY_MANIFEST_VERSION = "law-firm-os.json-postgres-source-authority-manifest.v1";
+export const JSON_POSTGRES_AUTHORITY_MANIFEST_VERSION = "law-firm-os.json-postgres-source-authority-manifest.v2";
 export const JSON_POSTGRES_FIELD_CROSSWALK_VERSION = "law-firm-os.json-postgres-field-crosswalk.v1";
 export const JSON_POSTGRES_INVENTORY_DELTA_VERSION = "law-firm-os.json-postgres-inventory-delta.v1";
 export const JSON_POSTGRES_INVENTORY_DELTA_POLICY_VERSION =
@@ -16,7 +19,8 @@ const FIELD_DISPOSITION_SET = new Set(JSON_POSTGRES_FIELD_DISPOSITIONS);
 const SHA256 = /^[0-9a-f]{64}$/u;
 const SAFE_REF = /^[A-Za-z0-9_.:-]{1,160}$/u;
 const REASON_CODE = /^[A-Z][A-Z0-9_]{2,63}$/u;
-const SECRET_FIELD = /(^|_)(?:password|password_hash|passwd|passphrase|secret|token|credential|authorization|api_key|private_key|recovery_key|document_bytes|raw_bytes|raw_payload)(_|$)/iu;
+const SECRET_FIELD =
+  /(^|_)(?:passwords?|password_hash|passwd|passphrases?|secrets?|tokens?|credentials?|authorization|api_key|private_key|recovery_key|document_bytes|raw_bytes|raw_payload)(_|$)/iu;
 const SAFE_CREDENTIAL_METADATA = new Set(["credential_provider", "credential_status", "credential_rev"]);
 
 function stableJson(value) {
@@ -29,6 +33,14 @@ function stableJson(value) {
 
 function sha256(value) {
   return createHash("sha256").update(typeof value === "string" ? value : stableJson(value)).digest("hex");
+}
+
+function normalizedFieldName(value) {
+  return String(value)
+    .replace(/([a-z0-9])([A-Z])/gu, "$1_$2")
+    .replace(/[^a-z0-9]+/giu, "_")
+    .replace(/^_+|_+$/gu, "")
+    .toLowerCase();
 }
 
 export const JSON_POSTGRES_INVENTORY_DELTA_POLICY = Object.freeze({
@@ -79,6 +91,7 @@ function authorityMaterial(value) {
     approved_root_refs: value.approved_root_refs,
     record_type_catalog_sha256: value.record_type_catalog_sha256,
     field_crosswalk_sha256: value.field_crosswalk_sha256,
+    record_authority: value.record_authority,
     sources: value.sources,
     counts: value.counts,
     claims: value.claims,
@@ -130,9 +143,13 @@ export function createJsonPostgresFieldCrosswalk({
     const fieldName = requiredRef(field.field_name, "crosswalk field name");
     const pathRef = requiredRef(field.path_ref, "crosswalk path ref");
     const override = overrideByKey.get(`${fieldName}:${pathRef}`);
-    const disposition = override?.disposition ?? field.disposition;
+    const normalizedName = normalizedFieldName(fieldName);
+    const isSecret = SECRET_FIELD.test(normalizedName)
+      && !SAFE_CREDENTIAL_METADATA.has(normalizedName);
+    const disposition = override?.disposition
+      ?? (isSecret ? "secret-excluded" : field.disposition);
     if (!FIELD_DISPOSITION_SET.has(disposition)) throw new TypeError(`unsupported inventory field disposition: ${disposition}`);
-    if (SECRET_FIELD.test(fieldName) && !SAFE_CREDENTIAL_METADATA.has(fieldName) && disposition !== "secret-excluded") {
+    if (isSecret && disposition !== "secret-excluded") {
       throw new TypeError(`secret field cannot be reclassified: ${fieldName}`);
     }
     return Object.freeze({
@@ -192,10 +209,16 @@ export function createJsonPostgresSourceAuthorityManifest({
   approvedRootRefs = [],
   recordTypeCatalog,
   fieldCrosswalk,
+  recordAuthority = null,
 } = {}) {
   const inventoryContentSha256 = validateInventoryShape(inventory);
   validateJsonPostgresRecordTypeCatalog(recordTypeCatalog);
   validateJsonPostgresFieldCrosswalk(fieldCrosswalk, { inventory, recordTypeCatalog });
+  if (recordAuthority !== null) {
+    validateJsonPostgresRecordAuthorityBinding(recordAuthority, {
+      inventory,
+    });
+  }
   const approvedRoots = Object.freeze([...new Set(approvedRootRefs.map((ref) => requiredRef(ref, "approved root ref")))].sort());
   const approvedRootSet = new Set(approvedRoots);
   const bySourceRef = new Map(inventory.sources.map((source) => [source.source_ref, source]));
@@ -225,6 +248,19 @@ export function createJsonPostgresSourceAuthorityManifest({
   const missing = inventory.sources.filter((source) => !decisionBySource.has(source.source_ref));
   if (missing.length > 0) throw new TypeError(`authority manifest has ${missing.length} unresolved source decisions`);
   const sources = Object.freeze([...decisionBySource.values()].sort((left, right) => left.source_ref.localeCompare(right.source_ref)));
+  if (recordAuthority !== null && stableJson(sources) !== stableJson(
+    recordAuthority.sources.map((source) => ({
+      source_ref: source.source_ref,
+      root_ref: source.root_ref,
+      source_family: source.source_family,
+      sha256: source.sha256,
+      classification: source.classification,
+      reason_code: source.reason_code,
+      decision_ref: source.decision_ref,
+    })),
+  )) {
+    throw new TypeError("authority manifest source decisions drifted from record authority");
+  }
   const authoritativeCount = sources.filter((source) => source.classification === "authoritative").length;
   if (inventory.sources.length > 0 && authoritativeCount === 0) throw new TypeError("authority manifest selects no authoritative source");
   const counts = Object.freeze({
@@ -234,6 +270,10 @@ export function createJsonPostgresSourceAuthorityManifest({
     duplicate_count: sources.filter((source) => source.classification === "duplicate").length,
     synthetic_count: sources.filter((source) => source.classification === "synthetic").length,
     corrupt_count: sources.filter((source) => source.classification === "corrupt").length,
+    record_decision_count:
+      recordAuthority?.safe_counts.record_decision_count ?? 0,
+    identity_decision_count:
+      recordAuthority?.safe_counts.identity_decision_count ?? 0,
     unresolved_count: 0,
   });
   const value = Object.freeze({
@@ -243,6 +283,7 @@ export function createJsonPostgresSourceAuthorityManifest({
     approved_root_refs: approvedRoots,
     record_type_catalog_sha256: recordTypeCatalog.catalog_sha256,
     field_crosswalk_sha256: fieldCrosswalk.field_crosswalk_sha256,
+    record_authority: recordAuthority,
     sources,
     counts,
     claims: Object.freeze({
@@ -250,6 +291,8 @@ export function createJsonPostgresSourceAuthorityManifest({
       raw_value_returned: false,
       pii_returned: false,
       secret_material_returned: false,
+      record_authority_final:
+        recordAuthority?.claims.authority_decision_final === true,
       real_data_mutated: false,
       production_contacted: false,
     }),
@@ -278,6 +321,7 @@ export function validateJsonPostgresSourceAuthorityManifest(manifest = {}, {
     approvedRootRefs: manifest.approved_root_refs,
     recordTypeCatalog,
     fieldCrosswalk,
+    recordAuthority: manifest.record_authority,
   });
   if (stableJson(rebuilt) !== stableJson(manifest)) throw new TypeError("authority manifest does not match the exact inventory, catalog, and crosswalk");
   return Object.freeze({

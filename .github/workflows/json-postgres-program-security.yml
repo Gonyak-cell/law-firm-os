@@ -103,6 +103,7 @@ jobs:
             packages/persistence/test/program-stage-observation.test.js \
             packages/persistence/test/record-type-catalog.test.js \
             packages/persistence/test/role-password.test.js \
+            packages/persistence/test/source-adjudication.test.js \
             packages/persistence/test/source-authority-manifest.test.js \
             packages/persistence/test/source-inventory.test.js \
             packages/persistence/test/source-read-contract.test.js \

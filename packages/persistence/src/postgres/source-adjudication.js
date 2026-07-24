@@ -4,8 +4,11 @@ export const JSON_POSTGRES_SOURCE_ADJUDICATION_CONTRACT_VERSION =
   "law-firm-os.json-postgres-source-adjudication-contract.v1";
 export const JSON_POSTGRES_SOURCE_ADJUDICATION_RECOMMENDATIONS_VERSION =
   "law-firm-os.json-postgres-source-adjudication-recommendations.v1";
+export const JSON_POSTGRES_RECORD_AUTHORITY_VERSION =
+  "law-firm-os.json-postgres-record-authority.v1";
 
 const SHA256 = /^[a-f0-9]{64}$/u;
+const SHA1 = /^[a-f0-9]{40}$/u;
 const SOURCE_REF = /^[a-f0-9]{32}$/u;
 const SAFE_REF = /^[A-Za-z0-9_.:-]{1,160}$/u;
 const SECRET_FIELD =
@@ -72,6 +75,26 @@ function sha256(value) {
   return createHash("sha256").update(
     typeof value === "string" ? value : stableJson(value),
   ).digest("hex");
+}
+
+function requiredSafeRef(value, label) {
+  const ref = String(value ?? "").trim();
+  if (!SAFE_REF.test(ref)) throw new TypeError(`${label} is invalid`);
+  return ref;
+}
+
+function requiredSourceRef(value, label) {
+  const ref = String(value ?? "").trim();
+  if (!SOURCE_REF.test(ref)) throw new TypeError(`${label} is invalid`);
+  return ref;
+}
+
+function hasExactKeys(value, keys) {
+  return value
+    && typeof value === "object"
+    && !Array.isArray(value)
+    && stableJson(Object.keys(value).sort())
+      === stableJson([...keys].sort());
 }
 
 function normalizedText(value) {
@@ -419,6 +442,7 @@ function chooseRecordWinner(entries) {
       winner: [...entries].sort((left, right) =>
         sourceOrder(left.source, right.source))[0],
       conflict: false,
+      reason_code: "EXACT_RECORD_CONTENT",
     };
   }
   const withVersions = entries.filter((entry) =>
@@ -434,6 +458,7 @@ function chooseRecordWinner(entries) {
         winner: [...latest].sort((left, right) =>
           sourceOrder(left.source, right.source))[0],
         conflict: false,
+        reason_code: "HIGHER_STATE_VERSION",
       };
     }
     entries = latest;
@@ -449,10 +474,11 @@ function chooseRecordWinner(entries) {
         winner: [...latest].sort((left, right) =>
           sourceOrder(left.source, right.source))[0],
         conflict: false,
+        reason_code: "LATEST_AUDIT_CHRONOLOGY",
       };
     }
   }
-  return { winner: null, conflict: true };
+  return { winner: null, conflict: true, reason_code: null };
 }
 
 function recommendationMaterial(value) {
@@ -466,6 +492,702 @@ function recommendationMaterial(value) {
     safe_counts: value.safe_counts,
     claims: value.claims,
   };
+}
+
+function recordAuthorityMaterial(value) {
+  return {
+    schema_version: value.schema_version,
+    decision_set_ref: value.decision_set_ref,
+    source_sha: value.source_sha,
+    source_tree: value.source_tree,
+    inventory_content_sha256: value.inventory_content_sha256,
+    adjudication_contract_sha256: value.adjudication_contract_sha256,
+    recommendation_sha256: value.recommendation_sha256,
+    policy: value.policy,
+    sources: value.sources,
+    record_decisions: value.record_decisions,
+    identity_decisions: value.identity_decisions,
+    safe_counts: value.safe_counts,
+    claims: value.claims,
+  };
+}
+
+function comparisonMaterial(value) {
+  const {
+    comparison_sha256: ignoredComparisonSha256,
+    ...material
+  } = value ?? {};
+  return material;
+}
+
+function recordEntry(contractByRef, sourceRef, recordRef) {
+  const source = contractByRef.get(sourceRef);
+  const record = source?.records.find((row) =>
+    row.record_ref === recordRef);
+  if (!source || !record) {
+    throw new TypeError("record authority candidate is absent");
+  }
+  return { source, record };
+}
+
+function validateResidualComparison(comparison, {
+  inventoryContentSha256,
+  recommendationSha256,
+  canonicalSourceRef,
+  projectionSourceRef,
+  residualRecordRefs,
+} = {}) {
+  if (comparison?.schema_version
+      !== "law-firm-os.json-postgres-residual-record-structural-comparison.v1"
+    || comparison.inventory_content_sha256 !== inventoryContentSha256
+    || comparison.recommendation_sha256 !== recommendationSha256
+    || !SHA256.test(comparison.comparison_sha256 ?? "")
+    || sha256(comparisonMaterial(comparison))
+      !== comparison.comparison_sha256
+    || comparison.claims?.source_read_once !== true
+    || Object.entries(comparison.claims ?? {}).some(([key, value]) =>
+      key !== "source_read_once" && value !== false)
+    || comparison.safe_counts?.residual_record_count !== 0
+    || comparison.safe_counts?.conflicting_non_derived_live_field_count
+      !== 0) {
+    throw new TypeError("record authority residual comparison is invalid");
+  }
+  const sourceRefs = new Set((comparison.sources ?? []).map((source) =>
+    source.source_ref));
+  if (!sourceRefs.has(canonicalSourceRef)
+    || !sourceRefs.has(projectionSourceRef)
+    || sourceRefs.size !== 2) {
+    throw new TypeError("record authority residual sources are invalid");
+  }
+  const comparisonRefs = (comparison.comparisons ?? [])
+    .map((row) => row.record_ref).sort();
+  if (stableJson(comparisonRefs)
+      !== stableJson([...residualRecordRefs].sort())
+    || comparison.comparisons.some((row) =>
+      row.safe_counts?.conflicting_non_derived_live_field_count !== 0
+      || row.safe_counts?.conflicting_field_count !== 0)) {
+    throw new TypeError("record authority residual records are invalid");
+  }
+}
+
+export function createJsonPostgresRecordAuthority({
+  inventory,
+  recommendations,
+  residualComparison,
+  decisionSetRef,
+  ownerDecisionRef,
+  sourceSha,
+  sourceTree,
+  rootPriority = [],
+  canonicalMasterSourceRef,
+  crmProjectionSourceRef,
+  masterDataResidualRecordRefs = [],
+} = {}) {
+  validateJsonPostgresAdjudicationRecommendations(recommendations, {
+    inventory,
+    approvedInventoryContentSha256:
+      inventory?.inventory_content_sha256,
+  });
+  const decisionRef = requiredSafeRef(
+    ownerDecisionRef,
+    "record authority owner decision ref",
+  );
+  const setRef = requiredSafeRef(
+    decisionSetRef,
+    "record authority decision set ref",
+  );
+  if (!SHA1.test(sourceSha ?? "") || !SHA1.test(sourceTree ?? "")) {
+    throw new TypeError("record authority source binding is invalid");
+  }
+  const priority = rootPriority.map((rootRef) =>
+    requiredSafeRef(rootRef, "record authority root priority"));
+  if (priority.length === 0
+    || new Set(priority).size !== priority.length) {
+    throw new TypeError("record authority root priority is invalid");
+  }
+  const priorityByRoot = new Map(priority.map((rootRef, index) =>
+    [rootRef, index]));
+  const residualRecordRefs = new Set(masterDataResidualRecordRefs.map(
+    (recordRef) => requiredSourceRef(
+      recordRef,
+      "record authority residual record ref",
+    ),
+  ));
+  if (residualRecordRefs.size !== masterDataResidualRecordRefs.length) {
+    throw new TypeError("record authority residual records are duplicated");
+  }
+  const canonicalSourceRef = residualRecordRefs.size > 0
+    ? requiredSourceRef(
+        canonicalMasterSourceRef,
+        "record authority canonical master source ref",
+      )
+    : null;
+  const projectionSourceRef = residualRecordRefs.size > 0
+    ? requiredSourceRef(
+        crmProjectionSourceRef,
+        "record authority CRM projection source ref",
+      )
+    : null;
+  if (residualRecordRefs.size > 0) {
+    if (canonicalSourceRef === projectionSourceRef) {
+      throw new TypeError("record authority master sources must differ");
+    }
+    validateResidualComparison(residualComparison, {
+      inventoryContentSha256: inventory.inventory_content_sha256,
+      recommendationSha256: recommendations.recommendation_sha256,
+      canonicalSourceRef,
+      projectionSourceRef,
+      residualRecordRefs,
+    });
+  }
+  const contract = inventory.adjudication_contract;
+  const contractByRef = new Map(contract.sources.map((source) =>
+    [source.source_ref, source]));
+  const selectedRecordCounts = new Map(recommendations.sources.map((source) =>
+    [source.source_ref, source.winning_record_count]));
+  const digestGroups = new Map();
+  for (const source of inventory.sources) {
+    if (!digestGroups.has(source.sha256)) digestGroups.set(source.sha256, []);
+    digestGroups.get(source.sha256).push(source);
+  }
+  const representatives = [...digestGroups.values()].map((sources) =>
+    [...sources].sort(sourceOrder)[0]);
+  const recordsByFamilyAndRef = new Map();
+  for (const source of representatives) {
+    const lineage = contractByRef.get(source.source_ref);
+    for (const record of lineage.records) {
+      const key = `${source.source_family}:${record.record_ref}`;
+      if (!recordsByFamilyAndRef.has(key)) {
+        recordsByFamilyAndRef.set(key, []);
+      }
+      recordsByFamilyAndRef.get(key).push({ source: lineage, record });
+    }
+  }
+  const unresolvedByKey = new Map(
+    recommendations.record_conflicts.map((conflict) => [
+      `${conflict.source_family}:${conflict.record_ref}`,
+      conflict,
+    ]),
+  );
+  const resolvedOwnerConflictKeys = new Set();
+  const recordDecisions = [];
+  let automaticRecordDecisionCount = 0;
+  for (const [key, candidates] of recordsByFamilyAndRef) {
+    if (new Set(candidates.map((entry) =>
+      entry.record.content_sha256)).size === 1) continue;
+    const [sourceFamily, recordRef] = key.split(":");
+    const automatic = chooseRecordWinner(candidates);
+    let canonical;
+    let reasonCode;
+    if (!automatic.conflict) {
+      canonical = automatic.winner;
+      reasonCode = automatic.reason_code;
+      automaticRecordDecisionCount += 1;
+    } else {
+      const conflict = unresolvedByKey.get(key);
+      if (!conflict
+        || stableJson([...conflict.source_refs].sort())
+          !== stableJson(candidates.map((entry) =>
+            entry.source.source_ref).sort())) {
+        throw new TypeError(
+          `record authority unresolved binding drifted: ${recordRef}`,
+        );
+      }
+      const ranked = candidates.filter((entry) =>
+        priorityByRoot.has(entry.source.root_ref));
+      const bestRank = ranked.length === candidates.length
+        ? Math.min(...ranked.map((entry) =>
+            priorityByRoot.get(entry.source.root_ref)))
+        : null;
+      const finalists = bestRank === null
+        ? []
+        : ranked.filter((entry) =>
+            priorityByRoot.get(entry.source.root_ref) === bestRank);
+      if (finalists.length === 1) {
+        [canonical] = finalists;
+        reasonCode = "OWNER_ROOT_PRIORITY";
+      } else if (residualRecordRefs.has(recordRef)
+        && conflict.source_refs.includes(canonicalSourceRef)
+        && conflict.source_refs.includes(projectionSourceRef)
+        && finalists.length === 2
+        && finalists.every((entry) =>
+          [canonicalSourceRef, projectionSourceRef]
+            .includes(entry.source.source_ref))) {
+        canonical = recordEntry(
+          contractByRef,
+          canonicalSourceRef,
+          recordRef,
+        );
+        reasonCode = "CANONICAL_MASTER_DATA";
+      } else {
+        throw new TypeError(
+          `record authority remains unresolved: ${recordRef}`,
+        );
+      }
+      resolvedOwnerConflictKeys.add(key);
+      selectedRecordCounts.set(
+        canonical.source.source_ref,
+        (selectedRecordCounts.get(canonical.source.source_ref) ?? 0) + 1,
+      );
+    }
+    recordDecisions.push(Object.freeze({
+      source_family: sourceFamily,
+      record_ref: recordRef,
+      canonical_source_ref: canonical.source.source_ref,
+      canonical_content_sha256: canonical.record.content_sha256,
+      canonical_destination: "postgres-current",
+      archive_only_sources: Object.freeze(candidates
+        .filter((entry) =>
+          entry.source.source_ref !== canonical.source.source_ref)
+        .map((entry) => Object.freeze({
+          source_ref: entry.source.source_ref,
+          content_sha256: entry.record.content_sha256,
+          disposition: "archive-only-lineage",
+        }))
+        .sort((left, right) =>
+          left.source_ref.localeCompare(right.source_ref))),
+      reason_code: reasonCode,
+      decision_ref: `record-authority:${recordRef}`,
+    }));
+  }
+  recordDecisions.sort((left, right) =>
+    left.source_family.localeCompare(right.source_family)
+      || left.record_ref.localeCompare(right.record_ref));
+  if (resolvedOwnerConflictKeys.size
+      !== recommendations.record_conflicts.length
+    || recordDecisions.length
+      !== automaticRecordDecisionCount + resolvedOwnerConflictKeys.size
+    || residualRecordRefs.size !== recordDecisions.filter((decision) =>
+      decision.reason_code === "CANONICAL_MASTER_DATA").length) {
+    throw new TypeError("record authority conflict coverage is incomplete");
+  }
+  const sources = recommendations.sources.map((source) => {
+    const classification = source.recommended_classification
+      ?? ((selectedRecordCounts.get(source.source_ref) ?? 0) > 0
+        ? "authoritative"
+        : "superseded");
+    return Object.freeze({
+      source_ref: source.source_ref,
+      root_ref: source.root_ref,
+      source_family: source.source_family,
+      sha256: source.sha256,
+      classification,
+      reason_code: source.recommended_classification === null
+        ? classification === "authoritative"
+          ? "OWNER_RECORD_WINNER"
+          : "OWNER_RECORD_ARCHIVE_ONLY"
+        : source.recommended_reason_code,
+      decision_ref: `source-authority:${source.source_ref}`,
+    });
+  });
+  const conflicts = recommendations.identity_conflicts;
+  if (conflicts.roster_without_registered_account_refs.length > 0
+    || conflicts.duplicate_email_refs.length > 0
+    || conflicts.duplicate_matter_code_refs.length > 0) {
+    throw new TypeError("record authority identity or matter conflicts remain");
+  }
+  const identityDecisions =
+    conflicts.registered_account_without_roster_refs.map((identityRef) =>
+      Object.freeze({
+        identity_ref: identityRef,
+        account_status: "disabled",
+        roster_link_status: "pending-roster-link",
+        login_allowed: false,
+        password_setup_allowed: false,
+        authorization_allowed: false,
+        reason_code: "REGISTERED_ACCOUNT_ROSTER_LINK_PENDING",
+        decision_ref: `identity-authority:${identityRef}`,
+      }));
+  const safeCounts = Object.freeze({
+    source_count: sources.length,
+    authoritative_source_count: sources.filter((source) =>
+      source.classification === "authoritative").length,
+    superseded_source_count: sources.filter((source) =>
+      source.classification === "superseded").length,
+    duplicate_source_count: sources.filter((source) =>
+      source.classification === "duplicate").length,
+    synthetic_source_count: sources.filter((source) =>
+      source.classification === "synthetic").length,
+    corrupt_source_count: sources.filter((source) =>
+      source.classification === "corrupt").length,
+    record_decision_count: recordDecisions.length,
+    automatic_record_decision_count: automaticRecordDecisionCount,
+    owner_record_decision_count: resolvedOwnerConflictKeys.size,
+    residual_record_count: 0,
+    identity_decision_count: identityDecisions.length,
+    duplicate_email_count: 0,
+    duplicate_matter_code_count: 0,
+  });
+  const value = Object.freeze({
+    schema_version: JSON_POSTGRES_RECORD_AUTHORITY_VERSION,
+    decision_set_ref: setRef,
+    source_sha: sourceSha,
+    source_tree: sourceTree,
+    inventory_content_sha256: inventory.inventory_content_sha256,
+    adjudication_contract_sha256:
+      contract.adjudication_contract_sha256,
+    recommendation_sha256: recommendations.recommendation_sha256,
+    policy: Object.freeze({
+      owner_decision_ref: decisionRef,
+      root_priority: Object.freeze([...priority]),
+      canonical_master_source_ref: canonicalSourceRef,
+      crm_projection_source_ref: projectionSourceRef,
+      master_data_residual_record_refs:
+        Object.freeze([...residualRecordRefs].sort()),
+      residual_comparison_sha256:
+        residualComparison?.comparison_sha256 ?? null,
+      source_selection_by_mtime: false,
+      preserve_archive_lineage: true,
+      preserve_unique_records: true,
+      secrets_excluded: true,
+    }),
+    sources: Object.freeze(sources),
+    record_decisions: Object.freeze(recordDecisions),
+    identity_decisions: Object.freeze(identityDecisions),
+    safe_counts: safeCounts,
+    claims: Object.freeze({
+      authority_selected_by_mtime: false,
+      authority_decision_final: true,
+      raw_value_returned: false,
+      raw_path_returned: false,
+      pii_returned: false,
+      secret_material_returned: false,
+      source_mutated: false,
+      postgres_mutated: false,
+      production_contacted: false,
+    }),
+  });
+  return Object.freeze({
+    ...value,
+    authority_sha256: sha256(recordAuthorityMaterial(value)),
+  });
+}
+
+export function validateJsonPostgresRecordAuthority(authority, {
+  inventory,
+  recommendations,
+  residualComparison,
+} = {}) {
+  validateJsonPostgresRecordAuthorityBinding(authority, { inventory });
+  const rebuilt = createJsonPostgresRecordAuthority({
+    inventory,
+    recommendations,
+    residualComparison,
+    decisionSetRef: authority.decision_set_ref,
+    ownerDecisionRef: authority.policy?.owner_decision_ref,
+    sourceSha: authority.source_sha,
+    sourceTree: authority.source_tree,
+    rootPriority: authority.policy?.root_priority,
+    canonicalMasterSourceRef:
+      authority.policy?.canonical_master_source_ref,
+    crmProjectionSourceRef:
+      authority.policy?.crm_projection_source_ref,
+    masterDataResidualRecordRefs:
+      authority.policy?.master_data_residual_record_refs,
+  });
+  if (stableJson(rebuilt) !== stableJson(authority)) {
+    throw new TypeError("record authority manifest drifted");
+  }
+  return Object.freeze({
+    valid: true,
+    authority_sha256: authority.authority_sha256,
+    source_count: authority.sources.length,
+    record_decision_count: authority.record_decisions.length,
+    residual_record_count: authority.safe_counts.residual_record_count,
+  });
+}
+
+export function validateJsonPostgresRecordAuthorityBinding(authority, {
+  inventory,
+} = {}) {
+  const expectedClaims = {
+    authority_selected_by_mtime: false,
+    authority_decision_final: true,
+    raw_value_returned: false,
+    raw_path_returned: false,
+    pii_returned: false,
+    secret_material_returned: false,
+    source_mutated: false,
+    postgres_mutated: false,
+    production_contacted: false,
+  };
+  const policy = authority?.policy;
+  if (!hasExactKeys(authority, [
+    "schema_version",
+    "decision_set_ref",
+    "source_sha",
+    "source_tree",
+    "inventory_content_sha256",
+    "adjudication_contract_sha256",
+    "recommendation_sha256",
+    "policy",
+    "sources",
+    "record_decisions",
+    "identity_decisions",
+    "safe_counts",
+    "claims",
+    "authority_sha256",
+  ])
+    || !hasExactKeys(policy, [
+      "owner_decision_ref",
+      "root_priority",
+      "canonical_master_source_ref",
+      "crm_projection_source_ref",
+      "master_data_residual_record_refs",
+      "residual_comparison_sha256",
+      "source_selection_by_mtime",
+      "preserve_archive_lineage",
+      "preserve_unique_records",
+      "secrets_excluded",
+    ])
+    || authority?.schema_version !== JSON_POSTGRES_RECORD_AUTHORITY_VERSION
+    || !SHA256.test(authority?.authority_sha256 ?? "")
+    || !SHA1.test(authority?.source_sha ?? "")
+    || !SHA1.test(authority?.source_tree ?? "")
+    || !SAFE_REF.test(authority?.decision_set_ref ?? "")
+    || !SHA256.test(authority?.recommendation_sha256 ?? "")
+    || sha256(recordAuthorityMaterial(authority))
+      !== authority.authority_sha256
+    || authority.inventory_content_sha256
+      !== inventory?.inventory_content_sha256
+    || authority.adjudication_contract_sha256
+      !== inventory?.adjudication_contract?.adjudication_contract_sha256
+    || authority.safe_counts?.residual_record_count !== 0
+    || stableJson(authority.claims) !== stableJson(expectedClaims)
+    || !SAFE_REF.test(policy?.owner_decision_ref ?? "")
+    || !Array.isArray(policy?.root_priority)
+    || policy.root_priority.length === 0
+    || new Set(policy.root_priority).size !== policy.root_priority.length
+    || policy.root_priority.some((rootRef) =>
+      !SAFE_REF.test(rootRef))
+    || !Array.isArray(policy?.master_data_residual_record_refs)
+    || new Set(policy.master_data_residual_record_refs).size
+      !== policy.master_data_residual_record_refs.length
+    || policy.master_data_residual_record_refs.some((recordRef) =>
+      !SOURCE_REF.test(recordRef))
+    || policy.source_selection_by_mtime !== false
+    || policy.preserve_archive_lineage !== true
+    || policy.preserve_unique_records !== true
+    || policy.secrets_excluded !== true) {
+    throw new TypeError("record authority manifest is invalid");
+  }
+  const residualRefs = policy.master_data_residual_record_refs;
+  if (stableJson(residualRefs)
+      !== stableJson([...residualRefs].sort())
+    || (residualRefs.length === 0
+      ? policy.canonical_master_source_ref !== null
+        || policy.crm_projection_source_ref !== null
+        || policy.residual_comparison_sha256 !== null
+      : !SOURCE_REF.test(policy.canonical_master_source_ref ?? "")
+        || !SOURCE_REF.test(policy.crm_projection_source_ref ?? "")
+        || policy.canonical_master_source_ref
+          === policy.crm_projection_source_ref
+        || !SHA256.test(policy.residual_comparison_sha256 ?? ""))) {
+    throw new TypeError("record authority residual policy is invalid");
+  }
+  const inventoryByRef = new Map((inventory.sources ?? []).map((source) =>
+    [source.source_ref, source]));
+  const contractByRef = new Map(
+    (inventory.adjudication_contract?.sources ?? []).map((source) =>
+      [source.source_ref, source]),
+  );
+  const authorityByRef = new Map();
+  for (const source of authority.sources ?? []) {
+    const inventoried = inventoryByRef.get(source.source_ref);
+    if (!hasExactKeys(source, [
+      "source_ref",
+      "root_ref",
+      "source_family",
+      "sha256",
+      "classification",
+      "reason_code",
+      "decision_ref",
+    ])
+      || authorityByRef.has(source.source_ref)
+      || !inventoried
+      || source.root_ref !== inventoried.root_ref
+      || source.source_family !== inventoried.source_family
+      || source.sha256 !== inventoried.sha256
+      || !["authoritative", "superseded", "duplicate", "synthetic", "corrupt"]
+        .includes(source.classification)
+      || !SAFE_REF.test(source.reason_code ?? "")
+      || !SAFE_REF.test(source.decision_ref ?? "")) {
+      throw new TypeError("record authority source binding is invalid");
+    }
+    authorityByRef.set(source.source_ref, source);
+  }
+  if (authorityByRef.size !== inventoryByRef.size) {
+    throw new TypeError("record authority source coverage is incomplete");
+  }
+  const digestGroups = new Map();
+  for (const source of inventory.sources ?? []) {
+    if (!digestGroups.has(source.sha256)) digestGroups.set(source.sha256, []);
+    digestGroups.get(source.sha256).push(source);
+  }
+  const recordsByKey = new Map();
+  for (const sources of digestGroups.values()) {
+    const representative = [...sources].sort(sourceOrder)[0];
+    const lineage = contractByRef.get(representative.source_ref);
+    for (const record of lineage?.records ?? []) {
+      const key = `${representative.source_family}:${record.record_ref}`;
+      if (!recordsByKey.has(key)) recordsByKey.set(key, []);
+      recordsByKey.get(key).push({
+        source_ref: representative.source_ref,
+        content_sha256: record.content_sha256,
+      });
+    }
+  }
+  const divergentRecordKeys = new Set([...recordsByKey]
+    .filter(([, records]) => new Set(records.map((record) =>
+      record.content_sha256)).size > 1)
+    .map(([key]) => key));
+  const decisionKeys = new Set();
+  const decisionRefs = new Set();
+  for (const decision of authority.record_decisions ?? []) {
+    const key = `${decision.source_family}:${decision.record_ref}`;
+    const expectedCandidates = recordsByKey.get(key) ?? [];
+    const canonicalSource = contractByRef.get(
+      decision.canonical_source_ref,
+    );
+    const canonicalRecord = canonicalSource?.records.find((record) =>
+      record.record_ref === decision.record_ref);
+    if (!hasExactKeys(decision, [
+      "source_family",
+      "record_ref",
+      "canonical_source_ref",
+      "canonical_content_sha256",
+      "canonical_destination",
+      "archive_only_sources",
+      "reason_code",
+      "decision_ref",
+    ])
+      || decisionKeys.has(key)
+      || decisionRefs.has(decision.decision_ref)
+      || !divergentRecordKeys.has(key)
+      || !SAFE_REF.test(decision.source_family ?? "")
+      || !SOURCE_REF.test(decision.record_ref ?? "")
+      || !canonicalRecord
+      || canonicalSource.source_family !== decision.source_family
+      || canonicalRecord.content_sha256
+        !== decision.canonical_content_sha256
+      || decision.canonical_destination !== "postgres-current"
+      || authorityByRef.get(decision.canonical_source_ref)
+          ?.classification !== "authoritative"
+      || !Array.isArray(decision.archive_only_sources)
+      || decision.archive_only_sources.length === 0
+      || ![
+        "HIGHER_STATE_VERSION",
+        "LATEST_AUDIT_CHRONOLOGY",
+        "OWNER_ROOT_PRIORITY",
+        "CANONICAL_MASTER_DATA",
+      ].includes(decision.reason_code)
+      || !SAFE_REF.test(decision.decision_ref ?? "")) {
+      throw new TypeError("record authority decision binding is invalid");
+    }
+    decisionKeys.add(key);
+    decisionRefs.add(decision.decision_ref);
+    const archiveRefs = new Set();
+    for (const archived of decision.archive_only_sources) {
+      const source = contractByRef.get(archived.source_ref);
+      const record = source?.records.find((row) =>
+        row.record_ref === decision.record_ref);
+      if (!hasExactKeys(archived, [
+        "source_ref",
+        "content_sha256",
+        "disposition",
+      ])
+        || archiveRefs.has(archived.source_ref)
+        || archived.source_ref === decision.canonical_source_ref
+        || archived.disposition !== "archive-only-lineage"
+        || !record
+        || source.source_family !== decision.source_family
+        || record.content_sha256 !== archived.content_sha256) {
+        throw new TypeError(
+          "record authority archive binding is invalid",
+        );
+      }
+      archiveRefs.add(archived.source_ref);
+    }
+    const actualCandidateRefs = [
+      decision.canonical_source_ref,
+      ...archiveRefs,
+    ].sort();
+    const expectedCandidateRefs = expectedCandidates.map((candidate) =>
+      candidate.source_ref).sort();
+    if (stableJson(actualCandidateRefs)
+        !== stableJson(expectedCandidateRefs)) {
+      throw new TypeError(
+        "record authority candidate coverage is incomplete",
+      );
+    }
+  }
+  if (stableJson([...decisionKeys].sort())
+      !== stableJson([...divergentRecordKeys].sort())) {
+    throw new TypeError("record authority conflict coverage is incomplete");
+  }
+  const identityRefs = new Set();
+  for (const decision of authority.identity_decisions ?? []) {
+    if (!hasExactKeys(decision, [
+      "identity_ref",
+      "account_status",
+      "roster_link_status",
+      "login_allowed",
+      "password_setup_allowed",
+      "authorization_allowed",
+      "reason_code",
+      "decision_ref",
+    ])
+      || !SOURCE_REF.test(decision.identity_ref ?? "")
+      || identityRefs.has(decision.identity_ref)
+      || decision.account_status !== "disabled"
+      || decision.roster_link_status !== "pending-roster-link"
+      || decision.login_allowed !== false
+      || decision.password_setup_allowed !== false
+      || decision.authorization_allowed !== false
+      || !SAFE_REF.test(decision.reason_code ?? "")
+      || !SAFE_REF.test(decision.decision_ref ?? "")) {
+      throw new TypeError("record authority identity decision is invalid");
+    }
+    identityRefs.add(decision.identity_ref);
+  }
+  const recomputed = {
+    source_count: authorityByRef.size,
+    authoritative_source_count: [...authorityByRef.values()].filter(
+      (source) => source.classification === "authoritative").length,
+    superseded_source_count: [...authorityByRef.values()].filter(
+      (source) => source.classification === "superseded").length,
+    duplicate_source_count: [...authorityByRef.values()].filter(
+      (source) => source.classification === "duplicate").length,
+    synthetic_source_count: [...authorityByRef.values()].filter(
+      (source) => source.classification === "synthetic").length,
+    corrupt_source_count: [...authorityByRef.values()].filter(
+      (source) => source.classification === "corrupt").length,
+    record_decision_count: decisionKeys.size,
+    automatic_record_decision_count: authority.record_decisions.filter(
+      (decision) => [
+        "HIGHER_STATE_VERSION",
+        "LATEST_AUDIT_CHRONOLOGY",
+      ].includes(decision.reason_code)).length,
+    owner_record_decision_count: authority.record_decisions.filter(
+      (decision) => [
+        "OWNER_ROOT_PRIORITY",
+        "CANONICAL_MASTER_DATA",
+      ].includes(decision.reason_code)).length,
+    residual_record_count: 0,
+    identity_decision_count: identityRefs.size,
+    duplicate_email_count: 0,
+    duplicate_matter_code_count: 0,
+  };
+  if (stableJson(recomputed) !== stableJson(authority.safe_counts)) {
+    throw new TypeError("record authority counts are invalid");
+  }
+  return Object.freeze({
+    valid: true,
+    authority_sha256: authority.authority_sha256,
+    source_count: authority.sources.length,
+    record_decision_count: authority.record_decisions.length,
+    residual_record_count: authority.safe_counts.residual_record_count,
+  });
 }
 
 export function createJsonPostgresAdjudicationRecommendations({

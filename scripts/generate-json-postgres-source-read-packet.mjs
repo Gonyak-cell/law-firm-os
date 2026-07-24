@@ -5,6 +5,9 @@ import {
   createJsonPostgresSourceReadPacket,
 } from "../packages/persistence/src/postgres/source-read-contract.js";
 import {
+  validateJsonPostgresRecordAuthorityBinding,
+} from "../packages/persistence/src/postgres/source-adjudication.js";
+import {
   deriveJsonPostgresInventoryContentSha256,
 } from "../packages/persistence/src/postgres/source-inventory.js";
 import {
@@ -45,12 +48,18 @@ if (git("status", "--porcelain=v1", "--untracked-files=all")) {
 const sourceSha = git("rev-parse", "HEAD");
 const sourceTree = git("rev-parse", "HEAD^{tree}");
 const inventory = readPrivateProgramJson(option("--inventory"), "safe source inventory");
+const recordAuthority = readPrivateProgramJson(
+  option("--record-authority"),
+  "record authority manifest",
+);
+validateJsonPostgresRecordAuthorityBinding(recordAuthority, { inventory });
 const inventoryContentSha256 = deriveJsonPostgresInventoryContentSha256(inventory);
 const created = createJsonPostgresSourceReadPacket({
   packetId: option("--packet-id"),
   sourceSha,
   sourceTree,
   inventoryContentSha256,
+  recordAuthoritySha256: recordAuthority.authority_sha256,
   approvedRootRefs: repeated("--approved-root"),
 });
 const outputDir = createPrivateProgramOutputDirectory(option("--output-dir"));
@@ -65,6 +74,7 @@ const summary = writePrivateProgramJson(
     source_sha: sourceSha,
     source_tree: sourceTree,
     inventory_content_sha256: inventoryContentSha256,
+    record_authority_sha256: recordAuthority.authority_sha256,
     inventory_delta_policy_sha256: created.packet.inventory_delta_policy_sha256,
     packet_sha256: created.packet_sha256,
     approved_root_refs: created.packet.approved_root_refs,

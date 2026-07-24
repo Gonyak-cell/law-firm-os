@@ -8,9 +8,12 @@ import {
   createJsonPostgresSourceAuthorityManifest,
   JSON_POSTGRES_INVENTORY_DELTA_POLICY_SHA256,
 } from "./source-authority-manifest.js";
+import {
+  validateJsonPostgresRecordAuthorityBinding,
+} from "./source-adjudication.js";
 
-export const JSON_POSTGRES_AUTHORITY_DECISIONS_VERSION = "law-firm-os.json-postgres-authority-decisions.v1";
-export const JSON_POSTGRES_AUTHORITY_BUNDLE_VERSION = "law-firm-os.json-postgres-authority-bundle.v1";
+export const JSON_POSTGRES_AUTHORITY_DECISIONS_VERSION = "law-firm-os.json-postgres-authority-decisions.v2";
+export const JSON_POSTGRES_AUTHORITY_BUNDLE_VERSION = "law-firm-os.json-postgres-authority-bundle.v2";
 
 const SHA256 = /^[0-9a-f]{64}$/u;
 const SAFE_REF = /^[A-Za-z0-9_.:-]{1,160}$/u;
@@ -20,6 +23,7 @@ const CLOSED_DECISION_KEYS = new Set([
   "decision_set_ref",
   "inventory_content_sha256",
   "record_type_catalog_sha256",
+  "record_authority_sha256",
   "approved_root_refs",
   "decisions",
   "field_overrides",
@@ -62,6 +66,7 @@ function validateDecisions(decisions = {}) {
   requiredRef(decisions.decision_set_ref, "authority decision set ref");
   requiredDigest(decisions.inventory_content_sha256, "authority inventory digest");
   requiredDigest(decisions.record_type_catalog_sha256, "authority record-type catalog digest");
+  requiredDigest(decisions.record_authority_sha256, "record authority digest");
   for (const field of ["approved_root_refs", "decisions", "field_overrides", "expected_rejections"]) {
     if (!Array.isArray(decisions[field])) throw new TypeError(`authority decisions ${field} must be an array`);
   }
@@ -79,7 +84,7 @@ function validateDecisions(decisions = {}) {
 
 function validateSourceTransformResult(result, inventory) {
   if (!result) return null;
-  if (result.schema_version !== "law-firm-os.json-postgres-source-transform-result.v1"
+  if (result.schema_version !== "law-firm-os.json-postgres-source-transform-result.v2"
     || !SHA256.test(result.result_sha256 ?? "")
     || !SHA256.test(result.source_transform_plan_sha256 ?? "")
     || !SHA256.test(result.migration_manifest_sha256 ?? "")
@@ -109,9 +114,17 @@ export async function createJsonPostgresAuthorityBundle({
   corpus = {},
   baseManifest = null,
   sourceTransformResult = null,
+  recordAuthority,
 } = {}) {
   validateDecisions(decisions);
   validateJsonPostgresRecordTypeCatalog(recordTypeCatalog);
+  validateJsonPostgresRecordAuthorityBinding(recordAuthority, {
+    inventory,
+  });
+  if (decisions.record_authority_sha256
+      !== recordAuthority.authority_sha256) {
+    throw new TypeError("record authority digest drifted");
+  }
   const transform = validateSourceTransformResult(sourceTransformResult, inventory);
   if (corpus.data_scope !== "approved-real-manifest") throw new TypeError("authority bundle requires approved-real-manifest data scope");
   if (decisions.inventory_content_sha256 !== inventory.inventory_content_sha256) {
@@ -131,6 +144,7 @@ export async function createJsonPostgresAuthorityBundle({
     approvedRootRefs: decisions.approved_root_refs,
     recordTypeCatalog,
     fieldCrosswalk,
+    recordAuthority,
   });
   const migrationDryRun = await runJsonPostgresMigration({
     corpus,
@@ -160,6 +174,7 @@ export async function createJsonPostgresAuthorityBundle({
     ready_for_owner_signature: readyForOwnerSignature,
     inventory_content_sha256: inventory.inventory_content_sha256,
     record_type_catalog_sha256: recordTypeCatalog.catalog_sha256,
+    record_authority_sha256: recordAuthority.authority_sha256,
     field_crosswalk_sha256: fieldCrosswalk.field_crosswalk_sha256,
     authority_manifest_sha256: authorityManifest.manifest_sha256,
     migration_manifest_sha256: migrationDryRun.source_manifest_sha256,
@@ -177,6 +192,10 @@ export async function createJsonPostgresAuthorityBundle({
       synthetic_source_count: authorityManifest.counts.synthetic_count,
       corrupt_source_count: authorityManifest.counts.corrupt_count,
       unresolved_source_count: authorityManifest.counts.unresolved_count,
+      record_decision_count:
+        authorityManifest.counts.record_decision_count,
+      identity_decision_count:
+        authorityManifest.counts.identity_decision_count,
       field_count: fieldCrosswalk.fields.length,
       accepted_record_count: migrationDryRun.safe_counts.accepted_record_count,
       expected_rejected_count: reconciliation.safe_counts.expected_rejected_count,

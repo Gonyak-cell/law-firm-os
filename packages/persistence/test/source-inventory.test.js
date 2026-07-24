@@ -33,7 +33,13 @@ test("source inventory emits only safe metadata and classifies every field", asy
   const primary = {
     schema_version: "law-firm-os.test.v1",
     tenant_id: "tenant-real-never-return",
-    users: [{ user_id: "user-real-never-return", email: "person@example.test", api_key: "forbidden" }],
+    users: [{
+      user_id: "user-real-never-return",
+      email: "person@example.test",
+      api_key: "forbidden",
+      accessToken: "forbidden-camel-case",
+      tokens: ["forbidden-plural"],
+    }],
     credential_provider: "lawos-internal-password-provider-v1",
     credential_status: "reset_required",
     credential_rev: 3,
@@ -66,6 +72,8 @@ test("source inventory emits only safe metadata and classifies every field", asy
   assert.deepEqual(Object.keys(report.field_contract.disposition_counts), JSON_POSTGRES_FIELD_DISPOSITIONS);
   assert.equal(report.field_contract.silent_drop_count, 0);
   assert.ok(report.field_contract.fields.some((field) => field.field_name === "api_key" && field.disposition === "secret-excluded"));
+  assert.ok(report.field_contract.fields.some((field) => field.field_name === "accessToken" && field.disposition === "secret-excluded"));
+  assert.ok(report.field_contract.fields.some((field) => field.field_name === "tokens" && field.disposition === "secret-excluded"));
   assert.ok(report.field_contract.fields.some((field) => field.field_name === "credential_provider" && field.disposition === "postgres-live"));
   assert.ok(report.field_contract.fields.some((field) => field.field_name === "credential_status" && field.disposition === "postgres-live"));
   assert.ok(report.field_contract.fields.some((field) => field.field_name === "credential_rev" && field.disposition === "postgres-live"));

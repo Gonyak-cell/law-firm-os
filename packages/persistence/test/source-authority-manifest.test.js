@@ -48,6 +48,8 @@ async function fixture(t) {
       matter_code: "CODE-NEVER-RETURN",
       credential_provider: "lawos-internal-password-provider-v1",
       password_hash: "secret-never-return",
+      accessToken: "secret-camel-case-never-return",
+      tokens: ["secret-plural-never-return"],
     }],
   })}\n`;
   const secondBytes = `${JSON.stringify({ data_scope: "synthetic-only", record_id: "synthetic-never-return" })}\n`;
@@ -82,7 +84,22 @@ test("crosswalk and authority manifest bind every source without exposing source
     recordTypeCatalog,
   }).valid, true);
   assert.equal(fieldCrosswalk.fields.find((field) => field.field_name === "password_hash").disposition, "secret-excluded");
+  assert.equal(fieldCrosswalk.fields.find((field) => field.field_name === "accessToken").disposition, "secret-excluded");
+  assert.equal(fieldCrosswalk.fields.find((field) => field.field_name === "tokens").disposition, "secret-excluded");
   assert.equal(fieldCrosswalk.claims.silent_drop_count, 0);
+  const legacyInventory = structuredClone(source.inventory);
+  legacyInventory.field_contract.fields.find((field) =>
+    field.field_name === "accessToken").disposition =
+      "postgres-json-payload";
+  const legacyCrosswalk = createJsonPostgresFieldCrosswalk({
+    inventory: legacyInventory,
+    recordTypeCatalog,
+  });
+  assert.equal(
+    legacyCrosswalk.fields.find((field) =>
+      field.field_name === "accessToken").disposition,
+    "secret-excluded",
+  );
 
   const decisions = source.inventory.sources.map((item) => ({
     source_ref: item.source_ref,

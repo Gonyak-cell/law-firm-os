@@ -23,6 +23,8 @@
     "private-staging:receipts:validate": "node scripts/validate-private-staging-execution-receipts.mjs",
     "json-postgres:inventory": "node scripts/run-json-postgres-source-inventory.mjs",
     "json-postgres:source-read:packet": "node scripts/generate-json-postgres-source-read-packet.mjs",
+    "json-postgres:record-authority:finalize": "node scripts/finalize-json-postgres-record-authority.mjs",
+    "json-postgres:record-authority:seal": "node scripts/seal-json-postgres-record-authority.mjs",
     "json-postgres:adjudicate": "node scripts/prepare-json-postgres-authority-bundle.mjs",
     "json-postgres:corpus:prepare": "node scripts/prepare-json-postgres-migration-corpus.mjs",
     "json-postgres:source:backup": "node scripts/run-json-postgres-source-backup.mjs",

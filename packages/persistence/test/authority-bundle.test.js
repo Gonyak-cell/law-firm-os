@@ -1,19 +1,18 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import {
+  createJsonPostgresAdjudicationRecommendations,
+  createJsonPostgresRecordAuthority,
+} from "../src/postgres/source-adjudication.js";
 import {
   JSON_POSTGRES_AUTHORITY_DECISIONS_VERSION,
   createJsonPostgresAuthorityBundle,
 } from "../src/postgres/authority-bundle.js";
 import { createJsonPostgresRecordTypeCatalog } from "../src/postgres/record-type-catalog.js";
 import { inventoryJsonPostgresSources } from "../src/postgres/source-inventory.js";
-
-function sha256(value) {
-  return createHash("sha256").update(value).digest("hex");
-}
 
 function corpus() {
   return {
@@ -38,6 +37,24 @@ function corpus() {
   };
 }
 
+function authority(inventory, decisionSetRef) {
+  const recommendations =
+    createJsonPostgresAdjudicationRecommendations({
+      inventory,
+      approvedInventoryContentSha256:
+        inventory.inventory_content_sha256,
+    });
+  return createJsonPostgresRecordAuthority({
+    inventory,
+    recommendations,
+    decisionSetRef,
+    ownerDecisionRef: `${decisionSetRef}-owner`,
+    sourceSha: "a".repeat(40),
+    sourceTree: "b".repeat(40),
+    rootPriority: ["runtime-primary"],
+  });
+}
+
 test("authority bundle seals a complete safe candidate but never claims owner approval", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "lawos-authority-bundle-"));
   t.after(() => rm(root, { recursive: true, force: true }));
@@ -49,20 +66,15 @@ test("authority bundle seals a complete safe candidate but never claims owner ap
   });
   const source = corpus();
   const recordTypeCatalog = createJsonPostgresRecordTypeCatalog({ corpus: source });
-  const inventorySource = inventory.sources[0];
+  const recordAuthority = authority(inventory, "owner-adjudication-001");
   const decisions = {
     schema_version: JSON_POSTGRES_AUTHORITY_DECISIONS_VERSION,
     decision_set_ref: "owner-adjudication-001",
     inventory_content_sha256: inventory.inventory_content_sha256,
     record_type_catalog_sha256: recordTypeCatalog.catalog_sha256,
+    record_authority_sha256: recordAuthority.authority_sha256,
     approved_root_refs: ["runtime-primary"],
-    decisions: [{
-      source_ref: inventorySource.source_ref,
-      sha256: sha256(sourceBytes),
-      classification: "authoritative",
-      reason_code: "OWNER_SELECTED",
-      decision_ref: "owner-row-001",
-    }],
+    decisions: recordAuthority.sources,
     field_overrides: [],
     expected_rejections: [],
   };
@@ -70,6 +82,7 @@ test("authority bundle seals a complete safe candidate but never claims owner ap
     inventory,
     decisions,
     recordTypeCatalog,
+    recordAuthority,
     corpus: source,
   });
   assert.equal(bundle.summary.outcome, "READY_FOR_OWNER_SIGNATURE");
@@ -90,7 +103,9 @@ test("authority bundle seals a complete safe candidate but never claims owner ap
 test("authority bundle rejects digest drift and remains blocked for reconciliation defects", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "lawos-authority-bundle-blocked-"));
   t.after(() => rm(root, { recursive: true, force: true }));
-  const bytes = `${JSON.stringify({ record_id: "matter-never-return" })}\n`;
+  const bytes = `${JSON.stringify({
+    records: [{ record_id: "matter-never-return" }],
+  })}\n`;
   await writeFile(join(root, "matter-store.json"), bytes);
   const inventory = await inventoryJsonPostgresSources({
     roots: [{ ref: "runtime-primary", path: root }],
@@ -99,23 +114,25 @@ test("authority bundle rejects digest drift and remains blocked for reconciliati
   const source = corpus();
   source.domains[0].records[0].payload.matter_code = "";
   const recordTypeCatalog = createJsonPostgresRecordTypeCatalog({ corpus: source });
+  const recordAuthority = authority(inventory, "owner-adjudication-002");
   const decisions = {
     schema_version: JSON_POSTGRES_AUTHORITY_DECISIONS_VERSION,
     decision_set_ref: "owner-adjudication-002",
     inventory_content_sha256: inventory.inventory_content_sha256,
     record_type_catalog_sha256: recordTypeCatalog.catalog_sha256,
+    record_authority_sha256: recordAuthority.authority_sha256,
     approved_root_refs: ["runtime-primary"],
-    decisions: [{
-      source_ref: inventory.sources[0].source_ref,
-      sha256: inventory.sources[0].sha256,
-      classification: "authoritative",
-      reason_code: "OWNER_SELECTED",
-      decision_ref: "owner-row-002",
-    }],
+    decisions: recordAuthority.sources,
     field_overrides: [],
     expected_rejections: [],
   };
-  const bundle = await createJsonPostgresAuthorityBundle({ inventory, decisions, recordTypeCatalog, corpus: source });
+  const bundle = await createJsonPostgresAuthorityBundle({
+    inventory,
+    decisions,
+    recordTypeCatalog,
+    recordAuthority,
+    corpus: source,
+  });
   assert.equal(bundle.summary.outcome, "BLOCKED");
   assert.equal(bundle.summary.safe_counts.reconciliation_blocking_count, 1);
 
@@ -123,6 +140,7 @@ test("authority bundle rejects digest drift and remains blocked for reconciliati
     inventory,
     decisions: { ...decisions, inventory_content_sha256: "0".repeat(64) },
     recordTypeCatalog,
+    recordAuthority,
     corpus: source,
   }), /inventory digest drifted/u);
 });

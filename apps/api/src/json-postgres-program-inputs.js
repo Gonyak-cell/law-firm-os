@@ -7,6 +7,9 @@ import {
 import {
   verifyJsonPostgresProgramReceipt,
 } from "../../../packages/persistence/src/postgres/program-receipt.js";
+import {
+  validateJsonPostgresRecordAuthorityBinding,
+} from "../../../packages/persistence/src/postgres/source-adjudication.js";
 import { canonicalizeJson } from "../../../packages/runtime-auth/src/runtime-safety-approval-contract.js";
 import {
   readImmutableProgramInput,
@@ -41,6 +44,7 @@ const INPUT_KEYS = Object.freeze([
   "record_type_catalog",
   "inventory",
   "authority_decisions",
+  "record_authority",
   "migration_corpus",
   "source_transform_result",
   "dms_manifest",
@@ -60,6 +64,7 @@ const MAX_BYTES = Object.freeze({
   record_type_catalog: 16 * 1024 * 1024,
   inventory: 64 * 1024 * 1024,
   authority_decisions: 64 * 1024 * 1024,
+  record_authority: 64 * 1024 * 1024,
   migration_corpus: 128 * 1024 * 1024,
   source_transform_result: 2 * 1024 * 1024,
   dms_manifest: 64 * 1024 * 1024,
@@ -220,7 +225,7 @@ function requireProgramInputs(value, mode) {
     if (!value[key]) fail("LAWOS_PROGRAM_INPUT_SCHEMA", `${key} locator is required`);
   }
   if (mode !== "preflight") {
-    for (const key of ["inventory", "authority_decisions", "migration_corpus", "source_transform_result", "dms_manifest"]) {
+    for (const key of ["inventory", "authority_decisions", "record_authority", "migration_corpus", "source_transform_result", "dms_manifest"]) {
       if (!value[key]) fail("LAWOS_PROGRAM_INPUT_SCHEMA", `${key} locator is required`);
     }
   }
@@ -235,6 +240,7 @@ function assertAuthoritySummaryBindings(summary, catalog, packet) {
     inventory_content_sha256: packet.bindings.inventory_content_sha256,
     inventory_delta_policy_sha256: packet.bindings.inventory_delta_policy_sha256,
     record_type_catalog_sha256: packet.bindings.record_type_catalog_sha256,
+    record_authority_sha256: packet.bindings.record_authority_sha256,
     field_crosswalk_sha256: packet.bindings.field_crosswalk_sha256,
     authority_manifest_sha256: packet.bindings.authority_manifest_sha256,
     migration_manifest_sha256: packet.bindings.migration_manifest_sha256,
@@ -315,9 +321,10 @@ export async function loadJsonPostgresMigrationInputs({
       predecessors: Object.freeze([]),
     });
   }
-  const [inventory, decisions, corpus, sourceTransformResult, dmsManifest, checkpoint, dmsCheckpoint] = await Promise.all([
+  const [inventory, decisions, recordAuthority, corpus, sourceTransformResult, dmsManifest, checkpoint, dmsCheckpoint] = await Promise.all([
     json("inventory"),
     json("authority_decisions"),
+    json("record_authority"),
     json("migration_corpus"),
     json("source_transform_result"),
     json("dms_manifest"),
@@ -326,6 +333,23 @@ export async function loadJsonPostgresMigrationInputs({
   ]);
   if (!packet.target.approved_tenant_ids.includes(corpus.tenant_id)) {
     fail("LAWOS_PROGRAM_TENANT_BINDING", "migration corpus tenant is not in the exact approved tenant set");
+  }
+  try {
+    validateJsonPostgresRecordAuthorityBinding(recordAuthority, {
+      inventory,
+    });
+  } catch {
+    fail(
+      "LAWOS_PROGRAM_AUTHORITY_BINDING",
+      "record authority manifest is invalid",
+    );
+  }
+  if (recordAuthority.authority_sha256
+      !== packet.bindings.record_authority_sha256) {
+    fail(
+      "LAWOS_PROGRAM_AUTHORITY_BINDING",
+      "record authority manifest drifted from the execution packet",
+    );
   }
   const transform = validateJsonPostgresSourceTransformResult(sourceTransformResult);
   if (transform.result_sha256 !== packet.bindings.transform_sha256
@@ -349,6 +373,7 @@ export async function loadJsonPostgresMigrationInputs({
     recordTypeCatalog,
     inventory,
     decisions,
+    recordAuthority,
     corpus,
     sourceTransformResult,
     dmsManifest,

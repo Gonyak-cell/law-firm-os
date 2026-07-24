@@ -374,6 +374,7 @@ export async function executeJsonPostgresProgram({
     authorityBundle = await createAuthorityBundle({
       inventory: inputs.inventory,
       decisions: inputs.decisions,
+      recordAuthority: inputs.recordAuthority,
       recordTypeCatalog: inputs.recordTypeCatalog,
       corpus: inputs.corpus,
       sourceTransformResult: inputs.sourceTransformResult,

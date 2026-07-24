@@ -8,7 +8,7 @@ import {
 } from "./source-authority-manifest.js";
 
 export const JSON_POSTGRES_SOURCE_READ_PACKET_VERSION =
-  "law-firm-os.json-postgres-source-read-packet.v2";
+  "law-firm-os.json-postgres-source-read-packet.v3";
 export const JSON_POSTGRES_SOURCE_READ_DELTA_VERSION =
   "law-firm-os.json-postgres-source-read-delta.v1";
 export const JSON_POSTGRES_SOURCE_READ_ACTION = "lawos-json-postgres-source-read";
@@ -26,6 +26,7 @@ const PACKET_KEYS = Object.freeze([
   "action",
   "environment",
   "inventory_content_sha256",
+  "record_authority_sha256",
   "inventory_delta_policy_sha256",
   "approved_root_refs",
   "data_scope",
@@ -41,6 +42,7 @@ const SOURCE_READ_REQUIREMENTS = Object.freeze([
   "Return paths only in private 0600 outputs outside the worktree.",
   "On an exact inventory match, emit PII-safe per-record lineage, state-version, audit-chronology, and authority recommendations in the same inventory execution.",
   "Bind the approved safe inventory as the delta baseline.",
+  "Bind the final record-aware authority manifest before source transform.",
   "If inventory content changed under an approved root, emit only a closed PII-safe blocked delta candidate and require new owner adjudication before lineage analysis or import.",
   "Do not mutate source files, PostgreSQL, AWS, email, production, release, or traffic.",
 ]);
@@ -81,6 +83,7 @@ export function createJsonPostgresSourceReadPacket({
   sourceSha,
   sourceTree,
   inventoryContentSha256,
+  recordAuthoritySha256,
   approvedRootRefs = [],
 } = {}) {
   const packet = {
@@ -91,11 +94,13 @@ export function createJsonPostgresSourceReadPacket({
     action: JSON_POSTGRES_SOURCE_READ_ACTION,
     environment: JSON_POSTGRES_SOURCE_READ_ENVIRONMENT,
     inventory_content_sha256: inventoryContentSha256,
+    record_authority_sha256: recordAuthoritySha256,
     inventory_delta_policy_sha256: JSON_POSTGRES_INVENTORY_DELTA_POLICY_SHA256,
     approved_root_refs: [...new Set(approvedRootRefs)].sort(),
     data_scope: [
       "approved-real-source-read",
       `inventory:${inventoryContentSha256}`,
+      `record-authority:${recordAuthoritySha256}`,
       `inventory-delta-policy:${JSON_POSTGRES_INVENTORY_DELTA_POLICY_SHA256}`,
     ],
     contact_scope: [],
@@ -115,6 +120,7 @@ export function createJsonPostgresSourceReadPacket({
     sourceSha,
     sourceTree,
     inventoryContentSha256,
+    recordAuthoritySha256,
   });
   return Object.freeze({
     packet: Object.freeze(packet),
@@ -130,6 +136,7 @@ export function validateJsonPostgresSourceReadPacket(packet, expected = {}) {
     || !SHA1.test(packet.source_sha ?? "")
     || !SHA1.test(packet.source_tree ?? "")
     || !SHA256.test(packet.inventory_content_sha256 ?? "")
+    || !SHA256.test(packet.record_authority_sha256 ?? "")
     || packet.inventory_delta_policy_sha256 !== JSON_POSTGRES_INVENTORY_DELTA_POLICY_SHA256) {
     throw new TypeError("source-read packet schema or binding is invalid");
   }
@@ -143,6 +150,11 @@ export function validateJsonPostgresSourceReadPacket(packet, expected = {}) {
     && packet.inventory_content_sha256 !== expected.inventoryContentSha256) {
     throw new TypeError("source-read inventory digest drifted");
   }
+  if (expected.recordAuthoritySha256
+    && packet.record_authority_sha256
+      !== expected.recordAuthoritySha256) {
+    throw new TypeError("source-read record authority digest drifted");
+  }
   if (!Array.isArray(packet.approved_root_refs)
     || packet.approved_root_refs.length === 0
     || new Set(packet.approved_root_refs).size !== packet.approved_root_refs.length
@@ -152,6 +164,7 @@ export function validateJsonPostgresSourceReadPacket(packet, expected = {}) {
   const expectedScope = [
     "approved-real-source-read",
     `inventory:${packet.inventory_content_sha256}`,
+    `record-authority:${packet.record_authority_sha256}`,
     `inventory-delta-policy:${JSON_POSTGRES_INVENTORY_DELTA_POLICY_SHA256}`,
   ];
   if (JSON.stringify(packet.data_scope) !== JSON.stringify(expectedScope)
@@ -331,6 +344,7 @@ export function verifyJsonPostgresSourceReadApproval({
   sourceSha,
   sourceTree,
   inventoryContentSha256,
+  recordAuthoritySha256,
   trustRegistryPath,
   trustRegistrySha256,
   approvalReceiptPath,
@@ -340,6 +354,7 @@ export function verifyJsonPostgresSourceReadApproval({
     sourceSha,
     sourceTree,
     inventoryContentSha256,
+    recordAuthoritySha256,
   });
   const approval = validateRuntimeSafetyApprovalBundle({
     registryPath: trustRegistryPath,

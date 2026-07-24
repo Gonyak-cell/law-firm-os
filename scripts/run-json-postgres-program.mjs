@@ -164,6 +164,10 @@ const mode = required(options.mode, "mode");
 if (mode !== "preflight") {
   const inventory = readPrivateProgramJson(required(options.inventory, "inventory"), "source inventory");
   const decisions = readPrivateProgramJson(required(options.decisions, "decisions"), "authority decisions");
+  const recordAuthority = readPrivateProgramJson(
+    required(options["record-authority"], "record-authority"),
+    "record authority manifest",
+  );
   corpus = readPrivateProgramJson(required(options.corpus, "corpus"), "migration corpus");
   sourceTransformResult = readPrivateProgramJson(
     required(options["source-transform-result"], "source-transform-result"),
@@ -181,6 +185,7 @@ if (mode !== "preflight") {
     inventory,
     decisions,
     recordTypeCatalog,
+    recordAuthority,
     corpus,
     sourceTransformResult,
   });

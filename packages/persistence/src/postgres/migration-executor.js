@@ -56,6 +56,7 @@ function validateBundle(packet, bundle) {
     ["authority_bundle_sha256", bundle.summary.bundle_sha256],
     ["inventory_content_sha256", bundle.summary.inventory_content_sha256],
     ["record_type_catalog_sha256", bundle.summary.record_type_catalog_sha256],
+    ["record_authority_sha256", bundle.summary.record_authority_sha256],
     ["field_crosswalk_sha256", bundle.summary.field_crosswalk_sha256],
     ["authority_manifest_sha256", bundle.summary.authority_manifest_sha256],
     ["migration_manifest_sha256", bundle.summary.migration_manifest_sha256],

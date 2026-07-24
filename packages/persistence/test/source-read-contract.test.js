@@ -14,6 +14,7 @@ import {
 const SOURCE_SHA = "1".repeat(40);
 const SOURCE_TREE = "2".repeat(40);
 const INVENTORY_SHA = "3".repeat(64);
+const RECORD_AUTHORITY_SHA = "a".repeat(64);
 
 test("source-read packet is closed, exact-bound and non-authorizing", () => {
   const created = createJsonPostgresSourceReadPacket({
@@ -21,12 +22,14 @@ test("source-read packet is closed, exact-bound and non-authorizing", () => {
     sourceSha: SOURCE_SHA,
     sourceTree: SOURCE_TREE,
     inventoryContentSha256: INVENTORY_SHA,
+    recordAuthoritySha256: RECORD_AUTHORITY_SHA,
     approvedRootRefs: ["runtime-primary", "registered-account-source"],
   });
   const result = validateJsonPostgresSourceReadPacket(created.packet, {
     sourceSha: SOURCE_SHA,
     sourceTree: SOURCE_TREE,
     inventoryContentSha256: INVENTORY_SHA,
+    recordAuthoritySha256: RECORD_AUTHORITY_SHA,
   });
   assert.equal(result.packet_sha256, created.packet_sha256);
   assert.equal(created.packet.current_state, "PENDING_HUMAN_APPROVAL");
@@ -35,6 +38,7 @@ test("source-read packet is closed, exact-bound and non-authorizing", () => {
   assert.deepEqual(created.packet.data_scope, [
     "approved-real-source-read",
     `inventory:${INVENTORY_SHA}`,
+    `record-authority:${RECORD_AUTHORITY_SHA}`,
     `inventory-delta-policy:${JSON_POSTGRES_INVENTORY_DELTA_POLICY_SHA256}`,
   ]);
   assert.equal(
@@ -66,6 +70,7 @@ test("source-read packet rejects drift, extra fields and affirmative claims", ()
     sourceSha: SOURCE_SHA,
     sourceTree: SOURCE_TREE,
     inventoryContentSha256: INVENTORY_SHA,
+    recordAuthoritySha256: RECORD_AUTHORITY_SHA,
     approvedRootRefs: ["runtime-primary"],
   });
   assert.throws(
@@ -105,6 +110,7 @@ test("source-read drift emits a closed safe delta and never authorizes it", () =
     sourceSha: SOURCE_SHA,
     sourceTree: SOURCE_TREE,
     inventoryContentSha256: INVENTORY_SHA,
+    recordAuthoritySha256: RECORD_AUTHORITY_SHA,
     approvedRootRefs: ["runtime-primary"],
   });
   const approvedInventory = {
