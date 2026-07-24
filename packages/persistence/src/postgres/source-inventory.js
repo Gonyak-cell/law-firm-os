@@ -61,7 +61,11 @@ function stableJson(value) {
   return JSON.stringify(value);
 }
 
-function inventoryContentMaterial(inventory) {
+function stableGenerationRef(source) {
+  return sha256(`${source.root_ref}:${source.source_ref}:${source.sha256}`).slice(0, 24);
+}
+
+function inventoryContentMaterial(inventory, { normalizeSourceMetadata = true } = {}) {
   if (!inventory || typeof inventory !== "object" || Array.isArray(inventory)
     || inventory.schema_version !== JSON_POSTGRES_SOURCE_INVENTORY_VERSION) {
     throw new TypeError("source inventory is invalid");
@@ -94,9 +98,22 @@ function inventoryContentMaterial(inventory) {
     disposition,
     fields.filter((field) => field.disposition === disposition).length,
   ]));
+  if (!Array.isArray(report.sources)) {
+    throw new TypeError("source inventory sources are invalid");
+  }
+  const sources = report.sources.map((source) => (
+    normalizeSourceMetadata
+      ? {
+          ...source,
+          generation_ref: stableGenerationRef(source),
+          mtime: null,
+        }
+      : source
+  ));
   return {
     ...report,
     generated_at: null,
+    sources,
     field_contract: {
       ...report.field_contract,
       field_count: fields.length,
@@ -118,7 +135,13 @@ export function deriveJsonPostgresInventoryContentSha256(inventory) {
   }
   const digest = sha256(stableJson(inventoryContentMaterial(inventory)));
   if (inventoryContentSha256 != null && inventoryContentSha256 !== digest) {
-    throw new TypeError("source inventory content digest is invalid");
+    const timestampSensitiveDigest = sha256(stableJson(inventoryContentMaterial(
+      inventory,
+      { normalizeSourceMetadata: false },
+    )));
+    if (inventoryContentSha256 !== timestampSensitiveDigest) {
+      throw new TypeError("source inventory content digest is invalid");
+    }
   }
   return digest;
 }
@@ -454,7 +477,11 @@ export async function inventoryJsonPostgresSources({
       tenant_count: inspection?.tenantRefs.size ?? 0,
       record_type_count: inspection?.recordTypeRefs.size ?? 0,
       record_count: inspection?.recordCount ?? 0,
-      generation_ref: sha256(`${metadata.birthtimeMs}:${metadata.mtimeMs}:${candidate.rootRef}`).slice(0, 24),
+      generation_ref: stableGenerationRef({
+        root_ref: candidate.rootRef,
+        source_ref: sourceRef,
+        sha256: digest,
+      }),
       classification,
       parse_error: parseError,
       parse_skipped: !candidate.parseJson,

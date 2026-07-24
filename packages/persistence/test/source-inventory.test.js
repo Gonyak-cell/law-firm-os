@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, mkdir, realpath, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, realpath, utimes, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -87,6 +87,76 @@ test("source inventory emits only safe metadata and classifies every field", asy
   assert.equal(repeated.inventory_content_sha256, report.inventory_content_sha256);
   assert.equal(deriveJsonPostgresInventoryContentSha256(report), report.inventory_content_sha256);
 
+  const generationRef = report.sources.find((source) => (
+    source.sha256 === sha256(bytes) && source.classification === "authoritative"
+  )).generation_ref;
+  await Promise.all(["matter-store.json", "matter-store-copy.json"].map((filename) => (
+    utimes(
+      join(root, filename),
+      new Date("2026-07-22T00:00:00.000Z"),
+      new Date("2026-07-22T00:00:00.000Z"),
+    )
+  )));
+  const metadataOnlyChange = await inventoryJsonPostgresSources({
+    roots: [{ ref: "runtime-primary", path: root }],
+    authorityManifest: { sources: [{ sha256: sha256(bytes), classification: "authoritative" }] },
+    clock: () => new Date("2026-07-21T00:00:00.000Z"),
+  });
+  assert.notEqual(
+    metadataOnlyChange.sources.find((source) => source.source_ref === report.sources.find((entry) => (
+      entry.sha256 === sha256(bytes) && entry.classification === "authoritative"
+    )).source_ref).mtime,
+    report.sources.find((source) => source.sha256 === sha256(bytes) && source.classification === "authoritative").mtime,
+  );
+  assert.equal(metadataOnlyChange.inventory_content_sha256, report.inventory_content_sha256);
+  assert.equal(
+    metadataOnlyChange.sources.find((source) => (
+      source.sha256 === sha256(bytes) && source.classification === "authoritative"
+    )).generation_ref,
+    generationRef,
+  );
+  const {
+    inventory_sha256: ignoredMetadataInventorySha256,
+    inventory_content_sha256: ignoredMetadataContentSha256,
+    ...timestampSensitiveReport
+  } = metadataOnlyChange;
+  const timestampSensitiveInventory = {
+    ...timestampSensitiveReport,
+    inventory_sha256: sha256(stableJson(timestampSensitiveReport)),
+    inventory_content_sha256: sha256(stableJson({
+      ...timestampSensitiveReport,
+      generated_at: null,
+    })),
+  };
+  assert.equal(
+    deriveJsonPostgresInventoryContentSha256(timestampSensitiveInventory),
+    report.inventory_content_sha256,
+  );
+  await writeFile(join(root, "matter-store.json"), `${JSON.stringify({
+    ...primary,
+    records: [
+      ...primary.records,
+      {
+        tenant_id: "tenant-real-never-return",
+        record_type: "Matter",
+        record_id: "matter-content-change-never-return",
+        matter_code: "CODE-CONTENT-CHANGE-NEVER-RETURN",
+      },
+    ],
+  })}\n`);
+  const contentChange = await inventoryJsonPostgresSources({
+    roots: [{ ref: "runtime-primary", path: root }],
+    authorityManifest: { sources: [{ sha256: sha256(bytes), classification: "authoritative" }] },
+    clock: () => new Date("2026-07-21T00:00:00.000Z"),
+  });
+  assert.notEqual(contentChange.inventory_content_sha256, report.inventory_content_sha256);
+  assert.ok(contentChange.sources.some((source) => (
+    !report.sources.some((prior) => (
+      prior.source_ref === source.source_ref
+      && prior.generation_ref === source.generation_ref
+    ))
+  )));
+
   const {
     inventory_sha256: ignoredInventorySha256,
     inventory_content_sha256: ignoredContentSha256,
@@ -110,6 +180,11 @@ test("source inventory emits only safe metadata and classifies every field", asy
   };
   legacyReport.field_contract.disposition_counts["postgres-live"] -= 3;
   legacyReport.field_contract.disposition_counts["secret-excluded"] += 3;
+  legacyReport.sources = legacyReport.sources.map((source, index) => ({
+    ...source,
+    generation_ref: sha256(`legacy-mtime-generation:${index}`).slice(0, 24),
+    mtime: `2026-07-${String(index + 1).padStart(2, "0")}T00:00:00.000Z`,
+  }));
   const legacyInventory = {
     ...legacyReport,
     inventory_sha256: sha256(stableJson(legacyReport)),
