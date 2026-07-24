@@ -50,6 +50,42 @@ test("W12 host classification permits only the exact legacy tenant-key rename", 
   );
 });
 
+test("W12 host classification accepts only the exact retained-resource import checkpoint", () => {
+  const imported = structuredClone(reference);
+  const rehearsal = builtTemplate();
+  for (const key of [
+    "W12ProgramInputBucketName",
+    "W12DmsBucketName",
+  ]) {
+    imported.Parameters[key] = structuredClone(rehearsal.Parameters[key]);
+  }
+  for (const key of [
+    "RehearsalAdminLogGroup",
+    "RehearsalProgramInputBucket",
+    "RehearsalDmsBucket",
+    "RehearsalApplicationDatabaseSecret",
+    "RehearsalTenantContextSecret",
+  ]) {
+    imported.Resources[key] = structuredClone(rehearsal.Resources[key]);
+  }
+  const classified = classifyJsonPostgresRehearsalHostTemplate({
+    deployedTemplate: imported,
+    localBaseTemplate: reference,
+    rehearsalTemplate: rehearsal,
+    hasW12: false,
+  });
+  assert.equal(classified.retained_resource_imported, true);
+
+  imported.Resources.RehearsalDmsBucket.Properties
+    .PublicAccessBlockConfiguration.BlockPublicPolicy = false;
+  assert.throws(() => classifyJsonPostgresRehearsalHostTemplate({
+    deployedTemplate: imported,
+    localBaseTemplate: reference,
+    rehearsalTemplate: rehearsal,
+    hasW12: false,
+  }), /retained private rehearsal resource drifted/u);
+});
+
 test("W12 rehearsal reuses the private staging topology with an isolated database role and immutable input bucket", () => {
   const template = builtTemplate();
   const result = validateJsonPostgresRehearsalTemplate(template);
@@ -94,7 +130,7 @@ test("W12 rehearsal reuses the private staging topology with an isolated databas
   );
 });
 
-test("W12 rehearsal stack parameters never re-enable the existing staging ENI bootstrap", () => {
+test("W12 rehearsal stack parameters enable the existing ENI bootstrap only when explicitly required", () => {
   const base = {
     ArtifactBucket: "lawos-private-staging-artifacts-770880870480",
     ArtifactKey: "lawos-private-staging/exact.zip",
@@ -118,6 +154,7 @@ test("W12 rehearsal stack parameters never re-enable the existing staging ENI bo
   const enabled = Object.fromEntries(
     buildJsonPostgresRehearsalStackParameters({
       ...input,
+      enableExistingLambdaEniBootstrap: true,
       enableW12LambdaEniBootstrap: true,
     }).map(({ key, value }) => [key, value]),
   );
@@ -128,7 +165,7 @@ test("W12 rehearsal stack parameters never re-enable the existing staging ENI bo
     }).map(({ key, value }) => [key, value]),
   );
 
-  assert.equal(enabled.EnableLambdaEniBootstrap, "false");
+  assert.equal(enabled.EnableLambdaEniBootstrap, "true");
   assert.equal(enabled.EnableW12LambdaEniBootstrap, "true");
   assert.equal(enabled.SourceSha, undefined);
   assert.equal(

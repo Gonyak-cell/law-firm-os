@@ -52,15 +52,55 @@ export function classifyJsonPostgresRehearsalHostTemplate({
     || typeof hasW12 !== "boolean") {
     fail("private rehearsal host template classification input is invalid");
   }
+  const retainedResourceIds = [
+    "RehearsalAdminLogGroup",
+    "RehearsalApplicationDatabaseSecret",
+    "RehearsalDmsBucket",
+    "RehearsalProgramInputBucket",
+    "RehearsalTenantContextSecret",
+  ];
+  const retainedParameterIds = [
+    "W12DmsBucketName",
+    "W12ProgramInputBucketName",
+  ];
+  const normalizedDeployed = clone(deployedTemplate);
+  let retainedResourceImported = false;
+  if (!hasW12 && retainedResourceIds.every((logicalId) =>
+    Object.hasOwn(normalizedDeployed.Resources ?? {}, logicalId))) {
+    for (const logicalId of retainedResourceIds) {
+      if (sha256(normalizedDeployed.Resources[logicalId])
+        !== sha256(rehearsalTemplate.Resources?.[logicalId])) {
+        fail("retained private rehearsal resource drifted");
+      }
+      delete normalizedDeployed.Resources[logicalId];
+    }
+    for (const parameterId of retainedParameterIds) {
+      if (sha256(normalizedDeployed.Parameters?.[parameterId])
+        !== sha256(rehearsalTemplate.Parameters?.[parameterId])) {
+        fail("retained private rehearsal parameter drifted");
+      }
+      delete normalizedDeployed.Parameters[parameterId];
+    }
+    if (Object.keys(normalizedDeployed.Parameters ?? {})
+      .some((key) => key.startsWith("W12")
+        || key === "EnableW12LambdaEniBootstrap")
+      || Object.keys(normalizedDeployed.Resources ?? {})
+        .some((key) => key.startsWith("Rehearsal"))) {
+      fail("partial private rehearsal import drifted");
+    }
+    retainedResourceImported = true;
+  }
   const deployedSha256 = sha256(deployedTemplate);
+  const normalizedDeployedSha256 = sha256(normalizedDeployed);
   const currentSha256 = sha256(
     hasW12 ? rehearsalTemplate : localBaseTemplate,
   );
-  if (deployedSha256 === currentSha256) {
+  if (normalizedDeployedSha256 === currentSha256) {
     return Object.freeze({
       deployed_template_sha256: deployedSha256,
       expected_template_sha256: currentSha256,
       legacy_identity_tenant_rebind_required: false,
+      retained_resource_imported: retainedResourceImported,
     });
   }
   if (hasW12) {
@@ -77,13 +117,14 @@ export function classifyJsonPostgresRehearsalHostTemplate({
   variables.LAWOS_PASSWORD_RESET_TENANT_ID =
     variables.LAWOS_IDENTITY_TENANT_ID;
   delete variables.LAWOS_IDENTITY_TENANT_ID;
-  if (sha256(legacy) !== deployedSha256) {
+  if (sha256(legacy) !== normalizedDeployedSha256) {
     fail("existing private staging template drifted");
   }
   return Object.freeze({
     deployed_template_sha256: deployedSha256,
     expected_template_sha256: currentSha256,
     legacy_identity_tenant_rebind_required: true,
+    retained_resource_imported: retainedResourceImported,
   });
 }
 
@@ -985,6 +1026,7 @@ export function buildJsonPostgresRehearsalStackParameters({
   approvalId,
   programInputBucketName,
   dmsBucketName,
+  enableExistingLambdaEniBootstrap = false,
   enableW12LambdaEniBootstrap,
 } = {}) {
   const parameters = {
@@ -1000,7 +1042,8 @@ export function buildJsonPostgresRehearsalStackParameters({
     W12ApprovalId: approvalId,
     W12ProgramInputBucketName: programInputBucketName,
     W12DmsBucketName: dmsBucketName,
-    EnableLambdaEniBootstrap: "false",
+    EnableLambdaEniBootstrap:
+      enableExistingLambdaEniBootstrap ? "true" : "false",
     EnableW12LambdaEniBootstrap:
       enableW12LambdaEniBootstrap ? "true" : "false",
   };

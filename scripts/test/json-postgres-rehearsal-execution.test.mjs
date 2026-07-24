@@ -206,6 +206,49 @@ test("W12 change-set review allows the exact one-time identity tenant rebind onl
   );
 });
 
+test("W12 change-set review permits the exact existing Lambda bootstrap transition only when declared", () => {
+  const changes = [
+    ["ApiExecutionRole", "AWS::IAM::Role"],
+    ["AdminExecutionRole", "AWS::IAM::Role"],
+    ["ApiFunction", "AWS::Lambda::Function"],
+    ["AdminFunction", "AWS::Lambda::Function"],
+  ].map(([LogicalResourceId, ResourceType]) => ({
+    ResourceChange: {
+      Action: "Modify",
+      LogicalResourceId,
+      ResourceType,
+      Replacement: "False",
+      Scope: ["Properties"],
+    },
+  }));
+  const changeSet = {
+    StackName: JSON_POSTGRES_REHEARSAL_STACK,
+    ChangeSetId: "change-set-existing-eni-bootstrap",
+    Changes: changes,
+  };
+  const options = {
+    stackName: JSON_POSTGRES_REHEARSAL_STACK,
+    changeSetType: "UPDATE",
+    phase: "enable-eni",
+    templateSha256: "d".repeat(64),
+    parametersSha256: "e".repeat(64),
+    allowIdentityTenantRebind: true,
+    existingLambdaEniBootstrapTransition: true,
+  };
+  assert.equal(
+    validateJsonPostgresRehearsalChangeSet(changeSet, options)
+      .existing_lambda_eni_bootstrap_transition,
+    true,
+  );
+  assert.throws(() => validateJsonPostgresRehearsalChangeSet(
+    changeSet,
+    {
+      ...options,
+      existingLambdaEniBootstrapTransition: false,
+    },
+  ), /unapproved delta/u);
+});
+
 test("W12 change-set review accepts only exact existing runtime dependency reevaluation", () => {
   const dependencies = [{
     ResourceChange: {

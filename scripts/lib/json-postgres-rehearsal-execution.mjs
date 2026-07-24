@@ -79,6 +79,15 @@ const W12_BOOTSTRAP_REMOVAL_MODIFICATIONS = new Set([
   "RehearsalAdminExecutionRole",
   "RehearsalAdminFunction",
 ]);
+const EXISTING_LAMBDA_BOOTSTRAP_MODIFICATIONS = new Set([
+  "AdminExecutionRole",
+  "AdminFunction",
+  "ApiExecutionRole",
+  "ApiFunction",
+  "HttpApiIntegration",
+  "PasswordResetWorkerInvokePermission",
+  "PasswordResetWorkerSchedule",
+]);
 
 function stableJson(value) {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
@@ -235,6 +244,7 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
   parametersSha256,
   templateUrl = null,
   allowIdentityTenantRebind = false,
+  existingLambdaEniBootstrapTransition = false,
 } = {}) {
   if (![JSON_POSTGRES_REHEARSAL_ARTIFACT_STACK,
     JSON_POSTGRES_REHEARSAL_STACK].includes(stackName)
@@ -248,6 +258,7 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
     || !SHA256.test(templateSha256 ?? "")
     || !SHA256.test(parametersSha256 ?? "")
     || typeof allowIdentityTenantRebind !== "boolean"
+    || typeof existingLambdaEniBootstrapTransition !== "boolean"
     || (templateUrl !== null
       && !isVersionedCloudFormationS3TemplateUrl(templateUrl))) {
     fail("W12 change set binding is invalid");
@@ -282,16 +293,25 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
           ? new Set([
               ...W12_INITIAL_MODIFICATIONS,
               ...(allowIdentityTenantRebind ? ["ApiFunction"] : []),
+              ...(existingLambdaEniBootstrapTransition
+                ? EXISTING_LAMBDA_BOOTSTRAP_MODIFICATIONS
+                : []),
             ])
           : null;
       if (!allowed?.has(change.logical_resource_id)) {
         fail("W12 enable-ENI change set contains an unapproved delta");
       }
-    } else if (change.action !== "Modify"
-      || !W12_BOOTSTRAP_REMOVAL_MODIFICATIONS.has(
-        change.logical_resource_id,
-      )) {
-      fail("W12 ENI removal change set contains an unapproved delta");
+    } else {
+      const allowed = new Set([
+        ...W12_BOOTSTRAP_REMOVAL_MODIFICATIONS,
+        ...(existingLambdaEniBootstrapTransition
+          ? EXISTING_LAMBDA_BOOTSTRAP_MODIFICATIONS
+          : []),
+      ]);
+      if (change.action !== "Modify"
+        || !allowed.has(change.logical_resource_id)) {
+        fail("W12 ENI removal change set contains an unapproved delta");
+      }
     }
   }
   const identityTenantChanges = changes.filter((change) =>
@@ -301,7 +321,9 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
     || identityTenantChanges.length !== 1
     || identityTenantChanges[0].action !== "Modify"
     || !identityTenantChanges[0].scope.includes("Properties")
-  )) || (!allowIdentityTenantRebind && identityTenantChanges.length !== 0)) {
+  )) || (!allowIdentityTenantRebind
+    && !existingLambdaEniBootstrapTransition
+    && identityTenantChanges.length !== 0)) {
     fail("W12 identity tenant rebind change set drifted");
   }
   const review = {
@@ -313,6 +335,8 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
     parameters_sha256: parametersSha256,
     ...(templateUrl === null ? {} : { template_url: templateUrl }),
     identity_tenant_rebind: allowIdentityTenantRebind,
+    existing_lambda_eni_bootstrap_transition:
+      existingLambdaEniBootstrapTransition,
     changes,
   };
   return Object.freeze({
@@ -372,6 +396,7 @@ export function assertJsonPostgresRehearsalStack(stack, {
   artifactVersion,
   trustRegistrySha256,
   approvalId,
+  existingEniBootstrapEnabled = false,
   eniBootstrapEnabled = false,
 } = {}) {
   const parameters = parameterMap(stack);
@@ -390,7 +415,8 @@ export function assertJsonPostgresRehearsalStack(stack, {
     W12ApprovalId: approvalId,
     W12ProgramInputBucketName: packet.target.program_input_bucket_name,
     W12DmsBucketName: packet.target.dms_bucket_name,
-    EnableLambdaEniBootstrap: "false",
+    EnableLambdaEniBootstrap:
+      existingEniBootstrapEnabled ? "true" : "false",
     EnableW12LambdaEniBootstrap: eniBootstrapEnabled ? "true" : "false",
   };
   for (const [key, value] of Object.entries(expected)) {
@@ -405,7 +431,8 @@ export function assertJsonPostgresRehearsalStack(stack, {
     verdict: "PASS",
     stack_status: stack.StackStatus,
     isolated_rehearsal_binding_count: Object.keys(expected).length,
-    existing_lambda_eni_bootstrap_enabled: false,
+    existing_lambda_eni_bootstrap_enabled:
+      existingEniBootstrapEnabled,
     w12_lambda_eni_bootstrap_enabled: eniBootstrapEnabled,
   });
 }

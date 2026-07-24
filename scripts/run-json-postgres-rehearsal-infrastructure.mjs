@@ -76,7 +76,6 @@ const RESULT_VERSION =
   "law-firm-os.json-postgres-rehearsal-infrastructure-result.v1";
 const BOOTSTRAP_ACTION = "lawos-json-postgres-rehearsal-bootstrap";
 const SHA256 = /^[0-9a-f]{64}$/u;
-const W12_PARAMETER_PREFIX = /^(?:W12|EnableW12)/u;
 
 function option(name, fallback = null) {
   const index = process.argv.indexOf(name);
@@ -275,8 +274,10 @@ function validateHostStack(stack) {
     "utf8",
   ));
   const deployed = deployedTemplate(JSON_POSTGRES_REHEARSAL_STACK);
-  const hasW12 = Object.keys(parameters).some((key) =>
-    W12_PARAMETER_PREFIX.test(key));
+  const hasW12 = Boolean(
+    deployed.Resources?.RehearsalAdminFunction
+      && deployed.Resources?.RehearsalAdminExecutionRole,
+  );
   const templateState = classifyJsonPostgresRehearsalHostTemplate({
     deployedTemplate: deployed,
     localBaseTemplate: localBase,
@@ -300,6 +301,7 @@ function createReviewedChangeSet({
   parameters,
   templateUrl = null,
   allowIdentityTenantRebind = false,
+  existingLambdaEniBootstrapTransition = false,
 }) {
   const name =
     `lawos-w12-${phase}-${sourceSha.slice(0, 10)}-${input.attempt_ref}`;
@@ -342,6 +344,7 @@ function createReviewedChangeSet({
       jsonPostgresRehearsalParametersSha256(parameters),
     templateUrl,
     allowIdentityTenantRebind,
+    existingLambdaEniBootstrapTransition,
   });
 }
 
@@ -365,6 +368,8 @@ function executeReviewedChangeSet(review) {
     templateUrl: review.template_url ?? null,
     allowIdentityTenantRebind:
       review.identity_tenant_rebind ?? false,
+    existingLambdaEniBootstrapTransition:
+      review.existing_lambda_eni_bootstrap_transition ?? false,
   });
   if (validated.reviewed_change_set_sha256
     !== review.reviewed_change_set_sha256) {
@@ -920,6 +925,8 @@ if (operation === "preflight") {
     existing_w12_binding_count: host.hasW12 ? 1 : 0,
     identity_tenant_rebind_required:
       host.legacy_identity_tenant_rebind_required,
+    retained_resource_imported:
+      host.retained_resource_imported,
     rds: assertPrivateStagingRds(rds),
     budget: readBudget(),
     monthly_forecast_krw:
@@ -1001,6 +1008,8 @@ if (operation === "preflight") {
       approvalId: approval.approval_id,
       programInputBucketName: packet.target.program_input_bucket_name,
       dmsBucketName: packet.target.dms_bucket_name,
+      enableExistingLambdaEniBootstrap:
+        host.legacy_identity_tenant_rebind_required,
       enableW12LambdaEniBootstrap: true,
     });
     enableReview = createReviewedChangeSet({
@@ -1012,6 +1021,8 @@ if (operation === "preflight") {
       parameters,
       templateUrl: templateUpload.template_url,
       allowIdentityTenantRebind:
+        host.legacy_identity_tenant_rebind_required,
+      existingLambdaEniBootstrapTransition:
         host.legacy_identity_tenant_rebind_required,
     });
     mutationCount += 1;
@@ -1030,6 +1041,8 @@ if (operation === "preflight") {
     artifactVersion: artifactUpload.version_id,
     trustRegistrySha256: registrySha256,
     approvalId: approval.approval_id,
+    existingEniBootstrapEnabled:
+      parameterMap(host.stack).EnableLambdaEniBootstrap === "true",
     eniBootstrapEnabled:
       parameterMap(host.stack).EnableW12LambdaEniBootstrap === "true",
   });
@@ -1059,6 +1072,7 @@ if (operation === "preflight") {
       approvalId: approval.approval_id,
       programInputBucketName: packet.target.program_input_bucket_name,
       dmsBucketName: packet.target.dms_bucket_name,
+      enableExistingLambdaEniBootstrap: false,
       enableW12LambdaEniBootstrap: false,
     });
     removeReview = createReviewedChangeSet({
@@ -1069,6 +1083,8 @@ if (operation === "preflight") {
       templateSha256: rehearsalTemplateValidation.template_sha256,
       parameters,
       templateUrl: templateUpload.template_url,
+      existingLambdaEniBootstrapTransition:
+        parameterMap(host.stack).EnableLambdaEniBootstrap === "true",
     });
     mutationCount += 1;
     host = {
