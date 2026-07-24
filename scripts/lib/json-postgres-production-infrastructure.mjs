@@ -377,6 +377,11 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     Type: "String",
     AllowedPattern: "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
   };
+  template.Parameters.RuntimeGeneration = {
+    Type: "Number",
+    Default: 1,
+    MinValue: 1,
+  };
   template.Parameters.EnableProductionTraffic = {
     Type: "String",
     Default: "false",
@@ -622,6 +627,9 @@ export function validateJsonPostgresProductionTemplate(template) {
   }
   if (template.Parameters?.EnableLambdaEniBootstrap?.Default !== "false"
     || template.Parameters?.EnableProductionTraffic?.Default !== "false"
+    || template.Parameters?.RuntimeGeneration?.Type !== "Number"
+    || template.Parameters?.RuntimeGeneration?.Default !== 1
+    || template.Parameters?.RuntimeGeneration?.MinValue !== 1
     || template.Parameters?.MonthlyCostCeilingKrw?.Default !== JSON_POSTGRES_PRODUCTION_COST_CEILING_KRW) {
     fail("production safety parameters drifted");
   }

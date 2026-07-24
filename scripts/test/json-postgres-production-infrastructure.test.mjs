@@ -20,6 +20,11 @@ test("production template derives the proven private topology without synthetic 
   assert.equal(result.object_lock_bucket_count, 2);
   assert.equal(result.production_traffic_enabled_by_default, false);
   assert.match(result.template_sha256, /^[0-9a-f]{64}$/u);
+  assert.deepEqual(template.Parameters.RuntimeGeneration, {
+    Type: "Number",
+    Default: 1,
+    MinValue: 1,
+  });
   assert.ok(template.Resources.ProductionKey);
   assert.ok(template.Resources.ProductionKeyAlias);
   assert.equal(template.Resources.StagingKey, undefined);
