@@ -112,6 +112,37 @@ test("W12 caller and artifact-store change set are exact-role and add-only", () 
     templateSha256: "d".repeat(64),
     parametersSha256: jsonPostgresRehearsalParametersSha256(parameters),
   }));
+
+  const versionedTemplateUrl =
+    "https://lawos-private-rehearsal-artifacts-770880870480"
+    + ".s3.ap-northeast-2.amazonaws.com/cloudformation-template/exact.json"
+    + "?versionId=version-1";
+  const versionBound = structuredClone(unknown);
+  versionBound.Changes[0].ResourceChange.LogicalResourceId =
+    "RehearsalArtifactBucket";
+  versionBound.TemplateURL = versionedTemplateUrl;
+  assert.equal(
+    validateJsonPostgresRehearsalChangeSet(versionBound, {
+      stackName: JSON_POSTGRES_REHEARSAL_ARTIFACT_STACK,
+      changeSetType: "CREATE",
+      phase: "artifact-store",
+      templateSha256: "d".repeat(64),
+      parametersSha256: jsonPostgresRehearsalParametersSha256(parameters),
+      templateUrl: versionedTemplateUrl,
+    }).template_url,
+    versionedTemplateUrl,
+  );
+  assert.throws(
+    () => validateJsonPostgresRehearsalChangeSet(versionBound, {
+      stackName: JSON_POSTGRES_REHEARSAL_ARTIFACT_STACK,
+      changeSetType: "CREATE",
+      phase: "artifact-store",
+      templateSha256: "d".repeat(64),
+      parametersSha256: jsonPostgresRehearsalParametersSha256(parameters),
+      templateUrl: `${versionedTemplateUrl}-drift`,
+    }),
+    /binding is invalid/u,
+  );
 });
 
 test("W12 immutable bucket state rejects public, mutable and wrong-key storage", () => {

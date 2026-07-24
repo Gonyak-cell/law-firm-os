@@ -138,13 +138,17 @@ export function validateJsonPostgresProductionChangeSet(changeSet, {
   template,
   parametersSha256,
   templateSha256,
+  templateUrl = null,
 } = {}) {
   if (![JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK, JSON_POSTGRES_PRODUCTION_STACK].includes(stackName)
     || changeSet?.StackName !== stackName
     || changeSet?.ChangeSetType !== changeSetType
     || !["CREATE", "UPDATE"].includes(changeSetType)
     || !SHA256.test(parametersSha256 ?? "")
-    || !SHA256.test(templateSha256 ?? "")) {
+    || !SHA256.test(templateSha256 ?? "")
+    || (templateUrl !== null
+      && (!String(templateUrl).startsWith("https://")
+        || changeSet?.TemplateURL !== templateUrl))) {
     fail("production change set binding is invalid");
   }
   const allowedIds = new Set(Object.keys(template?.Resources ?? {}));
@@ -170,6 +174,7 @@ export function validateJsonPostgresProductionChangeSet(changeSet, {
     change_set_id: changeSet.Id,
     template_sha256: templateSha256,
     parameters_sha256: parametersSha256,
+    ...(templateUrl === null ? {} : { template_url: templateUrl }),
     changes,
   };
   return Object.freeze({

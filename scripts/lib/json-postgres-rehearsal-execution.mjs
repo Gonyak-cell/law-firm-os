@@ -180,6 +180,7 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
   phase,
   templateSha256,
   parametersSha256,
+  templateUrl = null,
 } = {}) {
   if (![JSON_POSTGRES_REHEARSAL_ARTIFACT_STACK,
     JSON_POSTGRES_REHEARSAL_STACK].includes(stackName)
@@ -188,7 +189,10 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
     || !["CREATE", "UPDATE"].includes(changeSetType)
     || !["artifact-store", "enable-eni", "remove-eni"].includes(phase)
     || !SHA256.test(templateSha256 ?? "")
-    || !SHA256.test(parametersSha256 ?? "")) {
+    || !SHA256.test(parametersSha256 ?? "")
+    || (templateUrl !== null
+      && (!String(templateUrl).startsWith("https://")
+        || changeSet?.TemplateURL !== templateUrl))) {
     fail("W12 change set binding is invalid");
   }
   const changes = normalizedChanges(changeSet);
@@ -234,6 +238,7 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
     change_set_id: changeSet.Id,
     template_sha256: templateSha256,
     parameters_sha256: parametersSha256,
+    ...(templateUrl === null ? {} : { template_url: templateUrl }),
     changes,
   };
   return Object.freeze({

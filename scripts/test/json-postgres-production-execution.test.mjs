@@ -128,6 +128,36 @@ test("production change-set review rejects removals and unsafe replacements", ()
     parametersSha256: "a".repeat(64),
     templateSha256: "b".repeat(64),
   }), /unapproved replacement/u);
+  const versionedTemplateUrl =
+    "https://lawos-production-artifacts-770880870480"
+    + ".s3.ap-northeast-2.amazonaws.com/cloudformation-template/exact.json"
+    + "?versionId=version-1";
+  const versionBound = {
+    ...base,
+    TemplateURL: versionedTemplateUrl,
+  };
+  assert.equal(
+    validateJsonPostgresProductionChangeSet(versionBound, {
+      stackName: JSON_POSTGRES_PRODUCTION_STACK,
+      changeSetType: "CREATE",
+      template,
+      parametersSha256: "a".repeat(64),
+      templateSha256: "b".repeat(64),
+      templateUrl: versionedTemplateUrl,
+    }).template_url,
+    versionedTemplateUrl,
+  );
+  assert.throws(
+    () => validateJsonPostgresProductionChangeSet(versionBound, {
+      stackName: JSON_POSTGRES_PRODUCTION_STACK,
+      changeSetType: "CREATE",
+      template,
+      parametersSha256: "a".repeat(64),
+      templateSha256: "b".repeat(64),
+      templateUrl: `${versionedTemplateUrl}-drift`,
+    }),
+    /binding is invalid/u,
+  );
   assert.equal(JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK, "lawos-production-artifact-store");
 });
 

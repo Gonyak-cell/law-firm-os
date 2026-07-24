@@ -15,6 +15,11 @@ import {
   verifyJsonPostgresProgramReceipt,
 } from "../packages/persistence/src/postgres/program-receipt.js";
 import {
+  buildVersionedS3TemplateUrl,
+  cloudFormationTemplateArgs,
+  cloudFormationTemplateRequiresUrl,
+} from "./lib/cloudformation-template-transport.mjs";
+import {
   JSON_POSTGRES_PRODUCTION_ENI_ACTIONS,
   validateJsonPostgresProductionArtifactStoreTemplate,
   validateJsonPostgresProductionCost,
@@ -158,14 +163,33 @@ function createChangeSet({
   templateSha256,
   parameters,
   label,
+  templateUrl = null,
 }) {
+  const templateByteSize = readFileSync(templatePath).byteLength;
+  let resolvedTemplateUrl = templateUrl;
+  if (resolvedTemplateUrl === null
+    && cloudFormationTemplateRequiresUrl(templateByteSize)) {
+    const artifactStack = currentStack(
+      JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK,
+    );
+    if (!artifactStack) {
+      throw new Error("production template URL requires the artifact store");
+    }
+    resolvedTemplateUrl = productionTemplateReference({
+      kmsKeyArn: artifactStoreState(artifactStack).artifact_kms_key_arn,
+    }).template_url;
+  }
   const name = `lawos-${label}-${packet.source_sha.slice(0, 10)}-${input.attempt_ref}`;
   const created = awsJson([
     "cloudformation", "create-change-set",
     "--stack-name", stackName,
     "--change-set-name", name,
     "--change-set-type", type,
-    "--template-body", `file://${templatePath}`,
+    ...cloudFormationTemplateArgs({
+      templatePath,
+      templateByteSize,
+      templateUrl: resolvedTemplateUrl,
+    }).args,
     "--capabilities", "CAPABILITY_NAMED_IAM",
     "--parameters", ...parameterArgs(parameters),
     "--description", `Exact-packet ${packet.packet_sha256} ${label}`,
@@ -184,6 +208,7 @@ function createChangeSet({
     template,
     parametersSha256: jsonPostgresProductionParametersSha256(parameters),
     templateSha256,
+    templateUrl: resolvedTemplateUrl,
   });
 }
 
@@ -201,6 +226,7 @@ function executeReviewedChangeSet(review) {
     template,
     parametersSha256: review.parameters_sha256,
     templateSha256: review.template_sha256,
+    templateUrl: review.template_url ?? null,
   });
   if (validated.reviewed_change_set_sha256 !== review.reviewed_change_set_sha256) {
     throw new Error("reviewed CloudFormation change set drifted");
@@ -248,6 +274,125 @@ function artifactStoreState(stack) {
     }),
     artifact_kms_key_arn: outputs.ArtifactKmsKeyArn,
   };
+}
+
+function putImmutableProductionObject({
+  key,
+  path,
+  expectedSha256,
+  kmsKeyArn,
+  contentType,
+  allowUpload,
+}) {
+  const bytes = readFileSync(path);
+  const digest = sha256ProgramBytes(bytes);
+  if (digest !== expectedSha256) {
+    throw new Error("production immutable object digest drifted");
+  }
+  let mutationCount = 0;
+  let head = awsTryJson([
+    "s3api", "head-object",
+    "--bucket", packet.target.artifact_bucket_name,
+    "--key", key,
+    "--expected-bucket-owner", JSON_POSTGRES_PRODUCTION_ACCOUNT,
+    "--checksum-mode", "ENABLED",
+  ]);
+  if (!head) {
+    if (!allowUpload) {
+      throw new Error("production immutable object is not uploaded");
+    }
+    const retainUntil =
+      new Date(Date.now() + 366 * 24 * 60 * 60 * 1000).toISOString();
+    const uploaded = awsJson([
+      "s3api", "put-object",
+      "--bucket", packet.target.artifact_bucket_name,
+      "--key", key,
+      "--body", path,
+      "--expected-bucket-owner", JSON_POSTGRES_PRODUCTION_ACCOUNT,
+      "--content-type", contentType,
+      "--server-side-encryption", "aws:kms",
+      "--ssekms-key-id", kmsKeyArn,
+      "--checksum-algorithm", "SHA256",
+      "--checksum-sha256", Buffer.from(digest, "hex").toString("base64"),
+      "--object-lock-mode", "COMPLIANCE",
+      "--object-lock-retain-until-date", retainUntil,
+      "--metadata",
+      `sha256=${digest},source-sha=${sourceSha},source-tree=${sourceTree},packet-sha256=${packet.packet_sha256}`,
+    ]);
+    if (!uploaded.VersionId || uploaded.VersionId === "null") {
+      throw new Error("production immutable object upload returned no version");
+    }
+    mutationCount = 1;
+    head = awsJson([
+      "s3api", "head-object",
+      "--bucket", packet.target.artifact_bucket_name,
+      "--key", key,
+      "--version-id", uploaded.VersionId,
+      "--expected-bucket-owner", JSON_POSTGRES_PRODUCTION_ACCOUNT,
+      "--checksum-mode", "ENABLED",
+    ]);
+  }
+  if (!head.VersionId || head.VersionId === "null"
+    || Number(head.ContentLength) !== bytes.byteLength
+    || head.ServerSideEncryption !== "aws:kms"
+    || head.SSEKMSKeyId !== kmsKeyArn
+    || head.Metadata?.sha256 !== digest
+    || head.Metadata?.["source-sha"] !== sourceSha
+    || head.Metadata?.["source-tree"] !== sourceTree
+    || head.Metadata?.["packet-sha256"] !== packet.packet_sha256
+    || head.ChecksumSHA256
+      !== Buffer.from(digest, "hex").toString("base64")
+    || head.ObjectLockMode !== "COMPLIANCE"
+    || Date.parse(head.ObjectLockRetainUntilDate) <= Date.now()) {
+    throw new Error("production immutable object binding drifted");
+  }
+  return Object.freeze({
+    key,
+    version_id: head.VersionId,
+    sha256: digest,
+    byte_size: bytes.byteLength,
+    mutation_count: mutationCount,
+  });
+}
+
+function productionTemplateReference({
+  kmsKeyArn,
+  allowUpload = false,
+} = {}) {
+  const bytes = readFileSync(productionTemplatePath);
+  const digest = sha256ProgramBytes(bytes);
+  const key = `cloudformation-template/${sourceSha}/${digest}.json`;
+  const object = putImmutableProductionObject({
+    key,
+    path: productionTemplatePath,
+    expectedSha256: digest,
+    kmsKeyArn,
+    contentType: "application/json",
+    allowUpload,
+  });
+  const templateUrl = buildVersionedS3TemplateUrl({
+    bucket: packet.target.artifact_bucket_name,
+    region: JSON_POSTGRES_PRODUCTION_REGION,
+    key,
+    versionId: object.version_id,
+  });
+  const validation = awsJson([
+    "cloudformation", "validate-template",
+    ...cloudFormationTemplateArgs({
+      templatePath: productionTemplatePath,
+      templateByteSize: bytes.byteLength,
+      templateUrl,
+    }).args,
+  ]);
+  const parameterCount = Object.keys(productionTemplate.Parameters ?? {}).length;
+  if (validation.Parameters?.length !== parameterCount) {
+    throw new Error("production CloudFormation template validation drifted");
+  }
+  return Object.freeze({
+    ...object,
+    template_url: templateUrl,
+    parameter_count: parameterCount,
+  });
 }
 
 function validateEniAuthorityRemoved() {
@@ -416,14 +561,27 @@ const caller = assertJsonPostgresProductionCaller(
 
 let result;
 if (operation === "preflight") {
+  const artifactStoreBytes = readFileSync(artifactStoreTemplatePath);
+  const productionBytes = readFileSync(productionTemplatePath);
   const artifactValidation = awsJson([
     "cloudformation", "validate-template",
-    "--template-body", `file://${artifactStoreTemplatePath}`,
+    ...cloudFormationTemplateArgs({
+      templatePath: artifactStoreTemplatePath,
+      templateByteSize: artifactStoreBytes.byteLength,
+    }).args,
   ]);
-  const infrastructureValidation = awsJson([
-    "cloudformation", "validate-template",
-    "--template-body", `file://${productionTemplatePath}`,
-  ]);
+  const productionRequiresUrl = cloudFormationTemplateRequiresUrl(
+    productionBytes.byteLength,
+  );
+  const infrastructureValidation = productionRequiresUrl
+    ? null
+    : awsJson([
+        "cloudformation", "validate-template",
+        ...cloudFormationTemplateArgs({
+          templatePath: productionTemplatePath,
+          templateByteSize: productionBytes.byteLength,
+        }).args,
+      ]);
   result = {
     operation,
     outcome: "PASS",
@@ -432,7 +590,14 @@ if (operation === "preflight") {
     production_template_sha256: productionValidation.template_sha256,
     combined_template_sha256: packet.bindings.infrastructure_template_sha256,
     artifact_store_parameter_count: artifactValidation.Parameters?.length ?? 0,
-    production_parameter_count: infrastructureValidation.Parameters?.length ?? 0,
+    production_parameter_count:
+      infrastructureValidation?.Parameters?.length
+        ?? Object.keys(productionTemplate.Parameters ?? {}).length,
+    artifact_store_template_transport: "inline-body",
+    production_template_transport: productionRequiresUrl
+      ? "deferred-versioned-s3-url"
+      : "inline-body",
+    production_template_byte_size: productionBytes.byteLength,
     existing_artifact_store_stack_count: currentStack(JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK) ? 1 : 0,
     existing_production_stack_count: currentStack(JSON_POSTGRES_PRODUCTION_STACK) ? 1 : 0,
     aws_mutation_count: 0,
@@ -472,43 +637,18 @@ if (operation === "preflight") {
   if (!stack) throw new Error("production artifact-store stack does not exist");
   const state = artifactStoreState(stack);
   const key = `lawos-production/${sourceSha}/${packet.bindings.artifact_sha256}.zip`;
-  let head = awsTryJson([
-    "s3api", "head-object",
-    "--bucket", packet.target.artifact_bucket_name,
-    "--key", key,
-    "--expected-bucket-owner", JSON_POSTGRES_PRODUCTION_ACCOUNT,
-  ]);
-  if (!head) {
-    const retainUntil = new Date(Date.now() + 366 * 24 * 60 * 60 * 1000).toISOString();
-    awsJson([
-      "s3api", "put-object",
-      "--bucket", packet.target.artifact_bucket_name,
-      "--key", key,
-      "--body", artifactPath,
-      "--expected-bucket-owner", JSON_POSTGRES_PRODUCTION_ACCOUNT,
-      "--server-side-encryption", "aws:kms",
-      "--ssekms-key-id", state.artifact_kms_key_arn,
-      "--object-lock-mode", "COMPLIANCE",
-      "--object-lock-retain-until-date", retainUntil,
-      "--metadata", `sha256=${packet.bindings.artifact_sha256},source-sha=${sourceSha},source-tree=${sourceTree},packet-sha256=${packet.packet_sha256}`,
-    ]);
-    head = awsJson([
-      "s3api", "head-object",
-      "--bucket", packet.target.artifact_bucket_name,
-      "--key", key,
-      "--expected-bucket-owner", JSON_POSTGRES_PRODUCTION_ACCOUNT,
-    ]);
-  }
-  if (!head.VersionId || head.VersionId === "null"
-    || Number(head.ContentLength) !== artifactBytes.byteLength
-    || head.ServerSideEncryption !== "aws:kms"
-    || head.SSEKMSKeyId !== state.artifact_kms_key_arn
-    || head.Metadata?.sha256 !== packet.bindings.artifact_sha256
-    || head.Metadata?.["source-sha"] !== sourceSha
-    || head.Metadata?.["source-tree"] !== sourceTree
-    || head.Metadata?.["packet-sha256"] !== packet.packet_sha256) {
-    throw new Error("uploaded production artifact immutable binding drifted");
-  }
+  const artifact = putImmutableProductionObject({
+    key,
+    path: artifactPath,
+    expectedSha256: packet.bindings.artifact_sha256,
+    kmsKeyArn: state.artifact_kms_key_arn,
+    contentType: "application/zip",
+    allowUpload: true,
+  });
+  const template = productionTemplateReference({
+    kmsKeyArn: state.artifact_kms_key_arn,
+    allowUpload: true,
+  });
   result = {
     schema_version: "law-firm-os.json-postgres-production-artifact-upload.v1",
     operation,
@@ -516,10 +656,12 @@ if (operation === "preflight") {
     caller,
     artifact_sha256: packet.bindings.artifact_sha256,
     artifact_key: key,
-    artifact_version: head.VersionId,
+    artifact_version: artifact.version_id,
     artifact_byte_size: artifactBytes.byteLength,
-    object_lock_mode: head.ObjectLockMode ?? "COMPLIANCE",
-    aws_mutation_count: 1,
+    object_lock_mode: "COMPLIANCE",
+    cloudformation_template: template,
+    aws_mutation_count:
+      artifact.mutation_count + template.mutation_count,
     production_write_count: 0,
   };
 } else if (operation === "create-production-change-set") {
@@ -530,7 +672,10 @@ if (operation === "preflight") {
   if (upload?.schema_version !== "law-firm-os.json-postgres-production-artifact-upload.v1"
     || upload.outcome !== "PASS"
     || upload.artifact_sha256 !== packet.bindings.artifact_sha256
-    || !upload.artifact_version) {
+    || !upload.artifact_version
+    || upload.cloudformation_template?.sha256
+      !== sha256ProgramBytes(readFileSync(productionTemplatePath))
+    || !upload.cloudformation_template?.version_id) {
     throw new Error("artifact upload evidence is invalid");
   }
   const parameters = buildJsonPostgresProductionStackParameters({
@@ -558,6 +703,7 @@ if (operation === "preflight") {
     templateSha256: productionValidation.template_sha256,
     parameters,
     label: "production-infrastructure",
+    templateUrl: upload.cloudformation_template.template_url,
   });
   result = {
     schema_version: "law-firm-os.json-postgres-production-reviewed-change-set.v1",

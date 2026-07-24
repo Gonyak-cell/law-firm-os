@@ -14,6 +14,11 @@ import {
   validateJsonPostgresProductionDeploymentManifest,
 } from "./lib/json-postgres-production-artifact.mjs";
 import {
+  buildVersionedS3TemplateUrl,
+  cloudFormationTemplateArgs,
+  cloudFormationTemplateRequiresUrl,
+} from "./lib/cloudformation-template-transport.mjs";
+import {
   validateJsonPostgresRehearsalBackupRetentionContract,
 } from "./lib/json-postgres-rehearsal-contracts.mjs";
 import {
@@ -280,6 +285,7 @@ function createReviewedChangeSet({
   phase,
   templateSha256,
   parameters,
+  templateUrl = null,
 }) {
   const name =
     `lawos-w12-${phase}-${sourceSha.slice(0, 10)}-${input.attempt_ref}`;
@@ -289,7 +295,11 @@ function createReviewedChangeSet({
     "--stack-name", stackName,
     "--change-set-name", name,
     "--change-set-type", type,
-    "--template-body", `file://${templatePath}`,
+    ...cloudFormationTemplateArgs({
+      templatePath,
+      templateByteSize: readFileSync(templatePath).byteLength,
+      templateUrl,
+    }).args,
     "--capabilities", "CAPABILITY_NAMED_IAM",
     "--parameters", ...parameterArgs(parameters),
     "--description",
@@ -315,6 +325,7 @@ function createReviewedChangeSet({
     templateSha256,
     parametersSha256:
       jsonPostgresRehearsalParametersSha256(parameters),
+    templateUrl,
   });
 }
 
@@ -331,6 +342,7 @@ function executeReviewedChangeSet(review) {
     phase: review.phase,
     templateSha256: review.template_sha256,
     parametersSha256: review.parameters_sha256,
+    templateUrl: review.template_url ?? null,
   });
   if (validated.reviewed_change_set_sha256
     !== review.reviewed_change_set_sha256) {
@@ -514,6 +526,49 @@ function uploadArtifact(kmsKeyArn) {
     throw new Error("W12 uploaded artifact drifted from the exact packet");
   }
   return Object.freeze({ key, ...uploaded });
+}
+
+function uploadRehearsalTemplate(kmsKeyArn) {
+  const bytes = readFileSync(rehearsalTemplatePath);
+  const digest = sha256ProgramBytes(bytes);
+  const key =
+    `cloudformation-template/${sourceSha}/${digest}.json`;
+  const uploaded = putImmutableObject({
+    bucket: packet.target.artifact_bucket_name,
+    key,
+    path: rehearsalTemplatePath,
+    kmsKeyArn,
+    contentType: "application/json",
+  });
+  const templateUrl = buildVersionedS3TemplateUrl({
+    bucket: packet.target.artifact_bucket_name,
+    region: JSON_POSTGRES_REHEARSAL_REGION,
+    key,
+    versionId: uploaded.version_id,
+  });
+  const validation = awsJson([
+    "cloudformation",
+    "validate-template",
+    ...cloudFormationTemplateArgs({
+      templatePath: rehearsalTemplatePath,
+      templateByteSize: bytes.byteLength,
+      templateUrl,
+    }).args,
+  ]);
+  const parameterCount = Object.keys(
+    rehearsalTemplate.Parameters ?? {},
+  ).length;
+  if (uploaded.sha256 !== digest
+    || uploaded.byte_size !== bytes.byteLength
+    || validation.Parameters?.length !== parameterCount) {
+    throw new Error("W12 uploaded CloudFormation template validation drifted");
+  }
+  return Object.freeze({
+    key,
+    template_url: templateUrl,
+    parameter_count: parameterCount,
+    ...uploaded,
+  });
 }
 
 function rolePolicyState(roleName, expectedPolicyName) {
@@ -788,18 +843,29 @@ const caller = assertJsonPostgresRehearsalCaller(
 
 let result;
 if (operation === "preflight") {
+  const artifactStoreBytes = readFileSync(artifactStoreTemplatePath);
+  const rehearsalBytes = readFileSync(rehearsalTemplatePath);
   const artifactValidation = awsJson([
     "cloudformation",
     "validate-template",
-    "--template-body",
-    `file://${artifactStoreTemplatePath}`,
+    ...cloudFormationTemplateArgs({
+      templatePath: artifactStoreTemplatePath,
+      templateByteSize: artifactStoreBytes.byteLength,
+    }).args,
   ]);
-  const rehearsalValidation = awsJson([
-    "cloudformation",
-    "validate-template",
-    "--template-body",
-    `file://${rehearsalTemplatePath}`,
-  ]);
+  const rehearsalRequiresUrl = cloudFormationTemplateRequiresUrl(
+    rehearsalBytes.byteLength,
+  );
+  const rehearsalValidation = rehearsalRequiresUrl
+    ? null
+    : awsJson([
+        "cloudformation",
+        "validate-template",
+        ...cloudFormationTemplateArgs({
+          templatePath: rehearsalTemplatePath,
+          templateByteSize: rehearsalBytes.byteLength,
+        }).args,
+      ]);
   const host = validateHostStack(
     currentStack(JSON_POSTGRES_REHEARSAL_STACK),
   );
@@ -821,7 +887,13 @@ if (operation === "preflight") {
     artifact_store_parameter_count:
       artifactValidation.Parameters?.length ?? 0,
     rehearsal_parameter_count:
-      rehearsalValidation.Parameters?.length ?? 0,
+      rehearsalValidation?.Parameters?.length
+        ?? Object.keys(rehearsalTemplate.Parameters ?? {}).length,
+    artifact_store_template_transport: "inline-body",
+    rehearsal_template_transport: rehearsalRequiresUrl
+      ? "deferred-versioned-s3-url"
+      : "inline-body",
+    rehearsal_template_byte_size: rehearsalBytes.byteLength,
     existing_host_stack_status: host.stack.StackStatus,
     existing_w12_binding_count: host.hasW12 ? 1 : 0,
     rds: assertPrivateStagingRds(rds),
@@ -872,6 +944,10 @@ if (operation === "preflight") {
   const artifactStore = artifactStoreState(artifactStack);
   const artifactUpload = uploadArtifact(artifactStore.kms_key_arn);
   mutationCount += 1;
+  const templateUpload = uploadRehearsalTemplate(
+    artifactStore.kms_key_arn,
+  );
+  mutationCount += 1;
 
   let host = validateHostStack(
     currentStack(JSON_POSTGRES_REHEARSAL_STACK),
@@ -910,6 +986,7 @@ if (operation === "preflight") {
       phase: "enable-eni",
       templateSha256: rehearsalTemplateValidation.template_sha256,
       parameters,
+      templateUrl: templateUpload.template_url,
     });
     mutationCount += 1;
     host = {
@@ -965,6 +1042,7 @@ if (operation === "preflight") {
       phase: "remove-eni",
       templateSha256: rehearsalTemplateValidation.template_sha256,
       parameters,
+      templateUrl: templateUpload.template_url,
     });
     mutationCount += 1;
     host = {
@@ -1012,6 +1090,7 @@ if (operation === "preflight") {
     caller,
     artifact_store: artifactStore,
     artifact_upload: artifactUpload,
+    cloudformation_template_upload: templateUpload,
     artifact_store_change_set: artifactReview,
     enable_eni_change_set: enableReview,
     remove_eni_change_set: removeReview,
