@@ -45,6 +45,34 @@ test("production template derives the proven private topology without synthetic 
     template.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_PASSWORD_RESET_TENANT_ID,
     undefined,
   );
+  assert.deepEqual(
+    template.Resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement
+      .find((item) =>
+        item.Sid === "ExactProductionProgramInputsAndMigrationDmsOnly"),
+    {
+      Sid: "ExactProductionProgramInputsAndMigrationDmsOnly",
+      Effect: "Allow",
+      Principal: "*",
+      Action: [
+        "s3:GetBucketLocation",
+        "s3:GetBucketObjectLockConfiguration",
+        "s3:GetBucketVersioning",
+        "s3:GetObject",
+        "s3:GetObjectLegalHold",
+        "s3:GetObjectRetention",
+        "s3:GetObjectVersion",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+      ],
+      Resource: [
+        { "Fn::GetAtt": ["ProgramInputBucket", "Arn"] },
+        { "Fn::Sub": "${ProgramInputBucket.Arn}/*" },
+        { "Fn::GetAtt": ["DmsBucket", "Arn"] },
+        { "Fn::Sub": "${DmsBucket.Arn}/approved-real-migration/*" },
+      ],
+    },
+  );
 });
 
 test("production template fails closed on public RDS, synthetic content, wildcard IAM and default traffic", () => {
@@ -63,6 +91,18 @@ test("production template fails closed on public RDS, synthetic content, wildcar
         value.Resources.AdminExecutionRole.Properties.Policies[0].PolicyDocument.Statement
           .find((item) => item.Sid === "ReadExactBootstrapSecrets").Resource
           .filter((item) => item?.Ref !== "ProjectionDatabaseSecret");
+    },
+    (value) => {
+      value.Resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement
+        .find((item) =>
+          item.Sid === "ExactProductionProgramInputsAndMigrationDmsOnly")
+        .Action.push("s3:DeleteObject");
+    },
+    (value) => {
+      value.Resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement
+        .find((item) =>
+          item.Sid === "ExactProductionProgramInputsAndMigrationDmsOnly")
+        .Resource.pop();
     },
   ]) {
     const template = buildJsonPostgresProductionTemplate(reference);
