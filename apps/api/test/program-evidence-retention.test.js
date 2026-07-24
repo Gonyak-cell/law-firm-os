@@ -33,3 +33,11 @@ test("program evidence retention preserves a later approval buffer", () => {
     now,
   }));
 });
+
+test("program evidence retention rounds up to the S3 Object Lock second", () => {
+  const result = programEvidenceRetainUntil({
+    approvalExpiresAt: "2026-08-31T14:59:00.000Z",
+    now: Date.parse("2026-07-24T17:27:43.952Z"),
+  });
+  assert.equal(result.toISOString(), "2027-07-24T17:27:44.000Z");
+});

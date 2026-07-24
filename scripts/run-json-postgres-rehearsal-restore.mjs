@@ -530,52 +530,90 @@ if (operation === "restore") {
   if (identifier.length > 63) {
     throw new Error("W12 restore identifier exceeds the RDS limit");
   }
-  const startedAt = new Date().toISOString();
-  awsJson(DEPLOY_PROFILE, [
-    "rds",
-    "restore-db-instance-to-point-in-time",
-    "--source-db-instance-identifier",
-    JSON_POSTGRES_REHEARSAL_SOURCE_DATABASE,
-    "--target-db-instance-identifier",
-    identifier,
-    "--restore-time", sourceState.latest_restorable_at,
-    "--db-subnet-group-name", sourceState.subnet_group_name,
-    "--vpc-security-group-ids", ...sourceState.security_group_ids,
-    "--no-publicly-accessible",
-    "--no-multi-az",
-    "--no-deletion-protection",
-    "--copy-tags-to-snapshot",
-    "--tags",
-    "Key=environment,Value=lawos-staging",
-    "Key=program,Value=lawos-private-rehearsal-restore",
-    `Key=source-sha,Value=${sourceSha}`,
-    `Key=packet-sha256,Value=${packet.packet_sha256}`,
-    `Key=attempt-ref,Value=${attemptRef}`,
-  ]);
-  awsWait(DEPLOY_PROFILE, [
-    "rds",
-    "wait",
-    "db-instance-available",
-    "--db-instance-identifier",
-    identifier,
-  ]);
-  const restored = database(AUDIT_PROFILE, identifier);
-  const availableAt = new Date().toISOString();
-  const target = buildJsonPostgresRehearsalRestoreTargetFromAws({
-    sourceDatabase: source,
-    restoredDatabase: restored,
-    sourceSha,
-    sourceTree,
-    packetSha256: packet.packet_sha256,
-    migrationResultSha256: migration.result_sha256,
-    restoreStartedAt: startedAt,
-    restoreAvailableAt: availableAt,
-    performanceAcceptance: performanceValue,
-  });
-  const targetFile = writePrivateProgramJson(
-    join(outputDir, "restore-target.json"),
-    target,
-  );
+  const targetPath = join(outputDir, "restore-target.json");
+  let target;
+  let targetFile;
+  if (existsSync(targetPath)) {
+    target = readPrivateProgramJson(
+      targetPath,
+      "W12 existing restore target",
+    );
+    validateJsonPostgresRehearsalRestoreTarget(target, {
+      sourceSha,
+      sourceTree,
+      packetSha256: packet.packet_sha256,
+      performanceAcceptance: performanceValue,
+    });
+    if (target.restore_database_identifier !== identifier) {
+      throw new Error("W12 existing restore target attempt drifted");
+    }
+    const observed = buildJsonPostgresRehearsalRestoreTargetFromAws({
+      sourceDatabase: {
+        ...source,
+        LatestRestorableTime: target.source_latest_restorable_at,
+      },
+      restoredDatabase: database(AUDIT_PROFILE, identifier),
+      sourceSha,
+      sourceTree,
+      packetSha256: packet.packet_sha256,
+      migrationResultSha256: migration.result_sha256,
+      restoreStartedAt: target.restore_started_at,
+      restoreAvailableAt: target.restore_available_at,
+      performanceAcceptance: performanceValue,
+    });
+    if (observed.restore_target_sha256
+        !== target.restore_target_sha256) {
+      throw new Error("live W12 existing restore target drifted");
+    }
+    targetFile = Object.freeze({
+      path: targetPath,
+      sha256: sha256ProgramBytes(readFileSync(targetPath)),
+    });
+  } else {
+    const startedAt = new Date().toISOString();
+    awsJson(DEPLOY_PROFILE, [
+      "rds",
+      "restore-db-instance-to-point-in-time",
+      "--source-db-instance-identifier",
+      JSON_POSTGRES_REHEARSAL_SOURCE_DATABASE,
+      "--target-db-instance-identifier",
+      identifier,
+      "--restore-time", sourceState.latest_restorable_at,
+      "--db-subnet-group-name", sourceState.subnet_group_name,
+      "--vpc-security-group-ids", ...sourceState.security_group_ids,
+      "--no-publicly-accessible",
+      "--no-multi-az",
+      "--no-deletion-protection",
+      "--copy-tags-to-snapshot",
+      "--tags",
+      "Key=environment,Value=lawos-staging",
+      "Key=program,Value=lawos-private-rehearsal-restore",
+      `Key=source-sha,Value=${sourceSha}`,
+      `Key=packet-sha256,Value=${packet.packet_sha256}`,
+      `Key=attempt-ref,Value=${attemptRef}`,
+    ]);
+    awsWait(DEPLOY_PROFILE, [
+      "rds",
+      "wait",
+      "db-instance-available",
+      "--db-instance-identifier",
+      identifier,
+    ]);
+    const restored = database(AUDIT_PROFILE, identifier);
+    const availableAt = new Date().toISOString();
+    target = buildJsonPostgresRehearsalRestoreTargetFromAws({
+      sourceDatabase: source,
+      restoredDatabase: restored,
+      sourceSha,
+      sourceTree,
+      packetSha256: packet.packet_sha256,
+      migrationResultSha256: migration.result_sha256,
+      restoreStartedAt: startedAt,
+      restoreAvailableAt: availableAt,
+      performanceAcceptance: performanceValue,
+    });
+    targetFile = writePrivateProgramJson(targetPath, target);
+  }
   const restoreLocators = {
     restore_target: putImmutableJson({
       path: targetFile.path,

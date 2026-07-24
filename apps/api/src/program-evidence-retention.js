@@ -15,8 +15,9 @@ export function programEvidenceRetainUntil({
       "program evidence retention requires an unexpired approval",
     );
   }
-  return new Date(Math.max(
+  const retainUntil = Math.max(
     now + LAWOS_PROGRAM_EVIDENCE_MINIMUM_RETENTION_DAYS * DAY_MS,
     expiresAt + APPROVAL_BUFFER_DAYS * DAY_MS,
-  ));
+  );
+  return new Date(Math.ceil(retainUntil / 1_000) * 1_000);
 }
