@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -29,6 +29,18 @@ import {
 const ACCOUNT = "770880870480";
 const TENANT = "tenant_backup_fixture";
 const KMS_ARN = "arn:aws:kms:ap-northeast-2:770880870480:key/00000000-0000-0000-0000-000000000000";
+
+test("source backup runner keeps computed packet metadata outside the closed execution packet", async () => {
+  const source = await readFile(
+    new URL("../run-json-postgres-source-backup.mjs", import.meta.url),
+    "utf8",
+  );
+  assert.equal(
+    [...source.matchAll(/(?:create|execute)JsonPostgresSourceBackup(?:Plan)?\(\{\s+packet: packetSource,/gu)]
+      .length,
+    2,
+  );
+});
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), "lawos-source-backup-"));
