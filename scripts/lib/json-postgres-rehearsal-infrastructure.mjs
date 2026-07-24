@@ -103,10 +103,36 @@ export function classifyJsonPostgresRehearsalHostTemplate({
       deployed_template_sha256: deployedSha256,
       expected_template_sha256: currentSha256,
       legacy_identity_tenant_rebind_required: false,
+      readonly_audit_permission_rebind_required: false,
       retained_resource_imported: retainedResourceImported,
     });
   }
   if (hasW12) {
+    const predecessor = clone(rehearsalTemplate);
+    const permission =
+      predecessor.Resources?.RehearsalReadonlyAuditInvokePermission;
+    if (permission && sha256(permission) === sha256({
+      Type: "AWS::Lambda::Permission",
+      Properties: {
+        Action: "lambda:InvokeFunction",
+        FunctionName: { Ref: "RehearsalAdminFunction" },
+        Principal: {
+          "Fn::Sub":
+            "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/matter-readonly-auditor",
+        },
+      },
+    })) {
+      delete predecessor.Resources.RehearsalReadonlyAuditInvokePermission;
+      if (sha256(predecessor) === normalizedDeployedSha256) {
+        return Object.freeze({
+          deployed_template_sha256: deployedSha256,
+          expected_template_sha256: currentSha256,
+          legacy_identity_tenant_rebind_required: false,
+          readonly_audit_permission_rebind_required: true,
+          retained_resource_imported: retainedResourceImported,
+        });
+      }
+    }
     fail("existing private staging template drifted");
   }
   const legacy = clone(localBaseTemplate);
@@ -127,6 +153,7 @@ export function classifyJsonPostgresRehearsalHostTemplate({
     deployed_template_sha256: deployedSha256,
     expected_template_sha256: currentSha256,
     legacy_identity_tenant_rebind_required: true,
+    readonly_audit_permission_rebind_required: false,
     retained_resource_imported: retainedResourceImported,
   });
 }

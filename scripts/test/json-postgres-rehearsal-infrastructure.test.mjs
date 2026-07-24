@@ -86,6 +86,31 @@ test("W12 host classification accepts only the exact retained-resource import ch
   }), /retained private rehearsal resource drifted/u);
 });
 
+test("W12 host classification accepts only the exact predecessor without the readonly audit invoke permission", () => {
+  const rehearsal = builtTemplate();
+  const predecessor = structuredClone(rehearsal);
+  delete predecessor.Resources.RehearsalReadonlyAuditInvokePermission;
+  const classified = classifyJsonPostgresRehearsalHostTemplate({
+    deployedTemplate: predecessor,
+    localBaseTemplate: reference,
+    rehearsalTemplate: rehearsal,
+    hasW12: true,
+  });
+  assert.equal(
+    classified.readonly_audit_permission_rebind_required,
+    true,
+  );
+
+  const drifted = structuredClone(predecessor);
+  drifted.Resources.RehearsalAdminFunction.Properties.Timeout = 29;
+  assert.throws(() => classifyJsonPostgresRehearsalHostTemplate({
+    deployedTemplate: drifted,
+    localBaseTemplate: reference,
+    rehearsalTemplate: rehearsal,
+    hasW12: true,
+  }), /existing private staging template drifted/u);
+});
+
 test("W12 rehearsal reuses the private staging topology with an isolated database role and immutable input bucket", () => {
   const template = builtTemplate();
   const result = validateJsonPostgresRehearsalTemplate(template);

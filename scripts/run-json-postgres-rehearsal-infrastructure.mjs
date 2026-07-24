@@ -926,6 +926,8 @@ if (operation === "preflight") {
     existing_w12_binding_count: host.hasW12 ? 1 : 0,
     identity_tenant_rebind_required:
       host.legacy_identity_tenant_rebind_required,
+    readonly_audit_permission_rebind_required:
+      host.readonly_audit_permission_rebind_required,
     retained_resource_imported:
       host.retained_resource_imported,
     rds: assertPrivateStagingRds(rds),
