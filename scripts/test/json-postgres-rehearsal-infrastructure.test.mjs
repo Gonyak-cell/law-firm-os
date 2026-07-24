@@ -141,10 +141,7 @@ test("W12 rehearsal reuses the private staging topology with an isolated databas
           "arn:${AWS::Partition}:iam::${AWS::AccountId}:root",
       },
     });
-    assert.deepEqual(
-      endpoint.Condition.ArnEquals["aws:PrincipalArn"],
-      { "Fn::GetAtt": ["RehearsalAdminExecutionRole", "Arn"] },
-    );
+    assert.equal(endpoint.Condition, undefined);
   }
   const roleTags =
     template.Resources.RehearsalAdminExecutionRole.Properties.Tags;
@@ -282,12 +279,22 @@ test("W12 rehearsal fails closed on public infrastructure, email authority, wild
     (value) => {
       value.Resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement
         .find((item) => item.Sid === "ExactW12RehearsalInputsAndDmsOnly")
-        .Condition.ArnEquals["aws:PrincipalArn"] = "*";
+        .Condition = { StringEquals: { "aws:PrincipalAccount": "*" } };
+    },
+    (value) => {
+      value.Resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "ExactW12RehearsalInputsAndDmsOnly")
+        .Resource.push("*");
     },
     (value) => {
       value.Resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement
         .find((item) => item.Sid === "W12AdminReadsExactRehearsalSecrets")
         .Principal = "*";
+    },
+    (value) => {
+      value.Resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "W12AdminReadsExactRehearsalSecrets")
+        .Action.push("secretsmanager:DeleteSecret");
     },
   ]) {
     const template = builtTemplate();

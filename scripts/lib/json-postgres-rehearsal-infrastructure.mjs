@@ -807,13 +807,6 @@ export function buildJsonPostgresRehearsalTemplate(privateStagingTemplate) {
           "arn:${AWS::Partition}:iam::${AWS::AccountId}:root",
       },
     },
-    Condition: {
-      ArnEquals: {
-        "aws:PrincipalArn": {
-          "Fn::GetAtt": ["RehearsalAdminExecutionRole", "Arn"],
-        },
-      },
-    },
     Action: [
       "secretsmanager:GetSecretValue",
       "secretsmanager:PutSecretValue",
@@ -831,13 +824,6 @@ export function buildJsonPostgresRehearsalTemplate(privateStagingTemplate) {
       AWS: {
         "Fn::Sub":
           "arn:${AWS::Partition}:iam::${AWS::AccountId}:root",
-      },
-    },
-    Condition: {
-      ArnEquals: {
-        "aws:PrincipalArn": {
-          "Fn::GetAtt": ["RehearsalAdminExecutionRole", "Arn"],
-        },
       },
     },
     Action: [
@@ -1016,16 +1002,33 @@ export function validateJsonPostgresRehearsalTemplate(template) {
   const accountRoot = {
     "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root",
   };
-  const exactRole = {
-    "Fn::GetAtt": ["RehearsalAdminExecutionRole", "Arn"],
-  };
+  const endpointActions = [
+    "s3:GetBucketLocation",
+    "s3:GetBucketObjectLockConfiguration",
+    "s3:GetBucketVersioning",
+    "s3:GetObject",
+    "s3:GetObjectLegalHold",
+    "s3:GetObjectRetention",
+    "s3:GetObjectVersion",
+    "s3:PutObject",
+    "s3:PutObjectLegalHold",
+    "s3:PutObjectRetention",
+  ];
+  const endpointResources = [
+    { "Fn::GetAtt": ["RehearsalProgramInputBucket", "Arn"] },
+    { "Fn::Sub": "${RehearsalProgramInputBucket.Arn}/*" },
+    { "Fn::GetAtt": ["RehearsalDmsBucket", "Arn"] },
+    {
+      "Fn::Sub":
+        "${RehearsalDmsBucket.Arn}/approved-real-rehearsal/*",
+    },
+  ];
   if (!endpoint
     || JSON.stringify(endpoint.Principal?.AWS)
       !== JSON.stringify(accountRoot)
-    || JSON.stringify(endpoint.Condition?.ArnEquals?.["aws:PrincipalArn"])
-      !== JSON.stringify(exactRole)
-    || endpoint.Action.includes("s3:DeleteObject")
-    || endpoint.Action.includes("s3:DeleteObjectVersion")) {
+    || endpoint.Condition != null
+    || JSON.stringify(endpoint.Action) !== JSON.stringify(endpointActions)
+    || JSON.stringify(endpoint.Resource) !== JSON.stringify(endpointResources)) {
     fail("private rehearsal S3 endpoint policy drifted");
   }
   const secretEndpoint =
@@ -1034,9 +1037,16 @@ export function validateJsonPostgresRehearsalTemplate(template) {
   if (!secretEndpoint
     || JSON.stringify(secretEndpoint.Principal?.AWS)
       !== JSON.stringify(accountRoot)
-    || JSON.stringify(
-      secretEndpoint.Condition?.ArnEquals?.["aws:PrincipalArn"],
-    ) !== JSON.stringify(exactRole)) {
+    || secretEndpoint.Condition != null
+    || JSON.stringify(secretEndpoint.Action) !== JSON.stringify([
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:PutSecretValue",
+    ])
+    || JSON.stringify(secretEndpoint.Resource) !== JSON.stringify([
+      { "Fn::GetAtt": ["Database", "MasterUserSecret.SecretArn"] },
+      { Ref: "RehearsalApplicationDatabaseSecret" },
+      { Ref: "RehearsalTenantContextSecret" },
+    ])) {
     fail("private rehearsal Secrets Manager endpoint policy drifted");
   }
   const serialized = JSON.stringify({
