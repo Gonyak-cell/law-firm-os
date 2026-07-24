@@ -222,6 +222,73 @@ test("private rehearsal bootstrap creates only the isolated database and distinc
   assert.equal(JSON.stringify(result).includes("rehearsal-application-value"), false);
 });
 
+test("private rehearsal bootstrap identifies AWS access denial at each early protected boundary", async () => {
+  const rehearsalAuthorization = {
+    ...authorization(),
+    packet: {
+      ...packet(),
+      phase: "w12-real-data-rehearsal",
+    },
+  };
+  const rehearsalEvent = {
+    action: JSON_POSTGRES_REHEARSAL_BOOTSTRAP_ACTION,
+    mode: "preflight",
+  };
+  const rehearsalEnv = {
+    ...env(),
+    LAWOS_ADMIN_DATABASE_NAME: "lawos",
+    LAWOS_DATABASE_NAME: "lawos_rehearsal",
+  };
+  const denied = () => Object.assign(
+    new Error("must-not-return"),
+    { name: "AccessDeniedException" },
+  );
+  const assertStage = async (options, code) => assert.rejects(
+    bootstrapJsonPostgresRehearsalDatabase({
+      event: rehearsalEvent,
+      env: rehearsalEnv,
+      authorize: async () => rehearsalAuthorization,
+      claim: async () => ({
+        approval_receipt_sha256: "f".repeat(64),
+        claim_sha256: "3".repeat(64),
+      }),
+      ...options,
+    }),
+    (error) => error?.code === code
+      && error.message.includes("must-not-return") === false,
+  );
+
+  await assertStage({
+    authorize: async () => { throw denied(); },
+  }, "LAWOS_PROGRAM_AUTHORIZATION_READ_ACCESS_DENIED");
+  await assertStage({
+    claim: async () => { throw denied(); },
+  }, "LAWOS_PROGRAM_AUTHORIZATION_CLAIM_ACCESS_DENIED");
+
+  const secretValues = new Map([
+    ["lawos/master", { username: "master", password: "master-value" }],
+    ["lawos/application", {
+      username: "lawos_rehearsal_app",
+      password: "rehearsal-application-value",
+    }],
+    ["lawos/tenant-context", {
+      tenant_context_secret: "tenant-context-value-at-least-32-bytes",
+    }],
+  ]);
+  for (const [secretId, code] of [
+    ["lawos/master", "LAWOS_PROGRAM_MASTER_SECRET_READ_ACCESS_DENIED"],
+    ["lawos/application", "LAWOS_PROGRAM_APPLICATION_SECRET_READ_ACCESS_DENIED"],
+    ["lawos/tenant-context", "LAWOS_PROGRAM_TENANT_CONTEXT_SECRET_READ_ACCESS_DENIED"],
+  ]) {
+    await assertStage({
+      resolveSecret: async ({ secretId: requested }) => {
+        if (requested === secretId) throw denied();
+        return secretValues.get(requested);
+      },
+    }, code);
+  }
+});
+
 test("private rehearsal database creation is exact-name and idempotent", async () => {
   const queries = [];
   const client = {

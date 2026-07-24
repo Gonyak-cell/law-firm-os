@@ -86,6 +86,19 @@ export function safeJsonPostgresProgramErrorCode(error) {
     .slice(0, 96);
 }
 
+async function withAwsAccessDeniedCode(code, operation) {
+  try {
+    return await operation();
+  } catch (error) {
+    if (["ACCESSDENIED", "ACCESSDENIEDEXCEPTION"].includes(
+      safeJsonPostgresProgramErrorCode(error),
+    )) {
+      fail(code, "AWS denied access at a protected program boundary");
+    }
+    throw error;
+  }
+}
+
 function requiredText(value, label) {
   const text = String(value ?? "").trim();
   if (!text) throw new TypeError(`${label} is required`);
@@ -230,7 +243,10 @@ export async function bootstrapJsonPostgresRehearsalDatabase({
     || event.mode !== "preflight") {
     fail("LAWOS_PROGRAM_ACTION", "private rehearsal bootstrap requires its direct preflight action");
   }
-  const authorization = await authorize({ event, env });
+  const authorization = await withAwsAccessDeniedCode(
+    "LAWOS_PROGRAM_AUTHORIZATION_READ_ACCESS_DENIED",
+    () => authorize({ event, env }),
+  );
   if (authorization.packet.phase !== "w12-real-data-rehearsal") {
     fail("LAWOS_PROGRAM_PHASE", "private rehearsal bootstrap requires a W12 packet");
   }
@@ -238,30 +254,33 @@ export async function bootstrapJsonPostgresRehearsalDatabase({
     !== REHEARSAL_DATABASE_NAME) {
     fail("LAWOS_PROGRAM_DATABASE", "private rehearsal database target drifted");
   }
-  const claimEvidence = await claim({ event, authorization, env });
+  const claimEvidence = await withAwsAccessDeniedCode(
+    "LAWOS_PROGRAM_AUTHORIZATION_CLAIM_ACCESS_DENIED",
+    () => claim({ event, authorization, env }),
+  );
   const region = requiredText(env.AWS_REGION ?? env.AWS_DEFAULT_REGION, "AWS region");
   const [master, application, tenantContext] = await Promise.all([
-    resolveSecret({
+    withAwsAccessDeniedCode("LAWOS_PROGRAM_MASTER_SECRET_READ_ACCESS_DENIED", () => resolveSecret({
       secretId: requiredText(
         env.LAWOS_MASTER_DATABASE_SECRET_ID,
         "LAWOS_MASTER_DATABASE_SECRET_ID",
       ),
       region,
-    }),
-    resolveSecret({
+    })),
+    withAwsAccessDeniedCode("LAWOS_PROGRAM_APPLICATION_SECRET_READ_ACCESS_DENIED", () => resolveSecret({
       secretId: requiredText(
         env.LAWOS_APPLICATION_DATABASE_SECRET_ID,
         "LAWOS_APPLICATION_DATABASE_SECRET_ID",
       ),
       region,
-    }),
-    resolveSecret({
+    })),
+    withAwsAccessDeniedCode("LAWOS_PROGRAM_TENANT_CONTEXT_SECRET_READ_ACCESS_DENIED", () => resolveSecret({
       secretId: requiredText(
         env.LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID,
         "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID",
       ),
       region,
-    }),
+    })),
   ]);
   const applicationSecret = structuredApplicationSecret({
     current: application,
@@ -339,13 +358,16 @@ export async function bootstrapJsonPostgresRehearsalDatabase({
         client.destroy();
       }
     });
-    await writer({
-      secretId: requiredText(
-        env.LAWOS_APPLICATION_DATABASE_SECRET_ID,
-        "LAWOS_APPLICATION_DATABASE_SECRET_ID",
-      ),
-      secretString: JSON.stringify(applicationSecret),
-    });
+    await withAwsAccessDeniedCode(
+      "LAWOS_PROGRAM_APPLICATION_SECRET_WRITE_ACCESS_DENIED",
+      () => writer({
+        secretId: requiredText(
+          env.LAWOS_APPLICATION_DATABASE_SECRET_ID,
+          "LAWOS_APPLICATION_DATABASE_SECRET_ID",
+        ),
+        secretString: JSON.stringify(applicationSecret),
+      }),
+    );
   } finally {
     await rehearsalPool.end();
   }
@@ -455,14 +477,29 @@ export async function bootstrapJsonPostgresProductionDatabase({
   if (event.action !== JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION || event.mode !== "preflight") {
     fail("LAWOS_PROGRAM_ACTION", "production bootstrap requires its direct preflight action");
   }
-  const authorization = await authorize({ event, env });
+  const authorization = await withAwsAccessDeniedCode(
+    "LAWOS_PROGRAM_AUTHORIZATION_READ_ACCESS_DENIED",
+    () => authorize({ event, env }),
+  );
   if (authorization.packet.phase !== "w13-production-cutover") fail("LAWOS_PROGRAM_PHASE", "production bootstrap requires a W13 packet");
-  const claimEvidence = await claim({ event, authorization, env });
+  const claimEvidence = await withAwsAccessDeniedCode(
+    "LAWOS_PROGRAM_AUTHORIZATION_CLAIM_ACCESS_DENIED",
+    () => claim({ event, authorization, env }),
+  );
   const region = requiredText(env.AWS_REGION ?? env.AWS_DEFAULT_REGION, "AWS region");
   const [master, application, tenantContext] = await Promise.all([
-    resolveSecret({ secretId: requiredText(env.LAWOS_MASTER_DATABASE_SECRET_ID, "LAWOS_MASTER_DATABASE_SECRET_ID"), region }),
-    resolveSecret({ secretId: requiredText(env.LAWOS_APPLICATION_DATABASE_SECRET_ID, "LAWOS_APPLICATION_DATABASE_SECRET_ID"), region }),
-    resolveSecret({ secretId: requiredText(env.LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID, "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID"), region }),
+    withAwsAccessDeniedCode(
+      "LAWOS_PROGRAM_MASTER_SECRET_READ_ACCESS_DENIED",
+      () => resolveSecret({ secretId: requiredText(env.LAWOS_MASTER_DATABASE_SECRET_ID, "LAWOS_MASTER_DATABASE_SECRET_ID"), region }),
+    ),
+    withAwsAccessDeniedCode(
+      "LAWOS_PROGRAM_APPLICATION_SECRET_READ_ACCESS_DENIED",
+      () => resolveSecret({ secretId: requiredText(env.LAWOS_APPLICATION_DATABASE_SECRET_ID, "LAWOS_APPLICATION_DATABASE_SECRET_ID"), region }),
+    ),
+    withAwsAccessDeniedCode(
+      "LAWOS_PROGRAM_TENANT_CONTEXT_SECRET_READ_ACCESS_DENIED",
+      () => resolveSecret({ secretId: requiredText(env.LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID, "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID"), region }),
+    ),
   ]);
   const applicationSecret = structuredApplicationSecret({
     current: application,
@@ -507,10 +544,13 @@ export async function bootstrapJsonPostgresProductionDatabase({
         client.destroy();
       }
     });
-    await writer({
-      secretId: requiredText(env.LAWOS_APPLICATION_DATABASE_SECRET_ID, "LAWOS_APPLICATION_DATABASE_SECRET_ID"),
-      secretString: JSON.stringify(applicationSecret),
-    });
+    await withAwsAccessDeniedCode(
+      "LAWOS_PROGRAM_APPLICATION_SECRET_WRITE_ACCESS_DENIED",
+      () => writer({
+        secretId: requiredText(env.LAWOS_APPLICATION_DATABASE_SECRET_ID, "LAWOS_APPLICATION_DATABASE_SECRET_ID"),
+        secretString: JSON.stringify(applicationSecret),
+      }),
+    );
   } finally {
     await pool.end();
   }
