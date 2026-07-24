@@ -453,7 +453,7 @@ test("W12 sink evidence is derived from no-SES authority and denied simulation",
       FunctionName: "lawos-private-staging-w12-admin",
       State: "Active",
       LastUpdateStatus: "Successful",
-      Role: "arn:aws:iam::770880870480:role/lawos-private-rehearsal-admin-role",
+      Role: "arn:aws:iam::770880870480:role/lawos-private-staging-w12-admin-role",
       Environment: {
         Variables: {
           LAWOS_PERSISTENCE_AUTHORITY: "postgres-v2",
@@ -492,7 +492,28 @@ test("W12 sink evidence is derived from no-SES authority and denied simulation",
       FunctionName: "lawos-private-staging-w12-admin",
       State: "Active",
       LastUpdateStatus: "Successful",
-      Role: "arn:aws:iam::770880870480:role/lawos-private-rehearsal-admin-role",
+      Role: "arn:aws:iam::770880870480:role/unapproved-role",
+      Environment: { Variables: {} },
+    },
+    rolePolicySet: [{}],
+    simulationResults: [
+      {
+        EvalActionName: "ses:SendEmail",
+        EvalDecision: "implicitDeny",
+      },
+      {
+        EvalActionName: "ses:SendRawEmail",
+        EvalDecision: "implicitDeny",
+      },
+    ],
+  }), /inspection failed/u);
+  assert.throws(() => createJsonPostgresRehearsalSinkResult({
+    packet,
+    lambdaConfiguration: {
+      FunctionName: "lawos-private-staging-w12-admin",
+      State: "Active",
+      LastUpdateStatus: "Successful",
+      Role: "arn:aws:iam::770880870480:role/lawos-private-staging-w12-admin-role",
       Environment: { Variables: { SES_FROM_ADDRESS: "blocked" } },
     },
     rolePolicySet: [{}],

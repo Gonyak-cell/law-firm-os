@@ -2,6 +2,11 @@ import { createHash } from "node:crypto";
 import {
   canonicalizeJson,
 } from "../../packages/runtime-auth/src/runtime-safety-approval-contract.js";
+import {
+  JSON_POSTGRES_REHEARSAL_ACCOUNT,
+  JSON_POSTGRES_REHEARSAL_FUNCTION,
+  JSON_POSTGRES_REHEARSAL_ROLE,
+} from "./json-postgres-rehearsal-execution.mjs";
 
 export const JSON_POSTGRES_REHEARSAL_SINK_RESULT_VERSION =
   "law-firm-os.json-postgres-rehearsal-sink-result.v1";
@@ -86,7 +91,9 @@ export function createJsonPostgresRehearsalSinkResult({
   const deliveryEnvironmentKeys = Object.keys(environment).filter((key) =>
     /(?:SES|SMTP|MAIL|EMAIL_(?:FROM|SENDER|RECIPIENT))/iu.test(key));
   if (lambdaConfiguration?.FunctionName
-      !== "lawos-private-staging-w12-admin"
+      !== JSON_POSTGRES_REHEARSAL_FUNCTION
+    || lambdaConfiguration?.Role
+      !== `arn:aws:iam::${JSON_POSTGRES_REHEARSAL_ACCOUNT}:role/${JSON_POSTGRES_REHEARSAL_ROLE}`
     || lambdaConfiguration?.State !== "Active"
     || lambdaConfiguration?.LastUpdateStatus !== "Successful"
     || sesAllows.length !== 0

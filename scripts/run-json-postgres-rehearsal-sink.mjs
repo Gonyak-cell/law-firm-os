@@ -9,6 +9,13 @@ import {
   assertJsonPostgresRehearsalProgramCaller,
 } from "./lib/json-postgres-rehearsal-program.mjs";
 import {
+  JSON_POSTGRES_REHEARSAL_ACCOUNT,
+  JSON_POSTGRES_REHEARSAL_FUNCTION,
+  JSON_POSTGRES_REHEARSAL_PROFILE,
+  JSON_POSTGRES_REHEARSAL_REGION,
+  JSON_POSTGRES_REHEARSAL_ROLE,
+} from "./lib/json-postgres-rehearsal-execution.mjs";
+import {
   createJsonPostgresRehearsalSinkResult,
 } from "./lib/json-postgres-rehearsal-sink.mjs";
 import {
@@ -16,12 +23,6 @@ import {
   readPrivateProgramJson,
   writePrivateProgramJson,
 } from "./lib/json-postgres-program-files.mjs";
-
-const AWS_PROFILE = "matter-staging-admin";
-const AWS_REGION = "ap-northeast-2";
-const ACCOUNT = "770880870480";
-const FUNCTION = "lawos-private-staging-w12-admin";
-const ROLE = "lawos-private-rehearsal-admin-role";
 
 function option(name) {
   const index = process.argv.indexOf(name);
@@ -50,8 +51,8 @@ function git(...args) {
 function awsJson(args, { region = true } = {}) {
   const output = execFileSync("aws", [
     ...args,
-    "--profile", AWS_PROFILE,
-    ...(region ? ["--region", AWS_REGION] : []),
+    "--profile", JSON_POSTGRES_REHEARSAL_PROFILE,
+    ...(region ? ["--region", JSON_POSTGRES_REHEARSAL_REGION] : []),
     "--no-cli-pager",
     "--output", "json",
   ], {
@@ -90,25 +91,29 @@ verifyJsonPostgresExecutionApproval({
 });
 assertJsonPostgresRehearsalProgramCaller(
   awsJson(["sts", "get-caller-identity"]),
+  {
+    profile: JSON_POSTGRES_REHEARSAL_PROFILE,
+    mode: "preflight",
+  },
 );
 const lambdaConfiguration = awsJson([
   "lambda",
   "get-function-configuration",
   "--function-name",
-  FUNCTION,
+  JSON_POSTGRES_REHEARSAL_FUNCTION,
 ]);
 const policyNames = awsJson([
   "iam",
   "list-role-policies",
   "--role-name",
-  ROLE,
+  JSON_POSTGRES_REHEARSAL_ROLE,
 ], { region: false }).PolicyNames ?? [];
 const rolePolicySet = policyNames.sort().map((policyName) =>
   awsJson([
     "iam",
     "get-role-policy",
     "--role-name",
-    ROLE,
+    JSON_POSTGRES_REHEARSAL_ROLE,
     "--policy-name",
     policyName,
   ], { region: false }).PolicyDocument);
@@ -116,7 +121,7 @@ const simulation = awsJson([
   "iam",
   "simulate-principal-policy",
   "--policy-source-arn",
-  `arn:aws:iam::${ACCOUNT}:role/${ROLE}`,
+  `arn:aws:iam::${JSON_POSTGRES_REHEARSAL_ACCOUNT}:role/${JSON_POSTGRES_REHEARSAL_ROLE}`,
   "--action-names",
   "ses:SendEmail",
   "ses:SendRawEmail",
