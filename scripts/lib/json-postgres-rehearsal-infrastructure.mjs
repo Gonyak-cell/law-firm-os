@@ -485,7 +485,10 @@ function rehearsalRole() {
               {
                 Sid: "WriteImmutableRehearsalEvidence",
                 Effect: "Allow",
-                Action: "s3:PutObject",
+                Action: [
+                  "s3:PutObject",
+                  "s3:PutObjectRetention",
+                ],
                 Resource: [
                   { "Fn::Sub": "${RehearsalProgramInputBucket.Arn}/program-approval-audit/*" },
                   { "Fn::Sub": "${RehearsalProgramInputBucket.Arn}/program-execution/*" },
@@ -939,6 +942,8 @@ export function validateJsonPostgresRehearsalTemplate(template) {
   const statements = roleStatements(role);
   const bootstrap = statements.find((item) => item.Sid === "LambdaVpcEniBootstrap");
   const deny = statements.find((item) => item.Sid === "DenyFunctionCodeEc2Networking");
+  const evidenceWriter = statements
+    .find((item) => item.Sid === "WriteImmutableRehearsalEvidence");
   if (role?.Properties?.RoleName !== "lawos-private-staging-w12-admin-role"
     || JSON.stringify(bootstrap?.Action)
       !== JSON.stringify(JSON_POSTGRES_REHEARSAL_ENI_ACTIONS)
@@ -946,6 +951,10 @@ export function validateJsonPostgresRehearsalTemplate(template) {
     || JSON.stringify(deny?.Action) !== JSON.stringify(ENI_DENY_ACTIONS)
     || deny?.Effect !== "Deny"
     || deny?.Resource !== "*"
+    || JSON.stringify(evidenceWriter?.Action) !== JSON.stringify([
+      "s3:PutObject",
+      "s3:PutObjectRetention",
+    ])
     || statements.some((item) => item.Effect === "Allow"
       && containsWildcardAction(item.Action))
     || statements.some((item) => JSON.stringify(item).match(/\bses:/iu))) {

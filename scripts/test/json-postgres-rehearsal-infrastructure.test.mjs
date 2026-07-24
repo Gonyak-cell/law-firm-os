@@ -118,6 +118,13 @@ test("W12 rehearsal reuses the private staging topology with an isolated databas
       .includes("ses:"),
     false,
   );
+  assert.deepEqual(
+    template.Resources.RehearsalAdminExecutionRole.Properties.Policies[0]
+      .PolicyDocument.Statement
+      .find((item) => item.Sid === "WriteImmutableRehearsalEvidence")
+      .Action,
+    ["s3:PutObject", "s3:PutObjectRetention"],
+  );
   const roleTags =
     template.Resources.RehearsalAdminExecutionRole.Properties.Tags;
   assert.equal(
@@ -235,6 +242,12 @@ test("W12 rehearsal fails closed on public infrastructure, email authority, wild
         .PolicyDocument.Statement
         .find((item) => item.Sid === "DenyFunctionCodeEc2Networking").Effect =
         "Allow";
+    },
+    (value) => {
+      value.Resources.RehearsalAdminExecutionRole.Properties.Policies[0]
+        .PolicyDocument.Statement
+        .find((item) => item.Sid === "WriteImmutableRehearsalEvidence")
+        .Action = "s3:PutObject";
     },
   ]) {
     const template = builtTemplate();
