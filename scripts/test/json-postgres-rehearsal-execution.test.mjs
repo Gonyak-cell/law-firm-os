@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   JSON_POSTGRES_REHEARSAL_ARTIFACT_BUCKET,
   JSON_POSTGRES_REHEARSAL_ARTIFACT_STACK,
+  JSON_POSTGRES_REHEARSAL_STACK,
   assertJsonPostgresRehearsalEniAuthority,
   assertJsonPostgresRehearsalBucketState,
   assertJsonPostgresRehearsalCaller,
@@ -142,6 +143,60 @@ test("W12 caller and artifact-store change set are exact-role and add-only", () 
       templateUrl: `${versionedTemplateUrl}-drift`,
     }),
     /binding is invalid/u,
+  );
+});
+
+test("W12 change-set review allows the exact one-time identity tenant rebind only when declared", () => {
+  const changeSet = {
+    StackName: JSON_POSTGRES_REHEARSAL_STACK,
+    ChangeSetType: "UPDATE",
+    Id: "change-set-identity-rebind",
+    Changes: [{
+      ResourceChange: {
+        Action: "Modify",
+        LogicalResourceId: "ApiFunction",
+        ResourceType: "AWS::Lambda::Function",
+        Replacement: "False",
+        Scope: ["Properties"],
+      },
+    }, {
+      ResourceChange: {
+        Action: "Add",
+        LogicalResourceId: "RehearsalAdminFunction",
+        ResourceType: "AWS::Lambda::Function",
+        Replacement: "False",
+        Scope: [],
+      },
+    }],
+  };
+  const options = {
+    stackName: JSON_POSTGRES_REHEARSAL_STACK,
+    changeSetType: "UPDATE",
+    phase: "enable-eni",
+    templateSha256: "d".repeat(64),
+    parametersSha256: "e".repeat(64),
+    allowIdentityTenantRebind: true,
+  };
+  assert.equal(
+    validateJsonPostgresRehearsalChangeSet(
+      changeSet,
+      options,
+    ).identity_tenant_rebind,
+    true,
+  );
+  assert.throws(
+    () => validateJsonPostgresRehearsalChangeSet(changeSet, {
+      ...options,
+      allowIdentityTenantRebind: false,
+    }),
+    /unapproved delta/u,
+  );
+  assert.throws(
+    () => validateJsonPostgresRehearsalChangeSet({
+      ...changeSet,
+      Changes: changeSet.Changes.slice(1),
+    }, options),
+    /identity tenant rebind/u,
   );
 });
 

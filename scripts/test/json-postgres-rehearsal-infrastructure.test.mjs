@@ -6,6 +6,7 @@ import {
   buildJsonPostgresRehearsalArtifactStoreTemplate,
   buildJsonPostgresRehearsalStackParameters,
   buildJsonPostgresRehearsalTemplate,
+  classifyJsonPostgresRehearsalHostTemplate,
   validateJsonPostgresRehearsalArtifactStoreTemplate,
   validateJsonPostgresRehearsalTemplate,
 } from "../lib/json-postgres-rehearsal-infrastructure.mjs";
@@ -17,6 +18,37 @@ const reference = JSON.parse(
 function builtTemplate() {
   return buildJsonPostgresRehearsalTemplate(reference);
 }
+
+test("W12 host classification permits only the exact legacy tenant-key rename", () => {
+  const legacy = structuredClone(reference);
+  const variables =
+    legacy.Resources.ApiFunction.Properties.Environment.Variables;
+  variables.LAWOS_PASSWORD_RESET_TENANT_ID =
+    variables.LAWOS_IDENTITY_TENANT_ID;
+  delete variables.LAWOS_IDENTITY_TENANT_ID;
+  const classified = classifyJsonPostgresRehearsalHostTemplate({
+    deployedTemplate: legacy,
+    localBaseTemplate: reference,
+    rehearsalTemplate: builtTemplate(),
+    hasW12: false,
+  });
+  assert.equal(
+    classified.legacy_identity_tenant_rebind_required,
+    true,
+  );
+
+  const drifted = structuredClone(legacy);
+  drifted.Resources.ApiFunction.Properties.Timeout = 29;
+  assert.throws(
+    () => classifyJsonPostgresRehearsalHostTemplate({
+      deployedTemplate: drifted,
+      localBaseTemplate: reference,
+      rehearsalTemplate: builtTemplate(),
+      hasW12: false,
+    }),
+    /template drifted/u,
+  );
+});
 
 test("W12 rehearsal reuses the private staging topology with an isolated database role and immutable input bucket", () => {
   const template = builtTemplate();

@@ -42,6 +42,51 @@ function fail(message) {
   throw new Error(message);
 }
 
+export function classifyJsonPostgresRehearsalHostTemplate({
+  deployedTemplate,
+  localBaseTemplate,
+  rehearsalTemplate,
+  hasW12,
+} = {}) {
+  if (!deployedTemplate || !localBaseTemplate || !rehearsalTemplate
+    || typeof hasW12 !== "boolean") {
+    fail("private rehearsal host template classification input is invalid");
+  }
+  const deployedSha256 = sha256(deployedTemplate);
+  const currentSha256 = sha256(
+    hasW12 ? rehearsalTemplate : localBaseTemplate,
+  );
+  if (deployedSha256 === currentSha256) {
+    return Object.freeze({
+      deployed_template_sha256: deployedSha256,
+      expected_template_sha256: currentSha256,
+      legacy_identity_tenant_rebind_required: false,
+    });
+  }
+  if (hasW12) {
+    fail("existing private staging template drifted");
+  }
+  const legacy = clone(localBaseTemplate);
+  const variables =
+    legacy.Resources?.ApiFunction?.Properties?.Environment?.Variables;
+  if (!variables
+    || typeof variables.LAWOS_IDENTITY_TENANT_ID !== "string"
+    || Object.hasOwn(variables, "LAWOS_PASSWORD_RESET_TENANT_ID")) {
+    fail("private staging identity tenant transition contract drifted");
+  }
+  variables.LAWOS_PASSWORD_RESET_TENANT_ID =
+    variables.LAWOS_IDENTITY_TENANT_ID;
+  delete variables.LAWOS_IDENTITY_TENANT_ID;
+  if (sha256(legacy) !== deployedSha256) {
+    fail("existing private staging template drifted");
+  }
+  return Object.freeze({
+    deployed_template_sha256: deployedSha256,
+    expected_template_sha256: currentSha256,
+    legacy_identity_tenant_rebind_required: true,
+  });
+}
+
 function rehearsalTags() {
   return [
     { Key: "environment", Value: "lawos-staging" },

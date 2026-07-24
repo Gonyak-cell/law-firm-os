@@ -24,6 +24,7 @@ import {
 import {
   JSON_POSTGRES_REHEARSAL_ENI_ACTIONS,
   buildJsonPostgresRehearsalStackParameters,
+  classifyJsonPostgresRehearsalHostTemplate,
   jsonPostgresRehearsalCombinedTemplateSha256,
   validateJsonPostgresRehearsalArtifactStoreTemplate,
   validateJsonPostgresRehearsalTemplate,
@@ -56,7 +57,6 @@ import {
   assertPrivateStagingRds,
 } from "./lib/private-staging-aws-execution.mjs";
 import {
-  canonicalSha256,
   validatePrivateStagingCost,
 } from "./lib/private-staging-contract.mjs";
 import {
@@ -269,13 +269,18 @@ function validateHostStack(stack) {
   const deployed = deployedTemplate(JSON_POSTGRES_REHEARSAL_STACK);
   const hasW12 = Object.keys(parameters).some((key) =>
     W12_PARAMETER_PREFIX.test(key));
-  const expectedSha256 = hasW12
-    ? rehearsalTemplateValidation.template_sha256
-    : canonicalSha256(localBase);
-  if (canonicalSha256(deployed) !== expectedSha256) {
-    throw new Error("existing private staging template drifted");
-  }
-  return Object.freeze({ stack, parameters, hasW12 });
+  const templateState = classifyJsonPostgresRehearsalHostTemplate({
+    deployedTemplate: deployed,
+    localBaseTemplate: localBase,
+    rehearsalTemplate,
+    hasW12,
+  });
+  return Object.freeze({
+    stack,
+    parameters,
+    hasW12,
+    ...templateState,
+  });
 }
 
 function createReviewedChangeSet({
@@ -286,6 +291,7 @@ function createReviewedChangeSet({
   templateSha256,
   parameters,
   templateUrl = null,
+  allowIdentityTenantRebind = false,
 }) {
   const name =
     `lawos-w12-${phase}-${sourceSha.slice(0, 10)}-${input.attempt_ref}`;
@@ -326,6 +332,7 @@ function createReviewedChangeSet({
     parametersSha256:
       jsonPostgresRehearsalParametersSha256(parameters),
     templateUrl,
+    allowIdentityTenantRebind,
   });
 }
 
@@ -343,6 +350,8 @@ function executeReviewedChangeSet(review) {
     templateSha256: review.template_sha256,
     parametersSha256: review.parameters_sha256,
     templateUrl: review.template_url ?? null,
+    allowIdentityTenantRebind:
+      review.identity_tenant_rebind ?? false,
   });
   if (validated.reviewed_change_set_sha256
     !== review.reviewed_change_set_sha256) {
@@ -896,6 +905,8 @@ if (operation === "preflight") {
     rehearsal_template_byte_size: rehearsalBytes.byteLength,
     existing_host_stack_status: host.stack.StackStatus,
     existing_w12_binding_count: host.hasW12 ? 1 : 0,
+    identity_tenant_rebind_required:
+      host.legacy_identity_tenant_rebind_required,
     rds: assertPrivateStagingRds(rds),
     budget: readBudget(),
     monthly_forecast_krw:
@@ -987,6 +998,8 @@ if (operation === "preflight") {
       templateSha256: rehearsalTemplateValidation.template_sha256,
       parameters,
       templateUrl: templateUpload.template_url,
+      allowIdentityTenantRebind:
+        host.legacy_identity_tenant_rebind_required,
     });
     mutationCount += 1;
     host = {

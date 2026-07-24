@@ -181,6 +181,7 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
   templateSha256,
   parametersSha256,
   templateUrl = null,
+  allowIdentityTenantRebind = false,
 } = {}) {
   if (![JSON_POSTGRES_REHEARSAL_ARTIFACT_STACK,
     JSON_POSTGRES_REHEARSAL_STACK].includes(stackName)
@@ -190,6 +191,7 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
     || !["artifact-store", "enable-eni", "remove-eni"].includes(phase)
     || !SHA256.test(templateSha256 ?? "")
     || !SHA256.test(parametersSha256 ?? "")
+    || typeof allowIdentityTenantRebind !== "boolean"
     || (templateUrl !== null
       && (!String(templateUrl).startsWith("https://")
         || changeSet?.TemplateURL !== templateUrl))) {
@@ -219,7 +221,10 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
       const allowed = change.action === "Add"
         ? W12_ADDITIONS
         : change.action === "Modify"
-          ? W12_INITIAL_MODIFICATIONS
+          ? new Set([
+              ...W12_INITIAL_MODIFICATIONS,
+              ...(allowIdentityTenantRebind ? ["ApiFunction"] : []),
+            ])
           : null;
       if (!allowed?.has(change.logical_resource_id)) {
         fail("W12 enable-ENI change set contains an unapproved delta");
@@ -231,6 +236,16 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
       fail("W12 ENI removal change set contains an unapproved delta");
     }
   }
+  const identityTenantChanges = changes.filter((change) =>
+    change.logical_resource_id === "ApiFunction");
+  if ((allowIdentityTenantRebind && (
+    phase !== "enable-eni"
+    || identityTenantChanges.length !== 1
+    || identityTenantChanges[0].action !== "Modify"
+    || !identityTenantChanges[0].scope.includes("Properties")
+  )) || (!allowIdentityTenantRebind && identityTenantChanges.length !== 0)) {
+    fail("W12 identity tenant rebind change set drifted");
+  }
   const review = {
     stack_name: stackName,
     change_set_type: changeSetType,
@@ -239,6 +254,7 @@ export function validateJsonPostgresRehearsalChangeSet(changeSet, {
     template_sha256: templateSha256,
     parameters_sha256: parametersSha256,
     ...(templateUrl === null ? {} : { template_url: templateUrl }),
+    identity_tenant_rebind: allowIdentityTenantRebind,
     changes,
   };
   return Object.freeze({
