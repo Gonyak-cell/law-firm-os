@@ -79,6 +79,13 @@ function fail(code, message) {
   throw error;
 }
 
+export function safeJsonPostgresProgramErrorCode(error) {
+  return String(error?.code ?? error?.name ?? "LAWOS_PROGRAM_EXECUTION_FAILED")
+    .toUpperCase()
+    .replace(/[^A-Z0-9_]/gu, "_")
+    .slice(0, 96);
+}
+
 function requiredText(value, label) {
   const text = String(value ?? "").trim();
   if (!text) throw new TypeError(`${label} is required`);
@@ -1327,7 +1334,7 @@ export async function handler(event = {}) {
       ].includes(event.action)
         ? event.action
         : "unsupported-program-action",
-      safe_error_code: String(error?.code ?? "LAWOS_PROGRAM_EXECUTION_FAILED").replace(/[^A-Z0-9_]/gu, "_").slice(0, 96),
+      safe_error_code: safeJsonPostgresProgramErrorCode(error),
       raw_value_returned: false,
       pii_returned: false,
       secret_material_returned: false,

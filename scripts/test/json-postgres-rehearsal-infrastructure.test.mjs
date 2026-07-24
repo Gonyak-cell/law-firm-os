@@ -128,15 +128,7 @@ test("W12 rehearsal reuses the private staging topology with an isolated databas
   assert.equal(evidenceWriter.Action, "s3:PutObject");
   assert.equal(evidenceRetention.Action, "s3:PutObjectRetention");
   assert.deepEqual(evidenceRetention.Resource, evidenceWriter.Resource);
-  assert.deepEqual(evidenceRetention.Condition, {
-    StringEquals: { "s3:object-lock-mode": "COMPLIANCE" },
-    Null: { "s3:object-lock-retain-until-date": "false" },
-  });
-  assert.equal(
-    Object.keys(evidenceRetention.Condition.StringEquals)
-      .some((key) => key.includes("server-side-encryption")),
-    false,
-  );
+  assert.equal(evidenceRetention.Condition, undefined);
   const roleTags =
     template.Resources.RehearsalAdminExecutionRole.Properties.Tags;
   assert.equal(
@@ -266,8 +258,9 @@ test("W12 rehearsal fails closed on public infrastructure, email authority, wild
         .PolicyDocument.Statement
         .find((item) =>
           item.Sid === "SetImmutableRehearsalEvidenceRetention")
-        .Condition.StringEquals["s3:x-amz-server-side-encryption"] =
-          "aws:kms";
+        .Condition = {
+          StringEquals: { "s3:object-lock-mode": "COMPLIANCE" },
+        };
     },
   ]) {
     const template = builtTemplate();

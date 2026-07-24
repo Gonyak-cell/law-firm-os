@@ -10,6 +10,7 @@ import {
   executeJsonPostgresRetirementSmoke,
   handler,
   loadApprovedDmsSourceObject,
+  safeJsonPostgresProgramErrorCode,
   writeJsonPostgresProgramEvidence,
 } from "../src/json-postgres-program-admin-lambda.js";
 import {
@@ -492,6 +493,24 @@ test("program evidence writer rejects sensitive keys and handler returns a non-o
   assert.equal(blocked.outcome, "BLOCKED");
   assert.equal(blocked.secret_material_returned, false);
   assert.equal(Object.hasOwn(blocked, "message"), false);
+});
+
+test("program error classification safely preserves AWS service error names without raw details", () => {
+  assert.equal(
+    safeJsonPostgresProgramErrorCode({
+      name: "AccessDeniedException",
+      message: "must-not-return",
+      $metadata: { requestId: "must-not-return" },
+    }),
+    "ACCESSDENIEDEXCEPTION",
+  );
+  assert.equal(
+    safeJsonPostgresProgramErrorCode({
+      code: "LAWOS_PROGRAM_INPUT",
+      name: "Error",
+    }),
+    "LAWOS_PROGRAM_INPUT",
+  );
 });
 
 test("W15 projection uses a separate least-privilege writer and preserves the generic ledger authority", async () => {

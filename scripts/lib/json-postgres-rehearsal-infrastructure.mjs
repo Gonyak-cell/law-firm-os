@@ -509,12 +509,6 @@ function rehearsalRole() {
                   { "Fn::Sub": "${RehearsalProgramInputBucket.Arn}/program-approval-audit/*" },
                   { "Fn::Sub": "${RehearsalProgramInputBucket.Arn}/program-execution/*" },
                 ],
-                Condition: {
-                  StringEquals: {
-                    "s3:object-lock-mode": "COMPLIANCE",
-                  },
-                  Null: { "s3:object-lock-retain-until-date": "false" },
-                },
               },
               {
                 Sid: "OperateExactRehearsalDmsObjects",
@@ -975,16 +969,13 @@ export function validateJsonPostgresRehearsalTemplate(template) {
       !== JSON.stringify(evidenceResources)
     || JSON.stringify(evidenceRetention?.Resource)
       !== JSON.stringify(evidenceResources)
+    || evidenceRetention?.Condition != null
     || evidenceWriter?.Condition?.StringEquals
       ?.["s3:x-amz-server-side-encryption"] !== "aws:kms"
     || evidenceWriter?.Condition?.StringEquals
       ?.["s3:object-lock-mode"] !== "COMPLIANCE"
     || evidenceWriter?.Condition?.Null
       ?.["s3:object-lock-retain-until-date"] !== "false"
-    || JSON.stringify(evidenceRetention?.Condition) !== JSON.stringify({
-      StringEquals: { "s3:object-lock-mode": "COMPLIANCE" },
-      Null: { "s3:object-lock-retain-until-date": "false" },
-    })
     || statements.some((item) => item.Effect === "Allow"
       && containsWildcardAction(item.Action))
     || statements.some((item) => JSON.stringify(item).match(/\bses:/iu))) {
