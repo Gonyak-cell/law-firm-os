@@ -38,6 +38,7 @@ import {
   createJsonPostgresW15InventoryReadPacket,
   createJsonPostgresW15PredecessorVerification,
   createJsonPostgresW15ReceiptLocator,
+  JSON_POSTGRES_W15_REQUIRED_EXTERNAL_RECEIPTS,
   validateJsonPostgresW15InventoryReadPacket,
 } from "../lib/json-postgres-w15-preflight.mjs";
 import {
@@ -218,6 +219,13 @@ function completePredecessors() {
   return values;
 }
 
+function terminalPredecessors() {
+  return completePredecessors().filter((value) =>
+    JSON_POSTGRES_W15_REQUIRED_EXTERNAL_RECEIPTS.includes(
+      value.receipt_kind,
+    ));
+}
+
 function target() {
   return {
     target_ref: "lawos-production",
@@ -349,7 +357,7 @@ test("W15 contract bundle emits all 77 mappings or an exact blocked gap", () => 
 });
 
 test("W15 preflight binds the complete predecessor chain, exact target and read-only inventory packet", () => {
-  const receipts = completePredecessors();
+  const receipts = terminalPredecessors();
   const verifiedReceipts = receipts.map((value) => ({
     receipt: value,
     verified: {
@@ -369,6 +377,18 @@ test("W15 preflight binds the complete predecessor chain, exact target and read-
     receiptLocators: locators,
   });
   assert.equal(predecessor.outcome, "PASS");
+  assert.equal(predecessor.required_receipt_count, 3);
+  const brokenGoLive = structuredClone(verifiedReceipts);
+  brokenGoLive.find(({ verified }) =>
+    verified.receipt_kind === "go-live")
+    .verified.predecessor_receipt_sha256 = ["f".repeat(64)];
+  assert.throws(
+    () => createJsonPostgresW15PredecessorVerification({
+      verifiedReceipts: brokenGoLive,
+      receiptLocators: locators,
+    }),
+    /predecessor receipt claims are incomplete/u,
+  );
   const baseline = createJsonPostgresW15BaselineManifest({
     input: {
       schema_version: "law-firm-os.json-postgres-w15-baseline-input.v1",
@@ -401,7 +421,7 @@ test("W15 preflight binds the complete predecessor chain, exact target and read-
 });
 
 test("W15 packet input inherits completed authority bindings and replaces only projection contracts", () => {
-  const receipts = completePredecessors();
+  const receipts = terminalPredecessors();
   const verifiedReceipts = receipts.map((value) => ({
     receipt: value,
     verified: {

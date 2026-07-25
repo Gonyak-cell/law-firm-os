@@ -1,9 +1,6 @@
 import { createHash } from "node:crypto";
 import {
   JSON_POSTGRES_W12_RECEIPTS,
-  JSON_POSTGRES_W13_RECEIPTS,
-  JSON_POSTGRES_W14_RECEIPTS,
-  validateJsonPostgresProgramReceiptSet,
 } from "../../packages/persistence/src/postgres/program-receipt.js";
 import {
   canonicalizeJson,
@@ -24,9 +21,9 @@ export const JSON_POSTGRES_W15_INVENTORY_READ_ENVIRONMENT =
 export const JSON_POSTGRES_W15_INVENTORY_READ_DATA_SCOPE =
   "approved-tenant-safe-aggregate-read";
 export const JSON_POSTGRES_W15_REQUIRED_EXTERNAL_RECEIPTS = Object.freeze([
-  ...JSON_POSTGRES_W12_RECEIPTS,
-  ...JSON_POSTGRES_W13_RECEIPTS,
-  ...JSON_POSTGRES_W14_RECEIPTS,
+  "w12-terminal",
+  "cut-012",
+  "go-live",
 ]);
 
 const SHA1 = /^[a-f0-9]{40}$/u;
@@ -299,27 +296,52 @@ export function createJsonPostgresW15PredecessorVerification({
     || receiptLocators.length !== verifiedReceipts.length) {
     fail("W15 predecessor receipt set is incomplete");
   }
-  const rawReceipts = verifiedReceipts.map((item) => item.receipt);
-  validateJsonPostgresProgramReceiptSet(rawReceipts, {
-    requiredKinds: JSON_POSTGRES_W15_REQUIRED_EXTERNAL_RECEIPTS,
-  });
   const byKind = new Map(verifiedReceipts.map((item) => [
     item.verified.receipt_kind,
     item.verified,
   ]));
+  const locatorsByKind = new Map(receiptLocators.map((locator) => [
+    locator.receipt_kind,
+    locator,
+  ]));
+  const w12Terminal = byKind.get("w12-terminal");
+  const cut012 = byKind.get("cut-012");
+  const goLive = byKind.get("go-live");
+  const hasClosedLineage = (receipt, expectedCount) =>
+    Array.isArray(receipt?.predecessor_receipt_sha256)
+    && receipt.predecessor_receipt_sha256.length === expectedCount
+    && new Set(receipt.predecessor_receipt_sha256).size === expectedCount
+    && receipt.predecessor_receipt_sha256.every((digest) =>
+      SHA256.test(digest));
   if (byKind.size !== JSON_POSTGRES_W15_REQUIRED_EXTERNAL_RECEIPTS.length
+    || locatorsByKind.size
+      !== JSON_POSTGRES_W15_REQUIRED_EXTERNAL_RECEIPTS.length
     || JSON_POSTGRES_W15_REQUIRED_EXTERNAL_RECEIPTS.some((kind) =>
-      byKind.get(kind)?.execution_state !== "PASS")
-    || byKind.get("cut-012")?.claims?.json_authority_disabled !== true
-    || byKind.get("go-live")?.claims?.json_authority_disabled !== true
-    || byKind.get("go-live")?.claims?.release !== true
-    || byKind.get("go-live")?.claims?.go_live !== true) {
+      byKind.get(kind)?.execution_state !== "PASS"
+      || byKind.get(kind)?.signature_valid !== true
+      || locatorsByKind.get(kind)?.canonical_sha256
+        !== byKind.get(kind)?.canonical_sha256)
+    || !hasClosedLineage(
+      w12Terminal,
+      JSON_POSTGRES_W12_RECEIPTS.length - 1,
+    )
+    || !hasClosedLineage(cut012, 4)
+    || !hasClosedLineage(goLive, 2)
+    || !goLive.predecessor_receipt_sha256.includes(
+      cut012.canonical_sha256,
+    )
+    || cut012.source_sha !== goLive.source_sha
+    || cut012.source_tree !== goLive.source_tree
+    || cut012.claims?.json_authority_disabled !== true
+    || goLive.claims?.json_authority_disabled !== true
+    || goLive.claims?.release !== true
+    || goLive.claims?.go_live !== true) {
     fail("W15 predecessor receipt claims are incomplete");
   }
   const terminalReceipts = {
-    "w12-terminal": byKind.get("w12-terminal").canonical_sha256,
-    "cut-012": byKind.get("cut-012").canonical_sha256,
-    "go-live": byKind.get("go-live").canonical_sha256,
+    "w12-terminal": w12Terminal.canonical_sha256,
+    "cut-012": cut012.canonical_sha256,
+    "go-live": goLive.canonical_sha256,
   };
   if (Object.values(terminalReceipts).some((value) => !SHA256.test(value))) {
     fail("W15 terminal predecessor digest is invalid");
