@@ -25,6 +25,14 @@ import {
   JSON_POSTGRES_PROGRAM_RECEIPT_VERSION,
   jsonPostgresProgramReceiptMetadata,
 } from "../../../packages/persistence/src/postgres/program-receipt.js";
+import {
+  createHrxRelationalMappingManifest,
+  createHrxRelationalProductionInventory,
+} from "../../../packages/hrx/src/relational-projection-contract.js";
+import {
+  HRX_STORE_TABLES,
+  HRX_TABLE_PRIMARY_KEYS,
+} from "../../../packages/hrx/src/store/file-store.js";
 import { canonicalizeJson } from "../../../packages/runtime-auth/src/runtime-safety-approval-contract.js";
 import {
   assertJsonPostgresProgramDirectInvoke,
@@ -772,17 +780,154 @@ test("W15 projection inputs require exact signed W12, CUT-012, and go-live prede
       .update(canonicalizeJsonPostgresProgramReceipt(receipt))
       .digest("hex");
   }
+  const emptyHash = createHash("sha256")
+    .update(canonicalizeJson([]))
+    .digest("hex");
+  const productionInventory = createHrxRelationalProductionInventory({
+    tenantCount: 1,
+    outboxEventCount: 1,
+    outboxLagMs: 0,
+    referenceCount: 0,
+    tables: HRX_STORE_TABLES.map((table) => ({
+      table_name: table,
+      source_count: table === "hrx_employees" ? 1 : 0,
+      source_hash: table === "hrx_employees" ? "1".repeat(64) : emptyHash,
+      state_version_min: table === "hrx_employees" ? 1 : 0,
+      state_version_max: table === "hrx_employees" ? 1 : 0,
+      payload_bytes_p50: table === "hrx_employees" ? 128 : 0,
+      payload_bytes_p95: table === "hrx_employees" ? 128 : 0,
+      payload_bytes_max: table === "hrx_employees" ? 128 : 0,
+      soft_deleted_count: 0,
+      append_only_count: 0,
+      reference_count: 0,
+      json_path_presence_sha256: emptyHash,
+      json_path_null_ratio_sha256: emptyHash,
+      unmapped_nonnull_field_count: 0,
+      primary_key_conflict_count: 0,
+      foreign_key_conflict_count: 0,
+      inventory_classification:
+        table === "hrx_employees" ? "populated" : "schema_only",
+    })),
+  });
+  const performanceAcceptance = createJsonPostgresPerformanceAcceptance({
+    record_count: 1,
+    tenant_count: 1,
+    batch_size: 1,
+    pool_max: 2,
+    statement_timeout_ms: 120_000,
+    connection_timeout_ms: 10_000,
+    migration_p95_ms: 120_000,
+    outbox_lag_p95_ms: 120_000,
+    dms_throughput_min_bytes_per_second: 0,
+    rpo_target_ms: 300_000,
+    rto_target_ms: 3_600_000,
+    rehearsal_result_sha256: "2".repeat(64),
+  });
+  const mappingManifest = createHrxRelationalMappingManifest({
+    schema: {
+      columns: HRX_STORE_TABLES.flatMap((table) =>
+        [...new Set([...HRX_TABLE_PRIMARY_KEYS[table], "lawos_projection_deleted_at"])]
+          .map((column, index) => ({
+            table_name: table,
+            column_name: column,
+            ordinal_position: index + 1,
+            is_nullable: column === "lawos_projection_deleted_at" ? "YES" : "NO",
+            data_type: column === "lawos_projection_deleted_at"
+              ? "timestamp with time zone"
+              : "text",
+            column_default: null,
+          }))),
+      foreign_keys: [],
+    },
+    inventory: productionInventory,
+    performanceAcceptanceSha256: performanceAcceptance.acceptance_sha256,
+  });
+  objects.set("mapping-manifest", mappingManifest);
+  objects.set("production-inventory", productionInventory);
+  objects.set("performance-acceptance", performanceAcceptance);
+  const validationMaterial = {
+    schema_version: "law-firm-os.hrx-relational-projection-validation.v2",
+    outcome: "PASS",
+    source_authority: "postgres-v2-generic-ledger",
+    projection_authority: "read-only",
+    source_sha: SOURCE_SHA,
+    source_tree: SOURCE_TREE,
+    packet_sha256: "9".repeat(64),
+    mapping_manifest_sha256: mappingManifest.manifest_sha256,
+    inventory_sha256: productionInventory.inventory_sha256,
+    performance_acceptance_sha256:
+      performanceAcceptance.acceptance_sha256,
+    table_observations: HRX_STORE_TABLES.map((table_name) => ({
+      table_name,
+    })),
+    safe_counts: {
+      mapping_inventory_difference_count: 0,
+      projection_state_difference_count: 0,
+      shadow_difference_count: 0,
+      logical_reference_failure_count: 0,
+      unknown_nonnull_field_count: 0,
+      tenant_negative_visible_count: 0,
+      cursor_backlog_count: 0,
+      cursor_regression_count: 0,
+      transaction_rollback_failure_count: 0,
+      append_only_guard_failure_count: 0,
+      physical_delete_guard_failure_count: 0,
+      source_authority_write_grant_count: 0,
+      consumer_write_grant_count: 0,
+      auditor_write_grant_count: 0,
+      projection_authority_promotion_count: 0,
+      receipt_verification_failure_count: 0,
+    },
+    claims: {
+      observations_collected_by_read_only_auditor: true,
+      selected_table_contract_verified: true,
+      shadow_count_hash_ordering_passed: true,
+      logical_reference_readback_passed: true,
+      projection_performance_accepted: true,
+      tenant_rls_passed: true,
+      transaction_rollback_passed: true,
+      append_only_conflict_guard_passed: true,
+      physical_delete_guard_passed: true,
+      projection_consumers_read_only: true,
+      generic_ledger_authority_preserved: true,
+      authority_promotion_not_granted: true,
+      raw_value_returned: false,
+      pii_returned: false,
+      secret_material_returned: false,
+    },
+  };
+  const validationEvidence = {
+    ...validationMaterial,
+    result_sha256: createHash("sha256")
+      .update(canonicalizeJson(validationMaterial))
+      .digest("hex"),
+  };
+  objects.set("validation-evidence", validationEvidence);
   const locators = {
     predecessors: ["w12-terminal", "cut-012", "go-live"].map((kind) => ({
       receipt: { key: `${kind}-receipt` },
       signature: { key: `${kind}-signature` },
     })),
+    mapping_manifest: { key: "mapping-manifest" },
+    production_inventory: { key: "production-inventory" },
+    performance_acceptance: { key: "performance-acceptance" },
+    validation_evidence: { key: "validation-evidence" },
   };
   const projectionPacket = {
+    source_sha: SOURCE_SHA,
+    source_tree: SOURCE_TREE,
+    packet_sha256: "9".repeat(64),
     bindings: {
       w12_terminal_receipt_sha256: receiptDigests["w12-terminal"],
       cut012_terminal_receipt_sha256: receiptDigests["cut-012"],
       go_live_receipt_sha256: receiptDigests["go-live"],
+      field_crosswalk_sha256: mappingManifest.manifest_sha256,
+      record_type_catalog_sha256:
+        mappingManifest.record_type_catalog_sha256,
+      migration_catalog_sha256: mappingManifest.migration_catalog_sha256,
+      inventory_content_sha256: productionInventory.inventory_sha256,
+      performance_acceptance_sha256:
+        performanceAcceptance.acceptance_sha256,
     },
   };
   const result = await loadJsonPostgresProjectionInputs({
@@ -800,6 +945,34 @@ test("W15 projection inputs require exact signed W12, CUT-012, and go-live prede
     "cut-012",
     "go-live",
   ]);
+  assert.equal(
+    result.validationEvidence.result_sha256,
+    validationEvidence.result_sha256,
+  );
+  const failedValidationMaterial = {
+    ...validationMaterial,
+    outcome: "FAIL",
+  };
+  objects.set("validation-evidence", {
+    ...failedValidationMaterial,
+    result_sha256: createHash("sha256")
+      .update(canonicalizeJson(failedValidationMaterial))
+      .digest("hex"),
+  });
+  await assert.rejects(
+    loadJsonPostgresProjectionInputs({
+      inputLocators: locators,
+      trustRegistry,
+      packet: projectionPacket,
+      env: env("e".repeat(64)),
+      s3Client: {},
+      readJson: async ({ locator }) => objects.get(locator.key),
+      readBytes: async ({ locator }) => objects.get(locator.key),
+      now: Date.parse("2026-07-24T00:30:00.000Z"),
+    }),
+    (error) => error?.code === "LAWOS_PROGRAM_INPUT_BINDING",
+  );
+  objects.set("validation-evidence", validationEvidence);
   await assert.rejects(
     loadJsonPostgresProjectionInputs({
       inputLocators: locators,

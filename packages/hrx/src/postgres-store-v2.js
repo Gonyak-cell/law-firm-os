@@ -19,6 +19,7 @@ import {
   validateHrxStoreSnapshot,
 } from "./store/file-store.js";
 import { loadHrxCoreMigrations } from "./migrations/index.js";
+import { createHrxProjectionReadRouter } from "./relational-projection-reader.js";
 
 export const HRX_POSTGRES_STORE_PORT_VERSION = "law-firm-os.hrx-postgres-store-port.v0.2";
 export const HRX_DOMAIN_ID = "hrx";
@@ -493,8 +494,17 @@ function tenantFromQuery(params = {}) {
   );
 }
 
-export function createPostgresHrxStorePortV2({ ledger } = {}) {
+export function createPostgresHrxStorePortV2({
+  ledger,
+  projectionReader = null,
+} = {}) {
   if (!ledger || typeof ledger.transaction !== "function") throw new TypeError("PostgreSQL domain ledger is required");
+  if (projectionReader != null
+    && (typeof projectionReader.query !== "function"
+      || projectionReader.authority !== "read-model-only"
+      || projectionReader.fallback_authority !== "postgres-v2-generic-ledger")) {
+    throw new TypeError("HRX relational projection reader contract is invalid");
+  }
   let closed = false;
   const ensureOpen = () => {
     if (closed) throw new Error("HRX PostgreSQL store port is closed");
@@ -504,6 +514,30 @@ export function createPostgresHrxStorePortV2({ ledger } = {}) {
     ensureOpen();
     return runHrxPostgresCommand({ ledger, tenant_id, command, request_context });
   }
+  const projectionReadRouter = projectionReader == null
+    ? null
+    : createHrxProjectionReadRouter({
+      projectionReader,
+      genericLedgerRead: async (operation, params = {}) => {
+        const tenantId = tenantFromQuery(params);
+        const command = await runHrxPostgresCommand({
+          ledger,
+          tenant_id: tenantId,
+          command: (store) => store.query(operation, params),
+          request_context: {
+            method: `STORE:${operation}`,
+            pathname: `hrx-store/${params.table ?? "unknown"}`,
+            idempotency_key: params.idempotency_key
+              ?? params.row?.idempotency_key
+              ?? params.where?.idempotency_key
+              ?? `hrx-store-query:${hashDomainValue({ operation, params })}`,
+            request_body_hash: hashDomainValue(params),
+            actor_id: params.actor_id ?? null,
+          },
+        });
+        return command.result;
+      },
+    });
 
   return Object.freeze({
     kind: "hrx-postgres-store-v2",
@@ -517,11 +551,18 @@ export function createPostgresHrxStorePortV2({ ledger } = {}) {
       rls_required: true,
       append_only_tables: HRX_APPEND_ONLY_TABLES,
       tables: HRX_STORE_TABLES,
+      relational_read_projection: projectionReader != null,
+      relational_projection_authority: "read-model-only",
+      relational_projection_fallback: "postgres-v2-generic-ledger",
+      json_fallback: false,
       production_ready_claim: false,
     }),
 
     async query(operation, params = {}) {
       ensureOpen();
+      if (projectionReadRouter) {
+        return projectionReadRouter.query(operation, params);
+      }
       const tenantId = tenantFromQuery(params);
       const command = await runHrxPostgresCommand({
         ledger,

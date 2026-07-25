@@ -86,7 +86,11 @@ jobs:
             packages/dms/test/json-postgres-dms-migration.test.js \
             packages/dms/test/postgres-security-regressions.test.js \
             packages/dms/test/upload-reconciliation.test.js \
+            packages/hrx/test/postgres-migrations.test.js \
             packages/hrx/test/postgres-projection-role.test.js \
+            packages/hrx/test/postgres-store-v2.test.js \
+            packages/hrx/test/relational-projection-contract.test.js \
+            packages/hrx/test/relational-projection-validation.test.js \
             packages/hrx/test/relational-read-projection.test.js \
             packages/persistence/test/authority-bundle.test.js \
             packages/persistence/test/domain-ledger.test.js \
@@ -101,6 +105,7 @@ jobs:
             packages/persistence/test/private-staging-cut005.test.js \
             packages/persistence/test/program-stage-gates.test.js \
             packages/persistence/test/program-stage-observation.test.js \
+            packages/persistence/test/record-domain-projection-outbox.test.js \
             packages/persistence/test/record-type-catalog.test.js \
             packages/persistence/test/role-password.test.js \
             packages/persistence/test/source-adjudication.test.js \
@@ -126,6 +131,9 @@ jobs:
             scripts/test/json-postgres-release-security.test.mjs \
             scripts/test/json-postgres-source-backup.test.mjs \
             scripts/test/json-postgres-terminal-closeout.test.mjs \
+            scripts/test/json-postgres-w15-contracts.test.mjs \
+            scripts/test/json-postgres-w15-incremental-observation.test.mjs \
+            scripts/test/json-postgres-w15-receipts.test.mjs \
             scripts/test/matter-desktop-authenticode.test.mjs \
             | tee "${RUNNER_TEMP}/json-postgres-test.tap"
           grep -Eq '^# skipped 0$' "${RUNNER_TEMP}/json-postgres-test.tap"

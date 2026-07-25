@@ -16,10 +16,20 @@ import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgr
 import { createS3StorageAdapter } from "../../../packages/dms/src/storage/s3-storage-adapter.js";
 import {
   configureHrxProjectionRole,
+  HRX_PROJECTION_AUDITOR_ROLE,
   HRX_PROJECTION_WRITER_ROLE,
 } from "../../../packages/hrx/src/postgres-projection-role.js";
 import { runHrxPostgresMigrations } from "../../../packages/hrx/src/postgres-migrations.js";
 import { projectHrxRelationalReadModel } from "../../../packages/hrx/src/relational-read-projection.js";
+import {
+  collectHrxRelationalProductionInventory,
+  validateHrxRelationalReadModel,
+} from "../../../packages/hrx/src/relational-projection-validation.js";
+import {
+  activateHrxProjectionConsumerRoute,
+  disableHrxProjectionConsumerRoutes,
+  HRX_RELATIONAL_QUERY_FAMILIES,
+} from "../../../packages/hrx/src/relational-projection-reader.js";
 import {
   configureLawosProductionApplicationRole,
   configureLawosRehearsalApplicationRole,
@@ -35,6 +45,7 @@ import {
   verifyPostgresMigrationState,
 } from "../../../packages/persistence/src/postgres/migration-runner.js";
 import { createPostgresPool } from "../../../packages/persistence/src/postgres/pool.js";
+import { withPostgresTransaction } from "../../../packages/persistence/src/postgres/transaction.js";
 import {
   runJsonPostgresRehearsalFailureInjection,
   runJsonPostgresRehearsalOwnerSampling,
@@ -401,9 +412,13 @@ export async function bootstrapJsonPostgresRehearsalDatabase({
   });
 }
 
-function structuredProjectionSecret({ current, env }) {
+function structuredProjectionSecret({
+  current,
+  env,
+  expectedUsername = HRX_PROJECTION_WRITER_ROLE,
+}) {
   const username = requiredText(current.username, "projection database username");
-  if (username !== HRX_PROJECTION_WRITER_ROLE) {
+  if (username !== expectedUsername) {
     fail("LAWOS_HRX_PROJECTION_SECRET", "projection database username drifted");
   }
   const value = {
@@ -935,6 +950,41 @@ function unapprovedProjectionTenant(approvedTenantIds) {
   return `tenant_unapproved_${createHash("sha256").update(approvedTenantIds.join("\n")).digest("hex").slice(0, 16)}`;
 }
 
+const W15_CONSUMER_FAMILY_BY_WAVE = Object.freeze({
+  1: "core-employee-roster",
+  2: "recruiting-lifecycle",
+  3: "leave-attendance",
+  4: "payroll-compensation",
+});
+
+function relationalProjectionRolloutRequest(event) {
+  if (event.rollout_action === "disable") {
+    return Object.freeze({ action: "disable" });
+  }
+  const rolloutWave = Number(event.rollout_wave);
+  const queryFamily = String(event.query_family ?? "");
+  const maxStalenessMs = Number(event.max_staleness_ms);
+  if (event.rollout_action !== "enable"
+    || !HRX_RELATIONAL_QUERY_FAMILIES.includes(queryFamily)
+    || queryFamily === "shadow-only"
+    || !Number.isSafeInteger(rolloutWave)
+    || W15_CONSUMER_FAMILY_BY_WAVE[rolloutWave] !== queryFamily
+    || !Number.isSafeInteger(maxStalenessMs)
+    || maxStalenessMs < 1
+    || maxStalenessMs > 3_600_000) {
+    fail(
+      "LAWOS_HRX_PROJECTION_ROLLOUT_INPUT",
+      "relational projection rollout request is invalid",
+    );
+  }
+  return Object.freeze({
+    action: "enable",
+    queryFamily,
+    rolloutWave,
+    maxStalenessMs,
+  });
+}
+
 export async function executeJsonPostgresRelationalProjection({
   event,
   env = process.env,
@@ -948,12 +998,48 @@ export async function executeJsonPostgresRelationalProjection({
   configureRole = configureHrxProjectionRole,
   verifyMigrations = verifyPostgresMigrationState,
   project = projectHrxRelationalReadModel,
+  collectInventory = collectHrxRelationalProductionInventory,
+  validateProjection = validateHrxRelationalReadModel,
+  activateConsumerRoute = activateHrxProjectionConsumerRoute,
+  disableConsumerRoutes = disableHrxProjectionConsumerRoutes,
+  transaction = withPostgresTransaction,
   writeEvidence = writeJsonPostgresProgramEvidence,
   s3Client = new S3Client({ region: env.AWS_REGION ?? env.AWS_DEFAULT_REGION }),
 } = {}) {
   if (event.action !== JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION
-    || !["commit", "resume"].includes(event.mode)) {
-    fail("LAWOS_PROGRAM_ACTION", "relational projection requires a direct commit or resume action");
+    || !["commit", "resume", "readback", "reconcile", "rollout"].includes(event.mode)) {
+    fail("LAWOS_PROGRAM_ACTION", "relational projection mode is invalid");
+  }
+  const executionRole = env.LAWOS_PROGRAM_EXECUTION_ROLE
+    ?? "projection-admin";
+  if (![
+    "projection-admin",
+    "projection-auditor",
+    "projection-writer",
+  ].includes(executionRole)
+    || (executionRole === "projection-auditor"
+      && !["readback", "reconcile"].includes(event.mode))
+    || (executionRole === "projection-writer" && event.mode !== "resume")) {
+    fail(
+      "LAWOS_HRX_PROJECTION_EXECUTION_ROLE",
+      "relational projection execution role cannot run the requested mode",
+    );
+  }
+  const requestedBackfillWave = event.backfill_wave == null
+    ? null
+    : Number(event.backfill_wave);
+  if ((event.mode === "commit" && requestedBackfillWave !== 1)
+    || (event.mode === "resume"
+      && requestedBackfillWave != null
+      && (!Number.isSafeInteger(requestedBackfillWave)
+        || requestedBackfillWave < 1
+        || requestedBackfillWave > 5))
+    || (!["commit", "resume"].includes(event.mode)
+      && requestedBackfillWave != null)) {
+    fail(
+      "LAWOS_HRX_PROJECTION_WAVE_INPUT",
+      "relational projection backfill wave is invalid",
+    );
   }
   const authorization = await authorize({ event, env, s3Client });
   if (authorization.packet.phase !== "w15-relational-projection") {
@@ -967,88 +1053,327 @@ export async function executeJsonPostgresRelationalProjection({
     env,
     s3Client,
   });
+  const rolloutRequest = event.mode === "rollout"
+    ? relationalProjectionRolloutRequest(event)
+    : null;
+  if (rolloutRequest?.action === "enable" && !inputs.validationEvidence) {
+    fail(
+      "LAWOS_HRX_PROJECTION_VALIDATION_GATE",
+      "consumer rollout requires exact independent PASS validation evidence",
+    );
+  }
   const region = requiredText(env.AWS_REGION ?? env.AWS_DEFAULT_REGION, "AWS region");
-  const [master, projection, tenantContext] = await Promise.all([
+  const readback = ["readback", "reconcile"].includes(event.mode);
+  const runtimeSecretId = readback
+    ? requiredText(
+      env.LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID,
+      "LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID",
+    )
+    : requiredText(
+      env.LAWOS_PROJECTION_DATABASE_SECRET_ID,
+      "LAWOS_PROJECTION_DATABASE_SECRET_ID",
+    );
+  const [runtimeSecretValue, tenantContext] = await Promise.all([
+    resolveSecret({ secretId: runtimeSecretId, region }),
     resolveSecret({
-      secretId: requiredText(env.LAWOS_MASTER_DATABASE_SECRET_ID, "LAWOS_MASTER_DATABASE_SECRET_ID"),
-      region,
-    }),
-    resolveSecret({
-      secretId: requiredText(env.LAWOS_PROJECTION_DATABASE_SECRET_ID, "LAWOS_PROJECTION_DATABASE_SECRET_ID"),
-      region,
-    }),
-    resolveSecret({
-      secretId: requiredText(env.LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID, "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID"),
+      secretId: requiredText(
+        env.LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID,
+        "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID",
+      ),
       region,
     }),
   ]);
-  const projectionSecret = structuredProjectionSecret({ current: projection, env });
-  const tenantContextSecret = tenantContextValue(tenantContext);
-  const masterConnectionString = postgresUrlFromSecret(JSON.stringify({
-    ...master,
-    host: env.LAWOS_DATABASE_HOST,
-    port: env.LAWOS_DATABASE_PORT,
-    dbname: env.LAWOS_DATABASE_NAME,
-  }));
-  const masterPool = createPool({
-    connectionString: masterConnectionString,
-    sslMode: "verify-full",
-    applicationName: "lawos-hrx-projection-admin",
-    connectionTimeoutMillis: 10_000,
-    statementTimeoutMillis: 120_000,
-    max: 1,
+  const runtimeSecret = structuredProjectionSecret({
+    current: runtimeSecretValue,
+    env,
+    expectedUsername: readback
+      ? HRX_PROJECTION_AUDITOR_ROLE
+      : HRX_PROJECTION_WRITER_ROLE,
   });
-  let migrations;
-  let role;
-  try {
-    migrations = await runMigrations(masterPool, {
-      appliedBy: `lawos-w15:${authorization.exact.sourceSha}`,
+  const tenantContextSecret = tenantContextValue(tenantContext);
+  let migrations = [];
+  let role = {
+    grant_statement_count: 0,
+    consumer_write_grant_count: 0,
+    auditor_write_grant_count: 0,
+  };
+  if (event.mode === "commit") {
+    const [master, auditor] = await Promise.all([
+      resolveSecret({
+        secretId: requiredText(
+          env.LAWOS_MASTER_DATABASE_SECRET_ID,
+          "LAWOS_MASTER_DATABASE_SECRET_ID",
+        ),
+        region,
+      }),
+      resolveSecret({
+        secretId: requiredText(
+          env.LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID,
+          "LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID",
+        ),
+        region,
+      }),
+    ]);
+    const auditorSecret = structuredProjectionSecret({
+      current: auditor,
+      env,
+      expectedUsername: HRX_PROJECTION_AUDITOR_ROLE,
     });
-    const client = await masterPool.connect();
+    const masterConnectionString = postgresUrlFromSecret(JSON.stringify({
+      ...master,
+      host: env.LAWOS_DATABASE_HOST,
+      port: env.LAWOS_DATABASE_PORT,
+      dbname: env.LAWOS_DATABASE_NAME,
+    }));
+    const masterPool = createPool({
+      connectionString: masterConnectionString,
+      sslMode: "verify-full",
+      applicationName: "lawos-hrx-projection-admin",
+      connectionTimeoutMillis: 10_000,
+      statementTimeoutMillis: 120_000,
+      max: 1,
+    });
     try {
-      role = await configureRole(client, {
-        password: projectionSecret.password,
-        tenantContextSecret,
-        approvedTenantIds: authorization.packet.target.approved_tenant_ids,
+      migrations = await runMigrations(masterPool, {
+        appliedBy: `lawos-w15:${authorization.exact.sourceSha}`,
       });
-    } finally {
-      client.release();
-    }
-    const writer = putSecret ?? (async ({ secretId, secretString }) => {
-      const client = new SecretsManagerClient({ region });
+      const client = await masterPool.connect();
       try {
-        await client.send(new PutSecretValueCommand({ SecretId: secretId, SecretString: secretString }));
+        role = await configureRole(client, {
+          password: runtimeSecret.password,
+          auditorPassword: auditorSecret.password,
+          tenantContextSecret,
+          approvedTenantIds: authorization.packet.target.approved_tenant_ids,
+        });
       } finally {
-        client.destroy();
+        client.release();
       }
-    });
-    await writer({
-      secretId: requiredText(env.LAWOS_PROJECTION_DATABASE_SECRET_ID, "LAWOS_PROJECTION_DATABASE_SECRET_ID"),
-      secretString: JSON.stringify(projectionSecret),
-    });
-  } finally {
-    await masterPool.end();
+      const writer = putSecret ?? (async ({ secretId, secretString }) => {
+        const client = new SecretsManagerClient({ region });
+        try {
+          await client.send(new PutSecretValueCommand({
+            SecretId: secretId,
+            SecretString: secretString,
+          }));
+        } finally {
+          client.destroy();
+        }
+      });
+      await Promise.all([
+        writer({
+          secretId: requiredText(
+            env.LAWOS_PROJECTION_DATABASE_SECRET_ID,
+            "LAWOS_PROJECTION_DATABASE_SECRET_ID",
+          ),
+          secretString: JSON.stringify(runtimeSecret),
+        }),
+        writer({
+          secretId: requiredText(
+            env.LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID,
+            "LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID",
+          ),
+          secretString: JSON.stringify(auditorSecret),
+        }),
+      ]);
+    } finally {
+      await masterPool.end();
+    }
   }
   const pool = createPool({
-    connectionString: postgresUrlFromSecret(JSON.stringify(projectionSecret)),
+    connectionString: postgresUrlFromSecret(JSON.stringify(runtimeSecret)),
     sslMode: "verify-full",
     tenantContextSecret,
-    applicationName: "lawos-hrx-relational-projection",
-    connectionTimeoutMillis: 10_000,
-    statementTimeoutMillis: 120_000,
-    max: 2,
+    applicationName: readback
+      ? "lawos-hrx-relational-auditor"
+      : "lawos-hrx-relational-projection",
+    connectionTimeoutMillis:
+      inputs.performanceAcceptance.connection_timeout_ms,
+    statementTimeoutMillis:
+      inputs.performanceAcceptance.statement_timeout_ms,
+    max: readback ? 1 : Math.min(2, inputs.performanceAcceptance.pool_max),
   });
   const approvedTenantIds = authorization.packet.target.approved_tenant_ids;
+  if (event.mode === "rollout") {
+    const rollout = rolloutRequest;
+    const routeResults = [];
+    try {
+      await verifyMigrations(pool);
+      for (const tenantId of approvedTenantIds) {
+        routeResults.push(await transaction(
+          pool,
+          {
+            tenant_id: tenantId,
+            statementTimeoutMillis:
+              inputs.performanceAcceptance.statement_timeout_ms,
+            maxAttempts: 1,
+          },
+          (client) => rollout.action === "enable"
+            ? activateConsumerRoute(client, {
+              tenantId,
+              queryFamily: rollout.queryFamily,
+              rolloutWave: rollout.rolloutWave,
+              mappingManifest: inputs.mappingManifest,
+              validationEvidence: inputs.validationEvidence,
+              maxStalenessMs: rollout.maxStalenessMs,
+            })
+            : disableConsumerRoutes(client, { tenantId }),
+        ));
+      }
+    } finally {
+      await pool.end();
+    }
+    if (routeResults.some((item) =>
+      rollout.action === "enable"
+        ? item.enabled !== true
+          || item.authority_promoted !== false
+          || item.mapping_sha256 !== inputs.mappingManifest.manifest_sha256
+          || item.validation_result_sha256
+            !== inputs.validationEvidence.result_sha256
+        : item.generic_ledger_fallback !== true
+          || item.projection_rows_deleted !== false)) {
+      fail(
+        "LAWOS_HRX_PROJECTION_ROLLOUT_GATE",
+        "consumer rollout result violated the read-only authority contract",
+      );
+    }
+    const enabledCount = rollout.action === "enable"
+      ? routeResults.length
+      : 0;
+    const disabledCount = rollout.action === "disable"
+      ? routeResults.reduce(
+        (total, item) => total + Number(item.disabled_route_count ?? 0),
+        0,
+      )
+      : 0;
+    const material = {
+      schema_version:
+        "law-firm-os.hrx-relational-projection-consumer-rollout.v1",
+      outcome: "PASS",
+      action: JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
+      phase: authorization.packet.phase,
+      mode: "rollout",
+      rollout_action: rollout.action,
+      source_sha: authorization.exact.sourceSha,
+      source_tree: authorization.exact.sourceTree,
+      packet_sha256: authorization.packet.packet_sha256,
+      mapping_manifest_sha256: inputs.mappingManifest.manifest_sha256,
+      validation_result_sha256: rollout.action === "enable"
+        ? inputs.validationEvidence.result_sha256
+        : null,
+      query_family: rollout.queryFamily ?? null,
+      rollout_wave: rollout.rolloutWave ?? null,
+      safe_counts: {
+        approved_tenant_count: approvedTenantIds.length,
+        consumer_route_enabled_count: enabledCount,
+        consumer_route_disabled_count: disabledCount,
+        source_authority_write_count: 0,
+        projection_authority_promotion_count: 0,
+        json_fallback_count: 0,
+        consumer_write_grant_count: 0,
+      },
+      claims: {
+        generic_ledger_authority_preserved: true,
+        projection_consumers_read_only: true,
+        authority_promotion_not_granted: true,
+        fallback_authority: "postgres-v2-generic-ledger",
+        rollback_deletes_projection_rows: false,
+        raw_value_returned: false,
+        pii_returned: false,
+        secret_material_returned: false,
+      },
+    };
+    const result = Object.freeze({
+      ...material,
+      result_sha256: createHash("sha256")
+        .update(canonicalizeJson(material))
+        .digest("hex"),
+    });
+    const evidence = await writeEvidence({
+      kind: "w15-consumer-rollout-result",
+      value: result,
+      event,
+      authorization,
+      env,
+      client: s3Client,
+    });
+    return Object.freeze({
+      ...result,
+      execution_evidence_sha256: evidence.sha256,
+      approval_receipt_sha256: claimEvidence.approval_receipt_sha256,
+      authorization_claim_sha256: claimEvidence.claim_sha256,
+    });
+  }
   const negativeTenantId = unapprovedProjectionTenant(approvedTenantIds);
-  const projectionMode = event.mode === "commit" ? "backfill" : "incremental";
+  if (readback) {
+    let validation;
+    try {
+      await verifyMigrations(pool);
+      validation = await validateProjection({
+        pool,
+        approvedTenantIds,
+        negativeTenantId,
+        mappingManifest: inputs.mappingManifest,
+        performanceAcceptance: inputs.performanceAcceptance,
+        sourceSha: authorization.exact.sourceSha,
+        sourceTree: authorization.exact.sourceTree,
+        packetSha256: authorization.packet.packet_sha256,
+        receiptVerificationFailureCount: 0,
+      });
+    } finally {
+      await pool.end();
+    }
+    if (validation.outcome !== "PASS") {
+      fail(
+        "LAWOS_HRX_PROJECTION_VALIDATION_GATE",
+        "independent relational projection validation did not pass",
+      );
+    }
+    const evidence = await writeEvidence({
+      kind: "w15-relational-projection-validation",
+      value: validation,
+      event,
+      authorization,
+      env,
+      client: s3Client,
+    });
+    return Object.freeze({
+      ...validation,
+      action: JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
+      phase: authorization.packet.phase,
+      source_sha: authorization.exact.sourceSha,
+      source_tree: authorization.exact.sourceTree,
+      packet_sha256: authorization.packet.packet_sha256,
+      validation_evidence_sha256: evidence.sha256,
+      approval_receipt_sha256: claimEvidence.approval_receipt_sha256,
+      authorization_claim_sha256: claimEvidence.claim_sha256,
+    });
+  }
+  const projectionMode = event.mode === "commit" ? "backfill" : "resume";
   const projected = [];
   try {
     await verifyMigrations(pool);
+    if (event.mode === "commit") {
+      const observedInventory = await collectInventory({
+        pool,
+        approvedTenantIds,
+      });
+      if (observedInventory.inventory_sha256
+        !== inputs.productionInventory.inventory_sha256) {
+        fail(
+          "LAWOS_HRX_PROJECTION_INVENTORY_DRIFT",
+          "production HRX inventory drifted before the first backfill write",
+        );
+      }
+    }
     for (const tenantId of approvedTenantIds) {
       projected.push(await project({
         pool,
         tenant_id: tenantId,
         mode: projectionMode,
+        mappingManifest: inputs.mappingManifest,
+        performanceAcceptance: inputs.performanceAcceptance,
+        workerRef: event.attempt_ref,
+        backfillWave: requestedBackfillWave,
         negativeTenantId,
       }));
     }
@@ -1064,12 +1389,14 @@ export async function executeJsonPostgresRelationalProjection({
     || item.safe_counts?.tenant_negative_visible_count !== 0
     || item.safe_counts?.source_authority_write_count !== 0
     || item.safe_counts?.dual_write_count !== 0
-    || item.safe_counts?.partial_commit_count !== 0)) {
+    || item.safe_counts?.partial_commit_count !== 0
+    || item.safe_counts?.unmapped_nonnull_field_count !== 0
+    || item.safe_counts?.physical_delete_count !== 0)) {
     fail("LAWOS_HRX_PROJECTION_GATE", "relational projection result violated the one-way authority gate");
   }
   const sum = (key) => projected.reduce((total, item) => total + Number(item.safe_counts?.[key] ?? 0), 0);
   const material = {
-    schema_version: "law-firm-os.hrx-relational-projection-execution.v1",
+    schema_version: "law-firm-os.hrx-relational-projection-execution.v2",
     outcome: "PASS",
     action: JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
     phase: authorization.packet.phase,
@@ -1077,7 +1404,13 @@ export async function executeJsonPostgresRelationalProjection({
     source_sha: authorization.exact.sourceSha,
     source_tree: authorization.exact.sourceTree,
     packet_sha256: authorization.packet.packet_sha256,
+    mapping_manifest_sha256: inputs.mappingManifest.manifest_sha256,
+    production_inventory_sha256: inputs.productionInventory.inventory_sha256,
+    performance_acceptance_sha256:
+      inputs.performanceAcceptance.acceptance_sha256,
+    backfill_wave: projected[0]?.backfill_wave ?? null,
     predecessor_receipt_count: inputs.predecessors.length,
+    bootstrap_performed: event.mode === "commit",
     migration_count: migrations.length,
     migration_applied_count: migrations.filter((item) => item.applied).length,
     projection_role_grant_count: role.grant_statement_count,
@@ -1087,17 +1420,33 @@ export async function executeJsonPostgresRelationalProjection({
       projected_insert_count: sum("projected_insert_count"),
       projected_update_count: sum("projected_update_count"),
       projected_noop_count: sum("projected_noop_count"),
+      committed_batch_count: sum("committed_batch_count"),
+      completed_backfill_wave_count:
+        sum("completed_backfill_wave_count"),
       consumed_outbox_event_count: sum("consumed_outbox_event_count"),
+      observed_event_wave_1_count: sum("observed_event_wave_1_count"),
+      observed_event_wave_2_count: sum("observed_event_wave_2_count"),
+      observed_event_wave_3_count: sum("observed_event_wave_3_count"),
+      observed_event_wave_4_count: sum("observed_event_wave_4_count"),
+      observed_event_wave_5_count: sum("observed_event_wave_5_count"),
+      remaining_outbox_event_count: sum("remaining_outbox_event_count"),
       tenant_negative_visible_count: sum("tenant_negative_visible_count"),
       negative_tenant_context_denied_count: sum("negative_tenant_context_denied_count"),
+      unmapped_nonnull_field_count: 0,
+      physical_delete_count: 0,
       source_authority_write_count: 0,
       dual_write_count: 0,
       partial_commit_count: 0,
       consumer_write_grant_count: role.consumer_write_grant_count,
+      auditor_write_grant_count: role.auditor_write_grant_count,
       authority_promotion_count: 0,
     },
     claims: {
       one_way_projection: true,
+      bounded_checkpoint_resume: true,
+      event_scoped_incremental_projection: true,
+      physical_delete_prohibited: true,
+      recurring_worker_uses_master_credentials: false,
       operational_request_dual_write: false,
       generic_ledger_authority_preserved: true,
       projection_write_authority: false,

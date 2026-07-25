@@ -117,6 +117,139 @@ CREATE POLICY tenant_isolation ON lawos_projection.hrx_outbox_cursor
 `;
 }
 
+function boundedProjectionSql() {
+  const targetHardening = HRX_STORE_TABLES.map((table) => {
+    const qualified = `${quoteIdentifier(HRX_POSTGRES_SCHEMA)}.${quoteIdentifier(table)}`;
+    return [
+      `ALTER TABLE ${qualified}`,
+      "  ADD COLUMN IF NOT EXISTS lawos_projection_deleted_at timestamptz;",
+      `DROP TRIGGER IF EXISTS lawos_hrx_delete_guard ON ${qualified};`,
+      "CREATE TRIGGER lawos_hrx_delete_guard",
+      `BEFORE DELETE ON ${qualified}`,
+      "FOR EACH ROW EXECUTE FUNCTION lawos_runtime.reject_hrx_projection_delete();",
+    ].join("\n");
+  }).join("\n\n");
+  return `
+CREATE OR REPLACE FUNCTION lawos_runtime.reject_hrx_projection_delete()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RAISE EXCEPTION 'HRX projection rows cannot be physically deleted' USING ERRCODE = '23514';
+END;
+$$;
+
+ALTER TABLE lawos_projection.hrx_record_state
+  ADD COLUMN IF NOT EXISTS source_status text,
+  ADD COLUMN IF NOT EXISTS source_deleted_at timestamptz,
+  ADD COLUMN IF NOT EXISTS archive_only boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS projection_run_ref text,
+  ADD COLUMN IF NOT EXISTS target_primary_key_sha256 text
+    CHECK (
+      target_primary_key_sha256 IS NULL
+      OR target_primary_key_sha256 ~ '^[a-f0-9]{64}$'
+    ),
+  ADD COLUMN IF NOT EXISTS target_row_sha256 text
+    CHECK (
+      target_row_sha256 IS NULL
+      OR target_row_sha256 ~ '^[a-f0-9]{64}$'
+    );
+
+CREATE TABLE IF NOT EXISTS lawos_projection.hrx_backfill_checkpoint (
+  tenant_id text NOT NULL,
+  rollout_wave integer NOT NULL CHECK (rollout_wave BETWEEN 1 AND 5),
+  mapping_sha256 text NOT NULL CHECK (mapping_sha256 ~ '^[a-f0-9]{64}$'),
+  performance_acceptance_sha256 text NOT NULL
+    CHECK (performance_acceptance_sha256 ~ '^[a-f0-9]{64}$'),
+  run_ref text NOT NULL,
+  source_high_watermark_created_at timestamptz,
+  source_high_watermark_event_id text,
+  last_table_ordinal integer NOT NULL DEFAULT -1 CHECK (last_table_ordinal >= -1),
+  last_record_id text NOT NULL DEFAULT '',
+  status text NOT NULL CHECK (status IN ('running', 'complete')),
+  processed_record_count bigint NOT NULL DEFAULT 0 CHECK (processed_record_count >= 0),
+  projected_insert_count bigint NOT NULL DEFAULT 0 CHECK (projected_insert_count >= 0),
+  projected_update_count bigint NOT NULL DEFAULT 0 CHECK (projected_update_count >= 0),
+  projected_noop_count bigint NOT NULL DEFAULT 0 CHECK (projected_noop_count >= 0),
+  source_stream_hash text NOT NULL CHECK (source_stream_hash ~ '^[a-f0-9]{64}$'),
+  target_stream_hash text NOT NULL CHECK (target_stream_hash ~ '^[a-f0-9]{64}$'),
+  started_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+  updated_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+  completed_at timestamptz,
+  CHECK (
+    (source_high_watermark_created_at IS NULL)
+      = (source_high_watermark_event_id IS NULL)
+  ),
+  CHECK ((status = 'complete') = (completed_at IS NOT NULL)),
+  PRIMARY KEY (tenant_id, rollout_wave)
+);
+
+CREATE TABLE IF NOT EXISTS lawos_projection.hrx_projection_lease (
+  tenant_id text PRIMARY KEY,
+  lease_owner_ref text NOT NULL,
+  mapping_sha256 text NOT NULL CHECK (mapping_sha256 ~ '^[a-f0-9]{64}$'),
+  lease_expires_at timestamptz NOT NULL,
+  updated_at timestamptz NOT NULL DEFAULT clock_timestamp()
+);
+
+ALTER TABLE lawos_projection.hrx_backfill_checkpoint ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lawos_projection.hrx_backfill_checkpoint FORCE ROW LEVEL SECURITY;
+ALTER TABLE lawos_projection.hrx_projection_lease ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lawos_projection.hrx_projection_lease FORCE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS tenant_isolation
+  ON lawos_projection.hrx_backfill_checkpoint;
+CREATE POLICY tenant_isolation ON lawos_projection.hrx_backfill_checkpoint
+  USING (tenant_id = lawos_security.current_tenant_id())
+  WITH CHECK (tenant_id = lawos_security.current_tenant_id());
+
+DROP POLICY IF EXISTS tenant_isolation
+  ON lawos_projection.hrx_projection_lease;
+CREATE POLICY tenant_isolation ON lawos_projection.hrx_projection_lease
+  USING (tenant_id = lawos_security.current_tenant_id())
+  WITH CHECK (tenant_id = lawos_security.current_tenant_id());
+
+${targetHardening}
+`;
+}
+
+function projectionConsumerRoutingSql() {
+  return `
+CREATE TABLE IF NOT EXISTS lawos_projection.hrx_consumer_route (
+  tenant_id text NOT NULL,
+  query_family text NOT NULL CHECK (
+    query_family IN (
+      'shadow-only',
+      'core-employee-roster',
+      'recruiting-lifecycle',
+      'leave-attendance',
+      'payroll-compensation'
+    )
+  ),
+  rollout_wave integer NOT NULL CHECK (rollout_wave BETWEEN 0 AND 4),
+  enabled boolean NOT NULL DEFAULT false,
+  mapping_sha256 text NOT NULL CHECK (mapping_sha256 ~ '^[a-f0-9]{64}$'),
+  validation_result_sha256 text NOT NULL
+    CHECK (validation_result_sha256 ~ '^[a-f0-9]{64}$'),
+  max_staleness_ms integer NOT NULL CHECK (
+    max_staleness_ms BETWEEN 1 AND 3600000
+  ),
+  verified_at timestamptz NOT NULL,
+  updated_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+  PRIMARY KEY (tenant_id, query_family)
+);
+
+ALTER TABLE lawos_projection.hrx_consumer_route ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lawos_projection.hrx_consumer_route FORCE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS tenant_isolation
+  ON lawos_projection.hrx_consumer_route;
+CREATE POLICY tenant_isolation ON lawos_projection.hrx_consumer_route
+  USING (tenant_id = lawos_security.current_tenant_id())
+  WITH CHECK (tenant_id = lawos_security.current_tenant_id());
+`;
+}
+
 export function listHrxPostgresMigrations() {
   const translated = loadHrxCoreMigrations().map((migration, index) => Object.freeze({
     id: `${String(index + 101).padStart(3, "0")}_hrx_${migration.id}`,
@@ -130,6 +263,8 @@ export function listHrxPostgresMigrations() {
     Object.freeze({ id: "200_hrx_rls", file_name: null, sql: hardeningSql() }),
     Object.freeze({ id: "201_hrx_append_only", file_name: null, sql: appendOnlyHardeningSql() }),
     Object.freeze({ id: "202_hrx_projection_state", file_name: null, sql: projectionStateSql() }),
+    Object.freeze({ id: "203_hrx_bounded_projection", file_name: null, sql: boundedProjectionSql() }),
+    Object.freeze({ id: "204_hrx_projection_consumer_routing", file_name: null, sql: projectionConsumerRoutingSql() }),
   ]);
 }
 
