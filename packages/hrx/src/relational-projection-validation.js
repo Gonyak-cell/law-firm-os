@@ -5,6 +5,7 @@ import { withPostgresTransaction } from "../../persistence/src/postgres/transact
 import {
   createHrxRelationalProductionInventory,
   inspectHrxRelationalSchema,
+  projectHrxRelationalPayload,
   validateHrxRelationalMappingManifest,
 } from "./relational-projection-contract.js";
 import {
@@ -73,22 +74,20 @@ function rowKey(row, fields) {
 }
 
 function mappedSourceRow(source, mapping) {
-  const allowed = new Set([...mapping.payload_columns, "deleted_at"]);
-  const unknown = Object.entries(source.payload)
-    .filter(([key, value]) => !allowed.has(key) && value != null);
+  const projected = projectHrxRelationalPayload(source.payload, mapping);
   const deleted = source.payload.status === "deleted";
   const deletedAt = source.payload.deleted_at ?? null;
   if (deleted !== (deletedAt != null && String(deletedAt).trim() !== "")) {
     fail("source tombstone contract is incomplete");
   }
-  const row = Object.fromEntries(
-    mapping.payload_columns
-      .filter((column) => Object.hasOwn(source.payload, column))
-      .map((column) => [column, normalize(source.payload[column])]),
-  );
+  const row = normalize(projected.row);
   row.lawos_projection_deleted_at =
     deleted ? new Date(deletedAt).toISOString() : null;
-  return Object.freeze({ row, deleted, unknownCount: unknown.length });
+  return Object.freeze({
+    row,
+    deleted,
+    unknownCount: projected.unknown_nonnull_field_count,
+  });
 }
 
 function targetComparable(row, fields) {
@@ -531,11 +530,9 @@ function compareSourceAndTarget(observations, mappingManifest) {
         .flatMap((observation) => observation.targets.get(mapping.table_name) ?? []);
       for (const row of sourceRows) {
         const values = foreignKey.columns.map((column) => row[column]);
-        if (values.every((value) => value == null)) continue;
-        if (values.some((value) => value == null)) {
-          logicalReferenceFailures += 1;
-          continue;
-        }
+        // PostgreSQL's default MATCH SIMPLE composite-FK semantics skip
+        // validation when any referencing column is null.
+        if (values.some((value) => value == null)) continue;
         const targetMaterial = Object.fromEntries(
           foreignKey.referenced_columns.map((column, index) => [column, values[index]]),
         );

@@ -4,6 +4,7 @@ import {
   createHrxRelationalMappingGapReport,
   createHrxRelationalMappingManifest,
   validateHrxRelationalMappingManifest,
+  validateHrxRelationalMappingResolution,
   validateHrxRelationalProductionInventory,
 } from "../../packages/hrx/src/relational-projection-contract.js";
 import {
@@ -14,7 +15,7 @@ import {
 } from "../../packages/runtime-auth/src/runtime-safety-approval-contract.js";
 
 export const JSON_POSTGRES_W15_CONTRACT_BUNDLE_VERSION =
-  "law-firm-os.json-postgres-w15-contract-bundle.v1";
+  "law-firm-os.json-postgres-w15-contract-bundle.v2";
 
 function fail(message) {
   throw new Error(message);
@@ -90,6 +91,7 @@ export function createJsonPostgresW15ContractBundle({
   schema,
   inventory,
   performanceAcceptance,
+  mappingResolution = null,
 } = {}) {
   assertSchemaObservation(schema);
   validateHrxRelationalProductionInventory(inventory);
@@ -100,10 +102,18 @@ export function createJsonPostgresW15ContractBundle({
   }
   const gapReport = createHrxRelationalMappingGapReport(inventory);
   const inventorySummary = createJsonPostgresW15InventorySummary(inventory);
-  const blocked = gapReport.blocked_table_count > 0
+  const rawBlocked = gapReport.blocked_table_count > 0
     || gapReport.unmapped_nonnull_field_count > 0
     || gapReport.primary_key_conflict_count > 0
     || gapReport.foreign_key_conflict_count > 0;
+  if (mappingResolution != null) {
+    validateHrxRelationalMappingResolution(mappingResolution);
+    if (mappingResolution.inventory_sha256 !== inventory.inventory_sha256) {
+      fail("W15 mapping resolution does not bind the production inventory");
+    }
+  }
+  const blocked = rawBlocked
+    && mappingResolution?.residual_conflict_count !== 0;
   if (blocked) {
     const material = {
       schema_version: JSON_POSTGRES_W15_CONTRACT_BUNDLE_VERSION,
@@ -113,6 +123,8 @@ export function createJsonPostgresW15ContractBundle({
       performance_acceptance_sha256:
         performanceAcceptance.acceptance_sha256,
       mapping_gap_report_sha256: gapReport.result_sha256,
+      mapping_resolution_sha256:
+        mappingResolution?.resolution_sha256 ?? null,
       mapping_manifest_sha256: null,
       dependency_order_sha256: null,
       raw_value_returned: false,
@@ -123,6 +135,7 @@ export function createJsonPostgresW15ContractBundle({
       summary: Object.freeze({ ...material, result_sha256: sha256(material) }),
       inventorySummary,
       gapReport,
+      mappingResolution,
       mappingManifest: null,
       dependencyOrder: null,
     });
@@ -132,6 +145,7 @@ export function createJsonPostgresW15ContractBundle({
     inventory,
     performanceAcceptanceSha256:
       performanceAcceptance.acceptance_sha256,
+    mappingResolution,
   });
   validateHrxRelationalMappingManifest(mappingManifest);
   const dependencyOrder =
@@ -144,6 +158,8 @@ export function createJsonPostgresW15ContractBundle({
     performance_acceptance_sha256:
       performanceAcceptance.acceptance_sha256,
     mapping_gap_report_sha256: gapReport.result_sha256,
+    mapping_resolution_sha256:
+      mappingResolution?.resolution_sha256 ?? null,
     mapping_manifest_sha256: mappingManifest.manifest_sha256,
     dependency_order_sha256: dependencyOrder.result_sha256,
     raw_value_returned: false,
@@ -154,6 +170,7 @@ export function createJsonPostgresW15ContractBundle({
     summary: Object.freeze({ ...material, result_sha256: sha256(material) }),
     inventorySummary,
     gapReport,
+    mappingResolution,
     mappingManifest,
     dependencyOrder,
   });

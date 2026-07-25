@@ -8,9 +8,11 @@ import {
 import { listHrxPostgresMigrations } from "./postgres-migrations.js";
 
 export const HRX_RELATIONAL_MAPPING_VERSION =
-  "law-firm-os.hrx-relational-mapping-manifest.v2";
+  "law-firm-os.hrx-relational-mapping-manifest.v3";
 export const HRX_RELATIONAL_INVENTORY_VERSION =
   "law-firm-os.hrx-relational-production-inventory.v2";
+export const HRX_RELATIONAL_MAPPING_RESOLUTION_VERSION =
+  "law-firm-os.hrx-relational-mapping-resolution.v1";
 export const HRX_RELATIONAL_INTERNAL_COLUMNS = Object.freeze([
   "lawos_projection_deleted_at",
 ]);
@@ -19,6 +21,93 @@ const SHA256 = /^[a-f0-9]{64}$/u;
 const TABLE_SET = new Set(HRX_STORE_TABLES);
 const APPEND_ONLY = new Set(HRX_APPEND_ONLY_TABLES);
 const INTERNAL_COLUMN_SET = new Set(HRX_RELATIONAL_INTERNAL_COLUMNS);
+const ONBOARDING_ENVELOPE_VERSION =
+  "law-firm-os.hrx-onboarding-relational-envelope.v1";
+
+const FIELD_TRANSFORMS = Object.freeze({
+  hrx_audit_events: Object.freeze([
+    Object.freeze({
+      operation: "verify-constant",
+      source_field: "schema_version",
+      expected_value: "law-firm-os.hrx-audit-event.v0.1",
+      restore_on_read: true,
+    }),
+    Object.freeze({
+      operation: "json-alias",
+      source_field: "metadata",
+      source_shape: "object",
+      target_column: "metadata_json",
+      retain_target_on_read: true,
+    }),
+  ]),
+  hrx_employment_profiles: Object.freeze([
+    Object.freeze({
+      operation: "verify-constant",
+      source_field: "schema_version",
+      expected_value: "law-firm-os.hrx-core-schema.v0.1",
+      restore_on_read: true,
+    }),
+  ]),
+  hrx_interviews: Object.freeze([
+    Object.freeze({
+      operation: "json-alias",
+      source_field: "interviewer_employee_ids",
+      source_shape: "array",
+      target_column: "interviewer_employee_ids_json",
+      retain_target_on_read: false,
+    }),
+  ]),
+  hrx_leave_balance_entries: Object.freeze([
+    Object.freeze({
+      operation: "json-alias",
+      source_field: "metadata",
+      source_shape: "object",
+      target_column: "metadata_json",
+      retain_target_on_read: true,
+    }),
+  ]),
+  hrx_offboarding_cases: Object.freeze([
+    ...[
+      "access_revocations",
+      "document_returns",
+      "legal_hold_checks",
+      "matter_reassignments",
+      "handover_items",
+    ].map((sourceField) => Object.freeze({
+      operation: "json-alias",
+      source_field: sourceField,
+      source_shape: "array",
+      target_column: `${sourceField}_json`,
+      retain_target_on_read: false,
+    })),
+  ]),
+  hrx_onboarding_plans: Object.freeze([
+    Object.freeze({
+      operation: "json-envelope",
+      source_fields: Object.freeze([
+        Object.freeze({ field: "tasks", shape: "array" }),
+        Object.freeze({ field: "matter_assignment_gate", shape: "object" }),
+      ]),
+      target_column: "tasks_json",
+      envelope_schema_version: ONBOARDING_ENVELOPE_VERSION,
+      retain_target_on_read: false,
+    }),
+    Object.freeze({
+      operation: "json-alias",
+      source_field: "document_refs",
+      source_shape: "array",
+      target_column: "document_refs_json",
+      retain_target_on_read: false,
+    }),
+    Object.freeze({
+      operation: "json-alias",
+      source_field: "access_requests",
+      source_shape: "array",
+      target_column: "access_requests_json",
+      retain_target_on_read: false,
+    }),
+  ]),
+});
 
 const WAVE_ONE = new Set([
   "hrx_employees",
@@ -92,9 +181,251 @@ function inventoryMaterial(value) {
   return material;
 }
 
+function resolutionMaterial(value) {
+  const { resolution_sha256: ignored, ...material } = value;
+  return material;
+}
+
 function safeInteger(value, label) {
   if (!Number.isSafeInteger(value) || value < 0) fail(`${label} must be a non-negative integer`);
   return value;
+}
+
+function frozenClone(value) {
+  if (Array.isArray(value)) {
+    return Object.freeze(value.map(frozenClone));
+  }
+  if (value && typeof value === "object") {
+    return Object.freeze(Object.fromEntries(
+      Object.entries(value).map(([key, child]) => [key, frozenClone(child)]),
+    ));
+  }
+  return value;
+}
+
+function fieldTransforms(tableName) {
+  return frozenClone(FIELD_TRANSFORMS[tableName] ?? []);
+}
+
+function fieldTransformCatalogMaterial() {
+  return HRX_STORE_TABLES.map((tableName) => ({
+    table_name: tableName,
+    field_transforms: FIELD_TRANSFORMS[tableName] ?? [],
+  }));
+}
+
+export function hrxRelationalFieldTransformCatalogSha256() {
+  return digest(fieldTransformCatalogMaterial());
+}
+
+function assertFieldTransforms(tableName, transforms) {
+  if (canonicalizeJson(transforms ?? [])
+    !== canonicalizeJson(FIELD_TRANSFORMS[tableName] ?? [])) {
+    fail(`relational field transform contract drifted: ${tableName}`);
+  }
+}
+
+function assertJsonShape(value, shape, label) {
+  const valid = shape === "array"
+    ? Array.isArray(value)
+    : value != null && typeof value === "object" && !Array.isArray(value);
+  if (!valid) fail(`${label} does not match its approved JSON shape`);
+}
+
+function parsedJson(value, label) {
+  if (typeof value !== "string") fail(`${label} must be encoded JSON text`);
+  try {
+    return JSON.parse(value);
+  } catch {
+    fail(`${label} is not valid JSON text`);
+  }
+}
+
+function sameJson(left, right) {
+  return canonicalizeJson(left) === canonicalizeJson(right);
+}
+
+function envelopeFor(transform, payload) {
+  return Object.freeze({
+    schema_version: transform.envelope_schema_version,
+    ...Object.fromEntries(
+      transform.source_fields.map(({ field }) => [field, payload[field]]),
+    ),
+  });
+}
+
+export function projectHrxRelationalPayload(payload, mapping) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    fail(`HRX projection payload must be an object: ${mapping?.table_name ?? "unknown"}`);
+  }
+  const tableName = requiredText(mapping?.table_name, "mapping table_name");
+  if (!TABLE_SET.has(tableName) || !Array.isArray(mapping.payload_columns)) {
+    fail("HRX projection mapping is invalid");
+  }
+  assertFieldTransforms(tableName, mapping.field_transforms);
+  const row = Object.fromEntries(
+    mapping.payload_columns
+      .filter((column) => Object.hasOwn(payload, column))
+      .map((column) => [column, payload[column]]),
+  );
+  const consumed = new Set();
+  let consumedNonNullFieldCount = 0;
+  for (const transform of mapping.field_transforms) {
+    if (transform.operation === "verify-constant") {
+      if (!Object.hasOwn(payload, transform.source_field)
+        || payload[transform.source_field] == null) continue;
+      if (payload[transform.source_field] !== transform.expected_value) {
+        fail(
+          `HRX projection constant field drifted: ${tableName}.${transform.source_field}`,
+          "LAWOS_HRX_PROJECTION_FIELD_TRANSFORM",
+        );
+      }
+      consumed.add(transform.source_field);
+      consumedNonNullFieldCount += 1;
+      continue;
+    }
+    if (transform.operation === "json-alias") {
+      if (!Object.hasOwn(payload, transform.source_field)
+        || payload[transform.source_field] == null) continue;
+      const sourceValue = payload[transform.source_field];
+      assertJsonShape(
+        sourceValue,
+        transform.source_shape,
+        `${tableName}.${transform.source_field}`,
+      );
+      if (row[transform.target_column] != null) {
+        const targetValue = parsedJson(
+          row[transform.target_column],
+          `${tableName}.${transform.target_column}`,
+        );
+        if (!sameJson(sourceValue, targetValue)) {
+          fail(
+            `HRX projection JSON alias drifted: ${tableName}.${transform.source_field}`,
+            "LAWOS_HRX_PROJECTION_FIELD_TRANSFORM",
+          );
+        }
+      } else {
+        row[transform.target_column] = canonicalizeJson(sourceValue);
+      }
+      consumed.add(transform.source_field);
+      consumedNonNullFieldCount += 1;
+      continue;
+    }
+    if (transform.operation === "json-envelope") {
+      const present = transform.source_fields.filter(({ field }) =>
+        Object.hasOwn(payload, field) && payload[field] != null);
+      if (present.length === 0) continue;
+      if (present.length !== transform.source_fields.length) {
+        fail(
+          `HRX projection JSON envelope is incomplete: ${tableName}`,
+          "LAWOS_HRX_PROJECTION_FIELD_TRANSFORM",
+        );
+      }
+      for (const source of transform.source_fields) {
+        assertJsonShape(
+          payload[source.field],
+          source.shape,
+          `${tableName}.${source.field}`,
+        );
+      }
+      const envelope = envelopeFor(transform, payload);
+      if (row[transform.target_column] != null) {
+        const targetValue = parsedJson(
+          row[transform.target_column],
+          `${tableName}.${transform.target_column}`,
+        );
+        if (!sameJson(envelope, targetValue)) {
+          fail(
+            `HRX projection JSON envelope drifted: ${tableName}`,
+            "LAWOS_HRX_PROJECTION_FIELD_TRANSFORM",
+          );
+        }
+      } else {
+        row[transform.target_column] = canonicalizeJson(envelope);
+      }
+      for (const { field } of transform.source_fields) consumed.add(field);
+      consumedNonNullFieldCount += transform.source_fields.length;
+      continue;
+    }
+    fail(`unsupported relational field transform: ${tableName}`);
+  }
+  const allowed = new Set([
+    ...mapping.payload_columns,
+    ...consumed,
+    "deleted_at",
+  ]);
+  const unknownNonNullFields = Object.entries(payload)
+    .filter(([key, value]) => !allowed.has(key) && value != null)
+    .map(([key]) => key)
+    .sort();
+  if (unknownNonNullFields.length > 0) {
+    fail(
+      `HRX projection contains a non-null unmapped field: ${tableName}`,
+      "LAWOS_HRX_PROJECTION_UNMAPPED_FIELD",
+    );
+  }
+  return Object.freeze({
+    row: Object.freeze(row),
+    consumed_nonnull_field_count: consumedNonNullFieldCount,
+    unknown_nonnull_field_count: 0,
+  });
+}
+
+export function restoreHrxRelationalProjectionRow(row, mapping) {
+  if (!row || typeof row !== "object" || Array.isArray(row)) {
+    fail("HRX relational projection row must be an object");
+  }
+  const tableName = requiredText(mapping?.table_name, "mapping table_name");
+  assertFieldTransforms(tableName, mapping.field_transforms);
+  const restored = { ...row };
+  for (const transform of mapping.field_transforms) {
+    if (transform.operation === "verify-constant") {
+      if (transform.restore_on_read) {
+        restored[transform.source_field] = transform.expected_value;
+      }
+      continue;
+    }
+    if (transform.operation === "json-alias") {
+      if (restored[transform.target_column] == null) continue;
+      restored[transform.source_field] = parsedJson(
+        restored[transform.target_column],
+        `${tableName}.${transform.target_column}`,
+      );
+      if (!transform.retain_target_on_read) {
+        delete restored[transform.target_column];
+      }
+      continue;
+    }
+    if (transform.operation === "json-envelope") {
+      if (restored[transform.target_column] == null) continue;
+      const envelope = parsedJson(
+        restored[transform.target_column],
+        `${tableName}.${transform.target_column}`,
+      );
+      exactKeys(
+        envelope,
+        ["schema_version", ...transform.source_fields.map(({ field }) => field)],
+        `${tableName} relational envelope`,
+      );
+      if (envelope.schema_version !== transform.envelope_schema_version) {
+        fail(`HRX relational envelope version drifted: ${tableName}`);
+      }
+      for (const source of transform.source_fields) {
+        assertJsonShape(
+          envelope[source.field],
+          source.shape,
+          `${tableName}.${source.field}`,
+        );
+        restored[source.field] = envelope[source.field];
+      }
+      if (!transform.retain_target_on_read) {
+        delete restored[transform.target_column];
+      }
+      continue;
+    }
+    fail(`unsupported relational field transform: ${tableName}`);
+  }
+  return Object.freeze(restored);
 }
 
 function rolloutWave(table) {
@@ -405,18 +736,456 @@ export function validateHrxRelationalProductionInventory(value = {}) {
   });
 }
 
+function rowsByRelationalTable(records) {
+  const result = new Map(HRX_STORE_TABLES.map((table) => [table, []]));
+  for (const record of records ?? []) {
+    if (!TABLE_SET.has(record?.record_type)) continue;
+    if (!record.payload || typeof record.payload !== "object"
+      || Array.isArray(record.payload)
+      || requiredText(record.record_id, "mapping resolution record_id")
+        !== record.record_id
+      || record.payload.tenant_id !== record.tenant_id
+      || !SHA256.test(record.payload_hash ?? "")
+      || !Number.isSafeInteger(Number(record.state_version))
+      || Number(record.state_version) < 1) {
+      fail("mapping resolution source record is invalid");
+    }
+    result.get(record.record_type).push(record);
+  }
+  for (const rows of result.values()) {
+    rows.sort((left, right) =>
+      String(left.tenant_id).localeCompare(String(right.tenant_id))
+        || String(left.record_id).localeCompare(String(right.record_id)));
+  }
+  return result;
+}
+
+function rawUnknownCount(rows, allowedColumns) {
+  return rows.reduce((total, record) => total + Object.entries(record.payload)
+    .filter(([key, value]) =>
+      !allowedColumns.has(key) && key !== "deleted_at" && value != null)
+    .length, 0);
+}
+
+function primaryKeyConflictCount(rows, tableName) {
+  const keys = new Set();
+  let conflicts = 0;
+  for (const value of rows) {
+    const payload = value?.payload ?? value;
+    const values = HRX_TABLE_PRIMARY_KEYS[tableName]
+      .map((column) => payload[column]);
+    if (values.some((value) =>
+      value == null || String(value).trim() === "")) {
+      conflicts += 1;
+      continue;
+    }
+    const key = digest(values);
+    if (keys.has(key)) conflicts += 1;
+    keys.add(key);
+  }
+  return conflicts;
+}
+
+function foreignKeyConflictCount({
+  rowsByTable,
+  foreignKeysByTable,
+  projectedRowsByTable = null,
+  matchSimple = false,
+} = {}) {
+  let conflicts = 0;
+  let matchSimpleNullCount = 0;
+  for (const tableName of HRX_STORE_TABLES) {
+    const rows = projectedRowsByTable?.get(tableName)
+      ?? rowsByTable.get(tableName).map((record) => record.payload);
+    for (const foreignKey of foreignKeysByTable.get(tableName) ?? []) {
+      const targetRows = projectedRowsByTable?.get(foreignKey.referenced_table)
+        ?? rowsByTable.get(foreignKey.referenced_table)
+          .map((record) => record.payload);
+      const targetKeys = new Set(targetRows.map((row) =>
+        digest(foreignKey.referenced_columns.map((column) => row[column]))));
+      for (const row of rows) {
+        const values = foreignKey.columns.map((column) => row[column]);
+        if (values.every((value) => value == null)) continue;
+        if (values.some((value) => value == null)) {
+          if (matchSimple) {
+            matchSimpleNullCount += 1;
+          } else {
+            conflicts += 1;
+          }
+          continue;
+        }
+        if (!targetKeys.has(digest(values))) conflicts += 1;
+      }
+    }
+  }
+  return Object.freeze({ conflicts, matchSimpleNullCount });
+}
+
+export function createHrxRelationalMappingResolution({
+  schema,
+  inventory,
+  sourceRecords,
+  migrationCorpusFileSha256,
+  migrationCorpusManifestSha256,
+  phaseACloseoutEvidenceSha256,
+} = {}) {
+  validateHrxRelationalProductionInventory(inventory);
+  for (const [value, label] of [
+    [migrationCorpusFileSha256, "migration corpus file SHA-256"],
+    [migrationCorpusManifestSha256, "migration corpus manifest SHA-256"],
+    [phaseACloseoutEvidenceSha256, "Phase A closeout evidence SHA-256"],
+  ]) requiredDigest(value, label);
+  const columnsByTable = normalizeColumns(schema?.columns);
+  const foreignKeysByTable = normalizeForeignKeys(schema?.foreign_keys);
+  const sourceByTable = rowsByRelationalTable(sourceRecords);
+  const inventoryByTable = new Map(
+    inventory.tables.map((table) => [table.table_name, table]),
+  );
+  const projectedRowsByTable = new Map(
+    HRX_STORE_TABLES.map((table) => [table, []]),
+  );
+  const rawForeignKeys = foreignKeyConflictCount({
+    rowsByTable: sourceByTable,
+    foreignKeysByTable,
+  });
+  const rawForeignKeyByTable = new Map();
+  for (const tableName of HRX_STORE_TABLES) {
+    rawForeignKeyByTable.set(tableName, foreignKeyConflictCount({
+      rowsByTable: sourceByTable,
+      foreignKeysByTable: new Map(HRX_STORE_TABLES.map((table) => [
+        table,
+        table === tableName ? foreignKeysByTable.get(table) : [],
+      ])),
+    }).conflicts);
+  }
+  for (const tableName of HRX_STORE_TABLES) {
+    const rows = sourceByTable.get(tableName);
+    const inventoryTable = inventoryByTable.get(tableName);
+    const sourceHash = digest(rows.map((record) => ({
+      tenant_id: record.tenant_id,
+      record_id: record.record_id,
+      state_version: Number(record.state_version),
+      payload_hash: record.payload_hash,
+    })));
+    const allowedColumns = new Set(
+      columnsByTable.get(tableName)
+        .filter((column) => !column.internal)
+        .map((column) => column.column_name),
+    );
+    if (rows.length !== inventoryTable.source_count
+      || sourceHash !== inventoryTable.source_hash
+      || rawUnknownCount(rows, allowedColumns)
+        !== inventoryTable.unmapped_nonnull_field_count
+      || primaryKeyConflictCount(rows, tableName)
+        !== inventoryTable.primary_key_conflict_count
+      || rawForeignKeyByTable.get(tableName)
+        !== inventoryTable.foreign_key_conflict_count) {
+      fail(`mapping resolution source drifted from inventory: ${tableName}`);
+    }
+    for (const record of rows) {
+      const projected = projectHrxRelationalPayload(record.payload, {
+        table_name: tableName,
+        payload_columns: [...allowedColumns],
+        field_transforms: fieldTransforms(tableName),
+      });
+      projectedRowsByTable.get(tableName).push(projected.row);
+    }
+  }
+  const residualForeignKeys = foreignKeyConflictCount({
+    rowsByTable: sourceByTable,
+    foreignKeysByTable,
+    projectedRowsByTable,
+    matchSimple: true,
+  });
+  const residualForeignKeyByTable = new Map();
+  const matchSimpleNullByTable = new Map();
+  for (const tableName of HRX_STORE_TABLES) {
+    const observation = foreignKeyConflictCount({
+      rowsByTable: sourceByTable,
+      foreignKeysByTable: new Map(HRX_STORE_TABLES.map((table) => [
+        table,
+        table === tableName ? foreignKeysByTable.get(table) : [],
+      ])),
+      projectedRowsByTable,
+      matchSimple: true,
+    });
+    residualForeignKeyByTable.set(tableName, observation.conflicts);
+    matchSimpleNullByTable.set(
+      tableName,
+      observation.matchSimpleNullCount,
+    );
+  }
+  const tables = HRX_STORE_TABLES.map((tableName) => {
+    const rows = sourceByTable.get(tableName);
+    const inventoryTable = inventoryByTable.get(tableName);
+    const allowedColumns = new Set(
+      columnsByTable.get(tableName)
+        .filter((column) => !column.internal)
+        .map((column) => column.column_name),
+    );
+    let resolvedNonNullFieldCount = 0;
+    let residualUnmappedNonNullFieldCount = 0;
+    for (const record of rows) {
+      const projected = projectHrxRelationalPayload(record.payload, {
+        table_name: tableName,
+        payload_columns: [...allowedColumns],
+        field_transforms: fieldTransforms(tableName),
+      });
+      resolvedNonNullFieldCount +=
+        projected.consumed_nonnull_field_count;
+      residualUnmappedNonNullFieldCount +=
+        projected.unknown_nonnull_field_count;
+    }
+    return Object.freeze({
+      table_name: tableName,
+      source_count: rows.length,
+      source_hash: inventoryTable.source_hash,
+      raw_unmapped_nonnull_field_count:
+        inventoryTable.unmapped_nonnull_field_count,
+      resolved_nonnull_field_count: resolvedNonNullFieldCount,
+      residual_unmapped_nonnull_field_count:
+        residualUnmappedNonNullFieldCount,
+      raw_primary_key_conflict_count:
+        inventoryTable.primary_key_conflict_count,
+      residual_primary_key_conflict_count: primaryKeyConflictCount(
+        projectedRowsByTable.get(tableName),
+        tableName,
+      ),
+      raw_foreign_key_conflict_count:
+        rawForeignKeyByTable.get(tableName),
+      match_simple_null_reference_count:
+        matchSimpleNullByTable.get(tableName),
+      residual_foreign_key_conflict_count:
+        residualForeignKeyByTable.get(tableName),
+      field_transform_count: fieldTransforms(tableName).length,
+    });
+  });
+  const material = {
+    schema_version: HRX_RELATIONAL_MAPPING_RESOLUTION_VERSION,
+    inventory_sha256: inventory.inventory_sha256,
+    migration_corpus_file_sha256:
+      migrationCorpusFileSha256,
+    migration_corpus_manifest_sha256:
+      migrationCorpusManifestSha256,
+    phase_a_closeout_evidence_sha256:
+      phaseACloseoutEvidenceSha256,
+    field_transform_catalog_sha256:
+      hrxRelationalFieldTransformCatalogSha256(),
+    table_count: tables.length,
+    source_record_count: tables.reduce(
+      (total, table) => total + table.source_count,
+      0,
+    ),
+    raw_blocked_table_count: inventory.tables.filter((table) =>
+      table.inventory_classification === "blocked_mapping").length,
+    raw_unmapped_nonnull_field_count: tables.reduce(
+      (total, table) =>
+        total + table.raw_unmapped_nonnull_field_count,
+      0,
+    ),
+    resolved_nonnull_field_count: tables.reduce(
+      (total, table) => total + table.resolved_nonnull_field_count,
+      0,
+    ),
+    residual_unmapped_nonnull_field_count: tables.reduce(
+      (total, table) =>
+        total + table.residual_unmapped_nonnull_field_count,
+      0,
+    ),
+    raw_primary_key_conflict_count: tables.reduce(
+      (total, table) =>
+        total + table.raw_primary_key_conflict_count,
+      0,
+    ),
+    residual_primary_key_conflict_count: tables.reduce(
+      (total, table) =>
+        total + table.residual_primary_key_conflict_count,
+      0,
+    ),
+    raw_foreign_key_conflict_count: rawForeignKeys.conflicts,
+    match_simple_null_reference_count:
+      residualForeignKeys.matchSimpleNullCount,
+    residual_foreign_key_conflict_count:
+      residualForeignKeys.conflicts,
+    residual_conflict_count: tables.reduce(
+      (total, table) => total
+        + table.residual_unmapped_nonnull_field_count
+        + table.residual_primary_key_conflict_count
+        + table.residual_foreign_key_conflict_count,
+      0,
+    ),
+    raw_value_returned: false,
+    pii_returned: false,
+    secret_material_returned: false,
+    tables: Object.freeze(tables),
+  };
+  const resolution = Object.freeze({
+    ...material,
+    resolution_sha256: digest(material),
+  });
+  validateHrxRelationalMappingResolution(resolution);
+  return resolution;
+}
+
+export function validateHrxRelationalMappingResolution(value = {}) {
+  exactKeys(value, [
+    "schema_version",
+    "inventory_sha256",
+    "migration_corpus_file_sha256",
+    "migration_corpus_manifest_sha256",
+    "phase_a_closeout_evidence_sha256",
+    "field_transform_catalog_sha256",
+    "table_count",
+    "source_record_count",
+    "raw_blocked_table_count",
+    "raw_unmapped_nonnull_field_count",
+    "resolved_nonnull_field_count",
+    "residual_unmapped_nonnull_field_count",
+    "raw_primary_key_conflict_count",
+    "residual_primary_key_conflict_count",
+    "raw_foreign_key_conflict_count",
+    "match_simple_null_reference_count",
+    "residual_foreign_key_conflict_count",
+    "residual_conflict_count",
+    "raw_value_returned",
+    "pii_returned",
+    "secret_material_returned",
+    "tables",
+    "resolution_sha256",
+  ], "mapping resolution");
+  if (value.schema_version !== HRX_RELATIONAL_MAPPING_RESOLUTION_VERSION
+    || !SHA256.test(value.inventory_sha256 ?? "")
+    || !SHA256.test(value.migration_corpus_file_sha256 ?? "")
+    || !SHA256.test(value.migration_corpus_manifest_sha256 ?? "")
+    || !SHA256.test(value.phase_a_closeout_evidence_sha256 ?? "")
+    || value.field_transform_catalog_sha256
+      !== hrxRelationalFieldTransformCatalogSha256()
+    || value.table_count !== HRX_STORE_TABLES.length
+    || value.raw_value_returned !== false
+    || value.pii_returned !== false
+    || value.secret_material_returned !== false
+    || value.residual_unmapped_nonnull_field_count !== 0
+    || value.residual_primary_key_conflict_count !== 0
+    || value.residual_foreign_key_conflict_count !== 0
+    || value.residual_conflict_count !== 0
+    || value.resolution_sha256 !== digest(resolutionMaterial(value))) {
+    fail("mapping resolution identity, safety claim, or digest is invalid");
+  }
+  for (const key of [
+    "source_record_count",
+    "raw_blocked_table_count",
+    "raw_unmapped_nonnull_field_count",
+    "resolved_nonnull_field_count",
+    "residual_unmapped_nonnull_field_count",
+    "raw_primary_key_conflict_count",
+    "residual_primary_key_conflict_count",
+    "raw_foreign_key_conflict_count",
+    "match_simple_null_reference_count",
+    "residual_foreign_key_conflict_count",
+    "residual_conflict_count",
+  ]) safeInteger(value[key], `mapping resolution ${key}`);
+  if (!Array.isArray(value.tables)
+    || value.tables.length !== HRX_STORE_TABLES.length
+    || new Set(value.tables.map((table) => table.table_name)).size
+      !== HRX_STORE_TABLES.length) {
+    fail("mapping resolution table set is incomplete");
+  }
+  for (const table of value.tables) {
+    exactKeys(table, [
+      "table_name",
+      "source_count",
+      "source_hash",
+      "raw_unmapped_nonnull_field_count",
+      "resolved_nonnull_field_count",
+      "residual_unmapped_nonnull_field_count",
+      "raw_primary_key_conflict_count",
+      "residual_primary_key_conflict_count",
+      "raw_foreign_key_conflict_count",
+      "match_simple_null_reference_count",
+      "residual_foreign_key_conflict_count",
+      "field_transform_count",
+    ], "mapping resolution table");
+    if (!TABLE_SET.has(table.table_name)
+      || !SHA256.test(table.source_hash ?? "")
+      || table.field_transform_count
+        !== (FIELD_TRANSFORMS[table.table_name] ?? []).length
+      || table.raw_unmapped_nonnull_field_count
+        !== table.resolved_nonnull_field_count
+          + table.residual_unmapped_nonnull_field_count
+      || table.raw_primary_key_conflict_count
+        !== table.residual_primary_key_conflict_count
+      || table.raw_foreign_key_conflict_count
+        !== table.match_simple_null_reference_count
+          + table.residual_foreign_key_conflict_count
+      || table.residual_unmapped_nonnull_field_count !== 0
+      || table.residual_primary_key_conflict_count !== 0
+      || table.residual_foreign_key_conflict_count !== 0) {
+      fail(`mapping resolution table is invalid: ${table.table_name}`);
+    }
+    for (const [key, child] of Object.entries(table)) {
+      if (key.endsWith("_count")) {
+        safeInteger(child, `mapping resolution ${table.table_name}.${key}`);
+      }
+    }
+  }
+  if (value.source_record_count !== value.tables.reduce(
+    (total, table) => total + table.source_count,
+    0,
+  ) || value.raw_unmapped_nonnull_field_count !== value.tables.reduce(
+    (total, table) =>
+      total + table.raw_unmapped_nonnull_field_count,
+    0,
+  ) || value.resolved_nonnull_field_count !== value.tables.reduce(
+    (total, table) => total + table.resolved_nonnull_field_count,
+    0,
+  ) || value.raw_primary_key_conflict_count !== value.tables.reduce(
+    (total, table) =>
+      total + table.raw_primary_key_conflict_count,
+    0,
+  ) || value.raw_foreign_key_conflict_count !== value.tables.reduce(
+    (total, table) =>
+      total + table.raw_foreign_key_conflict_count,
+    0,
+  ) || value.match_simple_null_reference_count !== value.tables.reduce(
+    (total, table) =>
+      total + table.match_simple_null_reference_count,
+    0,
+  ) || value.raw_blocked_table_count !== value.tables.filter((table) =>
+    table.raw_unmapped_nonnull_field_count > 0
+      || table.raw_primary_key_conflict_count > 0
+      || table.raw_foreign_key_conflict_count > 0).length
+  ) {
+    fail("mapping resolution aggregate counts drifted");
+  }
+  return Object.freeze({
+    valid: true,
+    resolution_sha256: value.resolution_sha256,
+    residual_conflict_count: 0,
+  });
+}
+
 export function createHrxRelationalMappingManifest({
   schema,
   inventory,
   performanceAcceptanceSha256,
+  mappingResolution = null,
 } = {}) {
   validateHrxRelationalProductionInventory(inventory);
-  if (inventory.tables.some((table) =>
+  const containsGaps = inventory.tables.some((table) =>
     table.inventory_classification === "blocked_mapping"
     || table.unmapped_nonnull_field_count !== 0
     || table.primary_key_conflict_count !== 0
-    || table.foreign_key_conflict_count !== 0)) {
-    fail("production inventory contains unresolved mapping gaps");
+    || table.foreign_key_conflict_count !== 0);
+  if (containsGaps) {
+    if (mappingResolution == null) {
+      fail("production inventory contains unresolved mapping gaps");
+    }
+    validateHrxRelationalMappingResolution(mappingResolution);
+    if (mappingResolution.inventory_sha256 !== inventory.inventory_sha256
+      || mappingResolution.source_record_count
+        !== inventory.source_record_count) {
+      fail("mapping resolution drifted from production inventory");
+    }
   }
   if (!SHA256.test(performanceAcceptanceSha256 ?? "")) {
     fail("performance acceptance digest is invalid");
@@ -456,6 +1225,15 @@ export function createHrxRelationalMappingManifest({
       .filter((column) => column.nullable)
       .map((column) => column.column_name);
     const expectation = inventoryByTable.get(table);
+    const tableFieldTransforms = fieldTransforms(table);
+    const sourceColumnNames = new Set(
+      sourceColumns.map((column) => column.column_name),
+    );
+    if (tableFieldTransforms.some((transform) =>
+      transform.target_column != null
+        && !sourceColumnNames.has(transform.target_column))) {
+      fail(`relational field transform target is missing: ${table}`);
+    }
     const schemaContractSha256 = digest({
       table_name: table,
       columns: sourceColumns,
@@ -479,9 +1257,13 @@ export function createHrxRelationalMappingManifest({
         ? "append-only-tombstone-rejected"
         : "projection-metadata-soft-delete",
       unknown_field_policy: "reject-non-null",
+      field_transforms: tableFieldTransforms,
       expected_source_count: expectation.source_count,
       expected_source_hash: expectation.source_hash,
-      inventory_classification: expectation.inventory_classification,
+      source_inventory_classification:
+        expectation.inventory_classification,
+      inventory_classification:
+        expectation.source_count === 0 ? "schema_only" : "populated",
       rollout_wave: rolloutWaveByTable.get(table),
       performance_budget_sha256: performanceAcceptanceSha256,
       schema_contract_sha256: schemaContractSha256,
@@ -494,6 +1276,10 @@ export function createHrxRelationalMappingManifest({
     record_type_catalog_sha256: hrxRelationalRecordTypeCatalogSha256(),
     migration_catalog_sha256: hrxRelationalMigrationCatalogSha256(),
     inventory_sha256: inventory.inventory_sha256,
+    mapping_resolution_sha256:
+      mappingResolution?.resolution_sha256 ?? null,
+    field_transform_catalog_sha256:
+      hrxRelationalFieldTransformCatalogSha256(),
     performance_acceptance_sha256: performanceAcceptanceSha256,
     dependency_order: Object.freeze([...order]),
     deferred_reference_count: tables.reduce(
@@ -516,6 +1302,8 @@ export function validateHrxRelationalMappingManifest(value = {}) {
     "record_type_catalog_sha256",
     "migration_catalog_sha256",
     "inventory_sha256",
+    "mapping_resolution_sha256",
+    "field_transform_catalog_sha256",
     "performance_acceptance_sha256",
     "dependency_order",
     "deferred_reference_count",
@@ -531,6 +1319,10 @@ export function validateHrxRelationalMappingManifest(value = {}) {
     || value.record_type_catalog_sha256 !== hrxRelationalRecordTypeCatalogSha256()
     || value.migration_catalog_sha256 !== hrxRelationalMigrationCatalogSha256()
     || !SHA256.test(value.inventory_sha256 ?? "")
+    || (value.mapping_resolution_sha256 != null
+      && !SHA256.test(value.mapping_resolution_sha256))
+    || value.field_transform_catalog_sha256
+      !== hrxRelationalFieldTransformCatalogSha256()
     || !SHA256.test(value.performance_acceptance_sha256 ?? "")
     || value.unknown_field_policy !== "reject-non-null"
     || value.authority !== "postgres-v2-generic-ledger"
@@ -561,14 +1353,17 @@ export function validateHrxRelationalMappingManifest(value = {}) {
       "append_only",
       "tombstone_policy",
       "unknown_field_policy",
+      "field_transforms",
       "expected_source_count",
       "expected_source_hash",
+      "source_inventory_classification",
       "inventory_classification",
       "rollout_wave",
       "performance_budget_sha256",
       "schema_contract_sha256",
       "migration_catalog_sha256",
     ], "mapping table");
+    assertFieldTransforms(table.table_name, table.field_transforms);
     if (!TABLE_SET.has(table.table_name)
       || table.source_record_type !== table.table_name
       || JSON.stringify(table.primary_key) !== JSON.stringify(HRX_TABLE_PRIMARY_KEYS[table.table_name])
@@ -580,12 +1375,18 @@ export function validateHrxRelationalMappingManifest(value = {}) {
       || table.migration_catalog_sha256 !== value.migration_catalog_sha256
       || table.performance_budget_sha256 !== value.performance_acceptance_sha256
       || !["populated", "schema_only"].includes(table.inventory_classification)
+      || !["populated", "schema_only", "blocked_mapping"]
+        .includes(table.source_inventory_classification)
       || !Number.isSafeInteger(table.rollout_wave)
       || table.rollout_wave < 1
       || table.rollout_wave > 5) {
       fail(`mapping table contract is invalid: ${table.table_name ?? "unknown"}`);
     }
     safeInteger(table.expected_source_count, `${table.table_name}.expected_source_count`);
+    if (table.source_inventory_classification === "blocked_mapping"
+      && value.mapping_resolution_sha256 == null) {
+      fail(`blocked source mapping lacks a resolution: ${table.table_name}`);
+    }
     if (table.inventory_classification === "schema_only" && table.expected_source_count !== 0) {
       fail(`schema-only mapping contains source rows: ${table.table_name}`);
     }
@@ -595,10 +1396,18 @@ export function validateHrxRelationalMappingManifest(value = {}) {
       || !Array.isArray(table.nullable_columns)
       || !Array.isArray(table.foreign_keys)
       || table.primary_key.some((column) => !table.payload_columns.includes(column))
+      || table.field_transforms.some((transform) =>
+        transform.target_column != null
+          && !table.payload_columns.includes(transform.target_column))
       || table.internal_columns.some((column) => !INTERNAL_COLUMN_SET.has(column))) {
       fail(`mapping columns are invalid: ${table.table_name}`);
     }
     byTable.set(table.table_name, table);
+  }
+  if (value.tables.every((table) =>
+    table.source_inventory_classification !== "blocked_mapping")
+    && value.mapping_resolution_sha256 != null) {
+    fail("mapping resolution is present without blocked source inventory");
   }
   if (byTable.size !== HRX_STORE_TABLES.length) fail("mapping table names are duplicated");
   const position = new Map(value.dependency_order.map((table, index) => [table, index]));
@@ -689,6 +1498,7 @@ export async function assertHrxRelationalMappingMatchesDatabase(client, manifest
     append_only: table.append_only,
     tombstone_policy: table.tombstone_policy,
     unknown_field_policy: table.unknown_field_policy,
+    field_transforms: table.field_transforms,
     rollout_wave: table.rollout_wave,
     performance_budget_sha256: table.performance_budget_sha256,
     schema_contract_sha256: table.schema_contract_sha256,
