@@ -47,7 +47,15 @@ test("projection writer is separate, forced through exact tenants, and leaves co
     sql,
     /GRANT SELECT, INSERT, UPDATE ON [^\n]*lawos_projection\.hrx_consumer_route TO lawos_hrx_projection_writer/u,
   );
+  assert.match(
+    sql,
+    /GRANT SELECT ON lawos_domain\.records, lawos_domain\.record_references, lawos_domain\.outbox_events TO lawos_hrx_projection_writer/u,
+  );
   assert.doesNotMatch(sql, /GRANT (?:INSERT|UPDATE|DELETE).* TO lawos_app/u);
+  assert.doesNotMatch(
+    sql,
+    /GRANT (?:INSERT|UPDATE|DELETE|TRUNCATE).*lawos_domain.* TO lawos_hrx_projection_writer/u,
+  );
   assert.doesNotMatch(sql, /ALTER DEFAULT PRIVILEGES/u);
   assert.match(sql, /REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA lawos_domain FROM lawos_hrx_projection_writer/u);
   assert.match(sql, /REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA lawos_hrx FROM lawos_hrx_projection_auditor/u);

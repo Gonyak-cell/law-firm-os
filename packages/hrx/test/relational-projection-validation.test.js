@@ -18,6 +18,7 @@ import { runHrxPostgresMigrations } from "../src/postgres-migrations.js";
 import {
   configureHrxProjectionRole,
   HRX_PROJECTION_AUDITOR_ROLE,
+  HRX_PROJECTION_WRITER_ROLE,
 } from "../src/postgres-projection-role.js";
 import { projectHrxRelationalReadModel } from "../src/relational-read-projection.js";
 import {
@@ -119,6 +120,42 @@ test("W15 independent auditor derives PASS from relational observations rather t
     });
   } finally {
     client.release();
+  }
+  const writerUrl = new URL(fixture.instance.connection_string);
+  writerUrl.username = HRX_PROJECTION_WRITER_ROLE;
+  writerUrl.password = "writer-password-value";
+  const writerPool = createPostgresPool({
+    connectionString: writerUrl.toString(),
+    sslMode: "disable",
+    allowInsecureLocal: true,
+    tenantContextSecret: fixture.tenantContextSecret,
+    applicationName: "hrx-validation-writer-test",
+    max: 1,
+  });
+  try {
+    const writerInventory = await collectHrxRelationalProductionInventory({
+      pool: writerPool,
+      approvedTenantIds: [tenantId],
+      inventoryProvenanceSha256: "9".repeat(64),
+    });
+    assert.equal(writerInventory.source_record_count, 1);
+    await assert.rejects(
+      withPostgresTransaction(
+        writerPool,
+        { tenant_id: tenantId },
+        (writerClient) => writerClient.query(
+          `INSERT INTO lawos_domain.records
+             (tenant_id, domain_id, record_type, record_id, state_version,
+              payload, payload_hash, append_only)
+           VALUES ($1, 'hrx', 'hrx_employees', 'writer-denied', 1,
+                   '{}'::jsonb, $2, false)`,
+          [tenantId, hashDomainValue({})],
+        ),
+      ),
+      (error) => error?.code === "42501" || error?.postgres_code === "42501",
+    );
+  } finally {
+    await writerPool.end();
   }
   const auditorUrl = new URL(fixture.instance.connection_string);
   auditorUrl.username = HRX_PROJECTION_AUDITOR_ROLE;
