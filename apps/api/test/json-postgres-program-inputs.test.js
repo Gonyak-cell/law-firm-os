@@ -38,12 +38,14 @@ import {
   assertJsonPostgresProgramDirectInvoke,
   claimJsonPostgresProgramInvocation,
   JSON_POSTGRES_PROGRAM_ADMIN_ACTION,
+  JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION,
   loadJsonPostgresDrRecoveryInputs,
   loadJsonPostgresMigrationInputs,
   loadJsonPostgresProjectionInputs,
   loadJsonPostgresProgramAuthorization,
   loadJsonPostgresRehearsalRestoreInputs,
   loadJsonPostgresRetirementInputs,
+  loadJsonPostgresW15BootstrapInputs,
 } from "../src/json-postgres-program-inputs.js";
 
 const SOURCE_SHA = "a".repeat(40);
@@ -785,6 +787,7 @@ test("W15 projection inputs require exact signed W12, CUT-012, and go-live prede
     .digest("hex");
   const productionInventory = createHrxRelationalProductionInventory({
     tenantCount: 1,
+    inventoryProvenanceSha256: "9".repeat(64),
     outboxEventCount: 1,
     outboxLagMs: 0,
     referenceCount: 0,
@@ -949,6 +952,93 @@ test("W15 projection inputs require exact signed W12, CUT-012, and go-live prede
     result.validationEvidence.result_sha256,
     validationEvidence.result_sha256,
   );
+  const schemaBootstrapMaterial = {
+    schema_version:
+      "law-firm-os.json-postgres-w15-inventory-schema-bootstrap.v1",
+    outcome: "PASS",
+    action: JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION,
+    phase: "w15-inventory-bootstrap",
+    mode: "schema-bootstrap",
+    source_sha: SOURCE_SHA,
+    source_tree: SOURCE_TREE,
+    packet_sha256: projectionPacket.packet_sha256,
+    migration_catalog_sha256:
+      projectionPacket.bindings.migration_catalog_sha256,
+    predecessor_receipt_count: 3,
+    safe_counts: {
+      approved_tenant_count: 1,
+      migration_count: 49,
+      migration_applied_count: 38,
+      projection_role_grant_count: 24,
+      consumer_write_grant_count: 0,
+      auditor_write_grant_count: 0,
+      projection_data_write_count: 0,
+      source_authority_write_count: 0,
+      consumer_route_change_count: 0,
+    },
+    claims: {
+      generic_ledger_authority_preserved: true,
+      schema_and_role_bootstrap_only: true,
+      projection_data_written: false,
+      consumer_rollout_performed: false,
+      raw_value_returned: false,
+      pii_returned: false,
+      secret_material_returned: false,
+    },
+  };
+  const schemaBootstrapResult = {
+    ...schemaBootstrapMaterial,
+    result_sha256: createHash("sha256")
+      .update(canonicalizeJson(schemaBootstrapMaterial))
+      .digest("hex"),
+  };
+  objects.set("schema-bootstrap-result", schemaBootstrapResult);
+  const bootstrapInputs = await loadJsonPostgresW15BootstrapInputs({
+    inputLocators: {
+      predecessors: locators.predecessors,
+      schema_bootstrap_result: { key: "schema-bootstrap-result" },
+    },
+    trustRegistry,
+    packet: projectionPacket,
+    mode: "inventory-read",
+    schemaBootstrapResultSha256: schemaBootstrapResult.result_sha256,
+    env: env("e".repeat(64)),
+    s3Client: {},
+    readJson: async ({ locator }) => objects.get(locator.key),
+    readBytes: async ({ locator }) => objects.get(locator.key),
+    now: Date.parse("2026-07-24T00:30:00.000Z"),
+  });
+  assert.equal(
+    bootstrapInputs.schemaBootstrapResult.result_sha256,
+    schemaBootstrapResult.result_sha256,
+  );
+  objects.set("schema-bootstrap-result", {
+    ...schemaBootstrapResult,
+    safe_counts: {
+      ...schemaBootstrapResult.safe_counts,
+      projection_data_write_count: 1,
+    },
+  });
+  await assert.rejects(
+    loadJsonPostgresW15BootstrapInputs({
+      inputLocators: {
+        predecessors: locators.predecessors,
+        schema_bootstrap_result: { key: "schema-bootstrap-result" },
+      },
+      trustRegistry,
+      packet: projectionPacket,
+      mode: "inventory-read",
+      schemaBootstrapResultSha256:
+        schemaBootstrapResult.result_sha256,
+      env: env("e".repeat(64)),
+      s3Client: {},
+      readJson: async ({ locator }) => objects.get(locator.key),
+      readBytes: async ({ locator }) => objects.get(locator.key),
+      now: Date.parse("2026-07-24T00:30:00.000Z"),
+    }),
+    (error) => error?.code === "LAWOS_PROGRAM_PREDECESSOR",
+  );
+  objects.set("schema-bootstrap-result", schemaBootstrapResult);
   const failedValidationMaterial = {
     ...validationMaterial,
     outcome: "FAIL",

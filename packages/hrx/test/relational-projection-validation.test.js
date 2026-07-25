@@ -79,6 +79,7 @@ test("W15 independent auditor derives PASS from relational observations rather t
   const inventory = await collectHrxRelationalProductionInventory({
     pool: fixture.appPool,
     approvedTenantIds: [tenantId],
+    inventoryProvenanceSha256: "9".repeat(64),
   });
   const performanceAcceptance = createJsonPostgresPerformanceAcceptance({
     record_count: 1,
@@ -287,6 +288,7 @@ test("W15 production inventory blocks duplicate primary keys and orphan foreign 
   const inventory = await collectHrxRelationalProductionInventory({
     pool: fixture.appPool,
     approvedTenantIds: [tenantId],
+    inventoryProvenanceSha256: "9".repeat(64),
   });
   const employees = inventory.tables.find((table) =>
     table.table_name === "hrx_employees");

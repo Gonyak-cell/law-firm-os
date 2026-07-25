@@ -62,6 +62,8 @@ export function createJsonPostgresW15InventorySummary(inventory) {
   const material = {
     schema_version: "law-firm-os.json-postgres-w15-inventory-summary.v1",
     inventory_sha256: inventory.inventory_sha256,
+    inventory_provenance_sha256:
+      inventory.inventory_provenance_sha256,
     tenant_count: inventory.tenant_count,
     table_count: inventory.table_count,
     source_record_count: inventory.source_record_count,

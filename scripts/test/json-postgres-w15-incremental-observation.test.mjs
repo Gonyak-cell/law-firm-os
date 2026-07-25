@@ -41,6 +41,7 @@ function contracts() {
   const empty = digest([]);
   const inventory = createHrxRelationalProductionInventory({
     tenantCount: 1,
+    inventoryProvenanceSha256: "9".repeat(64),
     outboxEventCount: 5,
     outboxLagMs: 10,
     referenceCount: 0,

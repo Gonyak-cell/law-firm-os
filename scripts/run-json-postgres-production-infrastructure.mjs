@@ -12,6 +12,10 @@ import {
   verifyJsonPostgresExecutionApproval,
 } from "../packages/persistence/src/postgres/execution-contract.js";
 import {
+  validateJsonPostgresW15InventoryBootstrapPacket,
+  verifyJsonPostgresW15InventoryBootstrapApproval,
+} from "../packages/persistence/src/postgres/w15-inventory-bootstrap-contract.js";
+import {
   verifyJsonPostgresProgramReceipt,
 } from "../packages/persistence/src/postgres/program-receipt.js";
 import {
@@ -53,6 +57,10 @@ import {
   validateJsonPostgresW15ProjectionEvent,
 } from "./lib/json-postgres-w15-execution.mjs";
 import {
+  assertJsonPostgresW15SourcePublished,
+  validateJsonPostgresW15BootstrapEvent,
+} from "./lib/json-postgres-w15-bootstrap-event.mjs";
+import {
   createPrivateProgramOutputDirectory,
   readPrivateProgramBytes,
   readPrivateProgramJson,
@@ -73,6 +81,13 @@ const OPERATIONS = new Set([
   "create-go-live-change-set",
   "execute-go-live-change-set",
   "w15-preflight",
+  "w15-bootstrap-preflight",
+  "w15-bootstrap-upload-artifact",
+  "w15-bootstrap-create-change-set",
+  "w15-bootstrap-execute-change-set",
+  "w15-bootstrap-remove-eni-bootstrap",
+  "w15-bootstrap-verify",
+  "w15-bootstrap-invoke",
   "w15-upload-artifact",
   "w15-create-change-set",
   "w15-execute-change-set",
@@ -537,6 +552,7 @@ const operation = requiredOption("--operation");
 if (!OPERATIONS.has(operation)) throw new Error("unsupported production infrastructure operation");
 const goLiveOperation = operation === "create-go-live-change-set"
   || operation === "execute-go-live-change-set";
+const w15BootstrapOperation = operation.startsWith("w15-bootstrap-");
 const w15Operation = operation.startsWith("w15-");
 const expectedProfile = goLiveOperation
   ? JSON_POSTGRES_PRODUCTION_CUTOVER_PROFILE
@@ -550,25 +566,49 @@ const sourceTree = git("rev-parse", "HEAD^{tree}");
 if (git("status", "--porcelain=v1", "--untracked-files=all")) {
   throw new Error("production infrastructure execution requires a clean exact-head worktree");
 }
+if (w15Operation) {
+  const originMainSha = git("rev-parse", "origin/main");
+  assertJsonPostgresW15SourcePublished({
+    sourceSha,
+    sourceTree,
+    originMainSha,
+    originMainTree: git("rev-parse", "origin/main^{tree}"),
+    sourceIsAncestor: isAncestor(sourceSha, originMainSha),
+  });
+}
 const packetPath = requiredOption("--packet");
 const packetSource = readPrivateProgramJson(packetPath, "execution packet");
-const packetValidation = validateJsonPostgresExecutionPacket(packetSource, {
-  sourceSha,
-  sourceTree,
-  phase: w15Operation
-    ? "w15-relational-projection"
-    : "w13-production-cutover",
-});
+const packetValidation = w15BootstrapOperation
+  ? validateJsonPostgresW15InventoryBootstrapPacket(packetSource, {
+      sourceSha,
+      sourceTree,
+    })
+  : validateJsonPostgresExecutionPacket(packetSource, {
+      sourceSha,
+      sourceTree,
+      phase: w15Operation
+        ? "w15-relational-projection"
+        : "w13-production-cutover",
+    });
 const registrySha256 = requiredOption("--trust-registry-sha256");
 if (!SHA256.test(registrySha256)) throw new Error("trust registry SHA-256 is invalid");
-const approval = verifyJsonPostgresExecutionApproval({
-  packet: packetSource,
-  sourceSha,
-  sourceTree,
-  trustRegistryPath: requiredOption("--trust-registry"),
-  trustRegistrySha256: registrySha256,
-  approvalReceiptPath: requiredOption("--approval-receipt"),
-});
+const approval = w15BootstrapOperation
+  ? verifyJsonPostgresW15InventoryBootstrapApproval({
+      packet: packetSource,
+      sourceSha,
+      sourceTree,
+      trustRegistryPath: requiredOption("--trust-registry"),
+      trustRegistrySha256: registrySha256,
+      approvalReceiptPath: requiredOption("--approval-receipt"),
+    })
+  : verifyJsonPostgresExecutionApproval({
+      packet: packetSource,
+      sourceSha,
+      sourceTree,
+      trustRegistryPath: requiredOption("--trust-registry"),
+      trustRegistrySha256: registrySha256,
+      approvalReceiptPath: requiredOption("--approval-receipt"),
+    });
 const trustRegistry = readPrivateProgramJson(
   requiredOption("--trust-registry"),
   "owner trust registry",
@@ -637,7 +677,9 @@ const caller = assertJsonPostgresProductionCaller(
 );
 
 let result;
-if (operation === "preflight" || operation === "w15-preflight") {
+if (operation === "preflight"
+  || operation === "w15-preflight"
+  || operation === "w15-bootstrap-preflight") {
   const artifactStoreBytes = readFileSync(artifactStoreTemplatePath);
   const productionBytes = readFileSync(productionTemplatePath);
   const artifactValidation = awsJson([
@@ -712,7 +754,8 @@ if (operation === "preflight" || operation === "w15-preflight") {
     production_write_count: 0,
   };
 } else if (operation === "upload-artifact"
-  || operation === "w15-upload-artifact") {
+  || operation === "w15-upload-artifact"
+  || operation === "w15-bootstrap-upload-artifact") {
   const stack = currentStack(JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK);
   if (!stack) throw new Error("production artifact-store stack does not exist");
   const state = artifactStoreState(stack);
@@ -744,7 +787,8 @@ if (operation === "preflight" || operation === "w15-preflight") {
       artifact.mutation_count + template.mutation_count,
     production_write_count: 0,
   };
-} else if (operation === "w15-create-change-set") {
+} else if (operation === "w15-create-change-set"
+  || operation === "w15-bootstrap-create-change-set") {
   const upload = readPrivateProgramJson(
     requiredOption("--artifact-upload-evidence"),
     "W15 artifact upload evidence",
@@ -792,7 +836,9 @@ if (operation === "preflight" || operation === "w15-preflight") {
     template: productionTemplate,
     templateSha256: productionValidation.template_sha256,
     parameters,
-    label: "w15-relational-projection",
+    label: w15BootstrapOperation
+      ? "w15-inventory-bootstrap"
+      : "w15-relational-projection",
     templateUrl: upload.cloudformation_template.template_url,
     w15: true,
   });
@@ -806,10 +852,12 @@ if (operation === "preflight" || operation === "w15-preflight") {
     artifact_version: upload.artifact_version,
     production_traffic_enabled: true,
     projection_worker_enabled: false,
+    inventory_bootstrap_only: w15BootstrapOperation,
     aws_mutation_count: 1,
     production_write_count: 0,
   };
-} else if (operation === "w15-execute-change-set") {
+} else if (operation === "w15-execute-change-set"
+  || operation === "w15-bootstrap-execute-change-set") {
   const review = readPrivateProgramJson(
     requiredOption("--reviewed-change-set"),
     "reviewed W15 production change set",
@@ -820,7 +868,8 @@ if (operation === "preflight" || operation === "w15-preflight") {
     || review.outcome !== "PASS"
     || review.stack_name !== JSON_POSTGRES_PRODUCTION_STACK
     || review.production_traffic_enabled !== true
-    || review.projection_worker_enabled !== false) {
+    || review.projection_worker_enabled !== false
+    || review.inventory_bootstrap_only !== w15BootstrapOperation) {
     throw new Error("reviewed W15 production change set is invalid");
   }
   const stack = executeReviewedChangeSet(review);
@@ -863,10 +912,12 @@ if (operation === "preflight" || operation === "w15-preflight") {
     temporary_eni_allow_count: 4,
     production_traffic_enabled: true,
     projection_worker_enabled: false,
+    inventory_bootstrap_only: w15BootstrapOperation,
     aws_mutation_count: 1,
     production_write_count: 0,
   };
-} else if (operation === "w15-remove-eni-bootstrap") {
+} else if (operation === "w15-remove-eni-bootstrap"
+  || operation === "w15-bootstrap-remove-eni-bootstrap") {
   const stack = currentStack(JSON_POSTGRES_PRODUCTION_STACK);
   if (!stack) throw new Error("production stack does not exist");
   const parameters = {
@@ -901,10 +952,12 @@ if (operation === "preflight" || operation === "w15-preflight") {
     ...validateEniAuthorityRemoved({ includeProjection: true }),
     production_traffic_enabled: true,
     projection_worker_enabled: false,
+    inventory_bootstrap_only: w15BootstrapOperation,
     aws_mutation_count: 2,
     production_write_count: 0,
   };
-} else if (operation === "w15-verify") {
+} else if (operation === "w15-verify"
+  || operation === "w15-bootstrap-verify") {
   const stack = currentStack(JSON_POSTGRES_PRODUCTION_STACK);
   if (!stack) throw new Error("production stack does not exist");
   const parameters = parameterMap(stack);
@@ -936,7 +989,104 @@ if (operation === "preflight" || operation === "w15-preflight") {
     ...eni,
     production_traffic_enabled: true,
     projection_worker_enabled: expectedRuleState === "ENABLED",
+    inventory_bootstrap_only: w15BootstrapOperation,
     aws_mutation_count: 0,
+    production_write_count: 0,
+  };
+} else if (operation === "w15-bootstrap-invoke") {
+  const stack = currentStack(JSON_POSTGRES_PRODUCTION_STACK);
+  if (!stack) throw new Error("production stack does not exist");
+  const parameters = parameterMap(stack);
+  assertJsonPostgresProductionStack(stack, {
+    packet,
+    artifactVersion: parameters.ArtifactVersion,
+    trustRegistrySha256: registrySha256,
+    trafficEnabled: true,
+    eniBootstrapEnabled: false,
+    projectionWorkerEnabled: false,
+  });
+  validateEniAuthorityRemoved({ includeProjection: true });
+  const eventPath = requiredOption("--bootstrap-event");
+  const event = readPrivateProgramJson(
+    eventPath,
+    "W15 inventory bootstrap event",
+  );
+  validateJsonPostgresW15BootstrapEvent(event, {
+    packet: packetSource,
+    artifactSha256: packet.bindings.artifact_sha256,
+  });
+  const functionName = event.mode === "inventory-read"
+    ? "lawos-production-projection-auditor"
+    : "lawos-production-admin";
+  const invocationPath = join(
+    evidenceDir,
+    `w15-${event.attempt_ref}-response.json`,
+  );
+  const invocation = awsJson([
+    "lambda", "invoke",
+    "--function-name", functionName,
+    "--invocation-type", "RequestResponse",
+    "--cli-binary-format", "raw-in-base64-out",
+    "--payload", `fileb://${eventPath}`,
+    invocationPath,
+  ]);
+  if (invocation.FunctionError || !existsSync(invocationPath)) {
+    throw new Error("W15 inventory bootstrap Lambda invocation failed");
+  }
+  chmodSync(invocationPath, 0o600);
+  const responseBytes = readFileSync(invocationPath);
+  const response = JSON.parse(responseBytes);
+  if (response.outcome !== "PASS"
+    || response.action
+      !== "lawos-json-postgres-w15-inventory-bootstrap"
+    || response.phase !== "w15-inventory-bootstrap"
+    || response.mode !== event.mode
+    || response.source_sha !== sourceSha
+    || response.source_tree !== sourceTree
+    || response.packet_sha256 !== packet.packet_sha256
+    || response.claims?.generic_ledger_authority_preserved !== true
+    || response.claims?.projection_data_written !== false
+    || response.claims?.consumer_rollout_performed !== false
+    || response.claims?.raw_value_returned !== false
+    || response.claims?.pii_returned !== false
+    || response.claims?.secret_material_returned !== false
+    || response.safe_counts?.projection_data_write_count !== 0
+    || response.safe_counts?.source_authority_write_count !== 0
+    || response.safe_counts?.consumer_route_change_count !== 0
+    || (event.mode === "inventory-read"
+      && (response.inventory?.inventory_sha256 == null
+        || response.schema == null
+        || response.provenance?.provenance_sha256
+          !== response.inventory.inventory_provenance_sha256))) {
+    throw new Error(
+      "W15 inventory bootstrap result failed its closed authority gate",
+    );
+  }
+  result = {
+    schema_version:
+      "law-firm-os.json-postgres-w15-bootstrap-invocation-evidence.v1",
+    operation,
+    outcome: "PASS",
+    caller,
+    function_name: functionName,
+    mode: event.mode,
+    attempt_ref: event.attempt_ref,
+    response_path: invocationPath,
+    response_sha256: sha256ProgramBytes(responseBytes),
+    result_sha256: response.result_sha256,
+    execution_evidence_sha256: response.execution_evidence_sha256,
+    ...(event.mode === "inventory-read" ? {
+      inventory_sha256: response.inventory.inventory_sha256,
+      inventory_provenance_sha256:
+        response.inventory.inventory_provenance_sha256,
+    } : {}),
+    projection_data_write_count: 0,
+    source_authority_write_count: 0,
+    consumer_route_change_count: 0,
+    raw_value_returned: false,
+    pii_returned: false,
+    secret_material_returned: false,
+    aws_mutation_count: 1,
     production_write_count: 0,
   };
 } else if (operation === "w15-invoke-projection") {

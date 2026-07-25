@@ -103,6 +103,7 @@ async function projectionContract(fixture, tenantIds, { batchSize = 1 } = {}) {
   const inventory = await collectHrxRelationalProductionInventory({
     pool: fixture.appPool,
     approvedTenantIds: tenantIds,
+    inventoryProvenanceSha256: "9".repeat(64),
   });
   const performanceAcceptance = createJsonPostgresPerformanceAcceptance({
     record_count: inventory.source_record_count,

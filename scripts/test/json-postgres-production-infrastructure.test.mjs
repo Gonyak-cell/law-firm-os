@@ -227,3 +227,39 @@ test("W15 rollback tooling disables the worker schedule without an ENI or traffi
     /temporary_eni_allow_count: 0,[\s\S]*production_write_count: 0/u,
   );
 });
+
+test("W15 inventory bootstrap closes the pre-schema audit cycle without direct secret access", () => {
+  const runner = readFileSync(
+    "scripts/run-json-postgres-production-infrastructure.mjs",
+    "utf8",
+  );
+  for (const operation of [
+    "w15-bootstrap-preflight",
+    "w15-bootstrap-upload-artifact",
+    "w15-bootstrap-create-change-set",
+    "w15-bootstrap-execute-change-set",
+    "w15-bootstrap-remove-eni-bootstrap",
+    "w15-bootstrap-verify",
+    "w15-bootstrap-invoke",
+  ]) {
+    assert.match(runner, new RegExp(`"${operation}"`, "u"));
+  }
+  assert.match(
+    runner,
+    /response\.safe_counts\?\.projection_data_write_count !== 0/u,
+  );
+  assert.match(
+    runner,
+    /response\.claims\?\.consumer_rollout_performed !== false/u,
+  );
+
+  const collector = readFileSync(
+    "scripts/collect-json-postgres-w15-production-inventory.mjs",
+    "utf8",
+  );
+  assert.doesNotMatch(collector, /get-secret-value/u);
+  assert.doesNotMatch(collector, /createPostgresPool/u);
+  assert.doesNotMatch(collector, /matter-readonly-auditor/u);
+  assert.match(collector, /--invocation-response/u);
+  assert.match(collector, /inventory_provenance_sha256/u);
+});

@@ -6,6 +6,7 @@ import {
   bootstrapJsonPostgresProductionDatabase,
   ensureJsonPostgresRehearsalDatabase,
   executeJsonPostgresRelationalProjection,
+  executeJsonPostgresW15InventoryBootstrap,
   executeJsonPostgresProgram,
   executeJsonPostgresRetirementSmoke,
   handler,
@@ -19,6 +20,7 @@ import {
   JSON_POSTGRES_JSON_RETIREMENT_ACTION,
   JSON_POSTGRES_PROGRAM_ADMIN_ACTION,
   JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
+  JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION,
 } from "../src/json-postgres-program-inputs.js";
 
 const SOURCE_SHA = "a".repeat(40);
@@ -69,6 +71,22 @@ function authorization() {
     },
     trustRegistry: { schema_version: "law-firm-os.runtime-safety.approval-trust-registry.v1", keys: [] },
     authorization_input_sha256: "2".repeat(64),
+  };
+}
+
+function w15BootstrapAuthorization() {
+  const value = authorization();
+  return {
+    ...value,
+    packet: {
+      ...value.packet,
+      phase: "w15-inventory-bootstrap",
+      action: JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION,
+      bindings: {
+        ...value.packet.bindings,
+        migration_catalog_sha256: "7".repeat(64),
+      },
+    },
   };
 }
 
@@ -132,6 +150,122 @@ test("production bootstrap configures only approved tenants and returns no secre
   assert.equal(result.secret_material_returned, false);
   assert.equal(JSON.stringify(result).includes("application-value"), false);
   assert.equal(writtenSecret.configuration_state, "ready");
+});
+
+test("W15 inventory bootstrap separates schema authority from aggregate inventory", async () => {
+  const secretWrites = [];
+  const baseEvent = {
+    action: JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION,
+    phase: "w15-inventory-bootstrap",
+    mode: "schema-bootstrap",
+    attempt_ref: "w15-bootstrap-schema-test",
+    schema_bootstrap_result_sha256: null,
+  };
+  const result = await executeJsonPostgresW15InventoryBootstrap({
+    event: baseEvent,
+    env: env(),
+    authorize: async () => w15BootstrapAuthorization(),
+    claim: async () => ({
+      approval_receipt_sha256: "8".repeat(64),
+      claim_sha256: "9".repeat(64),
+    }),
+    loadInputs: async () => ({ predecessors: [{}, {}, {}] }),
+    resolveSecret: async ({ secretId }) => {
+      if (secretId === "lawos/master") {
+        return { username: "master", password: "master-password" };
+      }
+      if (secretId === "lawos/hrx-projection") {
+        return {
+          username: "lawos_hrx_projection_writer",
+          password: "writer-password",
+        };
+      }
+      if (secretId === "lawos/hrx-projection-auditor") {
+        return {
+          username: "lawos_hrx_projection_auditor",
+          password: "auditor-password",
+        };
+      }
+      return { tenant_context_secret: "t".repeat(32) };
+    },
+    putSecret: async (value) => { secretWrites.push(value.secretId); },
+    createPool: () => ({
+      async connect() {
+        return { release() {} };
+      },
+      async end() {},
+    }),
+    runMigrations: async () => [
+      { id: "100", applied: true },
+      { id: "101", applied: false },
+    ],
+    configureRole: async () => ({
+      grant_statement_count: 12,
+      consumer_write_grant_count: 0,
+      auditor_write_grant_count: 0,
+    }),
+    writeEvidence: async () => ({ sha256: "a".repeat(64) }),
+    s3Client: {},
+  });
+  assert.equal(result.outcome, "PASS");
+  assert.equal(result.mode, "schema-bootstrap");
+  assert.equal(result.safe_counts.migration_applied_count, 1);
+  assert.equal(result.safe_counts.projection_data_write_count, 0);
+  assert.deepEqual(secretWrites.sort(), [
+    "lawos/hrx-projection",
+    "lawos/hrx-projection-auditor",
+  ]);
+
+  let observedProvenance;
+  const inventoryResult = await executeJsonPostgresW15InventoryBootstrap({
+    event: {
+      ...baseEvent,
+      mode: "inventory-read",
+      attempt_ref: "w15-bootstrap-inventory-test",
+      schema_bootstrap_result_sha256: result.result_sha256,
+    },
+    env: {
+      ...env(),
+      LAWOS_PROGRAM_EXECUTION_ROLE: "projection-auditor",
+    },
+    authorize: async () => w15BootstrapAuthorization(),
+    claim: async () => ({
+      approval_receipt_sha256: "8".repeat(64),
+      claim_sha256: "9".repeat(64),
+    }),
+    loadInputs: async () => ({
+      predecessors: [{}, {}, {}],
+      schemaBootstrapResult: result,
+    }),
+    resolveSecret: async ({ secretId }) => secretId
+      === "lawos/hrx-projection-auditor"
+      ? {
+          username: "lawos_hrx_projection_auditor",
+          password: "auditor-password",
+        }
+      : { tenant_context_secret: "t".repeat(32) },
+    createPool: () => ({ async end() {} }),
+    collectInventory: async ({ inventoryProvenanceSha256 }) => {
+      observedProvenance = inventoryProvenanceSha256;
+      return {
+        inventory_sha256: "b".repeat(64),
+        inventory_provenance_sha256: inventoryProvenanceSha256,
+        source_record_count: 17,
+        table_count: 77,
+      };
+    },
+    inspectSchema: async () => ({ columns: [], foreign_keys: [] }),
+    writeEvidence: async () => ({ sha256: "c".repeat(64) }),
+    s3Client: {},
+  });
+  assert.equal(inventoryResult.outcome, "PASS");
+  assert.equal(inventoryResult.mode, "inventory-read");
+  assert.equal(
+    inventoryResult.inventory.inventory_provenance_sha256,
+    observedProvenance,
+  );
+  assert.equal(inventoryResult.safe_counts.projection_data_write_count, 0);
+  assert.equal(inventoryResult.claims.aggregate_inventory_only, true);
 });
 
 test("private rehearsal bootstrap creates only the isolated database and distinct app role", async () => {
@@ -602,20 +736,15 @@ test("W15 projection uses a separate least-privilege writer and preserves the ge
   };
   w15Authorization.approval.phase = "w15-relational-projection";
   const pools = [];
-  const masterPool = {
-    async connect() {
-      return { async query() { return { rowCount: 0, rows: [] }; }, release() {} };
-    },
-    async end() {},
-  };
   const projectionPool = { async end() {} };
-  const writtenSecrets = [];
+  const resolvedSecrets = [];
   let projectedTenant;
   const mappingManifest = {
     manifest_sha256: "4".repeat(64),
   };
   const productionInventory = {
     inventory_sha256: "5".repeat(64),
+    inventory_provenance_sha256: "b".repeat(64),
   };
   const performanceAcceptance = {
     acceptance_sha256: "a".repeat(64),
@@ -644,31 +773,15 @@ test("W15 projection uses a separate least-privilege writer and preserves the ge
       performanceAcceptance,
     }),
     resolveSecret: async ({ secretId }) => {
-      if (secretId === "lawos/master") return { username: "master", password: "master-value" };
+      resolvedSecrets.push(secretId);
       if (secretId === "lawos/hrx-projection") {
         return { username: "lawos_hrx_projection_writer", password: "projection-value" };
       }
-      if (secretId === "lawos/hrx-projection-auditor") {
-        return { username: "lawos_hrx_projection_auditor", password: "auditor-value" };
-      }
       return { tenant_context_secret: "tenant-context-value-at-least-32-bytes" };
-    },
-    putSecret: async (value) => {
-      writtenSecrets.push(JSON.parse(value.secretString));
     },
     createPool: (options) => {
       pools.push(options);
-      return pools.length === 1 ? masterPool : projectionPool;
-    },
-    runMigrations: async () => [{ id: "202_hrx_projection_state", applied: true }],
-    configureRole: async (_client, input) => {
-      assert.deepEqual(input.approvedTenantIds, ["tenant_amic"]);
-      assert.equal(input.auditorPassword, "auditor-value");
-      return {
-        grant_statement_count: 24,
-        consumer_write_grant_count: 0,
-        auditor_write_grant_count: 0,
-      };
+      return projectionPool;
     },
     verifyMigrations: async () => [],
     collectInventory: async () => productionInventory,
@@ -726,20 +839,20 @@ test("W15 projection uses a separate least-privilege writer and preserves the ge
   assert.equal(result.safe_counts.consumer_write_grant_count, 0);
   assert.equal(result.safe_counts.authority_promotion_count, 0);
   assert.equal(result.execution_evidence_sha256, "9".repeat(64));
-  assert.equal(writtenSecrets.length, 2);
+  assert.equal(result.bootstrap_performed, false);
+  assert.equal(result.migration_count, 0);
+  assert.equal(result.projection_role_grant_count, 0);
   assert.deepEqual(
-    writtenSecrets.map((secret) => secret.username).sort(),
-    ["lawos_hrx_projection_auditor", "lawos_hrx_projection_writer"],
+    resolvedSecrets,
+    ["lawos/hrx-projection", "lawos/tenant-context"],
   );
-  assert.equal(writtenSecrets.every((secret) => secret.configuration_state === "ready"), true);
   assert.equal(projectedTenant.tenant_id, "tenant_amic");
   assert.equal(projectedTenant.mode, "backfill");
   assert.equal(projectedTenant.backfillWave, 1);
   assert.equal(projectedTenant.workerRef, "w15-test-attempt");
   assert.equal(projectedTenant.mappingManifest, mappingManifest);
   assert.notEqual(projectedTenant.negativeTenantId, "tenant_amic");
-  assert.equal(pools[0].applicationName, "lawos-hrx-projection-admin");
-  assert.equal(pools[1].applicationName, "lawos-hrx-relational-projection");
+  assert.equal(pools[0].applicationName, "lawos-hrx-relational-projection");
   assert.equal(JSON.stringify(result).includes("projection-value"), false);
 });
 

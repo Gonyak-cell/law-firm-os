@@ -26,6 +26,7 @@ test("W15 mapping contract covers all 77 relations in deterministic dependency o
   const emptyHash = digest([]);
   const inventory = createHrxRelationalProductionInventory({
     tenantCount: 1,
+    inventoryProvenanceSha256: "9".repeat(64),
     outboxEventCount: 0,
     outboxLagMs: 0,
     referenceCount: 0,
@@ -49,6 +50,18 @@ test("W15 mapping contract covers all 77 relations in deterministic dependency o
       inventory_classification: "schema_only",
     })),
   });
+  assert.equal(inventory.inventory_provenance_sha256, "9".repeat(64));
+  assert.throws(
+    () => createHrxRelationalProductionInventory({
+      tenantCount: 1,
+      inventoryProvenanceSha256: "not-a-digest",
+      outboxEventCount: 0,
+      outboxLagMs: 0,
+      referenceCount: 0,
+      tables: inventory.tables,
+    }),
+    /inventory provenance SHA-256 is invalid/u,
+  );
   const observedSchema = await inspectHrxRelationalSchema(fixture.adminPool);
   const manifest = createHrxRelationalMappingManifest({
     schema: observedSchema,

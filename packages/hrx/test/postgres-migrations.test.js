@@ -8,6 +8,7 @@ import {
   classifyHrxPostgresMigrationGaps,
   listHrxPostgresMigrations,
   runHrxPostgresMigrations,
+  verifyHrxPostgresMigrationState,
 } from "../src/postgres-migrations.js";
 import { HRX_APPEND_ONLY_TABLES, HRX_STORE_TABLES } from "../src/store/file-store.js";
 
@@ -86,6 +87,9 @@ test("HRX PostgreSQL migrations pass fresh, upgrade, RLS, checksum and recovery 
 
   const replay = await runHrxPostgresMigrations(fixture.adminPool, { appliedBy: "hrx-disposable-test" });
   assert.equal(replay.every((migration) => migration.applied === false), true);
+  const verified = await verifyHrxPostgresMigrationState(fixture.adminPool);
+  assert.equal(verified.length, foundationMigrationCount + hrxMigrationCount);
+  assert.equal(verified.every((migration) => migration.applied === true), true);
 
   await fixture.adminPool.query("GRANT USAGE ON SCHEMA lawos_hrx TO lawos_app");
   await fixture.adminPool.query("GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA lawos_hrx TO lawos_app");

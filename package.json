@@ -50,6 +50,8 @@
     "json-postgres:w15:probe": "node scripts/collect-json-postgres-relational-projection-probe.mjs",
     "json-postgres:w15:receipt:prepare": "node scripts/prepare-json-postgres-w15-component-receipt.mjs",
     "json-postgres:w15:baseline:prepare": "node scripts/prepare-json-postgres-w15-baseline.mjs",
+    "json-postgres:w15:bootstrap:packet": "node scripts/generate-json-postgres-w15-bootstrap-packet.mjs",
+    "json-postgres:w15:bootstrap:event": "node scripts/prepare-json-postgres-w15-bootstrap-event.mjs",
     "json-postgres:w15:inventory:collect": "node scripts/collect-json-postgres-w15-production-inventory.mjs",
     "json-postgres:w15:contracts:prepare": "node scripts/prepare-json-postgres-w15-contracts.mjs",
     "json-postgres:w15:packet-input:prepare": "node scripts/prepare-json-postgres-w15-packet-input.mjs",

@@ -19,12 +19,18 @@ import {
   HRX_PROJECTION_AUDITOR_ROLE,
   HRX_PROJECTION_WRITER_ROLE,
 } from "../../../packages/hrx/src/postgres-projection-role.js";
-import { runHrxPostgresMigrations } from "../../../packages/hrx/src/postgres-migrations.js";
+import {
+  runHrxPostgresMigrations,
+  verifyHrxPostgresMigrationState,
+} from "../../../packages/hrx/src/postgres-migrations.js";
 import { projectHrxRelationalReadModel } from "../../../packages/hrx/src/relational-read-projection.js";
 import {
   collectHrxRelationalProductionInventory,
   validateHrxRelationalReadModel,
 } from "../../../packages/hrx/src/relational-projection-validation.js";
+import {
+  inspectHrxRelationalSchema,
+} from "../../../packages/hrx/src/relational-projection-contract.js";
 import {
   activateHrxProjectionConsumerRoute,
   disableHrxProjectionConsumerRoutes,
@@ -51,6 +57,9 @@ import {
   runJsonPostgresRehearsalOwnerSampling,
 } from "../../../packages/persistence/src/postgres/rehearsal-runtime-validation.js";
 import { canonicalizeJson } from "../../../packages/runtime-auth/src/runtime-safety-approval-contract.js";
+import {
+  createJsonPostgresW15InventoryProvenance,
+} from "../../../packages/persistence/src/postgres/w15-inventory-bootstrap-contract.js";
 import { resolveAwsJsonSecret } from "./aws-secret-reference.js";
 import {
   claimJsonPostgresProgramInvocation,
@@ -59,6 +68,9 @@ import {
   JSON_POSTGRES_PROGRAM_ADMIN_ACTION,
   JSON_POSTGRES_JSON_RETIREMENT_ACTION,
   JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
+  JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION,
+  loadJsonPostgresW15BootstrapAuthorization,
+  loadJsonPostgresW15BootstrapInputs,
   loadJsonPostgresRetirementInputs,
   loadJsonPostgresMigrationInputs,
   loadJsonPostgresDrRecoveryInputs,
@@ -985,6 +997,336 @@ function relationalProjectionRolloutRequest(event) {
   });
 }
 
+export async function executeJsonPostgresW15InventoryBootstrap({
+  event,
+  env = process.env,
+  authorize = loadJsonPostgresW15BootstrapAuthorization,
+  claim = claimJsonPostgresProgramInvocation,
+  loadInputs = loadJsonPostgresW15BootstrapInputs,
+  resolveSecret = resolveAwsJsonSecret,
+  putSecret,
+  createPool = createPostgresPool,
+  runMigrations = runHrxPostgresMigrations,
+  configureRole = configureHrxProjectionRole,
+  collectInventory = collectHrxRelationalProductionInventory,
+  inspectSchema = inspectHrxRelationalSchema,
+  writeEvidence = writeJsonPostgresProgramEvidence,
+  s3Client = new S3Client({ region: env.AWS_REGION ?? env.AWS_DEFAULT_REGION }),
+} = {}) {
+  if (event.action !== JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION
+    || !["schema-bootstrap", "inventory-read"].includes(event.mode)) {
+    fail(
+      "LAWOS_PROGRAM_ACTION",
+      "W15 inventory bootstrap mode is invalid",
+    );
+  }
+  const executionRole = env.LAWOS_PROGRAM_EXECUTION_ROLE
+    ?? "projection-admin";
+  if ((event.mode === "schema-bootstrap"
+      && executionRole !== "projection-admin")
+    || (event.mode === "inventory-read"
+      && executionRole !== "projection-auditor")) {
+    fail(
+      "LAWOS_HRX_PROJECTION_EXECUTION_ROLE",
+      "W15 inventory bootstrap role cannot run the requested mode",
+    );
+  }
+  const authorization = await authorize({ event, env, s3Client });
+  const claimEvidence = await claim({
+    event,
+    authorization,
+    env,
+    client: s3Client,
+  });
+  const inputs = await loadInputs({
+    inputLocators: event.inputs,
+    trustRegistry: authorization.trustRegistry,
+    packet: authorization.packet,
+    mode: event.mode,
+    schemaBootstrapResultSha256:
+      event.schema_bootstrap_result_sha256 ?? null,
+    env,
+    s3Client,
+  });
+  const region = requiredText(
+    env.AWS_REGION ?? env.AWS_DEFAULT_REGION,
+    "AWS region",
+  );
+  const tenantContext = await resolveSecret({
+    secretId: requiredText(
+      env.LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID,
+      "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID",
+    ),
+    region,
+  });
+  const tenantContextSecret = tenantContextValue(tenantContext);
+  const approvedTenantIds =
+    authorization.packet.target.approved_tenant_ids;
+
+  if (event.mode === "schema-bootstrap") {
+    if (event.schema_bootstrap_result_sha256 != null) {
+      fail(
+        "LAWOS_HRX_PROJECTION_BOOTSTRAP_INPUT",
+        "schema bootstrap cannot accept a prior bootstrap result",
+      );
+    }
+    const [master, writerValue, auditorValue] = await Promise.all([
+      resolveSecret({
+        secretId: requiredText(
+          env.LAWOS_MASTER_DATABASE_SECRET_ID,
+          "LAWOS_MASTER_DATABASE_SECRET_ID",
+        ),
+        region,
+      }),
+      resolveSecret({
+        secretId: requiredText(
+          env.LAWOS_PROJECTION_DATABASE_SECRET_ID,
+          "LAWOS_PROJECTION_DATABASE_SECRET_ID",
+        ),
+        region,
+      }),
+      resolveSecret({
+        secretId: requiredText(
+          env.LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID,
+          "LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID",
+        ),
+        region,
+      }),
+    ]);
+    const writerSecret = structuredProjectionSecret({
+      current: writerValue,
+      env,
+      expectedUsername: HRX_PROJECTION_WRITER_ROLE,
+    });
+    const auditorSecret = structuredProjectionSecret({
+      current: auditorValue,
+      env,
+      expectedUsername: HRX_PROJECTION_AUDITOR_ROLE,
+    });
+    const masterPool = createPool({
+      connectionString: postgresUrlFromSecret(JSON.stringify({
+        ...master,
+        host: env.LAWOS_DATABASE_HOST,
+        port: env.LAWOS_DATABASE_PORT,
+        dbname: env.LAWOS_DATABASE_NAME,
+      })),
+      sslMode: "verify-full",
+      applicationName: "lawos-w15-inventory-bootstrap-admin",
+      connectionTimeoutMillis: 10_000,
+      statementTimeoutMillis: 120_000,
+      max: 1,
+    });
+    let migrations;
+    let role;
+    try {
+      migrations = await runMigrations(masterPool, {
+        appliedBy: `lawos-w15-bootstrap:${authorization.exact.sourceSha}`,
+      });
+      const client = await masterPool.connect();
+      try {
+        role = await configureRole(client, {
+          password: writerSecret.password,
+          auditorPassword: auditorSecret.password,
+          tenantContextSecret,
+          approvedTenantIds,
+        });
+      } finally {
+        client.release();
+      }
+    } finally {
+      await masterPool.end();
+    }
+    const writer = putSecret ?? (async ({ secretId, secretString }) => {
+      const client = new SecretsManagerClient({ region });
+      try {
+        await client.send(new PutSecretValueCommand({
+          SecretId: secretId,
+          SecretString: secretString,
+        }));
+      } finally {
+        client.destroy();
+      }
+    });
+    await Promise.all([
+      writer({
+        secretId: requiredText(
+          env.LAWOS_PROJECTION_DATABASE_SECRET_ID,
+          "LAWOS_PROJECTION_DATABASE_SECRET_ID",
+        ),
+        secretString: JSON.stringify(writerSecret),
+      }),
+      writer({
+        secretId: requiredText(
+          env.LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID,
+          "LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID",
+        ),
+        secretString: JSON.stringify(auditorSecret),
+      }),
+    ]);
+    const material = {
+      schema_version:
+        "law-firm-os.json-postgres-w15-inventory-schema-bootstrap.v1",
+      outcome: "PASS",
+      action: JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION,
+      phase: authorization.packet.phase,
+      mode: event.mode,
+      source_sha: authorization.exact.sourceSha,
+      source_tree: authorization.exact.sourceTree,
+      packet_sha256: authorization.packet.packet_sha256,
+      migration_catalog_sha256:
+        authorization.packet.bindings.migration_catalog_sha256,
+      predecessor_receipt_count: inputs.predecessors.length,
+      safe_counts: {
+        approved_tenant_count: approvedTenantIds.length,
+        migration_count: migrations.length,
+        migration_applied_count:
+          migrations.filter((migration) => migration.applied).length,
+        projection_role_grant_count: role.grant_statement_count,
+        consumer_write_grant_count: role.consumer_write_grant_count,
+        auditor_write_grant_count: role.auditor_write_grant_count,
+        projection_data_write_count: 0,
+        source_authority_write_count: 0,
+        consumer_route_change_count: 0,
+      },
+      claims: {
+        generic_ledger_authority_preserved: true,
+        schema_and_role_bootstrap_only: true,
+        projection_data_written: false,
+        consumer_rollout_performed: false,
+        raw_value_returned: false,
+        pii_returned: false,
+        secret_material_returned: false,
+      },
+    };
+    const result = Object.freeze({
+      ...material,
+      result_sha256: createHash("sha256")
+        .update(canonicalizeJson(material))
+        .digest("hex"),
+    });
+    const evidence = await writeEvidence({
+      kind: "w15-inventory-schema-bootstrap",
+      value: result,
+      event,
+      authorization,
+      env,
+      client: s3Client,
+    });
+    return Object.freeze({
+      ...result,
+      execution_evidence_sha256: evidence.sha256,
+      approval_receipt_sha256: claimEvidence.approval_receipt_sha256,
+      authorization_claim_sha256: claimEvidence.claim_sha256,
+    });
+  }
+
+  const schemaBootstrapResultSha256 = exactDigest(
+    event.schema_bootstrap_result_sha256,
+    "schema_bootstrap_result_sha256",
+  );
+  if (inputs.schemaBootstrapResult?.result_sha256
+      !== schemaBootstrapResultSha256) {
+    fail(
+      "LAWOS_HRX_PROJECTION_BOOTSTRAP_INPUT",
+      "inventory read is not bound to immutable schema bootstrap evidence",
+    );
+  }
+  const auditorValue = await resolveSecret({
+    secretId: requiredText(
+      env.LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID,
+      "LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID",
+    ),
+    region,
+  });
+  const auditorSecret = structuredProjectionSecret({
+    current: auditorValue,
+    env,
+    expectedUsername: HRX_PROJECTION_AUDITOR_ROLE,
+  });
+  const provenance = createJsonPostgresW15InventoryProvenance({
+    sourceSha: authorization.exact.sourceSha,
+    sourceTree: authorization.exact.sourceTree,
+    bootstrapPacketSha256: authorization.packet.packet_sha256,
+    schemaBootstrapResultSha256,
+  });
+  const pool = createPool({
+    connectionString: postgresUrlFromSecret(JSON.stringify(auditorSecret)),
+    sslMode: "verify-full",
+    tenantContextSecret,
+    applicationName: "lawos-w15-production-inventory-auditor",
+    connectionTimeoutMillis: 10_000,
+    statementTimeoutMillis: 120_000,
+    max: 1,
+  });
+  let inventory;
+  let schema;
+  try {
+    [inventory, schema] = await Promise.all([
+      collectInventory({
+        pool,
+        approvedTenantIds,
+        inventoryProvenanceSha256: provenance.provenance_sha256,
+      }),
+      inspectSchema(pool),
+    ]);
+  } finally {
+    await pool.end();
+  }
+  const material = {
+    schema_version:
+      "law-firm-os.json-postgres-w15-inventory-observation.v1",
+    outcome: "PASS",
+    action: JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION,
+    phase: authorization.packet.phase,
+    mode: event.mode,
+    source_sha: authorization.exact.sourceSha,
+    source_tree: authorization.exact.sourceTree,
+    packet_sha256: authorization.packet.packet_sha256,
+    schema_bootstrap_result_sha256: schemaBootstrapResultSha256,
+    provenance,
+    inventory,
+    schema,
+    predecessor_receipt_count: inputs.predecessors.length,
+    safe_counts: {
+      approved_tenant_count: approvedTenantIds.length,
+      source_record_count: inventory.source_record_count,
+      table_count: inventory.table_count,
+      projection_data_write_count: 0,
+      source_authority_write_count: 0,
+      consumer_route_change_count: 0,
+    },
+    claims: {
+      generic_ledger_authority_preserved: true,
+      aggregate_inventory_only: true,
+      projection_data_written: false,
+      consumer_rollout_performed: false,
+      raw_value_returned: false,
+      pii_returned: false,
+      secret_material_returned: false,
+    },
+  };
+  const result = Object.freeze({
+    ...material,
+    result_sha256: createHash("sha256")
+      .update(canonicalizeJson(material))
+      .digest("hex"),
+  });
+  const evidence = await writeEvidence({
+    kind: "w15-production-inventory",
+    value: result,
+    event,
+    authorization,
+    env,
+    client: s3Client,
+  });
+  return Object.freeze({
+    ...result,
+    execution_evidence_sha256: evidence.sha256,
+    approval_receipt_sha256: claimEvidence.approval_receipt_sha256,
+    authorization_claim_sha256: claimEvidence.claim_sha256,
+  });
+}
+
 export async function executeJsonPostgresRelationalProjection({
   event,
   env = process.env,
@@ -992,11 +1334,8 @@ export async function executeJsonPostgresRelationalProjection({
   claim = claimJsonPostgresProgramInvocation,
   loadInputs = loadJsonPostgresProjectionInputs,
   resolveSecret = resolveAwsJsonSecret,
-  putSecret,
   createPool = createPostgresPool,
-  runMigrations = runHrxPostgresMigrations,
-  configureRole = configureHrxProjectionRole,
-  verifyMigrations = verifyPostgresMigrationState,
+  verifyMigrations = verifyHrxPostgresMigrationState,
   project = projectHrxRelationalReadModel,
   collectInventory = collectHrxRelationalProductionInventory,
   validateProjection = validateHrxRelationalReadModel,
@@ -1091,94 +1430,11 @@ export async function executeJsonPostgresRelationalProjection({
       : HRX_PROJECTION_WRITER_ROLE,
   });
   const tenantContextSecret = tenantContextValue(tenantContext);
-  let migrations = [];
-  let role = {
+  const role = {
     grant_statement_count: 0,
     consumer_write_grant_count: 0,
     auditor_write_grant_count: 0,
   };
-  if (event.mode === "commit") {
-    const [master, auditor] = await Promise.all([
-      resolveSecret({
-        secretId: requiredText(
-          env.LAWOS_MASTER_DATABASE_SECRET_ID,
-          "LAWOS_MASTER_DATABASE_SECRET_ID",
-        ),
-        region,
-      }),
-      resolveSecret({
-        secretId: requiredText(
-          env.LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID,
-          "LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID",
-        ),
-        region,
-      }),
-    ]);
-    const auditorSecret = structuredProjectionSecret({
-      current: auditor,
-      env,
-      expectedUsername: HRX_PROJECTION_AUDITOR_ROLE,
-    });
-    const masterConnectionString = postgresUrlFromSecret(JSON.stringify({
-      ...master,
-      host: env.LAWOS_DATABASE_HOST,
-      port: env.LAWOS_DATABASE_PORT,
-      dbname: env.LAWOS_DATABASE_NAME,
-    }));
-    const masterPool = createPool({
-      connectionString: masterConnectionString,
-      sslMode: "verify-full",
-      applicationName: "lawos-hrx-projection-admin",
-      connectionTimeoutMillis: 10_000,
-      statementTimeoutMillis: 120_000,
-      max: 1,
-    });
-    try {
-      migrations = await runMigrations(masterPool, {
-        appliedBy: `lawos-w15:${authorization.exact.sourceSha}`,
-      });
-      const client = await masterPool.connect();
-      try {
-        role = await configureRole(client, {
-          password: runtimeSecret.password,
-          auditorPassword: auditorSecret.password,
-          tenantContextSecret,
-          approvedTenantIds: authorization.packet.target.approved_tenant_ids,
-        });
-      } finally {
-        client.release();
-      }
-      const writer = putSecret ?? (async ({ secretId, secretString }) => {
-        const client = new SecretsManagerClient({ region });
-        try {
-          await client.send(new PutSecretValueCommand({
-            SecretId: secretId,
-            SecretString: secretString,
-          }));
-        } finally {
-          client.destroy();
-        }
-      });
-      await Promise.all([
-        writer({
-          secretId: requiredText(
-            env.LAWOS_PROJECTION_DATABASE_SECRET_ID,
-            "LAWOS_PROJECTION_DATABASE_SECRET_ID",
-          ),
-          secretString: JSON.stringify(runtimeSecret),
-        }),
-        writer({
-          secretId: requiredText(
-            env.LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID,
-            "LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID",
-          ),
-          secretString: JSON.stringify(auditorSecret),
-        }),
-      ]);
-    } finally {
-      await masterPool.end();
-    }
-  }
   const pool = createPool({
     connectionString: postgresUrlFromSecret(JSON.stringify(runtimeSecret)),
     sslMode: "verify-full",
@@ -1356,6 +1612,8 @@ export async function executeJsonPostgresRelationalProjection({
       const observedInventory = await collectInventory({
         pool,
         approvedTenantIds,
+        inventoryProvenanceSha256:
+          inputs.productionInventory.inventory_provenance_sha256,
       });
       if (observedInventory.inventory_sha256
         !== inputs.productionInventory.inventory_sha256) {
@@ -1410,9 +1668,9 @@ export async function executeJsonPostgresRelationalProjection({
       inputs.performanceAcceptance.acceptance_sha256,
     backfill_wave: projected[0]?.backfill_wave ?? null,
     predecessor_receipt_count: inputs.predecessors.length,
-    bootstrap_performed: event.mode === "commit",
-    migration_count: migrations.length,
-    migration_applied_count: migrations.filter((item) => item.applied).length,
+    bootstrap_performed: false,
+    migration_count: 0,
+    migration_applied_count: 0,
     projection_role_grant_count: role.grant_statement_count,
     safe_counts: {
       approved_tenant_count: approvedTenantIds.length,
@@ -1713,6 +1971,9 @@ export async function handler(event = {}) {
     if (event.action === JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION) {
       return await executeJsonPostgresRelationalProjection({ event });
     }
+    if (event.action === JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION) {
+      return await executeJsonPostgresW15InventoryBootstrap({ event });
+    }
     if (event.action === JSON_POSTGRES_JSON_RETIREMENT_ACTION) {
       return await executeJsonPostgresRetirementSmoke({ event });
     }
@@ -1725,6 +1986,7 @@ export async function handler(event = {}) {
         JSON_POSTGRES_REHEARSAL_BOOTSTRAP_ACTION,
         JSON_POSTGRES_PROGRAM_ADMIN_ACTION,
         JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
+        JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION,
         JSON_POSTGRES_JSON_RETIREMENT_ACTION,
       ].includes(event.action)
         ? event.action

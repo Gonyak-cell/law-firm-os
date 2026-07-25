@@ -285,6 +285,20 @@ function validateTarget(value, contract) {
   }
 }
 
+export function validateJsonPostgresExecutionTarget(value, {
+  phase = "w15-relational-projection",
+} = {}) {
+  const contract = PHASE_CONTRACT[phase];
+  if (!contract) {
+    fail("JSON_POSTGRES_EXECUTION_PHASE", "execution target phase is invalid");
+  }
+  validateTarget(value, contract);
+  return Object.freeze({
+    ...value,
+    approved_tenant_ids: Object.freeze([...value.approved_tenant_ids]),
+  });
+}
+
 function packetMaterial(packet) {
   return Object.fromEntries(CLOSED_PACKET_KEYS.map((key) => [key, packet[key]]));
 }

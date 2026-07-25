@@ -12,14 +12,6 @@ export const JSON_POSTGRES_W15_BASELINE_VERSION =
   "law-firm-os.json-postgres-w15-baseline-manifest.v1";
 export const JSON_POSTGRES_W15_PREDECESSOR_VERIFICATION_VERSION =
   "law-firm-os.json-postgres-w15-predecessor-verification.v1";
-export const JSON_POSTGRES_W15_INVENTORY_READ_PACKET_VERSION =
-  "law-firm-os.json-postgres-w15-inventory-read-packet.v1";
-export const JSON_POSTGRES_W15_INVENTORY_READ_ACTION =
-  "lawos-json-postgres-w15-production-inventory-read";
-export const JSON_POSTGRES_W15_INVENTORY_READ_ENVIRONMENT =
-  "lawos-production-projection";
-export const JSON_POSTGRES_W15_INVENTORY_READ_DATA_SCOPE =
-  "approved-tenant-safe-aggregate-read";
 export const JSON_POSTGRES_W15_REQUIRED_EXTERNAL_RECEIPTS = Object.freeze([
   "w12-terminal",
   "cut-012",
@@ -108,72 +100,6 @@ export function validateJsonPostgresW15ProductionTarget(target) {
   return Object.freeze({
     ...target,
     approved_tenant_ids: Object.freeze([...target.approved_tenant_ids].sort()),
-  });
-}
-
-export function createJsonPostgresW15InventoryReadPacket({
-  packetId,
-  sourceSha,
-  sourceTree,
-  baselineSha256,
-  target,
-} = {}) {
-  if (!TOKEN.test(packetId ?? "")
-    || !SHA1.test(sourceSha ?? "")
-    || !SHA1.test(sourceTree ?? "")
-    || !SHA256.test(baselineSha256 ?? "")) {
-    fail("W15 inventory-read packet binding is invalid");
-  }
-  const material = {
-    schema_version: JSON_POSTGRES_W15_INVENTORY_READ_PACKET_VERSION,
-    packet_id: packetId,
-    source_sha: sourceSha,
-    source_tree: sourceTree,
-    action: JSON_POSTGRES_W15_INVENTORY_READ_ACTION,
-    environment: JSON_POSTGRES_W15_INVENTORY_READ_ENVIRONMENT,
-    baseline_sha256: baselineSha256,
-    target: validateJsonPostgresW15ProductionTarget(target),
-    allowed_operation: "read-only-safe-aggregate-inventory",
-    data_scope: [JSON_POSTGRES_W15_INVENTORY_READ_DATA_SCOPE],
-    contact_scope: [],
-    production_write: false,
-    authority_promotion: false,
-    current_state: "PENDING_HUMAN_APPROVAL",
-  };
-  return Object.freeze({ ...material, packet_sha256: sha256(material) });
-}
-
-export function validateJsonPostgresW15InventoryReadPacket(value = {}) {
-  exactKeys(value, [
-    "schema_version",
-    "packet_id",
-    "source_sha",
-    "source_tree",
-    "action",
-    "environment",
-    "baseline_sha256",
-    "target",
-    "allowed_operation",
-    "data_scope",
-    "contact_scope",
-    "production_write",
-    "authority_promotion",
-    "current_state",
-    "packet_sha256",
-  ], "W15 inventory-read packet");
-  const recreated = createJsonPostgresW15InventoryReadPacket({
-    packetId: value.packet_id,
-    sourceSha: value.source_sha,
-    sourceTree: value.source_tree,
-    baselineSha256: value.baseline_sha256,
-    target: value.target,
-  });
-  if (canonicalizeJson(value) !== canonicalizeJson(recreated)) {
-    fail("W15 inventory-read packet or digest drifted");
-  }
-  return Object.freeze({
-    valid: true,
-    packet_sha256: value.packet_sha256,
   });
 }
 

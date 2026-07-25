@@ -1,7 +1,7 @@
 # LawOS W15 HRX Relational Read Projection Detailed Execution Plan
 
 Date: 2026-07-25 KST
-Plan version: 1.0
+Plan version: 1.1
 Repository: `Gonyak-cell/law-firm-os`
 Baseline source SHA: `8d5620aa1c4414a3eeda5b1903a2e4ae55bc3c02`
 Baseline source tree: `11163b55dfd4412f9fd4a4408108f924d4789c03`
@@ -25,7 +25,8 @@ Completion requires:
 5. projection consumers to remain read-only;
 6. all W15 zero-authority counters to equal zero;
 7. a signed and verified `w15-relational-projection` terminal receipt to be
-   created for an exact main SHA/tree/artifact/packet;
+   created for an exact approved source SHA/tree/artifact/packet that is
+   published at `origin/main`;
 8. no claim that the projection is a write authority or that all LawOS domains
    are fully relationally normalized.
 
@@ -114,6 +115,10 @@ express a required trust boundary or resume contract.
 13. Temporary Lambda VPC ENI Allow must be zero after activation.
 14. `refs/codex/turn-diffs/**` and host-managed packed-ref changes are treated as
     Codex host metadata and excluded from source-clean/F4 judgments.
+15. The approved source is considered published only when it is either exact
+    `origin/main`, or an ancestor of a merge commit whose tree is exactly the
+    approved source tree. Any additional main-tree change requires a new
+    binding.
 
 ## 5. Execution strategy
 
@@ -156,7 +161,30 @@ Gate:
 - A missing W15 predecessor does not authorize rerunning other completed
   stages; close only the missing terminal under its own authority.
 
-### W15-01 — Read-only production inventory
+### W15-01 — Closed inventory bootstrap and read-only production inventory
+
+The production inventory cannot be collected before the W15 schemas and
+read-only auditor role exist: the collector must inspect the 77 deployed
+`lawos_hrx` tables plus `lawos_projection` checkpoint tables. It is therefore
+forbidden to create the final backfill packet from an invented, empty, stale, or
+writer-credential inventory. Close this dependency with two exact-head packets.
+
+Phase A — inventory bootstrap packet:
+
+1. bind the final source SHA/tree, deterministic artifact and manifest,
+   lockfile, migration catalog, infrastructure template, exact production
+   target, W15 baseline, and W12/CUT-012/go-live receipts;
+2. permit only the production stack rebind, W15 schema and role bootstrap,
+   disabled auditor/worker infrastructure, and approved-tenant safe aggregate
+   inventory;
+3. keep the worker schedule disabled and consumer routes unchanged;
+4. prohibit projection row writes, source-ledger writes, consumer rollout, and
+   authority promotion;
+5. remove temporary ENI permissions before invoking either bootstrap mode;
+6. run `schema-bootstrap` once, then invoke `inventory-read` through
+   `lawos_hrx_projection_auditor`, never through a writer or master credential.
+
+Phase B — aggregate inventory:
 
 Tasks:
 
@@ -171,10 +199,18 @@ Tasks:
    - `populated`;
    - `schema_only`;
    - `blocked_mapping`;
-6. hash the normalized inventory.
+6. bind the bootstrap packet and schema-bootstrap result into an immutable
+   inventory provenance digest;
+7. hash the normalized inventory including that provenance digest;
+8. derive the mapping, dependency order, and performance contracts;
+9. create the final W15 execution packet only after the aggregate inventory and
+   deployed schema observation pass.
 
 Outputs:
 
+- `w15-inventory-bootstrap-packet.json`
+- `w15-inventory-schema-bootstrap` immutable evidence
+- `w15-inventory-provenance.json`
 - private 0600 `w15-production-inventory.json`
 - PII-safe `w15-production-inventory-summary.json`
 - inventory canonical SHA-256
@@ -183,6 +219,11 @@ Gate:
 
 - Unknown tenant, source drift, raw-value exposure, or unapproved source access
   stops the work.
+- A bootstrap packet can never authorize a backfill, incremental worker,
+  projection consumer, or projection authority.
+- The first final-packet backfill transaction recomputes the live aggregate
+  inventory with the same provenance digest and stops before its first
+  projection-row write on any drift.
 
 ### W15-02 — Immutable 77-table mapping contract
 
@@ -397,7 +438,8 @@ Gate:
 
 ### W15-10 — Exact-head execution packet
 
-Bind:
+Create this final Phase B packet only after W15-01 Phase A has produced the
+signed schema-bootstrap result and auditor inventory. Bind:
 
 - final source SHA and tree;
 - artifact, artifact-manifest, and lockfile digests;
@@ -410,12 +452,14 @@ Bind:
 - CloudFormation change-set ID;
 - monthly cost forecast;
 - performance acceptance digest;
+- bootstrap-bound inventory provenance digest through the inventory canonical
+  digest;
 - rollback action;
 - operator roles and expiry.
 
 The packet must permit only:
 
-- W15 schema/role bootstrap;
+- idempotent schema/role verification;
 - projection backfill;
 - bounded resume;
 - incremental catch-up;
@@ -427,7 +471,7 @@ Authority promotion remains explicitly false.
 
 ### W15-11 — Production infrastructure and schema bootstrap
 
-Tasks:
+Phase A tasks under the inventory-bootstrap packet:
 
 1. inspect the complete unexecuted change set;
 2. require replacement count zero unless an independently reviewed resource
@@ -442,6 +486,21 @@ Tasks:
 9. remove temporary ENI bootstrap permissions immediately;
 10. verify final ENI Allow count zero;
 11. keep the recurring schedule disabled.
+12. invoke schema bootstrap and read-only inventory only after ENI removal;
+13. seal the bootstrap result, schema observation, inventory, and provenance;
+14. stop without a projection-row write and prepare the final packet.
+
+Phase B tasks under the final W15 execution packet:
+
+1. rebind only the exact packet and immutable inputs on the unchanged source,
+   tree, artifact, and infrastructure;
+2. require the resulting change set to contain no unreviewed resource or
+   replacement;
+3. verify the previously bootstrapped schema, roles, RLS, and ENI-zero state;
+4. recompute inventory before the first backfill write and require an exact
+   digest match;
+5. keep the recurring schedule disabled until wave 5 and its signed receipt
+   pass.
 
 Receipts:
 
@@ -647,12 +706,21 @@ Rollback rules:
 
 Source implementation and local validation may proceed on the dedicated branch.
 
-Production work requires one exact-head W15 conditional execution approval that
-binds the final source/tree/artifact/packet, three predecessor receipts, mapping
-manifest, production target, approved tenants, change set, performance budget,
-cost ceiling, and rollback.
+Production work requires two ordered exact-head approvals on the same immutable
+source/tree/artifact unless a later reviewed source correction is required:
 
-The same approval may cover bounded retry/resume on an unchanged exact binding.
+1. an inventory-bootstrap approval binding the exact artifact, infrastructure,
+   migration catalog, baseline, three predecessor receipts, production target,
+   approved tenants, safe aggregate scope, and a categorical prohibition on
+   projection data writes and consumer rollout;
+2. a final W15 conditional execution approval binding the bootstrap-derived
+   inventory/provenance, mapping manifest, final packet, production target,
+   approved tenants, reviewed change set, performance budget, cost ceiling, and
+   rollback.
+
+A bootstrap approval cannot be treated as the final execution approval.
+Each approval may cover bounded retry/resume only within its own unchanged exact
+binding.
 A new approval is required only for:
 
 - source/tree/artifact/packet/mapping drift;

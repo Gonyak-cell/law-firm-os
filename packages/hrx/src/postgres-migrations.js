@@ -1,5 +1,8 @@
 import { listPostgresFoundationMigrations } from "../../persistence/src/postgres/migration-catalog.js";
-import { runPostgresMigrations } from "../../persistence/src/postgres/migration-runner.js";
+import {
+  runPostgresMigrations,
+  verifyPostgresMigrationState,
+} from "../../persistence/src/postgres/migration-runner.js";
 import {
   HRX_APPEND_ONLY_TABLES,
   HRX_STORE_TABLES,
@@ -296,6 +299,15 @@ export function classifyHrxPostgresMigrationGaps() {
 export async function runHrxPostgresMigrations(pool, options = {}) {
   return runPostgresMigrations(pool, {
     ...options,
+    migrations: [
+      ...listPostgresFoundationMigrations(),
+      ...listHrxPostgresMigrations(),
+    ],
+  });
+}
+
+export async function verifyHrxPostgresMigrationState(pool) {
+  return verifyPostgresMigrationState(pool, {
     migrations: [
       ...listPostgresFoundationMigrations(),
       ...listHrxPostgresMigrations(),

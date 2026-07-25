@@ -360,6 +360,7 @@ async function genericLedgerQueryTelemetry(pool, tenantId) {
 export async function collectHrxRelationalProductionInventory({
   pool,
   approvedTenantIds,
+  inventoryProvenanceSha256,
 } = {}) {
   if (!pool || !Array.isArray(approvedTenantIds) || approvedTenantIds.length < 1) {
     throw new TypeError("approved tenant inventory scope is required");
@@ -399,6 +400,7 @@ export async function collectHrxRelationalProductionInventory({
       (total, observation) => total + observation.references.length,
       0,
     ),
+    inventoryProvenanceSha256,
     queryTelemetryAvailable: telemetry.available,
     genericLedgerQueryCount: telemetry.queryCount,
     genericLedgerQueryP95Ms: telemetry.queryP95Ms,

@@ -61,6 +61,12 @@ function requiredText(value, label) {
   return text;
 }
 
+function requiredDigest(value, label) {
+  const digestValue = requiredText(value, label);
+  if (!SHA256.test(digestValue)) fail(`${label} is invalid`);
+  return digestValue;
+}
+
 function exactKeys(value, keys, label) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     fail(`${label} must be an object`);
@@ -255,6 +261,7 @@ export function createHrxRelationalProductionInventory({
   outboxEventCount,
   outboxLagMs,
   referenceCount,
+  inventoryProvenanceSha256,
   queryTelemetryAvailable = false,
   genericLedgerQueryCount = 0,
   genericLedgerQueryP95Ms = 0,
@@ -324,6 +331,11 @@ export function createHrxRelationalProductionInventory({
   }
   const value = {
     schema_version: HRX_RELATIONAL_INVENTORY_VERSION,
+    inventory_provenance_sha256:
+      requiredDigest(
+        inventoryProvenanceSha256,
+        "inventory provenance SHA-256",
+      ),
     tenant_count: safeInteger(tenantCount, "inventory tenant_count"),
     table_count: normalizedTables.length,
     source_record_count: normalizedTables.reduce((total, table) => total + table.source_count, 0),
@@ -350,6 +362,7 @@ export function createHrxRelationalProductionInventory({
 export function validateHrxRelationalProductionInventory(value = {}) {
   exactKeys(value, [
     "schema_version",
+    "inventory_provenance_sha256",
     "tenant_count",
     "table_count",
     "source_record_count",
@@ -371,6 +384,7 @@ export function validateHrxRelationalProductionInventory(value = {}) {
     outboxEventCount: value.outbox_event_count,
     outboxLagMs: value.outbox_lag_ms,
     referenceCount: value.reference_count,
+    inventoryProvenanceSha256: value.inventory_provenance_sha256,
     queryTelemetryAvailable: value.query_telemetry_available,
     genericLedgerQueryCount: value.generic_ledger_query_count,
     genericLedgerQueryP95Ms: value.generic_ledger_query_p95_ms,
@@ -621,6 +635,10 @@ export async function assertHrxRelationalMappingMatchesDatabase(client, manifest
   const schema = await inspectHrxRelationalSchema(client);
   const inventory = {
     schema_version: HRX_RELATIONAL_INVENTORY_VERSION,
+    inventory_provenance_sha256: digest({
+      purpose: "schema-structure-revalidation",
+      mapping_manifest_sha256: manifest.manifest_sha256,
+    }),
     tenant_count: 0,
     table_count: manifest.table_count,
     source_record_count: manifest.tables.reduce((total, table) => total + table.expected_source_count, 0),

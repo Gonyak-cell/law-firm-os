@@ -14,6 +14,11 @@ import {
   validateJsonPostgresExecutionPacket,
 } from "../packages/persistence/src/postgres/execution-contract.js";
 import {
+  JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_DATA_SCOPE,
+  JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_PACKET_VERSION,
+  validateJsonPostgresW15InventoryBootstrapPacket,
+} from "../packages/persistence/src/postgres/w15-inventory-bootstrap-contract.js";
+import {
   JSON_POSTGRES_SOURCE_READ_PACKET_VERSION,
   validateJsonPostgresSourceReadPacket,
 } from "../packages/persistence/src/postgres/source-read-contract.js";
@@ -53,15 +58,23 @@ const packet = readPrivateProgramJson(
 );
 const sourceRead =
   packet.schema_version === JSON_POSTGRES_SOURCE_READ_PACKET_VERSION;
+const w15Bootstrap =
+  packet.schema_version
+    === JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_PACKET_VERSION;
 const validated = sourceRead
   ? validateJsonPostgresSourceReadPacket(packet, {
       sourceSha,
       sourceTree,
     })
-  : validateJsonPostgresExecutionPacket(packet, {
-      sourceSha,
-      sourceTree,
-    });
+  : w15Bootstrap
+    ? validateJsonPostgresW15InventoryBootstrapPacket(packet, {
+        sourceSha,
+        sourceTree,
+      })
+    : validateJsonPostgresExecutionPacket(packet, {
+        sourceSha,
+        sourceTree,
+      });
 const signedAt = new Date(option("--signed-at")).toISOString();
 const expiresAt = new Date(option("--expires-at")).toISOString();
 if (Date.parse(expiresAt) <= Date.parse(signedAt)) {
@@ -108,7 +121,13 @@ const registry = {
 };
 const dataScope = sourceRead
   ? packet.data_scope
-  : [
+  : w15Bootstrap
+    ? [
+        JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_DATA_SCOPE,
+        `baseline:${packet.bindings.baseline_sha256}`,
+        `predecessors:${packet.bindings.predecessor_verification_sha256}`,
+      ]
+    : [
       "approved-real-manifest",
       `authority-manifest:${packet.bindings.authority_manifest_sha256}`,
       `inventory:${packet.bindings.inventory_content_sha256}`,

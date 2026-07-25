@@ -16,6 +16,11 @@ import {
   createJsonPostgresExecutionPacket,
 } from "../../packages/persistence/src/postgres/execution-contract.js";
 import {
+  createJsonPostgresW15InventoryBootstrapPacket,
+  createJsonPostgresW15InventoryProvenance,
+  validateJsonPostgresW15InventoryBootstrapPacket,
+} from "../../packages/persistence/src/postgres/w15-inventory-bootstrap-contract.js";
+import {
   JSON_POSTGRES_INVENTORY_DELTA_POLICY_SHA256,
 } from "../../packages/persistence/src/postgres/source-authority-manifest.js";
 import {
@@ -35,11 +40,9 @@ import {
 } from "../lib/json-postgres-w15-contracts.mjs";
 import {
   createJsonPostgresW15BaselineManifest,
-  createJsonPostgresW15InventoryReadPacket,
   createJsonPostgresW15PredecessorVerification,
   createJsonPostgresW15ReceiptLocator,
   JSON_POSTGRES_W15_REQUIRED_EXTERNAL_RECEIPTS,
-  validateJsonPostgresW15InventoryReadPacket,
 } from "../lib/json-postgres-w15-preflight.mjs";
 import {
   buildJsonPostgresProductionArtifactStoreTemplate,
@@ -53,6 +56,11 @@ import {
   createJsonPostgresW15ProjectionEvent,
   validateJsonPostgresW15ProjectionEvent,
 } from "../lib/json-postgres-w15-execution.mjs";
+import {
+  assertJsonPostgresW15SourcePublished,
+  createJsonPostgresW15BootstrapEvent,
+  validateJsonPostgresW15BootstrapEvent,
+} from "../lib/json-postgres-w15-bootstrap-event.mjs";
 import { readFileSync } from "node:fs";
 
 const SOURCE = "1".repeat(40);
@@ -68,6 +76,7 @@ function inventory({ blocked = false } = {}) {
   const empty = digest([]);
   return createHrxRelationalProductionInventory({
     tenantCount: 1,
+    inventoryProvenanceSha256: "9".repeat(64),
     outboxEventCount: 0,
     outboxLagMs: 0,
     referenceCount: 0,
@@ -356,7 +365,7 @@ test("W15 contract bundle emits all 77 mappings or an exact blocked gap", () => 
   assert.equal(blocked.gapReport.blocked_table_count, 1);
 });
 
-test("W15 preflight binds the complete predecessor chain, exact target and read-only inventory packet", () => {
+test("W15 preflight binds the complete predecessor chain and exact target", () => {
   const receipts = terminalPredecessors();
   const verifiedReceipts = receipts.map((value) => ({
     receipt: value,
@@ -400,24 +409,8 @@ test("W15 preflight binds the complete predecessor chain, exact target and read-
     exactMainTree: TREE,
     predecessorVerification: predecessor,
   });
-  const readPacket = createJsonPostgresW15InventoryReadPacket({
-    packetId: "LAWOS-W15-INVENTORY-READ-TEST",
-    sourceSha: SOURCE,
-    sourceTree: TREE,
-    baselineSha256: baseline.result_sha256,
-    target: target(),
-  });
-  assert.equal(
-    validateJsonPostgresW15InventoryReadPacket(readPacket).valid,
-    true,
-  );
-  assert.equal(readPacket.production_write, false);
-  const drifted = structuredClone(readPacket);
-  drifted.target.approved_tenant_ids = ["*"];
-  assert.throws(
-    () => validateJsonPostgresW15InventoryReadPacket(drifted),
-    /outside the closed authority boundary/u,
-  );
+  assert.equal(baseline.production_write, false);
+  assert.equal(baseline.target.generic_ledger_authority, "postgres-v2");
 });
 
 test("W15 packet input inherits completed authority bindings and replaces only projection contracts", () => {
@@ -535,6 +528,150 @@ test("W15 packet input inherits completed authority bindings and replaces only p
         buildJsonPostgresProductionTemplate(stagingReference),
     }),
     /baseline manifest is invalid/u,
+  );
+});
+
+test("W15 bootstrap packet breaks the pre-inventory cycle without projection write authority", () => {
+  const created = createJsonPostgresW15InventoryBootstrapPacket({
+    packetId: "LAWOS-W15-INVENTORY-BOOTSTRAP-TEST",
+    sourceSha: SOURCE,
+    sourceTree: TREE,
+    bindings: {
+      artifact_sha256: "1".repeat(64),
+      artifact_manifest_sha256: "2".repeat(64),
+      lockfile_sha256: "3".repeat(64),
+      migration_catalog_sha256: "4".repeat(64),
+      infrastructure_template_sha256: "5".repeat(64),
+      baseline_sha256: "6".repeat(64),
+      predecessor_verification_sha256: "7".repeat(64),
+      w12_terminal_receipt_sha256: "8".repeat(64),
+      cut012_terminal_receipt_sha256: "9".repeat(64),
+      go_live_receipt_sha256: "a".repeat(64),
+    },
+    target: productionTarget(),
+  });
+  assert.equal(
+    validateJsonPostgresW15InventoryBootstrapPacket(created.packet).valid,
+    true,
+  );
+  assert.deepEqual(created.packet.allowed_modes, [
+    "schema-bootstrap",
+    "inventory-read",
+  ]);
+  assert.equal(created.packet.claims.projection_data_write, false);
+  assert.equal(created.packet.claims.consumer_rollout, false);
+  assert.equal(created.packet.claims.authority_promotion, false);
+  const authorization = {
+    packet: { key: "packet" },
+    trust_registry: { key: "registry" },
+    approval_receipt: { key: "approval" },
+    approval_signature: { key: "signature" },
+  };
+  const inputs = {
+    predecessors: [
+      { receipt: { key: "w12" }, signature: { key: "w12-signature" } },
+      { receipt: { key: "cut012" }, signature: { key: "cut012-signature" } },
+      { receipt: { key: "go-live" }, signature: { key: "go-live-signature" } },
+    ],
+  };
+  const schemaEvent = createJsonPostgresW15BootstrapEvent({
+    packet: created.packet,
+    artifactSha256: created.packet.bindings.artifact_sha256,
+    mode: "schema-bootstrap",
+    attemptRef: "w15-bootstrap-schema",
+    authorization,
+    inputs,
+  });
+  assert.equal(
+    validateJsonPostgresW15BootstrapEvent(schemaEvent, {
+      packet: created.packet,
+      artifactSha256: created.packet.bindings.artifact_sha256,
+    }).valid,
+    true,
+  );
+  const inventoryInputs = {
+    ...inputs,
+    schema_bootstrap_result: { key: "schema-bootstrap-result" },
+  };
+  const inventoryEvent = createJsonPostgresW15BootstrapEvent({
+    packet: created.packet,
+    artifactSha256: created.packet.bindings.artifact_sha256,
+    mode: "inventory-read",
+    attemptRef: "w15-bootstrap-inventory",
+    authorization,
+    inputs: inventoryInputs,
+    schemaBootstrapResultSha256: "b".repeat(64),
+  });
+  assert.equal(inventoryEvent.schema_bootstrap_result_sha256, "b".repeat(64));
+  const provenance = createJsonPostgresW15InventoryProvenance({
+    sourceSha: SOURCE,
+    sourceTree: TREE,
+    bootstrapPacketSha256: created.packet_sha256,
+    schemaBootstrapResultSha256: "b".repeat(64),
+  });
+  assert.match(provenance.provenance_sha256, /^[0-9a-f]{64}$/u);
+
+  const drifted = structuredClone(created.packet);
+  drifted.allowed_modes.push("commit");
+  assert.throws(
+    () => validateJsonPostgresW15InventoryBootstrapPacket(drifted),
+    /closed authority boundary/u,
+  );
+  assert.throws(
+    () => createJsonPostgresW15BootstrapEvent({
+      packet: created.packet,
+      artifactSha256: created.packet.bindings.artifact_sha256,
+      mode: "inventory-read",
+      attemptRef: "w15-bootstrap-unbound",
+      authorization,
+      inputs: inventoryInputs,
+    }),
+    /predecessor result binding is invalid/u,
+  );
+});
+
+test("W15 source publication accepts exact main or a same-tree merge commit only", () => {
+  const sourceSha = "1".repeat(40);
+  const sourceTree = "2".repeat(40);
+  assert.equal(
+    assertJsonPostgresW15SourcePublished({
+      sourceSha,
+      sourceTree,
+      originMainSha: sourceSha,
+      originMainTree: sourceTree,
+      sourceIsAncestor: true,
+    }).publication_mode,
+    "exact-main",
+  );
+  assert.equal(
+    assertJsonPostgresW15SourcePublished({
+      sourceSha,
+      sourceTree,
+      originMainSha: "3".repeat(40),
+      originMainTree: sourceTree,
+      sourceIsAncestor: true,
+    }).publication_mode,
+    "merge-commit-same-tree",
+  );
+  assert.throws(
+    () => assertJsonPostgresW15SourcePublished({
+      sourceSha,
+      sourceTree,
+      originMainSha: "3".repeat(40),
+      originMainTree: "4".repeat(40),
+      sourceIsAncestor: true,
+    }),
+    /exact approved tree/u,
+  );
+  assert.throws(
+    () => assertJsonPostgresW15SourcePublished({
+      sourceSha,
+      sourceTree,
+      originMainSha: "3".repeat(40),
+      originMainTree: sourceTree,
+      sourceIsAncestor: false,
+    }),
+    /published at origin\/main/u,
   );
 });
 
