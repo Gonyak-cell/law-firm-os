@@ -20,7 +20,7 @@ import {
 } from "../packages/persistence/src/postgres/program-receipt.js";
 import {
   buildVersionedS3TemplateUrl,
-  cloudFormationParameterArgs,
+  cloudFormationParameterJsonArgs,
   cloudFormationTemplateArgs,
   cloudFormationTemplateRequiresUrl,
   validateCloudFormationChangeSetTemplate,
@@ -242,7 +242,7 @@ function createChangeSet({
       templateUrl: resolvedTemplateUrl,
     }).args,
     "--capabilities", "CAPABILITY_NAMED_IAM",
-    "--parameters", ...cloudFormationParameterArgs(parameters),
+    "--parameters", ...cloudFormationParameterJsonArgs(parameters),
     "--description", `Exact-packet ${packet.packet_sha256} ${label}`,
   ]);
   awsWait([

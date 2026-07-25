@@ -118,20 +118,41 @@ export function cloudFormationTemplateArgs({
   });
 }
 
-export function cloudFormationParameterArgs(parameters) {
+function normalizedCloudFormationParameters(parameters) {
   const entries = Array.isArray(parameters)
     ? parameters
     : Object.entries(parameters ?? {}).map(([key, value]) => ({ key, value }));
-  return Object.freeze(entries.map(({ key, value }) => {
+  return entries.map(({ key, value }) => {
     if (!/^[A-Za-z0-9]+$/u.test(key ?? "")) {
       throw new TypeError("CloudFormation parameter key is invalid");
     }
     if (value === CLOUDFORMATION_NO_ECHO_PLACEHOLDER) {
-      return `ParameterKey=${key},UsePreviousValue=true`;
+      return Object.freeze({
+        ParameterKey: key,
+        UsePreviousValue: true,
+      });
     }
     if (value === undefined || value === null) {
       throw new TypeError(`CloudFormation parameter ${key} has no value`);
     }
-    return `ParameterKey=${key},ParameterValue=${value}`;
-  }));
+    return Object.freeze({
+      ParameterKey: key,
+      ParameterValue: String(value),
+    });
+  });
+}
+
+export function cloudFormationParameterArgs(parameters) {
+  return Object.freeze(
+    normalizedCloudFormationParameters(parameters).map((parameter) =>
+      parameter.UsePreviousValue === true
+        ? `ParameterKey=${parameter.ParameterKey},UsePreviousValue=true`
+        : `ParameterKey=${parameter.ParameterKey},ParameterValue=${parameter.ParameterValue}`),
+  );
+}
+
+export function cloudFormationParameterJsonArgs(parameters) {
+  return Object.freeze([
+    JSON.stringify(normalizedCloudFormationParameters(parameters)),
+  ]);
 }
