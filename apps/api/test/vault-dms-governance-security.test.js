@@ -1,11 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { handleVaultDocumentGovernance } from "../src/vault-dms-runtime-context.js";
+import {
+  createVaultDmsRuntimeSeed,
+  handleVaultDocumentGovernance,
+} from "../src/vault-dms-runtime-context.js";
 
 const TENANT = "tenant-governance-security";
 const DOCUMENT = "document-governance-security";
 const OBJECT = "object-governance-security";
 const MATTER = "matter-restricted";
+
+test("an absent packaged account registry leaves the legacy synthetic DMS seed empty", () => {
+  assert.deepEqual(createVaultDmsRuntimeSeed(null), []);
+});
 
 function runtime({ matterId = MATTER } = {}) {
   let mutationCalls = 0;
