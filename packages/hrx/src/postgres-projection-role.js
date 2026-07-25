@@ -22,7 +22,7 @@ const PROJECTION_AUDIT_TABLES = PROJECTION_RUNTIME_TABLES;
 const WRITER_GRANTS = Object.freeze([
   "GRANT USAGE ON SCHEMA lawos_meta, lawos_security, lawos_domain, lawos_hrx, lawos_projection TO lawos_hrx_projection_writer",
   "GRANT SELECT ON lawos_meta.schema_migrations TO lawos_hrx_projection_writer",
-  "GRANT SELECT ON lawos_domain.records, lawos_domain.outbox_events TO lawos_hrx_projection_writer",
+  "GRANT SELECT ON lawos_domain.records, lawos_domain.record_references, lawos_domain.outbox_events TO lawos_hrx_projection_writer",
   "REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA lawos_domain FROM lawos_hrx_projection_writer",
   "REVOKE DELETE, TRUNCATE ON ALL TABLES IN SCHEMA lawos_hrx FROM lawos_hrx_projection_writer",
   "REVOKE DELETE, TRUNCATE ON ALL TABLES IN SCHEMA lawos_projection FROM lawos_hrx_projection_writer",
