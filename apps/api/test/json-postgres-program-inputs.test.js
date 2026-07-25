@@ -55,6 +55,23 @@ const ACCOUNT = "770880870480";
 const REGION = "ap-northeast-2";
 const INPUT_BUCKET = "lawos-prod-program-input-770880870480";
 const INPUT_KMS = "arn:aws:kms:ap-northeast-2:770880870480:key/00000000-0000-0000-0000-000000000000";
+const W15_TRANSFORM_TARGET_COLUMNS = Object.freeze({
+  hrx_audit_events: ["metadata_json"],
+  hrx_interviews: ["interviewer_employee_ids_json"],
+  hrx_leave_balance_entries: ["metadata_json"],
+  hrx_offboarding_cases: [
+    "access_revocations_json",
+    "document_returns_json",
+    "legal_hold_checks_json",
+    "matter_reassignments_json",
+    "handover_items_json",
+  ],
+  hrx_onboarding_plans: [
+    "tasks_json",
+    "document_refs_json",
+    "access_requests_json",
+  ],
+});
 
 function packet() {
   const zero = "0".repeat(64);
@@ -829,7 +846,11 @@ test("W15 projection inputs require exact signed W12, CUT-012, and go-live prede
   const mappingManifest = createHrxRelationalMappingManifest({
     schema: {
       columns: HRX_STORE_TABLES.flatMap((table) =>
-        [...new Set([...HRX_TABLE_PRIMARY_KEYS[table], "lawos_projection_deleted_at"])]
+        [...new Set([
+          ...HRX_TABLE_PRIMARY_KEYS[table],
+          ...(W15_TRANSFORM_TARGET_COLUMNS[table] ?? []),
+          "lawos_projection_deleted_at",
+        ])]
           .map((column, index) => ({
             table_name: table,
             column_name: column,
