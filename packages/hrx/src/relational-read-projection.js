@@ -3,6 +3,7 @@ import { validateJsonPostgresPerformanceAcceptance } from "../../persistence/src
 import { withPostgresTransaction } from "../../persistence/src/postgres/transaction.js";
 import {
   assertHrxRelationalMappingMatchesDatabase,
+  projectHrxRelationalPayload,
   validateHrxRelationalMappingManifest,
 } from "./relational-projection-contract.js";
 
@@ -120,26 +121,9 @@ function lifecycle(payload, mapping) {
 }
 
 function rowForMapping(payload, mapping) {
-  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-    throw new TypeError(`HRX projection payload must be an object: ${mapping.table_name}`);
-  }
-  const allowed = new Set([...mapping.payload_columns, "deleted_at"]);
-  const unknownNonNull = Object.entries(payload)
-    .filter(([key, value]) => !allowed.has(key) && value != null)
-    .map(([key]) => key)
-    .sort();
-  if (unknownNonNull.length > 0) {
-    throw projectionError(
-      `HRX projection contains a non-null unmapped field: ${mapping.table_name}`,
-      "LAWOS_HRX_PROJECTION_UNMAPPED_FIELD",
-    );
-  }
+  const projected = projectHrxRelationalPayload(payload, mapping);
   const state = lifecycle(payload, mapping);
-  const row = Object.fromEntries(
-    mapping.payload_columns
-      .filter((key) => Object.hasOwn(payload, key))
-      .map((key) => [key, payload[key]]),
-  );
+  const row = { ...projected.row };
   const required = state.deleted ? mapping.primary_key : mapping.required_columns;
   for (const key of new Set([...mapping.primary_key, ...required])) {
     if (row[key] == null || String(row[key]).trim() === "") {
@@ -150,7 +134,11 @@ function rowForMapping(payload, mapping) {
     throw new TypeError(`HRX projection tenant is missing: ${mapping.table_name}`);
   }
   row.lawos_projection_deleted_at = state.deletedAt;
-  return Object.freeze({ row, lifecycle: state, unknownNonNullCount: 0 });
+  return Object.freeze({
+    row,
+    lifecycle: state,
+    unknownNonNullCount: projected.unknown_nonnull_field_count,
+  });
 }
 
 async function readTargetRow(client, mapping, row) {

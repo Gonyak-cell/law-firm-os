@@ -1,6 +1,7 @@
 import { withPostgresTransaction } from "../../persistence/src/postgres/transaction.js";
 import {
   hrxRelationalMappingTable,
+  restoreHrxRelationalProjectionRow,
   validateHrxRelationalMappingManifest,
 } from "./relational-projection-contract.js";
 import {
@@ -339,9 +340,11 @@ export function createHrxRelationalProjectionReader({
             "LAWOS_HRX_PROJECTION_READER_NOT_UNIQUE",
           );
         }
+        const rows = result.rows.map((row) =>
+          restoreHrxRelationalProjectionRow(row, mapping));
         return operation === "selectOne"
-          ? (result.rows[0] ?? undefined)
-          : result.rows;
+          ? (rows[0] ?? undefined)
+          : rows;
       },
     );
   }

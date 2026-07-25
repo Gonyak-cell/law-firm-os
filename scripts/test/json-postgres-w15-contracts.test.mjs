@@ -6,6 +6,7 @@ import {
   HRX_TABLE_PRIMARY_KEYS,
 } from "../../packages/hrx/src/store/file-store.js";
 import {
+  createHrxRelationalMappingResolution,
   createHrxRelationalProductionInventory,
 } from "../../packages/hrx/src/relational-projection-contract.js";
 import {
@@ -67,6 +68,23 @@ const SOURCE = "1".repeat(40);
 const TREE = "2".repeat(40);
 const PACKET = "3".repeat(64);
 const BINDINGS = "4".repeat(64);
+const TRANSFORM_TARGETS = Object.freeze({
+  hrx_audit_events: ["metadata_json"],
+  hrx_interviews: ["interviewer_employee_ids_json"],
+  hrx_leave_balance_entries: ["metadata_json"],
+  hrx_offboarding_cases: [
+    "access_revocations_json",
+    "document_returns_json",
+    "legal_hold_checks_json",
+    "matter_reassignments_json",
+    "handover_items_json",
+  ],
+  hrx_onboarding_plans: [
+    "tasks_json",
+    "document_refs_json",
+    "access_requests_json",
+  ],
+});
 
 function digest(value) {
   return createHash("sha256").update(canonicalizeJson(value)).digest("hex");
@@ -105,6 +123,59 @@ function inventory({ blocked = false } = {}) {
   });
 }
 
+function resolvableMappingInput() {
+  const payload = {
+    tenant_id: "tenant-resolution",
+    interview_id: "interview-001",
+    interviewer_employee_ids: ["employee-001"],
+  };
+  const record = Object.freeze({
+    tenant_id: payload.tenant_id,
+    record_type: "hrx_interviews",
+    record_id: "interview-record",
+    state_version: 1,
+    payload_hash: digest(payload),
+    payload: Object.freeze(payload),
+  });
+  const empty = digest([]);
+  const value = createHrxRelationalProductionInventory({
+    tenantCount: 1,
+    inventoryProvenanceSha256: "9".repeat(64),
+    outboxEventCount: 0,
+    outboxLagMs: 0,
+    referenceCount: 0,
+    tables: HRX_STORE_TABLES.map((table) => {
+      const populated = table === "hrx_interviews";
+      return {
+        table_name: table,
+        source_count: populated ? 1 : 0,
+        source_hash: populated ? digest([{
+          tenant_id: record.tenant_id,
+          record_id: record.record_id,
+          state_version: record.state_version,
+          payload_hash: record.payload_hash,
+        }]) : empty,
+        state_version_min: populated ? 1 : 0,
+        state_version_max: populated ? 1 : 0,
+        payload_bytes_p50: populated ? 64 : 0,
+        payload_bytes_p95: populated ? 64 : 0,
+        payload_bytes_max: populated ? 64 : 0,
+        soft_deleted_count: 0,
+        append_only_count: 0,
+        reference_count: 0,
+        json_path_presence_sha256: empty,
+        json_path_null_ratio_sha256: empty,
+        unmapped_nonnull_field_count: populated ? 1 : 0,
+        primary_key_conflict_count: 0,
+        foreign_key_conflict_count: 0,
+        inventory_classification:
+          populated ? "blocked_mapping" : "schema_only",
+      };
+    }),
+  });
+  return Object.freeze({ inventory: value, records: [record] });
+}
+
 function performance(value) {
   return createJsonPostgresPerformanceAcceptance({
     record_count: value.source_record_count,
@@ -127,6 +198,7 @@ function schema() {
     columns: HRX_STORE_TABLES.flatMap((table) =>
       [...new Set([
         ...HRX_TABLE_PRIMARY_KEYS[table],
+        ...(TRANSFORM_TARGETS[table] ?? []),
         "lawos_projection_deleted_at",
       ])].map((column, index) => ({
         table_name: table,
@@ -363,6 +435,29 @@ test("W15 contract bundle emits all 77 mappings or an exact blocked gap", () => 
   assert.equal(blocked.summary.outcome, "BLOCKED");
   assert.equal(blocked.mappingManifest, null);
   assert.equal(blocked.gapReport.blocked_table_count, 1);
+
+  const resolvable = resolvableMappingInput();
+  const resolution = createHrxRelationalMappingResolution({
+    schema: schema(),
+    inventory: resolvable.inventory,
+    sourceRecords: resolvable.records,
+    migrationCorpusFileSha256: "a".repeat(64),
+    migrationCorpusManifestSha256: "b".repeat(64),
+    phaseACloseoutEvidenceSha256: "c".repeat(64),
+  });
+  const remediated = createJsonPostgresW15ContractBundle({
+    schema: schema(),
+    inventory: resolvable.inventory,
+    performanceAcceptance: performance(resolvable.inventory),
+    mappingResolution: resolution,
+  });
+  assert.equal(remediated.summary.outcome, "PASS");
+  assert.equal(
+    remediated.summary.mapping_resolution_sha256,
+    resolution.resolution_sha256,
+  );
+  assert.equal(remediated.gapReport.unmapped_nonnull_field_count, 1);
+  assert.equal(remediated.mappingManifest.table_count, 77);
 });
 
 test("W15 preflight binds the complete predecessor chain and exact target", () => {

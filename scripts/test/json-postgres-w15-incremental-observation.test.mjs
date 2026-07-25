@@ -5,6 +5,24 @@ import {
   HRX_STORE_TABLES,
   HRX_TABLE_PRIMARY_KEYS,
 } from "../../packages/hrx/src/store/file-store.js";
+
+const TRANSFORM_TARGETS = Object.freeze({
+  hrx_audit_events: ["metadata_json"],
+  hrx_interviews: ["interviewer_employee_ids_json"],
+  hrx_leave_balance_entries: ["metadata_json"],
+  hrx_offboarding_cases: [
+    "access_revocations_json",
+    "document_returns_json",
+    "legal_hold_checks_json",
+    "matter_reassignments_json",
+    "handover_items_json",
+  ],
+  hrx_onboarding_plans: [
+    "tasks_json",
+    "document_refs_json",
+    "access_requests_json",
+  ],
+});
 import {
   createHrxRelationalMappingManifest,
   createHrxRelationalProductionInventory,
@@ -83,6 +101,7 @@ function contracts() {
     columns: HRX_STORE_TABLES.flatMap((table) =>
       [...new Set([
         ...HRX_TABLE_PRIMARY_KEYS[table],
+        ...(TRANSFORM_TARGETS[table] ?? []),
         "lawos_projection_deleted_at",
       ])].map((column, index) => ({
         table_name: table,
