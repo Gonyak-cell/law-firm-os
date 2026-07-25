@@ -14,6 +14,7 @@ import {
 } from "./lib/json-postgres-production-execution.mjs";
 import {
   createJsonPostgresCut011Probe,
+  createJsonPostgresPasswordResetWorkerEvent,
 } from "./lib/json-postgres-json-retirement.mjs";
 import {
   createPrivateProgramOutputDirectory,
@@ -165,9 +166,10 @@ if (operation === "invoke") {
     awsJson(JSON_POSTGRES_PRODUCTION_AUDIT_PROFILE, [
       "lambda", "get-function-configuration", "--function-name", name,
     ]));
-  const workerEvent = writePrivateProgramJson(join(outputDir, "background-worker-event.json"), {
-    action: "lawos_password_reset_worker",
-  });
+  const workerEvent = writePrivateProgramJson(
+    join(outputDir, "background-worker-event.json"),
+    createJsonPostgresPasswordResetWorkerEvent(),
+  );
   const backgroundWorker = invoke(
     JSON_POSTGRES_PRODUCTION_CUTOVER_PROFILE,
     "lawos-production-api",

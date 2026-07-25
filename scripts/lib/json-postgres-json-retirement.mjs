@@ -16,6 +16,10 @@ const ZERO_COUNTERS = Object.freeze([
 ]);
 const STORE_PATH = /^LAWOS_[A-Z0-9_]*(?:STORE|OBJECT_STORE)_PATH$/u;
 
+export function createJsonPostgresPasswordResetWorkerEvent() {
+  return Object.freeze({ maintenance_action: "lawos_password_reset_worker" });
+}
+
 function fail(message) {
   throw new Error(message);
 }
