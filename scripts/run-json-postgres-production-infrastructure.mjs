@@ -573,7 +573,7 @@ if (w15Operation) {
     sourceTree,
     originMainSha,
     originMainTree: git("rev-parse", "origin/main^{tree}"),
-    sourceIsAncestor: isAncestor(sourceSha, originMainSha),
+    sourceIsAncestor: gitIsAncestor(sourceSha, originMainSha),
   });
 }
 const packetPath = requiredOption("--packet");

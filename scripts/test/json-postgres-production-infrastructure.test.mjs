@@ -233,6 +233,14 @@ test("W15 inventory bootstrap closes the pre-schema audit cycle without direct s
     "scripts/run-json-postgres-production-infrastructure.mjs",
     "utf8",
   );
+  assert.match(
+    runner,
+    /sourceIsAncestor: gitIsAncestor\(sourceSha, originMainSha\)/u,
+  );
+  assert.doesNotMatch(
+    runner,
+    /sourceIsAncestor: isAncestor\(sourceSha, originMainSha\)/u,
+  );
   for (const operation of [
     "w15-bootstrap-preflight",
     "w15-bootstrap-upload-artifact",
