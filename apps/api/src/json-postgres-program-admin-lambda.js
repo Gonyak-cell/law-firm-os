@@ -1278,13 +1278,18 @@ export async function executeJsonPostgresRetirementSmoke({
         outbox_event_present: true,
       });
     });
-    negativeVisible = await ledger.transaction({
-      tenant_id: retirementNegativeTenant(authorization.packet.target.approved_tenant_ids),
-      domain_id: "master-data",
-    }, (tx) => tx.read({
-      record_type: "OperationalAuthoritySmoke",
-      record_id: recordId,
-    }));
+    try {
+      negativeVisible = await ledger.transaction({
+        tenant_id: retirementNegativeTenant(authorization.packet.target.approved_tenant_ids),
+        domain_id: "master-data",
+      }, (tx) => tx.read({
+        record_type: "OperationalAuthoritySmoke",
+        record_id: recordId,
+      }));
+    } catch (error) {
+      if (error?.code !== "LAWOS_POSTGRES_ACCESS_DENIED" || error?.status !== 403) throw error;
+      negativeVisible = null;
+    }
   } finally {
     await pool.end();
   }

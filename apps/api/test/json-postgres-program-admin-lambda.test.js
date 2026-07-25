@@ -929,7 +929,12 @@ test("CUT-011 warm and cold smoke proves PostgreSQL write/read/audit/outbox with
   const approved = authorization();
   const ledger = {
     async transaction(context, callback) {
-      if (context.tenant_id !== "tenant_amic") return null;
+      if (context.tenant_id !== "tenant_amic") {
+        throw Object.assign(new Error("PostgreSQL operation failed"), {
+          code: "LAWOS_POSTGRES_ACCESS_DENIED",
+          status: 403,
+        });
+      }
       return callback({
         async claimIdempotency() { return { replayed: false }; },
         async write() { return { state_version: 1 }; },
