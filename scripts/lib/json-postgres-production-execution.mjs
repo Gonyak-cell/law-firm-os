@@ -19,6 +19,40 @@ const SAFE_CONDITIONAL_REPLACEMENT = new Set([
   "PasswordResetWorkerInvokePermission",
   "PasswordResetWorkerSchedule",
 ]);
+export const JSON_POSTGRES_W15_ALLOWED_ADDED_RESOURCES = Object.freeze([
+  "ProjectionAuditorDatabaseSecret",
+  "ProjectionAuditorExecutionRole",
+  "ProjectionAuditorFunction",
+  "ProjectionAuditorLogGroup",
+  "ProjectionDatabaseSecret",
+  "ProjectionWorkerExecutionRole",
+  "ProjectionWorkerFunction",
+  "ProjectionWorkerInvokePermission",
+  "ProjectionWorkerLogGroup",
+  "ProjectionWorkerSchedule",
+]);
+export const JSON_POSTGRES_W15_ALLOWED_MODIFIED_RESOURCES = Object.freeze([
+  "AdminExecutionRole",
+  "AdminFunction",
+  "ApiExecutionRole",
+  "ApiFunction",
+  "HttpApiIntegration",
+  "PasswordResetWorkerInvokePermission",
+  "PasswordResetWorkerSchedule",
+  "ProductionKey",
+  "ProjectionAuditorDatabaseSecret",
+  "ProjectionAuditorExecutionRole",
+  "ProjectionAuditorFunction",
+  "ProjectionAuditorLogGroup",
+  "ProjectionDatabaseSecret",
+  "ProjectionWorkerExecutionRole",
+  "ProjectionWorkerFunction",
+  "ProjectionWorkerInvokePermission",
+  "ProjectionWorkerLogGroup",
+  "ProjectionWorkerSchedule",
+  "S3GatewayEndpoint",
+  "SecretsManagerEndpoint",
+]);
 
 function stableJson(value) {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
@@ -83,6 +117,8 @@ export function buildJsonPostgresProductionStackParameters({
   runtimeGeneration,
   enableLambdaEniBootstrap,
   enableProductionTraffic = false,
+  enableProjectionWorker = false,
+  projectionWorkerEventJson = "{}",
 } = {}) {
   if (!packet?.target?.approved_tenant_ids?.includes(primaryTenantId)) {
     fail("primary tenant is not in the exact approved tenant set");
@@ -91,6 +127,9 @@ export function buildJsonPostgresProductionStackParameters({
     || !approvalId || !owner || !reviewDate || !expirationDate
     || !Array.isArray(allowedOrigins) || allowedOrigins.length < 1
     || !passwordResetSesIdentityArn || !passwordResetFromEmail
+    || typeof projectionWorkerEventJson !== "string"
+    || projectionWorkerEventJson.length < 2
+    || projectionWorkerEventJson.length > 65_536
     || !Number.isSafeInteger(runtimeGeneration) || runtimeGeneration < 1) {
     fail("production stack parameter input is incomplete");
   }
@@ -116,6 +155,8 @@ export function buildJsonPostgresProductionStackParameters({
     DmsBucketName: packet.target.dms_bucket_name,
     PrimaryTenantId: primaryTenantId,
     EnableProductionTraffic: enableProductionTraffic ? "true" : "false",
+    EnableProjectionWorker: enableProjectionWorker ? "true" : "false",
+    ProjectionWorkerEventJson: projectionWorkerEventJson,
     MonthlyCostCeilingKrw: "300000",
   });
 }
@@ -191,6 +232,65 @@ export function validateJsonPostgresProductionChangeSet(changeSet, {
   });
 }
 
+export function validateJsonPostgresW15ProductionChangeSet(changeSet, {
+  template,
+  parametersSha256,
+  templateSha256,
+  templateUrl = null,
+} = {}) {
+  if (changeSet?.StackName !== JSON_POSTGRES_PRODUCTION_STACK
+    || (changeSet?.ChangeSetType != null
+      && changeSet.ChangeSetType !== "UPDATE")
+    || typeof changeSet?.ChangeSetId !== "string"
+    || changeSet.ChangeSetId.length === 0
+    || !SHA256.test(parametersSha256 ?? "")
+    || !SHA256.test(templateSha256 ?? "")
+    || (templateUrl !== null
+      && !isVersionedCloudFormationS3TemplateUrl(templateUrl))) {
+    fail("W15 production change set binding is invalid");
+  }
+  const templateResources = new Set(Object.keys(template?.Resources ?? {}));
+  const allowedAdds = new Set(JSON_POSTGRES_W15_ALLOWED_ADDED_RESOURCES);
+  const allowedModifies =
+    new Set(JSON_POSTGRES_W15_ALLOWED_MODIFIED_RESOURCES);
+  const changes = normalizedChanges(changeSet);
+  if (changes.length < 1) fail("W15 production change set is empty");
+  for (const change of changes) {
+    if (!templateResources.has(change.logical_resource_id)
+      || (change.action === "Add"
+        && !allowedAdds.has(change.logical_resource_id))
+      || (change.action === "Modify"
+        && !allowedModifies.has(change.logical_resource_id))
+      || !["Add", "Modify"].includes(change.action)
+      || change.replacement === "True"
+      || (change.replacement === "Conditional"
+        && !SAFE_CONDITIONAL_REPLACEMENT.has(change.logical_resource_id)
+        && change.logical_resource_id !== "ProjectionWorkerInvokePermission"
+        && change.logical_resource_id !== "ProjectionWorkerSchedule")) {
+      fail("W15 production change set contains an unapproved resource change");
+    }
+  }
+  const reviewMaterial = {
+    purpose: "w15-relational-projection-rebind",
+    stack_name: JSON_POSTGRES_PRODUCTION_STACK,
+    change_set_type: "UPDATE",
+    change_set_id: changeSet.ChangeSetId,
+    template_sha256: templateSha256,
+    parameters_sha256: parametersSha256,
+    ...(templateUrl === null ? {} : { template_url: templateUrl }),
+    changes,
+  };
+  return Object.freeze({
+    verdict: "PASS",
+    ...reviewMaterial,
+    change_count: changes.length,
+    add_count: changes.filter((change) => change.action === "Add").length,
+    modify_count: changes.filter((change) => change.action === "Modify").length,
+    replacement_true_count: 0,
+    reviewed_change_set_sha256: sha256(reviewMaterial),
+  });
+}
+
 export function assertJsonPostgresArtifactBucketState({
   packet,
   expectedKmsKeyArn,
@@ -260,6 +360,7 @@ export function assertJsonPostgresProductionStack(stack, {
   trustRegistrySha256,
   trafficEnabled = false,
   eniBootstrapEnabled = false,
+  projectionWorkerEnabled = false,
 } = {}) {
   const parameters = Object.fromEntries(
     (stack?.Parameters ?? []).map((entry) => [entry.ParameterKey, entry.ParameterValue]),
@@ -275,6 +376,7 @@ export function assertJsonPostgresProductionStack(stack, {
     DmsBucketName: packet.target.dms_bucket_name,
     EnableProductionTraffic: trafficEnabled ? "true" : "false",
     EnableLambdaEniBootstrap: eniBootstrapEnabled ? "true" : "false",
+    EnableProjectionWorker: projectionWorkerEnabled ? "true" : "false",
     MonthlyCostCeilingKrw: "300000",
   })) {
     if (parameters[key] !== expected) fail(`production stack parameter ${key} drifted`);

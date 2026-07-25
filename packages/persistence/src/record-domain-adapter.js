@@ -480,12 +480,17 @@ export async function flushDomainSnapshotToScopedLedger({
     record,
   ]));
   let changedRecordCount = 0;
+  const changedRecordReferences = [];
   for (const record of source.records) {
     const identity = recordIdentity(domainId, record.record_type, record.record_id);
     const current = recordMap.get(identity);
     if (!current) {
       await tx.write({ ...record, expected_version: 0 });
       changedRecordCount += 1;
+      changedRecordReferences.push({
+        record_type: record.record_type,
+        record_id: record.record_id,
+      });
     }
     else if (
       current.payload_hash !== record.payload_hash
@@ -501,6 +506,10 @@ export async function flushDomainSnapshotToScopedLedger({
       }
       await tx.write({ ...record, expected_version: current.state_version });
       changedRecordCount += 1;
+      changedRecordReferences.push({
+        record_type: record.record_type,
+        record_id: record.record_id,
+      });
     }
   }
   for (const record of source.records) await tx.addReferences(record);
@@ -561,6 +570,13 @@ export async function flushDomainSnapshotToScopedLedger({
           audit_event_id: event.event_id,
           event_type: event.event_type,
           payload_hash: hashDomainValue(event.payload ?? {}),
+          ...(domainId === "hrx" ? {
+            projection_records: changedRecordReferences
+              .map((reference) => ({ ...reference }))
+              .sort((left, right) =>
+                left.record_type.localeCompare(right.record_type)
+                  || left.record_id.localeCompare(right.record_id)),
+          } : {}),
         },
         created_at: event.created_at,
       });

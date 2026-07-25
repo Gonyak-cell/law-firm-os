@@ -5,6 +5,12 @@ import {
   verifyJsonPostgresExecutionApprovalPayload,
 } from "../../../packages/persistence/src/postgres/execution-contract.js";
 import {
+  JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION,
+  JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_PHASE,
+  validateJsonPostgresW15InventoryBootstrapPacket,
+  verifyJsonPostgresW15InventoryBootstrapApprovalPayload,
+} from "../../../packages/persistence/src/postgres/w15-inventory-bootstrap-contract.js";
+import {
   verifyJsonPostgresProgramReceipt,
 } from "../../../packages/persistence/src/postgres/program-receipt.js";
 import {
@@ -31,12 +37,20 @@ import {
   validateJsonPostgresRehearsalCapacityResult,
 } from "../../../packages/persistence/src/postgres/rehearsal-capacity-result.js";
 import { programEvidenceRetainUntil } from "./program-evidence-retention.js";
+import {
+  validateHrxRelationalMappingManifest,
+  validateHrxRelationalProductionInventory,
+} from "../../../packages/hrx/src/relational-projection-contract.js";
+import {
+  validateHrxRelationalProjectionValidation,
+} from "../../../packages/hrx/src/relational-projection-validation.js";
 
 export const JSON_POSTGRES_PROGRAM_ADMIN_ACTION = "lawos-json-postgres-program-execution";
 export const JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION = "lawos-json-postgres-production-bootstrap";
 export const JSON_POSTGRES_REHEARSAL_BOOTSTRAP_ACTION = "lawos-json-postgres-rehearsal-bootstrap";
 export const JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION = "lawos-json-postgres-relational-projection";
 export const JSON_POSTGRES_JSON_RETIREMENT_ACTION = "lawos-json-postgres-json-retirement-smoke";
+export { JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION };
 
 const SHA1 = /^[0-9a-f]{40}$/u;
 const SHA256 = /^[0-9a-f]{64}$/u;
@@ -61,7 +75,24 @@ const INPUT_KEYS = Object.freeze([
   "dms_checkpoint",
   "predecessors",
 ]);
-const PROJECTION_INPUT_KEYS = Object.freeze(["predecessors"]);
+const PROJECTION_INPUT_KEYS = Object.freeze([
+  "predecessors",
+  "mapping_manifest",
+  "production_inventory",
+  "performance_acceptance",
+  "validation_evidence",
+]);
+const W15_BOOTSTRAP_SCHEMA_INPUT_KEYS = Object.freeze(["predecessors"]);
+const W15_BOOTSTRAP_INVENTORY_INPUT_KEYS = Object.freeze([
+  "predecessors",
+  "schema_bootstrap_result",
+]);
+const REQUIRED_PROJECTION_INPUT_KEYS = Object.freeze([
+  "predecessors",
+  "mapping_manifest",
+  "production_inventory",
+  "performance_acceptance",
+]);
 const DR_INPUT_KEYS = Object.freeze(["dr_target", "performance_acceptance"]);
 const REHEARSAL_RESTORE_INPUT_KEYS = Object.freeze([
   "restore_target",
@@ -92,6 +123,10 @@ const MAX_BYTES = Object.freeze({
   performance_acceptance: 128 * 1024,
   capacity_result: 256 * 1024,
   deployment_manifest: 2 * 1024 * 1024,
+  mapping_manifest: 16 * 1024 * 1024,
+  production_inventory: 16 * 1024 * 1024,
+  validation_evidence: 16 * 1024 * 1024,
+  schema_bootstrap_result: 2 * 1024 * 1024,
 });
 
 function fail(code, message) {
@@ -150,6 +185,7 @@ export function assertJsonPostgresProgramDirectInvoke(event = {}, {
     JSON_POSTGRES_REHEARSAL_BOOTSTRAP_ACTION,
     JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
     JSON_POSTGRES_JSON_RETIREMENT_ACTION,
+    JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION,
   ],
 } = {}) {
   if (event.requestContext || event.rawPath || event.httpMethod) {
@@ -237,6 +273,87 @@ export async function loadJsonPostgresProgramAuthorization({
   });
 }
 
+export async function loadJsonPostgresW15BootstrapAuthorization({
+  event,
+  env = process.env,
+  s3Client = new S3Client({ region: env.AWS_REGION ?? env.AWS_DEFAULT_REGION }),
+  readBytes = readImmutableProgramInput,
+  now = Date.now(),
+} = {}) {
+  assertJsonPostgresProgramDirectInvoke(event, {
+    allowedActions: [JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION],
+  });
+  closedObject(
+    event.authorization,
+    AUTHORIZATION_KEYS,
+    "W15 bootstrap authorization locators",
+  );
+  const exact = exactDeployment(event, env);
+  const read = (key) => readBytes(inputReadOptions(
+    event.authorization[key],
+    env,
+    MAX_BYTES[key],
+    s3Client,
+  ));
+  const [packetBytes, registryBytes, receiptBytes, signatureBytes] =
+    await Promise.all([
+      read("packet"),
+      read("trust_registry"),
+      read("approval_receipt"),
+      read("approval_signature"),
+    ]);
+  const packet = parseJson(packetBytes, "W15 inventory bootstrap packet");
+  const validated = validateJsonPostgresW15InventoryBootstrapPacket(packet, {
+    sourceSha: exact.sourceSha,
+    sourceTree: exact.sourceTree,
+  });
+  if (event.phase !== JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_PHASE
+    || validated.packet_sha256 !== event.packet_sha256
+    || packet.bindings.artifact_sha256 !== exact.artifactSha256
+    || packet.target.aws_account
+      !== requiredText(env.LAWOS_AWS_ACCOUNT_ID, "LAWOS_AWS_ACCOUNT_ID")
+    || packet.target.aws_region
+      !== requiredText(env.AWS_REGION ?? env.AWS_DEFAULT_REGION, "AWS region")
+    || packet.target.program_input_bucket_name
+      !== requiredText(
+        env.LAWOS_PROGRAM_INPUT_BUCKET,
+        "LAWOS_PROGRAM_INPUT_BUCKET",
+      )
+    || !packet.allowed_modes.includes(event.mode)) {
+    fail(
+      "LAWOS_PROGRAM_PACKET_BINDING",
+      "W15 bootstrap packet drifted from the deployed target or mode",
+    );
+  }
+  const trustRegistrySha256 = requiredText(
+    env.LAWOS_OWNER_TRUST_REGISTRY_SHA256,
+    "LAWOS_OWNER_TRUST_REGISTRY_SHA256",
+    SHA256,
+  );
+  const approval = verifyJsonPostgresW15InventoryBootstrapApprovalPayload({
+    packet,
+    sourceSha: exact.sourceSha,
+    sourceTree: exact.sourceTree,
+    trustRegistryBytes: registryBytes,
+    trustRegistrySha256,
+    approvalReceiptBytes: receiptBytes,
+    approvalSignatureBytes: signatureBytes,
+    now,
+  });
+  return Object.freeze({
+    exact,
+    packet: Object.freeze({
+      ...packet,
+      packet_sha256: validated.packet_sha256,
+    }),
+    approval,
+    trustRegistry: parseJson(registryBytes, "owner trust registry"),
+    authorization_input_sha256: createHash("sha256")
+      .update(canonicalizeJson(event.authorization))
+      .digest("hex"),
+  });
+}
+
 function requireProgramInputs(value, mode) {
   closedObject(value, INPUT_KEYS, "program input locators");
   for (const key of ["authority_summary", "record_type_catalog"]) {
@@ -308,6 +425,111 @@ async function loadSignedProgramPredecessors({
     fail("LAWOS_PROGRAM_PREDECESSOR", "predecessor receipt kinds must be unique");
   }
   return Object.freeze(predecessors);
+}
+
+export async function loadJsonPostgresW15BootstrapInputs({
+  inputLocators,
+  trustRegistry,
+  packet,
+  mode,
+  schemaBootstrapResultSha256 = null,
+  env = process.env,
+  s3Client = new S3Client({ region: env.AWS_REGION ?? env.AWS_DEFAULT_REGION }),
+  readJson = readImmutableProgramJson,
+  readBytes = readImmutableProgramInput,
+  now = Date.now(),
+} = {}) {
+  closedObject(
+    inputLocators,
+    mode === "inventory-read"
+      ? W15_BOOTSTRAP_INVENTORY_INPUT_KEYS
+      : W15_BOOTSTRAP_SCHEMA_INPUT_KEYS,
+    "W15 bootstrap input locators",
+  );
+  const predecessors = await loadSignedProgramPredecessors({
+    locators: inputLocators.predecessors,
+    trustRegistry,
+    env,
+    s3Client,
+    readJson,
+    readBytes,
+    now,
+  });
+  const byKind = new Map(
+    predecessors.map((receipt) => [receipt.receipt_kind, receipt]),
+  );
+  const expected = [
+    ["w12-terminal", packet.bindings.w12_terminal_receipt_sha256],
+    ["cut-012", packet.bindings.cut012_terminal_receipt_sha256],
+    ["go-live", packet.bindings.go_live_receipt_sha256],
+  ];
+  if (predecessors.length !== expected.length
+    || expected.some(([kind, digest]) => {
+      const receipt = byKind.get(kind);
+      return !receipt
+        || receipt.execution_state !== "PASS"
+        || receipt.canonical_sha256 !== digest;
+    })
+    || byKind.get("cut-012")?.claims.json_authority_disabled !== true
+    || byKind.get("go-live")?.claims.json_authority_disabled !== true
+    || byKind.get("go-live")?.claims.release !== true
+    || byKind.get("go-live")?.claims.go_live !== true) {
+    fail(
+      "LAWOS_PROGRAM_PREDECESSOR",
+      "W15 bootstrap predecessor receipts are missing, failed, or drifted",
+    );
+  }
+  if (mode !== "inventory-read") {
+    return Object.freeze({ predecessors });
+  }
+  const schemaBootstrapResult = await readJson(inputReadOptions(
+    inputLocators.schema_bootstrap_result,
+    env,
+    MAX_BYTES.schema_bootstrap_result,
+    s3Client,
+  ));
+  const resultMaterial = Object.fromEntries(
+    Object.entries(schemaBootstrapResult)
+      .filter(([key]) => key !== "result_sha256"),
+  );
+  const recalculated = createHash("sha256")
+    .update(canonicalizeJson(resultMaterial))
+    .digest("hex");
+  if (schemaBootstrapResult?.schema_version
+      !== "law-firm-os.json-postgres-w15-inventory-schema-bootstrap.v1"
+    || schemaBootstrapResult.outcome !== "PASS"
+    || schemaBootstrapResult.action
+      !== JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION
+    || schemaBootstrapResult.phase
+      !== JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_PHASE
+    || schemaBootstrapResult.mode !== "schema-bootstrap"
+    || schemaBootstrapResult.source_sha !== packet.source_sha
+    || schemaBootstrapResult.source_tree !== packet.source_tree
+    || schemaBootstrapResult.packet_sha256 !== packet.packet_sha256
+    || schemaBootstrapResult.migration_catalog_sha256
+      !== packet.bindings.migration_catalog_sha256
+    || schemaBootstrapResult.result_sha256
+      !== schemaBootstrapResultSha256
+    || recalculated !== schemaBootstrapResult.result_sha256
+    || schemaBootstrapResult.safe_counts?.projection_data_write_count !== 0
+    || schemaBootstrapResult.safe_counts?.source_authority_write_count !== 0
+    || schemaBootstrapResult.safe_counts?.consumer_route_change_count !== 0
+    || schemaBootstrapResult.safe_counts?.consumer_write_grant_count !== 0
+    || schemaBootstrapResult.safe_counts?.auditor_write_grant_count !== 0
+    || schemaBootstrapResult.claims?.generic_ledger_authority_preserved
+      !== true
+    || schemaBootstrapResult.claims?.schema_and_role_bootstrap_only !== true
+    || schemaBootstrapResult.claims?.projection_data_written !== false
+    || schemaBootstrapResult.claims?.consumer_rollout_performed !== false
+    || schemaBootstrapResult.claims?.raw_value_returned !== false
+    || schemaBootstrapResult.claims?.pii_returned !== false
+    || schemaBootstrapResult.claims?.secret_material_returned !== false) {
+    fail(
+      "LAWOS_PROGRAM_PREDECESSOR",
+      "W15 schema bootstrap evidence is missing, unsafe, or drifted",
+    );
+  }
+  return Object.freeze({ predecessors, schemaBootstrapResult });
 }
 
 export async function loadJsonPostgresMigrationInputs({
@@ -414,15 +636,39 @@ export async function loadJsonPostgresProjectionInputs({
   now = Date.now(),
 } = {}) {
   closedObject(inputLocators, PROJECTION_INPUT_KEYS, "projection input locators");
-  const predecessors = await loadSignedProgramPredecessors({
-    locators: inputLocators.predecessors,
-    trustRegistry,
+  for (const key of REQUIRED_PROJECTION_INPUT_KEYS) {
+    if (!inputLocators[key]) fail("LAWOS_PROGRAM_INPUT_SCHEMA", `${key} locator is required`);
+  }
+  const json = (key) => readJson(inputReadOptions(
+    inputLocators[key],
     env,
+    MAX_BYTES[key],
     s3Client,
-    readJson,
-    readBytes,
-    now,
-  });
+  ));
+  const [
+    predecessors,
+    mappingManifest,
+    productionInventory,
+    performanceAcceptance,
+    validationEvidence,
+  ] =
+    await Promise.all([
+      loadSignedProgramPredecessors({
+        locators: inputLocators.predecessors,
+        trustRegistry,
+        env,
+        s3Client,
+        readJson,
+        readBytes,
+        now,
+      }),
+      json("mapping_manifest"),
+      json("production_inventory"),
+      json("performance_acceptance"),
+      inputLocators.validation_evidence
+        ? json("validation_evidence")
+        : null,
+    ]);
   const byKind = new Map(predecessors.map((item) => [item.receipt_kind, item]));
   const required = [
     ["w12-terminal", packet.bindings.w12_terminal_receipt_sha256],
@@ -446,7 +692,58 @@ export async function loadJsonPostgresProjectionInputs({
     || byKind.get("go-live").claims.go_live !== true) {
     fail("LAWOS_PROGRAM_PREDECESSOR", "W15 predecessor claims do not prove completed PostgreSQL go-live");
   }
-  return Object.freeze({ predecessors });
+  validateHrxRelationalMappingManifest(mappingManifest);
+  validateHrxRelationalProductionInventory(productionInventory);
+  validateJsonPostgresPerformanceAcceptance(performanceAcceptance);
+  if (mappingManifest.manifest_sha256 !== packet.bindings.field_crosswalk_sha256
+    || mappingManifest.record_type_catalog_sha256
+      !== packet.bindings.record_type_catalog_sha256
+    || mappingManifest.migration_catalog_sha256
+      !== packet.bindings.migration_catalog_sha256
+    || mappingManifest.inventory_sha256 !== packet.bindings.inventory_content_sha256
+    || productionInventory.inventory_sha256
+      !== packet.bindings.inventory_content_sha256
+    || mappingManifest.performance_acceptance_sha256
+      !== packet.bindings.performance_acceptance_sha256
+    || performanceAcceptance.acceptance_sha256
+      !== packet.bindings.performance_acceptance_sha256
+    || performanceAcceptance.record_count
+      !== productionInventory.source_record_count
+    || performanceAcceptance.tenant_count
+      !== productionInventory.tenant_count) {
+    fail("LAWOS_PROGRAM_INPUT_BINDING", "W15 mapping, inventory, or performance input drifted");
+  }
+  if (validationEvidence) {
+    validateHrxRelationalProjectionValidation(validationEvidence);
+    if (validationEvidence.outcome !== "PASS"
+      || validationEvidence.source_sha !== packet.source_sha
+      || validationEvidence.source_tree !== packet.source_tree
+      || validationEvidence.packet_sha256 !== packet.packet_sha256
+      || validationEvidence.mapping_manifest_sha256
+        !== mappingManifest.manifest_sha256
+      || validationEvidence.inventory_sha256
+        !== productionInventory.inventory_sha256
+      || validationEvidence.performance_acceptance_sha256
+        !== performanceAcceptance.acceptance_sha256
+      || validationEvidence.source_authority
+        !== "postgres-v2-generic-ledger"
+      || validationEvidence.projection_authority !== "read-only"
+      || validationEvidence.claims.generic_ledger_authority_preserved !== true
+      || validationEvidence.claims.projection_consumers_read_only !== true
+      || validationEvidence.claims.authority_promotion_not_granted !== true) {
+      fail(
+        "LAWOS_PROGRAM_INPUT_BINDING",
+        "W15 validation evidence drifted from the exact packet and read-only projection contract",
+      );
+    }
+  }
+  return Object.freeze({
+    predecessors,
+    mappingManifest,
+    productionInventory,
+    performanceAcceptance,
+    validationEvidence,
+  });
 }
 
 export async function loadJsonPostgresDrRecoveryInputs({

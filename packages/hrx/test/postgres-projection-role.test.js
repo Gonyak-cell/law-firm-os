@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   configureHrxProjectionRole,
+  HRX_PROJECTION_AUDITOR_CONNECTION_LIMIT,
+  HRX_PROJECTION_AUDITOR_ROLE,
   HRX_PROJECTION_ROLE_CONNECTION_LIMIT,
   HRX_PROJECTION_WRITER_ROLE,
   hrxProjectionRoleGrantStatements,
@@ -29,19 +31,32 @@ test("projection writer is separate, forced through exact tenants, and leaves co
   const client = clientWithRole();
   const result = await configureHrxProjectionRole(client, {
     password: "projection-role-value",
+    auditorPassword: "projection-auditor-value",
     tenantContextSecret: TENANT_CONTEXT_SECRET,
     approvedTenantIds: ["tenant_amic", "tenant_amic"],
   });
   const sql = client.calls.map((call) => call.text).join("\n");
   assert.match(sql, new RegExp(`CREATE ROLE ${HRX_PROJECTION_WRITER_ROLE} LOGIN NOSUPERUSER`));
   assert.match(sql, /NOBYPASSRLS CONNECTION LIMIT 4/u);
+  assert.match(sql, new RegExp(`CREATE ROLE ${HRX_PROJECTION_AUDITOR_ROLE} LOGIN NOSUPERUSER`));
+  assert.match(sql, new RegExp(`NOBYPASSRLS CONNECTION LIMIT ${HRX_PROJECTION_AUDITOR_CONNECTION_LIMIT}`));
   assert.match(sql, /REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA lawos_hrx FROM lawos_app/u);
-  assert.match(sql, /GRANT SELECT ON ALL TABLES IN SCHEMA lawos_hrx TO lawos_app/u);
+  assert.match(sql, /GRANT SELECT ON lawos_hrx\."hrx_employees"/u);
+  assert.match(sql, /lawos_projection\.hrx_consumer_route TO lawos_app/u);
+  assert.match(
+    sql,
+    /GRANT SELECT, INSERT, UPDATE ON [^\n]*lawos_projection\.hrx_consumer_route TO lawos_hrx_projection_writer/u,
+  );
   assert.doesNotMatch(sql, /GRANT (?:INSERT|UPDATE|DELETE).* TO lawos_app/u);
-  assert.equal(client.calls.filter((call) => String(call.text).includes("tenant_context_authorities")).length, 2);
-  assert.equal(result.tenant_authority_count, 1);
+  assert.doesNotMatch(sql, /ALTER DEFAULT PRIVILEGES/u);
+  assert.match(sql, /REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA lawos_domain FROM lawos_hrx_projection_writer/u);
+  assert.match(sql, /REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA lawos_hrx FROM lawos_hrx_projection_auditor/u);
+  assert.equal(client.calls.filter((call) => String(call.text).includes("tenant_context_authorities")).length, 4);
+  assert.equal(result.tenant_authority_count, 2);
   assert.equal(result.connection_limit, HRX_PROJECTION_ROLE_CONNECTION_LIMIT);
+  assert.equal(result.auditor_connection_limit, HRX_PROJECTION_AUDITOR_CONNECTION_LIMIT);
   assert.equal(result.consumer_write_grant_count, 0);
+  assert.equal(result.auditor_write_grant_count, 0);
   assert.equal(result.password_returned, false);
   assert.equal(JSON.stringify(result).includes("projection-role-value"), false);
   assert.equal(hrxProjectionRoleGrantStatements().length, result.grant_statement_count);
@@ -61,6 +76,7 @@ test("projection writer refuses privilege drift and rolls back", async () => {
   await assert.rejects(
     configureHrxProjectionRole(client, {
       password: "projection-role-value",
+      auditorPassword: "projection-auditor-value",
       tenantContextSecret: TENANT_CONTEXT_SECRET,
       approvedTenantIds: ["tenant_amic"],
     }),
@@ -74,6 +90,7 @@ test("projection writer rejects synthetic, wildcard, and short-secret authority"
     await assert.rejects(
       configureHrxProjectionRole(clientWithRole(), {
         password: "projection-role-value",
+        auditorPassword: "projection-auditor-value",
         tenantContextSecret: TENANT_CONTEXT_SECRET,
         approvedTenantIds,
       }),
@@ -83,6 +100,7 @@ test("projection writer rejects synthetic, wildcard, and short-secret authority"
   await assert.rejects(
     configureHrxProjectionRole(clientWithRole(), {
       password: "projection-role-value",
+      auditorPassword: "projection-auditor-value",
       tenantContextSecret: "short",
       approvedTenantIds: ["tenant_amic"],
     }),

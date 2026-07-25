@@ -37,6 +37,56 @@ test("production template derives the proven private topology without synthetic 
     template.Resources.AdminFunction.Properties.Environment.Variables.LAWOS_PROJECTION_DATABASE_SECRET_ID,
     { Ref: "ProjectionDatabaseSecret" },
   );
+  assert.equal(result.projection_auditor_function_count, 1);
+  assert.equal(result.projection_auditor_master_secret_read_count, 0);
+  assert.equal(result.projection_auditor_database_write_secret_count, 0);
+  assert.equal(result.projection_worker_function_count, 1);
+  assert.equal(result.projection_worker_master_secret_read_count, 0);
+  assert.equal(result.projection_worker_schedule_enabled_by_default, false);
+  assert.equal(
+    template.Resources.ProjectionAuditorFunction.Properties.Environment.Variables
+      .LAWOS_PROGRAM_EXECUTION_ROLE,
+    "projection-auditor",
+  );
+  assert.equal(
+    template.Resources.ProjectionAuditorFunction.Properties.Environment.Variables
+      .LAWOS_MASTER_DATABASE_SECRET_ID,
+    undefined,
+  );
+  assert.deepEqual(
+    template.Resources.ProjectionAuditorFunction.Properties.Environment.Variables
+      .LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID,
+    { Ref: "ProjectionAuditorDatabaseSecret" },
+  );
+  assert.equal(
+    template.Resources.ProjectionWorkerFunction.Properties.Environment.Variables
+      .LAWOS_PROGRAM_EXECUTION_ROLE,
+    "projection-writer",
+  );
+  assert.deepEqual(
+    template.Resources.ProjectionWorkerFunction.Properties.Environment.Variables
+      .LAWOS_PROJECTION_DATABASE_SECRET_ID,
+    { Ref: "ProjectionDatabaseSecret" },
+  );
+  assert.equal(
+    template.Resources.ProjectionWorkerFunction.Properties.Environment.Variables
+      .LAWOS_MASTER_DATABASE_SECRET_ID,
+    undefined,
+  );
+  assert.equal(
+    template.Resources.ProjectionWorkerFunction.Properties.Environment.Variables
+      .LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID,
+    undefined,
+  );
+  assert.deepEqual(
+    template.Resources.ProjectionWorkerSchedule.Properties.State,
+    { "Fn::If": ["ProjectionWorkerEnabled", "ENABLED", "DISABLED"] },
+  );
+  assert.equal(template.Parameters.EnableProjectionWorker.Default, "false");
+  assert.deepEqual(
+    template.Resources.ProjectionWorkerSchedule.Properties.Targets[0].Input,
+    { Ref: "ProjectionWorkerEventJson" },
+  );
   assert.deepEqual(
     template.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_IDENTITY_TENANT_ID,
     { Ref: "PrimaryTenantId" },
@@ -104,6 +154,33 @@ test("production template fails closed on public RDS, synthetic content, wildcar
           item.Sid === "ExactProductionProgramInputsAndMigrationDmsOnly")
         .Resource.pop();
     },
+    (value) => {
+      value.Resources.ProjectionAuditorExecutionRole.Properties.Policies[0]
+        .PolicyDocument.Statement
+        .find((item) => item.Sid === "ReadExactProjectionAuditorSecrets")
+        .Resource.push({ Ref: "ProjectionDatabaseSecret" });
+    },
+    (value) => {
+      value.Resources.ProjectionAuditorFunction.Properties.Environment.Variables
+        .LAWOS_MASTER_DATABASE_SECRET_ID = {
+          "Fn::GetAtt": ["Database", "MasterUserSecret.SecretArn"],
+        };
+    },
+    (value) => {
+      value.Resources.ProjectionWorkerSchedule.Properties.State = "ENABLED";
+    },
+    (value) => {
+      value.Resources.ProjectionWorkerFunction.Properties.Environment.Variables
+        .LAWOS_MASTER_DATABASE_SECRET_ID = {
+          "Fn::GetAtt": ["Database", "MasterUserSecret.SecretArn"],
+        };
+    },
+    (value) => {
+      value.Resources.ProjectionWorkerExecutionRole.Properties.Policies[0]
+        .PolicyDocument.Statement
+        .find((item) => item.Sid === "ReadExactProjectionWorkerSecrets")
+        .Resource.push({ Ref: "ProjectionAuditorDatabaseSecret" });
+    },
   ]) {
     const template = buildJsonPostgresProductionTemplate(reference);
     mutate(template);
@@ -133,4 +210,56 @@ test("production cost model reconciles below the existing KRW 300000 owner ceili
   assert.equal(result.verdict, "PASS");
   assert.equal(result.total_monthly_estimate_krw, 269100);
   assert.equal(result.owner_cap_headroom_krw, 30900);
+});
+
+test("W15 rollback tooling disables the worker schedule without an ENI or traffic change", () => {
+  const source = readFileSync(
+    "scripts/run-json-postgres-production-infrastructure.mjs",
+    "utf8",
+  );
+  assert.match(source, /"w15-create-worker-disable-change-set"/u);
+  assert.match(source, /"w15-execute-worker-disable-change-set"/u);
+  assert.match(source, /purpose: "w15-incremental-worker-disable"/u);
+  assert.match(source, /EnableProjectionWorker: "false"/u);
+  assert.match(source, /rule\.State !== "DISABLED"/u);
+  assert.match(
+    source,
+    /temporary_eni_allow_count: 0,[\s\S]*production_write_count: 0/u,
+  );
+});
+
+test("W15 inventory bootstrap closes the pre-schema audit cycle without direct secret access", () => {
+  const runner = readFileSync(
+    "scripts/run-json-postgres-production-infrastructure.mjs",
+    "utf8",
+  );
+  for (const operation of [
+    "w15-bootstrap-preflight",
+    "w15-bootstrap-upload-artifact",
+    "w15-bootstrap-create-change-set",
+    "w15-bootstrap-execute-change-set",
+    "w15-bootstrap-remove-eni-bootstrap",
+    "w15-bootstrap-verify",
+    "w15-bootstrap-invoke",
+  ]) {
+    assert.match(runner, new RegExp(`"${operation}"`, "u"));
+  }
+  assert.match(
+    runner,
+    /response\.safe_counts\?\.projection_data_write_count !== 0/u,
+  );
+  assert.match(
+    runner,
+    /response\.claims\?\.consumer_rollout_performed !== false/u,
+  );
+
+  const collector = readFileSync(
+    "scripts/collect-json-postgres-w15-production-inventory.mjs",
+    "utf8",
+  );
+  assert.doesNotMatch(collector, /get-secret-value/u);
+  assert.doesNotMatch(collector, /createPostgresPool/u);
+  assert.doesNotMatch(collector, /matter-readonly-auditor/u);
+  assert.match(collector, /--invocation-response/u);
+  assert.match(collector, /inventory_provenance_sha256/u);
 });

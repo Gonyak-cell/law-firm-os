@@ -23,6 +23,10 @@ export const JSON_POSTGRES_EXECUTION_MODES = Object.freeze([
   "readback",
   "reconcile",
 ]);
+export const JSON_POSTGRES_W15_EXECUTION_MODES = Object.freeze([
+  ...JSON_POSTGRES_EXECUTION_MODES,
+  "rollout",
+]);
 export const JSON_POSTGRES_W12_AUTHORIZED_STAGES = Object.freeze([
   "source-inventory-adjudication",
   "record-type-and-reference",
@@ -64,6 +68,7 @@ const PHASE_CONTRACT = Object.freeze({
     production: false,
     contact_scope: Object.freeze(["non-delivery-sink"]),
     operator_roles: Object.freeze(["matter-staging-admin", "matter-readonly-auditor"]),
+    allowed_modes: JSON_POSTGRES_EXECUTION_MODES,
     authorized_stages: JSON_POSTGRES_W12_AUTHORIZED_STAGES,
   }),
   "w13-production-cutover": Object.freeze({
@@ -73,6 +78,7 @@ const PHASE_CONTRACT = Object.freeze({
     production: true,
     contact_scope: Object.freeze(["individual-active-user-request-only"]),
     operator_roles: Object.freeze(["matter-prod-deploy-admin", "matter-cutover-operator", "matter-readonly-auditor"]),
+    allowed_modes: JSON_POSTGRES_EXECUTION_MODES,
     authorized_stages: JSON_POSTGRES_W13_W14_AUTHORIZED_STAGES,
   }),
   "w15-relational-projection": Object.freeze({
@@ -82,6 +88,7 @@ const PHASE_CONTRACT = Object.freeze({
     production: true,
     contact_scope: Object.freeze([]),
     operator_roles: Object.freeze(["matter-prod-deploy-admin", "matter-readonly-auditor"]),
+    allowed_modes: JSON_POSTGRES_W15_EXECUTION_MODES,
     authorized_stages: JSON_POSTGRES_W15_AUTHORIZED_STAGES,
   }),
 });
@@ -278,6 +285,20 @@ function validateTarget(value, contract) {
   }
 }
 
+export function validateJsonPostgresExecutionTarget(value, {
+  phase = "w15-relational-projection",
+} = {}) {
+  const contract = PHASE_CONTRACT[phase];
+  if (!contract) {
+    fail("JSON_POSTGRES_EXECUTION_PHASE", "execution target phase is invalid");
+  }
+  validateTarget(value, contract);
+  return Object.freeze({
+    ...value,
+    approved_tenant_ids: Object.freeze([...value.approved_tenant_ids]),
+  });
+}
+
 function packetMaterial(packet) {
   return Object.fromEntries(CLOSED_PACKET_KEYS.map((key) => [key, packet[key]]));
 }
@@ -298,6 +319,7 @@ const REQUIREMENTS = Object.freeze({
   ]),
   "w15-relational-projection": Object.freeze([
     "The generic PostgreSQL ledger remains the only write authority.",
+    "The five backfill waves complete in order before incremental scheduling.",
     "The projection is one-way, replayable, tenant-isolated, and read-only to consumers.",
     "Shadow count, hash, ordering, reference, rollback, performance, and receipt gates all pass.",
   ]),
@@ -336,7 +358,7 @@ export function createJsonPostgresExecutionPacket({
     bindings: { ...bindings },
     target: { ...target },
     operators: [...contract.operator_roles],
-    allowed_modes: [...JSON_POSTGRES_EXECUTION_MODES],
+    allowed_modes: [...contract.allowed_modes],
     authorized_stages: [...contract.authorized_stages],
     requirements: [...REQUIREMENTS[phase]],
     stop_conditions: [...STOP_CONDITIONS],
@@ -413,7 +435,7 @@ export function validateJsonPostgresExecutionPacket(packet = {}, expected = {}) 
   }
   validateTarget(packet.target, contract);
   exactStringArray(packet.operators, contract.operator_roles, "operators");
-  exactStringArray(packet.allowed_modes, JSON_POSTGRES_EXECUTION_MODES, "allowed_modes");
+  exactStringArray(packet.allowed_modes, contract.allowed_modes, "allowed_modes");
   exactStringArray(packet.authorized_stages, contract.authorized_stages, "authorized_stages");
   nonEmptyStrings(packet.requirements, "requirements");
   nonEmptyStrings(packet.stop_conditions, "stop_conditions");

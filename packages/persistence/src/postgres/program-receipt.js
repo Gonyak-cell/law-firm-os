@@ -3,6 +3,24 @@ import { canonicalizeJson } from "../../../runtime-auth/src/runtime-safety-appro
 
 export const JSON_POSTGRES_PROGRAM_RECEIPT_VERSION = "law-firm-os.json-postgres-program-receipt.v2";
 export const JSON_POSTGRES_PROGRAM_RECEIPT_ACTION = "lawos-json-postgres-program-receipt";
+export const JSON_POSTGRES_W15_COMPONENT_RECEIPTS = Object.freeze([
+  "w15-predecessor-verification",
+  "w15-production-inventory",
+  "w15-mapping-contract",
+  "w15-schema-migration",
+  "w15-database-role",
+  "w15-backfill-wave-1",
+  "w15-backfill-wave-2",
+  "w15-backfill-wave-3",
+  "w15-backfill-wave-4",
+  "w15-backfill-wave-5",
+  "w15-incremental-catchup",
+  "w15-shadow-reconciliation",
+  "w15-tenant-rls",
+  "w15-performance-acceptance",
+  "w15-rollback-drill",
+  "w15-consumer-rollout",
+]);
 export const JSON_POSTGRES_PROGRAM_RECEIPT_KINDS = Object.freeze([
   "source-inventory-adjudication",
   "record-type-and-reference",
@@ -29,6 +47,7 @@ export const JSON_POSTGRES_PROGRAM_RECEIPT_KINDS = Object.freeze([
   "windows-signing",
   "formal-release",
   "go-live",
+  ...JSON_POSTGRES_W15_COMPONENT_RECEIPTS,
   "w15-relational-projection",
 ]);
 export const JSON_POSTGRES_W12_RECEIPTS = Object.freeze(JSON_POSTGRES_PROGRAM_RECEIPT_KINDS.slice(0, 14));
@@ -46,6 +65,10 @@ export const JSON_POSTGRES_W14_RECEIPTS = Object.freeze([
   "windows-signing",
   "formal-release",
   "go-live",
+]);
+export const JSON_POSTGRES_W15_RECEIPTS = Object.freeze([
+  ...JSON_POSTGRES_W15_COMPONENT_RECEIPTS,
+  "w15-relational-projection",
 ]);
 
 const KIND_SET = new Set(JSON_POSTGRES_PROGRAM_RECEIPT_KINDS);
@@ -144,7 +167,7 @@ const KIND_ENVIRONMENT = Object.freeze(Object.fromEntries(JSON_POSTGRES_PROGRAM_
   kind.startsWith("w12-") ? "lawos-private-rehearsal"
     : ["source-inventory-adjudication", "record-type-and-reference"].includes(kind) ? "source-local"
       : ["macos-signing", "windows-signing", "formal-release", "go-live"].includes(kind) ? "lawos-release"
-        : kind === "w15-relational-projection" ? "lawos-production-projection"
+        : kind.startsWith("w15-") ? "lawos-production-projection"
           : "lawos-production",
 ])));
 const KIND_PHASE = Object.freeze(Object.fromEntries(JSON_POSTGRES_PROGRAM_RECEIPT_KINDS.map((kind) => [
@@ -153,7 +176,7 @@ const KIND_PHASE = Object.freeze(Object.fromEntries(JSON_POSTGRES_PROGRAM_RECEIP
     ? "w12-real-data-rehearsal"
     : ["macos-signing", "windows-signing", "formal-release", "go-live"].includes(kind)
       ? "w14-release-go-live"
-      : kind === "w15-relational-projection"
+      : kind.startsWith("w15-")
         ? "w15-relational-projection"
         : "w13-production-cutover",
 ])));
@@ -164,7 +187,7 @@ const KIND_PROFILE = Object.freeze(Object.fromEntries(JSON_POSTGRES_PROGRAM_RECE
       ? "approved-real-data-source-read"
       : ["macos-signing", "windows-signing", "formal-release", "go-live"].includes(kind)
         ? "exact-main-release"
-        : kind === "w15-relational-projection"
+        : kind.startsWith("w15-")
           ? "relational-read-projection"
           : "production-postgres-v2",
 ])));
@@ -251,7 +274,8 @@ export function validateJsonPostgresProgramReceipt(receipt = {}, expected = {}) 
     fail("first-write boundary must prove the write has not started");
   }
   if (receipt.claims.json_authority_disabled
-    && !["cut-011", "cut-012", "go-live", "w15-relational-projection"].includes(receipt.receipt_kind)) {
+    && !["cut-011", "cut-012", "go-live", ...JSON_POSTGRES_W15_RECEIPTS]
+      .includes(receipt.receipt_kind)) {
     fail("JSON authority disablement claim is out of phase");
   }
   if (receipt.claims.release && !["formal-release", "go-live"].includes(receipt.receipt_kind)) fail("release claim is out of phase");
@@ -364,8 +388,27 @@ export function validateJsonPostgresProgramReceiptSet(receipts, {
   if (byKind.has("cut-012")) requirePredecessor(byKind.get("cut-012"), ["cut-008", "cut-009", "cut-010", "cut-011"], byKind);
   if (byKind.has("formal-release")) requirePredecessor(byKind.get("formal-release"), ["cut-012", "macos-signing", "windows-signing"], byKind);
   if (byKind.has("go-live")) requirePredecessor(byKind.get("go-live"), ["cut-012", "formal-release"], byKind);
+  for (const [index, kind] of JSON_POSTGRES_W15_COMPONENT_RECEIPTS.entries()) {
+    if (!byKind.has(kind)) continue;
+    requirePredecessor(
+      byKind.get(kind),
+      index === 0
+        ? ["w12-terminal", "cut-012", "go-live"]
+        : [JSON_POSTGRES_W15_COMPONENT_RECEIPTS[index - 1]],
+      byKind,
+    );
+  }
   if (byKind.has("w15-relational-projection")) {
-    requirePredecessor(byKind.get("w15-relational-projection"), ["w12-terminal", "cut-012", "go-live"], byKind);
+    requirePredecessor(
+      byKind.get("w15-relational-projection"),
+      [
+        "w12-terminal",
+        "cut-012",
+        "go-live",
+        ...JSON_POSTGRES_W15_COMPONENT_RECEIPTS,
+      ],
+      byKind,
+    );
   }
   return Object.freeze({
     valid: true,

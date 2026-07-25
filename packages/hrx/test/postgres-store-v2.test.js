@@ -148,6 +148,50 @@ test("HRX PostgreSQL import, async store port, legacy service command, CAS and a
     where: { tenant_id: TENANT },
   });
   assert.equal(employees.some((employee) => employee.employee_id === "employee-rs-dom-001"), true);
+  let projectionReadCount = 0;
+  const projectionPort = createPostgresHrxStorePortV2({
+    ledger,
+    projectionReader: {
+      authority: "read-model-only",
+      fallback_authority: "postgres-v2-generic-ledger",
+      async query(operation) {
+        projectionReadCount += 1;
+        assert.equal(operation, "select");
+        return [{
+          tenant_id: TENANT,
+          employee_id: "employee-projected-read",
+          display_name: "Projected read",
+          status: "active",
+        }];
+      },
+    },
+  });
+  const projectedEmployees = await projectionPort.query("select", {
+    table: "hrx_employees",
+    where: { tenant_id: TENANT },
+  });
+  assert.equal(projectedEmployees[0].employee_id, "employee-projected-read");
+  await projectionPort.query("updateOne", {
+    table: "hrx_employees",
+    where: {
+      tenant_id: TENANT,
+      employee_id: "employee-rs-dom-001",
+    },
+    patch: { display_name: "Generic ledger remains write authority" },
+  });
+  const genericEmployee = await port.query("selectOne", {
+    table: "hrx_employees",
+    where: {
+      tenant_id: TENANT,
+      employee_id: "employee-rs-dom-001",
+    },
+  });
+  assert.equal(
+    genericEmployee.display_name,
+    "Generic ledger remains write authority",
+  );
+  assert.equal(projectionReadCount, 1);
+  projectionPort.close();
   await port.transaction({
     tenant_id: TENANT,
     idempotency_key: "hrx-postgres-port-transaction-001",

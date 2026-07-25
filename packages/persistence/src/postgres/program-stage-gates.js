@@ -1,4 +1,7 @@
 import { createHash } from "node:crypto";
+import {
+  JSON_POSTGRES_W15_COMPONENT_RECEIPTS,
+} from "./program-receipt.js";
 
 export const JSON_POSTGRES_PROGRAM_STAGE_RESULT_VERSION = "law-firm-os.json-postgres-program-stage-result.v1";
 export const JSON_POSTGRES_PRODUCTION_PROGRAM_STAGES = Object.freeze([
@@ -328,7 +331,12 @@ const RULES = Object.freeze({
     zeroCounts: [...ZERO_AUTHORITY_COUNTERS, "critical_flow_failure_count", "active_stop_condition_count"],
   }),
   "w15-relational-projection": Object.freeze({
-    predecessors: ["w12-terminal", "cut-012", "go-live"],
+    predecessors: [
+      "w12-terminal",
+      "cut-012",
+      "go-live",
+      ...JSON_POSTGRES_W15_COMPONENT_RECEIPTS,
+    ],
     checks: [
       "one_way_outbox_projection_verified", "selected_table_contract_verified",
       "shadow_count_hash_ordering_passed", "logical_reference_readback_passed",

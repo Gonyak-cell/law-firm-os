@@ -382,6 +382,17 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     Default: 1,
     MinValue: 1,
   };
+  template.Parameters.ProjectionWorkerEventJson = {
+    Type: "String",
+    Default: "{}",
+    Description:
+      "Exact-packet W15 incremental worker event; schedule remains disabled until approved rollout",
+  };
+  template.Parameters.EnableProjectionWorker = {
+    Type: "String",
+    Default: "false",
+    AllowedValues: ["true", "false"],
+  };
   template.Parameters.EnableProductionTraffic = {
     Type: "String",
     Default: "false",
@@ -394,6 +405,9 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   };
   template.Conditions.ProductionTrafficEnabled = {
     "Fn::Equals": [{ Ref: "EnableProductionTraffic" }, "true"],
+  };
+  template.Conditions.ProjectionWorkerEnabled = {
+    "Fn::Equals": [{ Ref: "EnableProjectionWorker" }, "true"],
   };
   template.Mappings.Network.Cidrs = {
     Vpc: "10.97.0.0/16",
@@ -413,6 +427,11 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   resources.ProjectionDatabaseSecret.Properties.GenerateSecretString.SecretStringTemplate =
     "{\"username\":\"lawos_hrx_projection_writer\",\"configuration_state\":\"pending_admin_bootstrap\"}";
   resources.ProjectionDatabaseSecret.Properties.Name = "/lawos/production/postgres/hrx-projection-writer";
+  resources.ProjectionAuditorDatabaseSecret = clone(resources.ApplicationDatabaseSecret);
+  resources.ProjectionAuditorDatabaseSecret.Properties.Description = "Structured read-only LawOS HRX relational projection auditor credential";
+  resources.ProjectionAuditorDatabaseSecret.Properties.GenerateSecretString.SecretStringTemplate =
+    "{\"username\":\"lawos_hrx_projection_auditor\",\"configuration_state\":\"pending_admin_bootstrap\"}";
+  resources.ProjectionAuditorDatabaseSecret.Properties.Name = "/lawos/production/postgres/hrx-projection-auditor";
   template.Parameters.PasswordResetSesIdentityArn.Description = "Verified SES identity allowed to send individual production password setup messages";
   resources.PayrollArtifactSecret.Properties.Description = "Production payroll artifact key";
   for (const item of resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement) {
@@ -420,9 +439,34 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
       item.Resource = item.Resource.filter((resource) => resource?.Ref !== "SyntheticManifestSecret");
       if (item.Sid === "AdminBootstrapsExactSecrets") {
         item.Resource.push({ Ref: "ProjectionDatabaseSecret" });
+        item.Resource.push({ Ref: "ProjectionAuditorDatabaseSecret" });
       }
     }
   }
+  resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement.push({
+    Sid: "ProjectionAuditorReadsExactSecrets",
+    Effect: "Allow",
+    Principal: {
+      AWS: { "Fn::GetAtt": ["ProjectionAuditorExecutionRole", "Arn"] },
+    },
+    Action: "secretsmanager:GetSecretValue",
+    Resource: [
+      { Ref: "ProjectionAuditorDatabaseSecret" },
+      { Ref: "TenantContextSecret" },
+    ],
+  });
+  resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement.push({
+    Sid: "ProjectionWorkerReadsExactSecrets",
+    Effect: "Allow",
+    Principal: {
+      AWS: { "Fn::GetAtt": ["ProjectionWorkerExecutionRole", "Arn"] },
+    },
+    Action: "secretsmanager:GetSecretValue",
+    Resource: [
+      { Ref: "ProjectionDatabaseSecret" },
+      { Ref: "TenantContextSecret" },
+    ],
+  });
   resources.HttpApiDefaultRoute.Metadata.LawOSPublicRouteException = {
     scope: "production-internal-password-entry",
     reason: "first-use password setup and login must be reachable only after the signed go-live traffic gate",
@@ -471,6 +515,7 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     { "Fn::GetAtt": ["Database", "MasterUserSecret.SecretArn"] },
     { Ref: "ApplicationDatabaseSecret" },
     { Ref: "ProjectionDatabaseSecret" },
+    { Ref: "ProjectionAuditorDatabaseSecret" },
     { Ref: "TenantContextSecret" },
   ];
   const populateSecrets = statement(adminRole, "PopulateExactApplicationSecret");
@@ -478,6 +523,7 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   populateSecrets.Resource = [
     { Ref: "ApplicationDatabaseSecret" },
     { Ref: "ProjectionDatabaseSecret" },
+    { Ref: "ProjectionAuditorDatabaseSecret" },
   ];
   const writeAudit = statement(adminRole, "WriteImmutableApprovalAudit");
   writeAudit.Resource = [
@@ -534,12 +580,295 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     LAWOS_POSTGRES_SSL_MODE: "verify-full",
     LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID: { Ref: "TenantContextSecret" },
     LAWOS_PROJECTION_DATABASE_SECRET_ID: { Ref: "ProjectionDatabaseSecret" },
+    LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID: {
+      Ref: "ProjectionAuditorDatabaseSecret",
+    },
     LAWOS_PROGRAM_INPUT_BUCKET: { Ref: "ProgramInputBucket" },
     LAWOS_PROGRAM_INPUT_KMS_KEY_ARN: { "Fn::GetAtt": ["ProductionKey", "Arn"] },
     LAWOS_RUNTIME_PROFILE: "operational",
     LAWOS_RUNTIME_GENERATION: { Ref: "RuntimeGeneration" },
     LAWOS_STAFF_AUTHORITY: "internal-password",
     NODE_EXTRA_CA_CERTS: "/var/task/certs/global-bundle.pem",
+  };
+
+  resources.ProjectionAuditorLogGroup = clone(resources.AdminLogGroup);
+  resources.ProjectionAuditorLogGroup.Properties.LogGroupName =
+    "/aws/lambda/lawos-production-projection-auditor";
+  resources.ProjectionAuditorExecutionRole = {
+    Type: "AWS::IAM::Role",
+    Properties: {
+      AssumeRolePolicyDocument: {
+        Version: "2012-10-17",
+        Statement: [{
+          Effect: "Allow",
+          Principal: { Service: "lambda.amazonaws.com" },
+          Action: "sts:AssumeRole",
+        }],
+      },
+      Description:
+        "Dedicated LawOS production read-only HRX projection auditor role",
+      Policies: [
+        {
+          PolicyName: "lawos-production-projection-auditor-runtime",
+          PolicyDocument: {
+            Version: "2012-10-17",
+            Statement: [
+              {
+                Sid: "WriteExactProjectionAuditorLogGroup",
+                Effect: "Allow",
+                Action: ["logs:CreateLogStream", "logs:PutLogEvents"],
+                Resource: {
+                  "Fn::Sub":
+                    "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lawos-production-projection-auditor:*",
+                },
+              },
+              {
+                Sid: "ReadExactProjectionAuditorSecrets",
+                Effect: "Allow",
+                Action: "secretsmanager:GetSecretValue",
+                Resource: [
+                  { Ref: "ProjectionAuditorDatabaseSecret" },
+                  { Ref: "TenantContextSecret" },
+                ],
+              },
+              {
+                Sid: "ReadExactProjectionProgramInputs",
+                Effect: "Allow",
+                Action: [
+                  "s3:GetObjectVersion",
+                  "s3:GetObjectLegalHold",
+                  "s3:GetObjectRetention",
+                ],
+                Resource: { "Fn::Sub": "${ProgramInputBucket.Arn}/*" },
+              },
+              {
+                Sid: "ReadProjectionProgramInputBucketState",
+                Effect: "Allow",
+                Action: [
+                  "s3:GetBucketLocation",
+                  "s3:GetBucketObjectLockConfiguration",
+                  "s3:GetBucketVersioning",
+                ],
+                Resource: { "Fn::GetAtt": ["ProgramInputBucket", "Arn"] },
+              },
+              {
+                Sid: "WriteImmutableProjectionValidationEvidence",
+                Effect: "Allow",
+                Action: ["s3:PutObject", "s3:PutObjectRetention"],
+                Resource: [
+                  {
+                    "Fn::Sub":
+                      "${ProgramInputBucket.Arn}/program-approval-audit/*",
+                  },
+                  {
+                    "Fn::Sub":
+                      "${ProgramInputBucket.Arn}/program-execution/*",
+                  },
+                ],
+              },
+              {
+                Sid: "UseExactProductionKeyForProjectionAudit",
+                Effect: "Allow",
+                Action: [
+                  "kms:Decrypt",
+                  "kms:Encrypt",
+                  "kms:GenerateDataKey",
+                  "kms:DescribeKey",
+                ],
+                Resource: { "Fn::GetAtt": ["ProductionKey", "Arn"] },
+              },
+              {
+                Sid: "DenyFunctionCodeEc2Networking",
+                Effect: "Deny",
+                Action: [
+                  "ec2:CreateNetworkInterface",
+                  "ec2:DescribeNetworkInterfaces",
+                  "ec2:DescribeSubnets",
+                  "ec2:DeleteNetworkInterface",
+                  "ec2:DetachNetworkInterface",
+                  "ec2:AssignPrivateIpAddresses",
+                  "ec2:UnassignPrivateIpAddresses",
+                ],
+                Resource: "*",
+                Condition: {
+                  ArnEquals: {
+                    "lambda:SourceFunctionArn": {
+                      "Fn::Sub":
+                        "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-production-projection-auditor",
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        },
+        {
+          "Fn::If": [
+            "LambdaEniBootstrapEnabled",
+            {
+              PolicyName:
+                "lawos-production-projection-auditor-vpc-eni-bootstrap-temporary",
+              PolicyDocument: {
+                Version: "2012-10-17",
+                Statement: [{
+                  Sid: "LambdaVpcEniBootstrap",
+                  Effect: "Allow",
+                  Action: JSON_POSTGRES_PRODUCTION_ENI_ACTIONS,
+                  Resource: "*",
+                }],
+              },
+            },
+            { Ref: "AWS::NoValue" },
+          ],
+        },
+      ],
+      RoleName: "lawos-production-projection-auditor-role",
+      Tags: tags(),
+    },
+  };
+  resources.ProjectionAuditorFunction = {
+    Type: "AWS::Lambda::Function",
+    DependsOn: ["ProjectionAuditorLogGroup"],
+    Properties: {
+      Architectures: ["arm64"],
+      Code: clone(admin.Properties.Code),
+      Description:
+        "Direct-invoke read-only LawOS HRX relational projection auditor",
+      Environment: {
+        Variables: {
+          LAWOS_APPROVAL_AUDIT_BUCKET: { Ref: "ProgramInputBucket" },
+          LAWOS_AWS_ACCOUNT_ID: { Ref: "AWS::AccountId" },
+          LAWOS_DATABASE_HOST: {
+            "Fn::GetAtt": ["Database", "Endpoint.Address"],
+          },
+          LAWOS_DATABASE_IDENTIFIER: { Ref: "Database" },
+          LAWOS_DATABASE_NAME: "lawos",
+          LAWOS_DATABASE_PORT: {
+            "Fn::GetAtt": ["Database", "Endpoint.Port"],
+          },
+          LAWOS_DEPLOYMENT_ARTIFACT_SHA256: { Ref: "ArtifactSha256" },
+          LAWOS_DEPLOYMENT_COMMIT: { Ref: "SourceSha" },
+          LAWOS_DEPLOYMENT_TREE: { Ref: "SourceTree" },
+          LAWOS_EXECUTION_PACKET_SHA256: { Ref: "ExecutionPacketSha256" },
+          LAWOS_OWNER_TRUST_REGISTRY_SHA256: {
+            Ref: "OwnerTrustRegistrySha256",
+          },
+          LAWOS_PERSISTENCE_AUTHORITY: "postgres-v2",
+          LAWOS_POSTGRES_SSL_MODE: "verify-full",
+          LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID: {
+            Ref: "TenantContextSecret",
+          },
+          LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID: {
+            Ref: "ProjectionAuditorDatabaseSecret",
+          },
+          LAWOS_PROGRAM_EXECUTION_ROLE: "projection-auditor",
+          LAWOS_PROGRAM_INPUT_BUCKET: { Ref: "ProgramInputBucket" },
+          LAWOS_PROGRAM_INPUT_KMS_KEY_ARN: {
+            "Fn::GetAtt": ["ProductionKey", "Arn"],
+          },
+          LAWOS_RUNTIME_PROFILE: "operational",
+          NODE_EXTRA_CA_CERTS: "/var/task/certs/global-bundle.pem",
+        },
+      },
+      FunctionName: "lawos-production-projection-auditor",
+      Handler: "apps/api/src/json-postgres-program-admin-lambda.handler",
+      KmsKeyArn: { "Fn::GetAtt": ["ProductionKey", "Arn"] },
+      MemorySize: 1024,
+      ReservedConcurrentExecutions: 1,
+      Role: {
+        "Fn::GetAtt": ["ProjectionAuditorExecutionRole", "Arn"],
+      },
+      Runtime: "nodejs22.x",
+      Timeout: 900,
+      VpcConfig: clone(admin.Properties.VpcConfig),
+      Tags: tags(),
+    },
+  };
+  resources.ProjectionWorkerLogGroup = clone(resources.ProjectionAuditorLogGroup);
+  resources.ProjectionWorkerLogGroup.Properties.LogGroupName =
+    "/aws/lambda/lawos-production-projection-worker";
+  resources.ProjectionWorkerExecutionRole = clone(
+    resources.ProjectionAuditorExecutionRole,
+  );
+  resources.ProjectionWorkerExecutionRole.Properties.Description =
+    "Dedicated LawOS production HRX incremental projection writer role";
+  resources.ProjectionWorkerExecutionRole.Properties.RoleName =
+    "lawos-production-projection-worker-role";
+  const workerPolicies =
+    resources.ProjectionWorkerExecutionRole.Properties.Policies;
+  workerPolicies[0].PolicyName =
+    "lawos-production-projection-worker-runtime";
+  for (const item of workerPolicies[0].PolicyDocument.Statement) {
+    if (item.Sid === "WriteExactProjectionAuditorLogGroup") {
+      item.Sid = "WriteExactProjectionWorkerLogGroup";
+      item.Resource = {
+        "Fn::Sub":
+          "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lawos-production-projection-worker:*",
+      };
+    } else if (item.Sid === "ReadExactProjectionAuditorSecrets") {
+      item.Sid = "ReadExactProjectionWorkerSecrets";
+      item.Resource = [
+        { Ref: "ProjectionDatabaseSecret" },
+        { Ref: "TenantContextSecret" },
+      ];
+    } else if (item.Sid === "ReadExactProjectionProgramInputs") {
+      item.Sid = "ReadExactProjectionWorkerProgramInputs";
+    } else if (item.Sid === "ReadProjectionProgramInputBucketState") {
+      item.Sid = "ReadProjectionWorkerProgramInputBucketState";
+    } else if (item.Sid === "WriteImmutableProjectionValidationEvidence") {
+      item.Sid = "WriteImmutableProjectionWorkerEvidence";
+    } else if (item.Sid === "UseExactProductionKeyForProjectionAudit") {
+      item.Sid = "UseExactProductionKeyForProjectionWorker";
+    } else if (item.Sid === "DenyFunctionCodeEc2Networking") {
+      item.Condition.ArnEquals["lambda:SourceFunctionArn"] = {
+        "Fn::Sub":
+          "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-production-projection-worker",
+      };
+    }
+  }
+  workerPolicies[1]["Fn::If"][1].PolicyName =
+    "lawos-production-projection-worker-vpc-eni-bootstrap-temporary";
+  resources.ProjectionWorkerFunction = clone(resources.ProjectionAuditorFunction);
+  resources.ProjectionWorkerFunction.DependsOn = ["ProjectionWorkerLogGroup"];
+  resources.ProjectionWorkerFunction.Properties.Description =
+    "Exact-packet LawOS HRX incremental projection worker; disabled by default";
+  resources.ProjectionWorkerFunction.Properties.FunctionName =
+    "lawos-production-projection-worker";
+  resources.ProjectionWorkerFunction.Properties.Role = {
+    "Fn::GetAtt": ["ProjectionWorkerExecutionRole", "Arn"],
+  };
+  const workerEnvironment =
+    resources.ProjectionWorkerFunction.Properties.Environment.Variables;
+  delete workerEnvironment.LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID;
+  workerEnvironment.LAWOS_PROJECTION_DATABASE_SECRET_ID = {
+    Ref: "ProjectionDatabaseSecret",
+  };
+  workerEnvironment.LAWOS_PROGRAM_EXECUTION_ROLE = "projection-writer";
+  resources.ProjectionWorkerSchedule = {
+    Type: "AWS::Events::Rule",
+    Properties: {
+      Description:
+        "W15 HRX incremental projection worker; enabled only after signed backfill acceptance",
+      Name: "lawos-production-projection-worker",
+      ScheduleExpression: "rate(5 minutes)",
+      State: {
+        "Fn::If": ["ProjectionWorkerEnabled", "ENABLED", "DISABLED"],
+      },
+      Targets: [{
+        Arn: { "Fn::GetAtt": ["ProjectionWorkerFunction", "Arn"] },
+        Id: "lawos-production-projection-worker",
+        Input: { Ref: "ProjectionWorkerEventJson" },
+      }],
+    },
+  };
+  resources.ProjectionWorkerInvokePermission = {
+    Type: "AWS::Lambda::Permission",
+    Properties: {
+      Action: "lambda:InvokeFunction",
+      FunctionName: { Ref: "ProjectionWorkerFunction" },
+      Principal: "events.amazonaws.com",
+      SourceArn: { "Fn::GetAtt": ["ProjectionWorkerSchedule", "Arn"] },
+    },
   };
 
   const api = resources.ApiFunction;
@@ -595,6 +924,8 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
 
   resources.ApiLogGroup.Properties.RetentionInDays = 365;
   resources.AdminLogGroup.Properties.RetentionInDays = 365;
+  resources.ProjectionAuditorLogGroup.Properties.RetentionInDays = 365;
+  resources.ProjectionWorkerLogGroup.Properties.RetentionInDays = 365;
   resources.MonthlyCostBudget.Properties.Budget.BudgetLimit.Amount = JSON_POSTGRES_PRODUCTION_BUDGET_USD;
   resources.MonthlyCostBudget.Properties.Budget.BudgetName = "lawos-production-monthly";
   resources.MonthlyCostBudget.Properties.Budget.CostFilters.TagKeyValue = ["user:environment$lawos-production"];
@@ -611,6 +942,18 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   template.Outputs.ProgramInputKmsKeyArn = { Value: { "Fn::GetAtt": ["ProductionKey", "Arn"] } };
   template.Outputs.ExecutionPacketSha256 = { Value: { Ref: "ExecutionPacketSha256" } };
   template.Outputs.ProjectionDatabaseSecretArn = { Value: { Ref: "ProjectionDatabaseSecret" } };
+  template.Outputs.ProjectionAuditorDatabaseSecretArn = {
+    Value: { Ref: "ProjectionAuditorDatabaseSecret" },
+  };
+  template.Outputs.ProjectionAuditorFunctionName = {
+    Value: { Ref: "ProjectionAuditorFunction" },
+  };
+  template.Outputs.ProjectionWorkerFunctionName = {
+    Value: { Ref: "ProjectionWorkerFunction" },
+  };
+  template.Outputs.ProjectionWorkerScheduleName = {
+    Value: { Ref: "ProjectionWorkerSchedule" },
+  };
   template.Outputs.DatabaseIdentifier = { Value: { Ref: "Database" } };
   template.Outputs.DatabaseEndpointAddress = { Value: { "Fn::GetAtt": ["Database", "Endpoint.Address"] } };
   template.Outputs.DatabaseSubnetGroupName = { Value: { Ref: "DatabaseSubnetGroup" } };
@@ -682,10 +1025,41 @@ export function validateJsonPostgresProductionTemplate(template) {
   if (resources.AdminFunction?.Properties?.Handler !== "apps/api/src/json-postgres-program-admin-lambda.handler"
     || resources.AdminFunction?.Properties?.ReservedConcurrentExecutions !== 1
     || !resources.ProjectionDatabaseSecret
+    || !resources.ProjectionAuditorDatabaseSecret
     || resources.ProjectionDatabaseSecret.Properties?.GenerateSecretString?.SecretStringTemplate
       !== "{\"username\":\"lawos_hrx_projection_writer\",\"configuration_state\":\"pending_admin_bootstrap\"}"
+    || resources.ProjectionAuditorDatabaseSecret.Properties?.GenerateSecretString?.SecretStringTemplate
+      !== "{\"username\":\"lawos_hrx_projection_auditor\",\"configuration_state\":\"pending_admin_bootstrap\"}"
     || resources.AdminFunction?.Properties?.Environment?.Variables?.LAWOS_PROJECTION_DATABASE_SECRET_ID?.Ref
       !== "ProjectionDatabaseSecret"
+    || resources.AdminFunction?.Properties?.Environment?.Variables?.LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID?.Ref
+      !== "ProjectionAuditorDatabaseSecret"
+    || resources.ProjectionAuditorFunction?.Properties?.Handler
+      !== "apps/api/src/json-postgres-program-admin-lambda.handler"
+    || resources.ProjectionAuditorFunction?.Properties?.ReservedConcurrentExecutions
+      !== 1
+    || resources.ProjectionAuditorFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_PROGRAM_EXECUTION_ROLE !== "projection-auditor"
+    || resources.ProjectionAuditorFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID?.Ref
+      !== "ProjectionAuditorDatabaseSecret"
+    || resources.ProjectionAuditorFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_MASTER_DATABASE_SECRET_ID != null
+    || resources.ProjectionAuditorFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_PROJECTION_DATABASE_SECRET_ID != null
+    || resources.ProjectionWorkerFunction?.Properties?.Handler
+      !== "apps/api/src/json-postgres-program-admin-lambda.handler"
+    || resources.ProjectionWorkerFunction?.Properties?.ReservedConcurrentExecutions
+      !== 1
+    || resources.ProjectionWorkerFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_PROGRAM_EXECUTION_ROLE !== "projection-writer"
+    || resources.ProjectionWorkerFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_PROJECTION_DATABASE_SECRET_ID?.Ref
+      !== "ProjectionDatabaseSecret"
+    || resources.ProjectionWorkerFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_MASTER_DATABASE_SECRET_ID != null
+    || resources.ProjectionWorkerFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID != null
     || resources.ApiFunction?.Properties?.Environment?.Variables?.LAWOS_PERSISTENCE_AUTHORITY !== "postgres-v2"
     || resources.ApiFunction?.Properties?.Environment?.Variables?.LAWOS_RUNTIME_PROFILE !== "operational") {
     fail("production Lambda authority contract drifted");
@@ -696,13 +1070,26 @@ export function validateJsonPostgresProductionTemplate(template) {
     || outputs.DatabaseSubnetGroupName?.Value?.Ref !== "DatabaseSubnetGroup"
     || outputs.DatabaseSecurityGroupId?.Value?.Ref !== "DatabaseSecurityGroup"
     || outputs.AdminFunctionName?.Value?.Ref !== "AdminFunction"
+    || outputs.ProjectionAuditorFunctionName?.Value?.Ref
+      !== "ProjectionAuditorFunction"
+    || outputs.ProjectionWorkerFunctionName?.Value?.Ref
+      !== "ProjectionWorkerFunction"
+    || outputs.ProjectionWorkerScheduleName?.Value?.Ref
+      !== "ProjectionWorkerSchedule"
     || outputs.ApiFunctionName?.Value?.Ref !== "ApiFunction"
     || outputs.DmsBucketName?.Value?.Ref !== "DmsBucket"
     || resources.AdminFunction?.Properties?.Environment?.Variables?.LAWOS_DATABASE_IDENTIFIER?.Ref !== "Database") {
     fail("production DR/runtime outputs drifted");
   }
-  const roles = [resources.ApiExecutionRole, resources.AdminExecutionRole];
-  if (roles.some((role) => !role) || resources.ApiExecutionRole.Properties.RoleName === resources.AdminExecutionRole.Properties.RoleName) {
+  const roles = [
+    resources.ApiExecutionRole,
+    resources.AdminExecutionRole,
+    resources.ProjectionAuditorExecutionRole,
+    resources.ProjectionWorkerExecutionRole,
+  ];
+  if (roles.some((role) => !role)
+    || new Set(roles.map((role) => role.Properties.RoleName)).size
+      !== roles.length) {
     fail("production Lambda roles must be present and separate");
   }
   let temporaryEniAllowCount = 0;
@@ -735,25 +1122,117 @@ export function validateJsonPostgresProductionTemplate(template) {
       }
     }
   }
-  if (temporaryEniAllowCount !== 2 || sourceFunctionDenyCount !== 2) {
+  if (temporaryEniAllowCount !== 4 || sourceFunctionDenyCount !== 4) {
     fail("production ENI bootstrap or explicit Deny contract is incomplete");
   }
   if (resources.HttpApi.Properties.DisableExecuteApiEndpoint?.["Fn::If"]?.[2] !== true
-    || resources.PasswordResetWorkerSchedule.Properties.State?.["Fn::If"]?.[2] !== "DISABLED") {
+    || resources.PasswordResetWorkerSchedule.Properties.State?.["Fn::If"]?.[2] !== "DISABLED"
+    || template.Parameters?.EnableProjectionWorker?.Default !== "false"
+    || JSON.stringify(template.Conditions?.ProjectionWorkerEnabled)
+      !== JSON.stringify({
+        "Fn::Equals": [{ Ref: "EnableProjectionWorker" }, "true"],
+      })
+    || JSON.stringify(resources.ProjectionWorkerSchedule?.Properties?.State)
+      !== JSON.stringify({
+        "Fn::If": ["ProjectionWorkerEnabled", "ENABLED", "DISABLED"],
+      })
+    || resources.ProjectionWorkerSchedule?.Properties?.Targets?.[0]?.Input?.Ref
+      !== "ProjectionWorkerEventJson"
+    || resources.ProjectionWorkerInvokePermission?.Properties?.Principal
+      !== "events.amazonaws.com"
+    || resources.ProjectionWorkerInvokePermission?.Properties?.FunctionName?.Ref
+      !== "ProjectionWorkerFunction"
+    || resources.ProjectionWorkerInvokePermission?.Properties?.SourceArn
+      ?.["Fn::GetAtt"]?.[0] !== "ProjectionWorkerSchedule") {
     fail("production traffic must default disabled");
   }
   const adminSecretResources = statement(resources.AdminExecutionRole, "ReadExactBootstrapSecrets")?.Resource ?? [];
   const endpointAdminSecretResources = resources.SecretsManagerEndpoint?.Properties?.PolicyDocument?.Statement
     ?.find((item) => item.Sid === "AdminBootstrapsExactSecrets")?.Resource ?? [];
   if (![adminSecretResources, endpointAdminSecretResources].every((items) =>
-    items.some((item) => item?.Ref === "ProjectionDatabaseSecret"))) {
-    fail("projection writer secret is not bound to the exact admin authority");
+    ["ProjectionDatabaseSecret", "ProjectionAuditorDatabaseSecret"]
+      .every((logicalId) => items.some((item) => item?.Ref === logicalId)))) {
+    fail("projection database secrets are not bound to the exact admin authority");
   }
   const projectionSecretWrites = statement(resources.AdminExecutionRole, "PopulateExactDatabaseSecrets")?.Resource ?? [];
   if (!Array.isArray(projectionSecretWrites)
-    || projectionSecretWrites.length !== 2
-    || !projectionSecretWrites.some((item) => item?.Ref === "ProjectionDatabaseSecret")) {
-    fail("projection writer secret update authority drifted");
+    || projectionSecretWrites.length !== 3
+    || !["ProjectionDatabaseSecret", "ProjectionAuditorDatabaseSecret"]
+      .every((logicalId) =>
+        projectionSecretWrites.some((item) => item?.Ref === logicalId))) {
+    fail("projection database secret update authority drifted");
+  }
+  const auditorStatements = policyStatements(
+    resources.ProjectionAuditorExecutionRole,
+  );
+  const auditorSecretRead = auditorStatements.find((item) =>
+    item.Sid === "ReadExactProjectionAuditorSecrets");
+  const auditorEvidenceWrite = auditorStatements.find((item) =>
+    item.Sid === "WriteImmutableProjectionValidationEvidence");
+  if (JSON.stringify(auditorSecretRead?.Action)
+      !== JSON.stringify("secretsmanager:GetSecretValue")
+    || JSON.stringify(auditorSecretRead?.Resource)
+      !== JSON.stringify([
+        { Ref: "ProjectionAuditorDatabaseSecret" },
+        { Ref: "TenantContextSecret" },
+      ])
+    || auditorStatements.some((item) =>
+      JSON.stringify(item.Action).includes("secretsmanager:PutSecretValue"))
+    || JSON.stringify(auditorEvidenceWrite?.Action)
+      !== JSON.stringify(["s3:PutObject", "s3:PutObjectRetention"])
+    || auditorStatements.some((item) =>
+      JSON.stringify(item.Resource).includes("ProjectionDatabaseSecret")
+      || JSON.stringify(item.Resource).includes("MasterUserSecret"))) {
+    fail("projection auditor AWS authority is not independently read-only");
+  }
+  const endpointAuditor = resources.SecretsManagerEndpoint?.Properties
+    ?.PolicyDocument?.Statement?.find((item) =>
+      item.Sid === "ProjectionAuditorReadsExactSecrets");
+  if (endpointAuditor?.Principal?.AWS?.["Fn::GetAtt"]?.[0]
+      !== "ProjectionAuditorExecutionRole"
+    || endpointAuditor.Action !== "secretsmanager:GetSecretValue"
+    || JSON.stringify(endpointAuditor.Resource)
+      !== JSON.stringify([
+        { Ref: "ProjectionAuditorDatabaseSecret" },
+        { Ref: "TenantContextSecret" },
+      ])) {
+    fail("projection auditor Secrets Manager endpoint authority drifted");
+  }
+  const workerStatements = policyStatements(
+    resources.ProjectionWorkerExecutionRole,
+  );
+  const workerSecretRead = workerStatements.find((item) =>
+    item.Sid === "ReadExactProjectionWorkerSecrets");
+  const workerEvidenceWrite = workerStatements.find((item) =>
+    item.Sid === "WriteImmutableProjectionWorkerEvidence");
+  if (JSON.stringify(workerSecretRead?.Action)
+      !== JSON.stringify("secretsmanager:GetSecretValue")
+    || JSON.stringify(workerSecretRead?.Resource)
+      !== JSON.stringify([
+        { Ref: "ProjectionDatabaseSecret" },
+        { Ref: "TenantContextSecret" },
+      ])
+    || workerStatements.some((item) =>
+      JSON.stringify(item.Action).includes("secretsmanager:PutSecretValue"))
+    || JSON.stringify(workerEvidenceWrite?.Action)
+      !== JSON.stringify(["s3:PutObject", "s3:PutObjectRetention"])
+    || workerStatements.some((item) =>
+      JSON.stringify(item.Resource).includes("ProjectionAuditorDatabaseSecret")
+      || JSON.stringify(item.Resource).includes("MasterUserSecret"))) {
+    fail("projection worker AWS authority exceeds incremental projection scope");
+  }
+  const endpointWorker = resources.SecretsManagerEndpoint?.Properties
+    ?.PolicyDocument?.Statement?.find((item) =>
+      item.Sid === "ProjectionWorkerReadsExactSecrets");
+  if (endpointWorker?.Principal?.AWS?.["Fn::GetAtt"]?.[0]
+      !== "ProjectionWorkerExecutionRole"
+    || endpointWorker.Action !== "secretsmanager:GetSecretValue"
+    || JSON.stringify(endpointWorker.Resource)
+      !== JSON.stringify([
+        { Ref: "ProjectionDatabaseSecret" },
+        { Ref: "TenantContextSecret" },
+      ])) {
+    fail("projection worker Secrets Manager endpoint authority drifted");
   }
   const productionInputEndpoint =
     resources.S3GatewayEndpoint?.Properties?.PolicyDocument?.Statement
@@ -800,6 +1279,12 @@ export function validateJsonPostgresProductionTemplate(template) {
     object_lock_bucket_count: 2,
     temporary_eni_allow_policy_count: temporaryEniAllowCount,
     source_function_explicit_deny_count: sourceFunctionDenyCount,
+    projection_auditor_function_count: 1,
+    projection_auditor_master_secret_read_count: 0,
+    projection_auditor_database_write_secret_count: 0,
+    projection_worker_function_count: 1,
+    projection_worker_master_secret_read_count: 0,
+    projection_worker_schedule_enabled_by_default: false,
     production_traffic_enabled_by_default: false,
     monthly_cost_ceiling_krw: JSON_POSTGRES_PRODUCTION_COST_CEILING_KRW,
   });

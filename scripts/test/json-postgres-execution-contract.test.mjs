@@ -11,6 +11,7 @@ import {
   JSON_POSTGRES_W12_AUTHORIZED_STAGES,
   JSON_POSTGRES_W13_W14_AUTHORIZED_STAGES,
   JSON_POSTGRES_W15_AUTHORIZED_STAGES,
+  JSON_POSTGRES_W15_EXECUTION_MODES,
   createJsonPostgresExecutionPacket,
   validateJsonPostgresExecutionPacket,
   verifyJsonPostgresExecutionApproval,
@@ -119,7 +120,9 @@ function packet(phase = "w12-real-data-rehearsal") {
       : production
       ? ["matter-prod-deploy-admin", "matter-cutover-operator", "matter-readonly-auditor"]
       : ["matter-staging-admin", "matter-readonly-auditor"],
-    allowed_modes: [...JSON_POSTGRES_EXECUTION_MODES],
+    allowed_modes: [...(projection
+      ? JSON_POSTGRES_W15_EXECUTION_MODES
+      : JSON_POSTGRES_EXECUTION_MODES)],
     authorized_stages: [...(projection
       ? JSON_POSTGRES_W15_AUTHORIZED_STAGES
       : production ? JSON_POSTGRES_W13_W14_AUTHORIZED_STAGES : JSON_POSTGRES_W12_AUTHORIZED_STAGES)],
@@ -200,7 +203,10 @@ function signedApproval(value) {
 test("execution packet closes W12 and W13 source, scope, target, cost and claim bindings", () => {
   assert.equal(validateJsonPostgresExecutionPacket(packet()).valid, true);
   assert.equal(validateJsonPostgresExecutionPacket(packet("w13-production-cutover")).valid, true);
-  assert.equal(validateJsonPostgresExecutionPacket(packet("w15-relational-projection")).valid, true);
+  const w15 = packet("w15-relational-projection");
+  assert.equal(validateJsonPostgresExecutionPacket(w15).valid, true);
+  assert.equal(w15.allowed_modes.includes("rollout"), true);
+  assert.equal(packet("w13-production-cutover").allowed_modes.includes("rollout"), false);
   for (const mutate of [
     (value) => { value.target.public_access = true; },
     (value) => { value.target.tls_mode = "disable"; },

@@ -13,6 +13,7 @@ import {
   jsonPostgresProductionCombinedTemplateSha256,
   jsonPostgresProductionParametersSha256,
   validateJsonPostgresProductionChangeSet,
+  validateJsonPostgresW15ProductionChangeSet,
 } from "../lib/json-postgres-production-execution.mjs";
 
 function packet() {
@@ -83,6 +84,8 @@ test("production stack parameters preserve exact packet, tenant, traffic and ENI
   });
   assert.equal(parameters.EnableProductionTraffic, "false");
   assert.equal(parameters.EnableLambdaEniBootstrap, "true");
+  assert.equal(parameters.EnableProjectionWorker, "false");
+  assert.equal(parameters.ProjectionWorkerEventJson, "{}");
   assert.equal(parameters.MonthlyCostCeilingKrw, "300000");
   assert.throws(() => buildJsonPostgresProductionStackParameters({
     ...parameters,
@@ -168,6 +171,85 @@ test("production change-set review rejects removals and unsafe replacements", ()
   assert.equal(JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK, "lawos-production-artifact-store");
 });
 
+test("W15 update review permits only bounded projection additions and exact supporting modifications", () => {
+  const template = {
+    Resources: {
+      ApiFunction: {},
+      ProjectionWorkerExecutionRole: {},
+      ProjectionWorkerFunction: {},
+      ProjectionWorkerSchedule: {},
+      ProjectionWorkerInvokePermission: {},
+      Database: {},
+    },
+  };
+  const changeSet = {
+    StackName: JSON_POSTGRES_PRODUCTION_STACK,
+    ChangeSetType: "UPDATE",
+    ChangeSetId: "w15-change-set-1",
+    Changes: [
+      {
+        ResourceChange: {
+          Action: "Modify",
+          LogicalResourceId: "ApiFunction",
+          ResourceType: "AWS::Lambda::Function",
+          Replacement: "False",
+        },
+      },
+      ...[
+        ["ProjectionWorkerExecutionRole", "AWS::IAM::Role", "False"],
+        ["ProjectionWorkerFunction", "AWS::Lambda::Function", "False"],
+        ["ProjectionWorkerSchedule", "AWS::Events::Rule", "Conditional"],
+        [
+          "ProjectionWorkerInvokePermission",
+          "AWS::Lambda::Permission",
+          "Conditional",
+        ],
+      ].map(([LogicalResourceId, ResourceType, Replacement]) => ({
+        ResourceChange: {
+          Action: "Add",
+          LogicalResourceId,
+          ResourceType,
+          Replacement,
+        },
+      })),
+    ],
+  };
+  const reviewed = validateJsonPostgresW15ProductionChangeSet(changeSet, {
+    template,
+    parametersSha256: "a".repeat(64),
+    templateSha256: "b".repeat(64),
+  });
+  assert.equal(reviewed.add_count, 4);
+  assert.equal(reviewed.modify_count, 1);
+  const database = structuredClone(changeSet);
+  database.Changes.push({
+    ResourceChange: {
+      Action: "Modify",
+      LogicalResourceId: "Database",
+      ResourceType: "AWS::RDS::DBInstance",
+      Replacement: "False",
+    },
+  });
+  assert.throws(
+    () => validateJsonPostgresW15ProductionChangeSet(database, {
+      template,
+      parametersSha256: "a".repeat(64),
+      templateSha256: "b".repeat(64),
+    }),
+    /unapproved resource change/u,
+  );
+  const replacement = structuredClone(changeSet);
+  replacement.Changes[1].ResourceChange.Replacement = "True";
+  assert.throws(
+    () => validateJsonPostgresW15ProductionChangeSet(replacement, {
+      template,
+      parametersSha256: "a".repeat(64),
+      templateSha256: "b".repeat(64),
+    }),
+    /unapproved resource change/u,
+  );
+});
+
 test("artifact bucket and production stack observations are exact and fail closed", () => {
   const value = packet();
   const keyArn = "arn:aws:kms:ap-northeast-2:770880870480:key/key-1";
@@ -243,6 +325,7 @@ test("artifact bucket and production stack observations are exact and fail close
       DmsBucketName: value.target.dms_bucket_name,
       EnableProductionTraffic: "false",
       EnableLambdaEniBootstrap: "false",
+      EnableProjectionWorker: "false",
       MonthlyCostCeilingKrw: "300000",
     }).map(([ParameterKey, ParameterValue]) => ({ ParameterKey, ParameterValue })),
   };
