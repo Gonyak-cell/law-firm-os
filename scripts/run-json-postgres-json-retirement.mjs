@@ -14,7 +14,7 @@ import {
 } from "./lib/json-postgres-production-execution.mjs";
 import {
   createJsonPostgresCut011Probe,
-  createJsonPostgresPasswordResetWorkerEvent,
+  createJsonPostgresWorkerEvent,
 } from "./lib/json-postgres-json-retirement.mjs";
 import {
   createPrivateProgramOutputDirectory,
@@ -168,7 +168,7 @@ if (operation === "invoke") {
     ]));
   const workerEvent = writePrivateProgramJson(
     join(outputDir, "background-worker-event.json"),
-    createJsonPostgresPasswordResetWorkerEvent(),
+    createJsonPostgresWorkerEvent(),
   );
   const backgroundWorker = invoke(
     JSON_POSTGRES_PRODUCTION_CUTOVER_PROFILE,

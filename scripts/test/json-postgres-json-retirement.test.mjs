@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   createJsonPostgresCut011Probe,
-  createJsonPostgresPasswordResetWorkerEvent,
+  createJsonPostgresWorkerEvent,
   validateJsonPostgresRetiredLambdaConfiguration,
 } from "../lib/json-postgres-json-retirement.mjs";
 
@@ -15,7 +15,7 @@ const packet = {
 };
 
 test("CUT-011 password-reset worker uses the Lambda maintenance-action envelope", () => {
-  assert.deepEqual(createJsonPostgresPasswordResetWorkerEvent(), {
+  assert.deepEqual(createJsonPostgresWorkerEvent(), {
     maintenance_action: "lawos_password_reset_worker",
   });
 });
