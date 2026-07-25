@@ -57,7 +57,9 @@ export const VAULT_DMS_API_ERROR_CODES = Object.freeze({
   payload_too_large: "VAULT_DMS_PAYLOAD_TOO_LARGE",
 });
 
-export const VAULT_DMS_RUNTIME_SEED = Object.freeze([
+export function createVaultDmsRuntimeSeed(account = DEFAULT_VAULT_ACCOUNT) {
+  if (!account) return Object.freeze([]);
+  return Object.freeze([
   Object.freeze({
     model_type: "DmsWorkspace",
     workspace_id: "workspace_rp07_synthetic",
@@ -67,8 +69,8 @@ export const VAULT_DMS_RUNTIME_SEED = Object.freeze([
     status: "active",
     permission_envelope_id: "perm_rp07_vault",
     audit_trace_id: "audit_rp07_vault",
-    owner_user_id: DEFAULT_VAULT_ACCOUNT.user_id,
-    registered_account: DEFAULT_VAULT_ACCOUNT,
+    owner_user_id: account.user_id,
+    registered_account: account,
   }),
   Object.freeze({
     model_type: "DmsDocument",
@@ -83,9 +85,9 @@ export const VAULT_DMS_RUNTIME_SEED = Object.freeze([
     audit_trace_id: "audit_rp07_vault",
     privilege_label_id: "standard",
     legal_hold_id: null,
-    owner_user_id: DEFAULT_VAULT_ACCOUNT.user_id,
-    registered_account_email: DEFAULT_VAULT_ACCOUNT.email,
-    registered_account: DEFAULT_VAULT_ACCOUNT,
+    owner_user_id: account.user_id,
+    registered_account_email: account.email,
+    registered_account: account,
   }),
   Object.freeze({
     model_type: "DmsDocumentVersion",
@@ -99,8 +101,8 @@ export const VAULT_DMS_RUNTIME_SEED = Object.freeze([
     permission_envelope_id: "perm_rp07_vault",
     audit_trace_id: "audit_rp07_vault",
     sha256: "seed",
-    created_by: DEFAULT_VAULT_ACCOUNT.user_id,
-    registered_account: DEFAULT_VAULT_ACCOUNT,
+    created_by: account.user_id,
+    registered_account: account,
   }),
   Object.freeze({
     model_type: "DmsFileObject",
@@ -113,9 +115,12 @@ export const VAULT_DMS_RUNTIME_SEED = Object.freeze([
     mime_type: "application/pdf",
     permission_envelope_id: "perm_rp07_vault",
     audit_trace_id: "audit_rp07_vault",
-    owner_user_id: DEFAULT_VAULT_ACCOUNT.user_id,
+    owner_user_id: account.user_id,
   }),
-]);
+  ]);
+}
+
+export const VAULT_DMS_RUNTIME_SEED = createVaultDmsRuntimeSeed();
 
 export function createVaultDmsRuntimeContext({
   repository = createDmsRepository({ seedRecords: VAULT_DMS_RUNTIME_SEED }),
