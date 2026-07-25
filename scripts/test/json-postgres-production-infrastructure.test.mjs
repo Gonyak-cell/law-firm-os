@@ -233,6 +233,8 @@ test("W15 inventory bootstrap closes the pre-schema audit cycle without direct s
     "scripts/run-json-postgres-production-infrastructure.mjs",
     "utf8",
   );
+  assert.match(runner, /cloudFormationParameterJsonArgs\(parameters\)/u);
+  assert.doesNotMatch(runner, /cloudFormationParameterArgs\(parameters\)/u);
   assert.match(
     runner,
     /sourceIsAncestor: gitIsAncestor\(sourceSha, originMainSha\)/u,

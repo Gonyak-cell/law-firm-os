@@ -4,6 +4,7 @@ import {
   CLOUDFORMATION_TEMPLATE_BODY_MAX_BYTES,
   buildVersionedS3TemplateUrl,
   cloudFormationParameterArgs,
+  cloudFormationParameterJsonArgs,
   cloudFormationTemplateSha256,
   cloudFormationTemplateArgs,
   cloudFormationTemplateRequiresUrl,
@@ -140,6 +141,46 @@ test("CloudFormation update parameters preserve hidden NoEcho values", () => {
     () => cloudFormationParameterArgs({
       MissingValue: undefined,
     }),
+    /has no value/u,
+  );
+});
+
+test("CloudFormation JSON parameters preserve structured text as string values", () => {
+  const workerEvent = JSON.stringify({
+    mode: "incremental",
+    nested: { values: ["alpha,beta", "(gamma)"] },
+  });
+  assert.deepEqual(
+    JSON.parse(cloudFormationParameterJsonArgs({
+      ProjectionWorkerEventJson: "{}",
+      StructuredWorkerEvent: workerEvent,
+      PasswordResetFromEmail: "****",
+    })[0]),
+    [
+      {
+        ParameterKey: "ProjectionWorkerEventJson",
+        ParameterValue: "{}",
+      },
+      {
+        ParameterKey: "StructuredWorkerEvent",
+        ParameterValue: workerEvent,
+      },
+      {
+        ParameterKey: "PasswordResetFromEmail",
+        UsePreviousValue: true,
+      },
+    ],
+  );
+  assert.throws(
+    () => cloudFormationParameterJsonArgs({ "unsafe,key": "value" }),
+    /parameter key is invalid/u,
+  );
+  assert.throws(
+    () => cloudFormationParameterJsonArgs({ MissingValue: null }),
+    /has no value/u,
+  );
+  assert.throws(
+    () => cloudFormationParameterJsonArgs({ MissingValue: undefined }),
     /has no value/u,
   );
 });
