@@ -1440,7 +1440,45 @@ test("W15 resume evidence records the resolved incremental mode", async () => {
   };
   w15Authorization.approval.phase = "w15-relational-projection";
   let requestedMode;
-  const result = await executeJsonPostgresRelationalProjection({
+  let refreshedTenant;
+  const projectedResult = {
+    outcome: "PASS",
+    mode: "incremental",
+    backfill_wave: null,
+    safe_counts: {
+      source_record_count: 0,
+      projected_insert_count: 0,
+      projected_update_count: 0,
+      projected_noop_count: 0,
+      committed_batch_count: 0,
+      completed_backfill_wave_count: 5,
+      consumed_outbox_event_count: 0,
+      observed_event_wave_1_count: 0,
+      observed_event_wave_2_count: 0,
+      observed_event_wave_3_count: 0,
+      observed_event_wave_4_count: 0,
+      observed_event_wave_5_count: 0,
+      remaining_outbox_event_count: 0,
+      observed_outbox_lag_ms: 0,
+      tenant_negative_visible_count: 0,
+      negative_tenant_context_denied_count: 1,
+      unmapped_nonnull_field_count: 0,
+      physical_delete_count: 0,
+      source_authority_write_count: 0,
+      dual_write_count: 0,
+      partial_commit_count: 0,
+    },
+    claims: {
+      one_way_projection: true,
+      bounded_checkpoint_resume: true,
+      event_scoped_incremental_projection: true,
+      physical_delete_prohibited: true,
+      operational_request_dual_write: false,
+      generic_ledger_authority_preserved: true,
+      projection_write_authority: false,
+    },
+  };
+  const options = {
     event: {
       action: JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
       mode: "resume",
@@ -1466,6 +1504,10 @@ test("W15 resume evidence records the resolved incremental mode", async () => {
         statement_timeout_ms: 120_000,
         pool_max: 2,
       },
+      validationEvidence: {
+        outcome: "PASS",
+        result_sha256: "d".repeat(64),
+      },
     }),
     resolveSecret: async ({ secretId }) => secretId === "lawos/hrx-projection"
       ? {
@@ -1478,60 +1520,63 @@ test("W15 resume evidence records the resolved incremental mode", async () => {
       },
     createPool: () => ({ async end() {} }),
     verifyMigrations: async () => [],
+    transaction: async (_pool, options, callback) => {
+      refreshedTenant = options.tenant_id;
+      return callback({});
+    },
+    refreshConsumerRoutes: async () => ({
+      refreshed_route_count: 4,
+      authority_promoted: false,
+    }),
     project: async ({ mode }) => {
       requestedMode = mode;
-      return {
-        outcome: "PASS",
-        mode: "incremental",
-        backfill_wave: null,
-        safe_counts: {
-          source_record_count: 0,
-          projected_insert_count: 0,
-          projected_update_count: 0,
-          projected_noop_count: 0,
-          committed_batch_count: 0,
-          completed_backfill_wave_count: 5,
-          consumed_outbox_event_count: 0,
-          observed_event_wave_1_count: 0,
-          observed_event_wave_2_count: 0,
-          observed_event_wave_3_count: 0,
-          observed_event_wave_4_count: 0,
-          observed_event_wave_5_count: 0,
-          remaining_outbox_event_count: 0,
-          observed_outbox_lag_ms: 0,
-          tenant_negative_visible_count: 0,
-          negative_tenant_context_denied_count: 1,
-          unmapped_nonnull_field_count: 0,
-          physical_delete_count: 0,
-          source_authority_write_count: 0,
-          dual_write_count: 0,
-          partial_commit_count: 0,
-        },
-        claims: {
-          one_way_projection: true,
-          bounded_checkpoint_resume: true,
-          event_scoped_incremental_projection: true,
-          physical_delete_prohibited: true,
-          operational_request_dual_write: false,
-          generic_ledger_authority_preserved: true,
-          projection_write_authority: false,
-        },
-      };
+      return projectedResult;
     },
     writeEvidence: async () => ({
       sha256: "9".repeat(64),
       byte_size: 200,
     }),
     s3Client: {},
-  });
+  };
+  const result = await executeJsonPostgresRelationalProjection(options);
   assert.equal(requestedMode, "resume");
+  assert.equal(refreshedTenant, "tenant_amic");
   assert.equal(result.mode, "incremental");
+  assert.equal(result.safe_counts.consumer_route_refresh_count, 4);
+  assert.equal(
+    result.claims.consumer_route_refresh_requires_zero_backlog,
+    true,
+  );
   assert.equal(
     createW15ProjectionWorkerMetric(result, { timestamp: 1 })
       .OutboxLagMilliseconds,
     0,
   );
   assert.equal(JSON.stringify(result).includes("projection-value"), false);
+
+  let unsafeRefreshCount = 0;
+  await assert.rejects(
+    executeJsonPostgresRelationalProjection({
+      ...options,
+      event: {
+        ...options.event,
+        attempt_ref: "w15-unsafe-incremental-route-refresh",
+      },
+      project: async () => ({
+        ...projectedResult,
+        safe_counts: {
+          ...projectedResult.safe_counts,
+          tenant_negative_visible_count: 1,
+        },
+      }),
+      refreshConsumerRoutes: async () => {
+        unsafeRefreshCount += 1;
+      },
+    }),
+    (error) =>
+      error?.code === "LAWOS_HRX_PROJECTION_ROUTE_REFRESH_GATE",
+  );
+  assert.equal(unsafeRefreshCount, 0);
 });
 
 test("W15 consumer rollout is sequential, read-only, and rolls back to the generic PostgreSQL ledger", async () => {

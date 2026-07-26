@@ -373,6 +373,86 @@ test("PostgreSQL API authority commits HRX with central idempotency, audit and o
   assert.equal((await ledger.listOutbox({ tenant_id: TENANT_A, domain_id: "hrx" })).length, 1);
 });
 
+test("PostgreSQL API authority overlays relational HRX reads only while preserving generic-ledger writes", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const dmsStorage = createLocalStorageAdapter({
+    adapter_id: "postgres-api-hrx-relational-overlay-test",
+  });
+  let projectionMaterializationCount = 0;
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger,
+    dmsStorage,
+    payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    dmsUploadRuntime: createPostgresDmsUploadRuntime({
+      pool: fixture.appPool,
+      storage: dmsStorage,
+      sourceOnly: false,
+    }),
+    hrxRelationalProjectionReader: {
+      authority: "read-model-only",
+      fallback_authority: "postgres-v2-generic-ledger",
+      async materializeSnapshot({
+        source_snapshot: sourceSnapshot,
+      }) {
+        projectionMaterializationCount += 1;
+        const projected = structuredClone(sourceSnapshot);
+        projected.tables.hrx_employees =
+          projected.tables.hrx_employees.map((employee) => ({
+            ...employee,
+            display_name: "Relational projection read",
+          }));
+        return {
+          snapshot: projected,
+          projected_table_names: ["hrx_employees"],
+          fallback_families: [],
+        };
+      },
+    },
+  });
+  await importHrxAuthorityBaseline(ledger, TENANT_A);
+  await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "POST",
+      pathname: "/api/hrx/employees",
+      idempotency_key: "hrx-relational-overlay-create-001",
+    },
+    command: (runtimes) =>
+      runtimes.hrxRuntime.repository.createEmployee({
+        tenant_id: TENANT_A,
+        employee_id: "employee-relational-overlay-001",
+        display_name: "Generic ledger write",
+        status: "active",
+      }),
+  });
+  assert.equal(projectionMaterializationCount, 0);
+  const projected = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "GET",
+      pathname: "/api/hrx/employees/employee-relational-overlay-001",
+    },
+    command: (runtimes) =>
+      runtimes.hrxRuntime.repository.getEmployee({
+        tenant_id: TENANT_A,
+        employee_id: "employee-relational-overlay-001",
+      }),
+  });
+  assert.equal(projected.display_name, "Relational projection read");
+  assert.equal(projectionMaterializationCount, 1);
+  const generic = await ledger.list({
+    tenant_id: TENANT_A,
+    domain_id: "hrx",
+    record_type: "hrx_employees",
+  });
+  assert.equal(generic[0].payload.display_name, "Generic ledger write");
+  assert.equal(authority.capabilities.hrx_relational_read_projection, true);
+  assert.equal(authority.capabilities.json_fallback, false);
+  assert.equal(authority.capabilities.dual_write, false);
+});
+
 test("PostgreSQL API authority rolls product changes back when the HRX baseline changes before shared commit", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;

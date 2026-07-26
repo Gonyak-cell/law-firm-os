@@ -315,6 +315,122 @@ export async function materializeHrxStoreFromPostgres({ ledger, tenant_id } = {}
   return store;
 }
 
+export async function materializeHrxStoreWithProjection({
+  ledger,
+  tenant_id,
+  projectionReader,
+} = {}) {
+  if (!projectionReader
+    || typeof projectionReader.materializeSnapshot !== "function"
+    || projectionReader.authority !== "read-model-only"
+    || projectionReader.fallback_authority !== "postgres-v2-generic-ledger") {
+    throw new TypeError("HRX relational projection reader contract is invalid");
+  }
+  const tenantId = requiredText(tenant_id, "tenant_id");
+  const sourceStore = await materializeHrxStoreFromPostgres({
+    ledger,
+    tenant_id: tenantId,
+  });
+  let projectionStore;
+  try {
+    assertHrxPostgresAuthorityReady({
+      store: sourceStore,
+      tenant_id: tenantId,
+    });
+    const materialized = await projectionReader.materializeSnapshot({
+      tenant_id: tenantId,
+      source_snapshot: sourceStore.snapshot(),
+    });
+    projectionStore = createFileHrxStore({
+      initialState: materialized.snapshot,
+    });
+    let closed = false;
+    const ensureOpen = () => {
+      if (closed) throw new Error("HRX projected request store is closed");
+    };
+    const readOperations = new Set(["select", "selectOne"]);
+    const store = {
+      kind: "hrx-postgres-relational-read-overlay",
+      version: HRX_POSTGRES_STORE_PORT_VERSION,
+      capabilities: Object.freeze({
+        ...sourceStore.capabilities,
+        durable: true,
+        migrations: false,
+        authority: "postgres-v2",
+        relational_read_projection: true,
+        relational_projection_authority: "read-model-only",
+        relational_projection_fallback: "postgres-v2-generic-ledger",
+        projected_table_names: materialized.projected_table_names,
+        fallback_families: materialized.fallback_families,
+        json_fallback: false,
+      }),
+      query(operation, params = {}) {
+        ensureOpen();
+        if (readOperations.has(operation)) {
+          return projectionStore.query(operation, params);
+        }
+        return sourceStore.transaction((sourceTransaction) =>
+          projectionStore.transaction((projectionTransaction) => {
+            const result = sourceTransaction.query(operation, params);
+            projectionTransaction.query(operation, params);
+            return result;
+          }));
+      },
+      transaction(callback) {
+        ensureOpen();
+        if (typeof callback !== "function") {
+          throw new TypeError("transaction callback is required");
+        }
+        return sourceStore.transaction((sourceTransaction) =>
+          projectionStore.transaction((projectionTransaction) => {
+            const transactionStore = Object.freeze({
+              ...sourceTransaction,
+              query(operation, params = {}) {
+                if (readOperations.has(operation)) {
+                  return projectionTransaction.query(operation, params);
+                }
+                const result = sourceTransaction.query(operation, params);
+                projectionTransaction.query(operation, params);
+                return result;
+              },
+              transaction() {
+                throw new Error("nested HRX transactions are not supported");
+              },
+            });
+            return callback(transactionStore);
+          }));
+      },
+      migrate(migration) {
+        ensureOpen();
+        void migration;
+        throw new Error(
+          "HRX projected request store cannot execute schema migrations",
+        );
+      },
+      snapshot() {
+        ensureOpen();
+        return sourceStore.snapshot();
+      },
+      durableGeneration() {
+        ensureOpen();
+        return sourceStore.durableGeneration();
+      },
+      close() {
+        if (closed) return;
+        closed = true;
+        projectionStore.close();
+        sourceStore.close();
+      },
+    };
+    materializedBaselines.set(store, getHrxMaterializedBaseline(sourceStore));
+    return store;
+  } catch (error) {
+    projectionStore?.close();
+    sourceStore.close();
+    throw error;
+  }
+}
+
 function migrationHash(sql) {
   return createHash("sha256").update(sql).digest("hex");
 }

@@ -91,8 +91,18 @@ function exactBinding(value, packet, mappingManifest, performanceAcceptance) {
 
 function validateExecution(
   execution,
-  { packet, mappingManifest, performanceAcceptance, requireEvents },
+  {
+    packet,
+    mappingManifest,
+    performanceAcceptance,
+    requireEvents,
+    expectedConsumerRouteRefreshCount,
+  },
 ) {
+  const consumerRouteRefreshCount = safeCount(
+    execution?.safe_counts?.consumer_route_refresh_count,
+    "consumer_route_refresh_count",
+  );
   if (execution?.schema_version
       !== "law-firm-os.hrx-relational-projection-execution.v2"
     || execution.outcome !== "PASS"
@@ -123,7 +133,11 @@ function validateExecution(
     || execution.result_sha256
       !== jsonPostgresRelationalProjectionExecutionSha256(execution)
     || ZERO_EXECUTION_COUNTS.some((key) =>
-      safeCount(execution.safe_counts?.[key], key) !== 0)) {
+      safeCount(execution.safe_counts?.[key], key) !== 0)
+    || execution.claims
+      ?.consumer_route_refresh_requires_zero_backlog !== true
+    || ![0, expectedConsumerRouteRefreshCount]
+      .includes(consumerRouteRefreshCount)) {
     fail("W15 incremental execution evidence is incomplete or drifted");
   }
   const consumed = safeCount(
@@ -157,6 +171,7 @@ function validateExecution(
         execution.safe_counts.projected_update_count,
         "projected_update_count",
       ),
+    consumerRouteRefreshCount,
   });
 }
 
@@ -189,7 +204,12 @@ function validateWindowValidation(
 
 function validateWindow(
   window,
-  { packet, mappingManifest, performanceAcceptance },
+  {
+    packet,
+    mappingManifest,
+    performanceAcceptance,
+    expectedConsumerRouteRefreshCount,
+  },
 ) {
   if (!TOKEN.test(window?.window_ref ?? "")) {
     fail("W15 event window reference is invalid");
@@ -204,6 +224,7 @@ function validateWindow(
     mappingManifest,
     performanceAcceptance,
     requireEvents: true,
+    expectedConsumerRouteRefreshCount,
   });
   const lagMs = validateWindowValidation(window.validation, {
     packet,
@@ -219,6 +240,8 @@ function validateWindow(
     consumed_outbox_event_count: execution.consumed,
     observed_event_wave_counts: execution.waveCounts,
     observed_outbox_lag_ms: lagMs,
+    consumer_route_refresh_count:
+      execution.consumerRouteRefreshCount,
   });
 }
 
@@ -247,10 +270,20 @@ export function createJsonPostgresW15IncrementalObservation({
     || windows.length !== 2) {
     fail("W15 incremental observation inputs drifted from the packet");
   }
+  const expectedConsumerRouteRefreshCount = new Set(
+    mappingManifest.tables
+      .filter((table) => table.rollout_wave >= 1
+        && table.rollout_wave <= 4)
+      .map((table) => table.rollout_wave),
+  ).size;
+  if (expectedConsumerRouteRefreshCount !== 4) {
+    fail("W15 consumer route refresh coverage is incomplete");
+  }
   const observedWindows = windows.map((window) => validateWindow(window, {
     packet,
     mappingManifest,
     performanceAcceptance,
+    expectedConsumerRouteRefreshCount,
   }));
   if (observedWindows[0].window_ref === observedWindows[1].window_ref
     || observedWindows[0].execution_result_sha256
@@ -274,9 +307,18 @@ export function createJsonPostgresW15IncrementalObservation({
     mappingManifest,
     performanceAcceptance,
     requireEvents: false,
+    expectedConsumerRouteRefreshCount,
   });
   if (replayResult.projectedWriteCount !== 0) {
     fail("W15 immediate incremental replay performed a projection write");
+  }
+  const routeRefreshCounts = [
+    ...observedWindows.map((window) =>
+      window.consumer_route_refresh_count),
+    replayResult.consumerRouteRefreshCount,
+  ];
+  if (new Set(routeRefreshCounts).size !== 1) {
+    fail("W15 incremental observation changed consumer route state");
   }
   const populatedWaves = [...new Set(
     mappingManifest.tables
@@ -323,6 +365,9 @@ export function createJsonPostgresW15IncrementalObservation({
       source_authority_write_count: 0,
       dual_write_count: 0,
       partial_commit_count: 0,
+      consumer_route_refresh_count:
+        routeRefreshCounts.reduce((total, count) => total + count, 0),
+      consumer_route_refresh_failure_count: 0,
       raw_value_count: 0,
     },
     claims: {
@@ -332,6 +377,7 @@ export function createJsonPostgresW15IncrementalObservation({
       independent_read_only_validation_verified: true,
       generic_ledger_authority_preserved: true,
       projection_authority: "read-only",
+      consumer_route_refresh_contract_verified: true,
       raw_value_returned: false,
       pii_returned: false,
       secret_material_returned: false,

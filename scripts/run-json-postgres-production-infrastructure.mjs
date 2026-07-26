@@ -36,6 +36,8 @@ import {
   JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK,
   JSON_POSTGRES_PRODUCTION_CUTOVER_PROFILE,
   JSON_POSTGRES_PRODUCTION_DEPLOY_PROFILE,
+  JSON_POSTGRES_DISABLED_HRX_MAPPING_OBJECT_KEY,
+  JSON_POSTGRES_DISABLED_HRX_VALIDATION_OBJECT_KEY,
   JSON_POSTGRES_PRODUCTION_REGION,
   JSON_POSTGRES_PRODUCTION_STACK,
   assertJsonPostgresArtifactBucketState,
@@ -52,6 +54,9 @@ import {
   validateJsonPostgresW15ProductionChangeSet,
   validateJsonPostgresW15WorkerObservability,
 } from "./lib/json-postgres-production-execution.mjs";
+import {
+  normalizeImmutableProgramInputLocator,
+} from "../apps/api/src/immutable-program-input.js";
 import {
   validateJsonPostgresProductionDeploymentManifest,
 } from "./lib/json-postgres-production-artifact.mjs";
@@ -539,6 +544,11 @@ function assertReviewedChangeSubset(review, allowed, label) {
 }
 
 const W15_WORKER_TOGGLE_CHANGE_IDS = new Set([
+  "ApiExecutionRole",
+  "ApiFunction",
+  "HttpApiIntegration",
+  "PasswordResetWorkerInvokePermission",
+  "PasswordResetWorkerSchedule",
   "ProjectionWorkerSchedule",
   "ProjectionWorkerInvokePermission",
   "ProjectionWorkerDeadLetterQueuePolicy",
@@ -840,6 +850,10 @@ if (operation === "preflight"
     EnableLambdaEniBootstrap: "true",
     EnableProjectionWorker: "false",
     ProjectionWorkerEventJson: "{}",
+    HrxProjectionMappingObjectKey:
+      JSON_POSTGRES_DISABLED_HRX_MAPPING_OBJECT_KEY,
+    HrxProjectionValidationObjectKey:
+      JSON_POSTGRES_DISABLED_HRX_VALIDATION_OBJECT_KEY,
     ProjectionWorkerLagThresholdMs: "24",
   };
   const review = createChangeSet({
@@ -1028,6 +1042,27 @@ if (operation === "preflight"
     queueAttributes,
     alarms,
   });
+  const apiConfiguration = awsJson([
+    "lambda", "get-function-configuration",
+    "--function-name", "lawos-production-api",
+  ]);
+  const apiEnvironment = apiConfiguration.Environment?.Variables ?? {};
+  if (apiEnvironment.LAWOS_HRX_RELATIONAL_PROJECTION_ENABLED
+      !== (parameters.EnableProjectionWorker === "true"
+        ? "true"
+        : "false")
+    || apiEnvironment.LAWOS_HRX_RELATIONAL_PROJECTION_EVENT_LOCATOR
+      !== parameters.ProjectionWorkerEventJson
+    || apiEnvironment
+      .LAWOS_HRX_RELATIONAL_PROJECTION_MAPPING_OBJECT_KEY
+      !== parameters.HrxProjectionMappingObjectKey
+    || apiEnvironment
+      .LAWOS_HRX_RELATIONAL_PROJECTION_VALIDATION_OBJECT_KEY
+      !== parameters.HrxProjectionValidationObjectKey
+    || apiEnvironment.LAWOS_EXECUTION_PACKET_SHA256
+      !== packet.packet_sha256) {
+    throw new Error("W15 production API projection input binding drifted");
+  }
   result = {
     operation,
     outcome: "PASS",
@@ -1250,6 +1285,26 @@ if (operation === "preflight"
     || workerEvent.packet_sha256 !== packet.packet_sha256) {
     throw new Error("W15 projection worker event exact binding drifted");
   }
+  validateJsonPostgresW15ProjectionEvent(workerEvent, {
+    packet,
+    artifactSha256: packet.bindings.artifact_sha256,
+  });
+  const mappingLocator = normalizeImmutableProgramInputLocator(
+    workerEvent.inputs.mapping_manifest,
+    {
+      bucket: packet.target.program_input_bucket_name,
+      expectedBucketOwner:
+        packet.target.program_input_expected_bucket_owner,
+    },
+  );
+  const validationLocator = normalizeImmutableProgramInputLocator(
+    workerEvent.inputs.validation_evidence,
+    {
+      bucket: packet.target.program_input_bucket_name,
+      expectedBucketOwner:
+        packet.target.program_input_expected_bucket_owner,
+    },
+  );
   const stack = currentStack(JSON_POSTGRES_PRODUCTION_STACK);
   if (!stack) throw new Error("production stack does not exist");
   const current = parameterMap(stack);
@@ -1298,13 +1353,15 @@ if (operation === "preflight"
       byteSize: storedWorkerEvent.byte_size,
     });
   const serializedWorkerEventLocator = JSON.stringify(workerEventLocator);
-  if (Buffer.byteLength(serializedWorkerEventLocator) > 4096) {
+  if (Buffer.byteLength(serializedWorkerEventLocator) > 1024) {
     throw new Error("W15 projection worker event locator exceeds the CloudFormation parameter limit");
   }
   const parameters = {
     ...current,
     EnableProjectionWorker: "true",
     ProjectionWorkerEventJson: serializedWorkerEventLocator,
+    HrxProjectionMappingObjectKey: mappingLocator.key,
+    HrxProjectionValidationObjectKey: validationLocator.key,
   };
   const review = createChangeSet({
     stackName: JSON_POSTGRES_PRODUCTION_STACK,
@@ -1336,6 +1393,8 @@ if (operation === "preflight"
     worker_event_locator_sha256:
       sha256ProgramBytes(serializedWorkerEventLocator),
     worker_event_upload_mutation_count: storedWorkerEvent.mutation_count,
+    hrx_projection_mapping_object_key: mappingLocator.key,
+    hrx_projection_validation_object_key: validationLocator.key,
     production_traffic_enabled: true,
     projection_worker_enabled: false,
     aws_mutation_count: 1 + storedWorkerEvent.mutation_count,
@@ -1360,7 +1419,15 @@ if (operation === "preflight"
     || review.backfill_wave_5_receipt_sha256
       !== backfill.canonical_sha256
     || review.worker_event_locator_sha256
-      !== sha256ProgramBytes(JSON.stringify(review.worker_event_locator))) {
+      !== sha256ProgramBytes(JSON.stringify(review.worker_event_locator))
+    || !/^[A-Za-z0-9][A-Za-z0-9._/-]{0,511}$/u
+      .test(review.hrx_projection_mapping_object_key ?? "")
+    || !/^[A-Za-z0-9][A-Za-z0-9._/-]{0,511}$/u
+      .test(review.hrx_projection_validation_object_key ?? "")
+    || review.hrx_projection_mapping_object_key
+      === JSON_POSTGRES_DISABLED_HRX_MAPPING_OBJECT_KEY
+    || review.hrx_projection_validation_object_key
+      === JSON_POSTGRES_DISABLED_HRX_VALIDATION_OBJECT_KEY) {
     throw new Error("reviewed W15 worker enable change set is invalid");
   }
   const verifiedWorkerEventLocator =
@@ -1425,6 +1492,11 @@ if (operation === "preflight"
   const parameters = {
     ...current,
     EnableProjectionWorker: "false",
+    ProjectionWorkerEventJson: "{}",
+    HrxProjectionMappingObjectKey:
+      JSON_POSTGRES_DISABLED_HRX_MAPPING_OBJECT_KEY,
+    HrxProjectionValidationObjectKey:
+      JSON_POSTGRES_DISABLED_HRX_VALIDATION_OBJECT_KEY,
   };
   const review = createChangeSet({
     stackName: JSON_POSTGRES_PRODUCTION_STACK,

@@ -4,6 +4,7 @@ import {
   createHrxOperationalDomainSnapshot,
   getHrxMaterializedBaseline,
   materializeHrxStoreFromPostgres,
+  materializeHrxStoreWithProjection,
 } from "../../../packages/hrx/src/postgres-store-v2.js";
 import { createHrxRuntimeContext } from "./hrx-runtime-context.js";
 import { createMasterDataRepository } from "../../../packages/master-data/src/repository.js";
@@ -105,12 +106,22 @@ export async function runPostgresReadWithBaselineRetry({
   }
 }
 
-function createHrxDomainParticipant(requestContext) {
+function createHrxDomainParticipant(requestContext, projectionReader) {
+  const projectionRead =
+    ["GET", "HEAD"].includes(
+      String(requestContext?.method ?? "").toUpperCase(),
+    ) && projectionReader != null;
   return Object.freeze({
     key: "hrxStore",
     domain_id: HRX_DOMAIN_ID,
     async materialize({ ledger, tenant_id }) {
-      const store = await materializeHrxStoreFromPostgres({ ledger, tenant_id });
+      const store = projectionRead
+        ? await materializeHrxStoreWithProjection({
+            ledger,
+            tenant_id,
+            projectionReader,
+          })
+        : await materializeHrxStoreFromPostgres({ ledger, tenant_id });
       try {
         assertHrxPostgresAuthorityReady({ store, tenant_id });
         return store;
@@ -215,7 +226,14 @@ function createRequestRuntimes({ repositories, hrxStore, dmsStorage, dmsUploadRu
   });
 }
 
-export function createPostgresApiRuntimeAuthority({ ledger, dmsStorage, dmsUploadRuntime, payrollArtifactSecret, payrollProviders = Object.freeze({}) } = {}) {
+export function createPostgresApiRuntimeAuthority({
+  ledger,
+  dmsStorage,
+  dmsUploadRuntime,
+  payrollArtifactSecret,
+  payrollProviders = Object.freeze({}),
+  hrxRelationalProjectionReader = null,
+} = {}) {
   if (!ledger || typeof ledger.transactionMany !== "function") {
     throw new TypeError("PostgreSQL domain ledger is required");
   }
@@ -227,6 +245,14 @@ export function createPostgresApiRuntimeAuthority({ ledger, dmsStorage, dmsUploa
   }
   if (!(typeof payrollArtifactSecret === "string" || Buffer.isBuffer(payrollArtifactSecret)) || Buffer.byteLength(payrollArtifactSecret) < 32) {
     throw new TypeError("PostgreSQL API authority requires injected payroll artifact secret material");
+  }
+  if (hrxRelationalProjectionReader != null
+    && (hrxRelationalProjectionReader.authority !== "read-model-only"
+      || hrxRelationalProjectionReader.fallback_authority
+        !== "postgres-v2-generic-ledger"
+      || typeof hrxRelationalProjectionReader.materializeSnapshot
+        !== "function")) {
+    throw new TypeError("HRX relational projection reader contract is invalid");
   }
 
   async function run({ tenant_id, command, request_context = null } = {}) {
@@ -240,7 +266,12 @@ export function createPostgresApiRuntimeAuthority({ ledger, dmsStorage, dmsUploa
           ledger,
           tenant_id: tenantId,
           domains: PRODUCT_DOMAINS,
-          additional_domains: [createHrxDomainParticipant(request_context)],
+          additional_domains: [
+            createHrxDomainParticipant(
+              request_context,
+              hrxRelationalProjectionReader,
+            ),
+          ],
           command: (repositories) => command(createRequestRuntimes({
             repositories,
             hrxStore: repositories.hrxStore,
@@ -264,6 +295,11 @@ export function createPostgresApiRuntimeAuthority({ ledger, dmsStorage, dmsUploa
       idempotency: true,
       audit: true,
       outbox: true,
+      hrx_relational_read_projection:
+        hrxRelationalProjectionReader != null,
+      hrx_relational_projection_authority: "read-model-only",
+      hrx_relational_projection_fallback:
+        "postgres-v2-generic-ledger",
       json_fallback: false,
       dual_write: false,
       offline_mutation: false,

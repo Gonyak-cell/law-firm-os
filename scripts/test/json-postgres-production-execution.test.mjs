@@ -4,6 +4,8 @@ import {
   JSON_POSTGRES_PRODUCTION_ACCOUNT,
   JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK,
   JSON_POSTGRES_PRODUCTION_STACK,
+  JSON_POSTGRES_DISABLED_HRX_MAPPING_OBJECT_KEY,
+  JSON_POSTGRES_DISABLED_HRX_VALIDATION_OBJECT_KEY,
   assertJsonPostgresArtifactBucketState,
   assertJsonPostgresArtifactStoreBinding,
   assertJsonPostgresProductionCaller,
@@ -30,6 +32,8 @@ function packet() {
       artifact_bucket_name: "lawos-prod-artifacts-770880870480",
       artifact_kms_key_ref: "alias/lawos-production-artifacts",
       program_input_bucket_name: "lawos-prod-program-input-770880870480",
+      program_input_expected_bucket_owner:
+        JSON_POSTGRES_PRODUCTION_ACCOUNT,
       dms_bucket_name: "lawos-prod-dms-770880870480",
       approved_tenant_ids: ["tenant-approved"],
     },
@@ -88,6 +92,14 @@ test("production stack parameters preserve exact packet, tenant, traffic and ENI
   assert.equal(parameters.EnableLambdaEniBootstrap, "true");
   assert.equal(parameters.EnableProjectionWorker, "false");
   assert.equal(parameters.ProjectionWorkerEventJson, "{}");
+  assert.equal(
+    parameters.HrxProjectionMappingObjectKey,
+    JSON_POSTGRES_DISABLED_HRX_MAPPING_OBJECT_KEY,
+  );
+  assert.equal(
+    parameters.HrxProjectionValidationObjectKey,
+    JSON_POSTGRES_DISABLED_HRX_VALIDATION_OBJECT_KEY,
+  );
   assert.equal(parameters.ProjectionWorkerLagThresholdMs, "24");
   assert.equal(parameters.MonthlyCostCeilingKrw, "300000");
   assert.throws(() => buildJsonPostgresProductionStackParameters({
@@ -529,6 +541,11 @@ test("artifact bucket and production stack observations are exact and fail close
       EnableProductionTraffic: "false",
       EnableLambdaEniBootstrap: "false",
       EnableProjectionWorker: "false",
+      ProjectionWorkerEventJson: "{}",
+      HrxProjectionMappingObjectKey:
+        JSON_POSTGRES_DISABLED_HRX_MAPPING_OBJECT_KEY,
+      HrxProjectionValidationObjectKey:
+        JSON_POSTGRES_DISABLED_HRX_VALIDATION_OBJECT_KEY,
       ProjectionWorkerLagThresholdMs: "24",
       MonthlyCostCeilingKrw: "300000",
     }).map(([ParameterKey, ParameterValue]) => ({ ParameterKey, ParameterValue })),
@@ -549,6 +566,52 @@ test("artifact bucket and production stack observations are exact and fail close
   });
   assert.equal(goLive.traffic_enabled, true);
   assert.equal(goLive.temporary_eni_allow_expected, 0);
+  const workerStack = structuredClone(trafficStack);
+  const workerParameters = Object.fromEntries(
+    workerStack.Parameters.map((entry) => [
+      entry.ParameterKey,
+      entry,
+    ]),
+  );
+  workerParameters.EnableProjectionWorker.ParameterValue = "true";
+  const workerEventSha256 = "9".repeat(64);
+  workerParameters.ProjectionWorkerEventJson.ParameterValue =
+    JSON.stringify({
+      schema_version:
+        "law-firm-os.immutable-program-input-locator.v1",
+      bucket: value.target.program_input_bucket_name,
+      key:
+        `program-input/${value.packet_sha256}/w15-worker-event/`
+        + `${value.source_sha}/${workerEventSha256}.json`,
+      version_id: "worker-event-version-1",
+      expected_bucket_owner:
+        value.target.program_input_expected_bucket_owner,
+      sha256: workerEventSha256,
+      byte_size: 512,
+    });
+  workerParameters.HrxProjectionMappingObjectKey.ParameterValue =
+    "program-input/exact/mapping.json";
+  workerParameters.HrxProjectionValidationObjectKey.ParameterValue =
+    "program-input/exact/validation.json";
+  assert.equal(assertJsonPostgresProductionStack(workerStack, {
+    packet: value,
+    artifactVersion: "v1",
+    trustRegistrySha256: "e".repeat(64),
+    trafficEnabled: true,
+    projectionWorkerEnabled: true,
+  }).traffic_enabled, true);
+  workerParameters.HrxProjectionMappingObjectKey.ParameterValue =
+    JSON_POSTGRES_DISABLED_HRX_MAPPING_OBJECT_KEY;
+  assert.throws(
+    () => assertJsonPostgresProductionStack(workerStack, {
+      packet: value,
+      artifactVersion: "v1",
+      trustRegistrySha256: "e".repeat(64),
+      trafficEnabled: true,
+      projectionWorkerEnabled: true,
+    }),
+    /projection runtime input binding drifted/u,
+  );
 });
 
 test("combined template and parameter digests are deterministic", () => {
