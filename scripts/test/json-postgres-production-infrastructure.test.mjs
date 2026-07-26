@@ -436,7 +436,7 @@ test("W15 rollback tooling disables the worker schedule without an ENI or traffi
   );
   assert.match(
     source,
-    /const W15_WORKER_TOGGLE_CHANGE_IDS = new Set\(\[[\s\S]*"ApiExecutionRole",[\s\S]*"ApiFunction",[\s\S]*"ProjectionWorkerSchedule",[\s\S]*"ProjectionWorkerInvokePermission",[\s\S]*"ProjectionWorkerDeadLetterQueuePolicy",[\s\S]*\]\)/u,
+    /const W15_WORKER_TOGGLE_CHANGE_IDS = new Set\(\[[\s\S]*"ApiExecutionRole",[\s\S]*"ApiFunction",[\s\S]*"ProjectionWorkerSchedule",[\s\S]*"ProjectionWorkerInvokePermission",[\s\S]*"ProjectionWorkerDeadLetterQueuePolicy",[\s\S]*"SecretsManagerEndpoint",[\s\S]*\]\)/u,
   );
   assert.equal(
     source.match(
