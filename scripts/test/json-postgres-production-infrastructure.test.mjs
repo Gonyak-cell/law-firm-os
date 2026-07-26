@@ -237,6 +237,15 @@ test("W15 rollback tooling disables the worker schedule without an ENI or traffi
     source,
     /temporary_eni_allow_count: 0,[\s\S]*production_write_count: 0/u,
   );
+  assert.match(
+    source,
+    /ProjectionWorkerEventJson: serializedWorkerEventLocator/u,
+  );
+  assert.doesNotMatch(
+    source,
+    /ProjectionWorkerEventJson: JSON\.stringify\(workerEvent\)/u,
+  );
+  assert.match(source, /inputKind: "w15-worker-event"/u);
 });
 
 test("W15 inventory bootstrap closes the pre-schema audit cycle without direct secret access", () => {

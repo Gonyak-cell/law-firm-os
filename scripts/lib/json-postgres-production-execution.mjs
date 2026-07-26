@@ -10,6 +10,8 @@ export const JSON_POSTGRES_PRODUCTION_CUTOVER_PROFILE = "matter-cutover-operator
 export const JSON_POSTGRES_PRODUCTION_AUDIT_PROFILE = "matter-readonly-auditor";
 export const JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK = "lawos-production-artifact-store";
 export const JSON_POSTGRES_PRODUCTION_STACK = "lawos-production";
+export const JSON_POSTGRES_IMMUTABLE_PROGRAM_INPUT_LOCATOR_VERSION =
+  "law-firm-os.immutable-program-input-locator.v1";
 
 const SHA1 = /^[a-f0-9]{40}$/u;
 const SHA256 = /^[a-f0-9]{64}$/u;
@@ -389,6 +391,42 @@ export function assertJsonPostgresProductionStack(stack, {
     stack_status: stack.StackStatus,
     traffic_enabled: trafficEnabled,
     temporary_eni_allow_expected: eniBootstrapEnabled ? 2 : 0,
+  });
+}
+
+export function createJsonPostgresProductionWorkerEventLocator({
+  packet,
+  key,
+  versionId,
+  sha256: digest,
+  byteSize,
+} = {}) {
+  const expectedPrefix =
+    `program-input/${packet?.packet_sha256}/w15-worker-event/`
+    + `${packet?.source_sha}/`;
+  if (packet?.target?.program_input_bucket_name
+      !== `lawos-prod-program-input-${JSON_POSTGRES_PRODUCTION_ACCOUNT}`
+    || packet?.target?.program_input_expected_bucket_owner
+      !== JSON_POSTGRES_PRODUCTION_ACCOUNT
+    || !key?.startsWith(expectedPrefix)
+    || key !== `${expectedPrefix}${digest}.json`
+    || key.split("/").includes("..")
+    || !versionId
+    || versionId === "null"
+    || !SHA256.test(digest ?? "")
+    || !Number.isSafeInteger(byteSize)
+    || byteSize < 1) {
+    fail("production W15 worker event locator is invalid");
+  }
+  return Object.freeze({
+    schema_version: JSON_POSTGRES_IMMUTABLE_PROGRAM_INPUT_LOCATOR_VERSION,
+    bucket: packet.target.program_input_bucket_name,
+    key,
+    version_id: versionId,
+    expected_bucket_owner:
+      packet.target.program_input_expected_bucket_owner,
+    sha256: digest,
+    byte_size: byteSize,
   });
 }
 

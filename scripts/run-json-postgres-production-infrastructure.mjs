@@ -44,6 +44,7 @@ import {
   assertJsonPostgresProductionStack,
   buildJsonPostgresArtifactStoreParameters,
   buildJsonPostgresProductionStackParameters,
+  createJsonPostgresProductionWorkerEventLocator,
   jsonPostgresProductionCombinedTemplateSha256,
   jsonPostgresProductionInfrastructureResultSha256,
   jsonPostgresProductionParametersSha256,
@@ -358,6 +359,8 @@ function putImmutableProductionObject({
   kmsKeyArn,
   contentType,
   allowUpload,
+  bucket = packet.target.artifact_bucket_name,
+  inputKind = null,
 }) {
   const bytes = readFileSync(path);
   const digest = sha256ProgramBytes(bytes);
@@ -367,7 +370,7 @@ function putImmutableProductionObject({
   let mutationCount = 0;
   let head = awsTryJson([
     "s3api", "head-object",
-    "--bucket", packet.target.artifact_bucket_name,
+    "--bucket", bucket,
     "--key", key,
     "--expected-bucket-owner", JSON_POSTGRES_PRODUCTION_ACCOUNT,
     "--checksum-mode", "ENABLED",
@@ -380,7 +383,7 @@ function putImmutableProductionObject({
       new Date(Date.now() + 366 * 24 * 60 * 60 * 1000).toISOString();
     const uploaded = awsJson([
       "s3api", "put-object",
-      "--bucket", packet.target.artifact_bucket_name,
+      "--bucket", bucket,
       "--key", key,
       "--body", path,
       "--expected-bucket-owner", JSON_POSTGRES_PRODUCTION_ACCOUNT,
@@ -392,7 +395,8 @@ function putImmutableProductionObject({
       "--object-lock-mode", "COMPLIANCE",
       "--object-lock-retain-until-date", retainUntil,
       "--metadata",
-      `sha256=${digest},source-sha=${sourceSha},source-tree=${sourceTree},packet-sha256=${packet.packet_sha256}`,
+      `sha256=${digest},source-sha=${sourceSha},source-tree=${sourceTree},packet-sha256=${packet.packet_sha256}`
+        + (inputKind ? `,input-kind=${inputKind}` : ""),
     ]);
     if (!uploaded.VersionId || uploaded.VersionId === "null") {
       throw new Error("production immutable object upload returned no version");
@@ -400,7 +404,7 @@ function putImmutableProductionObject({
     mutationCount = 1;
     head = awsJson([
       "s3api", "head-object",
-      "--bucket", packet.target.artifact_bucket_name,
+      "--bucket", bucket,
       "--key", key,
       "--version-id", uploaded.VersionId,
       "--expected-bucket-owner", JSON_POSTGRES_PRODUCTION_ACCOUNT,
@@ -415,6 +419,7 @@ function putImmutableProductionObject({
     || head.Metadata?.["source-sha"] !== sourceSha
     || head.Metadata?.["source-tree"] !== sourceTree
     || head.Metadata?.["packet-sha256"] !== packet.packet_sha256
+    || (inputKind && head.Metadata?.["input-kind"] !== inputKind)
     || head.ChecksumSHA256
       !== Buffer.from(digest, "hex").toString("base64")
     || head.ObjectLockMode !== "COMPLIANCE"
@@ -1205,6 +1210,7 @@ if (operation === "preflight"
   const stack = currentStack(JSON_POSTGRES_PRODUCTION_STACK);
   if (!stack) throw new Error("production stack does not exist");
   const current = parameterMap(stack);
+  const outputs = outputMap(stack);
   assertJsonPostgresProductionStack(stack, {
     packet,
     artifactVersion: current.ArtifactVersion,
@@ -1214,10 +1220,48 @@ if (operation === "preflight"
     projectionWorkerEnabled: false,
   });
   validateEniAuthorityRemoved({ includeProjection: true });
+  const resolvedProgramInputKey = awsJson([
+    "kms", "describe-key",
+    "--key-id", packet.target.program_input_kms_key_ref,
+  ]).KeyMetadata?.Arn;
+  if (outputs.ProgramInputBucketName
+      !== packet.target.program_input_bucket_name
+    || !outputs.ProgramInputKmsKeyArn
+    || resolvedProgramInputKey !== outputs.ProgramInputKmsKeyArn) {
+    throw new Error("production program-input storage binding drifted");
+  }
+  const workerEventSha256 = sha256ProgramBytes(
+    readPrivateProgramBytes(workerEventPath, "W15 projection worker event"),
+  );
+  const workerEventKey =
+    `program-input/${packet.packet_sha256}/w15-worker-event/`
+    + `${sourceSha}/${workerEventSha256}.json`;
+  const storedWorkerEvent = putImmutableProductionObject({
+    key: workerEventKey,
+    path: workerEventPath,
+    expectedSha256: workerEventSha256,
+    kmsKeyArn: outputs.ProgramInputKmsKeyArn,
+    contentType: "application/json",
+    allowUpload: true,
+    bucket: packet.target.program_input_bucket_name,
+    inputKind: "w15-worker-event",
+  });
+  const workerEventLocator =
+    createJsonPostgresProductionWorkerEventLocator({
+      packet,
+      key: workerEventKey,
+      versionId: storedWorkerEvent.version_id,
+      sha256: storedWorkerEvent.sha256,
+      byteSize: storedWorkerEvent.byte_size,
+    });
+  const serializedWorkerEventLocator = JSON.stringify(workerEventLocator);
+  if (Buffer.byteLength(serializedWorkerEventLocator) > 4096) {
+    throw new Error("W15 projection worker event locator exceeds the CloudFormation parameter limit");
+  }
   const parameters = {
     ...current,
     EnableProjectionWorker: "true",
-    ProjectionWorkerEventJson: JSON.stringify(workerEvent),
+    ProjectionWorkerEventJson: serializedWorkerEventLocator,
   };
   const review = createChangeSet({
     stackName: JSON_POSTGRES_PRODUCTION_STACK,
@@ -1247,10 +1291,14 @@ if (operation === "preflight"
     purpose: "w15-incremental-worker-enable",
     artifact_version: current.ArtifactVersion,
     backfill_wave_5_receipt_sha256: backfill.canonical_sha256,
-    worker_event_sha256: sha256ProgramBytes(JSON.stringify(workerEvent)),
+    worker_event_sha256: workerEventSha256,
+    worker_event_locator: workerEventLocator,
+    worker_event_locator_sha256:
+      sha256ProgramBytes(serializedWorkerEventLocator),
+    worker_event_upload_mutation_count: storedWorkerEvent.mutation_count,
     production_traffic_enabled: true,
     projection_worker_enabled: false,
-    aws_mutation_count: 1,
+    aws_mutation_count: 1 + storedWorkerEvent.mutation_count,
     production_write_count: 0,
   };
 } else if (operation === "w15-execute-worker-enable-change-set") {
@@ -1270,8 +1318,22 @@ if (operation === "preflight"
     || review.outcome !== "PASS"
     || review.stack_name !== JSON_POSTGRES_PRODUCTION_STACK
     || review.backfill_wave_5_receipt_sha256
-      !== backfill.canonical_sha256) {
+      !== backfill.canonical_sha256
+    || review.worker_event_locator_sha256
+      !== sha256ProgramBytes(JSON.stringify(review.worker_event_locator))) {
     throw new Error("reviewed W15 worker enable change set is invalid");
+  }
+  const verifiedWorkerEventLocator =
+    createJsonPostgresProductionWorkerEventLocator({
+      packet,
+      key: review.worker_event_locator?.key,
+      versionId: review.worker_event_locator?.version_id,
+      sha256: review.worker_event_locator?.sha256,
+      byteSize: review.worker_event_locator?.byte_size,
+    });
+  if (JSON.stringify(verifiedWorkerEventLocator)
+      !== JSON.stringify(review.worker_event_locator)) {
+    throw new Error("reviewed W15 worker event locator binding drifted");
   }
   assertReviewedChangeSubset(
     review,

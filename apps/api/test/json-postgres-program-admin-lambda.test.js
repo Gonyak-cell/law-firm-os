@@ -21,6 +21,7 @@ import {
   JSON_POSTGRES_PROGRAM_ADMIN_ACTION,
   JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
   JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION,
+  resolveJsonPostgresScheduledProgramEvent,
 } from "../src/json-postgres-program-inputs.js";
 
 const SOURCE_SHA = "a".repeat(40);
@@ -719,6 +720,90 @@ test("program error classification safely preserves AWS service error names with
       name: "Error",
     }),
     "LAWOS_PROGRAM_INPUT",
+  );
+});
+
+test("scheduled W15 worker resolves only an exact immutable program-input locator", async () => {
+  const scheduledEnv = {
+    ...env(),
+    LAWOS_AWS_ACCOUNT_ID: "770880870480",
+    LAWOS_PROGRAM_INPUT_BUCKET:
+      "lawos-prod-program-input-770880870480",
+    LAWOS_DEPLOYMENT_COMMIT: SOURCE_SHA,
+    LAWOS_DEPLOYMENT_TREE: SOURCE_TREE,
+    LAWOS_DEPLOYMENT_ARTIFACT_SHA256: ARTIFACT_SHA,
+  };
+  const resolved = {
+    action: JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
+    phase: "w15-relational-projection",
+    mode: "resume",
+    attempt_ref: "w15-worker-window-001",
+    source_sha: SOURCE_SHA,
+    source_tree: SOURCE_TREE,
+    artifact_sha256: ARTIFACT_SHA,
+    packet_sha256: PACKET_SHA,
+  };
+  const bytes = Buffer.from(JSON.stringify(resolved));
+  const digest = createHash("sha256").update(bytes).digest("hex");
+  const locator = {
+    schema_version: "law-firm-os.immutable-program-input-locator.v1",
+    bucket: scheduledEnv.LAWOS_PROGRAM_INPUT_BUCKET,
+    key:
+      `program-input/${PACKET_SHA}/w15-worker-event/`
+      + `${SOURCE_SHA}/${digest}.json`,
+    version_id: "worker-event-version-001",
+    expected_bucket_owner: "770880870480",
+    sha256: digest,
+    byte_size: bytes.byteLength,
+  };
+  const readJson = async (options) => {
+    assert.equal(options.expectedBucket, scheduledEnv.LAWOS_PROGRAM_INPUT_BUCKET);
+    assert.equal(options.expectedBucketOwner, "770880870480");
+    assert.equal(options.expectedKmsKeyArn, KMS);
+    assert.equal(options.maxBytes, 256 * 1024);
+    return resolved;
+  };
+  assert.equal(
+    await resolveJsonPostgresScheduledProgramEvent({
+      event: resolved,
+      env: scheduledEnv,
+      readJson: async () => {
+        throw new Error("direct events must not use S3");
+      },
+    }),
+    resolved,
+  );
+  assert.equal(
+    await resolveJsonPostgresScheduledProgramEvent({
+      event: locator,
+      env: scheduledEnv,
+      readJson,
+    }),
+    resolved,
+  );
+  await assert.rejects(
+    resolveJsonPostgresScheduledProgramEvent({
+      event: { ...locator, key: `program-input/${PACKET_SHA}/other.json` },
+      env: scheduledEnv,
+      readJson,
+    }),
+    (error) => error?.code === "LAWOS_PROGRAM_SCHEDULED_EVENT",
+  );
+  await assert.rejects(
+    resolveJsonPostgresScheduledProgramEvent({
+      event: locator,
+      env: scheduledEnv,
+      readJson: async () => ({ ...resolved, source_sha: "e".repeat(40) }),
+    }),
+    (error) => error?.code === "LAWOS_PROGRAM_DEPLOYMENT_BINDING",
+  );
+  await assert.rejects(
+    resolveJsonPostgresScheduledProgramEvent({
+      event: { ...locator, bucket: "lawos-prod-program-input-000000000000" },
+      env: scheduledEnv,
+      readJson,
+    }),
+    (error) => error?.code === "LAWOS_PROGRAM_INPUT_LOCATOR",
   );
 });
 
