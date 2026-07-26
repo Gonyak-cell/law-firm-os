@@ -773,7 +773,7 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
       FunctionName: "lawos-production-projection-auditor",
       Handler: "apps/api/src/json-postgres-program-admin-lambda.handler",
       KmsKeyArn: { "Fn::GetAtt": ["ProductionKey", "Arn"] },
-      MemorySize: 1024,
+      MemorySize: 2048,
       ReservedConcurrentExecutions: 1,
       Role: {
         "Fn::GetAtt": ["ProjectionAuditorExecutionRole", "Arn"],
@@ -1036,6 +1036,7 @@ export function validateJsonPostgresProductionTemplate(template) {
       !== "ProjectionAuditorDatabaseSecret"
     || resources.ProjectionAuditorFunction?.Properties?.Handler
       !== "apps/api/src/json-postgres-program-admin-lambda.handler"
+    || resources.ProjectionAuditorFunction?.Properties?.MemorySize !== 2048
     || resources.ProjectionAuditorFunction?.Properties?.ReservedConcurrentExecutions
       !== 1
     || resources.ProjectionAuditorFunction?.Properties?.Environment?.Variables
@@ -1049,6 +1050,7 @@ export function validateJsonPostgresProductionTemplate(template) {
       ?.LAWOS_PROJECTION_DATABASE_SECRET_ID != null
     || resources.ProjectionWorkerFunction?.Properties?.Handler
       !== "apps/api/src/json-postgres-program-admin-lambda.handler"
+    || resources.ProjectionWorkerFunction?.Properties?.MemorySize !== 2048
     || resources.ProjectionWorkerFunction?.Properties?.ReservedConcurrentExecutions
       !== 1
     || resources.ProjectionWorkerFunction?.Properties?.Environment?.Variables
