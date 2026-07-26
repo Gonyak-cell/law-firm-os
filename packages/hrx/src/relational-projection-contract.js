@@ -40,6 +40,27 @@ const FIELD_TRANSFORMS = Object.freeze({
       retain_target_on_read: true,
     }),
   ]),
+  hrx_candidates: Object.freeze([
+    Object.freeze({
+      operation: "boolean-integer",
+      source_field: "crm_party_linked",
+      target_column: "crm_party_linked",
+    }),
+  ]),
+  hrx_compensation_records: Object.freeze([
+    Object.freeze({
+      operation: "boolean-integer",
+      source_field: "raw_amount_included",
+      target_column: "raw_amount_included",
+    }),
+  ]),
+  hrx_documents: Object.freeze([
+    Object.freeze({
+      operation: "boolean-integer",
+      source_field: "document_body_included",
+      target_column: "document_body_included",
+    }),
+  ]),
   hrx_employment_profiles: Object.freeze([
     Object.freeze({
       operation: "verify-constant",
@@ -50,11 +71,23 @@ const FIELD_TRANSFORMS = Object.freeze({
   ]),
   hrx_interviews: Object.freeze([
     Object.freeze({
+      operation: "boolean-integer",
+      source_field: "restricted_access",
+      target_column: "restricted_access",
+    }),
+    Object.freeze({
       operation: "json-alias",
       source_field: "interviewer_employee_ids",
       source_shape: "array",
       target_column: "interviewer_employee_ids_json",
       retain_target_on_read: false,
+    }),
+  ]),
+  hrx_offers: Object.freeze([
+    Object.freeze({
+      operation: "boolean-integer",
+      source_field: "compensation_restricted",
+      target_column: "compensation_restricted",
     }),
   ]),
   hrx_leave_balance_entries: Object.freeze([
@@ -284,6 +317,21 @@ export function projectHrxRelationalPayload(payload, mapping) {
       consumedNonNullFieldCount += 1;
       continue;
     }
+    if (transform.operation === "boolean-integer") {
+      if (!Object.hasOwn(payload, transform.source_field)
+        || payload[transform.source_field] == null) continue;
+      const sourceValue = payload[transform.source_field];
+      if (![false, true, 0, 1].includes(sourceValue)) {
+        fail(
+          `HRX projection boolean field is invalid: ${tableName}.${transform.source_field}`,
+          "LAWOS_HRX_PROJECTION_FIELD_TRANSFORM",
+        );
+      }
+      row[transform.target_column] = sourceValue === true || sourceValue === 1
+        ? 1
+        : 0;
+      continue;
+    }
     if (transform.operation === "json-alias") {
       if (!Object.hasOwn(payload, transform.source_field)
         || payload[transform.source_field] == null) continue;
@@ -383,6 +431,18 @@ export function restoreHrxRelationalProjectionRow(row, mapping) {
       if (transform.restore_on_read) {
         restored[transform.source_field] = transform.expected_value;
       }
+      continue;
+    }
+    if (transform.operation === "boolean-integer") {
+      if (restored[transform.target_column] == null) continue;
+      if (restored[transform.target_column] !== 0
+        && restored[transform.target_column] !== 1) {
+        fail(
+          `HRX projection integer boolean is invalid: ${tableName}.${transform.target_column}`,
+          "LAWOS_HRX_PROJECTION_FIELD_TRANSFORM",
+        );
+      }
+      restored[transform.source_field] = restored[transform.target_column] === 1;
       continue;
     }
     if (transform.operation === "json-alias") {

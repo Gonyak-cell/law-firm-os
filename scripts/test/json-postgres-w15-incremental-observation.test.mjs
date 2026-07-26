@@ -8,7 +8,13 @@ import {
 
 const TRANSFORM_TARGETS = Object.freeze({
   hrx_audit_events: ["metadata_json"],
-  hrx_interviews: ["interviewer_employee_ids_json"],
+  hrx_candidates: ["crm_party_linked"],
+  hrx_compensation_records: ["raw_amount_included"],
+  hrx_documents: ["document_body_included"],
+  hrx_interviews: [
+    "interviewer_employee_ids_json",
+    "restricted_access",
+  ],
   hrx_leave_balance_entries: ["metadata_json"],
   hrx_offboarding_cases: [
     "access_revocations_json",
@@ -22,6 +28,7 @@ const TRANSFORM_TARGETS = Object.freeze({
     "document_refs_json",
     "access_requests_json",
   ],
+  hrx_offers: ["compensation_restricted"],
 });
 import {
   createHrxRelationalMappingManifest,
