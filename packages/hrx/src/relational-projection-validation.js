@@ -95,68 +95,100 @@ function targetComparable(row, fields) {
 }
 
 async function tenantSourceObservation(client, tenantId) {
-  const records = await client.query(
-      `SELECT tenant_id, record_type, record_id, state_version, payload,
-              payload_hash, append_only,
-              pg_column_size(payload)::integer AS payload_bytes
-         FROM lawos_domain.records
-        WHERE tenant_id = $1
-          AND domain_id = 'hrx'
-          AND record_type = ANY($2::text[])
-        ORDER BY record_type, record_id`,
-      [tenantId, HRX_STORE_TABLES],
-    );
-  const references = await client.query(
-      `SELECT source_record_type, source_record_id, reference_name,
-              target_record_type, target_record_id
-         FROM lawos_domain.record_references
-        WHERE tenant_id = $1 AND source_domain_id = 'hrx'
-        ORDER BY source_record_type, source_record_id, reference_name,
-                 target_record_type, target_record_id`,
-      [tenantId],
-    );
-  const outbox = await client.query(
-      `SELECT event_id, created_at::text AS created_at
-         FROM lawos_domain.outbox_events
-        WHERE tenant_id = $1 AND domain_id = 'hrx'
-        ORDER BY created_at, event_id`,
-      [tenantId],
-    );
-  const cursor = await client.query(
-      `SELECT last_created_at::text AS last_created_at, last_event_id
-         FROM lawos_projection.hrx_outbox_cursor
-        WHERE tenant_id = $1`,
-      [tenantId],
-    );
-  const state = await client.query(
-      `SELECT source_record_type, source_record_id, source_state_version,
-              source_payload_hash, source_status,
-              source_deleted_at::text AS source_deleted_at, archive_only,
-              target_primary_key_sha256, target_row_sha256
-         FROM lawos_projection.hrx_record_state
-        WHERE tenant_id = $1
-        ORDER BY source_record_type, source_record_id`,
-      [tenantId],
-    );
-  const targets = new Map(HRX_STORE_TABLES.map((table) => [table, []]));
-  const targetRows = await client.query(
-    HRX_STORE_TABLES.map((table, index) =>
-      `SELECT $${index + 2}::text AS table_name,
-              to_jsonb(target_row) AS target_row
-         FROM lawos_hrx."${table}" AS target_row
-        WHERE tenant_id = $1`).join("\nUNION ALL\n"),
-    [tenantId, ...HRX_STORE_TABLES],
+  const targetUnion = HRX_STORE_TABLES.map((table, index) =>
+    `SELECT $${index + 3}::text AS table_name,
+            to_jsonb(projected_row) AS target_row
+       FROM lawos_hrx."${table}" AS projected_row
+      WHERE tenant_id = $1`).join("\nUNION ALL\n");
+  const observed = await client.query(
+    `SELECT
+       COALESCE((
+         SELECT jsonb_agg(
+                  to_jsonb(record_row)
+                  ORDER BY record_row.record_type, record_row.record_id
+                )
+           FROM (
+             SELECT tenant_id, record_type, record_id, state_version, payload,
+                    payload_hash, append_only,
+                    pg_column_size(payload)::integer AS payload_bytes
+               FROM lawos_domain.records
+              WHERE tenant_id = $1
+                AND domain_id = 'hrx'
+                AND record_type = ANY($2::text[])
+           ) AS record_row
+       ), '[]'::jsonb) AS records,
+       COALESCE((
+         SELECT jsonb_agg(
+                  to_jsonb(reference_row)
+                  ORDER BY reference_row.source_record_type,
+                           reference_row.source_record_id,
+                           reference_row.reference_name,
+                           reference_row.target_record_type,
+                           reference_row.target_record_id
+                )
+           FROM (
+             SELECT source_record_type, source_record_id, reference_name,
+                    target_record_type, target_record_id
+               FROM lawos_domain.record_references
+              WHERE tenant_id = $1 AND source_domain_id = 'hrx'
+           ) AS reference_row
+       ), '[]'::jsonb) AS references,
+       COALESCE((
+         SELECT jsonb_agg(
+                  to_jsonb(outbox_row)
+                  ORDER BY outbox_row.created_at, outbox_row.event_id
+                )
+           FROM (
+             SELECT event_id, created_at::text AS created_at
+               FROM lawos_domain.outbox_events
+              WHERE tenant_id = $1 AND domain_id = 'hrx'
+           ) AS outbox_row
+       ), '[]'::jsonb) AS outbox,
+       (
+         SELECT to_jsonb(cursor_row)
+           FROM (
+             SELECT last_created_at::text AS last_created_at, last_event_id
+               FROM lawos_projection.hrx_outbox_cursor
+              WHERE tenant_id = $1
+              LIMIT 1
+           ) AS cursor_row
+       ) AS cursor,
+       COALESCE((
+         SELECT jsonb_agg(
+                  to_jsonb(state_row)
+                  ORDER BY state_row.source_record_type,
+                           state_row.source_record_id
+                )
+           FROM (
+             SELECT source_record_type, source_record_id, source_state_version,
+                    source_payload_hash, source_status,
+                    source_deleted_at::text AS source_deleted_at, archive_only,
+                    target_primary_key_sha256, target_row_sha256
+               FROM lawos_projection.hrx_record_state
+              WHERE tenant_id = $1
+           ) AS state_row
+       ), '[]'::jsonb) AS state,
+       COALESCE((
+         SELECT jsonb_agg(
+                  to_jsonb(target_entry)
+                  ORDER BY target_entry.table_name
+                )
+           FROM (${targetUnion}) AS target_entry
+       ), '[]'::jsonb) AS targets`,
+    [tenantId, HRX_STORE_TABLES, ...HRX_STORE_TABLES],
   );
-  for (const row of targetRows.rows) {
-    targets.get(row.table_name).push(row.target_row);
+  const row = observed.rows[0];
+  const targets = new Map(HRX_STORE_TABLES.map((table) => [table, []]));
+  for (const target of row.targets) {
+    targets.get(target.table_name).push(target.target_row);
   }
   return Object.freeze({
     tenantId,
-    records: records.rows,
-    references: references.rows,
-    outbox: outbox.rows,
-    cursor: cursor.rows[0] ?? null,
-    state: state.rows,
+    records: row.records,
+    references: row.references,
+    outbox: row.outbox,
+    cursor: row.cursor ?? null,
+    state: row.state,
     targets,
   });
 }
@@ -595,17 +627,9 @@ async function databaseContractObservation(pool, tenantId) {
     pool,
     { tenant_id: tenantId, readOnly: true, statementTimeoutMillis: 120_000 },
     async (client) => {
-      const rls = await client.query(
-          `SELECT count(*)::integer AS count
-             FROM pg_class AS relation
-             JOIN pg_namespace AS namespace ON namespace.oid = relation.relnamespace
-            WHERE namespace.nspname = 'lawos_hrx'
-              AND relation.relkind = 'r'
-              AND relation.relrowsecurity
-              AND relation.relforcerowsecurity`,
-        );
-      const triggers = await client.query(
-          `SELECT trigger_row.tgname AS trigger_name,
+      const observed = await client.query(
+        `WITH trigger_contract AS (
+           SELECT trigger_row.tgname AS trigger_name,
                   relation.relname AS event_object_table
              FROM pg_trigger AS trigger_row
              JOIN pg_class AS relation ON relation.oid = trigger_row.tgrelid
@@ -616,12 +640,11 @@ async function databaseContractObservation(pool, tenantId) {
               AND trigger_row.tgname IN (
                 'lawos_hrx_append_only_guard',
                 'lawos_hrx_delete_guard'
-              )`,
-        );
-      const grants = await client.query(
-          `SELECT granted_role.rolname AS grantee,
+              )
+         ),
+         grant_contract AS (
+           SELECT granted_role.rolname AS grantee,
                   namespace.nspname AS table_schema,
-                  relation.relname AS table_name,
                   expanded_acl.privilege_type
              FROM pg_class AS relation
              JOIN pg_namespace AS namespace
@@ -634,60 +657,95 @@ async function databaseContractObservation(pool, tenantId) {
              ) AS expanded_acl
              JOIN pg_roles AS granted_role
                ON granted_role.oid = expanded_acl.grantee
-            WHERE granted_role.rolname = ANY($1::text[])
-              AND namespace.nspname = ANY($2::text[])
-              AND relation.relkind IN ('r', 'p')`,
+            WHERE granted_role.rolname = ANY($2::text[])
+              AND namespace.nspname = ANY($3::text[])
+              AND relation.relkind IN ('r', 'p')
+         )
+         SELECT
+           (
+             SELECT count(*)::integer
+               FROM pg_class AS relation
+               JOIN pg_namespace AS namespace
+                 ON namespace.oid = relation.relnamespace
+              WHERE namespace.nspname = 'lawos_hrx'
+                AND relation.relkind = 'r'
+                AND relation.relrowsecurity
+                AND relation.relforcerowsecurity
+           ) AS forced_rls_count,
+           (
+             SELECT count(DISTINCT event_object_table)::integer
+               FROM trigger_contract
+              WHERE trigger_name = 'lawos_hrx_append_only_guard'
+           ) AS append_guard_count,
+           (
+             SELECT count(DISTINCT event_object_table)::integer
+               FROM trigger_contract
+              WHERE trigger_name = 'lawos_hrx_delete_guard'
+           ) AS delete_guard_count,
+           (
+             SELECT count(*)::integer
+               FROM grant_contract
+              WHERE grantee = $4
+                AND table_schema = 'lawos_domain'
+                AND privilege_type = ANY($7::text[])
+           ) AS writer_source_write_count,
+           (
+             SELECT count(*)::integer
+               FROM grant_contract
+              WHERE grantee = $5
+                AND table_schema IN ('lawos_hrx', 'lawos_projection')
+                AND privilege_type = ANY($7::text[])
+           ) AS consumer_write_count,
+           (
+             SELECT count(*)::integer
+               FROM grant_contract
+              WHERE grantee = $6
+                AND privilege_type = ANY($7::text[])
+           ) AS auditor_write_count,
+           (
+             SELECT (
+                      5 - count(*) FILTER (
+                        WHERE status = 'complete'
+                          AND completed_at IS NOT NULL
+                      )
+                    )::integer
+                    + count(*) FILTER (
+                        WHERE status <> 'complete' OR completed_at IS NULL
+                      )::integer
+               FROM lawos_projection.hrx_backfill_checkpoint
+              WHERE tenant_id = $1
+           ) AS incomplete_checkpoint_count`,
+        [
+          tenantId,
           [
-            [
-              HRX_PROJECTION_WRITER_ROLE,
-              HRX_PROJECTION_AUDITOR_ROLE,
-              HRX_PROJECTION_CONSUMER_ROLE,
-            ],
-            ["lawos_domain", "lawos_hrx", "lawos_projection"],
+            HRX_PROJECTION_WRITER_ROLE,
+            HRX_PROJECTION_AUDITOR_ROLE,
+            HRX_PROJECTION_CONSUMER_ROLE,
           ],
-        );
-      const checkpoints = await client.query(
-          `SELECT (
-                    5 - count(*) FILTER (
-                      WHERE status = 'complete'
-                        AND completed_at IS NOT NULL
-                    )
-                  )::integer
-                  + count(*) FILTER (
-                      WHERE status <> 'complete' OR completed_at IS NULL
-                    )::integer AS count
-             FROM lawos_projection.hrx_backfill_checkpoint
-            WHERE tenant_id = $1`,
-          [tenantId],
-        );
-      const writePrivileges = new Set(["INSERT", "UPDATE", "DELETE", "TRUNCATE"]);
-      const writerSourceWrites = grants.rows.filter((grant) =>
-        grant.grantee === HRX_PROJECTION_WRITER_ROLE
-          && grant.table_schema === "lawos_domain"
-          && writePrivileges.has(grant.privilege_type)).length;
-      const consumerWrites = grants.rows.filter((grant) =>
-        grant.grantee === HRX_PROJECTION_CONSUMER_ROLE
-          && ["lawos_hrx", "lawos_projection"].includes(grant.table_schema)
-          && writePrivileges.has(grant.privilege_type)).length;
-      const auditorWrites = grants.rows.filter((grant) =>
-        grant.grantee === HRX_PROJECTION_AUDITOR_ROLE
-          && writePrivileges.has(grant.privilege_type)).length;
-      const appendOnlyGuardTables = new Set(triggers.rows
-        .filter((trigger) => trigger.trigger_name === "lawos_hrx_append_only_guard")
-        .map((trigger) => trigger.event_object_table));
-      const deleteGuardTables = new Set(triggers.rows
-        .filter((trigger) => trigger.trigger_name === "lawos_hrx_delete_guard")
-        .map((trigger) => trigger.event_object_table));
+          ["lawos_domain", "lawos_hrx", "lawos_projection"],
+          HRX_PROJECTION_WRITER_ROLE,
+          HRX_PROJECTION_CONSUMER_ROLE,
+          HRX_PROJECTION_AUDITOR_ROLE,
+          ["INSERT", "UPDATE", "DELETE", "TRUNCATE"],
+        ],
+      );
+      const row = observed.rows[0];
       return Object.freeze({
-        forcedRlsCount: Number(rls.rows[0]?.count ?? 0),
-        appendOnlyGuardFailureCount: HRX_APPEND_ONLY_TABLES
-          .filter((table) => !appendOnlyGuardTables.has(table)).length,
-        physicalDeleteGuardFailureCount: HRX_STORE_TABLES
-          .filter((table) => !deleteGuardTables.has(table)).length,
-        writerSourceWriteGrantCount: writerSourceWrites,
-        consumerWriteGrantCount: consumerWrites,
-        auditorWriteGrantCount: auditorWrites,
-        incompleteCheckpointCount: Number(checkpoints.rows[0]?.count ?? 0),
+        forcedRlsCount: Number(row.forced_rls_count ?? 0),
+        appendOnlyGuardFailureCount: Math.max(
+          0,
+          HRX_APPEND_ONLY_TABLES.length - Number(row.append_guard_count ?? 0),
+        ),
+        physicalDeleteGuardFailureCount: Math.max(
+          0,
+          HRX_STORE_TABLES.length - Number(row.delete_guard_count ?? 0),
+        ),
+        writerSourceWriteGrantCount:
+          Number(row.writer_source_write_count ?? 0),
+        consumerWriteGrantCount: Number(row.consumer_write_count ?? 0),
+        auditorWriteGrantCount: Number(row.auditor_write_count ?? 0),
+        incompleteCheckpointCount:
+          Number(row.incomplete_checkpoint_count ?? 0),
       });
     },
   );
@@ -741,9 +799,8 @@ export async function validateHrxRelationalReadModel({
     fail("relational validation scope or performance binding is invalid");
   }
   const started = clock();
-  const observations = [];
-  for (const tenantId of approvedTenantIds) {
-    observations.push(await withPostgresTransaction(
+  const observationsPromise = Promise.all(approvedTenantIds.map((tenantId) =>
+    withPostgresTransaction(
       pool,
       {
         tenant_id: tenantId,
@@ -751,16 +808,21 @@ export async function validateHrxRelationalReadModel({
         statementTimeoutMillis: performanceAcceptance.statement_timeout_ms,
       },
       (client) => tenantSourceObservation(client, tenantId),
-    ));
-  }
-  const comparison = compareSourceAndTarget(observations, mappingManifest);
-  const cursor = cursorObservation(observations, clock());
-  const database = await databaseContractObservation(pool, approvedTenantIds[0]);
-  const tenantNegativeVisible = await negativeTenantVisibility(
+    )));
+  const databasePromise =
+    databaseContractObservation(pool, approvedTenantIds[0]);
+  const tenantNegativePromise = negativeTenantVisibility(
     pool,
     approvedTenantIds[0],
     negativeTenantId,
   );
+  const [observations, database, tenantNegativeVisible] = await Promise.all([
+    observationsPromise,
+    databasePromise,
+    tenantNegativePromise,
+  ]);
+  const comparison = compareSourceAndTarget(observations, mappingManifest);
+  const cursor = cursorObservation(observations, clock());
   const elapsedMs = Math.max(0, clock() - started);
   const safeCounts = {
     approved_tenant_count: approvedTenantIds.length,
