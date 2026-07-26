@@ -18,6 +18,8 @@ import {
 } from "../../../packages/persistence/src/postgres/source-adjudication.js";
 import { canonicalizeJson } from "../../../packages/runtime-auth/src/runtime-safety-approval-contract.js";
 import {
+  IMMUTABLE_PROGRAM_INPUT_LOCATOR_VERSION,
+  normalizeImmutableProgramInputLocator,
   readImmutableProgramInput,
   readImmutableProgramJson,
 } from "./immutable-program-input.js";
@@ -127,6 +129,7 @@ const MAX_BYTES = Object.freeze({
   production_inventory: 16 * 1024 * 1024,
   validation_evidence: 16 * 1024 * 1024,
   schema_bootstrap_result: 2 * 1024 * 1024,
+  scheduled_program_event: 256 * 1024,
 });
 
 function fail(code, message) {
@@ -176,6 +179,53 @@ function exactDeployment(event, env) {
     fail("LAWOS_PROGRAM_DEPLOYMENT_BINDING", "program invocation does not match the deployed exact source");
   }
   return Object.freeze({ sourceSha, sourceTree, artifactSha256 });
+}
+
+export async function resolveJsonPostgresScheduledProgramEvent({
+  event,
+  env = process.env,
+  s3Client = new S3Client({ region: env.AWS_REGION ?? env.AWS_DEFAULT_REGION }),
+  readJson = readImmutableProgramJson,
+} = {}) {
+  if (event?.schema_version !== IMMUTABLE_PROGRAM_INPUT_LOCATOR_VERSION) {
+    return event;
+  }
+  const locator = normalizeImmutableProgramInputLocator(event, {
+    bucket: requiredText(
+      env.LAWOS_PROGRAM_INPUT_BUCKET,
+      "LAWOS_PROGRAM_INPUT_BUCKET",
+    ),
+    expectedBucketOwner: requiredText(
+      env.LAWOS_AWS_ACCOUNT_ID,
+      "LAWOS_AWS_ACCOUNT_ID",
+      /^\d{12}$/u,
+    ),
+  });
+  const resolved = await readJson(inputReadOptions(
+    locator,
+    env,
+    MAX_BYTES.scheduled_program_event,
+    s3Client,
+  ));
+  const exact = exactDeployment(resolved, env);
+  const packetSha256 = requiredText(
+    resolved?.packet_sha256,
+    "scheduled program packet SHA-256",
+    SHA256,
+  );
+  const expectedKey =
+    `program-input/${packetSha256}/w15-worker-event/`
+    + `${exact.sourceSha}/${locator.sha256}.json`;
+  if (locator.key !== expectedKey
+    || resolved?.action !== JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION
+    || resolved?.phase !== "w15-relational-projection"
+    || resolved?.mode !== "resume") {
+    fail(
+      "LAWOS_PROGRAM_SCHEDULED_EVENT",
+      "scheduled program event drifted from the exact W15 worker contract",
+    );
+  }
+  return resolved;
 }
 
 export function assertJsonPostgresProgramDirectInvoke(event = {}, {

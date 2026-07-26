@@ -77,6 +77,7 @@ import {
   loadJsonPostgresRehearsalRestoreInputs,
   loadJsonPostgresProjectionInputs,
   loadJsonPostgresProgramAuthorization,
+  resolveJsonPostgresScheduledProgramEvent,
 } from "./json-postgres-program-inputs.js";
 import { postgresUrlFromSecret } from "./persistence-authority.js";
 import { validatePostgresOnlyRuntimeConfiguration } from "./postgres-only-runtime-configuration.js";
@@ -1966,6 +1967,9 @@ export async function executeJsonPostgresRetirementSmoke({
 
 export async function handler(event = {}) {
   try {
+    event = await resolveJsonPostgresScheduledProgramEvent({
+      event,
+    });
     if (event.action === JSON_POSTGRES_REHEARSAL_BOOTSTRAP_ACTION) {
       return await bootstrapJsonPostgresRehearsalDatabase({ event });
     }

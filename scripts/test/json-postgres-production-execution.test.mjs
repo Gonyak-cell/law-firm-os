@@ -10,6 +10,7 @@ import {
   assertJsonPostgresProductionStack,
   buildJsonPostgresArtifactStoreParameters,
   buildJsonPostgresProductionStackParameters,
+  createJsonPostgresProductionWorkerEventLocator,
   jsonPostgresProductionCombinedTemplateSha256,
   jsonPostgresProductionParametersSha256,
   validateJsonPostgresProductionChangeSet,
@@ -92,6 +93,44 @@ test("production stack parameters preserve exact packet, tenant, traffic and ENI
     packet: value,
     primaryTenantId: "tenant-unapproved",
   }), /primary tenant/u);
+});
+
+test("W15 worker event uses a compact exact immutable program-input locator", () => {
+  const value = packet();
+  value.target.program_input_expected_bucket_owner =
+    JSON_POSTGRES_PRODUCTION_ACCOUNT;
+  const digest = "f".repeat(64);
+  const key =
+    `program-input/${value.packet_sha256}/w15-worker-event/`
+    + `${value.source_sha}/${digest}.json`;
+  const locator = createJsonPostgresProductionWorkerEventLocator({
+    packet: value,
+    key,
+    versionId: "worker-event-version-001",
+    sha256: digest,
+    byteSize: 8234,
+  });
+  assert.equal(locator.key, key);
+  assert.equal(locator.byte_size, 8234);
+  assert.ok(Buffer.byteLength(JSON.stringify(locator)) < 4096);
+  for (const overrides of [
+    { key: `program-input/${value.packet_sha256}/other/${digest}.json` },
+    { versionId: "null" },
+    { sha256: "not-a-digest" },
+    { byteSize: 0 },
+  ]) {
+    assert.throws(
+      () => createJsonPostgresProductionWorkerEventLocator({
+        packet: value,
+        key,
+        versionId: "worker-event-version-001",
+        sha256: digest,
+        byteSize: 8234,
+        ...overrides,
+      }),
+      /worker event locator/u,
+    );
+  }
 });
 
 test("production change-set review rejects removals and unsafe replacements", () => {

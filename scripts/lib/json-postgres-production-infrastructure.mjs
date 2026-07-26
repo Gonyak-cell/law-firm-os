@@ -386,7 +386,7 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     Type: "String",
     Default: "{}",
     Description:
-      "Exact-packet W15 incremental worker event; schedule remains disabled until approved rollout",
+      "Exact immutable W15 worker-event locator; schedule remains disabled until approved rollout",
   };
   template.Parameters.EnableProjectionWorker = {
     Type: "String",
