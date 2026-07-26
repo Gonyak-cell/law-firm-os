@@ -38,9 +38,17 @@ test("production template derives the proven private topology without synthetic 
     { Ref: "ProjectionDatabaseSecret" },
   );
   assert.equal(result.projection_auditor_function_count, 1);
+  assert.equal(
+    template.Resources.ProjectionAuditorFunction.Properties.MemorySize,
+    2048,
+  );
   assert.equal(result.projection_auditor_master_secret_read_count, 0);
   assert.equal(result.projection_auditor_database_write_secret_count, 0);
   assert.equal(result.projection_worker_function_count, 1);
+  assert.equal(
+    template.Resources.ProjectionWorkerFunction.Properties.MemorySize,
+    2048,
+  );
   assert.equal(result.projection_worker_master_secret_read_count, 0);
   assert.equal(result.projection_worker_schedule_enabled_by_default, false);
   assert.equal(
@@ -165,6 +173,9 @@ test("production template fails closed on public RDS, synthetic content, wildcar
         .LAWOS_MASTER_DATABASE_SECRET_ID = {
           "Fn::GetAtt": ["Database", "MasterUserSecret.SecretArn"],
         };
+    },
+    (value) => {
+      value.Resources.ProjectionAuditorFunction.Properties.MemorySize = 1024;
     },
     (value) => {
       value.Resources.ProjectionWorkerSchedule.Properties.State = "ENABLED";
