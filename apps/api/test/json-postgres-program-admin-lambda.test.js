@@ -705,6 +705,191 @@ test("program evidence writer rejects sensitive keys and handler returns a non-o
   assert.equal(Object.hasOwn(blocked, "message"), false);
 });
 
+test("program evidence writer safely reuses only exact immutable evidence after a conditional-write replay", async () => {
+  const value = {
+    outcome: "PASS",
+    safe_counts: { projection_write_count: 0 },
+  };
+  let expectedBody;
+  const commands = [];
+  const replayAuthorization = authorization();
+  replayAuthorization.packet = {
+    ...replayAuthorization.packet,
+    phase: "w15-relational-projection",
+  };
+  const result = await writeJsonPostgresProgramEvidence({
+    kind: "w15-relational-projection-result",
+    value,
+    event: { attempt_ref: "w15-idempotent-replay", mode: "resume" },
+    authorization: replayAuthorization,
+    env: env(),
+    client: {
+      async send(command) {
+        commands.push(command);
+        if (command.constructor.name === "PutObjectCommand") {
+          expectedBody = Buffer.from(command.input.Body);
+          throw Object.assign(new Error("already exists"), {
+            name: "PreconditionFailed",
+            $metadata: { httpStatusCode: 412 },
+          });
+        }
+        return {
+          VersionId: "immutable-version-001",
+          ContentLength: expectedBody.byteLength,
+          ContentType: "application/json",
+          ServerSideEncryption: "aws:kms",
+          SSEKMSKeyId: KMS,
+          ObjectLockMode: "COMPLIANCE",
+          ObjectLockRetainUntilDate: new Date("2027-07-30T00:00:00.000Z"),
+          Body: {
+            async transformToByteArray() {
+              return expectedBody;
+            },
+          },
+        };
+      },
+    },
+    now: Date.parse("2026-07-23T00:00:00.000Z"),
+  });
+  assert.equal(commands.length, 2);
+  assert.equal(commands[0].input.IfNoneMatch, "*");
+  assert.equal(commands[0].input.ExpectedBucketOwner, "770880870480");
+  assert.equal(commands[1].constructor.name, "GetObjectCommand");
+  assert.equal(commands[1].input.ExpectedBucketOwner, "770880870480");
+  assert.equal(commands[1].input.ChecksumMode, "ENABLED");
+  assert.equal(result.byte_size, expectedBody.byteLength);
+  assert.equal(result.sha256, createHash("sha256").update(expectedBody).digest("hex"));
+});
+
+test("program evidence writer fails closed on immutable replay content or governance drift", async () => {
+  const cases = [
+    {
+      name: "size",
+      mutate(response) { response.ContentLength += 1; },
+    },
+    {
+      name: "KMS key",
+      mutate(response) { response.SSEKMSKeyId = `${KMS}-other`; },
+    },
+    {
+      name: "Object Lock mode",
+      mutate(response) { response.ObjectLockMode = "GOVERNANCE"; },
+    },
+    {
+      name: "expired retention",
+      mutate(response) {
+        response.ObjectLockRetainUntilDate = new Date("2026-07-22T00:00:00.000Z");
+      },
+    },
+    {
+      name: "content",
+      mutate(response, body) {
+        const drifted = Buffer.from(body);
+        drifted[0] ^= 1;
+        response.Body = {
+          async transformToByteArray() {
+            return drifted;
+          },
+        };
+      },
+    },
+  ];
+  const replayAuthorization = authorization();
+  replayAuthorization.packet = {
+    ...replayAuthorization.packet,
+    phase: "w15-relational-projection",
+  };
+  for (const scenario of cases) {
+    let expectedBody;
+    await assert.rejects(
+      writeJsonPostgresProgramEvidence({
+        kind: "w15-relational-projection-result",
+        value: { outcome: "PASS", safe_counts: { projection_write_count: 0 } },
+        event: {
+          attempt_ref: `w15-drift-${scenario.name}`,
+          mode: "resume",
+        },
+        authorization: replayAuthorization,
+        env: env(),
+        client: {
+          async send(command) {
+            if (command.constructor.name === "PutObjectCommand") {
+              expectedBody = Buffer.from(command.input.Body);
+              throw Object.assign(new Error("already exists"), {
+                name: "PreconditionFailed",
+                $metadata: { httpStatusCode: 412 },
+              });
+            }
+            const response = {
+              VersionId: "immutable-version-001",
+              ContentLength: expectedBody.byteLength,
+              ContentType: "application/json",
+              ServerSideEncryption: "aws:kms",
+              SSEKMSKeyId: KMS,
+              ObjectLockMode: "COMPLIANCE",
+              ObjectLockRetainUntilDate: new Date("2027-07-30T00:00:00.000Z"),
+              Body: {
+                async transformToByteArray() {
+                  return expectedBody;
+                },
+              },
+            };
+            scenario.mutate(response, expectedBody);
+            return response;
+          },
+        },
+        now: Date.parse("2026-07-23T00:00:00.000Z"),
+      }),
+      (error) => error?.code === "LAWOS_PROGRAM_EVIDENCE_CONFLICT",
+      scenario.name,
+    );
+  }
+});
+
+test("program evidence writer keeps non-worker conditional-write replays single-use", async () => {
+  const replay = Object.assign(new Error("already exists"), {
+    name: "PreconditionFailed",
+    $metadata: { httpStatusCode: 412 },
+  });
+  await assert.rejects(
+    writeJsonPostgresProgramEvidence({
+      kind: "execution-result",
+      value: { outcome: "PASS" },
+      event: { attempt_ref: "w12-single-use", mode: "commit" },
+      authorization: authorization(),
+      env: env(),
+      client: {
+        async send() {
+          throw replay;
+        },
+      },
+    }),
+    (error) => error === replay,
+  );
+});
+
+test("program evidence writer does not reinterpret non-precondition S3 failures", async () => {
+  const denied = Object.assign(new Error("denied"), {
+    name: "AccessDenied",
+    $metadata: { httpStatusCode: 403 },
+  });
+  await assert.rejects(
+    writeJsonPostgresProgramEvidence({
+      kind: "w15-relational-projection-result",
+      value: { outcome: "PASS" },
+      event: { attempt_ref: "w15-access-denied" },
+      authorization: authorization(),
+      env: env(),
+      client: {
+        async send() {
+          throw denied;
+        },
+      },
+    }),
+    (error) => error === denied,
+  );
+});
+
 test("program error classification safely preserves AWS service error names without raw details", () => {
   assert.equal(
     safeJsonPostgresProgramErrorCode({
