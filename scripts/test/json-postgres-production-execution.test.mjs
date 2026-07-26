@@ -15,6 +15,7 @@ import {
   jsonPostgresProductionParametersSha256,
   validateJsonPostgresProductionChangeSet,
   validateJsonPostgresW15ProductionChangeSet,
+  validateJsonPostgresW15WorkerObservability,
 } from "../lib/json-postgres-production-execution.mjs";
 
 function packet() {
@@ -87,6 +88,7 @@ test("production stack parameters preserve exact packet, tenant, traffic and ENI
   assert.equal(parameters.EnableLambdaEniBootstrap, "true");
   assert.equal(parameters.EnableProjectionWorker, "false");
   assert.equal(parameters.ProjectionWorkerEventJson, "{}");
+  assert.equal(parameters.ProjectionWorkerLagThresholdMs, "24");
   assert.equal(parameters.MonthlyCostCeilingKrw, "300000");
   assert.throws(() => buildJsonPostgresProductionStackParameters({
     ...parameters,
@@ -215,9 +217,16 @@ test("W15 update review permits only bounded projection additions and exact supp
     Resources: {
       ApiFunction: {},
       ProjectionWorkerExecutionRole: {},
+      ProjectionWorkerDeadLetterAlarm: {},
+      ProjectionWorkerDeadLetterQueue: {},
+      ProjectionWorkerDeadLetterQueuePolicy: {},
+      ProjectionWorkerDeliveryFailureAlarm: {},
+      ProjectionWorkerErrorAlarm: {},
+      ProjectionWorkerEventInvokeConfig: {},
       ProjectionWorkerFunction: {},
       ProjectionWorkerSchedule: {},
       ProjectionWorkerInvokePermission: {},
+      ProjectionWorkerLagAlarm: {},
       Database: {},
     },
   };
@@ -236,7 +245,26 @@ test("W15 update review permits only bounded projection additions and exact supp
       },
       ...[
         ["ProjectionWorkerExecutionRole", "AWS::IAM::Role", "False"],
+        ["ProjectionWorkerDeadLetterAlarm", "AWS::CloudWatch::Alarm", "False"],
+        ["ProjectionWorkerDeadLetterQueue", "AWS::SQS::Queue", "False"],
+        [
+          "ProjectionWorkerDeadLetterQueuePolicy",
+          "AWS::SQS::QueuePolicy",
+          "False",
+        ],
+        [
+          "ProjectionWorkerDeliveryFailureAlarm",
+          "AWS::CloudWatch::Alarm",
+          "False",
+        ],
+        ["ProjectionWorkerErrorAlarm", "AWS::CloudWatch::Alarm", "False"],
+        [
+          "ProjectionWorkerEventInvokeConfig",
+          "AWS::Lambda::EventInvokeConfig",
+          "False",
+        ],
         ["ProjectionWorkerFunction", "AWS::Lambda::Function", "False"],
+        ["ProjectionWorkerLagAlarm", "AWS::CloudWatch::Alarm", "False"],
         ["ProjectionWorkerSchedule", "AWS::Events::Rule", "Conditional"],
         [
           "ProjectionWorkerInvokePermission",
@@ -258,7 +286,7 @@ test("W15 update review permits only bounded projection additions and exact supp
     parametersSha256: "a".repeat(64),
     templateSha256: "b".repeat(64),
   });
-  assert.equal(reviewed.add_count, 4);
+  assert.equal(reviewed.add_count, 11);
   assert.equal(reviewed.modify_count, 1);
   const database = structuredClone(changeSet);
   database.Changes.push({
@@ -286,6 +314,142 @@ test("W15 update review permits only bounded projection additions and exact supp
       templateSha256: "b".repeat(64),
     }),
     /unapproved resource change/u,
+  );
+});
+
+test("W15 worker observability binds delivery and execution retries to one empty encrypted DLQ", () => {
+  const ruleArn =
+    "arn:aws:events:ap-northeast-2:770880870480:"
+    + "rule/lawos-production-projection-worker";
+  const functionArn =
+    "arn:aws:lambda:ap-northeast-2:770880870480:"
+    + "function:lawos-production-projection-worker";
+  const queueArn =
+    "arn:aws:sqs:ap-northeast-2:770880870480:"
+    + "lawos-production-projection-worker-dead-letter";
+  const queueUrl =
+    "https://sqs.ap-northeast-2.amazonaws.com/770880870480/"
+    + "lawos-production-projection-worker-dead-letter";
+  const observation = {
+    rule: {
+      Name: "lawos-production-projection-worker",
+      Arn: ruleArn,
+    },
+    targets: {
+      Targets: [{
+        Id: "lawos-production-projection-worker",
+        Arn: functionArn,
+        RetryPolicy: {
+          MaximumEventAgeInSeconds: 900,
+          MaximumRetryAttempts: 2,
+        },
+        DeadLetterConfig: { Arn: queueArn },
+      }],
+    },
+    invokeConfig: {
+      FunctionArn: `${functionArn}:$LATEST`,
+      MaximumEventAgeInSeconds: 900,
+      MaximumRetryAttempts: 2,
+      DestinationConfig: {
+        OnFailure: { Destination: queueArn },
+      },
+    },
+    queueUrl,
+    queueAttributes: {
+      Attributes: {
+        QueueArn: queueArn,
+        SqsManagedSseEnabled: "true",
+        MessageRetentionPeriod: "1209600",
+        ApproximateNumberOfMessages: "0",
+        ApproximateNumberOfMessagesNotVisible: "0",
+        Policy: JSON.stringify({
+          Statement: [{
+            Sid: "AllowExactProjectionWorkerScheduleDeliveryFailures",
+            Effect: "Allow",
+            Principal: { Service: "events.amazonaws.com" },
+            Action: "sqs:SendMessage",
+            Resource: queueArn,
+            Condition: {
+              ArnEquals: { "aws:SourceArn": ruleArn },
+              StringEquals: {
+                "aws:SourceAccount": JSON_POSTGRES_PRODUCTION_ACCOUNT,
+              },
+            },
+          }],
+        }),
+      },
+    },
+    alarms: {
+      MetricAlarms: [
+        {
+          AlarmName: "lawos-production-projection-worker-errors",
+          Namespace: "AWS/Lambda",
+          MetricName: "Errors",
+          Threshold: 1,
+          Dimensions: [{
+            Name: "FunctionName",
+            Value: "lawos-production-projection-worker",
+          }],
+          StateValue: "OK",
+        },
+        {
+          AlarmName:
+            "lawos-production-projection-worker-delivery-failures",
+          Namespace: "AWS/Events",
+          MetricName: "FailedInvocations",
+          Threshold: 1,
+          Dimensions: [{
+            Name: "RuleName",
+            Value: "lawos-production-projection-worker",
+          }],
+          StateValue: "INSUFFICIENT_DATA",
+        },
+        {
+          AlarmName: "lawos-production-projection-worker-dead-letter",
+          Namespace: "AWS/SQS",
+          MetricName: "ApproximateNumberOfMessagesVisible",
+          Threshold: 1,
+          Dimensions: [{
+            Name: "QueueName",
+            Value: "lawos-production-projection-worker-dead-letter",
+          }],
+          StateValue: "OK",
+        },
+        {
+          AlarmName: "lawos-production-projection-worker-lag",
+          Namespace: "LawOS/W15",
+          MetricName: "OutboxLagMilliseconds",
+          Threshold: 24,
+          Dimensions: [{
+            Name: "Worker",
+            Value: "relational-projection",
+          }],
+          StateValue: "OK",
+        },
+      ],
+    },
+  };
+  assert.equal(
+    validateJsonPostgresW15WorkerObservability(observation).verdict,
+    "PASS",
+  );
+  const unsafeQueue = structuredClone(observation);
+  unsafeQueue.queueAttributes.Attributes.Policy = JSON.stringify({
+    Statement: [{
+      ...JSON.parse(observation.queueAttributes.Attributes.Policy)
+        .Statement[0],
+      Principal: "*",
+    }],
+  });
+  assert.throws(
+    () => validateJsonPostgresW15WorkerObservability(unsafeQueue),
+    /retry or dead-letter runtime drifted/u,
+  );
+  const alarmed = structuredClone(observation);
+  alarmed.alarms.MetricAlarms[0].StateValue = "ALARM";
+  assert.throws(
+    () => validateJsonPostgresW15WorkerObservability(alarmed),
+    /alarm state or contract drifted/u,
   );
 });
 
@@ -365,6 +529,7 @@ test("artifact bucket and production stack observations are exact and fail close
       EnableProductionTraffic: "false",
       EnableLambdaEniBootstrap: "false",
       EnableProjectionWorker: "false",
+      ProjectionWorkerLagThresholdMs: "24",
       MonthlyCostCeilingKrw: "300000",
     }).map(([ParameterKey, ParameterValue]) => ({ ParameterKey, ParameterValue })),
   };

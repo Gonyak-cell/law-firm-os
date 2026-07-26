@@ -28,8 +28,15 @@ export const JSON_POSTGRES_W15_ALLOWED_ADDED_RESOURCES = Object.freeze([
   "ProjectionAuditorLogGroup",
   "ProjectionDatabaseSecret",
   "ProjectionWorkerExecutionRole",
+  "ProjectionWorkerDeadLetterAlarm",
+  "ProjectionWorkerDeadLetterQueue",
+  "ProjectionWorkerDeadLetterQueuePolicy",
+  "ProjectionWorkerDeliveryFailureAlarm",
+  "ProjectionWorkerErrorAlarm",
+  "ProjectionWorkerEventInvokeConfig",
   "ProjectionWorkerFunction",
   "ProjectionWorkerInvokePermission",
+  "ProjectionWorkerLagAlarm",
   "ProjectionWorkerLogGroup",
   "ProjectionWorkerSchedule",
 ]);
@@ -48,8 +55,15 @@ export const JSON_POSTGRES_W15_ALLOWED_MODIFIED_RESOURCES = Object.freeze([
   "ProjectionAuditorLogGroup",
   "ProjectionDatabaseSecret",
   "ProjectionWorkerExecutionRole",
+  "ProjectionWorkerDeadLetterAlarm",
+  "ProjectionWorkerDeadLetterQueue",
+  "ProjectionWorkerDeadLetterQueuePolicy",
+  "ProjectionWorkerDeliveryFailureAlarm",
+  "ProjectionWorkerErrorAlarm",
+  "ProjectionWorkerEventInvokeConfig",
   "ProjectionWorkerFunction",
   "ProjectionWorkerInvokePermission",
+  "ProjectionWorkerLagAlarm",
   "ProjectionWorkerLogGroup",
   "ProjectionWorkerSchedule",
   "S3GatewayEndpoint",
@@ -159,6 +173,7 @@ export function buildJsonPostgresProductionStackParameters({
     EnableProductionTraffic: enableProductionTraffic ? "true" : "false",
     EnableProjectionWorker: enableProjectionWorker ? "true" : "false",
     ProjectionWorkerEventJson: projectionWorkerEventJson,
+    ProjectionWorkerLagThresholdMs: "24",
     MonthlyCostCeilingKrw: "300000",
   });
 }
@@ -379,6 +394,7 @@ export function assertJsonPostgresProductionStack(stack, {
     EnableProductionTraffic: trafficEnabled ? "true" : "false",
     EnableLambdaEniBootstrap: eniBootstrapEnabled ? "true" : "false",
     EnableProjectionWorker: projectionWorkerEnabled ? "true" : "false",
+    ProjectionWorkerLagThresholdMs: "24",
     MonthlyCostCeilingKrw: "300000",
   })) {
     if (parameters[key] !== expected) fail(`production stack parameter ${key} drifted`);
@@ -391,6 +407,116 @@ export function assertJsonPostgresProductionStack(stack, {
     stack_status: stack.StackStatus,
     traffic_enabled: trafficEnabled,
     temporary_eni_allow_expected: eniBootstrapEnabled ? 2 : 0,
+  });
+}
+
+export function validateJsonPostgresW15WorkerObservability({
+  rule,
+  targets,
+  invokeConfig,
+  queueUrl,
+  queueAttributes,
+  alarms,
+} = {}) {
+  const ruleArn =
+    `arn:aws:events:${JSON_POSTGRES_PRODUCTION_REGION}:`
+    + `${JSON_POSTGRES_PRODUCTION_ACCOUNT}:rule/`
+    + "lawos-production-projection-worker";
+  const functionArn =
+    `arn:aws:lambda:${JSON_POSTGRES_PRODUCTION_REGION}:`
+    + `${JSON_POSTGRES_PRODUCTION_ACCOUNT}:function:`
+    + "lawos-production-projection-worker";
+  const queueArn =
+    `arn:aws:sqs:${JSON_POSTGRES_PRODUCTION_REGION}:`
+    + `${JSON_POSTGRES_PRODUCTION_ACCOUNT}:`
+    + "lawos-production-projection-worker-dead-letter";
+  const queueName = "lawos-production-projection-worker-dead-letter";
+  const target = targets?.Targets?.find((item) =>
+    item.Id === "lawos-production-projection-worker");
+  const attributes = queueAttributes?.Attributes ?? {};
+  let queuePolicy;
+  try {
+    queuePolicy = JSON.parse(attributes.Policy);
+  } catch {
+    fail("W15 projection worker dead-letter queue policy is unreadable");
+  }
+  const queueStatement = queuePolicy?.Statement?.find((item) =>
+    item.Sid === "AllowExactProjectionWorkerScheduleDeliveryFailures");
+  if (rule?.Name !== "lawos-production-projection-worker"
+    || rule.Arn !== ruleArn
+    || target?.Arn !== functionArn
+    || target?.RetryPolicy?.MaximumEventAgeInSeconds !== 900
+    || target?.RetryPolicy?.MaximumRetryAttempts !== 2
+    || target?.DeadLetterConfig?.Arn !== queueArn
+    || invokeConfig?.FunctionArn !== `${functionArn}:$LATEST`
+    || invokeConfig?.MaximumEventAgeInSeconds !== 900
+    || invokeConfig?.MaximumRetryAttempts !== 2
+    || invokeConfig?.DestinationConfig?.OnFailure?.Destination !== queueArn
+    || queueUrl !== `https://sqs.${JSON_POSTGRES_PRODUCTION_REGION}.amazonaws.com/${JSON_POSTGRES_PRODUCTION_ACCOUNT}/${queueName}`
+    || attributes.QueueArn !== queueArn
+    || attributes.SqsManagedSseEnabled !== "true"
+    || attributes.MessageRetentionPeriod !== "1209600"
+    || Number(attributes.ApproximateNumberOfMessages ?? -1) !== 0
+    || Number(attributes.ApproximateNumberOfMessagesNotVisible ?? -1) !== 0
+    || queueStatement?.Effect !== "Allow"
+    || queueStatement?.Principal?.Service !== "events.amazonaws.com"
+    || queueStatement?.Action !== "sqs:SendMessage"
+    || queueStatement?.Resource !== queueArn
+    || queueStatement?.Condition?.ArnEquals?.["aws:SourceArn"] !== ruleArn
+    || queueStatement?.Condition?.StringEquals?.["aws:SourceAccount"]
+      !== JSON_POSTGRES_PRODUCTION_ACCOUNT) {
+    fail("W15 projection worker retry or dead-letter runtime drifted");
+  }
+  const expectedAlarms = new Map([
+    ["lawos-production-projection-worker-errors", {
+      namespace: "AWS/Lambda",
+      metric: "Errors",
+      dimension: { Name: "FunctionName", Value: "lawos-production-projection-worker" },
+      threshold: 1,
+    }],
+    ["lawos-production-projection-worker-delivery-failures", {
+      namespace: "AWS/Events",
+      metric: "FailedInvocations",
+      dimension: { Name: "RuleName", Value: "lawos-production-projection-worker" },
+      threshold: 1,
+    }],
+    ["lawos-production-projection-worker-dead-letter", {
+      namespace: "AWS/SQS",
+      metric: "ApproximateNumberOfMessagesVisible",
+      dimension: { Name: "QueueName", Value: queueName },
+      threshold: 1,
+    }],
+    ["lawos-production-projection-worker-lag", {
+      namespace: "LawOS/W15",
+      metric: "OutboxLagMilliseconds",
+      dimension: { Name: "Worker", Value: "relational-projection" },
+      threshold: 24,
+    }],
+  ]);
+  const observedAlarms = alarms?.MetricAlarms ?? [];
+  if (observedAlarms.length !== expectedAlarms.size) {
+    fail("W15 projection worker alarm inventory drifted");
+  }
+  for (const alarm of observedAlarms) {
+    const expected = expectedAlarms.get(alarm.AlarmName);
+    if (!expected
+      || alarm.Namespace !== expected.namespace
+      || alarm.MetricName !== expected.metric
+      || alarm.Threshold !== expected.threshold
+      || JSON.stringify(alarm.Dimensions)
+        !== JSON.stringify([expected.dimension])
+      || alarm.StateValue === "ALARM") {
+      fail("W15 projection worker alarm state or contract drifted");
+    }
+  }
+  return Object.freeze({
+    verdict: "PASS",
+    delivery_retry_maximum_attempts: 2,
+    execution_retry_maximum_attempts: 2,
+    dead_letter_queue_message_count: 0,
+    worker_alarm_count: expectedAlarms.size,
+    worker_alarm_state_count: observedAlarms.length,
+    observed_outbox_lag_threshold_ms: 24,
   });
 }
 

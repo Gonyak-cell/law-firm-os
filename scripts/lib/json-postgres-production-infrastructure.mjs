@@ -393,6 +393,13 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     Default: "false",
     AllowedValues: ["true", "false"],
   };
+  template.Parameters.ProjectionWorkerLagThresholdMs = {
+    Type: "Number",
+    Default: 24,
+    AllowedValues: [24],
+    Description:
+      "Exact signed W15 outbox-lag acceptance threshold in milliseconds",
+  };
   template.Parameters.EnableProductionTraffic = {
     Type: "String",
     Default: "false",
@@ -834,6 +841,14 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
       "Fn::Sub": "${ProgramInputBucket.Arn}/program-execution/*",
     },
   });
+  workerPolicies[0].PolicyDocument.Statement.push({
+    Sid: "SendOnlyProjectionWorkerFailuresToExactDeadLetterQueue",
+    Effect: "Allow",
+    Action: "sqs:SendMessage",
+    Resource: {
+      "Fn::GetAtt": ["ProjectionWorkerDeadLetterQueue", "Arn"],
+    },
+  });
   workerPolicies[1]["Fn::If"][1].PolicyName =
     "lawos-production-projection-worker-vpc-eni-bootstrap-temporary";
   resources.ProjectionWorkerFunction = clone(resources.ProjectionAuditorFunction);
@@ -852,6 +867,15 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     Ref: "ProjectionDatabaseSecret",
   };
   workerEnvironment.LAWOS_PROGRAM_EXECUTION_ROLE = "projection-writer";
+  resources.ProjectionWorkerDeadLetterQueue = {
+    Type: "AWS::SQS::Queue",
+    Properties: {
+      MessageRetentionPeriod: 1_209_600,
+      QueueName: "lawos-production-projection-worker-dead-letter",
+      SqsManagedSseEnabled: true,
+      Tags: clone(resources.ProjectionWorkerLogGroup.Properties.Tags),
+    },
+  };
   resources.ProjectionWorkerSchedule = {
     Type: "AWS::Events::Rule",
     Properties: {
@@ -864,9 +888,62 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
       },
       Targets: [{
         Arn: { "Fn::GetAtt": ["ProjectionWorkerFunction", "Arn"] },
+        DeadLetterConfig: {
+          Arn: {
+            "Fn::GetAtt": ["ProjectionWorkerDeadLetterQueue", "Arn"],
+          },
+        },
         Id: "lawos-production-projection-worker",
         Input: { Ref: "ProjectionWorkerEventJson" },
+        RetryPolicy: {
+          MaximumEventAgeInSeconds: 900,
+          MaximumRetryAttempts: 2,
+        },
       }],
+    },
+  };
+  resources.ProjectionWorkerDeadLetterQueuePolicy = {
+    Type: "AWS::SQS::QueuePolicy",
+    Properties: {
+      PolicyDocument: {
+        Version: "2012-10-17",
+        Statement: [{
+          Sid: "AllowExactProjectionWorkerScheduleDeliveryFailures",
+          Effect: "Allow",
+          Principal: { Service: "events.amazonaws.com" },
+          Action: "sqs:SendMessage",
+          Resource: {
+            "Fn::GetAtt": ["ProjectionWorkerDeadLetterQueue", "Arn"],
+          },
+          Condition: {
+            ArnEquals: {
+              "aws:SourceArn": {
+                "Fn::GetAtt": ["ProjectionWorkerSchedule", "Arn"],
+              },
+            },
+            StringEquals: {
+              "aws:SourceAccount": { Ref: "AWS::AccountId" },
+            },
+          },
+        }],
+      },
+      Queues: [{ Ref: "ProjectionWorkerDeadLetterQueue" }],
+    },
+  };
+  resources.ProjectionWorkerEventInvokeConfig = {
+    Type: "AWS::Lambda::EventInvokeConfig",
+    Properties: {
+      DestinationConfig: {
+        OnFailure: {
+          Destination: {
+            "Fn::GetAtt": ["ProjectionWorkerDeadLetterQueue", "Arn"],
+          },
+        },
+      },
+      FunctionName: { Ref: "ProjectionWorkerFunction" },
+      MaximumEventAgeInSeconds: 900,
+      MaximumRetryAttempts: 2,
+      Qualifier: "$LATEST",
     },
   };
   resources.ProjectionWorkerInvokePermission = {
@@ -876,6 +953,93 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
       FunctionName: { Ref: "ProjectionWorkerFunction" },
       Principal: "events.amazonaws.com",
       SourceArn: { "Fn::GetAtt": ["ProjectionWorkerSchedule", "Arn"] },
+    },
+  };
+  const workerAlarmTags = clone(resources.ApiErrorAlarm.Properties.Tags);
+  resources.ProjectionWorkerErrorAlarm = {
+    Type: "AWS::CloudWatch::Alarm",
+    Properties: {
+      AlarmDescription:
+        "LawOS W15 projection worker function execution errors",
+      AlarmName: "lawos-production-projection-worker-errors",
+      ComparisonOperator: "GreaterThanOrEqualToThreshold",
+      Dimensions: [{
+        Name: "FunctionName",
+        Value: { Ref: "ProjectionWorkerFunction" },
+      }],
+      EvaluationPeriods: 1,
+      MetricName: "Errors",
+      Namespace: "AWS/Lambda",
+      Period: 300,
+      Statistic: "Sum",
+      Threshold: 1,
+      TreatMissingData: "notBreaching",
+      Tags: workerAlarmTags,
+    },
+  };
+  resources.ProjectionWorkerDeliveryFailureAlarm = {
+    Type: "AWS::CloudWatch::Alarm",
+    Properties: {
+      AlarmDescription:
+        "LawOS W15 projection worker EventBridge delivery failures",
+      AlarmName: "lawos-production-projection-worker-delivery-failures",
+      ComparisonOperator: "GreaterThanOrEqualToThreshold",
+      Dimensions: [{
+        Name: "RuleName",
+        Value: { Ref: "ProjectionWorkerSchedule" },
+      }],
+      EvaluationPeriods: 1,
+      MetricName: "FailedInvocations",
+      Namespace: "AWS/Events",
+      Period: 300,
+      Statistic: "Sum",
+      Threshold: 1,
+      TreatMissingData: "notBreaching",
+      Tags: clone(workerAlarmTags),
+    },
+  };
+  resources.ProjectionWorkerDeadLetterAlarm = {
+    Type: "AWS::CloudWatch::Alarm",
+    Properties: {
+      AlarmDescription:
+        "LawOS W15 projection worker dead-letter queue is non-empty",
+      AlarmName: "lawos-production-projection-worker-dead-letter",
+      ComparisonOperator: "GreaterThanOrEqualToThreshold",
+      Dimensions: [{
+        Name: "QueueName",
+        Value: {
+          "Fn::GetAtt": ["ProjectionWorkerDeadLetterQueue", "QueueName"],
+        },
+      }],
+      EvaluationPeriods: 1,
+      MetricName: "ApproximateNumberOfMessagesVisible",
+      Namespace: "AWS/SQS",
+      Period: 300,
+      Statistic: "Maximum",
+      Threshold: 1,
+      TreatMissingData: "notBreaching",
+      Tags: clone(workerAlarmTags),
+    },
+  };
+  resources.ProjectionWorkerLagAlarm = {
+    Type: "AWS::CloudWatch::Alarm",
+    Properties: {
+      AlarmDescription:
+        "LawOS W15 projection worker exceeds the signed outbox-lag threshold",
+      AlarmName: "lawos-production-projection-worker-lag",
+      ComparisonOperator: "GreaterThanThreshold",
+      Dimensions: [{
+        Name: "Worker",
+        Value: "relational-projection",
+      }],
+      EvaluationPeriods: 1,
+      MetricName: "OutboxLagMilliseconds",
+      Namespace: "LawOS/W15",
+      Period: 300,
+      Statistic: "Maximum",
+      Threshold: { Ref: "ProjectionWorkerLagThresholdMs" },
+      TreatMissingData: "notBreaching",
+      Tags: clone(workerAlarmTags),
     },
   };
 
@@ -961,6 +1125,11 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   };
   template.Outputs.ProjectionWorkerScheduleName = {
     Value: { Ref: "ProjectionWorkerSchedule" },
+  };
+  template.Outputs.ProjectionWorkerDeadLetterQueueArn = {
+    Value: {
+      "Fn::GetAtt": ["ProjectionWorkerDeadLetterQueue", "Arn"],
+    },
   };
   template.Outputs.DatabaseIdentifier = { Value: { Ref: "Database" } };
   template.Outputs.DatabaseEndpointAddress = { Value: { "Fn::GetAtt": ["Database", "Endpoint.Address"] } };
@@ -1086,6 +1255,8 @@ export function validateJsonPostgresProductionTemplate(template) {
       !== "ProjectionWorkerFunction"
     || outputs.ProjectionWorkerScheduleName?.Value?.Ref
       !== "ProjectionWorkerSchedule"
+    || outputs.ProjectionWorkerDeadLetterQueueArn?.Value
+      ?.["Fn::GetAtt"]?.[0] !== "ProjectionWorkerDeadLetterQueue"
     || outputs.ApiFunctionName?.Value?.Ref !== "ApiFunction"
     || outputs.DmsBucketName?.Value?.Ref !== "DmsBucket"
     || resources.AdminFunction?.Properties?.Environment?.Variables?.LAWOS_DATABASE_IDENTIFIER?.Ref !== "Database") {
@@ -1138,6 +1309,10 @@ export function validateJsonPostgresProductionTemplate(template) {
   if (resources.HttpApi.Properties.DisableExecuteApiEndpoint?.["Fn::If"]?.[2] !== true
     || resources.PasswordResetWorkerSchedule.Properties.State?.["Fn::If"]?.[2] !== "DISABLED"
     || template.Parameters?.EnableProjectionWorker?.Default !== "false"
+    || template.Parameters?.ProjectionWorkerLagThresholdMs?.Default !== 24
+    || JSON.stringify(
+      template.Parameters?.ProjectionWorkerLagThresholdMs?.AllowedValues,
+    ) !== JSON.stringify([24])
     || JSON.stringify(template.Conditions?.ProjectionWorkerEnabled)
       !== JSON.stringify({
         "Fn::Equals": [{ Ref: "EnableProjectionWorker" }, "true"],
@@ -1148,6 +1323,24 @@ export function validateJsonPostgresProductionTemplate(template) {
       })
     || resources.ProjectionWorkerSchedule?.Properties?.Targets?.[0]?.Input?.Ref
       !== "ProjectionWorkerEventJson"
+    || resources.ProjectionWorkerSchedule?.Properties?.Targets?.[0]
+      ?.RetryPolicy?.MaximumEventAgeInSeconds !== 900
+    || resources.ProjectionWorkerSchedule?.Properties?.Targets?.[0]
+      ?.RetryPolicy?.MaximumRetryAttempts !== 2
+    || resources.ProjectionWorkerSchedule?.Properties?.Targets?.[0]
+      ?.DeadLetterConfig?.Arn?.["Fn::GetAtt"]?.[0]
+      !== "ProjectionWorkerDeadLetterQueue"
+    || resources.ProjectionWorkerEventInvokeConfig?.Properties
+      ?.FunctionName?.Ref !== "ProjectionWorkerFunction"
+    || resources.ProjectionWorkerEventInvokeConfig?.Properties
+      ?.Qualifier !== "$LATEST"
+    || resources.ProjectionWorkerEventInvokeConfig?.Properties
+      ?.MaximumEventAgeInSeconds !== 900
+    || resources.ProjectionWorkerEventInvokeConfig?.Properties
+      ?.MaximumRetryAttempts !== 2
+    || resources.ProjectionWorkerEventInvokeConfig?.Properties
+      ?.DestinationConfig?.OnFailure?.Destination
+      ?.["Fn::GetAtt"]?.[0] !== "ProjectionWorkerDeadLetterQueue"
     || resources.ProjectionWorkerInvokePermission?.Properties?.Principal
       !== "events.amazonaws.com"
     || resources.ProjectionWorkerInvokePermission?.Properties?.FunctionName?.Ref
@@ -1217,6 +1410,8 @@ export function validateJsonPostgresProductionTemplate(template) {
     item.Sid === "WriteImmutableProjectionWorkerEvidence");
   const workerEvidenceRead = workerStatements.find((item) =>
     item.Sid === "ReadImmutableProgramExecutionEvidence");
+  const workerDeadLetterWrite = workerStatements.find((item) =>
+    item.Sid === "SendOnlyProjectionWorkerFailuresToExactDeadLetterQueue");
   if (JSON.stringify(workerSecretRead?.Action)
       !== JSON.stringify("secretsmanager:GetSecretValue")
     || JSON.stringify(workerSecretRead?.Resource)
@@ -1233,10 +1428,97 @@ export function validateJsonPostgresProductionTemplate(template) {
       !== JSON.stringify({
         "Fn::Sub": "${ProgramInputBucket.Arn}/program-execution/*",
       })
+    || workerDeadLetterWrite?.Action !== "sqs:SendMessage"
+    || workerDeadLetterWrite?.Resource?.["Fn::GetAtt"]?.[0]
+      !== "ProjectionWorkerDeadLetterQueue"
     || workerStatements.some((item) =>
       JSON.stringify(item.Resource).includes("ProjectionAuditorDatabaseSecret")
       || JSON.stringify(item.Resource).includes("MasterUserSecret"))) {
     fail("projection worker AWS authority exceeds incremental projection scope");
+  }
+  const deadLetterQueue = resources.ProjectionWorkerDeadLetterQueue?.Properties;
+  const deadLetterPolicy = resources.ProjectionWorkerDeadLetterQueuePolicy
+    ?.Properties;
+  const deadLetterStatement = deadLetterPolicy?.PolicyDocument?.Statement?.[0];
+  if (deadLetterQueue?.QueueName
+      !== "lawos-production-projection-worker-dead-letter"
+    || deadLetterQueue?.SqsManagedSseEnabled !== true
+    || deadLetterQueue?.MessageRetentionPeriod !== 1_209_600
+    || JSON.stringify(deadLetterPolicy?.Queues)
+      !== JSON.stringify([{ Ref: "ProjectionWorkerDeadLetterQueue" }])
+    || deadLetterStatement?.Effect !== "Allow"
+    || deadLetterStatement?.Principal?.Service !== "events.amazonaws.com"
+    || deadLetterStatement?.Action !== "sqs:SendMessage"
+    || deadLetterStatement?.Resource?.["Fn::GetAtt"]?.[0]
+      !== "ProjectionWorkerDeadLetterQueue"
+    || deadLetterStatement?.Condition?.ArnEquals?.["aws:SourceArn"]
+      ?.["Fn::GetAtt"]?.[0] !== "ProjectionWorkerSchedule"
+    || deadLetterStatement?.Condition?.StringEquals?.["aws:SourceAccount"]
+      ?.Ref !== "AWS::AccountId") {
+    fail("projection worker dead-letter authority drifted");
+  }
+  const workerAlarms = [
+    [
+      resources.ProjectionWorkerErrorAlarm,
+      "lawos-production-projection-worker-errors",
+      "AWS/Lambda",
+      "Errors",
+      "FunctionName",
+      "ProjectionWorkerFunction",
+    ],
+    [
+      resources.ProjectionWorkerDeliveryFailureAlarm,
+      "lawos-production-projection-worker-delivery-failures",
+      "AWS/Events",
+      "FailedInvocations",
+      "RuleName",
+      "ProjectionWorkerSchedule",
+    ],
+    [
+      resources.ProjectionWorkerDeadLetterAlarm,
+      "lawos-production-projection-worker-dead-letter",
+      "AWS/SQS",
+      "ApproximateNumberOfMessagesVisible",
+      "QueueName",
+      "ProjectionWorkerDeadLetterQueue",
+    ],
+  ];
+  for (const [
+    alarm,
+    alarmName,
+    namespace,
+    metricName,
+    dimensionName,
+    logicalId,
+  ]
+    of workerAlarms) {
+    const dimension = alarm?.Properties?.Dimensions?.[0];
+    const reference = dimension?.Value?.Ref
+      ?? dimension?.Value?.["Fn::GetAtt"]?.[0];
+    if (alarm?.Type !== "AWS::CloudWatch::Alarm"
+      || alarm.Properties?.AlarmName !== alarmName
+      || alarm.Properties?.Namespace !== namespace
+      || alarm.Properties?.MetricName !== metricName
+      || alarm.Properties?.Threshold !== 1
+      || dimension?.Name !== dimensionName
+      || reference !== logicalId) {
+      fail("projection worker failure observability drifted");
+    }
+  }
+  const lagAlarm = resources.ProjectionWorkerLagAlarm;
+  if (lagAlarm?.Type !== "AWS::CloudWatch::Alarm"
+    || lagAlarm.Properties?.AlarmName
+      !== "lawos-production-projection-worker-lag"
+    || lagAlarm.Properties?.Namespace !== "LawOS/W15"
+    || lagAlarm.Properties?.MetricName !== "OutboxLagMilliseconds"
+    || lagAlarm.Properties?.Threshold?.Ref
+      !== "ProjectionWorkerLagThresholdMs"
+    || JSON.stringify(lagAlarm.Properties?.Dimensions)
+      !== JSON.stringify([{
+        Name: "Worker",
+        Value: "relational-projection",
+      }])) {
+    fail("projection worker lag observability drifted");
   }
   const endpointWorker = resources.SecretsManagerEndpoint?.Properties
     ?.PolicyDocument?.Statement?.find((item) =>

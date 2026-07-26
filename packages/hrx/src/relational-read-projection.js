@@ -970,6 +970,7 @@ async function runIncremental(pool, {
             5: 0,
           }),
           remainingEventCount: 0,
+          remainingEventLagMs: 0,
           batchCount: 0,
         });
       }
@@ -1051,7 +1052,18 @@ async function runIncremental(pool, {
         [tenantId, last.created_at, last.event_id],
       );
       const remaining = await client.query(
-        `SELECT count(*)::integer AS count
+        `SELECT count(*)::integer AS count,
+                coalesce(
+                  greatest(
+                    0,
+                    floor(
+                      extract(epoch FROM (
+                        clock_timestamp() - min(created_at)
+                      )) * 1000
+                    )
+                  ),
+                  0
+                )::bigint AS lag_ms
            FROM lawos_domain.outbox_events
           WHERE tenant_id = $1
             AND domain_id = 'hrx'
@@ -1073,6 +1085,7 @@ async function runIncremental(pool, {
         eventCount: events.length,
         eventWaveCounts: Object.freeze(eventWaveCounts),
         remainingEventCount: Number(remaining.rows[0]?.count ?? 0),
+        remainingEventLagMs: Number(remaining.rows[0]?.lag_ms ?? 0),
         batchCount: 1,
       });
     },
@@ -1257,6 +1270,7 @@ export async function projectHrxRelationalReadModel({
       noop: result.noop,
       eventCount: 0,
       remainingEventCount: 0,
+      observedOutboxLagMs: 0,
       batchCount: result.batches,
       sourceHash: result.sourceHash,
       targetHash: result.targetHash,
@@ -1277,6 +1291,7 @@ export async function projectHrxRelationalReadModel({
       noop: result.noop,
       eventCount: result.eventCount,
       remainingEventCount: result.remainingEventCount,
+      observedOutboxLagMs: result.remainingEventLagMs,
       batchCount: result.batchCount,
       sourceHash: result.sourceHash,
       targetHash: result.targetHash,
@@ -1309,6 +1324,7 @@ export async function projectHrxRelationalReadModel({
       observed_event_wave_4_count: normalized.eventWaveCounts[4],
       observed_event_wave_5_count: normalized.eventWaveCounts[5],
       remaining_outbox_event_count: normalized.remainingEventCount,
+      observed_outbox_lag_ms: normalized.observedOutboxLagMs,
       tenant_negative_visible_count: negative.visible,
       negative_tenant_context_denied_count: negative.denied,
       unmapped_nonnull_field_count: 0,

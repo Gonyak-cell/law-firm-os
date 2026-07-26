@@ -114,9 +114,99 @@ test("production template derives the proven private topology without synthetic 
     );
   }
   assert.equal(template.Parameters.EnableProjectionWorker.Default, "false");
+  assert.deepEqual(template.Parameters.ProjectionWorkerLagThresholdMs, {
+    Type: "Number",
+    Default: 24,
+    AllowedValues: [24],
+    Description:
+      "Exact signed W15 outbox-lag acceptance threshold in milliseconds",
+  });
   assert.deepEqual(
     template.Resources.ProjectionWorkerSchedule.Properties.Targets[0].Input,
     { Ref: "ProjectionWorkerEventJson" },
+  );
+  assert.deepEqual(
+    template.Resources.ProjectionWorkerSchedule.Properties.Targets[0]
+      .RetryPolicy,
+    {
+      MaximumEventAgeInSeconds: 900,
+      MaximumRetryAttempts: 2,
+    },
+  );
+  assert.deepEqual(
+    template.Resources.ProjectionWorkerSchedule.Properties.Targets[0]
+      .DeadLetterConfig,
+    {
+      Arn: {
+        "Fn::GetAtt": ["ProjectionWorkerDeadLetterQueue", "Arn"],
+      },
+    },
+  );
+  assert.equal(
+    template.Resources.ProjectionWorkerDeadLetterQueue.Properties
+      .SqsManagedSseEnabled,
+    true,
+  );
+  assert.equal(
+    template.Resources.ProjectionWorkerDeadLetterQueue.Properties
+      .MessageRetentionPeriod,
+    1_209_600,
+  );
+  assert.deepEqual(
+    template.Resources.ProjectionWorkerEventInvokeConfig.Properties,
+    {
+      DestinationConfig: {
+        OnFailure: {
+          Destination: {
+            "Fn::GetAtt": ["ProjectionWorkerDeadLetterQueue", "Arn"],
+          },
+        },
+      },
+      FunctionName: { Ref: "ProjectionWorkerFunction" },
+      MaximumEventAgeInSeconds: 900,
+      MaximumRetryAttempts: 2,
+      Qualifier: "$LATEST",
+    },
+  );
+  assert.deepEqual(
+    template.Resources.ProjectionWorkerDeadLetterQueuePolicy.Properties
+      .PolicyDocument.Statement[0],
+    {
+      Sid: "AllowExactProjectionWorkerScheduleDeliveryFailures",
+      Effect: "Allow",
+      Principal: { Service: "events.amazonaws.com" },
+      Action: "sqs:SendMessage",
+      Resource: {
+        "Fn::GetAtt": ["ProjectionWorkerDeadLetterQueue", "Arn"],
+      },
+      Condition: {
+        ArnEquals: {
+          "aws:SourceArn": {
+            "Fn::GetAtt": ["ProjectionWorkerSchedule", "Arn"],
+          },
+        },
+        StringEquals: {
+          "aws:SourceAccount": { Ref: "AWS::AccountId" },
+        },
+      },
+    },
+  );
+  assert.equal(
+    template.Resources.ProjectionWorkerLagAlarm.Properties.Threshold.Ref,
+    "ProjectionWorkerLagThresholdMs",
+  );
+  assert.equal(
+    template.Resources.ProjectionWorkerDeadLetterAlarm.Properties.MetricName,
+    "ApproximateNumberOfMessagesVisible",
+  );
+  assert.equal(
+    template.Resources.ProjectionWorkerErrorAlarm.Properties.MetricName,
+    "Errors",
+  );
+  assert.equal(
+    template.Resources.ProjectionWorkerDeliveryFailureAlarm.Properties
+      .MetricName,
+    "FailedInvocations",
   );
   assert.deepEqual(
     template.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_IDENTITY_TENANT_ID,
@@ -221,6 +311,33 @@ test("production template fails closed on public RDS, synthetic content, wildcar
         .PolicyDocument.Statement
         .find((item) => item.Sid === "ReadExactProjectionWorkerSecrets")
         .Resource.push({ Ref: "ProjectionAuditorDatabaseSecret" });
+    },
+    (value) => {
+      value.Resources.ProjectionWorkerSchedule.Properties.Targets[0]
+        .RetryPolicy.MaximumRetryAttempts = 185;
+    },
+    (value) => {
+      value.Resources.ProjectionWorkerEventInvokeConfig.Properties
+        .MaximumRetryAttempts = 0;
+    },
+    (value) => {
+      value.Resources.ProjectionWorkerDeadLetterQueuePolicy.Properties
+        .PolicyDocument.Statement[0].Principal = "*";
+    },
+    (value) => {
+      value.Resources.ProjectionWorkerExecutionRole.Properties.Policies[0]
+        .PolicyDocument.Statement
+        .find((item) =>
+          item.Sid
+            === "SendOnlyProjectionWorkerFailuresToExactDeadLetterQueue")
+        .Resource = "*";
+    },
+    (value) => {
+      value.Resources.ProjectionWorkerDeadLetterAlarm.Properties.MetricName =
+        "NumberOfMessagesSent";
+    },
+    (value) => {
+      value.Resources.ProjectionWorkerLagAlarm.Properties.Threshold = 60_000;
     },
   ]) {
     const template = buildJsonPostgresProductionTemplate(reference);

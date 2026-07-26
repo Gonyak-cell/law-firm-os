@@ -245,6 +245,7 @@ test("HRX relational projection is bounded, replay-safe, RLS-isolated and event 
   assert.equal(replay.safe_counts.projected_update_count, 0);
   assert.equal(replay.safe_counts.observed_event_wave_1_count, 0);
   assert.equal(replay.safe_counts.observed_event_wave_5_count, 0);
+  assert.equal(replay.safe_counts.observed_outbox_lag_ms, 0);
 
   await seedEmployee(fixture, {
     tenantId,
@@ -264,6 +265,7 @@ test("HRX relational projection is bounded, replay-safe, RLS-isolated and event 
   assert.equal(updated.safe_counts.consumed_outbox_event_count, 1);
   assert.equal(updated.safe_counts.observed_event_wave_1_count, 1);
   assert.equal(updated.safe_counts.observed_event_wave_2_count, 0);
+  assert.equal(updated.safe_counts.observed_outbox_lag_ms, 0);
   const row = await withPostgresTransaction(
     fixture.appPool,
     { tenant_id: tenantId, readOnly: true },
@@ -317,6 +319,7 @@ test("HRX projection excludes only internal migration records and advances their
   assert.equal(incremental.safe_counts.projected_insert_count, 0);
   assert.equal(incremental.safe_counts.projected_update_count, 0);
   assert.equal(incremental.safe_counts.remaining_outbox_event_count, 0);
+  assert.equal(incremental.safe_counts.observed_outbox_lag_ms, 0);
 
   await withPostgresTransaction(
     fixture.appPool,
