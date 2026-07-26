@@ -538,6 +538,12 @@ function assertReviewedChangeSubset(review, allowed, label) {
   if (unexpected.length) throw new Error(`${label} change set contains an unapproved resource change`);
 }
 
+const W15_WORKER_TOGGLE_CHANGE_IDS = new Set([
+  "ProjectionWorkerSchedule",
+  "ProjectionWorkerInvokePermission",
+  "ProjectionWorkerDeadLetterQueuePolicy",
+]);
+
 function verifiedReceipt(path, kind, trustRegistry, packet) {
   const receipt = verifyJsonPostgresProgramReceipt({
     receipt: readPrivateProgramJson(path, `${kind} receipt`),
@@ -1312,10 +1318,7 @@ if (operation === "preflight"
   });
   assertReviewedChangeSubset(
     review,
-    new Set([
-      "ProjectionWorkerSchedule",
-      "ProjectionWorkerInvokePermission",
-    ]),
+    W15_WORKER_TOGGLE_CHANGE_IDS,
     "W15 worker enable",
   );
   result = {
@@ -1374,10 +1377,7 @@ if (operation === "preflight"
   }
   assertReviewedChangeSubset(
     review,
-    new Set([
-      "ProjectionWorkerSchedule",
-      "ProjectionWorkerInvokePermission",
-    ]),
+    W15_WORKER_TOGGLE_CHANGE_IDS,
     "W15 worker enable",
   );
   const updated = executeReviewedChangeSet(review);
@@ -1438,10 +1438,7 @@ if (operation === "preflight"
   });
   assertReviewedChangeSubset(
     review,
-    new Set([
-      "ProjectionWorkerSchedule",
-      "ProjectionWorkerInvokePermission",
-    ]),
+    W15_WORKER_TOGGLE_CHANGE_IDS,
     "W15 worker disable",
   );
   result = {
@@ -1473,10 +1470,7 @@ if (operation === "preflight"
   }
   assertReviewedChangeSubset(
     review,
-    new Set([
-      "ProjectionWorkerSchedule",
-      "ProjectionWorkerInvokePermission",
-    ]),
+    W15_WORKER_TOGGLE_CHANGE_IDS,
     "W15 worker disable",
   );
   const updated = executeReviewedChangeSet(review);
