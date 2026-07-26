@@ -2,6 +2,9 @@ import {
   attachPostgresTenantContextSecret,
   createPostgresPool,
 } from "../../../packages/persistence/src/postgres/pool.js";
+import {
+  verifyHrxPostgresMigrationState,
+} from "../../../packages/hrx/src/postgres-migrations.js";
 import { verifyPostgresMigrationState } from "../../../packages/persistence/src/postgres/migration-runner.js";
 import { resolveAwsSecretString } from "./aws-secret-reference.js";
 import { runtimePreflightError } from "./runtime-profile.js";
@@ -27,6 +30,20 @@ export const LAWOS_OFFLINE_REJECTED_POLICY = Object.freeze({
   authority_loss_mode: "fail_closed",
   cached_read_authority: false,
 });
+
+export async function verifyOperationalPostgresMigrationState(pool, {
+  verifyFoundation = verifyPostgresMigrationState,
+  verifyHrx = verifyHrxPostgresMigrationState,
+} = {}) {
+  try {
+    return await verifyFoundation(pool);
+  } catch (error) {
+    if (error?.code !== "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED") {
+      throw error;
+    }
+    return verifyHrx(pool);
+  }
+}
 
 export function resolvePersistenceAuthority({ value, env = process.env } = {}) {
   const operational = String(env.LAWOS_RUNTIME_PROFILE ?? "").trim() === "operational";
@@ -165,7 +182,7 @@ export async function preparePersistenceAuthority({
   value,
   env = process.env,
   connectPostgres = defaultConnectPostgres,
-  verifyPostgresMigrations = verifyPostgresMigrationState,
+  verifyPostgresMigrations = verifyOperationalPostgresMigrationState,
   secretsClient,
   resolvePostgresSecret,
 } = {}) {
