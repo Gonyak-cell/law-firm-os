@@ -114,6 +114,14 @@ test("production template derives the proven private topology without synthetic 
     );
   }
   assert.equal(template.Parameters.EnableProjectionWorker.Default, "false");
+  assert.equal(
+    template.Parameters.HrxProjectionMappingObjectKey.Default,
+    "disabled/hrx-projection-mapping.json",
+  );
+  assert.equal(
+    template.Parameters.HrxProjectionValidationObjectKey.Default,
+    "disabled/hrx-projection-validation.json",
+  );
   assert.deepEqual(template.Parameters.ProjectionWorkerLagThresholdMs, {
     Type: "Number",
     Default: 24,
@@ -211,6 +219,35 @@ test("production template derives the proven private topology without synthetic 
   assert.deepEqual(
     template.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_IDENTITY_TENANT_ID,
     { Ref: "PrimaryTenantId" },
+  );
+  assert.deepEqual(
+    template.Resources.ApiFunction.Properties.Environment.Variables
+      .LAWOS_HRX_RELATIONAL_PROJECTION_ENABLED,
+    { "Fn::If": ["ProjectionWorkerEnabled", "true", "false"] },
+  );
+  assert.deepEqual(
+    template.Resources.ApiExecutionRole.Properties.Policies[0]
+      .PolicyDocument.Statement.find((item) =>
+        item.Sid === "ReadExactHrxProjectionRuntimeInputs"),
+    {
+      Sid: "ReadExactHrxProjectionRuntimeInputs",
+      Effect: "Allow",
+      Action: "s3:GetObjectVersion",
+      Resource: [
+        {
+          "Fn::Sub":
+            "${ProgramInputBucket.Arn}/program-input/${ExecutionPacketSha256}/w15-worker-event/${SourceSha}/*",
+        },
+        {
+          "Fn::Sub":
+            "${ProgramInputBucket.Arn}/${HrxProjectionMappingObjectKey}",
+        },
+        {
+          "Fn::Sub":
+            "${ProgramInputBucket.Arn}/${HrxProjectionValidationObjectKey}",
+        },
+      ],
+    },
   );
   assert.equal(
     template.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_PASSWORD_RESET_TENANT_ID,
@@ -339,6 +376,15 @@ test("production template fails closed on public RDS, synthetic content, wildcar
     (value) => {
       value.Resources.ProjectionWorkerLagAlarm.Properties.Threshold = 60_000;
     },
+    (value) => {
+      value.Resources.ApiExecutionRole.Properties.Policies[0]
+        .PolicyDocument.Statement
+        .find((item) =>
+          item.Sid === "ReadExactHrxProjectionRuntimeInputs")
+        .Resource[1] = {
+          "Fn::Sub": "${ProgramInputBucket.Arn}/*",
+        };
+    },
   ]) {
     const template = buildJsonPostgresProductionTemplate(reference);
     mutate(template);
@@ -390,7 +436,7 @@ test("W15 rollback tooling disables the worker schedule without an ENI or traffi
   );
   assert.match(
     source,
-    /const W15_WORKER_TOGGLE_CHANGE_IDS = new Set\(\[\s*"ProjectionWorkerSchedule",\s*"ProjectionWorkerInvokePermission",\s*"ProjectionWorkerDeadLetterQueuePolicy",\s*\]\)/u,
+    /const W15_WORKER_TOGGLE_CHANGE_IDS = new Set\(\[[\s\S]*"ApiExecutionRole",[\s\S]*"ApiFunction",[\s\S]*"ProjectionWorkerSchedule",[\s\S]*"ProjectionWorkerInvokePermission",[\s\S]*"ProjectionWorkerDeadLetterQueuePolicy",[\s\S]*\]\)/u,
   );
   assert.equal(
     source.match(

@@ -35,6 +35,7 @@ import {
   activateHrxProjectionConsumerRoute,
   disableHrxProjectionConsumerRoutes,
   HRX_RELATIONAL_QUERY_FAMILIES,
+  refreshHrxProjectionConsumerRoutes,
 } from "../../../packages/hrx/src/relational-projection-reader.js";
 import {
   configureLawosProductionApplicationRole,
@@ -1457,6 +1458,7 @@ export async function executeJsonPostgresRelationalProjection({
   validateProjection = validateHrxRelationalReadModel,
   activateConsumerRoute = activateHrxProjectionConsumerRoute,
   disableConsumerRoutes = disableHrxProjectionConsumerRoutes,
+  refreshConsumerRoutes = refreshHrxProjectionConsumerRoutes,
   transaction = withPostgresTransaction,
   writeEvidence = writeJsonPostgresProgramEvidence,
   s3Client = new S3Client({ region: env.AWS_REGION ?? env.AWS_DEFAULT_REGION }),
@@ -1730,6 +1732,20 @@ export async function executeJsonPostgresRelationalProjection({
   const requestedProjectionMode =
     event.mode === "commit" ? "backfill" : "resume";
   const projected = [];
+  const refreshedRoutes = [];
+  const projectionResultIsSafe = (item) =>
+    item.outcome === "PASS"
+    && item.claims?.one_way_projection === true
+    && item.claims?.operational_request_dual_write === false
+    && item.claims?.generic_ledger_authority_preserved === true
+    && item.claims?.projection_write_authority === false
+    && item.safe_counts?.remaining_outbox_event_count === 0
+    && item.safe_counts?.tenant_negative_visible_count === 0
+    && item.safe_counts?.source_authority_write_count === 0
+    && item.safe_counts?.dual_write_count === 0
+    && item.safe_counts?.partial_commit_count === 0
+    && item.safe_counts?.unmapped_nonnull_field_count === 0
+    && item.safe_counts?.physical_delete_count === 0;
   try {
     await verifyMigrations(pool);
     if (event.mode === "commit") {
@@ -1759,21 +1775,38 @@ export async function executeJsonPostgresRelationalProjection({
         negativeTenantId,
       }));
     }
+    const projectedModes = new Set(projected.map((item) => item.mode));
+    const incrementalProjection =
+      projectedModes.size === 1 && projected[0]?.mode === "incremental";
+    if (incrementalProjection) {
+      if (!inputs.validationEvidence
+        || projected.some((item) => !projectionResultIsSafe(item))) {
+        fail(
+          "LAWOS_HRX_PROJECTION_ROUTE_REFRESH_GATE",
+          "incremental route refresh requires exact PASS validation and a complete safe catch-up",
+        );
+      }
+      for (const tenantId of approvedTenantIds) {
+        refreshedRoutes.push(await transaction(
+          pool,
+          {
+            tenant_id: tenantId,
+            statementTimeoutMillis:
+              inputs.performanceAcceptance.statement_timeout_ms,
+            maxAttempts: 1,
+          },
+          (client) => refreshConsumerRoutes(client, {
+            tenantId,
+            mappingManifest: inputs.mappingManifest,
+            validationEvidence: inputs.validationEvidence,
+          }),
+        ));
+      }
+    }
   } finally {
     await pool.end();
   }
-  if (projected.some((item) =>
-    item.outcome !== "PASS"
-    || item.claims?.one_way_projection !== true
-    || item.claims?.operational_request_dual_write !== false
-    || item.claims?.generic_ledger_authority_preserved !== true
-    || item.claims?.projection_write_authority !== false
-    || item.safe_counts?.tenant_negative_visible_count !== 0
-    || item.safe_counts?.source_authority_write_count !== 0
-    || item.safe_counts?.dual_write_count !== 0
-    || item.safe_counts?.partial_commit_count !== 0
-    || item.safe_counts?.unmapped_nonnull_field_count !== 0
-    || item.safe_counts?.physical_delete_count !== 0)) {
+  if (projected.some((item) => !projectionResultIsSafe(item))) {
     fail("LAWOS_HRX_PROJECTION_GATE", "relational projection result violated the one-way authority gate");
   }
   const resolvedProjectionModes =
@@ -1841,6 +1874,11 @@ export async function executeJsonPostgresRelationalProjection({
       consumer_write_grant_count: role.consumer_write_grant_count,
       auditor_write_grant_count: role.auditor_write_grant_count,
       authority_promotion_count: 0,
+      consumer_route_refresh_count: refreshedRoutes.reduce(
+        (total, item) =>
+          total + Number(item.refreshed_route_count ?? 0),
+        0,
+      ),
     },
     claims: {
       one_way_projection: true,
@@ -1851,6 +1889,7 @@ export async function executeJsonPostgresRelationalProjection({
       operational_request_dual_write: false,
       generic_ledger_authority_preserved: true,
       projection_write_authority: false,
+      consumer_route_refresh_requires_zero_backlog: true,
       raw_value_returned: false,
       pii_returned: false,
       secret_material_returned: false,

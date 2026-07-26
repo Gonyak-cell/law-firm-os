@@ -169,6 +169,9 @@ import {
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
 import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
 import { createPostgresIdentityLedger } from "../../../packages/runtime-auth/src/postgres-identity-ledger.js";
+import {
+  createHrxRelationalProjectionReader,
+} from "../../../packages/hrx/src/relational-projection-reader.js";
 import { createPostgresApiRuntimeAuthority } from "./postgres-api-runtime-authority.js";
 import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgres-upload-runtime.js";
 import { createEntraOidcProviderFromSecretReference } from "./entra-oidc-provider.js";
@@ -1807,6 +1810,8 @@ export async function startApiServer({
   hrxRuntime,
   hrxStore,
   hrxStorePath,
+  hrxRelationalProjectionMappingManifest,
+  hrxRelationalProjectionValidationResultSha256,
   masterDataRuntime,
   masterDataRepository,
   masterDataStorePath,
@@ -1863,6 +1868,12 @@ export async function startApiServer({
   hrxStepUpTotpSecret,
 } = {}) {
   const resolvedRuntimeProfile = normalizeRuntimeProfileOption(runtimeProfile);
+  if ((hrxRelationalProjectionMappingManifest == null)
+    !== (hrxRelationalProjectionValidationResultSha256 == null)) {
+    throw runtimePreflightError(
+      "HRX relational projection mapping and validation binding must be configured together",
+    );
+  }
   const resolvedPersistenceAuthorityEnv = {
     ...persistenceAuthorityEnv,
     LAWOS_RUNTIME_PROFILE: resolvedRuntimeProfile,
@@ -1943,11 +1954,22 @@ export async function startApiServer({
         sourceOnly: false,
         verifyPermanentDeleteApproval: dmsVerifyPermanentDeleteApproval,
       });
+      const hrxRelationalProjectionReader =
+        hrxRelationalProjectionMappingManifest == null
+          ? null
+          : createHrxRelationalProjectionReader({
+              pool: postgresPool,
+              mappingManifest:
+                hrxRelationalProjectionMappingManifest,
+              validationResultSha256:
+                hrxRelationalProjectionValidationResultSha256,
+            });
       const requestRuntimeAuthority = createPostgresApiRuntimeAuthority({
         ledger: createPostgresDomainLedger({ pool: postgresPool }),
         dmsStorage: resolvedDmsStorage,
         dmsUploadRuntime: activeDmsUploadRuntime,
         payrollArtifactSecret: resolvedPayrollArtifactSecret,
+        hrxRelationalProjectionReader,
       });
       const server = createApiServer({
         hrxRuntime: null,

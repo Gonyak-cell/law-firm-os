@@ -11,6 +11,7 @@ import {
   createPostgresHrxStorePortV2,
   flushHrxStoreToPostgres,
   materializeHrxStoreFromPostgres,
+  materializeHrxStoreWithProjection,
   runHrxPostgresCommand,
 } from "../src/postgres-store-v2.js";
 import { createSqlHrxRepository } from "../src/repository-sql.js";
@@ -192,6 +193,69 @@ test("HRX PostgreSQL import, async store port, legacy service command, CAS and a
   );
   assert.equal(projectionReadCount, 1);
   projectionPort.close();
+  const overlay = await materializeHrxStoreWithProjection({
+    ledger,
+    tenant_id: TENANT,
+    projectionReader: {
+      authority: "read-model-only",
+      fallback_authority: "postgres-v2-generic-ledger",
+      async materializeSnapshot({ source_snapshot: sourceSnapshot }) {
+        const projectedSnapshot = structuredClone(sourceSnapshot);
+        projectedSnapshot.tables.hrx_employees =
+          projectedSnapshot.tables.hrx_employees.map((employee) =>
+            employee.employee_id === "employee-rs-dom-001"
+              ? {
+                  ...employee,
+                  display_name: "Relational projected read",
+                }
+              : employee);
+        return {
+          snapshot: projectedSnapshot,
+          projected_table_names: ["hrx_employees"],
+          fallback_families: [],
+        };
+      },
+    },
+  });
+  assert.equal(
+    overlay.query("selectOne", {
+      table: "hrx_employees",
+      where: {
+        tenant_id: TENANT,
+        employee_id: "employee-rs-dom-001",
+      },
+    }).display_name,
+    "Relational projected read",
+  );
+  assert.equal(
+    overlay.snapshot().tables.hrx_employees.find((employee) =>
+      employee.employee_id === "employee-rs-dom-001").display_name,
+    "Generic ledger remains write authority",
+  );
+  overlay.query("updateOne", {
+    table: "hrx_employees",
+    where: {
+      tenant_id: TENANT,
+      employee_id: "employee-rs-dom-001",
+    },
+    patch: { display_name: "Overlay mutation remains generic-authority state" },
+  });
+  assert.equal(
+    overlay.snapshot().tables.hrx_employees.find((employee) =>
+      employee.employee_id === "employee-rs-dom-001").display_name,
+    "Overlay mutation remains generic-authority state",
+  );
+  assert.equal(
+    overlay.query("selectOne", {
+      table: "hrx_employees",
+      where: {
+        tenant_id: TENANT,
+        employee_id: "employee-rs-dom-001",
+      },
+    }).display_name,
+    "Overlay mutation remains generic-authority state",
+  );
+  overlay.close();
   await port.transaction({
     tenant_id: TENANT,
     idempotency_key: "hrx-postgres-port-transaction-001",

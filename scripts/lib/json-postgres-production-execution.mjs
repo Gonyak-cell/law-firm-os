@@ -12,6 +12,10 @@ export const JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK = "lawos-production-artifac
 export const JSON_POSTGRES_PRODUCTION_STACK = "lawos-production";
 export const JSON_POSTGRES_IMMUTABLE_PROGRAM_INPUT_LOCATOR_VERSION =
   "law-firm-os.immutable-program-input-locator.v1";
+export const JSON_POSTGRES_DISABLED_HRX_MAPPING_OBJECT_KEY =
+  "disabled/hrx-projection-mapping.json";
+export const JSON_POSTGRES_DISABLED_HRX_VALIDATION_OBJECT_KEY =
+  "disabled/hrx-projection-validation.json";
 
 const SHA1 = /^[a-f0-9]{40}$/u;
 const SHA256 = /^[a-f0-9]{64}$/u;
@@ -135,6 +139,10 @@ export function buildJsonPostgresProductionStackParameters({
   enableProductionTraffic = false,
   enableProjectionWorker = false,
   projectionWorkerEventJson = "{}",
+  hrxProjectionMappingObjectKey =
+    JSON_POSTGRES_DISABLED_HRX_MAPPING_OBJECT_KEY,
+  hrxProjectionValidationObjectKey =
+    JSON_POSTGRES_DISABLED_HRX_VALIDATION_OBJECT_KEY,
 } = {}) {
   if (!packet?.target?.approved_tenant_ids?.includes(primaryTenantId)) {
     fail("primary tenant is not in the exact approved tenant set");
@@ -145,7 +153,11 @@ export function buildJsonPostgresProductionStackParameters({
     || !passwordResetSesIdentityArn || !passwordResetFromEmail
     || typeof projectionWorkerEventJson !== "string"
     || projectionWorkerEventJson.length < 2
-    || projectionWorkerEventJson.length > 65_536
+    || Buffer.byteLength(projectionWorkerEventJson) > 1024
+    || !/^[A-Za-z0-9][A-Za-z0-9._/-]{0,511}$/u
+      .test(hrxProjectionMappingObjectKey)
+    || !/^[A-Za-z0-9][A-Za-z0-9._/-]{0,511}$/u
+      .test(hrxProjectionValidationObjectKey)
     || !Number.isSafeInteger(runtimeGeneration) || runtimeGeneration < 1) {
     fail("production stack parameter input is incomplete");
   }
@@ -173,6 +185,9 @@ export function buildJsonPostgresProductionStackParameters({
     EnableProductionTraffic: enableProductionTraffic ? "true" : "false",
     EnableProjectionWorker: enableProjectionWorker ? "true" : "false",
     ProjectionWorkerEventJson: projectionWorkerEventJson,
+    HrxProjectionMappingObjectKey: hrxProjectionMappingObjectKey,
+    HrxProjectionValidationObjectKey:
+      hrxProjectionValidationObjectKey,
     ProjectionWorkerLagThresholdMs: "24",
     MonthlyCostCeilingKrw: "300000",
   });
@@ -401,6 +416,45 @@ export function assertJsonPostgresProductionStack(stack, {
   }
   if (!/^(?:CREATE|UPDATE)_COMPLETE$/u.test(stack?.StackStatus ?? "")) {
     fail("production stack is not complete");
+  }
+  const projectionRuntimeEnabled =
+    parameters.EnableProjectionWorker === "true";
+  let workerEventLocator = null;
+  try {
+    workerEventLocator = JSON.parse(
+      parameters.ProjectionWorkerEventJson ?? "",
+    );
+  } catch {
+    fail("production HRX projection worker locator is invalid");
+  }
+  let exactWorkerEventLocator = false;
+  if (projectionRuntimeEnabled) {
+    try {
+      exactWorkerEventLocator = JSON.stringify(
+        createJsonPostgresProductionWorkerEventLocator({
+          packet,
+          key: workerEventLocator?.key,
+          versionId: workerEventLocator?.version_id,
+          sha256: workerEventLocator?.sha256,
+          byteSize: workerEventLocator?.byte_size,
+        }),
+      ) === JSON.stringify(workerEventLocator);
+    } catch {
+      exactWorkerEventLocator = false;
+    }
+  }
+  if (projectionRuntimeEnabled
+    ? exactWorkerEventLocator !== true
+      || parameters.HrxProjectionMappingObjectKey
+        === JSON_POSTGRES_DISABLED_HRX_MAPPING_OBJECT_KEY
+      || parameters.HrxProjectionValidationObjectKey
+        === JSON_POSTGRES_DISABLED_HRX_VALIDATION_OBJECT_KEY
+    : JSON.stringify(workerEventLocator) !== "{}"
+      || parameters.HrxProjectionMappingObjectKey
+        !== JSON_POSTGRES_DISABLED_HRX_MAPPING_OBJECT_KEY
+      || parameters.HrxProjectionValidationObjectKey
+        !== JSON_POSTGRES_DISABLED_HRX_VALIDATION_OBJECT_KEY) {
+    fail("production HRX projection runtime input binding drifted");
   }
   return Object.freeze({
     verdict: "PASS",

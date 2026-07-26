@@ -43,6 +43,9 @@ import {
   writeDurableJsonFile,
 } from "../../../packages/persistence/src/durable-file.js";
 import { appendNdjsonDurably } from "../../../packages/persistence/src/durable-append.js";
+import {
+  loadHrxRelationalProjectionRuntimeInput,
+} from "./hrx-relational-projection-input.js";
 
 let sessionSecretPromise;
 let hrxStepUpRootSecretPromise;
@@ -4183,10 +4186,20 @@ export function createRetryablePromiseCache(factory) {
 const apiRuntimeCache = createRetryablePromiseCache(async () => {
   const matterRepository = await createLambdaMatterRepository();
   const hrxStepUpSecrets = await resolveLambdaHrxStepUpSecrets();
+  const hrxRelationalProjection =
+    await loadHrxRelationalProjectionRuntimeInput();
   return startApiServer({
     port: 0,
     sessionSecret: await resolveLambdaSessionSecret(),
     ...hrxStepUpSecrets,
+    ...(hrxRelationalProjection
+      ? {
+          hrxRelationalProjectionMappingManifest:
+            hrxRelationalProjection.mappingManifest,
+          hrxRelationalProjectionValidationResultSha256:
+            hrxRelationalProjection.validationEvidence.result_sha256,
+        }
+      : {}),
     passwordResetEmailDelivery: createLambdaPasswordResetEmailDelivery(),
     ...(matterRepository ? { matterRepository } : {}),
   });

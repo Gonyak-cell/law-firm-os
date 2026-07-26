@@ -385,6 +385,7 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   template.Parameters.ProjectionWorkerEventJson = {
     Type: "String",
     Default: "{}",
+    MaxLength: 1024,
     Description:
       "Exact immutable W15 worker-event locator; schedule remains disabled until approved rollout",
   };
@@ -392,6 +393,18 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     Type: "String",
     Default: "false",
     AllowedValues: ["true", "false"],
+  };
+  template.Parameters.HrxProjectionMappingObjectKey = {
+    Type: "String",
+    Default: "disabled/hrx-projection-mapping.json",
+    MaxLength: 512,
+    AllowedPattern: "^[A-Za-z0-9][A-Za-z0-9._/-]{0,511}$",
+  };
+  template.Parameters.HrxProjectionValidationObjectKey = {
+    Type: "String",
+    Default: "disabled/hrx-projection-validation.json",
+    MaxLength: 512,
+    AllowedPattern: "^[A-Za-z0-9][A-Za-z0-9._/-]{0,511}$",
   };
   template.Parameters.ProjectionWorkerLagThresholdMs = {
     Type: "Number",
@@ -515,6 +528,25 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   apiEmail.Condition = {
     StringEquals: { "ses:FromAddress": { Ref: "PasswordResetFromEmail" } },
   };
+  apiRole.Properties.Policies[0].PolicyDocument.Statement.splice(-1, 0, {
+    Sid: "ReadExactHrxProjectionRuntimeInputs",
+    Effect: "Allow",
+    Action: "s3:GetObjectVersion",
+    Resource: [
+      {
+        "Fn::Sub":
+          "${ProgramInputBucket.Arn}/program-input/${ExecutionPacketSha256}/w15-worker-event/${SourceSha}/*",
+      },
+      {
+        "Fn::Sub":
+          "${ProgramInputBucket.Arn}/${HrxProjectionMappingObjectKey}",
+      },
+      {
+        "Fn::Sub":
+          "${ProgramInputBucket.Arn}/${HrxProjectionValidationObjectKey}",
+      },
+    ],
+  });
 
   const adminRole = resources.AdminExecutionRole;
   const readSecrets = statement(adminRole, "ReadExactBootstrapSecrets");
@@ -998,6 +1030,30 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
       Tags: clone(workerAlarmTags),
     },
   };
+  const apiEnvironment =
+    resources.ApiFunction.Properties.Environment.Variables;
+  apiEnvironment.LAWOS_AWS_ACCOUNT_ID = { Ref: "AWS::AccountId" };
+  apiEnvironment.LAWOS_EXECUTION_PACKET_SHA256 = {
+    Ref: "ExecutionPacketSha256",
+  };
+  apiEnvironment.LAWOS_HRX_RELATIONAL_PROJECTION_ENABLED = {
+    "Fn::If": ["ProjectionWorkerEnabled", "true", "false"],
+  };
+  apiEnvironment.LAWOS_HRX_RELATIONAL_PROJECTION_EVENT_LOCATOR = {
+    Ref: "ProjectionWorkerEventJson",
+  };
+  apiEnvironment.LAWOS_HRX_RELATIONAL_PROJECTION_MAPPING_OBJECT_KEY = {
+    Ref: "HrxProjectionMappingObjectKey",
+  };
+  apiEnvironment.LAWOS_HRX_RELATIONAL_PROJECTION_VALIDATION_OBJECT_KEY = {
+    Ref: "HrxProjectionValidationObjectKey",
+  };
+  apiEnvironment.LAWOS_PROGRAM_INPUT_BUCKET = {
+    Ref: "ProgramInputBucket",
+  };
+  apiEnvironment.LAWOS_PROGRAM_INPUT_KMS_KEY_ARN = {
+    "Fn::GetAtt": ["ProductionKey", "Arn"],
+  };
   resources.ProjectionWorkerDeadLetterAlarm = {
     Type: "AWS::CloudWatch::Alarm",
     Properties: {
@@ -1240,7 +1296,22 @@ export function validateJsonPostgresProductionTemplate(template) {
     || resources.ProjectionWorkerFunction?.Properties?.Environment?.Variables
       ?.LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID != null
     || resources.ApiFunction?.Properties?.Environment?.Variables?.LAWOS_PERSISTENCE_AUTHORITY !== "postgres-v2"
-    || resources.ApiFunction?.Properties?.Environment?.Variables?.LAWOS_RUNTIME_PROFILE !== "operational") {
+    || resources.ApiFunction?.Properties?.Environment?.Variables?.LAWOS_RUNTIME_PROFILE !== "operational"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_HRX_RELATIONAL_PROJECTION_ENABLED?.["Fn::If"]?.[0]
+      !== "ProjectionWorkerEnabled"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_HRX_RELATIONAL_PROJECTION_EVENT_LOCATOR?.Ref
+      !== "ProjectionWorkerEventJson"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_HRX_RELATIONAL_PROJECTION_MAPPING_OBJECT_KEY?.Ref
+      !== "HrxProjectionMappingObjectKey"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_HRX_RELATIONAL_PROJECTION_VALIDATION_OBJECT_KEY?.Ref
+      !== "HrxProjectionValidationObjectKey"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_EXECUTION_PACKET_SHA256?.Ref
+      !== "ExecutionPacketSha256") {
     fail("production Lambda authority contract drifted");
   }
   const outputs = template.Outputs ?? {};
@@ -1309,6 +1380,15 @@ export function validateJsonPostgresProductionTemplate(template) {
   if (resources.HttpApi.Properties.DisableExecuteApiEndpoint?.["Fn::If"]?.[2] !== true
     || resources.PasswordResetWorkerSchedule.Properties.State?.["Fn::If"]?.[2] !== "DISABLED"
     || template.Parameters?.EnableProjectionWorker?.Default !== "false"
+    || template.Parameters?.ProjectionWorkerEventJson?.MaxLength !== 1024
+    || template.Parameters?.HrxProjectionMappingObjectKey?.Default
+      !== "disabled/hrx-projection-mapping.json"
+    || template.Parameters?.HrxProjectionMappingObjectKey?.MaxLength
+      !== 512
+    || template.Parameters?.HrxProjectionValidationObjectKey?.Default
+      !== "disabled/hrx-projection-validation.json"
+    || template.Parameters?.HrxProjectionValidationObjectKey?.MaxLength
+      !== 512
     || template.Parameters?.ProjectionWorkerLagThresholdMs?.Default !== 24
     || JSON.stringify(
       template.Parameters?.ProjectionWorkerLagThresholdMs?.AllowedValues,
@@ -1348,6 +1428,29 @@ export function validateJsonPostgresProductionTemplate(template) {
     || resources.ProjectionWorkerInvokePermission?.Properties?.SourceArn
       ?.["Fn::GetAtt"]?.[0] !== "ProjectionWorkerSchedule") {
     fail("production traffic must default disabled");
+  }
+  const apiProjectionRead = statement(
+    resources.ApiExecutionRole,
+    "ReadExactHrxProjectionRuntimeInputs",
+  );
+  if (apiProjectionRead?.Effect !== "Allow"
+    || apiProjectionRead?.Action !== "s3:GetObjectVersion"
+    || JSON.stringify(apiProjectionRead?.Resource)
+      !== JSON.stringify([
+        {
+          "Fn::Sub":
+            "${ProgramInputBucket.Arn}/program-input/${ExecutionPacketSha256}/w15-worker-event/${SourceSha}/*",
+        },
+        {
+          "Fn::Sub":
+            "${ProgramInputBucket.Arn}/${HrxProjectionMappingObjectKey}",
+        },
+        {
+          "Fn::Sub":
+            "${ProgramInputBucket.Arn}/${HrxProjectionValidationObjectKey}",
+        },
+      ])) {
+    fail("production API relational projection input authority drifted");
   }
   const adminSecretResources = statement(resources.AdminExecutionRole, "ReadExactBootstrapSecrets")?.Resource ?? [];
   const endpointAdminSecretResources = resources.SecretsManagerEndpoint?.Properties?.PolicyDocument?.Statement

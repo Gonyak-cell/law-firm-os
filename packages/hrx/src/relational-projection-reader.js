@@ -53,6 +53,14 @@ function quoteIdentifier(value) {
   return `"${text}"`;
 }
 
+function quoteLiteral(value) {
+  const text = requiredText(value, "SQL literal");
+  if (!/^[a-z_][a-z0-9_]*$/u.test(text)) {
+    throw new TypeError("unsafe SQL literal");
+  }
+  return `'${text}'`;
+}
+
 function queryFamilyForMapping(mapping) {
   return FAMILY_BY_WAVE[mapping.rollout_wave] ?? null;
 }
@@ -182,6 +190,7 @@ async function assertRouteReady(client, {
   tenantId,
   queryFamily,
   mappingManifest,
+  validationResultSha256,
   clock,
 } = {}) {
   const route = await client.query(
@@ -199,20 +208,39 @@ async function assertRouteReady(client, {
     );
   }
   if (value.mapping_sha256 !== mappingManifest.manifest_sha256
-    || !/^[a-f0-9]{64}$/u.test(value.validation_result_sha256 ?? "")) {
+    || !/^[a-f0-9]{64}$/u.test(value.validation_result_sha256 ?? "")
+    || (validationResultSha256 != null
+      && value.validation_result_sha256 !== validationResultSha256)) {
     throw readerError(
       "HRX relational consumer route binding drifted",
       "LAWOS_HRX_PROJECTION_READER_BINDING",
     );
   }
   const verifiedAt = Date.parse(value.verified_at);
+  const maxStalenessMs = Number(value.max_staleness_ms);
+  const observedAt = Number(clock());
   if (!Number.isFinite(verifiedAt)
-    || clock() - verifiedAt > Number(value.max_staleness_ms)) {
+    || !Number.isFinite(observedAt)
+    || !Number.isSafeInteger(maxStalenessMs)
+    || maxStalenessMs < 1
+    || maxStalenessMs > 3_600_000
+    || verifiedAt > observedAt + 1_000
+    || observedAt - verifiedAt > maxStalenessMs) {
     throw readerError(
       "HRX relational consumer route validation is stale",
       "LAWOS_HRX_PROJECTION_READER_STALE",
     );
   }
+  await assertProjectionCheckpointReady(client, {
+    tenantId,
+    mappingManifest,
+  });
+}
+
+async function assertProjectionCheckpointReady(client, {
+  tenantId,
+  mappingManifest,
+} = {}) {
   const readiness = await client.query(
     `SELECT count(*) FILTER (
                 WHERE checkpoint.status = 'complete'
@@ -255,15 +283,205 @@ async function assertRouteReady(client, {
   }
 }
 
+export async function refreshHrxProjectionConsumerRoutes(client, {
+  tenantId,
+  mappingManifest,
+  validationEvidence,
+  clock = () => Date.now(),
+} = {}) {
+  if (!client || typeof client.query !== "function") {
+    throw new TypeError("PostgreSQL projection writer client is required");
+  }
+  validateHrxRelationalMappingManifest(mappingManifest);
+  validateHrxRelationalProjectionValidation(validationEvidence);
+  const tenant = requiredText(tenantId, "tenantId");
+  if (validationEvidence.outcome !== "PASS"
+    || validationEvidence.mapping_manifest_sha256
+      !== mappingManifest.manifest_sha256) {
+    throw readerError(
+      "HRX relational consumer route refresh is not backed by an exact PASS validation",
+      "LAWOS_HRX_PROJECTION_READER_BINDING",
+    );
+  }
+  const current = await client.query(
+    `SELECT query_family, rollout_wave, mapping_sha256,
+            validation_result_sha256, max_staleness_ms
+       FROM lawos_projection.hrx_consumer_route
+      WHERE tenant_id = $1 AND enabled = true
+      ORDER BY rollout_wave, query_family`,
+    [tenant],
+  );
+  const routes = current.rows;
+  if (routes.length === 0) {
+    return Object.freeze({
+      refreshed_route_count: 0,
+      authority_promoted: false,
+    });
+  }
+  if (routes.some((route, index) =>
+    FAMILY_BY_WAVE[Number(route.rollout_wave)] !== route.query_family
+      || Number(route.rollout_wave) !== index + 1
+      || route.mapping_sha256 !== mappingManifest.manifest_sha256
+      || route.validation_result_sha256 !== validationEvidence.result_sha256
+      || !Number.isSafeInteger(Number(route.max_staleness_ms))
+      || Number(route.max_staleness_ms) < 1
+      || Number(route.max_staleness_ms) > 3_600_000)) {
+    throw readerError(
+      "HRX relational consumer route refresh binding drifted",
+      "LAWOS_HRX_PROJECTION_READER_BINDING",
+    );
+  }
+  await assertProjectionCheckpointReady(client, {
+    tenantId: tenant,
+    mappingManifest,
+  });
+  const refreshedAt = new Date(clock()).toISOString();
+  const refreshed = await client.query(
+    `UPDATE lawos_projection.hrx_consumer_route
+        SET verified_at = $4, updated_at = clock_timestamp()
+      WHERE tenant_id = $1
+        AND enabled = true
+        AND mapping_sha256 = $2
+        AND validation_result_sha256 = $3`,
+    [
+      tenant,
+      mappingManifest.manifest_sha256,
+      validationEvidence.result_sha256,
+      refreshedAt,
+    ],
+  );
+  if (Number(refreshed.rowCount ?? 0) !== routes.length) {
+    throw readerError(
+      "HRX relational consumer route refresh was incomplete",
+      "LAWOS_HRX_PROJECTION_READER_BINDING",
+    );
+  }
+  return Object.freeze({
+    refreshed_route_count: routes.length,
+    refreshed_at: refreshedAt,
+    mapping_sha256: mappingManifest.manifest_sha256,
+    validation_result_sha256: validationEvidence.result_sha256,
+    authority_promoted: false,
+  });
+}
+
 export function createHrxRelationalProjectionReader({
   pool,
   mappingManifest,
+  validationResultSha256 = null,
   clock = () => Date.now(),
 } = {}) {
   if (!pool || typeof pool.connect !== "function") {
     throw new TypeError("PostgreSQL projection consumer pool is required");
   }
   validateHrxRelationalMappingManifest(mappingManifest);
+  if (validationResultSha256 != null
+    && !/^[a-f0-9]{64}$/u.test(validationResultSha256)) {
+    throw new TypeError(
+      "HRX relational projection validation result SHA-256 is invalid",
+    );
+  }
+
+  async function materializeSnapshot({
+    tenant_id,
+    source_snapshot,
+  } = {}) {
+    const tenantId = requiredText(tenant_id, "tenant_id");
+    if (!source_snapshot || typeof source_snapshot !== "object"
+      || Array.isArray(source_snapshot)
+      || !source_snapshot.tables
+      || typeof source_snapshot.tables !== "object") {
+      throw new TypeError("HRX generic PostgreSQL source snapshot is required");
+    }
+    return withPostgresTransaction(
+      pool,
+      { tenant_id: tenantId, readOnly: true },
+      async (client) => {
+        const families = [...new Set(
+          mappingManifest.tables
+            .map(queryFamilyForMapping)
+            .filter(Boolean),
+        )];
+        const readyFamilies = new Set();
+        const fallbackFamilies = [];
+        for (const queryFamily of families) {
+          try {
+            await assertRouteReady(client, {
+              tenantId,
+              queryFamily,
+              mappingManifest,
+              validationResultSha256,
+              clock,
+            });
+            readyFamilies.add(queryFamily);
+          } catch (error) {
+            if (!isHrxProjectionFallbackError(error)) throw error;
+            fallbackFamilies.push(Object.freeze({
+              query_family: queryFamily,
+              safe_error_code: error.code,
+            }));
+          }
+        }
+        const mappings = mappingManifest.tables.filter((mapping) =>
+          readyFamilies.has(queryFamilyForMapping(mapping)));
+        const snapshot = structuredClone(source_snapshot);
+        if (mappings.length > 0) {
+          const branches = mappings.map((mapping) => `
+            SELECT ${quoteLiteral(mapping.table_name)} AS table_name,
+                   COALESCE(
+                     jsonb_agg(to_jsonb(projected_row)
+                       ORDER BY ${mapping.primary_key
+                         .map((column) =>
+                           `projected_row.${quoteIdentifier(column)}`)
+                         .join(", ")}),
+                     '[]'::jsonb
+                   ) AS rows
+              FROM (
+                SELECT ${mapping.payload_columns
+                  .map(quoteIdentifier)
+                  .join(", ")}
+                  FROM lawos_hrx.${quoteIdentifier(mapping.table_name)}
+                 WHERE "tenant_id" = $1
+                   AND lawos_projection_deleted_at IS NULL
+                 ORDER BY ${mapping.primary_key
+                   .map(quoteIdentifier)
+                   .join(", ")}
+                 LIMIT ${MAX_READ_ROWS + 1}
+              ) AS projected_row`);
+          const projected = await client.query(
+            `SELECT table_name, rows
+               FROM (${branches.join("\nUNION ALL\n")}) AS projection_rows
+              ORDER BY table_name`,
+            [tenantId],
+          );
+          const byTable = new Map(projected.rows.map((row) => [
+            row.table_name,
+            row.rows,
+          ]));
+          for (const mapping of mappings) {
+            const rows = byTable.get(mapping.table_name);
+            if (!Array.isArray(rows) || rows.length > MAX_READ_ROWS) {
+              throw readerError(
+                "HRX relational projection snapshot exceeded its bounded row limit",
+                "LAWOS_HRX_PROJECTION_READER_LIMIT",
+              );
+            }
+            snapshot.tables[mapping.table_name] = rows.map((row) =>
+              restoreHrxRelationalProjectionRow(row, mapping));
+          }
+        }
+        return Object.freeze({
+          snapshot,
+          projected_table_names: Object.freeze(
+            mappings.map((mapping) => mapping.table_name),
+          ),
+          fallback_families: Object.freeze(fallbackFamilies),
+          source_authority: "postgres-v2-generic-ledger",
+          projection_authority: "read-model-only",
+        });
+      },
+    );
+  }
 
   async function query(operation, params = {}) {
     if (!["select", "selectOne"].includes(operation)) {
@@ -317,6 +535,7 @@ export function createHrxRelationalProjectionReader({
           tenantId,
           queryFamily,
           mappingManifest,
+          validationResultSha256,
           clock,
         });
         const values = [tenantId, ...filters.map(([, value]) => value)];
@@ -354,6 +573,8 @@ export function createHrxRelationalProjectionReader({
     version: HRX_RELATIONAL_READER_VERSION,
     authority: "read-model-only",
     fallback_authority: "postgres-v2-generic-ledger",
+    validation_result_sha256: validationResultSha256,
+    materializeSnapshot,
     query,
   });
 }

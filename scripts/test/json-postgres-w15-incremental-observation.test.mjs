@@ -191,6 +191,7 @@ function execution(contract, waveCounts, { replay = false } = {}) {
       observed_event_wave_4_count: waveCounts[4],
       observed_event_wave_5_count: waveCounts[5],
       remaining_outbox_event_count: 0,
+      consumer_route_refresh_count: 0,
       tenant_negative_visible_count: 0,
       negative_tenant_context_denied_count: 1,
       unmapped_nonnull_field_count: 0,
@@ -214,6 +215,7 @@ function execution(contract, waveCounts, { replay = false } = {}) {
       raw_value_returned: false,
       pii_returned: false,
       secret_material_returned: false,
+      consumer_route_refresh_requires_zero_backlog: true,
     },
   };
   return Object.freeze({
@@ -339,6 +341,11 @@ test("W15 incremental evidence derives two event windows and a replay no-op", ()
   assert.equal(observation.event_window_count, 2);
   assert.deepEqual(observation.populated_rollout_waves, [1, 2, 3, 4, 5]);
   assert.equal(observation.observed_event_wave_counts[5], 1);
+  assert.equal(observation.safe_counts.consumer_route_refresh_count, 0);
+  assert.equal(
+    observation.claims.consumer_route_refresh_contract_verified,
+    true,
+  );
   const component = createJsonPostgresW15IncrementalComponentResult({
     packet: input.packet,
     observation,
@@ -385,5 +392,60 @@ test("W15 incremental evidence rejects replay writes and nonconsecutive windows"
   assert.throws(
     () => createJsonPostgresW15IncrementalObservation(overlap),
     /not distinct and consecutive/u,
+  );
+});
+
+test("W15 incremental evidence requires a stable zero-backlog route refresh contract", () => {
+  const missingRefresh = inputs();
+  const unsafeExecution = {
+    ...missingRefresh.windows[0].execution,
+    safe_counts: {
+      ...missingRefresh.windows[0].execution.safe_counts,
+      consumer_route_refresh_count: 2,
+    },
+  };
+  unsafeExecution.result_sha256 =
+    jsonPostgresRelationalProjectionExecutionSha256(unsafeExecution);
+  missingRefresh.windows[0].execution = unsafeExecution;
+  assert.throws(
+    () => createJsonPostgresW15IncrementalObservation(missingRefresh),
+    /incomplete or drifted/u,
+  );
+
+  const missingClaim = inputs();
+  const unsafeClaim = {
+    ...missingClaim.replay.execution,
+    claims: {
+      ...missingClaim.replay.execution.claims,
+      consumer_route_refresh_requires_zero_backlog: false,
+    },
+  };
+  unsafeClaim.result_sha256 =
+    jsonPostgresRelationalProjectionExecutionSha256(unsafeClaim);
+  missingClaim.replay.execution = unsafeClaim;
+  assert.throws(
+    () => createJsonPostgresW15IncrementalObservation(missingClaim),
+    /incomplete or drifted/u,
+  );
+
+  const changedRouteState = inputs();
+  changedRouteState.windows[1].execution = execution(
+    changedRouteState,
+    { 1: 0, 2: 0, 3: 0, 4: 1, 5: 1 },
+  );
+  changedRouteState.windows[1].execution = {
+    ...changedRouteState.windows[1].execution,
+    safe_counts: {
+      ...changedRouteState.windows[1].execution.safe_counts,
+      consumer_route_refresh_count: 4,
+    },
+  };
+  changedRouteState.windows[1].execution.result_sha256 =
+    jsonPostgresRelationalProjectionExecutionSha256(
+      changedRouteState.windows[1].execution,
+    );
+  assert.throws(
+    () => createJsonPostgresW15IncrementalObservation(changedRouteState),
+    /changed consumer route state/u,
   );
 });

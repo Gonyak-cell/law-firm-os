@@ -26,6 +26,7 @@ import {
   createHrxProjectionReadRouter,
   createHrxRelationalProjectionReader,
   disableHrxProjectionConsumerRoutes,
+  refreshHrxProjectionConsumerRoutes,
 } from "../src/relational-projection-reader.js";
 
 test("W15 independent auditor derives PASS from relational observations rather than caller booleans", async (t) => {
@@ -219,6 +220,7 @@ test("W15 independent auditor derives PASS from relational observations rather t
   const reader = createHrxRelationalProjectionReader({
     pool: fixture.appPool,
     mappingManifest,
+    validationResultSha256: validation.result_sha256,
   });
   const projected = await reader.query("selectOne", {
     tenant_id: tenantId,
@@ -226,6 +228,86 @@ test("W15 independent auditor derives PASS from relational observations rather t
     where: { tenant_id: tenantId, employee_id: "validation-001" },
   });
   assert.equal(projected.employee_id, "validation-001");
+  const sourceSnapshot = {
+    schema_version: "law-firm-os.hrx-file-store.v0.1",
+    applied_migrations: [],
+    tables: Object.fromEntries(
+      mappingManifest.tables.map((mapping) => [
+        mapping.table_name,
+        mapping.table_name === "hrx_employees"
+          ? [{
+              tenant_id: tenantId,
+              employee_id: "generic-employee",
+              display_name: "Generic fallback",
+              status: "active",
+            }]
+          : [],
+      ]),
+    ),
+  };
+  const materialized = await reader.materializeSnapshot({
+    tenant_id: tenantId,
+    source_snapshot: sourceSnapshot,
+  });
+  assert.equal(
+    materialized.snapshot.tables.hrx_employees[0].employee_id,
+    "validation-001",
+  );
+  assert.equal(
+    materialized.projected_table_names.includes("hrx_employees"),
+    true,
+  );
+  const refreshed = await refreshHrxProjectionConsumerRoutes(
+    fixture.adminPool,
+    {
+      tenantId,
+      mappingManifest,
+      validationEvidence: validation,
+      clock: () => Date.parse("2026-07-25T00:00:00.000Z"),
+    },
+  );
+  assert.equal(refreshed.refreshed_route_count, 1);
+  assert.equal(refreshed.authority_promoted, false);
+  const route = await fixture.adminPool.query(
+    `SELECT verified_at::text AS verified_at
+       FROM lawos_projection.hrx_consumer_route
+      WHERE tenant_id = $1
+        AND query_family = 'core-employee-roster'`,
+    [tenantId],
+  );
+  assert.equal(
+    Date.parse(route.rows[0].verified_at),
+    Date.parse("2026-07-25T00:00:00.000Z"),
+  );
+  await withPostgresTransaction(
+    fixture.appPool,
+    { tenant_id: tenantId },
+    (client) => client.query(
+      `INSERT INTO lawos_domain.outbox_events
+         (tenant_id, domain_id, event_id, topic, aggregate_type,
+          aggregate_id, payload)
+       VALUES ($1, 'hrx', 'validation-event-backlog-002', 'hrx.audit',
+               'Employee', 'validation-001', $2::jsonb)`,
+      [tenantId, JSON.stringify({
+        audit_event_id: "validation-audit-backlog-002",
+        event_type: "hrx.employee.updated",
+        payload_hash: hashDomainValue({ recordId, backlog: true }),
+        projection_records: [{
+          record_type: "hrx_employees",
+          record_id: recordId,
+        }],
+      })],
+    ),
+  );
+  await assert.rejects(
+    refreshHrxProjectionConsumerRoutes(fixture.adminPool, {
+      tenantId,
+      mappingManifest,
+      validationEvidence: validation,
+    }),
+    (error) =>
+      error?.code === "LAWOS_HRX_PROJECTION_READER_BACKLOG",
+  );
   await assert.rejects(
     reader.query("updateOne", {
       tenant_id: tenantId,
@@ -236,6 +318,20 @@ test("W15 independent auditor derives PASS from relational observations rather t
   );
 
   await disableHrxProjectionConsumerRoutes(fixture.adminPool, { tenantId });
+  const fallbackSnapshot = await reader.materializeSnapshot({
+    tenant_id: tenantId,
+    source_snapshot: sourceSnapshot,
+  });
+  assert.equal(
+    fallbackSnapshot.snapshot.tables.hrx_employees[0].employee_id,
+    "generic-employee",
+  );
+  assert.equal(fallbackSnapshot.projected_table_names.length, 0);
+  assert.equal(
+    fallbackSnapshot.fallback_families.some((item) =>
+      item.safe_error_code === "LAWOS_HRX_PROJECTION_READER_DISABLED"),
+    true,
+  );
   let genericFallbackCount = 0;
   const router = createHrxProjectionReadRouter({
     projectionReader: reader,
