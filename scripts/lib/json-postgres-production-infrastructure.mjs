@@ -385,7 +385,7 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   template.Parameters.ProjectionWorkerEventJson = {
     Type: "String",
     Default: "{}",
-    MaxLength: 1024,
+    MaxLength: 640,
     Description:
       "Exact immutable W15 worker-event locator; schedule remains disabled until approved rollout",
   };
@@ -1042,12 +1042,6 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   apiEnvironment.LAWOS_HRX_RELATIONAL_PROJECTION_EVENT_LOCATOR = {
     Ref: "ProjectionWorkerEventJson",
   };
-  apiEnvironment.LAWOS_HRX_RELATIONAL_PROJECTION_MAPPING_OBJECT_KEY = {
-    Ref: "HrxProjectionMappingObjectKey",
-  };
-  apiEnvironment.LAWOS_HRX_RELATIONAL_PROJECTION_VALIDATION_OBJECT_KEY = {
-    Ref: "HrxProjectionValidationObjectKey",
-  };
   apiEnvironment.LAWOS_PROGRAM_INPUT_BUCKET = {
     Ref: "ProgramInputBucket",
   };
@@ -1304,11 +1298,9 @@ export function validateJsonPostgresProductionTemplate(template) {
       ?.LAWOS_HRX_RELATIONAL_PROJECTION_EVENT_LOCATOR?.Ref
       !== "ProjectionWorkerEventJson"
     || resources.ApiFunction?.Properties?.Environment?.Variables
-      ?.LAWOS_HRX_RELATIONAL_PROJECTION_MAPPING_OBJECT_KEY?.Ref
-      !== "HrxProjectionMappingObjectKey"
+      ?.LAWOS_HRX_RELATIONAL_PROJECTION_MAPPING_OBJECT_KEY != null
     || resources.ApiFunction?.Properties?.Environment?.Variables
-      ?.LAWOS_HRX_RELATIONAL_PROJECTION_VALIDATION_OBJECT_KEY?.Ref
-      !== "HrxProjectionValidationObjectKey"
+      ?.LAWOS_HRX_RELATIONAL_PROJECTION_VALIDATION_OBJECT_KEY != null
     || resources.ApiFunction?.Properties?.Environment?.Variables
       ?.LAWOS_EXECUTION_PACKET_SHA256?.Ref
       !== "ExecutionPacketSha256") {
@@ -1380,7 +1372,7 @@ export function validateJsonPostgresProductionTemplate(template) {
   if (resources.HttpApi.Properties.DisableExecuteApiEndpoint?.["Fn::If"]?.[2] !== true
     || resources.PasswordResetWorkerSchedule.Properties.State?.["Fn::If"]?.[2] !== "DISABLED"
     || template.Parameters?.EnableProjectionWorker?.Default !== "false"
-    || template.Parameters?.ProjectionWorkerEventJson?.MaxLength !== 1024
+    || template.Parameters?.ProjectionWorkerEventJson?.MaxLength !== 640
     || template.Parameters?.HrxProjectionMappingObjectKey?.Default
       !== "disabled/hrx-projection-mapping.json"
     || template.Parameters?.HrxProjectionMappingObjectKey?.MaxLength

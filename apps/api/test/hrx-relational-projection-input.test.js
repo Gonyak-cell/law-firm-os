@@ -32,10 +32,6 @@ function env(overrides = {}) {
         schema_version:
           "law-firm-os.immutable-program-input-locator.v1",
       }),
-    LAWOS_HRX_RELATIONAL_PROJECTION_MAPPING_OBJECT_KEY:
-      "program-input/mapping.json",
-    LAWOS_HRX_RELATIONAL_PROJECTION_VALIDATION_OBJECT_KEY:
-      "program-input/validation.json",
     ...overrides,
   };
 }
@@ -213,4 +209,15 @@ test("HRX production projection input stays disabled without touching immutable 
       error?.code === "LAWOS_HRX_PROJECTION_RUNTIME_INPUT",
   );
   assert.equal(rawEventResolved, false);
+
+  await assert.rejects(
+    loadHrxRelationalProjectionRuntimeInput({
+      env: env({
+        LAWOS_HRX_RELATIONAL_PROJECTION_EVENT_LOCATOR:
+          "x".repeat(641),
+      }),
+    }),
+    (error) =>
+      error?.code === "LAWOS_HRX_PROJECTION_RUNTIME_INPUT",
+  );
 });
