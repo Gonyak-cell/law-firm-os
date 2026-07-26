@@ -9,6 +9,7 @@ import {
   postgresUrlFromSecret,
   preparePersistenceAuthority,
   resolvePersistenceAuthority,
+  verifyOperationalPostgresMigrationState,
 } from "../src/persistence-authority.js";
 import {
   createApiServer,
@@ -24,6 +25,64 @@ const TENANT_CONTEXT_SECRET = "test-only-postgres-tenant-context-secret-material
 
 test("operational PostgreSQL authority uses one pooled connection per Lambda execution", () => {
   assert.equal(LAWOS_POSTGRES_API_POOL_MAX, 1);
+});
+
+test("operational migration verification accepts only an exact foundation or exact HRX-extended catalog", async () => {
+  const foundation = Object.freeze([{ id: "foundation" }]);
+  const extended = Object.freeze([
+    ...foundation,
+    Object.freeze({ id: "hrx-extension" }),
+  ]);
+  assert.equal(await verifyOperationalPostgresMigrationState({}, {
+    verifyFoundation: async () => foundation,
+    verifyHrx: async () => {
+      throw new Error("HRX verifier must not run for an exact foundation catalog");
+    },
+  }), foundation);
+
+  let hrxVerificationCount = 0;
+  assert.equal(await verifyOperationalPostgresMigrationState({}, {
+    verifyFoundation: async () => {
+      throw Object.assign(new Error("catalog contains the approved HRX extension"), {
+        code: "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
+      });
+    },
+    verifyHrx: async () => {
+      hrxVerificationCount += 1;
+      return extended;
+    },
+  }), extended);
+  assert.equal(hrxVerificationCount, 1);
+
+  for (const code of [
+    "LAWOS_POSTGRES_MIGRATION_CHECKSUM_MISMATCH",
+    "LAWOS_POSTGRES_ACCESS_DENIED",
+  ]) {
+    await assert.rejects(
+      verifyOperationalPostgresMigrationState({}, {
+        verifyFoundation: async () => {
+          throw Object.assign(new Error("must remain fail closed"), { code });
+        },
+        verifyHrx: async () => extended,
+      }),
+      (error) => error?.code === code,
+    );
+  }
+  await assert.rejects(
+    verifyOperationalPostgresMigrationState({}, {
+      verifyFoundation: async () => {
+        throw Object.assign(new Error("catalog diverged"), {
+          code: "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
+        });
+      },
+      verifyHrx: async () => {
+        throw Object.assign(new Error("unknown or partial HRX catalog"), {
+          code: "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
+        });
+      },
+    }),
+    (error) => error?.code === "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
+  );
 });
 
 function storePathsUnder(root) {
