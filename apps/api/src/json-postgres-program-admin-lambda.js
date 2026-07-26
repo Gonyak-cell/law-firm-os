@@ -110,6 +110,53 @@ export function safeJsonPostgresProgramErrorCode(error) {
     .slice(0, 96);
 }
 
+function safeMetricCount(value, label) {
+  const count = Number(value);
+  if (!Number.isSafeInteger(count) || count < 0) {
+    throw new TypeError(`${label} must be a non-negative safe integer`);
+  }
+  return count;
+}
+
+export function createW15ProjectionWorkerMetric(result, {
+  timestamp = Date.now(),
+} = {}) {
+  if (result?.outcome !== "PASS"
+    || result.action !== JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION
+    || result.mode !== "incremental"
+    || !Number.isSafeInteger(timestamp)
+    || timestamp < 0) {
+    throw new TypeError("W15 projection worker metric input is invalid");
+  }
+  return Object.freeze({
+    _aws: {
+      Timestamp: timestamp,
+      CloudWatchMetrics: [{
+        Namespace: "LawOS/W15",
+        Dimensions: [["Worker"]],
+        Metrics: [
+          { Name: "OutboxLagMilliseconds", Unit: "Milliseconds" },
+          { Name: "RemainingOutboxEventCount", Unit: "Count" },
+          { Name: "ConsumedOutboxEventCount", Unit: "Count" },
+        ],
+      }],
+    },
+    Worker: "relational-projection",
+    OutboxLagMilliseconds: safeMetricCount(
+      result.safe_counts?.observed_outbox_lag_ms,
+      "observed_outbox_lag_ms",
+    ),
+    RemainingOutboxEventCount: safeMetricCount(
+      result.safe_counts?.remaining_outbox_event_count,
+      "remaining_outbox_event_count",
+    ),
+    ConsumedOutboxEventCount: safeMetricCount(
+      result.safe_counts?.consumed_outbox_event_count,
+      "consumed_outbox_event_count",
+    ),
+  });
+}
+
 async function withAwsAccessDeniedCode(code, operation) {
   try {
     return await operation();
@@ -1680,7 +1727,8 @@ export async function executeJsonPostgresRelationalProjection({
       authorization_claim_sha256: claimEvidence.claim_sha256,
     });
   }
-  const projectionMode = event.mode === "commit" ? "backfill" : "resume";
+  const requestedProjectionMode =
+    event.mode === "commit" ? "backfill" : "resume";
   const projected = [];
   try {
     await verifyMigrations(pool);
@@ -1703,7 +1751,7 @@ export async function executeJsonPostgresRelationalProjection({
       projected.push(await project({
         pool,
         tenant_id: tenantId,
-        mode: projectionMode,
+        mode: requestedProjectionMode,
         mappingManifest: inputs.mappingManifest,
         performanceAcceptance: inputs.performanceAcceptance,
         workerRef: event.attempt_ref,
@@ -1728,13 +1776,31 @@ export async function executeJsonPostgresRelationalProjection({
     || item.safe_counts?.physical_delete_count !== 0)) {
     fail("LAWOS_HRX_PROJECTION_GATE", "relational projection result violated the one-way authority gate");
   }
+  const resolvedProjectionModes =
+    new Set(projected.map((item) => item.mode));
+  if (resolvedProjectionModes.size !== 1
+    || !["backfill", "incremental"].includes(
+      projected[0]?.mode,
+    )
+    || (event.mode === "commit" && projected[0].mode !== "backfill")) {
+    fail(
+      "LAWOS_HRX_PROJECTION_MODE",
+      "relational projection result mode drifted from the executed boundary",
+    );
+  }
+  const resolvedProjectionMode = projected[0].mode;
   const sum = (key) => projected.reduce((total, item) => total + Number(item.safe_counts?.[key] ?? 0), 0);
+  const maximum = (key) => projected.reduce(
+    (result, item) =>
+      Math.max(result, Number(item.safe_counts?.[key] ?? 0)),
+    0,
+  );
   const material = {
     schema_version: "law-firm-os.hrx-relational-projection-execution.v2",
     outcome: "PASS",
     action: JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
     phase: authorization.packet.phase,
-    mode: projectionMode,
+    mode: resolvedProjectionMode,
     source_sha: authorization.exact.sourceSha,
     source_tree: authorization.exact.sourceTree,
     packet_sha256: authorization.packet.packet_sha256,
@@ -1764,6 +1830,7 @@ export async function executeJsonPostgresRelationalProjection({
       observed_event_wave_4_count: sum("observed_event_wave_4_count"),
       observed_event_wave_5_count: sum("observed_event_wave_5_count"),
       remaining_outbox_event_count: sum("remaining_outbox_event_count"),
+      observed_outbox_lag_ms: maximum("observed_outbox_lag_ms"),
       tenant_negative_visible_count: sum("tenant_negative_visible_count"),
       negative_tenant_context_denied_count: sum("negative_tenant_context_denied_count"),
       unmapped_nonnull_field_count: 0,
@@ -2048,7 +2115,11 @@ export async function handler(event = {}) {
       return await executeJsonPostgresProgram({ event });
     }
     if (event.action === JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION) {
-      return await executeJsonPostgresRelationalProjection({ event });
+      const result = await executeJsonPostgresRelationalProjection({ event });
+      if (process.env.LAWOS_PROGRAM_EXECUTION_ROLE === "projection-writer") {
+        console.log(JSON.stringify(createW15ProjectionWorkerMetric(result)));
+      }
+      return result;
     }
     if (event.action === JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION) {
       return await executeJsonPostgresW15InventoryBootstrap({ event });
@@ -2058,6 +2129,15 @@ export async function handler(event = {}) {
     }
     throw Object.assign(new Error("unsupported program administration action"), { code: "LAWOS_PROGRAM_ACTION" });
   } catch (error) {
+    const safeErrorCode = safeJsonPostgresProgramErrorCode(error);
+    if (process.env.LAWOS_PROGRAM_EXECUTION_ROLE === "projection-writer") {
+      const workerError = new Error(
+        "W15 projection worker invocation failed at a protected boundary",
+      );
+      workerError.name = "LawOSProjectionWorkerInvocationError";
+      workerError.code = safeErrorCode;
+      throw workerError;
+    }
     return Object.freeze({
       outcome: "BLOCKED",
       action: [
@@ -2070,7 +2150,7 @@ export async function handler(event = {}) {
       ].includes(event.action)
         ? event.action
         : "unsupported-program-action",
-      safe_error_code: safeJsonPostgresProgramErrorCode(error),
+      safe_error_code: safeErrorCode,
       raw_value_returned: false,
       pii_returned: false,
       secret_material_returned: false,

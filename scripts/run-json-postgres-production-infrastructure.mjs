@@ -50,6 +50,7 @@ import {
   jsonPostgresProductionParametersSha256,
   validateJsonPostgresProductionChangeSet,
   validateJsonPostgresW15ProductionChangeSet,
+  validateJsonPostgresW15WorkerObservability,
 } from "./lib/json-postgres-production-execution.mjs";
 import {
   validateJsonPostgresProductionDeploymentManifest,
@@ -833,6 +834,7 @@ if (operation === "preflight"
     EnableLambdaEniBootstrap: "true",
     EnableProjectionWorker: "false",
     ProjectionWorkerEventJson: "{}",
+    ProjectionWorkerLagThresholdMs: "24",
   };
   const review = createChangeSet({
     stackName: JSON_POSTGRES_PRODUCTION_STACK,
@@ -986,6 +988,40 @@ if (operation === "preflight"
   if (rule.State !== expectedRuleState) {
     throw new Error("W15 projection worker schedule state drifted");
   }
+  const targets = awsJson([
+    "events", "list-targets-by-rule",
+    "--rule", "lawos-production-projection-worker",
+  ]);
+  const invokeConfig = awsJson([
+    "lambda", "get-function-event-invoke-config",
+    "--function-name", "lawos-production-projection-worker",
+    "--qualifier", "$LATEST",
+  ]);
+  const queue = awsJson([
+    "sqs", "get-queue-url",
+    "--queue-name", "lawos-production-projection-worker-dead-letter",
+  ]);
+  const queueAttributes = awsJson([
+    "sqs", "get-queue-attributes",
+    "--queue-url", queue.QueueUrl,
+    "--attribute-names", "All",
+  ]);
+  const alarms = awsJson([
+    "cloudwatch", "describe-alarms",
+    "--alarm-names",
+    "lawos-production-projection-worker-errors",
+    "lawos-production-projection-worker-delivery-failures",
+    "lawos-production-projection-worker-dead-letter",
+    "lawos-production-projection-worker-lag",
+  ]);
+  const observability = validateJsonPostgresW15WorkerObservability({
+    rule,
+    targets,
+    invokeConfig,
+    queueUrl: queue.QueueUrl,
+    queueAttributes,
+    alarms,
+  });
   result = {
     operation,
     outcome: "PASS",
@@ -994,6 +1030,7 @@ if (operation === "preflight"
     ...eni,
     production_traffic_enabled: true,
     projection_worker_enabled: expectedRuleState === "ENABLED",
+    worker_observability: observability,
     inventory_bootstrap_only: w15BootstrapOperation,
     aws_mutation_count: 0,
     production_write_count: 0,

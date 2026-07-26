@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   bootstrapJsonPostgresRehearsalDatabase,
   bootstrapJsonPostgresProductionDatabase,
+  createW15ProjectionWorkerMetric,
   ensureJsonPostgresRehearsalDatabase,
   executeJsonPostgresRelationalProjection,
   executeJsonPostgresW15InventoryBootstrap,
@@ -908,6 +909,58 @@ test("program error classification safely preserves AWS service error names with
   );
 });
 
+test("W15 worker emits only PII-safe lag and throughput metrics", () => {
+  const metric = createW15ProjectionWorkerMetric({
+    outcome: "PASS",
+    action: JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
+    mode: "incremental",
+    safe_counts: {
+      observed_outbox_lag_ms: 23,
+      remaining_outbox_event_count: 1,
+      consumed_outbox_event_count: 2,
+    },
+  }, { timestamp: 1_723_000_000_000 });
+  assert.equal(metric._aws.Timestamp, 1_723_000_000_000);
+  assert.equal(metric._aws.CloudWatchMetrics[0].Namespace, "LawOS/W15");
+  assert.equal(metric.Worker, "relational-projection");
+  assert.equal(metric.OutboxLagMilliseconds, 23);
+  assert.equal(metric.RemainingOutboxEventCount, 1);
+  assert.equal(metric.ConsumedOutboxEventCount, 2);
+  assert.equal(JSON.stringify(metric).includes("payload"), false);
+  assert.throws(() => createW15ProjectionWorkerMetric({
+    outcome: "PASS",
+    action: JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
+    mode: "incremental",
+    safe_counts: {
+      observed_outbox_lag_ms: -1,
+      remaining_outbox_event_count: 0,
+      consumed_outbox_event_count: 0,
+    },
+  }), /non-negative safe integer/u);
+});
+
+test("W15 recurring worker failures propagate a safe error for Lambda retry and DLQ", async () => {
+  const previousRole = process.env.LAWOS_PROGRAM_EXECUTION_ROLE;
+  process.env.LAWOS_PROGRAM_EXECUTION_ROLE = "projection-writer";
+  try {
+    await assert.rejects(
+      handler({ action: "unsupported" }),
+      (error) =>
+        error?.name === "LawOSProjectionWorkerInvocationError"
+        && error?.code === "LAWOS_PROGRAM_ACTION"
+        && error?.message
+          === "W15 projection worker invocation failed at a protected boundary"
+        && !Object.hasOwn(error, "cause"),
+    );
+  } finally {
+    if (previousRole == null) {
+      delete process.env.LAWOS_PROGRAM_EXECUTION_ROLE;
+    } else {
+      process.env.LAWOS_PROGRAM_EXECUTION_ROLE = previousRole;
+    }
+  }
+});
+
 test("scheduled W15 worker resolves only an exact immutable program-input locator", async () => {
   const scheduledEnv = {
     ...env(),
@@ -1059,6 +1112,7 @@ test("W15 projection uses a separate least-privilege writer and preserves the ge
       projectedTenant = input;
       return {
         outcome: "PASS",
+        mode: "backfill",
         backfill_wave: input.backfillWave,
         safe_counts: {
           source_record_count: 4,
@@ -1105,6 +1159,7 @@ test("W15 projection uses a separate least-privilege writer and preserves the ge
   assert.equal(result.safe_counts.completed_backfill_wave_count, 1);
   assert.equal(result.safe_counts.observed_event_wave_1_count, 2);
   assert.equal(result.safe_counts.observed_event_wave_5_count, 0);
+  assert.equal(result.safe_counts.observed_outbox_lag_ms, 0);
   assert.equal(result.safe_counts.source_authority_write_count, 0);
   assert.equal(result.safe_counts.consumer_write_grant_count, 0);
   assert.equal(result.safe_counts.authority_promotion_count, 0);
@@ -1375,6 +1430,108 @@ test("W15 recurring projection writer accepts only bounded resume mode", async (
     (error) => error === boundary,
   );
   assert.equal(authorizeCount, 1);
+});
+
+test("W15 resume evidence records the resolved incremental mode", async () => {
+  const w15Authorization = authorization();
+  w15Authorization.packet = {
+    ...w15Authorization.packet,
+    phase: "w15-relational-projection",
+  };
+  w15Authorization.approval.phase = "w15-relational-projection";
+  let requestedMode;
+  const result = await executeJsonPostgresRelationalProjection({
+    event: {
+      action: JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
+      mode: "resume",
+      attempt_ref: "w15-resolved-incremental-mode",
+      inputs: {},
+    },
+    env: {
+      ...env(),
+      LAWOS_PROGRAM_EXECUTION_ROLE: "projection-writer",
+    },
+    authorize: async () => w15Authorization,
+    claim: async () => ({
+      approval_receipt_sha256: "f".repeat(64),
+      claim_sha256: "3".repeat(64),
+    }),
+    loadInputs: async () => ({
+      predecessors: [{}, {}, {}],
+      mappingManifest: { manifest_sha256: "4".repeat(64) },
+      productionInventory: { inventory_sha256: "5".repeat(64) },
+      performanceAcceptance: {
+        acceptance_sha256: "a".repeat(64),
+        connection_timeout_ms: 10_000,
+        statement_timeout_ms: 120_000,
+        pool_max: 2,
+      },
+    }),
+    resolveSecret: async ({ secretId }) => secretId === "lawos/hrx-projection"
+      ? {
+        username: "lawos_hrx_projection_writer",
+        password: "projection-value",
+      }
+      : {
+        tenant_context_secret:
+          "tenant-context-value-at-least-32-bytes",
+      },
+    createPool: () => ({ async end() {} }),
+    verifyMigrations: async () => [],
+    project: async ({ mode }) => {
+      requestedMode = mode;
+      return {
+        outcome: "PASS",
+        mode: "incremental",
+        backfill_wave: null,
+        safe_counts: {
+          source_record_count: 0,
+          projected_insert_count: 0,
+          projected_update_count: 0,
+          projected_noop_count: 0,
+          committed_batch_count: 0,
+          completed_backfill_wave_count: 5,
+          consumed_outbox_event_count: 0,
+          observed_event_wave_1_count: 0,
+          observed_event_wave_2_count: 0,
+          observed_event_wave_3_count: 0,
+          observed_event_wave_4_count: 0,
+          observed_event_wave_5_count: 0,
+          remaining_outbox_event_count: 0,
+          observed_outbox_lag_ms: 0,
+          tenant_negative_visible_count: 0,
+          negative_tenant_context_denied_count: 1,
+          unmapped_nonnull_field_count: 0,
+          physical_delete_count: 0,
+          source_authority_write_count: 0,
+          dual_write_count: 0,
+          partial_commit_count: 0,
+        },
+        claims: {
+          one_way_projection: true,
+          bounded_checkpoint_resume: true,
+          event_scoped_incremental_projection: true,
+          physical_delete_prohibited: true,
+          operational_request_dual_write: false,
+          generic_ledger_authority_preserved: true,
+          projection_write_authority: false,
+        },
+      };
+    },
+    writeEvidence: async () => ({
+      sha256: "9".repeat(64),
+      byte_size: 200,
+    }),
+    s3Client: {},
+  });
+  assert.equal(requestedMode, "resume");
+  assert.equal(result.mode, "incremental");
+  assert.equal(
+    createW15ProjectionWorkerMetric(result, { timestamp: 1 })
+      .OutboxLagMilliseconds,
+    0,
+  );
+  assert.equal(JSON.stringify(result).includes("projection-value"), false);
 });
 
 test("W15 consumer rollout is sequential, read-only, and rolls back to the generic PostgreSQL ledger", async () => {

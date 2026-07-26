@@ -30,7 +30,7 @@
     },
     {
       "service": "AWS Lambda, API Gateway, CloudWatch and S3",
-      "configuration": "bounded internal production traffic and immutable evidence",
+      "configuration": "bounded internal production traffic, immutable evidence, worker alarms, and low-volume encrypted SQS dead-letter handling",
       "monthly_estimate_usd": 25
     }
   ],
