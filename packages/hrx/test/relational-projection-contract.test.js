@@ -29,7 +29,13 @@ const TEST_COLUMNS = Object.freeze({
     "correction_of_attendance_id",
   ],
   hrx_audit_events: ["metadata_json"],
-  hrx_interviews: ["interviewer_employee_ids_json"],
+  hrx_candidates: ["crm_party_linked"],
+  hrx_compensation_records: ["raw_amount_included"],
+  hrx_documents: ["document_body_included"],
+  hrx_interviews: [
+    "interviewer_employee_ids_json",
+    "restricted_access",
+  ],
   hrx_leave_balance_entries: ["metadata_json"],
   hrx_offboarding_cases: [
     "access_revocations_json",
@@ -45,6 +51,7 @@ const TEST_COLUMNS = Object.freeze({
     "document_refs_json",
     "access_requests_json",
   ],
+  hrx_offers: ["compensation_restricted"],
   hrx_payroll_runs: ["period_id", "previous_run_id"],
 });
 
@@ -157,6 +164,7 @@ function resolutionRecords({ orphanAttendanceEmployee = false } = {}) {
       tenant_id: tenantId,
       interview_id: "interview-001",
       interviewer_employee_ids: ["employee-001"],
+      restricted_access: true,
     }),
   ];
 }
@@ -248,6 +256,7 @@ test("W15 mapping resolution preserves transformed fields and applies MATCH SIMP
     JSON.parse(projectedInterview.interviewer_employee_ids_json),
     ["employee-001"],
   );
+  assert.equal(projectedInterview.restricted_access, 1);
   assert.deepEqual(
     restoreHrxRelationalProjectionRow(
       projectedInterview,
@@ -255,6 +264,67 @@ test("W15 mapping resolution preserves transformed fields and applies MATCH SIMP
     ),
     interviewPayload,
   );
+
+  for (const [tableName, field] of [
+    ["hrx_candidates", "crm_party_linked"],
+    ["hrx_compensation_records", "raw_amount_included"],
+    ["hrx_documents", "document_body_included"],
+    ["hrx_offers", "compensation_restricted"],
+  ]) {
+    const identity = Object.fromEntries(
+      HRX_TABLE_PRIMARY_KEYS[tableName].map((column) => [
+        column,
+        column === "tenant_id" ? "tenant-resolution" : `${column}-001`,
+      ]),
+    );
+    const tableMapping = mapping(tableName);
+    const projectedTrue = projectHrxRelationalPayload(
+      { ...identity, [field]: true },
+      tableMapping,
+    ).row;
+    const projectedFalse = projectHrxRelationalPayload(
+      { ...identity, [field]: false },
+      tableMapping,
+    ).row;
+    assert.equal(projectedTrue[field], 1);
+    assert.equal(projectedFalse[field], 0);
+    assert.equal(
+      projectHrxRelationalPayload(
+        { ...identity, [field]: 1 },
+        tableMapping,
+      ).row[field],
+      1,
+    );
+    assert.equal(
+      projectHrxRelationalPayload(
+        { ...identity, [field]: 0 },
+        tableMapping,
+      ).row[field],
+      0,
+    );
+    assert.equal(
+      restoreHrxRelationalProjectionRow(projectedTrue, tableMapping)[field],
+      true,
+    );
+    assert.equal(
+      restoreHrxRelationalProjectionRow(projectedFalse, tableMapping)[field],
+      false,
+    );
+    assert.throws(
+      () => projectHrxRelationalPayload(
+        { ...identity, [field]: "false" },
+        tableMapping,
+      ),
+      (error) => error?.code === "LAWOS_HRX_PROJECTION_FIELD_TRANSFORM",
+    );
+    assert.throws(
+      () => restoreHrxRelationalProjectionRow(
+        { ...projectedTrue, [field]: 2 },
+        tableMapping,
+      ),
+      (error) => error?.code === "LAWOS_HRX_PROJECTION_FIELD_TRANSFORM",
+    );
+  }
 
   const onboardingPayload = {
     tenant_id: "tenant-resolution",

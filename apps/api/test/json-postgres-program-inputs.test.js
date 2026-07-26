@@ -57,7 +57,13 @@ const INPUT_BUCKET = "lawos-prod-program-input-770880870480";
 const INPUT_KMS = "arn:aws:kms:ap-northeast-2:770880870480:key/00000000-0000-0000-0000-000000000000";
 const W15_TRANSFORM_TARGET_COLUMNS = Object.freeze({
   hrx_audit_events: ["metadata_json"],
-  hrx_interviews: ["interviewer_employee_ids_json"],
+  hrx_candidates: ["crm_party_linked"],
+  hrx_compensation_records: ["raw_amount_included"],
+  hrx_documents: ["document_body_included"],
+  hrx_interviews: [
+    "interviewer_employee_ids_json",
+    "restricted_access",
+  ],
   hrx_leave_balance_entries: ["metadata_json"],
   hrx_offboarding_cases: [
     "access_revocations_json",
@@ -71,6 +77,7 @@ const W15_TRANSFORM_TARGET_COLUMNS = Object.freeze({
     "document_refs_json",
     "access_requests_json",
   ],
+  hrx_offers: ["compensation_restricted"],
 });
 
 function packet() {
