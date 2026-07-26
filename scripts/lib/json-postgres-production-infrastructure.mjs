@@ -826,6 +826,14 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
       };
     }
   }
+  workerPolicies[0].PolicyDocument.Statement.push({
+    Sid: "ReadImmutableProgramExecutionEvidence",
+    Effect: "Allow",
+    Action: "s3:GetObject",
+    Resource: {
+      "Fn::Sub": "${ProgramInputBucket.Arn}/program-execution/*",
+    },
+  });
   workerPolicies[1]["Fn::If"][1].PolicyName =
     "lawos-production-projection-worker-vpc-eni-bootstrap-temporary";
   resources.ProjectionWorkerFunction = clone(resources.ProjectionAuditorFunction);
@@ -1207,6 +1215,8 @@ export function validateJsonPostgresProductionTemplate(template) {
     item.Sid === "ReadExactProjectionWorkerSecrets");
   const workerEvidenceWrite = workerStatements.find((item) =>
     item.Sid === "WriteImmutableProjectionWorkerEvidence");
+  const workerEvidenceRead = workerStatements.find((item) =>
+    item.Sid === "ReadImmutableProgramExecutionEvidence");
   if (JSON.stringify(workerSecretRead?.Action)
       !== JSON.stringify("secretsmanager:GetSecretValue")
     || JSON.stringify(workerSecretRead?.Resource)
@@ -1218,6 +1228,11 @@ export function validateJsonPostgresProductionTemplate(template) {
       JSON.stringify(item.Action).includes("secretsmanager:PutSecretValue"))
     || JSON.stringify(workerEvidenceWrite?.Action)
       !== JSON.stringify(["s3:PutObject", "s3:PutObjectRetention"])
+    || workerEvidenceRead?.Action !== "s3:GetObject"
+    || JSON.stringify(workerEvidenceRead?.Resource)
+      !== JSON.stringify({
+        "Fn::Sub": "${ProgramInputBucket.Arn}/program-execution/*",
+      })
     || workerStatements.some((item) =>
       JSON.stringify(item.Resource).includes("ProjectionAuditorDatabaseSecret")
       || JSON.stringify(item.Resource).includes("MasterUserSecret"))) {

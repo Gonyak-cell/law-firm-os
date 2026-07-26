@@ -90,6 +90,29 @@ test("production template derives the proven private topology without synthetic 
     template.Resources.ProjectionWorkerSchedule.Properties.State,
     { "Fn::If": ["ProjectionWorkerEnabled", "ENABLED", "DISABLED"] },
   );
+  assert.deepEqual(
+    template.Resources.ProjectionWorkerExecutionRole.Properties.Policies[0]
+      .PolicyDocument.Statement.find((item) =>
+        item.Sid === "ReadImmutableProgramExecutionEvidence"),
+    {
+      Sid: "ReadImmutableProgramExecutionEvidence",
+      Effect: "Allow",
+      Action: "s3:GetObject",
+      Resource: {
+        "Fn::Sub": "${ProgramInputBucket.Arn}/program-execution/*",
+      },
+    },
+  );
+  for (const role of [
+    template.Resources.AdminExecutionRole,
+    template.Resources.ProjectionAuditorExecutionRole,
+  ]) {
+    assert.equal(
+      role.Properties.Policies[0].PolicyDocument.Statement.some((item) =>
+        item.Sid === "ReadImmutableProgramExecutionEvidence"),
+      false,
+    );
+  }
   assert.equal(template.Parameters.EnableProjectionWorker.Default, "false");
   assert.deepEqual(
     template.Resources.ProjectionWorkerSchedule.Properties.Targets[0].Input,
@@ -185,6 +208,13 @@ test("production template fails closed on public RDS, synthetic content, wildcar
         .LAWOS_MASTER_DATABASE_SECRET_ID = {
           "Fn::GetAtt": ["Database", "MasterUserSecret.SecretArn"],
         };
+    },
+    (value) => {
+      value.Resources.ProjectionWorkerExecutionRole.Properties.Policies[0]
+        .PolicyDocument.Statement
+        .find((item) =>
+          item.Sid === "ReadImmutableProgramExecutionEvidence")
+        .Resource = { "Fn::Sub": "${ProgramInputBucket.Arn}/*" };
     },
     (value) => {
       value.Resources.ProjectionWorkerExecutionRole.Properties.Policies[0]

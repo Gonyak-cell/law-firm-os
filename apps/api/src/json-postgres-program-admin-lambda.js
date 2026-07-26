@@ -167,6 +167,35 @@ async function bodyToBuffer(body, expectedByteSize) {
   return bytes;
 }
 
+function isPreconditionFailed(error) {
+  return error?.name === "PreconditionFailed"
+    || error?.$metadata?.httpStatusCode === 412;
+}
+
+async function evidenceBodyToBuffer(body, expectedByteSize) {
+  if (!body) fail("LAWOS_PROGRAM_EVIDENCE_CONFLICT", "immutable program evidence has no body");
+  let bytes;
+  if (typeof body.transformToByteArray === "function") {
+    bytes = Buffer.from(await body.transformToByteArray());
+  } else {
+    const chunks = [];
+    let size = 0;
+    for await (const chunk of body) {
+      const value = Buffer.from(chunk);
+      size += value.byteLength;
+      if (size > expectedByteSize) {
+        fail("LAWOS_PROGRAM_EVIDENCE_CONFLICT", "immutable program evidence exceeds the expected size");
+      }
+      chunks.push(value);
+    }
+    bytes = Buffer.concat(chunks);
+  }
+  if (bytes.byteLength !== expectedByteSize) {
+    fail("LAWOS_PROGRAM_EVIDENCE_CONFLICT", "immutable program evidence size drifted");
+  }
+  return bytes;
+}
+
 export async function loadApprovedDmsSourceObject({
   object,
   packet,
@@ -473,20 +502,59 @@ export async function writeJsonPostgresProgramEvidence({
   const sha256 = createHash("sha256").update(body).digest("hex");
   const safeKind = requiredText(kind, "evidence kind").replace(/[^a-z0-9-]/gu, "-").slice(0, 64);
   const safeAttempt = requiredText(event.attempt_ref, "attempt_ref").replace(/[^A-Za-z0-9._:-]/gu, "-").slice(0, 200);
-  await client.send(new PutObjectCommand({
-    Bucket: requiredText(env.LAWOS_APPROVAL_AUDIT_BUCKET, "LAWOS_APPROVAL_AUDIT_BUCKET"),
-    Key: `program-execution/${authorization.packet.packet_sha256}/${safeAttempt}/${safeKind}-${sha256}.json`,
-    Body: body,
-    ContentType: "application/json",
-    IfNoneMatch: "*",
-    ServerSideEncryption: "aws:kms",
-    SSEKMSKeyId: requiredText(env.LAWOS_PROGRAM_INPUT_KMS_KEY_ARN, "LAWOS_PROGRAM_INPUT_KMS_KEY_ARN"),
-    ObjectLockMode: "COMPLIANCE",
-    ObjectLockRetainUntilDate: programEvidenceRetainUntil({
-      approvalExpiresAt: authorization.approval.expires_at,
-      now,
-    }),
-  }));
+  const bucket = requiredText(env.LAWOS_APPROVAL_AUDIT_BUCKET, "LAWOS_APPROVAL_AUDIT_BUCKET");
+  const expectedBucketOwner = requiredText(
+    authorization.packet.target.program_input_expected_bucket_owner,
+    "program input expected bucket owner",
+  );
+  if (bucket !== authorization.packet.target.program_input_bucket_name) {
+    fail("LAWOS_PROGRAM_EVIDENCE", "program evidence bucket drifted from the execution packet");
+  }
+  const key = `program-execution/${authorization.packet.packet_sha256}/${safeAttempt}/${safeKind}-${sha256}.json`;
+  const kmsKeyId = requiredText(env.LAWOS_PROGRAM_INPUT_KMS_KEY_ARN, "LAWOS_PROGRAM_INPUT_KMS_KEY_ARN");
+  try {
+    await client.send(new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: body,
+      ContentType: "application/json",
+      ExpectedBucketOwner: expectedBucketOwner,
+      IfNoneMatch: "*",
+      ServerSideEncryption: "aws:kms",
+      SSEKMSKeyId: kmsKeyId,
+      ObjectLockMode: "COMPLIANCE",
+      ObjectLockRetainUntilDate: programEvidenceRetainUntil({
+        approvalExpiresAt: authorization.approval.expires_at,
+        now,
+      }),
+    }));
+  } catch (error) {
+    if (!isPreconditionFailed(error)
+      || authorization.packet.phase !== "w15-relational-projection"
+      || event.mode !== "resume") {
+      throw error;
+    }
+    const existing = await client.send(new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      ExpectedBucketOwner: expectedBucketOwner,
+      ChecksumMode: "ENABLED",
+    }));
+    if (typeof existing.VersionId !== "string" || !existing.VersionId.trim()
+      || Number(existing.ContentLength) !== body.byteLength
+      || existing.ContentType !== "application/json"
+      || existing.ServerSideEncryption !== "aws:kms"
+      || existing.SSEKMSKeyId !== kmsKeyId
+      || existing.ObjectLockMode !== "COMPLIANCE"
+      || !Number.isFinite(Date.parse(existing.ObjectLockRetainUntilDate))
+      || Date.parse(existing.ObjectLockRetainUntilDate) <= now) {
+      fail("LAWOS_PROGRAM_EVIDENCE_CONFLICT", "immutable program evidence governance drifted");
+    }
+    const existingBody = await evidenceBodyToBuffer(existing.Body, body.byteLength);
+    if (createHash("sha256").update(existingBody).digest("hex") !== sha256) {
+      fail("LAWOS_PROGRAM_EVIDENCE_CONFLICT", "immutable program evidence content drifted");
+    }
+  }
   return Object.freeze({ sha256, byte_size: body.byteLength });
 }
 
