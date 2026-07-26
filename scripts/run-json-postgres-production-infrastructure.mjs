@@ -108,6 +108,7 @@ const OPERATIONS = new Set([
 ]);
 const INPUT_VERSION = "law-firm-os.json-postgres-production-infrastructure-input.v1";
 const SHA256 = /^[a-f0-9]{64}$/u;
+const AWS_LAMBDA_ENVIRONMENT_MAX_BYTES = 4096;
 
 function option(name, fallback = null) {
   const index = process.argv.indexOf(name);
@@ -1054,12 +1055,10 @@ if (operation === "preflight"
         : "false")
     || apiEnvironment.LAWOS_HRX_RELATIONAL_PROJECTION_EVENT_LOCATOR
       !== parameters.ProjectionWorkerEventJson
-    || apiEnvironment
-      .LAWOS_HRX_RELATIONAL_PROJECTION_MAPPING_OBJECT_KEY
-      !== parameters.HrxProjectionMappingObjectKey
-    || apiEnvironment
-      .LAWOS_HRX_RELATIONAL_PROJECTION_VALIDATION_OBJECT_KEY
-      !== parameters.HrxProjectionValidationObjectKey
+    || apiEnvironment.LAWOS_HRX_RELATIONAL_PROJECTION_MAPPING_OBJECT_KEY
+      != null
+    || apiEnvironment.LAWOS_HRX_RELATIONAL_PROJECTION_VALIDATION_OBJECT_KEY
+      != null
     || apiEnvironment.LAWOS_EXECUTION_PACKET_SHA256
       !== packet.packet_sha256) {
     throw new Error("W15 production API projection input binding drifted");
@@ -1354,8 +1353,24 @@ if (operation === "preflight"
       byteSize: storedWorkerEvent.byte_size,
     });
   const serializedWorkerEventLocator = JSON.stringify(workerEventLocator);
-  if (Buffer.byteLength(serializedWorkerEventLocator) > 1024) {
+  if (Buffer.byteLength(serializedWorkerEventLocator) > 640) {
     throw new Error("W15 projection worker event locator exceeds the CloudFormation parameter limit");
+  }
+  const apiEnvironment = {
+    ...(awsJson([
+      "lambda", "get-function-configuration",
+      "--function-name", "lawos-production-api",
+    ]).Environment?.Variables ?? {}),
+    LAWOS_HRX_RELATIONAL_PROJECTION_ENABLED: "true",
+    LAWOS_HRX_RELATIONAL_PROJECTION_EVENT_LOCATOR:
+      serializedWorkerEventLocator,
+  };
+  delete apiEnvironment.LAWOS_HRX_RELATIONAL_PROJECTION_MAPPING_OBJECT_KEY;
+  delete apiEnvironment.LAWOS_HRX_RELATIONAL_PROJECTION_VALIDATION_OBJECT_KEY;
+  const apiEnvironmentSizeBytes =
+    Buffer.byteLength(JSON.stringify(apiEnvironment));
+  if (apiEnvironmentSizeBytes > AWS_LAMBDA_ENVIRONMENT_MAX_BYTES) {
+    throw new Error("W15 projection API environment exceeds the AWS Lambda limit");
   }
   const parameters = {
     ...current,
@@ -1394,6 +1409,9 @@ if (operation === "preflight"
     worker_event_locator_sha256:
       sha256ProgramBytes(serializedWorkerEventLocator),
     worker_event_upload_mutation_count: storedWorkerEvent.mutation_count,
+    api_environment_size_bytes: apiEnvironmentSizeBytes,
+    api_environment_headroom_bytes:
+      AWS_LAMBDA_ENVIRONMENT_MAX_BYTES - apiEnvironmentSizeBytes,
     hrx_projection_mapping_object_key: mappingLocator.key,
     hrx_projection_validation_object_key: validationLocator.key,
     production_traffic_enabled: true,

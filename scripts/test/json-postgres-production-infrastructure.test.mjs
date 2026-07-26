@@ -225,6 +225,20 @@ test("production template derives the proven private topology without synthetic 
       .LAWOS_HRX_RELATIONAL_PROJECTION_ENABLED,
     { "Fn::If": ["ProjectionWorkerEnabled", "true", "false"] },
   );
+  assert.equal(
+    template.Parameters.ProjectionWorkerEventJson.MaxLength,
+    640,
+  );
+  assert.equal(
+    template.Resources.ApiFunction.Properties.Environment.Variables
+      .LAWOS_HRX_RELATIONAL_PROJECTION_MAPPING_OBJECT_KEY,
+    undefined,
+  );
+  assert.equal(
+    template.Resources.ApiFunction.Properties.Environment.Variables
+      .LAWOS_HRX_RELATIONAL_PROJECTION_VALIDATION_OBJECT_KEY,
+    undefined,
+  );
   assert.deepEqual(
     template.Resources.ApiExecutionRole.Properties.Policies[0]
       .PolicyDocument.Statement.find((item) =>
@@ -449,6 +463,22 @@ test("W15 rollback tooling disables the worker schedule without an ENI or traffi
     /ProjectionWorkerEventJson: JSON\.stringify\(workerEvent\)/u,
   );
   assert.match(source, /inputKind: "w15-worker-event"/u);
+  assert.match(
+    source,
+    /Buffer\.byteLength\(serializedWorkerEventLocator\) > 640/u,
+  );
+  assert.match(
+    source,
+    /apiEnvironmentSizeBytes > AWS_LAMBDA_ENVIRONMENT_MAX_BYTES/u,
+  );
+  assert.match(
+    source,
+    /delete apiEnvironment\.LAWOS_HRX_RELATIONAL_PROJECTION_MAPPING_OBJECT_KEY/u,
+  );
+  assert.match(
+    source,
+    /delete apiEnvironment\.LAWOS_HRX_RELATIONAL_PROJECTION_VALIDATION_OBJECT_KEY/u,
+  );
 });
 
 test("W15 worker event validation uses the closed source packet", () => {

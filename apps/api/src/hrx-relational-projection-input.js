@@ -18,6 +18,7 @@ const SHA256 = /^[a-f0-9]{64}$/u;
 const AWS_ACCOUNT = /^\d{12}$/u;
 const MAX_MAPPING_BYTES = 16 * 1024 * 1024;
 const MAX_VALIDATION_BYTES = 16 * 1024 * 1024;
+const MAX_EVENT_LOCATOR_BYTES = 640;
 
 function fail(message) {
   throw Object.assign(new Error(message), {
@@ -39,7 +40,7 @@ function parseLocator(value) {
     value,
     "LAWOS_HRX_RELATIONAL_PROJECTION_EVENT_LOCATOR",
   );
-  if (Buffer.byteLength(text) > 1024) {
+  if (Buffer.byteLength(text) > MAX_EVENT_LOCATOR_BYTES) {
     fail("HRX relational projection event locator is too large");
   }
   try {
@@ -119,18 +120,6 @@ export async function loadHrxRelationalProjectionRuntimeInput({
     || !event.inputs?.mapping_manifest
     || !event.inputs?.validation_evidence) {
     fail("HRX relational projection event drifted from the deployed exact source");
-  }
-  const expectedMappingKey = requiredText(
-    env.LAWOS_HRX_RELATIONAL_PROJECTION_MAPPING_OBJECT_KEY,
-    "LAWOS_HRX_RELATIONAL_PROJECTION_MAPPING_OBJECT_KEY",
-  );
-  const expectedValidationKey = requiredText(
-    env.LAWOS_HRX_RELATIONAL_PROJECTION_VALIDATION_OBJECT_KEY,
-    "LAWOS_HRX_RELATIONAL_PROJECTION_VALIDATION_OBJECT_KEY",
-  );
-  if (event.inputs.mapping_manifest.key !== expectedMappingKey
-    || event.inputs.validation_evidence.key !== expectedValidationKey) {
-    fail("HRX relational projection input key drifted from the exact IAM binding");
   }
   const read = (locator, maxBytes) => readJson({
     locator,
