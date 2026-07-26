@@ -451,6 +451,21 @@ test("W15 rollback tooling disables the worker schedule without an ENI or traffi
   assert.match(source, /inputKind: "w15-worker-event"/u);
 });
 
+test("W15 worker event validation uses the closed source packet", () => {
+  const source = readFileSync(
+    "scripts/run-json-postgres-production-infrastructure.mjs",
+    "utf8",
+  );
+  assert.match(
+    source,
+    /validateJsonPostgresW15ProjectionEvent\(workerEvent, \{\s+packet: packetSource,\s+artifactSha256: packet\.bindings\.artifact_sha256,\s+\}\);/u,
+  );
+  assert.doesNotMatch(
+    source,
+    /validateJsonPostgresW15ProjectionEvent\(workerEvent, \{\s+packet,\s+/u,
+  );
+});
+
 test("W15 inventory bootstrap closes the pre-schema audit cycle without direct secret access", () => {
   const runner = readFileSync(
     "scripts/run-json-postgres-production-infrastructure.mjs",
