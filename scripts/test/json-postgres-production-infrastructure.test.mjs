@@ -246,7 +246,7 @@ test("production template derives the proven private topology without synthetic 
     {
       Sid: "ReadExactHrxProjectionRuntimeInputs",
       Effect: "Allow",
-      Action: "s3:GetObjectVersion",
+      Action: ["s3:GetObjectVersion", "s3:GetObjectRetention"],
       Resource: [
         {
           "Fn::Sub":
@@ -398,6 +398,13 @@ test("production template fails closed on public RDS, synthetic content, wildcar
         .Resource[1] = {
           "Fn::Sub": "${ProgramInputBucket.Arn}/*",
         };
+    },
+    (value) => {
+      value.Resources.ApiExecutionRole.Properties.Policies[0]
+        .PolicyDocument.Statement
+        .find((item) =>
+          item.Sid === "ReadExactHrxProjectionRuntimeInputs")
+        .Action = ["s3:GetObjectVersion"];
     },
   ]) {
     const template = buildJsonPostgresProductionTemplate(reference);

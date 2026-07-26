@@ -531,7 +531,7 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   apiRole.Properties.Policies[0].PolicyDocument.Statement.splice(-1, 0, {
     Sid: "ReadExactHrxProjectionRuntimeInputs",
     Effect: "Allow",
-    Action: "s3:GetObjectVersion",
+    Action: ["s3:GetObjectVersion", "s3:GetObjectRetention"],
     Resource: [
       {
         "Fn::Sub":
@@ -1426,7 +1426,8 @@ export function validateJsonPostgresProductionTemplate(template) {
     "ReadExactHrxProjectionRuntimeInputs",
   );
   if (apiProjectionRead?.Effect !== "Allow"
-    || apiProjectionRead?.Action !== "s3:GetObjectVersion"
+    || JSON.stringify(apiProjectionRead?.Action)
+      !== JSON.stringify(["s3:GetObjectVersion", "s3:GetObjectRetention"])
     || JSON.stringify(apiProjectionRead?.Resource)
       !== JSON.stringify([
         {
