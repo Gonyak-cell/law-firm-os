@@ -1286,7 +1286,7 @@ if (operation === "preflight"
     throw new Error("W15 projection worker event exact binding drifted");
   }
   validateJsonPostgresW15ProjectionEvent(workerEvent, {
-    packet,
+    packet: packetSource,
     artifactSha256: packet.bindings.artifact_sha256,
   });
   const mappingLocator = normalizeImmutableProgramInputLocator(
