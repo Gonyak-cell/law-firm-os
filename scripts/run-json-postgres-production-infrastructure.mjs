@@ -552,6 +552,7 @@ const W15_WORKER_TOGGLE_CHANGE_IDS = new Set([
   "ProjectionWorkerSchedule",
   "ProjectionWorkerInvokePermission",
   "ProjectionWorkerDeadLetterQueuePolicy",
+  "SecretsManagerEndpoint",
 ]);
 
 function verifiedReceipt(path, kind, trustRegistry, packet) {
