@@ -99,6 +99,56 @@ async function seedEmployee(fixture, {
   );
 }
 
+async function seedInternalMigration(fixture, {
+  tenantId,
+  migrationId,
+  eventId,
+} = {}) {
+  const payload = {
+    id: migrationId,
+    hash: hashDomainValue({ migration_id: migrationId }),
+    applied_at: "2026-07-26T00:00:00.000Z",
+  };
+  await withPostgresTransaction(
+    fixture.appPool,
+    { tenant_id: tenantId },
+    async (client) => {
+      await client.query(
+        `INSERT INTO lawos_domain.records
+           (tenant_id, domain_id, record_type, record_id, state_version,
+            payload, payload_hash, append_only)
+         VALUES ($1, 'hrx', '__hrx_schema_migration', $2, 1, $3::jsonb, $4, true)`,
+        [
+          tenantId,
+          migrationId,
+          JSON.stringify(payload),
+          hashDomainValue(payload),
+        ],
+      );
+      await client.query(
+        `INSERT INTO lawos_domain.outbox_events
+           (tenant_id, domain_id, event_id, topic, aggregate_type,
+            aggregate_id, payload)
+         VALUES ($1, 'hrx', $2, 'hrx.audit', 'HrxSchemaMigration', $3, $4::jsonb)`,
+        [
+          tenantId,
+          eventId,
+          migrationId,
+          JSON.stringify({
+            audit_event_id: `audit:${eventId}`,
+            event_type: "hrx.schema.migration.applied",
+            payload_hash: hashDomainValue({ migration_id: migrationId }),
+            projection_records: [{
+              record_type: "__hrx_schema_migration",
+              record_id: migrationId,
+            }],
+          }),
+        ],
+      );
+    },
+  );
+}
+
 async function projectionContract(fixture, tenantIds, { batchSize = 1 } = {}) {
   const inventory = await collectHrxRelationalProductionInventory({
     pool: fixture.appPool,
@@ -225,6 +275,71 @@ test("HRX relational projection is bounded, replay-safe, RLS-isolated and event 
     ),
   );
   assert.equal(row.rows[0].display_name, "Projection Fixture A Updated");
+});
+
+test("HRX projection excludes only internal migration records and advances their outbox cursor", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  await prepareProjection(fixture);
+  const tenantId = "tenant-hrx-projection-internal-migration";
+  await seedEmployee(fixture, {
+    tenantId,
+    employeeId: "employee-internal-migration",
+    displayName: "Internal Migration Fixture",
+    eventId: "internal-migration-event-001",
+  });
+  await seedInternalMigration(fixture, {
+    tenantId,
+    migrationId: "001_internal_migration",
+    eventId: "internal-migration-event-002",
+  });
+  const contract = await projectionContract(fixture, [tenantId]);
+  const backfill = await project(fixture, contract, {
+    tenant_id: tenantId,
+    mode: "backfill",
+    workerRef: "worker-internal-migration-backfill",
+  });
+  assert.equal(backfill.outcome, "PASS");
+  assert.equal(backfill.safe_counts.projected_insert_count, 1);
+
+  await seedInternalMigration(fixture, {
+    tenantId,
+    migrationId: "002_internal_migration",
+    eventId: "internal-migration-event-003",
+  });
+  const incremental = await project(fixture, contract, {
+    tenant_id: tenantId,
+    mode: "incremental",
+    workerRef: "worker-internal-migration-incremental",
+  });
+  assert.equal(incremental.outcome, "PASS");
+  assert.equal(incremental.safe_counts.consumed_outbox_event_count, 1);
+  assert.equal(incremental.safe_counts.projected_insert_count, 0);
+  assert.equal(incremental.safe_counts.projected_update_count, 0);
+  assert.equal(incremental.safe_counts.remaining_outbox_event_count, 0);
+
+  await withPostgresTransaction(
+    fixture.appPool,
+    { tenant_id: tenantId },
+    (client) => client.query(
+      `INSERT INTO lawos_domain.records
+         (tenant_id, domain_id, record_type, record_id, state_version,
+          payload, payload_hash, append_only)
+       VALUES ($1, 'hrx', 'unapproved_hrx_internal_type', 'unknown-001',
+               1, '{}'::jsonb, $2, true)`,
+      [tenantId, hashDomainValue({})],
+    ),
+  );
+  await assert.rejects(
+    project(fixture, contract, {
+      tenant_id: tenantId,
+      mode: "backfill",
+      backfillWave: 1,
+      workerRef: "worker-unapproved-record-type",
+    }),
+    (error) =>
+      error?.code === "LAWOS_HRX_PROJECTION_UNAPPROVED_RECORD_TYPE",
+  );
 });
 
 test("HRX backfill enforces five ordered resumable waves and advances the outbox cursor only after wave five", async (t) => {
