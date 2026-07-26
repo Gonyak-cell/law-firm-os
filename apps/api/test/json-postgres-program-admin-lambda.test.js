@@ -949,6 +949,89 @@ test("W15 readback uses only the projection auditor credential and independently
   assert.equal(result.validation_evidence_sha256, "9".repeat(64));
 });
 
+test("W15 failed readback returns only bounded validation evidence for diagnosis", async () => {
+  const w15Authorization = authorization();
+  w15Authorization.packet = {
+    ...w15Authorization.packet,
+    phase: "w15-relational-projection",
+  };
+  w15Authorization.approval.phase = "w15-relational-projection";
+  const validation = {
+    schema_version: "law-firm-os.hrx-relational-projection-validation.v2",
+    outcome: "FAIL",
+    source_sha: SOURCE_SHA,
+    source_tree: SOURCE_TREE,
+    packet_sha256: PACKET_SHA,
+    result_sha256: "d".repeat(64),
+    table_observations: [],
+    safe_counts: {
+      shadow_difference_count: 0,
+      validation_elapsed_ms: 607,
+    },
+    claims: {
+      observations_collected_by_read_only_auditor: true,
+      raw_value_returned: false,
+      pii_returned: false,
+      secret_material_returned: false,
+    },
+  };
+  let evidenceWriteCount = 0;
+  const result = await executeJsonPostgresRelationalProjection({
+    event: {
+      action: JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
+      mode: "readback",
+      attempt_ref: "w15-auditor-failed-readback",
+      inputs: {},
+    },
+    env: {
+      ...env(),
+      LAWOS_PROGRAM_EXECUTION_ROLE: "projection-auditor",
+    },
+    authorize: async () => w15Authorization,
+    claim: async () => ({
+      approval_receipt_sha256: "f".repeat(64),
+      claim_sha256: "3".repeat(64),
+    }),
+    loadInputs: async () => ({
+      predecessors: [{}, {}, {}],
+      mappingManifest: { manifest_sha256: "4".repeat(64) },
+      productionInventory: { inventory_sha256: "5".repeat(64) },
+      performanceAcceptance: {
+        acceptance_sha256: "a".repeat(64),
+        connection_timeout_ms: 10_000,
+        statement_timeout_ms: 120_000,
+        pool_max: 2,
+      },
+    }),
+    resolveSecret: async ({ secretId }) => secretId === "lawos/hrx-projection-auditor"
+      ? {
+          username: "lawos_hrx_projection_auditor",
+          password: "auditor-value",
+        }
+      : {
+          tenant_context_secret:
+            "tenant-context-value-at-least-32-bytes",
+        },
+    createPool: () => ({ async end() {} }),
+    verifyMigrations: async () => [],
+    validateProjection: async () => validation,
+    writeEvidence: async () => {
+      evidenceWriteCount += 1;
+      return { sha256: "9".repeat(64) };
+    },
+    s3Client: {},
+  });
+  assert.equal(result.outcome, "FAIL");
+  assert.equal(result.action, JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION);
+  assert.equal(result.validation_evidence_sha256, null);
+  assert.equal(result.safe_counts.validation_elapsed_ms, 607);
+  assert.equal(result.claims.raw_value_returned, false);
+  assert.equal(result.claims.pii_returned, false);
+  assert.equal(result.claims.secret_material_returned, false);
+  assert.equal(evidenceWriteCount, 0);
+  assert.equal(JSON.stringify(result).includes("auditor-value"), false);
+});
+
 test("W15 projection auditor Lambda refuses bootstrap and projection writes", async () => {
   let authorizeCount = 0;
   await assert.rejects(

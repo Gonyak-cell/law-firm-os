@@ -1579,10 +1579,17 @@ export async function executeJsonPostgresRelationalProjection({
       await pool.end();
     }
     if (validation.outcome !== "PASS") {
-      fail(
-        "LAWOS_HRX_PROJECTION_VALIDATION_GATE",
-        "independent relational projection validation did not pass",
-      );
+      return Object.freeze({
+        ...validation,
+        action: JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
+        phase: authorization.packet.phase,
+        source_sha: authorization.exact.sourceSha,
+        source_tree: authorization.exact.sourceTree,
+        packet_sha256: authorization.packet.packet_sha256,
+        validation_evidence_sha256: null,
+        approval_receipt_sha256: claimEvidence.approval_receipt_sha256,
+        authorization_claim_sha256: claimEvidence.claim_sha256,
+      });
     }
     const evidence = await writeEvidence({
       kind: "w15-relational-projection-validation",

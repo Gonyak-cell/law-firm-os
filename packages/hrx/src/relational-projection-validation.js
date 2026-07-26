@@ -138,13 +138,17 @@ async function tenantSourceObservation(client, tenantId) {
         ORDER BY source_record_type, source_record_id`,
       [tenantId],
     );
-  const targets = new Map();
-  for (const table of HRX_STORE_TABLES) {
-    const result = await client.query(
-      `SELECT * FROM lawos_hrx."${table}" WHERE tenant_id = $1`,
-      [tenantId],
-    );
-    targets.set(table, result.rows);
+  const targets = new Map(HRX_STORE_TABLES.map((table) => [table, []]));
+  const targetRows = await client.query(
+    HRX_STORE_TABLES.map((table, index) =>
+      `SELECT $${index + 2}::text AS table_name,
+              to_jsonb(target_row) AS target_row
+         FROM lawos_hrx."${table}" AS target_row
+        WHERE tenant_id = $1`).join("\nUNION ALL\n"),
+    [tenantId, ...HRX_STORE_TABLES],
+  );
+  for (const row of targetRows.rows) {
+    targets.get(row.table_name).push(row.target_row);
   }
   return Object.freeze({
     tenantId,
