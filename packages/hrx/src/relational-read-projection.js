@@ -14,6 +14,9 @@ const SHA256_ZERO = "0".repeat(64);
 const LEASE_SECONDS = 120;
 const MAX_BATCH_SIZE = 5_000;
 const MAX_INCREMENTAL_EVENT_BATCH = 5_000;
+const NON_PROJECTED_RECORD_TYPES = Object.freeze([
+  "__hrx_schema_migration",
+]);
 
 function projectionError(message, code) {
   return Object.assign(new Error(message), {
@@ -466,7 +469,7 @@ async function unknownSourceTypeCount(client, tenantId, approvedTables) {
       WHERE tenant_id = $1
         AND domain_id = 'hrx'
         AND NOT (record_type = ANY($2::text[]))`,
-    [tenantId, approvedTables],
+    [tenantId, [...approvedTables, ...NON_PROJECTED_RECORD_TYPES]],
   );
   return Number(result.rows[0]?.count ?? 0);
 }
@@ -836,9 +839,17 @@ function validateProjectionEvent(event, index) {
     if (!reference || typeof reference !== "object" || Array.isArray(reference)
       || JSON.stringify(Object.keys(reference).sort())
         !== JSON.stringify(["record_id", "record_type"])
-      || !index.byTable.has(reference.record_type)
       || typeof reference.record_id !== "string"
       || !reference.record_id.trim()) {
+      throw projectionError(
+        "HRX outbox event contains an unapproved projection record reference",
+        "LAWOS_HRX_PROJECTION_EVENT_SHAPE",
+      );
+    }
+    if (NON_PROJECTED_RECORD_TYPES.includes(reference.record_type)) {
+      return null;
+    }
+    if (!index.byTable.has(reference.record_type)) {
       throw projectionError(
         "HRX outbox event contains an unapproved projection record reference",
         "LAWOS_HRX_PROJECTION_EVENT_SHAPE",
@@ -848,7 +859,7 @@ function validateProjectionEvent(event, index) {
       record_type: reference.record_type,
       record_id: reference.record_id,
     });
-  });
+  }).filter(Boolean);
 }
 
 async function pendingOutbox(client, tenantId, cursor, limit) {
