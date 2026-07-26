@@ -945,6 +945,7 @@ test("W15 readback uses only the projection auditor credential and independently
     "lawos/tenant-context",
   ]);
   assert.equal(poolOptions.applicationName, "lawos-hrx-relational-auditor");
+  assert.equal(poolOptions.max, 2);
   assert.equal(result.outcome, "PASS");
   assert.equal(result.validation_evidence_sha256, "9".repeat(64));
 });

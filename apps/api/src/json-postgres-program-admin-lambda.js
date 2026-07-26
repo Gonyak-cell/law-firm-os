@@ -1446,7 +1446,7 @@ export async function executeJsonPostgresRelationalProjection({
       inputs.performanceAcceptance.connection_timeout_ms,
     statementTimeoutMillis:
       inputs.performanceAcceptance.statement_timeout_ms,
-    max: readback ? 1 : Math.min(2, inputs.performanceAcceptance.pool_max),
+    max: Math.min(2, inputs.performanceAcceptance.pool_max),
   });
   const approvedTenantIds = authorization.packet.target.approved_tenant_ids;
   if (event.mode === "rollout") {
