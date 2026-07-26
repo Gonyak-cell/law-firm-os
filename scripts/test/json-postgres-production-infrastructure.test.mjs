@@ -388,6 +388,16 @@ test("W15 rollback tooling disables the worker schedule without an ENI or traffi
     source,
     /ProjectionWorkerEventJson: serializedWorkerEventLocator/u,
   );
+  assert.match(
+    source,
+    /const W15_WORKER_TOGGLE_CHANGE_IDS = new Set\(\[\s*"ProjectionWorkerSchedule",\s*"ProjectionWorkerInvokePermission",\s*"ProjectionWorkerDeadLetterQueuePolicy",\s*\]\)/u,
+  );
+  assert.equal(
+    source.match(
+      /assertReviewedChangeSubset\(\s*review,\s*W15_WORKER_TOGGLE_CHANGE_IDS,/gu,
+    )?.length,
+    4,
+  );
   assert.doesNotMatch(
     source,
     /ProjectionWorkerEventJson: JSON\.stringify\(workerEvent\)/u,
