@@ -8535,6 +8535,69 @@ html[data-theme="dark"] .public-preview {
   background: #075fd0;
 }
 
+.matter-login-recovery {
+  min-height: 274px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 22px;
+  text-align: center;
+}
+
+.matter-login-recovery-icon {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(11, 115, 238, 0.08);
+  color: #0b73ee;
+}
+
+.matter-login-recovery-copy {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  color: #515b66;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.matter-login-recovery-copy strong {
+  color: #15191f;
+  font-size: 22px;
+}
+
+.matter-login-recovery .matter-login-field {
+  width: 100%;
+  text-align: left;
+}
+
+.matter-login-recovery-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.matter-login-recovery-actions .matter-login-submit {
+  width: auto;
+  min-width: 148px;
+  padding: 0 24px;
+}
+
+.matter-login-secondary {
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: #56616d;
+  padding: 0 10px;
+  font-size: 15px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .matter-login-photo-panel {
   position: relative;
   min-width: 0;
@@ -15620,6 +15683,11 @@ html[data-skin="forest"] .matter-login-submit {
 
 html[data-skin="forest"] .matter-login-submit:hover {
   background: #1FAA52;
+}
+
+html[data-skin="forest"] .matter-login-recovery-icon {
+  background: rgba(38, 194, 96, 0.12);
+  color: #1FAA52;
 }
 
 html[data-skin="forest"] .primary-button {

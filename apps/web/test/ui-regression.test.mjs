@@ -1083,6 +1083,14 @@ test("login surfaces keep credentials bounded and desktop supports password setu
   assert.match(authSource, /data-login-form="email-password"/);
   assert.match(authSource, /data-login-email/);
   assert.match(authSource, /data-login-password/);
+  assert.match(authSource, /requestLawosPasswordReset/);
+  assert.match(authSource, /confirmLawosPasswordReset/);
+  assert.match(authSource, /onPasswordResetDeepLink/);
+  assert.match(authSource, /data-login-form="password-reset"/);
+  assert.match(authSource, /data-reset-new-password/);
+  assert.match(authSource, /data-reset-confirm-password/);
+  assert.match(authSource, /등록 및 사용 가능한 계정이라면/);
+  assert.doesNotMatch(authSource, /latestResetEmail|reset_url|email_message/);
   assert.match(stylesSource, /\.matter-login-stage/);
   assert.match(stylesSource, /html\[data-skin="forest"\] \.matter-login-stage[\s\S]*grid-template-columns:\s*minmax\(520px, 52fr\) minmax\(420px, 48fr\)/);
   assert.match(stylesSource, /@keyframes forestLoginPageIn/);

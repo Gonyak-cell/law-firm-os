@@ -68,7 +68,7 @@ export const DEEP_LINK_AUDIT_EVENTS = Object.freeze({
 });
 
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]{1,127}$/;
-const RESET_TOKEN_PATTERN = /^[A-Za-z0-9_-]{16,256}$/;
+const RESET_TOKEN_PATTERN = /^(?=.{16,256}$)[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)?$/;
 const REDACTED_RESET_TOKEN = "[reset-token-redacted]";
 const FORBIDDEN_ACTION_HOSTS = new Set([
   "mutate",

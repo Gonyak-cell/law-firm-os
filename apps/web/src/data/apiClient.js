@@ -247,12 +247,12 @@ function writeSessionEnvelopeFromApiSession(body, source = globalThis) {
   storage.setItem(LAWOS_SESSION_ENVELOPE_STORAGE_KEY, JSON.stringify(envelope));
 }
 
-function desktopSessionLoginBridge(source = globalThis) {
+function desktopSessionBridge(method, source = globalThis) {
   const windowLike = source?.window ?? source;
   const location = windowLike?.location ?? source?.location;
   if (!isDesktopRendererLocation(location)) return null;
   const bridge = windowLike?.matterSession ?? source?.matterSession;
-  return typeof bridge?.login === "function" ? bridge.login.bind(bridge) : null;
+  return typeof bridge?.[method] === "function" ? bridge[method].bind(bridge) : null;
 }
 
 function writeLawosDesktopSession(body, source = globalThis) {
@@ -277,7 +277,7 @@ function writeLawosApiSession(body, source = globalThis) {
 }
 
 export async function loginLawosApiSession({ email, password } = {}, { source = globalThis } = {}) {
-  const desktopLogin = desktopSessionLoginBridge(source);
+  const desktopLogin = desktopSessionBridge("login", source);
   if (desktopLogin) {
     try {
       const body = await desktopLogin({ email, password });
@@ -305,6 +305,60 @@ export async function loginLawosApiSession({ email, password } = {}, { source = 
   }
   const stored = response.ok ? writeLawosApiSession(body, source) : false;
   return { ok: response.ok && stored, status: response.status, body };
+}
+
+function passwordResetResult(body, status, { confirmation = false } = {}) {
+  const accepted = body?.ok === true || body?.accepted === true || (confirmation && body?.activated === true);
+  const normalizedStatus = Number(status ?? body?.http_status ?? body?.status ?? (accepted ? 200 : 0)) || 0;
+  return Object.freeze({
+    ok: normalizedStatus >= 200 && normalizedStatus < 300 && accepted,
+    status: normalizedStatus,
+    reason: typeof body?.reason === "string" ? body.reason : ""
+  });
+}
+
+export async function requestLawosPasswordReset({ email } = {}, { source = globalThis } = {}) {
+  const desktopRequest = desktopSessionBridge("requestPasswordReset", source);
+  if (desktopRequest) {
+    try {
+      const body = await desktopRequest({ email });
+      return passwordResetResult(body, body?.http_status ?? body?.status);
+    } catch {
+      return passwordResetResult({ reason: "desktop_password_reset_bridge_failed" }, 0);
+    }
+  }
+  try {
+    const response = await fetch(apiRequestUrl("/api/auth/password-reset/request"), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    return passwordResetResult(await response.json(), response.status);
+  } catch {
+    return passwordResetResult({ reason: "network_or_parse_error" }, 0);
+  }
+}
+
+export async function confirmLawosPasswordReset({ token, password } = {}, { source = globalThis } = {}) {
+  const desktopConfirm = desktopSessionBridge("confirmPasswordReset", source);
+  if (desktopConfirm) {
+    try {
+      const body = await desktopConfirm({ token, password });
+      return passwordResetResult(body, body?.http_status ?? body?.status, { confirmation: true });
+    } catch {
+      return passwordResetResult({ reason: "desktop_password_reset_bridge_failed" }, 0, { confirmation: true });
+    }
+  }
+  try {
+    const response = await fetch(apiRequestUrl("/api/auth/password-reset/confirm"), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ token, password })
+    });
+    return passwordResetResult(await response.json(), response.status, { confirmation: true });
+  } catch {
+    return passwordResetResult({ reason: "network_or_parse_error" }, 0, { confirmation: true });
+  }
 }
 
 function sessionAuthorizedHeaders(headers = {}) {

@@ -236,6 +236,98 @@ test("Forest login preserves its one-shot intro until the page is focused", asyn
   }
 });
 
+test("Forest login completes email password recovery without exposing the one-time token", async () => {
+  const server = await createServer({
+    root: webRoot,
+    logLevel: "silent",
+    server: { host: "127.0.0.1", port: 0, strictPort: true }
+  });
+  const browser = await chromium.launch({ headless: true });
+  const context = await browser.newContext({ viewport: { width: 1280, height: 768 } });
+  const requestBodies = [];
+  const resetToken = "dGVuYW50X2FtaWNfbWF0dGVyX3ZhdWx0.reset_token_for_browser_test";
+  try {
+    await server.listen();
+    const baseUrl = server.resolvedUrls?.local?.[0];
+    assert.ok(baseUrl);
+    await context.addInitScript(() => {
+      sessionStorage.setItem("matter.login.intro.played.v1", "1");
+      window.matterSession = {
+        onPasswordResetDeepLink(handler) {
+          window.__emitPasswordResetDeepLink = handler;
+          return () => {
+            delete window.__emitPasswordResetDeepLink;
+          };
+        }
+      };
+    });
+    const page = await context.newPage();
+    await page.route("**/api/auth/password-reset/request", async (route) => {
+      requestBodies.push(JSON.parse(route.request().postData() ?? "{}"));
+      await route.fulfill({
+        status: 202,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true, accepted: true, token_material_returned: false })
+      });
+    });
+    await page.route("**/api/auth/password-reset/confirm", async (route) => {
+      requestBodies.push(JSON.parse(route.request().postData() ?? "{}"));
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true, accepted: true, activated: true, token_material_returned: false })
+      });
+    });
+
+    await page.goto(`${baseUrl}?view=auth&authStep=login`, { waitUntil: "networkidle" });
+    await page.locator("[data-login-forgot-password]").click();
+    await page.locator("[data-login-recovery-state]").waitFor();
+    assert.match(await page.locator("[data-login-recovery-state]").innerText(), /업무 이메일을 먼저 입력/);
+    assert.equal(requestBodies.length, 0);
+
+    await page.locator("[data-login-email]").fill("staff@amic.kr");
+    await page.locator("[data-login-forgot-password]").click();
+    await page.locator("[data-login-recovery-panel='sent']").waitFor();
+    assert.match(
+      await page.locator("[data-login-recovery-panel='sent']").innerText(),
+      /등록 및 사용 가능한 계정이라면/
+    );
+
+    await page.evaluate((token) => {
+      window.__emitPasswordResetDeepLink?.({
+        type: "password_reset_confirm",
+        routeOnly: true,
+        token
+      });
+    }, resetToken);
+    await page.locator("[data-login-form='password-reset']").waitFor();
+    assert.equal((await page.locator("body").innerText()).includes(resetToken), false);
+
+    await page.locator("[data-reset-new-password]").fill("new-password-123");
+    await page.locator("[data-reset-confirm-password]").fill("different-pass-123");
+    await page.locator("[data-login-form='password-reset'] .matter-login-submit").click();
+    await page.locator("[data-login-recovery-state]").waitFor();
+    assert.match(await page.locator("[data-login-recovery-state]").innerText(), /서로 다릅니다/);
+    assert.equal(requestBodies.length, 1);
+
+    await page.locator("[data-reset-confirm-password]").fill("new-password-123");
+    await page.locator("[data-login-form='password-reset'] .matter-login-submit").click();
+    await page.locator("[data-login-recovery-panel='success']").waitFor();
+    await page.getByRole("button", { name: "로그인으로 돌아가기" }).click();
+    await page.locator("[data-login-form='email-password']").waitFor();
+    assert.equal(await page.locator("[data-login-password]").inputValue(), "");
+
+    assert.deepEqual(requestBodies, [
+      { email: "staff@amic.kr" },
+      { token: resetToken, password: "new-password-123" }
+    ]);
+  } finally {
+    await context.close();
+    await browser.close();
+    await server.close();
+  }
+});
+
 for (const width of [1280, 1180, 1024, 820]) {
   for (const modeException of [false, true]) {
     test(`forest shell fits ${width}x700${modeException ? " mode exception" : ""}`, async () => {
